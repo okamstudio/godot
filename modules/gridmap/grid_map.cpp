@@ -267,16 +267,27 @@ RID GridMap::get_navigation_map() const {
 }
 
 void GridMap::set_mesh_library(const Ref<MeshLibrary> &p_mesh_library) {
-	if (mesh_library.is_valid()) {
-		mesh_library->disconnect_changed(callable_mp(this, &GridMap::_recreate_octant_data));
-	}
-	mesh_library = p_mesh_library;
-	if (mesh_library.is_valid()) {
-		mesh_library->connect_changed(callable_mp(this, &GridMap::_recreate_octant_data));
+	if (mesh_library != p_mesh_library) {
+		if (mesh_library.is_valid()) {
+			mesh_library->disconnect_changed(callable_mp(this, &GridMap::_recreate_octant_data));
+		}
+		mesh_library = p_mesh_library;
+		if (mesh_library.is_valid()) {
+			mesh_library->connect_changed(callable_mp(this, &GridMap::_recreate_octant_data));
+		}
 	}
 
-	_recreate_octant_data();
-	emit_signal(CoreStringName(changed));
+		if (!mesh_library.is_null()) {
+			mesh_library->unregister_owner(this);
+		}
+		mesh_library = p_mesh_library;
+		if (!mesh_library.is_null()) {
+			mesh_library->register_owner(this);
+		}
+
+		_recreate_octant_data();
+		emit_signal(CoreStringName(changed));
+	}
 }
 
 Ref<MeshLibrary> GridMap::get_mesh_library() const {
@@ -1130,6 +1141,8 @@ void GridMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_baked_meshes"), &GridMap::clear_baked_meshes);
 	ClassDB::bind_method(D_METHOD("make_baked_meshes", "gen_lightmap_uv", "lightmap_uv_texel_size"), &GridMap::make_baked_meshes, DEFVAL(false), DEFVAL(0.1));
 
+	ClassDB::bind_method(D_METHOD("fix_invalid_cells"), &GridMap::fix_invalid_cells);
+
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "mesh_library", PROPERTY_HINT_RESOURCE_TYPE, "MeshLibrary"), "set_mesh_library", "get_mesh_library");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "physics_material", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material", "get_physics_material");
 	ADD_GROUP("Cell", "cell_");
@@ -1340,6 +1353,16 @@ Array GridMap::get_bake_meshes() {
 RID GridMap::get_bake_mesh_instance(int p_idx) {
 	ERR_FAIL_INDEX_V(p_idx, baked_meshes.size(), RID());
 	return baked_meshes[p_idx].instance;
+}
+
+void GridMap::fix_invalid_cells() {
+	ERR_FAIL_COND_MSG(mesh_library.is_null(), "Cannot fix invalid cells if MeshLibrary is not open.");
+
+	for (Map<IndexKey, Cell>::Element *E = cell_map.front(); E; E = E->next()) {
+		if (!mesh_library.is_valid() || !mesh_library->has_item(E->value().item)) {
+			set_cell_item(E->key().x, E->key().y, E->key().z, INVALID_CELL_ITEM);
+		}
+	}
 }
 
 GridMap::GridMap() {
