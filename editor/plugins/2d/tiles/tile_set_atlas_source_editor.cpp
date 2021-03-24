@@ -38,7 +38,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_toaster.h"
-#include "editor/plugins/tiles/tile_set_editor.h"
+#include "editor/plugins/2d/tiles/tile_set_editor.h"
 #include "editor/themes/editor_scale.h"
 
 #include "scene/gui/box_container.h"

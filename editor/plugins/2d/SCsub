@@ -5,5 +5,4 @@ Import("env")
 
 env.add_source_files(env.editor_sources, "*.cpp")
 
-SConscript("2d/SCsub")
-SConscript("gizmos/SCsub")
+SConscript("tiles/SCsub")
