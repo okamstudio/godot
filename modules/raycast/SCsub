@@ -81,9 +81,16 @@ if env["builtin_embree"]:
     env_thirdparty.disable_warnings()
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
+    # Set x86 CPU instruction sets to use when building Embree's own intrinsics.
+    # Keep this in sync with Godot's main SConstruct file.
     if env["arch"] != "x86_64" or env.msvc:
-        # Embree needs those, it will automatically use SSE2NEON in ARM
-        env_thirdparty.Append(CPPDEFINES=["__SSE2__", "__SSE__"])
+        # Embree needs those; it will automatically use SSE2NEON in ARM.
+        env_thirdparty.Append(CPPDEFINES=["__SSE__", "__SSE2__"])
+
+    if env["arch"] == "x86_64":
+        # On 64-bit x86, enable SSE 4.2 and prior instruction sets to improve performance.
+        # This is supported on most CPUs released after 2009-2011 (Intel Nehalem, AMD Bulldozer).
+        env.Append(CPPDEFINES=["__SSE3__", "__SSSE3__", "__SSE4_1__", "__SSE4_2__"])
 
     if env["platform"] == "web":
         env_thirdparty.Append(CXXFLAGS=["-msimd128"])
