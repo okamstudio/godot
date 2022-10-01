@@ -699,6 +699,7 @@ public:
 	virtual bool is_attached_in_viewport() const { return false; }
 	virtual bool is_sub_viewport() const { return false; }
 
+#ifndef _2D_DISABLED
 private:
 	// 2D audio, camera, and physics. (don't put World2D here because World2D is needed for Control nodes).
 	friend class AudioListener2D; // Needs _audio_listener_2d_set and _audio_listener_2d_remove
@@ -718,6 +719,7 @@ private:
 	HashMap<Pair<ObjectID, int>, uint64_t, PairHash<ObjectID, int>> physics_2d_shape_mouseover;
 	// Cleans up colliders corresponding to old frames or all of them.
 	void _cleanup_mouseover_colliders(bool p_clean_all_frames, bool p_paused_only, uint64_t p_frame_reference = 0);
+#endif // _2D_DISABLED
 
 public:
 	AudioListener2D *get_audio_listener_2d() const;

@@ -160,7 +160,7 @@
 #include "scene/resources/world_2d.h"
 #include "scene/theme/theme_db.h"
 
-// 2D
+#ifndef _2D_DISABLED
 #include "scene/2d/animated_sprite_2d.h"
 #include "scene/2d/audio_listener_2d.h"
 #include "scene/2d/audio_stream_player_2d.h"
@@ -229,6 +229,7 @@
 #include "scene/resources/2d/skeleton/skeleton_modification_stack_2d.h"
 #include "scene/resources/2d/tile_set.h"
 #include "scene/resources/2d/world_boundary_shape_2d.h"
+#endif // _2D_DISABLED
 
 #ifndef _3D_DISABLED
 #include "scene/3d/audio_listener_3d.h"
@@ -382,7 +383,10 @@ void register_scene_types() {
 	GDREGISTER_CLASS(HTTPRequest);
 	GDREGISTER_CLASS(Timer);
 	GDREGISTER_CLASS(CanvasLayer);
+#ifndef _2D_DISABLED
+	// CanvasModulate must be registered before BaseButton... for some reason.
 	GDREGISTER_CLASS(CanvasModulate);
+#endif // _2D_DISABLED
 	GDREGISTER_CLASS(ResourcePreloader);
 	GDREGISTER_CLASS(Window);
 
@@ -482,7 +486,9 @@ void register_scene_types() {
 	GDREGISTER_CLASS(GraphElement);
 	GDREGISTER_CLASS(GraphNode);
 	GDREGISTER_CLASS(GraphFrame);
+#ifndef _2D_DISABLED
 	GDREGISTER_CLASS(GraphEdit);
+#endif // _2D_DISABLED
 
 	OS::get_singleton()->yield(); // may take time to init
 
@@ -785,6 +791,7 @@ void register_scene_types() {
 
 	/* REGISTER 2D */
 
+#ifndef _2D_DISABLED
 	GDREGISTER_CLASS(Node2D);
 	GDREGISTER_CLASS(CanvasGroup);
 	GDREGISTER_CLASS(CPUParticles2D);
@@ -853,6 +860,7 @@ void register_scene_types() {
 
 	GDREGISTER_CLASS(PhysicalBone2D);
 	GDREGISTER_CLASS(SkeletonModification2DPhysicalBones);
+#endif // _2D_DISABLED
 
 	OS::get_singleton()->yield(); // may take time to init
 
@@ -1004,6 +1012,7 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); // may take time to init
 
+#ifndef _2D_DISABLED
 	GDREGISTER_CLASS(AudioStreamPlayer2D);
 	GDREGISTER_ABSTRACT_CLASS(Shape2D);
 	GDREGISTER_CLASS(WorldBoundaryShape2D);
@@ -1026,6 +1035,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(NavigationAgent2D);
 	GDREGISTER_CLASS(NavigationObstacle2D);
 	GDREGISTER_CLASS(NavigationLink2D);
+#endif // _2D_DISABLED
 
 	OS::get_singleton()->yield(); // may take time to init
 

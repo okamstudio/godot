@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#ifndef _2D_DISABLED
+
 #include "physics_server_2d_wrap_mt.h"
 
 void PhysicsServer2DWrapMT::_assign_mt_ids(WorkerThreadPool::TaskID p_pump_task_id) {
@@ -108,3 +110,5 @@ PhysicsServer2DWrapMT::PhysicsServer2DWrapMT(PhysicsServer2D *p_contained, bool 
 PhysicsServer2DWrapMT::~PhysicsServer2DWrapMT() {
 	memdelete(physics_server_2d);
 }
+
+#endif // _2D_DISABLED
