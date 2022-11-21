@@ -140,6 +140,7 @@ public:
 
 void SectionedInspector::_bind_methods() {
 	ClassDB::bind_method("update_category_list", &SectionedInspector::update_category_list);
+	ADD_SIGNAL(MethodInfo("category_changed", PropertyInfo(Variant::STRING, "new_category")));
 }
 
 void SectionedInspector::_section_selected() {
@@ -150,6 +151,7 @@ void SectionedInspector::_section_selected() {
 	selected_category = sections->get_selected()->get_metadata(0);
 	filter->set_section(selected_category, sections->get_selected()->get_first_child() == nullptr);
 	inspector->set_property_prefix(selected_category + "/");
+	emit_signal(SNAME("category_changed"), selected_category);
 }
 
 void SectionedInspector::set_current_section(const String &p_section) {

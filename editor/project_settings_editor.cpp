@@ -75,6 +75,12 @@ void ProjectSettingsEditor::popup_project_settings(bool p_clear_filter) {
 	_focus_current_search_box();
 }
 
+void ProjectSettingsEditor::popup_for_override(const String &p_override) {
+	popup_project_settings();
+	tab_container->set_current_tab(0);
+	general_settings_inspector->set_current_section("editor_overrides/" + p_override.get_slice("/", 0));
+}
+
 void ProjectSettingsEditor::queue_save() {
 	timer->start();
 }
@@ -97,11 +103,39 @@ void ProjectSettingsEditor::init_autoloads() {
 }
 
 void ProjectSettingsEditor::_setting_edited(const String &p_name) {
+	const String full_name = general_settings_inspector->get_full_item_path(p_name);
+	if (full_name.begins_with(ProjectSettings::EDITOR_SETTING_OVERRIDE_PREFIX)) {
+		EditorSettings::get_singleton()->mark_setting_changed(full_name.trim_prefix(ProjectSettings::EDITOR_SETTING_OVERRIDE_PREFIX));
+		pending_override_notify = true;
+	}
 	queue_save();
 }
 
 void ProjectSettingsEditor::_update_advanced(bool p_is_advanced) {
 	custom_properties->set_visible(p_is_advanced);
+}
+
+void ProjectSettingsEditor::_save_settings() {
+	ps->save();
+	if (pending_override_notify) {
+		pending_override_notify = false;
+		EditorNode::get_singleton()->notify_settings_overrides_changed();
+	}
+}
+
+void ProjectSettingsEditor::_on_category_changed(const String &p_new_category) {
+	general_settings_inspector->get_inspector()->set_use_deletable_properties(p_new_category.begins_with(ProjectSettings::EDITOR_SETTING_OVERRIDE_PREFIX));
+}
+
+void ProjectSettingsEditor::_on_editor_override_deleted(const String &p_setting) {
+	const String full_name = general_settings_inspector->get_full_item_path(p_setting);
+	ERR_FAIL_COND(!full_name.begins_with(ProjectSettings::EDITOR_SETTING_OVERRIDE_PREFIX));
+
+	ProjectSettings::get_singleton()->set_setting(full_name, Variant());
+	EditorSettings::get_singleton()->mark_setting_changed(full_name.trim_prefix(ProjectSettings::EDITOR_SETTING_OVERRIDE_PREFIX));
+	pending_override_notify = true;
+	_save_settings();
+	general_settings_inspector->update_category_list();
 }
 
 void ProjectSettingsEditor::_advanced_toggled(bool p_button_pressed) {
@@ -690,9 +724,11 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	general_settings_inspector->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	general_settings_inspector->register_search_box(search_box);
 	general_settings_inspector->register_advanced_toggle(advanced);
+	general_settings_inspector->connect("category_changed", callable_mp(this, &ProjectSettingsEditor::_on_category_changed));
 	general_settings_inspector->get_inspector()->set_use_filter(true);
 	general_settings_inspector->get_inspector()->connect("property_selected", callable_mp(this, &ProjectSettingsEditor::_setting_selected));
 	general_settings_inspector->get_inspector()->connect("property_edited", callable_mp(this, &ProjectSettingsEditor::_setting_edited));
+	general_settings_inspector->get_inspector()->connect("property_deleted", callable_mp(this, &ProjectSettingsEditor::_on_editor_override_deleted));
 	general_settings_inspector->get_inspector()->connect("restart_requested", callable_mp(this, &ProjectSettingsEditor::_editor_restart_request));
 	general_editor->add_child(general_settings_inspector);
 
@@ -763,7 +799,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
-	timer->connect("timeout", callable_mp(ps, &ProjectSettings::save));
+	timer->connect("timeout", callable_mp(this, &ProjectSettingsEditor::_save_settings));
 	timer->set_one_shot(true);
 	add_child(timer);
 
