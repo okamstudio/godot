@@ -365,6 +365,28 @@ NodePath NodePath::simplified() const {
 	return np;
 }
 
+NodePath NodePath::from_string_name(const StringName &p_string_name) {
+	String string = String(p_string_name);
+	const int size = string.size();
+	if (size == 0) {
+		return NodePath();
+	}
+	// Check if p_string_name contains a slash or colon. If so, we need to parse it.
+	const char32_t *chars = string.ptr();
+	for (int i = 0; i < size; i++) {
+		if (unlikely(chars[i] == '/' || chars[i] == ':')) {
+			return NodePath(string);
+		}
+	}
+	// If there is no colon or slash, the desired NodePath has one StringName.
+	// Therefore we can avoid all the String parsing and StringName re-creation.
+	Vector<StringName> path;
+	path.push_back(p_string_name);
+	NodePath ret = NodePath(path, false);
+	ret.data->concatenated_path = p_string_name;
+	return ret;
+}
+
 NodePath::NodePath(const Vector<StringName> &p_path, bool p_absolute) {
 	if (p_path.size() == 0 && !p_absolute) {
 		return;

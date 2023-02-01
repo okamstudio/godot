@@ -81,6 +81,13 @@
 		</constructor>
 	</constructors>
 	<methods>
+		<method name="from_string_name" qualifiers="static">
+			<return type="NodePath" />
+			<param index="0" name="string_name" type="StringName" />
+			<description>
+				Constructs a NodePath from a [StringName]. This method will be faster than constructing from a String if the StringName does not contain any slashes or colons.
+			</description>
+		</method>
 		<method name="get_as_property_path" qualifiers="const">
 			<return type="NodePath" />
 			<description>

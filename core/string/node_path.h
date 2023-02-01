@@ -89,6 +89,8 @@ public:
 	void simplify();
 	NodePath simplified() const;
 
+	static NodePath from_string_name(const StringName &p_string_name);
+
 	NodePath(const Vector<StringName> &p_path, bool p_absolute);
 	NodePath(const Vector<StringName> &p_path, const Vector<StringName> &p_subpath, bool p_absolute);
 	NodePath(const NodePath &p_path);
