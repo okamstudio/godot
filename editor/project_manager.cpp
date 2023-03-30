@@ -1283,6 +1283,8 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 
 		title_bar_logo = memnew(Button);
 		title_bar_logo->set_flat(true);
+		title_bar_logo->set_tooltip_text(TTR("About Godot"));
+		title_bar_logo->set_accessibility_name(TTR("About Godot"));
 		left_hbox->add_child(title_bar_logo);
 		title_bar_logo->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_show_about));
 
@@ -1363,12 +1365,14 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 			hb->add_child(scan_btn);
 
 			loading_label = memnew(Label(TTR("Loading, please wait...")));
+			loading_label->set_accessibility_live(DisplayServer::AccessibilityLiveMode::LIVE_ASSERTIVE);
 			loading_label->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 			loading_label->hide();
 			hb->add_child(loading_label);
 
 			search_box = memnew(LineEdit);
 			search_box->set_placeholder(TTR("Filter Projects"));
+			search_box->set_accessibility_name(TTR("Filter Projects"));
 			search_box->set_tooltip_text(TTR("This field filters projects by name and last path component.\nTo filter projects by name and full path, the query must contain at least one `/` character."));
 			search_box->set_clear_button_enabled(true);
 			search_box->connect(SceneStringName(text_changed), callable_mp(this, &ProjectManager::_on_search_term_changed));
@@ -1376,14 +1380,16 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 			search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 			hb->add_child(search_box);
 
-			Label *sort_label = memnew(Label);
+			sort_label = memnew(Label);
 			sort_label->set_text(TTR("Sort:"));
+			sort_label->set_focus_mode(Control::FOCUS_NONE);
 			hb->add_child(sort_label);
 
 			filter_option = memnew(OptionButton);
 			filter_option->set_clip_text(true);
 			filter_option->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 			filter_option->set_stretch_ratio(0.3);
+			filter_option->set_accessibility_name(TTR("Sort"));
 			filter_option->connect(SceneStringName(item_selected), callable_mp(this, &ProjectManager::_on_order_option_changed));
 			hb->add_child(filter_option);
 
@@ -1508,6 +1514,7 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 
 			manage_tags_btn = memnew(Button);
 			manage_tags_btn->set_text(TTR("Manage Tags"));
+			manage_tags_btn->set_shortcut(ED_SHORTCUT("project_manager/project_tags", TTR("Manage Tags"), KeyModifierMask::CMD_OR_CTRL | Key::T));
 			project_list_sidebar->add_child(manage_tags_btn);
 
 			erase_btn = memnew(Button);

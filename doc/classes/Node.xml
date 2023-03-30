@@ -36,6 +36,20 @@
 				Corresponds to the [constant NOTIFICATION_EXIT_TREE] notification in [method Object._notification] and signal [signal tree_exiting]. To get notified when the node has already left the active tree, connect to the [signal tree_exited].
 			</description>
 		</method>
+		<method name="_get_accessibility_configuration_warnings" qualifiers="virtual const">
+			<return type="PackedStringArray" />
+			<description>
+				The elements in the array returned from this method are displayed as warnings in the Scene dock if the script that overrides it is a [code]tool[/code] script, and accessibility warnings are enabled in the editor settings.
+				Returning an empty array produces no warnings.
+			</description>
+		</method>
+		<method name="_get_accessibility_container_name" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="node" type="Node" />
+			<description>
+				Returns human-readable description of the position of [param node] child in the custom container, added to the node name.
+			</description>
+		</method>
 		<method name="_get_configuration_warnings" qualifiers="virtual const">
 			<return type="PackedStringArray" />
 			<description>
@@ -54,6 +68,12 @@
 				    else:
 				        return []
 				[/codeblock]
+			</description>
+		</method>
+		<method name="_get_focused_accessibility_element" qualifiers="virtual const">
+			<return type="RID" />
+			<description>
+				Called during accessibility information updates to determine currently focused sub-element, should return sub-element RID or value returned by [method get_accessibility_element].
 			</description>
 		</method>
 		<method name="_input" qualifiers="virtual">
@@ -297,6 +317,13 @@
 			<description>
 				Finds the first ancestor of this node whose [member name] matches [param pattern], returning [code]null[/code] if no match is found. The matching is done through [method String.match]. As such, it is case-sensitive, [code]"*"[/code] matches zero or more characters, and [code]"?"[/code] matches any single character. See also [method find_child] and [method find_children].
 				[b]Note:[/b] As this method walks upwards in the scene tree, it can be slow in large, deeply nested nodes. Consider storing a reference to the found node in a variable. Alternatively, use [method get_node] with unique names (see [member unique_name_in_owner]).
+			</description>
+		</method>
+		<method name="get_accessibility_element" qualifiers="const">
+			<return type="RID" />
+			<description>
+				Returns main accessibility element RID.
+				[b]Note:[/b] This method should be called only during accessibility information updates ([constant NOTIFICATION_ACCESSIBILITY_UPDATE]).
 			</description>
 		</method>
 		<method name="get_child" qualifiers="const">
@@ -777,6 +804,12 @@
 				Calls [method Object.notification] with [param what] on this node and all of its children, recursively.
 			</description>
 		</method>
+		<method name="queue_accessibility_update">
+			<return type="void" />
+			<description>
+				Queues an accessibility information update for this node.
+			</description>
+		</method>
 		<method name="queue_free" keywords="delete, remove, kill, die">
 			<return type="void" />
 			<description>
@@ -994,6 +1027,27 @@
 		</method>
 	</methods>
 	<members>
+		<member name="accessibility_controls_nodes" type="NodePath[]" setter="set_accessibility_controls_nodes" getter="get_accessibility_controls_nodes" default="[]">
+			The list of nodes, which are controlled by this node.
+		</member>
+		<member name="accessibility_described_by_nodes" type="NodePath[]" setter="set_accessibility_described_by_nodes" getter="get_accessibility_described_by_nodes" default="[]">
+			The list of nodes, which are describing this node.
+		</member>
+		<member name="accessibility_description" type="String" setter="set_accessibility_description" getter="get_accessibility_description" default="&quot;&quot;">
+			The human-readable node description that is reported to assistive apps.
+		</member>
+		<member name="accessibility_flow_to_nodes" type="NodePath[]" setter="set_accessibility_flow_to_nodes" getter="get_accessibility_flow_to_nodes" default="[]">
+			The list of nodes, which this node flows into.
+		</member>
+		<member name="accessibility_labeled_by_nodes" type="NodePath[]" setter="set_accessibility_labeled_by_nodes" getter="get_accessibility_labeled_by_nodes" default="[]">
+			The list of nodes, which label this node.
+		</member>
+		<member name="accessibility_live" type="int" setter="set_accessibility_live" getter="get_accessibility_live" enum="DisplayServer.AccessibilityLiveMode" default="0">
+			Live region update mode, a live region is [Node] that is updated as a result of an external event when user focus may be elsewhere.
+		</member>
+		<member name="accessibility_name" type="String" setter="set_accessibility_name" getter="get_accessibility_name" default="&quot;&quot;">
+			The human-readable node name that is reported to assistive apps.
+		</member>
 		<member name="auto_translate_mode" type="int" setter="set_auto_translate_mode" getter="get_auto_translate_mode" enum="Node.AutoTranslateMode" default="0">
 			Defines if any text should automatically change to its translated version depending on the current locale (for nodes such as [Label], [RichTextLabel], [Window], etc.). Also decides if the node's strings should be parsed for POT generation.
 			[b]Note:[/b] For the root node, auto translate mode can also be set via [member ProjectSettings.internationalization/rendering/root_node_auto_translate].
@@ -1272,6 +1326,12 @@
 		</constant>
 		<constant name="NOTIFICATION_TEXT_SERVER_CHANGED" value="2018">
 			Notification received when the [TextServer] is changed.
+		</constant>
+		<constant name="NOTIFICATION_ACCESSIBILITY_UPDATE" value="3000">
+			Notification received when accessibility information update is required.
+		</constant>
+		<constant name="NOTIFICATION_ACCESSIBILITY_INVALIDATE" value="3001">
+			Notification received when accessibility elements are invalidated. All node accessibility elements are automatically deleted after receiving this message, therefore all existing references to such elements should be discarded.
 		</constant>
 		<constant name="PROCESS_MODE_INHERIT" value="0" enum="ProcessMode">
 			Inherits [member process_mode] from the node's parent. This is the default for any newly created node.

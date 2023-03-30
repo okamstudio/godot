@@ -235,6 +235,16 @@
 		</method>
 	</methods>
 	<members>
+		<member name="accessibility/accessibility/accessibility_support" type="int" setter="" getter="" default="0">
+			Accessibility support mode:
+			If [code]0[/code], accessibility support is fully disabled.
+			If [code]1[/code], accessibility support is enabled, and accessibility information updates are processed regardless of current assistive apps' status.
+			If [code]2[/code], accessibility support is enabled, but accessibility information updates are processed only is assistive app (e.g. screen reader or Braille display) is active (default).
+			[b]Note:[/b] Accessibility debugging tools, such as Accessibility Insights for Windows, macOS Accessibility Inspector or AT-SPI Browser do not count as assistive app. To test your app with these tools, use [code]1[/code].
+		</member>
+		<member name="accessibility/accessibility/updates_per_second" type="int" setter="" getter="" default="60">
+			The number of accessibility information updates per second.
+		</member>
 		<member name="animation/warnings/check_angle_interpolation_type_conflicting" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], [AnimationMixer] prints the warning of interpolation being forced to choose the shortest rotation path due to multiple angle interpolation types being mixed in the [AnimationMixer] cache.
 		</member>
@@ -1117,6 +1127,14 @@
 			Default [InputEventAction] to confirm a focused button, menu or list item, or validate input.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
 		</member>
+		<member name="input/ui_accessibility_contextual_info" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to announce supported keyboard shortucts and other contextual help to the screen reader.
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
+		<member name="input/ui_accessibility_drag_n_drag" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to start or end drag-and-drop operation without using mouse.
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
 		<member name="input/ui_cancel" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to discard a modal or pending input.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
@@ -1149,6 +1167,10 @@
 			Default [InputEventAction] to go up one directory in a [FileDialog].
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
 		</member>
+		<member name="input/ui_focus_mode" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to switch [TextEdit] [member input/ui_text_indent] between moving keyboard focus to the next [Control] in the scene and inputting [code]Tab[/code] character.
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
 		<member name="input/ui_focus_next" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to focus the next [Control] in the scene. The focus behavior can be configured via [member Control.focus_next].
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
@@ -1164,6 +1186,20 @@
 		<member name="input/ui_graph_duplicate" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to duplicate a [GraphNode] in a [GraphEdit].
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
+		<member name="input/ui_graph_follow_left" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to follow a [GraphNode] input port connection.
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
+		<member name="input/ui_graph_follow_left.macos" type="Dictionary" setter="" getter="">
+			macOS specific override for the shortcut to follow a [GraphNode] input port connection.
+		</member>
+		<member name="input/ui_graph_follow_right" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to follow a [GraphNode] output port connection.
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
+		</member>
+		<member name="input/ui_graph_follow_right.macos" type="Dictionary" setter="" getter="">
+			macOS specific override for the shortcut to follow a [GraphNode] output port connection.
 		</member>
 		<member name="input/ui_home" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to go to the start position of a [Control] (e.g. first item in an [ItemList] or a [Tree]), matching the behavior of [constant KEY_HOME] on typical desktop UI systems.

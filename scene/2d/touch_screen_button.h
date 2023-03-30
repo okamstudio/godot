@@ -75,6 +75,8 @@ protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 #endif // DISABLE_DEPRECATED
 
+	void _accessibility_action_click(const Variant &p_data);
+
 public:
 #ifdef DEBUG_ENABLED
 	virtual Rect2 _edit_get_rect() const override;

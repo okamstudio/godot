@@ -47,6 +47,8 @@ void InputMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_action", "action", "deadzone"), &InputMap::add_action, DEFVAL(DEFAULT_DEADZONE));
 	ClassDB::bind_method(D_METHOD("erase_action", "action"), &InputMap::erase_action);
 
+	ClassDB::bind_method(D_METHOD("get_action_description", "action"), &InputMap::get_action_description);
+
 	ClassDB::bind_method(D_METHOD("action_set_deadzone", "action", "deadzone"), &InputMap::action_set_deadzone);
 	ClassDB::bind_method(D_METHOD("action_get_deadzone", "action"), &InputMap::action_get_deadzone);
 	ClassDB::bind_method(D_METHOD("action_add_event", "action", "event"), &InputMap::action_add_event);
@@ -179,6 +181,26 @@ List<Ref<InputEvent>>::Element *InputMap::_find_event(Action &p_action, const Re
 
 bool InputMap::has_action(const StringName &p_action) const {
 	return input_map.has(p_action);
+}
+
+String InputMap::get_action_description(const StringName &p_action) const {
+	ERR_FAIL_COND_V_MSG(!input_map.has(p_action), String(), suggest_actions(p_action));
+
+	String ret;
+	const List<Ref<InputEvent>> &inputs = input_map[p_action].inputs;
+	for (const List<Ref<InputEvent>>::Element *I = inputs.front(); I; I = I->next()) {
+		Ref<InputEventKey> iek = I->get();
+		if (iek.is_valid()) {
+			if (!ret.is_empty()) {
+				ret += RTR(" or ");
+			}
+			ret += iek->as_text();
+		}
+	}
+	if (ret.is_empty()) {
+		ret = RTR("Action has no bound inputs");
+	}
+	return ret;
 }
 
 float InputMap::action_get_deadzone(const StringName &p_action) {
@@ -344,6 +366,7 @@ static const _BuiltinActionDisplayName _builtin_action_display_names[] = {
     { "ui_cut",                                        TTRC("Cut") },
     { "ui_copy",                                       TTRC("Copy") },
     { "ui_paste",                                      TTRC("Paste") },
+	{ "ui_focus_mode",                                 TTRC("Toggle Tab Focus Mode") },
     { "ui_undo",                                       TTRC("Undo") },
     { "ui_redo",                                       TTRC("Redo") },
     { "ui_text_completion_query",                      TTRC("Completion Query") },
@@ -397,11 +420,15 @@ static const _BuiltinActionDisplayName _builtin_action_display_names[] = {
     { "ui_text_submit",                                TTRC("Submit Text") },
     { "ui_graph_duplicate",                            TTRC("Duplicate Nodes") },
     { "ui_graph_delete",                               TTRC("Delete Nodes") },
+	{ "ui_graph_follow_left",                          TTRC("Follow Input Port Connection") },
+	{ "ui_graph_follow_right",                         TTRC("Follow Output Port Connection") },
     { "ui_filedialog_up_one_level",                    TTRC("Go Up One Level") },
     { "ui_filedialog_refresh",                         TTRC("Refresh") },
     { "ui_filedialog_show_hidden",                     TTRC("Show Hidden") },
     { "ui_swap_input_direction ",                      TTRC("Swap Input Direction") },
     { "ui_unicode_start",                              TTRC("Start Unicode Character Input") },
+	{ "ui_accessibility_drag_n_drag",                  TTRC("Accessibility: Keyboard Drag and Drop") },
+	{ "ui_accessibility_contextual_info",              TTRC("Accessibility: Announce Keyboard Shortcuts") },
     { "",                                              ""}
 	/* clang-format on */
 };
@@ -487,6 +514,12 @@ const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
 	inputs.push_back(InputEventKey::create_reference(Key::END));
 	default_builtin_cache.insert("ui_end", inputs);
 
+	inputs = List<Ref<InputEvent>>();
+	default_builtin_cache.insert("ui_accessibility_drag_n_drag", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	default_builtin_cache.insert("ui_accessibility_contextual_info", inputs);
+
 	// ///// UI basic Shortcuts /////
 
 	inputs = List<Ref<InputEvent>>();
@@ -498,6 +531,10 @@ const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
 	inputs.push_back(InputEventKey::create_reference(Key::C | KeyModifierMask::CMD_OR_CTRL));
 	inputs.push_back(InputEventKey::create_reference(Key::INSERT | KeyModifierMask::CMD_OR_CTRL));
 	default_builtin_cache.insert("ui_copy", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	inputs.push_back(InputEventKey::create_reference(Key::M | KeyModifierMask::CTRL));
+	default_builtin_cache.insert("ui_focus_mode", inputs);
 
 	inputs = List<Ref<InputEvent>>();
 	inputs.push_back(InputEventKey::create_reference(Key::V | KeyModifierMask::CMD_OR_CTRL));
@@ -771,6 +808,22 @@ const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
 	inputs = List<Ref<InputEvent>>();
 	inputs.push_back(InputEventKey::create_reference(Key::KEY_DELETE));
 	default_builtin_cache.insert("ui_graph_delete", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	inputs.push_back(InputEventKey::create_reference(Key::LEFT | KeyModifierMask::CMD_OR_CTRL));
+	default_builtin_cache.insert("ui_graph_follow_left", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	inputs.push_back(InputEventKey::create_reference(Key::LEFT | KeyModifierMask::ALT));
+	default_builtin_cache.insert("ui_graph_follow_left.macos", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	inputs.push_back(InputEventKey::create_reference(Key::RIGHT | KeyModifierMask::CMD_OR_CTRL));
+	default_builtin_cache.insert("ui_graph_follow_right", inputs);
+
+	inputs = List<Ref<InputEvent>>();
+	inputs.push_back(InputEventKey::create_reference(Key::RIGHT | KeyModifierMask::ALT));
+	default_builtin_cache.insert("ui_graph_follow_right.macos", inputs);
 
 	// ///// UI File Dialog Shortcuts /////
 	inputs = List<Ref<InputEvent>>();

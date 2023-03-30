@@ -606,7 +606,14 @@ Variant ShaderEditorPlugin::get_drag_data_fw(const Point2 &p_point, Control *p_f
 		return Variant();
 	}
 
-	int idx = shader_list->get_item_at_position(p_point);
+	int idx = 0;
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		if (shader_list->is_anything_selected()) {
+			idx = shader_list->get_selected_items()[0];
+		}
+	} else {
+		idx = shader_list->get_item_at_position(p_point);
+	}
 	if (idx < 0) {
 		return Variant();
 	}
@@ -683,7 +690,14 @@ void ShaderEditorPlugin::drop_data_fw(const Point2 &p_point, const Variant &p_da
 
 	if (String(d["type"]) == "shader_list_element") {
 		int idx = d["shader_list_element"];
-		int new_idx = shader_list->get_item_at_position(p_point);
+		int new_idx = 0;
+		if (p_point == Vector2(INFINITY, INFINITY)) {
+			if (shader_list->is_anything_selected()) {
+				new_idx = shader_list->get_selected_items()[0];
+			}
+		} else {
+			new_idx = shader_list->get_item_at_position(p_point);
+		}
 		_move_shader_tab(idx, new_idx);
 		return;
 	}

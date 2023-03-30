@@ -544,6 +544,14 @@ void GradientEdit::_notification(int p_what) {
 			draw_spacing = BASE_SPACING * get_theme_default_base_scale();
 			handle_width = BASE_HANDLE_WIDTH * get_theme_default_base_scale();
 		} break;
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Gradient editor")));
+		} break;
 		case NOTIFICATION_DRAW: {
 			_redraw();
 		} break;

@@ -131,6 +131,13 @@ void Node3D::_propagate_transform_changed(Node3D *p_origin) {
 
 void Node3D::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_CONTAINER);
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			ERR_MAIN_THREAD_GUARD;
 			ERR_FAIL_NULL(get_tree());

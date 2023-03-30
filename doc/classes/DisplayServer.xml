@@ -10,6 +10,631 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="accessibility_create_element">
+			<return type="RID" />
+			<param index="0" name="window_id" type="int" />
+			<param index="1" name="role" type="int" enum="DisplayServer.AccessibilityRole" />
+			<description>
+				Creates a new, empty accessibility element resource for the [Node].
+				Node: An accessibility element for each [Node] is created and freed automatically. In general, this function should not be called manually.
+			</description>
+		</method>
+		<method name="accessibility_create_sub_element">
+			<return type="RID" />
+			<param index="0" name="parent_rid" type="RID" />
+			<param index="1" name="role" type="int" enum="DisplayServer.AccessibilityRole" />
+			<param index="2" name="insert_pos" type="int" default="-1" />
+			<description>
+				Creates a new, empty accessibility sub-element resource. Sub-elements can be used to provide accessibility information for object which are not [Node]s, such as list items, table cells or menu item. Sub-elements are freed automatically when the parent element is freed, or can be free early using [method accessibility_free_element] method.
+			</description>
+		</method>
+		<method name="accessibility_create_sub_text_edit_elements">
+			<return type="RID" />
+			<param index="0" name="parent_rid" type="RID" />
+			<param index="1" name="shaped_text" type="RID" />
+			<param index="2" name="min_height" type="float" />
+			<param index="3" name="insert_pos" type="int" default="-1" />
+			<description>
+				Creates a new, empty accessibility sub-element from the shaped text buffer. Sub-elements are freed automatically when the parent element is freed, or can be free early using [method accessibility_free_element] method.
+			</description>
+		</method>
+		<method name="accessibility_element_get_meta" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="id" type="RID" />
+			<description>
+				Returns metadata of the accessibility element.
+			</description>
+		</method>
+		<method name="accessibility_element_set_meta">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="meta" type="Variant" />
+			<description>
+				Sets metadata of the accessibility element.
+			</description>
+		</method>
+		<method name="accessibility_free_element">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<description>
+				Frees an object created by [method accessibility_create_element], [method accessibility_create_sub_element] or [method accessibility_create_sub_text_edit_elements].
+			</description>
+		</method>
+		<method name="accessibility_get_window_root" qualifiers="const">
+			<return type="RID" />
+			<param index="0" name="window_id" type="int" />
+			<description>
+				Returns a main accessibility element of the OS native window.
+			</description>
+		</method>
+		<method name="accessibility_has_element" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="RID" />
+			<description>
+				Returns [code]true[/code] if [param id] is valid accessibility element.
+			</description>
+		</method>
+		<method name="accessibility_screen_reader_active" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns [code]1[/code] if screen reader, Braille display or other assistive app is active, [code]0[/code] otherwise. Returns [code]-1[/code] if status is unknown.
+				[b]Note:[/b] This method is implemented on Linux, macOS and Windows.
+				[b]Note:[/b] Accessibility debugging tools, such as Accessibility Insights for Windows, macOS Accessibility Inspector or AT-SPI Browser do not count as assistive app and will not affect this value. To test your app with these tools, set [member ProjectSettings.accessibility/accessibility/accessibility_support] to [code]1[/code].
+			</description>
+		</method>
+		<method name="accessibility_set_window_focused">
+			<return type="void" />
+			<param index="0" name="window_id" type="int" />
+			<param index="1" name="focused" type="bool" />
+			<description>
+				Sets window focused state for assistive apps.
+				[b]Note:[/b] This method is implemented on Linux, macOS and Windows.
+				[b]Note:[/b] Advanced users only! [Window] objects call this method automatically.
+			</description>
+		</method>
+		<method name="accessibility_set_window_rect">
+			<return type="void" />
+			<param index="0" name="window_id" type="int" />
+			<param index="1" name="rect_out" type="Rect2" />
+			<param index="2" name="rect_in" type="Rect2" />
+			<description>
+				Sets window outer (with decorations) and inner (without decorations) bounds for assistive apps.
+				[b]Note:[/b] This method is implemented on Linux, macOS and Windows.
+				[b]Note:[/b] Advanced users only! [Window] objects call this method automatically.
+			</description>
+		</method>
+		<method name="accessibility_should_increase_contrast" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns [code]1[/code] if high-contrast user interface theme should be used, [code]0[/code] otherwise. Returns [code]-1[/code] if status is unknown.
+				[b]Note:[/b] This method is implemented on Linux (X11, GNOME), macOS and Windows.
+			</description>
+		</method>
+		<method name="accessibility_should_reduce_animation" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns [code]1[/code] if flashing, blinking, and other moving content that can cause seizures in users with photosensitive epilepsy should be disabled, [code]0[/code] otherwise. Returns [code]-1[/code] if status is unknown.
+				[b]Note:[/b] This method is implemented on macOS and Windows.
+			</description>
+		</method>
+		<method name="accessibility_should_reduce_transparency" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns [code]1[/code] if background images, transparency, and other features that can reduce the contrast between the foreground and background should be disabled, [code]0[/code] otherwise. Returns [code]-1[/code] if status is unknown.
+				[b]Note:[/b] This method is implemented on macOS and Windows.
+			</description>
+		</method>
+		<method name="accessibility_update_add_action">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="action" type="int" enum="DisplayServer.AccessibilityAction" />
+			<param index="2" name="callable" type="Callable" />
+			<description>
+				Adds a callback for the accessibility action (action which can be performed by using a special screen reader command or buttons on the Braille display), and mark this action as support. Action callback receive one [Variant] argument, which value depends on action type.
+			</description>
+		</method>
+		<method name="accessibility_update_add_child">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="child_id" type="RID" />
+			<description>
+				Adds child accessibility element.
+				[b]Note:[/b] [Node] children are added to the child list automatically.
+				[b]Note:[/b] Sub-elements are added to the child list automatically.
+			</description>
+		</method>
+		<method name="accessibility_update_add_custom_action">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="action_id" type="int" />
+			<param index="2" name="action_description" type="String" />
+			<description>
+				Adds support for the custom accessibility action, [param action_id] is passed as an argument to the callback of [constant ACTION_CUSTOM] action.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_controls">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that is controlled by this element.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_described_by">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that describes this element.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_details">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that details this element.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_flow_to">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that this element flow into.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_labeled_by">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that labels this element.
+			</description>
+		</method>
+		<method name="accessibility_update_add_related_radio_group">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="related_id" type="RID" />
+			<description>
+				Adds element that is part of the same radio group.
+				[b]Note:[/b] This method should be called on each element of the group, using all other elements as an [param related_id].
+			</description>
+		</method>
+		<method name="accessibility_update_set_active_descendant">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Adds element that is active descendent of this element.
+			</description>
+		</method>
+		<method name="accessibility_update_set_background_color">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="color" type="Color" />
+			<description>
+				Sets element background color.
+			</description>
+		</method>
+		<method name="accessibility_update_set_bounds">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="p_rect" type="Rect2" />
+			<description>
+				Sets element bounding box, relative to the node position.
+			</description>
+		</method>
+		<method name="accessibility_update_set_checked">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="checekd" type="bool" />
+			<description>
+				Sets element checked state.
+			</description>
+		</method>
+		<method name="accessibility_update_set_classname">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="classname" type="String" />
+			<description>
+				Sets element class name.
+			</description>
+		</method>
+		<method name="accessibility_update_set_color_value">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="color" type="Color" />
+			<description>
+				Sets element color value.
+			</description>
+		</method>
+		<method name="accessibility_update_set_description">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="description" type="String" />
+			<description>
+				Sets element accessibility description.
+			</description>
+		</method>
+		<method name="accessibility_update_set_error_message">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Sets element which contains error message for this element.
+			</description>
+		</method>
+		<method name="accessibility_update_set_extra_info">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="name" type="String" />
+			<description>
+				Sets element accessibility extra information added to the element name.
+			</description>
+		</method>
+		<method name="accessibility_update_set_flag">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="flag" type="int" enum="DisplayServer.AccessibilityFlags" />
+			<param index="2" name="value" type="bool" />
+			<description>
+				Sets element flag, see [enum DisplayServer.AccessibilityFlags].
+			</description>
+		</method>
+		<method name="accessibility_update_set_focus">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<description>
+				Sets currently foucsed element.
+			</description>
+		</method>
+		<method name="accessibility_update_set_foreground_color">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="color" type="Color" />
+			<description>
+				Sets element foreground color.
+			</description>
+		</method>
+		<method name="accessibility_update_set_in_page_link_target">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Sets target element for the link.
+			</description>
+		</method>
+		<method name="accessibility_update_set_language">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="language" type="String" />
+			<description>
+				Sets element text language.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_item_count">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="size" type="int" />
+			<description>
+				Sets number of items in the list.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_item_expanded">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="expanded" type="bool" />
+			<description>
+				Sets list/tree item expanded status.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_item_index">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Sets position of the element in the list.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_item_level">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="level" type="int" />
+			<description>
+				Sets hierarchical level of the element in the list.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_item_selected">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="selected" type="bool" />
+			<description>
+				Sets list/tree item selected status.
+			</description>
+		</method>
+		<method name="accessibility_update_set_list_orientation">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="vertical" type="bool" />
+			<description>
+				Sets orientation of the list elements.
+			</description>
+		</method>
+		<method name="accessibility_update_set_live">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="live" type="int" enum="DisplayServer.AccessibilityLiveMode" />
+			<description>
+				Sets priority of the live region updates.
+			</description>
+		</method>
+		<method name="accessibility_update_set_member_of">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Sets element to as a member of group.
+			</description>
+		</method>
+		<method name="accessibility_update_set_name">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="name" type="String" />
+			<description>
+				Sets element accessibility name.
+			</description>
+		</method>
+		<method name="accessibility_update_set_next_on_line">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Sets next element on the line.
+			</description>
+		</method>
+		<method name="accessibility_update_set_num_jump">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="jump" type="float" />
+			<description>
+				Sets numeric value jump.
+			</description>
+		</method>
+		<method name="accessibility_update_set_num_range">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="min" type="float" />
+			<param index="2" name="max" type="float" />
+			<description>
+				Sets numeric value range.
+			</description>
+		</method>
+		<method name="accessibility_update_set_num_step">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="step" type="float" />
+			<description>
+				Sets numeric value step.
+			</description>
+		</method>
+		<method name="accessibility_update_set_num_value">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="position" type="float" />
+			<description>
+				Sets numeric value.
+			</description>
+		</method>
+		<method name="accessibility_update_set_placeholder">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="placeholder" type="String" />
+			<description>
+				Sets placeholder text.
+			</description>
+		</method>
+		<method name="accessibility_update_set_popup_type">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="popup" type="int" enum="DisplayServer.AccessibilityPopupType" />
+			<description>
+				Sets popup type for popup buttons.
+			</description>
+		</method>
+		<method name="accessibility_update_set_previous_on_line">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="other_id" type="RID" />
+			<description>
+				Sets previous element on the line.
+			</description>
+		</method>
+		<method name="accessibility_update_set_role">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="role" type="int" enum="DisplayServer.AccessibilityRole" />
+			<description>
+				Sets element accessibility role.
+			</description>
+		</method>
+		<method name="accessibility_update_set_role_description">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="description" type="String" />
+			<description>
+				Sets element accessibility role description text.
+			</description>
+		</method>
+		<method name="accessibility_update_set_scroll_x">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="position" type="float" />
+			<description>
+				Sets scroll bar x position.
+			</description>
+		</method>
+		<method name="accessibility_update_set_scroll_x_range">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="min" type="float" />
+			<param index="2" name="max" type="float" />
+			<description>
+				Sets scroll bar x range.
+			</description>
+		</method>
+		<method name="accessibility_update_set_scroll_y">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="position" type="float" />
+			<description>
+				Sets scroll bar y position.
+			</description>
+		</method>
+		<method name="accessibility_update_set_scroll_y_range">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="min" type="float" />
+			<param index="2" name="max" type="float" />
+			<description>
+				Sets scroll bar y range.
+			</description>
+		</method>
+		<method name="accessibility_update_set_shortcut">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="shortcut" type="String" />
+			<description>
+				Sets list of keyboard shortcuts used by element.
+			</description>
+		</method>
+		<method name="accessibility_update_set_state_description">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="description" type="String" />
+			<description>
+				Sets human-readable description of the current checked state.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_cell_position">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="row_index" type="int" />
+			<param index="2" name="column_index" type="int" />
+			<description>
+				Sets cell position in the table.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_cell_span">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="row_span" type="int" />
+			<param index="2" name="column_span" type="int" />
+			<description>
+				Sets cell row/column span.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_column_count">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="count" type="int" />
+			<description>
+				Sets number of columns in the table.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_column_index">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Sets position of the column.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_row_count">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="count" type="int" />
+			<description>
+				Sets number of rows in the table.
+			</description>
+		</method>
+		<method name="accessibility_update_set_table_row_index">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Sets position of the row in the table.
+			</description>
+		</method>
+		<method name="accessibility_update_set_text_align">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="align" type="int" enum="HorizontalAlignment" />
+			<description>
+				Sets element text alignment.
+			</description>
+		</method>
+		<method name="accessibility_update_set_text_decorations">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="underline" type="bool" />
+			<param index="2" name="strikethrough" type="bool" />
+			<param index="3" name="overline" type="bool" />
+			<description>
+				Sets text underline/overline/strikethrough.
+			</description>
+		</method>
+		<method name="accessibility_update_set_text_orientation">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="vertical" type="bool" />
+			<description>
+				Sets text orientation.
+			</description>
+		</method>
+		<method name="accessibility_update_set_text_selection">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="text_start_id" type="RID" />
+			<param index="2" name="start_char" type="int" />
+			<param index="3" name="text_end_id" type="RID" />
+			<param index="4" name="end_char" type="int" />
+			<description>
+				Sets text selection to the text field. [param text_start_id] and [param text_end_id] should be elements created by [method accessibility_create_sub_text_edit_elements]. Character offsets are relative to the corresponding element.
+			</description>
+		</method>
+		<method name="accessibility_update_set_tooltip">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="tooltip" type="String" />
+			<description>
+				Sets tooltip text.
+			</description>
+		</method>
+		<method name="accessibility_update_set_transform">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="transform" type="Transform2D" />
+			<description>
+				Sets element 2D transform.
+			</description>
+		</method>
+		<method name="accessibility_update_set_url">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="url" type="String" />
+			<description>
+				Sets link URL.
+			</description>
+		</method>
+		<method name="accessibility_update_set_value">
+			<return type="void" />
+			<param index="0" name="id" type="RID" />
+			<param index="1" name="value" type="String" />
+			<description>
+				Sets element text value.
+			</description>
+		</method>
 		<method name="beep" qualifiers="const">
 			<return type="void" />
 			<description>
@@ -1951,6 +2576,273 @@
 		</constant>
 		<constant name="FEATURE_EMOJI_AND_SYMBOL_PICKER" value="31" enum="Feature">
 			Display server supports system emoji and symbol picker. [b]Windows, macOS[/b]
+		</constant>
+		<constant name="FEATURE_ACCESSIBILITY_SCREEN_READER" value="32" enum="Feature">
+			Display server supports interaction with screen reader or Braille display. [b]Linux (X11/Wayland), macOS, Windows[/b]
+		</constant>
+		<constant name="ROLE_UNKNOWN" value="0" enum="AccessibilityRole">
+			Unknown or custom role.
+		</constant>
+		<constant name="ROLE_DEFAULT_BUTTON" value="1" enum="AccessibilityRole">
+			Default dialog button element.
+		</constant>
+		<constant name="ROLE_AUDIO" value="2" enum="AccessibilityRole">
+			Audio player element.
+		</constant>
+		<constant name="ROLE_VIDEO" value="3" enum="AccessibilityRole">
+			Video player element.
+		</constant>
+		<constant name="ROLE_STATIC_TEXT" value="4" enum="AccessibilityRole">
+			Non-editable text label.
+		</constant>
+		<constant name="ROLE_CONTAINER" value="5" enum="AccessibilityRole">
+			Container element. Elements with this role are used for internal structure and ignored ny screen reader.
+		</constant>
+		<constant name="ROLE_PANEL" value="6" enum="AccessibilityRole">
+			Panel container element.
+		</constant>
+		<constant name="ROLE_BUTTON" value="7" enum="AccessibilityRole">
+			Button element.
+		</constant>
+		<constant name="ROLE_LINK" value="8" enum="AccessibilityRole">
+			Link element.
+		</constant>
+		<constant name="ROLE_CHECK_BOX" value="9" enum="AccessibilityRole">
+			Check box element.
+		</constant>
+		<constant name="ROLE_RADIO_BUTTON" value="10" enum="AccessibilityRole">
+			Radio button element.
+		</constant>
+		<constant name="ROLE_CHECK_BUTTON" value="11" enum="AccessibilityRole">
+			Check button element.
+		</constant>
+		<constant name="ROLE_SCROLL_BAR" value="12" enum="AccessibilityRole">
+			Scroll bar element.
+		</constant>
+		<constant name="ROLE_SCROLL_VIEW" value="13" enum="AccessibilityRole">
+			Scroll container element.
+		</constant>
+		<constant name="ROLE_SPLITTER" value="14" enum="AccessibilityRole">
+			Container splitter handle element.
+		</constant>
+		<constant name="ROLE_SLIDER" value="15" enum="AccessibilityRole">
+			Slider element.
+		</constant>
+		<constant name="ROLE_SPIN_BUTTON" value="16" enum="AccessibilityRole">
+			Spin box element.
+		</constant>
+		<constant name="ROLE_PROGRESS_INDICATOR" value="17" enum="AccessibilityRole">
+			Progress indicator element.
+		</constant>
+		<constant name="ROLE_TEXT_FIELD" value="18" enum="AccessibilityRole">
+			Editable text field element.
+		</constant>
+		<constant name="ROLE_MULTILINE_TEXT_FIELD" value="19" enum="AccessibilityRole">
+			Multiline editable text field element.
+		</constant>
+		<constant name="ROLE_COLOR_PICKER" value="20" enum="AccessibilityRole">
+			Color picker element.
+		</constant>
+		<constant name="ROLE_TABLE" value="21" enum="AccessibilityRole">
+			Table element.
+		</constant>
+		<constant name="ROLE_CELL" value="22" enum="AccessibilityRole">
+			Table/tree cell element.
+		</constant>
+		<constant name="ROLE_ROW" value="23" enum="AccessibilityRole">
+			Table/tree row element.
+		</constant>
+		<constant name="ROLE_ROW_GROUP" value="24" enum="AccessibilityRole">
+			Table/tree row group element.
+		</constant>
+		<constant name="ROLE_ROW_HEADER" value="25" enum="AccessibilityRole">
+			Table/tree row header element.
+		</constant>
+		<constant name="ROLE_COLUMN_HEADER" value="26" enum="AccessibilityRole">
+			Table/tree column header element.
+		</constant>
+		<constant name="ROLE_TREE" value="27" enum="AccessibilityRole">
+			Tree view element.
+		</constant>
+		<constant name="ROLE_TREE_ITEM" value="28" enum="AccessibilityRole">
+			Tree view item element.
+		</constant>
+		<constant name="ROLE_LIST" value="29" enum="AccessibilityRole">
+			List element.
+		</constant>
+		<constant name="ROLE_LIST_ITEM" value="30" enum="AccessibilityRole">
+			List item element.
+		</constant>
+		<constant name="ROLE_LIST_BOX" value="31" enum="AccessibilityRole">
+			List view element.
+		</constant>
+		<constant name="ROLE_LIST_BOX_OPTION" value="32" enum="AccessibilityRole">
+			List view item element.
+		</constant>
+		<constant name="ROLE_TAB_BAR" value="33" enum="AccessibilityRole">
+			Tab bar element.
+		</constant>
+		<constant name="ROLE_TAB" value="34" enum="AccessibilityRole">
+			Tab bar item element.
+		</constant>
+		<constant name="ROLE_TAB_PANEL" value="35" enum="AccessibilityRole">
+			Tab panel element.
+		</constant>
+		<constant name="ROLE_MENU_BAR" value="36" enum="AccessibilityRole">
+			Menu bar element.
+		</constant>
+		<constant name="ROLE_MENU" value="37" enum="AccessibilityRole">
+			Popup menu element.
+		</constant>
+		<constant name="ROLE_MENU_ITEM" value="38" enum="AccessibilityRole">
+			Popup menu item element.
+		</constant>
+		<constant name="ROLE_MENU_ITEM_CHECK_BOX" value="39" enum="AccessibilityRole">
+			Popup menu check button item element.
+		</constant>
+		<constant name="ROLE_MENU_ITEM_RADIO" value="40" enum="AccessibilityRole">
+			Popup menu radio button item element.
+		</constant>
+		<constant name="ROLE_IMAGE" value="41" enum="AccessibilityRole">
+			Image element.
+		</constant>
+		<constant name="ROLE_WINDOW" value="42" enum="AccessibilityRole">
+			Window element.
+		</constant>
+		<constant name="ROLE_TITLE_BAR" value="43" enum="AccessibilityRole">
+			Embedded window title bar element.
+		</constant>
+		<constant name="ROLE_DIALOG" value="44" enum="AccessibilityRole">
+			Dialog window element.
+		</constant>
+		<constant name="ROLE_TOOLTIP" value="45" enum="AccessibilityRole">
+			Tooltip element.
+		</constant>
+		<constant name="POPUP_UNKNOWN" value="0" enum="AccessibilityPopupType">
+			Other/unknown popup type.
+		</constant>
+		<constant name="POPUP_MENU" value="1" enum="AccessibilityPopupType">
+			Popup menu.
+		</constant>
+		<constant name="POPUP_LIST" value="2" enum="AccessibilityPopupType">
+			Popup list.
+		</constant>
+		<constant name="POPUP_TREE" value="3" enum="AccessibilityPopupType">
+			Popup tree view.
+		</constant>
+		<constant name="POPUP_DIALOG" value="4" enum="AccessibilityPopupType">
+			Popup dialog.
+		</constant>
+		<constant name="FLAG_HIDDEN" value="0" enum="AccessibilityFlags">
+			Element is hidden for accessibility tools.
+		</constant>
+		<constant name="FLAG_LINKED" value="1" enum="AccessibilityFlags">
+		</constant>
+		<constant name="FLAG_MULTISELECTABLE" value="2" enum="AccessibilityFlags">
+			Element is support multiple item selection.
+		</constant>
+		<constant name="FLAG_REQUIRED" value="3" enum="AccessibilityFlags">
+		</constant>
+		<constant name="FLAG_VISITED" value="4" enum="AccessibilityFlags">
+		</constant>
+		<constant name="FLAG_BUSY" value="5" enum="AccessibilityFlags">
+			Element content is not ready (e.g. loading).
+		</constant>
+		<constant name="FLAG_MODAL" value="6" enum="AccessibilityFlags">
+			Element is modal window.
+		</constant>
+		<constant name="FLAG_TOUCH_PASSTHROUGH" value="7" enum="AccessibilityFlags">
+		</constant>
+		<constant name="FLAG_READONLY" value="8" enum="AccessibilityFlags">
+			Element is text field with selectable but read-only text.
+		</constant>
+		<constant name="FLAG_DISABLED" value="9" enum="AccessibilityFlags">
+			Element is disabled.
+		</constant>
+		<constant name="FLAG_CLIPS_CHILDREN" value="10" enum="AccessibilityFlags">
+			Element clips children.
+		</constant>
+		<constant name="ACTION_CLICK" value="0" enum="AccessibilityAction">
+			Single click action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_FOCUS" value="1" enum="AccessibilityAction">
+			Focus action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_BLUR" value="2" enum="AccessibilityAction">
+			Blur action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_COLLAPSE" value="3" enum="AccessibilityAction">
+			Collapse action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_EXPAND" value="4" enum="AccessibilityAction">
+			Expand action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_DECREMENT" value="5" enum="AccessibilityAction">
+			Decrement action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_INCREMENT" value="6" enum="AccessibilityAction">
+			Increment action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_HIDE_TOOLTIP" value="7" enum="AccessibilityAction">
+			Hide tooltip action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SHOW_TOOLTIP" value="8" enum="AccessibilityAction">
+			Show tooltip action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SET_TEXT_SELECTION" value="9" enum="AccessibilityAction">
+			Set text selection action, callback argument is set to [Dictionary] with the following keys:
+			- [code]"start_element"[/code] accessibility element of the selection start.
+			- [code]"start_char"[/code] character offset relative to the accessibility element of the selection start.
+			- [code]"end_element"[/code] accessibility element of the selection end.
+			- [code]"end_char"[/code] character offset relative to the accessibility element of the selection end.
+		</constant>
+		<constant name="ACTION_REPLACE_SELECTED_TEXT" value="10" enum="AccessibilityAction">
+			Replace text action, callback argument is set to [String] with the replacement text.
+		</constant>
+		<constant name="ACTION_SCROLL_BACKWARD" value="11" enum="AccessibilityAction">
+			Scroll backward action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_DOWN" value="12" enum="AccessibilityAction">
+			Scroll down action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_FORWARD" value="13" enum="AccessibilityAction">
+			Scroll forward action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_LEFT" value="14" enum="AccessibilityAction">
+			Scroll left action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_RIGHT" value="15" enum="AccessibilityAction">
+			Scroll right action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_UP" value="16" enum="AccessibilityAction">
+			Scroll up action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_INTO_VIEW" value="17" enum="AccessibilityAction">
+			Scroll into view action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_SCROLL_TO_POINT" value="18" enum="AccessibilityAction">
+			Scroll to point action, callback argument is set to [Vector2] with the relative point coordinates.
+		</constant>
+		<constant name="ACTION_SET_SCROLL_OFFSET" value="19" enum="AccessibilityAction">
+			Set scroll offset action, callback argument is set to [Vector2] with the scroll offset.
+		</constant>
+		<constant name="ACTION_SET_VALUE" value="20" enum="AccessibilityAction">
+			Set value action action, callback argument is set to [String] or number with the new value.
+		</constant>
+		<constant name="ACTION_SHOW_CONTEXT_MENU" value="21" enum="AccessibilityAction">
+			Show context menu action, callback argument is not set.
+		</constant>
+		<constant name="ACTION_CUSTOM" value="22" enum="AccessibilityAction">
+			Custom action, callback argument is set to the integer action id.
+		</constant>
+		<constant name="LIVE_OFF" value="0" enum="AccessibilityLiveMode">
+			Indicates that updates to the live region should not be presented.
+		</constant>
+		<constant name="LIVE_POLITE" value="1" enum="AccessibilityLiveMode">
+			Indicates that updates to the live region should be presented at the next opportunity (e.g. at the end of speaking the current sentence).
+		</constant>
+		<constant name="LIVE_ASSERTIVE" value="2" enum="AccessibilityLiveMode">
+			Indicates that updates to the live region have the highest priority and should be presented immediately.
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.

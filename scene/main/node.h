@@ -186,6 +186,16 @@ private:
 
 		Viewport *viewport = nullptr;
 
+		mutable RID accessibility_element;
+
+		String accessibility_name;
+		String accessibility_description;
+		DisplayServer::AccessibilityLiveMode accessibility_live = DisplayServer::AccessibilityLiveMode::LIVE_OFF;
+		TypedArray<NodePath> accessibility_controls_nodes;
+		TypedArray<NodePath> accessibility_described_by_nodes;
+		TypedArray<NodePath> accessibility_labeled_by_nodes;
+		TypedArray<NodePath> accessibility_flow_to_nodes;
+
 		HashMap<StringName, GroupData> grouped;
 		List<Node *>::Element *OW = nullptr; // Owned element.
 		List<Node *> owned;
@@ -389,12 +399,16 @@ protected:
 	GDVIRTUAL0(_enter_tree)
 	GDVIRTUAL0(_exit_tree)
 	GDVIRTUAL0(_ready)
+	GDVIRTUAL0RC(Vector<String>, _get_accessibility_configuration_warnings)
 	GDVIRTUAL0RC(Vector<String>, _get_configuration_warnings)
 
 	GDVIRTUAL1(_input, Ref<InputEvent>)
 	GDVIRTUAL1(_shortcut_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_key_input, Ref<InputEvent>)
+
+	GDVIRTUAL0RC(RID, _get_focused_accessibility_element)
+	GDVIRTUAL1RC(String, _get_accessibility_container_name, const Node *)
 
 public:
 	enum {
@@ -421,6 +435,11 @@ public:
 		NOTIFICATION_ENABLED = 29,
 		NOTIFICATION_RESET_PHYSICS_INTERPOLATION = 2001, // A GodotSpace Odyssey.
 		// Keep these linked to Node.
+
+		NOTIFICATION_ACCESSIBILITY_UPDATE = 3000,
+		NOTIFICATION_ACCESSIBILITY_INVALIDATE = 3001,
+		//keep these linked to node
+
 		NOTIFICATION_WM_MOUSE_ENTER = 1002,
 		NOTIFICATION_WM_MOUSE_EXIT = 1003,
 		NOTIFICATION_WM_WINDOW_FOCUS_IN = 1004,
@@ -646,6 +665,36 @@ public:
 
 	void set_process_thread_messages(BitField<ProcessThreadMessages> p_flags);
 	BitField<ProcessThreadMessages> get_process_thread_messages() const;
+
+	void set_accessibility_name(const String &p_name);
+	String get_accessibility_name() const;
+
+	void set_accessibility_description(const String &p_description);
+	String get_accessibility_description() const;
+
+	void set_accessibility_live(DisplayServer::AccessibilityLiveMode p_mode);
+	DisplayServer::AccessibilityLiveMode get_accessibility_live() const;
+
+	void set_accessibility_controls_nodes(const TypedArray<NodePath> &p_node_path);
+	TypedArray<NodePath> get_accessibility_controls_nodes() const;
+
+	void set_accessibility_described_by_nodes(const TypedArray<NodePath> &p_node_path);
+	TypedArray<NodePath> get_accessibility_described_by_nodes() const;
+
+	void set_accessibility_labeled_by_nodes(const TypedArray<NodePath> &p_node_path);
+	TypedArray<NodePath> get_accessibility_labeled_by_nodes() const;
+
+	void set_accessibility_flow_to_nodes(const TypedArray<NodePath> &p_node_path);
+	TypedArray<NodePath> get_accessibility_flow_to_nodes() const;
+
+	void queue_accessibility_update();
+
+	virtual RID get_accessibility_element() const;
+	virtual RID get_focused_accessibility_element() const;
+	virtual String get_accessibility_container_name(const Node *p_node) const;
+	virtual bool accessibility_override_tree_hierarchy() const { return false; }
+
+	virtual PackedStringArray get_accessibility_configuration_warnings() const;
 
 	Node *duplicate(int p_flags = DUPLICATE_GROUPS | DUPLICATE_SIGNALS | DUPLICATE_SCRIPTS) const;
 #ifdef TOOLS_ENABLED

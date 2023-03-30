@@ -1474,6 +1474,7 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 		// Label.
 
 		p_theme->set_stylebox(CoreStringName(normal), "Label", p_config.base_empty_style);
+		p_theme->set_stylebox("focus", "Label", p_config.button_style_focus);
 
 		p_theme->set_color(SceneStringName(font_color), "Label", p_config.font_color);
 		p_theme->set_color("font_shadow_color", "Label", Color(0, 0, 0, 0));
@@ -1540,6 +1541,7 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 		// GraphEdit.
 
 		p_theme->set_stylebox(SceneStringName(panel), "GraphEdit", p_config.tree_panel_style);
+		p_theme->set_stylebox("panel_focus", "GraphEdit", p_config.button_style_focus);
 		p_theme->set_stylebox("menu_panel", "GraphEdit", make_flat_stylebox(p_config.dark_color_1 * Color(1, 1, 1, 0.6), 4, 2, 4, 2, 3));
 
 		float grid_base_brightness = p_config.dark_theme ? 1.0 : 0.0;
@@ -1671,9 +1673,11 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 
 			p_theme->set_stylebox(SceneStringName(panel), "GraphNode", gn_panel_style);
 			p_theme->set_stylebox("panel_selected", "GraphNode", gn_panel_selected_style);
+			p_theme->set_stylebox("panel_focus", "GraphNode", p_config.button_style_focus);
 			p_theme->set_stylebox("titlebar", "GraphNode", gn_titlebar_style);
 			p_theme->set_stylebox("titlebar_selected", "GraphNode", gn_titlebar_selected_style);
 			p_theme->set_stylebox("slot", "GraphNode", gn_slot_style);
+			p_theme->set_stylebox("slot_selected", "GraphNode", p_config.button_style_focus);
 
 			p_theme->set_color("resizer_color", "GraphNode", gn_decoration_color);
 

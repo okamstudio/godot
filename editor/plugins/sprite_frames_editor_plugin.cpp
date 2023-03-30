@@ -1642,7 +1642,14 @@ Variant SpriteFramesEditor::get_drag_data_fw(const Point2 &p_point, Control *p_f
 		return false;
 	}
 
-	int idx = frame_list->get_item_at_position(p_point, true);
+	int idx = -1;
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		if (frame_list->is_anything_selected()) {
+			idx = frame_list->get_selected_items()[0];
+		}
+	} else {
+		idx = frame_list->get_item_at_position(p_point, true);
+	}
 
 	if (idx < 0 || idx >= frames->get_frame_count(edited_anim)) {
 		return Variant();
@@ -1717,7 +1724,14 @@ void SpriteFramesEditor::drop_data_fw(const Point2 &p_point, const Variant &p_da
 		return;
 	}
 
-	int at_pos = frame_list->get_item_at_position(p_point, true);
+	int at_pos = -1;
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		if (frame_list->is_anything_selected()) {
+			at_pos = frame_list->get_selected_items()[0];
+		}
+	} else {
+		at_pos = frame_list->get_item_at_position(p_point, true);
+	}
 
 	if (String(d["type"]) == "resource" && d.has("resource")) {
 		Ref<Resource> r = d["resource"];

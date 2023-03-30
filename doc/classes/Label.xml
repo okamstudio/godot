@@ -55,6 +55,7 @@
 		<member name="ellipsis_char" type="String" setter="set_ellipsis_char" getter="get_ellipsis_char" default="&quot;…&quot;">
 			Ellipsis character used for text clipping.
 		</member>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="horizontal_alignment" type="int" setter="set_horizontal_alignment" getter="get_horizontal_alignment" enum="HorizontalAlignment" default="0">
 			Controls the text's horizontal alignment. Supports left, center, right, and fill, or justify. Set it to one of the [enum HorizontalAlignment] constants.
 		</member>
@@ -149,6 +150,9 @@
 		</theme_item>
 		<theme_item name="font_size" data_type="font_size" type="int">
 			Font size of the [Label]'s text.
+		</theme_item>
+		<theme_item name="focus" data_type="style" type="StyleBox">
+			[StyleBox] used when the [Label] is focused (when using with assistive apps).
 		</theme_item>
 		<theme_item name="normal" data_type="style" type="StyleBox">
 			Background [StyleBox] for the [Label].

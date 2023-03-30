@@ -257,6 +257,8 @@ Variant ActionMapEditor::get_drag_data_fw(const Point2 &p_point, Control *p_from
 	label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	action_tree->set_drag_preview(label);
 
+	get_viewport()->gui_set_drag_description(vformat(RTR("Action %s"), name));
+
 	Dictionary drag_data;
 
 	if (selected->has_meta("__action")) {
@@ -266,6 +268,8 @@ Variant ActionMapEditor::get_drag_data_fw(const Point2 &p_point, Control *p_from
 	if (selected->has_meta("__event")) {
 		drag_data["input_type"] = "event";
 	}
+
+	drag_data["source"] = selected->get_instance_id();
 
 	action_tree->set_drop_mode_flags(Tree::DROP_MODE_INBETWEEN);
 
@@ -278,9 +282,11 @@ bool ActionMapEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_d
 		return false;
 	}
 
+	TreeItem *source = Object::cast_to<TreeItem>(ObjectDB::get_instance(d["source"].operator ObjectID()));
 	TreeItem *selected = action_tree->get_selected();
-	TreeItem *item = action_tree->get_item_at_position(p_point);
-	if (!selected || !item || item == selected) {
+
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? selected : action_tree->get_item_at_position(p_point);
+	if (!selected || !item || item == source) {
 		return false;
 	}
 
@@ -303,12 +309,12 @@ void ActionMapEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data,
 	}
 
 	TreeItem *selected = action_tree->get_selected();
-	TreeItem *target = action_tree->get_item_at_position(p_point);
-	bool drop_above = action_tree->get_drop_section_at_position(p_point) == -1;
-
+	TreeItem *target = (p_point == Vector2(INFINITY, INFINITY)) ? selected : action_tree->get_item_at_position(p_point);
 	if (!target) {
 		return;
 	}
+
+	bool drop_above = ((p_point == Vector2(INFINITY, INFINITY)) ? action_tree->get_drop_section_at_position(action_tree->get_item_rect(target).position) : action_tree->get_drop_section_at_position(p_point)) == -1;
 
 	Dictionary d = p_data;
 	if (d["input_type"] == "action") {
@@ -501,8 +507,8 @@ void ActionMapEditor::update_action_list(const Vector<ActionInfo> &p_action_info
 			}
 
 			// Third Column - Buttons
-			event_item->add_button(2, action_tree->get_editor_theme_icon(SNAME("Edit")), BUTTON_EDIT_EVENT, false, TTR("Edit Event"));
-			event_item->add_button(2, action_tree->get_editor_theme_icon(SNAME("Remove")), BUTTON_REMOVE_EVENT, false, TTR("Remove Event"));
+			event_item->add_button(2, action_tree->get_editor_theme_icon(SNAME("Edit")), BUTTON_EDIT_EVENT, false, TTR("Edit Event"), TTR("Edit Event"));
+			event_item->add_button(2, action_tree->get_editor_theme_icon(SNAME("Remove")), BUTTON_REMOVE_EVENT, false, TTR("Remove Event"), TTR("Remove Event"));
 			event_item->set_button_color(2, 0, Color(1, 1, 1, 0.75));
 			event_item->set_button_color(2, 1, Color(1, 1, 1, 0.75));
 		}

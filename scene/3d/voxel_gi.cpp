@@ -541,6 +541,8 @@ PackedStringArray VoxelGI::get_configuration_warnings() const {
 
 	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
 		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
+	} else if (OS::get_singleton()->get_current_rendering_method() == "dummy") {
+		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Dummy renderer."));
 	} else if (probe_data.is_null()) {
 		warnings.push_back(RTR("No VoxelGI data set, so this node is disabled. Bake static objects to enable GI."));
 	}

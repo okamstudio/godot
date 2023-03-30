@@ -4887,6 +4887,9 @@ void Node3DEditorViewport::_perform_drop_data() {
 }
 
 bool Node3DEditorViewport::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		return false;
+	}
 	preview_node_viewport_pos = p_point;
 
 	bool can_instantiate = false;
@@ -8200,6 +8203,15 @@ void Node3DEditor::_notification(int p_what) {
 			ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &Node3DEditor::update_all_gizmos).bind(Variant()));
 		} break;
 
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "3D editor")));
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			_update_theme();
 			_register_all_gizmos();
@@ -8702,7 +8714,7 @@ void Node3DEditor::_load_default_preview_settings() {
 	environ_sky_color->set_pick_color(Color(0.385, 0.454, 0.55));
 	environ_ground_color->set_pick_color(Color(0.2, 0.169, 0.133));
 	environ_energy->set_value(1.0);
-	if (OS::get_singleton()->get_current_rendering_method() != "gl_compatibility") {
+	if (OS::get_singleton()->get_current_rendering_method() != "gl_compatibility" && OS::get_singleton()->get_current_rendering_method() != "dummy") {
 		environ_glow_button->set_pressed(true);
 	}
 	environ_tonemap_button->set_pressed(true);

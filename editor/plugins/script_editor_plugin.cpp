@@ -3251,7 +3251,15 @@ void ScriptEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Co
 		if (se || eh) {
 			int new_index = 0;
 			if (script_list->get_item_count() > 0) {
-				new_index = script_list->get_item_metadata(script_list->get_item_at_position(p_point));
+				int pos = 0;
+				if (p_point == Vector2(INFINITY, INFINITY)) {
+					if (script_list->is_anything_selected()) {
+						pos = script_list->get_selected_items()[0];
+					}
+				} else {
+					pos = script_list->get_item_at_position(p_point);
+				}
+				new_index = script_list->get_item_metadata(pos);
 			}
 			tab_container->move_child(node, new_index);
 			tab_container->set_current_tab(new_index);
@@ -3271,7 +3279,15 @@ void ScriptEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Co
 		if (se || eh) {
 			int new_index = 0;
 			if (script_list->get_item_count() > 0) {
-				new_index = script_list->get_item_metadata(script_list->get_item_at_position(p_point));
+				int pos = 0;
+				if (p_point == Vector2(INFINITY, INFINITY)) {
+					if (script_list->is_anything_selected()) {
+						pos = script_list->get_selected_items()[0];
+					}
+				} else {
+					pos = script_list->get_item_at_position(p_point);
+				}
+				new_index = script_list->get_item_metadata(pos);
 			}
 			tab_container->move_child(node, new_index);
 			tab_container->set_current_tab(new_index);
@@ -3284,7 +3300,15 @@ void ScriptEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Co
 
 		int new_index = 0;
 		if (script_list->get_item_count() > 0) {
-			new_index = script_list->get_item_metadata(script_list->get_item_at_position(p_point));
+			int pos = 0;
+			if (p_point == Vector2(INFINITY, INFINITY)) {
+				if (script_list->is_anything_selected()) {
+					pos = script_list->get_selected_items()[0];
+				}
+			} else {
+				pos = script_list->get_item_at_position(p_point);
+			}
+			new_index = script_list->get_item_metadata(pos);
 		}
 		int num_tabs_before = tab_container->get_tab_count();
 		for (int i = 0; i < files.size(); i++) {

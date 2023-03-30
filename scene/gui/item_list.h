@@ -53,6 +53,9 @@ public:
 
 private:
 	struct Item {
+		mutable RID accessibility_item_element;
+		mutable bool accessibility_item_dirty = true;
+
 		Ref<Texture2D> icon;
 		bool icon_transposed = false;
 		Rect2i icon_region;
@@ -88,12 +91,14 @@ private:
 
 		Item(bool p_dummy) {}
 	};
+	RID accessibility_scroll_element;
 
 	static inline PropertyListHelper base_property_helper;
 	PropertyListHelper property_helper;
 
 	int current = -1;
 	int hovered = -1;
+	int prev_hovered = -1;
 
 	bool shape_changed = true;
 
@@ -181,7 +186,18 @@ protected:
 	bool _property_get_revert(const StringName &p_name, Variant &r_property) const { return property_helper.property_get_revert(p_name, r_property); }
 	static void _bind_methods();
 
+	void _accessibility_action_scroll_set(const Variant &p_data);
+	void _accessibility_action_scroll_up(const Variant &p_data);
+	void _accessibility_action_scroll_down(const Variant &p_data);
+	void _accessibility_action_scroll_left(const Variant &p_data);
+	void _accessibility_action_scroll_right(const Variant &p_data);
+	void _accessibility_action_scroll_into_view(const Variant &p_data, int p_index);
+	void _accessibility_action_focus(const Variant &p_data, int p_index);
+	void _accessibility_action_blur(const Variant &p_data, int p_index);
+
 public:
+	virtual RID get_focused_accessibility_element() const override;
+
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 
 	int add_item(const String &p_item, const Ref<Texture2D> &p_texture = Ref<Texture2D>(), bool p_selectable = true);

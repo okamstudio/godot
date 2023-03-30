@@ -1506,6 +1506,9 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("application/config/auto_accept_quit", true);
 	GLOBAL_DEF("application/config/quit_on_go_back", true);
 
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "accessibility/accessibility/accessibility_support", PROPERTY_HINT_ENUM, "Auto (When Screen Reader is Running),Always Active,Disabled"), 0);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "accessibility/accessibility/updates_per_second", PROPERTY_HINT_RANGE, "1,100,1"), 60);
+
 	// The default window size is tuned to:
 	// - Have a 16:9 aspect ratio,
 	// - Have both dimensions divisible by 8 to better play along with video recording,

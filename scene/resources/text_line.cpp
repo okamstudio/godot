@@ -35,6 +35,7 @@ void TextLine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_direction", "direction"), &TextLine::set_direction);
 	ClassDB::bind_method(D_METHOD("get_direction"), &TextLine::get_direction);
+	ClassDB::bind_method(D_METHOD("get_inferred_direction"), &TextLine::get_inferred_direction);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "direction", PROPERTY_HINT_ENUM, "Auto,Left-to-right,Right-to-left"), "set_direction", "get_direction");
 
@@ -187,6 +188,10 @@ void TextLine::set_direction(TextServer::Direction p_direction) {
 
 TextServer::Direction TextLine::get_direction() const {
 	return TS->shaped_text_get_direction(rid);
+}
+
+TextServer::Direction TextLine::get_inferred_direction() const {
+	return TS->shaped_text_get_inferred_direction(rid);
 }
 
 void TextLine::set_orientation(TextServer::Orientation p_orientation) {

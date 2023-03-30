@@ -130,6 +130,15 @@ void EditorAudioBus::_notification(int p_what) {
 			set_process(true);
 		} break;
 
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Audio bus editor")));
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			if (is_master) {
 				draw_style_box(get_theme_stylebox(SNAME("disabled"), SNAME("Button")), Rect2(Vector2(), get_size()));
@@ -583,6 +592,15 @@ void EditorAudioBus::gui_input(const Ref<InputEvent> &p_event) {
 		bus_popup->reset_size();
 		bus_popup->popup();
 	}
+
+	Ref<InputEventKey> k = p_event;
+	if (k->is_pressed() && k->is_action("ui_menu", true)) {
+		bus_popup->set_position(get_screen_position());
+		bus_popup->reset_size();
+		bus_popup->popup();
+
+		accept_event();
+	}
 }
 
 void EditorAudioBus::_effects_gui_input(Ref<InputEvent> p_event) {
@@ -619,7 +637,7 @@ Variant EditorAudioBus::get_drag_data(const Point2 &p_point) {
 	p->set_modulate(Color(1, 1, 1, 0.7));
 	p->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("focus"), SNAME("Button")));
 	p->set_size(get_size());
-	p->set_position(-p_point);
+	p->set_position((p_point == Vector2(INFINITY, INFINITY)) ? Vector2() : -p_point);
 	set_drag_preview(c);
 	Dictionary d;
 	d["type"] = "move_audio_bus";
@@ -652,7 +670,7 @@ void EditorAudioBus::drop_data(const Point2 &p_point, const Variant &p_data) {
 }
 
 Variant EditorAudioBus::get_drag_data_fw(const Point2 &p_point, Control *p_from) {
-	TreeItem *item = effects->get_item_at_position(p_point);
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? effects->get_selected() : effects->get_item_at_position(p_point);
 	if (!item) {
 		return Variant();
 	}
@@ -681,7 +699,7 @@ bool EditorAudioBus::can_drop_data_fw(const Point2 &p_point, const Variant &p_da
 		return false;
 	}
 
-	TreeItem *item = effects->get_item_at_position(p_point);
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? effects->get_selected() : effects->get_item_at_position(p_point);
 	if (!item) {
 		return false;
 	}
@@ -694,11 +712,11 @@ bool EditorAudioBus::can_drop_data_fw(const Point2 &p_point, const Variant &p_da
 void EditorAudioBus::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
 	Dictionary d = p_data;
 
-	TreeItem *item = effects->get_item_at_position(p_point);
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? effects->get_selected() : effects->get_item_at_position(p_point);
 	if (!item) {
 		return;
 	}
-	int pos = effects->get_drop_section_at_position(p_point);
+	int pos = (p_point == Vector2(INFINITY, INFINITY)) ? effects->get_drop_section_at_position(effects->get_item_rect(item).position) : effects->get_drop_section_at_position(p_point);
 	Variant md = item->get_metadata(0);
 
 	int paste_at;

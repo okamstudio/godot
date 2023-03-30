@@ -5,6 +5,8 @@ exclude: |
   (?x)^(
     .*thirdparty/.*|
     .*-so_wrap\.(h|c)|
+    .*-dll_wrap\.(h|c)|
+    .*-dylib_wrap\.(h|c)|
     platform/android/java/editor/src/main/java/com/android/.*|
     platform/android/java/lib/src/com/google/.*
   )$

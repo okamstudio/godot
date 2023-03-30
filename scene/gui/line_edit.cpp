@@ -33,6 +33,7 @@
 #include "core/input/input_map.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
+#include "core/string/translation_server.h"
 #include "scene/gui/label.h"
 #include "scene/main/window.h"
 #include "scene/theme/theme_db.h"
@@ -486,6 +487,7 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 						if (!pass && DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_CLIPBOARD_PRIMARY)) {
 							DisplayServer::get_singleton()->clipboard_set_primary(text);
 						}
+						queue_accessibility_update();
 					} else if (b->is_double_click()) {
 						// Double-click select word.
 						last_dblclk = OS::get_singleton()->get_ticks_msec();
@@ -500,6 +502,7 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 								selection.creating = true;
 								selection.start_column = caret_column;
 								set_caret_column(selection.end);
+								queue_accessibility_update();
 								break;
 							}
 						}
@@ -973,7 +976,9 @@ void LineEdit::drop_data(const Point2 &p_point, const Variant &p_data) {
 	if (p_data.is_string() && is_editable()) {
 		apply_ime();
 
-		set_caret_at_pixel_pos(p_point.x);
+		if (p_point != Vector2(INFINITY, INFINITY)) {
+			set_caret_at_pixel_pos(p_point.x);
+		}
 		int caret_column_tmp = caret_column;
 		bool is_inside_sel = selection.enabled && caret_column >= selection.begin && caret_column <= selection.end;
 		if (Input::get_singleton()->is_key_pressed(Key::CMD_OR_CTRL)) {
@@ -1009,6 +1014,7 @@ void LineEdit::drop_data(const Point2 &p_point, const Variant &p_data) {
 			}
 			text_changed_dirty = true;
 		}
+		queue_accessibility_update();
 		queue_redraw();
 	}
 }
@@ -1035,6 +1041,33 @@ void LineEdit::_update_theme_item_cache() {
 	theme_cache.base_scale = get_theme_default_base_scale();
 }
 
+void LineEdit::_accessibility_action_set_selection(const Variant &p_data) {
+	Dictionary new_selection = p_data;
+	int sel_start_pos = new_selection["start_char"];
+	int sel_end_pos = new_selection["end_char"];
+	select(sel_start_pos, sel_end_pos);
+}
+
+void LineEdit::_accessibility_action_replace_selected(const Variant &p_data) {
+	String new_text = p_data;
+	insert_text_at_caret(new_text);
+}
+
+void LineEdit::_accessibility_action_set_value(const Variant &p_data) {
+	String new_text = p_data;
+	set_text(new_text);
+}
+
+void LineEdit::_accessibility_action_menu(const Variant &p_data) {
+	_update_context_menu();
+
+	Point2 pos = Point2(get_caret_pixel_pos().x, (get_size().y + theme_cache.font->get_height(theme_cache.font_size)) / 2);
+	menu->set_position(get_screen_position() + pos);
+	menu->reset_size();
+	menu->popup();
+	menu->grab_focus();
+}
+
 void LineEdit::_notification(int p_what) {
 	switch (p_what) {
 #ifdef TOOLS_ENABLED
@@ -1049,6 +1082,95 @@ void LineEdit::_notification(int p_what) {
 			}
 		} break;
 #endif
+		case NOTIFICATION_EXIT_TREE:
+		case NOTIFICATION_ACCESSIBILITY_INVALIDATE: {
+			accessibility_text_root_element = RID();
+		} break;
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_TEXT_FIELD);
+			bool using_placeholder = text.is_empty() && ime_text.is_empty();
+			if (using_placeholder && !placeholder.is_empty()) {
+				DisplayServer::get_singleton()->accessibility_update_set_placeholder(ae, placeholder);
+			}
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_READONLY, !editable);
+
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SET_TEXT_SELECTION, callable_mp(this, &LineEdit::_accessibility_action_set_selection));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_REPLACE_SELECTED_TEXT, callable_mp(this, &LineEdit::_accessibility_action_replace_selected));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SET_VALUE, callable_mp(this, &LineEdit::_accessibility_action_set_value));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SHOW_CONTEXT_MENU, callable_mp(this, &LineEdit::_accessibility_action_menu));
+			if (!language.is_empty()) {
+				DisplayServer::get_singleton()->accessibility_update_set_language(ae, language);
+			} else {
+				DisplayServer::get_singleton()->accessibility_update_set_language(ae, TranslationServer::get_singleton()->get_tool_locale());
+			}
+
+			bool rtl = is_layout_rtl();
+			Ref<StyleBox> style = theme_cache.normal;
+			Ref<Font> font = theme_cache.font;
+
+			Size2 size = get_size();
+
+			int x_ofs = 0;
+			float text_width = TS->shaped_text_get_size(text_rid).x;
+			float text_height = TS->shaped_text_get_size(text_rid).y;
+			int y_area = size.height - style->get_minimum_size().height;
+			int y_ofs = style->get_offset().y + (y_area - text_height) / 2;
+
+			switch (alignment) {
+				case HORIZONTAL_ALIGNMENT_FILL:
+				case HORIZONTAL_ALIGNMENT_LEFT: {
+					if (rtl) {
+						x_ofs = MAX(style->get_margin(SIDE_LEFT), int(size.width - Math::ceil(style->get_margin(SIDE_RIGHT) + (text_width))));
+					} else {
+						x_ofs = style->get_offset().x;
+					}
+				} break;
+				case HORIZONTAL_ALIGNMENT_CENTER: {
+					if (!Math::is_zero_approx(scroll_offset)) {
+						x_ofs = style->get_offset().x;
+					} else {
+						x_ofs = MAX(style->get_margin(SIDE_LEFT), int(size.width - (text_width)) / 2);
+					}
+				} break;
+				case HORIZONTAL_ALIGNMENT_RIGHT: {
+					if (rtl) {
+						x_ofs = style->get_offset().x;
+					} else {
+						x_ofs = MAX(style->get_margin(SIDE_LEFT), int(size.width - Math::ceil(style->get_margin(SIDE_RIGHT) + (text_width))));
+					}
+				} break;
+			}
+			bool display_clear_icon = !using_placeholder && is_editable() && clear_button_enabled;
+			if (right_icon.is_valid() || display_clear_icon) {
+				Ref<Texture2D> r_icon = display_clear_icon ? theme_cache.clear_icon : right_icon;
+				if (alignment == HORIZONTAL_ALIGNMENT_CENTER) {
+					if (Math::is_zero_approx(scroll_offset)) {
+						x_ofs = MAX(style->get_margin(SIDE_LEFT), int(size.width - text_width - r_icon->get_width() - style->get_margin(SIDE_RIGHT) * 2) / 2);
+					}
+				} else {
+					x_ofs = MAX(style->get_margin(SIDE_LEFT), x_ofs - r_icon->get_width() - style->get_margin(SIDE_RIGHT));
+				}
+			}
+
+			float text_off_x = x_ofs + scroll_offset;
+
+			if (accessibility_text_root_element.is_null()) {
+				accessibility_text_root_element = DisplayServer::get_singleton()->accessibility_create_sub_text_edit_elements(ae, using_placeholder ? RID() : text_rid, text_height);
+			}
+
+			Transform2D text_xform;
+			text_xform.set_origin(Vector2i(text_off_x, y_ofs));
+			DisplayServer::get_singleton()->accessibility_update_set_transform(accessibility_text_root_element, text_xform);
+			if (selection.enabled) {
+				DisplayServer::get_singleton()->accessibility_update_set_text_selection(ae, accessibility_text_root_element, selection.begin, accessibility_text_root_element, selection.end);
+			} else {
+				DisplayServer::get_singleton()->accessibility_update_set_text_selection(ae, accessibility_text_root_element, caret_column, accessibility_text_root_element, caret_column);
+			}
+		} break;
 
 		case NOTIFICATION_RESIZED: {
 			_fit_to_width();
@@ -1208,6 +1330,7 @@ void LineEdit::_notification(int p_what) {
 					RenderingServer::get_singleton()->canvas_item_add_rect(ci, rect, selection_color);
 				}
 			}
+
 			const Glyph *glyphs = TS->shaped_text_get_glyphs(text_rid);
 			int gl_size = TS->shaped_text_get_glyph_count(text_rid);
 
@@ -1914,6 +2037,8 @@ void LineEdit::set_caret_column(int p_column) {
 
 	caret_column = p_column;
 
+	queue_accessibility_update();
+
 	// Fit to window.
 
 	if (!is_inside_tree()) {
@@ -1982,6 +2107,7 @@ void LineEdit::set_caret_column(int p_column) {
 
 	scroll_offset = MIN(0, scroll_offset);
 
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2076,6 +2202,7 @@ void LineEdit::deselect() {
 	selection.enabled = false;
 	selection.creating = false;
 	selection.double_click = false;
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2134,6 +2261,7 @@ void LineEdit::selection_fill_at_caret() {
 	}
 
 	selection.enabled = (selection.begin != selection.end);
+	queue_accessibility_update();
 }
 
 void LineEdit::select_all() {
@@ -2149,6 +2277,7 @@ void LineEdit::select_all() {
 	selection.begin = 0;
 	selection.end = text.length();
 	selection.enabled = true;
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2166,6 +2295,7 @@ void LineEdit::set_editable(bool p_editable) {
 	_validate_caret_can_draw();
 
 	update_minimum_size();
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2235,6 +2365,7 @@ void LineEdit::select(int p_from, int p_to) {
 	selection.end = p_to;
 	selection.creating = false;
 	selection.double_click = false;
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2628,6 +2759,13 @@ void LineEdit::_shape() {
 	if ((expand_to_text_length && old_size.x != size.x) || (old_size.y != size.y)) {
 		update_minimum_size();
 	}
+
+	if (accessibility_text_root_element.is_valid()) {
+		DisplayServer::get_singleton()->accessibility_free_element(accessibility_text_root_element);
+		accessibility_text_root_element = RID();
+	}
+
+	queue_accessibility_update();
 }
 
 void LineEdit::_fit_to_width() {

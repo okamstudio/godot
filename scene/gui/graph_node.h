@@ -67,6 +67,14 @@ class GraphNode : public GraphElement {
 		int final_size = 0;
 	};
 
+	enum CustomAccessibilityAction {
+		ACTION_CONNECT_INPUT,
+		ACTION_CONNECT_OUTPUT,
+		ACTION_FOLLOW_INPUT,
+		ACTION_FOLLOW_OUTPUT,
+	};
+	void _accessibility_action_slot(const Variant &p_data);
+
 	HBoxContainer *titlebar_hbox = nullptr;
 	Label *title_label = nullptr;
 
@@ -78,12 +86,17 @@ class GraphNode : public GraphElement {
 	HashMap<int, Slot> slot_table;
 	Vector<int> slot_y_cache;
 
+	int slot_count = 0;
+	int selected_slot = -1;
+
 	struct ThemeCache {
 		Ref<StyleBox> panel;
 		Ref<StyleBox> panel_selected;
+		Ref<StyleBox> panel_focus;
 		Ref<StyleBox> titlebar;
 		Ref<StyleBox> titlebar_selected;
 		Ref<StyleBox> slot;
+		Ref<StyleBox> slot_selected;
 
 		int separation = 0;
 		int port_h_offset = 0;
@@ -113,6 +126,9 @@ protected:
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 
 public:
+	virtual String get_accessibility_container_name(const Node *p_node) const override;
+	virtual void gui_input(const Ref<InputEvent> &p_event) override;
+
 	void set_title(const String &p_title);
 	String get_title() const;
 

@@ -521,7 +521,7 @@ public:
 	char32_t unicode_at(int p_idx) const;
 
 	CharString ascii(bool p_allow_extended = false) const;
-	CharString utf8() const;
+	CharString utf8(Vector<uint8_t> *r_ch_length_map = nullptr) const;
 	Error parse_utf8(const char *p_utf8, int p_len = -1, bool p_skip_cr = false);
 	static String utf8(const char *p_utf8, int p_len = -1);
 

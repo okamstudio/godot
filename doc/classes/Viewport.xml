@@ -148,6 +148,12 @@
 				Returns the drag data from the GUI, that was previously returned by [method Control._get_drag_data].
 			</description>
 		</method>
+		<method name="gui_get_drag_description" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the drag data human-readable description.
+			</description>
+		</method>
 		<method name="gui_get_focus_owner" qualifiers="const">
 			<return type="Control" />
 			<description>
@@ -178,6 +184,13 @@
 			<return type="void" />
 			<description>
 				Removes the focus from the currently focused [Control] within this viewport. If no [Control] has the focus, does nothing.
+			</description>
+		</method>
+		<method name="gui_set_drag_description">
+			<return type="void" />
+			<param index="0" name="description" type="String" />
+			<description>
+				Sets the drag data human-readable description.
 			</description>
 		</method>
 		<method name="is_input_handled" qualifiers="const">

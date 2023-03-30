@@ -34,6 +34,50 @@
 #include "core/math/expression.h"
 #include "scene/theme/theme_db.h"
 
+void SpinBoxLineEdit::_accessibility_action_inc(const Variant &p_data) {
+	SpinBox *parent_sb = Object::cast_to<SpinBox>(get_parent());
+	if (parent_sb) {
+		double step = ((parent_sb->get_step() > 0) ? parent_sb->get_step() : 1);
+		parent_sb->set_value(parent_sb->get_value() + step);
+	}
+}
+
+void SpinBoxLineEdit::_accessibility_action_dec(const Variant &p_data) {
+	SpinBox *parent_sb = Object::cast_to<SpinBox>(get_parent());
+	if (parent_sb) {
+		double step = ((parent_sb->get_step() > 0) ? parent_sb->get_step() : 1);
+		parent_sb->set_value(parent_sb->get_value() - step);
+	}
+}
+
+void SpinBoxLineEdit::_notification(int p_what) {
+	ERR_MAIN_THREAD_GUARD;
+	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			SpinBox *parent_sb = Object::cast_to<SpinBox>(get_parent());
+			if (parent_sb) {
+				DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_SPIN_BUTTON);
+				DisplayServer::get_singleton()->accessibility_update_set_name(ae, parent_sb->get_accessibility_name());
+				DisplayServer::get_singleton()->accessibility_update_set_description(ae, parent_sb->get_accessibility_description());
+				DisplayServer::get_singleton()->accessibility_update_set_live(ae, parent_sb->get_accessibility_live());
+				DisplayServer::get_singleton()->accessibility_update_set_num_value(ae, parent_sb->get_value());
+				DisplayServer::get_singleton()->accessibility_update_set_num_range(ae, parent_sb->get_min(), parent_sb->get_max());
+				if (parent_sb->get_step() > 0) {
+					DisplayServer::get_singleton()->accessibility_update_set_num_step(ae, parent_sb->get_step());
+				} else {
+					DisplayServer::get_singleton()->accessibility_update_set_num_step(ae, 1);
+				}
+				//DisplayServer::get_singleton()->accessibility_update_set_num_jump(ae, ???);
+				DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_DECREMENT, callable_mp(this, &SpinBoxLineEdit::_accessibility_action_dec));
+				DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_INCREMENT, callable_mp(this, &SpinBoxLineEdit::_accessibility_action_inc));
+			}
+		} break;
+	}
+}
+
 Size2 SpinBox::get_minimum_size() const {
 	Size2 ms = line_edit->get_combined_minimum_size();
 	ms.width += sizing_cache.buttons_block_width;
@@ -622,7 +666,7 @@ void SpinBox::_bind_methods() {
 }
 
 SpinBox::SpinBox() {
-	line_edit = memnew(LineEdit);
+	line_edit = memnew(SpinBoxLineEdit);
 	line_edit->set_emoji_menu_enabled(false);
 	add_child(line_edit, false, INTERNAL_MODE_FRONT);
 

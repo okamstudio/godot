@@ -84,6 +84,8 @@ public:
 	void add_action(const StringName &p_action, float p_deadzone = DEFAULT_DEADZONE);
 	void erase_action(const StringName &p_action);
 
+	String get_action_description(const StringName &p_action) const;
+
 	float action_get_deadzone(const StringName &p_action);
 	void action_set_deadzone(const StringName &p_action, float p_deadzone);
 	void action_add_event(const StringName &p_action, const Ref<InputEvent> &p_event);

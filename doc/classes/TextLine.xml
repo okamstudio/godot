@@ -56,6 +56,12 @@
 				Draw text into a canvas item at a given position, with [param color]. [param pos] specifies the top left corner of the bounding box.
 			</description>
 		</method>
+		<method name="get_inferred_direction" qualifiers="const">
+			<return type="int" enum="TextServer.Direction" />
+			<description>
+				Returns text writing direction inferred by BiDi algorithm.
+			</description>
+		</method>
 		<method name="get_line_ascent" qualifiers="const">
 			<return type="float" />
 			<description>

@@ -127,6 +127,13 @@ void VideoStreamPlayer::_mix_audio() {
 
 void VideoStreamPlayer::_notification(int p_notification) {
 	switch (p_notification) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_VIDEO);
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			AudioServer::get_singleton()->add_mix_callback(_mix_audios, this);
 

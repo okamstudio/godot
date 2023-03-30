@@ -145,12 +145,15 @@ private:
 			Color color = Color(1, 1, 1);
 		};
 
+		mutable int64_t next_item_id = 0;
+
 		struct Line {
 			Vector<Gutter> gutters;
 
 			String data;
 			Array bidi_override;
 			Ref<TextParagraph> data_buf;
+			Vector<RID> accessibility_text_root_element;
 
 			Color background_color = Color(0, 0, 0, 0);
 			bool hidden = false;
@@ -224,6 +227,14 @@ private:
 		BitField<TextServer::LineBreakFlag> get_brk_flags() const;
 		int get_line_wrap_amount(int p_line) const;
 
+		const Vector<RID> get_accessibility_elements(int p_line);
+		void update_accessibility(int p_line, RID p_root);
+		void clear_accessibility() {
+			for (int i = 0; i < text.size(); i++) {
+				text.write[i].accessibility_text_root_element.clear();
+			}
+		}
+
 		Vector<Vector2i> get_line_wrap_ranges(int p_line) const;
 		const Ref<TextParagraph> get_line_data(int p_line) const;
 
@@ -269,12 +280,13 @@ private:
 
 	/* Text */
 	Text text;
-
 	bool setting_text = false;
 
 	bool alt_start = false;
 	bool alt_start_no_hold = false;
 	uint32_t alt_code = 0;
+
+	bool tab_input_mode = true;
 
 	// Text properties.
 	String ime_text = "";
@@ -622,6 +634,8 @@ private:
 	bool draw_tabs = false;
 	bool draw_spaces = false;
 
+	RID accessibility_text_root_element_nl;
+
 	/*** Super internal Core API. Everything builds on it. ***/
 	bool text_changed_dirty = false;
 	void _text_changed();
@@ -709,6 +723,17 @@ protected:
 	virtual void _paste_internal(int p_caret);
 	virtual void _paste_primary_clipboard_internal(int p_caret);
 
+	void _accessibility_action_set_selection(const Variant &p_data);
+	void _accessibility_action_replace_selected(const Variant &p_data);
+	void _accessibility_action_set_value(const Variant &p_data);
+	void _accessibility_action_menu(const Variant &p_data);
+	void _accessibility_scroll_down(const Variant &p_data);
+	void _accessibility_scroll_left(const Variant &p_data);
+	void _accessibility_scroll_right(const Variant &p_data);
+	void _accessibility_scroll_up(const Variant &p_data);
+	void _accessibility_scroll_set(const Variant &p_data);
+	void _accessibility_action_scroll_into_view(const Variant &p_data, int p_line, int p_wrap);
+
 	GDVIRTUAL2(_handle_unicode_input, int, int)
 	GDVIRTUAL1(_backspace, int)
 	GDVIRTUAL1(_cut, int)
@@ -755,6 +780,9 @@ public:
 
 	void set_indent_wrapped_lines(bool p_enabled);
 	bool is_indent_wrapped_lines() const;
+
+	void set_tab_input_mode(bool p_enabled);
+	bool get_tab_input_mode() const;
 
 	// User controls
 	void set_overtype_mode_enabled(bool p_enabled);

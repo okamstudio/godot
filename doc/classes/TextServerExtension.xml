@@ -1306,6 +1306,77 @@
 				Saves optional TextServer database (e.g. ICU break iterators and dictionaries) to the file.
 			</description>
 		</method>
+		<method name="_shaped_get_run_count" qualifiers="virtual const">
+			<return type="int" />
+			<param index="0" name="shaped" type="RID" />
+			<description>
+				[b]Required.[/b]
+				Returns number of uniform text runs in the buffer.
+			</description>
+		</method>
+		<method name="_shaped_get_run_direction" qualifiers="virtual const">
+			<return type="int" enum="TextServer.Direction" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns direction of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_font_rid" qualifiers="virtual const">
+			<return type="RID" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns font RID of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_font_size" qualifiers="virtual const">
+			<return type="int" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns font size of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_language" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns language of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_object" qualifiers="virtual const">
+			<return type="Variant" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns embedded object of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_range" qualifiers="virtual const">
+			<return type="Vector2i" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns source text range of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="_shaped_get_run_text" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns source text of the [param index] text run (in visual order).
+			</description>
+		</method>
 		<method name="_shaped_get_span_count" qualifiers="virtual const">
 			<return type="int" />
 			<param index="0" name="shaped" type="RID" />
@@ -1330,6 +1401,32 @@
 			<description>
 				[b]Required.[/b]
 				Returns text span metadata.
+			</description>
+		</method>
+		<method name="_shaped_get_span_object" qualifiers="virtual const">
+			<return type="Variant" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns text span embedded object key.
+			</description>
+		</method>
+		<method name="_shaped_get_span_text" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns text span source text.
+			</description>
+		</method>
+		<method name="_shaped_get_text" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<description>
+				[b]Required.[/b]
+				Returns text buffer source text, including object replacement characters.
 			</description>
 		</method>
 		<method name="_shaped_set_span_update_font" qualifiers="virtual">

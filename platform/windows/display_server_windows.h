@@ -466,6 +466,7 @@ class DisplayServerWindows : public DisplayServer {
 
 	struct WindowData {
 		HWND hWnd;
+		WindowID id;
 
 		Vector<Vector2> mpath;
 
@@ -819,6 +820,11 @@ public:
 
 	virtual void window_set_ime_active(const bool p_active, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_set_ime_position(const Point2i &p_pos, WindowID p_window = MAIN_WINDOW_ID) override;
+
+	virtual int accessibility_should_increase_contrast() const override;
+	virtual int accessibility_should_reduce_animation() const override;
+	virtual int accessibility_should_reduce_transparency() const override;
+	virtual int accessibility_screen_reader_active() const override;
 
 	virtual Point2i ime_get_selection() const override;
 	virtual String ime_get_text() const override;

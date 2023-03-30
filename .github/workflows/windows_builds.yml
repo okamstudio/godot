@@ -7,7 +7,7 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: master
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/"
+  SCONSFLAGS: verbose=yes warnings=extra werror=yes module_text_server_fb_enabled=yes d3d12=yes strict_checks=yes "angle_libs=${{ github.workspace }}/" "accesskit_sdk_path=${{github.workspace}}/accesskit-c-0.14.0/"
   SCONS_CACHE_MSVC_CONFIG: true
 
 jobs:
@@ -86,6 +86,17 @@ jobs:
 
       - name: Extract pre-built ANGLE static libraries
         run: Expand-Archive -Force angle/angle.zip ${{ github.workspace }}/
+
+      - name: Download pre-built AccessKit
+        uses: dsaltares/fetch-gh-release-asset@1.1.2
+        with:
+          repo: AccessKit/accesskit-c
+          version: tags/0.14.0
+          file: accesskit-c-0.14.0.zip
+          target: accesskit-c-0.14.0/accesskit_c.zip
+
+      - name: Extract pre-built AccessKit
+        run: unzip -o accesskit-c-0.14.0/accesskit_c.zip
 
       - name: Compilation
         uses: ./.github/actions/godot-build

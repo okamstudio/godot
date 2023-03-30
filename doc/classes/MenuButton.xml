@@ -34,7 +34,7 @@
 	<members>
 		<member name="action_mode" type="int" setter="set_action_mode" getter="get_action_mode" overrides="BaseButton" enum="BaseButton.ActionMode" default="0" />
 		<member name="flat" type="bool" setter="set_flat" getter="is_flat" overrides="Button" default="true" />
-		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="0" />
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="item_count" type="int" setter="set_item_count" getter="get_item_count" default="0">
 			The number of items currently in the list.
 		</member>

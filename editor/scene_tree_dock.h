@@ -89,6 +89,7 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_CREATE_FAVORITE,
 		TOOL_CENTER_PARENT,
 		TOOL_HIDE_FILTERED_OUT_PARENTS,
+		TOOL_ACCESSIBILITY_WARNINGS,
 	};
 
 	enum {

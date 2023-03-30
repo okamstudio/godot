@@ -745,7 +745,14 @@ void ProjectExportDialog::_delete_preset_confirm() {
 
 Variant ProjectExportDialog::get_drag_data_fw(const Point2 &p_point, Control *p_from) {
 	if (p_from == presets) {
-		int pos = presets->get_item_at_position(p_point, true);
+		int pos = -1;
+		if (p_point == Vector2(INFINITY, INFINITY)) {
+			if (presets->is_anything_selected()) {
+				pos = presets->get_selected_items()[0];
+			}
+		} else {
+			pos = presets->get_item_at_position(p_point, true);
+		}
 
 		if (pos >= 0) {
 			Dictionary d;
@@ -766,7 +773,7 @@ Variant ProjectExportDialog::get_drag_data_fw(const Point2 &p_point, Control *p_
 			return d;
 		}
 	} else if (p_from == patches) {
-		TreeItem *item = patches->get_item_at_position(p_point);
+		TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? patches->get_selected() : patches->get_item_at_position(p_point);
 
 		if (item) {
 			int item_metadata = item->get_metadata(0);
@@ -791,7 +798,18 @@ bool ProjectExportDialog::can_drop_data_fw(const Point2 &p_point, const Variant 
 			return false;
 		}
 
-		if (presets->get_item_at_position(p_point, true) < 0 && !presets->is_pos_at_end_of_items(p_point)) {
+		int pos = -1;
+		bool end = true;
+		if (p_point == Vector2(INFINITY, INFINITY)) {
+			if (presets->is_anything_selected()) {
+				pos = presets->get_selected_items()[0];
+			}
+		} else {
+			pos = presets->get_item_at_position(p_point, true);
+			end = presets->is_pos_at_end_of_items(p_point);
+		}
+
+		if (pos < 0 && !end) {
 			return false;
 		}
 	} else if (p_from == patches) {
@@ -800,7 +818,7 @@ bool ProjectExportDialog::can_drop_data_fw(const Point2 &p_point, const Variant 
 			return false;
 		}
 
-		TreeItem *item = patches->get_item_at_position(p_point);
+		TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? patches->get_selected() : patches->get_item_at_position(p_point);
 		if (!item) {
 			return false;
 		}
@@ -818,11 +836,22 @@ void ProjectExportDialog::drop_data_fw(const Point2 &p_point, const Variant &p_d
 
 		int to_pos = -1;
 
-		if (presets->get_item_at_position(p_point, true) >= 0) {
-			to_pos = presets->get_item_at_position(p_point, true);
+		int pos = -1;
+		bool end = true;
+		if (p_point == Vector2(INFINITY, INFINITY)) {
+			if (presets->is_anything_selected()) {
+				pos = presets->get_selected_items()[0];
+			}
+		} else {
+			pos = presets->get_item_at_position(p_point, true);
+			end = presets->is_pos_at_end_of_items(p_point);
 		}
 
-		if (to_pos == -1 && !presets->is_pos_at_end_of_items(p_point)) {
+		if (pos >= 0) {
+			to_pos = pos;
+		}
+
+		if (to_pos == -1 && !end) {
 			return;
 		}
 
@@ -846,14 +875,20 @@ void ProjectExportDialog::drop_data_fw(const Point2 &p_point, const Variant &p_d
 		Dictionary d = p_data;
 		int from_pos = d["patch"];
 
-		TreeItem *item = patches->get_item_at_position(p_point);
+		TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? patches->get_selected() : patches->get_item_at_position(p_point);
 		if (!item) {
 			return;
 		}
 
 		int to_pos = item->get_metadata(0);
 
-		if (patches->get_drop_section_at_position(p_point) > 0) {
+		int pos = -1;
+		if (p_point == Vector2(INFINITY, INFINITY)) {
+			pos = patches->get_drop_section_at_position(patches->get_item_rect(item).position);
+		} else {
+			pos = patches->get_drop_section_at_position(p_point);
+		}
+		if (pos > 0) {
 			to_pos++;
 		}
 

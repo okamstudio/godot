@@ -4125,6 +4125,15 @@ void CanvasItemEditor::_notification(int p_what) {
 			ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &CanvasItemEditor::_project_settings_changed));
 		} break;
 
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Canvas item editor")));
+		} break;
+
 		case NOTIFICATION_PROCESS: {
 			// Update the viewport if the canvas_item changes
 			List<CanvasItem *> selection = _get_edited_canvas_items(true);
@@ -6136,6 +6145,9 @@ void CanvasItemEditorViewport::_perform_drop_data() {
 }
 
 bool CanvasItemEditorViewport::can_drop_data(const Point2 &p_point, const Variant &p_data) const {
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		return false;
+	}
 	Dictionary d = p_data;
 	if (!d.has("type") || (String(d["type"]) != "files")) {
 		label->hide();
@@ -6267,6 +6279,9 @@ bool CanvasItemEditorViewport::_is_any_texture_selected() const {
 }
 
 void CanvasItemEditorViewport::drop_data(const Point2 &p_point, const Variant &p_data) {
+	if (p_point == Vector2(INFINITY, INFINITY)) {
+		return;
+	}
 	bool is_shift = Input::get_singleton()->is_key_pressed(Key::SHIFT);
 	bool is_alt = Input::get_singleton()->is_key_pressed(Key::ALT);
 

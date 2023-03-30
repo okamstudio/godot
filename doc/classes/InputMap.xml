@@ -90,6 +90,13 @@
 				If [param exact_match] is [code]false[/code], it ignores additional input modifiers for [InputEventKey] and [InputEventMouseButton] events, and the direction for [InputEventJoypadMotion] events.
 			</description>
 		</method>
+		<method name="get_action_description" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+				Returns human-readable description of action inputs.
+			</description>
+		</method>
 		<method name="get_actions">
 			<return type="StringName[]" />
 			<description>

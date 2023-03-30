@@ -55,6 +55,9 @@ public:
 
 private:
 	struct Tab {
+		mutable RID accessibility_item_element;
+		mutable bool accessibility_item_dirty = true;
+
 		String text;
 		String tooltip;
 
@@ -170,6 +173,9 @@ private:
 	void _shape(int p_tab);
 	void _draw_tab(Ref<StyleBox> &p_tab_style, Color &p_font_color, int p_index, float p_x, bool p_focus);
 
+	void _accessibility_action_scroll_into_view(const Variant &p_data, int p_index);
+	void _accessibility_action_focus(const Variant &p_data, int p_index);
+
 protected:
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 	virtual String get_tooltip(const Point2 &p_pos) const override;
@@ -188,6 +194,9 @@ protected:
 	void _move_tab_from(TabBar *p_from_tabbar, int p_from_index, int p_to_index);
 
 public:
+	RID get_tab_accessibility_element(int p_tab) const;
+	RID get_focused_accessibility_element() const override;
+
 	Variant _handle_get_drag_data(const String &p_type, const Point2 &p_point);
 	bool _handle_can_drop_data(const String &p_type, const Point2 &p_point, const Variant &p_data) const;
 	void _handle_drop_data(const String &p_type, const Point2 &p_point, const Variant &p_data, const Callable &p_move_tab_callback, const Callable &p_move_tab_from_other_callback);

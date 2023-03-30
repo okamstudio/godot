@@ -112,8 +112,27 @@ bool TouchScreenButton::is_shape_centered() const {
 	return shape_centered;
 }
 
+void TouchScreenButton::_accessibility_action_click(const Variant &p_data) {
+	_press(0);
+	_release();
+}
+
 void TouchScreenButton::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			Rect2 dst_rect(Point2(), texture_normal.is_valid() ? texture_normal->get_size() : Size2());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_BUTTON);
+
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_CLICK, callable_mp(this, &TouchScreenButton::_accessibility_action_click));
+
+			DisplayServer::get_singleton()->accessibility_update_set_transform(ae, get_transform());
+			DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, dst_rect);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			if (!is_inside_tree()) {
 				return;
