@@ -360,11 +360,7 @@ void validate_property(const Context &p_context, const ExposedClass &p_class, co
 	if (getter && setter) {
 		const ArgumentData &setter_first_arg = setter->arguments.back()->get();
 		if (getter->return_type.name != setter_first_arg.type.name) {
-			// Special case for Node::set_name
-			bool whitelisted = getter->return_type.name == p_context.names_cache.string_name_type &&
-					setter_first_arg.type.name == p_context.names_cache.string_type;
-
-			TEST_FAIL_COND(!whitelisted,
+			TEST_FAIL(
 					"Return type from getter doesn't match first argument of setter, for property: '", p_class.name, ".", String(p_prop.name), "'.");
 		}
 	}

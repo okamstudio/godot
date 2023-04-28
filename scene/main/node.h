@@ -396,6 +396,11 @@ protected:
 	GDVIRTUAL1(_unhandled_input, Ref<InputEvent>)
 	GDVIRTUAL1(_unhandled_key_input, Ref<InputEvent>)
 
+#ifndef DISABLE_DEPRECATED
+	void _set_name_bind_compat_76560(const String &p_name);
+	static void _bind_compatibility_methods();
+#endif
+
 public:
 	enum {
 		// You can make your own, but don't use the same numbers as other notifications in other nodes.
@@ -455,7 +460,7 @@ public:
 
 	StringName get_name() const;
 	String get_description() const;
-	void set_name(const String &p_name);
+	void set_name(const StringName &p_name);
 
 	InternalMode get_internal_mode() const;
 

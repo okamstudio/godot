@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "node.h"
+#include "node.compat.inc"
 
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
@@ -1389,17 +1390,25 @@ void Node::_set_name_nocheck(const StringName &p_name) {
 	data.name = p_name;
 }
 
-void Node::set_name(const String &p_name) {
+void Node::set_name(const StringName &p_name) {
 	ERR_FAIL_COND_MSG(data.inside_tree && !Thread::is_main_thread(), "Changing the name to nodes inside the SceneTree is only allowed from the main thread. Use `set_name.call_deferred(new_name)`.");
-	String name = p_name.validate_node_name();
-
-	ERR_FAIL_COND(name.is_empty());
+	StringName new_name;
+	{
+		String input_name_str = p_name;
+		ERR_FAIL_COND(input_name_str.is_empty());
+		int32_t invalid_index = input_name_str.invalid_node_name_index();
+		if (invalid_index == -1) {
+			new_name = p_name;
+		} else {
+			new_name = input_name_str.validate_node_name_internal(invalid_index);
+		}
+	}
 
 	if (data.unique_name_in_owner && data.owner) {
 		_release_unique_name_in_owner();
 	}
-	String old_name = data.name;
-	data.name = name;
+	StringName old_name = data.name;
+	data.name = new_name;
 
 	if (data.parent) {
 		data.parent->_validate_child_name(this, true);
