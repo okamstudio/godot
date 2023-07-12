@@ -588,6 +588,10 @@ PackedStringArray CollisionObject2D::get_configuration_warnings() const {
 		warnings.push_back(RTR("This node has no shape, so it can't collide or interact with other objects.\nConsider adding a CollisionShape2D or CollisionPolygon2D as a child to define its shape."));
 	}
 
+	if (!get_transform().is_conformal() || !get_global_transform().is_conformal()) {
+		warnings.push_back(RTR("A non-uniformly scaled CollisionObject2D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on both axes), and change the size in children collision shapes instead."));
+	}
+
 	return warnings;
 }
 

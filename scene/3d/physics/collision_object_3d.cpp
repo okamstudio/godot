@@ -737,9 +737,8 @@ PackedStringArray CollisionObject3D::get_configuration_warnings() const {
 		warnings.push_back(RTR("This node has no shape, so it can't collide or interact with other objects.\nConsider adding a CollisionShape3D or CollisionPolygon3D as a child to define its shape."));
 	}
 
-	Vector3 scale = get_transform().get_basis().get_scale();
-	if (!(Math::is_zero_approx(scale.x - scale.y) && Math::is_zero_approx(scale.y - scale.z))) {
-		warnings.push_back(RTR("With a non-uniform scale this node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on all axes), and change the size in children collision shapes instead."));
+	if (!get_transform().get_basis().is_conformal() || !get_global_transform().get_basis().is_conformal()) {
+		warnings.push_back(RTR("A non-uniformly scaled CollisionObject3D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on all axes), and change the size in children collision shapes instead."));
 	}
 
 	return warnings;

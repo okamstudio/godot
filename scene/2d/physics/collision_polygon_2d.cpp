@@ -253,6 +253,10 @@ PackedStringArray CollisionPolygon2D::get_configuration_warnings() const {
 		warnings.push_back(RTR("The One Way Collision property will be ignored when the collision object is an Area2D."));
 	}
 
+	if (!get_transform().is_conformal() || !get_global_transform().is_conformal()) {
+		warnings.push_back(RTR("A non-uniformly scaled CollisionPolygon2D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on both axes), and change its polygon's vertices instead."));
+	}
+
 	return warnings;
 }
 

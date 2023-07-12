@@ -188,6 +188,10 @@ PackedStringArray CollisionShape2D::get_configuration_warnings() const {
 		warnings.push_back(RTR("The CollisionShape2D node has limited editing options for polygon-based shapes. Consider using a CollisionPolygon2D node instead."));
 	}
 
+	if (!get_transform().is_conformal() || !get_global_transform().is_conformal()) {
+		warnings.push_back(RTR("A non-uniformly scaled CollisionShape2D node will probably not function as expected.\nPlease make its scale uniform (i.e. the same on both axes), and change the size of its shape resource instead."));
+	}
+
 	return warnings;
 }
 
