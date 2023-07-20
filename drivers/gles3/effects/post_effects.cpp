@@ -87,7 +87,7 @@ void PostEffects::_draw_screen_triangle() {
 	glBindVertexArray(0);
 }
 
-void PostEffects::post_copy(GLuint p_dest_framebuffer, Size2i p_dest_size, GLuint p_source_color, Size2i p_source_size, float p_luminance_multiplier, const Glow::GLOWLEVEL *p_glow_buffers, float p_glow_intensity, uint32_t p_view, bool p_use_multiview, uint64_t p_spec_constants) {
+void PostEffects::post_copy(GLuint p_dest_framebuffer, Size2i p_dest_size, GLuint p_source_color, Size2i p_source_size, float p_luminance_multiplier, const Glow::GLOWLEVEL *p_glow_buffers, float p_glow_intensity, uint32_t p_view, bool p_use_multiview, uint64_t p_spec_constants, bool p_filter) {
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_BLEND);
@@ -115,8 +115,9 @@ void PostEffects::post_copy(GLuint p_dest_framebuffer, Size2i p_dest_size, GLuin
 	GLenum texture_target = p_use_multiview ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(texture_target, p_source_color);
-	glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, p_filter ? GL_LINEAR : GL_NEAREST);
+	glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, p_filter ? GL_LINEAR : GL_NEAREST);
 
 	if (p_glow_buffers != nullptr) {
 		glActiveTexture(GL_TEXTURE1);
