@@ -52,6 +52,9 @@ class AcceptDialog : public Window {
 	Button *ok_button = nullptr;
 
 	bool popped_up = false;
+	String ok_text;
+	String internal_ok_text;
+
 	bool hide_on_ok = true;
 	bool close_on_escape = true;
 
@@ -65,6 +68,7 @@ class AcceptDialog : public Window {
 	void _custom_action(const String &p_action);
 	void _custom_button_visibility_changed(Button *button);
 	void _update_child_rects();
+	void _update_ok_text();
 
 	static bool swap_cancel_ok;
 
@@ -81,6 +85,8 @@ protected:
 	virtual void ok_pressed() {}
 	virtual void cancel_pressed() {}
 	virtual void custom_action(const String &) {}
+
+	void set_internal_ok_text(const String &p_text);
 
 	// Not private since used by derived classes signal.
 	void _text_submitted(const String &p_text);
