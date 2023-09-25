@@ -128,8 +128,8 @@ void GodotArea2D::set_param(PhysicsServer2D::AreaParameter p_param, const Varian
 		case PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR:
 			gravity_vector = p_value;
 			break;
-		case PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT:
-			gravity_is_point = p_value;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_TYPE:
+			gravity_type = (PhysicsServer2D::AreaGravityType)(int)p_value;
 			break;
 		case PhysicsServer2D::AREA_PARAM_GRAVITY_POINT_UNIT_DISTANCE:
 			gravity_point_unit_distance = p_value;
@@ -160,8 +160,8 @@ Variant GodotArea2D::get_param(PhysicsServer2D::AreaParameter p_param) const {
 			return gravity;
 		case PhysicsServer2D::AREA_PARAM_GRAVITY_VECTOR:
 			return gravity_vector;
-		case PhysicsServer2D::AREA_PARAM_GRAVITY_IS_POINT:
-			return gravity_is_point;
+		case PhysicsServer2D::AREA_PARAM_GRAVITY_TYPE:
+			return gravity_type;
 		case PhysicsServer2D::AREA_PARAM_GRAVITY_POINT_UNIT_DISTANCE:
 			return gravity_point_unit_distance;
 		case PhysicsServer2D::AREA_PARAM_LINEAR_DAMP_OVERRIDE_MODE:
@@ -283,23 +283,27 @@ void GodotArea2D::call_queries() {
 	}
 }
 
-void GodotArea2D::compute_gravity(const Vector2 &p_position, Vector2 &r_gravity) const {
-	if (is_gravity_point()) {
-		const real_t gr_unit_dist = get_gravity_point_unit_distance();
-		Vector2 v = get_transform().xform(get_gravity_vector()) - p_position;
-		if (gr_unit_dist > 0) {
-			const real_t v_length_sq = v.length_squared();
-			if (v_length_sq > 0) {
-				const real_t gravity_strength = get_gravity() * gr_unit_dist * gr_unit_dist / v_length_sq;
-				r_gravity = v.normalized() * gravity_strength;
+void GodotArea2D::compute_gravity(const Vector2 &p_global_position, Vector2 &r_gravity) const {
+	switch (gravity_type) {
+		case PhysicsServer2D::AREA_GRAVITY_TYPE_DIRECTIONAL: {
+			r_gravity = get_gravity_vector() * get_gravity();
+		} break;
+		case PhysicsServer2D::AREA_GRAVITY_TYPE_POINT: {
+			Vector2 target_local_position = get_gravity_vector();
+			const real_t gr_unit_dist = get_gravity_point_unit_distance();
+			Vector2 v = get_transform().xform(target_local_position) - p_global_position;
+			if (gr_unit_dist > 0) {
+				const real_t v_length_sq = v.length_squared();
+				if (v_length_sq > 0) {
+					const real_t gravity_strength = get_gravity() * gr_unit_dist * gr_unit_dist / v_length_sq;
+					r_gravity = v.normalized() * gravity_strength;
+				} else {
+					r_gravity = Vector2();
+				}
 			} else {
-				r_gravity = Vector2();
+				r_gravity = v.normalized() * get_gravity();
 			}
-		} else {
-			r_gravity = v.normalized() * get_gravity();
-		}
-	} else {
-		r_gravity = get_gravity_vector() * get_gravity();
+		} break;
 	}
 }
 
