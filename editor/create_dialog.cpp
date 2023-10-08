@@ -195,6 +195,10 @@ bool CreateDialog::_should_hide_type(const StringName &p_type) const {
 				i = script_path.find_char('/', i + 1);
 			}
 		}
+		// Abstract scripts cannot be instantiated.
+		String path = ScriptServer::get_global_class_path(p_type);
+		Ref<Script> scr = ResourceLoader::load(path, "Script");
+		return scr->is_abstract();
 	}
 
 	return false;

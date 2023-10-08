@@ -162,7 +162,7 @@
 		<method name="_is_abstract" qualifiers="virtual const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the script is an abstract script. An abstract script does not have a constructor and cannot be instantiated.
+				Returns [code]true[/code] if the script is an abstract script. Abstract scripts cannot be instantiated directly, instead other scripts should inherit them. Abstract scripts will be either unselectable or hidden in the Create New Node dialog (unselectable if there are non-abstract classes inheriting it, otherwise hidden).
 			</description>
 		</method>
 		<method name="_is_placeholder_fallback_enabled" qualifiers="virtual const">

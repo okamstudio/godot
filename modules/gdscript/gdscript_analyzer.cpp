@@ -3562,10 +3562,15 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool p_is_a
 
 	bool is_constructor = (base_type.is_meta_type || (p_call->callee && p_call->callee->type == GDScriptParser::Node::IDENTIFIER)) && p_call->function_name == SNAME("new");
 
-	if (is_constructor && Engine::get_singleton()->has_singleton(base_type.native_type)) {
-		push_error(vformat(R"(Cannot construct native class "%s" because it is an engine singleton.)", base_type.native_type), p_call);
-		p_call->set_datatype(call_type);
-		return;
+	if (is_constructor) {
+		if (Engine::get_singleton()->has_singleton(base_type.native_type)) {
+			push_error(vformat(R"(Cannot construct native class "%s" because it is an engine singleton.)", base_type.native_type), p_call);
+			p_call->set_datatype(call_type);
+			return;
+		}
+		if ((base_type.kind == GDScriptParser::DataType::CLASS && base_type.class_type->is_abstract) || (base_type.kind == GDScriptParser::DataType::SCRIPT && base_type.script_type.is_valid() && base_type.script_type->is_abstract())) {
+			push_error(vformat(R"(Cannot construct abstract class "%s".)", base_type.to_string()), p_call);
+		}
 	}
 
 	if (get_function_signature(p_call, is_constructor, base_type, p_call->function_name, return_type, par_types, default_arg_count, method_flags)) {

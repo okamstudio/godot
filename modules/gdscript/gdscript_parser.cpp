@@ -633,7 +633,8 @@ void GDScriptParser::parse_program() {
 					PUSH_PENDING_ANNOTATIONS_TO_HEAD;
 					if (annotation->name == SNAME("@tool") || annotation->name == SNAME("@icon")) {
 						// Some annotations need to be resolved and applied in the parser.
-						annotation->apply(this, head, nullptr); // `head->outer == nullptr`.
+						// The root class is not in any class, so `head->outer == nullptr`.
+						annotation->apply(this, head, nullptr);
 					} else {
 						head->annotations.push_back(annotation);
 					}
@@ -672,9 +673,25 @@ void GDScriptParser::parse_program() {
 		}
 	}
 
+	bool has_early_abstract = false;
 	while (can_have_class_or_extends) {
 		// Order here doesn't matter, but there should be only one of each at most.
 		switch (current.type) {
+			case GDScriptTokenizer::Token::ABSTRACT: {
+				PUSH_PENDING_ANNOTATIONS_TO_HEAD;
+				if (head->start_line == 1) {
+					reset_extents(head, current);
+				}
+				advance();
+				if (has_early_abstract) {
+					push_error(R"(Expected "class_name" or "class" after "abstract".)");
+				} else {
+					has_early_abstract = true;
+				}
+				if (current.type == GDScriptTokenizer::Token::NEWLINE) {
+					end_statement("class_name abstract");
+				}
+			} break;
 			case GDScriptTokenizer::Token::CLASS_NAME:
 				PUSH_PENDING_ANNOTATIONS_TO_HEAD;
 				if (head->start_line == 1) {
@@ -685,6 +702,10 @@ void GDScriptParser::parse_program() {
 					push_error(R"("class_name" can only be used once.)");
 				} else {
 					parse_class_name();
+				}
+				if (has_early_abstract) {
+					head->is_abstract = true;
+					has_early_abstract = false;
 				}
 				break;
 			case GDScriptTokenizer::Token::EXTENDS:
@@ -698,6 +719,10 @@ void GDScriptParser::parse_program() {
 				} else {
 					parse_extends();
 					end_statement("superclass");
+				}
+				if (has_early_abstract) {
+					head->is_abstract = true;
+					has_early_abstract = false;
 				}
 				break;
 			case GDScriptTokenizer::Token::TK_EOF:
@@ -733,7 +758,7 @@ void GDScriptParser::parse_program() {
 
 #undef PUSH_PENDING_ANNOTATIONS_TO_HEAD
 
-	parse_class_body(true);
+	parse_class_body(has_early_abstract, true);
 
 	head->end_line = current.end_line;
 	head->end_column = current.end_column;
@@ -838,12 +863,13 @@ bool GDScriptParser::has_class(const GDScriptParser::ClassNode *p_class) const {
 	return false;
 }
 
-GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_static) {
+GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_abstract, bool p_is_static) {
 	ClassNode *n_class = alloc_node<ClassNode>();
 
 	ClassNode *previous_class = current_class;
 	current_class = n_class;
 	n_class->outer = previous_class;
+	n_class->is_abstract = p_is_abstract;
 
 	if (consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected identifier for the class name after "class".)")) {
 		n_class->identifier = parse_identifier();
@@ -880,7 +906,7 @@ GDScriptParser::ClassNode *GDScriptParser::parse_class(bool p_is_static) {
 		end_statement("superclass");
 	}
 
-	parse_class_body(multiline);
+	parse_class_body(false, multiline);
 	complete_extents(n_class);
 
 	if (multiline) {
@@ -939,7 +965,7 @@ void GDScriptParser::parse_extends() {
 }
 
 template <typename T>
-void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(bool), AnnotationInfo::TargetKind p_target, const String &p_member_kind, bool p_is_static) {
+void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(bool, bool), AnnotationInfo::TargetKind p_target, const String &p_member_kind, bool p_is_abstract, bool p_is_static) {
 	advance();
 
 	// Consume annotations.
@@ -955,7 +981,7 @@ void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(b
 		}
 	}
 
-	T *member = (this->*p_parse_function)(p_is_static);
+	T *member = (this->*p_parse_function)(p_is_abstract, p_is_static);
 	if (member == nullptr) {
 		return;
 	}
@@ -1009,14 +1035,29 @@ void GDScriptParser::parse_class_member(T *(GDScriptParser::*p_parse_function)(b
 	}
 }
 
-void GDScriptParser::parse_class_body(bool p_is_multiline) {
+void GDScriptParser::parse_class_body(bool p_is_abstract, bool p_is_multiline) {
 	bool class_end = false;
+	// The header parsing code might have skipped over abstract, so we start by checking the previous token.
+	bool next_is_abstract = p_is_abstract;
+	if (next_is_abstract && (current.type != GDScriptTokenizer::Token::CLASS_NAME && current.type != GDScriptTokenizer::Token::CLASS)) {
+		push_error(R"(Expected "class_name" or "class" after "abstract".)");
+	}
 	bool next_is_static = false;
 	while (!class_end && !is_at_end()) {
 		GDScriptTokenizer::Token token = current;
 		switch (token.type) {
+			case GDScriptTokenizer::Token::ABSTRACT: {
+				advance();
+				next_is_abstract = true;
+				if (check(GDScriptTokenizer::Token::NEWLINE)) {
+					advance();
+				}
+				if (!check(GDScriptTokenizer::Token::CLASS_NAME) && !check(GDScriptTokenizer::Token::CLASS)) {
+					push_error(R"(Expected "class_name" or "class" after "abstract".)");
+				}
+			} break;
 			case GDScriptTokenizer::Token::VAR:
-				parse_class_member(&GDScriptParser::parse_variable, AnnotationInfo::VARIABLE, "variable", next_is_static);
+				parse_class_member(&GDScriptParser::parse_variable, AnnotationInfo::VARIABLE, "variable", false, next_is_static);
 				if (next_is_static) {
 					current_class->has_static_data = true;
 				}
@@ -1028,11 +1069,12 @@ void GDScriptParser::parse_class_body(bool p_is_multiline) {
 				parse_class_member(&GDScriptParser::parse_signal, AnnotationInfo::SIGNAL, "signal");
 				break;
 			case GDScriptTokenizer::Token::FUNC:
-				parse_class_member(&GDScriptParser::parse_function, AnnotationInfo::FUNCTION, "function", next_is_static);
+				parse_class_member(&GDScriptParser::parse_function, AnnotationInfo::FUNCTION, "function", false, next_is_static);
 				break;
-			case GDScriptTokenizer::Token::CLASS:
-				parse_class_member(&GDScriptParser::parse_class, AnnotationInfo::CLASS, "class");
-				break;
+			case GDScriptTokenizer::Token::CLASS: {
+				parse_class_member(&GDScriptParser::parse_class, AnnotationInfo::CLASS, "class", next_is_abstract);
+				next_is_abstract = false;
+			} break;
 			case GDScriptTokenizer::Token::ENUM:
 				parse_class_member(&GDScriptParser::parse_enum, AnnotationInfo::NONE, "enum");
 				break;
@@ -1103,11 +1145,11 @@ void GDScriptParser::parse_class_body(bool p_is_multiline) {
 	}
 }
 
-GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_static) {
-	return parse_variable(p_is_static, true);
+GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_abstract, bool p_is_static) {
+	return parse_variable(p_is_abstract, p_is_static, true);
 }
 
-GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_static, bool p_allow_property) {
+GDScriptParser::VariableNode *GDScriptParser::parse_variable(bool p_is_abstract, bool p_is_static, bool p_allow_property) {
 	VariableNode *variable = alloc_node<VariableNode>();
 
 	if (!consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected variable name after "var".)")) {
@@ -1343,7 +1385,7 @@ void GDScriptParser::parse_property_getter(VariableNode *p_variable) {
 	}
 }
 
-GDScriptParser::ConstantNode *GDScriptParser::parse_constant(bool p_is_static) {
+GDScriptParser::ConstantNode *GDScriptParser::parse_constant(bool p_is_abstract, bool p_is_static) {
 	ConstantNode *constant = alloc_node<ConstantNode>();
 
 	if (!consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected constant name after "const".)")) {
@@ -1411,7 +1453,7 @@ GDScriptParser::ParameterNode *GDScriptParser::parse_parameter() {
 	return parameter;
 }
 
-GDScriptParser::SignalNode *GDScriptParser::parse_signal(bool p_is_static) {
+GDScriptParser::SignalNode *GDScriptParser::parse_signal(bool p_is_abstract, bool p_is_static) {
 	SignalNode *signal = alloc_node<SignalNode>();
 
 	if (!consume(GDScriptTokenizer::Token::IDENTIFIER, R"(Expected signal name after "signal".)")) {
@@ -1456,7 +1498,7 @@ GDScriptParser::SignalNode *GDScriptParser::parse_signal(bool p_is_static) {
 	return signal;
 }
 
-GDScriptParser::EnumNode *GDScriptParser::parse_enum(bool p_is_static) {
+GDScriptParser::EnumNode *GDScriptParser::parse_enum(bool p_is_abstract, bool p_is_static) {
 	EnumNode *enum_node = alloc_node<EnumNode>();
 	bool named = false;
 
@@ -1609,7 +1651,7 @@ void GDScriptParser::parse_function_signature(FunctionNode *p_function, SuiteNod
 	consume(GDScriptTokenizer::Token::COLON, vformat(R"(Expected ":" after %s declaration.)", p_type));
 }
 
-GDScriptParser::FunctionNode *GDScriptParser::parse_function(bool p_is_static) {
+GDScriptParser::FunctionNode *GDScriptParser::parse_function(bool p_is_abstract, bool p_is_static) {
 	FunctionNode *function = alloc_node<FunctionNode>();
 
 	make_completion_context(COMPLETION_OVERRIDE_METHOD, function);
@@ -1874,11 +1916,11 @@ GDScriptParser::Node *GDScriptParser::parse_statement() {
 			break;
 		case GDScriptTokenizer::Token::VAR:
 			advance();
-			result = parse_variable(false, false);
+			result = parse_variable(false, false, false);
 			break;
 		case GDScriptTokenizer::Token::CONST:
 			advance();
-			result = parse_constant(false);
+			result = parse_constant(false, false);
 			break;
 		case GDScriptTokenizer::Token::IF:
 			advance();
@@ -4073,6 +4115,7 @@ GDScriptParser::ParseRule *GDScriptParser::get_rule(GDScriptTokenizer::Token::Ty
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // MATCH,
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // WHEN,
 		// Keywords
+		{ nullptr,                                          nullptr,                                        PREC_NONE }, // ABSTRACT
 		{ nullptr,                                          &GDScriptParser::parse_cast,                 	PREC_CAST }, // AS,
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // ASSERT,
 		{ &GDScriptParser::parse_await,                  	nullptr,                                        PREC_NONE }, // AWAIT,
@@ -6263,17 +6306,21 @@ void GDScriptParser::TreePrinter::print_while(WhileNode *p_while) {
 }
 
 void GDScriptParser::TreePrinter::print_tree(const GDScriptParser &p_parser) {
-	ERR_FAIL_NULL_MSG(p_parser.get_tree(), "Parse the code before printing the parse tree.");
+	ClassNode *class_tree = p_parser.get_tree();
+	ERR_FAIL_NULL_MSG(class_tree, "Parse the code before printing the parse tree.");
 
 	if (p_parser.is_tool()) {
 		push_line("@tool");
 	}
-	if (!p_parser.get_tree()->icon_path.is_empty()) {
+	if (class_tree->is_abstract) {
+		push_line("@abstract");
+	}
+	if (!class_tree->icon_path.is_empty()) {
 		push_text(R"(@icon (")");
-		push_text(p_parser.get_tree()->icon_path);
+		push_text(class_tree->icon_path);
 		push_line("\")");
 	}
-	print_class(p_parser.get_tree());
+	print_class(class_tree);
 
 	print_line(String(printed));
 }

@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 4: Cannot construct abstract class "TestConstructAbstractScriptNotest".
