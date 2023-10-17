@@ -123,6 +123,13 @@
 				Returns the next 64 bits from the file as an integer. See [method store_64] for details on what values can be stored and retrieved this way.
 			</description>
 		</method>
+		<method name="get_access_time" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="file" type="String" />
+			<description>
+				Returns the last time the [param file] was accessed in Unix timestamp format, or [code]0[/code] on error. This Unix timestamp can be converted to another format using the [Time] singleton.
+			</description>
+		</method>
 		<method name="get_as_text" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="skip_cr" type="bool" default="false" />
@@ -278,6 +285,13 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Returns an SHA-256 [String] representing the file at the given path or an empty [String] on failure.
+			</description>
+		</method>
+		<method name="get_size" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="file" type="String" />
+			<description>
+				Returns file size in bytes, or [code]-1[/code] on error.
 			</description>
 		</method>
 		<method name="get_unix_permissions" qualifiers="static">

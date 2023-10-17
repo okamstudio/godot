@@ -78,6 +78,8 @@ public:
 	virtual bool file_exists(const String &p_path) override; // return true if a file exists
 
 	virtual uint64_t _get_modified_time(const String &p_file) override { return 0; }
+	virtual uint64_t _get_access_time(const String &p_file) override { return 0; }
+	virtual int64_t _get_size(const String &p_file) override;
 	virtual BitField<FileAccess::UnixPermissionFlags> _get_unix_permissions(const String &p_file) override { return 0; }
 	virtual Error _set_unix_permissions(const String &p_file, BitField<FileAccess::UnixPermissionFlags> p_permissions) override { return ERR_UNAVAILABLE; }
 
