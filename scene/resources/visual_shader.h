@@ -432,6 +432,7 @@ protected:
 	virtual void clear_default_input_values() override;
 
 	GDVIRTUAL0RC(String, _get_name)
+	GDVIRTUAL0RC(String, _get_shortcut_notation)
 	GDVIRTUAL0RC(String, _get_description)
 	GDVIRTUAL0RC(String, _get_category)
 	GDVIRTUAL0RC(PortType, _get_return_icon_type)
@@ -478,6 +479,7 @@ public:
 	String _get_properties() const;
 
 	String _get_name() const;
+	String _get_shortcut_notation() const;
 	String _get_description() const;
 	String _get_category() const;
 	PortType _get_return_icon_type() const;
