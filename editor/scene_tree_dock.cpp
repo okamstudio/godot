@@ -1260,7 +1260,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					bool editable = EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(node);
 
 					if (editable) {
-						editable_instance_remove_dialog->set_text(TTR("Disabling \"editable_instance\" will cause all properties of the node to be reverted to their default."));
+						editable_instance_remove_dialog->set_text(TTRC("Disabling \"editable_instance\" will cause all properties of the node to be reverted to their default.\nYou can choose to apply changes to base scene instead."));
 						editable_instance_remove_dialog->popup_centered();
 						break;
 					}
@@ -1302,6 +1302,29 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					scene_tree->update_tree();
 				}
 			}
+		} break;
+		case TOOL_SCENE_APPLY_TO_BASE: {
+			if (!profile_allow_editing) {
+				break;
+			}
+
+			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *>::Element *e = selection.front();
+			if (!e) {
+				break;
+			}
+
+			Node *local_instance = e->get();
+			if (!local_instance) {
+				break;
+			}
+
+			const String &scene_path = local_instance->get_scene_file_path();
+			if (scene_path.is_empty()) {
+				break;
+			}
+			_new_scene_from(scene_path, true);
+			EditorUndoRedoManager::get_singleton()->set_history_as_unsaved(editor_data->get_current_edited_scene_history_id());
 		} break;
 		case TOOL_SCENE_MAKE_LOCAL: {
 			if (!profile_allow_editing) {
@@ -2725,6 +2748,11 @@ void SceneTreeDock::_toggle_editable_children(Node *p_node) {
 	undo_redo->commit_action();
 }
 
+void SceneTreeDock::_apply_editable_children() {
+	editable_instance_remove_dialog->hide();
+	_tool_selected(TOOL_SCENE_APPLY_TO_BASE);
+}
+
 void SceneTreeDock::_delete_confirm(bool p_cut) {
 	List<Node *> remove_list = editor_selection->get_selected_node_list();
 
@@ -3327,7 +3355,7 @@ void SceneTreeDock::set_selected(Node *p_node, bool p_emit_selected) {
 	scene_tree->set_selected(p_node, p_emit_selected);
 }
 
-void SceneTreeDock::_new_scene_from(const String &p_file) {
+void SceneTreeDock::_new_scene_from(const String &p_file, bool p_apply_changes) {
 	List<Node *> selection = editor_selection->get_selected_node_list();
 
 	if (selection.size() != 1) {
@@ -3336,7 +3364,7 @@ void SceneTreeDock::_new_scene_from(const String &p_file) {
 		return;
 	}
 
-	if (EditorNode::get_singleton()->is_scene_open(p_file)) {
+	if (!p_apply_changes && EditorNode::get_singleton()->is_scene_open(p_file)) {
 		accept->set_text(TTR("Can't overwrite scene that is still open!"));
 		accept->popup_centered();
 		return;
@@ -3416,6 +3444,12 @@ void SceneTreeDock::_new_scene_from(const String &p_file) {
 		accept->set_text(TTR("Error duplicating scene to save it."));
 		accept->popup_centered();
 		return;
+	}
+
+	if (p_apply_changes) {
+		EditorNode::get_singleton()->get_editor_selection_history()->clear();
+		EditorNode::get_singleton()->reload_scene(p_file);
+		EditorNode::get_singleton()->reload_instances_with_path_in_edited_scenes();
 	}
 }
 
@@ -3904,6 +3938,7 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 					menu->set_item_shortcut(-1, ED_GET_SHORTCUT("scene_tree/toggle_editable_children"));
 
 					menu->add_check_item(TTR("Load as Placeholder"), TOOL_SCENE_USE_PLACEHOLDER);
+					menu->add_icon_item(get_editor_theme_icon(SNAME("ExternalLink")), TTRC("Apply Changes to Base Scene"), TOOL_SCENE_APPLY_TO_BASE);
 					menu->add_item(TTR("Make Local"), TOOL_SCENE_MAKE_LOCAL);
 				}
 				menu->add_icon_item(get_editor_theme_icon(SNAME("Load")), TTR("Open in Editor"), TOOL_SCENE_OPEN);
@@ -4817,6 +4852,13 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 	vb->add_child(delete_tracks_checkbox);
 
 	editable_instance_remove_dialog = memnew(ConfirmationDialog);
+	editable_instance_remove_dialog->get_ok_button()->set_text(TTRC("Revert"));
+
+	{
+		Button *apply = editable_instance_remove_dialog->add_button(TTRC("Apply to Base Scene"));
+		apply->connect(SceneStringName(pressed), callable_mp(this, &SceneTreeDock::_apply_editable_children));
+	}
+
 	add_child(editable_instance_remove_dialog);
 	editable_instance_remove_dialog->connect(SceneStringName(confirmed), callable_mp(this, &SceneTreeDock::_toggle_editable_children_from_selection));
 
