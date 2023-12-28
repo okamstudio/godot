@@ -193,8 +193,8 @@ public:
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return elem_ptr == b.elem_ptr; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return elem_ptr != b.elem_ptr; }
+		_FORCE_INLINE_ bool operator==(const Iterator &p_it) const { return elem_ptr == p_it.elem_ptr; }
+		_FORCE_INLINE_ bool operator!=(const Iterator &p_it) const { return elem_ptr != p_it.elem_ptr; }
 
 		Iterator(T *p_ptr) { elem_ptr = p_ptr; }
 		Iterator() {}
@@ -218,8 +218,8 @@ public:
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const ConstIterator &b) const { return elem_ptr == b.elem_ptr; }
-		_FORCE_INLINE_ bool operator!=(const ConstIterator &b) const { return elem_ptr != b.elem_ptr; }
+		_FORCE_INLINE_ bool operator==(const ConstIterator &p_it) const { return elem_ptr == p_it.elem_ptr; }
+		_FORCE_INLINE_ bool operator!=(const ConstIterator &p_it) const { return elem_ptr != p_it.elem_ptr; }
 
 		ConstIterator(const T *p_ptr) { elem_ptr = p_ptr; }
 		ConstIterator() {}

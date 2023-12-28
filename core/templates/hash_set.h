@@ -344,8 +344,8 @@ public:
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return keys == b.keys && index == b.index; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return keys != b.keys || index != b.index; }
+		_FORCE_INLINE_ bool operator==(const Iterator &p_it) const { return keys == p_it.keys && index == p_it.index; }
+		_FORCE_INLINE_ bool operator!=(const Iterator &p_it) const { return keys != p_it.keys || index != p_it.index; }
 
 		_FORCE_INLINE_ explicit operator bool() const {
 			return keys != nullptr;
