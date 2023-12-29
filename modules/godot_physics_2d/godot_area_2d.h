@@ -57,6 +57,7 @@ class GodotArea2D : public GodotCollisionObject2D {
 	Callable monitor_callback;
 
 	Callable area_monitor_callback;
+	Callable gravity_target_callback;
 
 	SelfList<GodotArea2D> monitor_query_list;
 	SelfList<GodotArea2D> moved_list;
@@ -105,6 +106,8 @@ public:
 
 	void set_area_monitor_callback(const Callable &p_callback);
 	_FORCE_INLINE_ bool has_area_monitor_callback() const { return area_monitor_callback.is_valid(); }
+
+	void set_gravity_target_callback(const Callable &p_callback);
 
 	_FORCE_INLINE_ void add_body_to_query(GodotBody2D *p_body, uint32_t p_body_shape, uint32_t p_area_shape);
 	_FORCE_INLINE_ void remove_body_from_query(GodotBody2D *p_body, uint32_t p_body_shape, uint32_t p_area_shape);

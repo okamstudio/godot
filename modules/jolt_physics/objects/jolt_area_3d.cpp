@@ -501,6 +501,10 @@ void JoltArea3D::set_area_monitor_callback(const Callable &p_callback) {
 	_area_monitoring_changed();
 }
 
+void JoltArea3D::set_gravity_target_callback(const Callable &p_callback) {
+	gravity_target_callback = p_callback;
+}
+
 void JoltArea3D::set_monitorable(bool p_monitorable) {
 	if (p_monitorable == monitorable) {
 		return;
@@ -598,8 +602,19 @@ Vector3 JoltArea3D::compute_gravity(const Vector3 &p_global_position) const {
 		case PhysicsServer3D::AREA_GRAVITY_TYPE_DIRECTIONAL: {
 			return gravity_vector * gravity;
 		} break;
-		case PhysicsServer3D::AREA_GRAVITY_TYPE_POINT: {
-			Vector3 target_local_position = gravity_vector;
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_POINT:
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_TARGET: {
+			Vector3 target_local_position;
+			if (gravity_type == PhysicsServer3D::AREA_GRAVITY_TYPE_POINT) {
+				target_local_position = gravity_vector;
+			} else {
+				const Variant local_position_variant = get_transform_scaled().affine_inverse().xform(p_global_position);
+				const Variant *args[1] = { &local_position_variant };
+				Variant ret;
+				Callable::CallError ce;
+				gravity_target_callback.callp(args, 1, ret, ce);
+				target_local_position = ret;
+			}
 			const Vector3 to_point = get_transform_scaled().xform(target_local_position) - p_global_position;
 			const real_t to_point_dist_sq = MAX(to_point.length_squared(), (real_t)CMP_EPSILON);
 			const Vector3 to_point_dir = to_point / Math::sqrt(to_point_dist_sq);

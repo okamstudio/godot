@@ -116,6 +116,10 @@ void GodotArea3D::set_area_monitor_callback(const Callable &p_callback) {
 	}
 }
 
+void GodotArea3D::set_gravity_target_callback(const Callable &p_callback) {
+	gravity_target_callback = p_callback;
+}
+
 void GodotArea3D::_set_space_override_mode(PhysicsServer3D::AreaSpaceOverrideMode &r_mode, PhysicsServer3D::AreaSpaceOverrideMode p_new_mode) {
 	bool do_override = p_new_mode != PhysicsServer3D::AREA_SPACE_OVERRIDE_DISABLED;
 	if (do_override == (r_mode != PhysicsServer3D::AREA_SPACE_OVERRIDE_DISABLED)) {
@@ -319,8 +323,19 @@ void GodotArea3D::compute_gravity(const Vector3 &p_global_position, Vector3 &r_g
 		case PhysicsServer3D::AREA_GRAVITY_TYPE_DIRECTIONAL: {
 			r_gravity = get_gravity_vector() * get_gravity();
 		} break;
-		case PhysicsServer3D::AREA_GRAVITY_TYPE_POINT: {
-			Vector3 target_local_position = get_gravity_vector();
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_POINT:
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_TARGET: {
+			Vector3 target_local_position;
+			if (gravity_type == PhysicsServer3D::AREA_GRAVITY_TYPE_POINT) {
+				target_local_position = get_gravity_vector();
+			} else {
+				const Variant local_position_variant = get_inv_transform().xform(p_global_position);
+				const Variant *args[1] = { &local_position_variant };
+				Variant ret;
+				Callable::CallError ce;
+				gravity_target_callback.callp(args, 1, ret, ce);
+				target_local_position = ret;
+			}
 			const real_t gr_unit_dist = get_gravity_point_unit_distance();
 			Vector3 v = get_transform().xform(target_local_position) - p_global_position;
 			if (gr_unit_dist > 0) {

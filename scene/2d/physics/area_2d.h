@@ -49,6 +49,7 @@ public:
 	enum GravityType {
 		GRAVITY_TYPE_DIRECTIONAL,
 		GRAVITY_TYPE_POINT,
+		GRAVITY_TYPE_TARGET,
 	};
 
 private:
@@ -200,6 +201,9 @@ public:
 
 	void set_audio_bus_name(const StringName &p_audio_bus);
 	StringName get_audio_bus_name() const;
+
+	virtual Vector2 calculate_gravity_target(const Vector2 &p_local_position);
+	GDVIRTUAL1R(Vector2, _calculate_gravity_target, Vector2);
 
 	Area2D();
 	~Area2D();

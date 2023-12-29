@@ -98,6 +98,7 @@ private:
 
 	Callable body_monitor_callback;
 	Callable area_monitor_callback;
+	Callable gravity_target_callback;
 
 	float priority = 0.0f;
 	float gravity = 9.8f;
@@ -166,6 +167,8 @@ public:
 
 	bool has_area_monitor_callback() const { return area_monitor_callback.is_valid(); }
 	void set_area_monitor_callback(const Callable &p_callback);
+
+	void set_gravity_target_callback(const Callable &p_callback);
 
 	bool is_monitorable() const { return monitorable; }
 	void set_monitorable(bool p_monitorable);

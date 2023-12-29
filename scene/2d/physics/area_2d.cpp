@@ -44,6 +44,11 @@ Area2D::SpaceOverride Area2D::get_gravity_space_override_mode() const {
 void Area2D::set_gravity_type(GravityType p_type) {
 	gravity_type = p_type;
 	PhysicsServer2D::get_singleton()->area_set_param(get_rid(), PhysicsServer2D::AREA_PARAM_GRAVITY_TYPE, p_type);
+	if (gravity_type == GRAVITY_TYPE_TARGET) {
+		PhysicsServer2D::get_singleton()->area_set_gravity_target_callback(get_rid(), callable_mp(this, &Area2D::calculate_gravity_target));
+	} else {
+		PhysicsServer2D::get_singleton()->area_set_gravity_target_callback(get_rid(), Callable());
+	}
 }
 
 Area2D::GravityType Area2D::get_gravity_type() const {
@@ -548,6 +553,12 @@ StringName Area2D::get_audio_bus_name() const {
 	return SceneStringName(Master);
 }
 
+Vector2 Area2D::calculate_gravity_target(const Vector2 &p_local_position) {
+	Vector2 ret;
+	GDVIRTUAL_CALL(_calculate_gravity_target, p_local_position, ret);
+	return ret;
+}
+
 void Area2D::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name == "audio_bus_name") {
 		String options;
@@ -648,6 +659,8 @@ void Area2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_audio_bus_override", "enable"), &Area2D::set_audio_bus_override);
 	ClassDB::bind_method(D_METHOD("is_overriding_audio_bus"), &Area2D::is_overriding_audio_bus);
 
+	GDVIRTUAL_BIND(_calculate_gravity_target, "local_position");
+
 	ADD_SIGNAL(MethodInfo("body_shape_entered", PropertyInfo(Variant::RID, "body_rid"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node2D"), PropertyInfo(Variant::INT, "body_shape_index"), PropertyInfo(Variant::INT, "local_shape_index")));
 	ADD_SIGNAL(MethodInfo("body_shape_exited", PropertyInfo(Variant::RID, "body_rid"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node2D"), PropertyInfo(Variant::INT, "body_shape_index"), PropertyInfo(Variant::INT, "local_shape_index")));
 	ADD_SIGNAL(MethodInfo("body_entered", PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node2D")));
@@ -664,7 +677,7 @@ void Area2D::_bind_methods() {
 
 	ADD_GROUP("Gravity", "gravity_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "gravity_space_override", PROPERTY_HINT_ENUM, "Disabled,Combine,Combine-Replace,Replace,Replace-Combine", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_space_override_mode", "get_gravity_space_override_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "gravity_type", PROPERTY_HINT_ENUM, "Directional,Point", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_type", "get_gravity_type");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "gravity_type", PROPERTY_HINT_ENUM, "Directional,Point,Target", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_type", "get_gravity_type");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "gravity_point", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_gravity_is_point", "is_gravity_a_point");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "gravity_point_unit_distance", PROPERTY_HINT_RANGE, "0,1024,0.001,or_greater,exp,suffix:px"), "set_gravity_point_unit_distance", "get_gravity_point_unit_distance");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "gravity_point_center", PROPERTY_HINT_NONE, "suffix:px"), "set_gravity_point_center", "get_gravity_point_center");
@@ -691,6 +704,7 @@ void Area2D::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(GRAVITY_TYPE_DIRECTIONAL);
 	BIND_ENUM_CONSTANT(GRAVITY_TYPE_POINT);
+	BIND_ENUM_CONSTANT(GRAVITY_TYPE_TARGET);
 }
 
 Area2D::Area2D() :

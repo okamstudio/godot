@@ -312,6 +312,7 @@ public:
 	enum AreaGravityType {
 		AREA_GRAVITY_TYPE_DIRECTIONAL,
 		AREA_GRAVITY_TYPE_POINT,
+		AREA_GRAVITY_TYPE_TARGET,
 	};
 
 	virtual void area_add_shape(RID p_area, RID p_shape, const Transform2D &p_transform = Transform2D(), bool p_disabled = false) = 0;
@@ -350,6 +351,7 @@ public:
 
 	virtual void area_set_monitor_callback(RID p_area, const Callable &p_callback) = 0;
 	virtual void area_set_area_monitor_callback(RID p_area, const Callable &p_callback) = 0;
+	virtual void area_set_gravity_target_callback(RID p_area, const Callable &p_callback) = 0;
 
 	/* BODY API */
 

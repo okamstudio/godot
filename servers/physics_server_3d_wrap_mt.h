@@ -167,6 +167,7 @@ public:
 
 	FUNC2(area_set_monitor_callback, RID, const Callable &);
 	FUNC2(area_set_area_monitor_callback, RID, const Callable &);
+	FUNC2(area_set_gravity_target_callback, RID, const Callable &);
 
 	/* BODY API */
 
