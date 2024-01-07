@@ -6593,7 +6593,8 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 
 	tablet_drivers.push_back("dummy");
 
-	if (OS::get_singleton()->is_hidpi_allowed()) {
+	OS::HidpiAwareness awareness_setting = OS::get_singleton()->get_hidpi_awareness();
+	if (awareness_setting != OS::HidpiAwareness::NO_AWARENESS) {
 		HMODULE Shcore = LoadLibraryW(L"Shcore.dll");
 
 		if (Shcore != nullptr) {
@@ -6602,7 +6603,11 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 			SetProcessDpiAwareness_t SetProcessDpiAwareness = (SetProcessDpiAwareness_t)GetProcAddress(Shcore, "SetProcessDpiAwareness");
 
 			if (SetProcessDpiAwareness) {
-				SetProcessDpiAwareness(SHC_PROCESS_SYSTEM_DPI_AWARE);
+				if (awareness_setting == OS::HidpiAwareness::PER_MONITOR_AWARENESS) {
+					SetProcessDpiAwareness(SHC_PROCESS_PER_MONITOR_DPI_AWARE);
+				} else {
+					SetProcessDpiAwareness(SHC_PROCESS_SYSTEM_DPI_AWARE);
+				}
 			}
 		}
 	}

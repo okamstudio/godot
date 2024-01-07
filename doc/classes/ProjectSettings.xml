@@ -812,8 +812,12 @@
 		<member name="display/mouse_cursor/tooltip_position_offset" type="Vector2" setter="" getter="" default="Vector2(10, 10)">
 			Position offset for tooltips, relative to the mouse cursor's hotspot.
 		</member>
-		<member name="display/window/dpi/allow_hidpi" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], allows HiDPI display on Windows, macOS, Android, iOS and Web. If [code]false[/code], the platform's low-DPI fallback will be used on HiDPI displays, which causes the window to be displayed in a blurry or pixelated manner (and can cause various window management bugs). Therefore, it is recommended to make your project scale to [url=$DOCS_URL/tutorials/rendering/multiple_resolutions.html]multiple resolutions[/url] instead of disabling this setting.
+		<member name="display/window/dpi/hidpi_awareness" type="int" setter="" getter="" default="1">
+			This option controls how the application handles high-resolution displays.
+			[code]No[/code] - application not ready for high-resolution displays.
+			[code]System wide[/code] - application can work with high-resolution displays, but is not ready for different dpi on different monitors.
+			[code]Per monitor[/code] - application can work with high-resolution displays, also can handle situations when different displays use their own DPI value.
+			If "No" used, the platform's low-DPI fallback will be used on HiDPI displays, which causes the window to be displayed in a blurry or pixelated manner (and can cause various window management bugs). Therefore, it is recommended to make your project scale to [url=$DOCS_URL/tutorials/rendering/multiple_resolutions.html]multiple resolutions[/url] instead of disabling this setting.
 			[b]Note:[/b] This setting has no effect on Linux as DPI-awareness fallbacks are not supported there.
 		</member>
 		<member name="display/window/energy_saving/keep_screen_on" type="bool" setter="" getter="" default="true">

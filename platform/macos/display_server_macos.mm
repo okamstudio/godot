@@ -1594,7 +1594,7 @@ float DisplayServerMacOS::screen_get_scale(int p_screen) const {
 	_THREAD_SAFE_METHOD_
 
 	p_screen = _get_screen_index(p_screen);
-	if (OS::get_singleton()->is_hidpi_allowed()) {
+	if (OS::get_singleton()->get_hidpi_awareness() != OS::HidpiAwareness::NO_AWARENESS) {
 		NSArray *screenArray = [NSScreen screens];
 		if ((NSUInteger)p_screen < [screenArray count]) {
 			if ([[screenArray objectAtIndex:p_screen] respondsToSelector:@selector(backingScaleFactor)]) {

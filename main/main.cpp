@@ -2501,13 +2501,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	GLOBAL_DEF_BASIC("internationalization/locale/include_text_server_data", false);
 
-	OS::get_singleton()->_allow_hidpi = GLOBAL_DEF("display/window/dpi/allow_hidpi", true);
+	OS::get_singleton()->_hidpi_awareness = OS::HidpiAwareness(int(GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "display/window/dpi/hidpi_awareness", PROPERTY_HINT_ENUM, "No,System wide,Per monitor"), int(OS::HidpiAwareness::SYSTEM_WIDE_AWARENESS))));
 	OS::get_singleton()->_allow_layered = GLOBAL_DEF_RST("display/window/per_pixel_transparency/allowed", false);
 
 #ifdef TOOLS_ENABLED
 	if (editor || project_manager) {
 		// The editor and project manager always detect and use hiDPI if needed.
-		OS::get_singleton()->_allow_hidpi = true;
+		OS::get_singleton()->_hidpi_awareness = OS::HidpiAwareness::SYSTEM_WIDE_AWARENESS;
 		// Disable Vulkan overlays in editor, they cause various issues.
 		OS::get_singleton()->set_environment("DISABLE_MANGOHUD", "1"); // GH-57403.
 		OS::get_singleton()->set_environment("DISABLE_RTSS_LAYER", "1"); // GH-57937.
