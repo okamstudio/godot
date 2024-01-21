@@ -31,6 +31,8 @@
 #ifndef FILE_ACCESS_PACK_H
 #define FILE_ACCESS_PACK_H
 
+#include "core/crypto/crypto.h"
+#include "core/crypto/crypto_core.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 #include "core/string/print_string.h"
@@ -39,8 +41,9 @@
 
 // Godot's packed file magic header ("GDPC" in ASCII).
 #define PACK_HEADER_MAGIC 0x43504447
+
 // The current packed file format version number.
-#define PACK_FORMAT_VERSION 2
+#define PACK_FORMAT_VERSION 3
 
 enum PackFlags {
 	PACK_DIR_ENCRYPTED = 1 << 0,
@@ -62,11 +65,14 @@ class PackedData {
 public:
 	struct PackedFile {
 		String pack;
-		uint64_t offset; //if offset is ZERO, the file was ERASED
+		uint64_t offset; // If offset is ZERO, the file was ERASED.
 		uint64_t size;
-		uint8_t md5[16];
+		uint8_t sha256[32]; // Used for context verification.
+
 		PackSource *src = nullptr;
-		bool encrypted;
+		bool encrypted = false;
+		bool require_verification = false;
+		bool is_validated = false;
 	};
 
 private:
@@ -97,6 +103,7 @@ private:
 		}
 	};
 
+	static HashSet<String> require_encryption;
 	HashMap<PathMD5, PackedFile, PathMD5> files;
 
 	Vector<PackSource *> sources;
@@ -110,8 +117,10 @@ private:
 	void _get_file_paths(PackedDir *p_dir, const String &p_parent_dir, HashSet<String> &r_paths) const;
 
 public:
+	static bool file_require_encryption(const String &p_name);
+
 	void add_pack_source(PackSource *p_source);
-	void add_path(const String &p_pkg_path, const String &p_path, uint64_t p_ofs, uint64_t p_size, const uint8_t *p_md5, PackSource *p_src, bool p_replace_files, bool p_encrypted = false); // for PackSource
+	void add_path(const String &p_pkg_path, const String &p_path, uint64_t p_ofs, uint64_t p_size, const uint8_t *p_sha256, PackSource *p_src, bool p_replace_files, bool p_encrypted = false, bool p_require_verification = false); // for PackSourc
 	void remove_path(const String &p_path);
 	uint8_t *get_file_hash(const String &p_path);
 	HashSet<String> get_file_paths() const;
@@ -120,7 +129,7 @@ public:
 	_FORCE_INLINE_ bool is_disabled() const { return disabled; }
 
 	static PackedData *get_singleton() { return singleton; }
-	Error add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset);
+	Error add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key);
 
 	void clear();
 
@@ -136,14 +145,14 @@ public:
 
 class PackSource {
 public:
-	virtual bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) = 0;
+	virtual bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key) = 0;
 	virtual Ref<FileAccess> get_file(const String &p_path, PackedData::PackedFile *p_file) = 0;
 	virtual ~PackSource() {}
 };
 
 class PackedSourcePCK : public PackSource {
 public:
-	virtual bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) override;
+	virtual bool try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key) override;
 	virtual Ref<FileAccess> get_file(const String &p_path, PackedData::PackedFile *p_file) override;
 };
 
@@ -189,7 +198,7 @@ public:
 
 	virtual void close() override;
 
-	FileAccessPack(const String &p_path, const PackedData::PackedFile &p_file);
+	FileAccessPack(const String &p_path, PackedData::PackedFile *p_file);
 };
 
 Ref<FileAccess> PackedData::try_open_path(const String &p_path) {

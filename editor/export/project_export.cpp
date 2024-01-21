@@ -31,6 +31,8 @@
 #include "project_export.h"
 
 #include "core/config/project_settings.h"
+#include "core/crypto/crypto.h"
+#include "core/crypto/crypto_core.h"
 #include "core/version.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -389,28 +391,54 @@ void ProjectExportDialog::_edit_preset(int p_index) {
 	enc_directory->set_disabled(!enc_pck_mode);
 	enc_in_filters->set_editable(enc_pck_mode);
 	enc_ex_filters->set_editable(enc_pck_mode);
-	script_key->set_editable(enc_pck_mode);
+	pck_key->set_editable(enc_pck_mode);
+	pck_key_gen->set_disabled(!enc_pck_mode);
 	seed_input->set_editable(enc_pck_mode);
 
 	bool enc_directory_mode = current->get_enc_directory();
 	enc_directory->set_pressed(enc_directory_mode);
 
-	String key = current->get_script_encryption_key();
-	if (!updating_script_key) {
-		script_key->set_text(key);
+	String pck_key_value = current->get_pck_encryption_key();
+	if (!updating_pck_key) {
+		pck_key->set_text(pck_key_value);
 	}
 	if (enc_pck_mode) {
-		script_key->set_editable(true);
-
-		bool key_valid = _validate_script_encryption_key(key);
+		bool key_valid = _validate_pck_encryption_key(pck_key_value);
 		if (key_valid) {
-			script_key_error->hide();
+			pck_key_error->hide();
 		} else {
-			script_key_error->show();
+			pck_key_error->show();
 		}
 	} else {
-		script_key->set_editable(false);
-		script_key_error->hide();
+		pck_key_error->hide();
+	}
+
+	bool sign_pck_mode = current->get_sign_pck();
+	sign_pck->set_pressed(sign_pck_mode);
+
+	sign_key_priv->set_editable(sign_pck_mode);
+	sign_key_pub->set_editable(sign_pck_mode);
+	sign_key_gen->set_disabled(!sign_pck_mode);
+	sign_type->set_disabled(!sign_pck_mode);
+
+	int sign_type_id = current->get_pck_signing_type();
+	sign_type->select(sign_type->get_item_index(sign_type_id));
+
+	String sign_key_priv_value = current->get_pck_signing_key_priv();
+	String sign_key_pub_value = current->get_pck_signing_key_pub();
+	if (!updating_sign_key) {
+		sign_key_priv->set_text(sign_key_priv_value);
+		sign_key_pub->set_text(sign_key_pub_value);
+	}
+	if (sign_pck_mode) {
+		bool key_valid = _validate_pck_sign_key(sign_key_priv_value, sign_key_pub_value, sign_type_id);
+		if (key_valid) {
+			sign_key_error->hide();
+		} else {
+			sign_key_error->show();
+		}
+	} else {
+		sign_key_error->hide();
 	}
 
 	int script_export_mode = current->get_script_export_mode();
@@ -576,7 +604,7 @@ void ProjectExportDialog::_enc_filters_changed(const String &p_filters) {
 }
 
 void ProjectExportDialog::_open_key_help_link() {
-	OS::get_singleton()->shell_open(vformat("%s/contributing/development/compiling/compiling_with_script_encryption_key.html", VERSION_DOCS_URL));
+	OS::get_singleton()->shell_open(vformat("%s/contributing/development/compiling/compiling_with_pck_encryption_key.html", VERSION_DOCS_URL));
 }
 
 void ProjectExportDialog::_enc_pck_changed(bool p_pressed) {
@@ -591,7 +619,25 @@ void ProjectExportDialog::_enc_pck_changed(bool p_pressed) {
 	enc_directory->set_disabled(!p_pressed);
 	enc_in_filters->set_editable(p_pressed);
 	enc_ex_filters->set_editable(p_pressed);
-	script_key->set_editable(p_pressed);
+	pck_key->set_editable(p_pressed);
+	pck_key_gen->set_disabled(!p_pressed);
+
+	_update_current_preset();
+}
+
+void ProjectExportDialog::_sign_pck_changed(bool p_pressed) {
+	if (updating) {
+		return;
+	}
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_sign_pck(p_pressed);
+	sign_key_priv->set_editable(p_pressed);
+	sign_key_pub->set_editable(p_pressed);
+	sign_key_gen->set_disabled(!p_pressed);
+	sign_type->set_disabled(!p_pressed);
 
 	_update_current_preset();
 }
@@ -624,7 +670,7 @@ void ProjectExportDialog::_enc_directory_changed(bool p_pressed) {
 	_update_current_preset();
 }
 
-void ProjectExportDialog::_script_encryption_key_changed(const String &p_key) {
+void ProjectExportDialog::_pck_encryption_key_changed(const String &p_key) {
 	if (updating) {
 		return;
 	}
@@ -632,14 +678,14 @@ void ProjectExportDialog::_script_encryption_key_changed(const String &p_key) {
 	Ref<EditorExportPreset> current = get_current_preset();
 	ERR_FAIL_COND(current.is_null());
 
-	current->set_script_encryption_key(p_key);
+	current->set_pck_encryption_key(p_key);
 
-	updating_script_key = true;
+	updating_pck_key = true;
 	_update_current_preset();
-	updating_script_key = false;
+	updating_pck_key = false;
 }
 
-bool ProjectExportDialog::_validate_script_encryption_key(const String &p_key) {
+bool ProjectExportDialog::_validate_pck_encryption_key(const String &p_key) {
 	bool is_valid = false;
 
 	if (!p_key.is_empty() && p_key.is_valid_hex_number(false) && p_key.length() == 64) {
@@ -659,6 +705,171 @@ void ProjectExportDialog::_script_export_mode_changed(int p_mode) {
 	current->set_script_export_mode(p_mode);
 
 	_update_current_preset();
+}
+
+void ProjectExportDialog::_pck_sign_key_priv_changed(const String &p_key) {
+	if (updating) {
+		return;
+	}
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_pck_signing_key_priv(p_key);
+
+	updating_sign_key = true;
+	_update_current_preset();
+	updating_sign_key = false;
+}
+
+void ProjectExportDialog::_pck_sign_key_pub_changed(const String &p_key) {
+	if (updating) {
+		return;
+	}
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_pck_signing_key_pub(p_key);
+
+	updating_sign_key = true;
+	_update_current_preset();
+	updating_sign_key = false;
+}
+
+void ProjectExportDialog::_pck_sign_type_changed(int p_type) {
+	if (updating) {
+		return;
+	}
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_pck_signing_type(sign_type->get_item_id(p_type));
+
+	updating_sign_key = true;
+	_update_current_preset();
+	updating_sign_key = false;
+}
+
+bool ProjectExportDialog::_validate_pck_sign_key(const String &p_priv_key, const String &p_pub_key, int p_type) {
+	bool ok = true;
+	String error_text;
+
+	if (p_type == 1 || p_type == 2) {
+		Ref<CryptoKey> rsa_key_pr = CryptoKey::create();
+		if (rsa_key_pr.is_valid()) {
+			String key = "-----BEGIN RSA PRIVATE KEY-----\n" + p_priv_key + "\n-----END RSA PRIVATE KEY-----";
+			if (p_priv_key.is_empty() || rsa_key_pr->load_from_string(key, false) != OK) {
+				error_text += String::utf8("•  ") + TTR("Invalid key pair: invalid private key.") + "\n";
+				ok = false;
+			}
+		} else {
+			error_text += String::utf8("•  ") + TTR("Invalid key pair: unable to load private key.") + "\n";
+			ok = false;
+		}
+		Ref<CryptoKey> rsa_key_pb = CryptoKey::create();
+		if (rsa_key_pb.is_valid()) {
+			String key = "-----BEGIN PUBLIC KEY-----\n" + p_pub_key + "\n-----END PUBLIC KEY-----";
+			if (p_pub_key.is_empty() || rsa_key_pb->load_from_string(key, true) != OK) {
+				error_text += String::utf8("•  ") + TTR("Invalid key pair: invalid public key.") + "\n";
+				ok = false;
+			}
+		} else {
+			error_text += String::utf8("•  ") + TTR("Invalid key pair: unable to load public key.") + "\n";
+
+			ok = false;
+		}
+
+		const char test_data[] = "test data";
+		Vector<uint8_t> directory_hash;
+		directory_hash.resize(32);
+		CryptoCore::SHA256Context sha_ctx;
+		sha_ctx.start();
+		sha_ctx.update((const unsigned char *)&test_data, 9);
+		sha_ctx.finish((unsigned char *)directory_hash.ptrw());
+
+		Ref<Crypto> tls_ctx = Crypto::create();
+		if (tls_ctx.is_valid() && rsa_key_pr.is_valid() && rsa_key_pb.is_valid()) {
+			Vector<uint8_t> signature = tls_ctx->sign(HashingContext::HASH_SHA256, directory_hash, rsa_key_pr);
+			if (signature.is_empty()) {
+				error_text += String::utf8("•  ") + TTR("Invalid key pair: signing failed.") + "\n";
+				ok = false;
+			}
+			if (!tls_ctx->verify(HashingContext::HASH_SHA256, directory_hash, signature, rsa_key_pb)) {
+				error_text += String::utf8("•  ") + TTR("Invalid key pair: signature verification failed.") + "\n";
+				ok = false;
+			}
+		} else {
+			error_text += String::utf8("•  ") + TTR("Invalid key pair: unable to load TLS context.") + "\n";
+			ok = false;
+		}
+	}
+
+	sign_key_error->set_text(error_text);
+	return ok;
+}
+
+void ProjectExportDialog::_pck_key_gen() {
+	Vector<uint8_t> key;
+	key.resize(32);
+
+	CryptoCore::RandomGenerator rng;
+	ERR_FAIL_COND(rng.init() != OK);
+	ERR_FAIL_COND(rng.get_random_bytes((uint8_t *)key.ptrw(), 32) != OK);
+
+	String str_key = String::hex_encode_buffer((uint8_t *)key.ptr(), 32);
+	pck_key->set_text(str_key);
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_pck_encryption_key(str_key);
+
+	updating_pck_key = true;
+	_update_current_preset();
+	updating_pck_key = false;
+}
+
+void ProjectExportDialog::_sign_key_gen() {
+	String str_key_priv;
+	String str_key_pub;
+
+	if (sign_type->get_selected_id() == 1 || sign_type->get_selected_id() == 2) { // RSA
+		Ref<Crypto> tls_ctx = Crypto::create();
+		ERR_FAIL_COND(tls_ctx.is_null());
+
+		Ref<CryptoKey> rsa_key = tls_ctx->generate_rsa((sign_type->get_selected_id() == 1) ? 2048 : 4096);
+		ERR_FAIL_COND(rsa_key.is_null());
+
+		Vector<String> key_priv = rsa_key->save_to_string(false).split("\n");
+		for (const String &E : key_priv) {
+			if (!E.begins_with("---")) {
+				str_key_priv += E;
+			}
+		}
+
+		Vector<String> key_pub = rsa_key->save_to_string(true).split("\n");
+		print_line(key_pub);
+		for (const String &E : key_pub) {
+			if (!E.begins_with("---")) {
+				str_key_pub += E;
+			}
+		}
+	}
+
+	sign_key_priv->set_text(str_key_priv);
+	sign_key_pub->set_text(str_key_pub);
+
+	Ref<EditorExportPreset> current = get_current_preset();
+	ERR_FAIL_COND(current.is_null());
+
+	current->set_pck_signing_key_priv(str_key_priv);
+	current->set_pck_signing_key_pub(str_key_pub);
+
+	updating_sign_key = true;
+	_update_current_preset();
+	updating_sign_key = false;
 }
 
 void ProjectExportDialog::_duplicate_preset() {
@@ -708,7 +919,7 @@ void ProjectExportDialog::_duplicate_preset() {
 	preset->set_enc_ex_filter(current->get_enc_ex_filter());
 	preset->set_enc_pck(current->get_enc_pck());
 	preset->set_enc_directory(current->get_enc_directory());
-	preset->set_script_encryption_key(current->get_script_encryption_key());
+	preset->set_pck_encryption_key(current->get_pck_encryption_key());
 	preset->set_script_export_mode(current->get_script_export_mode());
 
 	for (const KeyValue<StringName, Variant> &E : current->get_values()) {
@@ -1614,59 +1825,113 @@ ProjectExportDialog::ProjectExportDialog() {
 	feature_vb->add_margin_child(TTR("Feature List:"), custom_feature_display, true);
 	sections->add_child(feature_vb);
 
-	// Encryption export parameters.
+	// Pack encryption parameters.
+	ScrollContainer *enc_scroll_container = memnew(ScrollContainer);
+	enc_scroll_container->set_name(TTR("Encryption"));
+	enc_scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
 
-	ScrollContainer *sec_scroll_container = memnew(ScrollContainer);
-	sec_scroll_container->set_name(TTR("Encryption"));
-	sec_scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
-
-	VBoxContainer *sec_vb = memnew(VBoxContainer);
-	sec_vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	sec_scroll_container->add_child(sec_vb);
+	VBoxContainer *enc_vb = memnew(VBoxContainer);
+	enc_vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	enc_scroll_container->add_child(enc_vb);
+	enc_vb->set_name(TTR("Encryption"));
 
 	enc_pck = memnew(CheckButton);
 	enc_pck->connect(SceneStringName(toggled), callable_mp(this, &ProjectExportDialog::_enc_pck_changed));
 	enc_pck->set_text(TTR("Encrypt Exported PCK"));
-	sec_vb->add_child(enc_pck);
+	enc_vb->add_child(enc_pck);
 
 	enc_directory = memnew(CheckButton);
 	enc_directory->connect(SceneStringName(toggled), callable_mp(this, &ProjectExportDialog::_enc_directory_changed));
 	enc_directory->set_text(TTR("Encrypt Index (File Names and Info)"));
-	sec_vb->add_child(enc_directory);
+	enc_vb->add_child(enc_directory);
 
 	enc_in_filters = memnew(LineEdit);
 	enc_in_filters->connect(SceneStringName(text_changed), callable_mp(this, &ProjectExportDialog::_enc_filters_changed));
-	sec_vb->add_margin_child(
+	enc_vb->add_margin_child(
 			TTR("Filters to include files/folders\n(comma-separated, e.g: *.tscn, *.tres, scenes/*)"),
 			enc_in_filters);
 
 	enc_ex_filters = memnew(LineEdit);
 	enc_ex_filters->connect(SceneStringName(text_changed), callable_mp(this, &ProjectExportDialog::_enc_filters_changed));
-	sec_vb->add_margin_child(
+	enc_vb->add_margin_child(
 			TTR("Filters to exclude files/folders\n(comma-separated, e.g: *.ctex, *.import, music/*)"),
 			enc_ex_filters);
 
-	script_key = memnew(LineEdit);
-	script_key->connect(SceneStringName(text_changed), callable_mp(this, &ProjectExportDialog::_script_encryption_key_changed));
-	script_key_error = memnew(Label);
-	script_key_error->set_text(String::utf8("•  ") + TTR("Invalid Encryption Key (must be 64 hexadecimal characters long)"));
-	script_key_error->add_theme_color_override(SceneStringName(font_color), EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("error_color"), EditorStringName(Editor)));
-	sec_vb->add_margin_child(TTR("Encryption Key (256-bits as hexadecimal):"), script_key);
-	sec_vb->add_child(script_key_error);
-	sections->add_child(sec_scroll_container);
+	pck_key = memnew(LineEdit);
+	pck_key->connect("text_changed", callable_mp(this, &ProjectExportDialog::_pck_encryption_key_changed));
+	pck_key_gen = memnew(Button);
+	pck_key_gen->set_text(TTR("Generate new key..."));
+	pck_key_gen->connect("pressed", callable_mp(this, &ProjectExportDialog::_pck_key_gen));
+	pck_key_error = memnew(Label);
+	pck_key_error->set_text(String::utf8("•  ") + TTR("Invalid Encryption Key (must be 64 hexadecimal characters long)"));
+	pck_key_error->add_theme_color_override("font_color", EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("error_color"), EditorStringName(Editor)));
+	enc_vb->add_margin_child(TTR("Encryption Key (256-bits as hexadecimal):"), pck_key);
+	enc_vb->add_child(pck_key_error);
+	enc_vb->add_child(pck_key_gen);
 
 	seed_input = memnew(LineEdit);
 	seed_input->connect(SceneStringName(text_changed), callable_mp(this, &ProjectExportDialog::_seed_input_changed));
-	sec_vb->add_margin_child(TTR("Initialization vector seed"), seed_input);
+	enc_vb->add_margin_child(TTR("Initialization vector seed"), seed_input);
 
 	Label *sec_info = memnew(Label);
 	sec_info->set_text(TTR("Note: Encryption key needs to be stored in the binary,\nyou need to build the export templates from source."));
-	sec_vb->add_child(sec_info);
+	enc_vb->add_child(sec_info);
 
 	LinkButton *sec_more_info = memnew(LinkButton);
 	sec_more_info->set_text(TTR("More Info..."));
 	sec_more_info->connect(SceneStringName(pressed), callable_mp(this, &ProjectExportDialog::_open_key_help_link));
-	sec_vb->add_child(sec_more_info);
+	enc_vb->add_child(sec_more_info);
+
+	sections->add_child(enc_scroll_container);
+
+	// Pack signing parameters.
+	ScrollContainer *sign_scroll_container = memnew(ScrollContainer);
+	sign_scroll_container->set_name(TTR("Signing"));
+	sign_scroll_container->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
+
+	VBoxContainer *sign_vb = memnew(VBoxContainer);
+	sign_vb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	sign_scroll_container->add_child(sign_vb);
+	sign_vb->set_name(TTR("Signing"));
+
+	sign_pck = memnew(CheckButton);
+	sign_pck->connect("toggled", callable_mp(this, &ProjectExportDialog::_sign_pck_changed));
+	sign_pck->set_text(TTR("Sign Exported PCK"));
+	sign_vb->add_child(sign_pck);
+
+	sign_type = memnew(OptionButton);
+	sign_type->connect("item_selected", callable_mp(this, &ProjectExportDialog::_pck_sign_type_changed));
+	sign_type->add_item("RSA-2048", 1);
+	sign_type->add_item("RSA-4096", 2);
+	sign_type->select(0);
+
+	sign_key_priv = memnew(LineEdit);
+	sign_key_priv->connect("text_changed", callable_mp(this, &ProjectExportDialog::_pck_sign_key_priv_changed));
+	sign_key_priv->set_placeholder(TTR("Private key"));
+	sign_key_pub = memnew(LineEdit);
+	sign_key_pub->connect("text_changed", callable_mp(this, &ProjectExportDialog::_pck_sign_key_pub_changed));
+	sign_key_pub->set_placeholder(TTR("Public key"));
+	sign_key_gen = memnew(Button);
+	sign_key_gen->set_text(TTR("Generate new key pair..."));
+	sign_key_gen->connect("pressed", callable_mp(this, &ProjectExportDialog::_sign_key_gen));
+	sign_key_error = memnew(Label);
+	sign_key_error->add_theme_color_override("font_color", EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("error_color"), EditorStringName(Editor)));
+	sign_vb->add_margin_child(TTR("Signature type:"), sign_type);
+	sign_vb->add_margin_child(TTR("Private key (Base64):"), sign_key_priv);
+	sign_vb->add_margin_child(TTR("Public key (Base64):"), sign_key_pub);
+	sign_vb->add_child(sign_key_gen);
+	sign_vb->add_child(sign_key_error);
+
+	Label *sign_info = memnew(Label);
+	sign_info->set_text(TTR("Note: Signing public key needs to be stored in the binary,\nyou need to build the export templates from source.\nBinary compiled with the public key will refuse to load unsigned packs."));
+	sign_vb->add_child(sign_info);
+
+	LinkButton *sign_more_info = memnew(LinkButton);
+	sign_more_info->set_text(TTR("More Info..."));
+	sign_more_info->connect("pressed", callable_mp(this, &ProjectExportDialog::_open_key_help_link));
+	sign_vb->add_child(sign_more_info);
+
+	sections->add_child(sign_scroll_container);
 
 	// Script export parameters.
 
@@ -1691,7 +1956,8 @@ ProjectExportDialog::ProjectExportDialog() {
 	runnable->set_disabled(true);
 	duplicate_preset->set_disabled(true);
 	delete_preset->set_disabled(true);
-	script_key_error->hide();
+	pck_key_error->hide();
+	sign_key_error->hide();
 	sections->hide();
 	parameters->edit(nullptr);
 

@@ -46,7 +46,7 @@
 static bool godot_mbedtls_initialized = false;
 
 void initialize_mbedtls_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_EARLY_CORE) {
 		return;
 	}
 
@@ -70,7 +70,7 @@ void initialize_mbedtls_module(ModuleInitializationLevel p_level) {
 }
 
 void uninitialize_mbedtls_module(ModuleInitializationLevel p_level) {
-	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_CORE) {
 		return;
 	}
 

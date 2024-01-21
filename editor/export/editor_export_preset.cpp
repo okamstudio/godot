@@ -81,11 +81,19 @@ void EditorExportPreset::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_custom_features"), &EditorExportPreset::get_custom_features);
 	ClassDB::bind_method(D_METHOD("get_patches"), &EditorExportPreset::get_patches);
 	ClassDB::bind_method(D_METHOD("get_export_path"), &EditorExportPreset::get_export_path);
+
 	ClassDB::bind_method(D_METHOD("get_encryption_in_filter"), &EditorExportPreset::get_enc_in_filter);
 	ClassDB::bind_method(D_METHOD("get_encryption_ex_filter"), &EditorExportPreset::get_enc_ex_filter);
 	ClassDB::bind_method(D_METHOD("get_encrypt_pck"), &EditorExportPreset::get_enc_pck);
 	ClassDB::bind_method(D_METHOD("get_encrypt_directory"), &EditorExportPreset::get_enc_directory);
-	ClassDB::bind_method(D_METHOD("get_encryption_key"), &EditorExportPreset::get_script_encryption_key);
+	ClassDB::bind_method(D_METHOD("get_encryption_key"), &EditorExportPreset::get_pck_encryption_key);
+	ClassDB::bind_method(D_METHOD("get_seed"), &EditorExportPreset::get_seed);
+
+	ClassDB::bind_method(D_METHOD("get_sign_pck"), &EditorExportPreset::get_sign_pck);
+	ClassDB::bind_method(D_METHOD("get_signing_key_priv"), &EditorExportPreset::get_pck_signing_key_priv);
+	ClassDB::bind_method(D_METHOD("get_signing_key_pub"), &EditorExportPreset::get_pck_signing_key_pub);
+	ClassDB::bind_method(D_METHOD("get_signing_type"), &EditorExportPreset::get_pck_signing_type);
+
 	ClassDB::bind_method(D_METHOD("get_script_export_mode"), &EditorExportPreset::get_script_export_mode);
 
 	ClassDB::bind_method(D_METHOD("get_or_env", "name", "env_var"), &EditorExportPreset::_get_or_env);
@@ -478,12 +486,12 @@ bool EditorExportPreset::get_enc_directory() const {
 	return enc_directory;
 }
 
-void EditorExportPreset::set_script_encryption_key(const String &p_key) {
+void EditorExportPreset::set_pck_encryption_key(const String &p_key) {
 	script_key = p_key;
 	EditorExport::singleton->save_presets();
 }
 
-String EditorExportPreset::get_script_encryption_key() const {
+String EditorExportPreset::get_pck_encryption_key() const {
 	return script_key;
 }
 
@@ -494,6 +502,42 @@ void EditorExportPreset::set_script_export_mode(int p_mode) {
 
 int EditorExportPreset::get_script_export_mode() const {
 	return script_mode;
+}
+
+void EditorExportPreset::set_sign_pck(bool p_enabled) {
+	sign_pck = p_enabled;
+	EditorExport::singleton->save_presets();
+}
+
+bool EditorExportPreset::get_sign_pck() const {
+	return sign_pck;
+}
+
+void EditorExportPreset::set_pck_signing_key_priv(const String &p_key) {
+	sign_key_priv = p_key;
+	EditorExport::singleton->save_presets();
+}
+
+String EditorExportPreset::get_pck_signing_key_priv() const {
+	return sign_key_priv;
+}
+
+void EditorExportPreset::set_pck_signing_key_pub(const String &p_key) {
+	sign_key_pub = p_key;
+	EditorExport::singleton->save_presets();
+}
+
+String EditorExportPreset::get_pck_signing_key_pub() const {
+	return sign_key_pub;
+}
+
+void EditorExportPreset::set_pck_signing_type(int p_type) {
+	sign_type = p_type;
+	EditorExport::singleton->save_presets();
+}
+
+int EditorExportPreset::get_pck_signing_type() const {
+	return sign_type;
 }
 
 Variant EditorExportPreset::get_or_env(const StringName &p_name, const String &p_env_var, bool *r_valid) const {

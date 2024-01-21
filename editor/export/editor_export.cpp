@@ -92,7 +92,11 @@ void EditorExport::_save() {
 		config->set_value(section, "encrypt_pck", preset->get_enc_pck());
 		config->set_value(section, "encrypt_directory", preset->get_enc_directory());
 		config->set_value(section, "script_export_mode", preset->get_script_export_mode());
-		credentials->set_value(section, "script_encryption_key", preset->get_script_encryption_key());
+		config->set_value(section, "sign_pck", preset->get_sign_pck());
+		config->set_value(section, "pck_signing_type", preset->get_pck_signing_type());
+		credentials->set_value(section, "pck_encryption_key", preset->get_pck_encryption_key());
+		credentials->set_value(section, "pck_signing_key_priv", preset->get_pck_signing_key_priv());
+		credentials->set_value(section, "pck_signing_key_pub", preset->get_pck_signing_key_pub());
 
 		String option_section = "preset." + itos(i) + ".options";
 
@@ -324,8 +328,20 @@ void EditorExport::load_config() {
 		if (config->has_section_key(section, "encryption_exclude_filters")) {
 			preset->set_enc_ex_filter(config->get_value(section, "encryption_exclude_filters"));
 		}
-		if (credentials->has_section_key(section, "script_encryption_key")) {
-			preset->set_script_encryption_key(credentials->get_value(section, "script_encryption_key"));
+		if (config->has_section_key(section, "sign_pck")) {
+			preset->set_sign_pck(config->get_value(section, "sign_pck"));
+		}
+		if (config->has_section_key(section, "pck_signing_type")) {
+			preset->set_pck_signing_type(config->get_value(section, "pck_signing_type"));
+		}
+		if (credentials->has_section_key(section, "pck_encryption_key")) {
+			preset->set_pck_encryption_key(credentials->get_value(section, "pck_encryption_key"));
+		}
+		if (credentials->has_section_key(section, "pck_signing_key_priv")) {
+			preset->set_pck_signing_key_priv(credentials->get_value(section, "pck_signing_key_priv"));
+		}
+		if (credentials->has_section_key(section, "pck_signing_key_pub")) {
+			preset->set_pck_signing_key_pub(credentials->get_value(section, "pck_signing_key_pub"));
 		}
 
 		String option_section = "preset." + itos(index) + ".options";

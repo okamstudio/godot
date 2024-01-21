@@ -31,13 +31,15 @@
 #include "file_access_pack.h"
 
 #include "core/io/file_access_encrypted.h"
-#include "core/object/script_language.h"
 #include "core/os/os.h"
+#include "core/script_encryption_key.gen.h"
 #include "core/version.h"
 
-Error PackedData::add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) {
+HashSet<String> PackedData::require_encryption;
+
+Error PackedData::add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key) {
 	for (int i = 0; i < sources.size(); i++) {
-		if (sources[i]->try_open_pack(p_path, p_replace_files, p_offset)) {
+		if (sources[i]->try_open_pack(p_path, p_replace_files, p_offset, p_key)) {
 			return OK;
 		}
 	}
@@ -45,7 +47,7 @@ Error PackedData::add_pack(const String &p_path, bool p_replace_files, uint64_t 
 	return ERR_FILE_UNRECOGNIZED;
 }
 
-void PackedData::add_path(const String &p_pkg_path, const String &p_path, uint64_t p_ofs, uint64_t p_size, const uint8_t *p_md5, PackSource *p_src, bool p_replace_files, bool p_encrypted) {
+void PackedData::add_path(const String &p_pkg_path, const String &p_path, uint64_t p_ofs, uint64_t p_size, const uint8_t *p_sha256, PackSource *p_src, bool p_replace_files, bool p_encrypted, bool p_require_verification) {
 	String simplified_path = p_path.simplify_path().trim_prefix("res://");
 	PathMD5 pmd5(simplified_path.md5_buffer());
 
@@ -53,11 +55,12 @@ void PackedData::add_path(const String &p_pkg_path, const String &p_path, uint64
 
 	PackedFile pf;
 	pf.encrypted = p_encrypted;
+	pf.require_verification = p_require_verification;
 	pf.pack = p_pkg_path;
 	pf.offset = p_ofs;
 	pf.size = p_size;
-	for (int i = 0; i < 16; i++) {
-		pf.md5[i] = p_md5[i];
+	for (int i = 0; i < 32; i++) {
+		pf.sha256[i] = p_sha256[i];
 	}
 	pf.src = p_src;
 
@@ -133,7 +136,7 @@ uint8_t *PackedData::get_file_hash(const String &p_path) {
 		return nullptr;
 	}
 
-	return E->value.md5;
+	return E->value.sha256;
 }
 
 HashSet<String> PackedData::get_file_paths() const {
@@ -174,6 +177,17 @@ void PackedData::_free_packed_dirs(PackedDir *p_dir) {
 	memdelete(p_dir);
 }
 
+bool PackedData::file_require_encryption(const String &p_name) {
+	if (require_encryption.is_empty()) {
+		// Core files, always encrypt if PCK encryption is enabled.
+		require_encryption.insert("project.godot");
+		require_encryption.insert("project.binary");
+		require_encryption.insert("extension_list.cfg");
+		require_encryption.insert("override.cfg");
+	}
+	return require_encryption.has(p_name.get_file());
+}
+
 PackedData::~PackedData() {
 	if (singleton == this) {
 		singleton = nullptr;
@@ -187,7 +201,7 @@ PackedData::~PackedData() {
 
 //////////////////////////////////////////////////////////////////
 
-bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) {
+bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key) {
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
 	if (f.is_null()) {
 		return false;
@@ -272,7 +286,10 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 	bool enc_directory = (pack_flags & PACK_DIR_ENCRYPTED);
 	bool rel_filebase = (pack_flags & PACK_REL_FILEBASE);
 
-	for (int i = 0; i < 16; i++) {
+	uint64_t signature_offset = f->get_64();
+	uint64_t signature_size = f->get_64();
+
+	for (int i = 0; i < 12; i++) {
 		//reserved
 		f->get_32();
 	}
@@ -283,6 +300,14 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		file_base += pck_start_pos;
 	}
 
+	// Read signature.
+	uint64_t dir_start_pos = f->get_position();
+	Vector<uint8_t> signature;
+	signature.resize(signature_size);
+	f->seek(signature_offset);
+	f->get_buffer(signature.ptrw(), signature_size);
+	f->seek(dir_start_pos);
+
 	if (enc_directory) {
 		Ref<FileAccessEncrypted> fae;
 		fae.instantiate();
@@ -291,7 +316,7 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		Vector<uint8_t> key;
 		key.resize(32);
 		for (int i = 0; i < key.size(); i++) {
-			key.write[i] = script_encryption_key[i];
+			key.write[i] = pck_encryption_key[i];
 		}
 
 		Error err = fae->open_and_parse(f, key, FileAccessEncrypted::MODE_READ, false);
@@ -299,6 +324,41 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		f = fae;
 	}
 
+	// Compute directory hash.
+	if (p_key.is_valid()) {
+		Vector<uint8_t> directory_hash;
+		directory_hash.resize(32);
+		CryptoCore::SHA256Context sha_ctx;
+		sha_ctx.start();
+		dir_start_pos = f->get_position();
+		for (int i = 0; i < file_count; i++) {
+			uint32_t sl = f->get_32();
+			sha_ctx.update((const unsigned char *)&sl, 4);
+			CharString cs;
+			cs.resize(sl);
+			f->get_buffer((uint8_t *)cs.ptr(), sl);
+			sha_ctx.update((const unsigned char *)cs.ptr(), sl);
+
+			uint64_t ofs = f->get_64();
+			sha_ctx.update((const unsigned char *)&ofs, 8);
+			uint64_t size = f->get_64();
+			sha_ctx.update((const unsigned char *)&size, 8);
+
+			uint8_t sha256[32];
+			f->get_buffer(sha256, 32);
+			sha_ctx.update((const unsigned char *)sha256, 32);
+
+			uint32_t flags = f->get_32();
+			sha_ctx.update((const unsigned char *)&flags, 4);
+		}
+		sha_ctx.finish((unsigned char *)directory_hash.ptrw());
+
+		Ref<Crypto> tls_ctx = Crypto::create();
+		ERR_FAIL_COND_V_MSG(!tls_ctx->verify(HashingContext::HASH_SHA256, directory_hash, signature, p_key), false, "Pack directory integrity verification failed, invalid signature.");
+		f->seek(dir_start_pos);
+	}
+
+	// Read directory.
 	for (int i = 0; i < file_count; i++) {
 		uint32_t sl = f->get_32();
 		CharString cs;
@@ -309,16 +369,18 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		String path;
 		path.parse_utf8(cs.ptr(), sl);
 
-		uint64_t ofs = f->get_64();
+		uint64_t ofs = file_base + f->get_64();
 		uint64_t size = f->get_64();
-		uint8_t md5[16];
-		f->get_buffer(md5, 16);
+
+		uint8_t sha256[32];
+		f->get_buffer(sha256, 32);
+
 		uint32_t flags = f->get_32();
 
 		if (flags & PACK_FILE_REMOVAL) { // The file was removed.
 			PackedData::get_singleton()->remove_path(path);
 		} else {
-			PackedData::get_singleton()->add_path(p_path, path, file_base + ofs + p_offset, size, md5, this, p_replace_files, (flags & PACK_FILE_ENCRYPTED));
+			PackedData::get_singleton()->add_path(p_path, path, ofs + p_offset, size, sha256, this, p_replace_files, (flags & PACK_FILE_ENCRYPTED), p_key.is_valid());
 		}
 	}
 
@@ -326,7 +388,7 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 }
 
 Ref<FileAccess> PackedSourcePCK::get_file(const String &p_path, PackedData::PackedFile *p_file) {
-	return memnew(FileAccessPack(p_path, *p_file));
+	return memnew(FileAccessPack(p_path, p_file));
 }
 
 //////////////////////////////////////////////////////////////////
@@ -427,8 +489,8 @@ void FileAccessPack::close() {
 	f = Ref<FileAccess>();
 }
 
-FileAccessPack::FileAccessPack(const String &p_path, const PackedData::PackedFile &p_file) :
-		pf(p_file),
+FileAccessPack::FileAccessPack(const String &p_path, PackedData::PackedFile *p_file) :
+		pf(*p_file),
 		f(FileAccess::open(pf.pack, FileAccess::READ)) {
 	ERR_FAIL_COND_MSG(f.is_null(), vformat("Can't open pack-referenced file '%s'.", String(pf.pack)));
 
@@ -443,13 +505,48 @@ FileAccessPack::FileAccessPack(const String &p_path, const PackedData::PackedFil
 		Vector<uint8_t> key;
 		key.resize(32);
 		for (int i = 0; i < key.size(); i++) {
-			key.write[i] = script_encryption_key[i];
+			key.write[i] = pck_encryption_key[i];
 		}
 
 		Error err = fae->open_and_parse(f, key, FileAccessEncrypted::MODE_READ, false);
 		ERR_FAIL_COND_MSG(err, vformat("Can't open encrypted pack-referenced file '%s'.", String(pf.pack)));
 		f = fae;
 		off = 0;
+	}
+	pos = 0;
+	eof = false;
+
+	if (pf.require_verification && !pf.is_validated) {
+		Vector<uint8_t> file_hash;
+		file_hash.resize(32);
+
+		CryptoCore::SHA256Context sha_ctx;
+		sha_ctx.start();
+
+		unsigned char step[4096];
+		while (true) {
+			uint64_t br = get_buffer(step, 4096);
+			if (br > 0) {
+				sha_ctx.update(step, br);
+			}
+			if (br < 4096) {
+				break;
+			}
+		}
+
+		sha_ctx.finish((unsigned char *)file_hash.ptrw());
+
+		for (int i = 0; i < 32; i++) {
+			if (file_hash[i] != pf.sha256[i]) {
+				f = Ref<FileAccess>();
+				eof = true;
+				ERR_FAIL_MSG("Can't open encrypted pack-referenced file '" + String(p_path) + "', pack '" + String(pf.pack) + "'.");
+			}
+		}
+
+		p_file->is_validated = true; // Only check hash once.
+
+		f->seek(off);
 	}
 	pos = 0;
 	eof = false;
