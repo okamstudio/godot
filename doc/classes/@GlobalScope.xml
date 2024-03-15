@@ -2773,7 +2773,7 @@
 		<constant name="PROPERTY_HINT_RANGE" value="1" enum="PropertyHint">
 			Hints that an [int] or [float] property should be within a range specified via the hint string [code]"min,max"[/code] or [code]"min,max,step"[/code]. The hint string can optionally include [code]"or_greater"[/code] and/or [code]"or_less"[/code] to allow manual input going respectively above the max or below the min values.
 			[b]Example:[/b] [code]"-360,360,1,or_greater,or_less"[/code].
-			Additionally, other keywords can be included: [code]"exp"[/code] for exponential range editing, [code]"radians_as_degrees"[/code] for editing radian angles in degrees (the range values are also in degrees), [code]"degrees"[/code] to hint at an angle and [code]"hide_slider"[/code] to hide the slider.
+			Additionally, other keywords can be included: [code]"exp"[/code] for exponential range editing, [code]"radians_as_degrees"[/code] for editing radian angles in degrees (the range values are also in degrees), [code]"degrees"[/code] to hint at an angle and [code]"hide_slider"[/code] to hide the slider, and [code]"display_unsigned"[/code] to allow signed integers to be displayed as unsigned (this is especially useful with [PackedInt32Array]).
 		</constant>
 		<constant name="PROPERTY_HINT_ENUM" value="2" enum="PropertyHint">
 			Hints that an [int] or [String] property is an enumerated value to pick in a list specified via a hint string.

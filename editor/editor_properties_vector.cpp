@@ -73,7 +73,9 @@ void EditorPropertyVectorN::_value_changed(double val, const String &p_name) {
 	Variant::construct(vector_type, v, nullptr, 0, cerror);
 
 	for (int i = 0; i < component_count; i++) {
-		if (radians_as_degrees) {
+		if (display_unsigned) {
+			v.set(i, (int64_t)spin_sliders[i]->get_value());
+		} else if (radians_as_degrees) {
 			v.set(i, Math::deg_to_rad(spin_sliders[i]->get_value()));
 		} else {
 			v.set(i, spin_sliders[i]->get_value());
@@ -85,7 +87,10 @@ void EditorPropertyVectorN::_value_changed(double val, const String &p_name) {
 void EditorPropertyVectorN::update_property() {
 	Variant val = get_edited_property_value();
 	for (int i = 0; i < component_count; i++) {
-		if (radians_as_degrees) {
+		if (display_unsigned) {
+			// Fix range to handle casting signed to unsigned.
+			spin_sliders[i]->set_value_no_signal((uint64_t)val.get(i) % ((uint64_t)spin_sliders[i]->get_max() + 1));
+		} else if (radians_as_degrees) {
 			spin_sliders[i]->set_value_no_signal(Math::rad_to_deg((real_t)val.get(i)));
 		} else {
 			spin_sliders[i]->set_value_no_signal(val.get(i));
@@ -153,16 +158,17 @@ void EditorPropertyVectorN::_notification(int p_what) {
 	}
 }
 
-void EditorPropertyVectorN::setup(double p_min, double p_max, double p_step, bool p_hide_slider, bool p_link, const String &p_suffix, bool p_radians_as_degrees) {
+void EditorPropertyVectorN::setup(double p_min, double p_max, double p_step, bool p_hide_slider, bool p_link, const String &p_suffix, bool p_radians_as_degrees, bool p_allow_greater, bool p_allow_lesser, bool p_display_unsigned) {
 	radians_as_degrees = p_radians_as_degrees;
+	display_unsigned = p_display_unsigned;
 
 	for (EditorSpinSlider *spin : spin_sliders) {
 		spin->set_min(p_min);
 		spin->set_max(p_max);
 		spin->set_step(p_step);
 		spin->set_hide_slider(p_hide_slider);
-		spin->set_allow_greater(true);
-		spin->set_allow_lesser(true);
+		spin->set_allow_greater(p_allow_greater);
+		spin->set_allow_lesser(p_allow_lesser);
 		spin->set_suffix(p_suffix);
 	}
 
