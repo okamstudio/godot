@@ -998,7 +998,7 @@ void TileSourceInspectorPlugin::_confirm_change_id() {
 }
 
 bool TileSourceInspectorPlugin::can_handle(Object *p_object) {
-	return p_object->is_class("TileSetAtlasSourceProxyObject") || p_object->is_class("TileSetScenesCollectionProxyObject");
+	return p_object && (p_object->is_class("TileSetAtlasSourceProxyObject") || p_object->is_class("TileSetScenesCollectionProxyObject"));
 }
 
 bool TileSourceInspectorPlugin::parse_property(Object *p_object, const Variant::Type p_type, const String &p_path, const PropertyHint p_hint, const String &p_hint_text, const BitField<PropertyUsageFlags> p_usage, const bool p_wide) {

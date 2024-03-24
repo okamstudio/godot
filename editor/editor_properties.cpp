@@ -57,7 +57,7 @@
 #include "scene/resources/mesh.h"
 #include "scene/resources/visual_shader_nodes.h"
 
-///////////////////// Nil /////////////////////////
+///////////////////// NIL /////////////////////////
 
 void EditorPropertyNil::update_property() {
 }
@@ -66,6 +66,91 @@ EditorPropertyNil::EditorPropertyNil() {
 	Label *prop_label = memnew(Label);
 	prop_label->set_text("<null>");
 	add_child(prop_label);
+}
+
+//////////////////// VARIANT ///////////////////////
+
+void EditorPropertyVariant::_change_type(int p_to_type) {
+	new_type = Variant::Type(p_to_type);
+
+	Variant zero;
+	Callable::CallError ce;
+	Variant::construct(new_type, zero, nullptr, 0, ce);
+	emit_changed(get_edited_property(), zero);
+}
+
+void EditorPropertyVariant::_set_read_only(bool p_read_only) {
+	change_type->set_disabled(p_read_only);
+	if (sub_property) {
+		sub_property->set_read_only(p_read_only);
+	}
+}
+
+void EditorPropertyVariant::_notification(int p_what) {
+	if (p_what == NOTIFICATION_THEME_CHANGED) {
+		change_type->set_button_icon(get_editor_theme_icon("Edit"));
+
+		PopupMenu *popup = change_type->get_popup();
+		for (int i = 0; i < popup->get_item_count(); i++) {
+			popup->set_item_icon(i, get_editor_theme_icon(Variant::get_type_name(Variant::Type(popup->get_item_id(i)))));
+		}
+	}
+}
+
+void EditorPropertyVariant::update_property() {
+	const Variant &value = get_edited_property_value();
+	if (new_type == Variant::VARIANT_MAX) {
+		new_type = value.get_type();
+	}
+
+	if (new_type != current_type) {
+		current_type = new_type;
+
+		if (sub_property) {
+			memdelete(sub_property);
+			sub_property = nullptr;
+		}
+
+		if (current_type == Variant::OBJECT) {
+			sub_property = EditorInspector::instantiate_property_editor(nullptr, current_type, "", PROPERTY_HINT_RESOURCE_TYPE, "Resource", PROPERTY_USAGE_NONE);
+		} else {
+			sub_property = EditorInspector::instantiate_property_editor(nullptr, current_type, "", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE);
+		}
+		ERR_FAIL_NULL(sub_property);
+
+		sub_property->set_object_and_property(get_edited_object(), get_edited_property());
+		sub_property->set_name_split_ratio(0);
+		sub_property->set_selectable(false);
+		sub_property->set_use_folding(is_using_folding());
+		sub_property->set_read_only(is_read_only());
+		sub_property->set_h_size_flags(SIZE_EXPAND_FILL);
+		sub_property->connect(SNAME("property_changed"), callable_mp((EditorProperty *)this, &EditorProperty::emit_changed));
+		content->add_child(sub_property);
+		content->move_child(sub_property, 0);
+		sub_property->update_property();
+	} else if (sub_property) {
+		sub_property->update_property();
+	}
+	new_type = Variant::VARIANT_MAX;
+}
+
+EditorPropertyVariant::EditorPropertyVariant() {
+	content = memnew(HBoxContainer);
+	add_child(content);
+
+	change_type = memnew(MenuButton);
+	change_type->set_flat(false);
+
+	PopupMenu *popup = change_type->get_popup();
+	for (int i = 0; i < Variant::VARIANT_MAX; i++) {
+		if (i == Variant::CALLABLE || i == Variant::SIGNAL || i == Variant::RID) {
+			// These types can't be constructed or serialized properly, so skip them.
+			continue;
+		}
+		popup->add_item(Variant::get_type_name(Variant::Type(i)), i);
+	}
+	popup->connect(SceneStringName(id_pressed), callable_mp(this, &EditorPropertyVariant::_change_type));
+	content->add_child(change_type);
 }
 
 ///////////////////// TEXT /////////////////////////
@@ -3508,8 +3593,11 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 	switch (p_type) {
 		// atomic types
 		case Variant::NIL: {
-			EditorPropertyNil *editor = memnew(EditorPropertyNil);
-			return editor;
+			if (p_usage & PROPERTY_USAGE_NIL_IS_VARIANT) {
+				return memnew(EditorPropertyVariant);
+			} else {
+				return memnew(EditorPropertyNil);
+			}
 		} break;
 		case Variant::BOOL: {
 			EditorPropertyCheck *editor = memnew(EditorPropertyCheck);
