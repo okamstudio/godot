@@ -6702,10 +6702,15 @@ void EditorNode::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("scene_saved", PropertyInfo(Variant::STRING, "path")));
 	ADD_SIGNAL(MethodInfo("scene_changed"));
 	ADD_SIGNAL(MethodInfo("scene_closed", PropertyInfo(Variant::STRING, "path")));
+	ADD_SIGNAL(MethodInfo("configuration_info_changed", PropertyInfo(Variant::OBJECT, "object")));
 }
 
 static Node *_resource_get_edited_scene() {
 	return EditorNode::get_singleton()->get_edited_scene();
+}
+
+static void _configuration_info_changed(Object *p_object) {
+	EditorNode::get_singleton()->emit_signal(EditorStringName(configuration_info_changed), p_object);
 }
 
 void EditorNode::_print_handler(void *p_this, const String &p_string, bool p_error, bool p_rich) {
@@ -6799,6 +6804,7 @@ EditorNode::EditorNode() {
 	set_translation_domain("godot.editor");
 
 	Resource::_get_local_scene_func = _resource_get_edited_scene;
+	ConfigurationInfo::configuration_info_changed_func = _configuration_info_changed;
 
 	{
 		PortableCompressedTexture2D::set_keep_all_compressed_buffers(true);

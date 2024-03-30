@@ -31,6 +31,7 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include "core/object/configuration_info.h"
 #include "core/string/node_path.h"
 #include "core/variant/typed_array.h"
 #include "scene/main/scene_tree.h"
@@ -389,7 +390,10 @@ protected:
 	GDVIRTUAL0(_enter_tree)
 	GDVIRTUAL0(_exit_tree)
 	GDVIRTUAL0(_ready)
+#ifndef DISABLE_DEPRECATED
 	GDVIRTUAL0RC(Vector<String>, _get_configuration_warnings)
+#endif
+	GDVIRTUAL0RC(Array, _get_configuration_info)
 
 	GDVIRTUAL1(_input, Ref<InputEvent>)
 	GDVIRTUAL1(_shortcut_input, Ref<InputEvent>)
@@ -717,9 +721,17 @@ public:
 
 	_FORCE_INLINE_ Viewport *get_viewport() const { return data.viewport; }
 
+#ifndef DISABLE_DEPRECATED
 	virtual PackedStringArray get_configuration_warnings() const;
 
 	void update_configuration_warnings();
+#endif
+
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const;
+#endif
+
+	void update_configuration_info();
 
 	void set_display_folded(bool p_folded);
 	bool is_displayed_folded() const;
@@ -862,8 +874,8 @@ Error Node::rpc_id(int p_peer_id, const StringName &p_method, VarArgs... p_args)
 #define ERR_READ_THREAD_GUARD_V(m_ret)
 #endif
 
-// Add these macro to your class's 'get_configuration_warnings' function to have warnings show up in the scene tree inspector.
-#define DEPRECATED_NODE_WARNING warnings.push_back(RTR("This node is marked as deprecated and will be removed in future versions.\nPlease check the Godot documentation for information about migration."));
-#define EXPERIMENTAL_NODE_WARNING warnings.push_back(RTR("This node is marked as experimental and may be subject to removal or major changes in future versions."));
+// Add these macro to your class's 'get_configuration_info' function to have warnings show up in the scene tree inspector.
+#define DEPRECATED_NODE_WARNING CONFIG_WARNING(RTR("This node is marked as deprecated and will be removed in future versions.\nPlease check the Godot documentation for information about migration."));
+#define EXPERIMENTAL_NODE_WARNING CONFIG_WARNING(RTR("This node is marked as experimental and may be subject to removal or major changes in future versions."));
 
 #endif // NODE_H

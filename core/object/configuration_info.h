@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_string_names.h                                                 */
+/*  configuration_info.h                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,30 +28,63 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_STRING_NAMES_H
-#define EDITOR_STRING_NAMES_H
+#ifndef CONFIGURATION_INFO_H
+#define CONFIGURATION_INFO_H
 
-#include "core/string/string_name.h"
+#ifdef TOOLS_ENABLED
 
-class EditorStringNames {
-	inline static EditorStringNames *singleton = nullptr;
+#include "core/templates/hash_set.h"
+#include "core/variant/variant.h"
+
+#ifdef ERROR
+#undef ERROR // Define from Windows APIs
+#endif
+
+#define CONFIG_WARNING(message) infos.push_back(ConfigurationInfo(message, "", ConfigurationInfo::Severity::WARNING));
+#define CONFIG_WARNING_P(message, property_name) infos.push_back(ConfigurationInfo(message, property_name, ConfigurationInfo::Severity::WARNING));
+
+class ConfigurationInfo {
+public:
+	enum class Severity {
+		INFO,
+		WARNING,
+		ERROR,
+		MAX,
+		NONE = -1,
+	};
+
+private:
+	String message;
+	StringName property_name;
+	Severity severity;
+
+	inline static HashSet<String> queued_errors_to_print;
+
+	static void queue_error_print(const String &p_error);
+	static void _print_errors_from_queue();
 
 public:
-	static void create() { singleton = memnew(EditorStringNames); }
-	static void free() {
-		memdelete(singleton);
-		singleton = nullptr;
+	static void (*configuration_info_changed_func)(Object *p_object);
+
+	static ConfigurationInfo from_variant(const Variant &p_variant);
+	static Severity string_to_severity(const String &p_severity);
+
+	bool ensure_valid(Object *p_owner) const;
+	String get_message() const { return message; }
+	StringName get_property_name() const { return property_name; }
+	Severity get_severity() const { return severity; }
+
+	bool operator==(const ConfigurationInfo &p_val) const {
+		return (message == p_val.message) &&
+				(property_name == p_val.property_name) &&
+				(severity == p_val.severity);
 	}
 
-	_FORCE_INLINE_ static EditorStringNames *get_singleton() { return singleton; }
-
-	const StringName configuration_info_changed = StaticCString::create("configuration_info_changed");
-	const StringName Editor = StaticCString::create("Editor");
-	const StringName EditorFonts = StaticCString::create("EditorFonts");
-	const StringName EditorIcons = StaticCString::create("EditorIcons");
-	const StringName EditorStyles = StaticCString::create("EditorStyles");
+	ConfigurationInfo();
+	ConfigurationInfo(const Dictionary &p_dict);
+	ConfigurationInfo(const String &p_message, const StringName &p_property_name = StringName(), Severity p_severity = Severity::WARNING);
 };
 
-#define EditorStringName(m_name) EditorStringNames::get_singleton()->m_name
+#endif // TOOLS_ENABLED
 
-#endif // EDITOR_STRING_NAMES_H
+#endif // CONFIGURATION_INFO_H

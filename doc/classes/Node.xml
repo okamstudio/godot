@@ -36,7 +36,39 @@
 				Corresponds to the [constant NOTIFICATION_EXIT_TREE] notification in [method Object._notification] and signal [signal tree_exiting]. To get notified when the node has already left the active tree, connect to the [signal tree_exited].
 			</description>
 		</method>
-		<method name="_get_configuration_warnings" qualifiers="virtual const">
+		<method name="_get_configuration_info" qualifiers="virtual const">
+			<return type="Array" />
+			<description>
+				Override this method to inform the user about the configuration of this node.
+				Call [method update_configuration_info] when the messages need to be updated for this node.
+				The elements in the array returned from this method are displayed at the top of the Inspector dock, as well as an icon in the Scene dock. The script that overrides it must be a [code]tool[/code] script.
+				Each array element must either be a [String] or a [Dictionary].
+				A dictionary element must contain a key [code]message[/code] of type [String] which is shown in the user interface. Following optional keys are supported:
+				- [code]property[/code] of type [StringName], which adds an icon next to the property with the same name.
+				- [code]severity[/code] can be set to [code]"error"[/code], [code]"warning"[/code], or [code]"info"[/code] to change the icon and text color. Defaults to warning.
+				If a string is found in the returned array, it is treated as a warning message with no property set.
+				Returning an empty array produces no messages.
+				[codeblock]
+				@tool
+				extends Node
+
+				@export var energy = 0:
+				    set(value):
+				        energy = value
+				        update_configuration_info()
+
+				func _get_configuration_info():
+				    if energy &lt; 0:
+				        return [{
+				            "property": "energy",
+				            "message": "Energy must be 0 or greater."
+				        }]
+				    else:
+				        return []
+				[/codeblock]
+			</description>
+		</method>
+		<method name="_get_configuration_warnings" qualifiers="virtual const" deprecated="Use [method _get_configuration_info] instead.">
 			<return type="PackedStringArray" />
 			<description>
 				The elements in the array returned from this method are displayed as warnings in the Scene dock if the script that overrides it is a [code]tool[/code] script.
@@ -986,7 +1018,13 @@
 				This is the default behavior for all nodes. Calling [method Object.set_translation_domain] disables this behavior.
 			</description>
 		</method>
-		<method name="update_configuration_warnings">
+		<method name="update_configuration_info">
+			<return type="void" />
+			<description>
+				Refreshes the configuration information displayed for this node in the Scene dock and Inspector dock. Use [method _get_configuration_info] to customize the messages to display.
+			</description>
+		</method>
+		<method name="update_configuration_warnings" deprecated="Use [method update_configuration_info] instead.">
 			<return type="void" />
 			<description>
 				Refreshes the warnings displayed for this node in the Scene dock. Use [method _get_configuration_warnings] to customize the warning messages to display.

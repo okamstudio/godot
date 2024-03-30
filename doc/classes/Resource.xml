@@ -14,6 +14,38 @@
 		<link title="When and how to avoid using nodes for everything">$DOCS_URL/tutorials/best_practices/node_alternatives.html</link>
 	</tutorials>
 	<methods>
+		<method name="_get_configuration_info" qualifiers="virtual const">
+			<return type="Array" />
+			<description>
+				Override this method to inform the user about the configuration of this resource.
+				Call [method update_configuration_info] when the messages need to be updated for this resource.
+				The elements in the array returned from this method are displayed at the top of the Inspector dock. The script that overrides it must be a [code]tool[/code] script.
+				Each array element must either be a [String] or a [Dictionary].
+				A dictionary element must contain a key [code]message[/code] of type [String] which is shown in the user interface. Following optional keys are supported:
+				- [code]property[/code] of type [StringName], which adds an icon next to the property with the same name.
+				- [code]severity[/code] can be set to [code]"error"[/code], [code]"warning"[/code], or [code]"info"[/code] to change the icon and text color. Defaults to warning.
+				If a string is found in the returned array, it is treated as a warning message with no property set.
+				Returning an empty array produces no messages.
+				[codeblock]
+				@tool
+				extends Resource
+
+				@export var energy = 0:
+				    set(value):
+				        energy = value
+				        update_configuration_info()
+
+				func _get_configuration_info():
+				    if energy &lt; 0:
+				        return [{
+				            "property": "energy",
+				            "message": "Energy must be 0 or greater."
+				        }]
+				    else:
+				        return []
+				[/codeblock]
+			</description>
+		</method>
 		<method name="_get_rid" qualifiers="virtual const">
 			<return type="RID" />
 			<description>
@@ -140,6 +172,12 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Sets the [member resource_path] to [param path], potentially overriding an existing cache entry for this path. Further attempts to load an overridden resource by path will instead return this resource.
+			</description>
+		</method>
+		<method name="update_configuration_info">
+			<return type="void" />
+			<description>
+				Refreshes the configuration information displayed for this resource in the Inspector dock. Use [method _get_configuration_info] to customize the messages to display.
 			</description>
 		</method>
 	</methods>

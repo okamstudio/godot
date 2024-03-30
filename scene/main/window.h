@@ -406,6 +406,10 @@ public:
 
 	Rect2i get_usable_parent_rect() const;
 
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
+
 	// Internationalization.
 
 	void set_layout_direction(LayoutDirection p_direction);
