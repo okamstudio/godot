@@ -3705,3 +3705,12 @@ void Variant::unregister_types() {
 	_unregister_variant_destructors();
 	_unregister_variant_utility_functions();
 }
+
+uint32_t VariantHasher::hash(const Variant &p_variant) {
+	uint32_t hash = p_variant.hash();
+	Variant::Type type = p_variant.get_type();
+	if (type == Variant::STRING || type == Variant::STRING_NAME || type == Variant::NODE_PATH) {
+		return hash_fmix32(hash);
+	}
+	return hash;
+}

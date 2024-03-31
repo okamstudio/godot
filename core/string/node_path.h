@@ -44,6 +44,7 @@ class NodePath {
 		bool absolute;
 		mutable bool hash_cache_valid;
 		mutable uint32_t hash_cache;
+		mutable uint32_t hash_mixed_cache;
 	};
 
 	mutable Data *data = nullptr;
@@ -77,6 +78,16 @@ public:
 			_update_hash_cache();
 		}
 		return data->hash_cache;
+	}
+
+	_FORCE_INLINE_ uint32_t hash_mixed() const {
+		if (!data) {
+			return 0;
+		}
+		if (!data->hash_cache_valid) {
+			_update_hash_cache();
+		}
+		return data->hash_mixed_cache;
 	}
 
 	operator String() const;

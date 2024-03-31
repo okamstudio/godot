@@ -858,7 +858,7 @@ Vector<Variant> varray(VarArgs... p_args) {
 }
 
 struct VariantHasher {
-	static _FORCE_INLINE_ uint32_t hash(const Variant &p_variant) { return p_variant.hash(); }
+	static uint32_t hash(const Variant &p_variant);
 };
 
 struct VariantComparator {

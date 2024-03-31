@@ -41,3 +41,12 @@ bool _hashmap_variant_less_than(const Variant &p_left, const Variant &p_right) {
 	}
 	return res;
 }
+
+// Explicit instantiation.
+template class HashMap<int, int>;
+template class HashMap<String, int>;
+template class HashMap<StringName, bool>;
+template class HashMap<StringName, StringName>;
+template class HashMap<StringName, String>;
+template class HashMap<StringName, Variant>;
+template class HashMap<StringName, int>;
