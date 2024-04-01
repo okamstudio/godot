@@ -105,12 +105,18 @@ void ScriptEditorDebugger::debug_skip_breakpoints() {
 void ScriptEditorDebugger::debug_next() {
 	ERR_FAIL_COND(!is_breaked());
 
+	restore_mouse_position = get_local_mouse_position();
+	restore_mouse_by_time = OS::get_singleton()->get_ticks_msec() + restore_mouse_within_ms;
+
 	_put_msg("next", Array(), debugging_thread_id);
 	_clear_execution();
 }
 
 void ScriptEditorDebugger::debug_step() {
 	ERR_FAIL_COND(!is_breaked());
+
+	restore_mouse_position = get_local_mouse_position();
+	restore_mouse_by_time = OS::get_singleton()->get_ticks_msec() + restore_mouse_within_ms;
 
 	_put_msg("step", Array(), debugging_thread_id);
 	_clear_execution();
@@ -129,6 +135,9 @@ void ScriptEditorDebugger::debug_continue() {
 	if (remote_pid && EditorNode::get_singleton()->has_child_process(remote_pid)) {
 		DisplayServer::get_singleton()->enable_for_stealing_focus(remote_pid);
 	}
+
+	restore_mouse_position = get_local_mouse_position();
+	restore_mouse_by_time = OS::get_singleton()->get_ticks_msec() + restore_mouse_within_ms;
 
 	_clear_execution();
 	_put_msg("continue", Array(), debugging_thread_id);
@@ -350,6 +359,11 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, uint64_t p_thread
 			}
 			profiler->set_enabled(false, false);
 			visual_profiler->set_enabled(false);
+
+			if (restore_mouse_by_time > OS::get_singleton()->get_ticks_msec()) {
+				warp_mouse(restore_mouse_position);
+			}
+			restore_mouse_by_time = 0;
 		}
 		_update_buttons_state();
 
