@@ -34,7 +34,7 @@
 
 #include <os/log.h>
 
-void MacOSTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+void MacOSTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const char *p_script_backtrace) {
 	if (!should_log(true)) {
 		return;
 	}
@@ -76,6 +76,10 @@ void MacOSTerminalLogger::log_error(const char *p_function, const char *p_file, 
 			logf_error("\E[1;31mERROR:\E[0;91m %s\n", err_details);
 			logf_error("\E[0;90m   at: %s (%s:%i)\E[0m\n", p_function, p_file, p_line);
 			break;
+	}
+
+	if (p_script_backtrace && p_script_backtrace[0] != 0) {
+		logf_error("\E[0;94m%s\n", p_script_backtrace);
 	}
 }
 

@@ -34,7 +34,7 @@
 
 #include <os/log.h>
 
-void IOSTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+void IOSTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const char *p_script_backtrace) {
 	if (!should_log(true)) {
 		return;
 	}
@@ -46,27 +46,31 @@ void IOSTerminalLogger::log_error(const char *p_function, const char *p_file, in
 		err_details = p_code;
 	}
 
+	bool has_script_backtrace = p_script_backtrace && p_script_backtrace[0] != 0;
+	const char *newline = has_script_backtrace ? "\n" : "";
+	const char *script = has_script_backtrace ? p_script_backtrace : "";
+
 	switch (p_type) {
 		case ERR_WARNING:
 			os_log_info(OS_LOG_DEFAULT,
-					"WARNING: %{public}s\nat: %{public}s (%{public}s:%i)",
-					err_details, p_function, p_file, p_line);
+					"WARNING: %{public}s\nat: %{public}s (%{public}s:%i)%s%s",
+					err_details, p_function, p_file, p_line, newline, script);
 			break;
 		case ERR_SCRIPT:
 			os_log_error(OS_LOG_DEFAULT,
-					"SCRIPT ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
-					err_details, p_function, p_file, p_line);
+					"SCRIPT ERROR: %{public}s\nat: %{public}s (%{public}s:%i)%s%s",
+					err_details, p_function, p_file, p_line, newline, script);
 			break;
 		case ERR_SHADER:
 			os_log_error(OS_LOG_DEFAULT,
-					"SHADER ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
-					err_details, p_function, p_file, p_line);
+					"SHADER ERROR: %{public}s\nat: %{public}s (%{public}s:%i)%s%s",
+					err_details, p_function, p_file, p_line, newline, script);
 			break;
 		case ERR_ERROR:
 		default:
 			os_log_error(OS_LOG_DEFAULT,
-					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
-					err_details, p_function, p_file, p_line);
+					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)%s%s",
+					err_details, p_function, p_file, p_line, newline, script);
 			break;
 	}
 }
