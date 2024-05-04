@@ -284,6 +284,26 @@ public:
 		return _data ? _data->last : nullptr;
 	}
 
+	_FORCE_INLINE_ const T &get_front() const {
+		DEV_ASSERT(_data);
+		return _data->first->get();
+	}
+
+	_FORCE_INLINE_ T &get_front() {
+		DEV_ASSERT(_data);
+		return _data->first->get();
+	}
+
+	_FORCE_INLINE_ const T &get_back() const {
+		DEV_ASSERT(_data);
+		return _data->last->get();
+	}
+
+	_FORCE_INLINE_ T &get_back() {
+		DEV_ASSERT(_data);
+		return _data->last->get();
+	}
+
 	/**
 	 * store a new element at the end of the list
 	 */
