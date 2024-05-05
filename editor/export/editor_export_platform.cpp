@@ -1476,28 +1476,22 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 		custom_list.append_array(export_plugins[i]->_get_export_features(Ref<EditorExportPlatform>(this), p_debug));
 	}
 
-	ProjectSettings::CustomMap custom_map;
 	if (path_remaps.size()) {
-		if (true) { //new remap mode, use always as it's friendlier with multiple .pck exports
-			for (int i = 0; i < path_remaps.size(); i += 2) {
-				const String &from = path_remaps[i];
-				const String &to = path_remaps[i + 1];
-				String remap_file = "[remap]\n\npath=\"" + to.c_escape() + "\"\n";
-				CharString utf8 = remap_file.utf8();
-				Vector<uint8_t> new_file;
-				new_file.resize(utf8.length());
-				for (int j = 0; j < utf8.length(); j++) {
-					new_file.write[j] = utf8[j];
-				}
-
-				err = p_save_func(p_udata, from + ".remap", new_file, idx, total, enc_in_filters, enc_ex_filters, key, seed);
-				if (err != OK) {
-					return err;
-				}
+		for (int i = 0; i < path_remaps.size(); i += 2) {
+			const String &from = path_remaps[i];
+			const String &to = path_remaps[i + 1];
+			String remap_file = "[remap]\n\npath=\"" + to.c_escape() + "\"\n";
+			CharString utf8 = remap_file.utf8();
+			Vector<uint8_t> new_file;
+			new_file.resize(utf8.length());
+			for (int j = 0; j < utf8.length(); j++) {
+				new_file.write[j] = utf8[j];
 			}
-		} else {
-			//old remap mode, will still work, but it's unused because it's not multiple pck export friendly
-			custom_map["path_remap/remapped_paths"] = path_remaps;
+
+			err = p_save_func(p_udata, from + ".remap", new_file, idx, total, enc_in_filters, enc_ex_filters, key, seed);
+			if (err != OK) {
+				return err;
+			}
 		}
 	}
 
@@ -1529,7 +1523,7 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 
 	String config_file = "project.binary";
 	String engine_cfb = EditorPaths::get_singleton()->get_temp_dir().path_join("tmp" + config_file);
-	ProjectSettings::get_singleton()->save_custom(engine_cfb, custom_map, custom_list);
+	ProjectSettings::get_singleton()->save_custom(engine_cfb, ProjectSettings::CustomMap(), custom_list);
 	Vector<uint8_t> data = FileAccess::get_file_as_bytes(engine_cfb);
 	DirAccess::remove_file_or_error(engine_cfb);
 
