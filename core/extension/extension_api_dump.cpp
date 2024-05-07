@@ -1048,9 +1048,8 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 						}
 
 						Array arguments;
-						int i = 0;
-						for (List<PropertyInfo>::ConstIterator itr = mi.arguments.begin(); itr != mi.arguments.end(); ++itr, ++i) {
-							const PropertyInfo &pinfo = *itr;
+						for (int64_t i = 0; i < mi.arguments.size(); ++i) {
+							const PropertyInfo &pinfo = mi.arguments[i];
 							Dictionary d3;
 
 							d3["name"] = pinfo.name;
@@ -1175,11 +1174,10 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 
 					Array arguments;
 
-					int i = 0;
-					for (List<PropertyInfo>::ConstIterator itr = F.arguments.begin(); itr != F.arguments.end(); ++itr, ++i) {
+					for (int64_t i = 0; i < F.arguments.size(); ++i) {
 						Dictionary d3;
-						d3["name"] = itr->name;
-						d3["type"] = get_property_info_type_name(*itr);
+						d3["name"] = F.arguments[i].name;
+						d3["type"] = get_property_info_type_name(F.arguments[i]);
 						if (F.get_argument_meta(i) > 0) {
 							d3["meta"] = get_type_meta_name((GodotTypeInfo::Metadata)F.get_argument_meta(i));
 						}

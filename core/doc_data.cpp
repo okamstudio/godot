@@ -136,11 +136,10 @@ void DocData::method_doc_from_methodinfo(DocData::MethodDoc &p_method, const Met
 
 	return_doc_from_retinfo(p_method, p_methodinfo.return_val);
 
-	int i = 0;
-	for (List<PropertyInfo>::ConstIterator itr = p_methodinfo.arguments.begin(); itr != p_methodinfo.arguments.end(); ++itr, ++i) {
+	for (int64_t i = 0; i < p_methodinfo.arguments.size(); ++i) {
 		DocData::ArgumentDoc argument;
-		argument_doc_from_arginfo(argument, *itr);
-		int default_arg_index = i - (p_methodinfo.arguments.size() - p_methodinfo.default_arguments.size());
+		argument_doc_from_arginfo(argument, p_methodinfo.arguments[i]);
+		int64_t default_arg_index = i - (p_methodinfo.arguments.size() - p_methodinfo.default_arguments.size());
 		if (default_arg_index >= 0) {
 			Variant default_arg = p_methodinfo.default_arguments[default_arg_index];
 			argument.default_value = get_default_value_string(default_arg);
