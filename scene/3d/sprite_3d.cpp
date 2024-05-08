@@ -1190,7 +1190,7 @@ void AnimatedSprite3D::set_sprite_frames(const Ref<SpriteFrames> &p_frames) {
 			autoplay = String();
 		} else {
 			if (!frames->has_animation(animation)) {
-				set_animation(al.front()->get());
+				set_animation(al.get_front());
 			}
 			if (!frames->has_animation(autoplay)) {
 				autoplay = String();
