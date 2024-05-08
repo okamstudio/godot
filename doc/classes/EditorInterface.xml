@@ -208,6 +208,13 @@
 				Shows the given property on the given [param object] in the editor's Inspector dock. If [param inspector_only] is [code]true[/code], plugins will not attempt to edit [param object].
 			</description>
 		</method>
+		<method name="is_object_edited" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="object" type="Object" />
+			<description>
+				Returns whether the [param object] has been marked as edited.
+			</description>
+		</method>
 		<method name="is_multi_window_enabled" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -432,6 +439,16 @@
 				Selects and activates the specified feature profile with the given [param profile_name]. Set [param profile_name] to an empty string to reset to the default feature profile.
 				A feature profile can be created programmatically using the [EditorFeatureProfile] class.
 				[b]Note:[/b] The feature profile that gets activated must be located in the [code]feature_profiles[/code] directory, as a file with the [code].profile[/code] extension. If a profile could not be found, an error occurs. The editor configuration folder can be found by using [method EditorPaths.get_config_dir].
+			</description>
+		</method>
+		<method name="set_object_edited">
+			<return type="void" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="edited" type="bool" />
+			<description>
+				Set whether the [param object] has been edited based on the [param edited] value.
+				[b]Note:[/b] This is primarily used by the editor for [Resource] based objects to track their modified state. For example, any changes to an open scene, a resource in the inspector, or an edited script will cause this method to be called with [code]true[/code]. Saving the scene, script, or resource resets the edited state by calling this method with [code]false[/code].
+				[b]Note:[/b] Each call to this method increments the object's edited version. This is used to track changes in the editor and to trigger when thumbnails should be regenerated for resources.
 			</description>
 		</method>
 		<method name="set_main_screen_editor">
