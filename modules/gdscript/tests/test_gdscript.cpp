@@ -281,7 +281,7 @@ void test(TestType p_type) {
 		return;
 	}
 
-	String test = cmdlargs.back()->get();
+	String test = cmdlargs.get_back();
 	if (!test.ends_with(".gd") && !test.ends_with(".gdc")) {
 		print_line("This test expects a path to a GDScript file as its last parameter. Got: " + test);
 		return;

@@ -97,8 +97,8 @@ public:
 		}
 
 		while (to_clean_up.size()) {
-			to_clean_up.front()->get().first->instances.erase(to_clean_up.front()->get().second);
-			dependencies.erase(to_clean_up.front()->get().first);
+			to_clean_up.get_front().first->instances.erase(to_clean_up.get_front().second);
+			dependencies.erase(to_clean_up.get_front().first);
 			to_clean_up.pop_front();
 		}
 	}

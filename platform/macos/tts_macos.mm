@@ -119,7 +119,7 @@
 
 - (void)update {
 	if (!speaking && queue.size() > 0) {
-		DisplayServer::TTSUtterance &message = queue.front()->get();
+		DisplayServer::TTSUtterance &message = queue.get_front();
 
 		if (@available(macOS 10.14, *)) {
 			AVSpeechSynthesizer *av_synth = synth;

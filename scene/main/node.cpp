@@ -243,7 +243,7 @@ void Node::_notification(int p_notification) {
 			}
 
 			while (!data.owned.is_empty()) {
-				Node *n = data.owned.back()->get();
+				Node *n = data.owned.get_back();
 				n->_clean_up_owner(); // This will change data.owned. So it's impossible to loop over the list in the usual manner.
 			}
 
@@ -3056,7 +3056,7 @@ void Node::_duplicate_signals(const Node *p_original, Node *p_copy) const {
 	List<const Node *> process_list;
 	process_list.push_back(this);
 	while (!process_list.is_empty()) {
-		const Node *n = process_list.front()->get();
+		const Node *n = process_list.get_front();
 		process_list.pop_front();
 
 		List<Connection> conns;

@@ -151,7 +151,7 @@ PackedStringArray get_code_completion(CompletionKind p_kind, const String &p_scr
 			directories.push_back(dir_access->get_current_dir());
 
 			while (!directories.is_empty()) {
-				dir_access->change_dir(directories.back()->get());
+				dir_access->change_dir(directories.get_back());
 				directories.pop_back();
 
 				dir_access->list_dir_begin();

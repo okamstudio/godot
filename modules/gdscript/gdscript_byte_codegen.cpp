@@ -128,7 +128,7 @@ uint32_t GDScriptByteCodeGenerator::add_temporary(const GDScriptDataType &p_type
 		pool.push_back(idx);
 		temporaries.push_back(new_temp);
 	}
-	int slot = pool.front()->get();
+	int slot = pool.get_front();
 	pool.pop_front();
 	used_temporaries.push_back(slot);
 	return slot;
@@ -136,7 +136,7 @@ uint32_t GDScriptByteCodeGenerator::add_temporary(const GDScriptDataType &p_type
 
 void GDScriptByteCodeGenerator::pop_temporary() {
 	ERR_FAIL_COND(used_temporaries.is_empty());
-	int slot_idx = used_temporaries.back()->get();
+	int slot_idx = used_temporaries.get_back();
 	if (temporaries[slot_idx].can_contain_object) {
 		// Avoid keeping in the stack long-lived references to objects,
 		// which may prevent `RefCounted` objects from being freed.
@@ -714,8 +714,8 @@ void GDScriptByteCodeGenerator::write_end_and(const Address &p_target) {
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
 	append(opcodes.size() + 3);
 	// Here it means one of operands is false.
-	patch_jump(logic_op_jump_pos1.back()->get());
-	patch_jump(logic_op_jump_pos2.back()->get());
+	patch_jump(logic_op_jump_pos1.get_back());
+	patch_jump(logic_op_jump_pos2.get_back());
 	logic_op_jump_pos1.pop_back();
 	logic_op_jump_pos2.pop_back();
 	append_opcode(GDScriptFunction::OPCODE_ASSIGN_FALSE);
@@ -744,8 +744,8 @@ void GDScriptByteCodeGenerator::write_end_or(const Address &p_target) {
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
 	append(opcodes.size() + 3);
 	// Here it means one of operands is true.
-	patch_jump(logic_op_jump_pos1.back()->get());
-	patch_jump(logic_op_jump_pos2.back()->get());
+	patch_jump(logic_op_jump_pos1.get_back());
+	patch_jump(logic_op_jump_pos2.get_back());
 	logic_op_jump_pos1.pop_back();
 	logic_op_jump_pos2.pop_back();
 	append_opcode(GDScriptFunction::OPCODE_ASSIGN_TRUE);
@@ -765,25 +765,25 @@ void GDScriptByteCodeGenerator::write_ternary_condition(const Address &p_conditi
 
 void GDScriptByteCodeGenerator::write_ternary_true_expr(const Address &p_expr) {
 	append_opcode(GDScriptFunction::OPCODE_ASSIGN);
-	append(ternary_result.back()->get());
+	append(ternary_result.get_back());
 	append(p_expr);
 	// Jump away from the false path.
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
 	ternary_jump_skip_pos.push_back(opcodes.size());
 	append(0);
 	// Fail must jump here.
-	patch_jump(ternary_jump_fail_pos.back()->get());
+	patch_jump(ternary_jump_fail_pos.get_back());
 	ternary_jump_fail_pos.pop_back();
 }
 
 void GDScriptByteCodeGenerator::write_ternary_false_expr(const Address &p_expr) {
 	append_opcode(GDScriptFunction::OPCODE_ASSIGN);
-	append(ternary_result.back()->get());
+	append(ternary_result.get_back());
 	append(p_expr);
 }
 
 void GDScriptByteCodeGenerator::write_end_ternary() {
-	patch_jump(ternary_jump_skip_pos.back()->get());
+	patch_jump(ternary_jump_skip_pos.get_back());
 	ternary_jump_skip_pos.pop_back();
 	ternary_result.pop_back();
 }
@@ -1523,13 +1523,13 @@ void GDScriptByteCodeGenerator::write_else() {
 	int else_jmp_addr = opcodes.size();
 	append(0); // Jump destination, will be patched.
 
-	patch_jump(if_jmp_addrs.back()->get());
+	patch_jump(if_jmp_addrs.get_back());
 	if_jmp_addrs.pop_back();
 	if_jmp_addrs.push_back(else_jmp_addr);
 }
 
 void GDScriptByteCodeGenerator::write_endif() {
-	patch_jump(if_jmp_addrs.back()->get());
+	patch_jump(if_jmp_addrs.get_back());
 	if_jmp_addrs.pop_back();
 }
 
@@ -1541,7 +1541,7 @@ void GDScriptByteCodeGenerator::write_jump_if_shared(const Address &p_value) {
 }
 
 void GDScriptByteCodeGenerator::write_end_jump_if_shared() {
-	patch_jump(if_jmp_addrs.back()->get());
+	patch_jump(if_jmp_addrs.get_back());
 	if_jmp_addrs.pop_back();
 }
 
@@ -1555,7 +1555,7 @@ void GDScriptByteCodeGenerator::start_for(const GDScriptDataType &p_iterator_typ
 }
 
 void GDScriptByteCodeGenerator::write_for_assignment(const Address &p_list) {
-	const Address &container = for_container_variables.back()->get();
+	const Address &container = for_container_variables.get_back();
 
 	// Assign container.
 	append_opcode(GDScriptFunction::OPCODE_ASSIGN);
@@ -1564,8 +1564,8 @@ void GDScriptByteCodeGenerator::write_for_assignment(const Address &p_list) {
 }
 
 void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_conversion) {
-	const Address &counter = for_counter_variables.back()->get();
-	const Address &container = for_container_variables.back()->get();
+	const Address &counter = for_counter_variables.get_back();
+	const Address &container = for_container_variables.get_back();
 
 	current_breaks_to_patch.push_back(List<int>());
 
@@ -1696,17 +1696,17 @@ void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_
 void GDScriptByteCodeGenerator::write_endfor() {
 	// Jump back to loop check.
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	append(continue_addrs.back()->get());
+	append(continue_addrs.get_back());
 	continue_addrs.pop_back();
 
 	// Patch end jumps (two of them).
 	for (int i = 0; i < 2; i++) {
-		patch_jump(for_jmp_addrs.back()->get());
+		patch_jump(for_jmp_addrs.get_back());
 		for_jmp_addrs.pop_back();
 	}
 
 	// Patch break statements.
-	for (const int &E : current_breaks_to_patch.back()->get()) {
+	for (const int &E : current_breaks_to_patch.get_back()) {
 		patch_jump(E);
 	}
 	current_breaks_to_patch.pop_back();
@@ -1732,15 +1732,15 @@ void GDScriptByteCodeGenerator::write_while(const Address &p_condition) {
 void GDScriptByteCodeGenerator::write_endwhile() {
 	// Jump back to loop check.
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	append(continue_addrs.back()->get());
+	append(continue_addrs.get_back());
 	continue_addrs.pop_back();
 
 	// Patch end jump.
-	patch_jump(while_jmp_addrs.back()->get());
+	patch_jump(while_jmp_addrs.get_back());
 	while_jmp_addrs.pop_back();
 
 	// Patch break statements.
-	for (const int &E : current_breaks_to_patch.back()->get()) {
+	for (const int &E : current_breaks_to_patch.get_back()) {
 		patch_jump(E);
 	}
 	current_breaks_to_patch.pop_back();
@@ -1748,13 +1748,13 @@ void GDScriptByteCodeGenerator::write_endwhile() {
 
 void GDScriptByteCodeGenerator::write_break() {
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	current_breaks_to_patch.back()->get().push_back(opcodes.size());
+	current_breaks_to_patch.get_back().push_back(opcodes.size());
 	append(0);
 }
 
 void GDScriptByteCodeGenerator::write_continue() {
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	append(continue_addrs.back()->get());
+	append(continue_addrs.get_back());
 }
 
 void GDScriptByteCodeGenerator::write_breakpoint() {

@@ -728,7 +728,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 			Node *selected = scene_tree->get_selected();
 			if (!selected && !editor_selection->get_selected_node_list().is_empty()) {
-				selected = editor_selection->get_selected_node_list().front()->get();
+				selected = editor_selection->get_selected_node_list().get_front();
 			}
 
 			if (selected) {
@@ -880,7 +880,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			}
 
 			EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-			undo_redo->create_action(TTR("Duplicate Node(s)"), UndoRedo::MERGE_DISABLE, selection.front()->get());
+			undo_redo->create_action(TTR("Duplicate Node(s)"), UndoRedo::MERGE_DISABLE, selection.get_front());
 			undo_redo->add_do_method(editor_selection, "clear");
 
 			Node *dupsingle = nullptr;
@@ -985,7 +985,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			List<Node *> nodes = editor_selection->get_selected_node_list();
 			ERR_FAIL_COND(nodes.size() != 1);
 
-			Node *node = nodes.front()->get();
+			Node *node = nodes.get_front();
 			Node *root = get_tree()->get_edited_scene_root();
 
 			if (node == root) {
@@ -1143,7 +1143,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				break;
 			}
 
-			Node *tocopy = selection.front()->get();
+			Node *tocopy = selection.get_front();
 
 			if (tocopy == scene) {
 				accept->set_text(TTR("Can't save the root node branch as an instantiated scene.\nTo create an editable copy of the current scene, duplicate it using the FileSystem dock context menu\nor create an inherited scene using Scene > New Inherited Scene... instead."));
@@ -1183,7 +1183,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			if (extensions.size()) {
 				String root_name(tocopy->get_name());
 				root_name = EditorNode::adjust_scene_name_casing(root_name);
-				existing = root_name + "." + extensions.front()->get().to_lower();
+				existing = root_name + "." + extensions.get_front().to_lower();
 			}
 			new_scene_from_dialog->set_current_path(existing);
 
@@ -2532,7 +2532,7 @@ void SceneTreeDock::_script_created(Ref<Script> p_script) {
 	}
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	undo_redo->create_action(TTR("Attach Script"), UndoRedo::MERGE_DISABLE, selected.front()->get());
+	undo_redo->create_action(TTR("Attach Script"), UndoRedo::MERGE_DISABLE, selected.get_front());
 	for (Node *E : selected) {
 		Ref<Script> existing = E->get_script();
 		undo_redo->add_do_method(InspectorDock::get_singleton(), "store_script_properties", E);
@@ -2751,7 +2751,7 @@ void SceneTreeDock::_delete_confirm(bool p_cut) {
 	EditorNode::get_singleton()->hide_unused_editors(this);
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	undo_redo->create_action(p_cut ? TTR("Cut Node(s)") : TTR("Remove Node(s)"), UndoRedo::MERGE_DISABLE, remove_list.front()->get());
+	undo_redo->create_action(p_cut ? TTR("Cut Node(s)") : TTR("Remove Node(s)"), UndoRedo::MERGE_DISABLE, remove_list.get_front());
 
 	if (entire_scene) {
 		undo_redo->add_do_method(EditorNode::get_singleton(), "set_edited_scene", (Object *)nullptr);
@@ -2965,7 +2965,7 @@ void SceneTreeDock::_create() {
 		ERR_FAIL_COND(selection.is_empty());
 
 		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-		ur->create_action(TTR("Change type of node(s)"), UndoRedo::MERGE_DISABLE, selection.front()->get());
+		ur->create_action(TTR("Change type of node(s)"), UndoRedo::MERGE_DISABLE, selection.get_front());
 
 		for (Node *n : selection) {
 			ERR_FAIL_NULL(n);
@@ -2986,7 +2986,7 @@ void SceneTreeDock::_create() {
 		// Find top level node in selection
 		bool only_one_top_node = true;
 
-		Node *first = selection.front()->get();
+		Node *first = selection.get_front();
 		ERR_FAIL_NULL(first);
 		int smaller_path_to_top = first->get_path_to(scene_root).get_name_count();
 		Node *top_node = first;
@@ -3213,7 +3213,7 @@ void SceneTreeDock::_replace_node(Node *p_node, Node *p_by_node, bool p_keep_pro
 		memdelete(oldnode);
 
 		while (to_erase.front()) {
-			memdelete(to_erase.front()->get());
+			memdelete(to_erase.get_front());
 			to_erase.pop_front();
 		}
 	}
@@ -3342,7 +3342,7 @@ void SceneTreeDock::_new_scene_from(const String &p_file) {
 		return;
 	}
 
-	Node *base = selection.front()->get();
+	Node *base = selection.get_front();
 
 	HashMap<const Node *, Node *> duplimap;
 	HashMap<const Node *, Node *> inverse_duplimap;
@@ -3775,7 +3775,7 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 		if (selection.size() == 1 && !node_clipboard.is_empty()) {
 			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("ActionPaste")), ED_GET_SHORTCUT("scene_tree/paste_node"), TOOL_PASTE);
 			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("ActionPaste")), ED_GET_SHORTCUT("scene_tree/paste_node_as_sibling"), TOOL_PASTE_AS_SIBLING);
-			if (selection.front()->get() == edited_scene) {
+			if (selection.get_front() == edited_scene) {
 				menu->set_item_disabled(-1, true);
 			}
 		}
@@ -4075,7 +4075,7 @@ void SceneTreeDock::attach_script_to_selected(bool p_extend) {
 
 	Node *selected = scene_tree->get_selected();
 	if (!selected) {
-		selected = selection.front()->get();
+		selected = selection.get_front();
 	}
 
 	Ref<Script> existing = selected->get_script();
@@ -4200,7 +4200,7 @@ List<Node *> SceneTreeDock::paste_nodes(bool p_paste_as_sibling) {
 
 	List<Node *> selection = editor_selection->get_selected_node_list();
 	if (selection.size() > 0) {
-		paste_parent = selection.back()->get();
+		paste_parent = selection.get_back();
 	}
 
 	if (p_paste_as_sibling) {

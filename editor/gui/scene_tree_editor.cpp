@@ -1600,7 +1600,7 @@ void SceneTreeEditor::_edited() {
 		ERR_FAIL_COND(nodes_to_rename.is_empty());
 
 		EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-		undo_redo->create_action(TTR("Rename Nodes"), UndoRedo::MERGE_DISABLE, nodes_to_rename.front()->get(), true);
+		undo_redo->create_action(TTR("Rename Nodes"), UndoRedo::MERGE_DISABLE, nodes_to_rename.get_front(), true);
 
 		TreeItem *item = which;
 		String new_name = edited->get_text(0);

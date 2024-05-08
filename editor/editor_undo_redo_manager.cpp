@@ -304,7 +304,7 @@ bool EditorUndoRedoManager::undo_history(int p_id) {
 	ERR_FAIL_COND_V(p_id == INVALID_HISTORY, false);
 	History &history = get_or_create_history(p_id);
 
-	Action action = history.undo_stack.back()->get();
+	Action action = history.undo_stack.get_back();
 	history.undo_stack.pop_back();
 	history.redo_stack.push_back(action);
 
@@ -328,21 +328,21 @@ bool EditorUndoRedoManager::redo() {
 		History &history = get_or_create_history(GLOBAL_HISTORY);
 		if (!history.redo_stack.is_empty()) {
 			selected_history = history.id;
-			global_timestamp = history.redo_stack.back()->get().timestamp;
+			global_timestamp = history.redo_stack.get_back().timestamp;
 		}
 	}
 
 	{
 		History &history = get_or_create_history(REMOTE_HISTORY);
-		if (!history.redo_stack.is_empty() && history.redo_stack.back()->get().timestamp < global_timestamp) {
+		if (!history.redo_stack.is_empty() && history.redo_stack.get_back().timestamp < global_timestamp) {
 			selected_history = history.id;
-			global_timestamp = history.redo_stack.back()->get().timestamp;
+			global_timestamp = history.redo_stack.get_back().timestamp;
 		}
 	}
 
 	{
 		History &history = get_or_create_history(EditorNode::get_editor_data().get_current_edited_scene_history_id());
-		if (!history.redo_stack.is_empty() && history.redo_stack.back()->get().timestamp < global_timestamp) {
+		if (!history.redo_stack.is_empty() && history.redo_stack.get_back().timestamp < global_timestamp) {
 			selected_history = history.id;
 		}
 	}
@@ -357,7 +357,7 @@ bool EditorUndoRedoManager::redo_history(int p_id) {
 	ERR_FAIL_COND_V(p_id == INVALID_HISTORY, false);
 	History &history = get_or_create_history(p_id);
 
-	Action action = history.redo_stack.back()->get();
+	Action action = history.redo_stack.get_back();
 	history.redo_stack.pop_back();
 	history.undo_stack.push_back(action);
 
@@ -469,21 +469,21 @@ EditorUndoRedoManager::History *EditorUndoRedoManager::_get_newest_undo() {
 		History &history = get_or_create_history(GLOBAL_HISTORY);
 		if (!history.undo_stack.is_empty()) {
 			selected_history = &history;
-			global_timestamp = history.undo_stack.back()->get().timestamp;
+			global_timestamp = history.undo_stack.get_back().timestamp;
 		}
 	}
 
 	{
 		History &history = get_or_create_history(REMOTE_HISTORY);
-		if (!history.undo_stack.is_empty() && history.undo_stack.back()->get().timestamp > global_timestamp) {
+		if (!history.undo_stack.is_empty() && history.undo_stack.get_back().timestamp > global_timestamp) {
 			selected_history = &history;
-			global_timestamp = history.undo_stack.back()->get().timestamp;
+			global_timestamp = history.undo_stack.get_back().timestamp;
 		}
 	}
 
 	{
 		History &history = get_or_create_history(EditorNode::get_editor_data().get_current_edited_scene_history_id());
-		if (!history.undo_stack.is_empty() && history.undo_stack.back()->get().timestamp > global_timestamp) {
+		if (!history.undo_stack.is_empty() && history.undo_stack.get_back().timestamp > global_timestamp) {
 			selected_history = &history;
 		}
 	}

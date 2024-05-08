@@ -1314,7 +1314,7 @@ void ResourceLoader::reload_translation_remaps() {
 
 	//now just make sure to not delete any of these resources while changing locale..
 	while (to_reload.front()) {
-		to_reload.front()->get()->reload_from_file();
+		to_reload.get_front()->reload_from_file();
 		to_reload.pop_front();
 	}
 }

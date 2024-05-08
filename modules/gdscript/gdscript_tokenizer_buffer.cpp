@@ -410,7 +410,7 @@ void GDScriptTokenizerBuffer::push_expression_indented_block() {
 
 void GDScriptTokenizerBuffer::pop_expression_indented_block() {
 	ERR_FAIL_COND(indent_stack_stack.is_empty());
-	indent_stack = indent_stack_stack.back()->get();
+	indent_stack = indent_stack_stack.get_back();
 	indent_stack_stack.pop_back();
 }
 
@@ -461,7 +461,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::scan() {
 		if (!multiline_mode) {
 			uint32_t previous_indent = 0;
 			if (!indent_stack.is_empty()) {
-				previous_indent = indent_stack.back()->get();
+				previous_indent = indent_stack.get_back();
 			}
 			if (current_column - 1 > previous_indent) {
 				pending_indents++;
@@ -473,7 +473,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::scan() {
 					if (indent_stack.is_empty()) {
 						break;
 					}
-					previous_indent = indent_stack.back()->get();
+					previous_indent = indent_stack.get_back();
 				}
 			}
 

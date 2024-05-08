@@ -73,7 +73,7 @@
 
 - (void)update {
 	if (!speaking && queue.size() > 0) {
-		DisplayServer::TTSUtterance &message = queue.front()->get();
+		DisplayServer::TTSUtterance &message = queue.get_front();
 
 		AVSpeechUtterance *new_utterance = [[AVSpeechUtterance alloc] initWithString:[NSString stringWithUTF8String:message.text.utf8().get_data()]];
 		[new_utterance setVoice:[AVSpeechSynthesisVoice voiceWithIdentifier:[NSString stringWithUTF8String:message.voice.utf8().get_data()]]];

@@ -1149,7 +1149,7 @@ bool VisualShader::_check_reroute_subgraph(Type p_type, int p_target_port_type, 
 		r_visited_reroute_nodes->push_back(p_reroute_node);
 	}
 	while (!queue.is_empty()) {
-		int current_node_id = queue.front()->get();
+		int current_node_id = queue.get_front();
 		VisualShader::Node current_node = g->nodes[current_node_id];
 		queue.pop_front();
 		for (const int &next_node_id : current_node.next_connected_nodes) {

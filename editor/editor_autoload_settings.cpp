@@ -523,7 +523,7 @@ void EditorAutoloadSettings::update_autoload() {
 		autoload_cache.push_back(info);
 
 		if (need_to_add) {
-			to_add.push_back(&(autoload_cache.back()->get()));
+			to_add.push_back(&(autoload_cache.get_back()));
 		}
 
 		TreeItem *item = tree->create_item(root);

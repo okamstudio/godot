@@ -3168,7 +3168,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 				} else {
 					List<Node *> &selection = editor_selection->get_selected_node_list();
 					if (selection.size() == 1) {
-						selected_node = Object::cast_to<Node3D>(selection.front()->get());
+						selected_node = Object::cast_to<Node3D>(selection.get_front());
 					}
 				}
 
@@ -4405,7 +4405,7 @@ Vector3 Node3DEditorViewport::_get_instance_position(const Point2 &p_pos, Node3D
 	if (!preview_node->is_inside_tree() && !ruler->is_inside_tree()) {
 		List<Node *> &selection = editor_selection->get_selected_node_list();
 
-		Node3D *first_selected_node = Object::cast_to<Node3D>(selection.front()->get());
+		Node3D *first_selected_node = Object::cast_to<Node3D>(selection.get_front());
 
 		Array children = first_selected_node->get_children();
 

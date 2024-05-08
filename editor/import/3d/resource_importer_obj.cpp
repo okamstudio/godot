@@ -674,7 +674,7 @@ Error ResourceImporterOBJ::import(ResourceUID::ID p_source_id, const String &p_s
 
 	String save_path = p_save_path + ".mesh";
 
-	err = ResourceSaver::save(meshes.front()->get()->get_mesh(), save_path);
+	err = ResourceSaver::save(meshes.get_front()->get_mesh(), save_path);
 
 	ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save Mesh to file '" + save_path + "'.");
 

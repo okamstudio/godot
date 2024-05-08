@@ -515,12 +515,12 @@ Error DirAccessPack::list_dir_begin() {
 String DirAccessPack::get_next() {
 	if (list_dirs.size()) {
 		cdir = true;
-		String d = list_dirs.front()->get();
+		String d = list_dirs.get_front();
 		list_dirs.pop_front();
 		return d;
 	} else if (list_files.size()) {
 		cdir = false;
-		String f = list_files.front()->get();
+		String f = list_files.get_front();
 		list_files.pop_front();
 		return f;
 	} else {

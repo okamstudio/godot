@@ -224,7 +224,7 @@ void EditorPerformanceProfiler::_build_monitor_tree() {
 		item->set_checked(0, monitor_checked.has(E.key));
 		E.value.item = item;
 		if (!E.value.history.is_empty()) {
-			E.value.update_value(E.value.history.front()->get());
+			E.value.update_value(E.value.history.get_front());
 		}
 	}
 }

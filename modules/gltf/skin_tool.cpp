@@ -565,7 +565,7 @@ Error SkinTool::_create_skeletons(
 		bones.sort();
 
 		while (!bones.is_empty()) {
-			const SkinNodeIndex node_i = bones.front()->get();
+			const SkinNodeIndex node_i = bones.get_front();
 			bones.pop_front();
 
 			Ref<GLTFNode> node = nodes[node_i];

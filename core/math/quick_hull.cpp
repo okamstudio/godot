@@ -211,9 +211,9 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry3D::MeshData &r_
 
 	uint32_t debug_stop = debug_stop_after;
 
-	while (debug_stop > 0 && faces.back()->get().points_over.size()) {
+	while (debug_stop > 0 && faces.get_back().points_over.size()) {
 		debug_stop--;
-		Face &f = faces.back()->get();
+		Face &f = faces.get_back();
 
 		//find vertex most outside
 		int next = -1;
@@ -312,7 +312,7 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry3D::MeshData &r_
 		//erase lit faces
 
 		while (lit_faces.size()) {
-			faces.erase(lit_faces.front()->get());
+			faces.erase(lit_faces.get_front());
 			lit_faces.pop_front();
 		}
 

@@ -1596,7 +1596,7 @@ void SpriteFramesEditor::edit(Ref<SpriteFrames> p_frames) {
 		frames->get_animation_list(&anim_names);
 		anim_names.sort_custom<StringName::AlphCompare>();
 		if (anim_names.size()) {
-			edited_anim = anim_names.front()->get();
+			edited_anim = anim_names.get_front();
 		} else {
 			edited_anim = StringName();
 		}

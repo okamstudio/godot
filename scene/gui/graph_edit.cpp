@@ -480,7 +480,7 @@ void GraphEdit::_ensure_node_order_from(Node *p_node) {
 	attached_nodes_to_move.push_back(frame);
 
 	while (!attached_nodes_to_move.is_empty()) {
-		GraphFrame *attached_frame = attached_nodes_to_move.front()->get();
+		GraphFrame *attached_frame = attached_nodes_to_move.get_front();
 		attached_nodes_to_move.pop_front();
 
 		// Move the frame to the front of the background node index range.

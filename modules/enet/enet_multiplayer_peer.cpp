@@ -38,19 +38,19 @@ int ENetMultiplayerPeer::get_packet_peer() const {
 	ERR_FAIL_COND_V_MSG(!_is_active(), 1, "The multiplayer instance isn't currently active.");
 	ERR_FAIL_COND_V(incoming_packets.is_empty(), 1);
 
-	return incoming_packets.front()->get().from;
+	return incoming_packets.get_front().from;
 }
 
 MultiplayerPeer::TransferMode ENetMultiplayerPeer::get_packet_mode() const {
 	ERR_FAIL_COND_V_MSG(!_is_active(), TRANSFER_MODE_RELIABLE, "The multiplayer instance isn't currently active.");
 	ERR_FAIL_COND_V(incoming_packets.is_empty(), TRANSFER_MODE_RELIABLE);
-	return incoming_packets.front()->get().transfer_mode;
+	return incoming_packets.get_front().transfer_mode;
 }
 
 int ENetMultiplayerPeer::get_packet_channel() const {
 	ERR_FAIL_COND_V_MSG(!_is_active(), 1, "The multiplayer instance isn't currently active.");
 	ERR_FAIL_COND_V(incoming_packets.is_empty(), 1);
-	int ch = incoming_packets.front()->get().channel;
+	int ch = incoming_packets.get_front().channel;
 	if (ch >= SYSCH_MAX) { // First 2 channels are reserved.
 		return ch - SYSCH_MAX + 1;
 	}
@@ -321,7 +321,7 @@ Error ENetMultiplayerPeer::get_packet(const uint8_t **r_buffer, int &r_buffer_si
 
 	_pop_current_packet();
 
-	current_packet = incoming_packets.front()->get();
+	current_packet = incoming_packets.get_front();
 	incoming_packets.pop_front();
 
 	*r_buffer = (const uint8_t *)(current_packet.packet->data);

@@ -1066,7 +1066,7 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 				/* Chain of gets */
 
 				// Get at (potential) root stack pos, so it can be returned.
-				GDScriptCodeGenerator::Address base = _parse_expression(codegen, r_error, chain.back()->get()->base);
+				GDScriptCodeGenerator::Address base = _parse_expression(codegen, r_error, chain.get_back()->base);
 				const bool base_known_type = base.type.has_type;
 				const bool base_is_shared = Variant::is_type_shared(base.type.builtin_type);
 

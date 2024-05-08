@@ -127,7 +127,7 @@ Error WebSocketMultiplayerPeer::get_packet(const uint8_t **r_buffer, int &r_buff
 
 	ERR_FAIL_COND_V(incoming_packets.is_empty(), ERR_UNAVAILABLE);
 
-	current_packet = incoming_packets.front()->get();
+	current_packet = incoming_packets.get_front();
 	incoming_packets.pop_front();
 
 	*r_buffer = current_packet.data;
@@ -167,7 +167,7 @@ void WebSocketMultiplayerPeer::set_target_peer(int p_target_peer) {
 int WebSocketMultiplayerPeer::get_packet_peer() const {
 	ERR_FAIL_COND_V(incoming_packets.is_empty(), 1);
 
-	return incoming_packets.front()->get().source;
+	return incoming_packets.get_front().source;
 }
 
 int WebSocketMultiplayerPeer::get_unique_id() const {
