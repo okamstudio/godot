@@ -47,7 +47,7 @@
 class ShortcutBin : public Node {
 	GDCLASS(ShortcutBin, Node);
 
-	virtual void _notification(int what) {
+	void _notification(int what) {
 		switch (what) {
 			case NOTIFICATION_READY:
 				set_process_shortcut_input(true);

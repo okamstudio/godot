@@ -1,0 +1,10 @@
+bin/
+*.gen.*
+*.o
+*.os
+*.so
+*.bc
+*.pyc
+*.dblite
+*.pdb
+*.lib

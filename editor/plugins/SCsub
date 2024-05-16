@@ -5,5 +5,6 @@ Import("env")
 
 env.add_source_files(env.editor_sources, "*.cpp")
 
+SConscript("gdextension/SCsub")
 SConscript("gizmos/SCsub")
 SConscript("tiles/SCsub")

@@ -143,6 +143,7 @@ repos:
         exclude: |
           (?x)^(
             core/math/bvh_.*\.inc|
+            editor/plugins/gdextension/cpp_scons/template/*|
             platform/(?!android|ios|linuxbsd|macos|web|windows)\w+/.*|
             platform/android/java/lib/src/org/godotengine/godot/gl/GLSurfaceView\.java|
             platform/android/java/lib/src/org/godotengine/godot/gl/EGLLogWrapper\.java|

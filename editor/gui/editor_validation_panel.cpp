@@ -64,10 +64,10 @@ void EditorValidationPanel::add_line(int p_id, const String &p_valid_message) {
 	ERR_FAIL_COND(valid_messages.has(p_id));
 
 	Label *label = memnew(Label);
-	message_container->add_child(label);
 	label->set_custom_minimum_size(Size2(200 * EDSCALE, 0));
 	label->set_vertical_alignment(VERTICAL_ALIGNMENT_CENTER);
 	label->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);
+	message_container->add_child(label);
 
 	valid_messages[p_id] = p_valid_message;
 	labels[p_id] = label;
@@ -122,6 +122,10 @@ void EditorValidationPanel::set_message(int p_id, const String &p_text, MessageT
 			label->remove_theme_color_override(SceneStringName(font_color));
 			break;
 	}
+}
+
+int EditorValidationPanel::get_message_count() const {
+	return valid_messages.size();
 }
 
 bool EditorValidationPanel::is_valid() const {

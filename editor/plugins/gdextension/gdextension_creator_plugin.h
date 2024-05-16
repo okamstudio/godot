@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_validation_panel.h                                             */
+/*  gdextension_creator_plugin.h                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,19 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VALIDATION_PANEL_H
-#define EDITOR_VALIDATION_PANEL_H
+#ifndef GDEXTENSION_CREATOR_PLUGIN_H
+#define GDEXTENSION_CREATOR_PLUGIN_H
 
-#include "scene/gui/panel_container.h"
+#include "core/object/class_db.h"
+#include "core/object/ref_counted.h"
 
-class Button;
-class Label;
-class VBoxContainer;
+class GDExtensionCreatorPlugin : public RefCounted {
+	GDCLASS(GDExtensionCreatorPlugin, RefCounted);
 
-class EditorValidationPanel : public PanelContainer {
-	GDCLASS(EditorValidationPanel, PanelContainer);
-
-public:
+protected:
 	enum MessageType {
 		MSG_OK,
 		MSG_WARNING,
@@ -48,42 +45,11 @@ public:
 		MSG_INFO,
 	};
 
-	static const int MSG_ID_DEFAULT = 0; // Avoids hard-coding ID in dialogs with single-line validation.
-
-private:
-	VBoxContainer *message_container = nullptr;
-
-	HashMap<int, String> valid_messages;
-	HashMap<int, Label *> labels;
-
-	bool valid = false;
-	bool pending_update = false;
-
-	struct ThemeCache {
-		Color valid_color;
-		Color warning_color;
-		Color error_color;
-	} theme_cache;
-
-	void _update();
-
-	Callable update_callback;
-	Button *accept_button = nullptr;
-
-protected:
-	void _notification(int p_what);
-
 public:
-	void add_line(int p_id, const String &p_valid_message = "");
-	void set_accept_button(Button *p_button);
-	void set_update_callback(const Callable &p_callback);
-
-	void update();
-	void set_message(int p_id, const String &p_text, MessageType p_type, bool p_auto_prefix = true);
-	int get_message_count() const;
-	bool is_valid() const;
-
-	EditorValidationPanel();
+	virtual void create_gdextension(const String &p_path, const String &p_base_name, const String &p_library_name, int p_variation_index, bool p_compile) = 0;
+	virtual void setup_creator() = 0;
+	virtual PackedStringArray get_language_variations() const = 0;
+	virtual Dictionary get_validation_messages(const String &p_path, const String &p_base_name, const String &p_library_name, int p_variation_index, bool p_compile) = 0;
 };
 
-#endif // EDITOR_VALIDATION_PANEL_H
+#endif // GDEXTENSION_CREATOR_PLUGIN_H

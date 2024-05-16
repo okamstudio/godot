@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  editor_validation_panel.h                                             */
+/*  cpp_scons_gdext_creator.h                                             */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,62 +28,42 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_VALIDATION_PANEL_H
-#define EDITOR_VALIDATION_PANEL_H
+#ifndef CPP_SCONS_GDEXT_CREATOR_H
+#define CPP_SCONS_GDEXT_CREATOR_H
 
-#include "scene/gui/panel_container.h"
+#include "../gdextension_creator_plugin.h"
 
-class Button;
-class Label;
-class VBoxContainer;
-
-class EditorValidationPanel : public PanelContainer {
-	GDCLASS(EditorValidationPanel, PanelContainer);
-
-public:
-	enum MessageType {
-		MSG_OK,
-		MSG_WARNING,
-		MSG_ERROR,
-		MSG_INFO,
+class CppSconsGDExtensionCreator : public GDExtensionCreatorPlugin {
+	// Keep this in sync with get_language_variations().
+	enum LanguageVariation {
+		LANG_VAR_GDEXT_ONLY,
+		LANG_VAR_GDEXT_MODULE,
 	};
 
-	static const int MSG_ID_DEFAULT = 0; // Avoids hard-coding ID in dialogs with single-line validation.
+	// Used by _process_template.
+	String base_name;
+	String library_name;
+	String example_node_name = "ExampleNode";
+	String res_path;
+	String updir_dots;
+	bool strip_module_defines = false;
 
-private:
-	VBoxContainer *message_container = nullptr;
+	bool does_git_exist = false;
+	bool does_scons_exist = false;
 
-	HashMap<int, String> valid_messages;
-	HashMap<int, Label *> labels;
-
-	bool valid = false;
-	bool pending_update = false;
-
-	struct ThemeCache {
-		Color valid_color;
-		Color warning_color;
-		Color error_color;
-	} theme_cache;
-
-	void _update();
-
-	Callable update_callback;
-	Button *accept_button = nullptr;
-
-protected:
-	void _notification(int p_what);
+	void _git_clone_godot_cpp(const String &p_parent_path, bool p_compile);
+	String _process_template(const String &p_contents);
+	void _write_common_files_and_dirs();
+	void _write_gdext_only_files();
+	void _write_gdext_module_files();
+	void _write_file(const String &p_file_path, const String &p_contents);
+	void _ensure_file_contains(const String &p_file_path, const String &p_new_contents);
 
 public:
-	void add_line(int p_id, const String &p_valid_message = "");
-	void set_accept_button(Button *p_button);
-	void set_update_callback(const Callable &p_callback);
-
-	void update();
-	void set_message(int p_id, const String &p_text, MessageType p_type, bool p_auto_prefix = true);
-	int get_message_count() const;
-	bool is_valid() const;
-
-	EditorValidationPanel();
+	void create_gdextension(const String &p_path, const String &p_base_name, const String &p_library_name, int p_variation_index, bool p_compile) override;
+	void setup_creator() override;
+	PackedStringArray get_language_variations() const override;
+	Dictionary get_validation_messages(const String &p_path, const String &p_base_name, const String &p_library_name, int p_variation_index, bool p_compile) override;
 };
 
-#endif // EDITOR_VALIDATION_PANEL_H
+#endif // CPP_SCONS_GDEXT_CREATOR_H

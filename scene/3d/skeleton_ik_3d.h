@@ -143,7 +143,7 @@ protected:
 	void _validate_property(PropertyInfo &p_property) const;
 
 	static void _bind_methods();
-	virtual void _notification(int p_what);
+	void _notification(int p_what);
 
 	virtual void _process_modification() override;
 
