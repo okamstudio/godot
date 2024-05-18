@@ -634,8 +634,8 @@ class CanvasItemEditorViewport : public Control {
 	Control *preview_node = nullptr;
 	AcceptDialog *accept = nullptr;
 	AcceptDialog *texture_node_type_selector = nullptr;
-	Label *label = nullptr;
-	Label *label_desc = nullptr;
+	Label *dropping_tooltip_label = nullptr;
+	Label *dropping_tooltip_label_desc = nullptr;
 	Ref<ButtonGroup> button_group;
 
 	void _on_mouse_exit();
