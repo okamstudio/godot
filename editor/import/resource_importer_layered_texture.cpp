@@ -340,7 +340,7 @@ Error ResourceImporterLayeredTexture::import(ResourceUID::ID p_source_id, const 
 		//if using video ram, optimize
 		if (channel_pack == 0) {
 			//remove alpha if not needed, so compression is more efficient
-			if (image->get_format() == Image::FORMAT_RGBA8 && !image->detect_alpha()) {
+			if (image->get_format() == Image::FORMAT_RGBA8 && image->detect_alpha() == Image::ALPHA_NONE) {
 				image->convert(Image::FORMAT_RGB8);
 			}
 		} else if (image->get_format() < Image::FORMAT_RGBA8) {
@@ -484,6 +484,7 @@ ResourceImporterLayeredTexture::~ResourceImporterLayeredTexture() {
 void ResourceImporterLayeredTexture::_check_compress_ctex(const String &p_source_file, Ref<LayeredTextureImport> r_texture_import) {
 	String extension = get_save_extension();
 	ERR_FAIL_NULL(r_texture_import->csource);
+
 	if (r_texture_import->compress_mode != COMPRESS_VRAM_COMPRESSED) {
 		// Import normally.
 		_save_tex(*r_texture_import->slices, r_texture_import->save_path + "." + extension, r_texture_import->compress_mode, r_texture_import->lossy, Image::COMPRESS_S3TC /* IGNORED */, *r_texture_import->csource, r_texture_import->used_channels, r_texture_import->mipmaps, false);

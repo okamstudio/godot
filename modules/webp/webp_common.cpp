@@ -62,7 +62,7 @@ Vector<uint8_t> _webp_packer(const Ref<Image> &p_image, float p_quality, bool p_
 		Error error = img->decompress();
 		ERR_FAIL_COND_V_MSG(error != OK, Vector<uint8_t>(), "Couldn't decompress image.");
 	}
-	if (img->detect_alpha()) {
+	if (img->detect_alpha() != Image::ALPHA_NONE) {
 		img->convert(Image::FORMAT_RGBA8);
 	} else {
 		img->convert(Image::FORMAT_RGB8);
