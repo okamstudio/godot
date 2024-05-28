@@ -2438,7 +2438,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 	const Color kbd_bg_color = p_owner_node->get_theme_color(SNAME("kbd_bg_color"), SNAME("EditorHelp"));
 	const Color param_bg_color = p_owner_node->get_theme_color(SNAME("param_bg_color"), SNAME("EditorHelp"));
 
-	String bbcode = p_bbcode.dedent().remove_char('\t').remove_char('\r').strip_edges();
+	String bbcode = p_bbcode.dedent().remove_chars("\t\r").strip_edges();
 
 	// Select the correct code examples.
 	switch ((int)EDITOR_GET("text_editor/help/class_reference_examples")) {

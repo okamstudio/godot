@@ -415,11 +415,7 @@ Color Color::named(const String &p_name, const Color &p_default) {
 int Color::find_named_color(const String &p_name) {
 	String name = p_name;
 	// Normalize name.
-	name = name.remove_char(' ');
-	name = name.remove_char('-');
-	name = name.remove_char('_');
-	name = name.remove_char('\'');
-	name = name.remove_char('.');
+	name = name.remove_chars(" -_'.");
 	name = name.to_upper();
 
 	static HashMap<String, int> named_colors_hashmap;
