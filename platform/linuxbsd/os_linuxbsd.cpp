@@ -155,7 +155,7 @@ String OS_LinuxBSD::get_unique_id() const {
 		memset(buf, 0, sizeof(buf));
 		size_t len = sizeof(buf) - 1;
 		if (sysctl(mib, 2, buf, &len, 0x0, 0) != -1) {
-			machine_id = String::utf8(buf).replace("-", "");
+			machine_id = String::utf8(buf).remove_char('-');
 		}
 #else
 		Ref<FileAccess> f = FileAccess::open("/etc/machine-id", FileAccess::READ);

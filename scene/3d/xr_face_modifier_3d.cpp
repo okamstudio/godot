@@ -341,7 +341,7 @@ static int find_face_blend_shape(const StringName &p_name) {
 	};
 
 	// Convert the name to lower-case and strip non-alphanumeric characters.
-	const String name = String(p_name).to_lower().replace("_", "");
+	const String name = String(p_name).to_lower().remove_char('_');
 
 	// Iterate through the blend map.
 	for (const blend_map_entry &entry : blend_map) {

@@ -96,8 +96,8 @@ static String fix_doc_description(const String &p_bbcode) {
 	// Based on what EditorHelp does.
 
 	return p_bbcode.dedent()
-			.replace("\t", "")
-			.replace("\r", "")
+			.remove_char('\t')
+			.remove_char('\r')
 			.strip_edges();
 }
 

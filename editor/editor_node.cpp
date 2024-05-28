@@ -3256,7 +3256,7 @@ void EditorNode::_request_screenshot() {
 }
 
 void EditorNode::_screenshot(bool p_use_utc) {
-	String name = "editor_screenshot_" + Time::get_singleton()->get_datetime_string_from_system(p_use_utc).replace(":", "") + ".png";
+	String name = "editor_screenshot_" + Time::get_singleton()->get_datetime_string_from_system(p_use_utc).remove_char(':') + ".png";
 	NodePath path = String("user://") + name;
 	_save_screenshot(path);
 	if (EDITOR_GET("interface/editor/automatically_open_screenshots")) {
@@ -5015,8 +5015,8 @@ String EditorNode::_get_system_info() const {
 
 	String display_session_type;
 #ifdef LINUXBSD_ENABLED
-	// `replace` is necessary, because `capitalize` introduces a whitespace between "x" and "11".
-	display_session_type = OS::get_singleton()->get_environment("XDG_SESSION_TYPE").capitalize().replace(" ", "");
+	// `remove_char` is necessary, because `capitalize` introduces a whitespace between "x" and "11".
+	display_session_type = OS::get_singleton()->get_environment("XDG_SESSION_TYPE").capitalize().remove_char(' ');
 #endif // LINUXBSD_ENABLED
 	String driver_name = OS::get_singleton()->get_current_rendering_driver_name().to_lower();
 	String rendering_method = OS::get_singleton()->get_current_rendering_method().to_lower();
@@ -5088,8 +5088,8 @@ String EditorNode::_get_system_info() const {
 
 	String display_driver_window_mode;
 #ifdef LINUXBSD_ENABLED
-	// `replace` is necessary, because `capitalize` introduces a whitespace between "x" and "11".
-	display_driver_window_mode = DisplayServer::get_singleton()->get_name().capitalize().replace(" ", "") + " display driver";
+	// `remove_char` is necessary, because `capitalize` introduces a whitespace between "x" and "11".
+	display_driver_window_mode = DisplayServer::get_singleton()->get_name().capitalize().remove_char(' ') + " display driver";
 #endif // LINUXBSD_ENABLED
 	if (!display_driver_window_mode.is_empty()) {
 		display_driver_window_mode += ", ";

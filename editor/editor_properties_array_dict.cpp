@@ -401,7 +401,7 @@ void EditorPropertyArray::update_property() {
 	}
 
 	if (preview_value) {
-		String ctr_str = array.get_construct_string().trim_prefix(array_type_name + "(").trim_suffix(")").replace("\n", "");
+		String ctr_str = array.get_construct_string().trim_prefix(array_type_name + "(").trim_suffix(")").remove_char('\n');
 		if (array_type == Variant::ARRAY && subtype != Variant::NIL) {
 			int type_end = ctr_str.find("](");
 			if (type_end > 0) {
@@ -1174,7 +1174,7 @@ void EditorPropertyDictionary::update_property() {
 	object->set_dict(updated_val);
 
 	if (preview_value) {
-		String ctr_str = updated_val.get_construct_string().replace("\n", "");
+		String ctr_str = updated_val.get_construct_string().remove_char('\n');
 		if (key_subtype != Variant::NIL || value_subtype != Variant::NIL) {
 			int type_end = ctr_str.find("](");
 			if (type_end > 0) {

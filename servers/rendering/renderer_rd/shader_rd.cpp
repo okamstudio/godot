@@ -76,7 +76,7 @@ void ShaderRD::_add_stage(const char *p_code, StageType p_stage_type) {
 		} else if (l.begins_with("#CODE")) {
 			chunk.type = StageTemplate::Chunk::TYPE_CODE;
 			push_chunk = true;
-			chunk.code = l.replace_first("#CODE", String()).replace(":", "").strip_edges().to_upper();
+			chunk.code = l.replace_first("#CODE", String()).remove_char(':').strip_edges().to_upper();
 		} else if (l.begins_with("#include ")) {
 			String include_file = l.replace("#include ", "").strip_edges();
 			if (include_file[0] == '"') {

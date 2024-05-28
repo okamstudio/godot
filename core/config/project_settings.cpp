@@ -1159,7 +1159,7 @@ Error ProjectSettings::save_custom(const String &p_path, const CustomMap &p_cust
 			save_features += ",";
 		}
 
-		String f = p_custom_features[i].strip_edges().replace("\"", "");
+		String f = p_custom_features[i].strip_edges().remove_char('\"');
 		save_features += f;
 	}
 
