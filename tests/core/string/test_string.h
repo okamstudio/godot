@@ -474,6 +474,16 @@ TEST_CASE("[String] remove_char") {
 	CHECK(s.remove_char('x') == "Banana");
 }
 
+TEST_CASE("[String] remove_chars") {
+	String s = "Banana";
+	CHECK(s.remove_chars("Ba") == "nn");
+	CHECK(s.remove_chars(String("Ba")) == "nn");
+	CHECK(s.remove_chars("") == "Banana");
+	CHECK(s.remove_chars(String()) == "Banana");
+	CHECK(s.remove_chars("xy") == "Banana");
+	CHECK(s.remove_chars(String("xy")) == "Banana");
+}
+
 TEST_CASE("[String] Number to string") {
 	CHECK(String::num(0) == "0.0"); // The method takes double, so always add zeros.
 	CHECK(String::num(0.0) == "0.0");
