@@ -467,6 +467,13 @@ TEST_CASE("[String] Erasing") {
 	CHECK(s == "Josephine is such a girl!");
 }
 
+TEST_CASE("[String] remove_char") {
+	String s = "Banana";
+	CHECK(s.remove_char('a') == "Bnn");
+	CHECK(s.remove_char('\0') == "Banana");
+	CHECK(s.remove_char('x') == "Banana");
+}
+
 TEST_CASE("[String] Number to string") {
 	CHECK(String::num(0) == "0.0"); // The method takes double, so always add zeros.
 	CHECK(String::num(0.0) == "0.0");
