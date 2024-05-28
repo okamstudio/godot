@@ -273,7 +273,7 @@ String FileAccess::fix_path(const String &p_path) const {
 					if (!resource_path.is_empty()) {
 						return r_path.replace("res:/", resource_path);
 					}
-					return r_path.replace("res://", "");
+					return r_path.remove_string("res://");
 				}
 			}
 
@@ -284,7 +284,7 @@ String FileAccess::fix_path(const String &p_path) const {
 				if (!data_dir.is_empty()) {
 					return r_path.replace("user:/", data_dir);
 				}
-				return r_path.replace("user://", "");
+				return r_path.remove_string("user://");
 			}
 
 		} break;

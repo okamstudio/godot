@@ -1118,7 +1118,7 @@ bool EditorSettings::_save_text_editor_theme(const String &p_file) {
 
 	for (const String &key : keys) {
 		if (key.begins_with("text_editor/theme/highlighting/") && key.contains("color")) {
-			cf->set_value(theme_section, key.replace("text_editor/theme/highlighting/", ""), ((Color)props[key].variant).to_html());
+			cf->set_value(theme_section, key.remove_string("text_editor/theme/highlighting/"), ((Color)props[key].variant).to_html());
 		}
 	}
 

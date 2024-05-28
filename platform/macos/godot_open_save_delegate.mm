@@ -131,13 +131,13 @@
 								if (str == "*.*") {
 									ut = UTTypeData;
 								} else {
-									ut = [UTType typeWithFilenameExtension:[NSString stringWithUTF8String:str.replace("*.", "").strip_edges().utf8().get_data()]];
+									ut = [UTType typeWithFilenameExtension:[NSString stringWithUTF8String:str.remove_string("*.").strip_edges().utf8().get_data()]];
 								}
 								if (ut) {
 									[type_filters addObject:ut];
 								}
 							} else {
-								[type_filters addObject:[NSString stringWithUTF8String:str.replace("*.", "").strip_edges().utf8().get_data()]];
+								[type_filters addObject:[NSString stringWithUTF8String:str.remove_string("*.").strip_edges().utf8().get_data()]];
 							}
 						}
 					}
@@ -185,13 +185,13 @@
 							if (str == "*.*") {
 								ut = UTTypeData;
 							} else {
-								ut = [UTType typeWithFilenameExtension:[NSString stringWithUTF8String:str.replace("*.", "").strip_edges().utf8().get_data()]];
+								ut = [UTType typeWithFilenameExtension:[NSString stringWithUTF8String:str.remove_string("*.").strip_edges().utf8().get_data()]];
 							}
 							if (ut) {
 								[type_filters addObject:ut];
 							}
 						} else {
-							[type_filters addObject:[NSString stringWithUTF8String:str.replace("*.", "").strip_edges().utf8().get_data()]];
+							[type_filters addObject:[NSString stringWithUTF8String:str.remove_string("*.").strip_edges().utf8().get_data()]];
 						}
 					}
 				}

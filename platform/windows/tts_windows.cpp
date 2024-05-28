@@ -166,7 +166,7 @@ Array TTS_Windows::get_voices() const {
 						if (w_name) {
 							voice_d["name"] = String::utf16((const char16_t *)w_name);
 						} else {
-							voice_d["name"] = voice_d["id"].operator String().replace("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\", "");
+							voice_d["name"] = voice_d["id"].operator String().remove_string("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech\\Voices\\Tokens\\");
 						}
 						voice_d["language"] = String::utf16((const char16_t *)w_lang_code) + "_" + String::utf16((const char16_t *)w_reg_code);
 						list.push_back(voice_d);

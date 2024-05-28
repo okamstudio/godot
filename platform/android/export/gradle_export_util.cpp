@@ -219,7 +219,7 @@ Error _create_project_name_strings_files(const Ref<EditorExportPreset> &p_preset
 			// NOTE: This assumes all directories that start with "values-" are for localization.
 			continue;
 		}
-		String locale = file.replace("values-", "").replace("-r", "_");
+		String locale = file.remove_string("values-").replace("-r", "_");
 		String locale_directory = p_gradle_build_dir.path_join("res/" + file + "/godot_project_name_string.xml");
 		if (appnames.has(locale)) {
 			String locale_project_name = appnames[locale];

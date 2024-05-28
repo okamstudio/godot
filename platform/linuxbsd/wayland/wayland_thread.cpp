@@ -1986,7 +1986,7 @@ void WaylandThread::_wl_data_device_on_drop(void *data, struct wl_data_device *w
 
 		msg->files = String::utf8((const char *)list_data.ptr(), list_data.size()).split("\r\n", false);
 		for (int i = 0; i < msg->files.size(); i++) {
-			msg->files.write[i] = msg->files[i].replace("file://", "").uri_decode();
+			msg->files.write[i] = msg->files[i].remove_string("file://").uri_decode();
 		}
 
 		wayland_thread->push_message(msg);

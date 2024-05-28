@@ -459,7 +459,7 @@ void EditorExportPlatform::_edit_files_with_filter(Ref<DirAccess> &da, const Vec
 	if (!cur_dir.ends_with("/")) {
 		cur_dir += "/";
 	}
-	String cur_dir_no_prefix = cur_dir.replace("res://", "");
+	String cur_dir_no_prefix = cur_dir.remove_string("res://");
 
 	Vector<String> dirs;
 	String f = da->get_next();

@@ -221,7 +221,7 @@ int64_t TextServerFallback::_name_to_tag(const String &p_name) const {
 	}
 
 	// No readable name, use tag string.
-	return ot_tag_from_string(p_name.replace("custom_", "").ascii().get_data(), -1);
+	return ot_tag_from_string(p_name.remove_string("custom_").ascii().get_data(), -1);
 }
 
 _FORCE_INLINE_ void ot_tag_to_string(int32_t p_tag, char *p_buf) {

@@ -260,19 +260,19 @@ String ProjectSettings::globalize_path(const String &p_path) const {
 		if (!resource_path.is_empty()) {
 			return p_path.replace("res:/", resource_path);
 		}
-		return p_path.replace("res://", "");
+		return p_path.remove_string("res://");
 	} else if (p_path.begins_with("uid://")) {
 		const String path = ResourceUID::uid_to_path(p_path);
 		if (!resource_path.is_empty()) {
 			return path.replace("res:/", resource_path);
 		}
-		return path.replace("res://", "");
+		return path.remove_string("res://");
 	} else if (p_path.begins_with("user://")) {
 		String data_dir = OS::get_singleton()->get_user_data_dir();
 		if (!data_dir.is_empty()) {
 			return p_path.replace("user:/", data_dir);
 		}
-		return p_path.replace("user://", "");
+		return p_path.remove_string("user://");
 	}
 
 	return p_path;

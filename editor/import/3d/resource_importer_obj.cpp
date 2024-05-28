@@ -55,7 +55,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 		if (l.begins_with("newmtl ")) {
 			//vertex
 
-			current_name = l.replace("newmtl", "").strip_edges();
+			current_name = l.remove_string("newmtl").strip_edges();
 			current.instantiate();
 			current->set_name(current_name);
 			material_map[current_name] = current;
@@ -123,7 +123,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Kd", "").replace("\\", "/").strip_edges();
+			String p = l.remove_string("map_Kd").replace("\\", "/").strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -143,7 +143,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Ks", "").replace("\\", "/").strip_edges();
+			String p = l.remove_string("map_Ks").replace("\\", "/").strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -163,7 +163,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_Ns", "").replace("\\", "/").strip_edges();
+			String p = l.remove_string("map_Ns").replace("\\", "/").strip_edges();
 			String path;
 			if (p.is_absolute_path()) {
 				path = p;
@@ -182,7 +182,7 @@ static Error _parse_material_library(const String &p_path, HashMap<String, Ref<S
 			//normal
 			ERR_FAIL_COND_V(current.is_null(), ERR_FILE_CORRUPT);
 
-			String p = l.replace("map_bump", "").replace("\\", "/").strip_edges();
+			String p = l.remove_string("map_bump").replace("\\", "/").strip_edges();
 			String path = base_path.path_join(p);
 
 			Ref<Texture2D> texture = ResourceLoader::load(path);
@@ -484,7 +484,7 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 			}
 
 			if (l.begins_with("usemtl ")) {
-				current_material = l.replace("usemtl", "").strip_edges();
+				current_material = l.remove_string("usemtl").strip_edges();
 			}
 
 			if (l.begins_with("g ")) {
@@ -493,7 +493,7 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 
 		} else if (l.begins_with("mtllib ")) { //parse material
 
-			current_material_library = l.replace("mtllib", "").strip_edges();
+			current_material_library = l.remove_string("mtllib").strip_edges();
 			if (!material_map.has(current_material_library)) {
 				HashMap<String, Ref<StandardMaterial3D>> lib;
 				String lib_path = current_material_library;

@@ -4595,7 +4595,7 @@ void EditorNode::_update_recent_scenes() {
 	String path;
 	for (int i = 0; i < rc.size(); i++) {
 		path = rc[i];
-		recent_scenes->add_item(path.replace("res://", ""), i);
+		recent_scenes->add_item(path.remove_string("res://"), i);
 	}
 
 	recent_scenes->add_separator();

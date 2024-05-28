@@ -140,7 +140,7 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 				if (line.strip_edges().begins_with("#include")) {
 					if (p_include_func) {
 						//process include
-						String include = line.replace("#include", "").strip_edges();
+						String include = line.remove_string("#include").strip_edges();
 						if (!include.begins_with("\"") || !include.ends_with("\"")) {
 							base_error = "Malformed #include syntax, expected #include \"<path>\", found instead: " + include;
 							break;

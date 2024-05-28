@@ -792,7 +792,7 @@ int64_t TextServerAdvanced::_name_to_tag(const String &p_name) const {
 	}
 
 	// No readable name, use tag string.
-	return hb_tag_from_string(p_name.replace("custom_", "").ascii().get_data(), -1);
+	return hb_tag_from_string(p_name.remove_string("custom_").ascii().get_data(), -1);
 }
 
 Variant::Type TextServerAdvanced::_get_tag_type(int64_t p_tag) const {

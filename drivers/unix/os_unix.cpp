@@ -540,19 +540,19 @@ Dictionary OS_Unix::get_memory_info() const {
 	while (f.is_valid() && !f->eof_reached()) {
 		String s = f->get_line().strip_edges();
 		if (s.begins_with("MemTotal:")) {
-			Vector<String> stok = s.replace("MemTotal:", "").strip_edges().split(" ");
+			Vector<String> stok = s.remove_string("MemTotal:").strip_edges().split(" ");
 			if (stok.size() == 2) {
 				mtotal = stok[0].to_int() * 1024;
 			}
 		}
 		if (s.begins_with("MemFree:")) {
-			Vector<String> stok = s.replace("MemFree:", "").strip_edges().split(" ");
+			Vector<String> stok = s.remove_string("MemFree:").strip_edges().split(" ");
 			if (stok.size() == 2) {
 				mfree = stok[0].to_int() * 1024;
 			}
 		}
 		if (s.begins_with("SwapFree:")) {
-			Vector<String> stok = s.replace("SwapFree:", "").strip_edges().split(" ");
+			Vector<String> stok = s.remove_string("SwapFree:").strip_edges().split(" ");
 			if (stok.size() == 2) {
 				sfree = stok[0].to_int() * 1024;
 			}

@@ -331,7 +331,7 @@ const StringName *GeometryInstance3D::_instance_uniform_get_remap(const StringNa
 #endif // DISABLE_DEPRECATED
 		if (s.begins_with("instance_shader_parameters/")) {
 			StringName pname = StringName(s);
-			StringName name = s.replace("instance_shader_parameters/", "");
+			StringName name = s.remove_string("instance_shader_parameters/");
 			instance_shader_parameter_property_remap[pname] = name;
 			return instance_shader_parameter_property_remap.getptr(pname);
 		}

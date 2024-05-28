@@ -1902,7 +1902,7 @@ void EditorHelp::_update_doc() {
 				_push_code_font();
 
 				if (constant.value.begins_with("Color(") && constant.value.ends_with(")")) {
-					String stripped = constant.value.replace(" ", "").replace("Color(", "").replace(")", "");
+					String stripped = constant.value.replace(" ", "").remove_string("Color(").replace(")", "");
 					PackedFloat64Array color = stripped.split_floats(",");
 					if (color.size() >= 3) {
 						class_desc->push_color(Color(color[0], color[1], color[2]));
@@ -2483,10 +2483,10 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 	}
 
 	// Remove codeblocks (they would be printed otherwise).
-	bbcode = bbcode.replace("[codeblocks]\n", "");
-	bbcode = bbcode.replace("\n[/codeblocks]", "");
-	bbcode = bbcode.replace("[codeblocks]", "");
-	bbcode = bbcode.replace("[/codeblocks]", "");
+	bbcode = bbcode.remove_string("[codeblocks]\n");
+	bbcode = bbcode.remove_string("\n[/codeblocks]");
+	bbcode = bbcode.remove_string("[codeblocks]");
+	bbcode = bbcode.remove_string("[/codeblocks]");
 
 	// Remove `\n` here because `\n` is replaced by `\n\n` later.
 	// Will be compensated when parsing `[/codeblock]`.
