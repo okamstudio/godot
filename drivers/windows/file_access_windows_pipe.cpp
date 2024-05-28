@@ -60,7 +60,7 @@ Error FileAccessWindowsPipe::open_internal(const String &p_path, int p_mode_flag
 	path_src = p_path;
 	ERR_FAIL_COND_V_MSG(fd[0] != nullptr || fd[1] != nullptr, ERR_ALREADY_IN_USE, "Pipe is already in use.");
 
-	path = String("\\\\.\\pipe\\LOCAL\\") + p_path.replace("pipe://", "").replace("/", "_");
+	path = String("\\\\.\\pipe\\LOCAL\\") + p_path.replace("pipe://", "").replace_char('/', '_');
 
 	HANDLE h = CreateFileW((LPCWSTR)path.utf16().get_data(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (h == INVALID_HANDLE_VALUE) {

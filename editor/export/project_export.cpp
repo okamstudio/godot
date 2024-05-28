@@ -73,7 +73,7 @@ void ProjectExportTextureFormatError::_notification(int p_what) {
 }
 
 void ProjectExportTextureFormatError::show_for_texture_format(const String &p_friendly_name, const String &p_setting_identifier) {
-	texture_format_error_label->set_text(vformat(TTR("Target platform requires '%s' texture compression. Enable 'Import %s' to fix."), p_friendly_name, p_friendly_name.replace("/", " ")));
+	texture_format_error_label->set_text(vformat(TTR("Target platform requires '%s' texture compression. Enable 'Import %s' to fix."), p_friendly_name, p_friendly_name.replace_char('/', ' ')));
 	setting_identifier = p_setting_identifier;
 	show();
 }

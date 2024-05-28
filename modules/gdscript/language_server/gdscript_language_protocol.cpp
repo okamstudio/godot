@@ -179,7 +179,7 @@ Dictionary GDScriptLanguageProtocol::initialize(const Dictionary &p_params) {
 #ifndef WINDOWS_ENABLED
 	is_same_workspace = root.to_lower() == workspace->root.to_lower();
 #else
-	is_same_workspace = root.replace("\\", "/").to_lower() == workspace->root.to_lower();
+	is_same_workspace = root.replace_char('\\', '/').to_lower() == workspace->root.to_lower();
 #endif
 
 	if (root_uri.length() && is_same_workspace) {

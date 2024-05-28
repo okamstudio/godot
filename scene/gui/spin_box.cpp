@@ -76,8 +76,8 @@ void SpinBox::_text_submitted(const String &p_string) {
 	expr.instantiate();
 
 	// Convert commas ',' to dots '.' for French/German etc. keyboard layouts.
-	String text = p_string.replace(",", ".");
-	text = text.replace(";", ",");
+	String text = p_string.replace_char(',', '.');
+	text = text.replace_char(';', ',');
 	text = TS->parse_number(text);
 	// Ignore the prefix and suffix in the expression.
 	text = text.trim_prefix(prefix + " ").trim_suffix(" " + suffix);

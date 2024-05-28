@@ -3221,11 +3221,11 @@ String EditorNode::adjust_scene_name_casing(const String &p_root_name) {
 			// Use casing of the root node.
 			break;
 		case SCENE_NAME_CASING_PASCAL_CASE:
-			return p_root_name.replace("-", "_").to_pascal_case();
+			return p_root_name.replace_char('-', '_').to_pascal_case();
 		case SCENE_NAME_CASING_SNAKE_CASE:
-			return p_root_name.replace("-", "_").to_snake_case();
+			return p_root_name.replace_char('-', '_').to_snake_case();
 		case SCENE_NAME_CASING_KEBAB_CASE:
-			return p_root_name.to_snake_case().replace("_", "-");
+			return p_root_name.to_snake_case().replace_char('_', '-');
 	}
 	return p_root_name;
 }
@@ -3242,11 +3242,11 @@ String EditorNode::adjust_script_name_casing(const String &p_file_name, ScriptLa
 			// Script language has no preference, so do not adjust.
 			break;
 		case ScriptLanguage::SCRIPT_NAME_CASING_PASCAL_CASE:
-			return p_file_name.replace("-", "_").to_pascal_case();
+			return p_file_name.replace_char('-', '_').to_pascal_case();
 		case ScriptLanguage::SCRIPT_NAME_CASING_SNAKE_CASE:
-			return p_file_name.replace("-", "_").to_snake_case();
+			return p_file_name.replace_char('-', '_').to_snake_case();
 		case ScriptLanguage::SCRIPT_NAME_CASING_KEBAB_CASE:
-			return p_file_name.to_snake_case().replace("_", "-");
+			return p_file_name.to_snake_case().replace_char('_', '-');
 	}
 	return p_file_name;
 }

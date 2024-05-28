@@ -259,7 +259,7 @@ FileAccess::AccessType FileAccess::get_access_type() const {
 String FileAccess::fix_path(const String &p_path) const {
 	// Helper used by file accesses that use a single filesystem.
 
-	String r_path = p_path.replace("\\", "/");
+	String r_path = p_path.replace_char('\\', '/');
 
 	switch (_access_type) {
 		case ACCESS_RESOURCES: {

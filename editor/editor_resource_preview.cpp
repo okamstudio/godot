@@ -387,7 +387,7 @@ void EditorResourcePreview::_write_preview_cache(Ref<FileAccess> p_file, int p_t
 	p_file->store_line(itos(p_has_small_texture));
 	p_file->store_line(itos(p_modified_time));
 	p_file->store_line(p_hash);
-	p_file->store_line(VariantUtilityFunctions::var_to_str(p_metadata).replace("\n", " "));
+	p_file->store_line(VariantUtilityFunctions::var_to_str(p_metadata).replace_char('\n', ' '));
 	p_file->store_line(itos(CURRENT_METADATA_VERSION));
 }
 

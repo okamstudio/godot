@@ -810,7 +810,6 @@ Error SkinTool::_asset_parse_skins(
 
 String SkinTool::_sanitize_bone_name(const String &p_name) {
 	String bone_name = p_name;
-	bone_name = bone_name.replace(":", "_");
-	bone_name = bone_name.replace("/", "_");
+	bone_name = bone_name.replace_chars(":/", '_');
 	return bone_name;
 }

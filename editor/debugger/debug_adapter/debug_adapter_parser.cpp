@@ -360,7 +360,7 @@ Dictionary DebugAdapterParser::req_setBreakpoints(const Dictionary &p_params) co
 
 	// If path contains \, it's a Windows path, so we need to convert it to /, and make the drive letter uppercase
 	if (source.path.contains_char('\\')) {
-		source.path = source.path.replace("\\", "/");
+		source.path = source.path.replace_char('\\', '/');
 		source.path = source.path.substr(0, 1).to_upper() + source.path.substr(1);
 	}
 

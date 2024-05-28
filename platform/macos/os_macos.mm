@@ -421,7 +421,7 @@ Error OS_MacOS::shell_open(const String &p_uri) {
 
 String OS_MacOS::get_locale() const {
 	NSString *locale_code = [[NSLocale preferredLanguages] objectAtIndex:0];
-	return String([locale_code UTF8String]).replace("-", "_");
+	return String([locale_code UTF8String]).replace_char('-', '_');
 }
 
 Vector<String> OS_MacOS::get_system_fonts() const {

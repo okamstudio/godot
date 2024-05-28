@@ -484,7 +484,7 @@ void FileDialog::_action_pressed() {
 	} else if (mode == FILE_MODE_OPEN_ANY || mode == FILE_MODE_OPEN_DIR) {
 		String path = dir_access->get_current_dir();
 
-		path = path.replace("\\", "/");
+		path = path.replace_char('\\', '/');
 		TreeItem *item = tree->get_selected();
 		if (item) {
 			Dictionary d = item->get_metadata(0);

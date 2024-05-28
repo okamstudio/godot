@@ -429,6 +429,9 @@ public:
 	String replace_first(const char *p_key, const char *p_with) const;
 	String replace(const String &p_key, const String &p_with) const;
 	String replace(const char *p_key, const char *p_with) const;
+	String replace_char(char32_t p_key, char32_t p_with) const;
+	String replace_chars(const String &p_keys, char32_t p_with) const;
+	String replace_chars(const char *p_keys, char32_t p_with) const;
 	String replacen(const String &p_key, const String &p_with) const;
 	String replacen(const char *p_key, const char *p_with) const;
 	String repeat(int p_count) const;

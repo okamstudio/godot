@@ -229,7 +229,7 @@ String OS::get_safe_dir_name(const String &p_dir_name, bool p_allow_paths) const
 	if (p_allow_paths) {
 		// Dir separators are allowed, but disallow ".." to avoid going up the filesystem
 		invalid_chars.push_back("..");
-		safe_dir_name = safe_dir_name.replace("\\", "/").strip_edges();
+		safe_dir_name = safe_dir_name.replace_char('\\', '/').strip_edges();
 	} else {
 		invalid_chars.push_back("/");
 		invalid_chars.push_back("\\");

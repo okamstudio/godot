@@ -4182,7 +4182,7 @@ int Main::start() {
 
 		String local_game_path;
 		if (!game_path.is_empty() && !project_manager) {
-			local_game_path = game_path.replace("\\", "/");
+			local_game_path = game_path.replace_char('\\', '/');
 
 			if (!local_game_path.begins_with("res://")) {
 				bool absolute =

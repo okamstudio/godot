@@ -2297,7 +2297,7 @@ void Image::initialize_data(const char **p_xpm) {
 		switch (status) {
 			case READING_HEADER: {
 				String line_str = line_ptr;
-				line_str.replace("\t", " ");
+				line_str.replace_char('\t', ' ');
 
 				size_width = line_str.get_slicec(' ', 0).to_int();
 				size_height = line_str.get_slicec(' ', 1).to_int();

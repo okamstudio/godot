@@ -135,7 +135,7 @@ TranslationServer::Locale::operator String() const {
 
 TranslationServer::Locale::Locale(const TranslationServer &p_server, const String &p_locale, bool p_add_defaults) {
 	// Replaces '-' with '_' for macOS style locales.
-	String univ_locale = p_locale.replace("-", "_");
+	String univ_locale = p_locale.replace_char('-', '_');
 
 	// Extract locale elements.
 	Vector<String> locale_elements = univ_locale.get_slice("@", 0).split("_");

@@ -456,7 +456,7 @@ void EditorExportPlatform::_export_find_dependencies(const String &p_path, HashS
 
 void EditorExportPlatform::_edit_files_with_filter(Ref<DirAccess> &da, const Vector<String> &p_filters, HashSet<String> &r_list, bool exclude) {
 	da->list_dir_begin();
-	String cur_dir = da->get_current_dir().replace("\\", "/");
+	String cur_dir = da->get_current_dir().replace_char('\\', '/');
 	if (!cur_dir.ends_with("/")) {
 		cur_dir += "/";
 	}

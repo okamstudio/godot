@@ -1099,7 +1099,7 @@ void SpriteFramesEditor::_animation_name_edited() {
 		new_name = "new_animation";
 	}
 
-	new_name = new_name.replace("/", "_").replace(",", " ");
+	new_name = new_name.replace_char('/', '_').replace_char(',', ' ');
 
 	String name = new_name;
 	int counter = 0;
