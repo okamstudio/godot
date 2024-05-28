@@ -436,6 +436,8 @@ public:
 	String insert(int p_at_pos, const String &p_string) const;
 	String erase(int p_pos, int p_chars = 1) const;
 	String remove_char(char32_t p_what) const;
+	String remove_chars(const String &p_chars) const;
+	String remove_chars(const char *p_chars) const;
 	String pad_decimals(int p_digits) const;
 	String pad_zeros(int p_digits) const;
 	String trim_prefix(const String &p_prefix) const;
