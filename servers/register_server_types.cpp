@@ -201,10 +201,12 @@ void register_server_types() {
 		GDREGISTER_CLASS(AudioEffectPhaser);
 
 		GDREGISTER_CLASS(AudioEffectRecord);
+		GDREGISTER_ABSTRACT_CLASS(AudioEffectRecordInstance);
 		GDREGISTER_CLASS(AudioEffectSpectrumAnalyzer);
 		GDREGISTER_ABSTRACT_CLASS(AudioEffectSpectrumAnalyzerInstance);
 
 		GDREGISTER_CLASS(AudioEffectCapture);
+		GDREGISTER_ABSTRACT_CLASS(AudioEffectCaptureInstance);
 	}
 
 	GDREGISTER_ABSTRACT_CLASS(RenderingDevice);

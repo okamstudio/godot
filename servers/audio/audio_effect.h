@@ -42,11 +42,13 @@ class AudioEffectInstance : public RefCounted {
 protected:
 	GDVIRTUAL3_REQUIRED(_process, GDExtensionConstPtr<AudioFrame>, GDExtensionPtr<AudioFrame>, int)
 	GDVIRTUAL0RC(bool, _process_silence)
+	GDVIRTUAL1(_set_current_channel, int)
 	static void _bind_methods();
 
 public:
 	virtual void process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count);
 	virtual bool process_silence() const;
+	virtual void set_current_channel(int p_channel);
 };
 
 class AudioEffect : public Resource {

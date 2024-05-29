@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="AudioEffectRecord" inherits="AudioEffect" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="AudioEffectRecordInstance" inherits="AudioEffectInstance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		Audio effect used for recording the sound from an audio bus.
+		Audio effect instance used for recording the sound from an audio bus from a particular audio channel.
 	</brief_description>
 	<description>
-		Allows the user to record the sound from an audio bus into an [AudioStreamWAV]. When used on the "Master" audio bus, this includes all audio output by Godot. Recording is done per channel by [AudioEffectRecordInstance], but the parent AudioEffectRecord allows accessing data from channel 0. Recording from other channels can be done with [AudioEffectRecordInstance].
+		Allows the user to record the sound from an individual channel of an audio bus into an [AudioStreamWAV]. When used on the "Master" audio bus, this includes all audio output for that channel by Godot.
 		Unlike [AudioEffectCapture] or [AudioEffectCaptureInstance], this effect encodes the recording with the given format (8-bit, 16-bit, or compressed) instead of giving access to the raw audio samples.
 		Can be used (with an [AudioStreamMicrophone]) to record from a microphone.
+		An instance of this class can be obtained with [method AudioServer.get_bus_effect_instance].
 		[b]Note:[/b] [member ProjectSettings.audio/driver/enable_input] must be [code]true[/code] for audio input to work. See also that setting's description for caveats related to permissions and operating system privacy settings.
 	</description>
 	<tutorials>
@@ -35,8 +36,8 @@
 		</method>
 	</methods>
 	<members>
-		<member name="format" type="int" setter="set_format" getter="get_format" enum="AudioStreamWAV.Format" default="1">
-			Specifies the format in which the sample will be recorded. See [enum AudioStreamWAV.Format] for available formats.
+		<member name="format" type="int" setter="set_format" getter="get_format" enum="AudioStreamWAV.Format">
+			Specifies the format in which the sample will be recorded. Initialized to format of parent [AudioEffectRecord]. See [enum AudioStreamWAV.Format] for available formats.
 		</member>
 	</members>
 </class>

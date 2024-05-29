@@ -4,7 +4,7 @@
 		Manipulates the audio it receives for a given effect.
 	</brief_description>
 	<description>
-		An audio effect instance manipulates the audio it receives for a given effect. This instance is automatically created by an [AudioEffect] when it is added to a bus, and should usually not be created directly. If necessary, it can be fetched at run-time with [method AudioServer.get_bus_effect_instance].
+		An audio effect instance manipulates the audio it receives for a given effect. This instance is automatically created by an [AudioEffect] when it is added to a bus, once for each channel on the bus, and should usually not be created directly. If necessary, it can be fetched at run-time with [method AudioServer.get_bus_effect_instance].
 	</description>
 	<tutorials>
 		<link title="Audio buses">$DOCS_URL/tutorials/audio/audio_buses.html</link>
@@ -25,6 +25,14 @@
 			<description>
 				Override this method to customize the processing behavior of this effect instance.
 				Should return [code]true[/code] to force the [AudioServer] to always call [method _process], even if the bus has been muted or cannot otherwise be heard.
+			</description>
+		</method>
+		<method name="_set_current_channel" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="channel" type="int" />
+			<description>
+				Called by the [AudioServer] after instantiation with the specific channel index this effect instance is going to apply to.
+				Override this method if the individual channel index is relevant to the effect instance.
 			</description>
 		</method>
 	</methods>
