@@ -116,7 +116,7 @@ String dict_to_python(const Dictionary &p_dict) {
 				break;
 			}
 			default: {
-				ERR_FAIL_V_MSG("", vformat("Unhandled Variant type %s for python dictionary", Variant::get_type_name(raw_value.get_type())));
+				ERR_FAIL_V_MSG("", vformat("Unhandled Variant type %s for python dictionary", raw_value.get_full_type_name()));
 			}
 		}
 
@@ -149,7 +149,7 @@ String dict_to_xmlrpc(const Dictionary &p_dict) {
 				break;
 			}
 			default: {
-				ERR_FAIL_V_MSG("", vformat("Unhandled Variant type %s for XMLRPC", Variant::get_type_name(raw_value.get_type())));
+				ERR_FAIL_V_MSG("", vformat("Unhandled Variant type %s for XMLRPC", raw_value.get_full_type_name()));
 			}
 		}
 

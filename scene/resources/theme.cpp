@@ -863,37 +863,37 @@ void Theme::get_constant_type_list(List<StringName> *p_list) const {
 void Theme::set_theme_item(DataType p_data_type, const StringName &p_name, const StringName &p_theme_type, const Variant &p_value) {
 	switch (p_data_type) {
 		case DATA_TYPE_COLOR: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::COLOR, "Theme item's data type (Color) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::COLOR, "Theme item's data type (Color) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			Color color_value = p_value;
 			set_color(p_name, p_theme_type, color_value);
 		} break;
 		case DATA_TYPE_CONSTANT: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::INT, "Theme item's data type (int) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::INT, "Theme item's data type (int) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			int constant_value = p_value;
 			set_constant(p_name, p_theme_type, constant_value);
 		} break;
 		case DATA_TYPE_FONT: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			Ref<Font> font_value = Object::cast_to<Font>(p_value.get_validated_object());
 			set_font(p_name, p_theme_type, font_value);
 		} break;
 		case DATA_TYPE_FONT_SIZE: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::INT, "Theme item's data type (int) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::INT, "Theme item's data type (int) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			int font_size_value = p_value;
 			set_font_size(p_name, p_theme_type, font_size_value);
 		} break;
 		case DATA_TYPE_ICON: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			Ref<Texture2D> icon_value = Object::cast_to<Texture2D>(p_value.get_validated_object());
 			set_icon(p_name, p_theme_type, icon_value);
 		} break;
 		case DATA_TYPE_STYLEBOX: {
-			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + Variant::get_type_name(p_value.get_type()) + ").");
+			ERR_FAIL_COND_MSG(p_value.get_type() != Variant::OBJECT, "Theme item's data type (Object) does not match Variant's type (" + p_value.get_full_type_name() + ").");
 
 			Ref<StyleBox> stylebox_value = Object::cast_to<StyleBox>(p_value.get_validated_object());
 			set_stylebox(p_name, p_theme_type, stylebox_value);

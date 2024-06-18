@@ -434,7 +434,7 @@ int DebugAdapterProtocol::parse_variant(const Variant &p_var) {
 			for (int i = 0; i < array.size(); i++) {
 				DAP::Variable var;
 				var.name = itos(i);
-				var.type = Variant::get_type_name(array[i].get_type());
+				var.type = array[i].get_full_type_name();
 				var.value = array[i];
 				var.variablesReference = parse_variant(array[i]);
 				arr.push_back(var.to_json());
@@ -451,7 +451,7 @@ int DebugAdapterProtocol::parse_variant(const Variant &p_var) {
 				DAP::Variable var;
 				var.name = dictionary.get_key_at_index(i);
 				Variant value = dictionary.get_value_at_index(i);
-				var.type = Variant::get_type_name(value.get_type());
+				var.type = value.get_full_type_name();
 				var.value = value;
 				var.variablesReference = parse_variant(value);
 				arr.push_back(var.to_json());
@@ -1157,7 +1157,7 @@ void DebugAdapterProtocol::on_debug_stack_frame_var(const Array &p_data) {
 
 	variable.name = stack_var.name;
 	variable.value = stack_var.value;
-	variable.type = Variant::get_type_name(stack_var.value.get_type());
+	variable.type = stack_var.value.get_full_type_name();
 	variable.variablesReference = parse_variant(stack_var.value);
 
 	variable_list.find(var_id)->value.push_back(variable.to_json());

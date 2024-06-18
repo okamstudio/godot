@@ -2,5 +2,5 @@ GDTEST_RUNTIME_ERROR
 >> ERROR: Condition "!other_script->inherits_script(script)" is true. Returning: false
 >>   Attempted to assign an object into a TypedArray, that does not inherit from 'GDScript'.
 >> ERROR: Method/function failed.
->>   Unable to convert array index 0 from "Object" to "Object".
+>>   Unable to convert array index 0 from "RefCounted (GlobalClass2)" to "RefCounted (GlobalClass1)".
 not ok

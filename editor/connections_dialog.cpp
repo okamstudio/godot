@@ -988,7 +988,7 @@ void ConnectionsDock::_make_or_edit_connection() {
 		PackedStringArray script_function_args = connect_dialog->get_signal_args();
 		script_function_args.resize(script_function_args.size() - cd.unbinds);
 		for (int i = 0; i < cd.binds.size(); i++) {
-			script_function_args.push_back("extra_arg_" + itos(i) + ":" + Variant::get_type_name(cd.binds[i].get_type()));
+			script_function_args.push_back("extra_arg_" + itos(i) + ":" + cd.binds[i].get_full_type_name());
 		}
 
 		EditorNode::get_singleton()->emit_signal(SNAME("script_add_function_request"), target, cd.method, script_function_args);

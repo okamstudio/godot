@@ -90,7 +90,7 @@ static void test_tokenizer(const String &p_code, const Vector<String> &p_lines) 
 
 		if (current.type == GDScriptTokenizer::Token::ERROR || current.type == GDScriptTokenizer::Token::LITERAL || current.type == GDScriptTokenizer::Token::IDENTIFIER || current.type == GDScriptTokenizer::Token::ANNOTATION) {
 			token += "(";
-			token += Variant::get_type_name(current.literal.get_type());
+			token += current.literal.get_full_type_name();
 			token += ") ";
 			token += current.literal;
 		}

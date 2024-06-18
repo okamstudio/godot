@@ -3805,22 +3805,22 @@ bool BindingsGenerator::_arg_default_value_is_assignable_to_type(const Variant &
 		case Variant::PACKED_COLOR_ARRAY:
 		case Variant::CALLABLE:
 		case Variant::SIGNAL:
-			return p_arg_type.name == Variant::get_type_name(p_val.get_type());
+			return p_arg_type.name == p_val.get_full_type_name();
 		case Variant::ARRAY:
-			return p_arg_type.name == Variant::get_type_name(p_val.get_type()) || p_arg_type.cname == name_cache.type_Array_generic;
+			return p_arg_type.name == p_val.get_full_type_name() || p_arg_type.cname == name_cache.type_Array_generic;
 		case Variant::DICTIONARY:
-			return p_arg_type.name == Variant::get_type_name(p_val.get_type()) || p_arg_type.cname == name_cache.type_Dictionary_generic;
+			return p_arg_type.name == p_val.get_full_type_name() || p_arg_type.cname == name_cache.type_Dictionary_generic;
 		case Variant::OBJECT:
 			return p_arg_type.is_object_type;
 		case Variant::VECTOR2I:
 			return p_arg_type.name == name_cache.type_Vector2 ||
-					p_arg_type.name == Variant::get_type_name(p_val.get_type());
+					p_arg_type.name == p_val.get_full_type_name();
 		case Variant::RECT2I:
 			return p_arg_type.name == name_cache.type_Rect2 ||
-					p_arg_type.name == Variant::get_type_name(p_val.get_type());
+					p_arg_type.name == p_val.get_full_type_name();
 		case Variant::VECTOR3I:
 			return p_arg_type.name == name_cache.type_Vector3 ||
-					p_arg_type.name == Variant::get_type_name(p_val.get_type());
+					p_arg_type.name == p_val.get_full_type_name();
 		default:
 			CRASH_NOW_MSG("Unexpected Variant type: " + itos(p_val.get_type()));
 			break;

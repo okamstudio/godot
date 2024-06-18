@@ -392,6 +392,7 @@ public:
 		return type;
 	}
 	static String get_type_name(Variant::Type p_type);
+	String get_full_type_name() const;
 	static Variant::Type get_type_by_name(const String &p_type_name);
 	static bool can_convert(Type p_type_from, Type p_type_to);
 	static bool can_convert_strict(Type p_type_from, Type p_type_to);
