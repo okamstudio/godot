@@ -242,6 +242,8 @@ public:
 	virtual Rect2 _edit_get_rect() const { return Rect2(0, 0, 0, 0); }
 #endif // DEBUG_ENABLED
 
+	PackedStringArray get_configuration_warnings() const override;
+
 	void update_draw_order();
 
 	/* VISIBILITY */

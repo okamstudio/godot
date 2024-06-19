@@ -401,6 +401,29 @@ void CanvasItem::_notification(int p_what) {
 	}
 }
 
+PackedStringArray CanvasItem::get_configuration_warnings() const {
+	ERR_READ_THREAD_GUARD_V(PackedStringArray());
+	PackedStringArray warnings = Node::get_configuration_warnings();
+
+	// Check compatible visibility layer, only if not top-level and any bit is set.
+	CanvasItem *parent = get_parent_item();
+	if (parent && visibility_layer) {
+		uint32_t combined_layers = visibility_layer;
+
+		// Iterate over parents until non-canvas item, or node is top-level.
+		do {
+			combined_layers &= parent->visibility_layer;
+			parent = parent->get_parent_item();
+		} while (parent && combined_layers);
+
+		if (combined_layers == 0) {
+			warnings.push_back("CanvasItem with non-zero visibility_layer but shares no layer with parents, this node will not be visible.\nConsider matching at least one layer with all parents or setting this as top-level.");
+		}
+	}
+
+	return warnings;
+}
+
 void CanvasItem::update_draw_order() {
 	ERR_MAIN_THREAD_GUARD;
 
@@ -501,6 +524,7 @@ void CanvasItem::_top_level_changed() {
 			child->_top_level_changed_on_parent();
 		}
 	}
+	update_configuration_warnings();
 }
 
 void CanvasItem::_top_level_changed_on_parent() {
@@ -1479,6 +1503,9 @@ void CanvasItem::set_visibility_layer(uint32_t p_visibility_layer) {
 	ERR_THREAD_GUARD;
 	visibility_layer = p_visibility_layer;
 	RenderingServer::get_singleton()->canvas_item_set_visibility_layer(canvas_item, p_visibility_layer);
+	// Note: Relies on that the whole tree being updated on request, if this behavior changes
+	// this needs to be propagated to child nodes.
+	update_configuration_warnings();
 }
 
 uint32_t CanvasItem::get_visibility_layer() const {
