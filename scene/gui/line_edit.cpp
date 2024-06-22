@@ -668,13 +668,14 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 		return;
 	}
 
-	// Start Unicode input (hold).
+	// Start Unicode Alt input (hold).
 	if (k->is_alt_pressed() && k->get_keycode() == Key::KP_ADD && !alt_start && !alt_start_no_hold) {
 		if (selection.enabled) {
 			selection_delete();
 		}
 		alt_start = true;
 		alt_code = 0;
+		alt_mode = ALT_INPUT_UNICODE;
 		ime_text = "u";
 		ime_selection = Vector2i(0, -1);
 		_shape();
@@ -690,7 +691,40 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 		}
 		alt_start_no_hold = true;
 		alt_code = 0;
+		alt_mode = ALT_INPUT_UNICODE;
 		ime_text = "u";
+		ime_selection = Vector2i(0, -1);
+		_shape();
+		queue_redraw();
+		accept_event();
+		return;
+	}
+
+	// Start OEM Alt input (hold).
+	if (k->is_alt_pressed() && k->get_keycode() >= Key::KP_1 && k->get_keycode() <= Key::KP_9 && !alt_start && !alt_start_no_hold) {
+		if (selection.enabled) {
+			selection_delete();
+		}
+		alt_start = true;
+		alt_code = (uint32_t)(k->get_keycode() - Key::KP_0);
+		alt_mode = ALT_INPUT_OEM;
+		ime_text = vformat("o%s", String::num_int64(alt_code, 10));
+		ime_selection = Vector2i(0, -1);
+		_shape();
+		queue_redraw();
+		accept_event();
+		return;
+	}
+
+	// Start Windows Alt input (hold).
+	if (k->is_alt_pressed() && k->get_keycode() == Key::KP_0 && !alt_start && !alt_start_no_hold) {
+		if (selection.enabled) {
+			selection_delete();
+		}
+		alt_start = true;
+		alt_mode = ALT_INPUT_WIN;
+		alt_code = 0;
+		ime_text = "w";
 		ime_selection = Vector2i(0, -1);
 		_shape();
 		queue_redraw();
@@ -701,34 +735,66 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	// Update Unicode input.
 	if (k->is_pressed() && ((k->is_alt_pressed() && alt_start) || alt_start_no_hold)) {
 		if (k->get_keycode() >= Key::KEY_0 && k->get_keycode() <= Key::KEY_9) {
-			alt_code = alt_code << 4;
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				alt_code = alt_code << 4;
+			} else {
+				alt_code = alt_code * 10;
+			}
 			alt_code += (uint32_t)(k->get_keycode() - Key::KEY_0);
 		} else if (k->get_keycode() >= Key::KP_0 && k->get_keycode() <= Key::KP_9) {
-			alt_code = alt_code << 4;
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				alt_code = alt_code << 4;
+			} else {
+				alt_code = alt_code * 10;
+			}
 			alt_code += (uint32_t)(k->get_keycode() - Key::KP_0);
-		} else if (k->get_keycode() >= Key::A && k->get_keycode() <= Key::F) {
+		} else if (alt_mode == ALT_INPUT_UNICODE && k->get_keycode() >= Key::A && k->get_keycode() <= Key::F) {
 			alt_code = alt_code << 4;
 			alt_code += (uint32_t)(k->get_keycode() - Key::A) + 10;
 		} else if ((Key)k->get_unicode() >= Key::KEY_0 && (Key)k->get_unicode() <= Key::KEY_9) {
-			alt_code = alt_code << 4;
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				alt_code = alt_code << 4;
+			} else {
+				alt_code = alt_code * 10;
+			}
 			alt_code += (uint32_t)((Key)k->get_unicode() - Key::KEY_0);
-		} else if ((Key)k->get_unicode() >= Key::A && (Key)k->get_unicode() <= Key::F) {
+		} else if (alt_mode == ALT_INPUT_UNICODE && (Key)k->get_unicode() >= Key::A && (Key)k->get_unicode() <= Key::F) {
 			alt_code = alt_code << 4;
 			alt_code += (uint32_t)((Key)k->get_unicode() - Key::A) + 10;
 		} else if (k->get_physical_keycode() >= Key::KEY_0 && k->get_physical_keycode() <= Key::KEY_9) {
-			alt_code = alt_code << 4;
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				alt_code = alt_code << 4;
+			} else {
+				alt_code = alt_code * 10;
+			}
 			alt_code += (uint32_t)(k->get_physical_keycode() - Key::KEY_0);
 		}
 		if (k->get_keycode() == Key::BACKSPACE) {
-			alt_code = alt_code >> 4;
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				alt_code = alt_code >> 4;
+			} else {
+				alt_code = alt_code / 10;
+			}
 		}
 		if (alt_code > 0x10ffff) {
 			alt_code = 0x10ffff;
 		}
 		if (alt_code > 0) {
-			ime_text = vformat("u%s", String::num_int64(alt_code, 16, true));
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				ime_text = vformat("u%s", String::num_int64(alt_code, 16, true));
+			} else if (alt_mode == ALT_INPUT_OEM) {
+				ime_text = vformat("o%s", String::num_int64(alt_code, 10));
+			} else if (alt_mode == ALT_INPUT_WIN) {
+				ime_text = vformat("w%s", String::num_int64(alt_code, 10));
+			}
 		} else {
-			ime_text = "u";
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				ime_text = "u";
+			} else if (alt_mode == ALT_INPUT_OEM) {
+				ime_text = "o";
+			} else if (alt_mode == ALT_INPUT_WIN) {
+				ime_text = "w";
+			}
 		}
 		ime_selection = Vector2i(0, -1);
 		_shape();
@@ -741,11 +807,32 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	if ((!k->is_pressed() && alt_start && k->get_keycode() == Key::ALT) || (alt_start_no_hold && (k->is_action("ui_text_submit", true) || k->is_action("ui_accept", true)))) {
 		alt_start = false;
 		alt_start_no_hold = false;
-		if ((alt_code > 0x31 && alt_code < 0xd800) || (alt_code > 0xdfff && alt_code <= 0x10ffff)) {
+		if ((alt_code > 0x31 && alt_code < 0xd800) || (alt_code > 0xdfff)) {
 			ime_text = String();
 			ime_selection = Vector2i();
-			char32_t ucodestr[2] = { (char32_t)alt_code, 0 };
-			insert_text_at_caret(ucodestr);
+			if (alt_mode == ALT_INPUT_UNICODE) {
+				if ((alt_code > 0x31 && alt_code < 0xd800) || (alt_code > 0xdfff)) {
+					char32_t ucodestr[2] = { (char32_t)alt_code, 0 };
+					insert_text_at_caret(ucodestr);
+				}
+			} else if (alt_mode == ALT_INPUT_OEM) {
+				if (alt_code > 0x00 && alt_code <= 0xff) {
+					char32_t ucodestr[2] = { alt_code_oem437[alt_code], 0 };
+					insert_text_at_caret(ucodestr);
+				} else if ((alt_code > 0xff && alt_code < 0xd800) || (alt_code > 0xdfff)) {
+					char32_t ucodestr[2] = { (char32_t)alt_code, 0 };
+					insert_text_at_caret(ucodestr);
+				}
+			} else if (alt_mode == ALT_INPUT_WIN) {
+				if (alt_code > 0x00 && alt_code <= 0xff) {
+					char32_t ucodestr[2] = { alt_code_cp1252[alt_code], 0 };
+					insert_text_at_caret(ucodestr);
+				} else if ((alt_code > 0xff && alt_code < 0xd800) || (alt_code > 0xdfff)) {
+					char32_t ucodestr[2] = { (char32_t)alt_code, 0 };
+					insert_text_at_caret(ucodestr);
+				}
+			}
+			alt_mode = ALT_INPUT_NONE;
 		} else {
 			ime_text = String();
 			ime_selection = Vector2i();
@@ -760,6 +847,7 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	if (alt_start_no_hold && k->is_action("ui_cancel", true)) {
 		alt_start = false;
 		alt_start_no_hold = false;
+		alt_mode = ALT_INPUT_NONE;
 		ime_text = String();
 		ime_selection = Vector2i();
 		_shape();
