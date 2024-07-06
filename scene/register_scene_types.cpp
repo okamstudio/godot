@@ -436,6 +436,8 @@ void register_scene_types() {
 	GDREGISTER_CLASS(HBoxContainer);
 	GDREGISTER_CLASS(VBoxContainer);
 	GDREGISTER_CLASS(GridContainer);
+	GDREGISTER_CLASS(HGridContainer);
+	GDREGISTER_CLASS(VGridContainer);
 	GDREGISTER_CLASS(CenterContainer);
 	GDREGISTER_CLASS(ScrollContainer);
 	GDREGISTER_CLASS(PanelContainer);

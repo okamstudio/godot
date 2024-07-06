@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="GridContainer" inherits="Container" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		A container that arranges its child controls in a grid layout.
+		A container that arranges its child controls in a grid layout, with a given number of rows or columns.
 	</brief_description>
 	<description>
 		[GridContainer] arranges its child controls in a grid layout. The number of columns is specified by the [member columns] property, whereas the number of rows depends on how many are needed for the child controls. The number of rows and columns is preserved for every size of the container.
@@ -13,7 +13,17 @@
 	</tutorials>
 	<members>
 		<member name="columns" type="int" setter="set_columns" getter="get_columns" default="1">
-			The number of columns in the [GridContainer]. If modified, [GridContainer] reorders its Control-derived children to accommodate the new layout.
+			The number of columns in the [GridContainer]. Can only be modified if the container is [member vertical].
+			When modified, [GridContainer] reorders its Control-derived children to accommodate the new layout.
+		</member>
+		<member name="rows" type="int" setter="set_rows" getter="get_rows" default="1">
+			The number of rows in the [GridContainer]. Can only be modified if the container is not [member vertical].
+			When modified, [GridContainer] reorders its Control-derived children to accommodate the new layout.
+		</member>
+		<member name="vertical" type="bool" setter="set_vertical" getter="is_vertical" default="true">
+			If [code]true[/code], the [GridContainer] will arrange its children vertically with a set number of [member columns].
+			If [code]false[/code], the [GridContainer] will arrange its children horizontally with a set number of [member rows].
+			Can't be changed when using [HGridContainer] and [VGridContainer].
 		</member>
 	</members>
 	<theme_items>
