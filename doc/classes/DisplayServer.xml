@@ -1090,12 +1090,33 @@
 				[b]Note:[/b] On macOS, this method requires "Screen Recording" permission, if permission is not granted it will return desktop wallpaper color.
 			</description>
 		</method>
+		<method name="screen_get_max_average_luminance" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="screen" type="int" default="-1" />
+			<description>
+				Returns the maximum average luminance of [param screen] in nits (cd/m²).
+			</description>
+		</method>
+		<method name="screen_get_max_luminance" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="screen" type="int" default="-1" />
+			<description>
+				Returns the maximum luminance of [param screen] in nits (cd/m²).
+			</description>
+		</method>
 		<method name="screen_get_max_scale" qualifiers="const">
 			<return type="float" />
 			<description>
 				Returns the greatest scale factor of all screens.
 				[b]Note:[/b] On macOS returned value is [code]2.0[/code] if there is at least one hiDPI (Retina) screen in the system, and [code]1.0[/code] in all other cases.
 				[b]Note:[/b] This method is implemented only on macOS.
+			</description>
+		</method>
+		<method name="screen_get_min_luminance" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="screen" type="int" default="-1" />
+			<description>
+				Returns the minimum luminance of [param screen] in nits (cd/m²).
 			</description>
 		</method>
 		<method name="screen_get_orientation" qualifiers="const">
@@ -1156,6 +1177,13 @@
 				[b]Note:[/b] This method is implemented on Android, iOS, Web, macOS, and Linux (Wayland).
 			</description>
 		</method>
+		<method name="screen_get_sdr_white_level" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="screen" type="int" default="-1" />
+			<description>
+				Returns the standard dynamic range (SDR) white level of [param screen] in nits (cd/m²).
+			</description>
+		</method>
 		<method name="screen_get_size" qualifiers="const">
 			<return type="Vector2i" />
 			<param index="0" name="screen" type="int" default="-1" />
@@ -1168,6 +1196,13 @@
 			<param index="0" name="screen" type="int" default="-1" />
 			<description>
 				Returns the portion of the screen that is not obstructed by a status bar in pixels. See also [method screen_get_size].
+			</description>
+		</method>
+		<method name="screen_is_hdr_supported" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="screen" type="int" default="-1" />
+			<description>
+				Returns [code]true[/code] if the specified screen supports HDR.
 			</description>
 		</method>
 		<method name="screen_is_kept_on" qualifiers="const">
@@ -1481,6 +1516,13 @@
 				Returns the current value of the given window's [param flag].
 			</description>
 		</method>
+		<method name="window_get_hdr_output_reference_luminance" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="window_id" type="int" default="0" />
+			<description>
+				Returns the SDR reference luminance in nits (cd/m²) set for HDR content for the given window.
+			</description>
+		</method>
 		<method name="window_get_max_size" qualifiers="const">
 			<return type="Vector2i" />
 			<param index="0" name="window_id" type="int" default="0" />
@@ -1576,6 +1618,20 @@
 				Returns [code]true[/code] if the window specified by [param window_id] is focused.
 			</description>
 		</method>
+		<method name="window_is_hdr_output_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="window_id" type="int" default="0" />
+			<description>
+				Returns whether HDR output is requested for the given window.
+			</description>
+		</method>
+		<method name="window_is_hdr_output_preferring_high_precision" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="window_id" type="int" default="0" />
+			<description>
+				Returns whether the window specified by [param window_id] prefers a high precision (16-bit per color) HDR framebuffer.
+			</description>
+		</method>
 		<method name="window_is_maximize_allowed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="window_id" type="int" default="0" />
@@ -1646,6 +1702,32 @@
 			<param index="2" name="window_id" type="int" default="0" />
 			<description>
 				Enables or disables the given window's given [param flag]. See [enum WindowFlags] for possible values and their behavior.
+			</description>
+		</method>
+		<method name="window_set_hdr_output_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<param index="1" name="window_id" type="int" default="0" />
+			<description>
+				Sets whether HDR output should be enabled for the window specified by [param window_id].
+				Only available on platforms that support HDR output, have HDR enabled in the system settings, and have a compatible display connected.
+			</description>
+		</method>
+		<method name="window_set_hdr_output_prefer_high_precision">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<param index="1" name="window_id" type="int" default="0" />
+			<description>
+				Sets whether the window specified by [param window_id] prefers a high precision (16-bit per color) framebuffer.
+			</description>
+		</method>
+		<method name="window_set_hdr_output_reference_luminance">
+			<return type="void" />
+			<param index="0" name="reference_luminance" type="float" />
+			<param index="1" name="window_id" type="int" default="0" />
+			<description>
+				Sets the SDR reference luminance in nits (cd/m²) for HDR content for the window specified by [param window_id].
+				This controls the brightness of SDR content (such as UI) when HDR is enabled.
 			</description>
 		</method>
 		<method name="window_set_ime_active">
@@ -1951,6 +2033,9 @@
 		</constant>
 		<constant name="FEATURE_EMOJI_AND_SYMBOL_PICKER" value="31" enum="Feature">
 			Display server supports system emoji and symbol picker. [b]Windows, macOS[/b]
+		</constant>
+		<constant name="FEATURE_HDR" value="32" enum="Feature">
+			Display server supports HDR output. [b]Windows[/b]
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.

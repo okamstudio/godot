@@ -316,6 +316,14 @@
 		<member name="tonemap_exposure" type="float" setter="set_tonemap_exposure" getter="get_tonemap_exposure" default="1.0">
 			The default exposure used for tonemapping. Higher values result in a brighter image. See also [member tonemap_white].
 		</member>
+		<member name="tonemap_max_value" type="float" setter="set_tonemap_max_value" getter="get_tonemap_max_value" default="1.0">
+			The maximum value that should be output by the tonemapper. Tonemappers compress the dynamic range of the image to fit within this value. Values higher than [code]1.0[/code] will result in a brighter image.
+			[b]Note:[/b] [member tonemap_max_value] is ignored when using [constant TONE_MAPPER_LINEAR].
+		</member>
+		<member name="tonemap_min_value" type="float" setter="set_tonemap_min_value" getter="get_tonemap_min_value" default="0.0">
+			The minimum value that should be output by the tonemapper. Tonemappers compress the dynamic range of the image to fit within this value. This can be used to lift the shadows of the image.
+			[b]Note:[/b] [member tonemap_min_value] is ignored when using [constant TONE_MAPPER_LINEAR].
+		</member>
 		<member name="tonemap_mode" type="int" setter="set_tonemapper" getter="get_tonemapper" enum="Environment.ToneMapper" default="0">
 			The tonemapping mode to use. Tonemapping is the process that "converts" HDR values to be suitable for rendering on an LDR display. (Godot doesn't support rendering on HDR displays yet.)
 		</member>

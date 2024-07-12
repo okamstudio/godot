@@ -309,3 +309,11 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-94496
+--------
+Validate extension JSON: Error: Field 'classes/RenderingServer/methods/environment_set_tonemap/arguments': size changed value in new API, from 4 to 6.
+
+TODO: Move this to 4.4-stable.expected when its created
+Added optional arguments for controlling the output range of tonemappers. Compatibility methods registered.

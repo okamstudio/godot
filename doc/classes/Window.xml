@@ -614,6 +614,17 @@
 		<member name="force_native" type="bool" setter="set_force_native" getter="get_force_native" default="false">
 			If [code]true[/code], native window will be used regardless of parent viewport and project settings.
 		</member>
+		<member name="hdr_output_enabled" type="bool" setter="set_hdr_output_enabled" getter="is_hdr_output_enabled" default="false">
+			If [code]true[/code], the [Window] will output in HDR.
+			Only available on platforms that support HDR output, have HDR enabled in the system settings, and have a compatible display connected.
+		</member>
+		<member name="hdr_output_prefer_high_precision" type="bool" setter="set_hdr_output_prefer_high_precision" getter="is_hdr_output_preferring_high_precision" default="false">
+			If [code]true[/code], the [Window] will prefer high-precision (16-bit per color) framebuffer when available and HDR is enabled.
+		</member>
+		<member name="hdr_output_reference_luminance" type="float" setter="set_hdr_output_reference_luminance" getter="get_hdr_output_reference_luminance" default="80.0">
+			The SDR reference luminance in nits (cd/m²) when HDR is enabled.
+			This controls the brightness of SDR content (such as UI) when HDR is enabled.
+		</member>
 		<member name="initial_position" type="int" setter="set_initial_position" getter="get_initial_position" enum="Window.WindowInitialPosition" default="0">
 			Specifies the initial type of position for the [Window]. See [enum WindowInitialPosition] constants.
 		</member>

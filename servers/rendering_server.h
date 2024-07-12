@@ -1255,7 +1255,7 @@ public:
 		ENV_TONE_MAPPER_AGX,
 	};
 
-	virtual void environment_set_tonemap(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white) = 0;
+	virtual void environment_set_tonemap(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, float p_min_value = 0.0f, float p_max_value = 1.0f) = 0;
 	virtual void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, bool p_use_1d_color_correction, RID p_color_correction) = 0;
 
 	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance) = 0;
@@ -1350,6 +1350,13 @@ public:
 	virtual void environment_set_volumetric_fog_filter_active(bool p_enable) = 0;
 
 	virtual Ref<Image> environment_bake_panorama(RID p_env, bool p_bake_irradiance, const Size2i &p_size) = 0;
+
+#ifndef DISABLE_DEPRECATED
+protected:
+	void _environment_set_tonemap_bind_compat_94496(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white);
+
+public:
+#endif
 
 	virtual void screen_space_roughness_limiter_set_active(bool p_enable, float p_amount, float p_limit) = 0;
 

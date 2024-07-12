@@ -759,6 +759,22 @@
 				Returns [code]true[/code] if implementation supports using a texture of [param format] with the given [param sampler_filter].
 			</description>
 		</method>
+		<method name="screen_get_color_format" qualifiers="const">
+			<return type="int" enum="RenderingDevice.DataFormat" />
+			<param index="0" name="screen" type="int" default="0" />
+			<description>
+				Returns the color format of the given screen.
+				[b]Note:[/b] Only the main [RenderingDevice] returned by [method RenderingServer.get_rendering_device] has a format. If called on a local [RenderingDevice], this method prints an error and returns [constant DATA_FORMAT_MAX].
+			</description>
+		</method>
+		<method name="screen_get_color_space" qualifiers="const">
+			<return type="int" enum="RenderingDevice.ColorSpace" />
+			<param index="0" name="screen" type="int" default="0" />
+			<description>
+				Returns the color space of the given screen.
+				[b]Note:[/b] Only the main [RenderingDevice] returned by [method RenderingServer.get_rendering_device] has a format. If called on a local [RenderingDevice], this method prints an error and returns [constant COLOR_SPACE_MAX].
+			</description>
+		</method>
 		<method name="screen_get_framebuffer_format" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="screen" type="int" default="0" />
@@ -1877,6 +1893,18 @@
 		<constant name="DATA_FORMAT_MAX" value="218" enum="DataFormat">
 			Represents the size of the [enum DataFormat] enum.
 		</constant>
+		<constant name="COLOR_SPACE_SRGB_LINEAR" value="0" enum="ColorSpace">
+			Color space using Rec 709 primaries and linear gamma.
+		</constant>
+		<constant name="COLOR_SPACE_SRGB_NONLINEAR" value="1" enum="ColorSpace">
+			Color space using Rec 709 primaries and non-linear sRGB gamma.
+		</constant>
+		<constant name="COLOR_SPACE_HDR10_ST2084" value="2" enum="ColorSpace">
+			Color space using Rec 2020 primaries and the ST 2084 transfer function.
+		</constant>
+		<constant name="COLOR_SPACE_MAX" value="3" enum="ColorSpace">
+			Represents the size of the [enum ColorSpace] enum.
+		</constant>
 		<constant name="BARRIER_MASK_VERTEX" value="1" enum="BarrierMask" is_bitfield="true">
 			Vertex shader barrier mask.
 		</constant>
@@ -2444,6 +2472,9 @@
 		</constant>
 		<constant name="SUPPORTS_BUFFER_DEVICE_ADDRESS" value="6" enum="Features">
 			Features support for buffer device address extension.
+		</constant>
+		<constant name="SUPPORTS_HDR_OUTPUT" value="7" enum="Features">
+			Features support for high dynamic range (HDR) output.
 		</constant>
 		<constant name="LIMIT_MAX_BOUND_UNIFORM_SETS" value="0" enum="Limit">
 			Maximum number of uniform sets that can be bound at a given time.

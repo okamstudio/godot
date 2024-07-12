@@ -227,12 +227,32 @@ float Environment::get_tonemap_white() const {
 	return tonemap_white;
 }
 
+void Environment::set_tonemap_min_value(float p_min_value) {
+	tonemap_min_value = p_min_value;
+	_update_tonemap();
+}
+
+float Environment::get_tonemap_min_value() const {
+	return tonemap_min_value;
+}
+
+void Environment::set_tonemap_max_value(float p_max_value) {
+	tonemap_max_value = p_max_value;
+	_update_tonemap();
+}
+
+float Environment::get_tonemap_max_value() const {
+	return tonemap_max_value;
+}
+
 void Environment::_update_tonemap() {
 	RS::get_singleton()->environment_set_tonemap(
 			environment,
 			RS::EnvironmentToneMapper(tone_mapper),
 			tonemap_exposure,
-			tonemap_white);
+			tonemap_white,
+			tonemap_min_value,
+			tonemap_max_value);
 }
 
 // SSR
@@ -1125,6 +1145,16 @@ void Environment::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
+	if (p_property.name == "tonemap_min_value" && tone_mapper == TONE_MAPPER_LINEAR) {
+		// Min value adjustment is not available with linear.
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+
+	if (p_property.name == "tonemap_max_value" && tone_mapper == TONE_MAPPER_LINEAR) {
+		// Min value adjustment is not available with linear.
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
+
 	if (p_property.name == "glow_intensity" && glow_blend_mode == GLOW_BLEND_MODE_MIX) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
@@ -1274,11 +1304,17 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_tonemap_exposure"), &Environment::get_tonemap_exposure);
 	ClassDB::bind_method(D_METHOD("set_tonemap_white", "white"), &Environment::set_tonemap_white);
 	ClassDB::bind_method(D_METHOD("get_tonemap_white"), &Environment::get_tonemap_white);
+	ClassDB::bind_method(D_METHOD("set_tonemap_min_value", "value"), &Environment::set_tonemap_min_value);
+	ClassDB::bind_method(D_METHOD("get_tonemap_min_value"), &Environment::get_tonemap_min_value);
+	ClassDB::bind_method(D_METHOD("set_tonemap_max_value", "value"), &Environment::set_tonemap_max_value);
+	ClassDB::bind_method(D_METHOD("get_tonemap_max_value"), &Environment::get_tonemap_max_value);
 
 	ADD_GROUP("Tonemap", "tonemap_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "tonemap_mode", PROPERTY_HINT_ENUM, "Linear,Reinhard,Filmic,ACES,AgX"), "set_tonemapper", "get_tonemapper");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_exposure", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_tonemap_exposure", "get_tonemap_exposure");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_white", PROPERTY_HINT_RANGE, "0,16,0.01"), "set_tonemap_white", "get_tonemap_white");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_min_value", PROPERTY_HINT_RANGE, "0,8,0.01,or_greater"), "set_tonemap_min_value", "get_tonemap_min_value");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "tonemap_max_value", PROPERTY_HINT_RANGE, "0,8,0.01,or_greater"), "set_tonemap_max_value", "get_tonemap_max_value");
 
 	// SSR
 

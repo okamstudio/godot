@@ -1489,6 +1489,8 @@
 			<param index="1" name="tone_mapper" type="int" enum="RenderingServer.EnvironmentToneMapper" />
 			<param index="2" name="exposure" type="float" />
 			<param index="3" name="white" type="float" />
+			<param index="4" name="min_value" type="float" default="0.0" />
+			<param index="5" name="max_value" type="float" default="1.0" />
 			<description>
 				Sets the variables to be used with the "tonemap" post-process effect. See [Environment] for more details.
 			</description>
