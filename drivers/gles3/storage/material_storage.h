@@ -306,6 +306,7 @@ struct SceneShaderData : public ShaderData {
 	bool uses_screen_texture_mipmaps;
 	bool uses_depth_texture;
 	bool uses_normal_texture;
+	bool uses_bent_normal_texture;
 	bool uses_time;
 	bool uses_vertex_time;
 	bool uses_fragment_time;

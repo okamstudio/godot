@@ -646,6 +646,7 @@ void BaseMaterial3D::init_shaders() {
 	shader_names->texture_names[TEXTURE_ROUGHNESS] = "texture_roughness";
 	shader_names->texture_names[TEXTURE_EMISSION] = "texture_emission";
 	shader_names->texture_names[TEXTURE_NORMAL] = "texture_normal";
+	shader_names->texture_names[TEXTURE_BENT_NORMAL] = "texture_bent_normal";
 	shader_names->texture_names[TEXTURE_RIM] = "texture_rim";
 	shader_names->texture_names[TEXTURE_CLEARCOAT] = "texture_clearcoat";
 	shader_names->texture_names[TEXTURE_FLOWMAP] = "texture_flowmap";
@@ -1011,6 +1012,12 @@ uniform vec4 refraction_texture_channel;
 		code += vformat(R"(
 uniform sampler2D texture_normal : hint_roughness_normal, %s;
 uniform float normal_scale : hint_range(-16.0, 16.0);
+)",
+				texfilter_str);
+	}
+	if (features[FEATURE_BENT_NORMAL_MAPPING]) {
+		code += vformat(R"(
+uniform sampler2D texture_bent_normal : hint_roughness_normal, %s;
 )",
 				texfilter_str);
 	}
@@ -1628,6 +1635,13 @@ void fragment() {)";
 			code += "	NORMAL_MAP = texture(texture_normal, base_uv).rgb;\n";
 		}
 		code += "	NORMAL_MAP_DEPTH = normal_scale;\n";
+	}
+
+	if (features[FEATURE_BENT_NORMAL_MAPPING]) {
+		code += R"(
+	// Bent Normal Map: Enabled
+	BENT_NORMAL_MAP = texture(texture_bent_normal, base_uv).rgb;
+)";
 	}
 
 	if (features[FEATURE_EMISSION]) {
@@ -2405,6 +2419,7 @@ void BaseMaterial3D::_validate_feature(const String &text, Feature feature, Prop
 
 void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 	_validate_feature("normal", FEATURE_NORMAL_MAPPING, p_property);
+	_validate_feature("bent_normal", FEATURE_BENT_NORMAL_MAPPING, p_property);
 	_validate_feature("emission", FEATURE_EMISSION, p_property);
 	_validate_feature("rim", FEATURE_RIM, p_property);
 	_validate_feature("clearcoat", FEATURE_CLEARCOAT, p_property);
@@ -2547,6 +2562,10 @@ void BaseMaterial3D::_validate_property(PropertyInfo &p_property) const {
 		}
 
 		if (p_property.name.begins_with("normal")) {
+			p_property.usage = PROPERTY_USAGE_NONE;
+		}
+
+		if (p_property.name.begins_with("bent_normal")) {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}
 
@@ -3215,6 +3234,10 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "normal_scale", PROPERTY_HINT_RANGE, "-16,16,0.01"), "set_normal_scale", "get_normal_scale");
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "normal_texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_NORMAL);
 
+	ADD_GROUP("Bent Normal Map", "bent_normal_");
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "bent_normal_enabled"), "set_feature", "get_feature", FEATURE_BENT_NORMAL_MAPPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "bent_normal_texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_BENT_NORMAL);
+
 	ADD_GROUP("Rim", "rim_");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "rim_enabled"), "set_feature", "get_feature", FEATURE_RIM);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "rim", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_rim", "get_rim");
@@ -3337,6 +3360,7 @@ void BaseMaterial3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(TEXTURE_ROUGHNESS);
 	BIND_ENUM_CONSTANT(TEXTURE_EMISSION);
 	BIND_ENUM_CONSTANT(TEXTURE_NORMAL);
+	BIND_ENUM_CONSTANT(TEXTURE_BENT_NORMAL);
 	BIND_ENUM_CONSTANT(TEXTURE_RIM);
 	BIND_ENUM_CONSTANT(TEXTURE_CLEARCOAT);
 	BIND_ENUM_CONSTANT(TEXTURE_FLOWMAP);
@@ -3387,6 +3411,7 @@ void BaseMaterial3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FEATURE_BACKLIGHT);
 	BIND_ENUM_CONSTANT(FEATURE_REFRACTION);
 	BIND_ENUM_CONSTANT(FEATURE_DETAIL);
+	BIND_ENUM_CONSTANT(FEATURE_BENT_NORMAL_MAPPING);
 	BIND_ENUM_CONSTANT(FEATURE_MAX);
 
 	BIND_ENUM_CONSTANT(BLEND_MODE_MIX);
