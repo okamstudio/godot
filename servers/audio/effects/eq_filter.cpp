@@ -31,9 +31,7 @@
 #include "eq_filter.h"
 
 #include "core/error/error_macros.h"
-#include "core/math/math_defs.h"
-
-#include <math.h>
+#include "core/math/math_funcs.h"
 
 #define POW2(v) ((v) * (v))
 
@@ -51,7 +49,7 @@ static int solve_quadratic(double a, double b, double c, double *r1, double *r2)
 		return 0;
 	}
 
-	squared = sqrt(squared);
+	squared = Math::sqrt(squared);
 
 	*r1 = (-b + squared) / base;
 	*r2 = (-b - squared) / base;
@@ -69,7 +67,7 @@ EQ::BandProcess::BandProcess() {
 }
 
 void EQ::recalculate_band_coefficients() {
-#define BAND_LOG(m_f) (log((m_f)) / log(2.))
+#define BAND_LOG(m_f) (Math::log((m_f)) / Math::log(2.))
 
 	for (int i = 0; i < band.size(); i++) {
 		double octave_size;
@@ -86,17 +84,17 @@ void EQ::recalculate_band_coefficients() {
 			octave_size = (next + prev) / 2.0;
 		}
 
-		double frq_l = round(frq / pow(2.0, octave_size / 2.0));
+		double frq_l = Math::round(frq / Math::pow(2.0, octave_size / 2.0));
 
 		double side_gain2 = POW2(Math_SQRT12);
 		double th = Math_TAU * frq / mix_rate;
 		double th_l = Math_TAU * frq_l / mix_rate;
 
-		double c2a = side_gain2 * POW2(cos(th)) - 2.0 * side_gain2 * cos(th_l) * cos(th) + side_gain2 - POW2(sin(th_l));
+		double c2a = side_gain2 * POW2(Math::cos(th)) - 2.0 * side_gain2 * Math::cos(th_l) * Math::cos(th) + side_gain2 - POW2(Math::sin(th_l));
 
-		double c2b = 2.0 * side_gain2 * POW2(cos(th_l)) + side_gain2 * POW2(cos(th)) - 2.0 * side_gain2 * cos(th_l) * cos(th) - side_gain2 + POW2(sin(th_l));
+		double c2b = 2.0 * side_gain2 * POW2(Math::cos(th_l)) + side_gain2 * POW2(Math::cos(th)) - 2.0 * side_gain2 * Math::cos(th_l) * Math::cos(th) - side_gain2 + POW2(Math::sin(th_l));
 
-		double c2c = 0.25 * side_gain2 * POW2(cos(th)) - 0.5 * side_gain2 * cos(th_l) * cos(th) + 0.25 * side_gain2 - 0.25 * POW2(sin(th_l));
+		double c2c = 0.25 * side_gain2 * POW2(Math::cos(th)) - 0.5 * side_gain2 * Math::cos(th_l) * Math::cos(th) + 0.25 * side_gain2 - 0.25 * POW2(Math::sin(th_l));
 
 		//printf("band %i, precoefs = %f,%f,%f\n",i,c2a,c2b,c2c);
 
@@ -109,7 +107,7 @@ void EQ::recalculate_band_coefficients() {
 
 		band.write[i].c1 = 2.0 * ((0.5 - r1) / 2.0);
 		band.write[i].c2 = 2.0 * r1;
-		band.write[i].c3 = 2.0 * (0.5 + r1) * cos(th);
+		band.write[i].c3 = 2.0 * (0.5 + r1) * Math::cos(th);
 		//printf("band %i, coefs = %f,%f,%f\n",i,(float)bands[i].c1,(float)bands[i].c2,(float)bands[i].c3);
 	}
 }

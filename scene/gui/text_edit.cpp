@@ -581,7 +581,7 @@ void TextEdit::_notification(int p_what) {
 		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
 			if (scrolling && get_v_scroll() != target_v_scroll) {
 				double target_y = target_v_scroll - get_v_scroll();
-				double dist = abs(target_y);
+				double dist = Math::abs(target_y);
 				// To ensure minimap is responsive override the speed setting.
 				double vel = ((target_y / dist) * ((minimap_clicked) ? 3000 : v_scroll_speed)) * get_physics_process_delta_time();
 
@@ -828,10 +828,10 @@ void TextEdit::_notification(int p_what) {
 				// Calculate viewport size and y offset.
 				int viewport_height = (draw_amount - 1) * minimap_line_height;
 				int control_height = _get_control_height() - viewport_height;
-				int viewport_offset_y = round(get_scroll_pos_for_line(first_vis_line + 1) * control_height) / ((v_scroll->get_max() <= minimap_visible_lines) ? (minimap_visible_lines - draw_amount) : (v_scroll->get_max() - draw_amount));
+				int viewport_offset_y = Math::round(get_scroll_pos_for_line(first_vis_line + 1) * control_height) / ((v_scroll->get_max() <= minimap_visible_lines) ? (minimap_visible_lines - draw_amount) : (v_scroll->get_max() - draw_amount));
 
 				// Calculate the first line.
-				int num_lines_before = round((viewport_offset_y) / minimap_line_height);
+				int num_lines_before = Math::round(double(viewport_offset_y) / minimap_line_height);
 				int minimap_line = (v_scroll->get_max() <= minimap_visible_lines) ? -1 : first_vis_line;
 				if (minimap_line >= 0) {
 					minimap_line -= get_next_visible_line_index_offset_from(first_vis_line, 0, -num_lines_before).x;
@@ -1152,9 +1152,9 @@ void TextEdit::_notification(int p_what) {
 									float icon_ratio = icon->get_width() / icon->get_height();
 									float gutter_ratio = gutter_rect.size.x / gutter_rect.size.y;
 									if (gutter_ratio > icon_ratio) {
-										gutter_rect.size.x = floor(icon->get_width() * (gutter_rect.size.y / icon->get_height()));
+										gutter_rect.size.x = Math::floor(icon->get_width() * (gutter_rect.size.y / icon->get_height()));
 									} else {
-										gutter_rect.size.y = floor(icon->get_height() * (gutter_rect.size.x / icon->get_width()));
+										gutter_rect.size.y = Math::floor(icon->get_height() * (gutter_rect.size.x / icon->get_width()));
 									}
 									if (rtl) {
 										gutter_rect.position.x = size.width - gutter_rect.position.x - gutter_rect.size.x;
@@ -1289,7 +1289,7 @@ void TextEdit::_notification(int p_what) {
 									} else if (rect.position.x + rect.size.x > xmargin_end) {
 										rect.size.x = xmargin_end - rect.position.x;
 									}
-									rect.position.y += ceil(TS->shaped_text_get_ascent(rid)) + ceil(theme_cache.font->get_underline_position(theme_cache.font_size));
+									rect.position.y += Math::ceil(TS->shaped_text_get_ascent(rid)) + Math::ceil(theme_cache.font->get_underline_position(theme_cache.font_size));
 									rect.size.y = MAX(1, theme_cache.font->get_underline_thickness(theme_cache.font_size));
 									RS::get_singleton()->canvas_item_add_rect(ci, rect, highlight_underline_color);
 								}
@@ -4536,10 +4536,10 @@ int TextEdit::get_minimap_line_at_pos(const Point2i &p_pos) const {
 	// Calculate viewport size and y offset.
 	int viewport_height = (draw_amount - 1) * minimap_line_height;
 	int control_height = _get_control_height() - viewport_height;
-	int viewport_offset_y = round(get_scroll_pos_for_line(first_vis_line + 1) * control_height) / ((v_scroll->get_max() <= minimap_visible_lines) ? (minimap_visible_lines - draw_amount) : (v_scroll->get_max() - draw_amount));
+	int viewport_offset_y = Math::round(get_scroll_pos_for_line(first_vis_line + 1) * control_height) / ((v_scroll->get_max() <= minimap_visible_lines) ? (minimap_visible_lines - draw_amount) : (v_scroll->get_max() - draw_amount));
 
 	// Calculate the first line.
-	int num_lines_before = round((viewport_offset_y) / minimap_line_height);
+	int num_lines_before = Math::round(double(viewport_offset_y) / minimap_line_height);
 	int minimap_line = (v_scroll->get_max() <= minimap_visible_lines) ? -1 : first_vis_line;
 	if (first_vis_line > 0 && minimap_line >= 0) {
 		minimap_line -= get_next_visible_line_index_offset_from(first_vis_line, 0, -num_lines_before).x;
@@ -8028,7 +8028,7 @@ void TextEdit::_update_scrollbars() {
 		if (first_visible_col > (total_width - visible_width)) {
 			first_visible_col = (total_width - visible_width);
 		}
-		if (fabs(h_scroll->get_value() - (double)first_visible_col) >= 1) {
+		if (Math::abs(h_scroll->get_value() - (double)first_visible_col) >= 1) {
 			h_scroll->set_value(first_visible_col);
 		}
 
@@ -8068,7 +8068,7 @@ void TextEdit::_scroll_moved(double p_to_val) {
 		// Set line ofs and wrap ofs.
 		bool draw_placeholder = _using_placeholder();
 
-		int v_scroll_i = floor(get_v_scroll());
+		int v_scroll_i = Math::floor(get_v_scroll());
 		int sc = 0;
 		int n_line;
 		for (n_line = 0; n_line < text.size(); n_line++) {
@@ -8094,13 +8094,13 @@ void TextEdit::_scroll_moved(double p_to_val) {
 double TextEdit::_get_visible_lines_offset() const {
 	double total = _get_control_height();
 	total /= (double)get_line_height();
-	total = total - floor(total);
+	total = total - Math::floor(total);
 	total = -CLAMP(total, 0.001, 1) + 1;
 	return total;
 }
 
 double TextEdit::_get_v_scroll_offset() const {
-	double val = get_v_scroll() - floor(get_v_scroll());
+	double val = get_v_scroll() - Math::floor(get_v_scroll());
 	return CLAMP(val, 0, 1);
 }
 
@@ -8144,7 +8144,7 @@ void TextEdit::_scroll_down(real_t p_delta, bool p_animate) {
 	}
 
 	if (smooth_scroll_enabled) {
-		int max_v_scroll = round(v_scroll->get_max() - v_scroll->get_page());
+		int max_v_scroll = Math::round(v_scroll->get_max() - v_scroll->get_page());
 		if (target_v_scroll > max_v_scroll) {
 			target_v_scroll = max_v_scroll;
 		}

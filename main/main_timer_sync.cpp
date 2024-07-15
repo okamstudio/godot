@@ -335,7 +335,7 @@ MainFrameTime MainTimerSync::advance_core(double p_physics_step, int p_physics_t
 
 	// simple determination of number of physics iteration
 	time_accum += ret.process_step;
-	ret.physics_steps = floor(time_accum * p_physics_ticks_per_second);
+	ret.physics_steps = Math::floor(time_accum * p_physics_ticks_per_second);
 
 	int min_typical_steps = typical_physics_steps[0];
 	int max_typical_steps = min_typical_steps + 1;
@@ -368,7 +368,7 @@ MainFrameTime MainTimerSync::advance_core(double p_physics_step, int p_physics_t
 
 	// try to keep it consistent with previous iterations
 	if (ret.physics_steps < min_typical_steps) {
-		const int max_possible_steps = floor((time_accum)*p_physics_ticks_per_second + get_physics_jitter_fix());
+		const int max_possible_steps = Math::floor((time_accum)*p_physics_ticks_per_second + get_physics_jitter_fix());
 		if (max_possible_steps < min_typical_steps) {
 			ret.physics_steps = max_possible_steps;
 			update_typical = true;
@@ -376,7 +376,7 @@ MainFrameTime MainTimerSync::advance_core(double p_physics_step, int p_physics_t
 			ret.physics_steps = min_typical_steps;
 		}
 	} else if (ret.physics_steps > max_typical_steps) {
-		const int min_possible_steps = floor((time_accum)*p_physics_ticks_per_second - get_physics_jitter_fix());
+		const int min_possible_steps = Math::floor((time_accum)*p_physics_ticks_per_second - get_physics_jitter_fix());
 		if (min_possible_steps > max_typical_steps) {
 			ret.physics_steps = min_possible_steps;
 			update_typical = true;
@@ -462,7 +462,7 @@ MainFrameTime MainTimerSync::advance_checked(double p_physics_step, int p_physic
 #endif
 
 	if (time_accum > p_physics_step) {
-		const int extra_physics_steps = floor(time_accum * p_physics_ticks_per_second);
+		const int extra_physics_steps = Math::floor(time_accum * p_physics_ticks_per_second);
 		time_accum -= extra_physics_steps * p_physics_step;
 		ret.physics_steps += extra_physics_steps;
 	}

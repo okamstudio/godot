@@ -563,7 +563,7 @@ void GodotBody2D::integrate_forces(real_t p_step) {
 		linear_velocity = constant_linear_velocity + motion / p_step;
 
 		real_t rot = new_transform.get_rotation() - get_transform().get_rotation();
-		angular_velocity = constant_angular_velocity + remainder(rot, 2.0 * Math_PI) / p_step;
+		angular_velocity = constant_angular_velocity + Math::remainder(rot, 2 * (real_t)Math_PI) / p_step;
 
 		do_motion = true;
 

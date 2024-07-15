@@ -504,15 +504,15 @@ void NavigationObstacle3D::_update_fake_agent_radius_debug() {
 		float w;
 
 		v /= (rings + 1);
-		w = sin(Math_PI * v);
-		y = (radius)*cos(Math_PI * v);
+		w = Math::sin(Math_PI * v);
+		y = radius * Math::cos(Math_PI * v);
 
 		for (i = 0; i <= radial_segments; i++) {
 			float u = i;
 			u /= radial_segments;
 
-			x = sin(u * Math_TAU);
-			z = cos(u * Math_TAU);
+			x = Math::sin(u * Math_TAU);
+			z = Math::cos(u * Math_TAU);
 
 			Vector3 p = Vector3(x * radius * w, y, z * radius * w);
 			face_vertex_array.push_back(p);

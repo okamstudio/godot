@@ -45,7 +45,7 @@ void AnimatedTexture::_update_proxy() {
 
 	time += delta;
 
-	float speed = speed_scale == 0 ? 0 : abs(1.0 / speed_scale);
+	float speed = speed_scale == 0 ? 0 : Math::abs(1.0 / speed_scale);
 
 	int iter_max = frame_count;
 	while (iter_max && !pause) {

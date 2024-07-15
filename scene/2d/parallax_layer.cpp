@@ -118,12 +118,12 @@ void ParallaxLayer::set_base_offset_and_scale(const Point2 &p_offset, real_t p_s
 
 	if (mirroring.x) {
 		real_t den = mirroring.x * p_scale;
-		new_ofs.x -= den * ceil(new_ofs.x / den);
+		new_ofs.x -= den * Math::ceil(new_ofs.x / den);
 	}
 
 	if (mirroring.y) {
 		real_t den = mirroring.y * p_scale;
-		new_ofs.y -= den * ceil(new_ofs.y / den);
+		new_ofs.y -= den * Math::ceil(new_ofs.y / den);
 	}
 
 	set_position(new_ofs);

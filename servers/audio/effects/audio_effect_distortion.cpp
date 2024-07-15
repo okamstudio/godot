@@ -37,17 +37,17 @@ void AudioEffectDistortionInstance::process(const AudioFrame *p_src_frames, Audi
 	float *dst = (float *)p_dst_frames;
 
 	//float lpf_c=expf(-Math_TAU*keep_hf_hz.get()/(mix_rate*(float)OVERSAMPLE));
-	float lpf_c = expf(-Math_TAU * base->keep_hf_hz / (AudioServer::get_singleton()->get_mix_rate()));
+	float lpf_c = Math::exp(-Math_TAU * base->keep_hf_hz / (AudioServer::get_singleton()->get_mix_rate()));
 	float lpf_ic = 1.0 - lpf_c;
 
 	float drive_f = base->drive;
 	float pregain_f = Math::db_to_linear(base->pre_gain);
 	float postgain_f = Math::db_to_linear(base->post_gain);
 
-	float atan_mult = pow(10, drive_f * drive_f * 3.0) - 1.0 + 0.001;
-	float atan_div = 1.0 / (atanf(atan_mult) * (1.0 + drive_f * 8));
+	float atan_mult = Math::pow(10, drive_f * drive_f * 3.0) - 1.0 + 0.001;
+	float atan_div = 1.0 / (Math::atan(atan_mult) * (1.0 + drive_f * 8));
 
-	float lofi_mult = powf(2.0, 2.0 + (1.0 - drive_f) * 14); //goes from 16 to 2 bits
+	float lofi_mult = Math::pow(2.0, 2.0 + (1.0 - drive_f) * 14); //goes from 16 to 2 bits
 
 	for (int i = 0; i < p_frame_count * 2; i++) {
 		float out = undenormalize(src[i] * lpf_ic + lpf_c * h[i & 1]);
@@ -59,7 +59,7 @@ void AudioEffectDistortionInstance::process(const AudioFrame *p_src_frames, Audi
 		switch (base->mode) {
 			case AudioEffectDistortion::MODE_CLIP: {
 				float a_sign = a < 0 ? -1.0f : 1.0f;
-				a = powf(abs(a), 1.0001 - drive_f) * a_sign;
+				a = Math::pow(Math::abs(a), 1.0001f - drive_f) * a_sign;
 				if (a > 1.0) {
 					a = 1.0;
 				} else if (a < (-1.0)) {
@@ -68,23 +68,23 @@ void AudioEffectDistortionInstance::process(const AudioFrame *p_src_frames, Audi
 
 			} break;
 			case AudioEffectDistortion::MODE_ATAN: {
-				a = atanf(a * atan_mult) * atan_div;
+				a = Math::atan(a * atan_mult) * atan_div;
 
 			} break;
 			case AudioEffectDistortion::MODE_LOFI: {
-				a = floorf(a * lofi_mult + 0.5) / lofi_mult;
+				a = Math::floor(a * lofi_mult + 0.5) / lofi_mult;
 
 			} break;
 			case AudioEffectDistortion::MODE_OVERDRIVE: {
 				const double x = a * 0.686306;
-				const double z = 1 + exp(sqrt(fabs(x)) * -0.75);
-				a = (expf(x) - expf(-x * z)) / (expf(x) + expf(-x));
+				const double z = 1 + Math::exp(Math::sqrt(Math::abs(x)) * -0.75);
+				a = (Math::exp(x) - Math::exp(-x * z)) / (Math::exp(x) + Math::exp(-x));
 			} break;
 			case AudioEffectDistortion::MODE_WAVESHAPE: {
 				float x = a;
 				float k = 2 * drive_f / (1.00001 - drive_f);
 
-				a = (1.0 + k) * x / (1.0 + k * fabsf(x));
+				a = (1.0 + k) * x / (1.0 + k * Math::abs(x));
 
 			} break;
 		}

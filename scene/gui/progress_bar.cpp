@@ -106,13 +106,13 @@ void ProgressBar::_notification(int p_what) {
 				case FILL_BEGIN_TO_END:
 				case FILL_END_TO_BEGIN: {
 					int mp = theme_cache.fill_style->get_minimum_size().width;
-					int p = round(r * (get_size().width - mp));
+					int p = Math::round(r * (get_size().width - mp));
 					// We want FILL_BEGIN_TO_END to map to right to left when UI layout is RTL,
 					// and left to right otherwise. And likewise for FILL_END_TO_BEGIN.
 					bool right_to_left = mode == (is_layout_rtl() ? FILL_BEGIN_TO_END : FILL_END_TO_BEGIN);
 					if (p > 0) {
 						if (right_to_left) {
-							int p_remaining = round((1.0 - r) * (get_size().width - mp));
+							int p_remaining = Math::round((1.0 - r) * (get_size().width - mp));
 							draw_style_box(theme_cache.fill_style, Rect2(Point2(p_remaining, 0), Size2(p + theme_cache.fill_style->get_minimum_size().width, get_size().height)));
 						} else {
 							draw_style_box(theme_cache.fill_style, Rect2(Point2(0, 0), Size2(p + theme_cache.fill_style->get_minimum_size().width, get_size().height)));
@@ -122,13 +122,13 @@ void ProgressBar::_notification(int p_what) {
 				case FILL_TOP_TO_BOTTOM:
 				case FILL_BOTTOM_TO_TOP: {
 					int mp = theme_cache.fill_style->get_minimum_size().height;
-					int p = round(r * (get_size().height - mp));
+					int p = Math::round(r * (get_size().height - mp));
 
 					if (p > 0) {
 						if (mode == FILL_TOP_TO_BOTTOM) {
 							draw_style_box(theme_cache.fill_style, Rect2(Point2(0, 0), Size2(get_size().width, p + theme_cache.fill_style->get_minimum_size().height)));
 						} else {
-							int p_remaining = round((1.0 - r) * (get_size().height - mp));
+							int p_remaining = Math::round((1.0 - r) * (get_size().height - mp));
 							draw_style_box(theme_cache.fill_style, Rect2(Point2(0, p_remaining), Size2(get_size().width, p + theme_cache.fill_style->get_minimum_size().height)));
 						}
 					}

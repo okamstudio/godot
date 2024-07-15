@@ -262,16 +262,16 @@ void Basis::scale_orthogonal(const Vector3 &p_scale) {
 Basis Basis::scaled_orthogonal(const Vector3 &p_scale) const {
 	Basis m = *this;
 	Vector3 s = Vector3(-1, -1, -1) + p_scale;
-	bool sign = signbit(s.x + s.y + s.z);
+	bool sign = Math::sign_bit(s.x + s.y + s.z);
 	Basis b = m.orthonormalized();
 	s = b.xform_inv(s);
 	Vector3 dots;
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
-			dots[j] += s[i] * abs(m.get_column(i).normalized().dot(b.get_column(j)));
+			dots[j] += s[i] * Math::abs(m.get_column(i).normalized().dot(b.get_column(j)));
 		}
 	}
-	if (sign != signbit(dots.x + dots.y + dots.z)) {
+	if (sign != Math::sign_bit(dots.x + dots.y + dots.z)) {
 		dots = -dots;
 	}
 	m.scale_local(Vector3(1, 1, 1) + dots);
@@ -472,7 +472,7 @@ Vector3 Basis::get_euler(EulerOrder p_order) const {
 					if (rows[1][0] == 0 && rows[0][1] == 0 && rows[1][2] == 0 && rows[2][1] == 0 && rows[1][1] == 1) {
 						// return the simplest form (human friendlier in editor and scripts)
 						euler.x = 0;
-						euler.y = atan2(rows[0][2], rows[0][0]);
+						euler.y = Math::atan2(rows[0][2], rows[0][0]);
 						euler.z = 0;
 					} else {
 						euler.x = Math::atan2(-rows[1][2], rows[2][2]);
@@ -537,22 +537,22 @@ Vector3 Basis::get_euler(EulerOrder p_order) const {
 					// is this a pure X rotation?
 					if (rows[1][0] == 0 && rows[0][1] == 0 && rows[0][2] == 0 && rows[2][0] == 0 && rows[0][0] == 1) {
 						// return the simplest form (human friendlier in editor and scripts)
-						euler.x = atan2(-m12, rows[1][1]);
+						euler.x = Math::atan2(-m12, rows[1][1]);
 						euler.y = 0;
 						euler.z = 0;
 					} else {
-						euler.x = asin(-m12);
-						euler.y = atan2(rows[0][2], rows[2][2]);
-						euler.z = atan2(rows[1][0], rows[1][1]);
+						euler.x = Math::asin(-m12);
+						euler.y = Math::atan2(rows[0][2], rows[2][2]);
+						euler.z = Math::atan2(rows[1][0], rows[1][1]);
 					}
 				} else { // m12 == -1
 					euler.x = Math_PI * 0.5f;
-					euler.y = atan2(rows[0][1], rows[0][0]);
+					euler.y = Math::atan2(rows[0][1], rows[0][0]);
 					euler.z = 0;
 				}
 			} else { // m12 == 1
 				euler.x = -Math_PI * 0.5f;
-				euler.y = -atan2(rows[0][1], rows[0][0]);
+				euler.y = -Math::atan2(rows[0][1], rows[0][0]);
 				euler.z = 0;
 			}
 

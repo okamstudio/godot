@@ -327,7 +327,7 @@ void ScrollBar::_notification(int p_what) {
 			if (scrolling) {
 				if (get_value() != target_scroll) {
 					double target = target_scroll - get_value();
-					double dist = abs(target);
+					double dist = Math::abs(target);
 					double vel = ((target / dist) * 500) * get_physics_process_delta_time();
 
 					if (Math::abs(vel) >= dist) {

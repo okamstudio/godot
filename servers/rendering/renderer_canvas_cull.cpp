@@ -904,8 +904,8 @@ static Vector2 compute_polyline_edge_offset_clamped(const Vector2 &p_segment_dir
 
 	bisector = (p_prev_segment_dir * p_segment_dir.length() - p_segment_dir * p_prev_segment_dir.length()).normalized();
 
-	float angle = atan2f(bisector.cross(p_prev_segment_dir), bisector.dot(p_prev_segment_dir));
-	float sin_angle = sinf(angle);
+	float angle = Math::atan2(bisector.cross(p_prev_segment_dir), bisector.dot(p_prev_segment_dir));
+	float sin_angle = Math::sin(angle);
 
 	if (!Math::is_zero_approx(sin_angle) && !p_segment_dir.is_equal_approx(p_prev_segment_dir)) {
 		length = 1.0f / sin_angle;

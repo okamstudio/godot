@@ -936,7 +936,7 @@ void CodeTextEditor::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventMagnifyGesture> magnify_gesture = p_event;
 	if (magnify_gesture.is_valid()) {
-		_zoom_to(zoom_factor * powf(magnify_gesture->get_factor(), 0.25f));
+		_zoom_to(zoom_factor * Math::pow((float)magnify_gesture->get_factor(), 0.25f));
 		accept_event();
 		return;
 	}

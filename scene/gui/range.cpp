@@ -209,7 +209,7 @@ void Range::set_as_ratio(double p_value) {
 	} else {
 		double percent = (get_max() - get_min()) * p_value;
 		if (get_step() > 0) {
-			double steps = round(percent / get_step());
+			double steps = Math::round(percent / get_step());
 			v = steps * get_step() + get_min();
 		} else {
 			v = percent + get_min();

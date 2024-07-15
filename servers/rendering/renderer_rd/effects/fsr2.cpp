@@ -216,7 +216,7 @@ static FfxErrorCode create_resource_rd(FfxFsr2Interface *p_backend_interface, co
 
 	if (res_desc.mipCount == 0) {
 		// Mipmap count must be derived from the resource's dimensions.
-		res_desc.mipCount = uint32_t(1 + floor(log2(MAX(MAX(res_desc.width, res_desc.height), res_desc.depth))));
+		res_desc.mipCount = uint32_t(1 + Math::floor(Math::log2((float)MAX(MAX(res_desc.width, res_desc.height), res_desc.depth))));
 	}
 
 	Vector<PackedByteArray> initial_data;

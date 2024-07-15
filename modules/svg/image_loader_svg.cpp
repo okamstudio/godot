@@ -89,8 +89,8 @@ Error ImageLoaderSVG::create_image_from_utf8_buffer(Ref<Image> p_image, const ui
 	float fw, fh;
 	picture->size(&fw, &fh);
 
-	uint32_t width = MAX(1, round(fw * p_scale));
-	uint32_t height = MAX(1, round(fh * p_scale));
+	uint32_t width = MAX(1, Math::round(fw * p_scale));
+	uint32_t height = MAX(1, Math::round(fh * p_scale));
 
 	const uint32_t max_dimension = 16384;
 	if (width > max_dimension || height > max_dimension) {

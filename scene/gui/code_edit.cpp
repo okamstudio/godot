@@ -3716,7 +3716,7 @@ void CodeEdit::_text_changed() {
 	}
 
 	int lc = get_line_count();
-	int new_line_number_digits = log10l(lc) + 1;
+	int new_line_number_digits = Math::log10((float)lc) + 1;
 	if (line_number_digits != new_line_number_digits) {
 		_clear_line_number_text_cache();
 	}

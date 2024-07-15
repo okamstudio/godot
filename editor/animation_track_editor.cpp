@@ -3149,7 +3149,7 @@ void AnimationTrackEdit::gui_input(const Ref<InputEvent> &p_event) {
 		if (!mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT) {
 			moving_selection_attempt = false;
 			if (moving_selection && moving_selection_effective) {
-				if (abs(editor->get_moving_selection_offset()) > CMP_EPSILON) {
+				if (Math::abs(editor->get_moving_selection_offset()) > CMP_EPSILON) {
 					emit_signal(SNAME("move_selection_commit"));
 				}
 			} else if (select_single_attempt != -1) {
@@ -3230,7 +3230,7 @@ void AnimationTrackEdit::gui_input(const Ref<InputEvent> &p_event) {
 		float snapped_time = editor->snap_time(moving_selection_pivot + delta);
 
 		float offset = 0.0;
-		if (abs(editor->get_moving_selection_offset()) > CMP_EPSILON || (snapped_time > moving_selection_pivot && delta > CMP_EPSILON) || (snapped_time < moving_selection_pivot && delta < -CMP_EPSILON)) {
+		if (Math::abs(editor->get_moving_selection_offset()) > CMP_EPSILON || (snapped_time > moving_selection_pivot && delta > CMP_EPSILON) || (snapped_time < moving_selection_pivot && delta < -CMP_EPSILON)) {
 			offset = snapped_time - moving_selection_pivot;
 			moving_selection_effective = true;
 		}
@@ -6873,8 +6873,8 @@ void AnimationTrackEditor::_edit_menu_pressed(int p_option) {
 						if (is_using_angle) {
 							real_t a = from_v;
 							real_t b = to_v;
-							real_t to_diff = fmod(b - a, Math_TAU);
-							to_v = a + fmod(2.0 * to_diff, Math_TAU) - to_diff;
+							real_t to_diff = Math::fmod(b - a, (real_t)Math_TAU);
+							to_v = a + Math::fmod(2 * to_diff, (real_t)Math_TAU) - to_diff;
 						}
 						Variant delta_v = Animation::subtract_variant(to_v, from_v);
 						double duration = to_t - from_t;

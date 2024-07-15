@@ -282,7 +282,7 @@ void Projection::set_perspective(real_t p_fovy_degrees, real_t p_aspect, real_t 
 
 	real_t left, right, modeltranslation, ymax, xmax, frustumshift;
 
-	ymax = p_z_near * tan(Math::deg_to_rad(p_fovy_degrees / 2.0));
+	ymax = p_z_near * Math::tan(Math::deg_to_rad(p_fovy_degrees / 2.0));
 	xmax = ymax * p_aspect;
 	frustumshift = (p_intraocular_dist / 2.0) * p_z_near / p_convergence_dist;
 

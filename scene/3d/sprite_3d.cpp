@@ -1111,7 +1111,7 @@ void AnimatedSprite3D::_notification(int p_what) {
 				int fc = frames->get_frame_count(animation);
 
 				int last_frame = fc - 1;
-				if (!signbit(speed)) {
+				if (!Math::sign_bit(speed)) {
 					// Forwards.
 					if (frame_progress >= 1.0) {
 						if (frame >= last_frame) {
@@ -1209,7 +1209,7 @@ Ref<SpriteFrames> AnimatedSprite3D::get_sprite_frames() const {
 }
 
 void AnimatedSprite3D::set_frame(int p_frame) {
-	set_frame_and_progress(p_frame, signbit(get_playing_speed()) ? 1.0 : 0.0);
+	set_frame_and_progress(p_frame, Math::sign_bit(get_playing_speed()) ? 1.0 : 0.0);
 }
 
 int AnimatedSprite3D::get_frame() const {
@@ -1346,7 +1346,7 @@ void AnimatedSprite3D::play(const StringName &p_name, float p_custom_scale, bool
 		emit_signal(SceneStringName(animation_changed));
 	} else {
 		int end_frame = MAX(0, frames->get_frame_count(animation) - 1);
-		bool is_backward = signbit(speed_scale * custom_speed_scale);
+		bool is_backward = Math::sign_bit(speed_scale * custom_speed_scale);
 
 		if (p_from_end && is_backward && frame == 0 && frame_progress <= 0.0) {
 			set_frame_and_progress(end_frame, 1.0);
@@ -1418,7 +1418,7 @@ void AnimatedSprite3D::set_animation(const StringName &p_name) {
 		ERR_FAIL_MSG(vformat("There is no animation with name '%s'.", p_name));
 	}
 
-	if (signbit(get_playing_speed())) {
+	if (Math::sign_bit(get_playing_speed())) {
 		set_frame_and_progress(frame_count - 1, 1.0);
 	} else {
 		set_frame_and_progress(0, 0.0);

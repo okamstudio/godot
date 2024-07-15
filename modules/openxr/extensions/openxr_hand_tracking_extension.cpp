@@ -245,7 +245,7 @@ void OpenXRHandTrackingExtension::on_process() {
 
 			// For some reason an inactive controller isn't coming back as inactive but has coordinates either as NAN or very large
 			const XrPosef &palm = hand_trackers[i].joint_locations[XR_HAND_JOINT_PALM_EXT].pose;
-			if (!hand_trackers[i].locations.isActive || isnan(palm.position.x) || palm.position.x < -1000000.00 || palm.position.x > 1000000.00) {
+			if (!hand_trackers[i].locations.isActive || Math::is_nan(palm.position.x) || palm.position.x < -1000000.00 || palm.position.x > 1000000.00) {
 				hand_trackers[i].locations.isActive = false; // workaround, make sure its inactive
 			}
 

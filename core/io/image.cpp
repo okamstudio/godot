@@ -39,8 +39,6 @@
 #include "core/templates/hash_map.h"
 #include "core/variant/dictionary.h"
 
-#include <cmath>
-
 const char *Image::format_names[Image::FORMAT_MAX] = {
 	"Lum8",
 	"LumAlpha8",
@@ -4262,12 +4260,12 @@ Dictionary Image::compute_image_metrics(const Ref<Image> p_compared_image, bool 
 	image_metric_mean = CLAMP(sum / total_values, 0.0f, 255.0f);
 	image_metric_mean_squared = CLAMP(sum2 / total_values, 0.0f, 255.0f * 255.0f);
 
-	image_metric_root_mean_squared = sqrt(image_metric_mean_squared);
+	image_metric_root_mean_squared = Math::sqrt(image_metric_mean_squared);
 
 	if (!image_metric_root_mean_squared) {
 		image_metric_peak_snr = 1e+10f;
 	} else {
-		image_metric_peak_snr = CLAMP(log10(255.0f / image_metric_root_mean_squared) * 20.0f, 0.0f, 500.0f);
+		image_metric_peak_snr = CLAMP(Math::log10(255.0f / image_metric_root_mean_squared) * 20.0f, 0.0f, 500.0f);
 	}
 	result["max"] = image_metric_max;
 	result["mean"] = image_metric_mean;

@@ -577,7 +577,7 @@ Ref<ArrayMesh> MeshInstance3D::bake_mesh_from_current_blend_shape_mix(Ref<ArrayM
 
 		for (int blendshape_index = 0; blendshape_index < blend_shape_count; blendshape_index++) {
 			float blend_weight = get_blend_shape_value(blendshape_index);
-			if (abs(blend_weight) <= 0.0001) {
+			if (Math::abs(blend_weight) <= 0.0001) {
 				continue;
 			}
 

@@ -108,9 +108,9 @@ void AudioFilterSW::prepare_coefficients(Coeffs *p_coeffs) {
 		} break;
 
 		case BANDPASS: {
-			p_coeffs->b0 = alpha * sqrt(Q + 1);
+			p_coeffs->b0 = alpha * Math::sqrt(Q + 1);
 			p_coeffs->b1 = 0.0;
-			p_coeffs->b2 = -alpha * sqrt(Q + 1);
+			p_coeffs->b2 = -alpha * Math::sqrt(Q + 1);
 			p_coeffs->a1 = -2.0 * cos_v;
 			p_coeffs->a2 = 1.0 - alpha;
 		} break;
@@ -195,19 +195,19 @@ float AudioFilterSW::get_response(float p_freq, Coeffs *p_coeffs) {
 
 	float cx = p_coeffs->b0, cy = 0.0;
 
-	cx += cos(freq) * p_coeffs->b1;
-	cy -= sin(freq) * p_coeffs->b1;
-	cx += cos(2 * freq) * p_coeffs->b2;
-	cy -= sin(2 * freq) * p_coeffs->b2;
+	cx += Math::cos(freq) * p_coeffs->b1;
+	cy -= Math::sin(freq) * p_coeffs->b1;
+	cx += Math::cos(2 * freq) * p_coeffs->b2;
+	cy -= Math::sin(2 * freq) * p_coeffs->b2;
 
 	float H = cx * cx + cy * cy;
 	cx = 1.0;
 	cy = 0.0;
 
-	cx -= cos(freq) * p_coeffs->a1;
-	cy += sin(freq) * p_coeffs->a1;
-	cx -= cos(2 * freq) * p_coeffs->a2;
-	cy += sin(2 * freq) * p_coeffs->a2;
+	cx -= Math::cos(freq) * p_coeffs->a1;
+	cy += Math::sin(freq) * p_coeffs->a1;
+	cx -= Math::cos(2 * freq) * p_coeffs->a2;
+	cy += Math::sin(2 * freq) * p_coeffs->a2;
 
 	H = H / (cx * cx + cy * cy);
 	return H;

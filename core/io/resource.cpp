@@ -32,6 +32,7 @@
 
 #include "core/io/resource_loader.h"
 #include "core/math/math_funcs.h"
+#include "core/math/random_pcg.h"
 #include "core/os/os.h"
 #include "scene/main/node.h" //only so casting works
 
@@ -95,7 +96,7 @@ void Resource::set_path_cache(const String &p_path) {
 	GDVIRTUAL_CALL(_set_path_cache, p_path);
 }
 
-static thread_local RandomPCG unique_id_gen(0, RandomPCG::DEFAULT_INC);
+static thread_local RandomPCG unique_id_gen = RandomPCG(0);
 
 void Resource::seed_scene_unique_id(uint32_t p_seed) {
 	unique_id_gen.seed(p_seed);

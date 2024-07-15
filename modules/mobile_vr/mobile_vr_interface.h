@@ -95,8 +95,8 @@ private:
 
 	///@TODO a few support functions for trackers, most are math related and should likely be moved elsewhere
 	float floor_decimals(const float p_value, const float p_decimals) {
-		float power_of_10 = pow(10.0f, p_decimals);
-		return floor(p_value * power_of_10) / power_of_10;
+		float power_of_10 = Math::pow(10.0f, p_decimals);
+		return Math::floor(p_value * power_of_10) / power_of_10;
 	}
 
 	Vector3 floor_decimals(const Vector3 &p_vector, const float p_decimals) {

@@ -110,7 +110,7 @@ bool JoltPhysicsDirectSpaceState3D::_cast_motion_impl(const JPH::Shape &p_jolt_s
 	};
 
 	// Figure out the number of steps we need in our binary search in order to achieve millimeter precision, within reason.
-	const int step_count = CLAMP(int(logf(1000.0f * motion_length) / (float)Math_LN2), 4, 16);
+	const int step_count = CLAMP(int(Math::log(1000.0f * motion_length) / (float)Math_LN2), 4, 16);
 
 	bool collided = false;
 

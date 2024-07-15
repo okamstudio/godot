@@ -330,7 +330,7 @@ void PathFollow2D::_bind_methods() {
 }
 
 void PathFollow2D::set_progress(real_t p_progress) {
-	ERR_FAIL_COND(!isfinite(p_progress));
+	ERR_FAIL_COND(!Math::is_finite(p_progress));
 	progress = p_progress;
 	if (path) {
 		if (path->get_curve().is_valid()) {

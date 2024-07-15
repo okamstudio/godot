@@ -378,7 +378,7 @@ void CameraAttributesPhysical::_update_frustum() {
 	Vector2i sensor_size = Vector2i(36, 24); // Matches high-end DSLR, could be made variable if there is demand.
 	float CoC = sensor_size.length() / 1500.0;
 
-	frustum_fov = Math::rad_to_deg(2 * atan(sensor_size.height / (2 * frustum_focal_length)));
+	frustum_fov = Math::rad_to_deg(2 * Math::atan(sensor_size.height / (2 * frustum_focal_length)));
 
 	// Based on https://en.wikipedia.org/wiki/Depth_of_field.
 	float u = MAX(frustum_focus_distance * 1000.0, frustum_focal_length + 1.0); // Focus distance expressed in mm and clamped to at least 1 mm away from lens.
@@ -439,8 +439,8 @@ void CameraAttributesPhysical::_update_auto_exposure() {
 	RS::get_singleton()->camera_attributes_set_auto_exposure(
 			get_rid(),
 			auto_exposure_enabled,
-			pow(2.0, auto_exposure_min) * (12.5 / exposure_sensitivity), // Convert from EV100 to Luminance
-			pow(2.0, auto_exposure_max) * (12.5 / exposure_sensitivity), // Convert from EV100 to Luminance
+			Math::pow(2, auto_exposure_min) * (12.5 / exposure_sensitivity), // Convert from EV100 to Luminance
+			Math::pow(2, auto_exposure_max) * (12.5 / exposure_sensitivity), // Convert from EV100 to Luminance
 			auto_exposure_speed,
 			auto_exposure_scale);
 	emit_changed();

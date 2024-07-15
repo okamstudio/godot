@@ -2446,7 +2446,7 @@ int Animation::_find(const Vector<K> &p_keys, double p_time, bool p_backward, bo
 
 	if (p_limit) {
 		double diff = length - keys[middle].time;
-		if ((signbit(keys[middle].time) && !Math::is_zero_approx(keys[middle].time)) || (signbit(diff) && !Math::is_zero_approx(diff))) {
+		if ((Math::sign_bit(keys[middle].time) && !Math::is_zero_approx(keys[middle].time)) || (Math::sign_bit(diff) && !Math::is_zero_approx(diff))) {
 			ERR_PRINT_ONCE_ED("Found the key outside the animation range. Consider using the clean-up option in AnimationTrackEditor to fix it.");
 			return -1;
 		}
@@ -4113,21 +4113,21 @@ bool Animation::_float_track_optimize_key(const TKey<float> t0, const TKey<float
 	if (Math::is_equal_approx(t0.time, t1.time) || Math::is_equal_approx(t1.time, t2.time)) {
 		return true;
 	}
-	if (abs(t0.value - t1.value) < p_allowed_precision_error && abs(t1.value - t2.value) < p_allowed_precision_error) {
+	if (Math::abs(t0.value - t1.value) < p_allowed_precision_error && Math::abs(t1.value - t2.value) < p_allowed_precision_error) {
 		return true;
 	}
 	// Calc velocities.
 	double v0 = (t1.value - t0.value) / (t1.time - t0.time);
 	double v1 = (t2.value - t1.value) / (t2.time - t1.time);
 	// Avoid zero div but check equality.
-	if (abs(v0 - v1) < p_allowed_precision_error) {
+	if (Math::abs(v0 - v1) < p_allowed_precision_error) {
 		return true;
-	} else if (abs(v0) < p_allowed_precision_error || abs(v1) < p_allowed_precision_error) {
+	} else if (Math::abs(v0) < p_allowed_precision_error || Math::abs(v1) < p_allowed_precision_error) {
 		return false;
 	}
-	if (!signbit(v0 * v1)) {
-		v0 = abs(v0);
-		v1 = abs(v1);
+	if (!Math::sign_bit(v0 * v1)) {
+		v0 = Math::abs(v0);
+		v1 = Math::abs(v1);
 		double ratio = v0 < v1 ? v0 / v1 : v1 / v0;
 		if (ratio >= 1.0 - p_allowed_velocity_err) {
 			return true;
@@ -4150,15 +4150,15 @@ bool Animation::_vector2_track_optimize_key(const TKey<Vector2> t0, const TKey<V
 	double v0 = vc0.length();
 	double v1 = vc1.length();
 	// Avoid zero div but check equality.
-	if (abs(v0 - v1) < p_allowed_precision_error) {
+	if (Math::abs(v0 - v1) < p_allowed_precision_error) {
 		return true;
-	} else if (abs(v0) < p_allowed_precision_error || abs(v1) < p_allowed_precision_error) {
+	} else if (Math::abs(v0) < p_allowed_precision_error || Math::abs(v1) < p_allowed_precision_error) {
 		return false;
 	}
 	// Check axis.
 	if (vc0.normalized().dot(vc1.normalized()) >= 1.0 - p_allowed_angular_error * 2.0) {
-		v0 = abs(v0);
-		v1 = abs(v1);
+		v0 = Math::abs(v0);
+		v1 = Math::abs(v1);
 		double ratio = v0 < v1 ? v0 / v1 : v1 / v0;
 		if (ratio >= 1.0 - p_allowed_velocity_err) {
 			return true;
@@ -4181,15 +4181,15 @@ bool Animation::_vector3_track_optimize_key(const TKey<Vector3> t0, const TKey<V
 	double v0 = vc0.length();
 	double v1 = vc1.length();
 	// Avoid zero div but check equality.
-	if (abs(v0 - v1) < p_allowed_precision_error) {
+	if (Math::abs(v0 - v1) < p_allowed_precision_error) {
 		return true;
-	} else if (abs(v0) < p_allowed_precision_error || abs(v1) < p_allowed_precision_error) {
+	} else if (Math::abs(v0) < p_allowed_precision_error || Math::abs(v1) < p_allowed_precision_error) {
 		return false;
 	}
 	// Check axis.
 	if (vc0.normalized().dot(vc1.normalized()) >= 1.0 - p_allowed_angular_error * 2.0) {
-		v0 = abs(v0);
-		v1 = abs(v1);
+		v0 = Math::abs(v0);
+		v1 = Math::abs(v1);
 		double ratio = v0 < v1 ? v0 / v1 : v1 / v0;
 		if (ratio >= 1.0 - p_allowed_velocity_err) {
 			return true;
@@ -4219,9 +4219,9 @@ bool Animation::_quaternion_track_optimize_key(const TKey<Quaternion> t0, const 
 		double v0 = a0 / (t1.time - t0.time);
 		double v1 = a1 / (t2.time - t1.time);
 		// Avoid zero div but check equality.
-		if (abs(v0 - v1) < p_allowed_precision_error) {
+		if (Math::abs(v0 - v1) < p_allowed_precision_error) {
 			return true;
-		} else if (abs(v0) < p_allowed_precision_error || abs(v1) < p_allowed_precision_error) {
+		} else if (Math::abs(v0) < p_allowed_precision_error || Math::abs(v1) < p_allowed_precision_error) {
 			return false;
 		}
 		double ratio = v0 < v1 ? v0 / v1 : v1 / v0;
@@ -4330,7 +4330,7 @@ void Animation::_blend_shape_track_optimize(int p_idx, real_t p_allowed_velocity
 	}
 
 	if (bst->blend_shapes.size() == 2) {
-		if (abs(bst->blend_shapes[0].value - bst->blend_shapes[1].value) < p_allowed_precision_error) {
+		if (Math::abs(bst->blend_shapes[0].value - bst->blend_shapes[1].value) < p_allowed_precision_error) {
 			bst->blend_shapes.remove_at(1);
 		}
 	}
@@ -4362,11 +4362,11 @@ void Animation::_value_track_optimize(int p_idx, real_t p_allowed_velocity_err, 
 				t1.value = vt->values[i + 1].value;
 				t2.value = vt->values[i + 2].value;
 				if (is_using_angle) {
-					float diff1 = fmod(t1.value - t0.value, Math_TAU);
-					t1.value = t0.value + fmod(2.0 * diff1, Math_TAU) - diff1;
-					float diff2 = fmod(t2.value - t1.value, Math_TAU);
-					t2.value = t1.value + fmod(2.0 * diff2, Math_TAU) - diff2;
-					if (abs(abs(diff1) + abs(diff2)) >= Math_PI) {
+					float diff1 = Math::fmod(t1.value - t0.value, (float)Math_TAU);
+					t1.value = t0.value + Math::fmod(2 * diff1, (float)Math_TAU) - diff1;
+					float diff2 = Math::fmod(t2.value - t1.value, (float)Math_TAU);
+					t2.value = t1.value + Math::fmod(2 * diff2, (float)Math_TAU) - diff2;
+					if (Math::abs(Math::abs(diff1) + Math::abs(diff2)) >= Math_PI) {
 						break; // Rotation is more than 180 deg, keep key.
 					}
 				}
@@ -4426,10 +4426,10 @@ void Animation::_value_track_optimize(int p_idx, real_t p_allowed_velocity_err, 
 				float val_0 = vt->values[0].value;
 				float val_1 = vt->values[1].value;
 				if (is_using_angle) {
-					float diff1 = fmod(val_1 - val_0, Math_TAU);
-					val_1 = val_0 + fmod(2.0 * diff1, Math_TAU) - diff1;
+					float diff1 = Math::fmod(val_1 - val_0, (float)Math_TAU);
+					val_1 = val_0 + Math::fmod(2 * diff1, (float)Math_TAU) - diff1;
 				}
-				single_key = abs(val_0 - val_1) < p_allowed_precision_error;
+				single_key = Math::abs(val_0 - val_1) < p_allowed_precision_error;
 			} break;
 			case Variant::VECTOR2: {
 				Vector2 val_0 = vt->values[0].value;

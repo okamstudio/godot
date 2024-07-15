@@ -971,31 +971,31 @@ Ref<Image> DisplayServerWindows::clipboard_get_image() const {
 				if (dc) {
 					HDC hdc = CreateCompatibleDC(dc);
 					if (hdc) {
-						HBITMAP hbm = CreateCompatibleBitmap(dc, info->biWidth, abs(info->biHeight));
+						HBITMAP hbm = CreateCompatibleBitmap(dc, info->biWidth, Math::abs((int)info->biHeight));
 						if (hbm) {
 							SelectObject(hdc, hbm);
-							SetDIBitsToDevice(hdc, 0, 0, info->biWidth, abs(info->biHeight), 0, 0, 0, abs(info->biHeight), dib_bits, ptr, DIB_RGB_COLORS);
+							SetDIBitsToDevice(hdc, 0, 0, info->biWidth, Math::abs((int)info->biHeight), 0, 0, 0, Math::abs((int)info->biHeight), dib_bits, ptr, DIB_RGB_COLORS);
 
 							BITMAPINFO bmp_info = {};
 							bmp_info.bmiHeader.biSize = sizeof(bmp_info.bmiHeader);
 							bmp_info.bmiHeader.biWidth = info->biWidth;
-							bmp_info.bmiHeader.biHeight = -abs(info->biHeight);
+							bmp_info.bmiHeader.biHeight = -Math::abs((int)info->biHeight);
 							bmp_info.bmiHeader.biPlanes = 1;
 							bmp_info.bmiHeader.biBitCount = 32;
 							bmp_info.bmiHeader.biCompression = BI_RGB;
 
 							Vector<uint8_t> img_data;
-							img_data.resize(info->biWidth * abs(info->biHeight) * 4);
-							GetDIBits(hdc, hbm, 0, abs(info->biHeight), img_data.ptrw(), &bmp_info, DIB_RGB_COLORS);
+							img_data.resize(info->biWidth * Math::abs((int)info->biHeight) * 4);
+							GetDIBits(hdc, hbm, 0, Math::abs((int)info->biHeight), img_data.ptrw(), &bmp_info, DIB_RGB_COLORS);
 
 							uint8_t *wr = (uint8_t *)img_data.ptrw();
-							for (int i = 0; i < info->biWidth * abs(info->biHeight); i++) {
+							for (int i = 0; i < info->biWidth * Math::abs((int)info->biHeight); i++) {
 								SWAP(wr[i * 4 + 0], wr[i * 4 + 2]); // Swap B and R.
 								if (info->biBitCount != 32) {
 									wr[i * 4 + 3] = 255; // Set A to solid if it's not in the source image.
 								}
 							}
-							image = Image::create_from_data(info->biWidth, abs(info->biHeight), false, Image::Format::FORMAT_RGBA8, img_data);
+							image = Image::create_from_data(info->biWidth, Math::abs((int)info->biHeight), false, Image::Format::FORMAT_RGBA8, img_data);
 
 							DeleteObject(hbm);
 						}
@@ -2798,7 +2798,7 @@ void DisplayServerWindows::cursor_set_custom_image(const Ref<Resource> &p_cursor
 
 		bool fully_transparent = true;
 		for (UINT index = 0; index < image_size; index++) {
-			int row_index = floor(index / texture_size.width);
+			int row_index = Math::floor(float(index) / texture_size.width);
 			int column_index = index % int(texture_size.width);
 
 			const Color &c = image->get_pixel(column_index, row_index);
@@ -5292,7 +5292,7 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					} else {
 						mb->set_button_index(MouseButton::WHEEL_DOWN);
 					}
-					mb->set_factor(fabs((double)motion / (double)WHEEL_DELTA));
+					mb->set_factor(Math::abs((double)motion / (double)WHEEL_DELTA));
 				} break;
 				case WM_MOUSEHWHEEL: {
 					mb->set_pressed(true);
@@ -5306,7 +5306,7 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					} else {
 						mb->set_button_index(MouseButton::WHEEL_RIGHT);
 					}
-					mb->set_factor(fabs((double)motion / (double)WHEEL_DELTA));
+					mb->set_factor(Math::abs((double)motion / (double)WHEEL_DELTA));
 				} break;
 				case WM_XBUTTONDOWN: {
 					mb->set_pressed(true);

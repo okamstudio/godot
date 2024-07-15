@@ -78,7 +78,7 @@ String JSON::_stringify(const Variant &p_var, const String &p_indent, int p_cur_
 				return String("0.0");
 			}
 
-			double magnitude = log10(Math::abs(num));
+			double magnitude = Math::log10(Math::abs(num));
 			int total_digits = p_full_precision ? 17 : 14;
 			int precision = MAX(1, total_digits - (int)Math::floor(magnitude));
 
