@@ -31,6 +31,7 @@
 #include "tile_map_layer.h"
 
 #include "core/io/marshalls.h"
+#include "core/math/random_pcg.h"
 #include "scene/2d/tile_map.h"
 #include "scene/gui/control.h"
 #include "scene/resources/world_2d.h"

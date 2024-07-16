@@ -33,6 +33,7 @@
 #include "tile_set_editor.h"
 
 #include "core/math/geometry_2d.h"
+#include "core/math/random_pcg.h"
 #include "core/os/keyboard.h"
 
 #include "editor/editor_node.h"
