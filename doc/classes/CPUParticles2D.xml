@@ -172,6 +172,12 @@
 		<member name="emission_rect_extents" type="Vector2" setter="set_emission_rect_extents" getter="get_emission_rect_extents">
 			The rectangle's extents if [member emission_shape] is set to [constant EMISSION_SHAPE_RECTANGLE].
 		</member>
+		<member name="emission_ring_inner_radius" type="float" setter="set_emission_ring_inner_radius" getter="get_emission_ring_inner_radius">
+			The ring's inner radius if [member emission_shape] is set to [constant EMISSION_SHAPE_RING].
+		</member>
+		<member name="emission_ring_radius" type="float" setter="set_emission_ring_radius" getter="get_emission_ring_radius">
+			The ring's outer radius if [member emission_shape] is set to [constant EMISSION_SHAPE_RING].
+		</member>
 		<member name="emission_shape" type="int" setter="set_emission_shape" getter="get_emission_shape" enum="CPUParticles2D.EmissionShape" default="0">
 			Particles will be emitted inside this region. See [enum EmissionShape] for possible values.
 		</member>
@@ -385,7 +391,10 @@
 		<constant name="EMISSION_SHAPE_DIRECTED_POINTS" value="5" enum="EmissionShape">
 			Particles will be emitted at a position chosen randomly among [member emission_points]. Particle velocity and rotation will be set based on [member emission_normals]. Particle color will be modulated by [member emission_colors].
 		</constant>
-		<constant name="EMISSION_SHAPE_MAX" value="6" enum="EmissionShape">
+		<constant name="EMISSION_SHAPE_RING" value="6" enum="EmissionShape">
+			Particles will be emitted in the area of a ring parameterized by its outer and inner radius.
+		</constant>
+		<constant name="EMISSION_SHAPE_MAX" value="7" enum="EmissionShape">
 			Represents the size of the [enum EmissionShape] enum.
 		</constant>
 	</constants>

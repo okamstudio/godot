@@ -75,7 +75,8 @@ public:
 		EMISSION_SHAPE_RECTANGLE,
 		EMISSION_SHAPE_POINTS,
 		EMISSION_SHAPE_DIRECTED_POINTS,
-		EMISSION_SHAPE_MAX
+		EMISSION_SHAPE_RING,
+		EMISSION_SHAPE_MAX,
 	};
 
 private:
@@ -174,6 +175,8 @@ private:
 	Vector<Vector2> emission_normals;
 	Vector<Color> emission_colors;
 	int emission_point_count = 0;
+	real_t emission_ring_inner_radius = 0.8;
+	real_t emission_ring_radius = 1.0;
 
 	Ref<Curve> scale_curve_x;
 	Ref<Curve> scale_curve_y;
@@ -296,6 +299,8 @@ public:
 	void set_emission_points(const Vector<Vector2> &p_points);
 	void set_emission_normals(const Vector<Vector2> &p_normals);
 	void set_emission_colors(const Vector<Color> &p_colors);
+	void set_emission_ring_inner_radius(real_t p_inner_radius);
+	void set_emission_ring_radius(real_t p_ring_radius);
 	void set_scale_curve_x(Ref<Curve> p_scale_curve);
 	void set_scale_curve_y(Ref<Curve> p_scale_curve);
 	void set_split_scale(bool p_split_scale);
@@ -306,6 +311,8 @@ public:
 	Vector<Vector2> get_emission_points() const;
 	Vector<Vector2> get_emission_normals() const;
 	Vector<Color> get_emission_colors() const;
+	real_t get_emission_ring_inner_radius() const;
+	real_t get_emission_ring_radius() const;
 	Ref<Curve> get_scale_curve_x() const;
 	Ref<Curve> get_scale_curve_y() const;
 	bool get_split_scale();
