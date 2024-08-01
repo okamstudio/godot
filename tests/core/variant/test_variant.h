@@ -2175,11 +2175,18 @@ TEST_CASE("[Variant] Utility functions") {
 		if (Variant::is_utility_function_vararg(E)) {
 			md.is_vararg = true;
 		} else {
+			const Vector<Variant> def_args = Variant::get_utility_function_default_arguments(E);
 			for (int i = 0; i < Variant::get_utility_function_argument_count(E); i++) {
 				ArgumentData arg;
 				arg.type = Variant::get_utility_function_argument_type(E, i);
 				arg.name = Variant::get_utility_function_argument_name(E, i);
 				arg.position = i;
+
+				const int dargidx = Variant::get_utility_function_default_argument_index(E, i);
+				if (dargidx >= 0) {
+					arg.has_defval = true;
+					arg.defval = def_args[dargidx];
+				}
 
 				md.arguments.push_back(arg);
 			}
@@ -2195,6 +2202,13 @@ TEST_CASE("[Variant] Utility functions") {
 
 				TEST_COND((arg.name.is_empty() || arg.name.begins_with("_unnamed_arg")),
 						vformat("Unnamed argument in position %d of function '%s'.", arg.position, E.name));
+
+				if (arg.has_defval) {
+					const bool arg_defval_assignable_to_type = arg.type == arg.defval.get_type();
+
+					TEST_COND(!arg_defval_assignable_to_type,
+							vformat("Invalid default value for parameter '%s' of function '%s'.", arg.name, E.name));
+				}
 			}
 		}
 	}

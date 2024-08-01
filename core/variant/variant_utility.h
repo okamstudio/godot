@@ -119,7 +119,7 @@ struct VariantUtilityFunctions {
 	static void randomize();
 	static int64_t randi();
 	static double randf();
-	static double randfn(double mean, double deviation);
+	static double randfn(double mean = 0.0, double deviation = 1.0);
 	static int64_t randi_range(int64_t from, int64_t to);
 	static double randf_range(double from, double to);
 	static void seed(int64_t s);

@@ -1009,6 +1009,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 			if (Variant::is_utility_function_vararg(E)) {
 				md.qualifiers = "vararg";
 			} else {
+				const Vector<Variant> def_args = Variant::get_utility_function_default_arguments(E);
 				for (int i = 0; i < Variant::get_utility_function_argument_count(E); i++) {
 					PropertyInfo pi;
 					pi.type = Variant::get_utility_function_argument_type(E, i);
@@ -1018,6 +1019,12 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 					}
 					DocData::ArgumentDoc ad;
 					DocData::argument_doc_from_arginfo(ad, pi);
+
+					const int dargidx = Variant::get_utility_function_default_argument_index(E, i);
+					if (dargidx >= 0) {
+						ad.default_value = DocData::get_default_value_string(def_args[dargidx]);
+					}
+
 					md.arguments.push_back(ad);
 				}
 			}

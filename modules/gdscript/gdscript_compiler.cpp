@@ -623,6 +623,20 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 			if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
 				gen->write_construct(result, GDScriptParser::get_builtin_type(call->function_name), arguments);
 			} else if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && Variant::has_utility_function(call->function_name)) {
+				const int arg_count = Variant::get_utility_function_argument_count(call->function_name);
+
+				if (call->arguments.size() < arg_count) {
+					const Vector<Variant> def_args = Variant::get_utility_function_default_arguments(call->function_name);
+
+					for (int i = call->arguments.size(); i < arg_count; i++) {
+						const int dargidx = Variant::get_utility_function_default_argument_index(call->function_name, i);
+
+						if (dargidx >= 0) {
+							arguments.push_back(codegen.add_constant(def_args[dargidx]));
+						}
+					}
+				}
+
 				// Variant utility function.
 				gen->write_call_utility(result, call->function_name, arguments);
 			} else if (!call->is_super && call->callee->type == GDScriptParser::Node::IDENTIFIER && GDScriptUtilityFunctions::function_exists(call->function_name)) {
