@@ -270,6 +270,14 @@ uint64_t FileAccessCompressed::get_buffer(uint8_t *p_dst, uint64_t p_length) con
 				read_block_size = read_block == read_block_count - 1 ? read_total % block_size : block_size;
 				read_pos = 0;
 
+				if (read_block_size == 0) {
+					at_end = true;
+					if (i + 1 < p_length) {
+						read_eof = true;
+					}
+					return i + 1;
+				}
+
 			} else {
 				read_block--;
 				at_end = true;
