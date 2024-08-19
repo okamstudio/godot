@@ -368,6 +368,15 @@ void DocTools::remove_doc(const String &p_class_name) {
 	class_list.erase(p_class_name);
 }
 
+void DocTools::remove_script_doc_by_path(const String &p_path) {
+	for (KeyValue<String, DocData::ClassDoc> &E : class_list) {
+		if (E.value.is_script_doc && E.value.script_path == p_path) {
+			remove_doc(E.key);
+			return;
+		}
+	}
+}
+
 bool DocTools::has_doc(const String &p_class_name) {
 	if (p_class_name.is_empty()) {
 		return false;
