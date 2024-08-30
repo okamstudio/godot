@@ -357,7 +357,7 @@ public:
 	virtual String get_tooltip(const Point2 &p_pos) const;
 
 #ifdef TOOLS_ENABLED
-	PackedStringArray get_configuration_warnings() const override;
+	Vector<ConfigurationInfo> get_configuration_info() const override;
 #endif
 
 	void add_autohide_area(const Rect2 &p_area);

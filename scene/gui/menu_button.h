@@ -72,7 +72,7 @@ public:
 	int get_item_count() const;
 
 #ifdef TOOLS_ENABLED
-	PackedStringArray get_configuration_warnings() const override;
+	Vector<ConfigurationInfo> get_configuration_info() const override;
 #endif
 
 	MenuButton(const String &p_text = String());

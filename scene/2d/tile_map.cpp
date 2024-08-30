@@ -53,7 +53,7 @@ Callable TileMap::_navmesh_source_geometry_parsing_callback;
 RID TileMap::_navmesh_source_geometry_parser;
 
 void TileMap::_tile_set_changed() {
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void TileMap::_emit_changed() {
@@ -285,7 +285,7 @@ void TileMap::add_layer(int p_to_pos) {
 
 	_emit_changed();
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void TileMap::move_layer(int p_layer, int p_to_pos) {
@@ -304,7 +304,7 @@ void TileMap::move_layer(int p_layer, int p_to_pos) {
 
 	_emit_changed();
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void TileMap::remove_layer(int p_layer) {
@@ -323,7 +323,7 @@ void TileMap::remove_layer(int p_layer) {
 
 	_emit_changed();
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void TileMap::set_layer_name(int p_layer, String p_name) {
@@ -352,7 +352,7 @@ Color TileMap::get_layer_modulate(int p_layer) const {
 
 void TileMap::set_layer_y_sort_enabled(int p_layer, bool p_y_sort_enabled) {
 	TILEMAP_CALL_FOR_LAYER(p_layer, set_y_sort_enabled, p_y_sort_enabled);
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 bool TileMap::is_layer_y_sort_enabled(int p_layer) const {
@@ -361,7 +361,7 @@ bool TileMap::is_layer_y_sort_enabled(int p_layer) const {
 
 void TileMap::set_layer_y_sort_origin(int p_layer, int p_y_sort_origin) {
 	TILEMAP_CALL_FOR_LAYER(p_layer, set_y_sort_origin, p_y_sort_origin);
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 int TileMap::get_layer_y_sort_origin(int p_layer) const {
@@ -444,7 +444,7 @@ void TileMap::set_y_sort_enabled(bool p_enable) {
 	}
 	Node2D::set_y_sort_enabled(p_enable);
 	_emit_changed();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void TileMap::set_cell(int p_layer, const Vector2i &p_coords, int p_source_id, const Vector2i p_atlas_coords, int p_alternative_tile) {
@@ -705,7 +705,7 @@ bool TileMap::_set(const StringName &p_name, const Variant &p_value) {
 
 			notify_property_list_changed();
 			_emit_changed();
-			update_configuration_warnings();
+			update_configuration_info();
 		}
 
 		if (property_helper.property_set_value(sname, p_value)) {
@@ -831,10 +831,11 @@ TypedArray<Vector2i> TileMap::get_surrounding_cells(const Vector2i &p_coords) {
 	return tile_set->get_surrounding_cells(p_coords);
 }
 
-PackedStringArray TileMap::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> TileMap::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
-	warnings.push_back(RTR("The TileMap node is deprecated as it is superseded by the use of multiple TileMapLayer nodes.\nTo convert a TileMap to a set of TileMapLayer nodes, open the TileMap bottom panel with this node selected, click the toolbox icon in the top-right corner and choose \"Extract TileMap layers as individual TileMapLayer nodes\"."));
+	CONFIG_WARNING(RTR("The TileMap node is deprecated as it is superseded by the use of multiple TileMapLayer nodes.\nTo convert a TileMap to a set of TileMapLayer nodes, open the TileMap bottom panel with this node selected, click the toolbox icon in the top-right corner and choose \"Extract TileMap layers as individual TileMapLayer nodes\"."));
 
 	// Retrieve the set of Z index values with a Y-sorted layer.
 	RBSet<int> y_sorted_z_index;
@@ -847,7 +848,7 @@ PackedStringArray TileMap::get_configuration_warnings() const {
 	// Check if we have a non-sorted layer in a Z-index with a Y-sorted layer.
 	for (const TileMapLayer *layer : layers) {
 		if (!layer->is_y_sort_enabled() && y_sorted_z_index.has(layer->get_z_index())) {
-			warnings.push_back(RTR("A Y-sorted layer has the same Z-index value as a not Y-sorted layer.\nThis may lead to unwanted behaviors, as a layer that is not Y-sorted will be Y-sorted as a whole with tiles from Y-sorted layers."));
+			CONFIG_WARNING(RTR("A Y-sorted layer has the same Z-index value as a not Y-sorted layer.\nThis may lead to unwanted behaviors, as a layer that is not Y-sorted will be Y-sorted as a whole with tiles from Y-sorted layers."));
 			break;
 		}
 	}
@@ -856,7 +857,7 @@ PackedStringArray TileMap::get_configuration_warnings() const {
 		// Check if Y-sort is enabled on a layer but not on the node.
 		for (const TileMapLayer *layer : layers) {
 			if (layer->is_y_sort_enabled()) {
-				warnings.push_back(RTR("A TileMap layer is set as Y-sorted, but Y-sort is not enabled on the TileMap node itself."));
+				CONFIG_WARNING(RTR("A TileMap layer is set as Y-sorted, but Y-sort is not enabled on the TileMap node itself."));
 				break;
 			}
 		}
@@ -870,7 +871,7 @@ PackedStringArray TileMap::get_configuration_warnings() const {
 			}
 		}
 		if (need_warning) {
-			warnings.push_back(RTR("The TileMap node is set as Y-sorted, but Y-sort is not enabled on any of the TileMap's layers.\nThis may lead to unwanted behaviors, as a layer that is not Y-sorted will be Y-sorted as a whole."));
+			CONFIG_WARNING(RTR("The TileMap node is set as Y-sorted, but Y-sort is not enabled on any of the TileMap's layers.\nThis may lead to unwanted behaviors, as a layer that is not Y-sorted will be Y-sorted as a whole."));
 		}
 	}
 
@@ -887,12 +888,13 @@ PackedStringArray TileMap::get_configuration_warnings() const {
 		}
 
 		if (warn) {
-			warnings.push_back(RTR("Isometric TileSet will likely not look as intended without Y-sort enabled for the TileMap and all of its layers."));
+			CONFIG_WARNING(RTR("Isometric TileSet will likely not look as intended without Y-sort enabled for the TileMap and all of its layers."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void TileMap::_bind_methods() {
 #ifndef DISABLE_DEPRECATED

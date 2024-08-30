@@ -178,17 +178,19 @@ void ShapeCast3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "debug_shape_custom_color"), "set_debug_shape_custom_color", "get_debug_shape_custom_color");
 }
 
-PackedStringArray ShapeCast3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> ShapeCast3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (shape.is_null()) {
-		warnings.push_back(RTR("This node cannot interact with other objects unless a Shape3D is assigned."));
+		CONFIG_WARNING(RTR("This node cannot interact with other objects unless a Shape3D is assigned."));
 	}
 	if (shape.is_valid() && Object::cast_to<ConcavePolygonShape3D>(*shape)) {
-		warnings.push_back(RTR("ShapeCast3D does not support ConcavePolygonShape3Ds. Collisions will not be reported."));
+		CONFIG_WARNING(RTR("ShapeCast3D does not support ConcavePolygonShape3Ds. Collisions will not be reported."));
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 void ShapeCast3D::set_enabled(bool p_enabled) {
 	enabled = p_enabled;
@@ -352,7 +354,7 @@ void ShapeCast3D::set_shape(const Ref<Shape3D> &p_shape) {
 		_update_debug_shape();
 	}
 	update_gizmos();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Shape3D> ShapeCast3D::get_shape() const {

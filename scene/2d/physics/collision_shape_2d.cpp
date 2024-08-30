@@ -153,7 +153,7 @@ void CollisionShape2D::set_shape(const Ref<Shape2D> &p_shape) {
 		shape->connect_changed(callable_mp(this, &CollisionShape2D::_shape_changed));
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Shape2D> CollisionShape2D::get_shape() const {
@@ -168,28 +168,32 @@ bool CollisionShape2D::_edit_is_selected_on_click(const Point2 &p_point, double 
 	return shape->_edit_is_selected_on_click(p_point, p_tolerance);
 }
 
-PackedStringArray CollisionShape2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> CollisionShape2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	CollisionObject2D *col_object = Object::cast_to<CollisionObject2D>(get_parent());
 	if (col_object == nullptr) {
-		warnings.push_back(RTR("CollisionShape2D only serves to provide a collision shape to a CollisionObject2D derived node.\nPlease only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a shape."));
+		CONFIG_WARNING(RTR("CollisionShape2D only serves to provide a collision shape to a CollisionObject2D derived node.\nPlease only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a shape."));
 	}
 	if (shape.is_null()) {
-		warnings.push_back(RTR("A shape must be provided for CollisionShape2D to function. Please create a shape resource for it!"));
+		CONFIG_WARNING_P(RTR("A shape must be provided for CollisionShape2D to function. Please create a shape resource for it!"), "shape");
 	}
 	if (one_way_collision && Object::cast_to<Area2D>(col_object)) {
-		warnings.push_back(RTR("The One Way Collision property will be ignored when the collision object is an Area2D."));
+		CONFIG_WARNING_P(
+				RTR("One Way Collision will be ignored when the collision object is an Area2D."),
+				"one_way_collision");
 	}
 
 	Ref<ConvexPolygonShape2D> convex = shape;
 	Ref<ConcavePolygonShape2D> concave = shape;
 	if (convex.is_valid() || concave.is_valid()) {
-		warnings.push_back(RTR("The CollisionShape2D node has limited editing options for polygon-based shapes. Consider using a CollisionPolygon2D node instead."));
+		CONFIG_WARNING(RTR("The CollisionShape2D node has limited editing options for polygon-based shapes. Consider using a CollisionPolygon2D node instead."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void CollisionShape2D::set_disabled(bool p_disabled) {
 	disabled = p_disabled;
@@ -209,7 +213,7 @@ void CollisionShape2D::set_one_way_collision(bool p_enable) {
 	if (collision_object) {
 		collision_object->shape_owner_set_one_way_collision(owner_id, p_enable);
 	}
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 bool CollisionShape2D::is_one_way_collision_enabled() const {

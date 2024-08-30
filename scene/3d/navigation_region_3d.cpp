@@ -216,7 +216,7 @@ void NavigationRegion3D::set_navigation_mesh(const Ref<NavigationMesh> &p_naviga
 	emit_signal(SNAME("navigation_mesh_changed"));
 
 	update_gizmos();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<NavigationMesh> NavigationRegion3D::get_navigation_mesh() const {
@@ -272,17 +272,19 @@ bool NavigationRegion3D::is_baking() const {
 	return NavigationServer3D::get_singleton()->is_baking_navigation_mesh(navigation_mesh);
 }
 
-PackedStringArray NavigationRegion3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> NavigationRegion3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
 		if (navigation_mesh.is_null()) {
-			warnings.push_back(RTR("A NavigationMesh resource must be set or created for this node to work."));
+			CONFIG_WARNING(RTR("A NavigationMesh resource must be set or created for this node to work."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void NavigationRegion3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_rid"), &NavigationRegion3D::get_rid);
@@ -350,7 +352,7 @@ bool NavigationRegion3D::_get(const StringName &p_name, Variant &r_ret) const {
 
 void NavigationRegion3D::_navigation_mesh_changed() {
 	update_gizmos();
-	update_configuration_warnings();
+	update_configuration_info();
 
 #ifdef DEBUG_ENABLED
 	_update_debug_edge_connections_mesh();

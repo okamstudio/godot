@@ -88,7 +88,9 @@ protected:
 	void _get_property_list(List<PropertyInfo> *p_list) const;
 #endif
 public:
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	Node *get_spawn_node() const {
 		return spawn_node.is_valid() ? Object::cast_to<Node>(ObjectDB::get_instance(spawn_node)) : nullptr;

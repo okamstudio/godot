@@ -141,7 +141,9 @@ public:
 	void remove_exception(const CollisionObject3D *p_node);
 	void clear_exceptions();
 
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 };
 
 #endif // SHAPE_CAST_3D_H

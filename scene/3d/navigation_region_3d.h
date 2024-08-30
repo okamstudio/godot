@@ -110,7 +110,9 @@ public:
 	void _bake_finished(Ref<NavigationMesh> p_navigation_mesh);
 	bool is_baking() const;
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	AABB get_bounds() const { return bounds; }
 

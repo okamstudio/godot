@@ -30,13 +30,15 @@
 
 #include "retarget_modifier_3d.h"
 
-PackedStringArray RetargetModifier3D::get_configuration_warnings() const {
-	PackedStringArray warnings = SkeletonModifier3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> RetargetModifier3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = SkeletonModifier3D::get_configuration_info();
 	if (child_skeletons.is_empty()) {
-		warnings.push_back(RTR("There is no child Skeleton3D!"));
+		CONFIG_WARNING(RTR("There is no child Skeleton3D!"));
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 /// Caching
 
@@ -187,7 +189,7 @@ void RetargetModifier3D::_update_child_skeletons() {
 	}
 
 	cache_rests();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void RetargetModifier3D::_reset_child_skeleton_poses() {

@@ -182,7 +182,9 @@ void Path3D::_curve_changed() {
 		for (int i = 0; i < get_child_count(); i++) {
 			PathFollow3D *child = Object::cast_to<PathFollow3D>(get_child(i));
 			if (child) {
-				child->update_configuration_warnings();
+#ifdef TOOLS_ENABLED
+				child->update_configuration_info();
+#endif
 				child->update_transform();
 			}
 		}
@@ -301,22 +303,24 @@ void PathFollow3D::_validate_property(PropertyInfo &p_property) const {
 	}
 }
 
-PackedStringArray PathFollow3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> PathFollow3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
 		if (!Object::cast_to<Path3D>(get_parent())) {
-			warnings.push_back(RTR("PathFollow3D only works when set as a child of a Path3D node."));
+			CONFIG_WARNING(RTR("PathFollow3D only works when set as a child of a Path3D node."));
 		} else {
 			Path3D *p = Object::cast_to<Path3D>(get_parent());
 			if (p->get_curve().is_valid() && !p->get_curve()->is_up_vector_enabled() && rotation_mode == ROTATION_ORIENTED) {
-				warnings.push_back(RTR("PathFollow3D's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its parent Path3D's Curve resource."));
+				CONFIG_WARNING(RTR("PathFollow3D's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its parent Path3D's Curve resource."));
 			}
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 Transform3D PathFollow3D::correct_posture(Transform3D p_transform, PathFollow3D::RotationMode p_rotation_mode) {
 	Transform3D t = p_transform;
@@ -470,7 +474,7 @@ void PathFollow3D::set_rotation_mode(RotationMode p_rotation_mode) {
 	}
 	rotation_mode = p_rotation_mode;
 
-	update_configuration_warnings();
+	update_configuration_info();
 	update_transform();
 }
 

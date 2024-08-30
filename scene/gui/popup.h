@@ -102,7 +102,7 @@ protected:
 
 public:
 #ifdef TOOLS_ENABLED
-	PackedStringArray get_configuration_warnings() const override;
+	Vector<ConfigurationInfo> get_configuration_info() const override;
 #endif
 
 	PopupPanel();

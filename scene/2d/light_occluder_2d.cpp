@@ -90,7 +90,7 @@ void OccluderPolygon2D::set_polygon(const Vector<Vector2> &p_polygon) {
 	rect_cache_dirty = true;
 	RS::get_singleton()->canvas_occluder_polygon_set_shape(occ_polygon, p_polygon, closed);
 	emit_changed();
-	update_configuration_warning();
+	update_configuration_info();
 }
 
 Vector<Vector2> OccluderPolygon2D::get_polygon() const {
@@ -263,19 +263,21 @@ int LightOccluder2D::get_occluder_light_mask() const {
 	return mask;
 }
 
-PackedStringArray LightOccluder2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> LightOccluder2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	if (occluder_polygon.is_null()) {
-		warnings.push_back(RTR("An occluder polygon must be set (or drawn) for this occluder to take effect."));
+		CONFIG_WARNING(RTR("An occluder polygon must be set (or drawn) for this occluder to take effect."));
 	}
 
 	if (occluder_polygon.is_valid() && occluder_polygon->get_polygon().size() == 0) {
-		warnings.push_back(RTR("The occluder polygon for this occluder is empty. Please draw a polygon."));
+		CONFIG_WARNING(RTR("The occluder polygon for this occluder is empty. Please draw a polygon."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void LightOccluder2D::set_as_sdf_collision(bool p_enable) {
 	sdf_collision = p_enable;

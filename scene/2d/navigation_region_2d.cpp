@@ -217,7 +217,7 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 
 	_navigation_polygon_changed();
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<NavigationPolygon> NavigationRegion2D::get_navigation_polygon() const {
@@ -298,17 +298,21 @@ void NavigationRegion2D::_navigation_debug_changed() {
 }
 #endif // DEBUG_ENABLED
 
-PackedStringArray NavigationRegion2D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node2D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> NavigationRegion2D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node2D::get_configuration_info();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
 		if (navigation_polygon.is_null()) {
-			warnings.push_back(RTR("A NavigationMesh resource must be set or created for this node to work. Please set a property or draw a polygon."));
+			CONFIG_WARNING_P(
+					RTR("A NavigationMesh resource must be set or created for this node to work. Please set a property or draw a polygon."),
+					"navigation_polygon");
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void NavigationRegion2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_rid"), &NavigationRegion2D::get_rid);

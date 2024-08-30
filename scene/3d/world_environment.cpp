@@ -81,7 +81,7 @@ void WorldEnvironment::_update_current_environment() {
 	} else {
 		get_viewport()->find_world_3d()->set_environment(Ref<Environment>());
 	}
-	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_warnings");
+	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_environment_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_info");
 }
 
 void WorldEnvironment::_update_current_camera_attributes() {
@@ -92,7 +92,7 @@ void WorldEnvironment::_update_current_camera_attributes() {
 		get_viewport()->find_world_3d()->set_camera_attributes(Ref<CameraAttributes>());
 	}
 
-	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_camera_attributes_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_warnings");
+	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_camera_attributes_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_info");
 }
 
 void WorldEnvironment::_update_current_compositor() {
@@ -103,7 +103,7 @@ void WorldEnvironment::_update_current_compositor() {
 		get_viewport()->find_world_3d()->set_compositor(Ref<Compositor>());
 	}
 
-	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_compositor_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_warnings");
+	get_tree()->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_world_compositor_" + itos(get_viewport()->find_world_3d()->get_scenario().get_id()), "update_configuration_info");
 }
 
 void WorldEnvironment::set_environment(const Ref<Environment> &p_environment) {
@@ -123,7 +123,7 @@ void WorldEnvironment::set_environment(const Ref<Environment> &p_environment) {
 	if (is_inside_tree()) {
 		_update_current_environment();
 	} else {
-		update_configuration_warnings();
+		update_configuration_info();
 	}
 }
 
@@ -148,7 +148,7 @@ void WorldEnvironment::set_camera_attributes(const Ref<CameraAttributes> &p_came
 	if (is_inside_tree()) {
 		_update_current_camera_attributes();
 	} else {
-		update_configuration_warnings();
+		update_configuration_info();
 	}
 }
 
@@ -173,7 +173,7 @@ void WorldEnvironment::set_compositor(const Ref<Compositor> &p_compositor) {
 	if (is_inside_tree()) {
 		_update_current_compositor();
 	} else {
-		update_configuration_warnings();
+		update_configuration_info();
 	}
 }
 
@@ -181,31 +181,33 @@ Ref<Compositor> WorldEnvironment::get_compositor() const {
 	return compositor;
 }
 
-PackedStringArray WorldEnvironment::get_configuration_warnings() const {
-	PackedStringArray warnings = Node::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> WorldEnvironment::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node::get_configuration_info();
 
 	if (environment.is_null() && camera_attributes.is_null()) {
-		warnings.push_back(RTR("To have any visible effect, WorldEnvironment requires its \"Environment\" property to contain an Environment, its \"Camera Attributes\" property to contain a CameraAttributes resource, or both."));
+		CONFIG_WARNING(RTR("To have any visible effect, WorldEnvironment requires its \"Environment\" property to contain an Environment, its \"Camera Attributes\" property to contain a CameraAttributes resource, or both."));
 	}
 
 	if (!is_inside_tree()) {
-		return warnings;
+		return infos;
 	}
 
 	if (environment.is_valid() && get_viewport()->find_world_3d()->get_environment() != environment) {
-		warnings.push_back(("Only the first Environment has an effect in a scene (or set of instantiated scenes)."));
+		CONFIG_WARNING(RTR("Only the first Environment has an effect in a scene (or set of instantiated scenes)."));
 	}
 
 	if (camera_attributes.is_valid() && get_viewport()->find_world_3d()->get_camera_attributes() != camera_attributes) {
-		warnings.push_back(RTR("Only one WorldEnvironment is allowed per scene (or set of instantiated scenes)."));
+		CONFIG_WARNING(RTR("Only one WorldEnvironment is allowed per scene (or set of instantiated scenes)."));
 	}
 
 	if (compositor.is_valid() && get_viewport()->find_world_3d()->get_compositor() != compositor) {
-		warnings.push_back(("Only the first Compositor has an effect in a scene (or set of instantiated scenes)."));
+		CONFIG_WARNING(RTR("Only the first Compositor has an effect in a scene (or set of instantiated scenes)."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void WorldEnvironment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_environment", "env"), &WorldEnvironment::set_environment);

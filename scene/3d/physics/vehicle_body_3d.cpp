@@ -105,15 +105,17 @@ void VehicleWheel3D::_notification(int p_what) {
 	}
 }
 
-PackedStringArray VehicleWheel3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> VehicleWheel3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (!Object::cast_to<VehicleBody3D>(get_parent())) {
-		warnings.push_back(RTR("VehicleWheel3D serves to provide a wheel system to a VehicleBody3D. Please use it as a child of a VehicleBody3D."));
+		CONFIG_WARNING(RTR("VehicleWheel3D serves to provide a wheel system to a VehicleBody3D. Please use it as a child of a VehicleBody3D."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void VehicleWheel3D::_update(PhysicsDirectBodyState3D *s) {
 	if (m_raycastInfo.m_isInContact) {

@@ -100,7 +100,9 @@ protected:
 	virtual void _process_modification() override;
 
 public:
-	virtual PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	virtual Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void set_use_global_pose(bool p_use_global_pose);
 	bool is_using_global_pose() const;

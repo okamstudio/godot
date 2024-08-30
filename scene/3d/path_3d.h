@@ -121,7 +121,9 @@ public:
 	void set_cubic_interpolation_enabled(bool p_enabled);
 	bool is_cubic_interpolation_enabled() const;
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void update_transform();
 

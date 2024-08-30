@@ -91,7 +91,9 @@ public:
 	bool update_outbound_sync_time(uint64_t p_usec);
 	bool update_inbound_sync_time(uint16_t p_network_time);
 
-	PackedStringArray get_configuration_warnings() const override;
+#ifdef TOOLS_ENABLED
+	Vector<ConfigurationInfo> get_configuration_info() const override;
+#endif
 
 	void set_replication_interval(double p_interval);
 	double get_replication_interval() const;

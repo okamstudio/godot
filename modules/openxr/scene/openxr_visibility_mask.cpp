@@ -64,18 +64,20 @@ void OpenXRVisibilityMask::_on_openxr_session_stopping() {
 	set_base(RID());
 }
 
-PackedStringArray OpenXRVisibilityMask::get_configuration_warnings() const {
-	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> OpenXRVisibilityMask::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = VisualInstance3D::get_configuration_info();
 
 	if (is_visible() && is_inside_tree()) {
 		XRCamera3D *camera = Object::cast_to<XRCamera3D>(get_parent());
 		if (camera == nullptr) {
-			warnings.push_back(RTR("OpenXR visibility mask must have an XRCamera3D node as their parent."));
+			CONFIG_WARNING(RTR("OpenXR visibility mask must have an XRCamera3D node as their parent."));
 		}
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 AABB OpenXRVisibilityMask::get_aabb() const {
 	AABB ret;

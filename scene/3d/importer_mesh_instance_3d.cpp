@@ -87,7 +87,7 @@ GeometryInstance3D::ShadowCastingSetting ImporterMeshInstance3D::get_cast_shadow
 
 void ImporterMeshInstance3D::set_visibility_range_begin(float p_dist) {
 	visibility_range_begin = p_dist;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 float ImporterMeshInstance3D::get_visibility_range_begin() const {
@@ -96,7 +96,7 @@ float ImporterMeshInstance3D::get_visibility_range_begin() const {
 
 void ImporterMeshInstance3D::set_visibility_range_end(float p_dist) {
 	visibility_range_end = p_dist;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 float ImporterMeshInstance3D::get_visibility_range_end() const {
@@ -105,7 +105,7 @@ float ImporterMeshInstance3D::get_visibility_range_end() const {
 
 void ImporterMeshInstance3D::set_visibility_range_begin_margin(float p_dist) {
 	visibility_range_begin_margin = p_dist;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 float ImporterMeshInstance3D::get_visibility_range_begin_margin() const {
@@ -114,7 +114,7 @@ float ImporterMeshInstance3D::get_visibility_range_begin_margin() const {
 
 void ImporterMeshInstance3D::set_visibility_range_end_margin(float p_dist) {
 	visibility_range_end_margin = p_dist;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 float ImporterMeshInstance3D::get_visibility_range_end_margin() const {
@@ -123,7 +123,7 @@ float ImporterMeshInstance3D::get_visibility_range_end_margin() const {
 
 void ImporterMeshInstance3D::set_visibility_range_fade_mode(GeometryInstance3D::VisibilityRangeFadeMode p_mode) {
 	visibility_range_fade_mode = p_mode;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 GeometryInstance3D::VisibilityRangeFadeMode ImporterMeshInstance3D::get_visibility_range_fade_mode() const {

@@ -47,7 +47,7 @@ void Joint3D::_disconnect_signals() {
 void Joint3D::_body_exit_tree() {
 	_disconnect_signals();
 	_update_joint(true);
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void Joint3D::_update_joint(bool p_only_free) {
@@ -87,7 +87,7 @@ void Joint3D::_update_joint(bool p_only_free) {
 		warning = String();
 	}
 
-	update_configuration_warnings();
+	update_configuration_info();
 
 	if (!warning.is_empty()) {
 		PhysicsServer3D::get_singleton()->joint_clear(joint);
@@ -200,15 +200,17 @@ bool Joint3D::get_exclude_nodes_from_collision() const {
 	return exclude_from_collision;
 }
 
-PackedStringArray Joint3D::get_configuration_warnings() const {
-	PackedStringArray warnings = Node3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Joint3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node3D::get_configuration_info();
 
 	if (!warning.is_empty()) {
-		warnings.push_back(warning);
+		CONFIG_WARNING(warning);
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void Joint3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_node_a", "node"), &Joint3D::set_node_a);

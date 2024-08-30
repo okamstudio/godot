@@ -580,10 +580,10 @@ void OptionButton::set_disable_shortcuts(bool p_disabled) {
 }
 
 #ifdef TOOLS_ENABLED
-PackedStringArray OptionButton::get_configuration_warnings() const {
-	PackedStringArray warnings = Button::get_configuration_warnings();
-	warnings.append_array(popup->get_configuration_warnings());
-	return warnings;
+Vector<ConfigurationInfo> OptionButton::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Button::get_configuration_info();
+	infos.append_array(popup->get_configuration_info());
+	return infos;
 }
 #endif
 

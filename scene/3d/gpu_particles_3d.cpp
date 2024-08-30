@@ -165,7 +165,7 @@ void GPUParticles3D::set_process_material(const Ref<Material> &p_material) {
 	}
 	RS::get_singleton()->particles_set_process_material(particles, material_rid);
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void GPUParticles3D::set_speed_scale(double p_scale) {
@@ -238,7 +238,7 @@ void GPUParticles3D::set_draw_order(DrawOrder p_order) {
 void GPUParticles3D::set_trail_enabled(bool p_enabled) {
 	trail_enabled = p_enabled;
 	RS::get_singleton()->particles_set_trails(particles, trail_enabled, trail_lifetime);
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void GPUParticles3D::set_trail_lifetime(double p_seconds) {
@@ -276,15 +276,19 @@ int GPUParticles3D::get_draw_passes() const {
 void GPUParticles3D::set_draw_pass_mesh(int p_pass, const Ref<Mesh> &p_mesh) {
 	ERR_FAIL_INDEX(p_pass, draw_passes.size());
 
+#ifdef TOOLS_ENABLED
 	if (Engine::get_singleton()->is_editor_hint() && draw_passes.write[p_pass].is_valid()) {
-		draw_passes.write[p_pass]->disconnect_changed(callable_mp((Node *)this, &Node::update_configuration_warnings));
+		draw_passes.write[p_pass]->disconnect_changed(callable_mp((Node *)this, &Node::update_configuration_info));
 	}
+#endif
 
 	draw_passes.write[p_pass] = p_mesh;
 
+#ifdef TOOLS_ENABLED
 	if (Engine::get_singleton()->is_editor_hint() && draw_passes.write[p_pass].is_valid()) {
-		draw_passes.write[p_pass]->connect_changed(callable_mp((Node *)this, &Node::update_configuration_warnings), CONNECT_DEFERRED);
+		draw_passes.write[p_pass]->connect_changed(callable_mp((Node *)this, &Node::update_configuration_info), CONNECT_DEFERRED);
 	}
+#endif
 
 	RID mesh_rid;
 	if (p_mesh.is_valid()) {
@@ -294,7 +298,7 @@ void GPUParticles3D::set_draw_pass_mesh(int p_pass, const Ref<Mesh> &p_mesh) {
 	RS::get_singleton()->particles_set_draw_pass_mesh(particles, p_pass, mesh_rid);
 
 	_skinning_changed();
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<Mesh> GPUParticles3D::get_draw_pass_mesh(int p_pass) const {
@@ -330,8 +334,9 @@ bool GPUParticles3D::get_interpolate() const {
 	return interpolate;
 }
 
-PackedStringArray GPUParticles3D::get_configuration_warnings() const {
-	PackedStringArray warnings = GeometryInstance3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> GPUParticles3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = GeometryInstance3D::get_configuration_info();
 
 	bool meshes_found = false;
 	bool anim_material_found = false;
@@ -357,17 +362,17 @@ PackedStringArray GPUParticles3D::get_configuration_warnings() const {
 	}
 
 	if (!meshes_found) {
-		warnings.push_back(RTR("Nothing is visible because meshes have not been assigned to draw passes."));
+		CONFIG_WARNING(RTR("Nothing is visible because meshes have not been assigned to draw passes."));
 	}
 
 	if (process_material.is_null()) {
-		warnings.push_back(RTR("A material to process the particles is not assigned, so no behavior is imprinted."));
+		CONFIG_WARNING(RTR("A material to process the particles is not assigned, so no behavior is imprinted."));
 	} else {
 		const ParticleProcessMaterial *process = Object::cast_to<ParticleProcessMaterial>(process_material.ptr());
 		if (!anim_material_found && process &&
 				(process->get_param_max(ParticleProcessMaterial::PARAM_ANIM_SPEED) != 0.0 || process->get_param_max(ParticleProcessMaterial::PARAM_ANIM_OFFSET) != 0.0 ||
 						process->get_param_texture(ParticleProcessMaterial::PARAM_ANIM_SPEED).is_valid() || process->get_param_texture(ParticleProcessMaterial::PARAM_ANIM_OFFSET).is_valid())) {
-			warnings.push_back(RTR("Particles animation requires the usage of a BaseMaterial3D whose Billboard Mode is set to \"Particle Billboard\"."));
+			CONFIG_WARNING(RTR("Particles animation requires the usage of a BaseMaterial3D whose Billboard Mode is set to \"Particle Billboard\"."));
 		}
 	}
 
@@ -409,27 +414,28 @@ PackedStringArray GPUParticles3D::get_configuration_warnings() const {
 		}
 
 		if (dp_count && skin.is_valid()) {
-			warnings.push_back(RTR("Using Trail meshes with a skin causes Skin to override Trail poses. Suggest removing the Skin."));
+			CONFIG_WARNING(RTR("Using Trail meshes with a skin causes Skin to override Trail poses. Suggest removing the Skin."));
 		} else if (dp_count == 0 && skin.is_null()) {
-			warnings.push_back(RTR("Trails active, but neither Trail meshes or a Skin were found."));
+			CONFIG_WARNING(RTR("Trails active, but neither Trail meshes or a Skin were found."));
 		} else if (dp_count > 1) {
-			warnings.push_back(RTR("Only one Trail mesh is supported. If you want to use more than a single mesh, a Skin is needed (see documentation)."));
+			CONFIG_WARNING(RTR("Only one Trail mesh is supported. If you want to use more than a single mesh, a Skin is needed (see documentation)."));
 		}
 
 		if ((dp_count || skin.is_valid()) && (missing_trails || no_materials)) {
-			warnings.push_back(RTR("Trails enabled, but one or more mesh materials are either missing or not set for trails rendering."));
+			CONFIG_WARNING(RTR("Trails enabled, but one or more mesh materials are either missing or not set for trails rendering."));
 		}
 		if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-			warnings.push_back(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
+			CONFIG_WARNING(RTR("Particle trails are only available when using the Forward+ or Mobile renderers."));
 		}
 	}
 
 	if (sub_emitter != NodePath() && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("Particle sub-emitters are only available when using the Forward+ or Mobile renderers."));
+		CONFIG_WARNING(RTR("Particle sub-emitters are only available when using the Forward+ or Mobile renderers."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void GPUParticles3D::restart(bool p_keep_seed) {
 	if (!p_keep_seed && !use_fixed_seed) {
@@ -496,7 +502,7 @@ void GPUParticles3D::set_sub_emitter(const NodePath &p_path) {
 	if (is_inside_tree() && sub_emitter != NodePath()) {
 		_attach_sub_emitter();
 	}
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 NodePath GPUParticles3D::get_sub_emitter() const {
@@ -611,7 +617,7 @@ void GPUParticles3D::_skinning_changed() {
 	}
 
 	RS::get_singleton()->particles_set_trail_bind_poses(particles, xforms);
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void GPUParticles3D::set_skin(const Ref<Skin> &p_skin) {

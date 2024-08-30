@@ -82,20 +82,21 @@ bool MissingNode::is_recording_properties() const {
 	return recording_properties;
 }
 
-PackedStringArray MissingNode::get_configuration_warnings() const {
-	// The mere existence of this node is warning.
-	PackedStringArray warnings = Node::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> MissingNode::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Node::get_configuration_info();
 	if (!original_scene.is_empty()) {
-		warnings.push_back(vformat(RTR("This node was an instance of scene '%s', which was no longer available when this scene was loaded."), original_scene));
-		warnings.push_back(vformat(RTR("Saving current scene will discard instance and all its properties, including editable children edits (if existing).")));
+		CONFIG_WARNING(vformat(RTR("This node was an instance of scene '%s', which was no longer available when this scene was loaded."), original_scene));
+		CONFIG_WARNING(vformat(RTR("Saving current scene will discard instance and all its properties, including editable children edits (if existing).")));
 	} else if (!original_class.is_empty()) {
-		warnings.push_back(vformat(RTR("This node was saved as class type '%s', which was no longer available when this scene was loaded."), original_class));
-		warnings.push_back(RTR("Data from the original node is kept as a placeholder until this type of node is available again. It can hence be safely re-saved without risk of data loss."));
+		CONFIG_WARNING(vformat(RTR("This node was saved as class type '%s', which was no longer available when this scene was loaded."), original_class));
+		CONFIG_WARNING(RTR("Data from the original node is kept as a placeholder until this type of node is available again. It can hence be safely re-saved without risk of data loss."));
 	} else {
-		warnings.push_back(RTR("Unrecognized missing node. Check scene dependency errors for details."));
+		CONFIG_WARNING(RTR("Unrecognized missing node. Check scene dependency errors for details."));
 	}
-	return warnings;
+	return infos;
 }
+#endif
 
 void MissingNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_original_class", "name"), &MissingNode::set_original_class);

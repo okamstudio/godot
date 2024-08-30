@@ -283,16 +283,18 @@ void XRHandModifier3D::_skeleton_changed(Skeleton3D *p_old, Skeleton3D *p_new) {
 	_get_joint_data();
 }
 
-PackedStringArray XRHandModifier3D::get_configuration_warnings() const {
-	PackedStringArray warnings = SkeletonModifier3D::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> XRHandModifier3D::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = SkeletonModifier3D::get_configuration_info();
 
 	// Detect OpenXR without the Hand Tracking extension.
 	if (GLOBAL_GET("xr/openxr/enabled") && !GLOBAL_GET("xr/openxr/extensions/hand_tracking")) {
-		warnings.push_back("XRHandModifier3D requires the OpenXR Hand Tracking extension to be enabled.");
+		CONFIG_WARNING("XRHandModifier3D requires the OpenXR Hand Tracking extension to be enabled.");
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void XRHandModifier3D::_notification(int p_what) {
 	switch (p_what) {

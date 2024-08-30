@@ -30,15 +30,17 @@
 
 #include "range.h"
 
-PackedStringArray Range::get_configuration_warnings() const {
-	PackedStringArray warnings = Control::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> Range::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Control::get_configuration_info();
 
 	if (shared->exp_ratio && shared->min <= 0) {
-		warnings.push_back(RTR("If \"Exp Edit\" is enabled, \"Min Value\" must be greater than 0."));
+		CONFIG_WARNING(RTR("If \"Exp Edit\" is enabled, \"Min Value\" must be greater than 0."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void Range::_value_changed(double p_value) {
 	GDVIRTUAL_CALL(_value_changed, p_value);
@@ -142,7 +144,7 @@ void Range::set_min(double p_min) {
 
 	shared->emit_changed("min");
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 void Range::set_max(double p_max) {
@@ -350,7 +352,7 @@ void Range::set_exp_ratio(bool p_enable) {
 
 	shared->exp_ratio = p_enable;
 
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 bool Range::is_ratio_exp() const {

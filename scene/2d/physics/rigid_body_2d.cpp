@@ -632,23 +632,25 @@ void RigidBody2D::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
-			update_configuration_warnings();
+			update_configuration_info();
 		} break;
 	}
 #endif
 }
 
-PackedStringArray RigidBody2D::get_configuration_warnings() const {
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> RigidBody2D::get_configuration_info() const {
 	Transform2D t = get_transform();
 
-	PackedStringArray warnings = PhysicsBody2D::get_configuration_warnings();
+	Vector<ConfigurationInfo> infos = PhysicsBody2D::get_configuration_info();
 
 	if (ABS(t.columns[0].length() - 1.0) > 0.05 || ABS(t.columns[1].length() - 1.0) > 0.05) {
-		warnings.push_back(RTR("Size changes to RigidBody2D will be overridden by the physics engine when running.\nChange the size in children collision shapes instead."));
+		CONFIG_WARNING(RTR("Size changes to RigidBody2D will be overridden by the physics engine when running.\nChange the size in children collision shapes instead."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void RigidBody2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_mass", "mass"), &RigidBody2D::set_mass);

@@ -305,7 +305,7 @@ void BaseButton::set_toggle_mode(bool p_on) {
 	}
 
 	toggle_mode = p_on;
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 bool BaseButton::is_toggle_mode() const {
@@ -441,7 +441,7 @@ void BaseButton::set_button_group(const Ref<ButtonGroup> &p_group) {
 	}
 
 	queue_redraw(); //checkbox changes to radio if set a buttongroup
-	update_configuration_warnings();
+	update_configuration_info();
 }
 
 Ref<ButtonGroup> BaseButton::get_button_group() const {
@@ -452,15 +452,17 @@ bool BaseButton::_was_pressed_by_mouse() const {
 	return was_mouse_pressed;
 }
 
-PackedStringArray BaseButton::get_configuration_warnings() const {
-	PackedStringArray warnings = Control::get_configuration_warnings();
+#ifdef TOOLS_ENABLED
+Vector<ConfigurationInfo> BaseButton::get_configuration_info() const {
+	Vector<ConfigurationInfo> infos = Control::get_configuration_info();
 
 	if (get_button_group().is_valid() && !is_toggle_mode()) {
-		warnings.push_back(RTR("ButtonGroup is intended to be used only with buttons that have toggle_mode set to true."));
+		CONFIG_WARNING(RTR("ButtonGroup is intended to be used only with buttons that have toggle_mode set to true."));
 	}
 
-	return warnings;
+	return infos;
 }
+#endif
 
 void BaseButton::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_pressed", "pressed"), &BaseButton::set_pressed);
