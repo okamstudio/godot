@@ -83,20 +83,29 @@ def configure(env: "SConsEnvironment"):
         # gdb works fine without it though, so maybe our crash handler could too.
         env.Append(LINKFLAGS=["-rdynamic"])
 
-    # Cross-compilation
-    # TODO: Support cross-compilation on architectures other than x86.
-    host_is_64_bit = sys.maxsize > 2**32
-    if host_is_64_bit and env["arch"] == "x86_32":
-        env.Append(CCFLAGS=["-m32"])
-        env.Append(LINKFLAGS=["-m32"])
-    elif not host_is_64_bit and env["arch"] == "x86_64":
-        env.Append(CCFLAGS=["-m64"])
-        env.Append(LINKFLAGS=["-m64"])
-
     # CPU architecture flags.
-    if env["arch"] == "rv64":
+    # TODO: Support cross-compilation on architectures other than x86.
+    if env["arch"] == "x86_64":
+        env.Prepend(CFLAGS=["-m64", "-march=x86-64"])
+        env.Prepend(CXXFLAGS=["-m64", "-march=x86-64"])
+        env.Prepend(LINKFLAGS=["-m64", "-march=x86-64"])
+    elif env["arch"] == "x86_32":
+        env.Prepend(CFLAGS=["-m32", "-march=i686"])
+        env.Prepend(CXXFLAGS=["-m32", "-march=i686"])
+        env.Prepend(LINKFLAGS=["-m32", "-march=i686"])
+    elif env["arch"] == "arm64":
+        env.Prepend(CFLAGS=["-march=armv8-a"])
+        env.Prepend(CXXFLAGS=["-march=armv8-a"])
+        env.Prepend(LINKFLAGS=["-march=armv8-a"])
+    elif env["arch"] == "arm32":
+        env.Prepend(CFLAGS=["-march=armv7-a"])
+        env.Prepend(CXXFLAGS=["-march=armv7-a"])
+        env.Prepend(LINKFLAGS=["-march=armv7-a"])
+    elif env["arch"] == "rv64":
         # G = General-purpose extensions, C = Compression extension (very common).
-        env.Append(CCFLAGS=["-march=rv64gc"])
+        env.Prepend(CFLAGS=["-march=rv64gc"])
+        env.Prepend(CXXFLAGS=["-march=rv64gc"])
+        env.Prepend(LINKFLAGS=["-march=rv64gc"])
 
     ## Compiler configuration
 
