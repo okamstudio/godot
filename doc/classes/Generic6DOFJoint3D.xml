@@ -394,8 +394,11 @@
 		</constant>
 		<constant name="FLAG_ENABLE_ANGULAR_SPRING" value="2" enum="Flag">
 		</constant>
-		<constant name="FLAG_ENABLE_MOTOR" value="4" enum="Flag">
-			If enabled, there is a rotational motor across these axes.
+		<constant name="FLAG_ENABLE_ANGULAR_MOTOR" value="4" enum="Flag">
+			If enabled, there is a rotational or angular motor across these axes.
+		</constant>
+		<constant name="FLAG_ENABLE_MOTOR" value="4" enum="Flag" deprecated="Use [constant FLAG_ENABLE_ANGULAR_MOTOR] instead.">
+			If enabled, there is a rotational or angular motor across these axes.
 		</constant>
 		<constant name="FLAG_ENABLE_LINEAR_MOTOR" value="5" enum="Flag">
 			If enabled, there is a linear motor across these axes.
