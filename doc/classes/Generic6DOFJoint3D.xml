@@ -91,32 +91,34 @@
 	</methods>
 	<members>
 		<member name="angular_limit_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="1.0">
-			The amount of rotational damping across the X axis.
-			The lower, the longer an impulse from one side takes to travel to the other side.
+			The amount of damping applied to X angular velocity when a joint is rotated beyond the angular limit around the X axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
+			Higher angular damping results in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the joint returns to its angular limit. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="angular_limit_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="true">
-			If [code]true[/code], rotation across the X axis is limited.
+			If [code]true[/code], rotation around the X axis is limited.
 		</member>
 		<member name="angular_limit_x/erp" type="float" setter="set_param_x" getter="get_param_x" default="0.5">
-			When rotating across the X axis, this error tolerance factor defines how much the correction gets slowed down. The lower, the slower.
+			When rotating around the X axis, this error tolerance factor defines how much the correction gets slowed down. The lower, the slower.
 		</member>
 		<member name="angular_limit_x/force_limit" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The maximum amount of force that can occur, when rotating around the X axis.
+			The maximum amount of torque (angular force) that the limit can apply to angular velocity around the X axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_limit_x/lower_angle" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The minimum rotation in negative direction to break loose and rotate around the X axis.
+			The maximum rotation in radians in the negative direction around the X axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular X limits are set to zero, the joint is fixed around the angular X axis.
 		</member>
 		<member name="angular_limit_x/restitution" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The amount of rotational restitution across the X axis. The lower, the more restitution occurs.
+			The amount of rotational restitution across the X axis. The lower, the more restitution occurs. Restitution is a dimensionless value.
 		</member>
 		<member name="angular_limit_x/softness" type="float" setter="set_param_x" getter="get_param_x" default="0.5">
-			The speed of all rotations across the X axis.
+			The stiffness factor applied to rotation beyond the angular limit around the X axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a harder limit, which more strongly resists rotation beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="angular_limit_x/upper_angle" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The minimum rotation in positive direction to break loose and rotate around the X axis.
+			The maximum rotation in radians in the positive direction around the X axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular X limits are set to zero, the joint is fixed around the angular X axis.
 		</member>
 		<member name="angular_limit_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="1.0">
-			The amount of rotational damping across the Y axis. The lower, the more damping occurs.
+			The amount of damping applied to Y angular velocity when a joint is rotated beyond the angular limit around the Y axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
+			Higher angular damping results in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the joint returns to its angular limit. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="angular_limit_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="true">
 			If [code]true[/code], rotation across the Y axis is limited.
@@ -125,22 +127,24 @@
 			When rotating across the Y axis, this error tolerance factor defines how much the correction gets slowed down. The lower, the slower.
 		</member>
 		<member name="angular_limit_y/force_limit" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The maximum amount of force that can occur, when rotating around the Y axis.
+			The maximum amount of torque (angular force) that the limit can apply to angular velocity around the Y axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_limit_y/lower_angle" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The minimum rotation in negative direction to break loose and rotate around the Y axis.
+			The maximum rotation in radians in the negative direction around the Y axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular Y limits are set to zero, the joint is fixed around the angular Y axis.
 		</member>
 		<member name="angular_limit_y/restitution" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The amount of rotational restitution across the Y axis. The lower, the more restitution occurs.
+			The amount of rotational restitution across the Y axis. The lower, the more restitution occurs. Restitution is a dimensionless value.
 		</member>
 		<member name="angular_limit_y/softness" type="float" setter="set_param_y" getter="get_param_y" default="0.5">
-			The speed of all rotations across the Y axis.
+			The stiffness factor applied to rotation beyond the angular limit around the Y axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a harder limit, which more strongly resists rotation beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="angular_limit_y/upper_angle" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The minimum rotation in positive direction to break loose and rotate around the Y axis.
+			The maximum rotation in radians in the positive direction around the Y axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular Y limits are set to zero, the joint is fixed around the angular Y axis.
 		</member>
 		<member name="angular_limit_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="1.0">
-			The amount of rotational damping across the Z axis. The lower, the more damping occurs.
+			The amount of damping applied to Z angular velocity when a joint is rotated beyond the angular limit around the Z axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
+			Higher angular damping results in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the joint returns to its angular limit. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="angular_limit_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="true">
 			If [code]true[/code], rotation across the Z axis is limited.
@@ -149,127 +153,149 @@
 			When rotating across the Z axis, this error tolerance factor defines how much the correction gets slowed down. The lower, the slower.
 		</member>
 		<member name="angular_limit_z/force_limit" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The maximum amount of force that can occur, when rotating around the Z axis.
+			The maximum amount of torque (angular force) that the limit can apply to angular velocity around the Z axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_limit_z/lower_angle" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The minimum rotation in negative direction to break loose and rotate around the Z axis.
+			The maximum rotation in radians in the negative direction around the Z axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular Z limits are set to zero, the joint is fixed around the angular Z axis.
 		</member>
 		<member name="angular_limit_z/restitution" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The amount of rotational restitution across the Z axis. The lower, the more restitution occurs.
+			The amount of rotational restitution across the Z axis. The lower, the more restitution occurs. Restitution is a dimensionless value.
 		</member>
 		<member name="angular_limit_z/softness" type="float" setter="set_param_z" getter="get_param_z" default="0.5">
-			The speed of all rotations across the Z axis.
+			The stiffness factor applied to rotation beyond the angular limit around the Z axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a harder limit, which more strongly resists rotation beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="angular_limit_z/upper_angle" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The minimum rotation in positive direction to break loose and rotate around the Z axis.
+			The maximum rotation in radians in the positive direction around the Z axis that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper angular Z limits are set to zero, the joint is fixed around the angular Z axis.
 		</member>
 		<member name="angular_motor_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
-			If [code]true[/code], a rotating motor at the X axis is enabled.
+			If [code]true[/code], then there is an angular motor on the X axis. More generally, the joint's rotation around the X axis will have a joint drive that targets the given angular velocity and tries to reach it while staying within the force limits.
 		</member>
 		<member name="angular_motor_x/force_limit" type="float" setter="set_param_x" getter="get_param_x" default="300.0">
-			Maximum acceleration for the motor at the X axis.
+			The maximum amount of torque (angular force) that the motor can apply to angular velocity around the X axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_motor_x/target_velocity" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			Target speed for the motor at the X axis.
+			Target speed for the angular motor around the X axis, in radians per second.
 		</member>
 		<member name="angular_motor_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
-			If [code]true[/code], a rotating motor at the Y axis is enabled.
+			If [code]true[/code], then there is an angular motor on the Y axis. More generally, the joint's rotation around the Y axis will have a joint drive that targets the given angular velocity and tries to reach it while staying within the force limits.
 		</member>
 		<member name="angular_motor_y/force_limit" type="float" setter="set_param_y" getter="get_param_y" default="300.0">
-			Maximum acceleration for the motor at the Y axis.
+			The maximum amount of torque (angular force) that the motor can apply to angular velocity around the X axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_motor_y/target_velocity" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			Target speed for the motor at the Y axis.
+			Target speed for the angular motor around the Y axis, in radians per second.
 		</member>
 		<member name="angular_motor_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
-			If [code]true[/code], a rotating motor at the Z axis is enabled.
+			If [code]true[/code], then there is an angular motor on the Z axis. More generally, the joint's rotation around the Z axis will have a joint drive that targets the given angular velocity and tries to reach it while staying within the force limits.
 		</member>
 		<member name="angular_motor_z/force_limit" type="float" setter="set_param_z" getter="get_param_z" default="300.0">
-			Maximum acceleration for the motor at the Z axis.
+			The maximum amount of torque (angular force) that the motor can apply to angular velocity around the X axis. It is measured in Nm, or kg·m²/s² in SI base units.
 		</member>
 		<member name="angular_motor_z/target_velocity" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			Target speed for the motor at the Z axis.
+			Target speed for the angular motor around the Z axis, in radians per second.
 		</member>
 		<member name="angular_spring_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The amount of damping applied to X angular velocity when a joint drive acts as a spring around the X axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
 		</member>
 		<member name="angular_spring_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
+			If [code]true[/code], then there is an angular spring on the X axis. More generally, the joint's rotation around the X axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="angular_spring_x/equilibrium_point" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The equilibrium point of the spring around the X axis, in radians.
 		</member>
 		<member name="angular_spring_x/stiffness" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The stiffness of the spring around the X axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a more rigid spring, which more strongly resists being bent away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="angular_spring_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The amount of damping applied to Y angular velocity when a joint drive acts as a spring around the Y axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
 		</member>
 		<member name="angular_spring_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
+			If [code]true[/code], then there is an angular spring on the Y axis. More generally, the joint's rotation around the Y axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="angular_spring_y/equilibrium_point" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The equilibrium point of the spring around the Y axis, in radians.
 		</member>
 		<member name="angular_spring_y/stiffness" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The stiffness of the spring around the Y axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a more rigid spring, which more strongly resists being bent away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="angular_spring_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The amount of damping applied to Z angular velocity when a joint drive acts as a spring around the Z axis. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
 		</member>
 		<member name="angular_spring_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
+			If [code]true[/code], then there is an angular spring on the Z axis. More generally, the joint's rotation around the Z axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="angular_spring_z/equilibrium_point" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The equilibrium point of the spring around the Z axis, in radians.
 		</member>
 		<member name="angular_spring_z/stiffness" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The stiffness of the spring around the Z axis. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a more rigid spring, which more strongly resists being bent away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_limit_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="1.0">
-			The amount of damping that happens at the X motion.
+			The amount of damping applied to X linear velocity when a joint is moved beyond the linear limit along the X axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="linear_limit_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="true">
 			If [code]true[/code], the linear motion across the X axis is limited.
 		</member>
 		<member name="linear_limit_x/lower_distance" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The minimum difference between the pivot points' X axis.
+			The maximum distance in meters in the negative direction on the X axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear X limits are set to zero, the joint is fixed along the linear X axis.
 		</member>
 		<member name="linear_limit_x/restitution" type="float" setter="set_param_x" getter="get_param_x" default="0.5">
-			The amount of restitution on the X axis movement. The lower, the more momentum gets lost.
+			The amount of restitution on the X axis movement. The lower, the more momentum gets lost. Restitution is a dimensionless value.
 		</member>
 		<member name="linear_limit_x/softness" type="float" setter="set_param_x" getter="get_param_x" default="0.7">
-			A factor applied to the movement across the X axis. The lower, the slower the movement.
+			The stiffness factor applied to movement beyond the linear limit along the X axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a harder limit, which more strongly resists movement beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="linear_limit_x/upper_distance" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
-			The maximum difference between the pivot points' X axis.
+			The maximum distance in meters in the positive direction on the X axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear X limits are set to zero, the joint is fixed along the linear X axis.
 		</member>
 		<member name="linear_limit_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="1.0">
-			The amount of damping that happens at the Y motion.
+			The amount of damping applied to Y linear velocity when a joint is moved beyond the linear limit along the Y axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="linear_limit_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="true">
 			If [code]true[/code], the linear motion across the Y axis is limited.
 		</member>
 		<member name="linear_limit_y/lower_distance" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The minimum difference between the pivot points' Y axis.
+			The maximum distance in meters in the negative direction on the Y axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear Y limits are set to zero, the joint is fixed along the linear Y axis.
 		</member>
 		<member name="linear_limit_y/restitution" type="float" setter="set_param_y" getter="get_param_y" default="0.5">
-			The amount of restitution on the Y axis movement. The lower, the more momentum gets lost.
+			The amount of restitution on the Y axis movement. The lower, the more momentum gets lost. Restitution is a dimensionless value.
 		</member>
 		<member name="linear_limit_y/softness" type="float" setter="set_param_y" getter="get_param_y" default="0.7">
-			A factor applied to the movement across the Y axis. The lower, the slower the movement.
+			The stiffness factor applied to movement beyond the linear limit along the Y axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a harder limit, which more strongly resists movement beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="linear_limit_y/upper_distance" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
-			The maximum difference between the pivot points' Y axis.
+			The maximum distance in meters in the positive direction on the Y axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear Y limits are set to zero, the joint is fixed along the linear Y axis.
 		</member>
 		<member name="linear_limit_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="1.0">
-			The amount of damping that happens at the Z motion.
+			The amount of damping applied to Z linear velocity when a joint is moved beyond the linear limit along the Z axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</member>
 		<member name="linear_limit_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="true">
 			If [code]true[/code], the linear motion across the Z axis is limited.
 		</member>
 		<member name="linear_limit_z/lower_distance" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The minimum difference between the pivot points' Z axis.
+			The maximum distance in meters in the negative direction on the Z axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear Z limits are set to zero, the joint is fixed along the linear Z axis.
 		</member>
 		<member name="linear_limit_z/restitution" type="float" setter="set_param_z" getter="get_param_z" default="0.5">
-			The amount of restitution on the Z axis movement. The lower, the more momentum gets lost.
+			The amount of restitution on the Z axis movement. The lower, the more momentum gets lost. Restitution is a dimensionless value.
 		</member>
 		<member name="linear_limit_z/softness" type="float" setter="set_param_z" getter="get_param_z" default="0.7">
-			A factor applied to the movement across the Z axis. The lower, the slower the movement.
+			The stiffness factor applied to movement beyond the linear limit along the Z axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a harder limit, which more strongly resists movement beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="linear_limit_z/upper_distance" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
-			The maximum difference between the pivot points' Z axis.
+			The maximum distance in meters in the positive direction on the Z axis that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper linear Z limits are set to zero, the joint is fixed along the linear Z axis.
 		</member>
 		<member name="linear_motor_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
-			If [code]true[/code], then there is a linear motor on the X axis. It will attempt to reach the target velocity while staying within the force limits.
+			If [code]true[/code], then there is a linear motor on the X axis. More generally, the joint's X axis will have a joint drive that targets the given linear velocity and attempts to reach it while staying within the force limits.
 		</member>
 		<member name="linear_motor_x/force_limit" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
 			The maximum force the linear motor can apply on the X axis while trying to reach the target velocity.
@@ -278,7 +304,7 @@
 			The speed that the linear motor will attempt to reach on the X axis.
 		</member>
 		<member name="linear_motor_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
-			If [code]true[/code], then there is a linear motor on the Y axis. It will attempt to reach the target velocity while staying within the force limits.
+			If [code]true[/code], then there is a linear motor on the Y axis. More generally, the joint's Y axis will have a joint drive that targets the given linear velocity and attempts to reach it while staying within the force limits.
 		</member>
 		<member name="linear_motor_y/force_limit" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
 			The maximum force the linear motor can apply on the Y axis while trying to reach the target velocity.
@@ -287,7 +313,7 @@
 			The speed that the linear motor will attempt to reach on the Y axis.
 		</member>
 		<member name="linear_motor_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
-			If [code]true[/code], then there is a linear motor on the Z axis. It will attempt to reach the target velocity while staying within the force limits.
+			If [code]true[/code], then there is a linear motor on the Z axis. More generally, the joint's Z axis will have a joint drive that targets the given linear velocity and attempts to reach it while staying within the force limits.
 		</member>
 		<member name="linear_motor_z/force_limit" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
 			The maximum force the linear motor can apply on the Z axis while trying to reach the target velocity.
@@ -296,109 +322,142 @@
 			The speed that the linear motor will attempt to reach on the Z axis.
 		</member>
 		<member name="linear_spring_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="0.01">
+			The amount of damping applied to X linear velocity when a joint drive acts as a spring along the X axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the spring returns to its equilibrium point, preventing oscillations or rapid movement. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_spring_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
+			If [code]true[/code], then there is a linear spring on the X axis. More generally, the joint's X axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="linear_spring_x/equilibrium_point" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The equilibrium point of the spring in meters along the X axis.
 		</member>
 		<member name="linear_spring_x/stiffness" type="float" setter="set_param_x" getter="get_param_x" default="0.01">
+			The stiffness of the spring along the X axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a more rigid spring, which more strongly resists being compressed or stretched away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_spring_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="0.01">
+			The amount of damping applied to Y linear velocity when a joint drive acts as a spring along the Y axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the spring returns to its equilibrium point, preventing oscillations or rapid movement. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_spring_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
+			If [code]true[/code], then there is a linear spring on the Y axis. More generally, the joint's Y axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="linear_spring_y/equilibrium_point" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The equilibrium point of the spring in meters along the Y axis.
 		</member>
 		<member name="linear_spring_y/stiffness" type="float" setter="set_param_y" getter="get_param_y" default="0.01">
+			The stiffness of the spring along the Y axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a more rigid spring, which more strongly resists being compressed or stretched away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_spring_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="0.01">
+			The amount of damping applied to Z linear velocity when a joint drive acts as a spring along the Z axis. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the spring returns to its equilibrium point, preventing oscillations or rapid movement. Lower values make the spring more elastic or bouncy.
 		</member>
 		<member name="linear_spring_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
+			If [code]true[/code], then there is a linear spring on the Z axis. More generally, the joint's Z axis will have a joint drive that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</member>
 		<member name="linear_spring_z/equilibrium_point" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The equilibrium point of the spring in meters along the Z axis.
 		</member>
 		<member name="linear_spring_z/stiffness" type="float" setter="set_param_z" getter="get_param_z" default="0.01">
+			The stiffness of the spring along the Z axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a more rigid spring, which more strongly resists being compressed or stretched away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</member>
 	</members>
 	<constants>
 		<constant name="PARAM_LINEAR_LOWER_LIMIT" value="0" enum="Param">
-			The minimum difference between the pivot points' axes.
+			The maximum distance in meters in the negative direction that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper limits are set to zero, the joint is fixed along that axis.
 		</constant>
 		<constant name="PARAM_LINEAR_UPPER_LIMIT" value="1" enum="Param">
-			The maximum difference between the pivot points' axes.
+			The maximum distance in meters in the positive direction that connected bodies may freely move without the limit applying stiffness force to bring them back within the lower and upper limits. If both the lower and upper limits are set to zero, the joint is fixed along that axis.
 		</constant>
 		<constant name="PARAM_LINEAR_LIMIT_SOFTNESS" value="2" enum="Param">
-			A factor applied to the movement across the axes. The lower, the slower the movement.
+			The stiffness factor applied to movement beyond the linear limit along the Y axis. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a harder limit, which more strongly resists movement beyond the limit. Lower values make the limit softer and more flexible.
 		</constant>
 		<constant name="PARAM_LINEAR_RESTITUTION" value="3" enum="Param">
-			The amount of restitution on the axes' movement. The lower, the more momentum gets lost.
+			The amount of restitution on the axes' movement. The lower, the more momentum gets lost. Restitution is a dimensionless value.
 		</constant>
 		<constant name="PARAM_LINEAR_DAMPING" value="4" enum="Param">
-			The amount of damping that happens at the linear motion across the axes.
+			The amount of damping applied to linear velocity when a joint is moved beyond the linear limit. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the joint returns to its limit, preventing oscillations or rapid movement. Lower values make the joint more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_LINEAR_MOTOR_TARGET_VELOCITY" value="5" enum="Param">
-			The velocity the linear motor will try to reach.
+			The speed that the linear motor will attempt to reach on the axes.
 		</constant>
 		<constant name="PARAM_LINEAR_MOTOR_FORCE_LIMIT" value="6" enum="Param">
-			The maximum force the linear motor will apply while trying to reach the velocity target.
+			The maximum force the linear motor can apply on the axes while trying to reach the target velocity.
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_STIFFNESS" value="7" enum="Param">
+			The stiffness of the spring in linear directions. It is measured in N/m, or kg/s² in SI base units.
+			Higher linear stiffness results in a more rigid spring, which more strongly resists being compressed or stretched away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_DAMPING" value="8" enum="Param">
+			The amount of damping applied to linear velocity when a joint drive acts as a spring. It is measured in N·s/m, or kg/s in SI base units.
+			Higher linear damping results in a more gradual reduction in linear velocity, creating smoother, gentler behavior as the spring returns to its equilibrium point, preventing oscillations or rapid movement. Lower values make the spring more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_EQUILIBRIUM_POINT" value="9" enum="Param">
+			The equilibrium point of the spring in linear directions. It is measured in meters.
 		</constant>
 		<constant name="PARAM_ANGULAR_LOWER_LIMIT" value="10" enum="Param">
-			The minimum rotation in negative direction to break loose and rotate around the axes.
+			The maximum rotation in radians in the negative direction that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper limits are set to zero, the joint is fixed around that axis.
 		</constant>
 		<constant name="PARAM_ANGULAR_UPPER_LIMIT" value="11" enum="Param">
-			The minimum rotation in positive direction to break loose and rotate around the axes.
+			The maximum rotation in radians in the positive direction that connected bodies may freely rotate without the limit applying stiffness torque to bring them back within the lower and upper limits. If both the lower and upper limits are set to zero, the joint is fixed around that axis.
 		</constant>
 		<constant name="PARAM_ANGULAR_LIMIT_SOFTNESS" value="12" enum="Param">
-			The speed of all rotations across the axes.
+			The stiffness factor applied to rotation beyond the angular limit. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
 		</constant>
 		<constant name="PARAM_ANGULAR_DAMPING" value="13" enum="Param">
-			The amount of rotational damping across the axes. The lower, the more damping occurs.
+			The amount of damping applied to angular velocity when a joint is rotated beyond the angular limit. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
+			Higher angular damping results in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the joint returns to its angular limit. Lower values make the joint more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_ANGULAR_RESTITUTION" value="14" enum="Param">
-			The amount of rotational restitution across the axes. The lower, the more restitution occurs.
+			The amount of rotational restitution. The lower, the more restitution occurs. Restitution is a dimensionless value.
 		</constant>
 		<constant name="PARAM_ANGULAR_FORCE_LIMIT" value="15" enum="Param">
-			The maximum amount of force that can occur, when rotating around the axes.
+			The maximum amount of torque (angular force) that the limit can apply to angular velocity. It is measured in Nm, or kg·m²/s² in SI base units.
 		</constant>
 		<constant name="PARAM_ANGULAR_ERP" value="16" enum="Param">
 			When rotating across the axes, this error tolerance factor defines how much the correction gets slowed down. The lower, the slower.
 		</constant>
 		<constant name="PARAM_ANGULAR_MOTOR_TARGET_VELOCITY" value="17" enum="Param">
-			Target speed for the motor at the axes.
+			Target speed for the angular motor in radians per second.
 		</constant>
 		<constant name="PARAM_ANGULAR_MOTOR_FORCE_LIMIT" value="18" enum="Param">
-			Maximum acceleration for the motor at the axes.
+			The maximum amount of torque (angular force) that the motor can apply to angular velocity. It is measured in Nm, or kg·m²/s² in SI base units.
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_STIFFNESS" value="19" enum="Param">
+			The stiffness of the spring around the axes. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a more rigid spring, which more strongly resists being bent away from its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_DAMPING" value="20" enum="Param">
+			The amount of damping applied to angular velocity when a joint drive acts as a spring. It is measured in N·m·s/rad, or kg·m²/s/rad in SI base units.
+			Higher angular damping results in a smoother, more gradual reduction in angular velocity, preventing oscillations or rapid rotation as the spring returns to its equilibrium point. Lower values make the spring more elastic or bouncy.
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT" value="21" enum="Param">
+			The equilibrium point of the spring around the axes. It is measured in radians.
 		</constant>
 		<constant name="PARAM_MAX" value="22" enum="Param">
 			Represents the size of the [enum Param] enum.
 		</constant>
 		<constant name="FLAG_ENABLE_LINEAR_LIMIT" value="0" enum="Flag">
-			If enabled, linear motion is possible within the given limits.
+			If enabled for some or all axes, linear motion across these axes is limited.
 		</constant>
 		<constant name="FLAG_ENABLE_ANGULAR_LIMIT" value="1" enum="Flag">
-			If enabled, rotational motion is possible within the given limits.
+			If enabled for some or all axes, rotation across these axes is limited.
 		</constant>
 		<constant name="FLAG_ENABLE_LINEAR_SPRING" value="3" enum="Flag">
+			If enabled for some or all axes, there is a linear spring across these axes. More generally, the joint's linear motion along these axes will have a spring that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</constant>
 		<constant name="FLAG_ENABLE_ANGULAR_SPRING" value="2" enum="Flag">
+			If enabled for some or all axes, there is an angular spring across these axes. More generally, the joint's rotation around these axes will have a spring that targets the equilibrium point and attempts to move towards it with the given stiffness and damping values.
 		</constant>
 		<constant name="FLAG_ENABLE_MOTOR" value="4" enum="Flag">
-			If enabled, there is a rotational motor across these axes.
+			If enabled for some or all axes, there is a rotational or angular motor across these axes. More generally, the joint's rotation around these axes will have a joint drive that targets the given angular velocity and tries to reach it while staying within the force limits.
 		</constant>
 		<constant name="FLAG_ENABLE_LINEAR_MOTOR" value="5" enum="Flag">
-			If enabled, there is a linear motor across these axes.
+			If enabled for some or all axes, there is a linear motor across these axes. More generally, the joint's linear motion along these axes will have a joint drive that targets the given linear velocity and tries to reach it while staying within the force limits.
 		</constant>
 		<constant name="FLAG_MAX" value="6" enum="Flag">
 			Represents the size of the [enum Flag] enum.

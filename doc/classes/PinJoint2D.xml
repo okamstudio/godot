@@ -25,7 +25,7 @@
 			Target speed for the motor. In radians per second.
 		</member>
 		<member name="softness" type="float" setter="set_softness" getter="get_softness" default="0.0">
-			The higher this value, the more the bond to the pinned partner can flex.
+			The higher this value, the more the bond to the pinned partner can flex. Lower values are stiffer, while higher values are softer. It is measured in s²/kg.
 		</member>
 	</members>
 </class>

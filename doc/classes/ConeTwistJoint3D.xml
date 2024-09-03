@@ -31,10 +31,12 @@
 			The higher, the faster.
 		</member>
 		<member name="relaxation" type="float" setter="set_param" getter="get_param" default="1.0">
-			Defines, how fast the swing- and twist-speed-difference on both sides gets synced.
+			The amount of relaxation, or inverse damping, applied to angular velocity when rotated beyond the swing span and/or twist span. It is measured in rad/N/m/s, or rad·s/kg/m² in SI base units. Unlike most joints in Godot which use damping, [ConeTwistJoint3D] uses inverse damping (relaxation), so higher values result in less damping and lower values result in more damping.
+			Higher relaxation values make the joint more elastic or bouncy. Lower values result in a smoother, more gradual reduction in swing and twist speed difference velocity, preventing oscillations or rapid rotation as the joint returns to its span limits.
 		</member>
 		<member name="softness" type="float" setter="set_param" getter="get_param" default="0.8">
-			The ease with which the joint starts to twist. If it's too low, it takes more force to start twisting the joint.
+			The stiffness factor applied to rotation beyond the swing span and twist span limits. It is measured in N·m/rad, or kg·m²/s²/rad in SI base units.
+			Higher angular stiffness results in a harder limit, which more strongly resists rotation beyond the limit. Lower values make the limit softer and more flexible.
 		</member>
 		<member name="swing_span" type="float" setter="set_param" getter="get_param" default="0.785398">
 			Swing is rotation from side to side, around the axis perpendicular to the twist axis.

@@ -163,7 +163,7 @@ void PinJoint2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_angular_limit_enabled", "enabled"), &PinJoint2D::set_angular_limit_enabled);
 	ClassDB::bind_method(D_METHOD("is_angular_limit_enabled"), &PinJoint2D::is_angular_limit_enabled);
 
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "softness", PROPERTY_HINT_RANGE, "0.00,16,0.01,exp"), "set_softness", "get_softness");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "softness", PROPERTY_HINT_RANGE, U"0.00,16,0.01,exp,suffix:s\u00B2/kg"), "set_softness", "get_softness");
 	ADD_GROUP("Angular Limit", "angular_limit_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "angular_limit_enabled"), "set_angular_limit_enabled", "is_angular_limit_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "angular_limit_lower", PROPERTY_HINT_RANGE, "-180,180,0.1,radians_as_degrees"), "set_angular_limit_lower", "get_angular_limit_lower");

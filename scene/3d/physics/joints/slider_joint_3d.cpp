@@ -36,27 +36,27 @@ void SliderJoint3D::_bind_methods() {
 
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/upper_distance", PROPERTY_HINT_RANGE, "-1024,1024,0.01,suffix:m"), "set_param", "get_param", PARAM_LINEAR_LIMIT_UPPER);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/lower_distance", PROPERTY_HINT_RANGE, "-1024,1024,0.01,suffix:m"), "set_param", "get_param", PARAM_LINEAR_LIMIT_LOWER);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_LIMIT_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg/s\u00B2 (N/m)"), "set_param", "get_param", PARAM_LINEAR_LIMIT_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_LIMIT_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_LIMIT_DAMPING);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_motion/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_MOTION_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_limit/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg/s (N\u22C5s/m)"), "set_param", "get_param", PARAM_LINEAR_LIMIT_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_motion/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg/s\u00B2 (N/m)"), "set_param", "get_param", PARAM_LINEAR_MOTION_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_motion/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_MOTION_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_motion/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_MOTION_DAMPING);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_ortho/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_ORTHOGONAL_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_motion/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg/s (N\u22C5s/m)"), "set_param", "get_param", PARAM_LINEAR_MOTION_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_ortho/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg/s\u00B2 (N/m)"), "set_param", "get_param", PARAM_LINEAR_ORTHOGONAL_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_ortho/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_ORTHOGONAL_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_ortho/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_LINEAR_ORTHOGONAL_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "linear_ortho/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg/s (N\u22C5s/m)"), "set_param", "get_param", PARAM_LINEAR_ORTHOGONAL_DAMPING);
 
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/upper_angle", PROPERTY_HINT_RANGE, "-180,180,0.1,radians_as_degrees"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_UPPER);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/lower_angle", PROPERTY_HINT_RANGE, "-180,180,0.1,radians_as_degrees"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_LOWER);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg\u22C5m\u00B2/s\u00B2/rad (N\u22C5m/rad)"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_DAMPING);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motion/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_MOTION_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_limit/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg\u22C5m\u00B2/s/rad (N\u22C5m\u22C5s/rad)"), "set_param", "get_param", PARAM_ANGULAR_LIMIT_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motion/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg\u22C5m\u00B2/s\u00B2/rad (N\u22C5m/rad)"), "set_param", "get_param", PARAM_ANGULAR_MOTION_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motion/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_MOTION_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motion/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_MOTION_DAMPING);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_ortho/softness", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_ORTHOGONAL_SOFTNESS);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_motion/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg\u22C5m\u00B2/s/rad (N\u22C5m\u22C5s/rad)"), "set_param", "get_param", PARAM_ANGULAR_MOTION_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_ortho/softness", PROPERTY_HINT_RANGE, U"0.01,16.0,0.01,suffix:kg\u22C5m\u00B2/s\u00B2/rad (N\u22C5m/rad)"), "set_param", "get_param", PARAM_ANGULAR_ORTHOGONAL_SOFTNESS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_ortho/restitution", PROPERTY_HINT_RANGE, "0.01,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_ORTHOGONAL_RESTITUTION);
-	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_ortho/damping", PROPERTY_HINT_RANGE, "0,16.0,0.01"), "set_param", "get_param", PARAM_ANGULAR_ORTHOGONAL_DAMPING);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "angular_ortho/damping", PROPERTY_HINT_RANGE, U"0,16.0,0.01,suffix:kg\u22C5m\u00B2/s/rad (N\u22C5m\u22C5s/rad)"), "set_param", "get_param", PARAM_ANGULAR_ORTHOGONAL_DAMPING);
 
 	BIND_ENUM_CONSTANT(PARAM_LINEAR_LIMIT_UPPER);
 	BIND_ENUM_CONSTANT(PARAM_LINEAR_LIMIT_LOWER);
