@@ -394,21 +394,10 @@ void TranslationServer::clear() {
 }
 
 StringName TranslationServer::translate(const StringName &p_message, const StringName &p_context) const {
-	if (!enabled) {
-		return p_message;
-	}
-
 	return main_domain->translate(p_message, p_context);
 }
 
 StringName TranslationServer::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
-	if (!enabled) {
-		if (p_n == 1) {
-			return p_message;
-		}
-		return p_message_plural;
-	}
-
 	return main_domain->translate_plural(p_message, p_message_plural, p_n, p_context);
 }
 

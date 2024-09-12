@@ -6,6 +6,7 @@
 	<description>
 		[TranslationDomain] is a self-contained collection of [Translation] resources. Translations can be added to or removed from it.
 		If you're working with the main translation domain, it is more convenient to use the wrap methods on [TranslationServer].
+		Because translation domain is intended to be advanced usage, modifications to it do not emit [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] on the scene tree automatically. See the description of methods and properties below for details.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -21,6 +22,12 @@
 			<return type="void" />
 			<description>
 				Removes all translations.
+			</description>
+		</method>
+		<method name="get_locale_override" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the locale override of the domain. Returns an empty string if locale override is disabled.
 			</description>
 		</method>
 		<method name="get_translation_object" qualifiers="const">
@@ -42,6 +49,15 @@
 			<param index="0" name="translation" type="Translation" />
 			<description>
 				Removes the given translation.
+			</description>
+		</method>
+		<method name="set_locale_override">
+			<return type="void" />
+			<param index="0" name="locale" type="String" />
+			<description>
+				Sets the locale override of the domain.
+				If [param locale] is an empty string, locale override is disabled. Otherwise, [param locale] will be standardized to match known locales (e.g. [code]en-US[/code] would be matched to [code]en_US[/code]).
+				[b]Note: [/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] signal manually.
 			</description>
 		</method>
 		<method name="translate" qualifiers="const">
