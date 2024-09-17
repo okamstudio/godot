@@ -537,8 +537,8 @@ bool CodeHighlighter::has_color_region(const String &p_start_key) const {
 void CodeHighlighter::set_color_regions(const Dictionary &p_color_regions) {
 	color_regions.clear();
 
-	List<Variant> keys;
-	p_color_regions.get_key_list(&keys);
+	LocalVector<Variant> keys;
+	p_color_regions.get_key_list(keys);
 
 	for (const Variant &E : keys) {
 		String key = E;

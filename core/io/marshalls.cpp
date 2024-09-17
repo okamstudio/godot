@@ -1849,8 +1849,8 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			}
 			r_len += 4;
 
-			List<Variant> keys;
-			dict.get_key_list(&keys);
+			LocalVector<Variant> keys;
+			dict.get_key_list(keys);
 
 			for (const Variant &key : keys) {
 				int len;

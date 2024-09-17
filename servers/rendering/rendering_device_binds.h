@@ -426,8 +426,8 @@ protected:
 	}
 	void _set_versions(const Dictionary &p_versions) {
 		versions.clear();
-		List<Variant> keys;
-		p_versions.get_key_list(&keys);
+		LocalVector<Variant> keys;
+		p_versions.get_key_list(keys);
 		for (const Variant &E : keys) {
 			StringName vname = E;
 			Ref<RDShaderSPIRV> bc = p_versions[E];

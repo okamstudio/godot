@@ -297,8 +297,8 @@ void ImportDock::set_edit_multiple_paths(const Vector<String> &p_paths) {
 		if (value_frequency.has(E.option.name)) {
 			Dictionary d = value_frequency[E.option.name];
 			int freq = 0;
-			List<Variant> v;
-			d.get_key_list(&v);
+			LocalVector<Variant> v;
+			d.get_key_list(v);
 			Variant value;
 			for (const Variant &F : v) {
 				int f = d[F];
@@ -456,8 +456,8 @@ void ImportDock::_preset_selected(int p_idx) {
 			ERR_FAIL_COND(!ProjectSettings::get_singleton()->has_setting(setting_name));
 
 			Dictionary import_settings = GLOBAL_GET(setting_name);
-			List<Variant> keys;
-			import_settings.get_key_list(&keys);
+			LocalVector<Variant> keys;
+			import_settings.get_key_list(keys);
 
 			if (params->checking) {
 				params->checked.clear();

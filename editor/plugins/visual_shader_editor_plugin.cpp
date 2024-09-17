@@ -2195,8 +2195,8 @@ void VisualShaderEditor::_update_nodes() {
 		}
 	}
 
-	List<Variant> keys;
-	added.get_key_list(&keys);
+	LocalVector<Variant> keys;
+	added.get_key_list(keys);
 	keys.sort_custom<StringLikeVariantOrder>();
 
 	for (const Variant &key : keys) {
