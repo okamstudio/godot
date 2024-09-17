@@ -109,6 +109,7 @@ class AnimationBezierTrackEdit : public Control {
 	typedef Pair<int, int> IntPair;
 
 	bool moving_selection_attempt = false;
+	bool moving_inserted_key = false;
 	float moving_selection_mouse_begin_x = 0.0;
 	IntPair select_single_attempt;
 	bool moving_selection = false;
@@ -221,7 +222,7 @@ public:
 	void paste_keys(real_t p_ofs, bool p_ofs_valid);
 	void delete_selection();
 
-	void _bezier_track_insert_key_at_anim(const Ref<Animation> &p_anim, int p_track, double p_time, real_t p_value, const Vector2 &p_in_handle, const Vector2 &p_out_handle, const Animation::HandleMode p_handle_mode);
+	void _bezier_track_insert_key_at_anim(const Ref<Animation> &p_anim, int p_track, double p_time, real_t p_value, const Vector2 &p_in_handle, const Vector2 &p_out_handle, const Animation::HandleMode p_handle_mode, Animation::HandleSetMode p_handle_set_mode = Animation::HANDLE_SET_MODE_NONE);
 
 	AnimationBezierTrackEdit();
 };

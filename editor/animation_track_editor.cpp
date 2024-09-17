@@ -4719,6 +4719,9 @@ AnimationTrackEditor::TrackIndices AnimationTrackEditor::_confirm_insert(InsertD
 	}
 
 	undo_redo->add_do_method(animation.ptr(), "track_insert_key", p_id.track_idx, time, value);
+	if (!created && p_id.type == Animation::TYPE_BEZIER) {
+		undo_redo->add_do_method(this, "_bezier_track_set_key_handle_mode_at_time", animation.ptr(), p_id.track_idx, time, (Animation::HandleMode)bezier_key_mode->get_selected_id(), Animation::HANDLE_SET_MODE_AUTO);
+	}
 
 	if (created) {
 		// Just remove the track.
@@ -6097,10 +6100,15 @@ void AnimationTrackEditor::_bezier_edit(int p_for_track) {
 }
 
 void AnimationTrackEditor::_bezier_track_set_key_handle_mode(Animation *p_anim, int p_track, int p_index, Animation::HandleMode p_mode, Animation::HandleSetMode p_set_mode) {
-	if (!p_anim) {
-		return;
-	}
+	ERR_FAIL_NULL(p_anim);
 	p_anim->bezier_track_set_key_handle_mode(p_track, p_index, p_mode, p_set_mode);
+}
+
+void AnimationTrackEditor::_bezier_track_set_key_handle_mode_at_time(Animation *p_anim, int p_track, float p_time, Animation::HandleMode p_mode, Animation::HandleSetMode p_set_mode) {
+	ERR_FAIL_NULL(p_anim);
+	int index = p_anim->track_find_key(p_track, p_time, Animation::FIND_MODE_APPROX);
+	ERR_FAIL_COND(index < 0);
+	_bezier_track_set_key_handle_mode(p_anim, p_track, index, p_mode, p_set_mode);
 }
 
 void AnimationTrackEditor::_anim_duplicate_keys(float p_ofs, bool p_ofs_valid, int p_track) {
@@ -7468,6 +7476,7 @@ void AnimationTrackEditor::_bind_methods() {
 	ClassDB::bind_method("_clear_selection", &AnimationTrackEditor::_clear_selection);
 
 	ClassDB::bind_method(D_METHOD("_bezier_track_set_key_handle_mode", "animation", "track_idx", "key_idx", "key_handle_mode", "key_handle_set_mode"), &AnimationTrackEditor::_bezier_track_set_key_handle_mode, DEFVAL(Animation::HANDLE_SET_MODE_NONE));
+	ClassDB::bind_method(D_METHOD("_bezier_track_set_key_handle_mode_at_time", "animation", "track_idx", "time", "key_handle_mode", "key_handle_set_mode"), &AnimationTrackEditor::_bezier_track_set_key_handle_mode_at_time, DEFVAL(Animation::HANDLE_SET_MODE_NONE));
 
 	ADD_SIGNAL(MethodInfo("timeline_changed", PropertyInfo(Variant::FLOAT, "position"), PropertyInfo(Variant::BOOL, "timeline_only"), PropertyInfo(Variant::BOOL, "update_position_only")));
 	ADD_SIGNAL(MethodInfo("keying_changed"));
@@ -7635,6 +7644,21 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	spacer->set_mouse_filter(MOUSE_FILTER_PASS);
 	spacer->set_h_size_flags(SIZE_EXPAND_FILL);
 	bottom_hf->add_child(spacer);
+
+	Label *bezier_key_default_label = memnew(Label);
+	bezier_key_default_label->set_text(TTR("Bezier Default Mode:"));
+	bottom_hf->add_child(bezier_key_default_label);
+
+	bezier_key_mode = memnew(OptionButton);
+	bezier_key_mode->add_item(TTR("Free"));
+	bezier_key_mode->add_item(TTR("Linear"));
+	bezier_key_mode->add_item(TTR("Balanced"));
+	bezier_key_mode->add_item(TTR("Mirrored"));
+	bezier_key_mode->set_tooltip_text(TTR("Set the default behavior of new bezier keys."));
+	bezier_key_mode->select(2);
+
+	bottom_hf->add_child(bezier_key_mode);
+	bottom_hf->add_child(memnew(VSeparator));
 
 	bezier_edit_icon = memnew(Button);
 	bezier_edit_icon->set_flat(true);
