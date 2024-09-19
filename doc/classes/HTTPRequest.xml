@@ -170,16 +170,45 @@
 				[b]Note:[/b] Some Web servers may not send a body length. In this case, the value returned will be [code]-1[/code]. If using chunked transfer encoding, the body length will also be [code]-1[/code].
 			</description>
 		</method>
+		<method name="get_dictionary_from_headers" qualifiers="static">
+			<return type="Dictionary" />
+			<param index="0" name="headers" type="PackedStringArray" />
+			<description>
+				Converts the [param headers] array into a [Dictionary]. Each key is a header name in lower-case and each value is a [String] of values separated by [code]; [/code].
+				[codeblock]
+				{
+				    "content-length": "12",
+				    "content-type": "application/json; charset=UTF-8",
+				}
+				[/codeblock]
+			</description>
+		</method>
 		<method name="get_downloaded_bytes" qualifiers="const">
 			<return type="int" />
 			<description>
 				Returns the number of bytes this HTTPRequest downloaded.
 			</description>
 		</method>
+		<method name="get_header_value" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="headers" type="PackedStringArray" />
+			<param index="1" name="header_name" type="String" />
+			<description>
+				Returns the value of the case-insensitive header named [param header_name] in [param headers], as a [String]. If not found, returns an empty [String].
+			</description>
+		</method>
 		<method name="get_http_client_status" qualifiers="const">
 			<return type="int" enum="HTTPClient.Status" />
 			<description>
 				Returns the current status of the underlying [HTTPClient]. See [enum HTTPClient.Status].
+			</description>
+		</method>
+		<method name="has_header" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="headers" type="PackedStringArray" />
+			<param index="1" name="header_name" type="String" />
+			<description>
+				Returns [code]true[/code] if given [param header_name] is found in [param headers] (case-insensitive).
 			</description>
 		</method>
 		<method name="request">
