@@ -467,9 +467,10 @@ void DependencyRemoveDialog::_find_localization_remaps_of_removed_files(Vector<R
 				p_removed.push_back(dep);
 			}
 
-			Array remap_keys = remaps.keys();
-			for (int j = 0; j < remap_keys.size(); j++) {
-				PackedStringArray remapped_files = remaps[remap_keys[j]];
+			List<Variant> remap_keys;
+			remaps.get_key_list(&remap_keys);
+			for (const Variant &remap_key : remap_keys) {
+				PackedStringArray remapped_files = remaps[remap_key];
 				for (int k = 0; k < remapped_files.size(); k++) {
 					int splitter_pos = remapped_files[k].rfind_char(':');
 					String res_path = remapped_files[k].substr(0, splitter_pos);
@@ -477,7 +478,7 @@ void DependencyRemoveDialog::_find_localization_remaps_of_removed_files(Vector<R
 						String locale_name = remapped_files[k].substr(splitter_pos + 1);
 
 						RemovedDependency dep;
-						dep.file = vformat(TTR("Localization remap for path '%s' and locale '%s'."), remap_keys[j], locale_name);
+						dep.file = vformat(TTR("Localization remap for path '%s' and locale '%s'."), remap_key, locale_name);
 						dep.file_type = "";
 						dep.dependency = path;
 						dep.dependency_folder = files.value;

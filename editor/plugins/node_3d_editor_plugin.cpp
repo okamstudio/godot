@@ -7993,7 +7993,8 @@ void Node3DEditor::_snap_selected_nodes_to_floor() {
 	PhysicsDirectSpaceState3D *ss = get_tree()->get_root()->get_world_3d()->get_direct_space_state();
 	PhysicsDirectSpaceState3D::RayResult result;
 
-	Array keys = snap_data.keys();
+	List<Variant> keys;
+	snap_data.get_key_list(&keys);
 
 	// The maximum height an object can travel to be snapped
 	const float max_snap_height = 500.0;
@@ -8004,8 +8005,8 @@ void Node3DEditor::_snap_selected_nodes_to_floor() {
 	if (keys.size()) {
 		// For snapping to be performed, there must be solid geometry under at least one of the selected nodes.
 		// We need to check this before snapping to register the undo/redo action only if needed.
-		for (int i = 0; i < keys.size(); i++) {
-			Node *node = Object::cast_to<Node>(keys[i]);
+		for (const Variant &key : keys) {
+			Node *node = Object::cast_to<Node>(key);
 			Node3D *sp = Object::cast_to<Node3D>(node);
 			Dictionary d = snap_data[node];
 			Vector3 from = d["from"];
@@ -8027,8 +8028,8 @@ void Node3DEditor::_snap_selected_nodes_to_floor() {
 			undo_redo->create_action(TTR("Snap Nodes to Floor"));
 
 			// Perform snapping if at least one node can be snapped
-			for (int i = 0; i < keys.size(); i++) {
-				Node *node = Object::cast_to<Node>(keys[i]);
+			for (const Variant &key : keys) {
+				Node *node = Object::cast_to<Node>(key);
 				Node3D *sp = Object::cast_to<Node3D>(node);
 				Dictionary d = snap_data[node];
 				Vector3 from = d["from"];

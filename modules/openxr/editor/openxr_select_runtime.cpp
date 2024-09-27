@@ -54,9 +54,9 @@ void OpenXRSelectRuntime::_update_items() {
 	set_item_metadata(index, "");
 	index++;
 
-	Array keys = runtimes.keys();
-	for (int i = 0; i < keys.size(); i++) {
-		String key = keys[i];
+	List<Variant> keys;
+	runtimes.get_key_list(&keys);
+	for (const String key : keys) {
 		String path = runtimes[key];
 		String adj_path = path.replace("~", home_folder);
 
