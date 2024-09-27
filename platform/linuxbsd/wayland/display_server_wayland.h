@@ -69,13 +69,23 @@
 class DisplayServerWayland : public DisplayServer {
 	// No need to register with GDCLASS, it's platform-specific and nothing is added.
 	struct WindowData {
-		WindowID id;
+		WindowID id = INVALID_WINDOW_ID;
+
+		WindowID parent_id = INVALID_WINDOW_ID;
+
+		// For popups.
+		WindowID root_id = INVALID_WINDOW_ID;
+
+		// For toplevels.
+		List<WindowID> popup_stack;
 
 		Rect2i rect;
 		Size2i max_size;
 		Size2i min_size;
 
 		Rect2i safe_rect;
+
+		bool emulate_vsync = false;
 
 #ifdef GLES3_ENABLED
 		struct wl_egl_window *wl_egl_window = nullptr;
@@ -120,16 +130,24 @@ class DisplayServerWayland : public DisplayServer {
 
 	HashMap<CursorShape, CustomCursor> custom_cursors;
 
-	WindowData main_window;
+	HashMap<WindowID, WindowData> windows;
+	WindowID window_id_counter = MAIN_WINDOW_ID;
+
 	WaylandThread wayland_thread;
 
 	Context context;
+
+	// NOTE: These are the based on WINDOW_FLAG_POPUP, which does NOT imply what it
+	// seems. It's particularly confusing for our usecase, but just know that these
+	// are the "take all input thx" windows while the `popup_stack` variable keeps
+	// track of all the generic floating window concept.
+	List<WindowID> popup_menu_list;
+	BitField<MouseButtonMask> last_mouse_monitor_mask;
 
 	String ime_text;
 	Vector2i ime_selection;
 
 	SuspendState suspend_state = SuspendState::NONE;
-	bool emulate_vsync = false;
 
 	String rendering_driver;
 
@@ -155,14 +173,12 @@ class DisplayServerWayland : public DisplayServer {
 #endif
 	static String _get_app_id_from_context(Context p_context);
 
-	void _send_window_event(WindowEvent p_event);
+	void _send_window_event(WindowEvent p_event, WindowID p_window_id = MAIN_WINDOW_ID);
 
 	static void dispatch_input_events(const Ref<InputEvent> &p_event);
 	void _dispatch_input_event(const Ref<InputEvent> &p_event);
 
-	void _resize_window(const Size2i &p_size);
-
-	virtual void _show_window();
+	void _update_window_rect(const Rect2i &p_rect, WindowID p_window_id = MAIN_WINDOW_ID);
 
 	void try_suspend();
 
@@ -223,6 +239,14 @@ public:
 	virtual bool screen_is_kept_on() const override;
 
 	virtual Vector<DisplayServer::WindowID> get_window_list() const override;
+
+	virtual WindowID create_sub_window(WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Rect2i &p_rect = Rect2i(), bool p_exclusive = false, WindowID p_transient_parent = INVALID_WINDOW_ID) override;
+	virtual void show_window(WindowID p_id) override;
+	virtual void delete_sub_window(WindowID p_id) override;
+
+	virtual WindowID window_get_active_popup() const override;
+	virtual void window_set_popup_safe_rect(WindowID p_window, const Rect2i &p_rect) override;
+	virtual Rect2i window_get_popup_safe_rect(WindowID p_window) const override;
 
 	virtual int64_t window_get_native_handle(HandleType p_handle_type, WindowID p_window = MAIN_WINDOW_ID) const override;
 

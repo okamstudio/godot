@@ -167,6 +167,11 @@ Rect2i Popup::_popup_adjust_rect() const {
 
 	Rect2i current(get_position(), get_size());
 
+	if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SELF_FITTING_WINDOWS)) {
+		// We're fine as is, the Display Server will take care of that for us.
+		return current;
+	}
+
 	if (current.position.x + current.size.x > parent_rect.position.x + parent_rect.size.x) {
 		current.position.x = parent_rect.position.x + parent_rect.size.x - current.size.x;
 	}
@@ -219,6 +224,7 @@ Popup::Popup() {
 	set_flag(FLAG_BORDERLESS, true);
 	set_flag(FLAG_RESIZE_DISABLED, true);
 	set_flag(FLAG_POPUP, true);
+	set_flag(FLAG_POPUP_WM_HINT, true);
 }
 
 Popup::~Popup() {
@@ -419,6 +425,7 @@ void PopupPanel::_bind_methods() {
 
 PopupPanel::PopupPanel() {
 	set_flag(FLAG_TRANSPARENT, true);
+	set_flag(FLAG_POPUP_WM_HINT, true);
 
 	panel = memnew(Panel);
 	panel->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);

@@ -1952,6 +1952,9 @@
 		<constant name="FEATURE_EMOJI_AND_SYMBOL_PICKER" value="31" enum="Feature">
 			Display server supports system emoji and symbol picker. [b]Windows, macOS[/b]
 		</constant>
+		<constant name="FEATURE_SELF_FITTING_WINDOWS" value="32" enum="Feature">
+			Display server automatically fits popups according to the screen boundaries. Window nodes should not attempt to do that themselves.
+		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.
 		</constant>
@@ -2176,7 +2179,10 @@
 			[b]Note:[/b] This flag is implemented on macOS and Windows.
 			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
 		</constant>
-		<constant name="WINDOW_FLAG_MAX" value="10" enum="WindowFlags">
+		<constant name="WINDOW_FLAG_POPUP_WM_HINT" value="10" enum="WindowFlags">
+			Signals the window manager that this window is supposed to be a window-manager-defined "popup" (usually a floating, borderless, immovable child window).
+		</constant>
+		<constant name="WINDOW_FLAG_MAX" value="11" enum="WindowFlags">
 			Max value of the [enum WindowFlags].
 		</constant>
 		<constant name="WINDOW_EVENT_MOUSE_ENTER" value="0" enum="WindowEvent">
@@ -2205,6 +2211,10 @@
 		<constant name="WINDOW_EVENT_TITLEBAR_CHANGE" value="7" enum="WindowEvent">
 			Sent when the window title bar decoration is changed (e.g. [constant WINDOW_FLAG_EXTEND_TO_TITLE] is set or window entered/exited full screen mode).
 			[b]Note:[/b] This flag is implemented only on macOS.
+		</constant>
+		<constant name="WINDOW_EVENT_FORCE_CLOSE" value="8" enum="WindowEvent">
+			Sent when the window has been forcibly closed by the Display Server. The window shall immediately hide and clean any internal rendering references.
+			[b]Note:[/b] This flag is implemented only on Linux (Wayland).
 		</constant>
 		<constant name="WINDOW_EDGE_TOP_LEFT" value="0" enum="WindowResizeEdge">
 			Top-left edge of a window.

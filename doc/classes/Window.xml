@@ -879,7 +879,7 @@
 			[b]Note:[/b] This flag is implemented on macOS and Windows.
 			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
 		</constant>
-		<constant name="FLAG_MAX" value="10" enum="Flags">
+		<constant name="FLAG_MAX" value="11" enum="Flags">
 			Max value of the [enum Flags].
 		</constant>
 		<constant name="CONTENT_SCALE_MODE_DISABLED" value="0" enum="ContentScaleMode">
