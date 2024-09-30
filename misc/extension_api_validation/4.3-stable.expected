@@ -309,3 +309,11 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-98194
+--------
+Validate extension JSON: Error: Field 'classes/DisplayServer/methods/file_dialog_show/arguments': size changed value in new API, from 7 to 8.
+Validate extension JSON: Error: Field 'classes/DisplayServer/methods/file_dialog_with_options_show/arguments': size changed value in new API, from 9 to 10.
+
+Optional argument added. Compatibility methods registered.
