@@ -136,7 +136,7 @@ public:
 		union {
 			uint64_t u;
 			double f;
-		} ieee754;
+		} ieee754 = {};
 		ieee754.f = p_val;
 		// (unsigned)(0x7ff0000000000001 >> 32) : 0x7ff00000
 		return ((((unsigned)(ieee754.u >> 32) & 0x7fffffff) + ((unsigned)ieee754.u != 0)) > 0x7ff00000);
@@ -152,7 +152,7 @@ public:
 		union {
 			uint32_t u;
 			float f;
-		} ieee754;
+		} ieee754 = {};
 		ieee754.f = p_val;
 		// -----------------------------------
 		// (single-precision floating-point)
@@ -176,7 +176,7 @@ public:
 		union {
 			uint64_t u;
 			double f;
-		} ieee754;
+		} ieee754 = {};
 		ieee754.f = p_val;
 		return ((unsigned)(ieee754.u >> 32) & 0x7fffffff) == 0x7ff00000 &&
 				((unsigned)ieee754.u == 0);
@@ -193,7 +193,7 @@ public:
 		union {
 			uint32_t u;
 			float f;
-		} ieee754;
+		} ieee754 = {};
 		ieee754.f = p_val;
 		return (ieee754.u & 0x7fffffff) == 0x7f800000;
 #else
@@ -624,7 +624,7 @@ public:
 		union {
 			float f;
 			uint32_t i;
-		} u;
+		} u = {};
 
 		u.f = g;
 		u.i &= 2147483647u;
@@ -635,7 +635,7 @@ public:
 		union {
 			double d;
 			uint64_t i;
-		} u;
+		} u = {};
 		u.d = g;
 		u.i &= (uint64_t)9223372036854775807ll;
 		return u.d;
@@ -682,7 +682,7 @@ public:
 		union {
 			uint32_t u32;
 			float f32;
-		} u;
+		} u = {};
 
 		u.u32 = halfbits_to_floatbits(*h);
 		return u.f32;
@@ -696,7 +696,7 @@ public:
 		union {
 			float fv;
 			uint32_t ui;
-		} ci;
+		} ci = {};
 		ci.fv = f;
 
 		uint32_t x = ci.ui;

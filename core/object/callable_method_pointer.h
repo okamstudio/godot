@@ -39,8 +39,8 @@
 
 class CallableCustomMethodPointerBase : public CallableCustom {
 	uint32_t *comp_ptr = nullptr;
-	uint32_t comp_size;
-	uint32_t h;
+	uint32_t comp_size = 0U;
+	uint32_t h = 0U;
 #ifdef DEBUG_METHODS_ENABLED
 	const char *text = "";
 #endif

@@ -152,7 +152,7 @@ public:
 };
 
 class SafeFlag {
-	std::atomic_bool flag;
+	std::atomic_bool flag = false;
 
 	static_assert(std::atomic_bool::is_always_lock_free);
 
