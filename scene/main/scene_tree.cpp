@@ -1462,7 +1462,6 @@ Node *SceneTree::get_edited_scene_root() const {
 
 void SceneTree::set_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
-	ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
 	current_scene = p_scene;
 }
 
@@ -1475,9 +1474,12 @@ void SceneTree::_flush_scene_change() {
 		memdelete(prev_scene);
 		prev_scene = nullptr;
 	}
-	current_scene = pending_new_scene;
-	root->add_child(pending_new_scene);
+
+	Node *scene = pending_new_scene;
 	pending_new_scene = nullptr;
+
+	add_current_scene(scene);
+
 	// Update display for cursor instantly.
 	root->update_mouse_cursor_state();
 }
@@ -1504,12 +1506,10 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 		pending_new_scene = nullptr;
 	}
 
-	prev_scene = current_scene;
-
 	if (current_scene) {
-		// Let as many side effects as possible happen or be queued now,
-		// so they are run before the scene is actually deleted.
-		root->remove_child(current_scene);
+		prev_scene = remove_current_scene();
+	} else {
+		prev_scene = nullptr;
 	}
 	DEV_ASSERT(!current_scene);
 
@@ -1527,15 +1527,54 @@ Error SceneTree::reload_current_scene() {
 void SceneTree::unload_current_scene() {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Unloading the current scene can only be done from the main thread.");
 	if (current_scene) {
-		memdelete(current_scene);
-		current_scene = nullptr;
+		Node *scene = remove_current_scene();
+		if (scene) {
+			memdelete(scene);
+		}
 	}
 }
 
-void SceneTree::add_current_scene(Node *p_current) {
+void SceneTree::add_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Adding a current scene can only be done from the main thread.");
-	current_scene = p_current;
-	root->add_child(p_current);
+	ERR_FAIL_COND_MSG(current_scene, "You can only add a current scene when there is no current scene.");
+
+	if (!GDVIRTUAL_IS_OVERRIDDEN(_add_current_scene)) {
+		current_scene = p_scene;
+		root->add_child(p_scene);
+
+		emit_signal(current_scene_added_name, p_scene);
+	} else {
+		GDVIRTUAL_CALL(_add_current_scene, p_scene);
+	}
+}
+
+Node *SceneTree::remove_current_scene() {
+	ERR_FAIL_COND_V_MSG(!Thread::is_main_thread(), nullptr, "Removing a current scene can only be done from the main thread.");
+	ERR_FAIL_COND_V_MSG(!current_scene, nullptr, "You can only remove a current scene when there is a current scene.");
+
+	if (!GDVIRTUAL_IS_OVERRIDDEN(_remove_current_scene)) {
+		Node *scene = current_scene;
+
+		Node *parent = scene->get_parent();
+		if (parent) {
+			parent->remove_child(scene);
+		}
+		current_scene = nullptr;
+
+		return scene;
+	} else {
+		Object *ret = nullptr;
+		GDVIRTUAL_CALL(_remove_current_scene, ret);
+
+		if (!ret) {
+			return nullptr;
+		}
+
+		Node *node = Object::cast_to<Node>(ret);
+		ERR_FAIL_COND_V_MSG(!node, nullptr, "_remove_current_scene must return a node.");
+
+		return node;
+	}
 }
 
 Ref<SceneTreeTimer> SceneTree::create_timer(double p_delay_sec, bool p_process_always, bool p_process_in_physics, bool p_ignore_time_scale) {
@@ -1742,6 +1781,8 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("node_renamed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("node_configuration_warning_changed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 
+	ADD_SIGNAL(MethodInfo("current_scene_added", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
+
 	ADD_SIGNAL(MethodInfo("process_frame"));
 	ADD_SIGNAL(MethodInfo("physics_frame"));
 
@@ -1749,6 +1790,9 @@ void SceneTree::_bind_methods() {
 	BIND_ENUM_CONSTANT(GROUP_CALL_REVERSE);
 	BIND_ENUM_CONSTANT(GROUP_CALL_DEFERRED);
 	BIND_ENUM_CONSTANT(GROUP_CALL_UNIQUE);
+
+	GDVIRTUAL_BIND(_add_current_scene, "scene");
+	GDVIRTUAL_BIND(_remove_current_scene);
 }
 
 SceneTree *SceneTree::singleton = nullptr;
