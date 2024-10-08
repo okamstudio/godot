@@ -33,26 +33,23 @@
 #include "servers/rendering_server.h"
 
 void CameraFeed::_bind_methods() {
-	// The setters prefixed with _ are only exposed so we can have feeds through GDExtension!
-	// They should not be called by the end user.
-
 	ClassDB::bind_method(D_METHOD("get_id"), &CameraFeed::get_id);
 
 	ClassDB::bind_method(D_METHOD("is_active"), &CameraFeed::is_active);
 	ClassDB::bind_method(D_METHOD("set_active", "active"), &CameraFeed::set_active);
 
 	ClassDB::bind_method(D_METHOD("get_name"), &CameraFeed::get_name);
-	ClassDB::bind_method(D_METHOD("_set_name", "name"), &CameraFeed::set_name);
+	ClassDB::bind_method(D_METHOD("set_name", "name"), &CameraFeed::set_name);
 
 	ClassDB::bind_method(D_METHOD("get_position"), &CameraFeed::get_position);
-	ClassDB::bind_method(D_METHOD("_set_position", "position"), &CameraFeed::set_position);
+	ClassDB::bind_method(D_METHOD("set_position", "position"), &CameraFeed::set_position);
 
 	// Note, for transform some feeds may override what the user sets (such as ARKit)
 	ClassDB::bind_method(D_METHOD("get_transform"), &CameraFeed::get_transform);
 	ClassDB::bind_method(D_METHOD("set_transform", "transform"), &CameraFeed::set_transform);
 
-	ClassDB::bind_method(D_METHOD("_set_RGB_img", "rgb_img"), &CameraFeed::set_RGB_img);
-	ClassDB::bind_method(D_METHOD("_set_YCbCr_img", "ycbcr_img"), &CameraFeed::set_YCbCr_img);
+	ClassDB::bind_method(D_METHOD("set_rgb_image", "rgb_image"), &CameraFeed::set_rgb_image);
+	ClassDB::bind_method(D_METHOD("set_ycbcr_image", "ycbcr_image"), &CameraFeed::set_ycbcr_image);
 
 	ClassDB::bind_method(D_METHOD("get_datatype"), &CameraFeed::get_datatype);
 
@@ -175,7 +172,7 @@ CameraFeed::~CameraFeed() {
 	RenderingServer::get_singleton()->free(texture[CameraServer::FEED_CBCR_IMAGE]);
 }
 
-void CameraFeed::set_RGB_img(const Ref<Image> &p_rgb_img) {
+void CameraFeed::set_rgb_image(const Ref<Image> &p_rgb_img) {
 	ERR_FAIL_COND(p_rgb_img.is_null());
 	if (active) {
 		int new_width = p_rgb_img->get_width();
@@ -198,7 +195,7 @@ void CameraFeed::set_RGB_img(const Ref<Image> &p_rgb_img) {
 	}
 }
 
-void CameraFeed::set_YCbCr_img(const Ref<Image> &p_ycbcr_img) {
+void CameraFeed::set_ycbcr_image(const Ref<Image> &p_ycbcr_img) {
 	ERR_FAIL_COND(p_ycbcr_img.is_null());
 	if (active) {
 		int new_width = p_ycbcr_img->get_width();
@@ -221,7 +218,7 @@ void CameraFeed::set_YCbCr_img(const Ref<Image> &p_ycbcr_img) {
 	}
 }
 
-void CameraFeed::set_YCbCr_imgs(const Ref<Image> &p_y_img, const Ref<Image> &p_cbcr_img) {
+void CameraFeed::set_ycbcr_images(const Ref<Image> &p_y_img, const Ref<Image> &p_cbcr_img) {
 	ERR_FAIL_COND(p_y_img.is_null());
 	ERR_FAIL_COND(p_cbcr_img.is_null());
 	if (active) {

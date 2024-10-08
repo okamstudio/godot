@@ -993,7 +993,8 @@ void EditorAssetLibrary::_request_image(ObjectID p_for, int p_asset_id, String p
 		String url_host;
 		int url_port;
 		String url_path;
-		Error err = trimmed_url.parse_url(url_scheme, url_host, url_port, url_path);
+		String url_fragment;
+		Error err = trimmed_url.parse_url(url_scheme, url_host, url_port, url_path, url_fragment);
 		if (err != OK) {
 			if (is_print_verbose_enabled()) {
 				ERR_PRINT(vformat("Asset Library: Invalid image URL '%s' for asset # %d.", trimmed_url, p_asset_id));

@@ -387,6 +387,7 @@ thirdparty_harfbuzz_sources = [
     "src/hb-ucd.cc",
     "src/hb-unicode.cc",
     # "src/hb-uniscribe.cc",
+    "src/OT/Var/VARC/VARC.cc",
 ]
 
 if env["freetype_enabled"]:

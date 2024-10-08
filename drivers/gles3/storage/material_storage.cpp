@@ -1368,6 +1368,10 @@ MaterialStorage::MaterialStorage() {
 		actions.render_mode_defines["ambient_light_disabled"] = "#define AMBIENT_LIGHT_DISABLED\n";
 		actions.render_mode_defines["shadow_to_opacity"] = "#define USE_SHADOW_TO_OPACITY\n";
 		actions.render_mode_defines["unshaded"] = "#define MODE_UNSHADED\n";
+		if (!GLES3::Config::get_singleton()->force_vertex_shading) {
+			// If forcing vertex shading, this will be defined already.
+			actions.render_mode_defines["vertex_lighting"] = "#define USE_VERTEX_LIGHTING\n";
+		}
 		actions.render_mode_defines["fog_disabled"] = "#define FOG_DISABLED\n";
 
 		actions.default_filter = ShaderLanguage::FILTER_LINEAR_MIPMAP;

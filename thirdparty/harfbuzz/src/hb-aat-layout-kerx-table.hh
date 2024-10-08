@@ -107,10 +107,14 @@ struct KerxSubTableFormat0
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
@@ -367,6 +371,12 @@ struct KerxSubTableFormat1
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -425,10 +435,14 @@ struct KerxSubTableFormat2
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
@@ -635,6 +649,12 @@ struct KerxSubTableFormat4
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->font->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (true);
@@ -710,10 +730,14 @@ struct KerxSubTableFormat6
     TRACE_APPLY (this);
 
     if (!c->plan->requested_kerning)
-      return false;
+      return_trace (false);
 
     if (header.coverage & header.Backwards)
-      return false;
+      return_trace (false);
+
+    if (!(c->buffer_digest.may_have (c->left_set) &&
+	  c->buffer_digest.may_have (c->right_set)))
+      return_trace (false);
 
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
@@ -919,6 +943,9 @@ struct KerxTable
     {
       if (st->get_type () == 1)
 	return true;
+
+      // TODO: What about format 4? What's this API used for anyway?
+
       st = &StructAfter<SubTable> (*st);
     }
     return false;
@@ -961,6 +988,11 @@ struct KerxTable
 	      const kern_accelerator_data_t *accel_data = nullptr) const
   {
     c->buffer->unsafe_to_concat ();
+
+    if (c->buffer->len < HB_AAT_BUFFER_DIGEST_THRESHOLD)
+      c->buffer_digest = c->buffer->digest ();
+    else
+      c->buffer_digest = hb_set_digest_t::full ();
 
     typedef typename T::SubTable SubTable;
 

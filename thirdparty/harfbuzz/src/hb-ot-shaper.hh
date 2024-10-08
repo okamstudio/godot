@@ -174,9 +174,11 @@ HB_OT_SHAPERS_IMPLEMENT_SHAPERS
 
 
 static inline const hb_ot_shaper_t *
-hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
+hb_ot_shaper_categorize (hb_script_t script,
+			 hb_direction_t direction,
+			 hb_tag_t gsub_script)
 {
-  switch ((hb_tag_t) planner->props.script)
+  switch ((hb_tag_t) script)
   {
     default:
       return &_hb_ot_shaper_default;
@@ -192,9 +194,8 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
        * This is because we do fallback shaping for Arabic script (and not others).
        * But note that Arabic shaping is applicable only to horizontal layout; for
        * vertical text, just use the generic shaper instead. */
-      if ((planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT ||
-	   planner->props.script == HB_SCRIPT_ARABIC) &&
-	  HB_DIRECTION_IS_HORIZONTAL(planner->props.direction))
+      if ((gsub_script != HB_OT_TAG_DEFAULT_SCRIPT || script == HB_SCRIPT_ARABIC) &&
+	  HB_DIRECTION_IS_HORIZONTAL (direction))
 	return &_hb_ot_shaper_arabic;
       else
 	return &_hb_ot_shaper_default;
@@ -235,10 +236,10 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
        * Otherwise, use the specific shaper.
        *
        * If it's indy3 tag, send to USE. */
-      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
-	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n'))
+      if (gsub_script == HB_TAG ('D','F','L','T') ||
+	  gsub_script == HB_TAG ('l','a','t','n'))
 	return &_hb_ot_shaper_default;
-      else if ((planner->map.chosen_script[0] & 0x000000FF) == '3')
+      else if ((gsub_script & 0x000000FF) == '3')
 	return &_hb_ot_shaper_use;
       else
 	return &_hb_ot_shaper_indic;
@@ -254,9 +255,9 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
        * If designer designed for 'mymr' tag, also send to default
        * shaper.  That's tag used from before Myanmar shaping spec
        * was developed.  The shaping spec uses 'mym2' tag. */
-      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
-	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n') ||
-	  planner->map.chosen_script[0] == HB_TAG ('m','y','m','r'))
+      if (gsub_script == HB_TAG ('D','F','L','T') ||
+	  gsub_script == HB_TAG ('l','a','t','n') ||
+	  gsub_script == HB_TAG ('m','y','m','r'))
 	return &_hb_ot_shaper_default;
       else
 	return &_hb_ot_shaper_myanmar;
@@ -386,13 +387,22 @@ hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
     case HB_SCRIPT_KAWI:
     case HB_SCRIPT_NAG_MUNDARI:
 
+    /* Unicode-16.0 additions */
+    case HB_SCRIPT_GARAY:
+    case HB_SCRIPT_GURUNG_KHEMA:
+    case HB_SCRIPT_KIRAT_RAI:
+    case HB_SCRIPT_OL_ONAL:
+    case HB_SCRIPT_SUNUWAR:
+    case HB_SCRIPT_TODHRI:
+    case HB_SCRIPT_TULU_TIGALARI:
+
       /* If the designer designed the font for the 'DFLT' script,
        * (or we ended up arbitrarily pick 'latn'), use the default shaper.
        * Otherwise, use the specific shaper.
        * Note that for some simple scripts, there may not be *any*
        * GSUB/GPOS needed, so there may be no scripts found! */
-      if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
-	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n'))
+      if (gsub_script == HB_TAG ('D','F','L','T') ||
+	  gsub_script == HB_TAG ('l','a','t','n'))
 	return &_hb_ot_shaper_default;
       else
 	return &_hb_ot_shaper_use;

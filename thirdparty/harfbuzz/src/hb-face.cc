@@ -90,10 +90,6 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
 {
   HB_OBJECT_HEADER_STATIC,
 
-  nullptr, /* reference_table_func */
-  nullptr, /* user_data */
-  nullptr, /* destroy */
-
   0,    /* index */
   1000, /* upem */
   0,    /* num_glyphs */
@@ -110,8 +106,9 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  *
  * Variant of hb_face_create(), built for those cases where it is more
  * convenient to provide data for individual tables instead of the whole font
- * data. With the caveat that hb_face_get_table_tags() does not currently work
- * with faces created this way.
+ * data. With the caveat that hb_face_get_table_tags() would not work
+ * with faces created this way. You can address that by calling the
+ * hb_face_set_get_table_tags_func() function and setting the appropriate callback.
  *
  * Creates a new face object from the specified @user_data and @reference_table_func,
  * with the @destroy callback.
@@ -194,6 +191,22 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
   return blob;
 }
 
+static unsigned
+_hb_face_for_data_get_table_tags (const hb_face_t *face HB_UNUSED,
+				  unsigned int start_offset,
+				  unsigned int *table_count,
+				  hb_tag_t *table_tags,
+				  void *user_data)
+{
+  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) user_data;
+
+  const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
+  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
+
+  return ot_face.get_table_tags (start_offset, table_count, table_tags);
+}
+
+
 /**
  * hb_face_create:
  * @blob: #hb_blob_t to work upon
@@ -240,6 +253,10 @@ hb_face_create (hb_blob_t    *blob,
   face = hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
 				    _hb_face_for_data_closure_destroy);
+  hb_face_set_get_table_tags_func (face,
+				   _hb_face_for_data_get_table_tags,
+				   closure,
+				   nullptr);
 
   face->index = index;
 
@@ -305,6 +322,9 @@ hb_face_destroy (hb_face_t *face)
 
   face->data.fini ();
   face->table.fini ();
+
+  if (face->get_table_tags_destroy)
+    face->get_table_tags_destroy (face->get_table_tags_user_data);
 
   if (face->destroy)
     face->destroy (face->user_data);
@@ -548,6 +568,37 @@ hb_face_get_glyph_count (const hb_face_t *face)
 }
 
 /**
+ * hb_face_set_get_table_tags_func:
+ * @face: A face object
+ * @func: (closure user_data) (destroy destroy) (scope notified): The table-tag-fetching function
+ * @user_data: A pointer to the user data, to be destroyed by @destroy when not needed anymore
+ * @destroy: (nullable): A callback to call when @func is not needed anymore
+ *
+ * Sets the table-tag-fetching function for the specified face object.
+ *
+ * Since: 10.0.0
+ */
+HB_EXTERN void
+hb_face_set_get_table_tags_func (hb_face_t *face,
+				 hb_get_table_tags_func_t func,
+				 void                    *user_data,
+				 hb_destroy_func_t        destroy)
+{
+  if (hb_object_is_immutable (face))
+  {
+    if (destroy)
+      destroy (user_data);
+  }
+
+  if (face->get_table_tags_destroy)
+    face->get_table_tags_destroy (face->get_table_tags_user_data);
+
+  face->get_table_tags_func = func;
+  face->get_table_tags_user_data = user_data;
+  face->get_table_tags_destroy = destroy;
+}
+
+/**
  * hb_face_get_table_tags:
  * @face: A face object
  * @start_offset: The index of first table tag to retrieve
@@ -568,19 +619,14 @@ hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int *table_count, /* IN/OUT */
 			hb_tag_t     *table_tags /* OUT */)
 {
-  if (face->destroy != (hb_destroy_func_t) _hb_face_for_data_closure_destroy)
+  if (!face->get_table_tags_func)
   {
     if (table_count)
       *table_count = 0;
     return 0;
   }
 
-  hb_face_for_data_closure_t *data = (hb_face_for_data_closure_t *) face->user_data;
-
-  const OT::OpenTypeFontFile &ot_file = *data->blob->as<OT::OpenTypeFontFile> ();
-  const OT::OpenTypeFontFace &ot_face = ot_file.get_face (data->index);
-
-  return ot_face.get_table_tags (start_offset, table_count, table_tags);
+  return face->get_table_tags_func (face, start_offset, table_count, table_tags, face->get_table_tags_user_data);
 }
 
 

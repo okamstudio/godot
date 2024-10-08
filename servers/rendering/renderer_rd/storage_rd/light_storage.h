@@ -434,6 +434,11 @@ private:
 	HashMap<int, ShadowCubemap> shadow_cubemaps;
 	ShadowCubemap *_get_shadow_cubemap(int p_size);
 
+	/* PIPELINE HINTS */
+
+	bool shadow_cubemaps_used = false;
+	bool shadow_dual_paraboloid_used = false;
+
 public:
 	static LightStorage *get_singleton();
 
@@ -938,6 +943,10 @@ public:
 	void set_max_reflection_probes(const uint32_t p_max_reflection_probes);
 	RID get_reflection_probe_buffer() { return reflection_buffer; }
 	void update_reflection_probe_buffer(RenderDataRD *p_render_data, const PagedArray<RID> &p_reflections, const Transform3D &p_camera_inverse_transform, RID p_environment);
+	static RD::DataFormat get_reflection_probe_color_format();
+	static uint32_t get_reflection_probe_color_usage_bits();
+	static RD::DataFormat get_reflection_probe_depth_format();
+	static uint32_t get_reflection_probe_depth_usage_bits();
 
 	/* LIGHTMAP */
 
@@ -1079,6 +1088,8 @@ public:
 	}
 
 	virtual void shadow_atlas_update(RID p_atlas) override;
+	static RD::DataFormat get_shadow_atlas_depth_format(bool p_16_bits);
+	static uint32_t get_shadow_atlas_depth_usage_bits();
 
 	/* DIRECTIONAL SHADOW */
 
@@ -1109,6 +1120,13 @@ public:
 
 	RID get_cubemap(int p_size);
 	RID get_cubemap_fb(int p_size, int p_pass);
+	static RD::DataFormat get_cubemap_depth_format();
+	static uint32_t get_cubemap_depth_usage_bits();
+
+	/* PIPELINE HINTS */
+
+	bool get_shadow_cubemaps_used() const;
+	bool get_shadow_dual_paraboloid_used() const;
 };
 
 } // namespace RendererRD

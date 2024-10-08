@@ -237,6 +237,20 @@ private:
 		}
 	};
 
+	/* Marker */
+
+	struct MarkerKey {
+		double time;
+		StringName name;
+		MarkerKey(double p_time, const StringName &p_name) :
+				time(p_time), name(p_name) {}
+		MarkerKey() = default;
+	};
+
+	Vector<MarkerKey> marker_names; // time -> name
+	HashMap<StringName, double> marker_times; // name -> time
+	HashMap<StringName, Color> marker_colors; // name -> color
+
 	Vector<Track *> tracks;
 
 	template <typename T>
@@ -244,6 +258,8 @@ private:
 
 	template <typename T, typename V>
 	int _insert(double p_time, T &p_keys, const V &p_value);
+
+	int _marker_insert(double p_time, Vector<MarkerKey> &p_keys, const MarkerKey &p_value);
 
 	template <typename K>
 
@@ -500,6 +516,17 @@ public:
 	void copy_track(int p_track, Ref<Animation> p_to_animation);
 
 	void track_get_key_indices_in_range(int p_track, double p_time, double p_delta, List<int> *p_indices, Animation::LoopedFlag p_looped_flag = Animation::LOOPED_FLAG_NONE) const;
+
+	void add_marker(const StringName &p_name, double p_time);
+	void remove_marker(const StringName &p_name);
+	bool has_marker(const StringName &p_name) const;
+	StringName get_marker_at_time(double p_time) const;
+	StringName get_next_marker(double p_time) const;
+	StringName get_prev_marker(double p_time) const;
+	double get_marker_time(const StringName &p_time) const;
+	PackedStringArray get_marker_names() const;
+	Color get_marker_color(const StringName &p_name) const;
+	void set_marker_color(const StringName &p_name, const Color &p_color);
 
 	void set_length(real_t p_length);
 	real_t get_length() const;

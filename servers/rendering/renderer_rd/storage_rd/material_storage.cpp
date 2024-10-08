@@ -633,6 +633,93 @@ bool MaterialStorage::ShaderData::is_parameter_texture(const StringName &p_param
 	return uniforms[p_param].is_texture();
 }
 
+RD::PipelineColorBlendState::Attachment MaterialStorage::ShaderData::blend_mode_to_blend_attachment(BlendMode p_mode) {
+	RD::PipelineColorBlendState::Attachment attachment;
+
+	switch (p_mode) {
+		case BLEND_MODE_MIX: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_ADD;
+			attachment.color_blend_op = RD::BLEND_OP_ADD;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		} break;
+		case BLEND_MODE_ADD: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_ADD;
+			attachment.color_blend_op = RD::BLEND_OP_ADD;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+		} break;
+		case BLEND_MODE_SUB: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_REVERSE_SUBTRACT;
+			attachment.color_blend_op = RD::BLEND_OP_REVERSE_SUBTRACT;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+		} break;
+		case BLEND_MODE_MUL: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_ADD;
+			attachment.color_blend_op = RD::BLEND_OP_ADD;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_DST_COLOR;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ZERO;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_DST_ALPHA;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ZERO;
+		} break;
+		case BLEND_MODE_ALPHA_TO_COVERAGE: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_ADD;
+			attachment.color_blend_op = RD::BLEND_OP_ADD;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_SRC_ALPHA;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ZERO;
+		} break;
+		case BLEND_MODE_PREMULTIPLIED_ALPHA: {
+			attachment.enable_blend = true;
+			attachment.alpha_blend_op = RD::BLEND_OP_ADD;
+			attachment.color_blend_op = RD::BLEND_OP_ADD;
+			attachment.src_color_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.dst_color_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+			attachment.src_alpha_blend_factor = RD::BLEND_FACTOR_ONE;
+			attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+		} break;
+		case BLEND_MODE_DISABLED:
+		default: {
+			// Use default attachment values.
+		} break;
+	}
+
+	return attachment;
+}
+
+bool MaterialStorage::ShaderData::blend_mode_uses_blend_alpha(BlendMode p_mode) {
+	switch (p_mode) {
+		case BLEND_MODE_MIX:
+			return false;
+		case BLEND_MODE_ADD:
+			return true;
+		case BLEND_MODE_SUB:
+			return true;
+		case BLEND_MODE_MUL:
+			return true;
+		case BLEND_MODE_ALPHA_TO_COVERAGE:
+			return false;
+		case BLEND_MODE_PREMULTIPLIED_ALPHA:
+			return true;
+		case BLEND_MODE_DISABLED:
+		default:
+			return false;
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // MaterialStorage::MaterialData
 
@@ -2021,6 +2108,7 @@ void MaterialStorage::_material_uniform_set_erased(void *p_material) {
 }
 
 void MaterialStorage::_material_queue_update(Material *material, bool p_uniform, bool p_texture) {
+	MutexLock lock(material_update_list_mutex);
 	material->uniform_dirty = material->uniform_dirty || p_uniform;
 	material->texture_dirty = material->texture_dirty || p_texture;
 
@@ -2032,6 +2120,7 @@ void MaterialStorage::_material_queue_update(Material *material, bool p_uniform,
 }
 
 void MaterialStorage::_update_queued_materials() {
+	MutexLock lock(material_update_list_mutex);
 	while (material_update_list.first()) {
 		Material *material = material_update_list.first()->self();
 		bool uniforms_changed = false;

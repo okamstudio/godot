@@ -33,7 +33,6 @@
 
 #include "scene/gui/dialogs.h"
 #include "scene/gui/item_list.h"
-#include "scene/gui/link_button.h"
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/scroll_container.h"
 #include "scene/gui/separator.h"
@@ -49,16 +48,12 @@
 class EditorAbout : public AcceptDialog {
 	GDCLASS(EditorAbout, AcceptDialog);
 
-	static const String META_TEXT_TO_COPY;
-
 private:
 	void _license_tree_selected();
-	void _version_button_pressed();
 	void _item_with_website_selected(int p_id, ItemList *p_il);
 	void _item_list_resized(ItemList *p_il);
 	ScrollContainer *_populate_list(const String &p_name, const List<String> &p_sections, const char *const *const p_src[], int p_single_column_flags = 0, bool p_allow_website = false);
 
-	LinkButton *version_btn = nullptr;
 	Tree *_tpl_tree = nullptr;
 	RichTextLabel *license_text_label = nullptr;
 	RichTextLabel *_tpl_text = nullptr;

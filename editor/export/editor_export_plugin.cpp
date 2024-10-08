@@ -295,6 +295,12 @@ bool EditorExportPlugin::_should_update_export_options(const Ref<EditorExportPla
 	return ret;
 }
 
+bool EditorExportPlugin::_get_export_option_visibility(const Ref<EditorExportPlatform> &p_export_platform, const String &p_option_name) const {
+	bool ret = true;
+	GDVIRTUAL_CALL(_get_export_option_visibility, p_export_platform, p_option_name, ret);
+	return ret;
+}
+
 String EditorExportPlugin::_get_export_option_warning(const Ref<EditorExportPlatform> &p_export_platform, const String &p_option_name) const {
 	String ret;
 	GDVIRTUAL_CALL(_get_export_option_warning, p_export_platform, p_option_name, ret);
@@ -354,6 +360,7 @@ void EditorExportPlugin::_bind_methods() {
 	GDVIRTUAL_BIND(_get_export_options, "platform");
 	GDVIRTUAL_BIND(_get_export_options_overrides, "platform");
 	GDVIRTUAL_BIND(_should_update_export_options, "platform");
+	GDVIRTUAL_BIND(_get_export_option_visibility, "platform", "option");
 	GDVIRTUAL_BIND(_get_export_option_warning, "platform", "option");
 
 	GDVIRTUAL_BIND(_get_export_features, "platform", "debug");

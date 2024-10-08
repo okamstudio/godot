@@ -133,8 +133,8 @@ struct opbd
   {
     switch (format)
     {
-    case 0: return u.format0.get_bounds (font, glyph_id, extents, this);
-    case 1: return u.format1.get_bounds (font, glyph_id, extents, this);
+    case 0: hb_barrier (); return u.format0.get_bounds (font, glyph_id, extents, this);
+    case 1: hb_barrier (); return u.format1.get_bounds (font, glyph_id, extents, this);
     default:return false;
     }
   }
@@ -148,8 +148,8 @@ struct opbd
 
     switch (format)
     {
-    case 0: return_trace (u.format0.sanitize (c, this));
-    case 1: return_trace (u.format1.sanitize (c, this));
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c, this));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c, this));
     default:return_trace (true);
     }
   }

@@ -1580,7 +1580,7 @@ void EditorFileDialog::_favorite_move_down() {
 }
 
 void EditorFileDialog::_update_favorites() {
-	bool res = (access == ACCESS_RESOURCES);
+	bool access_resources = (access == ACCESS_RESOURCES);
 
 	String current = get_current_dir();
 	favorites->clear();
@@ -1596,8 +1596,11 @@ void EditorFileDialog::_update_favorites() {
 	for (int i = 0; i < favorited.size(); i++) {
 		String name = favorited[i];
 
-		bool cres = name.begins_with("res://");
-		if (cres != res || !name.ends_with("/")) {
+		if (access_resources != name.begins_with("res://")) {
+			continue;
+		}
+
+		if (!name.ends_with("/")) {
 			continue;
 		}
 
@@ -1609,7 +1612,7 @@ void EditorFileDialog::_update_favorites() {
 		}
 
 		// Compute favorite display text.
-		if (res && name == "res://") {
+		if (access_resources && name == "res://") {
 			if (name == current) {
 				current_favorite = favorited_paths.size();
 			}
@@ -1620,7 +1623,7 @@ void EditorFileDialog::_update_favorites() {
 			if (name == current || name == current + "/") {
 				current_favorite = favorited_paths.size();
 			}
-			name = name.substr(0, name.length() - 1);
+			name = name.trim_suffix("/");
 			name = name.get_file();
 			favorited_paths.append(favorited[i]);
 			favorited_names.append(name);
@@ -1647,7 +1650,7 @@ void EditorFileDialog::_update_favorites() {
 }
 
 void EditorFileDialog::_favorite_pressed() {
-	bool res = (access == ACCESS_RESOURCES);
+	bool access_resources = (access == ACCESS_RESOURCES);
 
 	String cd = get_current_dir();
 	if (!cd.ends_with("/")) {
@@ -1657,13 +1660,12 @@ void EditorFileDialog::_favorite_pressed() {
 	Vector<String> favorited = EditorSettings::get_singleton()->get_favorites();
 
 	bool found = false;
-	for (int i = 0; i < favorited.size(); i++) {
-		bool cres = favorited[i].begins_with("res://");
-		if (cres != res) {
+	for (const String &name : favorited) {
+		if (access_resources != name.begins_with("res://")) {
 			continue;
 		}
 
-		if (favorited[i] == cd) {
+		if (name == cd) {
 			found = true;
 			break;
 		}
@@ -1683,31 +1685,30 @@ void EditorFileDialog::_favorite_pressed() {
 void EditorFileDialog::_update_recent() {
 	recent->clear();
 
-	bool res = (access == ACCESS_RESOURCES);
+	bool access_resources = (access == ACCESS_RESOURCES);
 	Vector<String> recentd = EditorSettings::get_singleton()->get_recent_dirs();
 	Vector<String> recentd_paths;
 	Vector<String> recentd_names;
+	bool modified = false;
 
 	for (int i = 0; i < recentd.size(); i++) {
-		bool cres = recentd[i].begins_with("res://");
-		if (cres != res) {
+		String name = recentd[i];
+		if (access_resources != name.begins_with("res://")) {
 			continue;
 		}
 
-		if (!dir_access->dir_exists(recentd[i])) {
+		if (!dir_access->dir_exists(name)) {
 			// Remove invalid directory from the list of Recent directories.
 			recentd.remove_at(i--);
+			modified = true;
 			continue;
 		}
 
 		// Compute recent directory display text.
-		String name = recentd[i];
-		if (res && name == "res://") {
+		if (access_resources && name == "res://") {
 			name = "/";
 		} else {
-			if (name.ends_with("/")) {
-				name = name.substr(0, name.length() - 1);
-			}
+			name = name.trim_suffix("/");
 			name = name.get_file();
 		}
 		recentd_paths.append(recentd[i]);
@@ -1721,7 +1722,10 @@ void EditorFileDialog::_update_recent() {
 		recent->set_item_metadata(-1, recentd_paths[i]);
 		recent->set_item_icon_modulate(-1, get_dir_icon_color(recentd_paths[i]));
 	}
-	EditorSettings::get_singleton()->set_recent_dirs(recentd);
+
+	if (modified) {
+		EditorSettings::get_singleton()->set_recent_dirs(recentd);
+	}
 }
 
 void EditorFileDialog::_recent_selected(int p_idx) {

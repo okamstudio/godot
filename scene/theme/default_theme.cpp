@@ -689,6 +689,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("forward_folder", "FileDialog", icons["arrow_right"]);
 	theme->set_icon("reload", "FileDialog", icons["reload"]);
 	theme->set_icon("toggle_hidden", "FileDialog", icons["visibility_visible"]);
+	theme->set_icon("toggle_filename_filter", "FileDialog", icons["toggle_filename_filter"]);
 	theme->set_icon("folder", "FileDialog", icons["folder"]);
 	theme->set_icon("file", "FileDialog", icons["file"]);
 	theme->set_icon("create_folder", "FileDialog", icons["folder_create"]);

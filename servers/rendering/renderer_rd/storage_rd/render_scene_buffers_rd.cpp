@@ -167,76 +167,27 @@ void RenderSceneBuffersRD::configure(const RenderSceneBuffersConfiguration *p_co
 	// cleanout any old buffers we had.
 	cleanup();
 
-	// At least one of these is required to be supported.
-	RenderingDeviceCommons::DataFormat preferred_format[2] = { RD::DATA_FORMAT_D24_UNORM_S8_UINT, RD::DATA_FORMAT_D32_SFLOAT_S8_UINT };
-	if (can_be_storage) {
-		// Prefer higher precision on desktop.
-		preferred_format[0] = RD::DATA_FORMAT_D32_SFLOAT_S8_UINT;
-		preferred_format[1] = RD::DATA_FORMAT_D24_UNORM_S8_UINT;
-	}
+	// Create our color buffer.
+	const bool resolve_target = msaa_3d != RS::VIEWPORT_MSAA_DISABLED;
+	create_texture(RB_SCOPE_BUFFERS, RB_TEX_COLOR, base_data_format, get_color_usage_bits(resolve_target, false, can_be_storage));
 
-	// create our 3D render buffers
-	{
-		// Create our color buffer(s)
-		uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | (can_be_storage ? RD::TEXTURE_USAGE_STORAGE_BIT : 0) | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
-		usage_bits |= RD::TEXTURE_USAGE_INPUT_ATTACHMENT_BIT; // only needed when using subpasses in the mobile renderer
+	// Create our depth buffer.
+	create_texture(RB_SCOPE_BUFFERS, RB_TEX_DEPTH, get_depth_format(resolve_target, false, can_be_storage), get_depth_usage_bits(resolve_target, false, can_be_storage));
 
-		// our internal texture should have MSAA support if applicable
-		if (msaa_3d != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
-		}
-
-		create_texture(RB_SCOPE_BUFFERS, RB_TEX_COLOR, base_data_format, usage_bits);
-	}
-
-	// Create our depth buffer
-	{
-		// TODO Lazy create this in case we've got an external depth buffer
-
-		RD::DataFormat format;
-		uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT;
-
-		if (msaa_3d == RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits |= RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-			format = RD::get_singleton()->texture_is_format_supported_for_usage(preferred_format[0], usage_bits) ? preferred_format[0] : preferred_format[1];
-		} else {
-			format = RD::DATA_FORMAT_R32_SFLOAT;
-			usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | (can_be_storage ? RD::TEXTURE_USAGE_STORAGE_BIT : 0);
-		}
-
-		create_texture(RB_SCOPE_BUFFERS, RB_TEX_DEPTH, format, usage_bits);
-	}
-
-	// Create our MSAA buffers
+	// Create our MSAA buffers.
 	if (msaa_3d == RS::VIEWPORT_MSAA_DISABLED) {
 		texture_samples = RD::TEXTURE_SAMPLES_1;
 	} else {
-		RD::DataFormat format = base_data_format;
-		uint32_t usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT;
-
-		const RD::TextureSamples ts[RS::VIEWPORT_MSAA_MAX] = {
-			RD::TEXTURE_SAMPLES_1,
-			RD::TEXTURE_SAMPLES_2,
-			RD::TEXTURE_SAMPLES_4,
-			RD::TEXTURE_SAMPLES_8,
-		};
-
-		texture_samples = ts[msaa_3d];
-
-		create_texture(RB_SCOPE_BUFFERS, RB_TEX_COLOR_MSAA, format, usage_bits, texture_samples);
-
-		usage_bits = RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT;
-		format = RD::get_singleton()->texture_is_format_supported_for_usage(preferred_format[0], usage_bits) ? preferred_format[0] : preferred_format[1];
-
-		create_texture(RB_SCOPE_BUFFERS, RB_TEX_DEPTH_MSAA, format, usage_bits, texture_samples);
+		texture_samples = msaa_to_samples(msaa_3d);
+		create_texture(RB_SCOPE_BUFFERS, RB_TEX_COLOR_MSAA, base_data_format, get_color_usage_bits(false, true, can_be_storage), texture_samples);
+		create_texture(RB_SCOPE_BUFFERS, RB_TEX_DEPTH_MSAA, get_depth_format(false, true, can_be_storage), get_depth_usage_bits(false, true, can_be_storage), texture_samples);
 	}
 
 	// VRS (note, our vrs object will only be set if VRS is supported)
 	RID vrs_texture;
 	RS::ViewportVRSMode vrs_mode = texture_storage->render_target_get_vrs_mode(render_target);
 	if (vrs && vrs_mode != RS::VIEWPORT_VRS_DISABLED) {
-		uint32_t usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_VRS_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-		vrs_texture = create_texture(RB_SCOPE_VRS, RB_TEXTURE, RD::DATA_FORMAT_R8_UINT, usage_bits, RD::TEXTURE_SAMPLES_1, vrs->get_vrs_texture_size(internal_size));
+		vrs_texture = create_texture(RB_SCOPE_VRS, RB_TEXTURE, get_vrs_format(), get_vrs_usage_bits(), RD::TEXTURE_SAMPLES_1, vrs->get_vrs_texture_size(internal_size));
 	}
 
 	// (re-)configure any named buffers
@@ -664,16 +615,12 @@ void RenderSceneBuffersRD::ensure_upscaled() {
 
 void RenderSceneBuffersRD::ensure_velocity() {
 	if (!has_texture(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY)) {
-		uint32_t usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
+		const bool msaa = msaa_3d != RS::VIEWPORT_MSAA_DISABLED;
+		create_texture(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY, get_velocity_format(), get_velocity_usage_bits(msaa, false, can_be_storage));
 
-		if (msaa_3d != RS::VIEWPORT_MSAA_DISABLED) {
-			uint32_t msaa_usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
-			usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
-
-			create_texture(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY_MSAA, RD::DATA_FORMAT_R16G16_SFLOAT, msaa_usage_bits, texture_samples);
+		if (msaa) {
+			create_texture(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY_MSAA, get_velocity_format(), get_velocity_usage_bits(false, msaa, can_be_storage), texture_samples);
 		}
-
-		create_texture(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY, RD::DATA_FORMAT_R16G16_SFLOAT, usage_bits);
 	}
 }
 
@@ -723,4 +670,63 @@ RID RenderSceneBuffersRD::get_velocity_buffer(bool p_get_msaa, uint32_t p_layer)
 			return get_texture_slice(RB_SCOPE_BUFFERS, RB_TEX_VELOCITY, p_layer, 0);
 		}
 	}
+}
+
+uint32_t RenderSceneBuffersRD::get_color_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	DEV_ASSERT((!p_resolve && !p_msaa) || (p_resolve != p_msaa));
+
+	uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_INPUT_ATTACHMENT_BIT;
+	if (p_msaa) {
+		usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
+	} else if (p_resolve) {
+		usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | (p_storage ? RD::TEXTURE_USAGE_STORAGE_BIT : 0);
+	} else {
+		usage_bits |= (p_storage ? RD::TEXTURE_USAGE_STORAGE_BIT : 0);
+	}
+
+	return usage_bits;
+}
+
+RD::DataFormat RenderSceneBuffersRD::get_depth_format(bool p_resolve, bool p_msaa, bool p_storage) {
+	if (p_resolve) {
+		return RD::DATA_FORMAT_R32_SFLOAT;
+	} else {
+		const RenderingDeviceCommons::DataFormat preferred_formats[2] = {
+			p_storage ? RD::DATA_FORMAT_D32_SFLOAT_S8_UINT : RD::DATA_FORMAT_D24_UNORM_S8_UINT,
+			p_storage ? RD::DATA_FORMAT_D24_UNORM_S8_UINT : RD::DATA_FORMAT_D32_SFLOAT_S8_UINT
+		};
+
+		return RD::get_singleton()->texture_is_format_supported_for_usage(preferred_formats[0], get_depth_usage_bits(p_resolve, p_msaa, p_storage)) ? preferred_formats[0] : preferred_formats[1];
+	}
+}
+
+uint32_t RenderSceneBuffersRD::get_depth_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	DEV_ASSERT((!p_resolve && !p_msaa) || (p_resolve != p_msaa));
+
+	uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT;
+	if (p_msaa) {
+		usage_bits |= RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
+	} else if (p_resolve) {
+		usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT | (p_storage ? RD::TEXTURE_USAGE_STORAGE_BIT : 0);
+	} else {
+		usage_bits |= RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	}
+
+	return usage_bits;
+}
+
+RD::DataFormat RenderSceneBuffersRD::get_velocity_format() {
+	return RD::DATA_FORMAT_R16G16_SFLOAT;
+}
+
+uint32_t RenderSceneBuffersRD::get_velocity_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
+RD::DataFormat RenderSceneBuffersRD::get_vrs_format() {
+	return RD::DATA_FORMAT_R8_UINT;
+}
+
+uint32_t RenderSceneBuffersRD::get_vrs_usage_bits() {
+	return RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_VRS_ATTACHMENT_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
 }

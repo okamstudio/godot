@@ -2798,6 +2798,8 @@ void ScriptEditor::_reload_scripts(bool p_refresh_only) {
 				scr->set_source_code(rel_scr->get_source_code());
 				scr->set_last_modified_time(rel_scr->get_last_modified_time());
 				scr->reload(true);
+
+				update_docs_from_script(scr);
 			}
 
 			Ref<JSON> json = edited_res;
@@ -3644,11 +3646,9 @@ void ScriptEditor::update_doc(const String &p_name) {
 void ScriptEditor::clear_docs_from_script(const Ref<Script> &p_script) {
 	ERR_FAIL_COND(p_script.is_null());
 
-	Vector<DocData::ClassDoc> documentations = p_script->get_documentation();
-	for (int j = 0; j < documentations.size(); j++) {
-		const DocData::ClassDoc &doc = documentations.get(j);
-		if (EditorHelp::get_doc_data()->has_doc(doc.name)) {
-			EditorHelp::get_doc_data()->remove_doc(doc.name);
+	for (const DocData::ClassDoc &cd : p_script->get_documentation()) {
+		if (EditorHelp::get_doc_data()->has_doc(cd.name)) {
+			EditorHelp::get_doc_data()->remove_doc(cd.name);
 		}
 	}
 }
@@ -3656,11 +3656,9 @@ void ScriptEditor::clear_docs_from_script(const Ref<Script> &p_script) {
 void ScriptEditor::update_docs_from_script(const Ref<Script> &p_script) {
 	ERR_FAIL_COND(p_script.is_null());
 
-	Vector<DocData::ClassDoc> documentations = p_script->get_documentation();
-	for (int j = 0; j < documentations.size(); j++) {
-		const DocData::ClassDoc &doc = documentations.get(j);
-		EditorHelp::get_doc_data()->add_doc(doc);
-		update_doc(doc.name);
+	for (const DocData::ClassDoc &cd : p_script->get_documentation()) {
+		EditorHelp::get_doc_data()->add_doc(cd);
+		update_doc(cd.name);
 	}
 }
 

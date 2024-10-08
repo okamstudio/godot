@@ -73,6 +73,13 @@
 				[b]Note:[/b] The returned value is unreliable if called right after modifying the [ItemList], before it redraws in the next frame.
 			</description>
 		</method>
+		<method name="get_item_auto_translate_mode" qualifiers="const">
+			<return type="int" enum="Node.AutoTranslateMode" />
+			<param index="0" name="idx" type="int" />
+			<description>
+				Returns item's auto translate mode.
+			</description>
+		</method>
 		<method name="get_item_custom_bg_color" qualifiers="const">
 			<return type="Color" />
 			<param index="0" name="idx" type="int" />
@@ -230,6 +237,15 @@
 				[b]Note:[/b] This method does not trigger the item selection signal.
 			</description>
 		</method>
+		<method name="set_item_auto_translate_mode">
+			<return type="void" />
+			<param index="0" name="idx" type="int" />
+			<param index="1" name="mode" type="int" enum="Node.AutoTranslateMode" />
+			<description>
+				Sets the auto translate mode of the item associated with the specified index.
+				Items use [constant Node.AUTO_TRANSLATE_MODE_INHERIT] by default, which uses the same auto translate mode as the [ItemList] itself.
+			</description>
+		</method>
 		<method name="set_item_custom_bg_color">
 			<return type="void" />
 			<param index="0" name="idx" type="int" />
@@ -362,6 +378,9 @@
 		</member>
 		<member name="auto_height" type="bool" setter="set_auto_height" getter="has_auto_height" default="false">
 			If [code]true[/code], the control will automatically resize the height to fit its content.
+		</member>
+		<member name="auto_width" type="bool" setter="set_auto_width" getter="has_auto_width" default="false">
+			If [code]true[/code], the control will automatically resize the width to fit its content.
 		</member>
 		<member name="clip_contents" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
 		<member name="fixed_column_width" type="int" setter="set_fixed_column_width" getter="get_fixed_column_width" default="0">

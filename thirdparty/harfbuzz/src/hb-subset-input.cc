@@ -412,6 +412,7 @@ hb_subset_input_keep_everything (hb_subset_input_t *input)
   hb_subset_input_set_flags (input,
 			     HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
 			     HB_SUBSET_FLAGS_GLYPH_NAMES |
+			     HB_SUBSET_FLAGS_NAME_LEGACY |
 			     HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES |
                              HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED);
 }
@@ -730,7 +731,7 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
         src = hb_utf8_t::next (src, src_end, &unicode, replacement);
         if (unicode >= 0x0080u)
         {
-          printf ("Non-ascii character detected, ignored...This API supports acsii characters only for mac platform\n");
+          printf ("Non-ascii character detected, ignored...This API supports ascii characters only for mac platform\n");
           return false;
         }
       }

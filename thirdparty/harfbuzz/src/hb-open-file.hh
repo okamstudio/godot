@@ -250,7 +250,7 @@ struct TTCHeader
   {
     switch (u.header.version.major) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1.get_face_count ();
+    case 1: hb_barrier (); return u.version1.get_face_count ();
     default:return 0;
     }
   }
@@ -258,7 +258,7 @@ struct TTCHeader
   {
     switch (u.header.version.major) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return u.version1.get_face (i);
+    case 1: hb_barrier (); return u.version1.get_face (i);
     default:return Null (OpenTypeFontFace);
     }
   }
@@ -270,7 +270,7 @@ struct TTCHeader
     hb_barrier ();
     switch (u.header.version.major) {
     case 2: /* version 2 is compatible with version 1 */
-    case 1: return_trace (u.version1.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.version1.sanitize (c));
     default:return_trace (true);
     }
   }

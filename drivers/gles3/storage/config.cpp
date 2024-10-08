@@ -178,7 +178,7 @@ Config::Config() {
 	}
 #endif
 
-	force_vertex_shading = false; //GLOBAL_GET("rendering/quality/shading/force_vertex_shading");
+	force_vertex_shading = GLOBAL_GET("rendering/shading/overrides/force_vertex_shading");
 	use_nearest_mip_filter = GLOBAL_GET("rendering/textures/default_filters/use_nearest_mipmap_filter");
 
 	use_depth_prepass = bool(GLOBAL_GET("rendering/driver/depth_prepass/enable"));

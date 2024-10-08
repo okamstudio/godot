@@ -358,7 +358,11 @@ RDD::TextureID RenderingDeviceDriverMetal::texture_create(const TextureFormat &p
 }
 
 RDD::TextureID RenderingDeviceDriverMetal::texture_create_from_extension(uint64_t p_native_texture, TextureType p_type, DataFormat p_format, uint32_t p_array_layers, bool p_depth_stencil) {
-	ERR_FAIL_V_MSG(RDD::TextureID(), "not implemented");
+	id<MTLTexture> obj = (__bridge id<MTLTexture>)(void *)(uintptr_t)p_native_texture;
+
+	// We only need to create a RDD::TextureID for an existing, natively-provided texture.
+
+	return rid::make(obj);
 }
 
 RDD::TextureID RenderingDeviceDriverMetal::texture_create_shared(TextureID p_original_texture, const TextureView &p_view) {

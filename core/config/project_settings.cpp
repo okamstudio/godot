@@ -348,7 +348,6 @@ bool ProjectSettings::_get(const StringName &p_name, Variant &r_ret) const {
 	_THREAD_SAFE_METHOD_
 
 	if (!props.has(p_name)) {
-		WARN_PRINT("Property not found: " + String(p_name));
 		return false;
 	}
 	r_ret = props[p_name].variant;
@@ -1398,7 +1397,7 @@ void ProjectSettings::_add_builtin_input_map() {
 			}
 
 			Dictionary action;
-			action["deadzone"] = Variant(0.5f);
+			action["deadzone"] = Variant(0.2f);
 			action["events"] = events;
 
 			String action_name = "input/" + E.key;

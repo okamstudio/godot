@@ -1369,7 +1369,7 @@
 			macOS specific override for the shortcut to select the word currently under the caret.
 		</member>
 		<member name="input/ui_text_skip_selection_for_next_occurrence" type="Dictionary" setter="" getter="">
-			If no selection is currently active with the last caret in text fields, searches for the next occurrence of the the word currently under the caret and moves the caret to the next occurrence. The action can be performed sequentially for other occurrences of the word under the last caret.
+			If no selection is currently active with the last caret in text fields, searches for the next occurrence of the word currently under the caret and moves the caret to the next occurrence. The action can be performed sequentially for other occurrences of the word under the last caret.
 			If a selection is currently active with the last caret in text fields, searches for the next occurrence of the selection, adds a caret, selects the next occurrence then deselects the previous selection and its associated caret. The action can be performed sequentially for other occurrences of the selection of the last caret.
 			The viewport is adjusted to the latest newly added caret.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
@@ -2863,11 +2863,6 @@
 		</member>
 		<member name="rendering/shading/overrides/force_vertex_shading" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], forces vertex shading for all rendering. This can increase performance a lot, but also reduces quality immensely. Can be used to optimize performance on low-end mobile devices.
-			[b]Note:[/b] This setting currently has no effect, as vertex shading is not implemented yet.
-		</member>
-		<member name="rendering/shading/overrides/force_vertex_shading.mobile" type="bool" setter="" getter="" default="true">
-			Lower-end override for [member rendering/shading/overrides/force_vertex_shading] on mobile devices, due to performance concerns or driver support.
-			[b]Note:[/b] This setting currently has no effect, as vertex shading is not implemented yet.
 		</member>
 		<member name="rendering/textures/canvas_textures/default_texture_filter" type="int" setter="" getter="" default="1">
 			The default texture filtering mode to use on [CanvasItem]s.

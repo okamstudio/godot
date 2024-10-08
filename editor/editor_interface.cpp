@@ -40,6 +40,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/filesystem_dock.h"
+#include "editor/gui/editor_quick_open_dialog.h"
 #include "editor/gui/editor_run_bar.h"
 #include "editor/gui/editor_scene_tabs.h"
 #include "editor/gui/scene_tree_editor.h"
@@ -336,6 +337,24 @@ void EditorInterface::popup_property_selector(Object *p_object, const Callable &
 	property_selector->connect(SNAME("canceled"), canceled_callback, CONNECT_DEFERRED);
 }
 
+void EditorInterface::popup_quick_open(const Callable &p_callback, const TypedArray<StringName> &p_base_types) {
+	StringName required_type = SNAME("Resource");
+	Vector<StringName> base_types;
+	if (p_base_types.is_empty()) {
+		base_types.append(required_type);
+	} else {
+		for (int i = 0; i < p_base_types.size(); i++) {
+			StringName type = p_base_types[i];
+			ERR_FAIL_COND_MSG(!(ClassDB::is_parent_class(type, required_type) || EditorNode::get_editor_data().script_class_is_parent(type, required_type)), "Only types deriving from Resource are supported in the quick open dialog.");
+			base_types.append(type);
+		}
+	}
+
+	EditorQuickOpenDialog *quick_open = EditorNode::get_singleton()->get_quick_open_dialog();
+	quick_open->connect(SNAME("canceled"), callable_mp(this, &EditorInterface::_quick_open).bind(String(), p_callback));
+	quick_open->popup_dialog(base_types, callable_mp(this, &EditorInterface::_quick_open).bind(p_callback));
+}
+
 void EditorInterface::_node_selected(const NodePath &p_node_path, const Callable &p_callback) {
 	const NodePath path = get_edited_scene_root()->get_path().rel_path_to(p_node_path);
 	_call_dialog_callback(p_callback, path, "node selected");
@@ -351,6 +370,12 @@ void EditorInterface::_property_selected(const String &p_property_name, const Ca
 
 void EditorInterface::_property_selection_canceled(const Callable &p_callback) {
 	_call_dialog_callback(p_callback, NodePath(), "property selection canceled");
+}
+
+void EditorInterface::_quick_open(const String &p_file_path, const Callable &p_callback) {
+	EditorQuickOpenDialog *quick_open = EditorNode::get_singleton()->get_quick_open_dialog();
+	quick_open->disconnect(SNAME("canceled"), callable_mp(this, &EditorInterface::_quick_open));
+	_call_dialog_callback(p_callback, p_file_path, "quick open");
 }
 
 void EditorInterface::_call_dialog_callback(const Callable &p_callback, const Variant &p_selected, const String &p_context) {
@@ -568,6 +593,7 @@ void EditorInterface::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("popup_node_selector", "callback", "valid_types", "current_value"), &EditorInterface::popup_node_selector, DEFVAL(TypedArray<StringName>()), DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("popup_property_selector", "object", "callback", "type_filter", "current_value"), &EditorInterface::popup_property_selector, DEFVAL(PackedInt32Array()), DEFVAL(String()));
+	ClassDB::bind_method(D_METHOD("popup_quick_open", "callback", "base_types"), &EditorInterface::popup_quick_open, DEFVAL(TypedArray<StringName>()));
 
 	// Editor docks.
 

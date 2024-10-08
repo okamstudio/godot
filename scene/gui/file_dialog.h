@@ -80,6 +80,8 @@ private:
 	HBoxContainer *shortcuts_container = nullptr;
 	OptionButton *drives = nullptr;
 	Tree *tree = nullptr;
+	HBoxContainer *filename_filter_box = nullptr;
+	LineEdit *filename_filter = nullptr;
 	HBoxContainer *file_box = nullptr;
 	LineEdit *file = nullptr;
 	OptionButton *filter = nullptr;
@@ -96,8 +98,11 @@ private:
 
 	Button *refresh = nullptr;
 	Button *show_hidden = nullptr;
+	Button *show_filename_filter_button = nullptr;
 
 	Vector<String> filters;
+	String file_name_filter;
+	bool show_filename_filter = false;
 
 	Vector<String> local_history;
 	int local_history_pos = 0;
@@ -119,6 +124,7 @@ private:
 		Ref<Texture2D> back_folder;
 		Ref<Texture2D> reload;
 		Ref<Texture2D> toggle_hidden;
+		Ref<Texture2D> toggle_filename_filter;
 		Ref<Texture2D> folder;
 		Ref<Texture2D> file;
 		Ref<Texture2D> create_folder;
@@ -149,6 +155,8 @@ private:
 	void update_dir();
 	void update_file_name();
 	void update_file_list();
+	void update_filename_filter();
+	void update_filename_filter_gui();
 	void update_filters();
 
 	void _focus_file_text();
@@ -164,6 +172,9 @@ private:
 	void _save_confirm_pressed();
 	void _cancel_pressed();
 	void _filter_selected(int);
+	void _filename_filter_changed();
+	void _filename_filter_selected();
+	void _tree_select_first();
 	void _make_dir();
 	void _make_dir_confirm();
 	void _go_up();
@@ -208,6 +219,9 @@ public:
 	void add_filter(const String &p_filter, const String &p_description = "");
 	void set_filters(const Vector<String> &p_filters);
 	Vector<String> get_filters() const;
+	void clear_filename_filter();
+	void set_filename_filter(const String &p_filename_filter);
+	String get_filename_filter() const;
 
 	void set_enable_multiple_selection(bool p_enable);
 	Vector<String> get_selected_files() const;
@@ -253,6 +267,8 @@ public:
 
 	void set_show_hidden_files(bool p_show);
 	bool is_showing_hidden_files() const;
+	void set_show_filename_filter(bool p_show);
+	bool get_show_filename_filter() const;
 
 	static void set_default_show_hidden_files(bool p_show);
 

@@ -646,8 +646,7 @@ struct FeatureParamsCharacterVariants
       return;
 
     unsigned last_name_id = (unsigned) firstParamUILabelNameID + (unsigned) numNamedParameters - 1;
-    if (last_name_id >= 256 && last_name_id <= 32767)
-      nameids_to_retain->add_range (firstParamUILabelNameID, last_name_id);
+    nameids_to_retain->add_range (firstParamUILabelNameID, last_name_id);
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -2068,11 +2067,11 @@ struct ClassDef
   unsigned int get_class (hb_codepoint_t glyph_id) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_class (glyph_id);
-    case 2: return u.format2.get_class (glyph_id);
+    case 1: hb_barrier (); return u.format1.get_class (glyph_id);
+    case 2: hb_barrier (); return u.format2.get_class (glyph_id);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.get_class (glyph_id);
-    case 4: return u.format4.get_class (glyph_id);
+    case 3: hb_barrier (); return u.format3.get_class (glyph_id);
+    case 4: hb_barrier (); return u.format4.get_class (glyph_id);
 #endif
     default:return 0;
     }
@@ -2081,11 +2080,11 @@ struct ClassDef
   unsigned get_population () const
   {
     switch (u.format) {
-    case 1: return u.format1.get_population ();
-    case 2: return u.format2.get_population ();
+    case 1: hb_barrier (); return u.format1.get_population ();
+    case 2: hb_barrier (); return u.format2.get_population ();
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.get_population ();
-    case 4: return u.format4.get_population ();
+    case 3: hb_barrier (); return u.format3.get_population ();
+    case 4: hb_barrier (); return u.format4.get_population ();
 #endif
     default:return NOT_COVERED;
     }
@@ -2147,11 +2146,11 @@ struct ClassDef
 
     switch (u.format)
     {
-    case 1: return_trace (u.format1.serialize (c, it));
-    case 2: return_trace (u.format2.serialize (c, it));
+    case 1: hb_barrier (); return_trace (u.format1.serialize (c, it));
+    case 2: hb_barrier (); return_trace (u.format2.serialize (c, it));
 #ifndef HB_NO_BEYOND_64K
-    case 3: return_trace (u.format3.serialize (c, it));
-    case 4: return_trace (u.format4.serialize (c, it));
+    case 3: hb_barrier (); return_trace (u.format3.serialize (c, it));
+    case 4: hb_barrier (); return_trace (u.format4.serialize (c, it));
 #endif
     default:return_trace (false);
     }
@@ -2165,11 +2164,11 @@ struct ClassDef
   {
     TRACE_SUBSET (this);
     switch (u.format) {
-    case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
-    case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 1: hb_barrier (); return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 2: hb_barrier (); return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
 #ifndef HB_NO_BEYOND_64K
-    case 3: return_trace (u.format3.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
-    case 4: return_trace (u.format4.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 3: hb_barrier (); return_trace (u.format3.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 4: hb_barrier (); return_trace (u.format4.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
 #endif
     default:return_trace (false);
     }
@@ -2181,11 +2180,11 @@ struct ClassDef
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case 1: return_trace (u.format1.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
 #ifndef HB_NO_BEYOND_64K
-    case 3: return_trace (u.format3.sanitize (c));
-    case 4: return_trace (u.format4.sanitize (c));
+    case 3: hb_barrier (); return_trace (u.format3.sanitize (c));
+    case 4: hb_barrier (); return_trace (u.format4.sanitize (c));
 #endif
     default:return_trace (true);
     }
@@ -2194,11 +2193,11 @@ struct ClassDef
   unsigned cost () const
   {
     switch (u.format) {
-    case 1: return u.format1.cost ();
-    case 2: return u.format2.cost ();
+    case 1: hb_barrier (); return u.format1.cost ();
+    case 2: hb_barrier (); return u.format2.cost ();
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.cost ();
-    case 4: return u.format4.cost ();
+    case 3: hb_barrier (); return u.format3.cost ();
+    case 4: hb_barrier (); return u.format4.cost ();
 #endif
     default:return 0u;
     }
@@ -2210,11 +2209,11 @@ struct ClassDef
   bool collect_coverage (set_t *glyphs) const
   {
     switch (u.format) {
-    case 1: return u.format1.collect_coverage (glyphs);
-    case 2: return u.format2.collect_coverage (glyphs);
+    case 1: hb_barrier (); return u.format1.collect_coverage (glyphs);
+    case 2: hb_barrier (); return u.format2.collect_coverage (glyphs);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.collect_coverage (glyphs);
-    case 4: return u.format4.collect_coverage (glyphs);
+    case 3: hb_barrier (); return u.format3.collect_coverage (glyphs);
+    case 4: hb_barrier (); return u.format4.collect_coverage (glyphs);
 #endif
     default:return false;
     }
@@ -2226,11 +2225,11 @@ struct ClassDef
   bool collect_class (set_t *glyphs, unsigned int klass) const
   {
     switch (u.format) {
-    case 1: return u.format1.collect_class (glyphs, klass);
-    case 2: return u.format2.collect_class (glyphs, klass);
+    case 1: hb_barrier (); return u.format1.collect_class (glyphs, klass);
+    case 2: hb_barrier (); return u.format2.collect_class (glyphs, klass);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.collect_class (glyphs, klass);
-    case 4: return u.format4.collect_class (glyphs, klass);
+    case 3: hb_barrier (); return u.format3.collect_class (glyphs, klass);
+    case 4: hb_barrier (); return u.format4.collect_class (glyphs, klass);
 #endif
     default:return false;
     }
@@ -2239,11 +2238,11 @@ struct ClassDef
   bool intersects (const hb_set_t *glyphs) const
   {
     switch (u.format) {
-    case 1: return u.format1.intersects (glyphs);
-    case 2: return u.format2.intersects (glyphs);
+    case 1: hb_barrier (); return u.format1.intersects (glyphs);
+    case 2: hb_barrier (); return u.format2.intersects (glyphs);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.intersects (glyphs);
-    case 4: return u.format4.intersects (glyphs);
+    case 3: hb_barrier (); return u.format3.intersects (glyphs);
+    case 4: hb_barrier (); return u.format4.intersects (glyphs);
 #endif
     default:return false;
     }
@@ -2251,11 +2250,11 @@ struct ClassDef
   bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
   {
     switch (u.format) {
-    case 1: return u.format1.intersects_class (glyphs, klass);
-    case 2: return u.format2.intersects_class (glyphs, klass);
+    case 1: hb_barrier (); return u.format1.intersects_class (glyphs, klass);
+    case 2: hb_barrier (); return u.format2.intersects_class (glyphs, klass);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.intersects_class (glyphs, klass);
-    case 4: return u.format4.intersects_class (glyphs, klass);
+    case 3: hb_barrier (); return u.format3.intersects_class (glyphs, klass);
+    case 4: hb_barrier (); return u.format4.intersects_class (glyphs, klass);
 #endif
     default:return false;
     }
@@ -2264,11 +2263,11 @@ struct ClassDef
   void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
     switch (u.format) {
-    case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
-    case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 1: hb_barrier (); return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 2: hb_barrier (); return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
-    case 4: return u.format4.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 3: hb_barrier (); return u.format3.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 4: hb_barrier (); return u.format4.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
 #endif
     default:return;
     }
@@ -2277,11 +2276,11 @@ struct ClassDef
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
   {
     switch (u.format) {
-    case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
-    case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
+    case 1: hb_barrier (); return u.format1.intersected_classes (glyphs, intersect_classes);
+    case 2: hb_barrier (); return u.format2.intersected_classes (glyphs, intersect_classes);
 #ifndef HB_NO_BEYOND_64K
-    case 3: return u.format3.intersected_classes (glyphs, intersect_classes);
-    case 4: return u.format4.intersected_classes (glyphs, intersect_classes);
+    case 3: hb_barrier (); return u.format3.intersected_classes (glyphs, intersect_classes);
+    case 4: hb_barrier (); return u.format4.intersected_classes (glyphs, intersect_classes);
 #endif
     default:return;
     }
@@ -2421,12 +2420,12 @@ struct delta_row_encoding_t
     int combined_width = 0;
     for (unsigned i = 0; i < chars.length; i++)
       combined_width += hb_max (chars.arrayZ[i], other_encoding.chars.arrayZ[i]);
-   
+
     hb_vector_t<uint8_t> combined_columns;
     combined_columns.alloc (columns.length);
     for (unsigned i = 0; i < columns.length; i++)
       combined_columns.push (columns.arrayZ[i] | other_encoding.columns.arrayZ[i]);
-    
+
     int combined_overhead = get_chars_overhead (combined_columns);
     int combined_gain = (int) overhead + (int) other_encoding.overhead - combined_overhead
                         - (combined_width - (int) width) * items.length
@@ -2471,6 +2470,8 @@ struct VarRegionAxis
     int peak = peakCoord.to_int ();
     if (peak == 0 || coord == peak)
       return 1.f;
+    else if (coord == 0) // Faster
+      return 0.f;
 
     int start = startCoord.to_int (), end = endCoord.to_int ();
 
@@ -2494,8 +2495,6 @@ struct VarRegionAxis
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
-    /* TODO Handle invalid start/peak/end configs, so we don't
-     * have to do that at runtime. */
   }
 
   bool serialize (hb_serialize_context_t *c) const
@@ -2510,6 +2509,33 @@ struct VarRegionAxis
   F2DOT14	endCoord;
   public:
   DEFINE_SIZE_STATIC (6);
+};
+struct SparseVarRegionAxis
+{
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    unsigned i = axisIndex;
+    int coord = i < coord_len ? coords[i] : 0;
+    return axis.evaluate (coord);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  bool serialize (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
+  public:
+  HBUINT16 axisIndex;
+  VarRegionAxis axis;
+  public:
+  DEFINE_SIZE_STATIC (8);
 };
 
 #define REGION_CACHE_ITEM_CACHE_INVALID 2.f
@@ -2675,6 +2701,65 @@ struct VarRegionList
   DEFINE_SIZE_ARRAY (4, axesZ);
 };
 
+struct SparseVariationRegion : Array16Of<SparseVarRegionAxis>
+{
+  float evaluate (const int *coords, unsigned int coord_len) const
+  {
+    float v = 1.f;
+    unsigned int count = len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      float factor = arrayZ[i].evaluate (coords, coord_len);
+      if (factor == 0.f)
+	return 0.;
+      v *= factor;
+    }
+    return v;
+  }
+};
+
+struct SparseVarRegionList
+{
+  using cache_t = float;
+
+  float evaluate (unsigned int region_index,
+		  const int *coords, unsigned int coord_len,
+		  cache_t *cache = nullptr) const
+  {
+    if (unlikely (region_index >= regions.len))
+      return 0.;
+
+    float *cached_value = nullptr;
+    if (cache)
+    {
+      cached_value = &(cache[region_index]);
+      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+	return *cached_value;
+    }
+
+    const SparseVariationRegion &region = this+regions[region_index];
+
+    float v = region.evaluate (coords, coord_len);
+
+    if (cache)
+      *cached_value = v;
+    return v;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (regions.sanitize (c, this));
+  }
+
+  public:
+  Array16Of<Offset32To<SparseVariationRegion>>
+		regions;
+  public:
+  DEFINE_SIZE_ARRAY (2, regions);
+};
+
+
 struct VarData
 {
   unsigned int get_item_count () const
@@ -2682,7 +2767,7 @@ struct VarData
 
   unsigned int get_region_index_count () const
   { return regionIndices.len; }
-  
+
   unsigned get_region_index (unsigned i) const
   { return i >= regionIndices.len ? -1 : regionIndices[i]; }
 
@@ -3036,6 +3121,61 @@ struct VarData
   DEFINE_SIZE_ARRAY (6, regionIndices);
 };
 
+struct MultiVarData
+{
+  unsigned int get_size () const
+  { return min_size
+	 - regionIndices.min_size + regionIndices.get_size ()
+	 + StructAfter<CFF2Index> (regionIndices).get_size ();
+  }
+
+  void get_delta (unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  const SparseVarRegionList &regions,
+		  hb_array_t<float> out,
+		  SparseVarRegionList::cache_t *cache = nullptr) const
+  {
+    auto &deltaSets = StructAfter<decltype (deltaSetsX)> (regionIndices);
+
+    auto values_iter = deltaSets[inner];
+
+    unsigned regionCount = regionIndices.len;
+    unsigned count = out.length;
+    for (unsigned regionIndex = 0; regionIndex < regionCount; regionIndex++)
+    {
+      float scalar = regions.evaluate (regionIndices.arrayZ[regionIndex],
+				       coords, coord_count,
+				       cache);
+      if (scalar == 1.f)
+	for (unsigned i = 0; i < count; i++)
+	  out.arrayZ[i] += *values_iter++;
+      else if (scalar)
+	for (unsigned i = 0; i < count; i++)
+	  out.arrayZ[i] += *values_iter++ * scalar;
+      else
+        values_iter += count;
+    }
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (format.sanitize (c) &&
+		  hb_barrier () &&
+		  format == 1 &&
+		  regionIndices.sanitize (c) &&
+		  hb_barrier () &&
+		  StructAfter<decltype (deltaSetsX)> (regionIndices).sanitize (c));
+  }
+
+  protected:
+  HBUINT8	      format; // 1
+  Array16Of<HBUINT16> regionIndices;
+  TupleList	      deltaSetsX;
+  public:
+  DEFINE_SIZE_MIN (8);
+};
+
 struct ItemVariationStore
 {
   friend struct item_variations_t;
@@ -3088,7 +3228,7 @@ struct ItemVariationStore
     return get_delta (outer, inner, coords, coord_count, cache);
   }
   float get_delta (unsigned int index,
-		   hb_array_t<int> coords,
+		   hb_array_t<const int> coords,
 		   VarRegionList::cache_t *cache = nullptr) const
   {
     return get_delta (index,
@@ -3121,7 +3261,7 @@ struct ItemVariationStore
     return_trace (false);
 #endif
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    
+
     format = 1;
     if (!regions.serialize_serialize (c, axis_tags, region_list))
       return_trace (false);
@@ -3136,7 +3276,7 @@ struct ItemVariationStore
     for (unsigned i = 0; i < num_var_data; i++)
       if (!dataSets[i].serialize_serialize (c, has_long, vardata_encodings[i].items))
         return_trace (false);
-    
+
     return_trace (true);
   }
 
@@ -3295,7 +3435,357 @@ struct ItemVariationStore
   DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
 };
 
+struct MultiItemVariationStore
+{
+  using cache_t = SparseVarRegionList::cache_t;
+
+  cache_t *create_cache () const
+  {
+#ifdef HB_NO_VAR
+    return nullptr;
+#endif
+    auto &r = this+regions;
+    unsigned count = r.regions.len;
+
+    float *cache = (float *) hb_malloc (sizeof (float) * count);
+    if (unlikely (!cache)) return nullptr;
+
+    for (unsigned i = 0; i < count; i++)
+      cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
+
+    return cache;
+  }
+
+  static void destroy_cache (cache_t *cache) { hb_free (cache); }
+
+  private:
+  void get_delta (unsigned int outer, unsigned int inner,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+#ifdef HB_NO_VAR
+    return;
+#endif
+
+    if (unlikely (outer >= dataSets.len))
+      return;
+
+    return (this+dataSets[outer]).get_delta (inner,
+					     coords, coord_count,
+					     this+regions,
+					     out,
+					     cache);
+  }
+
+  public:
+  void get_delta (unsigned int index,
+		  const int *coords, unsigned int coord_count,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    unsigned int outer = index >> 16;
+    unsigned int inner = index & 0xFFFF;
+    get_delta (outer, inner, coords, coord_count, out, cache);
+  }
+  void get_delta (unsigned int index,
+		  hb_array_t<const int> coords,
+		  hb_array_t<float> out,
+		  VarRegionList::cache_t *cache = nullptr) const
+  {
+    return get_delta (index,
+		      coords.arrayZ, coords.length,
+		      out,
+		      cache);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+#ifdef HB_NO_VAR
+    return true;
+#endif
+
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+		  format == 1 &&
+		  regions.sanitize (c, this) &&
+		  dataSets.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16				format; // 1
+  Offset32To<SparseVarRegionList>	regions;
+  Array16OfOffset32To<MultiVarData>	dataSets;
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
+};
+
 #undef REGION_CACHE_ITEM_CACHE_INVALID
+
+template <typename MapCountT>
+struct DeltaSetIndexMapFormat01
+{
+  friend struct DeltaSetIndexMap;
+
+  unsigned get_size () const
+  { return min_size + mapCount * get_width (); }
+
+  private:
+  DeltaSetIndexMapFormat01* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
+  template <typename T>
+  bool serialize (hb_serialize_context_t *c, const T &plan)
+  {
+    unsigned int width = plan.get_width ();
+    unsigned int inner_bit_count = plan.get_inner_bit_count ();
+    const hb_array_t<const uint32_t> output_map = plan.get_output_map ();
+
+    TRACE_SERIALIZE (this);
+    if (unlikely (output_map.length && ((((inner_bit_count-1)&~0xF)!=0) || (((width-1)&~0x3)!=0))))
+      return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+
+    entryFormat = ((width-1)<<4)|(inner_bit_count-1);
+    mapCount = output_map.length;
+    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
+    if (unlikely (!p)) return_trace (false);
+    for (unsigned int i = 0; i < output_map.length; i++)
+    {
+      unsigned int v = output_map.arrayZ[i];
+      if (v)
+      {
+	unsigned int outer = v >> 16;
+	unsigned int inner = v & 0xFFFF;
+	unsigned int u = (outer << inner_bit_count) | inner;
+	for (unsigned int w = width; w > 0;)
+	{
+	  p[--w] = u;
+	  u >>= 8;
+	}
+      }
+      p += width;
+    }
+    return_trace (true);
+  }
+
+  uint32_t map (unsigned int v) const /* Returns 16.16 outer.inner. */
+  {
+    /* If count is zero, pass value unchanged.  This takes
+     * care of direct mapping for advance map. */
+    if (!mapCount)
+      return v;
+
+    if (v >= mapCount)
+      v = mapCount - 1;
+
+    unsigned int u = 0;
+    { /* Fetch it. */
+      unsigned int w = get_width ();
+      const HBUINT8 *p = mapDataZ.arrayZ + w * v;
+      for (; w; w--)
+        u = (u << 8) + *p++;
+    }
+
+    { /* Repack it. */
+      unsigned int n = get_inner_bit_count ();
+      unsigned int outer = u >> n;
+      unsigned int inner = u & ((1 << n) - 1);
+      u = (outer<<16) | inner;
+    }
+
+    return u;
+  }
+
+  unsigned get_map_count () const       { return mapCount; }
+  unsigned get_width () const           { return ((entryFormat >> 4) & 3) + 1; }
+  unsigned get_inner_bit_count () const { return (entryFormat & 0xF) + 1; }
+
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  hb_barrier () &&
+                  c->check_range (mapDataZ.arrayZ,
+                                  mapCount,
+                                  get_width ()));
+  }
+
+  protected:
+  HBUINT8       format;         /* Format identifier--format = 0 */
+  HBUINT8       entryFormat;    /* A packed field that describes the compressed
+                                 * representation of delta-set indices. */
+  MapCountT     mapCount;       /* The number of mapping entries. */
+  UnsizedArrayOf<HBUINT8>
+                mapDataZ;       /* The delta-set index mapping data. */
+
+  public:
+  DEFINE_SIZE_ARRAY (2+MapCountT::static_size, mapDataZ);
+};
+
+struct DeltaSetIndexMap
+{
+  template <typename T>
+  bool serialize (hb_serialize_context_t *c, const T &plan)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned length = plan.get_output_map ().length;
+    u.format = length <= 0xFFFF ? 0 : 1;
+    switch (u.format) {
+    case 0: hb_barrier (); return_trace (u.format0.serialize (c, plan));
+    case 1: hb_barrier (); return_trace (u.format1.serialize (c, plan));
+    default:return_trace (false);
+    }
+  }
+
+  uint32_t map (unsigned v) const
+  {
+    switch (u.format) {
+    case 0: hb_barrier (); return (u.format0.map (v));
+    case 1: hb_barrier (); return (u.format1.map (v));
+    default:return v;
+    }
+  }
+
+  unsigned get_map_count () const
+  {
+    switch (u.format) {
+    case 0: hb_barrier (); return u.format0.get_map_count ();
+    case 1: hb_barrier (); return u.format1.get_map_count ();
+    default:return 0;
+    }
+  }
+
+  unsigned get_width () const
+  {
+    switch (u.format) {
+    case 0: hb_barrier (); return u.format0.get_width ();
+    case 1: hb_barrier (); return u.format1.get_width ();
+    default:return 0;
+    }
+  }
+
+  unsigned get_inner_bit_count () const
+  {
+    switch (u.format) {
+    case 0: hb_barrier (); return u.format0.get_inner_bit_count ();
+    case 1: hb_barrier (); return u.format1.get_inner_bit_count ();
+    default:return 0;
+    }
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.format.sanitize (c)) return_trace (false);
+    hb_barrier ();
+    switch (u.format) {
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  DeltaSetIndexMap* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    switch (u.format) {
+    case 0: hb_barrier (); return_trace (reinterpret_cast<DeltaSetIndexMap *> (u.format0.copy (c)));
+    case 1: hb_barrier (); return_trace (reinterpret_cast<DeltaSetIndexMap *> (u.format1.copy (c)));
+    default:return_trace (nullptr);
+    }
+  }
+
+  protected:
+  union {
+  HBUINT8                            format;         /* Format identifier */
+  DeltaSetIndexMapFormat01<HBUINT16> format0;
+  DeltaSetIndexMapFormat01<HBUINT32> format1;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (1, format);
+};
+
+
+struct ItemVarStoreInstancer
+{
+  ItemVarStoreInstancer (const ItemVariationStore *varStore,
+			 const DeltaSetIndexMap *varIdxMap,
+			 hb_array_t<const int> coords,
+			 VarRegionList::cache_t *cache = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
+  {
+    if (!varStore)
+      varStore = &Null(ItemVariationStore);
+  }
+
+  operator bool () const { return varStore && bool (coords); }
+
+  float operator[] (uint32_t varIdx) const
+  { return (*this) (varIdx); }
+
+  float operator() (uint32_t varIdx, unsigned short offset = 0) const
+  {
+    if (varIdxMap)
+      varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
+    else
+      varIdx += offset;
+    return coords ? varStore->get_delta (varIdx, coords, cache) : 0.f;
+  }
+
+  const ItemVariationStore *varStore;
+  const DeltaSetIndexMap *varIdxMap;
+  hb_array_t<const int> coords;
+  VarRegionList::cache_t *cache;
+};
+
+struct MultiItemVarStoreInstancer
+{
+  MultiItemVarStoreInstancer (const MultiItemVariationStore *varStore,
+			      const DeltaSetIndexMap *varIdxMap,
+			      hb_array_t<const int> coords,
+			      SparseVarRegionList::cache_t *cache = nullptr) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
+  {
+    if (!varStore)
+      varStore = &Null(MultiItemVariationStore);
+  }
+
+  operator bool () const { return varStore && bool (coords); }
+
+  float operator[] (uint32_t varIdx) const
+  {
+    float v = 0;
+    (*this) (hb_array (&v, 1), varIdx);
+    return v;
+  }
+
+  void operator() (hb_array_t<float> out, uint32_t varIdx, unsigned short offset = 0) const
+  {
+    if (coords)
+    {
+      if (varIdxMap)
+	varIdx = varIdxMap->map (VarIdx::add (varIdx, offset));
+      else
+	varIdx += offset;
+      varStore->get_delta (varIdx, coords, out, cache);
+    }
+    else
+      for (unsigned i = 0; i < out.length; i++)
+        out.arrayZ[i] = 0.f;
+  }
+
+  const MultiItemVariationStore *varStore;
+  const DeltaSetIndexMap *varIdxMap;
+  hb_array_t<const int> coords;
+  SparseVarRegionList::cache_t *cache;
+};
+
 
 /*
  * Feature Variations
@@ -3308,7 +3798,16 @@ enum Cond_with_Var_flag_t
   DROP_RECORD_WITH_VAR = 3,
 };
 
-struct ConditionFormat1
+struct Condition;
+
+template <typename Instancer>
+static bool
+_hb_recurse_condition_evaluate (const struct Condition &condition,
+				const int *coords,
+				unsigned int coord_len,
+				Instancer *instancer);
+
+struct ConditionAxisRange
 {
   friend struct Condition;
 
@@ -3401,7 +3900,9 @@ struct ConditionFormat1
     return KEEP_RECORD_WITH_VAR;
   }
 
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer HB_UNUSED) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
     return filterRangeMinValue.to_int () <= coord && coord <= filterRangeMaxValue.to_int ();
@@ -3422,12 +3923,199 @@ struct ConditionFormat1
   DEFINE_SIZE_STATIC (8);
 };
 
+struct ConditionValue
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer) const
+  {
+    signed value = defaultValue;
+    value += (*instancer)[varIdx];
+    return value > 0;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 2 */
+  HBINT16	defaultValue;   /* Value at default instance. */
+  VarIdx	varIdx;		/* Variation index */
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
+
+struct ConditionAnd
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
+					   coords, coord_len,
+					   instancer))
+	return false;
+    return true;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 3 */
+  Array8OfOffset24To<struct Condition>	conditions;
+  public:
+  DEFINE_SIZE_ARRAY (3, conditions);
+};
+
+struct ConditionOr
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer) const
+  {
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (_hb_recurse_condition_evaluate (this+conditions.arrayZ[i],
+					  coords, coord_len,
+					  instancer))
+	return true;
+    return false;
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 4 */
+  Array8OfOffset24To<struct Condition>	conditions;
+  public:
+  DEFINE_SIZE_ARRAY (3, conditions);
+};
+
+struct ConditionNegate
+{
+  friend struct Condition;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  private:
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer) const
+  {
+    return !_hb_recurse_condition_evaluate (this+condition,
+					    coords, coord_len,
+					    instancer);
+  }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l,
+               bool insert_catch_all) const
+  {
+    TRACE_SUBSET (this);
+    // TODO(subset)
+    return_trace (false);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (condition.sanitize (c, this));
+  }
+
+  protected:
+  HBUINT16	format;		/* Format identifier--format = 5 */
+  Offset24To<struct Condition>	condition;
+  public:
+  DEFINE_SIZE_STATIC (5);
+};
+
 struct Condition
 {
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  template <typename Instancer>
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 Instancer *instancer) const
   {
     switch (u.format) {
-    case 1: return u.format1.evaluate (coords, coord_len);
+    case 1: hb_barrier (); return u.format1.evaluate (coords, coord_len, instancer);
+    case 2: hb_barrier (); return u.format2.evaluate (coords, coord_len, instancer);
+    case 3: hb_barrier (); return u.format3.evaluate (coords, coord_len, instancer);
+    case 4: hb_barrier (); return u.format4.evaluate (coords, coord_len, instancer);
+    case 5: hb_barrier (); return u.format5.evaluate (coords, coord_len, instancer);
     default:return false;
     }
   }
@@ -3436,7 +4124,8 @@ struct Condition
                                              hb_map_t *condition_map /* OUT */) const
   {
     switch (u.format) {
-    case 1: return u.format1.keep_with_variations (c, condition_map);
+    case 1: hb_barrier (); return u.format1.keep_with_variations (c, condition_map);
+    // TODO(subset)
     default: c->apply = false; return KEEP_COND_WITH_VAR;
     }
   }
@@ -3447,7 +4136,11 @@ struct Condition
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -3458,7 +4151,11 @@ struct Condition
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case 1: return_trace (u.format1.sanitize (c));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
+    case 3: hb_barrier (); return_trace (u.format3.sanitize (c));
+    case 4: hb_barrier (); return_trace (u.format4.sanitize (c));
+    case 5: hb_barrier (); return_trace (u.format5.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -3466,19 +4163,51 @@ struct Condition
   protected:
   union {
   HBUINT16		format;		/* Format identifier */
-  ConditionFormat1	format1;
+  ConditionAxisRange	format1;
+  ConditionValue	format2;
+  ConditionAnd		format3;
+  ConditionOr		format4;
+  ConditionNegate	format5;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
 };
 
+template <typename Instancer>
+bool
+_hb_recurse_condition_evaluate (const struct Condition &condition,
+				const int *coords,
+				unsigned int coord_len,
+				Instancer *instancer)
+{
+  return condition.evaluate (coords, coord_len, instancer);
+}
+
+struct ConditionList
+{
+  const Condition& operator[] (unsigned i) const
+  { return this+conditions[i]; }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (conditions.sanitize (c, this));
+  }
+
+  protected:
+  Array32OfOffset32To<Condition> conditions;
+  public:
+  DEFINE_SIZE_ARRAY (4, conditions);
+};
+
 struct ConditionSet
 {
-  bool evaluate (const int *coords, unsigned int coord_len) const
+  bool evaluate (const int *coords, unsigned int coord_len,
+		 ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = conditions.len;
     for (unsigned int i = 0; i < count; i++)
-      if (!(this+conditions.arrayZ[i]).evaluate (coords, coord_len))
+      if (!(this+conditions.arrayZ[i]).evaluate (coords, coord_len, instancer))
 	return false;
     return true;
   }
@@ -3812,13 +4541,14 @@ struct FeatureVariations
   static constexpr unsigned NOT_FOUND_INDEX = 0xFFFFFFFFu;
 
   bool find_index (const int *coords, unsigned int coord_len,
-		   unsigned int *index) const
+		   unsigned int *index,
+		   ItemVarStoreInstancer *instancer) const
   {
     unsigned int count = varRecords.len;
     for (unsigned int i = 0; i < count; i++)
     {
       const FeatureVariationRecord &record = varRecords.arrayZ[i];
-      if ((this+record.conditions).evaluate (coords, coord_len))
+      if ((this+record.conditions).evaluate (coords, coord_len, instancer))
       {
 	*index = i;
 	return true;
@@ -4079,7 +4809,7 @@ struct VariationDevice
   }
 
   protected:
-  VarIdx	varIdx;
+  VarIdx	varIdx;		/* Variation index */
   HBUINT16	deltaFormat;	/* Format identifier for this table: 0x0x8000 */
   public:
   DEFINE_SIZE_STATIC (6);

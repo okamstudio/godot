@@ -2055,7 +2055,7 @@ void DisplayServerX11::window_set_current_screen(int p_screen, WindowID p_window
 		return;
 	}
 
-	if (window_get_mode(p_window) == WINDOW_MODE_FULLSCREEN) {
+	if (window_get_mode(p_window) == WINDOW_MODE_FULLSCREEN || window_get_mode(p_window) == WINDOW_MODE_MAXIMIZED) {
 		Point2i position = screen_get_position(p_screen);
 		Size2i size = screen_get_size(p_screen);
 

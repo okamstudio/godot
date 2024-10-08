@@ -58,6 +58,11 @@ public:
 	virtual void geometry_instance_free(RenderGeometryInstance *p_geometry_instance) = 0;
 	virtual uint32_t geometry_instance_get_pair_mask() = 0;
 
+	/* PIPELINES */
+
+	virtual void mesh_generate_pipelines(RID p_mesh, bool p_background_compilation) = 0;
+	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source) = 0;
+
 	/* SDFGI UPDATE */
 
 	virtual void sdfgi_update(const Ref<RenderSceneBuffers> &p_render_buffers, RID p_environment, const Vector3 &p_world_position) = 0;

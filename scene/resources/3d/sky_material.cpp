@@ -357,6 +357,7 @@ void sky() {
 }
 
 ProceduralSkyMaterial::ProceduralSkyMaterial() {
+	_set_material(RS::get_singleton()->material_create());
 	set_sky_top_color(Color(0.385, 0.454, 0.55));
 	set_sky_horizon_color(Color(0.6463, 0.6558, 0.6708));
 	set_sky_curve(0.15);
@@ -486,6 +487,7 @@ void sky() {
 }
 
 PanoramaSkyMaterial::PanoramaSkyMaterial() {
+	_set_material(RS::get_singleton()->material_create());
 	set_energy_multiplier(1.0);
 }
 
@@ -785,6 +787,7 @@ void sky() {
 }
 
 PhysicalSkyMaterial::PhysicalSkyMaterial() {
+	_set_material(RS::get_singleton()->material_create());
 	set_rayleigh_coefficient(2.0);
 	set_rayleigh_color(Color(0.3, 0.405, 0.6));
 	set_mie_coefficient(0.005);

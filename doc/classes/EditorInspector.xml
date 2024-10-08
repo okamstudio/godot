@@ -28,6 +28,7 @@
 		</method>
 	</methods>
 	<members>
+		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="is_following_focus" overrides="ScrollContainer" default="true" />
 		<member name="horizontal_scroll_mode" type="int" setter="set_horizontal_scroll_mode" getter="get_horizontal_scroll_mode" overrides="ScrollContainer" enum="ScrollContainer.ScrollMode" default="0" />
 	</members>
 	<signals>

@@ -42,7 +42,7 @@
 struct face_table_info_t
 {
   hb_blob_t* data;
-  signed order;
+  unsigned order;
 };
 
 struct hb_face_builder_data_t
@@ -153,6 +153,50 @@ _hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void 
   return hb_blob_reference (data->tables[tag].data);
 }
 
+static unsigned
+_hb_face_builder_get_table_tags (const hb_face_t *face HB_UNUSED,
+				 unsigned int start_offset,
+				 unsigned int *table_count,
+				 hb_tag_t *table_tags,
+				 void *user_data)
+{
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) user_data;
+
+  unsigned population = data->tables.get_population ();
+
+  if (!table_count)
+    return population;
+
+  if (unlikely (start_offset >= population))
+  {
+    if (table_count)
+      *table_count = 0;
+    return population;
+  }
+
+  // Sort the tags.
+  hb_vector_t<hb_tag_t> sorted_tags;
+  data->tables.keys () | hb_sink (sorted_tags);
+  if (unlikely (sorted_tags.in_error ()))
+  {
+    // Not much to do...
+  }
+  sorted_tags.qsort ([] (const void* a, const void* b) {
+    return * (hb_tag_t *) a <  * (hb_tag_t *) b ? -1 :
+	   * (hb_tag_t *) a == * (hb_tag_t *) b ?  0 :
+	                                          +1;
+  });
+
+  auto array = sorted_tags.as_array ().sub_array (start_offset, table_count);
+  auto out = hb_array (table_tags, *table_count);
+
+  + array.iter ()
+  | hb_sink (out)
+  ;
+
+  return population;
+}
+
 
 /**
  * hb_face_builder_create:
@@ -171,9 +215,16 @@ hb_face_builder_create ()
   hb_face_builder_data_t *data = _hb_face_builder_data_create ();
   if (unlikely (!data)) return hb_face_get_empty ();
 
-  return hb_face_create_for_tables (_hb_face_builder_reference_table,
-				    data,
-				    _hb_face_builder_data_destroy);
+  hb_face_t *face = hb_face_create_for_tables (_hb_face_builder_reference_table,
+					       data,
+					       _hb_face_builder_data_destroy);
+
+  hb_face_set_get_table_tags_func (face,
+				   _hb_face_builder_get_table_tags,
+				   data,
+				   nullptr);
+
+  return face;
 }
 
 /**
@@ -199,7 +250,7 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
 
   hb_blob_t* previous = data->tables.get (tag).data;
-  if (!data->tables.set (tag, face_table_info_t {hb_blob_reference (blob), -1}))
+  if (!data->tables.set (tag, face_table_info_t {hb_blob_reference (blob), (unsigned) -1}))
   {
     hb_blob_destroy (blob);
     return false;

@@ -105,7 +105,7 @@ void SeparateYuyvBufferDecoder::decode(StreamingBuffer p_buffer) {
 		cbcr_image.instantiate(width, height, false, Image::FORMAT_RGB8, cbcr_image_data);
 	}
 
-	camera_feed->set_YCbCr_imgs(y_image, cbcr_image);
+	camera_feed->set_ycbcr_images(y_image, cbcr_image);
 }
 
 YuyvToGrayscaleBufferDecoder::YuyvToGrayscaleBufferDecoder(CameraFeed *p_camera_feed) :
@@ -133,7 +133,7 @@ void YuyvToGrayscaleBufferDecoder::decode(StreamingBuffer p_buffer) {
 		image.instantiate(width, height, false, Image::FORMAT_RGB8, image_data);
 	}
 
-	camera_feed->set_RGB_img(image);
+	camera_feed->set_rgb_image(image);
 }
 
 YuyvToRgbBufferDecoder::YuyvToRgbBufferDecoder(CameraFeed *p_camera_feed) :
@@ -176,7 +176,7 @@ void YuyvToRgbBufferDecoder::decode(StreamingBuffer p_buffer) {
 		image.instantiate(width, height, false, Image::FORMAT_RGB8, image_data);
 	}
 
-	camera_feed->set_RGB_img(image);
+	camera_feed->set_rgb_image(image);
 }
 
 CopyBufferDecoder::CopyBufferDecoder(CameraFeed *p_camera_feed, bool p_rgba) :
@@ -195,7 +195,7 @@ void CopyBufferDecoder::decode(StreamingBuffer p_buffer) {
 		image.instantiate(width, height, false, rgba ? Image::FORMAT_RGBA8 : Image::FORMAT_LA8, image_data);
 	}
 
-	camera_feed->set_RGB_img(image);
+	camera_feed->set_rgb_image(image);
 }
 
 JpegBufferDecoder::JpegBufferDecoder(CameraFeed *p_camera_feed) :
@@ -207,6 +207,6 @@ void JpegBufferDecoder::decode(StreamingBuffer p_buffer) {
 	uint8_t *dst = (uint8_t *)image_data.ptrw();
 	memcpy(dst, p_buffer.start, p_buffer.length);
 	if (image->load_jpg_from_buffer(image_data) == OK) {
-		camera_feed->set_RGB_img(image);
+		camera_feed->set_rgb_image(image);
 	}
 }

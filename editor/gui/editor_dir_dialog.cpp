@@ -175,11 +175,14 @@ void EditorDirDialog::ok_pressed() {
 void EditorDirDialog::_make_dir() {
 	TreeItem *ti = tree->get_selected();
 	ERR_FAIL_NULL(ti);
-	makedialog->config(ti->get_metadata(0));
+	const String &directory = ti->get_metadata(0);
+	makedialog->config(directory, callable_mp(this, &EditorDirDialog::_make_dir_confirm).bind(directory), DirectoryCreateDialog::MODE_DIRECTORY, "new folder");
 	makedialog->popup_centered();
 }
 
-void EditorDirDialog::_make_dir_confirm(const String &p_path) {
+void EditorDirDialog::_make_dir_confirm(const String &p_path, const String &p_base_dir) {
+	FileSystemDock::get_singleton()->create_directory(p_path, p_base_dir);
+
 	// Multiple level of directories can be created at once.
 	String base_dir = p_path.get_base_dir();
 	while (true) {
@@ -228,5 +231,4 @@ EditorDirDialog::EditorDirDialog() {
 
 	makedialog = memnew(DirectoryCreateDialog);
 	add_child(makedialog);
-	makedialog->connect("dir_created", callable_mp(this, &EditorDirDialog::_make_dir_confirm));
 }

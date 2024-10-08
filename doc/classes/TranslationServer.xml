@@ -125,12 +125,13 @@
 			<param index="0" name="message" type="StringName" />
 			<description>
 				Returns the pseudolocalized string based on the [param message] passed in.
+				[b]Note:[/b] This method always uses the main translation domain.
 			</description>
 		</method>
 		<method name="reload_pseudolocalization">
 			<return type="void" />
 			<description>
-				Reparses the pseudolocalization options and reloads the translation.
+				Reparses the pseudolocalization options and reloads the translation for the main translation domain.
 			</description>
 		</method>
 		<method name="remove_domain">
@@ -187,7 +188,7 @@
 	</methods>
 	<members>
 		<member name="pseudolocalization_enabled" type="bool" setter="set_pseudolocalization_enabled" getter="is_pseudolocalization_enabled" default="false">
-			If [code]true[/code], enables the use of pseudolocalization. See [member ProjectSettings.internationalization/pseudolocalization/use_pseudolocalization] for details.
+			If [code]true[/code], enables the use of pseudolocalization on the main translation domain. See [member ProjectSettings.internationalization/pseudolocalization/use_pseudolocalization] for details.
 		</member>
 	</members>
 </class>

@@ -132,7 +132,7 @@ struct KernSubTable
   {
     switch (get_type ()) {
     /* This method hooks up to hb_font_t's get_h_kerning.  Only support Format0. */
-    case 0: return u.format0.get_kerning (left, right);
+    case 0: hb_barrier (); return u.format0.get_kerning (left, right);
     default:return 0;
     }
   }
@@ -311,9 +311,9 @@ struct kern
   bool has_state_machine () const
   {
     switch (get_type ()) {
-    case 0: return u.ot.has_state_machine ();
+    case 0: hb_barrier (); return u.ot.has_state_machine ();
 #ifndef HB_NO_AAT_SHAPE
-    case 1: return u.aat.has_state_machine ();
+    case 1: hb_barrier (); return u.aat.has_state_machine ();
 #endif
     default:return false;
     }
@@ -322,9 +322,9 @@ struct kern
   bool has_cross_stream () const
   {
     switch (get_type ()) {
-    case 0: return u.ot.has_cross_stream ();
+    case 0: hb_barrier (); return u.ot.has_cross_stream ();
 #ifndef HB_NO_AAT_SHAPE
-    case 1: return u.aat.has_cross_stream ();
+    case 1: hb_barrier (); return u.aat.has_cross_stream ();
 #endif
     default:return false;
     }
@@ -333,9 +333,9 @@ struct kern
   int get_h_kerning (hb_codepoint_t left, hb_codepoint_t right) const
   {
     switch (get_type ()) {
-    case 0: return u.ot.get_h_kerning (left, right);
+    case 0: hb_barrier (); return u.ot.get_h_kerning (left, right);
 #ifndef HB_NO_AAT_SHAPE
-    case 1: return u.aat.get_h_kerning (left, right);
+    case 1: hb_barrier (); return u.aat.get_h_kerning (left, right);
 #endif
     default:return 0;
     }
@@ -370,9 +370,9 @@ struct kern
   AAT::kern_accelerator_data_t create_accelerator_data (unsigned num_glyphs) const
   {
     switch (get_type ()) {
-    case 0: return u.ot.create_accelerator_data (num_glyphs);
+    case 0: hb_barrier (); return u.ot.create_accelerator_data (num_glyphs);
 #ifndef HB_NO_AAT_SHAPE
-    case 1: return u.aat.create_accelerator_data (num_glyphs);
+    case 1: hb_barrier (); return u.aat.create_accelerator_data (num_glyphs);
 #endif
     default:return AAT::kern_accelerator_data_t ();
     }

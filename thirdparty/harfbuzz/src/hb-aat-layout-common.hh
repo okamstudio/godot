@@ -39,6 +39,7 @@ namespace AAT {
 
 using namespace OT;
 
+#define HB_AAT_BUFFER_DIGEST_THRESHOLD 32
 
 struct ankr;
 
@@ -60,6 +61,7 @@ struct hb_aat_apply_context_t :
   const ankr *ankr_table;
   const OT::GDEF *gdef_table;
   const hb_sorted_vector_t<hb_aat_map_t::range_flags_t> *range_flags = nullptr;
+  hb_set_digest_t buffer_digest = hb_set_digest_t::full ();
   hb_set_digest_t machine_glyph_set = hb_set_digest_t::full ();
   hb_set_digest_t left_set = hb_set_digest_t::full ();
   hb_set_digest_t right_set = hb_set_digest_t::full ();
@@ -466,11 +468,11 @@ struct Lookup
   const T* get_value (hb_codepoint_t glyph_id, unsigned int num_glyphs) const
   {
     switch (u.format) {
-    case 0: return u.format0.get_value (glyph_id, num_glyphs);
-    case 2: return u.format2.get_value (glyph_id);
-    case 4: return u.format4.get_value (glyph_id);
-    case 6: return u.format6.get_value (glyph_id);
-    case 8: return u.format8.get_value (glyph_id);
+    case 0: hb_barrier (); return u.format0.get_value (glyph_id, num_glyphs);
+    case 2: hb_barrier (); return u.format2.get_value (glyph_id);
+    case 4: hb_barrier (); return u.format4.get_value (glyph_id);
+    case 6: hb_barrier (); return u.format6.get_value (glyph_id);
+    case 8: hb_barrier (); return u.format8.get_value (glyph_id);
     default:return nullptr;
     }
   }
@@ -479,7 +481,7 @@ struct Lookup
   {
     switch (u.format) {
       /* Format 10 cannot return a pointer. */
-      case 10: return u.format10.get_value_or_null (glyph_id);
+      case 10: hb_barrier (); return u.format10.get_value_or_null (glyph_id);
       default:
       const T *v = get_value (glyph_id, num_glyphs);
       return v ? *v : Null (T);
@@ -490,12 +492,12 @@ struct Lookup
   void collect_glyphs (set_t &glyphs, unsigned int num_glyphs) const
   {
     switch (u.format) {
-    case 0: u.format0.collect_glyphs (glyphs, num_glyphs); return;
-    case 2: u.format2.collect_glyphs (glyphs); return;
-    case 4: u.format4.collect_glyphs (glyphs); return;
-    case 6: u.format6.collect_glyphs (glyphs); return;
-    case 8: u.format8.collect_glyphs (glyphs); return;
-    case 10: u.format10.collect_glyphs (glyphs); return;
+    case 0: hb_barrier (); u.format0.collect_glyphs (glyphs, num_glyphs); return;
+    case 2: hb_barrier (); u.format2.collect_glyphs (glyphs); return;
+    case 4: hb_barrier (); u.format4.collect_glyphs (glyphs); return;
+    case 6: hb_barrier (); u.format6.collect_glyphs (glyphs); return;
+    case 8: hb_barrier (); u.format8.collect_glyphs (glyphs); return;
+    case 10: hb_barrier (); u.format10.collect_glyphs (glyphs); return;
     default:return;
     }
   }
@@ -514,12 +516,12 @@ struct Lookup
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case 0: return_trace (u.format0.sanitize (c));
-    case 2: return_trace (u.format2.sanitize (c));
-    case 4: return_trace (u.format4.sanitize (c));
-    case 6: return_trace (u.format6.sanitize (c));
-    case 8: return_trace (u.format8.sanitize (c));
-    case 10: return_trace (u.format10.sanitize (c));
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c));
+    case 4: hb_barrier (); return_trace (u.format4.sanitize (c));
+    case 6: hb_barrier (); return_trace (u.format6.sanitize (c));
+    case 8: hb_barrier (); return_trace (u.format8.sanitize (c));
+    case 10: hb_barrier (); return_trace (u.format10.sanitize (c));
     default:return_trace (true);
     }
   }
@@ -529,11 +531,11 @@ struct Lookup
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case 0: return_trace (u.format0.sanitize (c, base));
-    case 2: return_trace (u.format2.sanitize (c, base));
-    case 4: return_trace (u.format4.sanitize (c, base));
-    case 6: return_trace (u.format6.sanitize (c, base));
-    case 8: return_trace (u.format8.sanitize (c, base));
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c, base));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c, base));
+    case 4: hb_barrier (); return_trace (u.format4.sanitize (c, base));
+    case 6: hb_barrier (); return_trace (u.format6.sanitize (c, base));
+    case 8: hb_barrier (); return_trace (u.format8.sanitize (c, base));
     case 10: return_trace (false); /* We don't support format10 here currently. */
     default:return_trace (true);
     }
@@ -927,7 +929,15 @@ struct StateTableDriver
 	      machine (machine_),
 	      num_glyphs (face_->get_num_glyphs ()) {}
 
-  template <typename context_t, typename set_t = hb_set_digest_t>
+  template <typename context_t>
+  bool is_idempotent_on_all_out_of_bounds (context_t *c, hb_aat_apply_context_t *ac)
+  {
+    const auto entry = machine.get_entry (StateTableT::STATE_START_OF_TEXT, CLASS_OUT_OF_BOUNDS);
+    return !c->is_actionable (ac->buffer, this, entry) &&
+	    machine.new_state (entry.newState) == StateTableT::STATE_START_OF_TEXT;
+  }
+
+  template <typename context_t>
   void drive (context_t *c, hb_aat_apply_context_t *ac)
   {
     hb_buffer_t *buffer = ac->buffer;
@@ -1005,7 +1015,7 @@ struct StateTableDriver
       const auto is_safe_to_break_extra = [&]()
       {
           /* 2c. */
-          const auto wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
+          const auto &wouldbe_entry = machine.get_entry(StateTableT::STATE_START_OF_TEXT, klass);
 
           /* 2c'. */
           if (c->is_actionable (buffer, this, wouldbe_entry))

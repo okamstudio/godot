@@ -714,6 +714,12 @@
 			If [code]true[/code], when saving a file, the editor will rename the old file to a different name, save a new file, then only remove the old file once the new file has been saved. This makes loss of data less likely to happen if the editor or operating system exits unexpectedly while saving (e.g. due to a crash or power outage).
 			[b]Note:[/b] On Windows, this feature can interact negatively with certain antivirus programs. In this case, you may have to set this to [code]false[/code] to prevent file locking issues.
 		</member>
+		<member name="filesystem/quick_open_dialog/default_display_mode" type="int" setter="" getter="">
+			If set to [code]Adaptive[/code], the dialog opens in list view or grid view depending on the requested type. If set to [code]Last Used[/code], the display mode will always open the way you last used it.
+		</member>
+		<member name="filesystem/quick_open_dialog/include_addons" type="bool" setter="" getter="">
+			If [code]true[/code], results will include files located in the [code]addons[/code] folder.
+		</member>
 		<member name="filesystem/tools/oidn/oidn_denoise_path" type="String" setter="" getter="">
 			The path to the directory containing the Open Image Denoise (OIDN) executable, used optionally for denoising lightmaps. It can be downloaded from [url=https://www.openimagedenoise.org/downloads.html]openimagedenoise.org[/url].
 			To enable this feature for your specific project, use [member ProjectSettings.rendering/lightmapping/denoising/denoiser].
@@ -772,7 +778,7 @@
 			Translations are provided by the community. If you spot a mistake, [url=$DOCS_URL/contributing/documentation/editor_and_docs_localization.html]contribute to editor translations on Weblate![/url]
 		</member>
 		<member name="interface/editor/editor_screen" type="int" setter="" getter="">
-			The preferred monitor to display the editor.
+			The preferred monitor to display the editor. If [b]Auto[/b], the editor will remember the last screen it was displayed on across restarts.
 		</member>
 		<member name="interface/editor/expand_to_title" type="bool" setter="" getter="">
 			Expanding main editor window content to the title, if supported by [DisplayServer]. See [constant DisplayServer.WINDOW_FLAG_EXTEND_TO_TITLE].
@@ -825,9 +831,6 @@
 		</member>
 		<member name="interface/editor/project_manager_screen" type="int" setter="" getter="">
 			The preferred monitor to display the project manager.
-		</member>
-		<member name="interface/editor/remember_window_size_and_position" type="bool" setter="" getter="">
-			If [code]true[/code], the editor window will remember its size, position, and which screen it was displayed on across restarts.
 		</member>
 		<member name="interface/editor/save_each_scene_on_quit" type="bool" setter="" getter="">
 			If [code]false[/code], the editor will save all scenes when confirming the [b]Save[/b] action when quitting the editor or quitting to the project list. If [code]true[/code], the editor will ask to save each scene individually.

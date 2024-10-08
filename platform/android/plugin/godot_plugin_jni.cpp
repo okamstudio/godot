@@ -30,6 +30,7 @@
 
 #include "godot_plugin_jni.h"
 
+#include "api/java_class_wrapper.h"
 #include "api/jni_singleton.h"
 #include "jni_utils.h"
 #include "string_android.h"
@@ -57,11 +58,15 @@ JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeR
 
 	ERR_FAIL_COND_V(jni_singletons.has(singname), false);
 
-	JNISingleton *s = (JNISingleton *)ClassDB::instantiate("JNISingleton");
-	s->set_instance(env->NewGlobalRef(obj));
-	jni_singletons[singname] = s;
+	jclass java_class = env->GetObjectClass(obj);
+	Ref<JavaClass> java_class_wrapped = JavaClassWrapper::get_singleton()->wrap_jclass(java_class, true);
+	env->DeleteLocalRef(java_class);
 
-	Engine::get_singleton()->add_singleton(Engine::Singleton(singname, s));
+	Ref<JavaObject> plugin_object = memnew(JavaObject(java_class_wrapped, obj));
+	JNISingleton *plugin_singleton = memnew(JNISingleton(plugin_object));
+	jni_singletons[singname] = plugin_singleton;
+
+	Engine::get_singleton()->add_singleton(Engine::Singleton(singname, plugin_singleton));
 	return true;
 }
 
@@ -75,7 +80,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegis
 	String mname = jstring_to_string(name, env);
 	String retval = jstring_to_string(ret, env);
 	Vector<Variant::Type> types;
-	String cs = "(";
 
 	int stringCount = env->GetArrayLength(args);
 
@@ -83,18 +87,9 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegis
 		jstring string = (jstring)env->GetObjectArrayElement(args, i);
 		const String rawString = jstring_to_string(string, env);
 		types.push_back(get_jni_type(rawString));
-		cs += get_jni_sig(rawString);
 	}
 
-	cs += ")";
-	cs += get_jni_sig(retval);
-	jclass cls = env->GetObjectClass(s->get_instance());
-	jmethodID mid = env->GetMethodID(cls, mname.ascii().get_data(), cs.ascii().get_data());
-	if (!mid) {
-		print_line("Failed getting method ID " + mname);
-	}
-
-	s->add_method(mname, mid, types, get_jni_type(retval));
+	s->add_method(mname, types, get_jni_type(retval));
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegisterSignal(JNIEnv *env, jclass clazz, jstring j_plugin_name, jstring j_signal_name, jobjectArray j_signal_param_types) {

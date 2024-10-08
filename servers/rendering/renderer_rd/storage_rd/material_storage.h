@@ -56,6 +56,16 @@ public:
 	};
 
 	struct ShaderData {
+		enum BlendMode {
+			BLEND_MODE_MIX,
+			BLEND_MODE_ADD,
+			BLEND_MODE_SUB,
+			BLEND_MODE_MUL,
+			BLEND_MODE_ALPHA_TO_COVERAGE,
+			BLEND_MODE_PREMULTIPLIED_ALPHA,
+			BLEND_MODE_DISABLED
+		};
+
 		String path;
 		HashMap<StringName, ShaderLanguage::ShaderNode::Uniform> uniforms;
 		HashMap<StringName, HashMap<int, RID>> default_texture_params;
@@ -73,6 +83,9 @@ public:
 		virtual RS::ShaderNativeSourceCode get_native_source_code() const { return RS::ShaderNativeSourceCode(); }
 
 		virtual ~ShaderData() {}
+
+		static RD::PipelineColorBlendState::Attachment blend_mode_to_blend_attachment(BlendMode p_mode);
+		static bool blend_mode_uses_blend_alpha(BlendMode p_mode);
 	};
 
 	struct MaterialData {
@@ -244,6 +257,7 @@ private:
 	Material *get_material(RID p_rid) { return material_owner.get_or_null(p_rid); };
 
 	SelfList<Material>::List material_update_list;
+	Mutex material_update_list_mutex;
 
 	static void _material_uniform_set_erased(void *p_material);
 

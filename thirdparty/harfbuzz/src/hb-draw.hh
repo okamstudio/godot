@@ -232,7 +232,7 @@ struct hb_draw_session_t
     funcs->close_path (draw_data, st);
   }
 
-  protected:
+  public:
   float slant;
   bool not_slanted;
   hb_draw_funcs_t *funcs;

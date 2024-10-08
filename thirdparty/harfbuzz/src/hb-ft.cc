@@ -1104,6 +1104,45 @@ _hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
 			 buffer, hb_free);
 }
 
+static unsigned
+_hb_ft_get_table_tags (const hb_face_t *face HB_UNUSED,
+		       unsigned int start_offset,
+		       unsigned int *table_count,
+		       hb_tag_t *table_tags,
+		       void *user_data)
+{
+  FT_Face ft_face = (FT_Face) user_data;
+
+  FT_ULong population = 0;
+  FT_Sfnt_Table_Info (ft_face,
+		      0, // table_index; ignored
+		      nullptr,
+                      &population);
+
+  if (!table_count)
+    return population;
+  else
+    *table_count = 0;
+
+  if (unlikely (start_offset >= population))
+    return population;
+
+  unsigned end_offset = hb_min (start_offset + *table_count, (unsigned) population);
+  if (unlikely (end_offset < start_offset))
+    return population;
+
+  *table_count = end_offset - start_offset;
+  for (unsigned i = start_offset; i < end_offset; i++)
+  {
+    FT_ULong tag = 0, length;
+    FT_Sfnt_Table_Info (ft_face, i, &tag, &length);
+    table_tags[i - start_offset] = tag;
+  }
+
+  return population;
+}
+
+
 /**
  * hb_ft_face_create:
  * @ft_face: (destroy destroy) (scope notified): FT_Face to work upon
@@ -1145,6 +1184,7 @@ hb_ft_face_create (FT_Face           ft_face,
     hb_blob_destroy (blob);
   } else {
     face = hb_face_create_for_tables (_hb_ft_reference_table, ft_face, destroy);
+    hb_face_set_get_table_tags_func (face, _hb_ft_get_table_tags, ft_face, nullptr);
   }
 
   hb_face_set_index (face, ft_face->face_index);

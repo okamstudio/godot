@@ -2763,8 +2763,9 @@ void EditorInspector::update_tree() {
 	// TODO: Can be useful to store more context for the focusable, such as the caret position in LineEdit.
 	StringName current_selected = property_selected;
 	int current_focusable = -1;
-	// Temporarily disable focus following to avoid jumping while the inspector is updating.
-	set_follow_focus(false);
+
+	// Temporarily disable focus following on the root inspector to avoid jumping while the inspector is updating.
+	get_root_inspector()->set_follow_focus(false);
 
 	if (property_focusable != -1) {
 		// Check that focusable is actually focusable.
@@ -2792,6 +2793,7 @@ void EditorInspector::update_tree() {
 	_clear(!object);
 
 	if (!object) {
+		get_root_inspector()->set_follow_focus(true);
 		return;
 	}
 
@@ -3529,7 +3531,8 @@ void EditorInspector::update_tree() {
 		// Updating inspector might invalidate some editing owners.
 		EditorNode::get_singleton()->hide_unused_editors();
 	}
-	set_follow_focus(true);
+
+	get_root_inspector()->set_follow_focus(true);
 }
 
 void EditorInspector::update_property(const String &p_prop) {
@@ -3774,11 +3777,10 @@ void EditorInspector::set_use_wide_editors(bool p_enable) {
 	wide_editors = p_enable;
 }
 
-void EditorInspector::set_sub_inspector(bool p_enable) {
-	sub_inspector = p_enable;
-	if (!is_inside_tree()) {
-		return;
-	}
+void EditorInspector::set_root_inspector(EditorInspector *p_root_inspector) {
+	root_inspector = p_root_inspector;
+	// Only the root inspector should follow focus.
+	set_follow_focus(false);
 }
 
 void EditorInspector::set_use_deletable_properties(bool p_enabled) {
@@ -4096,13 +4098,13 @@ void EditorInspector::_notification(int p_what) {
 			EditorFeatureProfileManager::get_singleton()->connect("current_feature_profile_changed", callable_mp(this, &EditorInspector::_feature_profile_changed));
 			set_process(is_visible_in_tree());
 			add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Tree")));
-			if (!sub_inspector) {
+			if (!is_sub_inspector()) {
 				get_tree()->connect("node_removed", callable_mp(this, &EditorInspector::_node_removed));
 			}
 		} break;
 
 		case NOTIFICATION_PREDELETE: {
-			if (!sub_inspector && is_inside_tree()) {
+			if (!is_sub_inspector() && is_inside_tree()) {
 				get_tree()->disconnect("node_removed", callable_mp(this, &EditorInspector::_node_removed));
 			}
 			edit(nullptr);
@@ -4161,7 +4163,7 @@ void EditorInspector::_notification(int p_what) {
 
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			bool needs_update = false;
-			if (EditorThemeManager::is_generated_theme_outdated() && !sub_inspector) {
+			if (!is_sub_inspector() && EditorThemeManager::is_generated_theme_outdated()) {
 				add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Tree")));
 			}
 

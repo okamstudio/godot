@@ -34,11 +34,7 @@
 
 #include "rendering_context_driver_vulkan_windows.h"
 
-#ifdef USE_VOLK
-#include <volk.h>
-#else
-#include <vulkan/vulkan.h>
-#endif
+#include "drivers/vulkan/godot_vulkan.h"
 
 const char *RenderingContextDriverVulkanWindows::_get_platform_surface_extension() const {
 	return VK_KHR_WIN32_SURFACE_EXTENSION_NAME;

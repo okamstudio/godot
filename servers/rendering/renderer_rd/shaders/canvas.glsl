@@ -193,9 +193,7 @@ void main() {
 	}
 #endif // USE_ATTRIBUTES
 
-#ifdef USE_POINT_SIZE
 	float point_size = 1.0;
-#endif
 
 #ifdef USE_WORLD_VERTEX_COORDS
 	vertex = (model_matrix * vec4(vertex, 0.0, 1.0)).xy;
@@ -368,8 +366,6 @@ float map_ninepatch_axis(float pixel, float draw_size, float tex_pixel_size, flo
 
 #endif
 
-#ifdef USE_LIGHTING
-
 vec3 light_normal_compute(vec3 light_vec, vec3 normal, vec3 base_color, vec3 light_color, vec4 specular_shininess, bool specular_shininess_used) {
 	float cNdotL = max(0.0, dot(normal, light_vec));
 
@@ -459,8 +455,6 @@ void light_blend_compute(uint light_base, vec4 light_color, inout vec3 color) {
 	}
 }
 
-#endif
-
 float msdf_median(float r, float g, float b, float a) {
 	return min(max(min(r, g), min(max(r, g), b)), a);
 }
@@ -493,7 +487,8 @@ void main() {
 
 #endif
 	if (bool(draw_data.flags & FLAGS_CLIP_RECT_UV)) {
-		uv = clamp(uv, draw_data.src_rect.xy, draw_data.src_rect.xy + abs(draw_data.src_rect.zw));
+		vec2 half_texpixel = draw_data.color_texture_pixel_size * 0.5;
+		uv = clamp(uv, draw_data.src_rect.xy + half_texpixel, draw_data.src_rect.xy + abs(draw_data.src_rect.zw) - half_texpixel);
 	}
 
 #endif
@@ -533,7 +528,7 @@ void main() {
 		color *= texture(sampler2D(color_texture, texture_sampler), uv);
 	}
 
-	uint light_count = bitfieldExtract(draw_data.flags, FLAGS_LIGHT_COUNT_SHIFT, 4); //max 16 lights
+	uint light_count = bitfieldExtract(draw_data.flags, FLAGS_LIGHT_COUNT_SHIFT, 4); //max 15 lights
 	bool using_light = (light_count + canvas_data.directional_light_count) > 0;
 
 	vec3 normal;
@@ -617,134 +612,135 @@ void main() {
 	color *= canvas_data.canvas_modulation;
 #endif
 
-#if defined(USE_LIGHTING) && !defined(MODE_UNSHADED)
+#if !defined(MODE_UNSHADED)
+	if (sc_use_lighting()) {
+		// Directional Lights
 
-	// Directional Lights
+		for (uint i = 0; i < canvas_data.directional_light_count; i++) {
+			uint light_base = i;
 
-	for (uint i = 0; i < canvas_data.directional_light_count; i++) {
-		uint light_base = i;
-
-		vec2 direction = light_array.data[light_base].position;
-		vec4 light_color = light_array.data[light_base].color;
+			vec2 direction = light_array.data[light_base].position;
+			vec4 light_color = light_array.data[light_base].color;
 
 #ifdef LIGHT_CODE_USED
 
-		vec4 shadow_modulate = vec4(1.0);
-		light_color = light_compute(light_vertex, vec3(direction, light_array.data[light_base].height), normal, light_color, light_color.a, specular_shininess, shadow_modulate, screen_uv, uv, base_color, true);
+			vec4 shadow_modulate = vec4(1.0);
+			light_color = light_compute(light_vertex, vec3(direction, light_array.data[light_base].height), normal, light_color, light_color.a, specular_shininess, shadow_modulate, screen_uv, uv, base_color, true);
 #else
 
-		if (normal_used) {
-			vec3 light_vec = normalize(mix(vec3(direction, 0.0), vec3(0, 0, 1), light_array.data[light_base].height));
-			light_color.rgb = light_normal_compute(light_vec, normal, base_color.rgb, light_color.rgb, specular_shininess, specular_shininess_used);
-		} else {
-			light_color.rgb *= base_color.rgb;
-		}
-#endif
-
-		if (bool(light_array.data[light_base].flags & LIGHT_FLAGS_HAS_SHADOW)) {
-			vec2 shadow_pos = (vec4(shadow_vertex, 0.0, 1.0) * mat4(light_array.data[light_base].shadow_matrix[0], light_array.data[light_base].shadow_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
-
-			vec4 shadow_uv = vec4(shadow_pos.x, light_array.data[light_base].shadow_y_ofs, shadow_pos.y * light_array.data[light_base].shadow_zfar_inv, 1.0);
-
-			light_color = light_shadow_compute(light_base, light_color, shadow_uv
-#ifdef LIGHT_CODE_USED
-					,
-					shadow_modulate.rgb
-#endif
-			);
-		}
-
-		light_blend_compute(light_base, light_color, color.rgb);
-#ifdef MODE_LIGHT_ONLY
-		light_only_alpha += light_color.a;
-#endif
-	}
-
-	// Positional Lights
-
-	for (uint i = 0; i < MAX_LIGHTS_PER_ITEM; i++) {
-		if (i >= light_count) {
-			break;
-		}
-		uint light_base = bitfieldExtract(draw_data.lights[i >> 2], (int(i) & 0x3) * 8, 8);
-
-		vec2 tex_uv = (vec4(vertex, 0.0, 1.0) * mat4(light_array.data[light_base].texture_matrix[0], light_array.data[light_base].texture_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
-		vec2 tex_uv_atlas = tex_uv * light_array.data[light_base].atlas_rect.zw + light_array.data[light_base].atlas_rect.xy;
-
-		if (any(lessThan(tex_uv, vec2(0.0, 0.0))) || any(greaterThanEqual(tex_uv, vec2(1.0, 1.0)))) {
-			//if outside the light texture, light color is zero
-			continue;
-		}
-
-		vec4 light_color = textureLod(sampler2D(atlas_texture, texture_sampler), tex_uv_atlas, 0.0);
-		vec4 light_base_color = light_array.data[light_base].color;
-
-#ifdef LIGHT_CODE_USED
-
-		vec4 shadow_modulate = vec4(1.0);
-		vec3 light_position = vec3(light_array.data[light_base].position, light_array.data[light_base].height);
-
-		light_color.rgb *= light_base_color.rgb;
-		light_color = light_compute(light_vertex, light_position, normal, light_color, light_base_color.a, specular_shininess, shadow_modulate, screen_uv, uv, base_color, false);
-#else
-
-		light_color.rgb *= light_base_color.rgb * light_base_color.a;
-
-		if (normal_used) {
-			vec3 light_pos = vec3(light_array.data[light_base].position, light_array.data[light_base].height);
-			vec3 pos = light_vertex;
-			vec3 light_vec = normalize(light_pos - pos);
-
-			light_color.rgb = light_normal_compute(light_vec, normal, base_color.rgb, light_color.rgb, specular_shininess, specular_shininess_used);
-		} else {
-			light_color.rgb *= base_color.rgb;
-		}
-#endif
-
-		if (bool(light_array.data[light_base].flags & LIGHT_FLAGS_HAS_SHADOW)) {
-			vec2 shadow_pos = (vec4(shadow_vertex, 0.0, 1.0) * mat4(light_array.data[light_base].shadow_matrix[0], light_array.data[light_base].shadow_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
-
-			vec2 pos_norm = normalize(shadow_pos);
-			vec2 pos_abs = abs(pos_norm);
-			vec2 pos_box = pos_norm / max(pos_abs.x, pos_abs.y);
-			vec2 pos_rot = pos_norm * mat2(vec2(0.7071067811865476, -0.7071067811865476), vec2(0.7071067811865476, 0.7071067811865476)); //is there a faster way to 45 degrees rot?
-			float tex_ofs;
-			float distance;
-			if (pos_rot.y > 0) {
-				if (pos_rot.x > 0) {
-					tex_ofs = pos_box.y * 0.125 + 0.125;
-					distance = shadow_pos.x;
-				} else {
-					tex_ofs = pos_box.x * -0.125 + (0.25 + 0.125);
-					distance = shadow_pos.y;
-				}
+			if (normal_used) {
+				vec3 light_vec = normalize(mix(vec3(direction, 0.0), vec3(0, 0, 1), light_array.data[light_base].height));
+				light_color.rgb = light_normal_compute(light_vec, normal, base_color.rgb, light_color.rgb, specular_shininess, specular_shininess_used);
 			} else {
-				if (pos_rot.x < 0) {
-					tex_ofs = pos_box.y * -0.125 + (0.5 + 0.125);
-					distance = -shadow_pos.x;
-				} else {
-					tex_ofs = pos_box.x * 0.125 + (0.75 + 0.125);
-					distance = -shadow_pos.y;
-				}
+				light_color.rgb *= base_color.rgb;
+			}
+#endif
+
+			if (bool(light_array.data[light_base].flags & LIGHT_FLAGS_HAS_SHADOW)) {
+				vec2 shadow_pos = (vec4(shadow_vertex, 0.0, 1.0) * mat4(light_array.data[light_base].shadow_matrix[0], light_array.data[light_base].shadow_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
+
+				vec4 shadow_uv = vec4(shadow_pos.x, light_array.data[light_base].shadow_y_ofs, shadow_pos.y * light_array.data[light_base].shadow_zfar_inv, 1.0);
+
+				light_color = light_shadow_compute(light_base, light_color, shadow_uv
+#ifdef LIGHT_CODE_USED
+						,
+						shadow_modulate.rgb
+#endif
+				);
 			}
 
-			distance *= light_array.data[light_base].shadow_zfar_inv;
-
-			//float distance = length(shadow_pos);
-			vec4 shadow_uv = vec4(tex_ofs, light_array.data[light_base].shadow_y_ofs, distance, 1.0);
-
-			light_color = light_shadow_compute(light_base, light_color, shadow_uv
-#ifdef LIGHT_CODE_USED
-					,
-					shadow_modulate.rgb
+			light_blend_compute(light_base, light_color, color.rgb);
+#ifdef MODE_LIGHT_ONLY
+			light_only_alpha += light_color.a;
 #endif
-			);
 		}
 
-		light_blend_compute(light_base, light_color, color.rgb);
-#ifdef MODE_LIGHT_ONLY
-		light_only_alpha += light_color.a;
+		// Positional Lights
+
+		for (uint i = 0; i < MAX_LIGHTS_PER_ITEM; i++) {
+			if (i >= light_count) {
+				break;
+			}
+			uint light_base = bitfieldExtract(draw_data.lights[i >> 2], (int(i) & 0x3) * 8, 8);
+
+			vec2 tex_uv = (vec4(vertex, 0.0, 1.0) * mat4(light_array.data[light_base].texture_matrix[0], light_array.data[light_base].texture_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
+			vec2 tex_uv_atlas = tex_uv * light_array.data[light_base].atlas_rect.zw + light_array.data[light_base].atlas_rect.xy;
+
+			if (any(lessThan(tex_uv, vec2(0.0, 0.0))) || any(greaterThanEqual(tex_uv, vec2(1.0, 1.0)))) {
+				//if outside the light texture, light color is zero
+				continue;
+			}
+
+			vec4 light_color = textureLod(sampler2D(atlas_texture, texture_sampler), tex_uv_atlas, 0.0);
+			vec4 light_base_color = light_array.data[light_base].color;
+
+#ifdef LIGHT_CODE_USED
+
+			vec4 shadow_modulate = vec4(1.0);
+			vec3 light_position = vec3(light_array.data[light_base].position, light_array.data[light_base].height);
+
+			light_color.rgb *= light_base_color.rgb;
+			light_color = light_compute(light_vertex, light_position, normal, light_color, light_base_color.a, specular_shininess, shadow_modulate, screen_uv, uv, base_color, false);
+#else
+
+			light_color.rgb *= light_base_color.rgb * light_base_color.a;
+
+			if (normal_used) {
+				vec3 light_pos = vec3(light_array.data[light_base].position, light_array.data[light_base].height);
+				vec3 pos = light_vertex;
+				vec3 light_vec = normalize(light_pos - pos);
+
+				light_color.rgb = light_normal_compute(light_vec, normal, base_color.rgb, light_color.rgb, specular_shininess, specular_shininess_used);
+			} else {
+				light_color.rgb *= base_color.rgb;
+			}
 #endif
+
+			if (bool(light_array.data[light_base].flags & LIGHT_FLAGS_HAS_SHADOW)) {
+				vec2 shadow_pos = (vec4(shadow_vertex, 0.0, 1.0) * mat4(light_array.data[light_base].shadow_matrix[0], light_array.data[light_base].shadow_matrix[1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0))).xy; //multiply inverse given its transposed. Optimizer removes useless operations.
+
+				vec2 pos_norm = normalize(shadow_pos);
+				vec2 pos_abs = abs(pos_norm);
+				vec2 pos_box = pos_norm / max(pos_abs.x, pos_abs.y);
+				vec2 pos_rot = pos_norm * mat2(vec2(0.7071067811865476, -0.7071067811865476), vec2(0.7071067811865476, 0.7071067811865476)); //is there a faster way to 45 degrees rot?
+				float tex_ofs;
+				float distance;
+				if (pos_rot.y > 0) {
+					if (pos_rot.x > 0) {
+						tex_ofs = pos_box.y * 0.125 + 0.125;
+						distance = shadow_pos.x;
+					} else {
+						tex_ofs = pos_box.x * -0.125 + (0.25 + 0.125);
+						distance = shadow_pos.y;
+					}
+				} else {
+					if (pos_rot.x < 0) {
+						tex_ofs = pos_box.y * -0.125 + (0.5 + 0.125);
+						distance = -shadow_pos.x;
+					} else {
+						tex_ofs = pos_box.x * 0.125 + (0.75 + 0.125);
+						distance = -shadow_pos.y;
+					}
+				}
+
+				distance *= light_array.data[light_base].shadow_zfar_inv;
+
+				//float distance = length(shadow_pos);
+				vec4 shadow_uv = vec4(tex_ofs, light_array.data[light_base].shadow_y_ofs, distance, 1.0);
+
+				light_color = light_shadow_compute(light_base, light_color, shadow_uv
+#ifdef LIGHT_CODE_USED
+						,
+						shadow_modulate.rgb
+#endif
+				);
+			}
+
+			light_blend_compute(light_base, light_color, color.rgb);
+#ifdef MODE_LIGHT_ONLY
+			light_only_alpha += light_color.a;
+#endif
+		}
 	}
 #endif
 

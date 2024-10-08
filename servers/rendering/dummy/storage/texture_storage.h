@@ -51,8 +51,6 @@ public:
 	TextureStorage();
 	~TextureStorage();
 
-	virtual bool can_create_resources_async() const override { return false; }
-
 	/* Canvas Texture API */
 
 	virtual RID canvas_texture_allocate() override { return RID(); };

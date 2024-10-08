@@ -226,33 +226,16 @@ inline void set_inner_corner_radius(const Rect2 style_rect, const Rect2 inner_re
 	real_t border_right = style_rect.size.width - inner_rect.size.width - border_left;
 	real_t border_bottom = style_rect.size.height - inner_rect.size.height - border_top;
 
-	real_t rad;
-
-	// Top left.
-	rad = MIN(border_top, border_left);
-	inner_corner_radius[0] = MAX(corner_radius[0] - rad, 0);
-
-	// Top right;
-	rad = MIN(border_top, border_right);
-	inner_corner_radius[1] = MAX(corner_radius[1] - rad, 0);
-
-	// Bottom right.
-	rad = MIN(border_bottom, border_right);
-	inner_corner_radius[2] = MAX(corner_radius[2] - rad, 0);
-
-	// Bottom left.
-	rad = MIN(border_bottom, border_left);
-	inner_corner_radius[3] = MAX(corner_radius[3] - rad, 0);
+	inner_corner_radius[0] = MAX(corner_radius[0] - MIN(border_top, border_left), 0); // Top left.
+	inner_corner_radius[1] = MAX(corner_radius[1] - MIN(border_top, border_right), 0); // Top right.
+	inner_corner_radius[2] = MAX(corner_radius[2] - MIN(border_bottom, border_right), 0); // Bottom right.
+	inner_corner_radius[3] = MAX(corner_radius[3] - MIN(border_bottom, border_left), 0); // Bottom left.
 }
 
 inline void draw_rounded_rectangle(Vector<Vector2> &verts, Vector<int> &indices, Vector<Color> &colors, const Rect2 &style_rect, const real_t corner_radius[4],
 		const Rect2 &ring_rect, const Rect2 &inner_rect, const Color &inner_color, const Color &outer_color, const int corner_detail, const Vector2 &skew, bool is_filled = false) {
 	int vert_offset = verts.size();
-	if (!vert_offset) {
-		vert_offset = 0;
-	}
-
-	int adapted_corner_detail = (corner_radius[0] == 0 && corner_radius[1] == 0 && corner_radius[2] == 0 && corner_radius[3] == 0) ? 1 : corner_detail;
+	int adapted_corner_detail = (corner_radius[0] > 0) || (corner_radius[1] > 0) || (corner_radius[2] > 0) || (corner_radius[3] > 0) ? corner_detail : 1;
 
 	bool draw_border = !is_filled;
 
@@ -280,30 +263,44 @@ inline void draw_rounded_rectangle(Vector<Vector2> &verts, Vector<int> &indices,
 
 	// If the center is filled, we do not draw the border and directly use the inner ring as reference. Because all calls to this
 	// method either draw a ring or a filled rounded rectangle, but not both.
-	int max_inner_outer = draw_border ? 2 : 1;
+	real_t quarter_arc_rad = Math_PI / 2.0;
+	Point2 style_rect_center = style_rect.get_center();
 
-	for (int corner_index = 0; corner_index < 4; corner_index++) {
+	int colors_size = colors.size();
+	int verts_size = verts.size();
+	int new_verts_amount = (adapted_corner_detail + 1) * (draw_border ? 8 : 4);
+	colors.resize(colors_size + new_verts_amount);
+	verts.resize(verts_size + new_verts_amount);
+	Color *colors_ptr = colors.ptrw();
+	Vector2 *verts_ptr = verts.ptrw();
+
+	for (int corner_idx = 0; corner_idx < 4; corner_idx++) {
 		for (int detail = 0; detail <= adapted_corner_detail; detail++) {
-			for (int inner_outer = 0; inner_outer < max_inner_outer; inner_outer++) {
-				real_t radius;
-				Color color;
-				Point2 corner_point;
-				if (inner_outer == 0) {
-					radius = inner_corner_radius[corner_index];
-					color = inner_color;
-					corner_point = inner_points[corner_index];
-				} else {
-					radius = ring_corner_radius[corner_index];
-					color = outer_color;
-					corner_point = outer_points[corner_index];
-				}
+			int idx_ofs = (adapted_corner_detail + 1) * corner_idx + detail;
+			if (draw_border) {
+				idx_ofs *= 2;
+			}
 
-				const real_t x = radius * (real_t)cos((corner_index + detail / (double)adapted_corner_detail) * (Math_TAU / 4.0) + Math_PI) + corner_point.x;
-				const real_t y = radius * (real_t)sin((corner_index + detail / (double)adapted_corner_detail) * (Math_TAU / 4.0) + Math_PI) + corner_point.y;
-				const float x_skew = -skew.x * (y - style_rect.get_center().y);
-				const float y_skew = -skew.y * (x - style_rect.get_center().x);
-				verts.push_back(Vector2(x + x_skew, y + y_skew));
-				colors.push_back(color);
+			const real_t pt_angle = (corner_idx + detail / (double)adapted_corner_detail) * quarter_arc_rad + Math_PI;
+			const real_t angle_cosine = cos(pt_angle);
+			const real_t angle_sine = sin(pt_angle);
+
+			{
+				const real_t x = inner_corner_radius[corner_idx] * angle_cosine + inner_points[corner_idx].x;
+				const real_t y = inner_corner_radius[corner_idx] * angle_sine + inner_points[corner_idx].y;
+				const float x_skew = -skew.x * (y - style_rect_center.y);
+				const float y_skew = -skew.y * (x - style_rect_center.x);
+				verts_ptr[verts_size + idx_ofs] = Vector2(x + x_skew, y + y_skew);
+				colors_ptr[colors_size + idx_ofs] = inner_color;
+			}
+
+			if (draw_border) {
+				const real_t x = ring_corner_radius[corner_idx] * angle_cosine + outer_points[corner_idx].x;
+				const real_t y = ring_corner_radius[corner_idx] * angle_sine + outer_points[corner_idx].y;
+				const float x_skew = -skew.x * (y - style_rect_center.y);
+				const float y_skew = -skew.y * (x - style_rect_center.x);
+				verts_ptr[verts_size + idx_ofs + 1] = Vector2(x + x_skew, y + y_skew);
+				colors_ptr[colors_size + idx_ofs + 1] = outer_color;
 			}
 		}
 	}
@@ -313,10 +310,15 @@ inline void draw_rounded_rectangle(Vector<Vector2> &verts, Vector<int> &indices,
 	// Fill the indices and the colors for the border.
 
 	if (draw_border) {
+		int indices_size = indices.size();
+		indices.resize(indices_size + ring_vert_count * 3);
+		int *indices_ptr = indices.ptrw();
+
 		for (int i = 0; i < ring_vert_count; i++) {
-			indices.push_back(vert_offset + ((i + 0) % ring_vert_count));
-			indices.push_back(vert_offset + ((i + 2) % ring_vert_count));
-			indices.push_back(vert_offset + ((i + 1) % ring_vert_count));
+			int idx_ofs = indices_size + i * 3;
+			indices_ptr[idx_ofs] = vert_offset + i % ring_vert_count;
+			indices_ptr[idx_ofs + 1] = vert_offset + (i + 2) % ring_vert_count;
+			indices_ptr[idx_ofs + 2] = vert_offset + (i + 1) % ring_vert_count;
 		}
 	}
 
@@ -327,40 +329,30 @@ inline void draw_rounded_rectangle(Vector<Vector2> &verts, Vector<int> &indices,
 		int stripes_count = ring_vert_count / 2 - 1;
 		int last_vert_id = ring_vert_count - 1;
 
+		int indices_size = indices.size();
+		indices.resize(indices_size + stripes_count * 6);
+		int *indices_ptr = indices.ptrw();
+
 		for (int i = 0; i < stripes_count; i++) {
+			int idx_ofs = indices_size + i * 6;
 			// Polygon 1.
-			indices.push_back(vert_offset + i);
-			indices.push_back(vert_offset + last_vert_id - i - 1);
-			indices.push_back(vert_offset + i + 1);
+			indices_ptr[idx_ofs] = vert_offset + i;
+			indices_ptr[idx_ofs + 1] = vert_offset + last_vert_id - i - 1;
+			indices_ptr[idx_ofs + 2] = vert_offset + i + 1;
 			// Polygon 2.
-			indices.push_back(vert_offset + i);
-			indices.push_back(vert_offset + last_vert_id - 0 - i);
-			indices.push_back(vert_offset + last_vert_id - 1 - i);
+			indices_ptr[idx_ofs + 3] = vert_offset + i;
+			indices_ptr[idx_ofs + 4] = vert_offset + last_vert_id - i;
+			indices_ptr[idx_ofs + 5] = vert_offset + last_vert_id - i - 1;
 		}
 	}
 }
 
 inline void adapt_values(int p_index_a, int p_index_b, real_t *adapted_values, const real_t *p_values, const real_t p_width, const real_t p_max_a, const real_t p_max_b) {
-	if (p_values[p_index_a] + p_values[p_index_b] > p_width) {
-		real_t factor;
-		real_t new_value;
-
-		factor = (real_t)p_width / (real_t)(p_values[p_index_a] + p_values[p_index_b]);
-
-		new_value = (p_values[p_index_a] * factor);
-		if (new_value < adapted_values[p_index_a]) {
-			adapted_values[p_index_a] = new_value;
-		}
-		new_value = (p_values[p_index_b] * factor);
-		if (new_value < adapted_values[p_index_b]) {
-			adapted_values[p_index_b] = new_value;
-		}
-	} else {
-		adapted_values[p_index_a] = MIN(p_values[p_index_a], adapted_values[p_index_a]);
-		adapted_values[p_index_b] = MIN(p_values[p_index_b], adapted_values[p_index_b]);
-	}
-	adapted_values[p_index_a] = MIN(p_max_a, adapted_values[p_index_a]);
-	adapted_values[p_index_b] = MIN(p_max_b, adapted_values[p_index_b]);
+	real_t value_a = p_values[p_index_a];
+	real_t value_b = p_values[p_index_b];
+	real_t factor = MIN(1.0, p_width / (value_a + value_b));
+	adapted_values[p_index_a] = MIN(MIN(value_a * factor, p_max_a), adapted_values[p_index_a]);
+	adapted_values[p_index_b] = MIN(MIN(value_b * factor, p_max_b), adapted_values[p_index_b]);
 }
 
 Rect2 StyleBoxFlat::get_draw_rect(const Rect2 &p_rect) const {
@@ -388,7 +380,7 @@ void StyleBoxFlat::draw(RID p_canvas_item, const Rect2 &p_rect) const {
 	}
 
 	const bool rounded_corners = (corner_radius[0] > 0) || (corner_radius[1] > 0) || (corner_radius[2] > 0) || (corner_radius[3] > 0);
-	// Only enable antialiasing if it is actually needed. This improve performances
+	// Only enable antialiasing if it is actually needed. This improves performance
 	// and maximizes sharpness for non-skewed StyleBoxes with sharp corners.
 	const bool aa_on = (rounded_corners || !skew.is_zero_approx()) && anti_aliased;
 
@@ -428,7 +420,7 @@ void StyleBoxFlat::draw(RID p_canvas_item, const Rect2 &p_rect) const {
 	Vector<Color> colors;
 	Vector<Point2> uvs;
 
-	// Create shadow
+	// Create shadow.
 	if (draw_shadow) {
 		Rect2 shadow_inner_rect = style_rect;
 		shadow_inner_rect.position += shadow_offset;
@@ -538,9 +530,10 @@ void StyleBoxFlat::draw(RID p_canvas_item, const Rect2 &p_rect) const {
 	// Compute UV coordinates.
 	Rect2 uv_rect = style_rect.grow(aa_on ? aa_size : 0);
 	uvs.resize(verts.size());
+	Point2 *uvs_ptr = uvs.ptrw();
 	for (int i = 0; i < verts.size(); i++) {
-		uvs.write[i].x = (verts[i].x - uv_rect.position.x) / uv_rect.size.width;
-		uvs.write[i].y = (verts[i].y - uv_rect.position.y) / uv_rect.size.height;
+		uvs_ptr[i].x = (verts[i].x - uv_rect.position.x) / uv_rect.size.width;
+		uvs_ptr[i].y = (verts[i].y - uv_rect.position.y) / uv_rect.size.height;
 	}
 
 	// Draw stylebox.

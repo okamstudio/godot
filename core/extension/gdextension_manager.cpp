@@ -302,7 +302,8 @@ bool GDExtensionManager::ensure_extensions_loaded(const HashSet<String> &p_exten
 	for (const String &loaded_extension : loaded_extensions) {
 		if (!p_extensions.has(loaded_extension)) {
 			// The extension may not have a .gdextension file.
-			if (!FileAccess::exists(loaded_extension)) {
+			const Ref<GDExtension> extension = GDExtensionManager::get_singleton()->get_extension(loaded_extension);
+			if (!extension->get_loader()->library_exists()) {
 				extensions_removed.push_back(loaded_extension);
 			}
 		}

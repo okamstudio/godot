@@ -29,6 +29,12 @@
 				[param default_value_index] should be an index of the value in the [param values]. If [param values] is empty it should be either [code]1[/code] (checked), or [code]0[/code] (unchecked).
 			</description>
 		</method>
+		<method name="clear_filename_filter">
+			<return type="void" />
+			<description>
+				Clear the filter for file names.
+			</description>
+		</method>
 		<method name="clear_filters">
 			<return type="void" />
 			<description>
@@ -134,6 +140,10 @@
 		<member name="file_mode" type="int" setter="set_file_mode" getter="get_file_mode" enum="FileDialog.FileMode" default="4">
 			The dialog's open or save mode, which affects the selection behavior. See [enum FileMode].
 		</member>
+		<member name="filename_filter" type="String" setter="set_filename_filter" getter="get_filename_filter" default="&quot;&quot;">
+			The filter for file names (case-insensitive). When set to a non-empty string, only files that contains the substring will be shown. [member filename_filter] can be edited by the user with the filter button at the top of the file dialog.
+			See also [member filters], which should be used to restrict the file types that can be selected instead of [member filename_filter] which is meant to be set by the user.
+		</member>
 		<member name="filters" type="PackedStringArray" setter="set_filters" getter="get_filters" default="PackedStringArray()">
 			The available file type filters. Each filter string in the array should be formatted like this: [code]*.txt,*.doc;Text Files[/code]. The description text of the filter is optional and can be omitted.
 		</member>
@@ -171,6 +181,12 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Emitted when the user selects a file by double-clicking it or pressing the [b]OK[/b] button.
+			</description>
+		</signal>
+		<signal name="filename_filter_changed">
+			<param index="0" name="filter" type="String" />
+			<description>
+				Emitted when the filter for file names changes.
 			</description>
 		</signal>
 		<signal name="files_selected">
@@ -236,6 +252,9 @@
 		</theme_item>
 		<theme_item name="reload" data_type="icon" type="Texture2D">
 			Custom icon for the reload button.
+		</theme_item>
+		<theme_item name="toggle_filename_filter" data_type="icon" type="Texture2D">
+			Custom icon for the toggle button for the filter for file names.
 		</theme_item>
 		<theme_item name="toggle_hidden" data_type="icon" type="Texture2D">
 			Custom icon for the toggle hidden button.

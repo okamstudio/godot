@@ -666,9 +666,6 @@ OT::cff2::accelerator_subset_t::serialize (hb_serialize_context_t *c,
 bool
 OT::cff2::accelerator_subset_t::subset (hb_subset_context_t *c) const
 {
-  if (c->plan->normalized_coords && !c->plan->all_axes_pinned)
-    fprintf (stdout, "warning: CFF partial instancing is not supported.\n");
-
   cff2_subset_plan cff2_plan;
 
   if (unlikely (!cff2_plan.create (*this, c->plan))) return false;

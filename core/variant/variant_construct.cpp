@@ -323,36 +323,6 @@ String Variant::get_constructor_argument_name(Variant::Type p_type, int p_constr
 	return construct_data[p_type][p_constructor].arg_names[p_argument];
 }
 
-void VariantInternal::refcounted_object_assign(Variant *v, const RefCounted *rc) {
-	if (!rc || !const_cast<RefCounted *>(rc)->init_ref()) {
-		v->_get_obj().obj = nullptr;
-		v->_get_obj().id = ObjectID();
-		return;
-	}
-
-	v->_get_obj().obj = const_cast<RefCounted *>(rc);
-	v->_get_obj().id = rc->get_instance_id();
-}
-
-void VariantInternal::object_assign(Variant *v, const Object *o) {
-	if (o) {
-		if (o->is_ref_counted()) {
-			RefCounted *ref_counted = const_cast<RefCounted *>(static_cast<const RefCounted *>(o));
-			if (!ref_counted->init_ref()) {
-				v->_get_obj().obj = nullptr;
-				v->_get_obj().id = ObjectID();
-				return;
-			}
-		}
-
-		v->_get_obj().obj = const_cast<Object *>(o);
-		v->_get_obj().id = o->get_instance_id();
-	} else {
-		v->_get_obj().obj = nullptr;
-		v->_get_obj().id = ObjectID();
-	}
-}
-
 void Variant::get_constructor_list(Type p_type, List<MethodInfo> *r_list) {
 	ERR_FAIL_INDEX(p_type, Variant::VARIANT_MAX);
 

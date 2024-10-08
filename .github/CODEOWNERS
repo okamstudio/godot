@@ -169,10 +169,12 @@
 /modules/gridmap/icons/                       @godotengine/3d-nodes @godotengine/usability
 /modules/noise/                               @godotengine/core
 /modules/noise/doc_classes/                   @godotengine/core @godotengine/documentation
+/modules/noise/icons/                         @godotengine/core @godotengine/usability
 /modules/noise/tests/                         @godotengine/core @godotengine/tests
 /modules/regex/                               @godotengine/core
 /modules/regex/doc_classes/                   @godotengine/core @godotengine/documentation
-/modules/regex/test/                          @godotengine/core @godotengine/tests
+/modules/regex/icons/                         @godotengine/core @godotengine/usability
+/modules/regex/tests/                         @godotengine/core @godotengine/tests
 /modules/zip/                                 @godotengine/core
 /modules/zip/doc_classes/                     @godotengine/core @godotengine/documentation
 
@@ -207,6 +209,7 @@
 /scene/resources/text_paragraph.*             @godotengine/gui-nodes
 /scene/resources/visual_shader*.*             @godotengine/shaders
 /scene/theme/                                 @godotengine/gui-nodes
+/scene/theme/icons/                           @godotengine/gui-nodes @godotengine/usability
 
 # Servers
 

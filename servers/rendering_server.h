@@ -199,6 +199,17 @@ public:
 	virtual RID texture_get_rd_texture(RID p_texture, bool p_srgb = false) const = 0;
 	virtual uint64_t texture_get_native_handle(RID p_texture, bool p_srgb = false) const = 0;
 
+	/* PIPELINES API */
+
+	enum PipelineSource {
+		PIPELINE_SOURCE_CANVAS,
+		PIPELINE_SOURCE_MESH,
+		PIPELINE_SOURCE_SURFACE,
+		PIPELINE_SOURCE_DRAW,
+		PIPELINE_SOURCE_SPECIALIZATION,
+		PIPELINE_SOURCE_MAX
+	};
+
 	/* SHADER API */
 
 	enum ShaderMode {
@@ -211,6 +222,7 @@ public:
 	};
 
 	virtual RID shader_create() = 0;
+	virtual RID shader_create_from_code(const String &p_code, const String &p_path_hint = String()) = 0;
 
 	virtual void shader_set_code(RID p_shader, const String &p_code) = 0;
 	virtual void shader_set_path_hint(RID p_shader, const String &p_path) = 0;
@@ -242,6 +254,7 @@ public:
 	};
 
 	virtual RID material_create() = 0;
+	virtual RID material_create_from_shader(RID p_next_pass, int p_render_priority, RID p_shader) = 0;
 
 	virtual void material_set_shader(RID p_shader_material, RID p_shader) = 0;
 
@@ -1697,6 +1710,11 @@ public:
 		RENDERING_INFO_TEXTURE_MEM_USED,
 		RENDERING_INFO_BUFFER_MEM_USED,
 		RENDERING_INFO_VIDEO_MEM_USED,
+		RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS,
+		RENDERING_INFO_PIPELINE_COMPILATIONS_MESH,
+		RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE,
+		RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW,
+		RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION,
 		RENDERING_INFO_MAX
 	};
 
@@ -1807,6 +1825,7 @@ private:
 VARIANT_ENUM_CAST(RenderingServer::TextureType);
 VARIANT_ENUM_CAST(RenderingServer::TextureLayeredType);
 VARIANT_ENUM_CAST(RenderingServer::CubeMapLayer);
+VARIANT_ENUM_CAST(RenderingServer::PipelineSource);
 VARIANT_ENUM_CAST(RenderingServer::ShaderMode);
 VARIANT_ENUM_CAST(RenderingServer::ArrayType);
 VARIANT_BITFIELD_CAST(RenderingServer::ArrayFormat);

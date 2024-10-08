@@ -131,7 +131,7 @@ Variant EditorResourcePreviewGenerator::DrawRequester::_post_semaphore() const {
 }
 
 bool EditorResourcePreview::is_threaded() const {
-	return RSG::texture_storage->can_create_resources_async();
+	return RSG::rasterizer->can_create_resources_async();
 }
 
 void EditorResourcePreview::_thread_func(void *ud) {
@@ -412,6 +412,24 @@ void EditorResourcePreview::_update_thumbnail_sizes() {
 		// Kind of a workaround to retrieve the default icon size.
 		small_thumbnail_size = EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Object"), EditorStringName(EditorIcons))->get_width();
 	}
+}
+
+EditorResourcePreview::PreviewItem EditorResourcePreview::get_resource_preview_if_available(const String &p_path) {
+	PreviewItem item;
+	{
+		MutexLock lock(preview_mutex);
+
+		HashMap<String, EditorResourcePreview::Item>::Iterator I = cache.find(p_path);
+		if (!I) {
+			return item;
+		}
+
+		EditorResourcePreview::Item &cached_item = I->value;
+		item.preview = cached_item.preview;
+		item.small_preview = cached_item.small_preview;
+	}
+	preview_sem.post();
+	return item;
 }
 
 void EditorResourcePreview::queue_edited_resource_preview(const Ref<Resource> &p_res, Object *p_receiver, const StringName &p_receiver_func, const Variant &p_userdata) {

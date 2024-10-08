@@ -408,3 +408,8 @@ ext.shouldUseLegacyPackaging = { ->
     // Default behavior for minSdk >= 23
     return false
 }
+
+ext.getAddonsDirectory = { ->
+    String addonsDirectory = project.hasProperty("addons_directory") ? project.property("addons_directory") : ""
+    return addonsDirectory
+}

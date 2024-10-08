@@ -12,6 +12,6 @@ config/name="GDScript Integration Test Suite"
 [input]
 
 test_input_action={
-"deadzone": 0.5,
+"deadzone": 0.2,
 "events": []
 }

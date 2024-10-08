@@ -42,7 +42,7 @@ class Material : public Resource {
 	RES_BASE_EXTENSION("material")
 	OBJ_SAVE_TYPE(Material);
 
-	RID material;
+	mutable RID material;
 	Ref<Material> next_pass;
 	int render_priority;
 
@@ -55,6 +55,7 @@ class Material : public Resource {
 	void inspect_native_shader_code();
 
 protected:
+	_FORCE_INLINE_ void _set_material(RID p_material) const { material = p_material; }
 	_FORCE_INLINE_ RID _get_material() const { return material; }
 	static void _bind_methods();
 	virtual bool _can_do_next_pass() const;
@@ -97,6 +98,7 @@ class ShaderMaterial : public Material {
 
 	mutable HashMap<StringName, StringName> remap_cache;
 	mutable HashMap<StringName, Variant> param_cache;
+	mutable Mutex material_rid_mutex;
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -115,6 +117,7 @@ protected:
 	virtual bool _can_use_render_priority() const override;
 
 	void _shader_changed();
+	void _check_material_rid() const;
 
 public:
 	void set_shader(const Ref<Shader> &p_shader);
@@ -125,6 +128,7 @@ public:
 
 	virtual Shader::Mode get_shader_mode() const override;
 
+	virtual RID get_rid() const override;
 	virtual RID get_shader_rid() const override;
 
 	ShaderMaterial();
@@ -135,6 +139,9 @@ class StandardMaterial3D;
 
 class BaseMaterial3D : public Material {
 	GDCLASS(BaseMaterial3D, Material);
+
+private:
+	mutable Mutex material_rid_mutex;
 
 public:
 	enum TextureParam {
@@ -361,6 +368,7 @@ private:
 	};
 
 	static HashMap<MaterialKey, ShaderData, MaterialKey> shader_map;
+	static Mutex shader_map_mutex;
 
 	MaterialKey current_key;
 
@@ -459,16 +467,17 @@ private:
 		StringName albedo_texture_size;
 	};
 
-	static Mutex material_mutex;
-	static SelfList<BaseMaterial3D>::List dirty_materials;
 	static ShaderNames *shader_names;
 
-	SelfList<BaseMaterial3D> element;
-
+	void _mark_dirty();
 	void _update_shader();
-	_FORCE_INLINE_ void _queue_shader_change();
+	void _check_material_rid();
+	void _material_set_param(const StringName &p_name, const Variant &p_value);
 
 	bool orm;
+	bool dirty = true;
+	RID shader_rid;
+	HashMap<StringName, Variant> pending_params;
 
 	Color albedo;
 	float specular = 0.0f;
@@ -771,10 +780,10 @@ public:
 
 	static void init_shaders();
 	static void finish_shaders();
-	static void flush_changes();
 
 	static Ref<Material> get_material_for_2d(bool p_shaded, Transparency p_transparency, bool p_double_sided, bool p_billboard = false, bool p_billboard_y = false, bool p_msdf = false, bool p_no_depth = false, bool p_fixed_size = false, TextureFilter p_filter = TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, AlphaAntiAliasing p_alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF, RID *r_shader_rid = nullptr);
 
+	virtual RID get_rid() const override;
 	virtual RID get_shader_rid() const override;
 
 	virtual Shader::Mode get_shader_mode() const override;

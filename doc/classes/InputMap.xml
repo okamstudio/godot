@@ -67,7 +67,7 @@
 		<method name="add_action">
 			<return type="void" />
 			<param index="0" name="action" type="StringName" />
-			<param index="1" name="deadzone" type="float" default="0.5" />
+			<param index="1" name="deadzone" type="float" default="0.2" />
 			<description>
 				Adds an empty action to the [InputMap] with a configurable [param deadzone].
 				An [InputEvent] can then be added to this action with [method action_add_event].

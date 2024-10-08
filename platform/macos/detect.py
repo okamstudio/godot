@@ -2,11 +2,15 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from methods import detect_darwin_sdk_path, get_compiler_version, is_vanilla_clang, print_error
+from methods import detect_darwin_sdk_path, get_compiler_version, is_vanilla_clang, print_error, print_warning
 from platform_methods import detect_arch, detect_mvk
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
+
+# To match other platforms
+STACK_SIZE = 8388608
+STACK_SIZE_SANITIZERS = 30 * 1024 * 1024
 
 
 def get_name():
@@ -183,6 +187,10 @@ def configure(env: "SConsEnvironment"):
             env.Append(CCFLAGS=["-fsanitize=thread"])
             env.Append(LINKFLAGS=["-fsanitize=thread"])
 
+        env.Append(LINKFLAGS=["-Wl,-stack_size," + hex(STACK_SIZE_SANITIZERS)])
+    else:
+        env.Append(LINKFLAGS=["-Wl,-stack_size," + hex(STACK_SIZE)])
+
     if env["use_coverage"]:
         env.Append(CCFLAGS=["-ftest-coverage", "-fprofile-arcs"])
         env.Append(LINKFLAGS=["-ftest-coverage", "-fprofile-arcs"])
@@ -241,7 +249,7 @@ def configure(env: "SConsEnvironment"):
     env.Append(LINKFLAGS=["-rpath", "@executable_path/../Frameworks", "-rpath", "@executable_path"])
 
     if env["metal"] and env["arch"] != "arm64":
-        # Only supported on arm64, so skip it for x86_64 builds.
+        print_warning("Target architecture '{}' does not support the Metal rendering driver".format(env["arch"]))
         env["metal"] = False
 
     extra_frameworks = set()

@@ -251,11 +251,6 @@ TextureStorage::~TextureStorage() {
 	sdf_shader.shader.version_free(sdf_shader.shader_version);
 }
 
-//TODO, move back to storage
-bool TextureStorage::can_create_resources_async() const {
-	return false;
-}
-
 /* Canvas Texture API */
 
 RID TextureStorage::canvas_texture_allocate() {

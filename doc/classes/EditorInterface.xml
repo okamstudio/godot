@@ -343,6 +343,14 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="popup_quick_open">
+			<return type="void" />
+			<param index="0" name="callback" type="Callable" />
+			<param index="1" name="base_types" type="StringName[]" default="[]" />
+			<description>
+				Pops up an editor dialog for quick selecting a resource file. The [param callback] must take a single argument of type [String] which will contain the path of the selected resource or be empty if the dialog is canceled. If [param base_types] is provided, the dialog will only show resources that match these types. Only types deriving from [Resource] are supported.
+			</description>
+		</method>
 		<method name="reload_scene_from_path">
 			<return type="void" />
 			<param index="0" name="scene_filepath" type="String" />

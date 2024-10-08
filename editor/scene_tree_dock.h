@@ -39,7 +39,6 @@
 class CheckBox;
 class EditorData;
 class EditorSelection;
-class EditorQuickOpen;
 class MenuButton;
 class ReparentDialog;
 class ShaderCreateDialog;
@@ -159,7 +158,6 @@ class SceneTreeDock : public VBoxContainer {
 	ConfirmationDialog *placeholder_editable_instance_remove_dialog = nullptr;
 
 	ReparentDialog *reparent_dialog = nullptr;
-	EditorQuickOpen *quick_open = nullptr;
 	EditorFileDialog *new_scene_from_dialog = nullptr;
 
 	enum FilterMenuItems {
@@ -267,7 +265,7 @@ class SceneTreeDock : public VBoxContainer {
 	void _nodes_dragged(const Array &p_nodes, NodePath p_to, int p_type);
 	void _files_dropped(const Vector<String> &p_files, NodePath p_to, int p_type);
 	void _script_dropped(const String &p_file, NodePath p_to);
-	void _quick_open();
+	void _quick_open(const String &p_file_path);
 
 	void _tree_rmb(const Vector2 &p_menu_pos);
 	void _update_tree_menu();

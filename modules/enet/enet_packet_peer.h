@@ -113,6 +113,7 @@ public:
 	double get_statistic(PeerStatistic p_stat);
 	PeerState get_state() const;
 	int get_channels() const;
+	int get_packet_flags() const;
 
 	// Extras
 	IPAddress get_remote_address() const;

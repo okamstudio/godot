@@ -75,6 +75,24 @@
 				Returns the node which node path references will travel from.
 			</description>
 		</method>
+		<method name="get_section_end_time" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the end time of the section currently being played.
+			</description>
+		</method>
+		<method name="get_section_start_time" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the start time of the section currently being played.
+			</description>
+		</method>
+		<method name="has_section" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if an animation is currently playing with section.
+			</description>
+		</method>
 		<method name="is_playing" qualifiers="const">
 			<return type="bool" />
 			<description>
@@ -110,6 +128,54 @@
 				This method is a shorthand for [method play] with [code]custom_speed = -1.0[/code] and [code]from_end = true[/code], so see its description for more information.
 			</description>
 		</method>
+		<method name="play_section">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="start_time" type="float" default="-1" />
+			<param index="2" name="end_time" type="float" default="-1" />
+			<param index="3" name="custom_blend" type="float" default="-1" />
+			<param index="4" name="custom_speed" type="float" default="1.0" />
+			<param index="5" name="from_end" type="bool" default="false" />
+			<description>
+				Plays the animation with key [param name] and the section starting from [param start_time] and ending on [param end_time]. See also [method play].
+				Setting [param start_time] to a value outside the range of the animation means the start of the animation will be used instead, and setting [param end_time] to a value outside the range of the animation means the end of the animation will be used instead. [param start_time] cannot be equal to [param end_time].
+			</description>
+		</method>
+		<method name="play_section_backwards">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="start_time" type="float" default="-1" />
+			<param index="2" name="end_time" type="float" default="-1" />
+			<param index="3" name="custom_blend" type="float" default="-1" />
+			<description>
+				Plays the animation with key [param name] and the section starting from [param start_time] and ending on [param end_time] in reverse.
+				This method is a shorthand for [method play_section] with [code]custom_speed = -1.0[/code] and [code]from_end = true[/code], see its description for more information.
+			</description>
+		</method>
+		<method name="play_section_with_markers">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="start_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="2" name="end_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="3" name="custom_blend" type="float" default="-1" />
+			<param index="4" name="custom_speed" type="float" default="1.0" />
+			<param index="5" name="from_end" type="bool" default="false" />
+			<description>
+				Plays the animation with key [param name] and the section starting from [param start_marker] and ending on [param end_marker].
+				If the start marker is empty, the section starts from the beginning of the animation. If the end marker is empty, the section ends on the end of the animation. See also [method play].
+			</description>
+		</method>
+		<method name="play_section_with_markers_backwards">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="start_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="2" name="end_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="3" name="custom_blend" type="float" default="-1" />
+			<description>
+				Plays the animation with key [param name] and the section starting from [param start_marker] and ending on [param end_marker] in reverse.
+				This method is a shorthand for [method play_section_with_markers] with [code]custom_speed = -1.0[/code] and [code]from_end = true[/code], see its description for more information.
+			</description>
+		</method>
 		<method name="play_with_capture">
 			<return type="void" />
 			<param index="0" name="name" type="StringName" default="&amp;&quot;&quot;" />
@@ -137,6 +203,12 @@
 			<description>
 				Queues an animation for playback once the current animation and all previously queued animations are done.
 				[b]Note:[/b] If a looped animation is currently playing, the queued animation will never play unless the looped animation is stopped somehow.
+			</description>
+		</method>
+		<method name="reset_section">
+			<return type="void" />
+			<description>
+				Resets the current section if section is set.
 			</description>
 		</method>
 		<method name="seek">
@@ -178,6 +250,23 @@
 			<param index="0" name="path" type="NodePath" />
 			<description>
 				Sets the node which node path references will travel from.
+			</description>
+		</method>
+		<method name="set_section">
+			<return type="void" />
+			<param index="0" name="start_time" type="float" default="-1" />
+			<param index="1" name="end_time" type="float" default="-1" />
+			<description>
+				Changes the start and end times of the section being played. The current playback position will be clamped within the new section. See also [method play_section].
+			</description>
+		</method>
+		<method name="set_section_with_markers">
+			<return type="void" />
+			<param index="0" name="start_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<param index="1" name="end_marker" type="StringName" default="&amp;&quot;&quot;" />
+			<description>
+				Changes the start and end markers of the section being played. The current playback position will be clamped within the new section. See also [method play_section_with_markers].
+				If the argument is empty, the section uses the beginning or end of the animation. If both are empty, it means that the section is not set.
 			</description>
 		</method>
 		<method name="stop">

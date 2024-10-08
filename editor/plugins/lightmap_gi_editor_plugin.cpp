@@ -179,6 +179,23 @@ LightmapGIEditorPlugin::LightmapGIEditorPlugin() {
 	// when the editor theme updates.
 	bake->set_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Bake"), EditorStringName(EditorIcons)));
 	bake->set_text(TTR("Bake Lightmaps"));
+
+#ifdef MODULE_LIGHTMAPPER_RD_ENABLED
+	// Disable lightmap baking if not supported on the current GPU.
+	if (!DisplayServer::get_singleton()->can_create_rendering_device()) {
+		bake->set_disabled(true);
+		bake->set_tooltip_text(vformat(TTR("Lightmap baking is not supported on this GPU (%s)."), RenderingServer::get_singleton()->get_video_adapter_name()));
+	}
+#else
+	// Disable lightmap baking if the module is disabled at compile-time.
+	bake->set_disabled(true);
+#if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
+	bake->set_tooltip_text(vformat(TTR("Lightmaps cannot be baked on %s."), OS::get_singleton()->get_name()));
+#else
+	bake->set_tooltip_text(TTR("Lightmaps cannot be baked, as the `lightmapper_rd` module was disabled at compile-time."));
+#endif
+#endif // MODULE_LIGHTMAPPER_RD_ENABLED
+
 	bake->hide();
 	bake->connect(SceneStringName(pressed), Callable(this, "_bake"));
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, bake);

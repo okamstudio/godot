@@ -59,7 +59,6 @@ public:
 	virtual void canvas_texture_set_texture_repeat(RID p_item, RS::CanvasItemTextureRepeat p_repeat) = 0;
 
 	/* Texture API */
-	virtual bool can_create_resources_async() const = 0;
 
 	virtual ~RendererTextureStorage() {}
 

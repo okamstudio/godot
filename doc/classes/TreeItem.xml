@@ -73,6 +73,13 @@
 				Removes the button at index [param button_index] in column [param column].
 			</description>
 		</method>
+		<method name="get_auto_translate_mode" qualifiers="const">
+			<return type="int" enum="Node.AutoTranslateMode" />
+			<param index="0" name="column" type="int" />
+			<description>
+				Returns the column's auto translate mode.
+			</description>
+		</method>
 		<method name="get_autowrap_mode" qualifiers="const">
 			<return type="int" enum="TextServer.AutowrapMode" />
 			<param index="0" name="column" type="int" />
@@ -491,6 +498,15 @@
 			<param index="0" name="column" type="int" />
 			<description>
 				Selects the given [param column].
+			</description>
+		</method>
+		<method name="set_auto_translate_mode">
+			<return type="void" />
+			<param index="0" name="column" type="int" />
+			<param index="1" name="mode" type="int" enum="Node.AutoTranslateMode" />
+			<description>
+				Sets the given column's auto translate mode to [param mode].
+				All columns use [constant Node.AUTO_TRANSLATE_MODE_INHERIT] by default, which uses the same auto translate mode as the [Tree] itself.
 			</description>
 		</method>
 		<method name="set_autowrap_mode">

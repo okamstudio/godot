@@ -110,9 +110,9 @@ public:
 	virtual ~CameraFeed();
 
 	FeedDataType get_datatype() const;
-	void set_RGB_img(const Ref<Image> &p_rgb_img);
-	void set_YCbCr_img(const Ref<Image> &p_ycbcr_img);
-	void set_YCbCr_imgs(const Ref<Image> &p_y_img, const Ref<Image> &p_cbcr_img);
+	void set_rgb_image(const Ref<Image> &p_rgb_img);
+	void set_ycbcr_image(const Ref<Image> &p_ycbcr_img);
+	void set_ycbcr_images(const Ref<Image> &p_y_img, const Ref<Image> &p_cbcr_img);
 
 	virtual bool set_format(int p_index, const Dictionary &p_parameters);
 	virtual Array get_formats() const;

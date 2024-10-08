@@ -122,16 +122,12 @@ for user-defined purpose without allocating any real GPU memory.
 See documentation chapter: \ref statistics.
 */
 
+#include "drivers/vulkan/godot_vulkan.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef USE_VOLK
-    #include <volk.h>
-#else
-    #include <vulkan/vulkan.h>
-#endif
 
 #if !defined(VMA_VULKAN_VERSION)
     #if defined(VK_VERSION_1_3)

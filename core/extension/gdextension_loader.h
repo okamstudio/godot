@@ -42,6 +42,7 @@ public:
 	virtual void close_library() = 0;
 	virtual bool is_library_open() const = 0;
 	virtual bool has_library_changed() const = 0;
+	virtual bool library_exists() const = 0;
 };
 
 #endif // GDEXTENSION_LOADER_H

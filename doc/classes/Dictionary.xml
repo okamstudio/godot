@@ -474,6 +474,12 @@
 				Returns the number of entries in the dictionary. Empty dictionaries ([code]{ }[/code]) always return [code]0[/code]. See also [method is_empty].
 			</description>
 		</method>
+		<method name="sort">
+			<return type="void" />
+			<description>
+				Sorts the dictionary in-place by key. This can be used to ensure dictionaries with the same contents produce equivalent results when getting the [method keys], getting the [method values], and converting to a string. This is also useful when wanting a JSON representation consistent with what is in memory, and useful for storing on a database that requires dictionaries to be sorted.
+			</description>
+		</method>
 		<method name="values" qualifiers="const">
 			<return type="Array" />
 			<description>

@@ -64,6 +64,7 @@ public:
 	int size() const;
 	bool is_empty() const;
 	void clear();
+	void sort();
 	void merge(const Dictionary &p_dictionary, bool p_overwrite = false);
 	Dictionary merged(const Dictionary &p_dictionary, bool p_overwrite = false) const;
 

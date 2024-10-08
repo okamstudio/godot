@@ -379,6 +379,8 @@ public:
 		}
 	}
 
+	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source) override { return 0; }
+
 	static RasterizerCanvasGLES3 *get_singleton();
 	RasterizerCanvasGLES3();
 	~RasterizerCanvasGLES3();

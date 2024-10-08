@@ -38,7 +38,6 @@
 #include "core/io/stream_peer_tls.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
-#include "core/os/time.h"
 #include "core/version.h"
 #include "editor/editor_about.h"
 #include "editor/editor_settings.h"
@@ -46,6 +45,7 @@
 #include "editor/engine_update_label.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_title_bar.h"
+#include "editor/gui/editor_version_button.h"
 #include "editor/plugins/asset_library_editor_plugin.h"
 #include "editor/project_manager/project_dialog.h"
 #include "editor/project_manager/project_list.h"
@@ -396,12 +396,6 @@ void ProjectManager::_restart_confirmed() {
 
 	_dim_window();
 	get_tree()->quit();
-}
-
-// Footer.
-
-void ProjectManager::_version_button_pressed() {
-	DisplayServer::get_singleton()->clipboard_set(version_btn->get_text());
 }
 
 // Project list.
@@ -1459,23 +1453,9 @@ ProjectManager::ProjectManager() {
 		update_label->connect("offline_clicked", callable_mp(this, &ProjectManager::_show_quick_settings));
 #endif
 
-		version_btn = memnew(LinkButton);
-		String hash = String(VERSION_HASH);
-		if (hash.length() != 0) {
-			hash = " " + vformat("[%s]", hash.left(9));
-		}
-		version_btn->set_text("v" VERSION_FULL_BUILD + hash);
+		EditorVersionButton *version_btn = memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_BUILD));
 		// Fade the version label to be less prominent, but still readable.
 		version_btn->set_self_modulate(Color(1, 1, 1, 0.6));
-		version_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
-		String build_date;
-		if (VERSION_TIMESTAMP > 0) {
-			build_date = Time::get_singleton()->get_datetime_string_from_unix_time(VERSION_TIMESTAMP, true) + " UTC";
-		} else {
-			build_date = TTR("(unknown)");
-		}
-		version_btn->set_tooltip_text(vformat(TTR("Git commit date: %s\nClick to copy the version information."), build_date));
-		version_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_version_button_pressed));
 		footer_bar->add_child(version_btn);
 	}
 

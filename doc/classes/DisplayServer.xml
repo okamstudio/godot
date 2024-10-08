@@ -893,6 +893,13 @@
 				Returns [code]true[/code] if the specified [param feature] is supported by the current [DisplayServer], [code]false[/code] otherwise.
 			</description>
 		</method>
+		<method name="has_hardware_keyboard" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if hardware keyboard is connected.
+				[b]Note:[/b] This method is implemented on Android and iOS, on other platforms this method always returns [code]true[/code].
+			</description>
+		</method>
 		<method name="help_set_search_callbacks">
 			<return type="void" />
 			<param index="0" name="search_callback" type="Callable" />

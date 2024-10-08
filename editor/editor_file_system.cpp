@@ -2089,12 +2089,11 @@ void EditorFileSystem::_update_script_documentation() {
 					// return the last loaded version of the script (without the modifications).
 					scr->reload_from_file();
 				}
-				Vector<DocData::ClassDoc> docs = scr->get_documentation();
-				for (int j = 0; j < docs.size(); j++) {
-					EditorHelp::get_doc_data()->add_doc(docs[j]);
+				for (const DocData::ClassDoc &cd : scr->get_documentation()) {
+					EditorHelp::get_doc_data()->add_doc(cd);
 					if (!first_scan) {
 						// Update the documentation in the Script Editor if it is open.
-						ScriptEditor::get_singleton()->update_doc(docs[j].name);
+						ScriptEditor::get_singleton()->update_doc(cd.name);
 					}
 				}
 			}

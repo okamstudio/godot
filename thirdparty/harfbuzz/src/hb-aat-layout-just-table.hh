@@ -189,12 +189,12 @@ struct ActionSubrecord
 
     switch (u.header.actionType)
     {
-    case 0:  return_trace (u.decompositionAction.sanitize (c));
-    case 1:  return_trace (u.unconditionalAddGlyphAction.sanitize (c));
-    case 2:  return_trace (u.conditionalAddGlyphAction.sanitize (c));
-    // case 3: return_trace (u.stretchGlyphAction.sanitize (c));
-    case 4:  return_trace (u.decompositionAction.sanitize (c));
-    case 5:  return_trace (u.decompositionAction.sanitize (c));
+    case 0: hb_barrier ();  return_trace (u.decompositionAction.sanitize (c));
+    case 1: hb_barrier ();  return_trace (u.unconditionalAddGlyphAction.sanitize (c));
+    case 2: hb_barrier ();  return_trace (u.conditionalAddGlyphAction.sanitize (c));
+    // case 3: hb_barrier (); return_trace (u.stretchGlyphAction.sanitize (c));
+    case 4: hb_barrier ();  return_trace (u.decompositionAction.sanitize (c));
+    case 5: hb_barrier ();  return_trace (u.decompositionAction.sanitize (c));
     default: return_trace (true);
     }
   }

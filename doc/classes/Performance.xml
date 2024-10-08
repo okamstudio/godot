@@ -224,7 +224,22 @@
 		<constant name="NAVIGATION_OBSTACLE_COUNT" value="33" enum="Monitor">
 			Number of active navigation obstacles in the [NavigationServer3D].
 		</constant>
-		<constant name="MONITOR_MAX" value="34" enum="Monitor">
+		<constant name="PIPELINE_COMPILATIONS_CANVAS" value="34" enum="Monitor">
+			Number of pipeline compilations that were triggered by the 2D canvas renderer.
+		</constant>
+		<constant name="PIPELINE_COMPILATIONS_MESH" value="35" enum="Monitor">
+			Number of pipeline compilations that were triggered by loading meshes. These compilations will show up as longer loading times the first time a user runs the game and the pipeline is required.
+		</constant>
+		<constant name="PIPELINE_COMPILATIONS_SURFACE" value="36" enum="Monitor">
+			Number of pipeline compilations that were triggered by building the surface cache before rendering the scene. These compilations will show up as a stutter when loading an scene the first time a user runs the game and the pipeline is required.
+		</constant>
+		<constant name="PIPELINE_COMPILATIONS_DRAW" value="37" enum="Monitor">
+			Number of pipeline compilations that were triggered while drawing the scene. These compilations will show up as stutters during gameplay the first time a user runs the game and the pipeline is required.
+		</constant>
+		<constant name="PIPELINE_COMPILATIONS_SPECIALIZATION" value="38" enum="Monitor">
+			Number of pipeline compilations that were triggered to optimize the current scene. These compilations are done in the background and should not cause any stutters whatsoever.
+		</constant>
+		<constant name="MONITOR_MAX" value="39" enum="Monitor">
 			Represents the size of the [enum Monitor] enum.
 		</constant>
 	</constants>

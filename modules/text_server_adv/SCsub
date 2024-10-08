@@ -126,6 +126,7 @@ if env["builtin_harfbuzz"]:
         "src/hb-ucd.cc",
         "src/hb-unicode.cc",
         # "src/hb-uniscribe.cc",
+        "src/OT/Var/VARC/VARC.cc",
     ]
 
     if freetype_enabled:

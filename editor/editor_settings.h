@@ -62,6 +62,13 @@ public:
 		NETWORK_ONLINE,
 	};
 
+	enum InitialScreen {
+		INITIAL_SCREEN_AUTO = -5, // Remembers last screen position.
+		INITIAL_SCREEN_WITH_MOUSE_FOCUS = -4,
+		INITIAL_SCREEN_WITH_KEYBOARD_FOCUS = -3,
+		INITIAL_SCREEN_PRIMARY = -2,
+	};
+
 private:
 	struct VariantContainer {
 		int order = 0;

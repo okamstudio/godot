@@ -6,10 +6,10 @@
  *
  * on files with these headers:
  *
- * # ArabicShaping-15.1.0.txt
- * # Date: 2023-01-05
- * # Blocks-15.1.0.txt
- * # Date: 2023-07-28, 15:47:20 GMT
+ * # ArabicShaping-16.0.0.txt
+ * # Date: 2024-07-30
+ * # Blocks-16.0.0.txt
+ * # Date: 2024-02-02
  * UnicodeData.txt does not have a header.
  */
 
@@ -136,7 +136,13 @@ static const uint8_t joining_table[] =
   /* 10D00 */ L,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
   /* 10D20 */ D,D,R,D,
 
-#define joining_offset_0x10f30u 1182
+#define joining_offset_0x10ec2u 1182
+
+  /* Arabic Extended-C */
+
+  /* 10EC0 */     R,D,D,
+
+#define joining_offset_0x10f30u 1185
 
   /* Sogdian */
 
@@ -155,14 +161,14 @@ static const uint8_t joining_table[] =
   /* 10FA0 */                                 D,U,D,D,R,R,R,U,D,R,R,D,D,R,D,D,
   /* 10FC0 */ U,D,R,R,D,U,U,U,U,R,D,L,
 
-#define joining_offset_0x110bdu 1338
+#define joining_offset_0x110bdu 1341
 
   /* Kaithi */
 
   /* 110A0 */                                                           U,X,X,
   /* 110C0 */ X,X,X,X,X,X,X,X,X,X,X,X,X,U,
 
-#define joining_offset_0x1e900u 1355
+#define joining_offset_0x1e900u 1358
 
   /* Adlam */
 
@@ -170,7 +176,7 @@ static const uint8_t joining_table[] =
   /* 1E920 */ D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,D,
   /* 1E940 */ D,D,D,D,X,X,X,X,X,X,X,T,
 
-}; /* Table items: 1431; occupancy: 57% */
+}; /* Table items: 1434; occupancy: 57% */
 
 
 static unsigned int
@@ -198,6 +204,7 @@ joining_type (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x10AC0u, 0x10AEFu)) return joining_table[u - 0x10AC0u + joining_offset_0x10ac0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10B80u, 0x10BAFu)) return joining_table[u - 0x10B80u + joining_offset_0x10b80u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10D00u, 0x10D23u)) return joining_table[u - 0x10D00u + joining_offset_0x10d00u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x10EC2u, 0x10EC4u)) return joining_table[u - 0x10EC2u + joining_offset_0x10ec2u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10F30u, 0x10FCBu)) return joining_table[u - 0x10F30u + joining_offset_0x10f30u];
       break;
 

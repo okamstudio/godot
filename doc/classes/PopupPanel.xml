@@ -10,7 +10,7 @@
 	</tutorials>
 	<theme_items>
 		<theme_item name="panel" data_type="style" type="StyleBox">
-			[StyleBox] for the the background panel.
+			[StyleBox] for the background panel.
 		</theme_item>
 	</theme_items>
 </class>

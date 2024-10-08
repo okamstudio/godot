@@ -302,11 +302,15 @@ void SceneTree::call_group_flagsp(uint32_t p_call_flags, const StringName &p_gro
 				continue;
 			}
 
+			Node *node = gr_nodes[i];
 			if (!(p_call_flags & GROUP_CALL_DEFERRED)) {
 				Callable::CallError ce;
-				gr_nodes[i]->callp(p_function, p_args, p_argcount, ce);
+				node->callp(p_function, p_args, p_argcount, ce);
+				if (unlikely(ce.error != Callable::CallError::CALL_OK && ce.error != Callable::CallError::CALL_ERROR_INVALID_METHOD)) {
+					ERR_PRINT(vformat("Error calling group method on node \"%s\": %s.", node->get_name(), Variant::get_callable_error_text(Callable(node, p_function), p_args, p_argcount, ce)));
+				}
 			} else {
-				MessageQueue::get_singleton()->push_callp(gr_nodes[i], p_function, p_args, p_argcount);
+				MessageQueue::get_singleton()->push_callp(node, p_function, p_args, p_argcount);
 			}
 		}
 
@@ -316,11 +320,15 @@ void SceneTree::call_group_flagsp(uint32_t p_call_flags, const StringName &p_gro
 				continue;
 			}
 
+			Node *node = gr_nodes[i];
 			if (!(p_call_flags & GROUP_CALL_DEFERRED)) {
 				Callable::CallError ce;
-				gr_nodes[i]->callp(p_function, p_args, p_argcount, ce);
+				node->callp(p_function, p_args, p_argcount, ce);
+				if (unlikely(ce.error != Callable::CallError::CALL_OK && ce.error != Callable::CallError::CALL_ERROR_INVALID_METHOD)) {
+					ERR_PRINT(vformat("Error calling group method on node \"%s\": %s.", node->get_name(), Variant::get_callable_error_text(Callable(node, p_function), p_args, p_argcount, ce)));
+				}
 			} else {
-				MessageQueue::get_singleton()->push_callp(gr_nodes[i], p_function, p_args, p_argcount);
+				MessageQueue::get_singleton()->push_callp(node, p_function, p_args, p_argcount);
 			}
 		}
 	}

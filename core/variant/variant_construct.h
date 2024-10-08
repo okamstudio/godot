@@ -156,14 +156,14 @@ public:
 		if (p_args[0]->get_type() == Variant::NIL) {
 			VariantInternal::clear(&r_ret);
 			VariantTypeChanger<Object *>::change(&r_ret);
-			VariantInternal::object_assign_null(&r_ret);
+			VariantInternal::object_reset_data(&r_ret);
 			r_error.error = Callable::CallError::CALL_OK;
 		} else if (p_args[0]->get_type() == Variant::OBJECT) {
-			VariantInternal::clear(&r_ret);
 			VariantTypeChanger<Object *>::change(&r_ret);
 			VariantInternal::object_assign(&r_ret, p_args[0]);
 			r_error.error = Callable::CallError::CALL_OK;
 		} else {
+			VariantInternal::clear(&r_ret);
 			r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 			r_error.argument = 0;
 			r_error.expected = Variant::OBJECT;
@@ -171,7 +171,6 @@ public:
 	}
 
 	static inline void validated_construct(Variant *r_ret, const Variant **p_args) {
-		VariantInternal::clear(r_ret);
 		VariantTypeChanger<Object *>::change(r_ret);
 		VariantInternal::object_assign(r_ret, p_args[0]);
 	}
@@ -203,13 +202,13 @@ public:
 
 		VariantInternal::clear(&r_ret);
 		VariantTypeChanger<Object *>::change(&r_ret);
-		VariantInternal::object_assign_null(&r_ret);
+		VariantInternal::object_reset_data(&r_ret);
 	}
 
 	static inline void validated_construct(Variant *r_ret, const Variant **p_args) {
 		VariantInternal::clear(r_ret);
 		VariantTypeChanger<Object *>::change(r_ret);
-		VariantInternal::object_assign_null(r_ret);
+		VariantInternal::object_reset_data(r_ret);
 	}
 	static void ptr_construct(void *base, const void **p_args) {
 		PtrConstruct<Object *>::construct(nullptr, base);

@@ -159,6 +159,15 @@
 				Return a [PackedStringArray] of additional features this preset, for the given [param platform], should have.
 			</description>
 		</method>
+		<method name="_get_export_option_visibility" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="platform" type="EditorExportPlatform" />
+			<param index="1" name="option" type="String" />
+			<description>
+				[b]Optional.[/b]
+				Validates [param option] and returns the visibility for the specified [param platform]. The default implementation returns [code]true[/code] for all options.
+			</description>
+		</method>
 		<method name="_get_export_option_warning" qualifiers="virtual const">
 			<return type="String" />
 			<param index="0" name="platform" type="EditorExportPlatform" />

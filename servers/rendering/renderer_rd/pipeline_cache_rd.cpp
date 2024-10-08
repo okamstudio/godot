@@ -89,7 +89,6 @@ void PipelineCacheRD::setup(RID p_shader, RD::RenderPrimitive p_primitive, const
 	ERR_FAIL_COND(p_shader.is_null());
 	_clear();
 	shader = p_shader;
-	input_mask = 0;
 	render_primitive = p_primitive;
 	rasterization_state = p_rasterization_state;
 	multisample_state = p_multisample;
@@ -112,13 +111,11 @@ void PipelineCacheRD::update_shader(RID p_shader) {
 void PipelineCacheRD::clear() {
 	_clear();
 	shader = RID(); //clear shader
-	input_mask = 0;
 }
 
 PipelineCacheRD::PipelineCacheRD() {
 	version_count = 0;
 	versions = nullptr;
-	input_mask = 0;
 }
 
 PipelineCacheRD::~PipelineCacheRD() {

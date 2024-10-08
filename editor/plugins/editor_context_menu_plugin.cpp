@@ -67,10 +67,21 @@ void EditorContextMenuPlugin::add_context_menu_item_from_shortcut(const String &
 	context_menu_items.insert(p_name, item);
 }
 
+void EditorContextMenuPlugin::add_context_submenu_item(const String &p_name, PopupMenu *p_menu, const Ref<Texture2D> &p_texture) {
+	ERR_FAIL_NULL(p_menu);
+
+	ContextMenuItem item;
+	item.item_name = p_name;
+	item.icon = p_texture;
+	item.submenu = p_menu;
+	context_menu_items.insert(p_name, item);
+}
+
 void EditorContextMenuPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_menu_shortcut", "shortcut", "callback"), &EditorContextMenuPlugin::add_menu_shortcut);
 	ClassDB::bind_method(D_METHOD("add_context_menu_item", "name", "callback", "icon"), &EditorContextMenuPlugin::add_context_menu_item, DEFVAL(Ref<Texture2D>()));
 	ClassDB::bind_method(D_METHOD("add_context_menu_item_from_shortcut", "name", "shortcut", "icon"), &EditorContextMenuPlugin::add_context_menu_item_from_shortcut, DEFVAL(Ref<Texture2D>()));
+	ClassDB::bind_method(D_METHOD("add_context_submenu_item", "name", "menu", "icon"), &EditorContextMenuPlugin::add_context_submenu_item, DEFVAL(Ref<Texture2D>()));
 
 	GDVIRTUAL_BIND(_popup_menu, "paths");
 
@@ -117,12 +128,17 @@ void EditorContextMenuPluginManager::add_options_from_plugins(PopupMenu *p_popup
 			EditorContextMenuPlugin::ContextMenuItem &item = E.value;
 			item.id = id;
 
-			if (item.icon.is_valid()) {
-				p_popup->add_icon_item(item.icon, item.item_name, id);
-				p_popup->set_item_icon_max_width(-1, icon_size);
+			if (item.submenu) {
+				p_popup->add_submenu_node_item(item.item_name, item.submenu, id);
 			} else {
 				p_popup->add_item(item.item_name, id);
 			}
+
+			if (item.icon.is_valid()) {
+				p_popup->set_item_icon(-1, item.icon);
+				p_popup->set_item_icon_max_width(-1, icon_size);
+			}
+
 			if (item.shortcut.is_valid()) {
 				p_popup->set_item_shortcut(-1, item.shortcut, true);
 			}

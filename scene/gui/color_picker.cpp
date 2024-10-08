@@ -245,7 +245,21 @@ void ColorPicker::finish_shaders() {
 }
 
 void ColorPicker::set_focus_on_line_edit() {
-	callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
+	bool has_hardware_keyboard = true;
+#if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
+	has_hardware_keyboard = DisplayServer::get_singleton()->has_hardware_keyboard();
+#endif // ANDROID_ENABLED || IOS_ENABLED
+	if (has_hardware_keyboard) {
+		callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
+	} else {
+		// A hack to avoid showing the virtual keyboard when the ColorPicker window popups and
+		// no hardware keyboard is detected on Android and IOS.
+		// This will only focus the LineEdit without editing, the virtual keyboard will only be visible when
+		// we touch the LineEdit to enter edit mode.
+		callable_mp(c_text, &LineEdit::set_editable).call_deferred(false);
+		callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
+		callable_mp(c_text, &LineEdit::set_editable).call_deferred(true);
+	}
 }
 
 void ColorPicker::_update_controls() {

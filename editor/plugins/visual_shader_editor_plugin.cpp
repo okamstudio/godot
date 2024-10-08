@@ -6300,6 +6300,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	graph->connect("scroll_offset_changed", callable_mp(this, &VisualShaderEditor::_scroll_changed));
 	graph->connect("duplicate_nodes_request", callable_mp(this, &VisualShaderEditor::_duplicate_nodes));
 	graph->connect("copy_nodes_request", callable_mp(this, &VisualShaderEditor::_copy_nodes).bind(false));
+	graph->connect("cut_nodes_request", callable_mp(this, &VisualShaderEditor::_copy_nodes).bind(true));
 	graph->connect("paste_nodes_request", callable_mp(this, &VisualShaderEditor::_paste_nodes).bind(false, Point2()));
 	graph->connect("delete_nodes_request", callable_mp(this, &VisualShaderEditor::_delete_nodes_request));
 	graph->connect(SceneStringName(gui_input), callable_mp(this, &VisualShaderEditor::_graph_gui_input));

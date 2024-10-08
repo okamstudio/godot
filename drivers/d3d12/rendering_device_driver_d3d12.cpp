@@ -481,44 +481,6 @@ void RenderingDeviceDriverD3D12::_debug_message_func(D3D12_MESSAGE_CATEGORY p_ca
 	}
 }
 
-/****************/
-/**** MEMORY ****/
-/****************/
-
-static const uint32_t SMALL_ALLOCATION_MAX_SIZE = 4096;
-
-#ifdef USE_SMALL_ALLOCS_POOL
-D3D12MA::Pool *RenderingDeviceDriverD3D12::_find_or_create_small_allocs_pool(D3D12_HEAP_TYPE p_heap_type, D3D12_HEAP_FLAGS p_heap_flags) {
-	D3D12_HEAP_FLAGS effective_heap_flags = p_heap_flags;
-	if (allocator->GetD3D12Options().ResourceHeapTier != D3D12_RESOURCE_HEAP_TIER_1) {
-		// Heap tier 2 allows mixing resource types liberally.
-		effective_heap_flags &= ~(D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS | D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES | D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
-	}
-
-	AllocPoolKey pool_key;
-	pool_key.heap_type = p_heap_type;
-	pool_key.heap_flags = effective_heap_flags;
-	if (small_allocs_pools.has(pool_key.key)) {
-		return small_allocs_pools[pool_key.key].Get();
-	}
-
-#ifdef DEV_ENABLED
-	print_verbose("Creating D3D12MA small objects pool for heap type " + itos(p_heap_type) + " and heap flags " + itos(p_heap_flags));
-#endif
-
-	D3D12MA::POOL_DESC poolDesc = {};
-	poolDesc.HeapProperties.Type = p_heap_type;
-	poolDesc.HeapFlags = effective_heap_flags;
-
-	ComPtr<D3D12MA::Pool> pool;
-	HRESULT res = allocator->CreatePool(&poolDesc, pool.GetAddressOf());
-	small_allocs_pools[pool_key.key] = pool; // Don't try to create it again if failed the first time.
-	ERR_FAIL_COND_V_MSG(!SUCCEEDED(res), nullptr, "CreatePool failed with error " + vformat("0x%08ux", (uint64_t)res) + ".");
-
-	return pool.Get();
-}
-#endif
-
 /******************/
 /**** RESOURCE ****/
 /******************/
@@ -533,12 +495,8 @@ static const D3D12_RESOURCE_DIMENSION RD_TEXTURE_TYPE_TO_D3D12_RESOURCE_DIMENSIO
 	D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 };
 
-void RenderingDeviceDriverD3D12::_resource_transition_batch(ResourceInfo *p_resource, uint32_t p_subresource, uint32_t p_num_planes, D3D12_RESOURCE_STATES p_new_state) {
+void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p_command_buffer, ResourceInfo *p_resource, uint32_t p_subresource, uint32_t p_num_planes, D3D12_RESOURCE_STATES p_new_state) {
 	DEV_ASSERT(p_subresource != UINT32_MAX); // We don't support an "all-resources" command here.
-
-#ifdef DEBUG_COUNT_BARRIERS
-	uint64_t start = OS::get_singleton()->get_ticks_usec();
-#endif
 
 	ResourceInfo::States *res_states = p_resource->states_ptr;
 	D3D12_RESOURCE_STATES *curr_state = &res_states->subresource_states[p_subresource];
@@ -549,21 +507,21 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(ResourceInfo *p_reso
 	bool redundant_transition = any_state_is_common ? *curr_state == p_new_state : ((*curr_state) & p_new_state) == p_new_state;
 	if (redundant_transition) {
 		bool just_written = *curr_state == D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-		bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != res_barriers_batch;
+		bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != p_command_buffer->res_barriers_batch;
 		if (needs_uav_barrier) {
-			if (res_barriers.size() < res_barriers_count + 1) {
-				res_barriers.resize(res_barriers_count + 1);
+			if (p_command_buffer->res_barriers.size() < p_command_buffer->res_barriers_count + 1) {
+				p_command_buffer->res_barriers.resize(p_command_buffer->res_barriers_count + 1);
 			}
-			res_barriers[res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(p_resource->resource);
-			res_barriers_count++;
-			res_states->last_batch_with_uav_barrier = res_barriers_batch;
+			p_command_buffer->res_barriers[p_command_buffer->res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(p_resource->resource);
+			p_command_buffer->res_barriers_count++;
+			res_states->last_batch_with_uav_barrier = p_command_buffer->res_barriers_batch;
 		}
 	} else {
 		uint64_t subres_mask_piece = ((uint64_t)1 << (p_subresource & 0b111111));
 		uint8_t subres_qword = p_subresource >> 6;
 
-		if (res_barriers_requests.has(res_states)) {
-			BarrierRequest &br = res_barriers_requests.get(res_states);
+		if (p_command_buffer->res_barriers_requests.has(res_states)) {
+			BarrierRequest &br = p_command_buffer->res_barriers_requests.get(res_states);
 			DEV_ASSERT(br.dx_resource == p_resource->resource);
 			DEV_ASSERT(br.subres_mask_qwords == STEPIFY(res_states->subresource_states.size(), 64) / 64);
 			DEV_ASSERT(br.planes == p_num_planes);
@@ -681,7 +639,7 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(ResourceInfo *p_reso
 				}
 			}
 		} else {
-			BarrierRequest &br = res_barriers_requests[res_states];
+			BarrierRequest &br = p_command_buffer->res_barriers_requests[res_states];
 			br.dx_resource = p_resource->resource;
 			br.subres_mask_qwords = STEPIFY(p_resource->states_ptr->subresource_states.size(), 64) / 64;
 			CRASH_COND(p_resource->states_ptr->subresource_states.size() > BarrierRequest::MAX_SUBRESOURCES);
@@ -697,18 +655,10 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(ResourceInfo *p_reso
 			br.groups_count = 1;
 		}
 	}
-
-#ifdef DEBUG_COUNT_BARRIERS
-	frame_barriers_cpu_time += OS::get_singleton()->get_ticks_usec() - start;
-#endif
 }
 
-void RenderingDeviceDriverD3D12::_resource_transitions_flush(ID3D12GraphicsCommandList *p_cmd_list) {
-#ifdef DEBUG_COUNT_BARRIERS
-	uint64_t start = OS::get_singleton()->get_ticks_usec();
-#endif
-
-	for (const KeyValue<ResourceInfo::States *, BarrierRequest> &E : res_barriers_requests) {
+void RenderingDeviceDriverD3D12::_resource_transitions_flush(CommandBufferInfo *p_command_buffer) {
+	for (const KeyValue<ResourceInfo::States *, BarrierRequest> &E : p_command_buffer->res_barriers_requests) {
 		ResourceInfo::States *res_states = E.key;
 		const BarrierRequest &br = E.value;
 
@@ -760,22 +710,22 @@ void RenderingDeviceDriverD3D12::_resource_transitions_flush(ID3D12GraphicsComma
 					// Hurray!, we can do a single barrier (plus maybe a UAV one, too).
 
 					bool just_written = res_states->subresource_states[0] == D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-					bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != res_barriers_batch;
+					bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != p_command_buffer->res_barriers_batch;
 
 					uint32_t needed_barriers = (needs_uav_barrier ? 1 : 0) + 1;
-					if (res_barriers.size() < res_barriers_count + needed_barriers) {
-						res_barriers.resize(res_barriers_count + needed_barriers);
+					if (p_command_buffer->res_barriers.size() < p_command_buffer->res_barriers_count + needed_barriers) {
+						p_command_buffer->res_barriers.resize(p_command_buffer->res_barriers_count + needed_barriers);
 					}
 
 					if (needs_uav_barrier) {
-						res_barriers[res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(br.dx_resource);
-						res_barriers_count++;
-						res_states->last_batch_with_uav_barrier = res_barriers_batch;
+						p_command_buffer->res_barriers[p_command_buffer->res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(br.dx_resource);
+						p_command_buffer->res_barriers_count++;
+						res_states->last_batch_with_uav_barrier = p_command_buffer->res_barriers_batch;
 					}
 
 					if (res_states->subresource_states[0] != br.groups[0].states) {
-						res_barriers[res_barriers_count] = CD3DX12_RESOURCE_BARRIER::Transition(br.dx_resource, res_states->subresource_states[0], br.groups[0].states, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-						res_barriers_count++;
+						p_command_buffer->res_barriers[p_command_buffer->res_barriers_count] = CD3DX12_RESOURCE_BARRIER::Transition(br.dx_resource, res_states->subresource_states[0], br.groups[0].states, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+						p_command_buffer->res_barriers_count++;
 					}
 
 					for (uint32_t i = 0; i < num_subresources; i++) {
@@ -811,23 +761,23 @@ void RenderingDeviceDriverD3D12::_resource_transitions_flush(ID3D12GraphicsComma
 					D3D12_RESOURCE_STATES *curr_state = &res_states->subresource_states[subresource];
 
 					bool just_written = *curr_state == D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-					bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != res_barriers_batch;
+					bool needs_uav_barrier = just_written && res_states->last_batch_with_uav_barrier != p_command_buffer->res_barriers_batch;
 
 					uint32_t needed_barriers = (needs_uav_barrier ? 1 : 0) + br.planes;
-					if (res_barriers.size() < res_barriers_count + needed_barriers) {
-						res_barriers.resize(res_barriers_count + needed_barriers);
+					if (p_command_buffer->res_barriers.size() < p_command_buffer->res_barriers_count + needed_barriers) {
+						p_command_buffer->res_barriers.resize(p_command_buffer->res_barriers_count + needed_barriers);
 					}
 
 					if (needs_uav_barrier) {
-						res_barriers[res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(br.dx_resource);
-						res_barriers_count++;
-						res_states->last_batch_with_uav_barrier = res_barriers_batch;
+						p_command_buffer->res_barriers[p_command_buffer->res_barriers_count] = CD3DX12_RESOURCE_BARRIER::UAV(br.dx_resource);
+						p_command_buffer->res_barriers_count++;
+						res_states->last_batch_with_uav_barrier = p_command_buffer->res_barriers_batch;
 					}
 
 					if (*curr_state != g.states) {
 						for (uint8_t k = 0; k < br.planes; k++) {
-							res_barriers[res_barriers_count] = CD3DX12_RESOURCE_BARRIER::Transition(br.dx_resource, *curr_state, g.states, subresource + k * num_subresources);
-							res_barriers_count++;
+							p_command_buffer->res_barriers[p_command_buffer->res_barriers_count] = CD3DX12_RESOURCE_BARRIER::Transition(br.dx_resource, *curr_state, g.states, subresource + k * num_subresources);
+							p_command_buffer->res_barriers_count++;
 						}
 					}
 
@@ -839,19 +789,13 @@ void RenderingDeviceDriverD3D12::_resource_transitions_flush(ID3D12GraphicsComma
 		}
 	}
 
-	if (res_barriers_count) {
-		p_cmd_list->ResourceBarrier(res_barriers_count, res_barriers.ptr());
-		res_barriers_requests.clear();
+	if (p_command_buffer->res_barriers_count) {
+		p_command_buffer->cmd_list->ResourceBarrier(p_command_buffer->res_barriers_count, p_command_buffer->res_barriers.ptr());
+		p_command_buffer->res_barriers_requests.clear();
 	}
 
-#ifdef DEBUG_COUNT_BARRIERS
-	frame_barriers_count += res_barriers_count;
-	frame_barriers_batches_count++;
-	frame_barriers_cpu_time += OS::get_singleton()->get_ticks_usec() - start;
-#endif
-
-	res_barriers_count = 0;
-	res_barriers_batch++;
+	p_command_buffer->res_barriers_count = 0;
+	p_command_buffer->res_barriers_batch++;
 }
 
 /*****************/
@@ -889,11 +833,7 @@ RDD::BufferID RenderingDeviceDriverD3D12::buffer_create(uint64_t p_size, BitFiel
 			}
 		} break;
 		case MEMORY_ALLOCATION_TYPE_GPU: {
-#ifdef USE_SMALL_ALLOCS_POOL
-			if (p_size <= SMALL_ALLOCATION_MAX_SIZE) {
-				allocation_desc.CustomPool = _find_or_create_small_allocs_pool(allocation_desc.HeapType, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
-			}
-#endif
+			// Use default parameters.
 		} break;
 	}
 
@@ -1002,6 +942,7 @@ static const D3D12_UAV_DIMENSION RD_TEXTURE_TYPE_TO_D3D12_VIEW_DIMENSION_FOR_UAV
 uint32_t RenderingDeviceDriverD3D12::_find_max_common_supported_sample_count(VectorView<DXGI_FORMAT> p_formats) {
 	uint32_t common = UINT32_MAX;
 
+	MutexLock lock(format_sample_counts_mask_cache_mutex);
 	for (uint32_t i = 0; i < p_formats.size(); i++) {
 		if (format_sample_counts_mask_cache.has(p_formats[i])) {
 			common &= format_sample_counts_mask_cache[p_formats[i]];
@@ -1291,14 +1232,6 @@ RDD::TextureID RenderingDeviceDriverD3D12::texture_create(const TextureFormat &p
 	if ((resource_desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)) {
 		allocation_desc.ExtraHeapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
 	}
-
-#ifdef USE_SMALL_ALLOCS_POOL
-	uint32_t width = 0, height = 0;
-	uint32_t image_size = get_image_format_required_size(p_format.format, p_format.width, p_format.height, p_format.depth, p_format.mipmaps, &width, &height);
-	if (image_size <= SMALL_ALLOCATION_MAX_SIZE) {
-		allocation_desc.CustomPool = _find_or_create_small_allocs_pool(allocation_desc.HeapType, allocation_desc.ExtraHeapFlags);
-	}
-#endif
 
 	D3D12_RESOURCE_STATES initial_state = {};
 	ID3D12Resource *texture = nullptr;
@@ -4132,6 +4065,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 		}
 	}
 
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	const UniformSetInfo *uniform_set_info = (const UniformSetInfo *)p_uniform_set.id;
 	const ShaderInfo *shader_info_in = (const ShaderInfo *)p_shader.id;
 	const ShaderInfo::UniformSet &shader_set = shader_info_in->sets[p_set_index];
@@ -4247,7 +4181,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 
 			if (likely(wanted_state)) {
 				if (sr.is_buffer) {
-					_resource_transition_batch(sr.resource, 0, 1, wanted_state);
+					_resource_transition_batch(cmd_buf_info, sr.resource, 0, 1, wanted_state);
 				} else {
 					TextureInfo *tex_info = (TextureInfo *)sr.resource;
 					uint32_t planes = 1;
@@ -4257,7 +4191,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 					for (uint32_t i = 0; i < tex_info->layers; i++) {
 						for (uint32_t j = 0; j < tex_info->mipmaps; j++) {
 							uint32_t subresource = D3D12CalcSubresource(tex_info->base_mip + j, tex_info->base_layer + i, 0, tex_info->desc.MipLevels, tex_info->desc.ArraySize());
-							_resource_transition_batch(tex_info, subresource, planes, wanted_state);
+							_resource_transition_batch(cmd_buf_info, tex_info, subresource, planes, wanted_state);
 						}
 					}
 				}
@@ -4266,8 +4200,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 	}
 
 	if (p_set_index == shader_info_in->sets.size() - 1) {
-		CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	}
 }
 
@@ -4520,7 +4453,7 @@ void RenderingDeviceDriverD3D12::_command_bind_uniform_set(CommandBufferID p_cmd
 void RenderingDeviceDriverD3D12::command_clear_buffer(CommandBufferID p_cmd_buffer, BufferID p_buffer, uint64_t p_offset, uint64_t p_size) {
 	_command_check_descriptor_sets(p_cmd_buffer);
 
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	BufferInfo *buf_info = (BufferInfo *)p_buffer.id;
 
 	if (frames[frame_idx].desc_heap_walkers.resources.is_at_eof()) {
@@ -4545,8 +4478,8 @@ void RenderingDeviceDriverD3D12::command_clear_buffer(CommandBufferID p_cmd_buff
 	}
 
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(buf_info, 0, 1, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, buf_info, 0, 1, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
@@ -4583,14 +4516,14 @@ void RenderingDeviceDriverD3D12::command_clear_buffer(CommandBufferID p_cmd_buff
 }
 
 void RenderingDeviceDriverD3D12::command_copy_buffer(CommandBufferID p_cmd_buffer, BufferID p_src_buffer, BufferID p_buf_locfer, VectorView<BufferCopyRegion> p_regions) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	BufferInfo *src_buf_info = (BufferInfo *)p_src_buffer.id;
 	BufferInfo *buf_loc_info = (BufferInfo *)p_buf_locfer.id;
 
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(src_buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		_resource_transition_batch(buf_loc_info, 0, 1, D3D12_RESOURCE_STATE_COPY_DEST);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, src_buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		_resource_transition_batch(cmd_buf_info, buf_loc_info, 0, 1, D3D12_RESOURCE_STATE_COPY_DEST);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	for (uint32_t i = 0; i < p_regions.size(); i++) {
@@ -4599,7 +4532,7 @@ void RenderingDeviceDriverD3D12::command_copy_buffer(CommandBufferID p_cmd_buffe
 }
 
 void RenderingDeviceDriverD3D12::command_copy_texture(CommandBufferID p_cmd_buffer, TextureID p_src_texture, TextureLayout p_src_texture_layout, TextureID p_dst_texture, TextureLayout p_dst_texture_layout, VectorView<TextureCopyRegion> p_regions) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	TextureInfo *src_tex_info = (TextureInfo *)p_src_texture.id;
 	TextureInfo *dst_tex_info = (TextureInfo *)p_dst_texture.id;
 
@@ -4610,12 +4543,12 @@ void RenderingDeviceDriverD3D12::command_copy_texture(CommandBufferID p_cmd_buff
 			for (uint32_t j = 0; j < layer_count; j++) {
 				UINT src_subresource = _compute_subresource_from_layers(src_tex_info, p_regions[i].src_subresources, j);
 				UINT dst_subresource = _compute_subresource_from_layers(dst_tex_info, p_regions[i].dst_subresources, j);
-				_resource_transition_batch(src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
-				_resource_transition_batch(dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_COPY_DEST);
+				_resource_transition_batch(cmd_buf_info, src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				_resource_transition_batch(cmd_buf_info, dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_COPY_DEST);
 			}
 		}
 
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	CD3DX12_BOX src_box;
@@ -4638,23 +4571,23 @@ void RenderingDeviceDriverD3D12::command_copy_texture(CommandBufferID p_cmd_buff
 }
 
 void RenderingDeviceDriverD3D12::command_resolve_texture(CommandBufferID p_cmd_buffer, TextureID p_src_texture, TextureLayout p_src_texture_layout, uint32_t p_src_layer, uint32_t p_src_mipmap, TextureID p_dst_texture, TextureLayout p_dst_texture_layout, uint32_t p_dst_layer, uint32_t p_dst_mipmap) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	TextureInfo *src_tex_info = (TextureInfo *)p_src_texture.id;
 	TextureInfo *dst_tex_info = (TextureInfo *)p_dst_texture.id;
 
 	UINT src_subresource = D3D12CalcSubresource(p_src_mipmap, p_src_layer, 0, src_tex_info->desc.MipLevels, src_tex_info->desc.ArraySize());
 	UINT dst_subresource = D3D12CalcSubresource(p_dst_mipmap, p_dst_layer, 0, dst_tex_info->desc.MipLevels, dst_tex_info->desc.ArraySize());
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
-		_resource_transition_batch(dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_DEST);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+		_resource_transition_batch(cmd_buf_info, dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ResolveSubresource(dst_tex_info->resource, dst_subresource, src_tex_info->resource, src_subresource, RD_TO_D3D12_FORMAT[src_tex_info->format].general_format);
 }
 
 void RenderingDeviceDriverD3D12::command_clear_color_texture(CommandBufferID p_cmd_buffer, TextureID p_texture, TextureLayout p_texture_layout, const Color &p_color, const TextureSubresourceRange &p_subresources) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	TextureInfo *tex_info = (TextureInfo *)p_texture.id;
 	if (tex_info->main_texture) {
 		tex_info = tex_info->main_texture;
@@ -4669,10 +4602,10 @@ void RenderingDeviceDriverD3D12::command_clear_color_texture(CommandBufferID p_c
 						0,
 						tex_info->desc.MipLevels,
 						tex_info->desc.ArraySize());
-				_resource_transition_batch(tex_info, subresource, 1, p_new_state);
+				_resource_transition_batch(cmd_buf_info, tex_info, subresource, 1, p_new_state);
 			}
 		}
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	};
 
 	if ((tex_info->desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)) {
@@ -4775,11 +4708,11 @@ void RenderingDeviceDriverD3D12::command_clear_color_texture(CommandBufferID p_c
 }
 
 void RenderingDeviceDriverD3D12::command_copy_buffer_to_texture(CommandBufferID p_cmd_buffer, BufferID p_src_buffer, TextureID p_dst_texture, TextureLayout p_dst_texture_layout, VectorView<BufferTextureCopyRegion> p_regions) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	BufferInfo *buf_info = (BufferInfo *)p_src_buffer.id;
 	TextureInfo *tex_info = (TextureInfo *)p_dst_texture.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
+		_resource_transition_batch(cmd_buf_info, buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
 	}
 
 	uint32_t pixel_size = get_image_format_pixel_size(tex_info->format);
@@ -4816,10 +4749,10 @@ void RenderingDeviceDriverD3D12::command_copy_buffer_to_texture(CommandBufferID 
 						tex_info->desc.ArraySize());
 				CD3DX12_TEXTURE_COPY_LOCATION copy_dst(tex_info->resource, dst_subresource);
 
-				_resource_transition_batch(tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_COPY_DEST);
+				_resource_transition_batch(cmd_buf_info, tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_COPY_DEST);
 			}
 
-			_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+			_resource_transitions_flush(cmd_buf_info);
 		}
 
 		for (uint32_t j = 0; j < p_regions[i].texture_subresources.layer_count; j++) {
@@ -4843,12 +4776,12 @@ void RenderingDeviceDriverD3D12::command_copy_buffer_to_texture(CommandBufferID 
 }
 
 void RenderingDeviceDriverD3D12::command_copy_texture_to_buffer(CommandBufferID p_cmd_buffer, TextureID p_src_texture, TextureLayout p_src_texture_layout, BufferID p_buf_locfer, VectorView<BufferTextureCopyRegion> p_regions) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	TextureInfo *tex_info = (TextureInfo *)p_src_texture.id;
 	BufferInfo *buf_info = (BufferInfo *)p_buf_locfer.id;
 
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_DEST);
+		_resource_transition_batch(cmd_buf_info, buf_info, 0, 1, D3D12_RESOURCE_STATE_COPY_DEST);
 	}
 
 	uint32_t block_w = 0, block_h = 0;
@@ -4864,10 +4797,10 @@ void RenderingDeviceDriverD3D12::command_copy_texture_to_buffer(CommandBufferID 
 						tex_info->desc.MipLevels,
 						tex_info->desc.ArraySize());
 
-				_resource_transition_batch(tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
+				_resource_transition_batch(cmd_buf_info, tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_COPY_SOURCE);
 			}
 
-			_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+			_resource_transitions_flush(cmd_buf_info);
 		}
 
 		for (uint32_t j = 0; j < p_regions[i].texture_subresources.layer_count; j++) {
@@ -4910,10 +4843,9 @@ void RenderingDeviceDriverD3D12::command_copy_texture_to_buffer(CommandBufferID 
 /******************/
 
 void RenderingDeviceDriverD3D12::pipeline_free(PipelineID p_pipeline) {
-	ID3D12PipelineState *pso = (ID3D12PipelineState *)p_pipeline.id;
-	pso->Release();
-	pipelines_shaders.erase(pso);
-	render_psos_extra_info.erase(pso);
+	PipelineInfo *pipeline_info = (PipelineInfo *)(p_pipeline.id);
+	pipeline_info->pso->Release();
+	memdelete(pipeline_info);
 }
 
 // ----- BINDING -----
@@ -5013,7 +4945,8 @@ void RenderingDeviceDriverD3D12::command_begin_render_pass(CommandBufferID p_cmd
 						0,
 						p_texture_info->desc.MipLevels,
 						p_texture_info->desc.ArraySize());
-				_resource_transition_batch(p_texture_info, subresource, planes, p_states);
+
+				_resource_transition_batch(cmd_buf_info, p_texture_info, subresource, planes, p_states);
 			}
 		}
 	};
@@ -5035,7 +4968,7 @@ void RenderingDeviceDriverD3D12::command_begin_render_pass(CommandBufferID p_cmd
 			_transition_subresources(tex_info, D3D12_RESOURCE_STATE_SHADING_RATE_SOURCE);
 		}
 
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->render_pass_state.region_rect = CD3DX12_RECT(
@@ -5109,7 +5042,7 @@ void RenderingDeviceDriverD3D12::command_begin_render_pass(CommandBufferID p_cmd
 }
 
 void RenderingDeviceDriverD3D12::_end_render_pass(CommandBufferID p_cmd_buffer) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 
 	DEV_ASSERT(cmd_buf_info->render_pass_state.current_subpass != UINT32_MAX);
 
@@ -5122,7 +5055,7 @@ void RenderingDeviceDriverD3D12::_end_render_pass(CommandBufferID p_cmd_buffer) 
 		for (uint32_t i = 0; i < fb_info->attachments.size(); i++) {
 			TextureInfo *src_tex_info = (TextureInfo *)(fb_info->attachments[i].id);
 			uint32_t src_subresource = D3D12CalcSubresource(src_tex_info->base_mip, src_tex_info->base_layer, 0, src_tex_info->desc.MipLevels, src_tex_info->desc.ArraySize());
-			_resource_transition_batch(src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_PRESENT);
+			_resource_transition_batch(cmd_buf_info, src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_PRESENT);
 		}
 	}
 
@@ -5146,11 +5079,11 @@ void RenderingDeviceDriverD3D12::_end_render_pass(CommandBufferID p_cmd_buffer) 
 
 		TextureInfo *src_tex_info = (TextureInfo *)fb_info->attachments[color_index].id;
 		uint32_t src_subresource = D3D12CalcSubresource(src_tex_info->base_mip, src_tex_info->base_layer, 0, src_tex_info->desc.MipLevels, src_tex_info->desc.ArraySize());
-		_resource_transition_batch(src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+		_resource_transition_batch(cmd_buf_info, src_tex_info, src_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
 
 		TextureInfo *dst_tex_info = (TextureInfo *)fb_info->attachments[resolve_index].id;
 		uint32_t dst_subresource = D3D12CalcSubresource(dst_tex_info->base_mip, dst_tex_info->base_layer, 0, dst_tex_info->desc.MipLevels, dst_tex_info->desc.ArraySize());
-		_resource_transition_batch(dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_DEST);
+		_resource_transition_batch(cmd_buf_info, dst_tex_info, dst_subresource, 1, D3D12_RESOURCE_STATE_RESOLVE_DEST);
 
 		resolves[num_resolves].src_res = src_tex_info->resource;
 		resolves[num_resolves].src_subres = src_subresource;
@@ -5160,7 +5093,7 @@ void RenderingDeviceDriverD3D12::_end_render_pass(CommandBufferID p_cmd_buffer) 
 		num_resolves++;
 	}
 
-	_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+	_resource_transitions_flush(cmd_buf_info);
 
 	for (uint32_t i = 0; i < num_resolves; i++) {
 		cmd_buf_info->cmd_list->ResolveSubresource(resolves[i].dst_res, resolves[i].dst_subres, resolves[i].src_res, resolves[i].src_subres, resolves[i].format);
@@ -5348,36 +5281,36 @@ void RenderingDeviceDriverD3D12::command_render_clear_attachments(CommandBufferI
 
 void RenderingDeviceDriverD3D12::command_bind_render_pipeline(CommandBufferID p_cmd_buffer, PipelineID p_pipeline) {
 	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
-	ID3D12PipelineState *pso = (ID3D12PipelineState *)p_pipeline.id;
+	const PipelineInfo *pipeline_info = (const PipelineInfo *)p_pipeline.id;
 
-	if (cmd_buf_info->graphics_pso == pso) {
+	if (cmd_buf_info->graphics_pso == pipeline_info->pso) {
 		return;
 	}
 
-	const ShaderInfo *shader_info_in = pipelines_shaders[pso];
-	const RenderPipelineExtraInfo &pso_extra_info = render_psos_extra_info[pso];
+	const ShaderInfo *shader_info_in = pipeline_info->shader_info;
+	const RenderPipelineInfo &render_info = pipeline_info->render_info;
 
-	cmd_buf_info->cmd_list->SetPipelineState(pso);
+	cmd_buf_info->cmd_list->SetPipelineState(pipeline_info->pso);
 	if (cmd_buf_info->graphics_root_signature_crc != shader_info_in->root_signature_crc) {
 		cmd_buf_info->cmd_list->SetGraphicsRootSignature(shader_info_in->root_signature.Get());
 		cmd_buf_info->graphics_root_signature_crc = shader_info_in->root_signature_crc;
 	}
 
-	cmd_buf_info->cmd_list->IASetPrimitiveTopology(pso_extra_info.dyn_params.primitive_topology);
-	cmd_buf_info->cmd_list->OMSetBlendFactor(pso_extra_info.dyn_params.blend_constant.components);
-	cmd_buf_info->cmd_list->OMSetStencilRef(pso_extra_info.dyn_params.stencil_reference);
+	cmd_buf_info->cmd_list->IASetPrimitiveTopology(render_info.dyn_params.primitive_topology);
+	cmd_buf_info->cmd_list->OMSetBlendFactor(render_info.dyn_params.blend_constant.components);
+	cmd_buf_info->cmd_list->OMSetStencilRef(render_info.dyn_params.stencil_reference);
 
 	if (misc_features_support.depth_bounds_supported) {
 		ComPtr<ID3D12GraphicsCommandList1> command_list_1;
 		cmd_buf_info->cmd_list->QueryInterface(command_list_1.GetAddressOf());
 		if (command_list_1) {
-			command_list_1->OMSetDepthBounds(pso_extra_info.dyn_params.depth_bounds_min, pso_extra_info.dyn_params.depth_bounds_max);
+			command_list_1->OMSetDepthBounds(render_info.dyn_params.depth_bounds_min, render_info.dyn_params.depth_bounds_max);
 		}
 	}
 
-	cmd_buf_info->render_pass_state.vf_info = pso_extra_info.vf_info;
+	cmd_buf_info->render_pass_state.vf_info = render_info.vf_info;
 
-	cmd_buf_info->graphics_pso = pso;
+	cmd_buf_info->graphics_pso = pipeline_info->pso;
 	cmd_buf_info->compute_pso = nullptr;
 }
 
@@ -5402,8 +5335,8 @@ void RenderingDeviceDriverD3D12::command_render_draw_indexed_indirect(CommandBuf
 	_bind_vertex_buffers(cmd_buf_info);
 	BufferInfo *indirect_buf_info = (BufferInfo *)p_indirect_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ExecuteIndirect(indirect_cmd_signatures.draw_indexed.Get(), p_draw_count, indirect_buf_info->resource, p_offset, nullptr, 0);
@@ -5415,9 +5348,9 @@ void RenderingDeviceDriverD3D12::command_render_draw_indexed_indirect_count(Comm
 	BufferInfo *indirect_buf_info = (BufferInfo *)p_indirect_buffer.id;
 	BufferInfo *count_buf_info = (BufferInfo *)p_count_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transition_batch(count_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transition_batch(cmd_buf_info, count_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ExecuteIndirect(indirect_cmd_signatures.draw_indexed.Get(), p_max_draw_count, indirect_buf_info->resource, p_offset, count_buf_info->resource, p_count_buffer_offset);
@@ -5428,8 +5361,8 @@ void RenderingDeviceDriverD3D12::command_render_draw_indirect(CommandBufferID p_
 	_bind_vertex_buffers(cmd_buf_info);
 	BufferInfo *indirect_buf_info = (BufferInfo *)p_indirect_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ExecuteIndirect(indirect_cmd_signatures.draw.Get(), p_draw_count, indirect_buf_info->resource, p_offset, nullptr, 0);
@@ -5441,9 +5374,9 @@ void RenderingDeviceDriverD3D12::command_render_draw_indirect_count(CommandBuffe
 	BufferInfo *indirect_buf_info = (BufferInfo *)p_indirect_buffer.id;
 	BufferInfo *count_buf_info = (BufferInfo *)p_count_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transition_batch(count_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transition_batch(cmd_buf_info, count_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ExecuteIndirect(indirect_cmd_signatures.draw.Get(), p_max_draw_count, indirect_buf_info->resource, p_offset, count_buf_info->resource, p_count_buffer_offset);
@@ -5465,19 +5398,19 @@ void RenderingDeviceDriverD3D12::command_render_bind_vertex_buffers(CommandBuffe
 		cmd_buf_info->render_pass_state.vertex_buffer_views[i].BufferLocation = buffer_info->resource->GetGPUVirtualAddress() + p_offsets[i];
 		cmd_buf_info->render_pass_state.vertex_buffer_views[i].SizeInBytes = buffer_info->size - p_offsets[i];
 		if (!barrier_capabilities.enhanced_barriers_supported) {
-			_resource_transition_batch(buffer_info, 0, 1, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+			_resource_transition_batch(cmd_buf_info, buffer_info, 0, 1, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
 		}
 	}
 
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->render_pass_state.vertex_buffer_count = p_binding_count;
 }
 
 void RenderingDeviceDriverD3D12::command_render_bind_index_buffer(CommandBufferID p_cmd_buffer, BufferID p_buffer, IndexBufferFormat p_format, uint64_t p_offset) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	BufferInfo *buffer_info = (BufferInfo *)p_buffer.id;
 
 	D3D12_INDEX_BUFFER_VIEW d3d12_ib_view = {};
@@ -5486,8 +5419,8 @@ void RenderingDeviceDriverD3D12::command_render_bind_index_buffer(CommandBufferI
 	d3d12_ib_view.Format = p_format == INDEX_BUFFER_FORMAT_UINT16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(buffer_info, 0, 1, D3D12_RESOURCE_STATE_INDEX_BUFFER);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, buffer_info, 0, 1, D3D12_RESOURCE_STATE_INDEX_BUFFER);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->IASetIndexBuffer(&d3d12_ib_view);
@@ -5628,9 +5561,9 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 	const ShaderInfo *shader_info_in = (const ShaderInfo *)p_shader.id;
 
 	CD3DX12_PIPELINE_STATE_STREAM pipeline_desc = {};
-	RenderPipelineExtraInfo pso_extra_info;
 
 	const RenderPassInfo *pass_info = (const RenderPassInfo *)p_render_pass.id;
+	RenderPipelineInfo render_info;
 
 	// Attachments.
 	LocalVector<uint32_t> color_attachments;
@@ -5664,7 +5597,7 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 		const VertexFormatInfo *vf_info = (const VertexFormatInfo *)p_vertex_format.id;
 		(&pipeline_desc.InputLayout)->pInputElementDescs = vf_info->input_elem_descs.ptr();
 		(&pipeline_desc.InputLayout)->NumElements = vf_info->input_elem_descs.size();
-		pso_extra_info.vf_info = vf_info;
+		render_info.vf_info = vf_info;
 	}
 
 	// Input assembly & tessellation.
@@ -5673,9 +5606,9 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 	if (p_render_primitive == RENDER_PRIMITIVE_TESSELATION_PATCH) {
 		// Is there any way to get the true point count limit?
 		ERR_FAIL_COND_V(p_rasterization_state.patch_control_points < 1 || p_rasterization_state.patch_control_points > 32, PipelineID());
-		pso_extra_info.dyn_params.primitive_topology = (D3D12_PRIMITIVE_TOPOLOGY)((int)D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + p_rasterization_state.patch_control_points);
+		render_info.dyn_params.primitive_topology = (D3D12_PRIMITIVE_TOPOLOGY)((int)D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + p_rasterization_state.patch_control_points);
 	} else {
-		pso_extra_info.dyn_params.primitive_topology = RD_PRIMITIVE_TO_D3D12_TOPOLOGY[p_render_primitive];
+		render_info.dyn_params.primitive_topology = RD_PRIMITIVE_TO_D3D12_TOPOLOGY[p_render_primitive];
 	}
 	if (p_render_primitive == RENDER_PRIMITIVE_TRIANGLE_STRIPS_WITH_RESTART_INDEX) {
 		// TODO: This is right for 16-bit indices; for 32-bit there's a different enum value to set, but we don't know at this point.
@@ -5763,15 +5696,15 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 		(&pipeline_desc.DepthStencilState)->BackFace.StencilFunc = RD_TO_D3D12_COMPARE_OP[p_depth_stencil_state.back_op.compare];
 
 		if (misc_features_support.depth_bounds_supported) {
-			pso_extra_info.dyn_params.depth_bounds_min = p_depth_stencil_state.enable_depth_range ? p_depth_stencil_state.depth_range_min : 0.0f;
-			pso_extra_info.dyn_params.depth_bounds_max = p_depth_stencil_state.enable_depth_range ? p_depth_stencil_state.depth_range_max : 1.0f;
+			render_info.dyn_params.depth_bounds_min = p_depth_stencil_state.enable_depth_range ? p_depth_stencil_state.depth_range_min : 0.0f;
+			render_info.dyn_params.depth_bounds_max = p_depth_stencil_state.enable_depth_range ? p_depth_stencil_state.depth_range_max : 1.0f;
 		} else {
 			if (p_depth_stencil_state.enable_depth_range) {
 				WARN_PRINT_ONCE("Depth bounds test is not supported by the GPU driver.");
 			}
 		}
 
-		pso_extra_info.dyn_params.stencil_reference = p_depth_stencil_state.front_op.reference;
+		render_info.dyn_params.stencil_reference = p_depth_stencil_state.front_op.reference;
 	}
 
 	// Blend states.
@@ -5818,7 +5751,7 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 		(&pipeline_desc.BlendState)->IndependentBlendEnable = !all_attachments_same_blend;
 	}
 
-	pso_extra_info.dyn_params.blend_constant = p_blend_state.blend_constant;
+	render_info.dyn_params.blend_constant = p_blend_state.blend_constant;
 
 	// Stages bytecodes + specialization constants.
 
@@ -5852,12 +5785,12 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 	}
 	ERR_FAIL_COND_V_MSG(!SUCCEEDED(res), PipelineID(), "Create(Graphics)PipelineState failed with error " + vformat("0x%08ux", (uint64_t)res) + ".");
 
-	// Bookkeep ancillary info.
+	PipelineInfo *pipeline_info = memnew(PipelineInfo);
+	pipeline_info->pso = pso;
+	pipeline_info->shader_info = shader_info_in;
+	pipeline_info->render_info = render_info;
 
-	pipelines_shaders[pso] = shader_info_in;
-	render_psos_extra_info[pso] = pso_extra_info;
-
-	return PipelineID(pso);
+	return PipelineID(pipeline_info);
 }
 
 /*****************/
@@ -5868,20 +5801,20 @@ RDD::PipelineID RenderingDeviceDriverD3D12::render_pipeline_create(
 
 void RenderingDeviceDriverD3D12::command_bind_compute_pipeline(CommandBufferID p_cmd_buffer, PipelineID p_pipeline) {
 	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
-	ID3D12PipelineState *pso = (ID3D12PipelineState *)p_pipeline.id;
-	const ShaderInfo *shader_info_in = pipelines_shaders[pso];
+	const PipelineInfo *pipeline_info = (const PipelineInfo *)p_pipeline.id;
 
-	if (cmd_buf_info->compute_pso == pso) {
+	if (cmd_buf_info->compute_pso == pipeline_info->pso) {
 		return;
 	}
 
-	cmd_buf_info->cmd_list->SetPipelineState(pso);
+	const ShaderInfo *shader_info_in = pipeline_info->shader_info;
+	cmd_buf_info->cmd_list->SetPipelineState(pipeline_info->pso);
 	if (cmd_buf_info->compute_root_signature_crc != shader_info_in->root_signature_crc) {
 		cmd_buf_info->cmd_list->SetComputeRootSignature(shader_info_in->root_signature.Get());
 		cmd_buf_info->compute_root_signature_crc = shader_info_in->root_signature_crc;
 	}
 
-	cmd_buf_info->compute_pso = pso;
+	cmd_buf_info->compute_pso = pipeline_info->pso;
 	cmd_buf_info->graphics_pso = nullptr;
 }
 
@@ -5890,20 +5823,20 @@ void RenderingDeviceDriverD3D12::command_bind_compute_uniform_set(CommandBufferI
 }
 
 void RenderingDeviceDriverD3D12::command_compute_dispatch(CommandBufferID p_cmd_buffer, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->Dispatch(p_x_groups, p_y_groups, p_z_groups);
 }
 
 void RenderingDeviceDriverD3D12::command_compute_dispatch_indirect(CommandBufferID p_cmd_buffer, BufferID p_indirect_buffer, uint64_t p_offset) {
-	const CommandBufferInfo *cmd_buf_info = (const CommandBufferInfo *)p_cmd_buffer.id;
+	CommandBufferInfo *cmd_buf_info = (CommandBufferInfo *)p_cmd_buffer.id;
 	BufferInfo *indirect_buf_info = (BufferInfo *)p_indirect_buffer.id;
 	if (!barrier_capabilities.enhanced_barriers_supported) {
-		_resource_transition_batch(indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-		_resource_transitions_flush(cmd_buf_info->cmd_list.Get());
+		_resource_transition_batch(cmd_buf_info, indirect_buf_info, 0, 1, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+		_resource_transitions_flush(cmd_buf_info);
 	}
 
 	cmd_buf_info->cmd_list->ExecuteIndirect(indirect_cmd_signatures.dispatch.Get(), 1, indirect_buf_info->resource, p_offset, nullptr, 0);
@@ -5944,11 +5877,11 @@ RDD::PipelineID RenderingDeviceDriverD3D12::compute_pipeline_create(ShaderID p_s
 	}
 	ERR_FAIL_COND_V_MSG(!SUCCEEDED(res), PipelineID(), "Create(Compute)PipelineState failed with error " + vformat("0x%08ux", (uint64_t)res) + ".");
 
-	// Bookkeep ancillary info.
+	PipelineInfo *pipeline_info = memnew(PipelineInfo);
+	pipeline_info->pso = pso;
+	pipeline_info->shader_info = shader_info_in;
 
-	pipelines_shaders[pso] = shader_info_in;
-
-	return PipelineID(pso);
+	return PipelineID(pipeline_info);
 }
 
 /*****************/
@@ -6111,8 +6044,8 @@ void RenderingDeviceDriverD3D12::set_object_name(ObjectType p_type, ID p_driver_
 			}
 		} break;
 		case OBJECT_TYPE_PIPELINE: {
-			ID3D12PipelineState *pso = (ID3D12PipelineState *)p_driver_id.id;
-			_set_object_name(pso, p_name);
+			const PipelineInfo *pipeline_info = (const PipelineInfo *)p_driver_id.id;
+			_set_object_name(pipeline_info->pso, p_name);
 		} break;
 		default: {
 			DEV_ASSERT(false);

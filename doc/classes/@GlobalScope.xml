@@ -1209,7 +1209,7 @@
 			<return type="int" />
 			<param index="0" name="x" type="int" />
 			<description>
-				Returns [code]-1[/code] if [param x] is negative, [code]1[/code] if [param x] is positive, and [code]0[/code] if if [param x] is zero.
+				Returns [code]-1[/code] if [param x] is negative, [code]1[/code] if [param x] is positive, and [code]0[/code] if [param x] is zero.
 				[codeblock]
 				signi(-6) # Returns -1
 				signi(0)  # Returns 0
@@ -2933,7 +2933,15 @@
 		<constant name="PROPERTY_HINT_PASSWORD" value="36" enum="PropertyHint">
 			Hints that a string property is a password, and every character is replaced with the secret character.
 		</constant>
-		<constant name="PROPERTY_HINT_MAX" value="39" enum="PropertyHint">
+		<constant name="PROPERTY_HINT_TOOL_BUTTON" value="39" enum="PropertyHint">
+			Hints that a [Callable] property should be displayed as a clickable button. When the button is pressed, the callable is called. The hint string specifies the button text and optionally an icon from the [code]"EditorIcons"[/code] theme type.
+			[codeblock lang=text]
+			"Click me!" - A button with the text "Click me!" and the default "Callable" icon.
+			"Click me!,ColorRect" - A button with the text "Click me!" and the "ColorRect" icon.
+			[/codeblock]
+			[b]Note:[/b] A [Callable] cannot be properly serialized and stored in a file, so it is recommended to use [constant PROPERTY_USAGE_EDITOR] instead of [constant PROPERTY_USAGE_DEFAULT].
+		</constant>
+		<constant name="PROPERTY_HINT_MAX" value="40" enum="PropertyHint">
 			Represents the size of the [enum PropertyHint] enum.
 		</constant>
 		<constant name="PROPERTY_USAGE_NONE" value="0" enum="PropertyUsageFlags" is_bitfield="true">

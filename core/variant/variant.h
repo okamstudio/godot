@@ -62,6 +62,10 @@
 #include "core/variant/dictionary.h"
 
 class Object;
+class RefCounted;
+
+template <typename T>
+class Ref;
 
 struct PropertyInfo;
 struct MethodInfo;
@@ -175,6 +179,20 @@ private:
 	struct ObjData {
 		ObjectID id;
 		Object *obj = nullptr;
+
+		void ref(const ObjData &p_from);
+		void ref_pointer(Object *p_object);
+		void ref_pointer(RefCounted *p_object);
+		void unref();
+
+		template <typename T>
+		_ALWAYS_INLINE_ void ref(const Ref<T> &p_from) {
+			if (p_from.is_valid()) {
+				ref(ObjData{ p_from->get_instance_id(), p_from.ptr() });
+			} else {
+				unref();
+			}
+		}
 	};
 
 	/* array helpers */

@@ -304,6 +304,13 @@ int DisplayServerAndroid::virtual_keyboard_get_height() const {
 	return godot_io_java->get_vk_height();
 }
 
+bool DisplayServerAndroid::has_hardware_keyboard() const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, false);
+
+	return godot_io_java->has_hardware_keyboard();
+}
+
 void DisplayServerAndroid::window_set_window_event_callback(const Callable &p_callable, DisplayServer::WindowID p_window) {
 	window_event_callback = p_callable;
 }

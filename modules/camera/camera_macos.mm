@@ -182,7 +182,7 @@
 		}
 
 		// set our texture...
-		feed->set_YCbCr_imgs(img[0], img[1]);
+		feed->set_ycbcr_images(img[0], img[1]);
 	}
 
 	// and unlock

@@ -74,23 +74,6 @@
  *     Indic shaper may want to disallow recomposing of two matras.
  */
 
-static bool
-decompose_unicode (const hb_ot_shape_normalize_context_t *c,
-		   hb_codepoint_t  ab,
-		   hb_codepoint_t *a,
-		   hb_codepoint_t *b)
-{
-  return (bool) c->unicode->decompose (ab, a, b);
-}
-
-static bool
-compose_unicode (const hb_ot_shape_normalize_context_t *c,
-		 hb_codepoint_t  a,
-		 hb_codepoint_t  b,
-		 hb_codepoint_t *ab)
-{
-  return (bool) c->unicode->compose (a, b, ab);
-}
 
 static inline void
 set_glyph (hb_glyph_info_t &info, hb_font_t *font)
@@ -170,7 +153,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
   hb_codepoint_t u = buffer->cur().codepoint;
   hb_codepoint_t glyph = 0;
 
-  if (shortest && c->font->get_nominal_glyph (u, &glyph, c->not_found))
+  if (shortest && c->font->get_nominal_glyph (u, &glyph, buffer->not_found))
   {
     next_char (buffer, glyph);
     return;
@@ -182,7 +165,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shor
     return;
   }
 
-  if (!shortest && c->font->get_nominal_glyph (u, &glyph, c->not_found))
+  if (!shortest && c->font->get_nominal_glyph (u, &glyph, buffer->not_found))
   {
     next_char (buffer, glyph);
     return;
@@ -237,6 +220,13 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
 	/* Just pass on the two characters separately, let GSUB do its magic. */
 	set_glyph (buffer->cur(), font);
 	(void) buffer->next_glyph ();
+
+        buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK;
+	_hb_glyph_info_set_general_category (&buffer->cur(),
+					     _HB_UNICODE_GENERAL_CATEGORY_VARIATION_SELECTOR);
+	if (buffer->not_found_variation_selector != HB_CODEPOINT_INVALID)
+	  _hb_glyph_info_clear_default_ignorable (&buffer->cur());
+
 	set_glyph (buffer->cur(), font);
 	(void) buffer->next_glyph ();
       }
@@ -307,15 +297,15 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       mode = HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS;
   }
 
-  const hb_ot_shape_normalize_context_t c = {
+  hb_ot_shape_normalize_context_t c = {
     plan,
     buffer,
     font,
     buffer->unicode,
-    buffer->not_found,
-    plan->shaper->decompose ? plan->shaper->decompose : decompose_unicode,
-    plan->shaper->compose   ? plan->shaper->compose   : compose_unicode
+    plan->shaper->decompose ? plan->shaper->decompose : hb_ot_shape_normalize_context_t::decompose_unicode,
+    plan->shaper->compose   ? plan->shaper->compose   : hb_ot_shape_normalize_context_t::compose_unicode
   };
+  c.override_decompose_and_compose (plan->shaper->decompose, plan->shaper->compose);
 
   bool always_short_circuit = mode == HB_OT_SHAPE_NORMALIZATION_MODE_NONE;
   bool might_short_circuit = always_short_circuit ||

@@ -274,6 +274,8 @@ void CanvasItemMaterial::_bind_methods() {
 
 CanvasItemMaterial::CanvasItemMaterial() :
 		element(this) {
+	_set_material(RS::get_singleton()->material_create());
+
 	set_particles_anim_h_frames(1);
 	set_particles_anim_v_frames(1);
 	set_particles_anim_loop(false);

@@ -338,4 +338,30 @@ public:
 	AnimationTrackKeyEditEditorPlugin();
 };
 
+// AnimationMarkerKeyEditEditorPlugin
+
+class EditorInspectorPluginAnimationMarkerKeyEdit : public EditorInspectorPlugin {
+	GDCLASS(EditorInspectorPluginAnimationMarkerKeyEdit, EditorInspectorPlugin);
+
+	AnimationMarkerKeyEditEditor *amk_editor = nullptr;
+
+public:
+	virtual bool can_handle(Object *p_object) override;
+	virtual void parse_begin(Object *p_object) override;
+};
+
+class AnimationMarkerKeyEditEditorPlugin : public EditorPlugin {
+	GDCLASS(AnimationMarkerKeyEditEditorPlugin, EditorPlugin);
+
+	EditorInspectorPluginAnimationMarkerKeyEdit *amk_plugin = nullptr;
+
+public:
+	bool has_main_screen() const override { return false; }
+	virtual bool handles(Object *p_object) const override;
+
+	virtual String get_name() const override { return "AnimationMarkerKeyEdit"; }
+
+	AnimationMarkerKeyEditEditorPlugin();
+};
+
 #endif // ANIMATION_PLAYER_EDITOR_PLUGIN_H

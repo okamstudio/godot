@@ -221,18 +221,35 @@ void CharString::copy_from(const char *p_cstr) {
 /*  String                                                               */
 /*************************************************************************/
 
-Error String::parse_url(String &r_scheme, String &r_host, int &r_port, String &r_path) const {
-	// Splits the URL into scheme, host, port, path. Strip credentials when present.
+Error String::parse_url(String &r_scheme, String &r_host, int &r_port, String &r_path, String &r_fragment) const {
+	// Splits the URL into scheme, host, port, path, fragment. Strip credentials when present.
 	String base = *this;
 	r_scheme = "";
 	r_host = "";
 	r_port = 0;
 	r_path = "";
+	r_fragment = "";
+
 	int pos = base.find("://");
 	// Scheme
 	if (pos != -1) {
-		r_scheme = base.substr(0, pos + 3).to_lower();
-		base = base.substr(pos + 3, base.length() - pos - 3);
+		bool is_scheme_valid = true;
+		for (int i = 0; i < pos; i++) {
+			if (!is_ascii_alphanumeric_char(base[i]) && base[i] != '+' && base[i] != '-' && base[i] != '.') {
+				is_scheme_valid = false;
+				break;
+			}
+		}
+		if (is_scheme_valid) {
+			r_scheme = base.substr(0, pos + 3).to_lower();
+			base = base.substr(pos + 3, base.length() - pos - 3);
+		}
+	}
+	pos = base.find("#");
+	// Fragment
+	if (pos != -1) {
+		r_fragment = base.substr(pos + 1);
+		base = base.substr(0, pos);
 	}
 	pos = base.find("/");
 	// Path

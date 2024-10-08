@@ -30,6 +30,7 @@
 #include "hb-open-type.hh"
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-hhea-table.hh"
+#include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
 #include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-metrics.hh"

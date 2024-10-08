@@ -173,12 +173,12 @@ _hb_next_syllable (hb_buffer_t *buffer, unsigned int start)
 
 /* Design:
  * unicode_props() is a two-byte number.  The low byte includes:
- * - General_Category: 5 bits.
+ * - Extended General_Category: 5 bits.
  * - A bit each for:
  *   * Is it Default_Ignorable(); we have a modified Default_Ignorable().
  *   * Whether it's one of the four Mongolian Free Variation Selectors,
  *     CGJ, or other characters that are hidden but should not be ignored
- *     like most other Default_Ignorable()s do during matching.
+ *     like most other Default_Ignorable()s do during GSUB matching.
  *   * Whether it's a grapheme continuation.
  *
  * The high-byte has different meanings, switched by the Gen-Cat:
@@ -311,12 +311,15 @@ _hb_glyph_info_is_default_ignorable (const hb_glyph_info_t *info)
   return (info->unicode_props() & UPROPS_MASK_IGNORABLE) &&
 	 !_hb_glyph_info_substituted (info);
 }
-static inline bool
-_hb_glyph_info_is_default_ignorable_and_not_hidden (const hb_glyph_info_t *info)
+static inline void
+_hb_glyph_info_clear_default_ignorable (hb_glyph_info_t *info)
 {
-  return ((info->unicode_props() & (UPROPS_MASK_IGNORABLE|UPROPS_MASK_HIDDEN))
-	  == UPROPS_MASK_IGNORABLE) &&
-	 !_hb_glyph_info_substituted (info);
+  info->unicode_props() &= ~ UPROPS_MASK_IGNORABLE;
+}
+static inline bool
+_hb_glyph_info_is_hidden (const hb_glyph_info_t *info)
+{
+  return info->unicode_props() & UPROPS_MASK_HIDDEN;
 }
 static inline void
 _hb_glyph_info_unhide (hb_glyph_info_t *info)

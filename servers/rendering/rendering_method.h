@@ -118,6 +118,11 @@ public:
 	virtual Variant instance_geometry_get_shader_parameter(RID p_instance, const StringName &p_parameter) const = 0;
 	virtual Variant instance_geometry_get_shader_parameter_default_value(RID p_instance, const StringName &p_parameter) const = 0;
 
+	/* PIPELINES */
+
+	virtual void mesh_generate_pipelines(RID p_mesh, bool p_background_compilation) = 0;
+	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source) = 0;
+
 	/* SKY API */
 
 	virtual RID sky_allocate() = 0;

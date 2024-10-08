@@ -216,6 +216,14 @@ public class GodotIO {
 		return result;
 	}
 
+	public boolean hasHardwareKeyboard() {
+		if (edit != null) {
+			return edit.hasHardwareKeyboard();
+		} else {
+			return false;
+		}
+	}
+
 	public void showKeyboard(String p_existing_text, int p_type, int p_max_input_length, int p_cursor_start, int p_cursor_end) {
 		if (edit != null) {
 			edit.showKeyboard(p_existing_text, GodotEditText.VirtualKeyboardType.values()[p_type], p_max_input_length, p_cursor_start, p_cursor_end);

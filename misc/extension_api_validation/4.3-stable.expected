@@ -87,3 +87,11 @@ GH-94684
 Validate extension JSON: Error: Field 'classes/SoftBody3D/methods/set_point_pinned/arguments': size changed value in new API, from 3 to 4.
 
 Optional argument added to allow for adding pin point at specific index. Compatibility method registered.
+
+
+GH-97281
+--------
+Validate extension JSON: Error: Field 'classes/InputMap/methods/add_action/arguments/1': default_value changed value in new API, from "0.5" to "0.2".
+
+Default deadzone value was changed. No adjustments should be necessary.
+Compatibility method registered.

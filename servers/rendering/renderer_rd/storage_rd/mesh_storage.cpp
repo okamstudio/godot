@@ -1142,97 +1142,71 @@ void MeshStorage::update_mesh_instances() {
 	RD::get_singleton()->compute_list_end();
 }
 
-void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint64_t p_input_mask, bool p_input_motion_vectors, MeshInstance::Surface *mis, uint32_t p_current_buffer, uint32_t p_previous_buffer) {
+RD::VertexFormatID MeshStorage::_mesh_surface_generate_vertex_format(uint64_t p_surface_format, uint64_t p_input_mask, bool p_instanced_surface, bool p_input_motion_vectors, uint32_t &r_position_stride) {
 	Vector<RD::VertexAttribute> attributes;
-	Vector<RID> buffers;
-	Vector<uint64_t> offsets;
-
-	uint32_t position_stride = 0;
 	uint32_t normal_tangent_stride = 0;
 	uint32_t attribute_stride = 0;
 	uint32_t skin_stride = 0;
 
+	r_position_stride = 0;
+
 	for (int i = 0; i < RS::ARRAY_INDEX; i++) {
 		RD::VertexAttribute vd;
-		RID buffer;
 		vd.location = i;
-		uint64_t offset = 0;
 
-		if (!(s->format & (1ULL << i))) {
-			// Not supplied by surface, use default value
-			buffer = mesh_default_rd_buffers[i];
+		if (!(p_surface_format & (1ULL << i))) {
 			vd.stride = 0;
 			switch (i) {
-				case RS::ARRAY_VERTEX: {
+				case RS::ARRAY_VERTEX:
+				case RS::ARRAY_NORMAL:
 					vd.format = RD::DATA_FORMAT_R32G32B32_SFLOAT;
-
-				} break;
-				case RS::ARRAY_NORMAL: {
-					vd.format = RD::DATA_FORMAT_R32G32B32_SFLOAT;
-				} break;
-				case RS::ARRAY_TANGENT: {
-					vd.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
-				} break;
-				case RS::ARRAY_COLOR: {
-					vd.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
-
-				} break;
-				case RS::ARRAY_TEX_UV: {
+					break;
+				case RS::ARRAY_TEX_UV:
+				case RS::ARRAY_TEX_UV2:
 					vd.format = RD::DATA_FORMAT_R32G32_SFLOAT;
-
-				} break;
-				case RS::ARRAY_TEX_UV2: {
-					vd.format = RD::DATA_FORMAT_R32G32_SFLOAT;
-				} break;
+					break;
+				case RS::ARRAY_BONES:
+					vd.format = RD::DATA_FORMAT_R32G32B32A32_UINT;
+					break;
+				case RS::ARRAY_TANGENT:
+				case RS::ARRAY_COLOR:
 				case RS::ARRAY_CUSTOM0:
 				case RS::ARRAY_CUSTOM1:
 				case RS::ARRAY_CUSTOM2:
-				case RS::ARRAY_CUSTOM3: {
-					//assumed weights too
+				case RS::ARRAY_CUSTOM3:
+				case RS::ARRAY_WEIGHTS:
 					vd.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
-				} break;
-				case RS::ARRAY_BONES: {
-					//assumed weights too
-					vd.format = RD::DATA_FORMAT_R32G32B32A32_UINT;
-				} break;
-				case RS::ARRAY_WEIGHTS: {
-					//assumed weights too
-					vd.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
-				} break;
+					break;
+				default:
+					DEV_ASSERT(false && "Unknown vertex format element.");
+					break;
 			}
 		} else {
-			//Supplied, use it
-
-			vd.stride = 1; //mark that it needs a stride set (default uses 0)
+			// Mark that it needs a stride set (default uses 0).
+			vd.stride = 1;
 
 			switch (i) {
 				case RS::ARRAY_VERTEX: {
-					vd.offset = position_stride;
+					vd.offset = r_position_stride;
 
-					if (s->format & RS::ARRAY_FLAG_USE_2D_VERTICES) {
+					if (p_surface_format & RS::ARRAY_FLAG_USE_2D_VERTICES) {
 						vd.format = RD::DATA_FORMAT_R32G32_SFLOAT;
-						position_stride = sizeof(float) * 2;
+						r_position_stride = sizeof(float) * 2;
 					} else {
-						if (!mis && (s->format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES)) {
+						if (!p_instanced_surface && (p_surface_format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES)) {
 							vd.format = RD::DATA_FORMAT_R16G16B16A16_UNORM;
-							position_stride = sizeof(uint16_t) * 4;
+							r_position_stride = sizeof(uint16_t) * 4;
 						} else {
 							vd.format = RD::DATA_FORMAT_R32G32B32_SFLOAT;
-							position_stride = sizeof(float) * 3;
+							r_position_stride = sizeof(float) * 3;
 						}
-					}
-
-					if (mis) {
-						buffer = mis->vertex_buffer[p_current_buffer];
-					} else {
-						buffer = s->vertex_buffer;
 					}
 
 				} break;
 				case RS::ARRAY_NORMAL: {
 					vd.offset = 0;
-					offset = position_stride * s->vertex_count;
-					if (!mis && (s->format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES)) {
+
+					if (!p_instanced_surface && (p_surface_format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES)) {
 						vd.format = RD::DATA_FORMAT_R16G16_UNORM;
 						normal_tangent_stride += sizeof(uint16_t) * 2;
 					} else {
@@ -1240,20 +1214,14 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 						// A small trick here: if we are uncompressed and we have normals, but no tangents. We need
 						// the shader to think there are 4 components to "axis_tangent_attrib". So we give a size of 4,
 						// but a stride based on only having 2 elements.
-						if (!(s->format & RS::ARRAY_FORMAT_TANGENT)) {
+						if (!(p_surface_format & RS::ARRAY_FORMAT_TANGENT)) {
 							normal_tangent_stride += sizeof(uint16_t) * 2;
 						} else {
 							normal_tangent_stride += sizeof(uint16_t) * 4;
 						}
 					}
-					if (mis) {
-						buffer = mis->vertex_buffer[p_current_buffer];
-					} else {
-						buffer = s->vertex_buffer;
-					}
 				} break;
 				case RS::ARRAY_TANGENT: {
-					buffer = mesh_default_rd_buffers[i];
 					vd.stride = 0;
 					vd.format = RD::DATA_FORMAT_R32G32B32A32_SFLOAT;
 				} break;
@@ -1262,30 +1230,27 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 
 					vd.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
 					attribute_stride += sizeof(int8_t) * 4;
-					buffer = s->attribute_buffer;
 				} break;
 				case RS::ARRAY_TEX_UV: {
 					vd.offset = attribute_stride;
-					if (s->format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES) {
+					if (p_surface_format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES) {
 						vd.format = RD::DATA_FORMAT_R16G16_UNORM;
 						attribute_stride += sizeof(uint16_t) * 2;
 					} else {
 						vd.format = RD::DATA_FORMAT_R32G32_SFLOAT;
 						attribute_stride += sizeof(float) * 2;
 					}
-					buffer = s->attribute_buffer;
 
 				} break;
 				case RS::ARRAY_TEX_UV2: {
 					vd.offset = attribute_stride;
-					if (s->format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES) {
+					if (p_surface_format & RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES) {
 						vd.format = RD::DATA_FORMAT_R16G16_UNORM;
 						attribute_stride += sizeof(uint16_t) * 2;
 					} else {
 						vd.format = RD::DATA_FORMAT_R32G32_SFLOAT;
 						attribute_stride += sizeof(float) * 2;
 					}
-					buffer = s->attribute_buffer;
 				} break;
 				case RS::ARRAY_CUSTOM0:
 				case RS::ARRAY_CUSTOM1:
@@ -1295,26 +1260,23 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 
 					int idx = i - RS::ARRAY_CUSTOM0;
 					const uint32_t fmt_shift[RS::ARRAY_CUSTOM_COUNT] = { RS::ARRAY_FORMAT_CUSTOM0_SHIFT, RS::ARRAY_FORMAT_CUSTOM1_SHIFT, RS::ARRAY_FORMAT_CUSTOM2_SHIFT, RS::ARRAY_FORMAT_CUSTOM3_SHIFT };
-					uint32_t fmt = (s->format >> fmt_shift[idx]) & RS::ARRAY_FORMAT_CUSTOM_MASK;
+					uint32_t fmt = (p_surface_format >> fmt_shift[idx]) & RS::ARRAY_FORMAT_CUSTOM_MASK;
 					const uint32_t fmtsize[RS::ARRAY_CUSTOM_MAX] = { 4, 4, 4, 8, 4, 8, 12, 16 };
 					const RD::DataFormat fmtrd[RS::ARRAY_CUSTOM_MAX] = { RD::DATA_FORMAT_R8G8B8A8_UNORM, RD::DATA_FORMAT_R8G8B8A8_SNORM, RD::DATA_FORMAT_R16G16_SFLOAT, RD::DATA_FORMAT_R16G16B16A16_SFLOAT, RD::DATA_FORMAT_R32_SFLOAT, RD::DATA_FORMAT_R32G32_SFLOAT, RD::DATA_FORMAT_R32G32B32_SFLOAT, RD::DATA_FORMAT_R32G32B32A32_SFLOAT };
 					vd.format = fmtrd[fmt];
 					attribute_stride += fmtsize[fmt];
-					buffer = s->attribute_buffer;
 				} break;
 				case RS::ARRAY_BONES: {
 					vd.offset = skin_stride;
 
 					vd.format = RD::DATA_FORMAT_R16G16B16A16_UINT;
 					skin_stride += sizeof(int16_t) * 4;
-					buffer = s->skin_buffer;
 				} break;
 				case RS::ARRAY_WEIGHTS: {
 					vd.offset = skin_stride;
 
 					vd.format = RD::DATA_FORMAT_R16G16B16A16_UNORM;
 					skin_stride += sizeof(int16_t) * 4;
-					buffer = s->skin_buffer;
 				} break;
 			}
 		}
@@ -1324,13 +1286,10 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 		}
 
 		attributes.push_back(vd);
-		buffers.push_back(buffer);
-		offsets.push_back(offset);
 
 		if (p_input_motion_vectors) {
-			// Since the previous vertex, normal and tangent can't be part of the vertex format but they are required when motion
-			// vectors are enabled, we opt to push a copy of the vertex attribute with a different location and buffer (if it's
-			// part of an instance that has one).
+			// Since the previous vertex, normal and tangent can't be part of the vertex format but they are required when
+			// motion vectors are enabled, we opt to push a copy of the vertex attribute with a different location.
 			switch (i) {
 				case RS::ARRAY_VERTEX: {
 					vd.location = ATTRIBUTE_LOCATION_PREV_VERTEX;
@@ -1344,25 +1303,21 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 			}
 
 			if (int(vd.location) != i) {
-				if (mis && buffer != mesh_default_rd_buffers[i]) {
-					buffer = mis->vertex_buffer[p_previous_buffer];
-				}
-
 				attributes.push_back(vd);
-				buffers.push_back(buffer);
-				offsets.push_back(offset);
 			}
 		}
 	}
 
-	//update final stride
+	// Update final stride.
 	for (int i = 0; i < attributes.size(); i++) {
 		if (attributes[i].stride == 0) {
-			continue; //default location
+			// Default location.
+			continue;
 		}
+
 		int loc = attributes[i].location;
 		if (loc == RS::ARRAY_VERTEX || loc == ATTRIBUTE_LOCATION_PREV_VERTEX) {
-			attributes.write[i].stride = position_stride;
+			attributes.write[i].stride = r_position_stride;
 		} else if ((loc < RS::ARRAY_COLOR) || ((loc >= ATTRIBUTE_LOCATION_PREV_NORMAL) && (loc <= ATTRIBUTE_LOCATION_PREV_TANGENT))) {
 			attributes.write[i].stride = normal_tangent_stride;
 		} else if (loc < RS::ARRAY_BONES) {
@@ -1372,11 +1327,75 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 		}
 	}
 
+	return RD::get_singleton()->vertex_format_create(attributes);
+}
+
+void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint64_t p_input_mask, bool p_input_motion_vectors, MeshInstance::Surface *mis, uint32_t p_current_buffer, uint32_t p_previous_buffer) {
+	uint32_t position_stride = 0;
+	v.vertex_format = _mesh_surface_generate_vertex_format(s->format, p_input_mask, mis != nullptr, p_input_motion_vectors, position_stride);
+
+	Vector<RID> buffers;
+	Vector<uint64_t> offsets;
+	RID buffer;
+	uint64_t offset = 0;
+	for (int i = 0; i < RS::ARRAY_INDEX; i++) {
+		offset = 0;
+
+		if (!(s->format & (1ULL << i))) {
+			// Not supplied by surface, use default buffers.
+			buffer = mesh_default_rd_buffers[i];
+		} else {
+			// Supplied by surface, use buffer.
+			switch (i) {
+				case RS::ARRAY_VERTEX:
+				case RS::ARRAY_NORMAL:
+					offset = i == RS::ARRAY_NORMAL ? position_stride * s->vertex_count : 0;
+					buffer = mis != nullptr ? mis->vertex_buffer[p_current_buffer] : s->vertex_buffer;
+					break;
+				case RS::ARRAY_TANGENT:
+					buffer = mesh_default_rd_buffers[i];
+					break;
+				case RS::ARRAY_COLOR:
+				case RS::ARRAY_TEX_UV:
+				case RS::ARRAY_TEX_UV2:
+				case RS::ARRAY_CUSTOM0:
+				case RS::ARRAY_CUSTOM1:
+				case RS::ARRAY_CUSTOM2:
+				case RS::ARRAY_CUSTOM3:
+					buffer = s->attribute_buffer;
+					break;
+				case RS::ARRAY_BONES:
+				case RS::ARRAY_WEIGHTS:
+					buffer = s->skin_buffer;
+					break;
+			}
+		}
+
+		if (!(p_input_mask & (1ULL << i))) {
+			continue; // Shader does not need this, skip it (but computing stride was important anyway)
+		}
+
+		buffers.push_back(buffer);
+		offsets.push_back(offset);
+
+		if (p_input_motion_vectors) {
+			// Push the buffer for motion vector inputs.
+			if (i == RS::ARRAY_VERTEX || i == RS::ARRAY_NORMAL || i == RS::ARRAY_TANGENT) {
+				if (mis && buffer != mesh_default_rd_buffers[i]) {
+					buffers.push_back(mis->vertex_buffer[p_previous_buffer]);
+				} else {
+					buffers.push_back(buffer);
+				}
+
+				offsets.push_back(offset);
+			}
+		}
+	}
+
 	v.input_mask = p_input_mask;
 	v.current_buffer = p_current_buffer;
 	v.previous_buffer = p_previous_buffer;
 	v.input_motion_vectors = p_input_motion_vectors;
-	v.vertex_format = RD::get_singleton()->vertex_format_create(attributes);
 	v.vertex_array = RD::get_singleton()->vertex_array_create(s->vertex_count, v.vertex_format, buffers, offsets);
 }
 

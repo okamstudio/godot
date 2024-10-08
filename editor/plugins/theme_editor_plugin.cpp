@@ -3596,6 +3596,13 @@ void ThemeEditor::_theme_close_button_cbk() {
 	}
 }
 
+void ThemeEditor::_scene_closed(const String &p_path) {
+	if (theme.is_valid() && theme->is_built_in() && theme->get_path().get_slice("::", 0) == p_path) {
+		theme = Ref<Theme>();
+		EditorNode::get_singleton()->hide_unused_editors(plugin);
+	}
+}
+
 void ThemeEditor::_add_preview_button_cbk() {
 	preview_scene_dialog->popup_file_dialog();
 }
@@ -3679,7 +3686,10 @@ void ThemeEditor::_preview_control_picked(String p_class_name) {
 
 void ThemeEditor::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
+		case NOTIFICATION_READY: {
+			EditorNode::get_singleton()->connect("scene_closed", callable_mp(this, &ThemeEditor::_scene_closed));
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED: {
 			preview_tabs->add_theme_style_override("tab_selected", get_theme_stylebox(SNAME("ThemeEditorPreviewFG"), EditorStringName(EditorStyles)));
 			preview_tabs->add_theme_style_override("tab_unselected", get_theme_stylebox(SNAME("ThemeEditorPreviewBG"), EditorStringName(EditorStyles)));
@@ -3807,71 +3817,7 @@ void ThemeEditorPlugin::make_visible(bool p_visible) {
 }
 
 bool ThemeEditorPlugin::can_auto_hide() const {
-	Ref<Theme> edited_theme = theme_editor->theme;
-	if (edited_theme.is_null()) {
-		return true;
-	}
-
-	Ref<Resource> edited_resource = Ref<Resource>(InspectorDock::get_inspector_singleton()->get_next_edited_object());
-	if (edited_resource.is_null()) {
-		return true;
-	}
-
-	// Don't hide if edited resource used by this theme.
-	Ref<StyleBox> sbox = edited_resource;
-	if (sbox.is_valid()) {
-		List<StringName> type_list;
-		edited_theme->get_stylebox_type_list(&type_list);
-
-		for (const StringName &E : type_list) {
-			List<StringName> list;
-			edited_theme->get_stylebox_list(E, &list);
-
-			for (const StringName &F : list) {
-				if (edited_theme->get_stylebox(F, E) == sbox) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	Ref<Texture2D> tex = edited_resource;
-	if (tex.is_valid()) {
-		List<StringName> type_list;
-		edited_theme->get_icon_type_list(&type_list);
-
-		for (const StringName &E : type_list) {
-			List<StringName> list;
-			edited_theme->get_icon_list(E, &list);
-
-			for (const StringName &F : list) {
-				if (edited_theme->get_icon(F, E) == tex) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	Ref<Font> fnt = edited_resource;
-	if (fnt.is_valid()) {
-		List<StringName> type_list;
-		edited_theme->get_font_type_list(&type_list);
-
-		for (const StringName &E : type_list) {
-			List<StringName> list;
-			edited_theme->get_font_list(E, &list);
-
-			for (const StringName &F : list) {
-				if (edited_theme->get_font(F, E) == fnt) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	return true;
+	return theme_editor->theme.is_null();
 }
 
 ThemeEditorPlugin::ThemeEditorPlugin() {

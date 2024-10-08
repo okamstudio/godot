@@ -33,15 +33,11 @@
 #include "core/authors.gen.h"
 #include "core/donors.gen.h"
 #include "core/license.gen.h"
-#include "core/os/time.h"
-#include "core/version.h"
 #include "editor/editor_string_names.h"
+#include "editor/gui/editor_version_button.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/item_list.h"
 #include "scene/resources/style_box.h"
-
-// The metadata key used to store and retrieve the version text to copy to the clipboard.
-const String EditorAbout::META_TEXT_TO_COPY = "text_to_copy";
 
 void EditorAbout::_notification(int p_what) {
 	switch (p_what) {
@@ -79,10 +75,6 @@ void EditorAbout::_license_tree_selected() {
 	TreeItem *selected = _tpl_tree->get_selected();
 	_tpl_text->scroll_to_line(0);
 	_tpl_text->set_text(selected->get_metadata(0));
-}
-
-void EditorAbout::_version_button_pressed() {
-	DisplayServer::get_singleton()->clipboard_set(version_btn->get_meta(META_TEXT_TO_COPY));
 }
 
 void EditorAbout::_item_with_website_selected(int p_id, ItemList *p_il) {
@@ -198,25 +190,7 @@ EditorAbout::EditorAbout() {
 	Control *v_spacer = memnew(Control);
 	version_info_vbc->add_child(v_spacer);
 
-	version_btn = memnew(LinkButton);
-	String hash = String(VERSION_HASH);
-	if (hash.length() != 0) {
-		hash = " " + vformat("[%s]", hash.left(9));
-	}
-	version_btn->set_text(VERSION_FULL_NAME + hash);
-	// Set the text to copy in metadata as it slightly differs from the button's text.
-	version_btn->set_meta(META_TEXT_TO_COPY, "v" VERSION_FULL_BUILD + hash);
-	version_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
-	String build_date;
-	if (VERSION_TIMESTAMP > 0) {
-		build_date = Time::get_singleton()->get_datetime_string_from_unix_time(VERSION_TIMESTAMP, true) + " UTC";
-	} else {
-		build_date = TTR("(unknown)");
-	}
-	version_btn->set_tooltip_text(vformat(TTR("Git commit date: %s\nClick to copy the version number."), build_date));
-
-	version_btn->connect(SceneStringName(pressed), callable_mp(this, &EditorAbout::_version_button_pressed));
-	version_info_vbc->add_child(version_btn);
+	version_info_vbc->add_child(memnew(EditorVersionButton(EditorVersionButton::FORMAT_WITH_NAME_AND_BUILD)));
 
 	Label *about_text = memnew(Label);
 	about_text->set_v_size_flags(Control::SIZE_SHRINK_CENTER);

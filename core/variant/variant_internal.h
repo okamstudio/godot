@@ -220,7 +220,7 @@ public:
 	// Should be in the same order as Variant::Type for consistency.
 	// Those primitive and vector types don't need an `init_` method:
 	// Nil, bool, float, Vector2/i, Rect2/i, Vector3/i, Plane, Quat, RID.
-	// Object is a special case, handled via `object_assign_null`.
+	// Object is a special case, handled via `object_reset_data`.
 	_FORCE_INLINE_ static void init_string(Variant *v) {
 		memnew_placement(v->_data._mem, String);
 		v->type = Variant::STRING;
@@ -319,7 +319,7 @@ public:
 		v->type = Variant::PACKED_VECTOR4_ARRAY;
 	}
 	_FORCE_INLINE_ static void init_object(Variant *v) {
-		object_assign_null(v);
+		object_reset_data(v);
 		v->type = Variant::OBJECT;
 	}
 
@@ -327,19 +327,28 @@ public:
 		v->clear();
 	}
 
-	static void object_assign(Variant *v, const Object *o); // Needs RefCounted, so it's implemented elsewhere.
-	static void refcounted_object_assign(Variant *v, const RefCounted *rc);
-
-	_FORCE_INLINE_ static void object_assign(Variant *v, const Variant *o) {
-		object_assign(v, o->_get_obj().obj);
+	_FORCE_INLINE_ static void object_assign(Variant *v, const Variant *vo) {
+		v->_get_obj().ref(vo->_get_obj());
 	}
 
-	_FORCE_INLINE_ static void object_assign_null(Variant *v) {
-		v->_get_obj().obj = nullptr;
-		v->_get_obj().id = ObjectID();
+	_FORCE_INLINE_ static void object_assign(Variant *v, Object *o) {
+		v->_get_obj().ref_pointer(o);
 	}
 
-	static void update_object_id(Variant *v) {
+	_FORCE_INLINE_ static void object_assign(Variant *v, const Object *o) {
+		v->_get_obj().ref_pointer(const_cast<Object *>(o));
+	}
+
+	template <typename T>
+	_FORCE_INLINE_ static void object_assign(Variant *v, const Ref<T> &r) {
+		v->_get_obj().ref(r);
+	}
+
+	_FORCE_INLINE_ static void object_reset_data(Variant *v) {
+		v->_get_obj() = Variant::ObjData();
+	}
+
+	_FORCE_INLINE_ static void update_object_id(Variant *v) {
 		const Object *o = v->_get_obj().obj;
 		if (o) {
 			v->_get_obj().id = o->get_instance_id();

@@ -800,7 +800,7 @@ InspectorDock::InspectorDock(EditorData &p_editor_data) {
 	inspector->set_use_folding(!bool(EDITOR_GET("interface/inspector/disable_folding")));
 	inspector->register_text_enter(search);
 
-	inspector->set_use_filter(true); // TODO: check me
+	inspector->set_use_filter(true);
 
 	inspector->connect("resource_selected", callable_mp(this, &InspectorDock::_resource_selected));
 

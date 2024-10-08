@@ -1507,6 +1507,7 @@ private:
 	bool export_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool export_storage_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool export_custom_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
+	bool export_tool_button_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	template <PropertyUsageFlags t_usage>
 	bool export_group_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool warning_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);

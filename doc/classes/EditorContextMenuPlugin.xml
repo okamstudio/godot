@@ -47,6 +47,24 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="add_context_submenu_item">
+			<return type="void" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="menu" type="PopupMenu" />
+			<param index="2" name="icon" type="Texture2D" default="null" />
+			<description>
+				Add a submenu to the context menu of the plugin's specified slot. The submenu is not automatically handled, you need to connect to its signals yourself. Also the submenu is freed on every popup, so provide a new [PopupMenu] every time.
+				[codeblock]
+				func _popup_menu(paths):
+				    var popup_menu = PopupMenu.new()
+				    popup_menu.add_item("Blue")
+				    popup_menu.add_item("White")
+				    popup_menu.id_pressed.connect(_on_color_submenu_option)
+
+				    add_context_menu_item("Set Node Color", popup_menu)
+				[/codeblock]
+			</description>
+		</method>
 		<method name="add_menu_shortcut">
 			<return type="void" />
 			<param index="0" name="shortcut" type="Shortcut" />

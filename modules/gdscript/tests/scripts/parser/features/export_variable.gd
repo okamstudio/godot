@@ -1,3 +1,4 @@
+@tool
 class_name ExportVariableTest
 extends Node
 
@@ -46,6 +47,10 @@ const PreloadedUnnamedClass = preload("./export_variable_unnamed.notest.gd")
 @export_custom(PROPERTY_HINT_ENUM, "A,B,C") var test_export_custom_untyped
 @export_custom(PROPERTY_HINT_ENUM, "A,B,C") var test_export_custom_weak_int = 5
 @export_custom(PROPERTY_HINT_ENUM, "A,B,C") var test_export_custom_hard_int: int = 6
+
+# `@export_tool_button`.
+@export_tool_button("Click me!") var test_tool_button_1: Callable
+@export_tool_button("Click me!", "ColorRect") var test_tool_button_2: Callable
 
 func test():
 	for property in get_property_list():

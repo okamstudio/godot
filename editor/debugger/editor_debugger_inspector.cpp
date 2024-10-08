@@ -223,7 +223,7 @@ Object *EditorDebuggerInspector::get_object(ObjectID p_id) {
 	return nullptr;
 }
 
-void EditorDebuggerInspector::add_stack_variable(const Array &p_array) {
+void EditorDebuggerInspector::add_stack_variable(const Array &p_array, int p_offset) {
 	DebuggerMarshalls::ScriptStackVariable var;
 	var.deserialize(p_array);
 	String n = var.name;
@@ -248,6 +248,9 @@ void EditorDebuggerInspector::add_stack_variable(const Array &p_array) {
 		case 2:
 			type = "Globals/";
 			break;
+		case 3:
+			type = "Evaluated/";
+			break;
 		default:
 			type = "Unknown/";
 	}
@@ -258,7 +261,15 @@ void EditorDebuggerInspector::add_stack_variable(const Array &p_array) {
 	pinfo.hint = h;
 	pinfo.hint_string = hs;
 
-	variables->prop_list.push_back(pinfo);
+	if ((p_offset == -1) || variables->prop_list.is_empty()) {
+		variables->prop_list.push_back(pinfo);
+	} else {
+		List<PropertyInfo>::Element *current = variables->prop_list.front();
+		for (int i = 0; i < p_offset; i++) {
+			current = current->next();
+		}
+		variables->prop_list.insert_before(current, pinfo);
+	}
 	variables->prop_values[type + n] = v;
 	variables->update();
 	edit(variables);

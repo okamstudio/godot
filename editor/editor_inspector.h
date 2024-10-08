@@ -486,6 +486,7 @@ class EditorInspector : public ScrollContainer {
 	static Ref<EditorInspectorPlugin> inspector_plugins[MAX_PLUGINS];
 	static int inspector_plugin_count;
 
+	EditorInspector *root_inspector = nullptr;
 	VBoxContainer *main_vbox = nullptr;
 
 	// Map used to cache the instantiated editors.
@@ -514,7 +515,6 @@ class EditorInspector : public ScrollContainer {
 	bool update_all_pending = false;
 	bool read_only = false;
 	bool keying = false;
-	bool sub_inspector = false;
 	bool wide_editors = false;
 	bool deletable_properties = false;
 
@@ -644,8 +644,9 @@ public:
 	String get_object_class() const;
 
 	void set_use_wide_editors(bool p_enable);
-	void set_sub_inspector(bool p_enable);
-	bool is_sub_inspector() const { return sub_inspector; }
+	void set_root_inspector(EditorInspector *p_root_inspector);
+	EditorInspector *get_root_inspector() { return is_sub_inspector() ? root_inspector : this; }
+	bool is_sub_inspector() const { return root_inspector != nullptr; }
 
 	void set_use_deletable_properties(bool p_enabled);
 

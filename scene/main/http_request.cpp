@@ -49,7 +49,8 @@ Error HTTPRequest::_parse_url(const String &p_url) {
 	redirections = 0;
 
 	String scheme;
-	Error err = p_url.parse_url(scheme, url, port, request_string);
+	String fragment;
+	Error err = p_url.parse_url(scheme, url, port, request_string, fragment);
 	ERR_FAIL_COND_V_MSG(err != OK, err, vformat("Error parsing URL: '%s'.", p_url));
 
 	if (scheme == "https://") {

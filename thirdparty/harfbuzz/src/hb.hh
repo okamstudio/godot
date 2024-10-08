@@ -84,6 +84,7 @@
 #pragma GCC diagnostic error   "-Wredundant-decls"
 #pragma GCC diagnostic error   "-Wreorder"
 #pragma GCC diagnostic error   "-Wsign-compare"
+#pragma GCC diagnostic error   "-Wstrict-flex-arrays"
 #pragma GCC diagnostic error   "-Wstrict-prototypes"
 #pragma GCC diagnostic error   "-Wstring-conversion"
 #pragma GCC diagnostic error   "-Wswitch-enum"

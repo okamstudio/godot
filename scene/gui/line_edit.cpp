@@ -45,17 +45,27 @@
 #include "editor/editor_settings.h"
 #endif
 
-void LineEdit::_edit() {
+void LineEdit::edit() {
 	if (!is_inside_tree()) {
 		return;
 	}
 
 	if (!has_focus()) {
 		grab_focus();
+		return;
 	}
 
 	if (!editable || editing) {
 		return;
+	}
+
+	if (select_all_on_focus) {
+		if (Input::get_singleton()->is_mouse_button_pressed(MouseButton::LEFT)) {
+			// Select all when the mouse button is up.
+			pending_select_all_on_focus = true;
+		} else {
+			select_all();
+		}
 	}
 
 	editing = true;
@@ -63,10 +73,9 @@ void LineEdit::_edit() {
 
 	show_virtual_keyboard();
 	queue_redraw();
-	emit_signal(SNAME("editing_toggled"), true);
 }
 
-void LineEdit::_unedit() {
+void LineEdit::unedit() {
 	if (!editing) {
 		return;
 	}
@@ -84,8 +93,6 @@ void LineEdit::_unedit() {
 	if (deselect_on_focus_loss_enabled && !selection.drag_attempt) {
 		deselect();
 	}
-
-	emit_signal(SNAME("editing_toggled"), false);
 }
 
 bool LineEdit::is_editing() const {
@@ -390,7 +397,8 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 			}
 
 			if (editable && !editing) {
-				_edit();
+				edit();
+				emit_signal(SNAME("editing_toggled"), true);
 			}
 
 			accept_event();
@@ -406,7 +414,8 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 			set_caret_at_pixel_pos(b->get_position().x);
 
 			if (!editing) {
-				_edit();
+				edit();
+				emit_signal(SNAME("editing_toggled"), true);
 			}
 
 			if (!paste_buffer.is_empty()) {
@@ -506,7 +515,8 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 			}
 
 			if (editable && !editing) {
-				_edit();
+				edit();
+				emit_signal(SNAME("editing_toggled"), true);
 				return;
 			}
 			queue_redraw();
@@ -599,7 +609,9 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	}
 
 	if (editable && !editing && k->is_action_pressed("ui_text_submit", false)) {
-		_edit();
+		edit();
+		emit_signal(SNAME("editing_toggled"), true);
+		accept_event();
 		return;
 	}
 
@@ -734,7 +746,8 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 		}
 
 		if (editing) {
-			_unedit();
+			unedit();
+			emit_signal(SNAME("editing_toggled"), false);
 		}
 
 		accept_event();
@@ -743,7 +756,8 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 
 	if (k->is_action("ui_cancel")) {
 		if (editing) {
-			_unedit();
+			unedit();
+			emit_signal(SNAME("editing_toggled"), false);
 		}
 
 		accept_event();
@@ -1332,24 +1346,17 @@ void LineEdit::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_FOCUS_ENTER: {
-			if (select_all_on_focus) {
-				if (Input::get_singleton()->is_mouse_button_pressed(MouseButton::LEFT)) {
-					// Select all when the mouse button is up.
-					pending_select_all_on_focus = true;
-				} else {
-					select_all();
-				}
-			}
-
 			// Only allow editing if the LineEdit is not focused with arrow keys.
 			if (!(Input::get_singleton()->is_action_pressed("ui_up") || Input::get_singleton()->is_action_pressed("ui_down") || Input::get_singleton()->is_action_pressed("ui_left") || Input::get_singleton()->is_action_pressed("ui_right"))) {
-				_edit();
+				edit();
+				emit_signal(SNAME("editing_toggled"), true);
 			}
 		} break;
 
 		case NOTIFICATION_FOCUS_EXIT: {
 			if (editing) {
-				_unedit();
+				unedit();
+				emit_signal(SNAME("editing_toggled"), false);
 			}
 		} break;
 
@@ -2138,7 +2145,8 @@ void LineEdit::set_editable(bool p_editable) {
 	editable = p_editable;
 
 	if (!editable && editing) {
-		_unedit();
+		unedit();
+		emit_signal(SNAME("editing_toggled"), false);
 	}
 	_validate_caret_can_draw();
 
@@ -2759,6 +2767,8 @@ void LineEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_horizontal_alignment", "alignment"), &LineEdit::set_horizontal_alignment);
 	ClassDB::bind_method(D_METHOD("get_horizontal_alignment"), &LineEdit::get_horizontal_alignment);
 
+	ClassDB::bind_method(D_METHOD("edit"), &LineEdit::edit);
+	ClassDB::bind_method(D_METHOD("unedit"), &LineEdit::unedit);
 	ClassDB::bind_method(D_METHOD("is_editing"), &LineEdit::is_editing);
 	ClassDB::bind_method(D_METHOD("clear"), &LineEdit::clear);
 	ClassDB::bind_method(D_METHOD("select", "from", "to"), &LineEdit::select, DEFVAL(0), DEFVAL(-1));

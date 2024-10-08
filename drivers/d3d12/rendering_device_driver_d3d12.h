@@ -80,7 +80,6 @@ using Microsoft::WRL::ComPtr;
 #define D3D12_BITCODE_OFFSETS_NUM_STAGES 3
 
 #ifdef DEV_ENABLED
-//#define DEBUG_COUNT_BARRIERS
 #define CUSTOM_INFO_QUEUE_ENABLED 0
 #endif
 
@@ -223,20 +222,6 @@ private:
 
 	ComPtr<D3D12MA::Allocator> allocator;
 
-#define USE_SMALL_ALLOCS_POOL // Disabled by now; seems not to be beneficial as it is in Vulkan.
-#ifdef USE_SMALL_ALLOCS_POOL
-	union AllocPoolKey {
-		struct {
-			D3D12_HEAP_TYPE heap_type;
-			D3D12_HEAP_FLAGS heap_flags;
-		};
-		uint64_t key = 0;
-	};
-	HashMap<uint64_t, ComPtr<D3D12MA::Pool>> small_allocs_pools;
-
-	D3D12MA::Pool *_find_or_create_small_allocs_pool(D3D12_HEAP_TYPE p_heap_type, D3D12_HEAP_FLAGS p_heap_flags);
-#endif
-
 	/******************/
 	/**** RESOURCE ****/
 	/******************/
@@ -274,20 +259,11 @@ private:
 		uint8_t groups_count = 0;
 		static const D3D12_RESOURCE_STATES DELETED_GROUP = D3D12_RESOURCE_STATES(0xFFFFFFFFU);
 	};
-	PagedAllocator<HashMapElement<ResourceInfo::States *, BarrierRequest>> res_barriers_requests_allocator;
-	HashMap<ResourceInfo::States *, BarrierRequest, HashMapHasherDefault, HashMapComparatorDefault<ResourceInfo::States *>, decltype(res_barriers_requests_allocator)> res_barriers_requests;
 
-	LocalVector<D3D12_RESOURCE_BARRIER> res_barriers;
-	uint32_t res_barriers_count = 0;
-	uint32_t res_barriers_batch = 0;
-#ifdef DEBUG_COUNT_BARRIERS
-	int frame_barriers_count = 0;
-	int frame_barriers_batches_count = 0;
-	uint64_t frame_barriers_cpu_time = 0;
-#endif
+	struct CommandBufferInfo;
 
-	void _resource_transition_batch(ResourceInfo *p_resource, uint32_t p_subresource, uint32_t p_num_planes, D3D12_RESOURCE_STATES p_new_state);
-	void _resource_transitions_flush(ID3D12GraphicsCommandList *p_cmd_list);
+	void _resource_transition_batch(CommandBufferInfo *p_command_buffer, ResourceInfo *p_resource, uint32_t p_subresource, uint32_t p_num_planes, D3D12_RESOURCE_STATES p_new_state);
+	void _resource_transitions_flush(CommandBufferInfo *p_command_buffer);
 
 	/*****************/
 	/**** BUFFERS ****/
@@ -334,6 +310,7 @@ private:
 	SelfList<TextureInfo>::List textures_pending_clear;
 
 	HashMap<DXGI_FORMAT, uint32_t> format_sample_counts_mask_cache;
+	Mutex format_sample_counts_mask_cache_mutex;
 
 	uint32_t _find_max_common_supported_sample_count(VectorView<DXGI_FORMAT> p_formats);
 	UINT _compute_component_mapping(const TextureView &p_view);
@@ -341,7 +318,6 @@ private:
 	UINT _compute_plane_slice(DataFormat p_format, TextureAspect p_aspect);
 	UINT _compute_subresource_from_layers(TextureInfo *p_texture, const TextureSubresourceLayers &p_layers, uint32_t p_layer_offset);
 
-	struct CommandBufferInfo;
 	void _discard_texture_subresources(const TextureInfo *p_tex_info, const CommandBufferInfo *p_cmd_buf_info);
 
 protected:
@@ -492,6 +468,11 @@ private:
 
 		RenderPassState render_pass_state;
 		bool descriptor_heaps_set = false;
+
+		HashMap<ResourceInfo::States *, BarrierRequest> res_barriers_requests;
+		LocalVector<D3D12_RESOURCE_BARRIER> res_barriers;
+		uint32_t res_barriers_count = 0;
+		uint32_t res_barriers_batch = 0;
 	};
 
 public:
@@ -797,10 +778,25 @@ public:
 	/**** PIPELINE ****/
 	/******************/
 
-	virtual void pipeline_free(PipelineID p_pipeline) override final;
+	struct RenderPipelineInfo {
+		const VertexFormatInfo *vf_info = nullptr;
 
-private:
-	HashMap<ID3D12PipelineState *, const ShaderInfo *> pipelines_shaders;
+		struct {
+			D3D12_PRIMITIVE_TOPOLOGY primitive_topology = {};
+			Color blend_constant;
+			float depth_bounds_min = 0.0f;
+			float depth_bounds_max = 0.0f;
+			uint32_t stencil_reference = 0;
+		} dyn_params;
+	};
+
+	struct PipelineInfo {
+		ID3D12PipelineState *pso = nullptr;
+		const ShaderInfo *shader_info = nullptr;
+		RenderPipelineInfo render_info;
+	};
+
+	virtual void pipeline_free(PipelineID p_pipeline) override final;
 
 public:
 	// ----- BINDING -----
@@ -872,20 +868,6 @@ public:
 	virtual void command_render_set_line_width(CommandBufferID p_cmd_buffer, float p_width) override final;
 
 	// ----- PIPELINE -----
-
-private:
-	struct RenderPipelineExtraInfo {
-		struct {
-			D3D12_PRIMITIVE_TOPOLOGY primitive_topology = {};
-			Color blend_constant;
-			float depth_bounds_min = 0.0f;
-			float depth_bounds_max = 0.0f;
-			uint32_t stencil_reference = 0;
-		} dyn_params;
-
-		const VertexFormatInfo *vf_info = nullptr;
-	};
-	HashMap<ID3D12PipelineState *, RenderPipelineExtraInfo> render_psos_extra_info;
 
 public:
 	virtual PipelineID render_pipeline_create(
@@ -1034,7 +1016,7 @@ private:
 			UniformSetInfo,
 			RenderPassInfo,
 			TimestampQueryPoolInfo>;
-	PagedAllocator<VersatileResource> resources_allocator;
+	PagedAllocator<VersatileResource, true> resources_allocator;
 
 	/******************/
 

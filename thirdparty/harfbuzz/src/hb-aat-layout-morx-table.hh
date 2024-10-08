@@ -170,6 +170,11 @@ struct RearrangementSubtable
     driver_context_t dc (this);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -267,6 +272,7 @@ struct ContextualSubtable
       {
 	buffer->unsafe_to_break (mark, hb_min (buffer->idx + 1, buffer->len));
 	buffer->info[mark].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[mark],
 					  gdef.get_glyph_props (*replacement));
@@ -296,6 +302,7 @@ struct ContextualSubtable
       if (replacement)
       {
 	buffer->info[idx].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&buffer->info[idx],
 					  gdef.get_glyph_props (*replacement));
@@ -328,6 +335,11 @@ struct ContextualSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -586,6 +598,11 @@ struct LigatureSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -654,6 +671,7 @@ struct NoncontextualSubtable
       if (replacement)
       {
 	info[i].codepoint = *replacement;
+	c->buffer_digest.add (*replacement);
 	if (has_glyph_classes)
 	  _hb_glyph_info_set_glyph_props (&info[i],
 					  gdef.get_glyph_props (*replacement));
@@ -788,6 +806,9 @@ struct InsertionSubtable
 	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	if (unlikely (!buffer->replace_glyphs (0, count, glyphs))) return;
+	for (unsigned int i = 0; i < count; i++)
+	  c->buffer_digest.add (glyphs[i]);
+	ret = true;
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
@@ -853,6 +874,11 @@ struct InsertionSubtable
     driver_context_t dc (this, c);
 
     StateTableDriver<Types, EntryData> driver (machine, c->face);
+
+    if (driver.is_idempotent_on_all_out_of_bounds (&dc, c) &&
+	!c->buffer_digest.may_have (c->machine_glyph_set))
+      return_trace (false);
+
     driver.drive (&dc, c);
 
     return_trace (dc.ret);
@@ -1036,7 +1062,8 @@ struct ChainSubtable
   bool apply (hb_aat_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    hb_sanitize_with_object_t with (&c->sanitizer, this);
+    // Disabled for https://github.com/harfbuzz/harfbuzz/issues/4873
+    //hb_sanitize_with_object_t with (&c->sanitizer, this);
     return_trace (dispatch (c));
   }
 
@@ -1049,7 +1076,8 @@ struct ChainSubtable
 	  c->check_range (this, length)))
       return_trace (false);
 
-    hb_sanitize_with_object_t with (c, this);
+    // Disabled for https://github.com/harfbuzz/harfbuzz/issues/4873
+    //hb_sanitize_with_object_t with (c, this);
     return_trace (dispatch (c));
   }
 
@@ -1347,6 +1375,11 @@ struct mortmorx
     if (unlikely (!c->buffer->successful)) return;
 
     c->buffer->unsafe_to_concat ();
+
+    if (c->buffer->len < HB_AAT_BUFFER_DIGEST_THRESHOLD)
+      c->buffer_digest = c->buffer->digest ();
+    else
+      c->buffer_digest = hb_set_digest_t::full ();
 
     c->set_lookup_index (0);
     const Chain<Types> *chain = &firstChain;

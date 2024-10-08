@@ -222,9 +222,15 @@ Error EditorExportPlatformPC::export_project_data(const Ref<EditorExportPreset> 
 				err = da->make_dir_recursive(target_path);
 				if (err == OK) {
 					err = da->copy_dir(src_path, target_path, -1, true);
+					if (err != OK) {
+						add_message(EXPORT_MESSAGE_ERROR, TTR("GDExtension"), TTR(vformat("Failed to copy shared object \"%s\".", src_path)));
+					}
 				}
 			} else {
 				err = da->copy(src_path, target_path);
+				if (err != OK) {
+					add_message(EXPORT_MESSAGE_ERROR, TTR("GDExtension"), TTR(vformat("Failed to copy shared object \"%s\".", src_path)));
+				}
 				if (err == OK) {
 					err = sign_shared_object(p_preset, p_debug, target_path);
 				}

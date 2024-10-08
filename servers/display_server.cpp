@@ -634,6 +634,10 @@ int DisplayServer::virtual_keyboard_get_height() const {
 	ERR_FAIL_V_MSG(0, "Virtual keyboard not supported by this display server.");
 }
 
+bool DisplayServer::has_hardware_keyboard() const {
+	return true;
+}
+
 void DisplayServer::cursor_set_shape(CursorShape p_shape) {
 	WARN_PRINT("Cursor shape not supported by this display server.");
 }
@@ -976,6 +980,8 @@ void DisplayServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("virtual_keyboard_get_height"), &DisplayServer::virtual_keyboard_get_height);
 
+	ClassDB::bind_method(D_METHOD("has_hardware_keyboard"), &DisplayServer::has_hardware_keyboard);
+
 	ClassDB::bind_method(D_METHOD("cursor_set_shape", "shape"), &DisplayServer::cursor_set_shape);
 	ClassDB::bind_method(D_METHOD("cursor_get_shape"), &DisplayServer::cursor_get_shape);
 	ClassDB::bind_method(D_METHOD("cursor_set_custom_image", "cursor", "shape", "hotspot"), &DisplayServer::cursor_set_custom_image, DEFVAL(CURSOR_ARROW), DEFVAL(Vector2()));
@@ -1229,6 +1235,12 @@ bool DisplayServer::can_create_rendering_device() {
 		return true;
 	}
 
+	if (created_rendering_device == RenderingDeviceCreationStatus::SUCCESS) {
+		return true;
+	} else if (created_rendering_device == RenderingDeviceCreationStatus::FAILURE) {
+		return false;
+	}
+
 	Error err;
 	RenderingContextDriver *rcd = nullptr;
 
@@ -1258,7 +1270,14 @@ bool DisplayServer::can_create_rendering_device() {
 			memdelete(rd);
 			rd = nullptr;
 			if (err == OK) {
+				// Creating a RenderingDevice is quite slow.
+				// Cache the result for future usage, so that it's much faster on subsequent calls.
+				created_rendering_device = RenderingDeviceCreationStatus::SUCCESS;
+				memdelete(rcd);
+				rcd = nullptr;
 				return true;
+			} else {
+				created_rendering_device = RenderingDeviceCreationStatus::FAILURE;
 			}
 		}
 

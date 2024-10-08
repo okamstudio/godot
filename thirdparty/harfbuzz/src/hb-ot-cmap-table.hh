@@ -43,27 +43,145 @@ namespace OT {
 
 static inline uint8_t unicode_to_macroman (hb_codepoint_t u)
 {
-  uint16_t mapping[] = {
-    0x00C4, 0x00C5, 0x00C7, 0x00C9, 0x00D1, 0x00D6, 0x00DC, 0x00E1,
-    0x00E0, 0x00E2, 0x00E4, 0x00E3, 0x00E5, 0x00E7, 0x00E9, 0x00E8,
-    0x00EA, 0x00EB, 0x00ED, 0x00EC, 0x00EE, 0x00EF, 0x00F1, 0x00F3,
-    0x00F2, 0x00F4, 0x00F6, 0x00F5, 0x00FA, 0x00F9, 0x00FB, 0x00FC,
-    0x2020, 0x00B0, 0x00A2, 0x00A3, 0x00A7, 0x2022, 0x00B6, 0x00DF,
-    0x00AE, 0x00A9, 0x2122, 0x00B4, 0x00A8, 0x2260, 0x00C6, 0x00D8,
-    0x221E, 0x00B1, 0x2264, 0x2265, 0x00A5, 0x00B5, 0x2202, 0x2211,
-    0x220F, 0x03C0, 0x222B, 0x00AA, 0x00BA, 0x03A9, 0x00E6, 0x00F8,
-    0x00BF, 0x00A1, 0x00AC, 0x221A, 0x0192, 0x2248, 0x2206, 0x00AB,
-    0x00BB, 0x2026, 0x00A0, 0x00C0, 0x00C3, 0x00D5, 0x0152, 0x0153,
-    0x2013, 0x2014, 0x201C, 0x201D, 0x2018, 0x2019, 0x00F7, 0x25CA,
-    0x00FF, 0x0178, 0x2044, 0x20AC, 0x2039, 0x203A, 0xFB01, 0xFB02,
-    0x2021, 0x00B7, 0x201A, 0x201E, 0x2030, 0x00C2, 0x00CA, 0x00C1,
-    0x00CB, 0x00C8, 0x00CD, 0x00CE, 0x00CF, 0x00CC, 0x00D3, 0x00D4,
-    0xF8FF, 0x00D2, 0x00DA, 0x00DB, 0x00D9, 0x0131, 0x02C6, 0x02DC,
-    0x00AF, 0x02D8, 0x02D9, 0x02DA, 0x00B8, 0x02DD, 0x02DB, 0x02C7
+  static const struct unicode_to_macroman_t
+  {
+    uint16_t unicode;
+    uint8_t macroman;
+  }
+  mapping[] =
+  {
+    { 0x00A0, 0xCA },
+    { 0x00A1, 0xC1 },
+    { 0x00A2, 0xA2 },
+    { 0x00A3, 0xA3 },
+    { 0x00A5, 0xB4 },
+    { 0x00A7, 0xA4 },
+    { 0x00A8, 0xAC },
+    { 0x00A9, 0xA9 },
+    { 0x00AA, 0xBB },
+    { 0x00AB, 0xC7 },
+    { 0x00AC, 0xC2 },
+    { 0x00AE, 0xA8 },
+    { 0x00AF, 0xF8 },
+    { 0x00B0, 0xA1 },
+    { 0x00B1, 0xB1 },
+    { 0x00B4, 0xAB },
+    { 0x00B5, 0xB5 },
+    { 0x00B6, 0xA6 },
+    { 0x00B7, 0xE1 },
+    { 0x00B8, 0xFC },
+    { 0x00BA, 0xBC },
+    { 0x00BB, 0xC8 },
+    { 0x00BF, 0xC0 },
+    { 0x00C0, 0xCB },
+    { 0x00C1, 0xE7 },
+    { 0x00C2, 0xE5 },
+    { 0x00C3, 0xCC },
+    { 0x00C4, 0x80 },
+    { 0x00C5, 0x81 },
+    { 0x00C6, 0xAE },
+    { 0x00C7, 0x82 },
+    { 0x00C8, 0xE9 },
+    { 0x00C9, 0x83 },
+    { 0x00CA, 0xE6 },
+    { 0x00CB, 0xE8 },
+    { 0x00CC, 0xED },
+    { 0x00CD, 0xEA },
+    { 0x00CE, 0xEB },
+    { 0x00CF, 0xEC },
+    { 0x00D1, 0x84 },
+    { 0x00D2, 0xF1 },
+    { 0x00D3, 0xEE },
+    { 0x00D4, 0xEF },
+    { 0x00D5, 0xCD },
+    { 0x00D6, 0x85 },
+    { 0x00D8, 0xAF },
+    { 0x00D9, 0xF4 },
+    { 0x00DA, 0xF2 },
+    { 0x00DB, 0xF3 },
+    { 0x00DC, 0x86 },
+    { 0x00DF, 0xA7 },
+    { 0x00E0, 0x88 },
+    { 0x00E1, 0x87 },
+    { 0x00E2, 0x89 },
+    { 0x00E3, 0x8B },
+    { 0x00E4, 0x8A },
+    { 0x00E5, 0x8C },
+    { 0x00E6, 0xBE },
+    { 0x00E7, 0x8D },
+    { 0x00E8, 0x8F },
+    { 0x00E9, 0x8E },
+    { 0x00EA, 0x90 },
+    { 0x00EB, 0x91 },
+    { 0x00EC, 0x93 },
+    { 0x00ED, 0x92 },
+    { 0x00EE, 0x94 },
+    { 0x00EF, 0x95 },
+    { 0x00F1, 0x96 },
+    { 0x00F2, 0x98 },
+    { 0x00F3, 0x97 },
+    { 0x00F4, 0x99 },
+    { 0x00F5, 0x9B },
+    { 0x00F6, 0x9A },
+    { 0x00F7, 0xD6 },
+    { 0x00F8, 0xBF },
+    { 0x00F9, 0x9D },
+    { 0x00FA, 0x9C },
+    { 0x00FB, 0x9E },
+    { 0x00FC, 0x9F },
+    { 0x00FF, 0xD8 },
+    { 0x0131, 0xF5 },
+    { 0x0152, 0xCE },
+    { 0x0153, 0xCF },
+    { 0x0178, 0xD9 },
+    { 0x0192, 0xC4 },
+    { 0x02C6, 0xF6 },
+    { 0x02C7, 0xFF },
+    { 0x02D8, 0xF9 },
+    { 0x02D9, 0xFA },
+    { 0x02DA, 0xFB },
+    { 0x02DB, 0xFE },
+    { 0x02DC, 0xF7 },
+    { 0x02DD, 0xFD },
+    { 0x03A9, 0xBD },
+    { 0x03C0, 0xB9 },
+    { 0x2013, 0xD0 },
+    { 0x2014, 0xD1 },
+    { 0x2018, 0xD4 },
+    { 0x2019, 0xD5 },
+    { 0x201A, 0xE2 },
+    { 0x201C, 0xD2 },
+    { 0x201D, 0xD3 },
+    { 0x201E, 0xE3 },
+    { 0x2020, 0xA0 },
+    { 0x2021, 0xE0 },
+    { 0x2022, 0xA5 },
+    { 0x2026, 0xC9 },
+    { 0x2030, 0xE4 },
+    { 0x2039, 0xDC },
+    { 0x203A, 0xDD },
+    { 0x2044, 0xDA },
+    { 0x20AC, 0xDB },
+    { 0x2122, 0xAA },
+    { 0x2202, 0xB6 },
+    { 0x2206, 0xC6 },
+    { 0x220F, 0xB8 },
+    { 0x2211, 0xB7 },
+    { 0x221A, 0xC3 },
+    { 0x221E, 0xB0 },
+    { 0x222B, 0xBA },
+    { 0x2248, 0xC5 },
+    { 0x2260, 0xAD },
+    { 0x2264, 0xB2 },
+    { 0x2265, 0xB3 },
+    { 0x25CA, 0xD7 },
+    { 0xF8FF, 0xF0 },
+    { 0xFB01, 0xDE },
+    { 0xFB02, 0xDF },
   };
-  uint16_t *c = hb_bsearch (u, mapping, ARRAY_LENGTH (mapping), sizeof (mapping[0]),
-			    _hb_cmp_operator<uint16_t, uint16_t>);
-  return c ? (c - mapping) + 0x7F : 0;
+  auto *c = hb_bsearch (u, mapping, ARRAY_LENGTH (mapping), sizeof (mapping[0]),
+			_hb_cmp_operator<uint16_t, uint16_t>);
+  return c ? c->macroman : 0;
 }
 
 struct CmapSubtableFormat0
@@ -1379,12 +1497,12 @@ struct CmapSubtable
 		  hb_codepoint_t *glyph) const
   {
     switch (u.format) {
-    case  0: return u.format0 .get_glyph (codepoint, glyph);
-    case  4: return u.format4 .get_glyph (codepoint, glyph);
-    case  6: return u.format6 .get_glyph (codepoint, glyph);
-    case 10: return u.format10.get_glyph (codepoint, glyph);
-    case 12: return u.format12.get_glyph (codepoint, glyph);
-    case 13: return u.format13.get_glyph (codepoint, glyph);
+    case  0: hb_barrier (); return u.format0 .get_glyph (codepoint, glyph);
+    case  4: hb_barrier (); return u.format4 .get_glyph (codepoint, glyph);
+    case  6: hb_barrier (); return u.format6 .get_glyph (codepoint, glyph);
+    case 10: hb_barrier (); return u.format10.get_glyph (codepoint, glyph);
+    case 12: hb_barrier (); return u.format12.get_glyph (codepoint, glyph);
+    case 13: hb_barrier (); return u.format13.get_glyph (codepoint, glyph);
     case 14:
     default: return false;
     }
@@ -1392,12 +1510,12 @@ struct CmapSubtable
   void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
-    case  0: u.format0 .collect_unicodes (out); return;
-    case  4: u.format4 .collect_unicodes (out); return;
-    case  6: u.format6 .collect_unicodes (out); return;
-    case 10: u.format10.collect_unicodes (out); return;
-    case 12: u.format12.collect_unicodes (out, num_glyphs); return;
-    case 13: u.format13.collect_unicodes (out, num_glyphs); return;
+    case  0: hb_barrier (); u.format0 .collect_unicodes (out); return;
+    case  4: hb_barrier (); u.format4 .collect_unicodes (out); return;
+    case  6: hb_barrier (); u.format6 .collect_unicodes (out); return;
+    case 10: hb_barrier (); u.format10.collect_unicodes (out); return;
+    case 12: hb_barrier (); u.format12.collect_unicodes (out, num_glyphs); return;
+    case 13: hb_barrier (); u.format13.collect_unicodes (out, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1408,12 +1526,12 @@ struct CmapSubtable
 			unsigned num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
-    case  0: u.format0 .collect_mapping (unicodes, mapping); return;
-    case  4: u.format4 .collect_mapping (unicodes, mapping); return;
-    case  6: u.format6 .collect_mapping (unicodes, mapping); return;
-    case 10: u.format10.collect_mapping (unicodes, mapping); return;
-    case 12: u.format12.collect_mapping (unicodes, mapping, num_glyphs); return;
-    case 13: u.format13.collect_mapping (unicodes, mapping, num_glyphs); return;
+    case  0: hb_barrier (); u.format0 .collect_mapping (unicodes, mapping); return;
+    case  4: hb_barrier (); u.format4 .collect_mapping (unicodes, mapping); return;
+    case  6: hb_barrier (); u.format6 .collect_mapping (unicodes, mapping); return;
+    case 10: hb_barrier (); u.format10.collect_mapping (unicodes, mapping); return;
+    case 12: hb_barrier (); u.format12.collect_mapping (unicodes, mapping, num_glyphs); return;
+    case 13: hb_barrier (); u.format13.collect_mapping (unicodes, mapping, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1422,12 +1540,12 @@ struct CmapSubtable
   unsigned get_language () const
   {
     switch (u.format) {
-    case  0: return u.format0 .get_language ();
-    case  4: return u.format4 .get_language ();
-    case  6: return u.format6 .get_language ();
-    case 10: return u.format10.get_language ();
-    case 12: return u.format12.get_language ();
-    case 13: return u.format13.get_language ();
+    case  0: hb_barrier (); return u.format0 .get_language ();
+    case  4: hb_barrier (); return u.format4 .get_language ();
+    case  6: hb_barrier (); return u.format6 .get_language ();
+    case 10: hb_barrier (); return u.format10.get_language ();
+    case 12: hb_barrier (); return u.format12.get_language ();
+    case 13: hb_barrier (); return u.format13.get_language ();
     case 14:
     default: return 0;
     }
@@ -1442,9 +1560,9 @@ struct CmapSubtable
 		  const void *base)
   {
     switch (format) {
-    case  4: return u.format4.serialize (c, it);
-    case 12: return u.format12.serialize (c, it);
-    case 14: return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
+    case  4: hb_barrier (); return u.format4.serialize (c, it);
+    case 12: hb_barrier (); return u.format12.serialize (c, it);
+    case 14: hb_barrier (); return u.format14.serialize (c, &plan->unicodes, &plan->glyphs_requested, plan->glyph_map, base);
     default: return;
     }
   }
@@ -1455,13 +1573,13 @@ struct CmapSubtable
     if (!u.format.sanitize (c)) return_trace (false);
     hb_barrier ();
     switch (u.format) {
-    case  0: return_trace (u.format0 .sanitize (c));
-    case  4: return_trace (u.format4 .sanitize (c));
-    case  6: return_trace (u.format6 .sanitize (c));
-    case 10: return_trace (u.format10.sanitize (c));
-    case 12: return_trace (u.format12.sanitize (c));
-    case 13: return_trace (u.format13.sanitize (c));
-    case 14: return_trace (u.format14.sanitize (c));
+    case  0: hb_barrier (); return_trace (u.format0 .sanitize (c));
+    case  4: hb_barrier (); return_trace (u.format4 .sanitize (c));
+    case  6: hb_barrier (); return_trace (u.format6 .sanitize (c));
+    case 10: hb_barrier (); return_trace (u.format10.sanitize (c));
+    case 12: hb_barrier (); return_trace (u.format12.sanitize (c));
+    case 13: hb_barrier (); return_trace (u.format13.sanitize (c));
+    case 14: hb_barrier (); return_trace (u.format14.sanitize (c));
     default:return_trace (true);
     }
   }

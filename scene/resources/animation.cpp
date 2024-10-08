@@ -63,6 +63,23 @@ bool Animation::_set(const StringName &p_name, const Variant &p_value) {
 		}
 		compression.enabled = true;
 		return true;
+	} else if (prop_name == SNAME("markers")) {
+		Array markers = p_value;
+		for (const Dictionary marker : markers) {
+			ERR_FAIL_COND_V(!marker.has("name"), false);
+			ERR_FAIL_COND_V(!marker.has("time"), false);
+			StringName marker_name = marker["name"];
+			double time = marker["time"];
+			_marker_insert(time, marker_names, MarkerKey(time, marker_name));
+			marker_times.insert(marker_name, time);
+			Color color = Color(1, 1, 1);
+			if (marker.has("color")) {
+				color = marker["color"];
+			}
+			marker_colors.insert(marker_name, color);
+		}
+
+		return true;
 	} else if (prop_name.begins_with("tracks/")) {
 		int track = prop_name.get_slicec('/', 1).to_int();
 		String what = prop_name.get_slicec('/', 2);
@@ -470,6 +487,18 @@ bool Animation::_get(const StringName &p_name, Variant &r_ret) const {
 
 		r_ret = comp;
 		return true;
+	} else if (prop_name == SNAME("markers")) {
+		Array markers;
+
+		for (HashMap<StringName, double>::ConstIterator E = marker_times.begin(); E; ++E) {
+			Dictionary d;
+			d["name"] = E->key;
+			d["time"] = E->value;
+			d["color"] = marker_colors[E->key];
+			markers.push_back(d);
+		}
+
+		r_ret = markers;
 	} else if (prop_name == "length") {
 		r_ret = length;
 	} else if (prop_name == "loop_mode") {
@@ -839,6 +868,7 @@ void Animation::_get_property_list(List<PropertyInfo> *p_list) const {
 	if (compression.enabled) {
 		p_list->push_back(PropertyInfo(Variant::DICTIONARY, "_compression", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL));
 	}
+	p_list->push_back(PropertyInfo(Variant::ARRAY, "markers", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL));
 	for (int i = 0; i < tracks.size(); i++) {
 		p_list->push_back(PropertyInfo(Variant::STRING, "tracks/" + itos(i) + "/type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL));
 		p_list->push_back(PropertyInfo(Variant::BOOL, "tracks/" + itos(i) + "/imported", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL));
@@ -1073,6 +1103,27 @@ int Animation::_insert(double p_time, T &p_keys, const V &p_value) {
 			float transition = p_keys[idx - 1].transition;
 			p_keys.write[idx - 1] = p_value;
 			p_keys.write[idx - 1].transition = transition;
+			return idx - 1;
+
+			// Condition for insert.
+		} else if (idx == 0 || p_keys[idx - 1].time < p_time) {
+			p_keys.insert(idx, p_value);
+			return idx;
+		}
+
+		idx--;
+	}
+
+	return -1;
+}
+
+int Animation::_marker_insert(double p_time, Vector<MarkerKey> &p_keys, const MarkerKey &p_value) {
+	int idx = p_keys.size();
+
+	while (true) {
+		// Condition for replacement.
+		if (idx > 0 && Math::is_equal_approx((double)p_keys[idx - 1].time, p_time)) {
+			p_keys.write[idx - 1] = p_value;
 			return idx - 1;
 
 			// Condition for insert.
@@ -3163,6 +3214,90 @@ void Animation::track_get_key_indices_in_range(int p_track, double p_time, doubl
 	}
 }
 
+void Animation::add_marker(const StringName &p_name, double p_time) {
+	int idx = _find(marker_names, p_time);
+
+	if (idx >= 0 && idx < marker_names.size() && Math::is_equal_approx(p_time, marker_names[idx].time)) {
+		marker_times.erase(marker_names[idx].name);
+		marker_colors.erase(marker_names[idx].name);
+		marker_names.write[idx].name = p_name;
+		marker_times.insert(p_name, p_time);
+		marker_colors.insert(p_name, Color(1, 1, 1));
+	} else {
+		_marker_insert(p_time, marker_names, MarkerKey(p_time, p_name));
+		marker_times.insert(p_name, p_time);
+		marker_colors.insert(p_name, Color(1, 1, 1));
+	}
+}
+
+void Animation::remove_marker(const StringName &p_name) {
+	HashMap<StringName, double>::Iterator E = marker_times.find(p_name);
+	ERR_FAIL_COND(!E);
+	int idx = _find(marker_names, E->value);
+	bool success = idx >= 0 && idx < marker_names.size() && Math::is_equal_approx(marker_names[idx].time, E->value);
+	ERR_FAIL_COND(!success);
+	marker_names.remove_at(idx);
+	marker_times.remove(E);
+	marker_colors.erase(p_name);
+}
+
+bool Animation::has_marker(const StringName &p_name) const {
+	return marker_times.has(p_name);
+}
+
+StringName Animation::get_marker_at_time(double p_time) const {
+	int idx = _find(marker_names, p_time);
+
+	if (idx >= 0 && idx < marker_names.size() && Math::is_equal_approx(marker_names[idx].time, p_time)) {
+		return marker_names[idx].name;
+	}
+
+	return StringName();
+}
+
+StringName Animation::get_next_marker(double p_time) const {
+	int idx = _find(marker_names, p_time);
+
+	if (idx >= -1 && idx < marker_names.size() - 1) {
+		// _find ensures that the time at idx is always the closest time to p_time that is also smaller to it.
+		// So we add 1 to get the next marker.
+		return marker_names[idx + 1].name;
+	}
+	return StringName();
+}
+
+StringName Animation::get_prev_marker(double p_time) const {
+	int idx = _find(marker_names, p_time);
+
+	if (idx >= 0 && idx < marker_names.size()) {
+		return marker_names[idx].name;
+	}
+	return StringName();
+}
+
+double Animation::get_marker_time(const StringName &p_name) const {
+	ERR_FAIL_COND_V(!marker_times.has(p_name), -1);
+	return marker_times.get(p_name);
+}
+
+PackedStringArray Animation::get_marker_names() const {
+	PackedStringArray names;
+	// We iterate on marker_names so the result is sorted by time.
+	for (const MarkerKey &marker_name : marker_names) {
+		names.push_back(marker_name.name);
+	}
+	return names;
+}
+
+Color Animation::get_marker_color(const StringName &p_name) const {
+	ERR_FAIL_COND_V(!marker_colors.has(p_name), Color());
+	return marker_colors[p_name];
+}
+
+void Animation::set_marker_color(const StringName &p_name, const Color &p_color) {
+	marker_colors[p_name] = p_color;
+}
+
 Vector<Variant> Animation::method_track_get_params(int p_track, int p_key_idx) const {
 	ERR_FAIL_INDEX_V(p_track, tracks.size(), Vector<Variant>());
 	Track *t = tracks[p_track];
@@ -3893,6 +4028,17 @@ void Animation::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("animation_track_insert_key", "track_idx", "time", "animation"), &Animation::animation_track_insert_key);
 	ClassDB::bind_method(D_METHOD("animation_track_set_key_animation", "track_idx", "key_idx", "animation"), &Animation::animation_track_set_key_animation);
 	ClassDB::bind_method(D_METHOD("animation_track_get_key_animation", "track_idx", "key_idx"), &Animation::animation_track_get_key_animation);
+
+	ClassDB::bind_method(D_METHOD("add_marker", "name", "time"), &Animation::add_marker);
+	ClassDB::bind_method(D_METHOD("remove_marker", "name"), &Animation::remove_marker);
+	ClassDB::bind_method(D_METHOD("has_marker", "name"), &Animation::has_marker);
+	ClassDB::bind_method(D_METHOD("get_marker_at_time", "time"), &Animation::get_marker_at_time);
+	ClassDB::bind_method(D_METHOD("get_next_marker", "time"), &Animation::get_next_marker);
+	ClassDB::bind_method(D_METHOD("get_prev_marker", "time"), &Animation::get_prev_marker);
+	ClassDB::bind_method(D_METHOD("get_marker_time", "name"), &Animation::get_marker_time);
+	ClassDB::bind_method(D_METHOD("get_marker_names"), &Animation::get_marker_names);
+	ClassDB::bind_method(D_METHOD("get_marker_color", "name"), &Animation::get_marker_color);
+	ClassDB::bind_method(D_METHOD("set_marker_color", "name", "color"), &Animation::set_marker_color);
 
 	ClassDB::bind_method(D_METHOD("set_length", "time_sec"), &Animation::set_length);
 	ClassDB::bind_method(D_METHOD("get_length"), &Animation::get_length);

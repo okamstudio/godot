@@ -1865,35 +1865,18 @@ void FileSystemDock::_rename_operation_confirm() {
 	_rescan();
 }
 
-void FileSystemDock::_duplicate_operation_confirm() {
-	String new_name = duplicate_dialog_text->get_text().strip_edges();
-	if (new_name.length() == 0) {
-		EditorNode::get_singleton()->show_warning(TTR("No name provided."));
-		return;
-	} else if (new_name.contains("/") || new_name.contains("\\") || new_name.contains(":")) {
-		EditorNode::get_singleton()->show_warning(TTR("Name contains invalid characters."));
-		return;
-	} else if (new_name[0] == '.') {
-		EditorNode::get_singleton()->show_warning(TTR("Name begins with a dot."));
-		return;
-	}
-
-	String base_dir = to_duplicate.path.get_base_dir();
-	// get_base_dir() returns "some/path" if the original path was "some/path/", so work it around.
-	if (to_duplicate.path.ends_with("/")) {
-		base_dir = base_dir.get_base_dir();
-	}
-
-	String new_path = base_dir.path_join(new_name);
-
-	// Present a more user friendly warning for name conflict
+void FileSystemDock::_duplicate_operation_confirm(const String &p_path) {
+	String base_dir = p_path.trim_suffix("/").get_base_dir();
 	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-	if (da->file_exists(new_path) || da->dir_exists(new_path)) {
-		EditorNode::get_singleton()->show_warning(TTR("A file or folder with this name already exists."));
-		return;
-	}
+	if (!da->dir_exists(base_dir)) {
+		Error err = da->make_dir_recursive(base_dir);
 
-	_try_duplicate_item(to_duplicate, new_path);
+		if (err != OK) {
+			EditorNode::get_singleton()->show_warning(vformat(TTR("Could not create base directory: %s"), error_names[err]));
+			return;
+		}
+	}
+	_try_duplicate_item(to_duplicate, p_path);
 
 	// Rescan everything.
 	print_verbose("FileSystem: calling rescan.");
@@ -2531,24 +2514,22 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 		} break;
 
 		case FILE_DUPLICATE: {
-			// Duplicate the selected files.
-			for (int i = 0; i < p_selected.size(); i++) {
-				to_duplicate.path = p_selected[i];
-				to_duplicate.is_file = !to_duplicate.path.ends_with("/");
-				if (to_duplicate.is_file) {
-					String name = to_duplicate.path.get_file();
-					duplicate_dialog->set_title(TTR("Duplicating file:") + " " + name);
-					duplicate_dialog_text->set_text(name);
-					duplicate_dialog_text->select(0, name.rfind("."));
-				} else {
-					String name = to_duplicate.path.substr(0, to_duplicate.path.length() - 1).get_file();
-					duplicate_dialog->set_title(TTR("Duplicating folder:") + " " + name);
-					duplicate_dialog_text->set_text(name);
-					duplicate_dialog_text->select(0, name.length());
-				}
-				duplicate_dialog->popup_centered(Size2(250, 80) * EDSCALE);
-				duplicate_dialog_text->grab_focus();
+			if (p_selected.size() != 1) {
+				return;
 			}
+
+			to_duplicate.path = p_selected[0];
+			to_duplicate.is_file = !to_duplicate.path.ends_with("/");
+			if (to_duplicate.is_file) {
+				String name = to_duplicate.path.get_file();
+				make_dir_dialog->config(to_duplicate.path.get_base_dir(), callable_mp(this, &FileSystemDock::_duplicate_operation_confirm),
+						DirectoryCreateDialog::MODE_FILE, TTR("Duplicating file:") + " " + name, name);
+			} else {
+				String name = to_duplicate.path.trim_suffix("/").get_file();
+				make_dir_dialog->config(to_duplicate.path.trim_suffix("/").get_base_dir(), callable_mp(this, &FileSystemDock::_duplicate_operation_confirm),
+						DirectoryCreateDialog::MODE_DIRECTORY, TTR("Duplicating folder:") + " " + name, name);
+			}
+			make_dir_dialog->popup_centered();
 		} break;
 
 		case FILE_INFO: {
@@ -2563,7 +2544,8 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 			if (!directory.ends_with("/")) {
 				directory = directory.get_base_dir();
 			}
-			make_dir_dialog->config(directory);
+			make_dir_dialog->config(directory, callable_mp(this, &FileSystemDock::create_directory).bind(directory),
+					DirectoryCreateDialog::MODE_DIRECTORY, TTR("Create Folder"), "new folder");
 			make_dir_dialog->popup_centered();
 		} break;
 
@@ -2790,6 +2772,13 @@ void FileSystemDock::focus_on_filter() {
 	if (current_search_box) {
 		current_search_box->grab_focus();
 		current_search_box->select_all();
+	}
+}
+
+void FileSystemDock::create_directory(const String &p_path, const String &p_base_dir) {
+	Error err = EditorFileSystem::get_singleton()->make_dir_recursive(p_path, p_base_dir);
+	if (err != OK) {
+		EditorNode::get_singleton()->show_warning(vformat(TTR("Could not create folder: %s"), error_names[err]));
 	}
 }
 
@@ -4281,17 +4270,6 @@ FileSystemDock::FileSystemDock() {
 
 	overwrite_dialog_footer = memnew(Label);
 	overwrite_dialog_vb->add_child(overwrite_dialog_footer);
-
-	duplicate_dialog = memnew(ConfirmationDialog);
-	VBoxContainer *duplicate_dialog_vb = memnew(VBoxContainer);
-	duplicate_dialog->add_child(duplicate_dialog_vb);
-
-	duplicate_dialog_text = memnew(LineEdit);
-	duplicate_dialog_vb->add_margin_child(TTR("Name:"), duplicate_dialog_text);
-	duplicate_dialog->set_ok_button_text(TTR("Duplicate"));
-	add_child(duplicate_dialog);
-	duplicate_dialog->register_text_enter(duplicate_dialog_text);
-	duplicate_dialog->connect(SceneStringName(confirmed), callable_mp(this, &FileSystemDock::_duplicate_operation_confirm));
 
 	make_dir_dialog = memnew(DirectoryCreateDialog);
 	add_child(make_dir_dialog);

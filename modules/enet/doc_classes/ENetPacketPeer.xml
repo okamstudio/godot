@@ -18,6 +18,12 @@
 				Returns the number of channels allocated for communication with peer.
 			</description>
 		</method>
+		<method name="get_packet_flags" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the ENet flags of the next packet in the received queue. See [code]FLAG_*[/code] constants for available packet flags. Note that not all flags are replicated from the sending peer to the receiving peer.
+			</description>
+		</method>
 		<method name="get_remote_address" qualifiers="const">
 			<return type="String" />
 			<description>

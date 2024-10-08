@@ -256,10 +256,6 @@ def configure(env: "SConsEnvironment"):
     if not env["builtin_enet"]:
         env.ParseConfig("pkg-config libenet --cflags --libs")
 
-    if not env["builtin_squish"]:
-        # libsquish doesn't reliably install its .pc file, so some distros lack it.
-        env.Append(LIBS=["libsquish"])
-
     if not env["builtin_zstd"]:
         env.ParseConfig("pkg-config libzstd --cflags --libs")
 

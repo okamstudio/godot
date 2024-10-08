@@ -294,6 +294,11 @@ void Dictionary::clear() {
 	_p->variant_map.clear();
 }
 
+void Dictionary::sort() {
+	ERR_FAIL_COND_MSG(_p->read_only, "Dictionary is in read-only state.");
+	_p->variant_map.sort();
+}
+
 void Dictionary::merge(const Dictionary &p_dictionary, bool p_overwrite) {
 	ERR_FAIL_COND_MSG(_p->read_only, "Dictionary is in read-only state.");
 	for (const KeyValue<Variant, Variant> &E : p_dictionary._p->variant_map) {

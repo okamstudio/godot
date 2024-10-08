@@ -579,7 +579,8 @@ void main() {
 
 #endif
 	if (bool(read_draw_data_flags & FLAGS_CLIP_RECT_UV)) {
-		uv = clamp(uv, read_draw_data_src_rect.xy, read_draw_data_src_rect.xy + abs(read_draw_data_src_rect.zw));
+		vec2 half_texpixel = read_draw_data_color_texture_pixel_size * 0.5;
+		uv = clamp(uv, read_draw_data_src_rect.xy + half_texpixel, read_draw_data_src_rect.xy + abs(read_draw_data_src_rect.zw) - half_texpixel);
 	}
 
 #endif

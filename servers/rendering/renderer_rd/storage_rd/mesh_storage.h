@@ -199,6 +199,7 @@ private:
 				weight_update_list(this), array_update_list(this) {}
 	};
 
+	RD::VertexFormatID _mesh_surface_generate_vertex_format(uint64_t p_surface_format, uint64_t p_input_mask, bool p_instanced_surface, bool p_input_motion_vectors, uint32_t &r_position_stride);
 	void _mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint64_t p_input_mask, bool p_input_motion_vectors, MeshInstance::Surface *mis = nullptr, uint32_t p_current_buffer = 0, uint32_t p_previous_buffer = 0);
 
 	void _mesh_instance_clear(MeshInstance *mi);
@@ -603,6 +604,12 @@ public:
 		}
 
 		return s->particles_render_index;
+	}
+
+	_FORCE_INLINE_ RD::VertexFormatID mesh_surface_get_vertex_format(void *p_surface, uint64_t p_input_mask, bool p_instanced_surface, bool p_input_motion_vectors) {
+		Mesh::Surface *s = reinterpret_cast<Mesh::Surface *>(p_surface);
+		uint32_t position_stride = 0;
+		return _mesh_surface_generate_vertex_format(s->format, p_input_mask, p_instanced_surface, p_input_motion_vectors, position_stride);
 	}
 
 	Dependency *mesh_get_dependency(RID p_mesh) const;

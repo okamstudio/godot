@@ -2261,6 +2261,8 @@ void ParticleProcessMaterial::_bind_methods() {
 
 ParticleProcessMaterial::ParticleProcessMaterial() :
 		element(this) {
+	_set_material(RS::get_singleton()->material_create());
+
 	set_direction(Vector3(1, 0, 0));
 	set_spread(45);
 	set_flatness(0);

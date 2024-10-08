@@ -633,8 +633,8 @@ struct GDEFVersion1_2
 		  ligCaretList.sanitize (c, this) &&
 		  markAttachClassDef.sanitize (c, this) &&
 		  hb_barrier () &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
-		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
+		  ((version.to_int () < 0x00010002u && hb_barrier ()) || markGlyphSetsDef.sanitize (c, this)) &&
+		  ((version.to_int () < 0x00010003u && hb_barrier ()) || varStore.sanitize (c, this)));
   }
 
   static void remap_varidx_after_instantiation (const hb_map_t& varidx_map,
@@ -668,13 +668,13 @@ struct GDEFVersion1_2
     // the end of the GDEF table.
     // See: https://github.com/harfbuzz/harfbuzz/issues/4636
     auto snapshot_version0 = c->serializer->snapshot ();
-    if (unlikely (version.to_int () >= 0x00010002u && !c->serializer->embed (markGlyphSetsDef)))
+    if (unlikely (version.to_int () >= 0x00010002u && hb_barrier () && !c->serializer->embed (markGlyphSetsDef)))
       return_trace (false);
 
     bool subset_varstore = false;
     unsigned varstore_index = (unsigned) -1;
     auto snapshot_version2 = c->serializer->snapshot ();
-    if (version.to_int () >= 0x00010003u)
+    if (version.to_int () >= 0x00010003u && hb_barrier ())
     {
       if (unlikely (!c->serializer->embed (varStore))) return_trace (false);
       if (c->plan->all_axes_pinned)
@@ -712,7 +712,7 @@ struct GDEFVersion1_2
     }
 
     bool subset_markglyphsetsdef = false;
-    if (version.to_int () >= 0x00010002u)
+    if (version.to_int () >= 0x00010002u && hb_barrier ())
     {
       subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
     }
@@ -875,7 +875,7 @@ struct GDEF
   bool has_mark_glyph_sets () const
   {
     switch (u.version.major) {
-    case 1: return u.version.to_int () >= 0x00010002u && u.version1.markGlyphSetsDef != 0;
+    case 1: return u.version.to_int () >= 0x00010002u && hb_barrier () && u.version1.markGlyphSetsDef != 0;
 #ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.markGlyphSetsDef != 0;
 #endif
@@ -885,7 +885,7 @@ struct GDEF
   const MarkGlyphSets &get_mark_glyph_sets () const
   {
     switch (u.version.major) {
-    case 1: return u.version.to_int () >= 0x00010002u ? this+u.version1.markGlyphSetsDef : Null(MarkGlyphSets);
+    case 1: return u.version.to_int () >= 0x00010002u && hb_barrier () ? this+u.version1.markGlyphSetsDef : Null(MarkGlyphSets);
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.markGlyphSetsDef;
 #endif
@@ -895,7 +895,7 @@ struct GDEF
   bool has_var_store () const
   {
     switch (u.version.major) {
-    case 1: return u.version.to_int () >= 0x00010003u && u.version1.varStore != 0;
+    case 1: return u.version.to_int () >= 0x00010003u && hb_barrier () && u.version1.varStore != 0;
 #ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.varStore != 0;
 #endif
@@ -905,7 +905,7 @@ struct GDEF
   const ItemVariationStore &get_var_store () const
   {
     switch (u.version.major) {
-    case 1: return u.version.to_int () >= 0x00010003u ? this+u.version1.varStore : Null(ItemVariationStore);
+    case 1: return u.version.to_int () >= 0x00010003u && hb_barrier () ? this+u.version1.varStore : Null(ItemVariationStore);
 #ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.varStore;
 #endif

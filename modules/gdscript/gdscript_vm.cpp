@@ -227,7 +227,7 @@ void (*type_init_function_table[])(Variant *) = {
 	&VariantInitializer<PackedVector4Array>::init, // PACKED_VECTOR4_ARRAY.
 };
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 #define OPCODES_TABLE                                    \
 	static const void *switch_table_ops[] = {            \
 		&&OPCODE_OPERATOR,                               \

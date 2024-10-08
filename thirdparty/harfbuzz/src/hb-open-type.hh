@@ -132,6 +132,89 @@ struct HBUINT15 : HBUINT16
   DEFINE_SIZE_STATIC (2);
 };
 
+/* 32-bit unsigned integer with variable encoding. */
+struct HBUINT32VAR
+{
+  unsigned get_size () const
+  {
+    unsigned b0 = v[0];
+    if (b0 < 0x80)
+      return 1;
+    else if (b0 < 0xC0)
+      return 2;
+    else if (b0 < 0xE0)
+      return 3;
+    else if (b0 < 0xF0)
+      return 4;
+    else
+      return 5;
+  }
+
+  static unsigned get_size (uint32_t v)
+  {
+    if (v < 0x80)
+      return 1;
+    else if (v < 0x4000)
+      return 2;
+    else if (v < 0x200000)
+      return 3;
+    else if (v < 0x10000000)
+      return 4;
+    else
+      return 5;
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_range (v, 1) &&
+		  hb_barrier () &&
+		  c->check_range (v, get_size ()));
+  }
+
+  operator uint32_t () const
+  {
+    unsigned b0 = v[0];
+    if (b0 < 0x80)
+      return b0;
+    else if (b0 < 0xC0)
+      return ((b0 & 0x3F) << 8) | v[1];
+    else if (b0 < 0xE0)
+      return ((b0 & 0x1F) << 16) | (v[1] << 8) | v[2];
+    else if (b0 < 0xF0)
+      return ((b0 & 0x0F) << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
+    else
+      return (v[1] << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
+  }
+
+  static bool serialize (hb_serialize_context_t *c, uint32_t v)
+  {
+    unsigned len = get_size (v);
+
+    unsigned char *buf = c->allocate_size<unsigned char> (len, false);
+    if (unlikely (!buf))
+      return false;
+
+    unsigned char *p = buf + len;
+    for (unsigned i = 0; i < len; i++)
+    {
+      *--p = v & 0xFF;
+      v >>= 8;
+    }
+
+    if (len > 1)
+      buf[0] |= ((1 << (len - 1)) - 1) << (9 - len);
+
+    return true;
+  }
+
+  protected:
+  unsigned char v[5];
+
+  public:
+  DEFINE_SIZE_MIN (1);
+};
+
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;
 
@@ -149,6 +232,7 @@ struct HBFixed : Type
 
   operator signed () const = delete;
   operator unsigned () const = delete;
+  explicit operator float () const { return to_float (); }
   typename Type::type to_int () const { return Type::v; }
   void set_int (typename Type::type i ) { Type::v = i; }
   float to_float (float offset = 0) const  { return ((int32_t) Type::v + offset) / shift; }
@@ -570,7 +654,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, Base
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, BaseType, has_null> *p = &this->arrayZ[i];
     if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Null (Type); /* Overflowed. */
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return this+*p;
   }
   Type& operator [] (int i_)
@@ -578,7 +662,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, Base
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, BaseType, has_null> *p = &this->arrayZ[i];
     if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Crap (Type); /* Overflowed. */
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return this+*p;
   }
 
@@ -629,14 +713,14 @@ struct ArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Null (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Crap (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i];
   }
 
@@ -756,6 +840,7 @@ template <typename Type> using Array32Of = ArrayOf<Type, HBUINT32>;
 using PString = ArrayOf<HBUINT8, HBUINT8>;
 
 /* Array of Offset's */
+template <typename Type> using Array8OfOffset24To = ArrayOf<OffsetTo<Type, HBUINT24>, HBUINT8>;
 template <typename Type> using Array16OfOffset16To = ArrayOf<OffsetTo<Type, HBUINT16>, HBUINT16>;
 template <typename Type> using Array16OfOffset32To = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT16>;
 template <typename Type> using Array32OfOffset32To = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32>;
@@ -768,14 +853,14 @@ struct List16OfOffsetTo : ArrayOf<OffsetTo<Type, OffsetType>, HBUINT16>
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Null (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return this+this->arrayZ[i];
   }
   const Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Crap (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return this+this->arrayZ[i];
   }
 
@@ -813,14 +898,14 @@ struct HeadlessArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Null (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i-1];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Crap (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i-1];
   }
   unsigned int get_size () const
@@ -907,14 +992,14 @@ struct ArrayOfM1
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Null (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Crap (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return arrayZ[i];
   }
   unsigned int get_size () const
@@ -1099,14 +1184,14 @@ struct VarSizedBinSearchArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Null (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Crap (Type);
-    _hb_compiler_memory_r_barrier ();
+    hb_barrier ();
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   unsigned int get_length () const
@@ -1160,6 +1245,638 @@ struct VarSizedBinSearchArrayOf
   UnsizedArrayOf<HBUINT8>	bytesZ;
   public:
   DEFINE_SIZE_ARRAY (10, bytesZ);
+};
+
+
+/* CFF INDEX */
+
+template <typename COUNT>
+struct CFFIndex
+{
+  unsigned int offset_array_size () const
+  { return offSize * (count + 1); }
+
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  bool serialize (hb_serialize_context_t *c,
+		  const Iterable &iterable,
+		  const unsigned *p_data_size = nullptr,
+                  unsigned min_off_size = 0)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned data_size;
+    if (p_data_size)
+      data_size = *p_data_size;
+    else
+      total_size (iterable, &data_size);
+
+    auto it = hb_iter (iterable);
+    if (unlikely (!serialize_header (c, +it, data_size, min_off_size))) return_trace (false);
+    unsigned char *ret = c->allocate_size<unsigned char> (data_size, false);
+    if (unlikely (!ret)) return_trace (false);
+    for (const auto &_ : +it)
+    {
+      unsigned len = _.length;
+      if (!len)
+	continue;
+      if (len <= 1)
+      {
+	*ret++ = *_.arrayZ;
+	continue;
+      }
+      hb_memcpy (ret, _.arrayZ, len);
+      ret += len;
+    }
+    return_trace (true);
+  }
+
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
+  bool serialize_header (hb_serialize_context_t *c,
+			 Iterator it,
+			 unsigned data_size,
+                         unsigned min_off_size = 0)
+  {
+    TRACE_SERIALIZE (this);
+
+    unsigned off_size = (hb_bit_storage (data_size + 1) + 7) / 8;
+    off_size = hb_max(min_off_size, off_size);
+
+    /* serialize CFFIndex header */
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+    this->count = hb_len (it);
+    if (!this->count) return_trace (true);
+    if (unlikely (!c->extend (this->offSize))) return_trace (false);
+    this->offSize = off_size;
+    if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1), false)))
+      return_trace (false);
+
+    /* serialize indices */
+    unsigned int offset = 1;
+    if (HB_OPTIMIZE_SIZE_VAL)
+    {
+      unsigned int i = 0;
+      for (const auto &_ : +it)
+      {
+	set_offset_at (i++, offset);
+	offset += hb_len_of (_);
+      }
+      set_offset_at (i, offset);
+    }
+    else
+      switch (off_size)
+      {
+	case 1:
+	{
+	  HBUINT8 *p = (HBUINT8 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += hb_len_of (_);
+	  }
+	  *p = offset;
+	}
+	break;
+	case 2:
+	{
+	  HBUINT16 *p = (HBUINT16 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += hb_len_of (_);
+	  }
+	  *p = offset;
+	}
+	break;
+	case 3:
+	{
+	  HBUINT24 *p = (HBUINT24 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += hb_len_of (_);
+	  }
+	  *p = offset;
+	}
+	break;
+	case 4:
+	{
+	  HBUINT32 *p = (HBUINT32 *) offsets;
+	  for (const auto &_ : +it)
+	  {
+	    *p++ = offset;
+	    offset += hb_len_of (_);
+	  }
+	  *p = offset;
+	}
+	break;
+	default:
+	break;
+      }
+
+    assert (offset == data_size + 1);
+    return_trace (true);
+  }
+
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  static unsigned total_size (const Iterable &iterable, unsigned *data_size = nullptr, unsigned min_off_size = 0)
+  {
+    auto it = + hb_iter (iterable);
+    if (!it)
+    {
+      if (data_size) *data_size = 0;
+      return min_size;
+    }
+
+    unsigned total = 0;
+    for (const auto &_ : +it)
+      total += hb_len_of (_);
+
+    if (data_size) *data_size = total;
+
+    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
+    off_size = hb_max(min_off_size, off_size);
+
+    return min_size + HBUINT8::static_size + (hb_len (it) + 1) * off_size + total;
+  }
+
+  void set_offset_at (unsigned int index, unsigned int offset)
+  {
+    assert (index <= count);
+
+    unsigned int size = offSize;
+    const HBUINT8 *p = offsets;
+    switch (size)
+    {
+      case 1: ((HBUINT8  *) p)[index] = offset; break;
+      case 2: ((HBUINT16 *) p)[index] = offset; break;
+      case 3: ((HBUINT24 *) p)[index] = offset; break;
+      case 4: ((HBUINT32 *) p)[index] = offset; break;
+      default: return;
+    }
+  }
+
+  private:
+  unsigned int offset_at (unsigned int index) const
+  {
+    assert (index <= count);
+
+    unsigned int size = offSize;
+    const HBUINT8 *p = offsets;
+    switch (size)
+    {
+      case 1: return ((HBUINT8  *) p)[index];
+      case 2: return ((HBUINT16 *) p)[index];
+      case 3: return ((HBUINT24 *) p)[index];
+      case 4: return ((HBUINT32 *) p)[index];
+      default: return 0;
+    }
+  }
+
+  const unsigned char *data_base () const
+  { return (const unsigned char *) this + min_size + offSize.static_size - 1 + offset_array_size (); }
+  public:
+
+  hb_ubytes_t operator [] (unsigned int index) const
+  {
+    if (unlikely (index >= count)) return hb_ubytes_t ();
+    hb_barrier ();
+    unsigned offset0 = offset_at (index);
+    unsigned offset1 = offset_at (index + 1);
+    if (unlikely (offset1 < offset0 || offset1 > offset_at (count)))
+      return hb_ubytes_t ();
+    return hb_ubytes_t (data_base () + offset0, offset1 - offset0);
+  }
+
+  unsigned int get_size () const
+  {
+    if (count)
+      return min_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1);
+    return min_size;  /* empty CFFIndex contains count only */
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (likely (c->check_struct (this) &&
+			  hb_barrier () &&
+			  (count == 0 || /* empty INDEX */
+			   (count < count + 1u &&
+			    c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
+			    c->check_array (offsets, offSize, count + 1u) &&
+			    c->check_range (data_base (), offset_at (count))))));
+  }
+
+  public:
+  COUNT		count;		/* Number of object data. Note there are (count+1) offsets */
+  private:
+  HBUINT8	offSize;	/* The byte size of each offset in the offsets array. */
+  HBUINT8	offsets[HB_VAR_ARRAY];
+				/* The array of (count + 1) offsets into objects array (1-base). */
+  /* HBUINT8 data[HB_VAR_ARRAY];	Object data */
+  public:
+  DEFINE_SIZE_MIN (COUNT::static_size);
+};
+typedef CFFIndex<HBUINT16> CFF1Index;
+typedef CFFIndex<HBUINT32> CFF2Index;
+
+
+/* TupleValues */
+struct TupleValues
+{
+  enum packed_value_flag_t
+  {
+    VALUES_ARE_ZEROS     = 0x80,
+    VALUES_ARE_BYTES     = 0x00,
+    VALUES_ARE_WORDS     = 0x40,
+    VALUES_ARE_LONGS     = 0xC0,
+    VALUES_SIZE_MASK     = 0xC0,
+    VALUE_RUN_COUNT_MASK = 0x3F
+  };
+
+  static unsigned compile (hb_array_t<const int> values, /* IN */
+			   hb_array_t<unsigned char> encoded_bytes /* OUT */)
+  {
+    unsigned num_values = values.length;
+    unsigned encoded_len = 0;
+    unsigned i = 0;
+    while (i < num_values)
+    {
+      int val = values.arrayZ[i];
+      if (val == 0)
+        encoded_len += encode_value_run_as_zeroes (i, encoded_bytes.sub_array (encoded_len), values);
+      else if (val >= -128 && val <= 127)
+        encoded_len += encode_value_run_as_bytes (i, encoded_bytes.sub_array (encoded_len), values);
+      else if (val >= -32768 && val <= 32767)
+        encoded_len += encode_value_run_as_words (i, encoded_bytes.sub_array (encoded_len), values);
+      else
+        encoded_len += encode_value_run_as_longs (i, encoded_bytes.sub_array (encoded_len), values);
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_value_run_as_zeroes (unsigned& i,
+					      hb_array_t<unsigned char> encoded_bytes,
+					      hb_array_t<const int> values)
+  {
+    unsigned num_values = values.length;
+    unsigned run_length = 0;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (i < num_values && values.arrayZ[i] == 0)
+    {
+      i++;
+      run_length++;
+    }
+
+    while (run_length >= 64)
+    {
+      *it++ = char (VALUES_ARE_ZEROS | 63);
+      run_length -= 64;
+      encoded_len++;
+    }
+
+    if (run_length)
+    {
+      *it++ = char (VALUES_ARE_ZEROS | (run_length - 1));
+      encoded_len++;
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_value_run_as_bytes (unsigned &i,
+					     hb_array_t<unsigned char> encoded_bytes,
+					     hb_array_t<const int> values)
+  {
+    unsigned start = i;
+    unsigned num_values = values.length;
+    while (i < num_values)
+    {
+      int val = values.arrayZ[i];
+      if (val > 127 || val < -128)
+        break;
+
+      /* from fonttools: if there're 2 or more zeros in a sequence,
+       * it is better to start a new run to save bytes. */
+      if (val == 0 && i + 1 < num_values && values.arrayZ[i+1] == 0)
+        break;
+
+      i++;
+    }
+    unsigned run_length = i - start;
+
+    unsigned encoded_len = 0;
+    auto it = encoded_bytes.iter ();
+
+    while (run_length >= 64)
+    {
+      *it++ = (VALUES_ARE_BYTES | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        *it++ = static_cast<char> (values.arrayZ[start + j]);
+        encoded_len++;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (VALUES_ARE_BYTES | (run_length - 1));
+      encoded_len++;
+
+      while (start < i)
+      {
+        *it++ = static_cast<char> (values.arrayZ[start++]);
+        encoded_len++;
+      }
+    }
+
+    return encoded_len;
+  }
+
+  static unsigned encode_value_run_as_words (unsigned &i,
+					     hb_array_t<unsigned char> encoded_bytes,
+					     hb_array_t<const int> values)
+  {
+    unsigned start = i;
+    unsigned num_values = values.length;
+    while (i < num_values)
+    {
+      int val = values.arrayZ[i];
+
+      /* start a new run for a single zero value*/
+      if (val == 0) break;
+
+      /* from fonttools: continue word-encoded run if there's only one
+       * single value in the range [-128, 127] because it is more compact.
+       * Only start a new run when there're 2 continuous such values. */
+      if (val >= -128 && val <= 127 &&
+          i + 1 < num_values &&
+          values.arrayZ[i+1] >= -128 && values.arrayZ[i+1] <= 127)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (run_length >= 64)
+    {
+      *it++ = (VALUES_ARE_WORDS | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        int16_t value_val = values.arrayZ[start + j];
+        *it++ = static_cast<char> (value_val >> 8);
+        *it++ = static_cast<char> (value_val & 0xFF);
+
+        encoded_len += 2;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (VALUES_ARE_WORDS | (run_length - 1));
+      encoded_len++;
+      while (start < i)
+      {
+        int16_t value_val = values.arrayZ[start++];
+        *it++ = static_cast<char> (value_val >> 8);
+        *it++ = static_cast<char> (value_val & 0xFF);
+
+        encoded_len += 2;
+      }
+    }
+    return encoded_len;
+  }
+
+  static unsigned encode_value_run_as_longs (unsigned &i,
+					     hb_array_t<unsigned char> encoded_bytes,
+					     hb_array_t<const int> values)
+  {
+    unsigned start = i;
+    unsigned num_values = values.length;
+    while (i < num_values)
+    {
+      int val = values.arrayZ[i];
+
+      if (val >= -32768 && val <= 32767)
+        break;
+
+      i++;
+    }
+
+    unsigned run_length = i - start;
+    auto it = encoded_bytes.iter ();
+    unsigned encoded_len = 0;
+    while (run_length >= 64)
+    {
+      *it++ = (VALUES_ARE_LONGS | 63);
+      encoded_len++;
+
+      for (unsigned j = 0; j < 64; j++)
+      {
+        int32_t value_val = values.arrayZ[start + j];
+        *it++ = static_cast<char> (value_val >> 24);
+        *it++ = static_cast<char> (value_val >> 16);
+        *it++ = static_cast<char> (value_val >> 8);
+        *it++ = static_cast<char> (value_val & 0xFF);
+
+        encoded_len += 4;
+      }
+
+      start += 64;
+      run_length -= 64;
+    }
+
+    if (run_length)
+    {
+      *it++ = (VALUES_ARE_LONGS | (run_length - 1));
+      encoded_len++;
+      while (start < i)
+      {
+        int32_t value_val = values.arrayZ[start++];
+        *it++ = static_cast<char> (value_val >> 24);
+        *it++ = static_cast<char> (value_val >> 16);
+        *it++ = static_cast<char> (value_val >> 8);
+        *it++ = static_cast<char> (value_val & 0xFF);
+
+        encoded_len += 4;
+      }
+    }
+    return encoded_len;
+  }
+
+  template <typename T>
+  static bool decompile (const HBUINT8 *&p /* IN/OUT */,
+			 hb_vector_t<T> &values /* IN/OUT */,
+			 const HBUINT8 *end,
+			 bool consume_all = false)
+  {
+    unsigned i = 0;
+    unsigned count = consume_all ? UINT_MAX : values.length;
+    if (consume_all)
+      values.alloc ((end - p) / 2);
+    while (i < count)
+    {
+      if (unlikely (p + 1 > end)) return consume_all;
+      unsigned control = *p++;
+      unsigned run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
+      if (consume_all)
+      {
+        if (unlikely (!values.resize (values.length + run_count, false)))
+	  return false;
+      }
+      unsigned stop = i + run_count;
+      if (unlikely (stop > count)) return false;
+      if ((control & VALUES_SIZE_MASK) == VALUES_ARE_ZEROS)
+      {
+        for (; i < stop; i++)
+          values.arrayZ[i] = 0;
+      }
+      else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_WORDS)
+      {
+        if (unlikely (p + run_count * HBINT16::static_size > end)) return false;
+        for (; i < stop; i++)
+        {
+          values.arrayZ[i] = * (const HBINT16 *) p;
+          p += HBINT16::static_size;
+        }
+      }
+      else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_LONGS)
+      {
+        if (unlikely (p + run_count * HBINT32::static_size > end)) return false;
+        for (; i < stop; i++)
+        {
+          values.arrayZ[i] = * (const HBINT32 *) p;
+          p += HBINT32::static_size;
+        }
+      }
+      else if ((control & VALUES_SIZE_MASK) ==  VALUES_ARE_BYTES)
+      {
+        if (unlikely (p + run_count > end)) return false;
+        for (; i < stop; i++)
+        {
+          values.arrayZ[i] = * (const HBINT8 *) p++;
+        }
+      }
+    }
+    return true;
+  }
+
+  struct iter_t : hb_iter_with_fallback_t<iter_t, int>
+  {
+    iter_t (const unsigned char *p_, unsigned len_)
+	    : p (p_), end (p_ + len_)
+    { if (ensure_run ()) read_value (); }
+
+    private:
+    const unsigned char *p;
+    const unsigned char * const end;
+    int current_value = 0;
+    signed run_count = 0;
+    unsigned width = 0;
+
+    bool ensure_run ()
+    {
+      if (likely (run_count > 0)) return true;
+
+      if (unlikely (p >= end))
+      {
+        run_count = 0;
+        current_value = 0;
+	return false;
+      }
+
+      unsigned control = *p++;
+      run_count = (control & VALUE_RUN_COUNT_MASK) + 1;
+      width = control & VALUES_SIZE_MASK;
+      switch (width)
+      {
+        case VALUES_ARE_ZEROS: width = 0; break;
+	case VALUES_ARE_BYTES: width = HBINT8::static_size;  break;
+	case VALUES_ARE_WORDS: width = HBINT16::static_size; break;
+	case VALUES_ARE_LONGS: width = HBINT32::static_size; break;
+	default: assert (false);
+      }
+
+      if (unlikely (p + run_count * width > end))
+      {
+	run_count = 0;
+	current_value = 0;
+	return false;
+      }
+
+      return true;
+    }
+    void read_value ()
+    {
+      switch (width)
+      {
+        case 0: current_value = 0; break;
+	case 1: current_value = * (const HBINT8  *) p; break;
+	case 2: current_value = * (const HBINT16 *) p; break;
+	case 4: current_value = * (const HBINT32 *) p; break;
+      }
+      p += width;
+    }
+
+    public:
+
+    typedef int __item_t__;
+    __item_t__ __item__ () const
+    { return current_value; }
+
+    bool __more__ () const { return run_count || p < end; }
+    void __next__ ()
+    {
+      run_count--;
+      if (unlikely (!ensure_run ()))
+	return;
+      read_value ();
+    }
+    void __forward__ (unsigned n)
+    {
+      if (unlikely (!ensure_run ()))
+	return;
+      while (n)
+      {
+	unsigned i = hb_min (n, (unsigned) run_count);
+	run_count -= i;
+	n -= i;
+	p += (i - 1) * width;
+	if (unlikely (!ensure_run ()))
+	  return;
+	read_value ();
+      }
+    }
+    bool operator != (const iter_t& o) const
+    { return p != o.p || run_count != o.run_count; }
+    iter_t __end__ () const
+    {
+      iter_t it (end, 0);
+      return it;
+    }
+  };
+};
+
+struct TupleList : CFF2Index
+{
+  TupleValues::iter_t operator [] (unsigned i) const
+  {
+    auto bytes = CFF2Index::operator [] (i);
+    return TupleValues::iter_t (bytes.arrayZ, bytes.length);
+  }
 };
 
 

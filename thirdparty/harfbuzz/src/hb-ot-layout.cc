@@ -1443,8 +1443,12 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
 					    unsigned int *variations_index /* out */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+  const OT::GDEF &gdef = *face->table.GDEF->table;
 
-  return g.find_variations_index (coords, num_coords, variations_index);
+  auto instancer = OT::ItemVarStoreInstancer(&gdef.get_var_store(), nullptr,
+					     hb_array (coords, num_coords));
+
+  return g.find_variations_index (coords, num_coords, variations_index, &instancer);
 }
 
 

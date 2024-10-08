@@ -99,31 +99,42 @@ void Resource::set_path_cache(const String &p_path) {
 	GDVIRTUAL_CALL(_set_path_cache, p_path);
 }
 
+static thread_local RandomPCG unique_id_gen(0, RandomPCG::DEFAULT_INC);
+
+void Resource::seed_scene_unique_id(uint32_t p_seed) {
+	unique_id_gen.seed(p_seed);
+}
+
 String Resource::generate_scene_unique_id() {
 	// Generate a unique enough hash, but still user-readable.
 	// If it's not unique it does not matter because the saver will try again.
-	OS::DateTime dt = OS::get_singleton()->get_datetime();
-	uint32_t hash = hash_murmur3_one_32(OS::get_singleton()->get_ticks_usec());
-	hash = hash_murmur3_one_32(dt.year, hash);
-	hash = hash_murmur3_one_32(dt.month, hash);
-	hash = hash_murmur3_one_32(dt.day, hash);
-	hash = hash_murmur3_one_32(dt.hour, hash);
-	hash = hash_murmur3_one_32(dt.minute, hash);
-	hash = hash_murmur3_one_32(dt.second, hash);
-	hash = hash_murmur3_one_32(Math::rand(), hash);
+	if (unique_id_gen.get_seed() == 0) {
+		OS::DateTime dt = OS::get_singleton()->get_datetime();
+		uint32_t hash = hash_murmur3_one_32(OS::get_singleton()->get_ticks_usec());
+		hash = hash_murmur3_one_32(dt.year, hash);
+		hash = hash_murmur3_one_32(dt.month, hash);
+		hash = hash_murmur3_one_32(dt.day, hash);
+		hash = hash_murmur3_one_32(dt.hour, hash);
+		hash = hash_murmur3_one_32(dt.minute, hash);
+		hash = hash_murmur3_one_32(dt.second, hash);
+		hash = hash_murmur3_one_32(Math::rand(), hash);
+		unique_id_gen.seed(hash);
+	}
+
+	uint32_t random_num = unique_id_gen.rand();
 
 	static constexpr uint32_t characters = 5;
 	static constexpr uint32_t char_count = ('z' - 'a');
 	static constexpr uint32_t base = char_count + ('9' - '0');
 	String id;
 	for (uint32_t i = 0; i < characters; i++) {
-		uint32_t c = hash % base;
+		uint32_t c = random_num % base;
 		if (c < char_count) {
 			id += String::chr('a' + c);
 		} else {
 			id += String::chr('0' + (c - char_count));
 		}
-		hash /= base;
+		random_num /= base;
 	}
 
 	return id;

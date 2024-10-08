@@ -205,8 +205,12 @@ struct glyf_accelerator_t
 
   protected:
   template<typename T>
-  bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer) const
+  bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer,
+		   hb_array_t<const int> coords = hb_array_t<const int> ()) const
   {
+    if (!coords)
+      coords = hb_array (font->coords, font->num_coords);
+
     if (gid >= num_glyphs) return false;
 
     /* Making this allocfree is not that easy
@@ -216,7 +220,7 @@ struct glyf_accelerator_t
     contour_point_vector_t all_points;
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
-    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, nullptr, nullptr, true, true, phantom_only)))
+    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, nullptr, nullptr, true, true, phantom_only, coords)))
       return false;
 
     unsigned count = all_points.length;
@@ -407,6 +411,11 @@ struct glyf_accelerator_t
   bool
   get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
   { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session)); }
+
+  bool
+  get_path_at (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session,
+	       hb_array_t<const int> coords) const
+  { return get_points (font, gid, glyf_impl::path_builder_t (font, draw_session), coords); }
 
 #ifndef HB_NO_VAR
   const gvar_accelerator_t *gvar;

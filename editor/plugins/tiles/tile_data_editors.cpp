@@ -874,6 +874,11 @@ void GenericTilePolygonEditor::_notification(int p_what) {
 				button_expand->set_pressed_no_signal(false);
 			}
 		} break;
+
+		case NOTIFICATION_READY: {
+			get_parent()->connect(SceneStringName(tree_exited), callable_mp(TileSetEditor::get_singleton(), &TileSetEditor::remove_expanded_editor));
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED: {
 			button_expand->set_icon(get_editor_theme_icon(SNAME("DistractionFree")));
 			button_create->set_icon(get_editor_theme_icon(SNAME("CurveCreate")));

@@ -986,7 +986,7 @@ ProjectDialog::ProjectDialog() {
 	rvb->add_child(renderer_info);
 
 	rd_not_supported = memnew(Label);
-	rd_not_supported->set_text(TTR("Rendering Device backend not available. Please use the Compatibility renderer."));
+	rd_not_supported->set_text(vformat(TTR("RenderingDevice-based methods not available on this GPU:\n%s\nPlease use the Compatibility renderer."), RenderingServer::get_singleton()->get_video_adapter_name()));
 	rd_not_supported->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 	rd_not_supported->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
 	rd_not_supported->set_autowrap_mode(TextServer::AUTOWRAP_WORD_SMART);

@@ -51,9 +51,6 @@ namespace CFF {
 enum EncodingID { StandardEncoding = 0, ExpertEncoding = 1 };
 enum CharsetID { ISOAdobeCharset = 0, ExpertCharset = 1, ExpertSubsetCharset = 2 };
 
-typedef CFFIndex<HBUINT16>  CFF1Index;
-
-typedef CFFIndex<HBUINT16> CFF1Index;
 typedef CFF1Index          CFF1CharStrings;
 typedef Subrs<HBUINT16>    CFF1Subrs;
 
@@ -242,8 +239,8 @@ struct Encoding
     unsigned int size = min_size;
     switch (table_format ())
     {
-    case 0: size += u.format0.get_size (); break;
-    case 1: size += u.format1.get_size (); break;
+    case 0: hb_barrier (); size += u.format0.get_size (); break;
+    case 1: hb_barrier (); size += u.format1.get_size (); break;
     }
     if (has_supplement ())
       size += suppEncData ().get_size ();
@@ -254,8 +251,8 @@ struct Encoding
   {
     switch (table_format ())
     {
-    case 0: return u.format0.get_code (glyph);
-    case 1: return u.format1.get_code (glyph);
+    case 0: hb_barrier (); return u.format0.get_code (glyph);
+    case 1: hb_barrier (); return u.format1.get_code (glyph);
     default:return 0;
     }
   }
@@ -279,8 +276,8 @@ struct Encoding
 
     switch (table_format ())
     {
-    case 0: if (unlikely (!u.format0.sanitize (c))) { return_trace (false); } break;
-    case 1: if (unlikely (!u.format1.sanitize (c))) { return_trace (false); } break;
+    case 0: hb_barrier (); if (unlikely (!u.format0.sanitize (c))) { return_trace (false); } break;
+    case 1: hb_barrier (); if (unlikely (!u.format1.sanitize (c))) { return_trace (false); } break;
     default:return_trace (false);
     }
     return_trace (likely (!has_supplement () || suppEncData ().sanitize (c)));
@@ -291,8 +288,8 @@ struct Encoding
   {
     switch (table_format ())
     {
-    case 0: return StructAfter<CFF1SuppEncData> (u.format0.codes[u.format0.nCodes ()-1]);
-    case 1: return StructAfter<CFF1SuppEncData> (u.format1.ranges[u.format1.nRanges ()-1]);
+    case 0: hb_barrier (); return StructAfter<CFF1SuppEncData> (u.format0.codes[u.format0.nCodes ()-1]);
+    case 1: hb_barrier (); return StructAfter<CFF1SuppEncData> (u.format1.ranges[u.format1.nRanges ()-1]);
     default:return Null (CFF1SuppEncData);
     }
   }
@@ -570,9 +567,9 @@ struct Charset
   {
     switch (format)
     {
-    case 0: return min_size + u.format0.get_size (num_glyphs);
-    case 1: return min_size + u.format1.get_size (num_glyphs);
-    case 2: return min_size + u.format2.get_size (num_glyphs);
+    case 0: hb_barrier (); return min_size + u.format0.get_size (num_glyphs);
+    case 1: hb_barrier (); return min_size + u.format1.get_size (num_glyphs);
+    case 2: hb_barrier (); return min_size + u.format2.get_size (num_glyphs);
     default:return 0;
     }
   }
@@ -582,9 +579,9 @@ struct Charset
   {
     switch (format)
     {
-    case 0: return u.format0.get_sid (glyph, num_glyphs);
-    case 1: return u.format1.get_sid (glyph, num_glyphs, cache);
-    case 2: return u.format2.get_sid (glyph, num_glyphs, cache);
+    case 0: hb_barrier (); return u.format0.get_sid (glyph, num_glyphs);
+    case 1: hb_barrier (); return u.format1.get_sid (glyph, num_glyphs, cache);
+    case 2: hb_barrier (); return u.format2.get_sid (glyph, num_glyphs, cache);
     default:return 0;
     }
   }
@@ -593,9 +590,9 @@ struct Charset
   {
     switch (format)
     {
-    case 0: u.format0.collect_glyph_to_sid_map (mapping, num_glyphs); return;
-    case 1: u.format1.collect_glyph_to_sid_map (mapping, num_glyphs); return;
-    case 2: u.format2.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    case 0: hb_barrier (); u.format0.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    case 1: hb_barrier (); u.format1.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    case 2: hb_barrier (); u.format2.collect_glyph_to_sid_map (mapping, num_glyphs); return;
     default:return;
     }
   }
@@ -604,9 +601,9 @@ struct Charset
   {
     switch (format)
     {
-    case 0: return u.format0.get_glyph (sid, num_glyphs);
-    case 1: return u.format1.get_glyph (sid, num_glyphs);
-    case 2: return u.format2.get_glyph (sid, num_glyphs);
+    case 0: hb_barrier (); return u.format0.get_glyph (sid, num_glyphs);
+    case 1: hb_barrier (); return u.format1.get_glyph (sid, num_glyphs);
+    case 2: hb_barrier (); return u.format2.get_glyph (sid, num_glyphs);
     default:return 0;
     }
   }
@@ -620,9 +617,9 @@ struct Charset
 
     switch (format)
     {
-    case 0: return_trace (u.format0.sanitize (c, c->get_num_glyphs (), num_charset_entries));
-    case 1: return_trace (u.format1.sanitize (c, c->get_num_glyphs (), num_charset_entries));
-    case 2: return_trace (u.format2.sanitize (c, c->get_num_glyphs (), num_charset_entries));
+    case 0: hb_barrier (); return_trace (u.format0.sanitize (c, c->get_num_glyphs (), num_charset_entries));
+    case 1: hb_barrier (); return_trace (u.format1.sanitize (c, c->get_num_glyphs (), num_charset_entries));
+    case 2: hb_barrier (); return_trace (u.format2.sanitize (c, c->get_num_glyphs (), num_charset_entries));
     default:return_trace (false);
     }
   }
@@ -1179,6 +1176,7 @@ struct cff1
 	  if (unlikely (!font_interp.interpret (*font)))   goto fail;
 	  PRIVDICTVAL *priv = &privateDicts[i];
 	  const hb_ubytes_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff, font->privateDictInfo.offset, sc, font->privateDictInfo.size).as_ubytes (font->privateDictInfo.size);
+	  if (unlikely (privDictStr == (const unsigned char *) &Null (UnsizedByteStr))) goto fail;
 	  num_interp_env_t env2 (privDictStr);
 	  dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp (env2);
 	  priv->init ();
@@ -1193,6 +1191,7 @@ struct cff1
 	PRIVDICTVAL *priv = &privateDicts[0];
 
 	const hb_ubytes_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff, font->privateDictInfo.offset, sc, font->privateDictInfo.size).as_ubytes (font->privateDictInfo.size);
+	if (unlikely (privDictStr == (const unsigned char *) &Null (UnsizedByteStr))) goto fail;
 	num_interp_env_t env (privDictStr);
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp (env);
 	priv->init ();

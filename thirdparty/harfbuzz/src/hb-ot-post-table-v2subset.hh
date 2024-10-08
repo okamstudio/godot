@@ -84,9 +84,9 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
   old_gid_new_index_map.alloc (num_glyphs);
   glyph_name_to_new_index.alloc (num_glyphs);
 
-  for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
+  for (auto _ : c->plan->new_to_old_gid_list)
   {
-    hb_codepoint_t old_gid = reverse_glyph_map.get (new_gid);
+    hb_codepoint_t old_gid = _.second;
     unsigned old_index = glyphNameIndex[old_gid];
 
     unsigned new_index;
@@ -125,13 +125,22 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
     old_gid_new_index_map.set (old_gid, new_index);
   }
 
+  if (old_gid_new_index_map.in_error())
+    return_trace (false);
+
   auto index_iter =
   + hb_range (num_glyphs)
-  | hb_map (reverse_glyph_map)
-  | hb_map_retains_sorting ([&](hb_codepoint_t old_gid)
+  | hb_map_retains_sorting ([&](hb_codepoint_t new_gid)
                             {
-                              unsigned new_index = old_gid_new_index_map.get (old_gid);
-                              return hb_pair_t<unsigned, unsigned> (old_gid, new_index);
+                              hb_codepoint_t *old_gid;
+                              /* use 0 for retain-gid holes, which refers to the name .notdef,
+                               * as the glyphNameIndex entry for that glyph ID."*/
+                              unsigned new_index = 0;
+                              if (reverse_glyph_map.has (new_gid, &old_gid)) {
+                                new_index = old_gid_new_index_map.get (*old_gid);
+                                return hb_pair_t<unsigned, unsigned> (*old_gid, new_index);
+                              }
+                              return hb_pair_t<unsigned, unsigned> (new_gid, new_index);
                             })
   ;
 

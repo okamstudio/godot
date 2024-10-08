@@ -56,6 +56,7 @@ class SceneDebuggerTree;
 class EditorDebuggerPlugin;
 class DebugAdapterProtocol;
 class DebugAdapterParser;
+class EditorExpressionEvaluator;
 
 class ScriptEditorDebugger : public MarginContainer {
 	GDCLASS(ScriptEditorDebugger, MarginContainer);
@@ -152,6 +153,7 @@ private:
 	EditorProfiler *profiler = nullptr;
 	EditorVisualProfiler *visual_profiler = nullptr;
 	EditorPerformanceProfiler *performance_profiler = nullptr;
+	EditorExpressionEvaluator *expression_evaluator = nullptr;
 
 	OS::ProcessID remote_pid = 0;
 	bool move_to_foreground = true;
@@ -251,6 +253,8 @@ public:
 
 	void request_remote_tree();
 	const SceneDebuggerTree *get_remote_tree();
+
+	void request_remote_evaluate(const String &p_expression, int p_stack_frame);
 
 	void start(Ref<RemoteDebuggerPeer> p_peer);
 	void stop();

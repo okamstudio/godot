@@ -406,6 +406,7 @@ struct hb_ot_apply_context_t :
 
     void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
     void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
+    void set_ignore_hidden (bool ignore_hidden_) { ignore_hidden = ignore_hidden_; }
     void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
     void set_mask (hb_mask_t mask_) { mask = mask_; }
     void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; }
@@ -451,9 +452,10 @@ struct hb_ot_apply_context_t :
       if (!c->check_glyph_property (&info, lookup_props))
 	return SKIP_YES;
 
-      if (unlikely (_hb_glyph_info_is_default_ignorable_and_not_hidden (&info) &&
+      if (unlikely (_hb_glyph_info_is_default_ignorable (&info) &&
 		    (ignore_zwnj || !_hb_glyph_info_is_zwnj (&info)) &&
-		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info))))
+		    (ignore_zwj || !_hb_glyph_info_is_zwj (&info)) &&
+		    (ignore_hidden || !_hb_glyph_info_is_hidden (&info))))
 	return SKIP_MAYBE;
 
       return SKIP_NO;
@@ -464,6 +466,7 @@ struct hb_ot_apply_context_t :
     hb_mask_t mask = -1;
     bool ignore_zwnj = false;
     bool ignore_zwj = false;
+    bool ignore_hidden = false;
     bool per_syllable = false;
     uint8_t syllable = 0;
     match_func_t match_func = nullptr;
@@ -486,6 +489,8 @@ struct hb_ot_apply_context_t :
       matcher.set_ignore_zwnj (c->table_index == 1 || (context_match && c->auto_zwnj));
       /* Ignore ZWJ if we are matching context, or asked to. */
       matcher.set_ignore_zwj  (context_match || c->auto_zwj);
+      /* Ignore hidden glyphs (like CGJ) during GPOS. */
+      matcher.set_ignore_hidden (c->table_index == 1);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
       /* Per syllable matching is only for GSUB. */
       matcher.set_per_syllable (c->table_index == 0 && c->per_syllable);
@@ -2901,12 +2906,12 @@ struct Context
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BEYOND_64K
-    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
     }
@@ -3390,6 +3395,15 @@ struct ChainRuleSet
      *
      * Replicated from LigatureSet::apply(). */
 
+    /* If the input skippy has non-auto joiners behavior (as in Indic shapers),
+     * skip this fast path, as we don't distinguish between input & lookahead
+     * matching in the fast path.
+     *
+     * https://github.com/harfbuzz/harfbuzz/issues/4813
+     */
+    if (!c->auto_zwnj || !c->auto_zwj)
+      goto slow;
+
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
     skippy_iter.reset (c->buffer->idx);
     skippy_iter.set_match_func (match_always, nullptr);
@@ -3429,10 +3443,10 @@ struct ChainRuleSet
     }
     matched = skippy_iter.next ();
     if (likely (matched && !skippy_iter.may_skip (c->buffer->info[skippy_iter.idx])))
-     {
+    {
       second = &c->buffer->info[skippy_iter.idx];
       unsafe_to2 = skippy_iter.idx + 1;
-     }
+    }
 
     auto match_input = lookup_context.funcs.match[1];
     auto match_lookahead = lookup_context.funcs.match[2];
@@ -4225,12 +4239,12 @@ struct ChainContext
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: hb_barrier (); return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+    case 3: hb_barrier (); return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BEYOND_64K
-    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
+    case 4: hb_barrier (); return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
+    case 5: hb_barrier (); return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
     }
@@ -4314,7 +4328,7 @@ struct Extension
   unsigned int get_type () const
   {
     switch (u.format) {
-    case 1: return u.format1.get_type ();
+    case 1: hb_barrier (); return u.format1.get_type ();
     default:return 0;
     }
   }
@@ -4322,7 +4336,7 @@ struct Extension
   const X& get_subtable () const
   {
     switch (u.format) {
-    case 1: return u.format1.template get_subtable<typename T::SubTable> ();
+    case 1: hb_barrier (); return u.format1.template get_subtable<typename T::SubTable> ();
     default:return Null (typename T::SubTable);
     }
   }
@@ -4334,7 +4348,7 @@ struct Extension
   typename hb_subset_context_t::return_t dispatch (hb_subset_context_t *c, Ts&&... ds) const
   {
     switch (u.format) {
-    case 1: return u.format1.subset (c);
+    case 1: hb_barrier (); return u.format1.subset (c);
     default: return c->default_return_value ();
     }
   }
@@ -4345,7 +4359,7 @@ struct Extension
     if (unlikely (!c->may_dispatch (this, &u.format))) return c->no_dispatch_return_value ();
     TRACE_DISPATCH (this, u.format);
     switch (u.format) {
-    case 1: return_trace (u.format1.dispatch (c, std::forward<Ts> (ds)...));
+    case 1: hb_barrier (); return_trace (u.format1.dispatch (c, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -4560,9 +4574,9 @@ struct GSUBGPOS
   unsigned int get_size () const
   {
     switch (u.version.major) {
-    case 1: return u.version1.get_size ();
+    case 1: hb_barrier (); return u.version1.get_size ();
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.get_size ();
+    case 2: hb_barrier (); return u.version2.get_size ();
 #endif
     default: return u.version.static_size;
     }
@@ -4575,9 +4589,9 @@ struct GSUBGPOS
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     hb_barrier ();
     switch (u.version.major) {
-    case 1: return_trace (u.version1.sanitize<TLookup> (c));
+    case 1: hb_barrier (); return_trace (u.version1.sanitize<TLookup> (c));
 #ifndef HB_NO_BEYOND_64K
-    case 2: return_trace (u.version2.sanitize<TLookup> (c));
+    case 2: hb_barrier (); return_trace (u.version2.sanitize<TLookup> (c));
 #endif
     default: return_trace (true);
     }
@@ -4587,9 +4601,9 @@ struct GSUBGPOS
   bool subset (hb_subset_layout_context_t *c) const
   {
     switch (u.version.major) {
-    case 1: return u.version1.subset<TLookup> (c);
+    case 1: hb_barrier (); return u.version1.subset<TLookup> (c);
 #ifndef HB_NO_BEYOND_64K
-    case 2: return u.version2.subset<TLookup> (c);
+    case 2: hb_barrier (); return u.version2.subset<TLookup> (c);
 #endif
     default: return false;
     }
@@ -4598,9 +4612,9 @@ struct GSUBGPOS
   const ScriptList &get_script_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.scriptList;
+    case 1: hb_barrier (); return this+u.version1.scriptList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.scriptList;
+    case 2: hb_barrier (); return this+u.version2.scriptList;
 #endif
     default: return Null (ScriptList);
     }
@@ -4608,9 +4622,9 @@ struct GSUBGPOS
   const FeatureList &get_feature_list () const
   {
     switch (u.version.major) {
-    case 1: return this+u.version1.featureList;
+    case 1: hb_barrier (); return this+u.version1.featureList;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.featureList;
+    case 2: hb_barrier (); return this+u.version2.featureList;
 #endif
     default: return Null (FeatureList);
     }
@@ -4618,9 +4632,9 @@ struct GSUBGPOS
   unsigned int get_lookup_count () const
   {
     switch (u.version.major) {
-    case 1: return (this+u.version1.lookupList).len;
+    case 1: hb_barrier (); return (this+u.version1.lookupList).len;
 #ifndef HB_NO_BEYOND_64K
-    case 2: return (this+u.version2.lookupList).len;
+    case 2: hb_barrier (); return (this+u.version2.lookupList).len;
 #endif
     default: return 0;
     }
@@ -4628,9 +4642,9 @@ struct GSUBGPOS
   const Lookup& get_lookup (unsigned int i) const
   {
     switch (u.version.major) {
-    case 1: return (this+u.version1.lookupList)[i];
+    case 1: hb_barrier (); return (this+u.version1.lookupList)[i];
 #ifndef HB_NO_BEYOND_64K
-    case 2: return (this+u.version2.lookupList)[i];
+    case 2: hb_barrier (); return (this+u.version2.lookupList)[i];
 #endif
     default: return Null (Lookup);
     }
@@ -4638,9 +4652,9 @@ struct GSUBGPOS
   const FeatureVariations &get_feature_variations () const
   {
     switch (u.version.major) {
-    case 1: return (u.version.to_int () >= 0x00010001u ? this+u.version1.featureVars : Null (FeatureVariations));
+    case 1: hb_barrier (); return (u.version.to_int () >= 0x00010001u && hb_barrier () ? this+u.version1.featureVars : Null (FeatureVariations));
 #ifndef HB_NO_BEYOND_64K
-    case 2: return this+u.version2.featureVars;
+    case 2: hb_barrier (); return this+u.version2.featureVars;
 #endif
     default: return Null (FeatureVariations);
     }
@@ -4674,13 +4688,14 @@ struct GSUBGPOS
   { return get_feature_list ().find_index (tag, index); }
 
   bool find_variations_index (const int *coords, unsigned int num_coords,
-			      unsigned int *index) const
+			      unsigned int *index,
+			      ItemVarStoreInstancer *instancer) const
   {
 #ifdef HB_NO_VAR
     *index = FeatureVariations::NOT_FOUND_INDEX;
     return false;
 #endif
-    return get_feature_variations ().find_index (coords, num_coords, index);
+    return get_feature_variations ().find_index (coords, num_coords, index, instancer);
   }
   const Feature& get_feature_variation (unsigned int feature_index,
 					unsigned int variations_index) const

@@ -4,7 +4,7 @@
 		A built-in type representing a signal of an [Object].
 	</brief_description>
 	<description>
-		[Signal] is a built-in [Variant] type that represents a signal of an [Object] instance. Like all [Variant] types, it can be stored in variables and passed to functions. Signals allow all connected [Callable]s (and by extension their respective objects) to listen and react to events, without directly referencing one another. This keeps the code flexible and easier to manage.
+		[Signal] is a built-in [Variant] type that represents a signal of an [Object] instance. Like all [Variant] types, it can be stored in variables and passed to functions. Signals allow all connected [Callable]s (and by extension their respective objects) to listen and react to events, without directly referencing one another. This keeps the code flexible and easier to manage. You can check whether an [Object] has a given signal name using [method Object.has_signal].
 		In GDScript, signals can be declared with the [code]signal[/code] keyword. In C#, you may use the [code][Signal][/code] attribute on a delegate.
 		[codeblocks]
 		[gdscript]

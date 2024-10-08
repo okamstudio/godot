@@ -8,7 +8,7 @@
 		- When the [LineEdit] control is focused using the keyboard arrow keys, it will only gain focus and not enter edit mode.
 		- To enter edit mode, click on the control with the mouse or press the [code]ui_text_submit[/code] action (by default [kbd]Enter[/kbd] or [kbd]Kp Enter[/kbd]).
 		- To exit edit mode, press [code]ui_text_submit[/code] or [code]ui_cancel[/code] (by default [kbd]Escape[/kbd]) actions.
-		- Check [method is_editing] and [signal editing_toggled] for more information.
+		- Check [method edit], [method unedit], [method is_editing], and [signal editing_toggled] for more information.
 		[b]Important:[/b]
 		- Focusing the [LineEdit] with [code]ui_focus_next[/code] (by default [kbd]Tab[/kbd]) or [code]ui_focus_prev[/code] (by default [kbd]Shift + Tab[/kbd]) or [method Control.grab_focus] still enters edit mode (for compatibility).
 		[LineEdit] features many built-in shortcuts that are always available ([kbd]Ctrl[/kbd] here maps to [kbd]Cmd[/kbd] on macOS):
@@ -73,6 +73,13 @@
 			<return type="void" />
 			<description>
 				Clears the current selection.
+			</description>
+		</method>
+		<method name="edit">
+			<return type="void" />
+			<description>
+				Allows entering edit mode whether the [LineEdit] is focused or not.
+				Use [method Callable.call_deferred] if you want to enter edit mode on [signal text_submitted].
 			</description>
 		</method>
 		<method name="get_menu" qualifiers="const">
@@ -221,6 +228,12 @@
 			<return type="void" />
 			<description>
 				Selects the whole [String].
+			</description>
+		</method>
+		<method name="unedit">
+			<return type="void" />
+			<description>
+				Allows exiting edit mode while preserving focus.
 			</description>
 		</method>
 	</methods>

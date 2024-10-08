@@ -45,6 +45,34 @@
 				[code]copy[/code] will result in FEED_YCBCR
 			</description>
 		</method>
+		<method name="set_name">
+			<return type="void" />
+			<param index="0" name="name" type="String" />
+			<description>
+				Sets the camera's name.
+			</description>
+		</method>
+		<method name="set_position">
+			<return type="void" />
+			<param index="0" name="position" type="int" enum="CameraFeed.FeedPosition" />
+			<description>
+				Sets the position of this camera.
+			</description>
+		</method>
+		<method name="set_rgb_image">
+			<return type="void" />
+			<param index="0" name="rgb_image" type="Image" />
+			<description>
+				Sets RGB image for this feed.
+			</description>
+		</method>
+		<method name="set_ycbcr_image">
+			<return type="void" />
+			<param index="0" name="ycbcr_image" type="Image" />
+			<description>
+				Sets YCbCr image for this feed.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="feed_is_active" type="bool" setter="set_active" getter="is_active" default="false">

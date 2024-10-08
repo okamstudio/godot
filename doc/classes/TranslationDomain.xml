@@ -30,6 +30,13 @@
 				Returns the [Translation] instance that best matches [param locale]. Returns [code]null[/code] if there are no matches.
 			</description>
 		</method>
+		<method name="pseudolocalize" qualifiers="const">
+			<return type="StringName" />
+			<param index="0" name="message" type="StringName" />
+			<description>
+				Returns the pseudolocalized string based on the [param message] passed in.
+			</description>
+		</method>
 		<method name="remove_translation">
 			<return type="void" />
 			<param index="0" name="translation" type="Translation" />
@@ -57,4 +64,42 @@
 			</description>
 		</method>
 	</methods>
+	<members>
+		<member name="pseudolocalization_accents_enabled" type="bool" setter="set_pseudolocalization_accents_enabled" getter="is_pseudolocalization_accents_enabled" default="true">
+			Replace all characters with their accented variants during pseudolocalization.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_double_vowels_enabled" type="bool" setter="set_pseudolocalization_double_vowels_enabled" getter="is_pseudolocalization_double_vowels_enabled" default="false">
+			Double vowels in strings during pseudolocalization to simulate the lengthening of text due to localization.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_enabled" type="bool" setter="set_pseudolocalization_enabled" getter="is_pseudolocalization_enabled" default="false">
+			If [code]true[/code], enables pseudolocalization for the project. This can be used to spot untranslatable strings or layout issues that may occur once the project is localized to languages that have longer strings than the source language.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_expansion_ratio" type="float" setter="set_pseudolocalization_expansion_ratio" getter="get_pseudolocalization_expansion_ratio" default="0.0">
+			The expansion ratio to use during pseudolocalization. A value of [code]0.3[/code] is sufficient for most practical purposes, and will increase the length of each string by 30%.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_fake_bidi_enabled" type="bool" setter="set_pseudolocalization_fake_bidi_enabled" getter="is_pseudolocalization_fake_bidi_enabled" default="false">
+			If [code]true[/code], emulate bidirectional (right-to-left) text when pseudolocalization is enabled. This can be used to spot issues with RTL layout and UI mirroring that will crop up if the project is localized to RTL languages such as Arabic or Hebrew.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_override_enabled" type="bool" setter="set_pseudolocalization_override_enabled" getter="is_pseudolocalization_override_enabled" default="false">
+			Replace all characters in the string with [code]*[/code]. Useful for finding non-localizable strings.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_prefix" type="String" setter="set_pseudolocalization_prefix" getter="get_pseudolocalization_prefix" default="&quot;[&quot;">
+			Prefix that will be prepended to the pseudolocalized string.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_skip_placeholders_enabled" type="bool" setter="set_pseudolocalization_skip_placeholders_enabled" getter="is_pseudolocalization_skip_placeholders_enabled" default="true">
+			Skip placeholders for string formatting like [code]%s[/code] or [code]%f[/code] during pseudolocalization. Useful to identify strings which need additional control characters to display correctly.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+		<member name="pseudolocalization_suffix" type="String" setter="set_pseudolocalization_suffix" getter="get_pseudolocalization_suffix" default="&quot;]&quot;">
+			Suffix that will be appended to the pseudolocalized string.
+			[b]Note:[/b] Updating this property does not automatically update texts in the scene tree. Please propagate the [constant MainLoop.NOTIFICATION_TRANSLATION_CHANGED] notification manually after you have finished modifying pseudolocalization related options.
+		</member>
+	</members>
 </class>

@@ -624,7 +624,6 @@ struct opset_t
 	} else {
 	  /* invalid unknown operator */
 	  env.clear_args ();
-	  env.set_error ();
 	}
 	break;
     }

@@ -72,7 +72,7 @@ public:
   hb_map_t current_glyphs;
   hb_map_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
-  int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
+  int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -2339,7 +2339,11 @@ struct COLR
                                   c->plan->colrv1_varstore_inner_maps.as_array ()))
         return_trace (false);
 
-      if (!out->varStore.serialize_serialize (c->serializer,
+      /* do not serialize varStore if there's no variation data after
+       * instancing: region_list or var_data is empty */
+      if (item_vars.get_region_list () &&
+          item_vars.get_vardata_encodings () &&
+          !out->varStore.serialize_serialize (c->serializer,
                                               item_vars.has_long_word (),
                                               c->plan->axis_tags,
                                               item_vars.get_region_list (),
@@ -2347,7 +2351,9 @@ struct COLR
         return_trace (false);
 
       /* if varstore is optimized, update colrv1_new_deltaset_idx_varidx_map in
-       * subset plan */
+       * subset plan.
+       * If varstore is empty after instancing, varidx_map would be empty and
+       * all var_idxes will be updated to VarIdx::NO_VARIATION */
       if (optimize)
       {
         const hb_map_t &varidx_map = item_vars.get_varidx_map ();
@@ -2578,10 +2584,6 @@ struct COLR
       if (paint)
       {
         // COLRv1 glyph
-
-	ItemVarStoreInstancer instancer (&(this+varStore),
-				     &(this+varIdxMap),
-				     hb_array (font->coords, font->num_coords));
 
 	bool is_bounded = true;
 	if (clip)

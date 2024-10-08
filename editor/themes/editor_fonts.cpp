@@ -156,6 +156,18 @@ void editor_register_fonts(const Ref<Theme> &p_theme) {
 	Ref<Font> default_font = load_internal_font(_font_NotoSans_Regular, _font_NotoSans_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false);
 	Ref<Font> default_font_msdf = load_internal_font(_font_NotoSans_Regular, _font_NotoSans_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, font_allow_msdf);
 
+	String noto_cjk_path;
+	String noto_cjk_bold_path;
+	String var_suffix[] = { "HK", "KR", "SC", "TC", "JP" }; // Note: All Noto Sans CJK versions support all glyph variations, it should not match current locale.
+	for (size_t i = 0; i < sizeof(var_suffix) / sizeof(String); i++) {
+		if (noto_cjk_path.is_empty()) {
+			noto_cjk_path = OS::get_singleton()->get_system_font_path("Noto Sans CJK " + var_suffix[i], 400, 100);
+		}
+		if (noto_cjk_bold_path.is_empty()) {
+			noto_cjk_bold_path = OS::get_singleton()->get_system_font_path("Noto Sans CJK " + var_suffix[i], 800, 100);
+		}
+	}
+
 	TypedArray<Font> fallbacks;
 	Ref<FontFile> arabic_font = load_internal_font(_font_NotoNaskhArabicUI_Regular, _font_NotoNaskhArabicUI_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
 	Ref<FontFile> bengali_font = load_internal_font(_font_NotoSansBengaliUI_Regular, _font_NotoSansBengaliUI_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
@@ -168,6 +180,9 @@ void editor_register_fonts(const Ref<Theme> &p_theme) {
 	Ref<FontFile> tamil_font = load_internal_font(_font_NotoSansTamilUI_Regular, _font_NotoSansTamilUI_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
 	Ref<FontFile> telugu_font = load_internal_font(_font_NotoSansTeluguUI_Regular, _font_NotoSansTeluguUI_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
 	Ref<FontFile> thai_font = load_internal_font(_font_NotoSansThai_Regular, _font_NotoSansThai_Regular_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
+	if (!noto_cjk_path.is_empty()) {
+		load_external_font(noto_cjk_path, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
+	}
 	Ref<FontFile> fallback_font = load_internal_font(_font_DroidSansFallback, _font_DroidSansFallback_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
 	Ref<FontFile> japanese_font = load_internal_font(_font_DroidSansJapanese, _font_DroidSansJapanese_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks);
 	default_font->set_fallbacks(fallbacks);
@@ -188,6 +203,9 @@ void editor_register_fonts(const Ref<Theme> &p_theme) {
 	Ref<FontFile> tamil_font_bold = load_internal_font(_font_NotoSansTamilUI_Bold, _font_NotoSansTamilUI_Bold_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks_bold);
 	Ref<FontFile> telugu_font_bold = load_internal_font(_font_NotoSansTeluguUI_Bold, _font_NotoSansTeluguUI_Bold_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks_bold);
 	Ref<FontFile> thai_font_bold = load_internal_font(_font_NotoSansThai_Bold, _font_NotoSansThai_Bold_size, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks_bold);
+	if (!noto_cjk_bold_path.is_empty()) {
+		load_external_font(noto_cjk_bold_path, font_hinting, font_antialiasing, true, font_subpixel_positioning, font_disable_embedded_bitmaps, false, &fallbacks_bold);
+	}
 	Ref<FontVariation> fallback_font_bold = make_bold_font(fallback_font, embolden_strength, &fallbacks_bold);
 	Ref<FontVariation> japanese_font_bold = make_bold_font(japanese_font, embolden_strength, &fallbacks_bold);
 

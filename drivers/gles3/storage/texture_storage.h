@@ -505,8 +505,6 @@ public:
 		texture_owner.initialize_rid(p_texture, p_tex);
 	}
 
-	virtual bool can_create_resources_async() const override;
-
 	virtual RID texture_allocate() override;
 	virtual void texture_free(RID p_rid) override;
 

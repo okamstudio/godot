@@ -301,7 +301,7 @@ struct post
     return_trace (c->check_struct (this) &&
 		  hb_barrier () &&
 		  (version.to_int () == 0x00010000 ||
-		   (version.to_int () == 0x00020000 && v2X.sanitize (c)) ||
+		   (version.to_int () == 0x00020000 && hb_barrier () && v2X.sanitize (c)) ||
 		   version.to_int () == 0x00030000));
   }
 

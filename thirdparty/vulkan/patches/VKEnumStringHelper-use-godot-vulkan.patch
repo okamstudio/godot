@@ -1,0 +1,13 @@
+diff --git a/thirdparty/vulkan/vk_enum_string_helper.h b/thirdparty/vulkan/vk_enum_string_helper.h
+index 8026787ad4..7a54b12a38 100644
+--- a/thirdparty/vulkan/vk_enum_string_helper.h
++++ b/thirdparty/vulkan/vk_enum_string_helper.h
+@@ -13,7 +13,7 @@
+ #ifdef __cplusplus
+ #include <string>
+ #endif
+-#include <vulkan/vulkan.h>
++#include "drivers/vulkan/godot_vulkan.h"
+ static inline const char* string_VkResult(VkResult input_value) {
+     switch (input_value) {
+         case VK_SUCCESS:

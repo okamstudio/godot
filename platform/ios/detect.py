@@ -2,7 +2,7 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from methods import detect_darwin_sdk_path, print_error
+from methods import detect_darwin_sdk_path, print_error, print_warning
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -156,7 +156,7 @@ def configure(env: "SConsEnvironment"):
     env.Append(CPPDEFINES=["IOS_ENABLED", "UNIX_ENABLED", "COREAUDIO_ENABLED"])
 
     if env["metal"] and env["arch"] != "arm64":
-        # Only supported on arm64, so skip it for x86_64 builds.
+        print_warning("Target architecture '{}' does not support the Metal rendering driver".format(env["arch"]))
         env["metal"] = False
 
     if env["metal"]:

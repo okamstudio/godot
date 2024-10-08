@@ -229,6 +229,11 @@
 				[code]points[/code]         - [PackedVector3Array], containing outline points. [code]x[/code] and [code]y[/code] are point coordinates. [code]z[/code] is the type of the point, using the [enum ContourPointTag] values.
 				[code]contours[/code]       - [PackedInt32Array], containing indices the end points of each contour.
 				[code]orientation[/code]    - [bool], contour orientation. If [code]true[/code], clockwise contours must be filled.
+				- Two successive [constant CONTOUR_CURVE_TAG_ON] points indicate a line segment.
+				- One [constant CONTOUR_CURVE_TAG_OFF_CONIC] point between two [constant CONTOUR_CURVE_TAG_ON] points indicates a single conic (quadratic) Bézier arc.
+				- Two [constant CONTOUR_CURVE_TAG_OFF_CUBIC] points between two [constant CONTOUR_CURVE_TAG_ON] points indicate a single cubic Bézier arc.
+				- Two successive [constant CONTOUR_CURVE_TAG_OFF_CONIC] points indicate two successive conic (quadratic) Bézier arcs with a virtual [constant CONTOUR_CURVE_TAG_ON] point at their middle.
+				- Each contour is closed. The last point of a contour uses the first point of a contour as its next point, and vice versa. The first point can be [constant CONTOUR_CURVE_TAG_OFF_CONIC] point.
 			</description>
 		</method>
 		<method name="font_get_glyph_index" qualifiers="const">

@@ -104,14 +104,14 @@ struct VersatileResourceTemplate {
 	uint8_t data[MAX_RESOURCE_SIZE];
 
 	template <typename T>
-	static T *allocate(PagedAllocator<VersatileResourceTemplate> &p_allocator) {
+	static T *allocate(PagedAllocator<VersatileResourceTemplate, true> &p_allocator) {
 		T *obj = (T *)p_allocator.alloc();
 		memnew_placement(obj, T);
 		return obj;
 	}
 
 	template <typename T>
-	static void free(PagedAllocator<VersatileResourceTemplate> &p_allocator, T *p_object) {
+	static void free(PagedAllocator<VersatileResourceTemplate, true> &p_allocator, T *p_object) {
 		p_object->~T();
 		p_allocator.free((VersatileResourceTemplate *)p_object);
 	}

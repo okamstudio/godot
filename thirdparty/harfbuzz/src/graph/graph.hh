@@ -368,7 +368,7 @@ struct graph_t
       // it's parent where possible.
 
       int64_t modified_distance =
-          hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFFF);
+          hb_clamp (distance + distance_modifier (), (int64_t) 0, 0x7FFFFFFFFFF);
       if (has_max_priority ()) {
         modified_distance = 0;
       }
@@ -1141,7 +1141,7 @@ struct graph_t
 
     unsigned clone_idx = duplicate (child_idx);
     if (clone_idx == (unsigned) -1) return false;
-    
+
     for (unsigned parent_idx : *parents) {
       // duplicate shifts the root node idx, so if parent_idx was root update it.
       if (parent_idx == clone_idx) parent_idx++;

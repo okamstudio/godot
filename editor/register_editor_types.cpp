@@ -127,6 +127,7 @@
 #include "editor/plugins/texture_region_editor_plugin.h"
 #include "editor/plugins/theme_editor_plugin.h"
 #include "editor/plugins/tiles/tiles_editor_plugin.h"
+#include "editor/plugins/tool_button_editor_plugin.h"
 #include "editor/plugins/version_control_editor_plugin.h"
 #include "editor/plugins/visual_shader_editor_plugin.h"
 #include "editor/plugins/voxel_gi_editor_plugin.h"
@@ -247,6 +248,7 @@ void register_editor_types() {
 	EditorPlugins::add_by_type<TextureLayeredEditorPlugin>();
 	EditorPlugins::add_by_type<TextureRegionEditorPlugin>();
 	EditorPlugins::add_by_type<ThemeEditorPlugin>();
+	EditorPlugins::add_by_type<ToolButtonEditorPlugin>();
 	EditorPlugins::add_by_type<VoxelGIEditorPlugin>();
 
 	// 2D

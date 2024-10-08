@@ -399,6 +399,11 @@
 				Emitted when this [GraphEdit] captures a [code]ui_copy[/code] action ([kbd]Ctrl + C[/kbd] by default). In general, this signal indicates that the selected [GraphElement]s should be copied.
 			</description>
 		</signal>
+		<signal name="cut_nodes_request">
+			<description>
+				Emitted when this [GraphEdit] captures a [code]ui_cut[/code] action ([kbd]Ctrl + X[/kbd] by default). In general, this signal indicates that the selected [GraphElement]s should be cut.
+			</description>
+		</signal>
 		<signal name="delete_nodes_request">
 			<param index="0" name="nodes" type="StringName[]" />
 			<description>

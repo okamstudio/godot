@@ -3263,8 +3263,11 @@ Error EditorExportPlatformAndroid::export_project_helper(const Ref<EditorExportP
 			cmdline.push_back(apk_build_command);
 		}
 
+		String addons_directory = ProjectSettings::get_singleton()->globalize_path("res://addons");
+
 		cmdline.push_back("-p"); // argument to specify the start directory.
 		cmdline.push_back(build_path); // start directory.
+		cmdline.push_back("-Paddons_directory=" + addons_directory); // path to the addon directory as it may contain jar or aar dependencies
 		cmdline.push_back("-Pexport_package_name=" + package_name); // argument to specify the package name.
 		cmdline.push_back("-Pexport_version_code=" + version_code); // argument to specify the version code.
 		cmdline.push_back("-Pexport_version_name=" + version_name); // argument to specify the version name.

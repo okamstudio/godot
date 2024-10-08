@@ -1893,6 +1893,12 @@ void DisplayServerMacOS::window_set_current_screen(int p_screen, WindowID p_wind
 		was_fullscreen = true;
 	}
 
+	bool was_maximized = false;
+	if (!was_fullscreen && NSEqualRects([wd.window_object frame], [[wd.window_object screen] visibleFrame])) {
+		[wd.window_object zoom:nil];
+		was_maximized = true;
+	}
+
 	Rect2i srect = screen_get_usable_rect(p_screen);
 	Point2i wpos = window_get_position(p_window) - screen_get_position(window_get_current_screen(p_window));
 	Size2i wsize = window_get_size(p_window);
@@ -1900,6 +1906,10 @@ void DisplayServerMacOS::window_set_current_screen(int p_screen, WindowID p_wind
 
 	wpos = wpos.clamp(srect.position, srect.position + srect.size - wsize / 3);
 	window_set_position(wpos, p_window);
+
+	if (was_maximized) {
+		[wd.window_object zoom:nil];
+	}
 
 	if (was_fullscreen) {
 		// Re-enter fullscreen mode.

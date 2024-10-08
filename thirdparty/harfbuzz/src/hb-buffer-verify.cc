@@ -412,7 +412,7 @@ hb_buffer_t::verify (hb_buffer_t        *text_buffer,
 				   &len,
 				   HB_BUFFER_SERIALIZE_FORMAT_TEXT,
 				   HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS);
-      buffer_verify_error (this, font, BUFFER_VERIFY_ERROR "text was: %s.", bytes.arrayZ);
+      buffer_verify_error (this, font, BUFFER_VERIFY_ERROR "text was: %s.", bytes.arrayZ ? bytes.arrayZ : "");
     }
 #endif
   }

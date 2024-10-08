@@ -102,7 +102,11 @@
 					} else {
 						// Otherwise redirect event to the engine.
 						if (DisplayServer::get_singleton()) {
-							[[[NSApplication sharedApplication] keyWindow] sendEvent:event];
+							if ([[NSApplication sharedApplication] keyWindow].sheet) {
+								[[[[NSApplication sharedApplication] keyWindow] sheetParent] sendEvent:event];
+							} else {
+								[[[NSApplication sharedApplication] keyWindow] sendEvent:event];
+							}
 						}
 					}
 

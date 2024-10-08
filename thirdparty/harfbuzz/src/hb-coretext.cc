@@ -48,6 +48,8 @@
 /* https://developer.apple.com/documentation/coretext/1508745-ctfontcreatewithgraphicsfont */
 #define HB_CORETEXT_DEFAULT_FONT_SIZE 12.f
 
+static CTFontRef create_ct_font (CGFontRef cg_font, CGFloat font_size);
+
 static void
 release_table_data (void *user_data)
 {
@@ -74,6 +76,52 @@ _hb_cg_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
   return hb_blob_create (data, length, HB_MEMORY_MODE_READONLY,
 			 reinterpret_cast<void *> (const_cast<__CFData *> (cf_data)),
 			 release_table_data);
+}
+
+static unsigned
+_hb_cg_get_table_tags (const hb_face_t *face HB_UNUSED,
+		       unsigned int start_offset,
+		       unsigned int *table_count,
+		       hb_tag_t *table_tags,
+		       void *user_data)
+{
+  CGFontRef cg_font = reinterpret_cast<CGFontRef> (user_data);
+
+  CTFontRef ct_font = create_ct_font (cg_font, (CGFloat) HB_CORETEXT_DEFAULT_FONT_SIZE);
+
+  auto arr = CTFontCopyAvailableTables (ct_font, kCTFontTableOptionNoOptions);
+
+  unsigned population = (unsigned) CFArrayGetCount (arr);
+  unsigned end_offset;
+
+  if (!table_count)
+    goto done;
+
+  if (unlikely (start_offset >= population))
+  {
+    *table_count = 0;
+    goto done;
+  }
+
+  end_offset = start_offset + *table_count;
+  if (unlikely (end_offset < start_offset))
+  {
+    *table_count = 0;
+    goto done;
+  }
+  end_offset= hb_min (end_offset, (unsigned) population);
+
+  *table_count = end_offset - start_offset;
+  for (unsigned i = start_offset; i < end_offset; i++)
+  {
+    CTFontTableTag tag = (CTFontTableTag)(uintptr_t) CFArrayGetValueAtIndex (arr, i);
+    table_tags[i - start_offset] = tag;
+  }
+
+done:
+  CFRelease (arr);
+  CFRelease (ct_font);
+  return population;
 }
 
 static void
@@ -294,7 +342,9 @@ _hb_coretext_shaper_face_data_destroy (hb_coretext_face_data_t *data)
 hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font)
 {
-  return hb_face_create_for_tables (_hb_cg_reference_table, CGFontRetain (cg_font), _hb_cg_font_release);
+  hb_face_t *face = hb_face_create_for_tables (_hb_cg_reference_table, CGFontRetain (cg_font), _hb_cg_font_release);
+  hb_face_set_get_table_tags_func (face, _hb_cg_get_table_tags, cg_font, nullptr);
+  return face;
 }
 
 /**

@@ -3447,6 +3447,18 @@ void RenderingServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(RENDERING_INFO_TEXTURE_MEM_USED);
 	BIND_ENUM_CONSTANT(RENDERING_INFO_BUFFER_MEM_USED);
 	BIND_ENUM_CONSTANT(RENDERING_INFO_VIDEO_MEM_USED);
+	BIND_ENUM_CONSTANT(RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS);
+	BIND_ENUM_CONSTANT(RENDERING_INFO_PIPELINE_COMPILATIONS_MESH);
+	BIND_ENUM_CONSTANT(RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE);
+	BIND_ENUM_CONSTANT(RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW);
+	BIND_ENUM_CONSTANT(RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION);
+
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_CANVAS);
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_MESH);
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_SURFACE);
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_DRAW);
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_SPECIALIZATION);
+	BIND_ENUM_CONSTANT(PIPELINE_SOURCE_MAX);
 
 	ADD_SIGNAL(MethodInfo("frame_pre_draw"));
 	ADD_SIGNAL(MethodInfo("frame_post_draw"));
@@ -3580,8 +3592,7 @@ void RenderingServer::init() {
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/global_illumination/voxel_gi/quality", PROPERTY_HINT_ENUM, "Low (4 Cones - Fast),High (6 Cones - Slow)"), 0);
 
-	GLOBAL_DEF("rendering/shading/overrides/force_vertex_shading", false);
-	GLOBAL_DEF("rendering/shading/overrides/force_vertex_shading.mobile", true);
+	GLOBAL_DEF_RST("rendering/shading/overrides/force_vertex_shading", false);
 	GLOBAL_DEF("rendering/shading/overrides/force_lambert_over_burley", false);
 	GLOBAL_DEF("rendering/shading/overrides/force_lambert_over_burley.mobile", true);
 

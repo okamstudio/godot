@@ -59,6 +59,7 @@ private:
 	CharString general_defines;
 	Vector<VariantDefine> variant_defines;
 	Vector<bool> variants_enabled;
+	Vector<uint32_t> variant_to_group;
 	HashMap<int, LocalVector<int>> group_to_variant_map;
 	Vector<bool> group_enabled;
 
@@ -69,9 +70,10 @@ private:
 		CharString fragment_globals;
 		HashMap<StringName, CharString> code_sections;
 		Vector<CharString> custom_defines;
+		Vector<WorkerThreadPool::GroupID> group_compilation_tasks;
 
-		Vector<uint8_t> *variant_data = nullptr;
-		RID *variants = nullptr; // Same size as variant defines.
+		Vector<Vector<uint8_t>> variant_data;
+		Vector<RID> variants;
 
 		bool valid;
 		bool dirty;
@@ -85,11 +87,13 @@ private:
 		int group = 0;
 	};
 
-	void _compile_variant(uint32_t p_variant, const CompileData *p_data);
+	void _compile_variant(uint32_t p_variant, CompileData p_data);
 
 	void _initialize_version(Version *p_version);
 	void _clear_version(Version *p_version);
-	void _compile_version(Version *p_version, int p_group);
+	void _compile_version_start(Version *p_version, int p_group);
+	void _compile_version_end(Version *p_version, int p_group);
+	void _compile_ensure_finished(Version *p_version);
 	void _allocate_placeholders(Version *p_version, int p_group);
 
 	RID_Owner<Version> version_owner;
@@ -172,8 +176,13 @@ public:
 					_allocate_placeholders(version, i);
 					continue;
 				}
-				_compile_version(version, i);
+				_compile_version_start(version, i);
 			}
+		}
+
+		uint32_t group = variant_to_group[p_variant];
+		if (version->group_compilation_tasks[group] != 0) {
+			_compile_version_end(version, group);
 		}
 
 		if (!version->valid) {

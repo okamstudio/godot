@@ -39,6 +39,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_spin_slider.h"
+#include "editor/gui/editor_validation_panel.h"
 #include "editor/gui/scene_tree_editor.h"
 #include "editor/inspector_dock.h"
 #include "editor/multi_node_edit.h"
@@ -48,6 +49,7 @@
 #include "scene/animation/animation_player.h"
 #include "scene/animation/tween.h"
 #include "scene/gui/check_box.h"
+#include "scene/gui/color_picker.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/option_button.h"
 #include "scene/gui/panel_container.h"
@@ -59,8 +61,9 @@
 #include "scene/main/window.h"
 #include "servers/audio/audio_stream.h"
 
-constexpr double FPS_DECIMAL = 1;
+constexpr double FPS_DECIMAL = 1.0;
 constexpr double SECOND_DECIMAL = 0.0001;
+constexpr double FACTOR = 0.0625;
 
 void AnimationTrackKeyEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_obj"), &AnimationTrackKeyEdit::_update_obj);
@@ -1467,7 +1470,7 @@ void AnimationTimelineEdit::_notification(int p_what) {
 		case NOTIFICATION_DRAW: {
 			int key_range = get_size().width - get_buttons_width() - get_name_limit();
 
-			if (!animation.is_valid()) {
+			if (animation.is_null()) {
 				return;
 			}
 
@@ -1519,6 +1522,18 @@ void AnimationTimelineEdit::_notification(int p_what) {
 						if (end > time_max) {
 							time_max = end;
 						}
+					}
+				}
+
+				PackedStringArray markers = animation->get_marker_names();
+				if (markers.size() > 0) {
+					float min_marker = animation->get_marker_time(markers[0]);
+					float max_marker = animation->get_marker_time(markers[markers.size() - 1]);
+					if (min_marker < time_min) {
+						time_min = min_marker;
+					}
+					if (max_marker > time_max) {
+						time_max = max_marker;
 					}
 				}
 
@@ -1701,7 +1716,7 @@ void AnimationTimelineEdit::set_zoom(Range *p_zoom) {
 }
 
 void AnimationTimelineEdit::auto_fit() {
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return;
 	}
 
@@ -1780,18 +1795,19 @@ void AnimationTimelineEdit::update_play_position() {
 }
 
 void AnimationTimelineEdit::update_values() {
-	if (!animation.is_valid() || editing) {
+	if (animation.is_null() || editing) {
 		return;
 	}
 
 	editing = true;
-	if (use_fps && animation->get_step() > 0) {
+	if (use_fps && animation->get_step() > 0.0) {
 		length->set_value(animation->get_length() / animation->get_step());
 		length->set_step(FPS_DECIMAL);
 		length->set_tooltip_text(TTR("Animation length (frames)"));
 		time_icon->set_tooltip_text(TTR("Animation length (frames)"));
 		if (track_edit) {
 			track_edit->editor->_update_key_edit();
+			track_edit->editor->marker_edit->_update_key_edit();
 		}
 	} else {
 		length->set_value(animation->get_length());
@@ -1821,7 +1837,7 @@ void AnimationTimelineEdit::update_values() {
 }
 
 void AnimationTimelineEdit::_play_position_draw() {
-	if (!animation.is_valid() || play_position_pos < 0) {
+	if (animation.is_null() || play_position_pos < 0) {
 		return;
 	}
 
@@ -1972,6 +1988,7 @@ AnimationTimelineEdit::AnimationTimelineEdit() {
 
 	Control *expander = memnew(Control);
 	expander->set_h_size_flags(SIZE_EXPAND_FILL);
+	expander->set_mouse_filter(MOUSE_FILTER_IGNORE);
 	len_hb->add_child(expander);
 	time_icon = memnew(TextureRect);
 	time_icon->set_v_size_flags(SIZE_SHRINK_CENTER);
@@ -2122,6 +2139,62 @@ void AnimationTrackEdit::_notification(int p_what) {
 				draw_string(font, string_pos, text, HORIZONTAL_ALIGNMENT_LEFT, limit - ofs - h_separation, font_size, text_color);
 
 				draw_line(Point2(limit, 0), Point2(limit, get_size().height), h_line_color, Math::round(EDSCALE));
+			}
+
+			// Marker sections.
+
+			{
+				float scale = timeline->get_zoom_scale();
+				int limit_end = get_size().width - timeline->get_buttons_width();
+
+				PackedStringArray section = editor->get_selected_section();
+				if (section.size() == 2) {
+					StringName start_marker = section[0];
+					StringName end_marker = section[1];
+					double start_time = animation->get_marker_time(start_marker);
+					double end_time = animation->get_marker_time(end_marker);
+
+					// When AnimationPlayer is playing, don't move the preview rect, so it still indicates the playback section.
+					AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+					if (editor->is_marker_moving_selection() && !(player && player->is_playing())) {
+						start_time += editor->get_marker_moving_selection_offset();
+						end_time += editor->get_marker_moving_selection_offset();
+					}
+
+					if (start_time < animation->get_length() && end_time >= 0) {
+						float start_ofs = MAX(0, start_time) - timeline->get_value();
+						float end_ofs = MIN(animation->get_length(), end_time) - timeline->get_value();
+						start_ofs = start_ofs * scale + limit;
+						end_ofs = end_ofs * scale + limit;
+						start_ofs = MAX(start_ofs, limit);
+						end_ofs = MIN(end_ofs, limit_end);
+						Rect2 rect;
+						rect.set_position(Vector2(start_ofs, 0));
+						rect.set_size(Vector2(end_ofs - start_ofs, get_size().height));
+
+						draw_rect(rect, Color(1, 0.1, 0.1, 0.2));
+					}
+				}
+			}
+
+			// Marker overlays.
+
+			{
+				float scale = timeline->get_zoom_scale();
+				PackedStringArray markers = animation->get_marker_names();
+				for (const StringName marker : markers) {
+					double time = animation->get_marker_time(marker);
+					if (editor->is_marker_selected(marker) && editor->is_marker_moving_selection()) {
+						time += editor->get_marker_moving_selection_offset();
+					}
+					if (time >= 0) {
+						float offset = time - timeline->get_value();
+						offset = offset * scale + limit;
+						Color marker_color = animation->get_marker_color(marker);
+						marker_color.a = 0.2;
+						draw_line(Point2(offset, 0), Point2(offset, get_size().height), marker_color);
+					}
+				}
 			}
 
 			// Keyframes.
@@ -2352,7 +2425,7 @@ void AnimationTrackEdit::_notification(int p_what) {
 }
 
 int AnimationTrackEdit::get_key_height() const {
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return 0;
 	}
 
@@ -2360,7 +2433,7 @@ int AnimationTrackEdit::get_key_height() const {
 }
 
 Rect2 AnimationTrackEdit::get_key_rect(int p_index, float p_pixels_sec) {
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return Rect2();
 	}
 	Rect2 rect = Rect2(-type_icon->get_width() / 2, 0, type_icon->get_width(), get_size().height);
@@ -2399,7 +2472,7 @@ void AnimationTrackEdit::draw_key_link(int p_index, float p_pixels_sec, int p_x,
 }
 
 void AnimationTrackEdit::draw_key(int p_index, float p_pixels_sec, int p_x, bool p_selected, int p_clip_left, int p_clip_right) {
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return;
 	}
 
@@ -2573,7 +2646,7 @@ void AnimationTrackEdit::set_editor(AnimationTrackEditor *p_editor) {
 }
 
 void AnimationTrackEdit::_play_position_draw() {
-	if (!animation.is_valid() || play_position_pos < 0) {
+	if (animation.is_null() || play_position_pos < 0) {
 		return;
 	}
 
@@ -3522,6 +3595,64 @@ void AnimationTrackEditGroup::_notification(int p_what) {
 
 			draw_style_box(stylebox_header, Rect2(Point2(), get_size()));
 
+			int limit = timeline->get_name_limit();
+
+			// Section preview.
+
+			{
+				float scale = timeline->get_zoom_scale();
+				int limit_end = get_size().width - timeline->get_buttons_width();
+
+				PackedStringArray section = editor->get_selected_section();
+				if (section.size() == 2) {
+					StringName start_marker = section[0];
+					StringName end_marker = section[1];
+					double start_time = editor->get_current_animation()->get_marker_time(start_marker);
+					double end_time = editor->get_current_animation()->get_marker_time(end_marker);
+
+					// When AnimationPlayer is playing, don't move the preview rect, so it still indicates the playback section.
+					AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+					if (editor->is_marker_moving_selection() && !(player && player->is_playing())) {
+						start_time += editor->get_marker_moving_selection_offset();
+						end_time += editor->get_marker_moving_selection_offset();
+					}
+
+					if (start_time < editor->get_current_animation()->get_length() && end_time >= 0) {
+						float start_ofs = MAX(0, start_time) - timeline->get_value();
+						float end_ofs = MIN(editor->get_current_animation()->get_length(), end_time) - timeline->get_value();
+						start_ofs = start_ofs * scale + limit;
+						end_ofs = end_ofs * scale + limit;
+						start_ofs = MAX(start_ofs, limit);
+						end_ofs = MIN(end_ofs, limit_end);
+						Rect2 rect;
+						rect.set_position(Vector2(start_ofs, 0));
+						rect.set_size(Vector2(end_ofs - start_ofs, get_size().height));
+
+						draw_rect(rect, Color(1, 0.1, 0.1, 0.2));
+					}
+				}
+			}
+
+			// Marker overlays.
+
+			{
+				float scale = timeline->get_zoom_scale();
+				PackedStringArray markers = editor->get_current_animation()->get_marker_names();
+				for (const StringName marker : markers) {
+					double time = editor->get_current_animation()->get_marker_time(marker);
+					if (editor->is_marker_selected(marker) && editor->is_marker_moving_selection()) {
+						time += editor->get_marker_moving_selection_offset();
+					}
+					if (time >= 0) {
+						float offset = time - timeline->get_value();
+						offset = offset * scale + limit;
+						Color marker_color = editor->get_current_animation()->get_marker_color(marker);
+						marker_color.a = 0.2;
+						draw_line(Point2(offset, 0), Point2(offset, get_size().height), marker_color);
+					}
+				}
+			}
+
 			draw_line(Point2(), Point2(get_size().width, 0), h_line_color, Math::round(EDSCALE));
 			draw_line(Point2(timeline->get_name_limit(), 0), Point2(timeline->get_name_limit(), get_size().height), v_line_color, Math::round(EDSCALE));
 			draw_line(Point2(get_size().width - timeline->get_buttons_width() - outer_margin, 0), Point2(get_size().width - timeline->get_buttons_width() - outer_margin, get_size().height), v_line_color, Math::round(EDSCALE));
@@ -3590,6 +3721,10 @@ void AnimationTrackEditGroup::set_root(Node *p_root) {
 	queue_redraw();
 }
 
+void AnimationTrackEditGroup::set_editor(AnimationTrackEditor *p_editor) {
+	editor = p_editor;
+}
+
 void AnimationTrackEditGroup::_zoom_changed() {
 	queue_redraw();
 }
@@ -3622,6 +3757,9 @@ void AnimationTrackEditor::set_animation(const Ref<Animation> &p_anim, bool p_re
 	animation = p_anim;
 	read_only = p_read_only;
 	timeline->set_animation(p_anim, read_only);
+
+	marker_edit->set_animation(p_anim, read_only);
+	marker_edit->set_play_position(timeline->get_play_position());
 
 	_cancel_bezier_edit();
 	_update_tracks();
@@ -3873,6 +4011,7 @@ void AnimationTrackEditor::_track_grab_focus(int p_track) {
 
 void AnimationTrackEditor::set_anim_pos(float p_pos) {
 	timeline->set_play_position(p_pos);
+	marker_edit->set_play_position(p_pos);
 	for (int i = 0; i < track_edits.size(); i++) {
 		track_edits[i]->set_play_position(p_pos);
 	}
@@ -4043,7 +4182,7 @@ void AnimationTrackEditor::insert_transform_key(Node3D *p_node, const String &p_
 	if (!keying) {
 		return;
 	}
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return;
 	}
 
@@ -4083,7 +4222,7 @@ bool AnimationTrackEditor::has_track(Node3D *p_node, const String &p_sub, const 
 	if (!keying) {
 		return false;
 	}
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return false;
 	}
 
@@ -4230,6 +4369,22 @@ void AnimationTrackEditor::insert_node_value_key(Node *p_node, const String &p_p
 	_query_insert(id);
 }
 
+PackedStringArray AnimationTrackEditor::get_selected_section() const {
+	return marker_edit->get_selected_section();
+}
+
+bool AnimationTrackEditor::is_marker_selected(const StringName &p_marker) const {
+	return marker_edit->is_marker_selected(p_marker);
+}
+
+bool AnimationTrackEditor::is_marker_moving_selection() const {
+	return marker_edit->is_moving_selection();
+}
+
+float AnimationTrackEditor::get_marker_moving_selection_offset() const {
+	return marker_edit->get_moving_selection_offset();
+}
+
 void AnimationTrackEditor::insert_value_key(const String &p_property, bool p_advance) {
 	EditorSelectionHistory *history = EditorNode::get_singleton()->get_editor_selection_history();
 
@@ -4316,7 +4471,7 @@ void AnimationTrackEditor::_confirm_insert_list() {
 
 PropertyInfo AnimationTrackEditor::_find_hint_for_track(int p_idx, NodePath &r_base_path, Variant *r_current_val) {
 	r_base_path = NodePath();
-	ERR_FAIL_COND_V(!animation.is_valid(), PropertyInfo());
+	ERR_FAIL_COND_V(animation.is_null(), PropertyInfo());
 	ERR_FAIL_INDEX_V(p_idx, animation->get_track_count(), PropertyInfo());
 
 	if (!root) {
@@ -4769,6 +4924,7 @@ void AnimationTrackEditor::_update_tracks() {
 				g->set_root(root);
 				g->set_tooltip_text(tooltip);
 				g->set_timeline(timeline);
+				g->set_editor(this);
 				groups.push_back(g);
 				VBoxContainer *vb = memnew(VBoxContainer);
 				vb->add_theme_constant_override("separation", 0);
@@ -4860,23 +5016,21 @@ void AnimationTrackEditor::_snap_mode_changed(int p_mode) {
 	if (key_edit) {
 		key_edit->set_use_fps(use_fps);
 	}
-	step->set_step(use_fps ? FPS_DECIMAL : SECOND_DECIMAL);
+	marker_edit->set_use_fps(use_fps);
 	_update_step_spinbox();
 }
 
 void AnimationTrackEditor::_update_step_spinbox() {
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return;
 	}
 	step->set_block_signals(true);
 
 	if (timeline->is_using_fps()) {
-		if (animation->get_step() == 0) {
-			step->set_value(0);
+		if (animation->get_step() == 0.0) {
+			step->set_value(0.0);
 		} else {
-			// The value stored within tscn cannot restored the original FPS due to lack of precision,
-			// so the value should be limited to integer.
-			step->set_value(Math::round(1.0 / animation->get_step()));
+			step->set_value(1.0 / animation->get_step());
 		}
 
 	} else {
@@ -4978,6 +5132,7 @@ void AnimationTrackEditor::_notification(int p_what) {
 void AnimationTrackEditor::_update_scroll(double) {
 	_redraw_tracks();
 	_redraw_groups();
+	marker_edit->queue_redraw();
 }
 
 void AnimationTrackEditor::_update_step(double p_new_step) {
@@ -4989,7 +5144,9 @@ void AnimationTrackEditor::_update_step(double p_new_step) {
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Change Animation Step"));
-	float step_value = p_new_step;
+	// To ensure that the conversion results are consistent between serialization and load, the value is snapped with 0.0625 to be a rational number.
+	// step_value must also be less than or equal to 1000 to ensure that no error accumulates due to interactions with retrieving values from inner range.
+	double step_value = MIN(1000.0, Math::snapped(p_new_step, FACTOR));
 	if (timeline->is_using_fps()) {
 		if (step_value != 0.0) {
 			step_value = 1.0 / step_value;
@@ -5253,6 +5410,8 @@ void AnimationTrackEditor::_timeline_value_changed(double) {
 
 	bezier_edit->queue_redraw();
 	bezier_edit->update_play_position();
+
+	marker_edit->update_play_position();
 }
 
 int AnimationTrackEditor::_get_track_selected() {
@@ -5445,6 +5604,8 @@ void AnimationTrackEditor::_key_selected(int p_key, bool p_single, int p_track) 
 
 	_redraw_tracks();
 	_update_key_edit();
+
+	marker_edit->_clear_selection(marker_edit->is_selection_active());
 }
 
 void AnimationTrackEditor::_key_deselected(int p_key, int p_track) {
@@ -5513,7 +5674,7 @@ void AnimationTrackEditor::_clear_selection(bool p_update) {
 
 void AnimationTrackEditor::_update_key_edit() {
 	_clear_key_edit();
-	if (!animation.is_valid()) {
+	if (animation.is_null()) {
 		return;
 	}
 
@@ -5600,6 +5761,8 @@ void AnimationTrackEditor::_select_at_anim(const Ref<Animation> &p_anim, int p_t
 
 	selection.insert(sk, ki);
 	_update_key_edit();
+
+	marker_edit->_clear_selection(marker_edit->is_selection_active());
 }
 
 void AnimationTrackEditor::_move_selection_commit() {
@@ -6200,8 +6363,8 @@ void AnimationTrackEditor::goto_prev_step(bool p_from_mouse_event) {
 		return;
 	}
 	float anim_step = animation->get_step();
-	if (anim_step == 0) {
-		anim_step = 1;
+	if (anim_step == 0.0) {
+		anim_step = 1.0;
 	}
 	if (p_from_mouse_event && Input::get_singleton()->is_key_pressed(Key::SHIFT)) {
 		// Use more precise snapping when holding Shift.
@@ -6211,8 +6374,8 @@ void AnimationTrackEditor::goto_prev_step(bool p_from_mouse_event) {
 
 	float pos = timeline->get_play_position();
 	pos = Math::snapped(pos - anim_step, anim_step);
-	if (pos < 0) {
-		pos = 0;
+	if (pos < 0.0) {
+		pos = 0.0;
 	}
 	set_anim_pos(pos);
 	_timeline_changed(pos, false);
@@ -6223,8 +6386,8 @@ void AnimationTrackEditor::goto_next_step(bool p_from_mouse_event, bool p_timeli
 		return;
 	}
 	float anim_step = animation->get_step();
-	if (anim_step == 0) {
-		anim_step = 1;
+	if (anim_step == 0.0) {
+		anim_step = 1.0;
 	}
 	if (p_from_mouse_event && Input::get_singleton()->is_key_pressed(Key::SHIFT)) {
 		// Use more precise snapping when holding Shift.
@@ -7311,6 +7474,15 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	box_selection_container->set_clip_contents(true);
 	timeline_vbox->add_child(box_selection_container);
 
+	marker_edit = memnew(AnimationMarkerEdit);
+	timeline->get_child(0)->add_child(marker_edit);
+	marker_edit->set_editor(this);
+	marker_edit->set_timeline(timeline);
+	marker_edit->set_h_size_flags(SIZE_EXPAND_FILL);
+	marker_edit->set_anchors_and_offsets_preset(Control::LayoutPreset::PRESET_FULL_RECT);
+	marker_edit->connect(SceneStringName(draw), callable_mp(this, &AnimationTrackEditor::_redraw_groups));
+	marker_edit->connect(SceneStringName(draw), callable_mp(this, &AnimationTrackEditor::_redraw_tracks));
+
 	scroll = memnew(ScrollContainer);
 	box_selection_container->add_child(scroll);
 	scroll->set_anchors_and_offsets_preset(PRESET_FULL_RECT);
@@ -7825,4 +7997,1204 @@ AnimationTrackKeyEditEditor::AnimationTrackKeyEditEditor(Ref<Animation> p_animat
 }
 
 AnimationTrackKeyEditEditor::~AnimationTrackKeyEditEditor() {
+}
+
+void AnimationMarkerEdit::_zoom_changed() {
+	queue_redraw();
+	play_position->queue_redraw();
+}
+
+void AnimationMarkerEdit::_menu_selected(int p_index) {
+	switch (p_index) {
+		case MENU_KEY_INSERT: {
+			_insert_marker(insert_at_pos);
+		} break;
+		case MENU_KEY_RENAME: {
+			if (selection.size() > 0) {
+				_rename_marker(*selection.last());
+			}
+		} break;
+		case MENU_KEY_DELETE: {
+			_delete_selected_markers();
+		} break;
+		case MENU_KEY_TOGGLE_MARKER_NAMES: {
+			should_show_all_marker_names = !should_show_all_marker_names;
+			queue_redraw();
+		} break;
+	}
+}
+
+void AnimationMarkerEdit::_play_position_draw() {
+	if (animation.is_null() || play_position_pos < 0) {
+		return;
+	}
+
+	float scale = timeline->get_zoom_scale();
+	int h = get_size().height;
+
+	int px = (play_position_pos - timeline->get_value()) * scale + timeline->get_name_limit();
+
+	if (px >= timeline->get_name_limit() && px < (get_size().width - timeline->get_buttons_width())) {
+		Color color = get_theme_color(SNAME("accent_color"), EditorStringName(Editor));
+		play_position->draw_line(Point2(px, 0), Point2(px, h), color, Math::round(2 * EDSCALE));
+	}
+}
+
+bool AnimationMarkerEdit::_try_select_at_ui_pos(const Point2 &p_pos, bool p_aggregate, bool p_deselectable) {
+	int limit = timeline->get_name_limit();
+	int limit_end = get_size().width - timeline->get_buttons_width();
+	// Left Border including space occupied by keyframes on t=0.
+	int limit_start_hitbox = limit - type_icon->get_width();
+
+	if (p_pos.x >= limit_start_hitbox && p_pos.x <= limit_end) {
+		int key_idx = -1;
+		float key_distance = 1e20;
+		PackedStringArray names = animation->get_marker_names();
+		for (int i = 0; i < names.size(); i++) {
+			Rect2 rect = const_cast<AnimationMarkerEdit *>(this)->get_key_rect(timeline->get_zoom_scale());
+			float offset = animation->get_marker_time(names[i]) - timeline->get_value();
+			offset = offset * timeline->get_zoom_scale() + limit;
+			rect.position.x += offset;
+			if (rect.has_point(p_pos)) {
+				if (const_cast<AnimationMarkerEdit *>(this)->is_key_selectable_by_distance()) {
+					float distance = Math::abs(offset - p_pos.x);
+					if (key_idx == -1 || distance < key_distance) {
+						key_idx = i;
+						key_distance = distance;
+					}
+				} else {
+					// First one does it.
+					break;
+				}
+			}
+		}
+
+		if (key_idx != -1) {
+			if (p_aggregate) {
+				StringName name = names[key_idx];
+				if (selection.has(name)) {
+					if (p_deselectable) {
+						call_deferred("_deselect_key", name);
+						moving_selection_pivot = 0.0f;
+						moving_selection_mouse_begin_x = 0.0f;
+					}
+				} else {
+					call_deferred("_select_key", name, false);
+					moving_selection_attempt = true;
+					moving_selection_effective = false;
+					select_single_attempt = StringName();
+					moving_selection_pivot = animation->get_marker_time(name);
+					moving_selection_mouse_begin_x = p_pos.x;
+				}
+
+			} else {
+				StringName name = names[key_idx];
+				if (!selection.has(name)) {
+					call_deferred("_select_key", name, true);
+					select_single_attempt = StringName();
+				} else {
+					select_single_attempt = name;
+				}
+
+				moving_selection_attempt = true;
+				moving_selection_effective = false;
+				moving_selection_pivot = animation->get_marker_time(name);
+				moving_selection_mouse_begin_x = p_pos.x;
+			}
+
+			if (read_only) {
+				moving_selection_attempt = false;
+				moving_selection_pivot = 0.0f;
+				moving_selection_mouse_begin_x = 0.0f;
+			}
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool AnimationMarkerEdit::_is_ui_pos_in_current_section(const Point2 &p_pos) {
+	int limit = timeline->get_name_limit();
+	int limit_end = get_size().width - timeline->get_buttons_width();
+
+	if (p_pos.x >= limit && p_pos.x <= limit_end) {
+		PackedStringArray section = get_selected_section();
+		if (!section.is_empty()) {
+			StringName start_marker = section[0];
+			StringName end_marker = section[1];
+			float start_offset = (animation->get_marker_time(start_marker) - timeline->get_value()) * timeline->get_zoom_scale() + limit;
+			float end_offset = (animation->get_marker_time(end_marker) - timeline->get_value()) * timeline->get_zoom_scale() + limit;
+			return p_pos.x >= start_offset && p_pos.x <= end_offset;
+		}
+	}
+
+	return false;
+}
+
+HBoxContainer *AnimationMarkerEdit::_create_hbox_labeled_control(const String &p_text, Control *p_control) const {
+	HBoxContainer *hbox = memnew(HBoxContainer);
+	Label *label = memnew(Label);
+	label->set_text(p_text);
+	hbox->add_child(label);
+	hbox->add_child(p_control);
+	hbox->set_h_size_flags(SIZE_EXPAND_FILL);
+	label->set_h_size_flags(SIZE_EXPAND_FILL);
+	label->set_stretch_ratio(1.0);
+	p_control->set_h_size_flags(SIZE_EXPAND_FILL);
+	p_control->set_stretch_ratio(1.0);
+	return hbox;
+}
+
+void AnimationMarkerEdit::_update_key_edit() {
+	_clear_key_edit();
+	if (animation.is_null()) {
+		return;
+	}
+
+	if (selection.size() == 1) {
+		key_edit = memnew(AnimationMarkerKeyEdit);
+		key_edit->animation = animation;
+		key_edit->animation_read_only = read_only;
+		key_edit->marker_name = *selection.begin();
+		key_edit->use_fps = timeline->is_using_fps();
+		key_edit->marker_edit = this;
+
+		EditorNode::get_singleton()->push_item(key_edit);
+
+		InspectorDock::get_singleton()->set_info(TTR("Marker name is read-only in the inspector."), TTR("A marker's name can only be changed by right-clicking it in the animation editor and selecting \"Rename Marker\", in order to make sure that marker names are all unique."), true);
+	} else if (selection.size() > 1) {
+		multi_key_edit = memnew(AnimationMultiMarkerKeyEdit);
+		multi_key_edit->animation = animation;
+		multi_key_edit->animation_read_only = read_only;
+		multi_key_edit->marker_edit = this;
+		for (const StringName &name : selection) {
+			multi_key_edit->marker_names.push_back(name);
+		}
+
+		EditorNode::get_singleton()->push_item(multi_key_edit);
+	}
+}
+
+void AnimationMarkerEdit::_clear_key_edit() {
+	if (key_edit) {
+		// If key edit is the object being inspected, remove it first.
+		if (InspectorDock::get_inspector_singleton()->get_edited_object() == key_edit) {
+			EditorNode::get_singleton()->push_item(nullptr);
+		}
+
+		// Then actually delete it.
+		memdelete(key_edit);
+		key_edit = nullptr;
+	}
+
+	if (multi_key_edit) {
+		if (InspectorDock::get_inspector_singleton()->get_edited_object() == multi_key_edit) {
+			EditorNode::get_singleton()->push_item(nullptr);
+		}
+
+		memdelete(multi_key_edit);
+		multi_key_edit = nullptr;
+	}
+}
+
+void AnimationMarkerEdit::_bind_methods() {
+	ClassDB::bind_method("_clear_selection_for_anim", &AnimationMarkerEdit::_clear_selection_for_anim);
+	ClassDB::bind_method("_select_key", &AnimationMarkerEdit::_select_key);
+	ClassDB::bind_method("_deselect_key", &AnimationMarkerEdit::_deselect_key);
+}
+
+void AnimationMarkerEdit::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_THEME_CHANGED: {
+			if (animation.is_null()) {
+				return;
+			}
+
+			type_icon = get_editor_theme_icon(SNAME("Marker"));
+			selected_icon = get_editor_theme_icon(SNAME("MarkerSelected"));
+		} break;
+
+		case NOTIFICATION_DRAW: {
+			if (animation.is_null()) {
+				return;
+			}
+
+			int limit = timeline->get_name_limit();
+
+			Ref<Font> font = get_theme_font(SceneStringName(font), SNAME("Label"));
+			Color color = get_theme_color(SceneStringName(font_color), SNAME("Label"));
+			int hsep = get_theme_constant(SNAME("h_separation"), SNAME("ItemList"));
+			Color linecolor = color;
+			linecolor.a = 0.2;
+
+			// SECTION PREVIEW //
+
+			{
+				float scale = timeline->get_zoom_scale();
+				int limit_end = get_size().width - timeline->get_buttons_width();
+
+				PackedStringArray section = get_selected_section();
+				if (section.size() == 2) {
+					StringName start_marker = section[0];
+					StringName end_marker = section[1];
+					double start_time = animation->get_marker_time(start_marker);
+					double end_time = animation->get_marker_time(end_marker);
+
+					// When AnimationPlayer is playing, don't move the preview rect, so it still indicates the playback section.
+					AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+					if (moving_selection && !(player && player->is_playing())) {
+						start_time += moving_selection_offset;
+						end_time += moving_selection_offset;
+					}
+
+					if (start_time < animation->get_length() && end_time >= 0) {
+						float start_ofs = MAX(0, start_time) - timeline->get_value();
+						float end_ofs = MIN(animation->get_length(), end_time) - timeline->get_value();
+						start_ofs = start_ofs * scale + limit;
+						end_ofs = end_ofs * scale + limit;
+						start_ofs = MAX(start_ofs, limit);
+						end_ofs = MIN(end_ofs, limit_end);
+						Rect2 rect;
+						rect.set_position(Vector2(start_ofs, 0));
+						rect.set_size(Vector2(end_ofs - start_ofs, get_size().height));
+
+						draw_rect(rect, Color(1, 0.1, 0.1, 0.2));
+					}
+				}
+			}
+
+			// KEYFRAMES //
+
+			draw_bg(limit, get_size().width - timeline->get_buttons_width());
+
+			{
+				float scale = timeline->get_zoom_scale();
+				int limit_end = get_size().width - timeline->get_buttons_width();
+
+				PackedStringArray names = animation->get_marker_names();
+				for (int i = 0; i < names.size(); i++) {
+					StringName name = names[i];
+					bool is_selected = selection.has(name);
+					float offset = animation->get_marker_time(name) - timeline->get_value();
+					if (is_selected && moving_selection) {
+						offset += moving_selection_offset;
+					}
+
+					offset = offset * scale + limit;
+
+					draw_key(name, scale, int(offset), is_selected, limit, limit_end);
+
+					const int font_size = 16;
+					Size2 string_size = font->get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size);
+					if (int(offset) <= limit_end && int(offset) >= limit && should_show_all_marker_names) {
+						float bottom = get_size().height + string_size.y - font->get_descent(font_size);
+						float extrusion = MAX(0, offset + string_size.x - limit_end); // How much the string would extrude outside limit_end if unadjusted.
+						Color marker_color = animation->get_marker_color(name);
+						draw_string(font, Point2(offset - extrusion, bottom), name, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, marker_color);
+						draw_string_outline(font, Point2(offset - extrusion, bottom), name, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, 1, color);
+					}
+				}
+			}
+
+			draw_fg(limit, get_size().width - timeline->get_buttons_width());
+
+			// BUTTONS //
+
+			{
+				int ofs = get_size().width - timeline->get_buttons_width();
+
+				draw_line(Point2(ofs, 0), Point2(ofs, get_size().height), linecolor, Math::round(EDSCALE));
+
+				ofs += hsep;
+			}
+
+			draw_line(Vector2(0, get_size().height), get_size(), linecolor, Math::round(EDSCALE));
+		} break;
+
+		case NOTIFICATION_MOUSE_ENTER:
+			hovered = true;
+			queue_redraw();
+			break;
+		case NOTIFICATION_MOUSE_EXIT:
+			hovered = false;
+			// When the mouse cursor exits the track, we're no longer hovering any keyframe.
+			hovering_marker = StringName();
+			queue_redraw();
+			break;
+	}
+}
+
+void AnimationMarkerEdit::gui_input(const Ref<InputEvent> &p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
+	if (animation.is_null()) {
+		return;
+	}
+
+	if (p_event->is_pressed()) {
+		if (ED_IS_SHORTCUT("animation_marker_edit/rename_marker", p_event)) {
+			if (!read_only) {
+				_menu_selected(MENU_KEY_RENAME);
+			}
+		}
+
+		if (ED_IS_SHORTCUT("animation_marker_edit/delete_selection", p_event)) {
+			if (!read_only) {
+				_menu_selected(MENU_KEY_DELETE);
+			}
+		}
+
+		if (ED_IS_SHORTCUT("animation_marker_edit/toggle_marker_names", p_event)) {
+			if (!read_only) {
+				_menu_selected(MENU_KEY_TOGGLE_MARKER_NAMES);
+			}
+		}
+	}
+
+	Ref<InputEventMouseButton> mb = p_event;
+
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT) {
+		Point2 pos = mb->get_position();
+		if (_try_select_at_ui_pos(pos, mb->is_command_or_control_pressed() || mb->is_shift_pressed(), true)) {
+			accept_event();
+		} else if (!_is_ui_pos_in_current_section(pos)) {
+			_clear_selection_for_anim(animation);
+		}
+	}
+
+	if (mb.is_valid() && moving_selection_attempt) {
+		if (!mb->is_pressed() && mb->get_button_index() == MouseButton::LEFT) {
+			moving_selection_attempt = false;
+			if (moving_selection && moving_selection_effective) {
+				if (Math::abs(moving_selection_offset) > CMP_EPSILON) {
+					_move_selection_commit();
+					accept_event(); // So play position doesn't snap to the end of move selection.
+				}
+			} else if (select_single_attempt) {
+				call_deferred("_select_key", select_single_attempt, true);
+
+				// First select click should not affect play position.
+				if (!selection.has(select_single_attempt)) {
+					accept_event();
+				} else {
+					// Second click and onwards should snap to marker time.
+					double ofs = animation->get_marker_time(select_single_attempt);
+					timeline->set_play_position(ofs);
+					timeline->emit_signal(SNAME("timeline_changed"), ofs, mb->is_alt_pressed());
+					accept_event();
+				}
+			} else {
+				// First select click should not affect play position.
+				if (!selection.has(select_single_attempt)) {
+					accept_event();
+				}
+			}
+
+			moving_selection = false;
+			select_single_attempt = StringName();
+		}
+
+		if (moving_selection && mb->is_pressed() && mb->get_button_index() == MouseButton::RIGHT) {
+			moving_selection_attempt = false;
+			moving_selection = false;
+			_move_selection_cancel();
+		}
+	}
+
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MouseButton::RIGHT) {
+		Point2 pos = mb->get_position();
+		if (pos.x >= timeline->get_name_limit() && pos.x <= get_size().width - timeline->get_buttons_width()) {
+			// Can do something with menu too! show insert key.
+			float offset = (pos.x - timeline->get_name_limit()) / timeline->get_zoom_scale();
+			if (!read_only) {
+				bool selected = _try_select_at_ui_pos(pos, mb->is_command_or_control_pressed() || mb->is_shift_pressed(), false);
+
+				menu->clear();
+				menu->add_icon_item(get_editor_theme_icon(SNAME("Key")), TTR("Insert Marker..."), MENU_KEY_INSERT);
+
+				if (selected || selection.size() > 0) {
+					menu->add_icon_item(get_editor_theme_icon(SNAME("Edit")), TTR("Rename Marker"), MENU_KEY_RENAME);
+					menu->add_icon_item(get_editor_theme_icon(SNAME("Remove")), TTR("Delete Marker(s)"), MENU_KEY_DELETE);
+				}
+
+				menu->add_icon_item(get_editor_theme_icon(should_show_all_marker_names ? SNAME("GuiChecked") : SNAME("GuiUnchecked")), TTR("Show All Marker Names"), MENU_KEY_TOGGLE_MARKER_NAMES);
+				menu->reset_size();
+
+				moving_selection_attempt = false;
+				moving_selection = false;
+
+				menu->set_position(get_screen_position() + get_local_mouse_position());
+				menu->popup();
+
+				insert_at_pos = offset + timeline->get_value();
+				accept_event();
+			}
+		}
+	}
+
+	Ref<InputEventMouseMotion> mm = p_event;
+
+	if (mm.is_valid()) {
+		const StringName previous_hovering_marker = hovering_marker;
+
+		// Hovering compressed keyframes for editing is not possible.
+		const float scale = timeline->get_zoom_scale();
+		const int limit = timeline->get_name_limit();
+		const int limit_end = get_size().width - timeline->get_buttons_width();
+		// Left Border including space occupied by keyframes on t=0.
+		const int limit_start_hitbox = limit - type_icon->get_width();
+		const Point2 pos = mm->get_position();
+
+		if (pos.x >= limit_start_hitbox && pos.x <= limit_end) {
+			// Use the same logic as key selection to ensure that hovering accurately represents
+			// which key will be selected when clicking.
+			int key_idx = -1;
+			float key_distance = 1e20;
+
+			hovering_marker = StringName();
+
+			PackedStringArray names = animation->get_marker_names();
+
+			// Hovering should happen in the opposite order of drawing for more accurate overlap hovering.
+			for (int i = names.size() - 1; i >= 0; i--) {
+				StringName name = names[i];
+				Rect2 rect = get_key_rect(scale);
+				float offset = animation->get_marker_time(name) - timeline->get_value();
+				offset = offset * scale + limit;
+				rect.position.x += offset;
+
+				if (rect.has_point(pos)) {
+					if (is_key_selectable_by_distance()) {
+						const float distance = Math::abs(offset - pos.x);
+						if (key_idx == -1 || distance < key_distance) {
+							key_idx = i;
+							key_distance = distance;
+							hovering_marker = name;
+						}
+					} else {
+						// First one does it.
+						hovering_marker = name;
+						break;
+					}
+				}
+			}
+
+			if (hovering_marker != previous_hovering_marker) {
+				// Required to draw keyframe hover feedback on the correct keyframe.
+				queue_redraw();
+			}
+		}
+	}
+
+	if (mm.is_valid() && mm->get_button_mask().has_flag(MouseButtonMask::LEFT) && moving_selection_attempt) {
+		if (!moving_selection) {
+			moving_selection = true;
+			_move_selection_begin();
+		}
+
+		float moving_begin_time = ((moving_selection_mouse_begin_x - timeline->get_name_limit()) / timeline->get_zoom_scale()) + timeline->get_value();
+		float new_time = ((mm->get_position().x - timeline->get_name_limit()) / timeline->get_zoom_scale()) + timeline->get_value();
+		float delta = new_time - moving_begin_time;
+		float snapped_time = editor->snap_time(moving_selection_pivot + delta);
+
+		float offset = 0.0;
+		if (Math::abs(editor->get_moving_selection_offset()) > CMP_EPSILON || (snapped_time > moving_selection_pivot && delta > CMP_EPSILON) || (snapped_time < moving_selection_pivot && delta < -CMP_EPSILON)) {
+			offset = snapped_time - moving_selection_pivot;
+			moving_selection_effective = true;
+		}
+
+		_move_selection(offset);
+	}
+}
+
+String AnimationMarkerEdit::get_tooltip(const Point2 &p_pos) const {
+	if (animation.is_null()) {
+		return Control::get_tooltip(p_pos);
+	}
+
+	int limit = timeline->get_name_limit();
+	int limit_end = get_size().width - timeline->get_buttons_width();
+	// Left Border including space occupied by keyframes on t=0.
+	int limit_start_hitbox = limit - type_icon->get_width();
+
+	if (p_pos.x >= limit_start_hitbox && p_pos.x <= limit_end) {
+		int key_idx = -1;
+		float key_distance = 1e20;
+
+		PackedStringArray names = animation->get_marker_names();
+
+		// Select should happen in the opposite order of drawing for more accurate overlap select.
+		for (int i = names.size() - 1; i >= 0; i--) {
+			StringName name = names[i];
+			Rect2 rect = const_cast<AnimationMarkerEdit *>(this)->get_key_rect(timeline->get_zoom_scale());
+			float offset = animation->get_marker_time(name) - timeline->get_value();
+			offset = offset * timeline->get_zoom_scale() + limit;
+			rect.position.x += offset;
+
+			if (rect.has_point(p_pos)) {
+				if (const_cast<AnimationMarkerEdit *>(this)->is_key_selectable_by_distance()) {
+					float distance = ABS(offset - p_pos.x);
+					if (key_idx == -1 || distance < key_distance) {
+						key_idx = i;
+						key_distance = distance;
+					}
+				} else {
+					// First one does it.
+					break;
+				}
+			}
+		}
+
+		if (key_idx != -1) {
+			String name = names[key_idx];
+			String text = TTR("Time (s):") + " " + TS->format_number(rtos(Math::snapped(animation->get_marker_time(name), 0.0001))) + "\n";
+			text += TTR("Marker:") + " " + name + "\n";
+			return text;
+		}
+	}
+
+	return Control::get_tooltip(p_pos);
+}
+
+int AnimationMarkerEdit::get_key_height() const {
+	if (animation.is_null()) {
+		return 0;
+	}
+
+	return type_icon->get_height();
+}
+
+Rect2 AnimationMarkerEdit::get_key_rect(float p_pixels_sec) const {
+	if (animation.is_null()) {
+		return Rect2();
+	}
+
+	Rect2 rect = Rect2(-type_icon->get_width() / 2, get_size().height - type_icon->get_size().height, type_icon->get_width(), type_icon->get_size().height);
+
+	// Make it a big easier to click.
+	rect.position.x -= rect.size.x * 0.5;
+	rect.size.x *= 2;
+	return rect;
+}
+
+PackedStringArray AnimationMarkerEdit::get_selected_section() const {
+	if (selection.size() >= 2) {
+		PackedStringArray arr;
+		arr.push_back(""); // Marker with smallest time.
+		arr.push_back(""); // Marker with largest time.
+		double min_time = INFINITY;
+		double max_time = -INFINITY;
+		for (const StringName &marker_name : selection) {
+			double time = animation->get_marker_time(marker_name);
+			if (time < min_time) {
+				arr.set(0, marker_name);
+				min_time = time;
+			}
+			if (time > max_time) {
+				arr.set(1, marker_name);
+				max_time = time;
+			}
+		}
+		return arr;
+	}
+
+	return PackedStringArray();
+}
+
+bool AnimationMarkerEdit::is_marker_selected(const StringName &p_marker) const {
+	return selection.has(p_marker);
+}
+
+bool AnimationMarkerEdit::is_key_selectable_by_distance() const {
+	return true;
+}
+
+void AnimationMarkerEdit::draw_key(const StringName &p_name, float p_pixels_sec, int p_x, bool p_selected, int p_clip_left, int p_clip_right) {
+	if (animation.is_null()) {
+		return;
+	}
+
+	if (p_x < p_clip_left || p_x > p_clip_right) {
+		return;
+	}
+
+	Ref<Texture2D> icon_to_draw = p_selected ? selected_icon : type_icon;
+
+	Vector2 ofs(p_x - icon_to_draw->get_width() / 2, int(get_size().height - icon_to_draw->get_height()));
+
+	// Don't apply custom marker color when the key is selected.
+	Color marker_color = p_selected ? Color(1, 1, 1) : animation->get_marker_color(p_name);
+
+	// Use a different color for the currently hovered key.
+	// The color multiplier is chosen to work with both dark and light editor themes,
+	// and on both unselected and selected key icons.
+	draw_texture(
+			icon_to_draw,
+			ofs,
+			p_name == hovering_marker ? get_theme_color(SNAME("folder_icon_color"), SNAME("FileDialog")) : marker_color);
+}
+
+void AnimationMarkerEdit::draw_bg(int p_clip_left, int p_clip_right) {
+}
+
+void AnimationMarkerEdit::draw_fg(int p_clip_left, int p_clip_right) {
+}
+
+Ref<Animation> AnimationMarkerEdit::get_animation() const {
+	return animation;
+}
+
+void AnimationMarkerEdit::set_animation(const Ref<Animation> &p_animation, bool p_read_only) {
+	if (animation.is_valid()) {
+		_clear_selection_for_anim(animation);
+	}
+	animation = p_animation;
+	read_only = p_read_only;
+	type_icon = get_editor_theme_icon(SNAME("Marker"));
+	selected_icon = get_editor_theme_icon(SNAME("MarkerSelected"));
+
+	queue_redraw();
+}
+
+Size2 AnimationMarkerEdit::get_minimum_size() const {
+	Ref<Texture2D> texture = get_editor_theme_icon(SNAME("Object"));
+	Ref<Font> font = get_theme_font(SceneStringName(font), SNAME("Label"));
+	int font_size = get_theme_font_size(SceneStringName(font_size), SNAME("Label"));
+	int separation = get_theme_constant(SNAME("v_separation"), SNAME("ItemList"));
+
+	int max_h = MAX(texture->get_height(), font->get_height(font_size));
+	max_h = MAX(max_h, get_key_height());
+
+	return Vector2(1, max_h + separation);
+}
+
+void AnimationMarkerEdit::set_timeline(AnimationTimelineEdit *p_timeline) {
+	timeline = p_timeline;
+	timeline->connect("zoom_changed", callable_mp(this, &AnimationMarkerEdit::_zoom_changed));
+	timeline->connect("name_limit_changed", callable_mp(this, &AnimationMarkerEdit::_zoom_changed));
+}
+
+void AnimationMarkerEdit::set_editor(AnimationTrackEditor *p_editor) {
+	editor = p_editor;
+}
+
+void AnimationMarkerEdit::set_play_position(float p_pos) {
+	play_position_pos = p_pos;
+	play_position->queue_redraw();
+}
+
+void AnimationMarkerEdit::update_play_position() {
+	play_position->queue_redraw();
+}
+
+void AnimationMarkerEdit::set_use_fps(bool p_use_fps) {
+	if (key_edit) {
+		key_edit->use_fps = p_use_fps;
+		key_edit->notify_property_list_changed();
+	}
+}
+
+void AnimationMarkerEdit::_move_selection_begin() {
+	moving_selection = true;
+	moving_selection_offset = 0;
+}
+
+void AnimationMarkerEdit::_move_selection(float p_offset) {
+	moving_selection_offset = p_offset;
+	queue_redraw();
+}
+
+void AnimationMarkerEdit::_move_selection_commit() {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Animation Move Markers"));
+
+	for (HashSet<StringName>::Iterator E = selection.last(); E; --E) {
+		StringName name = *E;
+		double time = animation->get_marker_time(name);
+		float newpos = time + moving_selection_offset;
+		undo_redo->add_do_method(animation.ptr(), "remove_marker", name);
+		undo_redo->add_do_method(animation.ptr(), "add_marker", name, newpos);
+		undo_redo->add_do_method(animation.ptr(), "set_marker_color", name, animation->get_marker_color(name));
+		undo_redo->add_undo_method(animation.ptr(), "remove_marker", name);
+		undo_redo->add_undo_method(animation.ptr(), "add_marker", name, time);
+		undo_redo->add_undo_method(animation.ptr(), "set_marker_color", name, animation->get_marker_color(name));
+
+		// add_marker will overwrite the overlapped key on the redo pass, so we add it back on the undo pass.
+		if (StringName overlap = animation->get_marker_at_time(newpos)) {
+			if (select_single_attempt == overlap) {
+				select_single_attempt = "";
+			}
+			undo_redo->add_undo_method(animation.ptr(), "add_marker", overlap, newpos);
+			undo_redo->add_undo_method(animation.ptr(), "set_marker_color", overlap, animation->get_marker_color(overlap));
+		}
+	}
+
+	moving_selection = false;
+	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+	if (player) {
+		PackedStringArray selected_section = get_selected_section();
+		if (selected_section.size() >= 2) {
+			undo_redo->add_do_method(player, "set_section_with_markers", selected_section[0], selected_section[1]);
+			undo_redo->add_undo_method(player, "set_section_with_markers", selected_section[0], selected_section[1]);
+		}
+	}
+	undo_redo->add_do_method(timeline, "queue_redraw");
+	undo_redo->add_undo_method(timeline, "queue_redraw");
+	undo_redo->add_do_method(this, "queue_redraw");
+	undo_redo->add_undo_method(this, "queue_redraw");
+	undo_redo->commit_action();
+	_update_key_edit();
+}
+
+void AnimationMarkerEdit::_delete_selected_markers() {
+	if (selection.size()) {
+		EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+		undo_redo->create_action(TTR("Animation Delete Keys"));
+		for (const StringName &name : selection) {
+			double time = animation->get_marker_time(name);
+			undo_redo->add_do_method(animation.ptr(), "remove_marker", name);
+			undo_redo->add_undo_method(animation.ptr(), "add_marker", name, time);
+			undo_redo->add_undo_method(animation.ptr(), "set_marker_color", name, animation->get_marker_color(name));
+		}
+		_clear_selection_for_anim(animation);
+
+		undo_redo->add_do_method(this, "queue_redraw");
+		undo_redo->add_undo_method(this, "queue_redraw");
+		undo_redo->commit_action();
+		_update_key_edit();
+	}
+}
+
+void AnimationMarkerEdit::_move_selection_cancel() {
+	moving_selection = false;
+	queue_redraw();
+}
+
+void AnimationMarkerEdit::_clear_selection(bool p_update) {
+	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+	if (player) {
+		player->reset_section();
+	}
+
+	selection.clear();
+
+	if (p_update) {
+		queue_redraw();
+	}
+
+	_clear_key_edit();
+}
+
+void AnimationMarkerEdit::_clear_selection_for_anim(const Ref<Animation> &p_anim) {
+	if (animation != p_anim) {
+		return;
+	}
+
+	_clear_selection(true);
+}
+
+void AnimationMarkerEdit::_select_key(const StringName &p_name, bool is_single) {
+	if (is_single) {
+		_clear_selection(false);
+	}
+
+	selection.insert(p_name);
+
+	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+	if (player) {
+		if (selection.size() >= 2) {
+			PackedStringArray selected_section = get_selected_section();
+			double start_time = animation->get_marker_time(selected_section[0]);
+			double end_time = animation->get_marker_time(selected_section[1]);
+			player->set_section(start_time, end_time);
+		} else {
+			player->reset_section();
+		}
+	}
+
+	queue_redraw();
+	_update_key_edit();
+
+	editor->_clear_selection(editor->is_selection_active());
+}
+
+void AnimationMarkerEdit::_deselect_key(const StringName &p_name) {
+	selection.erase(p_name);
+
+	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+	if (player) {
+		if (selection.size() >= 2) {
+			PackedStringArray selected_section = get_selected_section();
+			double start_time = animation->get_marker_time(selected_section[0]);
+			double end_time = animation->get_marker_time(selected_section[1]);
+			player->set_section(start_time, end_time);
+		} else {
+			player->reset_section();
+		}
+	}
+
+	queue_redraw();
+	_update_key_edit();
+}
+
+void AnimationMarkerEdit::_insert_marker(float p_ofs) {
+	if (editor->is_snap_timeline_enabled()) {
+		p_ofs = editor->snap_time(p_ofs);
+	}
+
+	marker_insert_confirm->popup_centered(Size2(200, 100) * EDSCALE);
+	marker_insert_color->set_pick_color(Color(1, 1, 1));
+
+	String base = "new_marker";
+	int count = 1;
+	while (true) {
+		String attempt = base;
+		if (count > 1) {
+			attempt += vformat("_%d", count);
+		}
+		if (animation->has_marker(attempt)) {
+			count++;
+			continue;
+		}
+		base = attempt;
+		break;
+	}
+
+	marker_insert_new_name->set_text(base);
+	_marker_insert_new_name_changed(base);
+	marker_insert_ofs = p_ofs;
+}
+
+void AnimationMarkerEdit::_rename_marker(const StringName &p_name) {
+	marker_rename_confirm->popup_centered(Size2i(200, 0) * EDSCALE);
+	marker_rename_prev_name = p_name;
+	marker_rename_new_name->set_text(p_name);
+}
+
+void AnimationMarkerEdit::_marker_insert_confirmed() {
+	StringName name = marker_insert_new_name->get_text();
+
+	if (animation->has_marker(name)) {
+		marker_insert_error_dialog->set_text(vformat(TTR("Marker '%s' already exists!"), name));
+		marker_insert_error_dialog->popup_centered();
+		return;
+	}
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+
+	undo_redo->create_action(TTR("Add Marker Key"));
+	undo_redo->add_do_method(animation.ptr(), "add_marker", name, marker_insert_ofs);
+	undo_redo->add_undo_method(animation.ptr(), "remove_marker", name);
+	StringName existing_marker = animation->get_marker_at_time(marker_insert_ofs);
+	if (existing_marker) {
+		undo_redo->add_undo_method(animation.ptr(), "add_marker", existing_marker, marker_insert_ofs);
+		undo_redo->add_undo_method(animation.ptr(), "set_marker_color", existing_marker, animation->get_marker_color(existing_marker));
+	}
+	undo_redo->add_do_method(animation.ptr(), "set_marker_color", name, marker_insert_color->get_pick_color());
+
+	undo_redo->add_do_method(this, "queue_redraw");
+	undo_redo->add_undo_method(this, "queue_redraw");
+
+	undo_redo->commit_action();
+
+	marker_insert_confirm->hide();
+}
+
+void AnimationMarkerEdit::_marker_insert_new_name_changed(const String &p_text) {
+	marker_insert_confirm->get_ok_button()->set_disabled(p_text.is_empty());
+}
+
+void AnimationMarkerEdit::_marker_rename_confirmed() {
+	StringName new_name = marker_rename_new_name->get_text();
+	StringName prev_name = marker_rename_prev_name;
+
+	if (new_name == StringName()) {
+		marker_rename_error_dialog->set_text(TTR("Empty marker names are not allowed."));
+		marker_rename_error_dialog->popup_centered();
+		return;
+	}
+
+	if (new_name != prev_name && animation->has_marker(new_name)) {
+		marker_rename_error_dialog->set_text(vformat(TTR("Marker '%s' already exists!"), new_name));
+		marker_rename_error_dialog->popup_centered();
+		return;
+	}
+
+	if (prev_name != new_name) {
+		EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+		undo_redo->create_action(TTR("Rename Marker"));
+		undo_redo->add_do_method(animation.ptr(), "remove_marker", prev_name);
+		undo_redo->add_do_method(animation.ptr(), "add_marker", new_name, animation->get_marker_time(prev_name));
+		undo_redo->add_do_method(animation.ptr(), "set_marker_color", new_name, animation->get_marker_color(prev_name));
+		undo_redo->add_undo_method(animation.ptr(), "remove_marker", new_name);
+		undo_redo->add_undo_method(animation.ptr(), "add_marker", prev_name, animation->get_marker_time(prev_name));
+		undo_redo->add_undo_method(animation.ptr(), "set_marker_color", prev_name, animation->get_marker_color(prev_name));
+		undo_redo->add_do_method(this, "_select_key", new_name, true);
+		undo_redo->add_undo_method(this, "_select_key", prev_name, true);
+		undo_redo->commit_action();
+		select_single_attempt = StringName();
+	}
+	marker_rename_confirm->hide();
+}
+
+void AnimationMarkerEdit::_marker_rename_new_name_changed(const String &p_text) {
+	marker_rename_confirm->get_ok_button()->set_disabled(p_text.is_empty());
+}
+
+AnimationMarkerEdit::AnimationMarkerEdit() {
+	play_position = memnew(Control);
+	play_position->set_mouse_filter(MOUSE_FILTER_PASS);
+	add_child(play_position);
+	play_position->connect(SceneStringName(draw), callable_mp(this, &AnimationMarkerEdit::_play_position_draw));
+	set_focus_mode(FOCUS_CLICK);
+	set_mouse_filter(MOUSE_FILTER_PASS); // Scroll has to work too for selection.
+
+	menu = memnew(PopupMenu);
+	add_child(menu);
+	menu->connect(SceneStringName(id_pressed), callable_mp(this, &AnimationMarkerEdit::_menu_selected));
+	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/rename_marker", TTR("Rename Marker"), Key::R), MENU_KEY_RENAME);
+	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/delete_selection", TTR("Delete Markers (s)"), Key::KEY_DELETE), MENU_KEY_DELETE);
+	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/toggle_marker_names", TTR("Show All Marker Names"), Key::M), MENU_KEY_TOGGLE_MARKER_NAMES);
+
+	marker_insert_confirm = memnew(ConfirmationDialog);
+	marker_insert_confirm->set_title(TTR("Insert Marker"));
+	marker_insert_confirm->set_hide_on_ok(false);
+	marker_insert_confirm->connect(SceneStringName(confirmed), callable_mp(this, &AnimationMarkerEdit::_marker_insert_confirmed));
+	add_child(marker_insert_confirm);
+	VBoxContainer *marker_insert_vbox = memnew(VBoxContainer);
+	marker_insert_vbox->set_anchors_and_offsets_preset(Control::LayoutPreset::PRESET_FULL_RECT);
+	marker_insert_confirm->add_child(marker_insert_vbox);
+	marker_insert_new_name = memnew(LineEdit);
+	marker_insert_new_name->connect(SceneStringName(text_changed), callable_mp(this, &AnimationMarkerEdit::_marker_insert_new_name_changed));
+	marker_insert_confirm->register_text_enter(marker_insert_new_name);
+	marker_insert_vbox->add_child(_create_hbox_labeled_control(TTR("Marker Name"), marker_insert_new_name));
+	marker_insert_color = memnew(ColorPickerButton);
+	marker_insert_color->set_edit_alpha(false);
+	marker_insert_color->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(marker_insert_color->get_picker()));
+	marker_insert_vbox->add_child(_create_hbox_labeled_control(TTR("Marker Color"), marker_insert_color));
+	marker_insert_error_dialog = memnew(AcceptDialog);
+	marker_insert_error_dialog->set_ok_button_text(TTR("Close"));
+	marker_insert_error_dialog->set_title(TTR("Error!"));
+	marker_insert_confirm->add_child(marker_insert_error_dialog);
+
+	marker_rename_confirm = memnew(ConfirmationDialog);
+	marker_rename_confirm->set_title(TTR("Rename Marker"));
+	marker_rename_confirm->set_hide_on_ok(false);
+	marker_rename_confirm->connect(SceneStringName(confirmed), callable_mp(this, &AnimationMarkerEdit::_marker_rename_confirmed));
+	add_child(marker_rename_confirm);
+	VBoxContainer *marker_rename_vbox = memnew(VBoxContainer);
+	marker_rename_vbox->set_anchors_and_offsets_preset(Control::LayoutPreset::PRESET_FULL_RECT);
+	marker_rename_confirm->add_child(marker_rename_vbox);
+	Label *marker_rename_new_name_label = memnew(Label);
+	marker_rename_new_name_label->set_text(TTR("Change Marker Name:"));
+	marker_rename_vbox->add_child(marker_rename_new_name_label);
+	marker_rename_new_name = memnew(LineEdit);
+	marker_rename_new_name->connect(SceneStringName(text_changed), callable_mp(this, &AnimationMarkerEdit::_marker_rename_new_name_changed));
+	marker_rename_confirm->register_text_enter(marker_rename_new_name);
+	marker_rename_vbox->add_child(marker_rename_new_name);
+
+	marker_rename_error_dialog = memnew(AcceptDialog);
+	marker_rename_error_dialog->set_ok_button_text(TTR("Close"));
+	marker_rename_error_dialog->set_title(TTR("Error!"));
+	marker_rename_confirm->add_child(marker_rename_error_dialog);
+}
+
+AnimationMarkerEdit::~AnimationMarkerEdit() {
+}
+
+float AnimationMarkerKeyEdit::get_time() const {
+	return animation->get_marker_time(marker_name);
+}
+
+void AnimationMarkerKeyEdit::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_hide_script_from_inspector"), &AnimationMarkerKeyEdit::_hide_script_from_inspector);
+	ClassDB::bind_method(D_METHOD("_hide_metadata_from_inspector"), &AnimationMarkerKeyEdit::_hide_metadata_from_inspector);
+	ClassDB::bind_method(D_METHOD("_dont_undo_redo"), &AnimationMarkerKeyEdit::_dont_undo_redo);
+	ClassDB::bind_method(D_METHOD("_is_read_only"), &AnimationMarkerKeyEdit::_is_read_only);
+	ClassDB::bind_method(D_METHOD("_set_marker_name"), &AnimationMarkerKeyEdit::_set_marker_name);
+}
+
+void AnimationMarkerKeyEdit::_set_marker_name(const StringName &p_name) {
+	marker_name = p_name;
+}
+
+bool AnimationMarkerKeyEdit::_set(const StringName &p_name, const Variant &p_value) {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+
+	if (p_name == "color") {
+		Color color = p_value;
+		Color prev_color = animation->get_marker_color(marker_name);
+		if (color != prev_color) {
+			undo_redo->create_action(TTR("Edit Marker Color"), UndoRedo::MERGE_ENDS);
+			undo_redo->add_do_method(animation.ptr(), "set_marker_color", marker_name, color);
+			undo_redo->add_undo_method(animation.ptr(), "set_marker_color", marker_name, prev_color);
+			undo_redo->add_do_method(marker_edit, "queue_redraw");
+			undo_redo->add_undo_method(marker_edit, "queue_redraw");
+			undo_redo->commit_action();
+		}
+		return true;
+	}
+
+	return false;
+}
+
+bool AnimationMarkerKeyEdit::_get(const StringName &p_name, Variant &r_ret) const {
+	if (p_name == "name") {
+		r_ret = marker_name;
+		return true;
+	}
+
+	if (p_name == "color") {
+		r_ret = animation->get_marker_color(marker_name);
+		return true;
+	}
+
+	return false;
+}
+
+void AnimationMarkerKeyEdit::_get_property_list(List<PropertyInfo> *p_list) const {
+	if (animation.is_null()) {
+		return;
+	}
+
+	p_list->push_back(PropertyInfo(Variant::STRING_NAME, "name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
+	p_list->push_back(PropertyInfo(Variant::COLOR, "color", PROPERTY_HINT_COLOR_NO_ALPHA));
+}
+
+void AnimationMultiMarkerKeyEdit::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_hide_script_from_inspector"), &AnimationMultiMarkerKeyEdit::_hide_script_from_inspector);
+	ClassDB::bind_method(D_METHOD("_hide_metadata_from_inspector"), &AnimationMultiMarkerKeyEdit::_hide_metadata_from_inspector);
+	ClassDB::bind_method(D_METHOD("_dont_undo_redo"), &AnimationMultiMarkerKeyEdit::_dont_undo_redo);
+	ClassDB::bind_method(D_METHOD("_is_read_only"), &AnimationMultiMarkerKeyEdit::_is_read_only);
+}
+
+bool AnimationMultiMarkerKeyEdit::_set(const StringName &p_name, const Variant &p_value) {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	if (p_name == "color") {
+		Color color = p_value;
+
+		undo_redo->create_action(TTR("Multi Edit Marker Color"), UndoRedo::MERGE_ENDS);
+
+		for (const StringName &marker_name : marker_names) {
+			undo_redo->add_do_method(animation.ptr(), "set_marker_color", marker_name, color);
+			undo_redo->add_undo_method(animation.ptr(), "set_marker_color", marker_name, animation->get_marker_color(marker_name));
+		}
+
+		undo_redo->add_do_method(marker_edit, "queue_redraw");
+		undo_redo->add_undo_method(marker_edit, "queue_redraw");
+		undo_redo->commit_action();
+
+		return true;
+	}
+
+	return false;
+}
+
+bool AnimationMultiMarkerKeyEdit::_get(const StringName &p_name, Variant &r_ret) const {
+	if (p_name == "color") {
+		r_ret = animation->get_marker_color(marker_names[0]);
+		return true;
+	}
+
+	return false;
+}
+
+void AnimationMultiMarkerKeyEdit::_get_property_list(List<PropertyInfo> *p_list) const {
+	if (animation.is_null()) {
+		return;
+	}
+
+	p_list->push_back(PropertyInfo(Variant::COLOR, "color", PROPERTY_HINT_COLOR_NO_ALPHA));
+}
+
+// AnimationMarkerKeyEditEditorPlugin
+
+void AnimationMarkerKeyEditEditor::_time_edit_entered() {
+}
+
+void AnimationMarkerKeyEditEditor::_time_edit_exited() {
+	real_t new_time = spinner->get_value();
+
+	if (use_fps) {
+		real_t fps = animation->get_step();
+		if (fps > 0) {
+			fps = 1.0 / fps;
+		}
+		new_time /= fps;
+	}
+
+	real_t prev_time = animation->get_marker_time(marker_name);
+
+	if (Math::is_equal_approx(new_time, prev_time)) {
+		return; // No change.
+	}
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Animation Change Marker Time"), UndoRedo::MERGE_ENDS);
+
+	Color color = animation->get_marker_color(marker_name);
+	undo_redo->add_do_method(animation.ptr(), "add_marker", marker_name, new_time);
+	undo_redo->add_do_method(animation.ptr(), "set_marker_color", marker_name, color);
+	undo_redo->add_undo_method(animation.ptr(), "remove_marker", marker_name);
+	undo_redo->add_undo_method(animation.ptr(), "add_marker", marker_name, prev_time);
+	undo_redo->add_undo_method(animation.ptr(), "set_marker_color", marker_name, color);
+	StringName existing_marker = animation->get_marker_at_time(new_time);
+	if (existing_marker) {
+		undo_redo->add_undo_method(animation.ptr(), "add_marker", existing_marker, animation->get_marker_time(existing_marker));
+		undo_redo->add_undo_method(animation.ptr(), "set_marker_color", existing_marker, animation->get_marker_color(existing_marker));
+	}
+	AnimationPlayerEditor *ape = AnimationPlayerEditor::get_singleton();
+	if (ape) {
+		AnimationTrackEditor *ate = ape->get_track_editor();
+		if (ate) {
+			AnimationMarkerEdit *ame = ate->marker_edit;
+			undo_redo->add_do_method(ame, "queue_redraw");
+			undo_redo->add_undo_method(ame, "queue_redraw");
+		}
+	}
+	undo_redo->commit_action();
+}
+
+AnimationMarkerKeyEditEditor::AnimationMarkerKeyEditEditor(Ref<Animation> p_animation, const StringName &p_name, bool p_use_fps) {
+	if (p_animation.is_null()) {
+		return;
+	}
+
+	animation = p_animation;
+	use_fps = p_use_fps;
+	marker_name = p_name;
+
+	set_label("Time");
+
+	spinner = memnew(EditorSpinSlider);
+	spinner->set_focus_mode(Control::FOCUS_CLICK);
+	spinner->set_min(0);
+	spinner->set_allow_greater(true);
+	spinner->set_allow_lesser(true);
+
+	float time = animation->get_marker_time(marker_name);
+
+	if (use_fps) {
+		spinner->set_step(FPS_DECIMAL);
+		real_t fps = animation->get_step();
+		if (fps > 0) {
+			fps = 1.0 / fps;
+		}
+		spinner->set_value(time * fps);
+	} else {
+		spinner->set_step(SECOND_DECIMAL);
+		spinner->set_value(time);
+		spinner->set_max(animation->get_length());
+	}
+
+	add_child(spinner);
+
+	spinner->connect("grabbed", callable_mp(this, &AnimationMarkerKeyEditEditor::_time_edit_entered), CONNECT_DEFERRED);
+	spinner->connect("ungrabbed", callable_mp(this, &AnimationMarkerKeyEditEditor::_time_edit_exited), CONNECT_DEFERRED);
+	spinner->connect("value_focus_entered", callable_mp(this, &AnimationMarkerKeyEditEditor::_time_edit_entered), CONNECT_DEFERRED);
+	spinner->connect("value_focus_exited", callable_mp(this, &AnimationMarkerKeyEditEditor::_time_edit_exited), CONNECT_DEFERRED);
+}
+
+AnimationMarkerKeyEditEditor::~AnimationMarkerKeyEditEditor() {
 }

@@ -4103,10 +4103,6 @@ bool RenderingDeviceDriverVulkan::pipeline_cache_create(const Vector<uint8_t> &p
 		cache_info.initialDataSize = pipelines_cache.buffer.size() - sizeof(PipelineCacheHeader);
 		cache_info.pInitialData = pipelines_cache.buffer.ptr() + sizeof(PipelineCacheHeader);
 
-		if (pipeline_cache_control_support) {
-			cache_info.flags = VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
-		}
-
 		VkResult err = vkCreatePipelineCache(vk_device, &cache_info, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_PIPELINE_CACHE), &pipelines_cache.vk_cache);
 		if (err != VK_SUCCESS) {
 			WARN_PRINT("vkCreatePipelinecache failed with error " + itos(err) + ".");

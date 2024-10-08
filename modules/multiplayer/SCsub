@@ -13,3 +13,10 @@ if env.editor_build:
     env_mp.add_source_files(module_obj, "editor/*.cpp")
 
 env.modules_sources += module_obj
+
+if env["tests"]:
+    env_mp.Append(CPPDEFINES=["TESTS_ENABLED"])
+    env_mp.add_source_files(env.modules_sources, "./tests/*.cpp")
+
+    if env["disable_exceptions"]:
+        env_mp.Append(CPPDEFINES=["DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS"])

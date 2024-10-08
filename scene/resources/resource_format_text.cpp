@@ -612,29 +612,27 @@ Error ResourceLoaderText::load() {
 						}
 					}
 
-					if (ClassDB::has_property(res->get_class_name(), assign)) {
-						if (value.get_type() == Variant::ARRAY) {
-							Array set_array = value;
-							bool is_get_valid = false;
-							Variant get_value = res->get(assign, &is_get_valid);
-							if (is_get_valid && get_value.get_type() == Variant::ARRAY) {
-								Array get_array = get_value;
-								if (!set_array.is_same_typed(get_array)) {
-									value = Array(set_array, get_array.get_typed_builtin(), get_array.get_typed_class_name(), get_array.get_typed_script());
-								}
+					if (value.get_type() == Variant::ARRAY) {
+						Array set_array = value;
+						bool is_get_valid = false;
+						Variant get_value = res->get(assign, &is_get_valid);
+						if (is_get_valid && get_value.get_type() == Variant::ARRAY) {
+							Array get_array = get_value;
+							if (!set_array.is_same_typed(get_array)) {
+								value = Array(set_array, get_array.get_typed_builtin(), get_array.get_typed_class_name(), get_array.get_typed_script());
 							}
 						}
+					}
 
-						if (value.get_type() == Variant::DICTIONARY) {
-							Dictionary set_dict = value;
-							bool is_get_valid = false;
-							Variant get_value = res->get(assign, &is_get_valid);
-							if (is_get_valid && get_value.get_type() == Variant::DICTIONARY) {
-								Dictionary get_dict = get_value;
-								if (!set_dict.is_same_typed(get_dict)) {
-									value = Dictionary(set_dict, get_dict.get_typed_key_builtin(), get_dict.get_typed_key_class_name(), get_dict.get_typed_key_script(),
-											get_dict.get_typed_value_builtin(), get_dict.get_typed_value_class_name(), get_dict.get_typed_value_script());
-								}
+					if (value.get_type() == Variant::DICTIONARY) {
+						Dictionary set_dict = value;
+						bool is_get_valid = false;
+						Variant get_value = res->get(assign, &is_get_valid);
+						if (is_get_valid && get_value.get_type() == Variant::DICTIONARY) {
+							Dictionary get_dict = get_value;
+							if (!set_dict.is_same_typed(get_dict)) {
+								value = Dictionary(set_dict, get_dict.get_typed_key_builtin(), get_dict.get_typed_key_class_name(), get_dict.get_typed_key_script(),
+										get_dict.get_typed_value_builtin(), get_dict.get_typed_value_class_name(), get_dict.get_typed_value_script());
 							}
 						}
 					}
@@ -754,29 +752,27 @@ Error ResourceLoaderText::load() {
 					}
 				}
 
-				if (ClassDB::has_property(resource->get_class_name(), assign)) {
-					if (value.get_type() == Variant::ARRAY) {
-						Array set_array = value;
-						bool is_get_valid = false;
-						Variant get_value = resource->get(assign, &is_get_valid);
-						if (is_get_valid && get_value.get_type() == Variant::ARRAY) {
-							Array get_array = get_value;
-							if (!set_array.is_same_typed(get_array)) {
-								value = Array(set_array, get_array.get_typed_builtin(), get_array.get_typed_class_name(), get_array.get_typed_script());
-							}
+				if (value.get_type() == Variant::ARRAY) {
+					Array set_array = value;
+					bool is_get_valid = false;
+					Variant get_value = resource->get(assign, &is_get_valid);
+					if (is_get_valid && get_value.get_type() == Variant::ARRAY) {
+						Array get_array = get_value;
+						if (!set_array.is_same_typed(get_array)) {
+							value = Array(set_array, get_array.get_typed_builtin(), get_array.get_typed_class_name(), get_array.get_typed_script());
 						}
 					}
+				}
 
-					if (value.get_type() == Variant::DICTIONARY) {
-						Dictionary set_dict = value;
-						bool is_get_valid = false;
-						Variant get_value = resource->get(assign, &is_get_valid);
-						if (is_get_valid && get_value.get_type() == Variant::DICTIONARY) {
-							Dictionary get_dict = get_value;
-							if (!set_dict.is_same_typed(get_dict)) {
-								value = Dictionary(set_dict, get_dict.get_typed_key_builtin(), get_dict.get_typed_key_class_name(), get_dict.get_typed_key_script(),
-										get_dict.get_typed_value_builtin(), get_dict.get_typed_value_class_name(), get_dict.get_typed_value_script());
-							}
+				if (value.get_type() == Variant::DICTIONARY) {
+					Dictionary set_dict = value;
+					bool is_get_valid = false;
+					Variant get_value = resource->get(assign, &is_get_valid);
+					if (is_get_valid && get_value.get_type() == Variant::DICTIONARY) {
+						Dictionary get_dict = get_value;
+						if (!set_dict.is_same_typed(get_dict)) {
+							value = Dictionary(set_dict, get_dict.get_typed_key_builtin(), get_dict.get_typed_key_class_name(), get_dict.get_typed_key_script(),
+									get_dict.get_typed_value_builtin(), get_dict.get_typed_value_class_name(), get_dict.get_typed_value_script());
 						}
 					}
 				}
@@ -1708,6 +1704,8 @@ static String _resource_get_class(Ref<Resource> p_resource) {
 }
 
 Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Resource> &p_resource, uint32_t p_flags) {
+	Resource::seed_scene_unique_id(p_path.hash()); // Seeding for save path should make it deterministic for importers.
+
 	if (p_path.ends_with(".tscn")) {
 		packed_scene = p_resource;
 	}

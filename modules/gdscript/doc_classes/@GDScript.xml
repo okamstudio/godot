@@ -669,6 +669,41 @@
 				[b]Note:[/b] Subgroups cannot be nested, they only provide one extra level of depth. Just like the next group ends the previous group, so do the subsequent subgroups.
 			</description>
 		</annotation>
+		<annotation name="@export_tool_button">
+			<return type="void" />
+			<param index="0" name="text" type="String" />
+			<param index="1" name="icon" type="String" default="&quot;&quot;" />
+			<description>
+				Export a [Callable] property as a clickable button with the label [param text]. When the button is pressed, the callable is called.
+				If [param icon] is specified, it is used to fetch an icon for the button via [method Control.get_theme_icon], from the [code]"EditorIcons"[/code] theme type. If [param icon] is omitted, the default [code]"Callable"[/code] icon is used instead.
+				Consider using the [EditorUndoRedoManager] to allow the action to be reverted safely.
+				See also [constant PROPERTY_HINT_TOOL_BUTTON].
+				[codeblock]
+				@tool
+				extends Sprite2D
+
+				@export_tool_button("Hello") var hello_action = hello
+				@export_tool_button("Randomize the color!", "ColorRect")
+				var randomize_color_action = randomize_color
+
+				func hello():
+				    print("Hello world!")
+
+				func randomize_color():
+				    var undo_redo = EditorInterface.get_editor_undo_redo()
+				    undo_redo.create_action("Randomized Sprite2D Color")
+				    undo_redo.add_do_property(self, &amp;"self_modulate", Color(randf(), randf(), randf()))
+				    undo_redo.add_undo_property(self, &amp;"self_modulate", self_modulate)
+				    undo_redo.commit_action()
+				[/codeblock]
+				[b]Note:[/b] The property is exported without the [constant PROPERTY_USAGE_STORAGE] flag because a [Callable] cannot be properly serialized and stored in a file.
+				[b]Note:[/b] In an exported project neither [EditorInterface] nor [EditorUndoRedoManager] exist, which may cause some scripts to break. To prevent this, you can use [method Engine.get_singleton] and omit the static type from the variable declaration:
+				[codeblock]
+				var undo_redo = Engine.get_singleton(&amp;"EditorInterface").get_editor_undo_redo()
+				[/codeblock]
+				[b]Note:[/b] Avoid storing lambda callables in member variables of [RefCounted]-based classes (e.g. resources), as this can lead to memory leaks. Use only method callables and optionally [method Callable.bind] or [method Callable.unbind].
+			</description>
+		</annotation>
 		<annotation name="@icon">
 			<return type="void" />
 			<param index="0" name="icon_path" type="String" />

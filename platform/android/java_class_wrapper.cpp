@@ -1120,7 +1120,7 @@ bool JavaClass::_convert_object_to_variant(JNIEnv *env, jobject obj, Variant &va
 	return false;
 }
 
-Ref<JavaClass> JavaClassWrapper::wrap(const String &p_class) {
+Ref<JavaClass> JavaClassWrapper::_wrap(const String &p_class, bool p_allow_private_methods_access) {
 	String class_name_dots = p_class.replace("/", ".");
 	if (class_cache.has(class_name_dots)) {
 		return class_cache[class_name_dots];
@@ -1175,7 +1175,7 @@ Ref<JavaClass> JavaClassWrapper::wrap(const String &p_class) {
 
 		jint mods = env->CallIntMethod(obj, is_constructor ? Constructor_getModifiers : Method_getModifiers);
 
-		if (!(mods & 0x0001)) {
+		if (!(mods & 0x0001) && (is_constructor || !p_allow_private_methods_access)) {
 			env->DeleteLocalRef(obj);
 			continue; //not public bye
 		}
@@ -1336,7 +1336,7 @@ Ref<JavaClass> JavaClassWrapper::wrap(const String &p_class) {
 	return java_class;
 }
 
-Ref<JavaClass> JavaClassWrapper::wrap_jclass(jclass p_class) {
+Ref<JavaClass> JavaClassWrapper::wrap_jclass(jclass p_class, bool p_allow_private_methods_access) {
 	JNIEnv *env = get_jni_env();
 	ERR_FAIL_NULL_V(env, Ref<JavaClass>());
 
@@ -1344,12 +1344,12 @@ Ref<JavaClass> JavaClassWrapper::wrap_jclass(jclass p_class) {
 	String class_name_string = jstring_to_string(class_name, env);
 	env->DeleteLocalRef(class_name);
 
-	return wrap(class_name_string);
+	return _wrap(class_name_string, p_allow_private_methods_access);
 }
 
 JavaClassWrapper *JavaClassWrapper::singleton = nullptr;
 
-JavaClassWrapper::JavaClassWrapper(jobject p_activity) {
+JavaClassWrapper::JavaClassWrapper() {
 	singleton = this;
 
 	JNIEnv *env = get_jni_env();

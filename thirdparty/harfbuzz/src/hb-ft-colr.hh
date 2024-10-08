@@ -108,7 +108,7 @@ struct hb_ft_paint_context_t
   hb_map_t current_glyphs;
   hb_map_t current_layers;
   int depth_left = HB_MAX_NESTING_LEVEL;
-  int edge_count = HB_COLRV1_MAX_EDGE_COUNT;
+  int edge_count = HB_MAX_GRAPH_EDGE_COUNT;
 };
 
 static unsigned

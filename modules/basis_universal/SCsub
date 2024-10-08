@@ -50,6 +50,26 @@ if env.dev_build:
 
 env_thirdparty = env_basisu.Clone()
 env_thirdparty.disable_warnings()
+
+# Disable unneeded features to reduce binary size.
+# <https://github.com/BinomialLLC/basis_universal/wiki/How-to-Use-and-Configure-the-Transcoder>
+env_thirdparty.Append(
+    CPPDEFINES=[
+        # Storage formats.
+        # Godot only implements `.basis` support through basis_universal.
+        # Support for `.ktx` files are implemented with a direct libktx implementation.
+        # Building the encoder requires `BASISD_SUPPORT_KTX2` to be enabled,
+        # so we can only disable Zstandard compression for `.ktx` files
+        # (this is not used in `.basis` files).
+        ("BASISD_SUPPORT_KTX2_ZSTD", 0),
+        # GPU compression formats.
+        ("BASISD_SUPPORT_ATC", 0),  # Proprietary Adreno format not supported by Godot.
+        ("BASISD_SUPPORT_FXT1", 0),  # Legacy format not supported by Godot.
+        ("BASISD_SUPPORT_PVRTC1", 0),  # Legacy format not supported by Godot.
+        ("BASISD_SUPPORT_PVRTC2", 0),  # Legacy format not supported by Godot.
+    ]
+)
+
 if env.editor_build:
     env_thirdparty.Append(CPPDEFINES=["BASISU_NO_IMG_LOADERS"])
     env_thirdparty.add_source_files(thirdparty_obj, encoder_sources)

@@ -61,8 +61,8 @@ _hb_ratio_to_angle (float r)
  * @style_tag: a style tag.
  *
  * Searches variation axes of a #hb_font_t object for a specific axis first,
- * if not set, then tries to get default style values from different
- * tables of the font.
+ * if not set, first tries to get default style values in `STAT` table
+ * then tries to polyfill from different tables of the font.
  *
  * Returns: Corresponding axis or default value to a style tag.
  *

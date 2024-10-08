@@ -39,66 +39,6 @@
 #include "main/main.h"
 #endif
 
-struct _character_accent_pair {
-	const char32_t character;
-	const char32_t *accented_character;
-};
-
-static _character_accent_pair _character_to_accented[] = {
-	{ 'A', U"Å" },
-	{ 'B', U"ß" },
-	{ 'C', U"Ç" },
-	{ 'D', U"Ð" },
-	{ 'E', U"É" },
-	{ 'F', U"F́" },
-	{ 'G', U"Ĝ" },
-	{ 'H', U"Ĥ" },
-	{ 'I', U"Ĩ" },
-	{ 'J', U"Ĵ" },
-	{ 'K', U"ĸ" },
-	{ 'L', U"Ł" },
-	{ 'M', U"Ḿ" },
-	{ 'N', U"й" },
-	{ 'O', U"Ö" },
-	{ 'P', U"Ṕ" },
-	{ 'Q', U"Q́" },
-	{ 'R', U"Ř" },
-	{ 'S', U"Ŝ" },
-	{ 'T', U"Ŧ" },
-	{ 'U', U"Ũ" },
-	{ 'V', U"Ṽ" },
-	{ 'W', U"Ŵ" },
-	{ 'X', U"X́" },
-	{ 'Y', U"Ÿ" },
-	{ 'Z', U"Ž" },
-	{ 'a', U"á" },
-	{ 'b', U"ḅ" },
-	{ 'c', U"ć" },
-	{ 'd', U"d́" },
-	{ 'e', U"é" },
-	{ 'f', U"f́" },
-	{ 'g', U"ǵ" },
-	{ 'h', U"h̀" },
-	{ 'i', U"í" },
-	{ 'j', U"ǰ" },
-	{ 'k', U"ḱ" },
-	{ 'l', U"ł" },
-	{ 'm', U"m̀" },
-	{ 'n', U"ή" },
-	{ 'o', U"ô" },
-	{ 'p', U"ṕ" },
-	{ 'q', U"q́" },
-	{ 'r', U"ŕ" },
-	{ 's', U"š" },
-	{ 't', U"ŧ" },
-	{ 'u', U"ü" },
-	{ 'v', U"ṽ" },
-	{ 'w', U"ŵ" },
-	{ 'x', U"x́" },
-	{ 'y', U"ý" },
-	{ 'z', U"ź" },
-};
-
 Vector<TranslationServer::LocaleScriptInfo> TranslationServer::locale_script_info;
 
 HashMap<String, String> TranslationServer::language_map;
@@ -433,8 +373,7 @@ StringName TranslationServer::translate(const StringName &p_message, const Strin
 		return p_message;
 	}
 
-	const StringName res = main_domain->translate(p_message, p_context);
-	return pseudolocalization_enabled ? pseudolocalize(res) : res;
+	return main_domain->translate(p_message, p_context);
 }
 
 StringName TranslationServer::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
@@ -510,15 +449,15 @@ void TranslationServer::setup() {
 	}
 
 	fallback = GLOBAL_DEF("internationalization/locale/fallback", "en");
-	pseudolocalization_enabled = GLOBAL_DEF("internationalization/pseudolocalization/use_pseudolocalization", false);
-	pseudolocalization_accents_enabled = GLOBAL_DEF("internationalization/pseudolocalization/replace_with_accents", true);
-	pseudolocalization_double_vowels_enabled = GLOBAL_DEF("internationalization/pseudolocalization/double_vowels", false);
-	pseudolocalization_fake_bidi_enabled = GLOBAL_DEF("internationalization/pseudolocalization/fake_bidi", false);
-	pseudolocalization_override_enabled = GLOBAL_DEF("internationalization/pseudolocalization/override", false);
-	expansion_ratio = GLOBAL_DEF("internationalization/pseudolocalization/expansion_ratio", 0.0);
-	pseudolocalization_prefix = GLOBAL_DEF("internationalization/pseudolocalization/prefix", "[");
-	pseudolocalization_suffix = GLOBAL_DEF("internationalization/pseudolocalization/suffix", "]");
-	pseudolocalization_skip_placeholders_enabled = GLOBAL_DEF("internationalization/pseudolocalization/skip_placeholders", true);
+	main_domain->set_pseudolocalization_enabled(GLOBAL_DEF("internationalization/pseudolocalization/use_pseudolocalization", false));
+	main_domain->set_pseudolocalization_accents_enabled(GLOBAL_DEF("internationalization/pseudolocalization/replace_with_accents", true));
+	main_domain->set_pseudolocalization_double_vowels_enabled(GLOBAL_DEF("internationalization/pseudolocalization/double_vowels", false));
+	main_domain->set_pseudolocalization_fake_bidi_enabled(GLOBAL_DEF("internationalization/pseudolocalization/fake_bidi", false));
+	main_domain->set_pseudolocalization_override_enabled(GLOBAL_DEF("internationalization/pseudolocalization/override", false));
+	main_domain->set_pseudolocalization_expansion_ratio(GLOBAL_DEF("internationalization/pseudolocalization/expansion_ratio", 0.0));
+	main_domain->set_pseudolocalization_prefix(GLOBAL_DEF("internationalization/pseudolocalization/prefix", "["));
+	main_domain->set_pseudolocalization_suffix(GLOBAL_DEF("internationalization/pseudolocalization/suffix", "]"));
+	main_domain->set_pseudolocalization_skip_placeholders_enabled(GLOBAL_DEF("internationalization/pseudolocalization/skip_placeholders", true));
 
 #ifdef TOOLS_ENABLED
 	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, "internationalization/locale/fallback", PROPERTY_HINT_LOCALE_ID, ""));
@@ -567,11 +506,11 @@ StringName TranslationServer::doc_translate_plural(const StringName &p_message, 
 }
 
 bool TranslationServer::is_pseudolocalization_enabled() const {
-	return pseudolocalization_enabled;
+	return main_domain->is_pseudolocalization_enabled();
 }
 
 void TranslationServer::set_pseudolocalization_enabled(bool p_enabled) {
-	pseudolocalization_enabled = p_enabled;
+	main_domain->set_pseudolocalization_enabled(p_enabled);
 
 	ResourceLoader::reload_translation_remaps();
 
@@ -581,14 +520,14 @@ void TranslationServer::set_pseudolocalization_enabled(bool p_enabled) {
 }
 
 void TranslationServer::reload_pseudolocalization() {
-	pseudolocalization_accents_enabled = GLOBAL_GET("internationalization/pseudolocalization/replace_with_accents");
-	pseudolocalization_double_vowels_enabled = GLOBAL_GET("internationalization/pseudolocalization/double_vowels");
-	pseudolocalization_fake_bidi_enabled = GLOBAL_GET("internationalization/pseudolocalization/fake_bidi");
-	pseudolocalization_override_enabled = GLOBAL_GET("internationalization/pseudolocalization/override");
-	expansion_ratio = GLOBAL_GET("internationalization/pseudolocalization/expansion_ratio");
-	pseudolocalization_prefix = GLOBAL_GET("internationalization/pseudolocalization/prefix");
-	pseudolocalization_suffix = GLOBAL_GET("internationalization/pseudolocalization/suffix");
-	pseudolocalization_skip_placeholders_enabled = GLOBAL_GET("internationalization/pseudolocalization/skip_placeholders");
+	main_domain->set_pseudolocalization_accents_enabled(GLOBAL_GET("internationalization/pseudolocalization/replace_with_accents"));
+	main_domain->set_pseudolocalization_double_vowels_enabled(GLOBAL_GET("internationalization/pseudolocalization/double_vowels"));
+	main_domain->set_pseudolocalization_fake_bidi_enabled(GLOBAL_GET("internationalization/pseudolocalization/fake_bidi"));
+	main_domain->set_pseudolocalization_override_enabled(GLOBAL_GET("internationalization/pseudolocalization/override"));
+	main_domain->set_pseudolocalization_expansion_ratio(GLOBAL_GET("internationalization/pseudolocalization/expansion_ratio"));
+	main_domain->set_pseudolocalization_prefix(GLOBAL_GET("internationalization/pseudolocalization/prefix"));
+	main_domain->set_pseudolocalization_suffix(GLOBAL_GET("internationalization/pseudolocalization/suffix"));
+	main_domain->set_pseudolocalization_skip_placeholders_enabled(GLOBAL_GET("internationalization/pseudolocalization/skip_placeholders"));
 
 	ResourceLoader::reload_translation_remaps();
 
@@ -598,138 +537,7 @@ void TranslationServer::reload_pseudolocalization() {
 }
 
 StringName TranslationServer::pseudolocalize(const StringName &p_message) const {
-	String message = p_message;
-	int length = message.length();
-	if (pseudolocalization_override_enabled) {
-		message = get_override_string(message);
-	}
-
-	if (pseudolocalization_double_vowels_enabled) {
-		message = double_vowels(message);
-	}
-
-	if (pseudolocalization_accents_enabled) {
-		message = replace_with_accented_string(message);
-	}
-
-	if (pseudolocalization_fake_bidi_enabled) {
-		message = wrap_with_fakebidi_characters(message);
-	}
-
-	StringName res = add_padding(message, length);
-	return res;
-}
-
-StringName TranslationServer::tool_pseudolocalize(const StringName &p_message) const {
-	String message = p_message;
-	message = double_vowels(message);
-	message = replace_with_accented_string(message);
-	StringName res = "[!!! " + message + " !!!]";
-	return res;
-}
-
-String TranslationServer::get_override_string(String &p_message) const {
-	String res;
-	for (int i = 0; i < p_message.length(); i++) {
-		if (pseudolocalization_skip_placeholders_enabled && is_placeholder(p_message, i)) {
-			res += p_message[i];
-			res += p_message[i + 1];
-			i++;
-			continue;
-		}
-		res += '*';
-	}
-	return res;
-}
-
-String TranslationServer::double_vowels(String &p_message) const {
-	String res;
-	for (int i = 0; i < p_message.length(); i++) {
-		if (pseudolocalization_skip_placeholders_enabled && is_placeholder(p_message, i)) {
-			res += p_message[i];
-			res += p_message[i + 1];
-			i++;
-			continue;
-		}
-		res += p_message[i];
-		if (p_message[i] == 'a' || p_message[i] == 'e' || p_message[i] == 'i' || p_message[i] == 'o' || p_message[i] == 'u' ||
-				p_message[i] == 'A' || p_message[i] == 'E' || p_message[i] == 'I' || p_message[i] == 'O' || p_message[i] == 'U') {
-			res += p_message[i];
-		}
-	}
-	return res;
-};
-
-String TranslationServer::replace_with_accented_string(String &p_message) const {
-	String res;
-	for (int i = 0; i < p_message.length(); i++) {
-		if (pseudolocalization_skip_placeholders_enabled && is_placeholder(p_message, i)) {
-			res += p_message[i];
-			res += p_message[i + 1];
-			i++;
-			continue;
-		}
-		const char32_t *accented = get_accented_version(p_message[i]);
-		if (accented) {
-			res += accented;
-		} else {
-			res += p_message[i];
-		}
-	}
-	return res;
-}
-
-String TranslationServer::wrap_with_fakebidi_characters(String &p_message) const {
-	String res;
-	char32_t fakebidiprefix = U'\u202e';
-	char32_t fakebidisuffix = U'\u202c';
-	res += fakebidiprefix;
-	// The fake bidi unicode gets popped at every newline so pushing it back at every newline.
-	for (int i = 0; i < p_message.length(); i++) {
-		if (p_message[i] == '\n') {
-			res += fakebidisuffix;
-			res += p_message[i];
-			res += fakebidiprefix;
-		} else if (pseudolocalization_skip_placeholders_enabled && is_placeholder(p_message, i)) {
-			res += fakebidisuffix;
-			res += p_message[i];
-			res += p_message[i + 1];
-			res += fakebidiprefix;
-			i++;
-		} else {
-			res += p_message[i];
-		}
-	}
-	res += fakebidisuffix;
-	return res;
-}
-
-String TranslationServer::add_padding(const String &p_message, int p_length) const {
-	String underscores = String("_").repeat(p_length * expansion_ratio / 2);
-	String prefix = pseudolocalization_prefix + underscores;
-	String suffix = underscores + pseudolocalization_suffix;
-
-	return prefix + p_message + suffix;
-}
-
-const char32_t *TranslationServer::get_accented_version(char32_t p_character) const {
-	if (!is_ascii_alphabet_char(p_character)) {
-		return nullptr;
-	}
-
-	for (unsigned int i = 0; i < sizeof(_character_to_accented) / sizeof(_character_to_accented[0]); i++) {
-		if (_character_to_accented[i].character == p_character) {
-			return _character_to_accented[i].accented_character;
-		}
-	}
-
-	return nullptr;
-}
-
-bool TranslationServer::is_placeholder(String &p_message, int p_index) const {
-	return p_index < p_message.length() - 1 && p_message[p_index] == '%' &&
-			(p_message[p_index + 1] == 's' || p_message[p_index + 1] == 'c' || p_message[p_index + 1] == 'd' ||
-					p_message[p_index + 1] == 'o' || p_message[p_index + 1] == 'x' || p_message[p_index + 1] == 'X' || p_message[p_index + 1] == 'f');
+	return main_domain->pseudolocalize(p_message);
 }
 
 #ifdef TOOLS_ENABLED

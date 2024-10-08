@@ -127,7 +127,10 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 			for (const String &E : p_features) {
 				features_vector.append(E);
 			}
-			ERR_FAIL_MSG(vformat("No suitable library found for GDExtension: %s. Possible feature flags for your platform: %s", p_path, String(", ").join(features_vector)));
+			if (get_export_platform().is_valid()) {
+				get_export_platform()->add_message(EditorExportPlatform::EXPORT_MESSAGE_WARNING, TTR("GDExtension"), vformat(TTR("No suitable library found for GDExtension: \"%s\". Possible feature flags for your platform: %s"), p_path, String(", ").join(features_vector)));
+			}
+			return;
 		}
 
 		Vector<SharedObject> dependencies_shared_objects = GDExtensionLibraryLoader::find_extension_dependencies(p_path, config, [p_features](String p_feature) { return p_features.has(p_feature); });

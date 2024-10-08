@@ -868,7 +868,10 @@ class Bus {
 	 * @returns {void}
 	 */
 	static move(fromIndex, toIndex) {
-		const movedBus = GodotAudio.Bus.getBus(fromIndex);
+		const movedBus = GodotAudio.Bus.getBusOrNull(fromIndex);
+		if (movedBus == null) {
+			return;
+		}
 		const buses = GodotAudio.buses.filter((_, i) => i !== fromIndex);
 		// Inserts at index.
 		buses.splice(toIndex - 1, 0, movedBus);
@@ -1424,7 +1427,10 @@ const _GodotAudio = {
 		 * @returns {void}
 		 */
 		remove_sample_bus: function (index) {
-			const bus = GodotAudio.Bus.getBus(index);
+			const bus = GodotAudio.Bus.getBusOrNull(index);
+			if (bus == null) {
+				return;
+			}
 			bus.clear();
 		},
 
@@ -1454,8 +1460,17 @@ const _GodotAudio = {
 		 * @returns {void}
 		 */
 		set_sample_bus_send: function (busIndex, sendIndex) {
-			const bus = GodotAudio.Bus.getBus(busIndex);
-			bus.setSend(GodotAudio.Bus.getBus(sendIndex));
+			const bus = GodotAudio.Bus.getBusOrNull(busIndex);
+			if (bus == null) {
+				// Cannot send from an invalid bus.
+				return;
+			}
+			let targetBus = GodotAudio.Bus.getBusOrNull(sendIndex);
+			if (targetBus == null) {
+				// Send to master.
+				targetBus = GodotAudio.Bus.getBus(0);
+			}
+			bus.setSend(targetBus);
 		},
 
 		/**
@@ -1465,7 +1480,10 @@ const _GodotAudio = {
 		 * @returns {void}
 		 */
 		set_sample_bus_volume_db: function (busIndex, volumeDb) {
-			const bus = GodotAudio.Bus.getBus(busIndex);
+			const bus = GodotAudio.Bus.getBusOrNull(busIndex);
+			if (bus == null) {
+				return;
+			}
 			bus.setVolumeDb(volumeDb);
 		},
 
@@ -1476,7 +1494,10 @@ const _GodotAudio = {
 		 * @returns {void}
 		 */
 		set_sample_bus_solo: function (busIndex, enable) {
-			const bus = GodotAudio.Bus.getBus(busIndex);
+			const bus = GodotAudio.Bus.getBusOrNull(busIndex);
+			if (bus == null) {
+				return;
+			}
 			bus.solo(enable);
 		},
 
@@ -1487,7 +1508,10 @@ const _GodotAudio = {
 		 * @returns {void}
 		 */
 		set_sample_bus_mute: function (busIndex, enable) {
-			const bus = GodotAudio.Bus.getBus(busIndex);
+			const bus = GodotAudio.Bus.getBusOrNull(busIndex);
+			if (bus == null) {
+				return;
+			}
 			bus.mute(enable);
 		},
 	},

@@ -32,11 +32,7 @@
 
 #include "rendering_context_driver_vulkan_wayland.h"
 
-#ifdef USE_VOLK
-#include <volk.h>
-#else
-#include <vulkan/vulkan.h>
-#endif
+#include "drivers/vulkan/godot_vulkan.h"
 
 const char *RenderingContextDriverVulkanWayland::_get_platform_surface_extension() const {
 	return VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME;

@@ -6,12 +6,12 @@
  *
  * on files with these headers:
  *
- * # IndicSyllabicCategory-15.1.0.txt
- * # Date: 2023-01-05
- * # IndicPositionalCategory-15.1.0.txt
- * # Date: 2023-01-05
- * # Blocks-15.1.0.txt
- * # Date: 2023-07-28, 15:47:20 GMT
+ * # IndicSyllabicCategory-16.0.0.txt
+ * # Date: 2024-04-30, 21:48:21 GMT
+ * # IndicPositionalCategory-16.0.0.txt
+ * # Date: 2024-04-30, 21:48:21 GMT
+ * # Blocks-16.0.0.txt
+ * # Date: 2024-02-02
  */
 
 #include "hb.hh"
@@ -89,7 +89,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _OT_MW   OT_MW           /*   2 chars; MW */
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
-#define _OT_GB   OT_PLACEHOLDER  /* 165 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 185 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
 #define _OT_R    OT_Ra           /*  14 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
@@ -112,7 +112,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
 #define _POS_AS  POS_AFTER_SUB   /*  51 chars; AFTER_SUB */
-#define _POS_C   POS_BASE_C      /* 833 chars; BASE_C */
+#define _POS_C   POS_BASE_C      /* 853 chars; BASE_C */
 #define _POS_BS  POS_BEFORE_SUB  /*  25 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
 #define _POS_X   POS_END         /*  71 chars; END */
@@ -458,7 +458,16 @@ static const uint16_t indic_table[] = {
 
   /* 11338 */  _(X,X),  _(X,X),  _(X,X),  _(N,X),  _(N,X),  _(X,X),  _(X,X),  _(X,X),
 
-}; /* Table items: 1728; occupancy: 71% */
+#define indic_offset_0x116d0u 1728
+
+
+  /* Myanmar Extended-C */
+
+  /* 116D0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 116D8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 116E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+
+}; /* Table items: 1752; occupancy: 71% */
 
 uint16_t
 hb_indic_get_categories (hb_codepoint_t u)
@@ -498,6 +507,7 @@ hb_indic_get_categories (hb_codepoint_t u)
     case 0x11u:
       if (hb_in_range<hb_codepoint_t> (u, 0x11300u, 0x11307u)) return indic_table[u - 0x11300u + indic_offset_0x11300u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11338u, 0x1133Fu)) return indic_table[u - 0x11338u + indic_offset_0x11338u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x116D0u, 0x116E7u)) return indic_table[u - 0x116D0u + indic_offset_0x116d0u];
       break;
 
     default:

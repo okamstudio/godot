@@ -30,6 +30,7 @@
 
 #include "debug_adapter_parser.h"
 
+#include "editor/debugger/debug_adapter/debug_adapter_types.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/debugger/script_editor_debugger.h"
 #include "editor/export/editor_export_platform.h"
@@ -442,26 +443,34 @@ Dictionary DebugAdapterParser::req_variables(const Dictionary &p_params) const {
 		return Dictionary();
 	}
 
-	Dictionary response = prepare_success_response(p_params), body;
-	response["body"] = body;
-
 	Dictionary args = p_params["arguments"];
 	int variable_id = args["variablesReference"];
 
-	HashMap<int, Array>::Iterator E = DebugAdapterProtocol::get_singleton()->variable_list.find(variable_id);
+	if (HashMap<int, Array>::Iterator E = DebugAdapterProtocol::get_singleton()->variable_list.find(variable_id); E) {
+		Dictionary response = prepare_success_response(p_params);
+		Dictionary body;
+		response["body"] = body;
 
-	if (E) {
 		if (!DebugAdapterProtocol::get_singleton()->get_current_peer()->supportsVariableType) {
 			for (int i = 0; i < E->value.size(); i++) {
 				Dictionary variable = E->value[i];
 				variable.erase("type");
 			}
 		}
+
 		body["variables"] = E ? E->value : Array();
 		return response;
 	} else {
-		return Dictionary();
+		// If the requested variable is an object, it needs to be requested from the debuggee.
+		ObjectID object_id = DebugAdapterProtocol::get_singleton()->search_object_id(variable_id);
+
+		if (object_id.is_null()) {
+			return prepare_error_response(p_params, DAP::ErrorType::UNKNOWN);
+		}
+
+		DebugAdapterProtocol::get_singleton()->request_remote_object(object_id);
 	}
+	return Dictionary();
 }
 
 Dictionary DebugAdapterParser::req_next(const Dictionary &p_params) const {
@@ -479,16 +488,27 @@ Dictionary DebugAdapterParser::req_stepIn(const Dictionary &p_params) const {
 }
 
 Dictionary DebugAdapterParser::req_evaluate(const Dictionary &p_params) const {
-	Dictionary response = prepare_success_response(p_params), body;
-	response["body"] = body;
-
 	Dictionary args = p_params["arguments"];
+	String expression = args["expression"];
+	int frame_id = args.has("frameId") ? static_cast<int>(args["frameId"]) : DebugAdapterProtocol::get_singleton()->_current_frame;
 
-	String value = EditorDebuggerNode::get_singleton()->get_var_value(args["expression"]);
-	body["result"] = value;
-	body["variablesReference"] = 0;
+	if (HashMap<String, DAP::Variable>::Iterator E = DebugAdapterProtocol::get_singleton()->eval_list.find(expression); E) {
+		Dictionary response = prepare_success_response(p_params);
+		Dictionary body;
+		response["body"] = body;
 
-	return response;
+		DAP::Variable var = E->value;
+
+		body["result"] = var.value;
+		body["variablesReference"] = var.variablesReference;
+
+		// Since an evaluation can alter the state of the debuggee, they are volatile, and should only be used once
+		DebugAdapterProtocol::get_singleton()->eval_list.erase(E->key);
+		return response;
+	} else {
+		DebugAdapterProtocol::get_singleton()->request_remote_evaluate(expression, frame_id);
+	}
+	return Dictionary();
 }
 
 Dictionary DebugAdapterParser::req_godot_put_msg(const Dictionary &p_params) const {

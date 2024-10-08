@@ -60,32 +60,6 @@ private:
 	};
 
 	enum {
-
-		SPEC_CONSTANT_USING_PROJECTOR = 0,
-		SPEC_CONSTANT_USING_SOFT_SHADOWS = 1,
-		SPEC_CONSTANT_USING_DIRECTIONAL_SOFT_SHADOWS = 2,
-
-		SPEC_CONSTANT_SOFT_SHADOW_SAMPLES = 3,
-		SPEC_CONSTANT_PENUMBRA_SHADOW_SAMPLES = 4,
-		SPEC_CONSTANT_DIRECTIONAL_SOFT_SHADOW_SAMPLES = 5,
-		SPEC_CONSTANT_DIRECTIONAL_PENUMBRA_SHADOW_SAMPLES = 6,
-
-		SPEC_CONSTANT_DECAL_USE_MIPMAPS = 7,
-		SPEC_CONSTANT_PROJECTOR_USE_MIPMAPS = 8,
-
-		SPEC_CONSTANT_DISABLE_OMNI_LIGHTS = 9,
-		SPEC_CONSTANT_DISABLE_SPOT_LIGHTS = 10,
-		SPEC_CONSTANT_DISABLE_REFLECTION_PROBES = 11,
-		SPEC_CONSTANT_DISABLE_DIRECTIONAL_LIGHTS = 12,
-
-		SPEC_CONSTANT_DISABLE_DECALS = 13,
-		SPEC_CONSTANT_DISABLE_FOG = 14,
-		SPEC_CONSTANT_USE_DEPTH_FOG = 16,
-		SPEC_CONSTANT_IS_MULTIMESH = 17,
-		SPEC_CONSTANT_USE_LIGHTMAP_BICUBIC_FILTER = 18,
-	};
-
-	enum {
 		MAX_LIGHTMAPS = 8,
 		MAX_RDL_CULL = 8, // maximum number of reflection probes, decals or lights we can cull per geometry instance
 		INSTANCE_DATA_BUFFER_MIN_SIZE = 4096
@@ -152,14 +126,14 @@ private:
 		RID render_pass_uniform_set;
 		bool force_wireframe = false;
 		Vector2 uv_offset;
-		uint32_t spec_constant_base_flags = 0;
+		SceneShaderForwardMobile::ShaderSpecialization base_specialization;
 		float lod_distance_multiplier = 0.0;
 		float screen_mesh_lod_threshold = 0.0;
 		RD::FramebufferFormatID framebuffer_format = 0;
 		uint32_t element_offset = 0;
 		uint32_t subpass = 0;
 
-		RenderListParameters(GeometryInstanceSurfaceDataCache **p_elements, RenderElementInfo *p_element_info, int p_element_count, bool p_reverse_cull, PassMode p_pass_mode, RID p_render_pass_uniform_set, uint32_t p_spec_constant_base_flags = 0, bool p_force_wireframe = false, const Vector2 &p_uv_offset = Vector2(), float p_lod_distance_multiplier = 0.0, float p_screen_mesh_lod_threshold = 0.0, uint32_t p_view_count = 1, uint32_t p_element_offset = 0) {
+		RenderListParameters(GeometryInstanceSurfaceDataCache **p_elements, RenderElementInfo *p_element_info, int p_element_count, bool p_reverse_cull, PassMode p_pass_mode, RID p_render_pass_uniform_set, SceneShaderForwardMobile::ShaderSpecialization p_base_specialization, bool p_force_wireframe = false, const Vector2 &p_uv_offset = Vector2(), float p_lod_distance_multiplier = 0.0, float p_screen_mesh_lod_threshold = 0.0, uint32_t p_view_count = 1, uint32_t p_element_offset = 0) {
 			elements = p_elements;
 			element_info = p_element_info;
 			element_count = p_element_count;
@@ -173,7 +147,7 @@ private:
 			lod_distance_multiplier = p_lod_distance_multiplier;
 			screen_mesh_lod_threshold = p_screen_mesh_lod_threshold;
 			element_offset = p_element_offset;
-			spec_constant_base_flags = p_spec_constant_base_flags;
+			base_specialization = p_base_specialization;
 		}
 	};
 
@@ -222,10 +196,16 @@ private:
 	struct SceneState {
 		LocalVector<RID> uniform_buffers;
 
+		struct PushConstantUbershader {
+			SceneShaderForwardMobile::ShaderSpecialization specialization;
+			SceneShaderForwardMobile::UbershaderConstants constants;
+		};
+
 		struct PushConstant {
 			float uv_offset[2];
 			uint32_t base_index;
 			uint32_t pad;
+			PushConstantUbershader ubershader;
 		};
 
 		struct InstanceData {
@@ -264,6 +244,7 @@ private:
 		bool used_normal_texture = false;
 		bool used_depth_texture = false;
 		bool used_sss = false;
+		bool used_lightmap = false;
 
 		struct ShadowPass {
 			uint32_t element_from;
@@ -455,6 +436,12 @@ protected:
 
 		GeometryInstanceSurfaceDataCache *next = nullptr;
 		GeometryInstanceForwardMobile *owner = nullptr;
+
+		SelfList<GeometryInstanceSurfaceDataCache> compilation_dirty_element;
+		SelfList<GeometryInstanceSurfaceDataCache> compilation_all_element;
+
+		GeometryInstanceSurfaceDataCache() :
+				compilation_dirty_element(this), compilation_all_element(this) {}
 	};
 
 	class GeometryInstanceForwardMobile : public RenderGeometryInstanceBase {
@@ -560,23 +547,73 @@ public:
 	static void _geometry_instance_dependency_deleted(const RID &p_dependency, DependencyTracker *p_tracker);
 
 	SelfList<GeometryInstanceForwardMobile>::List geometry_instance_dirty_list;
+	SelfList<GeometryInstanceSurfaceDataCache>::List geometry_surface_compilation_dirty_list;
+	SelfList<GeometryInstanceSurfaceDataCache>::List geometry_surface_compilation_all_list;
 
 	PagedAllocator<GeometryInstanceForwardMobile> geometry_instance_alloc;
 	PagedAllocator<GeometryInstanceSurfaceDataCache> geometry_instance_surface_alloc;
 	PagedAllocator<GeometryInstanceLightmapSH> geometry_instance_lightmap_sh;
 
+	struct SurfacePipelineData {
+		void *mesh_surface = nullptr;
+		void *mesh_surface_shadow = nullptr;
+		SceneShaderForwardMobile::ShaderData *shader = nullptr;
+		SceneShaderForwardMobile::ShaderData *shader_shadow = nullptr;
+		bool instanced = false;
+		bool uses_opaque = false;
+		bool uses_transparent = false;
+		bool uses_depth = false;
+		bool can_use_lightmap = false;
+	};
+
+	struct GlobalPipelineData {
+		union {
+			struct {
+				uint32_t texture_samples : 3;
+				uint32_t target_samples : 3;
+				uint32_t use_reflection_probes : 1;
+				uint32_t use_lightmaps : 1;
+				uint32_t use_multiview : 1;
+				uint32_t use_16_bit_shadows : 1;
+				uint32_t use_32_bit_shadows : 1;
+				uint32_t use_shadow_cubemaps : 1;
+				uint32_t use_shadow_dual_paraboloid : 1;
+			};
+
+			uint32_t key;
+		};
+	};
+
+	GlobalPipelineData global_pipeline_data_compiled = {};
+	GlobalPipelineData global_pipeline_data_required = {};
+
+	typedef Pair<SceneShaderForwardMobile::ShaderData *, SceneShaderForwardMobile::ShaderData::PipelineKey> ShaderPipelinePair;
+
+	void _update_global_pipeline_data_requirements_from_project();
+	void _update_global_pipeline_data_requirements_from_light_storage();
 	void _geometry_instance_add_surface_with_material(GeometryInstanceForwardMobile *ginstance, uint32_t p_surface, SceneShaderForwardMobile::MaterialData *p_material, uint32_t p_material_id, uint32_t p_shader_id, RID p_mesh);
 	void _geometry_instance_add_surface_with_material_chain(GeometryInstanceForwardMobile *ginstance, uint32_t p_surface, SceneShaderForwardMobile::MaterialData *p_material, RID p_mat_src, RID p_mesh);
 	void _geometry_instance_add_surface(GeometryInstanceForwardMobile *ginstance, uint32_t p_surface, RID p_material, RID p_mesh);
 	void _geometry_instance_update(RenderGeometryInstance *p_geometry_instance);
+	void _mesh_compile_pipeline_for_surface(SceneShaderForwardMobile::ShaderData *p_shader, void *p_mesh_surface, bool p_instanced_surface, RS::PipelineSource p_source, SceneShaderForwardMobile::ShaderData::PipelineKey &r_pipeline_key, Vector<ShaderPipelinePair> *r_pipeline_pairs = nullptr);
+	void _mesh_compile_pipelines_for_surface(const SurfacePipelineData &p_surface, const GlobalPipelineData &p_global, RS::PipelineSource p_source, Vector<ShaderPipelinePair> *r_pipeline_pairs = nullptr);
+	void _mesh_generate_all_pipelines_for_surface_cache(GeometryInstanceSurfaceDataCache *p_surface_cache, const GlobalPipelineData &p_global);
 	void _update_dirty_geometry_instances();
+	void _update_dirty_geometry_pipelines();
 
 	virtual RenderGeometryInstance *geometry_instance_create(RID p_base) override;
 	virtual void geometry_instance_free(RenderGeometryInstance *p_geometry_instance) override;
 
 	virtual uint32_t geometry_instance_get_pair_mask() override;
 
+	/* PIPELINES */
+
+	virtual void mesh_generate_pipelines(RID p_mesh, bool p_background_compilation) override;
+	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source) override;
+
 	virtual bool free(RID p_rid) override;
+
+	virtual void update() override;
 
 	virtual void base_uniforms_changed() override;
 

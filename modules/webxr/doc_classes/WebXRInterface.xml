@@ -283,7 +283,7 @@
 	</signals>
 	<constants>
 		<constant name="TARGET_RAY_MODE_UNKNOWN" value="0" enum="TargetRayMode">
-			We don't know the the target ray mode.
+			We don't know the target ray mode.
 		</constant>
 		<constant name="TARGET_RAY_MODE_GAZE" value="1" enum="TargetRayMode">
 			Target ray originates at the viewer's eyes and points in the direction they are looking.

@@ -52,6 +52,8 @@ public:
 private:
 	int cached_size = 0;
 	int cached_line_count = 0;
+	int cached_line_max_child_count = 0;
+	int cached_items_on_last_row = 0;
 
 	bool vertical = false;
 	bool reverse_fill = false;
@@ -74,6 +76,7 @@ protected:
 
 public:
 	int get_line_count() const;
+	int get_line_max_child_count() const;
 
 	void set_alignment(AlignmentMode p_alignment);
 	AlignmentMode get_alignment() const;

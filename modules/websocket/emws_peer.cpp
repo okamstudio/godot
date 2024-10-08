@@ -68,8 +68,9 @@ Error EMWSPeer::connect_to_url(const String &p_url, Ref<TLSOptions> p_tls_option
 	String host;
 	String path;
 	String scheme;
+	String fragment;
 	int port = 0;
-	Error err = p_url.parse_url(scheme, host, port, path);
+	Error err = p_url.parse_url(scheme, host, port, path, fragment);
 	ERR_FAIL_COND_V_MSG(err != OK, err, "Invalid URL: " + p_url);
 
 	if (scheme.is_empty()) {

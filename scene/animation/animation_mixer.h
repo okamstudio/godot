@@ -85,6 +85,8 @@ public:
 	struct PlaybackInfo {
 		double time = 0.0;
 		double delta = 0.0;
+		double start = 0.0;
+		double end = 0.0;
 		bool seeked = false;
 		bool is_external_seeking = false;
 		Animation::LoopedFlag looped_flag = Animation::LOOPED_FLAG_NONE;

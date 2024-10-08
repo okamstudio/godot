@@ -32,7 +32,6 @@
 
 #include "android_input_handler.h"
 #include "api/java_class_wrapper.h"
-#include "api/jni_singleton.h"
 #include "dir_access_jandroid.h"
 #include "display_server_android.h"
 #include "file_access_android.h"
@@ -209,8 +208,7 @@ JNIEXPORT jboolean JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env
 
 	TTS_Android::setup(p_godot_tts);
 
-	java_class_wrapper = memnew(JavaClassWrapper(godot_java->get_activity()));
-	GDREGISTER_CLASS(JNISingleton);
+	java_class_wrapper = memnew(JavaClassWrapper);
 	return true;
 }
 

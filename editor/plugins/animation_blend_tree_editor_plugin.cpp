@@ -36,6 +36,7 @@
 #include "core/os/keyboard.h"
 #include "editor/editor_inspector.h"
 #include "editor/editor_node.h"
+#include "editor/editor_properties.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
@@ -45,6 +46,7 @@
 #include "scene/animation/animation_player.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/menu_button.h"
+#include "scene/gui/option_button.h"
 #include "scene/gui/panel.h"
 #include "scene/gui/progress_bar.h"
 #include "scene/gui/separator.h"
@@ -1262,4 +1264,168 @@ AnimationNodeBlendTreeEditor::AnimationNodeBlendTreeEditor() {
 	open_file->set_title(TTR("Open Animation Node"));
 	open_file->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_FILE);
 	open_file->connect("file_selected", callable_mp(this, &AnimationNodeBlendTreeEditor::_file_opened));
+
+	animation_node_inspector_plugin = Ref<EditorInspectorPluginAnimationNodeAnimation>(memnew(EditorInspectorPluginAnimationNodeAnimation));
+	EditorInspector::add_inspector_plugin(animation_node_inspector_plugin);
+}
+
+AnimationNodeBlendTreeEditor::~AnimationNodeBlendTreeEditor() {
+}
+
+// EditorPluginAnimationNodeAnimation
+
+void AnimationNodeAnimationEditor::_open_set_custom_timeline_from_marker_dialog() {
+	AnimationTree *tree = AnimationTreeEditor::get_singleton()->get_animation_tree();
+	StringName anim_name = animation_node_animation->get_animation();
+	PackedStringArray markers = tree->has_animation(anim_name) ? tree->get_animation(anim_name)->get_marker_names() : PackedStringArray();
+
+	dialog->select_start->clear();
+	dialog->select_start->add_icon_item(get_editor_theme_icon(SNAME("PlayStart")), TTR("Start of Animation"));
+	dialog->select_start->add_separator();
+	dialog->select_end->clear();
+	dialog->select_end->add_icon_item(get_editor_theme_icon(SNAME("PlayStartBackwards")), TTR("End of Animation"));
+	dialog->select_end->add_separator();
+
+	for (const String &marker : markers) {
+		dialog->select_start->add_item(marker);
+		dialog->select_end->add_item(marker);
+	}
+
+	// Because the default selections are always valid, and marker times won't change during the dialog, we can ensure that the user can only select valid markers.
+	// This invariant is maintained by _validate_markers.
+	dialog->select_start->select(0);
+	dialog->select_end->select(0);
+
+	dialog->popup_centered(Size2(200, 0) * EDSCALE);
+}
+
+void AnimationNodeAnimationEditor::_validate_markers(int p_id) {
+	// Note: p_id is ignored. It is included because OptionButton's item_changed signal always passes it.
+	int start_id = dialog->select_start->get_selected_id();
+	int end_id = dialog->select_end->get_selected_id();
+
+	StringName anim_name = animation_node_animation->get_animation();
+	Ref<Animation> animation = AnimationTreeEditor::get_singleton()->get_animation_tree()->get_animation(anim_name);
+	ERR_FAIL_COND(animation.is_null());
+
+	double start_time = start_id < 2 ? 0 : animation->get_marker_time(dialog->select_start->get_item_text(start_id));
+	double end_time = end_id < 2 ? animation->get_length() : animation->get_marker_time(dialog->select_end->get_item_text(end_id));
+
+	// p_start and p_end have the same item count.
+	for (int i = 2; i < dialog->select_start->get_item_count(); i++) {
+		String start_marker = dialog->select_start->get_item_text(i);
+		String end_marker = dialog->select_end->get_item_text(i);
+		dialog->select_start->set_item_disabled(i, end_id >= 2 && (i == end_id || animation->get_marker_time(start_marker) > end_time));
+		dialog->select_end->set_item_disabled(i, start_id >= 2 && (i == start_id || start_time > animation->get_marker_time(end_marker)));
+	}
+}
+
+void AnimationNodeAnimationEditor::_confirm_set_custom_timeline_from_marker_dialog() {
+	int start_id = dialog->select_start->get_selected_id();
+	int end_id = dialog->select_end->get_selected_id();
+
+	Ref<Animation> animation = AnimationTreeEditor::get_singleton()->get_animation_tree()->get_animation(animation_node_animation->get_animation());
+	ERR_FAIL_COND(animation.is_null());
+	double start_time = start_id < 2 ? 0 : animation->get_marker_time(dialog->select_start->get_item_text(start_id));
+	double end_time = end_id < 2 ? animation->get_length() : animation->get_marker_time(dialog->select_end->get_item_text(end_id));
+	double length = end_time - start_time;
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(TTR("Set Custom Timeline from Marker"));
+	undo_redo->add_do_method(*animation_node_animation, "set_start_offset", start_time);
+	undo_redo->add_undo_method(*animation_node_animation, "set_start_offset", animation_node_animation->get_start_offset());
+	undo_redo->add_do_method(*animation_node_animation, "set_stretch_time_scale", false);
+	undo_redo->add_undo_method(*animation_node_animation, "set_stretch_time_scale", animation_node_animation->is_stretching_time_scale());
+	undo_redo->add_do_method(*animation_node_animation, "set_timeline_length", length);
+	undo_redo->add_undo_method(*animation_node_animation, "set_timeline_length", animation_node_animation->get_timeline_length());
+	undo_redo->add_do_method(*animation_node_animation, "notify_property_list_changed");
+	undo_redo->add_undo_method(*animation_node_animation, "notify_property_list_changed");
+	undo_redo->commit_action();
+}
+
+AnimationNodeAnimationEditor::AnimationNodeAnimationEditor(Ref<AnimationNodeAnimation> p_animation_node_animation) {
+	animation_node_animation = p_animation_node_animation;
+
+	dialog = memnew(AnimationNodeAnimationEditorDialog);
+	add_child(dialog);
+	dialog->set_hide_on_ok(false);
+	dialog->select_start->connect(SceneStringName(item_selected), callable_mp(this, &AnimationNodeAnimationEditor::_validate_markers));
+	dialog->select_end->connect(SceneStringName(item_selected), callable_mp(this, &AnimationNodeAnimationEditor::_validate_markers));
+	dialog->connect(SceneStringName(confirmed), callable_mp(this, &AnimationNodeAnimationEditor::_confirm_set_custom_timeline_from_marker_dialog));
+
+	Control *top_spacer = memnew(Control);
+	add_child(top_spacer);
+	top_spacer->set_custom_minimum_size(Size2(0, 2) * EDSCALE);
+
+	button = memnew(Button);
+	add_child(button);
+	button->set_text(TTR("Set Custom Timeline from Marker"));
+	button->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
+	button->connect(SceneStringName(pressed), callable_mp(this, &AnimationNodeAnimationEditor::_open_set_custom_timeline_from_marker_dialog));
+
+	Control *bottom_spacer = memnew(Control);
+	add_child(bottom_spacer);
+	bottom_spacer->set_custom_minimum_size(Size2(0, 2) * EDSCALE);
+}
+
+AnimationNodeAnimationEditor::~AnimationNodeAnimationEditor() {
+}
+
+void AnimationNodeAnimationEditor::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_THEME_CHANGED: {
+			button->set_theme_type_variation(SNAME("InspectorActionButton"));
+			button->set_icon(get_editor_theme_icon(SNAME("Edit")));
+		} break;
+	}
+}
+
+bool EditorInspectorPluginAnimationNodeAnimation::can_handle(Object *p_object) {
+	Ref<AnimationNodeAnimation> ana(Object::cast_to<AnimationNodeAnimation>(p_object));
+	return ana.is_valid() && ana->is_using_custom_timeline();
+}
+
+bool EditorInspectorPluginAnimationNodeAnimation::parse_property(Object *p_object, const Variant::Type p_type, const String &p_path, const PropertyHint p_hint, const String &p_hint_text, const BitField<PropertyUsageFlags> p_usage, const bool p_wide) {
+	Ref<AnimationNodeAnimation> ana(Object::cast_to<AnimationNodeAnimation>(p_object));
+	ERR_FAIL_COND_V(ana.is_null(), false);
+
+	if (p_path == "timeline_length") {
+		add_custom_control(memnew(AnimationNodeAnimationEditor(ana)));
+	}
+
+	return false;
+}
+
+AnimationNodeAnimationEditorDialog::AnimationNodeAnimationEditorDialog() {
+	set_title(TTR("Select Markers..."));
+	VBoxContainer *vbox = memnew(VBoxContainer);
+	add_child(vbox);
+	vbox->set_offsets_preset(Control::PRESET_FULL_RECT);
+
+	HBoxContainer *container_start = memnew(HBoxContainer);
+	vbox->add_child(container_start);
+	Label *label_start = memnew(Label);
+	container_start->add_child(label_start);
+	label_start->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	label_start->set_stretch_ratio(1);
+	label_start->set_text(TTR("Start Marker"));
+	select_start = memnew(OptionButton);
+	container_start->add_child(select_start);
+	select_start->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	select_start->set_stretch_ratio(2);
+
+	HBoxContainer *container_end = memnew(HBoxContainer);
+	vbox->add_child(container_end);
+	Label *label_end = memnew(Label);
+	container_end->add_child(label_end);
+	label_end->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	label_end->set_stretch_ratio(1);
+	label_end->set_text(TTR("End Marker"));
+	select_end = memnew(OptionButton);
+	container_end->add_child(select_end);
+	select_end->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	select_end->set_stretch_ratio(2);
+}
+
+AnimationNodeAnimationEditorDialog::~AnimationNodeAnimationEditorDialog() {
 }

@@ -39,33 +39,48 @@
 #include "scene/gui/label.h"
 #include "scene/gui/line_edit.h"
 
-static String sanitize_input(const String &p_path) {
+String DirectoryCreateDialog::_sanitize_input(const String &p_path) const {
 	String path = p_path.strip_edges();
-	if (path.ends_with("/")) {
-		path = path.left(path.length() - 1);
+	if (mode == MODE_DIRECTORY) {
+		path = path.trim_suffix("/");
 	}
 	return path;
 }
 
 String DirectoryCreateDialog::_validate_path(const String &p_path) const {
 	if (p_path.is_empty()) {
-		return TTR("Folder name cannot be empty.");
+		return TTR("Name cannot be empty.");
+	}
+	if (mode == MODE_FILE && p_path.ends_with("/")) {
+		return TTR("File name can't end with /.");
 	}
 
-	if (p_path.contains("\\") || p_path.contains(":") || p_path.contains("*") ||
-			p_path.contains("|") || p_path.contains(">")) {
-		return TTR("Folder name contains invalid characters.");
-	}
+	const PackedStringArray splits = p_path.split("/");
+	for (int i = 0; i < splits.size(); i++) {
+		const String &part = splits[i];
+		bool is_file = mode == MODE_FILE && i == splits.size() - 1;
 
-	for (const String &part : p_path.split("/")) {
 		if (part.is_empty()) {
-			return TTR("Folder name cannot be empty.");
+			if (is_file) {
+				return TTR("File name cannot be empty.");
+			} else {
+				return TTR("Folder name cannot be empty.");
+			}
 		}
-		if (part.ends_with(" ") || part[0] == ' ') {
-			return TTR("Folder name cannot begin or end with a space.");
+		if (part.contains("\\") || part.contains(":") || part.contains("*") ||
+				part.contains("|") || part.contains(">") || part.ends_with(".") || part.ends_with(" ")) {
+			if (is_file) {
+				return TTR("File name contains invalid characters.");
+			} else {
+				return TTR("Folder name contains invalid characters.");
+			}
 		}
 		if (part[0] == '.') {
-			return TTR("Folder name cannot begin with a dot.");
+			if (is_file) {
+				return TTR("File name begins with a dot.");
+			} else {
+				return TTR("Folder name begins with a dot.");
+			}
 		}
 	}
 
@@ -82,12 +97,18 @@ String DirectoryCreateDialog::_validate_path(const String &p_path) const {
 }
 
 void DirectoryCreateDialog::_on_dir_path_changed() {
-	const String path = sanitize_input(dir_path->get_text());
+	const String path = _sanitize_input(dir_path->get_text());
 	const String error = _validate_path(path);
 
 	if (error.is_empty()) {
 		if (path.contains("/")) {
-			validation_panel->set_message(EditorValidationPanel::MSG_ID_DEFAULT, TTR("Using slashes in folder names will create subfolders recursively."), EditorValidationPanel::MSG_OK);
+			if (mode == MODE_DIRECTORY) {
+				validation_panel->set_message(EditorValidationPanel::MSG_ID_DEFAULT, TTR("Using slashes in folder names will create subfolders recursively."), EditorValidationPanel::MSG_OK);
+			} else {
+				validation_panel->set_message(EditorValidationPanel::MSG_ID_DEFAULT, TTR("Using slashes in path will create the file in subfolder, creating new subfolders if necessary."), EditorValidationPanel::MSG_OK);
+			}
+		} else if (mode == MODE_FILE) {
+			validation_panel->set_message(EditorValidationPanel::MSG_ID_DEFAULT, TTR("File name is valid."), EditorValidationPanel::MSG_OK);
 		}
 	} else {
 		validation_panel->set_message(EditorValidationPanel::MSG_ID_DEFAULT, error, EditorValidationPanel::MSG_ERROR);
@@ -95,18 +116,13 @@ void DirectoryCreateDialog::_on_dir_path_changed() {
 }
 
 void DirectoryCreateDialog::ok_pressed() {
-	const String path = sanitize_input(dir_path->get_text());
+	const String path = _sanitize_input(dir_path->get_text());
 
 	// The OK button should be disabled if the path is invalid, but just in case.
 	const String error = _validate_path(path);
 	ERR_FAIL_COND_MSG(!error.is_empty(), error);
 
-	Error err = EditorFileSystem::get_singleton()->make_dir_recursive(path, base_dir);
-	if (err == OK) {
-		emit_signal(SNAME("dir_created"), base_dir.path_join(path));
-	} else {
-		EditorNode::get_singleton()->show_warning(TTR("Could not create folder."));
-	}
+	accept_callback.call(base_dir.path_join(path));
 	hide();
 }
 
@@ -115,28 +131,40 @@ void DirectoryCreateDialog::_post_popup() {
 	dir_path->grab_focus();
 }
 
-void DirectoryCreateDialog::config(const String &p_base_dir) {
+void DirectoryCreateDialog::config(const String &p_base_dir, const Callable &p_accept_callback, int p_mode, const String &p_title, const String &p_default_name) {
+	set_title(p_title);
 	base_dir = p_base_dir;
-	label->set_text(vformat(TTR("Create new folder in %s:"), base_dir));
-	dir_path->set_text("new folder");
-	dir_path->select_all();
-	validation_panel->update();
-}
+	base_path_label->set_text(vformat(TTR("Base path: %s"), base_dir));
+	accept_callback = p_accept_callback;
+	mode = p_mode;
 
-void DirectoryCreateDialog::_bind_methods() {
-	ADD_SIGNAL(MethodInfo("dir_created", PropertyInfo(Variant::STRING, "path")));
+	dir_path->set_text(p_default_name);
+	validation_panel->update();
+
+	if (p_mode == MODE_FILE) {
+		int extension_pos = p_default_name.rfind(".");
+		if (extension_pos > -1) {
+			dir_path->select(0, extension_pos);
+			return;
+		}
+	}
+	dir_path->select_all();
 }
 
 DirectoryCreateDialog::DirectoryCreateDialog() {
-	set_title(TTR("Create Folder"));
 	set_min_size(Size2i(480, 0) * EDSCALE);
 
 	VBoxContainer *vb = memnew(VBoxContainer);
 	add_child(vb);
 
-	label = memnew(Label);
-	label->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_WORD_ELLIPSIS);
-	vb->add_child(label);
+	base_path_label = memnew(Label);
+	base_path_label->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_WORD_ELLIPSIS);
+	vb->add_child(base_path_label);
+
+	Label *name_label = memnew(Label);
+	name_label->set_text(TTR("Name:"));
+	name_label->set_theme_type_variation("HeaderSmall");
+	vb->add_child(name_label);
 
 	dir_path = memnew(LineEdit);
 	vb->add_child(dir_path);

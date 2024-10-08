@@ -178,6 +178,7 @@ public:
 
 	// info from our renderer
 	void set_can_be_storage(const bool p_can_be_storage) { can_be_storage = p_can_be_storage; }
+	bool get_can_be_storage() const { return can_be_storage; }
 	void set_max_cluster_elements(const uint32_t p_max_elements) { max_cluster_elements = p_max_elements; }
 	uint32_t get_max_cluster_elements() { return max_cluster_elements; }
 	void set_base_data_format(const RD::DataFormat p_base_data_format) { base_data_format = p_base_data_format; }
@@ -304,6 +305,30 @@ public:
 	_FORCE_INLINE_ RendererRD::MaterialStorage::Samplers get_samplers() const {
 		return samplers;
 	}
+
+	_FORCE_INLINE_ static RD::TextureSamples msaa_to_samples(RS::ViewportMSAA p_msaa) {
+		switch (p_msaa) {
+			case RS::VIEWPORT_MSAA_DISABLED:
+				return RD::TEXTURE_SAMPLES_1;
+			case RS::VIEWPORT_MSAA_2X:
+				return RD::TEXTURE_SAMPLES_2;
+			case RS::VIEWPORT_MSAA_4X:
+				return RD::TEXTURE_SAMPLES_4;
+			case RS::VIEWPORT_MSAA_8X:
+				return RD::TEXTURE_SAMPLES_8;
+			default:
+				DEV_ASSERT(false && "Unknown MSAA option.");
+				return RD::TEXTURE_SAMPLES_1;
+		}
+	}
+
+	static uint32_t get_color_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+	static RD::DataFormat get_depth_format(bool p_resolve, bool p_msaa, bool p_storage);
+	static uint32_t get_depth_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+	static RD::DataFormat get_velocity_format();
+	static uint32_t get_velocity_usage_bits(bool p_resolve, bool p_msaa, bool p_storage);
+	static RD::DataFormat get_vrs_format();
+	static uint32_t get_vrs_usage_bits();
 
 private:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////

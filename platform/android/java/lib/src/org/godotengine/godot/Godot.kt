@@ -58,6 +58,8 @@ import org.godotengine.godot.input.GodotEditText
 import org.godotengine.godot.input.GodotInputHandler
 import org.godotengine.godot.io.directory.DirectoryAccessHandler
 import org.godotengine.godot.io.file.FileAccessHandler
+import org.godotengine.godot.plugin.AndroidRuntimePlugin
+import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.GodotPluginRegistry
 import org.godotengine.godot.tts.GodotTTS
 import org.godotengine.godot.utils.CommandLineFileParser
@@ -228,7 +230,9 @@ class Godot(private val context: Context) {
 			window.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
 
 			Log.v(TAG, "Initializing Godot plugin registry")
-			GodotPluginRegistry.initializePluginRegistry(this, primaryHost.getHostPlugins(this))
+			val runtimePlugins = mutableSetOf<GodotPlugin>(AndroidRuntimePlugin(this))
+			runtimePlugins.addAll(primaryHost.getHostPlugins(this))
+			GodotPluginRegistry.initializePluginRegistry(this, runtimePlugins)
 			if (io == null) {
 				io = GodotIO(activity)
 			}

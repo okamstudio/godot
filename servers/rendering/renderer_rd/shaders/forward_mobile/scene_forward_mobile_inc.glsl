@@ -20,8 +20,127 @@ layout(push_constant, std430) uniform DrawCall {
 	vec2 uv_offset;
 	uint instance_index;
 	uint pad;
+#ifdef UBERSHADER
+	uint sc_packed_0;
+	float sc_packed_1;
+	uint sc_packed_2;
+	uint uc_packed_0;
+#endif
 }
 draw_call;
+
+/* Specialization Constants */
+
+#ifdef UBERSHADER
+
+#define POLYGON_CULL_DISABLED 0
+#define POLYGON_CULL_FRONT 1
+#define POLYGON_CULL_BACK 2
+
+// Pull the constants from the draw call's push constants.
+uint sc_packed_0() {
+	return draw_call.sc_packed_0;
+}
+
+float sc_packed_1() {
+	return draw_call.sc_packed_1;
+}
+
+uint uc_cull_mode() {
+	return (draw_call.uc_packed_0 >> 0) & 3U;
+}
+
+#else
+
+// Pull the constants from the pipeline's specialization constants.
+layout(constant_id = 0) const uint pso_sc_packed_0 = 0;
+layout(constant_id = 1) const float pso_sc_packed_1 = 2.0;
+
+uint sc_packed_0() {
+	return pso_sc_packed_0;
+}
+
+float sc_packed_1() {
+	return pso_sc_packed_1;
+}
+
+#endif
+
+bool sc_use_light_projector() {
+	return ((sc_packed_0() >> 0) & 1U) != 0;
+}
+
+bool sc_use_light_soft_shadows() {
+	return ((sc_packed_0() >> 1) & 1U) != 0;
+}
+
+bool sc_use_directional_soft_shadows() {
+	return ((sc_packed_0() >> 2) & 1U) != 0;
+}
+
+bool sc_decal_use_mipmaps() {
+	return ((sc_packed_0() >> 3) & 1U) != 0;
+}
+
+bool sc_projector_use_mipmaps() {
+	return ((sc_packed_0() >> 4) & 1U) != 0;
+}
+
+bool sc_disable_omni_lights() {
+	return ((sc_packed_0() >> 5) & 1U) != 0;
+}
+
+bool sc_disable_spot_lights() {
+	return ((sc_packed_0() >> 6) & 1U) != 0;
+}
+
+bool sc_disable_reflection_probes() {
+	return ((sc_packed_0() >> 7) & 1U) != 0;
+}
+
+bool sc_disable_directional_lights() {
+	return ((sc_packed_0() >> 8) & 1U) != 0;
+}
+
+bool sc_disable_decals() {
+	return ((sc_packed_0() >> 9) & 1U) != 0;
+}
+
+bool sc_disable_fog() {
+	return ((sc_packed_0() >> 10) & 1U) != 0;
+}
+
+bool sc_use_depth_fog() {
+	return ((sc_packed_0() >> 11) & 1U) != 0;
+}
+
+bool sc_is_multimesh() {
+	return ((sc_packed_0() >> 12) & 1U) != 0;
+}
+
+bool sc_use_lightmap_bicubic_filter() {
+	return ((sc_packed_0() >> 13) & 1U) != 0;
+}
+
+uint sc_soft_shadow_samples() {
+	return (sc_packed_0() >> 16) & 15U;
+}
+
+uint sc_penumbra_shadow_samples() {
+	return (sc_packed_0() >> 20) & 15U;
+}
+
+uint sc_directional_soft_shadow_samples() {
+	return (sc_packed_0() >> 24) & 15U;
+}
+
+uint sc_directional_penumbra_shadow_samples() {
+	return (sc_packed_0() >> 28) & 15U;
+}
+
+float sc_luminance_multiplier() {
+	return sc_packed_1();
+}
 
 /* Set 0: Base Pass (never changes) */
 

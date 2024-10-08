@@ -507,6 +507,14 @@ static GDExtensionBool gdextension_variant_has_key(GDExtensionConstVariantPtr p_
 	return ret;
 }
 
+static GDObjectInstanceID gdextension_variant_get_object_instance_id(GDExtensionConstVariantPtr p_self) {
+	const Variant *self = (const Variant *)p_self;
+	if (likely(self->get_type() == Variant::OBJECT)) {
+		return self->operator ObjectID();
+	}
+	return 0;
+}
+
 static void gdextension_variant_get_type_name(GDExtensionVariantType p_type, GDExtensionUninitializedVariantPtr r_ret) {
 	String name = Variant::get_type_name((Variant::Type)p_type);
 	memnew_placement(r_ret, String(name));
@@ -1610,6 +1618,7 @@ void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(variant_has_method);
 	REGISTER_INTERFACE_FUNC(variant_has_member);
 	REGISTER_INTERFACE_FUNC(variant_has_key);
+	REGISTER_INTERFACE_FUNC(variant_get_object_instance_id);
 	REGISTER_INTERFACE_FUNC(variant_get_type_name);
 	REGISTER_INTERFACE_FUNC(variant_can_convert);
 	REGISTER_INTERFACE_FUNC(variant_can_convert_strict);

@@ -117,8 +117,9 @@ private:
 	bool scroll_to_selected = true;
 	int tabs_rearrange_group = -1;
 
+	static const int CURRENT_TAB_UNINITIALIZED = -2;
 	bool initialized = false;
-	int queued_current = -1;
+	int queued_current = CURRENT_TAB_UNINITIALIZED;
 
 	const float DEFAULT_GAMEPAD_EVENT_DELAY_MS = 0.5;
 	const float GAMEPAD_EVENT_REPEAT_RATE_MS = 1.0 / 20;
@@ -249,6 +250,7 @@ public:
 	bool select_previous_available();
 	bool select_next_available();
 
+	void set_tab_offset(int p_offset);
 	int get_tab_offset() const;
 	bool get_offset_buttons_visible() const;
 

@@ -354,6 +354,8 @@ void TabBar::_notification(int p_what) {
 			if (scroll_to_selected) {
 				ensure_tab_visible(current);
 			}
+			// Set initialized even if no tabs were set.
+			initialized = true;
 		} break;
 
 		case NOTIFICATION_INTERNAL_PROCESS: {
@@ -655,10 +657,10 @@ void TabBar::set_tab_count(int p_count) {
 	}
 
 	if (!initialized) {
-		if (queued_current != current) {
-			current = queued_current;
-		}
 		initialized = true;
+		if (queued_current != CURRENT_TAB_UNINITIALIZED && queued_current != current) {
+			set_current_tab(queued_current);
+		}
 	}
 
 	queue_redraw();
@@ -738,6 +740,13 @@ bool TabBar::select_next_available() {
 		}
 	}
 	return false;
+}
+
+void TabBar::set_tab_offset(int p_offset) {
+	ERR_FAIL_INDEX(p_offset, tabs.size());
+	offset = p_offset;
+	_update_cache();
+	queue_redraw();
 }
 
 int TabBar::get_tab_offset() const {

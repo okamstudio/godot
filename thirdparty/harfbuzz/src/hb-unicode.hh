@@ -34,6 +34,9 @@
 #include "hb.hh"
 
 
+// Hack. See: https://github.com/harfbuzz/harfbuzz/pull/4529#discussion_r1769638033
+#define _HB_UNICODE_GENERAL_CATEGORY_VARIATION_SELECTOR ((hb_unicode_general_category_t) 30)
+
 extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 
 /*

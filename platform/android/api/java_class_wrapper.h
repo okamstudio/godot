@@ -262,6 +262,8 @@ class JavaClassWrapper : public Object {
 	bool _get_type_sig(JNIEnv *env, jobject obj, uint32_t &sig, String &strsig);
 #endif
 
+	Ref<JavaClass> _wrap(const String &p_class, bool p_allow_private_methods_access);
+
 	static JavaClassWrapper *singleton;
 
 protected:
@@ -270,15 +272,14 @@ protected:
 public:
 	static JavaClassWrapper *get_singleton() { return singleton; }
 
-	Ref<JavaClass> wrap(const String &p_class);
+	Ref<JavaClass> wrap(const String &p_class) {
+		return _wrap(p_class, false);
+	}
 
 #ifdef ANDROID_ENABLED
-	Ref<JavaClass> wrap_jclass(jclass p_class);
-
-	JavaClassWrapper(jobject p_activity = nullptr);
-#else
-	JavaClassWrapper();
+	Ref<JavaClass> wrap_jclass(jclass p_class, bool p_allow_private_methods_access = false);
 #endif
+	JavaClassWrapper();
 };
 
 #endif // JAVA_CLASS_WRAPPER_H

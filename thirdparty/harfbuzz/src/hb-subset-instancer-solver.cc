@@ -376,7 +376,7 @@ double renormalizeValue (double v, const Triple &triple,
   assert (lower <= def && def <= upper);
 
   if (!extrapolate)
-      v = hb_max (hb_min (v, upper), lower);
+    v = hb_clamp (v, lower, upper);
 
   if (v == def)
     return 0.0;

@@ -78,7 +78,7 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
   return found;
 #endif
 
-  if (!found && !c->plan->has_gpos_mark)
+  if (!found && (c->plan && !c->plan->has_gpos_mark))
   {
       /* Special-case Hebrew presentation forms that are excluded from
        * standard normalization, but wanted for old fonts. */

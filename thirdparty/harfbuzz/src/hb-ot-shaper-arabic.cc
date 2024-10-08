@@ -233,10 +233,7 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    map->enable_feature (HB_TAG('c','a','l','t'), F_MANUAL_ZWJ);
    /* https://github.com/harfbuzz/harfbuzz/issues/1573 */
    if (!map->has_feature (HB_TAG('r','c','l','t')))
-   {
      map->add_gsub_pause (nullptr);
-     map->enable_feature (HB_TAG('r','c','l','t'), F_MANUAL_ZWJ);
-   }
 
    map->enable_feature (HB_TAG('l','i','g','a'), F_MANUAL_ZWJ);
    map->enable_feature (HB_TAG('c','l','i','g'), F_MANUAL_ZWJ);

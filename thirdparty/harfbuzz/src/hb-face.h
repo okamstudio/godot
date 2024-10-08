@@ -135,6 +135,34 @@ hb_face_set_glyph_count (hb_face_t    *face,
 HB_EXTERN unsigned int
 hb_face_get_glyph_count (const hb_face_t *face);
 
+
+/**
+ * hb_get_table_tags_func_t:
+ * @face: A face object
+ * @start_offset: The index of first table tag to retrieve
+ * @table_count: (inout): Input = the maximum number of table tags to return;
+ *                Output = the actual number of table tags returned (may be zero)
+ * @table_tags: (out) (array length=table_count): The array of table tags found
+ * @user_data: User data pointer passed by the caller
+ *
+ * Callback function for hb_face_get_table_tags().
+ *
+ * Return value: Total number of tables, or zero if it is not possible to list
+ *
+ * Since: 10.0.0
+ */
+typedef unsigned int (*hb_get_table_tags_func_t) (const hb_face_t *face,
+						  unsigned int  start_offset,
+						  unsigned int *table_count, /* IN/OUT */
+						  hb_tag_t     *table_tags /* OUT */,
+						  void         *user_data);
+
+HB_EXTERN void
+hb_face_set_get_table_tags_func (hb_face_t *face,
+				 hb_get_table_tags_func_t func,
+				 void                    *user_data,
+				 hb_destroy_func_t        destroy);
+
 HB_EXTERN unsigned int
 hb_face_get_table_tags (const hb_face_t *face,
 			unsigned int  start_offset,

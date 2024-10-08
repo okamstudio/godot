@@ -52,6 +52,7 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000010u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS		= 0x00000020u,
   HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE		= 0x00000040u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK= 0x00000080u,
 
   /* Reserved for shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_SHAPER0			= 0x01000000u,
@@ -80,6 +81,7 @@ struct hb_buffer_t
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_codepoint_t invisible; /* 0 or something else. */
   hb_codepoint_t not_found; /* 0 or something else. */
+  hb_codepoint_t not_found_variation_selector; /* HB_CODEPOINT_INVALID or something else. */
 
   /*
    * Buffer contents

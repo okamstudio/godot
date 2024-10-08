@@ -31,6 +31,7 @@
 #include "render_forward_clustered.h"
 #include "core/config/project_settings.h"
 #include "core/object/worker_thread_pool.h"
+#include "scene/resources/material.h"
 #include "servers/rendering/renderer_rd/framebuffer_cache_rd.h"
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #include "servers/rendering/renderer_rd/storage_rd/light_storage.h"
@@ -43,23 +44,18 @@
 
 using namespace RendererSceneRenderImplementation;
 
+#define PRELOAD_PIPELINES_ON_SURFACE_CACHE_CONSTRUCTION 1
+
+#define FADE_ALPHA_PASS_THRESHOLD 0.999
+
 void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_specular() {
 	ERR_FAIL_NULL(render_buffers);
 
 	if (!render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR)) {
-		RD::DataFormat format = RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
-		uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-		if (render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
-		} else {
-			usage_bits |= RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
-		}
-
-		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR, format, usage_bits);
-
-		if (render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
-			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR_MSAA, format, usage_bits, render_buffers->get_texture_samples());
+		bool msaa = render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED;
+		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR, get_specular_format(), get_specular_usage_bits(msaa, false, render_buffers->get_can_be_storage()));
+		if (msaa) {
+			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_SPECULAR_MSAA, get_specular_format(), get_specular_usage_bits(false, msaa, render_buffers->get_can_be_storage()), render_buffers->get_texture_samples());
 		}
 	}
 }
@@ -68,20 +64,10 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_normal_rou
 	ERR_FAIL_NULL(render_buffers);
 
 	if (!render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS)) {
-		RD::DataFormat format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
-		uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-
-		if (render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits |= RD::TEXTURE_USAGE_CAN_COPY_TO_BIT;
-		} else {
-			usage_bits |= RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
-		}
-
-		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS, format, usage_bits);
-
-		if (render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits = RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT | RD::TEXTURE_USAGE_SAMPLING_BIT;
-			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS_MSAA, format, usage_bits, render_buffers->get_texture_samples());
+		bool msaa = render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED;
+		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS, get_normal_roughness_format(), get_normal_roughness_usage_bits(msaa, false, render_buffers->get_can_be_storage()));
+		if (msaa) {
+			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_NORMAL_ROUGHNESS_MSAA, get_normal_roughness_format(), get_normal_roughness_usage_bits(false, msaa, render_buffers->get_can_be_storage()), render_buffers->get_texture_samples());
 		}
 	}
 }
@@ -90,17 +76,10 @@ void RenderForwardClustered::RenderBufferDataForwardClustered::ensure_voxelgi() 
 	ERR_FAIL_NULL(render_buffers);
 
 	if (!render_buffers->has_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI)) {
-		RD::DataFormat format = RD::DATA_FORMAT_R8G8_UINT;
-		uint32_t usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
-		if (render_buffers->get_msaa_3d() == RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits |= RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
-		}
-
-		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI, format, usage_bits);
-
-		if (render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED) {
-			usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
-			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI_MSAA, format, usage_bits, render_buffers->get_texture_samples());
+		bool msaa = render_buffers->get_msaa_3d() != RS::VIEWPORT_MSAA_DISABLED;
+		render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI, get_voxelgi_format(), get_voxelgi_usage_bits(msaa, false, render_buffers->get_can_be_storage()));
+		if (msaa) {
+			render_buffers->create_texture(RB_SCOPE_FORWARD_CLUSTERED, RB_TEX_VOXEL_GI_MSAA, get_voxelgi_format(), get_voxelgi_usage_bits(false, msaa, render_buffers->get_can_be_storage()), render_buffers->get_texture_samples());
 		}
 	}
 }
@@ -249,6 +228,30 @@ RID RenderForwardClustered::RenderBufferDataForwardClustered::get_velocity_only_
 	return FramebufferCacheRD::get_singleton()->get_cache_multiview(render_buffers->get_view_count(), velocity);
 }
 
+RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_specular_format() {
+	return RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
+}
+
+uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_specular_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
+RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_normal_roughness_format() {
+	return RD::DATA_FORMAT_R8G8B8A8_UNORM;
+}
+
+uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_normal_roughness_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
+RD::DataFormat RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_format() {
+	return RD::DATA_FORMAT_R8G8_UINT;
+}
+
+uint32_t RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_usage_bits(bool p_resolve, bool p_msaa, bool p_storage) {
+	return RenderSceneBuffersRD::get_color_usage_bits(p_resolve, p_msaa, p_storage);
+}
+
 void RenderForwardClustered::setup_render_buffer_data(Ref<RenderSceneBuffersRD> p_render_buffers) {
 	Ref<RenderBufferDataForwardClustered> data;
 	data.instantiate();
@@ -264,6 +267,12 @@ bool RenderForwardClustered::free(RID p_rid) {
 		return true;
 	}
 	return false;
+}
+
+void RenderForwardClustered::update() {
+	RendererSceneRenderRD::update();
+	_update_global_pipeline_data_requirements_from_project();
+	_update_global_pipeline_data_requirements_from_light_storage();
 }
 
 /// RENDERING ///
@@ -284,8 +293,13 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 
 	RID prev_vertex_array_rd;
 	RID prev_index_array_rd;
-	RID prev_pipeline_rd;
 	RID prev_xforms_uniform_set;
+
+	SceneShaderForwardClustered::ShaderData *shader = nullptr;
+	SceneShaderForwardClustered::ShaderData *prev_shader = nullptr;
+	SceneShaderForwardClustered::ShaderData::PipelineKey pipeline_key;
+	uint32_t pipeline_hash = 0;
+	uint32_t prev_pipeline_hash = 0;
 
 	bool shadow_pass = (p_pass_mode == PASS_MODE_SHADOW) || (p_pass_mode == PASS_MODE_SHADOW_DP);
 
@@ -317,7 +331,6 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 		push_constant.base_index = i + p_params->element_offset;
 
 		RID material_uniform_set;
-		SceneShaderForwardClustered::ShaderData *shader;
 		void *mesh_surface;
 
 		if (shadow_pass || p_pass_mode == PASS_MODE_DEPTH) { //regular depth pass can use these too
@@ -356,166 +369,211 @@ void RenderForwardClustered::_render_list_template(RenderingDevice::DrawListID p
 			should_request_redraw = true;
 		}
 
-		//find cull variant
-		SceneShaderForwardClustered::ShaderData::CullVariant cull_variant;
-
-		if (p_pass_mode == PASS_MODE_DEPTH_MATERIAL || p_pass_mode == PASS_MODE_SDF || ((p_pass_mode == PASS_MODE_SHADOW || p_pass_mode == PASS_MODE_SHADOW_DP) && surf->flags & GeometryInstanceSurfaceDataCache::FLAG_USES_DOUBLE_SIDED_SHADOWS)) {
+		// Determine the cull variant.
+		SceneShaderForwardClustered::ShaderData::CullVariant cull_variant = SceneShaderForwardClustered::ShaderData::CULL_VARIANT_MAX;
+		if constexpr (p_pass_mode == PASS_MODE_DEPTH_MATERIAL || p_pass_mode == PASS_MODE_SDF) {
 			cull_variant = SceneShaderForwardClustered::ShaderData::CULL_VARIANT_DOUBLE_SIDED;
 		} else {
-			bool mirror = surf->owner->mirror;
-			if (p_params->reverse_cull) {
-				mirror = !mirror;
+			if constexpr (p_pass_mode == PASS_MODE_SHADOW || p_pass_mode == PASS_MODE_SHADOW_DP) {
+				if (surf->flags & GeometryInstanceSurfaceDataCache::FLAG_USES_DOUBLE_SIDED_SHADOWS) {
+					cull_variant = SceneShaderForwardClustered::ShaderData::CULL_VARIANT_DOUBLE_SIDED;
+				}
 			}
-			cull_variant = mirror ? SceneShaderForwardClustered::ShaderData::CULL_VARIANT_REVERSED : SceneShaderForwardClustered::ShaderData::CULL_VARIANT_NORMAL;
+
+			if (cull_variant == SceneShaderForwardClustered::ShaderData::CULL_VARIANT_MAX) {
+				bool mirror = surf->owner->mirror;
+				if (p_params->reverse_cull) {
+					mirror = !mirror;
+				}
+
+				cull_variant = mirror ? SceneShaderForwardClustered::ShaderData::CULL_VARIANT_REVERSED : SceneShaderForwardClustered::ShaderData::CULL_VARIANT_NORMAL;
+			}
 		}
 
-		RS::PrimitiveType primitive = surf->primitive;
+		pipeline_key.primitive_type = surf->primitive;
+
 		RID xforms_uniform_set = surf->owner->transforms_uniform_set;
 
-		SceneShaderForwardClustered::PipelineVersion pipeline_version = SceneShaderForwardClustered::PIPELINE_VERSION_MAX; // Assigned to silence wrong -Wmaybe-initialized.
-		uint32_t pipeline_color_pass_flags = 0;
-		uint32_t pipeline_specialization = p_params->spec_constant_base_flags;
+		SceneShaderForwardClustered::ShaderSpecialization pipeline_specialization = p_params->base_specialization;
 
 		if constexpr (p_pass_mode == PASS_MODE_COLOR) {
-			if (element_info.uses_softshadow) {
-				pipeline_specialization |= SceneShaderForwardClustered::SHADER_SPECIALIZATION_SOFT_SHADOWS;
-			}
-			if (element_info.uses_projector) {
-				pipeline_specialization |= SceneShaderForwardClustered::SHADER_SPECIALIZATION_PROJECTOR;
-			}
-
-			if (p_params->use_directional_soft_shadow) {
-				pipeline_specialization |= SceneShaderForwardClustered::SHADER_SPECIALIZATION_DIRECTIONAL_SOFT_SHADOWS;
-			}
+			pipeline_specialization.use_light_soft_shadows = element_info.uses_softshadow;
+			pipeline_specialization.use_light_projector = element_info.uses_projector;
+			pipeline_specialization.use_directional_soft_shadows = p_params->use_directional_soft_shadow;
 		}
+
+		pipeline_key.color_pass_flags = 0;
 
 		switch (p_pass_mode) {
 			case PASS_MODE_COLOR: {
 				if (element_info.uses_lightmap) {
-					pipeline_color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_LIGHTMAP;
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_LIGHTMAP;
 				} else {
-					if (element_info.uses_forward_gi) {
-						pipeline_specialization |= SceneShaderForwardClustered::SHADER_SPECIALIZATION_FORWARD_GI;
-					}
+					pipeline_specialization.use_forward_gi = element_info.uses_forward_gi;
 				}
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_SEPARATE_SPECULAR) != 0) {
-					pipeline_color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_SEPARATE_SPECULAR;
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_SEPARATE_SPECULAR;
 				}
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_MOTION_VECTORS) != 0) {
-					pipeline_color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
 				}
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_TRANSPARENT) != 0) {
-					pipeline_color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_TRANSPARENT;
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_TRANSPARENT;
 				}
 
 				if constexpr ((p_color_pass_flags & COLOR_PASS_FLAG_MULTIVIEW) != 0) {
-					pipeline_color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MULTIVIEW;
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MULTIVIEW;
 				}
 
-				pipeline_version = SceneShaderForwardClustered::PIPELINE_VERSION_COLOR_PASS;
+				pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_COLOR_PASS;
 			} break;
 			case PASS_MODE_SHADOW:
 			case PASS_MODE_DEPTH: {
-				pipeline_version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
+				pipeline_key.version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
 			} break;
 			case PASS_MODE_SHADOW_DP: {
 				ERR_FAIL_COND_MSG(p_params->view_count > 1, "Multiview not supported for shadow DP pass");
-				pipeline_version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_DP;
+				pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_DP;
 			} break;
 			case PASS_MODE_DEPTH_NORMAL_ROUGHNESS: {
-				pipeline_version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS;
+				pipeline_key.version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS;
 			} break;
 			case PASS_MODE_DEPTH_NORMAL_ROUGHNESS_VOXEL_GI: {
-				pipeline_version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI;
+				pipeline_key.version = p_params->view_count > 1 ? SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI_MULTIVIEW : SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI;
 			} break;
 			case PASS_MODE_DEPTH_MATERIAL: {
 				ERR_FAIL_COND_MSG(p_params->view_count > 1, "Multiview not supported for material pass");
-				pipeline_version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_MATERIAL;
+				pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_MATERIAL;
 			} break;
 			case PASS_MODE_SDF: {
 				// Note, SDF is prepared in world space, this shouldn't be a multiview buffer even when stereoscopic rendering is used.
 				ERR_FAIL_COND_MSG(p_params->view_count > 1, "Multiview not supported for SDF pass");
-				pipeline_version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_SDF;
+				pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_SDF;
 			} break;
 		}
 
-		PipelineCacheRD *pipeline = nullptr;
+		pipeline_key.framebuffer_format_id = framebuffer_format;
+		pipeline_key.wireframe = p_params->force_wireframe;
+		pipeline_key.ubershader = 0;
 
-		if constexpr (p_pass_mode == PASS_MODE_COLOR) {
-			pipeline = &shader->color_pipelines[cull_variant][primitive][pipeline_color_pass_flags];
-		} else {
-			pipeline = &shader->pipelines[cull_variant][primitive][pipeline_version];
-		}
-
-		RD::VertexFormatID vertex_format = -1;
+		const RD::PolygonCullMode cull_mode = shader->get_cull_mode_from_cull_variant(cull_variant);
 		RID vertex_array_rd;
 		RID index_array_rd;
-
-		//skeleton and blend shape
-		bool pipeline_motion_vectors = pipeline_color_pass_flags & SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
-		if (surf->owner->mesh_instance.is_valid()) {
-			mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, pipeline->get_vertex_input_mask(), pipeline_motion_vectors, vertex_array_rd, vertex_format);
-		} else {
-			mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, pipeline->get_vertex_input_mask(), pipeline_motion_vectors, vertex_array_rd, vertex_format);
+		RID pipeline_rd;
+		uint32_t ubershader_iterations = 2;
+		if constexpr (p_pass_mode == PASS_MODE_DEPTH_MATERIAL || p_pass_mode == PASS_MODE_SDF) {
+			ubershader_iterations = 1;
 		}
 
-		index_array_rd = mesh_storage->mesh_surface_get_index_array(mesh_surface, element_info.lod_index);
-
-		if (prev_vertex_array_rd != vertex_array_rd) {
-			RD::get_singleton()->draw_list_bind_vertex_array(draw_list, vertex_array_rd);
-			prev_vertex_array_rd = vertex_array_rd;
-		}
-
-		if (prev_index_array_rd != index_array_rd) {
-			if (index_array_rd.is_valid()) {
-				RD::get_singleton()->draw_list_bind_index_array(draw_list, index_array_rd);
-			}
-			prev_index_array_rd = index_array_rd;
-		}
-
-		RID pipeline_rd = pipeline->get_render_pipeline(vertex_format, framebuffer_format, p_params->force_wireframe, 0, pipeline_specialization);
-
-		if (pipeline_rd != prev_pipeline_rd) {
-			// checking with prev shader does not make so much sense, as
-			// the pipeline may still be different.
-			RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, pipeline_rd);
-			prev_pipeline_rd = pipeline_rd;
-		}
-
-		if (xforms_uniform_set.is_valid() && prev_xforms_uniform_set != xforms_uniform_set) {
-			RD::get_singleton()->draw_list_bind_uniform_set(draw_list, xforms_uniform_set, TRANSFORMS_UNIFORM_SET);
-			prev_xforms_uniform_set = xforms_uniform_set;
-		}
-
-		if (material_uniform_set != prev_material_uniform_set) {
-			// Update uniform set.
-			if (material_uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(material_uniform_set)) { // Material may not have a uniform set.
-				RD::get_singleton()->draw_list_bind_uniform_set(draw_list, material_uniform_set, MATERIAL_UNIFORM_SET);
+		bool pipeline_valid = false;
+		while (pipeline_key.ubershader < ubershader_iterations) {
+			// Skeleton and blend shape.
+			RD::VertexFormatID vertex_format = -1;
+			bool pipeline_motion_vectors = pipeline_key.color_pass_flags & SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
+			uint64_t input_mask = shader->get_vertex_input_mask(pipeline_key.version, pipeline_key.color_pass_flags, pipeline_key.ubershader);
+			if (surf->owner->mesh_instance.is_valid()) {
+				mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, input_mask, pipeline_motion_vectors, vertex_array_rd, vertex_format);
+			} else {
+				mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, input_mask, pipeline_motion_vectors, vertex_array_rd, vertex_format);
 			}
 
-			prev_material_uniform_set = material_uniform_set;
+			pipeline_key.vertex_format_id = vertex_format;
+
+			if (pipeline_key.ubershader) {
+				pipeline_key.shader_specialization = {};
+				pipeline_key.cull_mode = RD::POLYGON_CULL_DISABLED;
+			} else {
+				pipeline_key.shader_specialization = pipeline_specialization;
+				pipeline_key.cull_mode = cull_mode;
+			}
+
+			pipeline_hash = pipeline_key.hash();
+
+			if (shader != prev_shader || pipeline_hash != prev_pipeline_hash) {
+				bool wait_for_compilation = (ubershader_iterations == 1) || pipeline_key.ubershader;
+				RS::PipelineSource pipeline_source = wait_for_compilation ? RS::PIPELINE_SOURCE_DRAW : RS::PIPELINE_SOURCE_SPECIALIZATION;
+				pipeline_rd = shader->pipeline_hash_map.get_pipeline(pipeline_key, pipeline_hash, wait_for_compilation, pipeline_source);
+
+				if (pipeline_rd.is_valid()) {
+					pipeline_valid = true;
+					prev_shader = shader;
+					prev_pipeline_hash = pipeline_hash;
+					break;
+				} else {
+					pipeline_key.ubershader++;
+				}
+			} else {
+				// The same pipeline is bound already.
+				pipeline_valid = true;
+				break;
+			}
 		}
 
-		if (surf->owner->base_flags & INSTANCE_DATA_FLAG_PARTICLES) {
-			particles_storage->particles_get_instance_buffer_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
-		} else if (surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH) {
-			mesh_storage->_multimesh_get_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
-		} else {
-			push_constant.multimesh_motion_vectors_current_offset = 0;
-			push_constant.multimesh_motion_vectors_previous_offset = 0;
+		if (pipeline_valid) {
+			index_array_rd = mesh_storage->mesh_surface_get_index_array(mesh_surface, element_info.lod_index);
+
+			if (prev_vertex_array_rd != vertex_array_rd) {
+				RD::get_singleton()->draw_list_bind_vertex_array(draw_list, vertex_array_rd);
+				prev_vertex_array_rd = vertex_array_rd;
+			}
+
+			if (prev_index_array_rd != index_array_rd) {
+				if (index_array_rd.is_valid()) {
+					RD::get_singleton()->draw_list_bind_index_array(draw_list, index_array_rd);
+				}
+				prev_index_array_rd = index_array_rd;
+			}
+
+			if (!pipeline_rd.is_null()) {
+				RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, pipeline_rd);
+			}
+
+			if (xforms_uniform_set.is_valid() && prev_xforms_uniform_set != xforms_uniform_set) {
+				RD::get_singleton()->draw_list_bind_uniform_set(draw_list, xforms_uniform_set, TRANSFORMS_UNIFORM_SET);
+				prev_xforms_uniform_set = xforms_uniform_set;
+			}
+
+			if (material_uniform_set != prev_material_uniform_set) {
+				// Update uniform set.
+				if (material_uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(material_uniform_set)) { // Material may not have a uniform set.
+					RD::get_singleton()->draw_list_bind_uniform_set(draw_list, material_uniform_set, MATERIAL_UNIFORM_SET);
+				}
+
+				prev_material_uniform_set = material_uniform_set;
+			}
+
+			if (surf->owner->base_flags & INSTANCE_DATA_FLAG_PARTICLES) {
+				particles_storage->particles_get_instance_buffer_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
+			} else if (surf->owner->base_flags & INSTANCE_DATA_FLAG_MULTIMESH) {
+				mesh_storage->_multimesh_get_motion_vectors_offsets(surf->owner->data->base, push_constant.multimesh_motion_vectors_current_offset, push_constant.multimesh_motion_vectors_previous_offset);
+			} else {
+				push_constant.multimesh_motion_vectors_current_offset = 0;
+				push_constant.multimesh_motion_vectors_previous_offset = 0;
+			}
+
+			size_t push_constant_size = 0;
+			if (pipeline_key.ubershader) {
+				push_constant_size = sizeof(SceneState::PushConstant);
+				push_constant.ubershader.specialization = pipeline_specialization;
+				push_constant.ubershader.constants = {};
+				push_constant.ubershader.constants.cull_mode = cull_mode;
+			} else {
+				push_constant_size = sizeof(SceneState::PushConstant) - sizeof(SceneState::PushConstantUbershader);
+			}
+
+			RD::get_singleton()->draw_list_set_push_constant(draw_list, &push_constant, push_constant_size);
+
+			uint32_t instance_count = surf->owner->instance_count > 1 ? surf->owner->instance_count : element_info.repeat;
+			if (surf->flags & GeometryInstanceSurfaceDataCache::FLAG_USES_PARTICLE_TRAILS) {
+				instance_count /= surf->owner->trail_steps;
+			}
+
+			RD::get_singleton()->draw_list_draw(draw_list, index_array_rd.is_valid(), instance_count);
 		}
 
-		RD::get_singleton()->draw_list_set_push_constant(draw_list, &push_constant, sizeof(SceneState::PushConstant));
-
-		uint32_t instance_count = surf->owner->instance_count > 1 ? surf->owner->instance_count : element_info.repeat;
-		if (surf->flags & GeometryInstanceSurfaceDataCache::FLAG_USES_PARTICLE_TRAILS) {
-			instance_count /= surf->owner->trail_steps;
-		}
-
-		RD::get_singleton()->draw_list_draw(draw_list, index_array_rd.is_valid(), instance_count);
 		i += element_info.repeat - 1; //skip equal elements
 	}
 
@@ -574,6 +632,9 @@ void RenderForwardClustered::_render_list(RenderingDevice::DrawListID p_draw_lis
 		} break;
 		case PASS_MODE_SDF: {
 			_render_list_template<PASS_MODE_SDF>(p_draw_list, p_framebuffer_Format, p_params, p_from_element, p_to_element);
+		} break;
+		default: {
+			// Unknown pass mode.
 		} break;
 	}
 }
@@ -1013,7 +1074,7 @@ void RenderForwardClustered::_fill_render_list(RenderListType p_render_list, con
 				bool force_alpha = false;
 #endif
 
-				if (fade_alpha < 0.999) {
+				if (fade_alpha < FADE_ALPHA_PASS_THRESHOLD) {
 					force_alpha = true;
 				}
 
@@ -1691,12 +1752,18 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 		reverse_cull = true; // for some reason our views are inverted
 		samplers = RendererRD::MaterialStorage::get_singleton()->samplers_rd_get_default();
+
+		// Indicate pipelines for reflection probes are required.
+		global_pipeline_data_required.use_reflection_probes = true;
 	} else {
 		screen_size = rb->get_internal_size();
 
 		if (p_render_data->scene_data->calculate_motion_vectors) {
 			color_pass_flags |= COLOR_PASS_FLAG_MOTION_VECTORS;
 			scene_shader.enable_advanced_shader_group();
+
+			// Indicate pipelines for motion vectors are required.
+			global_pipeline_data_required.use_motion_vectors = true;
 		}
 
 		if (p_render_data->voxel_gi_instances->size() > 0) {
@@ -1718,6 +1785,9 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 			color_pass_flags |= COLOR_PASS_FLAG_MULTIVIEW;
 			// Try enabling here in case is_xr_enabled() returns false.
 			scene_shader.shader.enable_group(SceneShaderForwardClustered::SHADER_GROUP_MULTIVIEW);
+
+			// Indicate pipelines for multiview are required.
+			global_pipeline_data_required.use_multiview = true;
 		}
 
 		color_framebuffer = rb_data->get_color_pass_fb(color_pass_flags);
@@ -1794,6 +1864,26 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	if (using_sss || using_separate_specular || scene_state.used_lightmap || using_voxelgi) {
 		scene_shader.enable_advanced_shader_group(p_render_data->scene_data->view_count > 1);
 	}
+
+	// Update the global pipeline requirements with all the features found to be in use in this scene.
+	if (depth_pass_mode == PASS_MODE_DEPTH_NORMAL_ROUGHNESS) {
+		global_pipeline_data_required.use_normal_and_roughness = true;
+	}
+
+	if (scene_state.used_lightmap) {
+		global_pipeline_data_required.use_lightmaps = true;
+	}
+
+	if (using_voxelgi) {
+		global_pipeline_data_required.use_voxelgi = true;
+	}
+
+	if (using_separate_specular) {
+		global_pipeline_data_required.use_separate_specular = true;
+	}
+
+	// Update the compiled pipelines if any of the requirements have changed.
+	_update_dirty_geometry_pipelines();
 
 	RID radiance_texture;
 	bool draw_sky = false;
@@ -1911,12 +2001,8 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	bool debug_sdfgi_probes = get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_SDFGI_PROBES;
 	bool depth_pre_pass = bool(GLOBAL_GET("rendering/driver/depth_prepass/enable")) && depth_framebuffer.is_valid();
 
-	uint32_t spec_constant_base_flags = 0;
-	{
-		if (p_render_data->environment.is_valid() && environment_get_fog_mode(p_render_data->environment) == RS::EnvironmentFogMode::ENV_FOG_MODE_DEPTH) {
-			spec_constant_base_flags |= 1 << SPEC_CONSTANT_USE_DEPTH_FOG;
-		}
-	}
+	SceneShaderForwardClustered::ShaderSpecialization base_specialization = scene_shader.default_specialization;
+	base_specialization.use_depth_fog = p_render_data->environment.is_valid() && environment_get_fog_mode(p_render_data->environment) == RS::EnvironmentFogMode::ENV_FOG_MODE_DEPTH;
 
 	bool using_ssao = depth_pre_pass && !is_reflection_probe && p_render_data->environment.is_valid() && environment_get_ssao_enabled(p_render_data->environment);
 
@@ -1940,7 +2026,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		RID rp_uniform_set = _setup_render_pass_uniform_set(RENDER_LIST_OPAQUE, nullptr, RID(), samplers);
 
 		bool finish_depth = using_ssao || using_ssil || using_sdfgi || using_voxelgi || ce_pre_opaque_resolved_depth || ce_post_opaque_resolved_depth;
-		RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, depth_pass_mode, 0, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+		RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, depth_pass_mode, 0, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, base_specialization);
 		_render_list_with_draw_list(&render_list_params, depth_framebuffer, needs_pre_resolve ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, needs_pre_resolve ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, needs_pre_resolve ? Vector<Color>() : depth_pass_clear);
 
 		RD::get_singleton()->draw_command_end_label();
@@ -2019,7 +2105,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 			uint32_t opaque_color_pass_flags = using_motion_pass ? (color_pass_flags & ~COLOR_PASS_FLAG_MOTION_VECTORS) : color_pass_flags;
 			RID opaque_framebuffer = using_motion_pass ? rb_data->get_color_pass_fb(opaque_color_pass_flags) : color_framebuffer;
-			RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, PASS_MODE_COLOR, opaque_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+			RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].element_info.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, PASS_MODE_COLOR, opaque_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, base_specialization);
 			_render_list_with_draw_list(&render_list_params, opaque_framebuffer, load_color ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, depth_pre_pass ? RD::INITIAL_ACTION_LOAD : RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_STORE, c, 0.0, 0);
 		}
 
@@ -2039,7 +2125,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 
 			rp_uniform_set = _setup_render_pass_uniform_set(RENDER_LIST_MOTION, p_render_data, radiance_texture, samplers, true);
 
-			RenderListParameters render_list_params(render_list[RENDER_LIST_MOTION].elements.ptr(), render_list[RENDER_LIST_MOTION].element_info.ptr(), render_list[RENDER_LIST_MOTION].elements.size(), reverse_cull, PASS_MODE_COLOR, color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+			RenderListParameters render_list_params(render_list[RENDER_LIST_MOTION].elements.ptr(), render_list[RENDER_LIST_MOTION].element_info.ptr(), render_list[RENDER_LIST_MOTION].elements.size(), reverse_cull, PASS_MODE_COLOR, color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, base_specialization);
 			_render_list_with_draw_list(&render_list_params, color_framebuffer, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE);
 
 			RD::get_singleton()->draw_command_end_label();
@@ -2218,7 +2304,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 		}
 
 		RID alpha_framebuffer = rb_data.is_valid() ? rb_data->get_color_pass_fb(transparent_color_pass_flags) : color_only_framebuffer;
-		RenderListParameters render_list_params(render_list[RENDER_LIST_ALPHA].elements.ptr(), render_list[RENDER_LIST_ALPHA].element_info.ptr(), render_list[RENDER_LIST_ALPHA].elements.size(), reverse_cull, PASS_MODE_COLOR, transparent_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, spec_constant_base_flags);
+		RenderListParameters render_list_params(render_list[RENDER_LIST_ALPHA].elements.ptr(), render_list[RENDER_LIST_ALPHA].element_info.ptr(), render_list[RENDER_LIST_ALPHA].elements.size(), reverse_cull, PASS_MODE_COLOR, transparent_color_pass_flags, rb_data.is_null(), p_render_data->directional_light_soft_shadows, rp_uniform_set, get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_WIREFRAME, Vector2(), p_render_data->scene_data->lod_distance_multiplier, p_render_data->scene_data->screen_mesh_lod_threshold, p_render_data->scene_data->view_count, 0, base_specialization);
 		_render_list_with_draw_list(&render_list_params, alpha_framebuffer, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE, RD::INITIAL_ACTION_LOAD, RD::FINAL_ACTION_STORE);
 	}
 
@@ -2840,6 +2926,9 @@ void RenderForwardClustered::_render_sdfgi(Ref<RenderSceneBuffersRD> p_render_bu
 	render_data.instances = &p_instances;
 
 	_update_render_base_uniform_set();
+
+	// Indicate pipelines for SDFGI are required.
+	global_pipeline_data_required.use_sdfgi = true;
 
 	PassMode pass_mode = PASS_MODE_SDF;
 	_fill_render_list(RENDER_LIST_SECONDARY, &render_data, pass_mode);
@@ -3734,14 +3823,23 @@ void RenderForwardClustered::GeometryInstanceForwardClustered::_mark_dirty() {
 	RenderForwardClustered::get_singleton()->geometry_instance_dirty_list.add(&dirty_list_element);
 }
 
+void RenderForwardClustered::_update_global_pipeline_data_requirements_from_project() {
+	const int msaa_3d_mode = GLOBAL_GET("rendering/anti_aliasing/quality/msaa_3d");
+	const bool directional_shadow_16_bits = GLOBAL_GET("rendering/lights_and_shadows/directional_shadow/16_bits");
+	const bool positional_shadow_16_bits = GLOBAL_GET("rendering/lights_and_shadows/positional_shadow/atlas_16_bits");
+	global_pipeline_data_required.use_16_bit_shadows = directional_shadow_16_bits || positional_shadow_16_bits;
+	global_pipeline_data_required.use_32_bit_shadows = !directional_shadow_16_bits || !positional_shadow_16_bits;
+	global_pipeline_data_required.texture_samples = RenderSceneBuffersRD::msaa_to_samples(RS::ViewportMSAA(msaa_3d_mode));
+}
+
+void RenderForwardClustered::_update_global_pipeline_data_requirements_from_light_storage() {
+	RendererRD::LightStorage *light_storage = RendererRD::LightStorage::get_singleton();
+	global_pipeline_data_required.use_shadow_cubemaps = light_storage->get_shadow_cubemaps_used();
+	global_pipeline_data_required.use_shadow_dual_paraboloid = light_storage->get_shadow_dual_paraboloid_used();
+}
+
 void RenderForwardClustered::_geometry_instance_add_surface_with_material(GeometryInstanceForwardClustered *ginstance, uint32_t p_surface, SceneShaderForwardClustered::MaterialData *p_material, uint32_t p_material_id, uint32_t p_shader_id, RID p_mesh) {
 	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
-
-	bool has_read_screen_alpha = p_material->shader_data->uses_screen_texture || p_material->shader_data->uses_depth_texture || p_material->shader_data->uses_normal_texture;
-	bool has_base_alpha = (p_material->shader_data->uses_alpha && (!p_material->shader_data->uses_alpha_clip || p_material->shader_data->uses_alpha_antialiasing)) || has_read_screen_alpha;
-	bool has_blend_alpha = p_material->shader_data->uses_blend_alpha;
-	bool has_alpha = has_base_alpha || has_blend_alpha;
-
 	uint32_t flags = 0;
 
 	if (p_material->shader_data->uses_sss) {
@@ -3764,10 +3862,9 @@ void RenderForwardClustered::_geometry_instance_add_surface_with_material(Geomet
 		flags |= GeometryInstanceSurfaceDataCache::FLAG_USES_DOUBLE_SIDED_SHADOWS;
 	}
 
-	if (has_alpha || has_read_screen_alpha || p_material->shader_data->depth_draw == SceneShaderForwardClustered::ShaderData::DEPTH_DRAW_DISABLED || p_material->shader_data->depth_test == SceneShaderForwardClustered::ShaderData::DEPTH_TEST_DISABLED) {
-		//material is only meant for alpha pass
+	if (p_material->shader_data->uses_alpha_pass()) {
 		flags |= GeometryInstanceSurfaceDataCache::FLAG_PASS_ALPHA;
-		if ((p_material->shader_data->uses_depth_prepass_alpha || p_material->shader_data->uses_alpha_antialiasing) && !(p_material->shader_data->depth_draw == SceneShaderForwardClustered::ShaderData::DEPTH_DRAW_DISABLED || p_material->shader_data->depth_test == SceneShaderForwardClustered::ShaderData::DEPTH_TEST_DISABLED)) {
+		if (p_material->shader_data->uses_depth_in_alpha_pass()) {
 			flags |= GeometryInstanceSurfaceDataCache::FLAG_PASS_DEPTH;
 			flags |= GeometryInstanceSurfaceDataCache::FLAG_PASS_SHADOW;
 		}
@@ -3787,16 +3884,14 @@ void RenderForwardClustered::_geometry_instance_add_surface_with_material(Geomet
 
 	SceneShaderForwardClustered::MaterialData *material_shadow = nullptr;
 	void *surface_shadow = nullptr;
-	if (!p_material->shader_data->uses_particle_trails && !p_material->shader_data->writes_modelview_or_projection && !p_material->shader_data->uses_vertex && !p_material->shader_data->uses_position && !p_material->shader_data->uses_discard && !p_material->shader_data->uses_depth_prepass_alpha && !p_material->shader_data->uses_alpha_clip && !p_material->shader_data->uses_alpha_antialiasing && p_material->shader_data->cull_mode == SceneShaderForwardClustered::ShaderData::CULL_BACK && !p_material->shader_data->uses_point_size && !p_material->shader_data->uses_world_coordinates) {
+	if (p_material->shader_data->uses_shared_shadow_material()) {
 		flags |= GeometryInstanceSurfaceDataCache::FLAG_USES_SHARED_SHADOW_MATERIAL;
 		material_shadow = static_cast<SceneShaderForwardClustered::MaterialData *>(RendererRD::MaterialStorage::get_singleton()->material_get_data(scene_shader.default_material, RendererRD::MaterialStorage::SHADER_TYPE_3D));
 
 		RID shadow_mesh = mesh_storage->mesh_get_shadow_mesh(p_mesh);
-
 		if (shadow_mesh.is_valid()) {
 			surface_shadow = mesh_storage->mesh_get_surface(shadow_mesh, p_surface);
 		}
-
 	} else {
 		material_shadow = p_material;
 	}
@@ -3848,6 +3943,16 @@ void RenderForwardClustered::_geometry_instance_add_surface_with_material(Geomet
 		String mesh_path = mesh_storage->mesh_get_path(p_mesh).is_empty() ? "" : "(" + mesh_storage->mesh_get_path(p_mesh) + ")";
 		WARN_PRINT_ED(vformat("Attempting to use a shader %s that requires tangents with a mesh %s that doesn't contain tangents. Ensure that meshes are imported with the 'ensure_tangents' option. If creating your own meshes, add an `ARRAY_TANGENT` array (when using ArrayMesh) or call `generate_tangents()` (when using SurfaceTool).", shader_path, mesh_path));
 	}
+
+#if PRELOAD_PIPELINES_ON_SURFACE_CACHE_CONSTRUCTION
+	if (!sdcache->compilation_dirty_element.in_list()) {
+		geometry_surface_compilation_dirty_list.add(&sdcache->compilation_dirty_element);
+	}
+
+	if (!sdcache->compilation_all_element.in_list()) {
+		geometry_surface_compilation_all_list.add(&sdcache->compilation_all_element);
+	}
+#endif
 }
 
 void RenderForwardClustered::_geometry_instance_add_surface_with_material_chain(GeometryInstanceForwardClustered *ginstance, uint32_t p_surface, SceneShaderForwardClustered::MaterialData *p_material, RID p_mat_src, RID p_mesh) {
@@ -3859,7 +3964,7 @@ void RenderForwardClustered::_geometry_instance_add_surface_with_material_chain(
 	while (material->next_pass.is_valid()) {
 		RID next_pass = material->next_pass;
 		material = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(next_pass, RendererRD::MaterialStorage::SHADER_TYPE_3D));
-		if (!material || !material->shader_data->valid) {
+		if (!material || !material->shader_data->is_valid()) {
 			break;
 		}
 		if (ginstance->data->dirty_dependencies) {
@@ -3879,7 +3984,7 @@ void RenderForwardClustered::_geometry_instance_add_surface(GeometryInstanceForw
 
 	if (m_src.is_valid()) {
 		material = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(m_src, RendererRD::MaterialStorage::SHADER_TYPE_3D));
-		if (!material || !material->shader_data->valid) {
+		if (!material || !material->shader_data->is_valid()) {
 			material = nullptr;
 		}
 	}
@@ -3901,7 +4006,7 @@ void RenderForwardClustered::_geometry_instance_add_surface(GeometryInstanceForw
 		m_src = ginstance->data->material_overlay;
 
 		material = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(m_src, RendererRD::MaterialStorage::SHADER_TYPE_3D));
-		if (material && material->shader_data->valid) {
+		if (material && material->shader_data->is_valid()) {
 			if (ginstance->data->dirty_dependencies) {
 				material_storage->material_update_dependency(m_src, &ginstance->data->dependency_tracker);
 			}
@@ -4068,9 +4173,360 @@ void RenderForwardClustered::_geometry_instance_update(RenderGeometryInstance *p
 	ginstance->dirty_list_element.remove_from_list();
 }
 
+static RD::FramebufferFormatID _get_color_framebuffer_format_for_pipeline(RD::DataFormat p_color_format, bool p_can_be_storage, RD::TextureSamples p_samples, bool p_specular, bool p_velocity, uint32_t p_view_count) {
+	const bool multisampling = p_samples > RD::TEXTURE_SAMPLES_1;
+	RD::AttachmentFormat attachment;
+	attachment.samples = p_samples;
+
+	RD::AttachmentFormat unused_attachment;
+	unused_attachment.usage_flags = RD::AttachmentFormat::UNUSED_ATTACHMENT;
+
+	thread_local Vector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	// Color attachment.
+	attachment.format = p_color_format;
+	attachment.usage_flags = RenderSceneBuffersRD::get_color_usage_bits(false, multisampling, p_can_be_storage);
+	attachments.push_back(attachment);
+
+	if (p_specular) {
+		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_specular_format();
+		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_specular_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	} else {
+		attachments.push_back(unused_attachment);
+	}
+
+	if (p_velocity) {
+		attachment.format = RenderSceneBuffersRD::get_velocity_format();
+		attachment.usage_flags = RenderSceneBuffersRD::get_velocity_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	} else {
+		attachments.push_back(unused_attachment);
+	}
+
+	// Depth attachment.
+	attachment.format = RenderSceneBuffersRD::get_depth_format(false, multisampling, p_can_be_storage);
+	attachment.usage_flags = RenderSceneBuffersRD::get_depth_usage_bits(false, multisampling, p_can_be_storage);
+	attachments.push_back(attachment);
+
+	thread_local Vector<RD::FramebufferPass> passes;
+	passes.resize(1);
+	passes.ptrw()[0].color_attachments.resize(attachments.size() - 1);
+
+	int *color_attachments = passes.ptrw()[0].color_attachments.ptrw();
+	for (int64_t i = 0; i < attachments.size() - 1; i++) {
+		color_attachments[i] = (attachments[i].usage_flags == RD::AttachmentFormat::UNUSED_ATTACHMENT) ? RD::ATTACHMENT_UNUSED : i;
+	}
+
+	passes.ptrw()[0].depth_attachment = attachments.size() - 1;
+
+	return RD::get_singleton()->framebuffer_format_create_multipass(attachments, passes, p_view_count);
+}
+
+static RD::FramebufferFormatID _get_reflection_probe_color_framebuffer_format_for_pipeline() {
+	RD::AttachmentFormat attachment;
+	thread_local Vector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	attachment.format = RendererRD::LightStorage::get_reflection_probe_color_format();
+	attachment.usage_flags = RendererRD::LightStorage::get_reflection_probe_color_usage_bits();
+	attachments.push_back(attachment);
+
+	attachment.format = RendererRD::LightStorage::get_reflection_probe_depth_format();
+	attachment.usage_flags = RendererRD::LightStorage::get_reflection_probe_depth_usage_bits();
+	attachments.push_back(attachment);
+
+	return RD::get_singleton()->framebuffer_format_create(attachments);
+}
+
+static RD::FramebufferFormatID _get_depth_framebuffer_format_for_pipeline(bool p_can_be_storage, RD::TextureSamples p_samples, bool p_normal_roughness, bool p_voxelgi) {
+	const bool multisampling = p_samples > RD::TEXTURE_SAMPLES_1;
+	RD::AttachmentFormat attachment;
+	attachment.samples = p_samples;
+
+	thread_local LocalVector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	attachment.format = RenderSceneBuffersRD::get_depth_format(false, multisampling, p_can_be_storage);
+	attachment.usage_flags = RenderSceneBuffersRD::get_depth_usage_bits(false, multisampling, p_can_be_storage);
+	attachments.push_back(attachment);
+
+	if (p_normal_roughness) {
+		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_normal_roughness_format();
+		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_normal_roughness_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	}
+
+	if (p_voxelgi) {
+		attachment.format = RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_format();
+		attachment.usage_flags = RenderForwardClustered::RenderBufferDataForwardClustered::get_voxelgi_usage_bits(false, multisampling, p_can_be_storage);
+		attachments.push_back(attachment);
+	}
+
+	thread_local Vector<RD::FramebufferPass> passes;
+	passes.resize(1);
+	passes.ptrw()[0].color_attachments.resize(attachments.size() - 1);
+
+	int *color_attachments = passes.ptrw()[0].color_attachments.ptrw();
+	for (int64_t i = 1; i < attachments.size(); i++) {
+		color_attachments[i - 1] = (attachments[i].usage_flags == RD::AttachmentFormat::UNUSED_ATTACHMENT) ? RD::ATTACHMENT_UNUSED : i;
+	}
+
+	passes.ptrw()[0].depth_attachment = 0;
+
+	return RD::get_singleton()->framebuffer_format_create_multipass(attachments, passes);
+}
+
+static RD::FramebufferFormatID _get_shadow_cubemap_framebuffer_format_for_pipeline() {
+	thread_local LocalVector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	RD::AttachmentFormat attachment;
+	attachment.format = RendererRD::LightStorage::get_cubemap_depth_format();
+	attachment.usage_flags = RendererRD::LightStorage::get_cubemap_depth_usage_bits();
+	attachments.push_back(attachment);
+
+	return RD::get_singleton()->framebuffer_format_create(attachments);
+}
+
+static RD::FramebufferFormatID _get_shadow_atlas_framebuffer_format_for_pipeline(bool p_use_16_bits) {
+	thread_local LocalVector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	RD::AttachmentFormat attachment;
+	attachment.format = RendererRD::LightStorage::get_shadow_atlas_depth_format(p_use_16_bits);
+	attachment.usage_flags = RendererRD::LightStorage::get_shadow_atlas_depth_usage_bits();
+	attachments.push_back(attachment);
+
+	return RD::get_singleton()->framebuffer_format_create(attachments);
+}
+
+static RD::FramebufferFormatID _get_reflection_probe_depth_framebuffer_format_for_pipeline() {
+	thread_local LocalVector<RD::AttachmentFormat> attachments;
+	attachments.clear();
+
+	RD::AttachmentFormat attachment;
+	attachment.format = RendererRD::LightStorage::get_reflection_probe_depth_format();
+	attachment.usage_flags = RendererRD::LightStorage::get_reflection_probe_depth_usage_bits();
+	attachments.push_back(attachment);
+
+	return RD::get_singleton()->framebuffer_format_create(attachments);
+}
+
+void RenderForwardClustered::_mesh_compile_pipeline_for_surface(SceneShaderForwardClustered::ShaderData *p_shader, void *p_mesh_surface, bool p_ubershader, bool p_instanced_surface, RS::PipelineSource p_source, SceneShaderForwardClustered::ShaderData::PipelineKey &r_pipeline_key, Vector<ShaderPipelinePair> *r_pipeline_pairs) {
+	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
+	uint64_t input_mask = p_shader->get_vertex_input_mask(r_pipeline_key.version, r_pipeline_key.color_pass_flags, p_ubershader);
+	bool pipeline_motion_vectors = r_pipeline_key.color_pass_flags & SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
+	r_pipeline_key.vertex_format_id = mesh_storage->mesh_surface_get_vertex_format(p_mesh_surface, input_mask, p_instanced_surface, pipeline_motion_vectors);
+	r_pipeline_key.ubershader = p_ubershader;
+
+	p_shader->pipeline_hash_map.compile_pipeline(r_pipeline_key, r_pipeline_key.hash(), p_source);
+
+	if (r_pipeline_pairs != nullptr) {
+		r_pipeline_pairs->push_back({ p_shader, r_pipeline_key });
+	}
+}
+
+void RenderForwardClustered::_mesh_compile_pipelines_for_surface(const SurfacePipelineData &p_surface, const GlobalPipelineData &p_global, RS::PipelineSource p_source, Vector<ShaderPipelinePair> *r_pipeline_pairs) {
+	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
+
+	// Retrieve from the scene shader which groups are currently enabled.
+	const bool multiview_enabled = p_global.use_multiview && scene_shader.is_multiview_shader_group_enabled();
+	const RD::DataFormat buffers_color_format = _render_buffers_get_color_format();
+	const bool buffers_can_be_storage = _render_buffers_can_be_storage();
+
+	// Set the attributes common to all pipelines.
+	SceneShaderForwardClustered::ShaderData::PipelineKey pipeline_key;
+	pipeline_key.cull_mode = RD::POLYGON_CULL_DISABLED;
+	pipeline_key.primitive_type = mesh_storage->mesh_surface_get_primitive(p_surface.mesh_surface);
+	pipeline_key.wireframe = false;
+
+	// Grab the shader and surface used for most passes.
+	const uint32_t multiview_iterations = multiview_enabled ? 2 : 1;
+	const uint32_t lightmap_iterations = p_global.use_lightmaps && p_surface.can_use_lightmap ? 2 : 1;
+	const uint32_t alpha_iterations = p_surface.uses_transparent ? 2 : 1;
+	for (uint32_t multiview = 0; multiview < multiview_iterations; multiview++) {
+		for (uint32_t lightmap = 0; lightmap < lightmap_iterations; lightmap++) {
+			for (uint32_t alpha = p_surface.uses_opaque ? 0 : 1; alpha < alpha_iterations; alpha++) {
+				// Generate all the possible variants used during the color pass.
+				pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_COLOR_PASS;
+				pipeline_key.color_pass_flags = 0;
+
+				if (lightmap) {
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_LIGHTMAP;
+				}
+
+				if (alpha) {
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_TRANSPARENT;
+				}
+
+				if (multiview) {
+					pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MULTIVIEW;
+				} else if (p_global.use_reflection_probes) {
+					// Reflection probe can't be rendered in multiview.
+					pipeline_key.framebuffer_format_id = _get_reflection_probe_color_framebuffer_format_for_pipeline();
+					_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+				}
+
+				// View count is assumed to be 2 as the configuration is dependent on the viewport. It's likely a safe assumption for stereo rendering.
+				uint32_t view_count = multiview ? 2 : 1;
+				pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), false, false, view_count);
+				_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+
+				// Generate all the possible variants used during the advanced color passes.
+				const uint32_t separate_specular_iterations = p_global.use_separate_specular ? 2 : 1;
+				const uint32_t motion_vectors_iterations = p_global.use_motion_vectors ? 2 : 1;
+				uint32_t base_color_pass_flags = pipeline_key.color_pass_flags;
+				for (uint32_t separate_specular = 0; separate_specular < separate_specular_iterations; separate_specular++) {
+					for (uint32_t motion_vectors = 0; motion_vectors < motion_vectors_iterations; motion_vectors++) {
+						if (!separate_specular && !motion_vectors) {
+							// This case was already generated.
+							continue;
+						}
+
+						pipeline_key.color_pass_flags = base_color_pass_flags;
+
+						if (separate_specular) {
+							pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_SEPARATE_SPECULAR;
+						}
+
+						if (motion_vectors) {
+							pipeline_key.color_pass_flags |= SceneShaderForwardClustered::PIPELINE_COLOR_PASS_FLAG_MOTION_VECTORS;
+						}
+
+						pipeline_key.framebuffer_format_id = _get_color_framebuffer_format_for_pipeline(buffers_color_format, buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), separate_specular, motion_vectors, view_count);
+						_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+					}
+				}
+			}
+		}
+	}
+
+	if (!p_surface.uses_depth) {
+		return;
+	}
+
+	// Generate the depth pipelines if the material supports depth or it must be part of the shadow pass.
+	pipeline_key.color_pass_flags = 0;
+
+	if (p_global.use_normal_and_roughness) {
+		// A lot of different effects rely on normal and roughness being written to during the depth pass.
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS;
+		pipeline_key.framebuffer_format_id = _get_depth_framebuffer_format_for_pipeline(buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), true, false);
+		_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+
+	if (p_global.use_voxelgi) {
+		// Depth pass with VoxelGI support.
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_NORMAL_AND_ROUGHNESS_AND_VOXEL_GI;
+		pipeline_key.framebuffer_format_id = _get_depth_framebuffer_format_for_pipeline(buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), true, true);
+		_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+
+	if (p_global.use_sdfgi) {
+		// Depth pass with SDFGI support.
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_WITH_SDF;
+		pipeline_key.framebuffer_format_id = _get_depth_framebuffer_format_for_pipeline(buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), false, false);
+		_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, false, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+
+		// Depth pass with SDFGI support for an empty framebuffer.
+		pipeline_key.framebuffer_format_id = RD::get_singleton()->framebuffer_format_create_empty();
+		_mesh_compile_pipeline_for_surface(p_surface.shader, p_surface.mesh_surface, false, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+
+	// The dedicated depth passes use a different version of the surface and the shader.
+	pipeline_key.primitive_type = mesh_storage->mesh_surface_get_primitive(p_surface.mesh_surface_shadow);
+	pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
+	pipeline_key.framebuffer_format_id = _get_depth_framebuffer_format_for_pipeline(buffers_can_be_storage, RD::TextureSamples(p_global.texture_samples), false, false);
+	_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+
+	if (p_global.use_shadow_dual_paraboloid) {
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_DP;
+		_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+
+	if (p_global.use_shadow_cubemaps) {
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
+		pipeline_key.framebuffer_format_id = _get_shadow_cubemap_framebuffer_format_for_pipeline();
+		_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+
+	// Atlas shadowmaps (omni lights) can be in both 16-bit and 32-bit versions.
+	const uint32_t use_16_bits_start = p_global.use_32_bit_shadows ? 0 : 1;
+	const uint32_t use_16_bits_iterations = p_global.use_16_bit_shadows ? 2 : 1;
+	for (uint32_t use_16_bits = use_16_bits_start; use_16_bits < use_16_bits_iterations; use_16_bits++) {
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
+		pipeline_key.framebuffer_format_id = _get_shadow_atlas_framebuffer_format_for_pipeline(use_16_bits);
+		_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+
+		if (p_global.use_shadow_dual_paraboloid) {
+			pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS_DP;
+			_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+		}
+	}
+
+	if (p_global.use_reflection_probes) {
+		// Depth pass for reflection probes. Normally this will be redundant as the format is the exact same as the shadow cubemap.
+		pipeline_key.version = SceneShaderForwardClustered::PIPELINE_VERSION_DEPTH_PASS;
+		pipeline_key.framebuffer_format_id = _get_reflection_probe_depth_framebuffer_format_for_pipeline();
+		_mesh_compile_pipeline_for_surface(p_surface.shader_shadow, p_surface.mesh_surface_shadow, true, p_surface.instanced, p_source, pipeline_key, r_pipeline_pairs);
+	}
+}
+
+void RenderForwardClustered::_mesh_generate_all_pipelines_for_surface_cache(GeometryInstanceSurfaceDataCache *p_surface_cache, const GlobalPipelineData &p_global) {
+	bool uses_alpha_pass = (p_surface_cache->flags & GeometryInstanceSurfaceDataCache::FLAG_PASS_ALPHA) != 0;
+	float multiplied_fade_alpha = p_surface_cache->owner->force_alpha * p_surface_cache->owner->parent_fade_alpha;
+	bool uses_fade = (multiplied_fade_alpha < FADE_ALPHA_PASS_THRESHOLD) || p_surface_cache->owner->fade_near || p_surface_cache->owner->fade_far;
+	SurfacePipelineData surface;
+	surface.mesh_surface = p_surface_cache->surface;
+	surface.mesh_surface_shadow = p_surface_cache->surface_shadow;
+	surface.shader = p_surface_cache->shader;
+	surface.shader_shadow = p_surface_cache->shader_shadow;
+	surface.instanced = p_surface_cache->owner->mesh_instance.is_valid();
+	surface.uses_opaque = !uses_alpha_pass;
+	surface.uses_transparent = uses_alpha_pass || uses_fade;
+	surface.uses_depth = (p_surface_cache->flags & (GeometryInstanceSurfaceDataCache::FLAG_PASS_DEPTH | GeometryInstanceSurfaceDataCache::FLAG_PASS_OPAQUE | GeometryInstanceSurfaceDataCache::FLAG_PASS_SHADOW)) != 0;
+	surface.can_use_lightmap = p_surface_cache->owner->lightmap_instance.is_valid() || p_surface_cache->owner->lightmap_sh;
+	_mesh_compile_pipelines_for_surface(surface, p_global, RS::PIPELINE_SOURCE_SURFACE);
+}
+
 void RenderForwardClustered::_update_dirty_geometry_instances() {
 	while (geometry_instance_dirty_list.first()) {
 		_geometry_instance_update(geometry_instance_dirty_list.first()->self());
+	}
+
+	_update_dirty_geometry_pipelines();
+}
+
+void RenderForwardClustered::_update_dirty_geometry_pipelines() {
+	if (global_pipeline_data_required.key != global_pipeline_data_compiled.key) {
+		// Go through the entire list of surfaces and compile pipelines for everything again.
+		SelfList<GeometryInstanceSurfaceDataCache> *list = geometry_surface_compilation_all_list.first();
+		while (list != nullptr) {
+			GeometryInstanceSurfaceDataCache *surface_cache = list->self();
+			_mesh_generate_all_pipelines_for_surface_cache(surface_cache, global_pipeline_data_required);
+
+			if (surface_cache->compilation_dirty_element.in_list()) {
+				// Remove any elements from the dirty list as they don't need to be processed again.
+				geometry_surface_compilation_dirty_list.remove(&surface_cache->compilation_dirty_element);
+			}
+
+			list = list->next();
+		}
+
+		global_pipeline_data_compiled.key = global_pipeline_data_required.key;
+	} else {
+		// Compile pipelines only for the dirty list.
+		if (!geometry_surface_compilation_dirty_list.first()) {
+			return;
+		}
+
+		while (geometry_surface_compilation_dirty_list.first() != nullptr) {
+			GeometryInstanceSurfaceDataCache *surface_cache = geometry_surface_compilation_dirty_list.first()->self();
+			_mesh_generate_all_pipelines_for_surface_cache(surface_cache, global_pipeline_data_compiled);
+			surface_cache->compilation_dirty_element.remove_from_list();
+		}
 	}
 }
 
@@ -4174,6 +4630,66 @@ uint32_t RenderForwardClustered::geometry_instance_get_pair_mask() {
 	return (1 << RS::INSTANCE_VOXEL_GI);
 }
 
+void RenderForwardClustered::mesh_generate_pipelines(RID p_mesh, bool p_background_compilation) {
+	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
+	RendererRD::MeshStorage *mesh_storage = RendererRD::MeshStorage::get_singleton();
+	RID shadow_mesh = mesh_storage->mesh_get_shadow_mesh(p_mesh);
+	uint32_t surface_count = 0;
+	const RID *materials = mesh_storage->mesh_get_surface_count_and_materials(p_mesh, surface_count);
+	Vector<ShaderPipelinePair> pipeline_pairs;
+	for (uint32_t i = 0; i < surface_count; i++) {
+		if (materials[i].is_null()) {
+			continue;
+		}
+
+		void *mesh_surface = mesh_storage->mesh_get_surface(p_mesh, i);
+		void *mesh_surface_shadow = mesh_surface;
+		SceneShaderForwardClustered::MaterialData *material = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(materials[i], RendererRD::MaterialStorage::SHADER_TYPE_3D));
+		if (material == nullptr) {
+			continue;
+		}
+
+		SceneShaderForwardClustered::ShaderData *shader = material->shader_data;
+		SceneShaderForwardClustered::ShaderData *shader_shadow = shader;
+		if (material->shader_data->uses_shared_shadow_material()) {
+			SceneShaderForwardClustered::MaterialData *material_shadow = static_cast<SceneShaderForwardClustered::MaterialData *>(material_storage->material_get_data(scene_shader.default_material, RendererRD::MaterialStorage::SHADER_TYPE_3D));
+			if (material_shadow != nullptr) {
+				shader_shadow = material_shadow->shader_data;
+				if (shadow_mesh.is_valid()) {
+					mesh_surface_shadow = mesh_storage->mesh_get_surface(shadow_mesh, i);
+				}
+			}
+		}
+
+		if (!shader->is_valid()) {
+			continue;
+		}
+
+		SurfacePipelineData surface;
+		surface.mesh_surface = mesh_surface;
+		surface.mesh_surface_shadow = mesh_surface_shadow;
+		surface.shader = shader;
+		surface.shader_shadow = shader_shadow;
+		surface.instanced = mesh_storage->mesh_needs_instance(p_mesh, true);
+		surface.uses_opaque = !material->shader_data->uses_alpha_pass();
+		surface.uses_transparent = material->shader_data->uses_alpha_pass();
+		surface.uses_depth = surface.uses_opaque || (surface.uses_transparent && material->shader_data->uses_depth_in_alpha_pass());
+		surface.can_use_lightmap = mesh_storage->mesh_surface_get_format(mesh_surface) & RS::ARRAY_FORMAT_TEX_UV2;
+		_mesh_compile_pipelines_for_surface(surface, global_pipeline_data_required, RS::PIPELINE_SOURCE_MESH, &pipeline_pairs);
+	}
+
+	// Try to retrieve all the pipeline pairs that were compiled. This will force the loader to wait on all ubershader pipelines to be ready.
+	if (!p_background_compilation && !pipeline_pairs.is_empty()) {
+		for (ShaderPipelinePair pair : pipeline_pairs) {
+			pair.first->pipeline_hash_map.get_pipeline(pair.second, pair.second.hash(), true, RS::PIPELINE_SOURCE_MESH);
+		}
+	}
+}
+
+uint32_t RenderForwardClustered::get_pipeline_compilations(RS::PipelineSource p_source) {
+	return scene_shader.get_pipeline_compilations(p_source);
+}
+
 void RenderForwardClustered::GeometryInstanceForwardClustered::pair_voxel_gi_instances(const RID *p_voxel_gi_instances, uint32_t p_voxel_gi_instance_count) {
 	if (p_voxel_gi_instance_count > 0) {
 		voxel_gi_instances[0] = p_voxel_gi_instances[0];
@@ -4195,54 +4711,23 @@ void RenderForwardClustered::GeometryInstanceForwardClustered::set_softshadow_pr
 }
 
 void RenderForwardClustered::_update_shader_quality_settings() {
-	Vector<RD::PipelineSpecializationConstant> spec_constants;
-
-	RD::PipelineSpecializationConstant sc;
-	sc.type = RD::PIPELINE_SPECIALIZATION_CONSTANT_TYPE_INT;
-
-	sc.constant_id = SPEC_CONSTANT_SOFT_SHADOW_SAMPLES;
-	sc.int_value = soft_shadow_samples_get();
-
-	spec_constants.push_back(sc);
-
-	sc.constant_id = SPEC_CONSTANT_PENUMBRA_SHADOW_SAMPLES;
-	sc.int_value = penumbra_shadow_samples_get();
-
-	spec_constants.push_back(sc);
-
-	sc.constant_id = SPEC_CONSTANT_DIRECTIONAL_SOFT_SHADOW_SAMPLES;
-	sc.int_value = directional_soft_shadow_samples_get();
-
-	spec_constants.push_back(sc);
-
-	sc.constant_id = SPEC_CONSTANT_DIRECTIONAL_PENUMBRA_SHADOW_SAMPLES;
-	sc.int_value = directional_penumbra_shadow_samples_get();
-
-	spec_constants.push_back(sc);
-
-	sc.type = RD::PIPELINE_SPECIALIZATION_CONSTANT_TYPE_BOOL;
-	sc.constant_id = SPEC_CONSTANT_DECAL_FILTER;
-	sc.bool_value = decals_get_filter() == RS::DECAL_FILTER_NEAREST_MIPMAPS ||
+	SceneShaderForwardClustered::ShaderSpecialization specialization = {};
+	specialization.decal_use_mipmaps = decals_get_filter() == RS::DECAL_FILTER_NEAREST_MIPMAPS ||
 			decals_get_filter() == RS::DECAL_FILTER_LINEAR_MIPMAPS ||
 			decals_get_filter() == RS::DECAL_FILTER_NEAREST_MIPMAPS_ANISOTROPIC ||
 			decals_get_filter() == RS::DECAL_FILTER_LINEAR_MIPMAPS_ANISOTROPIC;
-
-	spec_constants.push_back(sc);
-
-	sc.constant_id = SPEC_CONSTANT_PROJECTOR_FILTER;
-	sc.bool_value = light_projectors_get_filter() == RS::LIGHT_PROJECTOR_FILTER_NEAREST_MIPMAPS ||
+	;
+	specialization.projector_use_mipmaps = light_projectors_get_filter() == RS::LIGHT_PROJECTOR_FILTER_NEAREST_MIPMAPS ||
 			light_projectors_get_filter() == RS::LIGHT_PROJECTOR_FILTER_LINEAR_MIPMAPS ||
 			light_projectors_get_filter() == RS::LIGHT_PROJECTOR_FILTER_NEAREST_MIPMAPS_ANISOTROPIC ||
 			light_projectors_get_filter() == RS::LIGHT_PROJECTOR_FILTER_LINEAR_MIPMAPS_ANISOTROPIC;
 
-	spec_constants.push_back(sc);
-
-	sc.constant_id = SPEC_CONSTANT_USE_LIGHTMAP_BICUBIC_FILTER;
-	sc.bool_value = lightmap_filter_bicubic_get();
-
-	spec_constants.push_back(sc);
-
-	scene_shader.set_default_specialization_constants(spec_constants);
+	specialization.soft_shadow_samples = soft_shadow_samples_get();
+	specialization.penumbra_shadow_samples = penumbra_shadow_samples_get();
+	specialization.directional_soft_shadow_samples = directional_soft_shadow_samples_get();
+	specialization.directional_penumbra_shadow_samples = directional_penumbra_shadow_samples_get();
+	specialization.use_lightmap_bicubic_filter = lightmap_filter_bicubic_get();
+	scene_shader.set_default_specialization(specialization);
 
 	base_uniforms_changed(); //also need this
 }
@@ -4260,6 +4745,11 @@ RenderForwardClustered::RenderForwardClustered() {
 		}
 		defines += "\n#define SDFGI_OCT_SIZE " + itos(gi.sdfgi_get_lightprobe_octahedron_size()) + "\n";
 		defines += "\n#define MAX_DIRECTIONAL_LIGHT_DATA_STRUCTS " + itos(MAX_DIRECTIONAL_LIGHTS) + "\n";
+
+		bool force_vertex_shading = GLOBAL_GET("rendering/shading/overrides/force_vertex_shading");
+		if (force_vertex_shading) {
+			defines += "\n#define USE_VERTEX_LIGHTING\n";
+		}
 
 		{
 			//lightmaps

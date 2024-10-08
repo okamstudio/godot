@@ -56,6 +56,7 @@ public:
 	void update() override {}
 
 	virtual void set_debug_redraw(bool p_enabled, double p_time, const Color &p_color) override {}
+	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source) override { return 0; }
 
 	RasterizerCanvasDummy() {}
 	~RasterizerCanvasDummy() {}

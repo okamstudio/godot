@@ -110,6 +110,7 @@ public:
 	uint64_t get_frame_number() const override { return frame; }
 	double get_frame_delta_time() const override { return delta; }
 	double get_total_time() const override { return time; }
+	bool can_create_resources_async() const override { return false; }
 
 	RasterizerDummy() {}
 	~RasterizerDummy() {}

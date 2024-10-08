@@ -28,6 +28,7 @@
 #define HB_OT_SHAPE_NORMALIZE_HH
 
 #include "hb.hh"
+#include "hb-unicode.hh"
 
 
 /* buffer var allocations, used during the normalization process */
@@ -52,11 +53,42 @@ HB_INTERNAL void _hb_ot_shape_normalize (const hb_ot_shape_plan_t *shaper,
 
 struct hb_ot_shape_normalize_context_t
 {
+  static bool
+  decompose_unicode (const hb_ot_shape_normalize_context_t *c,
+		     hb_codepoint_t  ab,
+		     hb_codepoint_t *a,
+		     hb_codepoint_t *b)
+  {
+    return (bool) c->unicode->decompose (ab, a, b);
+  }
+
+  static bool
+  compose_unicode (const hb_ot_shape_normalize_context_t *c,
+		   hb_codepoint_t  a,
+		   hb_codepoint_t  b,
+		   hb_codepoint_t *ab)
+  {
+    return (bool) c->unicode->compose (a, b, ab);
+  }
+
+  void
+  override_decompose_and_compose (bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
+						      hb_codepoint_t  ab,
+						      hb_codepoint_t *a,
+						      hb_codepoint_t *b),
+				  bool (*compose) (const hb_ot_shape_normalize_context_t *c,
+						   hb_codepoint_t  a,
+						   hb_codepoint_t  b,
+						   hb_codepoint_t *ab))
+  {
+    this->decompose = decompose ? decompose : decompose_unicode;
+    this->compose = compose ? compose : compose_unicode;
+  }
+
   const hb_ot_shape_plan_t *plan;
   hb_buffer_t *buffer;
   hb_font_t *font;
   hb_unicode_funcs_t *unicode;
-  const hb_codepoint_t not_found;
   bool (*decompose) (const hb_ot_shape_normalize_context_t *c,
 		     hb_codepoint_t  ab,
 		     hb_codepoint_t *a,

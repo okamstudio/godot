@@ -104,7 +104,8 @@ void ProjectSettingsEditor::_update_advanced(bool p_is_advanced) {
 }
 
 void ProjectSettingsEditor::_advanced_toggled(bool p_button_pressed) {
-	EditorSettings::get_singleton()->set_project_metadata("project_settings", "advanced_mode", p_button_pressed);
+	EditorSettings::get_singleton()->set("_project_settings_advanced_mode", p_button_pressed);
+	EditorSettings::get_singleton()->save();
 	_update_advanced(p_button_pressed);
 }
 
@@ -389,7 +390,7 @@ void ProjectSettingsEditor::_action_added(const String &p_name) {
 
 	Dictionary action;
 	action["events"] = Array();
-	action["deadzone"] = 0.5f;
+	action["deadzone"] = 0.2f;
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Add Input Action"));
@@ -768,8 +769,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	set_ok_button_text(TTR("Close"));
 	set_hide_on_ok(true);
 
-	bool use_advanced = EditorSettings::get_singleton()->get_project_metadata("project_settings", "advanced_mode", false);
-
+	bool use_advanced = EDITOR_DEF("_project_settings_advanced_mode", false);
 	if (use_advanced) {
 		advanced->set_pressed(true);
 	}

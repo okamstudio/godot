@@ -34,10 +34,10 @@
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_node.h"
-#include "editor/editor_quick_open.h"
 #include "editor/editor_run_native.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
+#include "editor/gui/editor_quick_open_dialog.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/panel_container.h"
@@ -121,16 +121,15 @@ void EditorRunBar::_write_movie_toggled(bool p_enabled) {
 	}
 }
 
-void EditorRunBar::_quick_run_selected() {
-	play_custom_scene(quick_run->get_selected());
+void EditorRunBar::_quick_run_selected(const String &p_file_path) {
+	play_custom_scene(p_file_path);
 }
 
 void EditorRunBar::_play_custom_pressed() {
 	if (editor_run.get_status() == EditorRun::STATUS_STOP || current_mode != RunMode::RUN_CUSTOM) {
 		stop_playing();
 
-		quick_run->popup_dialog("PackedScene", true);
-		quick_run->set_title(TTR("Quick Run Scene..."));
+		EditorNode::get_singleton()->get_quick_open_dialog()->popup_dialog({ "PackedScene" }, callable_mp(this, &EditorRunBar::_quick_run_selected));
 		play_custom_scene_button->set_pressed(false);
 	} else {
 		// Reload if already running a custom scene.
@@ -446,8 +445,4 @@ EditorRunBar::EditorRunBar() {
 	write_movie_button->set_focus_mode(Control::FOCUS_NONE);
 	write_movie_button->set_tooltip_text(TTR("Enable Movie Maker mode.\nThe project will run at stable FPS and the visual and audio output will be recorded to a video file."));
 	write_movie_button->connect(SceneStringName(toggled), callable_mp(this, &EditorRunBar::_write_movie_toggled));
-
-	quick_run = memnew(EditorQuickOpen);
-	add_child(quick_run);
-	quick_run->connect("quick_open", callable_mp(this, &EditorRunBar::_quick_run_selected));
 }
