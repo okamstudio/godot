@@ -19,7 +19,8 @@
 		<method name="finish">
 			<return type="int" enum="Error" />
 			<description>
-				Finalizes the stream, compressing or decompressing any buffered chunk left.
+				Finalizes the stream, compressing any buffered chunk left.
+				You must call it only when you are compressing.
 			</description>
 		</method>
 		<method name="start_compression">

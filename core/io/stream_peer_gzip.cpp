@@ -195,12 +195,12 @@ int StreamPeerGZIP::get_available_bytes() const {
 Error StreamPeerGZIP::finish() {
 	ERR_FAIL_COND_V(!ctx || !compressing, ERR_UNAVAILABLE);
 	// Ensure we have enough space in temporary buffer.
-	if (buffer.size() < 1024) {
-		buffer.resize(1024); // 1024 should be more than enough.
+	if (buffer.size() < get_available_bytes()) {
+		buffer.resize(get_available_bytes()); // get_available_bytes() is what we can store in RingBuffer.
 	}
 	int consumed = 0;
 	int to_write = 0;
-	Error err = _process(buffer.ptrw(), 1024, nullptr, 0, consumed, to_write, true); // compress
+	Error err = _process(buffer.ptrw(), buffer.size(), nullptr, 0, consumed, to_write, true); // compress
 	if (err != OK) {
 		return err;
 	}
