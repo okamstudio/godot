@@ -696,7 +696,7 @@ void Node3DEditorViewport::cancel_transform() {
 }
 
 void Node3DEditorViewport::_update_shrink() {
-	bool shrink = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
+	bool shrink = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION));
 	subviewport_container->set_stretch_shrink(shrink ? 2 : 1);
 	subviewport_container->set_texture_filter(shrink ? TEXTURE_FILTER_NEAREST : TEXTURE_FILTER_PARENT_NODE);
 }
@@ -1200,8 +1200,8 @@ void Node3DEditorViewport::_update_name() {
 		name += " " + TTR("[auto]");
 	}
 
-	view_menu->set_text(name);
-	view_menu->reset_size();
+	view_display_menu->set_text(name);
+	view_display_menu->reset_size();
 }
 
 void Node3DEditorViewport::_compute_edit(const Point2 &p_point) {
@@ -1569,11 +1569,11 @@ void Node3DEditorViewport::_surface_mouse_exit() {
 }
 
 void Node3DEditorViewport::_surface_focus_enter() {
-	view_menu->set_disable_shortcuts(false);
+	view_display_menu->set_disable_shortcuts(false);
 }
 
 void Node3DEditorViewport::_surface_focus_exit() {
-	view_menu->set_disable_shortcuts(true);
+	view_display_menu->set_disable_shortcuts(true);
 }
 
 bool Node3DEditorViewport::_is_node_locked(const Node *p_node) const {
@@ -1852,10 +1852,10 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 					bool can_select_gizmos = spatial_editor->get_single_selected_node();
 
 					{
-						int idx = view_menu->get_popup()->get_item_index(VIEW_GIZMOS);
-						int idx2 = view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
-						can_select_gizmos = can_select_gizmos && view_menu->get_popup()->is_item_checked(idx);
-						transform_gizmo_visible = view_menu->get_popup()->is_item_checked(idx2);
+						int idx = view_display_menu->get_popup()->get_item_index(VIEW_GIZMOS);
+						int idx2 = view_display_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
+						can_select_gizmos = can_select_gizmos && view_display_menu->get_popup()->is_item_checked(idx);
+						transform_gizmo_visible = view_display_menu->get_popup()->is_item_checked(idx2);
 					}
 
 					// Gizmo handles
@@ -2913,7 +2913,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 			set_physics_process(vp_visible);
 
 			if (vp_visible) {
-				orthogonal = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL));
+				orthogonal = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL));
 				_update_name();
 				_update_camera(0);
 			} else {
@@ -3049,7 +3049,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 				}
 			}
 
-			bool show_info = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
+			bool show_info = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_INFORMATION));
 			if (show_info != info_panel->is_visible()) {
 				info_panel->set_visible(show_info);
 			}
@@ -3083,7 +3083,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 			}
 
 			// FPS Counter.
-			bool show_fps = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
+			bool show_fps = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
 
 			if (show_fps != frame_time_panel->is_visible()) {
 				frame_time_panel->set_visible(show_fps);
@@ -3142,7 +3142,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 								Math::remap(fps, 110, 10, 0, 1)));
 			}
 
-			bool show_cinema = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
+			bool show_cinema = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
 			cinema_label->set_visible(show_cinema);
 			if (show_cinema) {
 				float cinema_half_width = cinema_label->get_size().width / 2.0f;
@@ -3232,26 +3232,26 @@ void Node3DEditorViewport::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
-			view_menu->set_button_icon(get_editor_theme_icon(SNAME("GuiTabMenuHl")));
+			view_display_menu->set_button_icon(get_editor_theme_icon(SNAME("GuiTabMenuHl")));
 			preview_camera->set_button_icon(get_editor_theme_icon(SNAME("Camera3D")));
 			Control *gui_base = EditorNode::get_singleton()->get_gui_base();
 
 			const Ref<StyleBox> &information_3d_stylebox = gui_base->get_theme_stylebox(SNAME("Information3dViewport"), EditorStringName(EditorStyles));
 
-			view_menu->begin_bulk_theme_override();
-			view_menu->add_theme_style_override(CoreStringName(normal), information_3d_stylebox);
-			view_menu->add_theme_style_override("normal_mirrored", information_3d_stylebox);
-			view_menu->add_theme_style_override(SceneStringName(hover), information_3d_stylebox);
-			view_menu->add_theme_style_override("hover_mirrored", information_3d_stylebox);
-			view_menu->add_theme_style_override("hover_pressed", information_3d_stylebox);
-			view_menu->add_theme_style_override("hover_pressed_mirrored", information_3d_stylebox);
-			view_menu->add_theme_style_override(SceneStringName(pressed), information_3d_stylebox);
-			view_menu->add_theme_style_override("pressed_mirrored", information_3d_stylebox);
-			view_menu->add_theme_style_override("focus", information_3d_stylebox);
-			view_menu->add_theme_style_override("focus_mirrored", information_3d_stylebox);
-			view_menu->add_theme_style_override("disabled", information_3d_stylebox);
-			view_menu->add_theme_style_override("disabled_mirrored", information_3d_stylebox);
-			view_menu->end_bulk_theme_override();
+			view_display_menu->begin_bulk_theme_override();
+			view_display_menu->add_theme_style_override(CoreStringName(normal), information_3d_stylebox);
+			view_display_menu->add_theme_style_override("normal_mirrored", information_3d_stylebox);
+			view_display_menu->add_theme_style_override(SceneStringName(hover), information_3d_stylebox);
+			view_display_menu->add_theme_style_override("hover_mirrored", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("hover_pressed", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("hover_pressed_mirrored", information_3d_stylebox);
+			view_display_menu->add_theme_style_override(SceneStringName(pressed), information_3d_stylebox);
+			view_display_menu->add_theme_style_override("pressed_mirrored", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("focus", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("focus_mirrored", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("disabled", information_3d_stylebox);
+			view_display_menu->add_theme_style_override("disabled_mirrored", information_3d_stylebox);
+			view_display_menu->end_bulk_theme_override();
 
 			preview_camera->begin_bulk_theme_override();
 			preview_camera->add_theme_style_override(CoreStringName(normal), information_3d_stylebox);
@@ -3635,8 +3635,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 
 		} break;
 		case VIEW_ENVIRONMENT: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			if (current) {
 				camera->set_environment(Ref<Resource>());
@@ -3644,12 +3644,12 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				camera->set_environment(Node3DEditor::get_singleton()->get_viewport_environment());
 			}
 
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 
 		} break;
 		case VIEW_PERSPECTIVE: {
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL), false);
+			view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), true);
+			view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL), false);
 			orthogonal = false;
 			auto_orthogonal = false;
 			callable_mp(this, &Node3DEditorViewport::update_transform_gizmo_view).call_deferred();
@@ -3658,8 +3658,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 
 		} break;
 		case VIEW_ORTHOGONAL: {
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL), true);
+			view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), false);
+			view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_ORTHOGONAL), true);
 			orthogonal = true;
 			auto_orthogonal = false;
 			callable_mp(this, &Node3DEditorViewport::update_transform_gizmo_view).call_deferred();
@@ -3671,42 +3671,42 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 
 		} break;
 		case VIEW_AUTO_ORTHOGONAL: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 			if (auto_orthogonal) {
 				auto_orthogonal = false;
 				_update_name();
 			}
 		} break;
 		case VIEW_LOCK_ROTATION: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_LOCK_ROTATION);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_LOCK_ROTATION);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			_set_lock_view_rotation(!current);
 
 		} break;
 		case VIEW_AUDIO_LISTENER: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			viewport->set_as_audio_listener_3d(current);
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 
 		} break;
 		case VIEW_AUDIO_DOPPLER: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			camera->set_doppler_tracking(current ? Camera3D::DOPPLER_TRACKING_IDLE_STEP : Camera3D::DOPPLER_TRACKING_DISABLED);
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 
 		} break;
 		case VIEW_CINEMATIC_PREVIEW: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 			previewing_cinema = true;
 			_toggle_cinema_preview(current);
 
@@ -3719,8 +3719,8 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 			}
 		} break;
 		case VIEW_GIZMOS: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_GIZMOS);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_GIZMOS);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			uint32_t layers = camera->get_cull_mask();
 			layers &= ~(1 << GIZMO_EDIT_LAYER);
@@ -3728,38 +3728,38 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				layers |= (1 << GIZMO_EDIT_LAYER);
 			}
 			camera->set_cull_mask(layers);
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 
 		} break;
 		case VIEW_TRANSFORM_GIZMO: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			transform_gizmo_visible = current;
 
 			spatial_editor->update_transform_gizmo();
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 		} break;
 		case VIEW_HALF_RESOLUTION: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
-			view_menu->get_popup()->set_item_checked(idx, !current);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
+			view_display_menu->get_popup()->set_item_checked(idx, !current);
 			_update_shrink();
 		} break;
 		case VIEW_INFORMATION: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_INFORMATION);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
-			view_menu->get_popup()->set_item_checked(idx, !current);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_INFORMATION);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
+			view_display_menu->get_popup()->set_item_checked(idx, !current);
 
 		} break;
 		case VIEW_FRAME_TIME: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
-			view_menu->get_popup()->set_item_checked(idx, !current);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
+			view_display_menu->get_popup()->set_item_checked(idx, !current);
 		} break;
 		case VIEW_GRID: {
-			int idx = view_menu->get_popup()->get_item_index(VIEW_GRID);
-			bool current = view_menu->get_popup()->is_item_checked(idx);
+			int idx = view_display_menu->get_popup()->get_item_index(VIEW_GRID);
+			bool current = view_display_menu->get_popup()->is_item_checked(idx);
 			current = !current;
 			uint32_t layers = camera->get_cull_mask();
 			layers &= ~(1 << GIZMO_GRID_LAYER);
@@ -3767,7 +3767,7 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 				layers |= (1 << GIZMO_GRID_LAYER);
 			}
 			camera->set_cull_mask(layers);
-			view_menu->get_popup()->set_item_checked(idx, current);
+			view_display_menu->get_popup()->set_item_checked(idx, current);
 		} break;
 		case VIEW_DISPLAY_NORMAL:
 		case VIEW_DISPLAY_WIREFRAME:
@@ -3858,9 +3858,9 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 
 			for (int idx = 0; display_options[idx] != VIEW_MAX; idx++) {
 				int id = display_options[idx];
-				int item_idx = view_menu->get_popup()->get_item_index(id);
+				int item_idx = view_display_menu->get_popup()->get_item_index(id);
 				if (item_idx != -1) {
-					view_menu->get_popup()->set_item_checked(item_idx, id == p_option);
+					view_display_menu->get_popup()->set_item_checked(item_idx, id == p_option);
 				}
 				item_idx = display_submenu->get_item_index(id);
 				if (item_idx != -1) {
@@ -3876,7 +3876,7 @@ void Node3DEditorViewport::_menu_option(int p_option) {
 }
 
 void Node3DEditorViewport::_set_auto_orthogonal() {
-	if (!orthogonal && view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL))) {
+	if (!orthogonal && view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL))) {
 		_menu_option(VIEW_ORTHOGONAL);
 		auto_orthogonal = true;
 	}
@@ -3887,7 +3887,7 @@ void Node3DEditorViewport::_preview_exited_scene() {
 	preview_camera->set_pressed(false);
 	_toggle_camera_preview(false);
 	preview_camera->connect(SceneStringName(toggled), callable_mp(this, &Node3DEditorViewport::_toggle_camera_preview));
-	view_menu->show();
+	view_display_menu->show();
 }
 
 void Node3DEditorViewport::_init_gizmo_instance(int p_idx) {
@@ -4015,7 +4015,7 @@ void Node3DEditorViewport::_toggle_cinema_preview(bool p_activate) {
 		} else {
 			preview_camera->show();
 		}
-		view_menu->show();
+		view_display_menu->show();
 		surface->queue_redraw();
 	}
 }
@@ -4165,13 +4165,13 @@ void Node3DEditorViewport::set_state(const Dictionary &p_state) {
 	}
 	if (p_state.has("auto_orthogonal_enabled")) {
 		bool enabled = p_state["auto_orthogonal_enabled"];
-		view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL), enabled);
+		view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL), enabled);
 	}
 	if (p_state.has("display_mode")) {
 		int display = p_state["display_mode"];
 
-		int idx = view_menu->get_popup()->get_item_index(display);
-		if (idx != -1 && !view_menu->get_popup()->is_item_checked(idx)) {
+		int idx = view_display_menu->get_popup()->get_item_index(display);
+		if (idx != -1 && !view_display_menu->get_popup()->is_item_checked(idx)) {
 			_menu_option(display);
 		} else {
 			idx = display_submenu->get_item_index(display);
@@ -4193,69 +4193,69 @@ void Node3DEditorViewport::set_state(const Dictionary &p_state) {
 	if (p_state.has("listener")) {
 		bool listener = p_state["listener"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER);
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER);
 		viewport->set_as_audio_listener_3d(listener);
-		view_menu->get_popup()->set_item_checked(idx, listener);
+		view_display_menu->get_popup()->set_item_checked(idx, listener);
 	}
 	if (p_state.has("doppler")) {
 		bool doppler = p_state["doppler"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER);
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER);
 		camera->set_doppler_tracking(doppler ? Camera3D::DOPPLER_TRACKING_IDLE_STEP : Camera3D::DOPPLER_TRACKING_DISABLED);
-		view_menu->get_popup()->set_item_checked(idx, doppler);
+		view_display_menu->get_popup()->set_item_checked(idx, doppler);
 	}
 	if (p_state.has("gizmos")) {
 		bool gizmos = p_state["gizmos"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_GIZMOS);
-		if (view_menu->get_popup()->is_item_checked(idx) != gizmos) {
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_GIZMOS);
+		if (view_display_menu->get_popup()->is_item_checked(idx) != gizmos) {
 			_menu_option(VIEW_GIZMOS);
 		}
 	}
 	if (p_state.has("transform_gizmo")) {
 		bool transform_gizmo = p_state["transform_gizmo"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
-		if (view_menu->get_popup()->is_item_checked(idx) != transform_gizmo) {
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO);
+		if (view_display_menu->get_popup()->is_item_checked(idx) != transform_gizmo) {
 			_menu_option(VIEW_TRANSFORM_GIZMO);
 		}
 	}
 	if (p_state.has("grid")) {
 		bool grid = p_state["grid"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_GRID);
-		if (view_menu->get_popup()->is_item_checked(idx) != grid) {
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_GRID);
+		if (view_display_menu->get_popup()->is_item_checked(idx) != grid) {
 			_menu_option(VIEW_GRID);
 		}
 	}
 	if (p_state.has("information")) {
 		bool information = p_state["information"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_INFORMATION);
-		if (view_menu->get_popup()->is_item_checked(idx) != information) {
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_INFORMATION);
+		if (view_display_menu->get_popup()->is_item_checked(idx) != information) {
 			_menu_option(VIEW_INFORMATION);
 		}
 	}
 	if (p_state.has("frame_time")) {
 		bool fps = p_state["frame_time"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
-		if (view_menu->get_popup()->is_item_checked(idx) != fps) {
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_FRAME_TIME);
+		if (view_display_menu->get_popup()->is_item_checked(idx) != fps) {
 			_menu_option(VIEW_FRAME_TIME);
 		}
 	}
 	if (p_state.has("half_res")) {
 		bool half_res = p_state["half_res"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION);
-		view_menu->get_popup()->set_item_checked(idx, half_res);
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_HALF_RESOLUTION);
+		view_display_menu->get_popup()->set_item_checked(idx, half_res);
 		_update_shrink();
 	}
 	if (p_state.has("cinematic_preview")) {
 		previewing_cinema = p_state["cinematic_preview"];
 
-		int idx = view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW);
-		view_menu->get_popup()->set_item_checked(idx, previewing_cinema);
+		int idx = view_display_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW);
+		view_display_menu->get_popup()->set_item_checked(idx, previewing_cinema);
 	}
 
 	if (preview_camera->is_connected(SceneStringName(toggled), callable_mp(this, &Node3DEditorViewport::_toggle_camera_preview))) {
@@ -4285,12 +4285,12 @@ Dictionary Node3DEditorViewport::get_state() const {
 	d["orthogonal"] = camera->get_projection() == Camera3D::PROJECTION_ORTHOGONAL;
 	d["view_type"] = view_type;
 	d["auto_orthogonal"] = auto_orthogonal;
-	d["auto_orthogonal_enabled"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL));
+	d["auto_orthogonal_enabled"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL));
 
 	// Find selected display mode.
 	int display_mode = VIEW_DISPLAY_NORMAL;
 	for (int i = VIEW_DISPLAY_NORMAL; i < VIEW_DISPLAY_ADVANCED; i++) {
-		if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(i))) {
+		if (view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(i))) {
 			display_mode = i;
 			break;
 		}
@@ -4304,14 +4304,14 @@ Dictionary Node3DEditorViewport::get_state() const {
 	d["display_mode"] = display_mode;
 
 	d["listener"] = viewport->is_audio_listener_3d();
-	d["doppler"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER));
-	d["gizmos"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GIZMOS));
-	d["transform_gizmo"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO));
-	d["grid"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_GRID));
-	d["information"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_INFORMATION));
-	d["frame_time"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
+	d["doppler"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_DOPPLER));
+	d["gizmos"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_GIZMOS));
+	d["transform_gizmo"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO));
+	d["grid"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_GRID));
+	d["information"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_INFORMATION));
+	d["frame_time"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_FRAME_TIME));
 	d["half_res"] = subviewport_container->get_stretch_shrink() > 1;
-	d["cinematic_preview"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
+	d["cinematic_preview"] = view_display_menu->get_popup()->is_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_CINEMATIC_PREVIEW));
 	if (previewing) {
 		d["previewing"] = EditorNode::get_singleton()->get_edited_scene()->get_path_to(previewing);
 	}
@@ -5474,8 +5474,8 @@ void Node3DEditorViewport::shortcut_changed_callback(const Ref<Shortcut> p_short
 
 void Node3DEditorViewport::_set_lock_view_rotation(bool p_lock_rotation) {
 	lock_rotation = p_lock_rotation;
-	int idx = view_menu->get_popup()->get_item_index(VIEW_LOCK_ROTATION);
-	view_menu->get_popup()->set_item_checked(idx, p_lock_rotation);
+	int idx = view_display_menu->get_popup()->get_item_index(VIEW_LOCK_ROTATION);
+	view_display_menu->get_popup()->set_item_checked(idx, p_lock_rotation);
 	if (p_lock_rotation) {
 		locked_label->show();
 	} else {
@@ -5531,37 +5531,37 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	vbox->set_offset(SIDE_LEFT, 10 * EDSCALE);
 	vbox->set_offset(SIDE_TOP, 10 * EDSCALE);
 
-	view_menu = memnew(MenuButton);
-	view_menu->set_flat(false);
-	view_menu->set_h_size_flags(0);
-	view_menu->set_shortcut_context(this);
-	vbox->add_child(view_menu);
+	view_display_menu = memnew(MenuButton);
+	view_display_menu->set_flat(false);
+	view_display_menu->set_h_size_flags(0);
+	view_display_menu->set_shortcut_context(this);
+	vbox->add_child(view_display_menu);
 
-	view_menu->get_popup()->set_hide_on_checkable_item_selection(false);
+	view_display_menu->get_popup()->set_hide_on_checkable_item_selection(false);
 
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/top_view"), VIEW_TOP);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/bottom_view"), VIEW_BOTTOM);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/left_view"), VIEW_LEFT);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/right_view"), VIEW_RIGHT);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/front_view"), VIEW_FRONT);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/rear_view"), VIEW_REAR);
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/switch_perspective_orthogonal"), VIEW_SWITCH_PERSPECTIVE_ORTHOGONAL);
-	view_menu->get_popup()->add_radio_check_item(TTR("Perspective"), VIEW_PERSPECTIVE);
-	view_menu->get_popup()->add_radio_check_item(TTR("Orthogonal"), VIEW_ORTHOGONAL);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), true);
-	view_menu->get_popup()->add_check_item(TTR("Auto Orthogonal Enabled"), VIEW_AUTO_ORTHOGONAL);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL), true);
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_lock_rotation", TTRC("Lock View Rotation")), VIEW_LOCK_ROTATION);
-	view_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/top_view"), VIEW_TOP);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/bottom_view"), VIEW_BOTTOM);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/left_view"), VIEW_LEFT);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/right_view"), VIEW_RIGHT);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/front_view"), VIEW_FRONT);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/rear_view"), VIEW_REAR);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/switch_perspective_orthogonal"), VIEW_SWITCH_PERSPECTIVE_ORTHOGONAL);
+	view_display_menu->get_popup()->add_radio_check_item(TTR("Perspective"), VIEW_PERSPECTIVE);
+	view_display_menu->get_popup()->add_radio_check_item(TTR("Orthogonal"), VIEW_ORTHOGONAL);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_PERSPECTIVE), true);
+	view_display_menu->get_popup()->add_check_item(TTR("Auto Orthogonal Enabled"), VIEW_AUTO_ORTHOGONAL);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUTO_ORTHOGONAL), true);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_lock_rotation", TTRC("Lock View Rotation")), VIEW_LOCK_ROTATION);
+	view_display_menu->get_popup()->add_separator();
 	// TRANSLATORS: "Normal" as in "normal life", not "normal vector".
-	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_normal", TTRC("Display Normal")), VIEW_DISPLAY_NORMAL);
-	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_wireframe", TTRC("Display Wireframe")), VIEW_DISPLAY_WIREFRAME);
-	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_overdraw", TTRC("Display Overdraw")), VIEW_DISPLAY_OVERDRAW);
-	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_lighting", TTRC("Display Lighting")), VIEW_DISPLAY_LIGHTING);
-	view_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_unshaded", TTRC("Display Unshaded")), VIEW_DISPLAY_UNSHADED);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_normal", TTRC("Display Normal")), VIEW_DISPLAY_NORMAL);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_wireframe", TTRC("Display Wireframe")), VIEW_DISPLAY_WIREFRAME);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_overdraw", TTRC("Display Overdraw")), VIEW_DISPLAY_OVERDRAW);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_lighting", TTRC("Display Lighting")), VIEW_DISPLAY_LIGHTING);
+	view_display_menu->get_popup()->add_radio_check_shortcut(ED_SHORTCUT("spatial_editor/view_display_unshaded", TTRC("Display Unshaded")), VIEW_DISPLAY_UNSHADED);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL), true);
 
 	display_submenu = memnew(PopupMenu);
 	display_submenu->set_hide_on_checkable_item_selection(false);
@@ -5597,55 +5597,55 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	display_submenu->add_radio_check_item(TTR("Occlusion Culling Buffer"), VIEW_DISPLAY_DEBUG_OCCLUDERS);
 	display_submenu->add_radio_check_item(TTR("Motion Vectors"), VIEW_DISPLAY_MOTION_VECTORS);
 	display_submenu->add_radio_check_item(TTR("Internal Buffer"), VIEW_DISPLAY_INTERNAL_BUFFER);
-	view_menu->get_popup()->add_submenu_node_item(TTR("Display Advanced..."), display_submenu, VIEW_DISPLAY_ADVANCED);
+	view_display_menu->get_popup()->add_submenu_node_item(TTR("Display Advanced..."), display_submenu, VIEW_DISPLAY_ADVANCED);
 
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTRC("View Environment")), VIEW_ENVIRONMENT);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTRC("View Gizmos")), VIEW_GIZMOS);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_transform_gizmo", TTRC("View Transform Gizmo")), VIEW_TRANSFORM_GIZMO);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_grid_lines", TTRC("View Grid")), VIEW_GRID);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_information", TTRC("View Information")), VIEW_INFORMATION);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_fps", TTRC("View Frame Time")), VIEW_FRAME_TIME);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT), true);
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_half_resolution", TTRC("Half Resolution")), VIEW_HALF_RESOLUTION);
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_audio_listener", TTRC("Audio Listener")), VIEW_AUDIO_LISTENER);
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_audio_doppler", TTRC("Enable Doppler")), VIEW_AUDIO_DOPPLER);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_GIZMOS), true);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO), true);
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_GRID), true);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_environment", TTRC("View Environment")), VIEW_ENVIRONMENT);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_gizmos", TTRC("View Gizmos")), VIEW_GIZMOS);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_transform_gizmo", TTRC("View Transform Gizmo")), VIEW_TRANSFORM_GIZMO);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_grid_lines", TTRC("View Grid")), VIEW_GRID);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_information", TTRC("View Information")), VIEW_INFORMATION);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_fps", TTRC("View Frame Time")), VIEW_FRAME_TIME);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_ENVIRONMENT), true);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_half_resolution", TTRC("Half Resolution")), VIEW_HALF_RESOLUTION);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_audio_listener", TTRC("Audio Listener")), VIEW_AUDIO_LISTENER);
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_audio_doppler", TTRC("Enable Doppler")), VIEW_AUDIO_DOPPLER);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_GIZMOS), true);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_TRANSFORM_GIZMO), true);
+	view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_GRID), true);
 
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_cinematic_preview", TTRC("Cinematic Preview")), VIEW_CINEMATIC_PREVIEW);
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_check_shortcut(ED_SHORTCUT("spatial_editor/view_cinematic_preview", TTRC("Cinematic Preview")), VIEW_CINEMATIC_PREVIEW);
 
-	view_menu->get_popup()->add_separator();
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/focus_origin"), VIEW_CENTER_TO_ORIGIN);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/focus_selection"), VIEW_CENTER_TO_SELECTION);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/align_transform_with_view"), VIEW_ALIGN_TRANSFORM_WITH_VIEW);
-	view_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/align_rotation_with_view"), VIEW_ALIGN_ROTATION_WITH_VIEW);
-	view_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &Node3DEditorViewport::_menu_option));
+	view_display_menu->get_popup()->add_separator();
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/focus_origin"), VIEW_CENTER_TO_ORIGIN);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/focus_selection"), VIEW_CENTER_TO_SELECTION);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/align_transform_with_view"), VIEW_ALIGN_TRANSFORM_WITH_VIEW);
+	view_display_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("spatial_editor/align_rotation_with_view"), VIEW_ALIGN_ROTATION_WITH_VIEW);
+	view_display_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &Node3DEditorViewport::_menu_option));
 	display_submenu->connect(SceneStringName(id_pressed), callable_mp(this, &Node3DEditorViewport::_menu_option));
-	view_menu->set_disable_shortcuts(true);
+	view_display_menu->set_disable_shortcuts(true);
 
 	// TODO: Re-evaluate with new OpenGL3 renderer, and implement.
 	//if (OS::get_singleton()->get_current_video_driver() == OS::RENDERING_DRIVER_OPENGL3) {
 	if (false) {
 		// Alternate display modes only work when using the Vulkan renderer; make this explicit.
-		const int normal_idx = view_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL);
-		const int wireframe_idx = view_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME);
-		const int overdraw_idx = view_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW);
-		const int shadeless_idx = view_menu->get_popup()->get_item_index(VIEW_DISPLAY_UNSHADED);
+		const int normal_idx = view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_NORMAL);
+		const int wireframe_idx = view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_WIREFRAME);
+		const int overdraw_idx = view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_OVERDRAW);
+		const int shadeless_idx = view_display_menu->get_popup()->get_item_index(VIEW_DISPLAY_UNSHADED);
 		const String unsupported_tooltip = TTR("Not available when using the OpenGL renderer.");
 
-		view_menu->get_popup()->set_item_disabled(normal_idx, true);
-		view_menu->get_popup()->set_item_tooltip(normal_idx, unsupported_tooltip);
-		view_menu->get_popup()->set_item_disabled(wireframe_idx, true);
-		view_menu->get_popup()->set_item_tooltip(wireframe_idx, unsupported_tooltip);
-		view_menu->get_popup()->set_item_disabled(overdraw_idx, true);
-		view_menu->get_popup()->set_item_tooltip(overdraw_idx, unsupported_tooltip);
-		view_menu->get_popup()->set_item_disabled(shadeless_idx, true);
-		view_menu->get_popup()->set_item_tooltip(shadeless_idx, unsupported_tooltip);
+		view_display_menu->get_popup()->set_item_disabled(normal_idx, true);
+		view_display_menu->get_popup()->set_item_tooltip(normal_idx, unsupported_tooltip);
+		view_display_menu->get_popup()->set_item_disabled(wireframe_idx, true);
+		view_display_menu->get_popup()->set_item_tooltip(wireframe_idx, unsupported_tooltip);
+		view_display_menu->get_popup()->set_item_disabled(overdraw_idx, true);
+		view_display_menu->get_popup()->set_item_tooltip(overdraw_idx, unsupported_tooltip);
+		view_display_menu->get_popup()->set_item_disabled(shadeless_idx, true);
+		view_display_menu->get_popup()->set_item_tooltip(shadeless_idx, unsupported_tooltip);
 	}
 
 	// Registering with Key::NONE intentionally creates an empty Array.
@@ -5827,7 +5827,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	selection_menu->connect("popup_hide", callable_mp(this, &Node3DEditorViewport::_selection_menu_hide));
 
 	if (p_index == 0) {
-		view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER), true);
+		view_display_menu->get_popup()->set_item_checked(view_display_menu->get_popup()->get_item_index(VIEW_AUDIO_LISTENER), true);
 		viewport->set_as_audio_listener_3d(true);
 	}
 
@@ -6406,17 +6406,17 @@ Dictionary Node3DEditor::get_state() const {
 	d["local_coords"] = tool_option_button[TOOL_OPT_LOCAL_COORDS]->is_pressed();
 
 	int vc = 0;
-	if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT))) {
+	if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT))) {
 		vc = 1;
-	} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS))) {
+	} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS))) {
 		vc = 2;
-	} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS))) {
+	} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS))) {
 		vc = 3;
-	} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS))) {
+	} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS))) {
 		vc = 4;
-	} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT))) {
+	} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT))) {
 		vc = 5;
-	} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT))) {
+	} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT))) {
 		vc = 6;
 	}
 
@@ -6428,8 +6428,8 @@ Dictionary Node3DEditor::get_state() const {
 
 	d["viewports"] = vpdata;
 
-	d["show_grid"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_GRID));
-	d["show_origin"] = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN));
+	d["show_grid"] = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_GRID));
+	d["show_origin"] = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN));
 	d["fov"] = get_fov();
 	d["znear"] = get_znear();
 	d["zfar"] = get_zfar();
@@ -6541,7 +6541,7 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 	if (d.has("show_grid")) {
 		bool use = d["show_grid"];
 
-		if (use != view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_GRID))) {
+		if (use != view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_GRID))) {
 			_menu_item_pressed(MENU_VIEW_GRID);
 		}
 	}
@@ -6549,8 +6549,8 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 	if (d.has("show_origin")) {
 		bool use = d["show_origin"];
 
-		if (use != view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN))) {
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN), use);
+		if (use != view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN))) {
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN), use);
 			RenderingServer::get_singleton()->instance_set_visible(origin_instance, use);
 		}
 	}
@@ -6742,13 +6742,13 @@ void Node3DEditor::_menu_gizmo_toggled(int p_option) {
 	const int state = gizmos_menu->get_item_state(idx);
 	switch (state) {
 		case EditorNode3DGizmoPlugin::VISIBLE:
-			gizmos_menu->set_item_icon(idx, view_menu->get_popup()->get_theme_icon(SNAME("visibility_visible")));
+			gizmos_menu->set_item_icon(idx, view_layout_menu->get_popup()->get_theme_icon(SNAME("visibility_visible")));
 			break;
 		case EditorNode3DGizmoPlugin::ON_TOP:
-			gizmos_menu->set_item_icon(idx, view_menu->get_popup()->get_theme_icon(SNAME("visibility_xray")));
+			gizmos_menu->set_item_icon(idx, view_layout_menu->get_popup()->get_theme_icon(SNAME("visibility_xray")));
 			break;
 		case EditorNode3DGizmoPlugin::HIDDEN:
-			gizmos_menu->set_item_icon(idx, view_menu->get_popup()->get_theme_icon(SNAME("visibility_hidden")));
+			gizmos_menu->set_item_icon(idx, view_layout_menu->get_popup()->get_theme_icon(SNAME("visibility_hidden")));
 			break;
 	}
 
@@ -6791,12 +6791,12 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 				last_used_viewport = 0;
 			}
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
 
 		} break;
 		case MENU_VIEW_USE_2_VIEWPORTS: {
@@ -6805,12 +6805,12 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 				last_used_viewport = 0;
 			}
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
 
 		} break;
 		case MENU_VIEW_USE_2_VIEWPORTS_ALT: {
@@ -6819,12 +6819,12 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 				last_used_viewport = 0;
 			}
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
 
 		} break;
 		case MENU_VIEW_USE_3_VIEWPORTS: {
@@ -6833,12 +6833,12 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 				last_used_viewport = 0;
 			}
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
 
 		} break;
 		case MENU_VIEW_USE_3_VIEWPORTS_ALT: {
@@ -6847,27 +6847,27 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 				last_used_viewport = 0;
 			}
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), true);
 
 		} break;
 		case MENU_VIEW_USE_4_VIEWPORTS: {
 			viewport_base->set_view(Node3DEditorViewportContainer::VIEW_USE_4_VIEWPORTS);
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), true);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), true);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), false);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), false);
 
 		} break;
 		case MENU_VIEW_ORIGIN: {
-			bool is_checked = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(p_option));
+			bool is_checked = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(p_option));
 
 			origin_enabled = !is_checked;
 			RenderingServer::get_singleton()->instance_set_visible(origin_instance, origin_enabled);
@@ -6875,10 +6875,10 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 			_finish_grid();
 			_init_grid();
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(p_option), origin_enabled);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(p_option), origin_enabled);
 		} break;
 		case MENU_VIEW_GRID: {
-			bool is_checked = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(p_option));
+			bool is_checked = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(p_option));
 
 			grid_enabled = !is_checked;
 
@@ -6890,7 +6890,7 @@ void Node3DEditor::_menu_item_pressed(int p_option) {
 			_finish_grid();
 			_init_grid();
 
-			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(p_option), grid_enabled);
+			view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(p_option), grid_enabled);
 
 		} break;
 		case MENU_VIEW_CAMERA_SETTINGS: {
@@ -8159,12 +8159,12 @@ void Node3DEditor::_update_theme() {
 	tool_option_button[TOOL_OPT_LOCAL_COORDS]->set_button_icon(get_editor_theme_icon(SNAME("Object")));
 	tool_option_button[TOOL_OPT_USE_SNAP]->set_button_icon(get_editor_theme_icon(SNAME("Snap")));
 
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), get_editor_theme_icon(SNAME("Panels1")));
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), get_editor_theme_icon(SNAME("Panels2")));
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), get_editor_theme_icon(SNAME("Panels2Alt")));
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), get_editor_theme_icon(SNAME("Panels3")));
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), get_editor_theme_icon(SNAME("Panels3Alt")));
-	view_menu->get_popup()->set_item_icon(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), get_editor_theme_icon(SNAME("Panels4")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT), get_editor_theme_icon(SNAME("Panels1")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS), get_editor_theme_icon(SNAME("Panels2")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT), get_editor_theme_icon(SNAME("Panels2Alt")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS), get_editor_theme_icon(SNAME("Panels3")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT), get_editor_theme_icon(SNAME("Panels3Alt")));
+	view_layout_menu->get_popup()->set_item_icon(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS), get_editor_theme_icon(SNAME("Panels4")));
 
 	sun_button->set_button_icon(get_editor_theme_icon(SNAME("PreviewSun")));
 	environ_button->set_button_icon(get_editor_theme_icon(SNAME("PreviewEnvironment")));
@@ -8493,17 +8493,17 @@ void Node3DEditor::_toggle_maximize_view(Object *p_viewport) {
 			viewports[i]->show();
 		}
 
-		if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT))) {
+		if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_1_VIEWPORT))) {
 			_menu_item_pressed(MENU_VIEW_USE_1_VIEWPORT);
-		} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS))) {
+		} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS))) {
 			_menu_item_pressed(MENU_VIEW_USE_2_VIEWPORTS);
-		} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT))) {
+		} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_2_VIEWPORTS_ALT))) {
 			_menu_item_pressed(MENU_VIEW_USE_2_VIEWPORTS_ALT);
-		} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS))) {
+		} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS))) {
 			_menu_item_pressed(MENU_VIEW_USE_3_VIEWPORTS);
-		} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT))) {
+		} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_3_VIEWPORTS_ALT))) {
 			_menu_item_pressed(MENU_VIEW_USE_3_VIEWPORTS_ALT);
-		} else if (view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS))) {
+		} else if (view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_USE_4_VIEWPORTS))) {
 			_menu_item_pressed(MENU_VIEW_USE_4_VIEWPORTS);
 		}
 	}
@@ -8627,7 +8627,7 @@ void Node3DEditor::clear() {
 		RenderingServer::get_singleton()->instance_set_visible(origin_instance, true);
 	}
 
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN), true);
+	view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN), true);
 	for (int i = 0; i < 3; ++i) {
 		if (grid_enable[i]) {
 			grid_visible[i] = true;
@@ -8635,11 +8635,11 @@ void Node3DEditor::clear() {
 	}
 
 	for (uint32_t i = 0; i < VIEWPORTS_COUNT; i++) {
-		viewports[i]->view_menu->get_popup()->set_item_checked(viewports[i]->view_menu->get_popup()->get_item_index(Node3DEditorViewport::VIEW_AUDIO_LISTENER), i == 0);
+		viewports[i]->view_display_menu->get_popup()->set_item_checked(viewports[i]->view_display_menu->get_popup()->get_item_index(Node3DEditorViewport::VIEW_AUDIO_LISTENER), i == 0);
 		viewports[i]->viewport->set_as_audio_listener_3d(i == 0);
 	}
 
-	view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(MENU_VIEW_GRID), true);
+	view_layout_menu->get_popup()->set_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_GRID), true);
 	grid_enabled = true;
 	grid_init_draw = false;
 }
@@ -9015,14 +9015,14 @@ Node3DEditor::Node3DEditor() {
 
 	p->connect(SceneStringName(id_pressed), callable_mp(this, &Node3DEditor::_menu_item_pressed));
 
-	view_menu = memnew(MenuButton);
-	view_menu->set_flat(false);
-	view_menu->set_theme_type_variation("FlatMenuButton");
+	view_layout_menu = memnew(MenuButton);
+	view_layout_menu->set_flat(false);
+	view_layout_menu->set_theme_type_variation("FlatMenuButton");
 	// TRANSLATORS: Noun, name of the 2D/3D View menus.
-	view_menu->set_text(TTR("View"));
-	view_menu->set_switch_on_hover(true);
-	view_menu->set_shortcut_context(this);
-	main_menu_hbox->add_child(view_menu);
+	view_layout_menu->set_text(TTR("View"));
+	view_layout_menu->set_switch_on_hover(true);
+	view_layout_menu->set_shortcut_context(this);
+	main_menu_hbox->add_child(view_layout_menu);
 
 	main_menu_hbox->add_child(memnew(VSeparator));
 
@@ -9032,7 +9032,7 @@ Node3DEditor::Node3DEditor() {
 	main_flow->add_child(context_toolbar_panel);
 
 	// Get the view menu popup and have it stay open when a checkable item is selected
-	p = view_menu->get_popup();
+	p = view_layout_menu->get_popup();
 	p->set_hide_on_checkable_item_selection(false);
 
 	accept = memnew(AcceptDialog);
