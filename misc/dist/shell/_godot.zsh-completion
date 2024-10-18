@@ -93,4 +93,5 @@ _arguments \
   '--dump-extension-api[generate JSON dump of the Godot API for GDExtension bindings named "extension_api.json" in the current folder]' \
   '--benchmark[benchmark the run time and print it to console]' \
   '--benchmark-file[benchmark the run time and save it to a given file in JSON format]:path to output JSON file' \
+  '--generate-pot[generate POT file for use with gettext translations, and then quit]:path to POT file' \
   '--test[run all unit tests; run with "--test --help" for more information]'
