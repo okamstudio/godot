@@ -78,6 +78,8 @@ Ref<FileAccess> FileAccess::create_for_path(const String &p_path) {
 		ret = create(ACCESS_USERDATA);
 	} else if (p_path.begins_with("pipe://")) {
 		ret = create(ACCESS_PIPE);
+	} else if (p_path.begins_with("mem://")) {
+		ret = create(ACCESS_MEMORY);
 	} else {
 		ret = create(ACCESS_FILESYSTEM);
 	}
@@ -289,6 +291,9 @@ String FileAccess::fix_path(const String &p_path) const {
 
 		} break;
 		case ACCESS_PIPE: {
+			return r_path;
+		} break;
+		case ACCESS_MEMORY: {
 			return r_path;
 		} break;
 		case ACCESS_FILESYSTEM: {

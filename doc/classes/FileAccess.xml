@@ -205,6 +205,7 @@
 			<return type="int" />
 			<description>
 				Returns the size of the file in bytes.
+				[b]Note:[/b] This method always return [code]0[/code] if file is a pipe.
 			</description>
 		</method>
 		<method name="get_line" qualifiers="const">
@@ -257,6 +258,7 @@
 			<return type="int" />
 			<description>
 				Returns the file cursor's position.
+				[b]Note:[/b] This method always return [code]0[/code] if file is a pipe.
 			</description>
 		</method>
 		<method name="get_read_only_attribute" qualifiers="static">
@@ -309,6 +311,9 @@
 			<param index="1" name="flags" type="int" enum="FileAccess.ModeFlags" />
 			<description>
 				Creates a new [FileAccess] object and opens the file for writing or reading, depending on the flags.
+				To create named pipe, use [code]pipe://{pipe_name}[/code] as path. The pipe name string can be up to 240 characters long.
+				To create virtual file in memory, use [code]mem://{name}[/code] as path.
+				Pipes and memory files are automatically deleted when last [FileAccess] reference is closed.
 				Returns [code]null[/code] if opening the file failed. You can use [method get_open_error] to check the error that occurred.
 			</description>
 		</method>
@@ -357,6 +362,7 @@
 			<param index="0" name="position" type="int" />
 			<description>
 				Changes the file reading/writing cursor to the specified position (in bytes from the beginning of the file).
+				[b]Note:[/b] This method has no effect if file is a pipe.
 			</description>
 		</method>
 		<method name="seek_end">
@@ -364,6 +370,7 @@
 			<param index="0" name="position" type="int" default="0" />
 			<description>
 				Changes the file reading/writing cursor to the specified position (in bytes from the end of the file).
+				[b]Note:[/b] This method has no effect if file is a pipe.
 				[b]Note:[/b] This is an offset, so you should use negative numbers or the cursor will be at the end of the file.
 			</description>
 		</method>
