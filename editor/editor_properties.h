@@ -153,6 +153,11 @@ class EditorPropertyPath : public EditorProperty {
 protected:
 	virtual void _set_read_only(bool p_read_only) override;
 	void _notification(int p_what);
+	static void _bind_methods() {
+		ClassDB::bind_method(D_METHOD("_on_exec_path_changed", "new_path"), &EditorPropertyPath::_on_exec_path_changed);
+		ADD_SIGNAL(MethodInfo("exec_path_changed", PropertyInfo(Variant::STRING, "new_path")));
+	}
+	void _on_exec_path_changed(String new_path);
 
 public:
 	void setup(const Vector<String> &p_extensions, bool p_folder, bool p_global);

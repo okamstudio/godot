@@ -47,6 +47,7 @@
 #include "editor/property_selector.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
+#include "modules/regex/regex.h"
 #include "scene/2d/gpu_particles_2d.h"
 #include "scene/3d/fog_volume.h"
 #include "scene/3d/gpu_particles_3d.h"
@@ -472,6 +473,7 @@ void EditorPropertyPath::_set_read_only(bool p_read_only) {
 
 void EditorPropertyPath::_path_selected(const String &p_path) {
 	String full_path = p_path;
+	StringName edited_property = get_edited_property();
 
 	if (!global) {
 		const ResourceUID::ID id = ResourceLoader::get_resource_uid(full_path);
@@ -480,7 +482,10 @@ void EditorPropertyPath::_path_selected(const String &p_path) {
 		}
 	}
 
-	emit_changed(get_edited_property(), full_path);
+	emit_changed(edited_property, full_path);
+	if (edited_property == "exec_path") {
+		emit_signal("exec_path_changed", full_path);
+	}
 	update_property();
 }
 
@@ -491,6 +496,42 @@ String EditorPropertyPath::_get_path_text() {
 	}
 
 	return full_path;
+}
+
+void EditorPropertyPath::_on_exec_path_changed(String new_path) {
+	Ref<RegEx> regex;
+	regex.instantiate();
+
+	const String editor_pattern = R"([\\/]((?:jetbrains\s*)?rider(?:\s*(eap|\d{4}\.\d+|\d{4}\.\d+\s*dev)?)?|visual\s*studio\s*code|subl(ime\s*text)?|sublime_text|(g)?vim|emacs|atom|geany|kate|code|(vs)?codium)(?:\.app|\.exe|\.bat|\.sh)?)";
+	regex->compile(editor_pattern);
+	Ref<RegExMatch> editor_match = regex->search(new_path.to_lower());
+
+	if (!editor_match.is_valid()) {
+		return;
+	}
+
+	const String editor = editor_match->get_string(1).to_lower();
+	String new_exec_flags = "{file}";
+
+	if (editor.begins_with("rider")) {
+		new_exec_flags = "{project} --line {line} {file}";
+	} else if (editor == "subl" || editor == "sublime text" || editor == "sublime_text") {
+		new_exec_flags = "{project} {file}:{line}:{column}";
+	} else if (editor == "vim" || editor == "gvim") {
+		new_exec_flags = "\"+call cursor({line}, {col})\" {file}";
+	} else if (editor == "emacs") {
+		new_exec_flags = "emacs +{line}:{col} {file}";
+	} else if (editor == "atom") {
+		new_exec_flags = "{file}:{line}";
+	} else if (editor == "geany" || editor == "kate") {
+		new_exec_flags = "{file} --line {line} --column {col}";
+	} else if (editor == "code" || editor == "visual studio code" || editor == "codium" || editor == "vscodium") {
+		new_exec_flags = "{project} --goto {file}:{line}:{col}";
+	}
+
+	EditorSettings::get_singleton()->set_setting("text_editor/external/exec_flags", new_exec_flags);
+	EditorSettings::get_singleton()->notify_changes();
+	EditorSettings::get_singleton()->save();
 }
 
 void EditorPropertyPath::_path_pressed() {
