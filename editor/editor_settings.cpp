@@ -54,6 +54,7 @@
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/window.h"
+#include "scene/resources/animation.h"
 
 // PRIVATE METHODS
 
@@ -899,6 +900,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/polygon_editor/auto_bake_delay", 1.5, "-1.0,10.0,0.01");
 
 	// Animation
+	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/animation/default_animation_step", Animation::DEFAULT_STEP, "0.0,10.0,0.00000001");
 	_initial_set("editors/animation/autorename_animation_tracks", true);
 	_initial_set("editors/animation/confirm_insert_track", true, true);
 	_initial_set("editors/animation/default_create_bezier_tracks", false, true);
