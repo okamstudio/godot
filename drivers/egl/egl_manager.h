@@ -53,11 +53,18 @@ private:
 		EGLDisplay egl_display = EGL_NO_DISPLAY;
 		EGLContext egl_context = EGL_NO_CONTEXT;
 		EGLConfig egl_config = nullptr;
+
+#ifdef WINDOWS_ENABLED
+		bool has_EGL_ANGLE_surface_orientation = false;
+#endif
 	};
 
 	// EGL specific window data.
 	struct GLWindow {
 		bool initialized = false;
+#ifdef WINDOWS_ENABLED
+		bool flipped_y = false;
+#endif
 
 		// An handle to the GLDisplay associated with this window.
 		int gldisplay_id = -1;

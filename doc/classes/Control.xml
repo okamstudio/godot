@@ -1365,7 +1365,7 @@
 		<constant name="LAYOUT_DIRECTION_INHERITED" value="0" enum="LayoutDirection">
 			Automatic layout direction, determined from the parent control layout direction.
 		</constant>
-		<constant name="LAYOUT_DIRECTION_LOCALE" value="1" enum="LayoutDirection">
+		<constant name="LAYOUT_DIRECTION_APPLICATION_LOCALE" value="1" enum="LayoutDirection">
 			Automatic layout direction, determined from the current locale.
 		</constant>
 		<constant name="LAYOUT_DIRECTION_LTR" value="2" enum="LayoutDirection">
@@ -1373,6 +1373,14 @@
 		</constant>
 		<constant name="LAYOUT_DIRECTION_RTL" value="3" enum="LayoutDirection">
 			Right-to-left layout direction.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_SYSTEM_LOCALE" value="4" enum="LayoutDirection">
+			Automatic layout direction, determined from the system locale.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_MAX" value="5" enum="LayoutDirection">
+			Represents the size of the [enum LayoutDirection] enum.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_LOCALE" value="1" enum="LayoutDirection" deprecated="Use [constant LAYOUT_DIRECTION_APPLICATION_LOCALE] instead.">
 		</constant>
 		<constant name="TEXT_DIRECTION_INHERITED" value="3" enum="TextDirection">
 			Text writing direction is the same as layout direction.

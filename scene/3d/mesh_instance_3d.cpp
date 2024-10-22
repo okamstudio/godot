@@ -332,8 +332,8 @@ void MeshInstance3D::create_multiple_convex_collisions(const Ref<MeshConvexDecom
 
 void MeshInstance3D::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_READY: {
-			callable_mp(this, &MeshInstance3D::_resolve_skeleton_path).call_deferred();
+		case NOTIFICATION_ENTER_TREE: {
+			_resolve_skeleton_path();
 		} break;
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			if (mesh.is_valid()) {

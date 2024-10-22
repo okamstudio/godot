@@ -1,5 +1,5 @@
 // File: basisu_bc7enc.cpp
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -394,6 +394,7 @@ void bc7enc_compress_block_init()
 static void compute_least_squares_endpoints_rgba(uint32_t N, const uint8_t *pSelectors, const bc7enc_vec4F* pSelector_weights, bc7enc_vec4F* pXl, bc7enc_vec4F* pXh, const color_quad_u8 *pColors)
 {
 	// Least squares using normal equations: http://www.cs.cornell.edu/~bindel/class/cs3220-s12/notes/lec10.pdf 
+	// https://web.archive.org/web/20150319232457/http://www.cs.cornell.edu/~bindel/class/cs3220-s12/notes/lec10.pdf
 	// I did this in matrix form first, expanded out all the ops, then optimized it a bit.
 	double z00 = 0.0f, z01 = 0.0f, z10 = 0.0f, z11 = 0.0f;
 	double q00_r = 0.0f, q10_r = 0.0f, t_r = 0.0f;
@@ -1301,6 +1302,7 @@ void check_best_overall_error(const color_cell_compressor_params *pParams, color
 		for (uint32_t c = 0; c < 4; c++)
 			colors[i].m_c[c] = (uint8_t)astc_interpolate_linear(colors[0].m_c[c], colors[n - 1].m_c[c], pParams->m_pSelector_weights[i]);
 
+#ifdef _DEBUG
 	uint64_t total_err = 0;
 	for (uint32_t p = 0; p < pParams->m_num_pixels; p++)
 	{
@@ -1313,6 +1315,7 @@ void check_best_overall_error(const color_cell_compressor_params *pParams, color
 			total_err += compute_color_distance_rgb(&orig, &packed, pParams->m_perceptual, pParams->m_weights);
 	}
 	assert(total_err == pResults->m_best_overall_err);
+#endif
 	
 	// HACK HACK
 	//if (total_err != pResults->m_best_overall_err)

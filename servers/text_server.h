@@ -31,6 +31,7 @@
 #ifndef TEXT_SERVER_H
 #define TEXT_SERVER_H
 
+#include "core/io/image.h"
 #include "core/object/ref_counted.h"
 #include "core/os/os.h"
 #include "core/templates/rid.h"

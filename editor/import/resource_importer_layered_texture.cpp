@@ -276,6 +276,10 @@ void ResourceImporterLayeredTexture::_save_tex(Vector<Ref<Image>> p_images, cons
 	f->store_32(0);
 	f->store_32(0);
 
+	if ((p_compress_mode == COMPRESS_LOSSLESS || p_compress_mode == COMPRESS_LOSSY) && p_images[0]->get_format() >= Image::FORMAT_RF) {
+		p_compress_mode = COMPRESS_VRAM_UNCOMPRESSED; // These can't go as lossy.
+	}
+
 	for (int i = 0; i < p_images.size(); i++) {
 		ResourceImporterTexture::save_to_ctex_format(f, p_images[i], ResourceImporterTexture::CompressMode(p_compress_mode), used_channels, p_vram_compression, p_lossy);
 	}
@@ -333,11 +337,6 @@ Error ResourceImporterLayeredTexture::import(const String &p_source_file, const 
 	Error err = ImageLoader::load_image(p_source_file, image);
 	if (err != OK) {
 		return err;
-	}
-
-	if (compress_mode == COMPRESS_BASIS_UNIVERSAL && image->get_format() >= Image::FORMAT_RF) {
-		//basis universal does not support float formats, fall back
-		compress_mode = COMPRESS_VRAM_COMPRESSED;
 	}
 
 	if (compress_mode == COMPRESS_VRAM_COMPRESSED) {

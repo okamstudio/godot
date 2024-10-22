@@ -1243,6 +1243,7 @@ Error RenderingDevice::_texture_initialize(RID p_texture, uint32_t p_layer, cons
 	TransferWorker *transfer_worker = nullptr;
 	const uint8_t *read_ptr = p_data.ptr();
 	uint8_t *write_ptr = nullptr;
+	const RDD::TextureLayout copy_dst_layout = driver->api_trait_get(RDD::API_TRAIT_USE_GENERAL_IN_COPY_QUEUES) ? RDD::TEXTURE_LAYOUT_GENERAL : RDD::TEXTURE_LAYOUT_COPY_DST_OPTIMAL;
 	for (uint32_t pass = 0; pass < 2; pass++) {
 		const bool copy_pass = (pass == 1);
 		if (copy_pass) {
@@ -1267,7 +1268,7 @@ Error RenderingDevice::_texture_initialize(RID p_texture, uint32_t p_layer, cons
 				tb.texture = texture->driver_id;
 				tb.dst_access = RDD::BARRIER_ACCESS_COPY_WRITE_BIT;
 				tb.prev_layout = RDD::TEXTURE_LAYOUT_UNDEFINED;
-				tb.next_layout = RDD::TEXTURE_LAYOUT_COPY_DST_OPTIMAL;
+				tb.next_layout = copy_dst_layout;
 				tb.subresources.aspect = texture->barrier_aspect_flags;
 				tb.subresources.mipmap_count = texture->mipmaps;
 				tb.subresources.base_layer = p_layer;
@@ -1313,7 +1314,7 @@ Error RenderingDevice::_texture_initialize(RID p_texture, uint32_t p_layer, cons
 					copy_region.texture_subresources.layer_count = 1;
 					copy_region.texture_offset = Vector3i(0, 0, z);
 					copy_region.texture_region_size = Vector3i(logic_width, logic_height, 1);
-					driver->command_copy_buffer_to_texture(transfer_worker->command_buffer, transfer_worker->staging_buffer, texture->driver_id, RDD::TEXTURE_LAYOUT_COPY_DST_OPTIMAL, copy_region);
+					driver->command_copy_buffer_to_texture(transfer_worker->command_buffer, transfer_worker->staging_buffer, texture->driver_id, copy_dst_layout, copy_region);
 				}
 
 				staging_local_offset += to_allocate;
@@ -1332,14 +1333,13 @@ Error RenderingDevice::_texture_initialize(RID p_texture, uint32_t p_layer, cons
 				RDD::TextureBarrier tb;
 				tb.texture = texture->driver_id;
 				tb.src_access = RDD::BARRIER_ACCESS_COPY_WRITE_BIT;
-				tb.prev_layout = RDD::TEXTURE_LAYOUT_COPY_DST_OPTIMAL;
+				tb.prev_layout = copy_dst_layout;
 				tb.next_layout = RDD::TEXTURE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				tb.subresources.aspect = texture->barrier_aspect_flags;
 				tb.subresources.mipmap_count = texture->mipmaps;
 				tb.subresources.base_layer = p_layer;
 				tb.subresources.layer_count = 1;
-
-				driver->command_pipeline_barrier(transfer_worker->command_buffer, RDD::PIPELINE_STAGE_COPY_BIT, RDD::PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, {}, {}, tb);
+				transfer_worker->texture_barriers.push_back(tb);
 			}
 
 			_release_transfer_worker(transfer_worker);
@@ -5052,7 +5052,6 @@ RenderingDevice::TransferWorker *RenderingDevice::_acquire_transfer_worker(uint3
 			// No existing worker was picked, we create a new one.
 			transfer_worker = memnew(TransferWorker);
 			transfer_worker->command_fence = driver->fence_create();
-			transfer_worker->command_semaphore = driver->semaphore_create();
 			transfer_worker->command_pool = driver->command_pool_create(transfer_queue_family, RDD::COMMAND_BUFFER_TYPE_PRIMARY);
 			transfer_worker->command_buffer = driver->command_buffer_create(transfer_worker->command_pool);
 			transfer_worker->index = transfer_worker_pool.size();
@@ -5075,7 +5074,7 @@ RenderingDevice::TransferWorker *RenderingDevice::_acquire_transfer_worker(uint3
 		// If there's not enough bytes to use on the staging buffer, we submit everything pending from the worker and wait for the work to be finished.
 		if (transfer_worker->recording) {
 			_end_transfer_worker(transfer_worker);
-			_submit_transfer_worker(transfer_worker, false);
+			_submit_transfer_worker(transfer_worker);
 		}
 
 		if (transfer_worker->submitted) {
@@ -5128,12 +5127,12 @@ void RenderingDevice::_end_transfer_worker(TransferWorker *p_transfer_worker) {
 	p_transfer_worker->recording = false;
 }
 
-void RenderingDevice::_submit_transfer_worker(TransferWorker *p_transfer_worker, bool p_signal_semaphore) {
-	const VectorView<RDD::SemaphoreID> execute_semaphore = p_signal_semaphore ? p_transfer_worker->command_semaphore : VectorView<RDD::SemaphoreID>();
-	driver->command_queue_execute_and_present(transfer_queue, {}, p_transfer_worker->command_buffer, execute_semaphore, p_transfer_worker->command_fence, {});
-	if (p_signal_semaphore) {
+void RenderingDevice::_submit_transfer_worker(TransferWorker *p_transfer_worker, VectorView<RDD::SemaphoreID> p_signal_semaphores) {
+	driver->command_queue_execute_and_present(transfer_queue, {}, p_transfer_worker->command_buffer, p_signal_semaphores, p_transfer_worker->command_fence, {});
+
+	for (uint32_t i = 0; i < p_signal_semaphores.size(); i++) {
 		// Indicate the frame should wait on these semaphores before executing the main command buffer.
-		frames[frame].semaphores_to_wait_on.push_back(p_transfer_worker->command_semaphore);
+		frames[frame].semaphores_to_wait_on.push_back(p_signal_semaphores[i]);
 	}
 
 	p_transfer_worker->submitted = true;
@@ -5152,6 +5151,21 @@ void RenderingDevice::_wait_for_transfer_worker(TransferWorker *p_transfer_worke
 	{
 		MutexLock lock(p_transfer_worker->operations_mutex);
 		p_transfer_worker->operations_processed = p_transfer_worker->operations_submitted;
+	}
+
+	if (!p_transfer_worker->texture_barriers.is_empty()) {
+		MutexLock transfer_worker_lock(transfer_worker_pool_mutex);
+		_flush_barriers_for_transfer_worker(p_transfer_worker);
+	}
+}
+
+void RenderingDevice::_flush_barriers_for_transfer_worker(TransferWorker *p_transfer_worker) {
+	if (!p_transfer_worker->texture_barriers.is_empty()) {
+		for (uint32_t i = 0; i < p_transfer_worker->texture_barriers.size(); i++) {
+			transfer_worker_pool_texture_barriers.push_back(p_transfer_worker->texture_barriers[i]);
+		}
+
+		p_transfer_worker->texture_barriers.clear();
 	}
 }
 
@@ -5194,10 +5208,11 @@ void RenderingDevice::_check_transfer_worker_index_array(IndexArray *p_index_arr
 	}
 }
 
-void RenderingDevice::_submit_transfer_workers(bool p_operations_used_by_draw) {
+void RenderingDevice::_submit_transfer_workers(RDD::CommandBufferID p_draw_command_buffer) {
 	MutexLock transfer_worker_lock(transfer_worker_pool_mutex);
-	for (TransferWorker *worker : transfer_worker_pool) {
-		if (p_operations_used_by_draw) {
+	for (uint32_t i = 0; i < transfer_worker_pool.size(); i++) {
+		TransferWorker *worker = transfer_worker_pool[i];
+		if (p_draw_command_buffer) {
 			MutexLock lock(worker->operations_mutex);
 			if (worker->operations_processed >= transfer_worker_operation_used_by_draw[worker->index]) {
 				// The operation used by the draw has already been processed, we don't need to wait on the worker.
@@ -5208,10 +5223,20 @@ void RenderingDevice::_submit_transfer_workers(bool p_operations_used_by_draw) {
 		{
 			MutexLock lock(worker->thread_mutex);
 			if (worker->recording) {
+				VectorView<RDD::SemaphoreID> semaphores = p_draw_command_buffer ? frames[frame].transfer_worker_semaphores[i] : VectorView<RDD::SemaphoreID>();
 				_end_transfer_worker(worker);
-				_submit_transfer_worker(worker, true);
+				_submit_transfer_worker(worker, semaphores);
+			}
+
+			if (p_draw_command_buffer) {
+				_flush_barriers_for_transfer_worker(worker);
 			}
 		}
+	}
+
+	if (p_draw_command_buffer && !transfer_worker_pool_texture_barriers.is_empty()) {
+		driver->command_pipeline_barrier(p_draw_command_buffer, RDD::PIPELINE_STAGE_COPY_BIT, RDD::PIPELINE_STAGE_ALL_COMMANDS_BIT, {}, {}, transfer_worker_pool_texture_barriers);
+		transfer_worker_pool_texture_barriers.clear();
 	}
 }
 
@@ -5228,7 +5253,6 @@ void RenderingDevice::_wait_for_transfer_workers() {
 void RenderingDevice::_free_transfer_workers() {
 	MutexLock transfer_worker_lock(transfer_worker_pool_mutex);
 	for (TransferWorker *worker : transfer_worker_pool) {
-		driver->semaphore_free(worker->command_semaphore);
 		driver->fence_free(worker->command_fence);
 		driver->buffer_free(worker->staging_buffer);
 		driver->command_pool_free(worker->command_pool);
@@ -5807,10 +5831,10 @@ void RenderingDevice::_end_frame() {
 		ERR_PRINT("Found open compute list at the end of the frame, this should never happen (further compute will likely not work).");
 	}
 
-	_submit_transfer_workers(true);
-
 	// The command buffer must be copied into a stack variable as the driver workarounds can change the command buffer in use.
 	RDD::CommandBufferID command_buffer = frames[frame].command_buffer;
+	_submit_transfer_workers(command_buffer);
+
 	draw_graph.end(RENDER_GRAPH_REORDER, RENDER_GRAPH_FULL_BARRIERS, command_buffer, frames[frame].command_buffer_pool);
 	driver->command_buffer_end(command_buffer);
 	driver->end_segment();
@@ -6014,6 +6038,9 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 		present_queue_family = main_queue_family;
 	}
 
+	// Use the processor count as the max amount of transfer workers that can be created.
+	transfer_worker_pool_max_size = OS::get_singleton()->get_processor_count();
+
 	// Create data for all the frames.
 	for (uint32_t i = 0; i < frames.size(); i++) {
 		frames[i].index = 0;
@@ -6041,6 +6068,13 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 
 		// Assign the main queue family and command pool to the command buffer pool.
 		frames[i].command_buffer_pool.pool = frames[i].command_pool;
+
+		// Create the semaphores for the transfer workers.
+		frames[i].transfer_worker_semaphores.resize(transfer_worker_pool_max_size);
+		for (uint32_t j = 0; j < transfer_worker_pool_max_size; j++) {
+			frames[i].transfer_worker_semaphores[j] = driver->semaphore_create();
+			ERR_FAIL_COND_V(!frames[i].transfer_worker_semaphores[j], FAILED);
+		}
 	}
 
 	// Start from frame count, so everything else is immediately old.
@@ -6086,9 +6120,6 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 		err = _insert_staging_block();
 		ERR_FAIL_COND_V(err, FAILED);
 	}
-
-	// TODO: How should this max size be determined?
-	transfer_worker_pool_max_size = OS::get_singleton()->get_processor_count();
 
 	draw_list = nullptr;
 	compute_list = nullptr;
@@ -6380,7 +6411,7 @@ void RenderingDevice::finalize() {
 	}
 
 	// Wait for transfer workers to finish.
-	_submit_transfer_workers(false);
+	_submit_transfer_workers();
 	_wait_for_transfer_workers();
 
 	// Delete everything the graph has created.
@@ -6451,6 +6482,10 @@ void RenderingDevice::finalize() {
 		RDG::CommandBufferPool &buffer_pool = frames[i].command_buffer_pool;
 		for (uint32_t j = 0; j < buffer_pool.buffers.size(); j++) {
 			driver->semaphore_free(buffer_pool.semaphores[j]);
+		}
+
+		for (uint32_t j = 0; j < frames[i].transfer_worker_semaphores.size(); j++) {
+			driver->semaphore_free(frames[i].transfer_worker_semaphores[j]);
 		}
 	}
 

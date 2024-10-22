@@ -32,6 +32,7 @@
 #include "shader.compat.inc"
 
 #include "core/io/file_access.h"
+#include "scene/main/scene_tree.h"
 #include "servers/rendering/shader_language.h"
 #include "servers/rendering/shader_preprocessor.h"
 #include "servers/rendering_server.h"
@@ -136,6 +137,14 @@ void Shader::set_code(const String &p_code) {
 String Shader::get_code() const {
 	_update_shader();
 	return code;
+}
+
+void Shader::inspect_native_shader_code() {
+	SceneTree *st = SceneTree::get_singleton();
+	RID _shader = get_rid();
+	if (st && _shader.is_valid()) {
+		st->call_group_flags(SceneTree::GROUP_CALL_DEFERRED, "_native_shader_source_visualizer", "_inspect_shader", _shader);
+	}
 }
 
 void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_groups) const {
@@ -266,6 +275,9 @@ void Shader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_default_texture_parameter", "name", "index"), &Shader::get_default_texture_parameter, DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("get_shader_uniform_list", "get_groups"), &Shader::_get_shader_uniform_list, DEFVAL(false));
+
+	ClassDB::bind_method(D_METHOD("inspect_native_shader_code"), &Shader::inspect_native_shader_code);
+	ClassDB::set_method_flags(get_class_static(), _scs_create("inspect_native_shader_code"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "code", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_code", "get_code");
 

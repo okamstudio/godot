@@ -92,8 +92,20 @@ static void decompress_image(BCdecFormat format, const void *src, void *dst, con
 void image_decompress_bcdec(Image *p_image) {
 	uint64_t start_time = OS::get_singleton()->get_ticks_msec();
 
-	int w = p_image->get_width();
-	int h = p_image->get_height();
+	int width = p_image->get_width();
+	int height = p_image->get_height();
+
+	// Compressed images' dimensions should be padded to the upper multiple of 4.
+	// If they aren't, they need to be realigned (the actual data is correctly padded though).
+	if (width % 4 != 0 || height % 4 != 0) {
+		int new_width = width + (4 - (width % 4));
+		int new_height = height + (4 - (height % 4));
+
+		print_verbose(vformat("Compressed image's dimensions are not multiples of 4 (%dx%d), aligning to (%dx%d)", width, height, new_width, new_height));
+
+		width = new_width;
+		height = new_height;
+	}
 
 	Image::Format source_format = p_image->get_format();
 	Image::Format target_format = Image::FORMAT_MAX;
@@ -148,30 +160,27 @@ void image_decompress_bcdec(Image *p_image) {
 	}
 
 	int mm_count = p_image->get_mipmap_count();
-	int64_t target_size = Image::get_image_data_size(w, h, target_format, p_image->has_mipmaps());
+	int64_t target_size = Image::get_image_data_size(width, height, target_format, p_image->has_mipmaps());
 
+	// Decompressed data.
 	Vector<uint8_t> data;
 	data.resize(target_size);
-
-	const uint8_t *rb = p_image->get_data().ptr();
 	uint8_t *wb = data.ptrw();
+
+	// Source data.
+	const uint8_t *rb = p_image->get_data().ptr();
 
 	// Decompress mipmaps.
 	for (int i = 0; i <= mm_count; i++) {
-		int64_t src_ofs = 0, mipmap_size = 0;
 		int mipmap_w = 0, mipmap_h = 0;
-		p_image->get_mipmap_offset_size_and_dimensions(i, src_ofs, mipmap_size, mipmap_w, mipmap_h);
-
-		int64_t dst_ofs = Image::get_image_mipmap_offset(p_image->get_width(), p_image->get_height(), target_format, i);
+		int64_t src_ofs = Image::get_image_mipmap_offset_and_dimensions(width, height, source_format, i, mipmap_w, mipmap_h);
+		int64_t dst_ofs = Image::get_image_mipmap_offset(width, height, target_format, i);
 		decompress_image(bcdec_format, rb + src_ofs, wb + dst_ofs, mipmap_w, mipmap_h);
-
-		w >>= 1;
-		h >>= 1;
 	}
 
-	p_image->set_data(p_image->get_width(), p_image->get_height(), p_image->has_mipmaps(), target_format, data);
+	p_image->set_data(width, height, p_image->has_mipmaps(), target_format, data);
 
-	// Swap channels if necessary.
+	// Swap channels if the format is using a channel swizzle.
 	if (source_format == Image::FORMAT_DXT5_RA_AS_RG) {
 		p_image->convert_ra_rgba8_to_rg();
 	}

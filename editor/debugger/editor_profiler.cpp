@@ -30,6 +30,7 @@
 
 #include "editor_profiler.h"
 
+#include "core/io/image.h"
 #include "core/os/os.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"

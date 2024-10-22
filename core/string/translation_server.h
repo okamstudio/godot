@@ -46,6 +46,8 @@ class TranslationServer : public Object {
 	Ref<TranslationDomain> doc_domain;
 	HashMap<StringName, Ref<TranslationDomain>> custom_domains;
 
+	mutable HashMap<String, int> locale_compare_cache;
+
 	bool enabled = true;
 
 	static TranslationServer *singleton;

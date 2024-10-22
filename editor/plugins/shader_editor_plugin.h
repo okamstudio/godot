@@ -69,6 +69,7 @@ class ShaderEditorPlugin : public EditorPlugin {
 		FILE_SAVE,
 		FILE_SAVE_AS,
 		FILE_INSPECT,
+		FILE_INSPECT_NATIVE_SHADER_CODE,
 		FILE_CLOSE,
 		CLOSE_ALL,
 		CLOSE_OTHER_TABS,

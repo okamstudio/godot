@@ -2099,7 +2099,11 @@
 		<constant name="WINDOW_FLAG_MOUSE_PASSTHROUGH" value="7" enum="WindowFlags">
 			All mouse events are passed to the underlying window of the same application.
 		</constant>
-		<constant name="WINDOW_FLAG_MAX" value="8" enum="WindowFlags">
+		<constant name="WINDOW_FLAG_SHARP_CORNERS" value="8" enum="WindowFlags">
+			Window style is overridden, forcing sharp corners.
+			[b]Note:[/b] This flag is implemented only on Windows (11).
+		</constant>
+		<constant name="WINDOW_FLAG_MAX" value="9" enum="WindowFlags">
 			Max value of the [enum WindowFlags].
 		</constant>
 		<constant name="WINDOW_EVENT_MOUSE_ENTER" value="0" enum="WindowEvent">

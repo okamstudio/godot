@@ -277,11 +277,14 @@ Variant EditorDebuggerTree::get_drag_data(const Point2 &p_point) {
 	}
 
 	String path = selected->get_text(0);
+	const int icon_size = get_theme_constant(SNAME("class_icon_size"), EditorStringName(Editor));
 
 	HBoxContainer *hb = memnew(HBoxContainer);
 	TextureRect *tf = memnew(TextureRect);
 	tf->set_texture(selected->get_icon(0));
-	tf->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
+	tf->set_custom_minimum_size(Size2(icon_size, icon_size));
+	tf->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+	tf->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
 	hb->add_child(tf);
 	Label *label = memnew(Label(path));
 	hb->add_child(label);

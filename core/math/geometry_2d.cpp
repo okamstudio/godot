@@ -35,7 +35,8 @@
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "thirdparty/misc/stb_rect_pack.h"
 
-#define PRECISION 5 // Based on CMP_EPSILON.
+const int clipper_precision = 5; // Based on CMP_EPSILON.
+const double clipper_scale = Math::pow(10.0, clipper_precision);
 
 Vector<Vector<Vector2>> Geometry2D::decompose_polygon_in_convex(const Vector<Point2> &polygon) {
 	Vector<Vector<Vector2>> decomp;
@@ -224,7 +225,7 @@ Vector<Vector<Point2>> Geometry2D::_polypaths_do_operation(PolyBooleanOperation 
 		path_b[i] = PointD(p_polypath_b[i].x, p_polypath_b[i].y);
 	}
 
-	ClipperD clp(PRECISION); // Scale points up internally to attain the desired precision.
+	ClipperD clp(clipper_precision); // Scale points up internally to attain the desired precision.
 	clp.PreserveCollinear(false); // Remove redundant vertices.
 	if (is_a_open) {
 		clp.AddOpenSubject({ path_a });
@@ -298,9 +299,10 @@ Vector<Vector<Point2>> Geometry2D::_polypath_offset(const Vector<Point2> &p_poly
 	}
 
 	// Inflate/deflate.
-	PathsD paths = InflatePaths({ polypath }, p_delta, jt, et, 2.0, PRECISION, 0.0);
-	// Here the miter_limit = 2.0 and arc_tolerance = 0.0 are Clipper2 defaults,
-	// and the PRECISION is used to scale points up internally, to attain the desired precision.
+	PathsD paths = InflatePaths({ polypath }, p_delta, jt, et, 2.0, clipper_precision, 0.25 * clipper_scale);
+	// Here the points are scaled up internally and
+	// the arc_tolerance is scaled accordingly
+	// to attain the desired precision.
 
 	Vector<Vector<Point2>> polypaths;
 	for (PathsD::size_type i = 0; i < paths.size(); ++i) {

@@ -217,7 +217,7 @@ String GDScriptDocGen::_docvalue_from_variant(const Variant &p_variant, int p_re
 
 				List<Variant> keys;
 				dict.get_key_list(&keys);
-				keys.sort();
+				keys.sort_custom<StringLikeVariantOrder>();
 
 				for (List<Variant>::Element *E = keys.front(); E; E = E->next()) {
 					if (E->prev()) {

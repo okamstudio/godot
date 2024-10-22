@@ -1355,6 +1355,13 @@ EditorFileDialog::Access EditorFileDialog::get_access() const {
 void EditorFileDialog::_make_dir_confirm() {
 	const String stripped_dirname = makedirname->get_text().strip_edges();
 
+	if (stripped_dirname.is_empty()) {
+		error_dialog->set_text(TTR("The path specified is invalid."));
+		error_dialog->popup_centered(Size2(250, 50) * EDSCALE);
+		makedirname->set_text(""); // Reset label.
+		return;
+	}
+
 	if (dir_access->dir_exists(stripped_dirname)) {
 		error_dialog->set_text(TTR("Could not create folder. File with that name already exists."));
 		error_dialog->popup_centered(Size2(250, 50) * EDSCALE);
@@ -1638,6 +1645,7 @@ void EditorFileDialog::_update_favorites() {
 
 	for (int i = 0; i < favorited_paths.size(); i++) {
 		favorites->add_item(favorited_names[i], theme_cache.folder);
+		favorites->set_item_tooltip(-1, favorited_paths[i]);
 		favorites->set_item_metadata(-1, favorited_paths[i]);
 		favorites->set_item_icon_modulate(-1, get_dir_icon_color(favorited_paths[i]));
 
@@ -1719,6 +1727,7 @@ void EditorFileDialog::_update_recent() {
 
 	for (int i = 0; i < recentd_paths.size(); i++) {
 		recent->add_item(recentd_names[i], theme_cache.folder);
+		recent->set_item_tooltip(-1, recentd_paths[i]);
 		recent->set_item_metadata(-1, recentd_paths[i]);
 		recent->set_item_icon_modulate(-1, get_dir_icon_color(recentd_paths[i]));
 	}

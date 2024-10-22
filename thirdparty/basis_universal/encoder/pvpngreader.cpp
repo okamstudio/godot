@@ -163,7 +163,7 @@ public:
 		{
 			if ((sizeof(size_t) == sizeof(uint32_t)) && (new_size > 0x7FFFFFFFUL))
 				return 0;
-			m_buf.resize(new_size);
+			m_buf.resize((size_t)new_size);
 		}
 
 		memcpy(&m_buf[(size_t)m_ofs], pBuf, len);
@@ -178,11 +178,11 @@ public:
 			return 0;
 
 		uint64_t max_bytes = minimum<uint64_t>(len, m_buf.size() - m_ofs);
-		memcpy(pBuf, &m_buf[(size_t)m_ofs], max_bytes);
+		memcpy(pBuf, &m_buf[(size_t)m_ofs], (size_t)max_bytes);
 
 		m_ofs += max_bytes;
 
-		return max_bytes;
+		return (size_t)max_bytes;
 	}
 };
 
@@ -249,11 +249,11 @@ public:
 			return 0;
 
 		uint64_t max_bytes = minimum<uint64_t>(len, m_buf_size - m_ofs);
-		memcpy(pBuf, &m_pBuf[(size_t)m_ofs], max_bytes);
+		memcpy(pBuf, &m_pBuf[(size_t)m_ofs], (size_t)max_bytes);
 
 		m_ofs += max_bytes;
 
-		return max_bytes;
+		return (size_t)max_bytes;
 	}
 };
 
@@ -1626,8 +1626,8 @@ int png_decoder::png_decode_start()
 
 	if (m_ihdr.m_ilace_type == 1)
 	{
-		int i;
-		uint32_t total_lines, lines_processed;
+		//int i;
+		//uint32_t total_lines, lines_processed;
 
 		m_adam7_pass_size_x[0] = adam7_pass_size(m_ihdr.m_width, 0, 8);
 		m_adam7_pass_size_x[1] = adam7_pass_size(m_ihdr.m_width, 4, 8);
@@ -1651,10 +1651,12 @@ int png_decoder::png_decode_start()
 
 		m_pass_y_left = 0;
 
+#if 0
 		total_lines = lines_processed = 0;
 
 		for (i = 0; i < 7; i++)
 			total_lines += m_adam7_pass_size_y[i];
+#endif
 
 		for (; ; )
 		{
@@ -1675,7 +1677,7 @@ int png_decoder::png_decode_start()
 				}
 			}
 
-			lines_processed++;
+			//lines_processed++;
 		}
 
 		m_adam7_decoded_flag = TRUE;

@@ -366,6 +366,15 @@ public:
 	/**** FRAMEBUFFER ****/
 	/*********************/
 
+	struct Framebuffer {
+		VkFramebuffer vk_framebuffer = VK_NULL_HANDLE;
+
+		// Only filled in by a framebuffer created by a swap chain. Unused otherwise.
+		VkImage swap_chain_image = VK_NULL_HANDLE;
+		VkImageSubresourceRange swap_chain_image_subresource_range = {};
+		bool swap_chain_acquired = false;
+	};
+
 	virtual FramebufferID framebuffer_create(RenderPassID p_render_pass, VectorView<TextureID> p_attachments, uint32_t p_width, uint32_t p_height) override final;
 	virtual void framebuffer_free(FramebufferID p_framebuffer) override final;
 

@@ -39,8 +39,6 @@
 
 InputMap *InputMap::singleton = nullptr;
 
-int InputMap::ALL_DEVICES = -1;
-
 void InputMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_action", "action"), &InputMap::has_action);
 	ClassDB::bind_method(D_METHOD("get_actions"), &InputMap::_get_actions);
@@ -163,7 +161,7 @@ List<Ref<InputEvent>>::Element *InputMap::_find_event(Action &p_action, const Re
 	int i = 0;
 	for (List<Ref<InputEvent>>::Element *E = p_action.inputs.front(); E; E = E->next()) {
 		int device = E->get()->get_device();
-		if (device == ALL_DEVICES || device == p_event->get_device()) {
+		if (device == InputEvent::DEVICE_ID_ALL_DEVICES || device == p_event->get_device()) {
 			if (E->get()->action_match(p_event, p_exact_match, p_action.deadzone, r_pressed, r_strength, r_raw_strength)) {
 				if (r_event_index) {
 					*r_event_index = i;

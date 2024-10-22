@@ -277,15 +277,17 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 				code_completion_force_item_center = -1;
 				queue_redraw();
 			}
-			code_completion_pan_offset += 1.0f;
+			code_completion_pan_offset = 0;
 		} else if (code_completion_pan_offset >= +1.0) {
 			if (code_completion_current_selected < code_completion_options.size() - 1) {
 				code_completion_current_selected++;
 				code_completion_force_item_center = -1;
 				queue_redraw();
 			}
-			code_completion_pan_offset -= 1.0f;
+			code_completion_pan_offset = 0;
 		}
+		accept_event();
+		return;
 	}
 
 	Ref<InputEventMouseButton> mb = p_gui_input;

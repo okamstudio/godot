@@ -1,5 +1,5 @@
 // basisu_opencl.h
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Note: Undefine or set BASISU_SUPPORT_OPENCL to 0 to completely OpenCL support.
 //

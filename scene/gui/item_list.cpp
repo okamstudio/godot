@@ -1056,7 +1056,7 @@ void ItemList::_notification(int p_what) {
 			scroll_bar->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, -theme_cache.panel_style->get_margin(SIDE_BOTTOM));
 
 			Size2 size = get_size();
-			int width = size.width - theme_cache.panel_style->get_margin(SIDE_RIGHT);
+			int width = size.width - theme_cache.panel_style->get_minimum_size().width;
 			if (scroll_bar->is_visible()) {
 				width -= scroll_bar_minwidth;
 			}

@@ -1,6 +1,6 @@
 // Do not include this header directly.
 //
-// Copyright 2020-2021 Binomial LLC
+// Copyright 2020-2024 Binomial LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -646,7 +646,7 @@ CPPSPMD_FORCE_INLINE vint spmd_kernel::count_set_bits(vint x)
 {
 	vint v = x - (VUINT_SHIFT_RIGHT(x, 1) & 0x55555555);                    
 	vint v1 = (v & 0x33333333) + (VUINT_SHIFT_RIGHT(v, 2) & 0x33333333);     
-	return VUINT_SHIFT_RIGHT(((v1 + VUINT_SHIFT_RIGHT(v1, 4) & 0xF0F0F0F) * 0x1010101), 24);
+	return VUINT_SHIFT_RIGHT(((v1 + (VUINT_SHIFT_RIGHT(v1, 4) & 0xF0F0F0F)) * 0x1010101), 24);
 }
 
 CPPSPMD_FORCE_INLINE vint cmple_epu16(const vint &a, const vint &b) 

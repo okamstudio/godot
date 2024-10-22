@@ -45,7 +45,7 @@
 		<method name="inspect_native_shader_code">
 			<return type="void" />
 			<description>
-				Only available when running in the editor. Opens a popup that visualizes the generated shader code, including all variants and internal shader code.
+				Only available when running in the editor. Opens a popup that visualizes the generated shader code, including all variants and internal shader code. See also [method Shader.inspect_native_shader_code].
 			</description>
 		</method>
 	</methods>

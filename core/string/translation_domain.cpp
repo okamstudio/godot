@@ -389,6 +389,10 @@ void TranslationDomain::set_pseudolocalization_suffix(const String &p_suffix) {
 }
 
 StringName TranslationDomain::pseudolocalize(const StringName &p_message) const {
+	if (p_message.is_empty()) {
+		return p_message;
+	}
+
 	String message = p_message;
 	int length = message.length();
 	if (pseudolocalization.override_enabled) {

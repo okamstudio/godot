@@ -535,7 +535,21 @@ SceneDebuggerTree::SceneDebuggerTree(Node *p_root) {
 				}
 			}
 		}
-		nodes.push_back(RemoteNode(count, n->get_name(), n->get_class(), n->get_instance_id(), n->get_scene_file_path(), view_flags));
+
+		String class_name;
+		ScriptInstance *script_instance = n->get_script_instance();
+		if (script_instance) {
+			Ref<Script> script = script_instance->get_script();
+			if (script.is_valid()) {
+				class_name = script->get_global_name();
+
+				if (class_name.is_empty()) {
+					// If there is no class_name in this script we just take the script path.
+					class_name = script->get_path();
+				}
+			}
+		}
+		nodes.push_back(RemoteNode(count, n->get_name(), class_name.is_empty() ? n->get_class() : class_name, n->get_instance_id(), n->get_scene_file_path(), view_flags));
 	}
 }
 

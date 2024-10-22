@@ -1268,6 +1268,11 @@ void ResourceFormatLoaderBinary::get_recognized_extensions_for_type(const String
 		return;
 	}
 
+	// res files not supported for GDExtension.
+	if (p_type == "GDExtension") {
+		return;
+	}
+
 	List<String> extensions;
 	ClassDB::get_extensions_for_type(p_type, &extensions);
 

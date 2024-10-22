@@ -50,8 +50,7 @@ public:
 		bool children_order_dirty;
 		int ysort_children_count;
 		Color ysort_modulate;
-		Transform2D ysort_xform;
-		Vector2 ysort_pos;
+		Transform2D ysort_xform; // Relative to y-sorted subtree's root item (identity for such root). Its `origin.y` is used for sorting.
 		int ysort_index;
 		int ysort_parent_abs_z_index; // Absolute Z index of parent. Only populated and used when y-sorting.
 		uint32_t visibility_layer = 0xffffffff;
@@ -84,7 +83,6 @@ public:
 			index = 0;
 			ysort_children_count = -1;
 			ysort_xform = Transform2D();
-			ysort_pos = Vector2();
 			ysort_index = 0;
 			ysort_parent_abs_z_index = 0;
 		}
@@ -96,13 +94,15 @@ public:
 		}
 	};
 
-	struct ItemPtrSort {
+	struct ItemYSort {
 		_FORCE_INLINE_ bool operator()(const Item *p_left, const Item *p_right) const {
-			if (Math::is_equal_approx(p_left->ysort_pos.y, p_right->ysort_pos.y)) {
+			const real_t left_y = p_left->ysort_xform.columns[2].y;
+			const real_t right_y = p_right->ysort_xform.columns[2].y;
+			if (Math::is_equal_approx(left_y, right_y)) {
 				return p_left->ysort_index < p_right->ysort_index;
 			}
 
-			return p_left->ysort_pos.y < p_right->ysort_pos.y;
+			return left_y < right_y;
 		}
 	};
 
@@ -187,7 +187,11 @@ public:
 
 private:
 	void _render_canvas_item_tree(RID p_to_render_target, Canvas::ChildItem *p_child_items, int p_child_item_count, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate, RendererCanvasRender::Light *p_lights, RendererCanvasRender::Light *p_directional_lights, RS::CanvasItemTextureFilter p_default_filter, RS::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_vertices_to_pixel, uint32_t p_canvas_cull_mask, RenderingMethod::RenderInfo *r_render_info = nullptr);
-	void _cull_canvas_item(Item *p_canvas_item, const Transform2D &p_parent_xform, const Rect2 &p_clip_rect, const Color &p_modulate, int p_z, RendererCanvasRender::Item **r_z_list, RendererCanvasRender::Item **r_z_last_list, Item *p_canvas_clip, Item *p_material_owner, bool p_allow_y_sort, uint32_t p_canvas_cull_mask, const Point2 &p_repeat_size, int p_repeat_times, RendererCanvasRender::Item *p_repeat_source_item);
+	void _cull_canvas_item(Item *p_canvas_item, const Transform2D &p_parent_xform, const Rect2 &p_clip_rect, const Color &p_modulate, int p_z, RendererCanvasRender::Item **r_z_list, RendererCanvasRender::Item **r_z_last_list, Item *p_canvas_clip, Item *p_material_owner, bool p_is_already_y_sorted, uint32_t p_canvas_cull_mask, const Point2 &p_repeat_size, int p_repeat_times, RendererCanvasRender::Item *p_repeat_source_item);
+
+	void _collect_ysort_children(RendererCanvasCull::Item *p_canvas_item, RendererCanvasCull::Item *p_material_owner, const Color &p_modulate, RendererCanvasCull::Item **r_items, int &r_index, int p_z);
+	int _count_ysort_children(RendererCanvasCull::Item *p_canvas_item);
+	void _mark_ysort_dirty(RendererCanvasCull::Item *ysort_owner);
 
 	static constexpr int z_range = RS::CANVAS_ITEM_Z_MAX - RS::CANVAS_ITEM_Z_MIN + 1;
 

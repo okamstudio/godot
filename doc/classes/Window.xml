@@ -659,6 +659,11 @@
 			If [member ProjectSettings.display/window/subwindows/embed_subwindows] is [code]false[/code], the position is in absolute screen coordinates. This typically applies to editor plugins. If the setting is [code]true[/code], the window's position is in the coordinates of its parent [Viewport].
 			[b]Note:[/b] This property only works if [member initial_position] is set to [constant WINDOW_INITIAL_POSITION_ABSOLUTE].
 		</member>
+		<member name="sharp_corners" type="bool" setter="set_flag" getter="get_flag" default="false">
+			If [code]true[/code], the [Window] will override the OS window style to display sharp corners.
+			[b]Note:[/b] This property is implemented only on Windows (11).
+			[b]Note:[/b] This property only works with native windows.
+		</member>
 		<member name="size" type="Vector2i" setter="set_size" getter="get_size" default="Vector2i(100, 100)">
 			The window's size in pixels.
 		</member>
@@ -842,7 +847,12 @@
 			All mouse events are passed to the underlying window of the same application.
 			[b]Note:[/b] This flag has no effect in embedded windows.
 		</constant>
-		<constant name="FLAG_MAX" value="8" enum="Flags">
+		<constant name="FLAG_SHARP_CORNERS" value="8" enum="Flags">
+			Window style is overridden, forcing sharp corners.
+			[b]Note:[/b] This flag has no effect in embedded windows.
+			[b]Note:[/b] This flag is implemented only on Windows (11).
+		</constant>
+		<constant name="FLAG_MAX" value="9" enum="Flags">
 			Max value of the [enum Flags].
 		</constant>
 		<constant name="CONTENT_SCALE_MODE_DISABLED" value="0" enum="ContentScaleMode">
@@ -878,7 +888,7 @@
 		<constant name="LAYOUT_DIRECTION_INHERITED" value="0" enum="LayoutDirection">
 			Automatic layout direction, determined from the parent window layout direction.
 		</constant>
-		<constant name="LAYOUT_DIRECTION_LOCALE" value="1" enum="LayoutDirection">
+		<constant name="LAYOUT_DIRECTION_APPLICATION_LOCALE" value="1" enum="LayoutDirection">
 			Automatic layout direction, determined from the current locale.
 		</constant>
 		<constant name="LAYOUT_DIRECTION_LTR" value="2" enum="LayoutDirection">
@@ -886,6 +896,14 @@
 		</constant>
 		<constant name="LAYOUT_DIRECTION_RTL" value="3" enum="LayoutDirection">
 			Right-to-left layout direction.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_SYSTEM_LOCALE" value="4" enum="LayoutDirection">
+			Automatic layout direction, determined from the system locale.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_MAX" value="5" enum="LayoutDirection">
+			Represents the size of the [enum LayoutDirection] enum.
+		</constant>
+		<constant name="LAYOUT_DIRECTION_LOCALE" value="1" enum="LayoutDirection" deprecated="Use [constant LAYOUT_DIRECTION_APPLICATION_LOCALE] instead.">
 		</constant>
 		<constant name="WINDOW_INITIAL_POSITION_ABSOLUTE" value="0" enum="WindowInitialPosition">
 			Initial window position is determined by [member position].

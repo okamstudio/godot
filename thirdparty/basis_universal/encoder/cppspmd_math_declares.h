@@ -1,7 +1,7 @@
 // Do not include this header directly.
 // This header defines shared struct spmd_kernel helpers.
 //
-// Copyright 2020-2021 Binomial LLC
+// Copyright 2020-2024 Binomial LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

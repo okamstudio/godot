@@ -153,7 +153,6 @@ void EditorPlugin::add_control_to_container(CustomControlContainer p_location, C
 		} break;
 		case CONTAINER_PROJECT_SETTING_TAB_RIGHT: {
 			ProjectSettingsEditor::get_singleton()->get_tabs()->add_child(p_control);
-			ProjectSettingsEditor::get_singleton()->get_tabs()->move_child(p_control, 1);
 
 		} break;
 	}

@@ -1479,12 +1479,12 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 			driver_found = true;
 		}
 	}
+#endif // GLES3_ENABLED
 
 	if (!driver_found) {
 		r_error = ERR_UNAVAILABLE;
 		ERR_FAIL_MSG("Video driver not found.");
 	}
-#endif // GLES3_ENABLED
 
 	cursor_set_shape(CURSOR_BUSY);
 

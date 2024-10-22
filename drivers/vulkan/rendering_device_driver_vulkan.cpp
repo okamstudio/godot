@@ -266,6 +266,7 @@ static const VkFormat RD_TO_VK_FORMAT[RDD::DATA_FORMAT_MAX] = {
 
 static VkImageLayout RD_TO_VK_LAYOUT[RDD::TEXTURE_LAYOUT_MAX] = {
 	VK_IMAGE_LAYOUT_UNDEFINED, // TEXTURE_LAYOUT_UNDEFINED
+	VK_IMAGE_LAYOUT_GENERAL, // TEXTURE_LAYOUT_GENERAL
 	VK_IMAGE_LAYOUT_GENERAL, // TEXTURE_LAYOUT_STORAGE_OPTIMAL
 	VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, // TEXTURE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, // TEXTURE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
@@ -2636,11 +2637,13 @@ bool RenderingDeviceDriverVulkan::command_buffer_begin(CommandBufferID p_cmd_buf
 bool RenderingDeviceDriverVulkan::command_buffer_begin_secondary(CommandBufferID p_cmd_buffer, RenderPassID p_render_pass, uint32_t p_subpass, FramebufferID p_framebuffer) {
 	// Reset is implicit (VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT).
 
+	Framebuffer *framebuffer = (Framebuffer *)(p_framebuffer.id);
+
 	VkCommandBufferInheritanceInfo inheritance_info = {};
 	inheritance_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 	inheritance_info.renderPass = (VkRenderPass)p_render_pass.id;
 	inheritance_info.subpass = p_subpass;
-	inheritance_info.framebuffer = (VkFramebuffer)p_framebuffer.id;
+	inheritance_info.framebuffer = framebuffer->vk_framebuffer;
 
 	VkCommandBufferBeginInfo cmd_buf_begin_info = {};
 	cmd_buf_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2950,12 +2953,16 @@ Error RenderingDeviceDriverVulkan::swap_chain_resize(CommandQueueID p_cmd_queue,
 	fb_create_info.height = surface->height;
 	fb_create_info.layers = 1;
 
-	VkFramebuffer framebuffer;
+	VkFramebuffer vk_framebuffer;
 	for (uint32_t i = 0; i < image_count; i++) {
 		fb_create_info.pAttachments = &swap_chain->image_views[i];
-		err = vkCreateFramebuffer(vk_device, &fb_create_info, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_FRAMEBUFFER), &framebuffer);
+		err = vkCreateFramebuffer(vk_device, &fb_create_info, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_FRAMEBUFFER), &vk_framebuffer);
 		ERR_FAIL_COND_V(err != VK_SUCCESS, ERR_CANT_CREATE);
 
+		Framebuffer *framebuffer = memnew(Framebuffer);
+		framebuffer->vk_framebuffer = vk_framebuffer;
+		framebuffer->swap_chain_image = swap_chain->images[i];
+		framebuffer->swap_chain_image_subresource_range = view_create_info.subresourceRange;
 		swap_chain->framebuffers.push_back(RDD::FramebufferID(framebuffer));
 	}
 
@@ -3024,7 +3031,10 @@ RDD::FramebufferID RenderingDeviceDriverVulkan::swap_chain_acquire_framebuffer(C
 	command_queue->pending_semaphores_for_fence.push_back(semaphore_index);
 
 	// Return the corresponding framebuffer to the new current image.
-	return swap_chain->framebuffers[swap_chain->image_index];
+	FramebufferID framebuffer_id = swap_chain->framebuffers[swap_chain->image_index];
+	Framebuffer *framebuffer = (Framebuffer *)(framebuffer_id.id);
+	framebuffer->swap_chain_acquired = true;
+	return framebuffer_id;
 }
 
 RDD::RenderPassID RenderingDeviceDriverVulkan::swap_chain_get_render_pass(SwapChainID p_swap_chain) {
@@ -3093,11 +3103,15 @@ RDD::FramebufferID RenderingDeviceDriverVulkan::framebuffer_create(RenderPassID 
 	}
 #endif
 
-	return FramebufferID(vk_framebuffer);
+	Framebuffer *framebuffer = memnew(Framebuffer);
+	framebuffer->vk_framebuffer = vk_framebuffer;
+	return FramebufferID(framebuffer);
 }
 
 void RenderingDeviceDriverVulkan::framebuffer_free(FramebufferID p_framebuffer) {
-	vkDestroyFramebuffer(vk_device, (VkFramebuffer)p_framebuffer.id, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_FRAMEBUFFER));
+	Framebuffer *framebuffer = (Framebuffer *)(p_framebuffer.id);
+	vkDestroyFramebuffer(vk_device, framebuffer->vk_framebuffer, VKC::get_allocation_callbacks(VK_OBJECT_TYPE_FRAMEBUFFER));
+	memdelete(framebuffer);
 }
 
 /****************/
@@ -4315,10 +4329,25 @@ void RenderingDeviceDriverVulkan::render_pass_free(RenderPassID p_render_pass) {
 static_assert(ARRAYS_COMPATIBLE_FIELDWISE(RDD::RenderPassClearValue, VkClearValue));
 
 void RenderingDeviceDriverVulkan::command_begin_render_pass(CommandBufferID p_cmd_buffer, RenderPassID p_render_pass, FramebufferID p_framebuffer, CommandBufferType p_cmd_buffer_type, const Rect2i &p_rect, VectorView<RenderPassClearValue> p_clear_values) {
+	Framebuffer *framebuffer = (Framebuffer *)(p_framebuffer.id);
+	if (framebuffer->swap_chain_acquired) {
+		// Insert a barrier to wait for the acquisition of the framebuffer before the render pass begins.
+		VkImageMemoryBarrier image_barrier = {};
+		image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		image_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		image_barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		image_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.image = framebuffer->swap_chain_image;
+		image_barrier.subresourceRange = framebuffer->swap_chain_image_subresource_range;
+		vkCmdPipelineBarrier((VkCommandBuffer)p_cmd_buffer.id, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_barrier);
+		framebuffer->swap_chain_acquired = false;
+	}
+
 	VkRenderPassBeginInfo render_pass_begin = {};
 	render_pass_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	render_pass_begin.renderPass = (VkRenderPass)p_render_pass.id;
-	render_pass_begin.framebuffer = (VkFramebuffer)p_framebuffer.id;
+	render_pass_begin.framebuffer = framebuffer->vk_framebuffer;
 
 	render_pass_begin.renderArea.offset.x = p_rect.position.x;
 	render_pass_begin.renderArea.offset.y = p_rect.position.y;

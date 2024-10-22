@@ -30,6 +30,8 @@
 
 #include "egl_manager.h"
 
+#include "drivers/gles3/rasterizer_gles3.h"
+
 #ifdef EGL_ENABLED
 
 #if defined(EGL_STATIC)
@@ -49,6 +51,16 @@ extern "C" EGLAPI EGLDisplay EGLAPIENTRY eglGetPlatformDisplayEXT(EGLenum platfo
 
 #ifndef EGL_EXT_platform_base
 #define GLAD_EGL_EXT_platform_base 0
+#endif
+
+#ifdef WINDOWS_ENABLED
+// Unofficial ANGLE extension: EGL_ANGLE_surface_orientation
+#ifndef EGL_OPTIMAL_SURFACE_ORIENTATION_ANGLE
+#define EGL_OPTIMAL_SURFACE_ORIENTATION_ANGLE 0x33A7
+#define EGL_SURFACE_ORIENTATION_ANGLE 0x33A8
+#define EGL_SURFACE_ORIENTATION_INVERT_X_ANGLE 0x0001
+#define EGL_SURFACE_ORIENTATION_INVERT_Y_ANGLE 0x0002
+#endif
 #endif
 
 // Creates and caches a GLDisplay. Returns -1 on error.
@@ -112,6 +124,18 @@ int EGLManager::_get_gldisplay_id(void *p_display) {
 #endif
 	if (has_blob_cache && !shader_cache_dir.is_empty()) {
 		eglSetBlobCacheFuncsANDROID(new_gldisplay.egl_display, &EGLManager::_set_cache, &EGLManager::_get_cache);
+	}
+#endif
+
+#ifdef WINDOWS_ENABLED
+	String client_extensions_string = eglQueryString(new_gldisplay.egl_display, EGL_EXTENSIONS);
+	if (eglGetError() == EGL_SUCCESS) {
+		Vector<String> egl_extensions = client_extensions_string.split(" ");
+
+		if (egl_extensions.has("EGL_ANGLE_surface_orientation")) {
+			new_gldisplay.has_EGL_ANGLE_surface_orientation = true;
+			print_verbose("EGL: EGL_ANGLE_surface_orientation is supported.");
+		}
 	}
 #endif
 
@@ -237,8 +261,29 @@ Error EGLManager::window_create(DisplayServer::WindowID p_window_id, void *p_dis
 	GLWindow &glwindow = windows[p_window_id];
 	glwindow.gldisplay_id = gldisplay_id;
 
+	Vector<EGLAttrib> egl_attribs;
+
+#ifdef WINDOWS_ENABLED
+	if (gldisplay.has_EGL_ANGLE_surface_orientation) {
+		EGLint optimal_orientation;
+		if (eglGetConfigAttrib(gldisplay.egl_display, gldisplay.egl_config, EGL_OPTIMAL_SURFACE_ORIENTATION_ANGLE, &optimal_orientation)) {
+			// We only need to support inverting Y for optimizing ANGLE on D3D11.
+			if (optimal_orientation & EGL_SURFACE_ORIENTATION_INVERT_Y_ANGLE && !(optimal_orientation & EGL_SURFACE_ORIENTATION_INVERT_X_ANGLE)) {
+				egl_attribs.push_back(EGL_SURFACE_ORIENTATION_ANGLE);
+				egl_attribs.push_back(EGL_SURFACE_ORIENTATION_INVERT_Y_ANGLE);
+			}
+		} else {
+			ERR_PRINT(vformat("Failed to get EGL_OPTIMAL_SURFACE_ORIENTATION_ANGLE, error: 0x%08X", eglGetError()));
+		}
+	}
+
+	if (!egl_attribs.is_empty()) {
+		egl_attribs.push_back(EGL_NONE);
+	}
+#endif
+
 	if (GLAD_EGL_VERSION_1_5) {
-		glwindow.egl_surface = eglCreatePlatformWindowSurface(gldisplay.egl_display, gldisplay.egl_config, p_native_window, nullptr);
+		glwindow.egl_surface = eglCreatePlatformWindowSurface(gldisplay.egl_display, gldisplay.egl_config, p_native_window, egl_attribs.ptr());
 	} else {
 		EGLNativeWindowType *native_window_type = (EGLNativeWindowType *)p_native_window;
 		glwindow.egl_surface = eglCreateWindowSurface(gldisplay.egl_display, gldisplay.egl_config, *native_window_type, nullptr);
@@ -249,6 +294,20 @@ Error EGLManager::window_create(DisplayServer::WindowID p_window_id, void *p_dis
 	}
 
 	glwindow.initialized = true;
+
+#ifdef WINDOWS_ENABLED
+	if (gldisplay.has_EGL_ANGLE_surface_orientation) {
+		EGLint orientation;
+		if (eglQuerySurface(gldisplay.egl_display, glwindow.egl_surface, EGL_SURFACE_ORIENTATION_ANGLE, &orientation)) {
+			if (orientation & EGL_SURFACE_ORIENTATION_INVERT_Y_ANGLE && !(orientation & EGL_SURFACE_ORIENTATION_INVERT_X_ANGLE)) {
+				glwindow.flipped_y = true;
+				print_verbose("EGL: Using optimal surface orientation: Invert Y");
+			}
+		} else {
+			ERR_PRINT(vformat("Failed to get EGL_SURFACE_ORIENTATION_ANGLE, error: 0x%08X", eglGetError()));
+		}
+	}
+#endif
 
 	window_make_current(p_window_id);
 
@@ -316,6 +375,10 @@ void EGLManager::window_make_current(DisplayServer::WindowID p_window_id) {
 	GLDisplay &current_display = displays[current_window->gldisplay_id];
 
 	eglMakeCurrent(current_display.egl_display, current_window->egl_surface, current_window->egl_surface, current_display.egl_context);
+
+#ifdef WINDOWS_ENABLED
+	RasterizerGLES3::set_screen_flipped_y(glwindow.flipped_y);
+#endif
 }
 
 void EGLManager::set_use_vsync(bool p_use) {

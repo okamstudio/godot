@@ -14,6 +14,8 @@ thirdparty_obj = []
 thirdparty_dir = "#thirdparty/basis_universal/"
 # Sync list with upstream CMakeLists.txt
 encoder_sources = [
+    "3rdparty/android_astc_decomp.cpp",
+    "basisu_astc_hdr_enc.cpp",
     "basisu_backend.cpp",
     "basisu_basis_file.cpp",
     "basisu_bc7enc.cpp",
@@ -44,6 +46,8 @@ else:
 
 if env["builtin_zstd"]:
     env_basisu.Prepend(CPPPATH=["#thirdparty/zstd"])
+
+env_basisu.Prepend(CPPPATH=["#thirdparty/tinyexr"])
 
 if env.dev_build:
     env_basisu.Append(CPPDEFINES=[("BASISU_DEVEL_MESSAGES", 1), ("BASISD_ENABLE_DEBUG_FLAGS", 1)])

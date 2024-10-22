@@ -13,6 +13,7 @@ namespace basist
 	const uint32_t UASTC_MODE_INDEX_SOLID_COLOR = 8;
 
 	const uint32_t TOTAL_ASTC_BC7_COMMON_PARTITIONS2 = 30;
+	const uint32_t TOTAL_ASTC_BC6H_COMMON_PARTITIONS2 = 27; // BC6H only supports only 5-bit pattern indices, BC7 supports 4-bit or 6-bit
 	const uint32_t TOTAL_ASTC_BC7_COMMON_PARTITIONS3 = 11;
 	const uint32_t TOTAL_BC7_3_ASTC2_COMMON_PARTITIONS = 19;
 

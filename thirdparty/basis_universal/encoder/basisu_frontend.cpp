@@ -1,5 +1,5 @@
 // basisu_frontend.cpp
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -2347,6 +2347,7 @@ namespace basisu
 						continue;
 
 					uint64_t overall_best_err = 0;
+					(void)overall_best_err;
 
 					uint64_t total_err[4][4][4];
 					clear_obj(total_err);

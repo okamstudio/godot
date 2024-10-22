@@ -4,6 +4,8 @@ from misc.utility.scons_hints import *
 import os
 from pathlib import Path
 
+import methods
+
 Import("env")
 
 env_d3d12_rdd = env.Clone()
@@ -139,6 +141,10 @@ else:
     extra_defines += [
         "HAVE_STRUCT_TIMESPEC",
     ]
+    if methods.using_gcc(env) and methods.get_compiler_version(env)["major"] < 13:
+        # `region` & `endregion` not recognized as valid pragmas.
+        env_d3d12_rdd.Append(CCFLAGS=["-Wno-unknown-pragmas"])
+        env.Append(CCFLAGS=["-Wno-unknown-pragmas"])
 
 # This is needed since rendering_device_d3d12.cpp needs to include some Mesa internals.
 env_d3d12_rdd.Prepend(CPPPATH=mesa_private_inc_paths)

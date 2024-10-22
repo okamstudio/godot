@@ -135,7 +135,7 @@ namespace Godot.SourceGenerators
         {
             ITypeParameterSymbol? typeParamSymbol = parentSymbol switch
             {
-                IMethodSymbol methodSymbol when parentSyntax.Parent is AttributeSyntax &&
+                IMethodSymbol methodSymbol when parentSyntax.Ancestors().Any(s => s is AttributeSyntax) &&
                                                 methodSymbol.ContainingType.TypeParameters.Length > 0
                     => methodSymbol.ContainingType.TypeParameters[typeArgumentIndex],
 

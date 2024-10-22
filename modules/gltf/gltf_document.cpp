@@ -613,12 +613,8 @@ Error GLTFDocument::_parse_nodes(Ref<GLTFState> p_state) {
 			if (n.has("scale")) {
 				node->set_scale(_arr_to_vec3(n["scale"]));
 			}
-
-			Transform3D godot_rest_transform;
-			godot_rest_transform.basis.set_quaternion_scale(node->transform.basis.get_rotation_quaternion(), node->transform.basis.get_scale());
-			godot_rest_transform.origin = node->transform.origin;
-			node->set_additional_data("GODOT_rest_transform", godot_rest_transform);
 		}
+		node->set_additional_data("GODOT_rest_transform", node->transform);
 
 		if (n.has("extensions")) {
 			Dictionary extensions = n["extensions"];

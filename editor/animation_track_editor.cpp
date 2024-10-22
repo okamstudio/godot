@@ -63,7 +63,7 @@
 
 constexpr double FPS_DECIMAL = 1.0;
 constexpr double SECOND_DECIMAL = 0.0001;
-constexpr double FACTOR = 0.0625;
+constexpr double FPS_STEP_FRACTION = 0.0625;
 
 void AnimationTrackKeyEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_obj"), &AnimationTrackKeyEdit::_update_obj);
@@ -4279,7 +4279,18 @@ void AnimationTrackEditor::insert_node_value_key(Node *p_node, const String &p_p
 	// Let's build a node path.
 	String path = root->get_path_to(p_node, true);
 
-	Variant value = p_node->get(p_property);
+	// Get the value from the subpath.
+	Variant value = p_node;
+	Vector<String> property_path = p_property.split(":");
+	for (const String &E : property_path) {
+		if (value.get_type() == Variant::OBJECT) {
+			Object *obj = value;
+			value = obj->get(E);
+		} else {
+			value = Variant();
+			break;
+		}
+	}
 
 	if (Object::cast_to<AnimationPlayer>(p_node) && p_property == "current_animation") {
 		if (p_node == AnimationPlayerEditor::get_singleton()->get_player()) {
@@ -5017,6 +5028,8 @@ void AnimationTrackEditor::_snap_mode_changed(int p_mode) {
 		key_edit->set_use_fps(use_fps);
 	}
 	marker_edit->set_use_fps(use_fps);
+	// To ensure that the conversion results are consistent between serialization and load, the value is snapped with 0.0625 to be a rational number when FPS mode is used.
+	step->set_step(use_fps ? FPS_STEP_FRACTION : SECOND_DECIMAL);
 	_update_step_spinbox();
 }
 
@@ -5144,12 +5157,12 @@ void AnimationTrackEditor::_update_step(double p_new_step) {
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Change Animation Step"));
-	// To ensure that the conversion results are consistent between serialization and load, the value is snapped with 0.0625 to be a rational number.
-	// step_value must also be less than or equal to 1000 to ensure that no error accumulates due to interactions with retrieving values from inner range.
-	double step_value = MIN(1000.0, Math::snapped(p_new_step, FACTOR));
+	double step_value = p_new_step;
 	if (timeline->is_using_fps()) {
 		if (step_value != 0.0) {
-			step_value = 1.0 / step_value;
+			// step_value must also be less than or equal to 1000 to ensure that no error accumulates due to interactions with retrieving values from inner range.
+			step_value = 1.0 / MIN(1000.0, p_new_step);
+			;
 		}
 		timeline->queue_redraw();
 	}
@@ -8750,7 +8763,7 @@ void AnimationMarkerEdit::_move_selection_commit() {
 void AnimationMarkerEdit::_delete_selected_markers() {
 	if (selection.size()) {
 		EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-		undo_redo->create_action(TTR("Animation Delete Keys"));
+		undo_redo->create_action(TTR("Animation Delete Markers"));
 		for (const StringName &name : selection) {
 			double time = animation->get_marker_time(name);
 			undo_redo->add_do_method(animation.ptr(), "remove_marker", name);
@@ -8954,7 +8967,7 @@ AnimationMarkerEdit::AnimationMarkerEdit() {
 	add_child(menu);
 	menu->connect(SceneStringName(id_pressed), callable_mp(this, &AnimationMarkerEdit::_menu_selected));
 	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/rename_marker", TTR("Rename Marker"), Key::R), MENU_KEY_RENAME);
-	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/delete_selection", TTR("Delete Markers (s)"), Key::KEY_DELETE), MENU_KEY_DELETE);
+	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/delete_selection", TTR("Delete Marker(s)"), Key::KEY_DELETE), MENU_KEY_DELETE);
 	menu->add_shortcut(ED_SHORTCUT("animation_marker_edit/toggle_marker_names", TTR("Show All Marker Names"), Key::M), MENU_KEY_TOGGLE_MARKER_NAMES);
 
 	marker_insert_confirm = memnew(ConfirmationDialog);

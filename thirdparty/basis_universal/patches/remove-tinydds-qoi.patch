@@ -1,0 +1,446 @@
+diff --git a/thirdparty/basis_universal/encoder/basisu_enc.cpp b/thirdparty/basis_universal/encoder/basisu_enc.cpp
+index 2bf486a0287..fff98e83014 100644
+--- a/thirdparty/basis_universal/encoder/basisu_enc.cpp
++++ b/thirdparty/basis_universal/encoder/basisu_enc.cpp
+@@ -37,9 +37,6 @@
+ #endif
+ #include "basisu_miniz.h"
+ 
+-#define QOI_IMPLEMENTATION
+-#include "3rdparty/qoi.h"
+-
+ #if defined(_WIN32)
+ // For QueryPerformanceCounter/QueryPerformanceFrequency
+ #define WIN32_LEAN_AND_MEAN
+@@ -408,16 +405,7 @@ namespace basisu
+ 
+ 	bool load_qoi(const char* pFilename, image& img)
+ 	{
+-		qoi_desc desc;
+-		clear_obj(desc);
+-
+-		void* p = qoi_read(pFilename, &desc, 4);
+-		if (!p)
+-			return false;
+-
+-		img.grant_ownership(static_cast<color_rgba *>(p), desc.width, desc.height);
+-
+-		return true;
++		return false;
+ 	}
+ 
+ 	bool load_png(const uint8_t *pBuf, size_t buf_size, image &img, const char *pFilename)
+diff --git a/thirdparty/basis_universal/encoder/basisu_gpu_texture.cpp b/thirdparty/basis_universal/encoder/basisu_gpu_texture.cpp
+index 000869a5337..342446b8fd4 100644
+--- a/thirdparty/basis_universal/encoder/basisu_gpu_texture.cpp
++++ b/thirdparty/basis_universal/encoder/basisu_gpu_texture.cpp
+@@ -19,9 +19,6 @@
+ #include "basisu_bc7enc.h"
+ #include "../transcoder/basisu_astc_hdr_core.h"
+ 
+-#define TINYDDS_IMPLEMENTATION
+-#include "3rdparty/tinydds.h"
+-
+ namespace basisu
+ {
+ 	//------------------------------------------------------------------------------------------------
+@@ -1979,208 +1976,8 @@ namespace basisu
+ 	// Accepts 2D, 2D mipmapped, 2D array, 2D array mipmapped
+ 	// and cubemap, cubemap mipmapped, and cubemap array mipmapped.
+ 	bool write_dds_file(uint8_vec &dds_data, const basisu::vector<gpu_image_vec>& gpu_images, bool cubemap_flag, bool use_srgb_format)
+-	{
+-		if (!gpu_images.size())
+-		{
+-			assert(0);
+-			return false;
+-		}
+-
+-		// Sanity check the input
+-		uint32_t slices = 1;
+-		if (cubemap_flag)
+-		{
+-			if ((gpu_images.size() % 6) != 0)
+-			{
+-				assert(0);
+-				return false;
+-			}
+-			slices = gpu_images.size() / 6;
+-		}
+-		else
+-		{
+-			slices = gpu_images.size();
+-		}
+-
+-		uint32_t width = 0, height = 0, total_levels = 0;
+-		basisu::texture_format fmt = texture_format::cInvalidTextureFormat;
+-
+-		// Sanity check the input for consistent # of dimensions and mip levels
+-		for (uint32_t array_index = 0; array_index < gpu_images.size(); array_index++)
+-		{
+-			const gpu_image_vec& levels = gpu_images[array_index];
+-
+-			if (!levels.size())
+-			{
+-				// Empty mip chain
+-				assert(0);
+-				return false;
+-			}
+-
+-			if (!array_index)
+-			{
+-				width = levels[0].get_pixel_width();
+-				height = levels[0].get_pixel_height();
+-				total_levels = (uint32_t)levels.size();
+-				fmt = levels[0].get_format();
+-			}
+-			else
+-			{
+-				if ((width != levels[0].get_pixel_width()) ||
+-					(height != levels[0].get_pixel_height()) ||
+-					(total_levels != levels.size()))
+-				{
+-					// All cubemap/texture array faces must be the same dimension
+-					assert(0);
+-					return false;
+-				}
+-			}
+-
+-			for (uint32_t level_index = 0; level_index < levels.size(); level_index++)
+-			{
+-				if (level_index)
+-				{
+-					if ((levels[level_index].get_pixel_width() != maximum<uint32_t>(1, levels[0].get_pixel_width() >> level_index)) ||
+-						(levels[level_index].get_pixel_height() != maximum<uint32_t>(1, levels[0].get_pixel_height() >> level_index)))
+-					{
+-						// Malformed mipmap chain
+-						assert(0);
+-						return false;
+-					}
+-				}
+-
+-				if (fmt != levels[level_index].get_format())
+-				{
+-					// All input textures must use the same GPU format
+-					assert(0);
+-					return false;
+-				}
+-			}
+-		}
+-
+-		// No mipmap levels
+-		if (!total_levels)
+-		{
+-			assert(0);
+-			return false;
+-		}
+-
+-		// Create the DDS mipmap level data
+-		uint8_vec mipmaps[32];
+-
+-		// See https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dds-file-layout-for-cubic-environment-maps
+-		// DDS cubemap organization is cubemap face 0 followed by all mips, then cubemap face 1 followed by all mips, etc.
+-		// Unfortunately tinydds.h's writer doesn't handle this case correctly, so we work around it here.
+-		// This also applies with 2D texture arrays, too. RenderDoc and ddsview (DirectXTex) views each type (cubemap array and 2D texture array) correctly.
+-		// Also see "Using Texture Arrays in Direct3D 10/11":
+-		// https://learn.microsoft.com/en-us/windows/win32/direct3ddds/dx-graphics-dds-pguide
+-		for (uint32_t array_index = 0; array_index < gpu_images.size(); array_index++)
+-		{
+-			const gpu_image_vec& levels = gpu_images[array_index];
+-
+-			for (uint32_t level_index = 0; level_index < levels.size(); level_index++)
+-			{
+-				append_vector(mipmaps[0], (uint8_t*)levels[level_index].get_ptr(), levels[level_index].get_size_in_bytes());
+-
+-			} // level_index
+-		} // array_index
+-
+-#if 0
+-		// This organization, required by tinydds.h's API, is wrong.
+-		{
+-			for (uint32_t array_index = 0; array_index < gpu_images.size(); array_index++)
+-			{
+-				const gpu_image_vec& levels = gpu_images[array_index];
+-
+-				for (uint32_t level_index = 0; level_index < levels.size(); level_index++)
+-				{
+-					append_vector(mipmaps[level_index], (uint8_t*)levels[level_index].get_ptr(), levels[level_index].get_size_in_bytes());
+-
+-				} // level_index
+-			} // array_index
+-		}
+-#endif
+-		
+-		// Write DDS file using tinydds
+-		TinyDDS_WriteCallbacks cbs;
+-		cbs.error = [](void* user, char const* msg) { BASISU_NOTE_UNUSED(user);  fprintf(stderr, "tinydds: %s\n", msg); };
+-		cbs.alloc = [](void* user, size_t size) -> void* { BASISU_NOTE_UNUSED(user); return malloc(size); };
+-		cbs.free = [](void* user, void* memory) { BASISU_NOTE_UNUSED(user); free(memory); };
+-		cbs.write = [](void* user, void const* buffer, size_t byteCount) { BASISU_NOTE_UNUSED(user); uint8_vec* pVec = (uint8_vec*)user; append_vector(*pVec, (const uint8_t*)buffer, byteCount); };
+-
+-		uint32_t mipmap_sizes[32];
+-		const void* mipmap_ptrs[32];
+-		
+-		clear_obj(mipmap_sizes);
+-		clear_obj(mipmap_ptrs);
+-
+-		assert(total_levels < 32);
+-		for (uint32_t i = 0; i < total_levels; i++)
+-		{
+-			mipmap_sizes[i] = mipmaps[i].size_in_bytes();
+-			mipmap_ptrs[i] = mipmaps[i].get_ptr();
+-		}
+-
+-		// Select tinydds texture format
+-		uint32_t tinydds_fmt = 0;
+-
+-		switch (fmt)
+-		{
+-			case texture_format::cBC1_NV:
+-			case texture_format::cBC1_AMD:
+-			case texture_format::cBC1: 
+-				tinydds_fmt = use_srgb_format ? TDDS_BC1_RGBA_SRGB_BLOCK : TDDS_BC1_RGBA_UNORM_BLOCK;
+-				break;
+-			case texture_format::cBC3:
+-				tinydds_fmt = use_srgb_format ? TDDS_BC3_SRGB_BLOCK : TDDS_BC3_UNORM_BLOCK;
+-				break;
+-			case texture_format::cBC4:
+-				tinydds_fmt = TDDS_BC4_UNORM_BLOCK;
+-				break;
+-			case texture_format::cBC5:
+-				tinydds_fmt = TDDS_BC5_UNORM_BLOCK;
+-				break;
+-			case texture_format::cBC6HSigned:
+-				tinydds_fmt = TDDS_BC6H_SFLOAT_BLOCK;
+-				break;
+-			case texture_format::cBC6HUnsigned:
+-				tinydds_fmt = TDDS_BC6H_UFLOAT_BLOCK;
+-				break;
+-			case texture_format::cBC7:
+-				tinydds_fmt = use_srgb_format ? TDDS_BC7_SRGB_BLOCK : TDDS_BC7_UNORM_BLOCK;
+-				break;
+-			default:
+-			{
+-				fprintf(stderr, "Warning: Unsupported format in write_dds_file().\n");
+-				return false;
+-			}
+-		}
+-
+-		// DirectXTex's DDSView doesn't handle odd sizes textures correctly. RenderDoc loads them fine, however.
+-		// Trying to work around this here results in invalid mipmaps. 
+-		//width = (width + 3) & ~3;
+-		//height = (height + 3) & ~3;
+-
+-		bool status = TinyDDS_WriteImage(&cbs,
+-			&dds_data,
+-			width,
+-			height,
+-			1,
+-			slices,
+-			total_levels,
+-			(TinyDDS_Format)tinydds_fmt,
+-			cubemap_flag,
+-			true,
+-			mipmap_sizes,
+-			mipmap_ptrs);
+-
+-		if (!status)
+-		{
+-			fprintf(stderr, "write_dds_file: Failed creating DDS file\n");
+-			return false;
+-		}
+-								
+-		return true;
++	{		
++		return false;
+ 	}
+ 
+ 	bool write_dds_file(const char* pFilename, const basisu::vector<gpu_image_vec>& gpu_images, bool cubemap_flag, bool use_srgb_format)
+@@ -2201,188 +1998,6 @@ namespace basisu
+ 		
+ 	bool read_uncompressed_dds_file(const char* pFilename, basisu::vector<image> &ldr_mips,	basisu::vector<imagef>& hdr_mips)
+ 	{
+-		const uint32_t MAX_IMAGE_DIM = 16384;
+-
+-		TinyDDS_Callbacks cbs;
+-
+-		cbs.errorFn = [](void* user, char const* msg) { BASISU_NOTE_UNUSED(user); fprintf(stderr, "tinydds: %s\n", msg); };
+-		cbs.allocFn = [](void* user, size_t size) -> void* { BASISU_NOTE_UNUSED(user); return malloc(size); };
+-		cbs.freeFn = [](void* user, void* memory) { BASISU_NOTE_UNUSED(user); free(memory); };
+-		cbs.readFn = [](void* user, void* buffer, size_t byteCount) -> size_t { return (size_t)fread(buffer, 1, byteCount, (FILE*)user); };
+-		
+-#ifdef _MSC_VER
+-		cbs.seekFn = [](void* user, int64_t ofs) -> bool { return _fseeki64((FILE*)user, ofs, SEEK_SET) == 0; };
+-		cbs.tellFn = [](void* user) -> int64_t { return _ftelli64((FILE*)user); };
+-#else
+-		cbs.seekFn = [](void* user, int64_t ofs) -> bool { return fseek((FILE*)user, (long)ofs, SEEK_SET) == 0; };
+-		cbs.tellFn = [](void* user) -> int64_t { return (int64_t)ftell((FILE*)user); };
+-#endif
+-
+-		FILE* pFile = fopen_safe(pFilename, "rb");
+-		if (!pFile)
+-		{
+-			error_printf("Can't open .DDS file \"%s\"\n", pFilename);
+-			return false;
+-		}
+-
+-		// These are the formats AMD Compressonator supports in its UI.
+-		enum dds_fmt
+-		{
+-			cRGBA32,
+-			cRGBA_HALF,
+-			cRGBA_FLOAT
+-		};
+-
+-		bool status = false;
+-		dds_fmt fmt = cRGBA32;
+-		uint32_t width = 0, height = 0;
+-		bool hdr_flag = false;
+-		TinyDDS_Format tfmt = TDDS_UNDEFINED;
+-
+-		TinyDDS_ContextHandle ctx = TinyDDS_CreateContext(&cbs, pFile);
+-		if (!ctx)
+-			goto failure;
+-
+-		status = TinyDDS_ReadHeader(ctx);
+-		if (!status)
+-		{
+-			error_printf("Failed parsing DDS header in file \"%s\"\n", pFilename);
+-			goto failure;
+-		}
+-				
+-		if ((!TinyDDS_Is2D(ctx)) || (TinyDDS_ArraySlices(ctx) > 1) || (TinyDDS_IsCubemap(ctx)))
+-		{
+-			error_printf("Unsupported DDS texture type in file \"%s\"\n", pFilename);
+-			goto failure;
+-		}
+-
+-		width = TinyDDS_Width(ctx);
+-		height = TinyDDS_Height(ctx);
+-						
+-		if (!width || !height)
+-		{
+-			error_printf("DDS texture dimensions invalid in file \"%s\"\n", pFilename);
+-			goto failure;
+-		}
+-
+-		if ((width > MAX_IMAGE_DIM) || (height > MAX_IMAGE_DIM))
+-		{
+-			error_printf("DDS texture dimensions too large in file \"%s\"\n", pFilename);
+-			goto failure;
+-		}
+-		
+-		tfmt = TinyDDS_GetFormat(ctx);
+-		switch (tfmt)
+-		{
+-		case TDDS_R8G8B8A8_SRGB:
+-		case TDDS_R8G8B8A8_UNORM:
+-		case TDDS_B8G8R8A8_SRGB:
+-		case TDDS_B8G8R8A8_UNORM:
+-			fmt = cRGBA32;
+-			break;
+-		case TDDS_R16G16B16A16_SFLOAT:
+-			fmt = cRGBA_HALF;
+-			hdr_flag = true;
+-			break;
+-		case TDDS_R32G32B32A32_SFLOAT:
+-			fmt = cRGBA_FLOAT;
+-			hdr_flag = true;
+-			break;
+-		default:
+-			error_printf("File \"%s\" has an unsupported DDS texture format (only supports RGBA/BGRA 32bpp, RGBA HALF float, or RGBA FLOAT)\n", pFilename);
+-			goto failure;
+-		}
+-
+-		if (hdr_flag)
+-			hdr_mips.resize(TinyDDS_NumberOfMipmaps(ctx));
+-		else
+-			ldr_mips.resize(TinyDDS_NumberOfMipmaps(ctx));
+-
+-		for (uint32_t level = 0; level < TinyDDS_NumberOfMipmaps(ctx); level++)
+-		{
+-			const uint32_t level_width = TinyDDS_MipMapReduce(width, level);
+-			const uint32_t level_height = TinyDDS_MipMapReduce(height, level);
+-			const uint32_t total_level_texels = level_width * level_height;
+-
+-			const void* pImage = TinyDDS_ImageRawData(ctx, level);
+-			const uint32_t image_size = TinyDDS_ImageSize(ctx, level);
+-
+-			if (fmt == cRGBA32)
+-			{
+-				ldr_mips[level].resize(level_width, level_height);
+-
+-				if ((ldr_mips[level].get_total_pixels() * sizeof(uint32_t) != image_size))
+-				{
+-					assert(0);
+-					goto failure;
+-				}
+-
+-				memcpy(ldr_mips[level].get_ptr(), pImage, image_size);
+-								
+-				if ((tfmt == TDDS_B8G8R8A8_SRGB) || (tfmt == TDDS_B8G8R8A8_UNORM))
+-				{
+-					// Swap R and B components.
+-					uint32_t *pTexels = (uint32_t *)ldr_mips[level].get_ptr();
+-					for (uint32_t i = 0; i < total_level_texels; i++)
+-					{
+-						const uint32_t v = pTexels[i];
+-						const uint32_t r = (v >> 16) & 0xFF;
+-						const uint32_t b = v & 0xFF;
+-						pTexels[i] = r | (b << 16) | (v & 0xFF00FF00);
+-					}
+-				}
+-			}
+-			else if (fmt == cRGBA_FLOAT)
+-			{
+-				hdr_mips[level].resize(level_width, level_height);
+-
+-				if ((hdr_mips[level].get_total_pixels() * sizeof(float) * 4 != image_size))
+-				{
+-					assert(0);
+-					goto failure;
+-				}
+-
+-				memcpy(hdr_mips[level].get_ptr(), pImage, image_size);
+-			}
+-			else if (fmt == cRGBA_HALF)
+-			{
+-				hdr_mips[level].resize(level_width, level_height);
+-				
+-				if ((hdr_mips[level].get_total_pixels() * sizeof(basist::half_float) * 4 != image_size))
+-				{
+-					assert(0);
+-					goto failure;
+-				}
+-
+-				// Unpack half to float.
+-				const basist::half_float* pSrc_comps = static_cast<const basist::half_float*>(pImage);
+-				vec4F* pDst_texels = hdr_mips[level].get_ptr();
+-				
+-				for (uint32_t i = 0; i < total_level_texels; i++)
+-				{
+-					(*pDst_texels)[0] = basist::half_to_float(pSrc_comps[0]);
+-					(*pDst_texels)[1] = basist::half_to_float(pSrc_comps[1]);
+-					(*pDst_texels)[2] = basist::half_to_float(pSrc_comps[2]);
+-					(*pDst_texels)[3] = basist::half_to_float(pSrc_comps[3]);
+-
+-					pSrc_comps += 4;
+-					pDst_texels++;
+-				} // y
+-			}
+-		} // level
+-
+-		TinyDDS_DestroyContext(ctx);
+-		fclose(pFile);
+-
+-		return true;
+-
+-	failure:
+-		if (ctx)
+-			TinyDDS_DestroyContext(ctx);
+-
+-		if (pFile)
+-			fclose(pFile);
+-
+ 		return false;
+ 	}
+ 

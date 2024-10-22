@@ -121,13 +121,8 @@ bool EditorPropertyFontOTObject::_property_can_revert(const StringName &p_name) 
 
 	if (name.begins_with("keys")) {
 		int key = name.get_slicec('/', 1).to_int();
-		if (defaults_dict.has(key) && dict.has(key)) {
-			int value = dict[key];
-			Vector3i range = defaults_dict[key];
-			return range.z != value;
-		}
+		return defaults_dict.has(key) && dict.has(key);
 	}
-
 	return false;
 }
 
@@ -142,7 +137,6 @@ bool EditorPropertyFontOTObject::_property_get_revert(const StringName &p_name, 
 			return true;
 		}
 	}
-
 	return false;
 }
 

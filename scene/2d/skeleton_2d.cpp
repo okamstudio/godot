@@ -159,7 +159,7 @@ void Bone2D::_notification(int p_what) {
 
 		case NOTIFICATION_EXIT_TREE: {
 			if (skeleton) {
-				for (int i = 0; i < skeleton->bones.size(); i++) {
+				for (uint32_t i = 0; i < skeleton->bones.size(); i++) {
 					if (skeleton->bones[i].bone == this) {
 						skeleton->bones.remove_at(i);
 						break;
@@ -555,17 +555,17 @@ void Skeleton2D::_update_bone_setup() {
 
 	bones.sort(); //sorting so that they are always in the same order/index
 
-	for (int i = 0; i < bones.size(); i++) {
-		bones.write[i].rest_inverse = bones[i].bone->get_skeleton_rest().affine_inverse(); //bind pose
-		bones.write[i].bone->skeleton_index = i;
+	for (uint32_t i = 0; i < bones.size(); i++) {
+		bones[i].rest_inverse = bones[i].bone->get_skeleton_rest().affine_inverse(); //bind pose
+		bones[i].bone->skeleton_index = i;
 		Bone2D *parent_bone = Object::cast_to<Bone2D>(bones[i].bone->get_parent());
 		if (parent_bone) {
-			bones.write[i].parent_index = parent_bone->skeleton_index;
+			bones[i].parent_index = parent_bone->skeleton_index;
 		} else {
-			bones.write[i].parent_index = -1;
+			bones[i].parent_index = -1;
 		}
 
-		bones.write[i].local_pose_override = bones[i].bone->get_skeleton_rest();
+		bones[i].local_pose_override = bones[i].bone->get_skeleton_rest();
 	}
 
 	transform_dirty = true;
@@ -594,16 +594,16 @@ void Skeleton2D::_update_transform() {
 
 	transform_dirty = false;
 
-	for (int i = 0; i < bones.size(); i++) {
-		ERR_CONTINUE(bones[i].parent_index >= i);
+	for (uint32_t i = 0; i < bones.size(); i++) {
+		ERR_CONTINUE(bones[i].parent_index >= (int)i);
 		if (bones[i].parent_index >= 0) {
-			bones.write[i].accum_transform = bones[bones[i].parent_index].accum_transform * bones[i].bone->get_transform();
+			bones[i].accum_transform = bones[bones[i].parent_index].accum_transform * bones[i].bone->get_transform();
 		} else {
-			bones.write[i].accum_transform = bones[i].bone->get_transform();
+			bones[i].accum_transform = bones[i].bone->get_transform();
 		}
 	}
 
-	for (int i = 0; i < bones.size(); i++) {
+	for (uint32_t i = 0; i < bones.size(); i++) {
 		Transform2D final_xform = bones[i].accum_transform * bones[i].rest_inverse;
 		RS::get_singleton()->skeleton_bone_set_transform_2d(skeleton, i, final_xform);
 	}
@@ -621,7 +621,7 @@ int Skeleton2D::get_bone_count() const {
 
 Bone2D *Skeleton2D::get_bone(int p_idx) {
 	ERR_FAIL_COND_V(!is_inside_tree(), nullptr);
-	ERR_FAIL_INDEX_V(p_idx, bones.size(), nullptr);
+	ERR_FAIL_INDEX_V(p_idx, (int)bones.size(), nullptr);
 
 	return bones[p_idx].bone;
 }
@@ -733,14 +733,14 @@ RID Skeleton2D::get_skeleton() const {
 }
 
 void Skeleton2D::set_bone_local_pose_override(int p_bone_idx, Transform2D p_override, real_t p_amount, bool p_persistent) {
-	ERR_FAIL_INDEX_MSG(p_bone_idx, bones.size(), "Bone index is out of range!");
-	bones.write[p_bone_idx].local_pose_override = p_override;
-	bones.write[p_bone_idx].local_pose_override_amount = p_amount;
-	bones.write[p_bone_idx].local_pose_override_persistent = p_persistent;
+	ERR_FAIL_INDEX_MSG(p_bone_idx, (int)bones.size(), "Bone index is out of range!");
+	bones[p_bone_idx].local_pose_override = p_override;
+	bones[p_bone_idx].local_pose_override_amount = p_amount;
+	bones[p_bone_idx].local_pose_override_persistent = p_persistent;
 }
 
 Transform2D Skeleton2D::get_bone_local_pose_override(int p_bone_idx) {
-	ERR_FAIL_INDEX_V_MSG(p_bone_idx, bones.size(), Transform2D(), "Bone index is out of range!");
+	ERR_FAIL_INDEX_V_MSG(p_bone_idx, (int)bones.size(), Transform2D(), "Bone index is out of range!");
 	return bones[p_bone_idx].local_pose_override;
 }
 
@@ -771,7 +771,7 @@ void Skeleton2D::execute_modifications(real_t p_delta, int p_execution_mode) {
 	}
 
 	// Do not cache the transform changes caused by the modifications!
-	for (int i = 0; i < bones.size(); i++) {
+	for (uint32_t i = 0; i < bones.size(); i++) {
 		bones[i].bone->copy_transform_to_cache = false;
 	}
 
@@ -783,7 +783,7 @@ void Skeleton2D::execute_modifications(real_t p_delta, int p_execution_mode) {
 
 	// Only apply the local pose override on _process. Otherwise, just calculate the local_pose_override and reset the transform.
 	if (p_execution_mode == SkeletonModificationStack2D::EXECUTION_MODE::execution_mode_process) {
-		for (int i = 0; i < bones.size(); i++) {
+		for (uint32_t i = 0; i < bones.size(); i++) {
 			if (bones[i].local_pose_override_amount > 0) {
 				bones[i].bone->set_meta("_local_pose_override_enabled_", true);
 
@@ -793,7 +793,7 @@ void Skeleton2D::execute_modifications(real_t p_delta, int p_execution_mode) {
 				bones[i].bone->propagate_call("force_update_transform");
 
 				if (bones[i].local_pose_override_persistent) {
-					bones.write[i].local_pose_override_amount = 0.0;
+					bones[i].local_pose_override_amount = 0.0;
 				}
 			} else {
 				// TODO: see if there is a way to undo the override without having to resort to setting every bone's transform.
@@ -804,7 +804,7 @@ void Skeleton2D::execute_modifications(real_t p_delta, int p_execution_mode) {
 	}
 
 	// Cache any future transform changes
-	for (int i = 0; i < bones.size(); i++) {
+	for (uint32_t i = 0; i < bones.size(); i++) {
 		bones[i].bone->copy_transform_to_cache = true;
 	}
 

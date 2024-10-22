@@ -1267,7 +1267,7 @@ private:
 		RDD::CommandBufferID command_buffer;
 		RDD::CommandPoolID command_pool;
 		RDD::FenceID command_fence;
-		RDD::SemaphoreID command_semaphore;
+		LocalVector<RDD::TextureBarrier> texture_barriers;
 		bool recording = false;
 		bool submitted = false;
 		BinaryMutex thread_mutex;
@@ -1281,20 +1281,22 @@ private:
 	uint32_t transfer_worker_pool_max_size = 1;
 	LocalVector<uint64_t> transfer_worker_operation_used_by_draw;
 	LocalVector<uint32_t> transfer_worker_pool_available_list;
+	LocalVector<RDD::TextureBarrier> transfer_worker_pool_texture_barriers;
 	BinaryMutex transfer_worker_pool_mutex;
 	ConditionVariable transfer_worker_pool_condition;
 
 	TransferWorker *_acquire_transfer_worker(uint32_t p_transfer_size, uint32_t p_required_align, uint32_t &r_staging_offset);
 	void _release_transfer_worker(TransferWorker *p_transfer_worker);
 	void _end_transfer_worker(TransferWorker *p_transfer_worker);
-	void _submit_transfer_worker(TransferWorker *p_transfer_worker, bool p_signal_semaphore);
+	void _submit_transfer_worker(TransferWorker *p_transfer_worker, VectorView<RDD::SemaphoreID> p_signal_semaphores = VectorView<RDD::SemaphoreID>());
 	void _wait_for_transfer_worker(TransferWorker *p_transfer_worker);
+	void _flush_barriers_for_transfer_worker(TransferWorker *p_transfer_worker);
 	void _check_transfer_worker_operation(uint32_t p_transfer_worker_index, uint64_t p_transfer_worker_operation);
 	void _check_transfer_worker_buffer(Buffer *p_buffer);
 	void _check_transfer_worker_texture(Texture *p_texture);
 	void _check_transfer_worker_vertex_array(VertexArray *p_vertex_array);
 	void _check_transfer_worker_index_array(IndexArray *p_index_array);
-	void _submit_transfer_workers(bool p_operations_used_by_draw);
+	void _submit_transfer_workers(RDD::CommandBufferID p_draw_command_buffer = RDD::CommandBufferID());
 	void _wait_for_transfer_workers();
 	void _free_transfer_workers();
 
@@ -1371,6 +1373,10 @@ private:
 
 		// Swap chains prepared for drawing during the frame that must be presented.
 		LocalVector<RDD::SwapChainID> swap_chains_to_present;
+
+		// Semaphores the transfer workers can use to wait before rendering the frame.
+		// This must have the same size of the transfer worker pool.
+		TightLocalVector<RDD::SemaphoreID> transfer_worker_semaphores;
 
 		// Extra command buffer pool used for driver workarounds.
 		RDG::CommandBufferPool command_buffer_pool;

@@ -257,22 +257,6 @@ EditorPaths::EditorPaths() {
 			}
 		}
 
-		// Check that `.editorconfig` file exists.
-		String project_editorconfig_path = "res://.editorconfig";
-		if (!FileAccess::exists(project_editorconfig_path)) {
-			Ref<FileAccess> f = FileAccess::open(project_editorconfig_path, FileAccess::WRITE);
-			if (f.is_valid()) {
-				f->store_line("root = true");
-				f->store_line("");
-				f->store_line("[*]");
-				f->store_line("charset = utf-8");
-				f->close();
-			} else {
-				ERR_PRINT("Failed to create file " + project_editorconfig_path.quote() + ".");
-			}
-			FileAccess::set_hidden_attribute(project_editorconfig_path, true);
-		}
-
 		Engine::get_singleton()->set_shader_cache_path(project_data_dir);
 
 		// Editor metadata dir.

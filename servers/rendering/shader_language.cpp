@@ -1305,6 +1305,7 @@ void ShaderLanguage::clear() {
 
 	include_markers_handled.clear();
 	calls_info.clear();
+	function_overload_count.clear();
 
 #ifdef DEBUG_ENABLED
 	keyword_completion_context = CF_UNSPECIFIED;
@@ -3554,6 +3555,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 	ERR_FAIL_COND_V(p_func->arguments[0]->type != Node::NODE_TYPE_VARIABLE, false);
 
 	StringName name = static_cast<VariableNode *>(p_func->arguments[0])->name.operator String();
+	StringName rname = static_cast<VariableNode *>(p_func->arguments[0])->rname.operator String();
 
 	for (int i = 1; i < p_func->arguments.size(); i++) {
 		args.push_back(p_func->arguments[i]->get_datatype());
@@ -3891,9 +3893,10 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 		}
 
 		bool fail = false;
+		bool use_constant_conversion = function_overload_count[rname] == 0;
 
 		for (int j = 0; j < args.size(); j++) {
-			if (get_scalar_type(args[j]) == args[j] && p_func->arguments[j + 1]->type == Node::NODE_TYPE_CONSTANT && args3[j] == 0 && convert_constant(static_cast<ConstantNode *>(p_func->arguments[j + 1]), pfunc->arguments[j].type)) {
+			if (use_constant_conversion && get_scalar_type(args[j]) == args[j] && p_func->arguments[j + 1]->type == Node::NODE_TYPE_CONSTANT && args3[j] == 0 && convert_constant(static_cast<ConstantNode *>(p_func->arguments[j + 1]), pfunc->arguments[j].type)) {
 				//all good, but it needs implicit conversion later
 			} else if (args[j] != pfunc->arguments[j].type || (args[j] == TYPE_STRUCT && args2[j] != pfunc->arguments[j].struct_name) || args3[j] != pfunc->arguments[j].array_size) {
 				String func_arg_name;
@@ -3919,7 +3922,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 					arg_name += "]";
 				}
 
-				_set_error(vformat(RTR("Invalid argument for \"%s(%s)\" function: argument %d should be %s but is %s."), String(name), arg_list, j + 1, func_arg_name, arg_name));
+				_set_error(vformat(RTR("Invalid argument for \"%s(%s)\" function: argument %d should be %s but is %s."), String(rname), arg_list, j + 1, func_arg_name, arg_name));
 				fail = true;
 				break;
 			}
@@ -3960,9 +3963,9 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 
 	if (exists) {
 		if (last_arg_count > args.size()) {
-			_set_error(vformat(RTR("Too few arguments for \"%s(%s)\" call. Expected at least %d but received %d."), String(name), arg_list, last_arg_count, args.size()));
+			_set_error(vformat(RTR("Too few arguments for \"%s(%s)\" call. Expected at least %d but received %d."), String(rname), arg_list, last_arg_count, args.size()));
 		} else if (last_arg_count < args.size()) {
-			_set_error(vformat(RTR("Too many arguments for \"%s(%s)\" call. Expected at most %d but received %d."), String(name), arg_list, last_arg_count, args.size()));
+			_set_error(vformat(RTR("Too many arguments for \"%s(%s)\" call. Expected at most %d but received %d."), String(rname), arg_list, last_arg_count, args.size()));
 		}
 	}
 
@@ -5822,7 +5825,111 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 						}
 					}
 
-					const StringName &name = identifier;
+					const StringName &rname = identifier;
+					StringName name = identifier;
+
+					OperatorNode *func = alloc_node<OperatorNode>();
+					func->op = OP_CALL;
+
+					VariableNode *funcname = alloc_node<VariableNode>();
+					funcname->name = name;
+					funcname->rname = name;
+
+					func->arguments.push_back(funcname);
+
+					int carg = -1;
+
+					bool ok = _parse_function_arguments(p_block, p_function_info, func, &carg);
+
+					// Check if block has a variable with the same name as function to prevent shader crash.
+					ShaderLanguage::BlockNode *bnode = p_block;
+					while (bnode) {
+						if (bnode->variables.has(name)) {
+							_set_error(RTR("Expected a function name."));
+							return nullptr;
+						}
+						bnode = bnode->parent_block;
+					}
+
+					// Test if function was parsed first.
+					int function_index = -1;
+					for (int i = 0, max_valid_args = 0; i < shader->vfunctions.size(); i++) {
+						if (!shader->vfunctions[i].callable || shader->vfunctions[i].rname != rname) {
+							continue;
+						}
+
+						bool found = true;
+						int valid_args = 0;
+
+						// Search for correct overload.
+						for (int j = 1; j < func->arguments.size(); j++) {
+							if (j - 1 == shader->vfunctions[i].function->arguments.size()) {
+								found = false;
+								break;
+							}
+
+							const FunctionNode::Argument &a = shader->vfunctions[i].function->arguments[j - 1];
+							Node *b = func->arguments[j];
+
+							if (a.type == b->get_datatype() && a.array_size == b->get_array_size()) {
+								if (a.type == TYPE_STRUCT) {
+									if (a.struct_name != b->get_datatype_name()) {
+										found = false;
+										break;
+									} else {
+										valid_args++;
+									}
+								} else {
+									valid_args++;
+								}
+							} else {
+								if (function_overload_count[rname] == 0 && get_scalar_type(a.type) == a.type && b->type == Node::NODE_TYPE_CONSTANT && a.array_size == 0 && convert_constant(static_cast<ConstantNode *>(b), a.type)) {
+									// Implicit cast if no overloads.
+									continue;
+								}
+								found = false;
+								break;
+							}
+						}
+
+						// Using the best match index for completion hint if the function not found.
+						if (valid_args > max_valid_args) {
+							name = shader->vfunctions[i].name;
+							funcname->name = name;
+							max_valid_args = valid_args;
+						}
+
+						if (!found) {
+							continue;
+						}
+
+						// Add to current function as dependency.
+						for (int j = 0; j < shader->vfunctions.size(); j++) {
+							if (shader->vfunctions[j].name == current_function) {
+								shader->vfunctions.write[j].uses_function.insert(name);
+								break;
+							}
+						}
+
+						name = shader->vfunctions[i].name;
+						funcname->name = name;
+
+						// See if texture arguments must connect.
+						function_index = i;
+						break;
+					}
+
+					if (carg >= 0) {
+						completion_type = COMPLETION_CALL_ARGUMENTS;
+						completion_line = tk_line;
+						completion_block = p_block;
+						completion_function = funcname->name;
+						completion_argument = carg;
+					}
+
+					if (!ok) {
+						return nullptr;
+					}
 
 					if (name != current_function) { // Recursion is not allowed.
 						// Register call.
@@ -5854,59 +5961,9 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 						}
 					}
 
-					OperatorNode *func = alloc_node<OperatorNode>();
-					func->op = OP_CALL;
-					VariableNode *funcname = alloc_node<VariableNode>();
-					funcname->name = name;
-					func->arguments.push_back(funcname);
-
-					int carg = -1;
-
-					bool ok = _parse_function_arguments(p_block, p_function_info, func, &carg);
-
-					// Check if block has a variable with the same name as function to prevent shader crash.
-					ShaderLanguage::BlockNode *bnode = p_block;
-					while (bnode) {
-						if (bnode->variables.has(name)) {
-							_set_error(RTR("Expected a function name."));
-							return nullptr;
-						}
-						bnode = bnode->parent_block;
-					}
-
-					//test if function was parsed first
-					int function_index = -1;
-					for (int i = 0; i < shader->vfunctions.size(); i++) {
-						if (shader->vfunctions[i].name == name) {
-							//add to current function as dependency
-							for (int j = 0; j < shader->vfunctions.size(); j++) {
-								if (shader->vfunctions[j].name == current_function) {
-									shader->vfunctions.write[j].uses_function.insert(name);
-									break;
-								}
-							}
-
-							//see if texture arguments must connect
-							function_index = i;
-							break;
-						}
-					}
-
-					if (carg >= 0) {
-						completion_type = COMPLETION_CALL_ARGUMENTS;
-						completion_line = tk_line;
-						completion_block = p_block;
-						completion_function = funcname->name;
-						completion_argument = carg;
-					}
-
-					if (!ok) {
-						return nullptr;
-					}
-
 					bool is_custom_func = false;
 					if (!_validate_function_call(p_block, p_function_info, func, &func->return_cache, &func->struct_name, &is_custom_func)) {
-						_set_error(vformat(RTR("No matching function found for: '%s'."), String(funcname->name)));
+						_set_error(vformat(RTR("No matching function found for: '%s'."), String(funcname->rname)));
 						return nullptr;
 					}
 					completion_class = TAG_GLOBAL; // reset sub-class
@@ -6095,7 +6152,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					}
 					expr = func;
 #ifdef DEBUG_ENABLED
-					if (check_warnings) {
+					if (check_warnings && is_custom_func) {
 						StringName func_name;
 
 						if (p_block && p_block->parent_function) {
@@ -9089,10 +9146,6 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 						_set_error(vformat(RTR("Uniform instances are not yet implemented for '%s' shaders."), shader_type_identifier));
 						return ERR_PARSE_ERROR;
 					}
-					if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-						_set_error(RTR("Uniform instances are not supported in gl_compatibility shaders."));
-						return ERR_PARSE_ERROR;
-					}
 					if (uniform_scope == ShaderNode::Uniform::SCOPE_LOCAL) {
 						tk = _get_token();
 						if (tk.type != TK_UNIFORM) {
@@ -9936,7 +9989,8 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 					return ERR_PARSE_ERROR;
 				}
 
-				if (shader->structs.has(name) || _find_identifier(nullptr, false, constants, name) || has_builtin(p_functions, name, !is_constant)) {
+				IdentifierType itype;
+				if (shader->structs.has(name) || (_find_identifier(nullptr, false, constants, name, nullptr, &itype) && itype != IDENTIFIER_FUNCTION) || has_builtin(p_functions, name, !is_constant)) {
 					_set_redefinition_error(String(name));
 					return ERR_PARSE_ERROR;
 				}
@@ -10264,20 +10318,13 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 				function.callable = !p_functions.has(name);
 				function.name = name;
+				function.rname = name;
 
 				FunctionNode *func_node = alloc_node<FunctionNode>();
-
 				function.function = func_node;
 
-				shader->functions.insert(name, function);
-				shader->vfunctions.push_back(function);
-
-				CallInfo call_info;
-				call_info.name = name;
-
-				calls_info.insert(name, call_info);
-
 				func_node->name = name;
+				func_node->rname = name;
 				func_node->return_type = type;
 				func_node->return_struct_name = struct_name;
 				func_node->return_precision = precision;
@@ -10285,12 +10332,12 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 				if (p_functions.has(name)) {
 					func_node->can_discard = p_functions[name].can_discard;
+				}
+
+				if (!function_overload_count.has(name)) {
+					function_overload_count.insert(name, 0);
 				} else {
-#ifdef DEBUG_ENABLED
-					if (check_warnings && HAS_WARNING(ShaderWarning::UNUSED_FUNCTION_FLAG)) {
-						used_functions.insert(name, Usage(tk_line));
-					}
-#endif // DEBUG_ENABLED
+					function_overload_count[name]++;
 				}
 
 				func_node->body = alloc_node<BlockNode>();
@@ -10470,7 +10517,6 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 					param_name = tk.text;
 
-					ShaderLanguage::IdentifierType itype;
 					if (_find_identifier(func_node->body, false, builtins, param_name, (ShaderLanguage::DataType *)nullptr, &itype)) {
 						if (itype != IDENTIFIER_FUNCTION) {
 							_set_redefinition_error(String(param_name));
@@ -10516,6 +10562,66 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 					}
 				}
 
+				// Searches for function index and check for the exact duplicate in overloads.
+				int function_index = 0;
+				for (int i = 0; i < shader->vfunctions.size(); i++) {
+					if (!shader->vfunctions[i].callable || shader->vfunctions[i].rname != name) {
+						continue;
+					}
+
+					function_index++;
+
+					if (shader->vfunctions[i].function->arguments.size() != func_node->arguments.size()) {
+						continue;
+					}
+
+					bool is_same = true;
+
+					for (int j = 0; j < shader->vfunctions[i].function->arguments.size(); j++) {
+						FunctionNode::Argument a = func_node->arguments[j];
+						FunctionNode::Argument b = shader->vfunctions[i].function->arguments[j];
+
+						if (a.type == b.type && a.array_size == b.array_size) {
+							if (a.type == TYPE_STRUCT) {
+								is_same = a.struct_name == b.struct_name;
+							}
+						} else {
+							is_same = false;
+						}
+
+						if (!is_same) {
+							break;
+						}
+					}
+
+					if (is_same) {
+						_set_redefinition_error(String(name));
+						return ERR_PARSE_ERROR;
+					}
+				}
+
+				// Creates a fake name for function overload, which will be replaced by the real name by the compiler.
+				String name2 = name;
+				if (function_index > 0) {
+					name2 = vformat("%s@%s", name, itos(function_index + 1));
+
+					function.name = name2;
+					func_node->name = name2;
+				}
+
+				shader->functions.insert(name2, function);
+				shader->vfunctions.push_back(function);
+
+				CallInfo call_info;
+				call_info.name = name2;
+				calls_info.insert(name2, call_info);
+
+#ifdef DEBUG_ENABLED
+				if (check_warnings && HAS_WARNING(ShaderWarning::UNUSED_FUNCTION_FLAG) && !p_functions.has(name)) {
+					used_functions.insert(name2, Usage(tk_line));
+				}
+#endif // DEBUG_ENABLED
+
 				if (p_functions.has(name)) {
 					//if one of the core functions, make sure they are of the correct form
 					if (func_node->arguments.size() > 0) {
@@ -10535,7 +10641,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 					return ERR_PARSE_ERROR;
 				}
 
-				current_function = name;
+				current_function = name2;
 
 #ifdef DEBUG_ENABLED
 				keyword_completion_context = CF_BLOCK;
@@ -11048,7 +11154,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 					if (!shader->vfunctions[i].callable || shader->vfunctions[i].name == skip_function) {
 						continue;
 					}
-					matches.insert(String(shader->vfunctions[i].name), ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
+					matches.insert(String(shader->vfunctions[i].rname), ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
 				}
 
 				int idx = 0;
@@ -11099,6 +11205,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 		case COMPLETION_CALL_ARGUMENTS: {
 			StringName block_function;
 			BlockNode *block = completion_block;
+			String calltip;
 
 			while (block) {
 				if (block->parent_function) {
@@ -11107,85 +11214,83 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				block = block->parent_block;
 			}
 
-			for (int i = 0; i < shader->vfunctions.size(); i++) {
-				if (!shader->vfunctions[i].callable) {
+			for (int i = 0, overload_index = 0; i < shader->vfunctions.size(); i++) {
+				if (!shader->vfunctions[i].callable || shader->vfunctions[i].rname != completion_function) {
 					continue;
 				}
-				if (shader->vfunctions[i].name == completion_function) {
-					String calltip;
 
-					if (shader->vfunctions[i].function->return_type == TYPE_STRUCT) {
-						calltip += String(shader->vfunctions[i].function->return_struct_name);
+				if (shader->vfunctions[i].function->return_type == TYPE_STRUCT) {
+					calltip += String(shader->vfunctions[i].function->return_struct_name);
+				} else {
+					calltip += get_datatype_name(shader->vfunctions[i].function->return_type);
+				}
+
+				if (shader->vfunctions[i].function->return_array_size > 0) {
+					calltip += "[";
+					calltip += itos(shader->vfunctions[i].function->return_array_size);
+					calltip += "]";
+				}
+
+				calltip += " ";
+				calltip += shader->vfunctions[i].rname;
+				calltip += "(";
+
+				for (int j = 0; j < shader->vfunctions[i].function->arguments.size(); j++) {
+					if (j > 0) {
+						calltip += ", ";
 					} else {
-						calltip += get_datatype_name(shader->vfunctions[i].function->return_type);
+						calltip += " ";
 					}
 
-					if (shader->vfunctions[i].function->return_array_size > 0) {
+					if (j == completion_argument) {
+						calltip += char32_t(0xFFFF);
+					}
+
+					if (shader->vfunctions[i].function->arguments[j].is_const) {
+						calltip += "const ";
+					}
+
+					if (shader->vfunctions[i].function->arguments[j].qualifier != ArgumentQualifier::ARGUMENT_QUALIFIER_IN) {
+						if (shader->vfunctions[i].function->arguments[j].qualifier == ArgumentQualifier::ARGUMENT_QUALIFIER_OUT) {
+							calltip += "out ";
+						} else { // ArgumentQualifier::ARGUMENT_QUALIFIER_INOUT
+							calltip += "inout ";
+						}
+					}
+
+					if (shader->vfunctions[i].function->arguments[j].type == TYPE_STRUCT) {
+						calltip += String(shader->vfunctions[i].function->arguments[j].struct_name);
+					} else {
+						calltip += get_datatype_name(shader->vfunctions[i].function->arguments[j].type);
+					}
+					calltip += " ";
+					calltip += shader->vfunctions[i].function->arguments[j].name;
+
+					if (shader->vfunctions[i].function->arguments[j].array_size > 0) {
 						calltip += "[";
-						calltip += itos(shader->vfunctions[i].function->return_array_size);
+						calltip += itos(shader->vfunctions[i].function->arguments[j].array_size);
 						calltip += "]";
 					}
 
-					calltip += " ";
-					calltip += shader->vfunctions[i].name;
-					calltip += "(";
-
-					for (int j = 0; j < shader->vfunctions[i].function->arguments.size(); j++) {
-						if (j > 0) {
-							calltip += ", ";
-						} else {
-							calltip += " ";
-						}
-
-						if (j == completion_argument) {
-							calltip += char32_t(0xFFFF);
-						}
-
-						if (shader->vfunctions[i].function->arguments[j].is_const) {
-							calltip += "const ";
-						}
-
-						if (shader->vfunctions[i].function->arguments[j].qualifier != ArgumentQualifier::ARGUMENT_QUALIFIER_IN) {
-							if (shader->vfunctions[i].function->arguments[j].qualifier == ArgumentQualifier::ARGUMENT_QUALIFIER_OUT) {
-								calltip += "out ";
-							} else { // ArgumentQualifier::ARGUMENT_QUALIFIER_INOUT
-								calltip += "inout ";
-							}
-						}
-
-						if (shader->vfunctions[i].function->arguments[j].type == TYPE_STRUCT) {
-							calltip += String(shader->vfunctions[i].function->arguments[j].struct_name);
-						} else {
-							calltip += get_datatype_name(shader->vfunctions[i].function->arguments[j].type);
-						}
-						calltip += " ";
-						calltip += shader->vfunctions[i].function->arguments[j].name;
-
-						if (shader->vfunctions[i].function->arguments[j].array_size > 0) {
-							calltip += "[";
-							calltip += itos(shader->vfunctions[i].function->arguments[j].array_size);
-							calltip += "]";
-						}
-
-						if (j == completion_argument) {
-							calltip += char32_t(0xFFFF);
-						}
+					if (j == completion_argument) {
+						calltip += char32_t(0xFFFF);
 					}
-
-					if (shader->vfunctions[i].function->arguments.size()) {
-						calltip += " ";
-					}
-					calltip += ")";
-
-					r_call_hint = calltip;
-					return OK;
 				}
+
+				if (shader->vfunctions[i].function->arguments.size()) {
+					calltip += " ";
+				}
+				calltip += ")";
+
+				if (overload_index < function_overload_count[shader->vfunctions[i].rname]) {
+					overload_index++;
+					calltip += "\n";
+					continue;
+				}
+
+				r_call_hint = calltip;
+				return OK;
 			}
-
-			int idx = 0;
-
-			String calltip;
-			bool low_end = RenderingServer::get_singleton()->is_low_end();
 
 			if (stages && stages->has(block_function)) {
 				for (const KeyValue<StringName, StageFunctionInfo> &E : (*stages)[block_function].stage_functions) {
@@ -11225,6 +11330,9 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 					}
 				}
 			}
+
+			int idx = 0;
+			bool low_end = RenderingServer::get_singleton()->is_low_end();
 
 			while (builtin_func_defs[idx].name) {
 				if ((low_end && builtin_func_defs[idx].high_end) || _check_restricted_func(builtin_func_defs[idx].name, block_function)) {

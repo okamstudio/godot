@@ -105,10 +105,6 @@ layout(location = 6) mediump out vec3 binormal_interp;
 layout(location = 7) highp out vec4 diffuse_light_interp;
 layout(location = 8) highp out vec4 specular_light_interp;
 
-layout(constant_id = 9) const bool sc_disable_omni_lights = false;
-layout(constant_id = 10) const bool sc_disable_spot_lights = false;
-layout(constant_id = 12) const bool sc_disable_directional_lights = false;
-
 #include "../scene_forward_vertex_lights_inc.glsl"
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
 #ifdef MATERIAL_UNIFORMS_USED
@@ -1606,7 +1602,6 @@ void main() {
 #endif
 #undef BIAS_FUNC
 			}
-#endif
 
 			if (i < 4) {
 				shadow0 |= uint(clamp(shadow * 255.0, 0.0, 255.0)) << (i * 8);
@@ -1614,6 +1609,7 @@ void main() {
 				shadow1 |= uint(clamp(shadow * 255.0, 0.0, 255.0)) << ((i - 4) * 8);
 			}
 		}
+#endif // SHADOWS_DISABLED
 
 #ifndef USE_VERTEX_LIGHTING
 		for (uint i = 0; i < scene_data.directional_light_count; i++) {

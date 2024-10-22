@@ -1424,24 +1424,20 @@ Variant _EDITOR_GET(const String &p_setting) {
 }
 
 bool EditorSettings::_property_can_revert(const StringName &p_name) const {
-	if (!props.has(p_name)) {
-		return false;
+	const VariantContainer *property = props.getptr(p_name);
+	if (property) {
+		return property->has_default_value;
 	}
-
-	if (!props[p_name].has_default_value) {
-		return false;
-	}
-
-	return props[p_name].initial != props[p_name].variant;
+	return false;
 }
 
 bool EditorSettings::_property_get_revert(const StringName &p_name, Variant &r_property) const {
-	if (!props.has(p_name) || !props[p_name].has_default_value) {
-		return false;
+	const VariantContainer *value = props.getptr(p_name);
+	if (value && value->has_default_value) {
+		r_property = value->initial;
+		return true;
 	}
-
-	r_property = props[p_name].initial;
-	return true;
+	return false;
 }
 
 void EditorSettings::add_property_hint(const PropertyInfo &p_hint) {

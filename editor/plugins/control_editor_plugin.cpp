@@ -31,7 +31,6 @@
 #include "control_editor_plugin.h"
 
 #include "editor/editor_node.h"
-#include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
@@ -511,6 +510,9 @@ void ControlEditorPopupButton::_notification(int p_what) {
 		case NOTIFICATION_DRAW: {
 			if (arrow_icon.is_valid()) {
 				Vector2 arrow_pos = Point2(26, 0) * EDSCALE;
+				if (is_layout_rtl()) {
+					arrow_pos.x = get_size().x - arrow_pos.x - arrow_icon->get_width();
+				}
 				arrow_pos.y = get_size().y / 2 - arrow_icon->get_height() / 2;
 				draw_texture(arrow_icon, arrow_pos);
 			}

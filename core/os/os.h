@@ -32,7 +32,6 @@
 #define OS_H
 
 #include "core/config/engine.h"
-#include "core/io/image.h"
 #include "core/io/logger.h"
 #include "core/io/remote_filesystem_client.h"
 #include "core/os/time_enums.h"

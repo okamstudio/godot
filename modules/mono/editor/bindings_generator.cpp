@@ -2348,9 +2348,17 @@ Error BindingsGenerator::_generate_cs_type(const TypeInterface &itype, const Str
 
 	int method_bind_count = 0;
 	for (const MethodInterface &imethod : itype.methods) {
-		Error method_err = _generate_cs_method(itype, imethod, method_bind_count, output);
+		Error method_err = _generate_cs_method(itype, imethod, method_bind_count, output, false);
 		ERR_FAIL_COND_V_MSG(method_err != OK, method_err,
 				"Failed to generate method '" + imethod.name + "' for class '" + itype.name + "'.");
+		if (imethod.is_internal) {
+			// No need to generate span overloads for internal methods.
+			continue;
+		}
+
+		method_err = _generate_cs_method(itype, imethod, method_bind_count, output, true);
+		ERR_FAIL_COND_V_MSG(method_err != OK, method_err,
+				"Failed to generate span overload method '" + imethod.name + "' for class '" + itype.name + "'.");
 	}
 
 	// Signals
@@ -2776,7 +2784,7 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 	return OK;
 }
 
-Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterface &p_itype, const BindingsGenerator::MethodInterface &p_imethod, int &p_method_bind_count, StringBuilder &p_output) {
+Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterface &p_itype, const BindingsGenerator::MethodInterface &p_imethod, int &p_method_bind_count, StringBuilder &p_output, bool p_use_span) {
 	const TypeInterface *return_type = _get_type_or_singleton_or_null(p_imethod.return_type);
 	ERR_FAIL_NULL_V_MSG(return_type, ERR_BUG, "Return type '" + p_imethod.return_type.cname + "' was not found.");
 
@@ -2787,6 +2795,35 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 		ERR_FAIL_COND_V_MSG(return_type->api_type == ClassDB::API_EDITOR, ERR_BUG,
 				"Method '" + p_itype.name + "." + p_imethod.name + "' has return type '" + return_type->name +
 						"' from the editor API. Core API cannot have dependencies on the editor API.");
+	}
+
+	if (p_imethod.is_virtual && p_use_span) {
+		return OK;
+	}
+
+	bool has_span_argument = false;
+
+	if (p_use_span) {
+		if (p_imethod.is_vararg) {
+			has_span_argument = true;
+		} else {
+			for (const ArgumentInterface &iarg : p_imethod.arguments) {
+				const TypeInterface *arg_type = _get_type_or_singleton_or_null(iarg.type);
+				ERR_FAIL_NULL_V_MSG(arg_type, ERR_BUG, "Argument type '" + iarg.type.cname + "' was not found.");
+
+				if (arg_type->is_span_compatible) {
+					has_span_argument = true;
+					break;
+				}
+			}
+		}
+
+		if (has_span_argument) {
+			// Span overloads use the same method bind as the array overloads.
+			// Since both overloads are generated one after the other, we can decrease the count here
+			// to ensure the span overload uses the same method bind.
+			p_method_bind_count--;
+		}
 	}
 
 	String method_bind_field = CS_STATIC_FIELD_METHOD_BIND_PREFIX + itos(p_method_bind_count);
@@ -2835,6 +2872,8 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 		String arg_cs_type = arg_type->cs_type + _get_generic_type_parameters(*arg_type, iarg.type.generic_type_parameters);
 
+		bool use_span_for_arg = p_use_span && arg_type->is_span_compatible;
+
 		// Add the current arguments to the signature
 		// If the argument has a default value which is not a constant, we will make it Nullable
 		{
@@ -2846,7 +2885,11 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 				arguments_sig += "Nullable<";
 			}
 
-			arguments_sig += arg_cs_type;
+			if (use_span_for_arg) {
+				arguments_sig += arg_type->c_type_in;
+			} else {
+				arguments_sig += arg_cs_type;
+			}
 
 			if (iarg.def_param_mode == ArgumentInterface::NULLABLE_VAL) {
 				arguments_sig += "> ";
@@ -2856,7 +2899,7 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 			arguments_sig += iarg.name;
 
-			if (!p_imethod.is_compat && iarg.default_argument.size()) {
+			if (!p_use_span && !p_imethod.is_compat && iarg.default_argument.size()) {
 				if (iarg.def_param_mode != ArgumentInterface::CONSTANT) {
 					arguments_sig += " = null";
 				} else {
@@ -2867,7 +2910,7 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 		icall_params += ", ";
 
-		if (iarg.default_argument.size() && iarg.def_param_mode != ArgumentInterface::CONSTANT) {
+		if (iarg.default_argument.size() && iarg.def_param_mode != ArgumentInterface::CONSTANT && !use_span_for_arg) {
 			// The default value of an argument must be constant. Otherwise we make it Nullable and do the following:
 			// Type arg_in = arg.HasValue ? arg.Value : <non-const default value>;
 			String arg_or_defval_local = iarg.name;
@@ -2927,6 +2970,10 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 		cs_in_expr_is_unsafe |= arg_type->cs_in_expr_is_unsafe;
 	}
 
+	if (p_use_span && !has_span_argument) {
+		return OK;
+	}
+
 	// Collect caller name for MethodBind
 	if (p_imethod.is_vararg) {
 		icall_params += ", (godot_string_name)MethodName." + p_imethod.proxy_name + ".NativeValue";
@@ -2934,7 +2981,7 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 	// Generate method
 	{
-		if (!p_imethod.is_virtual && !p_imethod.requires_object_call) {
+		if (!p_imethod.is_virtual && !p_imethod.requires_object_call && !p_use_span) {
 			p_output << MEMBER_BEGIN "[DebuggerBrowsable(DebuggerBrowsableState.Never)]\n"
 					 << INDENT1 "private static readonly IntPtr " << method_bind_field << " = ";
 
@@ -4734,13 +4781,14 @@ void BindingsGenerator::_populate_builtin_type_interfaces() {
 	itype = TypeInterface();
 	itype.name = "VarArg";
 	itype.cname = itype.name;
-	itype.proxy_name = "Variant[]";
+	itype.proxy_name = "ReadOnlySpan<Variant>";
 	itype.cs_type = "params Variant[]";
-	itype.cs_in_expr = "%0 ?? Array.Empty<Variant>()";
+	itype.cs_in_expr = "%0";
 	// c_type, c_in and c_arg_in are hard-coded in the generator.
 	// c_out and c_type_out are not applicable to VarArg.
 	itype.c_arg_in = "&%s_in";
-	itype.c_type_in = "Variant[]";
+	itype.c_type_in = "ReadOnlySpan<Variant>";
+	itype.is_span_compatible = true;
 	builtin_types.insert(itype.cname, itype);
 
 #define INSERT_ARRAY_FULL(m_name, m_type, m_managed_type, m_proxy_t)                \
@@ -4754,9 +4802,10 @@ void BindingsGenerator::_populate_builtin_type_interfaces() {
 		itype.c_out = "%5return " C_METHOD_MONOARRAY_FROM(m_type) "(%1);\n";        \
 		itype.c_arg_in = "&%s_in";                                                  \
 		itype.c_type = #m_managed_type;                                             \
-		itype.c_type_in = itype.proxy_name;                                         \
+		itype.c_type_in = "ReadOnlySpan<" #m_proxy_t ">";                           \
 		itype.c_type_out = itype.proxy_name;                                        \
 		itype.c_type_is_disposable_struct = true;                                   \
+		itype.is_span_compatible = true;                                            \
 		builtin_types.insert(itype.name, itype);                                    \
 	}
 

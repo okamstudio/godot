@@ -396,6 +396,7 @@ void ShaderEditorPlugin::_setup_popup_menu(PopupMenuType p_type, PopupMenu *p_me
 	if (p_type == FILE) {
 		p_menu->add_separator();
 		p_menu->add_item(TTR("Open File in Inspector"), FILE_INSPECT);
+		p_menu->add_item(TTR("Inspect Native Shader Code..."), FILE_INSPECT_NATIVE_SHADER_CODE);
 		p_menu->add_separator();
 		p_menu->add_shortcut(ED_SHORTCUT("shader_editor/close_file", TTR("Close File"), KeyModifierMask::CMD_OR_CTRL | Key::W), FILE_CLOSE);
 	} else {
@@ -552,6 +553,12 @@ void ShaderEditorPlugin::_menu_item_pressed(int p_index) {
 				EditorNode::get_singleton()->push_item(edited_shaders[index].shader.ptr());
 			} else {
 				EditorNode::get_singleton()->push_item(edited_shaders[index].shader_inc.ptr());
+			}
+		} break;
+		case FILE_INSPECT_NATIVE_SHADER_CODE: {
+			int index = shader_tabs->get_current_tab();
+			if (edited_shaders[index].shader.is_valid()) {
+				edited_shaders[index].shader->inspect_native_shader_code();
 			}
 		} break;
 		case FILE_CLOSE: {
@@ -754,6 +761,7 @@ void ShaderEditorPlugin::_set_file_specific_items_disabled(bool p_disabled) {
 	file_popup_menu->set_item_disabled(file_popup_menu->get_item_index(FILE_SAVE), p_disabled);
 	file_popup_menu->set_item_disabled(file_popup_menu->get_item_index(FILE_SAVE_AS), p_disabled);
 	file_popup_menu->set_item_disabled(file_popup_menu->get_item_index(FILE_INSPECT), p_disabled);
+	file_popup_menu->set_item_disabled(file_popup_menu->get_item_index(FILE_INSPECT_NATIVE_SHADER_CODE), p_disabled);
 	file_popup_menu->set_item_disabled(file_popup_menu->get_item_index(FILE_CLOSE), p_disabled);
 }
 

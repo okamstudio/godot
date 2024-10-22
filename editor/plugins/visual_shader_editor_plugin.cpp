@@ -2128,12 +2128,11 @@ void VisualShaderEditor::_update_nodes() {
 		}
 	}
 
-	Array keys = added.keys();
-	keys.sort();
+	List<Variant> keys;
+	added.get_key_list(&keys);
+	keys.sort_custom<StringLikeVariantOrder>();
 
-	for (int i = 0; i < keys.size(); i++) {
-		const Variant &key = keys.get(i);
-
+	for (const Variant &key : keys) {
 		const Dictionary &value = (Dictionary)added[key];
 
 		add_custom_type(value["name"], value["type"], value["script"], value["description"], value["return_icon_type"], value["category"], value["highend"]);

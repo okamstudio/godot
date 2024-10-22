@@ -2006,30 +2006,34 @@ AnimationPlayerEditor::AnimationPlayerEditor(AnimationPlayerEditorPlugin *p_plug
 	HBoxContainer *hb = memnew(HBoxContainer);
 	add_child(hb);
 
+	HBoxContainer *playback_container = memnew(HBoxContainer);
+	playback_container->set_layout_direction(LAYOUT_DIRECTION_LTR);
+	hb->add_child(playback_container);
+
 	play_bw_from = memnew(Button);
 	play_bw_from->set_theme_type_variation("FlatButton");
 	play_bw_from->set_tooltip_text(TTR("Play Animation Backwards"));
-	hb->add_child(play_bw_from);
+	playback_container->add_child(play_bw_from);
 
 	play_bw = memnew(Button);
 	play_bw->set_theme_type_variation("FlatButton");
 	play_bw->set_tooltip_text(TTR("Play Animation Backwards from End"));
-	hb->add_child(play_bw);
+	playback_container->add_child(play_bw);
 
 	stop = memnew(Button);
 	stop->set_theme_type_variation("FlatButton");
 	stop->set_tooltip_text(TTR("Pause/Stop Animation"));
-	hb->add_child(stop);
+	playback_container->add_child(stop);
 
 	play = memnew(Button);
 	play->set_theme_type_variation("FlatButton");
 	play->set_tooltip_text(TTR("Play Animation from Start"));
-	hb->add_child(play);
+	playback_container->add_child(play);
 
 	play_from = memnew(Button);
 	play_from->set_theme_type_variation("FlatButton");
 	play_from->set_tooltip_text(TTR("Play Animation"));
-	hb->add_child(play_from);
+	playback_container->add_child(play_from);
 
 	frame = memnew(SpinBox);
 	hb->add_child(frame);

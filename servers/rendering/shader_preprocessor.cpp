@@ -393,6 +393,8 @@ void ShaderPreprocessor::process_directive(Tokenizer *p_tokenizer) {
 		process_else(p_tokenizer);
 	} else if (directive == "endif") {
 		process_endif(p_tokenizer);
+	} else if (directive == "error") {
+		process_error(p_tokenizer);
 	} else if (directive == "define") {
 		process_define(p_tokenizer);
 	} else if (directive == "undef") {
@@ -466,7 +468,7 @@ void ShaderPreprocessor::process_elif(Tokenizer *p_tokenizer) {
 	const int line = p_tokenizer->get_line();
 
 	if (state->current_branch == nullptr || state->current_branch->else_defined) {
-		set_error(RTR("Unmatched elif."), line);
+		set_error(vformat(RTR("Unmatched '%s' directive."), "elif"), line);
 		return;
 	}
 	if (state->previous_region != nullptr) {
@@ -523,7 +525,7 @@ void ShaderPreprocessor::process_else(Tokenizer *p_tokenizer) {
 	const int line = p_tokenizer->get_line();
 
 	if (state->current_branch == nullptr || state->current_branch->else_defined) {
-		set_error(RTR("Unmatched else."), line);
+		set_error(vformat(RTR("Unmatched '%s' directive."), "else"), line);
 		return;
 	}
 	if (state->previous_region != nullptr) {
@@ -531,7 +533,7 @@ void ShaderPreprocessor::process_else(Tokenizer *p_tokenizer) {
 	}
 
 	if (!p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid else."), p_tokenizer->get_line());
+		set_error(vformat(RTR("Invalid '%s' directive."), "else"), line);
 	}
 
 	bool skip = false;
@@ -559,7 +561,7 @@ void ShaderPreprocessor::process_endif(Tokenizer *p_tokenizer) {
 
 	state->condition_depth--;
 	if (state->condition_depth < 0) {
-		set_error(RTR("Unmatched endif."), line);
+		set_error(vformat(RTR("Unmatched '%s' directive."), "endif"), line);
 		return;
 	}
 	if (state->previous_region != nullptr) {
@@ -568,11 +570,26 @@ void ShaderPreprocessor::process_endif(Tokenizer *p_tokenizer) {
 	}
 
 	if (!p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid endif."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "endif"), line);
 	}
 
 	state->current_branch = state->current_branch->parent;
 	state->branches.pop_back();
+}
+
+void ShaderPreprocessor::process_error(Tokenizer *p_tokenizer) {
+	const int line = p_tokenizer->get_line();
+
+	const String body = tokens_to_string(p_tokenizer->advance('\n')).strip_edges();
+	if (body.is_empty()) {
+		set_error(" ", line);
+	} else {
+		set_error(body, line);
+	}
+
+	if (!p_tokenizer->consume_empty_line()) {
+		set_error(vformat(RTR("Invalid '%s' directive."), "error"), line);
+	}
 }
 
 void ShaderPreprocessor::process_if(Tokenizer *p_tokenizer) {
@@ -626,7 +643,7 @@ void ShaderPreprocessor::process_ifdef(Tokenizer *p_tokenizer) {
 	}
 
 	if (!p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid ifdef."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "ifdef"), line);
 		return;
 	}
 
@@ -648,7 +665,7 @@ void ShaderPreprocessor::process_ifndef(Tokenizer *p_tokenizer) {
 	}
 
 	if (!p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid ifndef."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "ifndef"), line);
 		return;
 	}
 
@@ -771,21 +788,21 @@ void ShaderPreprocessor::process_pragma(Tokenizer *p_tokenizer) {
 	}
 
 	if (label.is_empty()) {
-		set_error(RTR("Invalid pragma directive."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "pragma"), line);
 		return;
 	}
 
-	// Rxplicitly handle pragma values here.
+	// Explicitly handle pragma values here.
 	// If more pragma options are created, then refactor into a more defined structure.
 	if (label == "disable_preprocessor") {
 		state->disabled = true;
 	} else {
-		set_error(RTR("Invalid pragma directive."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "pragma"), line);
 		return;
 	}
 
 	if (!p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid pragma directive."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "pragma"), line);
 		return;
 	}
 }
@@ -794,7 +811,7 @@ void ShaderPreprocessor::process_undef(Tokenizer *p_tokenizer) {
 	const int line = p_tokenizer->get_line();
 	const String label = p_tokenizer->get_identifier();
 	if (label.is_empty() || !p_tokenizer->consume_empty_line()) {
-		set_error(RTR("Invalid undef."), line);
+		set_error(vformat(RTR("Invalid '%s' directive."), "undef"), line);
 		return;
 	}
 
@@ -1383,6 +1400,7 @@ void ShaderPreprocessor::get_keyword_list(List<String> *r_keywords, bool p_inclu
 		r_keywords->push_back("else");
 	}
 	r_keywords->push_back("endif");
+	r_keywords->push_back("error");
 	if (p_include_shader_keywords) {
 		r_keywords->push_back("if");
 	}

@@ -513,6 +513,7 @@ void main() {
 							shadow_sample.z = 1.0 + abs(shadow_sample.z);
 							vec3 pos = vec3(shadow_sample.xy / shadow_sample.z, shadow_len - omni_lights.data[light_index].shadow_bias);
 							pos.z *= omni_lights.data[light_index].inv_radius;
+							pos.z = 1.0 - pos.z;
 
 							pos.xy = pos.xy * 0.5 + 0.5;
 							pos.xy = uv_rect.xy + pos.xy * uv_rect.zw;

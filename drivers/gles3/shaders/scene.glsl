@@ -430,6 +430,7 @@ uniform highp mat4 world_transform;
 uniform highp vec3 compressed_aabb_position;
 uniform highp vec3 compressed_aabb_size;
 uniform highp vec4 uv_scale;
+uniform highp uint instance_offset;
 
 uniform highp uint model_flags;
 
@@ -1201,6 +1202,7 @@ ivec2 multiview_uv(ivec2 uv) {
 uniform highp mat4 world_transform;
 uniform mediump float opaque_prepass_threshold;
 uniform highp uint model_flags;
+uniform highp uint instance_offset;
 
 #if defined(RENDER_MATERIAL)
 layout(location = 0) out vec4 albedo_output_buffer;

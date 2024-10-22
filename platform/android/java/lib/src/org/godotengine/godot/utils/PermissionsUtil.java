@@ -108,7 +108,7 @@ public final class PermissionsUtil {
 				} else {
 					PermissionInfo permissionInfo = getPermissionInfo(activity, permission);
 					int protectionLevel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? permissionInfo.getProtection() : permissionInfo.protectionLevel;
-					if (protectionLevel == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
+					if ((protectionLevel & PermissionInfo.PROTECTION_DANGEROUS) == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED) {
 						Log.d(TAG, "Requesting permission " + permission);
 						requestedPermissions.add(permission);
 					}
@@ -174,7 +174,7 @@ public final class PermissionsUtil {
 				try {
 					PermissionInfo permissionInfo = getPermissionInfo(activity, permissionName);
 					int protectionLevel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? permissionInfo.getProtection() : permissionInfo.protectionLevel;
-					if (protectionLevel == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(activity, permissionName) != PackageManager.PERMISSION_GRANTED) {
+					if ((protectionLevel & PermissionInfo.PROTECTION_DANGEROUS) == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(activity, permissionName) != PackageManager.PERMISSION_GRANTED) {
 						activity.requestPermissions(new String[] { permissionName }, REQUEST_SINGLE_PERMISSION_REQ_CODE);
 						return false;
 					}
@@ -259,7 +259,7 @@ public final class PermissionsUtil {
 				} else {
 					PermissionInfo permissionInfo = getPermissionInfo(context, manifestPermission);
 					int protectionLevel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? permissionInfo.getProtection() : permissionInfo.protectionLevel;
-					if (protectionLevel == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(context, manifestPermission) == PackageManager.PERMISSION_GRANTED) {
+					if ((protectionLevel & PermissionInfo.PROTECTION_DANGEROUS) == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(context, manifestPermission) == PackageManager.PERMISSION_GRANTED) {
 						grantedPermissions.add(manifestPermission);
 					}
 				}

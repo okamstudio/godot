@@ -19,23 +19,30 @@ namespace basisu
       if (m_capacity >= min_new_capacity)
          return true;
 
-      size_t new_capacity = min_new_capacity;
-      if ((grow_hint) && (!helpers::is_power_of_2((uint64_t)new_capacity)))
+      uint64_t new_capacity_u64 = min_new_capacity;
+      if ((grow_hint) && (!helpers::is_power_of_2(new_capacity_u64)))
+          new_capacity_u64 = helpers::next_pow2(new_capacity_u64);
+
+      size_t new_capacity = (size_t)new_capacity_u64;
+      if (new_capacity != new_capacity_u64)
       {
-         new_capacity = (size_t)helpers::next_pow2((uint64_t)new_capacity);
-
-         assert(new_capacity && (new_capacity > m_capacity));
-
-         if (new_capacity < min_new_capacity)
-         {
-            if (nofail)
-               return false;
-            fprintf(stderr, "vector too large\n");
-            abort();
-         }
+          if (nofail)
+              return false;
+          fprintf(stderr, "elemental_vector::increase_capacity: vector too large\n");
+          abort();
       }
             
-      const size_t desired_size = element_size * new_capacity;
+      const uint64_t desired_size_u64 = (uint64_t)element_size * new_capacity;
+            
+      const size_t desired_size = (size_t)desired_size_u64;
+      if (desired_size_u64 != desired_size)
+      {
+          if (nofail)
+              return false;
+          fprintf(stderr, "elemental_vector::increase_capacity: vector too large\n");
+          abort();
+      }
+
       size_t actual_size = 0;
       if (!pMover)
       {
@@ -46,11 +53,7 @@ namespace basisu
                return false;
 
             char buf[256];
-#ifdef _MSC_VER
-            sprintf_s(buf, sizeof(buf), "vector: realloc() failed allocating %u bytes", (uint32_t)desired_size);
-#else
-            sprintf(buf, "vector: realloc() failed allocating %u bytes", (uint32_t)desired_size);
-#endif
+            snprintf(buf, sizeof(buf), "elemental_vector::increase_capacity: realloc() failed allocating %zu bytes", desired_size);
             fprintf(stderr, "%s", buf);
             abort();
          }
@@ -75,11 +78,7 @@ namespace basisu
                return false;
 
             char buf[256];
-#ifdef _MSC_VER
-            sprintf_s(buf, sizeof(buf), "vector: malloc() failed allocating %u bytes", (uint32_t)desired_size);
-#else
-            sprintf(buf, "vector: malloc() failed allocating %u bytes", (uint32_t)desired_size);
-#endif
+            snprintf(buf, sizeof(buf), "elemental_vector::increase_capacity: malloc() failed allocating %zu bytes", desired_size);
             fprintf(stderr, "%s", buf);
             abort();
          }

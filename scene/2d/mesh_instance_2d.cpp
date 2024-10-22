@@ -54,7 +54,20 @@ void MeshInstance2D::_bind_methods() {
 }
 
 void MeshInstance2D::set_mesh(const Ref<Mesh> &p_mesh) {
+	if (mesh == p_mesh) {
+		return;
+	}
+
+	if (mesh.is_valid()) {
+		mesh->disconnect_changed(callable_mp((CanvasItem *)this, &CanvasItem::queue_redraw));
+	}
+
 	mesh = p_mesh;
+
+	if (mesh.is_valid()) {
+		mesh->connect_changed(callable_mp((CanvasItem *)this, &CanvasItem::queue_redraw));
+	}
+
 	queue_redraw();
 }
 

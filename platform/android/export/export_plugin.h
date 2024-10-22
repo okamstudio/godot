@@ -35,6 +35,7 @@
 #include "godot_plugin_config.h"
 #endif // DISABLE_DEPRECATED
 
+#include "core/io/image.h"
 #include "core/io/zip_io.h"
 #include "core/os/os.h"
 #include "editor/export/editor_export_platform.h"

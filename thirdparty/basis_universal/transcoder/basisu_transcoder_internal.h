@@ -1,5 +1,5 @@
 // basisu_transcoder_internal.h - Universal texture format transcoder library.
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
 //
@@ -20,8 +20,9 @@
 #pragma warning (disable: 4127) //  conditional expression is constant
 #endif
 
-#define BASISD_LIB_VERSION 116
-#define BASISD_VERSION_STRING "01.16"
+// v1.50: Added UASTC HDR support
+#define BASISD_LIB_VERSION 150
+#define BASISD_VERSION_STRING "01.50"
 
 #ifdef _DEBUG
 #define BASISD_BUILD_DEBUG
@@ -82,9 +83,15 @@ namespace basist
 		cRGBA4444_ALPHA,
 		cRGBA4444_COLOR_OPAQUE,
 		cRGBA4444,
+		cRGBA_HALF,
+		cRGB_HALF,
+		cRGB_9E5,
 
-		cUASTC_4x4,
-						
+		cUASTC_4x4,							// LDR, universal
+		cUASTC_HDR_4x4,						// HDR, transcodes only to 4x4 HDR ASTC, BC6H, or uncompressed
+		cBC6H,
+		cASTC_HDR_4x4,
+								
 		cTotalBlockFormats
 	};
 
@@ -264,8 +271,8 @@ namespace basist
 		}
 
 		const basisu::uint8_vec &get_code_sizes() const { return m_code_sizes; }
-		const basisu::int_vec get_lookup() const { return m_lookup; }
-		const basisu::int16_vec get_tree() const { return m_tree; }
+		const basisu::int_vec &get_lookup() const { return m_lookup; }
+		const basisu::int16_vec &get_tree() const { return m_tree; }
 
 		bool is_valid() const { return m_code_sizes.size() > 0; }
 
@@ -789,7 +796,198 @@ namespace basist
 	};
 
 	bool basis_block_format_is_uncompressed(block_format tex_type);
-	
+
+	//------------------------------------
+
+	typedef uint16_t half_float;
+
+	const double MIN_DENORM_HALF_FLOAT = 0.000000059604645; // smallest positive subnormal number
+	const double MIN_HALF_FLOAT = 0.00006103515625; // smallest positive normal number
+	const double MAX_HALF_FLOAT = 65504.0; // largest normal number
+
+	inline uint32_t get_bits(uint32_t val, int low, int high)
+	{
+		const int num_bits = (high - low) + 1;
+		assert((num_bits >= 1) && (num_bits <= 32));
+
+		val >>= low;
+		if (num_bits != 32)
+			val &= ((1u << num_bits) - 1);
+
+		return val;
+	}
+
+	inline bool is_half_inf_or_nan(half_float v)
+	{
+		return get_bits(v, 10, 14) == 31;
+	}
+
+	inline bool is_half_denorm(half_float v)
+	{
+		int e = (v >> 10) & 31;
+		return !e;
+	}
+
+	inline int get_half_exp(half_float v)
+	{
+		int e = ((v >> 10) & 31);
+		return e ? (e - 15) : -14;
+	}
+
+	inline int get_half_mantissa(half_float v)
+	{
+		if (is_half_denorm(v))
+			return v & 0x3FF;
+		return (v & 0x3FF) | 0x400;
+	}
+
+	inline float get_half_mantissaf(half_float v)
+	{
+		return ((float)get_half_mantissa(v)) / 1024.0f;
+	}
+
+	inline int get_half_sign(half_float v)
+	{
+		return v ? ((v & 0x8000) ? -1 : 1) : 0;
+	}
+
+	inline bool half_is_signed(half_float v)
+	{
+		return (v & 0x8000) != 0;
+	}
+
+#if 0
+	int hexp = get_half_exp(Cf);
+	float hman = get_half_mantissaf(Cf);
+	int hsign = get_half_sign(Cf);
+	float k = powf(2.0f, hexp) * hman * hsign;
+	if (is_half_inf_or_nan(Cf))
+		k = std::numeric_limits<float>::quiet_NaN();
+#endif
+
+	half_float float_to_half(float val);
+
+	inline float half_to_float(half_float hval)
+	{
+		union { float f; uint32_t u; } x = { 0 };
+
+		uint32_t s = ((uint32_t)hval >> 15) & 1;
+		uint32_t e = ((uint32_t)hval >> 10) & 0x1F;
+		uint32_t m = (uint32_t)hval & 0x3FF;
+
+		if (!e)
+		{
+			if (!m)
+			{
+				// +- 0
+				x.u = s << 31;
+				return x.f;
+			}
+			else
+			{
+				// denormalized
+				while (!(m & 0x00000400))
+				{
+					m <<= 1;
+					--e;
+				}
+
+				++e;
+				m &= ~0x00000400;
+			}
+		}
+		else if (e == 31)
+		{
+			if (m == 0)
+			{
+				// +/- INF
+				x.u = (s << 31) | 0x7f800000;
+				return x.f;
+			}
+			else
+			{
+				// +/- NaN
+				x.u = (s << 31) | 0x7f800000 | (m << 13);
+				return x.f;
+			}
+		}
+
+		e = e + (127 - 15);
+		m = m << 13;
+
+		assert(s <= 1);
+		assert(m <= 0x7FFFFF);
+		assert(e <= 255);
+
+		x.u = m | (e << 23) | (s << 31);
+		return x.f;
+	}
+
+	// Originally from bc6h_enc.h
+
+	void bc6h_enc_init();
+
+	const uint32_t MAX_BLOG16_VAL = 0xFFFF;
+
+	// BC6H internals
+	const uint32_t NUM_BC6H_MODES = 14;
+	const uint32_t BC6H_LAST_MODE_INDEX = 13;
+	const uint32_t BC6H_FIRST_1SUBSET_MODE_INDEX = 10; // in the MS docs, this is "mode 11" (where the first mode is 1), 60 bits for endpoints (10.10, 10.10, 10.10), 63 bits for weights
+	const uint32_t TOTAL_BC6H_PARTITION_PATTERNS = 32;
+
+	extern const uint8_t g_bc6h_mode_sig_bits[NUM_BC6H_MODES][4]; // base, r, g, b
+
+	struct bc6h_bit_layout
+	{
+		int8_t m_comp; // R=0,G=1,B=2,D=3 (D=partition index)
+		int8_t m_index; // 0-3, 0-1 Low/High subset 1, 2-3 Low/High subset 2, -1=partition index (d)
+		int8_t m_last_bit;
+		int8_t m_first_bit; // may be -1 if a single bit, may be >m_last_bit if reversed
+	};
+
+	const uint32_t MAX_BC6H_LAYOUT_INDEX = 25;
+	extern const bc6h_bit_layout g_bc6h_bit_layouts[NUM_BC6H_MODES][MAX_BC6H_LAYOUT_INDEX];
+
+	extern const uint8_t g_bc6h_2subset_patterns[TOTAL_BC6H_PARTITION_PATTERNS][4][4]; // [y][x]
+
+	extern const uint8_t g_bc6h_weight3[8];
+	extern const uint8_t g_bc6h_weight4[16];
+
+	extern const int8_t g_bc6h_mode_lookup[32];
+		
+	// Converts b16 to half float
+	inline half_float bc6h_blog16_to_half(uint32_t comp)
+	{
+		assert(comp <= 0xFFFF);
+
+		// scale the magnitude by 31/64
+		comp = (comp * 31u) >> 6u;
+		return (half_float)comp;
+	}
+
+	const uint32_t MAX_BC6H_HALF_FLOAT_AS_UINT = 0x7BFF;
+
+	// Inverts bc6h_blog16_to_half().
+	// Returns the nearest blog16 given a half value. 
+	inline uint32_t bc6h_half_to_blog16(half_float h)
+	{
+		assert(h <= MAX_BC6H_HALF_FLOAT_AS_UINT);
+		return (h * 64 + 30) / 31;
+	}
+
+	struct bc6h_block
+	{
+		uint8_t m_bytes[16];
+	};
+
+	void bc6h_enc_block_mode10(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights);
+	void bc6h_enc_block_1subset_4bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights);
+	void bc6h_enc_block_1subset_mode9_3bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights);
+	void bc6h_enc_block_1subset_3bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights);
+	void bc6h_enc_block_2subset_mode9_3bit_weights(bc6h_block* pPacked_block, uint32_t common_part_index, const half_float pEndpoints[2][3][2], const uint8_t* pWeights); // pEndpoints[subset][comp][lh_index]
+	void bc6h_enc_block_2subset_3bit_weights(bc6h_block* pPacked_block, uint32_t common_part_index, const half_float pEndpoints[2][3][2], const uint8_t* pWeights); // pEndpoints[subset][comp][lh_index]
+	bool bc6h_enc_block_solid_color(bc6h_block* pPacked_block, const half_float pColor[3]);
+		
 } // namespace basist
 
 

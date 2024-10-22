@@ -1,5 +1,5 @@
 // basisu_enc.cpp
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,20 @@
 #include "jpgd.h"
 #include "pvpngreader.h"
 #include "basisu_opencl.h"
+#include "basisu_astc_hdr_enc.h"
 #include <vector>
 
+#ifndef TINYEXR_USE_ZFP
+#define TINYEXR_USE_ZFP (1)
+#endif
+#include <tinyexr.h>
+
+#ifndef MINIZ_HEADER_FILE_ONLY
 #define MINIZ_HEADER_FILE_ONLY
+#endif
+#ifndef MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+#endif
 #include "basisu_miniz.h"
 
 #if defined(_WIN32)
@@ -165,14 +175,14 @@ namespace basisu
 
 	bool g_library_initialized;
 	std::mutex g_encoder_init_mutex;
-
+		
 	// Encoder library initialization (just call once at startup)
-	void basisu_encoder_init(bool use_opencl, bool opencl_force_serialization)
+	bool basisu_encoder_init(bool use_opencl, bool opencl_force_serialization)
 	{
 		std::lock_guard<std::mutex> lock(g_encoder_init_mutex);
 
 		if (g_library_initialized)
-			return;
+			return true;
 
 		detect_sse41();
 
@@ -189,7 +199,11 @@ namespace basisu
 
 		interval_timer::init(); // make sure interval_timer globals are initialized from main thread to avoid TSAN reports
 
+		astc_hdr_enc_init();
+		basist::bc6h_enc_init();
+
 		g_library_initialized = true;
+		return true;
 	}
 
 	void basisu_encoder_deinit()
@@ -316,6 +330,24 @@ namespace basisu
 			init();
 		return ticks * g_timer_freq;
 	}
+
+	float linear_to_srgb(float l)
+	{
+		assert(l >= 0.0f && l <= 1.0f);
+		if (l < .0031308f)
+			return saturate(l * 12.92f);
+		else
+			return saturate(1.055f * powf(l, 1.0f / 2.4f) - .055f);
+	}
+
+	float srgb_to_linear(float s)
+	{
+		assert(s >= 0.0f && s <= 1.0f);
+		if (s < .04045f)
+			return saturate(s * (1.0f / 12.92f));
+		else
+			return saturate(powf((s + .055f) * (1.0f / 1.055f), 2.4f));
+	}
 		
 	const uint32_t MAX_32BIT_ALLOC_SIZE = 250000000;
 		
@@ -336,7 +368,7 @@ namespace basisu
 
 		if (sizeof(void *) == sizeof(uint32_t))
 		{
-			if ((w * h * n_chans) > MAX_32BIT_ALLOC_SIZE)
+			if (((uint64_t)w * h * n_chans) > MAX_32BIT_ALLOC_SIZE)
 			{
 				error_printf("Image \"%s\" is too large (%ux%u) to process in a 32-bit build!\n", pFilename, w, h);
 
@@ -369,6 +401,11 @@ namespace basisu
 		free(pImage_data);
 
 		return true;
+	}
+
+	bool load_qoi(const char* pFilename, image& img)
+	{
+		return false;
 	}
 
 	bool load_png(const uint8_t *pBuf, size_t buf_size, image &img, const char *pFilename)
@@ -433,10 +470,177 @@ namespace basisu
 			return load_png(pFilename, img);
 		if (strcasecmp(pExt, "tga") == 0)
 			return load_tga(pFilename, img);
+		if (strcasecmp(pExt, "qoi") == 0)
+			return load_qoi(pFilename, img);
 		if ( (strcasecmp(pExt, "jpg") == 0) || (strcasecmp(pExt, "jfif") == 0) || (strcasecmp(pExt, "jpeg") == 0) )
 			return load_jpg(pFilename, img);
 
 		return false;
+	}
+
+	static void convert_ldr_to_hdr_image(imagef &img, const image &ldr_img, bool ldr_srgb_to_linear)
+	{
+		img.resize(ldr_img.get_width(), ldr_img.get_height());
+
+		for (uint32_t y = 0; y < ldr_img.get_height(); y++)
+		{
+			for (uint32_t x = 0; x < ldr_img.get_width(); x++)
+			{
+				const color_rgba& c = ldr_img(x, y);
+
+				vec4F& d = img(x, y);
+				if (ldr_srgb_to_linear)
+				{
+					// TODO: Multiply by 100-200 nits?
+					d[0] = srgb_to_linear(c[0] * (1.0f / 255.0f));
+					d[1] = srgb_to_linear(c[1] * (1.0f / 255.0f));
+					d[2] = srgb_to_linear(c[2] * (1.0f / 255.0f));
+				}
+				else
+				{
+					d[0] = c[0] * (1.0f / 255.0f);
+					d[1] = c[1] * (1.0f / 255.0f);
+					d[2] = c[2] * (1.0f / 255.0f);
+				}
+				d[3] = c[3] * (1.0f / 255.0f);
+			}
+		}
+	}
+
+	bool load_image_hdr(const void* pMem, size_t mem_size, imagef& img, uint32_t width, uint32_t height, hdr_image_type img_type, bool ldr_srgb_to_linear)
+	{
+		if ((!pMem) || (!mem_size))
+		{
+			assert(0);
+			return false;
+		}
+
+		switch (img_type)
+		{
+		case hdr_image_type::cHITRGBAHalfFloat:
+		{
+			if (mem_size != width * height * sizeof(basist::half_float) * 4)
+			{
+				assert(0);
+				return false;
+			}
+
+			if ((!width) || (!height))
+			{
+				assert(0);
+				return false;
+			}
+
+			const basist::half_float* pSrc_image_h = static_cast<const basist::half_float *>(pMem);
+
+			img.resize(width, height);
+			for (uint32_t y = 0; y < height; y++)
+			{
+				for (uint32_t x = 0; x < width; x++)
+				{
+					const basist::half_float* pSrc_pixel = &pSrc_image_h[x * 4];
+
+					vec4F& dst = img(x, y);
+					dst[0] = basist::half_to_float(pSrc_pixel[0]);
+					dst[1] = basist::half_to_float(pSrc_pixel[1]);
+					dst[2] = basist::half_to_float(pSrc_pixel[2]);
+					dst[3] = basist::half_to_float(pSrc_pixel[3]);
+				}
+			
+				pSrc_image_h += (width * 4);
+			}
+
+			break;
+		}
+		case hdr_image_type::cHITRGBAFloat:
+		{
+			if (mem_size != width * height * sizeof(float) * 4)
+			{
+				assert(0);
+				return false;
+			}
+
+			if ((!width) || (!height))
+			{
+				assert(0);
+				return false;
+			}
+
+			img.resize(width, height);
+			memcpy(img.get_ptr(), pMem, width * height * sizeof(float) * 4);
+
+			break;
+		}
+		case hdr_image_type::cHITPNGImage:
+		{
+			image ldr_img;
+			if (!load_png(static_cast<const uint8_t *>(pMem), mem_size, ldr_img))
+				return false;
+
+			convert_ldr_to_hdr_image(img, ldr_img, ldr_srgb_to_linear);
+			break;
+		}
+		case hdr_image_type::cHITEXRImage:
+		{
+			if (!read_exr(pMem, mem_size, img))
+				return false;
+
+			break;
+		}
+		case hdr_image_type::cHITHDRImage:
+		{
+			uint8_vec buf(mem_size);
+			memcpy(buf.get_ptr(), pMem, mem_size);
+
+			rgbe_header_info hdr;
+			if (!read_rgbe(buf, img, hdr))
+				return false;
+
+			break;
+		}
+		default:
+			assert(0);
+			return false;
+		}
+
+		return true;
+	}
+	
+	bool load_image_hdr(const char* pFilename, imagef& img, bool ldr_srgb_to_linear)
+	{
+		std::string ext(string_get_extension(std::string(pFilename)));
+
+		if (ext.length() == 0)
+			return false;
+
+		const char* pExt = ext.c_str();
+
+		if (strcasecmp(pExt, "hdr") == 0)
+		{
+			rgbe_header_info rgbe_info;
+			if (!read_rgbe(pFilename, img, rgbe_info))
+				return false;
+			return true;
+		}
+					
+		if (strcasecmp(pExt, "exr") == 0)
+		{
+			int n_chans = 0;
+			if (!read_exr(pFilename, img, n_chans))
+				return false;
+			return true;
+		}
+
+		// Try loading image as LDR, then optionally convert to linear light.
+		{
+			image ldr_img;
+			if (!load_image(pFilename, ldr_img))
+				return false;
+
+			convert_ldr_to_hdr_image(img, ldr_img, ldr_srgb_to_linear);
+		}
+
+		return true;
 	}
 	
 	bool save_png(const char* pFilename, const image &img, uint32_t image_save_flags, uint32_t grayscale_comp)
@@ -559,6 +763,45 @@ namespace basisu
 		return true;
 	}
 
+	bool read_file_to_data(const char* pFilename, void *pData, size_t len)
+	{
+		assert(pData && len);
+		if ((!pData) || (!len))
+			return false;
+
+		FILE* pFile = nullptr;
+#ifdef _WIN32
+		fopen_s(&pFile, pFilename, "rb");
+#else
+		pFile = fopen(pFilename, "rb");
+#endif
+		if (!pFile)
+			return false;
+
+		fseek(pFile, 0, SEEK_END);
+#ifdef _WIN32
+		int64_t filesize = _ftelli64(pFile);
+#else
+		int64_t filesize = ftello(pFile);
+#endif
+
+		if ((filesize < 0) || ((size_t)filesize < len))
+		{
+			fclose(pFile);
+			return false;
+		}
+		fseek(pFile, 0, SEEK_SET);
+				
+		if (fread(pData, 1, (size_t)len, pFile) != (size_t)len)
+		{
+			fclose(pFile);
+			return false;
+		}
+
+		fclose(pFile);
+		return true;
+	}
+
 	bool write_data_to_file(const char* pFilename, const void* pData, size_t len)
 	{
 		FILE* pFile = nullptr;
@@ -581,25 +824,7 @@ namespace basisu
 
 		return fclose(pFile) != EOF;
 	}
-
-	float linear_to_srgb(float l)
-	{
-		assert(l >= 0.0f && l <= 1.0f);
-		if (l < .0031308f)
-			return saturate(l * 12.92f);
-		else
-			return saturate(1.055f * powf(l, 1.0f/2.4f) - .055f);
-	}
-
-	float srgb_to_linear(float s)
-	{
-		assert(s >= 0.0f && s <= 1.0f);
-		if (s < .04045f)
-			return saturate(s * (1.0f/12.92f));
-		else
-			return saturate(powf((s + .055f) * (1.0f/1.055f), 2.4f));
-	}
-
+		
 	bool image_resample(const image &src, image &dst, bool srgb,
 		const char *pFilter, float filter_scale, 
 		bool wrapping,
@@ -731,6 +956,121 @@ namespace basisu
 							(*pDst)[comp_index] = linear_to_srgb_table[clamp<int>(j, 0, LINEAR_TO_SRGB_TABLE_SIZE - 1)];
 						}
 
+						pDst++;
+					}
+				}
+				if (c < num_comps)
+					break;
+
+				++dst_y;
+			}
+		}
+
+		for (uint32_t i = 0; i < num_comps; ++i)
+			delete resamplers[i];
+
+		return true;
+	}
+
+	bool image_resample(const imagef& src, imagef& dst, 
+		const char* pFilter, float filter_scale,
+		bool wrapping,
+		uint32_t first_comp, uint32_t num_comps)
+	{
+		assert((first_comp + num_comps) <= 4);
+
+		const int cMaxComps = 4;
+
+		const uint32_t src_w = src.get_width(), src_h = src.get_height();
+		const uint32_t dst_w = dst.get_width(), dst_h = dst.get_height();
+
+		if (maximum(src_w, src_h) > BASISU_RESAMPLER_MAX_DIMENSION)
+		{
+			printf("Image is too large!\n");
+			return false;
+		}
+
+		if (!src_w || !src_h || !dst_w || !dst_h)
+			return false;
+
+		if ((num_comps < 1) || (num_comps > cMaxComps))
+			return false;
+
+		if ((minimum(dst_w, dst_h) < 1) || (maximum(dst_w, dst_h) > BASISU_RESAMPLER_MAX_DIMENSION))
+		{
+			printf("Image is too large!\n");
+			return false;
+		}
+
+		if ((src_w == dst_w) && (src_h == dst_h))
+		{
+			dst = src;
+			return true;
+		}
+
+		std::vector<float> samples[cMaxComps];
+		Resampler* resamplers[cMaxComps];
+
+		resamplers[0] = new Resampler(src_w, src_h, dst_w, dst_h,
+			wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP, 1.0f, 0.0f, // no clamping
+			pFilter, nullptr, nullptr, filter_scale, filter_scale, 0, 0);
+		samples[0].resize(src_w);
+
+		for (uint32_t i = 1; i < num_comps; ++i)
+		{
+			resamplers[i] = new Resampler(src_w, src_h, dst_w, dst_h,
+				wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP, 1.0f, 0.0f, // no clamping
+				pFilter, resamplers[0]->get_clist_x(), resamplers[0]->get_clist_y(), filter_scale, filter_scale, 0, 0);
+			samples[i].resize(src_w);
+		}
+
+		uint32_t dst_y = 0;
+
+		for (uint32_t src_y = 0; src_y < src_h; ++src_y)
+		{
+			const vec4F* pSrc = &src(0, src_y);
+
+			// Put source lines into resampler(s)
+			for (uint32_t x = 0; x < src_w; ++x)
+			{
+				for (uint32_t c = 0; c < num_comps; ++c)
+				{
+					const uint32_t comp_index = first_comp + c;
+					const float v = (*pSrc)[comp_index];
+
+					samples[c][x] = v;
+				}
+
+				pSrc++;
+			}
+
+			for (uint32_t c = 0; c < num_comps; ++c)
+			{
+				if (!resamplers[c]->put_line(&samples[c][0]))
+				{
+					for (uint32_t i = 0; i < num_comps; i++)
+						delete resamplers[i];
+					return false;
+				}
+			}
+
+			// Now retrieve any output lines
+			for (;;)
+			{
+				uint32_t c;
+				for (c = 0; c < num_comps; ++c)
+				{
+					const uint32_t comp_index = first_comp + c;
+
+					const float* pOutput_samples = resamplers[c]->get_line();
+					if (!pOutput_samples)
+						break;
+										
+					vec4F* pDst = &dst(0, dst_y);
+
+					for (uint32_t x = 0; x < dst_w; x++)
+					{
+						(*pDst)[comp_index] = pOutput_samples[x];
 						pDst++;
 					}
 				}
@@ -1312,11 +1652,13 @@ namespace basisu
 
 		uint32_t a = max_index / num_syms, b = max_index % num_syms;
 
+		const uint32_t ofs = m_entries_picked.size();
+
 		m_entries_picked.push_back(a);
 		m_entries_picked.push_back(b);
 
 		for (uint32_t i = 0; i < num_syms; i++)
-			if ((i != b) && (i != a))
+			if ((i != m_entries_picked[ofs + 1]) && (i != m_entries_picked[ofs]))
 				m_entries_to_do.push_back(i);
 
 		for (uint32_t i = 0; i < m_entries_to_do.size(); i++)
@@ -1372,6 +1714,235 @@ namespace basisu
 		}
 		return which_side;
 	}
+	
+	void image_metrics::calc(const imagef& a, const imagef& b, uint32_t first_chan, uint32_t total_chans, bool avg_comp_error, bool log)
+	{
+		assert((first_chan < 4U) && (first_chan + total_chans <= 4U));
+
+		const uint32_t width = basisu::minimum(a.get_width(), b.get_width());
+		const uint32_t height = basisu::minimum(a.get_height(), b.get_height());
+
+		double max_e = -1e+30f;
+		double sum = 0.0f, sum_sqr = 0.0f;
+
+		m_has_neg = false;
+		m_any_abnormal = false;
+		m_hf_mag_overflow = false;
+				
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				const vec4F& ca = a(x, y), &cb = b(x, y);
+								
+				if (total_chans)
+				{
+					for (uint32_t c = 0; c < total_chans; c++)
+					{
+						float fa = ca[first_chan + c], fb = cb[first_chan + c];
+
+						if ((fabs(fa) > basist::MAX_HALF_FLOAT) || (fabs(fb) > basist::MAX_HALF_FLOAT))
+							m_hf_mag_overflow = true;
+
+						if ((fa < 0.0f) || (fb < 0.0f))
+							m_has_neg = true;
+
+						if (std::isinf(fa) || std::isinf(fb) || std::isnan(fa) || std::isnan(fb))
+							m_any_abnormal = true;
+												
+						const double delta = fabs(fa - fb);
+						max_e = basisu::maximum<double>(max_e, delta);
+
+						if (log)
+						{
+							double log2_delta = log2f(basisu::maximum(0.0f, fa) + 1.0f) - log2f(basisu::maximum(0.0f, fb) + 1.0f);
+
+							sum += fabs(log2_delta);
+							sum_sqr += log2_delta * log2_delta;
+						}
+						else
+						{
+							sum += fabs(delta);
+							sum_sqr += delta * delta;
+						}
+					}
+				}
+				else
+				{
+					for (uint32_t c = 0; c < 3; c++)
+					{
+						float fa = ca[c], fb = cb[c];
+
+						if ((fabs(fa) > basist::MAX_HALF_FLOAT) || (fabs(fb) > basist::MAX_HALF_FLOAT))
+							m_hf_mag_overflow = true;
+
+						if ((fa < 0.0f) || (fb < 0.0f))
+							m_has_neg = true;
+
+						if (std::isinf(fa) || std::isinf(fb) || std::isnan(fa) || std::isnan(fb))
+							m_any_abnormal = true;
+					}
+
+					double ca_l = get_luminance(ca), cb_l = get_luminance(cb);
+					
+					double delta = fabs(ca_l - cb_l);
+					max_e = basisu::maximum(max_e, delta);
+					
+					if (log)
+					{
+						double log2_delta = log2(basisu::maximum<double>(0.0f, ca_l) + 1.0f) - log2(basisu::maximum<double>(0.0f, cb_l) + 1.0f);
+
+						sum += fabs(log2_delta);
+						sum_sqr += log2_delta * log2_delta;
+					}
+					else
+					{
+						sum += delta;
+						sum_sqr += delta * delta;
+					}
+				}
+			}
+		}
+
+		m_max = (double)(max_e);
+
+		double total_values = (double)width * (double)height;
+		if (avg_comp_error)
+			total_values *= (double)clamp<uint32_t>(total_chans, 1, 4);
+
+		m_mean = (float)(sum / total_values);
+		m_mean_squared = (float)(sum_sqr / total_values);
+		m_rms = (float)sqrt(sum_sqr / total_values);
+		
+		const double max_val = 1.0f;
+		m_psnr = m_rms ? (float)clamp<double>(log10(max_val / m_rms) * 20.0f, 0.0f, 1000.0f) : 1000.0f;
+	}
+
+	void image_metrics::calc_half(const imagef& a, const imagef& b, uint32_t first_chan, uint32_t total_chans, bool avg_comp_error)
+	{
+		assert(total_chans);
+		assert((first_chan < 4U) && (first_chan + total_chans <= 4U));
+
+		const uint32_t width = basisu::minimum(a.get_width(), b.get_width());
+		const uint32_t height = basisu::minimum(a.get_height(), b.get_height());
+
+		m_has_neg = false;
+		m_hf_mag_overflow = false;
+		m_any_abnormal = false;
+
+		uint_vec hist(65536);
+		
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				const vec4F& ca = a(x, y), &cb = b(x, y);
+
+				for (uint32_t i = 0; i < 4; i++)
+				{
+					if ((ca[i] < 0.0f) || (cb[i] < 0.0f))
+						m_has_neg = true;
+					
+					if ((fabs(ca[i]) > basist::MAX_HALF_FLOAT) || (fabs(cb[i]) > basist::MAX_HALF_FLOAT))
+						m_hf_mag_overflow = true;
+
+					if (std::isnan(ca[i]) || std::isnan(cb[i]) || std::isinf(ca[i]) || std::isinf(cb[i]))
+						m_any_abnormal = true;
+				}
+
+				int cah[4] = { basist::float_to_half(ca[0]), basist::float_to_half(ca[1]), basist::float_to_half(ca[2]), basist::float_to_half(ca[3]) };
+				int cbh[4] = { basist::float_to_half(cb[0]), basist::float_to_half(cb[1]), basist::float_to_half(cb[2]), basist::float_to_half(cb[3]) };
+
+				for (uint32_t c = 0; c < total_chans; c++)
+					hist[iabs(cah[first_chan + c] - cbh[first_chan + c]) & 65535]++;
+
+			} // x
+		} // y
+
+		m_max = 0;
+		double sum = 0.0f, sum2 = 0.0f;
+		for (uint32_t i = 0; i < 65536; i++)
+		{
+			if (hist[i])
+			{
+				m_max = basisu::maximum<double>(m_max, (double)i);
+				double v = (double)i * (double)hist[i];
+				sum += v;
+				sum2 += (double)i * v;
+			}
+		}
+
+		double total_values = (double)width * (double)height;
+		if (avg_comp_error)
+			total_values *= (double)clamp<uint32_t>(total_chans, 1, 4);
+
+		const float max_val = 65535.0f;
+		m_mean = (float)clamp<double>(sum / total_values, 0.0f, max_val);
+		m_mean_squared = (float)clamp<double>(sum2 / total_values, 0.0f, max_val * max_val);
+		m_rms = (float)sqrt(m_mean_squared);
+		m_psnr = m_rms ? (float)clamp<double>(log10(max_val / m_rms) * 20.0f, 0.0f, 1000.0f) : 1000.0f;
+	}
+
+	// Alt. variant, same as calc_half(), for validation.
+	void image_metrics::calc_half2(const imagef& a, const imagef& b, uint32_t first_chan, uint32_t total_chans, bool avg_comp_error)
+	{
+		assert(total_chans);
+		assert((first_chan < 4U) && (first_chan + total_chans <= 4U));
+
+		const uint32_t width = basisu::minimum(a.get_width(), b.get_width());
+		const uint32_t height = basisu::minimum(a.get_height(), b.get_height());
+
+		m_has_neg = false;
+		m_hf_mag_overflow = false;
+		m_any_abnormal = false;
+				
+		double sum = 0.0f, sum2 = 0.0f;
+		m_max = 0;
+
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				const vec4F& ca = a(x, y), & cb = b(x, y);
+
+				for (uint32_t i = 0; i < 4; i++)
+				{
+					if ((ca[i] < 0.0f) || (cb[i] < 0.0f))
+						m_has_neg = true;
+
+					if ((fabs(ca[i]) > basist::MAX_HALF_FLOAT) || (fabs(cb[i]) > basist::MAX_HALF_FLOAT))
+						m_hf_mag_overflow = true;
+
+					if (std::isnan(ca[i]) || std::isnan(cb[i]) || std::isinf(ca[i]) || std::isinf(cb[i]))
+						m_any_abnormal = true;
+				}
+
+				int cah[4] = { basist::float_to_half(ca[0]), basist::float_to_half(ca[1]), basist::float_to_half(ca[2]), basist::float_to_half(ca[3]) };
+				int cbh[4] = { basist::float_to_half(cb[0]), basist::float_to_half(cb[1]), basist::float_to_half(cb[2]), basist::float_to_half(cb[3]) };
+
+				for (uint32_t c = 0; c < total_chans; c++)
+				{
+					int diff = iabs(cah[first_chan + c] - cbh[first_chan + c]);
+					if (diff)
+						m_max = std::max<double>(m_max, (double)diff);
+
+					sum += diff;
+					sum2 += squarei(cah[first_chan + c] - cbh[first_chan + c]);
+				}
+
+			} // x
+		} // y
+						
+		double total_values = (double)width * (double)height;
+		if (avg_comp_error)
+			total_values *= (double)clamp<uint32_t>(total_chans, 1, 4);
+
+		const float max_val = 65535.0f;
+		m_mean = (float)clamp<double>(sum / total_values, 0.0f, max_val);
+		m_mean_squared = (float)clamp<double>(sum2 / total_values, 0.0f, max_val * max_val);
+		m_rms = (float)sqrt(m_mean_squared);
+		m_psnr = m_rms ? (float)clamp<double>(log10(max_val / m_rms) * 20.0f, 0.0f, 1000.0f) : 1000.0f;
+	}
 
 	void image_metrics::calc(const image &a, const image &b, uint32_t first_chan, uint32_t total_chans, bool avg_comp_error, bool use_601_luma)
 	{
@@ -1382,6 +1953,10 @@ namespace basisu
 
 		double hist[256];
 		clear_obj(hist);
+
+		m_has_neg = false;
+		m_any_abnormal = false;
+		m_hf_mag_overflow = false;
 
 		for (uint32_t y = 0; y < height; y++)
 		{
@@ -1410,7 +1985,7 @@ namespace basisu
 		{
 			if (hist[i])
 			{
-				m_max = basisu::maximum<float>(m_max, (float)i);
+				m_max = basisu::maximum<double>(m_max, (double)i);
 				double v = i * hist[i];
 				sum += v;
 				sum2 += i * v;
@@ -1922,7 +2497,7 @@ namespace basisu
 
 				} while (pixels_remaining);
 
-				assert((pDst - &input_line_buf[0]) == width * tga_bytes_per_pixel);
+				assert((pDst - &input_line_buf[0]) == (int)(width * tga_bytes_per_pixel));
 
 				pLine_data = &input_line_buf[0];
 			}
@@ -2052,6 +2627,808 @@ namespace basisu
 		return read_tga(&filedata[0], (uint32_t)filedata.size(), width, height, n_chans);
 	}
 
+	static inline void hdr_convert(const color_rgba& rgbe, vec4F& c)
+	{
+		if (rgbe[3] != 0)
+		{
+			float scale = ldexp(1.0f, rgbe[3] - 128 - 8);
+			c.set((float)rgbe[0] * scale, (float)rgbe[1] * scale, (float)rgbe[2] * scale, 1.0f);
+		}
+		else
+		{
+			c.set(0.0f, 0.0f, 0.0f, 1.0f);
+		}
+	}
+
+	bool string_begins_with(const std::string& str, const char* pPhrase)
+	{
+		const size_t str_len = str.size();
+
+		const size_t phrase_len = strlen(pPhrase);
+		assert(phrase_len);
+
+		if (str_len >= phrase_len)
+		{
+#ifdef _MSC_VER
+			if (_strnicmp(pPhrase, str.c_str(), phrase_len) == 0)
+#else
+			if (strncasecmp(pPhrase, str.c_str(), phrase_len) == 0)
+#endif
+				return true;
+		}
+
+		return false;
+	}
+
+	// Radiance RGBE (.HDR) image reading.
+	// This code tries to preserve the original logic in Radiance's ray/src/common/color.c code:
+	// https://www.radiance-online.org/cgi-bin/viewcvs.cgi/ray/src/common/color.c?revision=2.26&view=markup&sortby=log
+	// Also see: https://flipcode.com/archives/HDR_Image_Reader.shtml.
+	// https://github.com/LuminanceHDR/LuminanceHDR/blob/master/src/Libpfs/io/rgbereader.cpp.
+	// https://radsite.lbl.gov/radiance/refer/filefmts.pdf
+	// Buggy readers:
+	// stb_image.h: appears to be a clone of rgbe.c, but with goto's (doesn't support old format files, doesn't support mixture of RLE/non-RLE scanlines)
+	// http://www.graphics.cornell.edu/~bjw/rgbe.html - rgbe.c/h
+	// http://www.graphics.cornell.edu/online/formats/rgbe/ - rgbe.c/.h - buggy
+	bool read_rgbe(const uint8_vec &filedata, imagef& img, rgbe_header_info& hdr_info)
+	{
+		hdr_info.clear();
+
+		const uint32_t MAX_SUPPORTED_DIM = 65536;
+
+		if (filedata.size() < 4)
+			return false;
+
+		// stb_image.h checks for the string "#?RADIANCE" or "#?RGBE" in the header.
+		// The original Radiance header code doesn't care about the specific string.
+		// opencv's reader only checks for "#?", so that's what we're going to do.
+		if ((filedata[0] != '#') || (filedata[1] != '?'))
+			return false;
+
+		//uint32_t width = 0, height = 0;
+		bool is_rgbe = false;
+		size_t cur_ofs = 0;
+
+		// Parse the lines until we encounter a blank line.
+		std::string cur_line;
+		for (; ; )
+		{
+			if (cur_ofs >= filedata.size())
+				return false;
+
+			const uint32_t HEADER_TOO_BIG_SIZE = 4096;
+			if (cur_ofs >= HEADER_TOO_BIG_SIZE)
+			{
+				// Header seems too large - something is likely wrong. Return failure.
+				return false;
+			}
+
+			uint8_t c = filedata[cur_ofs++];
+
+			if (c == '\n')
+			{
+				if (!cur_line.size())
+					break;
+
+				if ((cur_line[0] == '#') && (!string_begins_with(cur_line, "#?")) && (!hdr_info.m_program.size()))
+				{
+					cur_line.erase(0, 1);
+					while (cur_line.size() && (cur_line[0] == ' '))
+						cur_line.erase(0, 1);
+
+					hdr_info.m_program = cur_line;
+				}
+				else if (string_begins_with(cur_line, "EXPOSURE=") && (cur_line.size() > 9))
+				{
+					hdr_info.m_exposure = atof(cur_line.c_str() + 9);
+					hdr_info.m_has_exposure = true;
+				}
+				else if (string_begins_with(cur_line, "GAMMA=") && (cur_line.size() > 6))
+				{
+					hdr_info.m_exposure = atof(cur_line.c_str() + 6);
+					hdr_info.m_has_gamma = true;
+				}
+				else if (cur_line == "FORMAT=32-bit_rle_rgbe")
+				{
+					is_rgbe = true;
+				}
+
+				cur_line.resize(0);
+			}
+			else
+				cur_line.push_back((char)c);
+		}
+
+		if (!is_rgbe)
+			return false;
+
+		// Assume and require the final line to have the image's dimensions. We're not supporting flipping.
+		for (; ; )
+		{
+			if (cur_ofs >= filedata.size())
+				return false;
+			uint8_t c = filedata[cur_ofs++];
+			if (c == '\n')
+				break;
+			cur_line.push_back((char)c);
+		}
+
+		int comp[2] = { 1, 0 }; // y, x (major, minor)
+		int dir[2] = { -1, 1 }; // -1, 1, (major, minor), for y -1=up
+		uint32_t major_dim = 0, minor_dim = 0;
+
+		// Parse the dimension string, normally it'll be "-Y # +X #" (major, minor), rarely it differs
+		for (uint32_t d = 0; d < 2; d++) // 0=major, 1=minor
+		{
+			const bool is_neg_x = (strncmp(&cur_line[0], "-X ", 3) == 0);
+			const bool is_pos_x = (strncmp(&cur_line[0], "+X ", 3) == 0);
+			const bool is_x = is_neg_x || is_pos_x;
+
+			const bool is_neg_y = (strncmp(&cur_line[0], "-Y ", 3) == 0);
+			const bool is_pos_y = (strncmp(&cur_line[0], "+Y ", 3) == 0);
+			const bool is_y = is_neg_y || is_pos_y;
+
+			if (cur_line.size() < 3)
+				return false;
+			
+			if (!is_x && !is_y)
+				return false;
+
+			comp[d] = is_x ? 0 : 1;
+			dir[d] = (is_neg_x || is_neg_y) ? -1 : 1;
+			
+			uint32_t& dim = d ? minor_dim : major_dim;
+
+			cur_line.erase(0, 3);
+
+			while (cur_line.size())
+			{
+				char c = cur_line[0];
+				if (c != ' ')
+					break;
+				cur_line.erase(0, 1);
+			}
+
+			bool has_digits = false;
+			while (cur_line.size())
+			{
+				char c = cur_line[0];
+				cur_line.erase(0, 1);
+
+				if (c == ' ')
+					break;
+
+				if ((c < '0') || (c > '9'))
+					return false;
+
+				const uint32_t prev_dim = dim;
+				dim = dim * 10 + (c - '0');
+				if (dim < prev_dim)
+					return false;
+
+				has_digits = true;
+			}
+			if (!has_digits)
+				return false;
+
+			if ((dim < 1) || (dim > MAX_SUPPORTED_DIM))
+				return false;
+		}
+				
+		// temp image: width=minor, height=major
+		img.resize(minor_dim, major_dim);
+
+		std::vector<color_rgba> temp_scanline(minor_dim);
+
+		// Read the scanlines.
+		for (uint32_t y = 0; y < major_dim; y++)
+		{
+			vec4F* pDst = &img(0, y);
+
+			if ((filedata.size() - cur_ofs) < 4)
+				return false;
+
+			// Determine if the line uses the new or old format. See the logic in color.c.
+			bool old_decrunch = false;
+			if ((minor_dim < 8) || (minor_dim > 0x7FFF))
+			{
+				// Line is too short or long; must be old format.
+				old_decrunch = true;
+			}
+			else if (filedata[cur_ofs] != 2)
+			{
+				// R is not 2, must be old format
+				old_decrunch = true;
+			}
+			else
+			{
+				// c[0]/red is 2.Check GB and E for validity.				
+				color_rgba c;
+				memcpy(&c, &filedata[cur_ofs], 4);
+
+				if ((c[1] != 2) || (c[2] & 0x80))
+				{
+					// G isn't 2, or the high bit of B is set which is impossible (image's > 0x7FFF pixels can't get here). Use old format.
+					old_decrunch = true;
+				}
+				else
+				{
+					// Check B and E. If this isn't the minor_dim in network order, something is wrong. The pixel would also be denormalized, and invalid.
+					uint32_t w = (c[2] << 8) | c[3];
+					if (w != minor_dim)
+						return false;
+
+					cur_ofs += 4;
+				}
+			}
+
+			if (old_decrunch)
+			{
+				uint32_t rshift = 0, x = 0;
+
+				while (x < minor_dim)
+				{
+					if ((filedata.size() - cur_ofs) < 4)
+						return false;
+
+					color_rgba c;
+					memcpy(&c, &filedata[cur_ofs], 4);
+					cur_ofs += 4;
+
+					if ((c[0] == 1) && (c[1] == 1) && (c[2] == 1))
+					{
+						// We'll allow RLE matches to cross scanlines, but not on the very first pixel.
+						if ((!x) && (!y))
+							return false;
+
+						const uint32_t run_len = c[3] << rshift;
+						const vec4F run_color(pDst[-1]);
+
+						if ((x + run_len) > minor_dim)
+							return false;
+
+						for (uint32_t i = 0; i < run_len; i++)
+							*pDst++ = run_color;
+
+						rshift += 8;
+						x += run_len;
+					}
+					else
+					{
+						rshift = 0;
+
+						hdr_convert(c, *pDst);
+						pDst++;
+						x++;
+					}
+				}
+				continue;
+			}
+
+			// New format
+			for (uint32_t s = 0; s < 4; s++)
+			{
+				uint32_t x_ofs = 0;
+				while (x_ofs < minor_dim)
+				{
+					uint32_t num_remaining = minor_dim - x_ofs;
+
+					if (cur_ofs >= filedata.size())
+						return false;
+
+					uint8_t count = filedata[cur_ofs++];
+					if (count > 128)
+					{
+						count -= 128;
+						if (count > num_remaining)
+							return false;
+
+						if (cur_ofs >= filedata.size())
+							return false;
+						const uint8_t val = filedata[cur_ofs++];
+
+						for (uint32_t i = 0; i < count; i++)
+							temp_scanline[x_ofs + i][s] = val;
+
+						x_ofs += count;
+					}
+					else
+					{
+						if ((!count) || (count > num_remaining))
+							return false;
+
+						for (uint32_t i = 0; i < count; i++)
+						{
+							if (cur_ofs >= filedata.size())
+								return false;
+							const uint8_t val = filedata[cur_ofs++];
+
+							temp_scanline[x_ofs + i][s] = val;
+						}
+
+						x_ofs += count;
+					}
+				} // while (x_ofs < minor_dim)
+			} // c
+
+			// Convert all the RGBE pixels to float now
+			for (uint32_t x = 0; x < minor_dim; x++, pDst++)
+				hdr_convert(temp_scanline[x], *pDst);
+
+			assert((pDst - &img(0, y)) == (int)minor_dim);
+
+		} // y
+
+		// at here:
+		// img(width,height)=image pixels as read from file, x=minor axis, y=major axis
+		// width=minor axis dimension
+		// height=major axis dimension
+		// in file, pixels are emitted in minor order, them major (so major=scanlines in the file)
+		
+		imagef final_img;
+		if (comp[0] == 0) // if major axis is X
+			final_img.resize(major_dim, minor_dim);
+		else // major axis is Y, minor is X
+			final_img.resize(minor_dim, major_dim);
+
+		// TODO: optimize the identity case
+		for (uint32_t major_iter = 0; major_iter < major_dim; major_iter++)
+		{
+			for (uint32_t minor_iter = 0; minor_iter < minor_dim; minor_iter++)
+			{
+				const vec4F& p = img(minor_iter, major_iter);
+
+				uint32_t dst_x = 0, dst_y = 0;
+
+				// is the minor dim output x?
+				if (comp[1] == 0) 
+				{
+					// minor axis is x, major is y
+					
+					// is minor axis (which is output x) flipped?
+					if (dir[1] < 0)
+						dst_x = minor_dim - 1 - minor_iter;
+					else
+						dst_x = minor_iter;
+
+					// is major axis (which is output y) flipped? -1=down in raster order, 1=up
+					if (dir[0] < 0)
+						dst_y = major_iter;
+					else
+						dst_y = major_dim - 1 - major_iter;
+				}
+				else
+				{
+					// minor axis is output y, major is output x
+
+					// is minor axis (which is output y) flipped?
+					if (dir[1] < 0)
+						dst_y = minor_iter;
+					else
+						dst_y = minor_dim - 1 - minor_iter;
+
+					// is major axis (which is output x) flipped?
+					if (dir[0] < 0)
+						dst_x = major_dim - 1 - major_iter;
+					else
+						dst_x = major_iter;
+				}
+
+				final_img(dst_x, dst_y) = p;
+			}
+		}
+
+		final_img.swap(img);
+
+		return true;
+	}
+
+	bool read_rgbe(const char* pFilename, imagef& img, rgbe_header_info& hdr_info)
+	{
+		uint8_vec filedata;
+		if (!read_file_to_vec(pFilename, filedata))
+			return false;
+		return read_rgbe(filedata, img, hdr_info);
+	}
+
+	static uint8_vec& append_string(uint8_vec& buf, const char* pStr)
+	{
+		const size_t str_len = strlen(pStr);
+		if (!str_len)
+			return buf;
+
+		const size_t ofs = buf.size();
+		buf.resize(ofs + str_len);
+		memcpy(&buf[ofs], pStr, str_len);
+
+		return buf;
+	}
+	
+	static uint8_vec& append_string(uint8_vec& buf, const std::string& str)
+	{
+		if (!str.size())
+			return buf;
+		return append_string(buf, str.c_str());
+	}
+
+	static inline void float2rgbe(color_rgba &rgbe, const vec4F &c)
+	{
+		const float red = c[0], green = c[1], blue = c[2];
+		assert(red >= 0.0f && green >= 0.0f && blue >= 0.0f);
+
+		const float max_v = basisu::maximumf(basisu::maximumf(red, green), blue);
+
+		if (max_v < 1e-32f)
+			rgbe.clear();
+		else 
+		{
+			int e;
+			const float scale = frexp(max_v, &e) * 256.0f / max_v;
+			rgbe[0] = (uint8_t)(clamp<int>((int)(red * scale), 0, 255));
+			rgbe[1] = (uint8_t)(clamp<int>((int)(green * scale), 0, 255));
+			rgbe[2] = (uint8_t)(clamp<int>((int)(blue * scale), 0, 255));
+			rgbe[3] = (uint8_t)(e + 128);
+		}
+	}
+
+	const bool RGBE_FORCE_RAW = false;
+	const bool RGBE_FORCE_OLD_CRUNCH = false; // note must readers (particularly stb_image.h's) don't properly support this, when they should
+		
+	bool write_rgbe(uint8_vec &file_data, imagef& img, rgbe_header_info& hdr_info)
+	{
+		if (!img.get_width() || !img.get_height())
+			return false;
+
+		const uint32_t width = img.get_width(), height = img.get_height();
+		
+		file_data.resize(0);
+		file_data.reserve(1024 + img.get_width() * img.get_height() * 4);
+
+		append_string(file_data, "#?RADIANCE\n");
+
+		if (hdr_info.m_has_exposure)
+			append_string(file_data, string_format("EXPOSURE=%g\n", hdr_info.m_exposure));
+
+		if (hdr_info.m_has_gamma)
+			append_string(file_data, string_format("GAMMA=%g\n", hdr_info.m_gamma));
+
+		append_string(file_data, "FORMAT=32-bit_rle_rgbe\n\n");
+		append_string(file_data, string_format("-Y %u +X %u\n", height, width));
+
+		if (((width < 8) || (width > 0x7FFF)) || (RGBE_FORCE_RAW))
+		{
+			for (uint32_t y = 0; y < height; y++)
+			{
+				for (uint32_t x = 0; x < width; x++)
+				{
+					color_rgba rgbe;
+					float2rgbe(rgbe, img(x, y));
+					append_vector(file_data, (const uint8_t *)&rgbe, sizeof(rgbe));
+				}
+			}
+		}
+		else if (RGBE_FORCE_OLD_CRUNCH)
+		{
+			for (uint32_t y = 0; y < height; y++)
+			{
+				int prev_r = -1, prev_g = -1, prev_b = -1, prev_e = -1;
+				uint32_t cur_run_len = 0;
+				
+				for (uint32_t x = 0; x < width; x++)
+				{
+					color_rgba rgbe;
+					float2rgbe(rgbe, img(x, y));
+
+					if ((rgbe[0] == prev_r) && (rgbe[1] == prev_g) && (rgbe[2] == prev_b) && (rgbe[3] == prev_e))
+					{
+						if (++cur_run_len == 255)
+						{
+							// this ensures rshift stays 0, it's lame but this path is only for testing readers
+							color_rgba f(1, 1, 1, cur_run_len - 1);
+							append_vector(file_data, (const uint8_t*)&f, sizeof(f));
+							append_vector(file_data, (const uint8_t*)&rgbe, sizeof(rgbe)); 
+							cur_run_len = 0;
+						}
+					}
+					else
+					{
+						if (cur_run_len > 0)
+						{
+							color_rgba f(1, 1, 1, cur_run_len);
+							append_vector(file_data, (const uint8_t*)&f, sizeof(f));
+							
+							cur_run_len = 0;
+						}
+						
+						append_vector(file_data, (const uint8_t*)&rgbe, sizeof(rgbe));
+																		
+						prev_r = rgbe[0];
+						prev_g = rgbe[1];
+						prev_b = rgbe[2];
+						prev_e = rgbe[3];
+					}
+				} // x
+
+				if (cur_run_len > 0)
+				{
+					color_rgba f(1, 1, 1, cur_run_len);
+					append_vector(file_data, (const uint8_t*)&f, sizeof(f));
+				}
+			} // y
+		}
+		else
+		{
+			uint8_vec temp[4];
+			for (uint32_t c = 0; c < 4; c++)
+				temp[c].resize(width);
+
+			for (uint32_t y = 0; y < height; y++)
+			{
+				color_rgba rgbe(2, 2, width >> 8, width & 0xFF);
+				append_vector(file_data, (const uint8_t*)&rgbe, sizeof(rgbe));
+								
+				for (uint32_t x = 0; x < width; x++)
+				{
+					float2rgbe(rgbe, img(x, y));
+
+					for (uint32_t c = 0; c < 4; c++)
+						temp[c][x] = rgbe[c];
+				}
+
+				for (uint32_t c = 0; c < 4; c++)
+				{
+					int raw_ofs = -1;
+					
+					uint32_t x = 0;
+					while (x < width)
+					{
+						const uint32_t num_bytes_remaining = width - x;
+						const uint32_t max_run_len = basisu::minimum<uint32_t>(num_bytes_remaining, 127);
+						const uint8_t cur_byte = temp[c][x];
+
+						uint32_t run_len = 1;
+						while (run_len < max_run_len)
+						{
+							if (temp[c][x + run_len] != cur_byte)
+								break;
+							run_len++;
+						}
+												
+						const uint32_t cost_to_keep_raw = ((raw_ofs != -1) ? 0 : 1) + run_len; // 0 or 1 bytes to start a raw run, then the repeated bytes issued as raw
+						const uint32_t cost_to_take_run = 2 + 1; // 2 bytes to issue the RLE, then 1 bytes to start whatever follows it (raw or RLE)
+
+						if ((run_len >= 3) && (cost_to_take_run < cost_to_keep_raw))
+						{
+							file_data.push_back((uint8_t)(128 + run_len));
+							file_data.push_back(cur_byte);
+
+							x += run_len;
+							raw_ofs = -1;
+						}
+						else
+						{
+							if (raw_ofs < 0)
+							{
+								raw_ofs = (int)file_data.size();
+								file_data.push_back(0);
+							}
+
+							if (++file_data[raw_ofs] == 128)
+								raw_ofs = -1;
+
+							file_data.push_back(cur_byte);
+							
+							x++;
+						}
+					} // x
+
+				} // c
+			} // y
+		}
+
+		return true;
+	}
+
+	bool write_rgbe(const char* pFilename, imagef& img, rgbe_header_info& hdr_info)
+	{
+		uint8_vec file_data;
+		if (!write_rgbe(file_data, img, hdr_info))
+			return false;
+		return write_vec_to_file(pFilename, file_data);
+	}
+		
+	bool read_exr(const char* pFilename, imagef& img, int& n_chans)
+	{
+		n_chans = 0;
+
+		int width = 0, height = 0;
+		float* out_rgba = nullptr;
+		const char* err = nullptr;
+		
+		int status = LoadEXRWithLayer(&out_rgba, &width, &height, pFilename, nullptr, &err);
+		n_chans = 4;
+		if (status != 0)
+		{
+			error_printf("Failed loading .EXR image \"%s\"! (TinyEXR error: %s)\n", pFilename, err ? err : "?");
+			FreeEXRErrorMessage(err);
+			free(out_rgba);
+			return false;
+		}
+
+		const uint32_t MAX_SUPPORTED_DIM = 65536;
+		if ((width < 1) || (height < 1) || (width > (int)MAX_SUPPORTED_DIM) || (height > (int)MAX_SUPPORTED_DIM))
+		{
+			error_printf("Invalid dimensions of .EXR image \"%s\"!\n", pFilename);
+			free(out_rgba);
+			return false;
+		}
+
+		img.resize(width, height);
+		
+		if (n_chans == 1)
+		{
+			const float* pSrc = out_rgba;
+			vec4F* pDst = img.get_ptr();
+
+			for (int y = 0; y < height; y++)
+			{
+				for (int x = 0; x < width; x++)
+				{
+					(*pDst)[0] = pSrc[0];
+					(*pDst)[1] = pSrc[1];
+					(*pDst)[2] = pSrc[2];
+					(*pDst)[3] = 1.0f;
+
+					pSrc += 4;
+					++pDst;
+				}
+			}
+		}
+		else
+		{
+			memcpy(img.get_ptr(), out_rgba, sizeof(float) * 4 * img.get_total_pixels());
+		}
+
+		free(out_rgba);
+		return true;
+	}
+
+	bool read_exr(const void* pMem, size_t mem_size, imagef& img)
+	{
+		float* out_rgba = nullptr;
+		int width = 0, height = 0;
+		const char* pErr = nullptr;
+		int res = LoadEXRFromMemory(&out_rgba, &width, &height, (const uint8_t*)pMem, mem_size, &pErr);
+		if (res < 0)
+		{
+			error_printf("Failed loading .EXR image from memory! (TinyEXR error: %s)\n", pErr ? pErr : "?");
+			FreeEXRErrorMessage(pErr);
+			free(out_rgba);
+			return false;
+		}
+
+		img.resize(width, height);
+		memcpy(img.get_ptr(), out_rgba, width * height * sizeof(float) * 4);
+		free(out_rgba);
+
+		return true;
+	}
+
+	bool write_exr(const char* pFilename, imagef& img, uint32_t n_chans, uint32_t flags)
+	{
+		assert((n_chans == 1) || (n_chans == 3) || (n_chans == 4));
+
+		const bool linear_hint = (flags & WRITE_EXR_LINEAR_HINT) != 0, 
+			store_float = (flags & WRITE_EXR_STORE_FLOATS) != 0,
+			no_compression = (flags & WRITE_EXR_NO_COMPRESSION) != 0;
+								
+		const uint32_t width = img.get_width(), height = img.get_height();
+		assert(width && height);
+		
+		if (!width || !height)
+			return false;
+		
+		float_vec layers[4];
+		float* image_ptrs[4];
+		for (uint32_t c = 0; c < n_chans; c++)
+		{
+			layers[c].resize(width * height);
+			image_ptrs[c] = layers[c].get_ptr();
+		}
+
+		// ABGR
+		int chan_order[4] = { 3, 2, 1, 0 };
+
+		if (n_chans == 1)
+		{
+			// Y
+			chan_order[0] = 0;
+		}
+		else if (n_chans == 3)
+		{
+			// BGR
+			chan_order[0] = 2;
+			chan_order[1] = 1;
+			chan_order[2] = 0;
+		}
+		else if (n_chans != 4)
+		{
+			assert(0);
+			return false;
+		}
+		
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				const vec4F& p = img(x, y);
+
+				for (uint32_t c = 0; c < n_chans; c++)
+					layers[c][x + y * width] = p[chan_order[c]];
+			} // x
+		} // y
+
+		EXRHeader header;
+		InitEXRHeader(&header);
+
+		EXRImage image;
+		InitEXRImage(&image);
+
+		image.num_channels = n_chans;
+		image.images = (unsigned char**)image_ptrs;
+		image.width = width;
+		image.height = height;
+
+		header.num_channels = n_chans;
+		
+		header.channels = (EXRChannelInfo*)calloc(header.num_channels, sizeof(EXRChannelInfo));
+
+		// Must be (A)BGR order, since most of EXR viewers expect this channel order.
+		for (uint32_t i = 0; i < n_chans; i++)
+		{
+			char c = 'Y';
+			if (n_chans == 3)
+				c = "BGR"[i];
+			else if (n_chans == 4)
+				c = "ABGR"[i];
+						
+			header.channels[i].name[0] = c;
+			header.channels[i].name[1] = '\0';
+
+			header.channels[i].p_linear = linear_hint;
+		}
+		
+		header.pixel_types = (int*)calloc(header.num_channels, sizeof(int));
+		header.requested_pixel_types = (int*)calloc(header.num_channels, sizeof(int));
+		
+		if (!no_compression)
+			header.compression_type = TINYEXR_COMPRESSIONTYPE_ZIP;
+
+		for (int i = 0; i < header.num_channels; i++) 
+		{
+			// pixel type of input image
+			header.pixel_types[i] = TINYEXR_PIXELTYPE_FLOAT; 
+
+			// pixel type of output image to be stored in .EXR
+			header.requested_pixel_types[i] = store_float ? TINYEXR_PIXELTYPE_FLOAT : TINYEXR_PIXELTYPE_HALF; 
+		}
+
+		const char* pErr_msg = nullptr;
+
+		int ret = SaveEXRImageToFile(&image, &header, pFilename, &pErr_msg);
+		if (ret != TINYEXR_SUCCESS) 
+		{
+			error_printf("Save EXR err: %s\n", pErr_msg);
+			FreeEXRErrorMessage(pErr_msg);
+		}
+				
+		free(header.channels);
+		free(header.pixel_types);
+		free(header.requested_pixel_types);
+
+		return (ret == TINYEXR_SUCCESS);
+	}
+
 	void image::debug_text(uint32_t x_ofs, uint32_t y_ofs, uint32_t scale_x, uint32_t scale_y, const color_rgba& fg, const color_rgba* pBG, bool alpha_only, const char* pFmt, ...)
 	{
 		char buf[2048];
@@ -2103,5 +3480,206 @@ namespace basisu
 			}
 		}
 	}
-		
+	
+	// Very basic global Reinhard tone mapping, output converted to sRGB with no dithering, alpha is carried through unchanged. 
+	// Only used for debugging/development.
+	void tonemap_image_reinhard(image &ldr_img, const imagef &hdr_img, float exposure)
+	{
+		uint32_t width = hdr_img.get_width(), height = hdr_img.get_height();
+
+		ldr_img.resize(width, height);
+				
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				vec4F c(hdr_img(x, y));
+
+				for (uint32_t t = 0; t < 3; t++)
+				{
+					if (c[t] <= 0.0f)
+					{
+						c[t] = 0.0f;
+					}
+					else
+					{
+						c[t] *= exposure;
+						c[t] = c[t] / (1.0f + c[t]);
+					}
+				}
+
+				c.clamp(0.0f, 1.0f);
+
+				c[0] = linear_to_srgb(c[0]) * 255.0f;
+				c[1] = linear_to_srgb(c[1]) * 255.0f;
+				c[2] = linear_to_srgb(c[2]) * 255.0f;
+				c[3] = c[3] * 255.0f;
+
+				color_rgba& o = ldr_img(x, y);
+				
+				o[0] = (uint8_t)std::round(c[0]);
+				o[1] = (uint8_t)std::round(c[1]);
+				o[2] = (uint8_t)std::round(c[2]);
+				o[3] = (uint8_t)std::round(c[3]);
+			}
+		}
+	}
+
+	bool tonemap_image_compressive(image& dst_img, const imagef& hdr_test_img)
+	{
+		const uint32_t width = hdr_test_img.get_width();
+		const uint32_t height = hdr_test_img.get_height();
+
+		uint16_vec orig_half_img(width * 3 * height);
+		uint16_vec half_img(width * 3 * height);
+
+		int max_shift = 32;
+
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				const vec4F& p = hdr_test_img(x, y);
+
+				for (uint32_t i = 0; i < 3; i++)
+				{
+					if (p[i] < 0.0f)
+						return false;
+					if (p[i] > basist::MAX_HALF_FLOAT)
+						return false;
+
+					uint32_t h = basist::float_to_half(p[i]);
+					//uint32_t orig_h = h;
+
+					orig_half_img[(x + y * width) * 3 + i] = (uint16_t)h;
+
+					// Rotate sign bit into LSB
+					//h = rot_left16((uint16_t)h, 1);
+					//assert(rot_right16((uint16_t)h, 1) == orig_h);
+					h <<= 1;
+
+					half_img[(x + y * width) * 3 + i] = (uint16_t)h;
+
+					// Determine # of leading zero bits, ignoring the sign bit
+					if (h)
+					{
+						int lz = clz(h) - 16;
+						assert(lz >= 0 && lz <= 16);
+
+						assert((h << lz) <= 0xFFFF);
+
+						max_shift = basisu::minimum<int>(max_shift, lz);
+					}
+				} // i
+			} // x
+		} // y
+
+		//printf("tonemap_image_compressive: Max leading zeros: %i\n", max_shift);
+
+		uint32_t high_hist[256];
+		clear_obj(high_hist);
+
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				for (uint32_t i = 0; i < 3; i++)
+				{
+					uint16_t& hf = half_img[(x + y * width) * 3 + i];
+
+					assert(((uint32_t)hf << max_shift) <= 65535);
+
+					hf <<= max_shift;
+
+					uint32_t h = (uint8_t)(hf >> 8);
+					high_hist[h]++;
+				}
+			} // x
+		} // y
+
+		uint32_t total_vals_used = 0;
+		int remap_old_to_new[256];
+		for (uint32_t i = 0; i < 256; i++)
+			remap_old_to_new[i] = -1;
+
+		for (uint32_t i = 0; i < 256; i++)
+		{
+			if (high_hist[i] != 0)
+			{
+				remap_old_to_new[i] = total_vals_used;
+				total_vals_used++;
+			}
+		}
+
+		assert(total_vals_used >= 1);
+
+		//printf("tonemap_image_compressive: Total used high byte values: %u, unused: %u\n", total_vals_used, 256 - total_vals_used);
+
+		bool val_used[256];
+		clear_obj(val_used);
+
+		int remap_new_to_old[256];
+		for (uint32_t i = 0; i < 256; i++)
+			remap_new_to_old[i] = -1;
+		BASISU_NOTE_UNUSED(remap_new_to_old);
+
+		int prev_c = -1;
+		BASISU_NOTE_UNUSED(prev_c);
+		for (uint32_t i = 0; i < 256; i++)
+		{
+			if (remap_old_to_new[i] >= 0)
+			{
+				int c;
+				if (total_vals_used <= 1)
+					c = remap_old_to_new[i];
+				else
+				{
+					c = (remap_old_to_new[i] * 255 + ((total_vals_used - 1) / 2)) / (total_vals_used - 1);
+
+					assert(c > prev_c);
+				}
+
+				assert(!val_used[c]);
+
+				remap_new_to_old[c] = i;
+
+				remap_old_to_new[i] = c;
+				prev_c = c;
+
+				//printf("%u ", c);
+
+				val_used[c] = true;
+			}
+		} // i
+		//printf("\n");
+
+		dst_img.resize(width, height);
+
+		for (uint32_t y = 0; y < height; y++)
+		{
+			for (uint32_t x = 0; x < width; x++)
+			{
+				for (uint32_t c = 0; c < 3; c++)
+				{
+					uint16_t& v16 = half_img[(x + y * width) * 3 + c];
+
+					uint32_t hb = v16 >> 8;
+					//uint32_t lb = v16 & 0xFF;
+
+					assert(remap_old_to_new[hb] != -1);
+					assert(remap_old_to_new[hb] <= 255);
+					assert(remap_new_to_old[remap_old_to_new[hb]] == (int)hb);
+
+					hb = remap_old_to_new[hb];
+
+					//v16 = (uint16_t)((hb << 8) | lb);
+
+					dst_img(x, y)[c] = (uint8_t)hb;
+				}
+			} // x
+		} // y
+
+		return true;
+	}
+					
 } // namespace basisu

@@ -494,6 +494,7 @@ bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_f
 }
 
 void ProjectSettings::_convert_to_last_version(int p_from_version) {
+#ifndef DISABLE_DEPRECATED
 	if (p_from_version <= 3) {
 		// Converts the actions from array to dictionary (array of events to dictionary with deadzone + events)
 		for (KeyValue<StringName, ProjectSettings::VariantContainer> &E : props) {
@@ -507,6 +508,22 @@ void ProjectSettings::_convert_to_last_version(int p_from_version) {
 			}
 		}
 	}
+	if (p_from_version <= 5) {
+		// Converts the device in events from -1 (emulated events) to -3 (all events).
+		for (KeyValue<StringName, ProjectSettings::VariantContainer> &E : props) {
+			if (String(E.key).begins_with("input/")) {
+				Dictionary action = E.value.variant;
+				Array events = action["events"];
+				for (int i = 0; i < events.size(); i++) {
+					Ref<InputEvent> x = events[i];
+					if (x->get_device() == -1) { // -1 was the previous value (GH-97707).
+						x->set_device(InputEvent::DEVICE_ID_ALL_DEVICES);
+					}
+				}
+			}
+		}
+	}
+#endif // DISABLE_DEPRECATED
 }
 
 /*
@@ -1167,22 +1184,16 @@ bool ProjectSettings::is_project_loaded() const {
 }
 
 bool ProjectSettings::_property_can_revert(const StringName &p_name) const {
-	if (!props.has(p_name)) {
-		return false;
-	}
-
-	return props[p_name].initial != props[p_name].variant;
+	return props.has(p_name);
 }
 
 bool ProjectSettings::_property_get_revert(const StringName &p_name, Variant &r_property) const {
-	if (!props.has(p_name)) {
-		return false;
+	const RBMap<StringName, ProjectSettings::VariantContainer>::Element *value = props.find(p_name);
+	if (value) {
+		r_property = value->value().initial.duplicate();
+		return true;
 	}
-
-	// Duplicate so that if value is array or dictionary, changing the setting will not change the stored initial value.
-	r_property = props[p_name].initial.duplicate();
-
-	return true;
+	return false;
 }
 
 void ProjectSettings::set_setting(const String &p_setting, const Variant &p_value) {
@@ -1466,6 +1477,7 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("display/window/size/transparent", false);
 	GLOBAL_DEF("display/window/size/extend_to_title", false);
 	GLOBAL_DEF("display/window/size/no_focus", false);
+	GLOBAL_DEF("display/window/size/sharp_corners", false);
 
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "display/window/size/window_width_override", PROPERTY_HINT_RANGE, "0,7680,1,or_greater"), 0); // 8K resolution
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "display/window/size/window_height_override", PROPERTY_HINT_RANGE, "0,4320,1,or_greater"), 0); // 8K resolution

@@ -91,10 +91,10 @@
 			Cellular includes both Worley noise and Voronoi diagrams which creates various regions of the same value.
 		</constant>
 		<constant name="TYPE_SIMPLEX" value="0" enum="NoiseType">
-			As opposed to [constant TYPE_PERLIN], gradients exist in a simplex lattice rather than a grid lattice, avoiding directional artifacts.
+			As opposed to [constant TYPE_PERLIN], gradients exist in a simplex lattice rather than a grid lattice, avoiding directional artifacts. Internally uses FastNoiseLite's OpenSimplex2 noise type.
 		</constant>
 		<constant name="TYPE_SIMPLEX_SMOOTH" value="1" enum="NoiseType">
-			Modified, higher quality version of [constant TYPE_SIMPLEX], but slower.
+			Modified, higher quality version of [constant TYPE_SIMPLEX], but slower. Internally uses FastNoiseLite's OpenSimplex2S noise type.
 		</constant>
 		<constant name="FRACTAL_NONE" value="0" enum="FractalType">
 			No fractal noise.

@@ -450,7 +450,7 @@ struct spmd_kernel
 		CPPSPMD_FORCE_INLINE explicit operator vint() const;
 								
 	private:
-		vbool& operator=(const vbool&);
+		//vbool& operator=(const vbool&);
 	};
 
 	friend vbool operator!(const vbool& v);
@@ -481,7 +481,7 @@ struct spmd_kernel
 		CPPSPMD_FORCE_INLINE explicit vfloat(int value) : m_value(_mm_set1_ps((float)value)) { }
 
 	private:
-		vfloat& operator=(const vfloat&);
+		//vfloat& operator=(const vfloat&);
 	};
 
 	CPPSPMD_FORCE_INLINE vfloat& store(vfloat& dst, const vfloat& src)
@@ -514,7 +514,7 @@ struct spmd_kernel
 		float* m_pValue;
 
 	private:
-		float_lref& operator=(const float_lref&);
+		//float_lref& operator=(const float_lref&);
 	};
 
 	CPPSPMD_FORCE_INLINE const float_lref& store(const float_lref& dst, const vfloat& src)
@@ -561,7 +561,7 @@ struct spmd_kernel
 		float* m_pValue;
 		
 	private:
-		float_vref& operator=(const float_vref&);
+		//float_vref& operator=(const float_vref&);
 	};
 
 	// Varying ref to varying float
@@ -571,7 +571,7 @@ struct spmd_kernel
 		vfloat* m_pValue;
 		
 	private:
-		vfloat_vref& operator=(const vfloat_vref&);
+		//vfloat_vref& operator=(const vfloat_vref&);
 	};
 
 	// Varying ref to varying int
@@ -581,7 +581,7 @@ struct spmd_kernel
 		vint* m_pValue;
 		
 	private:
-		vint_vref& operator=(const vint_vref&);
+		//vint_vref& operator=(const vint_vref&);
 	};
 
 	CPPSPMD_FORCE_INLINE const float_vref& store(const float_vref& dst, const vfloat& src);
@@ -624,7 +624,7 @@ struct spmd_kernel
 		int* m_pValue;
 
 	private:
-		int_lref& operator=(const int_lref&);
+		//int_lref& operator=(const int_lref&);
 	};
 		
 	CPPSPMD_FORCE_INLINE const int_lref& store(const int_lref& dst, const vint& src)
@@ -663,7 +663,7 @@ struct spmd_kernel
 		int16_t* m_pValue;
 
 	private:
-		int16_lref& operator=(const int16_lref&);
+		//int16_lref& operator=(const int16_lref&);
 	};
 
 	CPPSPMD_FORCE_INLINE const int16_lref& store(const int16_lref& dst, const vint& src)
@@ -720,7 +720,7 @@ struct spmd_kernel
 		const int* m_pValue;
 
 	private:
-		cint_lref& operator=(const cint_lref&);
+		//cint_lref& operator=(const cint_lref&);
 	};
 
 	CPPSPMD_FORCE_INLINE vint load(const cint_lref& src)
@@ -742,7 +742,7 @@ struct spmd_kernel
 		int* m_pValue;
 
 	private:
-		int_vref& operator=(const int_vref&);
+		//int_vref& operator=(const int_vref&);
 	};
 
 	// Varying ref to constant ints
@@ -752,7 +752,7 @@ struct spmd_kernel
 		const int* m_pValue;
 
 	private:
-		cint_vref& operator=(const cint_vref&);
+		//cint_vref& operator=(const cint_vref&);
 	};
 
 	// Varying int
@@ -810,7 +810,7 @@ struct spmd_kernel
 		}
 
 	private:
-		vint& operator=(const vint&);
+		//vint& operator=(const vint&);
 	};
 
 	// Load/store linear int
@@ -1206,7 +1206,7 @@ struct spmd_kernel
 	CPPSPMD_FORCE_INLINE vint load_all(const vint_vref& src)
 	{
 		// TODO: There's surely a better way
-		__m128i k;
+		__m128i k = _mm_setzero_si128();
 
 		k = insert_x(k, ((int*)(&src.m_pValue[extract_x(src.m_vindex)]))[0]);
 		k = insert_y(k, ((int*)(&src.m_pValue[extract_y(src.m_vindex)]))[1]);
@@ -1261,7 +1261,7 @@ struct spmd_kernel
 		}
 
 	private:
-		lint& operator=(const lint&);
+		//lint& operator=(const lint&);
 	};
 
 	CPPSPMD_FORCE_INLINE lint& store_all(lint& dst, const lint& src)

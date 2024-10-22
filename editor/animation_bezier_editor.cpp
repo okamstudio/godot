@@ -1501,11 +1501,6 @@ void AnimationBezierTrackEdit::gui_input(const Ref<InputEvent> &p_event) {
 		}
 
 		box_selection_to = mm->get_position();
-
-		if (get_local_mouse_position().y < 0) {
-			// Avoid cursor from going too above, so it does not lose focus with viewport.
-			warp_mouse(Vector2(get_local_mouse_position().x, 0));
-		}
 		queue_redraw();
 	}
 

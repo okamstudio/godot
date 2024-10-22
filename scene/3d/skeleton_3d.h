@@ -107,6 +107,8 @@ private:
 		Quaternion pose_rotation;
 		Vector3 pose_scale = Vector3(1, 1, 1);
 		Transform3D global_pose;
+		int nested_set_offset = 0; // Offset in nested set of bone hierarchy.
+		int nested_set_span = 0; // Subtree span in nested set of bone hierarchy.
 
 		void update_pose_cache() {
 			if (pose_cache_dirty) {
@@ -153,7 +155,7 @@ private:
 	HashSet<SkinReference *> skin_bindings;
 	void _skin_changed();
 
-	Vector<Bone> bones;
+	LocalVector<Bone> bones;
 	bool process_order_dirty = false;
 
 	Vector<int> parentless_bones;
@@ -182,6 +184,15 @@ private:
 	void _process_changed();
 	void _make_modifiers_dirty();
 	LocalVector<BonePoseBackup> bones_backup;
+
+	// Global bone pose calculation.
+	LocalVector<int> nested_set_offset_to_bone_index; // Map from Bone::nested_set_offset to bone index.
+	LocalVector<bool> bone_global_pose_dirty; // Indexable with Bone::nested_set_offset.
+	void _update_bones_nested_set();
+	int _update_bone_nested_set(int p_bone, int p_offset);
+	void _make_bone_global_poses_dirty();
+	void _make_bone_global_pose_subtree_dirty(int p_bone);
+	void _update_bone_global_pose(int p_bone);
 
 #ifndef DISABLE_DEPRECATED
 	void _add_bone_bind_compat_88791(const String &p_name);

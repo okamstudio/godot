@@ -1,5 +1,5 @@
 // basisu_transcoder.h
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 // Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@
 
 // Set BASISU_FORCE_DEVEL_MESSAGES to 1 to enable debug printf()'s whenever an error occurs, for easier debugging during development.
 #ifndef BASISU_FORCE_DEVEL_MESSAGES
+	// TODO - disable before checking in
 	#define BASISU_FORCE_DEVEL_MESSAGES 0
 #endif
 
@@ -55,7 +56,7 @@ namespace basist
 		cTFETC2_RGBA = 1,							// Opaque+alpha, ETC2_EAC_A8 block followed by a ETC1 block, alpha channel will be opaque for opaque .basis files
 
 		// BC1-5, BC7 (desktop, some mobile devices)
-		cTFBC1_RGB = 2,							// Opaque only, no punchthrough alpha support yet, transcodes alpha slice if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
+		cTFBC1_RGB = 2,								// Opaque only, no punchthrough alpha support yet, transcodes alpha slice if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
 		cTFBC3_RGBA = 3, 							// Opaque+alpha, BC4 followed by a BC1 block, alpha channel will be opaque for opaque .basis files
 		cTFBC4_R = 4,								// Red only, alpha slice is transcoded to output if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified
 		cTFBC5_RG = 5,								// XY: Two BC4 blocks, X=R and Y=Alpha, .basis file should have alpha data (if not Y will be all 255's)
@@ -63,10 +64,11 @@ namespace basist
 
 		// PVRTC1 4bpp (mobile, PowerVR devices)
 		cTFPVRTC1_4_RGB = 8,						// Opaque only, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified, nearly lowest quality of any texture format.
-		cTFPVRTC1_4_RGBA = 9,					// Opaque+alpha, most useful for simple opacity maps. If .basis file doesn't have alpha cTFPVRTC1_4_RGB will be used instead. Lowest quality of any supported texture format.
+		cTFPVRTC1_4_RGBA = 9,						// Opaque+alpha, most useful for simple opacity maps. If .basis file doesn't have alpha cTFPVRTC1_4_RGB will be used instead. Lowest quality of any supported texture format.
 
 		// ASTC (mobile, Intel devices, hopefully all desktop GPU's one day)
-		cTFASTC_4x4_RGBA = 10,					// Opaque+alpha, ASTC 4x4, alpha channel will be opaque for opaque .basis files. Transcoder uses RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and [0,255]) endpoint precisions.
+		cTFASTC_4x4_RGBA = 10,						// LDR. Opaque+alpha, ASTC 4x4, alpha channel will be opaque for opaque .basis files. 
+													// LDR: Transcoder uses RGB/RGBA/L/LA modes, void extent, and up to two ([0,47] and [0,255]) endpoint precisions.
 
 		// ATC (mobile, Adreno devices, this is a niche format)
 		cTFATC_RGB = 11,							// Opaque, RGB or alpha if cDecodeFlagsTranscodeAlphaDataToOpaqueFormats flag is specified. ATI ATC (GL_ATC_RGB_AMD)
@@ -74,8 +76,8 @@ namespace basist
 
 		// FXT1 (desktop, Intel devices, this is a super obscure format)
 		cTFFXT1_RGB = 17,							// Opaque only, uses exclusively CC_MIXED blocks. Notable for having a 8x4 block size. GL_3DFX_texture_compression_FXT1 is supported on Intel integrated GPU's (such as HD 630).
-														// Punch-through alpha is relatively easy to support, but full alpha is harder. This format is only here for completeness so opaque-only is fine for now.
-														// See the BASISU_USE_ORIGINAL_3DFX_FXT1_ENCODING macro in basisu_transcoder_internal.h.
+													// Punch-through alpha is relatively easy to support, but full alpha is harder. This format is only here for completeness so opaque-only is fine for now.
+													// See the BASISU_USE_ORIGINAL_3DFX_FXT1_ENCODING macro in basisu_transcoder_internal.h.
 
 		cTFPVRTC2_4_RGB = 18,					// Opaque-only, almost BC1 quality, much faster to transcode and supports arbitrary texture dimensions (unlike PVRTC1 RGB).
 		cTFPVRTC2_4_RGBA = 19,					// Opaque+alpha, slower to encode than cTFPVRTC2_4_RGB. Premultiplied alpha is highly recommended, otherwise the color channel can leak into the alpha channel on transparent blocks.
@@ -83,13 +85,22 @@ namespace basist
 		cTFETC2_EAC_R11 = 20,					// R only (ETC2 EAC R11 unsigned)
 		cTFETC2_EAC_RG11 = 21,					// RG only (ETC2 EAC RG11 unsigned), R=opaque.r, G=alpha - for tangent space normal maps
 
+		cTFBC6H = 22,							// HDR, RGB only, unsigned
+		cTFASTC_HDR_4x4_RGBA = 23,				// HDR, RGBA (currently UASTC HDR is only RGB), unsigned
+
 		// Uncompressed (raw pixel) formats
+		// Note these uncompressed formats (RGBA32, 565, and 4444) can only be transcoded to from LDR input files (ETC1S or UASTC LDR).
 		cTFRGBA32 = 13,							// 32bpp RGBA image stored in raster (not block) order in memory, R is first byte, A is last byte.
 		cTFRGB565 = 14,							// 16bpp RGB image stored in raster (not block) order in memory, R at bit position 11
 		cTFBGR565 = 15,							// 16bpp RGB image stored in raster (not block) order in memory, R at bit position 0
-		cTFRGBA4444 = 16,							// 16bpp RGBA image stored in raster (not block) order in memory, R at bit position 12, A at bit position 0
+		cTFRGBA4444 = 16,						// 16bpp RGBA image stored in raster (not block) order in memory, R at bit position 12, A at bit position 0
+		
+		// Note these uncompressed formats (HALF and 9E5) can only be transcoded to from HDR input files (UASTC HDR).
+		cTFRGB_HALF = 24,						// 48bpp RGB half (16-bits/component, 3 components)
+		cTFRGBA_HALF = 25,						// 64bpp RGBA half (16-bits/component, 4 components) (A will always currently 1.0, UASTC_HDR doesn't support alpha)
+		cTFRGB_9E5 = 26,						// 32bpp RGB 9E5 (shared exponent, positive only, see GL_EXT_texture_shared_exponent)
 
-		cTFTotalTextureFormats = 22,
+		cTFTotalTextureFormats = 27,
 
 		// Old enums for compatibility with code compiled against previous versions
 		cTFETC1 = cTFETC1_RGB,
@@ -124,6 +135,9 @@ namespace basist
 	// Returns true if the format supports an alpha channel.
 	bool basis_transcoder_format_has_alpha(transcoder_texture_format fmt);
 
+	// Returns true if the format is HDR.
+	bool basis_transcoder_format_is_hdr(transcoder_texture_format fmt);
+
 	// Returns the basisu::texture_format corresponding to the specified transcoder_texture_format.
 	basisu::texture_format basis_get_basisu_texture_format(transcoder_texture_format fmt);
 
@@ -142,7 +156,7 @@ namespace basist
 	// Returns the block height for the specified texture format, which is currently always 4.
 	uint32_t basis_get_block_height(transcoder_texture_format tex_type);
 
-	// Returns true if the specified format was enabled at compile time.
+	// Returns true if the specified format was enabled at compile time, and is supported for the specific basis/ktx2 texture format (ETC1S, UASTC, or UASTC HDR).
 	bool basis_is_format_supported(transcoder_texture_format tex_type, basis_tex_format fmt = basis_tex_format::cETC1S);
 
 	// Validates that the output buffer is large enough to hold the entire transcoded texture.
@@ -287,6 +301,42 @@ namespace basist
 
 	public:
 		basisu_lowlevel_uastc_transcoder();
+
+		bool transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
+			uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, bool has_alpha, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels = 0,
+			basisu_transcoder_state* pState = nullptr, uint32_t output_rows_in_pixels = 0, int channel0 = -1, int channel1 = -1, uint32_t decode_flags = 0);
+
+		bool transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
+			uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, const basis_file_header& header, const basis_slice_desc& slice_desc, uint32_t output_row_pitch_in_blocks_or_pixels = 0,
+			basisu_transcoder_state* pState = nullptr, uint32_t output_rows_in_pixels = 0, int channel0 = -1, int channel1 = -1, uint32_t decode_flags = 0)
+		{
+			return transcode_slice(pDst_blocks, num_blocks_x, num_blocks_y, pImage_data, image_data_size, fmt,
+				output_block_or_pixel_stride_in_bytes, bc1_allow_threecolor_blocks, (header.m_flags & cBASISHeaderFlagHasAlphaSlices) != 0, slice_desc.m_orig_width, slice_desc.m_orig_height, output_row_pitch_in_blocks_or_pixels,
+				pState, output_rows_in_pixels, channel0, channel1, decode_flags);
+		}
+
+		// Container independent transcoding
+		bool transcode_image(
+			transcoder_texture_format target_format,
+			void* pOutput_blocks, uint32_t output_blocks_buf_size_in_blocks_or_pixels,
+			const uint8_t* pCompressed_data, uint32_t compressed_data_length,
+			uint32_t num_blocks_x, uint32_t num_blocks_y, uint32_t orig_width, uint32_t orig_height, uint32_t level_index,
+			uint32_t slice_offset, uint32_t slice_length,
+			uint32_t decode_flags = 0,
+			bool has_alpha = false,
+			bool is_video = false,
+			uint32_t output_row_pitch_in_blocks_or_pixels = 0,
+			basisu_transcoder_state* pState = nullptr,
+			uint32_t output_rows_in_pixels = 0,
+			int channel0 = -1, int channel1 = -1);
+	};
+
+	class basisu_lowlevel_uastc_hdr_transcoder
+	{
+		friend class basisu_transcoder;
+
+	public:
+		basisu_lowlevel_uastc_hdr_transcoder();
 
 		bool transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
 			uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, bool has_alpha, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels = 0,
@@ -530,6 +580,7 @@ namespace basist
 	private:
 		mutable basisu_lowlevel_etc1s_transcoder m_lowlevel_etc1s_decoder;
 		mutable basisu_lowlevel_uastc_transcoder m_lowlevel_uastc_decoder;
+		mutable basisu_lowlevel_uastc_hdr_transcoder m_lowlevel_uastc_hdr_decoder;
 
 		bool m_ready_to_transcode;
 
@@ -612,10 +663,12 @@ namespace basist
 #pragma pack(pop)
 
 	const uint32_t KTX2_VK_FORMAT_UNDEFINED = 0;
+	const uint32_t KTX2_FORMAT_UASTC_4x4_SFLOAT_BLOCK = 1000066000; // TODO, is this correct?
 	const uint32_t KTX2_KDF_DF_MODEL_UASTC = 166;
+	const uint32_t KTX2_KDF_DF_MODEL_UASTC_HDR = 167;
 	const uint32_t KTX2_KDF_DF_MODEL_ETC1S = 163;
 	const uint32_t KTX2_IMAGE_IS_P_FRAME = 2;
-	const uint32_t KTX2_UASTC_BLOCK_SIZE = 16;
+	const uint32_t KTX2_UASTC_BLOCK_SIZE = 16; // also the block size for UASTC_HDR
 	const uint32_t KTX2_MAX_SUPPORTED_LEVEL_COUNT = 16; // this is an implementation specific constraint and can be increased
 
 	// The KTX2 transfer functions supported by KTX2
@@ -800,12 +853,14 @@ namespace basist
 		// Returns 0 or the number of layers in the texture array or texture video. Valid after init().
 		uint32_t get_layers() const { return m_header.m_layer_count; }
 
-		// Returns cETC1S or cUASTC4x4. Valid after init().
+		// Returns cETC1S, cUASTC4x4, or cUASTC_HDR_4x4. Valid after init().
 		basist::basis_tex_format get_format() const { return m_format; } 
-
+				
 		bool is_etc1s() const { return get_format() == basist::basis_tex_format::cETC1S; }
 
 		bool is_uastc() const { return get_format() == basist::basis_tex_format::cUASTC4x4; }
+
+		bool is_hdr() const { return get_format() == basist::basis_tex_format::cUASTC_HDR_4x4; }
 
 		// Returns true if the ETC1S file has two planes (typically RGBA, or RRRG), or true if the UASTC file has alpha data. Valid after init().
 		uint32_t get_has_alpha() const { return m_has_alpha; }
@@ -913,6 +968,7 @@ namespace basist
 								
 		basist::basisu_lowlevel_etc1s_transcoder m_etc1s_transcoder;
 		basist::basisu_lowlevel_uastc_transcoder m_uastc_transcoder;
+		basist::basisu_lowlevel_uastc_hdr_transcoder m_uastc_hdr_transcoder;
 				
 		ktx2_transcoder_state m_def_transcoder_state;
 

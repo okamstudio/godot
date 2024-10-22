@@ -75,6 +75,13 @@
 		<member name="codesign/custom_options" type="PackedStringArray" setter="" getter="">
 			Array of the additional command line arguments passed to the code signing tool.
 		</member>
+		<member name="codesign/entitlements/additional" type="String" setter="" getter="">
+			Additional data added to the root [code]&lt;dict&gt;[/code] section of the [url=https://developer.apple.com/documentation/bundleresources/entitlements].entitlements[/url] file. The value should be an XML section with pairs of key-value elements, e.g.:
+				[codeblock lang=text]
+				&lt;key&gt;key_name&lt;/key&gt;
+				&lt;string&gt;value&lt;/string&gt;
+				[/codeblock]
+		</member>
 		<member name="codesign/entitlements/address_book" type="bool" setter="" getter="">
 			Enable to allow access to contacts in the user's address book, if it's enabled you should also provide usage message in the [member privacy/address_book_usage_description] option. See [url=https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_personal-information_addressbook]com.apple.security.personal-information.addressbook[/url].
 		</member>

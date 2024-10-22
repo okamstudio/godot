@@ -1,5 +1,3 @@
-# This file is required to workaround `.editorconfig` autogeneration (see #96845).
-
 # Some tests handle invalid syntax deliberately; exclude relevant attributes.
 
 [parser/features/mixed_indentation_on_blank_lines.gd]

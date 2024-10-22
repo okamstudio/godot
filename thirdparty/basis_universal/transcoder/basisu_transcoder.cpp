@@ -1,5 +1,5 @@
 // basisu_transcoder.cpp
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 #include "basisu_transcoder.h"
 #include <limits.h>
 #include "basisu_containers_impl.h"
+
+#define BASISU_ASTC_HELPERS_IMPLEMENTATION
+#include "basisu_astc_helpers.h"
+
+#include "basisu_astc_hdr_core.h"
 
 #ifndef BASISD_IS_BIG_ENDIAN
 // TODO: This doesn't work on OSX. How can this be so difficult?
@@ -137,6 +142,10 @@
 	#if !BASISD_SUPPORT_DXT5A
 		#error BASISD_SUPPORT_DXT5A must be 1 if BASISD_SUPPORT_ATC is 1
 	#endif
+#endif
+
+#ifndef BASISD_SUPPORT_UASTC_HDR
+	#define BASISD_SUPPORT_UASTC_HDR 1
 #endif
 
 #define BASISD_WRITE_NEW_BC7_MODE5_TABLES			0
@@ -1908,15 +1917,22 @@ namespace basist
 	void basisu_transcoder_init()
 	{
 		if (g_transcoder_initialized)
-      {
-         BASISU_DEVEL_ERROR("basisu_transcoder::basisu_transcoder_init: Called more than once\n");      
+		{
+			BASISU_DEVEL_ERROR("basisu_transcoder::basisu_transcoder_init: Called more than once\n");      
 			return;
-      }
+		}
          
-     BASISU_DEVEL_ERROR("basisu_transcoder::basisu_transcoder_init: Initializing (this is not an error)\n");      
+		BASISU_DEVEL_ERROR("basisu_transcoder::basisu_transcoder_init: Initializing (this is not an error)\n");      
 
 #if BASISD_SUPPORT_UASTC
 		uastc_init();
+#endif
+
+#if BASISD_SUPPORT_UASTC_HDR
+		// TODO: Examine this, optimize for startup time/mem utilization.
+		astc_helpers::init_tables(false);
+
+		astc_hdr_core_init();
 #endif
 
 #if BASISD_SUPPORT_ASTC
@@ -2025,6 +2041,10 @@ namespace basist
 
 #if BASISD_SUPPORT_PVRTC2
 		transcoder_init_pvrtc2();
+#endif
+
+#if BASISD_SUPPORT_UASTC_HDR
+		bc6h_enc_init();
 #endif
 
 		g_transcoder_initialized = true;
@@ -6928,7 +6948,7 @@ namespace basist
 
 	static inline int sq(int x) { return x * x; }
 						
-	// PVRTC2 is a slightly borked format for alpha: In Non-Interpolated mode, the way AlphaB8 is exanded from 4 to 8 bits means it can never be 0. 
+	// PVRTC2 is a slightly borked format for alpha: In Non-Interpolated mode, the way AlphaB8 is expanded from 4 to 8 bits means it can never be 0. 
 	// This is actually very bad, because on 100% transparent blocks which have non-trivial color pixels, part of the color channel will leak into alpha! 
 	// And there's nothing straightforward we can do because using the other modes is too expensive/complex. I can see why Apple didn't adopt it.
 	static void convert_etc1s_to_pvrtc2_rgba(void* pDst, const endpoint* pEndpoints, const selector* pSelector, const endpoint* pEndpoint_codebook, const selector* pSelector_codebook)
@@ -7514,6 +7534,8 @@ namespace basist
 		}
 	}
 #endif // BASISD_SUPPORT_PVRTC2
+
+	//------------------------------------------------------------------------------------------------
 
 	basisu_lowlevel_etc1s_transcoder::basisu_lowlevel_etc1s_transcoder() :
 		m_pGlobal_codebook(nullptr),
@@ -8620,7 +8642,7 @@ namespace basist
 			// Now make sure the output buffer is large enough, or we'll overwrite memory.
 			if (output_blocks_buf_size_in_blocks_or_pixels < (output_rows_in_pixels * output_row_pitch_in_blocks_or_pixels))
 			{
-				BASISU_DEVEL_ERROR("basisu_lowlevel_etc1s_transcoder::transcode_image: output_blocks_buf_size_in_blocks_or_pixels < (output_rows_in_pixels * output_row_pitch_in_blocks_or_pixels)\n");
+				BASISU_DEVEL_ERROR("basis_validate_output_buffer_size: output_blocks_buf_size_in_blocks_or_pixels < (output_rows_in_pixels * output_row_pitch_in_blocks_or_pixels)\n");
 				return false;
 			}
 		}
@@ -8632,7 +8654,7 @@ namespace basist
 
 			if (output_blocks_buf_size_in_blocks_or_pixels < total_blocks_fxt1)
 			{
-				BASISU_DEVEL_ERROR("basisu_lowlevel_etc1s_transcoder::transcode_image: output_blocks_buf_size_in_blocks_or_pixels < total_blocks_fxt1\n");
+				BASISU_DEVEL_ERROR("basis_validate_output_buffer_size: output_blocks_buf_size_in_blocks_or_pixels < total_blocks_fxt1\n");
 				return false;
 			}
 		}
@@ -8640,7 +8662,7 @@ namespace basist
 		{
 			if (output_blocks_buf_size_in_blocks_or_pixels < total_slice_blocks)
 			{
-				BASISU_DEVEL_ERROR("basisu_lowlevel_etc1s_transcoder::transcode_image: output_blocks_buf_size_in_blocks_or_pixels < transcode_image\n");
+				BASISU_DEVEL_ERROR("basis_validate_output_buffer_size: output_blocks_buf_size_in_blocks_or_pixels < transcode_image\n");
 				return false;
 			}
 		}
@@ -9242,13 +9264,17 @@ namespace basist
 
 		return status;
 	}
+
+	//------------------------------------------------------------------------------------------------
 	
 	basisu_lowlevel_uastc_transcoder::basisu_lowlevel_uastc_transcoder()
 	{
 	}
 
-	bool basisu_lowlevel_uastc_transcoder::transcode_slice(void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
-        uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, bool has_alpha, const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
+	bool basisu_lowlevel_uastc_transcoder::transcode_slice(
+		void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
+        uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, bool has_alpha, 
+		const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
 		basisu_transcoder_state* pState, uint32_t output_rows_in_pixels, int channel0, int channel1, uint32_t decode_flags)
 	{
 		BASISU_NOTE_UNUSED(pState);
@@ -9784,6 +9810,317 @@ namespace basist
 
 		return status;
 	}
+
+	//------------------------------------------------------------------------------------------------
+
+	basisu_lowlevel_uastc_hdr_transcoder::basisu_lowlevel_uastc_hdr_transcoder()
+	{
+	}
+
+	bool basisu_lowlevel_uastc_hdr_transcoder::transcode_slice(
+		void* pDst_blocks, uint32_t num_blocks_x, uint32_t num_blocks_y, const uint8_t* pImage_data, uint32_t image_data_size, block_format fmt,
+		uint32_t output_block_or_pixel_stride_in_bytes, bool bc1_allow_threecolor_blocks, bool has_alpha, 
+		const uint32_t orig_width, const uint32_t orig_height, uint32_t output_row_pitch_in_blocks_or_pixels,
+		basisu_transcoder_state* pState, uint32_t output_rows_in_pixels, int channel0, int channel1, uint32_t decode_flags)
+	{
+		BASISU_NOTE_UNUSED(pState);
+		BASISU_NOTE_UNUSED(bc1_allow_threecolor_blocks);
+		BASISU_NOTE_UNUSED(has_alpha);
+		BASISU_NOTE_UNUSED(channel0);
+		BASISU_NOTE_UNUSED(channel1);
+		BASISU_NOTE_UNUSED(decode_flags);
+
+		assert(g_transcoder_initialized);
+		if (!g_transcoder_initialized)
+		{
+			BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_slice: Transcoder not globally initialized.\n");
+			return false;
+		}
+
+#if BASISD_SUPPORT_UASTC_HDR
+		const uint32_t total_blocks = num_blocks_x * num_blocks_y;
+
+		if (!output_row_pitch_in_blocks_or_pixels)
+		{
+			if (basis_block_format_is_uncompressed(fmt))
+				output_row_pitch_in_blocks_or_pixels = orig_width;
+			else
+				output_row_pitch_in_blocks_or_pixels = num_blocks_x;
+		}
+
+		if (basis_block_format_is_uncompressed(fmt))
+		{
+			if (!output_rows_in_pixels)
+				output_rows_in_pixels = orig_height;
+		}
+
+		uint32_t total_expected_block_bytes = sizeof(astc_blk) * total_blocks;
+		if (image_data_size < total_expected_block_bytes)
+		{
+			BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_slice: image_data_size < total_expected_block_bytes The file is corrupted or this is a bug.\n");
+			return false;
+		}
+
+		const astc_blk* pSource_block = reinterpret_cast<const astc_blk*>(pImage_data);
+
+		bool status = false;
+
+		// TODO: Optimize pure memcpy() case.
+			
+		for (uint32_t block_y = 0; block_y < num_blocks_y; ++block_y)
+		{
+			void* pDst_block = (uint8_t*)pDst_blocks + block_y * output_row_pitch_in_blocks_or_pixels * output_block_or_pixel_stride_in_bytes;
+
+			for (uint32_t block_x = 0; block_x < num_blocks_x; ++block_x, ++pSource_block, pDst_block = (uint8_t*)pDst_block + output_block_or_pixel_stride_in_bytes)
+			{
+				switch (fmt)
+				{
+				case block_format::cUASTC_HDR_4x4:
+				case block_format::cASTC_HDR_4x4:
+				{
+					// Nothing to do, UASTC HDR is just ASTC.
+					memcpy(pDst_block, pSource_block, sizeof(uastc_block));
+					status = true;
+					break;
+				}
+				case block_format::cBC6H:
+				{
+					status = astc_hdr_transcode_to_bc6h(*pSource_block, *(bc6h_block *)pDst_block);
+					break;
+				}
+				case block_format::cRGB_9E5:
+				{
+					astc_helpers::log_astc_block log_blk;
+					status = astc_helpers::unpack_block(pSource_block, log_blk, 4, 4);
+					if (status)
+					{
+						uint32_t* pDst_pixels = reinterpret_cast<uint32_t*>(
+							static_cast<uint8_t*>(pDst_blocks) + (block_x * 4 + block_y * 4 * output_row_pitch_in_blocks_or_pixels) * sizeof(uint32_t)
+							);
+
+						uint32_t blk_texels[4][4];
+
+						status = astc_helpers::decode_block(log_blk, blk_texels, 4, 4, astc_helpers::cDecodeModeRGB9E5);
+						
+						if (status)
+						{
+							const uint32_t max_x = basisu::minimum<int>(4, (int)output_row_pitch_in_blocks_or_pixels - (int)block_x * 4);
+							const uint32_t max_y = basisu::minimum<int>(4, (int)output_rows_in_pixels - (int)block_y * 4);
+
+							for (uint32_t y = 0; y < max_y; y++)
+							{
+								memcpy(pDst_pixels, &blk_texels[y][0], sizeof(uint32_t) * max_x);
+
+								pDst_pixels += output_row_pitch_in_blocks_or_pixels;
+							} // y
+						}
+					}
+					
+					break;
+				}
+				case block_format::cRGBA_HALF:
+				{
+					astc_helpers::log_astc_block log_blk;
+					status = astc_helpers::unpack_block(pSource_block, log_blk, 4, 4);
+					if (status)
+					{
+						half_float* pDst_pixels = reinterpret_cast<half_float*>(
+							static_cast<uint8_t*>(pDst_blocks) + (block_x * 4 + block_y * 4 * output_row_pitch_in_blocks_or_pixels) * sizeof(half_float) * 4
+							);
+												
+						half_float blk_texels[4][4][4];
+						status = astc_helpers::decode_block(log_blk, blk_texels, 4, 4, astc_helpers::cDecodeModeHDR16);
+
+						if (status)
+						{
+							const uint32_t max_x = basisu::minimum<int>(4, (int)output_row_pitch_in_blocks_or_pixels - (int)block_x * 4);
+							const uint32_t max_y = basisu::minimum<int>(4, (int)output_rows_in_pixels - (int)block_y * 4);
+
+							for (uint32_t y = 0; y < max_y; y++)
+							{
+								for (uint32_t x = 0; x < max_x; x++)
+								{
+									pDst_pixels[0 + 4 * x] = blk_texels[y][x][0];
+									pDst_pixels[1 + 4 * x] = blk_texels[y][x][1];
+									pDst_pixels[2 + 4 * x] = blk_texels[y][x][2];
+									pDst_pixels[3 + 4 * x] = blk_texels[y][x][3];
+								} // x
+
+								pDst_pixels += output_row_pitch_in_blocks_or_pixels * 4;
+							} // y
+						}
+					}
+
+					break;
+				}
+				case block_format::cRGB_HALF:
+				{
+					astc_helpers:: log_astc_block log_blk;
+					status = astc_helpers::unpack_block(pSource_block, log_blk, 4, 4);
+					if (status)
+					{
+						half_float* pDst_pixels =
+							reinterpret_cast<half_float*>(static_cast<uint8_t*>(pDst_blocks) + (block_x * 4 + block_y * 4 * output_row_pitch_in_blocks_or_pixels) * sizeof(half_float) * 3);
+
+						half_float blk_texels[4][4][4];
+						status = astc_helpers::decode_block(log_blk, blk_texels, 4, 4, astc_helpers::cDecodeModeHDR16);
+						if (status)
+						{
+							const uint32_t max_x = basisu::minimum<int>(4, (int)output_row_pitch_in_blocks_or_pixels - (int)block_x * 4);
+							const uint32_t max_y = basisu::minimum<int>(4, (int)output_rows_in_pixels - (int)block_y * 4);
+
+							for (uint32_t y = 0; y < max_y; y++)
+							{
+								for (uint32_t x = 0; x < max_x; x++)
+								{
+									pDst_pixels[0 + 3 * x] = blk_texels[y][x][0];
+									pDst_pixels[1 + 3 * x] = blk_texels[y][x][1];
+									pDst_pixels[2 + 3 * x] = blk_texels[y][x][2];
+								} // x
+
+								pDst_pixels += output_row_pitch_in_blocks_or_pixels * 3;
+							} // y
+						}
+					}
+
+					break;
+				}
+				default:
+					assert(0);
+					break;
+
+				}
+
+				if (!status)
+				{
+					BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_slice: Transcoder failed to unpack a UASTC HDR block - this is a bug, or the data was corrupted\n");					return false;
+				}
+
+			} // block_x
+
+		} // block_y
+
+		return true;
+#else
+		BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_slice: UASTC_HDR is unsupported\n");
+
+		BASISU_NOTE_UNUSED(decode_flags);
+		BASISU_NOTE_UNUSED(channel0);
+		BASISU_NOTE_UNUSED(channel1);
+		BASISU_NOTE_UNUSED(output_rows_in_pixels);
+		BASISU_NOTE_UNUSED(output_row_pitch_in_blocks_or_pixels);
+		BASISU_NOTE_UNUSED(output_block_or_pixel_stride_in_bytes);
+		BASISU_NOTE_UNUSED(fmt);
+		BASISU_NOTE_UNUSED(image_data_size);
+		BASISU_NOTE_UNUSED(pImage_data);
+		BASISU_NOTE_UNUSED(num_blocks_x);
+		BASISU_NOTE_UNUSED(num_blocks_y);
+		BASISU_NOTE_UNUSED(pDst_blocks);
+
+		return false;
+#endif
+	}
+
+	bool basisu_lowlevel_uastc_hdr_transcoder::transcode_image(
+		transcoder_texture_format target_format,
+		void* pOutput_blocks, uint32_t output_blocks_buf_size_in_blocks_or_pixels,
+		const uint8_t* pCompressed_data, uint32_t compressed_data_length,
+		uint32_t num_blocks_x, uint32_t num_blocks_y, uint32_t orig_width, uint32_t orig_height, uint32_t level_index,
+		uint32_t slice_offset, uint32_t slice_length,
+		uint32_t decode_flags,
+		bool has_alpha,
+		bool is_video,
+		uint32_t output_row_pitch_in_blocks_or_pixels,
+		basisu_transcoder_state* pState,
+		uint32_t output_rows_in_pixels,
+		int channel0, int channel1)
+	{
+		BASISU_NOTE_UNUSED(is_video);
+		BASISU_NOTE_UNUSED(level_index);
+		BASISU_NOTE_UNUSED(decode_flags);
+
+		if (((uint64_t)slice_offset + slice_length) > (uint64_t)compressed_data_length)
+		{
+			BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: source data buffer too small\n");
+			return false;
+		}
+
+		const uint32_t bytes_per_block_or_pixel = basis_get_bytes_per_block_or_pixel(target_format);
+		const uint32_t total_slice_blocks = num_blocks_x * num_blocks_y;
+
+		if (!basis_validate_output_buffer_size(target_format, output_blocks_buf_size_in_blocks_or_pixels, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, output_rows_in_pixels, total_slice_blocks))
+		{
+			BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: output buffer size too small\n");
+			return false;
+		}
+
+		bool status = false;
+
+		switch (target_format)
+		{
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
+		{
+			status = transcode_slice(pOutput_blocks, num_blocks_x, num_blocks_y, pCompressed_data + slice_offset, slice_length, block_format::cASTC_HDR_4x4,
+				bytes_per_block_or_pixel, false, has_alpha, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels, channel0, channel1);
+
+			if (!status)
+			{
+				BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: transcode_slice() to ASTC_HDR failed\n");
+			}
+			break;
+		}
+		case transcoder_texture_format::cTFBC6H:
+		{
+			status = transcode_slice(pOutput_blocks, num_blocks_x, num_blocks_y, pCompressed_data + slice_offset, slice_length, block_format::cBC6H,
+				bytes_per_block_or_pixel, false, has_alpha, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels, channel0, channel1);
+			if (!status)
+			{
+				BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: transcode_slice() to BC6H failed\n");
+			}
+			break;
+		}
+		case transcoder_texture_format::cTFRGB_HALF:
+		{
+			status = transcode_slice(pOutput_blocks, num_blocks_x, num_blocks_y, pCompressed_data + slice_offset, slice_length, block_format::cRGB_HALF,
+				bytes_per_block_or_pixel, false, has_alpha, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels);
+			if (!status)
+			{
+				BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: transcode_slice() to RGB_HALF failed\n");
+			}
+			break;
+		}
+		case transcoder_texture_format::cTFRGBA_HALF:
+		{
+			status = transcode_slice(pOutput_blocks, num_blocks_x, num_blocks_y, pCompressed_data + slice_offset, slice_length, block_format::cRGBA_HALF,
+				bytes_per_block_or_pixel, false, has_alpha, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels);
+			if (!status)
+			{
+				BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: transcode_slice() to RGBA_HALF failed\n");
+			}
+			break;
+		}
+		case transcoder_texture_format::cTFRGB_9E5:
+		{
+			status = transcode_slice(pOutput_blocks, num_blocks_x, num_blocks_y, pCompressed_data + slice_offset, slice_length, block_format::cRGB_9E5,
+				bytes_per_block_or_pixel, false, has_alpha, orig_width, orig_height, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels);
+			if (!status)
+			{
+				BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: transcode_slice() to RGBA_HALF failed\n");
+			}
+			break;
+		}
+		default:
+		{
+			assert(0);
+			BASISU_DEVEL_ERROR("basisu_lowlevel_uastc_hdr_transcoder::transcode_image: Invalid format\n");
+			break;
+		}
+		}
+
+		return status;
+	}
+
+	//------------------------------------------------------------------------------------------------
 	
 	basisu_transcoder::basisu_transcoder() :
 		m_ready_to_transcode(false)
@@ -10390,7 +10727,7 @@ namespace basist
 		}
 		else
 		{
-			// Nothing special to do for UASTC.
+			// Nothing special to do for UASTC/UASTC HDR.
 			if (m_lowlevel_etc1s_decoder.m_local_endpoints.size())
 			{
 				m_lowlevel_etc1s_decoder.clear();
@@ -10510,7 +10847,14 @@ namespace basist
 			return false;
 		}
 				
-		if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC4x4)
+		if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC_HDR_4x4)
+		{
+			return m_lowlevel_uastc_hdr_decoder.transcode_slice(pOutput_blocks, slice_desc.m_num_blocks_x, slice_desc.m_num_blocks_y,
+				pDataU8 + slice_desc.m_file_ofs, slice_desc.m_file_size,
+				fmt, output_block_or_pixel_stride_in_bytes, (decode_flags & cDecodeFlagsBC1ForbidThreeColorBlocks) == 0, *pHeader, slice_desc, output_row_pitch_in_blocks_or_pixels, pState,
+				output_rows_in_pixels, channel0, channel1, decode_flags);
+		}
+		else if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC4x4)
 		{
 			return m_lowlevel_uastc_decoder.transcode_slice(pOutput_blocks, slice_desc.m_num_blocks_x, slice_desc.m_num_blocks_y,
 				pDataU8 + slice_desc.m_file_ofs, slice_desc.m_file_size,
@@ -10742,7 +11086,18 @@ namespace basist
 			memset(static_cast<uint8_t*>(pOutput_blocks) + total_slice_blocks * bytes_per_block_or_pixel, 0, (output_blocks_buf_size_in_blocks_or_pixels - total_slice_blocks) * bytes_per_block_or_pixel);
 		}
 		
-		if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC4x4)
+		if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC_HDR_4x4)
+		{
+			const basis_slice_desc* pSlice_desc = &pSlice_descs[slice_index];
+
+			// Use the container independent image transcode method.
+			status = m_lowlevel_uastc_hdr_decoder.transcode_image(fmt,
+				pOutput_blocks, output_blocks_buf_size_in_blocks_or_pixels,
+				(const uint8_t*)pData, data_size, pSlice_desc->m_num_blocks_x, pSlice_desc->m_num_blocks_y, pSlice_desc->m_orig_width, pSlice_desc->m_orig_height, pSlice_desc->m_level_index,
+				pSlice_desc->m_file_ofs, pSlice_desc->m_file_size,
+				decode_flags, basis_file_has_alpha_slices, pHeader->m_tex_type == cBASISTexTypeVideoFrames, output_row_pitch_in_blocks_or_pixels, pState, output_rows_in_pixels);
+		}
+		else if (pHeader->m_tex_format == (int)basis_tex_format::cUASTC4x4)
 		{
 			const basis_slice_desc* pSlice_desc = &pSlice_descs[slice_index];
 
@@ -10808,20 +11163,27 @@ namespace basist
 			return 8;
 		case transcoder_texture_format::cTFBC7_RGBA:
 		case transcoder_texture_format::cTFBC7_ALT:
+		case transcoder_texture_format::cTFBC6H:
 		case transcoder_texture_format::cTFETC2_RGBA:
 		case transcoder_texture_format::cTFBC3_RGBA:
 		case transcoder_texture_format::cTFBC5_RG:
 		case transcoder_texture_format::cTFASTC_4x4_RGBA:
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
 		case transcoder_texture_format::cTFATC_RGBA:
 		case transcoder_texture_format::cTFFXT1_RGB:
 		case transcoder_texture_format::cTFETC2_EAC_RG11:
 			return 16;
 		case transcoder_texture_format::cTFRGBA32:
+		case transcoder_texture_format::cTFRGB_9E5:
 			return sizeof(uint32_t);
 		case transcoder_texture_format::cTFRGB565:
 		case transcoder_texture_format::cTFBGR565:
 		case transcoder_texture_format::cTFRGBA4444:
 			return sizeof(uint16_t);
+		case transcoder_texture_format::cTFRGB_HALF:
+			return sizeof(half_float) * 3;
+		case transcoder_texture_format::cTFRGBA_HALF:
+			return sizeof(half_float) * 4;
 		default:
 			assert(0);
 			BASISU_DEVEL_ERROR("basis_get_basisu_texture_format: Invalid fmt\n");
@@ -10845,17 +11207,22 @@ namespace basist
 		case transcoder_texture_format::cTFBC3_RGBA: return "BC3_RGBA";
 		case transcoder_texture_format::cTFBC5_RG: return "BC5_RG";
 		case transcoder_texture_format::cTFASTC_4x4_RGBA: return "ASTC_RGBA";
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA: return "ASTC_HDR_RGBA";
 		case transcoder_texture_format::cTFATC_RGB: return "ATC_RGB";
 		case transcoder_texture_format::cTFATC_RGBA: return "ATC_RGBA";
 		case transcoder_texture_format::cTFRGBA32: return "RGBA32";
 		case transcoder_texture_format::cTFRGB565: return "RGB565";
 		case transcoder_texture_format::cTFBGR565: return "BGR565";
 		case transcoder_texture_format::cTFRGBA4444: return "RGBA4444";
+		case transcoder_texture_format::cTFRGBA_HALF: return "RGBA_HALF";
+		case transcoder_texture_format::cTFRGB_9E5: return "RGB_9E5";
+		case transcoder_texture_format::cTFRGB_HALF: return "RGB_HALF";
 		case transcoder_texture_format::cTFFXT1_RGB: return "FXT1_RGB";
 		case transcoder_texture_format::cTFPVRTC2_4_RGB: return "PVRTC2_4_RGB";
 		case transcoder_texture_format::cTFPVRTC2_4_RGBA: return "PVRTC2_4_RGBA";
 		case transcoder_texture_format::cTFETC2_EAC_R11: return "ETC2_EAC_R11";
 		case transcoder_texture_format::cTFETC2_EAC_RG11: return "ETC2_EAC_RG11";
+		case transcoder_texture_format::cTFBC6H: return "BC6H";
 		default:
 			assert(0);
 			BASISU_DEVEL_ERROR("basis_get_basisu_texture_format: Invalid fmt\n");
@@ -10881,7 +11248,13 @@ namespace basist
 		case block_format::cRGB565: return "RGB565";
 		case block_format::cBGR565: return "BGR565";
 		case block_format::cRGBA4444: return "RGBA4444";
+		case block_format::cRGBA_HALF: return "RGBA_HALF";
+		case block_format::cRGB_HALF: return "RGB_HALF";
+		case block_format::cRGB_9E5: return "RGB_9E5";
 		case block_format::cUASTC_4x4: return "UASTC_4x4";
+		case block_format::cUASTC_HDR_4x4: return "UASTC_HDR_4x4";
+		case block_format::cBC6H: return "BC6H";
+		case block_format::cASTC_HDR_4x4: return "ASTC_HDR_4x4";
 		case block_format::cFXT1_RGB: return "FXT1_RGB";
 		case block_format::cPVRTC2_4_RGB: return "PVRTC2_4_RGB";
 		case block_format::cPVRTC2_4_RGBA: return "PVRTC2_4_RGBA";
@@ -10914,11 +11287,13 @@ namespace basist
 
 	bool basis_transcoder_format_has_alpha(transcoder_texture_format fmt)
 	{
+		// TODO: Technically ASTC_HDR does support alpha, but UASTC_HDR doesn't yet support it. Unsure what to do here.
 		switch (fmt)
 		{
 		case transcoder_texture_format::cTFETC2_RGBA:
 		case transcoder_texture_format::cTFBC3_RGBA:
 		case transcoder_texture_format::cTFASTC_4x4_RGBA:
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
 		case transcoder_texture_format::cTFBC7_RGBA:
 		case transcoder_texture_format::cTFBC7_ALT:
 		case transcoder_texture_format::cTFPVRTC1_4_RGBA:
@@ -10926,6 +11301,23 @@ namespace basist
 		case transcoder_texture_format::cTFATC_RGBA:
 		case transcoder_texture_format::cTFRGBA32:
 		case transcoder_texture_format::cTFRGBA4444:
+		case transcoder_texture_format::cTFRGBA_HALF:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	}
+
+	bool basis_transcoder_format_is_hdr(transcoder_texture_format fmt)
+	{
+		switch (fmt)
+		{
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
+		case transcoder_texture_format::cTFBC6H:
+		case transcoder_texture_format::cTFRGBA_HALF:
+		case transcoder_texture_format::cTFRGB_HALF:
+		case transcoder_texture_format::cTFRGB_9E5:
 			return true;
 		default:
 			break;
@@ -10947,13 +11339,18 @@ namespace basist
 		case transcoder_texture_format::cTFETC2_RGBA: return basisu::texture_format::cETC2_RGBA;
 		case transcoder_texture_format::cTFBC3_RGBA: return basisu::texture_format::cBC3;
 		case transcoder_texture_format::cTFBC5_RG: return basisu::texture_format::cBC5;
-		case transcoder_texture_format::cTFASTC_4x4_RGBA: return basisu::texture_format::cASTC4x4;
+		case transcoder_texture_format::cTFASTC_4x4_RGBA: return basisu::texture_format::cASTC_LDR_4x4;
+		case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA: return basisu::texture_format::cASTC_HDR_4x4;
+		case transcoder_texture_format::cTFBC6H: return basisu::texture_format::cBC6HUnsigned;
 		case transcoder_texture_format::cTFATC_RGB: return basisu::texture_format::cATC_RGB;
 		case transcoder_texture_format::cTFATC_RGBA: return basisu::texture_format::cATC_RGBA_INTERPOLATED_ALPHA;
 		case transcoder_texture_format::cTFRGBA32: return basisu::texture_format::cRGBA32;
 		case transcoder_texture_format::cTFRGB565: return basisu::texture_format::cRGB565;
 		case transcoder_texture_format::cTFBGR565: return basisu::texture_format::cBGR565;
 		case transcoder_texture_format::cTFRGBA4444: return basisu::texture_format::cRGBA4444;
+		case transcoder_texture_format::cTFRGBA_HALF: return basisu::texture_format::cRGBA_HALF;
+		case transcoder_texture_format::cTFRGB_9E5: return basisu::texture_format::cRGB_9E5;
+		case transcoder_texture_format::cTFRGB_HALF: return basisu::texture_format::cRGB_HALF;
 		case transcoder_texture_format::cTFFXT1_RGB: return basisu::texture_format::cFXT1_RGB;
 		case transcoder_texture_format::cTFPVRTC2_4_RGB: return basisu::texture_format::cPVRTC2_4_RGBA;
 		case transcoder_texture_format::cTFPVRTC2_4_RGBA: return basisu::texture_format::cPVRTC2_4_RGBA;
@@ -10975,6 +11372,9 @@ namespace basist
 		case transcoder_texture_format::cTFRGB565:
 		case transcoder_texture_format::cTFBGR565:
 		case transcoder_texture_format::cTFRGBA4444:
+		case transcoder_texture_format::cTFRGB_HALF:
+		case transcoder_texture_format::cTFRGBA_HALF:
+		case transcoder_texture_format::cTFRGB_9E5:
 			return true;
 		default:
 			break;
@@ -10995,6 +11395,9 @@ namespace basist
 		case block_format::cRGBA4444_COLOR:
 		case block_format::cRGBA4444_ALPHA:
 		case block_format::cRGBA4444_COLOR_OPAQUE:
+		case block_format::cRGBA_HALF:
+		case block_format::cRGB_HALF:
+		case block_format::cRGB_9E5:
 			return true;
 		default:
 			break;
@@ -11007,11 +11410,16 @@ namespace basist
 		switch (fmt)
 		{
 		case transcoder_texture_format::cTFRGBA32:
+		case transcoder_texture_format::cTFRGB_9E5:
 			return sizeof(uint32_t); 
 		case transcoder_texture_format::cTFRGB565:
 		case transcoder_texture_format::cTFBGR565:
 		case transcoder_texture_format::cTFRGBA4444:
 			return sizeof(uint16_t);
+		case transcoder_texture_format::cTFRGB_HALF:
+			return sizeof(half_float) * 3;
+		case transcoder_texture_format::cTFRGBA_HALF:
+			return sizeof(half_float) * 4;
 		default:
 			break;
 		}
@@ -11038,8 +11446,26 @@ namespace basist
 	
 	bool basis_is_format_supported(transcoder_texture_format tex_type, basis_tex_format fmt)
 	{
-		if (fmt == basis_tex_format::cUASTC4x4)
+		if (fmt == basis_tex_format::cUASTC_HDR_4x4)
 		{
+			// UASTC HDR
+#if BASISD_SUPPORT_UASTC_HDR
+			switch (tex_type)
+			{
+			case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
+			case transcoder_texture_format::cTFBC6H:
+			case transcoder_texture_format::cTFRGBA_HALF:
+			case transcoder_texture_format::cTFRGB_HALF:
+			case transcoder_texture_format::cTFRGB_9E5:
+				return true;
+			default:
+				break;
+			}
+#endif
+		}
+		else if (fmt == basis_tex_format::cUASTC4x4)
+		{
+			// UASTC LDR
 #if BASISD_SUPPORT_UASTC
 			switch (tex_type)
 			{
@@ -11049,6 +11475,12 @@ namespace basist
 			case transcoder_texture_format::cTFATC_RGB:
 			case transcoder_texture_format::cTFATC_RGBA:
 			case transcoder_texture_format::cTFFXT1_RGB:
+			// UASTC LDR doesn't support transcoding to HDR formats
+			case transcoder_texture_format::cTFASTC_HDR_4x4_RGBA:
+			case transcoder_texture_format::cTFBC6H:
+			case transcoder_texture_format::cTFRGBA_HALF:
+			case transcoder_texture_format::cTFRGB_HALF:
+			case transcoder_texture_format::cTFRGB_9E5:
 				return false;
 			default:
 				return true;
@@ -11057,6 +11489,7 @@ namespace basist
 		}
 		else
 		{
+			// ETC1S
 			switch (tex_type)
 			{
 				// ETC1 and uncompressed are always supported.
@@ -11812,7 +12245,7 @@ namespace basist
 	// Encodes 3 values to output, usable for any range that uses quints and bits
 	static inline void astc_encode_quints(uint32_t* pOutput, const uint8_t* pValues, int& bit_pos, int n)
 	{
-		// First extract the trits and the bits from the 5 input values
+		// First extract the quints and the bits from the 3 input values
 		int quints = 0, bits[3];
 		const uint32_t bit_mask = (1 << n) - 1;
 		for (int i = 0; i < 3; i++)
@@ -12131,11 +12564,13 @@ namespace basist
 
 			return bits & ((1U << codesize) - 1U);
 		}
-
-		uint32_t byte_bit_offset = bit_offset & 7U;
-		const uint16_t w = *(const uint16_t*)(&pBuf[bit_offset >> 3U]);
-		bit_offset += codesize;
-		return (w >> byte_bit_offset)& ((1U << codesize) - 1U);
+		else
+		{
+			uint32_t byte_bit_offset = bit_offset & 7U;
+			const uint16_t w = *(const uint16_t*)(&pBuf[bit_offset >> 3U]);
+			bit_offset += codesize;
+			return (w >> byte_bit_offset) & ((1U << codesize) - 1U);
+		}
 	}
 
 	bool unpack_uastc(const uastc_block& blk, unpacked_uastc_block& unpacked, bool blue_contract_check, bool read_hints)
@@ -12170,6 +12605,7 @@ namespace basist
 			return false;
 
 		unpacked.m_mode = mode;
+		unpacked.m_common_pattern = 0;
 
 		uint32_t bit_ofs = g_uastc_mode_huff_codes[mode][1];
 
@@ -16663,10 +17099,12 @@ namespace basist
 
 		memcpy(&m_header, pData, sizeof(m_header));
 
-		// We only support UASTC and ETC1S
-		if (m_header.m_vk_format != KTX2_VK_FORMAT_UNDEFINED)
+		// We only support UASTC LDR, UASTC HDR and ETC1S.
+		// Note the DFD's contents are what we are guided by for decoding the KTX2 file, not this format field (currently).
+		if ((m_header.m_vk_format != KTX2_VK_FORMAT_UNDEFINED) && 
+			(m_header.m_vk_format != basist::KTX2_FORMAT_UASTC_4x4_SFLOAT_BLOCK))
 		{
-			BASISU_DEVEL_ERROR("ktx2_transcoder::init: KTX2 file must be in ETC1S or UASTC format\n");
+			BASISU_DEVEL_ERROR("ktx2_transcoder::init: KTX2 file must be in ETC1S or UASTC LDR/HDR format\n");
 			return false;
 		}
 
@@ -16887,6 +17325,16 @@ namespace basist
 			m_dfd_samples = 1;
 			m_dfd_chan0 = (ktx2_df_channel_id)((sample_channel0 >> 24) & 15);
 			
+			// We're assuming "DATA" means RGBA so it has alpha.
+			m_has_alpha = (m_dfd_chan0 == KTX2_DF_CHANNEL_UASTC_RGBA) || (m_dfd_chan0 == KTX2_DF_CHANNEL_UASTC_RRRG);
+		}
+		else if (m_dfd_color_model == KTX2_KDF_DF_MODEL_UASTC_HDR)
+		{
+			m_format = basist::basis_tex_format::cUASTC_HDR_4x4;
+
+			m_dfd_samples = 1;
+			m_dfd_chan0 = (ktx2_df_channel_id)((sample_channel0 >> 24) & 15);
+
 			// We're assuming "DATA" means RGBA so it has alpha.
 			m_has_alpha = (m_dfd_chan0 == KTX2_DF_CHANNEL_UASTC_RGBA) || (m_dfd_chan0 == KTX2_DF_CHANNEL_UASTC_RRRG);
 		}
@@ -17167,7 +17615,8 @@ namespace basist
 				return false;
 			}
 		}
-		else if (m_format == basist::basis_tex_format::cUASTC4x4)
+		else if ((m_format == basist::basis_tex_format::cUASTC4x4) ||
+			     (m_format == basist::basis_tex_format::cUASTC_HDR_4x4))
 		{
 			// Compute length and offset to uncompressed 2D UASTC texture data, given the face/layer indices.
 			assert(uncomp_level_data_size == m_levels[level_index].m_uncompressed_byte_length);
@@ -17188,14 +17637,29 @@ namespace basist
 				return false;
 			}
 
-			if (!m_uastc_transcoder.transcode_image(fmt,
-				pOutput_blocks, output_blocks_buf_size_in_blocks_or_pixels,
-				(const uint8_t*)pUncomp_level_data + uncomp_ofs, (uint32_t)total_2D_image_size, num_blocks_x, num_blocks_y, level_width, level_height, level_index,
-				0, (uint32_t)total_2D_image_size,
-				decode_flags, m_has_alpha, m_is_video, output_row_pitch_in_blocks_or_pixels, nullptr, output_rows_in_pixels, channel0, channel1))
+			if (m_format == basist::basis_tex_format::cUASTC_HDR_4x4)
 			{
-				BASISU_DEVEL_ERROR("ktx2_transcoder::transcode_image_2D: UASTC transcode_image() failed, this is either a bug or the file is corrupted/invalid\n");
-				return false;
+				if (!m_uastc_hdr_transcoder.transcode_image(fmt,
+					pOutput_blocks, output_blocks_buf_size_in_blocks_or_pixels,
+					(const uint8_t*)pUncomp_level_data + uncomp_ofs, (uint32_t)total_2D_image_size, num_blocks_x, num_blocks_y, level_width, level_height, level_index,
+					0, (uint32_t)total_2D_image_size,
+					decode_flags, m_has_alpha, m_is_video, output_row_pitch_in_blocks_or_pixels, nullptr, output_rows_in_pixels, channel0, channel1))
+				{
+					BASISU_DEVEL_ERROR("ktx2_transcoder::transcode_image_2D: UASTC HDR transcode_image() failed, this is either a bug or the file is corrupted/invalid\n");
+					return false;
+				}
+			}
+			else
+			{
+				if (!m_uastc_transcoder.transcode_image(fmt,
+					pOutput_blocks, output_blocks_buf_size_in_blocks_or_pixels,
+					(const uint8_t*)pUncomp_level_data + uncomp_ofs, (uint32_t)total_2D_image_size, num_blocks_x, num_blocks_y, level_width, level_height, level_index,
+					0, (uint32_t)total_2D_image_size,
+					decode_flags, m_has_alpha, m_is_video, output_row_pitch_in_blocks_or_pixels, nullptr, output_rows_in_pixels, channel0, channel1))
+				{
+					BASISU_DEVEL_ERROR("ktx2_transcoder::transcode_image_2D: UASTC transcode_image() failed, this is either a bug or the file is corrupted/invalid\n");
+					return false;
+				}
 			}
 		}
 		else
@@ -17475,5 +17939,1532 @@ namespace basist
 		return false;
 #endif
 	}
+
+	//-------------------------------
+
+#ifdef BASISD_SUPPORT_UASTC_HDR
+	// This float->half conversion matches how "F32TO16" works on Intel GPU's.
+	basist::half_float float_to_half(float val)
+	{
+		union { float f; int32_t i; uint32_t u; } fi = { val };
+		const int flt_m = fi.i & 0x7FFFFF, flt_e = (fi.i >> 23) & 0xFF, flt_s = (fi.i >> 31) & 0x1;
+		int s = flt_s, e = 0, m = 0;
+
+		// inf/NaN
+		if (flt_e == 0xff)
+		{
+			e = 31;
+			if (flt_m != 0) // NaN
+				m = 1;
+		}
+		// not zero or denormal
+		else if (flt_e != 0)
+		{
+			int new_exp = flt_e - 127;
+			if (new_exp > 15)
+				e = 31;
+			else if (new_exp < -14)
+				m = lrintf((1 << 24) * fabsf(fi.f));
+			else
+			{
+				e = new_exp + 15;
+				m = lrintf(flt_m * (1.0f / ((float)(1 << 13))));
+			}
+		}
+
+		assert((0 <= m) && (m <= 1024));
+		if (m == 1024)
+		{
+			e++;
+			m = 0;
+		}
+
+		assert((s >= 0) && (s <= 1));
+		assert((e >= 0) && (e <= 31));
+		assert((m >= 0) && (m <= 1023));
+
+		basist::half_float result = (basist::half_float)((s << 15) | (e << 10) | m);
+		return result;
+	}
+		
+	//------------------------------------------------------------------------------------------------
+	// HDR support
+	// 
+	// Originally from bc6h_enc.cpp
+	// BC6H decoder fuzzed vs. DirectXTex's for unsigned/signed
+
+	const uint8_t g_bc6h_mode_sig_bits[NUM_BC6H_MODES][4] = // base bits, r, g, b
+	{
+		// 2 subsets
+		{ 10, 5, 5, 5, },	// 0, mode 1 in MS/D3D docs
+		{ 7, 6, 6, 6, },	// 1
+		{ 11, 5, 4, 4, },	// 2
+		{ 11, 4, 5, 4, },	// 3
+		{ 11, 4, 4, 5, },	// 4
+		{ 9, 5, 5, 5, },	// 5
+		{ 8, 6, 5, 5, },	// 6
+		{ 8, 5, 6, 5, },	// 7
+		{ 8, 5, 5, 6, },	// 8
+		{ 6, 6, 6, 6, },	// 9, endpoints not delta encoded, mode 10 in MS/D3D docs
+		// 1 subset
+		{ 10, 10, 10, 10, }, // 10, endpoints not delta encoded, mode 11 in MS/D3D docs
+		{ 11, 9, 9, 9, },	// 11
+		{ 12, 8, 8, 8, },	// 12
+		{ 16, 4, 4, 4, }	// 13, also useful for solid blocks
+	};
+
+	const int8_t g_bc6h_mode_lookup[32] = { 0, 1, 2, 10, 0, 1, 3, 11, 0, 1, 4, 12, 0, 1, 5, 13, 0, 1, 6, -1, 0, 1, 7, -1, 0, 1, 8, -1, 0, 1, 9, -1 };
+
+	const bc6h_bit_layout g_bc6h_bit_layouts[NUM_BC6H_MODES][MAX_BC6H_LAYOUT_INDEX] =
+	{
+		// comp_index, subset*2+lh_index, last_bit, first_bit
+		//------------------------        mode 0: 2 subsets, Weight bits: 46 bits, Endpoint bits: 75 bits (10.555, 10.555, 10.555), delta            
+		{ { 1, 2, 4, -1 }, { 2, 2, 4, -1 }, { 2, 3, 4, -1 }, { 0, 0, 9, 0 }, { 1, 0, 9, 0 }, { 2, 0, 9, 0 }, { 0, 1, 4, 0 },
+		{ 1, 3, 4, -1 }, { 1, 2, 3, 0 }, { 1, 1, 4, 0 }, { 2, 3, 0, -1 }, { 1, 3, 3, 0 }, { 2, 1, 4, 0 }, { 2, 3, 1, -1 },
+		{ 2, 2, 3, 0 }, { 0, 2, 4, 0 }, { 2, 3, 2, -1 }, { 0, 3, 4, 0 }, { 2, 3, 3, -1 }, { 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 1: 2 subsets, Weight bits: 46 bits, Endpoint bits: 75 bits (7.666, 7.666, 7.666), delta
+		{ { 1, 2, 5, -1 },{ 1, 3, 4, -1 },{ 1, 3, 5, -1 },{ 0, 0, 6, 0 },{ 2, 3, 0, -1 },{ 2, 3, 1, -1 },{ 2, 2, 4, -1 },
+		{ 1, 0, 6, 0 },{ 2, 2, 5, -1 },{ 2, 3, 2, -1 },{ 1, 2, 4, -1 },{ 2, 0, 6, 0 },{ 2, 3, 3, -1 },{ 2, 3, 5, -1 },
+		{ 2, 3, 4, -1 },{ 0, 1, 5, 0 },{ 1, 2, 3, 0 },{ 1, 1, 5, 0 },{ 1, 3, 3, 0 },{ 2, 1, 5, 0 },{ 2, 2, 3, 0 },{ 0, 2, 5, 0 },
+		{ 0, 3, 5, 0 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 2: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (11.555, 11.444, 11.444), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 4, 0 },{ 0, 0, 10, -1 },{ 1, 2, 3, 0 },{ 1, 1, 3, 0 },{ 1, 0, 10, -1 },
+		{ 2, 3, 0, -1 },{ 1, 3, 3, 0 },{ 2, 1, 3, 0 },{ 2, 0, 10, -1 },{ 2, 3, 1, -1 },{ 2, 2, 3, 0 },{ 0, 2, 4, 0 },{ 2, 3, 2, -1 },
+		{ 0, 3, 4, 0 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 3: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (11.444, 11.555, 11.444), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 3, 0 },{ 0, 0, 10, -1 },{ 1, 3, 4, -1 },{ 1, 2, 3, 0 },{ 1, 1, 4, 0 },
+		{ 1, 0, 10, -1 },{ 1, 3, 3, 0 },{ 2, 1, 3, 0 },{ 2, 0, 10, -1 },{ 2, 3, 1, -1 },{ 2, 2, 3, 0 },{ 0, 2, 3, 0 },{ 2, 3, 0, -1 },
+		{ 2, 3, 2, -1 },{ 0, 3, 3, 0 },{ 1, 2, 4, -1 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 4: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (11.444, 11.444, 11.555), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 3, 0 },{ 0, 0, 10, -1 },{ 2, 2, 4, -1 },{ 1, 2, 3, 0 },{ 1, 1, 3, 0 },
+		{ 1, 0, 10, -1 },{ 2, 3, 0, -1 },{ 1, 3, 3, 0 },{ 2, 1, 4, 0 },{ 2, 0, 10, -1 },{ 2, 2, 3, 0 },{ 0, 2, 3, 0 },{ 2, 3, 1, -1 },
+		{ 2, 3, 2, -1 },{ 0, 3, 3, 0 },{ 2, 3, 4, -1 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 5: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (9.555, 9.555, 9.555), delta
+		{ { 0, 0, 8, 0 },{ 2, 2, 4, -1 },{ 1, 0, 8, 0 },{ 1, 2, 4, -1 },{ 2, 0, 8, 0 },{ 2, 3, 4, -1 },{ 0, 1, 4, 0 },{ 1, 3, 4, -1 },
+		{ 1, 2, 3, 0 },{ 1, 1, 4, 0 },{ 2, 3, 0, -1 },{ 1, 3, 3, 0 },{ 2, 1, 4, 0 },{ 2, 3, 1, -1 },{ 2, 2, 3, 0 },{ 0, 2, 4, 0 },
+		{ 2, 3, 2, -1 },{ 0, 3, 4, 0 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 6: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (8.666, 8.555, 8.555), delta
+		{ { 0, 0, 7, 0 },{ 1, 3, 4, -1 },{ 2, 2, 4, -1 },{ 1, 0, 7, 0 },{ 2, 3, 2, -1 },{ 1, 2, 4, -1 },{ 2, 0, 7, 0 },{ 2, 3, 3, -1 },
+		{ 2, 3, 4, -1 },{ 0, 1, 5, 0 },{ 1, 2, 3, 0 },{ 1, 1, 4, 0 },{ 2, 3, 0, -1 },{ 1, 3, 3, 0 },{ 2, 1, 4, 0 },{ 2, 3, 1, -1 },
+		{ 2, 2, 3, 0 },{ 0, 2, 5, 0 },{ 0, 3, 5, 0 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 7: 2 subsets, Weight bits: 46 bits, Endpoints bits: 72 bits (8.555, 8.666, 8.555), delta
+		{ { 0, 0, 7, 0 },{ 2, 3, 0, -1 },{ 2, 2, 4, -1 },{ 1, 0, 7, 0 },{ 1, 2, 5, -1 },{ 1, 2, 4, -1 },{ 2, 0, 7, 0 },{ 1, 3, 5, -1 },
+		{ 2, 3, 4, -1 },{ 0, 1, 4, 0 },{ 1, 3, 4, -1 },{ 1, 2, 3, 0 },{ 1, 1, 5, 0 },{ 1, 3, 3, 0 },{ 2, 1, 4, 0 },{ 2, 3, 1, -1 },
+		{ 2, 2, 3, 0 },{ 0, 2, 4, 0 },{ 2, 3, 2, -1 },{ 0, 3, 4, 0 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 8: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (8.555, 8.555, 8.666), delta
+		{ { 0, 0, 7, 0 },{ 2, 3, 1, -1 },{ 2, 2, 4, -1 },{ 1, 0, 7, 0 },{ 2, 2, 5, -1 },{ 1, 2, 4, -1 },{ 2, 0, 7, 0 },{ 2, 3, 5, -1 },
+		{ 2, 3, 4, -1 },{ 0, 1, 4, 0 },{ 1, 3, 4, -1 },{ 1, 2, 3, 0 },{ 1, 1, 4, 0 },{ 2, 3, 0, -1 },{ 1, 3, 3, 0 },{ 2, 1, 5, 0 },
+		{ 2, 2, 3, 0 },{ 0, 2, 4, 0 },{ 2, 3, 2, -1 },{ 0, 3, 4, 0 },{ 2, 3, 3, -1 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 9: 2 subsets, Weight bits: 46 bits, Endpoint bits: 72 bits (6.6.6.6, 6.6.6.6, 6.6.6.6), NO delta
+		{ { 0, 0, 5, 0 },{ 1, 3, 4, -1 },{ 2, 3, 0, -1 },{ 2, 3, 1, -1 },{ 2, 2, 4, -1 },{ 1, 0, 5, 0 },{ 1, 2, 5, -1 },{ 2, 2, 5, -1 },
+		{ 2, 3, 2, -1 },{ 1, 2, 4, -1 },{ 2, 0, 5, 0 },{ 1, 3, 5, -1 },{ 2, 3, 3, -1 },{ 2, 3, 5, -1 },{ 2, 3, 4, -1 },{ 0, 1, 5, 0 },
+		{ 1, 2, 3, 0 },{ 1, 1, 5, 0 },{ 1, 3, 3, 0 },{ 2, 1, 5, 0 },{ 2, 2, 3, 0 },{ 0, 2, 5, 0 },{ 0, 3, 5, 0 },{ 3, -1, 4, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 10: 1 subset, Weight bits: 63 bits, Endpoint bits: 60 bits (10.10, 10.10, 10.10), NO delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 9, 0 },{ 1, 1, 9, 0 },{ 2, 1, 9, 0 }, {-1, 0, 0, 0} },
+		//------------------------        mode 11: 1 subset, Weight bits: 63 bits, Endpoint bits: 60 bits (11.9, 11.9, 11.9), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 8, 0 },{ 0, 0, 10, -1 },{ 1, 1, 8, 0 },{ 1, 0, 10, -1 },{ 2, 1, 8, 0 },{ 2, 0, 10, -1 }, {-1, 0, 0, 0} },
+		//------------------------        mode 12: 1 subset, Weight bits: 63 bits, Endpoint bits: 60 bits (12.8, 12.8, 12.8), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 7, 0 },{ 0, 0, 10, 11 },{ 1, 1, 7, 0 },{ 1, 0, 10, 11 },{ 2, 1, 7, 0 },{ 2, 0, 10, 11 }, {-1, 0, 0, 0} },
+		//------------------------        mode 13: 1 subset, Weight bits: 63 bits, Endpoint bits: 60 bits (16.4, 16.4, 16.4), delta
+		{ { 0, 0, 9, 0 },{ 1, 0, 9, 0 },{ 2, 0, 9, 0 },{ 0, 1, 3, 0 },{ 0, 0, 10, 15 },{ 1, 1, 3, 0 },{ 1, 0, 10, 15 },{ 2, 1, 3, 0 },{ 2, 0, 10, 15 }, {-1, 0, 0, 0} }
+	};
+
+	// The same as the first 32 2-subset patterns in BC7. 
+	// Bit 7 is a flag indicating that the weight uses 1 less bit than usual.
+	const uint8_t g_bc6h_2subset_patterns[TOTAL_BC6H_PARTITION_PATTERNS][4][4] = // [pat][y][x]
+	{
+		{ {0x80, 0, 1, 1}, { 0, 0, 1, 1 }, { 0, 0, 1, 1 }, { 0, 0, 1, 0x81 }}, { {0x80, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 0x81} },
+		{ {0x80, 1, 1, 1}, {0, 1, 1, 1}, {0, 1, 1, 1}, {0, 1, 1, 0x81} }, { {0x80, 0, 0, 1}, {0, 0, 1, 1}, {0, 0, 1, 1}, {0, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 1, 0x81} }, { {0x80, 0, 1, 1}, {0, 1, 1, 1}, {0, 1, 1, 1}, {1, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 1}, {0, 0, 1, 1}, {0, 1, 1, 1}, {1, 1, 1, 0x81} }, { {0x80, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 1}, {0, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0x81} }, { {0x80, 0, 1, 1}, {0, 1, 1, 1}, {1, 1, 1, 1}, {1, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 0}, {0, 0, 0, 1}, {0, 1, 1, 1}, {1, 1, 1, 0x81} }, { {0x80, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 1}, {0, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 1}, {0, 1, 1, 1}, {1, 1, 1, 1}, {1, 1, 1, 0x81} }, { {0x80, 0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1, 1}, {1, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 0}, {1, 1, 1, 1}, {1, 1, 1, 1}, {1, 1, 1, 0x81} }, { {0x80, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {1, 1, 1, 0x81} },
+		{ {0x80, 0, 0, 0}, {1, 0, 0, 0}, {1, 1, 1, 0}, {1, 1, 1, 0x81} }, { {0x80, 1, 0x81, 1}, {0, 0, 0, 1}, {0, 0, 0, 0}, {0, 0, 0, 0} },
+		{ {0x80, 0, 0, 0}, {0, 0, 0, 0}, {0x81, 0, 0, 0}, {1, 1, 1, 0} }, { {0x80, 1, 0x81, 1}, {0, 0, 1, 1}, {0, 0, 0, 1}, {0, 0, 0, 0} },
+		{ {0x80, 0, 0x81, 1}, {0, 0, 0, 1}, {0, 0, 0, 0}, {0, 0, 0, 0} }, { {0x80, 0, 0, 0}, {1, 0, 0, 0}, {0x81, 1, 0, 0}, {1, 1, 1, 0} },
+		{ {0x80, 0, 0, 0}, {0, 0, 0, 0}, {0x81, 0, 0, 0}, {1, 1, 0, 0} }, { {0x80, 1, 1, 1}, {0, 0, 1, 1}, {  0, 0, 1, 1}, {0, 0, 0, 0x81} },
+		{ {0x80, 0, 0x81, 1}, {0, 0, 0, 1}, {0, 0, 0, 1}, {0, 0, 0, 0} }, { {0x80, 0, 0, 0}, {1, 0, 0, 0}, {0x81, 0, 0, 0}, {1, 1, 0, 0} },
+		{ {0x80, 1, 0x81, 0}, {0, 1, 1, 0}, {0, 1, 1, 0}, {0, 1, 1, 0} }, { {0x80, 0, 0x81, 1}, {0, 1, 1, 0}, {0, 1, 1, 0}, {1, 1, 0, 0} },
+		{ {0x80, 0, 0, 1}, {0, 1, 1, 1}, {0x81, 1, 1, 0}, {1, 0, 0, 0} }, { {0x80, 0, 0, 0}, {1, 1, 1, 1}, {0x81, 1, 1, 1}, {0, 0, 0, 0} },
+		{ {0x80, 1, 0x81, 1}, {0, 0, 0, 1}, {1, 0, 0, 0}, {1, 1, 1, 0} }, { {0x80, 0, 0x81, 1}, {1, 0, 0, 1}, {1, 0, 0, 1}, {1, 1, 0, 0} }
+	};
+
+	const uint8_t g_bc6h_weight3[8] = { 0, 9, 18, 27, 37, 46, 55, 64 };
+	const uint8_t g_bc6h_weight4[16] = { 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 };
+		
+	struct bc6h_logical_block
+	{
+		uint32_t m_mode;
+		uint32_t m_partition_pattern;	// must be 0 if 1 subset
+		uint32_t m_endpoints[3][4];		// [comp][subset*2+lh_index] - must be already properly packed
+		uint8_t m_weights[16];			// weights must be of the proper size, taking into account skipped MSB's which must be 0
+
+		void clear()
+		{
+			basisu::clear_obj(*this);
+		}
+	};
+
+	static inline void write_bits(uint64_t val, uint32_t num_bits, uint32_t& bit_pos, uint64_t& l, uint64_t& h)
+	{
+		assert((num_bits) && (num_bits < 64) && (bit_pos < 128));
+		assert(val < (1ULL << num_bits));
+
+		if (bit_pos < 64)
+		{
+			l |= (val << bit_pos);
+
+			if ((bit_pos + num_bits) > 64)
+				h |= (val >> (64 - bit_pos));
+		}
+		else
+		{
+			h |= (val << (bit_pos - 64));
+		}
+
+		bit_pos += num_bits;
+		assert(bit_pos <= 128);
+	}
+
+	static inline void write_rev_bits(uint64_t val, uint32_t num_bits, uint32_t& bit_pos, uint64_t& l, uint64_t& h)
+	{
+		assert((num_bits) && (num_bits < 64) && (bit_pos < 128));
+		assert(val < (1ULL << num_bits));
+
+		for (uint32_t i = 0; i < num_bits; i++)
+			write_bits((val >> (num_bits - 1u - i)) & 1, 1, bit_pos, l, h);
+	}
+
+	static void pack_bc6h_block(bc6h_block& dst_blk, bc6h_logical_block& log_blk)
+	{
+		const uint8_t s_mode_bits[NUM_BC6H_MODES] = { 0b00, 0b01, 0b00010, 0b00110, 0b01010, 0b01110, 0b10010, 0b10110, 0b11010, 0b11110, 0b00011, 0b00111, 0b01011, 0b01111 };
+
+		const uint32_t mode = log_blk.m_mode;
+		assert(mode < NUM_BC6H_MODES);
+
+		uint64_t l = s_mode_bits[mode], h = 0;
+		uint32_t bit_pos = (mode >= 2) ? 5 : 2;
+
+		const uint32_t num_subsets = (mode >= BC6H_FIRST_1SUBSET_MODE_INDEX) ? 1 : 2;
+
+		assert(((num_subsets == 2) && (log_blk.m_partition_pattern < TOTAL_BC6H_PARTITION_PATTERNS)) ||
+			((num_subsets == 1) && (!log_blk.m_partition_pattern)));
+
+		// Sanity checks
+		for (uint32_t c = 0; c < 3; c++)
+		{
+			assert(log_blk.m_endpoints[c][0] < (1u << g_bc6h_mode_sig_bits[mode][0]));	   // 1st subset l, base bits
+			assert(log_blk.m_endpoints[c][1] < (1u << g_bc6h_mode_sig_bits[mode][c + 1])); // 1st subset h, these are deltas except for modes 9,10
+			assert(log_blk.m_endpoints[c][2] < (1u << g_bc6h_mode_sig_bits[mode][c + 1])); // 2nd subset l
+			assert(log_blk.m_endpoints[c][3] < (1u << g_bc6h_mode_sig_bits[mode][c + 1])); // 2nd subset h
+		}
+
+		const bc6h_bit_layout* pLayout = &g_bc6h_bit_layouts[mode][0];
+
+		while (pLayout->m_comp != -1)
+		{
+			uint32_t v = (pLayout->m_comp == 3) ? log_blk.m_partition_pattern : log_blk.m_endpoints[pLayout->m_comp][pLayout->m_index];
+
+			if (pLayout->m_first_bit == -1)
+			{
+				write_bits((v >> pLayout->m_last_bit) & 1, 1, bit_pos, l, h);
+			}
+			else
+			{
+				const uint32_t total_bits = basisu::iabs(pLayout->m_last_bit - pLayout->m_first_bit) + 1;
+
+				v >>= basisu::minimum(pLayout->m_first_bit, pLayout->m_last_bit);
+				v &= ((1 << total_bits) - 1);
+
+				if (pLayout->m_first_bit > pLayout->m_last_bit)
+					write_rev_bits(v, total_bits, bit_pos, l, h);
+				else
+					write_bits(v, total_bits, bit_pos, l, h);
+			}
+
+			pLayout++;
+		}
+
+		const uint32_t num_mode_sel_bits = (num_subsets == 1) ? 4 : 3;
+		const uint8_t* pPat = &g_bc6h_2subset_patterns[log_blk.m_partition_pattern][0][0];
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			const uint32_t sel = log_blk.m_weights[i];
+
+			uint32_t num_bits = num_mode_sel_bits;
+			if (num_subsets == 2)
+			{
+				const uint32_t subset_index = pPat[i];
+				num_bits -= (subset_index >> 7);
+			}
+			else if (!i)
+			{
+				num_bits--;
+			}
+
+			assert(sel < (1u << num_bits));
+
+			write_bits(sel, num_bits, bit_pos, l, h);
+		}
+
+		assert(bit_pos == 128);
+
+		basisu::write_le_dword(&dst_blk.m_bytes[0], (uint32_t)l);
+		basisu::write_le_dword(&dst_blk.m_bytes[4], (uint32_t)(l >> 32u));
+		basisu::write_le_dword(&dst_blk.m_bytes[8], (uint32_t)h);
+		basisu::write_le_dword(&dst_blk.m_bytes[12], (uint32_t)(h >> 32u));
+	}
+
+#if 0
+	static inline uint32_t bc6h_blog_dequantize_to_blog16(uint32_t comp, uint32_t bits_per_comp)
+	{
+		int unq;
+
+		if (bits_per_comp >= 15)
+			unq = comp;
+		else if (comp == 0)
+			unq = 0;
+		else if (comp == ((1u << bits_per_comp) - 1u))
+			unq = 0xFFFFu;
+		else
+			unq = ((comp << 16u) + 0x8000u) >> bits_per_comp;
+
+		return unq;
+	}
+#endif
+
+	// Suboptimal, but very close.
+	static inline uint32_t bc6h_half_to_blog(half_float h, uint32_t num_bits)
+	{
+		assert(h <= MAX_BC6H_HALF_FLOAT_AS_UINT);
+		return (h * 64 + 30) / (31 * (1 << (16 - num_bits)));
+	}
+
+	// 6,7,8,9,10,11,12
+	const uint32_t BC6H_BLOG_TAB_MIN = 6;
+	const uint32_t BC6H_BLOG_TAB_MAX = 12;
+	//const uint32_t BC6H_BLOG_TAB_NUM = BC6H_BLOG_TAB_MAX - BC6H_BLOG_TAB_MIN + 1;
+	
+	// Handles 16, or 6-12 bits. Others assert.
+	static inline uint32_t half_to_blog_tab(half_float h, uint32_t num_bits)
+	{
+		BASISU_NOTE_UNUSED(BC6H_BLOG_TAB_MIN);
+		BASISU_NOTE_UNUSED(BC6H_BLOG_TAB_MAX);
+
+		assert(h <= MAX_BC6H_HALF_FLOAT_AS_UINT);
+
+		if (num_bits == 16)
+		{
+			return bc6h_half_to_blog(h, 16);
+		}
+		else
+		{
+			assert((num_bits >= BC6H_BLOG_TAB_MIN) && (num_bits <= BC6H_BLOG_TAB_MAX));
+			
+			// Note: This used to be done using a table lookup, but it required ~224KB of tables. This isn't quite as accurate, but the error is very slight (+-1 half values as ints).
+			return bc6h_half_to_blog(h, num_bits);
+		}
+	}
+
+	bool g_bc6h_enc_initialized;
+
+	void bc6h_enc_init()
+	{
+		if (g_bc6h_enc_initialized)
+			return;
+
+		g_bc6h_enc_initialized = true;
+	}
+
+	// mode 10, 4-bit weights
+	void bc6h_enc_block_mode10(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 15);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		// Convert half endpoints to blog10 (mode 10 doesn't use delta encoding)
+		for (uint32_t c = 0; c < 3; c++)
+		{
+			log_blk.m_endpoints[c][0] = half_to_blog_tab(pEndpoints[c][0], 10);
+			log_blk.m_endpoints[c][1] = half_to_blog_tab(pEndpoints[c][1], 10);
+		}
+
+		memcpy(log_blk.m_weights, pWeights, 16);
+
+		if (log_blk.m_weights[0] & 8)
+		{
+			for (uint32_t i = 0; i < 16; i++)
+				log_blk.m_weights[i] = 15 - log_blk.m_weights[i];
+
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				std::swap(log_blk.m_endpoints[c][0], log_blk.m_endpoints[c][1]);
+			}
+		}
+
+		log_blk.m_mode = BC6H_FIRST_1SUBSET_MODE_INDEX;
+		pack_bc6h_block(*pPacked_block, log_blk);
+	}
+
+	// Tries modes 11-13 (delta endpoint) encoding, falling back to mode 10 only when necessary, 4-bit weights
+	void bc6h_enc_block_1subset_4bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 15);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		for (uint32_t mode = BC6H_LAST_MODE_INDEX; mode > BC6H_FIRST_1SUBSET_MODE_INDEX; mode--)
+		{
+			const uint32_t num_base_bits = g_bc6h_mode_sig_bits[mode][0], num_delta_bits = g_bc6h_mode_sig_bits[mode][1];
+			const int base_bitmask = (1 << num_base_bits) - 1;
+			const int delta_bitmask = (1 << num_delta_bits) - 1;
+			BASISU_NOTE_UNUSED(base_bitmask);
+
+			assert(num_delta_bits < num_base_bits);
+			assert((num_delta_bits == g_bc6h_mode_sig_bits[mode][2]) && (num_delta_bits == g_bc6h_mode_sig_bits[mode][3]));
+
+			uint32_t blog_endpoints[3][2];
+
+			// Convert half endpoints to blog 16, 12, or 11
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				blog_endpoints[c][0] = half_to_blog_tab(pEndpoints[c][0], num_base_bits);
+				assert((int)blog_endpoints[c][0] <= base_bitmask);
+
+				blog_endpoints[c][1] = half_to_blog_tab(pEndpoints[c][1], num_base_bits);
+				assert((int)blog_endpoints[c][1] <= base_bitmask);
+			}
+
+			// Copy weights
+			memcpy(log_blk.m_weights, pWeights, 16);
+
+			// Ensure first weight MSB is 0
+			if (log_blk.m_weights[0] & 8)
+			{
+				// Invert weights
+				for (uint32_t i = 0; i < 16; i++)
+					log_blk.m_weights[i] = 15 - log_blk.m_weights[i];
+
+				// Swap blog quantized endpoints
+				for (uint32_t c = 0; c < 3; c++)
+				{
+					std::swap(blog_endpoints[c][0], blog_endpoints[c][1]);
+				}
+			}
+
+			const int max_delta = (1 << (num_delta_bits - 1)) - 1;
+			const int min_delta = -(max_delta + 1);
+			assert((max_delta - min_delta) == delta_bitmask);
+
+			bool failed_flag = false;
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				log_blk.m_endpoints[c][0] = blog_endpoints[c][0];
+
+				int delta = (int)blog_endpoints[c][1] - (int)blog_endpoints[c][0];
+				if ((delta < min_delta) || (delta > max_delta))
+				{
+					failed_flag = true;
+					break;
+				}
+
+				log_blk.m_endpoints[c][1] = delta & delta_bitmask;
+			}
+
+			if (failed_flag)
+				continue;
+
+			log_blk.m_mode = mode;
+			pack_bc6h_block(*pPacked_block, log_blk);
+						
+			return;
+		}
+
+		// Worst case fall back to mode 10, which can handle any endpoints
+		bc6h_enc_block_mode10(pPacked_block, pEndpoints, pWeights);
+	}
+
+	// Mode 9 (direct endpoint encoding), 3-bit weights, but only 1 subset
+	void bc6h_enc_block_1subset_mode9_3bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 7);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		// Convert half endpoints to blog6 (mode 9 doesn't use delta encoding)
+		for (uint32_t c = 0; c < 3; c++)
+		{
+			log_blk.m_endpoints[c][0] = half_to_blog_tab(pEndpoints[c][0], 6);
+			log_blk.m_endpoints[c][2] = log_blk.m_endpoints[c][0];
+
+			log_blk.m_endpoints[c][1] = half_to_blog_tab(pEndpoints[c][1], 6);
+			log_blk.m_endpoints[c][3] = log_blk.m_endpoints[c][1];
+		}
+
+		memcpy(log_blk.m_weights, pWeights, 16);
+
+		const uint32_t pat_index = 0;
+		const uint8_t* pPat = &g_bc6h_2subset_patterns[pat_index][0][0];
+
+		if (log_blk.m_weights[0] & 4)
+		{
+			for (uint32_t c = 0; c < 3; c++)
+				std::swap(log_blk.m_endpoints[c][0], log_blk.m_endpoints[c][1]);
+
+			for (uint32_t i = 0; i < 16; i++)
+				if ((pPat[i] & 0x7F) == 0)
+					log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+		}
+
+		if (log_blk.m_weights[15] & 4)
+		{
+			for (uint32_t c = 0; c < 3; c++)
+				std::swap(log_blk.m_endpoints[c][2], log_blk.m_endpoints[c][3]);
+
+			for (uint32_t i = 0; i < 16; i++)
+				if ((pPat[i] & 0x7F) == 1)
+					log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+		}
+
+		log_blk.m_mode = 9;
+		log_blk.m_partition_pattern = pat_index;
+		pack_bc6h_block(*pPacked_block, log_blk);
+	}
+
+	// Tries modes 0-8, falls back to mode 9
+	void bc6h_enc_block_1subset_3bit_weights(bc6h_block* pPacked_block, const half_float pEndpoints[3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 7);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		for (uint32_t mode_iter = 0; mode_iter <= 8; mode_iter++)
+		{
+			static const int s_mode_order[9] = { 2, 3, 4, 0,  5, 6, 7, 8,  1 }; // ordered from largest base bits to least
+			const uint32_t mode = s_mode_order[mode_iter];
+
+			const uint32_t num_base_bits = g_bc6h_mode_sig_bits[mode][0];
+			const int base_bitmask = (1 << num_base_bits) - 1;
+			BASISU_NOTE_UNUSED(base_bitmask);
+
+			const uint32_t num_delta_bits[3] = { g_bc6h_mode_sig_bits[mode][1], g_bc6h_mode_sig_bits[mode][2], g_bc6h_mode_sig_bits[mode][3] };
+			const int delta_bitmasks[3] = { (1 << num_delta_bits[0]) - 1, (1 << num_delta_bits[1]) - 1, (1 << num_delta_bits[2]) - 1 };
+
+			uint32_t blog_endpoints[3][4];
+
+			// Convert half endpoints to blog 7-11
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				blog_endpoints[c][0] = half_to_blog_tab(pEndpoints[c][0], num_base_bits);
+				blog_endpoints[c][2] = blog_endpoints[c][0];
+				assert((int)blog_endpoints[c][0] <= base_bitmask);
+
+				blog_endpoints[c][1] = half_to_blog_tab(pEndpoints[c][1], num_base_bits);
+				blog_endpoints[c][3] = blog_endpoints[c][1];
+				assert((int)blog_endpoints[c][1] <= base_bitmask);
+			}
+
+			const uint32_t pat_index = 0;
+			const uint8_t* pPat = &g_bc6h_2subset_patterns[pat_index][0][0];
+
+			memcpy(log_blk.m_weights, pWeights, 16);
+
+			if (log_blk.m_weights[0] & 4)
+			{
+				// Swap part 0's endpoints/weights
+				for (uint32_t c = 0; c < 3; c++)
+					std::swap(blog_endpoints[c][0], blog_endpoints[c][1]);
+
+				for (uint32_t i = 0; i < 16; i++)
+					if ((pPat[i] & 0x7F) == 0)
+						log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+			}
+
+			if (log_blk.m_weights[15] & 4)
+			{
+				// Swap part 1's endpoints/weights
+				for (uint32_t c = 0; c < 3; c++)
+					std::swap(blog_endpoints[c][2], blog_endpoints[c][3]);
+
+				for (uint32_t i = 0; i < 16; i++)
+					if ((pPat[i] & 0x7F) == 1)
+						log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+			}
+
+			bool failed_flag = false;
+
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				const int max_delta = (1 << (num_delta_bits[c] - 1)) - 1;
+
+				const int min_delta = -(max_delta + 1);
+				assert((max_delta - min_delta) == delta_bitmasks[c]);
+
+				log_blk.m_endpoints[c][0] = blog_endpoints[c][0];
+
+				int delta0 = (int)blog_endpoints[c][1] - (int)blog_endpoints[c][0];
+				int delta1 = (int)blog_endpoints[c][2] - (int)blog_endpoints[c][0];
+				int delta2 = (int)blog_endpoints[c][3] - (int)blog_endpoints[c][0];
+
+				if ((delta0 < min_delta) || (delta0 > max_delta) ||
+					(delta1 < min_delta) || (delta1 > max_delta) ||
+					(delta2 < min_delta) || (delta2 > max_delta))
+				{
+					failed_flag = true;
+					break;
+				}
+
+				log_blk.m_endpoints[c][1] = delta0 & delta_bitmasks[c];
+				log_blk.m_endpoints[c][2] = delta1 & delta_bitmasks[c];
+				log_blk.m_endpoints[c][3] = delta2 & delta_bitmasks[c];
+
+				if (failed_flag)
+					break;
+			}
+			if (failed_flag)
+				continue;
+
+			log_blk.m_mode = mode;
+			log_blk.m_partition_pattern = pat_index;
+			pack_bc6h_block(*pPacked_block, log_blk);
+
+			return;
+
+		} // mode_iter
+
+		bc6h_enc_block_1subset_mode9_3bit_weights(pPacked_block, pEndpoints, pWeights);
+	}
+
+	// pEndpoints[subset][comp][lh_index]
+	void bc6h_enc_block_2subset_mode9_3bit_weights(bc6h_block* pPacked_block, uint32_t common_part_index, const half_float pEndpoints[2][3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+		assert(common_part_index < basist::TOTAL_ASTC_BC7_COMMON_PARTITIONS2);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 7);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		// Convert half endpoints to blog6 (mode 9 doesn't use delta encoding)
+		for (uint32_t s = 0; s < 2; s++)
+		{
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				log_blk.m_endpoints[c][0 + s * 2] = half_to_blog_tab(pEndpoints[s][c][0], 6);
+				log_blk.m_endpoints[c][1 + s * 2] = half_to_blog_tab(pEndpoints[s][c][1], 6);
+			}
+		}
+
+		memcpy(log_blk.m_weights, pWeights, 16);
+
+		//const uint32_t astc_pattern = basist::g_astc_bc7_common_partitions2[common_part_index].m_astc;
+		const uint32_t bc7_pattern = basist::g_astc_bc7_common_partitions2[common_part_index].m_bc7;
+
+		const bool invert_flag = basist::g_astc_bc7_common_partitions2[common_part_index].m_invert;
+		if (invert_flag)
+		{
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				std::swap(log_blk.m_endpoints[c][0], log_blk.m_endpoints[c][2]);
+				std::swap(log_blk.m_endpoints[c][1], log_blk.m_endpoints[c][3]);
+			}
+		}
+
+		const uint32_t pat_index = bc7_pattern;
+		assert(pat_index < 32);
+		const uint8_t* pPat = &g_bc6h_2subset_patterns[pat_index][0][0];
+
+		bool swap_flags[2] = { false, false };
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			if ((pPat[i] & 0x80) == 0)
+				continue;
+
+			if (log_blk.m_weights[i] & 4)
+			{
+				const uint32_t p = pPat[i] & 1;
+				swap_flags[p] = true;
+			}
+		}
+
+		if (swap_flags[0])
+		{
+			for (uint32_t c = 0; c < 3; c++)
+				std::swap(log_blk.m_endpoints[c][0], log_blk.m_endpoints[c][1]);
+
+			for (uint32_t i = 0; i < 16; i++)
+				if ((pPat[i] & 0x7F) == 0)
+					log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+		}
+
+		if (swap_flags[1])
+		{
+			for (uint32_t c = 0; c < 3; c++)
+				std::swap(log_blk.m_endpoints[c][2], log_blk.m_endpoints[c][3]);
+
+			for (uint32_t i = 0; i < 16; i++)
+				if ((pPat[i] & 0x7F) == 1)
+					log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+		}
+
+		log_blk.m_mode = 9;
+		log_blk.m_partition_pattern = pat_index;
+		pack_bc6h_block(*pPacked_block, log_blk);
+	}
+
+	void bc6h_enc_block_2subset_3bit_weights(bc6h_block* pPacked_block, uint32_t common_part_index, const half_float pEndpoints[2][3][2], const uint8_t* pWeights)
+	{
+		assert(g_bc6h_enc_initialized);
+
+		for (uint32_t i = 0; i < 16; i++)
+		{
+			assert(pWeights[i] <= 7);
+		}
+
+		bc6h_logical_block log_blk;
+		log_blk.clear();
+
+		for (uint32_t mode_iter = 0; mode_iter <= 8; mode_iter++)
+		{
+			static const int s_mode_order[9] = { 2, 3, 4, 0,  5, 6, 7, 8,  1 }; // ordered from largest base bits to least
+			const uint32_t mode = s_mode_order[mode_iter];
+
+			const uint32_t num_base_bits = g_bc6h_mode_sig_bits[mode][0];
+			const int base_bitmask = (1 << num_base_bits) - 1;
+			BASISU_NOTE_UNUSED(base_bitmask);
+
+			const uint32_t num_delta_bits[3] = { g_bc6h_mode_sig_bits[mode][1], g_bc6h_mode_sig_bits[mode][2], g_bc6h_mode_sig_bits[mode][3] };
+			const int delta_bitmasks[3] = { (1 << num_delta_bits[0]) - 1, (1 << num_delta_bits[1]) - 1, (1 << num_delta_bits[2]) - 1 };
+
+			uint32_t blog_endpoints[3][4];
+
+			// Convert half endpoints to blog 7-11
+			for (uint32_t s = 0; s < 2; s++)
+			{
+				for (uint32_t c = 0; c < 3; c++)
+				{
+					blog_endpoints[c][0 + s * 2] = half_to_blog_tab(pEndpoints[s][c][0], num_base_bits);
+					blog_endpoints[c][1 + s * 2] = half_to_blog_tab(pEndpoints[s][c][1], num_base_bits);
+				}
+			}
+
+			memcpy(log_blk.m_weights, pWeights, 16);
+
+			//const uint32_t astc_pattern = basist::g_astc_bc7_common_partitions2[common_part_index].m_astc;
+			const uint32_t bc7_pattern = basist::g_astc_bc7_common_partitions2[common_part_index].m_bc7;
+
+			const bool invert_flag = basist::g_astc_bc7_common_partitions2[common_part_index].m_invert;
+			if (invert_flag)
+			{
+				for (uint32_t c = 0; c < 3; c++)
+				{
+					std::swap(blog_endpoints[c][0], blog_endpoints[c][2]);
+					std::swap(blog_endpoints[c][1], blog_endpoints[c][3]);
+				}
+			}
+
+			const uint32_t pat_index = bc7_pattern;
+			assert(pat_index < 32);
+			const uint8_t* pPat = &g_bc6h_2subset_patterns[pat_index][0][0];
+
+			bool swap_flags[2] = { false, false };
+			for (uint32_t i = 0; i < 16; i++)
+			{
+				if ((pPat[i] & 0x80) == 0)
+					continue;
+
+				if (log_blk.m_weights[i] & 4)
+				{
+					const uint32_t p = pPat[i] & 1;
+					swap_flags[p] = true;
+				}
+			}
+
+			if (swap_flags[0])
+			{
+				for (uint32_t c = 0; c < 3; c++)
+					std::swap(blog_endpoints[c][0], blog_endpoints[c][1]);
+
+				for (uint32_t i = 0; i < 16; i++)
+					if ((pPat[i] & 0x7F) == 0)
+						log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+			}
+
+			if (swap_flags[1])
+			{
+				for (uint32_t c = 0; c < 3; c++)
+					std::swap(blog_endpoints[c][2], blog_endpoints[c][3]);
+
+				for (uint32_t i = 0; i < 16; i++)
+					if ((pPat[i] & 0x7F) == 1)
+						log_blk.m_weights[i] = 7 - log_blk.m_weights[i];
+			}
+
+			// Try packing the endpoints
+			bool failed_flag = false;
+
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				const int max_delta = (1 << (num_delta_bits[c] - 1)) - 1;
+
+				const int min_delta = -(max_delta + 1);
+				assert((max_delta - min_delta) == delta_bitmasks[c]);
+
+				log_blk.m_endpoints[c][0] = blog_endpoints[c][0];
+
+				int delta0 = (int)blog_endpoints[c][1] - (int)blog_endpoints[c][0];
+				int delta1 = (int)blog_endpoints[c][2] - (int)blog_endpoints[c][0];
+				int delta2 = (int)blog_endpoints[c][3] - (int)blog_endpoints[c][0];
+
+				if ((delta0 < min_delta) || (delta0 > max_delta) ||
+					(delta1 < min_delta) || (delta1 > max_delta) ||
+					(delta2 < min_delta) || (delta2 > max_delta))
+				{
+					failed_flag = true;
+					break;
+				}
+
+				log_blk.m_endpoints[c][1] = delta0 & delta_bitmasks[c];
+				log_blk.m_endpoints[c][2] = delta1 & delta_bitmasks[c];
+				log_blk.m_endpoints[c][3] = delta2 & delta_bitmasks[c];
+
+				if (failed_flag)
+					break;
+			}
+			if (failed_flag)
+				continue;
+
+			log_blk.m_mode = mode;
+			log_blk.m_partition_pattern = pat_index;
+			pack_bc6h_block(*pPacked_block, log_blk);
+
+			//half_float blk[16 * 3];
+			//unpack_bc6h(pPacked_block, blk, false);
+
+			return;
+		}
+
+		bc6h_enc_block_2subset_mode9_3bit_weights(pPacked_block, common_part_index, pEndpoints, pWeights);
+	}
+
+	bool bc6h_enc_block_solid_color(bc6h_block* pPacked_block, const half_float pColor[3])
+	{
+		assert(g_bc6h_enc_initialized);
+
+		if ((pColor[0] | pColor[1] | pColor[2]) & 0x8000)
+			return false;
+
+		// ASTC block unpacker won't allow Inf/NaN's to come through.
+		//if (is_half_inf_or_nan(pColor[0]) || is_half_inf_or_nan(pColor[1]) || is_half_inf_or_nan(pColor[2]))
+		//	return false;
+
+		uint8_t weights[16];
+		memset(weights, 0, sizeof(weights));
+
+		half_float endpoints[3][2];
+		endpoints[0][0] = pColor[0];
+		endpoints[0][1] = pColor[0];
+				
+		endpoints[1][0] = pColor[1];
+		endpoints[1][1] = pColor[1];
+
+		endpoints[2][0] = pColor[2];
+		endpoints[2][1] = pColor[2];
+				
+		bc6h_enc_block_1subset_4bit_weights(pPacked_block, endpoints, weights);
+
+		return true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+	// basisu_astc_hdr_core.cpp
+
+	static bool g_astc_hdr_core_initialized;
+	static int8_t g_astc_partition_id_to_common_bc7_pat_index[1024];
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	void astc_hdr_core_init()
+	{
+		if (g_astc_hdr_core_initialized)
+			return;
+
+		memset(g_astc_partition_id_to_common_bc7_pat_index, 0xFF, sizeof(g_astc_partition_id_to_common_bc7_pat_index));
+
+		for (uint32_t part_index = 0; part_index < basist::TOTAL_ASTC_BC6H_COMMON_PARTITIONS2; ++part_index)
+		{
+			const uint32_t astc_pattern = basist::g_astc_bc7_common_partitions2[part_index].m_astc;
+			//const uint32_t bc7_pattern = basist::g_astc_bc7_common_partitions2[part_index].m_bc7;
+
+			assert(astc_pattern < 1024);
+			g_astc_partition_id_to_common_bc7_pat_index[astc_pattern] = (int8_t)part_index;
+		}
+
+		g_astc_hdr_core_initialized = true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	static inline int astc_hdr_sign_extend(int src, int num_src_bits)
+	{
+		assert(basisu::in_range(num_src_bits, 2, 31));
+
+		const bool negative = (src & (1 << (num_src_bits - 1))) != 0;
+		if (negative)
+			return src | ~((1 << num_src_bits) - 1);
+		else
+			return src & ((1 << num_src_bits) - 1);
+	}
+
+	static inline void astc_hdr_pack_bit(
+		int& dst, int dst_bit,
+		int src_val, int src_bit = 0)
+	{
+		assert(dst_bit >= 0 && dst_bit <= 31);
+		int bit = basisu::get_bit(src_val, src_bit);
+		dst |= (bit << dst_bit);
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	void decode_mode7_to_qlog12_ise20(
+		const uint8_t* pEndpoints,
+		int e[2][3],
+		int* pScale)
+	{
+		assert(g_astc_hdr_core_initialized);
+
+		for (uint32_t i = 0; i < NUM_MODE7_ENDPOINTS; i++)
+		{
+			assert(pEndpoints[i] <= 255);
+		}
+
+		const int v0 = pEndpoints[0], v1 = pEndpoints[1], v2 = pEndpoints[2], v3 = pEndpoints[3];
+
+		// Extract mode bits and unpack to major component and mode.
+		const int modeval = ((v0 & 0xC0) >> 6) | ((v1 & 0x80) >> 5) | ((v2 & 0x80) >> 4);
+
+		int majcomp, mode;
+		if ((modeval & 0xC) != 0xC)
+		{
+			majcomp = modeval >> 2;
+			mode = modeval & 3;
+		}
+		else if (modeval != 0xF)
+		{
+			majcomp = modeval & 3;
+			mode = 4;
+		}
+		else
+		{
+			majcomp = 0;
+			mode = 5;
+		}
+
+		// Extract low-order bits of r, g, b, and s.
+		int red = v0 & 0x3f;
+		int green = v1 & 0x1f;
+		int blue = v2 & 0x1f;
+		int scale = v3 & 0x1f;
+
+		// Extract high-order bits, which may be assigned depending on mode
+		int x0 = (v1 >> 6) & 1;
+		int x1 = (v1 >> 5) & 1;
+		int x2 = (v2 >> 6) & 1;
+		int x3 = (v2 >> 5) & 1;
+		int x4 = (v3 >> 7) & 1;
+		int x5 = (v3 >> 6) & 1;
+		int x6 = (v3 >> 5) & 1;
+
+		// Now move the high-order xs into the right place.
+		const int ohm = 1 << mode;
+		if (ohm & 0x30) green |= x0 << 6;
+		if (ohm & 0x3A) green |= x1 << 5;
+		if (ohm & 0x30) blue |= x2 << 6;
+		if (ohm & 0x3A) blue |= x3 << 5;
+		if (ohm & 0x3D) scale |= x6 << 5;
+		if (ohm & 0x2D) scale |= x5 << 6;
+		if (ohm & 0x04) scale |= x4 << 7;
+		if (ohm & 0x3B) red |= x4 << 6;
+		if (ohm & 0x04) red |= x3 << 6;
+		if (ohm & 0x10) red |= x5 << 7;
+		if (ohm & 0x0F) red |= x2 << 7;
+		if (ohm & 0x05) red |= x1 << 8;
+		if (ohm & 0x0A) red |= x0 << 8;
+		if (ohm & 0x05) red |= x0 << 9;
+		if (ohm & 0x02) red |= x6 << 9;
+		if (ohm & 0x01) red |= x3 << 10;
+		if (ohm & 0x02) red |= x5 << 10;
+
+		// Shift the bits to the top of the 12-bit result.
+		static const int s_shamts[6] = { 1,1,2,3,4,5 };
+
+		const int shamt = s_shamts[mode];
+		red <<= shamt;
+		green <<= shamt;
+		blue <<= shamt;
+		scale <<= shamt;
+
+		// Minor components are stored as differences
+		if (mode != 5)
+		{
+			green = red - green;
+			blue = red - blue;
+		}
+
+		// Swizzle major component into place
+		if (majcomp == 1)
+			std::swap(red, green);
+
+		if (majcomp == 2)
+			std::swap(red, blue);
+
+		// Clamp output values, set alpha to 1.0
+		e[1][0] = basisu::clamp(red, 0, 0xFFF);
+		e[1][1] = basisu::clamp(green, 0, 0xFFF);
+		e[1][2] = basisu::clamp(blue, 0, 0xFFF);
+
+		e[0][0] = basisu::clamp(red - scale, 0, 0xFFF);
+		e[0][1] = basisu::clamp(green - scale, 0, 0xFFF);
+		e[0][2] = basisu::clamp(blue - scale, 0, 0xFFF);
+
+		if (pScale)
+			*pScale = scale;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	bool decode_mode7_to_qlog12(
+		const uint8_t* pEndpoints,
+		int e[2][3],
+		int* pScale,
+		uint32_t ise_endpoint_range)
+	{
+		assert(g_astc_hdr_core_initialized);
+
+		if (ise_endpoint_range == astc_helpers::BISE_256_LEVELS)
+		{
+			decode_mode7_to_qlog12_ise20(pEndpoints, e, pScale);
+		}
+		else
+		{
+			uint8_t dequantized_endpoints[NUM_MODE7_ENDPOINTS];
+
+			for (uint32_t i = 0; i < NUM_MODE7_ENDPOINTS; i++)
+				dequantized_endpoints[i] = astc_helpers::g_dequant_tables.get_endpoint_tab(ise_endpoint_range).m_ISE_to_val[pEndpoints[i]];
+
+			decode_mode7_to_qlog12_ise20(dequantized_endpoints, e, pScale);
+		}
+
+		for (uint32_t i = 0; i < 2; i++)
+		{
+			if (e[i][0] > (int)MAX_QLOG12)
+				return false;
+
+			if (e[i][1] > (int)MAX_QLOG12)
+				return false;
+
+			if (e[i][2] > (int)MAX_QLOG12)
+				return false;
+		}
+
+		return true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	void decode_mode11_to_qlog12_ise20(
+		const uint8_t* pEndpoints,
+		int e[2][3])
+	{
+#ifdef _DEBUG
+		for (uint32_t i = 0; i < NUM_MODE11_ENDPOINTS; i++)
+		{
+			assert(pEndpoints[i] <= 255);
+		}
+#endif
+
+		const uint32_t maj_comp = basisu::get_bit(pEndpoints[4], 7) | (basisu::get_bit(pEndpoints[5], 7) << 1);
+
+		if (maj_comp == 3)
+		{
+			// Direct, qlog8 and qlog7
+			e[0][0] = pEndpoints[0] << 4;
+			e[1][0] = pEndpoints[1] << 4;
+
+			e[0][1] = pEndpoints[2] << 4;
+			e[1][1] = pEndpoints[3] << 4;
+
+			e[0][2] = (pEndpoints[4] & 127) << 5;
+			e[1][2] = (pEndpoints[5] & 127) << 5;
+		}
+		else
+		{
+			int v0 = pEndpoints[0];
+			int v1 = pEndpoints[1];
+			int v2 = pEndpoints[2];
+			int v3 = pEndpoints[3];
+			int v4 = pEndpoints[4];
+			int v5 = pEndpoints[5];
+
+			int mode = 0;
+			astc_hdr_pack_bit(mode, 0, v1, 7);
+			astc_hdr_pack_bit(mode, 1, v2, 7);
+			astc_hdr_pack_bit(mode, 2, v3, 7);
+
+			int va = v0;
+			astc_hdr_pack_bit(va, 8, v1, 6);
+
+			int vb0 = v2 & 63;
+			int vb1 = v3 & 63;
+			int vc = v1 & 63;
+
+			int vd0 = v4 & 0x7F; // this takes more bits than is sometimes needed
+			int vd1 = v5 & 0x7F; // this takes more bits than is sometimes needed
+			static const int8_t dbitstab[8] = { 7,6,7,6,5,6,5,6 };
+			vd0 = astc_hdr_sign_extend(vd0, dbitstab[mode]);
+			vd1 = astc_hdr_sign_extend(vd1, dbitstab[mode]);
+
+			int x0 = basisu::get_bit(v2, 6);
+			int x1 = basisu::get_bit(v3, 6);
+			int x2 = basisu::get_bit(v4, 6);
+			int x3 = basisu::get_bit(v5, 6);
+			int x4 = basisu::get_bit(v4, 5);
+			int x5 = basisu::get_bit(v5, 5);
+
+			const uint32_t ohm = 1U << mode;
+			if (ohm & 0xA4) va |= (x0 << 9);
+			if (ohm & 0x08) va |= (x2 << 9);
+			if (ohm & 0x50) va |= (x4 << 9);
+			if (ohm & 0x50) va |= (x5 << 10);
+			if (ohm & 0xA0) va |= (x1 << 10);
+			if (ohm & 0xC0) va |= (x2 << 11);
+			if (ohm & 0x04) vc |= (x1 << 6);
+			if (ohm & 0xE8) vc |= (x3 << 6);
+			if (ohm & 0x20) vc |= (x2 << 7);
+			if (ohm & 0x5B) vb0 |= (x0 << 6);
+			if (ohm & 0x5B) vb1 |= (x1 << 6);
+			if (ohm & 0x12) vb0 |= (x2 << 7);
+			if (ohm & 0x12) vb1 |= (x3 << 7);
+
+			const int shamt = (mode >> 1) ^ 3;
+			
+			va  = (uint32_t)va  << shamt;
+			vb0 = (uint32_t)vb0 << shamt;
+			vb1 = (uint32_t)vb1 << shamt;
+			vc  = (uint32_t)vc  << shamt;
+			vd0 = (uint32_t)vd0 << shamt;
+			vd1 = (uint32_t)vd1 << shamt;
+
+			// qlog12
+			e[1][0] = basisu::clamp<int>(va, 0, 0xFFF);
+			e[1][1] = basisu::clamp<int>(va - vb0, 0, 0xFFF);
+			e[1][2] = basisu::clamp<int>(va - vb1, 0, 0xFFF);
+
+			e[0][0] = basisu::clamp<int>(va - vc, 0, 0xFFF);
+			e[0][1] = basisu::clamp<int>(va - vb0 - vc - vd0, 0, 0xFFF);
+			e[0][2] = basisu::clamp<int>(va - vb1 - vc - vd1, 0, 0xFFF);
+
+			if (maj_comp)
+			{
+				std::swap(e[0][0], e[0][maj_comp]);
+				std::swap(e[1][0], e[1][maj_comp]);
+			}
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	bool decode_mode11_to_qlog12(
+		const uint8_t* pEndpoints,
+		int e[2][3],
+		uint32_t ise_endpoint_range)
+	{
+		assert(g_astc_hdr_core_initialized);
+		assert((ise_endpoint_range >= astc_helpers::FIRST_VALID_ENDPOINT_ISE_RANGE) && (ise_endpoint_range <= astc_helpers::LAST_VALID_ENDPOINT_ISE_RANGE));
+
+		if (ise_endpoint_range == astc_helpers::BISE_256_LEVELS)
+		{
+			decode_mode11_to_qlog12_ise20(pEndpoints, e);
+		}
+		else
+		{
+			uint8_t dequantized_endpoints[NUM_MODE11_ENDPOINTS];
+
+			for (uint32_t i = 0; i < NUM_MODE11_ENDPOINTS; i++)
+				dequantized_endpoints[i] = astc_helpers::g_dequant_tables.get_endpoint_tab(ise_endpoint_range).m_ISE_to_val[pEndpoints[i]];
+
+			decode_mode11_to_qlog12_ise20(dequantized_endpoints, e);
+		}
+
+		for (uint32_t i = 0; i < 2; i++)
+		{
+			if (e[i][0] > (int)MAX_QLOG12)
+				return false;
+
+			if (e[i][1] > (int)MAX_QLOG12)
+				return false;
+
+			if (e[i][2] > (int)MAX_QLOG12)
+				return false;
+		}
+
+		return true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	bool transcode_bc6h_1subset(half_float h_e[3][2], const astc_helpers::log_astc_block& best_blk, bc6h_block& transcoded_bc6h_blk)
+	{
+		assert(g_astc_hdr_core_initialized);
+		assert((best_blk.m_weight_ise_range >= 1) && (best_blk.m_weight_ise_range <= 8));
+		
+		if (best_blk.m_weight_ise_range == 5)
+		{
+			// Use 3-bit BC6H weights which are a perfect match for 3-bit ASTC weights, but encode 1-subset as 2 equal subsets
+			bc6h_enc_block_1subset_3bit_weights(&transcoded_bc6h_blk, h_e, best_blk.m_weights);
+		}
+		else
+		{
+			uint8_t bc6h_weights[16];
+
+			if (best_blk.m_weight_ise_range == 1)
+			{
+				// weight ISE 1: 3 levels
+				static const uint8_t s_astc1_to_bc6h_3[3] = { 0, 8, 15 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc1_to_bc6h_3[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 2)
+			{
+				// weight ISE 2: 4 levels
+				static const uint8_t s_astc2_to_bc6h_4[4] = { 0, 5, 10, 15 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc2_to_bc6h_4[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 3)
+			{
+				// weight ISE 3: 5 levels
+				static const uint8_t s_astc3_to_bc6h_4[5] = { 0, 4, 7, 11, 15 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc3_to_bc6h_4[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 4)
+			{
+				// weight ISE 4: 6 levels
+				static const uint8_t s_astc4_to_bc6h_4[6] = { 0, 15, 3, 12, 6, 9 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc4_to_bc6h_4[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 6)
+			{
+				// weight ISE 6: 10 levels
+				static const uint8_t s_astc6_to_bc6h_4[10] = { 0, 15, 2, 13, 3, 12, 5, 10, 6, 9 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc6_to_bc6h_4[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 7)
+			{
+				// weight ISE 7: 12 levels
+				static const uint8_t s_astc7_to_bc6h_4[12] = { 0, 15, 4, 11, 1, 14, 5, 10, 2, 13, 6, 9 };
+
+				for (uint32_t i = 0; i < 16; i++)
+					bc6h_weights[i] = s_astc7_to_bc6h_4[best_blk.m_weights[i]];
+			}
+			else if (best_blk.m_weight_ise_range == 8)
+			{
+				// 16 levels
+				memcpy(bc6h_weights, best_blk.m_weights, 16);
+			}
+			else
+			{
+				assert(0);
+				return false;
+			}
+
+			bc6h_enc_block_1subset_4bit_weights(&transcoded_bc6h_blk, h_e, bc6h_weights);
+		}
+
+		return true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+
+	bool transcode_bc6h_2subsets(uint32_t common_part_index, const astc_helpers::log_astc_block& best_blk, bc6h_block& transcoded_bc6h_blk)
+	{
+		assert(g_astc_hdr_core_initialized);
+		assert(best_blk.m_num_partitions == 2);
+		assert(common_part_index < basist::TOTAL_ASTC_BC6H_COMMON_PARTITIONS2);
+		
+		half_float bc6h_endpoints[2][3][2]; // [subset][comp][lh_index]
+
+		// UASTC HDR checks
+		// Both CEM's must be equal in 2-subset UASTC HDR.
+		if (best_blk.m_color_endpoint_modes[0] != best_blk.m_color_endpoint_modes[1])
+			return false;
+		if ((best_blk.m_color_endpoint_modes[0] != 7) && (best_blk.m_color_endpoint_modes[0] != 11))
+			return false;
+				
+		if (best_blk.m_color_endpoint_modes[0] == 7)
+		{
+			if (!(((best_blk.m_weight_ise_range == 1) && (best_blk.m_endpoint_ise_range == 20)) ||
+		 		  ((best_blk.m_weight_ise_range == 2) && (best_blk.m_endpoint_ise_range == 20)) ||
+				  ((best_blk.m_weight_ise_range == 3) && (best_blk.m_endpoint_ise_range == 19)) ||
+				  ((best_blk.m_weight_ise_range == 4) && (best_blk.m_endpoint_ise_range == 17)) ||
+				  ((best_blk.m_weight_ise_range == 5) && (best_blk.m_endpoint_ise_range == 15))))
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if (!(((best_blk.m_weight_ise_range == 1) && (best_blk.m_endpoint_ise_range == 14)) ||
+				  ((best_blk.m_weight_ise_range == 2) && (best_blk.m_endpoint_ise_range == 12))))
+			{
+				return false;
+			}
+		}
+
+		for (uint32_t s = 0; s < 2; s++)
+		{
+			int e[2][3];
+			if (best_blk.m_color_endpoint_modes[0] == 7)
+			{
+				bool success = decode_mode7_to_qlog12(best_blk.m_endpoints + s * NUM_MODE7_ENDPOINTS, e, nullptr, best_blk.m_endpoint_ise_range);
+				if (!success)
+					return false;
+			}
+			else
+			{
+				bool success = decode_mode11_to_qlog12(best_blk.m_endpoints + s * NUM_MODE11_ENDPOINTS, e, best_blk.m_endpoint_ise_range);
+				if (!success)
+					return false;
+			}
+
+			for (uint32_t c = 0; c < 3; c++)
+			{
+				bc6h_endpoints[s][c][0] = qlog_to_half_slow(e[0][c], 12);
+				if (is_half_inf_or_nan(bc6h_endpoints[s][c][0]))
+					return false;
+
+				bc6h_endpoints[s][c][1] = qlog_to_half_slow(e[1][c], 12);
+				if (is_half_inf_or_nan(bc6h_endpoints[s][c][1]))
+					return false;
+			}
+		}
+
+		uint8_t bc6h_weights[16];
+		if (best_blk.m_weight_ise_range == 1)
+		{
+			static const uint8_t s_astc1_to_bc6h_3[3] = { 0, 4, 7 };
+
+			for (uint32_t i = 0; i < 16; i++)
+				bc6h_weights[i] = s_astc1_to_bc6h_3[best_blk.m_weights[i]];
+		}
+		else if (best_blk.m_weight_ise_range == 2)
+		{
+			static const uint8_t s_astc2_to_bc6h_3[4] = { 0, 2, 5, 7 };
+
+			for (uint32_t i = 0; i < 16; i++)
+				bc6h_weights[i] = s_astc2_to_bc6h_3[best_blk.m_weights[i]];
+		}
+		else if (best_blk.m_weight_ise_range == 3)
+		{
+			static const uint8_t s_astc3_to_bc6h_3[5] = { 0, 2, 4, 5, 7 };
+
+			for (uint32_t i = 0; i < 16; i++)
+				bc6h_weights[i] = s_astc3_to_bc6h_3[best_blk.m_weights[i]];
+		}
+		else if (best_blk.m_weight_ise_range == 4)
+		{
+			static const uint8_t s_astc4_to_bc6h_3[6] = { 0, 7, 1, 6, 3, 4 };
+
+			for (uint32_t i = 0; i < 16; i++)
+				bc6h_weights[i] = s_astc4_to_bc6h_3[best_blk.m_weights[i]];
+		}
+		else if (best_blk.m_weight_ise_range == 5)
+		{
+			memcpy(bc6h_weights, best_blk.m_weights, 16);
+		}
+		else
+		{
+			assert(0);
+			return false;
+		}
+
+		bc6h_enc_block_2subset_3bit_weights(&transcoded_bc6h_blk, common_part_index, bc6h_endpoints, bc6h_weights);
+
+		return true;
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+	// Transcodes an UASTC HDR block to BC6H. Must have been encoded to UASTC HDR, or this fails.
+	bool astc_hdr_transcode_to_bc6h(const astc_blk& src_blk, bc6h_block& dst_blk)
+	{
+		assert(g_astc_hdr_core_initialized);
+		if (!g_astc_hdr_core_initialized)
+		{
+			assert(0);
+			return false;
+		}
+
+		astc_helpers::log_astc_block log_blk;
+
+		if (!astc_helpers::unpack_block(&src_blk, log_blk, 4, 4))
+		{
+			// Failed unpacking ASTC data
+			return false;
+		}
+
+		return astc_hdr_transcode_to_bc6h(log_blk, dst_blk);
+	}
+
+	//--------------------------------------------------------------------------------------------------------------------------
+	// Transcodes an UASTC HDR block to BC6H. Must have been encoded to UASTC HDR, or this fails.
+	bool astc_hdr_transcode_to_bc6h(const astc_helpers::log_astc_block& log_blk, bc6h_block& dst_blk)
+	{
+		assert(g_astc_hdr_core_initialized);
+		if (!g_astc_hdr_core_initialized)
+		{
+			assert(0);
+			return false;
+		}
+				
+		if (log_blk.m_solid_color_flag_ldr)
+		{
+			// Don't support LDR solid colors.
+			return false;
+		}
+
+		if (log_blk.m_solid_color_flag_hdr)
+		{
+			// Solid color HDR block
+			return bc6h_enc_block_solid_color(&dst_blk, log_blk.m_solid_color);
+		}
+
+		// Only support 4x4 grid sizes
+		if ((log_blk.m_grid_width != 4) || (log_blk.m_grid_height != 4))
+			return false;
+				
+		// Don't support dual plane encoding
+		if (log_blk.m_dual_plane)
+			return false;
+
+		if (log_blk.m_num_partitions == 1)
+		{
+			// Handle 1 partition (or subset)
+			
+			// UASTC HDR checks
+			if ((log_blk.m_weight_ise_range < 1) || (log_blk.m_weight_ise_range > 8))
+				return false;
+									
+			int e[2][3];
+			bool success;
+
+			if (log_blk.m_color_endpoint_modes[0] == 7)
+			{
+				if (log_blk.m_endpoint_ise_range != 20)
+					return false;
+
+				success = decode_mode7_to_qlog12(log_blk.m_endpoints, e, nullptr, log_blk.m_endpoint_ise_range);
+			}
+			else if (log_blk.m_color_endpoint_modes[0] == 11)
+			{
+				// UASTC HDR checks
+				if (log_blk.m_weight_ise_range <= 7)
+				{
+					if (log_blk.m_endpoint_ise_range != 20)
+						return false;
+				}
+				else if (log_blk.m_endpoint_ise_range != 19)
+				{
+					return false;
+				}
+
+				success = decode_mode11_to_qlog12(log_blk.m_endpoints, e, log_blk.m_endpoint_ise_range);
+			}
+			else
+			{
+				return false;
+			}
+
+			if (!success)
+				return false;
+
+			// Transform endpoints to half float
+			half_float h_e[3][2] =
+			{
+				{ qlog_to_half_slow(e[0][0], 12), qlog_to_half_slow(e[1][0], 12) },
+				{ qlog_to_half_slow(e[0][1], 12), qlog_to_half_slow(e[1][1], 12) },
+				{ qlog_to_half_slow(e[0][2], 12), qlog_to_half_slow(e[1][2], 12) }
+			};
+
+			// Sanity check for NaN/Inf
+			for (uint32_t i = 0; i < 2; i++)
+				if (is_half_inf_or_nan(h_e[0][i]) || is_half_inf_or_nan(h_e[1][i]) || is_half_inf_or_nan(h_e[2][i]))
+					return false;
+			
+			// Transcode to bc6h
+			if (!transcode_bc6h_1subset(h_e, log_blk, dst_blk))
+				return false;
+		}
+		else if (log_blk.m_num_partitions == 2)
+		{
+			// Handle 2 partition (or subset)
+			int common_bc7_pat_index = g_astc_partition_id_to_common_bc7_pat_index[log_blk.m_partition_id];
+			if (common_bc7_pat_index < 0)
+				return false;
+
+			assert(common_bc7_pat_index < (int)basist::TOTAL_ASTC_BC6H_COMMON_PARTITIONS2);
+						
+			if (!transcode_bc6h_2subsets(common_bc7_pat_index, log_blk, dst_blk))
+				return false;
+		}
+		else
+		{
+			// Only supports 1 or 2 partitions (or subsets)
+			return false;
+		}
+
+		return true;
+	}
+#endif // BASISD_SUPPORT_UASTC_HDR
 
 } // namespace basist

@@ -11,6 +11,12 @@
 		<link title="Particle systems (3D)">$DOCS_URL/tutorials/3d/particles/index.html</link>
 	</tutorials>
 	<methods>
+		<method name="capture_aabb" qualifiers="const">
+			<return type="AABB" />
+			<description>
+				Returns the axis-aligned bounding box that contains all the particles that are active in the current frame.
+			</description>
+		</method>
 		<method name="convert_from_particles">
 			<return type="void" />
 			<param index="0" name="particles" type="Node" />

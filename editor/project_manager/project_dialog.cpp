@@ -552,6 +552,21 @@ void ProjectDialog::ok_pressed() {
 		fa_icon->store_string(get_default_project_icon());
 
 		EditorVCSInterface::create_vcs_metadata_files(EditorVCSInterface::VCSMetadata(vcs_metadata_selection->get_selected()), path);
+
+		// Ensures external editors and IDEs use UTF-8 encoding.
+		const String editor_config_path = path.path_join(".editorconfig");
+		Ref<FileAccess> f = FileAccess::open(editor_config_path, FileAccess::WRITE);
+		if (f.is_null()) {
+			// .editorconfig isn't so critical.
+			ERR_PRINT("Couldn't create .editorconfig in project path.");
+		} else {
+			f->store_line("root = true");
+			f->store_line("");
+			f->store_line("[*]");
+			f->store_line("charset = utf-8");
+			f->close();
+			FileAccess::set_hidden_attribute(editor_config_path, true);
+		}
 	}
 
 	// Two cases for importing a ZIP.

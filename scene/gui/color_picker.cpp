@@ -245,21 +245,7 @@ void ColorPicker::finish_shaders() {
 }
 
 void ColorPicker::set_focus_on_line_edit() {
-	bool has_hardware_keyboard = true;
-#if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
-	has_hardware_keyboard = DisplayServer::get_singleton()->has_hardware_keyboard();
-#endif // ANDROID_ENABLED || IOS_ENABLED
-	if (has_hardware_keyboard) {
-		callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
-	} else {
-		// A hack to avoid showing the virtual keyboard when the ColorPicker window popups and
-		// no hardware keyboard is detected on Android and IOS.
-		// This will only focus the LineEdit without editing, the virtual keyboard will only be visible when
-		// we touch the LineEdit to enter edit mode.
-		callable_mp(c_text, &LineEdit::set_editable).call_deferred(false);
-		callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
-		callable_mp(c_text, &LineEdit::set_editable).call_deferred(true);
-	}
+	callable_mp((Control *)c_text, &Control::grab_focus).call_deferred();
 }
 
 void ColorPicker::_update_controls() {
@@ -2103,7 +2089,9 @@ void ColorPickerButton::pressed() {
 	float v_offset = show_above ? -minsize.y : get_size().y;
 	popup->set_position(get_screen_position() + Vector2(h_offset, v_offset));
 	popup->popup();
-	picker->set_focus_on_line_edit();
+	if (DisplayServer::get_singleton()->has_hardware_keyboard()) {
+		picker->set_focus_on_line_edit();
+	}
 }
 
 void ColorPickerButton::_notification(int p_what) {

@@ -945,6 +945,8 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 
 			p_theme->set_color("custom_button_font_highlight", "Tree", p_config.font_hover_color);
 			p_theme->set_color(SceneStringName(font_color), "Tree", p_config.font_color);
+			p_theme->set_color("font_hovered_color", "Tree", p_config.mono_color);
+			p_theme->set_color("font_hovered_dimmed_color", "Tree", p_config.font_color);
 			p_theme->set_color("font_selected_color", "Tree", p_config.mono_color);
 			p_theme->set_color("font_disabled_color", "Tree", p_config.font_disabled_color);
 			p_theme->set_color("font_outline_color", "Tree", p_config.font_outline_color);
@@ -997,7 +999,13 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			Ref<StyleBoxFlat> style_tree_hover = p_config.base_style->duplicate();
 			style_tree_hover->set_bg_color(p_config.highlight_color * Color(1, 1, 1, 0.4));
 			style_tree_hover->set_border_width_all(0);
-			p_theme->set_stylebox("hover", "Tree", style_tree_hover);
+			p_theme->set_stylebox("hovered", "Tree", style_tree_hover);
+			p_theme->set_stylebox("button_hover", "Tree", style_tree_hover);
+
+			Ref<StyleBoxFlat> style_tree_hover_dimmed = p_config.base_style->duplicate();
+			style_tree_hover_dimmed->set_bg_color(p_config.highlight_color * Color(1, 1, 1, 0.2));
+			style_tree_hover_dimmed->set_border_width_all(0);
+			p_theme->set_stylebox("hovered_dimmed", "Tree", style_tree_hover_dimmed);
 
 			p_theme->set_stylebox("selected_focus", "Tree", style_tree_focus);
 			p_theme->set_stylebox("selected", "Tree", style_tree_selected);

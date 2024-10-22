@@ -1602,19 +1602,16 @@ Ref<CameraAttributes> LightmapGI::get_camera_attributes() const {
 PackedStringArray LightmapGI::get_configuration_warnings() const {
 	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
 
-#ifndef MODULE_LIGHTMAPPER_RD_ENABLED
-#if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
-	warnings.push_back(vformat(RTR("Lightmaps cannot be baked on %s. Rendering existing baked lightmaps will still work."), OS::get_singleton()->get_name()));
-#else
-	warnings.push_back(RTR("Lightmaps cannot be baked, as the `lightmapper_rd` module was disabled at compile-time. Rendering existing baked lightmaps will still work."));
-#endif
-	return warnings;
-#endif
-
+#ifdef MODULE_LIGHTMAPPER_RD_ENABLED
 	if (!DisplayServer::get_singleton()->can_create_rendering_device()) {
 		warnings.push_back(vformat(RTR("Lightmaps can only be baked from a GPU that supports the RenderingDevice backends.\nYour GPU (%s) does not support RenderingDevice, as it does not support Vulkan, Direct3D 12, or Metal.\nLightmap baking will not be available on this device, although rendering existing baked lightmaps will work."), RenderingServer::get_singleton()->get_video_adapter_name()));
 		return warnings;
 	}
+#elif defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
+	warnings.push_back(vformat(RTR("Lightmaps cannot be baked on %s. Rendering existing baked lightmaps will still work."), OS::get_singleton()->get_name()));
+#else
+	warnings.push_back(RTR("Lightmaps cannot be baked, as the `lightmapper_rd` module was disabled at compile-time. Rendering existing baked lightmaps will still work."));
+#endif
 
 	return warnings;
 }

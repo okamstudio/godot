@@ -1806,6 +1806,14 @@ TEST_CASE("[Variant] Writer and parser dictionary") {
 	CHECK_MESSAGE(d_parsed == Variant(d), "Should parse back.");
 }
 
+TEST_CASE("[Variant] Writer key sorting") {
+	Dictionary d = build_dictionary(StringName("C"), 3, "A", 1, StringName("B"), 2, "D", 4);
+	String d_str;
+	VariantWriter::write_to_string(d, d_str);
+
+	CHECK_EQ(d_str, "{\n\"A\": 1,\n&\"B\": 2,\n&\"C\": 3,\n\"D\": 4\n}");
+}
+
 TEST_CASE("[Variant] Writer recursive dictionary") {
 	// There is no way to accurately represent a recursive dictionary,
 	// the only thing we can do is make sure the writer doesn't blow up

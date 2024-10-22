@@ -245,6 +245,7 @@ private:
 	bool auto_orthogonal;
 	bool lock_rotation;
 	bool transform_gizmo_visible = true;
+	bool collision_reposition = false;
 	real_t gizmo_scale;
 
 	bool freelook_active;
@@ -338,7 +339,6 @@ private:
 		TRANSFORM_ROTATE,
 		TRANSFORM_TRANSLATE,
 		TRANSFORM_SCALE
-
 	};
 	enum TransformPlane {
 		TRANSFORM_VIEW,
@@ -471,7 +471,7 @@ private:
 	void _list_select(Ref<InputEventMouseButton> b);
 	Point2 _get_warped_mouse_motion(const Ref<InputEventMouseMotion> &p_ev_mouse_motion) const;
 
-	Vector3 _get_instance_position(const Point2 &p_pos) const;
+	Vector3 _get_instance_position(const Point2 &p_pos, Node3D *p_node) const;
 	static AABB _calculate_spatial_bounds(const Node3D *p_parent, bool p_omit_top_level = false, const Transform3D *p_bounds_orientation = nullptr);
 
 	Node *_sanitize_preview_node(Node *p_node) const;

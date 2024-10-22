@@ -186,25 +186,9 @@ bool MultiNodeEdit::_property_can_revert(const StringName &p_name) const {
 	}
 
 	if (ClassDB::has_property(get_edited_class_name(), p_name)) {
-		StringName class_name;
 		for (const NodePath &E : nodes) {
 			Node *node = es->get_node_or_null(E);
-			if (!node) {
-				continue;
-			}
-
-			class_name = node->get_class_name();
-		}
-
-		Variant default_value = ClassDB::class_get_default_property_value(class_name, p_name);
-		for (const NodePath &E : nodes) {
-			Node *node = es->get_node_or_null(E);
-			if (!node) {
-				continue;
-			}
-
-			if (node->get(p_name) != default_value) {
-				// A node that doesn't have the default value has been found, so show the revert button.
+			if (node) {
 				return true;
 			}
 		}

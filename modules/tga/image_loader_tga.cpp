@@ -32,6 +32,7 @@
 
 #include "core/error/error_macros.h"
 #include "core/io/file_access_memory.h"
+#include "core/io/image.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
 

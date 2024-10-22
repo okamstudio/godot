@@ -1,5 +1,5 @@
 // basisu_comp.h
-// Copyright (C) 2019-2021 Binomial LLC. All Rights Reserved.
+// Copyright (C) 2019-2024 Binomial LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
 #include "basisu_basis_file.h"
 #include "../transcoder/basisu_transcoder.h"
 #include "basisu_uastc_enc.h"
+#include "basisu_astc_hdr_enc.h"
 
-#define BASISU_LIB_VERSION 116
-#define BASISU_LIB_VERSION_STRING "1.16"
+#define BASISU_LIB_VERSION 150
+#define BASISU_LIB_VERSION_STRING "1.50"
 
 #ifndef BASISD_SUPPORT_KTX2
 	#error BASISD_SUPPORT_KTX2 is undefined
@@ -81,6 +82,8 @@ namespace basisu
 			m_basis_luma_601_psnr = 0.0f;
 			m_basis_luma_709_ssim = 0.0f;
 
+			m_basis_rgb_avg_bc6h_psnr = 0.0f;
+
 			m_bc7_rgb_avg_psnr = 0.0f;
 			m_bc7_rgba_avg_psnr = 0.0f;
 			m_bc7_a_avg_psnr = 0.0f;
@@ -100,7 +103,7 @@ namespace basisu
 		uint32_t m_width;
 		uint32_t m_height;
 
-		// .basis compressed (ETC1S or UASTC statistics)
+		// .basis/.ktx2 compressed (LDR: ETC1S or UASTC statistics, HDR: transcoded BC6H statistics)
 		float m_basis_rgb_avg_psnr;
 		float m_basis_rgba_avg_psnr;
 		float m_basis_a_avg_psnr;
@@ -108,7 +111,10 @@ namespace basisu
 		float m_basis_luma_601_psnr;
 		float m_basis_luma_709_ssim;
 
-		// BC7 statistics
+		// UASTC HDR only.
+		float m_basis_rgb_avg_bc6h_psnr;
+
+		// LDR: BC7 statistics
 		float m_bc7_rgb_avg_psnr;
 		float m_bc7_rgba_avg_psnr;
 		float m_bc7_a_avg_psnr;
@@ -116,7 +122,7 @@ namespace basisu
 		float m_bc7_luma_601_psnr;
 		float m_bc7_luma_709_ssim;
 		
-		// Highest achievable quality ETC1S statistics
+		// LDR: Highest achievable quality ETC1S statistics
 		float m_best_etc1s_rgb_avg_psnr;
 		float m_best_etc1s_luma_709_psnr;
 		float m_best_etc1s_luma_601_psnr;
@@ -256,7 +262,7 @@ namespace basisu
 			m_no_selector_rdo.clear();
 			m_selector_rdo_thresh.clear();
 			m_read_source_images.clear();
-			m_write_output_basis_files.clear();
+			m_write_output_basis_or_ktx2_files.clear();
 			m_compression_level.clear();
 			m_compute_stats.clear();
 			m_print_stats.clear();
@@ -317,27 +323,38 @@ namespace basisu
 
 			m_validate_output_data.clear();
 
+			m_hdr_ldr_srgb_to_linear_conversion.clear();
+
+			m_hdr_favor_astc.clear();
+			
 			m_pJob_pool = nullptr;
 		}
 						
-		// True to generate UASTC .basis file data, otherwise ETC1S.
+		// True to generate UASTC .basis/.KTX2 file data, otherwise ETC1S.
 		bool_param<false> m_uastc;
+
+		// Set m_hdr to true to switch to UASTC HDR mode.
+		bool_param<false> m_hdr;
 
 		bool_param<false> m_use_opencl;
 
-		// If m_read_source_images is true, m_source_filenames (and optionally m_source_alpha_filenames) contains the filenames of PNG images to read. 
-		// Otherwise, the compressor processes the images in m_source_images.
+		// If m_read_source_images is true, m_source_filenames (and optionally m_source_alpha_filenames) contains the filenames of PNG etc. images to read. 
+		// Otherwise, the compressor processes the images in m_source_images or m_source_images_hdr.
 		basisu::vector<std::string> m_source_filenames;
 		basisu::vector<std::string> m_source_alpha_filenames;
 		
 		basisu::vector<image> m_source_images;
 		
+		basisu::vector<imagef> m_source_images_hdr;
+				
 		// Stores mipmaps starting from level 1. Level 0 is still stored in m_source_images, as usual.
 		// If m_source_mipmaps isn't empty, automatic mipmap generation isn't done. m_source_mipmaps.size() MUST equal m_source_images.size() or the compressor returns an error.
 		// The compressor applies the user-provided swizzling (in m_swizzle) to these images.
 		basisu::vector< basisu::vector<image> > m_source_mipmap_images;
+
+		basisu::vector< basisu::vector<imagef> > m_source_mipmap_images_hdr;
 						
-		// Filename of the output basis file
+		// Filename of the output basis/ktx2 file
 		std::string m_out_filename;
 
 		// The params are done this way so we can detect when the user has explictly changed them.
@@ -373,8 +390,8 @@ namespace basisu
 		// Read source images from m_source_filenames/m_source_alpha_filenames
 		bool_param<false> m_read_source_images;
 
-		// Write the output basis file to disk using m_out_filename
-		bool_param<false> m_write_output_basis_files;
+		// Write the output basis/ktx2 file to disk using m_out_filename
+		bool_param<false> m_write_output_basis_or_ktx2_files;
 								
 		// Compute and display image metrics 
 		bool_param<false> m_compute_stats;
@@ -382,15 +399,15 @@ namespace basisu
 		// Print stats to stdout, if m_compute_stats is true.
 		bool_param<true> m_print_stats;
 		
-		// Check to see if any input image has an alpha channel, if so then the output basis file will have alpha channels
+		// Check to see if any input image has an alpha channel, if so then the output basis/ktx2 file will have alpha channels
 		bool_param<true> m_check_for_alpha;
 		
-		// Always put alpha slices in the output basis file, even when the input doesn't have alpha
+		// Always put alpha slices in the output basis/ktx2 file, even when the input doesn't have alpha
 		bool_param<false> m_force_alpha; 
 		bool_param<true> m_multithreading;
 		
-		// Split the R channel to RGB and the G channel to alpha, then write a basis file with alpha channels
-		char m_swizzle[4];
+		// Split the R channel to RGB and the G channel to alpha, then write a basis/ktx2 file with alpha channels
+		uint8_t m_swizzle[4];
 
 		bool_param<false> m_renormalize;
 
@@ -448,8 +465,17 @@ namespace basisu
 		param<int> m_ktx2_zstd_supercompression_level;
 		bool_param<false> m_ktx2_srgb_transfer_func;
 
+		astc_hdr_codec_options m_uastc_hdr_options;
+
 		bool_param<false> m_validate_output_data;
 
+		// If true, LDR images (such as PNG) will be converted to normalized [0,1] linear light (via a sRGB->Linear conversion) and then processed as HDR. 
+		// Otherwise, LDR images will be processed as HDR as-is.
+		bool_param<true> m_hdr_ldr_srgb_to_linear_conversion;
+
+		// If true, ASTC HDR quality is favored more than BC6H quality. Otherwise it's a rough balance.
+		bool_param<false> m_hdr_favor_astc;
+						
 		job_pool *m_pJob_pool;
 	};
 
@@ -504,6 +530,7 @@ namespace basisu
 		opencl_context_ptr m_pOpenCL_context;
 		
 		basisu::vector<image> m_slice_images;
+		basisu::vector<imagef> m_slice_images_hdr;
 
 		basisu::vector<image_stats> m_stats;
 
@@ -515,7 +542,9 @@ namespace basisu
 		uint32_t m_total_blocks;
 		
 		basisu_frontend m_frontend;
+
 		pixel_block_vec m_source_blocks;
+		pixel_block_hdr_vec m_source_blocks_hdr;
 
 		basisu::vector<gpu_image> m_frontend_output_textures;
 
@@ -526,10 +555,16 @@ namespace basisu
 
 		basisu_file m_basis_file;
 
-		basisu::vector<gpu_image> m_decoded_output_textures;
+		basisu::vector<gpu_image> m_decoded_output_textures;			// BC6H in HDR mode
 		basisu::vector<image> m_decoded_output_textures_unpacked;
+		
 		basisu::vector<gpu_image> m_decoded_output_textures_bc7;
 		basisu::vector<image> m_decoded_output_textures_unpacked_bc7;
+
+		basisu::vector<imagef> m_decoded_output_textures_bc6h_hdr_unpacked;	// BC6H in HDR mode
+
+		basisu::vector<gpu_image> m_decoded_output_textures_astc_hdr;
+		basisu::vector<imagef> m_decoded_output_textures_astc_hdr_unpacked;
 
 		uint8_vec m_output_basis_file;
 		uint8_vec m_output_ktx2_file;
@@ -541,14 +576,21 @@ namespace basisu
 
 		bool m_opencl_failed;
 
+		void check_for_hdr_inputs();
+		bool sanity_check_input_params();
+		void clean_hdr_image(imagef& src_img);
+		bool read_dds_source_images();
 		bool read_source_images();
 		bool extract_source_blocks();
 		bool process_frontend();
 		bool extract_frontend_texture_data();
 		bool process_backend();
 		bool create_basis_file_and_transcode();
+		bool write_hdr_debug_images(const char* pBasename, const imagef& img, uint32_t width, uint32_t height);
 		bool write_output_files_and_compute_stats();
+		error_code encode_slices_to_uastc_hdr();
 		error_code encode_slices_to_uastc();
+		bool generate_mipmaps(const imagef& img, basisu::vector<imagef>& mips, bool has_alpha);
 		bool generate_mipmaps(const image &img, basisu::vector<image> &mips, bool has_alpha);
 		bool validate_texture_type_constraints();
 		bool validate_ktx2_constraints();
@@ -568,7 +610,8 @@ namespace basisu
 	//   
 	// flags_and_quality: Combination of the above flags logically OR'd with the ETC1S or UASTC level, i.e. "cFlagSRGB | cFlagGenMipsClamp | cFlagThreaded | 128" or "cFlagSRGB | cFlagGenMipsClamp | cFlagUASTC | cFlagThreaded | cPackUASTCLevelDefault".
 	//	  In ETC1S mode, the lower 8-bits are the ETC1S quality level which ranges from [1,255] (higher=better quality/larger files)
-	//	  In UASTC mode, the lower 8-bits are the UASTC pack level (see cPackUASTCLevelFastest, etc.). Fastest/lowest quality is 0, so be sure to set it correctly. 
+	//	  In UASTC mode, the lower 8-bits are the UASTC LDR/HDR pack level (see cPackUASTCLevelFastest, etc.). Fastest/lowest quality is 0, so be sure to set it correctly. Valid values are [0,4] for both LDR/HDR.
+	//	  In UASTC mode, be sure to set this, otherwise it defaults to 0 (fastest/lowest quality).
 	// 
 	// uastc_rdo_quality: Float UASTC RDO quality level (0=no change, higher values lower quality but increase compressibility, initially try .5-1.5)
 	// 
@@ -594,20 +637,36 @@ namespace basisu
 		cFlagUASTCRDO = 1 << 18,		// use RDO postprocessing when generating UASTC files (must set uastc_rdo_quality to the quality scalar)
 		
 		cFlagPrintStats = 1 << 19,	// print image stats to stdout
-		cFlagPrintStatus = 1 << 20	// print status to stdout
+		cFlagPrintStatus = 1 << 20,	// print status to stdout
+		
+		cFlagHDR = 1 << 21,			// Force encoder into HDR mode, even if source image is LDR.
+		cFlagHDRLDRImageSRGBToLinearConversion = 1 << 22, // In HDR mode, convert LDR source images to linear before encoding.
+		
+		cFlagDebugImages = 1 << 23	// enable status output
 	};
 
 	// This function accepts an array of source images. 
 	// If more than one image is provided, it's assumed the images form a mipmap pyramid and automatic mipmap generation is disabled.
-	// Returns a pointer to the compressed .basis or .ktx2 file data. *pSize is the size of the compressed data. The returned block must be freed using basis_free_data().
+	// Returns a pointer to the compressed .basis or .ktx2 file data. *pSize is the size of the compressed data. 
+	// Important: The returned block MUST be manually freed using basis_free_data().
 	// basisu_encoder_init() MUST be called first!
+	// LDR version. To compress the LDR source image as HDR: Use the cFlagHDR flag.
 	void* basis_compress(
 		const basisu::vector<image> &source_images,
 		uint32_t flags_and_quality, float uastc_rdo_quality,
 		size_t* pSize,
 		image_stats* pStats = nullptr);
 
-	// This function only accepts a single source image.
+	// HDR-only version.
+	// Important: The returned block MUST be manually freed using basis_free_data().
+	void* basis_compress(
+		const basisu::vector<imagef>& source_images_hdr,
+		uint32_t flags_and_quality, 
+		size_t* pSize,
+		image_stats* pStats = nullptr);
+
+	// This function only accepts a single LDR source image. It's just a wrapper for basis_compress() above.
+	// Important: The returned block MUST be manually freed using basis_free_data().
 	void* basis_compress(
 		const uint8_t* pImageRGBA, uint32_t width, uint32_t height, uint32_t pitch_in_pixels,
 		uint32_t flags_and_quality, float uastc_rdo_quality,
@@ -615,6 +674,7 @@ namespace basisu
 		image_stats* pStats = nullptr);
 
 	// Frees the dynamically allocated file data returned by basis_compress().
+	// This MUST be called on the pointer returned by basis_compress() when you're done with it.
 	void basis_free_data(void* p);
 
 	// Runs a short benchmark using synthetic image data to time OpenCL encoding vs. CPU encoding, with multithreading enabled.

@@ -188,8 +188,9 @@ namespace basisu
 
 #define BASISU_IS_SCALAR_TYPE(T) (scalar_type<T>::cFlag)
 
-#if defined(__GNUC__) && __GNUC__<5
-   #define BASISU_IS_TRIVIALLY_COPYABLE(...) __has_trivial_copy(__VA_ARGS__)
+#if !defined(BASISU_HAVE_STD_TRIVIALLY_COPYABLE) && defined(__GNUC__) && __GNUC__<5
+   //#define BASISU_IS_TRIVIALLY_COPYABLE(...) __has_trivial_copy(__VA_ARGS__)
+    #define BASISU_IS_TRIVIALLY_COPYABLE(...) __is_trivially_copyable(__VA_ARGS__)
 #else
    #define BASISU_IS_TRIVIALLY_COPYABLE(...) std::is_trivially_copyable<__VA_ARGS__>::value
 #endif
@@ -286,8 +287,19 @@ namespace basisu
 
          if (BASISU_IS_BITWISE_COPYABLE(T))
          {
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"            
+#endif                  
+#endif
              if ((m_p) && (other.m_p))
                 memcpy(m_p, other.m_p, m_size * sizeof(T));
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif                
+#endif
          }
          else
          {
@@ -330,8 +342,19 @@ namespace basisu
 
          if (BASISU_IS_BITWISE_COPYABLE(T))
          {
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"            
+#endif         
+#endif
              if ((m_p) && (other.m_p))
                 memcpy(m_p, other.m_p, other.m_size * sizeof(T));
+#ifndef __EMSCRIPTEN__          
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif                            
+#endif
          }
          else
          {
@@ -501,7 +524,7 @@ namespace basisu
 
          if (new_capacity > m_capacity)
          {
-            if (!increase_capacity(new_capacity, false))
+            if (!increase_capacity(new_capacity, false, true))
                return false;
          }
          else if (new_capacity < m_capacity)
@@ -509,7 +532,8 @@ namespace basisu
             // Must work around the lack of a "decrease_capacity()" method.
             // This case is rare enough in practice that it's probably not worth implementing an optimized in-place resize.
             vector tmp;
-            tmp.increase_capacity(helpers::maximum(m_size, new_capacity), false);
+            if (!tmp.increase_capacity(helpers::maximum(m_size, new_capacity), false, true))
+                return false;
             tmp = *this;
             swap(tmp);
          }
@@ -750,7 +774,21 @@ namespace basisu
             }
 
             // Copy "down" the objects to preserve, filling in the empty slots.
+
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"            
+#endif
+#endif
+
             memmove(pDst, pSrc, num_to_move * sizeof(T));
+
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif            
+#endif
          }
          else
          {
@@ -1003,7 +1041,21 @@ namespace basisu
       inline void set_all(const T& o)
       {
          if ((sizeof(T) == 1) && (scalar_type<T>::cFlag))
+         {
+#ifndef __EMSCRIPTEN__
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wclass-memaccess"            
+#endif              
+#endif
             memset(m_p, *reinterpret_cast<const uint8_t*>(&o), m_size);
+
+#ifndef __EMSCRIPTEN__            
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif                        
+#endif
+         }
          else
          {
             T* pDst = m_p;
@@ -1029,7 +1081,7 @@ namespace basisu
       // Important: This method is used in Basis Universal. If you change how this container allocates memory, you'll need to change any users of this method.
       inline bool grant_ownership(T* p, uint32_t size, uint32_t capacity)
       {
-         // To to prevent the caller from obviously shooting themselves in the foot.
+         // To prevent the caller from obviously shooting themselves in the foot.
          if (((p + capacity) > m_p) && (p < (m_p + m_capacity)))
          {
             // Can grant ownership of a block inside the container itself!

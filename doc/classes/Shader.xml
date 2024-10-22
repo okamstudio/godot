@@ -35,6 +35,12 @@
 				If argument [param get_groups] is true, parameter grouping hints will be provided.
 			</description>
 		</method>
+		<method name="inspect_native_shader_code">
+			<return type="void" />
+			<description>
+				Only available when running in the editor. Opens a popup that visualizes the generated shader code, including all variants and internal shader code. See also [method Material.inspect_native_shader_code].
+			</description>
+		</method>
 		<method name="set_default_texture_parameter">
 			<return type="void" />
 			<param index="0" name="name" type="StringName" />

@@ -121,7 +121,7 @@ String JSON::_stringify(const Variant &p_var, const String &p_indent, int p_cur_
 			d.get_key_list(&keys);
 
 			if (p_sort_keys) {
-				keys.sort();
+				keys.sort_custom<StringLikeVariantOrder>();
 			}
 
 			bool first_key = true;

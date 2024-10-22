@@ -509,6 +509,12 @@
 		<theme_item name="font_disabled_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 0.5)">
 			Text [Color] for a [constant TreeItem.CELL_MODE_CHECK] mode cell when it's non-editable (see [method TreeItem.set_editable]).
 		</theme_item>
+		<theme_item name="font_hovered_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
+			Text [Color] used when the item is hovered.
+		</theme_item>
+		<theme_item name="font_hovered_dimmed_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
+			Text [Color] used when the item is hovered, while a button of the same item is hovered as the same time.
+		</theme_item>
 		<theme_item name="font_outline_color" data_type="color" type="Color" default="Color(0, 0, 0, 1)">
 			The tint of text outline of the item.
 		</theme_item>
@@ -645,6 +651,9 @@
 		<theme_item name="updown" data_type="icon" type="Texture2D">
 			The updown arrow icon to display for the [constant TreeItem.CELL_MODE_RANGE] mode cell.
 		</theme_item>
+		<theme_item name="button_hover" data_type="style" type="StyleBox">
+			[StyleBox] used when a button in the tree is hovered.
+		</theme_item>
 		<theme_item name="button_pressed" data_type="style" type="StyleBox">
 			[StyleBox] used when a button in the tree is pressed.
 		</theme_item>
@@ -665,6 +674,12 @@
 		</theme_item>
 		<theme_item name="focus" data_type="style" type="StyleBox">
 			The focused style for the [Tree], drawn on top of everything.
+		</theme_item>
+		<theme_item name="hovered" data_type="style" type="StyleBox">
+			[StyleBox] for the item being hovered.
+		</theme_item>
+		<theme_item name="hovered_dimmed" data_type="style" type="StyleBox">
+			[StyleBox] for the item being hovered, while a button of the same item is hovered as the same time.
 		</theme_item>
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			The background style for the [Tree].

@@ -121,7 +121,7 @@ String EventListenerLineEdit::get_event_text(const Ref<InputEvent> &p_event, boo
 }
 
 String EventListenerLineEdit::get_device_string(int p_device) {
-	if (p_device == InputMap::ALL_DEVICES) {
+	if (p_device == InputEvent::DEVICE_ID_ALL_DEVICES) {
 		return TTR("All Devices");
 	}
 	return TTR("Device") + " " + itos(p_device);

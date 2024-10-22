@@ -791,7 +791,7 @@ namespace Godot.SourceGenerators
                     }
                 }
 
-                hint = PropertyHint.DictionaryType;
+                hint = PropertyHint.TypeString;
 
                 hintString = keyHintString != null && valueHintString != null ? $"{keyHintString};{valueHintString}" : null;
                 return hintString != null;

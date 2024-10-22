@@ -174,7 +174,7 @@ namespace Godot.Collections
             var keys = Array.CreateTakingOwnershipOfDisposableValue(keysArray);
 
             godot_array valuesArray;
-            NativeFuncs.godotsharp_dictionary_keys(ref self, out valuesArray);
+            NativeFuncs.godotsharp_dictionary_values(ref self, out valuesArray);
             var values = Array.CreateTakingOwnershipOfDisposableValue(valuesArray);
 
             int count = NativeFuncs.godotsharp_dictionary_count(ref self);

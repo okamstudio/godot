@@ -31,6 +31,7 @@
 #include "renderer_scene_render_rd.h"
 
 #include "core/config/project_settings.h"
+#include "core/io/image.h"
 #include "core/os/os.h"
 #include "renderer_compositor_rd.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"

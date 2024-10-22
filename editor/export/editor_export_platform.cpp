@@ -326,11 +326,7 @@ Error EditorExportPlatform::_save_zip_patch_file(void *p_userdata, const String 
 Ref<ImageTexture> EditorExportPlatform::get_option_icon(int p_index) const {
 	Ref<Theme> theme = EditorNode::get_singleton()->get_editor_theme();
 	ERR_FAIL_COND_V(theme.is_null(), Ref<ImageTexture>());
-	if (EditorNode::get_singleton()->get_gui_base()->is_layout_rtl()) {
-		return theme->get_icon(SNAME("PlayBackwards"), EditorStringName(EditorIcons));
-	} else {
-		return theme->get_icon(SNAME("Play"), EditorStringName(EditorIcons));
-	}
+	return theme->get_icon(SNAME("Play"), EditorStringName(EditorIcons));
 }
 
 String EditorExportPlatform::find_export_template(const String &template_file_name, String *err) const {

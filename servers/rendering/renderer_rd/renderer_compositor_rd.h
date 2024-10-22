@@ -31,6 +31,7 @@
 #ifndef RENDERER_COMPOSITOR_RD_H
 #define RENDERER_COMPOSITOR_RD_H
 
+#include "core/io/image.h"
 #include "core/os/os.h"
 #include "servers/rendering/renderer_compositor.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
