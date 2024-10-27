@@ -230,6 +230,18 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 				if (sdata.is_valid()) {
 					node = sdata->instantiate(p_edit_state == GEN_EDIT_STATE_DISABLED ? PackedScene::GEN_EDIT_STATE_DISABLED : PackedScene::GEN_EDIT_STATE_INSTANCE);
 					ERR_FAIL_NULL_V_MSG(node, nullptr, vformat("Failed to load scene dependency: \"%s\". Make sure the required scene is valid.", sdata->get_path()));
+#ifdef TOOLS_ENABLED
+					if (p_edit_state == GEN_EDIT_STATE_MAIN || p_edit_state == GEN_EDIT_STATE_MAIN_INHERITED) {
+						for (const NodePath &e_path : sdata->get_state()->exposed_nodes) {
+							Node *ei = node->get_node_or_null(e_path);
+							if (ei) {
+								if (ei->has_meta(META_EXPOSED_IN_OWNER)) {
+									ei->set_meta(META_EXPOSED_IN_INSTANCE, true);
+								}
+							}
+						}
+					}
+#endif
 				} else if (ResourceLoader::is_creating_missing_resources_if_class_unavailable_enabled()) {
 					missing_node = memnew(MissingNode);
 #ifdef TOOLS_ENABLED
@@ -461,6 +473,14 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 								node->set_name(snames[n.name]);
 								parent->add_child(node, true);
 								pending_add = false;
+							} else if (n.owner == 0) {
+								// Check whether a node's parent is no longer exposed. This only matters within the Editor.
+								NODE_FROM_ID(nowner, n.owner);
+								if (nowner != parent && parent->get_owner() != ret_nodes[0] && !parent->has_meta(META_EXPOSED_IN_INSTANCE) && !parent->get_owner()->is_editable_instance(parent)) {
+									WARN_PRINT(vformat("Exposed parent path '%s' for node '%s' has vanished when instantiating: '%s'.", String(node_paths[n.parent & FLAG_MASK]), String(snames[n.name]), get_path()));
+									old_parent_path = String(node_paths[n.parent & FLAG_MASK]).trim_prefix("./").replace("/", "@");
+									parent = ret_nodes[0];
+								}
 							}
 						}
 #endif
@@ -623,6 +643,17 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 		}
 	}
 
+#ifdef TOOLS_ENABLED
+	for (const NodePath &e_path : exposed_nodes) {
+		Node *ei = ret_nodes[0]->get_node_or_null(e_path);
+		if (ei) {
+			ei->set_meta(META_EXPOSED_IN_OWNER, true);
+			if (p_edit_state == GEN_EDIT_STATE_MAIN || p_edit_state == GEN_EDIT_STATE_MAIN_INHERITED) {
+				ei->set_meta(META_MARKED_FOR_EXPOSURE, true);
+			}
+		}
+	}
+#endif
 	return ret_nodes[0];
 }
 
@@ -716,8 +747,22 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 	// given the complexity of this process, an attempt will be made to properly
 	// document it. if you fail to understand something, please ask!
 
-	//discard nodes that do not belong to be processed
-	if (p_node != p_owner && p_node->get_owner() != p_owner && !p_owner->is_editable_instance(p_node->get_owner())) {
+	//discard nodes that do not belong to be processed.
+	// - `owned_by_p_owner`: True if the node is directly or indirectly owned by `p_owner`.
+	// - `exposed_node`: True if the node is flagged as exposed via metadata `META_EXPOSED_IN_OWNER`.
+	bool owned_by_p_owner = p_node == p_owner || p_node->get_owner() == p_owner || p_owner->is_editable_instance(p_node->get_owner());
+	bool exposed_node = p_node->has_meta(META_EXPOSED_IN_OWNER);
+
+	if (!owned_by_p_owner && !exposed_node) {
+		if (p_node->has_exposed_nodes()) {
+			for (int i = 0; i < p_node->get_child_count(); i++) {
+				Node *c = p_node->get_child(i);
+				Error err = _parse_node(p_owner, c, NO_PARENT_SAVED, name_map, variant_map, node_map, nodepath_map);
+				if (err) {
+					return err;
+				}
+			}
+		}
 		return OK;
 	}
 
@@ -729,9 +774,14 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 		editable_instances.push_back(p_owner->get_path_to(p_node));
 		// Node is the root of an editable instance.
 		is_editable_instance = true;
-	} else if (p_node->get_owner() && p_owner->is_ancestor_of(p_node->get_owner()) && p_owner->is_editable_instance(p_node->get_owner())) {
+	} else if (p_node->get_owner() && p_owner->is_ancestor_of(p_node->get_owner()) && p_owner->is_editable_instance(p_node->get_owner()) && p_owner->has_meta(META_EXPOSED_IN_OWNER)) {
 		// Node is part of an editable instance.
 		is_editable_instance = true;
+	}
+
+	// Save the nodes that are chosen as exposed, so they can be restored on load
+	if (p_node->has_meta(META_MARKED_FOR_EXPOSURE) || (p_node->has_meta(META_EXPOSED_IN_OWNER) && p_node->get_owner() == p_owner)) {
+		exposed_nodes.push_back(p_owner->get_path_to(p_node));
 	}
 
 	NodeData nd;
@@ -916,6 +966,11 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 			}
 		}
 
+		// Skip exposure metadata.
+		if (name == META_PROPERTY_EXPOSED_IN_OWNER || name == META_PROPERTY_MARKED_FOR_EXPOSURE || name == META_PROPERTY_EXPOSED_IN_INSTANCE) {
+			continue;
+		}
+
 		NodeData::Property prop;
 		prop.name = _nm_get_string(name, name_map);
 		prop.value = _vm_get_variant(value, variant_map);
@@ -993,6 +1048,7 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 	bool save_node = nd.properties.size() || nd.groups.size(); // some local properties or groups exist
 	save_node = save_node || p_node == p_owner; // owner is always saved
 	save_node = save_node || (p_node->get_owner() == p_owner && instantiated_by_owner); //part of scene and not instanced
+	save_node = save_node || (p_owner->has_meta(META_MARKED_FOR_EXPOSURE) && nd.properties.size() > 0);
 
 	int idx = nodes.size();
 	int parent_node = NO_PARENT_SAVED;
@@ -1033,8 +1089,22 @@ Error SceneState::_parse_node(Node *p_owner, Node *p_node, int p_parent_idx, Has
 }
 
 Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<StringName, int> &name_map, HashMap<Variant, int, VariantHasher, VariantComparator> &variant_map, HashMap<Node *, int> &node_map, HashMap<Node *, int> &nodepath_map) {
-	// Ignore nodes that are within a scene instance.
-	if (p_node != p_owner && p_node->get_owner() && p_node->get_owner() != p_owner && !p_owner->is_editable_instance(p_node->get_owner())) {
+	// Ignore nodes that are within a scene instance or not exposed.
+	// - `owned_by_p_owner`: True if the node is directly or indirectly owned by `p_owner`.
+	// - `exposed_node`: True if the node is flagged as exposed via metadata `META_EXPOSED_IN_OWNER`.
+	bool owned_by_p_owner = p_node == p_owner || p_node->get_owner() == p_owner || p_owner->is_editable_instance(p_node->get_owner());
+	bool exposed_node = p_node->has_meta(META_EXPOSED_IN_OWNER);
+
+	if (!owned_by_p_owner && !exposed_node) {
+		if (p_node->has_exposed_nodes()) {
+			for (int i = 0; i < p_node->get_child_count(); i++) {
+				Node *c = p_node->get_child(i);
+				Error err = _parse_connections(p_owner, c, name_map, variant_map, node_map, nodepath_map);
+				if (err) {
+					return err;
+				}
+			}
+		}
 		return OK;
 	}
 
@@ -1311,6 +1381,7 @@ void SceneState::clear() {
 	node_path_cache.clear();
 	node_paths.clear();
 	editable_instances.clear();
+	exposed_nodes.clear();
 	base_scene_idx = -1;
 }
 
@@ -1339,6 +1410,9 @@ Error SceneState::copy_from(const Ref<SceneState> &p_scene_state) {
 	}
 	for (const NodePath &E : p_scene_state->editable_instances) {
 		editable_instances.append(E);
+	}
+	for (const NodePath &E : p_scene_state->exposed_nodes) {
+		exposed_nodes.append(E);
 	}
 	base_scene_idx = p_scene_state->base_scene_idx;
 
@@ -1594,6 +1668,10 @@ void SceneState::set_bundled_scene(const Dictionary &p_dictionary) {
 	if (p_dictionary.has("editable_instances")) {
 		ei = p_dictionary["editable_instances"];
 	}
+	Array en;
+	if (p_dictionary.has("exposed_nodes")) {
+		en = p_dictionary["exposed_nodes"];
+	}
 
 	if (p_dictionary.has("base_scene")) {
 		base_scene_idx = p_dictionary["base_scene"];
@@ -1602,6 +1680,10 @@ void SceneState::set_bundled_scene(const Dictionary &p_dictionary) {
 	editable_instances.resize(ei.size());
 	for (int i = 0; i < editable_instances.size(); i++) {
 		editable_instances.write[i] = ei[i];
+	}
+	exposed_nodes.resize(en.size());
+	for (int i = 0; i < exposed_nodes.size(); i++) {
+		exposed_nodes.write[i] = en[i];
 	}
 
 	//path=p_dictionary["path"];
@@ -1682,6 +1764,13 @@ Dictionary SceneState::get_bundled_scene() const {
 		reditable_instances[i] = editable_instances[i];
 	}
 	d["editable_instances"] = reditable_instances;
+
+	Array rexposed_nodes;
+	rexposed_nodes.resize(exposed_nodes.size());
+	for (int i = 0; i < exposed_nodes.size(); i++) {
+		rexposed_nodes[i] = exposed_nodes[i];
+	}
+	d["exposed_nodes"] = rexposed_nodes;
 	if (base_scene_idx >= 0) {
 		d["base_scene"] = base_scene_idx;
 	}
@@ -1950,6 +2039,10 @@ Vector<NodePath> SceneState::get_editable_instances() const {
 	return editable_instances;
 }
 
+Vector<NodePath> SceneState::get_exposed_nodes() const {
+	return exposed_nodes;
+}
+
 Ref<Resource> SceneState::get_sub_resource(const String &p_path) {
 	for (const Variant &v : variants) {
 		const Ref<Resource> &res = v;
@@ -2036,6 +2129,10 @@ void SceneState::add_connection(int p_from, int p_to, int p_signal, int p_method
 
 void SceneState::add_editable_instance(const NodePath &p_path) {
 	editable_instances.push_back(p_path);
+}
+
+void SceneState::add_exposed_node(const NodePath &p_path) {
+	exposed_nodes.push_back(p_path);
 }
 
 bool SceneState::remove_group_references(const StringName &p_name) {

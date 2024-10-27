@@ -208,6 +208,18 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 		} else {
 			_revoke_unique_name();
 		}
+	} else if (p_id == BUTTON_EXPOSED) {
+		bool ask_before_revoking_node_exposure = EDITOR_GET("docks/scene_tree/ask_before_revoking_node_exposure");
+		revoke_node = n;
+		if (ask_before_revoking_node_exposure) {
+			String msg = vformat(TTR("Unexpose node \"%s\"?"), n->get_name());
+			ask_before_revoke_node_exposure_checkbox->set_pressed(false);
+			revoke_node_exposure_dialog_label->set_text(msg);
+			revoke_node_exposure->reset_size();
+			revoke_node_exposure->popup_centered();
+		} else {
+			_toggle_node_exposure();
+		}
 	}
 }
 
@@ -226,6 +238,39 @@ void SceneTreeEditor::_revoke_unique_name() {
 	undo_redo->create_action(TTR("Disable Scene Unique Name"));
 	undo_redo->add_do_method(revoke_node, "set_unique_name_in_owner", false);
 	undo_redo->add_undo_method(revoke_node, "set_unique_name_in_owner", true);
+	undo_redo->add_do_method(this, "_update_tree");
+	undo_redo->add_undo_method(this, "_update_tree");
+	undo_redo->commit_action();
+}
+
+void SceneTreeEditor::_update_ask_before_revoking_node_exposure() {
+	if (ask_before_revoke_node_exposure_checkbox->is_pressed()) {
+		EditorSettings::get_singleton()->set("docks/scene_tree/ask_before_revoking_node_exposure", false);
+		ask_before_revoke_node_exposure_checkbox->set_pressed(false);
+	}
+	_toggle_node_exposure();
+}
+
+void SceneTreeEditor::_toggle_node_exposure() {
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	bool enabled = revoke_node->has_meta(META_MARKED_FOR_EXPOSURE);
+	undo_redo->create_action(enabled ? TTR("Unexpose Node In Scene") : TTR("Expose Node In Scene"));
+	if (revoke_node->get_owner() == get_tree()->get_edited_scene_root()) {
+		if (enabled) {
+			undo_redo->add_do_method(revoke_node, "remove_meta", META_EXPOSED_IN_OWNER);
+			undo_redo->add_undo_method(revoke_node, "set_meta", META_EXPOSED_IN_OWNER, true);
+		} else {
+			undo_redo->add_do_method(revoke_node, "set_meta", META_EXPOSED_IN_OWNER, true);
+			undo_redo->add_undo_method(revoke_node, "remove_meta", META_EXPOSED_IN_OWNER);
+		}
+	}
+	if (enabled) {
+		undo_redo->add_do_method(revoke_node, "remove_meta", META_MARKED_FOR_EXPOSURE);
+		undo_redo->add_undo_method(revoke_node, "set_meta", META_MARKED_FOR_EXPOSURE, true);
+	} else {
+		undo_redo->add_do_method(revoke_node, "set_meta", META_MARKED_FOR_EXPOSURE, true);
+		undo_redo->add_undo_method(revoke_node, "remove_meta", META_MARKED_FOR_EXPOSURE);
+	}
 	undo_redo->add_do_method(this, "_update_tree");
 	undo_redo->add_undo_method(this, "_update_tree");
 	undo_redo->commit_action();
@@ -274,8 +319,16 @@ void SceneTreeEditor::_update_node_subtree(Node *p_node, TreeItem *p_parent, boo
 	bool part_of_subscene = false;
 
 	if (!display_foreign && p_node->get_owner() != get_scene_node() && p_node != get_scene_node()) {
-		if ((show_enabled_subscene || can_open_instance) && p_node->get_owner() && (get_scene_node()->is_editable_instance(p_node->get_owner()))) {
+		if ((show_enabled_subscene || can_open_instance) && p_node->get_owner() && (get_scene_node()->is_editable_instance(p_node->get_owner()) || (p_node->has_meta(META_EXPOSED_IN_INSTANCE) && p_node->has_meta(META_EXPOSED_IN_OWNER)))) {
 			part_of_subscene = true;
+			//allow
+		} else if (p_node->has_exposed_nodes()) {
+			for (int i = 0; i < p_node->get_child_count(); i++) {
+				if (!get_scene_node()->is_editable_instance(p_node->get_child(i)->get_owner()) || p_node->get_child(i)->has_meta(META_EXPOSED_IN_INSTANCE)) {
+					_update_node_subtree(p_node->get_child(i), p_parent);
+				}
+			}
+			return;
 			// Allow.
 		} else {
 			// Stale node, remove recursively.
@@ -319,6 +372,10 @@ void SceneTreeEditor::_update_node_subtree(Node *p_node, TreeItem *p_parent, boo
 			}
 		} else {
 			index = p_node->get_index(false);
+			// Shift the exposed nodes based on how many siblings already exist to maintain exposed node order.
+			if (!p_node->get_owner()->is_editable_instance(p_node) && p_node->has_meta(META_EXPOSED_IN_OWNER)) {
+				index = p_parent->get_child_count() + index;
+			}
 			item = tree->create_item(p_parent, index);
 		}
 
@@ -496,6 +553,16 @@ void SceneTreeEditor::_update_node(Node *p_node, TreeItem *p_item, bool p_part_o
 			}
 
 			p_item->add_button(0, get_editor_theme_icon(warning_icon), BUTTON_WARNING, false, TTR("Node configuration warning:") + all_warnings);
+		}
+
+		if (p_node->has_meta(META_EXPOSED_IN_OWNER) && p_node->get_owner() == EditorNode::get_singleton()->get_edited_scene()) {
+			p_item->add_button(0, get_editor_theme_icon(SNAME("SceneExposedNode")), BUTTON_EXPOSED, false, TTR("This node will be exposed in the editor when this scene is instantiated.") + "\n" + TTR("Click to disable this."));
+		} else {
+			if (p_node->has_meta(META_MARKED_FOR_EXPOSURE)) {
+				p_item->add_button(0, get_editor_theme_icon(SNAME("SceneExposedNode")), BUTTON_EXPOSED, false, TTR("This node has been exposed in the underlying scene.") + "\n" + TTR("This node will be exposed in the editor when this scene is instantiated.") + "\n" + TTR("Click to disable this."));
+			} else if (p_node->has_meta(META_EXPOSED_IN_INSTANCE)) {
+				p_item->add_button(0, get_editor_theme_icon(SNAME("SceneExposedNodeInstanced")), BUTTON_EXPOSED, p_node->get_owner() != EditorNode::get_singleton()->get_edited_scene(), TTR("This node has been exposed in the underlying scene."));
+			}
 		}
 
 		if (p_node->is_unique_name_in_owner()) {
@@ -2135,6 +2202,18 @@ SceneTreeEditor::SceneTreeEditor(bool p_label, bool p_can_rename, bool p_can_ope
 	ask_before_revoke_checkbox = memnew(CheckBox(TTR("Don't Ask Again")));
 	ask_before_revoke_checkbox->set_tooltip_text(TTR("This dialog can also be enabled/disabled in the Editor Settings: Docks > Scene Tree > Ask Before Revoking Unique Name."));
 	vb->add_child(ask_before_revoke_checkbox);
+
+	revoke_node_exposure = memnew(ConfirmationDialog);
+	revoke_node_exposure->set_ok_button_text(TTR("Revoke"));
+	add_child(revoke_node_exposure);
+	revoke_node_exposure->connect(SceneStringName(confirmed), callable_mp(this, &SceneTreeEditor::_update_ask_before_revoking_node_exposure));
+	VBoxContainer *nevb = memnew(VBoxContainer);
+	revoke_node_exposure->add_child(nevb);
+	revoke_node_exposure_dialog_label = memnew(Label);
+	nevb->add_child(revoke_node_exposure_dialog_label);
+	ask_before_revoke_node_exposure_checkbox = memnew(CheckBox(TTR("Don't Ask Again")));
+	ask_before_revoke_node_exposure_checkbox->set_tooltip_text(TTR("This dialog can also be enabled/disabled in the Editor Settings: Docks > Scene Tree > Ask Before Revoking Node Exposure."));
+	nevb->add_child(ask_before_revoke_node_exposure_checkbox);
 
 	script_types = memnew(List<StringName>);
 	ClassDB::get_inheriters_from_class("Script", script_types);

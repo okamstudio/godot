@@ -517,6 +517,8 @@ public:
 	void set_unique_name_in_owner(bool p_enabled);
 	bool is_unique_name_in_owner() const;
 
+	bool has_exposed_nodes() const;
+
 	_FORCE_INLINE_ int get_index(bool p_include_internal = true) const {
 		// p_include_internal = false doesn't make sense if the node is internal.
 		ERR_FAIL_COND_V_MSG(!p_include_internal && data.internal_mode != INTERNAL_MODE_DISABLED, -1, "Node is internal. Can't get index with 'include_internal' being false.");
@@ -845,6 +847,13 @@ Error Node::rpc_id(int p_peer_id, const StringName &p_method, VarArgs... p_args)
 	}
 	return rpcp(p_peer_id, p_method, sizeof...(p_args) == 0 ? nullptr : (const Variant **)argptrs, sizeof...(p_args));
 }
+
+#define META_PROPERTY_EXPOSED_IN_OWNER "metadata/_exposed_in_owner"
+#define META_EXPOSED_IN_OWNER "_exposed_in_owner"
+#define META_PROPERTY_MARKED_FOR_EXPOSURE "metadata/_marked_for_exposure"
+#define META_MARKED_FOR_EXPOSURE "_marked_for_exposure"
+#define META_PROPERTY_EXPOSED_IN_INSTANCE "metadata/_exposed_in_instance"
+#define META_EXPOSED_IN_INSTANCE "_exposed_in_instance"
 
 #ifdef DEBUG_ENABLED
 #define ERR_THREAD_GUARD ERR_FAIL_COND_MSG(!is_accessible_from_caller_thread(), vformat("Caller thread can't call this function in this node (%s). Use call_deferred() or call_thread_group() instead.", get_description()));

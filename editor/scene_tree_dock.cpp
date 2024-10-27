@@ -216,6 +216,8 @@ void SceneTreeDock::shortcut_input(const Ref<InputEvent> &p_event) {
 		_tool_selected(TOOL_SHOW_IN_FILE_SYSTEM);
 	} else if (ED_IS_SHORTCUT("scene_tree/toggle_unique_name", p_event)) {
 		_tool_selected(TOOL_TOGGLE_SCENE_UNIQUE_NAME);
+	} else if (ED_IS_SHORTCUT("scene_tree/toggle_expose_node", p_event)) {
+		_tool_selected(TOOL_TOGGLE_SCENE_EXPOSE_NODE);
 	} else if (ED_IS_SHORTCUT("scene_tree/toggle_editable_children", p_event)) {
 		_tool_selected(TOOL_SCENE_EDITABLE_CHILDREN);
 	} else if (ED_IS_SHORTCUT("scene_tree/delete", p_event)) {
@@ -315,6 +317,13 @@ void SceneTreeDock::_perform_instantiate_scenes(const Vector<String> &p_files, N
 		instantiated_scene->set_scene_file_path(ProjectSettings::get_singleton()->localize_path(p_files[i]));
 
 		instances.push_back(instantiated_scene);
+
+		for (const NodePath &e_path : sdata->get_state()->get_exposed_nodes()) {
+			Node *ei = instantiated_scene->get_node_or_null(e_path);
+			if (ei) {
+				ei->set_meta(META_EXPOSED_IN_INSTANCE, true);
+			}
+		}
 	}
 
 	if (error) {
@@ -1468,6 +1477,58 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				}
 				undo_redo->commit_action();
 			}
+		} break;
+		case TOOL_TOGGLE_SCENE_EXPOSE_NODE: {
+			// Enabling/disabling based on the same node based on which the checkbox in the menu is checked/unchecked.
+			List<Node *>::Element *first_selected = editor_selection->get_selected_node_list().front();
+			if (first_selected == nullptr) {
+				return;
+			}
+			if (first_selected->get() == EditorNode::get_singleton()->get_edited_scene()) {
+				// Exclude Root Node. It should never be exposed in its own scene!
+				editor_selection->remove_node(first_selected->get());
+				first_selected = editor_selection->get_selected_node_list().front();
+				if (first_selected == nullptr) {
+					return;
+				}
+			}
+
+			List<Node *> full_selection = editor_selection->get_full_selected_node_list();
+			bool enabling = !first_selected->get()->has_meta(META_MARKED_FOR_EXPOSURE);
+
+			EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+			if (enabling) {
+				undo_redo->create_action(TTR("Expose Node(s) In Scene"));
+			} else {
+				undo_redo->create_action(TTR("Unexpose Node(s) In Scene"));
+			}
+			for (Node *node : full_selection) {
+				StringName name = node->get_name();
+				if (get_tree()->get_edited_scene_root() == node->get_owner()) {
+					if (enabling) {
+						undo_redo->add_do_method(node, "set_meta", META_EXPOSED_IN_OWNER, true);
+						undo_redo->add_undo_method(node, "remove_meta", META_EXPOSED_IN_OWNER);
+					} else {
+						undo_redo->add_do_method(node, "remove_meta", META_EXPOSED_IN_OWNER);
+						undo_redo->add_undo_method(node, "set_meta", META_EXPOSED_IN_OWNER, true);
+					}
+				} else {
+					// Skip nodes that are not exposed in their original scene.
+					if (!node->has_meta(META_EXPOSED_IN_OWNER)) {
+						continue;
+					}
+				}
+				if (enabling) {
+					undo_redo->add_do_method(node, "set_meta", META_MARKED_FOR_EXPOSURE, true);
+					undo_redo->add_undo_method(node, "remove_meta", META_MARKED_FOR_EXPOSURE);
+				} else {
+					undo_redo->add_do_method(node, "remove_meta", META_MARKED_FOR_EXPOSURE);
+					undo_redo->add_undo_method(node, "set_meta", META_MARKED_FOR_EXPOSURE, true);
+				}
+				undo_redo->add_do_method(scene_tree, "update_tree");
+				undo_redo->add_undo_method(scene_tree, "update_tree");
+			}
+			undo_redo->commit_action();
 		} break;
 		case TOOL_CREATE_2D_SCENE:
 		case TOOL_CREATE_3D_SCENE:
@@ -3438,7 +3499,7 @@ static bool _is_node_visible(Node *p_node) {
 	if (!p_node->get_owner()) {
 		return false;
 	}
-	if (p_node->get_owner() != EditorNode::get_singleton()->get_edited_scene() && !EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(p_node->get_owner())) {
+	if (p_node->get_owner() != EditorNode::get_singleton()->get_edited_scene() && !EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(p_node->get_owner()) && !p_node->has_meta(META_MARKED_FOR_EXPOSURE)) {
 		return false;
 	}
 
@@ -3873,14 +3934,23 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 				break;
 			}
 		}
+
+		Node *node = full_selection.front()->get();
 		if (all_owned) {
 			// Group "toggle_unique_name" with "copy_node_path", if it is available.
 			if (menu->get_item_index(TOOL_COPY_NODE_PATH) == -1) {
 				menu->add_separator();
 			}
-			Node *node = full_selection.front()->get();
 			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("SceneUniqueName")), ED_GET_SHORTCUT("scene_tree/toggle_unique_name"), TOOL_TOGGLE_SCENE_UNIQUE_NAME);
 			menu->set_item_text(menu->get_item_index(TOOL_TOGGLE_SCENE_UNIQUE_NAME), node->is_unique_name_in_owner() ? TTR("Revoke Unique Name") : TTR("Access as Unique Name"));
+		} //if all_unique
+
+		if (node->get_owner() == EditorNode::get_singleton()->get_edited_scene()) {
+			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("SceneExposedNode")), ED_GET_SHORTCUT("scene_tree/toggle_expose_node"), TOOL_TOGGLE_SCENE_EXPOSE_NODE);
+			menu->set_item_text(menu->get_item_index(TOOL_TOGGLE_SCENE_EXPOSE_NODE), node->has_meta(META_EXPOSED_IN_OWNER) || node->has_meta(META_MARKED_FOR_EXPOSURE) ? TTR("Unexpose Node") : TTR("Expose Node"));
+		} else if (node->has_meta(META_EXPOSED_IN_OWNER)) {
+			menu->add_icon_shortcut(get_editor_theme_icon(SNAME("SceneExposedNode")), ED_GET_SHORTCUT("scene_tree/toggle_expose_node"), TOOL_TOGGLE_SCENE_EXPOSE_NODE);
+			menu->set_item_text(menu->get_item_index(TOOL_TOGGLE_SCENE_EXPOSE_NODE), node->has_meta(META_MARKED_FOR_EXPOSURE) ? TTR("Unexpose Node") : TTR("Expose Node"));
 		}
 	}
 
@@ -4649,6 +4719,7 @@ SceneTreeDock::SceneTreeDock(Node *p_scene_root, EditorSelection *p_editor_selec
 	ED_SHORTCUT("scene_tree/copy_node_path", TTRC("Copy Node Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
 	ED_SHORTCUT("scene_tree/show_in_file_system", TTRC("Show in FileSystem"));
 	ED_SHORTCUT("scene_tree/toggle_unique_name", TTRC("Toggle Access as Unique Name"));
+	ED_SHORTCUT("scene_tree/toggle_expose_node", TTR("Toggle Node Exposure"));
 	ED_SHORTCUT("scene_tree/toggle_editable_children", TTRC("Toggle Editable Children"));
 	ED_SHORTCUT("scene_tree/delete_no_confirm", TTRC("Delete (No Confirm)"), KeyModifierMask::SHIFT | Key::KEY_DELETE);
 	ED_SHORTCUT("scene_tree/delete", TTRC("Delete"), Key::KEY_DELETE);
