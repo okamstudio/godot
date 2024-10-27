@@ -610,6 +610,8 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 		actions.renames["PI"] = _MKSTR(Math_PI);
 		actions.renames["TAU"] = _MKSTR(Math_TAU);
 		actions.renames["E"] = _MKSTR(Math_E);
+		actions.renames["OUTPUT_IS_SRGB"] = "SHADER_IS_SRGB";
+		actions.renames["CLIP_SPACE_FAR"] = "SHADER_SPACE_FAR";
 		actions.renames["VIEWPORT_SIZE"] = "read_viewport_size";
 
 		actions.renames["FRAGCOORD"] = "gl_FragCoord";
@@ -649,8 +651,6 @@ void SceneShaderForwardClustered::init(const String p_defines) {
 		actions.renames["CUSTOM1"] = "custom1_attrib";
 		actions.renames["CUSTOM2"] = "custom2_attrib";
 		actions.renames["CUSTOM3"] = "custom3_attrib";
-		actions.renames["OUTPUT_IS_SRGB"] = "SHADER_IS_SRGB";
-		actions.renames["CLIP_SPACE_FAR"] = "SHADER_SPACE_FAR";
 		actions.renames["LIGHT_VERTEX"] = "light_vertex";
 
 		actions.renames["NODE_POSITION_WORLD"] = "read_model_matrix[3].xyz";

@@ -961,18 +961,16 @@ TreeItem *TreeItem::_get_prev_in_tree(bool p_wrap, bool p_include_invisible) {
 
 	if (!prev_item) {
 		current = current->parent;
-		if (current == tree->root && tree->hide_root) {
-			return nullptr;
-		} else if (!current) {
-			if (p_wrap) {
-				current = this;
-				TreeItem *temp = get_next_visible();
-				while (temp) {
-					current = temp;
-					temp = temp->get_next_visible();
-				}
-			} else {
+		if (!current || (current == tree->root && tree->hide_root)) {
+			if (!p_wrap) {
 				return nullptr;
+			}
+			// Wrap around to the last visible item.
+			current = this;
+			TreeItem *temp = get_next_visible();
+			while (temp) {
+				current = temp;
+				temp = temp->get_next_visible();
 			}
 		}
 	} else {

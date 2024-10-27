@@ -64,8 +64,17 @@ private:
 	static XrGraphicsBindingOpenGLWin32KHR graphics_binding_gl;
 #elif defined(ANDROID_ENABLED)
 	static XrGraphicsBindingOpenGLESAndroidKHR graphics_binding_gl;
-#else // Linux/X11
+#elif defined(LINUXBSD_ENABLED)
+#ifdef X11_ENABLED
 	static XrGraphicsBindingOpenGLXlibKHR graphics_binding_gl;
+#endif
+#ifdef EGL_ENABLED
+	static XrGraphicsBindingEGLMNDX graphics_binding_egl;
+
+	bool egl_extension_enabled = false;
+#endif
+#else
+#error "OpenXR with OpenGL isn't supported on this platform"
 #endif
 
 	struct SwapchainGraphicsData {

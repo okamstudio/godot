@@ -8,6 +8,7 @@
 		[b]Note:[/b] Since this node inherits from [Node2D] (and not [Control]), anchors and margins won't apply to child [Control]-derived nodes. This can be problematic when resizing the window. To avoid this, add [Control]-derived nodes as [i]siblings[/i] to the [BackBufferCopy] node instead of adding them as children.
 	</description>
 	<tutorials>
+		<link title="Screen-reading shaders">$DOCS_URL/tutorials/shaders/screen-reading_shaders.html</link>
 	</tutorials>
 	<members>
 		<member name="copy_mode" type="int" setter="set_copy_mode" getter="get_copy_mode" enum="BackBufferCopy.CopyMode" default="1">

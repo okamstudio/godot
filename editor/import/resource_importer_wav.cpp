@@ -112,7 +112,15 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 	}
 
 	/* GET FILESIZE */
-	file->get_32(); // filesize
+
+	// The file size in header is 8 bytes less than the actual size.
+	// See https://docs.fileformat.com/audio/wav/
+	const int FILE_SIZE_HEADER_OFFSET = 8;
+	uint32_t file_size_header = file->get_32() + FILE_SIZE_HEADER_OFFSET;
+	uint64_t file_size = file->get_length();
+	if (file_size != file_size_header) {
+		WARN_PRINT(vformat("File size %d is %s than the expected size %d. (%s)", file_size, file_size > file_size_header ? "larger" : "smaller", file_size_header, p_source_file));
+	}
 
 	/* CHECK WAVE */
 
@@ -198,7 +206,12 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 				break;
 			}
 
+			uint64_t remaining_bytes = file_size - file_pos;
 			frames = chunksize;
+			if (remaining_bytes < chunksize) {
+				WARN_PRINT(vformat("Data chunk size is smaller than expected. Proceeding with actual data size. (%s)", p_source_file));
+				frames = remaining_bytes;
+			}
 
 			if (format_channels == 0) {
 				ERR_FAIL_COND_V(format_channels == 0, ERR_INVALID_DATA);

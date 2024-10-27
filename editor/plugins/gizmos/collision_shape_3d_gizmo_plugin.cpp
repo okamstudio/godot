@@ -93,7 +93,7 @@ String CollisionShape3DGizmoPlugin::get_handle_name(const EditorNode3DGizmo *p_g
 	}
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
-		return p_id == 0 ? "Radius" : "Height";
+		return helper->cylinder_get_handle_name(p_id);
 	}
 
 	if (Object::cast_to<SeparationRayShape3D>(*s)) {
@@ -219,25 +219,15 @@ void CollisionShape3DGizmoPlugin::set_handle(const EditorNode3DGizmo *p_gizmo, i
 	}
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
-		Vector3 axis;
-		axis[p_id == 0 ? 0 : 1] = 1.0;
 		Ref<CylinderShape3D> cs2 = s;
-		Vector3 ra, rb;
-		Geometry3D::get_closest_points_between_segments(Vector3(), axis * 4096, sg[0], sg[1], ra, rb);
-		float d = axis.dot(ra);
-		if (Node3DEditor::get_singleton()->is_snap_enabled()) {
-			d = Math::snapped(d, Node3DEditor::get_singleton()->get_translate_snap());
-		}
 
-		if (d < 0.001) {
-			d = 0.001;
-		}
-
-		if (p_id == 0) {
-			cs2->set_radius(d);
-		} else if (p_id == 1) {
-			cs2->set_height(d * 2.0);
-		}
+		real_t height = cs2->get_height();
+		real_t radius = cs2->get_radius();
+		Vector3 position;
+		helper->cylinder_set_handle(sg, p_id, height, radius, position);
+		cs2->set_height(height);
+		cs2->set_radius(radius);
+		cs->set_global_position(position);
 	}
 }
 
@@ -293,31 +283,7 @@ void CollisionShape3DGizmoPlugin::commit_handle(const EditorNode3DGizmo *p_gizmo
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
 		Ref<CylinderShape3D> ss = s;
-		if (p_cancel) {
-			if (p_id == 0) {
-				ss->set_radius(p_restore);
-			} else {
-				ss->set_height(p_restore);
-			}
-			return;
-		}
-
-		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-		if (p_id == 0) {
-			ur->create_action(TTR("Change Cylinder Shape Radius"));
-			ur->add_do_method(ss.ptr(), "set_radius", ss->get_radius());
-			ur->add_undo_method(ss.ptr(), "set_radius", p_restore);
-		} else {
-			ur->create_action(
-					///
-
-					////////
-					TTR("Change Cylinder Shape Height"));
-			ur->add_do_method(ss.ptr(), "set_height", ss->get_height());
-			ur->add_undo_method(ss.ptr(), "set_height", p_restore);
-		}
-
-		ur->commit_action();
+		helper->cylinder_commit_handle(p_id, TTR("Change Cylinder Shape Radius"), TTR("Change Cylinder Shape Height"), p_cancel, cs, *ss, *ss);
 	}
 
 	if (Object::cast_to<SeparationRayShape3D>(*s)) {
@@ -534,10 +500,7 @@ void CollisionShape3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 		p_gizmo->add_collision_segments(collision_segments);
 
-		Vector<Vector3> handles = {
-			Vector3(cs2->get_radius(), 0, 0),
-			Vector3(0, cs2->get_height() * 0.5, 0)
-		};
+		Vector<Vector3> handles = helper->cylinder_get_handles(cs2->get_height(), cs2->get_radius());
 		p_gizmo->add_handles(handles, handles_material);
 	}
 

@@ -1665,6 +1665,18 @@ int64_t DisplayServerWindows::window_get_native_handle(HandleType p_handle_type,
 			}
 			return 0;
 		}
+		case EGL_DISPLAY: {
+			if (gl_manager_angle) {
+				return (int64_t)gl_manager_angle->get_display(p_window);
+			}
+			return 0;
+		}
+		case EGL_CONFIG: {
+			if (gl_manager_angle) {
+				return (int64_t)gl_manager_angle->get_config(p_window);
+			}
+			return 0;
+		}
 #endif
 		default: {
 			return 0;
@@ -6400,7 +6412,10 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 	}
 
 	WindowID main_window = _create_window(p_mode, p_vsync_mode, p_flags, Rect2i(window_position, p_resolution), false, INVALID_WINDOW_ID);
-	ERR_FAIL_COND_MSG(main_window == INVALID_WINDOW_ID, "Failed to create main window.");
+	if (main_window == INVALID_WINDOW_ID) {
+		r_error = ERR_UNAVAILABLE;
+		ERR_FAIL_MSG("Failed to create main window.");
+	}
 
 	joypad = new JoypadWindows(&windows[MAIN_WINDOW_ID].hWnd);
 

@@ -278,24 +278,13 @@ void CSGShape3DGizmoPlugin::set_handle(const EditorNode3DGizmo *p_gizmo, int p_i
 	if (Object::cast_to<CSGCylinder3D>(cs)) {
 		CSGCylinder3D *s = Object::cast_to<CSGCylinder3D>(cs);
 
-		Vector3 axis;
-		axis[p_id == 0 ? 0 : 1] = 1.0;
-		Vector3 ra, rb;
-		Geometry3D::get_closest_points_between_segments(Vector3(), axis * 4096, sg[0], sg[1], ra, rb);
-		float d = axis.dot(ra);
-		if (Node3DEditor::get_singleton()->is_snap_enabled()) {
-			d = Math::snapped(d, Node3DEditor::get_singleton()->get_translate_snap());
-		}
-
-		if (d < 0.001) {
-			d = 0.001;
-		}
-
-		if (p_id == 0) {
-			s->set_radius(d);
-		} else if (p_id == 1) {
-			s->set_height(d * 2.0);
-		}
+		real_t height = s->get_height();
+		real_t radius = s->get_radius();
+		Vector3 position;
+		helper->cylinder_set_handle(sg, p_id, height, radius, position);
+		s->set_height(height);
+		s->set_radius(radius);
+		s->set_global_position(position);
 	}
 
 	if (Object::cast_to<CSGTorus3D>(cs)) {
@@ -340,32 +329,11 @@ void CSGShape3DGizmoPlugin::commit_handle(const EditorNode3DGizmo *p_gizmo, int 
 	}
 
 	if (Object::cast_to<CSGBox3D>(cs)) {
-		helper->box_commit_handle(TTR("Change Box Shape Size"), p_cancel, cs);
+		helper->box_commit_handle(TTR("Change CSG Box Size"), p_cancel, cs);
 	}
 
 	if (Object::cast_to<CSGCylinder3D>(cs)) {
-		CSGCylinder3D *s = Object::cast_to<CSGCylinder3D>(cs);
-		if (p_cancel) {
-			if (p_id == 0) {
-				s->set_radius(p_restore);
-			} else {
-				s->set_height(p_restore);
-			}
-			return;
-		}
-
-		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-		if (p_id == 0) {
-			ur->create_action(TTR("Change Cylinder Radius"));
-			ur->add_do_method(s, "set_radius", s->get_radius());
-			ur->add_undo_method(s, "set_radius", p_restore);
-		} else {
-			ur->create_action(TTR("Change Cylinder Height"));
-			ur->add_do_method(s, "set_height", s->get_height());
-			ur->add_undo_method(s, "set_height", p_restore);
-		}
-
-		ur->commit_action();
+		helper->cylinder_commit_handle(p_id, TTR("Change CSG Cylinder Radius"), TTR("Change CSG Cylinder Height"), p_cancel, cs);
 	}
 
 	if (Object::cast_to<CSGTorus3D>(cs)) {
@@ -506,9 +474,7 @@ void CSGShape3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	if (Object::cast_to<CSGCylinder3D>(cs)) {
 		CSGCylinder3D *s = Object::cast_to<CSGCylinder3D>(cs);
 
-		Vector<Vector3> handles;
-		handles.push_back(Vector3(s->get_radius(), 0, 0));
-		handles.push_back(Vector3(0, s->get_height() * 0.5, 0));
+		Vector<Vector3> handles = helper->cylinder_get_handles(s->get_height(), s->get_radius());
 		p_gizmo->add_handles(handles, handles_material);
 	}
 

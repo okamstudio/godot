@@ -73,17 +73,19 @@ void OpenXRInteractionProfileEditorBase::_add_binding(const String p_action, con
 	Ref<OpenXRAction> action = action_map->get_action(p_action);
 	ERR_FAIL_COND(action.is_null());
 
-	Ref<OpenXRIPBinding> binding = interaction_profile->get_binding_for_action(action);
+	Ref<OpenXRIPBinding> binding = interaction_profile->find_binding(action, p_path);
 	if (binding.is_null()) {
 		// create a new binding
 		binding.instantiate();
 		binding->set_action(action);
+		binding->set_binding_path(p_path);
+
+		// add it to our interaction profile
 		interaction_profile->add_binding(binding);
 		interaction_profile->set_edited(true);
-	}
 
-	binding->add_path(p_path);
-	binding->set_edited(true);
+		binding->set_edited(true);
+	}
 
 	// Update our toplevel paths
 	action->set_toplevel_paths(action_map->get_top_level_paths(action));
@@ -98,15 +100,10 @@ void OpenXRInteractionProfileEditorBase::_remove_binding(const String p_action, 
 	Ref<OpenXRAction> action = action_map->get_action(p_action);
 	ERR_FAIL_COND(action.is_null());
 
-	Ref<OpenXRIPBinding> binding = interaction_profile->get_binding_for_action(action);
+	Ref<OpenXRIPBinding> binding = interaction_profile->find_binding(action, p_path);
 	if (binding.is_valid()) {
-		binding->remove_path(p_path);
-		binding->set_edited(true);
-
-		if (binding->get_path_count() == 0) {
-			interaction_profile->remove_binding(binding);
-			interaction_profile->set_edited(true);
-		}
+		interaction_profile->remove_binding(binding);
+		interaction_profile->set_edited(true);
 
 		// Update our toplevel paths
 		action->set_toplevel_paths(action_map->get_top_level_paths(action));
@@ -116,21 +113,22 @@ void OpenXRInteractionProfileEditorBase::_remove_binding(const String p_action, 
 }
 
 void OpenXRInteractionProfileEditorBase::remove_all_bindings_for_action(Ref<OpenXRAction> p_action) {
-	Ref<OpenXRIPBinding> binding = interaction_profile->get_binding_for_action(p_action);
-	if (binding.is_valid()) {
+	Vector<Ref<OpenXRIPBinding>> bindings = interaction_profile->get_bindings_for_action(p_action);
+	if (bindings.size() > 0) {
 		String action_name = p_action->get_name_with_set();
 
 		// for our undo/redo we process all paths
 		undo_redo->create_action(TTR("Remove action from interaction profile"));
-		PackedStringArray paths = binding->get_paths();
-		for (const String &path : paths) {
-			undo_redo->add_do_method(this, "_remove_binding", action_name, path);
-			undo_redo->add_undo_method(this, "_add_binding", action_name, path);
+		for (const Ref<OpenXRIPBinding> &binding : bindings) {
+			undo_redo->add_do_method(this, "_remove_binding", action_name, binding->get_binding_path());
+			undo_redo->add_undo_method(this, "_add_binding", action_name, binding->get_binding_path());
 		}
 		undo_redo->commit_action(false);
 
 		// but we take a shortcut here :)
-		interaction_profile->remove_binding(binding);
+		for (const Ref<OpenXRIPBinding> &binding : bindings) {
+			interaction_profile->remove_binding(binding);
+		}
 		interaction_profile->set_edited(true);
 
 		// Update our toplevel paths
@@ -228,9 +226,8 @@ void OpenXRInteractionProfileEditor::_add_io_path(VBoxContainer *p_container, co
 	if (interaction_profile.is_valid()) {
 		String io_path = String(p_io_path->openxr_path);
 		Array bindings = interaction_profile->get_bindings();
-		for (int i = 0; i < bindings.size(); i++) {
-			Ref<OpenXRIPBinding> binding = bindings[i];
-			if (binding->has_path(io_path)) {
+		for (Ref<OpenXRIPBinding> binding : bindings) {
+			if (binding->get_binding_path() == io_path) {
 				Ref<OpenXRAction> action = binding->get_action();
 
 				HBoxContainer *action_hb = memnew(HBoxContainer);

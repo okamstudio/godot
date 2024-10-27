@@ -250,7 +250,7 @@ OSStatus AudioDriverCoreAudio::input_callback(void *inRefCon,
 }
 
 void AudioDriverCoreAudio::start() {
-	if (!active) {
+	if (!active && audio_unit != nullptr) {
 		OSStatus result = AudioOutputUnitStart(audio_unit);
 		if (result != noErr) {
 			ERR_PRINT("AudioOutputUnitStart failed, code: " + itos(result));

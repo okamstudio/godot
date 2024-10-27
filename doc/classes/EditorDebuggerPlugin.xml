@@ -15,18 +15,20 @@
 
 		class ExampleEditorDebugger extends EditorDebuggerPlugin:
 
-		    func _has_capture(prefix):
-		        # Return true if you wish to handle message with this prefix.
-		        return prefix == "my_plugin"
+		    func _has_capture(capture):
+		        # Return true if you wish to handle messages with the prefix "my_plugin:".
+		        return capture == "my_plugin"
 
 		    func _capture(message, data, session_id):
 		        if message == "my_plugin:ping":
 		            get_session(session_id).send_message("my_plugin:echo", data)
+		            return true
+		        return false
 
 		    func _setup_session(session_id):
 		        # Add a new tab in the debugger session UI containing a label.
 		        var label = Label.new()
-		        label.name = "Example plugin"
+		        label.name = "Example plugin" # Will be used as the tab title.
 		        label.text = "Example plugin"
 		        var session = get_session(session_id)
 		        # Listens to the session started and stopped signals.
@@ -43,6 +45,24 @@
 		    remove_debugger_plugin(debugger)
 		[/gdscript]
 		[/codeblocks]
+		To connect on the running game side, use the [EngineDebugger] singleton:
+		[codeblocks]
+		[gdscript]
+		extends Node
+
+		func _ready():
+		    EngineDebugger.register_message_capture("my_plugin", _capture)
+		    EngineDebugger.send_message("my_plugin:ping", ["test"])
+
+		func _capture(message, data):
+		    # Note that the "my_plugin:" prefix is not used here.
+		    if message == "echo":
+		        prints("Echo received:", data)
+		        return true
+		    return false
+		[/gdscript]
+		[/codeblocks]
+		[b]Note:[/b] While the game is running, [method @GlobalScope.print] and similar functions [i]called in the editor[/i] do not print anything, the Output Log prints only game messages.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -68,7 +88,7 @@
 			<param index="1" name="data" type="Array" />
 			<param index="2" name="session_id" type="int" />
 			<description>
-				Override this method to process incoming messages. The [param session_id] is the ID of the [EditorDebuggerSession] that received the message (which you can retrieve via [method get_session]).
+				Override this method to process incoming messages. The [param session_id] is the ID of the [EditorDebuggerSession] that received the [param message]. Use [method get_session] to retrieve the session. This method should return [code]true[/code] if the message is recognized.
 			</description>
 		</method>
 		<method name="_goto_script_line" qualifiers="virtual">
@@ -90,7 +110,7 @@
 			<return type="void" />
 			<param index="0" name="session_id" type="int" />
 			<description>
-				Override this method to be notified whenever a new [EditorDebuggerSession] is created (the session may be inactive during this stage).
+				Override this method to be notified whenever a new [EditorDebuggerSession] is created. Note that the session may be inactive during this stage.
 			</description>
 		</method>
 		<method name="get_session">

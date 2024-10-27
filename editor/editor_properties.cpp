@@ -2648,7 +2648,7 @@ Variant EditorPropertyNodePath::_get_cache_value(const StringName &p_prop, bool 
 	return Variant();
 }
 
-void EditorPropertyNodePath::_node_selected(const NodePath &p_path) {
+void EditorPropertyNodePath::_node_selected(const NodePath &p_path, bool p_absolute) {
 	NodePath path = p_path;
 	Node *base_node = get_base_node();
 
@@ -2658,7 +2658,7 @@ void EditorPropertyNodePath::_node_selected(const NodePath &p_path) {
 		path = get_tree()->get_edited_scene_root()->get_path_to(to_node);
 	}
 
-	if (base_node) { // for AnimationTrackKeyEdit
+	if (p_absolute && base_node) { // for AnimationTrackKeyEdit
 		path = base_node->get_path().rel_path_to(p_path);
 	}
 
@@ -2680,7 +2680,7 @@ void EditorPropertyNodePath::_node_assign() {
 		scene_tree->get_scene_tree()->set_show_enabled_subscene(true);
 		scene_tree->set_valid_types(valid_types);
 		add_child(scene_tree);
-		scene_tree->connect("selected", callable_mp(this, &EditorPropertyNodePath::_node_selected));
+		scene_tree->connect("selected", callable_mp(this, &EditorPropertyNodePath::_node_selected).bind(true));
 	}
 
 	Variant val = get_edited_property_value();
@@ -2748,7 +2748,7 @@ void EditorPropertyNodePath::_accept_text() {
 
 void EditorPropertyNodePath::_text_submitted(const String &p_text) {
 	NodePath np = p_text;
-	emit_changed(get_edited_property(), np);
+	_node_selected(np, false);
 	edit->hide();
 	assign->show();
 	menu->show();
@@ -3221,6 +3221,7 @@ void EditorPropertyResource::setup(Object *p_object, const String &p_path, const
 	}
 
 	resource_picker->set_base_type(p_base_type);
+	resource_picker->set_resource_owner(p_object);
 	resource_picker->set_editable(true);
 	resource_picker->set_h_size_flags(SIZE_EXPAND_FILL);
 	add_child(resource_picker);

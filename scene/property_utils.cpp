@@ -89,6 +89,16 @@ Variant PropertyUtils::get_property_default_value(const Object *p_object, const 
 		*r_is_valid = false;
 	}
 
+	// Handle special case "script" property, where the default value is either null or the custom type script.
+	// Do this only if there's no states stack cache to trace for default values.
+	if (!p_states_stack_cache && p_property == CoreStringName(script) && p_object->has_meta(SceneStringName(_custom_type_script))) {
+		Ref<Script> ct_scr = p_object->get_meta(SceneStringName(_custom_type_script));
+		if (r_is_valid) {
+			*r_is_valid = true;
+		}
+		return ct_scr;
+	}
+
 	Ref<Script> topmost_script;
 
 	if (const Node *node = Object::cast_to<Node>(p_object)) {

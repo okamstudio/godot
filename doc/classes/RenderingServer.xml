@@ -2137,6 +2137,14 @@
 				If [code]true[/code], light will cast shadows. Equivalent to [member Light3D.shadow_enabled].
 			</description>
 		</method>
+		<method name="light_set_shadow_caster_mask">
+			<return type="void" />
+			<param index="0" name="light" type="RID" />
+			<param index="1" name="mask" type="int" />
+			<description>
+				Sets the shadow caster mask for this 3D light. Shadows will only be cast using objects in the selected layers. Equivalent to [member Light3D.shadow_caster_mask].
+			</description>
+		</method>
 		<method name="lightmap_create">
 			<return type="RID" />
 			<description>

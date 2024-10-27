@@ -300,6 +300,7 @@ public:
 
 	virtual Error reload(bool p_keep_state = false) override;
 
+	virtual void set_path_cache(const String &p_path) override;
 	virtual void set_path(const String &p_path, bool p_take_over = false) override;
 	String get_script_path() const;
 	Error load_source_code(const String &p_path);

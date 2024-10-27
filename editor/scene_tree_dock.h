@@ -115,6 +115,7 @@ class SceneTreeDock : public VBoxContainer {
 	Button *button_instance = nullptr;
 	Button *button_create_script = nullptr;
 	Button *button_detach_script = nullptr;
+	Button *button_extend_script = nullptr;
 	MenuButton *button_tree_menu = nullptr;
 
 	Button *node_shortcuts_toggle = nullptr;

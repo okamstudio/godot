@@ -1253,7 +1253,7 @@ void CanvasItem::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("force_update_transform"), &CanvasItem::force_update_transform);
 
-	ClassDB::bind_method(D_METHOD("make_canvas_position_local", "screen_point"), &CanvasItem::make_canvas_position_local);
+	ClassDB::bind_method(D_METHOD("make_canvas_position_local", "viewport_point"), &CanvasItem::make_canvas_position_local);
 	ClassDB::bind_method(D_METHOD("make_input_local", "event"), &CanvasItem::make_input_local);
 
 	ClassDB::bind_method(D_METHOD("set_visibility_layer", "layer"), &CanvasItem::set_visibility_layer);

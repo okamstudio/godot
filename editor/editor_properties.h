@@ -628,7 +628,7 @@ class EditorPropertyNodePath : public EditorProperty {
 	bool editing_node = false;
 
 	Vector<StringName> valid_types;
-	void _node_selected(const NodePath &p_path);
+	void _node_selected(const NodePath &p_path, bool p_absolute = true);
 	void _node_assign();
 	Node *get_base_node();
 	void _update_menu();

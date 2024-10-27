@@ -213,6 +213,23 @@ void LightStorage::light_set_cull_mask(RID p_light, uint32_t p_mask) {
 	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
 }
 
+void LightStorage::light_set_shadow_caster_mask(RID p_light, uint32_t p_caster_mask) {
+	Light *light = light_owner.get_or_null(p_light);
+	ERR_FAIL_NULL(light);
+
+	light->shadow_caster_mask = p_caster_mask;
+
+	light->version++;
+	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
+}
+
+uint32_t LightStorage::light_get_shadow_caster_mask(RID p_light) const {
+	Light *light = light_owner.get_or_null(p_light);
+	ERR_FAIL_NULL_V(light, 0);
+
+	return light->shadow_caster_mask;
+}
+
 void LightStorage::light_set_distance_fade(RID p_light, bool p_enabled, float p_begin, float p_shadow, float p_length) {
 	Light *light = light_owner.get_or_null(p_light);
 	ERR_FAIL_NULL(light);

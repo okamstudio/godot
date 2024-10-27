@@ -37,10 +37,6 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/theme/theme_db.h"
 
-bool EditorSpinSlider::is_text_field() const {
-	return true;
-}
-
 String EditorSpinSlider::get_tooltip(const Point2 &p_pos) const {
 	if (!read_only && grabber->is_visible()) {
 		Key key = (OS::get_singleton()->has_feature("macos") || OS::get_singleton()->has_feature("web_macos") || OS::get_singleton()->has_feature("web_ios")) ? Key::META : Key::CTRL;

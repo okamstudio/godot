@@ -4,7 +4,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from methods import get_compiler_version, print_error, print_warning, using_gcc
-from platform_methods import detect_arch
+from platform_methods import detect_arch, validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -74,12 +74,7 @@ def get_flags():
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64", "rv64", "ppc32", "ppc64"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for Linux / *BSD. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     ## Build type
 

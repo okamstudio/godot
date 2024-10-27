@@ -6,7 +6,7 @@
 	<description>
 		A list of global scope enumerated constants and built-in functions. This is all that resides in the globals, constants regarding error codes, keycodes, property hints, etc.
 		Singletons are also documented here, since they can be accessed from anywhere.
-		For the entries related to GDScript which can be accessed in any script see [@GDScript].
+		For the entries that can only be accessed from scripts written in GDScript, see [@GDScript].
 	</description>
 	<tutorials>
 		<link title="Random number generation">$DOCS_URL/tutorials/math/random_number_generation.html</link>

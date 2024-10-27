@@ -6480,9 +6480,9 @@ int TileData::get_terrain_set() const {
 }
 
 void TileData::set_terrain(int p_terrain) {
-	ERR_FAIL_COND(terrain_set < 0);
 	ERR_FAIL_COND(p_terrain < -1);
-	if (tile_set) {
+	ERR_FAIL_COND(terrain_set < 0 && p_terrain != -1);
+	if (tile_set && terrain_set >= 0) {
 		ERR_FAIL_COND(p_terrain >= tile_set->get_terrains_count(terrain_set));
 	}
 	terrain = p_terrain;
@@ -6495,9 +6495,9 @@ int TileData::get_terrain() const {
 
 void TileData::set_terrain_peering_bit(TileSet::CellNeighbor p_peering_bit, int p_terrain_index) {
 	ERR_FAIL_INDEX(p_peering_bit, TileSet::CellNeighbor::CELL_NEIGHBOR_MAX);
-	ERR_FAIL_COND(terrain_set < 0);
 	ERR_FAIL_COND(p_terrain_index < -1);
-	if (tile_set) {
+	ERR_FAIL_COND(terrain_set < 0 && p_terrain_index != -1);
+	if (tile_set && terrain_set >= 0) {
 		ERR_FAIL_COND(p_terrain_index >= tile_set->get_terrains_count(terrain_set));
 		ERR_FAIL_COND(!is_valid_terrain_peering_bit(p_peering_bit));
 	}

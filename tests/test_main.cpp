@@ -86,6 +86,7 @@
 #include "tests/core/string/test_string.h"
 #include "tests/core/string/test_translation.h"
 #include "tests/core/string/test_translation_server.h"
+#include "tests/core/templates/test_a_hash_map.h"
 #include "tests/core/templates/test_command_queue.h"
 #include "tests/core/templates/test_hash_map.h"
 #include "tests/core/templates/test_hash_set.h"

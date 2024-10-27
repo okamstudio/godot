@@ -622,6 +622,7 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 
 		RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 		bool any_uses_time = false;
+		Vector3 cam_position = p_cam_transform.get_origin();
 
 		for (int i = 0; i < (int)p_fog_volumes.size(); i++) {
 			FogVolumeInstance *fog_volume_instance = fog_volume_instance_owner.get_or_null(p_fog_volumes[i]);
@@ -652,41 +653,68 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 
 			any_uses_time |= shader_data->uses_time;
 
-			Vector3i min;
-			Vector3i max;
+			Vector3i froxel_min;
+			Vector3i froxel_max;
 			Vector3i kernel_size;
 
-			Vector3 position = fog_volume_instance->transform.get_origin();
+			Vector3 fog_position = fog_volume_instance->transform.get_origin();
 			RS::FogVolumeShape volume_type = RendererRD::Fog::get_singleton()->fog_volume_get_shape(fog_volume);
 			Vector3 extents = RendererRD::Fog::get_singleton()->fog_volume_get_size(fog_volume) / 2;
 
 			if (volume_type != RS::FOG_VOLUME_SHAPE_WORLD) {
 				// Local fog volume.
-				Vector3i points[8];
 				Vector3 fog_size = Vector3(fog->width, fog->height, fog->depth);
 				float volumetric_fog_detail_spread = RendererSceneRenderRD::get_singleton()->environment_get_volumetric_fog_detail_spread(p_settings.env);
-				points[0] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(extents.x, extents.y, extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[1] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(-extents.x, extents.y, extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[2] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(extents.x, -extents.y, extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[3] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(-extents.x, -extents.y, extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[4] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(extents.x, extents.y, -extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[5] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(-extents.x, extents.y, -extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[6] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(extents.x, -extents.y, -extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-				points[7] = _point_get_position_in_froxel_volume(fog_volume_instance->transform.xform(Vector3(-extents.x, -extents.y, -extents.z)), fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
-
-				min = Vector3i(int32_t(fog->width) - 1, int32_t(fog->height) - 1, int32_t(fog->depth) - 1);
-				max = Vector3i(1, 1, 1);
-
+				Vector3 corners[8]{
+					fog_volume_instance->transform.xform(Vector3(extents.x, extents.y, extents.z)),
+					fog_volume_instance->transform.xform(Vector3(-extents.x, extents.y, extents.z)),
+					fog_volume_instance->transform.xform(Vector3(extents.x, -extents.y, extents.z)),
+					fog_volume_instance->transform.xform(Vector3(-extents.x, -extents.y, extents.z)),
+					fog_volume_instance->transform.xform(Vector3(extents.x, extents.y, -extents.z)),
+					fog_volume_instance->transform.xform(Vector3(-extents.x, extents.y, -extents.z)),
+					fog_volume_instance->transform.xform(Vector3(extents.x, -extents.y, -extents.z)),
+					fog_volume_instance->transform.xform(Vector3(-extents.x, -extents.y, -extents.z))
+				};
+				Vector3i froxels[8];
+				Vector3 corner_min = corners[0];
+				Vector3 corner_max = corners[0];
 				for (int j = 0; j < 8; j++) {
-					min = min.min(points[j]);
-					max = max.max(points[j]);
+					froxels[j] = _point_get_position_in_froxel_volume(corners[j], fog_end, fog_near_size, fog_far_size, volumetric_fog_detail_spread, fog_size, p_cam_transform);
+					corner_min = corner_min.min(corners[j]);
+					corner_max = corner_max.max(corners[j]);
 				}
 
-				kernel_size = max - min;
+				froxel_min = Vector3i(int32_t(fog->width) - 1, int32_t(fog->height) - 1, int32_t(fog->depth) - 1);
+				froxel_max = Vector3i(1, 1, 1);
+
+				// Tracking just the corners of the fog volume can result in missing some fog:
+				// when the camera's near plane is inside the fog, we must always consider the entire screen
+				Vector3 near_plane_corner(frustum_near_size.x, frustum_near_size.y, z_near);
+				float expand = near_plane_corner.length();
+				if (cam_position.x > (corner_min.x - expand) && cam_position.x < (corner_max.x + expand) &&
+						cam_position.y > (corner_min.y - expand) && cam_position.y < (corner_max.y + expand) &&
+						cam_position.z > (corner_min.z - expand) && cam_position.z < (corner_max.z + expand)) {
+					froxel_min.x = 0;
+					froxel_min.y = 0;
+					froxel_min.z = 0;
+					froxel_max.x = int32_t(fog->width);
+					froxel_max.y = int32_t(fog->height);
+					for (int j = 0; j < 8; j++) {
+						froxel_max.z = MAX(froxel_max.z, froxels[j].z);
+					}
+				} else {
+					// Camera is guaranteed to be outside the fog volume
+					for (int j = 0; j < 8; j++) {
+						froxel_min = froxel_min.min(froxels[j]);
+						froxel_max = froxel_max.max(froxels[j]);
+					}
+				}
+
+				kernel_size = froxel_max - froxel_min;
 			} else {
 				// Volume type global runs on all cells
 				extents = Vector3(fog->width, fog->height, fog->depth);
-				min = Vector3i(0, 0, 0);
+				froxel_min = Vector3i(0, 0, 0);
 				kernel_size = Vector3i(int32_t(fog->width), int32_t(fog->height), int32_t(fog->depth));
 			}
 
@@ -695,15 +723,15 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 			}
 
 			VolumetricFogShader::FogPushConstant push_constant;
-			push_constant.position[0] = position.x;
-			push_constant.position[1] = position.y;
-			push_constant.position[2] = position.z;
+			push_constant.position[0] = fog_position.x;
+			push_constant.position[1] = fog_position.y;
+			push_constant.position[2] = fog_position.z;
 			push_constant.size[0] = extents.x * 2;
 			push_constant.size[1] = extents.y * 2;
 			push_constant.size[2] = extents.z * 2;
-			push_constant.corner[0] = min.x;
-			push_constant.corner[1] = min.y;
-			push_constant.corner[2] = min.z;
+			push_constant.corner[0] = froxel_min.x;
+			push_constant.corner[1] = froxel_min.y;
+			push_constant.corner[2] = froxel_min.z;
 			push_constant.shape = uint32_t(RendererRD::Fog::get_singleton()->fog_volume_get_shape(fog_volume));
 			RendererRD::MaterialStorage::store_transform(fog_volume_instance->transform.affine_inverse(), push_constant.transform);
 

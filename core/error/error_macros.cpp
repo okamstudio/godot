@@ -107,6 +107,28 @@ void _err_print_error(const char *p_function, const char *p_file, int p_line, co
 	_global_unlock();
 }
 
+// For printing errors when we may crash at any point, so we must flush ASAP a lot of lines
+// but we don't want to make it noisy by printing lots of file & line info (because it's already
+// been printing by a preceding _err_print_error).
+void _err_print_error_asap(const String &p_error, ErrorHandlerType p_type) {
+	if (OS::get_singleton()) {
+		OS::get_singleton()->printerr("ERROR: %s\n", p_error.utf8().get_data());
+	} else {
+		// Fallback if errors happen before OS init or after it's destroyed.
+		const char *err_details = p_error.utf8().get_data();
+		fprintf(stderr, "ERROR: %s\n", err_details);
+	}
+
+	_global_lock();
+	ErrorHandlerList *l = error_handler_list;
+	while (l) {
+		l->errfunc(l->userdata, "", "", 0, p_error.utf8().get_data(), "", false, p_type);
+		l = l->next;
+	}
+
+	_global_unlock();
+}
+
 // Errors with message. (All combinations of p_error and p_message as String or char*.)
 void _err_print_error(const char *p_function, const char *p_file, int p_line, const String &p_error, const char *p_message, bool p_editor_notify, ErrorHandlerType p_type) {
 	_err_print_error(p_function, p_file, p_line, p_error.utf8().get_data(), p_message, p_editor_notify, p_type);

@@ -7260,6 +7260,10 @@ void RenderingDevice::_bind_methods() {
 	BIND_ENUM_CONSTANT(DEBUG_PASS);
 }
 
+void RenderingDevice::make_current() {
+	render_thread_id = Thread::get_caller_id();
+}
+
 RenderingDevice::~RenderingDevice() {
 	finalize();
 

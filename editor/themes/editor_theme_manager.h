@@ -135,6 +135,7 @@ class EditorThemeManager {
 		Ref<StyleBoxFlat> button_style_hover;
 
 		Ref<StyleBoxFlat> popup_style;
+		Ref<StyleBoxFlat> popup_border_style;
 		Ref<StyleBoxFlat> window_style;
 		Ref<StyleBoxFlat> dialog_style;
 		Ref<StyleBoxFlat> panel_container_style;

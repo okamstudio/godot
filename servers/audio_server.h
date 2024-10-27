@@ -427,6 +427,8 @@ public:
 	uint64_t get_mix_count() const;
 	uint64_t get_mixed_frames() const;
 
+	String get_driver_name() const;
+
 	void notify_listener_changed();
 
 	virtual void init();

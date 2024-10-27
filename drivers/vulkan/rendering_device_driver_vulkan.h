@@ -172,7 +172,12 @@ private:
 	VmaPool _find_or_create_small_allocs_pool(uint32_t p_mem_type_index);
 
 private:
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
+	// It's a circular buffer.
 	BufferID breadcrumb_buffer;
+	uint32_t breadcrumb_offset = 0u;
+	uint32_t breadcrumb_id = 0u;
+#endif
 
 public:
 	/*****************/

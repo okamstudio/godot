@@ -79,10 +79,45 @@
 				Overridable method. Called whenever the audio stream is mixed if the playback is active and [method AudioServer.set_enable_tagging_used_audio_streams] has been set to [code]true[/code]. Editor plugins may use this method to "tag" the current position along the audio stream and display it in a preview.
 			</description>
 		</method>
+		<method name="get_loop_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of times the stream has looped.
+			</description>
+		</method>
+		<method name="get_playback_position" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the current position in the stream, in seconds.
+			</description>
+		</method>
 		<method name="get_sample_playback" qualifiers="const" experimental="">
 			<return type="AudioSamplePlayback" />
 			<description>
 				Returns the [AudioSamplePlayback] associated with this [AudioStreamPlayback] for playing back the audio sample of this stream.
+			</description>
+		</method>
+		<method name="is_playing" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the stream is playing.
+			</description>
+		</method>
+		<method name="mix_audio">
+			<return type="PackedVector2Array" />
+			<param index="0" name="rate_scale" type="float" />
+			<param index="1" name="frames" type="int" />
+			<description>
+				Mixes up to [param frames] of audio from the stream from the current position, at a rate of [param rate_scale], advancing the stream.
+				Returns a [PackedVector2Array] where each element holds the left and right channel volume levels of each frame.
+				[b]Note:[/b] Can return fewer frames than requested, make sure to use the size of the return value.
+			</description>
+		</method>
+		<method name="seek">
+			<return type="void" />
+			<param index="0" name="time" type="float" default="0.0" />
+			<description>
+				Seeks the stream at the given [param time], in seconds.
 			</description>
 		</method>
 		<method name="set_sample_playback" experimental="">
@@ -90,6 +125,19 @@
 			<param index="0" name="playback_sample" type="AudioSamplePlayback" />
 			<description>
 				Associates [AudioSamplePlayback] to this [AudioStreamPlayback] for playing back the audio sample of this stream.
+			</description>
+		</method>
+		<method name="start">
+			<return type="void" />
+			<param index="0" name="from_pos" type="float" default="0.0" />
+			<description>
+				Starts the stream from the given [param from_pos], in seconds.
+			</description>
+		</method>
+		<method name="stop">
+			<return type="void" />
+			<description>
+				Stops the stream.
 			</description>
 		</method>
 	</methods>

@@ -39,12 +39,14 @@ void ExternalTexture::_bind_methods() {
 }
 
 uint64_t ExternalTexture::get_external_texture_id() const {
+	_ensure_created();
 	return RenderingServer::get_singleton()->texture_get_native_handle(texture);
 }
 
 void ExternalTexture::set_size(const Size2 &p_size) {
 	if (p_size.width > 0 && p_size.height > 0 && p_size != size) {
 		size = p_size;
+		_ensure_created();
 		RenderingServer::get_singleton()->texture_external_update(texture, size.width, size.height, external_buffer);
 		emit_changed();
 	}
@@ -57,6 +59,7 @@ Size2 ExternalTexture::get_size() const {
 void ExternalTexture::set_external_buffer_id(uint64_t p_external_buffer) {
 	if (p_external_buffer != external_buffer) {
 		external_buffer = p_external_buffer;
+		_ensure_created();
 		RenderingServer::get_singleton()->texture_external_update(texture, size.width, size.height, external_buffer);
 	}
 }
@@ -74,11 +77,29 @@ bool ExternalTexture::has_alpha() const {
 }
 
 RID ExternalTexture::get_rid() const {
+	if (!texture.is_valid()) {
+		texture = RenderingServer::get_singleton()->texture_2d_placeholder_create();
+		using_placeholder = true;
+	}
 	return texture;
 }
 
+void ExternalTexture::_ensure_created() const {
+	if (texture.is_valid() && !using_placeholder) {
+		return;
+	}
+
+	RID new_texture = RenderingServer::get_singleton()->texture_external_create(size.width, size.height);
+	if (using_placeholder) {
+		DEV_ASSERT(texture.is_valid());
+		RenderingServer::get_singleton()->texture_replace(texture, new_texture);
+		using_placeholder = false;
+	} else {
+		texture = new_texture;
+	}
+}
+
 ExternalTexture::ExternalTexture() {
-	texture = RenderingServer::get_singleton()->texture_external_create(size.width, size.height);
 }
 
 ExternalTexture::~ExternalTexture() {

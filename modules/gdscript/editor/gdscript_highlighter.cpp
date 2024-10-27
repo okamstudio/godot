@@ -701,7 +701,9 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 	List<StringName> types;
 	ClassDB::get_class_list(&types);
 	for (const StringName &E : types) {
-		class_names[E] = types_color;
+		if (ClassDB::is_class_exposed(E)) {
+			class_names[E] = types_color;
+		}
 	}
 
 	/* User types. */

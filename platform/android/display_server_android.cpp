@@ -389,6 +389,14 @@ int64_t DisplayServerAndroid::window_get_native_handle(HandleType p_handle_type,
 			}
 			return 0;
 		}
+		case EGL_DISPLAY: {
+			// @todo Find a way to get this from the Java side.
+			return 0;
+		}
+		case EGL_CONFIG: {
+			// @todo Find a way to get this from the Java side.
+			return 0;
+		}
 #endif
 		default: {
 			return 0;

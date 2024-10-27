@@ -3,6 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from methods import detect_darwin_sdk_path, print_error, print_warning
+from platform_methods import validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -60,12 +61,7 @@ def get_flags():
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_64", "arm64"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for iOS. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     ## LTO
 
@@ -134,7 +130,7 @@ def configure(env: "SConsEnvironment"):
     elif env["arch"] == "arm64":
         env.Append(
             CCFLAGS=(
-                "-fobjc-arc -arch arm64 -fmessage-length=0 -fno-strict-aliasing"
+                "-fobjc-arc -arch arm64 -fmessage-length=0"
                 " -fdiagnostics-print-source-range-info -fdiagnostics-show-category=id -fdiagnostics-parseable-fixits"
                 " -fpascal-strings -fblocks -fvisibility=hidden -MMD -MT dependencies"
                 " -isysroot $IOS_SDK_PATH".split()

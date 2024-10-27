@@ -113,6 +113,8 @@ public:
 	bool is_using_vsync() const;
 
 	EGLContext get_context(DisplayServer::WindowID p_window_id);
+	EGLDisplay get_display(DisplayServer::WindowID p_window_id);
+	EGLConfig get_config(DisplayServer::WindowID p_window_id);
 
 	Error initialize(void *p_native_display = nullptr);
 

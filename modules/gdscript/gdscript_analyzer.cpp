@@ -940,8 +940,8 @@ void GDScriptAnalyzer::resolve_class_member(GDScriptParser::ClassNode *p_class, 
 	Finally finally([&]() {
 		ensure_cached_external_parser_for_class(member.get_datatype().class_type, p_class, "Trying to resolve datatype of class member", p_source);
 		GDScriptParser::DataType member_type = member.get_datatype();
-		if (member_type.has_container_element_type(0)) {
-			ensure_cached_external_parser_for_class(member_type.get_container_element_type(0).class_type, p_class, "Trying to resolve datatype of class member", p_source);
+		for (int i = 0; i < member_type.get_container_element_type_count(); ++i) {
+			ensure_cached_external_parser_for_class(member_type.get_container_element_type(i).class_type, p_class, "Trying to resolve datatype of class member", p_source);
 		}
 	});
 
@@ -3816,6 +3816,12 @@ GDScriptParser::DataType GDScriptAnalyzer::make_global_class_meta_type(const Str
 }
 
 Ref<GDScriptParserRef> GDScriptAnalyzer::ensure_cached_external_parser_for_class(const GDScriptParser::ClassNode *p_class, const GDScriptParser::ClassNode *p_from_class, const char *p_context, const GDScriptParser::Node *p_source) {
+	// Delicate piece of code that intentionally doesn't use the GDScript cache or `get_depended_parser_for`.
+	// Search dependencies for the parser that owns `p_class` and make a cache entry for it.
+	// Required for how we store pointers to classes owned by other parser trees and need to call `resolve_class_member` and such on the same parser tree.
+	// Since https://github.com/godotengine/godot/pull/94871 there can technically be multiple parsers for the same script in the same parser tree.
+	// Even if unlikely, getting the wrong parser could lead to strange undefined behavior without errors.
+
 	if (p_class == nullptr) {
 		return nullptr;
 	}
@@ -3831,8 +3837,6 @@ Ref<GDScriptParserRef> GDScriptAnalyzer::ensure_cached_external_parser_for_class
 	if (p_from_class == nullptr) {
 		p_from_class = parser->head;
 	}
-
-	String script_path = p_class->get_datatype().script_path;
 
 	Ref<GDScriptParserRef> parser_ref;
 	for (const GDScriptParser::ClassNode *look_class = p_from_class; look_class != nullptr; look_class = look_class->base_type.class_type) {
@@ -5867,7 +5871,7 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 		parent = ClassDB::get_parent_class(parent);
 	}
 }
-#endif
+#endif // DEBUG_ENABLED
 
 GDScriptParser::DataType GDScriptAnalyzer::get_operation_type(Variant::Operator p_operation, const GDScriptParser::DataType &p_a, bool &r_valid, const GDScriptParser::Node *p_source) {
 	// Unary version.

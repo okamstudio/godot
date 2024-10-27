@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import methods
 from methods import print_error, print_warning
-from platform_methods import detect_arch
+from platform_methods import detect_arch, validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -483,9 +483,7 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
         else:
             print_warning("Missing environment variable: WindowsSdkDir")
 
-    if int(env["target_win_version"], 16) < 0x0601:
-        print_error("`target_win_version` should be 0x0601 or higher (Windows 7).")
-        sys.exit(255)
+    validate_win_version(env)
 
     env.AppendUnique(
         CPPDEFINES=[
@@ -549,15 +547,7 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
             LIBS += ["vulkan"]
 
     if env["d3d12"]:
-        # Check whether we have d3d12 dependencies installed.
-        if not os.path.exists(env["mesa_libs"]):
-            print_error(
-                "The Direct3D 12 rendering driver requires dependencies to be installed.\n"
-                "You can install them by running `python misc\\scripts\\install_d3d12_sdk_windows.py`.\n"
-                "See the documentation for more information:\n\t"
-                "https://docs.godotengine.org/en/latest/contributing/development/compiling/compiling_for_windows.html"
-            )
-            sys.exit(255)
+        check_d3d12_installed(env)
 
         env.AppendUnique(CPPDEFINES=["D3D12_ENABLED", "RD_ENABLED"])
         LIBS += ["dxgi", "dxguid"]
@@ -820,9 +810,7 @@ def configure_mingw(env: "SConsEnvironment"):
 
     ## Compile flags
 
-    if int(env["target_win_version"], 16) < 0x0601:
-        print_error("`target_win_version` should be 0x0601 or higher (Windows 7).")
-        sys.exit(255)
+    validate_win_version(env)
 
     if not env["use_llvm"]:
         env.Append(CCFLAGS=["-mwindows"])
@@ -900,15 +888,7 @@ def configure_mingw(env: "SConsEnvironment"):
             env.Append(LIBS=["vulkan"])
 
     if env["d3d12"]:
-        # Check whether we have d3d12 dependencies installed.
-        if not os.path.exists(env["mesa_libs"]):
-            print_error(
-                "The Direct3D 12 rendering driver requires dependencies to be installed.\n"
-                "You can install them by running `python misc\\scripts\\install_d3d12_sdk_windows.py`.\n"
-                "See the documentation for more information:\n\t"
-                "https://docs.godotengine.org/en/latest/contributing/development/compiling/compiling_for_windows.html"
-            )
-            sys.exit(255)
+        check_d3d12_installed(env)
 
         env.AppendUnique(CPPDEFINES=["D3D12_ENABLED", "RD_ENABLED"])
         env.Append(LIBS=["dxgi", "dxguid"])
@@ -951,12 +931,7 @@ def configure_mingw(env: "SConsEnvironment"):
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for Windows. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     # At this point the env has been set up with basic tools/compilers.
     env.Prepend(CPPPATH=["#platform/windows"])
@@ -984,3 +959,20 @@ def configure(env: "SConsEnvironment"):
 
     else:  # MinGW
         configure_mingw(env)
+
+
+def check_d3d12_installed(env):
+    if not os.path.exists(env["mesa_libs"]):
+        print_error(
+            "The Direct3D 12 rendering driver requires dependencies to be installed.\n"
+            "You can install them by running `python misc\\scripts\\install_d3d12_sdk_windows.py`.\n"
+            "See the documentation for more information:\n\t"
+            "https://docs.godotengine.org/en/latest/contributing/development/compiling/compiling_for_windows.html"
+        )
+        sys.exit(255)
+
+
+def validate_win_version(env):
+    if int(env["target_win_version"], 16) < 0x0601:
+        print_error("`target_win_version` should be 0x0601 or higher (Windows 7).")
+        sys.exit(255)

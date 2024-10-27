@@ -627,6 +627,18 @@ int64_t DisplayServerWayland::window_get_native_handle(HandleType p_handle_type,
 			}
 			return 0;
 		} break;
+		case EGL_DISPLAY: {
+			if (egl_manager) {
+				return (int64_t)egl_manager->get_display(p_window);
+			}
+			return 0;
+		}
+		case EGL_CONFIG: {
+			if (egl_manager) {
+				return (int64_t)egl_manager->get_config(p_window);
+			}
+			return 0;
+		}
 #endif // GLES3_ENABLED
 
 		default: {

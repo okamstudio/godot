@@ -533,9 +533,13 @@
 		</method>
 		<method name="make_canvas_position_local" qualifiers="const">
 			<return type="Vector2" />
-			<param index="0" name="screen_point" type="Vector2" />
+			<param index="0" name="viewport_point" type="Vector2" />
 			<description>
-				Assigns [param screen_point] as this node's new local transform.
+				Transforms [param viewport_point] from the viewport's coordinates to this node's local coordinates.
+				For the opposite operation, use [method get_global_transform_with_canvas].
+				[codeblock]
+				var viewport_point = get_global_transform_with_canvas() * local_point
+				[/codeblock]
 			</description>
 		</method>
 		<method name="make_input_local" qualifiers="const">

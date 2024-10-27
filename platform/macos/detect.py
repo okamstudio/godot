@@ -3,7 +3,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from methods import detect_darwin_sdk_path, get_compiler_version, is_vanilla_clang, print_error, print_warning
-from platform_methods import detect_arch, detect_mvk
+from platform_methods import detect_arch, detect_mvk, validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -68,12 +68,7 @@ def get_flags():
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_64", "arm64"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for macOS. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     ## Build type
 

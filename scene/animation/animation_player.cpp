@@ -133,7 +133,7 @@ void AnimationPlayer::_get_property_list(List<PropertyInfo> *p_list) const {
 	List<PropertyInfo> anim_names;
 
 	for (const KeyValue<StringName, AnimationData> &E : animation_set) {
-		HashMap<StringName, StringName>::ConstIterator F = animation_next_set.find(E.key);
+		AHashMap<StringName, StringName>::ConstIterator F = animation_next_set.find(E.key);
 		if (F && F->value != StringName()) {
 			anim_names.push_back(PropertyInfo(Variant::STRING, "next/" + String(E.key), PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL));
 		}
@@ -299,7 +299,7 @@ void AnimationPlayer::_blend_playback_data(double p_delta, bool p_started) {
 	}
 }
 
-bool AnimationPlayer::_blend_pre_process(double p_delta, int p_track_count, const HashMap<NodePath, int> &p_track_map) {
+bool AnimationPlayer::_blend_pre_process(double p_delta, int p_track_count, const AHashMap<NodePath, int> &p_track_map) {
 	if (!playback.current.from) {
 		_set_process(false);
 		return false;

@@ -11,11 +11,13 @@
 	</tutorials>
 	<members>
 		<member name="pan_pullout" type="float" setter="set_pan_pullout" getter="get_pan_pullout" default="1.0">
-			Values greater than 1.0 increase intensity of any panning on audio passing through this effect, whereas values less than 1.0 will decrease the panning intensity. A value of 0.0 will downmix audio to mono.
+			Amplifies the difference between stereo channels, increasing or decreasing existing panning. A value of 0.0 will downmix stereo to mono. Does not affect a mono signal.
 		</member>
 		<member name="surround" type="float" setter="set_surround" getter="get_surround" default="0.0">
+			Widens sound stage through phase shifting in conjunction with [member time_pullout_ms]. Just pans sound to the left channel if [member time_pullout_ms] is 0.
 		</member>
 		<member name="time_pullout_ms" type="float" setter="set_time_pullout" getter="get_time_pullout" default="0.0">
+			Widens sound stage through phase shifting in conjunction with [member surround]. Just delays the right channel if [member surround] is 0.
 		</member>
 	</members>
 </class>

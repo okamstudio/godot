@@ -1861,6 +1861,18 @@ int64_t DisplayServerX11::window_get_native_handle(HandleType p_handle_type, Win
 			}
 			return 0;
 		}
+		case EGL_DISPLAY: {
+			if (gl_manager_egl) {
+				return (int64_t)gl_manager_egl->get_display(p_window);
+			}
+			return 0;
+		}
+		case EGL_CONFIG: {
+			if (gl_manager_egl) {
+				return (int64_t)gl_manager_egl->get_config(p_window);
+			}
+			return 0;
+		}
 #endif
 		default: {
 			return 0;

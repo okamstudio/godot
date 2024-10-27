@@ -31,6 +31,7 @@
 #ifndef ANIMATION_MIXER_H
 #define ANIMATION_MIXER_H
 
+#include "core/templates/a_hash_map.h"
 #include "scene/animation/tween.h"
 #include "scene/main/node.h"
 #include "scene/resources/animation.h"
@@ -102,7 +103,7 @@ public:
 protected:
 	/* ---- Data lists ---- */
 	LocalVector<AnimationLibraryData> animation_libraries;
-	HashMap<StringName, AnimationData> animation_set; // HashMap<Library name + Animation name, AnimationData>
+	AHashMap<StringName, AnimationData> animation_set; // HashMap<Library name + Animation name, AnimationData>
 
 	TypedArray<StringName> _get_animation_library_list() const;
 	Vector<String> _get_animation_list() const {
@@ -148,6 +149,7 @@ protected:
 		uint64_t setup_pass = 0;
 		Animation::TrackType type = Animation::TrackType::TYPE_ANIMATION;
 		NodePath path;
+		int blend_idx = -1;
 		ObjectID object_id;
 		real_t total_weight = 0.0;
 
@@ -269,7 +271,7 @@ protected:
 
 	// Audio track information for mixng and ending.
 	struct PlayingAudioTrackInfo {
-		HashMap<int, PlayingAudioStreamInfo> stream_info;
+		AHashMap<int, PlayingAudioStreamInfo> stream_info;
 		double length = 0.0;
 		double time = 0.0;
 		real_t volume = 0.0;
@@ -308,7 +310,8 @@ protected:
 	};
 
 	RootMotionCache root_motion_cache;
-	HashMap<Animation::TypeHash, TrackCache *> track_cache;
+	AHashMap<Animation::TypeHash, TrackCache *, HashHasher> track_cache;
+	AHashMap<Ref<Animation>, LocalVector<TrackCache *>> animation_track_num_to_track_cashe;
 	HashSet<TrackCache *> playing_caches;
 	Vector<Node *> playing_audio_stream_players;
 
@@ -324,7 +327,7 @@ protected:
 
 	/* ---- Blending processor ---- */
 	LocalVector<AnimationInstance> animation_instances;
-	HashMap<NodePath, int> track_map;
+	AHashMap<NodePath, int> track_map;
 	int track_count = 0;
 	bool deterministic = false;
 
@@ -359,12 +362,12 @@ protected:
 	virtual void _process_animation(double p_delta, bool p_update_only = false);
 
 	// For post process with retrieved key value during blending.
-	virtual Variant _post_process_key_value(const Ref<Animation> &p_anim, int p_track, Variant p_value, ObjectID p_object_id, int p_object_sub_idx = -1);
+	virtual Variant _post_process_key_value(const Ref<Animation> &p_anim, int p_track, Variant &p_value, ObjectID p_object_id, int p_object_sub_idx = -1);
 	Variant post_process_key_value(const Ref<Animation> &p_anim, int p_track, Variant p_value, ObjectID p_object_id, int p_object_sub_idx = -1);
 	GDVIRTUAL5RC(Variant, _post_process_key_value, Ref<Animation>, int, Variant, ObjectID, int);
 
 	void _blend_init();
-	virtual bool _blend_pre_process(double p_delta, int p_track_count, const HashMap<NodePath, int> &p_track_map);
+	virtual bool _blend_pre_process(double p_delta, int p_track_count, const AHashMap<NodePath, int> &p_track_map);
 	virtual void _blend_capture(double p_delta);
 	void _blend_calc_total_weight(); // For undeterministic blending.
 	void _blend_process(double p_delta, bool p_update_only = false);
@@ -485,11 +488,11 @@ public:
 class AnimatedValuesBackup : public RefCounted {
 	GDCLASS(AnimatedValuesBackup, RefCounted);
 
-	HashMap<Animation::TypeHash, AnimationMixer::TrackCache *> data;
+	AHashMap<Animation::TypeHash, AnimationMixer::TrackCache *, HashHasher> data;
 
 public:
-	void set_data(const HashMap<Animation::TypeHash, AnimationMixer::TrackCache *> p_data);
-	HashMap<Animation::TypeHash, AnimationMixer::TrackCache *> get_data() const;
+	void set_data(const AHashMap<Animation::TypeHash, AnimationMixer::TrackCache *, HashHasher> p_data);
+	AHashMap<Animation::TypeHash, AnimationMixer::TrackCache *, HashHasher> get_data() const;
 	void clear_data();
 
 	AnimationMixer::TrackCache *get_cache_copy(AnimationMixer::TrackCache *p_cache) const;

@@ -73,6 +73,9 @@ private:
 	bool use_validation_layers = false;
 	bool generate_spirv_debug_info = false;
 	bool extra_gpu_memory_tracking = false;
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
+	bool accurate_breadcrumbs = false;
+#endif
 	int32_t gpu_idx = -1;
 
 	uint64_t _process_frames = 0;
@@ -186,6 +189,9 @@ public:
 	bool is_validation_layers_enabled() const;
 	bool is_generate_spirv_debug_info_enabled() const;
 	bool is_extra_gpu_memory_tracking_enabled() const;
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
+	bool is_accurate_breadcrumbs_enabled() const;
+#endif
 	int32_t get_gpu_index() const;
 
 	void increment_frames_drawn();

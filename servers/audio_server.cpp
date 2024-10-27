@@ -1440,6 +1440,10 @@ uint64_t AudioServer::get_mixed_frames() const {
 	return mix_frames;
 }
 
+String AudioServer::get_driver_name() const {
+	return AudioDriver::get_singleton()->get_name();
+}
+
 void AudioServer::notify_listener_changed() {
 	for (CallbackItem *ci : listener_changed_callback_list) {
 		ci->callback(ci->userdata);
@@ -1946,6 +1950,8 @@ void AudioServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_speaker_mode"), &AudioServer::get_speaker_mode);
 	ClassDB::bind_method(D_METHOD("get_mix_rate"), &AudioServer::get_mix_rate);
+
+	ClassDB::bind_method(D_METHOD("get_driver_name"), &AudioServer::get_driver_name);
 
 	ClassDB::bind_method(D_METHOD("get_output_device_list"), &AudioServer::get_output_device_list);
 	ClassDB::bind_method(D_METHOD("get_output_device"), &AudioServer::get_output_device);

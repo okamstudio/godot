@@ -460,11 +460,27 @@ TEST_CASE("[String] Number to string") {
 	CHECK(String::num(-0.0) == "-0"); // Includes sign even for zero.
 	CHECK(String::num(3.141593) == "3.141593");
 	CHECK(String::num(3.141593, 3) == "3.142");
+	CHECK(String::num(42.100023, 4) == "42.1"); // No trailing zeros.
 	CHECK(String::num_scientific(30000000) == "3e+07");
+
+	// String::num_int64 tests.
 	CHECK(String::num_int64(3141593) == "3141593");
+	CHECK(String::num_int64(-3141593) == "-3141593");
 	CHECK(String::num_int64(0xA141593, 16) == "a141593");
 	CHECK(String::num_int64(0xA141593, 16, true) == "A141593");
-	CHECK(String::num(42.100023, 4) == "42.1"); // No trailing zeros.
+	ERR_PRINT_OFF;
+	CHECK(String::num_int64(3141593, 1) == ""); // Invalid base < 2.
+	CHECK(String::num_int64(3141593, 37) == ""); // Invalid base > 36.
+	ERR_PRINT_ON;
+
+	// String::num_uint64 tests.
+	CHECK(String::num_uint64(4294967295) == "4294967295");
+	CHECK(String::num_uint64(0xF141593, 16) == "f141593");
+	CHECK(String::num_uint64(0xF141593, 16, true) == "F141593");
+	ERR_PRINT_OFF;
+	CHECK(String::num_uint64(4294967295, 1) == ""); // Invalid base < 2.
+	CHECK(String::num_uint64(4294967295, 37) == ""); // Invalid base > 36.
+	ERR_PRINT_ON;
 
 	// String::num_real tests.
 	CHECK(String::num_real(1.0) == "1.0");

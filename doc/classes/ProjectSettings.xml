@@ -10,6 +10,7 @@
 		[b]Overriding:[/b] Any project setting can be overridden by creating a file named [code]override.cfg[/code] in the project's root directory. This can also be used in exported projects by placing this file in the same directory as the project binary. Overriding will still take the base project settings' [url=$DOCS_URL/tutorials/export/feature_tags.html]feature tags[/url] in account. Therefore, make sure to [i]also[/i] override the setting with the desired feature tags if you want them to override base project settings on all platforms and configurations.
 	</description>
 	<tutorials>
+		<link title="Project Settings">$DOCS_URL/tutorials/editor/project_settings.html</link>
 		<link title="3D Physics Tests Demo">https://godotengine.org/asset-library/asset/2747</link>
 		<link title="3D Platformer Demo">https://godotengine.org/asset-library/asset/2748</link>
 		<link title="Operating System Testing Demo">https://godotengine.org/asset-library/asset/2789</link>
@@ -376,6 +377,7 @@
 		<member name="audio/driver/driver" type="String" setter="" getter="">
 			Specifies the audio driver to use. This setting is platform-dependent as each platform supports different audio drivers. If left empty, the default audio driver will be used.
 			The [code]Dummy[/code] audio driver disables all audio playback and recording, which is useful for non-game applications as it reduces CPU usage. It also prevents the engine from appearing as an application playing audio in the OS' audio mixer.
+			To query the value that is being used at run-time (which may be overridden by command-line arguments or headless mode), use [method AudioServer.get_driver_name].
 			[b]Note:[/b] The driver in use can be overridden at runtime via the [code]--audio-driver[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url].
 		</member>
 		<member name="audio/driver/enable_input" type="bool" setter="" getter="" default="false">

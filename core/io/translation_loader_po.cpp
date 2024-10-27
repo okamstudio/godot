@@ -31,7 +31,6 @@
 #include "translation_loader_po.h"
 
 #include "core/io/file_access.h"
-#include "core/string/translation.h"
 #include "core/string/translation_po.h"
 
 Ref<Resource> TranslationLoaderPO::load_translation(Ref<FileAccess> f, Error *r_error) {
@@ -361,7 +360,7 @@ void TranslationLoaderPO::get_recognized_extensions(List<String> *p_extensions) 
 }
 
 bool TranslationLoaderPO::handles_type(const String &p_type) const {
-	return (p_type == "Translation");
+	return (p_type == "Translation") || (p_type == "TranslationPO");
 }
 
 String TranslationLoaderPO::get_resource_type(const String &p_path) const {

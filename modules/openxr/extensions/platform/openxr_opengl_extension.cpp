@@ -64,6 +64,9 @@ HashMap<String, bool *> OpenXROpenGLExtension::get_requested_extensions() {
 #else
 	request_extensions[XR_KHR_OPENGL_ENABLE_EXTENSION_NAME] = nullptr;
 #endif
+#if defined(LINUXBSD_ENABLED) && defined(EGL_ENABLED)
+	request_extensions[XR_MNDX_EGL_ENABLE_EXTENSION_NAME] = &egl_extension_enabled;
+#endif
 
 	return request_extensions;
 }
@@ -128,8 +131,13 @@ bool OpenXROpenGLExtension::check_graphics_api_support(XrVersion p_desired_versi
 XrGraphicsBindingOpenGLWin32KHR OpenXROpenGLExtension::graphics_binding_gl;
 #elif defined(ANDROID_ENABLED)
 XrGraphicsBindingOpenGLESAndroidKHR OpenXROpenGLExtension::graphics_binding_gl;
-#elif defined(X11_ENABLED)
+#elif defined(LINUXBSD_ENABLED)
+#ifdef X11_ENABLED
 XrGraphicsBindingOpenGLXlibKHR OpenXROpenGLExtension::graphics_binding_gl;
+#endif
+#ifdef EGL_ENABLED
+XrGraphicsBindingEGLMNDX OpenXROpenGLExtension::graphics_binding_egl;
+#endif
 #endif
 
 void *OpenXROpenGLExtension::set_session_create_and_get_next_pointer(void *p_next_pointer) {
@@ -141,10 +149,6 @@ void *OpenXROpenGLExtension::set_session_create_and_get_next_pointer(void *p_nex
 	}
 
 	DisplayServer *display_server = DisplayServer::get_singleton();
-
-#ifdef WAYLAND_ENABLED
-	ERR_FAIL_COND_V_MSG(display_server->get_name() == "Wayland", p_next_pointer, "OpenXR is not yet supported on OpenGL Wayland.");
-#endif
 
 #ifdef WIN32
 	graphics_binding_gl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR,
@@ -159,7 +163,23 @@ void *OpenXROpenGLExtension::set_session_create_and_get_next_pointer(void *p_nex
 	graphics_binding_gl.display = (void *)display_server->window_get_native_handle(DisplayServer::DISPLAY_HANDLE);
 	graphics_binding_gl.config = (EGLConfig)0; // https://github.com/KhronosGroup/OpenXR-SDK-Source/blob/master/src/tests/hello_xr/graphicsplugin_opengles.cpp#L122
 	graphics_binding_gl.context = (void *)display_server->window_get_native_handle(DisplayServer::OPENGL_CONTEXT);
-#elif defined(X11_ENABLED)
+#else
+#if defined(EGL_ENABLED) && defined(WAYLAND_ENABLED)
+	if (display_server->get_name() == "Wayland") {
+		ERR_FAIL_COND_V_MSG(!egl_extension_enabled, p_next_pointer, "OpenXR cannot initialize on Wayland without the XR_MNDX_egl_enable extension.");
+
+		graphics_binding_egl.type = XR_TYPE_GRAPHICS_BINDING_EGL_MNDX;
+		graphics_binding_egl.next = p_next_pointer;
+
+		graphics_binding_egl.getProcAddress = eglGetProcAddress;
+		graphics_binding_egl.display = (void *)display_server->window_get_native_handle(DisplayServer::EGL_DISPLAY);
+		graphics_binding_egl.config = (void *)display_server->window_get_native_handle(DisplayServer::EGL_CONFIG);
+		graphics_binding_egl.context = (void *)display_server->window_get_native_handle(DisplayServer::OPENGL_CONTEXT);
+
+		return &graphics_binding_egl;
+	}
+#endif
+#if defined(X11_ENABLED)
 	graphics_binding_gl.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR;
 	graphics_binding_gl.next = p_next_pointer;
 
@@ -175,8 +195,13 @@ void *OpenXROpenGLExtension::set_session_create_and_get_next_pointer(void *p_nex
 	graphics_binding_gl.visualid = 0;
 	graphics_binding_gl.glxFBConfig = 0;
 #endif
+#endif
 
+#if defined(WIN32) || defined(ANDROID_ENABLED) || defined(X11_ENABLED)
 	return &graphics_binding_gl;
+#else
+	return p_next_pointer;
+#endif
 }
 
 void OpenXROpenGLExtension::get_usable_swapchain_formats(Vector<int64_t> &p_usable_swap_chains) {

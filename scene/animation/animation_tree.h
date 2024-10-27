@@ -60,7 +60,7 @@ public:
 
 	bool closable = false;
 	Vector<Input> inputs;
-	HashMap<NodePath, bool> filter;
+	AHashMap<NodePath, bool> filter;
 	bool filter_enabled = false;
 
 	// To propagate information from upstream for use in estimation of playback progress.
@@ -97,22 +97,57 @@ public:
 
 	// Temporary state for blending process which needs to be stored in each AnimationNodes.
 	struct NodeState {
+		friend AnimationNode;
+
+	private:
 		StringName base_path;
+
+	public:
 		AnimationNode *parent = nullptr;
 		Vector<StringName> connections;
 		Vector<real_t> track_weights;
+
+		const StringName get_base_path() const {
+			return base_path;
+		}
+
 	} node_state;
 
 	// Temporary state for blending process which needs to be started in the AnimationTree, pass through the AnimationNodes, and then return to the AnimationTree.
 	struct ProcessState {
 		AnimationTree *tree = nullptr;
-		const HashMap<NodePath, int> *track_map; // TODO: Is there a better way to manage filter/tracks?
+		const AHashMap<NodePath, int> *track_map; // TODO: Is there a better way to manage filter/tracks?
 		bool is_testing = false;
 		bool valid = false;
 		String invalid_reasons;
 		uint64_t last_pass = 0;
 	} *process_state = nullptr;
 
+private:
+	mutable AHashMap<StringName, int> property_cache;
+
+public:
+	void set_node_state_base_path(const StringName p_base_path) {
+		if (p_base_path != node_state.base_path) {
+			node_state.base_path = p_base_path;
+			make_cache_dirty();
+		}
+	}
+
+	void set_node_state_base_path(const String p_base_path) {
+		if (p_base_path != node_state.base_path) {
+			node_state.base_path = p_base_path;
+			make_cache_dirty();
+		}
+	}
+
+	const StringName get_node_state_base_path() const {
+		return node_state.get_base_path();
+	}
+
+	void make_cache_dirty() {
+		property_cache.clear();
+	}
 	Array _get_filters() const;
 	void _set_filters(const Array &p_filters);
 	friend class AnimationNodeBlendTree;
@@ -250,9 +285,9 @@ private:
 	friend class AnimationNode;
 
 	List<PropertyInfo> properties;
-	HashMap<StringName, HashMap<StringName, StringName>> property_parent_map;
-	HashMap<ObjectID, StringName> property_reference_map;
-	HashMap<StringName, Pair<Variant, bool>> property_map; // Property value and read-only flag.
+	AHashMap<StringName, AHashMap<StringName, StringName>> property_parent_map;
+	AHashMap<ObjectID, StringName> property_reference_map;
+	AHashMap<StringName, Pair<Variant, bool>> property_map; // Property value and read-only flag.
 
 	bool properties_dirty = true;
 
@@ -286,7 +321,7 @@ private:
 	virtual void _set_active(bool p_active) override;
 
 	// Make animation instances.
-	virtual bool _blend_pre_process(double p_delta, int p_track_count, const HashMap<NodePath, int> &p_track_map) override;
+	virtual bool _blend_pre_process(double p_delta, int p_track_count, const AHashMap<NodePath, int> &p_track_map) override;
 
 #ifndef DISABLE_DEPRECATED
 	void _set_process_callback_bind_compat_80813(AnimationProcessCallback p_mode);

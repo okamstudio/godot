@@ -4,8 +4,8 @@
 		Built-in GDScript constants, functions, and annotations.
 	</brief_description>
 	<description>
-		A list of GDScript-specific utility functions and annotations accessible from any script.
-		For the list of the global functions and constants see [@GlobalScope].
+		A list of utility functions and annotations accessible from any script written in GDScript.
+		For the list of global functions and constants that can be accessed in any scripting language, see [@GlobalScope].
 	</description>
 	<tutorials>
 		<link title="GDScript exports">$DOCS_URL/tutorials/scripting/gdscript/gdscript_exports.html</link>
@@ -61,7 +61,7 @@
 		<method name="convert" deprecated="Use [method @GlobalScope.type_convert] instead.">
 			<return type="Variant" />
 			<param index="0" name="what" type="Variant" />
-			<param index="1" name="type" type="int" />
+			<param index="1" name="type" type="int" enum="Variant.Type" />
 			<description>
 				Converts [param what] to [param type] in the best way possible. The [param type] uses the [enum Variant.Type] values.
 				[codeblock]

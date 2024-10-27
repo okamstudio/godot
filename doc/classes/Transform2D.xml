@@ -251,14 +251,14 @@
 		</member>
 		<member name="y" type="Vector2" setter="" getter="" default="Vector2(0, 1)">
 			The transform basis's Y axis, and the column [code]1[/code] of the matrix. Combined with [member x], this represents the transform's rotation, scale, and skew.
-			On the identity transform, this vector points up ([constant Vector2.UP]).
+			On the identity transform, this vector points down ([constant Vector2.DOWN]).
 		</member>
 	</members>
 	<constants>
 		<constant name="IDENTITY" value="Transform2D(1, 0, 0, 1, 0, 0)">
 			The identity [Transform2D]. A transform with no translation, no rotation, and its scale being [code]1[/code]. When multiplied by another [Variant] such as [Rect2] or another [Transform2D], no transformation occurs. This means that:
 			- The [member x] points right ([constant Vector2.RIGHT]);
-			- The [member y] points up ([constant Vector2.UP]).
+			- The [member y] points down ([constant Vector2.DOWN]).
 			[codeblock]
 			var transform = Transform2D.IDENTITY
 			print("| X | Y | Origin")

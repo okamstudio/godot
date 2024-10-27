@@ -2676,6 +2676,18 @@ int64_t DisplayServerMacOS::window_get_native_handle(HandleType p_handle_type, W
 			}
 			return 0;
 		}
+		case EGL_DISPLAY: {
+			if (gl_manager_angle) {
+				return (int64_t)gl_manager_angle->get_display(p_window);
+			}
+			return 0;
+		}
+		case EGL_CONFIG: {
+			if (gl_manager_angle) {
+				return (int64_t)gl_manager_angle->get_config(p_window);
+			}
+			return 0;
+		}
 #endif
 		default: {
 			return 0;

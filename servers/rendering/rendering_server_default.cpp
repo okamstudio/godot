@@ -370,6 +370,8 @@ Size2i RenderingServerDefault::get_maximum_viewport_size() const {
 void RenderingServerDefault::_assign_mt_ids(WorkerThreadPool::TaskID p_pump_task_id) {
 	server_thread = Thread::get_caller_id();
 	server_task_id = p_pump_task_id;
+	// This is needed because the main RD is created on the main thread.
+	RenderingDevice::get_singleton()->make_current();
 }
 
 void RenderingServerDefault::_thread_exit() {

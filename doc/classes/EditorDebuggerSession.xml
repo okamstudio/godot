@@ -14,7 +14,7 @@
 			<return type="void" />
 			<param index="0" name="control" type="Control" />
 			<description>
-				Adds the given [param control] to the debug session UI in the debugger bottom panel.
+				Adds the given [param control] to the debug session UI in the debugger bottom panel. The [param control]'s node name will be used as the tab title.
 			</description>
 		</method>
 		<method name="is_active">

@@ -790,22 +790,13 @@ ImportDock::ImportDock() {
 	import->set_text(TTR("Reimport"));
 	import->set_disabled(true);
 	import->connect(SceneStringName(pressed), callable_mp(this, &ImportDock::_reimport_pressed));
-	if (!DisplayServer::get_singleton()->get_swap_cancel_ok()) {
-		advanced_spacer = hb->add_spacer();
-		advanced = memnew(Button);
-		advanced->set_text(TTR("Advanced..."));
-		hb->add_child(advanced);
-	}
+	advanced_spacer = hb->add_spacer();
+	advanced = memnew(Button);
+	advanced->set_text(TTR("Advanced..."));
+	hb->add_child(advanced);
 	hb->add_spacer();
 	hb->add_child(import);
 	hb->add_spacer();
-
-	if (DisplayServer::get_singleton()->get_swap_cancel_ok()) {
-		advanced = memnew(Button);
-		advanced->set_text(TTR("Advanced..."));
-		hb->add_child(advanced);
-		advanced_spacer = hb->add_spacer();
-	}
 
 	advanced->hide();
 	advanced_spacer->hide();

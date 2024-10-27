@@ -14,6 +14,7 @@ from emscripten_helpers import (
 from SCons.Util import WhereIs
 
 from methods import get_compiler_version, print_error, print_warning
+from platform_methods import validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -86,12 +87,7 @@ def get_flags():
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["wasm32"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for Web. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     try:
         env["initial_memory"] = int(env["initial_memory"])

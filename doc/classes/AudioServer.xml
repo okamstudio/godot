@@ -110,6 +110,12 @@
 				Returns the volume of the bus at index [param bus_idx] in dB.
 			</description>
 		</method>
+		<method name="get_driver_name" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the name of the current audio driver. The default usually depends on the operating system, but may be overridden via the [code]--audio-driver[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url]. [code]--headless[/code] also automatically sets the audio driver to [code]Dummy[/code]. See also [member ProjectSettings.audio/driver/driver].
+			</description>
+		</method>
 		<method name="get_input_device_list">
 			<return type="PackedStringArray" />
 			<description>

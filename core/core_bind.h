@@ -324,6 +324,8 @@ public:
 
 	Dictionary make_atlas(const Vector<Size2> &p_rects);
 
+	TypedArray<Point2i> bresenham_line(const Point2i &p_from, const Point2i &p_to);
+
 	Geometry2D() { singleton = this; }
 };
 

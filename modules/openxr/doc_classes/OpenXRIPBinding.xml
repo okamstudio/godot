@@ -4,32 +4,32 @@
 		Defines a binding between an [OpenXRAction] and an XR input or output.
 	</brief_description>
 	<description>
-		This binding resource binds an [OpenXRAction] to inputs or outputs. As most controllers have left hand and right versions that are handled by the same interaction profile we can specify multiple bindings. For instance an action "Fire" could be bound to both "/user/hand/left/input/trigger" and "/user/hand/right/input/trigger".
+		This binding resource binds an [OpenXRAction] to an input or output. As most controllers have left hand and right versions that are handled by the same interaction profile we can specify multiple bindings. For instance an action "Fire" could be bound to both "/user/hand/left/input/trigger" and "/user/hand/right/input/trigger". This would require two binding entries.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="add_path">
+		<method name="add_path" deprecated="Binding is for a single path.">
 			<return type="void" />
 			<param index="0" name="path" type="String" />
 			<description>
 				Add an input/output path to this binding.
 			</description>
 		</method>
-		<method name="get_path_count" qualifiers="const">
+		<method name="get_path_count" qualifiers="const" deprecated="Binding is for a single path.">
 			<return type="int" />
 			<description>
 				Get the number of input/output paths in this binding.
 			</description>
 		</method>
-		<method name="has_path" qualifiers="const">
+		<method name="has_path" qualifiers="const" deprecated="Binding is for a single path.">
 			<return type="bool" />
 			<param index="0" name="path" type="String" />
 			<description>
 				Returns [code]true[/code] if this input/output path is part of this binding.
 			</description>
 		</method>
-		<method name="remove_path">
+		<method name="remove_path" deprecated="Binding is for a single path.">
 			<return type="void" />
 			<param index="0" name="path" type="String" />
 			<description>
@@ -39,9 +39,13 @@
 	</methods>
 	<members>
 		<member name="action" type="OpenXRAction" setter="set_action" getter="get_action">
-			[OpenXRAction] that is bound to these paths.
+			[OpenXRAction] that is bound to [member binding_path].
 		</member>
-		<member name="paths" type="PackedStringArray" setter="set_paths" getter="get_paths" default="PackedStringArray()">
+		<member name="binding_path" type="String" setter="set_binding_path" getter="get_binding_path" default="&quot;&quot;">
+			Binding path that defines the input or output bound to [member action].
+			[b]Note:[/b] Binding paths are suggestions, an XR runtime may choose to bind the action to a different input or output emulating this input or output.
+		</member>
+		<member name="paths" type="PackedStringArray" setter="set_paths" getter="get_paths" deprecated="Use [member binding_path] instead.">
 			Paths that define the inputs or outputs bound on the device.
 		</member>
 	</members>

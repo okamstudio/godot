@@ -577,7 +577,7 @@
 			Allows an application to write to the user dictionary.
 		</member>
 		<member name="screen/immersive_mode" type="bool" setter="" getter="">
-			If [code]true[/code], hides navigation and status bar.
+			If [code]true[/code], hides navigation and status bar. See [method DisplayServer.window_set_mode] to toggle it at runtime.
 		</member>
 		<member name="screen/support_large" type="bool" setter="" getter="">
 			Indicates whether the application supports larger screen form-factors.

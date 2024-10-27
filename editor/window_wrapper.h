@@ -88,7 +88,6 @@ class ScreenSelect : public Button {
 	GDCLASS(ScreenSelect, Button);
 
 	Popup *popup = nullptr;
-	Panel *popup_background = nullptr;
 	HBoxContainer *screen_list = nullptr;
 
 	void _build_advanced_menu();

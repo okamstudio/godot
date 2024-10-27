@@ -33,6 +33,7 @@
 		- [kbd]Cmd + E[/kbd]: Same as [kbd]End[/kbd], move the caret to the end of the line
 		- [kbd]Cmd + Left Arrow[/kbd]: Same as [kbd]Home[/kbd], move the caret to the beginning of the line
 		- [kbd]Cmd + Right Arrow[/kbd]: Same as [kbd]End[/kbd], move the caret to the end of the line
+		[b]Note:[/b] Caret movement shortcuts listed above are not affected by [member shortcut_keys_enabled].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -334,7 +335,7 @@
 			If [code]false[/code], it's impossible to select the text using mouse nor keyboard.
 		</member>
 		<member name="shortcut_keys_enabled" type="bool" setter="set_shortcut_keys_enabled" getter="is_shortcut_keys_enabled" default="true">
-			If [code]false[/code], using shortcuts will be disabled.
+			If [code]true[/code], shortcut keys for context menu items are enabled, even if the context menu is disabled.
 		</member>
 		<member name="structured_text_bidi_override" type="int" setter="set_structured_text_bidi_override" getter="get_structured_text_bidi_override" enum="TextServer.StructuredTextParser" default="0">
 			Set BiDi algorithm override for the structured text.

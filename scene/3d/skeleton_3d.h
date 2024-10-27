@@ -31,6 +31,7 @@
 #ifndef SKELETON_3D_H
 #define SKELETON_3D_H
 
+#include "core/templates/a_hash_map.h"
 #include "scene/3d/node_3d.h"
 #include "scene/resources/3d/skin.h"
 
@@ -159,7 +160,7 @@ private:
 	bool process_order_dirty = false;
 
 	Vector<int> parentless_bones;
-	HashMap<String, int> name_to_bone_index;
+	AHashMap<String, int> name_to_bone_index;
 
 	mutable StringName concatenated_bone_names = StringName();
 	void _update_bone_names() const;

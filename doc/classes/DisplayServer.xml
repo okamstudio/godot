@@ -1683,6 +1683,7 @@
 			<param index="1" name="window_id" type="int" default="0" />
 			<description>
 				Sets window mode for the given window to [param mode]. See [enum WindowMode] for possible values and how each mode behaves.
+				[b]Note:[/b] On Android, setting it to [constant WINDOW_MODE_FULLSCREEN] or [constant WINDOW_MODE_EXCLUSIVE_FULLSCREEN] will enable immersive mode.
 				[b]Note:[/b] Setting the window to full screen forcibly sets the borderless flag to [code]true[/code], so make sure to set it back to [code]false[/code] when not wanted.
 			</description>
 		</method>
@@ -2058,6 +2059,7 @@
 		<constant name="WINDOW_MODE_FULLSCREEN" value="3" enum="WindowMode">
 			Full screen mode with full multi-window support.
 			Full screen window covers the entire display area of a screen and has no decorations. The display's video mode is not changed.
+			[b]On Android:[/b] This enables immersive mode.
 			[b]On Windows:[/b] Multi-window full-screen mode has a 1px border of the [member ProjectSettings.rendering/environment/defaults/default_clear_color] color.
 			[b]On macOS:[/b] A new desktop is used to display the running project.
 			[b]Note:[/b] Regardless of the platform, enabling full screen will change the window size to match the monitor's size. Therefore, make sure your project supports [url=$DOCS_URL/tutorials/rendering/multiple_resolutions.html]multiple resolutions[/url] when enabling full screen mode.
@@ -2065,6 +2067,7 @@
 		<constant name="WINDOW_MODE_EXCLUSIVE_FULLSCREEN" value="4" enum="WindowMode">
 			A single window full screen mode. This mode has less overhead, but only one window can be open on a given screen at a time (opening a child window or application switching will trigger a full screen transition).
 			Full screen window covers the entire display area of a screen and has no border or decorations. The display's video mode is not changed.
+			[b]On Android:[/b] This enables immersive mode.
 			[b]On Windows:[/b] Depending on video driver, full screen transition might cause screens to go black for a moment.
 			[b]On macOS:[/b] A new desktop is used to display the running project. Exclusive full screen mode prevents Dock and Menu from showing up when the mouse pointer is hovering the edge of the screen.
 			[b]On Linux (X11):[/b] Exclusive full screen mode bypasses compositor.
@@ -2149,12 +2152,14 @@
 		<constant name="DISPLAY_HANDLE" value="0" enum="HandleType">
 			Display handle:
 			- Linux (X11): [code]X11::Display*[/code] for the display.
+			- Linux (Wayland): [code]wl_display[/code] for the display.
 			- Android: [code]EGLDisplay[/code] for the display.
 		</constant>
 		<constant name="WINDOW_HANDLE" value="1" enum="HandleType">
 			Window handle:
 			- Windows: [code]HWND[/code] for the window.
 			- Linux (X11): [code]X11::Window*[/code] for the window.
+			- Linux (Wayland): [code]wl_surface[/code] for the window.
 			- macOS: [code]NSWindow*[/code] for the window.
 			- iOS: [code]UIViewController*[/code] for the view controller.
 			- Android: [code]jObject[/code] for the activity.
@@ -2169,8 +2174,19 @@
 			OpenGL context (only with the GL Compatibility renderer):
 			- Windows: [code]HGLRC[/code] for the window (native GL), or [code]EGLContext[/code] for the window (ANGLE).
 			- Linux (X11): [code]GLXContext*[/code] for the window.
+			- Linux (Wayland): [code]EGLContext[/code] for the window.
 			- macOS: [code]NSOpenGLContext*[/code] for the window (native GL), or [code]EGLContext[/code] for the window (ANGLE).
 			- Android: [code]EGLContext[/code] for the window.
+		</constant>
+		<constant name="EGL_DISPLAY" value="4" enum="HandleType">
+			- Windows: [code]EGLDisplay[/code] for the window (ANGLE).
+			- macOS: [code]EGLDisplay[/code] for the window (ANGLE).
+			- Linux (Wayland): [code]EGLDisplay[/code] for the window.
+		</constant>
+		<constant name="EGL_CONFIG" value="5" enum="HandleType">
+			- Windows: [code]EGLConfig[/code] for the window (ANGLE).
+			- macOS: [code]EGLConfig[/code] for the window (ANGLE).
+			- Linux (Wayland): [code]EGLConfig[/code] for the window.
 		</constant>
 		<constant name="TTS_UTTERANCE_STARTED" value="0" enum="TTSUtteranceEvent">
 			Utterance has begun to be spoken.

@@ -83,6 +83,7 @@ class AudioStreamPlayback : public RefCounted {
 
 protected:
 	static void _bind_methods();
+	PackedVector2Array _mix_audio_bind(float p_rate_scale, int p_frames);
 	GDVIRTUAL1(_start, double)
 	GDVIRTUAL0(_stop)
 	GDVIRTUAL0RC(bool, _is_playing)
@@ -118,6 +119,11 @@ public:
 
 	AudioStreamPlayback();
 	~AudioStreamPlayback();
+
+	Vector<AudioFrame> mix_audio(float p_rate_scale, int p_frames);
+	void start_playback(double p_from_pos = 0.0);
+	void stop_playback();
+	void seek_playback(double p_time);
 };
 
 class AudioStreamPlaybackResampled : public AudioStreamPlayback {

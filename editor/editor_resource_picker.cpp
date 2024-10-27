@@ -224,7 +224,9 @@ void EditorResourcePicker::_update_menu_items() {
 		}
 
 		if (is_editable()) {
-			edit_menu->add_icon_item(get_editor_theme_icon(SNAME("Clear")), TTR("Clear"), OBJ_MENU_CLEAR);
+			if (!_is_custom_type_script()) {
+				edit_menu->add_icon_item(get_editor_theme_icon(SNAME("Clear")), TTR("Clear"), OBJ_MENU_CLEAR);
+			}
 			edit_menu->add_icon_item(get_editor_theme_icon(SNAME("Duplicate")), TTR("Make Unique"), OBJ_MENU_MAKE_UNIQUE);
 
 			// Check whether the resource has subresources.
@@ -694,6 +696,16 @@ bool EditorResourcePicker::_is_type_valid(const String &p_type_name, const HashS
 	return false;
 }
 
+bool EditorResourcePicker::_is_custom_type_script() const {
+	Ref<Script> resource_as_script = edited_resource;
+
+	if (resource_as_script.is_valid() && resource_owner && resource_owner->has_meta(SceneStringName(_custom_type_script))) {
+		return true;
+	}
+
+	return false;
+}
+
 Variant EditorResourcePicker::get_drag_data_fw(const Point2 &p_point, Control *p_from) {
 	if (edited_resource.is_valid()) {
 		Dictionary drag_data = EditorNode::get_singleton()->drag_resource(edited_resource, p_from);
@@ -953,6 +965,10 @@ bool EditorResourcePicker::is_toggle_pressed() const {
 	return assign_button->is_pressed();
 }
 
+void EditorResourcePicker::set_resource_owner(Object *p_object) {
+	resource_owner = p_object;
+}
+
 void EditorResourcePicker::set_editable(bool p_editable) {
 	editable = p_editable;
 	assign_button->set_disabled(!editable && !edited_resource.is_valid());
@@ -1098,7 +1114,10 @@ void EditorScriptPicker::set_create_options(Object *p_menu_node) {
 		return;
 	}
 
-	menu_node->add_icon_item(get_editor_theme_icon(SNAME("ScriptCreate")), TTR("New Script..."), OBJ_MENU_NEW_SCRIPT);
+	if (!(script_owner && script_owner->has_meta(SceneStringName(_custom_type_script)))) {
+		menu_node->add_icon_item(get_editor_theme_icon(SNAME("ScriptCreate")), TTR("New Script..."), OBJ_MENU_NEW_SCRIPT);
+	}
+
 	if (script_owner) {
 		Ref<Script> scr = script_owner->get_script();
 		if (scr.is_valid()) {

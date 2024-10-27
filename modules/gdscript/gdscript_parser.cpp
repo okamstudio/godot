@@ -244,7 +244,7 @@ void GDScriptParser::apply_pending_warnings() {
 
 	pending_warnings.clear();
 }
-#endif
+#endif // DEBUG_ENABLED
 
 void GDScriptParser::override_completion_context(const Node *p_for_node, CompletionType p_type, Node *p_node, int p_argument) {
 	if (!for_completion) {

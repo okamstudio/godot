@@ -146,6 +146,15 @@ bool Light3D::get_shadow_reverse_cull_face() const {
 	return reverse_cull;
 }
 
+void Light3D::set_shadow_caster_mask(uint32_t p_caster_mask) {
+	shadow_caster_mask = p_caster_mask;
+	RS::get_singleton()->light_set_shadow_caster_mask(light, shadow_caster_mask);
+}
+
+uint32_t Light3D::get_shadow_caster_mask() const {
+	return shadow_caster_mask;
+}
+
 AABB Light3D::get_aabb() const {
 	if (type == RenderingServer::LIGHT_DIRECTIONAL) {
 		return AABB(Vector3(-1, -1, -1), Vector3(2, 2, 2));
@@ -300,7 +309,7 @@ bool Light3D::is_editor_only() const {
 }
 
 void Light3D::_validate_property(PropertyInfo &p_property) const {
-	if (!shadow && (p_property.name == "shadow_bias" || p_property.name == "shadow_normal_bias" || p_property.name == "shadow_reverse_cull_face" || p_property.name == "shadow_transmittance_bias" || p_property.name == "shadow_opacity" || p_property.name == "shadow_blur" || p_property.name == "distance_fade_shadow")) {
+	if (!shadow && (p_property.name == "shadow_bias" || p_property.name == "shadow_normal_bias" || p_property.name == "shadow_reverse_cull_face" || p_property.name == "shadow_transmittance_bias" || p_property.name == "shadow_opacity" || p_property.name == "shadow_blur" || p_property.name == "distance_fade_shadow" || p_property.name == "shadow_caster_mask")) {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
@@ -354,6 +363,9 @@ void Light3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_shadow_reverse_cull_face", "enable"), &Light3D::set_shadow_reverse_cull_face);
 	ClassDB::bind_method(D_METHOD("get_shadow_reverse_cull_face"), &Light3D::get_shadow_reverse_cull_face);
 
+	ClassDB::bind_method(D_METHOD("set_shadow_caster_mask", "caster_mask"), &Light3D::set_shadow_caster_mask);
+	ClassDB::bind_method(D_METHOD("get_shadow_caster_mask"), &Light3D::get_shadow_caster_mask);
+
 	ClassDB::bind_method(D_METHOD("set_bake_mode", "bake_mode"), &Light3D::set_bake_mode);
 	ClassDB::bind_method(D_METHOD("get_bake_mode"), &Light3D::get_bake_mode);
 
@@ -388,6 +400,7 @@ void Light3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "shadow_transmittance_bias", PROPERTY_HINT_RANGE, "-16,16,0.001"), "set_param", "get_param", PARAM_TRANSMITTANCE_BIAS);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "shadow_opacity", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_param", "get_param", PARAM_SHADOW_OPACITY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "shadow_blur", PROPERTY_HINT_RANGE, "0,10,0.001"), "set_param", "get_param", PARAM_SHADOW_BLUR);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "shadow_caster_mask", PROPERTY_HINT_LAYERS_3D_RENDER), "set_shadow_caster_mask", "get_shadow_caster_mask");
 
 	ADD_GROUP("Distance Fade", "distance_fade_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "distance_fade_enabled"), "set_enable_distance_fade", "is_distance_fade_enabled");

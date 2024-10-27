@@ -1,0 +1,3 @@
+GDTEST_OK
+{ "test": "a" } false
+{ "test": "b" } false

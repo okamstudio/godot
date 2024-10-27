@@ -275,6 +275,7 @@
 			Request successful.
 		</constant>
 		<constant name="RESULT_CHUNKED_BODY_SIZE_MISMATCH" value="1" enum="Result">
+			Request failed due to a mismatch between the expected and actual chunked body size during transfer. Possible causes include network errors, server misconfiguration, or issues with chunked encoding.
 		</constant>
 		<constant name="RESULT_CANT_CONNECT" value="2" enum="Result">
 			Request failed while connecting.
@@ -295,6 +296,7 @@
 			Request exceeded its maximum size limit, see [member body_size_limit].
 		</constant>
 		<constant name="RESULT_BODY_DECOMPRESS_FAILED" value="8" enum="Result">
+			Request failed due to an error while decompressing the response body. Possible causes include unsupported or incorrect compression format, corrupted data, or incomplete transfer.
 		</constant>
 		<constant name="RESULT_REQUEST_FAILED" value="9" enum="Result">
 			Request failed (currently unused).

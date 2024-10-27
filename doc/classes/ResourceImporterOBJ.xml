@@ -14,6 +14,19 @@
 		<member name="force_disable_mesh_compression" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], mesh compression will not be used. Consider enabling if you notice blocky artifacts in your mesh normals or UVs, or if you have meshes that are larger than a few thousand meters in each direction.
 		</member>
+		<member name="generate_lightmap_uv2" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], generates UV2 on import for [LightmapGI] baking.
+		</member>
+		<member name="generate_lightmap_uv2_texel_size" type="float" setter="" getter="" default="0.2">
+			Controls the size of each texel on the baked lightmap. A smaller value results in more precise lightmaps, at the cost of larger lightmap sizes and longer bake times.
+			[b]Note:[/b] Only effective if [member generate_lightmap_uv2] is [code]true[/code].
+		</member>
+		<member name="generate_lods" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], generates lower detail variants of the mesh which will be displayed in the distance to improve rendering performance. Not all meshes benefit from LOD, especially if they are never rendered from far away. Disabling this can reduce output file size and speed up importing. See [url=$DOCS_URL/tutorials/3d/mesh_lod.html#doc-mesh-lod]Mesh level of detail (LOD)[/url] for more information.
+		</member>
+		<member name="generate_shadow_mesh" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables the generation of shadow meshes on import. This optimizes shadow rendering without reducing quality by welding vertices together when possible. This in turn reduces the memory bandwidth required to render shadows. Shadow mesh generation currently doesn't support using a lower detail level than the source mesh (but shadow rendering will make use of LODs when relevant).
+		</member>
 		<member name="generate_tangents" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], generate vertex tangents using [url=http://www.mikktspace.com/]Mikktspace[/url] if the source mesh doesn't have tangent data. When possible, it's recommended to let the 3D modeling software generate tangents on export instead on relying on this option. Tangents are required for correct display of normal and height maps, along with any material/shader features that require tangents.
 			If you don't need material features that require tangents, disabling this can reduce output file size and speed up importing if the source 3D file doesn't contain tangents.

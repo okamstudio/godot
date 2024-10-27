@@ -920,6 +920,19 @@ Dictionary Geometry2D::make_atlas(const Vector<Size2> &p_rects) {
 	return ret;
 }
 
+TypedArray<Point2i> Geometry2D::bresenham_line(const Point2i &p_from, const Point2i &p_to) {
+	Vector<Point2i> points = ::Geometry2D::bresenham_line(p_from, p_to);
+
+	TypedArray<Point2i> result;
+	result.resize(points.size());
+
+	for (int i = 0; i < points.size(); i++) {
+		result[i] = points[i];
+	}
+
+	return result;
+}
+
 void Geometry2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_point_in_circle", "point", "circle_position", "circle_radius"), &Geometry2D::is_point_in_circle);
 	ClassDB::bind_method(D_METHOD("segment_intersects_circle", "segment_from", "segment_to", "circle_position", "circle_radius"), &Geometry2D::segment_intersects_circle);
@@ -953,6 +966,8 @@ void Geometry2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("offset_polyline", "polyline", "delta", "join_type", "end_type"), &Geometry2D::offset_polyline, DEFVAL(JOIN_SQUARE), DEFVAL(END_SQUARE));
 
 	ClassDB::bind_method(D_METHOD("make_atlas", "sizes"), &Geometry2D::make_atlas);
+
+	ClassDB::bind_method(D_METHOD("bresenham_line", "from", "to"), &Geometry2D::bresenham_line);
 
 	BIND_ENUM_CONSTANT(OPERATION_UNION);
 	BIND_ENUM_CONSTANT(OPERATION_DIFFERENCE);

@@ -56,6 +56,10 @@ OpenXRCompositionLayer::OpenXRCompositionLayer(XrCompositionLayerBaseHeader *p_c
 	openxr_api = OpenXRAPI::get_singleton();
 	composition_layer_extension = OpenXRCompositionLayerExtension::get_singleton();
 
+	if (openxr_api) {
+		openxr_session_running = openxr_api->is_running();
+	}
+
 	Ref<OpenXRInterface> openxr_interface = XRServer::get_singleton()->find_interface("OpenXR");
 	if (openxr_interface.is_valid()) {
 		openxr_interface->connect("session_begun", callable_mp(this, &OpenXRCompositionLayer::_on_openxr_session_begun));

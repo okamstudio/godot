@@ -115,6 +115,9 @@
 		<member name="shadow_blur" type="float" setter="set_param" getter="get_param" default="1.0">
 			Blurs the edges of the shadow. Can be used to hide pixel artifacts in low-resolution shadow maps. A high value can impact performance, make shadows appear grainy and can cause other unwanted artifacts. Try to keep as near default as possible.
 		</member>
+		<member name="shadow_caster_mask" type="int" setter="set_shadow_caster_mask" getter="get_shadow_caster_mask" default="4294967295">
+			The light will only cast shadows using objects in the selected layers.
+		</member>
 		<member name="shadow_enabled" type="bool" setter="set_shadow" getter="has_shadow" default="false">
 			If [code]true[/code], the light will cast real-time shadows. This has a significant performance cost. Only enable shadow rendering when it makes a noticeable difference in the scene's appearance, and consider using [member distance_fade_enabled] to hide the light when far away from the [Camera3D].
 		</member>

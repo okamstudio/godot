@@ -267,6 +267,12 @@ bool Engine::is_extra_gpu_memory_tracking_enabled() const {
 	return extra_gpu_memory_tracking;
 }
 
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
+bool Engine::is_accurate_breadcrumbs_enabled() const {
+	return accurate_breadcrumbs;
+}
+#endif
+
 void Engine::set_print_to_stdout(bool p_enabled) {
 	CoreGlobals::print_line_enabled = p_enabled;
 }

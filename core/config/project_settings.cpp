@@ -515,9 +515,9 @@ void ProjectSettings::_convert_to_last_version(int p_from_version) {
 				Dictionary action = E.value.variant;
 				Array events = action["events"];
 				for (int i = 0; i < events.size(); i++) {
-					Ref<InputEvent> x = events[i];
-					if (x->get_device() == -1) { // -1 was the previous value (GH-97707).
-						x->set_device(InputEvent::DEVICE_ID_ALL_DEVICES);
+					Ref<InputEvent> ev = events[i];
+					if (ev.is_valid() && ev->get_device() == -1) { // -1 was the previous value (GH-97707).
+						ev->set_device(InputEvent::DEVICE_ID_ALL_DEVICES);
 					}
 				}
 			}

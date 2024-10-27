@@ -14,6 +14,7 @@
 			Threshold frequency for the filter, in Hz.
 		</member>
 		<member name="db" type="int" setter="set_db" getter="get_db" enum="AudioEffectFilter.FilterDB" default="0">
+			Steepness of the cutoff curve in dB per octave, also known as the order of the filter. Higher orders have a more aggressive cutoff.
 		</member>
 		<member name="gain" type="float" setter="set_gain" getter="get_gain" default="1.0">
 			Gain amount of the frequencies after the filter.
@@ -24,12 +25,16 @@
 	</members>
 	<constants>
 		<constant name="FILTER_6DB" value="0" enum="FilterDB">
+			Cutting off at 6dB per octave.
 		</constant>
 		<constant name="FILTER_12DB" value="1" enum="FilterDB">
+			Cutting off at 12dB per octave.
 		</constant>
 		<constant name="FILTER_18DB" value="2" enum="FilterDB">
+			Cutting off at 18dB per octave.
 		</constant>
 		<constant name="FILTER_24DB" value="3" enum="FilterDB">
+			Cutting off at 24dB per octave.
 		</constant>
 	</constants>
 </class>

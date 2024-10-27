@@ -165,6 +165,10 @@ public:
 			container_element_types.write[p_index] = DataType(p_type);
 		}
 
+		_FORCE_INLINE_ int get_container_element_type_count() const {
+			return container_element_types.size();
+		}
+
 		_FORCE_INLINE_ DataType get_container_element_type(int p_index) const {
 			ERR_FAIL_INDEX_V(p_index, container_element_types.size(), get_variant_type());
 			return container_element_types[p_index];

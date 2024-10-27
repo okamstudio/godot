@@ -52,7 +52,7 @@ public:
 #endif // DISABLE_DEPRECATED
 
 private:
-	HashMap<StringName, StringName> animation_next_set; // For auto advance.
+	AHashMap<StringName, StringName> animation_next_set; // For auto advance.
 
 	float speed_scale = 1.0;
 	double default_blend_time = 0.0;
@@ -138,7 +138,7 @@ protected:
 	static void _bind_methods();
 
 	// Make animation instances.
-	virtual bool _blend_pre_process(double p_delta, int p_track_count, const HashMap<NodePath, int> &p_track_map) override;
+	virtual bool _blend_pre_process(double p_delta, int p_track_count, const AHashMap<NodePath, int> &p_track_map) override;
 	virtual void _blend_capture(double p_delta) override;
 	virtual void _blend_post_process() override;
 

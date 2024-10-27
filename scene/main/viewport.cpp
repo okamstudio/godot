@@ -1921,7 +1921,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 						String tooltip = _gui_get_tooltip(over, gui.tooltip_control->get_global_transform_with_canvas().affine_inverse().xform(mpos));
 						tooltip = tooltip.strip_edges();
 
-						if (tooltip.is_empty() || tooltip != gui.tooltip_text) {
+						if (tooltip != gui.tooltip_text) {
 							_gui_cancel_tooltip();
 						} else {
 							is_tooltip_shown = true;

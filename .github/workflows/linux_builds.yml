@@ -106,7 +106,7 @@ jobs:
       # TODO: Figure out somehow how to embed this one.
       - name: wayland-scanner dependency
         run: |
-          sudo apt-get install libwayland-bin
+          sudo apt-get install libwayland-bin libegl-dev
 
       - name: Free disk space on runner
         run: |

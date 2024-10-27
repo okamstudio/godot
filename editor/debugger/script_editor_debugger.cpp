@@ -827,7 +827,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, uint64_t p_thread
 
 		bool parsed = EditorDebuggerNode::get_singleton()->plugins_capture(this, p_msg, p_data);
 		if (!parsed) {
-			WARN_PRINT("unknown message " + p_msg);
+			WARN_PRINT("Unknown message: " + p_msg);
 		}
 	}
 }

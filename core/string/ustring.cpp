@@ -1850,6 +1850,8 @@ String String::num(double p_num, int p_decimals) {
 }
 
 String String::num_int64(int64_t p_num, int base, bool capitalize_hex) {
+	ERR_FAIL_COND_V_MSG(base < 2 || base > 36, "", "Cannot convert to base " + itos(base) + ", since the value is " + (base < 2 ? "less than 2." : "greater than 36."));
+
 	bool sign = p_num < 0;
 
 	int64_t n = p_num;
@@ -1888,6 +1890,8 @@ String String::num_int64(int64_t p_num, int base, bool capitalize_hex) {
 }
 
 String String::num_uint64(uint64_t p_num, int base, bool capitalize_hex) {
+	ERR_FAIL_COND_V_MSG(base < 2 || base > 36, "", "Cannot convert to base " + itos(base) + ", since the value is " + (base < 2 ? "less than 2." : "greater than 36."));
+
 	uint64_t n = p_num;
 
 	int chars = 0;

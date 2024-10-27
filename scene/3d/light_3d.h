@@ -75,6 +75,7 @@ private:
 	bool negative = false;
 	bool reverse_cull = false;
 	uint32_t cull_mask = 0;
+	uint32_t shadow_caster_mask = 0xFFFFFFFF;
 	bool distance_fade_enabled = false;
 	real_t distance_fade_begin = 40.0;
 	real_t distance_fade_shadow = 50.0;
@@ -135,6 +136,9 @@ public:
 
 	void set_shadow_reverse_cull_face(bool p_enable);
 	bool get_shadow_reverse_cull_face() const;
+
+	void set_shadow_caster_mask(uint32_t p_caster_mask);
+	uint32_t get_shadow_caster_mask() const;
 
 	void set_bake_mode(BakeMode p_mode);
 	BakeMode get_bake_mode() const;

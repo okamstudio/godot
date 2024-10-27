@@ -300,10 +300,7 @@ void OpenXRInterface::_load_action_map() {
 						continue;
 					}
 
-					PackedStringArray paths = xr_binding->get_paths();
-					for (int k = 0; k < paths.size(); k++) {
-						openxr_api->interaction_profile_add_binding(ip, action->action_rid, paths[k]);
-					}
+					openxr_api->interaction_profile_add_binding(ip, action->action_rid, xr_binding->get_binding_path());
 				}
 
 				// Now submit our suggestions

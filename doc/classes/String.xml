@@ -6,6 +6,7 @@
 	<description>
 		This is the built-in string Variant type (and the one used by GDScript). Strings may contain any number of Unicode characters, and expose methods useful for manipulating and generating strings. Strings are reference-counted and use a copy-on-write approach (every modification to a string returns a new [String]), so passing them around is cheap in resources.
 		Some string methods have corresponding variations. Variations suffixed with [code]n[/code] ([method countn], [method findn], [method replacen], etc.) are [b]case-insensitive[/b] (they make no distinction between uppercase and lowercase letters). Method variations prefixed with [code]r[/code] ([method rfind], [method rsplit], etc.) are reversed, and start from the end of the string, instead of the beginning.
+		To convert any Variant to or from a string, see [method @GlobalScope.str], [method @GlobalScope.str_to_var], and [method @GlobalScope.var_to_str].
 		[b]Note:[/b] In a boolean context, a string will evaluate to [code]false[/code] if it is empty ([code]""[/code]). Otherwise, a string will always evaluate to [code]true[/code].
 	</description>
 	<tutorials>

@@ -139,18 +139,30 @@ TEST_CASE("[SceneTree][Tree]") {
 		TreeItem *child1 = tree->create_item();
 		TreeItem *child2 = tree->create_item();
 		TreeItem *child3 = tree->create_item();
+		CHECK_EQ(root->get_next(), nullptr);
+		CHECK_EQ(root->get_next_visible(), child1);
+		CHECK_EQ(root->get_next_in_tree(), child1);
 		CHECK_EQ(child1->get_next(), child2);
+		CHECK_EQ(child1->get_next_visible(), child2);
 		CHECK_EQ(child1->get_next_in_tree(), child2);
 		CHECK_EQ(child2->get_next(), child3);
+		CHECK_EQ(child2->get_next_visible(), child3);
 		CHECK_EQ(child2->get_next_in_tree(), child3);
 		CHECK_EQ(child3->get_next(), nullptr);
+		CHECK_EQ(child3->get_next_visible(), nullptr);
 		CHECK_EQ(child3->get_next_in_tree(), nullptr);
 
+		CHECK_EQ(root->get_prev(), nullptr);
+		CHECK_EQ(root->get_prev_visible(), nullptr);
+		CHECK_EQ(root->get_prev_in_tree(), nullptr);
 		CHECK_EQ(child1->get_prev(), nullptr);
+		CHECK_EQ(child1->get_prev_visible(), root);
 		CHECK_EQ(child1->get_prev_in_tree(), root);
 		CHECK_EQ(child2->get_prev(), child1);
+		CHECK_EQ(child2->get_prev_visible(), child1);
 		CHECK_EQ(child2->get_prev_in_tree(), child1);
 		CHECK_EQ(child3->get_prev(), child2);
+		CHECK_EQ(child3->get_prev_visible(), child2);
 		CHECK_EQ(child3->get_prev_in_tree(), child2);
 
 		TreeItem *nested1 = tree->create_item(child2);
@@ -158,13 +170,127 @@ TEST_CASE("[SceneTree][Tree]") {
 		TreeItem *nested3 = tree->create_item(child2);
 
 		CHECK_EQ(child1->get_next(), child2);
+		CHECK_EQ(child1->get_next_visible(), child2);
 		CHECK_EQ(child1->get_next_in_tree(), child2);
 		CHECK_EQ(child2->get_next(), child3);
+		CHECK_EQ(child2->get_next_visible(), nested1);
 		CHECK_EQ(child2->get_next_in_tree(), nested1);
 		CHECK_EQ(child3->get_prev(), child2);
+		CHECK_EQ(child3->get_prev_visible(), nested3);
 		CHECK_EQ(child3->get_prev_in_tree(), nested3);
 		CHECK_EQ(nested1->get_prev_in_tree(), child2);
 		CHECK_EQ(nested1->get_next_in_tree(), nested2);
+		CHECK_EQ(nested3->get_next_in_tree(), child3);
+
+		memdelete(tree);
+	}
+
+	SUBCASE("[Tree] Previous and Next items with hide root.") {
+		Tree *tree = memnew(Tree);
+		tree->set_hide_root(true);
+		TreeItem *root = tree->create_item();
+
+		TreeItem *child1 = tree->create_item();
+		TreeItem *child2 = tree->create_item();
+		TreeItem *child3 = tree->create_item();
+		CHECK_EQ(root->get_next(), nullptr);
+		CHECK_EQ(root->get_next_visible(), child1);
+		CHECK_EQ(root->get_next_in_tree(), child1);
+		CHECK_EQ(child1->get_next(), child2);
+		CHECK_EQ(child1->get_next_visible(), child2);
+		CHECK_EQ(child1->get_next_in_tree(), child2);
+		CHECK_EQ(child2->get_next(), child3);
+		CHECK_EQ(child2->get_next_visible(), child3);
+		CHECK_EQ(child2->get_next_in_tree(), child3);
+		CHECK_EQ(child3->get_next(), nullptr);
+		CHECK_EQ(child3->get_next_visible(), nullptr);
+		CHECK_EQ(child3->get_next_in_tree(), nullptr);
+
+		CHECK_EQ(root->get_prev(), nullptr);
+		CHECK_EQ(root->get_prev_visible(), nullptr);
+		CHECK_EQ(root->get_prev_in_tree(), nullptr);
+		CHECK_EQ(child1->get_prev(), nullptr);
+		CHECK_EQ(child1->get_prev_visible(), nullptr);
+		CHECK_EQ(child1->get_prev_in_tree(), nullptr);
+		CHECK_EQ(child2->get_prev(), child1);
+		CHECK_EQ(child2->get_prev_visible(), child1);
+		CHECK_EQ(child2->get_prev_in_tree(), child1);
+		CHECK_EQ(child3->get_prev(), child2);
+		CHECK_EQ(child3->get_prev_visible(), child2);
+		CHECK_EQ(child3->get_prev_in_tree(), child2);
+
+		memdelete(tree);
+	}
+
+	SUBCASE("[Tree] Previous and Next items wrapping.") {
+		Tree *tree = memnew(Tree);
+		TreeItem *root = tree->create_item();
+
+		TreeItem *child1 = tree->create_item();
+		TreeItem *child2 = tree->create_item();
+		TreeItem *child3 = tree->create_item();
+		CHECK_EQ(root->get_next_visible(true), child1);
+		CHECK_EQ(root->get_next_in_tree(true), child1);
+		CHECK_EQ(child1->get_next_visible(true), child2);
+		CHECK_EQ(child1->get_next_in_tree(true), child2);
+		CHECK_EQ(child2->get_next_visible(true), child3);
+		CHECK_EQ(child2->get_next_in_tree(true), child3);
+		CHECK_EQ(child3->get_next_visible(true), root);
+		CHECK_EQ(child3->get_next_in_tree(true), root);
+
+		CHECK_EQ(root->get_prev_visible(true), child3);
+		CHECK_EQ(root->get_prev_in_tree(true), child3);
+		CHECK_EQ(child1->get_prev_visible(true), root);
+		CHECK_EQ(child1->get_prev_in_tree(true), root);
+		CHECK_EQ(child2->get_prev_visible(true), child1);
+		CHECK_EQ(child2->get_prev_in_tree(true), child1);
+		CHECK_EQ(child3->get_prev_visible(true), child2);
+		CHECK_EQ(child3->get_prev_in_tree(true), child2);
+
+		TreeItem *nested1 = tree->create_item(child2);
+		TreeItem *nested2 = tree->create_item(child2);
+		TreeItem *nested3 = tree->create_item(child2);
+
+		CHECK_EQ(child1->get_next_visible(true), child2);
+		CHECK_EQ(child1->get_next_in_tree(true), child2);
+		CHECK_EQ(child2->get_next_visible(true), nested1);
+		CHECK_EQ(child2->get_next_in_tree(true), nested1);
+		CHECK_EQ(nested3->get_next_visible(true), child3);
+		CHECK_EQ(nested3->get_next_in_tree(true), child3);
+		CHECK_EQ(child3->get_prev_visible(true), nested3);
+		CHECK_EQ(child3->get_prev_in_tree(true), nested3);
+		CHECK_EQ(nested1->get_prev_in_tree(true), child2);
+		CHECK_EQ(nested1->get_next_in_tree(true), nested2);
+		CHECK_EQ(nested3->get_next_in_tree(true), child3);
+
+		memdelete(tree);
+	}
+
+	SUBCASE("[Tree] Previous and Next items wrapping with hide root.") {
+		Tree *tree = memnew(Tree);
+		tree->set_hide_root(true);
+		TreeItem *root = tree->create_item();
+
+		TreeItem *child1 = tree->create_item();
+		TreeItem *child2 = tree->create_item();
+		TreeItem *child3 = tree->create_item();
+		CHECK_EQ(root->get_next_visible(true), child1);
+		CHECK_EQ(root->get_next_in_tree(true), child1);
+		CHECK_EQ(child1->get_next_visible(true), child2);
+		CHECK_EQ(child1->get_next_in_tree(true), child2);
+		CHECK_EQ(child2->get_next_visible(true), child3);
+		CHECK_EQ(child2->get_next_in_tree(true), child3);
+		CHECK_EQ(child3->get_next_visible(true), root);
+		CHECK_EQ(child3->get_next_in_tree(true), root);
+
+		CHECK_EQ(root->get_prev_visible(true), child3);
+		CHECK_EQ(root->get_prev_in_tree(true), child3);
+		CHECK_EQ(child1->get_prev_visible(true), child3);
+		CHECK_EQ(child1->get_prev_in_tree(true), child3);
+		CHECK_EQ(child2->get_prev_visible(true), child1);
+		CHECK_EQ(child2->get_prev_in_tree(true), child1);
+		CHECK_EQ(child3->get_prev_visible(true), child2);
+		CHECK_EQ(child3->get_prev_in_tree(true), child2);
 
 		memdelete(tree);
 	}

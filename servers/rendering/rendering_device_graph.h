@@ -221,14 +221,18 @@ private:
 	};
 
 	struct ComputeInstructionList : InstructionList {
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
 		uint32_t breadcrumb;
+#endif
 	};
 
 	struct DrawInstructionList : InstructionList {
 		RDD::RenderPassID render_pass;
 		RDD::FramebufferID framebuffer;
 		Rect2i region;
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
 		uint32_t breadcrumb;
+#endif
 		LocalVector<RDD::RenderPassClearValue> clear_values;
 	};
 
@@ -317,7 +321,9 @@ private:
 		RDD::FramebufferID framebuffer;
 		RDD::CommandBufferType command_buffer_type;
 		Rect2i region;
+#if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
 		uint32_t breadcrumb = 0;
+#endif
 		uint32_t clear_values_count = 0;
 
 		_FORCE_INLINE_ RDD::RenderPassClearValue *clear_values() {

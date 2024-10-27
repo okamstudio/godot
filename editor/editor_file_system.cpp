@@ -1027,7 +1027,9 @@ void EditorFileSystem::scan() {
 void EditorFileSystem::ScanProgress::increment() {
 	current++;
 	float ratio = current / MAX(hi, 1.0f);
-	progress->step(ratio * 1000.0f);
+	if (progress) {
+		progress->step(ratio * 1000.0f);
+	}
 	EditorFileSystem::singleton->scan_total = ratio;
 }
 
@@ -1293,7 +1295,7 @@ void EditorFileSystem::_process_removed_files(const HashSet<String> &p_processed
 	}
 }
 
-void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, ScanProgress &p_progress) {
+void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, ScanProgress &p_progress, bool p_recursive) {
 	uint64_t current_mtime = FileAccess::get_modified_time(p_dir->get_path());
 
 	bool updated_dir = false;
@@ -1487,7 +1489,9 @@ void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, ScanPr
 			scan_actions.push_back(ia);
 			continue;
 		}
-		_scan_fs_changes(p_dir->get_subdir(i), p_progress);
+		if (p_recursive) {
+			_scan_fs_changes(p_dir->get_subdir(i), p_progress);
+		}
 	}
 
 	nb_files_total = MAX(nb_files_total + diff_nb_files, 0);
@@ -2912,6 +2916,96 @@ void EditorFileSystem::reimport_file_with_custom_parameters(const String &p_file
 	emit_signal(SNAME("resources_reimported"), reloads);
 }
 
+Error EditorFileSystem::_copy_file(const String &p_from, const String &p_to) {
+	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+	if (FileAccess::exists(p_from + ".import")) {
+		Error err = da->copy(p_from, p_to);
+		if (err != OK) {
+			return err;
+		}
+
+		// Remove uid from .import file to avoid conflict.
+		Ref<ConfigFile> cfg;
+		cfg.instantiate();
+		cfg->load(p_from + ".import");
+		cfg->erase_section_key("remap", "uid");
+		err = cfg->save(p_to + ".import");
+		if (err != OK) {
+			return err;
+		}
+	} else if (ResourceLoader::get_resource_uid(p_from) == ResourceUID::INVALID_ID) {
+		// Files which do not use an uid can just be copied.
+		Error err = da->copy(p_from, p_to);
+		if (err != OK) {
+			return err;
+		}
+	} else {
+		// Load the resource and save it again in the new location (this generates a new UID).
+		Error err;
+		Ref<Resource> res = ResourceLoader::load(p_from, "", ResourceFormatLoader::CACHE_MODE_REUSE, &err);
+		if (err == OK && res.is_valid()) {
+			err = ResourceSaver::save(res, p_to, ResourceSaver::FLAG_COMPRESS);
+			if (err != OK) {
+				return err;
+			}
+		} else if (err != OK) {
+			// When loading files like text files the error is OK but the resource is still null.
+			// We can ignore such files.
+			return err;
+		}
+	}
+	return OK;
+}
+
+bool EditorFileSystem::_copy_directory(const String &p_from, const String &p_to, List<CopiedFile> *p_files) {
+	Ref<DirAccess> old_dir = DirAccess::open(p_from);
+	ERR_FAIL_COND_V(old_dir.is_null(), false);
+
+	Error err = make_dir_recursive(p_to);
+	if (err != OK && err != ERR_ALREADY_EXISTS) {
+		return false;
+	}
+
+	bool success = true;
+	old_dir->set_include_navigational(false);
+	old_dir->list_dir_begin();
+
+	for (String F = old_dir->_get_next(); !F.is_empty(); F = old_dir->_get_next()) {
+		if (old_dir->current_is_dir()) {
+			success = _copy_directory(p_from.path_join(F), p_to.path_join(F), p_files) && success;
+		} else if (F.get_extension() != "import") {
+			CopiedFile copy;
+			copy.from = p_from.path_join(F);
+			copy.to = p_to.path_join(F);
+			p_files->push_back(copy);
+		}
+	}
+	return success;
+}
+
+void EditorFileSystem::_queue_refresh_filesystem() {
+	if (refresh_queued) {
+		return;
+	}
+	refresh_queued = true;
+	get_tree()->connect(SNAME("process_frame"), callable_mp(this, &EditorFileSystem::_refresh_filesystem), CONNECT_ONE_SHOT);
+}
+
+void EditorFileSystem::_refresh_filesystem() {
+	for (const ObjectID &id : folders_to_sort) {
+		EditorFileSystemDirectory *dir = Object::cast_to<EditorFileSystemDirectory>(ObjectDB::get_instance(id));
+		if (dir) {
+			dir->subdirs.sort_custom<DirectoryComparator>();
+		}
+	}
+	folders_to_sort.clear();
+
+	_update_scan_actions();
+
+	emit_signal(SNAME("filesystem_changed"));
+	refresh_queued = false;
+}
+
 void EditorFileSystem::_reimport_thread(uint32_t p_index, ImportThreadData *p_import_data) {
 	int current_max = p_import_data->reimport_from + int(p_index);
 	p_import_data->max_index.exchange_if_greater(current_max);
@@ -3235,10 +3329,9 @@ Error EditorFileSystem::make_dir_recursive(const String &p_path, const String &p
 	const String path = da->get_current_dir();
 	EditorFileSystemDirectory *parent = get_filesystem_path(path);
 	ERR_FAIL_NULL_V(parent, ERR_FILE_NOT_FOUND);
+	folders_to_sort.insert(parent->get_instance_id());
 
 	const PackedStringArray folders = p_path.trim_prefix(path).trim_suffix("/").split("/");
-	bool first = true;
-
 	for (const String &folder : folders) {
 		const int current = parent->find_dir_index(folder);
 		if (current > -1) {
@@ -3250,16 +3343,57 @@ Error EditorFileSystem::make_dir_recursive(const String &p_path, const String &p
 		efd->parent = parent;
 		efd->name = folder;
 		parent->subdirs.push_back(efd);
-
-		if (first) {
-			parent->subdirs.sort_custom<DirectoryComparator>();
-			first = false;
-		}
 		parent = efd;
 	}
 
-	emit_signal(SNAME("filesystem_changed"));
+	_queue_refresh_filesystem();
 	return OK;
+}
+
+Error EditorFileSystem::copy_file(const String &p_from, const String &p_to) {
+	_copy_file(p_from, p_to);
+
+	EditorFileSystemDirectory *parent = get_filesystem_path(p_to.get_base_dir());
+	ERR_FAIL_NULL_V(parent, ERR_FILE_NOT_FOUND);
+
+	ScanProgress sp;
+	_scan_fs_changes(parent, sp, false);
+
+	_queue_refresh_filesystem();
+	return OK;
+}
+
+Error EditorFileSystem::copy_directory(const String &p_from, const String &p_to) {
+	List<CopiedFile> files;
+	bool success = _copy_directory(p_from, p_to, &files);
+
+	EditorProgress *ep = nullptr;
+	if (files.size() > 10) {
+		ep = memnew(EditorProgress("_copy_files", TTR("Copying files..."), files.size()));
+	}
+
+	int i = 0;
+	for (const CopiedFile &F : files) {
+		if (_copy_file(F.from, F.to) != OK) {
+			success = false;
+		}
+		if (ep) {
+			ep->step(F.from.get_file(), i++, false);
+		}
+	}
+	memdelete_notnull(ep);
+
+	EditorFileSystemDirectory *efd = get_filesystem_path(p_to);
+	ERR_FAIL_NULL_V(efd, FAILED);
+	ERR_FAIL_NULL_V(efd->get_parent(), FAILED);
+
+	folders_to_sort.insert(efd->get_parent()->get_instance_id());
+
+	ScanProgress sp;
+	_scan_fs_changes(efd, sp);
+
+	_queue_refresh_filesystem();
+	return success ? OK : FAILED;
 }
 
 ResourceUID::ID EditorFileSystem::_resource_saver_get_resource_id_for_path(const String &p_path, bool p_generate) {

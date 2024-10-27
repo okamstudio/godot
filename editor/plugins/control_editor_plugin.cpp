@@ -536,7 +536,6 @@ ControlEditorPopupButton::ControlEditorPopupButton() {
 	set_focus_mode(FOCUS_NONE);
 
 	popup_panel = memnew(PopupPanel);
-	popup_panel->set_theme_type_variation("ControlEditorPopupPanel");
 	add_child(popup_panel);
 	popup_panel->connect("about_to_popup", callable_mp(this, &ControlEditorPopupButton::_popup_visibility_changed).bind(true));
 	popup_panel->connect("popup_hide", callable_mp(this, &ControlEditorPopupButton::_popup_visibility_changed).bind(false));

@@ -5,6 +5,7 @@ import sys
 from typing import TYPE_CHECKING
 
 from methods import print_error, print_warning
+from platform_methods import validate_arch
 
 if TYPE_CHECKING:
     from SCons.Script.SConscript import SConsEnvironment
@@ -98,12 +99,7 @@ def install_ndk_if_needed(env: "SConsEnvironment"):
 def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_32", "x86_64", "arm32", "arm64"]
-    if env["arch"] not in supported_arches:
-        print_error(
-            'Unsupported CPU architecture "%s" for Android. Supported architectures are: %s.'
-            % (env["arch"], ", ".join(supported_arches))
-        )
-        sys.exit(255)
+    validate_arch(env["arch"], get_name(), supported_arches)
 
     if get_min_sdk_version(env["ndk_platform"]) < get_min_target_api():
         print_warning(
@@ -171,9 +167,7 @@ def configure(env: "SConsEnvironment"):
     env["AS"] = compiler_path + "/clang"
 
     env.Append(
-        CCFLAGS=(
-            "-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -fvisibility=hidden -fno-strict-aliasing".split()
-        )
+        CCFLAGS=("-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -fvisibility=hidden".split())
     )
 
     if get_min_sdk_version(env["ndk_platform"]) >= 24:

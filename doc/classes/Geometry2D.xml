@@ -9,6 +9,20 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="bresenham_line">
+			<return type="Vector2i[]" />
+			<param index="0" name="from" type="Vector2i" />
+			<param index="1" name="to" type="Vector2i" />
+			<description>
+				Returns the [url=https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm]Bresenham line[/url] between the [param from] and [param to] points. A Bresenham line is a series of pixels that draws a line and is always 1-pixel thick on every row and column of the drawing (never more, never less).
+				Example code to draw a line between two [Marker2D] nodes using a series of [method CanvasItem.draw_rect] calls:
+				[codeblock]
+				func _draw():
+				    for pixel in Geometry2D.bresenham_line($MarkerA.position, $MarkerB.position):
+				        draw_rect(Rect2(pixel, Vector2.ONE), Color.WHITE)
+				[/codeblock]
+			</description>
+		</method>
 		<method name="clip_polygons">
 			<return type="PackedVector2Array[]" />
 			<param index="0" name="polygon_a" type="PackedVector2Array" />

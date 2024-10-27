@@ -414,6 +414,30 @@ EGLContext EGLManager::get_context(DisplayServer::WindowID p_window_id) {
 	return display.egl_context;
 }
 
+EGLDisplay EGLManager::get_display(DisplayServer::WindowID p_window_id) {
+	GLWindow &glwindow = windows[p_window_id];
+
+	if (!glwindow.initialized) {
+		return EGL_NO_CONTEXT;
+	}
+
+	GLDisplay &display = displays[glwindow.gldisplay_id];
+
+	return display.egl_display;
+}
+
+EGLConfig EGLManager::get_config(DisplayServer::WindowID p_window_id) {
+	GLWindow &glwindow = windows[p_window_id];
+
+	if (!glwindow.initialized) {
+		return nullptr;
+	}
+
+	GLDisplay &display = displays[glwindow.gldisplay_id];
+
+	return display.egl_config;
+}
+
 Error EGLManager::initialize(void *p_native_display) {
 #if defined(GLAD_ENABLED) && !defined(EGL_STATIC)
 	// Loading EGL with a new display gets us just the bare minimum API. We'll then

@@ -1491,76 +1491,22 @@ void FileSystemDock::_try_duplicate_item(const FileOrFolder &p_item, const Strin
 		EditorNode::get_singleton()->add_io_error(TTR("Cannot move a folder into itself.") + "\n" + old_path + "\n");
 		return;
 	}
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
 
 	if (p_item.is_file) {
 		print_verbose("Duplicating " + old_path + " -> " + new_path);
 
 		// Create the directory structure.
-		da->make_dir_recursive(new_path.get_base_dir());
+		EditorFileSystem::get_singleton()->make_dir_recursive(p_new_path.get_base_dir());
 
-		if (FileAccess::exists(old_path + ".import")) {
-			Error err = da->copy(old_path, new_path);
-			if (err != OK) {
-				EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + "\n" + old_path + ": " + error_names[err] + "\n");
-				return;
-			}
-
-			// Remove uid from .import file to avoid conflict.
-			Ref<ConfigFile> cfg;
-			cfg.instantiate();
-			cfg->load(old_path + ".import");
-			cfg->erase_section_key("remap", "uid");
-			err = cfg->save(new_path + ".import");
-			if (err != OK) {
-				EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + "\n" + old_path + ".import: " + error_names[err] + "\n");
-				return;
-			}
-		} else {
-			// Files which do not use an uid can just be copied.
-			if (ResourceLoader::get_resource_uid(old_path) == ResourceUID::INVALID_ID) {
-				Error err = da->copy(old_path, new_path);
-				if (err != OK) {
-					EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + "\n" + old_path + ": " + error_names[err] + "\n");
-				}
-				return;
-			}
-
-			// Load the resource and save it again in the new location (this generates a new UID).
-			Error err;
-			Ref<Resource> res = ResourceLoader::load(old_path, "", ResourceFormatLoader::CACHE_MODE_REUSE, &err);
-			if (err == OK && res.is_valid()) {
-				err = ResourceSaver::save(res, new_path, ResourceSaver::FLAG_COMPRESS);
-				if (err != OK) {
-					EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + " " + vformat(TTR("Failed to save resource at %s: %s"), new_path, error_names[err]));
-				}
-			} else if (err != OK) {
-				// When loading files like text files the error is OK but the resource is still null.
-				// We can ignore such files.
-				EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + " " + vformat(TTR("Failed to load resource at %s: %s"), new_path, error_names[err]));
-			}
+		Error err = EditorFileSystem::get_singleton()->copy_file(old_path, new_path);
+		if (err != OK) {
+			EditorNode::get_singleton()->add_io_error(TTR("Error duplicating:") + "\n" + old_path + ": " + error_names[err] + "\n");
 		}
 	} else {
-		da->make_dir(new_path);
-
-		// Recursively duplicate all files inside the folder.
-		Ref<DirAccess> old_dir = DirAccess::open(old_path);
-		ERR_FAIL_COND(old_dir.is_null());
-
-		Ref<FileAccess> file_access = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-		old_dir->set_include_navigational(false);
-		old_dir->list_dir_begin();
-		for (String f = old_dir->_get_next(); !f.is_empty(); f = old_dir->_get_next()) {
-			if (f.get_extension() == "import") {
-				continue;
-			}
-			if (file_access->file_exists(old_path + f)) {
-				_try_duplicate_item(FileOrFolder(old_path + f, true), new_path + f);
-			} else if (da->dir_exists(old_path + f)) {
-				_try_duplicate_item(FileOrFolder(old_path + f, false), new_path + f);
-			}
+		Error err = EditorFileSystem::get_singleton()->copy_directory(old_path, new_path);
+		if (err != OK) {
+			EditorNode::get_singleton()->add_io_error(TTR("Error duplicating directory:") + "\n" + old_path + "\n");
 		}
-		old_dir->list_dir_end();
 	}
 }
 
@@ -1866,21 +1812,15 @@ void FileSystemDock::_rename_operation_confirm() {
 }
 
 void FileSystemDock::_duplicate_operation_confirm(const String &p_path) {
-	String base_dir = p_path.trim_suffix("/").get_base_dir();
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-	if (!da->dir_exists(base_dir)) {
-		Error err = da->make_dir_recursive(base_dir);
-
+	const String base_dir = p_path.trim_suffix("/").get_base_dir();
+	if (!DirAccess::dir_exists_absolute(base_dir)) {
+		Error err = EditorFileSystem::get_singleton()->make_dir_recursive(base_dir);
 		if (err != OK) {
 			EditorNode::get_singleton()->show_warning(vformat(TTR("Could not create base directory: %s"), error_names[err]));
 			return;
 		}
 	}
 	_try_duplicate_item(to_duplicate, p_path);
-
-	// Rescan everything.
-	print_verbose("FileSystem: calling rescan.");
-	_rescan();
 }
 
 void FileSystemDock::_overwrite_dialog_action(bool p_overwrite) {
@@ -3431,7 +3371,7 @@ void FileSystemDock::_file_and_folders_fill_popup(PopupMenu *p_popup, const Vect
 		const bool is_directory = fpath.ends_with("/");
 
 		p_popup->add_icon_shortcut(get_editor_theme_icon(SNAME("Terminal")), ED_GET_SHORTCUT("filesystem_dock/open_in_terminal"), FILE_OPEN_IN_TERMINAL);
-		p_popup->set_item_text(p_popup->get_item_index(FILE_OPEN_IN_TERMINAL), is_directory ? TTR("Open in Terminal") : TTR("Open Containing Folder in Terminal"));
+		p_popup->set_item_text(p_popup->get_item_index(FILE_OPEN_IN_TERMINAL), is_directory ? TTR("Open in Terminal") : TTR("Open Folder in Terminal"));
 
 		if (!is_directory) {
 			p_popup->add_icon_shortcut(get_editor_theme_icon(SNAME("ExternalLink")), ED_GET_SHORTCUT("filesystem_dock/open_in_external_program"), FILE_OPEN_EXTERNAL);
@@ -4060,17 +4000,17 @@ FileSystemDock::FileSystemDock() {
 
 	// `KeyModifierMask::CMD_OR_CTRL | Key::C` conflicts with other editor shortcuts.
 	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
-	ED_SHORTCUT("filesystem_dock/copy_absolute_path", TTR("Copy Absolute Path"));
-	ED_SHORTCUT("filesystem_dock/copy_uid", TTR("Copy UID"));
+	ED_SHORTCUT("filesystem_dock/copy_absolute_path", TTR("Copy Absolute Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::C);
+	ED_SHORTCUT("filesystem_dock/copy_uid", TTR("Copy UID"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | KeyModifierMask::SHIFT | Key::C);
 	ED_SHORTCUT("filesystem_dock/duplicate", TTR("Duplicate..."), KeyModifierMask::CMD_OR_CTRL | Key::D);
 	ED_SHORTCUT("filesystem_dock/delete", TTR("Delete"), Key::KEY_DELETE);
 	ED_SHORTCUT("filesystem_dock/rename", TTR("Rename..."), Key::F2);
 	ED_SHORTCUT_OVERRIDE("filesystem_dock/rename", "macos", Key::ENTER);
 #if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
 	// Opening the system file manager or opening in an external program is not supported on the Android and web editors.
-	ED_SHORTCUT("filesystem_dock/show_in_explorer", TTR("Open in File Manager"));
-	ED_SHORTCUT("filesystem_dock/open_in_external_program", TTR("Open in External Program"));
-	ED_SHORTCUT("filesystem_dock/open_in_terminal", TTR("Open in Terminal"));
+	ED_SHORTCUT("filesystem_dock/show_in_explorer", TTR("Open in File Manager"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R);
+	ED_SHORTCUT("filesystem_dock/open_in_external_program", TTR("Open in External Program"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::E);
+	ED_SHORTCUT("filesystem_dock/open_in_terminal", TTR("Open in Terminal"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::T);
 #endif
 
 	// Properly translating color names would require a separate HashMap, so for simplicity they are provided as comments.

@@ -37,11 +37,16 @@
 #include "bc1.glsl.gen.h"
 #include "bc4.glsl.gen.h"
 #include "bc6h.glsl.gen.h"
+#include "servers/display_server.h"
 
 static Mutex betsy_mutex;
 static BetsyCompressor *betsy = nullptr;
 
 void BetsyCompressor::_init() {
+	if (!DisplayServer::can_create_rendering_device()) {
+		return;
+	}
+
 	// Create local RD.
 	RenderingContextDriver *rcd = nullptr;
 	RenderingDevice *rd = RenderingServer::get_singleton()->create_local_rendering_device();
@@ -181,6 +186,11 @@ static String get_shader_name(BetsyFormat p_format) {
 
 Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 	uint64_t start_time = OS::get_singleton()->get_ticks_msec();
+
+	// Return an error so that the compression can fall back to cpu compression
+	if (compress_rd == nullptr) {
+		return ERR_CANT_CREATE;
+	}
 
 	if (r_img->is_compressed()) {
 		return ERR_INVALID_DATA;

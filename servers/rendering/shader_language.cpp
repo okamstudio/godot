@@ -356,7 +356,7 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_CF_BREAK, "break", CF_BLOCK, {}, {} },
 	{ TK_CF_CONTINUE, "continue", CF_BLOCK, {}, {} },
 	{ TK_CF_RETURN, "return", CF_BLOCK, {}, {} },
-	{ TK_CF_DISCARD, "discard", CF_BLOCK, { "particles", "sky", "fog" }, { "fragment" } },
+	{ TK_CF_DISCARD, "discard", CF_BLOCK, { "particles", "sky", "fog" }, { "vertex" } },
 
 	// function specifier keywords
 
@@ -3565,28 +3565,33 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 
 	int argcount = args.size();
 
-	if (p_function_info.stage_functions.has(name)) {
-		//stage based function
-		const StageFunctionInfo &sf = p_function_info.stage_functions[name];
-		if (argcount != sf.arguments.size()) {
-			_set_error(vformat(RTR("Invalid number of arguments when calling stage function '%s', which expects %d arguments."), String(name), sf.arguments.size()));
-			return false;
-		}
-		//validate arguments
-		for (int i = 0; i < argcount; i++) {
-			if (args[i] != sf.arguments[i].type) {
-				_set_error(vformat(RTR("Invalid argument type when calling stage function '%s', type expected is '%s'."), String(name), get_datatype_name(sf.arguments[i].type)));
-				return false;
+	if (stages) {
+		// Stage functions can be used in custom functions as well, that why need to check them all.
+		for (const KeyValue<StringName, FunctionInfo> &E : *stages) {
+			if (E.value.stage_functions.has(name)) {
+				// Stage-based function.
+				const StageFunctionInfo &sf = E.value.stage_functions[name];
+				if (argcount != sf.arguments.size()) {
+					_set_error(vformat(RTR("Invalid number of arguments when calling stage function '%s', which expects %d arguments."), String(name), sf.arguments.size()));
+					return false;
+				}
+				// Validate arguments.
+				for (int i = 0; i < argcount; i++) {
+					if (args[i] != sf.arguments[i].type) {
+						_set_error(vformat(RTR("Invalid argument type when calling stage function '%s', type expected is '%s'."), String(name), get_datatype_name(sf.arguments[i].type)));
+						return false;
+					}
+				}
+
+				if (r_ret_type) {
+					*r_ret_type = sf.return_type;
+				}
+				if (r_ret_type_str) {
+					*r_ret_type_str = "";
+				}
+				return true;
 			}
 		}
-
-		if (r_ret_type) {
-			*r_ret_type = sf.return_type;
-		}
-		if (r_ret_type_str) {
-			*r_ret_type_str = "";
-		}
-		return true;
 	}
 
 	bool failed_builtin = false;
@@ -5937,22 +5942,35 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							calls_info[current_function].calls.push_back(&calls_info[name]);
 						}
 
-						int idx = 0;
 						bool is_builtin = false;
 
-						while (frag_only_func_defs[idx].name) {
-							if (frag_only_func_defs[idx].name == name) {
-								// If a built-in function not found for the current shader type, then it shouldn't be parsed further.
-								if (!is_supported_frag_only_funcs) {
-									_set_error(vformat(RTR("Built-in function '%s' is not supported for the '%s' shader type."), name, shader_type_identifier));
-									return nullptr;
+						if (is_supported_frag_only_funcs && stages) {
+							for (const KeyValue<StringName, FunctionInfo> &E : *stages) {
+								if (E.value.stage_functions.has(name)) {
+									// Register usage of the restricted stage function.
+									calls_info[current_function].uses_restricted_items.push_back(Pair<StringName, CallInfo::Item>(name, CallInfo::Item(CallInfo::Item::ITEM_TYPE_BUILTIN, _get_tkpos())));
+									is_builtin = true;
+									break;
 								}
-								// Register usage of the restricted function.
-								calls_info[current_function].uses_restricted_items.push_back(Pair<StringName, CallInfo::Item>(name, CallInfo::Item(CallInfo::Item::ITEM_TYPE_BUILTIN, _get_tkpos())));
-								is_builtin = true;
-								break;
 							}
-							idx++;
+						}
+
+						if (!is_builtin) {
+							int idx = 0;
+							while (frag_only_func_defs[idx].name) {
+								if (frag_only_func_defs[idx].name == name) {
+									// If a built-in function not found for the current shader type, then it shouldn't be parsed further.
+									if (!is_supported_frag_only_funcs) {
+										_set_error(vformat(RTR("Built-in function '%s' is not supported for the '%s' shader type."), name, shader_type_identifier));
+										return nullptr;
+									}
+									// Register usage of the restricted function.
+									calls_info[current_function].uses_restricted_items.push_back(Pair<StringName, CallInfo::Item>(name, CallInfo::Item(CallInfo::Item::ITEM_TYPE_BUILTIN, _get_tkpos())));
+									is_builtin = true;
+									break;
+								}
+								idx++;
+							}
 						}
 
 						// Recursively checks for the restricted function call.
@@ -8581,6 +8599,11 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const FunctionInfo &p_fun
 				block = block->parent_block;
 			}
 		} else if (tk.type == TK_CF_DISCARD) {
+			if (!is_discard_supported) {
+				_set_error(vformat(RTR("Use of '%s' is not supported for the '%s' shader type."), "discard", shader_type_identifier));
+				return ERR_PARSE_ERROR;
+			}
+
 			//check return type
 			BlockNode *b = p_block;
 			while (b && !b->parent_function) {
@@ -8592,7 +8615,7 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const FunctionInfo &p_fun
 			}
 
 			if (!b->parent_function->can_discard) {
-				_set_error(vformat(RTR("Use of '%s' is not allowed here."), "discard"));
+				_set_error(vformat(RTR("'%s' cannot be used within the '%s' processor function."), "discard", b->parent_function->name));
 				return ERR_PARSE_ERROR;
 			}
 
@@ -8601,6 +8624,9 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const FunctionInfo &p_fun
 
 			pos = _get_tkpos();
 			tk = _get_token();
+
+			calls_info[b->parent_function->name].uses_restricted_items.push_back(Pair<StringName, CallInfo::Item>("discard", CallInfo::Item(CallInfo::Item::ITEM_TYPE_BUILTIN, pos)));
+
 			if (tk.type != TK_SEMICOLON) {
 				_set_expected_after_error(";", "discard");
 				return ERR_PARSE_ERROR;
@@ -8838,7 +8864,9 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 	ShaderNode::Uniform::Scope uniform_scope = ShaderNode::Uniform::SCOPE_LOCAL;
 
 	stages = &p_functions;
-	is_supported_frag_only_funcs = shader_type_identifier == "canvas_item" || shader_type_identifier == "spatial" || shader_type_identifier == "sky";
+
+	is_discard_supported = shader_type_identifier == "canvas_item" || shader_type_identifier == "spatial";
+	is_supported_frag_only_funcs = is_discard_supported || shader_type_identifier == "sky";
 
 	const FunctionInfo &constants = p_functions.has("constants") ? p_functions["constants"] : FunctionInfo();
 
@@ -10332,6 +10360,8 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 				if (p_functions.has(name)) {
 					func_node->can_discard = p_functions[name].can_discard;
+				} else {
+					func_node->can_discard = is_discard_supported; // Allow use it for custom functions (in supported shader types).
 				}
 
 				if (!function_overload_count.has(name)) {
@@ -10922,10 +10952,7 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				break; // Ignore hint keywords (parsed below).
 			}
 			if (keyword_list[i].flags & keyword_completion_context) {
-				if (keyword_list[i].excluded_shader_types.has(shader_type_identifier)) {
-					continue;
-				}
-				if (!keyword_list[i].functions.is_empty() && !keyword_list[i].functions.has(current_function)) {
+				if (keyword_list[i].excluded_shader_types.has(shader_type_identifier) || keyword_list[i].excluded_functions.has(current_function)) {
 					continue;
 				}
 				ScriptLanguage::CodeCompletionOption option(keyword_list[i].text, ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
@@ -11160,9 +11187,15 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				int idx = 0;
 				bool low_end = RenderingServer::get_singleton()->is_low_end();
 
-				if (stages && stages->has(skip_function)) {
-					for (const KeyValue<StringName, StageFunctionInfo> &E : (*stages)[skip_function].stage_functions) {
-						matches.insert(String(E.key), ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
+				if (stages) {
+					// Stage functions can be used in custom functions as well, that why need to check them all.
+					for (const KeyValue<StringName, FunctionInfo> &E : *stages) {
+						for (const KeyValue<StringName, StageFunctionInfo> &F : E.value.stage_functions) {
+							if (F.value.skip_function == skip_function && stages->has(skip_function)) {
+								continue;
+							}
+							matches.insert(String(F.key), ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
+						}
 					}
 				}
 
@@ -11292,9 +11325,15 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				return OK;
 			}
 
-			if (stages && stages->has(block_function)) {
-				for (const KeyValue<StringName, StageFunctionInfo> &E : (*stages)[block_function].stage_functions) {
-					if (completion_function == E.key) {
+			if (stages) {
+				// Stage functions can be used in custom functions as well, that why need to check them all.
+				for (const KeyValue<StringName, FunctionInfo> &S : *stages) {
+					for (const KeyValue<StringName, StageFunctionInfo> &E : S.value.stage_functions) {
+						// No need to check for the skip function here.
+						if (completion_function != E.key) {
+							continue;
+						}
+
 						calltip += get_datatype_name(E.value.return_type);
 						calltip += " ";
 						calltip += E.key;

@@ -397,32 +397,36 @@ void (*type_init_function_table[])(Variant *) = {
 #define OPCODES_OUT \
 	OPSOUT:
 #define OPCODE_SWITCH(m_test) goto *switch_table_ops[m_test];
+
 #ifdef DEBUG_ENABLED
 #define DISPATCH_OPCODE          \
 	last_opcode = _code_ptr[ip]; \
 	goto *switch_table_ops[last_opcode]
-#else
+#else // !DEBUG_ENABLED
 #define DISPATCH_OPCODE goto *switch_table_ops[_code_ptr[ip]]
-#endif
+#endif // DEBUG_ENABLED
+
 #define OPCODE_BREAK goto OPSEXIT
 #define OPCODE_OUT goto OPSOUT
-#else
+#else // !(defined(__GNUC__) || defined(__clang__))
 #define OPCODES_TABLE
 #define OPCODE(m_op) case m_op:
 #define OPCODE_WHILE(m_test) while (m_test)
 #define OPCODES_END
 #define OPCODES_OUT
 #define DISPATCH_OPCODE continue
+
 #ifdef _MSC_VER
 #define OPCODE_SWITCH(m_test)       \
 	__assume(m_test <= OPCODE_END); \
 	switch (m_test)
-#else
+#else // !_MSC_VER
 #define OPCODE_SWITCH(m_test) switch (m_test)
-#endif
+#endif // _MSC_VER
+
 #define OPCODE_BREAK break
 #define OPCODE_OUT break
-#endif
+#endif // defined(__GNUC__) || defined(__clang__)
 
 // Helpers for VariantInternal methods in macros.
 #define OP_GET_BOOL get_bool
@@ -663,7 +667,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 			OPCODE_BREAK;                                                                           \
 	}
 
-#else
+#else // !DEBUG_ENABLED
 #define GD_ERR_BREAK(m_cond)
 #define CHECK_SPACE(m_space)
 
@@ -676,7 +680,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 			OPCODE_BREAK;                                                                       \
 	}
 
-#endif
+#endif // DEBUG_ENABLED
 
 #define LOAD_INSTRUCTION_ARGS                   \
 	int instr_arg_count = _code_ptr[ip + 1];    \
@@ -1965,7 +1969,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 					err_text = _get_call_error("function '" + methodstr + (is_callable ? "" : "' in base '" + basestr) + "'", (const Variant **)argptrs, temp_ret, err);
 					OPCODE_BREAK;
 				}
-#endif
+#endif // DEBUG_ENABLED
 
 				ip += 3;
 			}

@@ -296,19 +296,12 @@ void Button::_notification(int p_what) {
 					}
 				} break;
 				case DRAW_HOVER_PRESSED: {
-					// Edge case for CheckButton and CheckBox.
-					if (has_theme_stylebox("hover_pressed")) {
-						if (has_theme_color(SNAME("font_hover_pressed_color"))) {
-							font_color = theme_cache.font_hover_pressed_color;
-						}
-						if (has_theme_color(SNAME("icon_hover_pressed_color"))) {
-							icon_modulate_color = theme_cache.icon_hover_pressed_color;
-						}
-
-						break;
+					font_color = theme_cache.font_hover_pressed_color;
+					if (has_theme_color(SNAME("icon_hover_pressed_color"))) {
+						icon_modulate_color = theme_cache.icon_hover_pressed_color;
 					}
-				}
-					[[fallthrough]];
+
+				} break;
 				case DRAW_PRESSED: {
 					if (has_theme_color(SNAME("font_pressed_color"))) {
 						font_color = theme_cache.font_pressed_color;
