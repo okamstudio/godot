@@ -38,7 +38,8 @@
 namespace TestHashingContext {
 
 TEST_CASE("[HashingContext] Default - MD5/SHA1/SHA256") {
-	HashingContext ctx;
+	Ref<HashingContext> ctx;
+	ctx.instantiate();
 
 	static const uint8_t md5_expected[] = {
 		0xd4, 0x1d, 0x8c, 0xd9, 0x8f, 0x00, 0xb2, 0x04, 0xe9, 0x80, 0x09, 0x98, 0xec, 0xf8, 0x42, 0x7e
@@ -52,24 +53,26 @@ TEST_CASE("[HashingContext] Default - MD5/SHA1/SHA256") {
 		0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55
 	};
 
-	CHECK(ctx.start(HashingContext::HASH_MD5) == OK);
-	PackedByteArray result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_MD5) == OK);
+	PackedByteArray result = ctx->finish();
 	REQUIRE(result.size() == 16);
 	CHECK(memcmp(result.ptr(), md5_expected, 16) == 0);
 
-	CHECK(ctx.start(HashingContext::HASH_SHA1) == OK);
-	result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_SHA1) == OK);
+	result = ctx->finish();
 	REQUIRE(result.size() == 20);
 	CHECK(memcmp(result.ptr(), sha1_expected, 20) == 0);
 
-	CHECK(ctx.start(HashingContext::HASH_SHA256) == OK);
-	result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_SHA256) == OK);
+	result = ctx->finish();
 	REQUIRE(result.size() == 32);
 	CHECK(memcmp(result.ptr(), sha256_expected, 32) == 0);
 }
 
 TEST_CASE("[HashingContext] Multiple updates - MD5/SHA1/SHA256") {
-	HashingContext ctx;
+	Ref<HashingContext> ctx;
+	ctx.instantiate();
+
 	const String s = "xyz";
 
 	const PackedByteArray s_byte_parts[] = {
@@ -90,73 +93,76 @@ TEST_CASE("[HashingContext] Multiple updates - MD5/SHA1/SHA256") {
 		0x98, 0x92, 0xc0, 0xb4, 0x2b, 0x86, 0xbb, 0xf1, 0xe7, 0x7a, 0x6f, 0xa1, 0x6c, 0x3c, 0x92, 0x82
 	};
 
-	CHECK(ctx.start(HashingContext::HASH_MD5) == OK);
-	CHECK(ctx.update(s_byte_parts[0]) == OK);
-	CHECK(ctx.update(s_byte_parts[1]) == OK);
-	CHECK(ctx.update(s_byte_parts[2]) == OK);
-	PackedByteArray result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_MD5) == OK);
+	CHECK(ctx->update(s_byte_parts[0]) == OK);
+	CHECK(ctx->update(s_byte_parts[1]) == OK);
+	CHECK(ctx->update(s_byte_parts[2]) == OK);
+	PackedByteArray result = ctx->finish();
 	REQUIRE(result.size() == 16);
 	CHECK(memcmp(result.ptr(), md5_expected, 16) == 0);
 
-	CHECK(ctx.start(HashingContext::HASH_SHA1) == OK);
-	CHECK(ctx.update(s_byte_parts[0]) == OK);
-	CHECK(ctx.update(s_byte_parts[1]) == OK);
-	CHECK(ctx.update(s_byte_parts[2]) == OK);
-	result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_SHA1) == OK);
+	CHECK(ctx->update(s_byte_parts[0]) == OK);
+	CHECK(ctx->update(s_byte_parts[1]) == OK);
+	CHECK(ctx->update(s_byte_parts[2]) == OK);
+	result = ctx->finish();
 	REQUIRE(result.size() == 20);
 	CHECK(memcmp(result.ptr(), sha1_expected, 20) == 0);
 
-	CHECK(ctx.start(HashingContext::HASH_SHA256) == OK);
-	CHECK(ctx.update(s_byte_parts[0]) == OK);
-	CHECK(ctx.update(s_byte_parts[1]) == OK);
-	CHECK(ctx.update(s_byte_parts[2]) == OK);
-	result = ctx.finish();
+	CHECK(ctx->start(HashingContext::HASH_SHA256) == OK);
+	CHECK(ctx->update(s_byte_parts[0]) == OK);
+	CHECK(ctx->update(s_byte_parts[1]) == OK);
+	CHECK(ctx->update(s_byte_parts[2]) == OK);
+	result = ctx->finish();
 	REQUIRE(result.size() == 32);
 	CHECK(memcmp(result.ptr(), sha256_expected, 32) == 0);
 }
 
 TEST_CASE("[HashingContext] Invalid use of start") {
-	HashingContext ctx;
+	Ref<HashingContext> ctx;
+	ctx.instantiate();
 
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
-			ctx.start(static_cast<HashingContext::HashType>(-1)) == ERR_UNAVAILABLE,
+			ctx->start(static_cast<HashingContext::HashType>(-1)) == ERR_UNAVAILABLE,
 			"Using invalid hash types should fail.");
 	ERR_PRINT_ON;
 
-	REQUIRE(ctx.start(HashingContext::HASH_MD5) == OK);
+	REQUIRE(ctx->start(HashingContext::HASH_MD5) == OK);
 
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
-			ctx.start(HashingContext::HASH_MD5) == ERR_ALREADY_IN_USE,
+			ctx->start(HashingContext::HASH_MD5) == ERR_ALREADY_IN_USE,
 			"Calling 'start' twice before 'finish' should fail.");
 	ERR_PRINT_ON;
 }
 
 TEST_CASE("[HashingContext] Invalid use of update") {
-	HashingContext ctx;
+	Ref<HashingContext> ctx;
+	ctx.instantiate();
 
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
-			ctx.update(PackedByteArray()) == ERR_UNCONFIGURED,
+			ctx->update(PackedByteArray()) == ERR_UNCONFIGURED,
 			"Calling 'update' before 'start' should fail.");
 	ERR_PRINT_ON;
 
-	REQUIRE(ctx.start(HashingContext::HASH_MD5) == OK);
+	REQUIRE(ctx->start(HashingContext::HASH_MD5) == OK);
 
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
-			ctx.update(PackedByteArray()) == FAILED,
+			ctx->update(PackedByteArray()) == FAILED,
 			"Calling 'update' with an empty byte array should fail.");
 	ERR_PRINT_ON;
 }
 
 TEST_CASE("[HashingContext] Invalid use of finish") {
-	HashingContext ctx;
+	Ref<HashingContext> ctx;
+	ctx.instantiate();
 
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
-			ctx.finish() == PackedByteArray(),
+			ctx->finish() == PackedByteArray(),
 			"Calling 'finish' before 'start' should return an empty byte array.");
 	ERR_PRINT_ON;
 }

@@ -195,12 +195,13 @@ TEST_CASE("[Stress][Basis] Euler conversions") {
 
 	Vector<Vector3> vectors_to_test;
 	// Add 1000 random vectors with weirds numbers.
-	RandomNumberGenerator rng;
+	Ref<RandomNumberGenerator> rng;
+	rng.instantiate();
 	for (int _ = 0; _ < 1000; _ += 1) {
 		vectors_to_test.push_back(Vector3(
-				rng.randf_range(-1800, 1800),
-				rng.randf_range(-1800, 1800),
-				rng.randf_range(-1800, 1800)));
+				rng->randf_range(-1800, 1800),
+				rng->randf_range(-1800, 1800),
+				rng->randf_range(-1800, 1800)));
 	}
 
 	for (int h = 0; h < euler_order_to_test.size(); h += 1) {

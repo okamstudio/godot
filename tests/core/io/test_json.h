@@ -44,66 +44,68 @@ namespace TestJSON {
 TEST_CASE("[JSON] Parsing single data types") {
 	// Parsing a single data type as JSON is valid per the JSON specification.
 
-	JSON json;
+	Ref<JSON> json;
+	json.instantiate();
 
-	json.parse("null");
+	json->parse("null");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing `null` as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			json.get_data() == Variant(),
+			json->get_data() == Variant(),
 			"Parsing a double quoted string as JSON should return the expected value.");
 
-	json.parse("true");
+	json->parse("true");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing boolean `true` as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			json.get_data(),
+			json->get_data(),
 			"Parsing boolean `true` as JSON should return the expected value.");
 
-	json.parse("false");
+	json->parse("false");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing boolean `false` as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			!json.get_data(),
+			!json->get_data(),
 			"Parsing boolean `false` as JSON should return the expected value.");
 
-	json.parse("123456");
+	json->parse("123456");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing an integer number as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			(int)(json.get_data()) == 123456,
+			(int)(json->get_data()) == 123456,
 			"Parsing an integer number as JSON should return the expected value.");
 
-	json.parse("0.123456");
+	json->parse("0.123456");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing a floating-point number as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			double(json.get_data()) == doctest::Approx(0.123456),
+			double(json->get_data()) == doctest::Approx(0.123456),
 			"Parsing a floating-point number as JSON should return the expected value.");
 
-	json.parse("\"hello\"");
+	json->parse("\"hello\"");
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing a double quoted string as JSON should parse successfully.");
 	CHECK_MESSAGE(
-			json.get_data() == "hello",
+			json->get_data() == "hello",
 			"Parsing a double quoted string as JSON should return the expected value.");
 }
 
 TEST_CASE("[JSON] Parsing arrays") {
-	JSON json;
+	Ref<JSON> json;
+	json.instantiate();
 
 	// JSON parsing fails if it's split over several lines (even if leading indentation is removed).
-	json.parse(R"(["Hello", "world.", "This is",["a","json","array.",[]], "Empty arrays ahoy:", [[["Gotcha!"]]]])");
+	json->parse(R"(["Hello", "world.", "This is",["a","json","array.",[]], "Empty arrays ahoy:", [[["Gotcha!"]]]])");
 
-	const Array array = json.get_data();
+	const Array array = json->get_data();
 	CHECK_MESSAGE(
-			json.get_error_line() == 0,
+			json->get_error_line() == 0,
 			"Parsing a JSON array should parse successfully.");
 	CHECK_MESSAGE(
 			array[0] == "Hello",
@@ -125,11 +127,12 @@ TEST_CASE("[JSON] Parsing arrays") {
 }
 
 TEST_CASE("[JSON] Parsing objects (dictionaries)") {
-	JSON json;
+	Ref<JSON> json;
+	json.instantiate();
 
-	json.parse(R"({"name": "Godot Engine", "is_free": true, "bugs": null, "apples": {"red": 500, "green": 0, "blue": -20}, "empty_object": {}})");
+	json->parse(R"({"name": "Godot Engine", "is_free": true, "bugs": null, "apples": {"red": 500, "green": 0, "blue": -20}, "empty_object": {}})");
 
-	const Dictionary dictionary = json.get_data();
+	const Dictionary dictionary = json->get_data();
 	CHECK_MESSAGE(
 			dictionary["name"] == "Godot Engine",
 			"The parsed JSON should contain the expected values.");
@@ -151,7 +154,8 @@ TEST_CASE("[JSON] Parsing escape sequences") {
 	// Only certain escape sequences are valid according to the JSON specification.
 	// Others must result in a parsing error instead.
 
-	JSON json;
+	Ref<JSON> json;
+	json.instantiate();
 
 	TypedArray<String> valid_escapes;
 	valid_escapes.push_back("\";\"");
@@ -172,13 +176,13 @@ TEST_CASE("[JSON] Parsing escape sequences") {
 			String json_string = "\"\\";
 			json_string += valid_escape_string;
 			json_string += "\"";
-			json.parse(json_string);
+			json->parse(json_string);
 
 			CHECK_MESSAGE(
-					json.get_error_line() == 0,
+					json->get_error_line() == 0,
 					vformat("Parsing valid escape sequence `%s` as JSON should parse successfully.", valid_escape_string));
 
-			String json_value = json.get_data();
+			String json_value = json->get_data();
 			CHECK_MESSAGE(
 					json_value == valid_escape_value,
 					vformat("Parsing valid escape sequence `%s` as JSON should return the expected value.", valid_escape_string));
@@ -187,13 +191,13 @@ TEST_CASE("[JSON] Parsing escape sequences") {
 
 	SUBCASE("Valid unicode escape sequences") {
 		String json_string = "\"\\u0020\"";
-		json.parse(json_string);
+		json->parse(json_string);
 
 		CHECK_MESSAGE(
-				json.get_error_line() == 0,
+				json->get_error_line() == 0,
 				vformat("Parsing valid unicode escape sequence with value `0020` as JSON should parse successfully."));
 
-		String json_value = json.get_data();
+		String json_value = json->get_data();
 		CHECK_MESSAGE(
 				json_value == " ",
 				vformat("Parsing valid unicode escape sequence with value `0020` as JSON should return the expected value."));
@@ -219,11 +223,11 @@ TEST_CASE("[JSON] Parsing escape sequences") {
 			String json_string = "\"\\";
 			json_string += i;
 			json_string += "\"";
-			Error err = json.parse(json_string);
+			Error err = json->parse(json_string);
 
 			// TODO: Line number is currently kept on 0, despite an error occurring. This should be fixed in the JSON parser.
 			// CHECK_MESSAGE(
-			// 		json.get_error_line() != 0,
+			// 		json->get_error_line() != 0,
 			// 		vformat("Parsing invalid escape sequence with ASCII value `%d` as JSON should fail to parse.", i));
 			CHECK_MESSAGE(
 					err == ERR_PARSE_ERROR,
