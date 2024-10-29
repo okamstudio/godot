@@ -47,9 +47,11 @@ void check_invalid(const Dictionary &p_dict) {
 }
 
 void check_invalid_string(const String &p_str) {
-	JSON json;
-	REQUIRE(json.parse(p_str) == OK);
-	const Dictionary &dict = json.get_data();
+	Ref<JSON> json;
+	json.instantiate();
+
+	REQUIRE(json->parse(p_str) == OK);
+	const Dictionary &dict = json->get_data();
 	check_invalid(dict);
 }
 
@@ -62,15 +64,17 @@ void TestClassJSONRPC::_bind_methods() {
 }
 
 void test_process_action(const Variant &p_in, const Variant &p_expected, bool p_process_array_elements) {
-	TestClassJSONRPC json_rpc = TestClassJSONRPC();
-	const Variant &observed = json_rpc.process_action(p_in, p_process_array_elements);
+	TestClassJSONRPC *json_rpc = memnew(TestClassJSONRPC);
+	const Variant &observed = json_rpc->process_action(p_in, p_process_array_elements);
 	CHECK(observed == p_expected);
+	memdelete(json_rpc);
 }
 
 void test_process_string(const String &p_in, const String &p_expected) {
-	TestClassJSONRPC json_rpc = TestClassJSONRPC();
-	const String &out_str = json_rpc.process_string(p_in);
+	TestClassJSONRPC *json_rpc = memnew(TestClassJSONRPC);
+	const String &out_str = json_rpc->process_string(p_in);
 	CHECK(out_str == p_expected);
+	memdelete(json_rpc);
 }
 
 void check_error_no_method(const Dictionary &p_dict) {
@@ -78,9 +82,10 @@ void check_error_no_method(const Dictionary &p_dict) {
 }
 
 void test_process_action_bad_method(const Dictionary &p_in) {
-	TestClassJSONRPC json_rpc = TestClassJSONRPC();
-	const Dictionary &out_dict = json_rpc.process_action(p_in);
+	TestClassJSONRPC *json_rpc = memnew(TestClassJSONRPC);
+	const Dictionary &out_dict = json_rpc->process_action(p_in);
 	check_error_no_method(out_dict);
+	memdelete(json_rpc);
 }
 
 } // namespace TestJSONRPC
