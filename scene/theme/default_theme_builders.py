@@ -1,30 +1,21 @@
 """Functions used to generate source files during build time"""
 
 import os
-import os.path
+
+import methods
 
 
 def make_fonts_header(target, source, env):
-    dst = str(target[0])
+    with methods.generated_wrapper(target[0]) as file:
+        for src in source:
+            # Saving uncompressed, since FreeType will reference from memory pointer.
+            buffer = methods.get_buffer(src)
+            name = os.path.splitext(os.path.basename(str(src)))[0]
 
-    with open(dst, "w", encoding="utf-8", newline="\n") as g:
-        g.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-        g.write("#ifndef _DEFAULT_FONTS_H\n")
-        g.write("#define _DEFAULT_FONTS_H\n")
+            file.write(f"""\
+inline constexpr int _font_{name}_size = {len(buffer)};
+inline constexpr unsigned char _font_{name}[] = {{
+	{methods.format_buffer(buffer, 1)}
+}};
 
-        # Saving uncompressed, since FreeType will reference from memory pointer.
-        for i in range(len(source)):
-            file = str(source[i])
-            with open(file, "rb") as f:
-                buf = f.read()
-
-            name = os.path.splitext(os.path.basename(file))[0]
-
-            g.write("static const int _font_" + name + "_size = " + str(len(buf)) + ";\n")
-            g.write("static const unsigned char _font_" + name + "[] = {\n")
-            for j in range(len(buf)):
-                g.write("\t" + str(buf[j]) + ",\n")
-
-            g.write("};\n")
-
-        g.write("#endif")
+""")

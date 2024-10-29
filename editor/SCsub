@@ -5,7 +5,6 @@ Import("env")
 
 env.editor_sources = []
 
-import glob
 import os
 
 import editor_builders
@@ -17,17 +16,16 @@ if env.editor_build:
     def doc_data_class_path_builder(target, source, env):
         paths = dict(sorted(source[0].read().items()))
         data = "\n".join([f'\t{{"{key}", "{value}"}},' for key, value in paths.items()])
-        with methods.generated_wrapper(target) as file:
+        with methods.generated_wrapper(target[0]) as file:
             file.write(
                 f"""\
-static const int _doc_data_class_path_count = {len(paths)};
-
 struct _DocDataClassPath {{
 	const char *name;
 	const char *path;
 }};
 
-static const _DocDataClassPath _doc_data_class_paths[{len(env.doc_class_path) + 1}] = {{
+inline constexpr int _doc_data_class_path_count = {len(paths)};
+inline constexpr _DocDataClassPath _doc_data_class_paths[{len(env.doc_class_path) + 1}] = {{
 {data}
 	{{nullptr, nullptr}},
 }};
@@ -42,7 +40,7 @@ static const _DocDataClassPath _doc_data_class_paths[{len(env.doc_class_path) + 
         exp_inc = "\n".join([f'#include "platform/{p}/export/export.h"' for p in platforms])
         exp_reg = "\n".join([f"\tregister_{p}_exporter();" for p in platforms])
         exp_type = "\n".join([f"\tregister_{p}_exporter_types();" for p in platforms])
-        with methods.generated_wrapper(target) as file:
+        with methods.generated_wrapper(target[0]) as file:
             file.write(
                 f"""\
 #include "register_exporters.h"
@@ -83,7 +81,6 @@ void register_exporter_types() {{
             docs += Glob(d + "/*.xml")  # Custom.
 
     docs = sorted(docs)
-    env.Depends("#editor/doc_data_compressed.gen.h", docs)
     env.CommandNoCache(
         "#editor/doc_data_compressed.gen.h",
         docs,
@@ -97,40 +94,31 @@ void register_exporter_types() {{
     # Generated with `make include-list` for each resource.
 
     # Editor translations
-    tlist = glob.glob(env.Dir("#editor/translations/editor").abspath + "/*.po")
-    env.Depends("#editor/editor_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/editor_translations.gen.h",
-        tlist,
-        env.Run(editor_builders.make_editor_translations_header),
+        Glob("#editor/translations/editor/*"),
+        env.Run(editor_builders.make_translations_header),
     )
 
     # Property translations
-    tlist = glob.glob(env.Dir("#editor/translations/properties").abspath + "/*.po")
-    env.Depends("#editor/property_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/property_translations.gen.h",
-        tlist,
-        env.Run(editor_builders.make_property_translations_header),
+        Glob("#editor/translations/properties/*"),
+        env.Run(editor_builders.make_translations_header),
     )
 
     # Documentation translations
-    tlist = glob.glob(env.Dir("#doc/translations").abspath + "/*.po")
-    env.Depends("#editor/doc_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/doc_translations.gen.h",
-        tlist,
-        env.Run(editor_builders.make_doc_translations_header),
+        Glob("#doc/translations/*"),
+        env.Run(editor_builders.make_translations_header),
     )
 
     # Extractable translations
-    tlist = glob.glob(env.Dir("#editor/translations/extractable").abspath + "/*.po")
-    tlist.extend(glob.glob(env.Dir("#editor/translations/extractable").abspath + "/extractable.pot"))
-    env.Depends("#editor/extractable_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/extractable_translations.gen.h",
-        tlist,
-        env.Run(editor_builders.make_extractable_translations_header),
+        Glob("#editor/translations/extractable/*"),
+        env.Run(editor_builders.make_translations_header),
     )
 
     env.add_source_files(env.editor_sources, "*.cpp")

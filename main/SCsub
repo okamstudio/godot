@@ -17,7 +17,6 @@ if env["steamapi"] and env.editor_build:
 if env["tests"]:
     env_main.Append(CPPDEFINES=["TESTS_ENABLED"])
 
-env_main.Depends("#main/splash.gen.h", "#main/splash.png")
 env_main.CommandNoCache(
     "#main/splash.gen.h",
     "#main/splash.png",
@@ -25,14 +24,12 @@ env_main.CommandNoCache(
 )
 
 if env_main.editor_build and not env_main["no_editor_splash"]:
-    env_main.Depends("#main/splash_editor.gen.h", "#main/splash_editor.png")
     env_main.CommandNoCache(
         "#main/splash_editor.gen.h",
         "#main/splash_editor.png",
         env.Run(main_builders.make_splash_editor),
     )
 
-env_main.Depends("#main/app_icon.gen.h", "#main/app_icon.png")
 env_main.CommandNoCache(
     "#main/app_icon.gen.h",
     "#main/app_icon.png",

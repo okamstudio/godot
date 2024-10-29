@@ -17,8 +17,9 @@ Export("env_modules")
 
 # Header with MODULE_*_ENABLED defines.
 def modules_enabled_builder(target, source, env):
-    with methods.generated_wrapper(target) as file:
-        for module in source[0].read():
+    modules = sorted(source[0].read())
+    with methods.generated_wrapper(target[0]) as file:
+        for module in modules:
             file.write(f"#define MODULE_{module.upper()}_ENABLED\n")
 
 
@@ -29,14 +30,26 @@ modules_enabled = env.CommandNoCache(
 
 def register_module_types_builder(target, source, env):
     modules = source[0].read()
-    mod_inc = "\n".join([f'#include "{p}/register_types.h"' for p in modules.values()])
+    mod_inc = "\n".join([f'#include "{value}/register_types.h"' for value in modules.values()])
     mod_init = "\n".join(
-        [f"#ifdef MODULE_{n.upper()}_ENABLED\n\tinitialize_{n}_module(p_level);\n#endif" for n in modules.keys()]
+        [
+            f"""\
+#ifdef MODULE_{key.upper()}_ENABLED
+	initialize_{key}_module(p_level);
+#endif"""
+            for key in modules.keys()
+        ]
     )
     mod_uninit = "\n".join(
-        [f"#ifdef MODULE_{n.upper()}_ENABLED\n\tuninitialize_{n}_module(p_level);\n#endif" for n in modules.keys()]
+        [
+            f"""\
+#ifdef MODULE_{key.upper()}_ENABLED
+	uninitialize_{key}_module(p_level);
+#endif"""
+            for key in modules.keys()
+        ]
     )
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         file.write(
             f"""\
 #include "register_module_types.h"
@@ -88,9 +101,10 @@ for name, path in env.module_list.items():
 if env["tests"]:
 
     def modules_tests_builder(target, source, env):
-        with methods.generated_wrapper(target) as file:
-            for header in source:
-                file.write('#include "{}"\n'.format(os.path.normpath(header.path).replace("\\", "/")))
+        headers = sorted([os.path.relpath(src.path, methods.base_folder_path).replace("\\", "/") for src in source])
+        with methods.generated_wrapper(target[0]) as file:
+            for header in headers:
+                file.write(f'#include "{header}"\n')
 
     env.CommandNoCache("modules_tests.gen.h", test_headers, env.Run(modules_tests_builder))
 

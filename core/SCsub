@@ -167,7 +167,7 @@ env.add_source_files(env.core_sources, "*.cpp")
 
 # Generate disabled classes
 def disabled_class_builder(target, source, env):
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         for c in source[0].read():
             cs = c.strip()
             if cs != "":
@@ -179,7 +179,7 @@ env.CommandNoCache("disabled_classes.gen.h", env.Value(env.disabled_classes), en
 
 # Generate version info
 def version_info_builder(target, source, env):
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         file.write(
             """\
 #define VERSION_SHORT_NAME "{short_name}"
@@ -193,35 +193,37 @@ def version_info_builder(target, source, env):
 #define VERSION_WEBSITE "{website}"
 #define VERSION_DOCS_BRANCH "{docs_branch}"
 #define VERSION_DOCS_URL "https://docs.godotengine.org/en/" VERSION_DOCS_BRANCH
-""".format(**env.version_info)
+""".format(**source[0].read())
         )
 
 
-env.CommandNoCache("version_generated.gen.h", env.Value(env.version_info), env.Run(version_info_builder))
+env.CommandNoCache(
+    "version_generated.gen.h",
+    env.Value(methods.get_version_info(env.module_version_string)),
+    env.Run(version_info_builder),
+)
 
 
 # Generate version hash
 def version_hash_builder(target, source, env):
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         file.write(
             """\
 #include "core/version.h"
 
 const char *const VERSION_HASH = "{git_hash}";
 const uint64_t VERSION_TIMESTAMP = {git_timestamp};
-""".format(**env.version_info)
+""".format(**source[0].read())
         )
 
 
-gen_hash = env.CommandNoCache(
-    "version_hash.gen.cpp", env.Value(env.version_info["git_hash"]), env.Run(version_hash_builder)
-)
+gen_hash = env.CommandNoCache("version_hash.gen.cpp", env.Value(methods.get_git_info()), env.Run(version_hash_builder))
 env.add_source_files(env.core_sources, gen_hash)
 
 
 # Generate AES256 script encryption key
 def encryption_key_builder(target, source, env):
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         file.write(
             f"""\
 #include "core/config/project_settings.h"
@@ -251,30 +253,21 @@ env.add_source_files(env.core_sources, gen_encrypt)
 
 
 # Certificates
-env.Depends(
-    "#core/io/certs_compressed.gen.h",
-    ["#thirdparty/certs/ca-certificates.crt", env.Value(env["builtin_certs"]), env.Value(env["system_certs_path"])],
-)
 env.CommandNoCache(
     "#core/io/certs_compressed.gen.h",
-    "#thirdparty/certs/ca-certificates.crt",
+    ["#thirdparty/certs/ca-certificates.crt", env.Value(env["builtin_certs"]), env.Value(env["system_certs_path"])],
     env.Run(core_builders.make_certs_header),
 )
 
 # Authors
-env.Depends("#core/authors.gen.h", "../AUTHORS.md")
-env.CommandNoCache("#core/authors.gen.h", "../AUTHORS.md", env.Run(core_builders.make_authors_header))
+env.CommandNoCache("#core/authors.gen.h", "#AUTHORS.md", env.Run(core_builders.make_authors_header))
 
 # Donors
-env.Depends("#core/donors.gen.h", "../DONORS.md")
-env.CommandNoCache("#core/donors.gen.h", "../DONORS.md", env.Run(core_builders.make_donors_header))
+env.CommandNoCache("#core/donors.gen.h", "#DONORS.md", env.Run(core_builders.make_donors_header))
 
 # License
-env.Depends("#core/license.gen.h", ["../COPYRIGHT.txt", "../LICENSE.txt"])
 env.CommandNoCache(
-    "#core/license.gen.h",
-    ["../COPYRIGHT.txt", "../LICENSE.txt"],
-    env.Run(core_builders.make_license_header),
+    "#core/license.gen.h", ["#COPYRIGHT.txt", "#LICENSE.txt"], env.Run(core_builders.make_license_header)
 )
 
 # Chain load SCsubs

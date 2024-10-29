@@ -2,16 +2,20 @@
 
 from collections import OrderedDict
 
+import methods
+
 
 def make_default_controller_mappings(target, source, env):
-    dst = str(target[0])
-    with open(dst, "w", encoding="utf-8", newline="\n") as g:
-        g.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-        g.write('#include "core/typedefs.h"\n')
-        g.write('#include "core/input/default_controller_mappings.h"\n')
+    with methods.generated_wrapper(target[0]) as file:
+        file.write("""\
+#include "core/input/default_controller_mappings.h"
+
+#include "core/typedefs.h"
+
+""")
 
         # ensure mappings have a consistent order
-        platform_mappings: dict = OrderedDict()
+        platform_mappings = OrderedDict()
         for src_path in source:
             with open(str(src_path), "r", encoding="utf-8") as f:
                 # read mapping file and skip header
@@ -32,28 +36,28 @@ def make_default_controller_mappings(target, source, env):
                     line_parts = line.split(",")
                     guid = line_parts[0]
                     if guid in platform_mappings[current_platform]:
-                        g.write(
+                        file.write(
                             "// WARNING: DATABASE {} OVERWROTE PRIOR MAPPING: {} {}\n".format(
                                 src_path, current_platform, platform_mappings[current_platform][guid]
                             )
                         )
                     platform_mappings[current_platform][guid] = line
 
-        platform_variables = {
-            "Linux": "#ifdef LINUXBSD_ENABLED",
-            "Windows": "#ifdef WINDOWS_ENABLED",
-            "Mac OS X": "#ifdef MACOS_ENABLED",
-            "Android": "#ifdef ANDROID_ENABLED",
-            "iOS": "#ifdef IOS_ENABLED",
-            "Web": "#ifdef WEB_ENABLED",
+        PLATFORM_VARIABLES = {
+            "Linux": "LINUXBSD",
+            "Windows": "WINDOWS",
+            "Mac OS X": "MACOS",
+            "Android": "ANDROID",
+            "iOS": "IOS",
+            "Web": "WEB",
         }
 
-        g.write("const char* DefaultControllerMappings::mappings[] = {\n")
+        file.write("const char *DefaultControllerMappings::mappings[] = {\n")
         for platform, mappings in platform_mappings.items():
-            variable = platform_variables[platform]
-            g.write("{}\n".format(variable))
+            variable = PLATFORM_VARIABLES[platform]
+            file.write(f"#ifdef {variable}_ENABLED\n")
             for mapping in mappings.values():
-                g.write('\t"{}",\n'.format(mapping))
-            g.write("#endif\n")
+                file.write(f'\t"{mapping}",\n')
+            file.write(f"#endif // {variable}_ENABLED\n")
 
-        g.write("\tnullptr\n};\n")
+        file.write("\tnullptr\n};\n")
