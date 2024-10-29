@@ -42,33 +42,41 @@ namespace TestRegEx {
 TEST_CASE("[RegEx] Initialization") {
 	const String pattern = "(?<vowel>[aeiou])";
 
-	RegEx re1(pattern);
-	CHECK(re1.is_valid());
-	CHECK(re1.get_pattern() == pattern);
-	CHECK(re1.get_group_count() == 1);
+	Ref<RegEx> re1;
+	re1.instantiate(pattern);
 
-	PackedStringArray names = re1.get_names();
+	CHECK(re1.is_valid());
+	CHECK(re1->is_valid());
+	CHECK(re1->get_pattern() == pattern);
+	CHECK(re1->get_group_count() == 1);
+
+	PackedStringArray names = re1->get_names();
 	CHECK(names.size() == 1);
 	CHECK(names[0] == "vowel");
 
-	RegEx re2;
-	CHECK(re2.is_valid() == false);
-	CHECK(re2.compile(pattern) == OK);
+	Ref<RegEx> re2;
+	re2.instantiate();
 	CHECK(re2.is_valid());
+	CHECK(re2->is_valid() == false);
+	CHECK(re2->compile(pattern) == OK);
+	CHECK(re2->is_valid());
 
-	CHECK(re1.get_pattern() == re2.get_pattern());
-	CHECK(re1.get_group_count() == re2.get_group_count());
+	CHECK(re1->get_pattern() == re2->get_pattern());
+	CHECK(re1->get_group_count() == re2->get_group_count());
 
-	names = re2.get_names();
+	names = re2->get_names();
 	CHECK(names.size() == 1);
 	CHECK(names[0] == "vowel");
 }
 
 TEST_CASE("[RegEx] Clearing") {
-	RegEx re("Godot");
+	Ref<RegEx> re;
+	re.instantiate("Godot");
+
 	REQUIRE(re.is_valid());
-	re.clear();
-	CHECK(re.is_valid() == false);
+	REQUIRE(re->is_valid());
+	re->clear();
+	CHECK(re->is_valid() == false);
 }
 
 TEST_CASE("[RegEx] Searching") {
@@ -76,25 +84,28 @@ TEST_CASE("[RegEx] Searching") {
 	const String vowels = "[aeiou]{1,2}";
 	const String numerics = "\\d";
 
-	RegEx re(vowels);
-	REQUIRE(re.is_valid());
+	Ref<RegEx> re;
+	re.instantiate(vowels);
 
-	Ref<RegExMatch> match = re.search(s);
+	REQUIRE(re.is_valid());
+	REQUIRE(re->is_valid());
+
+	Ref<RegExMatch> match = re->search(s);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_string(0) == "ea");
 
-	match = re.search(s, 1, 2);
+	match = re->search(s, 1, 2);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_string(0) == "e");
-	match = re.search(s, 2, 4);
+	match = re->search(s, 2, 4);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_string(0) == "a");
-	match = re.search(s, 3, 5);
+	match = re->search(s, 3, 5);
 	CHECK(match.is_null());
-	match = re.search(s, 6, 2);
+	match = re->search(s, 6, 2);
 	CHECK(match.is_null());
 
-	const Array all_results = re.search_all(s);
+	const Array all_results = re->search_all(s);
 	CHECK(all_results.size() == 2);
 	match = all_results[0];
 	REQUIRE(match.is_valid());
@@ -103,56 +114,72 @@ TEST_CASE("[RegEx] Searching") {
 	REQUIRE(match.is_valid());
 	CHECK(match->get_string(0) == "i");
 
-	CHECK(re.compile(numerics) == OK);
-	CHECK(re.is_valid());
-	CHECK(re.search(s).is_null());
-	CHECK(re.search_all(s).size() == 0);
+	CHECK(re->compile(numerics) == OK);
+	CHECK(re->is_valid());
+	CHECK(re->search(s).is_null());
+	CHECK(re->search_all(s).size() == 0);
 }
 
 TEST_CASE("[RegEx] Substitution") {
 	const String s1 = "Double all the vowels.";
 
-	RegEx re1("(?<vowel>[aeiou])");
+	Ref<RegEx> re1;
+	re1.instantiate("(?<vowel>[aeiou])");
+
 	REQUIRE(re1.is_valid());
-	CHECK(re1.sub(s1, "$0$vowel", true) == "Doouublee aall thee vooweels.");
+	REQUIRE(re1->is_valid());
+	CHECK(re1->sub(s1, "$0$vowel", true) == "Doouublee aall thee vooweels.");
 
 	const String s2 = "Substitution with group.";
 
-	RegEx re2("Substitution (.+)");
+	Ref<RegEx> re2;
+	re2.instantiate("Substitution (.+)");
+
 	REQUIRE(re2.is_valid());
-	CHECK(re2.sub(s2, "Test ${1}") == "Test with group.");
+	REQUIRE(re2->is_valid());
+	CHECK(re2->sub(s2, "Test ${1}") == "Test with group.");
 
 	const String s3 = "Useless substitution";
 
-	RegEx re3("Anything");
+	Ref<RegEx> re3;
+	re3.instantiate("Anything");
+
 	REQUIRE(re3.is_valid());
-	CHECK(re3.sub(s3, "Something") == "Useless substitution");
+	REQUIRE(re3->is_valid());
+	CHECK(re3->sub(s3, "Something") == "Useless substitution");
 
 	const String s4 = "acacac";
 
-	RegEx re4("(a)(b){0}(c)");
+	Ref<RegEx> re4;
+	re4.instantiate("(a)(b){0}(c)");
+
 	REQUIRE(re4.is_valid());
-	CHECK(re4.sub(s4, "${1}.${3}.", true) == "a.c.a.c.a.c.");
+	REQUIRE(re4->is_valid());
+	CHECK(re4->sub(s4, "${1}.${3}.", true) == "a.c.a.c.a.c.");
 
 	const String s5 = "aaaa";
 
-	RegEx re5("a");
+	Ref<RegEx> re5;
+	re5.instantiate("a");
+
 	REQUIRE(re5.is_valid());
-	CHECK(re5.sub(s5, "b", true, 0, 2) == "bbaa");
-	CHECK(re5.sub(s5, "b", true, 1, 3) == "abba");
-	CHECK(re5.sub(s5, "b", true, 0, 0) == "aaaa");
-	CHECK(re5.sub(s5, "b", true, 1, 1) == "aaaa");
-	CHECK(re5.sub(s5, "cc", true, 0, 2) == "ccccaa");
-	CHECK(re5.sub(s5, "cc", true, 1, 3) == "acccca");
-	CHECK(re5.sub(s5, "", true, 0, 2) == "aa");
+	REQUIRE(re5->is_valid());
+	CHECK(re5->sub(s5, "b", true, 0, 2) == "bbaa");
+	CHECK(re5->sub(s5, "b", true, 1, 3) == "abba");
+	CHECK(re5->sub(s5, "b", true, 0, 0) == "aaaa");
+	CHECK(re5->sub(s5, "b", true, 1, 1) == "aaaa");
+	CHECK(re5->sub(s5, "cc", true, 0, 2) == "ccccaa");
+	CHECK(re5->sub(s5, "cc", true, 1, 3) == "acccca");
+	CHECK(re5->sub(s5, "", true, 0, 2) == "aa");
 
 	const String s6 = "property get_property set_property";
 
-	RegEx re6("(get_|set_)?property");
+	Ref<RegEx> re6;
+	re6.instantiate("(get_|set_)?property");
 	REQUIRE(re6.is_valid());
-	CHECK(re6.sub(s6, "$1new_property", true) == "new_property get_new_property set_new_property");
+	CHECK(re6->sub(s6, "$1new_property", true) == "new_property get_new_property set_new_property");
 	ERR_PRINT_OFF;
-	CHECK(re6.sub(s6, "$5new_property", true) == "new_property new_property new_property");
+	CHECK(re6->sub(s6, "$5new_property", true) == "new_property new_property new_property");
 	ERR_PRINT_ON;
 }
 
@@ -160,46 +187,59 @@ TEST_CASE("[RegEx] Substitution with empty input and/or replacement") {
 	const String s1 = "";
 	const String s2 = "gogogo";
 
-	RegEx re1("");
-	REQUIRE(re1.is_valid());
-	CHECK(re1.sub(s1, "") == "");
-	CHECK(re1.sub(s1, "a") == "a");
-	CHECK(re1.sub(s2, "") == "gogogo");
+	Ref<RegEx> re1;
+	re1.instantiate("");
 
-	RegEx re2("go");
+	REQUIRE(re1.is_valid());
+	REQUIRE(re1->is_valid());
+	CHECK(re1->sub(s1, "") == "");
+	CHECK(re1->sub(s1, "a") == "a");
+	CHECK(re1->sub(s2, "") == "gogogo");
+
+	Ref<RegEx> re2;
+	re2.instantiate("go");
+
 	REQUIRE(re2.is_valid());
-	CHECK(re2.sub(s2, "") == "gogo");
-	CHECK(re2.sub(s2, "", true) == "");
+	REQUIRE(re2->is_valid());
+	CHECK(re2->sub(s2, "") == "gogo");
+	CHECK(re2->sub(s2, "", true) == "");
 }
 
 TEST_CASE("[RegEx] Uninitialized use") {
 	const String s = "Godot";
 
-	RegEx re;
+	Ref<RegEx> re;
+	re.instantiate();
+
 	ERR_PRINT_OFF;
-	CHECK(re.search(s).is_null());
-	CHECK(re.search_all(s).size() == 0);
-	CHECK(re.sub(s, "") == "");
-	CHECK(re.get_group_count() == 0);
-	CHECK(re.get_names().size() == 0);
+	CHECK(re->search(s).is_null());
+	CHECK(re->search_all(s).size() == 0);
+	CHECK(re->sub(s, "") == "");
+	CHECK(re->get_group_count() == 0);
+	CHECK(re->get_names().size() == 0);
 	ERR_PRINT_ON
 }
 
 TEST_CASE("[RegEx] Empty pattern") {
 	const String s = "Godot";
 
-	RegEx re;
-	CHECK(re.compile("") == OK);
-	CHECK(re.is_valid());
+	Ref<RegEx> re;
+	re.instantiate();
+
+	CHECK(re->compile("") == OK);
+	CHECK(re->is_valid());
 }
 
 TEST_CASE("[RegEx] Complex Grouping") {
 	const String test = "https://docs.godotengine.org/en/latest/contributing/";
 
 	// Ignored protocol in grouping.
-	RegEx re("^(?:https?://)([a-zA-Z]{2,4})\\.([a-zA-Z][a-zA-Z0-9_\\-]{2,64})\\.([a-zA-Z]{2,4})");
+	Ref<RegEx> re;
+	re.instantiate("^(?:https?://)([a-zA-Z]{2,4})\\.([a-zA-Z][a-zA-Z0-9_\\-]{2,64})\\.([a-zA-Z]{2,4})");
+
 	REQUIRE(re.is_valid());
-	Ref<RegExMatch> expr = re.search(test);
+	REQUIRE(re->is_valid());
+	Ref<RegExMatch> expr = re->search(test);
 
 	CHECK(expr->get_group_count() == 3);
 
@@ -214,9 +254,12 @@ TEST_CASE("[RegEx] Number Expression") {
 	const String test = "(2.5e-3 + 35 + 46) / 2.8e0 = 28.9294642857";
 
 	// Not an exact regex for number but a good test.
-	RegEx re("([+-]?\\d+)(\\.\\d+([eE][+-]?\\d+)?)?");
+	Ref<RegEx> re;
+	re.instantiate("([+-]?\\d+)(\\.\\d+([eE][+-]?\\d+)?)?");
+
 	REQUIRE(re.is_valid());
-	Array number_match = re.search_all(test);
+	REQUIRE(re->is_valid());
+	Array number_match = re->search_all(test);
 
 	CHECK(number_match.size() == 5);
 
@@ -238,12 +281,15 @@ TEST_CASE("[RegEx] Number Expression") {
 TEST_CASE("[RegEx] Invalid end position") {
 	const String s = "Godot";
 
-	RegEx re("o");
+	Ref<RegEx> re;
+	re.instantiate("o");
+
 	REQUIRE(re.is_valid());
-	Ref<RegExMatch> match = re.search(s, 0, 10);
+	REQUIRE(re->is_valid());
+	Ref<RegExMatch> match = re->search(s, 0, 10);
 	CHECK(match->get_string(0) == "o");
 
-	const Array all_results = re.search_all(s, 0, 10);
+	const Array all_results = re->search_all(s, 0, 10);
 	CHECK(all_results.size() == 2);
 	match = all_results[0];
 	REQUIRE(match.is_valid());
@@ -252,14 +298,16 @@ TEST_CASE("[RegEx] Invalid end position") {
 	REQUIRE(match.is_valid());
 	CHECK(match->get_string(0) == String("o"));
 
-	CHECK(re.sub(s, "", true, 0, 10) == "Gdt");
+	CHECK(re->sub(s, "", true, 0, 10) == "Gdt");
 }
 
 TEST_CASE("[RegEx] Get match string list") {
 	const String s = "Godot Engine";
 
-	RegEx re("(Go)(dot)");
-	Ref<RegExMatch> match = re.search(s);
+	Ref<RegEx> re;
+	re.instantiate("(Go)(dot)");
+
+	Ref<RegExMatch> match = re->search(s);
 	REQUIRE(match.is_valid());
 	PackedStringArray result;
 	result.append("Godot");
@@ -271,16 +319,22 @@ TEST_CASE("[RegEx] Get match string list") {
 TEST_CASE("[RegEx] Match start and end positions") {
 	const String s = "Whole pattern";
 
-	RegEx re1("pattern");
+	Ref<RegEx> re1;
+	re1.instantiate("pattern");
+
 	REQUIRE(re1.is_valid());
-	Ref<RegExMatch> match = re1.search(s);
+	REQUIRE(re1->is_valid());
+	Ref<RegExMatch> match = re1->search(s);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_start(0) == 6);
 	CHECK(match->get_end(0) == 13);
 
-	RegEx re2("(?<vowel>[aeiou])");
+	Ref<RegEx> re2;
+	re2.instantiate("(?<vowel>[aeiou])");
+
 	REQUIRE(re2.is_valid());
-	match = re2.search(s);
+	REQUIRE(re2->is_valid());
+	match = re2->search(s);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_start("vowel") == 2);
 	CHECK(match->get_end("vowel") == 3);
@@ -289,10 +343,13 @@ TEST_CASE("[RegEx] Match start and end positions") {
 TEST_CASE("[RegEx] Asterisk search all") {
 	const String s = "Godot Engine";
 
-	RegEx re("o*");
+	Ref<RegEx> re;
+	re.instantiate("o*");
+
 	REQUIRE(re.is_valid());
+	REQUIRE(re->is_valid());
 	Ref<RegExMatch> match;
-	const Array all_results = re.search_all(s);
+	const Array all_results = re->search_all(s);
 	CHECK(all_results.size() == 13);
 
 	match = all_results[0];
@@ -313,9 +370,12 @@ TEST_CASE("[RegEx] Asterisk search all") {
 TEST_CASE("[RegEx] Simple lookahead") {
 	const String s = "Godot Engine";
 
-	RegEx re("o(?=t)");
+	Ref<RegEx> re;
+	re.instantiate("o(?=t)");
+
 	REQUIRE(re.is_valid());
-	Ref<RegExMatch> match = re.search(s);
+	REQUIRE(re->is_valid());
+	Ref<RegExMatch> match = re->search(s);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_start(0) == 3);
 	CHECK(match->get_end(0) == 4);
@@ -324,13 +384,16 @@ TEST_CASE("[RegEx] Simple lookahead") {
 TEST_CASE("[RegEx] Lookahead groups empty matches") {
 	const String s = "12";
 
-	RegEx re("(?=(\\d+))");
+	Ref<RegEx> re;
+	re.instantiate("(?=(\\d+))");
+
 	REQUIRE(re.is_valid());
-	Ref<RegExMatch> match = re.search(s);
+	REQUIRE(re->is_valid());
+	Ref<RegExMatch> match = re->search(s);
 	CHECK(match->get_string(0) == "");
 	CHECK(match->get_string(1) == "12");
 
-	const Array all_results = re.search_all(s);
+	const Array all_results = re->search_all(s);
 	CHECK(all_results.size() == 2);
 
 	match = all_results[0];
@@ -347,9 +410,12 @@ TEST_CASE("[RegEx] Lookahead groups empty matches") {
 TEST_CASE("[RegEx] Simple lookbehind") {
 	const String s = "Godot Engine";
 
-	RegEx re("(?<=d)o");
+	Ref<RegEx> re;
+	re.instantiate("(?<=d)o");
+
 	REQUIRE(re.is_valid());
-	Ref<RegExMatch> match = re.search(s);
+	REQUIRE(re->is_valid());
+	Ref<RegExMatch> match = re->search(s);
 	REQUIRE(match.is_valid());
 	CHECK(match->get_start(0) == 3);
 	CHECK(match->get_end(0) == 4);
@@ -358,9 +424,12 @@ TEST_CASE("[RegEx] Simple lookbehind") {
 TEST_CASE("[RegEx] Simple lookbehind search all") {
 	const String s = "ababbaabab";
 
-	RegEx re("(?<=a)b");
+	Ref<RegEx> re;
+	re.instantiate("(?<=a)b");
+
 	REQUIRE(re.is_valid());
-	const Array all_results = re.search_all(s);
+	REQUIRE(re->is_valid());
+	const Array all_results = re->search_all(s);
 	CHECK(all_results.size() == 4);
 
 	Ref<RegExMatch> match = all_results[0];
@@ -387,11 +456,14 @@ TEST_CASE("[RegEx] Simple lookbehind search all") {
 TEST_CASE("[RegEx] Lookbehind groups empty matches") {
 	const String s = "abaaabab";
 
-	RegEx re("(?<=(b))");
+	Ref<RegEx> re;
+	re.instantiate("(?<=(b))");
+
 	REQUIRE(re.is_valid());
+	REQUIRE(re->is_valid());
 	Ref<RegExMatch> match;
 
-	const Array all_results = re.search_all(s);
+	const Array all_results = re->search_all(s);
 	CHECK(all_results.size() == 3);
 
 	match = all_results[0];
