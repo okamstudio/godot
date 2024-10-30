@@ -41,6 +41,7 @@
 class CodeTextEditor;
 class EditorFileDialog;
 class EditorHelpSearch;
+class FilterLineEdit;
 class FindReplaceBar;
 class HSplitContainer;
 class ItemList;
@@ -143,13 +144,12 @@ public:
 class ScriptEditorQuickOpen : public ConfirmationDialog {
 	GDCLASS(ScriptEditorQuickOpen, ConfirmationDialog);
 
-	LineEdit *search_box = nullptr;
+	FilterLineEdit *search_box = nullptr;
 	Tree *search_options = nullptr;
 	String function;
 
 	void _update_search();
 
-	void _sbox_input(const Ref<InputEvent> &p_event);
 	Vector<String> functions;
 
 	void _confirmed();
@@ -636,7 +636,6 @@ public:
 	virtual void edited_scene_changed() override;
 
 	ScriptEditorPlugin();
-	~ScriptEditorPlugin();
 };
 
 #endif // SCRIPT_EDITOR_PLUGIN_H

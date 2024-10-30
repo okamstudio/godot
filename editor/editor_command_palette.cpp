@@ -34,8 +34,8 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/gui/editor_toaster.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/gui/control.h"
 #include "scene/gui/margin_container.h"
 #include "scene/gui/tree.h"
 
@@ -180,17 +180,6 @@ void EditorCommandPalette::_notification(int p_what) {
 				}
 			}
 		} break;
-	}
-}
-
-void EditorCommandPalette::_sbox_input(const Ref<InputEvent> &p_event) {
-	// Redirect navigational key events to the tree.
-	Ref<InputEventKey> key = p_event;
-	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			search_options->gui_input(key);
-			command_search_box->accept_event();
-		}
 	}
 }
 
@@ -342,18 +331,18 @@ EditorCommandPalette::EditorCommandPalette() {
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	add_child(vbc);
 
-	command_search_box = memnew(LineEdit);
+	command_search_box = memnew(FilterLineEdit);
 	command_search_box->set_placeholder(TTR("Filter Commands"));
-	command_search_box->connect(SceneStringName(gui_input), callable_mp(this, &EditorCommandPalette::_sbox_input));
-	command_search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorCommandPalette::_update_command_search));
 	command_search_box->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	command_search_box->set_clear_button_enabled(true);
+	command_search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorCommandPalette::_update_command_search));
 	MarginContainer *margin_container_csb = memnew(MarginContainer);
 	margin_container_csb->add_child(command_search_box);
 	vbc->add_child(margin_container_csb);
 	register_text_enter(command_search_box);
 
 	search_options = memnew(Tree);
+	command_search_box->set_forward_control(search_options);
 	search_options->connect("item_activated", callable_mp(this, &EditorCommandPalette::_confirmed));
 	search_options->connect(SceneStringName(item_selected), callable_mp((BaseButton *)get_ok_button(), &BaseButton::set_disabled).bind(false));
 	search_options->connect("nothing_selected", callable_mp((BaseButton *)get_ok_button(), &BaseButton::set_disabled).bind(true));

@@ -32,38 +32,13 @@
 
 #include "editor/editor_help.h"
 #include "editor/editor_node.h"
+#include "editor/gui/filter_line_edit.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/tree.h"
 
 void PropertySelector::_text_changed(const String &p_newtext) {
 	_update_search();
-}
-
-void PropertySelector::_sbox_input(const Ref<InputEvent> &p_event) {
-	// Redirect navigational key events to the tree.
-	Ref<InputEventKey> key = p_event;
-	if (key.is_valid()) {
-		if (key->is_action("ui_up", true) || key->is_action("ui_down", true) || key->is_action("ui_page_up") || key->is_action("ui_page_down")) {
-			search_options->gui_input(key);
-			search_box->accept_event();
-
-			TreeItem *root = search_options->get_root();
-			if (!root->get_first_child()) {
-				return;
-			}
-
-			TreeItem *current = search_options->get_selected();
-
-			TreeItem *item = search_options->get_next_selected(root);
-			while (item) {
-				item->deselect(0);
-				item = search_options->get_next_selected(item);
-			}
-
-			current->select(0);
-		}
-	}
 }
 
 void PropertySelector::_update_search() {
@@ -655,12 +630,12 @@ void PropertySelector::_bind_methods() {
 PropertySelector::PropertySelector() {
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	add_child(vbc);
-	//set_child_rect(vbc);
-	search_box = memnew(LineEdit);
+	search_box = memnew(FilterLineEdit);
 	vbc->add_margin_child(TTR("Search:"), search_box);
 	search_box->connect(SceneStringName(text_changed), callable_mp(this, &PropertySelector::_text_changed));
-	search_box->connect(SceneStringName(gui_input), callable_mp(this, &PropertySelector::_sbox_input));
+
 	search_options = memnew(Tree);
+	search_box->set_forward_control(search_options);
 	search_options->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 	set_ok_button_text(TTR("Open"));
