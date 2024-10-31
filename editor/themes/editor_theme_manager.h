@@ -111,6 +111,7 @@ class EditorThemeManager {
 		Color font_disabled_color;
 		Color font_readonly_color;
 		Color font_placeholder_color;
+		Color font_mask_color;
 		Color font_outline_color;
 
 		Color icon_normal_color;
