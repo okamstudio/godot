@@ -36,7 +36,7 @@
 		<member name="threshold_released" type="float" setter="set_threshold_released" getter="get_threshold_released" default="0.4">
 			When our input value falls below this, our output becomes false.
 		</member>
-		<member name="wedge_angle" type="float" setter="set_wedge_angle" getter="get_wedge_angle" default="1.5708">
+		<member name="wedge_angle" type="float" setter="set_wedge_angle" getter="get_wedge_angle" default="1.5707964">
 			The angle of each wedge that identifies the 4 directions of the emulated dpad.
 		</member>
 	</members>

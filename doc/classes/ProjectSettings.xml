@@ -2243,7 +2243,7 @@
 		<member name="physics/2d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 2D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 2D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.
 		</member>
-		<member name="physics/2d/sleep_threshold_angular" type="float" setter="" getter="" default="0.139626">
+		<member name="physics/2d/sleep_threshold_angular" type="float" setter="" getter="" default="0.13962634">
 			Threshold angular velocity under which a 2D physics body will be considered inactive. See [constant PhysicsServer2D.SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD].
 		</member>
 		<member name="physics/2d/sleep_threshold_linear" type="float" setter="" getter="" default="2.0">
@@ -2322,7 +2322,7 @@
 		<member name="physics/3d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 3D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 3D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.
 		</member>
-		<member name="physics/3d/sleep_threshold_angular" type="float" setter="" getter="" default="0.139626">
+		<member name="physics/3d/sleep_threshold_angular" type="float" setter="" getter="" default="0.13962634">
 			Threshold angular velocity under which a 3D physics body will be considered inactive. See [constant PhysicsServer3D.SPACE_PARAM_BODY_ANGULAR_VELOCITY_SLEEP_THRESHOLD].
 		</member>
 		<member name="physics/3d/sleep_threshold_linear" type="float" setter="" getter="" default="0.1">
@@ -2370,7 +2370,7 @@
 			[b]Note:[/b] This property is only read when the project starts. To change the physics FPS at runtime, set [member Engine.physics_ticks_per_second] instead.
 			[b]Note:[/b] Only [member physics/common/max_physics_steps_per_frame] physics ticks may be simulated per rendered frame at most. If more physics ticks have to be simulated per rendered frame to keep up with rendering, the project will appear to slow down (even if [code]delta[/code] is used consistently in physics calculations). Therefore, it is recommended to also increase [member physics/common/max_physics_steps_per_frame] if increasing [member physics/common/physics_ticks_per_second] significantly above its default value.
 		</member>
-		<member name="physics/jolt_physics_3d/collisions/active_edge_threshold" type="float" setter="" getter="" default="0.872665">
+		<member name="physics/jolt_physics_3d/collisions/active_edge_threshold" type="float" setter="" getter="" default="0.87266463">
 			The maximum angle, in radians, between two adjacent triangles in a [ConcavePolygonShape3D] or [HeightMapShape3D] for which the edge between those triangles is considered inactive.
 			Collisions against an inactive edge will have its normal overridden to instead be the surface normal of the triangle. This can help alleviate ghost collisions.
 			[b]Note:[/b] Setting this too high can result in objects not depenetrating properly.
@@ -2388,7 +2388,7 @@
 			Which of the two nodes bound by a joint should represent the world when one of the two is omitted, as either [member Joint3D.node_a] or [member Joint3D.node_b]. This can be thought of as having the omitted node be a [StaticBody3D] at the joint's position. Joint limits are more easily expressed when [member Joint3D.node_a] represents the world.
 			[b]Note:[/b] In Godot Physics, only [member Joint3D.node_b] can represent the world.
 		</member>
-		<member name="physics/jolt_physics_3d/limits/max_angular_velocity" type="float" setter="" getter="" default="47.1239">
+		<member name="physics/jolt_physics_3d/limits/max_angular_velocity" type="float" setter="" getter="" default="47.12389">
 			The maximum angular velocity that a [RigidBody3D] can reach, in radians per second.
 			This is mainly used as a fail-safe, to prevent the simulation from exploding, as fast-moving objects colliding with complex physics structures can otherwise cause them to go out of control. Fast-moving objects can also cause a lot of stress on the collision detection system, which can slow down the simulation considerably.
 		</member>
@@ -2453,7 +2453,7 @@
 			How much of the position error of a [RigidBody3D] to fix during a physics step, where [code]0.0[/code] is none and [code]1.0[/code] is the full amount. This affects things like how quickly bodies depenetrate.
 			[b]Note:[/b] Setting this value too high can make [RigidBody3D] nodes unstable.
 		</member>
-		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_angle_threshold" type="float" setter="" getter="" default="0.0349066">
+		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_angle_threshold" type="float" setter="" getter="" default="0.034906585">
 			The maximum relative angle by which a body pair can move and still reuse the collision results from the previous physics step, in radians.
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_distance_threshold" type="float" setter="" getter="" default="0.001">

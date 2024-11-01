@@ -534,343 +534,343 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="ALICE_BLUE" value="Color(0.941176, 0.972549, 1, 1)">
+		<constant name="ALICE_BLUE" value="Color(0.9411765, 0.972549, 1, 1)">
 			Alice blue color.
 		</constant>
-		<constant name="ANTIQUE_WHITE" value="Color(0.980392, 0.921569, 0.843137, 1)">
+		<constant name="ANTIQUE_WHITE" value="Color(0.98039216, 0.92156863, 0.84313726, 1)">
 			Antique white color.
 		</constant>
 		<constant name="AQUA" value="Color(0, 1, 1, 1)">
 			Aqua color.
 		</constant>
-		<constant name="AQUAMARINE" value="Color(0.498039, 1, 0.831373, 1)">
+		<constant name="AQUAMARINE" value="Color(0.49803922, 1, 0.83137256, 1)">
 			Aquamarine color.
 		</constant>
-		<constant name="AZURE" value="Color(0.941176, 1, 1, 1)">
+		<constant name="AZURE" value="Color(0.9411765, 1, 1, 1)">
 			Azure color.
 		</constant>
-		<constant name="BEIGE" value="Color(0.960784, 0.960784, 0.862745, 1)">
+		<constant name="BEIGE" value="Color(0.9607843, 0.9607843, 0.8627451, 1)">
 			Beige color.
 		</constant>
-		<constant name="BISQUE" value="Color(1, 0.894118, 0.768627, 1)">
+		<constant name="BISQUE" value="Color(1, 0.89411765, 0.76862746, 1)">
 			Bisque color.
 		</constant>
 		<constant name="BLACK" value="Color(0, 0, 0, 1)">
 			Black color. In GDScript, this is the default value of any color.
 		</constant>
-		<constant name="BLANCHED_ALMOND" value="Color(1, 0.921569, 0.803922, 1)">
+		<constant name="BLANCHED_ALMOND" value="Color(1, 0.92156863, 0.8039216, 1)">
 			Blanched almond color.
 		</constant>
 		<constant name="BLUE" value="Color(0, 0, 1, 1)">
 			Blue color.
 		</constant>
-		<constant name="BLUE_VIOLET" value="Color(0.541176, 0.168627, 0.886275, 1)">
+		<constant name="BLUE_VIOLET" value="Color(0.5411765, 0.16862746, 0.8862745, 1)">
 			Blue violet color.
 		</constant>
-		<constant name="BROWN" value="Color(0.647059, 0.164706, 0.164706, 1)">
+		<constant name="BROWN" value="Color(0.64705884, 0.16470589, 0.16470589, 1)">
 			Brown color.
 		</constant>
-		<constant name="BURLYWOOD" value="Color(0.870588, 0.721569, 0.529412, 1)">
+		<constant name="BURLYWOOD" value="Color(0.87058824, 0.72156864, 0.5294118, 1)">
 			Burlywood color.
 		</constant>
-		<constant name="CADET_BLUE" value="Color(0.372549, 0.619608, 0.627451, 1)">
+		<constant name="CADET_BLUE" value="Color(0.37254903, 0.61960787, 0.627451, 1)">
 			Cadet blue color.
 		</constant>
-		<constant name="CHARTREUSE" value="Color(0.498039, 1, 0, 1)">
+		<constant name="CHARTREUSE" value="Color(0.49803922, 1, 0, 1)">
 			Chartreuse color.
 		</constant>
-		<constant name="CHOCOLATE" value="Color(0.823529, 0.411765, 0.117647, 1)">
+		<constant name="CHOCOLATE" value="Color(0.8235294, 0.4117647, 0.11764706, 1)">
 			Chocolate color.
 		</constant>
-		<constant name="CORAL" value="Color(1, 0.498039, 0.313726, 1)">
+		<constant name="CORAL" value="Color(1, 0.49803922, 0.3137255, 1)">
 			Coral color.
 		</constant>
-		<constant name="CORNFLOWER_BLUE" value="Color(0.392157, 0.584314, 0.929412, 1)">
+		<constant name="CORNFLOWER_BLUE" value="Color(0.39215687, 0.58431375, 0.92941177, 1)">
 			Cornflower blue color.
 		</constant>
-		<constant name="CORNSILK" value="Color(1, 0.972549, 0.862745, 1)">
+		<constant name="CORNSILK" value="Color(1, 0.972549, 0.8627451, 1)">
 			Cornsilk color.
 		</constant>
-		<constant name="CRIMSON" value="Color(0.862745, 0.0784314, 0.235294, 1)">
+		<constant name="CRIMSON" value="Color(0.8627451, 0.078431375, 0.23529412, 1)">
 			Crimson color.
 		</constant>
 		<constant name="CYAN" value="Color(0, 1, 1, 1)">
 			Cyan color.
 		</constant>
-		<constant name="DARK_BLUE" value="Color(0, 0, 0.545098, 1)">
+		<constant name="DARK_BLUE" value="Color(0, 0, 0.54509807, 1)">
 			Dark blue color.
 		</constant>
-		<constant name="DARK_CYAN" value="Color(0, 0.545098, 0.545098, 1)">
+		<constant name="DARK_CYAN" value="Color(0, 0.54509807, 0.54509807, 1)">
 			Dark cyan color.
 		</constant>
-		<constant name="DARK_GOLDENROD" value="Color(0.721569, 0.52549, 0.0431373, 1)">
+		<constant name="DARK_GOLDENROD" value="Color(0.72156864, 0.5254902, 0.043137256, 1)">
 			Dark goldenrod color.
 		</constant>
-		<constant name="DARK_GRAY" value="Color(0.662745, 0.662745, 0.662745, 1)">
+		<constant name="DARK_GRAY" value="Color(0.6627451, 0.6627451, 0.6627451, 1)">
 			Dark gray color.
 		</constant>
-		<constant name="DARK_GREEN" value="Color(0, 0.392157, 0, 1)">
+		<constant name="DARK_GREEN" value="Color(0, 0.39215687, 0, 1)">
 			Dark green color.
 		</constant>
-		<constant name="DARK_KHAKI" value="Color(0.741176, 0.717647, 0.419608, 1)">
+		<constant name="DARK_KHAKI" value="Color(0.7411765, 0.7176471, 0.41960785, 1)">
 			Dark khaki color.
 		</constant>
-		<constant name="DARK_MAGENTA" value="Color(0.545098, 0, 0.545098, 1)">
+		<constant name="DARK_MAGENTA" value="Color(0.54509807, 0, 0.54509807, 1)">
 			Dark magenta color.
 		</constant>
-		<constant name="DARK_OLIVE_GREEN" value="Color(0.333333, 0.419608, 0.184314, 1)">
+		<constant name="DARK_OLIVE_GREEN" value="Color(0.33333334, 0.41960785, 0.18431373, 1)">
 			Dark olive green color.
 		</constant>
-		<constant name="DARK_ORANGE" value="Color(1, 0.54902, 0, 1)">
+		<constant name="DARK_ORANGE" value="Color(1, 0.54901963, 0, 1)">
 			Dark orange color.
 		</constant>
-		<constant name="DARK_ORCHID" value="Color(0.6, 0.196078, 0.8, 1)">
+		<constant name="DARK_ORCHID" value="Color(0.6, 0.19607843, 0.8, 1)">
 			Dark orchid color.
 		</constant>
-		<constant name="DARK_RED" value="Color(0.545098, 0, 0, 1)">
+		<constant name="DARK_RED" value="Color(0.54509807, 0, 0, 1)">
 			Dark red color.
 		</constant>
-		<constant name="DARK_SALMON" value="Color(0.913725, 0.588235, 0.478431, 1)">
+		<constant name="DARK_SALMON" value="Color(0.9137255, 0.5882353, 0.47843137, 1)">
 			Dark salmon color.
 		</constant>
-		<constant name="DARK_SEA_GREEN" value="Color(0.560784, 0.737255, 0.560784, 1)">
+		<constant name="DARK_SEA_GREEN" value="Color(0.56078434, 0.7372549, 0.56078434, 1)">
 			Dark sea green color.
 		</constant>
-		<constant name="DARK_SLATE_BLUE" value="Color(0.282353, 0.239216, 0.545098, 1)">
+		<constant name="DARK_SLATE_BLUE" value="Color(0.28235295, 0.23921569, 0.54509807, 1)">
 			Dark slate blue color.
 		</constant>
-		<constant name="DARK_SLATE_GRAY" value="Color(0.184314, 0.309804, 0.309804, 1)">
+		<constant name="DARK_SLATE_GRAY" value="Color(0.18431373, 0.30980393, 0.30980393, 1)">
 			Dark slate gray color.
 		</constant>
-		<constant name="DARK_TURQUOISE" value="Color(0, 0.807843, 0.819608, 1)">
+		<constant name="DARK_TURQUOISE" value="Color(0, 0.80784315, 0.81960785, 1)">
 			Dark turquoise color.
 		</constant>
-		<constant name="DARK_VIOLET" value="Color(0.580392, 0, 0.827451, 1)">
+		<constant name="DARK_VIOLET" value="Color(0.5803922, 0, 0.827451, 1)">
 			Dark violet color.
 		</constant>
-		<constant name="DEEP_PINK" value="Color(1, 0.0784314, 0.576471, 1)">
+		<constant name="DEEP_PINK" value="Color(1, 0.078431375, 0.5764706, 1)">
 			Deep pink color.
 		</constant>
-		<constant name="DEEP_SKY_BLUE" value="Color(0, 0.74902, 1, 1)">
+		<constant name="DEEP_SKY_BLUE" value="Color(0, 0.7490196, 1, 1)">
 			Deep sky blue color.
 		</constant>
-		<constant name="DIM_GRAY" value="Color(0.411765, 0.411765, 0.411765, 1)">
+		<constant name="DIM_GRAY" value="Color(0.4117647, 0.4117647, 0.4117647, 1)">
 			Dim gray color.
 		</constant>
-		<constant name="DODGER_BLUE" value="Color(0.117647, 0.564706, 1, 1)">
+		<constant name="DODGER_BLUE" value="Color(0.11764706, 0.5647059, 1, 1)">
 			Dodger blue color.
 		</constant>
-		<constant name="FIREBRICK" value="Color(0.698039, 0.133333, 0.133333, 1)">
+		<constant name="FIREBRICK" value="Color(0.69803923, 0.13333334, 0.13333334, 1)">
 			Firebrick color.
 		</constant>
-		<constant name="FLORAL_WHITE" value="Color(1, 0.980392, 0.941176, 1)">
+		<constant name="FLORAL_WHITE" value="Color(1, 0.98039216, 0.9411765, 1)">
 			Floral white color.
 		</constant>
-		<constant name="FOREST_GREEN" value="Color(0.133333, 0.545098, 0.133333, 1)">
+		<constant name="FOREST_GREEN" value="Color(0.13333334, 0.54509807, 0.13333334, 1)">
 			Forest green color.
 		</constant>
 		<constant name="FUCHSIA" value="Color(1, 0, 1, 1)">
 			Fuchsia color.
 		</constant>
-		<constant name="GAINSBORO" value="Color(0.862745, 0.862745, 0.862745, 1)">
+		<constant name="GAINSBORO" value="Color(0.8627451, 0.8627451, 0.8627451, 1)">
 			Gainsboro color.
 		</constant>
 		<constant name="GHOST_WHITE" value="Color(0.972549, 0.972549, 1, 1)">
 			Ghost white color.
 		</constant>
-		<constant name="GOLD" value="Color(1, 0.843137, 0, 1)">
+		<constant name="GOLD" value="Color(1, 0.84313726, 0, 1)">
 			Gold color.
 		</constant>
-		<constant name="GOLDENROD" value="Color(0.854902, 0.647059, 0.12549, 1)">
+		<constant name="GOLDENROD" value="Color(0.85490197, 0.64705884, 0.1254902, 1)">
 			Goldenrod color.
 		</constant>
-		<constant name="GRAY" value="Color(0.745098, 0.745098, 0.745098, 1)">
+		<constant name="GRAY" value="Color(0.74509805, 0.74509805, 0.74509805, 1)">
 			Gray color.
 		</constant>
 		<constant name="GREEN" value="Color(0, 1, 0, 1)">
 			Green color.
 		</constant>
-		<constant name="GREEN_YELLOW" value="Color(0.678431, 1, 0.184314, 1)">
+		<constant name="GREEN_YELLOW" value="Color(0.6784314, 1, 0.18431373, 1)">
 			Green yellow color.
 		</constant>
-		<constant name="HONEYDEW" value="Color(0.941176, 1, 0.941176, 1)">
+		<constant name="HONEYDEW" value="Color(0.9411765, 1, 0.9411765, 1)">
 			Honeydew color.
 		</constant>
-		<constant name="HOT_PINK" value="Color(1, 0.411765, 0.705882, 1)">
+		<constant name="HOT_PINK" value="Color(1, 0.4117647, 0.7058824, 1)">
 			Hot pink color.
 		</constant>
-		<constant name="INDIAN_RED" value="Color(0.803922, 0.360784, 0.360784, 1)">
+		<constant name="INDIAN_RED" value="Color(0.8039216, 0.36078432, 0.36078432, 1)">
 			Indian red color.
 		</constant>
-		<constant name="INDIGO" value="Color(0.294118, 0, 0.509804, 1)">
+		<constant name="INDIGO" value="Color(0.29411766, 0, 0.50980395, 1)">
 			Indigo color.
 		</constant>
-		<constant name="IVORY" value="Color(1, 1, 0.941176, 1)">
+		<constant name="IVORY" value="Color(1, 1, 0.9411765, 1)">
 			Ivory color.
 		</constant>
-		<constant name="KHAKI" value="Color(0.941176, 0.901961, 0.54902, 1)">
+		<constant name="KHAKI" value="Color(0.9411765, 0.9019608, 0.54901963, 1)">
 			Khaki color.
 		</constant>
-		<constant name="LAVENDER" value="Color(0.901961, 0.901961, 0.980392, 1)">
+		<constant name="LAVENDER" value="Color(0.9019608, 0.9019608, 0.98039216, 1)">
 			Lavender color.
 		</constant>
-		<constant name="LAVENDER_BLUSH" value="Color(1, 0.941176, 0.960784, 1)">
+		<constant name="LAVENDER_BLUSH" value="Color(1, 0.9411765, 0.9607843, 1)">
 			Lavender blush color.
 		</constant>
-		<constant name="LAWN_GREEN" value="Color(0.486275, 0.988235, 0, 1)">
+		<constant name="LAWN_GREEN" value="Color(0.4862745, 0.9882353, 0, 1)">
 			Lawn green color.
 		</constant>
-		<constant name="LEMON_CHIFFON" value="Color(1, 0.980392, 0.803922, 1)">
+		<constant name="LEMON_CHIFFON" value="Color(1, 0.98039216, 0.8039216, 1)">
 			Lemon chiffon color.
 		</constant>
-		<constant name="LIGHT_BLUE" value="Color(0.678431, 0.847059, 0.901961, 1)">
+		<constant name="LIGHT_BLUE" value="Color(0.6784314, 0.84705883, 0.9019608, 1)">
 			Light blue color.
 		</constant>
-		<constant name="LIGHT_CORAL" value="Color(0.941176, 0.501961, 0.501961, 1)">
+		<constant name="LIGHT_CORAL" value="Color(0.9411765, 0.5019608, 0.5019608, 1)">
 			Light coral color.
 		</constant>
-		<constant name="LIGHT_CYAN" value="Color(0.878431, 1, 1, 1)">
+		<constant name="LIGHT_CYAN" value="Color(0.8784314, 1, 1, 1)">
 			Light cyan color.
 		</constant>
-		<constant name="LIGHT_GOLDENROD" value="Color(0.980392, 0.980392, 0.823529, 1)">
+		<constant name="LIGHT_GOLDENROD" value="Color(0.98039216, 0.98039216, 0.8235294, 1)">
 			Light goldenrod color.
 		</constant>
 		<constant name="LIGHT_GRAY" value="Color(0.827451, 0.827451, 0.827451, 1)">
 			Light gray color.
 		</constant>
-		<constant name="LIGHT_GREEN" value="Color(0.564706, 0.933333, 0.564706, 1)">
+		<constant name="LIGHT_GREEN" value="Color(0.5647059, 0.93333334, 0.5647059, 1)">
 			Light green color.
 		</constant>
-		<constant name="LIGHT_PINK" value="Color(1, 0.713726, 0.756863, 1)">
+		<constant name="LIGHT_PINK" value="Color(1, 0.7137255, 0.75686276, 1)">
 			Light pink color.
 		</constant>
-		<constant name="LIGHT_SALMON" value="Color(1, 0.627451, 0.478431, 1)">
+		<constant name="LIGHT_SALMON" value="Color(1, 0.627451, 0.47843137, 1)">
 			Light salmon color.
 		</constant>
-		<constant name="LIGHT_SEA_GREEN" value="Color(0.12549, 0.698039, 0.666667, 1)">
+		<constant name="LIGHT_SEA_GREEN" value="Color(0.1254902, 0.69803923, 0.6666667, 1)">
 			Light sea green color.
 		</constant>
-		<constant name="LIGHT_SKY_BLUE" value="Color(0.529412, 0.807843, 0.980392, 1)">
+		<constant name="LIGHT_SKY_BLUE" value="Color(0.5294118, 0.80784315, 0.98039216, 1)">
 			Light sky blue color.
 		</constant>
-		<constant name="LIGHT_SLATE_GRAY" value="Color(0.466667, 0.533333, 0.6, 1)">
+		<constant name="LIGHT_SLATE_GRAY" value="Color(0.46666667, 0.53333336, 0.6, 1)">
 			Light slate gray color.
 		</constant>
-		<constant name="LIGHT_STEEL_BLUE" value="Color(0.690196, 0.768627, 0.870588, 1)">
+		<constant name="LIGHT_STEEL_BLUE" value="Color(0.6901961, 0.76862746, 0.87058824, 1)">
 			Light steel blue color.
 		</constant>
-		<constant name="LIGHT_YELLOW" value="Color(1, 1, 0.878431, 1)">
+		<constant name="LIGHT_YELLOW" value="Color(1, 1, 0.8784314, 1)">
 			Light yellow color.
 		</constant>
 		<constant name="LIME" value="Color(0, 1, 0, 1)">
 			Lime color.
 		</constant>
-		<constant name="LIME_GREEN" value="Color(0.196078, 0.803922, 0.196078, 1)">
+		<constant name="LIME_GREEN" value="Color(0.19607843, 0.8039216, 0.19607843, 1)">
 			Lime green color.
 		</constant>
-		<constant name="LINEN" value="Color(0.980392, 0.941176, 0.901961, 1)">
+		<constant name="LINEN" value="Color(0.98039216, 0.9411765, 0.9019608, 1)">
 			Linen color.
 		</constant>
 		<constant name="MAGENTA" value="Color(1, 0, 1, 1)">
 			Magenta color.
 		</constant>
-		<constant name="MAROON" value="Color(0.690196, 0.188235, 0.376471, 1)">
+		<constant name="MAROON" value="Color(0.6901961, 0.1882353, 0.3764706, 1)">
 			Maroon color.
 		</constant>
-		<constant name="MEDIUM_AQUAMARINE" value="Color(0.4, 0.803922, 0.666667, 1)">
+		<constant name="MEDIUM_AQUAMARINE" value="Color(0.4, 0.8039216, 0.6666667, 1)">
 			Medium aquamarine color.
 		</constant>
-		<constant name="MEDIUM_BLUE" value="Color(0, 0, 0.803922, 1)">
+		<constant name="MEDIUM_BLUE" value="Color(0, 0, 0.8039216, 1)">
 			Medium blue color.
 		</constant>
-		<constant name="MEDIUM_ORCHID" value="Color(0.729412, 0.333333, 0.827451, 1)">
+		<constant name="MEDIUM_ORCHID" value="Color(0.7294118, 0.33333334, 0.827451, 1)">
 			Medium orchid color.
 		</constant>
-		<constant name="MEDIUM_PURPLE" value="Color(0.576471, 0.439216, 0.858824, 1)">
+		<constant name="MEDIUM_PURPLE" value="Color(0.5764706, 0.4392157, 0.85882354, 1)">
 			Medium purple color.
 		</constant>
-		<constant name="MEDIUM_SEA_GREEN" value="Color(0.235294, 0.701961, 0.443137, 1)">
+		<constant name="MEDIUM_SEA_GREEN" value="Color(0.23529412, 0.7019608, 0.44313726, 1)">
 			Medium sea green color.
 		</constant>
-		<constant name="MEDIUM_SLATE_BLUE" value="Color(0.482353, 0.407843, 0.933333, 1)">
+		<constant name="MEDIUM_SLATE_BLUE" value="Color(0.48235294, 0.40784314, 0.93333334, 1)">
 			Medium slate blue color.
 		</constant>
-		<constant name="MEDIUM_SPRING_GREEN" value="Color(0, 0.980392, 0.603922, 1)">
+		<constant name="MEDIUM_SPRING_GREEN" value="Color(0, 0.98039216, 0.6039216, 1)">
 			Medium spring green color.
 		</constant>
-		<constant name="MEDIUM_TURQUOISE" value="Color(0.282353, 0.819608, 0.8, 1)">
+		<constant name="MEDIUM_TURQUOISE" value="Color(0.28235295, 0.81960785, 0.8, 1)">
 			Medium turquoise color.
 		</constant>
-		<constant name="MEDIUM_VIOLET_RED" value="Color(0.780392, 0.0823529, 0.521569, 1)">
+		<constant name="MEDIUM_VIOLET_RED" value="Color(0.78039217, 0.08235294, 0.52156866, 1)">
 			Medium violet red color.
 		</constant>
-		<constant name="MIDNIGHT_BLUE" value="Color(0.0980392, 0.0980392, 0.439216, 1)">
+		<constant name="MIDNIGHT_BLUE" value="Color(0.09803922, 0.09803922, 0.4392157, 1)">
 			Midnight blue color.
 		</constant>
-		<constant name="MINT_CREAM" value="Color(0.960784, 1, 0.980392, 1)">
+		<constant name="MINT_CREAM" value="Color(0.9607843, 1, 0.98039216, 1)">
 			Mint cream color.
 		</constant>
-		<constant name="MISTY_ROSE" value="Color(1, 0.894118, 0.882353, 1)">
+		<constant name="MISTY_ROSE" value="Color(1, 0.89411765, 0.88235295, 1)">
 			Misty rose color.
 		</constant>
-		<constant name="MOCCASIN" value="Color(1, 0.894118, 0.709804, 1)">
+		<constant name="MOCCASIN" value="Color(1, 0.89411765, 0.70980394, 1)">
 			Moccasin color.
 		</constant>
-		<constant name="NAVAJO_WHITE" value="Color(1, 0.870588, 0.678431, 1)">
+		<constant name="NAVAJO_WHITE" value="Color(1, 0.87058824, 0.6784314, 1)">
 			Navajo white color.
 		</constant>
-		<constant name="NAVY_BLUE" value="Color(0, 0, 0.501961, 1)">
+		<constant name="NAVY_BLUE" value="Color(0, 0, 0.5019608, 1)">
 			Navy blue color.
 		</constant>
-		<constant name="OLD_LACE" value="Color(0.992157, 0.960784, 0.901961, 1)">
+		<constant name="OLD_LACE" value="Color(0.99215686, 0.9607843, 0.9019608, 1)">
 			Old lace color.
 		</constant>
-		<constant name="OLIVE" value="Color(0.501961, 0.501961, 0, 1)">
+		<constant name="OLIVE" value="Color(0.5019608, 0.5019608, 0, 1)">
 			Olive color.
 		</constant>
-		<constant name="OLIVE_DRAB" value="Color(0.419608, 0.556863, 0.137255, 1)">
+		<constant name="OLIVE_DRAB" value="Color(0.41960785, 0.5568628, 0.13725491, 1)">
 			Olive drab color.
 		</constant>
-		<constant name="ORANGE" value="Color(1, 0.647059, 0, 1)">
+		<constant name="ORANGE" value="Color(1, 0.64705884, 0, 1)">
 			Orange color.
 		</constant>
-		<constant name="ORANGE_RED" value="Color(1, 0.270588, 0, 1)">
+		<constant name="ORANGE_RED" value="Color(1, 0.27058825, 0, 1)">
 			Orange red color.
 		</constant>
-		<constant name="ORCHID" value="Color(0.854902, 0.439216, 0.839216, 1)">
+		<constant name="ORCHID" value="Color(0.85490197, 0.4392157, 0.8392157, 1)">
 			Orchid color.
 		</constant>
-		<constant name="PALE_GOLDENROD" value="Color(0.933333, 0.909804, 0.666667, 1)">
+		<constant name="PALE_GOLDENROD" value="Color(0.93333334, 0.9098039, 0.6666667, 1)">
 			Pale goldenrod color.
 		</constant>
-		<constant name="PALE_GREEN" value="Color(0.596078, 0.984314, 0.596078, 1)">
+		<constant name="PALE_GREEN" value="Color(0.59607846, 0.9843137, 0.59607846, 1)">
 			Pale green color.
 		</constant>
-		<constant name="PALE_TURQUOISE" value="Color(0.686275, 0.933333, 0.933333, 1)">
+		<constant name="PALE_TURQUOISE" value="Color(0.6862745, 0.93333334, 0.93333334, 1)">
 			Pale turquoise color.
 		</constant>
-		<constant name="PALE_VIOLET_RED" value="Color(0.858824, 0.439216, 0.576471, 1)">
+		<constant name="PALE_VIOLET_RED" value="Color(0.85882354, 0.4392157, 0.5764706, 1)">
 			Pale violet red color.
 		</constant>
-		<constant name="PAPAYA_WHIP" value="Color(1, 0.937255, 0.835294, 1)">
+		<constant name="PAPAYA_WHIP" value="Color(1, 0.9372549, 0.8352941, 1)">
 			Papaya whip color.
 		</constant>
-		<constant name="PEACH_PUFF" value="Color(1, 0.854902, 0.72549, 1)">
+		<constant name="PEACH_PUFF" value="Color(1, 0.85490197, 0.7254902, 1)">
 			Peach puff color.
 		</constant>
-		<constant name="PERU" value="Color(0.803922, 0.521569, 0.247059, 1)">
+		<constant name="PERU" value="Color(0.8039216, 0.52156866, 0.24705882, 1)">
 			Peru color.
 		</constant>
-		<constant name="PINK" value="Color(1, 0.752941, 0.796078, 1)">
+		<constant name="PINK" value="Color(1, 0.7529412, 0.79607844, 1)">
 			Pink color.
 		</constant>
-		<constant name="PLUM" value="Color(0.866667, 0.627451, 0.866667, 1)">
+		<constant name="PLUM" value="Color(0.8666667, 0.627451, 0.8666667, 1)">
 			Plum color.
 		</constant>
-		<constant name="POWDER_BLUE" value="Color(0.690196, 0.878431, 0.901961, 1)">
+		<constant name="POWDER_BLUE" value="Color(0.6901961, 0.8784314, 0.9019608, 1)">
 			Powder blue color.
 		</constant>
-		<constant name="PURPLE" value="Color(0.627451, 0.12549, 0.941176, 1)">
+		<constant name="PURPLE" value="Color(0.627451, 0.1254902, 0.9411765, 1)">
 			Purple color.
 		</constant>
 		<constant name="REBECCA_PURPLE" value="Color(0.4, 0.2, 0.6, 1)">
@@ -879,97 +879,97 @@
 		<constant name="RED" value="Color(1, 0, 0, 1)">
 			Red color.
 		</constant>
-		<constant name="ROSY_BROWN" value="Color(0.737255, 0.560784, 0.560784, 1)">
+		<constant name="ROSY_BROWN" value="Color(0.7372549, 0.56078434, 0.56078434, 1)">
 			Rosy brown color.
 		</constant>
-		<constant name="ROYAL_BLUE" value="Color(0.254902, 0.411765, 0.882353, 1)">
+		<constant name="ROYAL_BLUE" value="Color(0.25490198, 0.4117647, 0.88235295, 1)">
 			Royal blue color.
 		</constant>
-		<constant name="SADDLE_BROWN" value="Color(0.545098, 0.270588, 0.0745098, 1)">
+		<constant name="SADDLE_BROWN" value="Color(0.54509807, 0.27058825, 0.07450981, 1)">
 			Saddle brown color.
 		</constant>
-		<constant name="SALMON" value="Color(0.980392, 0.501961, 0.447059, 1)">
+		<constant name="SALMON" value="Color(0.98039216, 0.5019608, 0.44705883, 1)">
 			Salmon color.
 		</constant>
-		<constant name="SANDY_BROWN" value="Color(0.956863, 0.643137, 0.376471, 1)">
+		<constant name="SANDY_BROWN" value="Color(0.95686275, 0.6431373, 0.3764706, 1)">
 			Sandy brown color.
 		</constant>
-		<constant name="SEA_GREEN" value="Color(0.180392, 0.545098, 0.341176, 1)">
+		<constant name="SEA_GREEN" value="Color(0.18039216, 0.54509807, 0.34117648, 1)">
 			Sea green color.
 		</constant>
-		<constant name="SEASHELL" value="Color(1, 0.960784, 0.933333, 1)">
+		<constant name="SEASHELL" value="Color(1, 0.9607843, 0.93333334, 1)">
 			Seashell color.
 		</constant>
-		<constant name="SIENNA" value="Color(0.627451, 0.321569, 0.176471, 1)">
+		<constant name="SIENNA" value="Color(0.627451, 0.32156864, 0.1764706, 1)">
 			Sienna color.
 		</constant>
-		<constant name="SILVER" value="Color(0.752941, 0.752941, 0.752941, 1)">
+		<constant name="SILVER" value="Color(0.7529412, 0.7529412, 0.7529412, 1)">
 			Silver color.
 		</constant>
-		<constant name="SKY_BLUE" value="Color(0.529412, 0.807843, 0.921569, 1)">
+		<constant name="SKY_BLUE" value="Color(0.5294118, 0.80784315, 0.92156863, 1)">
 			Sky blue color.
 		</constant>
-		<constant name="SLATE_BLUE" value="Color(0.415686, 0.352941, 0.803922, 1)">
+		<constant name="SLATE_BLUE" value="Color(0.41568628, 0.3529412, 0.8039216, 1)">
 			Slate blue color.
 		</constant>
-		<constant name="SLATE_GRAY" value="Color(0.439216, 0.501961, 0.564706, 1)">
+		<constant name="SLATE_GRAY" value="Color(0.4392157, 0.5019608, 0.5647059, 1)">
 			Slate gray color.
 		</constant>
-		<constant name="SNOW" value="Color(1, 0.980392, 0.980392, 1)">
+		<constant name="SNOW" value="Color(1, 0.98039216, 0.98039216, 1)">
 			Snow color.
 		</constant>
-		<constant name="SPRING_GREEN" value="Color(0, 1, 0.498039, 1)">
+		<constant name="SPRING_GREEN" value="Color(0, 1, 0.49803922, 1)">
 			Spring green color.
 		</constant>
-		<constant name="STEEL_BLUE" value="Color(0.27451, 0.509804, 0.705882, 1)">
+		<constant name="STEEL_BLUE" value="Color(0.27450982, 0.50980395, 0.7058824, 1)">
 			Steel blue color.
 		</constant>
-		<constant name="TAN" value="Color(0.823529, 0.705882, 0.54902, 1)">
+		<constant name="TAN" value="Color(0.8235294, 0.7058824, 0.54901963, 1)">
 			Tan color.
 		</constant>
-		<constant name="TEAL" value="Color(0, 0.501961, 0.501961, 1)">
+		<constant name="TEAL" value="Color(0, 0.5019608, 0.5019608, 1)">
 			Teal color.
 		</constant>
-		<constant name="THISTLE" value="Color(0.847059, 0.74902, 0.847059, 1)">
+		<constant name="THISTLE" value="Color(0.84705883, 0.7490196, 0.84705883, 1)">
 			Thistle color.
 		</constant>
-		<constant name="TOMATO" value="Color(1, 0.388235, 0.278431, 1)">
+		<constant name="TOMATO" value="Color(1, 0.3882353, 0.2784314, 1)">
 			Tomato color.
 		</constant>
 		<constant name="TRANSPARENT" value="Color(1, 1, 1, 0)">
 			Transparent color (white with zero alpha).
 		</constant>
-		<constant name="TURQUOISE" value="Color(0.25098, 0.878431, 0.815686, 1)">
+		<constant name="TURQUOISE" value="Color(0.2509804, 0.8784314, 0.8156863, 1)">
 			Turquoise color.
 		</constant>
-		<constant name="VIOLET" value="Color(0.933333, 0.509804, 0.933333, 1)">
+		<constant name="VIOLET" value="Color(0.93333334, 0.50980395, 0.93333334, 1)">
 			Violet color.
 		</constant>
-		<constant name="WEB_GRAY" value="Color(0.501961, 0.501961, 0.501961, 1)">
+		<constant name="WEB_GRAY" value="Color(0.5019608, 0.5019608, 0.5019608, 1)">
 			Web gray color.
 		</constant>
-		<constant name="WEB_GREEN" value="Color(0, 0.501961, 0, 1)">
+		<constant name="WEB_GREEN" value="Color(0, 0.5019608, 0, 1)">
 			Web green color.
 		</constant>
-		<constant name="WEB_MAROON" value="Color(0.501961, 0, 0, 1)">
+		<constant name="WEB_MAROON" value="Color(0.5019608, 0, 0, 1)">
 			Web maroon color.
 		</constant>
-		<constant name="WEB_PURPLE" value="Color(0.501961, 0, 0.501961, 1)">
+		<constant name="WEB_PURPLE" value="Color(0.5019608, 0, 0.5019608, 1)">
 			Web purple color.
 		</constant>
-		<constant name="WHEAT" value="Color(0.960784, 0.870588, 0.701961, 1)">
+		<constant name="WHEAT" value="Color(0.9607843, 0.87058824, 0.7019608, 1)">
 			Wheat color.
 		</constant>
 		<constant name="WHITE" value="Color(1, 1, 1, 1)">
 			White color.
 		</constant>
-		<constant name="WHITE_SMOKE" value="Color(0.960784, 0.960784, 0.960784, 1)">
+		<constant name="WHITE_SMOKE" value="Color(0.9607843, 0.9607843, 0.9607843, 1)">
 			White smoke color.
 		</constant>
 		<constant name="YELLOW" value="Color(1, 1, 0, 1)">
 			Yellow color.
 		</constant>
-		<constant name="YELLOW_GREEN" value="Color(0.603922, 0.803922, 0.196078, 1)">
+		<constant name="YELLOW_GREEN" value="Color(0.6039216, 0.8039216, 0.19607843, 1)">
 			Yellow green color.
 		</constant>
 	</constants>

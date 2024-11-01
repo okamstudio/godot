@@ -102,7 +102,7 @@ TEST_CASE("[Variant] Writer and parser Variant::FLOAT") {
 	String a64_str;
 	VariantWriter::write_to_string(a64, a64_str);
 
-	CHECK_MESSAGE(a64_str == "1.79769e+308", "Writes in scientific notation.");
+	CHECK_MESSAGE(a64_str == "1.7976931348623157e+308", "Writes in scientific notation.");
 	CHECK_MESSAGE(a64_str != "inf", "Should not overflow.");
 	CHECK_MESSAGE(a64_str != "nan", "The result should be defined.");
 
@@ -116,7 +116,7 @@ TEST_CASE("[Variant] Writer and parser Variant::FLOAT") {
 	VariantParser::parse(&bss, variant_parsed, errs, line);
 	float_parsed = variant_parsed;
 	// Loses precision, but that's alright.
-	CHECK_MESSAGE(float_parsed == 1.79769e+308, "Should parse back.");
+	CHECK_MESSAGE(float_parsed == 1.797693134862315708145274237317e+308, "Should parse back.");
 
 	// Approximation of Googol with a double-precision float.
 	VariantParser::StreamString css;
@@ -1735,6 +1735,38 @@ TEST_CASE("[Variant] Assignment To Color from Bool,Int,Float,String,Vec2,Vec2i,V
 	col_v = Color(0.33f, 0.75f, 0.21f);
 	object_v = col_v;
 	CHECK(object_v.get_type() == Variant::COLOR);
+}
+
+TEST_CASE("[Variant] Writer and parser Vector2") {
+	Variant vec2_parsed;
+	String vec2_str;
+	String errs;
+	int line;
+	// Variant::VECTOR2 and Vector2 can be either 32-bit or 64-bit depending on the precision level of real_t.
+	{
+		Vector2 vec2 = Vector2(1.2, 3.4);
+		VariantWriter::write_to_string(vec2, vec2_str);
+		// Reminder: "1.2" and "3.4" are not exactly those decimal numbers. They are the closest float to them.
+		CHECK_MESSAGE(vec2_str == "Vector2(1.2, 3.4)", "Should write with enough digits to ensure parsing back is exact.");
+		VariantParser::StreamString stream;
+		stream.s = vec2_str;
+		VariantParser::parse(&stream, vec2_parsed, errs, line);
+		CHECK_MESSAGE(Vector2(vec2_parsed) == vec2, "Should parse back to the same Vector2.");
+	}
+	// Check with big numbers and small numbers.
+	{
+		Vector2 vec2 = Vector2(1.234567898765432123456789e30, 1.234567898765432123456789e-10);
+		VariantWriter::write_to_string(vec2, vec2_str);
+#ifdef REAL_T_IS_DOUBLE
+		CHECK_MESSAGE(vec2_str == "Vector2(1.2345678987654322e+30, 1.2345678987654322e-10)", "Should write with enough digits to ensure parsing back is exact.");
+#else
+		CHECK_MESSAGE(vec2_str == "Vector2(1.2345679e+30, 1.2345679e-10)", "Should write with enough digits to ensure parsing back is exact.");
+#endif
+		VariantParser::StreamString stream;
+		stream.s = vec2_str;
+		VariantParser::parse(&stream, vec2_parsed, errs, line);
+		CHECK_MESSAGE(Vector2(vec2_parsed) == vec2, "Should parse back to the same Vector2.");
+	}
 }
 
 TEST_CASE("[Variant] Writer and parser array") {

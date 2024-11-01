@@ -47,7 +47,7 @@
 		<member name="angular_limit/enable" type="bool" setter="set_flag" getter="get_flag" default="false">
 			If [code]true[/code], the hinges maximum and minimum rotation, defined by [member angular_limit/lower] and [member angular_limit/upper] has effects.
 		</member>
-		<member name="angular_limit/lower" type="float" setter="set_param" getter="get_param" default="-1.5708">
+		<member name="angular_limit/lower" type="float" setter="set_param" getter="get_param" default="-1.5707964">
 			The minimum rotation. Only active if [member angular_limit/enable] is [code]true[/code].
 		</member>
 		<member name="angular_limit/relaxation" type="float" setter="set_param" getter="get_param" default="1.0">
@@ -55,7 +55,7 @@
 		</member>
 		<member name="angular_limit/softness" type="float" setter="set_param" getter="get_param" default="0.9" deprecated="This property is never set by the engine and is kept for compatibility purposes.">
 		</member>
-		<member name="angular_limit/upper" type="float" setter="set_param" getter="get_param" default="1.5708">
+		<member name="angular_limit/upper" type="float" setter="set_param" getter="get_param" default="1.5707964">
 			The maximum rotation. Only active if [member angular_limit/enable] is [code]true[/code].
 		</member>
 		<member name="motor/enable" type="bool" setter="set_flag" getter="get_flag" default="false">

@@ -41,6 +41,8 @@
 #include "core/variant/variant.h"
 #include "core/version_generated.gen.h"
 
+#include "thirdparty/grisu2/grisu2.h"
+
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS // to disable build-time warning which suggested to use strcpy_s instead strcpy
 #endif
@@ -1848,28 +1850,20 @@ String String::num_scientific(double p_num) {
 	if (Math::is_nan(p_num) || Math::is_inf(p_num)) {
 		return num(p_num, 0);
 	}
+	char buffer[256];
+	char *last = grisu2::to_chars(buffer, p_num);
+	*last = 0;
+	return buffer;
+}
 
-	char buf[256];
-
-#if defined(__GNUC__) || defined(_MSC_VER)
-
-#if defined(__MINGW32__) && defined(_TWO_DIGIT_EXPONENT) && !defined(_UCRT)
-	// MinGW requires _set_output_format() to conform to C99 output for printf
-	unsigned int old_exponent_format = _set_output_format(_TWO_DIGIT_EXPONENT);
-#endif
-	snprintf(buf, 256, "%lg", p_num);
-
-#if defined(__MINGW32__) && defined(_TWO_DIGIT_EXPONENT) && !defined(_UCRT)
-	_set_output_format(old_exponent_format);
-#endif
-
-#else
-	sprintf(buf, "%.16lg", p_num);
-#endif
-
-	buf[255] = 0;
-
-	return buf;
+String String::num_scientific(float p_num) {
+	if (Math::is_nan(p_num) || Math::is_inf(p_num)) {
+		return num(p_num, 0);
+	}
+	char buffer[256];
+	char *last = grisu2::to_chars(buffer, p_num);
+	*last = 0;
+	return buffer;
 }
 
 String String::md5(const uint8_t *p_md5) {

@@ -46,7 +46,7 @@
 		<member name="depth_near" type="float" setter="set_depth_near" getter="get_depth_near" default="0.05">
 			The distance to the near culling boundary for this camera relative to its local Z axis, in meters. This maps to glTF's [code]znear[/code] property.
 		</member>
-		<member name="fov" type="float" setter="set_fov" getter="get_fov" default="1.309">
+		<member name="fov" type="float" setter="set_fov" getter="get_fov" default="1.3089969">
 			The FOV of the camera. This class and glTF define the camera FOV in radians, while Godot uses degrees. This maps to glTF's [code]yfov[/code] property. This value is only used for perspective cameras, when [member perspective] is [code]true[/code].
 		</member>
 		<member name="perspective" type="bool" setter="set_perspective" getter="get_perspective" default="true">

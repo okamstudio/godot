@@ -474,7 +474,6 @@ TEST_CASE("[String] Number to string") {
 	CHECK(String::num(3.141593) == "3.141593");
 	CHECK(String::num(3.141593, 3) == "3.142");
 	CHECK(String::num(42.100023, 4) == "42.1"); // No trailing zeros.
-	CHECK(String::num_scientific(30000000) == "3e+07");
 
 	// String::num_int64 tests.
 	CHECK(String::num_int64(3141593) == "3141593");
@@ -494,6 +493,20 @@ TEST_CASE("[String] Number to string") {
 	CHECK(String::num_uint64(4294967295, 1) == ""); // Invalid base < 2.
 	CHECK(String::num_uint64(4294967295, 37) == ""); // Invalid base > 36.
 	ERR_PRINT_ON;
+
+	// String::num_scientific tests.
+	CHECK(String::num_scientific(30000000.0) == "30000000");
+	CHECK(String::num_scientific(1234567890.0) == "1234567890");
+	CHECK(String::num_scientific(3e100) == "3e+100");
+	CHECK(String::num_scientific(7e-100) == "7e-100");
+	CHECK(String::num_scientific(Math_TAU) == "6.283185307179586");
+	CHECK(String::num_scientific(INFINITY) == "inf");
+	CHECK(String::num_scientific(-INFINITY) == "-inf");
+	CHECK(String::num_scientific(NAN) == "nan");
+	CHECK(String::num_scientific(2.0) == "2");
+	CHECK(String::num_scientific(1.0) == "1");
+	CHECK(String::num_scientific(0.0) == "0");
+	CHECK(String::num_scientific(-0.0) == "-0");
 
 	// String::num_real tests.
 	CHECK(String::num_real(1.0) == "1.0");

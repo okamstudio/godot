@@ -12,7 +12,7 @@
 		<member name="aspect_ratio" type="float" setter="set_aspect_ratio" getter="get_aspect_ratio" default="1.0">
 			The aspect ratio of the slice. Used to set the height relative to the width.
 		</member>
-		<member name="central_angle" type="float" setter="set_central_angle" getter="get_central_angle" default="1.5708">
+		<member name="central_angle" type="float" setter="set_central_angle" getter="get_central_angle" default="1.5707964">
 			The central angle of the cylinder. Used to set the width.
 		</member>
 		<member name="fallback_segments" type="int" setter="set_fallback_segments" getter="get_fallback_segments" default="10">
