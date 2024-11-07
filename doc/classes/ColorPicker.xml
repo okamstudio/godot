@@ -141,6 +141,9 @@
 		</constant>
 	</constants>
 	<theme_items>
+		<theme_item name="focused_not_editing_cursor_color" data_type="color" type="Color" default="Color(1, 1, 1, 0.275)">
+			Color of rectangle or circle drawn when a picker shape part is focused but not editable via keyboard or joypad. Displayed [i]over[/i] the picker shape, so a partially transparent color should be used to ensure the picker shape remains visible.
+		</theme_item>
 		<theme_item name="center_slider_grabbers" data_type="constant" type="int" default="1">
 			Overrides the [theme_item Slider.center_grabber] theme property of the sliders.
 		</theme_item>
@@ -203,6 +206,15 @@
 		</theme_item>
 		<theme_item name="shape_rect_wheel" data_type="icon" type="Texture2D">
 			The icon for rectangular wheel picker shapes.
+		</theme_item>
+		<theme_item name="picker_focus_circle" data_type="style" type="StyleBox">
+			The [StyleBox] used when the circle-shaped part of the picker is focused. Displayed [i]over[/i] the picker shape, so a partially transparent [StyleBox] should be used to ensure the picker shape remains visible. A [StyleBox] that represents an outline or an underline works well for this purpose. To disable the focus visual effect, assign a [StyleBoxEmpty] resource. Note that disabling the focus visual effect will harm keyboard/controller navigation usability, so this is not recommended for accessibility reasons.
+		</theme_item>
+		<theme_item name="picker_focus_rectangle" data_type="style" type="StyleBox">
+			The [StyleBox] used when the rectangle-shaped part of the picker is focused. Displayed [i]over[/i] the picker shape, so a partially transparent [StyleBox] should be used to ensure the picker shape remains visible. A [StyleBox] that represents an outline or an underline works well for this purpose. To disable the focus visual effect, assign a [StyleBoxEmpty] resource. Note that disabling the focus visual effect will harm keyboard/controller navigation usability, so this is not recommended for accessibility reasons.
+		</theme_item>
+		<theme_item name="sample_focus" data_type="style" type="StyleBox">
+			The [StyleBox] used for the old color sample part when it is focused. Displayed [i]over[/i] the sample, so a partially transparent [StyleBox] should be used to ensure the picker shape remains visible. A [StyleBox] that represents an outline or an underline works well for this purpose. To disable the focus visual effect, assign a [StyleBoxEmpty] resource. Note that disabling the focus visual effect will harm keyboard/controller navigation usability, so this is not recommended for accessibility reasons.
 		</theme_item>
 	</theme_items>
 </class>

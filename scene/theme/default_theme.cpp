@@ -1032,6 +1032,9 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("separation", "VSeparator", Math::round(4 * scale));
 
 	// ColorPicker
+	Ref<StyleBoxFlat> focus_circle = make_flat_stylebox(style_focus_color, default_margin, default_margin, default_margin, default_margin, default_corner_radius, false, 2);
+	focus_circle->set_corner_radius_all(Math::round(256 * scale));
+	focus_circle->set_corner_detail(Math::round(32 * scale));
 
 	theme->set_constant("margin", "ColorPicker", Math::round(4 * scale));
 	theme->set_constant("sv_width", "ColorPicker", Math::round(256 * scale));
@@ -1039,6 +1042,11 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("h_width", "ColorPicker", Math::round(30 * scale));
 	theme->set_constant("label_width", "ColorPicker", Math::round(10 * scale));
 	theme->set_constant("center_slider_grabbers", "ColorPicker", 1);
+
+	theme->set_stylebox("sample_focus", "ColorPicker", focus);
+	theme->set_stylebox("picker_focus_rectangle", "ColorPicker", focus);
+	theme->set_stylebox("picker_focus_circle", "ColorPicker", focus_circle);
+	theme->set_color("focused_not_editing_cursor_color", "ColorPicker", Color(1, 1, 1, 0.275f));
 
 	theme->set_icon("menu_option", "ColorPicker", icons["tabs_menu_hl"]);
 	theme->set_icon("folded_arrow", "ColorPicker", icons["arrow_right"]);
@@ -1112,6 +1120,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	preset_sb->set_anti_aliased(false);
 
 	theme->set_stylebox("preset_fg", "ColorPresetButton", preset_sb);
+	theme->set_stylebox("preset_focus", "ColorPicker", focus);
 	theme->set_icon("preset_bg", "ColorPresetButton", icons["mini_checkerboard"]);
 	theme->set_icon("overbright_indicator", "ColorPresetButton", icons["color_picker_overbright"]);
 
