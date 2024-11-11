@@ -2041,7 +2041,8 @@ void RenderingDeviceDriverD3D12::command_pipeline_barrier(CommandBufferID p_cmd_
 		BitField<PipelineStageBits> p_dst_stages,
 		VectorView<RDD::MemoryBarrier> p_memory_barriers,
 		VectorView<RDD::BufferBarrier> p_buffer_barriers,
-		VectorView<RDD::TextureBarrier> p_texture_barriers) {
+		VectorView<RDD::TextureBarrier> p_texture_barriers,
+		VectorView<AccelerationStructureBarrier> p_acceleration_structure_barriers) {
 	if (!barrier_capabilities.enhanced_barriers_supported) {
 		// Enhanced barriers are a requirement for this function.
 		return;
@@ -3037,7 +3038,7 @@ Vector<uint8_t> RenderingDeviceDriverD3D12::shader_compile_binary_from_spirv(Vec
 		binary_data.vertex_input_mask = shader_refl.vertex_input_mask;
 		binary_data.fragment_output_mask = shader_refl.fragment_output_mask;
 		binary_data.specialization_constants_count = shader_refl.specialization_constants.size();
-		binary_data.is_compute = shader_refl.is_compute;
+		binary_data.pipeline_type = shader_refl.pipeline_type;
 		binary_data.compute_local_size[0] = shader_refl.compute_local_size[0];
 		binary_data.compute_local_size[1] = shader_refl.compute_local_size[1];
 		binary_data.compute_local_size[2] = shader_refl.compute_local_size[2];
@@ -3668,8 +3669,8 @@ RDD::ShaderID RenderingDeviceDriverD3D12::shader_create_from_bytecode(const Vect
 	r_shader_desc.vertex_input_mask = binary_data.vertex_input_mask;
 	r_shader_desc.fragment_output_mask = binary_data.fragment_output_mask;
 
-	r_shader_desc.is_compute = binary_data.is_compute;
-	shader_info_in.is_compute = binary_data.is_compute;
+	r_shader_desc.pipeline_type = binary_data.pipeline_type;
+	shader_info_in.pipeline_type = binary_data.pipeline_type;
 	r_shader_desc.compute_local_size[0] = binary_data.compute_local_size[0];
 	r_shader_desc.compute_local_size[1] = binary_data.compute_local_size[1];
 	r_shader_desc.compute_local_size[2] = binary_data.compute_local_size[2];
@@ -4917,10 +4918,13 @@ void RenderingDeviceDriverD3D12::command_bind_push_constants(CommandBufferID p_c
 	if (!shader_info_in->dxil_push_constant_size) {
 		return;
 	}
-	if (shader_info_in->is_compute) {
+	if (shader_info_in->pipeline_type == PipelineType::COMPUTE) {
 		cmd_buf_info->cmd_list->SetComputeRoot32BitConstants(0, p_data.size(), p_data.ptr(), p_dst_first_index);
-	} else {
+	} else if (shader_info_in->pipeline_type == PipelineType::RASTERIZATION) {
 		cmd_buf_info->cmd_list->SetGraphicsRoot32BitConstants(0, p_data.size(), p_data.ptr(), p_dst_first_index);
+	} else {
+		// TODO
+		ERR_FAIL_MSG("Unimplemented!");
 	}
 }
 
@@ -5957,6 +5961,61 @@ RDD::PipelineID RenderingDeviceDriverD3D12::compute_pipeline_create(ShaderID p_s
 	pipeline_info->shader_info = shader_info_in;
 
 	return PipelineID(pipeline_info);
+}
+
+/********************/
+/**** RAYTRACING ****/
+/********************/
+
+// ---- ACCELERATION STRUCTURES ----
+
+RDD::AccelerationStructureID RenderingDeviceDriverD3D12::blas_create(BufferID p_vertex_buffer, uint64_t p_vertex_offset, VertexFormatID p_vertex_format, uint32_t p_vertex_count, BufferID p_index_buffer, IndexBufferFormat p_index_format, uint64_t p_index_offset, uint32_t p_index_count) {
+	// TODO
+	ERR_FAIL_V_MSG(AccelerationStructureID(), "Unimplemented!");
+}
+
+RDD::AccelerationStructureID RenderingDeviceDriverD3D12::tlas_create(const LocalVector<AccelerationStructureID> &p_blases, const Vector<Transform3D> &p_transforms) {
+	// TODO
+	ERR_FAIL_V_MSG(AccelerationStructureID(), "Unimplemented!");
+}
+
+void RenderingDeviceDriverD3D12::acceleration_structure_free(AccelerationStructureID p_acceleration_structure) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+// ----- PIPELINE -----
+
+RDD::RaytracingPipelineID RenderingDeviceDriverD3D12::raytracing_pipeline_create(ShaderID p_shader, VectorView<PipelineSpecializationConstant> p_specialization_constants) {
+	// TODO
+	ERR_FAIL_V_MSG(RaytracingPipelineID(), "Unimplemented!");
+}
+
+void RenderingDeviceDriverD3D12::raytracing_pipeline_free(RDD::RaytracingPipelineID p_pipeline) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+// ----- COMMANDS -----
+
+void RenderingDeviceDriverD3D12::command_build_acceleration_structure(CommandBufferID p_cmd_buffer, AccelerationStructureID p_acceleration_structure) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverD3D12::command_bind_raytracing_pipeline(CommandBufferID p_cmd_buffer, RaytracingPipelineID p_pipeline) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverD3D12::command_bind_raytracing_uniform_set(CommandBufferID p_cmd_buffer, UniformSetID p_uniform_set, ShaderID p_shader, uint32_t p_set_index) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverD3D12::command_trace_rays(CommandBufferID p_cmd_buffer, uint32_t p_width, uint32_t p_height) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
 }
 
 /*****************/

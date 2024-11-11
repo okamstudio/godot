@@ -48,7 +48,12 @@ static Vector<uint8_t> _compile_shader_glsl(RenderingDevice::ShaderStage p_stage
 		EShLangFragment,
 		EShLangTessControl,
 		EShLangTessEvaluation,
-		EShLangCompute
+		EShLangCompute,
+		EShLangRayGen,
+		EShLangAnyHit,
+		EShLangClosestHit,
+		EShLangMiss,
+		EShLangIntersect,
 	};
 
 	int ClientInputSemanticsVersion = 100; // maps to, say, #define VULKAN 100
@@ -128,6 +133,10 @@ static Vector<uint8_t> _compile_shader_glsl(RenderingDevice::ShaderStage p_stage
 
 	if (p_render_device->has_feature(RD::SUPPORTS_MULTIVIEW)) {
 		preamble += "#define has_VK_KHR_multiview 1\n";
+	}
+
+	if (p_render_device->has_feature(RD::SUPPORTS_RAYTRACING)) {
+		preamble += "#define has_VK_KHR_ray_tracing_pipeline 1\n";
 	}
 
 	if (!preamble.empty()) {

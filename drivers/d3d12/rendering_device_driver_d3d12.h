@@ -375,7 +375,8 @@ public:
 			BitField<PipelineStageBits> p_dst_stages,
 			VectorView<RDD::MemoryBarrier> p_memory_barriers,
 			VectorView<RDD::BufferBarrier> p_buffer_barriers,
-			VectorView<RDD::TextureBarrier> p_texture_barriers) override final;
+			VectorView<RDD::TextureBarrier> p_texture_barriers,
+			VectorView<AccelerationStructureBarrier> p_acceleration_structure_barriers) override final;
 
 private:
 	/****************/
@@ -627,7 +628,7 @@ private:
 			uint32_t fragment_output_mask = 0;
 			uint32_t specialization_constants_count = 0;
 			uint32_t spirv_specialization_constants_ids_mask = 0;
-			uint32_t is_compute = 0;
+			PipelineType pipeline_type = PipelineType::RASTERIZATION;
 			uint32_t compute_local_size[3] = {};
 			uint32_t set_count = 0;
 			uint32_t push_constant_size = 0;
@@ -643,7 +644,7 @@ private:
 	struct ShaderInfo {
 		uint32_t dxil_push_constant_size = 0;
 		uint32_t nir_runtime_data_root_param_idx = UINT32_MAX;
-		bool is_compute = false;
+		PipelineType pipeline_type = PipelineType::RASTERIZATION;
 
 		struct UniformBindingInfo {
 			uint32_t stages = 0; // Actual shader stages using the uniform (0 if totally optimized out).
@@ -912,6 +913,28 @@ public:
 	// ----- PIPELINE -----
 
 	virtual PipelineID compute_pipeline_create(ShaderID p_shader, VectorView<PipelineSpecializationConstant> p_specialization_constants) override final;
+
+	/********************/
+	/**** RAYTRACING ****/
+	/********************/
+
+	// ---- ACCELERATION STRUCTURES ----
+
+	virtual AccelerationStructureID blas_create(BufferID p_vertex_buffer, uint64_t p_vertex_offset, VertexFormatID p_vertex_format, uint32_t p_vertex_count, BufferID p_index_buffer, IndexBufferFormat p_index_format, uint64_t p_index_offset, uint32_t p_index_count) override final;
+	virtual AccelerationStructureID tlas_create(const LocalVector<AccelerationStructureID> &p_blases, const Vector<Transform3D> &p_transforms) override final;
+	virtual void acceleration_structure_free(AccelerationStructureID p_acceleration_structure) override final;
+
+	// ----- PIPELINE -----
+
+	virtual RaytracingPipelineID raytracing_pipeline_create(ShaderID p_shader, VectorView<PipelineSpecializationConstant> p_specialization_constants) override final;
+	virtual void raytracing_pipeline_free(RaytracingPipelineID p_pipeline) override final;
+
+	// ----- COMMANDS -----
+
+	virtual void command_build_acceleration_structure(CommandBufferID p_cmd_buffer, AccelerationStructureID p_acceleration_structure) override final;
+	virtual void command_bind_raytracing_pipeline(CommandBufferID p_cmd_buffer, RaytracingPipelineID p_pipeline) override final;
+	virtual void command_bind_raytracing_uniform_set(CommandBufferID p_cmd_buffer, UniformSetID p_uniform_set, ShaderID p_shader, uint32_t p_set_index) override final;
+	virtual void command_trace_rays(CommandBufferID p_cmd_buffer, uint32_t p_width, uint32_t p_height) override final;
 
 	/*****************/
 	/**** QUERIES ****/

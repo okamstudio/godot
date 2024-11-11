@@ -10,6 +10,11 @@ class GLES3HeaderStruct:
     def __init__(self):
         self.vertex_lines = []
         self.fragment_lines = []
+        self.raygen_lines = []
+        self.any_hit_lines = []
+        self.closest_hit_lines = []
+        self.miss_lines = []
+        self.intersection_lines = []
         self.uniforms = []
         self.fbos = []
         self.texunits = []
@@ -25,6 +30,11 @@ class GLES3HeaderStruct:
         self.line_offset = 0
         self.vertex_offset = 0
         self.fragment_offset = 0
+        self.raygen_offset = 0
+        self.any_hit_offset = 0
+        self.closest_hit_offset = 0
+        self.miss_offset = 0
+        self.intersection_offset = 0
         self.variant_defines = []
         self.variant_names = []
         self.specialization_names = []
@@ -86,6 +96,41 @@ def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, 
                 line = fs.readline()
                 header_data.line_offset += 1
                 header_data.fragment_offset = header_data.line_offset
+                continue
+
+            if line.find("#[raygen]") != -1:
+                header_data.reading = "raygen"
+                line = fs.readline()
+                header_data.line_offset += 1
+                header_data.raygen_offset = header_data.line_offset
+                continue
+
+            if line.find("#[any_hit]") != -1:
+                header_data.reading = "any_hit"
+                line = fs.readline()
+                header_data.line_offset += 1
+                header_data.any_hit_offset = header_data.line_offset
+                continue
+
+            if line.find("#[closest_hit]") != -1:
+                header_data.reading = "closest_hit"
+                line = fs.readline()
+                header_data.line_offset += 1
+                header_data.closest_hit_offset = header_data.line_offset
+                continue
+
+            if line.find("#[miss]") != -1:
+                header_data.reading = "miss"
+                line = fs.readline()
+                header_data.line_offset += 1
+                header_data.miss_offset = header_data.line_offset
+                continue
+
+            if line.find("#[intersection]") != -1:
+                header_data.reading = "intersection"
+                line = fs.readline()
+                header_data.line_offset += 1
+                header_data.intersection_offset = header_data.line_offset
                 continue
 
             while line.find("#include ") != -1:
@@ -182,6 +227,16 @@ def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, 
                 header_data.vertex_lines += [line]
             if header_data.reading == "fragment":
                 header_data.fragment_lines += [line]
+            if header_data.reading == "raygen":
+                header_data.raygen_lines += [line]
+            if header_data.reading == "any_hit":
+                header_data.any_hit_lines += [line]
+            if header_data.reading == "closest_hit":
+                header_data.closest_hit_lines += [line]
+            if header_data.reading == "miss":
+                header_data.miss_lines += [line]
+            if header_data.reading == "intersection":
+                header_data.intersection_lines += [line]
 
             line = fs.readline()
             header_data.line_offset += 1

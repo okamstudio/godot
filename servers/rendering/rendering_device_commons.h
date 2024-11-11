@@ -527,12 +527,22 @@ public:
 		SHADER_STAGE_TESSELATION_CONTROL,
 		SHADER_STAGE_TESSELATION_EVALUATION,
 		SHADER_STAGE_COMPUTE,
+		SHADER_STAGE_RAYGEN,
+		SHADER_STAGE_ANY_HIT,
+		SHADER_STAGE_CLOSEST_HIT,
+		SHADER_STAGE_MISS,
+		SHADER_STAGE_INTERSECTION,
 		SHADER_STAGE_MAX,
 		SHADER_STAGE_VERTEX_BIT = (1 << SHADER_STAGE_VERTEX),
 		SHADER_STAGE_FRAGMENT_BIT = (1 << SHADER_STAGE_FRAGMENT),
 		SHADER_STAGE_TESSELATION_CONTROL_BIT = (1 << SHADER_STAGE_TESSELATION_CONTROL),
 		SHADER_STAGE_TESSELATION_EVALUATION_BIT = (1 << SHADER_STAGE_TESSELATION_EVALUATION),
 		SHADER_STAGE_COMPUTE_BIT = (1 << SHADER_STAGE_COMPUTE),
+		SHADER_STAGE_RAYGEN_BIT = (1 << SHADER_STAGE_RAYGEN),
+		SHADER_STAGE_ANY_HIT_BIT = (1 << SHADER_STAGE_ANY_HIT),
+		SHADER_STAGE_CLOSEST_HIT_BIT = (1 << SHADER_STAGE_CLOSEST_HIT),
+		SHADER_STAGE_MISS_BIT = (1 << SHADER_STAGE_MISS),
+		SHADER_STAGE_INTERSECTION_BIT = (1 << SHADER_STAGE_INTERSECTION),
 	};
 
 	struct ShaderStageSPIRVData {
@@ -557,6 +567,7 @@ public:
 		UNIFORM_TYPE_UNIFORM_BUFFER, // Regular uniform buffer (or UBO).
 		UNIFORM_TYPE_STORAGE_BUFFER, // Storage buffer ("buffer" qualifier) like UBO, but supports storage, for compute mostly.
 		UNIFORM_TYPE_INPUT_ATTACHMENT, // Used for sub-pass read/write, for mobile mostly.
+		UNIFORM_TYPE_ACCELERATION_STRUCTURE, // Bounding Volume Hierarchy (Top + Bottom Level acceleration structures), for raytracing only.
 		UNIFORM_TYPE_MAX
 	};
 
@@ -585,6 +596,12 @@ public:
 	/*******************/
 
 	// ----- PIPELINE -----
+
+	enum PipelineType {
+		RASTERIZATION,
+		COMPUTE,
+		RAYTRACING,
+	};
 
 	enum RenderPrimitive {
 		RENDER_PRIMITIVE_POINTS,
@@ -886,6 +903,7 @@ public:
 		// If not supported, a fragment shader with only side effects (i.e., writes  to buffers, but doesn't output to attachments), may be optimized down to no-op by the GPU driver.
 		SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS,
 		SUPPORTS_BUFFER_DEVICE_ADDRESS,
+		SUPPORTS_RAYTRACING,
 	};
 
 	enum SubgroupOperations {
@@ -987,7 +1005,7 @@ public:
 	struct ShaderDescription {
 		uint64_t vertex_input_mask = 0;
 		uint32_t fragment_output_mask = 0;
-		bool is_compute = false;
+		PipelineType pipeline_type = PipelineType::RASTERIZATION;
 		uint32_t compute_local_size[3] = {};
 		uint32_t push_constant_size = 0;
 

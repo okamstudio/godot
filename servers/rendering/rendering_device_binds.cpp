@@ -41,7 +41,7 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 	Vector<String> lines = p_text.split("\n");
 
 	bool reading_versions = false;
-	bool stage_found[RD::SHADER_STAGE_MAX] = { false, false, false, false, false };
+	bool stage_found[RD::SHADER_STAGE_MAX] = { false, false, false, false, false, false, false, false };
 	RD::ShaderStage stage = RD::SHADER_STAGE_MAX;
 	static const char *stage_str[RD::SHADER_STAGE_MAX] = {
 		"vertex",
@@ -49,6 +49,11 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 		"tesselation_control",
 		"tesselation_evaluation",
 		"compute",
+		"raygen",
+		"any_hit",
+		"closest_hit",
+		"miss",
+		"intersection",
 	};
 	String stage_code[RD::SHADER_STAGE_MAX];
 	int stages_found = 0;

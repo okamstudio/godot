@@ -808,7 +808,8 @@ void RenderingDeviceDriverMetal::command_pipeline_barrier(
 		BitField<PipelineStageBits> p_dst_stages,
 		VectorView<MemoryBarrier> p_memory_barriers,
 		VectorView<BufferBarrier> p_buffer_barriers,
-		VectorView<TextureBarrier> p_texture_barriers) {
+		VectorView<TextureBarrier> p_texture_barriers,
+		VectorView<AccelerationStructureBarrier> p_acceleration_structure_barriers) {
 	WARN_PRINT_ONCE("not implemented");
 }
 
@@ -1255,6 +1256,12 @@ public:
 		p_val = (RD::ShaderStage)val;
 	}
 
+	_FORCE_INLINE_ void read(RD::PipelineType &p_val) {
+		uint32_t val;
+		read(val);
+		p_val = (RD::PipelineType)val;
+	}
+
 	_FORCE_INLINE_ void read(bool &p_val) {
 		CHECK(sizeof(uint8_t));
 
@@ -1565,6 +1572,7 @@ struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) ShaderBinaryData {
 	uint32_t fragment_output_mask = UINT32_MAX;
 	uint32_t spirv_specialization_constants_ids_mask = UINT32_MAX;
 	uint32_t flags = NONE;
+	RD::PipelineType pipeline_type = RD::PipelineType::RASTERIZATION;
 	ComputeSize compute_local_size;
 	PushConstantData push_constant;
 	LocalVector<ShaderStageData> stages;
@@ -1639,6 +1647,7 @@ struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) ShaderBinaryData {
 		p_writer.write(fragment_output_mask);
 		p_writer.write(spirv_specialization_constants_ids_mask);
 		p_writer.write(flags);
+		p_writer.write(pipeline_type);
 		p_writer.write(compute_local_size);
 		p_writer.write(push_constant);
 		p_writer.write(VectorView(stages));
@@ -1653,6 +1662,7 @@ struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) ShaderBinaryData {
 		p_reader.read(fragment_output_mask);
 		p_reader.read(spirv_specialization_constants_ids_mask);
 		p_reader.read(flags);
+		p_reader.read(pipeline_type);
 		p_reader.read(compute_local_size);
 		p_reader.read(push_constant);
 		p_reader.read(stages);
@@ -1690,9 +1700,12 @@ Error RenderingDeviceDriverMetal::_reflect_spirv16(VectorView<ShaderStageSPIRVDa
 		ShaderStage stage_flag = (ShaderStage)(1 << p_spirv[i].shader_stage);
 
 		if (p_spirv[i].shader_stage == SHADER_STAGE_COMPUTE) {
-			r_reflection.is_compute = true;
+			r_reflection.pipeline_type = PipelineType::COMPUTE;
 			ERR_FAIL_COND_V_MSG(p_spirv.size() != 1, FAILED,
 					"Compute shaders can only receive one stage, dedicated to compute.");
+		}
+		if (p_spirv[i].shader_stage == SHADER_STAGE_RAYGEN || p_spirv[i].shader_stage == SHADER_STAGE_ANY_HIT || p_spirv[i].shader_stage == SHADER_STAGE_CLOSEST_HIT || p_spirv[i].shader_stage == SHADER_STAGE_MISS || p_spirv[i].shader_stage == SHADER_STAGE_INTERSECTION) {
+			r_reflection.pipeline_type = PipelineType::RAYTRACING;
 		}
 		ERR_FAIL_COND_V_MSG(r_reflection.stages.has_flag(stage_flag), FAILED,
 				"Stage " + String(SHADER_STAGE_NAMES[p_spirv[i].shader_stage]) + " submitted more than once.");
@@ -1702,7 +1715,7 @@ Error RenderingDeviceDriverMetal::_reflect_spirv16(VectorView<ShaderStageSPIRVDa
 
 		Compiler compiler(std::move(pir));
 
-		if (r_reflection.is_compute) {
+		if (r_reflection.pipeline_type == PipelineType::COMPUTE) {
 			r_reflection.compute_local_size[0] = compiler.get_execution_mode_argument(spv::ExecutionModeLocalSize, 0);
 			r_reflection.compute_local_size[1] = compiler.get_execution_mode_argument(spv::ExecutionModeLocalSize, 1);
 			r_reflection.compute_local_size[2] = compiler.get_execution_mode_argument(spv::ExecutionModeLocalSize, 2);
@@ -1999,6 +2012,7 @@ Vector<uint8_t> RenderingDeviceDriverMetal::shader_compile_binary_from_spirv(Vec
 		.y = spirv_data.compute_local_size[1],
 		.z = spirv_data.compute_local_size[2],
 	};
+	bin_data.pipeline_type = spirv_data.pipeline_type;
 	bin_data.push_constant.size = spirv_data.push_constant_size;
 	bin_data.push_constant.stages = (ShaderStageUsage)(uint8_t)spirv_data.push_constant_stages;
 	bin_data.set_needs_view_mask_buffer(shader_meta.has_multiview);
@@ -2577,7 +2591,7 @@ RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vect
 	}
 
 	MDShader *shader = nullptr;
-	if (binary_data.is_compute()) {
+	if (binary_data.pipeline_type == PipelineType::COMPUTE) {
 		MDComputeShader *cs = new MDComputeShader(
 				binary_data.shader_name,
 				uniform_sets,
@@ -2629,7 +2643,7 @@ RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vect
 
 	r_shader_desc.vertex_input_mask = binary_data.vertex_input_mask;
 	r_shader_desc.fragment_output_mask = binary_data.fragment_output_mask;
-	r_shader_desc.is_compute = binary_data.is_compute();
+	r_shader_desc.pipeline_type = binary_data.pipeline_type;
 	r_shader_desc.compute_local_size[0] = binary_data.compute_local_size.x;
 	r_shader_desc.compute_local_size[1] = binary_data.compute_local_size.y;
 	r_shader_desc.compute_local_size[2] = binary_data.compute_local_size.z;
@@ -3742,6 +3756,59 @@ RDD::PipelineID RenderingDeviceDriverMetal::compute_pipeline_create(ShaderID p_s
 	}
 
 	return PipelineID(pipeline);
+}
+
+#pragma mark - Raytracing
+
+// ----- ACCELERATION STRUCTURE -----
+
+RDD::AccelerationStructureID RenderingDeviceDriverMetal::blas_create(BufferID p_vertex_buffer, uint64_t p_vertex_offset, VertexFormatID p_vertex_format, uint32_t p_vertex_count, BufferID p_index_buffer, IndexBufferFormat p_index_format, uint64_t p_index_offset_bytes, uint32_t p_index_count) {
+	// TODO
+	ERR_FAIL_V_MSG(AccelerationStructureID(), "Unimplemented!");
+}
+
+RDD::AccelerationStructureID RenderingDeviceDriverMetal::tlas_create(const LocalVector<RDD::AccelerationStructureID> &p_blases, const Vector<Transform3D> &p_transforms) {
+	// TODO
+	ERR_FAIL_V_MSG(AccelerationStructureID(), "Unimplemented!");
+}
+
+void RenderingDeviceDriverMetal::acceleration_structure_free(RDD::AccelerationStructureID p_acceleration_structure) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+// ----- PIPELINE -----
+
+RDD::RaytracingPipelineID RenderingDeviceDriverMetal::raytracing_pipeline_create(ShaderID p_shader, VectorView<PipelineSpecializationConstant> p_specialization_constants) {
+	// TODO
+	ERR_FAIL_V_MSG(RaytracingPipelineID(), "Unimplemented!");
+}
+
+void RenderingDeviceDriverMetal::raytracing_pipeline_free(RDD::RaytracingPipelineID p_pipeline) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+// ----- COMMANDS -----
+
+void RenderingDeviceDriverMetal::command_build_acceleration_structure(CommandBufferID p_cmd_buffer, AccelerationStructureID p_acceleration_structure) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverMetal::command_bind_raytracing_pipeline(CommandBufferID p_cmd_buffer, RaytracingPipelineID p_pipeline) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverMetal::command_bind_raytracing_uniform_set(CommandBufferID p_cmd_buffer, UniformSetID p_uniform_set, ShaderID p_shader, uint32_t p_set_index) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
+}
+
+void RenderingDeviceDriverMetal::command_trace_rays(CommandBufferID p_cmd_buffer, uint32_t p_width, uint32_t p_height) {
+	// TODO
+	ERR_FAIL_MSG("Unimplemented!");
 }
 
 #pragma mark - Queries
