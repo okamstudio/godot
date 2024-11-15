@@ -100,11 +100,9 @@
 	</tutorials>
 	<methods>
 		<method name="_get_comments" qualifiers="virtual">
-			<return type="void" />
-			<param index="0" name="msgids_comment" type="String[]" />
-			<param index="1" name="msgids_context_plural_comment" type="String[]" />
+			<return type="Dictionary" />
 			<description>
-				If overridden, called after [method _parse_file] to get comments for the parsed entries. This method should fill the arrays with the same number of elements and in the same order as [method _parse_file].
+				If overridden, called after [method _parse_file] to get comments for the parsed entries. This method should fill the arrays with the same number of elements and in the same order as [method _parse_file]. The returned [Dictionary] should contain two elements, [code]msgids_comment[/code] and [code]msgids_context_plural_comment[/code] each a typed [Array] of [String]s.
 			</description>
 		</method>
 		<method name="_get_recognized_extensions" qualifiers="virtual const">

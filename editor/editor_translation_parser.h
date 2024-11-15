@@ -43,7 +43,7 @@ protected:
 	static void _bind_methods();
 
 	GDVIRTUAL3(_parse_file, String, TypedArray<String>, TypedArray<Array>)
-	GDVIRTUAL2(_get_comments, TypedArray<String>, TypedArray<String>)
+	GDVIRTUAL0R(Dictionary, _get_comments)
 	GDVIRTUAL0RC(Vector<String>, _get_recognized_extensions)
 
 public:

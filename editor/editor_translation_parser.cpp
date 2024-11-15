@@ -65,16 +65,21 @@ Error EditorTranslationParserPlugin::parse_file(const String &p_path, Vector<Str
 }
 
 void EditorTranslationParserPlugin::get_comments(Vector<String> *r_ids_comment, Vector<String> *r_ids_ctx_plural_comment) {
-	TypedArray<String> ids_comment;
-	TypedArray<String> ids_ctx_plural_comment;
+	Dictionary ret;
 
-	if (GDVIRTUAL_CALL(_get_comments, ids_comment, ids_ctx_plural_comment)) {
-		for (int i = 0; i < ids_comment.size(); i++) {
-			r_ids_comment->append(ids_comment[i]);
+	if (GDVIRTUAL_CALL(_get_comments, ret)) {
+		if (ret.has("msgids_comment")) {
+			TypedArray<String> ids_comment = ret["msgids_comment"];
+			for (int i = 0; i < ids_comment.size(); i++) {
+				r_ids_comment->append(ids_comment[i]);
+			}
 		}
 
-		for (int i = 0; i < ids_ctx_plural_comment.size(); i++) {
-			r_ids_ctx_plural_comment->append(ids_ctx_plural_comment[i]);
+		if (ret.has("msgids_context_plural_comment")) {
+			TypedArray<String> ids_ctx_plural_comment = ret["msgids_context_plural_comment"];
+			for (int i = 0; i < ids_ctx_plural_comment.size(); i++) {
+				r_ids_ctx_plural_comment->append(ids_ctx_plural_comment[i]);
+			}
 		}
 	}
 }
@@ -92,7 +97,7 @@ void EditorTranslationParserPlugin::get_recognized_extensions(List<String> *r_ex
 
 void EditorTranslationParserPlugin::_bind_methods() {
 	GDVIRTUAL_BIND(_parse_file, "path", "msgids", "msgids_context_plural");
-	GDVIRTUAL_BIND(_get_comments, "msgids_comment", "msgids_context_plural_comment");
+	GDVIRTUAL_BIND(_get_comments);
 	GDVIRTUAL_BIND(_get_recognized_extensions);
 }
 
