@@ -52,9 +52,9 @@ bool EditorPropertyArrayObject::_set(const StringName &p_name, const Variant &p_
 
 	int index;
 	if (name.begins_with("metadata/")) {
-		index = name.get_slice("/", 2).to_int();
+		index = name.get_slicec('/', 2).to_int();
 	} else {
-		index = name.get_slice("/", 1).to_int();
+		index = name.get_slicec('/', 1).to_int();
 	}
 
 	array.set(index, p_value);
@@ -70,9 +70,9 @@ bool EditorPropertyArrayObject::_get(const StringName &p_name, Variant &r_ret) c
 
 	int index;
 	if (name.begins_with("metadata/")) {
-		index = name.get_slice("/", 2).to_int();
+		index = name.get_slicec('/', 2).to_int();
 	} else {
-		index = name.get_slice("/", 1).to_int();
+		index = name.get_slicec('/', 1).to_int();
 	}
 
 	bool valid;
@@ -263,7 +263,7 @@ void EditorPropertyArray::_property_changed(const String &p_property, Variant p_
 		p_value = Variant(); // `EditorResourcePicker` resets to `Ref<Resource>()`. See GH-82716.
 	}
 
-	int index = p_property.get_slice("/", 1).to_int();
+	int index = p_property.get_slicec('/', 1).to_int();
 
 	Variant array = object->get_array().duplicate();
 	array.set(index, p_value);
@@ -574,7 +574,7 @@ bool EditorPropertyArray::_is_drop_valid(const Dictionary &p_drag_data) const {
 			String ftype = EditorFileSystem::get_singleton()->get_file_type(file);
 
 			for (int j = 0; j < allowed_type.get_slice_count(","); j++) {
-				String at = allowed_type.get_slice(",", j).strip_edges();
+				String at = allowed_type.get_slicec(',', j).strip_edges();
 				// Fail if one of the files is not of allowed type.
 				if (!ClassDB::is_parent_class(ftype, at)) {
 					return false;
@@ -595,7 +595,7 @@ bool EditorPropertyArray::_is_drop_valid(const Dictionary &p_drag_data) const {
 				return true;
 			} else {
 				for (int j = 0; j < subtype_hint_string.get_slice_count(","); j++) {
-					String ast = subtype_hint_string.get_slice(",", j).strip_edges();
+					String ast = subtype_hint_string.get_slicec(',', j).strip_edges();
 					allowed_subtype_array.append(ast);
 				}
 			}
@@ -1461,7 +1461,7 @@ EditorPropertyDictionary::EditorPropertyDictionary() {
 
 void EditorPropertyLocalizableString::_property_changed(const String &p_property, const Variant &p_value, const String &p_name, bool p_changing) {
 	if (p_property.begins_with("indices")) {
-		int index = p_property.get_slice("/", 1).to_int();
+		int index = p_property.get_slicec('/', 1).to_int();
 
 		Dictionary dict = object->get_dict().duplicate();
 		Variant key = dict.get_key_at_index(index);

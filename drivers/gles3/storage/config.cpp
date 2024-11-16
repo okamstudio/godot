@@ -221,7 +221,7 @@ Config::Config() {
 		// OpenGL ES 3.0 V@331.0 (GIT@35e467f, Ice9844a736) (Date:04/15/19)
 		// OpenGL ES 3.0 V@415.0 (GIT@d39f783, I79de86aa2c, 1591296226) (Date:06/04/20)
 		// OpenGL ES 3.0 V@0502.0 (GIT@09fef447e8, I1fe547a144, 1661493934) (Date:08/25/22)
-		String driver_version = gl_version.get_slice("V@", 1).get_slice(" ", 0);
+		String driver_version = gl_version.get_slice("V@", 1).get_slicec(' ', 0);
 		if (driver_version.is_valid_float() && driver_version.to_float() >= 331.0) {
 			flip_xy_workaround = false;
 

@@ -543,8 +543,8 @@ void CodeHighlighter::set_color_regions(const Dictionary &p_color_regions) {
 	for (const Variant &E : keys) {
 		String key = E;
 
-		String start_key = key.get_slice(" ", 0);
-		String end_key = key.get_slice_count(" ") > 1 ? key.get_slice(" ", 1) : String();
+		String start_key = key.get_slicec(' ', 0);
+		String end_key = key.get_slice_count(" ") > 1 ? key.get_slicec(' ', 1) : String();
 
 		add_color_region(start_key, end_key, p_color_regions[key], end_key.is_empty());
 	}

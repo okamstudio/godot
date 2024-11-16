@@ -1925,7 +1925,7 @@ void MaterialStorage::global_shader_parameters_load_settings(bool p_load_texture
 
 	for (const PropertyInfo &E : settings) {
 		if (E.name.begins_with("shader_globals/")) {
-			StringName name = E.name.get_slice("/", 1);
+			StringName name = E.name.get_slicec('/', 1);
 			Dictionary d = GLOBAL_GET(E.name);
 
 			ERR_CONTINUE(!d.has("type"));

@@ -41,8 +41,8 @@ bool GraphNode::_set(const StringName &p_name, const Variant &p_value) {
 		return false;
 	}
 
-	int idx = str.get_slice("/", 1).to_int();
-	String slot_property_name = str.get_slice("/", 2);
+	int idx = str.get_slicec('/', 1).to_int();
+	String slot_property_name = str.get_slicec('/', 2);
 
 	Slot slot;
 	if (slot_table.has(idx)) {
@@ -93,8 +93,8 @@ bool GraphNode::_get(const StringName &p_name, Variant &r_ret) const {
 		return false;
 	}
 
-	int idx = str.get_slice("/", 1).to_int();
-	StringName slot_property_name = str.get_slice("/", 2);
+	int idx = str.get_slicec('/', 1).to_int();
+	StringName slot_property_name = str.get_slicec('/', 2);
 
 	Slot slot;
 	if (slot_table.has(idx)) {

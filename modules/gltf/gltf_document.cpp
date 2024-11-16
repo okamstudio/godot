@@ -8057,8 +8057,8 @@ Dictionary GLTFDocument::_serialize_texture_transform_uv2(Ref<BaseMaterial3D> p_
 
 Error GLTFDocument::_serialize_asset_header(Ref<GLTFState> p_state) {
 	const String version = "2.0";
-	p_state->major_version = version.get_slice(".", 0).to_int();
-	p_state->minor_version = version.get_slice(".", 1).to_int();
+	p_state->major_version = version.get_slicec('.', 0).to_int();
+	p_state->minor_version = version.get_slicec('.', 1).to_int();
 	Dictionary asset;
 	asset["version"] = version;
 	if (!p_state->copyright.is_empty()) {
@@ -8339,8 +8339,8 @@ Error GLTFDocument::_parse_asset_header(Ref<GLTFState> p_state) {
 		return ERR_PARSE_ERROR;
 	}
 	String version = asset["version"];
-	p_state->major_version = version.get_slice(".", 0).to_int();
-	p_state->minor_version = version.get_slice(".", 1).to_int();
+	p_state->major_version = version.get_slicec('.', 0).to_int();
+	p_state->minor_version = version.get_slicec('.', 1).to_int();
 	if (asset.has("copyright")) {
 		p_state->copyright = asset["copyright"];
 	}

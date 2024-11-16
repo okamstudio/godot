@@ -81,7 +81,7 @@ public:
 		String name = p_name;
 
 		if (name.begins_with("bind/argument_")) {
-			int which = name.get_slice("_", 1).to_int() - 1;
+			int which = name.get_slicec('_', 1).to_int() - 1;
 			ERR_FAIL_INDEX_V(which, params.size(), false);
 			params.write[which] = p_value;
 		} else {
@@ -95,7 +95,7 @@ public:
 		String name = p_name;
 
 		if (name.begins_with("bind/argument_")) {
-			int which = name.get_slice("_", 1).to_int() - 1;
+			int which = name.get_slicec('_', 1).to_int() - 1;
 			ERR_FAIL_INDEX_V(which, params.size(), false);
 			r_ret = params[which];
 		} else {
@@ -224,7 +224,7 @@ void ConnectDialog::_remove_bind() {
 	if (st.is_empty()) {
 		return;
 	}
-	int idx = st.get_slice("/", 1).to_int() - 1;
+	int idx = st.get_slicec('/', 1).to_int() - 1;
 
 	ERR_FAIL_INDEX(idx, cdbinds->params.size());
 	cdbinds->params.remove_at(idx);
@@ -575,8 +575,8 @@ String ConnectDialog::get_signature(const MethodInfo &p_method, PackedStringArra
 			case Variant::DICTIONARY:
 				type_name = "Dictionary";
 				if (pi.hint == PROPERTY_HINT_DICTIONARY_TYPE && !pi.hint_string.is_empty()) {
-					String key_hint = pi.hint_string.get_slice(";", 0);
-					String value_hint = pi.hint_string.get_slice(";", 1);
+					String key_hint = pi.hint_string.get_slicec(';', 0);
+					String value_hint = pi.hint_string.get_slicec(';', 1);
 					if (key_hint.is_empty() || key_hint.begins_with("res://")) {
 						key_hint = "Variant";
 					}

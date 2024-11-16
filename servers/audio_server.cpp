@@ -2044,14 +2044,14 @@ AudioServer::~AudioServer() {
 bool AudioBusLayout::_set(const StringName &p_name, const Variant &p_value) {
 	String s = p_name;
 	if (s.begins_with("bus/")) {
-		int index = s.get_slice("/", 1).to_int();
+		int index = s.get_slicec('/', 1).to_int();
 		if (buses.size() <= index) {
 			buses.resize(index + 1);
 		}
 
 		Bus &bus = buses.write[index];
 
-		String what = s.get_slice("/", 2);
+		String what = s.get_slicec('/', 2);
 
 		if (what == "name") {
 			bus.name = p_value;
@@ -2066,14 +2066,14 @@ bool AudioBusLayout::_set(const StringName &p_name, const Variant &p_value) {
 		} else if (what == "send") {
 			bus.send = p_value;
 		} else if (what == "effect") {
-			int which = s.get_slice("/", 3).to_int();
+			int which = s.get_slicec('/', 3).to_int();
 			if (bus.effects.size() <= which) {
 				bus.effects.resize(which + 1);
 			}
 
 			Bus::Effect &fx = bus.effects.write[which];
 
-			String fxwhat = s.get_slice("/", 4);
+			String fxwhat = s.get_slicec('/', 4);
 			if (fxwhat == "effect") {
 				fx.effect = p_value;
 			} else if (fxwhat == "enabled") {
@@ -2096,14 +2096,14 @@ bool AudioBusLayout::_set(const StringName &p_name, const Variant &p_value) {
 bool AudioBusLayout::_get(const StringName &p_name, Variant &r_ret) const {
 	String s = p_name;
 	if (s.begins_with("bus/")) {
-		int index = s.get_slice("/", 1).to_int();
+		int index = s.get_slicec('/', 1).to_int();
 		if (index < 0 || index >= buses.size()) {
 			return false;
 		}
 
 		const Bus &bus = buses[index];
 
-		String what = s.get_slice("/", 2);
+		String what = s.get_slicec('/', 2);
 
 		if (what == "name") {
 			r_ret = bus.name;
@@ -2118,14 +2118,14 @@ bool AudioBusLayout::_get(const StringName &p_name, Variant &r_ret) const {
 		} else if (what == "send") {
 			r_ret = bus.send;
 		} else if (what == "effect") {
-			int which = s.get_slice("/", 3).to_int();
+			int which = s.get_slicec('/', 3).to_int();
 			if (which < 0 || which >= bus.effects.size()) {
 				return false;
 			}
 
 			const Bus::Effect &fx = bus.effects[which];
 
-			String fxwhat = s.get_slice("/", 4);
+			String fxwhat = s.get_slicec('/', 4);
 			if (fxwhat == "effect") {
 				r_ret = fx.effect;
 			} else if (fxwhat == "enabled") {

@@ -274,7 +274,7 @@ float AudioEffectChorus::get_dry() const {
 
 void AudioEffectChorus::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name.begins_with("voice/")) {
-		int voice_idx = p_property.name.get_slice("/", 1).to_int();
+		int voice_idx = p_property.name.get_slicec('/', 1).to_int();
 		if (voice_idx > voice_count) {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}

@@ -1265,8 +1265,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 					goto error;
 				}
 
-				int w = vm.get_slice("x", 0).to_int();
-				int h = vm.get_slice("x", 1).to_int();
+				int w = vm.get_slicec('x', 0).to_int();
+				int h = vm.get_slicec('x', 1).to_int();
 
 				if (w <= 0 || h <= 0) {
 					OS::get_singleton()->print("Invalid resolution '%s', width and height must be above 0.\n",
@@ -1308,8 +1308,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 					goto error;
 				}
 
-				int x = vm.get_slice(",", 0).to_int();
-				int y = vm.get_slice(",", 1).to_int();
+				int x = vm.get_slicec(',', 0).to_int();
+				int y = vm.get_slicec(',', 1).to_int();
 
 				init_custom_pos = Point2(x, y);
 				init_use_custom_pos = true;
@@ -2049,9 +2049,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			driver_hints_with_metal = String(",").join(driver_hints_arr);
 		}
 
-		String default_driver = driver_hints.get_slice(",", 0);
-		String default_driver_with_d3d12 = driver_hints_with_d3d12.get_slice(",", 0);
-		String default_driver_with_metal = driver_hints_with_metal.get_slice(",", 0);
+		String default_driver = driver_hints.get_slicec(',', 0);
+		String default_driver_with_d3d12 = driver_hints_with_d3d12.get_slicec(',', 0);
+		String default_driver_with_metal = driver_hints_with_metal.get_slicec(',', 0);
 
 		// For now everything defaults to vulkan when available. This can change in future updates.
 		GLOBAL_DEF_RST_NOVAL("rendering/rendering_device/driver", default_driver);
@@ -2076,7 +2076,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		driver_hints_egl = "opengl3,opengl3_es"; // Linux.
 #endif
 
-		String default_driver = driver_hints.get_slice(",", 0);
+		String default_driver = driver_hints.get_slicec(',', 0);
 
 		GLOBAL_DEF_RST_NOVAL("rendering/gl_compatibility/driver", default_driver);
 		GLOBAL_DEF_RST_NOVAL(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.windows", PROPERTY_HINT_ENUM, driver_hints_angle), default_driver);
@@ -2397,7 +2397,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 	}
 
-	default_renderer = renderer_hints.get_slice(",", 0);
+	default_renderer = renderer_hints.get_slicec(',', 0);
 	GLOBAL_DEF_RST_BASIC(PropertyInfo(Variant::STRING, "rendering/renderer/rendering_method", PROPERTY_HINT_ENUM, renderer_hints), default_renderer);
 	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.mobile", default_renderer_mobile);
 	GLOBAL_DEF_RST_BASIC("rendering/renderer/rendering_method.web", "gl_compatibility"); // This is a bit of a hack until we have WebGPU support.

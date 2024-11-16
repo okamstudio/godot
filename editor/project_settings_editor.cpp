@@ -139,7 +139,7 @@ void ProjectSettingsEditor::_add_setting() {
 	undo_redo->add_undo_method(this, "queue_save");
 	undo_redo->commit_action();
 
-	general_settings_inspector->set_current_section(setting.get_slice("/", 1));
+	general_settings_inspector->set_current_section(setting.get_slicec('/', 1));
 	add_button->release_focus();
 }
 

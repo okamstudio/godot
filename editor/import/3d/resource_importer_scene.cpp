@@ -2211,7 +2211,7 @@ bool ResourceImporterScene::get_internal_option_visibility(InternalImportCategor
 			}
 			if (p_option.begins_with("slice_")) {
 				int max_slice = p_options["slices/amount"];
-				int slice = p_option.get_slice("_", 1).to_int() - 1;
+				int slice = p_option.get_slicec('_', 1).to_int() - 1;
 				if (slice >= max_slice) {
 					return false;
 				}

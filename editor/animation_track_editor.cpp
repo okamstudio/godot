@@ -221,10 +221,10 @@ bool AnimationTrackKeyEdit::_set(const StringName &p_name, const Variant &p_valu
 				change_notify_deserved = true;
 			} else if (name.begins_with("args/")) {
 				Vector<Variant> args = d_old["args"];
-				int idx = name.get_slice("/", 1).to_int();
+				int idx = name.get_slicec('/', 1).to_int();
 				ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-				String what = name.get_slice("/", 2);
+				String what = name.get_slicec('/', 2);
 				if (what == "type") {
 					Variant::Type t = Variant::Type(int(p_value));
 
@@ -478,10 +478,10 @@ bool AnimationTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) const
 			}
 
 			if (name.begins_with("args/")) {
-				int idx = name.get_slice("/", 1).to_int();
+				int idx = name.get_slicec('/', 1).to_int();
 				ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-				String what = name.get_slice("/", 2);
+				String what = name.get_slicec('/', 2);
 				if (what == "type") {
 					r_ret = args[idx].get_type();
 					return true;
@@ -833,10 +833,10 @@ bool AnimationMultiTrackKeyEdit::_set(const StringName &p_name, const Variant &p
 						change_notify_deserved = true;
 					} else if (name.begins_with("args/")) {
 						Vector<Variant> args = d_old["args"];
-						int idx = name.get_slice("/", 1).to_int();
+						int idx = name.get_slicec('/', 1).to_int();
 						ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-						String what = name.get_slice("/", 2);
+						String what = name.get_slicec('/', 2);
 						if (what == "type") {
 							Variant::Type t = Variant::Type(int(p_value));
 
@@ -1055,10 +1055,10 @@ bool AnimationMultiTrackKeyEdit::_get(const StringName &p_name, Variant &r_ret) 
 					}
 
 					if (name.begins_with("args/")) {
-						int idx = name.get_slice("/", 1).to_int();
+						int idx = name.get_slicec('/', 1).to_int();
 						ERR_FAIL_INDEX_V(idx, args.size(), false);
 
-						String what = name.get_slice("/", 2);
+						String what = name.get_slicec('/', 2);
 						if (what == "type") {
 							r_ret = args[idx].get_type();
 							return true;
@@ -3324,7 +3324,7 @@ Variant AnimationTrackEdit::get_drag_data(const Point2 &p_point) {
 	Dictionary drag_data;
 	drag_data["type"] = "animation_track";
 	String base_path = animation->track_get_path(track);
-	base_path = base_path.get_slice(":", 0); // Remove sub-path.
+	base_path = base_path.get_slicec(':', 0); // Remove sub-path.
 	drag_data["group"] = base_path;
 	drag_data["index"] = track;
 
@@ -3355,7 +3355,7 @@ bool AnimationTrackEdit::can_drop_data(const Point2 &p_point, const Variant &p_d
 	// Don't allow moving tracks outside their groups.
 	if (get_editor()->is_grouping_tracks()) {
 		String base_path = animation->track_get_path(track);
-		base_path = base_path.get_slice(":", 0); // Remove sub-path.
+		base_path = base_path.get_slicec(':', 0); // Remove sub-path.
 		if (d["group"] != base_path) {
 			return false;
 		}
@@ -3386,7 +3386,7 @@ void AnimationTrackEdit::drop_data(const Point2 &p_point, const Variant &p_data)
 	// Don't allow moving tracks outside their groups.
 	if (get_editor()->is_grouping_tracks()) {
 		String base_path = animation->track_get_path(track);
-		base_path = base_path.get_slice(":", 0); // Remove sub-path.
+		base_path = base_path.get_slicec(':', 0); // Remove sub-path.
 		if (d["group"] != base_path) {
 			return;
 		}
@@ -4935,7 +4935,7 @@ void AnimationTrackEditor::_update_tracks() {
 
 		if (use_grouping) {
 			String base_path = animation->track_get_path(i);
-			base_path = base_path.get_slice(":", 0); // Remove sub-path.
+			base_path = base_path.get_slicec(':', 0); // Remove sub-path.
 
 			if (!group_sort.has(base_path)) {
 				AnimationTrackEditGroup *g = memnew(AnimationTrackEditGroup);

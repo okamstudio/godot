@@ -112,7 +112,7 @@ void EditorCommandPalette::_update_command_search(const String &search_text) {
 
 	const int entry_limit = MIN(entries.size(), 300);
 	for (int i = 0; i < entry_limit; i++) {
-		String section_name = entries[i].key_name.get_slice("/", 0);
+		String section_name = entries[i].key_name.get_slicec('/', 0);
 		TreeItem *section;
 
 		if (sections.has(section_name)) {
