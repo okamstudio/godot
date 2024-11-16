@@ -5,6 +5,7 @@
 	</brief_description>
 	<description>
 		Scripts extending this class and implementing its [method _run] method can be executed from the Script Editor's [b]File &gt; Run[/b] menu option (or by pressing [kbd]Ctrl + Shift + X[/kbd]) while the editor is running. This is useful for adding custom in-editor functionality to Godot. For more complex additions, consider using [EditorPlugin]s instead.
+		If a script extending this class also has a global class name, it will be included in the editor's command palette.
 		[b]Note:[/b] Extending scripts need to have [code]tool[/code] mode enabled.
 		[b]Example:[/b] Running the following script prints "Hello from the Godot Editor!":
 		[codeblocks]
