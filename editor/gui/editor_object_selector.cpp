@@ -128,7 +128,6 @@ void EditorObjectSelector::update_path() {
 		}
 
 		Ref<Texture2D> obj_icon = EditorNode::get_singleton()->get_object_icon(obj);
-
 		if (obj_icon.is_valid()) {
 			current_object_icon->set_texture(obj_icon);
 		}
@@ -148,7 +147,7 @@ void EditorObjectSelector::update_path() {
 				if (name.is_empty()) {
 					name = r->get_class();
 				}
-			} else if (obj->is_class("EditorDebuggerRemoteObject")) {
+			} else if (obj->is_class("EditorDebuggerRemoteObjects")) {
 				name = obj->call("get_title");
 			} else if (Object::cast_to<Node>(obj)) {
 				name = Object::cast_to<Node>(obj)->get_name();

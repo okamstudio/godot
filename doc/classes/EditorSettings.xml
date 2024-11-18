@@ -191,6 +191,10 @@
 		<member name="debugger/auto_switch_to_stack_trace" type="bool" setter="" getter="">
 			If [code]true[/code], automatically switches to the [b]Stack Trace[/b] panel when the debugger hits a breakpoint or steps.
 		</member>
+		<member name="debugger/max_node_selection" type="int" setter="" getter="">
+			The limit of how many remote nodes can be selected at once.
+			[b]Warning:[/b] Increasing this value is not recommended, as selecting too many can make the editing and inspection of remote properties unreliable.
+		</member>
 		<member name="debugger/profile_native_calls" type="bool" setter="" getter="">
 			If [code]true[/code], enables collection of profiling data from non-GDScript Godot functions, such as engine class methods. Enabling this slows execution while profiling further.
 		</member>

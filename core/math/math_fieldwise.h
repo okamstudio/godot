@@ -31,12 +31,12 @@
 #ifndef MATH_FIELDWISE_H
 #define MATH_FIELDWISE_H
 
-#ifdef TOOLS_ENABLED
+#ifdef DEBUG_ENABLED
 
 #include "core/variant/variant.h"
 
 Variant fieldwise_assign(const Variant &p_target, const Variant &p_source, const String &p_field);
 
-#endif // TOOLS_ENABLED
+#endif // DEBUG_ENABLED
 
 #endif // MATH_FIELDWISE_H

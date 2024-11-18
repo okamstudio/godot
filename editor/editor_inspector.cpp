@@ -33,6 +33,7 @@
 
 #include "core/os/keyboard.h"
 #include "editor/add_metadata_dialog.h"
+#include "editor/debugger/editor_debugger_inspector.h"
 #include "editor/doc_tools.h"
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_main_screen.h"
@@ -4206,6 +4207,10 @@ void EditorInspector::_edit_set(const String &p_name, const Variant &p_value, bo
 		emit_signal(_prop_edited, p_name);
 	} else if (Object::cast_to<MultiNodeEdit>(object)) {
 		Object::cast_to<MultiNodeEdit>(object)->set_property_field(p_name, p_value, p_changed_field);
+		_edit_request_change(object, p_name);
+		emit_signal(_prop_edited, p_name);
+	} else if (Object::cast_to<EditorDebuggerRemoteObjects>(object)) {
+		Object::cast_to<EditorDebuggerRemoteObjects>(object)->set_property_field(p_name, p_value, p_changed_field);
 		_edit_request_change(object, p_name);
 		emit_signal(_prop_edited, p_name);
 	} else {

@@ -35,7 +35,6 @@
 #include "core/string/translation_server.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/debugger/script_editor_debugger.h"
-#include "editor/editor_command_palette.h"
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_interface.h"
 #include "editor/editor_main_screen.h"
@@ -57,13 +56,21 @@ void GameViewDebugger::_session_started(Ref<EditorDebuggerSession> p_session) {
 		return;
 	}
 
-	Array setup_data;
 	Dictionary settings;
+	settings["debugger/max_node_selection"] = EDITOR_GET("debugger/max_node_selection");
 	settings["editors/panning/2d_editor_panning_scheme"] = EDITOR_GET("editors/panning/2d_editor_panning_scheme");
 	settings["editors/panning/simple_panning"] = EDITOR_GET("editors/panning/simple_panning");
 	settings["editors/panning/warped_mouse_panning"] = EDITOR_GET("editors/panning/warped_mouse_panning");
 	settings["editors/panning/2d_editor_pan_speed"] = EDITOR_GET("editors/panning/2d_editor_pan_speed");
+	settings["editors/polygon_editor/point_grab_radius"] = EDITOR_GET("editors/polygon_editor/point_grab_radius");
 	settings["canvas_item_editor/pan_view"] = DebuggerMarshalls::serialize_key_shortcut(ED_GET_SHORTCUT("canvas_item_editor/pan_view"));
+	settings["box_selection_fill_color"] = EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("box_selection_fill_color"), EditorStringName(Editor));
+	settings["box_selection_stroke_color"] = EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("box_selection_stroke_color"), EditorStringName(Editor));
+#ifndef _3D_DISABLED
+	settings["editors/3d/selection_box_color"] = EDITOR_GET("editors/3d/selection_box_color");
+#endif // _3D_DISABLED
+
+	Array setup_data;
 	setup_data.append(settings);
 	p_session->send_message("scene:runtime_node_select_setup", setup_data);
 
@@ -398,6 +405,8 @@ void GameView::_select_mode_pressed(int p_option) {
 	}
 
 	debugger->set_select_mode(mode);
+
+	EditorSettings::get_singleton()->set_project_metadata("game_view", "select_mode", mode);
 }
 
 void GameView::_embed_options_menu_menu_id_pressed(int p_id) {
@@ -546,6 +555,8 @@ void GameView::_hide_selection_toggled(bool p_pressed) {
 	hide_selection->set_button_icon(get_editor_theme_icon(p_pressed ? SNAME("GuiVisibilityHidden") : SNAME("GuiVisibilityVisible")));
 
 	debugger->set_selection_visible(!p_pressed);
+
+	EditorSettings::get_singleton()->set_project_metadata("game_view", "hide_selection", p_pressed);
 }
 
 void GameView::_camera_override_button_toggled(bool p_pressed) {
@@ -574,12 +585,16 @@ void GameView::_camera_override_menu_id_pressed(int p_id) {
 			menu->set_item_checked(menu->get_item_index(p_id), true);
 
 			_update_debugger_buttons();
+
+			EditorSettings::get_singleton()->set_project_metadata("game_view", "camera_override_mode", p_id);
 		} break;
 		case CAMERA_MODE_EDITORS: {
 			debugger->set_camera_manipulate_mode(EditorDebuggerNode::OVERRIDE_EDITORS);
 			menu->set_item_checked(menu->get_item_index(p_id), true);
 
 			_update_debugger_buttons();
+
+			EditorSettings::get_singleton()->set_project_metadata("game_view", "camera_override_mode", p_id);
 		} break;
 	}
 }
@@ -663,41 +678,6 @@ void GameView::_notification(int p_what) {
 
 void GameView::set_is_feature_enabled(bool p_enabled) {
 	is_feature_enabled = p_enabled;
-}
-
-void GameView::set_state(const Dictionary &p_state) {
-	if (p_state.has("hide_selection")) {
-		hide_selection->set_pressed(p_state["hide_selection"]);
-		_hide_selection_toggled(hide_selection->is_pressed());
-	}
-	if (p_state.has("select_mode")) {
-		_select_mode_pressed(p_state["select_mode"]);
-	}
-	if (p_state.has("camera_override_mode")) {
-		_camera_override_menu_id_pressed(p_state["camera_override_mode"]);
-	}
-}
-
-Dictionary GameView::get_state() const {
-	Dictionary d;
-	d["hide_selection"] = hide_selection->is_pressed();
-
-	for (int i = 0; i < RuntimeNodeSelect::SELECT_MODE_MAX; i++) {
-		if (select_mode_button[i]->is_pressed()) {
-			d["select_mode"] = i;
-			break;
-		}
-	}
-
-	PopupMenu *menu = camera_override_menu->get_popup();
-	for (int i = CAMERA_MODE_INGAME; i < CAMERA_MODE_EDITORS + 1; i++) {
-		if (menu->is_item_checked(menu->get_item_index(i))) {
-			d["camera_override_mode"] = i;
-			break;
-		}
-	}
-
-	return d;
 }
 
 void GameView::set_window_layout(Ref<ConfigFile> p_layout) {
@@ -893,6 +873,7 @@ GameView::GameView(Ref<GameViewDebugger> p_debugger, WindowWrapper *p_wrapper) {
 	hide_selection->set_theme_type_variation(SceneStringName(FlatButton));
 	hide_selection->connect(SceneStringName(toggled), callable_mp(this, &GameView::_hide_selection_toggled));
 	hide_selection->set_tooltip_text(TTR("Toggle Selection Visibility"));
+	hide_selection->set_pressed(EditorSettings::get_singleton()->get_project_metadata("game_view", "hide_selection", false));
 
 	main_menu_hbox->add_child(memnew(VSeparator));
 
@@ -913,14 +894,16 @@ GameView::GameView(Ref<GameViewDebugger> p_debugger, WindowWrapper *p_wrapper) {
 	select_mode_button[RuntimeNodeSelect::SELECT_MODE_LIST]->connect(SceneStringName(pressed), callable_mp(this, &GameView::_select_mode_pressed).bind(RuntimeNodeSelect::SELECT_MODE_LIST));
 	select_mode_button[RuntimeNodeSelect::SELECT_MODE_LIST]->set_tooltip_text(TTR("Show list of selectable nodes at position clicked."));
 
+	_select_mode_pressed(EditorSettings::get_singleton()->get_project_metadata("game_view", "select_mode", 0));
+
 	main_menu_hbox->add_child(memnew(VSeparator));
 
 	camera_override_button = memnew(Button);
 	main_menu_hbox->add_child(camera_override_button);
 	camera_override_button->set_toggle_mode(true);
 	camera_override_button->set_theme_type_variation(SceneStringName(FlatButton));
-	camera_override_button->connect(SceneStringName(toggled), callable_mp(this, &GameView::_camera_override_button_toggled));
 	camera_override_button->set_tooltip_text(TTR("Override the in-game camera."));
+	camera_override_button->connect(SceneStringName(toggled), callable_mp(this, &GameView::_camera_override_button_toggled));
 
 	camera_override_menu = memnew(MenuButton);
 	main_menu_hbox->add_child(camera_override_menu);
@@ -928,6 +911,7 @@ GameView::GameView(Ref<GameViewDebugger> p_debugger, WindowWrapper *p_wrapper) {
 	camera_override_menu->set_theme_type_variation("FlatMenuButton");
 	camera_override_menu->set_h_size_flags(SIZE_SHRINK_END);
 	camera_override_menu->set_tooltip_text(TTR("Camera Override Options"));
+	_camera_override_menu_id_pressed(EditorSettings::get_singleton()->get_project_metadata("game_view", "camera_override_mode", 0));
 
 	PopupMenu *menu = camera_override_menu->get_popup();
 	menu->connect(SceneStringName(id_pressed), callable_mp(this, &GameView::_camera_override_menu_id_pressed));
@@ -1047,14 +1031,6 @@ void GameViewPlugin::set_window_layout(Ref<ConfigFile> p_layout) {
 
 void GameViewPlugin::get_window_layout(Ref<ConfigFile> p_layout) {
 	game_view->get_window_layout(p_layout);
-}
-
-void GameViewPlugin::set_state(const Dictionary &p_state) {
-	game_view->set_state(p_state);
-}
-
-Dictionary GameViewPlugin::get_state() const {
-	return game_view->get_state();
 }
 
 void GameViewPlugin::_notification(int p_what) {

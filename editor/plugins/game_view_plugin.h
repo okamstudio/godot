@@ -234,9 +234,6 @@ public:
 	virtual void set_window_layout(Ref<ConfigFile> p_layout) override;
 	virtual void get_window_layout(Ref<ConfigFile> p_layout) override;
 
-	virtual void set_state(const Dictionary &p_state) override;
-	virtual Dictionary get_state() const override;
-
 	GameViewPlugin();
 	~GameViewPlugin();
 };
