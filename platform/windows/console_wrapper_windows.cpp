@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 	si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 
 	WCHAR new_command_line[32767];
-	_snwprintf_s(new_command_line, 32767, _TRUNCATE, L"%ls %ls", exe_name, PathGetArgsW(GetCommandLineW()));
+	_snwprintf_s(new_command_line, 32767, _TRUNCATE, L"\"%ls\" %ls", exe_name, PathGetArgsW(GetCommandLineW()));
 
 	if (!CreateProcessW(nullptr, new_command_line, nullptr, nullptr, true, CREATE_SUSPENDED, nullptr, nullptr, &si, &pi)) {
 		wprintf(L"CreateProcess failed, error %d\n", GetLastError());
