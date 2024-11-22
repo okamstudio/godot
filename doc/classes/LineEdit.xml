@@ -286,6 +286,9 @@
 			If [code]true[/code], the [LineEdit] doesn't display decoration.
 		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
+		<member name="icon_expand_mode" type="int" setter="set_icon_expand_mode" getter="get_icon_expand_mode" enum="LineEdit.ExpandMode" default="0">
+			Define the scaling behavior of the [member right_icon].
+		</member>
 		<member name="keep_editing_on_text_submit" type="bool" setter="set_keep_editing_on_text_submit" getter="is_editing_kept_on_text_submit" default="false">
 			If [code]true[/code], the [LineEdit] will not exit edit mode when text is submitted by pressing [code]ui_text_submit[/code] action (by default: [kbd]Enter[/kbd] or [kbd]Kp Enter[/kbd]).
 		</member>
@@ -327,6 +330,9 @@
 		</member>
 		<member name="right_icon" type="Texture2D" setter="set_right_icon" getter="get_right_icon">
 			Sets the icon that will appear in the right end of the [LineEdit] if there's no [member text], or always, if [member clear_button_enabled] is set to [code]false[/code].
+		</member>
+		<member name="right_icon_scale" type="float" setter="set_right_icon_scale" getter="get_right_icon_scale" default="1.0">
+			Scale ratio of the icon when [member icon_expand_mode] is set to [constant EXPAND_MODE_FIT_TO_LINE_EDIT].
 		</member>
 		<member name="secret" type="bool" setter="set_secret" getter="is_secret" default="false">
 			If [code]true[/code], every character is replaced with the secret character (see [member secret_character]).
@@ -511,6 +517,15 @@
 		</constant>
 		<constant name="KEYBOARD_TYPE_URL" value="7" enum="VirtualKeyboardType">
 			Virtual keyboard with additional keys to assist with typing URLs.
+		</constant>
+		<constant name="EXPAND_MODE_ORIGINAL_SIZE" value="0" enum="ExpandMode">
+			Use the original size for the right icon.
+		</constant>
+		<constant name="EXPAND_MODE_FIT_TO_TEXT" value="1" enum="ExpandMode">
+			Scale the right icon's size to match the size of the text.
+		</constant>
+		<constant name="EXPAND_MODE_FIT_TO_LINE_EDIT" value="2" enum="ExpandMode">
+			Scale the right icon to fit the LineEdit.
 		</constant>
 	</constants>
 	<theme_items>
