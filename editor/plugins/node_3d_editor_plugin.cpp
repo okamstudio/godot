@@ -8225,6 +8225,10 @@ void Node3DEditor::_notification(int p_what) {
 				_finish_grid();
 				_init_grid();
 			}
+			if (EditorSettings::get_singleton()->check_changed_settings_in_group("editors/3d_gizmos/gizmo_settings")) {
+				CollisionShape3DGizmoPlugin::set_show_only_when_selected(EDITOR_GET("editors/3d_gizmos/gizmo_settings/show_collision_shapes_only_when_selected"));
+				update_all_gizmos();
+			}
 		} break;
 
 		case NOTIFICATION_PHYSICS_PROCESS: {
