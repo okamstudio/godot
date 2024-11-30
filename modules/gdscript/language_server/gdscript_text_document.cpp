@@ -199,6 +199,10 @@ Array GDScriptTextDocument::completion(const Dictionary &p_params) {
 			item.data = request_data;
 			item.insertText = option.insert_text;
 
+			if (option.deprecated) {
+				item.tags.push_back(lsp::CompletionItemTag::Deprecated);
+			}
+
 			switch (option.kind) {
 				case ScriptLanguage::CODE_COMPLETION_KIND_ENUM:
 					item.kind = lsp::CompletionItemKind::Enum;

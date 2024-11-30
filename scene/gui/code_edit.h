@@ -480,7 +480,7 @@ public:
 
 	void request_code_completion(bool p_force = false);
 
-	void add_code_completion_option(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color = Color(1, 1, 1), const Ref<Resource> &p_icon = Ref<Resource>(), const Variant &p_value = Variant(), int p_location = LOCATION_OTHER);
+	void add_code_completion_option(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color = Color(1, 1, 1), const Ref<Resource> &p_icon = Ref<Resource>(), const Variant &p_value = Variant(), int p_location = LOCATION_OTHER, bool p_deprecated = false);
 	void update_code_completion_options(bool p_forced = false);
 
 	TypedArray<Dictionary> get_code_completion_options() const;

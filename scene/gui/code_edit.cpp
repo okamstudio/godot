@@ -246,6 +246,10 @@ void CodeEdit::_notification(int p_what) {
 							tl->set_horizontal_alignment(HORIZONTAL_ALIGNMENT_LEFT);
 						}
 
+						if (code_completion_options[i].deprecated) {
+							draw_line(Point2(title_pos.x, title_pos.y + row_height / 2), Point2(title_pos.x + tl->get_line_width(), title_pos.y + row_height / 2), code_completion_options[l].font_color, 2.0);
+						}
+
 						Point2 match_pos = Point2(code_completion_rect.position.x + icon_area_size.x + theme_cache.code_completion_icon_separation, code_completion_rect.position.y + i * row_height);
 
 						for (int j = 0; j < code_completion_options[l].matches.size(); j++) {
@@ -2163,7 +2167,7 @@ void CodeEdit::request_code_completion(bool p_force) {
 	}
 }
 
-void CodeEdit::add_code_completion_option(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color, const Ref<Resource> &p_icon, const Variant &p_value, int p_location) {
+void CodeEdit::add_code_completion_option(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color, const Ref<Resource> &p_icon, const Variant &p_value, int p_location, bool p_deprecated) {
 	ScriptLanguage::CodeCompletionOption completion_option;
 	completion_option.kind = (ScriptLanguage::CodeCompletionKind)p_type;
 	completion_option.display = p_display_text;
@@ -2172,6 +2176,7 @@ void CodeEdit::add_code_completion_option(CodeCompletionKind p_type, const Strin
 	completion_option.icon = p_icon;
 	completion_option.default_value = p_value;
 	completion_option.location = p_location;
+	completion_option.deprecated = p_deprecated;
 	code_completion_option_submitted.push_back(completion_option);
 }
 
@@ -2198,6 +2203,7 @@ TypedArray<Dictionary> CodeEdit::get_code_completion_options() const {
 		option["icon"] = code_completion_options[i].icon;
 		option["location"] = code_completion_options[i].location;
 		option["default_value"] = code_completion_options[i].default_value;
+		option["deprecated"] = code_completion_options[i].deprecated;
 		completion_options[i] = option;
 	}
 	return completion_options;
@@ -2217,6 +2223,7 @@ Dictionary CodeEdit::get_code_completion_option(int p_index) const {
 	option["icon"] = code_completion_options[p_index].icon;
 	option["location"] = code_completion_options[p_index].location;
 	option["default_value"] = code_completion_options[p_index].default_value;
+	option["deprecated"] = code_completion_options[p_index].deprecated;
 	return option;
 }
 
@@ -3409,6 +3416,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 			option["icon"] = E.icon;
 			option["default_value"] = E.default_value;
 			option["location"] = E.location;
+			option["deprecated"] = E.deprecated;
 			completion_options_sources[i] = option;
 			i++;
 		}
