@@ -30,10 +30,17 @@
 				Returns the list of selected nodes.
 			</description>
 		</method>
-		<method name="get_transformable_selected_nodes">
+		<method name="get_top_selected_nodes">
 			<return type="Node[]" />
 			<description>
-				Returns the list of selected nodes, optimized for transform operations (i.e. moving them, rotating, etc.). This list can be used to avoid situations where a node is selected and is also a child/grandchild.
+				Returns the list of top selected nodes only, excluding any children. This is useful for performing transform operations (moving them, rotating, etc).
+				For example, if there is a node A with a child B and a sibling C, then selecting all three will cause this method to return only A and C. Changing the global transform of A will affect the global transform of B, so there is no need to change B separately.
+			</description>
+		</method>
+		<method name="get_transformable_selected_nodes" deprecated="Use [method get_top_selected_nodes] instead.">
+			<return type="Node[]" />
+			<description>
+				Returns the list of top selected nodes only, excluding any children. This is useful for performing transform operations (moving them, rotating, etc). See [method get_top_selected_nodes].
 			</description>
 		</method>
 		<method name="remove_node">

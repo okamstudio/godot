@@ -769,14 +769,15 @@ void CanvasItemEditor::_find_canvas_items_in_rect(const Rect2 &p_rect, Node *p_n
 
 bool CanvasItemEditor::_select_click_on_item(CanvasItem *item, Point2 p_click_pos, bool p_append) {
 	bool still_selected = true;
-	if (p_append && !editor_selection->get_selected_node_list().is_empty()) {
+	List<Node *> &top_node_list = editor_selection->get_top_selected_node_list();
+	if (p_append && !top_node_list.is_empty()) {
 		if (editor_selection->is_selected(item)) {
 			// Already in the selection, remove it from the selected nodes
 			editor_selection->remove_node(item);
 			still_selected = false;
 
-			if (editor_selection->get_selected_node_list().size() == 1) {
-				EditorNode::get_singleton()->push_item(editor_selection->get_selected_node_list().front()->get());
+			if (top_node_list.size() == 1) {
+				EditorNode::get_singleton()->push_item(top_node_list.front()->get());
 			}
 		} else {
 			// Add the item to the selection
@@ -973,7 +974,7 @@ void CanvasItemEditor::_add_node_pressed(int p_result) {
 			[[fallthrough]];
 		}
 		case ADD_MOVE: {
-			nodes_to_move = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
+			nodes_to_move = EditorNode::get_singleton()->get_editor_selection()->get_top_selected_node_list();
 			if (nodes_to_move.is_empty()) {
 				return;
 			}
@@ -2454,7 +2455,7 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 					break;
 				}
 			}
-			for (Node *node : EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list()) {
+			for (Node *node : EditorNode::get_singleton()->get_editor_selection()->get_top_selected_node_list()) {
 				if (Object::cast_to<CanvasItem>(node)) {
 					add_node_menu->add_icon_item(get_editor_theme_icon(SNAME("ToolMove")), TTR("Move Node(s) Here"), ADD_MOVE);
 					break;
@@ -2570,7 +2571,7 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 				}
 
 				_find_canvas_items_in_rect(Rect2(bsfrom, bsto - bsfrom), scene, &selitems);
-				if (selitems.size() == 1 && editor_selection->get_selected_node_list().is_empty()) {
+				if (selitems.size() == 1 && editor_selection->get_top_selected_node_list().is_empty()) {
 					EditorNode::get_singleton()->push_item(selitems.front()->get());
 				}
 				for (CanvasItem *E : selitems) {
@@ -2783,7 +2784,7 @@ void CanvasItemEditor::_update_lock_and_group_button() {
 	bool all_locked = true;
 	bool all_group = true;
 	bool has_canvas_item = false;
-	List<Node *> selection = editor_selection->get_selected_node_list();
+	List<Node *> selection = editor_selection->get_top_selected_node_list();
 	if (selection.is_empty()) {
 		all_locked = false;
 		all_group = false;
@@ -4553,7 +4554,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 			snap_dialog->popup_centered(Size2(320, 160) * EDSCALE);
 		} break;
 		case SKELETON_SHOW_BONES: {
-			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *> selection = editor_selection->get_top_selected_node_list();
 			for (Node *E : selection) {
 				// Add children nodes so they are processed
 				for (int child = 0; child < E->get_child_count(); child++) {
@@ -4588,7 +4589,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 		case LOCK_SELECTED: {
 			undo_redo->create_action(TTR("Lock Selected"));
 
-			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *> selection = editor_selection->get_top_selected_node_list();
 			for (Node *E : selection) {
 				CanvasItem *ci = Object::cast_to<CanvasItem>(E);
 				if (!ci || !ci->is_inside_tree()) {
@@ -4607,7 +4608,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 		case UNLOCK_SELECTED: {
 			undo_redo->create_action(TTR("Unlock Selected"));
 
-			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *> selection = editor_selection->get_top_selected_node_list();
 			for (Node *E : selection) {
 				CanvasItem *ci = Object::cast_to<CanvasItem>(E);
 				if (!ci || !ci->is_inside_tree()) {
@@ -4626,7 +4627,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 		case GROUP_SELECTED: {
 			undo_redo->create_action(TTR("Group Selected"));
 
-			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *> selection = editor_selection->get_top_selected_node_list();
 			for (Node *E : selection) {
 				CanvasItem *ci = Object::cast_to<CanvasItem>(E);
 				if (!ci || !ci->is_inside_tree()) {
@@ -4645,7 +4646,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 		case UNGROUP_SELECTED: {
 			undo_redo->create_action(TTR("Ungroup Selected"));
 
-			List<Node *> selection = editor_selection->get_selected_node_list();
+			List<Node *> selection = editor_selection->get_top_selected_node_list();
 			for (Node *E : selection) {
 				CanvasItem *ci = Object::cast_to<CanvasItem>(E);
 				if (!ci || !ci->is_inside_tree()) {
@@ -6250,7 +6251,7 @@ void CanvasItemEditorViewport::drop_data(const Point2 &p_point, const Variant &p
 		return;
 	}
 
-	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
+	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_top_selected_node_list();
 	Node *root_node = EditorNode::get_singleton()->get_edited_scene();
 	if (selected_nodes.size() > 0) {
 		Node *selected_node = selected_nodes.front()->get();

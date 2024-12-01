@@ -1766,8 +1766,9 @@ void SpriteFramesEditor::_remove_sprite_node() {
 void SpriteFramesEditor::_fetch_sprite_node() {
 	Node *selected = nullptr;
 	EditorSelection *editor_selection = EditorNode::get_singleton()->get_editor_selection();
-	if (editor_selection->get_selected_node_list().size() == 1) {
-		selected = editor_selection->get_selected_node_list().front()->get();
+	List<Node *> &top_node_list = editor_selection->get_top_selected_node_list();
+	if (top_node_list.size() == 1) {
+		selected = top_node_list.front()->get();
 	}
 
 	bool show_node_edit = false;

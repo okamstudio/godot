@@ -740,7 +740,7 @@ SizeFlagPresetPicker::SizeFlagPresetPicker(bool p_vertical) {
 
 void ControlEditorToolbar::_anchors_preset_selected(int p_preset) {
 	LayoutPreset preset = (LayoutPreset)p_preset;
-	List<Node *> selection = editor_selection->get_selected_node_list();
+	List<Node *> selection = editor_selection->get_top_selected_node_list();
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Change Anchors, Offsets, Grow Direction"));
@@ -761,7 +761,7 @@ void ControlEditorToolbar::_anchors_preset_selected(int p_preset) {
 }
 
 void ControlEditorToolbar::_anchors_to_current_ratio() {
-	List<Node *> selection = editor_selection->get_selected_node_list();
+	List<Node *> selection = editor_selection->get_top_selected_node_list();
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Change Anchors, Offsets (Keep Ratio)"));
@@ -812,7 +812,7 @@ void ControlEditorToolbar::_anchor_mode_toggled(bool p_status) {
 }
 
 void ControlEditorToolbar::_container_flags_selected(int p_flags, bool p_vertical) {
-	List<Node *> selection = editor_selection->get_selected_node_list();
+	List<Node *> selection = editor_selection->get_top_selected_node_list();
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	if (p_vertical) {
@@ -839,7 +839,7 @@ void ControlEditorToolbar::_container_flags_selected(int p_flags, bool p_vertica
 }
 
 void ControlEditorToolbar::_expand_flag_toggled(bool p_expand, bool p_vertical) {
-	List<Node *> selection = editor_selection->get_selected_node_list();
+	List<Node *> selection = editor_selection->get_top_selected_node_list();
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	if (p_vertical) {
@@ -973,7 +973,7 @@ void ControlEditorToolbar::_selection_changed() {
 		int nb_valid_controls = 0;
 		int nb_anchors_mode = 0;
 
-		List<Node *> selection = editor_selection->get_selected_node_list();
+		List<Node *> selection = editor_selection->get_top_selected_node_list();
 		for (Node *E : selection) {
 			Control *control = Object::cast_to<Control>(E);
 			if (!control) {
@@ -1023,7 +1023,7 @@ void ControlEditorToolbar::_selection_changed() {
 		int nb_h_expand = 0;
 		int nb_v_expand = 0;
 
-		List<Node *> selection = editor_selection->get_selected_node_list();
+		List<Node *> selection = editor_selection->get_top_selected_node_list();
 		for (Node *E : selection) {
 			Control *control = Object::cast_to<Control>(E);
 			if (!control) {
