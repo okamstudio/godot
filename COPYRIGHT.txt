@@ -439,6 +439,11 @@ Comment: Quite OK Audio Format
 Copyright: 2023, Dominic Szablewski
 License: Expat
 
+Files: ./thirdparty/misc/qoi.h
+Comment: Quite OK Image Format
+Copyright: 2024, Dominic Szablewski
+License: Expat
+
 Files: ./thirdparty/misc/r128.c
  ./thirdparty/misc/r128.h
 Comment: r128 library

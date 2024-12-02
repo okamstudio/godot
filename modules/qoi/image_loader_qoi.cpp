@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  movie_writer_pngwav.h                                                 */
+/*  image_loader_qoi.cpp                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,51 +28,78 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MOVIE_WRITER_PNGWAV_H
-#define MOVIE_WRITER_PNGWAV_H
+#include "image_loader_qoi.h"
 
-#include "servers/movie_writer/movie_writer.h"
+#include "core/io/file_access_memory.h"
+#include "core/os/os.h"
+#include "core/string/print_string.h"
 
-class MovieWriterPNGWAV : public MovieWriter {
-	GDCLASS(MovieWriterPNGWAV, MovieWriter)
+#define QOI_NO_STDIO
+#include "thirdparty/misc/qoi.h"
 
-	enum {
-		MAX_TRAILING_ZEROS = 8 // more than 10 days at 60fps, no hard drive can put up with this anyway :)
-	};
+#include <string.h>
 
-	enum ImageFormat {
-		PNG = 0,
-		QOI = 1,
-	};
+Error qoi_load_image_from_buffer(Image *p_image, const uint8_t *p_buffer, int p_buffer_len) {
+	qoi_desc desc;
+	void *pixels = qoi_decode(p_buffer, p_buffer_len, &desc, 0);
 
-	uint32_t mix_rate = 48000;
-	AudioServer::SpeakerMode speaker_mode = AudioServer::SPEAKER_MODE_STEREO;
-	String base_path;
-	uint32_t frame_count = 0;
-	uint32_t fps = 0;
+	if (!pixels) {
+		return ERR_FILE_CORRUPT;
+	}
 
-	uint32_t audio_block_size = 0;
+	Vector<uint8_t> data;
+	Image::Format fmt;
+	if (desc.channels == 1) {
+		fmt = Image::FORMAT_L8;
+		data.resize(desc.height * desc.width);
+	} else if (desc.channels == 3) {
+		fmt = Image::FORMAT_RGB8;
+		data.resize(desc.height * desc.width * 3);
+	} else {
+		fmt = Image::FORMAT_RGBA8;
+		data.resize(desc.height * desc.width * 4);
+	}
 
-	Ref<FileAccess> f_wav;
-	uint32_t wav_data_size_pos = 0;
-	ImageFormat image_format = PNG;
+	memcpy(data.ptrw(), pixels, data.size());
+	memfree(pixels);
 
-	String zeros_str(uint32_t p_index);
-	String file_suffix();
+	p_image->set_data(desc.width, desc.height, false, fmt, data);
 
-protected:
-	virtual uint32_t get_audio_mix_rate() const override;
-	virtual AudioServer::SpeakerMode get_audio_speaker_mode() const override;
-	virtual void get_supported_extensions(List<String> *r_extensions) const override;
+	return OK;
+}
 
-	virtual Error write_begin(const Size2i &p_movie_size, uint32_t p_fps, const String &p_base_path) override;
-	virtual Error write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) override;
-	virtual void write_end() override;
+Error ImageLoaderQOI::load_image(Ref<Image> p_image, Ref<FileAccess> f, BitField<ImageFormatLoader::LoaderFlags> p_flags, float p_scale) {
+	Vector<uint8_t> src_image;
+	uint64_t src_image_len = f->get_length();
+	ERR_FAIL_COND_V(src_image_len == 0, ERR_FILE_CORRUPT);
+	src_image.resize(src_image_len);
 
-	virtual bool handles_file(const String &p_path) const override;
+	uint8_t *w = src_image.ptrw();
 
-public:
-	MovieWriterPNGWAV();
-};
+	f->get_buffer(&w[0], src_image_len);
 
-#endif // MOVIE_WRITER_PNGWAV_H
+	Error err = qoi_load_image_from_buffer(p_image.ptr(), w, src_image_len);
+
+	return err;
+}
+
+void ImageLoaderQOI::get_recognized_extensions(List<String> *p_extensions) const {
+	p_extensions->push_back("qoi");
+}
+
+static Ref<Image> _qoi_mem_loader_func(const uint8_t *p_bmp, int p_size) {
+	Ref<FileAccessMemory> memfile;
+	memfile.instantiate();
+	Error open_memfile_error = memfile->open_custom(p_bmp, p_size);
+	ERR_FAIL_COND_V_MSG(open_memfile_error, Ref<Image>(), "Could not create memfile for QOI image buffer.");
+
+	Ref<Image> img;
+	img.instantiate();
+	Error load_error = ImageLoaderQOI().load_image(img, memfile, false, 1.0f);
+	ERR_FAIL_COND_V_MSG(load_error, Ref<Image>(), "Failed to load QOI image.");
+	return img;
+}
+
+ImageLoaderQOI::ImageLoaderQOI() {
+	Image::_qoi_mem_loader_func = _qoi_mem_loader_func;
+}
