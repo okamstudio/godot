@@ -5,25 +5,24 @@ inputs:
   target:
     description: Build target (editor, template_release, template_debug).
     default: editor
-  tests:
-    description: Unit tests.
-    default: false
-    required: false
+    type: choice
+    options: [editor, template_debug, template_release]
   platform:
     description: Target platform.
-    required: false
+    type: string
   sconsflags:
     description: Additional SCons flags.
-    default: ""
-    required: false
+    type: string
   scons-cache:
     description: The SCons cache path.
     default: ${{ github.workspace }}/.scons_cache/
+    type: string
   scons-cache-limit:
     description: The SCons cache size limit.
     # actions/cache has 10 GiB limit, and GitHub runners have a 14 GiB disk.
     # Limit to 7 GiB to avoid having the extracted cache fill the disk.
     default: 7
+    type: number
 
 runs:
   using: composite
@@ -33,7 +32,7 @@ runs:
       env:
         SCONSFLAGS: ${{ inputs.sconsflags }}
       run: |
-        echo "Building with flags:" platform=${{ inputs.platform }} target=${{ inputs.target }} tests=${{ inputs.tests }} ${{ env.SCONSFLAGS }} "cache_path=${{ inputs.scons-cache }}" cache_limit=${{ inputs.scons-cache-limit }}
+        echo "Building with flags:" platform=${{ inputs.platform }} target=${{ inputs.target }} ${{ env.SCONSFLAGS }} "cache_path=${{ inputs.scons-cache }}" cache_limit=${{ inputs.scons-cache-limit }}
 
         if [ "${{ inputs.target }}" != "editor" ]; then
           # Ensure we don't include editor code in export template builds.
@@ -47,5 +46,5 @@ runs:
           export BUILD_NAME="gh"
         fi
 
-        scons platform=${{ inputs.platform }} target=${{ inputs.target }} tests=${{ inputs.tests }} ${{ env.SCONSFLAGS }} "cache_path=${{ inputs.scons-cache }}" cache_limit=${{ inputs.scons-cache-limit }}
+        scons platform=${{ inputs.platform }} target=${{ inputs.target }} ${{ env.SCONSFLAGS }} "cache_path=${{ inputs.scons-cache }}" cache_limit=${{ inputs.scons-cache-limit }}
         ls -l bin/
