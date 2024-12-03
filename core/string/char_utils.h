@@ -34,6 +34,9 @@
 #include "core/typedefs.h"
 
 #include "char_range.inc"
+#include "ucaps.h"
+
+#include <array> // for std::size
 
 #define BSEARCH_CHAR_RANGE(m_array)                      \
 	int low = 0;                                         \
@@ -130,6 +133,58 @@ constexpr bool is_punct(char32_t p_char) {
 
 constexpr bool is_underscore(char32_t p_char) {
 	return (p_char == '_');
+}
+
+static inline char32_t _find_upper(const char32_t ch) {
+	if (ch < 0x00FF) {
+		// Optimize common latin characters by skipping binary search.
+		const bool is_lower = (ch >= 'a' && ch <= 'z') || (ch > 224);
+		return is_lower ? (ch & (~32)) : ch; // Subtract 0x0020
+	} // else binary search
+
+	int low = 0;
+	int high = std::size(caps_table) - 1;
+	int middle;
+
+	while (low <= high) {
+		middle = (low + high) / 2;
+
+		if (ch < caps_table[middle][0]) {
+			high = middle - 1; // Search low end of array.
+		} else if (caps_table[middle][0] < ch) {
+			low = middle + 1; // Search high end of array.
+		} else {
+			return caps_table[middle][1];
+		}
+	}
+
+	return ch;
+}
+
+static inline char32_t _find_lower(const char32_t ch) {
+	if (ch < 0x00FF) {
+		// Optimize common latin characters by skipping binary search.
+		const bool is_upper = (ch >= 'A' && ch <= 'Z') || (ch >= 192 && ch <= 222);
+		return is_upper ? (ch | 0x0020) : ch; // Add 0x0020
+	} // else binary search
+
+	int low = 0;
+	int high = std::size(reverse_caps_table) - 1;
+	int middle;
+
+	while (low <= high) {
+		middle = (low + high) / 2;
+
+		if (ch < reverse_caps_table[middle][0]) {
+			high = middle - 1; // Search low end of array.
+		} else if (reverse_caps_table[middle][0] < ch) {
+			low = middle + 1; // Search high end of array.
+		} else {
+			return reverse_caps_table[middle][1];
+		}
+	}
+
+	return ch;
 }
 
 #endif // CHAR_UTILS_H
