@@ -62,6 +62,15 @@
 #include "editor/editor_file_system.h"
 #endif
 
+#include "modules/modules_enabled.gen.h" // For csg, gridmap.
+
+#ifdef MODULE_CSG_ENABLED
+#include "modules/csg/csg_shape.h"
+#endif
+#ifdef MODULE_GRIDMAP_ENABLED
+#include "modules/gridmap/grid_map.h"
+#endif
+
 // FIXME: Hardcoded to avoid editor dependency.
 #define GLTF_IMPORT_GENERATE_TANGENT_ARRAYS 8
 #define GLTF_IMPORT_USE_NAMED_SKIN_BINDS 16
@@ -5902,8 +5911,10 @@ void GLTFDocument::_convert_scene_node(Ref<GLTFState> p_state, Node *p_current, 
 	}
 }
 
-#ifdef MODULE_CSG_ENABLED
 void GLTFDocument::_convert_csg_shape_to_gltf(CSGShape3D *p_current, GLTFNodeIndex p_gltf_parent, Ref<GLTFNode> p_gltf_node, Ref<GLTFState> p_state) {
+#ifndef MODULE_CSG_ENABLED
+	ERR_FAIL_MSG("csg module is disabled.");
+#else
 	CSGShape3D *csg = p_current;
 	csg->call("_update_shape");
 	Array meshes = csg->get_meshes();
@@ -5954,8 +5965,8 @@ void GLTFDocument::_convert_csg_shape_to_gltf(CSGShape3D *p_current, GLTFNodeInd
 	p_gltf_node->transform = csg->get_transform();
 	p_gltf_node->set_original_name(csg->get_name());
 	p_gltf_node->set_name(_gen_unique_name(p_state, csg->get_name()));
-}
 #endif // MODULE_CSG_ENABLED
+}
 
 void GLTFDocument::_check_visibility(Node *p_node, bool &r_retflag) {
 	r_retflag = true;
@@ -5986,8 +5997,10 @@ void GLTFDocument::_convert_light_to_gltf(Light3D *light, Ref<GLTFState> p_state
 	}
 }
 
-#ifdef MODULE_GRIDMAP_ENABLED
 void GLTFDocument::_convert_grid_map_to_gltf(GridMap *p_grid_map, GLTFNodeIndex p_parent_node_index, GLTFNodeIndex p_root_node_index, Ref<GLTFNode> p_gltf_node, Ref<GLTFState> p_state) {
+#ifndef MODULE_GRIDMAP_ENABLED
+	ERR_FAIL_MSG("gridmap module is disabled.");
+#else
 	Array cells = p_grid_map->get_used_cells();
 	for (int32_t k = 0; k < cells.size(); k++) {
 		GLTFNode *new_gltf_node = memnew(GLTFNode);
@@ -6015,8 +6028,8 @@ void GLTFDocument::_convert_grid_map_to_gltf(GridMap *p_grid_map, GLTFNodeIndex 
 		new_gltf_node->set_original_name(p_grid_map->get_mesh_library()->get_item_name(cell));
 		new_gltf_node->set_name(_gen_unique_name(p_state, p_grid_map->get_mesh_library()->get_item_name(cell)));
 	}
-}
 #endif // MODULE_GRIDMAP_ENABLED
+}
 
 void GLTFDocument::_convert_multi_mesh_instance_to_gltf(
 		MultiMeshInstance3D *p_multi_mesh_instance,

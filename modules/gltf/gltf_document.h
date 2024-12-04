@@ -39,13 +39,8 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/multimesh_instance_3d.h"
 
-#include "modules/modules_enabled.gen.h" // For csg, gridmap.
-#ifdef MODULE_CSG_ENABLED
-#include "modules/csg/csg_shape.h"
-#endif // MODULE_CSG_ENABLED
-#ifdef MODULE_GRIDMAP_ENABLED
-#include "modules/gridmap/grid_map.h"
-#endif // MODULE_GRIDMAP_ENABLED
+class CSGShape3D;
+class GridMap;
 
 class GLTFDocument : public Resource {
 	GDCLASS(GLTFDocument, Resource);
@@ -340,20 +335,16 @@ public:
 			const GLTFNodeIndex p_gltf_current,
 			const GLTFNodeIndex p_gltf_root);
 
-#ifdef MODULE_CSG_ENABLED
 	void _convert_csg_shape_to_gltf(CSGShape3D *p_current, GLTFNodeIndex p_gltf_parent, Ref<GLTFNode> p_gltf_node, Ref<GLTFState> p_state);
-#endif // MODULE_CSG_ENABLED
 
 	void _check_visibility(Node *p_node, bool &r_retflag);
 	void _convert_camera_to_gltf(Camera3D *p_camera, Ref<GLTFState> p_state,
 			Ref<GLTFNode> p_gltf_node);
-#ifdef MODULE_GRIDMAP_ENABLED
 	void _convert_grid_map_to_gltf(
 			GridMap *p_grid_map,
 			GLTFNodeIndex p_parent_node_index,
 			GLTFNodeIndex p_root_node_index,
 			Ref<GLTFNode> p_gltf_node, Ref<GLTFState> p_state);
-#endif // MODULE_GRIDMAP_ENABLED
 	void _convert_multi_mesh_instance_to_gltf(
 			MultiMeshInstance3D *p_multi_mesh_instance,
 			GLTFNodeIndex p_parent_node_index,

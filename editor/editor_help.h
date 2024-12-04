@@ -41,8 +41,6 @@
 #include "scene/gui/text_edit.h"
 #include "scene/main/timer.h"
 
-#include "modules/modules_enabled.gen.h" // For gdscript, mono.
-
 class FindBar : public HBoxContainer {
 	GDCLASS(FindBar, HBoxContainer);
 
@@ -360,7 +358,6 @@ public:
 	EditorHelpBitTooltip(Control *p_target);
 };
 
-#if defined(MODULE_GDSCRIPT_ENABLED) || defined(MODULE_MONO_ENABLED)
 class EditorSyntaxHighlighter;
 
 class EditorHelpHighlighter {
@@ -395,6 +392,5 @@ public:
 	EditorHelpHighlighter();
 	virtual ~EditorHelpHighlighter();
 };
-#endif // defined(MODULE_GDSCRIPT_ENABLED) || defined(MODULE_MONO_ENABLED)
 
 #endif // EDITOR_HELP_H
