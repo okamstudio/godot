@@ -44,6 +44,7 @@
 #include "core/os/time.h"
 #include "core/string/print_string.h"
 #include "core/string/translation_server.h"
+#include "core/templates/local_vector.h"
 #include "core/version.h"
 #include "editor/editor_string_names.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
@@ -1373,7 +1374,9 @@ void EditorNode::edit_resource(const Ref<Resource> &p_resource) {
 }
 
 void EditorNode::save_resource_in_path(const Ref<Resource> &p_resource, const String &p_path) {
-	editor_data.apply_changes_in_editors();
+	if (!p_resource->has_meta("__resource_saved_in_bulk")) {
+		editor_data.apply_changes_in_editors();
+	}
 
 	if (saving_resources_in_path.has(p_resource)) {
 		return;
@@ -1503,6 +1506,25 @@ void EditorNode::save_resource_as(const Ref<Resource> &p_resource, const String 
 	}
 	file->set_title(TTR("Save Resource As..."));
 	file->popup_file_dialog();
+}
+
+void EditorNode::save_resource_bulk(const LocalVector<Ref<Resource>> &p_resource_bulk) {
+	LocalVector<String> paths;
+	for (const Ref<Resource> &resource : p_resource_bulk) {
+		paths.push_back(resource->get_path());
+		resource->set_meta("__resource_saved_in_bulk", true);
+		save_resource(resource);
+	}
+
+	for (const Ref<Resource> &resource : p_resource_bulk) {
+		resource->remove_meta("__resource_saved_in_bulk");
+		singleton->editor_folding.save_resource_folding(resource, resource->get_path());
+		emit_signal(SNAME("resource_saved"), resource);
+		editor_data.notify_resource_saved(resource);
+	}
+
+	EditorFileSystem::get_singleton()->update_files(paths);
+	editor_data.apply_changes_in_editors();
 }
 
 void EditorNode::_menu_option(int p_option) {
@@ -6674,6 +6696,11 @@ void EditorNode::_set_renderer_name_save_and_restart() {
 }
 
 void EditorNode::_resource_saved(Ref<Resource> p_resource, const String &p_path) {
+	if (p_resource->has_meta("__resource_saved_in_bulk")) {
+		singleton->saving_resources_in_path.erase(p_resource);
+		return;
+	}
+
 	if (singleton->saving_resources_in_path.has(p_resource)) {
 		// This is going to be handled by save_resource_in_path when the time is right.
 		return;

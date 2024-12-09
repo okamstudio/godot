@@ -32,6 +32,7 @@
 #define SCRIPT_EDITOR_PLUGIN_H
 
 #include "core/object/script_language.h"
+#include "core/variant/typed_array.h"
 #include "editor/plugins/editor_plugin.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/panel_container.h"
@@ -187,6 +188,7 @@ public:
 	virtual void set_edited_resource(const Ref<Resource> &p_res) = 0;
 	virtual void enable_editor(Control *p_shortcut_context = nullptr) = 0;
 	virtual void reload_text() = 0;
+	virtual String get_text() = 0;
 	virtual String get_name() = 0;
 	virtual Ref<Texture2D> get_theme_icon() = 0;
 	virtual bool is_unsaved() = 0;
@@ -446,7 +448,6 @@ class ScriptEditor : public PanelContainer {
 	void _clear_breakpoints();
 	Array _get_cached_breakpoints_for_script(const String &p_path) const;
 
-	ScriptEditorBase *_get_current_editor() const;
 	TypedArray<ScriptEditorBase> _get_open_script_editors() const;
 
 	Ref<ConfigFile> script_editor_cache;
@@ -565,6 +566,9 @@ public:
 	Vector<String> _get_breakpoints();
 	void get_breakpoints(List<String> *p_breakpoints);
 
+	LocalVector<ScriptEditorBase *> get_open_script_editors() const;
+	ScriptEditorBase *get_current_editor() const;
+
 	PackedStringArray get_unsaved_scripts() const;
 	void save_current_script();
 	void save_all_scripts();
@@ -574,6 +578,7 @@ public:
 
 	void set_scene_root_script(Ref<Script> p_script);
 	Vector<Ref<Script>> get_open_scripts() const;
+	Ref<Script> get_current_script();
 
 	bool script_goto_method(Ref<Script> p_script, const String &p_method);
 

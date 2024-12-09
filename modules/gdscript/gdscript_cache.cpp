@@ -83,7 +83,7 @@ Error GDScriptParserRef::raise_status(Status p_new_status) {
 				} else {
 					String source = GDScriptCache::get_source_code(remapped_path);
 					source_hash = source.hash();
-					result = get_parser()->parse(source, path, false);
+					result = get_parser()->parse(source, path);
 				}
 			} break;
 			case PARSED: {

@@ -61,6 +61,12 @@ public:
 		LOCATION_OTHER = 1 << 10,
 	};
 
+	// Keep enums in sync with:
+	// core/object/script_language.h - ScriptLanguage::RefactorKind
+	enum RefactorKind {
+		REFACTOR_KIND_RENAME,
+	};
+
 private:
 	/* Indent management */
 	int indent_size = 4;
@@ -335,6 +341,8 @@ protected:
 	GDVIRTUAL1(_request_code_completion, bool)
 	GDVIRTUAL1RC(TypedArray<Dictionary>, _filter_code_completion_candidates, TypedArray<Dictionary>)
 
+	GDVIRTUAL1(_request_refactor, int)
+
 public:
 	/* General overrides */
 	virtual void gui_input(const Ref<InputEvent> &p_gui_input) override;
@@ -492,6 +500,9 @@ public:
 	void confirm_code_completion(bool p_replace = false);
 	void cancel_code_completion();
 
+	/* Refactoring */
+	void request_refactor(RefactorKind p_refactor_kind);
+
 	/* Line length guidelines */
 	void set_line_length_guidelines(TypedArray<int> p_guideline_columns);
 	TypedArray<int> get_line_length_guidelines() const;
@@ -522,6 +533,7 @@ public:
 
 VARIANT_ENUM_CAST(CodeEdit::CodeCompletionKind);
 VARIANT_ENUM_CAST(CodeEdit::CodeCompletionLocation);
+VARIANT_ENUM_CAST(CodeEdit::RefactorKind);
 
 // The custom comparer which will sort completion options.
 struct CodeCompletionOptionCompare {

@@ -604,6 +604,12 @@
 				Emitted when the user requests code completion. This signal will not be sent if [method _request_code_completion] is overridden or [member code_completion_enabled] is [code]false[/code].
 			</description>
 		</signal>
+		<signal name="refactor_requested">
+			<param index="0" name="type" type="int" />
+			<description>
+				Emitted when the user requests a refactor.
+			</description>
+		</signal>
 		<signal name="symbol_hovered">
 			<param index="0" name="symbol" type="String" />
 			<param index="1" name="line" type="int" />

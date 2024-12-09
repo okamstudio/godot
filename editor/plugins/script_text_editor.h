@@ -139,6 +139,7 @@ class ScriptTextEditor : public ScriptEditorBase {
 		EDIT_FOLD_ALL_LINES,
 		EDIT_CREATE_CODE_REGION,
 		EDIT_UNFOLD_ALL_LINES,
+		EDIT_REFACTOR_RENAME_SYMBOL,
 		SEARCH_FIND,
 		SEARCH_FIND_NEXT,
 		SEARCH_FIND_PREV,
@@ -178,6 +179,9 @@ protected:
 	static void _code_complete_scripts(void *p_ud, const String &p_code, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_force);
 	void _code_complete_script(const String &p_code, List<ScriptLanguage::CodeCompletionOption> *r_options, bool &r_force);
 
+	static void _refactor_rename_symbol_scripts(void *p_ud, const String &p_code, const String &p_symbol, const String &p_new_symbol, ScriptLanguage::RefactorRenameSymbolResult &r_result);
+	void _refactor_rename_symbol_script(const String &p_code, const String &p_symbol, const String &p_new_symbol, ScriptLanguage::RefactorRenameSymbolResult &r_result);
+
 	void _load_theme_settings();
 	void _set_theme_for_script();
 	void _show_errors_panel(bool p_show);
@@ -192,7 +196,7 @@ protected:
 
 	void _edit_option(int p_op);
 	void _edit_option_toggle_inline_comment();
-	void _make_context_menu(bool p_selection, bool p_color, bool p_foldable, bool p_open_docs, bool p_goto_definition, Vector2 p_pos);
+	void _make_context_menu(bool p_selection, bool p_color, bool p_foldable, bool p_open_docs, bool p_goto_definition, bool p_can_rename, Vector2 p_pos);
 	void _text_edit_gui_input(const Ref<InputEvent> &ev);
 	void _color_changed(const Color &p_color);
 	void _prepare_edit_menu();
@@ -224,6 +228,7 @@ public:
 	virtual void enable_editor(Control *p_shortcut_context = nullptr) override;
 	virtual Vector<String> get_functions() override;
 	virtual void reload_text() override;
+	virtual String get_text() override;
 	virtual String get_name() override;
 	virtual Ref<Texture2D> get_theme_icon() override;
 	virtual bool is_unsaved() override;

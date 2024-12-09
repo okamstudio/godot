@@ -32,6 +32,7 @@
 #include "code_edit.compat.inc"
 
 #include "core/config/project_settings.h"
+#include "core/object/object.h"
 #include "core/os/keyboard.h"
 #include "core/string/string_builder.h"
 #include "core/string/ustring.h"
@@ -2365,6 +2366,14 @@ void CodeEdit::cancel_code_completion() {
 	queue_redraw();
 }
 
+/* Refactor */
+void CodeEdit::request_refactor(CodeEdit::RefactorKind p_refactor_kind) {
+	if (GDVIRTUAL_CALL(_request_refactor, p_refactor_kind)) {
+		return;
+	}
+	emit_signal(SNAME("refactor_requested"), (int)p_refactor_kind);
+}
+
 /* Line length guidelines */
 void CodeEdit::set_line_length_guidelines(TypedArray<int> p_guideline_columns) {
 	line_length_guideline_columns = p_guideline_columns;
@@ -2866,6 +2875,9 @@ void CodeEdit::_bind_methods() {
 
 	/* Code Completion */
 	ADD_SIGNAL(MethodInfo("code_completion_requested"));
+
+	/* Refactor */
+	ADD_SIGNAL(MethodInfo("refactor_requested", PropertyInfo(Variant::INT, "type")));
 
 	/* Symbol lookup */
 	ADD_SIGNAL(MethodInfo("symbol_lookup", PropertyInfo(Variant::STRING, "symbol"), PropertyInfo(Variant::INT, "line"), PropertyInfo(Variant::INT, "column")));

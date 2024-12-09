@@ -300,7 +300,7 @@ void assert_no_errors_in(const String &p_path) {
 	REQUIRE_MESSAGE(err == OK, vformat("Cannot read '%s'", p_path));
 
 	GDScriptParser parser;
-	err = parser.parse(source, p_path, true);
+	err = parser.parse(source, p_path, GDScriptParser::ParsingType::PARSING_TYPE_COMPLETION);
 	REQUIRE_MESSAGE(err == OK, vformat("Errors while parsing '%s'", p_path));
 
 	GDScriptAnalyzer analyzer(&parser);

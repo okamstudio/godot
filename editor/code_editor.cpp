@@ -30,19 +30,272 @@
 
 #include "code_editor.h"
 
+#include "core/error/error_macros.h"
 #include "core/input/input.h"
+#include "core/input/input_event.h"
+#include "core/io/dir_access.h"
+#include "core/io/resource_loader.h"
+#include "core/math/vector2i.h"
+#include "core/object/callable_method_pointer.h"
+#include "core/object/class_db.h"
+#include "core/object/object.h"
+#include "core/object/script_language.h"
 #include "core/os/keyboard.h"
+#include "core/os/memory.h"
 #include "core/string/string_builder.h"
+#include "core/templates/local_vector.h"
+#include "core/variant/dictionary.h"
+#include "core/variant/typed_array.h"
+#include "core/variant/variant.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
+#include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
+#include "scene/gui/box_container.h"
+#include "scene/gui/code_edit.h"
+#include "scene/gui/control.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/menu_button.h"
+#include "scene/gui/panel_container.h"
 #include "scene/gui/separator.h"
+#include "scene/main/node.h"
+#include "scene/main/window.h"
 #include "scene/resources/font.h"
+#include "scene/resources/packed_scene.h"
+#include "scene/scene_string_names.h"
+#include <cstdint>
+
+void RefactorRenamePopup::_on_focus_exited() {
+	call_deferred(SNAME("_focus_check"));
+}
+
+void RefactorRenamePopup::_on_preview_button_pressed() {
+	_emit_preview();
+	close();
+}
+
+void RefactorRenamePopup::_on_rename_button_pressed() {
+	_emit_apply();
+	close();
+}
+
+void RefactorRenamePopup::_emit_preview() {
+	result.new_symbol = symbol_edit->get_text();
+	if (result.new_symbol == "" || result.new_symbol == result.symbol) {
+		return;
+	}
+	emit_signal(SNAME("preview"));
+}
+
+void RefactorRenamePopup::_emit_apply() {
+	result.new_symbol = symbol_edit->get_text();
+	if (result.new_symbol == "" || result.new_symbol == result.symbol) {
+		return;
+	}
+	emit_signal(SNAME("apply"));
+}
+
+void RefactorRenamePopup::_emit_restore_caret() {
+	emit_signal(SNAME("restore_caret"), caret_position);
+}
+
+void RefactorRenamePopup::_focus_check() {
+	if (has_focus() || meta_container->has_focus()) {
+		return;
+	}
+	if (error_container->has_focus() || error_label->has_focus()) {
+		return;
+	}
+	if (rename_container->has_focus() || symbol_edit->has_focus() /*|| preview_button->has_focus()*/ || rename_button->has_focus()) {
+		return;
+	}
+	close();
+}
+
+void RefactorRenamePopup::_update_layout() {
+	error_container->set_visible(state == State::STATE_ERROR);
+	rename_container->set_visible(state == State::STATE_RENAME);
+	clear();
+}
+
+void RefactorRenamePopup::_update_refactor_context() {
+	result.new_symbol = symbol_edit->get_text();
+}
+
+bool RefactorRenamePopup::_is_new_symbol_valid() {
+	String symbol_edit_text = symbol_edit->get_text();
+	if (symbol_edit_text == result.symbol) {
+		// Didn't change anything. It's not valid.
+		return false;
+	}
+	return !symbol_edit_text.is_empty();
+}
+
+void RefactorRenamePopup::set_state(RefactorRenamePopup::State p_state) {
+	if (p_state == state) {
+		return;
+	}
+	state = p_state;
+	_update_layout();
+}
+
+Point2i RefactorRenamePopup::get_code_position() {
+	return code_position;
+}
+
+ScriptLanguage::RefactorRenameSymbolResult RefactorRenamePopup::get_refactor_result() {
+	return result;
+}
+
+void RefactorRenamePopup::request_refactor(const ScriptLanguage::RefactorRenameSymbolResult &p_refactor_result, Point2i p_code_position, Point2i p_caret_position, Point2i p_selection_start_position) {
+	result = p_refactor_result;
+
+	state = result.has_failed() ? STATE_ERROR : STATE_RENAME;
+	_update_layout();
+
+	code_position = p_code_position;
+	caret_position = p_caret_position;
+	symbol_edit->set_text(result.symbol);
+	if (p_selection_start_position.x == -1) {
+		int caret_column = result.symbol.length();
+		symbol_edit->select_all();
+		symbol_edit->set_caret_column(caret_column);
+	} else {
+		int leftmost_column;
+		int rightmost_column;
+		if (p_selection_start_position.x < p_caret_position.x) {
+			leftmost_column = p_selection_start_position.x - p_code_position.x + 1;
+			rightmost_column = p_caret_position.x - p_code_position.x + 1;
+		} else {
+			leftmost_column = p_caret_position.x - p_code_position.x + 1;
+			rightmost_column = p_selection_start_position.x - p_code_position.x + 1;
+		}
+		int caret_column = p_caret_position.x - p_code_position.x + 1;
+		symbol_edit->select(leftmost_column, rightmost_column);
+		symbol_edit->set_caret_column(caret_column);
+	}
+	symbol_edit->grab_focus();
+
+	set_visible(true);
+	set_process_unhandled_input(true);
+
+	emit_signal(SNAME("opened"));
+}
+
+void RefactorRenamePopup::close() {
+	clear();
+	set_visible(false);
+	set_process_unhandled_input(false);
+
+	emit_signal(SNAME("closed"));
+}
+
+void RefactorRenamePopup::clear() {
+	symbol_edit->clear();
+}
+
+void RefactorRenamePopup::unhandled_input(const Ref<InputEvent> &p_event) {
+	Ref<InputEventKey> key_event = p_event;
+	if (key_event.is_valid()) {
+		bool handled = false;
+		switch (key_event->get_physical_keycode()) {
+			case Key::ENTER: {
+				handled = true;
+				if (_is_new_symbol_valid()) {
+					_update_refactor_context();
+					if (key_event->is_command_or_control_pressed()) {
+						_emit_preview();
+					} else {
+						_emit_apply();
+					}
+				}
+				_emit_restore_caret();
+				close();
+			} break;
+			case Key::ESCAPE: {
+				handled = true;
+				_emit_restore_caret();
+				close();
+			} break;
+			default: {
+				// Do nothing.
+			}
+		}
+		if (handled) {
+			get_viewport()->set_input_as_handled();
+		}
+		return;
+	}
+}
+
+void RefactorRenamePopup::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_READY: {
+			connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+		} break;
+		case NOTIFICATION_EXIT_TREE: {
+			close();
+		} break;
+	}
+}
+
+void RefactorRenamePopup::_bind_methods() {
+	ClassDB::bind_method("_on_focus_exited", &RefactorRenamePopup::_on_focus_exited);
+	// ClassDB::bind_method("_on_preview_button_pressed", &RefactorRenamePopup::_on_preview_button_pressed);
+	ClassDB::bind_method("_on_rename_button_pressed", &RefactorRenamePopup::_on_rename_button_pressed);
+	ClassDB::bind_method("_focus_check", &RefactorRenamePopup::_focus_check);
+
+	ADD_SIGNAL(MethodInfo("opened"));
+	ADD_SIGNAL(MethodInfo("closed"));
+	ADD_SIGNAL(MethodInfo("apply"));
+	ADD_SIGNAL(MethodInfo("preview"));
+	ADD_SIGNAL(MethodInfo("restore_caret", PropertyInfo(Variant::VECTOR2I, "cursor_position")));
+	ADD_SIGNAL(MethodInfo("unhandled_input", PropertyInfo(Variant::OBJECT, "event")));
+}
+
+RefactorRenamePopup::RefactorRenamePopup() {
+	// Container of containers.
+	meta_container = memnew(VBoxContainer);
+	add_child(meta_container);
+	meta_container->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	// Error contents.
+	error_container = memnew(HBoxContainer);
+	meta_container->add_child(error_container);
+	error_container->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	error_label = memnew(Label);
+	error_container->add_child(error_label);
+	error_label->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	// Edit contents.
+	rename_container = memnew(HBoxContainer);
+	meta_container->add_child(rename_container);
+	rename_container->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	symbol_edit = memnew(LineEdit);
+	rename_container->add_child(symbol_edit);
+	symbol_edit->set_custom_minimum_size(Size2(250, 0));
+	symbol_edit->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	// preview_button = memnew(Button);
+	// rename_container->add_child(preview_button);
+	// preview_button->set_text(TTR("Preview"));
+	// preview_button->connect(SNAME("pressed"), callable_mp(this, &RefactorRenamePopup::_on_preview_button_pressed));
+	// preview_button->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	rename_button = memnew(Button);
+	rename_container->add_child(rename_button);
+	rename_button->set_text(TTR("Rename"));
+	rename_button->connect(SNAME("pressed"), callable_mp(this, &RefactorRenamePopup::_on_rename_button_pressed));
+	rename_button->connect(SceneStringName(focus_exited), callable_mp(this, &RefactorRenamePopup::_on_focus_exited));
+
+	// Update layout.
+	_update_layout();
+}
 
 void GotoLinePopup::popup_find_line(CodeTextEditor *p_text_editor) {
 	text_editor = p_text_editor;
@@ -1093,6 +1346,277 @@ Ref<Texture2D> CodeTextEditor::_get_completion_icon(const ScriptLanguage::CodeCo
 	return tex;
 }
 
+void _scan_dir(Ref<DirAccess> p_root, LocalVector<String> &p_paths) {
+	p_root->list_dir_begin();
+
+	String current_directory_path = p_root->get_current_dir();
+
+	while (true) {
+		String file_path = p_root->get_next();
+		if (file_path.is_empty()) {
+			break;
+		}
+
+		if (p_root->current_is_hidden()) {
+			continue;
+		}
+
+		if (p_root->current_is_dir()) {
+			if (file_path.begins_with(".")) { // Ignore special and . / ..
+				continue;
+			}
+			_scan_dir(DirAccess::open(current_directory_path.path_join(file_path)), p_paths);
+		} else {
+			p_paths.push_back(current_directory_path.path_join(file_path));
+		}
+	}
+
+	p_root->list_dir_end();
+}
+
+void CodeTextEditor::_refactor_request(int p_refactor_kind) {
+	switch ((ScriptLanguage::RefactorKind)p_refactor_kind) {
+		case ScriptLanguage::RefactorKind::REFACTOR_KIND_RENAME_SYMBOL: {
+			_refactor_rename_request();
+		} break;
+	}
+}
+
+void CodeTextEditor::_refactor_rename_request() {
+	ScriptLanguage::RefactorRenameSymbolResult result;
+	Point2i caret_position = {
+		text_editor->get_caret_column(0),
+		text_editor->get_caret_line(0)
+	};
+	String code = text_editor->get_text_with_cursor_char(caret_position.y, caret_position.x);
+	Point2i selection_origin = {
+		text_editor->get_selection_origin_column(0),
+		text_editor->get_selection_origin_line(0)
+	};
+	String symbol_at_selection_origin = text_editor->get_word_at_line_column(selection_origin.y, selection_origin.x);
+	String selected_text = text_editor->get_selected_text(0);
+	String symbol = text_editor->get_word_at_line_column(caret_position.y, caret_position.x);
+	String new_symbol = "";
+	Point2i word_start = text_editor->get_word_start_at_line_column(caret_position.y, caret_position.x);
+
+	// No symbol selected.
+	if (symbol.is_empty()) {
+		return;
+	}
+
+	// First try.
+	_refactor_rename_symbol_script(code, symbol, new_symbol, result);
+	if (refactor_rename_symbol_func) {
+		refactor_rename_symbol_func(refactor_ud, code, symbol, new_symbol, result);
+	}
+
+	if (result.has_failed() && caret_position.x > 0) {
+		// If it has failed, let's retry moving the caret position.
+		// Maybe the caret is at the end of the selected word, and that it is not a refactorable symbol.
+		result.reset(true);
+		Point2i temporary_caret_position = caret_position;
+		temporary_caret_position.x -= 1;
+		code = text_editor->get_text_with_cursor_char(temporary_caret_position.y, temporary_caret_position.x);
+		symbol = text_editor->get_word_at_line_column(temporary_caret_position.y, temporary_caret_position.x);
+		word_start = text_editor->get_word_start_at_line_column(temporary_caret_position.y, temporary_caret_position.x);
+
+		_refactor_rename_symbol_script(code, symbol, new_symbol, result);
+		if (refactor_rename_symbol_func) {
+			refactor_rename_symbol_func(refactor_ud, code, symbol, new_symbol, result);
+		}
+	}
+
+	if (selected_text.is_empty()) {
+		// If there's no selected text, let's select the entire word.
+		refactor_rename_popup->request_refactor(result, word_start, caret_position);
+		return;
+	}
+
+	// Select the range selected.
+	refactor_rename_popup->request_refactor(result, word_start, caret_position, selection_origin);
+}
+
+void CodeTextEditor::_refactor_rename_load_scripts_in_memory(const LocalVector<String> &p_paths) {
+	for (const String &path : p_paths) {
+		if (path.ends_with(".uid")) {
+			continue;
+		}
+
+		bool is_scene_resource = path.ends_with(".tscn");
+		bool is_script_resource = false;
+		if (!is_scene_resource) {
+			int language_count = ScriptServer::get_language_count();
+			for (int i = 0; i < language_count; i++) {
+				ScriptLanguage *language = ScriptServer::get_language(i);
+				if (path.ends_with("." + language->get_extension())) {
+					is_script_resource = true;
+					break;
+				}
+			}
+		}
+
+		if (!is_scene_resource && !is_script_resource) {
+			continue;
+		}
+
+		if (ResourceLoader::is_imported(path)) {
+			continue;
+		}
+
+		Ref<Resource> resource = ResourceLoader::load(path);
+		if (resource.is_null()) {
+			continue;
+		}
+
+		Ref<Script> scr = resource;
+		if (scr.is_valid()) {
+			// Loading the script is enough.
+			continue;
+		}
+		Ref<PackedScene> scene = resource;
+		if (scene.is_valid()) {
+			Node *scene_instance = scene->instantiate();
+			scene_instance->queue_free();
+			continue;
+		}
+	}
+}
+
+void CodeTextEditor::_refactor_rename_update_result(ScriptLanguage::RefactorRenameSymbolResult &p_refactor_result) {
+	// Scan again, but with every scripts in memory.
+	LocalVector<String> paths;
+	_scan_dir(DirAccess::open("res://"), paths);
+	_refactor_rename_load_scripts_in_memory(paths);
+
+	String code = p_refactor_result.code;
+	String symbol = p_refactor_result.symbol;
+	String new_symbol = p_refactor_result.new_symbol;
+
+	_refactor_rename_symbol_script(code, symbol, new_symbol, p_refactor_result);
+	if (refactor_rename_symbol_func) {
+		refactor_rename_symbol_func(refactor_ud, code, symbol, new_symbol, p_refactor_result);
+	}
+	print_verbose(vformat("Refactor rename request: %s", p_refactor_result.to_string()));
+}
+
+void CodeTextEditor::apply_refactor_rename_symbol(const Dictionary &p_refactor_result) {
+	ScriptLanguage::RefactorRenameSymbolResult result = ScriptLanguage::RefactorRenameSymbolResult(p_refactor_result);
+
+	int tab_size = EditorSettings::get_singleton()->get_setting("text_editor/behavior/indent/size");
+
+	LocalVector<Ref<Resource>> scripts_not_opened_in_editor;
+	LocalVector<ScriptEditorBase *> open_editors = ScriptEditor::get_singleton()->get_open_script_editors();
+	ScriptEditorBase *current_editor = ScriptEditor::get_singleton()->get_current_editor();
+	Ref<Script> opened_script = current_editor->get_edited_resource();
+	ERR_FAIL_COND(opened_script.is_null());
+
+	// For each match path.
+	for (KeyValue<String, LocalVector<ScriptLanguage::RefactorRenameSymbolResult::Match>> &KV : result.matches) {
+		KV.value.sort_custom<ScriptLanguage::RefactorRenameSymbolResult::Match::Compare>();
+		Ref<Script> scr = ResourceLoader::load(KV.key);
+		if (scr.is_null()) {
+			continue;
+		}
+		Vector<String> lines = scr->get_source_code().split("\n");
+		int last_target_line = 0;
+		int target_line = 0;
+		int target_column = 0;
+		int column_offset = 0;
+
+		// For each actual match…
+		for (const ScriptLanguage::RefactorRenameSymbolResult::Match &match : KV.value) {
+			// `start_line` and `start_column` are 1-based.
+			target_line = match.start_line - 1;
+			target_column = match.start_column - 1;
+
+			// Simple length checks.
+			if (target_line > lines.size() || target_column > lines[target_line].length()) {
+				continue;
+			}
+
+			// If the target line changed…
+			if (last_target_line < target_line) {
+				// … reset the calculated offset.
+				column_offset = 0;
+				last_target_line = target_line;
+			}
+
+			// We need to calculate the actual position of the symbol,
+			// because tabs count for multiple columns, even if the actual
+			// number of characters don't match.
+			int actual_character_index = target_column + column_offset;
+			if (lines[target_line].contains_char('\t')) {
+				int i = 0;
+				while (i < actual_character_index) {
+					String character = lines[target_line].substr(i, 1);
+					if (character == String("\t")) {
+						actual_character_index -= tab_size - 1;
+					}
+					i += 1;
+				}
+			}
+
+			String new_line = lines[target_line].erase(actual_character_index, result.symbol.length()).insert(actual_character_index, result.new_symbol);
+			lines.set(target_line, new_line);
+			column_offset += result.new_symbol.length() - result.symbol.length();
+		}
+
+		String new_script_content = String("\n").join(lines);
+		bool opened_in_an_editor = false;
+		for (ScriptEditorBase *open_editor : open_editors) {
+			if (open_editor->get_edited_resource() == scr) {
+				opened_in_an_editor = true;
+				open_editor->get_code_editor()->get_text_editor()->set_text(new_script_content);
+				break;
+			}
+		}
+		if (!opened_in_an_editor) {
+			// Manually save the script as it's not opened.
+			scr->set_source_code(new_script_content);
+			scripts_not_opened_in_editor.push_back(scr);
+		}
+	}
+
+	EditorNode::get_singleton()->save_resource_bulk(scripts_not_opened_in_editor);
+
+	// Save all the opened scripts.
+	ScriptEditor::get_singleton()->save_all_scripts();
+	ScriptEditor::get_singleton()->reload_scripts(true);
+}
+
+void CodeTextEditor::preview_refactor_rename_symbol(const Dictionary &p_refactor_context) {
+	print_line(vformat("TODO: implement preview refactoring for %s", p_refactor_context));
+}
+
+void CodeTextEditor::_on_refactor_rename_popup_opened() {
+	set_process(true);
+}
+
+void CodeTextEditor::_on_refactor_rename_popup_closed() {
+	set_process(false);
+}
+
+void CodeTextEditor::_on_refactor_rename_popup_apply() {
+	ScriptLanguage::RefactorRenameSymbolResult result = refactor_rename_popup->get_refactor_result();
+	_refactor_rename_update_result(result);
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+	undo_redo->create_action(vformat(TTR(R"(Rename symbol "%s")"), result.symbol));
+	undo_redo->add_do_method(this, "apply_refactor_rename_symbol", result.to_dictionary());
+	undo_redo->add_undo_method(this, "apply_refactor_rename_symbol", result.get_undo().to_dictionary());
+	undo_redo->commit_action();
+}
+
+void CodeTextEditor::_on_refactor_rename_popup_preview() {
+	// preview_refactor_rename_symbol(p_refactor_context);
+}
+
+void CodeTextEditor::_on_refactor_rename_popup_restore_caret(Point2i p_caret_position) {
+	text_editor->grab_focus();
+	text_editor->set_caret_line(p_caret_position.y);
+	text_editor->set_caret_column(p_caret_position.x);
+}
+
 void CodeTextEditor::update_editor_settings() {
 	// Theme: Highlighting
 	completion_font_color = EDITOR_GET("text_editor/theme/highlighting/completion_font_color");
@@ -1644,11 +2168,29 @@ void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
 	}
 }
 
+void CodeTextEditor::_update_refactor_rename_popup_position() {
+	if (!refactor_rename_popup->is_visible()) {
+		return;
+	}
+	Point2i code_position = refactor_rename_popup->get_code_position();
+	Point2 position_at_line_column = text_editor->get_pos_at_line_column(code_position.y, code_position.x);
+	if (position_at_line_column == Point2(-1, -1)) {
+		refactor_rename_popup->close();
+		return;
+	}
+	// int line_height = text_editor->get_line_height();
+	refactor_rename_popup->set_position(position_at_line_column + Point2(0, 0));
+}
+
 void CodeTextEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
 			set_error_count(0);
 			set_warning_count(0);
+		} break;
+
+		case NOTIFICATION_PROCESS: {
+			_update_refactor_rename_popup_position();
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
@@ -1803,6 +2345,9 @@ float CodeTextEditor::get_zoom_factor() {
 }
 
 void CodeTextEditor::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("apply_refactor_rename_symbol", "rename_result"), &CodeTextEditor::apply_refactor_rename_symbol);
+	ClassDB::bind_method(D_METHOD("preview_refactor_rename_symbol", "rename_result"), &CodeTextEditor::preview_refactor_rename_symbol);
+
 	ADD_SIGNAL(MethodInfo("validate_script"));
 	ADD_SIGNAL(MethodInfo("load_theme_settings"));
 	ADD_SIGNAL(MethodInfo("show_errors_panel"));
@@ -1814,6 +2359,11 @@ void CodeTextEditor::_bind_methods() {
 void CodeTextEditor::set_code_complete_func(CodeTextEditorCodeCompleteFunc p_code_complete_func, void *p_ud) {
 	code_complete_func = p_code_complete_func;
 	code_complete_ud = p_ud;
+}
+
+void CodeTextEditor::set_refactor_rename_symbol_func(CodeTextEditorRefactorRenameSymbolFunc p_refactor_func, void *p_ud) {
+	refactor_rename_symbol_func = p_refactor_func;
+	refactor_ud = p_ud;
 }
 
 void CodeTextEditor::set_toggle_list_control(Control *p_control) {
@@ -1833,6 +2383,8 @@ void CodeTextEditor::update_toggle_scripts_button() {
 
 CodeTextEditor::CodeTextEditor() {
 	code_complete_func = nullptr;
+	refactor_rename_symbol_func = nullptr;
+
 	ED_SHORTCUT("script_editor/zoom_in", TTRC("Zoom In"), KeyModifierMask::CMD_OR_CTRL | Key::EQUAL);
 	ED_SHORTCUT("script_editor/zoom_out", TTRC("Zoom Out"), KeyModifierMask::CMD_OR_CTRL | Key::MINUS);
 	ED_SHORTCUT_ARRAY("script_editor/reset_zoom", TTRC("Reset Zoom"),
@@ -1945,10 +2497,22 @@ CodeTextEditor::CodeTextEditor() {
 	indentation_txt->set_tooltip_text(TTR("Indentation"));
 	indentation_txt->set_mouse_filter(MOUSE_FILTER_STOP);
 
+	// Refactor rename symbol popup
+	refactor_rename_popup = memnew(RefactorRenamePopup);
+	text_editor->add_child(refactor_rename_popup);
+	refactor_rename_popup->set_visible(false);
+	refactor_rename_popup->connect(SNAME("opened"), callable_mp(this, &CodeTextEditor::_on_refactor_rename_popup_opened));
+	refactor_rename_popup->connect(SNAME("closed"), callable_mp(this, &CodeTextEditor::_on_refactor_rename_popup_closed));
+	refactor_rename_popup->connect(SNAME("apply"), callable_mp(this, &CodeTextEditor::_on_refactor_rename_popup_apply));
+	refactor_rename_popup->connect(SNAME("preview"), callable_mp(this, &CodeTextEditor::_on_refactor_rename_popup_preview));
+	refactor_rename_popup->connect(SNAME("restore_caret"), callable_mp(this, &CodeTextEditor::_on_refactor_rename_popup_restore_caret));
+
 	text_editor->connect(SceneStringName(gui_input), callable_mp(this, &CodeTextEditor::_text_editor_gui_input));
 	text_editor->connect("caret_changed", callable_mp(this, &CodeTextEditor::_line_col_changed));
 	text_editor->connect(SceneStringName(text_changed), callable_mp(this, &CodeTextEditor::_text_changed));
 	text_editor->connect("code_completion_requested", callable_mp(this, &CodeTextEditor::_complete_request));
+	text_editor->connect("refactor_requested", callable_mp(this, &CodeTextEditor::_refactor_request));
+
 	TypedArray<String> cs;
 	cs.push_back(".");
 	cs.push_back(",");

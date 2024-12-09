@@ -154,7 +154,7 @@ static void test_tokenizer_buffer(const Vector<uint8_t> &p_buffer, const Vector<
 
 static void test_parser(const String &p_code, const String &p_script_path, const Vector<String> &p_lines) {
 	GDScriptParser parser;
-	Error err = parser.parse(p_code, p_script_path, false);
+	Error err = parser.parse(p_code, p_script_path);
 
 	if (err != OK) {
 		const List<GDScriptParser::ParserError> &errors = parser.get_errors();
@@ -235,7 +235,7 @@ static void recursively_disassemble_functions(const Ref<GDScript> p_script, cons
 
 static void test_compiler(const String &p_code, const String &p_script_path, const Vector<String> &p_lines) {
 	GDScriptParser parser;
-	Error err = parser.parse(p_code, p_script_path, false);
+	Error err = parser.parse(p_code, p_script_path);
 
 	if (err != OK) {
 		print_line("Error in parser:");

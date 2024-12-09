@@ -684,11 +684,21 @@
 				Returns the total number of lines between [param from_line] and [param to_line] (inclusive) in the text. This includes wrapped lines and excludes folded lines. If the range covers all lines it is equivalent to [method get_total_visible_line_count].
 			</description>
 		</method>
+		<method name="get_word_at_line_column" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="line" type="int" />
+			<param index="1" name="column" type="int" />
+			<description>
+				Returns the word at the specified [param line] and [param column].
+				[b]Note:[/b] To get a word under a caret, use [method get_word_under_caret] instead.
+			</description>
+		</method>
 		<method name="get_word_at_pos" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="position" type="Vector2" />
 			<description>
 				Returns the word at [param position].
+				[b]Note:[/b] To get a word at a certain line and column, use [method get_word_at_line_column] instead.
 			</description>
 		</method>
 		<method name="get_word_under_caret" qualifiers="const">
