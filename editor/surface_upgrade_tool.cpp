@@ -154,7 +154,7 @@ void SurfaceUpgradeTool::finish_upgrade() {
 		ep.step(TTR("Attempting to remove ") + remap_path, step++);
 
 		String path = OS::get_singleton()->get_resource_dir() + remap_path.replace_first("res://", "/");
-		print_verbose("Moving to trash: " + path);
+		PRINT_VERBOSE("Moving to trash: " + path);
 		err = OS::get_singleton()->move_to_trash(path);
 		if (err != OK) {
 			EditorNode::get_singleton()->add_io_error(TTR("Cannot remove:") + "\n" + remap_path + "\n");

@@ -535,7 +535,7 @@ void FileAccessWindows::initialize() {
 	}
 
 	_setmaxstdio(8192);
-	print_verbose(vformat("Maximum number of file handles: %d", _getmaxstdio()));
+	PRINT_VERBOSE(vformat("Maximum number of file handles: %d", _getmaxstdio()));
 }
 
 void FileAccessWindows::finalize() {

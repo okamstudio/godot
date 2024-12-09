@@ -1434,9 +1434,9 @@ bool ArrayMesh::_set(const StringName &p_name, const Variant &p_value) {
 			}
 
 			//clear unused flags
-			print_verbose("Mesh format pre-conversion: " + itos(old_format));
+			PRINT_VERBOSE("Mesh format pre-conversion: " + itos(old_format));
 
-			print_verbose("Mesh format post-conversion: " + itos(new_format));
+			PRINT_VERBOSE("Mesh format post-conversion: " + itos(new_format));
 
 			ERR_FAIL_COND_V(!d.has("aabb"), false);
 			AABB aabb_new = d["aabb"];
@@ -2193,7 +2193,7 @@ Error ArrayMesh::lightmap_unwrap_cached(const Transform3D &p_base_transform, flo
 		surfaces_tools.push_back(st); //stay there
 	}
 
-	print_verbose("Mesh: Gen indices: " + itos(gen_index_count));
+	PRINT_VERBOSE("Mesh: Gen indices: " + itos(gen_index_count));
 
 	//go through all indices
 	for (int i = 0; i < gen_index_count; i += 3) {

@@ -420,7 +420,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 		while (classes.size()) {
 			const String &name = classes.front()->get();
 			if (!ClassDB::is_class_exposed(name)) {
-				print_verbose(vformat("Class '%s' is not exposed, skipping.", name));
+				PRINT_VERBOSE(vformat("Class '%s' is not exposed, skipping.", name));
 				classes.pop_front();
 				continue;
 			}

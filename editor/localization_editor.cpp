@@ -432,7 +432,7 @@ void LocalizationEditor::_filesystem_files_moved(const String &p_old_file, const
 		remaps.erase(p_old_file);
 		remaps[p_new_file] = remapped_files;
 		remaps_changed = true;
-		print_verbose(vformat("Changed remap key \"%s\" to \"%s\" due to a moved file.", p_old_file, p_new_file));
+		PRINT_VERBOSE(vformat("Changed remap key \"%s\" to \"%s\" due to a moved file.", p_old_file, p_new_file));
 	}
 
 	// Check for the Array elements of the values.
@@ -452,7 +452,7 @@ void LocalizationEditor::_filesystem_files_moved(const String &p_old_file, const
 				remapped_files.remove_at(j + 1);
 				remaps_changed = true;
 				remapped_files_updated = true;
-				print_verbose(vformat("Changed remap value \"%s\" to \"%s\" of key \"%s\" due to a moved file.", res_path + ":" + locale_name, remapped_files[j], remap_keys[i]));
+				PRINT_VERBOSE(vformat("Changed remap value \"%s\" to \"%s\" of key \"%s\" due to a moved file.", res_path + ":" + locale_name, remapped_files[j], remap_keys[i]));
 			}
 		}
 
@@ -487,12 +487,12 @@ void LocalizationEditor::_filesystem_file_removed(const String &p_file) {
 				String res_path = remapped_files[j].substr(0, splitter_pos);
 				remaps_changed = p_file == res_path;
 				if (remaps_changed) {
-					print_verbose(vformat("Remap value \"%s\" of key \"%s\" has been removed from the file system.", remapped_files[j], remap_keys[i]));
+					PRINT_VERBOSE(vformat("Remap value \"%s\" of key \"%s\" has been removed from the file system.", remapped_files[j], remap_keys[i]));
 				}
 			}
 		}
 	} else {
-		print_verbose(vformat("Remap key \"%s\" has been removed from the file system.", p_file));
+		PRINT_VERBOSE(vformat("Remap key \"%s\" has been removed from the file system.", p_file));
 	}
 
 	if (remaps_changed) {

@@ -207,7 +207,7 @@ bool load_hostfxr(void *&r_hostfxr_dll_handle) {
 		return false;
 	}
 
-	print_verbose("Found hostfxr: " + hostfxr_path);
+	PRINT_VERBOSE("Found hostfxr: " + hostfxr_path);
 
 	Error err = OS::get_singleton()->open_dynamic_library(hostfxr_path, r_hostfxr_dll_handle);
 
@@ -256,7 +256,7 @@ bool load_coreclr(void *&r_coreclr_dll_handle) {
 	}
 
 	const String coreclr_name = is_monovm ? "monosgen" : "coreclr";
-	print_verbose("Found " + coreclr_name + ": " + coreclr_path);
+	PRINT_VERBOSE("Found " + coreclr_name + ": " + coreclr_path);
 
 	Error err = OS::get_singleton()->open_dynamic_library(coreclr_path, r_coreclr_dll_handle);
 
@@ -369,7 +369,7 @@ godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime
 
 	r_runtime_initialized = true;
 
-	print_verbose(".NET: hostfxr initialized");
+	PRINT_VERBOSE(".NET: hostfxr initialized");
 
 	int rc = load_assembly_and_get_function_pointer(get_data(godot_plugins_path),
 			HOSTFXR_STR("GodotPlugins.Main, GodotPlugins"),
@@ -396,7 +396,7 @@ godot_plugins_initialize_fn initialize_hostfxr_and_godot_plugins(bool &r_runtime
 
 	r_runtime_initialized = true;
 
-	print_verbose(".NET: hostfxr initialized");
+	PRINT_VERBOSE(".NET: hostfxr initialized");
 
 	int rc = load_assembly_and_get_function_pointer(get_data(assembly_path),
 			get_data(str_to_hostfxr("GodotPlugins.Game.Main, " + assembly_name)),
@@ -475,7 +475,7 @@ godot_plugins_initialize_fn initialize_coreclr_and_godot_plugins(bool &r_runtime
 
 	r_runtime_initialized = true;
 
-	print_verbose(".NET: CoreCLR initialized");
+	PRINT_VERBOSE(".NET: CoreCLR initialized");
 
 	coreclr_create_delegate(coreclr_handle, domain_id,
 			assembly_name.utf8().get_data(),
@@ -517,7 +517,7 @@ static bool _on_core_api_assembly_loaded() {
 }
 
 void GDMono::initialize() {
-	print_verbose(".NET: Initializing module...");
+	PRINT_VERBOSE(".NET: Initializing module...");
 
 	_init_godot_api_hashes();
 
@@ -585,7 +585,7 @@ void GDMono::initialize() {
 
 	GDMonoCache::update_godot_api_cache(managed_callbacks);
 
-	print_verbose(".NET: GodotPlugins initialized");
+	PRINT_VERBOSE(".NET: GodotPlugins initialized");
 
 	_on_core_api_assembly_loaded();
 

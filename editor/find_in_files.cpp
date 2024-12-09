@@ -113,12 +113,12 @@ void FindInFiles::_notification(int p_what) {
 
 void FindInFiles::start() {
 	if (_pattern.is_empty()) {
-		print_verbose("Nothing to search, pattern is empty");
+		PRINT_VERBOSE("Nothing to search, pattern is empty");
 		emit_signal(SceneStringName(finished));
 		return;
 	}
 	if (_extension_filter.size() == 0) {
-		print_verbose("Nothing to search, filter matches no files");
+		PRINT_VERBOSE("Nothing to search, filter matches no files");
 		emit_signal(SceneStringName(finished));
 		return;
 	}
@@ -197,7 +197,7 @@ void FindInFiles::_iterate() {
 		_scan_file(fpath);
 
 	} else {
-		print_verbose("Search complete");
+		PRINT_VERBOSE("Search complete");
 		set_process(false);
 		_current_dir = "";
 		_searching = false;
@@ -215,7 +215,7 @@ float FindInFiles::get_progress() const {
 void FindInFiles::_scan_dir(const String &path, PackedStringArray &out_folders, PackedStringArray &out_files_to_scan) {
 	Ref<DirAccess> dir = DirAccess::open(path);
 	if (dir.is_null()) {
-		print_verbose("Cannot open directory! " + path);
+		PRINT_VERBOSE("Cannot open directory! " + path);
 		return;
 	}
 
@@ -262,7 +262,7 @@ void FindInFiles::_scan_dir(const String &path, PackedStringArray &out_folders, 
 void FindInFiles::_scan_file(const String &fpath) {
 	Ref<FileAccess> f = FileAccess::open(fpath, FileAccess::READ);
 	if (f.is_null()) {
-		print_verbose(String("Cannot open file ") + fpath);
+		PRINT_VERBOSE(String("Cannot open file ") + fpath);
 		return;
 	}
 
@@ -973,7 +973,7 @@ void FindInFilesPanel::apply_replaces_in_file(const String &fpath, const Vector<
 		int _;
 		if (!find_next(line, search_text, repl_begin, _finder->is_match_case(), _finder->is_whole_words(), _, _)) {
 			// Make sure the replace is still valid in case the file was tampered with.
-			print_verbose(String("Occurrence no longer matches, replace will be ignored in {0}: line {1}, col {2}").format(varray(fpath, repl_line_number, repl_begin)));
+			PRINT_VERBOSE(String("Occurrence no longer matches, replace will be ignored in {0}: line {1}, col {2}").format(varray(fpath, repl_line_number, repl_begin)));
 			continue;
 		}
 

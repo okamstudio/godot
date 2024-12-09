@@ -243,7 +243,7 @@ void RenderingServerDefault::_finish() {
 
 void RenderingServerDefault::init() {
 	if (create_thread) {
-		print_verbose("RenderingServerWrapMT: Starting render thread");
+		PRINT_VERBOSE("RenderingServerWrapMT: Starting render thread");
 		DisplayServer::get_singleton()->release_rendering_thread();
 		WorkerThreadPool::TaskID tid = WorkerThreadPool::get_singleton()->add_task(callable_mp(this, &RenderingServerDefault::_thread_loop), true);
 		command_queue.set_pump_task_id(tid);

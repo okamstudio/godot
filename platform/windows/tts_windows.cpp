@@ -258,9 +258,9 @@ TTS_Windows::TTS_Windows() {
 		ULONGLONG event_mask = SPFEI(SPEI_END_INPUT_STREAM) | SPFEI(SPEI_START_INPUT_STREAM) | SPFEI(SPEI_WORD_BOUNDARY);
 		synth->SetInterest(event_mask, event_mask);
 		synth->SetNotifyCallbackFunction(&speech_event_callback, (WPARAM)(this), 0);
-		print_verbose("Text-to-Speech: SAPI initialized.");
+		PRINT_VERBOSE("Text-to-Speech: SAPI initialized.");
 	} else {
-		print_verbose("Text-to-Speech: Cannot initialize ISpVoice!");
+		PRINT_VERBOSE("Text-to-Speech: Cannot initialize ISpVoice!");
 	}
 }
 

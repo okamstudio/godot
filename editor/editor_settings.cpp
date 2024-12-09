@@ -1214,7 +1214,7 @@ void EditorSettings::create() {
 		singleton->set_path(get_newest_settings_path()); // Settings can be loaded from older version file, so make sure it's newest.
 		singleton->save_changed_setting = true;
 
-		print_verbose("EditorSettings: Load OK!");
+		PRINT_VERBOSE("EditorSettings: Load OK!");
 
 		singleton->setup_language();
 		singleton->setup_network();
@@ -1312,7 +1312,7 @@ void EditorSettings::save() {
 		ERR_PRINT("Error saving editor settings to " + singleton->get_path());
 	} else {
 		singleton->changed_settings.clear();
-		print_verbose("EditorSettings: Save OK!");
+		PRINT_VERBOSE("EditorSettings: Save OK!");
 	}
 }
 

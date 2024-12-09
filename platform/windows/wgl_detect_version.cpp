@@ -170,7 +170,7 @@ Dictionary detect_wgl() {
 #else
 										sscanf(version, "%d.%d", &major, &minor);
 #endif
-										print_verbose(vformat("Native OpenGL API detected: %d.%d: %s - %s", major, minor, device_vendor, device_name));
+										PRINT_VERBOSE(vformat("Native OpenGL API detected: %d.%d: %s - %s", major, minor, device_vendor, device_name));
 										gl_info["vendor"] = device_vendor;
 										gl_info["name"] = device_name;
 										gl_info["version"] = major * 10000 + minor;

@@ -307,9 +307,9 @@ void OS_Windows::initialize() {
 		}
 	}
 	if (!dwrite_init) {
-		print_verbose("Unable to load IDWriteFactory, system font support is disabled.");
+		PRINT_VERBOSE("Unable to load IDWriteFactory, system font support is disabled.");
 	} else if (!dwrite2_init) {
-		print_verbose("Unable to load IDWriteFactory2, automatic system font fallback is disabled.");
+		PRINT_VERBOSE("Unable to load IDWriteFactory2, automatic system font fallback is disabled.");
 	}
 
 	FileAccessWindows::initialize();
@@ -2405,7 +2405,7 @@ OS_Windows::OS_Windows(HINSTANCE _hInstance) {
 	outMode |= ENABLE_PROCESSED_OUTPUT | ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	if (!SetConsoleMode(stdoutHandle, outMode)) {
 		// Windows 8.1 or below, or Windows 10 prior to Anniversary Update.
-		print_verbose("Can't set the ENABLE_VIRTUAL_TERMINAL_PROCESSING Windows console mode. `print_rich()` will not work as expected.");
+		PRINT_VERBOSE("Can't set the ENABLE_VIRTUAL_TERMINAL_PROCESSING Windows console mode. `print_rich()` will not work as expected.");
 	}
 
 	Vector<Logger *> loggers;

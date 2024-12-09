@@ -387,15 +387,15 @@ void ProjectList::_scan_thread(void *p_scan_data) {
 	ScanData *scan_data = static_cast<ScanData *>(p_scan_data);
 
 	for (const String &base_path : scan_data->paths_to_scan) {
-		print_verbose(vformat("Scanning for projects in \"%s\".", base_path));
+		PRINT_VERBOSE(vformat("Scanning for projects in \"%s\".", base_path));
 		_scan_folder_recursive(base_path, &scan_data->found_projects, scan_data->scan_in_progress);
 
 		if (!scan_data->scan_in_progress.is_set()) {
-			print_verbose("Scan aborted.");
+			PRINT_VERBOSE("Scan aborted.");
 			break;
 		}
 	}
-	print_verbose(vformat("Found %d project(s).", scan_data->found_projects.size()));
+	PRINT_VERBOSE(vformat("Found %d project(s).", scan_data->found_projects.size()));
 	scan_data->scan_in_progress.clear();
 }
 

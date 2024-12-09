@@ -5934,7 +5934,7 @@ void DisplayServerWindows::_update_tablet_ctx(const String &p_old_driver, const 
 				}
 				wintab_WTEnable(wd.wtctx, true);
 			} else {
-				print_verbose("WinTab context creation failed.");
+				PRINT_VERBOSE("WinTab context creation failed.");
 			}
 		}
 	}
@@ -6159,7 +6159,7 @@ DisplayServer::WindowID DisplayServerWindows::_create_window(WindowMode p_mode, 
 					wd.tilt_supported = orientation[0].axResolution && orientation[1].axResolution;
 				}
 			} else {
-				print_verbose("WinTab context creation failed.");
+				PRINT_VERBOSE("WinTab context creation failed.");
 			}
 		} else {
 			wd.wtctx = nullptr;

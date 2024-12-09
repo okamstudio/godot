@@ -120,7 +120,7 @@ void EditorFileServer::poll() {
 	EditorProgress pr("updating_remote_file_system", TTR("Updating assets on target device:"), 105);
 
 	pr.step(TTR("Syncing headers"), 0, true);
-	print_verbose("EFS: Connecting taken!");
+	PRINT_VERBOSE("EFS: Connecting taken!");
 	char header[4];
 	Error err = tcp_peer->get_data((uint8_t *)&header, 4);
 	ERR_FAIL_COND(err != OK);
@@ -136,17 +136,17 @@ void EditorFileServer::poll() {
 	err = tcp_peer->get_data((uint8_t *)cpassword, PASSWORD_LENGTH);
 	cpassword[PASSWORD_LENGTH] = 0;
 	ERR_FAIL_COND(err != OK);
-	print_verbose("EFS: Got password: " + String(cpassword));
+	PRINT_VERBOSE("EFS: Got password: " + String(cpassword));
 	ERR_FAIL_COND_MSG(password != cpassword, "Client disconnected because password mismatch.");
 
 	uint32_t tag_count = tcp_peer->get_u32();
-	print_verbose("EFS: Getting tags: " + itos(tag_count));
+	PRINT_VERBOSE("EFS: Getting tags: " + itos(tag_count));
 
 	ERR_FAIL_COND(tcp_peer->get_status() != StreamPeerTCP::STATUS_CONNECTED);
 	Vector<String> tags;
 	for (uint32_t i = 0; i < tag_count; i++) {
 		String tag = tcp_peer->get_utf8_string();
-		print_verbose("EFS: tag #" + itos(i) + ": " + tag);
+		PRINT_VERBOSE("EFS: tag #" + itos(i) + ": " + tag);
 		ERR_FAIL_COND(tcp_peer->get_status() != StreamPeerTCP::STATUS_CONNECTED);
 		tags.push_back(tag);
 	}
@@ -159,7 +159,7 @@ void EditorFileServer::poll() {
 
 		// Got files cached by client.
 		uint32_t file_buffer_size = tcp_peer->get_32();
-		print_verbose("EFS: Getting file buffer: compressed - " + String::humanize_size(file_buffer_size) + " decompressed: " + String::humanize_size(file_buffer_decompressed_size));
+		PRINT_VERBOSE("EFS: Getting file buffer: compressed - " + String::humanize_size(file_buffer_size) + " decompressed: " + String::humanize_size(file_buffer_decompressed_size));
 
 		ERR_FAIL_COND(tcp_peer->get_status() != StreamPeerTCP::STATUS_CONNECTED);
 		ERR_FAIL_COND(file_buffer_size > MAX_FILE_BUFFER_SIZE);
@@ -178,7 +178,7 @@ void EditorFileServer::poll() {
 		String files_text = String::utf8((const char *)file_buffer_decompressed.ptr(), file_buffer_decompressed.size());
 		Vector<String> files = files_text.split("\n");
 
-		print_verbose("EFS: Total cached files received: " + itos(files.size()));
+		PRINT_VERBOSE("EFS: Total cached files received: " + itos(files.size()));
 		for (int i = 0; i < files.size(); i++) {
 			if (files[i].get_slice_count("::") != 2) {
 				continue;
@@ -194,7 +194,7 @@ void EditorFileServer::poll() {
 
 	pr.step(TTR("Scanning for local changes"), 3, true);
 
-	print_verbose("EFS: Scanning changes:");
+	PRINT_VERBOSE("EFS: Scanning changes:");
 
 	HashMap<String, uint64_t> files_to_send;
 	// Scan files to send.
@@ -215,7 +215,7 @@ void EditorFileServer::poll() {
 
 	tcp_peer->put_32(files_to_send.size());
 
-	print_verbose("EFS: Sending list of changed files.");
+	PRINT_VERBOSE("EFS: Sending list of changed files.");
 	pr.step(TTR("Sending list of changed files:"), 4, true);
 
 	// Send list of changed files first, to ensure that if connecting breaks, the client is not found in a broken state.
@@ -224,7 +224,7 @@ void EditorFileServer::poll() {
 		tcp_peer->put_64(K.value);
 	}
 
-	print_verbose("EFS: Sending " + itos(files_to_send.size()) + " files.");
+	PRINT_VERBOSE("EFS: Sending " + itos(files_to_send.size()) + " files.");
 
 	int idx = 0;
 	for (KeyValue<String, uint64_t> K : files_to_send) {
@@ -243,7 +243,7 @@ void EditorFileServer::poll() {
 
 	tcp_peer->put_data((const uint8_t *)"GEND", 4); // End marker.
 
-	print_verbose("EFS: Done.");
+	PRINT_VERBOSE("EFS: Done.");
 }
 
 void EditorFileServer::start() {

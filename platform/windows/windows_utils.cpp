@@ -260,7 +260,7 @@ void WindowsUtils::remove_temp_pdbs(const String &p_dll_path) {
 				} else {
 					failed++;
 					if (failed <= failed_limit) {
-						print_verbose("Failed to remove temp PDB: " + pdb);
+						PRINT_VERBOSE("Failed to remove temp PDB: " + pdb);
 					}
 				}
 			} else {
@@ -269,7 +269,7 @@ void WindowsUtils::remove_temp_pdbs(const String &p_dll_path) {
 		}
 
 		if (failed > failed_limit) {
-			print_verbose(vformat("And %d more PDB files could not be removed....", failed - failed_limit));
+			PRINT_VERBOSE(vformat("And %d more PDB files could not be removed....", failed - failed_limit));
 		}
 
 		for (const String &pdb : removed) {

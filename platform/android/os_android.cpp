@@ -175,13 +175,13 @@ bool OS_Android::copy_dynamic_library(const String &p_library_path, const String
 	String copy_path = p_target_dir.path_join(p_library_path.get_file());
 	bool copy_exists = FileAccess::exists(copy_path);
 	if (copy_exists) {
-		print_verbose("Deleting existing library copy " + copy_path);
+		PRINT_VERBOSE("Deleting existing library copy " + copy_path);
 		if (da_ref->remove(copy_path) != OK) {
-			print_verbose("Unable to delete " + copy_path);
+			PRINT_VERBOSE("Unable to delete " + copy_path);
 		}
 	}
 
-	print_verbose("Copying " + p_library_path + " to " + p_target_dir);
+	PRINT_VERBOSE("Copying " + p_library_path + " to " + p_target_dir);
 	Error create_dir_result = da_ref->make_dir_recursive(p_target_dir);
 	if (create_dir_result == OK || create_dir_result == ERR_ALREADY_EXISTS) {
 		copy_exists = da_ref->copy(p_library_path, copy_path) == OK;
@@ -210,7 +210,7 @@ Error OS_Android::open_dynamic_library(const String &p_path, void *&p_library_ha
 
 		if (p_data != nullptr && p_data->library_dependencies != nullptr && !p_data->library_dependencies->is_empty()) {
 			// Copy the library dependencies
-			print_verbose("Copying library dependencies..");
+			PRINT_VERBOSE("Copying library dependencies..");
 			for (const String &library_dependency_path : *p_data->library_dependencies) {
 				String internal_library_dependency_path;
 				if (!copy_dynamic_library(library_dependency_path, dynamic_library_path.path_join(library_dependency_path.get_base_dir()), &internal_library_dependency_path)) {
@@ -225,11 +225,11 @@ Error OS_Android::open_dynamic_library(const String &p_path, void *&p_library_ha
 		}
 
 		String internal_path;
-		print_verbose("Copying library " + p_path);
+		PRINT_VERBOSE("Copying library " + p_path);
 		const bool internal_so_file_exists = copy_dynamic_library(p_path, dynamic_library_path.path_join(p_path.get_base_dir()), &internal_path);
 
 		if (internal_so_file_exists) {
-			print_verbose("Opening library " + internal_path);
+			PRINT_VERBOSE("Opening library " + internal_path);
 			p_library_handle = dlopen(internal_path.utf8().get_data(), RTLD_NOW);
 			if (p_library_handle) {
 				path = internal_path;

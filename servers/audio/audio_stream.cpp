@@ -428,7 +428,7 @@ int AudioStreamPlaybackMicrophone::_mix_internal(AudioFrame *p_buffer, int p_fra
 
 #ifdef DEBUG_ENABLED
 	if (input_ofs > input_position && (int)(input_ofs - input_position) < (p_frames * 2)) {
-		print_verbose(String(get_class_name()) + " buffer underrun: input_position=" + itos(input_position) + " input_ofs=" + itos(input_ofs) + " input_size=" + itos(input_size));
+		PRINT_VERBOSE(String(get_class_name()) + " buffer underrun: input_position=" + itos(input_position) + " input_ofs=" + itos(input_ofs) + " input_size=" + itos(input_size));
 	}
 #endif
 

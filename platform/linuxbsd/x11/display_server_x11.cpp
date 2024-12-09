@@ -178,10 +178,10 @@ void DisplayServerX11::_update_real_mouse_position(const WindowData &wd) {
 bool DisplayServerX11::_refresh_device_info() {
 	int event_base, error_base;
 
-	print_verbose("XInput: Refreshing devices.");
+	PRINT_VERBOSE("XInput: Refreshing devices.");
 
 	if (!XQueryExtension(x11_display, "XInputExtension", &xi.opcode, &event_base, &error_base)) {
-		print_verbose("XInput extension not available. Please upgrade your distribution.");
+		PRINT_VERBOSE("XInput extension not available. Please upgrade your distribution.");
 		return false;
 	}
 
@@ -189,13 +189,13 @@ bool DisplayServerX11::_refresh_device_info() {
 	int xi_minor_query = XINPUT_CLIENT_VERSION_MINOR;
 
 	if (XIQueryVersion(x11_display, &xi_major_query, &xi_minor_query) != Success) {
-		print_verbose(vformat("XInput 2 not available (server supports %d.%d).", xi_major_query, xi_minor_query));
+		PRINT_VERBOSE(vformat("XInput 2 not available (server supports %d.%d).", xi_major_query, xi_minor_query));
 		xi.opcode = 0;
 		return false;
 	}
 
 	if (xi_major_query < XINPUT_CLIENT_VERSION_MAJOR || (xi_major_query == XINPUT_CLIENT_VERSION_MAJOR && xi_minor_query < XINPUT_CLIENT_VERSION_MINOR)) {
-		print_verbose(vformat("XInput %d.%d not available (server supports %d.%d). Touch input unavailable.",
+		PRINT_VERBOSE(vformat("XInput %d.%d not available (server supports %d.%d). Touch input unavailable.",
 				XINPUT_CLIENT_VERSION_MAJOR, XINPUT_CLIENT_VERSION_MINOR, xi_major_query, xi_minor_query));
 	}
 
@@ -263,7 +263,7 @@ bool DisplayServerX11::_refresh_device_info() {
 		}
 		if (direct_touch) {
 			xi.touch_devices.push_back(dev->deviceid);
-			print_verbose("XInput: Using touch device: " + String(dev->name));
+			PRINT_VERBOSE("XInput: Using touch device: " + String(dev->name));
 		}
 		if (absolute_mode) {
 			// If no resolution was reported, use the min/max ranges.
@@ -274,7 +274,7 @@ bool DisplayServerX11::_refresh_device_info() {
 				resolution_y = (abs_y_max - abs_y_min) * abs_resolution_range_mult;
 			}
 			xi.absolute_devices[dev->deviceid] = Vector2(abs_resolution_mult / resolution_x, abs_resolution_mult / resolution_y);
-			print_verbose("XInput: Absolute pointing device: " + String(dev->name));
+			PRINT_VERBOSE("XInput: Absolute pointing device: " + String(dev->name));
 		}
 
 		xi.pressure = 0;
@@ -287,7 +287,7 @@ bool DisplayServerX11::_refresh_device_info() {
 	XIFreeDeviceInfo(info);
 #ifdef TOUCH_ENABLED
 	if (!xi.touch_devices.size()) {
-		print_verbose("XInput: No touch devices found.");
+		PRINT_VERBOSE("XInput: No touch devices found.");
 	}
 #endif
 
@@ -683,7 +683,7 @@ String DisplayServerX11::_clipboard_get_impl(Atom p_source, Window x11_window, A
 							success = true;
 						}
 					} else {
-						print_verbose("Failed to get selection data chunk.");
+						PRINT_VERBOSE("Failed to get selection data chunk.");
 						done = true;
 					}
 
@@ -710,7 +710,7 @@ String DisplayServerX11::_clipboard_get_impl(Atom p_source, Window x11_window, A
 			if (result == Success) {
 				ret.parse_utf8((const char *)data);
 			} else {
-				print_verbose("Failed to get selection data.");
+				PRINT_VERBOSE("Failed to get selection data.");
 			}
 
 			if (data) {
@@ -769,7 +769,7 @@ Atom DisplayServerX11::_clipboard_get_image_target(Atom p_source, Window x11_win
 			if (result == Success) {
 				atom_count = len;
 			} else {
-				print_verbose("Failed to get selection data.");
+				PRINT_VERBOSE("Failed to get selection data.");
 				return None;
 			}
 		} else {
@@ -928,7 +928,7 @@ Ref<Image> DisplayServerX11::clipboard_get_image() const {
 							success = true;
 						}
 					} else {
-						print_verbose("Failed to get selection data chunk.");
+						PRINT_VERBOSE("Failed to get selection data chunk.");
 						done = true;
 					}
 
@@ -961,7 +961,7 @@ Ref<Image> DisplayServerX11::clipboard_get_image() const {
 				ret.instantiate();
 				PNGDriverCommon::png_to_image((uint8_t *)data, bytes_left, false, ret);
 			} else {
-				print_verbose("Failed to get selection data.");
+				PRINT_VERBOSE("Failed to get selection data.");
 			}
 
 			if (data) {
@@ -3721,7 +3721,7 @@ void DisplayServerX11::_handle_key_event(WindowID p_window, XKeyEvent *p_event, 
 	// know Mod1 was ALT and Mod4 was META (applekey/winkey)
 	// just tried Mods until i found them.
 
-	//print_verbose("mod1: "+itos(xkeyevent->state&Mod1Mask)+" mod 5: "+itos(xkeyevent->state&Mod5Mask));
+	//PRINT_VERBOSE("mod1: "+itos(xkeyevent->state&Mod1Mask)+" mod 5: "+itos(xkeyevent->state&Mod5Mask));
 
 	Ref<InputEventKey> k;
 	k.instantiate();
@@ -3884,7 +3884,7 @@ Atom DisplayServerX11::_process_selection_request_target(Atom p_target, Window p
 		return p_property;
 	} else {
 		char *target_name = XGetAtomName(x11_display, p_target);
-		print_verbose(vformat("Target '%s' not supported.", target_name));
+		PRINT_VERBOSE(vformat("Target '%s' not supported.", target_name));
 		if (target_name) {
 			XFree(target_name);
 		}
@@ -6256,12 +6256,12 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 	xkb_loaded_v05p = xkb_loaded;
 	if (!xkb_context_new || !xkb_compose_table_new_from_locale || !xkb_compose_table_unref || !xkb_context_unref || !xkb_compose_state_feed || !xkb_compose_state_unref || !xkb_compose_state_new || !xkb_compose_state_get_status || !xkb_compose_state_get_utf8) {
 		xkb_loaded_v05p = false;
-		print_verbose("Detected XKBcommon library version older than 0.5, dead key composition and Unicode key labels disabled.");
+		PRINT_VERBOSE("Detected XKBcommon library version older than 0.5, dead key composition and Unicode key labels disabled.");
 	}
 	xkb_loaded_v08p = xkb_loaded;
 	if (!xkb_keysym_to_utf32 || !xkb_keysym_to_upper) {
 		xkb_loaded_v08p = false;
-		print_verbose("Detected XKBcommon library version older than 0.8, Unicode key labels disabled.");
+		PRINT_VERBOSE("Detected XKBcommon library version older than 0.8, Unicode key labels disabled.");
 	}
 #endif
 	if (initialize_xext(dylibloader_verbose) != 0) {
@@ -6348,10 +6348,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		int version_major = 0;
 		int version_minor = 0;
 		int rc = XShapeQueryVersion(x11_display, &version_major, &version_minor);
-		print_verbose(vformat("Xshape %d.%d detected.", version_major, version_minor));
+		PRINT_VERBOSE(vformat("Xshape %d.%d detected.", version_major, version_minor));
 		if (rc != 1 || version_major < 1) {
 			xshaped_ext_ok = false;
-			print_verbose("Unsupported Xshape library version.");
+			PRINT_VERBOSE("Unsupported Xshape library version.");
 		}
 	}
 
@@ -6359,10 +6359,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		int version_major = 0;
 		int version_minor = 0;
 		int rc = XineramaQueryVersion(x11_display, &version_major, &version_minor);
-		print_verbose(vformat("Xinerama %d.%d detected.", version_major, version_minor));
+		PRINT_VERBOSE(vformat("Xinerama %d.%d detected.", version_major, version_minor));
 		if (rc != 1 || version_major < 1) {
 			xinerama_ext_ok = false;
-			print_verbose("Unsupported Xinerama library version.");
+			PRINT_VERBOSE("Unsupported Xinerama library version.");
 		}
 	}
 
@@ -6370,10 +6370,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		int version_major = 0;
 		int version_minor = 0;
 		int rc = XRRQueryVersion(x11_display, &version_major, &version_minor);
-		print_verbose(vformat("Xrandr %d.%d detected.", version_major, version_minor));
+		PRINT_VERBOSE(vformat("Xrandr %d.%d detected.", version_major, version_minor));
 		if (rc != 1 || (version_major == 1 && version_minor < 3) || (version_major < 1)) {
 			xrandr_ext_ok = false;
-			print_verbose("Unsupported Xrandr library version.");
+			PRINT_VERBOSE("Unsupported Xrandr library version.");
 		}
 	}
 
@@ -6381,7 +6381,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		int version_major = 0;
 		int version_minor = 0;
 		int rc = XRenderQueryVersion(x11_display, &version_major, &version_minor);
-		print_verbose(vformat("Xrender %d.%d detected.", version_major, version_minor));
+		PRINT_VERBOSE(vformat("Xrender %d.%d detected.", version_major, version_minor));
 		if (rc != 1 || (version_major == 0 && version_minor < 11)) {
 			ERR_PRINT("Unsupported Xrender library version.");
 			r_error = ERR_UNAVAILABLE;
@@ -6394,7 +6394,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		int version_major = 2; // Report 2.2 as supported by engine, but should work with 2.1 or 2.0 library as well.
 		int version_minor = 2;
 		int rc = XIQueryVersion(x11_display, &version_major, &version_minor);
-		print_verbose(vformat("Xinput %d.%d detected.", version_major, version_minor));
+		PRINT_VERBOSE(vformat("Xinput %d.%d detected.", version_major, version_minor));
 		if (rc != Success || (version_major < 2)) {
 			ERR_PRINT("Unsupported Xinput2 library version.");
 			r_error = ERR_UNAVAILABLE;
@@ -6586,7 +6586,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 					getenv("PRIMUS_libGL") ||
 					getenv("PRIMUS_LOAD_GLOBAL") ||
 					getenv("BUMBLEBEE_SOCKET")) {
-				print_verbose("Optirun/primusrun detected. Skipping GPU detection");
+				PRINT_VERBOSE("Optirun/primusrun detected. Skipping GPU detection");
 				use_prime = 0;
 			}
 
@@ -6600,14 +6600,14 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 				for (int i = 0; i < libraries.size(); ++i) {
 					if (FileAccess::exists(libraries[i] + "/libGL.so.1") ||
 							FileAccess::exists(libraries[i] + "/libGL.so")) {
-						print_verbose("Custom libGL override detected. Skipping GPU detection");
+						PRINT_VERBOSE("Custom libGL override detected. Skipping GPU detection");
 						use_prime = 0;
 					}
 				}
 			}
 
 			if (use_prime == -1) {
-				print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
+				PRINT_VERBOSE("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
 				use_prime = detect_prime();
 			}
 
@@ -6730,7 +6730,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 	cursor_theme = XcursorGetTheme(x11_display);
 
 	if (!cursor_theme) {
-		print_verbose("XcursorGetTheme could not get cursor theme");
+		PRINT_VERBOSE("XcursorGetTheme could not get cursor theme");
 		cursor_theme = "default";
 	}
 
@@ -6813,7 +6813,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		if (cursor_img[i]) {
 			cursors[i] = XcursorImageLoadCursor(x11_display, cursor_img[i]);
 		} else {
-			print_verbose("Failed loading custom cursor: " + String(cursor_file[i]));
+			PRINT_VERBOSE("Failed loading custom cursor: " + String(cursor_file[i]));
 		}
 	}
 

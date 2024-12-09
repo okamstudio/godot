@@ -62,7 +62,7 @@ void TextServerManager::add_interface(const Ref<TextServer> &p_interface) {
 	};
 
 	interfaces.push_back(p_interface);
-	print_verbose("TextServer: Added interface \"" + p_interface->get_name() + "\"");
+	PRINT_VERBOSE("TextServer: Added interface \"" + p_interface->get_name() + "\"");
 	emit_signal(SNAME("interface_added"), p_interface->get_name());
 }
 
@@ -79,7 +79,7 @@ void TextServerManager::remove_interface(const Ref<TextServer> &p_interface) {
 	};
 
 	ERR_FAIL_COND_MSG(idx == -1, "Interface not found.");
-	print_verbose("TextServer: Removed interface \"" + p_interface->get_name() + "\"");
+	PRINT_VERBOSE("TextServer: Removed interface \"" + p_interface->get_name() + "\"");
 	emit_signal(SNAME("interface_removed"), p_interface->get_name());
 	interfaces.remove_at(idx);
 }
@@ -123,11 +123,11 @@ TypedArray<Dictionary> TextServerManager::get_interfaces() const {
 
 void TextServerManager::set_primary_interface(const Ref<TextServer> &p_primary_interface) {
 	if (p_primary_interface.is_null()) {
-		print_verbose("TextServer: Clearing primary interface");
+		PRINT_VERBOSE("TextServer: Clearing primary interface");
 		primary_interface.unref();
 	} else {
 		primary_interface = p_primary_interface;
-		print_verbose("TextServer: Primary interface set to: \"" + primary_interface->get_name() + "\".");
+		PRINT_VERBOSE("TextServer: Primary interface set to: \"" + primary_interface->get_name() + "\".");
 
 		if (OS::get_singleton()->get_main_loop()) {
 			OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_TEXT_SERVER_CHANGED);

@@ -86,8 +86,8 @@ Node *EditorSceneFormatImporterFBX2GLTF::import_scene(const String &p_path, uint
 	String standard_out;
 	int ret;
 	OS::get_singleton()->execute(fbx2gltf_path, args, &standard_out, &ret, true);
-	print_verbose(fbx2gltf_path);
-	print_verbose(standard_out);
+	PRINT_VERBOSE(fbx2gltf_path);
+	PRINT_VERBOSE(standard_out);
 
 	if (ret != 0) {
 		if (r_err) {
@@ -107,7 +107,7 @@ Node *EditorSceneFormatImporterFBX2GLTF::import_scene(const String &p_path, uint
 	if (p_options.has(SNAME("nodes/import_as_skeleton_bones")) ? (bool)p_options[SNAME("nodes/import_as_skeleton_bones")] : false) {
 		state->set_import_as_skeleton_bones(true);
 	}
-	print_verbose(vformat("glTF path: %s", sink));
+	PRINT_VERBOSE(vformat("glTF path: %s", sink));
 	Error err = gltf->append_from_file(sink, state, p_flags, p_path.get_base_dir());
 	if (err != OK) {
 		if (r_err) {

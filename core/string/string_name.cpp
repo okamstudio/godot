@@ -126,7 +126,7 @@ void StringName::cleanup() {
 		}
 	}
 	if (lost_strings) {
-		print_verbose(vformat("StringName: %d unclaimed string names at exit.", lost_strings));
+		PRINT_VERBOSE(vformat("StringName: %d unclaimed string names at exit.", lost_strings));
 	}
 	configured = false;
 }

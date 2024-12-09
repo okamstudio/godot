@@ -61,11 +61,11 @@
 
 	// Starts the engine and returns if an error was encountered.
 	if (![self.engine startAndReturnError:&error]) {
-		print_verbose("Couldn't start controller haptic engine");
+		PRINT_VERBOSE("Couldn't start controller haptic engine");
 		return;
 	}
 	if (![self.player startAtTime:0 error:&error]) {
-		print_verbose("Couldn't execute controller haptic pattern");
+		PRINT_VERBOSE("Couldn't execute controller haptic pattern");
 	}
 }
 
@@ -331,7 +331,7 @@ void JoypadMacOS::joypad_vibration_stop(Joypad *p_joypad, uint64_t p_timestamp) 
 	int joy_id = Input::get_singleton()->get_unused_joy_id();
 
 	if (joy_id == -1) {
-		print_verbose("Couldn't retrieve new joy ID.");
+		PRINT_VERBOSE("Couldn't retrieve new joy ID.");
 		return;
 	}
 
@@ -357,12 +357,12 @@ void JoypadMacOS::joypad_vibration_stop(Joypad *p_joypad, uint64_t p_timestamp) 
 	GCController *controller = (GCController *)notification.object;
 
 	if (!controller) {
-		print_verbose("Couldn't retrieve new controller.");
+		PRINT_VERBOSE("Couldn't retrieve new controller.");
 		return;
 	}
 
 	if ([[self getAllKeysForController:controller] count] > 0) {
-		print_verbose("Controller is already registered.");
+		PRINT_VERBOSE("Controller is already registered.");
 	} else if (!self.isProcessing) {
 		[self.joypadsQueue addObject:controller];
 	} else {

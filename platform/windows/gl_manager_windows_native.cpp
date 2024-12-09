@@ -99,7 +99,7 @@ static bool nvapi_err_check(const char *msg, int status) {
 		if (OS::get_singleton()->is_stdout_verbose()) {
 			NvAPI_ShortString err_desc = { 0 };
 			NvAPI_GetErrorMessage__(status, err_desc);
-			print_verbose(vformat("%s: %s(code %d)", msg, err_desc, status));
+			PRINT_VERBOSE(vformat("%s: %s(code %d)", msg, err_desc, status));
 		}
 		return false;
 	}
@@ -128,7 +128,7 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 	NvAPI_QueryInterface = (void *(__cdecl *)(unsigned int))(void *)GetProcAddress(nvapi, "nvapi_QueryInterface");
 
 	if (NvAPI_QueryInterface == nullptr) {
-		print_verbose("Error getting NVAPI NvAPI_QueryInterface");
+		PRINT_VERBOSE("Error getting NVAPI NvAPI_QueryInterface");
 		return;
 	}
 
@@ -151,7 +151,7 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 		return;
 	}
 
-	print_verbose("NVAPI: Init OK!");
+	PRINT_VERBOSE("NVAPI: Init OK!");
 
 	NvDRSSessionHandle session_handle;
 
@@ -189,7 +189,7 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 	int old_status = NvAPI_DRS_FindProfileByName(session_handle, (NvU16 *)(old_profile_name_u16.ptrw()), &old_profile_handle);
 
 	if (old_status == 0) {
-		print_verbose("NVAPI: Deleting old profile...");
+		PRINT_VERBOSE("NVAPI: Deleting old profile...");
 
 		if (!nvapi_err_check("NVAPI: Error deleting old profile", NvAPI_DRS_DeleteProfile(session_handle, old_profile_handle))) {
 			NvAPI_DRS_DestroySession(session_handle);
@@ -209,7 +209,7 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 	int profile_status = NvAPI_DRS_FindProfileByName(session_handle, (NvU16 *)(app_profile_name_u16.ptrw()), &profile_handle);
 
 	if (profile_status != 0) {
-		print_verbose("NVAPI: Profile not found, creating...");
+		PRINT_VERBOSE("NVAPI: Profile not found, creating...");
 
 		NVDRS_PROFILE profile_info;
 		profile_info.version = NVDRS_PROFILE_VER;
@@ -229,7 +229,7 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 	int app_status = NvAPI_DRS_GetApplicationInfo(session_handle, profile_handle, (NvU16 *)(app_executable_name_u16.ptrw()), &app);
 
 	if (app_status != 0) {
-		print_verbose("NVAPI: Application not found in profile, creating...");
+		PRINT_VERBOSE("NVAPI: Application not found in profile, creating...");
 
 		app.isPredefined = 0;
 		memcpy(app.appName, app_executable_name_u16.get_data(), sizeof(char16_t) * app_executable_name_u16.size());
@@ -278,11 +278,11 @@ void GLManagerNative_Windows::_nvapi_setup_profile() {
 	}
 
 	if (thread_control_val == OGL_THREAD_CONTROL_DISABLE) {
-		print_verbose("NVAPI: Disabled OpenGL threaded optimization successfully");
+		PRINT_VERBOSE("NVAPI: Disabled OpenGL threaded optimization successfully");
 	} else {
-		print_verbose("NVAPI: Enabled OpenGL threaded optimization successfully");
+		PRINT_VERBOSE("NVAPI: Enabled OpenGL threaded optimization successfully");
 	}
-	print_verbose("NVAPI: Disabled G-SYNC for windowed mode successfully");
+	PRINT_VERBOSE("NVAPI: Disabled G-SYNC for windowed mode successfully");
 
 	NvAPI_DRS_DestroySession(session_handle);
 }

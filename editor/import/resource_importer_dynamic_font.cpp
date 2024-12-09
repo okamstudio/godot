@@ -146,7 +146,7 @@ void ResourceImporterDynamicFont::show_advanced_options(const String &p_path) {
 }
 
 Error ResourceImporterDynamicFont::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	print_verbose("Importing dynamic font from: " + p_source_file);
+	PRINT_VERBOSE("Importing dynamic font from: " + p_source_file);
 
 	int antialiasing = p_options["antialiasing"];
 	bool generate_mipmaps = p_options["generate_mipmaps"];
@@ -266,10 +266,10 @@ Error ResourceImporterDynamicFont::import(ResourceUID::ID p_source_id, const Str
 		flg |= ResourceSaver::SaverFlags::FLAG_COMPRESS;
 	}
 
-	print_verbose("Saving to: " + p_save_path + ".fontdata");
+	PRINT_VERBOSE("Saving to: " + p_save_path + ".fontdata");
 	Error err = ResourceSaver::save(font, p_save_path + ".fontdata", flg);
 	ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save font to file \"" + p_save_path + ".res\".");
-	print_verbose("Done saving to: " + p_save_path + ".fontdata");
+	PRINT_VERBOSE("Done saving to: " + p_save_path + ".fontdata");
 	return OK;
 }
 

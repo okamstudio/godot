@@ -225,7 +225,7 @@ Error WSLPeer::_do_server_handshake() {
 		if (tls->get_status() == StreamPeerTLS::STATUS_HANDSHAKING) {
 			return OK; // Pending handshake
 		} else if (tls->get_status() != StreamPeerTLS::STATUS_CONNECTED) {
-			print_verbose(vformat("WebSocket SSL connection error during handshake (StreamPeerTLS status code %d).", tls->get_status()));
+			PRINT_VERBOSE(vformat("WebSocket SSL connection error during handshake (StreamPeerTLS status code %d).", tls->get_status()));
 			close(-1);
 			return FAILED;
 		}
@@ -239,7 +239,7 @@ Error WSLPeer::_do_server_handshake() {
 			uint8_t byte;
 			Error err = connection->get_partial_data(&byte, 1, read);
 			if (err != OK) { // Got an error
-				print_verbose(vformat("WebSocket error while getting partial data (StreamPeer error code %d).", err));
+				PRINT_VERBOSE(vformat("WebSocket error while getting partial data (StreamPeer error code %d).", err));
 				close(-1);
 				return FAILED;
 			} else if (read != 1) { // Busy, wait next poll
@@ -285,7 +285,7 @@ Error WSLPeer::_do_server_handshake() {
 		int sent = 0;
 		Error err = connection->put_partial_data(data.ptr() + pos, left, sent);
 		if (err != OK) {
-			print_verbose(vformat("WebSocket error while putting partial data (StreamPeer error code %d).", err));
+			PRINT_VERBOSE(vformat("WebSocket error while putting partial data (StreamPeer error code %d).", err));
 			close(-1);
 			return err;
 		}
@@ -580,7 +580,7 @@ ssize_t WSLPeer::_wsl_recv_callback(wslay_event_context_ptr ctx, uint8_t *data, 
 	int read = 0;
 	Error err = conn->get_partial_data(data, to_read, read);
 	if (err != OK) {
-		print_verbose("Websocket get data error: " + itos(err) + ", read (should be 0!): " + itos(read));
+		PRINT_VERBOSE("Websocket get data error: " + itos(err) + ", read (should be 0!): " + itos(read));
 		wslay_event_set_error(ctx, WSLAY_ERR_CALLBACK_FAILURE);
 		return -1;
 	}
@@ -728,7 +728,7 @@ void WSLPeer::poll() {
 			if (err == 0) {
 				last_heartbeat = ticks;
 			} else {
-				print_verbose("Websocket (wslay) failed to send ping: " + itos(err));
+				PRINT_VERBOSE("Websocket (wslay) failed to send ping: " + itos(err));
 				wslay_event_context_free(wsl_ctx);
 				wsl_ctx = nullptr;
 				close(-1);
@@ -737,7 +737,7 @@ void WSLPeer::poll() {
 		}
 		if ((err = wslay_event_recv(wsl_ctx)) != 0 || (err = wslay_event_send(wsl_ctx)) != 0) {
 			// Error close.
-			print_verbose("Websocket (wslay) poll error: " + itos(err));
+			PRINT_VERBOSE("Websocket (wslay) poll error: " + itos(err));
 			wslay_event_context_free(wsl_ctx);
 			wsl_ctx = nullptr;
 			close(-1);

@@ -128,7 +128,7 @@ bool OpenXRHTCViveTrackerExtension::on_event_polled(const XrEventDataBuffer &eve
 	switch (event.type) {
 		case XR_TYPE_EVENT_DATA_VIVE_TRACKER_CONNECTED_HTCX: {
 			// Investigate if we need to do more here
-			print_verbose("OpenXR EVENT: VIVE tracker connected");
+			PRINT_VERBOSE("OpenXR EVENT: VIVE tracker connected");
 
 			return true;
 		} break;

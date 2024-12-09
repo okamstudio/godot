@@ -1653,7 +1653,7 @@ void Input::parse_mapping(const String &p_mapping) {
 		JoyButton output_button = _get_output_button(output);
 		JoyAxis output_axis = _get_output_axis(output);
 		if (output_button == JoyButton::INVALID && output_axis == JoyAxis::INVALID) {
-			print_verbose(vformat("Unrecognized output string \"%s\" in mapping:\n%s", output, p_mapping));
+			PRINT_VERBOSE(vformat("Unrecognized output string \"%s\" in mapping:\n%s", output, p_mapping));
 			continue;
 		}
 		ERR_CONTINUE_MSG(output_button != JoyButton::INVALID && output_axis != JoyAxis::INVALID,
@@ -1833,7 +1833,7 @@ Input::Input() {
 				continue;
 			}
 
-			print_verbose(vformat("Device Ignored -- Vendor: %s Product: %s", vid_pid[0], vid_pid[1]));
+			PRINT_VERBOSE(vformat("Device Ignored -- Vendor: %s Product: %s", vid_pid[0], vid_pid[1]));
 			const uint16_t vid_unswapped = vid_pid[0].hex_to_int();
 			const uint16_t pid_unswapped = vid_pid[1].hex_to_int();
 			const uint16_t vid = BSWAP16(vid_unswapped);

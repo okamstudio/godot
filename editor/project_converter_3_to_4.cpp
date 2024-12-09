@@ -726,7 +726,7 @@ Vector<String> ProjectConverter3To4::check_for_files() {
 				file_name = dir->_get_next();
 			}
 		} else {
-			print_verbose("Failed to open " + path);
+			PRINT_VERBOSE("Failed to open " + path);
 		}
 	}
 	return collected_files;

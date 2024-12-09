@@ -152,7 +152,7 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 
 	IPAddress ip = p_host.is_valid_ip_address() ? IPAddress(p_host) : IP::get_singleton()->resolve_hostname(p_host);
 	ERR_FAIL_COND_V_MSG(!ip.is_valid(), ERR_INVALID_PARAMETER, vformat("Unable to resolve remote filesystem server hostname: '%s'.", p_host));
-	print_verbose(vformat("Remote Filesystem: Connecting to host %s, port %d.", ip, p_port));
+	PRINT_VERBOSE(vformat("Remote Filesystem: Connecting to host %s, port %d.", ip, p_port));
 	Error err = tcp_client->connect_to_host(ip, p_port);
 	ERR_FAIL_COND_V_MSG(err != OK, err, vformat("Unable to open connection to remote file server (%s, port %d) failed.", String(p_host), p_port));
 
@@ -166,17 +166,17 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 	}
 
 	// Connection OK, now send the current file state.
-	print_verbose("Remote Filesystem: Connection OK.");
+	PRINT_VERBOSE("Remote Filesystem: Connection OK.");
 
 	// Header (GRFS) - Godot Remote File System
-	print_verbose("Remote Filesystem: Sending header");
+	PRINT_VERBOSE("Remote Filesystem: Sending header");
 	tcp_client->put_u8('G');
 	tcp_client->put_u8('R');
 	tcp_client->put_u8('F');
 	tcp_client->put_u8('S');
 	// Protocol version
 	tcp_client->put_32(FILESYSTEM_PROTOCOL_VERSION);
-	print_verbose("Remote Filesystem: Sending password");
+	PRINT_VERBOSE("Remote Filesystem: Sending password");
 	uint8_t password[PASSWORD_LENGTH]; // Send fixed size password, since it's easier and safe to validate.
 	for (int i = 0; i < PASSWORD_LENGTH; i++) {
 		if (i < p_password.length()) {
@@ -186,7 +186,7 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 		}
 	}
 	tcp_client->put_data(password, PASSWORD_LENGTH);
-	print_verbose("Remote Filesystem: Tags.");
+	PRINT_VERBOSE("Remote Filesystem: Tags.");
 	Vector<String> tags;
 	{
 		tags.push_back(OS::get_singleton()->get_identifier());
@@ -207,7 +207,7 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 		tcp_client->put_utf8_string(tags[i]);
 	}
 	// Size of compressed list of files
-	print_verbose("Remote Filesystem: Sending file list");
+	PRINT_VERBOSE("Remote Filesystem: Sending file list");
 
 	Vector<FileCache> file_cache = _load_cache_file();
 
@@ -306,7 +306,7 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 		new_file_cache.push_back(fc);
 	}
 
-	print_verbose("Remote Filesystem: Updating the cache file.");
+	PRINT_VERBOSE("Remote Filesystem: Updating the cache file.");
 
 	// Go through the list of local files read initially (file_cache) and see which ones are
 	// unchanged (not sent again from the server).
@@ -322,7 +322,7 @@ Error RemoteFilesystemClient::_synchronize_with_server(const String &p_host, int
 	err = _store_cache_file(new_file_cache);
 	ERR_FAIL_COND_V_MSG(err != OK, ERR_FILE_CANT_OPEN, "Error writing the remote filesystem file cache.");
 
-	print_verbose("Remote Filesystem: Update success.");
+	PRINT_VERBOSE("Remote Filesystem: Update success.");
 
 	_update_cache_path(r_cache_path);
 	return OK;

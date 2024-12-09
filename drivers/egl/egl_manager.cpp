@@ -136,7 +136,7 @@ int EGLManager::_get_gldisplay_id(void *p_display) {
 
 		if (egl_extensions.has("EGL_ANGLE_surface_orientation")) {
 			new_gldisplay.has_EGL_ANGLE_surface_orientation = true;
-			print_verbose("EGL: EGL_ANGLE_surface_orientation is supported.");
+			PRINT_VERBOSE("EGL: EGL_ANGLE_surface_orientation is supported.");
 		}
 	}
 #endif
@@ -303,7 +303,7 @@ Error EGLManager::window_create(DisplayServer::WindowID p_window_id, void *p_dis
 		if (eglQuerySurface(gldisplay.egl_display, glwindow.egl_surface, EGL_SURFACE_ORIENTATION_ANGLE, &orientation)) {
 			if (orientation & EGL_SURFACE_ORIENTATION_INVERT_Y_ANGLE && !(orientation & EGL_SURFACE_ORIENTATION_INVERT_X_ANGLE)) {
 				glwindow.flipped_y = true;
-				print_verbose("EGL: Using optimal surface orientation: Invert Y");
+				PRINT_VERBOSE("EGL: Using optimal surface orientation: Invert Y");
 			}
 		} else {
 			ERR_PRINT(vformat("Failed to get EGL_SURFACE_ORIENTATION_ANGLE, error: 0x%08X", eglGetError()));
@@ -482,7 +482,7 @@ Error EGLManager::initialize(void *p_native_display) {
 	int major = GLAD_VERSION_MAJOR(version);
 	int minor = GLAD_VERSION_MINOR(version);
 
-	print_verbose(vformat("Loaded EGL %d.%d", major, minor));
+	PRINT_VERBOSE(vformat("Loaded EGL %d.%d", major, minor));
 
 	ERR_FAIL_COND_V_MSG(!GLAD_EGL_VERSION_1_4, ERR_UNAVAILABLE, vformat("EGL version is too old! %d.%d < 1.4", major, minor));
 

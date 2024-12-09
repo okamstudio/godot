@@ -365,7 +365,7 @@ static void _pack_manifold(
 	ERR_FAIL_COND_MSG(mesh.vertProperties.size() % mesh.numProp != 0, "Invalid vertex properties size.");
 	mesh.Merge();
 #ifdef DEV_ENABLED
-	print_verbose(_export_meshgl_as_json(mesh));
+	PRINT_VERBOSE(_export_meshgl_as_json(mesh));
 #endif // DEV_ENABLED
 	r_manifold = manifold::Manifold(mesh);
 }

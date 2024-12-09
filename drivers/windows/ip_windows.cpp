@@ -75,12 +75,12 @@ void IPWindows::_resolve_hostname(List<IPAddress> &r_addresses, const String &p_
 
 	int s = getaddrinfo(p_hostname.utf8().get_data(), nullptr, &hints, &result);
 	if (s != 0) {
-		print_verbose("getaddrinfo failed! Cannot resolve hostname.");
+		PRINT_VERBOSE("getaddrinfo failed! Cannot resolve hostname.");
 		return;
 	}
 
 	if (result == nullptr || result->ai_addr == nullptr) {
-		print_verbose("Invalid response from getaddrinfo.");
+		PRINT_VERBOSE("Invalid response from getaddrinfo.");
 		if (result) {
 			freeaddrinfo(result);
 		}

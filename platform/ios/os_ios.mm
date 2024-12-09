@@ -307,7 +307,7 @@ Error OS_IOS::shell_open(const String &p_uri) {
 		return ERR_CANT_OPEN;
 	}
 
-	print_verbose(vformat("Opening URL %s", p_uri));
+	PRINT_VERBOSE(vformat("Opening URL %s", p_uri));
 
 	[[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 

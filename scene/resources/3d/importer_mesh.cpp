@@ -1085,7 +1085,7 @@ Error ImporterMesh::lightmap_unwrap_cached(const Transform3D &p_base_transform, 
 	//remove surfaces
 	clear();
 
-	print_verbose("Mesh: Gen indices: " + itos(gen_index_count));
+	PRINT_VERBOSE("Mesh: Gen indices: " + itos(gen_index_count));
 
 	//go through all indices
 	for (int i = 0; i < gen_index_count; i += 3) {

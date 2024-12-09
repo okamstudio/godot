@@ -280,7 +280,7 @@ XrBool32 OpenXRDebugUtilsExtension::debug_callback(XrDebugUtilsMessageSeverityFl
 		print_line("OpenXR: Severity: Info" + msg);
 	} else if (p_message_severity == XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
 		// This is a bit double because we won't output this unless verbose messaging in Godot is on.
-		print_verbose("OpenXR: Severity: Verbose" + msg);
+		PRINT_VERBOSE("OpenXR: Severity: Verbose" + msg);
 	}
 
 	return XR_FALSE;
