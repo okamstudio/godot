@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGShape2D" inherits="Node2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The 2D CSG base class.
+	</brief_description>
+	<description>
+		The 2D CSG base class that provides CSG operation support to the various 2D CSG nodes in Godot.
+		Individual CSG root node results can be baked to nodes with static resources with the editor menu that appears when a CSG root node is selected.
+		Individual CSG root nodes can also be baked to static resources with scripts by calling [method bake_static_mesh] for the visual mesh or [method bake_collision_shapes] for the physics collision.
+		[b]Performance:[/b] CSG nodes are only intended for prototyping as they have a significant CPU performance cost. Consider baking final CSG operation results into static geometry that replaces the CSG nodes. This can be done using the various [b]Bake[/b] options available in the [b]CSG2D[/b] menu at the top of the 2D editor viewport after selecting a 2D CSG node.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="bake_collision_shapes" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an array of baked [ConvexPolygonShape2D] or [ConcavePolygonShape2D] shapes of this CSG root node's operation result. Returns an empty array if the node is not a CSG root node, has no collision enabled, or has no valid geometry.
+			</description>
+		</method>
+		<method name="bake_light_occluders" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an array of baked [OccluderPolygon2D] occluders of this CSG root node's operation result. Returns an empty array if the node is not a CSG root node or has no valid geometry.
+			</description>
+		</method>
+		<method name="bake_navigation_mesh" qualifiers="const">
+			<return type="NavigationPolygon" />
+			<description>
+				Returns a baked [NavigationPolygon] navigation mesh of this CSG root node's operation result. Returns an empty mesh if the node is not a CSG root node or has no valid geometry.
+			</description>
+		</method>
+		<method name="bake_static_mesh" qualifiers="const">
+			<return type="ArrayMesh" />
+			<description>
+				Returns a baked static [ArrayMesh] of this CSG root node's operation result. Returns an empty mesh if the node is not a CSG root node or has no valid geometry.
+			</description>
+		</method>
+		<method name="force_shape_update">
+			<return type="void" />
+			<description>
+				Forces a (re)calculation of the CSG shape result. CSG operations depend on child and parent CSG nodes being fully available and updated. Because of this normal CSG updates happen deferred. If called while other CSG nodes are not available or updated the CSG shape result might turn out broken or empty.
+			</description>
+		</method>
+		<method name="get_collision_layer_value" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_number" type="int" />
+			<description>
+				Returns whether or not the specified layer of the [member collision_layer] is enabled, given a [param layer_number] between 1 and 32.
+			</description>
+		</method>
+		<method name="get_collision_mask_value" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_number" type="int" />
+			<description>
+				Returns whether or not the specified layer of the [member collision_mask] is enabled, given a [param layer_number] between 1 and 32.
+			</description>
+		</method>
+		<method name="is_root_shape" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if this is a CSG root shape that creates a geometry result used by the rendering or physics.
+			</description>
+		</method>
+		<method name="set_collision_layer_value">
+			<return type="void" />
+			<param index="0" name="layer_number" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Based on [param value], enables or disables the specified layer in the [member collision_layer], given a [param layer_number] between 1 and 32.
+			</description>
+		</method>
+		<method name="set_collision_mask_value">
+			<return type="void" />
+			<param index="0" name="layer_number" type="int" />
+			<param index="1" name="value" type="bool" />
+			<description>
+				Based on [param value], enables or disables the specified layer in the [member collision_mask], given a [param layer_number] between 1 and 32.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="collision_layer" type="int" setter="set_collision_layer" getter="get_collision_layer" default="1">
+			The physics layers this area is in.
+			Collidable objects can exist in any of 32 different layers. These layers work like a tagging system, and are not visual. A collidable can use these layers to select with which objects it can collide, using the collision_mask property.
+			A contact is detected if object A is in any of the layers that object B scans, or object B is in any layer scanned by object A. See [url=$DOCS_URL/tutorials/physics/physics_introduction.html#collision-layers-and-masks]Collision layers and masks[/url] in the documentation for more information.
+		</member>
+		<member name="collision_mask" type="int" setter="set_collision_mask" getter="get_collision_mask" default="1">
+			The physics layers this CSG shape scans for collisions. Only effective if [member use_collision] is [code]true[/code]. See [url=$DOCS_URL/tutorials/physics/physics_introduction.html#collision-layers-and-masks]Collision layers and masks[/url] in the documentation for more information.
+		</member>
+		<member name="collision_priority" type="float" setter="set_collision_priority" getter="get_collision_priority" default="1.0">
+			The priority used to solve colliding when occurring penetration. Only effective if [member use_collision] is [code]true[/code]. The higher the priority is, the lower the penetration into the object will be. This can for example be used to prevent the player from breaking through the boundaries of a level.
+		</member>
+		<member name="collision_shape_type" type="int" setter="set_collision_shape_type" getter="get_collision_shape_type" enum="CSGShape2D.CollisionShapeType" default="0">
+			The uses collision shape type when the CSG result gets converted to collision geometry. Depending on CSG result complexity their will be multiple shapes of either type [ConvexPolygonShape2D] or [ConcavePolygonShape2D].
+		</member>
+		<member name="debug_show_brush" type="bool" setter="set_debug_show_brush" getter="get_debug_show_brush" default="false">
+			If enabled shows the outline of the CSG shape brush colored by [member operation] type.
+		</member>
+		<member name="operation" type="int" setter="set_operation" getter="get_operation" enum="CSGShape2D.Operation" default="0">
+			The operation that is performed on this shape. This is ignored for the first CSG child node as the operation is between this node and the previous child of this nodes parent.
+		</member>
+		<member name="use_collision" type="bool" setter="set_use_collision" getter="is_using_collision" default="false">
+			Adds collision shapes to the physics engine for this CSG shape. Depending on [member collision_shape_type] these shapes act either also concave collision segments or as solid convex collision polygons. They will always act like a single static physics body. Note that collision is still active even if the CSG shape has its rendering visibility hidden. See also [member collision_mask] and [member collision_priority].
+		</member>
+		<member name="use_vertex_color" type="bool" setter="set_use_vertex_color" getter="is_using_vertex_color" default="false">
+			If [code]true[/code] the CSG root node mesh result will use the [member vertex_color] for its [constant Mesh.ARRAY_COLOR].
+		</member>
+		<member name="vertex_color" type="Color" setter="set_vertex_color" getter="get_vertex_color" default="Color(1, 1, 1, 1)">
+			The vertex color used for the CSG root node mesh result when [member use_vertex_color] is enabled.
+		</member>
+	</members>
+	<constants>
+		<constant name="OPERATION_UNION" value="0" enum="Operation">
+			Geometry of both primitives is merged, intersecting geometry is removed.
+		</constant>
+		<constant name="OPERATION_INTERSECTION" value="1" enum="Operation">
+			Only intersecting geometry remains, the rest is removed.
+		</constant>
+		<constant name="OPERATION_SUBTRACTION" value="2" enum="Operation">
+			The second shape is subtracted from the first, leaving a dent with its shape.
+		</constant>
+		<constant name="COLLISION_SHAPE_TYPE_CONCAVE_SEGMENTS" value="0" enum="CollisionShapeType">
+			The CSG result will be converted to a concave collision shape consisting of multiple collision segments.
+		</constant>
+		<constant name="COLLISION_SHAPE_TYPE_CONVEX_POLYGONS" value="1" enum="CollisionShapeType">
+			The CSG result will be converted to multiple convex collision shapes each consisting of a single solid convex polygon.
+		</constant>
+		<constant name="COLLISION_SHAPE_TYPE_MAX" value="2" enum="CollisionShapeType">
+			The number of CSG collision shape types.
+		</constant>
+	</constants>
+</class>

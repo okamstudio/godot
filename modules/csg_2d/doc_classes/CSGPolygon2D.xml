@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGPolygon2D" inherits="CSGPrimitive2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 2D CSG polygon shape.
+	</brief_description>
+	<description>
+		A 2D CSG node that allows to create a polygon for use with the 2D CSG system. For CSG union and intersection operations the polygon can be arbitrarily shaped. For CSG subtraction operations the polygons must be non-self-overlapping.
+		[b]Performance:[/b] CSG nodes are only intended for prototyping as they have a significant CPU performance cost. Consider baking final CSG operation results into static geometry that replaces the CSG nodes. This can be done using the various [b]Bake[/b] options available in the [b]CSG2D[/b] menu at the top of the 2D editor viewport after selecting a 2D CSG node.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="polygon" type="PackedVector2Array" setter="set_polygon" getter="get_polygon" default="PackedVector2Array()">
+			The vertices of the [member polygon].
+		</member>
+	</members>
+</class>

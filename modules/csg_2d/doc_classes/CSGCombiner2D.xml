@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGCombiner2D" inherits="CSGShape2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 2D CSG node to structure other 2D CSG nodes.
+	</brief_description>
+	<description>
+		For complex arrangements of shapes, it is sometimes needed to add structure to CSG nodes. A CSGCombiner2D node allows to create this structure. The node encapsulates the result of the CSG operations of its children. In this way, it is possible to do operations on one set of shapes that are children of one CSGCombiner2D node, and a set of separate operations on a second set of shapes that are children of a second CSGCombiner2D node, and then do an operation that takes the two end results as its input to create the final shape.
+		[b]Performance:[/b] CSG nodes are only intended for prototyping as they have a significant CPU performance cost. Consider baking final CSG operation results into static geometry that replaces the CSG nodes. This can be done using the various [b]Bake[/b] options available in the [b]CSG2D[/b] menu at the top of the 2D editor viewport after selecting a 2D CSG node.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

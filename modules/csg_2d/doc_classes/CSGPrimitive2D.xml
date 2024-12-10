@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGPrimitive2D" inherits="CSGShape2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Base class for 2D CSG primitives.
+	</brief_description>
+	<description>
+		Base class for various 2D CSG primitives. It contains code and functionality that is common between them. It cannot be used directly. Instead use one of the various classes that inherit from it.
+		[b]Performance:[/b] CSG nodes are only intended for prototyping as they have a significant CPU performance cost. Consider baking final CSG operation results into static geometry that replaces the CSG nodes. This can be done using the various [b]Bake[/b] options available in the [b]CSG2D[/b] menu at the top of the 2D editor viewport after selecting a 2D CSG node.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

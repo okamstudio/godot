@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CSGCapsule2D" inherits="CSGPrimitive2D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		A 2D CSG Capsule shape.
+	</brief_description>
+	<description>
+		This node allows to create a capsule for use with the 2D CSG system.
+		[b]Performance:[/b] CSG nodes are only intended for prototyping as they have a significant CPU performance cost. Consider baking final CSG operation results into static geometry that replaces the CSG nodes. This can be done using the various [b]Bake[/b] options available in the [b]CSG2D[/b] menu at the top of the 2D editor viewport after selecting a 2D CSG node.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="height" type="float" setter="set_height" getter="get_height" default="30.0">
+			The height of the capsule.
+		</member>
+		<member name="radial_segments" type="int" setter="set_radial_segments" getter="get_radial_segments" default="6">
+			Number of radial segments on each quarter circle of the capsule.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="10.0">
+			The radius of the capsule.
+		</member>
+	</members>
+</class>
