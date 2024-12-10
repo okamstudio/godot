@@ -1,0 +1,4 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 2: Cannot infer the type of "member_inferred" variable because the value doesn't have a set type.
+>> ERROR at line 4: Cannot infer the type of "param_inferred" parameter because the value doesn't have a set type.
+>> ERROR at line 9: Cannot infer the type of "local_inferred" variable because the value doesn't have a set type.

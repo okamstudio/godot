@@ -83,4 +83,4 @@ var temp_packed_vector4_array: PackedVector4Array
 func test():
 	for property in get_property_list():
 		if str(property.name).begins_with("test_"):
-			Utils.print_property_extended_info(property)
+			print(Utils.get_property_extended_info(property))

@@ -1,0 +1,6 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 7: Value of type "String" cannot be assigned to a variable of type "int".
+>> ERROR at line 9: Cannot return value of type "int" because the function return type is "String".
+>> ERROR at line 13: Function with return type "int" cannot be used as getter for a property of type "String".
+>> ERROR at line 13: Function with argument type "int" cannot be used as setter for a property of type "String".
+>> ERROR at line 19: Cannot assign a value of type int to variable "x" with specified type String.

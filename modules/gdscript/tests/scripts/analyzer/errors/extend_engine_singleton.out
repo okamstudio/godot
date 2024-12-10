@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 3: Cannot inherit native class "Time" because it is an engine singleton.

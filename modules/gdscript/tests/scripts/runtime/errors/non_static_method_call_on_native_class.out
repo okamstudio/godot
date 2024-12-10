@@ -1,3 +1,3 @@
 GDTEST_RUNTIME_ERROR
-~~ WARNING at line 6: (UNSAFE_METHOD_ACCESS) The method "has_method()" is not present on the inferred type "Variant" (but may be present on a subtype).
->> SCRIPT ERROR at runtime/errors/non_static_method_call_on_native_class.gd:6 on example(): Invalid call. Nonexistent function 'has_method' in base 'Node2D'.
+~~ WARNING at line 4: (UNSAFE_METHOD_ACCESS) The method "has_method()" is not present on the inferred type "Variant" (but may be present on a subtype).
+>> SCRIPT ERROR at runtime/errors/non_static_method_call_on_native_class.gd:4 on example(): Invalid call. Nonexistent function 'has_method' in base 'Node2D'.

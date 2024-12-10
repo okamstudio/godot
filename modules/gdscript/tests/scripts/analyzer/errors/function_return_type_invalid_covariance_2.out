@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: The function signature doesn't match the parent. Parent signature is "f() -> Node".

@@ -1,0 +1,21 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 9: Cannot assign a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 9: Cannot assign a value of type enum_type_checking.gd.MyOtherEnum to variable "class_var_1" with specified type enum_type_checking.gd.MyEnum.
+>> ERROR at line 16: Cannot return a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 16: Cannot return value of type "enum_type_checking.gd.MyOtherEnum" because the function return type is "enum_type_checking.gd.MyEnum".
+>> ERROR at line 19: Cannot assign a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 19: Value of type "enum_type_checking.gd.MyOtherEnum" cannot be assigned to a variable of type "enum_type_checking.gd.MyEnum".
+>> ERROR at line 21: Cannot assign a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 21: Cannot assign a value of type enum_type_checking.gd.MyOtherEnum to variable "local_var_1" with specified type enum_type_checking.gd.MyEnum.
+>> ERROR at line 24: Cannot assign a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 24: Value of type "enum_type_checking.gd.MyOtherEnum" cannot be assigned to a variable of type "enum_type_checking.gd.MyEnum".
+>> ERROR at line 27: Cannot assign a value of type "enum_type_checking.gd::InnerClass.MyEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 27: Value of type "enum_type_checking.gd::InnerClass.MyEnum" cannot be assigned to a variable of type "enum_type_checking.gd.MyEnum".
+>> ERROR at line 29: Cannot assign a value of type "enum_type_checking.gd.<anonymous enum>" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 29: Cannot assign a value of type enum_type_checking.gd.<anonymous enum> to variable "local_var_4" with specified type enum_type_checking.gd.MyEnum.
+>> ERROR at line 33: Cannot assign a value of type "enum_from_outer.gd.Named" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 33: Value of type "enum_from_outer.gd.Named" cannot be assigned to a variable of type "enum_type_checking.gd.MyEnum".
+>> ERROR at line 37: Cannot assign a value of type "enum_value_from_parent.gd.<anonymous enum>" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 37: Value of type "enum_value_from_parent.gd.<anonymous enum>" cannot be assigned to a variable of type "enum_type_checking.gd.MyEnum".
+>> ERROR at line 39: Cannot pass a value of type "enum_type_checking.gd.MyOtherEnum" as "enum_type_checking.gd.MyEnum".
+>> ERROR at line 39: Invalid argument for "enum_func_1()" function: argument 1 should be "enum_type_checking.gd.MyEnum" but is "enum_type_checking.gd.MyOtherEnum".

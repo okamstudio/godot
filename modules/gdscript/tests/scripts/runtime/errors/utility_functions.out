@@ -1,0 +1,3 @@
+GDTEST_RUNTIME_ERROR
+>> SCRIPT ERROR at runtime/errors/utility_functions.gd:3 on subtest_pass_wrong_arg_builtin(): Error calling utility function "floor()": Argument "x" must be "int", "float", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", or "Vector4i".
+>> SCRIPT ERROR at runtime/errors/utility_functions.gd:7 on subtest_pass_wrong_arg_gdscript(): Error calling GDScript utility function "len()": Value of type 'Color' can't provide a length.

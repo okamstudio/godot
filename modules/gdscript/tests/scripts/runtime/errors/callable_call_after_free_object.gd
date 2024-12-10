@@ -4,3 +4,4 @@ func test():
 	var inside_tree = node.is_inside_tree
 	node.free()
 	inside_tree.call()
+	print(node)

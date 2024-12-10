@@ -1,0 +1,27 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 1: Could not resolve member "NamedEnum0": Cyclic reference.
+>> ERROR at line 1: Enum values must be constant.
+>> ERROR at line 3: Could not resolve member "NamedEnum1": Cyclic reference.
+>> ERROR at line 3: Enum values must be constant.
+>> ERROR at line 5: Cannot use another enum element before it was declared.
+>> ERROR at line 5: Enum values must be constant.
+>> ERROR at line 7: Could not resolve member "ENUM_VALUE_1": Cyclic reference.
+>> ERROR at line 9: Could not resolve member "CONST_0": Cyclic reference.
+>> ERROR at line 9: Could not resolve type for constant "CONST_0".
+>> ERROR at line 11: Could not resolve member "CONST_1": Cyclic reference.
+>> ERROR at line 11: Could not resolve type for constant "CONST_2".
+>> ERROR at line 13: Could not resolve member "var_0": Cyclic reference.
+>> ERROR at line 13: Could not resolve type for variable "var_0".
+>> ERROR at line 15: Could not resolve member "var_1": Cyclic reference.
+>> ERROR at line 15: Cannot infer the type of "var_2" variable because the value doesn't have a set type.
+>> ERROR at line 17: Could not resolve member "func_0": Cyclic reference.
+>> ERROR at line 17: Cannot infer the type of "p" parameter because the value doesn't have a set type.
+>> ERROR at line 21: Could not resolve member "func_1": Cyclic reference.
+>> ERROR at line 21: Cannot infer the type of "p" parameter because the value doesn't have a set type.
+>> ERROR at line 25: Could not resolve member "lambda_body": Cyclic reference.
+>> ERROR at line 25: Could not resolve type for variable "lambda_body_ref".
+>> ERROR at line 28: Could not resolve member "lambda_param": Cyclic reference.
+>> ERROR at line 28: Could not resolve type for variable "lambda_param_ref".
+>> ERROR at line 31: Could not resolve external class member "member".
+>> ERROR at line 31: Cannot find member "member" in base "TestCyclicRefExternal".
+>> ERROR at line 37: Could not resolve member "f": Cyclic reference.

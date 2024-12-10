@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 5: Expression is of type "int" so it can't be of type "String".

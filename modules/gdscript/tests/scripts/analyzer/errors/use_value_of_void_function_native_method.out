@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 3: Cannot get return value of call to "free()" because it returns "void".

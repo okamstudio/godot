@@ -1,0 +1,30 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 2: Enum values must be integers.
+>> ERROR at line 3: Enum values must be integers.
+>> ERROR at line 9: Type "Operator" in base "Variant" cannot be used on its own.
+>> ERROR at line 10: Type "Axis" in base "Vector3" cannot be used on its own.
+>> ERROR at line 11: Type "ProcessMode" in base "Node" cannot be used on its own.
+>> ERROR at line 13: Cannot find member "NOT_EXIST" in base "Side".
+>> ERROR at line 14: Cannot find member "NOT_EXIST" in base "Vector3.Axis".
+>> ERROR at line 15: Cannot find member "NOT_EXIST" in base "TileSet.TileShape".
+>> ERROR at line 16: Cannot find member "NOT_EXIST" in base "enum_declaration_and_usage.gd.CustomEnum".
+>> ERROR at line 18: Global enum "Side" cannot be used on its own.
+>> ERROR at line 18: The native enum "Side" does not behave like Dictionary and does not have methods of its own.
+>> ERROR at line 18: Static function "size()" not found in base "Side".
+>> ERROR at line 19: Type "Axis" in base "Vector3" cannot be used on its own.
+>> ERROR at line 19: Native class Vector3.Axis used in script doesn't exist or isn't exposed.
+>> ERROR at line 19: Static function "size()" not found in base "Variant".
+>> ERROR at line 20: Type "TileShape" in base "TileSet" cannot be used on its own.
+>> ERROR at line 20: Native class TileSet.TileShape used in script doesn't exist or isn't exposed.
+>> ERROR at line 20: Static function "size()" not found in base "Variant".
+>> ERROR at line 22: Global enum "Side" cannot be used on its own.
+>> ERROR at line 22: The native enum "Side" does not behave like Dictionary and does not have methods of its own.
+>> ERROR at line 22: Static function "clear()" not found in base "Side".
+>> ERROR at line 23: Type "Axis" in base "Vector3" cannot be used on its own.
+>> ERROR at line 23: Native class Vector3.Axis used in script doesn't exist or isn't exposed.
+>> ERROR at line 23: Static function "clear()" not found in base "Variant".
+>> ERROR at line 24: Type "TileShape" in base "TileSet" cannot be used on its own.
+>> ERROR at line 24: Native class TileSet.TileShape used in script doesn't exist or isn't exposed.
+>> ERROR at line 24: Static function "clear()" not found in base "Variant".
+>> ERROR at line 25: Cannot call non-const Dictionary function "clear()" on enum "CustomEnum".
+>> ERROR at line 28: Cannot call non-const Dictionary function "clear()" on enum "CustomEnum".

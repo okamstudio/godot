@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 2: Cannot get return value of call to "print_debug()" because it returns "void".

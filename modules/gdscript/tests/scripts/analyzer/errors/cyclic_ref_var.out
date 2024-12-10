@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 5: Could not resolve member "v1": Cyclic reference.
->> ERROR at line 5: Cannot infer the type of "v2" variable because the value doesn't have a set type.

@@ -1,0 +1,7 @@
+GDTEST_RUNTIME_ERROR
+~~ WARNING at line 3: (UNSAFE_METHOD_ACCESS) The method "reverse()" is not present on the inferred type "Variant" (but may be present on a subtype).
+~~ WARNING at line 7: (UNSAFE_METHOD_ACCESS) The method "notify_property_list_changed()" is not present on the inferred type "Variant" (but may be present on a subtype).
+~~ WARNING at line 11: (UNSAFE_METHOD_ACCESS) The method "free()" is not present on the inferred type "Variant" (but may be present on a subtype).
+>> SCRIPT ERROR at runtime/errors/use_value_of_void_function.gd:3 on subtest_builtin(): Trying to get a return value of a method that returns "void"
+>> SCRIPT ERROR at runtime/errors/use_value_of_void_function.gd:7 on subtest_native(): Trying to get a return value of a method that returns "void"
+>> SCRIPT ERROR at runtime/errors/use_value_of_void_function.gd:11 on subtest_free(): Trying to get a return value of a method that returns "void"

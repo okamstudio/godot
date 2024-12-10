@@ -638,15 +638,15 @@ Error GDScriptAnalyzer::resolve_class_inheritance(GDScriptParser::ClassNode *p_c
 	if (p_recursive) {
 		for (int i = 0; i < p_class->members.size(); i++) {
 			if (p_class->members[i].type == GDScriptParser::ClassNode::Member::CLASS) {
-				err = resolve_class_inheritance(p_class->members[i].m_class, true);
-				if (err) {
-					return err;
+				const Error inner_err = resolve_class_inheritance(p_class->members[i].m_class, true);
+				if (inner_err != OK && err == OK) {
+					err = inner_err;
 				}
 			}
 		}
 	}
 
-	return OK;
+	return err;
 }
 
 GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::TypeNode *p_type) {

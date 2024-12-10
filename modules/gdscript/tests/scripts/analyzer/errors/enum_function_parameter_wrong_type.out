@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 8: Cannot pass a value of type "enum_function_parameter_wrong_type.gd.MyOtherEnum" as "enum_function_parameter_wrong_type.gd.MyEnum".
->> ERROR at line 8: Invalid argument for "enum_func()" function: argument 1 should be "enum_function_parameter_wrong_type.gd.MyEnum" but is "enum_function_parameter_wrong_type.gd.MyOtherEnum".

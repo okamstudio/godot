@@ -1,0 +1,4 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 4: Local constant "EnumType" is not resolved at this point.
+>> ERROR at line 8: Local variable "enum_variable" cannot be used as a type.
+>> ERROR at line 11: Local constant "ENUM_VALUE" is not a valid type.

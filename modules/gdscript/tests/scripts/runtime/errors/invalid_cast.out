@@ -1,0 +1,8 @@
+GDTEST_RUNTIME_ERROR
+~~ WARNING at line 3: (UNSAFE_CAST) Casting "Variant" to "Array" is unsafe.
+~~ WARNING at line 7: (UNSAFE_CAST) Casting "Variant" to "Node" is unsafe.
+~~ WARNING at line 11: (UNSAFE_CAST) Casting "Variant" to "int" is unsafe.
+>> SCRIPT ERROR at runtime/errors/invalid_cast.gd:3 on subtest_wrong_builtin(): Invalid cast: could not convert value to 'Array'.
+>> SCRIPT ERROR at runtime/errors/invalid_cast.gd:7 on subtest_builtin_as_object(): Invalid cast: can't convert a non-object value to an object type.
+>> SCRIPT ERROR at runtime/errors/invalid_cast.gd:11 on subtest_object_as_builtin(): Invalid cast: could not convert value to 'int'.
+>> SCRIPT ERROR at runtime/errors/invalid_cast.gd:16 on subtest_freed_object(): Trying to cast a freed object.

@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: Value of type "String" cannot be assigned to a variable of type "int".

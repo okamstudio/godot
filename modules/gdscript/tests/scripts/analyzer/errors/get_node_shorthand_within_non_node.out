@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 4: Cannot use shorthand "get_node()" notation ("$") on a class that isn't a node.
->> ERROR at line 4: Cannot infer the type of "nope" variable because the value doesn't have a set type.

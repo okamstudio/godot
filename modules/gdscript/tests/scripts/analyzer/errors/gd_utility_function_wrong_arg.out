@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 2: Invalid argument for "len()" function: Value of type 'Color' can't provide a length.

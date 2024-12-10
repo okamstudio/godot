@@ -1,3 +1,0 @@
-GDTEST_ANALYZER_ERROR
->> ERROR at line 6: Cannot assign a value of type "enum_unnamed_assign_to_named.gd.<anonymous enum>" as "enum_unnamed_assign_to_named.gd.MyEnum".
->> ERROR at line 6: Cannot assign a value of type enum_unnamed_assign_to_named.gd.<anonymous enum> to variable "local_var" with specified type enum_unnamed_assign_to_named.gd.MyEnum.

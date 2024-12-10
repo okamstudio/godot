@@ -1,2 +1,6 @@
 GDTEST_ANALYZER_ERROR
 >> ERROR at line 3: Unable to iterate on value of type "Array[Resource]" with variable of type "Node".
+>> ERROR at line 7: Cannot include a value of type "int" as "String".
+>> ERROR at line 7: Cannot have an element of type "int" in an array of type "Array[String]".
+>> ERROR at line 10: Cannot include a value of type "String" as "int".
+>> ERROR at line 10: Cannot have a key of type "String" in a dictionary of type "Dictionary[int, Variant]".

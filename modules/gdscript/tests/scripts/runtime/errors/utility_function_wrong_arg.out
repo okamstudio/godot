@@ -1,2 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR at runtime/errors/utility_function_wrong_arg.gd:3 on test(): Error calling utility function "floor()": Argument "x" must be "int", "float", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", or "Vector4i".

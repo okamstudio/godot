@@ -1,0 +1,4 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 3: Invalid cast. Cannot convert from "int" to "Array".
+>> ERROR at line 4: Invalid cast. Cannot convert from "int" to "Node".
+>> ERROR at line 6: Invalid cast. Cannot convert from "RefCounted" to "int".

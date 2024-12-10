@@ -44,4 +44,4 @@ var test_12: int = 42
 func test():
 	for property in get_property_list():
 		if str(property.name).begins_with("test_"):
-			Utils.print_property_extended_info(property, self)
+			print(Utils.get_property_extended_info(property, self))

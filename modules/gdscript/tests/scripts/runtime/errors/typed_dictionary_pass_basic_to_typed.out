@@ -1,2 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR at runtime/errors/typed_dictionary_pass_basic_to_typed.gd:6 on test(): Invalid type in function 'expect_typed' in base 'RefCounted (typed_dictionary_pass_basic_to_typed.gd)'. The dictionary of argument 1 (Dictionary) does not have the same element type as the expected typed dictionary argument.

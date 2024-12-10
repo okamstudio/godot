@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
->> ERROR at line 3: Cannot assign a new value to a read-only property.
+>> ERROR at line 4: Cannot assign a new value to a read-only property.
+>> ERROR at line 9: Cannot assign a new value to a read-only property.

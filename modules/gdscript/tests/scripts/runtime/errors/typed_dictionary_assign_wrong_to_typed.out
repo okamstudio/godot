@@ -1,6 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> ERROR: Condition "!other_script->inherits_script(script)" is true. Returning: false
->>   Attempted to assign an object into a TypedDictionary.Key, that does not inherit from 'GDScript'.
->> ERROR: Method/function failed.
->>   Unable to convert key from "Object" to "Object".
-not ok

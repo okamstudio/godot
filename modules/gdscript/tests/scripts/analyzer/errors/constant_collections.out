@@ -1,0 +1,3 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 6: Cannot assign a new value to a constant.
+>> ERROR at line 7: Cannot assign a new value to a constant.
