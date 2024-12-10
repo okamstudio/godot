@@ -311,6 +311,8 @@ public:
 	RID get_velocity_buffer(bool p_get_msaa);
 	RID get_velocity_buffer(bool p_get_msaa, uint32_t p_layer);
 
+	RID get_velocity_depth_buffer();
+
 	// Samplers adjusted with the mipmap bias that is best fit for the configuration of these render buffers.
 
 	_FORCE_INLINE_ RendererRD::MaterialStorage::Samplers get_samplers() const {

@@ -60,6 +60,15 @@ layout(location = 10) in uvec4 bone_attrib;
 layout(location = 11) in vec4 weight_attrib;
 #endif
 
+#if defined(MODE_RENDER_MOTION_VECTORS)
+layout(location = 12) in vec4 previous_vertex_attrib;
+
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+layout(location = 13) in vec4 previous_normal_attrib;
+#endif
+
+#endif // MODE_RENDER_MOTION_VECTORS
+
 vec3 oct_to_vec3(vec2 e) {
 	vec3 v = vec3(e.xy, 1.0 - abs(e.x) - abs(e.y));
 	float t = max(-v.z, 0.0);
@@ -121,6 +130,11 @@ layout(location = 9) out highp float dp_clip;
 
 #endif
 
+#if defined(MODE_RENDER_MOTION_VECTORS)
+layout(location = 12) out highp vec4 screen_position;
+layout(location = 13) out highp vec4 prev_screen_position;
+#endif
+
 #ifdef USE_MULTIVIEW
 #ifdef has_VK_KHR_multiview
 #define ViewIndex gl_ViewIndex
@@ -148,8 +162,6 @@ ivec2 multiview_uv(ivec2 uv) {
 invariant gl_Position;
 
 #GLOBALS
-
-#define scene_data scene_data_block.data
 
 #ifdef USE_DOUBLE_PRECISION
 // Helper functions for emulating double precision when adding floats.
@@ -185,13 +197,65 @@ uint multimesh_stride() {
 	return stride;
 }
 
-void main() {
+void _unpack_vertex_attributes(vec4 p_vertex_in, vec3 p_compressed_aabb_position, vec3 p_compressed_aabb_size,
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+		vec4 p_normal_in,
+#ifdef NORMAL_USED
+		out vec3 r_normal,
+#endif
+		out vec3 r_tangent,
+		out vec3 r_binormal,
+#endif
+		out vec3 r_vertex) {
+
+	r_vertex = p_vertex_in.xyz * p_compressed_aabb_size + p_compressed_aabb_position;
+#ifdef NORMAL_USED
+	r_normal = oct_to_vec3(p_normal_in.xy * 2.0 - 1.0);
+#endif
+
+#if defined(NORMAL_USED) || defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
+
+	float binormal_sign;
+
+	// This works because the oct value (0, 1) maps onto (0, 0, -1) which encodes to (1, 1).
+	// Accordingly, if p_normal_in.z contains octahedral values, it won't equal (0, 1).
+	if (p_normal_in.z > 0.0 || p_normal_in.w < 1.0) {
+		// Uncompressed format.
+		vec2 signed_tangent_attrib = p_normal_in.zw * 2.0 - 1.0;
+		r_tangent = oct_to_vec3(vec2(signed_tangent_attrib.x, abs(signed_tangent_attrib.y) * 2.0 - 1.0));
+		binormal_sign = sign(signed_tangent_attrib.y);
+		r_binormal = normalize(cross(r_normal, r_tangent) * binormal_sign);
+	} else {
+		// Compressed format.
+		float angle = p_vertex_in.w;
+		binormal_sign = angle > 0.5 ? 1.0 : -1.0; // 0.5 does not exist in UNORM16, so values are either greater or smaller.
+		angle = abs(angle * 2.0 - 1.0) * M_PI; // 0.5 is basically zero, allowing to encode both signs reliably.
+		vec3 axis = r_normal;
+		axis_angle_to_tbn(axis, angle, r_tangent, r_binormal, r_normal);
+		r_binormal *= binormal_sign;
+	}
+#endif
+}
+
+void vertex_shader(in vec3 vertex,
+#ifdef NORMAL_USED
+		in vec3 normal,
+#endif
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+		in vec3 tangent,
+		in vec3 binormal,
+#endif
+		in uint instance_index, in uint multimesh_offset, in mat4 model_matrix,
+#ifdef USE_MULTIVIEW
+		in mat4 scene_projection_matrix_view, in mat4 scene_inv_projection_matrix_view, in vec4 scene_eye_offset,
+#endif
+		in SceneData scene_data,
+		out vec4 screen_position_output) {
 	vec4 instance_custom = vec4(0.0);
 #if defined(COLOR_USED)
 	color_interp = color_attrib;
 #endif
 
-	mat4 model_matrix = instances.data[draw_call.instance_index].transform;
 	mat4 inv_view_matrix = scene_data.inv_view_matrix;
 
 #ifdef USE_DOUBLE_PRECISION
@@ -206,7 +270,7 @@ void main() {
 #endif
 
 	mat3 model_normal_matrix;
-	if (bool(instances.data[draw_call.instance_index].flags & INSTANCE_FLAGS_NON_UNIFORM_SCALE)) {
+	if (bool(instances.data[instance_index].flags & INSTANCE_FLAGS_NON_UNIFORM_SCALE)) {
 		model_normal_matrix = transpose(inverse(mat3(model_matrix)));
 	} else {
 		model_normal_matrix = mat3(model_matrix);
@@ -219,7 +283,7 @@ void main() {
 		//multimesh, instances are for it
 
 #ifdef USE_PARTICLE_TRAILS
-		uint trail_size = (instances.data[draw_call.instance_index].flags >> INSTANCE_FLAGS_PARTICLE_TRAIL_SHIFT) & INSTANCE_FLAGS_PARTICLE_TRAIL_MASK;
+		uint trail_size = (instances.data[instance_index].flags >> INSTANCE_FLAGS_PARTICLE_TRAIL_SHIFT) & INSTANCE_FLAGS_PARTICLE_TRAIL_MASK;
 		uint stride = 3 + 1 + 1; //particles always uses this format
 
 		uint offset = trail_size * stride * gl_InstanceIndex;
@@ -264,7 +328,7 @@ void main() {
 
 #else
 		uint stride = multimesh_stride();
-		uint offset = stride * gl_InstanceIndex;
+		uint offset = stride * (gl_InstanceIndex + multimesh_offset);
 
 		if (sc_multimesh_format_2d()) {
 			matrix = mat4(transforms.data[offset + 0], transforms.data[offset + 1], vec4(0.0, 0.0, 1.0, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
@@ -300,33 +364,6 @@ void main() {
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
 	}
 
-	vec3 vertex = vertex_angle_attrib.xyz * instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz + instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz;
-#ifdef NORMAL_USED
-	vec3 normal = oct_to_vec3(axis_tangent_attrib.xy * 2.0 - 1.0);
-#endif
-
-#if defined(NORMAL_USED) || defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
-
-	vec3 binormal;
-	float binormal_sign;
-	vec3 tangent;
-	if (axis_tangent_attrib.z > 0.0 || axis_tangent_attrib.w < 1.0) {
-		// Uncompressed format.
-		vec2 signed_tangent_attrib = axis_tangent_attrib.zw * 2.0 - 1.0;
-		tangent = oct_to_vec3(vec2(signed_tangent_attrib.x, abs(signed_tangent_attrib.y) * 2.0 - 1.0));
-		binormal_sign = sign(signed_tangent_attrib.y);
-		binormal = normalize(cross(normal, tangent) * binormal_sign);
-	} else {
-		// Compressed format.
-		float angle = vertex_angle_attrib.w;
-		binormal_sign = angle > 0.5 ? 1.0 : -1.0; // 0.5 does not exist in UNORM16, so values are either greater or smaller.
-		angle = abs(angle * 2.0 - 1.0) * M_PI; // 0.5 is basically zero, allowing to encode both signs reliably.
-		vec3 axis = normal;
-		axis_angle_to_tbn(axis, angle, tangent, binormal, normal);
-		binormal *= binormal_sign;
-	}
-#endif
-
 #ifdef UV_USED
 	uv_interp = uv_attrib;
 #endif
@@ -335,7 +372,7 @@ void main() {
 	uv2_interp = uv2_attrib;
 #endif
 
-	vec4 uv_scale = instances.data[draw_call.instance_index].uv_scale;
+	vec4 uv_scale = instances.data[instance_index].uv_scale;
 
 	if (uv_scale != vec4(0.0)) { // Compression enabled
 #ifdef UV_USED
@@ -351,9 +388,9 @@ void main() {
 #endif
 
 #ifdef USE_MULTIVIEW
-	mat4 projection_matrix = scene_data.projection_matrix_view[ViewIndex];
-	mat4 inv_projection_matrix = scene_data.inv_projection_matrix_view[ViewIndex];
-	vec3 eye_offset = scene_data.eye_offset[ViewIndex].xyz;
+	mat4 projection_matrix = scene_projection_matrix_view;
+	mat4 inv_projection_matrix = scene_inv_projection_matrix_view;
+	vec3 eye_offset = scene_eye_offset.xyz;
 #else
 	mat4 projection_matrix = scene_data.projection_matrix;
 	mat4 inv_projection_matrix = scene_data.inv_projection_matrix;
@@ -402,7 +439,7 @@ void main() {
 	}
 	vertex = mat3(inv_view_matrix * modelview) * vertex;
 	vec3 temp_precision;
-	vertex += double_add_vec3(model_origin, model_precision, scene_data.inv_view_matrix[3].xyz, view_precision, temp_precision);
+	vertex += double_add_vec3(model_origin, model_precision, inv_view_matrix[3].xyz, view_precision, temp_precision);
 	vertex = mat3(scene_data.view_matrix) * vertex;
 #else
 	vertex = (modelview * vec4(vertex, 1.0)).xyz;
@@ -456,13 +493,13 @@ void main() {
 	diffuse_light_interp = vec4(0.0);
 	specular_light_interp = vec4(0.0);
 
-	uvec2 omni_light_indices = instances.data[draw_call.instance_index].omni_lights;
+	uvec2 omni_light_indices = instances.data[instance_index].omni_lights;
 	for (uint i = 0; i < sc_omni_lights(); i++) {
 		uint light_index = (i > 3) ? ((omni_light_indices.y >> ((i - 4) * 8)) & 0xFF) : ((omni_light_indices.x >> (i * 8)) & 0xFF);
 		light_process_omni_vertex(light_index, vertex, view, normal_interp, roughness, diffuse_light_interp.rgb, specular_light_interp.rgb);
 	}
 
-	uvec2 spot_light_indices = instances.data[draw_call.instance_index].spot_lights;
+	uvec2 spot_light_indices = instances.data[instance_index].spot_lights;
 	for (uint i = 0; i < sc_spot_lights(); i++) {
 		uint light_index = (i > 3) ? ((spot_light_indices.y >> ((i - 4) * 8)) & 0xFF) : ((spot_light_indices.x >> (i * 8)) & 0xFF);
 		light_process_spot_vertex(light_index, vertex, view, normal_interp, roughness, diffuse_light_interp.rgb, specular_light_interp.rgb);
@@ -474,11 +511,11 @@ void main() {
 		vec3 directional_specular = vec3(0.0);
 
 		for (uint i = 0; i < sc_directional_lights(); i++) {
-			if (!bool(directional_lights.data[i].mask & instances.data[draw_call.instance_index].layer_mask)) {
+			if (!bool(directional_lights.data[i].mask & instances.data[instance_index].layer_mask)) {
 				continue; // Not masked, skip.
 			}
 
-			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[draw_call.instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
+			if (directional_lights.data[i].bake_mode == LIGHT_BAKE_STATIC && bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) {
 				continue; // Statically baked light and object uses lightmap, skip.
 			}
 			if (i == 0) {
@@ -543,25 +580,110 @@ void main() {
 #endif //MODE_RENDER_DEPTH
 
 #ifdef OVERRIDE_POSITION
-	gl_Position = position;
+	screen_position_output = position;
 #else
-	gl_Position = projection_matrix * vec4(vertex_interp, 1.0);
+	screen_position_output = projection_matrix * vec4(vertex_interp, 1.0);
 #endif // OVERRIDE_POSITION
 
 #ifdef MODE_RENDER_DEPTH
 	if (scene_data.pancake_shadows) {
-		if (gl_Position.z >= 0.9999) {
-			gl_Position.z = 0.9999;
+		if (screen_position_output.z >= 0.9999) {
+			screen_position_output.z = 0.9999;
 		}
 	}
 #endif // MODE_RENDER_DEPTH
 #ifdef MODE_RENDER_MATERIAL
 	if (scene_data.material_uv2_mode) {
-		gl_Position.xy = (uv2_attrib.xy + draw_call.uv_offset) * 2.0 - 1.0;
-		gl_Position.z = 0.00001;
-		gl_Position.w = 1.0;
+		vec2 uv_offset = unpackHalf2x16(draw_call.uv_offset);
+		screen_position_output.xy = (uv2_attrib.xy + uv_offset) * 2.0 - 1.0;
+		screen_position_output.z = 0.00001;
+		screen_position_output.w = 1.0;
 	}
 #endif // MODE_RENDER_MATERIAL
+}
+
+void main() {
+#if defined(MODE_RENDER_MOTION_VECTORS)
+	vec3 prev_vertex;
+#ifdef NORMAL_USED
+	vec3 prev_normal;
+#endif
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+	vec3 prev_tangent;
+	vec3 prev_binormal;
+#endif
+
+	_unpack_vertex_attributes(
+			previous_vertex_attrib,
+			instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz,
+			instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz,
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+			previous_normal_attrib,
+#ifdef NORMAL_USED
+			prev_normal,
+#endif
+			prev_tangent,
+			prev_binormal,
+#endif
+			prev_vertex);
+
+	vertex_shader(prev_vertex,
+#ifdef NORMAL_USED
+			prev_normal,
+#endif
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+			prev_tangent,
+			prev_binormal,
+#endif
+			draw_call.instance_index, draw_call.multimesh_motion_vectors_previous_offset, instances.data[draw_call.instance_index].prev_transform,
+#ifdef USE_MULTIVIEW
+			scene_data_block.prev_data.projection_matrix_view[ViewIndex], scene_data_block.prev_data.inv_projection_matrix_view[ViewIndex], scene_data_block.prev_data.eye_offset[ViewIndex],
+#endif
+			scene_data_block.prev_data,
+			prev_screen_position);
+#else
+	vec4 screen_position;
+#endif // MODE_RENDER_MOTION_VECTORS
+
+	vec3 vertex;
+#ifdef NORMAL_USED
+	vec3 normal;
+#endif
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+	vec3 tangent;
+	vec3 binormal;
+#endif
+
+	_unpack_vertex_attributes(
+			vertex_angle_attrib,
+			instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz,
+			instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz,
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+			axis_tangent_attrib,
+#ifdef NORMAL_USED
+			normal,
+#endif
+			tangent,
+			binormal,
+#endif
+			vertex);
+
+	vertex_shader(vertex,
+#ifdef NORMAL_USED
+			normal,
+#endif
+#if defined(NORMAL_USED) || defined(TANGENT_USED)
+			tangent,
+			binormal,
+#endif
+			draw_call.instance_index, draw_call.multimesh_motion_vectors_current_offset, instances.data[draw_call.instance_index].transform,
+#ifdef USE_MULTIVIEW
+			scene_data_block.data.projection_matrix_view[ViewIndex], scene_data_block.data.inv_projection_matrix_view[ViewIndex], scene_data_block.data.eye_offset[ViewIndex],
+#endif
+			scene_data_block.data,
+			screen_position);
+
+	gl_Position = screen_position;
 }
 
 #[fragment]
@@ -610,6 +732,11 @@ layout(location = 8) highp in vec4 specular_light_interp;
 
 layout(location = 9) highp in float dp_clip;
 
+#endif
+
+#if defined(MODE_RENDER_MOTION_VECTORS)
+layout(location = 12) in highp vec4 screen_position;
+layout(location = 13) in highp vec4 prev_screen_position;
 #endif
 
 #ifdef USE_LIGHTMAP
@@ -1884,4 +2011,15 @@ void main() {
 #endif //MODE_MULTIPLE_RENDER_TARGETS
 
 #endif //MODE_RENDER_DEPTH
+
+#ifdef MODE_RENDER_MOTION_VECTORS
+	// These motion vectors are in NDC space (as opposed to screen space) to fit the OpenXR XR_FB_space_warp specification.
+	// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_FB_space_warp
+
+	vec3 ndc = screen_position.xyz / screen_position.w;
+	ndc.y = -ndc.y;
+	vec3 prev_ndc = prev_screen_position.xyz / prev_screen_position.w;
+	prev_ndc.y = -prev_ndc.y;
+	frag_color = vec4(ndc - prev_ndc, 0.0);
+#endif
 }
