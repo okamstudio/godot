@@ -1008,6 +1008,8 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 	ClassDB::get_class_list(&native_types);
 	for (const StringName &E : native_types) {
 		if (ClassDB::is_class_exposed(E) && !Engine::get_singleton()->has_singleton(E)) {
+			// Native class, when used as a type.
+			// 		var my_var: No...  # <-- will suggest `Node2D`
 			ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CLASS);
 			if (class_doc_map.has(E)) {
 				option.deprecated = class_doc_map.get(E).is_deprecated;
@@ -1019,12 +1021,12 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 	if (p_context.current_class) {
 		if (!p_inherit_only && p_context.current_class->base_type.is_set()) {
 			// Native enums from base class
+			// 		AnimationPlayer.Anim...  # <-- Will suggest `AnimationProcessCallback`
 			List<StringName> enums;
 			const String base_native_type = p_context.current_class->base_type.native_type;
 			ClassDB::get_enum_list(base_native_type, &enums);
 			for (const StringName &E : enums) {
 				ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_ENUM);
-
 				if (class_doc_map.has(base_native_type) && class_doc_map.get(base_native_type).enums.has(E)) {
 					option.deprecated = class_doc_map.get(base_native_type).enums.get(E).is_deprecated;
 				}
@@ -1038,26 +1040,29 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 				const GDScriptParser::ClassNode::Member &member = current->members[i];
 				switch (member.type) {
 					case GDScriptParser::ClassNode::Member::CLASS: {
+						// Inner class (that is, class within this class file defined
+						// with `class`), when used to define a variable's type.
+						// 		var inner_inst: InnerCl...  # <-- will suggest `InnerClass`
 						ScriptLanguage::CodeCompletionOption option(member.m_class->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_LOCAL);
 						option.deprecated = member.m_class->doc_data.is_deprecated;
-						if (option.deprecated) {
-							print_line("The class", option.display, " is deprecated!");
-						}
 						r_result.insert(option.display, option);
 					} break;
 					case GDScriptParser::ClassNode::Member::ENUM: {
 						if (!p_inherit_only) {
+							// Named enum within this class, when used to define
+							// a variable's type.
+							// e.g.,
+							// 		var current_state: MyEn...  # <-- will suggest `MyEnum`
 							ScriptLanguage::CodeCompletionOption option(member.m_enum->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, ScriptLanguage::LOCATION_LOCAL);
 							option.deprecated = member.m_enum->doc_data.is_deprecated;
-							if (option.deprecated) {
-								print_line("The enum", option.display, " is deprecated!");
-							}
 							r_result.insert(option.display, option);
 						}
 					} break;
 					case GDScriptParser::ClassNode::Member::CONSTANT: {
 						if (member.constant->get_datatype().is_meta_type && p_context.current_class->outer != nullptr) {
+							// TODO: Describe this case and its examples.
 							ScriptLanguage::CodeCompletionOption option(member.constant->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_LOCAL);
+							print_line(vformat("Current class has member that's a constant named %s", member.constant->identifier->name));
 							option.deprecated = member.constant->doc_data.is_deprecated;
 							if (option.deprecated) {
 								print_line("The constant", option.display, " is deprecated!");
@@ -1077,6 +1082,9 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 	List<StringName> global_classes;
 	ScriptServer::get_global_class_list(&global_classes);
 	for (const StringName &E : global_classes) {
+		// Global classes (that is, classes defined with `class_name`), when used
+		// as a type declaration.
+		// 		var my_var: SomeCl...  # <-- will suggest `SomeClass`
 		ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_OTHER_USER_CODE);
 		if (class_doc_map.has(E)) {
 			option.deprecated = class_doc_map.get(E).is_deprecated;
@@ -1092,6 +1100,8 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 		if (!info.is_singleton || info.path.get_extension().to_lower() != "gd") {
 			continue;
 		}
+		// Autoload global variable names, when used as a type declaration.
+		// 		var my_autoload: GameAu...  # <-- will suggest `GameAutoload`
 		ScriptLanguage::CodeCompletionOption option(info.name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_OTHER_USER_CODE);
 		if (class_doc_map.has(info.name)) {
 			option.deprecated = class_doc_map.get(info.name).is_deprecated;
@@ -1136,6 +1146,10 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions || outer || (p_static && !member.variable->is_static)) {
 							continue;
 						}
+						// Property of a class, when used in an expression.
+						// 		var my_var = 3
+						//		func _ready():
+						// 			print(my_v...  # <-- will suggest `my_var`.
 						option = ScriptLanguage::CodeCompletionOption(member.variable->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
 						option.deprecated = member.variable->doc_data.is_deprecated;
 						break;
@@ -1146,6 +1160,10 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (r_result.has(member.constant->identifier->name)) {
 							continue;
 						}
+						// Constant in a class, when used in an expression.
+						// 		const MY_CONST = 3
+						//		func _ready():
+						// 			print(MY_CON...  # <-- will suggest `MY_CONST`
 						option = ScriptLanguage::CodeCompletionOption(member.constant->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 						option.deprecated = member.constant->doc_data.is_deprecated;
 						if (member.constant->initializer) {
@@ -1156,6 +1174,11 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_only_functions) {
 							continue;
 						}
+						// Inner class in a class, when used in an expression.
+						// 		class MyInnerClass:
+						//			pass
+						//		func _ready():
+						// 			print(MyInn...  # <-- will suggest `MyInnerClass`
 						option = ScriptLanguage::CodeCompletionOption(member.m_class->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, location);
 						option.deprecated = member.m_class->doc_data.is_deprecated;
 						break;
@@ -1163,6 +1186,10 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions) {
 							continue;
 						}
+						// Value from an anonymous enum in a class, when used in an expression.
+						// 		enum { ONE, TWO }
+						//		func _ready():
+						// 			print(ON...  # <-- will suggest `ONE`
 						option = ScriptLanguage::CodeCompletionOption(member.enum_value.identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 						option.deprecated = member.enum_value.doc_data.is_deprecated;
 						break;
@@ -1170,6 +1197,10 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_only_functions) {
 							continue;
 						}
+						// Name of an enum in a class, when used in an expression.
+						// 		enum MyEnum { ONE, TWO }
+						//		func _ready():
+						// 			print(MyEn...  # <-- will suggest `MyEnum`
 						option = ScriptLanguage::CodeCompletionOption(member.m_enum->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
 						option.deprecated = member.m_enum->doc_data.is_deprecated;
 						break;
@@ -1177,6 +1208,11 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || outer || (p_static && !member.function->is_static) || member.function->identifier->name.operator String().begins_with("@")) {
 							continue;
 						}
+						// Method in a class, when used in an expression.
+						// 		func say_hello():
+						//			print("Hello!")
+						//		func _ready():
+						// 			print(say_he...  # <-- will suggest `say_hello()`
 						option = ScriptLanguage::CodeCompletionOption(member.function->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
 						option.deprecated = member.function->doc_data.is_deprecated;
 						if (member.function->parameters.size() > 0 || (member.function->info.flags & METHOD_FLAG_VARARG)) {
@@ -1191,6 +1227,10 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions || outer || p_static) {
 							continue;
 						}
+						// Signal in a class, when used in an expression.
+						// 		signal something_happened
+						//		func _ready():
+						// 			something_hap...  # <-- will suggest `something_happened`
 						option = ScriptLanguage::CodeCompletionOption(member.signal->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
 						option.deprecated = member.signal->doc_data.is_deprecated;
 						break;
@@ -1227,6 +1267,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 	const HashMap<String, DocData::ClassDoc> class_doc_map = EditorHelp::get_doc_data()->class_list;
 
 	if (!p_types_only && base_type.is_meta_type && base_type.kind != GDScriptParser::DataType::BUILTIN && base_type.kind != GDScriptParser::DataType::ENUM) {
+		// Constructor for a class.
+		// 		var i = AnimatedSprite2D.n...  # <-- will suggest `new(...)`
 		ScriptLanguage::CodeCompletionOption option("new", ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, ScriptLanguage::LOCATION_LOCAL);
 		option.insert_text += "(";
 		option.display += U"(\u2026)";
@@ -1266,6 +1308,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 									continue;
 								}
 								int location = p_recursion_depth + _get_property_location(scr, E.name);
+
+								// TODO: Determine what case this covers.
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
 								if (prop_is_deprecated_map.has(E.name)) {
 									option.deprecated = prop_is_deprecated_map.get(E.name);
@@ -1283,6 +1327,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 							for (const MethodInfo &E : signals) {
 								int location = p_recursion_depth + _get_signal_location(scr, E.name);
+
+								// TODO: Determine what case this covers.
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
 								if (signal_is_deprecated_map.has(E.name)) {
 									option.deprecated = signal_is_deprecated_map.get(E.name);
@@ -1300,6 +1346,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 						for (const KeyValue<StringName, Variant> &E : constants) {
 							int location = p_recursion_depth + _get_constant_location(scr, E.key);
+
+							// TODO: Determine what case this covers.
 							ScriptLanguage::CodeCompletionOption option(E.key.operator String(), ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 							if (const_is_deprecated_map.has(E.key.operator String())) {
 								option.deprecated = const_is_deprecated_map.get(E.key.operator String());
@@ -1316,6 +1364,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 								continue;
 							}
 							int location = p_recursion_depth + _get_method_location(scr->get_class_name(), E.name);
+
+							// TODO: Determine what case this covers.
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
 							if (E.arguments.size() || (E.flags & METHOD_FLAG_VARARG)) {
 								option.insert_text += "(";
@@ -1350,6 +1400,9 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				ClassDB::get_enum_list(type, &enums);
 				for (const StringName &E : enums) {
 					int location = p_recursion_depth + _get_enum_location(type, E);
+					// Enum names for a native class, including `@GlobalScope`.
+					//		TextureRe...  # <-- will suggest `TextureRepeat`
+					// 		AnimationPlayer.AnimationPro...  # <-- will suggest `AnimationProcessCallback`
 					ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
 					r_result.insert(option.display, option);
 				}
@@ -1362,10 +1415,10 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					List<String> constants;
 
 					HashMap<String, bool> const_is_deprecated_map;
-					if (!EditorHelp::get_doc_data()->class_list.has(type)) {
+					if (!class_doc_map.has(type)) {
 						print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 					} else {
-						for (const DocData::ConstantDoc &constant_doc : EditorHelp::get_doc_data()->class_list.get(type).constants) {
+						for (const DocData::ConstantDoc &constant_doc : class_doc_map.get(type).constants) {
 							const_is_deprecated_map.insert(constant_doc.name, constant_doc.is_deprecated);
 						}
 					}
@@ -1373,6 +1426,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					ClassDB::get_integer_constant_list(type, &constants);
 					for (const String &E : constants) {
 						int location = p_recursion_depth + _get_constant_location(type, StringName(E));
+						// Constant in a native class.
+						// 		NOTIFICATION_DR...  # <-- Will suggest `NOTIFICATION_DRAW`
 						ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 						if (const_is_deprecated_map.has(E)) {
 							option.deprecated = const_is_deprecated_map.get(E);
@@ -1385,10 +1440,10 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 						ClassDB::get_property_list(type, &pinfo);
 
 						HashMap<String, bool> prop_is_deprecated_map;
-						if (!EditorHelp::get_doc_data()->class_list.has(type)) {
+						if (!class_doc_map.has(type)) {
 							print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 						} else {
-							for (const DocData::PropertyDoc &property_doc : EditorHelp::get_doc_data()->class_list.get(type).properties) {
+							for (const DocData::PropertyDoc &property_doc : class_doc_map.get(type).properties) {
 								prop_is_deprecated_map.insert(property_doc.name, property_doc.is_deprecated);
 							}
 						}
@@ -1401,6 +1456,10 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 								continue;
 							}
 							int location = p_recursion_depth + _get_property_location(type, E.name);
+
+							// Property in a native class.
+							// 		var my_node = Node2D.new()
+							// 		my_node.pos...  # <-- will suggest `position`
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
 							if (prop_is_deprecated_map.has(E.name)) {
 								option.deprecated = prop_is_deprecated_map.get(E.name);
@@ -1422,6 +1481,10 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 						for (const MethodInfo &E : signals) {
 							int location = p_recursion_depth + _get_signal_location(type, StringName(E.name));
+
+							// Signal in a native class.
+							// 		var my_node = AnimatedSprite2D.new()
+							// 		my_node.anim...  # <-- will suggest `animation_changed`
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
 							if (signal_is_deprecated_map.has(E.name)) {
 								option.deprecated = signal_is_deprecated_map.get(E.name);
@@ -1436,8 +1499,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				List<MethodInfo> methods;
 				ClassDB::get_method_list(type, &methods, false, true);
 
-				// Assemble a hashmap of method names and whether or not they're
-				// deprecated
+				// Assemble a hashmap of method names and whether or not they're deprecated.
 				HashMap<String, bool> method_is_deprecated_map;
 				if (!class_doc_map.has(type)) {
 					print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
@@ -1456,6 +1518,9 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					}
 					int location = p_recursion_depth + _get_method_location(type, E.name);
 
+					// Method name in a native class.
+					// 		var my_node = AnimatedSprite2D.new()
+					// 		my_node.get_pl...  # <-- will suggest `get_playing_speed`
 					ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
 					if (method_is_deprecated_map.has(E.name)) {
 						option.deprecated = method_is_deprecated_map.get(E.name);
@@ -1496,6 +1561,9 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 				for (const StringName &E : enum_values) {
 					int location = p_recursion_depth + _get_enum_constant_location(type, E);
+
+					// Enum value from a named enum in another class.
+					// 		CanvasItem.ClipChildrenMode.CLI...  # <-- will suggest `CLIP_CHILDREN_DISABLED`
 					ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 					if (enum_val_is_deprecated_map.has(E)) {
 						option.deprecated = enum_val_is_deprecated_map.get(E);
@@ -1533,6 +1601,10 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							continue;
 						}
 						if (!String(E.name).contains_char('/')) {
+							// Enum value for a named enum in the current class.
+							// 		enum MyEnum { HELLO, GOODBYE }
+							//		...
+							//		MyEnum.HE...  # <-- will suggest `HELLO`
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
 							if (base_type.kind == GDScriptParser::DataType::ENUM) {
 								// Sort enum members in their declaration order.
@@ -1566,6 +1638,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 						// Enum types are static and cannot change, therefore we skip non-const dictionary methods.
 						continue;
 					}
+					// Method for a built-in type.
+					// 		"Hello".beg...  # <-- will suggest `begins_with(...)`
 					ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
 					if (method_is_deprecated_map.has(E.name)) {
 						option.deprecated = method_is_deprecated_map.get(E.name);
@@ -1602,6 +1676,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 	const HashMap<String, DocData::ClassDoc> class_list = EditorHelp::get_doc_data()->class_list;
 	ERR_FAIL_COND_MSG(!class_list.has("@GDScript"), "@GDScript class couldn't be found in doc data by the language server");
 	for (const DocData::MethodDoc &method : class_list.get("@GDScript").methods) {
+		// Method in the `@GDScript` namespace/class.
+		// 		Col...  # <-- will suggest `Color8(...)`
 		ScriptLanguage::CodeCompletionOption option(method.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
 		option.deprecated = method.is_deprecated;
 		if (method.arguments.size()) {
@@ -1628,6 +1704,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 
 	const char **kw = _keywords;
 	while (*kw) {
+		// Keyword with no arguments or operands.
+		// 		tr...  # <-- will suggest `true`
 		ScriptLanguage::CodeCompletionOption option(*kw, ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
 		r_result.insert(option.display, option);
 		kw++;
@@ -1641,6 +1719,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 
 	const char **kws = _keywords_with_space;
 	while (*kws) {
+		// Keyword separated from its arguments/operands by spaces.
+		// 		class_n...  # <-- will suggest `class_name`
 		ScriptLanguage::CodeCompletionOption option(*kws, ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
 		option.insert_text += " ";
 		r_result.insert(option.display, option);
@@ -1654,6 +1734,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 
 	const char **kwa = _keywords_with_args;
 	while (*kwa) {
+		// Keyword that takes its arguments inside parentheses, similarly to functions.
+		// 		prel...  # <-- will suggest `preload(...)`
 		ScriptLanguage::CodeCompletionOption option(*kwa, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
 		option.insert_text += "(";
 		option.display += U"(\u2026)";
@@ -1673,6 +1755,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 	}
 
 	for (List<StringName>::Element *E = utility_func_names.front(); E; E = E->next()) {
+		// Function in the global scope, at least that deal with Variants.
+		// 		pri...  # <-- will suggest `print(...)`
 		ScriptLanguage::CodeCompletionOption option(E->get(), ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION);
 		option.insert_text += "(";
 		option.display += U"(\u2026)"; // As all utility functions contain an argument or more, this is hardcoded here.
@@ -1684,12 +1768,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 			continue;
 		}
 
-		// TODO: This is where autocomplete for singletons with a global
-		// variable name are provided.
-		// If the class list doc data from EditorHelp::get_doc_data is updated,
-		// then this should work correctly. Unfortunately, it seems to get stopped
-		// prematurely after a file is edited...?
-		//
+		// Autoload with a global variable name.
+		// 		MyAu...  # <-- will suggest `MyAutoload` (if the user has set that in Project Settings > Globals).
 		ScriptLanguage::CodeCompletionOption option(E.key, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT);
 		if (class_list.has(E.key)) {
 			option.deprecated = class_list.get(E.key).is_deprecated;
@@ -1702,11 +1782,15 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 		ScriptLanguage::CodeCompletionOption option;
 		String name = E.key.operator String();
 		if (ClassDB::class_exists(E.key) || Engine::get_singleton()->has_singleton(E.key)) {
+			// Native class name.
+			// 		Ani...  # <-- will suggest `AnimationPlayer`
 			option = ScriptLanguage::CodeCompletionOption(name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS);
 			if (class_list.has(name)) {
 				option.deprecated = class_list.get(name).is_deprecated;
 			}
 		} else {
+			// Global constants.
+			// 		SIDE_LE...  # <-- will suggest `SIDE_LEFT`
 			option = ScriptLanguage::CodeCompletionOption(name, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT);
 			if (const_is_deprecated.has(name)) {
 				option.deprecated = const_is_deprecated.get(name);
@@ -1719,6 +1803,8 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 	List<StringName> global_classes;
 	ScriptServer::get_global_class_list(&global_classes);
 	for (const StringName &E : global_classes) {
+		// Classes registered using `class_name`.
+		// 		MyCl...  # <-- will suggest `MyClass`, if the user has written `class_name MyClass` in a script
 		ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_OTHER_USER_CODE);
 		if (class_list.has(E)) {
 			option.deprecated = class_list.get(E).is_deprecated;
@@ -2918,6 +3004,7 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		if (p_context.current_class && p_context.current_class->has_member(current_enum) && p_context.current_class->get_member(current_enum).type == GDScriptParser::ClassNode::Member::ENUM) {
 			const GDScriptParser::EnumNode *_enum = p_context.current_class->get_member(current_enum).m_enum;
 			for (int i = 0; i < _enum->values.size(); i++) {
+				// TODO: Determine what case this covers.
 				ScriptLanguage::CodeCompletionOption option(_enum->values[i].identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_ENUM);
 				option.deprecated = _enum->doc_data.is_deprecated;
 				r_result.insert(option.display, option);
@@ -2926,10 +3013,8 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 			ERR_FAIL_COND_MSG(!class_list.has("@GlobalScope"), vformat("@GlobalScope class couldn't be found in doc data by the language server"));
 			for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
 				if (CoreConstants::get_global_constant_enum(i) == current_enum) {
+					// TODO: Determine what case this covers.
 					ScriptLanguage::CodeCompletionOption option(CoreConstants::get_global_constant_name(i), ScriptLanguage::CODE_COMPLETION_KIND_ENUM);
-
-					// TODO: Find out conditions for this and test it!
-					// Check what `get_global_constant_name` retrieves, to be certain
 					if (class_list.get("@GlobalScope").enums.has(CoreConstants::get_global_constant_name(i))) {
 						option.deprecated = class_list.get("@GlobalScope").enums.get(CoreConstants::get_global_constant_name(i)).is_deprecated;
 					}
@@ -2957,6 +3042,7 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		for (const StringName &E : enum_constants) {
 			String candidate = class_name + "." + E;
 			int location = _get_enum_constant_location(class_name, E);
+			// TODO: Determine what case this covers.
 			ScriptLanguage::CodeCompletionOption option(candidate, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
 			if (const_is_deprecated.has(E)) {
 				option.deprecated = const_is_deprecated.get(E);
