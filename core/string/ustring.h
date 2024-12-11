@@ -594,6 +594,23 @@ public:
 	// Use `is_valid_ascii_identifier()` instead. Kept for compatibility.
 	bool is_valid_identifier() const { return is_valid_ascii_identifier(); }
 
+	template <typename... Args>
+	void extend(Args... args);
+
+	template <typename... Args>
+	static String concat(Args... args) {
+		String string;
+		string.extend(args...);
+		return string;
+	}
+
+	template <typename... Args>
+	static String concat(String &&string, Args... args) {
+		// Optimized case of the concat call, where we can consume the first argument to avoid re-allocation.
+		string.extend(args...);
+		return std::move(string);
+	}
+
 	/**
 	 * The constructors must not depend on other overloads
 	 */
@@ -653,6 +670,50 @@ bool operator!=(const wchar_t *p_chr, const String &p_str);
 String operator+(const char *p_chr, const String &p_str);
 String operator+(const wchar_t *p_chr, const String &p_str);
 String operator+(char32_t p_chr, const String &p_str);
+
+_FORCE_INLINE_ char32_t *_insert_string(const StrRange<char> &string, char32_t *dst) {
+	const char32_t *src = dst;
+	for (const char32_t *end = dst + string.len; src < end; ++src, ++dst) {
+		*dst = *src;
+	}
+	return dst;
+}
+
+_FORCE_INLINE_ char32_t *_insert_string(const StrRange<char32_t> &string, char32_t *dst) {
+	memcpy(dst, string.c_str, string.len * sizeof(char32_t));
+	dst += string.len;
+	return dst;
+}
+
+inline StrRange<char32_t> _to_str_range(const String &string) {
+	return StrRange<char32_t>(string);
+}
+template <typename Char, typename = std::enable_if_t<std::is_fundamental_v<Char>>>
+StrRange<Char> _to_str_range(const StrRange<Char> &string) {
+	return string;
+}
+template <typename Char, size_t len, typename = std::enable_if_t<std::is_fundamental_v<Char>>>
+StrRange<Char> _to_str_range(const Char (&string)[len]) {
+	return StrRange<Char>::from_c_str(string);
+}
+template <typename Char, typename = std::enable_if_t<std::is_fundamental_v<Char>>>
+StrRange<Char> _to_str_range(const Char &chr) {
+	return StrRange<Char>(&chr, 1);
+}
+
+template <typename... Args>
+void _extend_string_ranges(String &string, Args... args) {
+	const int length_before = string.length();
+	string.resize(length_before + (args.len + ...) + 1);
+	char32_t *dst = string.ptrw() + length_before;
+	((dst = _insert_string(args, dst)), ...);
+	*dst = 0;
+}
+
+template <typename... Args>
+void String::extend(Args... args) {
+	_extend_string_ranges(*this, _to_str_range(args)...);
+}
 
 String itos(int64_t p_val);
 String uitos(uint64_t p_val);

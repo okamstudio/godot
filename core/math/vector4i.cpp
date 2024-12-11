@@ -90,7 +90,13 @@ Vector4i Vector4i::snappedi(int32_t p_step) const {
 }
 
 Vector4i::operator String() const {
-	return "(" + itos(x) + ", " + itos(y) + ", " + itos(z) + ", " + itos(w) + ")";
+	return String::concat(
+			"(",
+			itos(x), ", ",
+			itos(y), ", ",
+			itos(z), ", ",
+			itos(w),
+			")");
 }
 
 Vector4i::operator Vector4() const {

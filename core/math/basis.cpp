@@ -715,9 +715,11 @@ bool Basis::operator!=(const Basis &p_matrix) const {
 }
 
 Basis::operator String() const {
-	return "[X: " + get_column(0).operator String() +
-			", Y: " + get_column(1).operator String() +
-			", Z: " + get_column(2).operator String() + "]";
+	return String::concat(
+			"[X: ", get_column(0).operator String(),
+			", Y: ", get_column(1).operator String(),
+			", Z: ", get_column(2).operator String(),
+			"]");
 }
 
 Quaternion Basis::get_quaternion() const {

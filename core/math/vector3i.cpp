@@ -70,7 +70,12 @@ Vector3i Vector3i::snappedi(int32_t p_step) const {
 }
 
 Vector3i::operator String() const {
-	return "(" + itos(x) + ", " + itos(y) + ", " + itos(z) + ")";
+	return String::concat(
+			"(",
+			itos(x), ", ",
+			itos(y), ", ",
+			itos(z),
+			")");
 }
 
 Vector3i::operator Vector3() const {

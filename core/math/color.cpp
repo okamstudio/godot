@@ -487,7 +487,13 @@ Color Color::from_rgba8(int64_t p_r8, int64_t p_g8, int64_t p_b8, int64_t p_a8) 
 }
 
 Color::operator String() const {
-	return "(" + String::num(r, 4) + ", " + String::num(g, 4) + ", " + String::num(b, 4) + ", " + String::num(a, 4) + ")";
+	return String::concat(
+			"(",
+			String::num(r, 4), ", ",
+			String::num(g, 4), ", ",
+			String::num(b, 4), ", ",
+			String::num(a, 4),
+			")");
 }
 
 Color Color::operator+(const Color &p_color) const {

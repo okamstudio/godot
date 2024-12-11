@@ -135,7 +135,11 @@ bool Vector2i::operator!=(const Vector2i &p_vec2) const {
 }
 
 Vector2i::operator String() const {
-	return "(" + itos(x) + ", " + itos(y) + ")";
+	return String::concat(
+			"(",
+			itos(x), ", ",
+			itos(y),
+			")");
 }
 
 Vector2i::operator Vector2() const {
