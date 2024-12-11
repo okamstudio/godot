@@ -45,6 +45,7 @@ public:
 	virtual bool is_unsaved() const = 0;
 	virtual void save_external_data(const String &p_str = "") = 0;
 	virtual void validate_script() = 0;
+	virtual Control *get_top_bar() = 0;
 };
 
 #endif // SHADER_EDITOR_H

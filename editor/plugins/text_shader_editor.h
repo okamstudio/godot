@@ -137,10 +137,11 @@ class TextShaderEditor : public ShaderEditor {
 		EDIT_EMOJI_AND_SYMBOL,
 	};
 
+	HBoxContainer *hbc = nullptr;
 	MenuButton *edit_menu = nullptr;
 	MenuButton *search_menu = nullptr;
 	PopupMenu *bookmarks_menu = nullptr;
-	MenuButton *help_menu = nullptr;
+	Button *site_search = nullptr;
 	PopupMenu *context_menu = nullptr;
 	RichTextLabel *warnings_panel = nullptr;
 	uint64_t idle = 0;
@@ -196,6 +197,7 @@ public:
 	virtual bool is_unsaved() const override;
 	virtual void save_external_data(const String &p_str = "") override;
 	virtual void validate_script() override;
+	virtual Control *get_top_bar() override;
 
 	bool was_compilation_successful() const { return compilation_success; }
 	bool get_trim_trailing_whitespace_on_save() const { return trim_trailing_whitespace_on_save; }
