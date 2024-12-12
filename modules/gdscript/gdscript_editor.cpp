@@ -1020,8 +1020,10 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 
 	if (p_context.current_class) {
 		if (!p_inherit_only && p_context.current_class->base_type.is_set()) {
-			// Native enums from base class
-			// 		AnimationPlayer.Anim...  # <-- Will suggest `AnimationProcessCallback`
+			// Native enum from parent class, when used as a type.
+			//		extends AnimationPlayer
+			//		...
+			// 		var i: Anim...  # <-- Will suggest `AnimationProcessCallback`
 			List<StringName> enums;
 			const String base_native_type = p_context.current_class->base_type.native_type;
 			ClassDB::get_enum_list(base_native_type, &enums);
@@ -1309,7 +1311,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 								}
 								int location = p_recursion_depth + _get_property_location(scr, E.name);
 
-								// TODO: Determine what case this covers.
+								// Property in a Script type (such as a C# script).
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
 								if (prop_is_deprecated_map.has(E.name)) {
 									option.deprecated = prop_is_deprecated_map.get(E.name);
@@ -1328,7 +1330,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							for (const MethodInfo &E : signals) {
 								int location = p_recursion_depth + _get_signal_location(scr, E.name);
 
-								// TODO: Determine what case this covers.
+								// Signal in a Script type (such as a C# script).
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
 								if (signal_is_deprecated_map.has(E.name)) {
 									option.deprecated = signal_is_deprecated_map.get(E.name);
@@ -1347,7 +1349,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 						for (const KeyValue<StringName, Variant> &E : constants) {
 							int location = p_recursion_depth + _get_constant_location(scr, E.key);
 
-							// TODO: Determine what case this covers.
+							// Constant in a Script type (such as a C# script).
 							ScriptLanguage::CodeCompletionOption option(E.key.operator String(), ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 							if (const_is_deprecated_map.has(E.key.operator String())) {
 								option.deprecated = const_is_deprecated_map.get(E.key.operator String());
@@ -1365,7 +1367,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							}
 							int location = p_recursion_depth + _get_method_location(scr->get_class_name(), E.name);
 
-							// TODO: Determine what case this covers.
+							// Method in a Script type (such as a C# script).
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
 							if (E.arguments.size() || (E.flags & METHOD_FLAG_VARARG)) {
 								option.insert_text += "(";
@@ -1400,7 +1402,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				ClassDB::get_enum_list(type, &enums);
 				for (const StringName &E : enums) {
 					int location = p_recursion_depth + _get_enum_location(type, E);
-					// Enum names for a native class, including `@GlobalScope`.
+					// Enum names for a native class.
 					//		TextureRe...  # <-- will suggest `TextureRepeat`
 					// 		AnimationPlayer.AnimationPro...  # <-- will suggest `AnimationProcessCallback`
 					ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
