@@ -257,7 +257,12 @@ private:
 		Ref<Texture2D> completion_color_bg;
 
 		Color breakpoint_color = Color(1, 1, 1);
+		Color breakpoint_disabled_color = Color(1, 1, 1);
+		Color breakpoint_print_color = Color(1, 1, 1);
 		Ref<Texture2D> breakpoint_icon;
+		Ref<Texture2D> breakpoint_no_suspend_icon;
+		Ref<Texture2D> breakpoint_conditional_icon;
+		Ref<Texture2D> breakpoint_conditional_no_suspend_icon;
 
 		Color bookmark_color = Color(1, 1, 1);
 		Ref<Texture2D> bookmark_icon;
@@ -319,6 +324,7 @@ protected:
 #ifndef DISABLE_DEPRECATED
 	String _get_text_for_symbol_lookup_bind_compat_73196();
 	void _add_code_completion_option_compat_84906(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color = Color(1, 1, 1), const Ref<Resource> &p_icon = Ref<Resource>(), const Variant &p_value = Variant::NIL, int p_location = LOCATION_OTHER);
+	void _set_line_as_breakpoint_bind_compat_100516(int p_line, bool p_breakpointed);
 	static void _bind_compatibility_methods();
 #endif
 
@@ -387,7 +393,7 @@ public:
 	bool is_drawing_executing_lines_gutter() const;
 
 	// breakpoints
-	void set_line_as_breakpoint(int p_line, bool p_breakpointed);
+	void set_line_as_breakpoint(int p_line, bool p_breakpointed, bool enabled = true, bool suspend = true, const String &condition = "", const String &print = "");
 	bool is_line_breakpointed(int p_line) const;
 	void clear_breakpointed_lines();
 	PackedInt32Array get_breakpointed_lines() const;

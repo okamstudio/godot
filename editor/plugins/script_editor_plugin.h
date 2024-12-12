@@ -33,6 +33,7 @@
 
 #include "core/object/script_language.h"
 #include "editor/plugins/editor_plugin.h"
+#include "scene/gui/check_box.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/panel_container.h"
 #include "scene/resources/syntax_highlighter.h"
@@ -204,7 +205,7 @@ public:
 	virtual void tag_saved_version() = 0;
 	virtual void reload(bool p_soft) {}
 	virtual PackedInt32Array get_breakpoints() = 0;
-	virtual void set_breakpoint(int p_line, bool p_enabled) = 0;
+	virtual void set_breakpoint(int p_line, bool p_breakpointed) = 0;
 	virtual void clear_breakpoints() = 0;
 	virtual void add_callback(const String &p_function, const PackedStringArray &p_args) = 0;
 	virtual void update_settings() = 0;
@@ -236,6 +237,30 @@ class FindInFilesPanel;
 #ifdef MINGW_ENABLED
 #undef FILE_OPEN
 #endif
+
+class BreakpointDialog : public AcceptDialog {
+	GDCLASS(BreakpointDialog, AcceptDialog);
+
+	StringName source;
+	int line;
+
+	CheckBox *enabled = nullptr;
+	CheckBox *suspend = nullptr;
+	LineEdit *condition_expression = nullptr;
+	LineEdit *print_expression = nullptr;
+
+	Label *error = nullptr;
+
+	void _validate_condition(const String &p_new_text);
+
+protected:
+	virtual void ok_pressed() override;
+	static void _bind_methods();
+
+public:
+	void popup_dialog(const StringName &p_source, const int &p_line);
+	BreakpointDialog();
+};
 
 class ScriptEditor : public PanelContainer {
 	GDCLASS(ScriptEditor, PanelContainer);
@@ -348,6 +373,8 @@ class ScriptEditor : public PanelContainer {
 	FindInFilesPanel *find_in_files = nullptr;
 	Button *find_in_files_button = nullptr;
 
+	BreakpointDialog *breakpoint_dialog;
+
 	WindowWrapper *window_wrapper = nullptr;
 
 	enum {
@@ -442,7 +469,8 @@ class ScriptEditor : public PanelContainer {
 	void _clear_execution(Ref<RefCounted> p_script);
 	void _breaked(bool p_breaked, bool p_can_debug);
 	void _script_created(Ref<Script> p_script);
-	void _set_breakpoint(Ref<RefCounted> p_script, int p_line, bool p_enabled);
+	void _set_breakpoint(Ref<RefCounted> p_script, int p_line, bool p_breakpointed);
+	void _change_breakpoint(Ref<RefCounted> p_script, int p_line, const Dictionary &p_data);
 	void _clear_breakpoints();
 	Array _get_cached_breakpoints_for_script(const String &p_path) const;
 
@@ -467,6 +495,7 @@ class ScriptEditor : public PanelContainer {
 	void _filter_scripts_text_changed(const String &p_newtext);
 	void _filter_methods_text_changed(const String &p_newtext);
 	void _update_script_names();
+	void _breakpoint_edit_request(const String &p_source, const int &p_line);
 	bool _sort_list_on_update;
 
 	void _members_overview_selected(int p_idx);

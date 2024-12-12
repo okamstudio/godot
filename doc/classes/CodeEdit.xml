@@ -465,8 +465,17 @@
 			<return type="void" />
 			<param index="0" name="line" type="int" />
 			<param index="1" name="breakpointed" type="bool" />
+			<param index="2" name="enabled" type="bool" default="true" />
+			<param index="3" name="suspend" type="bool" default="true" />
+			<param index="4" name="condition" type="String" default="&quot;&quot;" />
+			<param index="5" name="print" type="String" default="&quot;&quot;" />
 			<description>
-				Sets the given line as a breakpoint. If [code]true[/code] and [member gutters_draw_breakpoints_gutter] is [code]true[/code], draws the [theme_item breakpoint] icon in the gutter for this line. See [method get_breakpointed_lines] and [method is_line_breakpointed].
+				Sets the given line as a breakpoint. If [param breakpointed] is [code]true[/code] and [member gutters_draw_breakpoints_gutter] is [code]true[/code], draws the [theme_item breakpoint] icon in the gutter for this line. See [method get_breakpointed_lines] and [method is_line_breakpointed].
+				When [param breakpointed] is [code]false[/code], the breakpoint will be removed.
+				It will be in a disabled state if [param enabled] is [code]false[/code].
+				When [param suspend] is [code]false[/code], the breakpoint will not suspend execution. This can be used for print-only breakpoints.
+				The breakpoint will break or print only if the expression in [param condition] evaluates to [code]true[/code].
+				When [param print] is not empty, the [String] will be printing to the output when the breakpoint hits. String interpolation is supported for local stack and member variables names, for example, [code]"Node: {name}"[/code].
 			</description>
 		</method>
 		<method name="set_line_as_executing">
@@ -683,6 +692,12 @@
 		<theme_item name="breakpoint_color" data_type="color" type="Color" default="Color(0.9, 0.29, 0.3, 1)">
 			[Color] of the breakpoint icon for bookmarked lines.
 		</theme_item>
+		<theme_item name="breakpoint_disabled_color" data_type="color" type="Color" default="Color(0.52, 0.52, 0.52, 1)">
+			[Color] of the disabled breakpoint icons.
+		</theme_item>
+		<theme_item name="breakpoint_print_color" data_type="color" type="Color" default="Color(0.816, 0.684, 0.213, 1)">
+			[Color] of the print-only breakpoint icons.
+		</theme_item>
 		<theme_item name="code_folding_color" data_type="color" type="Color" default="Color(0.8, 0.8, 0.8, 0.8)">
 			[Color] for all icons related to line folding.
 		</theme_item>
@@ -727,6 +742,15 @@
 		</theme_item>
 		<theme_item name="breakpoint" data_type="icon" type="Texture2D">
 			Sets a custom [Texture2D] to draw in the breakpoint gutter for breakpointed lines.
+		</theme_item>
+		<theme_item name="breakpoint_conditional" data_type="icon" type="Texture2D">
+			Sets a custom [Texture2D] to draw in the breakpoint gutter for conditional breakpoints.
+		</theme_item>
+		<theme_item name="breakpoint_conditional_no_suspend" data_type="icon" type="Texture2D">
+			Sets a custom [Texture2D] to draw in the breakpoint gutter for conditional breakpoints that doesn't suspend execution.
+		</theme_item>
+		<theme_item name="breakpoint_no_suspend" data_type="icon" type="Texture2D">
+			Sets a custom [Texture2D] to draw in the breakpoint gutter for breakpoints that doesn't suspend execution.
 		</theme_item>
 		<theme_item name="can_fold" data_type="icon" type="Texture2D">
 			Sets a custom [Texture2D] to draw in the line folding gutter when a line can be folded.

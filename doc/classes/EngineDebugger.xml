@@ -53,8 +53,16 @@
 			<return type="void" />
 			<param index="0" name="line" type="int" />
 			<param index="1" name="source" type="StringName" />
+			<param index="2" name="enabled" type="bool" default="true" />
+			<param index="3" name="suspend" type="bool" default="true" />
+			<param index="4" name="condition" type="String" default="&quot;&quot;" />
+			<param index="5" name="print" type="String" default="&quot;&quot;" />
 			<description>
 				Inserts a new breakpoint with the given [param source] and [param line].
+				It will be in a disabled state if [param enabled] is [code]false[/code].
+				When [param suspend] is [code]false[/code], the breakpoint will not suspend execution. This can be used for print-only breakpoints.
+				The breakpoint will break or print only if the expression in [param condition] evaluates to [code]true[/code].
+				When [param print] is not empty, the [String] will be printing to the output when the breakpoint hits. String interpolation is supported for local stack and member variables names, for example, [code]"Node: {name}"[/code].
 			</description>
 		</method>
 		<method name="is_active">

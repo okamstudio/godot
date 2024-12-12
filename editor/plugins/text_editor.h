@@ -128,7 +128,7 @@ public:
 	virtual Variant get_navigation_state() override;
 	virtual Vector<String> get_functions() override;
 	virtual PackedInt32Array get_breakpoints() override;
-	virtual void set_breakpoint(int p_line, bool p_enabled) override {}
+	virtual void set_breakpoint(int p_line, bool p_breakpointed) override {}
 	virtual void clear_breakpoints() override {}
 	virtual void goto_line(int p_line, int p_column = 0) override;
 	void goto_line_selection(int p_line, int p_begin, int p_end);

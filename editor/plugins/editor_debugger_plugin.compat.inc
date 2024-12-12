@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  code_edit.compat.inc                                                  */
+/*  editor_debugger_plugin.compat.inc                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,22 +30,12 @@
 
 #ifndef DISABLE_DEPRECATED
 
-String CodeEdit::_get_text_for_symbol_lookup_bind_compat_73196() {
-	return get_text_for_symbol_lookup();
+void EditorDebuggerSession::_set_breakpoint_100516(const String &p_path, int p_line, bool p_breakpointed) {
+	return set_breakpoint(p_path, p_line, p_breakpointed);
 }
 
-void CodeEdit::_add_code_completion_option_compat_84906(CodeCompletionKind p_type, const String &p_display_text, const String &p_insert_text, const Color &p_text_color, const Ref<Resource> &p_icon, const Variant &p_value, int p_location) {
-	add_code_completion_option(p_type, p_display_text, p_insert_text, p_text_color, p_icon, p_value, p_location);
-}
-
-void CodeEdit::_set_line_as_breakpoint_bind_compat_100516(int p_line, bool p_breakpointed) {
-	set_line_as_breakpoint(p_line, p_breakpointed);
-}
-
-void CodeEdit::_bind_compatibility_methods() {
-	ClassDB::bind_compatibility_method(D_METHOD("get_text_for_symbol_lookup"), &CodeEdit::_get_text_for_symbol_lookup_bind_compat_73196);
-	ClassDB::bind_compatibility_method(D_METHOD("add_code_completion_option", "type", "display_text", "insert_text", "text_color", "icon", "value", "location"), &CodeEdit::_add_code_completion_option_compat_84906, DEFVAL(Color(1, 1, 1)), DEFVAL(Ref<Resource>()), DEFVAL(Variant::NIL), DEFVAL(LOCATION_OTHER));
-	ClassDB::bind_compatibility_method(D_METHOD("set_line_as_breakpoint", "line", "breakpointed"), &CodeEdit::_set_line_as_breakpoint_bind_compat_100516);
+void EditorDebuggerSession::_bind_compatibility_methods() {
+	ClassDB::bind_compatibility_method(D_METHOD("set_breakpoint", "path", "line", "breakpointed"), &EditorDebuggerSession::_set_breakpoint_100516);
 }
 
 #endif

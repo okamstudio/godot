@@ -45,21 +45,21 @@ void ScriptDebugger::set_depth(int p_depth) {
 	depth = p_depth;
 }
 
-void ScriptDebugger::insert_breakpoint(int p_line, const StringName &p_source) {
-	if (!breakpoints.has(p_line)) {
-		breakpoints[p_line] = HashSet<StringName>();
+void ScriptDebugger::insert_breakpoint(int p_line, const StringName &p_source, const Breakpoint &p_breakpoint) {
+	if (!breakpoints.has(p_source)) {
+		breakpoints[p_source] = HashMap<int, Breakpoint>();
 	}
-	breakpoints[p_line].insert(p_source);
+	breakpoints[p_source].insert(p_line, p_breakpoint);
 }
 
 void ScriptDebugger::remove_breakpoint(int p_line, const StringName &p_source) {
-	if (!breakpoints.has(p_line)) {
+	if (!breakpoints.has(p_source)) {
 		return;
 	}
 
-	breakpoints[p_line].erase(p_source);
-	if (breakpoints[p_line].size() == 0) {
-		breakpoints.erase(p_line);
+	breakpoints[p_source].erase(p_line);
+	if (breakpoints[p_source].size() == 0) {
+		breakpoints.erase(p_source);
 	}
 }
 
