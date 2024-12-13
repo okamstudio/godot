@@ -2244,8 +2244,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				ERR_PRINT("Max recursion reached");
 				p_store_string_func(p_store_string_ud, "{}");
 			} else {
-				LocalVector<Variant> keys;
-				dict.get_key_list(keys);
+				LocalVector<Variant> keys = dict.get_key_list();
 				keys.sort_custom<StringLikeVariantOrder>();
 
 				if (keys.is_empty()) {

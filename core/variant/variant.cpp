@@ -1654,12 +1654,10 @@ String Variant::stringify(int recursion_count) const {
 			// Add leading and trailing space to Dictionary printing. This distinguishes it
 			// from array printing on fonts that have similar-looking {} and [] characters.
 			String str("{ ");
-			LocalVector<Variant> keys;
-			d.get_key_list(keys);
 
 			Vector<_VariantStrPair> pairs;
 
-			for (const Variant &key : keys) {
+			for (const Variant &key : d.get_key_list()) {
 				_VariantStrPair sp;
 				sp.key = stringify_variant_clean(key, recursion_count);
 				sp.value = stringify_variant_clean(d[key], recursion_count);

@@ -86,15 +86,11 @@ Dictionary TranslationPO::_get_messages() const {
 void TranslationPO::_set_messages(const Dictionary &p_messages) {
 	// Construct translation_map from a Dictionary.
 
-	LocalVector<Variant> context_l;
-	p_messages.get_key_list(context_l);
-	for (const Variant &ctx : context_l) {
+	for (const Variant &ctx : p_messages.get_key_list()) {
 		const Dictionary &id_str_map = p_messages[ctx];
 
 		HashMap<StringName, Vector<StringName>> temp_map;
-		LocalVector<Variant> id_l;
-		id_str_map.get_key_list(id_l);
-		for (const Variant &E2 : id_l) {
+		for (const Variant &E2 : id_str_map.get_key_list()) {
 			StringName id = E2;
 			temp_map[id] = id_str_map[id];
 		}

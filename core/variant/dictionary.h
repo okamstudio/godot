@@ -48,7 +48,7 @@ class Dictionary {
 	void _unref() const;
 
 public:
-	void get_key_list(LocalVector<Variant> &p_keys) const;
+	LocalVector<Variant> get_key_list() const;
 	Variant get_key_at_index(int p_index) const;
 	Variant get_value_at_index(int p_index) const;
 

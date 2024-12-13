@@ -216,8 +216,7 @@ String GDScriptDocGen::_docvalue_from_variant(const Variant &p_variant, int p_re
 			} else {
 				result += "{";
 
-				LocalVector<Variant> keys;
-				dict.get_key_list(keys);
+				LocalVector<Variant> keys = dict.get_key_list();
 				keys.sort_custom<StringLikeVariantOrder>();
 
 				for (uint32_t i = 0; i < keys.size(); i++) {
