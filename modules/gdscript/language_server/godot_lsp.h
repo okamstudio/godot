@@ -916,13 +916,6 @@ static const int PlainText = 1;
 static const int Snippet = 2;
 }; // namespace InsertTextFormat
 
-namespace CompletionItemTag {
-/**
- * Render a completion as obsolete, usually using a strike-out.
- */
-static const int Deprecated = 1;
-}; // namespace CompletionItemTag
-
 struct CompletionItem {
 	/**
 	 * The label of this completion item. By default
@@ -939,9 +932,9 @@ struct CompletionItem {
 	int kind = 0;
 
 	/**
-	 * Tags for this completion item.
+	 * Indicates if this item is deprecated.
 	 */
-	Array tags;
+	bool deprecated = false;
 
 	/**
 	 * A human-readable string with additional information
@@ -1043,7 +1036,7 @@ struct CompletionItem {
 		dict["label"] = label;
 		dict["kind"] = kind;
 		dict["data"] = data;
-		dict["tags"] = tags;
+		dict["deprecated"] = deprecated;
 		if (!insertText.is_empty()) {
 			dict["insertText"] = insertText;
 		}
@@ -1086,8 +1079,8 @@ struct CompletionItem {
 				documentation.value = v["value"];
 			}
 		}
-		if (p_dict.has("tags")) {
-			tags = p_dict["tags"];
+		if (p_dict.has("deprecated")) {
+			deprecated = p_dict["deprecated"];
 		}
 		if (p_dict.has("preselect")) {
 			preselect = p_dict["preselect"];
@@ -1160,16 +1153,6 @@ static const int TypeParameter = 26;
 }; // namespace SymbolKind
 
 /**
- * Symbol tags are extra annotations that tweak the rendering of a symbol.
- */
-namespace SymbolTag {
-/**
- * Render a symbol as obsolete, usually using a strike-out.
- */
-static const int Deprecated = 1;
-}; // namespace SymbolTag
-
-/**
  * Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
  * hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
  * e.g. the range of an identifier.
@@ -1202,9 +1185,9 @@ struct DocumentSymbol {
 	int kind = SymbolKind::File;
 
 	/**
-	 * Tags for this document symbol.
+	 * Indicates if this symbol is deprecated.
 	 */
-	Array tags;
+	bool deprecated = false;
 
 	/**
 	 * If `true`: Symbol is local to script and cannot be accessed somewhere else.
@@ -1239,7 +1222,7 @@ struct DocumentSymbol {
 		dict["name"] = name;
 		dict["detail"] = detail;
 		dict["kind"] = kind;
-		dict["tags"] = tags;
+		dict["deprecated"] = deprecated;
 		dict["range"] = range.to_json();
 		dict["selectionRange"] = selectionRange.to_json();
 		if (with_doc) {
@@ -1278,10 +1261,7 @@ struct DocumentSymbol {
 	_FORCE_INLINE_ CompletionItem make_completion_item(bool resolved = false) const {
 		lsp::CompletionItem item;
 		item.label = name;
-
-		if (tags.has(SymbolTag::Deprecated)) {
-			item.tags.push_back(CompletionItemTag::Deprecated);
-		}
+		item.deprecated = deprecated;
 
 		if (resolved) {
 			item.documentation = render();

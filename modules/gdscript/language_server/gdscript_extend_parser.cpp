@@ -242,9 +242,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 		r_symbol.name = path.get_file();
 	}
 	r_symbol.kind = lsp::SymbolKind::Class;
-	if (p_class->doc_data.is_deprecated) {
-		r_symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-	}
+	r_symbol.deprecated = p_class->doc_data.is_deprecated;
 	r_symbol.range = range_of_node(p_class);
 	if (p_class->identifier) {
 		r_symbol.selectionRange = range_of_node(p_class->identifier);
@@ -281,9 +279,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 				lsp::DocumentSymbol symbol;
 				symbol.name = m.variable->identifier->name;
 				symbol.kind = m.variable->property == VariableNode::PROP_NONE ? lsp::SymbolKind::Variable : lsp::SymbolKind::Property;
-				if (m.variable->doc_data.is_deprecated) {
-					symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-				}
+				symbol.deprecated = m.variable->doc_data.is_deprecated;
 				symbol.range = range_of_node(m.variable);
 				symbol.selectionRange = range_of_node(m.variable->identifier);
 				if (m.variable->exported) {
@@ -329,9 +325,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 
 				symbol.name = m.constant->identifier->name;
 				symbol.kind = lsp::SymbolKind::Constant;
-				if (m.constant->doc_data.is_deprecated) {
-					symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-				}
+				symbol.deprecated = m.constant->doc_data.is_deprecated;
 				symbol.range = range_of_node(m.constant);
 				symbol.selectionRange = range_of_node(m.constant->identifier);
 				symbol.documentation = m.constant->doc_data.description;
@@ -370,9 +364,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 				lsp::DocumentSymbol symbol;
 				symbol.name = m.signal->identifier->name;
 				symbol.kind = lsp::SymbolKind::Event;
-				if (m.signal->doc_data.is_deprecated) {
-					symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-				}
+				symbol.deprecated = m.signal->doc_data.is_deprecated;
 				symbol.range = range_of_node(m.signal);
 				symbol.selectionRange = range_of_node(m.signal->identifier);
 				symbol.documentation = m.signal->doc_data.description;
@@ -409,9 +401,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 
 				symbol.name = m.enum_value.identifier->name;
 				symbol.kind = lsp::SymbolKind::EnumMember;
-				if (m.enum_value.doc_data.is_deprecated) {
-					symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-				}
+				symbol.deprecated = m.enum_value.doc_data.is_deprecated;
 				symbol.range.start = GodotPosition(m.enum_value.line, m.enum_value.leftmost_column).to_lsp(lines);
 				symbol.range.end = GodotPosition(m.enum_value.line, m.enum_value.rightmost_column).to_lsp(lines);
 				symbol.selectionRange = range_of_node(m.enum_value.identifier);
@@ -447,9 +437,7 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 
 					child.name = value.identifier->name;
 					child.kind = lsp::SymbolKind::EnumMember;
-					if (value.doc_data.is_deprecated) {
-						child.tags.push_back(lsp::SymbolTag::Deprecated);
-					}
+					child.deprecated = value.doc_data.is_deprecated;
 					child.range.start = GodotPosition(value.line, value.leftmost_column).to_lsp(lines);
 					child.range.end = GodotPosition(value.line, value.rightmost_column).to_lsp(lines);
 					child.selectionRange = range_of_node(value.identifier);
@@ -494,9 +482,7 @@ void ExtendGDScriptParser::parse_function_symbol(const GDScriptParser::FunctionN
 		r_symbol.detail += " " + String(p_func->identifier->name);
 	}
 	r_symbol.detail += "(";
-	if (p_func->doc_data.is_deprecated) {
-		r_symbol.tags.push_back(lsp::SymbolTag::Deprecated);
-	}
+	r_symbol.deprecated = p_func->doc_data.is_deprecated;
 	r_symbol.range = range_of_node(p_func);
 	if (is_named) {
 		r_symbol.selectionRange = range_of_node(p_func->identifier);
