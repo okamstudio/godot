@@ -441,36 +441,37 @@ Error Expression::_get_token(Token &r_token) {
 
 					str_ofs--; //go back one
 
-					if (id == "in") {
+					const String lowercase_id = id.to_lower();
+					if (lowercase_id == "in") {
 						r_token.type = TK_OP_IN;
-					} else if (id == "null") {
+					} else if (lowercase_id == "null") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = Variant();
-					} else if (id == "true") {
+					} else if (lowercase_id == "true") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = true;
-					} else if (id == "false") {
+					} else if (lowercase_id == "false") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = false;
-					} else if (id == "PI") {
+					} else if (lowercase_id == "pi") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = Math_PI;
-					} else if (id == "TAU") {
+					} else if (lowercase_id == "tau") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = Math_TAU;
-					} else if (id == "INF") {
+					} else if (lowercase_id == "inf") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = INFINITY;
-					} else if (id == "NAN") {
+					} else if (lowercase_id == "nan") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = NAN;
-					} else if (id == "not") {
+					} else if (lowercase_id == "not") {
 						r_token.type = TK_OP_NOT;
-					} else if (id == "or") {
+					} else if (lowercase_id == "or") {
 						r_token.type = TK_OP_OR;
-					} else if (id == "and") {
+					} else if (lowercase_id == "and") {
 						r_token.type = TK_OP_AND;
-					} else if (id == "self") {
+					} else if (lowercase_id == "self") {
 						r_token.type = TK_SELF;
 					} else {
 						{
