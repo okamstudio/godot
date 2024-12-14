@@ -1064,11 +1064,7 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 						if (member.constant->get_datatype().is_meta_type && p_context.current_class->outer != nullptr) {
 							// TODO: Describe this case and its examples.
 							ScriptLanguage::CodeCompletionOption option(member.constant->identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_LOCAL);
-							print_line(vformat("Current class has member that's a constant named %s", member.constant->identifier->name));
 							option.deprecated = member.constant->doc_data.is_deprecated;
-							if (option.deprecated) {
-								print_line("The constant", option.display, " is deprecated!");
-							}
 							r_result.insert(option.display, option);
 						}
 					} break;
@@ -1148,7 +1144,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions || outer || (p_static && !member.variable->is_static)) {
 							continue;
 						}
-						// Property of a class, when used in an expression.
+						// Property of a class.
 						// 		var my_var = 3
 						//		func _ready():
 						// 			print(my_v...  # <-- will suggest `my_var`.
@@ -1162,7 +1158,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (r_result.has(member.constant->identifier->name)) {
 							continue;
 						}
-						// Constant in a class, when used in an expression.
+						// Constant in a class.
 						// 		const MY_CONST = 3
 						//		func _ready():
 						// 			print(MY_CON...  # <-- will suggest `MY_CONST`
@@ -1176,7 +1172,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_only_functions) {
 							continue;
 						}
-						// Inner class in a class, when used in an expression.
+						// Inner class in a class.
 						// 		class MyInnerClass:
 						//			pass
 						//		func _ready():
@@ -1188,7 +1184,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions) {
 							continue;
 						}
-						// Value from an anonymous enum in a class, when used in an expression.
+						// Value from an anonymous enum in a class.
 						// 		enum { ONE, TWO }
 						//		func _ready():
 						// 			print(ON...  # <-- will suggest `ONE`
@@ -1199,7 +1195,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_only_functions) {
 							continue;
 						}
-						// Name of an enum in a class, when used in an expression.
+						// Name of an enum in a class.
 						// 		enum MyEnum { ONE, TWO }
 						//		func _ready():
 						// 			print(MyEn...  # <-- will suggest `MyEnum`
@@ -1210,7 +1206,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || outer || (p_static && !member.function->is_static) || member.function->identifier->name.operator String().begins_with("@")) {
 							continue;
 						}
-						// Method in a class, when used in an expression.
+						// Method in a class.
 						// 		func say_hello():
 						//			print("Hello!")
 						//		func _ready():
@@ -1229,7 +1225,7 @@ static void _find_identifiers_in_class(const GDScriptParser::ClassNode *p_class,
 						if (p_types_only || p_only_functions || outer || p_static) {
 							continue;
 						}
-						// Signal in a class, when used in an expression.
+						// Signal in a class.
 						// 		signal something_happened
 						//		func _ready():
 						// 			something_hap...  # <-- will suggest `something_happened`
@@ -3006,7 +3002,12 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		if (p_context.current_class && p_context.current_class->has_member(current_enum) && p_context.current_class->get_member(current_enum).type == GDScriptParser::ClassNode::Member::ENUM) {
 			const GDScriptParser::EnumNode *_enum = p_context.current_class->get_member(current_enum).m_enum;
 			for (int i = 0; i < _enum->values.size(); i++) {
-				// TODO: Determine what case this covers.
+				// Enum value when the enum belongs to the current class.
+				// 		class_name MyClass
+				//		enum MyEnum { ONE, TWO }
+				//		func print_enum(v: MyEnum): print(v)
+				//		func _ready():
+				//			print_enum(...  # <-- should suggest `ONE`, `TWO`
 				ScriptLanguage::CodeCompletionOption option(_enum->values[i].identifier->name, ScriptLanguage::CODE_COMPLETION_KIND_ENUM);
 				option.deprecated = _enum->doc_data.is_deprecated;
 				r_result.insert(option.display, option);
@@ -3015,7 +3016,8 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 			ERR_FAIL_COND_MSG(!class_list.has("@GlobalScope"), vformat("@GlobalScope class couldn't be found in doc data by the language server"));
 			for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
 				if (CoreConstants::get_global_constant_enum(i) == current_enum) {
-					// TODO: Determine what case this covers.
+					// Global constant enum value for a native class's method.
+					// 		my_control.set_anchor(...  # <-- will suggest `SIDE_BOTTOM` and others from `@GlobalScope.Side`
 					ScriptLanguage::CodeCompletionOption option(CoreConstants::get_global_constant_name(i), ScriptLanguage::CODE_COMPLETION_KIND_ENUM);
 					if (class_list.get("@GlobalScope").enums.has(CoreConstants::get_global_constant_name(i))) {
 						option.deprecated = class_list.get("@GlobalScope").enums.get(CoreConstants::get_global_constant_name(i)).is_deprecated;
@@ -3044,7 +3046,8 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		for (const StringName &E : enum_constants) {
 			String candidate = class_name + "." + E;
 			int location = _get_enum_constant_location(class_name, E);
-			// TODO: Determine what case this covers.
+			// Native enum values for a context with a native enum type.
+			// TODO: Provide an example.
 			ScriptLanguage::CodeCompletionOption option(candidate, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
 			if (const_is_deprecated.has(E)) {
 				option.deprecated = const_is_deprecated.get(E);
