@@ -309,3 +309,12 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-100414
+---------
+Validate extension JSON: Error: Field 'builtin_classes/Vector2/constants/INF': value changed value in new API, from "Vector2(inf, inf)" to "Vector2(INF, INF)".
+Validate extension JSON: Error: Field 'builtin_classes/Vector3/constants/INF': value changed value in new API, from "Vector3(inf, inf, inf)" to "Vector3(INF, INF, INF)".
+Validate extension JSON: Error: Field 'builtin_classes/Vector4/constants/INF': value changed value in new API, from "Vector4(inf, inf, inf, inf)" to "Vector4(INF, INF, INF, INF)".
+
+Infinity is now serialized as "INF" instead of "inf".

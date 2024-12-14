@@ -436,7 +436,7 @@
 		<constant name="ONE" value="Vector3(1, 1, 1)">
 			One vector, a vector with all components set to [code]1[/code].
 		</constant>
-		<constant name="INF" value="Vector3(inf, inf, inf)">
+		<constant name="INF" value="Vector3(INF, INF, INF)">
 			Infinity vector, a vector with all components set to [constant @GDScript.INF].
 		</constant>
 		<constant name="LEFT" value="Vector3(-1, 0, 0)">
