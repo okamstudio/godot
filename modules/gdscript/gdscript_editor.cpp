@@ -1274,9 +1274,9 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 	}
 
 	while (!base_type.has_no_type()) {
-		// This HashMap is declared up here because it works across both
+		// This HashSet is declared up here because it works across both
 		// the ENUM and BUILTIN cases.
-		HashMap<String, bool> enum_val_is_deprecated_map;
+		HashSet<String> deprecated_values;
 		switch (base_type.kind) {
 			case GDScriptParser::DataType::CLASS: {
 				_find_identifiers_in_class(base_type.class_type, p_only_functions, p_types_only, base_type.is_meta_type, false, r_result, p_recursion_depth);
@@ -1293,9 +1293,11 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							List<PropertyInfo> members;
 							scr->get_script_property_list(&members);
 
-							HashMap<StringName, bool> prop_is_deprecated_map;
+							HashSet<StringName> deprecated_properties;
 							for (const DocData::PropertyDoc &property : class_doc_map.get(base_type.class_type->get_global_name()).properties) {
-								prop_is_deprecated_map.insert(property.name, property.is_deprecated);
+								if (property.is_deprecated) {
+									deprecated_properties.insert(property.name);
+								}
 							}
 
 							for (const PropertyInfo &E : members) {
@@ -1309,18 +1311,18 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 								// Property in a Script type (such as a C# script).
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
-								if (prop_is_deprecated_map.has(E.name)) {
-									option.deprecated = prop_is_deprecated_map.get(E.name);
-								}
+								option.deprecated = deprecated_properties.has(E.name);
 								r_result.insert(option.display, option);
 							}
 
 							List<MethodInfo> signals;
 							scr->get_script_signal_list(&signals);
 
-							HashMap<StringName, bool> signal_is_deprecated_map;
+							HashSet<StringName> deprecated_signals;
 							for (const DocData::MethodDoc &signal_doc : class_doc_map.get(base_type.class_type->get_global_name()).signals) {
-								signal_is_deprecated_map.insert(signal_doc.name, signal_doc.is_deprecated);
+								if (signal_doc.is_deprecated) {
+									deprecated_signals.insert(signal_doc.name);
+								}
 							}
 
 							for (const MethodInfo &E : signals) {
@@ -1328,18 +1330,18 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 								// Signal in a Script type (such as a C# script).
 								ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
-								if (signal_is_deprecated_map.has(E.name)) {
-									option.deprecated = signal_is_deprecated_map.get(E.name);
-								}
+								option.deprecated = deprecated_signals.has(E.name);
 								r_result.insert(option.display, option);
 							}
 						}
 						HashMap<StringName, Variant> constants;
 						scr->get_constants(&constants);
 
-						HashMap<StringName, bool> const_is_deprecated_map;
+						HashSet<StringName> deprecated_consts;
 						for (const DocData::ConstantDoc &constant_doc : class_doc_map.get(base_type.class_type->get_global_name()).constants) {
-							const_is_deprecated_map.insert(constant_doc.name, constant_doc.is_deprecated);
+							if (constant_doc.is_deprecated) {
+								deprecated_consts.insert(constant_doc.name);
+							}
 						}
 
 						for (const KeyValue<StringName, Variant> &E : constants) {
@@ -1347,9 +1349,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 							// Constant in a Script type (such as a C# script).
 							ScriptLanguage::CodeCompletionOption option(E.key.operator String(), ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
-							if (const_is_deprecated_map.has(E.key.operator String())) {
-								option.deprecated = const_is_deprecated_map.get(E.key.operator String());
-							}
+							option.deprecated = deprecated_consts.has(E.key.operator String());
 							r_result.insert(option.display, option);
 						}
 					}
@@ -1412,12 +1412,14 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				if (!p_only_functions) {
 					List<String> constants;
 
-					HashMap<String, bool> const_is_deprecated_map;
+					HashSet<String> deprecated_consts;
 					if (!class_doc_map.has(type)) {
 						print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 					} else {
 						for (const DocData::ConstantDoc &constant_doc : class_doc_map.get(type).constants) {
-							const_is_deprecated_map.insert(constant_doc.name, constant_doc.is_deprecated);
+							if (constant_doc.is_deprecated) {
+								deprecated_consts.insert(constant_doc.name);
+							}
 						}
 					}
 
@@ -1427,9 +1429,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 						// Constant in a native class.
 						// 		NOTIFICATION_DR...  # <-- Will suggest `NOTIFICATION_DRAW`
 						ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
-						if (const_is_deprecated_map.has(E)) {
-							option.deprecated = const_is_deprecated_map.get(E);
-						}
+						option.deprecated = deprecated_consts.has(E);
 						r_result.insert(option.display, option);
 					}
 
@@ -1437,12 +1437,14 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 						List<PropertyInfo> pinfo;
 						ClassDB::get_property_list(type, &pinfo);
 
-						HashMap<String, bool> prop_is_deprecated_map;
+						HashSet<String> deprecated_properties;
 						if (!class_doc_map.has(type)) {
 							print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 						} else {
 							for (const DocData::PropertyDoc &property_doc : class_doc_map.get(type).properties) {
-								prop_is_deprecated_map.insert(property_doc.name, property_doc.is_deprecated);
+								if (property_doc.is_deprecated) {
+									deprecated_properties.insert(property_doc.name);
+								}
 							}
 						}
 
@@ -1459,21 +1461,21 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							// 		var my_node = Node2D.new()
 							// 		my_node.pos...  # <-- will suggest `position`
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_MEMBER, location);
-							if (prop_is_deprecated_map.has(E.name)) {
-								option.deprecated = prop_is_deprecated_map.get(E.name);
-							}
+							option.deprecated = deprecated_properties.has(E.name);
 							r_result.insert(option.display, option);
 						}
 
 						List<MethodInfo> signals;
 						ClassDB::get_signal_list(type, &signals);
 
-						HashMap<String, bool> signal_is_deprecated_map;
+						HashSet<String> deprecated_signals;
 						if (!EditorHelp::get_doc_data()->class_list.has(type)) {
 							print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 						} else {
 							for (const DocData::MethodDoc &signal_doc : EditorHelp::get_doc_data()->class_list.get(type).signals) {
-								signal_is_deprecated_map.insert(signal_doc.name, signal_doc.is_deprecated);
+								if (signal_doc.is_deprecated) {
+									deprecated_signals.insert(signal_doc.name);
+								}
 							}
 						}
 
@@ -1484,9 +1486,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							// 		var my_node = AnimatedSprite2D.new()
 							// 		my_node.anim...  # <-- will suggest `animation_changed`
 							ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_SIGNAL, location);
-							if (signal_is_deprecated_map.has(E.name)) {
-								option.deprecated = signal_is_deprecated_map.get(E.name);
-							}
+							option.deprecated = deprecated_signals.has(E.name);
 							r_result.insert(option.display, option);
 						}
 					}
@@ -1497,13 +1497,15 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				List<MethodInfo> methods;
 				ClassDB::get_method_list(type, &methods, false, true);
 
-				// Assemble a hashmap of method names and whether or not they're deprecated.
-				HashMap<String, bool> method_is_deprecated_map;
+				// Assemble a set of deprecated method names.
+				HashSet<String> deprecated_methods;
 				if (!class_doc_map.has(type)) {
 					print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 				} else {
 					for (const DocData::MethodDoc &method_doc : class_doc_map.get(type).methods) {
-						method_is_deprecated_map.insert(method_doc.name, method_doc.is_deprecated);
+						if (method_doc.is_deprecated) {
+							deprecated_methods.insert(method_doc.name);
+						}
 					}
 				}
 
@@ -1520,9 +1522,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					// 		var my_node = AnimatedSprite2D.new()
 					// 		my_node.get_pl...  # <-- will suggest `get_playing_speed`
 					ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
-					if (method_is_deprecated_map.has(E.name)) {
-						option.deprecated = method_is_deprecated_map.get(E.name);
-					}
+					option.deprecated = deprecated_methods.has(E.name);
 					if (E.arguments.size() || (E.flags & METHOD_FLAG_VARARG)) {
 						option.insert_text += "(";
 						option.display += U"(\u2026)";
@@ -1545,14 +1545,18 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				if (p_base.type.class_type) {
 					const GDScriptParser::EnumNode *_enum = p_base.type.class_type->get_member(type_enum).m_enum;
 					for (const GDScriptParser::EnumNode::Value &i : _enum->values) {
-						enum_val_is_deprecated_map.insert(i.identifier->name, i.doc_data.is_deprecated);
+						if (i.doc_data.is_deprecated) {
+							deprecated_values.insert(i.identifier->name);
+						}
 					}
 				} else {
 					if (!class_doc_map.has(type)) {
 						print_error(vformat("Class \"%s\" couldn't be found in doc data by the language server", type));
 					} else {
 						for (const DocData::ConstantDoc &constant_doc : class_doc_map.get(type).constants) {
-							enum_val_is_deprecated_map.insert(constant_doc.name, constant_doc.is_deprecated);
+							if (constant_doc.is_deprecated) {
+								deprecated_values.insert(constant_doc.name);
+							}
 						}
 					}
 				}
@@ -1563,9 +1567,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					// Enum value from a named enum in another class.
 					// 		CanvasItem.ClipChildrenMode.CLI...  # <-- will suggest `CLIP_CHILDREN_DISABLED`
 					ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
-					if (enum_val_is_deprecated_map.has(E)) {
-						option.deprecated = enum_val_is_deprecated_map.get(E);
-					}
+					option.deprecated = deprecated_values.has(E);
 					r_result.insert(option.display, option);
 				}
 			}
@@ -1586,7 +1588,6 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 
 				if (!p_only_functions) {
 					List<PropertyInfo> members;
-					HashMap<String, bool> member_is_deprecated_map;
 					if (p_base.value.get_type() != Variant::NIL) {
 						p_base.value.get_property_list(&members);
 					} else {
@@ -1607,9 +1608,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 							if (base_type.kind == GDScriptParser::DataType::ENUM) {
 								// Sort enum members in their declaration order.
 								location += 1;
-								if (enum_val_is_deprecated_map.has(E.name)) {
-									option.deprecated = enum_val_is_deprecated_map.get(E.name);
-								}
+								option.deprecated = deprecated_values.has(E.name);
 							}
 							if (GDScriptParser::theme_color_names.has(E.name)) {
 								option.theme_color_name = GDScriptParser::theme_color_names[E.name];
@@ -1622,12 +1621,14 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 				List<MethodInfo> methods;
 				tmp.get_method_list(&methods);
 
-				HashMap<String, bool> method_is_deprecated_map;
+				HashSet<String> deprecated_methods;
 				if (!class_doc_map.has(Variant::get_type_name(base_type.builtin_type))) {
 					print_error(vformat("Variant \"%s\" couldn't be found in doc data by the language server", Variant::get_type_name(base_type.builtin_type)));
 				} else {
 					for (const DocData::MethodDoc &method_doc : class_doc_map.get(Variant::get_type_name(base_type.builtin_type)).methods) {
-						method_is_deprecated_map.insert(method_doc.name, method_doc.is_deprecated);
+						if (method_doc.is_deprecated) {
+							deprecated_methods.insert(method_doc.name);
+						}
 					}
 				}
 
@@ -1639,9 +1640,7 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 					// Method for a built-in type.
 					// 		"Hello".beg...  # <-- will suggest `begins_with(...)`
 					ScriptLanguage::CodeCompletionOption option(E.name, ScriptLanguage::CODE_COMPLETION_KIND_FUNCTION, location);
-					if (method_is_deprecated_map.has(E.name)) {
-						option.deprecated = method_is_deprecated_map.get(E.name);
-					}
+					option.deprecated = deprecated_methods.has(E.name);
 					if (E.arguments.size() || (E.flags & METHOD_FLAG_VARARG)) {
 						option.insert_text += "(";
 						option.display += U"(\u2026)";
@@ -1744,12 +1743,13 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 	List<StringName> utility_func_names;
 	Variant::get_utility_function_list(&utility_func_names);
 
-	// Build a hashmap of constants from @GlobalScope,
-	// and whether or not they are deprecated.
+	// Build a set of deprecated constants from @GlobalScope.
 	ERR_FAIL_COND_MSG(!class_list.has("@GlobalScope"), vformat("@GlobalScope class couldn't be found in doc data by the language server"));
-	HashMap<String, bool> const_is_deprecated;
-	for (const DocData::ConstantDoc &constant : class_list.get("@GlobalScope").constants) {
-		const_is_deprecated.insert(constant.name, constant.is_deprecated);
+	HashSet<String> deprecated_consts;
+	for (const DocData::ConstantDoc &constant_doc : class_list.get("@GlobalScope").constants) {
+		if (constant_doc.is_deprecated) {
+			deprecated_consts.insert(constant_doc.name);
+		}
 	}
 
 	for (List<StringName>::Element *E = utility_func_names.front(); E; E = E->next()) {
@@ -1790,9 +1790,7 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 			// Global constants.
 			// 		SIDE_LE...  # <-- will suggest `SIDE_LEFT`
 			option = ScriptLanguage::CodeCompletionOption(name, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT);
-			if (const_is_deprecated.has(name)) {
-				option.deprecated = const_is_deprecated.get(name);
-			}
+			option.deprecated = deprecated_consts.has(name);
 		}
 		r_result.insert(option.display, option);
 	}
@@ -3037,11 +3035,13 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		List<StringName> enum_constants;
 		ClassDB::get_enum_constants(class_name, enum_name, &enum_constants);
 
-		// Build hashmap of enum constants and whether or not they're deprecated
+		// Build set of deprecated enum constants.
 		ERR_FAIL_COND_MSG(!class_list.has(class_name), vformat("%s class couldn't be found in doc data by the language server", class_name));
-		HashMap<String, bool> const_is_deprecated;
-		for (const DocData::ConstantDoc &constant : class_list.get(class_name).constants) {
-			const_is_deprecated.insert(constant.name, constant.is_deprecated);
+		HashSet<String> deprecated_consts;
+		for (const DocData::ConstantDoc &constant_doc : class_list.get(class_name).constants) {
+			if (constant_doc.is_deprecated) {
+				deprecated_consts.insert(constant_doc.name);
+			}
 		}
 		for (const StringName &E : enum_constants) {
 			String candidate = class_name + "." + E;
@@ -3051,11 +3051,7 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 			//		func _ready():
 			//			set_anchors_and_offsets_preset(...  # <-- will suggest `Control.PRESET_TOP_LEFT` and others from `Control.LayoutPreset`
 			ScriptLanguage::CodeCompletionOption option(candidate, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
-			if (const_is_deprecated.has(E)) {
-				option.deprecated = const_is_deprecated.get(E);
-			} else {
-				print_error(vformat("%s not found in constants for class %s", E, class_name));
-			}
+			option.deprecated = deprecated_consts.has(E);
 			r_result.insert(option.display, option);
 		}
 	}
@@ -3552,12 +3548,12 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				Variant::get_constants_for_type(completion_context.builtin_type, &constants);
 				const String variant_name = Variant::get_type_name(completion_context.builtin_type);
 
-				// Create hashmap of constants within this Variant, and whether
-				// or not they are deprecated.
-				// ERR_FAIL_COND_MSG(!class_list.has(variant_name), vformat("Variant \"%s\" couldn't be found in doc data by the language server", variant_name));
-				HashMap<String, bool> is_deprecated_map;
-				for (const DocData::ConstantDoc &constant : class_list.get(variant_name).constants) {
-					is_deprecated_map.insert(constant.name, constant.is_deprecated);
+				// Create set of deprecated constants within this Variant.
+				HashSet<String> deprecated_consts;
+				for (const DocData::ConstantDoc &constant_doc : class_list.get(variant_name).constants) {
+					if (constant_doc.is_deprecated) {
+						deprecated_consts.insert(constant_doc.name);
+					}
 				}
 
 				for (const StringName &E : constants) {
@@ -3567,10 +3563,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 					if (valid) {
 						option.default_value = default_value;
 					}
-
-					if (is_deprecated_map.has(E)) {
-						option.deprecated = is_deprecated_map.get(E);
-					}
+					option.deprecated = deprecated_consts.has(E);
 					options.insert(option.display, option);
 				}
 			}
@@ -3580,12 +3573,12 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 				Variant::get_builtin_method_list(completion_context.builtin_type, &methods);
 				const String variant_name = Variant::get_type_name(completion_context.builtin_type);
 
-				// Create hashmap of methods within this Variant, and whether
-				// or not they are deprecated.
-				// ERR_FAIL_COND_MSG(!class_list.has(variant_name), vformat("Variant \"%s\" couldn't be found in doc data by the language server", variant_name));
-				HashMap<String, bool> is_deprecated_map;
-				for (const DocData::MethodDoc &method : class_list.get(variant_name).methods) {
-					is_deprecated_map.insert(method.name, method.is_deprecated);
+				// Create set of deprecated methods within this Variant.
+				HashSet<String> deprecated_methods;
+				for (const DocData::MethodDoc &method_doc : class_list.get(variant_name).methods) {
+					if (method_doc.is_deprecated) {
+						deprecated_methods.insert(method_doc.name);
+					}
 				}
 
 				for (const StringName &E : methods) {
@@ -3596,10 +3589,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 						} else {
 							option.insert_text += "()";
 						}
-
-						if (is_deprecated_map.has(E)) {
-							option.deprecated = is_deprecated_map.get(E);
-						}
+						option.deprecated = deprecated_methods.has(E);
 						options.insert(option.display, option);
 					}
 				}
