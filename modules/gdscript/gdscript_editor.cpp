@@ -3046,8 +3046,10 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 		for (const StringName &E : enum_constants) {
 			String candidate = class_name + "." + E;
 			int location = _get_enum_constant_location(class_name, E);
-			// Native enum values for a context with a native enum type.
-			// TODO: Provide an example.
+			// Native enum value for a context with a native enum type.
+			// 		extends Control
+			//		func _ready():
+			//			set_anchors_and_offsets_preset(...  # <-- will suggest `Control.PRESET_TOP_LEFT` and others from `Control.LayoutPreset`
 			ScriptLanguage::CodeCompletionOption option(candidate, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, location);
 			if (const_is_deprecated.has(E)) {
 				option.deprecated = const_is_deprecated.get(E);
