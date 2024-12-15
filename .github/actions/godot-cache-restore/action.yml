@@ -11,24 +11,42 @@ inputs:
 runs:
   using: composite
   steps:
+    # Because all branches can refer to the repository's default branch's cache, we want it to
+    # persist as the de-facto fallback. However, it easily expunges in a matter of hours if
+    # nothing explicitly calls to it, so we work around that by ensuring it's *always* pinged
+    # prior to any cache operations.
+    - name: Ping main cache
+      uses: actions/cache/restore@v4
+      id: cache-ping
+      with:
+        path: ${{ inputs.scons-cache }}
+        key: " " # Dummy key; we have to rely on the fallback value.
+        restore-keys: ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}
+        lookup-only: true
+
+    # Fallback access isn't logged, so register an explicit cache-hit if found.
+    - name: Ping main cache (exact)
+      if: steps.cache-ping.outputs.cache-matched-key
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ inputs.scons-cache }}
+        key: ${{ steps.cache-ping.outputs.cache-matched-key }}
+        lookup-only: true
+
+    # We try to match an existing cache to restore from it. Each potential key is checked against
+    # all existing caches as a prefix. E.g. 'linux-template-minimal' would match any cache that
+    # starts with "linux-template-minimal", such as
+    # "linux-template-minimal|master|6588a4a29af1621086feac0117d5d4d37af957fd".
+    #
+    # We check these prefixes in this order:
+    #   1. An exact match for the base branch, reference name, and SHA hash.
+    #   2. A partial match for the same cache name and reference name.
+    #   3. A partial match for the same cache name and default branch name.
     - name: Restore SCons cache directory
       uses: actions/cache/restore@v4
       with:
         path: ${{ inputs.scons-cache }}
-        key: ${{ inputs.cache-name }}-${{ env.GODOT_BASE_BRANCH }}-${{ github.ref }}-${{ github.sha }}
-
-        # We try to match an existing cache to restore from it. Each potential key is checked against
-        # all existing caches as a prefix. E.g. 'linux-template-minimal' would match any cache that
-        # starts with "linux-template-minimal", such as "linux-template-minimal-master-refs/heads/master-6588a4a29af1621086feac0117d5d4d37af957fd".
-        #
-        # We check these prefixes in this order:
-        #
-        #   1. The exact match, including the base branch, the commit reference, and the SHA hash of the commit.
-        #   2. A partial match for the same base branch and the same commit reference.
-        #   3. A partial match for the same base branch and the base branch commit reference.
-        #   4. A partial match for the same base branch only (not ideal, matches any PR with the same base branch).
-
+        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
         restore-keys: |
-          ${{ inputs.cache-name }}-${{ env.GODOT_BASE_BRANCH }}-${{ github.ref }}
-          ${{ inputs.cache-name }}-${{ env.GODOT_BASE_BRANCH }}-refs/heads/${{ env.GODOT_BASE_BRANCH }}
-          ${{ inputs.cache-name }}-${{ env.GODOT_BASE_BRANCH }}
+          ${{ inputs.cache-name }}|${{ github.ref_name }}
+          ${{ inputs.cache-name }}|${{ github.event.repository.default_branch }}

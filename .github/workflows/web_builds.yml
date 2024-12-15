@@ -4,8 +4,6 @@ on:
 
 # Global Settings
 env:
-  # Used for the cache key. Add version suffix to force clean build.
-  GODOT_BASE_BRANCH: master
   SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no use_closure_compiler=yes strict_checks=yes
   EM_VERSION: 3.1.64
 

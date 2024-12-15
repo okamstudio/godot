@@ -15,4 +15,4 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ${{ inputs.scons-cache }}
-        key: ${{ inputs.cache-name }}-${{ env.GODOT_BASE_BRANCH }}-${{ github.ref }}-${{ github.sha }}
+        key: ${{ inputs.cache-name }}|${{ github.ref_name }}|${{ github.sha }}
