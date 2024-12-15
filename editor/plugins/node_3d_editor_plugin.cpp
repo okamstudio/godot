@@ -1974,7 +1974,7 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 					surface->queue_redraw();
 				} else {
-					if (spatial_editor->get_tool_mode() == Node3DEditor::TOOL_RULER) {
+					if (ruler->is_inside_tree()) {
 						EditorNode::get_singleton()->get_scene_root()->remove_child(ruler);
 						ruler_start_point->set_visible(false);
 						ruler_end_point->set_visible(false);
