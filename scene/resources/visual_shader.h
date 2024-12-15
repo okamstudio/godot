@@ -154,12 +154,11 @@ private:
 			uint64_t port : 32;
 		};
 		uint64_t key = 0;
-		bool operator<(const ConnectionKey &p_key) const {
-			return key < p_key.key;
-		}
+		// This is used to apply default equal and hash methods for uint64_t to ConnectionKey.
+		operator uint64_t() const { return key; }
 	};
 
-	Error _write_node(Type p_type, StringBuilder *p_global_code, StringBuilder *p_global_code_per_node, HashMap<Type, StringBuilder> *p_global_code_per_func, StringBuilder &r_code, Vector<DefaultTextureParam> &r_def_tex_params, const VMap<ConnectionKey, const List<Connection>::Element *> &p_input_connections, const VMap<ConnectionKey, const List<Connection>::Element *> &p_output_connections, int p_node, HashSet<int> &r_processed, bool p_for_preview, HashSet<StringName> &r_classes) const;
+	Error _write_node(Type p_type, StringBuilder *p_global_code, StringBuilder *p_global_code_per_node, HashMap<Type, StringBuilder> *p_global_code_per_func, StringBuilder &r_code, Vector<DefaultTextureParam> &r_def_tex_params, const HashMap<ConnectionKey, const List<Connection>::Element *> &p_input_connections, int p_node, HashSet<int> &r_processed, bool p_for_preview, HashSet<StringName> &r_classes) const;
 
 	void _input_type_changed(Type p_type, int p_id);
 	bool has_func_name(RenderingServer::ShaderMode p_mode, const String &p_func_name) const;
