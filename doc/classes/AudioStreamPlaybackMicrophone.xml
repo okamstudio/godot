@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AudioStreamPlaybackMicrophone" inherits="AudioStreamPlaybackResampled" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Playback instance for [AudioStreamMicrophone].
+	</brief_description>
+	<description>
+		Playback instance for [AudioStreamMicrophone]. When this class is instantiated on its own it can be used to control and extract the microphone audio data directly.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_microphone_buffer">
+			<return type="PackedVector2Array" />
+			<param index="0" name="frames" type="int" />
+			<description>
+				Gets the next [param frames] audio samples from the AudioDevice ring buffer.
+				Returns a [PackedVector2Array] containing exactly [param frames] audio samples if available, or an empty [PackedVector2Array] if insufficient data was available.
+				The samples are signed floating-point PCM between [code]-1[/code] and [code]1[/code]. You will have to scale them if you want to use them as 8 or 16-bit integer samples. ([code]v = 0x7fff * samples[0].x[/code])
+			</description>
+		</method>
+		<method name="is_microphone_playing" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Check if this object has instructed the AudioDevice to record.
+			</description>
+		</method>
+		<method name="start_microphone">
+			<return type="void" />
+			<description>
+				Instruct the AudioDevice to begin recording if it has not already doing so.
+			</description>
+		</method>
+		<method name="stop_microphone">
+			<return type="void" />
+			<description>
+				Instruct the AudioDevice to stop recording if no other [AudioStreamPlaybackMicrophone] instances are active.
+			</description>
+		</method>
+	</methods>
+</class>

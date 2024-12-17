@@ -537,6 +537,7 @@ void AudioDriverPulseAudio::thread_func(void *p_udata) {
 					ERR_PRINT("pa_stream_peek error");
 				} else {
 					int16_t *srcptr = (int16_t *)ptr;
+					ad->lock();
 					for (size_t i = bytes >> 1; i > 0; i--) {
 						int32_t sample = int32_t(*srcptr++) << 16;
 						ad->input_buffer_write(sample);
@@ -546,6 +547,7 @@ void AudioDriverPulseAudio::thread_func(void *p_udata) {
 							ad->input_buffer_write(sample);
 						}
 					}
+					ad->unlock();
 
 					read_bytes += bytes;
 					ret = pa_stream_drop(ad->pa_rec_str);

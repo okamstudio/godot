@@ -97,6 +97,7 @@ public:
 	virtual SpeakerMode get_speaker_mode() const override;
 
 	virtual void lock() override;
+	virtual bool try_lock() override;
 	virtual void unlock() override;
 	virtual void finish() override;
 

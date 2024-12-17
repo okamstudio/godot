@@ -389,7 +389,7 @@ bool AudioStreamMicrophone::is_monophonic() const {
 int AudioStreamPlaybackMicrophone::_mix_internal(AudioFrame *p_buffer, int p_frames) {
 	AudioDriver::get_singleton()->lock();
 
-	Vector<int32_t> buf = AudioDriver::get_singleton()->get_input_buffer();
+	Vector<int32_t> &buf = AudioDriver::get_singleton()->get_input_buffer();
 	unsigned int input_size = AudioDriver::get_singleton()->get_input_size();
 	int mix_rate = AudioDriver::get_singleton()->get_input_mix_rate();
 	unsigned int playback_delay = MIN(((50 * mix_rate) / 1000) * 2, buf.size() >> 1);
@@ -437,6 +437,59 @@ int AudioStreamPlaybackMicrophone::_mix_internal(AudioFrame *p_buffer, int p_fra
 	return mixed_frames;
 }
 
+PackedVector2Array AudioStreamPlaybackMicrophone::get_microphone_buffer(int p_frames) {
+	PackedVector2Array ret;
+	if (!microphone.is_null()) {
+		WARN_PRINT("You cannot call get_microphone_buffer() on AudioStreamPlaybackMicrophone if it is part of a stream.");
+		return ret;
+	}
+
+	if (!AudioDriver::get_singleton()->try_lock()) {
+		WARN_PRINT("try_lock tried in AudioStreamPlaybackMicrophone.");
+		return ret;
+	}
+
+	unsigned int input_position = AudioDriver::get_singleton()->get_input_position();
+	Vector<int32_t> &buf = AudioDriver::get_singleton()->get_input_buffer();
+	if (input_position < input_ofs)
+		input_position += buf.size();
+	if (p_frames == -1)
+		p_frames = (input_position - input_ofs) / 2;
+	if (input_ofs + p_frames * 2 <= input_position) {
+		ret.resize(p_frames);
+		for (int i = 0; i < p_frames; i++) { // inline of _mix_internal()
+			float l = (buf[input_ofs++] >> 16) / 32768.f;
+			if (input_ofs >= buf.size())
+				input_ofs = 0;
+			float r = (buf[input_ofs++] >> 16) / 32768.f;
+			if (input_ofs >= buf.size())
+				input_ofs = 0;
+			ret.write[i] = Vector2(l, r);
+		}
+	}
+	AudioDriver::get_singleton()->unlock();
+	return ret;
+}
+
+/*
+// not able to implement filling an array, instead having to return an array by value as above
+bool AudioStreamPlaybackMicrophone::mix_microphone(GDExtensionPtr<AudioFrame> p_buffer, int p_frames) {
+	DEV_ASSERT(p_buffer != nullptr);
+	if (!microphone.is_null())
+		return false;
+	unsigned int input_position = AudioDriver::get_singleton()->get_input_position();
+	Vector<int32_t> &buf = AudioDriver::get_singleton()->get_input_buffer();
+	if (input_position < input_ofs)
+		input_position += buf.size();
+	if (input_position < input_ofs + p_frames * 2)
+		return false;
+	int mixed_frames = _mix_internal(p_buffer, p_frames);
+	(void)mixed_frames;
+	DEV_ASSERT(mixed_frames == p_frames);
+	return true;
+}
+*/
+
 int AudioStreamPlaybackMicrophone::mix(AudioFrame *p_buffer, float p_rate_scale, int p_frames) {
 	return AudioStreamPlaybackResampled::mix(p_buffer, p_rate_scale, p_frames);
 }
@@ -457,17 +510,49 @@ void AudioStreamPlaybackMicrophone::start(double p_from_pos) {
 
 	input_ofs = 0;
 
-	if (AudioDriver::get_singleton()->input_start() == OK) {
+	if (AudioDriver::get_singleton()->input_start_count == 0) {
+		uint64_t time_before = OS::get_singleton()->get_ticks_msec();
+		Error err = AudioDriver::get_singleton()->input_start();
+		uint64_t elapsed = (OS::get_singleton()->get_ticks_msec() - time_before);
+		WARN_PRINT(vformat("input microphone started e=%d taking %d ms", err, elapsed));
+		if (err == OK) {
+			active = true;
+			begin_resample();
+			AudioDriver::get_singleton()->input_start_count++;
+		}
+	} else {
 		active = true;
 		begin_resample();
+		AudioDriver::get_singleton()->input_start_count++;
 	}
+}
+
+void AudioStreamPlaybackMicrophone::start_microphone() {
+	if (!microphone.is_null()) {
+		WARN_PRINT("You cannot externally start the microphone on AudioStreamPlaybackMicrophone if it is part of a stream.");
+		return;
+	}
+	start(0.0);
 }
 
 void AudioStreamPlaybackMicrophone::stop() {
 	if (active) {
-		AudioDriver::get_singleton()->input_stop();
+		AudioDriver::get_singleton()->input_start_count--;
+		if (AudioDriver::get_singleton()->input_start_count == 0) {
+			Error err = AudioDriver::get_singleton()->input_stop();
+			(void)err;
+			WARN_PRINT(vformat("input microphone stopped e=%d", err));
+		}
 		active = false;
 	}
+}
+
+void AudioStreamPlaybackMicrophone::stop_microphone() {
+	if (!microphone.is_null()) {
+		WARN_PRINT("You cannot externally stop the microphone on AudioStreamPlaybackMicrophone if it is part of a stream.");
+		return;
+	}
+	stop();
 }
 
 bool AudioStreamPlaybackMicrophone::is_playing() const {
@@ -490,8 +575,17 @@ void AudioStreamPlaybackMicrophone::tag_used_streams() {
 	microphone->tag_used(0);
 }
 
+void AudioStreamPlaybackMicrophone::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("start_microphone"), &AudioStreamPlaybackMicrophone::start_microphone);
+	ClassDB::bind_method(D_METHOD("stop_microphone"), &AudioStreamPlaybackMicrophone::stop_microphone);
+	ClassDB::bind_method(D_METHOD("is_microphone_playing"), &AudioStreamPlaybackMicrophone::is_playing);
+	ClassDB::bind_method(D_METHOD("get_microphone_buffer", "frames"), &AudioStreamPlaybackMicrophone::get_microphone_buffer);
+	//ClassDB::bind_method(D_METHOD("mix_microphone", "p_buffer", "frames"), &AudioStreamPlaybackMicrophone::mix_microphone);
+}
+
 AudioStreamPlaybackMicrophone::~AudioStreamPlaybackMicrophone() {
-	microphone->playbacks.erase(this);
+	if (!microphone.is_null())
+		microphone->playbacks.erase(this);
 	stop();
 }
 

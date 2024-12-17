@@ -118,7 +118,7 @@ public:
 	virtual Error input_start() override;
 	virtual Error input_stop() override;
 
-	bool try_lock();
+	virtual bool try_lock() override;
 	void stop();
 
 	AudioDriverCoreAudio();

@@ -101,6 +101,7 @@ void AudioDriver::input_buffer_init(int driver_buffer_frames) {
 	input_size = 0;
 }
 
+// this should only be called from inside a locked block
 void AudioDriver::input_buffer_write(int32_t sample) {
 	if ((int)input_position < input_buffer.size()) {
 		input_buffer.write[input_position++] = sample;
@@ -111,6 +112,7 @@ void AudioDriver::input_buffer_write(int32_t sample) {
 			input_size++;
 		}
 	} else {
+		// this can only happen if this function is called by threads which are not mutually locked
 		WARN_PRINT("input_buffer_write: Invalid input_position=" + itos(input_position) + " input_buffer.size()=" + itos(input_buffer.size()));
 	}
 }
