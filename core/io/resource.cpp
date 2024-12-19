@@ -238,53 +238,58 @@ void Resource::reload_from_file() {
 	copy_from(s);
 }
 
-void Resource::_dupe_sub_resources(Variant &r_variant, Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache) {
-	switch (r_variant.get_type()) {
-		case Variant::ARRAY: {
-			Array a = r_variant;
-			for (int i = 0; i < a.size(); i++) {
-				_dupe_sub_resources(a[i], p_for_scene, p_remap_cache);
-			}
-		} break;
-		case Variant::DICTIONARY: {
-			Dictionary d = r_variant;
-			List<Variant> keys;
-			d.get_key_list(&keys);
-			for (Variant &k : keys) {
-				if (k.get_type() == Variant::OBJECT) {
-					// Replace in dictionary key.
-					Ref<Resource> sr = k;
-					if (sr.is_valid() && sr->is_local_to_scene()) {
-						if (p_remap_cache.has(sr)) {
-							d[p_remap_cache[sr]] = d[k];
-							d.erase(k);
-						} else {
-							Ref<Resource> dupe = sr->duplicate_for_local_scene(p_for_scene, p_remap_cache);
-							d[dupe] = d[k];
-							d.erase(k);
-							p_remap_cache[sr] = dupe;
-						}
-					}
-				} else {
-					_dupe_sub_resources(k, p_for_scene, p_remap_cache);
-				}
-
-				_dupe_sub_resources(d[k], p_for_scene, p_remap_cache);
-			}
-		} break;
+Variant Resource::_duplicate_recursive_for_local_scene(const Variant &p_variant, Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache) {
+	switch (p_variant.get_type()) {
 		case Variant::OBJECT: {
-			Ref<Resource> sr = r_variant;
+			const Ref<Resource> &sr = p_variant;
 			if (sr.is_valid() && sr->is_local_to_scene()) {
 				if (p_remap_cache.has(sr)) {
-					r_variant = p_remap_cache[sr];
+					return p_remap_cache[sr];
 				} else {
-					Ref<Resource> dupe = sr->duplicate_for_local_scene(p_for_scene, p_remap_cache);
-					r_variant = dupe;
+					const Ref<Resource> &dupe = sr->duplicate_for_local_scene(p_for_scene, p_remap_cache);
 					p_remap_cache[sr] = dupe;
+					return dupe;
 				}
+			} else {
+				return p_variant;
 			}
 		} break;
+		case Variant::ARRAY: {
+			const Array &src = p_variant;
+			Array dst;
+			dst.resize(src.size());
+			for (int i = 0; i < src.size(); i++) {
+				dst[i] = _duplicate_recursive_for_local_scene(src[i], p_for_scene, p_remap_cache);
+			}
+			return dst;
+		} break;
+		case Variant::DICTIONARY: {
+			const Dictionary &src = p_variant;
+			Dictionary dst;
+			List<Variant> keys;
+			src.get_key_list(&keys);
+			for (const Variant &k : keys) {
+				const Variant &v = src[k];
+				dst.set(
+						_duplicate_recursive_for_local_scene(k, p_for_scene, p_remap_cache),
+						_duplicate_recursive_for_local_scene(v, p_for_scene, p_remap_cache));
+			}
+			return dst;
+		} break;
+		case Variant::PACKED_BYTE_ARRAY:
+		case Variant::PACKED_INT32_ARRAY:
+		case Variant::PACKED_INT64_ARRAY:
+		case Variant::PACKED_FLOAT32_ARRAY:
+		case Variant::PACKED_FLOAT64_ARRAY:
+		case Variant::PACKED_STRING_ARRAY:
+		case Variant::PACKED_VECTOR2_ARRAY:
+		case Variant::PACKED_VECTOR3_ARRAY:
+		case Variant::PACKED_COLOR_ARRAY:
+		case Variant::PACKED_VECTOR4_ARRAY: {
+			return p_variant.duplicate();
+		} break;
 		default: {
+			return p_variant;
 		}
 	}
 }
@@ -296,15 +301,25 @@ Ref<Resource> Resource::duplicate_for_local_scene(Node *p_for_scene, HashMap<Ref
 	Ref<Resource> r = Object::cast_to<Resource>(ClassDB::instantiate(get_class()));
 	ERR_FAIL_COND_V(r.is_null(), Ref<Resource>());
 
+	p_remap_cache[this] = r;
+
 	r->local_scene = p_for_scene;
 
 	for (const PropertyInfo &E : plist) {
 		if (!(E.usage & PROPERTY_USAGE_STORAGE)) {
 			continue;
 		}
-		Variant p = get(E.name).duplicate(true);
 
-		_dupe_sub_resources(p, p_for_scene, p_remap_cache);
+		Variant p = get(E.name);
+
+		bool should_recurse = true;
+		if ((E.usage & PROPERTY_USAGE_NEVER_DUPLICATE) && ((Ref<Resource>)p).is_valid()) {
+			should_recurse = false;
+		}
+
+		if (should_recurse) {
+			p = _duplicate_recursive_for_local_scene(p, p_for_scene, p_remap_cache);
+		}
 
 		r->set(E.name, p);
 	}

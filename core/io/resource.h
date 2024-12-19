@@ -78,7 +78,7 @@ private:
 
 	SelfList<Resource> remapped_list;
 
-	void _dupe_sub_resources(Variant &r_variant, Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache);
+	Variant _duplicate_recursive_for_local_scene(const Variant &p_variant, Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache);
 	void _find_sub_resources(const Variant &p_variant, HashSet<Ref<Resource>> &p_resources_found);
 
 protected:
