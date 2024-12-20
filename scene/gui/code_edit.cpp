@@ -247,7 +247,7 @@ void CodeEdit::_notification(int p_what) {
 						}
 
 						if (code_completion_options[i].deprecated) {
-							draw_line(Point2(title_pos.x, title_pos.y + row_height / 2), Point2(title_pos.x + tl->get_line_width(), title_pos.y + row_height / 2), code_completion_options[l].font_color, 2.0);
+							draw_line(Point2(title_pos.x, title_pos.y + row_height / 2), Point2(title_pos.x + tl->get_line_width(), title_pos.y + row_height / 2), code_completion_options[l].font_color, Math::round(theme_cache.font_size / 8.0));
 						}
 
 						Point2 match_pos = Point2(code_completion_rect.position.x + icon_area_size.x + theme_cache.code_completion_icon_separation, code_completion_rect.position.y + i * row_height);
