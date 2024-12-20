@@ -101,6 +101,7 @@ public:
 	bool is_typed() const;
 	bool is_typed_key() const;
 	bool is_typed_value() const;
+	bool is_same_instance(const Dictionary &p_other) const;
 	bool is_same_typed(const Dictionary &p_other) const;
 	bool is_same_typed_key(const Dictionary &p_other) const;
 	bool is_same_typed_value(const Dictionary &p_other) const;

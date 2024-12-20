@@ -644,6 +644,10 @@ bool Dictionary::is_typed_value() const {
 	return _p->typed_value.type != Variant::NIL;
 }
 
+bool Dictionary::is_same_instance(const Dictionary &p_other) const {
+	return _p == p_other._p;
+}
+
 bool Dictionary::is_same_typed(const Dictionary &p_other) const {
 	return is_same_typed_key(p_other) && is_same_typed_value(p_other);
 }
