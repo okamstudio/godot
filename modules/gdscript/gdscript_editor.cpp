@@ -1115,8 +1115,12 @@ static void _find_identifiers_in_suite(const GDScriptParser::SuiteNode *p_suite,
 		if (p_suite->locals[i].type == GDScriptParser::SuiteNode::Local::CONSTANT) {
 			option = ScriptLanguage::CodeCompletionOption(p_suite->locals[i].name, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
 			option.default_value = p_suite->locals[i].constant->initializer->reduced_value;
+			option.deprecated = p_suite->locals[i].constant->doc_data.is_deprecated;
 		} else {
 			option = ScriptLanguage::CodeCompletionOption(p_suite->locals[i].name, ScriptLanguage::CODE_COMPLETION_KIND_VARIABLE, location);
+			if (p_suite->locals[i].type == GDScriptParser::SuiteNode::Local::VARIABLE) {
+				option.deprecated = p_suite->locals[i].variable->doc_data.is_deprecated;
+			}
 		}
 		r_result.insert(option.display, option);
 	}
