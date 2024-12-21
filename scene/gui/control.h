@@ -68,6 +68,12 @@ public:
 		FOCUS_ALL
 	};
 
+	enum RecursiveBehavior {
+		RECURSIVE_BEHAVIOR_INHERITED,
+		RECURSIVE_BEHAVIOR_DISABLED,
+		RECURSIVE_BEHAVIOR_ENABLED,
+	};
+
 	enum SizeFlags {
 		SIZE_SHRINK_BEGIN = 0,
 		SIZE_FILL = 1,
@@ -191,6 +197,8 @@ private:
 		real_t offset[4] = { 0.0, 0.0, 0.0, 0.0 };
 		real_t anchor[4] = { ANCHOR_BEGIN, ANCHOR_BEGIN, ANCHOR_BEGIN, ANCHOR_BEGIN };
 		FocusMode focus_mode = FOCUS_NONE;
+		RecursiveBehavior parent_focus_recursive_behavior = RECURSIVE_BEHAVIOR_INHERITED;
+		RecursiveBehavior focus_recursive_behavior = RECURSIVE_BEHAVIOR_INHERITED;
 		GrowDirection h_grow = GROW_DIRECTION_END;
 		GrowDirection v_grow = GROW_DIRECTION_END;
 
@@ -219,6 +227,8 @@ private:
 		// Input events and rendering.
 
 		MouseFilter mouse_filter = MOUSE_FILTER_STOP;
+		RecursiveBehavior parent_mouse_recursive_behavior = RECURSIVE_BEHAVIOR_INHERITED;
+		RecursiveBehavior mouse_recursive_behavior = RECURSIVE_BEHAVIOR_INHERITED;
 		bool force_pass_scroll_events = true;
 
 		bool clip_contents = false;
@@ -312,10 +322,17 @@ private:
 
 	void _call_gui_input(const Ref<InputEvent> &p_event);
 
+	// Mouse Filter.
+
+	bool _is_parent_mouse_disabled() const;
+
 	// Focus.
 
 	void _window_find_focus_neighbor(const Vector2 &p_dir, Node *p_at, const Point2 *p_points, real_t p_min, real_t &r_closest_dist, Control **r_closest);
 	Control *_get_focus_neighbor(Side p_side, int p_count = 0);
+	bool _is_focus_disabled_recursively() const;
+	void _apply_focus_behavior_recursively(RecursiveBehavior p_focus_recursive_behavior, bool p_force);
+	void _apply_mouse_behavior_recursively(RecursiveBehavior p_focus_recursive_behavior, bool p_force);
 
 	// Theming.
 
@@ -516,6 +533,10 @@ public:
 
 	void set_mouse_filter(MouseFilter p_filter);
 	MouseFilter get_mouse_filter() const;
+	MouseFilter get_mouse_filter_with_recursive() const;
+
+	void set_mouse_recursive_behavior(RecursiveBehavior p_recursive_mouse_behavior);
+	RecursiveBehavior get_mouse_recursive_behavior() const;
 
 	void set_force_pass_scroll_events(bool p_force_pass_scroll_events);
 	bool is_force_pass_scroll_events() const;
@@ -540,6 +561,9 @@ public:
 
 	void set_focus_mode(FocusMode p_focus_mode);
 	FocusMode get_focus_mode() const;
+	FocusMode get_focus_mode_with_recursive() const;
+	void set_focus_recursive_behavior(RecursiveBehavior p_recursive_mouse_behavior);
+	RecursiveBehavior get_focus_recursive_behavior() const;
 	bool has_focus() const;
 	void grab_focus();
 	void grab_click_focus();
@@ -657,6 +681,7 @@ public:
 };
 
 VARIANT_ENUM_CAST(Control::FocusMode);
+VARIANT_ENUM_CAST(Control::RecursiveBehavior);
 VARIANT_BITFIELD_CAST(Control::SizeFlags);
 VARIANT_ENUM_CAST(Control::CursorShape);
 VARIANT_ENUM_CAST(Control::LayoutPreset);

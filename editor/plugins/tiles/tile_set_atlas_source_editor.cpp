@@ -2758,7 +2758,7 @@ TileSetAtlasSourceEditor::~TileSetAtlasSourceEditor() {
 
 void EditorPropertyTilePolygon::_add_focusable_children(Node *p_node) {
 	Control *control = Object::cast_to<Control>(p_node);
-	if (control && control->get_focus_mode() != Control::FOCUS_NONE) {
+	if (control && control->get_focus_mode_with_recursive() != Control::FOCUS_NONE) {
 		add_focusable(control);
 	}
 	for (int i = 0; i < p_node->get_child_count(); i++) {

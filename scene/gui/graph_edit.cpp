@@ -1198,7 +1198,7 @@ bool GraphEdit::_check_clickable_control(Control *p_control, const Vector2 &mpos
 	control_rect.size *= zoom;
 	control_rect.position += p_offset;
 
-	if (!control_rect.has_point(mpos) || p_control->get_mouse_filter() == MOUSE_FILTER_IGNORE) {
+	if (!control_rect.has_point(mpos) || p_control->get_mouse_filter_with_recursive() == MOUSE_FILTER_IGNORE) {
 		// Test children.
 		for (int i = 0; i < p_control->get_child_count(); i++) {
 			Control *child_rect = Object::cast_to<Control>(p_control->get_child(i));
