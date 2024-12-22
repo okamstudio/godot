@@ -149,7 +149,7 @@ FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Poin
 			Vector<TVG_NodeCache> &ncs = cache.node_caches[p_slot->glyph_index];
 
 			uint64_t offset = 0;
-			for (TVG_NodeCache &nc : ncs) {
+			for (const TVG_NodeCache &nc : ncs) {
 				// Seek will call read() internally.
 				if (parser->seek(nc.document_offset) == OK) {
 					int64_t tag_count = 0;

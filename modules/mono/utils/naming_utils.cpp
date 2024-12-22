@@ -160,7 +160,7 @@ String pascal_to_pascal_case(const String &p_identifier) {
 
 	String ret;
 
-	for (String &part : parts) {
+	for (String &part : parts.write) {
 		String part_override = _get_pascal_case_part_override(part);
 		if (!part_override.is_empty()) {
 			// Use hardcoded value for part.

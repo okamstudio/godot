@@ -61,11 +61,11 @@ LightStorage::LightStorage() {
 			shadowmask_textures.resize(1024);
 		}
 
-		for (RID &lightmap_texture : lightmap_textures) {
+		for (RID &lightmap_texture : lightmap_textures.write) {
 			lightmap_texture = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
 		}
 
-		for (RID &shadowmask_texture : shadowmask_textures) {
+		for (RID &shadowmask_texture : shadowmask_textures.write) {
 			shadowmask_texture = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
 		}
 	}

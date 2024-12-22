@@ -63,7 +63,7 @@ void AudioStreamPlayer::set_volume_db(float p_volume) {
 	internal->volume_db = p_volume;
 
 	Vector<AudioFrame> volume_vector = _get_volume_vector();
-	for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 		AudioServer::get_singleton()->set_playback_all_bus_volumes_linear(playback, volume_vector);
 	}
 }
@@ -176,7 +176,7 @@ Vector<AudioFrame> AudioStreamPlayer::_get_volume_vector() {
 	volume_vector.resize(4);
 
 	// Initialize the volume vector to zero.
-	for (AudioFrame &channel_volume_db : volume_vector) {
+	for (AudioFrame &channel_volume_db : volume_vector.write) {
 		channel_volume_db = AudioFrame(0, 0);
 	}
 

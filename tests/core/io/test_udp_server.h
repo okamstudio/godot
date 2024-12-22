@@ -184,7 +184,7 @@ TEST_CASE("[UDPServer] Handle multiple clients at the same time") {
 		CHECK_EQ(pi_received, pi);
 	}
 
-	for (Ref<PacketPeerUDP> &c : clients) {
+	for (const Ref<PacketPeerUDP> &c : clients) {
 		c->close();
 	}
 	server->stop();

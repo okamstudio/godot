@@ -43,7 +43,7 @@ void Label::set_autowrap_mode(TextServer::AutowrapMode p_mode) {
 	}
 
 	autowrap_mode = p_mode;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		para.lines_dirty = true;
 	}
 	queue_redraw();
@@ -64,7 +64,7 @@ void Label::set_justification_flags(BitField<TextServer::JustificationFlag> p_fl
 	}
 
 	jst_flags = p_flags;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		para.lines_dirty = true;
 	}
 	queue_redraw();
@@ -113,7 +113,7 @@ void Label::_shape() const {
 	int width = (get_size().width - style->get_minimum_size().width);
 
 	if (text_dirty) {
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			for (const RID &line_rid : para.lines_rid) {
 				TS->free_rid(line_rid);
 			}
@@ -141,7 +141,7 @@ void Label::_shape() const {
 	}
 
 	total_line_count = 0;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		if (para.dirty || font_dirty) {
 			if (para.dirty) {
 				TS->shaped_text_clear(para.text_rid);
@@ -219,7 +219,7 @@ void Label::_shape() const {
 	if (autowrap_mode == TextServer::AUTOWRAP_OFF) {
 		minsize.width = 0.0f;
 	}
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		if (autowrap_mode == TextServer::AUTOWRAP_OFF) {
 			for (const RID &line_rid : para.lines_rid) {
 				if (minsize.width < TS->shaped_text_get_size(line_rid).x) {
@@ -650,7 +650,7 @@ void Label::_notification(int p_what) {
 			}
 
 			// When a shaped text is invalidated by an external source, we want to reshape it.
-			for (Paragraph &para : paragraphs) {
+			for (Paragraph &para : paragraphs.write) {
 				if (!TS->shaped_text_is_ready(para.text_rid)) {
 					para.dirty = true;
 				}
@@ -825,7 +825,7 @@ void Label::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_RESIZED: {
-			for (Paragraph &para : paragraphs) {
+			for (Paragraph &para : paragraphs.write) {
 				para.lines_dirty = true;
 			}
 		} break;
@@ -974,7 +974,7 @@ void Label::set_horizontal_alignment(HorizontalAlignment p_alignment) {
 	}
 
 	if (horizontal_alignment == HORIZONTAL_ALIGNMENT_FILL || p_alignment == HORIZONTAL_ALIGNMENT_FILL) {
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			para.lines_dirty = true; // Reshape lines.
 		}
 	}
@@ -1043,7 +1043,7 @@ void Label::set_text_direction(Control::TextDirection p_text_direction) {
 	ERR_FAIL_COND((int)p_text_direction < -1 || (int)p_text_direction > 3);
 	if (text_direction != p_text_direction) {
 		text_direction = p_text_direction;
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			para.dirty = true;
 		}
 		queue_redraw();
@@ -1053,7 +1053,7 @@ void Label::set_text_direction(Control::TextDirection p_text_direction) {
 void Label::set_structured_text_bidi_override(TextServer::StructuredTextParser p_parser) {
 	if (st_parser != p_parser) {
 		st_parser = p_parser;
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			para.dirty = true;
 		}
 		queue_redraw();
@@ -1070,7 +1070,7 @@ void Label::set_structured_text_bidi_override_options(Array p_args) {
 	}
 
 	st_args = p_args;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		para.dirty = true;
 	}
 	queue_redraw();
@@ -1087,7 +1087,7 @@ Control::TextDirection Label::get_text_direction() const {
 void Label::set_language(const String &p_language) {
 	if (language != p_language) {
 		language = p_language;
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			para.dirty = true;
 		}
 		queue_redraw();
@@ -1127,7 +1127,7 @@ bool Label::is_clipping_text() const {
 void Label::set_tab_stops(const PackedFloat32Array &p_tab_stops) {
 	if (tab_stops != p_tab_stops) {
 		tab_stops = p_tab_stops;
-		for (Paragraph &para : paragraphs) {
+		for (Paragraph &para : paragraphs.write) {
 			para.dirty = true;
 		}
 		queue_redraw();
@@ -1144,7 +1144,7 @@ void Label::set_text_overrun_behavior(TextServer::OverrunBehavior p_behavior) {
 	}
 
 	overrun_behavior = p_behavior;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		para.lines_dirty = true;
 	}
 	queue_redraw();
@@ -1167,7 +1167,7 @@ void Label::set_ellipsis_char(const String &p_char) {
 		return;
 	}
 	el_char = c;
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		para.lines_dirty = true;
 	}
 	queue_redraw();
@@ -1375,7 +1375,7 @@ Label::Label(const String &p_text) {
 }
 
 Label::~Label() {
-	for (Paragraph &para : paragraphs) {
+	for (Paragraph &para : paragraphs.write) {
 		for (const RID &line_rid : para.lines_rid) {
 			TS->free_rid(line_rid);
 		}

@@ -134,7 +134,7 @@ void EditorSceneExporterGLTFSettings::generate_property_list(Ref<GLTFDocument> p
 	_document = p_document;
 	String image_format_hint_string = "None,PNG,JPEG";
 	// Add properties from all document extensions.
-	for (Ref<GLTFDocumentExtension> &extension : GLTFDocument::get_all_gltf_document_extensions()) {
+	for (const Ref<GLTFDocumentExtension> &extension : GLTFDocument::get_all_gltf_document_extensions()) {
 		const Callable on_prop_changed = callable_mp(this, &EditorSceneExporterGLTFSettings::_on_extension_property_list_changed);
 		if (!extension->is_connected(CoreStringName(property_list_changed), on_prop_changed)) {
 			extension->connect(CoreStringName(property_list_changed), on_prop_changed);

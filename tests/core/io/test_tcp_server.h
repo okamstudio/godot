@@ -136,7 +136,7 @@ TEST_CASE("[TCPServer] Handle multiple clients at the same time") {
 	}
 
 	// Calling poll() to update client status.
-	for (Ref<StreamPeerTCP> &c : clients) {
+	for (const Ref<StreamPeerTCP> &c : clients) {
 		REQUIRE_EQ(poll(c), Error::OK);
 	}
 
@@ -147,7 +147,7 @@ TEST_CASE("[TCPServer] Handle multiple clients at the same time") {
 		CHECK_EQ(clients_from_server[i]->get_string(), hello_client);
 	}
 
-	for (Ref<StreamPeerTCP> &c : clients) {
+	for (const Ref<StreamPeerTCP> &c : clients) {
 		c->disconnect_from_host();
 	}
 	server->stop();
