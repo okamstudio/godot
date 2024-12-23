@@ -33,7 +33,13 @@
 
 #include "servers/rendering_server.h"
 
-class RendererTextureStorage {
+#include "core/object/class_db.h"
+#include "core/object/gdvirtual.gen.inc"
+#include "core/object/object.h"
+
+class RendererTextureStorage : public Object {
+	GDCLASS(RendererTextureStorage, Object);
+
 private:
 	Color default_clear_color;
 

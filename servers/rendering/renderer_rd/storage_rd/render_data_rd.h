@@ -42,7 +42,6 @@ public:
 	// Access methods to expose data externally
 	virtual Ref<RenderSceneBuffers> get_render_scene_buffers() const override;
 	virtual RenderSceneData *get_render_scene_data() const override;
-	virtual RendererLightStorage *get_light_storage() const override;
 
 	virtual RID get_environment() const override;
 	virtual RID get_camera_attributes() const override;

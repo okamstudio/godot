@@ -45,6 +45,11 @@ class LightStorage;
 class MaterialStorage;
 
 class TextureStorage : public RendererTextureStorage {
+	GDCLASS(TextureStorage, RendererTextureStorage);
+
+protected:
+	static void _bind_methods();
+
 public:
 	enum DefaultRDTexture {
 		DEFAULT_RD_TEXTURE_WHITE,
