@@ -633,6 +633,7 @@ void GraphEdit::add_child_notify(Node *p_child) {
 		GraphNode *graph_node = Object::cast_to<GraphNode>(graph_element);
 		if (graph_node) {
 			graph_node->connect("slot_updated", callable_mp(this, &GraphEdit::_graph_node_slot_updated).bind(graph_element));
+			graph_node->connect(SNAME("slot_sizes_changed"), callable_mp(this, &GraphEdit::_graph_node_rect_changed).bind(graph_node));
 			graph_node->connect(SceneStringName(item_rect_changed), callable_mp(this, &GraphEdit::_graph_node_rect_changed).bind(graph_node));
 			_ensure_node_order_from(graph_node);
 		}
@@ -688,6 +689,7 @@ void GraphEdit::remove_child_notify(Node *p_child) {
 		GraphNode *graph_node = Object::cast_to<GraphNode>(graph_element);
 		if (graph_node) {
 			graph_node->disconnect("slot_updated", callable_mp(this, &GraphEdit::_graph_node_slot_updated));
+			graph_node->disconnect(SNAME("slot_sizes_changed"), callable_mp(this, &GraphEdit::_graph_node_rect_changed));
 			graph_node->disconnect(SceneStringName(item_rect_changed), callable_mp(this, &GraphEdit::_graph_node_rect_changed));
 
 			// Invalidate all adjacent connections, so that they are removed before the next redraw.
