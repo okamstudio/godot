@@ -151,11 +151,9 @@ struct [[nodiscard]] Vector2 {
 
 	Vector2 operator-() const;
 
-	bool operator==(const Vector2 &p_vec2) const;
-	bool operator<(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y < p_vec2.y) : (x < p_vec2.x); }
-	bool operator>(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y > p_vec2.y) : (x > p_vec2.x); }
-	bool operator<=(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y <= p_vec2.y) : (x < p_vec2.x); }
-	bool operator>=(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
+	_FORCE_INLINE_ std::partial_ordering operator<=>(const Vector2 &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector2 &p_other) const { return operator<=>(p_other) == 0; }
+	std::partial_ordering operator<=>(const Vector2i &p_vector2i) const;
 	bool operator==(const Vector2i &p_vector2i) const;
 
 	real_t angle() const;
@@ -242,8 +240,11 @@ _FORCE_INLINE_ Vector2 Vector2::operator-() const {
 	return Vector2(-x, -y);
 }
 
-_FORCE_INLINE_ bool Vector2::operator==(const Vector2 &p_vec2) const {
-	return x == p_vec2.x && y == p_vec2.y;
+std::partial_ordering Vector2::operator<=>(const Vector2 &p_other) const {
+	if (x == p_other.x) {
+		return y <=> p_other.y;
+	}
+	return x <=> p_other.x;
 }
 
 Vector2 Vector2::lerp(const Vector2 &p_to, real_t p_weight) const {

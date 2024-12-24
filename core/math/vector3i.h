@@ -122,11 +122,8 @@ struct [[nodiscard]] Vector3i {
 
 	_FORCE_INLINE_ Vector3i operator-() const;
 
-	_FORCE_INLINE_ bool operator==(const Vector3i &p_v) const;
-	_FORCE_INLINE_ bool operator<(const Vector3i &p_v) const;
-	_FORCE_INLINE_ bool operator<=(const Vector3i &p_v) const;
-	_FORCE_INLINE_ bool operator>(const Vector3i &p_v) const;
-	_FORCE_INLINE_ bool operator>=(const Vector3i &p_v) const;
+	_FORCE_INLINE_ std::strong_ordering operator<=>(const Vector3i &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector3i &p_other) const { return operator<=>(p_other) == 0; }
 
 	operator String() const;
 	operator Vector3() const;
@@ -275,56 +272,14 @@ Vector3i Vector3i::operator-() const {
 	return Vector3i(-x, -y, -z);
 }
 
-bool Vector3i::operator==(const Vector3i &p_v) const {
-	return (x == p_v.x && y == p_v.y && z == p_v.z);
-}
-
-bool Vector3i::operator<(const Vector3i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z < p_v.z;
-		} else {
-			return y < p_v.y;
+std::strong_ordering Vector3i::operator<=>(const Vector3i &p_other) const {
+	if (x == p_other.x) {
+		if (y == p_other.y) {
+			return z <=> p_other.z;
 		}
-	} else {
-		return x < p_v.x;
+		return y <=> p_other.y;
 	}
-}
-
-bool Vector3i::operator>(const Vector3i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z > p_v.z;
-		} else {
-			return y > p_v.y;
-		}
-	} else {
-		return x > p_v.x;
-	}
-}
-
-bool Vector3i::operator<=(const Vector3i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z <= p_v.z;
-		} else {
-			return y < p_v.y;
-		}
-	} else {
-		return x < p_v.x;
-	}
-}
-
-bool Vector3i::operator>=(const Vector3i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z >= p_v.z;
-		} else {
-			return y > p_v.y;
-		}
-	} else {
-		return x > p_v.x;
-	}
+	return x <=> p_other.x;
 }
 
 void Vector3i::zero() {

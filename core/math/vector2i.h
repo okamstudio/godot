@@ -119,13 +119,9 @@ struct [[nodiscard]] Vector2i {
 	void operator%=(int32_t p_rvalue);
 
 	Vector2i operator-() const;
-	bool operator<(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y < p_vec2.y) : (x < p_vec2.x); }
-	bool operator>(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y > p_vec2.y) : (x > p_vec2.x); }
 
-	bool operator<=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y <= p_vec2.y) : (x < p_vec2.x); }
-	bool operator>=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
-
-	bool operator==(const Vector2i &p_vec2) const;
+	_FORCE_INLINE_ std::strong_ordering operator<=>(const Vector2i &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector2i &p_other) const { return operator<=>(p_other) == 0; }
 
 	int64_t length_squared() const;
 	double length() const;
@@ -147,6 +143,13 @@ struct [[nodiscard]] Vector2i {
 		y = p_y;
 	}
 };
+
+std::strong_ordering Vector2i::operator<=>(const Vector2i &p_other) const {
+	if (x == p_other.x) {
+		return y <=> p_other.y;
+	}
+	return x <=> p_other.x;
+}
 
 // Multiplication operators required to workaround issues with LLVM using implicit conversion.
 

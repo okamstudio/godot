@@ -125,25 +125,25 @@ public:
 				id(p_id) {}
 	};
 
-#define DEFINE_ID(m_name)                                                         \
-	struct m_name##ID : public ID {                                               \
-		_ALWAYS_INLINE_ explicit operator bool() const {                          \
-			return id != 0;                                                       \
-		}                                                                         \
-		_ALWAYS_INLINE_ m_name##ID &operator=(m_name##ID p_other) {               \
-			id = p_other.id;                                                      \
-			return *this;                                                         \
-		}                                                                         \
-		_ALWAYS_INLINE_ bool operator<(const m_name##ID &p_other) const {         \
-			return id < p_other.id;                                               \
-		}                                                                         \
-		_ALWAYS_INLINE_ bool operator==(const m_name##ID &p_other) const {        \
-			return id == p_other.id;                                              \
-		}                                                                         \
-		_ALWAYS_INLINE_ m_name##ID(const m_name##ID &p_other) : ID(p_other.id) {} \
-		_ALWAYS_INLINE_ explicit m_name##ID(uint64_t p_int) : ID(p_int) {}        \
-		_ALWAYS_INLINE_ explicit m_name##ID(void *p_ptr) : ID((uint64_t)p_ptr) {} \
-		_ALWAYS_INLINE_ m_name##ID() = default;                                   \
+#define DEFINE_ID(m_name)                                                                   \
+	struct m_name##ID : public ID {                                                         \
+		_ALWAYS_INLINE_ explicit operator bool() const {                                    \
+			return id != 0;                                                                 \
+		}                                                                                   \
+		_ALWAYS_INLINE_ m_name##ID &operator=(m_name##ID p_other) {                         \
+			id = p_other.id;                                                                \
+			return *this;                                                                   \
+		}                                                                                   \
+		_ALWAYS_INLINE_ std::strong_ordering operator<=>(const m_name##ID &p_other) const { \
+			return id <=> p_other.id;                                                       \
+		}                                                                                   \
+		_ALWAYS_INLINE_ bool operator==(const m_name##ID &p_other) const {                  \
+			return id == p_other.id;                                                        \
+		}                                                                                   \
+		_ALWAYS_INLINE_ m_name##ID(const m_name##ID &p_other) : ID(p_other.id) {}           \
+		_ALWAYS_INLINE_ explicit m_name##ID(uint64_t p_int) : ID(p_int) {}                  \
+		_ALWAYS_INLINE_ explicit m_name##ID(void *p_ptr) : ID((uint64_t)p_ptr) {}           \
+		_ALWAYS_INLINE_ m_name##ID() = default;                                             \
 	};
 
 	// Id types declared before anything else to prevent cyclic dependencies between the different concerns.

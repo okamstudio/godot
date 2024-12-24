@@ -926,24 +926,7 @@ public:
 		BitField<ShaderStage> stages;
 		uint32_t length = 0; // Size of arrays (in total elements), or ubos (in bytes * total elements).
 
-		bool operator<(const ShaderUniform &p_other) const {
-			if (binding != p_other.binding) {
-				return binding < p_other.binding;
-			}
-			if (type != p_other.type) {
-				return type < p_other.type;
-			}
-			if (writable != p_other.writable) {
-				return writable < p_other.writable;
-			}
-			if (stages != p_other.stages) {
-				return stages < p_other.stages;
-			}
-			if (length != p_other.length) {
-				return length < p_other.length;
-			}
-			return false;
-		}
+		std::strong_ordering operator<=>(const ShaderUniform &p_other) const = default;
 	};
 
 	struct ShaderSpecializationConstant : public PipelineSpecializationConstant {

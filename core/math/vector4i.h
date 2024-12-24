@@ -124,11 +124,8 @@ struct [[nodiscard]] Vector4i {
 
 	_FORCE_INLINE_ Vector4i operator-() const;
 
-	_FORCE_INLINE_ bool operator==(const Vector4i &p_v) const;
-	_FORCE_INLINE_ bool operator<(const Vector4i &p_v) const;
-	_FORCE_INLINE_ bool operator<=(const Vector4i &p_v) const;
-	_FORCE_INLINE_ bool operator>(const Vector4i &p_v) const;
-	_FORCE_INLINE_ bool operator>=(const Vector4i &p_v) const;
+	_FORCE_INLINE_ std::strong_ordering operator<=>(const Vector4i &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector4i &p_other) const { return operator<=>(p_other) == 0; }
 
 	operator String() const;
 	operator Vector4() const;
@@ -287,72 +284,17 @@ Vector4i Vector4i::operator-() const {
 	return Vector4i(-x, -y, -z, -w);
 }
 
-bool Vector4i::operator==(const Vector4i &p_v) const {
-	return (x == p_v.x && y == p_v.y && z == p_v.z && w == p_v.w);
-}
-
-bool Vector4i::operator<(const Vector4i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w < p_v.w;
-			} else {
-				return z < p_v.z;
+std::strong_ordering Vector4i::operator<=>(const Vector4i &p_other) const {
+	if (x == p_other.x) {
+		if (y == p_other.y) {
+			if (z == p_other.z) {
+				return w <=> p_other.w;
 			}
-		} else {
-			return y < p_v.y;
+			return z <=> p_other.z;
 		}
-	} else {
-		return x < p_v.x;
+		return y <=> p_other.y;
 	}
-}
-
-bool Vector4i::operator>(const Vector4i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w > p_v.w;
-			} else {
-				return z > p_v.z;
-			}
-		} else {
-			return y > p_v.y;
-		}
-	} else {
-		return x > p_v.x;
-	}
-}
-
-bool Vector4i::operator<=(const Vector4i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w <= p_v.w;
-			} else {
-				return z < p_v.z;
-			}
-		} else {
-			return y < p_v.y;
-		}
-	} else {
-		return x < p_v.x;
-	}
-}
-
-bool Vector4i::operator>=(const Vector4i &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w >= p_v.w;
-			} else {
-				return z > p_v.z;
-			}
-		} else {
-			return y > p_v.y;
-		}
-	} else {
-		return x > p_v.x;
-	}
+	return x <=> p_other.x;
 }
 
 void Vector4i::zero() {

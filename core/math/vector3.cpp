@@ -172,6 +172,10 @@ Vector3::operator Vector3i() const {
 	return Vector3i(x, y, z);
 }
 
+std::partial_ordering Vector3::operator<=>(const Vector3i &p_Vector3i) const {
+	return operator<=>(Vector3(p_Vector3i));
+}
+
 bool Vector3::operator==(const Vector3i &p_Vector3i) const {
 	return operator==(Vector3(p_Vector3i));
 }

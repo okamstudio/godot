@@ -271,8 +271,7 @@ public:
 		bool is_valid() const;
 		bool is_erase_pattern() const;
 
-		bool operator<(const TerrainsPattern &p_terrains_pattern) const;
-		bool operator==(const TerrainsPattern &p_terrains_pattern) const;
+		std::strong_ordering operator<=>(const TerrainsPattern &p_terrains_pattern) const = default;
 
 		void set_terrain(int p_terrain);
 		int get_terrain() const;

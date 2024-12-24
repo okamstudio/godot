@@ -86,20 +86,25 @@ class Ref {
 
 	//virtual RefCounted * get_reference() const { return reference; }
 public:
+	_FORCE_INLINE_ std::strong_ordering operator<=>(const T *p_ptr) const {
+		return reference <=> p_ptr;
+	}
 	_FORCE_INLINE_ bool operator==(const T *p_ptr) const {
 		return reference == p_ptr;
 	}
 
 #ifdef STRICT_CHECKS
 	// Delete these to prevent raw comparisons with `nullptr`.
+	std::strong_ordering operator<=>(std::nullptr_t) const = delete;
 	bool operator==(std::nullptr_t) const = delete;
 #endif // STRICT_CHECKS
 
-	_FORCE_INLINE_ bool operator<(const Ref<T> &p_r) const {
-		return reference < p_r.reference;
-	}
-	_FORCE_INLINE_ bool operator==(const Ref<T> &p_r) const {
-		return reference == p_r.reference;
+	std::strong_ordering operator<=>(const Ref<T> &p_r) const = default;
+	bool operator==(const Ref<T> &p_r) const = default;
+
+	template <typename T_Other>
+	_FORCE_INLINE_ std::strong_ordering operator<=>(const Ref<T_Other> &p_r) const {
+		return reference <=> p_r.ptr();
 	}
 	template <typename T_Other>
 	_FORCE_INLINE_ bool operator==(const Ref<T_Other> &p_r) const {

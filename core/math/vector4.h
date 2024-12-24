@@ -134,11 +134,9 @@ struct [[nodiscard]] Vector4 {
 	_FORCE_INLINE_ Vector4 operator*(real_t p_s) const;
 	_FORCE_INLINE_ Vector4 operator/(real_t p_s) const;
 
-	_FORCE_INLINE_ bool operator==(const Vector4 &p_vec4) const;
-	_FORCE_INLINE_ bool operator>(const Vector4 &p_vec4) const;
-	_FORCE_INLINE_ bool operator<(const Vector4 &p_vec4) const;
-	_FORCE_INLINE_ bool operator>=(const Vector4 &p_vec4) const;
-	_FORCE_INLINE_ bool operator<=(const Vector4 &p_vec4) const;
+	_FORCE_INLINE_ std::partial_ordering operator<=>(const Vector4 &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector4 &p_other) const { return operator<=>(p_other) == 0; }
+	std::partial_ordering operator<=>(const Vector4i &p_vector4i) const;
 	bool operator==(const Vector4i &p_vector4i) const;
 
 	operator String() const;
@@ -227,60 +225,17 @@ Vector4 Vector4::operator/(real_t p_s) const {
 	return *this * (1.0f / p_s);
 }
 
-bool Vector4::operator==(const Vector4 &p_vec4) const {
-	return x == p_vec4.x && y == p_vec4.y && z == p_vec4.z && w == p_vec4.w;
-}
-
-bool Vector4::operator<(const Vector4 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w < p_v.w;
+std::partial_ordering Vector4::operator<=>(const Vector4 &p_other) const {
+	if (x == p_other.x) {
+		if (y == p_other.y) {
+			if (z == p_other.z) {
+				return w <=> p_other.w;
 			}
-			return z < p_v.z;
+			return z <=> p_other.z;
 		}
-		return y < p_v.y;
+		return y <=> p_other.y;
 	}
-	return x < p_v.x;
-}
-
-bool Vector4::operator>(const Vector4 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w > p_v.w;
-			}
-			return z > p_v.z;
-		}
-		return y > p_v.y;
-	}
-	return x > p_v.x;
-}
-
-bool Vector4::operator<=(const Vector4 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w <= p_v.w;
-			}
-			return z < p_v.z;
-		}
-		return y < p_v.y;
-	}
-	return x < p_v.x;
-}
-
-bool Vector4::operator>=(const Vector4 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			if (z == p_v.z) {
-				return w >= p_v.w;
-			}
-			return z > p_v.z;
-		}
-		return y > p_v.y;
-	}
-	return x > p_v.x;
+	return x <=> p_other.x;
 }
 
 _FORCE_INLINE_ Vector4 operator*(float p_scalar, const Vector4 &p_vec) {

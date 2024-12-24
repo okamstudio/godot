@@ -222,6 +222,10 @@ Vector4::operator Vector4i() const {
 	return Vector4i(x, y, z, w);
 }
 
+std::partial_ordering Vector4::operator<=>(const Vector4i &p_vector4i) const {
+	return operator<=>(Vector4(p_vector4i));
+}
+
 bool Vector4::operator==(const Vector4i &p_vector4i) const {
 	return operator==(Vector4(p_vector4i));
 }
