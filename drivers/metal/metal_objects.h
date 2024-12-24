@@ -199,7 +199,7 @@ public:
 
 class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDResourceCache {
 private:
-	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>, HashableHasher<ClearAttKey>> HashMap;
+	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>> HashMap;
 	std::unique_ptr<MDResourceFactory> resource_factory;
 	HashMap clear_states;
 
