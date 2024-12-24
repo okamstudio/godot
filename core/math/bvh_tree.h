@@ -101,7 +101,7 @@ struct BVHHandle {
 	uint32_t id() const { return _data; }
 	void set_id(uint32_t p_id) { _data = p_id; }
 
-	bool operator==(const BVHHandle &p_h) const { return _data == p_h._data; }
+	bool operator==(const BVHHandle &p_h) const = default;
 };
 
 // helper class to make iterative versions of recursive functions

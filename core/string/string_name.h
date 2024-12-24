@@ -127,11 +127,7 @@ public:
 	_FORCE_INLINE_ bool operator>=(const StringName &p_name) const {
 		return _data >= p_name._data;
 	}
-	_FORCE_INLINE_ bool operator==(const StringName &p_name) const {
-		// The real magic of all this mess happens here.
-		// This is why path comparisons are very fast.
-		return _data == p_name._data;
-	}
+	bool operator==(const StringName &p_name) const = default;
 	_FORCE_INLINE_ uint32_t hash() const {
 		if (_data) {
 			return _data->hash;

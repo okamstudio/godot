@@ -83,9 +83,7 @@ struct Position {
 	 */
 	int character = 0;
 
-	_FORCE_INLINE_ bool operator==(const Position &p_other) const {
-		return line == p_other.line && character == p_other.character;
-	}
+	bool operator==(const Position &p_other) const = default;
 
 	String to_string() const {
 		return vformat("(%d,%d)", line, character);
@@ -120,9 +118,7 @@ struct Range {
 	 */
 	Position end;
 
-	_FORCE_INLINE_ bool operator==(const Range &p_other) const {
-		return start == p_other.start && end == p_other.end;
-	}
+	bool operator==(const Range &p_other) const = default;
 
 	bool contains(const Position &p_pos) const {
 		// Inside line range.

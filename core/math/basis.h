@@ -123,7 +123,7 @@ struct [[nodiscard]] Basis {
 	bool is_equal_approx(const Basis &p_basis) const;
 	bool is_finite() const;
 
-	bool operator==(const Basis &p_matrix) const;
+	bool operator==(const Basis &p_matrix) const = default;
 
 	_FORCE_INLINE_ Vector3 xform(const Vector3 &p_vector) const;
 	_FORCE_INLINE_ Vector3 xform_inv(const Vector3 &p_vector) const;

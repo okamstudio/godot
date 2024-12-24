@@ -59,7 +59,7 @@ struct [[nodiscard]] AABB {
 	const Vector3 &get_size() const { return size; }
 	void set_size(const Vector3 &p_size) { size = p_size; }
 
-	bool operator==(const AABB &p_rval) const;
+	bool operator==(const AABB &p_rval) const = default;
 
 	bool is_equal_approx(const AABB &p_aabb) const;
 	bool is_finite() const;

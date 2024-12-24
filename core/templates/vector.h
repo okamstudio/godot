@@ -222,7 +222,7 @@ public:
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return elem_ptr == b.elem_ptr; }
+		bool operator==(const Iterator &b) const = default;
 
 		Iterator(T *p_ptr) { elem_ptr = p_ptr; }
 		Iterator() {}
@@ -246,7 +246,7 @@ public:
 			return *this;
 		}
 
-		_FORCE_INLINE_ bool operator==(const ConstIterator &b) const { return elem_ptr == b.elem_ptr; }
+		bool operator==(const ConstIterator &b) const = default;
 
 		ConstIterator(const T *p_ptr) { elem_ptr = p_ptr; }
 		ConstIterator() {}

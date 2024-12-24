@@ -133,16 +133,7 @@ struct [[nodiscard]] Projection {
 
 	void flip_y();
 
-	bool operator==(const Projection &p_cam) const {
-		for (uint32_t i = 0; i < 4; i++) {
-			for (uint32_t j = 0; j < 4; j++) {
-				if (columns[i][j] != p_cam.columns[i][j]) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
+	bool operator==(const Projection &p_cam) const = default;
 
 	real_t get_lod_multiplier() const;
 

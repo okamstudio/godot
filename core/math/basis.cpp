@@ -703,18 +703,6 @@ bool Basis::is_finite() const {
 	return rows[0].is_finite() && rows[1].is_finite() && rows[2].is_finite();
 }
 
-bool Basis::operator==(const Basis &p_matrix) const {
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			if (rows[i][j] != p_matrix.rows[i][j]) {
-				return false;
-			}
-		}
-	}
-
-	return true;
-}
-
 Basis::operator String() const {
 	return "[X: " + get_column(0).operator String() +
 			", Y: " + get_column(1).operator String() +

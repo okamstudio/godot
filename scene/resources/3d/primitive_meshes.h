@@ -562,9 +562,7 @@ private:
 		uint64_t font_id;
 		uint32_t gl_id;
 
-		bool operator==(const GlyphMeshKey &p_b) const {
-			return (font_id == p_b.font_id) && (gl_id == p_b.gl_id);
-		}
+		bool operator==(const GlyphMeshKey &p_b) const = default;
 
 		GlyphMeshKey(uint64_t p_font_id, uint32_t p_gl_id) {
 			font_id = p_font_id;

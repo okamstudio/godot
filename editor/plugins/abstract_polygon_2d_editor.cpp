@@ -41,10 +41,6 @@
 #include "scene/gui/button.h"
 #include "scene/gui/dialogs.h"
 
-bool AbstractPolygon2DEditor::Vertex::operator==(const AbstractPolygon2DEditor::Vertex &p_vertex) const {
-	return polygon == p_vertex.polygon && vertex == p_vertex.vertex;
-}
-
 bool AbstractPolygon2DEditor::Vertex::valid() const {
 	return vertex >= 0;
 }

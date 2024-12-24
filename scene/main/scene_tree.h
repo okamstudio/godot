@@ -168,7 +168,7 @@ private:
 		static uint32_t hash(const UGCall &p_val) {
 			return p_val.group.hash() ^ p_val.call.hash();
 		}
-		bool operator==(const UGCall &p_with) const { return group == p_with.group && call == p_with.call; }
+		bool operator==(const UGCall &p_with) const = default;
 		bool operator<(const UGCall &p_with) const { return group == p_with.group ? call < p_with.call : group < p_with.group; }
 	};
 

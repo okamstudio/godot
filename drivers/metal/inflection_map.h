@@ -70,7 +70,7 @@ public:
 		ValueType &operator*() { return map->_values[index]; }
 		operator ValueType *() { return &map->_values[index]; }
 
-		bool operator==(const Iterator &p_it) const { return map == p_it.map && index == p_it.index; }
+		bool operator==(const Iterator &p_it) const = default;
 
 		Iterator &operator++() {
 			index++;

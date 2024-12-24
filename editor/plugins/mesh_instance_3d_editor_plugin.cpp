@@ -365,9 +365,7 @@ struct MeshInstance3DEditorEdgeSort {
 		return hash_fmix32(hash_murmur3_one_32(HashMapHasherDefault::hash(p_edge.b), h));
 	}
 
-	bool operator==(const MeshInstance3DEditorEdgeSort &p_b) const {
-		return a == p_b.a && b == p_b.b;
-	}
+	bool operator==(const MeshInstance3DEditorEdgeSort &p_b) const = default;
 
 	MeshInstance3DEditorEdgeSort() {}
 	MeshInstance3DEditorEdgeSort(const Vector2 &p_a, const Vector2 &p_b) {

@@ -385,21 +385,7 @@ public:
 		TextureSwizzle swizzle_b = TEXTURE_SWIZZLE_B;
 		TextureSwizzle swizzle_a = TEXTURE_SWIZZLE_A;
 
-		bool operator==(const TextureView &p_other) const {
-			if (format_override != p_other.format_override) {
-				return false;
-			} else if (swizzle_r != p_other.swizzle_r) {
-				return false;
-			} else if (swizzle_g != p_other.swizzle_g) {
-				return false;
-			} else if (swizzle_b != p_other.swizzle_b) {
-				return false;
-			} else if (swizzle_a != p_other.swizzle_a) {
-				return false;
-			} else {
-				return true;
-			}
-		}
+		bool operator==(const TextureView &p_other) const = default;
 	};
 
 	RID texture_create(const TextureFormat &p_format, const TextureView &p_view, const Vector<Vector<uint8_t>> &p_data = Vector<Vector<uint8_t>>());

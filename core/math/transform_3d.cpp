@@ -177,10 +177,6 @@ bool Transform3D::is_finite() const {
 	return basis.is_finite() && origin.is_finite();
 }
 
-bool Transform3D::operator==(const Transform3D &p_transform) const {
-	return (basis == p_transform.basis && origin == p_transform.origin);
-}
-
 void Transform3D::operator*=(const Transform3D &p_transform) {
 	origin = xform(p_transform.origin);
 	basis *= p_transform.basis;

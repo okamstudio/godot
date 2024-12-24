@@ -427,10 +427,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 			return (other >> TEXTURE_IS_DATA_SHIFT) & TEXTURE_IS_DATA_MASK;
 		}
 
-		_ALWAYS_INLINE_ bool operator==(const TextureState &p_val) const {
-			return (texture == p_val.texture) && (other == p_val.other);
-		}
-
+		bool operator==(const TextureState &p_val) const = default;
 
 		_ALWAYS_INLINE_ bool is_valid() const { return texture.is_valid(); }
 		_ALWAYS_INLINE_ bool is_null() const { return texture.is_null(); }
@@ -465,9 +462,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 				instance_data(p_instance_data) {
 		}
 
-		_ALWAYS_INLINE_ bool operator==(const RIDSetKey &p_val) const {
-			return state == p_val.state && instance_data == p_val.instance_data;
-		}
+		bool operator==(const RIDSetKey &p_val) const = default;
 
 		_ALWAYS_INLINE_ uint32_t hash() const {
 			uint32_t h = state.hash();

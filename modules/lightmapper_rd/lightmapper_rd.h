@@ -95,16 +95,7 @@ class LightmapperRD : public Lightmapper {
 		float uv[2] = {};
 		float normal_xy[2] = {};
 
-		bool operator==(const Vertex &p_vtx) const {
-			return (position[0] == p_vtx.position[0]) &&
-					(position[1] == p_vtx.position[1]) &&
-					(position[2] == p_vtx.position[2]) &&
-					(uv[0] == p_vtx.uv[0]) &&
-					(uv[1] == p_vtx.uv[1]) &&
-					(normal_xy[0] == p_vtx.normal_xy[0]) &&
-					(normal_xy[1] == p_vtx.normal_xy[1]) &&
-					(normal_z == p_vtx.normal_z);
-		}
+		bool operator==(const Vertex &p_vtx) const = default;
 	};
 
 	struct Edge {
@@ -112,9 +103,7 @@ class LightmapperRD : public Lightmapper {
 		Vector3 b;
 		Vector3 na;
 		Vector3 nb;
-		bool operator==(const Edge &p_seam) const {
-			return a == p_seam.a && b == p_seam.b && na == p_seam.na && nb == p_seam.nb;
-		}
+		bool operator==(const Edge &p_seam) const = default;
 		Edge() {
 		}
 

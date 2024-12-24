@@ -54,7 +54,7 @@ class AbstractPolygon2DEditor : public HBoxContainer {
 				polygon(p_polygon),
 				vertex(p_vertex) {}
 
-		bool operator==(const Vertex &p_vertex) const;
+		bool operator==(const Vertex &p_vertex) const = default;
 
 		bool valid() const;
 

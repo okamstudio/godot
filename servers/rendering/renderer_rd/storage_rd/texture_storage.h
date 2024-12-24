@@ -412,9 +412,7 @@ private:
 				RID rid;
 				uint32_t layer = 0;
 
-				bool operator==(const SliceKey &p_val) const {
-					return (rid == p_val.rid) && (layer == p_val.layer);
-				}
+				bool operator==(const SliceKey &p_val) const = default;
 
 				static uint32_t hash(const SliceKey &p_val) {
 					uint32_t h = hash_one_uint64(p_val.rid.get_id());

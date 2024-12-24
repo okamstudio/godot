@@ -73,9 +73,7 @@ private:
 			uint32_t h = HashMapHasherDefault::hash(p_val.source);
 			return hash_murmur3_one_32(p_val.line, h);
 		}
-		bool operator==(const Breakpoint &p_b) const {
-			return (line == p_b.line && source == p_b.source);
-		}
+		bool operator==(const Breakpoint &p_b) const = default;
 
 		bool operator<(const Breakpoint &p_b) const {
 			if (line == p_b.line) {

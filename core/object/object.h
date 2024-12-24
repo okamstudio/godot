@@ -194,14 +194,7 @@ struct PropertyInfo {
 			hint_string(*reinterpret_cast<String *>(pinfo.hint_string)),
 			usage(pinfo.usage) {}
 
-	bool operator==(const PropertyInfo &p_info) const {
-		return ((type == p_info.type) &&
-				(name == p_info.name) &&
-				(class_name == p_info.class_name) &&
-				(hint == p_info.hint) &&
-				(hint_string == p_info.hint_string) &&
-				(usage == p_info.usage));
-	}
+	bool operator==(const PropertyInfo &p_info) const = default;
 
 	bool operator<(const PropertyInfo &p_info) const {
 		return name < p_info.name;

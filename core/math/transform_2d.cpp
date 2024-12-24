@@ -191,16 +191,6 @@ Transform2D Transform2D::looking_at(const Vector2 &p_target) const {
 	return return_trans;
 }
 
-bool Transform2D::operator==(const Transform2D &p_transform) const {
-	for (int i = 0; i < 3; i++) {
-		if (columns[i] != p_transform.columns[i]) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
 void Transform2D::operator*=(const Transform2D &p_transform) {
 	columns[2] = xform(p_transform.columns[2]);
 
