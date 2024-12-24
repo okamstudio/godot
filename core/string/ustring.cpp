@@ -2422,7 +2422,7 @@ _ALWAYS_INLINE_ int64_t _to_int(const T &p_in, int to) {
 		C c = p_in[i];
 		if (is_digit(c)) {
 			// No need to do expensive checks unless we're approaching INT64_MAX / INT64_MIN.
-			if (unlikely(digits > 18)) {
+			if (digits > 18) [[unlikely]] {
 				bool overflow = (integer > INT64_MAX / 10) || (integer == INT64_MAX / 10 && ((positive && c > '7') || (!positive && c > '8')));
 				ERR_FAIL_COND_V_MSG(overflow, positive ? INT64_MAX : INT64_MIN, "Cannot represent " + String(p_in) + " as a 64-bit signed integer, since the value is " + (positive ? "too large." : "too small."));
 			}

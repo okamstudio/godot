@@ -146,7 +146,7 @@ public:
 			_cowdata(p_other._cowdata) {}
 
 	_FORCE_INLINE_ operator T() const {
-		if (unlikely(_index == _cowdata.size())) {
+		if (_index == _cowdata.size()) [[unlikely]] {
 			return _null;
 		}
 
@@ -183,7 +183,7 @@ public:
 	_FORCE_INLINE_ char16_t get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char16_t &p_elem) { _cowdata.set(p_index, p_elem); }
 	_FORCE_INLINE_ const char16_t &operator[](int p_index) const {
-		if (unlikely(p_index == _cowdata.size())) {
+		if (p_index == _cowdata.size()) [[unlikely]] {
 			return _null;
 		}
 
@@ -228,7 +228,7 @@ public:
 	_FORCE_INLINE_ char get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char &p_elem) { _cowdata.set(p_index, p_elem); }
 	_FORCE_INLINE_ const char &operator[](int p_index) const {
-		if (unlikely(p_index == _cowdata.size())) {
+		if (p_index == _cowdata.size()) [[unlikely]] {
 			return _null;
 		}
 
@@ -338,7 +338,7 @@ public:
 	Error resize(int p_size) { return _cowdata.resize(p_size); }
 
 	_FORCE_INLINE_ const char32_t &operator[](int p_index) const {
-		if (unlikely(p_index == _cowdata.size())) {
+		if (p_index == _cowdata.size()) [[unlikely]] {
 			return _null;
 		}
 

@@ -55,7 +55,7 @@ void JoltBoxShape3D::set_data(const Variant &p_data) {
 	ERR_FAIL_COND(p_data.get_type() != Variant::VECTOR3);
 
 	const Vector3 new_half_extents = p_data;
-	if (unlikely(new_half_extents == half_extents)) {
+	if (new_half_extents == half_extents) [[unlikely]] {
 		return;
 	}
 
@@ -65,7 +65,7 @@ void JoltBoxShape3D::set_data(const Variant &p_data) {
 }
 
 void JoltBoxShape3D::set_margin(float p_margin) {
-	if (unlikely(margin == p_margin)) {
+	if (margin == p_margin) [[unlikely]] {
 		return;
 	}
 

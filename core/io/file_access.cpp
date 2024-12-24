@@ -767,7 +767,7 @@ bool FileAccess::store_buffer(const Vector<uint8_t> &p_buffer) {
 bool FileAccess::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 	ERR_FAIL_COND_V(!p_src && p_length > 0, false);
 	for (uint64_t i = 0; i < p_length; i++) {
-		if (unlikely(!store_8(p_src[i]))) {
+		if (!store_8(p_src[i])) [[unlikely]] {
 			return false;
 		}
 	}

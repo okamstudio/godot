@@ -86,7 +86,7 @@ private:
 	_FORCE_INLINE_ uint32_t _hash(const TKey &p_key) const {
 		uint32_t hash = Hasher::hash(p_key);
 
-		if (unlikely(hash == EMPTY_HASH)) {
+		if (hash == EMPTY_HASH) [[unlikely]] {
 			hash = EMPTY_HASH + 1;
 		}
 
@@ -198,7 +198,7 @@ private:
 
 	_FORCE_INLINE_ HashMapElement<TKey, TValue> *_insert(const TKey &p_key, const TValue &p_value, bool p_front_insert = false) {
 		uint32_t capacity = hash_table_size_primes[capacity_index];
-		if (unlikely(elements == nullptr)) {
+		if (elements == nullptr) [[unlikely]] {
 			// Allocate on demand to save memory.
 
 			hashes = reinterpret_cast<uint32_t *>(Memory::alloc_static(sizeof(uint32_t) * capacity));

@@ -89,7 +89,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector2i &a = *VariantGetInternalPtr<Vector2i>::get_ptr(&p_left);
 		const double &b = *VariantGetInternalPtr<double>::get_ptr(&p_right);
-		if (unlikely(b == 0)) {
+		if (b == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -148,7 +148,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector3i &a = *VariantGetInternalPtr<Vector3i>::get_ptr(&p_left);
 		const double &b = *VariantGetInternalPtr<double>::get_ptr(&p_right);
-		if (unlikely(b == 0)) {
+		if (b == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -209,7 +209,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector4i &a = *VariantGetInternalPtr<Vector4i>::get_ptr(&p_left);
 		const double &b = *VariantGetInternalPtr<double>::get_ptr(&p_right);
-		if (unlikely(b == 0)) {
+		if (b == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -1082,7 +1082,7 @@ void Variant::evaluate(const Operator &p_op, const Variant &p_a,
 	ERR_FAIL_INDEX(type_b, Variant::VARIANT_MAX);
 
 	VariantEvaluatorFunction ev = operator_evaluator_table[p_op][type_a][type_b];
-	if (unlikely(!ev)) {
+	if (!ev) [[unlikely]] {
 		r_valid = false;
 		r_ret = Variant();
 		return;

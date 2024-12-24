@@ -123,7 +123,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the current function returns.
  */
 #define ERR_FAIL_INDEX(m_index, m_size)                                                                         \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                     \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                  \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size)); \
 		return;                                                                                                 \
 	} else                                                                                                      \
@@ -134,7 +134,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the current function returns.
  */
 #define ERR_FAIL_INDEX_MSG(m_index, m_size, m_msg)                                                                     \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                            \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                         \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg); \
 		return;                                                                                                        \
 	} else                                                                                                             \
@@ -144,7 +144,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_INDEX_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_INDEX_EDMSG(m_index, m_size, m_msg)                                                                         \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                                  \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                               \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, true); \
 		return;                                                                                                              \
 	} else                                                                                                                   \
@@ -158,7 +158,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the current function returns `m_retval`.
  */
 #define ERR_FAIL_INDEX_V(m_index, m_size, m_retval)                                                             \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                     \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                  \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size)); \
 		return m_retval;                                                                                        \
 	} else                                                                                                      \
@@ -169,7 +169,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the current function returns `m_retval`.
  */
 #define ERR_FAIL_INDEX_V_MSG(m_index, m_size, m_retval, m_msg)                                                         \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                            \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                         \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg); \
 		return m_retval;                                                                                               \
 	} else                                                                                                             \
@@ -179,7 +179,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_INDEX_V_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_INDEX_V_EDMSG(m_index, m_size, m_retval, m_msg)                                                             \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                                  \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                               \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, true); \
 		return m_retval;                                                                                                     \
 	} else                                                                                                                   \
@@ -194,7 +194,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the application crashes.
  */
 #define CRASH_BAD_INDEX(m_index, m_size)                                                                                         \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                                      \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                                   \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), "", false, true); \
 		_err_flush_stdout();                                                                                                     \
 		GENERATE_TRAP();                                                                                                         \
@@ -209,7 +209,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the application crashes.
  */
 #define CRASH_BAD_INDEX_MSG(m_index, m_size, m_msg)                                                                                 \
-	if (unlikely((m_index) < 0 || (m_index) >= (m_size))) {                                                                         \
+	if ((m_index) < 0 || (m_index) >= (m_size)) [[unlikely]] {                                                                      \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, false, true); \
 		_err_flush_stdout();                                                                                                        \
 		GENERATE_TRAP();                                                                                                            \
@@ -226,7 +226,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the current function returns.
  */
 #define ERR_FAIL_UNSIGNED_INDEX(m_index, m_size)                                                                \
-	if (unlikely((m_index) >= (m_size))) {                                                                      \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                   \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size)); \
 		return;                                                                                                 \
 	} else                                                                                                      \
@@ -237,7 +237,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the current function returns.
  */
 #define ERR_FAIL_UNSIGNED_INDEX_MSG(m_index, m_size, m_msg)                                                            \
-	if (unlikely((m_index) >= (m_size))) {                                                                             \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                          \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg); \
 		return;                                                                                                        \
 	} else                                                                                                             \
@@ -247,7 +247,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_UNSIGNED_INDEX_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_UNSIGNED_INDEX_EDMSG(m_index, m_size, m_msg)                                                                \
-	if (unlikely((m_index) >= (m_size))) {                                                                                   \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                                \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, true); \
 		return;                                                                                                              \
 	} else                                                                                                                   \
@@ -261,7 +261,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the current function returns `m_retval`.
  */
 #define ERR_FAIL_UNSIGNED_INDEX_V(m_index, m_size, m_retval)                                                    \
-	if (unlikely((m_index) >= (m_size))) {                                                                      \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                   \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size)); \
 		return m_retval;                                                                                        \
 	} else                                                                                                      \
@@ -272,7 +272,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the current function returns `m_retval`.
  */
 #define ERR_FAIL_UNSIGNED_INDEX_V_MSG(m_index, m_size, m_retval, m_msg)                                                \
-	if (unlikely((m_index) >= (m_size))) {                                                                             \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                          \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg); \
 		return m_retval;                                                                                               \
 	} else                                                                                                             \
@@ -282,7 +282,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_UNSIGNED_INDEX_V_EDMSG` but also notifies the editor.
  */
 #define ERR_FAIL_UNSIGNED_INDEX_V_EDMSG(m_index, m_size, m_retval, m_msg)                                                    \
-	if (unlikely((m_index) >= (m_size))) {                                                                                   \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                                \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, true); \
 		return m_retval;                                                                                                     \
 	} else                                                                                                                   \
@@ -297,7 +297,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, the application crashes.
  */
 #define CRASH_BAD_UNSIGNED_INDEX(m_index, m_size)                                                                                \
-	if (unlikely((m_index) >= (m_size))) {                                                                                       \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                                    \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), "", false, true); \
 		_err_flush_stdout();                                                                                                     \
 		GENERATE_TRAP();                                                                                                         \
@@ -312,7 +312,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If not, prints `m_msg` and the application crashes.
  */
 #define CRASH_BAD_UNSIGNED_INDEX_MSG(m_index, m_size, m_msg)                                                                        \
-	if (unlikely((m_index) >= (m_size))) {                                                                                          \
+	if ((m_index) >= (m_size)) [[unlikely]] {                                                                                       \
 		_err_print_index_error(FUNCTION_STR, __FILE__, __LINE__, m_index, m_size, _STR(m_index), _STR(m_size), m_msg, false, true); \
 		_err_flush_stdout();                                                                                                        \
 		GENERATE_TRAP();                                                                                                            \
@@ -329,7 +329,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If it is null, the current function returns.
  */
 #define ERR_FAIL_NULL(m_param)                                                                          \
-	if (unlikely(m_param == nullptr)) {                                                                 \
+	if (m_param == nullptr) [[unlikely]] {                                                              \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null."); \
 		return;                                                                                         \
 	} else                                                                                              \
@@ -340,7 +340,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If it is null, prints `m_msg` and the current function returns.
  */
 #define ERR_FAIL_NULL_MSG(m_param, m_msg)                                                                      \
-	if (unlikely(m_param == nullptr)) {                                                                        \
+	if (m_param == nullptr) [[unlikely]] {                                                                     \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg); \
 		return;                                                                                                \
 	} else                                                                                                     \
@@ -350,7 +350,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_NULL_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_NULL_EDMSG(m_param, m_msg)                                                                          \
-	if (unlikely(m_param == nullptr)) {                                                                              \
+	if (m_param == nullptr) [[unlikely]] {                                                                           \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg, true); \
 		return;                                                                                                      \
 	} else                                                                                                           \
@@ -364,7 +364,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If it is null, the current function returns `m_retval`.
  */
 #define ERR_FAIL_NULL_V(m_param, m_retval)                                                              \
-	if (unlikely(m_param == nullptr)) {                                                                 \
+	if (m_param == nullptr) [[unlikely]] {                                                              \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null."); \
 		return m_retval;                                                                                \
 	} else                                                                                              \
@@ -375,7 +375,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If it is null, prints `m_msg` and the current function returns `m_retval`.
  */
 #define ERR_FAIL_NULL_V_MSG(m_param, m_retval, m_msg)                                                          \
-	if (unlikely(m_param == nullptr)) {                                                                        \
+	if (m_param == nullptr) [[unlikely]] {                                                                     \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg); \
 		return m_retval;                                                                                       \
 	} else                                                                                                     \
@@ -385,7 +385,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_NULL_V_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_NULL_V_EDMSG(m_param, m_retval, m_msg)                                                              \
-	if (unlikely(m_param == nullptr)) {                                                                              \
+	if (m_param == nullptr) [[unlikely]] {                                                                           \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Parameter \"" _STR(m_param) "\" is null.", m_msg, true); \
 		return m_retval;                                                                                             \
 	} else                                                                                                           \
@@ -401,7 +401,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, the current function returns.
  */
 #define ERR_FAIL_COND(m_cond)                                                                          \
-	if (unlikely(m_cond)) {                                                                            \
+	if (m_cond) [[unlikely]] {                                                                         \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true."); \
 		return;                                                                                        \
 	} else                                                                                             \
@@ -415,7 +415,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If checking index bounds use ERR_FAIL_INDEX_MSG instead.
  */
 #define ERR_FAIL_COND_MSG(m_cond, m_msg)                                                                      \
-	if (unlikely(m_cond)) {                                                                                   \
+	if (m_cond) [[unlikely]] {                                                                                \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true.", m_msg); \
 		return;                                                                                               \
 	} else                                                                                                    \
@@ -425,7 +425,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_COND_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_COND_EDMSG(m_cond, m_msg)                                                                          \
-	if (unlikely(m_cond)) {                                                                                         \
+	if (m_cond) [[unlikely]] {                                                                                      \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true.", m_msg, true); \
 		return;                                                                                                     \
 	} else                                                                                                          \
@@ -441,7 +441,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, the current function returns `m_retval`.
  */
 #define ERR_FAIL_COND_V(m_cond, m_retval)                                                                                         \
-	if (unlikely(m_cond)) {                                                                                                       \
+	if (m_cond) [[unlikely]] {                                                                                                    \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Returning: " _STR(m_retval)); \
 		return m_retval;                                                                                                          \
 	} else                                                                                                                        \
@@ -455,7 +455,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If checking index bounds use ERR_FAIL_INDEX_V_MSG instead.
  */
 #define ERR_FAIL_COND_V_MSG(m_cond, m_retval, m_msg)                                                                                     \
-	if (unlikely(m_cond)) {                                                                                                              \
+	if (m_cond) [[unlikely]] {                                                                                                           \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Returning: " _STR(m_retval), m_msg); \
 		return m_retval;                                                                                                                 \
 	} else                                                                                                                               \
@@ -465,7 +465,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_FAIL_COND_V_MSG` but also notifies the editor.
  */
 #define ERR_FAIL_COND_V_EDMSG(m_cond, m_retval, m_msg)                                                                                         \
-	if (unlikely(m_cond)) {                                                                                                                    \
+	if (m_cond) [[unlikely]] {                                                                                                                 \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Returning: " _STR(m_retval), m_msg, true); \
 		return m_retval;                                                                                                                       \
 	} else                                                                                                                                     \
@@ -479,7 +479,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, the current loop continues.
  */
 #define ERR_CONTINUE(m_cond)                                                                                       \
-	if (unlikely(m_cond)) {                                                                                        \
+	if (m_cond) [[unlikely]] {                                                                                     \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Continuing."); \
 		continue;                                                                                                  \
 	} else                                                                                                         \
@@ -490,7 +490,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, prints `m_msg` and the current loop continues.
  */
 #define ERR_CONTINUE_MSG(m_cond, m_msg)                                                                                   \
-	if (unlikely(m_cond)) {                                                                                               \
+	if (m_cond) [[unlikely]] {                                                                                            \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Continuing.", m_msg); \
 		continue;                                                                                                         \
 	} else                                                                                                                \
@@ -500,7 +500,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_CONTINUE_MSG` but also notifies the editor.
  */
 #define ERR_CONTINUE_EDMSG(m_cond, m_msg)                                                                                       \
-	if (unlikely(m_cond)) {                                                                                                     \
+	if (m_cond) [[unlikely]] {                                                                                                  \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Continuing.", m_msg, true); \
 		continue;                                                                                                               \
 	} else                                                                                                                      \
@@ -514,7 +514,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, the current loop breaks.
  */
 #define ERR_BREAK(m_cond)                                                                                        \
-	if (unlikely(m_cond)) {                                                                                      \
+	if (m_cond) [[unlikely]] {                                                                                   \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Breaking."); \
 		break;                                                                                                   \
 	} else                                                                                                       \
@@ -525,7 +525,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, prints `m_msg` and the current loop breaks.
  */
 #define ERR_BREAK_MSG(m_cond, m_msg)                                                                                    \
-	if (unlikely(m_cond)) {                                                                                             \
+	if (m_cond) [[unlikely]] {                                                                                          \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Breaking.", m_msg); \
 		break;                                                                                                          \
 	} else                                                                                                              \
@@ -535,7 +535,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * Same as `ERR_BREAK_MSG` but also notifies the editor.
  */
 #define ERR_BREAK_EDMSG(m_cond, m_msg)                                                                                        \
-	if (unlikely(m_cond)) {                                                                                                   \
+	if (m_cond) [[unlikely]] {                                                                                                \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition \"" _STR(m_cond) "\" is true. Breaking.", m_msg, true); \
 		break;                                                                                                                \
 	} else                                                                                                                    \
@@ -550,7 +550,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, the application crashes.
  */
 #define CRASH_COND(m_cond)                                                                                    \
-	if (unlikely(m_cond)) {                                                                                   \
+	if (m_cond) [[unlikely]] {                                                                                \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "FATAL: Condition \"" _STR(m_cond) "\" is true."); \
 		_err_flush_stdout();                                                                                  \
 		GENERATE_TRAP();                                                                                      \
@@ -565,7 +565,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  * If `m_cond` is true, prints `m_msg` and the application crashes.
  */
 #define CRASH_COND_MSG(m_cond, m_msg)                                                                                \
-	if (unlikely(m_cond)) {                                                                                          \
+	if (m_cond) [[unlikely]] {                                                                                       \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "FATAL: Condition \"" _STR(m_cond) "\" is true.", m_msg); \
 		_err_flush_stdout();                                                                                         \
 		GENERATE_TRAP();                                                                                             \
@@ -816,7 +816,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
  */
 #ifdef DEV_ENABLED
 #define DEV_ASSERT(m_cond)                                                                                              \
-	if (unlikely(!(m_cond))) {                                                                                          \
+	if (!(m_cond)) [[unlikely]] {                                                                                       \
 		_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "FATAL: DEV_ASSERT failed  \"" _STR(m_cond) "\" is false."); \
 		_err_flush_stdout();                                                                                            \
 		GENERATE_TRAP();                                                                                                \
@@ -828,7 +828,7 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
 
 #ifdef DEV_ENABLED
 #define DEV_CHECK_ONCE(m_cond)                                                   \
-	if (unlikely(!(m_cond))) {                                                   \
+	if (!(m_cond)) [[unlikely]] {                                                \
 		ERR_PRINT_ONCE("DEV_CHECK_ONCE failed  \"" _STR(m_cond) "\" is false."); \
 	} else                                                                       \
 		((void)0)

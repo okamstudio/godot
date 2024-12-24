@@ -74,7 +74,7 @@ ScriptIterator::ScriptIterator(const String &p_string, int p_start, int p_length
 				if (u_getIntPropertyValue(ch, UCHAR_BIDI_PAIRED_BRACKET_TYPE) == U_BPT_OPEN) {
 					// If it's an open character, push it onto the stack.
 					paren_sp++;
-					if (unlikely(paren_sp >= paren_size)) {
+					if (paren_sp >= paren_size) [[unlikely]] {
 						// If the stack is full, allocate more space to handle deeply nested parentheses. This is unlikely to happen with any real text.
 						paren_size += PAREN_STACK_DEPTH;
 						paren_stack = static_cast<ParenStackEntry *>(memrealloc(paren_stack, paren_size * sizeof(ParenStackEntry)));

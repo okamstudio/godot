@@ -38,7 +38,7 @@
 JPH::ShapeRefC JoltConvexPolygonShape3D::_build() const {
 	const int vertex_count = (int)vertices.size();
 
-	if (unlikely(vertex_count == 0)) {
+	if (vertex_count == 0) [[unlikely]] {
 		return nullptr;
 	}
 
@@ -93,7 +93,7 @@ void JoltConvexPolygonShape3D::set_data(const Variant &p_data) {
 }
 
 void JoltConvexPolygonShape3D::set_margin(float p_margin) {
-	if (unlikely(margin == p_margin)) {
+	if (margin == p_margin) [[unlikely]] {
 		return;
 	}
 

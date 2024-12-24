@@ -48,7 +48,7 @@ bool Rect2::operator==(const Rect2i &p_rect) const {
 
 bool Rect2::intersects_segment(const Point2 &p_from, const Point2 &p_to, Point2 *r_pos, Point2 *r_normal) const {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0)) {
+	if (size.x < 0 || size.y < 0) [[unlikely]] {
 		ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 	}
 #endif
@@ -113,7 +113,7 @@ bool Rect2::intersects_segment(const Point2 &p_from, const Point2 &p_to, Point2 
 
 bool Rect2::intersects_transformed(const Transform2D &p_xform, const Rect2 &p_rect) const {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+	if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 		ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 	}
 #endif

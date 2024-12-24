@@ -119,7 +119,7 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 			result.native_type = p_datatype.native_type;
 
 #ifdef DEBUG_ENABLED
-			if (unlikely(!GDScriptLanguage::get_singleton()->get_global_map().has(result.native_type))) {
+			if (!GDScriptLanguage::get_singleton()->get_global_map().has(result.native_type)) [[unlikely]] {
 				_set_error(vformat(R"(GDScript bug (please report): Native class "%s" not found.)", result.native_type), nullptr);
 				return GDScriptDataType();
 			}

@@ -385,11 +385,11 @@ Callable Callable::create(const Variant &p_variant, const StringName &p_method) 
 }
 
 Callable::Callable(const Object *p_object, const StringName &p_method) {
-	if (unlikely(p_method == StringName())) {
+	if (p_method == StringName()) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Method argument to Callable constructor must be a non-empty string.");
 	}
-	if (unlikely(p_object == nullptr)) {
+	if (p_object == nullptr) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Object argument to Callable constructor must be non-null.");
 	}
@@ -399,7 +399,7 @@ Callable::Callable(const Object *p_object, const StringName &p_method) {
 }
 
 Callable::Callable(ObjectID p_object, const StringName &p_method) {
-	if (unlikely(p_method == StringName())) {
+	if (p_method == StringName()) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Method argument to Callable constructor must be a non-empty string.");
 	}
@@ -409,7 +409,7 @@ Callable::Callable(ObjectID p_object, const StringName &p_method) {
 }
 
 Callable::Callable(CallableCustom *p_custom) {
-	if (unlikely(p_custom->referenced)) {
+	if (p_custom->referenced) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Callable custom is already referenced.");
 	}

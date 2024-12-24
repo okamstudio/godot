@@ -310,7 +310,7 @@ private:
 	void _clean_up_owner();
 
 	_FORCE_INLINE_ void _update_children_cache() const {
-		if (unlikely(data.children_cache_dirty)) {
+		if (data.children_cache_dirty) [[unlikely]] {
 			_update_children_cache_impl();
 		}
 	}
@@ -635,7 +635,7 @@ public:
 			// No thread processing.
 			// Only accessible if node is outside the scene tree
 			// or access will happen from a node-safe thread.
-			return is_current_thread_safe_for_nodes() || unlikely(!data.inside_tree);
+			return is_current_thread_safe_for_nodes() || !data.inside_tree;
 		} else {
 			// Thread processing.
 			return true;

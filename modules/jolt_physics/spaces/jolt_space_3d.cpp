@@ -349,7 +349,7 @@ void JoltSpace3D::set_default_area(JoltArea3D *p_area) {
 JPH::BodyID JoltSpace3D::add_rigid_body(const JoltObject3D &p_object, const JPH::BodyCreationSettings &p_settings, bool p_sleeping) {
 	const JPH::BodyID body_id = get_body_iface().CreateAndAddBody(p_settings, p_sleeping ? JPH::EActivation::DontActivate : JPH::EActivation::Activate);
 
-	if (unlikely(body_id.IsInvalid())) {
+	if (body_id.IsInvalid()) [[unlikely]] {
 		ERR_PRINT_ONCE(vformat("Failed to create underlying Jolt Physics body for '%s'. "
 							   "Consider increasing maximum number of bodies in project settings. "
 							   "Maximum number of bodies is currently set to %d.",
@@ -366,7 +366,7 @@ JPH::BodyID JoltSpace3D::add_rigid_body(const JoltObject3D &p_object, const JPH:
 JPH::BodyID JoltSpace3D::add_soft_body(const JoltObject3D &p_object, const JPH::SoftBodyCreationSettings &p_settings, bool p_sleeping) {
 	const JPH::BodyID body_id = get_body_iface().CreateAndAddSoftBody(p_settings, p_sleeping ? JPH::EActivation::DontActivate : JPH::EActivation::Activate);
 
-	if (unlikely(body_id.IsInvalid())) {
+	if (body_id.IsInvalid()) [[unlikely]] {
 		ERR_PRINT_ONCE(vformat("Failed to create underlying Jolt Physics body for '%s'. "
 							   "Consider increasing maximum number of bodies in project settings. "
 							   "Maximum number of bodies is currently set to %d.",
@@ -394,7 +394,7 @@ void JoltSpace3D::try_optimize() {
 	// the editor viewport, we would exceed this stack size (resulting in an incomplete search) as soon as we perform a
 	// physics query after having added somewhere in the order of 128 * 3 bodies. We leave a hefty margin just in case.
 
-	if (likely(bodies_added_since_optimizing < 128)) {
+	if (bodies_added_since_optimizing < 128) [[likely]] {
 		return;
 	}
 

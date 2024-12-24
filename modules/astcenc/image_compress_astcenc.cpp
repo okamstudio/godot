@@ -128,7 +128,7 @@ void _compress_astc(Image *r_img, Image::ASTCFormat p_format) {
 		uint8_t *dest_mip_write = &dest_write[dst_ofs];
 
 		// Ensure that mip offset is a multiple of 8 (etcpak expects uint64_t pointer).
-		if (unlikely(dst_ofs % 8 != 0)) {
+		if (dst_ofs % 8 != 0) [[unlikely]] {
 			astcenc_context_free(context);
 			ERR_FAIL_MSG("astcenc: Mip offset is not a multiple of 8.");
 		}

@@ -191,7 +191,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector2i &a = *VariantGetInternalPtr<Vector2i>::get_ptr(&p_left);
 		const Vector2i &b = *VariantGetInternalPtr<Vector2i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0)) {
+		if (b.x == 0 || b.y == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -215,7 +215,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector3i &a = *VariantGetInternalPtr<Vector3i>::get_ptr(&p_left);
 		const Vector3i &b = *VariantGetInternalPtr<Vector3i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0 || b.z == 0)) {
+		if (b.x == 0 || b.y == 0 || b.z == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -239,7 +239,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector4i &a = *VariantGetInternalPtr<Vector4i>::get_ptr(&p_left);
 		const Vector4i &b = *VariantGetInternalPtr<Vector4i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0 || b.z == 0 || b.w == 0)) {
+		if (b.x == 0 || b.y == 0 || b.z == 0 || b.w == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Division by zero error";
 			return;
@@ -304,7 +304,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector2i &a = *VariantGetInternalPtr<Vector2i>::get_ptr(&p_left);
 		const Vector2i &b = *VariantGetInternalPtr<Vector2i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0)) {
+		if (b.x == 0 || b.y == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Modulo by zero error";
 			return;
@@ -328,7 +328,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector3i &a = *VariantGetInternalPtr<Vector3i>::get_ptr(&p_left);
 		const Vector3i &b = *VariantGetInternalPtr<Vector3i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0 || b.z == 0)) {
+		if (b.x == 0 || b.y == 0 || b.z == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Modulo by zero error";
 			return;
@@ -352,7 +352,7 @@ public:
 	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
 		const Vector4i &a = *VariantGetInternalPtr<Vector4i>::get_ptr(&p_left);
 		const Vector4i &b = *VariantGetInternalPtr<Vector4i>::get_ptr(&p_right);
-		if (unlikely(b.x == 0 || b.y == 0 || b.z == 0 || b.w == 0)) {
+		if (b.x == 0 || b.y == 0 || b.z == 0 || b.w == 0) [[unlikely]] {
 			r_valid = false;
 			*r_ret = "Modulo by zero error";
 			return;
@@ -923,7 +923,7 @@ public:
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		bool valid = true;
 		String result = do_mod(*VariantGetInternalPtr<S>::get_ptr(left), &valid);
-		if (unlikely(!valid)) {
+		if (!valid) [[unlikely]] {
 			*VariantGetInternalPtr<String>::get_ptr(r_ret) = *VariantGetInternalPtr<S>::get_ptr(left);
 			ERR_FAIL_MSG(vformat("String formatting error: %s.", result));
 		}
@@ -951,7 +951,7 @@ public:
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		bool valid = true;
 		String result = do_mod(*VariantGetInternalPtr<S>::get_ptr(left), *VariantGetInternalPtr<Array>::get_ptr(right), &valid);
-		if (unlikely(!valid)) {
+		if (!valid) [[unlikely]] {
 			*VariantGetInternalPtr<String>::get_ptr(r_ret) = *VariantGetInternalPtr<S>::get_ptr(left);
 			ERR_FAIL_MSG(vformat("String formatting error: %s.", result));
 		}
@@ -982,7 +982,7 @@ public:
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		bool valid = true;
 		String result = do_mod(*VariantGetInternalPtr<S>::get_ptr(left), right->get_validated_object(), &valid);
-		if (unlikely(!valid)) {
+		if (!valid) [[unlikely]] {
 			*VariantGetInternalPtr<String>::get_ptr(r_ret) = *VariantGetInternalPtr<S>::get_ptr(left);
 			ERR_FAIL_MSG(vformat("String formatting error: %s.", result));
 		}
@@ -1012,7 +1012,7 @@ public:
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		bool valid = true;
 		String result = do_mod(*VariantGetInternalPtr<S>::get_ptr(left), *VariantGetInternalPtr<T>::get_ptr(right), &valid);
-		if (unlikely(!valid)) {
+		if (!valid) [[unlikely]] {
 			*VariantGetInternalPtr<String>::get_ptr(r_ret) = *VariantGetInternalPtr<S>::get_ptr(left);
 			ERR_FAIL_MSG(vformat("String formatting error: %s.", result));
 		}
@@ -1504,7 +1504,7 @@ public:
 	}
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		Object *l = right->get_validated_object();
-		if (unlikely(!l)) {
+		if (!l) [[unlikely]] {
 			*VariantGetInternalPtr<bool>::get_ptr(r_ret) = false;
 			ERR_FAIL_MSG("Invalid base object for 'in'.");
 		}
@@ -1541,7 +1541,7 @@ public:
 	}
 	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
 		Object *l = right->get_validated_object();
-		if (unlikely(!l)) {
+		if (!l) [[unlikely]] {
 			*VariantGetInternalPtr<bool>::get_ptr(r_ret) = false;
 			ERR_FAIL_MSG("Invalid base object for 'in'.");
 		}

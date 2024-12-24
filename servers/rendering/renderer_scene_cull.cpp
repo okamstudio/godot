@@ -2749,7 +2749,7 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 		}
 
 		// If requested, we move the views to be rendered as if the HMD is at the XROrigin.
-		if (unlikely(xr_server->is_camera_locked_to_origin())) {
+		if (xr_server->is_camera_locked_to_origin()) [[unlikely]] {
 			Transform3D camera_reset = p_xr_interface->get_camera_transform().affine_inverse() * xr_server->get_reference_frame().affine_inverse();
 			for (uint32_t v = 0; v < view_count; v++) {
 				transforms[v] *= camera_reset;

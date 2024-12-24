@@ -583,10 +583,10 @@ _FORCE_INLINE_ void FontFile::_clear_cache() {
 }
 
 _FORCE_INLINE_ void FontFile::_ensure_rid(int p_cache_index, int p_make_linked_from) const {
-	if (unlikely(p_cache_index >= cache.size())) {
+	if (p_cache_index >= cache.size()) [[unlikely]] {
 		cache.resize(p_cache_index + 1);
 	}
-	if (unlikely(!cache[p_cache_index].is_valid())) {
+	if (!cache[p_cache_index].is_valid()) [[unlikely]] {
 		if (p_make_linked_from >= 0 && p_make_linked_from != p_cache_index && p_make_linked_from < cache.size()) {
 			cache.write[p_cache_index] = TS->create_font_linked_variation(cache[p_make_linked_from]);
 		} else {
@@ -2088,7 +2088,7 @@ void FontFile::set_data(const PackedByteArray &p_data) {
 }
 
 PackedByteArray FontFile::get_data() const {
-	if (unlikely((size_t)data.size() != data_size)) {
+	if ((size_t)data.size() != data_size) [[unlikely]] {
 		data.resize(data_size);
 		memcpy(data.ptrw(), data_ptr, data_size);
 	}

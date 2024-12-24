@@ -36,7 +36,7 @@
 #include "jolt_group_filter.h"
 
 void JoltObject3D::_remove_from_space() {
-	if (unlikely(jolt_id.IsInvalid())) {
+	if (jolt_id.IsInvalid()) [[unlikely]] {
 		return;
 	}
 

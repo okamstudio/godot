@@ -52,7 +52,7 @@ struct [[nodiscard]] Rect2i {
 
 	inline bool intersects(const Rect2i &p_rect) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2i size is negative, this is not supported. Use Rect2i.abs() to get a Rect2i with a positive size.");
 		}
 #endif
@@ -74,7 +74,7 @@ struct [[nodiscard]] Rect2i {
 
 	inline bool encloses(const Rect2i &p_rect) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2i size is negative, this is not supported. Use Rect2i.abs() to get a Rect2i with a positive size.");
 		}
 #endif
@@ -107,7 +107,7 @@ struct [[nodiscard]] Rect2i {
 
 	inline Rect2i merge(const Rect2i &p_rect) const { ///< return a merged rect
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2i size is negative, this is not supported. Use Rect2i.abs() to get a Rect2i with a positive size.");
 		}
 #endif
@@ -123,7 +123,7 @@ struct [[nodiscard]] Rect2i {
 	}
 	bool has_point(const Point2i &p_point) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0)) {
+		if (size.x < 0 || size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2i size is negative, this is not supported. Use Rect2i.abs() to get a Rect2i with a positive size.");
 		}
 #endif
@@ -186,7 +186,7 @@ struct [[nodiscard]] Rect2i {
 
 	inline void expand_to(const Point2i &p_vector) {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0)) {
+		if (size.x < 0 || size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2i size is negative, this is not supported. Use Rect2i.abs() to get a Rect2i with a positive size.");
 		}
 #endif

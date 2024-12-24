@@ -833,7 +833,7 @@ struct VariantIndexedSetGet_String {
 		}
 		OOB_TEST(index, v.length());
 		const String &m = *reinterpret_cast<const String *>(member);
-		if (unlikely(m.length() == 0)) {
+		if (m.length() == 0) [[unlikely]] {
 			v.remove_at(index);
 		} else {
 			v.set(index, m.unicode_at(0));
@@ -975,7 +975,7 @@ Variant::PTRIndexedGetter Variant::get_member_ptr_indexed_getter(Variant::Type p
 }
 
 void Variant::set_indexed(int64_t p_index, const Variant &p_value, bool &r_valid, bool &r_oob) {
-	if (likely(variant_indexed_setters_getters[type].valid)) {
+	if (variant_indexed_setters_getters[type].valid) [[likely]] {
 		variant_indexed_setters_getters[type].setter(this, p_index, &p_value, &r_valid, &r_oob);
 	} else {
 		r_valid = false;
@@ -983,7 +983,7 @@ void Variant::set_indexed(int64_t p_index, const Variant &p_value, bool &r_valid
 	}
 }
 Variant Variant::get_indexed(int64_t p_index, bool &r_valid, bool &r_oob) const {
-	if (likely(variant_indexed_setters_getters[type].valid)) {
+	if (variant_indexed_setters_getters[type].valid) [[likely]] {
 		Variant ret;
 		variant_indexed_setters_getters[type].getter(this, p_index, &ret, &r_oob);
 		r_valid = !r_oob;
@@ -996,7 +996,7 @@ Variant Variant::get_indexed(int64_t p_index, bool &r_valid, bool &r_oob) const 
 }
 
 uint64_t Variant::get_indexed_size() const {
-	if (likely(variant_indexed_setters_getters[type].valid && variant_indexed_setters_getters[type].get_indexed_size)) {
+	if (variant_indexed_setters_getters[type].valid && variant_indexed_setters_getters[type].get_indexed_size) [[likely]] {
 		return variant_indexed_setters_getters[type].get_indexed_size(this);
 	} else {
 		return 0;
@@ -1157,14 +1157,14 @@ Variant::PTRKeyedChecker Variant::get_member_ptr_keyed_checker(Variant::Type p_t
 }
 
 void Variant::set_keyed(const Variant &p_key, const Variant &p_value, bool &r_valid) {
-	if (likely(variant_keyed_setters_getters[type].valid)) {
+	if (variant_keyed_setters_getters[type].valid) [[likely]] {
 		variant_keyed_setters_getters[type].validated_setter(this, &p_key, &p_value, &r_valid);
 	} else {
 		r_valid = false;
 	}
 }
 Variant Variant::get_keyed(const Variant &p_key, bool &r_valid) const {
-	if (likely(variant_keyed_setters_getters[type].valid)) {
+	if (variant_keyed_setters_getters[type].valid) [[likely]] {
 		Variant ret;
 		variant_keyed_setters_getters[type].validated_getter(this, &p_key, &ret, &r_valid);
 		return ret;
@@ -1174,7 +1174,7 @@ Variant Variant::get_keyed(const Variant &p_key, bool &r_valid) const {
 	}
 }
 bool Variant::has_key(const Variant &p_key, bool &r_valid) const {
-	if (likely(variant_keyed_setters_getters[type].valid)) {
+	if (variant_keyed_setters_getters[type].valid) [[likely]] {
 		return variant_keyed_setters_getters[type].validated_checker(this, &p_key, &r_valid);
 	} else {
 		r_valid = false;

@@ -523,7 +523,7 @@ public:
 		}
 	}
 	void operator=(List &&p_list) {
-		if (unlikely(this == &p_list)) {
+		if (this == &p_list) [[unlikely]] {
 			return;
 		}
 

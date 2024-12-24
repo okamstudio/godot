@@ -111,7 +111,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::_binary_to_token(const uint8_t
 		case GDScriptTokenizer::Token::IDENTIFIER: {
 			// Get name from map.
 			int identifier_pos = token_type >> TOKEN_BITS;
-			if (unlikely(identifier_pos >= identifiers.size())) {
+			if (identifier_pos >= identifiers.size()) [[unlikely]] {
 				Token error;
 				error.type = Token::ERROR;
 				error.literal = "Identifier index out of bounds.";
@@ -123,7 +123,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::_binary_to_token(const uint8_t
 		case GDScriptTokenizer::Token::LITERAL: {
 			// Get literal from map.
 			int constant_pos = token_type >> TOKEN_BITS;
-			if (unlikely(constant_pos >= constants.size())) {
+			if (constant_pos >= constants.size()) [[unlikely]] {
 				Token error;
 				error.type = Token::ERROR;
 				error.literal = "Constant index out of bounds.";

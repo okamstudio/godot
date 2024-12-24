@@ -203,8 +203,10 @@ public:
 
 	static void assign_static_unique_class_name(StringName *ptr, const char *p_name);
 	_FORCE_INLINE_ ~StringName() {
-		if (likely(configured) && _data) { //only free if configured
-			unref();
+		if (configured) [[likely]] { // Only free if configured.
+			if (_data) {
+				unref();
+			}
 		}
 	}
 

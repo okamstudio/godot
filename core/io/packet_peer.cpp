@@ -101,7 +101,7 @@ Error PacketPeer::put_var(const Variant &p_packet, bool p_full_objects) {
 
 	ERR_FAIL_COND_V_MSG(len > encode_buffer_max_size, ERR_OUT_OF_MEMORY, "Failed to encode variant, encode size is bigger then encode_buffer_max_size. Consider raising it via 'set_encode_buffer_max_size'.");
 
-	if (unlikely(encode_buffer.size() < len)) {
+	if (encode_buffer.size() < len) [[unlikely]] {
 		encode_buffer.resize(0); // Avoid realloc
 		encode_buffer.resize(next_power_of_2(len));
 	}

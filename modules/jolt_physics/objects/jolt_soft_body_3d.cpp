@@ -100,7 +100,7 @@ void JoltSoftBody3D::_space_changed() {
 }
 
 void JoltSoftBody3D::_add_to_space() {
-	if (unlikely(space == nullptr || !mesh.is_valid())) {
+	if (space == nullptr || !mesh.is_valid()) [[unlikely]] {
 		return;
 	}
 
@@ -216,12 +216,12 @@ bool JoltSoftBody3D::_ref_shared_data() {
 }
 
 void JoltSoftBody3D::_deref_shared_data() {
-	if (unlikely(shared == nullptr)) {
+	if (shared == nullptr) [[unlikely]] {
 		return;
 	}
 
 	HashMap<RID, Shared>::Iterator iter = mesh_to_shared.find(mesh);
-	if (unlikely(iter == mesh_to_shared.end())) {
+	if (iter == mesh_to_shared.end()) [[unlikely]] {
 		return;
 	}
 
@@ -402,7 +402,7 @@ Vector3 JoltSoftBody3D::get_velocity_at_position(const Vector3 &p_position) cons
 }
 
 void JoltSoftBody3D::set_mesh(const RID &p_mesh) {
-	if (unlikely(mesh == p_mesh)) {
+	if (mesh == p_mesh) [[unlikely]] {
 		return;
 	}
 
@@ -461,7 +461,7 @@ void JoltSoftBody3D::set_is_sleep_allowed(bool p_enabled) {
 }
 
 void JoltSoftBody3D::set_simulation_precision(int p_precision) {
-	if (unlikely(simulation_precision == p_precision)) {
+	if (simulation_precision == p_precision) [[unlikely]] {
 		return;
 	}
 
@@ -471,7 +471,7 @@ void JoltSoftBody3D::set_simulation_precision(int p_precision) {
 }
 
 void JoltSoftBody3D::set_mass(float p_mass) {
-	if (unlikely(mass == p_mass)) {
+	if (mass == p_mass) [[unlikely]] {
 		return;
 	}
 
@@ -489,7 +489,7 @@ void JoltSoftBody3D::set_stiffness_coefficient(float p_coefficient) {
 }
 
 void JoltSoftBody3D::set_pressure(float p_pressure) {
-	if (unlikely(pressure == p_pressure)) {
+	if (pressure == p_pressure) [[unlikely]] {
 		return;
 	}
 
@@ -499,7 +499,7 @@ void JoltSoftBody3D::set_pressure(float p_pressure) {
 }
 
 void JoltSoftBody3D::set_linear_damping(float p_damping) {
-	if (unlikely(linear_damping == p_damping)) {
+	if (linear_damping == p_damping) [[unlikely]] {
 		return;
 	}
 
@@ -601,7 +601,7 @@ AABB JoltSoftBody3D::get_bounds() const {
 
 void JoltSoftBody3D::update_rendering_server(PhysicsServer3DRenderingServerHandler *p_rendering_server_handler) {
 	// Ideally we would emit an actual error here, but that would spam the logs to the point where the actual cause will be drowned out.
-	if (unlikely(!in_space())) {
+	if (!in_space()) [[unlikely]] {
 		return;
 	}
 
@@ -678,7 +678,7 @@ void JoltSoftBody3D::set_vertex_position(int p_index, const Vector3 &p_position)
 	const size_t physics_index = (size_t)shared->mesh_to_physics[p_index];
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return;
 	}
 

@@ -64,7 +64,7 @@ void JoltSeparationRayShape3D::set_data(const Variant &p_data) {
 	const float new_length = maybe_length;
 	const bool new_slide_on_slope = maybe_slide_on_slope;
 
-	if (unlikely(new_length == length && new_slide_on_slope == slide_on_slope)) {
+	if (new_length == length && new_slide_on_slope == slide_on_slope) [[unlikely]] {
 		return;
 	}
 

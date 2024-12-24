@@ -91,7 +91,7 @@ private:
 	};
 
 	_FORCE_INLINE_ void _ensure_first_page() {
-		if (unlikely(pages.is_empty())) {
+		if (pages.is_empty()) [[unlikely]] {
 			pages.push_back(allocator->alloc());
 			page_bytes.push_back(0);
 			pages_used = 1;

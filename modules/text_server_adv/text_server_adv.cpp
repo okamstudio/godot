@@ -1935,7 +1935,7 @@ RID TextServerAdvanced::_create_font_linked_variation(const RID &p_font_rid) {
 
 	RID rid = p_font_rid;
 	FontAdvancedLinkedVariation *fdv = font_var_owner.get_or_null(rid);
-	if (unlikely(fdv)) {
+	if (fdv) [[unlikely]] {
 		rid = fdv->base_font;
 	}
 	ERR_FAIL_COND_V(!font_owner.owns(rid), RID());
@@ -5170,7 +5170,7 @@ RID TextServerAdvanced::_find_sys_font_for_text(const RID &p_fdef, const String 
 			int best_match = -1;
 			for (int face_idx = 0; face_idx < sysf_cache.var.size(); face_idx++) {
 				const SystemFontCacheRec &F = sysf_cache.var[face_idx];
-				if (unlikely(!_font_has_char(F.rid, p_text[0]))) {
+				if (!_font_has_char(F.rid, p_text[0])) [[unlikely]] {
 					continue;
 				}
 				BitField<FontStyle> style = _font_get_style(F.rid);
@@ -5222,7 +5222,7 @@ RID TextServerAdvanced::_find_sys_font_for_text(const RID &p_fdef, const String 
 			int best_match = -1;
 			for (int face_idx = 0; face_idx < _font_get_face_count(sysf.rid); face_idx++) {
 				_font_set_face_index(sysf.rid, face_idx);
-				if (unlikely(!_font_has_char(sysf.rid, p_text[0]))) {
+				if (!_font_has_char(sysf.rid, p_text[0])) [[unlikely]] {
 					continue;
 				}
 				BitField<FontStyle> style = _font_get_style(sysf.rid);

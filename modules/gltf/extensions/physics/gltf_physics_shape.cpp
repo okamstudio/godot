@@ -305,7 +305,7 @@ Ref<GLTFPhysicsShape> GLTFPhysicsShape::from_dictionary(const Dictionary p_dicti
 	if (properties.has("mesh")) {
 		gltf_shape->set_mesh_index(properties["mesh"]);
 	}
-	if (unlikely(gltf_shape->get_mesh_index() < 0 && (shape_type == "convex" || shape_type == "trimesh"))) {
+	if (gltf_shape->get_mesh_index() < 0 && (shape_type == "convex" || shape_type == "trimesh")) [[unlikely]] {
 		ERR_PRINT("Error parsing GLTFPhysicsShape: The mesh-based shape type '" + shape_type + "' does not have a valid mesh index.");
 	}
 	return gltf_shape;

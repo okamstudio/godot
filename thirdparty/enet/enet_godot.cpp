@@ -299,7 +299,7 @@ public:
 
 	Error sendto(const uint8_t *p_buffer, int p_len, int &r_sent, IPAddress p_ip, uint16_t p_port) {
 		String key = String(p_ip) + ":" + itos(p_port);
-		if (unlikely(!peers.has(key))) {
+		if (!peers.has(key)) [[unlikely]] {
 			// The peer might have been disconnected due to a DTLS error.
 			// We need to wait for it to time out, just mark the packet as sent.
 			r_sent = p_len;

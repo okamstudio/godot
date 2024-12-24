@@ -339,7 +339,7 @@ CollisionObject3D *_get_ancestor_collision_object(Node *p_scene_parent) {
 	// the direct parent. Only check more later if Godot adds support for it.
 	if (p_scene_parent) {
 		CollisionObject3D *co = Object::cast_to<CollisionObject3D>(p_scene_parent);
-		if (likely(co)) {
+		if (co) [[likely]] {
 			return co;
 		}
 	}

@@ -2712,7 +2712,7 @@ void Node3DEditorViewport::reset_fov() {
 void Node3DEditorViewport::scale_cursor_distance(real_t scale) {
 	real_t min_distance = MAX(camera->get_near() * 4, ZOOM_FREELOOK_MIN);
 	real_t max_distance = MIN(camera->get_far() / 4, ZOOM_FREELOOK_MAX);
-	if (unlikely(min_distance > max_distance)) {
+	if (min_distance > max_distance) [[unlikely]] {
 		cursor.distance = (min_distance + max_distance) / 2;
 	} else {
 		cursor.distance = CLAMP(cursor.distance * scale, min_distance, max_distance);
@@ -2731,7 +2731,7 @@ void Node3DEditorViewport::scale_cursor_distance(real_t scale) {
 void Node3DEditorViewport::scale_freelook_speed(real_t scale) {
 	real_t min_speed = MAX(camera->get_near() * 4, ZOOM_FREELOOK_MIN);
 	real_t max_speed = MIN(camera->get_far() / 4, ZOOM_FREELOOK_MAX);
-	if (unlikely(min_speed > max_speed)) {
+	if (min_speed > max_speed) [[unlikely]] {
 		freelook_speed = (min_speed + max_speed) / 2;
 	} else {
 		freelook_speed = CLAMP(freelook_speed * scale, min_speed, max_speed);

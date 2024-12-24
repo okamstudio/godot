@@ -87,21 +87,21 @@ Variant Dictionary::get_value_at_index(int p_index) const {
 // done in `variant_setget.cpp`. Consider using `set()` if the data might be invalid.
 Variant &Dictionary::operator[](const Variant &p_key) {
 	Variant key = p_key;
-	if (unlikely(!_p->typed_key.validate(key, "use `operator[]`"))) {
-		if (unlikely(!_p->typed_fallback)) {
+	if (!_p->typed_key.validate(key, "use `operator[]`")) [[unlikely]] {
+		if (!_p->typed_fallback) [[unlikely]] {
 			_p->typed_fallback = memnew(Variant);
 		}
 		VariantInternal::initialize(_p->typed_fallback, _p->typed_value.type);
 		return *_p->typed_fallback;
-	} else if (unlikely(_p->read_only)) {
-		if (likely(_p->variant_map.has(key))) {
+	} else if (_p->read_only) [[unlikely]] {
+		if (_p->variant_map.has(key)) [[likely]] {
 			*_p->read_only = _p->variant_map[key];
 		} else {
 			VariantInternal::initialize(_p->read_only, _p->typed_value.type);
 		}
 		return *_p->read_only;
 	} else {
-		if (unlikely(!_p->variant_map.has(key))) {
+		if (!_p->variant_map.has(key)) [[unlikely]] {
 			VariantInternal::initialize(&_p->variant_map[key], _p->typed_value.type);
 		}
 		return _p->variant_map[key];
@@ -110,8 +110,8 @@ Variant &Dictionary::operator[](const Variant &p_key) {
 
 const Variant &Dictionary::operator[](const Variant &p_key) const {
 	Variant key = p_key;
-	if (unlikely(!_p->typed_key.validate(key, "use `operator[]`"))) {
-		if (unlikely(!_p->typed_fallback)) {
+	if (!_p->typed_key.validate(key, "use `operator[]`")) [[unlikely]] {
+		if (!_p->typed_fallback) [[unlikely]] {
 			_p->typed_fallback = memnew(Variant);
 		}
 		VariantInternal::initialize(_p->typed_fallback, _p->typed_value.type);
@@ -124,7 +124,7 @@ const Variant &Dictionary::operator[](const Variant &p_key) const {
 
 const Variant *Dictionary::getptr(const Variant &p_key) const {
 	Variant key = p_key;
-	if (unlikely(!_p->typed_key.validate(key, "getptr"))) {
+	if (!_p->typed_key.validate(key, "getptr")) [[unlikely]] {
 		return nullptr;
 	}
 	HashMap<Variant, Variant, VariantHasher, StringLikeVariantComparator>::ConstIterator E(_p->variant_map.find(key));
@@ -137,14 +137,14 @@ const Variant *Dictionary::getptr(const Variant &p_key) const {
 // WARNING: This method does not validate the value type.
 Variant *Dictionary::getptr(const Variant &p_key) {
 	Variant key = p_key;
-	if (unlikely(!_p->typed_key.validate(key, "getptr"))) {
+	if (!_p->typed_key.validate(key, "getptr")) [[unlikely]] {
 		return nullptr;
 	}
 	HashMap<Variant, Variant, VariantHasher, StringLikeVariantComparator>::Iterator E(_p->variant_map.find(key));
 	if (!E) {
 		return nullptr;
 	}
-	if (unlikely(_p->read_only != nullptr)) {
+	if (_p->read_only != nullptr) [[unlikely]] {
 		*_p->read_only = E->value;
 		return _p->read_only;
 	} else {

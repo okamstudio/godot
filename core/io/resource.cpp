@@ -580,7 +580,7 @@ Resource::Resource() :
 		remapped_list(this) {}
 
 Resource::~Resource() {
-	if (unlikely(path_cache.is_empty())) {
+	if (path_cache.is_empty()) [[unlikely]] {
 		return;
 	}
 
@@ -588,7 +588,7 @@ Resource::~Resource() {
 	// Only unregister from the cache if this is the actual resource listed there.
 	// (Other resources can have the same value in `path_cache` if loaded with `CACHE_IGNORE`.)
 	HashMap<String, Resource *>::Iterator E = ResourceCache::resources.find(path_cache);
-	if (likely(E && E->value == this)) {
+	if (E && E->value == this) [[likely]] {
 		ResourceCache::resources.remove(E);
 	}
 }

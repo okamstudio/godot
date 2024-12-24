@@ -477,7 +477,7 @@ class TextServerFallback : public TextServerExtension {
 	_FORCE_INLINE_ FontFallback *_get_font_data(const RID &p_font_rid) const {
 		RID rid = p_font_rid;
 		FontFallbackLinkedVariation *fdv = font_var_owner.get_or_null(rid);
-		if (unlikely(fdv)) {
+		if (fdv) [[unlikely]] {
 			rid = fdv->base_font;
 		}
 		return font_owner.get_or_null(rid);

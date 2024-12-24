@@ -139,7 +139,7 @@ private:
 	}
 
 	_FORCE_INLINE_ bool _get_alloc_size_checked(USize p_elements, USize *out) const {
-		if (unlikely(p_elements == 0)) {
+		if (p_elements == 0) [[unlikely]] {
 			*out = 0;
 			return true;
 		}
@@ -306,7 +306,7 @@ typename CowData<T>::USize CowData<T>::_copy_on_write() {
 	SafeNumeric<USize> *refc = _get_refcount();
 
 	USize rc = refc->get();
-	if (unlikely(rc > 1)) {
+	if (rc > 1) [[unlikely]] {
 		/* in use by more than me */
 		USize current_size = *_get_size();
 

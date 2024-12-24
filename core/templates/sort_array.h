@@ -35,7 +35,7 @@
 #include "core/typedefs.h"
 
 #define ERR_BAD_COMPARE(cond)                                         \
-	if (unlikely(cond)) {                                             \
+	if (cond) [[unlikely]] {                                          \
 		ERR_PRINT("bad comparison function; sorting will be broken"); \
 		break;                                                        \
 	}

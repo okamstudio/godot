@@ -375,7 +375,7 @@ void SceneImportSettingsDialog::_fill_scene(Node *p_node, TreeItem *p_parent_ite
 			mesh_node->set_mesh(editor_mesh->get_mesh());
 		}
 		// Replace the original mesh node in the scene tree with the new one.
-		if (unlikely(p_node == scene)) {
+		if (p_node == scene) [[unlikely]] {
 			scene = mesh_node;
 		}
 		p_node->replace_by(mesh_node);

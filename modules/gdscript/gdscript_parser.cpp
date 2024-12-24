@@ -53,7 +53,7 @@
 // `Variant::OBJECT` - `Object` should be treated as a class, not as a built-in type.
 static HashMap<StringName, Variant::Type> builtin_types;
 Variant::Type GDScriptParser::get_builtin_type(const StringName &p_type) {
-	if (unlikely(builtin_types.is_empty())) {
+	if (builtin_types.is_empty()) [[unlikely]] {
 		for (int i = 0; i < Variant::VARIANT_MAX; i++) {
 			Variant::Type type = (Variant::Type)i;
 			if (type != Variant::NIL && type != Variant::OBJECT) {
@@ -91,7 +91,7 @@ bool GDScriptParser::annotation_exists(const String &p_annotation_name) const {
 
 GDScriptParser::GDScriptParser() {
 	// Register valid annotations.
-	if (unlikely(valid_annotations.is_empty())) {
+	if (valid_annotations.is_empty()) [[unlikely]] {
 		// Script annotations.
 		register_annotation(MethodInfo("@tool"), AnnotationInfo::SCRIPT, &GDScriptParser::tool_annotation);
 		register_annotation(MethodInfo("@icon", PropertyInfo(Variant::STRING, "icon_path")), AnnotationInfo::SCRIPT, &GDScriptParser::icon_annotation);
@@ -142,7 +142,7 @@ GDScriptParser::GDScriptParser() {
 #endif
 
 #ifdef TOOLS_ENABLED
-	if (unlikely(theme_color_names.is_empty())) {
+	if (theme_color_names.is_empty()) [[unlikely]] {
 		// Vectors.
 		theme_color_names.insert("x", "axis_x_color");
 		theme_color_names.insert("y", "axis_y_color");

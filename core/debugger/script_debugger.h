@@ -67,7 +67,7 @@ public:
 	void insert_breakpoint(int p_line, const StringName &p_source);
 	void remove_breakpoint(int p_line, const StringName &p_source);
 	_ALWAYS_INLINE_ bool is_breakpoint(int p_line, const StringName &p_source) const {
-		if (likely(!breakpoints.has(p_line))) {
+		if (!breakpoints.has(p_line)) [[likely]] {
 			return false;
 		}
 		return breakpoints[p_line].has(p_source);

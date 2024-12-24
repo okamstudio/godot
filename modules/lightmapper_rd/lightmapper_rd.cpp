@@ -879,7 +879,7 @@ Ref<Image> LightmapperRD::_read_pfm(const String &p_name, bool p_shadowmask) {
 	file->close();
 
 #ifdef BIG_ENDIAN_ENABLED
-	if (unlikely(endian < 0.0)) {
+	if (endian < 0.0) [[unlikely]] {
 		uint32_t count = new_data.size() / 4;
 		uint16_t *dst = (uint16_t *)new_data.ptrw();
 		for (uint32_t j = 0; j < count; j++) {
@@ -887,7 +887,7 @@ Ref<Image> LightmapperRD::_read_pfm(const String &p_name, bool p_shadowmask) {
 		}
 	}
 #else
-	if (unlikely(endian > 0.0)) {
+	if (endian > 0.0) [[unlikely]] {
 		uint32_t count = new_data.size() / 4;
 		uint16_t *dst = (uint16_t *)new_data.ptrw();
 		for (uint32_t j = 0; j < count; j++) {
@@ -2061,7 +2061,7 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 				SWAP(light_accum_tex, light_accum_tex2);
 				error = _denoise(rd, compute_shader, compute_base_uniform_set, push_constant, light_accum_tex2, normal_tex, light_accum_tex, p_denoiser_strength, p_denoiser_range, atlas_size, atlas_slices, p_bake_sh, p_step_function, p_bake_userdata);
 			}
-			if (unlikely(error != BAKE_OK)) {
+			if (error != BAKE_OK) [[unlikely]] {
 				return error;
 			}
 		}
@@ -2076,7 +2076,7 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 				SWAP(shadowmask_tex, shadowmask_tex2);
 				error = _denoise(rd, compute_shader, compute_base_uniform_set, push_constant, shadowmask_tex2, normal_tex, shadowmask_tex, p_denoiser_strength, p_denoiser_range, atlas_size, atlas_slices, false, p_step_function, p_bake_userdata);
 			}
-			if (unlikely(error != BAKE_OK)) {
+			if (error != BAKE_OK) [[unlikely]] {
 				return error;
 			}
 		}
@@ -2087,14 +2087,14 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	{
 		SWAP(light_accum_tex, light_accum_tex2);
 		BakeError error = _dilate(rd, compute_shader, compute_base_uniform_set, push_constant, light_accum_tex2, light_accum_tex, atlas_size, atlas_slices * (p_bake_sh ? 4 : 1));
-		if (unlikely(error != BAKE_OK)) {
+		if (error != BAKE_OK) [[unlikely]] {
 			return error;
 		}
 
 		if (p_bake_shadowmask) {
 			SWAP(shadowmask_tex, shadowmask_tex2);
 			error = _dilate(rd, compute_shader, compute_base_uniform_set, push_constant, shadowmask_tex2, shadowmask_tex, atlas_size, atlas_slices);
-			if (unlikely(error != BAKE_OK)) {
+			if (error != BAKE_OK) [[unlikely]] {
 				return error;
 			}
 		}
@@ -2261,7 +2261,7 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	if (p_bake_sh) {
 		SWAP(light_accum_tex, light_accum_tex2);
 		BakeError error = _pack_l1(rd, compute_shader, compute_base_uniform_set, push_constant, light_accum_tex2, light_accum_tex, atlas_size, atlas_slices);
-		if (unlikely(error != BAKE_OK)) {
+		if (error != BAKE_OK) [[unlikely]] {
 			return error;
 		}
 	}

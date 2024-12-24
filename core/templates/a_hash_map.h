@@ -103,7 +103,7 @@ private:
 	uint32_t _hash(const TKey &p_key) const {
 		uint32_t hash = Hasher::hash(p_key);
 
-		if (unlikely(hash == EMPTY_HASH)) {
+		if (hash == EMPTY_HASH) [[unlikely]] {
 			hash = EMPTY_HASH + 1;
 		}
 
@@ -120,14 +120,14 @@ private:
 	}
 
 	bool _lookup_pos(const TKey &p_key, uint32_t &r_pos, uint32_t &r_hash_pos) const {
-		if (unlikely(elements == nullptr)) {
+		if (elements == nullptr) [[unlikely]] {
 			return false; // Failed lookups, no elements.
 		}
 		return _lookup_pos_with_hash(p_key, r_pos, r_hash_pos, _hash(p_key));
 	}
 
 	bool _lookup_pos_with_hash(const TKey &p_key, uint32_t &r_pos, uint32_t &r_hash_pos, uint32_t p_hash) const {
-		if (unlikely(elements == nullptr)) {
+		if (elements == nullptr) [[unlikely]] {
 			return false; // Failed lookups, no elements.
 		}
 
@@ -185,7 +185,7 @@ private:
 		while (true) {
 			if (map_data[pos].data == EMPTY_HASH) {
 #ifdef DEV_ENABLED
-				if (unlikely(distance > 12)) {
+				if (distance > 12) [[unlikely]] {
 					WARN_PRINT("Excessive collision count (" +
 							itos(distance) + "), is the right hash function being used?");
 				}
@@ -233,7 +233,7 @@ private:
 	}
 
 	int32_t _insert_element(const TKey &p_key, const TValue &p_value, uint32_t p_hash) {
-		if (unlikely(elements == nullptr)) {
+		if (elements == nullptr) [[unlikely]] {
 			// Allocate on demand to save memory.
 
 			uint32_t real_capacity = capacity + 1;
@@ -243,7 +243,7 @@ private:
 			memset(map_data, EMPTY_HASH, real_capacity * sizeof(HashMapData));
 		}
 
-		if (unlikely(num_elements > _get_resize_count(capacity))) {
+		if (num_elements > _get_resize_count(capacity)) [[unlikely]] {
 			_resize_and_rehash(capacity * 2);
 		}
 
@@ -534,7 +534,7 @@ public:
 		return Iterator(elements + num_elements, elements, elements + num_elements);
 	}
 	_FORCE_INLINE_ Iterator last() {
-		if (unlikely(num_elements == 0)) {
+		if (num_elements == 0) [[unlikely]] {
 			return Iterator(nullptr, nullptr, nullptr);
 		}
 		return Iterator(elements + num_elements - 1, elements, elements + num_elements);
@@ -563,7 +563,7 @@ public:
 		return ConstIterator(elements + num_elements, elements, elements + num_elements);
 	}
 	_FORCE_INLINE_ ConstIterator last() const {
-		if (unlikely(num_elements == 0)) {
+		if (num_elements == 0) [[unlikely]] {
 			return ConstIterator(nullptr, nullptr, nullptr);
 		}
 		return ConstIterator(elements + num_elements - 1, elements, elements + num_elements);

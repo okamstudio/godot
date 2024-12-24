@@ -241,13 +241,13 @@ Vector3 Vector3::slerp(const Vector3 &p_to, real_t p_weight) const {
 	// the internals of some methods for efficiency (mainly, checking length).
 	real_t start_length_sq = length_squared();
 	real_t end_length_sq = p_to.length_squared();
-	if (unlikely(start_length_sq == 0.0f || end_length_sq == 0.0f)) {
+	if (start_length_sq == 0.0f || end_length_sq == 0.0f) [[unlikely]] {
 		// Zero length vectors have no angle, so the best we can do is either lerp or throw an error.
 		return lerp(p_to, p_weight);
 	}
 	Vector3 axis = cross(p_to);
 	real_t axis_length_sq = axis.length_squared();
-	if (unlikely(axis_length_sq == 0.0f)) {
+	if (axis_length_sq == 0.0f) [[unlikely]] {
 		// Colinear vectors have no rotation axis or angle between them, so the best we can do is lerp.
 		return lerp(p_to, p_weight);
 	}

@@ -43,7 +43,7 @@ bool AABB::operator==(const AABB &p_rval) const {
 
 void AABB::merge_with(const AABB &p_aabb) {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0 || p_aabb.size.x < 0 || p_aabb.size.y < 0 || p_aabb.size.z < 0)) {
+	if (size.x < 0 || size.y < 0 || size.z < 0 || p_aabb.size.x < 0 || p_aabb.size.y < 0 || p_aabb.size.z < 0) [[unlikely]] {
 		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
 	}
 #endif
@@ -78,7 +78,7 @@ bool AABB::is_finite() const {
 
 AABB AABB::intersection(const AABB &p_aabb) const {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0 || p_aabb.size.x < 0 || p_aabb.size.y < 0 || p_aabb.size.z < 0)) {
+	if (size.x < 0 || size.y < 0 || size.z < 0 || p_aabb.size.x < 0 || p_aabb.size.y < 0 || p_aabb.size.z < 0) [[unlikely]] {
 		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
 	}
 #endif
@@ -120,7 +120,7 @@ AABB AABB::intersection(const AABB &p_aabb) const {
 // carry on progressing without e.g. reflecting against the normal.
 bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool &r_inside, Vector3 *r_intersection_point, Vector3 *r_normal) const {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0)) {
+	if (size.x < 0 || size.y < 0 || size.z < 0) [[unlikely]] {
 		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
 	}
 #endif
@@ -183,7 +183,7 @@ bool AABB::find_intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, bool
 
 bool AABB::intersects_segment(const Vector3 &p_from, const Vector3 &p_to, Vector3 *r_intersection_point, Vector3 *r_normal) const {
 #ifdef MATH_CHECKS
-	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0)) {
+	if (size.x < 0 || size.y < 0 || size.z < 0) [[unlikely]] {
 		ERR_PRINT("AABB size is negative, this is not supported. Use AABB.abs() to get an AABB with a positive size.");
 	}
 #endif

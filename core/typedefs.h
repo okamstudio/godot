@@ -273,14 +273,6 @@ struct _GlobalLock {
 #define GLOBAL_LOCK_FUNCTION _GlobalLock _global_lock_;
 
 #if defined(__GNUC__)
-#define likely(x) __builtin_expect(!!(x), 1)
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#else
-#define likely(x) x
-#define unlikely(x) x
-#endif
-
-#if defined(__GNUC__)
 #define _PRINTF_FORMAT_ATTRIBUTE_2_0 __attribute__((format(printf, 2, 0)))
 #define _PRINTF_FORMAT_ATTRIBUTE_2_3 __attribute__((format(printf, 2, 3)))
 #else

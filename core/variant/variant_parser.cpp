@@ -2112,7 +2112,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		} break;
 
 		case Variant::OBJECT: {
-			if (unlikely(p_recursion_count > MAX_RECURSION)) {
+			if (p_recursion_count > MAX_RECURSION) [[unlikely]] {
 				ERR_PRINT("Max recursion reached");
 				p_store_string_func(p_store_string_ud, "null");
 				return OK;
@@ -2240,7 +2240,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				p_store_string_func(p_store_string_ud, "](");
 			}
 
-			if (unlikely(p_recursion_count > MAX_RECURSION)) {
+			if (p_recursion_count > MAX_RECURSION) [[unlikely]] {
 				ERR_PRINT("Max recursion reached");
 				p_store_string_func(p_store_string_ud, "{}");
 			} else {
@@ -2310,7 +2310,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				p_store_string_func(p_store_string_ud, "](");
 			}
 
-			if (unlikely(p_recursion_count > MAX_RECURSION)) {
+			if (p_recursion_count > MAX_RECURSION) [[unlikely]] {
 				ERR_PRINT("Max recursion reached");
 				p_store_string_func(p_store_string_ud, "[]");
 			} else {

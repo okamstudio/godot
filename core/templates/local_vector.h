@@ -59,7 +59,7 @@ public:
 
 	// Must take a copy instead of a reference (see GH-31736).
 	_FORCE_INLINE_ void push_back(T p_elem) {
-		if (unlikely(count == capacity)) {
+		if (count == capacity) [[unlikely]] {
 			capacity = tight ? (capacity + 1) : MAX((U)1, capacity << 1);
 			data = (T *)memrealloc(data, capacity * sizeof(T));
 			CRASH_COND_MSG(!data, "Out of memory");
@@ -157,7 +157,7 @@ public:
 			}
 			count = p_size;
 		} else if (p_size > count) {
-			if (unlikely(p_size > capacity)) {
+			if (p_size > capacity) [[unlikely]] {
 				capacity = tight ? p_size : nearest_power_of_2_templated(p_size);
 				data = (T *)memrealloc(data, capacity * sizeof(T));
 				CRASH_COND_MSG(!data, "Out of memory");
@@ -354,7 +354,7 @@ public:
 		}
 	}
 	inline void operator=(LocalVector &&p_from) {
-		if (unlikely(this == &p_from)) {
+		if (this == &p_from) [[unlikely]] {
 			return;
 		}
 		reset();
