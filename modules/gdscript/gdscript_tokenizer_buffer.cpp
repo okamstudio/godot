@@ -38,7 +38,7 @@
 int GDScriptTokenizerBuffer::_token_to_binary(const Token &p_token, Vector<uint8_t> &r_buffer, int p_start, HashMap<StringName, uint32_t> &r_identifiers_map, HashMap<Variant, uint32_t, VariantHasher, VariantComparator> &r_constants_map) {
 	int pos = p_start;
 
-	int token_type = p_token.type & TOKEN_MASK;
+	int token_type = p_token.type & (int)TOKEN_MASK;
 
 	switch (p_token.type) {
 		case GDScriptTokenizer::Token::ANNOTATION:

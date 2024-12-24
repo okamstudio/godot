@@ -89,13 +89,10 @@ public:
 	_FORCE_INLINE_ bool operator==(const T *p_ptr) const {
 		return reference == p_ptr;
 	}
-	_FORCE_INLINE_ bool operator!=(const T *p_ptr) const {
-		return reference != p_ptr;
-	}
+
 #ifdef STRICT_CHECKS
 	// Delete these to prevent raw comparisons with `nullptr`.
 	bool operator==(std::nullptr_t) const = delete;
-	bool operator!=(std::nullptr_t) const = delete;
 #endif // STRICT_CHECKS
 
 	_FORCE_INLINE_ bool operator<(const Ref<T> &p_r) const {
@@ -104,8 +101,9 @@ public:
 	_FORCE_INLINE_ bool operator==(const Ref<T> &p_r) const {
 		return reference == p_r.reference;
 	}
-	_FORCE_INLINE_ bool operator!=(const Ref<T> &p_r) const {
-		return reference != p_r.reference;
+	template <typename T_Other>
+	_FORCE_INLINE_ bool operator==(const Ref<T_Other> &p_r) const {
+		return reference == p_r.ptr();
 	}
 
 	_FORCE_INLINE_ T *operator*() const {

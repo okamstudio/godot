@@ -47,9 +47,12 @@ struct GCHandleIntPtr {
 	void *value;
 
 	_FORCE_INLINE_ bool operator==(const GCHandleIntPtr &p_other) { return value == p_other.value; }
-	_FORCE_INLINE_ bool operator!=(const GCHandleIntPtr &p_other) { return value != p_other.value; }
 
+	// FIXME: C++20 doesn't allow aggregate initializers to bypass deleted constructors.
+	// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1008r1.pdf
+#if 0
 	GCHandleIntPtr() = delete;
+#endif
 };
 }
 

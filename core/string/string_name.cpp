@@ -47,20 +47,12 @@ bool StringName::_Data::operator==(const String &p_name) const {
 	}
 }
 
-bool StringName::_Data::operator!=(const String &p_name) const {
-	return !operator==(p_name);
-}
-
 bool StringName::_Data::operator==(const char *p_name) const {
 	if (cname) {
 		return strcmp(cname, p_name) == 0;
 	} else {
 		return name == p_name;
 	}
-}
-
-bool StringName::_Data::operator!=(const char *p_name) const {
-	return !operator==(p_name);
 }
 
 StringName _scs_create(const char *p_chr, bool p_static) {
@@ -181,14 +173,6 @@ bool StringName::operator==(const char *p_name) const {
 	}
 
 	return p_name[0] == 0;
-}
-
-bool StringName::operator!=(const String &p_name) const {
-	return !(operator==(p_name));
-}
-
-bool StringName::operator!=(const char *p_name) const {
-	return !(operator==(p_name));
 }
 
 char32_t StringName::operator[](int p_index) const {
@@ -524,18 +508,4 @@ StringName StringName::search(const String &p_name) {
 	}
 
 	return StringName(); //does not exist
-}
-
-bool operator==(const String &p_name, const StringName &p_string_name) {
-	return p_string_name.operator==(p_name);
-}
-bool operator!=(const String &p_name, const StringName &p_string_name) {
-	return p_string_name.operator!=(p_name);
-}
-
-bool operator==(const char *p_name, const StringName &p_string_name) {
-	return p_string_name.operator==(p_name);
-}
-bool operator!=(const char *p_name, const StringName &p_string_name) {
-	return p_string_name.operator!=(p_name);
 }

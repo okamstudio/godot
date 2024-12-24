@@ -3422,7 +3422,7 @@ void CanvasItemEditor::_draw_control_helpers(Control *control) {
 			Vector2 line_starts[4];
 			Vector2 line_ends[4];
 			for (int i = 0; i < 4; i++) {
-				real_t anchor_val = (i >= 2) ? ANCHOR_END - anchors_values[i] : anchors_values[i];
+				real_t anchor_val = (i >= 2) ? (int)ANCHOR_END - anchors_values[i] : anchors_values[i];
 				line_starts[i] = corners_pos[i].lerp(corners_pos[(i + 1) % 4], anchor_val);
 				line_ends[i] = corners_pos[(i + 3) % 4].lerp(corners_pos[(i + 2) % 4], anchor_val);
 				bool anchor_snapped = anchors_values[i] == 0.0 || anchors_values[i] == 0.5 || anchors_values[i] == 1.0;
@@ -3440,11 +3440,11 @@ void CanvasItemEditor::_draw_control_helpers(Control *control) {
 			_draw_percentage_at_position(percent_val, (anchors_pos[dragged_anchor] + anchors_pos[(dragged_anchor + 3) % 4]) / 2, (Side)(dragged_anchor));
 
 			percent_val = anchors_values[(dragged_anchor + 1) % 4];
-			percent_val = ((dragged_anchor + 1) % 4 >= 2) ? ANCHOR_END - percent_val : percent_val;
+			percent_val = ((dragged_anchor + 1) % 4 >= 2) ? (int)ANCHOR_END - percent_val : percent_val;
 			_draw_percentage_at_position(percent_val, (line_starts[dragged_anchor] + anchors_pos[dragged_anchor]) / 2, (Side)(dragged_anchor));
 
 			percent_val = anchors_values[dragged_anchor];
-			percent_val = (dragged_anchor >= 2) ? ANCHOR_END - percent_val : percent_val;
+			percent_val = (dragged_anchor >= 2) ? (int)ANCHOR_END - percent_val : percent_val;
 			_draw_percentage_at_position(percent_val, (line_ends[(dragged_anchor + 1) % 4] + anchors_pos[dragged_anchor]) / 2, (Side)((dragged_anchor + 1) % 4));
 		}
 

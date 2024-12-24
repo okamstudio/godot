@@ -577,50 +577,6 @@ bool String::operator==(const StrRange<char32_t> &p_str_range) const {
 	return memcmp(ptr(), p_str_range.c_str, len * sizeof(char32_t)) == 0;
 }
 
-bool operator==(const char *p_chr, const String &p_str) {
-	return p_str == p_chr;
-}
-
-bool operator==(const wchar_t *p_chr, const String &p_str) {
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit
-	return p_str == String::utf16((const char16_t *)p_chr);
-#else
-	// wchar_t is 32-bi
-	return p_str == String((const char32_t *)p_chr);
-#endif
-}
-
-bool operator!=(const char *p_chr, const String &p_str) {
-	return !(p_str == p_chr);
-}
-
-bool operator!=(const wchar_t *p_chr, const String &p_str) {
-#ifdef WINDOWS_ENABLED
-	// wchar_t is 16-bit
-	return !(p_str == String::utf16((const char16_t *)p_chr));
-#else
-	// wchar_t is 32-bi
-	return !(p_str == String((const char32_t *)p_chr));
-#endif
-}
-
-bool String::operator!=(const char *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const wchar_t *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const char32_t *p_str) const {
-	return (!(*this == p_str));
-}
-
-bool String::operator!=(const String &p_str) const {
-	return !((*this == p_str));
-}
-
 bool String::operator<=(const String &p_str) const {
 	return !(p_str < *this);
 }

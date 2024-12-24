@@ -349,7 +349,6 @@ public:
 	/* Compatibility Operators */
 
 	bool operator==(const String &p_str) const;
-	bool operator!=(const String &p_str) const;
 	String operator+(const String &p_str) const;
 	String operator+(char32_t p_char) const;
 
@@ -363,10 +362,6 @@ public:
 	bool operator==(const wchar_t *p_str) const;
 	bool operator==(const char32_t *p_str) const;
 	bool operator==(const StrRange<char32_t> &p_str_range) const;
-
-	bool operator!=(const char *p_str) const;
-	bool operator!=(const wchar_t *p_str) const;
-	bool operator!=(const char32_t *p_str) const;
 
 	bool operator<(const char32_t *p_str) const;
 	bool operator<(const char *p_str) const;
@@ -644,11 +639,6 @@ public:
 
 	explicit operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }
 };
-
-bool operator==(const char *p_chr, const String &p_str);
-bool operator==(const wchar_t *p_chr, const String &p_str);
-bool operator!=(const char *p_chr, const String &p_str);
-bool operator!=(const wchar_t *p_chr, const String &p_str);
 
 String operator+(const char *p_chr, const String &p_str);
 String operator+(const wchar_t *p_chr, const String &p_str);

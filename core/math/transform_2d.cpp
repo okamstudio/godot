@@ -201,16 +201,6 @@ bool Transform2D::operator==(const Transform2D &p_transform) const {
 	return true;
 }
 
-bool Transform2D::operator!=(const Transform2D &p_transform) const {
-	for (int i = 0; i < 3; i++) {
-		if (columns[i] != p_transform.columns[i]) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void Transform2D::operator*=(const Transform2D &p_transform) {
 	columns[2] = xform(p_transform.columns[2]);
 

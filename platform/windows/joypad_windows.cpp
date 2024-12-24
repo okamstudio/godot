@@ -530,15 +530,15 @@ float JoypadWindows::axis_correct(int p_val, bool p_xinput, bool p_trigger, bool
 		return p_trigger ? -1.0f : 0.0f;
 	}
 	if (!p_xinput) {
-		return (float)p_val / MAX_JOY_AXIS;
+		return (float)p_val / (int)MAX_JOY_AXIS;
 	}
 	if (p_trigger) {
 		// Convert to a value between -1.0f and 1.0f.
-		return 2.0f * p_val / MAX_TRIGGER - 1.0f;
+		return 2.0f * p_val / (int)MAX_TRIGGER - 1.0f;
 	}
 	float value;
 	if (p_val < 0) {
-		value = (float)p_val / MAX_JOY_AXIS;
+		value = (float)p_val / (int)MAX_JOY_AXIS;
 	} else {
 		value = (float)p_val / (MAX_JOY_AXIS - 1);
 	}

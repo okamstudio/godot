@@ -64,21 +64,7 @@ public:
 		}
 		return true;
 	}
-
-	bool operator!=(const IPAddress &p_ip) const {
-		if (p_ip.valid != valid) {
-			return true;
-		}
-		if (!valid) {
-			return true;
-		}
-		for (int i = 0; i < 4; i++) {
-			if (field32[i] != p_ip.field32[i]) {
-				return true;
-			}
-		}
-		return false;
-	}
+	bool operator==(const String &p_ip) const { return operator==(IPAddress(p_ip)); }
 
 	void clear();
 	bool is_wildcard() const { return wildcard; }

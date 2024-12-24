@@ -62,10 +62,6 @@ public:
 		return cmp(*this, b) == 0;
 	}
 
-	bool operator!=(const SemVer &b) const {
-		return !operator==(b);
-	}
-
 	bool operator<(const SemVer &b) const {
 		return cmp(*this, b) < 0;
 	}

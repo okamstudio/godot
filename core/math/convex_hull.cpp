@@ -136,10 +136,6 @@ public:
 			return (x == b.x) && (y == b.y) && (z == b.z);
 		}
 
-		bool operator!=(const Point32 &b) const {
-			return (x != b.x) || (y != b.y) || (z != b.z);
-		}
-
 		bool is_zero() {
 			return (x == 0) && (y == 0) && (z == 0);
 		}

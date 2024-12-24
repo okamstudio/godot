@@ -954,10 +954,6 @@ public:
 		BitField<ShaderStage> stages;
 		uint32_t length = 0; // Size of arrays (in total elements), or ubos (in bytes * total elements).
 
-		bool operator!=(const ShaderUniform &p_other) const {
-			return binding != p_other.binding || type != p_other.type || writable != p_other.writable || stages != p_other.stages || length != p_other.length;
-		}
-
 		bool operator<(const ShaderUniform &p_other) const {
 			if (binding != p_other.binding) {
 				return binding < p_other.binding;

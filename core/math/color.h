@@ -72,9 +72,6 @@ struct [[nodiscard]] Color {
 	bool operator==(const Color &p_color) const {
 		return (r == p_color.r && g == p_color.g && b == p_color.b && a == p_color.a);
 	}
-	bool operator!=(const Color &p_color) const {
-		return (r != p_color.r || g != p_color.g || b != p_color.b || a != p_color.a);
-	}
 
 	Color operator+(const Color &p_color) const;
 	void operator+=(const Color &p_color);

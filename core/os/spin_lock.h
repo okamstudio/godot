@@ -94,7 +94,7 @@ static_assert(std::atomic_bool::is_always_lock_free);
 
 class SpinLock {
 	union {
-		mutable std::atomic<bool> locked = ATOMIC_VAR_INIT(false);
+		mutable std::atomic<bool> locked = false;
 		char aligner[Thread::CACHE_LINE_BYTES];
 	};
 

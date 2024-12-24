@@ -594,7 +594,6 @@ struct Glyph {
 	int span_index = -1;
 
 	bool operator==(const Glyph &p_a) const;
-	bool operator!=(const Glyph &p_a) const;
 
 	bool operator<(const Glyph &p_a) const;
 	bool operator>(const Glyph &p_a) const;

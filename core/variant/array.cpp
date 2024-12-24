@@ -128,10 +128,6 @@ bool Array::operator==(const Array &p_array) const {
 	return recursive_equal(p_array, 0);
 }
 
-bool Array::operator!=(const Array &p_array) const {
-	return !recursive_equal(p_array, 0);
-}
-
 bool Array::recursive_equal(const Array &p_array, int recursion_count) const {
 	// Cheap checks
 	if (_p == p_array._p) {

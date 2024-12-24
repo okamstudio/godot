@@ -103,9 +103,6 @@ union TileMapCell {
 		}
 	}
 
-	bool operator!=(const TileMapCell &p_other) const {
-		return !(source_id == p_other.source_id && coord_x == p_other.coord_x && coord_y == p_other.coord_y && alternative_tile == p_other.alternative_tile);
-	}
 	bool operator==(const TileMapCell &p_other) const {
 		return source_id == p_other.source_id && coord_x == p_other.coord_x && coord_y == p_other.coord_y && alternative_tile == p_other.alternative_tile;
 	}
@@ -276,9 +273,6 @@ public:
 
 		bool operator<(const TerrainsPattern &p_terrains_pattern) const;
 		bool operator==(const TerrainsPattern &p_terrains_pattern) const;
-		bool operator!=(const TerrainsPattern &p_terrains_pattern) const {
-			return !operator==(p_terrains_pattern);
-		}
 
 		void set_terrain(int p_terrain);
 		int get_terrain() const;

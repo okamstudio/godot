@@ -75,9 +75,6 @@ struct ContainerTypeValidate {
 	_FORCE_INLINE_ bool operator==(const ContainerTypeValidate &p_type) const {
 		return type == p_type.type && class_name == p_type.class_name && script == p_type.script;
 	}
-	_FORCE_INLINE_ bool operator!=(const ContainerTypeValidate &p_type) const {
-		return type != p_type.type || class_name != p_type.class_name || script != p_type.script;
-	}
 
 	// Coerces String and StringName into each other and int into float when needed.
 	_FORCE_INLINE_ bool validate(Variant &inout_variant, const char *p_operation = "use") const {

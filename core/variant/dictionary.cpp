@@ -244,10 +244,6 @@ bool Dictionary::operator==(const Dictionary &p_dictionary) const {
 	return recursive_equal(p_dictionary, 0);
 }
 
-bool Dictionary::operator!=(const Dictionary &p_dictionary) const {
-	return !recursive_equal(p_dictionary, 0);
-}
-
 bool Dictionary::recursive_equal(const Dictionary &p_dictionary, int recursion_count) const {
 	// Cheap checks
 	if (_p == p_dictionary._p) {

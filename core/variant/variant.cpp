@@ -865,17 +865,6 @@ bool Variant::operator==(const Variant &p_variant) const {
 	return hash_compare(p_variant);
 }
 
-bool Variant::operator!=(const Variant &p_variant) const {
-	// Don't use `!hash_compare(p_variant)` given it makes use of OP_EQUAL
-	if (type != p_variant.type) { //evaluation of operator== needs to be more strict
-		return true;
-	}
-	bool v;
-	Variant r;
-	evaluate(OP_NOT_EQUAL, *this, p_variant, r, v);
-	return r;
-}
-
 bool Variant::operator<(const Variant &p_variant) const {
 	if (type != p_variant.type) { //if types differ, then order by type first
 		return type < p_variant.type;

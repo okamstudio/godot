@@ -123,7 +123,6 @@ struct [[nodiscard]] Vector3i {
 	_FORCE_INLINE_ Vector3i operator-() const;
 
 	_FORCE_INLINE_ bool operator==(const Vector3i &p_v) const;
-	_FORCE_INLINE_ bool operator!=(const Vector3i &p_v) const;
 	_FORCE_INLINE_ bool operator<(const Vector3i &p_v) const;
 	_FORCE_INLINE_ bool operator<=(const Vector3i &p_v) const;
 	_FORCE_INLINE_ bool operator>(const Vector3i &p_v) const;
@@ -278,10 +277,6 @@ Vector3i Vector3i::operator-() const {
 
 bool Vector3i::operator==(const Vector3i &p_v) const {
 	return (x == p_v.x && y == p_v.y && z == p_v.z);
-}
-
-bool Vector3i::operator!=(const Vector3i &p_v) const {
-	return (x != p_v.x || y != p_v.y || z != p_v.z);
 }
 
 bool Vector3i::operator<(const Vector3i &p_v) const {

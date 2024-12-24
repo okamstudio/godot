@@ -155,10 +155,6 @@ bool Glyph::operator==(const Glyph &p_a) const {
 	return (p_a.index == index) && (p_a.font_rid == font_rid) && (p_a.font_size == font_size) && (p_a.start == start);
 }
 
-bool Glyph::operator!=(const Glyph &p_a) const {
-	return (p_a.index != index) || (p_a.font_rid != font_rid) || (p_a.font_size != font_size) || (p_a.start != start);
-}
-
 bool Glyph::operator<(const Glyph &p_a) const {
 	if (p_a.start == start) {
 		if (p_a.count == count) {

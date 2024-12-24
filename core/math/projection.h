@@ -144,10 +144,6 @@ struct [[nodiscard]] Projection {
 		return true;
 	}
 
-	bool operator!=(const Projection &p_cam) const {
-		return !(*this == p_cam);
-	}
-
 	real_t get_lod_multiplier() const;
 
 	Projection();

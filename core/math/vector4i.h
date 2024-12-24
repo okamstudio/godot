@@ -125,7 +125,6 @@ struct [[nodiscard]] Vector4i {
 	_FORCE_INLINE_ Vector4i operator-() const;
 
 	_FORCE_INLINE_ bool operator==(const Vector4i &p_v) const;
-	_FORCE_INLINE_ bool operator!=(const Vector4i &p_v) const;
 	_FORCE_INLINE_ bool operator<(const Vector4i &p_v) const;
 	_FORCE_INLINE_ bool operator<=(const Vector4i &p_v) const;
 	_FORCE_INLINE_ bool operator>(const Vector4i &p_v) const;
@@ -290,10 +289,6 @@ Vector4i Vector4i::operator-() const {
 
 bool Vector4i::operator==(const Vector4i &p_v) const {
 	return (x == p_v.x && y == p_v.y && z == p_v.z && w == p_v.w);
-}
-
-bool Vector4i::operator!=(const Vector4i &p_v) const {
-	return (x != p_v.x || y != p_v.y || z != p_v.z || w != p_v.w);
 }
 
 bool Vector4i::operator<(const Vector4i &p_v) const {

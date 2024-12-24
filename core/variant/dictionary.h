@@ -77,7 +77,6 @@ public:
 	bool erase(const Variant &p_key);
 
 	bool operator==(const Dictionary &p_dictionary) const;
-	bool operator!=(const Dictionary &p_dictionary) const;
 	bool recursive_equal(const Dictionary &p_dictionary, int recursion_count) const;
 
 	uint32_t hash() const;

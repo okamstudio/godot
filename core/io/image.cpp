@@ -905,7 +905,7 @@ static void _scale_bilinear(const uint8_t *__restrict p_src, uint8_t *__restrict
 
 	for (uint32_t i = 0; i < p_dst_height; i++) {
 		// Add 0.5 in order to interpolate based on pixel center
-		uint32_t src_yofs_up_fp = (i + 0.5) * p_src_height * FRAC_LEN / p_dst_height;
+		uint32_t src_yofs_up_fp = (i + 0.5) * p_src_height * (int)FRAC_LEN / p_dst_height;
 		// Calculate nearest src pixel center above current, and truncate to get y index
 		uint32_t src_yofs_up = src_yofs_up_fp >= FRAC_HALF ? (src_yofs_up_fp - FRAC_HALF) >> FRAC_BITS : 0;
 		uint32_t src_yofs_down = (src_yofs_up_fp + FRAC_HALF) >> FRAC_BITS;
@@ -920,7 +920,7 @@ static void _scale_bilinear(const uint8_t *__restrict p_src, uint8_t *__restrict
 		uint32_t y_ofs_down = src_yofs_down * p_src_width * CC;
 
 		for (uint32_t j = 0; j < p_dst_width; j++) {
-			uint32_t src_xofs_left_fp = (j + 0.5) * p_src_width * FRAC_LEN / p_dst_width;
+			uint32_t src_xofs_left_fp = (j + 0.5) * p_src_width * (int)FRAC_LEN / p_dst_width;
 			uint32_t src_xofs_left = src_xofs_left_fp >= FRAC_HALF ? (src_xofs_left_fp - FRAC_HALF) >> FRAC_BITS : 0;
 			uint32_t src_xofs_right = (src_xofs_left_fp + FRAC_HALF) >> FRAC_BITS;
 			if (src_xofs_right >= p_src_width) {

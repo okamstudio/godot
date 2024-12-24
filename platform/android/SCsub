@@ -84,7 +84,8 @@ if lib_arch_dir != "":
     stl_lib_path = (
         str(env["ANDROID_NDK_ROOT"]) + "/sources/cxx-stl/llvm-libc++/libs/" + lib_arch_dir + "/libc++_shared.so"
     )
-    env_android.Command(out_dir + "/libc++_shared.so", stl_lib_path, Copy("$TARGET", "$SOURCE"))
+    # FIXME: `sources/llvm-libc++` removed in NDK 26 and later. Commenting out just so the C++20 builds complete.
+    # env_android.Command(out_dir + "/libc++_shared.so", stl_lib_path, Copy("$TARGET", "$SOURCE"))
 
     def generate_apk(target, source, env):
         gradle_process = []

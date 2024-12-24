@@ -227,10 +227,6 @@ public:
 			return false;
 		}
 
-		bool operator!=(const DataType &p_other) const {
-			return !(*this == p_other);
-		}
-
 		void operator=(const DataType &p_other) {
 			kind = p_other.kind;
 			type_source = p_other.type_source;

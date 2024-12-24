@@ -88,7 +88,7 @@ void AudioEffectChorusInstance::_process_chunk(const AudioFrame *p_src_frames, A
 		float c1 = 1.0 - auxlp;
 		float c2 = auxlp;
 		AudioFrame h = filter_h[vc];
-		if (v.cutoff >= AudioEffectChorus::MS_CUTOFF_MAX) {
+		if (v.cutoff >= (int)AudioEffectChorus::MS_CUTOFF_MAX) {
 			c1 = 1.0;
 			c2 = 0.0;
 		}

@@ -3103,7 +3103,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 				for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
 					cpu_time += cpu_time_history[i];
 				}
-				cpu_time /= FRAME_TIME_HISTORY;
+				cpu_time /= (int)FRAME_TIME_HISTORY;
 				// Prevent unrealistically low values.
 				cpu_time = MAX(0.01, cpu_time);
 
@@ -3113,7 +3113,7 @@ void Node3DEditorViewport::_notification(int p_what) {
 				for (int i = 0; i < FRAME_TIME_HISTORY; i++) {
 					gpu_time += gpu_time_history[i];
 				}
-				gpu_time /= FRAME_TIME_HISTORY;
+				gpu_time /= (int)FRAME_TIME_HISTORY;
 				// Prevent division by zero for the FPS counter (and unrealistically low values).
 				// This limits the reported FPS to 100000.
 				gpu_time = MAX(0.01, gpu_time);

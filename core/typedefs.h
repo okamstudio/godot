@@ -45,8 +45,9 @@
 #include <cstdint>
 #include <utility>
 
-// Ensure that C++ standard is at least C++17. If on MSVC, also ensures that the `Zc:__cplusplus` flag is present.
-static_assert(__cplusplus >= 201703L);
+// Ensure that the C++ standard is at least C++20.
+// If on MSVC, also ensures that the `Zc:__cplusplus` flag is present.
+static_assert(__cplusplus >= 202002L, "Minimum of C++20 required.");
 
 // Turn argument to string constant:
 // https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html#Stringizing

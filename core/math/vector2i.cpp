@@ -130,10 +130,6 @@ bool Vector2i::operator==(const Vector2i &p_vec2) const {
 	return x == p_vec2.x && y == p_vec2.y;
 }
 
-bool Vector2i::operator!=(const Vector2i &p_vec2) const {
-	return x != p_vec2.x || y != p_vec2.y;
-}
-
 Vector2i::operator String() const {
 	return "(" + itos(x) + ", " + itos(y) + ")";
 }
