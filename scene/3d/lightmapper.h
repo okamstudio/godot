@@ -188,6 +188,9 @@ public:
 	virtual Ref<Image> get_bake_texture(int p_index) const = 0;
 	virtual int get_shadowmask_texture_count() const = 0;
 	virtual Ref<Image> get_shadowmask_texture(int p_index) const = 0;
+	virtual int get_directional_texture_count() const = 0;
+	virtual Ref<Image> get_directional_texture(int p_index) const = 0;
+
 	virtual int get_bake_mesh_count() const = 0;
 	virtual Variant get_bake_mesh_userdata(int p_index) const = 0;
 	virtual Rect2 get_bake_mesh_uv_scale(int p_index) const = 0;

@@ -745,6 +745,8 @@ public:
 	virtual ShadowmaskMode lightmap_get_shadowmask_mode(RID p_lightmap) = 0;
 	virtual void lightmap_set_shadowmask_mode(RID p_lightmap, ShadowmaskMode p_mode) = 0;
 
+	virtual void lightmap_set_directional_textures(RID p_lightmap, RID p_directional) = 0;
+
 	/* PARTICLES API */
 
 	virtual RID particles_create() = 0;

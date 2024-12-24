@@ -1670,27 +1670,24 @@ void fragment_shader(in SceneData scene_data) {
 		bool uses_sh = bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_SH_LIGHTMAP);
 		uint ofs = instances.data[instance_index].gi_offset & 0xFFFF;
 		uint slice = instances.data[instance_index].gi_offset >> 16;
-		vec3 uvw;
-		uvw.xy = uv2 * instances.data[instance_index].lightmap_uv_scale.zw + instances.data[instance_index].lightmap_uv_scale.xy;
-		uvw.z = float(slice);
+		vec3 uvw = vec3(uv2 * instances.data[instance_index].lightmap_uv_scale.zw + instances.data[instance_index].lightmap_uv_scale.xy, float(slice));
 
 		if (uses_sh) {
-			uvw.z *= 4.0; //SH textures use 4 times more data
 			vec3 lm_light_l0;
 			vec3 lm_light_l1n1;
 			vec3 lm_light_l1_0;
 			vec3 lm_light_l1p1;
 
 			if (sc_use_lightmap_bicubic_filter()) {
-				lm_light_l0 = textureArray_bicubic(lightmap_textures[ofs], uvw + vec3(0.0, 0.0, 0.0), lightmaps.data[ofs].light_texture_size).rgb;
-				lm_light_l1n1 = (textureArray_bicubic(lightmap_textures[ofs], uvw + vec3(0.0, 0.0, 1.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
-				lm_light_l1_0 = (textureArray_bicubic(lightmap_textures[ofs], uvw + vec3(0.0, 0.0, 2.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
-				lm_light_l1p1 = (textureArray_bicubic(lightmap_textures[ofs], uvw + vec3(0.0, 0.0, 3.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
+				lm_light_l0 = textureArray_bicubic(lightmap_textures[ofs], uvw, lightmaps.data[ofs].light_texture_size).rgb;
+				lm_light_l1n1 = (textureArray_bicubic(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], vec3(uvw.xy, uvw.z * 3 + 0.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
+				lm_light_l1_0 = (textureArray_bicubic(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], vec3(uvw.xy, uvw.z * 3 + 1.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
+				lm_light_l1p1 = (textureArray_bicubic(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], vec3(uvw.xy, uvw.z * 3 + 2.0), lightmaps.data[ofs].light_texture_size).rgb - vec3(0.5)) * 2.0;
 			} else {
-				lm_light_l0 = textureLod(sampler2DArray(lightmap_textures[ofs], SAMPLER_LINEAR_CLAMP), uvw + vec3(0.0, 0.0, 0.0), 0.0).rgb;
-				lm_light_l1n1 = (textureLod(sampler2DArray(lightmap_textures[ofs], SAMPLER_LINEAR_CLAMP), uvw + vec3(0.0, 0.0, 1.0), 0.0).rgb - vec3(0.5)) * 2.0;
-				lm_light_l1_0 = (textureLod(sampler2DArray(lightmap_textures[ofs], SAMPLER_LINEAR_CLAMP), uvw + vec3(0.0, 0.0, 2.0), 0.0).rgb - vec3(0.5)) * 2.0;
-				lm_light_l1p1 = (textureLod(sampler2DArray(lightmap_textures[ofs], SAMPLER_LINEAR_CLAMP), uvw + vec3(0.0, 0.0, 3.0), 0.0).rgb - vec3(0.5)) * 2.0;
+				lm_light_l0 = textureLod(sampler2DArray(lightmap_textures[ofs], SAMPLER_LINEAR_CLAMP), uvw, 0.0).rgb;
+				lm_light_l1n1 = (textureLod(sampler2DArray(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], SAMPLER_LINEAR_CLAMP), vec3(uvw.xy, uvw.z * 3 + 0.0), 0.0).rgb - vec3(0.5)) * 2.0;
+				lm_light_l1_0 = (textureLod(sampler2DArray(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], SAMPLER_LINEAR_CLAMP), vec3(uvw.xy, uvw.z * 3 + 1.0), 0.0).rgb - vec3(0.5)) * 2.0;
+				lm_light_l1p1 = (textureLod(sampler2DArray(lightmap_textures[LIGHTMAP_DIR_TEX_OFS + ofs], SAMPLER_LINEAR_CLAMP), vec3(uvw.xy, uvw.z * 3 + 2.0), 0.0).rgb - vec3(0.5)) * 2.0;
 			}
 
 			vec3 n = normalize(lightmaps.data[ofs].normal_xform * normal);
@@ -2036,9 +2033,9 @@ void fragment_shader(in SceneData scene_data) {
 				const vec3 uvw = vec3(scaled_uv, float(slice));
 
 				if (sc_use_lightmap_bicubic_filter()) {
-					shadowmask = textureArray_bicubic(lightmap_textures[MAX_LIGHTMAP_TEXTURES + ofs], uvw, lightmaps.data[ofs].light_texture_size).x;
+					shadowmask = textureArray_bicubic(lightmap_textures[LIGHTMAP_SHADOW_TEX_OFS + ofs], uvw, lightmaps.data[ofs].light_texture_size).x;
 				} else {
-					shadowmask = textureLod(sampler2DArray(lightmap_textures[MAX_LIGHTMAP_TEXTURES + ofs], SAMPLER_LINEAR_CLAMP), uvw, 0.0).x;
+					shadowmask = textureLod(sampler2DArray(lightmap_textures[LIGHTMAP_SHADOW_TEX_OFS + ofs], SAMPLER_LINEAR_CLAMP), uvw, 0.0).x;
 				}
 			}
 		}

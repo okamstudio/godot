@@ -495,6 +495,8 @@ public:
 	FUNC1R(ShadowmaskMode, lightmap_get_shadowmask_mode, RID)
 	FUNC2(lightmap_set_shadowmask_mode, RID, ShadowmaskMode)
 
+	FUNC2(lightmap_set_directional_textures, RID, RID)
+
 	/* Shadow Atlas */
 	FUNC0R(RID, shadow_atlas_create)
 	FUNC3(shadow_atlas_set_size, RID, int, bool)

@@ -335,7 +335,10 @@ layout(set = 1, binding = 4) uniform highp texture2D shadow_atlas;
 layout(set = 1, binding = 5) uniform highp texture2D directional_shadow_atlas;
 
 // this needs to change to providing just the lightmap we're using..
-layout(set = 1, binding = 6) uniform texture2DArray lightmap_textures[MAX_LIGHTMAP_TEXTURES * 2];
+layout(set = 1, binding = 6) uniform texture2DArray lightmap_textures[MAX_LIGHTMAP_TEXTURES * 3];
+
+#define LIGHTMAP_SHADOW_TEX_OFS MAX_LIGHTMAP_TEXTURES
+#define LIGHTMAP_DIR_TEX_OFS (MAX_LIGHTMAP_TEXTURES * 2)
 
 #ifdef USE_MULTIVIEW
 layout(set = 1, binding = 9) uniform highp texture2DArray depth_buffer;

@@ -45,7 +45,7 @@ class LightmapGIData : public Resource {
 
 public:
 	enum {
-		DIRECTIONAL_VERSION = 1
+		DIRECTIONAL_VERSION = 2
 	};
 
 	enum ShadowmaskMode {
@@ -59,18 +59,20 @@ private:
 	// The 'merged' texture atlases actually used by the renderer.
 	Ref<TextureLayered> combined_light_texture;
 	Ref<TextureLayered> combined_shadowmask_texture;
+	Ref<TextureLayered> combined_directional_texture;
 
 	// The temporary texture atlas arrays which are used for storage.
 	// If a single atlas is too large, it's split and recombined during loading.
 	TypedArray<TextureLayered> storage_light_textures;
 	TypedArray<TextureLayered> storage_shadowmask_textures;
+	TypedArray<TextureLayered> storage_directional_textures;
 
 	bool uses_spherical_harmonics = false;
 	bool interior = false;
 
 	int _directional_version = 0;
 
-	RID lightmap;
+	RID lightmap_instance;
 	AABB bounds;
 	float baked_exposure = 1.0;
 
@@ -90,6 +92,7 @@ private:
 
 	void _reset_lightmap_textures();
 	void _reset_shadowmask_textures();
+	void _reset_directional_textures();
 
 protected:
 	static void _bind_methods();
@@ -142,6 +145,11 @@ public:
 	TypedArray<TextureLayered> get_shadowmask_textures() const;
 	void clear_shadowmask_textures();
 	bool has_shadowmask_textures();
+
+	void set_directional_textures(const TypedArray<TextureLayered> &p_data);
+	TypedArray<TextureLayered> get_directional_textures() const;
+	void clear_directional_textures();
+	bool has_directional_textures();
 
 	virtual RID get_rid() const override;
 	LightmapGIData();
@@ -279,7 +287,13 @@ private:
 	void _plot_triangle_into_octree(GenProbesOctree *p_cell, float p_cell_size, const Vector3 *p_triangle);
 	void _gen_new_positions_from_octree(const GenProbesOctree *p_cell, float p_cell_size, const Vector<Vector3> &probe_positions, LocalVector<Vector3> &new_probe_positions, HashMap<Vector3i, bool> &positions_used, const AABB &p_bounds);
 
-	BakeError _save_and_reimport_atlas_textures(const Ref<Lightmapper> p_lightmapper, const String &p_base_name, TypedArray<TextureLayered> &r_textures, bool p_is_shadowmask = false) const;
+	enum LightTextureType {
+		LIGHT_TEX_LIGHTMAP,
+		LIGHT_TEX_SHADOWMASK,
+		LIGHT_TEX_DIRECTIONAL,
+	};
+
+	BakeError _save_and_reimport_atlas_textures(const Ref<Lightmapper> p_lightmapper, const String &p_base_name, TypedArray<TextureLayered> &r_textures, LightTextureType p_type) const;
 
 protected:
 	void _validate_property(PropertyInfo &p_property) const;
