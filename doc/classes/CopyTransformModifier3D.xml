@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="CopyTransformModifier3D" inherits="BoneConstraint3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A [SkeletonModifier3D] that apply transform to the bone which copied from target.
+	</brief_description>
+	<description>
+		Apply the copied transform of the bone set by [method BoneConstraint3D.set_target_bone] to the bone set by [method BoneConstraint3D.set_apply_bone] with processing it with some masks and options.
+		There are 4 ways to apply the transform, depending on the combination of [method set_relative] and [method set_additive].
+		[b]Relative + Additive:[/b]
+		- Extract target pose relative to the rest and add it to the apply bone's pose.
+		[b]Relative + Not Additive:[/b]
+		- Extract target pose relative to the rest and add it to the apply bone's rest.
+		[b]Not Relative + Additive:[/b]
+		- Extract target pose absolutely and add it to the apply bone's pose.
+		[b]Not Relative + Not Additive:[/b]
+		- Extract target pose absolutely and the apply bone's pose is replaced with it.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_axis_flags" qualifiers="const">
+			<return type="int" enum="CopyTransformModifier3D.AxisFlag" is_bitfield="true" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the axis flags of the setting at [param index].
+			</description>
+		</method>
+		<method name="get_copy_flags" qualifiers="const">
+			<return type="int" enum="CopyTransformModifier3D.TransformFlag" is_bitfield="true" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the copy flags of the setting at [param index].
+			</description>
+		</method>
+		<method name="get_euler_order" qualifiers="const">
+			<return type="int" enum="EulerOrder" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the euler order of the setting at [param index]. It affects the result only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="get_invert_flags" qualifiers="const">
+			<return type="int" enum="CopyTransformModifier3D.AxisFlag" is_bitfield="true" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the invert flags of the setting at [param index].
+			</description>
+		</method>
+		<method name="is_additive" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the additive option is enabled in the setting at [param index].
+			</description>
+		</method>
+		<method name="is_axis_x_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the enable flags has the flag for the X-axis in the setting at [param index]. See also [method set_axis_flags].
+			</description>
+		</method>
+		<method name="is_axis_x_inverted" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the invert flags has the flag for the X-axis in the setting at [param index]. See also [method set_invert_flags].
+			</description>
+		</method>
+		<method name="is_axis_y_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the enable flags has the flag for the Y-axis in the setting at [param index]. See also [method set_axis_flags].
+			</description>
+		</method>
+		<method name="is_axis_y_inverted" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the invert flags has the flag for the Y-axis in the setting at [param index]. See also [method set_invert_flags].
+			</description>
+		</method>
+		<method name="is_axis_z_enabled" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the enable flags has the flag for the Z-axis in the setting at [param index]. See also [method set_axis_flags].
+			</description>
+		</method>
+		<method name="is_axis_z_inverted" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the invert flags has the flag for the Z-axis in the setting at [param index]. See also [method set_invert_flags].
+			</description>
+		</method>
+		<method name="is_position_copying" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the copy flags has the flag for the position in the setting at [param index]. See also [method set_copy_flags].
+			</description>
+		</method>
+		<method name="is_relative" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the relative option is enabled in the setting at [param index].
+			</description>
+		</method>
+		<method name="is_rotation_copying" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the copy flags has the flag for the rotation in the setting at [param index]. See also [method set_copy_flags].
+			</description>
+		</method>
+		<method name="is_scale_copying" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the copy flags has the flag for the scale in the setting at [param index]. See also [method set_copy_flags].
+			</description>
+		</method>
+		<method name="is_using_euler" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the copy process requires handling rotation as Euler.
+				It means when [method is_rotation_copying] is [code]true[/code] and only some of the flags [method get_axis_flags] and [method get_invert_flags] are valid.
+			</description>
+		</method>
+		<method name="set_additive">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				Sets additive option in the setting at [param index] to [param enabled]. This mainly affects the process of applying transform to the [method BoneConstraint3D.set_apply_bone].
+				If sets [param enabled] to [code]true[/code], the processed transform is added to the pose of the current apply bone.
+				If sets [param enabled] to [code]false[/code], the pose of the current apply bone is replaced with the processed transform. However, if set [method set_relative] to [code]true[/code], the transform is relative to rest.
+			</description>
+		</method>
+		<method name="set_axis_flags">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis_flags" type="int" enum="CopyTransformModifier3D.AxisFlag" is_bitfield="true" />
+			<description>
+				Sets the flags to copy axes. If the flag is valid, the axis is copied.
+			</description>
+		</method>
+		<method name="set_axis_x_enabled">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the X-axis will be copied.
+			</description>
+		</method>
+		<method name="set_axis_x_inverted">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the X-axis will be inverted.
+			</description>
+		</method>
+		<method name="set_axis_y_enabled">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the Y-axis will be copied.
+			</description>
+		</method>
+		<method name="set_axis_y_inverted">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the Y-axis will be inverted.
+			</description>
+		</method>
+		<method name="set_axis_z_enabled">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the Z-axis will be copied.
+			</description>
+		</method>
+		<method name="set_axis_z_inverted">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the Z-axis will be inverted.
+			</description>
+		</method>
+		<method name="set_copy_flags">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="copy_flags" type="int" enum="CopyTransformModifier3D.TransformFlag" is_bitfield="true" />
+			<description>
+				Sets the flags to process the transform operations. If the flag is valid, the transform operation is processed.
+			</description>
+		</method>
+		<method name="set_copy_position">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the position will be copied.
+			</description>
+		</method>
+		<method name="set_copy_rotation">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the rotation will be copied.
+			</description>
+		</method>
+		<method name="set_copy_scale">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the scale will be copied.
+			</description>
+		</method>
+		<method name="set_euler_order">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="euler_order" type="int" enum="EulerOrder" />
+			<description>
+				Sets the euler order of the setting at [param index] to [param euler_order]. It affects the result only if [method is_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_invert_flags">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis_flags" type="int" enum="CopyTransformModifier3D.AxisFlag" is_bitfield="true" />
+			<description>
+				Sets the flags to inverte axes. If the flag is valid, the axis is copied.
+			</description>
+		</method>
+		<method name="set_relative">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				Sets relative option in the setting at [param index] to [param enabled].
+				If sets [param enabled] to [code]true[/code], the extractedand applying transform is relative to the rest.
+				If sets [param enabled] to [code]false[/code], the extractedtransform is absolute.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="setting_count" type="int" setter="set_setting_count" getter="get_setting_count" default="0">
+			The number of settings in the modifier.
+		</member>
+	</members>
+	<constants>
+		<constant name="TRANSFORM_FLAG_POSITION" value="1" enum="TransformFlag" is_bitfield="true">
+			If set, allows to copy the position.
+		</constant>
+		<constant name="TRANSFORM_FLAG_ROTATION" value="2" enum="TransformFlag" is_bitfield="true">
+			If set, allows to copy the rotation.
+		</constant>
+		<constant name="TRANSFORM_FLAG_SCALE" value="4" enum="TransformFlag" is_bitfield="true">
+			If set, allows to copy the scale.
+		</constant>
+		<constant name="TRANSFORM_FLAG_ALL" value="7" enum="TransformFlag" is_bitfield="true">
+			If set, allows to copy the position/rotation/scale.
+		</constant>
+		<constant name="AXIS_FLAG_X" value="1" enum="AxisFlag" is_bitfield="true">
+			If set, allows to process the X-axis.
+		</constant>
+		<constant name="AXIS_FLAG_Y" value="2" enum="AxisFlag" is_bitfield="true">
+			If set, allows to process the Y-axis.
+		</constant>
+		<constant name="AXIS_FLAG_Z" value="4" enum="AxisFlag" is_bitfield="true">
+			If set, allows to process the Z-axis.
+		</constant>
+		<constant name="AXIS_FLAG_ALL" value="7" enum="AxisFlag" is_bitfield="true">
+			If set, allows to process the all axes.
+		</constant>
+	</constants>
+</class>

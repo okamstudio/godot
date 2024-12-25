@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="BoneConstraint3D" inherits="SkeletonModifier3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A node that may modify Skeleton3D's bone with associating the two bones.
+	</brief_description>
+	<description>
+		Base class of [SkeletonModifier3D] that modifies the bone set in [method set_apply_bone] based on the transform of the bone retrieved by [method get_target_bone].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_setting">
+			<return type="void" />
+			<description>
+				Clear all settings.
+			</description>
+		</method>
+		<method name="get_amount" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the apply amount of the setting at [param index].
+			</description>
+		</method>
+		<method name="get_apply_bone" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the apply bone of the setting at [param index]. This bone will be modified.
+			</description>
+		</method>
+		<method name="get_apply_bone_name" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the apply bone name of the setting at [param index]. This bone will be modified.
+			</description>
+		</method>
+		<method name="get_setting_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of settings in the modifier.
+			</description>
+		</method>
+		<method name="get_target_bone" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the target bone of the setting at [param index].
+				This bone will be only referenced and not modified by this modifier.
+			</description>
+		</method>
+		<method name="get_target_bone_name" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the target bone name of the setting at [param index].
+				This bone will be only referenced and not modified by this modifier.
+			</description>
+		</method>
+		<method name="set_amount">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="amount" type="float" />
+			<description>
+				Sets the apply amount of the setting at [param index] to [param amount].
+			</description>
+		</method>
+		<method name="set_apply_bone">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="bone" type="int" />
+			<description>
+				Sets the apply bone of the setting at [param index] to [param bone]. This bone will be modified.
+			</description>
+		</method>
+		<method name="set_apply_bone_name">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="bone_name" type="String" />
+			<description>
+				Sets the apply bone of the setting at [param index] to [param bone_name]. This bone will be modified.
+			</description>
+		</method>
+		<method name="set_setting_count">
+			<return type="void" />
+			<param index="0" name="count" type="int" />
+			<description>
+				Sets the number of settings in the modifier.
+			</description>
+		</method>
+		<method name="set_target_bone">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="bone" type="int" />
+			<description>
+				Sets the target bone of the setting at [param index] to [param bone].
+				This bone will be only referenced and not modified by this modifier.
+			</description>
+		</method>
+		<method name="set_target_bone_name">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="bone_name" type="String" />
+			<description>
+				Sets the target bone of the setting at [param index] to [param bone_name].
+				This bone will be only referenced and not modified by this modifier.
+			</description>
+		</method>
+	</methods>
+</class>

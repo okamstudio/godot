@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ConvertTransformModifier3D" inherits="BoneConstraint3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A [SkeletonModifier3D] that apply transform to the bone which converted from target.
+	</brief_description>
+	<description>
+		Apply the copied transform of the bone set by [method BoneConstraint3D.set_target_bone] to the bone set by [method BoneConstraint3D.set_apply_bone] about the specific axis with remapping it with some options.
+		There are 4 ways to apply the transform, depending on the combination of [method set_relative] and [method set_additive].
+		[b]Relative + Additive:[/b]
+		- Extract target pose relative to the rest and add it to the apply bone's pose.
+		[b]Relative + Not Additive:[/b]
+		- Extract target pose relative to the rest and add it to the apply bone's rest.
+		[b]Not Relative + Additive:[/b]
+		- Extract target pose absolutely and add it to the apply bone's pose.
+		[b]Not Relative + Not Additive:[/b]
+		- Extract target pose absolutely and the apply bone's pose is replaced with it.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_apply_axis" qualifiers="const">
+			<return type="int" enum="Vector3.Axis" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the axis of the remapping destination transform.
+			</description>
+		</method>
+		<method name="get_apply_euler_order" qualifiers="const">
+			<return type="int" enum="EulerOrder" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the euler order of the remapping destination rotation. It is enabled only if [method is_apply_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="get_apply_range_max" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the maximum value of the remapping destination range.
+			</description>
+		</method>
+		<method name="get_apply_range_min" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the minimum value of the remapping destination range.
+			</description>
+		</method>
+		<method name="get_apply_transform_mode" qualifiers="const">
+			<return type="int" enum="ConvertTransformModifier3D.TransformMode" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the operation of the remapping destination transform.
+			</description>
+		</method>
+		<method name="get_target_axis" qualifiers="const">
+			<return type="int" enum="Vector3.Axis" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the axis of the remapping source transform.
+			</description>
+		</method>
+		<method name="get_target_euler_order" qualifiers="const">
+			<return type="int" enum="EulerOrder" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the euler order of the remapping source rotation. It is enabled only if [method is_target_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="get_target_range_max" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the maximum value of the remapping source range.
+			</description>
+		</method>
+		<method name="get_target_range_min" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the minimum value of the remapping source range.
+			</description>
+		</method>
+		<method name="get_target_transform_mode" qualifiers="const">
+			<return type="int" enum="ConvertTransformModifier3D.TransformMode" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the operation of the remapping source transform.
+			</description>
+		</method>
+		<method name="is_additive" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the additive option is enabled in the setting at [param index].
+			</description>
+		</method>
+		<method name="is_apply_using_euler" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the remapping destination transform is rotation and using euler.
+			</description>
+		</method>
+		<method name="is_relative" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the relative option is enabled in the setting at [param index].
+			</description>
+		</method>
+		<method name="is_target_using_euler" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns [code]true[/code] if the remapping source transform is rotation and using euler.
+			</description>
+		</method>
+		<method name="set_additive">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				Sets additive option in the setting at [param index] to [param enabled]. This mainly affects the process of applying transform to the [method BoneConstraint3D.set_apply_bone].
+				If sets [param enabled] to [code]true[/code], the processed transform is added to the pose of the current apply bone.
+				If sets [param enabled] to [code]false[/code], the pose of the current apply bone is replaced with the processed transform. However, if set [method set_relative] to [code]true[/code], the transform is relative to rest.
+			</description>
+		</method>
+		<method name="set_apply_axis">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis" type="int" enum="Vector3.Axis" />
+			<description>
+				Sets the axis of the remapping destination transform.
+			</description>
+		</method>
+		<method name="set_apply_euler_order">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="euler_order" type="int" enum="EulerOrder" />
+			<description>
+				Sets the euler order of the remapping destination rotation. It is enabled only if [method is_apply_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_apply_range_max">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="range_max" type="float" />
+			<description>
+				Sets the maximum value of the remapping destination range.
+			</description>
+		</method>
+		<method name="set_apply_range_min">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="range_min" type="float" />
+			<description>
+				Sets the minimum value of the remapping destination range.
+			</description>
+		</method>
+		<method name="set_apply_transform_mode">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="transform_mode" type="int" enum="ConvertTransformModifier3D.TransformMode" />
+			<description>
+				Sets the operation of the remapping destination transform.
+			</description>
+		</method>
+		<method name="set_apply_use_euler">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the remapping destination transform as rotation uses euler.
+				If sets [param enabled] to [code]false[/code], the remapping destination transform as rotation uses axis-angle.
+			</description>
+		</method>
+		<method name="set_relative">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				Sets relative option in the setting at [param index] to [param enabled].
+				If sets [param enabled] to [code]true[/code], the extractedand applying transform is relative to the rest.
+				If sets [param enabled] to [code]false[/code], the extractedtransform is absolute.
+			</description>
+		</method>
+		<method name="set_target_axis">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="axis" type="int" enum="Vector3.Axis" />
+			<description>
+				Sets the axis of the remapping source transform.
+			</description>
+		</method>
+		<method name="set_target_euler_order">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="euler_order" type="int" enum="EulerOrder" />
+			<description>
+				Sets the euler order of the remapping source rotation. It is enabled only if [method is_target_using_euler] is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_target_range_max">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="range_max" type="float" />
+			<description>
+				Sets the maximum value of the remapping source range.
+			</description>
+		</method>
+		<method name="set_target_range_min">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="range_min" type="float" />
+			<description>
+				Sets the minimum value of the remapping source range.
+			</description>
+		</method>
+		<method name="set_target_transform_mode">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="transform_mode" type="int" enum="ConvertTransformModifier3D.TransformMode" />
+			<description>
+				Sets the operation of the remapping source transform.
+			</description>
+		</method>
+		<method name="set_target_use_euler">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If sets [param enabled] to [code]true[/code], the remapping source transform as rotation uses euler.
+				If sets [param enabled] to [code]false[/code], the remapping source transform as rotation uses axis-angle.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="setting_count" type="int" setter="set_setting_count" getter="get_setting_count" default="0">
+			The number of settings in the modifier.
+		</member>
+	</members>
+	<constants>
+		<constant name="TRANSFORM_MODE_POSITION" value="0" enum="TransformMode">
+			Convert with position.
+		</constant>
+		<constant name="TRANSFORM_MODE_ROTATION" value="1" enum="TransformMode">
+			Convert with rotation.
+		</constant>
+		<constant name="TRANSFORM_MODE_SCALE" value="2" enum="TransformMode">
+			Convert with scale.
+		</constant>
+	</constants>
+</class>
