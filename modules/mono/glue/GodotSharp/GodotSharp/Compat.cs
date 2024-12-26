@@ -72,14 +72,7 @@ partial class CodeEdit
     [EditorBrowsable(EditorBrowsableState.Never)]
     public void AddCodeCompletionOption(CodeCompletionKind type, string displayText, string insertText, Nullable<Color> textColor, Resource icon, Nullable<Variant> value)
     {
-        AddCodeCompletionOption(type, displayText, insertText, textColor, icon, value, location: 1024, deprecated: false);
-    }
-
-    /// <inheritdoc cref="AddCodeCompletionOption(CodeCompletionKind, string, string, Nullable{Color}, Resource, Variant, int, bool)"/>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public void AddCodeCompletionOption(CodeCompletionKind type, string displayText, string insertText, Nullable<Color> textColor, Resource icon, Nullable<Variant> value, int location)
-    {
-        AddCodeCompletionOption(type, displayText, insertText, textColor, icon, value, location, deprecated: false);
+        AddCodeCompletionOption(type, displayText, insertText, textColor, icon, value, location: 1024);
     }
 }
 
