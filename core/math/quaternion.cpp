@@ -179,6 +179,8 @@ Quaternion Quaternion::spherical_cubic_interpolate(const Quaternion &p_b, const 
 #ifdef MATH_CHECKS
 	ERR_FAIL_COND_V_MSG(!is_normalized(), Quaternion(), "The start quaternion " + operator String() + " must be normalized.");
 	ERR_FAIL_COND_V_MSG(!p_b.is_normalized(), Quaternion(), "The end quaternion " + p_b.operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_pre_a.is_normalized(), Quaternion(), "The pre quaternion " + p_pre_a.operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_post_b.is_normalized(), Quaternion(), "The post quaternion " + p_post_b.operator String() + " must be normalized.");
 #endif
 	Quaternion from_q = *this;
 	Quaternion pre_q = p_pre_a;
@@ -230,6 +232,8 @@ Quaternion Quaternion::spherical_cubic_interpolate_in_time(const Quaternion &p_b
 #ifdef MATH_CHECKS
 	ERR_FAIL_COND_V_MSG(!is_normalized(), Quaternion(), "The start quaternion " + operator String() + " must be normalized.");
 	ERR_FAIL_COND_V_MSG(!p_b.is_normalized(), Quaternion(), "The end quaternion " + p_b.operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_pre_a.is_normalized(), Quaternion(), "The pre quaternion " + p_pre_a.operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_post_b.is_normalized(), Quaternion(), "The post quaternion " + p_post_b.operator String() + " must be normalized.");
 #endif
 	Quaternion from_q = *this;
 	Quaternion pre_q = p_pre_a;
@@ -274,6 +278,15 @@ Quaternion Quaternion::spherical_cubic_interpolate_in_time(const Quaternion &p_b
 
 	// To cancel error made by Expmap ambiguity, do blending.
 	return q1.slerp(q2, p_weight);
+}
+
+Quaternion Quaternion::blend_from(const Quaternion &p_init, const Quaternion &p_to, real_t p_weight) const {
+#ifdef MATH_CHECKS
+	ERR_FAIL_COND_V_MSG(!is_normalized(), Quaternion(), "The start quaternion " + operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_to.is_normalized(), Quaternion(), "The end quaternion " + p_to.operator String() + " must be normalized.");
+	ERR_FAIL_COND_V_MSG(!p_init.is_normalized(), Quaternion(), "The initial quaternion " + p_init.operator String() + " must be normalized.");
+#endif
+	return ((*this) * Quaternion().slerp(p_init.inverse() * p_to, p_weight)).normalized();
 }
 
 Quaternion::operator String() const {

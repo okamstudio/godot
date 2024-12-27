@@ -77,6 +77,17 @@
 				[b]Note:[/b] The magnitude of the floating-point error for this method is abnormally high, so methods such as [code]is_zero_approx[/code] will not work reliably.
 			</description>
 		</method>
+		<method name="blend_from" qualifiers="const">
+			<return type="Quaternion" />
+			<param index="0" name="rest" type="Quaternion" />
+			<param index="1" name="to" type="Quaternion" />
+			<param index="2" name="weight" type="float" />
+			<description>
+				Returns the blended value of the this quaternion and [param to] angles with respect to the [param rest], but does not cross over the inverted axis [param rest].
+				This method does not respect the shortest path like [method slerp], but instead does not jump values even if more than one interpolation is stacked unless the same [param rest] is passed to them.
+				This is useful for preventing bone penetration into the character's body when you rotate a bone of the [Skeleton3D] with passing a quaternion retrieved by [method Skeleton3D.get_bone_rest] to [param rest].
+			</description>
+		</method>
 		<method name="dot" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="with" type="Quaternion" />

@@ -176,6 +176,18 @@
 				Returns the point at the given [param t] on a one-dimensional [url=https://en.wikipedia.org/wiki/B%C3%A9zier_curve]Bézier curve[/url] defined by the given [param control_1], [param control_2], and [param end] points.
 			</description>
 		</method>
+		<method name="blend_from_angle">
+			<return type="float" />
+			<param index="0" name="rest" type="float" />
+			<param index="1" name="from" type="float" />
+			<param index="2" name="to" type="float" />
+			<param index="3" name="weight" type="float" />
+			<description>
+				Returns the blended value of the [param from] and [param to] angles with respect to the [param rest], but does not cross over the inverted axis [param rest].
+				This method does not respect the shortest path like [method lerp_angle], but instead does not jump values even if more than one interpolation is stacked unless the same [param rest] is passed to them.
+				This is useful for preventing bone penetration into the character's body when you rotate a [Bone2D].
+			</description>
+		</method>
 		<method name="bytes_to_var">
 			<return type="Variant" />
 			<param index="0" name="bytes" type="PackedByteArray" />
