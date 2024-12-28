@@ -123,7 +123,7 @@ Ref<Resource> SceneState::get_remap_resource(const Ref<Resource> &p_resource, Ha
 	return remap_resource;
 }
 
-Node *SceneState::instantiate(GenEditState p_edit_state) const {
+Node *SceneState::instantiate(GenEditState p_edit_state, bool p_is_edited_scene) const {
 	// Nodes where instantiation failed (because something is missing.)
 	List<Node *> stray_instances;
 
@@ -195,7 +195,7 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 			// Scene inheritance on root node.
 			Ref<PackedScene> sdata = props[base_scene_idx];
 			ERR_FAIL_COND_V(!sdata.is_valid(), nullptr);
-			node = sdata->instantiate(p_edit_state == GEN_EDIT_STATE_DISABLED ? PackedScene::GEN_EDIT_STATE_DISABLED : PackedScene::GEN_EDIT_STATE_INSTANCE); //only main gets main edit state
+			node = _instantiate_sub_scene(sdata, p_edit_state == GEN_EDIT_STATE_DISABLED ? GEN_EDIT_STATE_DISABLED : GEN_EDIT_STATE_INSTANCE, p_is_edited_scene); // Only main gets main edit state.
 			ERR_FAIL_NULL_V(node, nullptr);
 			if (p_edit_state != GEN_EDIT_STATE_DISABLED) {
 				node->set_scene_inherited_state(sdata->get_state());
@@ -208,7 +208,7 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 				if (disable_placeholders) {
 					Ref<PackedScene> sdata = ResourceLoader::load(scene_path, "PackedScene");
 					if (sdata.is_valid()) {
-						node = sdata->instantiate(p_edit_state == GEN_EDIT_STATE_DISABLED ? PackedScene::GEN_EDIT_STATE_DISABLED : PackedScene::GEN_EDIT_STATE_INSTANCE);
+						node = _instantiate_sub_scene(sdata, p_edit_state == GEN_EDIT_STATE_DISABLED ? GEN_EDIT_STATE_DISABLED : GEN_EDIT_STATE_INSTANCE, p_is_edited_scene);
 						ERR_FAIL_NULL_V(node, nullptr);
 					} else if (ResourceLoader::is_creating_missing_resources_if_class_unavailable_enabled()) {
 						missing_node = memnew(MissingNode);
@@ -228,7 +228,7 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 				Ref<Resource> res = props[n.instance & FLAG_MASK];
 				Ref<PackedScene> sdata = res;
 				if (sdata.is_valid()) {
-					node = sdata->instantiate(p_edit_state == GEN_EDIT_STATE_DISABLED ? PackedScene::GEN_EDIT_STATE_DISABLED : PackedScene::GEN_EDIT_STATE_INSTANCE);
+					node = _instantiate_sub_scene(sdata, p_edit_state == GEN_EDIT_STATE_DISABLED ? GEN_EDIT_STATE_DISABLED : GEN_EDIT_STATE_INSTANCE, p_is_edited_scene);
 					ERR_FAIL_NULL_V_MSG(node, nullptr, vformat("Failed to load scene dependency: \"%s\". Make sure the required scene is valid.", sdata->get_path()));
 				} else if (ResourceLoader::is_creating_missing_resources_if_class_unavailable_enabled()) {
 					missing_node = memnew(MissingNode);
@@ -605,7 +605,13 @@ Node *SceneState::instantiate(GenEditState p_edit_state) const {
 			callable = callable.bindp(argptrs, binds.size());
 		}
 
-		cfrom->connect(snames[c.signal], callable, CONNECT_PERSIST | c.flags | (p_edit_state == GEN_EDIT_STATE_MAIN ? 0 : CONNECT_INHERITED));
+		int flags = CONNECT_PERSIST | c.flags;
+#ifdef TOOLS_ENABLED
+		if (p_is_edited_scene && p_edit_state != GEN_EDIT_STATE_MAIN) {
+			flags |= CONNECT_INHERITED;
+		}
+#endif
+		cfrom->connect(snames[c.signal], callable, flags);
 	}
 
 	//Node *s = ret_nodes[0];
@@ -1231,6 +1237,18 @@ Error SceneState::_parse_connections(Node *p_owner, Node *p_node, HashMap<String
 	}
 
 	return OK;
+}
+
+Node *SceneState::_instantiate_sub_scene(const Ref<PackedScene> &p_scene, GenEditState p_edit_state, bool p_is_edited_scene) const {
+#ifdef TOOLS_ENABLED
+	if (p_edit_state) {
+		return p_scene->instantiate_edited_scene((PackedScene::GenEditState)p_edit_state);
+	} else {
+		return p_scene->instantiate((PackedScene::GenEditState)p_edit_state);
+	}
+#else
+	return p_scene->instantiate(PackedScene::GEN_EDIT_STATE_DISABLED);
+#endif
 }
 
 Error SceneState::pack(Node *p_scene) {
@@ -2170,7 +2188,11 @@ Node *PackedScene::instantiate(GenEditState p_edit_state) const {
 	ERR_FAIL_COND_V_MSG(p_edit_state != GEN_EDIT_STATE_DISABLED, nullptr, "Edit state is only for editors, does not work without tools compiled.");
 #endif
 
+#ifdef TOOLS_ENABLED
+	Node *s = state->instantiate((SceneState::GenEditState)p_edit_state, is_edited_scene);
+#else
 	Node *s = state->instantiate((SceneState::GenEditState)p_edit_state);
+#endif
 	if (!s) {
 		return nullptr;
 	}
@@ -2187,6 +2209,15 @@ Node *PackedScene::instantiate(GenEditState p_edit_state) const {
 
 	return s;
 }
+
+#ifdef TOOLS_ENABLED
+Node *PackedScene::instantiate_edited_scene(GenEditState p_edit_state) {
+	is_edited_scene = true;
+	Node *instance = instantiate(p_edit_state);
+	is_edited_scene = false;
+	return instance;
+}
+#endif
 
 void PackedScene::replace_state(Ref<SceneState> p_by) {
 	state = p_by;

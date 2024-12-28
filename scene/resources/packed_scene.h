@@ -135,6 +135,10 @@ public:
 		int node = -1;
 	};
 
+private:
+	Node *_instantiate_sub_scene(const Ref<PackedScene> &p_scene, GenEditState p_edit_state, bool p_is_edited_scene) const;
+
+public:
 	static void set_disable_placeholders(bool p_disable);
 	static Ref<Resource> get_remap_resource(const Ref<Resource> &p_resource, HashMap<Ref<Resource>, Ref<Resource>> &remap_cache, const Ref<Resource> &p_fallback, Node *p_for_scene);
 
@@ -155,7 +159,7 @@ public:
 	Error copy_from(const Ref<SceneState> &p_scene_state);
 
 	bool can_instantiate() const;
-	Node *instantiate(GenEditState p_edit_state) const;
+	Node *instantiate(GenEditState p_edit_state, bool p_is_edited_scene = false) const;
 
 	Array setup_resources_in_array(Array &array_to_scan, const SceneState::NodeData &n, HashMap<Ref<Resource>, Ref<Resource>> &resources_local_to_sub_scene, Node *node, const StringName sname, HashMap<Ref<Resource>, Ref<Resource>> &resources_local_to_scene, int i, Node **ret_nodes, SceneState::GenEditState p_edit_state) const;
 	Dictionary setup_resources_in_dictionary(Dictionary &p_dictionary_to_scan, const SceneState::NodeData &p_n, HashMap<Ref<Resource>, Ref<Resource>> &p_resources_local_to_sub_scene, Node *p_node, const StringName p_sname, HashMap<Ref<Resource>, Ref<Resource>> &p_resources_local_to_scene, int p_i, Node **p_ret_nodes, SceneState::GenEditState p_edit_state) const;
@@ -257,6 +261,10 @@ public:
 
 	bool can_instantiate() const;
 	Node *instantiate(GenEditState p_edit_state = GEN_EDIT_STATE_DISABLED) const;
+#ifdef TOOLS_ENABLED
+	bool is_edited_scene = false;
+	Node *instantiate_edited_scene(GenEditState p_edit_state = GEN_EDIT_STATE_DISABLED);
+#endif
 
 	void recreate_state();
 	void replace_state(Ref<SceneState> p_by);
