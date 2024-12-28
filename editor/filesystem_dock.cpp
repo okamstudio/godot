@@ -1232,10 +1232,8 @@ void FileSystemDock::_select_file(const String &p_path, bool p_select_in_favorit
 		}
 
 		String resource_type = ResourceLoader::get_resource_type(fpath);
-
 		if (resource_type == "PackedScene" || resource_type == "AnimationLibrary") {
 			bool is_imported = false;
-
 			{
 				List<String> importer_exts;
 				ResourceImporterScene::get_scene_importer_extensions(&importer_exts);
@@ -1250,10 +1248,8 @@ void FileSystemDock::_select_file(const String &p_path, bool p_select_in_favorit
 
 			if (is_imported) {
 				SceneImportSettingsDialog::get_singleton()->open_settings(p_path, resource_type);
-			} else if (resource_type == "PackedScene") {
-				EditorNode::get_singleton()->open_request(fpath);
 			} else {
-				EditorNode::get_singleton()->load_resource(fpath);
+				EditorNode::get_singleton()->load_scene_or_resource(fpath);
 			}
 		} else if (ResourceLoader::is_imported(fpath)) {
 			// If the importer has advanced settings, show them.
@@ -1273,7 +1269,6 @@ void FileSystemDock::_select_file(const String &p_path, bool p_select_in_favorit
 			if (!used_advanced_settings) {
 				EditorNode::get_singleton()->load_resource(fpath);
 			}
-
 		} else {
 			EditorNode::get_singleton()->load_resource(fpath);
 		}

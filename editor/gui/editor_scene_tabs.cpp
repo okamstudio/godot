@@ -203,7 +203,7 @@ void EditorSceneTabs::_update_context_menu() {
 		scene_tabs_context_menu->set_item_text(-1, TTR("Close Tab"));
 		scene_tabs_context_menu->add_shortcut(ED_GET_SHORTCUT("editor/reopen_closed_scene"), EditorNode::FILE_OPEN_PREV);
 		scene_tabs_context_menu->set_item_text(-1, TTR("Undo Close Tab"));
-		DISABLE_LAST_OPTION_IF(!EditorNode::get_singleton()->has_previous_scenes());
+		DISABLE_LAST_OPTION_IF(!EditorNode::get_singleton()->has_previous_closed_scenes());
 		scene_tabs_context_menu->add_item(TTR("Close Other Tabs"), SCENE_CLOSE_OTHERS);
 		DISABLE_LAST_OPTION_IF(EditorNode::get_editor_data().get_edited_scene_count() <= 1);
 		scene_tabs_context_menu->add_item(TTR("Close Tabs to the Right"), SCENE_CLOSE_RIGHT);
