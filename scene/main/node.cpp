@@ -2750,7 +2750,7 @@ Node *Node::_duplicate(int p_flags, HashMap<const Node *, Node *> *r_duplimap) c
 		nip->set_instance_path(ip->get_instance_path());
 		node = nip;
 
-	} else if ((p_flags & DUPLICATE_USE_INSTANTIATION) && !get_scene_file_path().is_empty()) {
+	} else if ((p_flags & DUPLICATE_USE_INSTANTIATION) && is_instance()) {
 		Ref<PackedScene> res = ResourceLoader::load(get_scene_file_path());
 		ERR_FAIL_COND_V(res.is_null(), nullptr);
 		PackedScene::GenEditState edit_state = PackedScene::GEN_EDIT_STATE_DISABLED;
@@ -2775,7 +2775,7 @@ Node *Node::_duplicate(int p_flags, HashMap<const Node *, Node *> *r_duplimap) c
 		ERR_FAIL_NULL_V(node, nullptr);
 	}
 
-	if (!get_scene_file_path().is_empty()) { //an instance
+	if (is_instance()) {
 		node->set_scene_file_path(get_scene_file_path());
 		node->data.editable_instance = data.editable_instance;
 	}
@@ -2810,7 +2810,7 @@ Node *Node::_duplicate(int p_flags, HashMap<const Node *, Node *> *r_duplimap) c
 
 				node_tree.push_back(descendant);
 
-				if (!descendant->get_scene_file_path().is_empty() && instance_roots.has(descendant->get_owner())) {
+				if (descendant->is_instance() && instance_roots.has(descendant->get_owner())) {
 					instance_roots.push_back(descendant);
 				}
 			}

@@ -1582,7 +1582,7 @@ bool CanvasItemEditor::_gui_input_open_scene_on_double_click(const Ref<InputEven
 		List<CanvasItem *> selection = _get_edited_canvas_items();
 		if (selection.size() == 1) {
 			CanvasItem *ci = selection.front()->get();
-			if (!ci->get_scene_file_path().is_empty() && ci != EditorNode::get_singleton()->get_edited_scene()) {
+			if (ci->is_instance() && ci != EditorNode::get_singleton()->get_edited_scene()) {
 				EditorNode::get_singleton()->open_request(ci->get_scene_file_path());
 				return true;
 			}

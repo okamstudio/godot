@@ -1017,7 +1017,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				return;
 			}
 
-			if (!node->get_scene_file_path().is_empty()) {
+			if (node->is_instance()) {
 				accept->set_text(TTR("Instantiated scenes can't become root"));
 				accept->popup_centered();
 				return;
@@ -1101,8 +1101,8 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 						Node *node = remove_list.front()->get();
 						if (node == editor_data->get_edited_scene_root()) {
 							msg = vformat(TTR("Delete the root node \"%s\"?"), node->get_name());
-						} else if (node->get_scene_file_path().is_empty() && node->get_child_count() > 0) {
-							// Display this message only for non-instantiated scenes
+						} else if (!node->is_instance() && node->get_child_count() > 0) {
+							// Display this message only for non-instantiated scenes.
 							msg = vformat(TTR("Delete node \"%s\" and its children?"), node->get_name());
 						} else {
 							msg = vformat(TTR("Delete node \"%s\"?"), node->get_name());
@@ -1159,7 +1159,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				break;
 			}
 
-			if (tocopy != editor_data->get_edited_scene_root() && !tocopy->get_scene_file_path().is_empty()) {
+			if (tocopy != editor_data->get_edited_scene_root() && tocopy->is_instance()) {
 				accept->set_text(TTR("Can't save the branch of an already instantiated scene.\nTo create a variation of a scene, you can make an inherited scene based on the instantiated scene using Scene > New Inherited Scene... instead."));
 				accept->popup_centered();
 				break;
@@ -1256,7 +1256,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			if (e) {
 				Node *node = e->get();
 				if (node) {
-					bool is_external = (!node->get_scene_file_path().is_empty());
+					bool is_external = node->is_instance();
 					bool is_top_level = node->get_owner() == nullptr;
 					if (!is_external || is_top_level) {
 						break;
@@ -1323,12 +1323,12 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				Node *node = e->get();
 				if (node) {
 					Node *root = EditorNode::get_singleton()->get_edited_scene();
-					EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 					if (!root) {
 						break;
 					}
 
-					ERR_FAIL_COND(node->get_scene_file_path().is_empty());
+					ERR_FAIL_COND(!node->is_instance());
+					EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 					undo_redo->create_action(TTR("Make Local"));
 					undo_redo->add_do_method(node, "set_scene_file_path", "");
 					undo_redo->add_undo_method(node, "set_scene_file_path", node->get_scene_file_path());
@@ -2288,7 +2288,7 @@ bool SceneTreeDock::_validate_no_instance() {
 	List<Node *> selection = editor_selection->get_selected_node_list();
 
 	for (Node *E : selection) {
-		if (E != edited_scene && !E->get_scene_file_path().is_empty()) {
+		if (E != edited_scene && E->is_instance()) {
 			accept->set_text(TTR("This operation can't be done on instantiated scenes."));
 			accept->popup_centered();
 			return false;
@@ -3828,7 +3828,7 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 
 		bool can_replace = true;
 		for (Node *E : selection) {
-			if (E != edited_scene && (E->get_owner() != edited_scene || !E->get_scene_file_path().is_empty())) {
+			if (E != edited_scene && (E->get_owner() != edited_scene || E->is_instance())) {
 				can_replace = false;
 				break;
 			}
@@ -3890,7 +3890,7 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 	}
 
 	if (selection.size() == 1) {
-		bool is_external = (!selection.front()->get()->get_scene_file_path().is_empty());
+		bool is_external = selection.front()->get()->is_instance();
 		if (is_external) {
 			bool is_inherited = selection.front()->get()->get_scene_inherited_state().is_valid();
 			bool is_top_level = selection.front()->get()->get_owner() == nullptr;
@@ -3929,7 +3929,7 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 #endif // MODULE_REGEX_ENABLED
 	menu->add_separator();
 
-	if (full_selection.size() == 1 && !selection.front()->get()->get_scene_file_path().is_empty()) {
+	if (full_selection.size() == 1 && selection.front()->get()->is_instance()) {
 		menu->add_icon_shortcut(get_editor_theme_icon(SNAME("ShowInFileSystem")), ED_GET_SHORTCUT("scene_tree/show_in_file_system"), TOOL_SHOW_IN_FILE_SYSTEM);
 	}
 

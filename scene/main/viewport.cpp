@@ -497,7 +497,7 @@ void Viewport::_update_viewport_path() {
 		return;
 	}
 
-	Node *scene_root = get_scene_file_path().is_empty() ? get_owner() : this;
+	Node *scene_root = is_instance() ? this : get_owner();
 	if (!scene_root && is_inside_tree()) {
 		scene_root = get_tree()->get_edited_scene_root();
 	}

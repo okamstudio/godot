@@ -669,7 +669,7 @@ bool EditorData::_find_updated_instances(Node *p_root, Node *p_node, HashSet<Str
 
 	if (p_node == p_root) {
 		ss = p_node->get_scene_inherited_state();
-	} else if (!p_node->get_scene_file_path().is_empty()) {
+	} else if (p_node->is_instance()) {
 		ss = p_node->get_scene_instance_state();
 	}
 
@@ -774,7 +774,7 @@ void EditorData::set_edited_scene_root(Node *p_root) {
 	ERR_FAIL_INDEX(current_edited_scene, edited_scene.size());
 	edited_scene.write[current_edited_scene].root = p_root;
 	if (p_root) {
-		if (!p_root->get_scene_file_path().is_empty()) {
+		if (p_root->is_instance()) {
 			edited_scene.write[current_edited_scene].path = p_root->get_scene_file_path();
 		} else {
 			p_root->set_scene_file_path(edited_scene[current_edited_scene].path);
@@ -840,7 +840,7 @@ Ref<Script> EditorData::get_scene_root_script(int p_idx) const {
 	Ref<Script> s = edited_scene[p_idx].root->get_script();
 	if (!s.is_valid() && edited_scene[p_idx].root->get_child_count()) {
 		Node *n = edited_scene[p_idx].root->get_child(0);
-		while (!s.is_valid() && n && n->get_scene_file_path().is_empty()) {
+		while (!s.is_valid() && n && !n->is_instance()) {
 			s = n->get_script();
 			n = n->get_parent();
 		}

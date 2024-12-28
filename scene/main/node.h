@@ -789,6 +789,10 @@ public:
 	void set_thread_safe(const StringName &p_property, const Variant &p_value);
 	void notify_thread_safe(int p_notification);
 
+	/* HELPER */
+
+	bool is_instance() const { return !data.scene_file_path.is_empty(); }
+
 	// These inherited functions need proper multithread locking when overridden in Node.
 #ifdef DEBUG_ENABLED
 
