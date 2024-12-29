@@ -45,6 +45,20 @@ enum ErrorHandlerType {
 	ERR_HANDLER_SHADER,
 };
 
+constexpr const char *_error_handler_type_string(ErrorHandlerType p_type) {
+	switch (p_type) {
+		case ERR_HANDLER_ERROR:
+			return "ERROR";
+		case ERR_HANDLER_WARNING:
+			return "WARNING";
+		case ERR_HANDLER_SCRIPT:
+			return "SCRIPT ERROR";
+		case ERR_HANDLER_SHADER:
+			return "SHADER ERROR";
+	}
+	return "UNKNOWN ERROR";
+}
+
 // Pointer to the error handler printing function. Reassign to any function to have errors printed.
 // Parameters: userdata, function, file, line, error, explanation, type.
 typedef void (*ErrorHandlerFunc)(void *, const char *, const char *, int p_line, const char *, const char *, bool p_editor_notify, ErrorHandlerType p_type);

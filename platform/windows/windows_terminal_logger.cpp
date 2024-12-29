@@ -107,20 +107,7 @@ void WindowsTerminalLogger::log_error(const char *p_function, const char *p_file
 		basecol |= current_bg;
 
 		SetConsoleTextAttribute(hCon, basecol | FOREGROUND_INTENSITY);
-		switch (p_type) {
-			case ERR_ERROR:
-				logf_error("ERROR:");
-				break;
-			case ERR_WARNING:
-				logf_error("WARNING:");
-				break;
-			case ERR_SCRIPT:
-				logf_error("SCRIPT ERROR:");
-				break;
-			case ERR_SHADER:
-				logf_error("SHADER ERROR:");
-				break;
-		}
+		logf_error("%s:", error_type_string(p_type));
 
 		SetConsoleTextAttribute(hCon, basecol);
 		if (p_rationale && p_rationale[0]) {

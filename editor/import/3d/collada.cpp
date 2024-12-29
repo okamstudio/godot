@@ -2023,7 +2023,7 @@ void Collada::_remove_node(VisualScene *p_vscene, Node *p_node) {
 		}
 	}
 
-	ERR_PRINT("ERROR: Not found node to remove?");
+	ERR_PRINT("Not found node to remove?");
 }
 
 void Collada::_merge_skeletons(VisualScene *p_vscene, Node *p_node) {
