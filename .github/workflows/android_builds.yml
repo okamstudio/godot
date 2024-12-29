@@ -109,3 +109,9 @@ jobs:
         uses: ./.github/actions/upload-artifact
         with:
           name: ${{ matrix.cache-name }}
+
+      - name: Check artifact sizes
+        uses: ./.github/actions/check-artifact-size
+        if: github.event_name == 'pull_request'
+        with:
+          name: ${{ matrix.cache-name }}

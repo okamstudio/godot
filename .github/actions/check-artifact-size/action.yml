@@ -1,0 +1,50 @@
+name: Check master and artifact binary sizes
+description: Check master and artifact binary sizes for Godot artifacts.
+inputs:
+  name:
+    description: The artifact name.
+    default: "${{ github.job }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download artifact
+      id: download-artifact
+      uses: dawidd6/action-download-artifact@v7
+      with:
+        commit: ${{github.event.pull_request.base.sha}}
+        name: ${{inputs.name}}
+        path: bin_ref/
+    - name: Compare binary size with the base build.
+      shell: bash
+      run: |
+        file_path_old="bin_ref/"
+        if [ ! -d "${file_path_old}" ]; then
+          echo "Directory ${file_path_old} does not exist, exiting..."
+          exit 0
+        fi
+        file_path_new="bin/"
+        if [ ! -d "${file_path_new}" ]; then
+          echo "Directory ${file_path_new} does not exist, exiting..."
+          exit 0
+        fi
+        # Excludes hidden files and folders, like the upload job.
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          actual_size_old=$(find "$file_path_old" -type d -name '.*' -prune -o -type f ! -name '.*' -exec stat -f%z {} + | awk '{total += $1} END {print total}')
+          actual_size_new=$(find "$file_path_new" -type d -name '.*' -prune -o -type f ! -name '.*' -exec stat -f%z {} + | awk '{total += $1} END {print total}')
+        else
+          actual_size_old=$(find "$file_path_old" -type d -name '.*' -prune -o -type f ! -name '.*' -exec stat --printf="%s\n" {} + | awk '{total += $1} END {print total}')
+          actual_size_new=$(find "$file_path_new" -type d -name '.*' -prune -o -type f ! -name '.*' -exec stat --printf="%s\n" {} + | awk '{total += $1} END {print total}')
+        fi
+        size_difference=$((actual_size_new - actual_size_old))
+        if [[ $size_difference -ge 1 ]]; then
+          if [[ $size_difference -gt 1048576 ]]; then
+            echo -e "::warning::\033[1mBinary size:\033[0m The binary is \033[1;91m$size_difference bytes larger\033[0m than the reference ($actual_size_old -> $actual_size_new bytes)."
+          else
+            echo -e "\033[1mBinary size:\033[0m The binary is \033[1;91m$size_difference bytes larger\033[0m than the reference ($actual_size_old -> $actual_size_new bytes)."
+          fi
+        elif [[ $size_difference -lt 0 ]]; then
+          echo -e "\033[1mBinary size:\033[0m The binary is \033[1;92m$((-size_difference)) bytes smaller\033[0m than the reference ($actual_size_old -> $actual_size_new bytes)."
+        else
+          echo -e "\033[1mBinary size:\033[0m The binary is \033[1;92mexactly as the reference ($actual_size_old -> $actual_size_new bytes).\033[0m"
+        fi
