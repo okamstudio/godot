@@ -275,7 +275,6 @@ private:
 	void _copy_color_to_hsv();
 	void _copy_hsv_to_color();
 
-	PickerShapeType _get_actual_shape() const;
 	void create_slider(GridContainer *gc, int idx);
 	void _reset_sliders_theme();
 	void _html_submitted(const String &p_html);
