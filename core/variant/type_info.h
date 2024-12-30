@@ -250,21 +250,21 @@ inline StringName __constant_get_enum_name(T param, const String &p_constant) {
 
 template <typename T>
 class BitField {
-	int64_t value = 0;
+	uint64_t value = 0;
 
 public:
 	_FORCE_INLINE_ BitField<T> &set_flag(T p_flag) {
-		value |= (int64_t)p_flag;
+		value |= (uint64_t)p_flag;
 		return *this;
 	}
-	_FORCE_INLINE_ bool has_flag(T p_flag) const { return value & (int64_t)p_flag; }
+	_FORCE_INLINE_ bool has_flag(T p_flag) const { return value & (uint64_t)p_flag; }
 	_FORCE_INLINE_ bool is_empty() const { return value == 0; }
-	_FORCE_INLINE_ void clear_flag(T p_flag) { value &= ~(int64_t)p_flag; }
+	_FORCE_INLINE_ void clear_flag(T p_flag) { value &= ~(uint64_t)p_flag; }
 	_FORCE_INLINE_ void clear() { value = 0; }
 	_FORCE_INLINE_ constexpr BitField() = default;
-	_FORCE_INLINE_ constexpr BitField(int64_t p_value) { value = p_value; }
-	_FORCE_INLINE_ constexpr BitField(T p_value) { value = (int64_t)p_value; }
-	_FORCE_INLINE_ operator int64_t() const { return value; }
+	_FORCE_INLINE_ constexpr BitField(uint64_t p_value) { value = p_value; }
+	_FORCE_INLINE_ constexpr BitField(T p_value) { value = (uint64_t)p_value; }
+	_FORCE_INLINE_ operator uint64_t() const { return value; }
 	_FORCE_INLINE_ operator Variant() const { return value; }
 	_FORCE_INLINE_ BitField<T> operator^(const BitField<T> &p_b) const { return BitField<T>(value ^ p_b.value); }
 };

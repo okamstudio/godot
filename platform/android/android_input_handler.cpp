@@ -283,7 +283,7 @@ void AndroidInputHandler::_parse_mouse_event_info(BitField<MouseButtonMask> even
 	}
 	ev->set_pressed(p_pressed);
 	ev->set_canceled(p_canceled);
-	BitField<MouseButtonMask> changed_button_mask = BitField<MouseButtonMask>(buttons_state.operator int64_t() ^ event_buttons_mask.operator int64_t());
+	BitField<MouseButtonMask> changed_button_mask = BitField<MouseButtonMask>(uint64_t(buttons_state) ^ uint64_t(event_buttons_mask));
 
 	buttons_state = event_buttons_mask;
 
@@ -395,7 +395,7 @@ void AndroidInputHandler::_wheel_button_click(BitField<MouseButtonMask> event_bu
 	Ref<InputEventMouseButton> evd = ev->duplicate();
 	_set_key_modifier_state(evd, Key::NONE);
 	evd->set_button_index(wheel_button);
-	evd->set_button_mask(BitField<MouseButtonMask>(event_buttons_mask.operator int64_t() ^ int64_t(mouse_button_to_mask(wheel_button))));
+	evd->set_button_mask(BitField<MouseButtonMask>(uint64_t(event_buttons_mask) ^ uint64_t(mouse_button_to_mask(wheel_button))));
 	evd->set_factor(factor);
 	Input::get_singleton()->parse_input_event(evd);
 	Ref<InputEventMouseButton> evdd = evd->duplicate();
@@ -423,7 +423,7 @@ void AndroidInputHandler::process_pan(Point2 p_pos, Vector2 p_delta) {
 }
 
 MouseButton AndroidInputHandler::_button_index_from_mask(BitField<MouseButtonMask> button_mask) {
-	switch (MouseButtonMask(button_mask.operator int64_t())) {
+	switch (MouseButtonMask(uint64_t(button_mask))) {
 		case MouseButtonMask::LEFT:
 			return MouseButton::LEFT;
 		case MouseButtonMask::RIGHT:
