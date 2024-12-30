@@ -138,4 +138,12 @@ inline MouseButtonMask mouse_button_to_mask(MouseButton button) {
 	return MouseButtonMask(1 << ((int)button - 1));
 }
 
+constexpr MouseButtonMask operator|(MouseButtonMask p_a, MouseButtonMask p_b) {
+	return static_cast<MouseButtonMask>(static_cast<int>(p_a) | static_cast<int>(p_b));
+}
+
+constexpr MouseButtonMask &operator|=(MouseButtonMask &p_a, MouseButtonMask p_b) {
+	return p_a = p_a | p_b;
+}
+
 #endif // INPUT_ENUMS_H

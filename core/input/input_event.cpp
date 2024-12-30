@@ -385,11 +385,11 @@ bool InputEventKey::is_echo() const {
 }
 
 Key InputEventKey::get_keycode_with_modifiers() const {
-	return keycode | (int64_t)get_modifiers_mask();
+	return keycode | get_modifiers_mask();
 }
 
 Key InputEventKey::get_physical_keycode_with_modifiers() const {
-	return physical_keycode | (int64_t)get_modifiers_mask();
+	return physical_keycode | get_modifiers_mask();
 }
 
 Key InputEventKey::get_key_label_with_modifiers() const {

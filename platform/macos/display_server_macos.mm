@@ -1441,7 +1441,7 @@ Point2i DisplayServerMacOS::mouse_get_position() const {
 }
 
 BitField<MouseButtonMask> DisplayServerMacOS::mouse_get_button_state() const {
-	BitField<MouseButtonMask> last_button_state = 0;
+	BitField<MouseButtonMask> last_button_state = MouseButtonMask::NONE;
 
 	NSUInteger buttons = [NSEvent pressedMouseButtons];
 	if (buttons & (1 << 0)) {

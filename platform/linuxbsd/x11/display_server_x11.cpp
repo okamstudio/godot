@@ -517,7 +517,7 @@ BitField<MouseButtonMask> DisplayServerX11::mouse_get_button_state() const {
 		int root_x, root_y, win_x, win_y;
 		unsigned int mask;
 		if (XQueryPointer(x11_display, XRootWindow(x11_display, i), &root, &child, &root_x, &root_y, &win_x, &win_y, &mask)) {
-			BitField<MouseButtonMask> last_button_state = 0;
+			BitField<MouseButtonMask> last_button_state = MouseButtonMask::NONE;
 
 			if (mask & Button1Mask) {
 				last_button_state.set_flag(MouseButtonMask::LEFT);
@@ -538,7 +538,7 @@ BitField<MouseButtonMask> DisplayServerX11::mouse_get_button_state() const {
 			return last_button_state;
 		}
 	}
-	return 0;
+	return MouseButtonMask::NONE;
 }
 
 void DisplayServerX11::clipboard_set(const String &p_text) {
@@ -5037,7 +5037,7 @@ void DisplayServerX11::process_events() {
 					pos = Point2i(windows[focused_window_id].size.width / 2, windows[focused_window_id].size.height / 2);
 				}
 
-				BitField<MouseButtonMask> last_button_state = 0;
+				BitField<MouseButtonMask> last_button_state = MouseButtonMask::NONE;
 				if (event.xmotion.state & Button1Mask) {
 					last_button_state.set_flag(MouseButtonMask::LEFT);
 				}

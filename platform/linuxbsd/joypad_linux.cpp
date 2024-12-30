@@ -73,7 +73,7 @@ JoypadLinux::Joypad::~Joypad() {
 }
 
 void JoypadLinux::Joypad::reset() {
-	dpad = 0;
+	dpad.clear();
 	fd = -1;
 	for (int i = 0; i < MAX_ABS; i++) {
 		abs_map[i] = -1;

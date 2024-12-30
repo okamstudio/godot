@@ -212,12 +212,12 @@ int register_test_command(String p_command, TestFunc p_function);
 		MessageQueue::get_singleton()->flush();                                         \
 	}
 
-#define SEND_GUI_DOUBLE_CLICK(m_screen_pos, m_modifers)                          \
-	{                                                                            \
-		_CREATE_GUI_MOUSE_EVENT(m_screen_pos, MouseButton::LEFT, 0, m_modifers); \
-		event->set_double_click(true);                                           \
-		_SEND_DISPLAYSERVER_EVENT(event);                                        \
-		MessageQueue::get_singleton()->flush();                                  \
+#define SEND_GUI_DOUBLE_CLICK(m_screen_pos, m_modifers)                                              \
+	{                                                                                                \
+		_CREATE_GUI_MOUSE_EVENT(m_screen_pos, MouseButton::LEFT, MouseButtonMask::NONE, m_modifers); \
+		event->set_double_click(true);                                                               \
+		_SEND_DISPLAYSERVER_EVENT(event);                                                            \
+		MessageQueue::get_singleton()->flush();                                                      \
 	}
 
 // We toggle _print_error_enabled to prevent display server not supported warnings.

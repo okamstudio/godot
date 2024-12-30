@@ -7729,28 +7729,28 @@ TEST_CASE("[SceneTree][TextEdit] viewport") {
 
 	// Scroll.
 	int v_scroll = text_edit->get_v_scroll();
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, MouseButtonMask::NONE, Key::NONE);
 	CHECK(text_edit->get_v_scroll() > v_scroll);
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, MouseButtonMask::NONE, Key::NONE);
 	CHECK(text_edit->get_v_scroll() == v_scroll);
 
 	// smooth scroll speed.
 	text_edit->set_smooth_scroll_enabled(true);
 
 	v_scroll = text_edit->get_v_scroll();
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, MouseButtonMask::NONE, Key::NONE);
 	text_edit->notification(TextEdit::NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
 	CHECK(text_edit->get_v_scroll() >= v_scroll);
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, MouseButtonMask::NONE, Key::NONE);
 	text_edit->notification(TextEdit::NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
 	CHECK(text_edit->get_v_scroll() == v_scroll);
 
 	v_scroll = text_edit->get_v_scroll();
 	text_edit->set_v_scroll_speed(10000);
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_DOWN, MouseButtonMask::NONE, Key::NONE);
 	text_edit->notification(TextEdit::NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
 	CHECK(text_edit->get_v_scroll() >= v_scroll);
-	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, 0, Key::NONE);
+	SEND_GUI_MOUSE_BUTTON_EVENT(Point2i(10, 10), MouseButton::WHEEL_UP, MouseButtonMask::NONE, Key::NONE);
 	text_edit->notification(TextEdit::NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
 	CHECK(text_edit->get_v_scroll() == v_scroll);
 

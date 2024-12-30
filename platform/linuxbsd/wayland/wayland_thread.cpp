@@ -1653,7 +1653,7 @@ void WaylandThread::_wl_pointer_on_frame(void *data, struct wl_pointer *wl_point
 	}
 
 	if (old_pd.pressed_button_mask != pd.pressed_button_mask) {
-		BitField<MouseButtonMask> pressed_mask_delta = old_pd.pressed_button_mask ^ pd.pressed_button_mask;
+		BitField<MouseButtonMask> pressed_mask_delta = old_pd.pressed_button_mask.get_different(pd.pressed_button_mask);
 
 		const MouseButton buttons_to_test[] = {
 			MouseButton::LEFT,
@@ -2586,7 +2586,7 @@ void WaylandThread::_wp_tablet_tool_on_frame(void *data, struct zwp_tablet_tool_
 	}
 
 	if (old_td.pressed_button_mask != td.pressed_button_mask) {
-		BitField<MouseButtonMask> pressed_mask_delta = BitField<MouseButtonMask>((int64_t)old_td.pressed_button_mask ^ (int64_t)td.pressed_button_mask);
+		BitField<MouseButtonMask> pressed_mask_delta = old_td.pressed_button_mask.get_different(td.pressed_button_mask);
 
 		for (MouseButton test_button : { MouseButton::LEFT, MouseButton::RIGHT }) {
 			MouseButtonMask test_button_mask = mouse_button_to_mask(test_button);

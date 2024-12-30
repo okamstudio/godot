@@ -2416,7 +2416,7 @@ RDD::CommandQueueFamilyID RenderingDeviceDriverVulkan::command_queue_family_get(
 		// Preferring a queue with less bits will get us closer to getting a queue that performs better for our requirements.
 		// For example, dedicated compute and transfer queues are usually indicated as such.
 		const VkQueueFlags option_queue_flags = queue_family_properties[i].queueFlags;
-		const bool includes_all_bits = (option_queue_flags & p_cmd_queue_family_bits) == p_cmd_queue_family_bits;
+		const bool includes_all_bits = p_cmd_queue_family_bits.get_shared(option_queue_flags) == p_cmd_queue_family_bits;
 		const bool prefer_less_bits = option_queue_flags < picked_queue_flags;
 		if (includes_all_bits && prefer_less_bits) {
 			picked_family_index = i;

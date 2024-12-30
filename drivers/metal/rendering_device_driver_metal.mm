@@ -2493,7 +2493,7 @@ RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vect
 			su.writable = uniform.writable;
 			su.length = uniform.length;
 			su.binding = uniform.binding;
-			su.stages = uniform.stages;
+			su.stages = (ShaderStage)(uint8_t)uniform.stages;
 			uset.write[i] = su;
 
 			UniformInfo ui;
@@ -2558,7 +2558,7 @@ RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vect
 		sc.type = c.type;
 		sc.constant_id = c.constant_id;
 		sc.int_value = c.int_value;
-		sc.stages = c.stages;
+		sc.stages = (ShaderStage)(uint8_t)c.stages;
 		r_shader_desc.specialization_constants.write[i] = sc;
 	}
 

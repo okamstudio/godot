@@ -297,7 +297,7 @@ void Font::set_cache_capacity(int p_single_line, int p_multi_line) {
 
 Size2 Font::get_string_size(const String &p_text, HorizontalAlignment p_alignment, float p_width, int p_font_size, BitField<TextServer::JustificationFlag> p_jst_flags, TextServer::Direction p_direction, TextServer::Orientation p_orientation) const {
 	bool fill = (p_alignment == HORIZONTAL_ALIGNMENT_FILL);
-	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : TextServer::JUSTIFICATION_NONE, TextServer::BREAK_NONE, p_direction, p_orientation);
+	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : BitField(TextServer::JUSTIFICATION_NONE), TextServer::BREAK_NONE, p_direction, p_orientation);
 
 	Ref<TextLine> buffer;
 	if (cache.has(key)) {
@@ -346,7 +346,7 @@ Size2 Font::get_multiline_string_size(const String &p_text, HorizontalAlignment 
 
 void Font::draw_string(RID p_canvas_item, const Point2 &p_pos, const String &p_text, HorizontalAlignment p_alignment, float p_width, int p_font_size, const Color &p_modulate, BitField<TextServer::JustificationFlag> p_jst_flags, TextServer::Direction p_direction, TextServer::Orientation p_orientation) const {
 	bool fill = (p_alignment == HORIZONTAL_ALIGNMENT_FILL);
-	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : TextServer::JUSTIFICATION_NONE, TextServer::BREAK_NONE, p_direction, p_orientation);
+	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : BitField(TextServer::JUSTIFICATION_NONE), TextServer::BREAK_NONE, p_direction, p_orientation);
 
 	Ref<TextLine> buffer;
 	if (cache.has(key)) {
@@ -409,7 +409,7 @@ void Font::draw_multiline_string(RID p_canvas_item, const Point2 &p_pos, const S
 
 void Font::draw_string_outline(RID p_canvas_item, const Point2 &p_pos, const String &p_text, HorizontalAlignment p_alignment, float p_width, int p_font_size, int p_size, const Color &p_modulate, BitField<TextServer::JustificationFlag> p_jst_flags, TextServer::Direction p_direction, TextServer::Orientation p_orientation) const {
 	bool fill = (p_alignment == HORIZONTAL_ALIGNMENT_FILL);
-	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : TextServer::JUSTIFICATION_NONE, TextServer::BREAK_NONE, p_direction, p_orientation);
+	ShapedTextKey key = ShapedTextKey(p_text, p_font_size, fill ? p_width : 0.0, fill ? p_jst_flags : BitField(TextServer::JUSTIFICATION_NONE), TextServer::BREAK_NONE, p_direction, p_orientation);
 
 	Ref<TextLine> buffer;
 	if (cache.has(key)) {

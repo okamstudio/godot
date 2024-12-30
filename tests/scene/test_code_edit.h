@@ -4119,10 +4119,10 @@ TEST_CASE("[SceneTree][CodeEdit] completion") {
 
 			Point2 caret_pos = code_edit->get_caret_draw_pos();
 			caret_pos.y += code_edit->get_line_height();
-			SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::WHEEL_DOWN, 0, Key::NONE);
+			SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::WHEEL_DOWN, MouseButtonMask::NONE, Key::NONE);
 			CHECK(code_edit->get_code_completion_selected_index() == 1);
 
-			SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::WHEEL_UP, 0, Key::NONE);
+			SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::WHEEL_UP, MouseButtonMask::NONE, Key::NONE);
 			CHECK(code_edit->get_code_completion_selected_index() == 0);
 
 			/* Single click selects. */
@@ -4492,7 +4492,7 @@ TEST_CASE("[SceneTree][CodeEdit] symbol lookup") {
 
 		Point2 caret_pos = code_edit->get_caret_draw_pos();
 		caret_pos.x += 60;
-		SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::NONE, 0, Key::NONE);
+		SEND_GUI_MOUSE_BUTTON_EVENT(caret_pos, MouseButton::NONE, MouseButtonMask::NONE, Key::NONE);
 		CHECK(code_edit->get_text_for_symbol_lookup() == "this is s" + String::chr(0xFFFF) + "ome text");
 
 		SIGNAL_WATCH(code_edit, "symbol_validate");
