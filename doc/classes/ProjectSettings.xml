@@ -2601,6 +2601,12 @@
 		<member name="rendering/environment/glow/upscale_mode.mobile" type="int" setter="" getter="" default="0">
 			Lower-end override for [member rendering/environment/glow/upscale_mode] on mobile devices, due to performance concerns or driver support.
 		</member>
+		<member name="rendering/environment/material_preview/environment" type="String" setter="" getter="" default="&quot;&quot;">
+			Path to the [Environment] resource that will be used in the Inspector's material preview. If this is not set, a default environment will be used instead.
+		</member>
+		<member name="rendering/environment/material_preview/floor_material" type="String" setter="" getter="" default="&quot;&quot;">
+			Path to the [BaseMaterial3D] resource that will be assigned to the floor of the Inspector's material preview. If this is not set, a default material will be used instead.
+		</member>
 		<member name="rendering/environment/screen_space_reflection/roughness_quality" type="int" setter="" getter="" default="1">
 			Sets the quality for rough screen-space reflections. Turning off will make all screen space reflections sharp, while higher values make rough reflections look better.
 		</member>

@@ -57,15 +57,9 @@ void MaterialEditor::gui_input(const Ref<InputEvent> &p_event) {
 	if (mm.is_valid() && (mm->get_button_mask().has_flag(MouseButtonMask::LEFT))) {
 		rot.x -= mm->get_relative().y * 0.01;
 		rot.y -= mm->get_relative().x * 0.01;
-		if (quad_instance->is_visible()) {
-			// Clamp rotation so the quad is always visible.
-			const real_t limit = Math::deg_to_rad(80.0);
-			rot = rot.clampf(-limit, limit);
-		} else {
-			rot.x = CLAMP(rot.x, -Math_PI / 2, Math_PI / 2);
-		}
-		_update_rotation();
-		_store_rotation_metadata();
+		rot.x = CLAMP(rot.x, -Math_PI / 2, Math_PI / 2);
+		_update_camera();
+		_store_camera_metadata();
 	}
 }
 
@@ -74,6 +68,7 @@ void MaterialEditor::_update_theme_item_cache() {
 
 	theme_cache.light_1_icon = get_editor_theme_icon(SNAME("MaterialPreviewLight1"));
 	theme_cache.light_2_icon = get_editor_theme_icon(SNAME("MaterialPreviewLight2"));
+	theme_cache.floor_icon = get_editor_theme_icon(SNAME("GuiMiniCheckerboard"));
 
 	theme_cache.sphere_icon = get_editor_theme_icon(SNAME("MaterialPreviewSphere"));
 	theme_cache.box_icon = get_editor_theme_icon(SNAME("MaterialPreviewCube"));
@@ -84,15 +79,23 @@ void MaterialEditor::_update_theme_item_cache() {
 
 void MaterialEditor::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_READY: {
+			ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &MaterialEditor::_update_environment));
+			_update_environment();
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED: {
 			light_1_switch->set_button_icon(theme_cache.light_1_icon);
 			light_2_switch->set_button_icon(theme_cache.light_2_icon);
+			floor_switch->set_button_icon(theme_cache.floor_icon);
 
 			sphere_switch->set_button_icon(theme_cache.sphere_icon);
 			box_switch->set_button_icon(theme_cache.box_icon);
 			quad_switch->set_button_icon(theme_cache.quad_icon);
 
 			error_label->add_theme_color_override(SceneStringName(font_color), get_theme_color(SNAME("error_color"), EditorStringName(Editor)));
+
+			default_floor_material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, get_editor_theme_icon(SNAME("GuiMiniCheckerboard")));
 		} break;
 
 		case NOTIFICATION_DRAW: {
@@ -104,28 +107,26 @@ void MaterialEditor::_notification(int p_what) {
 	}
 }
 
-void MaterialEditor::_set_rotation(real_t p_x_degrees, real_t p_y_degrees) {
-	rot.x = Math::deg_to_rad(p_x_degrees);
-	rot.y = Math::deg_to_rad(p_y_degrees);
-	_update_rotation();
-}
-
 // Store the rotation so it can persist when switching between materials.
-void MaterialEditor::_store_rotation_metadata() {
+void MaterialEditor::_store_camera_metadata() {
 	Vector2 rotation_degrees = Vector2(Math::rad_to_deg(rot.x), Math::rad_to_deg(rot.y));
 	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_rotation", rotation_degrees);
+	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_zoom", cam_zoom);
+	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_mesh", shape);
 }
 
-void MaterialEditor::_update_rotation() {
-	Transform3D t;
-	t.basis.rotate(Vector3(0, 1, 0), -rot.y);
-	t.basis.rotate(Vector3(1, 0, 0), -rot.x);
-	rotation->set_transform(t);
+void MaterialEditor::_update_camera() {
+	Transform3D xf;
+	Vector3 center = contents_aabb.get_center();
+	xf.basis = Basis(Vector3(0, 1, 0), rot.y) * Basis(Vector3(1, 0, 0), rot.x);
+	xf.origin = center;
+	xf.translate_local(0, 0, cam_zoom);
+	camera->set_transform(xf);
 }
 
 void MaterialEditor::edit(Ref<Material> p_material, const Ref<Environment> &p_env) {
 	material = p_material;
-	camera->set_environment(p_env);
+	viewport->get_world_3d()->set_fallback_environment(p_env);
 
 	is_unsupported_shader_mode = false;
 	if (material.is_valid()) {
@@ -160,45 +161,68 @@ void MaterialEditor::edit(Ref<Material> p_material, const Ref<Environment> &p_en
 	}
 }
 
-void MaterialEditor::_on_light_1_switch_pressed() {
-	light1->set_visible(light_1_switch->is_pressed());
+void MaterialEditor::_on_visibility_switch_pressed(const int &p_shape) {
+	switch ((Switch)p_shape) {
+		case LIGHT_1: {
+			light1->set_visible(light_1_switch->is_pressed());
+			EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_light1", light1->is_visible());
+		} break;
+
+		case LIGHT_2: {
+			light2->set_visible(light_2_switch->is_pressed());
+			EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_light2", light2->is_visible());
+		} break;
+
+		case FLOOR: {
+			bool is_visible = !floor_instance->is_visible();
+			floor_instance->set_visible(is_visible);
+			floor_switch->set_pressed(is_visible);
+			EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_floor", is_visible);
+		} break;
+	}
 }
 
-void MaterialEditor::_on_light_2_switch_pressed() {
-	light2->set_visible(light_2_switch->is_pressed());
-}
-
-void MaterialEditor::_on_sphere_switch_pressed() {
-	sphere_instance->show();
-	box_instance->hide();
-	quad_instance->hide();
-	box_switch->set_pressed(false);
-	quad_switch->set_pressed(false);
-	_set_rotation(-15.0, 30.0);
-	_store_rotation_metadata();
-	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_mesh", "sphere");
-}
-
-void MaterialEditor::_on_box_switch_pressed() {
-	sphere_instance->hide();
-	box_instance->show();
-	quad_instance->hide();
-	sphere_switch->set_pressed(false);
-	quad_switch->set_pressed(false);
-	_set_rotation(-15.0, 30.0);
-	_store_rotation_metadata();
-	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_mesh", "box");
-}
-
-void MaterialEditor::_on_quad_switch_pressed() {
+void MaterialEditor::_on_shape_switch_pressed(const int &p_shape) {
 	sphere_instance->hide();
 	box_instance->hide();
-	quad_instance->show();
-	sphere_switch->set_pressed(false);
-	box_switch->set_pressed(false);
-	_set_rotation(0.0, 0.0);
-	_store_rotation_metadata();
-	EditorSettings::get_singleton()->set_project_metadata("inspector_options", "material_preview_mesh", "quad");
+	quad_instance->hide();
+	sphere_switch->set_pressed_no_signal(false);
+	box_switch->set_pressed_no_signal(false);
+	quad_switch->set_pressed_no_signal(false);
+
+	float visible_height = 1.02;
+	switch ((Shape)p_shape) {
+		case SPHERE: {
+			if (shape == SPHERE) {
+				rot = Vector2(Math::deg_to_rad(-30.0), Math::deg_to_rad(0.0));
+			}
+			sphere_instance->show();
+			sphere_switch->set_pressed_no_signal(true);
+		} break;
+
+		case BOX: {
+			if (shape == BOX) {
+				rot = Vector2(Math::deg_to_rad(-30.0), Math::deg_to_rad(20.0));
+			}
+			box_instance->show();
+			box_switch->set_pressed_no_signal(true);
+			visible_height = 1.55;
+		} break;
+
+		case QUAD: {
+			if (shape == QUAD) {
+				rot = Vector2(0.0, 0.0);
+			}
+			quad_instance->show();
+			quad_switch->set_pressed_no_signal(true);
+		}
+	}
+
+	shape = (Shape)p_shape;
+	// FOV independent camera framing based on view height.
+	cam_zoom = visible_height / Math::sin(Math::deg_to_rad(camera->get_fov()));
+	_update_camera();
+	_store_camera_metadata();
 }
 
 MaterialEditor::MaterialEditor() {
@@ -251,11 +275,11 @@ MaterialEditor::MaterialEditor() {
 	viewport->set_world_3d(world_3d); // Use own world.
 	vc->add_child(viewport);
 	viewport->set_disable_input(true);
-	viewport->set_transparent_background(true);
+	viewport->set_transparent_background(false);
 	viewport->set_msaa_3d(Viewport::MSAA_4X);
 
 	camera = memnew(Camera3D);
-	camera->set_transform(Transform3D(Basis(), Vector3(0, 0, 1.1)));
+	camera->set_transform(Transform3D(Basis(), Vector3(0, 0.5, cam_zoom)));
 	// Use low field of view so the sphere/box/quad is fully encompassed within the preview,
 	// without much distortion.
 	camera->set_perspective(20, 0.1, 10);
@@ -267,7 +291,8 @@ MaterialEditor::MaterialEditor() {
 	viewport->add_child(camera);
 
 	light1 = memnew(DirectionalLight3D);
-	light1->set_transform(Transform3D().looking_at(Vector3(-1, -1, -1), Vector3(0, 1, 0)));
+	light1->set_transform(Transform3D().looking_at(Vector3(1, -1, -1), Vector3(0, 1, 0)));
+	light1->set_shadow(true);
 	viewport->add_child(light1);
 
 	light2 = memnew(DirectionalLight3D);
@@ -287,9 +312,14 @@ MaterialEditor::MaterialEditor() {
 	quad_instance = memnew(MeshInstance3D);
 	rotation->add_child(quad_instance);
 
-	sphere_instance->set_transform(Transform3D() * 0.375);
-	box_instance->set_transform(Transform3D() * 0.25);
-	quad_instance->set_transform(Transform3D() * 0.375);
+	floor_instance = memnew(MeshInstance3D);
+	rotation->add_child(floor_instance);
+
+	Transform3D transform = Transform3D();
+	transform.origin = Vector3(0, 0.5, 0);
+	sphere_instance->set_transform(transform);
+	box_instance->set_transform(transform);
+	quad_instance->set_transform(transform);
 
 	sphere_mesh.instantiate();
 	sphere_instance->set_mesh(sphere_mesh);
@@ -297,6 +327,23 @@ MaterialEditor::MaterialEditor() {
 	box_instance->set_mesh(box_mesh);
 	quad_mesh.instantiate();
 	quad_instance->set_mesh(quad_mesh);
+	floor_mesh.instantiate();
+	floor_mesh->set_size(Size2(10, 10));
+	floor_instance->set_mesh(floor_mesh);
+
+	contents_aabb = sphere_instance->get_transform().xform(sphere_mesh->get_aabb());
+
+	default_floor_material = memnew(StandardMaterial3D);
+	default_floor_material->set_uv1_scale(Vector3(20, 20, 20));
+	default_floor_material->set_texture_filter(StandardMaterial3D::TEXTURE_FILTER_NEAREST);
+	default_floor_material->set_albedo(Color::hex(0x454545ff));
+	floor_mesh->set_material(default_floor_material);
+
+	probe = memnew(ReflectionProbe);
+	probe->set_size(Vector3(10, 1.5, 10));
+	rotation->add_child(probe);
+	probe->set_update_mode(ReflectionProbe::UPDATE_ALWAYS);
+	probe->set_position(Vector3(0, 0.5, 0));
 
 	set_custom_minimum_size(Size2(1, 150) * EDSCALE);
 
@@ -311,19 +358,19 @@ MaterialEditor::MaterialEditor() {
 	sphere_switch->set_theme_type_variation("PreviewLightButton");
 	sphere_switch->set_toggle_mode(true);
 	vb_shape->add_child(sphere_switch);
-	sphere_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_sphere_switch_pressed));
+	sphere_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_shape_switch_pressed).bind(SPHERE));
 
 	box_switch = memnew(Button);
 	box_switch->set_theme_type_variation("PreviewLightButton");
 	box_switch->set_toggle_mode(true);
 	vb_shape->add_child(box_switch);
-	box_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_box_switch_pressed));
+	box_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_shape_switch_pressed).bind(BOX));
 
 	quad_switch = memnew(Button);
 	quad_switch->set_theme_type_variation("PreviewLightButton");
 	quad_switch->set_toggle_mode(true);
 	vb_shape->add_child(quad_switch);
-	quad_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_quad_switch_pressed));
+	quad_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_shape_switch_pressed).bind(QUAD));
 
 	layout_3d->add_spacer();
 
@@ -335,32 +382,40 @@ MaterialEditor::MaterialEditor() {
 	light_1_switch->set_toggle_mode(true);
 	light_1_switch->set_pressed(true);
 	vb_light->add_child(light_1_switch);
-	light_1_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_light_1_switch_pressed));
+	light_1_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_visibility_switch_pressed).bind(LIGHT_1));
 
 	light_2_switch = memnew(Button);
 	light_2_switch->set_theme_type_variation("PreviewLightButton");
 	light_2_switch->set_toggle_mode(true);
 	light_2_switch->set_pressed(true);
 	vb_light->add_child(light_2_switch);
-	light_2_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_light_2_switch_pressed));
+	light_2_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_visibility_switch_pressed).bind(LIGHT_2));
 
-	String shape = EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_mesh", "sphere");
-	if (shape == "sphere") {
-		box_instance->hide();
-		quad_instance->hide();
-		sphere_switch->set_pressed_no_signal(true);
-	} else if (shape == "box") {
-		sphere_instance->hide();
-		quad_instance->hide();
-		box_switch->set_pressed_no_signal(true);
-	} else {
-		sphere_instance->hide();
-		box_instance->hide();
-		quad_switch->set_pressed_no_signal(true);
-	}
+	floor_switch = memnew(Button);
+	floor_switch->set_theme_type_variation("PreviewLightButton");
+	floor_switch->set_toggle_mode(true);
+	floor_switch->set_pressed(false);
+	vb_light->add_child(floor_switch);
+	floor_switch->connect(SceneStringName(pressed), callable_mp(this, &MaterialEditor::_on_visibility_switch_pressed).bind(FLOOR));
 
-	Vector2 stored_rot = EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_rotation", Vector2());
-	_set_rotation(stored_rot.x, stored_rot.y);
+	Vector2 stored_rot = EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_rotation", Vector2(-30, 0));
+	rot.x = Math::deg_to_rad(stored_rot.x);
+	rot.y = Math::deg_to_rad(stored_rot.y);
+	cam_zoom = EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_zoom", 3.0);
+
+	shape = (Shape)(int)EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_mesh", SPHERE);
+	_on_shape_switch_pressed(shape);
+
+	light1->set_visible(EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_light1", true));
+	light_1_switch->set_pressed_no_signal(light1->is_visible());
+	light2->set_visible(EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_light2", false));
+	light_2_switch->set_pressed_no_signal(light2->is_visible());
+
+	bool floor_visible = EditorSettings::get_singleton()->get_project_metadata("inspector_options", "material_preview_floor", false);
+	floor_instance->set_visible(floor_visible);
+	floor_switch->set_pressed(floor_visible);
+
+	_update_camera();
 }
 
 ///////////////////////
@@ -382,7 +437,7 @@ void EditorInspectorPluginMaterial::parse_begin(Object *p_object) {
 	Ref<Material> m(material);
 
 	MaterialEditor *editor = memnew(MaterialEditor);
-	editor->edit(m, env);
+	editor->edit(m, default_environment);
 	add_custom_control(editor);
 }
 
@@ -422,14 +477,86 @@ void EditorInspectorPluginMaterial::_undo_redo_inspector_callback(Object *p_undo
 }
 
 EditorInspectorPluginMaterial::EditorInspectorPluginMaterial() {
-	env.instantiate();
+	default_environment.instantiate();
 	Ref<Sky> sky = memnew(Sky());
-	env->set_sky(sky);
-	env->set_background(Environment::BG_COLOR);
-	env->set_ambient_source(Environment::AMBIENT_SOURCE_SKY);
-	env->set_reflection_source(Environment::REFLECTION_SOURCE_SKY);
+	Ref<ProceduralSkyMaterial> sky_material;
+	sky_material.instantiate();
+	sky->set_material(sky_material);
+
+	default_environment->set_sky(sky);
+	default_environment->set_background(Environment::BG_SKY);
+	default_environment->set_ambient_source(Environment::AMBIENT_SOURCE_SKY);
+	default_environment->set_reflection_source(Environment::REFLECTION_SOURCE_SKY);
+	default_environment->set_tonemapper(Environment::TONE_MAPPER_FILMIC);
+	default_environment->set_glow_enabled(true);
 
 	EditorNode::get_editor_data().add_undo_redo_inspector_hook_callback(callable_mp(this, &EditorInspectorPluginMaterial::_undo_redo_inspector_callback));
+}
+
+void MaterialEditor::_update_environment() {
+	{
+		Ref<Environment> env = camera->get_environment();
+		String env_path = GLOBAL_GET("rendering/environment/material_preview/environment");
+		env_path = ResourceUID::get_singleton()->ensure_path(env_path.strip_edges());
+
+		if (!env_path.is_empty()) {
+			String type = ResourceLoader::get_resource_type(env_path);
+			if (!ClassDB::is_parent_class(type, "Environment")) {
+				// Wrong type, set as empty.
+				ProjectSettings::get_singleton()->set("rendering/environment/material_preview/environment", "");
+			}
+		}
+
+		String cpath;
+		Ref<Environment> fallback = viewport->get_world_3d()->get_fallback_environment();
+		if (fallback.is_valid()) {
+			cpath = fallback->get_path();
+		}
+		if (cpath != env_path) {
+			if (!env_path.is_empty()) {
+				fallback = ResourceLoader::load(env_path);
+				if (fallback.is_null()) {
+					// Could not load fallback, set as empty.
+					ProjectSettings::get_singleton()->set("rendering/environment/material_preview/environment", "");
+				}
+			} else {
+				fallback.unref();
+			}
+		}
+		viewport->get_world_3d()->set_environment(fallback);
+	}
+
+	{
+		String mat_path = GLOBAL_GET("rendering/environment/material_preview/floor_material");
+		mat_path = ResourceUID::get_singleton()->ensure_path(mat_path.strip_edges());
+
+		if (!mat_path.is_empty()) {
+			String type = ResourceLoader::get_resource_type(mat_path);
+			if (!ClassDB::is_parent_class(type, "BaseMaterial3D")) {
+				// Wrong type, set as empty.
+				ProjectSettings::get_singleton()->set("rendering/environment/material_preview/floor_material", "");
+			}
+		}
+
+		String cpath;
+		Ref<BaseMaterial3D> fallback_mat = floor_mesh->get_material();
+		if (fallback_mat.is_valid()) {
+			cpath = fallback_mat->get_path();
+		}
+		if (cpath != mat_path) {
+			if (!mat_path.is_empty()) {
+				fallback_mat = ResourceLoader::load(mat_path);
+				if (fallback_mat.is_null()) {
+					// Could not load fallback, set as empty.
+					ProjectSettings::get_singleton()->set("rendering/environment/material_preview/floor_material", "");
+					fallback_mat = default_floor_material;
+				}
+			} else {
+				fallback_mat = default_floor_material;
+			}
+		}
+		floor_mesh->set_material(fallback_mat);
+	}
 }
 
 MaterialEditorPlugin::MaterialEditorPlugin() {

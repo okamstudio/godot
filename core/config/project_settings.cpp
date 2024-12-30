@@ -1583,6 +1583,27 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "rendering/textures/canvas_textures/default_texture_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Linear Mipmap,Nearest Mipmap"), 1);
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "rendering/textures/canvas_textures/default_texture_repeat", PROPERTY_HINT_ENUM, "Disable,Enable,Mirror"), 0);
 
+	List<String> exts;
+	ResourceLoader::get_recognized_extensions_for_type("Environment", &exts);
+	String ext_hint;
+	for (const String &E : exts) {
+		if (!ext_hint.is_empty()) {
+			ext_hint += ",";
+		}
+		ext_hint += "*." + E;
+	}
+	GLOBAL_DEF(PropertyInfo(Variant::STRING, "rendering/environment/material_preview/environment", PROPERTY_HINT_FILE, ext_hint), "");
+	List<String> mat_exts;
+	ResourceLoader::get_recognized_extensions_for_type("BaseMaterial3D", &mat_exts);
+	String mat_ext_hint;
+	for (const String &E : mat_exts) {
+		if (!mat_ext_hint.is_empty()) {
+			mat_ext_hint += ",";
+		}
+		mat_ext_hint += "*." + E;
+	}
+	GLOBAL_DEF(PropertyInfo(Variant::STRING, "rendering/environment/material_preview/floor_material", PROPERTY_HINT_FILE, mat_ext_hint), "");
+
 	GLOBAL_DEF("collada/use_ambient", false);
 
 	// Input settings
