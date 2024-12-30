@@ -209,3 +209,7 @@ Vector2::operator String() const {
 Vector2::operator Vector2i() const {
 	return Vector2i(x, y);
 }
+
+bool Vector2::operator==(const Vector2i &p_vec2) const {
+	return operator==((Vector2)p_vec2);
+}

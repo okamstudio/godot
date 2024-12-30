@@ -60,10 +60,7 @@ public:
 	bool operator==(const SemVer &b) const {
 		return cmp(*this, b) == 0;
 	}
-
-	bool operator!=(const SemVer &b) const {
-		return !operator==(b);
-	}
+	INEQUALITY_OPERATOR(const SemVer &)
 
 	bool operator<(const SemVer &b) const {
 		return cmp(*this, b) < 0;

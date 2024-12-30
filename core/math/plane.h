@@ -77,7 +77,7 @@ struct [[nodiscard]] Plane {
 	bool is_finite() const;
 
 	_FORCE_INLINE_ bool operator==(const Plane &p_plane) const;
-	_FORCE_INLINE_ bool operator!=(const Plane &p_plane) const;
+	INEQUALITY_OPERATOR(const Plane &)
 	operator String() const;
 
 	_FORCE_INLINE_ Plane() {}
@@ -127,10 +127,6 @@ Plane::Plane(const Vector3 &p_point1, const Vector3 &p_point2, const Vector3 &p_
 
 bool Plane::operator==(const Plane &p_plane) const {
 	return normal == p_plane.normal && d == p_plane.d;
-}
-
-bool Plane::operator!=(const Plane &p_plane) const {
-	return normal != p_plane.normal || d != p_plane.d;
 }
 
 #endif // PLANE_H

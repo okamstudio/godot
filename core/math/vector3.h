@@ -177,11 +177,14 @@ struct [[nodiscard]] Vector3 {
 	_FORCE_INLINE_ Vector3 operator-() const;
 
 	_FORCE_INLINE_ bool operator==(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator!=(const Vector3 &p_v) const;
+	INEQUALITY_OPERATOR(const Vector3 &)
 	_FORCE_INLINE_ bool operator<(const Vector3 &p_v) const;
 	_FORCE_INLINE_ bool operator<=(const Vector3 &p_v) const;
 	_FORCE_INLINE_ bool operator>(const Vector3 &p_v) const;
 	_FORCE_INLINE_ bool operator>=(const Vector3 &p_v) const;
+
+	bool operator==(const Vector3i &p_vec3) const;
+	INEQUALITY_OPERATOR(const Vector3i &)
 
 	operator String() const;
 	operator Vector3i() const;
@@ -419,10 +422,6 @@ Vector3 Vector3::operator-() const {
 
 bool Vector3::operator==(const Vector3 &p_v) const {
 	return x == p_v.x && y == p_v.y && z == p_v.z;
-}
-
-bool Vector3::operator!=(const Vector3 &p_v) const {
-	return x != p_v.x || y != p_v.y || z != p_v.z;
 }
 
 bool Vector3::operator<(const Vector3 &p_v) const {

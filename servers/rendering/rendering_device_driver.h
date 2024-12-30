@@ -134,7 +134,7 @@ public:
 		}                                                                                             \
 		_ALWAYS_INLINE_ bool operator<(const m_name##ID &p_other) const { return id < p_other.id; }   \
 		_ALWAYS_INLINE_ bool operator==(const m_name##ID &p_other) const { return id == p_other.id; } \
-		_ALWAYS_INLINE_ bool operator!=(const m_name##ID &p_other) const { return id != p_other.id; } \
+		INEQUALITY_OPERATOR(const m_name##ID &)                                                       \
 		_ALWAYS_INLINE_ m_name##ID(const m_name##ID &p_other) : ID(p_other.id) {}                     \
 		_ALWAYS_INLINE_ explicit m_name##ID(uint64_t p_int) : ID(p_int) {}                            \
 		_ALWAYS_INLINE_ explicit m_name##ID(void *p_ptr) : ID((uint64_t)p_ptr) {}                     \

@@ -153,10 +153,6 @@ bool NodePath::operator==(const NodePath &p_path) const {
 	return true;
 }
 
-bool NodePath::operator!=(const NodePath &p_path) const {
-	return (!(*this == p_path));
-}
-
 void NodePath::operator=(const NodePath &p_path) {
 	if (this == &p_path) {
 		return;

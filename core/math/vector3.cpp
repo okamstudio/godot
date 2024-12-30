@@ -171,3 +171,7 @@ Vector3::operator String() const {
 Vector3::operator Vector3i() const {
 	return Vector3i(x, y, z);
 }
+
+bool Vector3::operator==(const Vector3i &p_vec3) const {
+	return operator==((Vector3)p_vec3);
+}

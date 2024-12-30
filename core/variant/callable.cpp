@@ -286,10 +286,6 @@ bool Callable::operator==(const Callable &p_callable) const {
 	}
 }
 
-bool Callable::operator!=(const Callable &p_callable) const {
-	return !(*this == p_callable);
-}
-
 bool Callable::operator<(const Callable &p_callable) const {
 	bool custom_a = is_custom();
 	bool custom_b = p_callable.is_custom();
@@ -502,10 +498,6 @@ StringName Signal::get_name() const {
 
 bool Signal::operator==(const Signal &p_signal) const {
 	return object == p_signal.object && name == p_signal.name;
-}
-
-bool Signal::operator!=(const Signal &p_signal) const {
-	return object != p_signal.object || name != p_signal.name;
 }
 
 bool Signal::operator<(const Signal &p_signal) const {

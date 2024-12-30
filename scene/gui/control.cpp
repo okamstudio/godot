@@ -1010,56 +1010,56 @@ int Control::_get_anchors_layout_preset() const {
 	float top = get_anchor(SIDE_TOP);
 	float bottom = get_anchor(SIDE_BOTTOM);
 
-	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_BEGIN && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_BEGIN) {
 		return (int)LayoutPreset::PRESET_TOP_LEFT;
 	}
-	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
+	if (left == (int)ANCHOR_END && right == (int)ANCHOR_END && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_BEGIN) {
 		return (int)LayoutPreset::PRESET_TOP_RIGHT;
 	}
-	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_END && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_BEGIN && top == (int)ANCHOR_END && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_BOTTOM_LEFT;
 	}
-	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_END && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_END && right == (int)ANCHOR_END && top == (int)ANCHOR_END && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_BOTTOM_RIGHT;
 	}
 
-	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == 0.5 && bottom == 0.5) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_BEGIN && top == 0.5 && bottom == 0.5) {
 		return (int)LayoutPreset::PRESET_CENTER_LEFT;
 	}
-	if (left == ANCHOR_END && right == ANCHOR_END && top == 0.5 && bottom == 0.5) {
+	if (left == (int)ANCHOR_END && right == (int)ANCHOR_END && top == 0.5 && bottom == 0.5) {
 		return (int)LayoutPreset::PRESET_CENTER_RIGHT;
 	}
-	if (left == 0.5 && right == 0.5 && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
+	if (left == 0.5 && right == 0.5 && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_BEGIN) {
 		return (int)LayoutPreset::PRESET_CENTER_TOP;
 	}
-	if (left == 0.5 && right == 0.5 && top == ANCHOR_END && bottom == ANCHOR_END) {
+	if (left == 0.5 && right == 0.5 && top == (int)ANCHOR_END && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_CENTER_BOTTOM;
 	}
 	if (left == 0.5 && right == 0.5 && top == 0.5 && bottom == 0.5) {
 		return (int)LayoutPreset::PRESET_CENTER;
 	}
 
-	if (left == ANCHOR_BEGIN && right == ANCHOR_BEGIN && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_BEGIN && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_LEFT_WIDE;
 	}
-	if (left == ANCHOR_END && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_END && right == (int)ANCHOR_END && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_RIGHT_WIDE;
 	}
-	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_BEGIN) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_END && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_BEGIN) {
 		return (int)LayoutPreset::PRESET_TOP_WIDE;
 	}
-	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_END && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_END && top == (int)ANCHOR_END && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_BOTTOM_WIDE;
 	}
 
-	if (left == 0.5 && right == 0.5 && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
+	if (left == 0.5 && right == 0.5 && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_VCENTER_WIDE;
 	}
-	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == 0.5 && bottom == 0.5) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_END && top == 0.5 && bottom == 0.5) {
 		return (int)LayoutPreset::PRESET_HCENTER_WIDE;
 	}
 
-	if (left == ANCHOR_BEGIN && right == ANCHOR_END && top == ANCHOR_BEGIN && bottom == ANCHOR_END) {
+	if (left == (int)ANCHOR_BEGIN && right == (int)ANCHOR_END && top == (int)ANCHOR_BEGIN && bottom == (int)ANCHOR_END) {
 		return (int)LayoutPreset::PRESET_FULL_RECT;
 	}
 

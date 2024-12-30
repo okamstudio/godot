@@ -78,7 +78,7 @@ struct [[nodiscard]] Transform3D {
 	bool is_finite() const;
 
 	bool operator==(const Transform3D &p_transform) const;
-	bool operator!=(const Transform3D &p_transform) const;
+	INEQUALITY_OPERATOR(const Transform3D &)
 
 	_FORCE_INLINE_ Vector3 xform(const Vector3 &p_vector) const;
 	_FORCE_INLINE_ AABB xform(const AABB &p_aabb) const;

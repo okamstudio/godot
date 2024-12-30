@@ -526,6 +526,73 @@ public:
 
 #undef VARIANT_ENUM_CLASS_CONSTRUCTOR
 
+#define VARIANT_OPERATOR_CONSTRUCTOR(m_type)                                                   \
+	_FORCE_INLINE_ bool operator==(m_type p_other) const { return *this == Variant(p_other); } \
+	INEQUALITY_OPERATOR(m_type)
+#define VARIANT_OPERATOR_CONSTRUCTOR_TEMPLATE(m_type, ...)                                     \
+	template <__VA_ARGS__>                                                                     \
+	_FORCE_INLINE_ bool operator==(m_type p_other) const { return *this == Variant(p_other); } \
+	INEQUALITY_OPERATOR_TEMPLATE(m_type, __VA_ARGS__)
+
+	VARIANT_OPERATOR_CONSTRUCTOR(bool)
+	VARIANT_OPERATOR_CONSTRUCTOR(int64_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(int32_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(int16_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(int8_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(uint64_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(uint32_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(uint16_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(uint8_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(double)
+	VARIANT_OPERATOR_CONSTRUCTOR(float)
+	VARIANT_OPERATOR_CONSTRUCTOR(const String &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const char *)
+	VARIANT_OPERATOR_CONSTRUCTOR(char32_t)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector2 &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector2i &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Rect2 &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Rect2i &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector3 &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector3i &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Transform2D &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector4 &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector4i &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Plane &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Quaternion &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const ::AABB &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Basis &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Transform3D &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Projection &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Color &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const StringName &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const NodePath &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const ::RID &)
+	VARIANT_OPERATOR_CONSTRUCTOR_TEMPLATE(const T *, typename T, std::enable_if_t<std::is_base_of_v<Object, T>, int> = 0)
+	VARIANT_OPERATOR_CONSTRUCTOR(const ObjectID &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Callable &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Signal &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Dictionary &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedByteArray &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedInt32Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedInt64Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedFloat32Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedFloat64Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedStringArray &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedVector2Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedVector3Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedColorArray &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const PackedVector4Array &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector<::RID> &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector<Plane> &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector<Face3> &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector<Variant> &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const Vector<StringName> &)
+	VARIANT_OPERATOR_CONSTRUCTOR(const IPAddress &)
+
+#undef VARIANT_OPERATOR_CONSTRUCTOR
+#undef VARIANT_OPERATOR_CONSTRUCTOR_TEMPLATE
+
 	// If this changes the table in variant_op must be updated
 	enum Operator {
 		//comparison
@@ -781,7 +848,7 @@ public:
 	//argsVariant call()
 
 	bool operator==(const Variant &p_variant) const;
-	bool operator!=(const Variant &p_variant) const;
+	INEQUALITY_OPERATOR(const Variant &)
 	bool operator<(const Variant &p_variant) const;
 	uint32_t hash() const;
 	uint32_t recursive_hash(int recursion_count) const;

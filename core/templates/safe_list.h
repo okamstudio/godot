@@ -106,19 +106,13 @@ public:
 		bool operator==(const void *p_other) const {
 			return cursor == p_other;
 		}
-
-		bool operator!=(const void *p_other) const {
-			return cursor != p_other;
-		}
+		INEQUALITY_OPERATOR(const void *)
 
 		// These two allow easy range-based for loops.
 		bool operator==(const Iterator &p_other) const {
 			return cursor == p_other.cursor;
 		}
-
-		bool operator!=(const Iterator &p_other) const {
-			return cursor != p_other.cursor;
-		}
+		INEQUALITY_OPERATOR(const Iterator &)
 	};
 
 public:

@@ -34,7 +34,7 @@
 #include "core/math/vector2.h"
 #include "core/typedefs.h"
 
-static inline float undenormalize(volatile float f) {
+static inline float undenormalize(float f) {
 	union {
 		uint32_t i;
 		float f;

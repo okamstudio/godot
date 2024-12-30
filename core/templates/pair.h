@@ -47,17 +47,12 @@ struct Pair {
 			first(p_first),
 			second(p_second) {
 	}
+
+	bool operator==(const Pair &other) const {
+		return (first == other.first) && (second == other.second);
+	}
+	INEQUALITY_OPERATOR(const Pair &)
 };
-
-template <typename F, typename S>
-bool operator==(const Pair<F, S> &pair, const Pair<F, S> &other) {
-	return (pair.first == other.first) && (pair.second == other.second);
-}
-
-template <typename F, typename S>
-bool operator!=(const Pair<F, S> &pair, const Pair<F, S> &other) {
-	return (pair.first != other.first) || (pair.second != other.second);
-}
 
 template <typename F, typename S>
 struct PairSort {
@@ -92,17 +87,12 @@ struct KeyValue {
 			key(p_key),
 			value(p_value) {
 	}
+
+	bool operator==(const KeyValue &other) const {
+		return (key == other.key) && (value == other.value);
+	}
+	INEQUALITY_OPERATOR(const KeyValue &)
 };
-
-template <typename K, typename V>
-bool operator==(const KeyValue<K, V> &pair, const KeyValue<K, V> &other) {
-	return (pair.key == other.key) && (pair.value == other.value);
-}
-
-template <typename K, typename V>
-bool operator!=(const KeyValue<K, V> &pair, const KeyValue<K, V> &other) {
-	return (pair.key != other.key) || (pair.value != other.value);
-}
 
 template <typename K, typename V>
 struct KeyValueSort {

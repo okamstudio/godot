@@ -66,11 +66,11 @@ jobs:
             legacy-scons: true
             cache-limit: 7
 
-          - name: Editor with ThreadSanitizer (target=editor, tests=yes, dev_build=yes, use_tsan=yes, use_llvm=yes, linker=lld)
+          - name: Editor with ThreadSanitizer and C++20 (target=editor, tests=yes, dev_build=yes, use_tsan=yes, use_llvm=yes, linker=lld, cpp_standard=20)
             cache-name: linux-editor-thread-sanitizer
             target: editor
             tests: true
-            sconsflags: dev_build=yes use_tsan=yes use_llvm=yes linker=lld
+            sconsflags: dev_build=yes use_tsan=yes use_llvm=yes linker=lld cpp_standard=20
             bin: ./bin/godot.linuxbsd.editor.dev.x86_64.llvm.san
             build-mono: false
             # Skip 2GiB artifact speeding up action.

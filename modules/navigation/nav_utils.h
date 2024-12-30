@@ -142,10 +142,7 @@ struct NavigationPoly {
 	bool operator==(const NavigationPoly &p_other) const {
 		return poly == p_other.poly;
 	}
-
-	bool operator!=(const NavigationPoly &p_other) const {
-		return !(*this == p_other);
-	}
+	INEQUALITY_OPERATOR(const NavigationPoly &)
 
 	void reset() {
 		poly = nullptr;

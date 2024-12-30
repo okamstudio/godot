@@ -221,3 +221,7 @@ static_assert(sizeof(Vector4) == 4 * sizeof(real_t));
 Vector4::operator Vector4i() const {
 	return Vector4i(x, y, z, w);
 }
+
+bool Vector4::operator==(const Vector4i &p_vec4) const {
+	return operator==((Vector4)p_vec4);
+}

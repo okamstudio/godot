@@ -41,10 +41,6 @@ bool AABB::operator==(const AABB &p_rval) const {
 	return ((position == p_rval.position) && (size == p_rval.size));
 }
 
-bool AABB::operator!=(const AABB &p_rval) const {
-	return ((position != p_rval.position) || (size != p_rval.size));
-}
-
 void AABB::merge_with(const AABB &p_aabb) {
 #ifdef MATH_CHECKS
 	if (unlikely(size.x < 0 || size.y < 0 || size.z < 0 || p_aabb.size.x < 0 || p_aabb.size.y < 0 || p_aabb.size.z < 0)) {

@@ -55,9 +55,7 @@ public:
 	_ALWAYS_INLINE_ bool operator>=(const RID &p_rid) const {
 		return _id >= p_rid._id;
 	}
-	_ALWAYS_INLINE_ bool operator!=(const RID &p_rid) const {
-		return _id != p_rid._id;
-	}
+	INEQUALITY_OPERATOR(const RID &)
 	_ALWAYS_INLINE_ bool is_valid() const { return _id != 0; }
 	_ALWAYS_INLINE_ bool is_null() const { return _id == 0; }
 

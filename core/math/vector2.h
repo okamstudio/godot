@@ -152,7 +152,9 @@ struct [[nodiscard]] Vector2 {
 	Vector2 operator-() const;
 
 	bool operator==(const Vector2 &p_vec2) const;
-	bool operator!=(const Vector2 &p_vec2) const;
+	INEQUALITY_OPERATOR(const Vector2 &)
+	bool operator==(const Vector2i &p_vec2) const;
+	INEQUALITY_OPERATOR(const Vector2i &)
 
 	bool operator<(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y < p_vec2.y) : (x < p_vec2.x); }
 	bool operator>(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y > p_vec2.y) : (x > p_vec2.x); }
@@ -245,10 +247,6 @@ _FORCE_INLINE_ Vector2 Vector2::operator-() const {
 
 _FORCE_INLINE_ bool Vector2::operator==(const Vector2 &p_vec2) const {
 	return x == p_vec2.x && y == p_vec2.y;
-}
-
-_FORCE_INLINE_ bool Vector2::operator!=(const Vector2 &p_vec2) const {
-	return x != p_vec2.x || y != p_vec2.y;
 }
 
 Vector2 Vector2::lerp(const Vector2 &p_to, real_t p_weight) const {

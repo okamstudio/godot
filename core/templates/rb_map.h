@@ -114,7 +114,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool operator==(const Iterator &p_it) const { return E == p_it.E; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &p_it) const { return E != p_it.E; }
+		INEQUALITY_OPERATOR(const Iterator &)
 		explicit operator bool() const {
 			return E != nullptr;
 		}
@@ -146,7 +146,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool operator==(const ConstIterator &p_it) const { return E == p_it.E; }
-		_FORCE_INLINE_ bool operator!=(const ConstIterator &p_it) const { return E != p_it.E; }
+		INEQUALITY_OPERATOR(const ConstIterator &)
 		explicit operator bool() const {
 			return E != nullptr;
 		}

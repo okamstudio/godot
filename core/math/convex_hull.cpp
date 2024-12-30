@@ -40,6 +40,7 @@
  * - adapted to Godot's code style
  * - replaced Bullet's types (e.g. vectors) with Godot's
  * - replaced custom Pool implementation with PagedAllocator
+ * - replaced Point32's inequality operator with macro
  */
 
 /*
@@ -136,9 +137,7 @@ public:
 			return (x == b.x) && (y == b.y) && (z == b.z);
 		}
 
-		bool operator!=(const Point32 &b) const {
-			return (x != b.x) || (y != b.y) || (z != b.z);
-		}
+		INEQUALITY_OPERATOR(const Point32 &)
 
 		bool is_zero() {
 			return (x == 0) && (y == 0) && (z == 0);

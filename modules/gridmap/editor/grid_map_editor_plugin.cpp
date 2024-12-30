@@ -1129,13 +1129,13 @@ void GridMapEditor::_draw_grids(const Vector3 &cell_size) {
 		for (int j = -GRID_CURSOR_SIZE; j <= GRID_CURSOR_SIZE; j++) {
 			for (int k = -GRID_CURSOR_SIZE; k <= GRID_CURSOR_SIZE; k++) {
 				Vector3 p = axis_n1 * j + axis_n2 * k;
-				float trans = Math::pow(MAX(0, 1.0 - (Vector2(j, k).length() / GRID_CURSOR_SIZE)), 2);
+				float trans = Math::pow(MAX(0, 1.0 - (Vector2(j, k).length() / (int)GRID_CURSOR_SIZE)), 2);
 
 				Vector3 pj = axis_n1 * (j + 1) + axis_n2 * k;
-				float transj = Math::pow(MAX(0, 1.0 - (Vector2(j + 1, k).length() / GRID_CURSOR_SIZE)), 2);
+				float transj = Math::pow(MAX(0, 1.0 - (Vector2(j + 1, k).length() / (int)GRID_CURSOR_SIZE)), 2);
 
 				Vector3 pk = axis_n1 * j + axis_n2 * (k + 1);
-				float transk = Math::pow(MAX(0, 1.0 - (Vector2(j, k + 1).length() / GRID_CURSOR_SIZE)), 2);
+				float transk = Math::pow(MAX(0, 1.0 - (Vector2(j, k + 1).length() / (int)GRID_CURSOR_SIZE)), 2);
 
 				grid_points[i].push_back(p);
 				grid_points[i].push_back(pk);

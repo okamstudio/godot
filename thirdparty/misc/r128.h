@@ -302,8 +302,10 @@ struct numeric_limits<R128>
    static const bool has_infinity = false;
    static const bool has_quiet_NaN = false;
    static const bool has_signaling_NaN = false;
+#if !(__cplusplus > 202002L || (defined(_MSVC_LANG) && _MSVC_LANG > 202002L))
    static const float_denorm_style has_denorm = denorm_absent;
    static const bool has_denorm_loss = false;
+#endif
 
    static R128 infinity() throw() { return R128_zero; }
    static R128 quiet_NaN() throw() { return R128_zero; }

@@ -226,10 +226,7 @@ public:
 
 			return false;
 		}
-
-		bool operator!=(const DataType &p_other) const {
-			return !(*this == p_other);
-		}
+		INEQUALITY_OPERATOR(const DataType &)
 
 		void operator=(const DataType &p_other) {
 			kind = p_other.kind;

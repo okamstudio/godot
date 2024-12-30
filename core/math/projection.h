@@ -143,10 +143,7 @@ struct [[nodiscard]] Projection {
 		}
 		return true;
 	}
-
-	bool operator!=(const Projection &p_cam) const {
-		return !(*this == p_cam);
-	}
+	INEQUALITY_OPERATOR(const Projection &)
 
 	real_t get_lod_multiplier() const;
 

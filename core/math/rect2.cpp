@@ -42,6 +42,10 @@ bool Rect2::is_finite() const {
 	return position.is_finite() && size.is_finite();
 }
 
+bool Rect2::operator==(const Rect2i &p_rect) const {
+	return position == p_rect.get_position() && size == p_rect.get_position();
+}
+
 bool Rect2::intersects_segment(const Point2 &p_from, const Point2 &p_to, Point2 *r_pos, Point2 *r_normal) const {
 #ifdef MATH_CHECKS
 	if (unlikely(size.x < 0 || size.y < 0)) {

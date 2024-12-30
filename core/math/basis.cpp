@@ -710,10 +710,6 @@ bool Basis::operator==(const Basis &p_matrix) const {
 	return true;
 }
 
-bool Basis::operator!=(const Basis &p_matrix) const {
-	return (!(*this == p_matrix));
-}
-
 Basis::operator String() const {
 	return "[X: " + get_column(0).operator String() +
 			", Y: " + get_column(1).operator String() +

@@ -89,9 +89,8 @@ public:
 	_FORCE_INLINE_ bool operator==(const T *p_ptr) const {
 		return reference == p_ptr;
 	}
-	_FORCE_INLINE_ bool operator!=(const T *p_ptr) const {
-		return reference != p_ptr;
-	}
+	INEQUALITY_OPERATOR(const T *)
+
 #ifdef STRICT_CHECKS
 	// Delete these to prevent raw comparisons with `nullptr`.
 	bool operator==(std::nullptr_t) const = delete;
@@ -104,9 +103,18 @@ public:
 	_FORCE_INLINE_ bool operator==(const Ref<T> &p_r) const {
 		return reference == p_r.reference;
 	}
-	_FORCE_INLINE_ bool operator!=(const Ref<T> &p_r) const {
-		return reference != p_r.reference;
+	INEQUALITY_OPERATOR(const Ref &)
+
+	template <typename T_Other>
+	_FORCE_INLINE_ bool operator==(const Ref<T_Other> &p_r) const {
+		return reference == p_r.ptr();
 	}
+	INEQUALITY_OPERATOR_TEMPLATE(const Ref<T_Other> &, typename T_Other)
+
+	_FORCE_INLINE_ bool operator==(const Variant &p_r) const {
+		return *this == Ref(p_r);
+	}
+	INEQUALITY_OPERATOR(const Variant &)
 
 	_FORCE_INLINE_ T *operator*() const {
 		return reference;

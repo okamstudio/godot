@@ -126,7 +126,7 @@ struct [[nodiscard]] Vector2i {
 	bool operator>=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
 
 	bool operator==(const Vector2i &p_vec2) const;
-	bool operator!=(const Vector2i &p_vec2) const;
+	INEQUALITY_OPERATOR(const Vector2i &)
 
 	int64_t length_squared() const;
 	double length() const;

@@ -204,19 +204,7 @@ public:
 		}
 		return true;
 	}
-
-	bool operator!=(const Vector<T> &p_arr) const {
-		Size s = size();
-		if (s != p_arr.size()) {
-			return true;
-		}
-		for (Size i = 0; i < s; i++) {
-			if (operator[](i) != p_arr[i]) {
-				return true;
-			}
-		}
-		return false;
-	}
+	INEQUALITY_OPERATOR(const Vector &)
 
 	struct Iterator {
 		_FORCE_INLINE_ T &operator*() const {
@@ -233,7 +221,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return elem_ptr == b.elem_ptr; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return elem_ptr != b.elem_ptr; }
+		INEQUALITY_OPERATOR(const Iterator &)
 
 		Iterator(T *p_ptr) { elem_ptr = p_ptr; }
 		Iterator() {}
@@ -258,7 +246,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool operator==(const ConstIterator &b) const { return elem_ptr == b.elem_ptr; }
-		_FORCE_INLINE_ bool operator!=(const ConstIterator &b) const { return elem_ptr != b.elem_ptr; }
+		INEQUALITY_OPERATOR(const ConstIterator &)
 
 		ConstIterator(const T *p_ptr) { elem_ptr = p_ptr; }
 		ConstIterator() {}

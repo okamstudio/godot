@@ -55,7 +55,7 @@ class AbstractPolygon2DEditor : public HBoxContainer {
 				vertex(p_vertex) {}
 
 		bool operator==(const Vertex &p_vertex) const;
-		bool operator!=(const Vertex &p_vertex) const;
+		INEQUALITY_OPERATOR(const Vertex &)
 
 		bool valid() const;
 

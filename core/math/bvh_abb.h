@@ -58,7 +58,7 @@ struct BVH_ABB {
 	POINT neg_max;
 
 	bool operator==(const BVH_ABB &o) const { return (min == o.min) && (neg_max == o.neg_max); }
-	bool operator!=(const BVH_ABB &o) const { return (*this == o) == false; }
+	INEQUALITY_OPERATOR(const BVH_ABB &)
 
 	void set(const POINT &_min, const POINT &_max) {
 		min = _min;
