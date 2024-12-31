@@ -446,6 +446,30 @@ void GodotSoftBody3D::apply_node_impulse(uint32_t p_node_index, const Vector3 &p
 	node.v += p_impulse * node.im;
 }
 
+void GodotSoftBody3D::apply_node_force(uint32_t p_node_index, const Vector3 &p_force) {
+	ERR_FAIL_UNSIGNED_INDEX(p_node_index, nodes.size());
+	Node &node = nodes[p_node_index];
+	node.f += p_force;
+}
+
+void GodotSoftBody3D::apply_central_impulse(const Vector3 &p_impulse) {
+	const Vector3 impulse = p_impulse / nodes.size();
+	for (Node &node : nodes) {
+		if (node.im > 0) {
+			node.v += impulse * node.im;
+		}
+	}
+}
+
+void GodotSoftBody3D::apply_central_force(const Vector3 &p_force) {
+	const Vector3 force = p_force / nodes.size();
+	for (Node &node : nodes) {
+		if (node.im > 0) {
+			node.f += force;
+		}
+	}
+}
+
 void GodotSoftBody3D::apply_node_bias_impulse(uint32_t p_node_index, const Vector3 &p_impulse) {
 	ERR_FAIL_UNSIGNED_INDEX(p_node_index, nodes.size());
 	Node &node = nodes[p_node_index];

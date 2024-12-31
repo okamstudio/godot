@@ -358,6 +358,11 @@ void PhysicsServer3DExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_soft_body_pin_point, "body", "point_index", "pin");
 	GDVIRTUAL_BIND(_soft_body_is_point_pinned, "body", "point_index");
 
+	GDVIRTUAL_BIND(_soft_body_apply_point_impulse, "body", "impulse", "point_index");
+	GDVIRTUAL_BIND(_soft_body_apply_point_force, "body", "force", "point_index");
+	GDVIRTUAL_BIND(_soft_body_apply_central_impulse, "body", "impulse");
+	GDVIRTUAL_BIND(_soft_body_apply_central_force, "body", "force");
+
 	/* JOINT API */
 
 	GDVIRTUAL_BIND(_joint_create);

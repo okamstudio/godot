@@ -288,6 +288,33 @@ void JoltPhysicsServer3D::area_set_space(RID p_area, RID p_space) {
 	area->set_space(space);
 }
 
+void JoltPhysicsServer3D::soft_body_apply_point_impulse(RID p_body, const Vector3 p_impulse, int p_node_index) {
+	JoltSoftBody3D *body = soft_body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL(body);
+
+	body->apply_node_impulse(p_node_index, p_impulse);
+}
+
+void JoltPhysicsServer3D::soft_body_apply_point_force(RID p_body, const Vector3 p_force, int p_node_index) {
+	JoltSoftBody3D *body = soft_body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL(body);
+
+	body->apply_node_force(p_node_index, p_force);
+}
+
+void JoltPhysicsServer3D::soft_body_apply_central_impulse(RID p_body, const Vector3 p_impulse) {
+	JoltSoftBody3D *body = soft_body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL(body);
+
+	body->apply_central_impulse(p_impulse);
+}
+void JoltPhysicsServer3D::soft_body_apply_central_force(RID p_body, const Vector3 p_force) {
+	JoltSoftBody3D *body = soft_body_owner.get_or_null(p_body);
+	ERR_FAIL_NULL(body);
+
+	body->apply_central_force(p_force);
+}
+
 RID JoltPhysicsServer3D::area_get_space(RID p_area) const {
 	const JoltArea3D *area = area_owner.get_or_null(p_area);
 	ERR_FAIL_NULL_V(area, RID());

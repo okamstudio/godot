@@ -189,6 +189,11 @@ public:
 	void set_ray_pickable(bool p_ray_pickable);
 	bool is_ray_pickable() const;
 
+	void apply_impulse(Vector3 p_impulse, int p_point_index);
+	void apply_force(Vector3 p_force, int p_point_index);
+	void apply_central_impulse(Vector3 p_impulse);
+	void apply_central_force(Vector3 p_force);
+
 	SoftBody3D();
 	~SoftBody3D();
 

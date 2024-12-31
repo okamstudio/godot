@@ -213,6 +213,11 @@ public:
 	virtual void body_apply_impulse(RID p_body, const Vector3 &p_impulse, const Vector3 &p_position = Vector3()) override;
 	virtual void body_apply_torque_impulse(RID p_body, const Vector3 &p_impulse) override;
 
+	virtual void soft_body_apply_point_impulse(RID p_body, const Vector3 p_impulse, int p_point_index) override;
+	virtual void soft_body_apply_point_force(RID p_body, const Vector3 p_force, int p_point_index) override;
+	virtual void soft_body_apply_central_impulse(RID p_body, const Vector3 p_impulse) override;
+	virtual void soft_body_apply_central_force(RID p_body, const Vector3 p_force) override;
+
 	virtual void body_apply_central_force(RID p_body, const Vector3 &p_force) override;
 	virtual void body_apply_force(RID p_body, const Vector3 &p_force, const Vector3 &p_position = Vector3()) override;
 	virtual void body_apply_torque(RID p_body, const Vector3 &p_torque) override;

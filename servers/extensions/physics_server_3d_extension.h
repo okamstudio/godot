@@ -466,6 +466,11 @@ public:
 	EXBIND3(soft_body_pin_point, RID, int, bool)
 	EXBIND2RC(bool, soft_body_is_point_pinned, RID, int)
 
+	EXBIND3(soft_body_apply_point_impulse, RID, Vector3, int)
+	EXBIND3(soft_body_apply_point_force, RID, Vector3, int)
+	EXBIND2(soft_body_apply_central_impulse, RID, Vector3)
+	EXBIND2(soft_body_apply_central_force, RID, Vector3)
+
 	/* JOINT API */
 
 	EXBIND0R(RID, joint_create)
