@@ -136,10 +136,8 @@ void ColorPicker::_notification(int p_what) {
 
 			_reset_sliders_theme();
 
-			if (Engine::get_singleton()->is_editor_hint()) {
-				// Adjust for the width of the "Script" icon.
-				text_type->set_custom_minimum_size(Size2(28 * theme_cache.base_scale, 0));
-			}
+			// Adjust for the width of the "script" icon.
+			text_type->set_custom_minimum_size(Size2(28 * theme_cache.base_scale, 0));
 
 			_update_presets();
 			_update_recent_presets();
@@ -612,7 +610,7 @@ void ColorPicker::_reset_sliders_theme() {
 }
 
 void ColorPicker::_html_submitted(const String &p_html) {
-	if (updating || text_is_constructor || !c_text->is_visible()) {
+	if (updating || text_is_constructor || !c_text->is_editable()) {
 		return;
 	}
 
@@ -755,9 +753,7 @@ void ColorPicker::_text_type_toggled() {
 	text_is_constructor = !text_is_constructor;
 	if (text_is_constructor) {
 		text_type->set_text("");
-#ifdef TOOLS_ENABLED
-		text_type->set_button_icon(get_editor_theme_icon(SNAME("Script")));
-#endif
+		text_type->set_button_icon(theme_cache.color_script);
 
 		c_text->set_editable(false);
 		c_text->set_tooltip_text(RTR("Copy this constructor in a script."));
@@ -768,7 +764,7 @@ void ColorPicker::_text_type_toggled() {
 		c_text->set_editable(true);
 		c_text->set_tooltip_text(ETR("Enter a hex code (\"#ff0000\") or named color (\"red\")."));
 	}
-	_update_color();
+	_update_text_value();
 }
 
 Color ColorPicker::get_pick_color() const {
@@ -1223,25 +1219,32 @@ bool ColorPicker::is_deferred_mode() const {
 }
 
 void ColorPicker::_update_text_value() {
-	bool text_visible = true;
-	if (text_is_constructor) {
+	bool is_rgb_valid = color.r <= 1 && color.g <= 1 && color.b <= 1 && color.r >= 0 && color.g >= 0 && color.b >= 0;
+	if (text_is_constructor || !is_rgb_valid) {
 		String t = "Color(" + String::num(color.r, 3) + ", " + String::num(color.g, 3) + ", " + String::num(color.b, 3);
 		if (edit_alpha && color.a < 1) {
 			t += ", " + String::num(color.a, 3) + ")";
 		} else {
 			t += ")";
 		}
+		text_type->set_text("");
+		text_type->set_button_icon(theme_cache.color_script);
+
+		if (!is_rgb_valid) {
+			text_type->set_disabled(true);
+		} else {
+			text_type->set_disabled(false);
+		}
 		c_text->set_text(t);
-	}
+		c_text->set_editable(false);
+	} else {
+		text_type->set_text("#");
+		text_type->set_button_icon(nullptr);
+		text_type->set_disabled(false);
 
-	if (color.r > 1 || color.g > 1 || color.b > 1 || color.r < 0 || color.g < 0 || color.b < 0) {
-		text_visible = false;
-	} else if (!text_is_constructor) {
 		c_text->set_text(color.to_html(edit_alpha && color.a < 1));
+		c_text->set_editable(true);
 	}
-
-	text_type->set_visible(text_visible);
-	c_text->set_visible(text_visible);
 }
 
 void ColorPicker::_sample_input(const Ref<InputEvent> &p_event) {
@@ -2154,6 +2157,8 @@ void ColorPicker::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, color_hue);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, color_okhsl_hue);
 
+	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, color_script);
+
 	BIND_THEME_ITEM_EXT(Theme::DATA_TYPE_STYLEBOX, ColorPicker, mode_button_normal, "tab_unselected", "TabContainer");
 	BIND_THEME_ITEM_EXT(Theme::DATA_TYPE_STYLEBOX, ColorPicker, mode_button_pressed, "tab_selected", "TabContainer");
 	BIND_THEME_ITEM_EXT(Theme::DATA_TYPE_STYLEBOX, ColorPicker, mode_button_hover, "tab_selected", "TabContainer");
@@ -2276,13 +2281,12 @@ ColorPicker::ColorPicker() {
 
 	text_type = memnew(Button);
 	hex_hbc->add_child(text_type);
+	text_type->set_icon_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 	text_type->set_text("#");
 	text_type->set_tooltip_text(RTR("Switch between hexadecimal and code values."));
-	if (Engine::get_singleton()->is_editor_hint()) {
-		text_type->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_text_type_toggled));
-	} else {
+	text_type->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_text_type_toggled));
+	if (!Engine::get_singleton()->is_editor_hint()) {
 		text_type->set_flat(true);
-		text_type->set_mouse_filter(MOUSE_FILTER_IGNORE);
 	}
 
 	c_text = memnew(LineEdit);

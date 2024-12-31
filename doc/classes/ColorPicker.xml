@@ -171,6 +171,9 @@
 		<theme_item name="color_okhsl_hue" data_type="icon" type="Texture2D">
 			Custom texture for the H slider in the OKHSL color mode.
 		</theme_item>
+		<theme_item name="color_script" data_type="icon" type="Texture2D">
+			The icon for the button that switches color text to hexadecimal.
+		</theme_item>
 		<theme_item name="expanded_arrow" data_type="icon" type="Texture2D">
 			The icon for color preset drop down menu when expanded.
 		</theme_item>

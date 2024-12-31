@@ -209,26 +209,36 @@ void ColorModeHSV::slider_draw(int p_which) {
 }
 
 String ColorModeRAW::get_slider_label(int idx) const {
-	ERR_FAIL_INDEX_V_MSG(idx, 3, String(), "Couldn't get slider label.");
+	ERR_FAIL_INDEX_V_MSG(idx, 4, String(), "Couldn't get slider label.");
 	return labels[idx];
 }
 
 float ColorModeRAW::get_slider_max(int idx) const {
-	ERR_FAIL_INDEX_V_MSG(idx, 4, 0, "Couldn't get slider max value.");
+	ERR_FAIL_INDEX_V_MSG(idx, 5, 0, "Couldn't get slider max value.");
 	return slider_max[idx];
 }
 
 float ColorModeRAW::get_slider_value(int idx) const {
-	ERR_FAIL_INDEX_V_MSG(idx, 4, 0, "Couldn't get slider value.");
-	return color_picker->get_pick_color().components[idx];
+	ERR_FAIL_INDEX_V_MSG(idx, 5, 0, "Couldn't get slider value.");
+	Color color = color_picker->get_pick_color();
+	float intensity = MAX(1, MAX(MAX(color.r, color.g), color.b));
+	if (idx == 3) {
+		return Math::log2(intensity);
+	} else if (idx == 4) {
+		return color.a;
+	} else {
+		return color.components[idx] / intensity;
+	}
 }
 
 Color ColorModeRAW::get_color() const {
 	Vector<float> values = color_picker->get_active_slider_values();
 	Color color;
-	for (int i = 0; i < 4; i++) {
-		color.components[i] = values[i];
+	float intensity = Math::pow(2, values[3]);
+	for (int i = 0; i < 3; i++) {
+		color.components[i] = values[i] * intensity;
 	}
+	color.a = values[4];
 	return color;
 }
 
