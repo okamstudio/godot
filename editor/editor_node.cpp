@@ -4866,7 +4866,7 @@ void EditorNode::progress_add_task(const String &p_task, const String &p_label, 
 	if (!singleton) {
 		return;
 	} else if (Main::is_cmdline_tool()) {
-		print_line(p_task + ": begin: " + p_label + " steps: " + itos(p_steps));
+		print_verbose(p_task + ": begin: " + p_label + " steps: " + itos(p_steps));
 	} else if (singleton->progress_dialog) {
 		singleton->progress_dialog->add_task(p_task, p_label, p_steps, p_can_cancel);
 	}
@@ -4876,7 +4876,7 @@ bool EditorNode::progress_task_step(const String &p_task, const String &p_state,
 	if (!singleton) {
 		return false;
 	} else if (Main::is_cmdline_tool()) {
-		print_line("\t" + p_task + ": step " + itos(p_step) + ": " + p_state);
+		print_verbose("\t" + p_task + ": step " + itos(p_step) + ": " + p_state);
 		return false;
 	} else if (singleton->progress_dialog) {
 		return singleton->progress_dialog->task_step(p_task, p_state, p_step, p_force_refresh);
@@ -4889,7 +4889,7 @@ void EditorNode::progress_end_task(const String &p_task) {
 	if (!singleton) {
 		return;
 	} else if (Main::is_cmdline_tool()) {
-		print_line(p_task + ": end");
+		print_verbose(p_task + ": end");
 	} else if (singleton->progress_dialog) {
 		singleton->progress_dialog->end_task(p_task);
 	}
