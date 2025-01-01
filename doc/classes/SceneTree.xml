@@ -13,6 +13,65 @@
 		<link title="Multiple resolutions">$DOCS_URL/tutorials/rendering/multiple_resolutions.html</link>
 	</tutorials>
 	<methods>
+		<method name="_add_current_scene" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="scene" type="Object" />
+			<description>
+				Called when the tree needs to add a scene as the current scene.
+				If you override this virtual method, you should add [param scene] to the tree, set the node as current scene via [member current_scene], and emit [signal current_scene_added].
+				[codeblocks]
+				[gdscript]
+				func _add_current_scene(scene: Object) -&gt; void:
+				    root.add_child(scene)
+				    current_scene = scene
+				    current_scene_added.emit(scene)
+				[/gdscript]
+				[csharp]
+				public void _AddCurrentScene(Object scene)
+				{
+				    // Due to limitations, you have to cast scene from Object to Node.
+				    Node node = scene as Node;
+				    Root.AddChild(node);
+				    CurrentScene = node;
+				    EmitSignal(SignalNames.CurrentSceneAdded, node);
+				}
+				[/csharp]
+				[/codeblocks]
+				You can add the scene under another node instead of root. When this function is called for the first time, [param scene] is the initial scene specified by [member ProjectSettings.application/run/main_scene] or the editor.
+				[b]Note:[/b] The [method Node._ready] pass of the tree has not been run yet when the initial scene is adding in. Use [constant Node.NOTIFICATION_SCENE_INSTANTIATED] for the autoloaded scene to set up children node references before [code]_ready[/code] is called.
+			</description>
+		</method>
+		<method name="_remove_current_scene" qualifiers="virtual">
+			<return type="Object" />
+			<description>
+				Called when the tree needs to remove the current scene.
+				If you override this virtual method, you should remove [member current_scene] from the tree, set [member current_scene] to null, and return the removed node. The node returned is then handled by the caller (will usually be deleted by the caller).
+				[codeblocks]
+				[gdscript]
+				func _remove_current_scene() -&gt; Object:
+				    var scene = current_scene
+				    var parent = scene.get_parent()
+				    if (parent):
+				        parent.remove_child(scene)
+				    current_scene = null
+				    return scene
+				[/gdscript]
+				[csharp]
+				public GodotObject _RemoveCurrentScene()
+				{
+				    Node scene = CurrentScene;
+				    Node parent = scene.GetParent();
+				    if (parent != null)
+				    {
+				        parent.RemoveChild(scene);
+				    }
+				    CurrentScene = null;
+				    return scene;
+				}
+				[/csharp]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="call_group" qualifiers="vararg">
 			<return type="void" />
 			<param index="0" name="group" type="StringName" />
@@ -56,7 +115,7 @@
 				Returns [constant OK] on success, [constant ERR_CANT_CREATE] if the scene cannot be instantiated, or [constant ERR_INVALID_PARAMETER] if the scene is invalid.
 				[b]Note:[/b] Operations happen in the following order when [method change_scene_to_packed] is called:
 				1. The current scene node is immediately removed from the tree. From that point, [method Node.get_tree] called on the current (outgoing) scene will return [code]null[/code]. [member current_scene] will be [code]null[/code], too, because the new scene is not available yet.
-				2. At the end of the frame, the formerly current scene, already removed from the tree, will be deleted (freed from memory) and then the new scene will be instantiated and added to the tree. [method Node.get_tree] and [member current_scene] will be back to working as usual.
+				2. At the end of the frame, the formerly current scene, already removed from the tree, will be deleted (freed from memory) and then the new scene will be instantiated and added to the tree. [signal current_scene_added] will be emitted when the new scene is added to the tree. [method Node.get_tree] and [member current_scene] will be back to working as usual.
 				This ensures that both scenes aren't running at the same time, while still freeing the previous scene in a safe way similar to [method Node.queue_free].
 			</description>
 		</method>
@@ -278,6 +337,12 @@
 		</member>
 	</members>
 	<signals>
+		<signal name="current_scene_added">
+			<param index="0" name="node" type="Node" />
+			<description>
+				Emitted when the current scene is added to the tree.
+			</description>
+		</signal>
 		<signal name="node_added">
 			<param index="0" name="node" type="Node" />
 			<description>

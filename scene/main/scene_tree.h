@@ -154,6 +154,7 @@ private:
 	StringName node_added_name = "node_added";
 	StringName node_removed_name = "node_removed";
 	StringName node_renamed_name = "node_renamed";
+	StringName current_scene_added_name = "current_scene_added";
 
 	int64_t current_frame = 0;
 	int nodes_in_tree_count = 0;
@@ -274,6 +275,9 @@ private:
 protected:
 	void _notification(int p_notification);
 	static void _bind_methods();
+
+	GDVIRTUAL1(_add_current_scene, Object *);
+	GDVIRTUAL0R(Object *, _remove_current_scene);
 
 public:
 	enum {
@@ -413,8 +417,8 @@ public:
 	Ref<Tween> create_tween();
 	TypedArray<Tween> get_processed_tweens();
 
-	//used by Main::start, don't use otherwise
-	void add_current_scene(Node *p_current);
+	void add_current_scene(Node *p_scene);
+	Node *remove_current_scene();
 
 	static SceneTree *get_singleton() { return singleton; }
 
