@@ -35,7 +35,6 @@
 #include "core/os/condition_variable.h"
 #include "core/os/mutex.h"
 #include "core/templates/local_vector.h"
-#include "core/templates/simple_type.h"
 #include "core/templates/tuple.h"
 #include "core/typedefs.h"
 
@@ -53,7 +52,7 @@ class CommandQueueMT {
 	struct Command : public CommandBase {
 		T *instance;
 		M method;
-		Tuple<GetSimpleTypeT<Args>...> args;
+		Tuple<std::remove_cvref_t<Args>...> args;
 
 		template <typename... FwdArgs>
 		_FORCE_INLINE_ Command(T *p_instance, M p_method, FwdArgs &&...p_args) :
@@ -81,9 +80,9 @@ class CommandQueueMT {
 		T *instance;
 		M method;
 		R *ret;
-		Tuple<GetSimpleTypeT<Args>...> args;
+		Tuple<std::remove_cvref_t<Args>...> args;
 
-		_FORCE_INLINE_ CommandRet(T *p_instance, M p_method, R *p_ret, GetSimpleTypeT<Args>... p_args) :
+		_FORCE_INLINE_ CommandRet(T *p_instance, M p_method, R *p_ret, std::remove_cvref_t<Args>... p_args) :
 				CommandBase(true), instance(p_instance), method(p_method), ret(p_ret), args{ p_args... } {}
 
 		void call() override {
