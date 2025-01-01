@@ -1,0 +1,12 @@
+GDTEST_OK
+~~ WARNING at line 19: (UNUSED_STATIC_OVERRIDING_TRAIT) Overridden static without using "static" keyword.
+~~ WARNING at line 23: (UNUSED_STATIC_OVERRIDING_TRAIT) Overridden static without using "static" keyword.
+0
+1
+1
+0
+some static func
+overridden other static func
+overridden third static func
+some static func
+ok

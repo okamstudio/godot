@@ -1214,6 +1214,10 @@ bool GDScript::inherits_script(const Ref<Script> &p_script) const {
 		s = s->_base;
 	}
 
+	// Check if script uses script as trait
+	if (traits_fqtn.has(gd->fully_qualified_name)) {
+		return true;
+	}
 	return false;
 }
 
@@ -1508,7 +1512,9 @@ String GDScript::debug_get_script_name(const Ref<Script> &p_script) {
 #endif
 
 String GDScript::canonicalize_path(const String &p_path) {
-	if (p_path.get_extension() == "gdc") {
+	if (p_path.ends_with(".t.gdc")) {
+		return p_path.get_basename() + ".gdt";
+	} else if (p_path.get_extension() == "gdc") {
 		return p_path.get_basename() + ".gd";
 	}
 	return p_path;
@@ -2532,17 +2538,13 @@ struct GDScriptDepSort {
 		if (A == B) {
 			return false; //shouldn't happen but..
 		}
-		const GDScript *I = B->get_base().ptr();
-		while (I) {
-			if (I == A.ptr()) {
-				// A is a base of B
-				return true;
-			}
-
-			I = I->get_base().ptr();
+		if (A->get_path().to_lower().ends_with("gdt") && B->get_path().to_lower().ends_with("gd")) {
+			return true; // trait files first.
 		}
-
-		return false; //not a base
+		if (A->get_path().to_lower().ends_with("gdt") && B->is_built_in()) {
+			return true; // trait files first.
+		}
+		return B->inherits_script(A);
 	}
 };
 
@@ -2608,6 +2610,18 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 	for (Ref<GDScript> &scr : scripts) {
 		bool reload = p_scripts.has(scr) || to_reload.has(scr->get_base());
 
+#ifdef TOOLS_ENABLED
+		// Reload if saved scripts stores trait for script.
+		if (!reload) {
+			for (const Variant &saved_scr : p_scripts) {
+				reload = scr->traits_path.has(static_cast<Ref<Script>>(saved_scr)->get_path());
+				if (reload) {
+					break;
+				}
+			}
+		}
+#endif
+
 		if (!reload) {
 			continue;
 		}
@@ -2672,6 +2686,12 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 			scr->load_source_code(scr->get_path());
 		}
 		scr->reload(p_soft_reload);
+
+#ifdef TOOLS_ENABLED
+		if (!p_scripts.has(scr)) {
+			ensure_docs_update(scr);
+		}
+#endif
 
 		//restore state if saved
 		for (KeyValue<ObjectID, List<Pair<StringName, Variant>>> &F : E.value) {
@@ -2772,7 +2792,9 @@ void GDScriptLanguage::get_reserved_words(List<String> *p_words) const {
 		"namespace", // Reserved for potential future use.
 		"signal",
 		"static",
-		"trait", // Reserved for potential future use.
+		"trait",
+		"trait_name",
+		"uses",
 		"var",
 		// Other keywords.
 		"await",
@@ -2828,7 +2850,7 @@ bool GDScriptLanguage::is_control_flow_keyword(const String &p_keyword) const {
 }
 
 bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
-	return p_type == "GDScript";
+	return p_type == "GDScript" || p_type == "GDTrait";
 }
 
 String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
@@ -2938,8 +2960,11 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 thread_local GDScriptLanguage::CallStack GDScriptLanguage::_call_stack;
 
 GDScriptLanguage::GDScriptLanguage() {
-	ERR_FAIL_COND(singleton);
-	singleton = this;
+	if (singleton == nullptr) {
+		// Allow GDTraitLanguage to share same singleton.
+		singleton = this;
+	}
+
 	strings._init = StaticCString::create("_init");
 	strings._static_init = StaticCString::create("_static_init");
 	strings._notification = StaticCString::create("_notification");
@@ -3046,15 +3071,20 @@ Ref<Resource> ResourceFormatLoaderGDScript::load(const String &p_path, const Str
 
 void ResourceFormatLoaderGDScript::get_recognized_extensions(List<String> *p_extensions) const {
 	p_extensions->push_back("gd");
+	p_extensions->push_back("gdt");
 	p_extensions->push_back("gdc");
 }
 
 bool ResourceFormatLoaderGDScript::handles_type(const String &p_type) const {
-	return (p_type == "Script" || p_type == "GDScript");
+	return (p_type == "Script" || p_type == "GDScript" || p_type == "GDTrait");
 }
 
 String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) const {
 	String el = p_path.get_extension().to_lower();
+
+	if (el == "gdt" || p_path.ends_with(".t.gdc")) {
+		return "GDTrait";
+	}
 	if (el == "gd" || el == "gdc") {
 		return "GDScript";
 	}
@@ -3108,6 +3138,7 @@ Error ResourceFormatSaverGDScript::save(const Ref<Resource> &p_resource, const S
 void ResourceFormatSaverGDScript::get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const {
 	if (Object::cast_to<GDScript>(*p_resource)) {
 		p_extensions->push_back("gd");
+		p_extensions->push_back("gdt");
 	}
 }
 

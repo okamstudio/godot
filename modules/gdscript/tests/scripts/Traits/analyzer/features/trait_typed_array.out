@@ -1,0 +1,7 @@
+GDTEST_RUNTIME_ERROR
+>> ERROR: Condition "!other_script->inherits_script(script)" is true. Returning: false
+>>   Attempted to push_back an object into a TypedArray, that does not inherit from 'GDScript'.
+>> ERROR: Condition "!_p->typed.validate(value, "push_back")" is true.
+1
+2
+ok

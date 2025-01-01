@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 8: Cannot have an element of type "OtherClass" in an array of type "Array[SomeTrait]".

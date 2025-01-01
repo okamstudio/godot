@@ -1,0 +1,1 @@
+uses TraitA

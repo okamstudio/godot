@@ -79,6 +79,8 @@ class GDScriptAnalyzer {
 	void resolve_class_interface(GDScriptParser::ClassNode *p_class, bool p_recursive);
 	void resolve_class_body(GDScriptParser::ClassNode *p_class, const GDScriptParser::Node *p_source = nullptr);
 	void resolve_class_body(GDScriptParser::ClassNode *p_class, bool p_recursive);
+	void resolve_class_uses(GDScriptParser::ClassNode *p_class, const GDScriptParser::Node *p_source = nullptr);
+	void resolve_class_uses(GDScriptParser::ClassNode *p_class, bool p_recursive);
 	void resolve_function_signature(GDScriptParser::FunctionNode *p_function, const GDScriptParser::Node *p_source = nullptr, bool p_is_lambda = false);
 	void resolve_function_body(GDScriptParser::FunctionNode *p_function, bool p_is_lambda = false);
 	void resolve_node(GDScriptParser::Node *p_node, bool p_is_root = true);
@@ -153,9 +155,20 @@ class GDScriptAnalyzer {
 	void is_shadowing(GDScriptParser::IdentifierNode *p_identifier, const String &p_context, const bool p_in_local_scope);
 #endif
 
+	// Resolving Traits Helpers.
+	void extend_member_enum(GDScriptParser::EnumNode *p_target_enum, const GDScriptParser::EnumNode *p_source_enum, const String &p_trait_name);
+	void override_member_variable(GDScriptParser::VariableNode *p_target_variable, const GDScriptParser::VariableNode *p_source_variable, const String &p_trait_name);
+	void override_member_signal(GDScriptParser::SignalNode *p_target_signal, const GDScriptParser::SignalNode *p_source_signal, const String &p_trait_name);
+	void override_member_function(GDScriptParser::FunctionNode *p_target_function, const GDScriptParser::FunctionNode *p_source_function, const String &p_trait_name);
+	void extend_class(GDScriptParser::ClassNode *p_class, const GDScriptParser::ClassNode *p_trait, const GDScriptParser::Node *p_trait_name_node, const String &p_trait_name);
+#ifdef TOOLS_ENABLED
+	void copy_over_member_doc_data(GDScriptParser::MemberDocData &p_target_doc_data, const GDScriptParser::MemberDocData &p_source_doc_data);
+#endif
+
 public:
 	Error resolve_inheritance();
 	Error resolve_interface();
+	Error resolve_uses();
 	Error resolve_body();
 	Error resolve_dependencies();
 	Error analyze();
@@ -163,6 +176,7 @@ public:
 	Variant make_variable_default_value(GDScriptParser::VariableNode *p_variable);
 
 	static bool check_type_compatibility(const GDScriptParser::DataType &p_target, const GDScriptParser::DataType &p_source, bool p_allow_implicit_conversion = false, const GDScriptParser::Node *p_source_node = nullptr);
+	static bool check_type_class_trait_compatibility(const GDScriptParser::DataType &p_class, const GDScriptParser::DataType &p_trait);
 	static GDScriptParser::DataType type_from_metatype(const GDScriptParser::DataType &p_meta_type);
 
 	GDScriptAnalyzer(GDScriptParser *p_parser);

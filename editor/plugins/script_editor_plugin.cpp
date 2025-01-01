@@ -4390,6 +4390,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	add_child(erase_tab_confirm);
 
 	script_create_dialog = memnew(ScriptCreateDialog);
+	script_create_dialog->set_languages_list(false);
 	script_create_dialog->set_title(TTR("Create Script"));
 	add_child(script_create_dialog);
 	script_create_dialog->connect("script_created", callable_mp(this, &ScriptEditor::_script_created));

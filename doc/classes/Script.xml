@@ -6,7 +6,7 @@
 	<description>
 		A class stored as a resource. A script extends the functionality of all objects that instantiate it.
 		This is the base class for all scripts and should not be used directly. Trying to create a new script with this class will result in an error.
-		The [code]new[/code] method of a script subclass creates a new instance. [method Object.set_script] extends an existing object, if that object's class matches one of the script's base classes.
+		The [code]new[/code] method of a script subclass creates a new instance. [method Object.set_script] extends an existing object, if that object's class matches one of the script's base classes and if script is attachable check by [method is_attachable].
 	</description>
 	<tutorials>
 		<link title="Scripting documentation index">$DOCS_URL/tutorials/scripting/index.html</link>
@@ -113,6 +113,12 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if the script is an abstract script. An abstract script does not have a constructor and cannot be instantiated.
+			</description>
+		</method>
+		<method name="is_attachable" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the script is able to be attached to [Object].
 			</description>
 		</method>
 		<method name="is_tool" qualifiers="const">

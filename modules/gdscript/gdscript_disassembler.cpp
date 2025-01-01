@@ -217,7 +217,8 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				incr += 9;
 			} break;
-			case OPCODE_TYPE_TEST_NATIVE: {
+			case OPCODE_TYPE_TEST_NATIVE:
+			case OPCODE_TYPE_TEST_TRAIT: {
 				text += "type test ";
 				text += DADDR(1);
 				text += " = ";
@@ -468,6 +469,16 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				incr += 4;
 			} break;
+			case OPCODE_ASSIGN_TYPED_TRAIT: {
+				text += "assign typed script (";
+				text += get_global_name(_code_ptr[ip + 3]);
+				text += ") ";
+				text += DADDR(1);
+				text += " = ";
+				text += DADDR(2);
+
+				incr += 4;
+			} break;
 			case OPCODE_ASSIGN_TYPED_SCRIPT: {
 				Ref<Script> script = get_constant(_code_ptr[ip + 3] & ADDR_MASK);
 
@@ -497,6 +508,16 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += DADDR(1);
 				text += " as ";
 				text += DADDR(3);
+
+				incr += 4;
+			} break;
+			case OPCODE_CAST_TO_TRAIT: {
+				text += "cast ";
+				text += DADDR(2);
+				text += " = ";
+				text += DADDR(1);
+				text += " as ";
+				text += get_global_name(_code_ptr[ip + 3]);
 
 				incr += 4;
 			} break;
@@ -1105,6 +1126,14 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				incr += 3;
 			} break;
+			case OPCODE_RETURN_TYPED_TRAIT: {
+				text += "return typed native (";
+				text += get_global_name(_code_ptr[ip + 2]);
+				text += ") ";
+				text += DADDR(1);
+
+				incr += 3;
+			} break;
 			case OPCODE_RETURN_TYPED_SCRIPT: {
 				Ref<Script> script = get_constant(_code_ptr[ip + 2] & ADDR_MASK);
 
@@ -1213,6 +1242,11 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 			case OPCODE_LINE: {
 				int line = _code_ptr[ip + 1] - 1;
 				if (line >= 0 && line < p_code_lines.size()) {
+					if (!get_global_name(_code_ptr[ip + 2]).is_empty()) {
+						text += "(from ";
+						text += get_global_name(_code_ptr[ip + 2]);
+						text += ")";
+					}
 					text += "line ";
 					text += itos(line + 1);
 					text += ": ";

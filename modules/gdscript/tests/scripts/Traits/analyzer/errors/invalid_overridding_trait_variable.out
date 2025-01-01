@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 6: "some_variable" variable type should be "Node" as declared in trait "SomeTrait".

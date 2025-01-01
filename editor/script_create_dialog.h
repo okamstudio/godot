@@ -68,6 +68,7 @@ class ScriptCreateDialog : public ConfirmationDialog {
 	AcceptDialog *alert = nullptr;
 	CreateDialog *select_class = nullptr;
 
+	bool is_languages_list_only_attachable = true;
 	bool is_browsing_parent = false;
 	String path_error;
 	String template_inactive_message;
@@ -89,6 +90,7 @@ class ScriptCreateDialog : public ConfirmationDialog {
 
 	Vector<ScriptLanguage::ScriptTemplate> template_list;
 	ScriptLanguage *language = nullptr;
+	Vector<ScriptLanguage *> language_list;
 
 	String base_type;
 
@@ -100,6 +102,7 @@ class ScriptCreateDialog : public ConfirmationDialog {
 	void _use_template_pressed();
 	bool _validate_parent(const String &p_string);
 	String _validate_path(const String &p_path, bool p_file_must_exist);
+	Error _extension_update_selected_language(const String &p_extension);
 	void _parent_name_changed(const String &p_parent);
 	void _template_changed(int p_template = 0);
 	void _browse_path(bool browse_parent, bool p_save);
@@ -124,6 +127,7 @@ protected:
 public:
 	void config(const String &p_base_name, const String &p_base_path, bool p_built_in_enabled = true, bool p_load_enabled = true);
 	void set_inheritance_base_type(const String &p_base);
+	void set_languages_list(const bool p_only_attachable);
 	ScriptCreateDialog();
 };
 

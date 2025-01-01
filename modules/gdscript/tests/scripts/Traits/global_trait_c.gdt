@@ -1,0 +1,5 @@
+trait_name GlobalTraitC extends Node
+
+var some_var: Node = Node.new()
+func some_func() -> Node:
+    return Node.new()

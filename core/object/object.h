@@ -231,6 +231,9 @@ struct MethodInfo {
 	Vector<Variant> default_arguments;
 	int return_val_metadata = 0;
 	Vector<int> arguments_metadata;
+#ifdef TOOLS_ENABLED
+	String overridden_source_path;
+#endif
 
 	int get_argument_meta(int p_arg) const {
 		ERR_FAIL_COND_V(p_arg < -1 || p_arg > arguments.size(), 0);

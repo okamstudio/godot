@@ -91,12 +91,20 @@ Error GDScriptParserRef::raise_status(Status p_new_status) {
 				result = get_analyzer()->resolve_inheritance();
 			} break;
 			case INHERITANCE_SOLVED: {
+				status = USES_SOLVED;
+				result = get_analyzer()->resolve_uses();
+			} break;
+			case USES_SOLVED: {
 				status = INTERFACE_SOLVED;
 				result = get_analyzer()->resolve_interface();
 			} break;
 			case INTERFACE_SOLVED: {
-				status = FULLY_SOLVED;
+				status = BODY_SOLVED;
 				result = get_analyzer()->resolve_body();
+			} break;
+			case BODY_SOLVED: {
+				status = FULLY_SOLVED;
+				result = get_analyzer()->resolve_dependencies();
 			} break;
 			case FULLY_SOLVED: {
 				return result;
@@ -311,8 +319,16 @@ Ref<GDScript> GDScriptCache::get_shallow_script(const String &p_path, Error &r_e
 	const String remapped_path = ResourceLoader::path_remap(p_path);
 
 	Ref<GDScript> script;
-	script.instantiate();
-	script->set_path_cache(p_path);
+	if (p_path.get_extension().to_lower() == "gdt") {
+		// Affects Icon appearing on script editor tab.
+		Ref<GDTrait> trait_script;
+		trait_script.instantiate();
+		trait_script->set_path_cache(p_path);
+		script = trait_script;
+	} else {
+		script.instantiate();
+		script->set_path_cache(p_path);
+	}
 	if (remapped_path.get_extension().to_lower() == "gdc") {
 		Vector<uint8_t> buffer = get_binary_tokens(remapped_path);
 		if (buffer.is_empty()) {
@@ -324,6 +340,9 @@ Ref<GDScript> GDScriptCache::get_shallow_script(const String &p_path, Error &r_e
 	}
 
 	if (r_error) {
+		if (p_path.get_extension().to_lower() == "gdt") {
+			return Ref<GDTrait>();
+		}
 		return Ref<GDScript>(); // Returns null and does not cache when the script fails to load.
 	}
 

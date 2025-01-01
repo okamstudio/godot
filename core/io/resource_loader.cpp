@@ -1511,7 +1511,10 @@ Vector<String> ResourceLoader::list_directory(const String &p_directory) {
 				d = d.substr(0, d.rfind_char('.'));
 			}
 
-			if (d.ends_with(".gdc")) {
+			if (d.ends_with(".t.gdc")) {
+				d = d.substr(0, d.rfind_char('.'));
+				d += ".gdt";
+			} else if (d.ends_with(".gdc")) {
 				d = d.substr(0, d.rfind_char('.'));
 				d += ".gd";
 			}

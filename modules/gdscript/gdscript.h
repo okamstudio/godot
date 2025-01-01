@@ -164,6 +164,7 @@ private:
 	Vector<DocData::ClassDoc> docs;
 	void _add_doc(const DocData::ClassDoc &p_doc);
 	void _clear_doc();
+	Vector<String> traits_path; // File path from used traits for reload.
 #endif
 
 	GDScriptFunction *initializer = nullptr; // Direct pointer to `new()`/`_init()` member function, faster to locate.
@@ -189,6 +190,7 @@ private:
 	String fully_qualified_name;
 	String simplified_icon_path;
 	SelfList<GDScript> script_list;
+	Vector<String> traits_fqtn; // List of used Traits.
 
 	SelfList<GDScriptFunctionState>::List pending_func_states;
 
@@ -435,6 +437,7 @@ class GDScriptLanguage : public ScriptLanguage {
 		GDScriptInstance *instance = nullptr;
 		int *ip = nullptr;
 		int *line = nullptr;
+		String external_source; // File path for trait where line is implemented.
 	};
 
 	static thread_local int _debug_parse_err_line;
@@ -443,6 +446,7 @@ class GDScriptLanguage : public ScriptLanguage {
 	struct CallStack {
 		CallLevel *levels = nullptr;
 		int stack_pos = 0;
+		int to_external_stack_pos = -1; // Stack position of where external source is linked to.
 
 		void free() {
 			if (levels) {
@@ -509,7 +513,24 @@ public:
 		_call_stack.levels[_call_stack.stack_pos].function = p_function;
 		_call_stack.levels[_call_stack.stack_pos].ip = p_ip;
 		_call_stack.levels[_call_stack.stack_pos].line = p_line;
+		_call_stack.levels[_call_stack.stack_pos].external_source = "";
 		_call_stack.stack_pos++;
+	}
+
+	_FORCE_INLINE_ void entered_function_to_external(String p_external_source, int *p_uses_line) {
+		if (_call_stack.stack_pos <= 0) {
+			return;
+		}
+		CallLevel last_stack_entry = _call_stack.levels[_call_stack.stack_pos - 1];
+		if (_call_stack.to_external_stack_pos == -1) {
+			CallLevel new_stack_entry = last_stack_entry;
+			new_stack_entry.line = p_uses_line;
+			_call_stack.levels[_call_stack.stack_pos - 1] = new_stack_entry;
+			_call_stack.to_external_stack_pos = _call_stack.stack_pos - 1;
+			_call_stack.stack_pos++;
+		}
+		last_stack_entry.external_source = p_external_source;
+		_call_stack.levels[_call_stack.stack_pos - 1] = last_stack_entry;
 	}
 
 	_FORCE_INLINE_ void exit_function() {
@@ -524,6 +545,11 @@ public:
 		}
 
 		_call_stack.stack_pos--;
+
+		if (_call_stack.to_external_stack_pos > -1 && _call_stack.to_external_stack_pos == _call_stack.stack_pos - 1) {
+			_call_stack.to_external_stack_pos = -1;
+			_call_stack.stack_pos--;
+		}
 	}
 
 	virtual Vector<StackInfo> debug_get_current_stack_info() override {
@@ -534,6 +560,9 @@ public:
 			if (_call_stack.levels[i].function) {
 				csi.write[_call_stack.stack_pos - i - 1].func = _call_stack.levels[i].function->get_name();
 				csi.write[_call_stack.stack_pos - i - 1].file = _call_stack.levels[i].function->get_script()->get_script_path();
+			}
+			if (!_call_stack.levels[i].external_source.is_empty()) {
+				csi.write[_call_stack.stack_pos - i - 1].file = _call_stack.levels[i].external_source;
 			}
 		}
 		return csi;
@@ -599,6 +628,9 @@ public:
 	virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) override;
 	virtual void add_named_global_constant(const StringName &p_name, const Variant &p_value) override;
 	virtual void remove_named_global_constant(const StringName &p_name) override;
+#ifdef TOOLS_ENABLED
+	void ensure_docs_update(const Ref<GDScript> p_script); // needed when trait are saved.
+#endif
 
 	/* DEBUGGER FUNCTIONS */
 
@@ -647,6 +679,24 @@ public:
 
 	GDScriptLanguage();
 	~GDScriptLanguage();
+};
+
+/* GDTRAIT */
+class GDTrait : public GDScript {
+	GDCLASS(GDTrait, GDScript);
+
+public:
+	virtual bool is_attachable() const override { return false; }
+};
+
+class GDTraitLanguage : public GDScriptLanguage {
+public:
+	virtual String get_name() const override { return "GDTrait"; }
+	virtual String get_type() const override { return "GDTrait"; }
+	virtual String get_extension() const override { return "gdt"; }
+	virtual bool is_language_script_attachable() const override { return false; }
+	virtual Script *create_script() const override { return memnew(GDTrait); }
+	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
 };
 
 class ResourceFormatLoaderGDScript : public ResourceFormatLoader {

@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 8: "some_func" function signature should be "some_func(Node) -> Variant" as declared in trait "SomeTrait".

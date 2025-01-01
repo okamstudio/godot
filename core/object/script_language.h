@@ -166,6 +166,7 @@ public:
 	virtual bool is_tool() const = 0;
 	virtual bool is_valid() const = 0;
 	virtual bool is_abstract() const = 0;
+	virtual bool is_attachable() const { return true; }
 
 	virtual ScriptLanguage *get_language() const = 0;
 
@@ -214,6 +215,7 @@ public:
 	virtual void init() = 0;
 	virtual String get_type() const = 0;
 	virtual String get_extension() const = 0;
+	virtual bool is_language_script_attachable() const { return true; }
 	virtual void finish() = 0;
 
 	/* EDITOR FUNCTIONS */

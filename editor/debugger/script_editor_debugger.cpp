@@ -456,7 +456,10 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, uint64_t p_thread
 			stack_dump_info.push_back(d);
 			s->set_metadata(0, d);
 
-			String line = itos(i) + " - " + String(d["file"]) + ":" + itos(d["line"]) + " - at function: " + String(d["function"]);
+			String line = itos(i) + " - " + String(d["file"]) + ":" + itos(d["line"]);
+			if (!String(d["function"]).is_empty()) {
+				line += " - at function: " + String(d["function"]);
+			}
 			s->set_text(0, line);
 
 			if (i == 0) {

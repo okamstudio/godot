@@ -57,7 +57,7 @@ void GDScriptWorkspace::_bind_methods() {
 void GDScriptWorkspace::apply_new_signal(Object *obj, String function, PackedStringArray args) {
 	Ref<Script> scr = obj->get_script();
 
-	if (scr->get_language()->get_name() != "GDScript") {
+	if (!(scr->get_language()->get_name() == "GDScript" || scr->get_language()->get_name() == "GDTrait")) {
 		return;
 	}
 
@@ -247,7 +247,7 @@ void GDScriptWorkspace::list_script_files(const String &p_root_dir, List<String>
 	while (file_name.length()) {
 		if (dir->current_is_dir() && file_name != "." && file_name != ".." && file_name != "./") {
 			list_script_files(p_root_dir.path_join(file_name), r_files);
-		} else if (file_name.ends_with(".gd")) {
+		} else if (file_name.ends_with(".gd") || file_name.ends_with(".gdt")) {
 			String script_file = p_root_dir.path_join(file_name);
 			r_files.push_back(script_file);
 		}

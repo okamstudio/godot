@@ -67,6 +67,7 @@
 #endif
 
 GDScriptLanguage *script_language_gd = nullptr;
+GDTraitLanguage *script_language_gdt = nullptr;
 Ref<ResourceFormatLoaderGDScript> resource_loader_gd;
 Ref<ResourceFormatSaverGDScript> resource_saver_gd;
 GDScriptCache *gdscript_cache = nullptr;
@@ -92,7 +93,7 @@ protected:
 	}
 
 	virtual void _export_file(const String &p_path, const String &p_type, const HashSet<String> &p_features) override {
-		if (p_path.get_extension() != "gd" || script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
+		if (!(p_path.get_extension() == "gd" || p_path.get_extension() == "gdt") || script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
 			return;
 		}
 
@@ -108,8 +109,11 @@ protected:
 		if (file.is_empty()) {
 			return;
 		}
-
-		add_file(p_path.get_basename() + ".gdc", file, true);
+		String export_extension = ".gdc";
+		if (p_path.get_extension() == "gdt") {
+			export_extension = ".t.gdc";
+		}
+		add_file(p_path.get_basename() + export_extension, file, true);
 	}
 
 public:
@@ -140,9 +144,12 @@ static void _editor_init() {
 void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		GDREGISTER_CLASS(GDScript);
+		GDREGISTER_CLASS(GDTrait);
 
 		script_language_gd = memnew(GDScriptLanguage);
+		script_language_gdt = memnew(GDTraitLanguage);
 		ScriptServer::register_language(script_language_gd);
+		ScriptServer::register_language(script_language_gdt);
 
 		resource_loader_gd.instantiate();
 		ResourceLoader::add_resource_format_loader(resource_loader_gd);
@@ -175,6 +182,7 @@ void initialize_gdscript_module(ModuleInitializationLevel p_level) {
 void uninitialize_gdscript_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		ScriptServer::unregister_language(script_language_gd);
+		ScriptServer::unregister_language(script_language_gdt);
 
 		if (gdscript_cache) {
 			memdelete(gdscript_cache);
@@ -182,6 +190,10 @@ void uninitialize_gdscript_module(ModuleInitializationLevel p_level) {
 
 		if (script_language_gd) {
 			memdelete(script_language_gd);
+		}
+
+		if (script_language_gdt) {
+			memdelete(script_language_gdt);
 		}
 
 		ResourceLoader::remove_resource_format_loader(resource_loader_gd);

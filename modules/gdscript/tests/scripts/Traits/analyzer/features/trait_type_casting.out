@@ -1,0 +1,14 @@
+GDTEST_OK
+~~ WARNING at line 26: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "cast_func()" requires the subtype "Object" but the supertype "Variant" was provided.
+~~ WARNING at line 27: (UNSAFE_CAST) Casting "Variant" to "Shearable" is unsafe.
+~~ WARNING at line 28: (UNSAFE_CAST) Casting "Variant" to "Milkable" is unsafe.
+true
+true
+true
+true
+true
+false
+false
+false
+false
+ok

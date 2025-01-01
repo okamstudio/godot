@@ -1,0 +1,15 @@
+GDTEST_OK
+~~ WARNING at line 3: (UNUSED_SIGNAL) The signal "some_signal" is declared but never explicitly used in the class.
+~~ WARNING at line 17: (UNUSED_SIGNAL) The signal "some_signal" is declared but never explicitly used in the class.
+~~ WARNING at line 18: (UNUSED_SIGNAL) The signal "other_signal" is declared but never explicitly used in the class.
+~~ WARNING at line 32: (UNSAFE_METHOD_ACCESS) The method "connect()" is not present on the inferred type "Variant" (but may be present on a subtype).
+~~ WARNING at line 33: (UNSAFE_METHOD_ACCESS) The method "emit()" is not present on the inferred type "Variant" (but may be present on a subtype).
+0
+0
+0
+1
+overridden some var
+some var in innerclass
+some func
+other func
+ok

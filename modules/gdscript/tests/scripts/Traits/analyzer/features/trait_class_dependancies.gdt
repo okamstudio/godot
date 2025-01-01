@@ -1,0 +1,11 @@
+trait_name PlayerWeapon
+
+var attack_type: Player.AttackType
+const main_attack: Player.AttackType = Player.AttackType.PUNCH
+
+func get_attack_type() -> Player.AttackType:
+    var result: Player.AttackType = attack_type
+    return result
+
+func set_attack_type(attack: Player.AttackType) -> void:
+    attack_type = attack
