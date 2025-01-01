@@ -35,8 +35,8 @@
 #include "core/typedefs.h"
 #include "core/variant/variant.h"
 
-template <typename T>
-struct PtrToArg {};
+template <typename T, typename = void>
+struct PtrToArg;
 
 #define MAKE_PTRARG(m_type)                                              \
 	template <>                                                          \
@@ -104,6 +104,28 @@ struct PtrToArg {};
 		}                                                                     \
 	}
 
+#define MAKE_PTRARGCONV_CONDITIONAL(m_type, m_conv, m_conditional)                \
+	template <typename T>                                                         \
+	struct PtrToArg<m_type, std::enable_if_t<m_conditional>> {                    \
+		_FORCE_INLINE_ static m_type convert(const void *p_ptr) {                 \
+			return static_cast<m_type>(*reinterpret_cast<const m_conv *>(p_ptr)); \
+		}                                                                         \
+		typedef m_conv EncodeT;                                                   \
+		_FORCE_INLINE_ static void encode(m_type p_val, void *p_ptr) {            \
+			*((m_conv *)p_ptr) = static_cast<m_conv>(p_val);                      \
+		}                                                                         \
+	};                                                                            \
+	template <typename T>                                                         \
+	struct PtrToArg<const m_type &, std::enable_if_t<m_conditional>> {            \
+		_FORCE_INLINE_ static m_type convert(const void *p_ptr) {                 \
+			return static_cast<m_type>(*reinterpret_cast<const m_conv *>(p_ptr)); \
+		}                                                                         \
+		typedef m_conv EncodeT;                                                   \
+		_FORCE_INLINE_ static void encode(m_type p_val, void *p_ptr) {            \
+			*((m_conv *)p_ptr) = static_cast<m_conv>(p_val);                      \
+		}                                                                         \
+	}
+
 MAKE_PTRARGCONV(bool, uint8_t);
 // Integer types.
 MAKE_PTRARGCONV(uint8_t, int64_t);
@@ -154,6 +176,9 @@ MAKE_PTRARG(PackedVector3Array);
 MAKE_PTRARG(PackedColorArray);
 MAKE_PTRARG(PackedVector4Array);
 MAKE_PTRARG_BY_REFERENCE(Variant);
+
+MAKE_PTRARGCONV_CONDITIONAL(T, int64_t, std::is_enum_v<T>);
+MAKE_PTRARGCONV_CONDITIONAL(BitField<T>, int64_t, std::is_enum_v<T>);
 
 // This is for Object.
 

@@ -66,6 +66,8 @@ class RefCounted;
 
 template <typename T>
 class Ref;
+template <typename T>
+class BitField;
 
 struct PropertyInfo;
 struct MethodInfo;
@@ -441,11 +443,12 @@ public:
 	operator Vector<Variant>() const;
 	operator Vector<StringName>() const;
 
-	// some core type enums to convert to
-	operator Side() const;
-	operator Orientation() const;
-
 	operator IPAddress() const;
+
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	_FORCE_INLINE_ operator T() const { return static_cast<T>(operator int64_t()); }
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	_FORCE_INLINE_ operator BitField<T>() const { return static_cast<T>(operator int64_t()); }
 
 	Object *get_validated_object() const;
 	Object *get_validated_object_with_check(bool &r_previously_freed) const;
@@ -509,22 +512,12 @@ public:
 
 	Variant(const IPAddress &p_address);
 
-#define VARIANT_ENUM_CLASS_CONSTRUCTOR(m_enum) \
-	Variant(m_enum p_value) :                  \
-			type(INT) {                        \
-		_data._int = (int64_t)p_value;         \
-	}
-
-	// Only enum classes that need to be bound need this to be defined.
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(EulerOrder)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(JoyAxis)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(JoyButton)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(Key)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(KeyLocation)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(MIDIMessage)
-	VARIANT_ENUM_CLASS_CONSTRUCTOR(MouseButton)
-
-#undef VARIANT_ENUM_CLASS_CONSTRUCTOR
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	_FORCE_INLINE_ Variant(T p_enum) :
+			Variant(static_cast<int64_t>(p_enum)) {}
+	template <typename T, std::enable_if_t<std::is_enum_v<T>, int> = 0>
+	_FORCE_INLINE_ Variant(BitField<T> p_bitfield) :
+			Variant(static_cast<int64_t>(p_bitfield)) {}
 
 	// If this changes the table in variant_op must be updated
 	enum Operator {
