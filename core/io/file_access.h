@@ -120,7 +120,7 @@ private:
 
 protected:
 	virtual String _get_path() const { return ""; }
-	
+
 	bool _is_temp_file = false;
 	bool _temp_keep_after_use = false;
 	String _temp_path;

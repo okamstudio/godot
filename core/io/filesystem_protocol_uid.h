@@ -43,7 +43,7 @@ private:
 public:
 	FileSystemProtocolUID();
 	FileSystemProtocolUID(const Ref<FileSystemProtocol> &p_protocol_res);
-	
+
 	void set_protocol_resources(const Ref<FileSystemProtocol> &p_protocol_res);
 
 	virtual String globalize_path(const String &p_path) const override;
@@ -60,4 +60,4 @@ public:
 	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const override;
 };
 
-#endif // FILESYSTEM_PROTOCOL_USER_H
+#endif // FILESYSTEM_PROTOCOL_UID_H
