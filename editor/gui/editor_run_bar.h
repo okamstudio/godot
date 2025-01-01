@@ -54,6 +54,9 @@ class EditorRunBar : public MarginContainer {
 
 	PanelContainer *main_panel = nullptr;
 	HBoxContainer *main_hbox = nullptr;
+	HBoxContainer *outer_hbox = nullptr;
+
+	Button *profiler_autostart_indicator = nullptr;
 
 	Button *play_button = nullptr;
 	Button *pause_button = nullptr;
@@ -83,6 +86,8 @@ class EditorRunBar : public MarginContainer {
 	void _run_scene(const String &p_scene_path = "");
 	void _run_native(const Ref<EditorExportPreset> &p_preset);
 
+	void _profiler_autostart_indicator_pressed();
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -102,9 +107,12 @@ public:
 
 	OS::ProcessID has_child_process(OS::ProcessID p_pid) const;
 	void stop_child_process(OS::ProcessID p_pid);
+	OS::ProcessID get_current_process() const;
 
 	void set_movie_maker_enabled(bool p_enabled);
 	bool is_movie_maker_enabled() const;
+
+	void update_profiler_autostart_indicator();
 
 	Button *get_pause_button() { return pause_button; }
 

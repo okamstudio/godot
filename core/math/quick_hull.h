@@ -31,9 +31,7 @@
 #ifndef QUICK_HULL_H
 #define QUICK_HULL_H
 
-#include "core/math/aabb.h"
 #include "core/math/geometry_3d.h"
-#include "core/templates/hash_set.h"
 #include "core/templates/list.h"
 
 class QuickHull {

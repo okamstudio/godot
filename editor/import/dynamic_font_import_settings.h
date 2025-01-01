@@ -31,19 +31,13 @@
 #ifndef DYNAMIC_FONT_IMPORT_SETTINGS_H
 #define DYNAMIC_FONT_IMPORT_SETTINGS_H
 
-#include "editor/import/resource_importer_dynamic_font.h"
+#include "core/io/resource_importer.h"
 
-#include "core/templates/rb_set.h"
 #include "scene/gui/dialogs.h"
-#include "scene/gui/item_list.h"
-#include "scene/gui/option_button.h"
-#include "scene/gui/split_container.h"
-#include "scene/gui/subviewport_container.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/text_edit.h"
 #include "scene/gui/tree.h"
 #include "scene/resources/font.h"
-#include "servers/text_server.h"
 
 class DynamicFontImportSettingsDialog;
 

@@ -52,6 +52,9 @@ void CameraLinux::_update_devices() {
 
 			for (int i = feeds.size() - 1; i >= 0; i--) {
 				Ref<CameraFeedLinux> feed = (Ref<CameraFeedLinux>)feeds[i];
+				if (feed.is_null()) {
+					continue;
+				}
 				String device_name = feed->get_device_name();
 				if (!_is_active(device_name)) {
 					remove_feed(feed);
@@ -84,6 +87,9 @@ void CameraLinux::_update_devices() {
 bool CameraLinux::_has_device(const String &p_device_name) {
 	for (int i = 0; i < feeds.size(); i++) {
 		Ref<CameraFeedLinux> feed = (Ref<CameraFeedLinux>)feeds[i];
+		if (feed.is_null()) {
+			continue;
+		}
 		if (feed->get_device_name() == p_device_name) {
 			return true;
 		}

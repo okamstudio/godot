@@ -174,7 +174,7 @@ float AnimatedTexture::get_speed_scale() const {
 int AnimatedTexture::get_width() const {
 	RWLockRead r(rw_lock);
 
-	if (!frames[current_frame].texture.is_valid()) {
+	if (frames[current_frame].texture.is_null()) {
 		return 1;
 	}
 
@@ -184,7 +184,7 @@ int AnimatedTexture::get_width() const {
 int AnimatedTexture::get_height() const {
 	RWLockRead r(rw_lock);
 
-	if (!frames[current_frame].texture.is_valid()) {
+	if (frames[current_frame].texture.is_null()) {
 		return 1;
 	}
 
@@ -198,7 +198,7 @@ RID AnimatedTexture::get_rid() const {
 bool AnimatedTexture::has_alpha() const {
 	RWLockRead r(rw_lock);
 
-	if (!frames[current_frame].texture.is_valid()) {
+	if (frames[current_frame].texture.is_null()) {
 		return false;
 	}
 
@@ -208,7 +208,7 @@ bool AnimatedTexture::has_alpha() const {
 Ref<Image> AnimatedTexture::get_image() const {
 	RWLockRead r(rw_lock);
 
-	if (!frames[current_frame].texture.is_valid()) {
+	if (frames[current_frame].texture.is_null()) {
 		return Ref<Image>();
 	}
 

@@ -1473,14 +1473,14 @@ Object *CSharpInstance::get_owner() {
 }
 
 bool CSharpInstance::set(const StringName &p_name, const Variant &p_value) {
-	ERR_FAIL_COND_V(!script.is_valid(), false);
+	ERR_FAIL_COND_V(script.is_null(), false);
 
 	return GDMonoCache::managed_callbacks.CSharpInstanceBridge_Set(
 			gchandle.get_intptr(), &p_name, &p_value);
 }
 
 bool CSharpInstance::get(const StringName &p_name, Variant &r_ret) const {
-	ERR_FAIL_COND_V(!script.is_valid(), false);
+	ERR_FAIL_COND_V(script.is_null(), false);
 
 	Variant ret_value;
 
@@ -1497,7 +1497,7 @@ bool CSharpInstance::get(const StringName &p_name, Variant &r_ret) const {
 
 void CSharpInstance::get_property_list(List<PropertyInfo> *p_properties) const {
 	List<PropertyInfo> props;
-	ERR_FAIL_COND(!script.is_valid());
+	ERR_FAIL_COND(script.is_null());
 #ifdef TOOLS_ENABLED
 	for (const PropertyInfo &prop : script->exported_members_cache) {
 		props.push_back(prop);
@@ -1574,7 +1574,7 @@ Variant::Type CSharpInstance::get_property_type(const StringName &p_name, bool *
 }
 
 bool CSharpInstance::property_can_revert(const StringName &p_name) const {
-	ERR_FAIL_COND_V(!script.is_valid(), false);
+	ERR_FAIL_COND_V(script.is_null(), false);
 
 	Variant name_arg = p_name;
 	const Variant *args[1] = { &name_arg };
@@ -1592,7 +1592,7 @@ bool CSharpInstance::property_can_revert(const StringName &p_name) const {
 }
 
 void CSharpInstance::validate_property(PropertyInfo &p_property) const {
-	ERR_FAIL_COND(!script.is_valid());
+	ERR_FAIL_COND(script.is_null());
 
 	Variant property_arg = (Dictionary)p_property;
 	const Variant *args[1] = { &property_arg };
@@ -1610,7 +1610,7 @@ void CSharpInstance::validate_property(PropertyInfo &p_property) const {
 }
 
 bool CSharpInstance::property_get_revert(const StringName &p_name, Variant &r_ret) const {
-	ERR_FAIL_COND_V(!script.is_valid(), false);
+	ERR_FAIL_COND_V(script.is_null(), false);
 
 	Variant name_arg = p_name;
 	const Variant *args[1] = { &name_arg };
@@ -1637,7 +1637,7 @@ void CSharpInstance::get_method_list(List<MethodInfo> *p_list) const {
 }
 
 bool CSharpInstance::has_method(const StringName &p_method) const {
-	if (!script.is_valid()) {
+	if (script.is_null()) {
 		return false;
 	}
 
@@ -1678,7 +1678,7 @@ int CSharpInstance::get_method_argument_count(const StringName &p_method, bool *
 }
 
 Variant CSharpInstance::callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
-	ERR_FAIL_COND_V(!script.is_valid(), Variant());
+	ERR_FAIL_COND_V(script.is_null(), Variant());
 
 	Variant ret;
 	GDMonoCache::managed_callbacks.CSharpInstanceBridge_Call(

@@ -13,6 +13,7 @@
 		<link title="Faking global illumination">$DOCS_URL/tutorials/3d/global_illumination/faking_global_illumination.html</link>
 	</tutorials>
 	<members>
+		<member name="light_specular" type="float" setter="set_param" getter="get_param" overrides="Light3D" default="0.5" />
 		<member name="omni_attenuation" type="float" setter="set_param" getter="get_param" default="1.0">
 			Controls the distance attenuation function for omnilights.
 			A value of [code]0.0[/code] will maintain a constant brightness through most of the range, but smoothly attenuate the light at the edge of the range. Use a value of [code]2.0[/code] for physically accurate lights as it results in the proper inverse square attenutation.

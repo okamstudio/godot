@@ -43,6 +43,49 @@ RenderingDeviceGraph::RenderingDeviceGraph() {
 RenderingDeviceGraph::~RenderingDeviceGraph() {
 }
 
+String RenderingDeviceGraph::_usage_to_string(ResourceUsage p_usage) {
+	switch (p_usage) {
+		case RESOURCE_USAGE_NONE:
+			return "None";
+		case RESOURCE_USAGE_COPY_FROM:
+			return "Copy From";
+		case RESOURCE_USAGE_COPY_TO:
+			return "Copy To";
+		case RESOURCE_USAGE_RESOLVE_FROM:
+			return "Resolve From";
+		case RESOURCE_USAGE_RESOLVE_TO:
+			return "Resolve To";
+		case RESOURCE_USAGE_UNIFORM_BUFFER_READ:
+			return "Uniform Buffer Read";
+		case RESOURCE_USAGE_INDIRECT_BUFFER_READ:
+			return "Indirect Buffer Read";
+		case RESOURCE_USAGE_TEXTURE_BUFFER_READ:
+			return "Texture Buffer Read";
+		case RESOURCE_USAGE_TEXTURE_BUFFER_READ_WRITE:
+			return "Texture Buffer Read Write";
+		case RESOURCE_USAGE_STORAGE_BUFFER_READ:
+			return "Storage Buffer Read";
+		case RESOURCE_USAGE_STORAGE_BUFFER_READ_WRITE:
+			return "Storage Buffer Read Write";
+		case RESOURCE_USAGE_VERTEX_BUFFER_READ:
+			return "Vertex Buffer Read";
+		case RESOURCE_USAGE_INDEX_BUFFER_READ:
+			return "Index Buffer Read";
+		case RESOURCE_USAGE_TEXTURE_SAMPLE:
+			return "Texture Sample";
+		case RESOURCE_USAGE_STORAGE_IMAGE_READ:
+			return "Storage Image Read";
+		case RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE:
+			return "Storage Image Read Write";
+		case RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE:
+			return "Attachment Color Read Write";
+		case RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE:
+			return "Attachment Depth Stencil Read Write";
+		default:
+			ERR_FAIL_V_MSG("Invalid", vformat("Invalid resource usage %d.", p_usage));
+	}
+}
+
 bool RenderingDeviceGraph::_is_write_usage(ResourceUsage p_usage) {
 	switch (p_usage) {
 		case RESOURCE_USAGE_COPY_FROM:
@@ -1696,7 +1739,7 @@ void RenderingDeviceGraph::add_compute_list_usage(ResourceTracker *p_tracker, Re
 	}
 #ifdef DEV_ENABLED
 	else if (p_tracker->compute_list_usage != p_usage) {
-		ERR_FAIL_MSG(vformat("Tracker can't have more than one type of usage in the same compute list. Compute list usage is %d and the requested usage is %d.", p_tracker->compute_list_usage, p_usage));
+		ERR_FAIL_MSG(vformat("Tracker can't have more than one type of usage in the same compute list. Compute list usage is %s and the requested usage is %s.", _usage_to_string(p_tracker->compute_list_usage), _usage_to_string(p_usage)));
 	}
 #endif
 }
@@ -1904,7 +1947,7 @@ void RenderingDeviceGraph::add_draw_list_usage(ResourceTracker *p_tracker, Resou
 	}
 #ifdef DEV_ENABLED
 	else if (p_tracker->draw_list_usage != p_usage) {
-		ERR_FAIL_MSG(vformat("Tracker can't have more than one type of usage in the same draw list. Draw list usage is %d and the requested usage is %d.", p_tracker->draw_list_usage, p_usage));
+		ERR_FAIL_MSG(vformat("Tracker can't have more than one type of usage in the same draw list. Draw list usage is %s and the requested usage is %s.", _usage_to_string(p_tracker->draw_list_usage), _usage_to_string(p_usage)));
 	}
 #endif
 }

@@ -34,7 +34,7 @@ AnimationNode::NodeTimeInfo AnimationNodeExtension::_process(const AnimationMixe
 	PackedFloat32Array r_ret;
 
 	GDVIRTUAL_CALL(
-			_process,
+			_process_animation_node,
 			_playback_info_to_array(p_playback_info),
 			p_test_only,
 			r_ret);
@@ -53,7 +53,7 @@ double AnimationNodeExtension::get_remaining_time(const PackedFloat32Array &p_no
 void AnimationNodeExtension::_bind_methods() {
 	ClassDB::bind_static_method("AnimationNodeExtension", D_METHOD("is_looping", "node_info"), &AnimationNodeExtension::is_looping);
 	ClassDB::bind_static_method("AnimationNodeExtension", D_METHOD("get_remaining_time", "node_info", "break_loop"), &AnimationNodeExtension::get_remaining_time);
-	GDVIRTUAL_BIND(_process, "playback_info", "test_only");
+	GDVIRTUAL_BIND(_process_animation_node, "playback_info", "test_only");
 }
 
 AnimationNode::NodeTimeInfo AnimationNodeExtension::_array_to_node_time_info(const PackedFloat32Array &p_node_info) {

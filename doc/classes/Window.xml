@@ -641,13 +641,13 @@
 			[/gdscript]
 			[csharp]
 			// Set region, using Path2D node.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = GetNode&lt;Path2D&gt;("Path2D").Curve.GetBakedPoints();
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = GetNode&lt;Path2D&gt;("Path2D").Curve.GetBakedPoints();
 
 			// Set region, using Polygon2D node.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = GetNode&lt;Polygon2D&gt;("Polygon2D").Polygon;
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = GetNode&lt;Polygon2D&gt;("Polygon2D").Polygon;
 
 			// Reset region to default.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = new Vector2[] {};
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = [];
 			[/csharp]
 			[/codeblocks]
 			[b]Note:[/b] This property is ignored if [member mouse_passthrough] is set to [code]true[/code].
@@ -766,6 +766,11 @@
 		<signal name="theme_changed">
 			<description>
 				Emitted when the [constant NOTIFICATION_THEME_CHANGED] notification is sent.
+			</description>
+		</signal>
+		<signal name="title_changed">
+			<description>
+				Emitted when window title bar text is changed.
 			</description>
 		</signal>
 		<signal name="titlebar_changed">

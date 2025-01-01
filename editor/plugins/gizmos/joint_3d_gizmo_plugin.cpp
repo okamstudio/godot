@@ -32,7 +32,6 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/physics/joints/cone_twist_joint_3d.h"
 #include "scene/3d/physics/joints/generic_6dof_joint_3d.h"
 #include "scene/3d/physics/joints/hinge_joint_3d.h"

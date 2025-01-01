@@ -520,12 +520,12 @@ void EditorDockManager::save_docks_to_config(Ref<ConfigFile> p_layout, const Str
 	FileSystemDock::get_singleton()->save_layout_to_config(p_layout, p_section);
 }
 
-void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
+void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section, bool p_first_load) {
 	Dictionary floating_docks_dump = p_layout->get_value(p_section, "dock_floating", Dictionary());
 	Array dock_bottom = p_layout->get_value(p_section, "dock_bottom", Array());
 	Array closed_docks = p_layout->get_value(p_section, "dock_closed", Array());
 
-	bool restore_window_on_load = EDITOR_GET("interface/multi_window/restore_windows_on_load");
+	bool allow_floating_docks = EditorNode::get_singleton()->is_multi_window_enabled() && (!p_first_load || EDITOR_GET("interface/multi_window/restore_windows_on_load"));
 
 	// Store the docks by name for easy lookup.
 	HashMap<String, Control *> dock_map;
@@ -554,7 +554,7 @@ void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const S
 				continue;
 			}
 			bool at_bottom = false;
-			if (restore_window_on_load && floating_docks_dump.has(name)) {
+			if (allow_floating_docks && floating_docks_dump.has(name)) {
 				all_docks[dock].previous_at_bottom = dock_bottom.has(name);
 				_restore_dock_to_saved_window(dock, floating_docks_dump[name]);
 			} else if (dock_bottom.has(name)) {
@@ -717,7 +717,7 @@ void EditorDockManager::focus_dock(Control *p_dock) {
 	}
 
 	if (all_docks[p_dock].at_bottom) {
-		EditorNode::get_bottom_panel()->make_item_visible(p_dock);
+		EditorNode::get_bottom_panel()->make_item_visible(p_dock, true, true);
 		return;
 	}
 

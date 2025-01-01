@@ -30,7 +30,6 @@
 
 #include "post_import_plugin_skeleton_track_organizer.h"
 
-#include "editor/import/3d/scene_import_settings.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/bone_map.h"
@@ -52,7 +51,7 @@ void PostImportPluginSkeletonTrackOrganizer::internal_process(InternalImportCate
 		}
 		BoneMap *bone_map = Object::cast_to<BoneMap>(map);
 		Ref<SkeletonProfile> profile = bone_map->get_profile();
-		if (!profile.is_valid()) {
+		if (profile.is_null()) {
 			return;
 		}
 		Skeleton3D *src_skeleton = Object::cast_to<Skeleton3D>(p_node);

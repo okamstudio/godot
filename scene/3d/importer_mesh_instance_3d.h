@@ -34,7 +34,6 @@
 #include "scene/3d/node_3d.h"
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/resources/3d/skin.h"
-#include "scene/resources/immediate_mesh.h"
 
 class ImporterMesh;
 

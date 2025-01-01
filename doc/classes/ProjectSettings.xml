@@ -2165,6 +2165,9 @@
 		<member name="navigation/pathfinding/max_threads" type="int" setter="" getter="" default="4">
 			Maximum number of threads that can run pathfinding queries simultaneously on the same pathfinding graph, for example the same navigation map. Additional threads increase memory consumption and synchronization time due to the need for extra data copies prepared for each thread. A value of [code]-1[/code] means unlimited and the maximum available OS processor count is used. Defaults to [code]1[/code] when the OS does not support threads.
 		</member>
+		<member name="navigation/world/map_use_async_iterations" type="bool" setter="" getter="" default="true">
+			If enabled, navigation map synchronization uses an async process that runs on a background thread. This avoids stalling the main thread but adds an additional delay to any navigation map change.
+		</member>
 		<member name="network/limits/debugger/max_chars_per_second" type="int" setter="" getter="" default="32768">
 			Maximum number of characters allowed to send as output from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
@@ -2730,6 +2733,9 @@
 		<member name="rendering/lightmapping/bake_performance/max_rays_per_probe_pass" type="int" setter="" getter="" default="64">
 			The maximum number of rays that can be thrown per pass when baking dynamic object lighting in [LightmapProbe]s with [LightmapGI]. Depending on the scene, adjusting this value may result in higher GPU utilization when baking lightmaps, leading to faster bake times.
 		</member>
+		<member name="rendering/lightmapping/bake_performance/max_transparency_rays" type="int" setter="" getter="" default="8">
+			The maximum number of retry rays that can be thrown per pass when hitting a transparent surface when baking lightmaps with [LightmapGI]. Depending on the scene, reducing this value may lead to faster bake times.
+		</member>
 		<member name="rendering/lightmapping/bake_performance/region_size" type="int" setter="" getter="" default="512">
 			The region size to use when baking lightmaps with [LightmapGI].
 		</member>
@@ -3054,8 +3060,9 @@
 		<member name="rendering/textures/default_filters/anisotropic_filtering_level" type="int" setter="" getter="" default="2">
 			Sets the maximum number of samples to take when using anisotropic filtering on textures (as a power of two). A higher sample count will result in sharper textures at oblique angles, but is more expensive to compute. A value of [code]0[/code] forcibly disables anisotropic filtering, even on materials where it is enabled.
 			The anisotropic filtering level also affects decals and light projectors if they are configured to use anisotropic filtering. See [member rendering/textures/decals/filter] and [member rendering/textures/light_projectors/filter].
-			[b]Note:[/b] For performance reasons, anisotropic filtering [i]is not enabled by default[/i] on 2D and 3D materials. For this setting to have an effect in 3D, set [member BaseMaterial3D.texture_filter] to [constant BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on materials. For this setting to have an effect in 2D, set [member CanvasItem.texture_filter] to [constant CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant CanvasItem.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on the [CanvasItem] node displaying the texture (or in [CanvasTexture]). However, anisotropic filtering is rarely useful in 2D, so only enable it for textures in 2D if it makes a meaningful visual difference.
-			[b]Note:[/b] This property is only read when the project starts. There is currently no way to change this setting at run-time.
+			[b]Note:[/b] In 3D, for this setting to have an effect, set [member BaseMaterial3D.texture_filter] to [constant BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on materials.
+			[b]Note:[/b] In 2D, for this setting to have an effect, set [member CanvasItem.texture_filter] to [constant CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant CanvasItem.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on the [CanvasItem] node displaying the texture (or in [CanvasTexture]). However, anisotropic filtering is rarely useful in 2D, so only enable it for textures in 2D if it makes a meaningful visual difference.
+			[b]Note:[/b] This property is only read when the project starts. To change the anisotropic filtering level at runtime, set [member Viewport.anisotropic_filtering_level] on the root [Viewport] instead.
 		</member>
 		<member name="rendering/textures/default_filters/texture_mipmap_bias" type="float" setter="" getter="" default="0.0">
 			Affects the final texture sharpness by reading from a lower or higher mipmap (also called "texture LOD bias"). Negative values make mipmapped textures sharper but grainier when viewed at a distance, while positive values make mipmapped textures blurrier (even when up close).

@@ -63,7 +63,7 @@
 
 		    public override string[] _GetRecognizedExtensions()
 		    {
-		        return new string[] { "special", "spec" };
+		        return ["special", "spec"];
 		    }
 
 		    public override string _GetSaveExtension()
@@ -88,14 +88,14 @@
 
 		    public override Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt; _GetImportOptions(string path, int presetIndex)
 		    {
-		        return new Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt;
-		        {
+		        return
+		        [
 		            new Godot.Collections.Dictionary
 		            {
 		                { "name", "myOption" },
 		                { "default_value", false },
-		            }
-		        };
+		            },
+		        ];
 		    }
 
 		    public override Error _Import(string sourceFile, string savePath, Godot.Collections.Dictionary options, Godot.Collections.Array&lt;string&gt; platformVariants, Godot.Collections.Array&lt;string&gt; genFiles)

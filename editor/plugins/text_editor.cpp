@@ -31,7 +31,6 @@
 #include "text_editor.h"
 
 #include "core/io/json.h"
-#include "core/os/keyboard.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "scene/gui/menu_button.h"
@@ -468,7 +467,7 @@ void TextEditor::_edit_option(int p_op) {
 			emit_signal(SNAME("replace_in_files_requested"), selected_text);
 		} break;
 		case SEARCH_GOTO_LINE: {
-			goto_line_dialog->popup_find_line(tx);
+			goto_line_popup->popup_find_line(code_editor);
 		} break;
 		case BOOKMARK_TOGGLE: {
 			code_editor->toggle_bookmark();
@@ -706,8 +705,8 @@ TextEditor::TextEditor() {
 	bookmarks_menu->connect("about_to_popup", callable_mp(this, &TextEditor::_update_bookmark_list));
 	bookmarks_menu->connect("index_pressed", callable_mp(this, &TextEditor::_bookmark_item_pressed));
 
-	goto_line_dialog = memnew(GotoLineDialog);
-	add_child(goto_line_dialog);
+	goto_line_popup = memnew(GotoLinePopup);
+	add_child(goto_line_popup);
 }
 
 TextEditor::~TextEditor() {

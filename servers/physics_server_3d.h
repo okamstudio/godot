@@ -34,9 +34,7 @@
 #ifndef _3D_DISABLED
 
 #include "core/io/resource.h"
-#include "core/object/class_db.h"
 #include "core/object/gdvirtual.gen.inc"
-#include "core/variant/native_ptr.h"
 
 class PhysicsDirectSpaceState3D;
 template <typename T>

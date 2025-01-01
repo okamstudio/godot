@@ -151,7 +151,7 @@ Comment: Intel ASSAO and related files
 Copyright: 2016, Intel Corporation
 License: Expat
 
-Files: ./servers/rendering/renderer_rd/shaders/taa_resolve.glsl
+Files: ./servers/rendering/renderer_rd/shaders/effects/taa_resolve.glsl
 Comment: Temporal Anti-Aliasing resolve implementation
 Copyright: 2016, Panos Karabelas
 License: Expat

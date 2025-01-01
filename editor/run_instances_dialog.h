@@ -39,6 +39,7 @@ class SpinBox;
 class Timer;
 class Tree;
 class TreeItem;
+class PopupMenu;
 
 class RunInstancesDialog : public AcceptDialog {
 	GDCLASS(RunInstancesDialog, AcceptDialog);
@@ -59,6 +60,12 @@ class RunInstancesDialog : public AcceptDialog {
 		String get_feature_tags() const;
 	};
 
+	// Right-click popup menu.
+	enum {
+		CLEAR_ITEM,
+		CLEAR_ALL,
+	};
+
 	inline static RunInstancesDialog *singleton = nullptr;
 
 	TypedArray<Dictionary> stored_data;
@@ -72,6 +79,7 @@ class RunInstancesDialog : public AcceptDialog {
 	SpinBox *instance_count = nullptr;
 	CheckBox *enable_multiple_instances_checkbox = nullptr;
 	Tree *instance_tree = nullptr;
+	PopupMenu *popup_menu = nullptr;
 
 	void _fetch_main_args();
 	// These 2 methods are necessary due to callable_mp() not supporting default arguments.
@@ -84,6 +92,8 @@ class RunInstancesDialog : public AcceptDialog {
 	void _save_arguments();
 	// Separates command line arguments without splitting up quoted strings.
 	Vector<String> _split_cmdline_args(const String &p_arg_string) const;
+	void _instance_menu_id_pressed(int p_option);
+	void _instance_tree_rmb(const Vector2 &p_pos, MouseButton p_button);
 
 public:
 	void popup_dialog();

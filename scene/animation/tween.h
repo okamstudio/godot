@@ -115,6 +115,7 @@ private:
 	int loops = 1;
 	int loops_done = 0;
 	float speed_scale = 1;
+	bool ignore_time_scale = false;
 
 	bool is_bound = false;
 	bool started = false;
@@ -161,6 +162,8 @@ public:
 	TweenProcessMode get_process_mode();
 	Ref<Tween> set_pause_mode(TweenPauseMode p_mode);
 	TweenPauseMode get_pause_mode();
+	Ref<Tween> set_ignore_time_scale(bool p_ignore = true);
+	bool is_ignoring_time_scale() const;
 
 	Ref<Tween> set_parallel(bool p_parallel);
 	Ref<Tween> set_loops(int p_loops);

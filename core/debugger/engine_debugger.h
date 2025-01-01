@@ -36,7 +36,6 @@
 #include "core/templates/hash_map.h"
 #include "core/templates/vector.h"
 #include "core/variant/array.h"
-#include "core/variant/variant.h"
 
 class RemoteDebuggerPeer;
 class ScriptDebugger;

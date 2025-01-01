@@ -32,7 +32,7 @@
 
 #include "core/config/engine.h"
 #include "core/extension/gdextension.h"
-#include "core/extension/gdextension_compat_hashes.h"
+#include "core/extension/gdextension_special_compat_hashes.h"
 #include "core/io/file_access.h"
 #include "core/io/image.h"
 #include "core/io/xml_parser.h"
@@ -1604,7 +1604,7 @@ static GDExtensionMethodBindPtr gdextension_classdb_get_method_bind(GDExtensionC
 	// If lookup failed, see if this is one of the broken hashes from issue #81386.
 	if (!mb && exists) {
 		uint32_t mapped_hash;
-		if (GDExtensionCompatHashes::lookup_current_hash(classname, methodname, p_hash, &mapped_hash)) {
+		if (GDExtensionSpecialCompatHashes::lookup_current_hash(classname, methodname, p_hash, &mapped_hash)) {
 			mb = ClassDB::get_method_with_compatibility(classname, methodname, mapped_hash, &exists);
 		}
 	}

@@ -41,7 +41,7 @@
 #include "editor/import/3d/scene_import_settings.h"
 #include "editor/themes/editor_scale.h"
 
-String SceneExporterGLTFPlugin::get_name() const {
+String SceneExporterGLTFPlugin::get_plugin_name() const {
 	return "ConvertGLTF2";
 }
 

@@ -8104,7 +8104,7 @@ RID RenderingDevice::_uniform_set_create(const TypedArray<RDUniform> &p_uniforms
 	uniforms.resize(p_uniforms.size());
 	for (int i = 0; i < p_uniforms.size(); i++) {
 		Ref<RDUniform> uniform = p_uniforms[i];
-		ERR_FAIL_COND_V(!uniform.is_valid(), RID());
+		ERR_FAIL_COND_V(uniform.is_null(), RID());
 		uniforms.write[i] = uniform->base;
 	}
 	return uniform_set_create(uniforms, p_shader, p_shader_set);

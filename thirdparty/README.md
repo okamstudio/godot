@@ -436,7 +436,7 @@ Files generated from upstream source:
 ## jolt_physics
 
 - Upstream: https://github.com/jrouwe/JoltPhysics
-- Version: 5.2.1 (e3d3cdf644389b621914bb6e73d52ee3137591a7, 2024)
+- Version: 5.2.1 (f094082aa2bbfcbebc725dbe8b8f65c7d5152886, 2024)
 - License: MIT
 
 Files extracted from upstream source:
@@ -460,12 +460,14 @@ Files extracted from upstream source:
 ## libbacktrace
 
 - Upstream: https://github.com/ianlancetaylor/libbacktrace
-- Version: git (4d2dd0b172f2c9192f83ba93425f868f2a13c553, 2022)
+- Version: git (1db85642e3fca189cf4e076f840a45d6934b2456, 2024)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
-- `*.{c,h}` files for Windows platform
+- `*.{c,h}` files for Windows platform, i.e. remove the following:
+  * `allocfail.c`, `instrumented_alloc.c`, `*test*.{c,h}`
+  * `elf.c`, `macho.c`, `mmap.c`, `mmapio.c`, `nounwind.c`, `unknown.c`, `xcoff.c`
 - `LICENSE`
 
 Important: Some files have Godot-made changes to load big debug symbol files.
@@ -881,7 +883,7 @@ proposed by these libraries and better integrate them with Godot.
 ## spirv-cross
 
 - Upstream: https://github.com/KhronosGroup/SPIRV-Cross
-- Version: vulkan-sdk-1.3.290.0 (5d127b917f080c6f052553c47170ec0ba702e54f, 2024)
+- Version: git (6173e24b31f09a0c3217103a130e74c4ddec14a6, 2024)
 - License: Apache 2.0
 
 Files extracted from upstream source:

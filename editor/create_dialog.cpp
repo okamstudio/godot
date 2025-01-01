@@ -31,7 +31,6 @@
 #include "create_dialog.h"
 
 #include "core/object/class_db.h"
-#include "core/os/keyboard.h"
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_node.h"
 #include "editor/editor_paths.h"
@@ -115,7 +114,7 @@ bool CreateDialog::_is_type_preferred(const String &p_type) const {
 bool CreateDialog::_is_class_disabled_by_feature_profile(const StringName &p_class) const {
 	Ref<EditorFeatureProfile> profile = EditorFeatureProfileManager::get_singleton()->get_current_profile();
 
-	return !profile.is_null() && profile->is_class_disabled(p_class);
+	return profile.is_valid() && profile->is_class_disabled(p_class);
 }
 
 bool CreateDialog::_should_hide_type(const StringName &p_type) const {
@@ -313,7 +312,7 @@ void CreateDialog::_configure_search_option_item(TreeItem *r_item, const StringN
 			r_item->set_suffix(0, "(" + suffix + ")");
 		}
 
-		ERR_FAIL_COND(!scr.is_valid());
+		ERR_FAIL_COND(scr.is_null());
 		is_abstract = scr->is_abstract();
 	} else {
 		r_item->set_metadata(0, custom_type_parents[p_type]);
@@ -831,7 +830,7 @@ CreateDialog::CreateDialog() {
 	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 
 	help_bit = memnew(EditorHelpBit);
-	help_bit->set_content_height_limits(64 * EDSCALE, 64 * EDSCALE);
+	help_bit->set_content_height_limits(80 * EDSCALE, 80 * EDSCALE);
 	help_bit->connect("request_hide", callable_mp(this, &CreateDialog::_hide_requested));
 	vbc->add_margin_child(TTR("Description:"), help_bit);
 

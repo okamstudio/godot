@@ -282,11 +282,13 @@ void Window::set_title(const String &p_title) {
 
 	title = p_title;
 	tr_title = atr(p_title);
+
 #ifdef DEBUG_ENABLED
-	if (window_id == DisplayServer::MAIN_WINDOW_ID) {
+	if (window_id == DisplayServer::MAIN_WINDOW_ID && !Engine::get_singleton()->is_project_manager_hint()) {
 		// Append a suffix to the window title to denote that the project is running
-		// from a debug build (including the editor). Since this results in lower performance,
-		// this should be clearly presented to the user.
+		// from a debug build (including the editor, excluding the project manager).
+		// Since this results in lower performance, this should be clearly presented
+		// to the user.
 		tr_title = vformat("%s (DEBUG)", tr_title);
 	}
 #endif
@@ -303,6 +305,7 @@ void Window::set_title(const String &p_title) {
 			}
 		}
 	}
+	emit_signal("title_changed");
 }
 
 String Window::get_title() const {
@@ -398,7 +401,7 @@ void Window::move_to_center() {
 void Window::set_size(const Size2i &p_size) {
 	ERR_MAIN_THREAD_GUARD;
 #if defined(ANDROID_ENABLED)
-	if (!get_parent()) {
+	if (!get_parent() && is_inside_tree()) {
 		// Can't set root window size on Android.
 		return;
 	}
@@ -474,7 +477,7 @@ void Window::_validate_limit_size() {
 void Window::set_max_size(const Size2i &p_max_size) {
 	ERR_MAIN_THREAD_GUARD;
 #if defined(ANDROID_ENABLED)
-	if (!get_parent()) {
+	if (!get_parent() && is_inside_tree()) {
 		// Can't set root window size on Android.
 		return;
 	}
@@ -497,7 +500,7 @@ Size2i Window::get_max_size() const {
 void Window::set_min_size(const Size2i &p_min_size) {
 	ERR_MAIN_THREAD_GUARD;
 #if defined(ANDROID_ENABLED)
-	if (!get_parent()) {
+	if (!get_parent() && is_inside_tree()) {
 		// Can't set root window size on Android.
 		return;
 	}
@@ -728,7 +731,11 @@ void Window::_rect_changed_callback(const Rect2i &p_callback) {
 	if (size == p_callback.size && position == p_callback.position) {
 		return;
 	}
-	position = p_callback.position;
+
+	if (position != p_callback.position) {
+		position = p_callback.position;
+		_propagate_window_notification(this, NOTIFICATION_WM_POSITION_CHANGED);
+	}
 
 	if (size != p_callback.size) {
 		size = p_callback.size;
@@ -1096,14 +1103,17 @@ void Window::_update_window_size() {
 
 		embedder->_sub_window_update(this);
 	} else if (window_id != DisplayServer::INVALID_WINDOW_ID) {
-		if (reset_min_first && wrap_controls) {
-			// Avoid an error if setting max_size to a value between min_size and the previous size_limit.
-			DisplayServer::get_singleton()->window_set_min_size(Size2i(), window_id);
-		}
+		// When main window embedded in the editor, we can't resize the main window.
+		if (window_id != DisplayServer::MAIN_WINDOW_ID || !Engine::get_singleton()->is_embedded_in_editor()) {
+			if (reset_min_first && wrap_controls) {
+				// Avoid an error if setting max_size to a value between min_size and the previous size_limit.
+				DisplayServer::get_singleton()->window_set_min_size(Size2i(), window_id);
+			}
 
-		DisplayServer::get_singleton()->window_set_max_size(max_size_used, window_id);
-		DisplayServer::get_singleton()->window_set_min_size(size_limit, window_id);
-		DisplayServer::get_singleton()->window_set_size(size, window_id);
+			DisplayServer::get_singleton()->window_set_max_size(max_size_used, window_id);
+			DisplayServer::get_singleton()->window_set_min_size(size_limit, window_id);
+			DisplayServer::get_singleton()->window_set_size(size, window_id);
+		}
 	}
 
 	//update the viewport
@@ -1239,7 +1249,7 @@ void Window::_update_viewport_size() {
 
 	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
 		RenderingServer::get_singleton()->viewport_attach_to_screen(get_viewport_rid(), attach_to_screen_rect, window_id);
-	} else {
+	} else if (!is_embedded()) {
 		RenderingServer::get_singleton()->viewport_attach_to_screen(get_viewport_rid(), Rect2i(), DisplayServer::INVALID_WINDOW_ID);
 	}
 
@@ -1259,6 +1269,10 @@ void Window::_update_viewport_size() {
 	notification(NOTIFICATION_WM_SIZE_CHANGED);
 
 	if (embedder) {
+		float scale = MIN(embedder->stretch_transform.get_scale().width, embedder->stretch_transform.get_scale().height);
+		Size2 s = Size2(final_size.width * scale, final_size.height * scale).ceil();
+		RS::get_singleton()->viewport_set_global_canvas_transform(get_viewport_rid(), global_canvas_transform * scale * content_scale_factor);
+		RS::get_singleton()->viewport_set_size(get_viewport_rid(), s.width, s.height);
 		embedder->_sub_window_update(this);
 	}
 }
@@ -1423,10 +1437,11 @@ void Window::_notification(int p_what) {
 
 			tr_title = atr(title);
 #ifdef DEBUG_ENABLED
-			if (window_id == DisplayServer::MAIN_WINDOW_ID) {
+			if (window_id == DisplayServer::MAIN_WINDOW_ID && !Engine::get_singleton()->is_project_manager_hint()) {
 				// Append a suffix to the window title to denote that the project is running
-				// from a debug build (including the editor). Since this results in lower performance,
-				// this should be clearly presented to the user.
+				// from a debug build (including the editor, excluding the project manager).
+				// Since this results in lower performance, this should be clearly presented
+				// to the user.
 				tr_title = vformat("%s (DEBUG)", tr_title);
 			}
 #endif
@@ -2408,7 +2423,7 @@ bool Window::has_theme_constant(const StringName &p_name, const StringName &p_th
 
 void Window::add_theme_icon_override(const StringName &p_name, const Ref<Texture2D> &p_icon) {
 	ERR_MAIN_THREAD_GUARD;
-	ERR_FAIL_COND(!p_icon.is_valid());
+	ERR_FAIL_COND(p_icon.is_null());
 
 	if (theme_icon_override.has(p_name)) {
 		theme_icon_override[p_name]->disconnect_changed(callable_mp(this, &Window::_notify_theme_override_changed));
@@ -2421,7 +2436,7 @@ void Window::add_theme_icon_override(const StringName &p_name, const Ref<Texture
 
 void Window::add_theme_style_override(const StringName &p_name, const Ref<StyleBox> &p_style) {
 	ERR_MAIN_THREAD_GUARD;
-	ERR_FAIL_COND(!p_style.is_valid());
+	ERR_FAIL_COND(p_style.is_null());
 
 	if (theme_style_override.has(p_name)) {
 		theme_style_override[p_name]->disconnect_changed(callable_mp(this, &Window::_notify_theme_override_changed));
@@ -2434,7 +2449,7 @@ void Window::add_theme_style_override(const StringName &p_name, const Ref<StyleB
 
 void Window::add_theme_font_override(const StringName &p_name, const Ref<Font> &p_font) {
 	ERR_MAIN_THREAD_GUARD;
-	ERR_FAIL_COND(!p_font.is_valid());
+	ERR_FAIL_COND(p_font.is_null());
 
 	if (theme_font_override.has(p_name)) {
 		theme_font_override[p_name]->disconnect_changed(callable_mp(this, &Window::_notify_theme_override_changed));
@@ -3044,6 +3059,7 @@ void Window::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("theme_changed"));
 	ADD_SIGNAL(MethodInfo("dpi_changed"));
 	ADD_SIGNAL(MethodInfo("titlebar_changed"));
+	ADD_SIGNAL(MethodInfo("title_changed"));
 
 	BIND_CONSTANT(NOTIFICATION_VISIBILITY_CHANGED);
 	BIND_CONSTANT(NOTIFICATION_THEME_CHANGED);

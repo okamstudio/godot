@@ -69,6 +69,8 @@
 #define _NET_WM_STATE_REMOVE 0L // remove/unset property
 #define _NET_WM_STATE_ADD 1L // add/set property
 
+#define _NET_WM_MOVERESIZE_MOVE 8L
+
 // 2.2 is the first release with multitouch
 #define XINPUT_CLIENT_VERSION_MAJOR 2
 #define XINPUT_CLIENT_VERSION_MINOR 2
@@ -140,6 +142,7 @@ bool DisplayServerX11::has_feature(Feature p_feature) const {
 #endif
 		case FEATURE_CLIPBOARD_PRIMARY:
 		case FEATURE_TEXT_TO_SPEECH:
+		case FEATURE_WINDOW_EMBEDDING:
 			return true;
 		case FEATURE_SCREEN_CAPTURE:
 			return !xwayland;
@@ -1459,6 +1462,36 @@ Rect2i DisplayServerX11::screen_get_usable_rect(int p_screen) const {
 	return rect;
 }
 
+Rect2i DisplayServerX11::_screens_get_full_rect() const {
+	Rect2i full_rect;
+
+	int count = get_screen_count();
+	for (int i = 0; i < count; i++) {
+		if (i == 0) {
+			full_rect = _screen_get_rect(i);
+			continue;
+		}
+
+		Rect2i screen_rect = _screen_get_rect(i);
+		if (full_rect.position.x > screen_rect.position.x) {
+			full_rect.size.x += full_rect.position.x - screen_rect.position.x;
+			full_rect.position.x = screen_rect.position.x;
+		}
+		if (full_rect.position.y > screen_rect.position.y) {
+			full_rect.size.y += full_rect.position.y - screen_rect.position.y;
+			full_rect.position.y = screen_rect.position.y;
+		}
+		if (full_rect.position.x + full_rect.size.x < screen_rect.position.x + screen_rect.size.x) {
+			full_rect.size.x = screen_rect.position.x + screen_rect.size.x - full_rect.position.x;
+		}
+		if (full_rect.position.y + full_rect.size.y < screen_rect.position.y + screen_rect.size.y) {
+			full_rect.size.y = screen_rect.position.y + screen_rect.size.y - full_rect.position.y;
+		}
+	}
+
+	return full_rect;
+}
+
 int DisplayServerX11::screen_get_dpi(int p_screen) const {
 	_THREAD_SAFE_METHOD_
 
@@ -1743,7 +1776,7 @@ Vector<DisplayServer::WindowID> DisplayServerX11::get_window_list() const {
 DisplayServer::WindowID DisplayServerX11::create_sub_window(WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Rect2i &p_rect, bool p_exclusive, WindowID p_transient_parent) {
 	_THREAD_SAFE_METHOD_
 
-	WindowID id = _create_window(p_mode, p_vsync_mode, p_flags, p_rect);
+	WindowID id = _create_window(p_mode, p_vsync_mode, p_flags, p_rect, 0);
 	for (int i = 0; i < WINDOW_FLAG_MAX; i++) {
 		if (p_flags & (1 << i)) {
 			window_set_flag(WindowFlags(i), true, id);
@@ -1842,6 +1875,10 @@ void DisplayServerX11::delete_sub_window(WindowID p_id) {
 	window_set_drop_files_callback(Callable(), p_id);
 
 	windows.erase(p_id);
+
+	if (last_focused_window == p_id) {
+		last_focused_window = INVALID_WINDOW_ID;
+	}
 }
 
 int64_t DisplayServerX11::window_get_native_handle(HandleType p_handle_type, WindowID p_window) const {
@@ -2072,6 +2109,8 @@ void DisplayServerX11::window_set_current_screen(int p_screen, WindowID p_window
 		return;
 	}
 
+	ERR_FAIL_COND_MSG(wd.embed_parent, "Embedded window can't be moved to another screen.");
+
 	if (window_get_mode(p_window) == WINDOW_MODE_FULLSCREEN || window_get_mode(p_window) == WINDOW_MODE_MAXIMIZED) {
 		Point2i position = screen_get_position(p_screen);
 		Size2i size = screen_get_size(p_screen);
@@ -2229,6 +2268,8 @@ void DisplayServerX11::window_set_position(const Point2i &p_position, WindowID p
 	ERR_FAIL_COND(!windows.has(p_window));
 	WindowData &wd = windows[p_window];
 
+	ERR_FAIL_COND_MSG(wd.embed_parent, "Embedded window can't be moved.");
+
 	int x = 0;
 	int y = 0;
 	if (!window_get_flag(WINDOW_FLAG_BORDERLESS, p_window)) {
@@ -2261,6 +2302,8 @@ void DisplayServerX11::window_set_max_size(const Size2i p_size, WindowID p_windo
 	ERR_FAIL_COND(!windows.has(p_window));
 	WindowData &wd = windows[p_window];
 
+	ERR_FAIL_COND_MSG(wd.embed_parent, "Embedded windows can't have a maximum size.");
+
 	if ((p_size != Size2i()) && ((p_size.x < wd.min_size.x) || (p_size.y < wd.min_size.y))) {
 		ERR_PRINT("Maximum window size can't be smaller than minimum window size!");
 		return;
@@ -2285,6 +2328,8 @@ void DisplayServerX11::window_set_min_size(const Size2i p_size, WindowID p_windo
 
 	ERR_FAIL_COND(!windows.has(p_window));
 	WindowData &wd = windows[p_window];
+
+	ERR_FAIL_COND_MSG(wd.embed_parent, "Embedded windows can't have a minimum size.");
 
 	if ((p_size != Size2i()) && (wd.max_size != Size2i()) && ((p_size.x > wd.max_size.x) || (p_size.y > wd.max_size.y))) {
 		ERR_PRINT("Minimum window size can't be larger than maximum window size!");
@@ -2314,6 +2359,8 @@ void DisplayServerX11::window_set_size(const Size2i p_size, WindowID p_window) {
 	size = size.maxi(1);
 
 	WindowData &wd = windows[p_window];
+
+	ERR_FAIL_COND_MSG(wd.embed_parent, "Embedded window can't be resized.");
 
 	if (wd.size.width == size.width && wd.size.height == size.height) {
 		return;
@@ -2732,8 +2779,10 @@ void DisplayServerX11::window_set_mode(WindowMode p_mode, WindowID p_window) {
 	if (old_mode == p_mode) {
 		return; // do nothing
 	}
-	//remove all "extra" modes
 
+	ERR_FAIL_COND_MSG(p_mode != WINDOW_MODE_WINDOWED && wd.embed_parent, "Embedded window only supports Windowed mode.");
+
+	// Remove all "extra" modes.
 	switch (old_mode) {
 		case WINDOW_MODE_WINDOWED: {
 			//do nothing
@@ -2833,8 +2882,9 @@ void DisplayServerX11::window_set_flag(WindowFlags p_flag, bool p_enabled, Windo
 
 	switch (p_flag) {
 		case WINDOW_FLAG_RESIZE_DISABLED: {
-			wd.resize_disabled = p_enabled;
+			ERR_FAIL_COND_MSG(p_enabled && wd.embed_parent, "Embedded window resize can't be disabled.");
 
+			wd.resize_disabled = p_enabled;
 			_update_size_hints(p_window);
 
 			XFlush(x11_display);
@@ -2850,13 +2900,16 @@ void DisplayServerX11::window_set_flag(WindowFlags p_flag, bool p_enabled, Windo
 			}
 
 			// Preserve window size
-			window_set_size(window_get_size(p_window), p_window);
+			if (!wd.embed_parent) {
+				window_set_size(window_get_size(p_window), p_window);
+			}
 
 			wd.borderless = p_enabled;
 			_update_window_mouse_passthrough(p_window);
 		} break;
 		case WINDOW_FLAG_ALWAYS_ON_TOP: {
 			ERR_FAIL_COND_MSG(wd.transient_parent != INVALID_WINDOW_ID, "Can't make a window transient if the 'on top' flag is active.");
+			ERR_FAIL_COND_MSG(p_enabled && wd.embed_parent, "Embedded window can't become on top.");
 			if (p_enabled && wd.fullscreen) {
 				_set_wm_maximized(p_window, true);
 			}
@@ -2898,6 +2951,7 @@ void DisplayServerX11::window_set_flag(WindowFlags p_flag, bool p_enabled, Windo
 
 			ERR_FAIL_COND_MSG(p_window == MAIN_WINDOW_ID, "Main window can't be popup.");
 			ERR_FAIL_COND_MSG((xwa.map_state == IsViewable) && (wd.is_popup != p_enabled), "Popup flag can't changed while window is opened.");
+			ERR_FAIL_COND_MSG(p_enabled && wd.embed_parent, "Embedded window can't be popup.");
 			wd.is_popup = p_enabled;
 		} break;
 		default: {
@@ -3352,6 +3406,7 @@ Key DisplayServerX11::keyboard_get_label_from_physical(Key p_keycode) const {
 	}
 	return (Key)(key | modifiers);
 }
+
 DisplayServerX11::Property DisplayServerX11::_read_property(Display *p_display, Window p_window, Atom p_property) {
 	Atom actual_type = None;
 	int actual_format = 0;
@@ -4001,7 +4056,9 @@ void DisplayServerX11::_window_changed(XEvent *event) {
 	unsigned int nchildren;
 	if (XQueryTree(x11_display, wd.x11_window, &root, &parent, &children, &nchildren) && wd.parent != parent) {
 		wd.parent = parent;
-		window_set_position(wd.position, window_id);
+		if (!wd.embed_parent) {
+			window_set_position(wd.position, window_id);
+		}
 	}
 	XFree(children);
 
@@ -5025,9 +5082,9 @@ void DisplayServerX11::process_events() {
 				// Don't propagate the motion event unless we have focus
 				// this is so that the relative motion doesn't get messed up
 				// after we regain focus.
-				if (focused) {
-					Input::get_singleton()->parse_input_event(mm);
-				} else {
+				// Adjusted to parse the input event if the window is not focused allowing mouse hovering on the editor
+				// the embedding process has focus.
+				if (!focused) {
 					// Propagate the event to the focused window,
 					// because it's received only on the topmost window.
 					// Note: This is needed for drag & drop to work between windows,
@@ -5046,12 +5103,13 @@ void DisplayServerX11::process_events() {
 							mm->set_position(pos_focused);
 							mm->set_global_position(pos_focused);
 							mm->set_velocity(Input::get_singleton()->get_last_mouse_velocity());
-							Input::get_singleton()->parse_input_event(mm);
 
 							break;
 						}
 					}
 				}
+
+				Input::get_singleton()->parse_input_event(mm);
 
 			} break;
 			case KeyPress:
@@ -5422,6 +5480,311 @@ DisplayServer::VSyncMode DisplayServerX11::window_get_vsync_mode(WindowID p_wind
 	return DisplayServer::VSYNC_ENABLED;
 }
 
+void DisplayServerX11::window_start_drag(WindowID p_window) {
+	_THREAD_SAFE_METHOD_
+
+	ERR_FAIL_COND(!windows.has(p_window));
+	WindowData &wd = windows[p_window];
+
+	XClientMessageEvent m;
+	memset(&m, 0, sizeof(m));
+
+	XUngrabPointer(x11_display, CurrentTime);
+
+	Window root_return, child_return;
+	int root_x, root_y, win_x, win_y;
+	unsigned int mask_return;
+
+	Bool xquerypointer_result = XQueryPointer(x11_display, wd.x11_window, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
+
+	m.type = ClientMessage;
+	m.window = wd.x11_window;
+	m.message_type = XInternAtom(x11_display, "_NET_WM_MOVERESIZE", True);
+	m.format = 32;
+	if (xquerypointer_result) {
+		m.data.l[0] = root_x;
+		m.data.l[1] = root_y;
+		m.data.l[3] = Button1;
+	}
+	m.data.l[2] = _NET_WM_MOVERESIZE_MOVE;
+	m.data.l[4] = 1; // Source - normal application.
+
+	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent *)&m);
+
+	XSync(x11_display, 0);
+}
+
+pid_t get_window_pid(Display *p_display, Window p_window) {
+	Atom atom = XInternAtom(p_display, "_NET_WM_PID", False);
+	Atom actualType;
+	int actualFormat;
+	unsigned long nItems, bytesAfter;
+	unsigned char *prop = nullptr;
+	if (XGetWindowProperty(p_display, p_window, atom, 0, sizeof(pid_t), False, AnyPropertyType,
+				&actualType, &actualFormat, &nItems, &bytesAfter, &prop) == Success) {
+		if (nItems > 0) {
+			pid_t pid = *(pid_t *)prop;
+			XFree(prop);
+			return pid;
+		}
+	}
+
+	return 0; // PID not found.
+}
+
+Window find_window_from_process_id_internal(Display *p_display, pid_t p_process_id, Window p_window) {
+	Window dummy;
+	Window *children;
+	unsigned int num_children;
+
+	if (!XQueryTree(p_display, p_window, &dummy, &dummy, &children, &num_children)) {
+		return 0;
+	}
+
+	for (unsigned int i = 0; i < num_children; i++) {
+		pid_t pid = get_window_pid(p_display, children[i]);
+		if (pid == p_process_id) {
+			return children[i];
+		}
+	}
+
+	// Then check children of children.
+	for (unsigned int i = 0; i < num_children; i++) {
+		Window wnd = find_window_from_process_id_internal(p_display, p_process_id, children[i]);
+		if (wnd != 0) {
+			return wnd;
+		}
+	}
+
+	if (children) {
+		XFree(children);
+	}
+
+	return 0;
+}
+
+Window find_window_from_process_id(Display *p_display, pid_t p_process_id) {
+	// Handle bad window errors silently because while looping
+	// windows can be destroyed, resulting in BadWindow errors.
+	int (*oldHandler)(Display *, XErrorEvent *) = XSetErrorHandler(&bad_window_error_handler);
+
+	const int screencount = XScreenCount(p_display);
+	Window process_window = 0;
+
+	for (int screen_index = 0; screen_index < screencount; screen_index++) {
+		Window root = RootWindow(p_display, screen_index);
+
+		Window wnd = find_window_from_process_id_internal(p_display, p_process_id, root);
+
+		if (wnd != 0) {
+			process_window = wnd;
+			break;
+		}
+	}
+
+	// Restore default error handler.
+	XSetErrorHandler(oldHandler);
+
+	return process_window;
+}
+
+Point2i DisplayServerX11::_get_window_position(Window p_window) const {
+	int x = 0, y = 0;
+	Window child;
+	XTranslateCoordinates(x11_display, p_window, DefaultRootWindow(x11_display), 0, 0, &x, &y, &child);
+	return Point2i(x, y);
+}
+
+Rect2i DisplayServerX11::_get_window_rect(Window p_window) const {
+	XWindowAttributes xwa;
+	XGetWindowAttributes(x11_display, p_window, &xwa);
+	return Rect2i(xwa.x, xwa.y, xwa.width, xwa.height);
+}
+
+void DisplayServerX11::_set_window_taskbar_pager_enabled(Window p_window, bool p_enabled) {
+	Atom wmState = XInternAtom(x11_display, "_NET_WM_STATE", False);
+	Atom skipTaskbar = XInternAtom(x11_display, "_NET_WM_STATE_SKIP_TASKBAR", False);
+	Atom skipPager = XInternAtom(x11_display, "_NET_WM_STATE_SKIP_PAGER", False);
+
+	XClientMessageEvent xev;
+	memset(&xev, 0, sizeof(xev));
+	xev.type = ClientMessage;
+	xev.window = p_window;
+	xev.message_type = wmState;
+	xev.format = 32;
+	xev.data.l[0] = p_enabled ? _NET_WM_STATE_REMOVE : _NET_WM_STATE_ADD; // When enabled, we must remove the skip.
+	xev.data.l[1] = skipTaskbar;
+	xev.data.l[2] = skipPager;
+	xev.data.l[3] = 0;
+	xev.data.l[4] = 0;
+
+	// Send the client message to the root window.
+	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent *)&xev);
+}
+
+Error DisplayServerX11::embed_process(WindowID p_window, OS::ProcessID p_pid, const Rect2i &p_rect, bool p_visible, bool p_grab_focus) {
+	_THREAD_SAFE_METHOD_
+
+	ERR_FAIL_COND_V(!windows.has(p_window), FAILED);
+
+	const WindowData &wd = windows[p_window];
+
+	DEBUG_LOG_X11("Starting embedding %ld to window %lu \n", p_pid, wd.x11_window);
+
+	EmbeddedProcessData *ep = nullptr;
+	if (embedded_processes.has(p_pid)) {
+		ep = embedded_processes.get(p_pid);
+	} else {
+		// New process, trying to find the window.
+		Window process_window = find_window_from_process_id(x11_display, p_pid);
+		if (!process_window) {
+			return ERR_DOES_NOT_EXIST;
+		}
+		DEBUG_LOG_X11("Process %ld window found: %lu \n", p_pid, process_window);
+		ep = memnew(EmbeddedProcessData);
+		ep->process_window = process_window;
+		ep->visible = true;
+		XSetTransientForHint(x11_display, process_window, wd.x11_window);
+		_set_window_taskbar_pager_enabled(process_window, false);
+		embedded_processes.insert(p_pid, ep);
+	}
+
+	// Handle bad window errors silently because just in case the embedded window was closed.
+	int (*oldHandler)(Display *, XErrorEvent *) = XSetErrorHandler(&bad_window_error_handler);
+
+	if (p_visible) {
+		// Resize and move the window to match the desired rectangle.
+		// X11 does not allow moving the window entirely outside the screen boundaries.
+		// To ensure the window remains visible, we will resize it to fit within both the screen and the specified rectangle.
+		Rect2i desired_rect = p_rect;
+
+		// First resize the desired rect to fit inside all the screens without considering the
+		// working area.
+		Rect2i screens_full_rect = _screens_get_full_rect();
+		Vector2i screens_full_end = screens_full_rect.get_end();
+		if (desired_rect.position.x < screens_full_rect.position.x) {
+			desired_rect.size.x = MAX(desired_rect.size.x - (screens_full_rect.position.x - desired_rect.position.x), 0);
+			desired_rect.position.x = screens_full_rect.position.x;
+		}
+		if (desired_rect.position.x + desired_rect.size.x > screens_full_end.x) {
+			desired_rect.size.x = MAX(screens_full_end.x - desired_rect.position.x, 0);
+		}
+		if (desired_rect.position.y < screens_full_rect.position.y) {
+			desired_rect.size.y = MAX(desired_rect.size.y - (screens_full_rect.position.y - desired_rect.position.y), 0);
+			desired_rect.position.y = screens_full_rect.position.y;
+		}
+		if (desired_rect.position.y + desired_rect.size.y > screens_full_end.y) {
+			desired_rect.size.y = MAX(screens_full_end.y - desired_rect.position.y, 0);
+		}
+
+		// Second, for each screen, check if the desired rectangle is within a portion of the screen
+		// that is outside the working area. Each screen can have a different working area
+		// depending on top, bottom, or side panels.
+		int desired_area = desired_rect.get_area();
+		int count = get_screen_count();
+		for (int i = 0; i < count; i++) {
+			Rect2i screen_rect = _screen_get_rect(i);
+			if (screen_rect.intersection(desired_rect).get_area() == 0) {
+				continue;
+			}
+
+			// The desired rect is inside this screen.
+			Rect2i screen_usable_rect = screen_get_usable_rect(i);
+			int screen_usable_area = screen_usable_rect.intersection(desired_rect).get_area();
+			if (screen_usable_area == desired_area) {
+				// The desired rect is fulling inside the usable rect of the screen. No need to resize.
+				continue;
+			}
+
+			if (desired_rect.position.x >= screen_rect.position.x && desired_rect.position.x < screen_usable_rect.position.x) {
+				int offset = screen_usable_rect.position.x - desired_rect.position.x;
+				desired_rect.size.x = MAX(desired_rect.size.x - offset, 0);
+				desired_rect.position.x += offset;
+			}
+			if (desired_rect.position.y >= screen_rect.position.y && desired_rect.position.y < screen_usable_rect.position.y) {
+				int offset = screen_usable_rect.position.y - desired_rect.position.y;
+				desired_rect.size.y = MAX(desired_rect.size.y - offset, 0);
+				desired_rect.position.y += offset;
+			}
+
+			Vector2i desired_end = desired_rect.get_end();
+			Vector2i screen_end = screen_rect.get_end();
+			Vector2i screen_usable_end = screen_usable_rect.get_end();
+			if (desired_end.x > screen_usable_end.x && desired_end.x <= screen_end.x) {
+				desired_rect.size.x = MAX(desired_rect.size.x - (desired_end.x - screen_usable_end.x), 0);
+			}
+			if (desired_end.y > screen_usable_end.y && desired_end.y <= screen_end.y) {
+				desired_rect.size.y = MAX(desired_rect.size.y - (desired_end.y - screen_usable_end.y), 0);
+			}
+		}
+
+		if (desired_rect.size.x < 100 || desired_rect.size.y < 100) {
+			p_visible = false;
+		}
+
+		if (p_visible) {
+			Rect2i current_process_window_rect = _get_window_rect(ep->process_window);
+			if (current_process_window_rect != desired_rect) {
+				DEBUG_LOG_X11("Embedding XMoveResizeWindow process %ld, window %lu to %d, %d, %d, %d \n", p_pid, wd.x11_window, desired_rect.position.x, desired_rect.position.y, desired_rect.size.x, desired_rect.size.y);
+				XMoveResizeWindow(x11_display, ep->process_window, desired_rect.position.x, desired_rect.position.y, desired_rect.size.x, desired_rect.size.y);
+			}
+		}
+	}
+
+	if (ep->visible != p_visible) {
+		if (p_visible) {
+			XMapWindow(x11_display, ep->process_window);
+		} else {
+			XUnmapWindow(x11_display, ep->process_window);
+		}
+		ep->visible = p_visible;
+	}
+
+	if (p_grab_focus && p_visible) {
+		Window focused_window = 0;
+		int revert_to = 0;
+		XGetInputFocus(x11_display, &focused_window, &revert_to);
+		if (focused_window != ep->process_window) {
+			// Be sure that the window is visible to prevent BadMatch error when calling XSetInputFocus on a not viewable window.
+			XWindowAttributes attr;
+			if (XGetWindowAttributes(x11_display, ep->process_window, &attr) && attr.map_state == IsViewable) {
+				XSetInputFocus(x11_display, ep->process_window, RevertToParent, CurrentTime);
+			}
+		}
+	}
+
+	// Restore default error handler.
+	XSetErrorHandler(oldHandler);
+	return OK;
+}
+
+Error DisplayServerX11::remove_embedded_process(OS::ProcessID p_pid) {
+	_THREAD_SAFE_METHOD_
+
+	if (!embedded_processes.has(p_pid)) {
+		return ERR_DOES_NOT_EXIST;
+	}
+
+	EmbeddedProcessData *ep = embedded_processes.get(p_pid);
+	embedded_processes.erase(p_pid);
+	memdelete(ep);
+
+	return OK;
+}
+
+OS::ProcessID DisplayServerX11::get_focused_process_id() {
+	Window focused_window = 0;
+	int revert_to = 0;
+
+	XGetInputFocus(x11_display, &focused_window, &revert_to);
+
+	if (focused_window == None) {
+		return 0;
+	}
+
+	return get_window_pid(x11_display, focused_window);
+}
+
 Vector<String> DisplayServerX11::get_rendering_drivers_func() {
 	Vector<String> drivers;
 
@@ -5436,12 +5799,12 @@ Vector<String> DisplayServerX11::get_rendering_drivers_func() {
 	return drivers;
 }
 
-DisplayServer *DisplayServerX11::create_func(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, Error &r_error) {
-	DisplayServer *ds = memnew(DisplayServerX11(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, r_error));
+DisplayServer *DisplayServerX11::create_func(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
+	DisplayServer *ds = memnew(DisplayServerX11(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
 	return ds;
 }
 
-DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Rect2i &p_rect) {
+DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Rect2i &p_rect, Window p_parent_window) {
 	//Create window
 
 	XVisualInfo visualInfo;
@@ -5540,16 +5903,19 @@ DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, V
 	}
 
 	Rect2i win_rect = p_rect;
-	if (p_mode == WINDOW_MODE_FULLSCREEN || p_mode == WINDOW_MODE_EXCLUSIVE_FULLSCREEN) {
-		Rect2i screen_rect = Rect2i(screen_get_position(rq_screen), screen_get_size(rq_screen));
+	if (!p_parent_window) {
+		// No parent.
+		if (p_mode == WINDOW_MODE_FULLSCREEN || p_mode == WINDOW_MODE_EXCLUSIVE_FULLSCREEN) {
+			Rect2i screen_rect = Rect2i(screen_get_position(rq_screen), screen_get_size(rq_screen));
 
-		win_rect = screen_rect;
-	} else {
-		Rect2i srect = screen_get_usable_rect(rq_screen);
-		Point2i wpos = p_rect.position;
-		wpos = wpos.clamp(srect.position, srect.position + srect.size - p_rect.size / 3);
+			win_rect = screen_rect;
+		} else {
+			Rect2i srect = screen_get_usable_rect(rq_screen);
+			Point2i wpos = p_rect.position;
+			wpos = wpos.clamp(srect.position, srect.position + srect.size - p_rect.size / 3);
 
-		win_rect.position = wpos;
+			win_rect.position = wpos;
+		}
 	}
 
 	// Position and size hints are set from these values before they are updated to the actual
@@ -5561,6 +5927,14 @@ DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, V
 		wd.x11_window = XCreateWindow(x11_display, RootWindow(x11_display, visualInfo.screen), win_rect.position.x, win_rect.position.y, win_rect.size.width > 0 ? win_rect.size.width : 1, win_rect.size.height > 0 ? win_rect.size.height : 1, 0, visualInfo.depth, InputOutput, visualInfo.visual, valuemask, &windowAttributes);
 
 		wd.parent = RootWindow(x11_display, visualInfo.screen);
+
+		DEBUG_LOG_X11("CreateWindow window=%lu, parent: %lu \n", wd.x11_window, wd.parent);
+
+		if (p_parent_window) {
+			wd.embed_parent = p_parent_window;
+			XSetTransientForHint(x11_display, wd.x11_window, p_parent_window);
+		}
+
 		XSetWindowAttributes window_attributes_ime = {};
 		window_attributes_ime.event_mask = KeyPressMask | KeyReleaseMask | StructureNotifyMask | ExposureMask;
 
@@ -5712,7 +6086,7 @@ DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, V
 			}
 		}
 
-		if (wd.is_popup || wd.no_focus) {
+		if (wd.is_popup || wd.no_focus || wd.embed_parent) {
 			// Set Utility type to disable fade animations.
 			Atom type_atom = XInternAtom(x11_display, "_NET_WM_WINDOW_TYPE_UTILITY", False);
 			Atom wt_atom = XInternAtom(x11_display, "_NET_WM_WINDOW_TYPE", False);
@@ -5726,6 +6100,11 @@ DisplayServerX11::WindowID DisplayServerX11::_create_window(WindowMode p_mode, V
 			if (wt_atom != None && type_atom != None) {
 				XChangeProperty(x11_display, wd.x11_window, wt_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&type_atom, 1);
 			}
+		}
+
+		if (p_parent_window) {
+			// Disable the window in the taskbar and alt-tab.
+			_set_window_taskbar_pager_enabled(wd.x11_window, false);
 		}
 
 		_update_size_hints(id);
@@ -5849,7 +6228,7 @@ static ::XIMStyle _get_best_xim_style(const ::XIMStyle &p_style_a, const ::XIMSt
 	return p_style_a;
 }
 
-DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, Error &r_error) {
+DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
 	KeyMappingX11::initialize();
 
 	xwayland = OS::get_singleton()->get_environment("XDG_SESSION_TYPE").to_lower() == "wayland";
@@ -6306,7 +6685,7 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 		window_position = scr_rect.position + (scr_rect.size - p_resolution) / 2;
 	}
 
-	WindowID main_window = _create_window(p_mode, p_vsync_mode, p_flags, Rect2i(window_position, p_resolution));
+	WindowID main_window = _create_window(p_mode, p_vsync_mode, p_flags, Rect2i(window_position, p_resolution), p_parent_window);
 	if (main_window == INVALID_WINDOW_ID) {
 		r_error = ERR_CANT_CREATE;
 		return;

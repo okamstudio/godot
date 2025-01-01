@@ -45,6 +45,17 @@ static void populate_integers(List<int> &p_list, List<int>::Element *r_elements[
 	}
 }
 
+TEST_CASE("[List] List initialization") {
+	List<int> list{ 0, 1, 2, 3, 4 };
+
+	CHECK(list.size() == 5);
+	CHECK(list.get(0) == 0);
+	CHECK(list.get(1) == 1);
+	CHECK(list.get(2) == 2);
+	CHECK(list.get(3) == 3);
+	CHECK(list.get(4) == 4);
+}
+
 TEST_CASE("[List] Push/pop back") {
 	List<String> list;
 

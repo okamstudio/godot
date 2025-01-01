@@ -30,10 +30,6 @@
 
 #include "shader_file_editor_plugin.h"
 
-#include "core/io/resource_loader.h"
-#include "core/io/resource_saver.h"
-#include "core/os/keyboard.h"
-#include "core/os/os.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
@@ -42,7 +38,6 @@
 #include "scene/gui/item_list.h"
 #include "scene/gui/split_container.h"
 #include "servers/display_server.h"
-#include "servers/rendering/shader_types.h"
 
 /*** SHADER SCRIPT EDITOR ****/
 
@@ -321,7 +316,7 @@ ShaderFileEditorPlugin::ShaderFileEditorPlugin() {
 	shader_editor = memnew(ShaderFileEditor);
 
 	shader_editor->set_custom_minimum_size(Size2(0, 300) * EDSCALE);
-	button = EditorNode::get_bottom_panel()->add_item(TTR("ShaderFile"), shader_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_shader_file_bottom_panel", TTR("Toggle ShaderFile Bottom Panel")));
+	button = EditorNode::get_bottom_panel()->add_item(TTR("ShaderFile"), shader_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_shader_file_bottom_panel", TTRC("Toggle ShaderFile Bottom Panel")));
 	button->hide();
 }
 

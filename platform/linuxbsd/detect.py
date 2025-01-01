@@ -3,7 +3,7 @@ import platform
 import sys
 from typing import TYPE_CHECKING
 
-from methods import get_compiler_version, print_error, print_warning, using_gcc
+from methods import get_compiler_version, print_error, print_info, print_warning, using_gcc
 from platform_methods import detect_arch, validate_arch
 
 if TYPE_CHECKING:
@@ -123,10 +123,16 @@ def configure(env: "SConsEnvironment"):
                         found_wrapper = True
                         break
                 if not found_wrapper:
-                    print_error(
-                        "Couldn't locate mold installation path. Make sure it's installed in /usr or /usr/local."
-                    )
-                    sys.exit(255)
+                    for path in os.environ["PATH"].split(os.pathsep):
+                        if os.path.isfile(path + "/ld.mold"):
+                            env.Append(LINKFLAGS=["-B" + path])
+                            found_wrapper = True
+                            break
+                    if not found_wrapper:
+                        print_error(
+                            "Couldn't locate mold installation path. Make sure it's installed in /usr, /usr/local or in PATH environment variable."
+                        )
+                        sys.exit(255)
             else:
                 env.Append(LINKFLAGS=["-fuse-ld=mold"])
         else:
@@ -492,7 +498,7 @@ def configure(env: "SConsEnvironment"):
         else:
             # The default crash handler depends on glibc, so if the host uses
             # a different libc (BSD libc, musl), libexecinfo is required.
-            print("Note: Using `execinfo=no` disables the crash handler on platforms where glibc is missing.")
+            print_info("Using `execinfo=no` disables the crash handler on platforms where glibc is missing.")
     else:
         env.Append(CPPDEFINES=["CRASH_HANDLER_ENABLED"])
 

@@ -256,7 +256,7 @@ void EditorExport::load_config() {
 			}
 		}
 
-		if (!preset.is_valid()) {
+		if (preset.is_null()) {
 			index++;
 			continue; // Unknown platform, skip without error (platform might be loaded later).
 		}

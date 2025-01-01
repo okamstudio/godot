@@ -118,7 +118,7 @@ StringBuffer<SHORT_BUFFER_SIZE> &StringBuffer<SHORT_BUFFER_SIZE>::append(const c
 
 template <int SHORT_BUFFER_SIZE>
 StringBuffer<SHORT_BUFFER_SIZE> &StringBuffer<SHORT_BUFFER_SIZE>::reserve(int p_size) {
-	if (p_size < SHORT_BUFFER_SIZE || p_size < buffer.size()) {
+	if (p_size < SHORT_BUFFER_SIZE || p_size < buffer.size() || !p_size) {
 		return *this;
 	}
 

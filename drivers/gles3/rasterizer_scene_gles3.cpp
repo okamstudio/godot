@@ -977,7 +977,7 @@ void RasterizerSceneGLES3::_update_sky_radiance(RID p_env, const Projection &p_p
 		glBindFramebuffer(GL_FRAMEBUFFER, sky->radiance_framebuffer);
 
 		scene_state.reset_gl_state();
-		scene_state.set_gl_cull_mode(GLES3::SceneShaderData::CULL_DISABLED);
+		scene_state.set_gl_cull_mode(RS::CULL_MODE_DISABLED);
 		scene_state.enable_gl_blend(false);
 
 		for (int i = 0; i < 6; i++) {
@@ -1000,7 +1000,7 @@ void RasterizerSceneGLES3::_update_sky_radiance(RID p_env, const Projection &p_p
 	} else {
 		if (sky_mode == RS::SKY_MODE_INCREMENTAL && sky->processing_layer < max_processing_layer) {
 			scene_state.reset_gl_state();
-			scene_state.set_gl_cull_mode(GLES3::SceneShaderData::CULL_DISABLED);
+			scene_state.set_gl_cull_mode(RS::CULL_MODE_DISABLED);
 			scene_state.enable_gl_blend(false);
 
 			cubemap_filter->filter_radiance(sky->raw_radiance, sky->radiance, sky->radiance_framebuffer, sky->radiance_size, sky->mipmap_count, sky->processing_layer);
@@ -1431,6 +1431,10 @@ void RasterizerSceneGLES3::_fill_render_list(RenderListType p_render_list, const
 
 			} else if (p_pass_mode == PASS_MODE_SHADOW) {
 				if (surf->flags & GeometryInstanceSurface::FLAG_PASS_SHADOW) {
+					rl->add_element(surf);
+				}
+			} else if (p_pass_mode == PASS_MODE_MATERIAL) {
+				if (surf->flags & (GeometryInstanceSurface::FLAG_PASS_DEPTH | GeometryInstanceSurface::FLAG_PASS_OPAQUE | GeometryInstanceSurface::FLAG_PASS_ALPHA)) {
 					rl->add_element(surf);
 				}
 			} else {
@@ -2210,7 +2214,7 @@ void RasterizerSceneGLES3::_render_shadow_pass(RID p_light, RID p_shadow_atlas, 
 	scene_state.enable_gl_depth_test(false);
 	scene_state.enable_gl_depth_draw(true);
 	glDisable(GL_CULL_FACE);
-	scene_state.cull_mode = GLES3::SceneShaderData::CULL_DISABLED;
+	scene_state.cull_mode = RS::CULL_MODE_DISABLED;
 	glBindFramebuffer(GL_FRAMEBUFFER, GLES3::TextureStorage::system_fbo);
 }
 
@@ -2587,7 +2591,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 		scene_state.enable_gl_depth_draw(false);
 		scene_state.enable_gl_depth_test(false);
 		scene_state.enable_gl_blend(false);
-		scene_state.set_gl_cull_mode(GLES3::SceneShaderData::CULL_BACK);
+		scene_state.set_gl_cull_mode(RS::CULL_MODE_BACK);
 
 		Ref<CameraFeed> feed = CameraServer::get_singleton()->get_feed_by_id(camera_feed_id);
 
@@ -2615,7 +2619,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 
 		scene_state.enable_gl_depth_test(true);
 		scene_state.enable_gl_blend(false);
-		scene_state.set_gl_cull_mode(GLES3::SceneShaderData::CULL_BACK);
+		scene_state.set_gl_cull_mode(RS::CULL_MODE_BACK);
 
 		Transform3D transform = render_data.cam_transform;
 		Projection projection = render_data.cam_projection;
@@ -3099,19 +3103,19 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 			}
 
 			// Find cull variant.
-			GLES3::SceneShaderData::Cull cull_mode = shader->cull_mode;
+			RS::CullMode cull_mode = shader->cull_mode;
 
 			if (p_pass_mode == PASS_MODE_MATERIAL || (surf->flags & GeometryInstanceSurface::FLAG_USES_DOUBLE_SIDED_SHADOWS)) {
-				cull_mode = GLES3::SceneShaderData::CULL_DISABLED;
+				cull_mode = RS::CULL_MODE_DISABLED;
 			} else {
 				bool mirror = inst->mirror;
 				if (p_params->reverse_cull) {
 					mirror = !mirror;
 				}
-				if (cull_mode == GLES3::SceneShaderData::CULL_FRONT && mirror) {
-					cull_mode = GLES3::SceneShaderData::CULL_BACK;
-				} else if (cull_mode == GLES3::SceneShaderData::CULL_BACK && mirror) {
-					cull_mode = GLES3::SceneShaderData::CULL_FRONT;
+				if (cull_mode == RS::CULL_MODE_FRONT && mirror) {
+					cull_mode = RS::CULL_MODE_BACK;
+				} else if (cull_mode == RS::CULL_MODE_BACK && mirror) {
+					cull_mode = RS::CULL_MODE_FRONT;
 				}
 			}
 
@@ -3832,7 +3836,7 @@ void RasterizerSceneGLES3::_render_buffers_debug_draw(Ref<RenderSceneBuffersGLES
 			glActiveTexture(GL_TEXTURE0);
 			scene_state.enable_gl_depth_draw(true);
 			glDepthFunc(GL_ALWAYS);
-			scene_state.set_gl_cull_mode(GLES3::SceneShaderData::CULL_DISABLED);
+			scene_state.set_gl_cull_mode(RS::CULL_MODE_DISABLED);
 
 			// Loop through quadrants and copy shadows over.
 			for (int quadrant = 0; quadrant < 4; quadrant++) {

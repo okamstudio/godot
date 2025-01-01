@@ -6,29 +6,42 @@
 	<description>
 		A* (A star) is a computer algorithm used in pathfinding and graph traversal, the process of plotting short paths among vertices (points), passing through a given set of edges (segments). It enjoys widespread use due to its performance and accuracy. Godot's A* implementation uses points in 3D space and Euclidean distances by default.
 		You must add points manually with [method add_point] and create segments manually with [method connect_points]. Once done, you can test if there is a path between two points with the [method are_points_connected] function, get a path containing indices by [method get_id_path], or one containing actual coordinates with [method get_point_path].
-		It is also possible to use non-Euclidean distances. To do so, create a class that extends [AStar3D] and override methods [method _compute_cost] and [method _estimate_cost]. Both take two indices and return a length, as is shown in the following example.
+		It is also possible to use non-Euclidean distances. To do so, create a script that extends [AStar3D] and override the methods [method _compute_cost] and [method _estimate_cost]. Both should take two point IDs and return the distance between the corresponding points.
+		[b]Example:[/b] Use Manhattan distance instead of Euclidean distance:
 		[codeblocks]
 		[gdscript]
-		class MyAStar:
-		    extends AStar3D
+		class_name MyAStar3D
+		extends AStar3D
 
-		    func _compute_cost(u, v):
-		        return abs(u - v)
+		func _compute_cost(u, v):
+		    var u_pos = get_point_position(u)
+		    var v_pos = get_point_position(v)
+		    return abs(u_pos.x - v_pos.x) + abs(u_pos.y - v_pos.y) + abs(u_pos.z - v_pos.z)
 
-		    func _estimate_cost(u, v):
-		        return min(0, abs(u - v) - 1)
+		func _estimate_cost(u, v):
+		    var u_pos = get_point_position(u)
+		    var v_pos = get_point_position(v)
+		    return abs(u_pos.x - v_pos.x) + abs(u_pos.y - v_pos.y) + abs(u_pos.z - v_pos.z)
 		[/gdscript]
 		[csharp]
-		public partial class MyAStar : AStar3D
+		using Godot;
+
+		[GlobalClass]
+		public partial class MyAStar3D : AStar3D
 		{
 		    public override float _ComputeCost(long fromId, long toId)
 		    {
-		        return Mathf.Abs((int)(fromId - toId));
+		        Vector3 fromPoint = GetPointPosition(fromId);
+		        Vector3 toPoint = GetPointPosition(toId);
+
+		        return Mathf.Abs(fromPoint.X - toPoint.X) + Mathf.Abs(fromPoint.Y - toPoint.Y) + Mathf.Abs(fromPoint.Z - toPoint.Z);
 		    }
 
 		    public override float _EstimateCost(long fromId, long toId)
 		    {
-		        return Mathf.Min(0, Mathf.Abs((int)(fromId - toId)) - 1);
+		        Vector3 fromPoint = GetPointPosition(fromId);
+		        Vector3 toPoint = GetPointPosition(toId);
+		        return Mathf.Abs(fromPoint.X - toPoint.X) + Mathf.Abs(fromPoint.Y - toPoint.Y) + Mathf.Abs(fromPoint.Z - toPoint.Z);
 		    }
 		}
 		[/csharp]

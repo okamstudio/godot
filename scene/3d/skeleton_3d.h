@@ -38,7 +38,6 @@
 typedef int BoneId;
 
 class Skeleton3D;
-class SkeletonModifier3D;
 
 class SkinReference : public RefCounted {
 	GDCLASS(SkinReference, RefCounted)

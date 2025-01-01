@@ -35,8 +35,9 @@
 #include "core/templates/hash_map.h"
 #include "core/templates/hashfuncs.h"
 #include "core/templates/local_vector.h"
+#include "servers/navigation/navigation_utilities.h"
 
-class NavBase;
+struct NavBaseIteration;
 
 namespace gd {
 struct Polygon;
@@ -102,7 +103,7 @@ struct Polygon {
 	uint32_t id = UINT32_MAX;
 
 	/// Navigation region or link that contains this polygon.
-	const NavBase *owner = nullptr;
+	const NavBaseIteration *owner = nullptr;
 
 	/// The points of this `Polygon`
 	LocalVector<Point> points;
@@ -308,6 +309,11 @@ private:
 	}
 };
 
+struct EdgeConnectionPair {
+	gd::Edge::Connection connections[2];
+	int size = 0;
+};
+
 struct PerformanceData {
 	int pm_region_count = 0;
 	int pm_agent_count = 0;
@@ -318,6 +324,18 @@ struct PerformanceData {
 	int pm_edge_connection_count = 0;
 	int pm_edge_free_count = 0;
 	int pm_obstacle_count = 0;
+
+	void reset() {
+		pm_region_count = 0;
+		pm_agent_count = 0;
+		pm_link_count = 0;
+		pm_polygon_count = 0;
+		pm_edge_count = 0;
+		pm_edge_merge_count = 0;
+		pm_edge_connection_count = 0;
+		pm_edge_free_count = 0;
+		pm_obstacle_count = 0;
+	}
 };
 
 } // namespace gd

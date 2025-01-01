@@ -156,6 +156,8 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 
 	void _write_tmp_manifest(const Ref<EditorExportPreset> &p_preset, bool p_give_internet, bool p_debug);
 
+	void _fix_themes_xml(const Ref<EditorExportPreset> &p_preset);
+
 	void _fix_manifest(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_manifest, bool p_give_internet);
 
 	static String _get_keystore_path(const Ref<EditorExportPreset> &p_preset, bool p_debug);

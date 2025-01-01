@@ -1,0 +1,31 @@
+# https://clangd.llvm.org/config
+---
+# Default conditions, apply everywhere.
+
+Diagnostics:
+  Includes:
+    IgnoreHeader:
+      - core/typedefs\.h # Our "main" header, featuring transitive includes; allow everywhere.
+      - \.compat\.inc
+---
+# Header-specific conditions.
+
+If:
+  PathMatch: .*\.(h|hh|hpp|hxx|inc)
+
+# Exclude certain, noisy warnings that lack full context. Replace with lowered severity if/when
+# clangd gets diagnostic severity support. (See: https://github.com/clangd/clangd/issues/1937)
+CompileFlags:
+  Add:
+    - -Wno-unneeded-internal-declaration
+    - -Wno-unused-const-variable
+    - -Wno-unused-function
+    - -Wno-unused-variable
+---
+# Suppress all third-party warnings.
+
+If:
+  PathMatch: thirdparty/.*
+
+Diagnostics:
+  Suppress: "*"

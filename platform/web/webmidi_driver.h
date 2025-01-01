@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  string_android.h                                                      */
+/*  webmidi_driver.h                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,34 +28,34 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STRING_ANDROID_H
-#define STRING_ANDROID_H
+#ifndef WEBMIDI_DRIVER_H
+#define WEBMIDI_DRIVER_H
 
-#include "thread_jandroid.h"
+#include "core/os/midi_driver.h"
 
-#include "core/string/ustring.h"
+#include "godot_js.h"
+#include "godot_midi.h"
 
-#include <jni.h>
+class MIDIDriverWebMidi : public MIDIDriver {
+private:
+	static const int MAX_EVENT_BUFFER_LENGTH = 2;
+	uint8_t _event_buffer[MAX_EVENT_BUFFER_LENGTH];
 
-/**
- * Converts JNI jstring to Godot String.
- * @param source Source JNI string. If null an empty string is returned.
- * @param env JNI environment instance. If null obtained by get_jni_env().
- * @return Godot string instance.
- */
-static inline String jstring_to_string(jstring source, JNIEnv *env = nullptr) {
-	String result;
-	if (source) {
-		if (!env) {
-			env = get_jni_env();
-		}
-		const char *const source_utf8 = env->GetStringUTFChars(source, nullptr);
-		if (source_utf8) {
-			result.parse_utf8(source_utf8);
-			env->ReleaseStringUTFChars(source, source_utf8);
-		}
-	}
-	return result;
-}
+public:
+	// Override return type to make writing static callbacks less tedious.
+	static MIDIDriverWebMidi *get_singleton();
 
-#endif // STRING_ANDROID_H
+	virtual Error open() override;
+	virtual void close() override final;
+
+	MIDIDriverWebMidi() = default;
+	virtual ~MIDIDriverWebMidi();
+
+	WASM_EXPORT static void set_input_names_callback(int p_size, const char **p_input_names);
+	static void _set_input_names_callback(const Vector<String> &p_input_names);
+
+	WASM_EXPORT static void on_midi_message(int p_device_index, int p_status, const uint8_t *p_data, int p_data_len);
+	static void _on_midi_message(int p_device_index, int p_status, const PackedByteArray &p_data, int p_data_len);
+};
+
+#endif // WEBMIDI_DRIVER_H

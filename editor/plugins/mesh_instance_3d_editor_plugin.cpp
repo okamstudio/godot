@@ -38,7 +38,6 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/3d/navigation_region_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
-#include "scene/3d/physics/physics_body_3d.h"
 #include "scene/3d/physics/static_body_3d.h"
 #include "scene/gui/aspect_ratio_container.h"
 #include "scene/gui/box_container.h"
@@ -188,12 +187,12 @@ void MeshInstance3DEditor::_create_collision_shape() {
 				CollisionShape3D *cshape = memnew(CollisionShape3D);
 				cshape->set_shape(shape);
 				cshape->set_name("CollisionShape3D");
-				cshape->set_transform(node->get_transform());
+				cshape->set_transform(instance->get_transform());
 				ur->add_do_method(E, "add_sibling", cshape, true);
 				ur->add_do_method(cshape, "set_owner", owner);
 				ur->add_do_method(Node3DEditor::get_singleton(), SceneStringName(_request_gizmo), cshape);
 				ur->add_do_reference(cshape);
-				ur->add_undo_method(node->get_parent(), "remove_child", cshape);
+				ur->add_undo_method(instance->get_parent(), "remove_child", cshape);
 			}
 		}
 	}
@@ -241,7 +240,7 @@ void MeshInstance3DEditor::_menu_option(int p_option) {
 		} break;
 		case MENU_OPTION_CREATE_UV2: {
 			Ref<Mesh> mesh2 = node->get_mesh();
-			if (!mesh.is_valid()) {
+			if (mesh.is_null()) {
 				err_dialog->set_text(TTR("No mesh to unwrap."));
 				err_dialog->popup_centered();
 				return;
@@ -282,7 +281,7 @@ void MeshInstance3DEditor::_menu_option(int p_option) {
 				ur->commit_action();
 			} else {
 				Ref<ArrayMesh> array_mesh = mesh2;
-				if (!array_mesh.is_valid()) {
+				if (array_mesh.is_null()) {
 					err_dialog->set_text(TTR("Contained Mesh is not of type ArrayMesh."));
 					err_dialog->popup_centered();
 					return;
@@ -338,7 +337,7 @@ void MeshInstance3DEditor::_menu_option(int p_option) {
 		} break;
 		case MENU_OPTION_DEBUG_UV1: {
 			Ref<Mesh> mesh2 = node->get_mesh();
-			if (!mesh2.is_valid()) {
+			if (mesh2.is_null()) {
 				err_dialog->set_text(TTR("No mesh to debug."));
 				err_dialog->popup_centered();
 				return;
@@ -347,7 +346,7 @@ void MeshInstance3DEditor::_menu_option(int p_option) {
 		} break;
 		case MENU_OPTION_DEBUG_UV2: {
 			Ref<Mesh> mesh2 = node->get_mesh();
-			if (!mesh2.is_valid()) {
+			if (mesh2.is_null()) {
 				err_dialog->set_text(TTR("No mesh to debug."));
 				err_dialog->popup_centered();
 				return;
@@ -384,7 +383,7 @@ struct MeshInstance3DEditorEdgeSort {
 
 void MeshInstance3DEditor::_create_uv_lines(int p_layer) {
 	Ref<Mesh> mesh = node->get_mesh();
-	ERR_FAIL_COND(!mesh.is_valid());
+	ERR_FAIL_COND(mesh.is_null());
 
 	HashSet<MeshInstance3DEditorEdgeSort, MeshInstance3DEditorEdgeSort> edges;
 	uv_lines.clear();

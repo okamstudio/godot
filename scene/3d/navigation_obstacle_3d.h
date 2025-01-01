@@ -45,6 +45,8 @@ class NavigationObstacle3D : public Node3D {
 	real_t radius = 0.0;
 
 	Vector<Vector3> vertices;
+	bool vertices_are_clockwise = true;
+	bool vertices_are_valid = true;
 
 	bool avoidance_enabled = true;
 	uint32_t avoidance_layers = 1;
@@ -95,6 +97,9 @@ public:
 
 	void set_vertices(const Vector<Vector3> &p_vertices);
 	const Vector<Vector3> &get_vertices() const { return vertices; }
+
+	bool are_vertices_clockwise() const { return vertices_are_clockwise; }
+	bool are_vertices_valid() const { return vertices_are_valid; }
 
 	void set_avoidance_layers(uint32_t p_layers);
 	uint32_t get_avoidance_layers() const;

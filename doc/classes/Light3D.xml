@@ -98,7 +98,7 @@
 			[b]Note:[/b] [member light_size] is not affected by [member Node3D.scale] (the light's scale or its parent's scale).
 			[b]Note:[/b] PCSS for positional lights is only supported in the Forward+ and Mobile rendering methods, not Compatibility.
 		</member>
-		<member name="light_specular" type="float" setter="set_param" getter="get_param" default="0.5">
+		<member name="light_specular" type="float" setter="set_param" getter="get_param" default="1.0">
 			The intensity of the specular blob in objects affected by the light. At [code]0[/code], the light becomes a pure diffuse light. When not baking emission, this can be used to avoid unrealistic reflections when placing lights above an emissive surface.
 		</member>
 		<member name="light_temperature" type="float" setter="set_temperature" getter="get_temperature">

@@ -65,6 +65,7 @@ GodotJavaWrapper::GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_
 	_is_dark_mode_supported = p_env->GetMethodID(godot_class, "isDarkModeSupported", "()Z");
 	_is_dark_mode = p_env->GetMethodID(godot_class, "isDarkMode", "()Z");
 	_get_accent_color = p_env->GetMethodID(godot_class, "getAccentColor", "()I");
+	_get_base_color = p_env->GetMethodID(godot_class, "getBaseColor", "()I");
 	_get_clipboard = p_env->GetMethodID(godot_class, "getClipboard", "()Ljava/lang/String;");
 	_set_clipboard = p_env->GetMethodID(godot_class, "setClipboard", "(Ljava/lang/String;)V");
 	_has_clipboard = p_env->GetMethodID(godot_class, "hasClipboard", "()Z");
@@ -215,18 +216,32 @@ bool GodotJavaWrapper::is_dark_mode() {
 	}
 }
 
+// Convert ARGB to RGBA.
+static Color _argb_to_rgba(int p_color) {
+	int alpha = (p_color >> 24) & 0xFF;
+	int red = (p_color >> 16) & 0xFF;
+	int green = (p_color >> 8) & 0xFF;
+	int blue = p_color & 0xFF;
+	return Color(red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f);
+}
+
 Color GodotJavaWrapper::get_accent_color() {
 	if (_get_accent_color) {
 		JNIEnv *env = get_jni_env();
 		ERR_FAIL_NULL_V(env, Color(0, 0, 0, 0));
 		int accent_color = env->CallIntMethod(godot_instance, _get_accent_color);
+		return _argb_to_rgba(accent_color);
+	} else {
+		return Color(0, 0, 0, 0);
+	}
+}
 
-		// Convert ARGB to RGBA.
-		int alpha = (accent_color >> 24) & 0xFF;
-		int red = (accent_color >> 16) & 0xFF;
-		int green = (accent_color >> 8) & 0xFF;
-		int blue = accent_color & 0xFF;
-		return Color(red / 255.0f, green / 255.0f, blue / 255.0f, alpha / 255.0f);
+Color GodotJavaWrapper::get_base_color() {
+	if (_get_base_color) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, Color(0, 0, 0, 0));
+		int base_color = env->CallIntMethod(godot_instance, _get_base_color);
+		return _argb_to_rgba(base_color);
 	} else {
 		return Color(0, 0, 0, 0);
 	}
@@ -314,7 +329,7 @@ Error GodotJavaWrapper::show_file_picker(const String &p_current_directory, cons
 		jint j_mode = p_mode;
 		jobjectArray j_filters = env->NewObjectArray(p_filters.size(), env->FindClass("java/lang/String"), nullptr);
 		for (int i = 0; i < p_filters.size(); ++i) {
-			jstring j_filter = env->NewStringUTF(p_filters[i].utf8().get_data());
+			jstring j_filter = env->NewStringUTF(p_filters[i].get_slice(";", 0).utf8().get_data());
 			env->SetObjectArrayElement(j_filters, i, j_filter);
 			env->DeleteLocalRef(j_filter);
 		}

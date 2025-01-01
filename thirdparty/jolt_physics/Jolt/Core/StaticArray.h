@@ -27,7 +27,7 @@ public:
 	{
 		JPH_ASSERT(inList.size() <= N);
 		for (const T &v : inList)
-			::new (reinterpret_cast<T *>(&mElements[mSize++])) T(v);
+			new (reinterpret_cast<T *>(&mElements[mSize++])) T(v);
 	}
 
 	/// Copy constructor
@@ -35,7 +35,7 @@ public:
 	{
 		while (mSize < inRHS.mSize)
 		{
-			::new (&mElements[mSize]) T(inRHS[mSize]);
+			new (&mElements[mSize]) T(inRHS[mSize]);
 			++mSize;
 		}
 	}
@@ -61,7 +61,7 @@ public:
 	void				push_back(const T &inElement)
 	{
 		JPH_ASSERT(mSize < N);
-		::new (&mElements[mSize++]) T(inElement);
+		new (&mElements[mSize++]) T(inElement);
 	}
 
 	/// Construct element at the back of the array
@@ -69,7 +69,7 @@ public:
 	void				emplace_back(A &&... inElement)
 	{
 		JPH_ASSERT(mSize < N);
-		::new (&mElements[mSize++]) T(std::forward<A>(inElement)...);
+		new (&mElements[mSize++]) T(std::forward<A>(inElement)...);
 	}
 
 	/// Remove element from the back of the array
@@ -103,7 +103,7 @@ public:
 		JPH_ASSERT(inNewSize <= N);
 		if constexpr (!std::is_trivially_constructible<T>())
 			for (T *element = reinterpret_cast<T *>(mElements) + mSize, *element_end = reinterpret_cast<T *>(mElements) + inNewSize; element < element_end; ++element)
-				::new (element) T;
+				new (element) T;
 		if constexpr (!std::is_trivially_destructible<T>())
 			for (T *element = reinterpret_cast<T *>(mElements) + inNewSize, *element_end = reinterpret_cast<T *>(mElements) + mSize; element < element_end; ++element)
 				element->~T();
@@ -232,7 +232,7 @@ public:
 
 			while (mSize < rhs_size)
 			{
-				::new (&mElements[mSize]) T(inRHS[mSize]);
+				new (&mElements[mSize]) T(inRHS[mSize]);
 				++mSize;
 			}
 		}
@@ -253,7 +253,7 @@ public:
 
 			while (mSize < rhs_size)
 			{
-				::new (&mElements[mSize]) T(inRHS[mSize]);
+				new (&mElements[mSize]) T(inRHS[mSize]);
 				++mSize;
 			}
 		}

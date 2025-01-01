@@ -30,8 +30,6 @@
 
 #include "popup.h"
 
-#include "core/config/engine.h"
-#include "core/os/keyboard.h"
 #include "scene/gui/panel.h"
 #include "scene/theme/theme_db.h"
 

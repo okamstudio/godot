@@ -47,7 +47,6 @@
 #include "editor/property_selector.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
-#include "editor/themes/editor_theme_manager.h"
 #include "scene/2d/gpu_particles_2d.h"
 #include "scene/3d/fog_volume.h"
 #include "scene/3d/gpu_particles_3d.h"
@@ -56,7 +55,6 @@
 #include "scene/main/window.h"
 #include "scene/resources/font.h"
 #include "scene/resources/mesh.h"
-#include "scene/resources/packed_scene.h"
 #include "scene/resources/visual_shader_nodes.h"
 
 ///////////////////// Nil /////////////////////////

@@ -35,9 +35,7 @@
 #include "core/string/string_builder.h"
 #include "core/templates/hash_map.h"
 #include "core/templates/local_vector.h"
-#include "core/templates/rb_map.h"
 #include "core/templates/rid_owner.h"
-#include "core/variant/variant.h"
 #include "servers/rendering_server.h"
 
 class ShaderRD {

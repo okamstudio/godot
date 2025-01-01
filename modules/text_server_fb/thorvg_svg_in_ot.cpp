@@ -74,6 +74,46 @@ void tvg_svg_in_ot_free(FT_Pointer *p_state) {
 	memdelete(state);
 }
 
+static void construct_xml(Ref<XMLParser> &parser, double &r_embox_x, double &r_embox_y, String *p_xml, int64_t &r_tag_count) {
+	if (parser->get_node_type() == XMLParser::NODE_ELEMENT) {
+		*p_xml += vformat("<%s", parser->get_node_name());
+		bool is_svg_tag = parser->get_node_name() == "svg";
+		for (int i = 0; i < parser->get_attribute_count(); i++) {
+			String aname = parser->get_attribute_name(i);
+			String value = parser->get_attribute_value(i);
+			if (is_svg_tag && aname == "viewBox") {
+				PackedStringArray vb = value.split(" ");
+				if (vb.size() == 4) {
+					r_embox_x = vb[2].to_float();
+					r_embox_y = vb[3].to_float();
+				}
+			} else if (is_svg_tag && aname == "width") {
+				r_embox_x = value.to_float();
+			} else if (is_svg_tag && aname == "height") {
+				r_embox_y = value.to_float();
+			} else {
+				*p_xml += vformat(" %s=\"%s\"", aname, value);
+			}
+		}
+
+		if (parser->is_empty()) {
+			*p_xml += "/>";
+		} else {
+			*p_xml += ">";
+			if (r_tag_count >= 0) {
+				r_tag_count++;
+			}
+		}
+	} else if (parser->get_node_type() == XMLParser::NODE_TEXT) {
+		*p_xml += parser->get_node_data();
+	} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END) {
+		*p_xml += vformat("</%s>", parser->get_node_name());
+		if (r_tag_count > 0) {
+			r_tag_count--;
+		}
+	}
+}
+
 FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Pointer *p_state) {
 	TVG_State *state = *reinterpret_cast<TVG_State **>(p_state);
 	if (!state) {
@@ -91,57 +131,90 @@ FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Poin
 		parser->_open_buffer((const uint8_t *)document->svg_document, document->svg_document_length);
 
 		String xml_body;
+
 		double embox_x = document->units_per_EM;
 		double embox_y = document->units_per_EM;
-		while (parser->read() == OK) {
-			if (parser->has_attribute("id")) {
-				const String &gl_name = parser->get_named_attribute_value("id");
-				if (gl_name.begins_with("glyph")) {
-					int dot_pos = gl_name.find_char('.');
-					int64_t gl_idx = gl_name.substr(5, (dot_pos > 0) ? dot_pos - 5 : -1).to_int();
-					if (p_slot->glyph_index != gl_idx) {
-						parser->skip_section();
-						continue;
-					}
-				}
-			}
-			if (parser->get_node_type() == XMLParser::NODE_ELEMENT && parser->get_node_name() == "svg") {
-				if (parser->has_attribute("viewBox")) {
-					PackedStringArray vb = parser->get_named_attribute_value("viewBox").split(" ");
 
-					if (vb.size() == 4) {
-						embox_x = vb[2].to_float();
-						embox_y = vb[3].to_float();
-					}
-				}
-				if (parser->has_attribute("width")) {
-					embox_x = parser->get_named_attribute_value("width").to_float();
-				}
-				if (parser->has_attribute("height")) {
-					embox_y = parser->get_named_attribute_value("height").to_float();
+		TVG_DocumentCache &cache = state->document_map[document->svg_document];
+
+		if (!cache.xml_body.is_empty()) {
+			// If we have a cached document, that means we have already parsed it.
+			// All node cache should be available.
+
+			xml_body = cache.xml_body;
+			embox_x = cache.embox_x;
+			embox_y = cache.embox_y;
+
+			ERR_FAIL_COND_V(!cache.node_caches.has(p_slot->glyph_index), FT_Err_Invalid_SVG_Document);
+			Vector<TVG_NodeCache> &ncs = cache.node_caches[p_slot->glyph_index];
+
+			uint64_t offset = 0;
+			for (TVG_NodeCache &nc : ncs) {
+				// Seek will call read() internally.
+				if (parser->seek(nc.document_offset) == OK) {
+					int64_t tag_count = 0;
+					String xml_node;
+
+					// We only parse the glyph node.
+					do {
+						construct_xml(parser, embox_x, embox_y, &xml_node, tag_count);
+					} while (tag_count != 0 && parser->read() == OK);
+
+					xml_body = xml_body.insert(nc.body_offset + offset, xml_node);
+					offset += xml_node.length();
 				}
 			}
-			if (parser->get_node_type() == XMLParser::NODE_ELEMENT) {
-				xml_body += vformat("<%s", parser->get_node_name());
-				bool is_svg_tag = parser->get_node_name() == "svg";
-				for (int i = 0; i < parser->get_attribute_count(); i++) {
-					String aname = parser->get_attribute_name(i);
-					if (is_svg_tag && (aname == "viewBox" || aname == "width" || aname == "height")) {
-						continue;
+		} else {
+			String xml_node;
+			String xml_body_temp;
+
+			String *p_xml = &xml_body_temp;
+			int64_t tag_count = -1;
+
+			while (parser->read() == OK) {
+				if (parser->has_attribute("id")) {
+					const String &gl_name = parser->get_named_attribute_value("id");
+					if (gl_name.begins_with("glyph")) {
+#ifdef GDEXTENSION
+						int dot_pos = gl_name.find(".");
+#else
+						int dot_pos = gl_name.find_char('.');
+#endif // GDEXTENSION
+						int64_t gl_idx = gl_name.substr(5, (dot_pos > 0) ? dot_pos - 5 : -1).to_int();
+
+						TVG_NodeCache node_cache = TVG_NodeCache();
+						node_cache.document_offset = parser->get_node_offset(),
+						node_cache.body_offset = (uint64_t)cache.xml_body.length();
+						cache.node_caches[gl_idx].push_back(node_cache);
+
+						if (p_slot->glyph_index != gl_idx) {
+							parser->skip_section();
+							continue;
+						}
+						tag_count = 0;
+						xml_node = "";
+						p_xml = &xml_node;
 					}
-					xml_body += vformat(" %s=\"%s\"", aname, parser->get_attribute_value(i));
 				}
 
-				if (parser->is_empty()) {
-					xml_body += "/>";
-				} else {
-					xml_body += ">";
+				xml_body_temp = "";
+				construct_xml(parser, embox_x, embox_y, p_xml, tag_count);
+
+				if (xml_body_temp.length() > 0) {
+					xml_body += xml_body_temp;
+					cache.xml_body += xml_body_temp;
+					continue;
 				}
-			} else if (parser->get_node_type() == XMLParser::NODE_TEXT) {
-				xml_body += parser->get_node_data();
-			} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END) {
-				xml_body += vformat("</%s>", parser->get_node_name());
+
+				if (tag_count == 0) {
+					p_xml = &xml_body_temp;
+					tag_count = -1;
+					xml_body += xml_node;
+				}
 			}
+
+			cache.embox_x = embox_x;
+			cache.embox_y = embox_y;
 		}
 
 		std::unique_ptr<tvg::Picture> picture = tvg::Picture::gen();

@@ -30,8 +30,6 @@
 
 #include "tile_atlas_view.h"
 
-#include "core/input/input.h"
-#include "core/os/keyboard.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/2d/tile_map.h"
@@ -41,7 +39,7 @@
 #include "scene/gui/view_panner.h"
 
 void TileAtlasView::gui_input(const Ref<InputEvent> &p_event) {
-	if (panner->gui_input(p_event)) {
+	if (panner->gui_input(p_event, get_global_rect())) {
 		accept_event();
 	}
 }
@@ -515,7 +513,7 @@ Vector2i TileAtlasView::get_atlas_tile_coords_at_pos(const Vector2 p_pos, bool p
 	}
 
 	Ref<Texture2D> texture = tile_set_atlas_source->get_texture();
-	if (!texture.is_valid()) {
+	if (texture.is_null()) {
 		return TileSetSource::INVALID_ATLAS_COORDS;
 	}
 
@@ -615,6 +613,7 @@ void TileAtlasView::_notification(int p_what) {
 		}
 		case NOTIFICATION_ENTER_TREE: {
 			panner->setup((ViewPanner::ControlScheme)EDITOR_GET("editors/panning/sub_editors_panning_scheme").operator int(), ED_GET_SHORTCUT("canvas_item_editor/pan_view"), bool(EDITOR_GET("editors/panning/simple_panning")));
+			panner->setup_warped_panning(get_viewport(), EDITOR_GET("editors/panning/warped_mouse_panning"));
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {

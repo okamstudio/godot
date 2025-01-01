@@ -32,6 +32,11 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_doc_class_name" qualifiers="virtual const">
+			<return type="StringName" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_documentation" qualifiers="virtual const">
 			<return type="Dictionary[]" />
 			<description>

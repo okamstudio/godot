@@ -30,8 +30,6 @@
 
 #include "collision_polygon_3d_gizmo_plugin.h"
 
-#include "editor/editor_settings.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/physics/collision_polygon_3d.h"
 
 CollisionPolygon3DGizmoPlugin::CollisionPolygon3DGizmoPlugin() {

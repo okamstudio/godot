@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "xr_interface.h"
-#include "servers/rendering/renderer_compositor.h"
 
 void XRInterface::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("play_area_changed", PropertyInfo(Variant::INT, "mode")));

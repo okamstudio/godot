@@ -32,9 +32,7 @@
 #define XR_SERVER_H
 
 #include "core/object/ref_counted.h"
-#include "core/os/os.h"
 #include "core/os/thread_safe.h"
-#include "core/templates/rid.h"
 #include "core/variant/variant.h"
 #include "rendering_server.h"
 

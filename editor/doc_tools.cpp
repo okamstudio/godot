@@ -35,12 +35,11 @@
 #include "core/core_constants.h"
 #include "core/io/compression.h"
 #include "core/io/dir_access.h"
-#include "core/io/marshalls.h"
 #include "core/io/resource_importer.h"
 #include "core/object/script_language.h"
 #include "core/string/translation_server.h"
 #include "editor/editor_settings.h"
-#include "editor/export/editor_export.h"
+#include "editor/export/editor_export_platform.h"
 #include "scene/resources/theme.h"
 #include "scene/theme/theme_db.h"
 
@@ -674,6 +673,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				constant.name = E;
 				constant.value = itos(ClassDB::get_integer_constant(name, E));
 				constant.is_value_valid = true;
+				constant.type = "int";
 				constant.enumeration = ClassDB::get_integer_constant_enum(name, E);
 				constant.is_bitfield = ClassDB::is_enum_bitfield(name, constant.enumeration);
 				c.constants.push_back(constant);
@@ -920,6 +920,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				constant.name = F;
 				constant.value = itos(Variant::get_enum_value(Variant::Type(i), E, F));
 				constant.is_value_valid = true;
+				constant.type = "int";
 				constant.enumeration = E;
 				c.constants.push_back(constant);
 			}
@@ -934,6 +935,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 			Variant value = Variant::get_constant_value(Variant::Type(i), E);
 			constant.value = value.get_type() == Variant::INT ? itos(value) : value.get_construct_string().replace("\n", " ");
 			constant.is_value_valid = true;
+			constant.type = Variant::get_type_name(value.get_type());
 			c.constants.push_back(constant);
 		}
 	}
@@ -951,6 +953,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 		for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
 			DocData::ConstantDoc cd;
 			cd.name = CoreConstants::get_global_constant_name(i);
+			cd.type = "int";
+			cd.enumeration = CoreConstants::get_global_constant_enum(i);
 			cd.is_bitfield = CoreConstants::is_global_constant_bitfield(i);
 			if (!CoreConstants::get_ignore_value_in_docs(i)) {
 				cd.value = itos(CoreConstants::get_global_constant_value(i));
@@ -958,7 +962,6 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 			} else {
 				cd.is_value_valid = false;
 			}
-			cd.enumeration = CoreConstants::get_global_constant_enum(i);
 			c.constants.push_back(cd);
 		}
 
@@ -998,6 +1001,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				DocData::ArgumentDoc ad;
 				DocData::argument_doc_from_arginfo(ad, pi);
 				md.return_type = ad.type;
+			} else {
+				md.return_type = "void";
 			}
 
 			// Utility function's arguments.
@@ -1077,6 +1082,7 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 				cd.name = E.first;
 				cd.value = E.second;
 				cd.is_value_valid = true;
+				cd.type = Variant::get_type_name(E.second.get_type());
 				c.constants.push_back(cd);
 			}
 

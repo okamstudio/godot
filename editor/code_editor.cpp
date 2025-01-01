@@ -39,39 +39,72 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
+#include "scene/gui/line_edit.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/separator.h"
 #include "scene/resources/font.h"
 
-void GotoLineDialog::popup_find_line(CodeEdit *p_edit) {
-	text_editor = p_edit;
+void GotoLinePopup::popup_find_line(CodeTextEditor *p_text_editor) {
+	text_editor = p_text_editor;
 
-	// Add 1 because text_editor->get_caret_line() starts from 0, but the editor user interface starts from 1.
-	line->set_text(itos(text_editor->get_caret_line() + 1));
-	line->select_all();
-	popup_centered(Size2(180, 80) * EDSCALE);
-	line->grab_focus();
+	original_state = text_editor->get_navigation_state();
+
+	// Add 1 because the TextEdit starts from 0, but the editor user interface starts from 1.
+	TextEdit *text_edit = text_editor->get_text_editor();
+	int original_line = text_edit->get_caret_line() + 1;
+	line_input->set_text(itos(original_line));
+	text_editor->set_preview_navigation_change(true);
+
+	Rect2i parent_rect = text_editor->get_global_rect();
+	Point2i centered_pos(parent_rect.get_center().x - get_contents_minimum_size().x / 2.0, parent_rect.position.y);
+	popup_on_parent(Rect2i(centered_pos, Size2()));
+	reset_size();
+	line_input->grab_focus();
 }
 
-int GotoLineDialog::get_line() const {
-	return line->get_text().to_int();
-}
-
-void GotoLineDialog::ok_pressed() {
-	// Subtract 1 because the editor user interface starts from 1, but text_editor->set_caret_line(n) starts from 0.
-	const int line_number = get_line() - 1;
-	if (line_number < 0 || line_number >= text_editor->get_line_count()) {
+void GotoLinePopup::_goto_line() {
+	if (line_input->get_text().is_empty()) {
 		return;
 	}
-	text_editor->remove_secondary_carets();
-	text_editor->unfold_line(line_number);
-	text_editor->set_caret_line(line_number);
-	text_editor->set_code_hint("");
-	text_editor->cancel_code_completion();
+
+	PackedStringArray line_col_strings = line_input->get_text().split(":");
+	// Subtract 1 because the editor user interface starts from 1, but the TextEdit starts from 0.
+	const int line_number = line_col_strings[0].to_int() - 1;
+	if (line_number < 0 || line_number >= text_editor->get_text_editor()->get_line_count()) {
+		return;
+	}
+
+	int column_number = 0;
+	if (line_col_strings.size() >= 2) {
+		column_number = line_col_strings[1].to_int() - 1;
+	}
+	text_editor->goto_line_centered(line_number, column_number);
+}
+
+void GotoLinePopup::_submit() {
+	_goto_line();
 	hide();
 }
 
-GotoLineDialog::GotoLineDialog() {
+void GotoLinePopup::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_VISIBILITY_CHANGED: {
+			if (!is_visible()) {
+				text_editor->set_preview_navigation_change(false);
+			}
+		} break;
+	}
+}
+
+void GotoLinePopup::_input_from_window(const Ref<InputEvent> &p_event) {
+	if (p_event->is_action_pressed(SNAME("ui_cancel"), false, true)) {
+		// Cancelled, go back to original state.
+		text_editor->set_edit_state(original_state);
+	}
+	PopupPanel::_input_from_window(p_event);
+}
+
+GotoLinePopup::GotoLinePopup() {
 	set_title(TTR("Go to Line"));
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
@@ -85,14 +118,12 @@ GotoLineDialog::GotoLineDialog() {
 	l->set_text(TTR("Line Number:"));
 	vbc->add_child(l);
 
-	line = memnew(LineEdit);
-	vbc->add_child(line);
-	register_text_enter(line);
-	text_editor = nullptr;
-
-	line_label = nullptr;
-
-	set_hide_on_ok(false);
+	line_input = memnew(LineEdit);
+	line_input->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
+	line_input->set_select_all_on_focus(true);
+	line_input->connect(SceneStringName(text_changed), callable_mp(this, &GotoLinePopup::_goto_line).unbind(1));
+	line_input->connect(SceneStringName(text_submitted), callable_mp(this, &GotoLinePopup::_submit).unbind(1));
+	vbc->add_child(line_input);
 }
 
 void FindReplaceBar::_notification(int p_what) {
@@ -835,7 +866,7 @@ void CodeTextEditor::input(const Ref<InputEvent> &event) {
 
 	const Ref<InputEventKey> key_event = event;
 
-	if (!key_event.is_valid()) {
+	if (key_event.is_null()) {
 		return;
 	}
 	if (!key_event->is_pressed()) {
@@ -1022,7 +1053,7 @@ Ref<Texture2D> CodeTextEditor::_get_completion_icon(const ScriptLanguage::CodeCo
 				tex = get_editor_theme_icon(p_option.display);
 			} else {
 				tex = EditorNode::get_singleton()->get_class_icon(p_option.display);
-				if (!tex.is_valid()) {
+				if (tex.is_null()) {
 					tex = get_editor_theme_icon(SNAME("Object"));
 				}
 			}
@@ -1119,7 +1150,8 @@ void CodeTextEditor::update_editor_settings() {
 	text_editor->set_code_hint_draw_below(EDITOR_GET("text_editor/completion/put_callhint_tooltip_below_current_line"));
 	code_complete_enabled = EDITOR_GET("text_editor/completion/code_complete_enabled");
 	code_complete_timer->set_wait_time(EDITOR_GET("text_editor/completion/code_complete_delay"));
-	idle->set_wait_time(EDITOR_GET("text_editor/completion/idle_parse_delay"));
+	idle_time = EDITOR_GET("text_editor/completion/idle_parse_delay");
+	idle_time_with_errors = EDITOR_GET("text_editor/completion/idle_parse_delay_with_errors_found");
 
 	// Appearance: Guidelines
 	if (EDITOR_GET("text_editor/appearance/guidelines/show_line_length_guidelines")) {
@@ -1392,6 +1424,20 @@ void CodeTextEditor::store_previous_state() {
 	previous_state = get_navigation_state();
 }
 
+bool CodeTextEditor::is_previewing_navigation_change() const {
+	return preview_navigation_change;
+}
+
+void CodeTextEditor::set_preview_navigation_change(bool p_preview) {
+	if (preview_navigation_change == p_preview) {
+		return;
+	}
+	preview_navigation_change = p_preview;
+	if (!preview_navigation_change) {
+		emit_signal("navigation_preview_ended");
+	}
+}
+
 void CodeTextEditor::set_edit_state(const Variant &p_state) {
 	Dictionary state = p_state;
 
@@ -1599,6 +1645,11 @@ void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
 
 void CodeTextEditor::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_READY: {
+			set_error_count(0);
+			set_warning_count(0);
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED: {
 			if (toggle_scripts_button->is_visible()) {
 				update_toggle_scripts_button();
@@ -1624,8 +1675,11 @@ void CodeTextEditor::_notification(int p_what) {
 void CodeTextEditor::set_error_count(int p_error_count) {
 	error_button->set_text(itos(p_error_count));
 	error_button->set_visible(p_error_count > 0);
-	if (!p_error_count) {
+	if (p_error_count > 0) {
 		_set_show_errors_panel(false);
+		idle->set_wait_time(idle_time_with_errors); // Parsing should happen sooner.
+	} else {
+		idle->set_wait_time(idle_time);
 	}
 }
 
@@ -1752,6 +1806,7 @@ void CodeTextEditor::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("load_theme_settings"));
 	ADD_SIGNAL(MethodInfo("show_errors_panel"));
 	ADD_SIGNAL(MethodInfo("show_warnings_panel"));
+	ADD_SIGNAL(MethodInfo("navigation_preview_ended"));
 	ADD_SIGNAL(MethodInfo("zoomed", PropertyInfo(Variant::FLOAT, "p_zoom_factor")));
 }
 
@@ -1777,9 +1832,9 @@ void CodeTextEditor::update_toggle_scripts_button() {
 
 CodeTextEditor::CodeTextEditor() {
 	code_complete_func = nullptr;
-	ED_SHORTCUT("script_editor/zoom_in", TTR("Zoom In"), KeyModifierMask::CMD_OR_CTRL | Key::EQUAL);
-	ED_SHORTCUT("script_editor/zoom_out", TTR("Zoom Out"), KeyModifierMask::CMD_OR_CTRL | Key::MINUS);
-	ED_SHORTCUT_ARRAY("script_editor/reset_zoom", TTR("Reset Zoom"),
+	ED_SHORTCUT("script_editor/zoom_in", TTRC("Zoom In"), KeyModifierMask::CMD_OR_CTRL | Key::EQUAL);
+	ED_SHORTCUT("script_editor/zoom_out", TTRC("Zoom Out"), KeyModifierMask::CMD_OR_CTRL | Key::MINUS);
+	ED_SHORTCUT_ARRAY("script_editor/reset_zoom", TTRC("Reset Zoom"),
 			{ int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KEY_0), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_0) });
 
 	text_editor = memnew(CodeEdit);
@@ -1797,7 +1852,6 @@ CodeTextEditor::CodeTextEditor() {
 	add_child(status_bar);
 	status_bar->set_h_size_flags(SIZE_EXPAND_FILL);
 	status_bar->set_custom_minimum_size(Size2(0, 24 * EDSCALE)); // Adjust for the height of the warning icon.
-
 	idle = memnew(Timer);
 	add_child(idle);
 	idle->set_one_shot(true);
@@ -1838,7 +1892,6 @@ CodeTextEditor::CodeTextEditor() {
 	error_button->set_default_cursor_shape(CURSOR_POINTING_HAND);
 	error_button->connect(SceneStringName(pressed), callable_mp(this, &CodeTextEditor::_error_button_pressed));
 	error_button->set_tooltip_text(TTR("Errors"));
-	set_error_count(0);
 
 	// Warnings
 	warning_button = memnew(Button);
@@ -1848,7 +1901,6 @@ CodeTextEditor::CodeTextEditor() {
 	warning_button->set_default_cursor_shape(CURSOR_POINTING_HAND);
 	warning_button->connect(SceneStringName(pressed), callable_mp(this, &CodeTextEditor::_warning_button_pressed));
 	warning_button->set_tooltip_text(TTR("Warnings"));
-	set_warning_count(0);
 
 	status_bar->add_child(memnew(VSeparator));
 

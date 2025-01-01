@@ -156,7 +156,7 @@
 			<return type="int" />
 			<description>
 				Returns the object id of the [AnimationTree] that owns this node.
-				[b]Note:[/b] This method should only be called from within the [method AnimationNodeExtension._process] method, and will return an invalid id otherwise.
+				[b]Note:[/b] This method should only be called from within the [method AnimationNodeExtension._process_animation_node] method, and will return an invalid id otherwise.
 			</description>
 		</method>
 		<method name="is_path_filtered" qualifiers="const">

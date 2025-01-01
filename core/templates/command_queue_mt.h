@@ -35,7 +35,6 @@
 #include "core/os/condition_variable.h"
 #include "core/os/memory.h"
 #include "core/os/mutex.h"
-#include "core/string/print_string.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/simple_type.h"
 #include "core/typedefs.h"
@@ -339,7 +338,9 @@ class CommandQueueMT {
 	template <typename T>
 	T *allocate() {
 		// alloc size is size+T+safeguard
-		uint32_t alloc_size = ((sizeof(T) + 8 - 1) & ~(8 - 1));
+		static_assert(sizeof(T) < UINT32_MAX, "Type too large to fit in the command queue.");
+
+		uint32_t alloc_size = ((sizeof(T) + 8U - 1U) & ~(8U - 1U));
 		uint64_t size = command_mem.size();
 		command_mem.resize(size + alloc_size + 8);
 		*(uint64_t *)&command_mem[size] = alloc_size;

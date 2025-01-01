@@ -1139,7 +1139,7 @@ ProjectManager::ProjectManager() {
 	}
 
 	// TRANSLATORS: This refers to the application where users manage their Godot projects.
-	DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + TTR("Project Manager", "Application"));
+	SceneTree::get_singleton()->get_root()->set_title(VERSION_NAME + String(" - ") + TTR("Project Manager", "Application"));
 
 	SceneTree::get_singleton()->get_root()->connect("files_dropped", callable_mp(this, &ProjectManager::_files_dropped));
 
@@ -1256,19 +1256,19 @@ ProjectManager::ProjectManager() {
 
 			create_btn = memnew(Button);
 			create_btn->set_text(TTR("Create"));
-			create_btn->set_shortcut(ED_SHORTCUT("project_manager/new_project", TTR("New Project"), KeyModifierMask::CMD_OR_CTRL | Key::N));
+			create_btn->set_shortcut(ED_SHORTCUT("project_manager/new_project", TTRC("New Project"), KeyModifierMask::CMD_OR_CTRL | Key::N));
 			create_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_new_project));
 			hb->add_child(create_btn);
 
 			import_btn = memnew(Button);
 			import_btn->set_text(TTR("Import"));
-			import_btn->set_shortcut(ED_SHORTCUT("project_manager/import_project", TTR("Import Project"), KeyModifierMask::CMD_OR_CTRL | Key::I));
+			import_btn->set_shortcut(ED_SHORTCUT("project_manager/import_project", TTRC("Import Project"), KeyModifierMask::CMD_OR_CTRL | Key::I));
 			import_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_import_project));
 			hb->add_child(import_btn);
 
 			scan_btn = memnew(Button);
 			scan_btn->set_text(TTR("Scan"));
-			scan_btn->set_shortcut(ED_SHORTCUT("project_manager/scan_projects", TTR("Scan Projects"), KeyModifierMask::CMD_OR_CTRL | Key::S));
+			scan_btn->set_shortcut(ED_SHORTCUT("project_manager/scan_projects", TTRC("Scan Projects"), KeyModifierMask::CMD_OR_CTRL | Key::S));
 			scan_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_scan_projects));
 			hb->add_child(scan_btn);
 
@@ -1380,20 +1380,20 @@ ProjectManager::ProjectManager() {
 
 			open_btn = memnew(Button);
 			open_btn->set_text(TTR("Edit"));
-			open_btn->set_shortcut(ED_SHORTCUT("project_manager/edit_project", TTR("Edit Project"), KeyModifierMask::CMD_OR_CTRL | Key::E));
+			open_btn->set_shortcut(ED_SHORTCUT("project_manager/edit_project", TTRC("Edit Project"), KeyModifierMask::CMD_OR_CTRL | Key::E));
 			open_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_open_selected_projects_ask));
 			project_list_sidebar->add_child(open_btn);
 
 			run_btn = memnew(Button);
 			run_btn->set_text(TTR("Run"));
-			run_btn->set_shortcut(ED_SHORTCUT("project_manager/run_project", TTR("Run Project"), KeyModifierMask::CMD_OR_CTRL | Key::R));
+			run_btn->set_shortcut(ED_SHORTCUT("project_manager/run_project", TTRC("Run Project"), KeyModifierMask::CMD_OR_CTRL | Key::R));
 			run_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_run_project));
 			project_list_sidebar->add_child(run_btn);
 
 			rename_btn = memnew(Button);
 			rename_btn->set_text(TTR("Rename"));
 			// The F2 shortcut isn't overridden with Enter on macOS as Enter is already used to edit a project.
-			rename_btn->set_shortcut(ED_SHORTCUT("project_manager/rename_project", TTR("Rename Project"), Key::F2));
+			rename_btn->set_shortcut(ED_SHORTCUT("project_manager/rename_project", TTRC("Rename Project"), Key::F2));
 			rename_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_rename_project));
 			project_list_sidebar->add_child(rename_btn);
 
@@ -1403,7 +1403,7 @@ ProjectManager::ProjectManager() {
 
 			erase_btn = memnew(Button);
 			erase_btn->set_text(TTR("Remove"));
-			erase_btn->set_shortcut(ED_SHORTCUT("project_manager/remove_project", TTR("Remove Project"), Key::KEY_DELETE));
+			erase_btn->set_shortcut(ED_SHORTCUT("project_manager/remove_project", TTRC("Remove Project"), Key::KEY_DELETE));
 			erase_btn->connect(SceneStringName(pressed), callable_mp(this, &ProjectManager::_erase_project));
 			project_list_sidebar->add_child(erase_btn);
 

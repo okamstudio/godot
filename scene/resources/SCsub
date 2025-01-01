@@ -10,7 +10,7 @@ thirdparty_obj = []
 thirdparty_dir = "#thirdparty/misc/"
 thirdparty_sources = [
     "mikktspace.c",
-    "qoa.c"
+    "qoa.c",
 ]
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]

@@ -323,6 +323,9 @@ void CameraMacOS::update_feeds() {
 	// remove devices that are gone..
 	for (int i = feeds.size() - 1; i >= 0; i--) {
 		Ref<CameraFeedMacOS> feed = (Ref<CameraFeedMacOS>)feeds[i];
+		if (feed.is_null()) {
+			continue;
+		}
 
 		if (![devices containsObject:feed->get_device()]) {
 			// remove it from our array, this will also destroy it ;)
@@ -334,6 +337,9 @@ void CameraMacOS::update_feeds() {
 		bool found = false;
 		for (int i = 0; i < feeds.size() && !found; i++) {
 			Ref<CameraFeedMacOS> feed = (Ref<CameraFeedMacOS>)feeds[i];
+			if (feed.is_null()) {
+				continue;
+			}
 			if (feed->get_device() == device) {
 				found = true;
 			};

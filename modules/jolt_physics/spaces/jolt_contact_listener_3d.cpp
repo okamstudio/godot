@@ -407,24 +407,28 @@ void JoltContactListener3D::_flush_contacts() {
 		const JPH::SubShapeIDPair &shape_pair = E.key;
 		Manifold &manifold = E.value;
 
-		const JPH::BodyID body_ids[2] = { shape_pair.GetBody1ID(), shape_pair.GetBody2ID() };
-		const JoltReadableBodies3D jolt_bodies = space->read_bodies(body_ids, 2);
+		const JoltReadableBody3D jolt_body1 = space->read_body(shape_pair.GetBody1ID());
+		const JoltReadableBody3D jolt_body2 = space->read_body(shape_pair.GetBody2ID());
 
-		JoltBody3D *body1 = jolt_bodies[0].as_body();
+		JoltBody3D *body1 = jolt_body1.as_body();
 		ERR_FAIL_NULL(body1);
 
-		JoltBody3D *body2 = jolt_bodies[1].as_body();
+		JoltBody3D *body2 = jolt_body2.as_body();
 		ERR_FAIL_NULL(body2);
 
 		const int shape_index1 = body1->find_shape_index(shape_pair.GetSubShapeID1());
 		const int shape_index2 = body2->find_shape_index(shape_pair.GetSubShapeID2());
 
-		for (const Contact &contact : manifold.contacts1) {
-			body1->add_contact(body2, manifold.depth, shape_index1, shape_index2, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
+		if (jolt_body1->IsActive()) {
+			for (const Contact &contact : manifold.contacts1) {
+				body1->add_contact(body2, manifold.depth, shape_index1, shape_index2, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
+			}
 		}
 
-		for (const Contact &contact : manifold.contacts2) {
-			body2->add_contact(body1, manifold.depth, shape_index2, shape_index1, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
+		if (jolt_body2->IsActive()) {
+			for (const Contact &contact : manifold.contacts2) {
+				body2->add_contact(body1, manifold.depth, shape_index2, shape_index1, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
+			}
 		}
 
 		manifold.contacts1.clear();

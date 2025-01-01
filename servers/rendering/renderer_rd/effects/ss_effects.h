@@ -31,7 +31,6 @@
 #ifndef SS_EFFECTS_RD_H
 #define SS_EFFECTS_RD_H
 
-#include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/screen_space_reflection.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/screen_space_reflection_filter.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/screen_space_reflection_scale.glsl.gen.h"
@@ -45,7 +44,6 @@
 #include "servers/rendering/renderer_rd/shaders/effects/ssil_importance_map.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/ssil_interleave.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/subsurface_scattering.glsl.gen.h"
-#include "servers/rendering/renderer_scene_render.h"
 #include "servers/rendering_server.h"
 
 #define RB_SCOPE_SSDS SNAME("rb_ssds")

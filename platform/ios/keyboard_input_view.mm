@@ -184,7 +184,7 @@
 
 	NSInteger skip = 0;
 	if (substringToDelete != nil) {
-		for (NSInteger i = 0; i < MIN([substringToDelete length], [substringToEnter length]); i++) {
+		for (NSUInteger i = 0; i < MIN([substringToDelete length], [substringToEnter length]); i++) {
 			if ([substringToDelete characterAtIndex:i] == [substringToEnter characterAtIndex:i]) {
 				skip++;
 			} else {

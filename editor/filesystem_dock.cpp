@@ -271,7 +271,7 @@ void FileSystemDock::_create_tree(TreeItem *p_parent, EditorFileSystemDirectory 
 
 	// Create all items for the files in the subdirectory.
 	if (display_mode == DISPLAY_MODE_TREE_ONLY) {
-		String main_scene = GLOBAL_GET("application/run/main_scene");
+		const String main_scene = ResourceUID::ensure_path(GLOBAL_GET("application/run/main_scene"));
 
 		// Build the list of the files to display.
 		List<FileInfo> file_list;
@@ -706,88 +706,62 @@ void FileSystemDock::_set_current_path_line_edit_text(const String &p_path) {
 }
 
 void FileSystemDock::_navigate_to_path(const String &p_path, bool p_select_in_favorites) {
+	String target_path = p_path;
 	bool is_directory = false;
-	if (p_path == "Favorites") {
-		current_path = p_path;
-	} else {
-		String target_path = p_path;
-		// If the path is a file, do not only go to the directory in the tree, also select the file in the file list.
-		if (target_path.ends_with("/")) {
-			target_path = target_path.trim_suffix("/");
-		}
+
+	if (p_path.is_empty()) {
+		target_path = "res://";
+		is_directory = true;
+	} else if (p_path != "Favorites") {
 		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-		if (da->file_exists(p_path)) {
-			current_path = target_path;
-		} else if (da->dir_exists(p_path)) {
-			current_path = target_path + "/";
+		if (da->dir_exists(p_path)) {
 			is_directory = true;
-		} else {
+			if (!p_path.ends_with("/")) {
+				target_path += "/";
+			}
+		} else if (!da->file_exists(p_path)) {
 			ERR_FAIL_MSG(vformat("Cannot navigate to '%s' as it has not been found in the file system!", p_path));
 		}
 	}
 
+	current_path = target_path;
 	_set_current_path_line_edit_text(current_path);
 	_push_to_history();
 
-	const String file_name = is_directory ? p_path.trim_suffix("/").get_file() + "/" : p_path.get_file();
-	bool found = false;
-
-	TreeItem **base_dir_ptr;
-	{
-		const String base_dir = current_path.get_base_dir();
-		if (base_dir == "res://") {
-			base_dir_ptr = folder_map.getptr(base_dir);
-		} else if (is_directory) {
-			base_dir_ptr = folder_map.getptr(base_dir.get_base_dir() + "/");
-		} else {
-			base_dir_ptr = folder_map.getptr(base_dir + "/");
-		}
+	String base_dir_path = target_path.get_base_dir();
+	if (base_dir_path != "res://") {
+		base_dir_path += "/";
 	}
 
-	if (base_dir_ptr) {
-		TreeItem *directory = *base_dir_ptr;
-		{
-			TreeItem *entry = directory->get_first_child();
-			while (entry) {
-				if (entry->get_metadata(0).operator String().ends_with(file_name)) {
-					tree->deselect_all();
-					entry->select(0);
-					found = true;
-					break;
-				}
-				entry = entry->get_next();
-			}
-		}
-
-		while (directory) {
-			directory->set_collapsed(false);
-			directory = directory->get_parent();
-		}
-	}
-
-	if (!found) {
+	TreeItem **directory_ptr = folder_map.getptr(base_dir_path);
+	if (!directory_ptr) {
 		return;
 	}
 
-	tree->ensure_cursor_is_visible();
-	if (display_mode != DISPLAY_MODE_TREE_ONLY) {
-		_update_file_list(false);
-
-		// Reset the scroll for a directory.
-		if (is_directory) {
-			files->get_v_scroll_bar()->set_value(0);
-		}
+	// Unfold all folders along the path.
+	TreeItem *ti = *directory_ptr;
+	while (ti) {
+		ti->set_collapsed(false);
+		ti = ti->get_parent();
 	}
 
-	if (!file_name.is_empty()) {
-		for (int i = 0; i < files->get_item_count(); i++) {
-			if (files->get_item_text(i) == file_name) {
-				files->select(i, true);
-				files->ensure_current_is_visible();
+	// Select the file or directory in the tree.
+	tree->deselect_all();
+	if (display_mode == DISPLAY_MODE_TREE_ONLY) {
+		const String file_name = is_directory ? target_path.trim_suffix("/").get_file() + "/" : target_path.get_file();
+		TreeItem *item = is_directory ? *directory_ptr : (*directory_ptr)->get_first_child();
+		while (item) {
+			if (item->get_metadata(0).operator String().ends_with(file_name)) {
+				item->select(0);
 				break;
 			}
+			item = item->get_next();
 		}
+	} else {
+		(*directory_ptr)->select(0);
+		_update_file_list(false);
 	}
+	tree->ensure_cursor_is_visible();
 }
 
 bool FileSystemDock::_update_filtered_items(TreeItem *p_tree_item) {
@@ -1126,7 +1100,7 @@ void FileSystemDock::_update_file_list(bool p_keep_selection) {
 	sort_file_info_list(file_list, file_sort);
 
 	// Fills the ItemList control node from the FileInfos.
-	String main_scene = GLOBAL_GET("application/run/main_scene");
+	const String main_scene = ResourceUID::ensure_path(GLOBAL_GET("application/run/main_scene"));
 	for (FileInfo &E : file_list) {
 		FileInfo *finfo = &(E);
 		String fname = finfo->name;
@@ -2380,7 +2354,7 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 		case FILE_MAIN_SCENE: {
 			// Set as main scene with selected scene file.
 			if (p_selected.size() == 1) {
-				ProjectSettings::get_singleton()->set("application/run/main_scene", p_selected[0]);
+				ProjectSettings::get_singleton()->set("application/run/main_scene", ResourceUID::path_to_uid(p_selected[0]));
 				ProjectSettings::get_singleton()->save();
 				_update_tree(get_uncollapsed_paths());
 				_update_file_list(true);
@@ -3566,9 +3540,6 @@ void FileSystemDock::_file_multi_selected(int p_index, bool p_selected) {
 		String fpath = files->get_item_metadata(current);
 		if (!fpath.ends_with("/")) {
 			current_path = fpath;
-			if (display_mode != DISPLAY_MODE_TREE_ONLY) {
-				_update_tree(get_uncollapsed_paths());
-			}
 		}
 	}
 
@@ -4055,18 +4026,18 @@ FileSystemDock::FileSystemDock() {
 	ProjectSettings::get_singleton()->add_hidden_prefix("file_customization/");
 
 	// `KeyModifierMask::CMD_OR_CTRL | Key::C` conflicts with other editor shortcuts.
-	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
-	ED_SHORTCUT("filesystem_dock/copy_absolute_path", TTR("Copy Absolute Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::C);
-	ED_SHORTCUT("filesystem_dock/copy_uid", TTR("Copy UID"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | KeyModifierMask::SHIFT | Key::C);
-	ED_SHORTCUT("filesystem_dock/duplicate", TTR("Duplicate..."), KeyModifierMask::CMD_OR_CTRL | Key::D);
-	ED_SHORTCUT("filesystem_dock/delete", TTR("Delete"), Key::KEY_DELETE);
-	ED_SHORTCUT("filesystem_dock/rename", TTR("Rename..."), Key::F2);
+	ED_SHORTCUT("filesystem_dock/copy_path", TTRC("Copy Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
+	ED_SHORTCUT("filesystem_dock/copy_absolute_path", TTRC("Copy Absolute Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::C);
+	ED_SHORTCUT("filesystem_dock/copy_uid", TTRC("Copy UID"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | KeyModifierMask::SHIFT | Key::C);
+	ED_SHORTCUT("filesystem_dock/duplicate", TTRC("Duplicate..."), KeyModifierMask::CMD_OR_CTRL | Key::D);
+	ED_SHORTCUT("filesystem_dock/delete", TTRC("Delete"), Key::KEY_DELETE);
+	ED_SHORTCUT("filesystem_dock/rename", TTRC("Rename..."), Key::F2);
 	ED_SHORTCUT_OVERRIDE("filesystem_dock/rename", "macos", Key::ENTER);
 #if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
 	// Opening the system file manager or opening in an external program is not supported on the Android and web editors.
-	ED_SHORTCUT("filesystem_dock/show_in_explorer", TTR("Open in File Manager"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R);
-	ED_SHORTCUT("filesystem_dock/open_in_external_program", TTR("Open in External Program"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::E);
-	ED_SHORTCUT("filesystem_dock/open_in_terminal", TTR("Open in Terminal"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::T);
+	ED_SHORTCUT("filesystem_dock/show_in_explorer", TTRC("Open in File Manager"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R);
+	ED_SHORTCUT("filesystem_dock/open_in_external_program", TTRC("Open in External Program"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::E);
+	ED_SHORTCUT("filesystem_dock/open_in_terminal", TTRC("Open in Terminal"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::T);
 #endif
 
 	// Properly translating color names would require a separate HashMap, so for simplicity they are provided as comments.

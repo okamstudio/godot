@@ -572,6 +572,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		Ref<NavigationMesh> navigation_mesh = memnew(NavigationMesh);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->map_set_active(map, true);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
@@ -667,6 +668,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		Ref<NavigationMesh> navigation_mesh = memnew(NavigationMesh);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->map_set_active(map, true);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
@@ -716,6 +718,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		navigation_server->map_set_active(map, true);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
 		navigation_server->process(0.0); // Give server some cycles to commit.

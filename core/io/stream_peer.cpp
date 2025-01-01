@@ -204,11 +204,13 @@ void StreamPeer::put_float(float p_val) {
 
 void StreamPeer::put_double(double p_val) {
 	uint8_t buf[8];
+
 	encode_double(p_val, buf);
 	if (big_endian) {
 		uint64_t *p64 = (uint64_t *)buf;
 		*p64 = BSWAP64(*p64);
 	}
+
 	put_data(buf, 8);
 }
 
@@ -243,75 +245,87 @@ uint8_t StreamPeer::get_u8() {
 int8_t StreamPeer::get_8() {
 	uint8_t buf[1] = {};
 	get_data(buf, 1);
-	return buf[0];
+	return int8_t(buf[0]);
 }
 
 uint16_t StreamPeer::get_u16() {
 	uint8_t buf[2];
 	get_data(buf, 2);
+
 	uint16_t r = decode_uint16(buf);
 	if (big_endian) {
 		r = BSWAP16(r);
 	}
+
 	return r;
 }
 
 int16_t StreamPeer::get_16() {
 	uint8_t buf[2];
 	get_data(buf, 2);
+
 	uint16_t r = decode_uint16(buf);
 	if (big_endian) {
 		r = BSWAP16(r);
 	}
-	return r;
+
+	return int16_t(r);
 }
 
 uint32_t StreamPeer::get_u32() {
 	uint8_t buf[4];
 	get_data(buf, 4);
+
 	uint32_t r = decode_uint32(buf);
 	if (big_endian) {
 		r = BSWAP32(r);
 	}
+
 	return r;
 }
 
 int32_t StreamPeer::get_32() {
 	uint8_t buf[4];
 	get_data(buf, 4);
+
 	uint32_t r = decode_uint32(buf);
 	if (big_endian) {
 		r = BSWAP32(r);
 	}
-	return r;
+
+	return int32_t(r);
 }
 
 uint64_t StreamPeer::get_u64() {
 	uint8_t buf[8];
 	get_data(buf, 8);
+
 	uint64_t r = decode_uint64(buf);
 	if (big_endian) {
 		r = BSWAP64(r);
 	}
+
 	return r;
 }
 
 int64_t StreamPeer::get_64() {
 	uint8_t buf[8];
 	get_data(buf, 8);
+
 	uint64_t r = decode_uint64(buf);
 	if (big_endian) {
 		r = BSWAP64(r);
 	}
-	return r;
+
+	return int64_t(r);
 }
 
 float StreamPeer::get_half() {
 	uint8_t buf[2];
 	get_data(buf, 2);
 
-	uint16_t *p16 = (uint16_t *)buf;
 	if (big_endian) {
+		uint16_t *p16 = (uint16_t *)buf;
 		*p16 = BSWAP16(*p16);
 	}
 
@@ -344,7 +358,7 @@ double StreamPeer::get_double() {
 
 String StreamPeer::get_string(int p_bytes) {
 	if (p_bytes < 0) {
-		p_bytes = get_u32();
+		p_bytes = get_32();
 	}
 	ERR_FAIL_COND_V(p_bytes < 0, String());
 
@@ -359,7 +373,7 @@ String StreamPeer::get_string(int p_bytes) {
 
 String StreamPeer::get_utf8_string(int p_bytes) {
 	if (p_bytes < 0) {
-		p_bytes = get_u32();
+		p_bytes = get_32();
 	}
 	ERR_FAIL_COND_V(p_bytes < 0, String());
 
@@ -498,7 +512,7 @@ void StreamPeerBuffer::_bind_methods() {
 }
 
 Error StreamPeerBuffer::put_data(const uint8_t *p_data, int p_bytes) {
-	if (p_bytes <= 0) {
+	if (p_bytes <= 0 || !p_data) {
 		return OK;
 	}
 
@@ -529,6 +543,11 @@ Error StreamPeerBuffer::get_data(uint8_t *p_buffer, int p_bytes) {
 }
 
 Error StreamPeerBuffer::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r_received) {
+	if (!p_bytes) {
+		r_received = 0;
+		return OK;
+	}
+
 	if (pointer + p_bytes > data.size()) {
 		r_received = data.size() - pointer;
 		if (r_received <= 0) {

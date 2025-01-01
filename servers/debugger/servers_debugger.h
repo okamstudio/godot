@@ -31,8 +31,6 @@
 #ifndef SERVERS_DEBUGGER_H
 #define SERVERS_DEBUGGER_H
 
-#include "core/debugger/debugger_marshalls.h"
-
 #include "servers/rendering_server.h"
 
 class ServersDebugger {

@@ -33,7 +33,6 @@
 #include "light_storage.h"
 #include "../rasterizer_gles3.h"
 #include "../rasterizer_scene_gles3.h"
-#include "config.h"
 #include "core/config/project_settings.h"
 #include "texture_storage.h"
 

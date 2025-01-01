@@ -110,6 +110,14 @@
 				Returns the volume of the bus at index [param bus_idx] in dB.
 			</description>
 		</method>
+		<method name="get_bus_volume_linear" qualifiers="const">
+			<return type="float" />
+			<param index="0" name="bus_idx" type="int" />
+			<description>
+				Returns the volume of the bus at index [param bus_idx] as a linear value.
+				[b]Note:[/b] The returned value is equivalent to the result of [method @GlobalScope.db_to_linear] on the result of [method get_bus_volume_db].
+			</description>
+		</method>
 		<method name="get_driver_name" qualifiers="const">
 			<return type="String" />
 			<description>
@@ -302,7 +310,16 @@
 			<param index="0" name="bus_idx" type="int" />
 			<param index="1" name="volume_db" type="float" />
 			<description>
-				Sets the volume of the bus at index [param bus_idx] to [param volume_db].
+				Sets the volume in decibels of the bus at index [param bus_idx] to [param volume_db].
+			</description>
+		</method>
+		<method name="set_bus_volume_linear">
+			<return type="void" />
+			<param index="0" name="bus_idx" type="int" />
+			<param index="1" name="volume_linear" type="float" />
+			<description>
+				Sets the volume as a linear value of the bus at index [param bus_idx] to [param volume_linear].
+				[b]Note:[/b] Using this method is equivalent to calling [method set_bus_volume_db] with the result of [method @GlobalScope.linear_to_db] on a value.
 			</description>
 		</method>
 		<method name="set_enable_tagging_used_audio_streams">

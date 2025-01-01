@@ -555,7 +555,7 @@ void SceneDebuggerObject::serialize(Array &r_arr, int p_max_size) {
 
 		PropertyHint hint = pi.hint;
 		String hint_string = pi.hint_string;
-		if (!res.is_null() && !res->get_path().is_empty()) {
+		if (res.is_valid() && !res->get_path().is_empty()) {
 			var = res->get_path();
 		} else { //only send information that can be sent..
 			int len = 0; //test how big is this to encode
@@ -793,7 +793,7 @@ void LiveEditor::_node_set_func(int p_id, const StringName &p_prop, const Varian
 
 void LiveEditor::_node_set_res_func(int p_id, const StringName &p_prop, const String &p_value) {
 	Ref<Resource> r = ResourceLoader::load(p_value);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 	_node_set_func(p_id, p_prop, r);
@@ -875,7 +875,7 @@ void LiveEditor::_res_set_func(int p_id, const StringName &p_prop, const Variant
 	}
 
 	Ref<Resource> r = ResourceCache::get_ref(resp);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 
@@ -884,7 +884,7 @@ void LiveEditor::_res_set_func(int p_id, const StringName &p_prop, const Variant
 
 void LiveEditor::_res_set_res_func(int p_id, const StringName &p_prop, const String &p_value) {
 	Ref<Resource> r = ResourceLoader::load(p_value);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 	_res_set_func(p_id, p_prop, r);
@@ -902,7 +902,7 @@ void LiveEditor::_res_call_func(int p_id, const StringName &p_method, const Vari
 	}
 
 	Ref<Resource> r = ResourceCache::get_ref(resp);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 
@@ -961,7 +961,7 @@ void LiveEditor::_instance_node_func(const NodePath &p_parent, const String &p_p
 
 	Ref<PackedScene> ps = ResourceLoader::load(p_path);
 
-	if (!ps.is_valid()) {
+	if (ps.is_null()) {
 		return;
 	}
 
@@ -1250,8 +1250,8 @@ void RuntimeNodeSelect::_setup(const Dictionary &p_settings) {
 	int pan_speed = p_settings.get("editors/panning/2d_editor_pan_speed", 20);
 	Array keys = p_settings.get("canvas_item_editor/pan_view", Array()).operator Array();
 	panner->setup(panning_scheme, DebuggerMarshalls::deserialize_key_shortcut(keys), simple_panning);
+	panner->setup_warped_panning(root, p_settings.get("editors/panning/warped_mouse_panning", true));
 	panner->set_scroll_speed(pan_speed);
-	warped_panning = p_settings.get("editors/panning/warped_mouse_panning", false);
 
 	/// 2D Selection Box Generation
 
@@ -1362,7 +1362,7 @@ void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 
 	if (camera_override) {
 		if (node_select_type == NODE_TYPE_2D) {
-			if (panner->gui_input(p_event, warped_panning ? Rect2(Vector2(), root->get_size()) : Rect2())) {
+			if (panner->gui_input(p_event, Rect2(Vector2(), root->get_size()))) {
 				return;
 			}
 		} else if (node_select_type == NODE_TYPE_3D) {
@@ -1375,7 +1375,7 @@ void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 	}
 
 	Ref<InputEventMouseButton> b = p_event;
-	if (!b.is_valid() || !b->is_pressed()) {
+	if (b.is_null() || !b->is_pressed()) {
 		return;
 	}
 

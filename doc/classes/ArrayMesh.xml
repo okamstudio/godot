@@ -25,16 +25,16 @@
 		m.mesh = arr_mesh
 		[/gdscript]
 		[csharp]
-		var vertices = new Vector3[]
-		{
+		Vector3[] vertices =
+		[
 		    new Vector3(0, 1, 0),
 		    new Vector3(1, 0, 0),
 		    new Vector3(0, 0, 1),
-		};
+		];
 
 		// Initialize the ArrayMesh.
 		var arrMesh = new ArrayMesh();
-		var arrays = new Godot.Collections.Array();
+		Godot.Collections.Array arrays = [];
 		arrays.Resize((int)Mesh.ArrayType.Max);
 		arrays[(int)Mesh.ArrayType.Vertex] = vertices;
 
@@ -163,6 +163,13 @@
 			<param index="0" name="surf_idx" type="int" />
 			<description>
 				Returns the primitive type of the requested surface (see [method add_surface_from_arrays]).
+			</description>
+		</method>
+		<method name="surface_remove">
+			<return type="void" />
+			<param index="0" name="surf_idx" type="int" />
+			<description>
+				Removes the surface at the given index from the Mesh, shifting surfaces with higher index down by one.
 			</description>
 		</method>
 		<method name="surface_set_name">

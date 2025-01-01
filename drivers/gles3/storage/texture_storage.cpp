@@ -686,7 +686,7 @@ Ref<Image> TextureStorage::_get_gl_image_and_format(const Ref<Image> &p_image, I
 	}
 
 	if (need_decompress || p_force_decompress) {
-		if (!image.is_null()) {
+		if (image.is_valid()) {
 			image = image->duplicate();
 			image->decompress();
 			ERR_FAIL_COND_V(image->is_compressed(), image);

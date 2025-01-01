@@ -1072,6 +1072,11 @@
 				Emitted when the node's editor description field changed.
 			</description>
 		</signal>
+		<signal name="editor_state_changed">
+			<description>
+				Emitted when an attribute of the node that is relevant to the editor is changed. Only emitted in the editor.
+			</description>
+		</signal>
 		<signal name="ready">
 			<description>
 				Emitted when the node is considered ready, after [method _ready] is called.

@@ -541,13 +541,15 @@ void ParticlesStorage::_particles_allocate_emission_buffer(Particles *particles)
 
 void ParticlesStorage::_particles_ensure_unused_emission_buffer(Particles *particles) {
 	if (particles->unused_emission_storage_buffer.is_null()) {
-		particles->unused_emission_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(uint32_t) * 4);
+		// For rendering devices that do not support empty arrays (like C++),
+		// we need to size the buffer with at least 1 element.
+		particles->unused_emission_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(ParticleEmissionBuffer));
 	}
 }
 
 void ParticlesStorage::_particles_ensure_unused_trail_buffer(Particles *particles) {
 	if (particles->unused_trail_storage_buffer.is_null()) {
-		particles->unused_trail_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(uint32_t) * 4);
+		particles->unused_trail_storage_buffer = RD::get_singleton()->storage_buffer_create(16 * sizeof(float)); // Size of mat4.
 	}
 }
 

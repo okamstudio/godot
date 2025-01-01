@@ -33,7 +33,6 @@
 
 #include "editor/editor_inspector.h"
 #include "editor/editor_locale_dialog.h"
-#include "editor/filesystem_dock.h"
 
 class Button;
 class EditorSpinSlider;

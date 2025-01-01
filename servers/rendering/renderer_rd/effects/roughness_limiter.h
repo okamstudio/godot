@@ -31,11 +31,7 @@
 #ifndef ROUGHNESS_LIMITER_RD_H
 #define ROUGHNESS_LIMITER_RD_H
 
-#include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/roughness_limiter.glsl.gen.h"
-#include "servers/rendering/renderer_scene_render.h"
-
-#include "servers/rendering_server.h"
 
 namespace RendererRD {
 

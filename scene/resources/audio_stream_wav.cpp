@@ -587,7 +587,7 @@ void AudioStreamWAV::set_data(const Vector<uint8_t> &p_data) {
 Vector<uint8_t> AudioStreamWAV::get_data() const {
 	Vector<uint8_t> pv;
 
-	if (!data.is_empty()) {
+	if (data_bytes) {
 		pv.resize(data_bytes);
 		memcpy(pv.ptrw(), data.ptr() + DATA_PAD, data_bytes);
 	}

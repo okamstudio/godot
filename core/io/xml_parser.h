@@ -31,7 +31,6 @@
 #ifndef XML_PARSER_H
 #define XML_PARSER_H
 
-#include "core/io/file_access.h"
 #include "core/object/ref_counted.h"
 #include "core/string/ustring.h"
 #include "core/templates/vector.h"

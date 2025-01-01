@@ -66,6 +66,10 @@ void RenderSceneBuffersConfiguration::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_texture_mipmap_bias"), &RenderSceneBuffersConfiguration::get_texture_mipmap_bias);
 	ClassDB::bind_method(D_METHOD("set_texture_mipmap_bias", "texture_mipmap_bias"), &RenderSceneBuffersConfiguration::set_texture_mipmap_bias);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "texture_mipmap_bias"), "set_texture_mipmap_bias", "get_texture_mipmap_bias");
+
+	ClassDB::bind_method(D_METHOD("get_anisotropic_filtering_level"), &RenderSceneBuffersConfiguration::get_anisotropic_filtering_level);
+	ClassDB::bind_method(D_METHOD("set_anisotropic_filtering_level", "anisotropic_filtering_level"), &RenderSceneBuffersConfiguration::set_anisotropic_filtering_level);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "anisotropic_filtering_level"), "set_anisotropic_filtering_level", "get_anisotropic_filtering_level");
 }
 
 void RenderSceneBuffers::_bind_methods() {
@@ -76,6 +80,7 @@ void RenderSceneBuffersExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_configure, "config");
 	GDVIRTUAL_BIND(_set_fsr_sharpness, "fsr_sharpness");
 	GDVIRTUAL_BIND(_set_texture_mipmap_bias, "texture_mipmap_bias");
+	GDVIRTUAL_BIND(_set_anisotropic_filtering_level, "anisotropic_filtering_level");
 	GDVIRTUAL_BIND(_set_use_debanding, "use_debanding");
 }
 
@@ -89,6 +94,10 @@ void RenderSceneBuffersExtension::set_fsr_sharpness(float p_fsr_sharpness) {
 
 void RenderSceneBuffersExtension::set_texture_mipmap_bias(float p_texture_mipmap_bias) {
 	GDVIRTUAL_CALL(_set_texture_mipmap_bias, p_texture_mipmap_bias);
+}
+
+void RenderSceneBuffersExtension::set_anisotropic_filtering_level(RS::ViewportAnisotropicFiltering p_anisotropic_filtering_level) {
+	GDVIRTUAL_CALL(_set_anisotropic_filtering_level, p_anisotropic_filtering_level);
 }
 
 void RenderSceneBuffersExtension::set_use_debanding(bool p_use_debanding) {

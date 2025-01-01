@@ -45,7 +45,6 @@
 #include "core/string/ustring.h"
 #include "core/templates/hash_map.h"
 #include "core/templates/list.h"
-#include "core/templates/rb_map.h"
 #include "core/templates/vector.h"
 #include "core/variant/variant.h"
 
@@ -862,6 +861,7 @@ public:
 		Vector<Variant> default_arg_values;
 #ifdef TOOLS_ENABLED
 		MemberDocData doc_data;
+		int min_local_doc_line = 0;
 #endif // TOOLS_ENABLED
 
 		bool resolved_signature = false;

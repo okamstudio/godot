@@ -8,6 +8,7 @@ AlignTrailingComments:
   Kind: Never
   OverEmptyLines: 0
 AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: Inline
 BreakConstructorInitializers: AfterColon
 ColumnLimit: 0
 ConstructorInitializerIndentWidth: 8

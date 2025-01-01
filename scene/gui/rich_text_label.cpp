@@ -35,7 +35,6 @@
 #include "core/math/math_defs.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
-#include "core/string/translation.h"
 #include "scene/gui/label.h"
 #include "scene/gui/rich_text_effect.h"
 #include "scene/resources/atlas_texture.h"
@@ -1190,7 +1189,7 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 							Ref<CharFXTransform> charfx = item_custom->char_fx_transform;
 							Ref<RichTextEffect> custom_effect = item_custom->custom_effect;
 
-							if (!custom_effect.is_null()) {
+							if (custom_effect.is_valid()) {
 								charfx->elapsed_time = item_custom->elapsed_time;
 								charfx->range = Vector2i(l.char_offset + glyphs[i].start, l.char_offset + glyphs[i].end);
 								charfx->relative_index = l.char_offset + glyphs[i].start - item_fx->char_ofs;
@@ -1248,7 +1247,7 @@ int RichTextLabel::_draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_o
 						} else if (item_fx->type == ITEM_RAINBOW) {
 							ItemRainbow *item_rainbow = static_cast<ItemRainbow *>(item_fx);
 
-							font_color = font_color.from_hsv(item_rainbow->frequency * (item_rainbow->elapsed_time + ((p_ofs.x + off_step.x) / 50)), item_rainbow->saturation, item_rainbow->value, font_color.a);
+							font_color = font_color.from_hsv(MAX(item_rainbow->frequency, 0) * ABS(item_rainbow->elapsed_time * item_rainbow->speed + ((p_ofs.x + off_step.x) / 50)), item_rainbow->saturation, item_rainbow->value, font_color.a);
 						} else if (item_fx->type == ITEM_PULSE) {
 							ItemPulse *item_pulse = static_cast<ItemPulse *>(item_fx);
 
@@ -2881,10 +2880,7 @@ void RichTextLabel::_thread_end() {
 void RichTextLabel::_stop_thread() {
 	if (threaded) {
 		stop_thread.store(true);
-		if (task != WorkerThreadPool::INVALID_TASK_ID) {
-			WorkerThreadPool::get_singleton()->wait_for_task_completion(task);
-			task = WorkerThreadPool::INVALID_TASK_ID;
-		}
+		wait_until_finished();
 	}
 }
 
@@ -2906,6 +2902,13 @@ bool RichTextLabel::is_finished() const {
 
 bool RichTextLabel::is_updating() const {
 	return updating.load() || validating.load();
+}
+
+void RichTextLabel::wait_until_finished() {
+	if (task != WorkerThreadPool::INVALID_TASK_ID) {
+		WorkerThreadPool::get_singleton()->wait_for_task_completion(task);
+		task = WorkerThreadPool::INVALID_TASK_ID;
+	}
 }
 
 void RichTextLabel::set_threaded(bool p_threaded) {
@@ -3906,7 +3909,7 @@ void RichTextLabel::push_tornado(float p_frequency = 1.0f, float p_radius = 10.0
 	_add_item(item, true);
 }
 
-void RichTextLabel::push_rainbow(float p_saturation, float p_value, float p_frequency) {
+void RichTextLabel::push_rainbow(float p_saturation, float p_value, float p_frequency, float p_speed) {
 	_stop_thread();
 	MutexLock data_lock(data_mutex);
 
@@ -3914,6 +3917,7 @@ void RichTextLabel::push_rainbow(float p_saturation, float p_value, float p_freq
 	ItemRainbow *item = memnew(ItemRainbow);
 	item->owner = get_instance_id();
 	item->rid = items.make_rid(item);
+	item->speed = p_speed;
 	item->frequency = p_frequency;
 	item->saturation = p_saturation;
 	item->value = p_value;
@@ -5379,7 +5383,13 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 				frequency = frequency_option->value.to_float();
 			}
 
-			push_rainbow(saturation, value, frequency);
+			float speed = 1.0f;
+			OptionMap::Iterator speed_option = bbcode_options.find("speed");
+			if (speed_option) {
+				speed = speed_option->value.to_float();
+			}
+
+			push_rainbow(saturation, value, frequency, speed);
 			pos = brk_end + 1;
 			tag_stack.push_front("rainbow");
 			set_process_internal(true);
@@ -5433,7 +5443,7 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 				Dictionary properties = parse_expressions_for_values(expr);
 				Ref<RichTextEffect> effect = _get_custom_effect_by_code(identifier);
 
-				if (!effect.is_null()) {
+				if (effect.is_valid()) {
 					push_customfx(effect, properties);
 					pos = brk_end + 1;
 					tag_stack.push_front(identifier);
@@ -5560,6 +5570,26 @@ int RichTextLabel::get_line_count() const {
 		line_count += main->lines[i].text_buf->get_line_count();
 	}
 	return line_count;
+}
+
+Vector2i RichTextLabel::get_line_range(int p_line) {
+	const_cast<RichTextLabel *>(this)->_validate_line_caches();
+
+	int line_count = 0;
+	int to_line = main->first_invalid_line.load();
+	for (int i = 0; i < to_line; i++) {
+		MutexLock lock(main->lines[i].text_buf->get_mutex());
+		int lc = main->lines[i].text_buf->get_line_count();
+
+		if (p_line < line_count + lc) {
+			Vector2i char_offset = Vector2i(main->lines[i].char_offset, main->lines[i].char_offset);
+			Vector2i line_range = main->lines[i].text_buf->get_line_range(p_line - line_count);
+			return char_offset + line_range;
+		}
+
+		line_count += lc;
+	}
+	return Vector2i();
 }
 
 int RichTextLabel::get_visible_line_count() const {
@@ -5882,6 +5912,11 @@ String RichTextLabel::get_selected_text() const {
 	for (int i = 0; i < to_line; i++) {
 		txt += _get_line_text(main, i, selection);
 	}
+
+	if (selection_modifier.is_valid()) {
+		txt = selection_modifier.call(txt);
+	}
+
 	return txt;
 }
 
@@ -6450,6 +6485,7 @@ void RichTextLabel::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_using_bbcode"), &RichTextLabel::is_using_bbcode);
 
 	ClassDB::bind_method(D_METHOD("get_line_count"), &RichTextLabel::get_line_count);
+	ClassDB::bind_method(D_METHOD("get_line_range", "line"), &RichTextLabel::get_line_range);
 	ClassDB::bind_method(D_METHOD("get_visible_line_count"), &RichTextLabel::get_visible_line_count);
 
 	ClassDB::bind_method(D_METHOD("get_paragraph_count"), &RichTextLabel::get_paragraph_count);
@@ -6790,7 +6826,7 @@ void RichTextLabel::menu_option(int p_option) {
 Ref<RichTextEffect> RichTextLabel::_get_custom_effect_by_code(String p_bbcode_identifier) {
 	for (int i = 0; i < custom_effects.size(); i++) {
 		Ref<RichTextEffect> effect = custom_effects[i];
-		if (!effect.is_valid()) {
+		if (effect.is_null()) {
 			continue;
 		}
 
@@ -6827,22 +6863,22 @@ Dictionary RichTextLabel::parse_expressions_for_values(Vector<String> p_expressi
 		numerical.compile("^\\d+$");
 
 		for (int j = 0; j < values.size(); j++) {
-			if (!color.search(values[j]).is_null()) {
+			if (color.search(values[j]).is_valid()) {
 				a.append(Color::html(values[j]));
-			} else if (!nodepath.search(values[j]).is_null()) {
+			} else if (nodepath.search(values[j]).is_valid()) {
 				if (values[j].begins_with("$")) {
 					String v = values[j].substr(1, values[j].length());
 					a.append(NodePath(v));
 				}
-			} else if (!boolean.search(values[j]).is_null()) {
+			} else if (boolean.search(values[j]).is_valid()) {
 				if (values[j] == "true") {
 					a.append(true);
 				} else if (values[j] == "false") {
 					a.append(false);
 				}
-			} else if (!decimal.search(values[j]).is_null()) {
+			} else if (decimal.search(values[j]).is_valid()) {
 				a.append(values[j].to_float());
-			} else if (!numerical.search(values[j]).is_null()) {
+			} else if (numerical.search(values[j]).is_valid()) {
 				a.append(values[j].to_int());
 			} else {
 				a.append(values[j]);

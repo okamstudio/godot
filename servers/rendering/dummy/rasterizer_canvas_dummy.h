@@ -43,7 +43,7 @@ public:
 	RID light_create() override { return RID(); }
 	void light_set_texture(RID p_rid, RID p_texture) override {}
 	void light_set_use_shadow(RID p_rid, bool p_enable) override {}
-	void light_update_shadow(RID p_rid, int p_shadow_index, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders) override {}
+	void light_update_shadow(RID p_rid, int p_shadow_index, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders, const Rect2 &p_light_rect) override {}
 	void light_update_directional_shadow(RID p_rid, int p_shadow_index, const Transform2D &p_light_xform, int p_light_mask, float p_cull_distance, const Rect2 &p_clip_rect, LightOccluderInstance *p_occluders) override {}
 
 	void render_sdf(RID p_render_target, LightOccluderInstance *p_occluders) override {}

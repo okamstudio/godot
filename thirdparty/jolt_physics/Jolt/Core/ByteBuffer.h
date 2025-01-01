@@ -41,7 +41,7 @@ public:
 
 		// Construct elements
 		for (Type *d = data, *d_end = data + inSize; d < d_end; ++d)
-			::new (d) Type;
+			new (d) Type;
 
 		// Return pointer
 		return data;

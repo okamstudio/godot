@@ -41,13 +41,13 @@ protected:
 public:
 	static NetSocket *create();
 
-	enum PollType {
+	enum PollType : int32_t {
 		POLL_TYPE_IN,
 		POLL_TYPE_OUT,
 		POLL_TYPE_IN_OUT
 	};
 
-	enum Type {
+	enum Type : int32_t {
 		TYPE_NONE,
 		TYPE_TCP,
 		TYPE_UDP,

@@ -28,6 +28,7 @@ android_files = [
     "display_server_android.cpp",
     "plugin/godot_plugin_jni.cpp",
     "rendering_context_driver_vulkan_android.cpp",
+    "variant/callable_jni.cpp",
 ]
 
 env_android = env.Clone()

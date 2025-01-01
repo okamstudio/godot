@@ -30,6 +30,7 @@
 
 #include "lightmapper_rd.h"
 
+#include "core/string/print_string.h"
 #include "lm_blendseams.glsl.gen.h"
 #include "lm_compute.glsl.gen.h"
 #include "lm_raster.glsl.gen.h"
@@ -40,6 +41,7 @@
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
 #include "servers/rendering/rendering_device_binds.h"
+#include "servers/rendering/rendering_server_globals.h"
 
 #if defined(VULKAN_ENABLED)
 #include "drivers/vulkan/rendering_context_driver_vulkan.h"
@@ -477,7 +479,14 @@ void LightmapperRD::_create_acceleration_structures(RenderingDevice *rd, Size2i 
 			t.max_bounds[0] = taabb.position.x + MAX(taabb.size.x, 0.0001);
 			t.max_bounds[1] = taabb.position.y + MAX(taabb.size.y, 0.0001);
 			t.max_bounds[2] = taabb.position.z + MAX(taabb.size.z, 0.0001);
-			t.pad0 = t.pad1 = 0; //make valgrind not complain
+
+			t.cull_mode = RS::CULL_MODE_BACK;
+
+			RID material = mi.data.material[i];
+			if (material.is_valid()) {
+				t.cull_mode = RSG::material_storage->material_get_cull_mode(material);
+			}
+			t.pad1 = 0; //make valgrind not complain
 			triangles.push_back(t);
 			slice_triangle_count.write[t.slice]++;
 		}
@@ -1319,6 +1328,8 @@ LightmapperRD::BakeError LightmapperRD::bake(BakeQuality p_quality, bool p_use_d
 	bake_parameters.bounces = p_bounces;
 	bake_parameters.bounce_indirect_energy = p_bounce_indirect_energy;
 	bake_parameters.shadowmask_light_idx = shadowmask_light_idx;
+	// Same number of rays for transparency regardless of quality (it's more of a retry rather than shooting new ones).
+	bake_parameters.transparency_rays = GLOBAL_GET("rendering/lightmapping/bake_performance/max_transparency_rays");
 
 	bake_parameters_buffer = rd->uniform_buffer_create(sizeof(BakeParameters));
 	rd->buffer_update(bake_parameters_buffer, 0, sizeof(BakeParameters), &bake_parameters);

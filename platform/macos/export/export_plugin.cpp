@@ -332,7 +332,21 @@ bool EditorExportPlatformMacOS::get_export_option_visibility(const EditorExportP
 		}
 
 		bool advanced_options_enabled = p_preset->are_advanced_options_enabled();
-		if (p_option.begins_with("privacy") || p_option == "codesign/entitlements/additional") {
+		if (p_option.begins_with("privacy") ||
+				p_option == "codesign/entitlements/additional" ||
+				p_option == "custom_template/debug" ||
+				p_option == "custom_template/release" ||
+				p_option == "application/additional_plist_content" ||
+				p_option == "application/export_angle" ||
+				p_option == "application/icon_interpolation" ||
+				p_option == "application/signature" ||
+				p_option == "display/high_res" ||
+				p_option == "xcode/platform_build" ||
+				p_option == "xcode/sdk_build" ||
+				p_option == "xcode/sdk_name" ||
+				p_option == "xcode/sdk_version" ||
+				p_option == "xcode/xcode_build" ||
+				p_option == "xcode/xcode_version") {
 			return advanced_options_enabled;
 		}
 	}

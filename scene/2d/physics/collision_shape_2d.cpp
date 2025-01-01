@@ -49,11 +49,6 @@ void CollisionShape2D::_update_in_shape_owner(bool p_xform_only) {
 	collision_object->shape_owner_set_one_way_collision_margin(owner_id, one_way_collision_margin);
 }
 
-Color CollisionShape2D::_get_default_debug_color() const {
-	SceneTree *st = SceneTree::get_singleton();
-	return st ? st->get_debug_collisions_color() : Color();
-}
-
 void CollisionShape2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PARENTED: {
@@ -94,7 +89,7 @@ void CollisionShape2D::_notification(int p_what) {
 				break;
 			}
 
-			if (!shape.is_valid()) {
+			if (shape.is_null()) {
 				break;
 			}
 
@@ -166,7 +161,7 @@ Ref<Shape2D> CollisionShape2D::get_shape() const {
 }
 
 bool CollisionShape2D::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {
-	if (!shape.is_valid()) {
+	if (shape.is_null()) {
 		return false;
 	}
 
@@ -180,7 +175,7 @@ PackedStringArray CollisionShape2D::get_configuration_warnings() const {
 	if (col_object == nullptr) {
 		warnings.push_back(RTR("CollisionShape2D only serves to provide a collision shape to a CollisionObject2D derived node.\nPlease only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a shape."));
 	}
-	if (!shape.is_valid()) {
+	if (shape.is_null()) {
 		warnings.push_back(RTR("A shape must be provided for CollisionShape2D to function. Please create a shape resource for it!"));
 	}
 	if (one_way_collision && Object::cast_to<Area2D>(col_object)) {
@@ -232,7 +227,16 @@ real_t CollisionShape2D::get_one_way_collision_margin() const {
 	return one_way_collision_margin;
 }
 
+Color CollisionShape2D::_get_default_debug_color() const {
+	const SceneTree *st = SceneTree::get_singleton();
+	return st ? st->get_debug_collisions_color() : Color(0.0, 0.0, 0.0, 0.0);
+}
+
 void CollisionShape2D::set_debug_color(const Color &p_color) {
+	if (debug_color == p_color) {
+		return;
+	}
+
 	debug_color = p_color;
 	queue_redraw();
 }
@@ -240,6 +244,8 @@ void CollisionShape2D::set_debug_color(const Color &p_color) {
 Color CollisionShape2D::get_debug_color() const {
 	return debug_color;
 }
+
+#ifdef DEBUG_ENABLED
 
 bool CollisionShape2D::_property_can_revert(const StringName &p_name) const {
 	if (p_name == "debug_color") {
@@ -266,6 +272,8 @@ void CollisionShape2D::_validate_property(PropertyInfo &p_property) const {
 	}
 }
 
+#endif // DEBUG_ENABLED
+
 void CollisionShape2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_shape", "shape"), &CollisionShape2D::set_shape);
 	ClassDB::bind_method(D_METHOD("get_shape"), &CollisionShape2D::get_shape);
@@ -275,16 +283,18 @@ void CollisionShape2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_one_way_collision_enabled"), &CollisionShape2D::is_one_way_collision_enabled);
 	ClassDB::bind_method(D_METHOD("set_one_way_collision_margin", "margin"), &CollisionShape2D::set_one_way_collision_margin);
 	ClassDB::bind_method(D_METHOD("get_one_way_collision_margin"), &CollisionShape2D::get_one_way_collision_margin);
-	ClassDB::bind_method(D_METHOD("set_debug_color", "color"), &CollisionShape2D::set_debug_color);
-	ClassDB::bind_method(D_METHOD("get_debug_color"), &CollisionShape2D::get_debug_color);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape2D"), "set_shape", "get_shape");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disabled"), "set_disabled", "is_disabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_way_collision"), "set_one_way_collision", "is_one_way_collision_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "one_way_collision_margin", PROPERTY_HINT_RANGE, "0,128,0.1,suffix:px"), "set_one_way_collision_margin", "get_one_way_collision_margin");
+
+	ClassDB::bind_method(D_METHOD("set_debug_color", "color"), &CollisionShape2D::set_debug_color);
+	ClassDB::bind_method(D_METHOD("get_debug_color"), &CollisionShape2D::get_debug_color);
+
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "debug_color"), "set_debug_color", "get_debug_color");
 	// Default value depends on a project setting, override for doc generation purposes.
-	ADD_PROPERTY_DEFAULT("debug_color", Color());
+	ADD_PROPERTY_DEFAULT("debug_color", Color(0.0, 0.0, 0.0, 0.0));
 }
 
 CollisionShape2D::CollisionShape2D() {

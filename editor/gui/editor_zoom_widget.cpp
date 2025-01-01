@@ -188,7 +188,7 @@ EditorZoomWidget::EditorZoomWidget() {
 	// Zoom buttons
 	zoom_minus = memnew(Button);
 	zoom_minus->set_flat(true);
-	zoom_minus->set_shortcut(ED_SHORTCUT_ARRAY("canvas_item_editor/zoom_minus", TTR("Zoom Out"), { int32_t(KeyModifierMask::CMD_OR_CTRL | Key::MINUS), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_SUBTRACT) }));
+	zoom_minus->set_shortcut(ED_SHORTCUT_ARRAY("canvas_item_editor/zoom_minus", TTRC("Zoom Out"), { int32_t(KeyModifierMask::CMD_OR_CTRL | Key::MINUS), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_SUBTRACT) }));
 	zoom_minus->set_shortcut_context(this);
 	zoom_minus->set_focus_mode(FOCUS_NONE);
 	add_child(zoom_minus);
@@ -217,7 +217,7 @@ EditorZoomWidget::EditorZoomWidget() {
 
 	zoom_plus = memnew(Button);
 	zoom_plus->set_flat(true);
-	zoom_plus->set_shortcut(ED_SHORTCUT_ARRAY("canvas_item_editor/zoom_plus", TTR("Zoom In"), { int32_t(KeyModifierMask::CMD_OR_CTRL | Key::EQUAL), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_ADD) }));
+	zoom_plus->set_shortcut(ED_SHORTCUT_ARRAY("canvas_item_editor/zoom_plus", TTRC("Zoom In"), { int32_t(KeyModifierMask::CMD_OR_CTRL | Key::EQUAL), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_ADD) }));
 	zoom_plus->set_shortcut_context(this);
 	zoom_plus->set_focus_mode(FOCUS_NONE);
 	add_child(zoom_plus);

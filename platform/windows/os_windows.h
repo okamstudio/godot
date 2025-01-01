@@ -179,6 +179,7 @@ public:
 	virtual String get_name() const override;
 	virtual String get_distribution_name() const override;
 	virtual String get_version() const override;
+	virtual String get_version_alias() const override;
 
 	virtual Vector<String> get_video_adapter_driver_info() const override;
 	virtual bool get_user_prefers_integrated_gpu() const override;

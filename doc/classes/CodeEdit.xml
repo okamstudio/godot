@@ -587,6 +587,9 @@
 		<member name="symbol_lookup_on_click" type="bool" setter="set_symbol_lookup_on_click_enabled" getter="is_symbol_lookup_on_click_enabled" default="false">
 			Set when a validated word from [signal symbol_validate] is clicked, the [signal symbol_lookup] should be emitted.
 		</member>
+		<member name="symbol_tooltip_on_hover" type="bool" setter="set_symbol_tooltip_on_hover_enabled" getter="is_symbol_tooltip_on_hover_enabled" default="false">
+			Set when a word is hovered, the [signal symbol_hovered] should be emitted.
+		</member>
 		<member name="text_direction" type="int" setter="set_text_direction" getter="get_text_direction" overrides="TextEdit" enum="Control.TextDirection" default="1" />
 	</members>
 	<signals>
@@ -601,6 +604,15 @@
 				Emitted when the user requests code completion. This signal will not be sent if [method _request_code_completion] is overridden or [member code_completion_enabled] is [code]false[/code].
 			</description>
 		</signal>
+		<signal name="symbol_hovered">
+			<param index="0" name="symbol" type="String" />
+			<param index="1" name="line" type="int" />
+			<param index="2" name="column" type="int" />
+			<description>
+				Emitted when the user hovers over a symbol. Unlike [signal Control.mouse_entered], this signal is not emitted immediately, but when the cursor is over the symbol for [member ProjectSettings.gui/timers/tooltip_delay_sec] seconds.
+				[b]Note:[/b] [member symbol_tooltip_on_hover] must be [code]true[/code] for this signal to be emitted.
+			</description>
+		</signal>
 		<signal name="symbol_lookup">
 			<param index="0" name="symbol" type="String" />
 			<param index="1" name="line" type="int" />
@@ -613,6 +625,7 @@
 			<param index="0" name="symbol" type="String" />
 			<description>
 				Emitted when the user hovers over a symbol. The symbol should be validated and responded to, by calling [method set_symbol_lookup_word_as_valid].
+				[b]Note:[/b] [member symbol_lookup_on_click] must be [code]true[/code] for this signal to be emitted.
 			</description>
 		</signal>
 	</signals>

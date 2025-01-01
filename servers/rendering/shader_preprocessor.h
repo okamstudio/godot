@@ -36,12 +36,8 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/rb_map.h"
 #include "core/templates/rb_set.h"
-#include "core/typedefs.h"
 
-#include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
-#include "core/os/os.h"
-#include "scene/resources/shader.h"
 #include "scene/resources/shader_include.h"
 
 class ShaderPreprocessor {

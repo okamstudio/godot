@@ -31,8 +31,8 @@
 #ifndef SCENE_SHADER_FORWARD_CLUSTERED_H
 #define SCENE_SHADER_FORWARD_CLUSTERED_H
 
+#include "../storage_rd/material_storage.h"
 #include "servers/rendering/renderer_rd/pipeline_hash_map_rd.h"
-#include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
 #include "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl.gen.h"
 
 namespace RendererSceneRenderImplementation {
@@ -154,12 +154,6 @@ public:
 			DEPTH_TEST_ENABLED
 		};
 
-		enum Cull {
-			CULL_DISABLED,
-			CULL_FRONT,
-			CULL_BACK
-		};
-
 		enum CullVariant {
 			CULL_VARIANT_NORMAL,
 			CULL_VARIANT_REVERSED,
@@ -251,7 +245,7 @@ public:
 		bool writes_modelview_or_projection = false;
 		bool uses_world_coordinates = false;
 		bool uses_screen_texture_mipmaps = false;
-		Cull cull_mode = CULL_DISABLED;
+		RS::CullMode cull_mode = RS::CULL_MODE_DISABLED;
 
 		uint64_t last_pass = 0;
 		uint32_t index = 0;
@@ -273,7 +267,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool uses_shared_shadow_material() const {
-			bool backface_culling = cull_mode == CULL_BACK;
+			bool backface_culling = cull_mode == RS::CULL_MODE_BACK;
 			return !uses_particle_trails && !writes_modelview_or_projection && !uses_vertex && !uses_position && !uses_discard && !uses_depth_prepass_alpha && !uses_alpha_clip && !uses_alpha_antialiasing && backface_culling && !uses_point_size && !uses_world_coordinates && !wireframe;
 		}
 

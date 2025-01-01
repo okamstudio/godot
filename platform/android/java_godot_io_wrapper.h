@@ -31,7 +31,7 @@
 #ifndef JAVA_GODOT_IO_WRAPPER_H
 #define JAVA_GODOT_IO_WRAPPER_H
 
-#include "string_android.h"
+#include "jni_utils.h"
 
 #include "core/math/rect2i.h"
 #include "core/variant/typed_array.h"

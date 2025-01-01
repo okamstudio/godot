@@ -32,7 +32,6 @@
 
 #include "core/math/convex_hull.h"
 #include "core/math/geometry_3d.h"
-#include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/gizmos/gizmo_3d_helper.h"
 #include "editor/plugins/node_3d_editor_plugin.h"

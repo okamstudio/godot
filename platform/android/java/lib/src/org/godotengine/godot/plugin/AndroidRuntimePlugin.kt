@@ -31,6 +31,7 @@
 package org.godotengine.godot.plugin
 
 import org.godotengine.godot.Godot
+import org.godotengine.godot.variant.Callable
 
 /**
  * Provides access to the Android runtime capabilities.
@@ -38,7 +39,7 @@ import org.godotengine.godot.Godot
  * For example, from gdscript, developers can use [getApplicationContext] to access system services
  * and check if the device supports vibration.
  *
- * var android_runtime = Engine.get_singleton("AndroidRuntime")
+ * 	var android_runtime = Engine.get_singleton("AndroidRuntime")
  * 	if android_runtime:
  * 		print("Checking if the device supports vibration")
  * 		var vibrator_service = android_runtime.getApplicationContext().getSystemService("vibrator")
@@ -51,13 +52,50 @@ import org.godotengine.godot.Godot
  * 			printerr("Unable to retrieve the vibrator service")
  * 	else:
  * 		printerr("Couldn't find AndroidRuntime singleton")
+ *
+ *
+ * Or it can be used to display an Android native toast from gdscript
+ *
+ * 	var android_runtime = Engine.get_singleton("AndroidRuntime")
+ * 	if android_runtime:
+ * 		var activity = android_runtime.getActivity()
+ *
+ * 		var toastCallable = func ():
+ * 			var ToastClass = JavaClassWrapper.wrap("android.widget.Toast")
+ * 			ToastClass.makeText(activity, "This is a test", ToastClass.LENGTH_LONG).show()
+ *
+ * 		activity.runOnUiThread(android_runtime.createRunnableFromGodotCallable(toastCallable))
+ * 	else:
+ * 		printerr("Unable to access android runtime")
  */
 class AndroidRuntimePlugin(godot: Godot) : GodotPlugin(godot) {
 	override fun getPluginName() = "AndroidRuntime"
 
+	/**
+	 * Provides access to the application context to GDScript
+	 */
 	@UsedByGodot
 	fun getApplicationContext() = activity?.applicationContext
 
+	/**
+	 * Provides access to the host activity to GDScript
+	 */
 	@UsedByGodot
 	override fun getActivity() = super.getActivity()
+
+	/**
+	 * Utility method used to create [Runnable] from Godot [Callable].
+	 */
+	@UsedByGodot
+	fun createRunnableFromGodotCallable(godotCallable: Callable): Runnable {
+		return Runnable { godotCallable.call() }
+	}
+
+	/**
+	 * Utility method used to create [java.util.concurrent.Callable] from Godot [Callable].
+	 */
+	@UsedByGodot
+	fun createCallableFromGodotCallable(godotCallable: Callable): java.util.concurrent.Callable<Any> {
+		return java.util.concurrent.Callable { godotCallable.call() }
+	}
 }

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  gdextension_compat_hashes.h                                           */
+/*  gdextension_special_compat_hashes.h                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,8 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDEXTENSION_COMPAT_HASHES_H
-#define GDEXTENSION_COMPAT_HASHES_H
+#ifndef GDEXTENSION_SPECIAL_COMPAT_HASHES_H
+#define GDEXTENSION_SPECIAL_COMPAT_HASHES_H
 
 #ifndef DISABLE_DEPRECATED
 
@@ -37,7 +37,11 @@
 #include "core/templates/hash_map.h"
 #include "core/templates/local_vector.h"
 
-class GDExtensionCompatHashes {
+// Note: In most situations, compatibility methods should be registered via ClassDB::bind_compatibility_method().
+//       This class is only meant to be used in exceptional circumstances, for example, when Godot's hashing
+//       algorithm changes and registering compatibility methods for all affect methods would be onerous.
+
+class GDExtensionSpecialCompatHashes {
 	struct Mapping {
 		StringName method;
 		uint32_t legacy_hash;
@@ -55,4 +59,4 @@ public:
 
 #endif // DISABLE_DEPRECATED
 
-#endif // GDEXTENSION_COMPAT_HASHES_H
+#endif // GDEXTENSION_SPECIAL_COMPAT_HASHES_H

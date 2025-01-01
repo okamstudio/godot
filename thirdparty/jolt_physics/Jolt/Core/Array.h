@@ -59,7 +59,7 @@ private:
 			{
 				for (T *destination_end = inDestination + inCount; inDestination < destination_end; ++inDestination, ++inSource)
 				{
-					::new (inDestination) T(std::move(*inSource));
+					new (inDestination) T(std::move(*inSource));
 					inSource->~T();
 				}
 			}
@@ -67,7 +67,7 @@ private:
 			{
 				for (T *destination = inDestination + inCount - 1, *source = inSource + inCount - 1; destination >= inDestination; --destination, --source)
 				{
-					::new (destination) T(std::move(*source));
+					new (destination) T(std::move(*source));
 					source->~T();
 				}
 			}
@@ -124,7 +124,7 @@ public:
 
 		if constexpr (!std::is_trivially_constructible<T>())
 			for (T *element = mElements + mSize, *element_end = mElements + inNewSize; element < element_end; ++element)
-				::new (element) T;
+				new (element) T;
 		mSize = inNewSize;
 	}
 
@@ -137,7 +137,7 @@ public:
 		reserve(inNewSize);
 
 		for (T *element = mElements + mSize, *element_end = mElements + inNewSize; element < element_end; ++element)
-			::new (element) T(inValue);
+			new (element) T(inValue);
 		mSize = inNewSize;
 	}
 
@@ -187,7 +187,7 @@ public:
 		reserve(size_type(std::distance(inBegin, inEnd)));
 
 		for (Iterator element = inBegin; element != inEnd; ++element)
-			::new (&mElements[mSize++]) T(*element);
+			new (&mElements[mSize++]) T(*element);
 	}
 
 	/// Replace the contents of this array with inList
@@ -197,7 +197,7 @@ public:
 		reserve(size_type(inList.size()));
 
 		for (const T &v : inList)
-			::new (&mElements[mSize++]) T(v);
+			new (&mElements[mSize++]) T(v);
 	}
 
 	/// Default constructor
@@ -281,7 +281,7 @@ public:
 		grow();
 
 		T *element = mElements + mSize++;
-		::new (element) T(inValue);
+		new (element) T(inValue);
 	}
 
 	inline void				push_back(T &&inValue)
@@ -289,7 +289,7 @@ public:
 		grow();
 
 		T *element = mElements + mSize++;
-		::new (element) T(std::move(inValue));
+		new (element) T(std::move(inValue));
 	}
 
 	/// Construct element at the back of the array
@@ -299,7 +299,7 @@ public:
 		grow();
 
 		T *element = mElements + mSize++;
-		::new (element) T(std::forward<A>(inValue)...);
+		new (element) T(std::forward<A>(inValue)...);
 		return *element;
 	}
 
@@ -365,7 +365,7 @@ public:
 			move(element_end, element_begin, mSize - first_element);
 
 			for (T *element = element_begin; element < element_end; ++element, ++inBegin)
-				::new (element) T(*inBegin);
+				new (element) T(*inBegin);
 
 			mSize += num_elements;
 		}
@@ -383,7 +383,7 @@ public:
 		T *element = mElements + first_element;
 		move(element + 1, element, mSize - first_element);
 
-		::new (element) T(inValue);
+		new (element) T(inValue);
 		mSize++;
 	}
 

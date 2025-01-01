@@ -30,7 +30,6 @@
 
 #include "graph_frame.h"
 
-#include "core/string/translation.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/label.h"
 #include "scene/resources/style_box_flat.h"

@@ -209,7 +209,7 @@ void EditorBottomPanel::remove_item(Control *p_item) {
 	if (was_visible) {
 		// Open the first panel to ensure that if the removed dock was visible, the bottom
 		// panel will not collapse.
-		_switch_to_item(true, 0);
+		_switch_to_item(true, 0, true);
 	} else if (last_opened_control == p_item) {
 		// When a dock is removed by plugins, it might not have been visible, and it
 		// might have been the last_opened_control. We need to make sure to reset the last opened control.
@@ -217,8 +217,8 @@ void EditorBottomPanel::remove_item(Control *p_item) {
 	}
 }
 
-void EditorBottomPanel::make_item_visible(Control *p_item, bool p_visible) {
-	_switch_by_control(p_visible, p_item);
+void EditorBottomPanel::make_item_visible(Control *p_item, bool p_visible, bool p_ignore_lock) {
+	_switch_by_control(p_visible, p_item, p_ignore_lock);
 }
 
 void EditorBottomPanel::move_item_to_end(Control *p_item) {
@@ -289,6 +289,6 @@ EditorBottomPanel::EditorBottomPanel() {
 	expand_button->hide();
 	expand_button->set_theme_type_variation("FlatMenuButton");
 	expand_button->set_toggle_mode(true);
-	expand_button->set_shortcut(ED_SHORTCUT_AND_COMMAND("editor/bottom_panel_expand", TTR("Expand Bottom Panel"), KeyModifierMask::SHIFT | Key::F12));
+	expand_button->set_shortcut(ED_SHORTCUT_AND_COMMAND("editor/bottom_panel_expand", TTRC("Expand Bottom Panel"), KeyModifierMask::SHIFT | Key::F12));
 	expand_button->connect(SceneStringName(toggled), callable_mp(this, &EditorBottomPanel::_expand_button_toggled));
 }

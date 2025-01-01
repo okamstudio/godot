@@ -13,6 +13,8 @@ if env["platform"] == "android":
     env_openxr.add_source_files(module_obj, "platform/openxr_android_extension.cpp")
 if env["vulkan"]:
     env_openxr.add_source_files(module_obj, "platform/openxr_vulkan_extension.cpp")
+if env["metal"]:
+    env_openxr.add_source_files(module_obj, "platform/openxr_metal_extension.mm")
 if env["opengl3"] and env["platform"] != "macos":
     env_openxr.add_source_files(module_obj, "platform/openxr_opengl_extension.cpp")
 

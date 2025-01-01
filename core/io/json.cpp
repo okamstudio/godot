@@ -71,14 +71,18 @@ String JSON::_stringify(const Variant &p_var, const String &p_indent, int p_cur_
 			return itos(p_var);
 		case Variant::FLOAT: {
 			double num = p_var;
-			if (p_full_precision) {
-				// Store unreliable digits (17) instead of just reliable
-				// digits (14) so that the value can be decoded exactly.
-				return String::num(num, 17 - (int)floor(log10(num)));
-			} else {
-				// Store only reliable digits (14) by default.
-				return String::num(num, 14 - (int)floor(log10(num)));
+
+			// Only for exactly 0. If we have approximately 0 let the user decide how much
+			// precision they want.
+			if (num == double(0)) {
+				return String("0.0");
 			}
+
+			double magnitude = log10(Math::abs(num));
+			int total_digits = p_full_precision ? 17 : 14;
+			int precision = MAX(1, total_digits - (int)Math::floor(magnitude));
+
+			return String::num(num, precision);
 		}
 		case Variant::PACKED_INT32_ARRAY:
 		case Variant::PACKED_INT64_ARRAY:

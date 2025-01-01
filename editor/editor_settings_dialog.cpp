@@ -50,6 +50,7 @@
 #include "scene/gui/panel_container.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/texture_rect.h"
+#include "scene/gui/tree.h"
 
 void EditorSettingsDialog::ok_pressed() {
 	if (!EditorSettings::get_singleton()) {
@@ -385,7 +386,7 @@ Array EditorSettingsDialog::_event_list_to_array_helper(const List<Ref<InputEven
 	return events;
 }
 
-void EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const String &p_shortcut_identifier, const String &p_display, Array &p_events, bool p_allow_revert, bool p_is_action, bool p_is_collapsed) {
+TreeItem *EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const String &p_shortcut_identifier, const String &p_display, Array &p_events, bool p_allow_revert, bool p_is_action, bool p_is_collapsed) {
 	TreeItem *shortcut_item = shortcuts->create_item(p_parent);
 	shortcut_item->set_collapsed(p_is_collapsed);
 	shortcut_item->set_text(0, p_display);
@@ -393,7 +394,7 @@ void EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const S
 	Ref<InputEvent> primary = p_events.size() > 0 ? Ref<InputEvent>(p_events[0]) : Ref<InputEvent>();
 	Ref<InputEvent> secondary = p_events.size() > 1 ? Ref<InputEvent>(p_events[1]) : Ref<InputEvent>();
 
-	String sc_text = "None";
+	String sc_text = TTRC("None");
 	if (primary.is_valid()) {
 		sc_text = primary->as_text();
 
@@ -404,6 +405,7 @@ void EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const S
 				sc_text += " (+" + itos(p_events.size() - 2) + ")";
 			}
 		}
+		shortcut_item->set_auto_translate_mode(1, AUTO_TRANSLATE_MODE_DISABLED);
 	}
 
 	shortcut_item->set_text(1, sc_text);
@@ -433,8 +435,9 @@ void EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const S
 
 		TreeItem *event_item = shortcuts->create_item(shortcut_item);
 
-		event_item->set_text(0, shortcut_item->get_child_count() == 1 ? "Primary" : "");
+		event_item->set_text(0, shortcut_item->get_child_count() == 1 ? TTRC("Primary") : "");
 		event_item->set_text(1, ie->as_text());
+		event_item->set_auto_translate_mode(1, AUTO_TRANSLATE_MODE_DISABLED);
 
 		event_item->add_button(1, shortcuts->get_editor_theme_icon(SNAME("Edit")), SHORTCUT_EDIT);
 		event_item->add_button(1, shortcuts->get_editor_theme_icon(SNAME("Close")), SHORTCUT_ERASE);
@@ -446,22 +449,38 @@ void EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, const S
 		event_item->set_meta("type", "event");
 		event_item->set_meta("event_index", i);
 	}
+
+	return shortcut_item;
 }
 
-bool EditorSettingsDialog::_should_display_shortcut(const String &p_name, const Array &p_events) const {
+bool EditorSettingsDialog::_should_display_shortcut(const String &p_name, const Array &p_events, bool p_match_localized_name) const {
 	const Ref<InputEvent> search_ev = shortcut_search_by_event->get_event();
-	bool event_match = true;
 	if (search_ev.is_valid()) {
-		event_match = false;
+		bool event_match = false;
 		for (int i = 0; i < p_events.size(); ++i) {
 			const Ref<InputEvent> ev = p_events[i];
 			if (ev.is_valid() && ev->is_match(search_ev, true)) {
 				event_match = true;
+				break;
 			}
+		}
+		if (!event_match) {
+			return false;
 		}
 	}
 
-	return event_match && shortcut_search_box->get_text().is_subsequence_ofn(p_name);
+	const String &search_text = shortcut_search_box->get_text();
+	if (search_text.is_empty()) {
+		return true;
+	}
+	if (search_text.is_subsequence_ofn(p_name)) {
+		return true;
+	}
+	if (p_match_localized_name && search_text.is_subsequence_ofn(TTR(p_name))) {
+		return true;
+	}
+
+	return false;
 }
 
 void EditorSettingsDialog::_update_shortcuts() {
@@ -503,7 +522,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 	// Set up section for Common/Built-in actions
 	TreeItem *common_section = shortcuts->create_item(root);
 	sections["Common"] = common_section;
-	common_section->set_text(0, TTR("Common"));
+	common_section->set_text(0, TTRC("Common"));
 	common_section->set_selectable(0, false);
 	common_section->set_selectable(1, false);
 	if (collapsed.has("Common")) {
@@ -524,7 +543,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 
 		const List<Ref<InputEvent>> &all_default_events = InputMap::get_singleton()->get_builtins_with_feature_overrides_applied().find(action_name)->value;
 		Array action_events = _event_list_to_array_helper(action.inputs);
-		if (!_should_display_shortcut(action_name, action_events)) {
+		if (!_should_display_shortcut(action_name, action_events, false)) {
 			continue;
 		}
 
@@ -532,7 +551,8 @@ void EditorSettingsDialog::_update_shortcuts() {
 		bool same_as_defaults = Shortcut::is_event_array_equal(default_events, action_events);
 		bool collapse = !collapsed.has(action_name) || (collapsed.has(action_name) && collapsed[action_name]);
 
-		_create_shortcut_treeitem(common_section, action_name, action_name, action_events, !same_as_defaults, true, collapse);
+		TreeItem *item = _create_shortcut_treeitem(common_section, action_name, action_name, action_events, !same_as_defaults, true, collapse);
+		item->set_auto_translate_mode(0, AUTO_TRANSLATE_MODE_DISABLED); // `ui_*` input action names are untranslatable identifiers.
 	}
 
 	// Editor Shortcuts
@@ -558,6 +578,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 		const String item_name = EditorPropertyNameProcessor::get_singleton()->process_name(section_name, name_style, E);
 		const String tooltip = EditorPropertyNameProcessor::get_singleton()->process_name(section_name, tooltip_style, E);
 
+		section->set_auto_translate_mode(0, AUTO_TRANSLATE_MODE_DISABLED); // Already translated manually.
 		section->set_text(0, item_name);
 		section->set_tooltip_text(0, tooltip);
 		section->set_selectable(0, false);
@@ -582,7 +603,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 		String section_name = E.get_slice("/", 0);
 		TreeItem *section = sections[section_name];
 
-		if (!_should_display_shortcut(sc->get_name(), sc->get_events())) {
+		if (!_should_display_shortcut(sc->get_name(), sc->get_events(), true)) {
 			continue;
 		}
 
@@ -946,13 +967,12 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	top_hbox->add_child(clear_all_search);
 
 	shortcuts = memnew(Tree);
-	shortcuts->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	shortcuts->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	shortcuts->set_columns(2);
 	shortcuts->set_hide_root(true);
 	shortcuts->set_column_titles_visible(true);
-	shortcuts->set_column_title(0, TTR("Name"));
-	shortcuts->set_column_title(1, TTR("Binding"));
+	shortcuts->set_column_title(0, TTRC("Name"));
+	shortcuts->set_column_title(1, TTRC("Binding"));
 	shortcuts->connect("button_clicked", callable_mp(this, &EditorSettingsDialog::_shortcut_button_pressed));
 	shortcuts->connect("item_activated", callable_mp(this, &EditorSettingsDialog::_shortcut_cell_double_clicked));
 	tab_shortcuts->add_child(shortcuts);

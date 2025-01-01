@@ -390,7 +390,7 @@
 			<description>
 				Divides each component of the [Vector4] by the given [float].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) / 2 # Prints (5.0, 10.0, 15.0, 20.0)
+				print(Vector4(10, 20, 30, 40) / 2) # Prints (5.0, 10.0, 15.0, 20.0)
 				[/codeblock]
 			</description>
 		</operator>

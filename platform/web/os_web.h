@@ -32,6 +32,7 @@
 #define OS_WEB_H
 
 #include "audio_driver_web.h"
+#include "webmidi_driver.h"
 
 #include "godot_js.h"
 
@@ -44,6 +45,8 @@
 class OS_Web : public OS_Unix {
 	MainLoop *main_loop = nullptr;
 	List<AudioDriverWeb *> audio_drivers;
+
+	MIDIDriverWebMidi midi_driver;
 
 	bool idb_is_syncing = false;
 	bool idb_available = false;

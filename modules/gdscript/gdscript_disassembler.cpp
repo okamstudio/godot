@@ -362,7 +362,12 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				incr += 3;
 			} break;
 			case OPCODE_SET_STATIC_VARIABLE: {
-				Ref<GDScript> gdscript = get_constant(_code_ptr[ip + 2] & ADDR_MASK);
+				Ref<GDScript> gdscript;
+				if (_code_ptr[ip + 2] == ADDR_CLASS) {
+					gdscript = Ref<GDScript>(_script);
+				} else {
+					gdscript = get_constant(_code_ptr[ip + 2] & ADDR_MASK);
+				}
 
 				text += "set_static_variable script(";
 				text += GDScript::debug_get_script_name(gdscript);
@@ -378,7 +383,12 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				incr += 4;
 			} break;
 			case OPCODE_GET_STATIC_VARIABLE: {
-				Ref<GDScript> gdscript = get_constant(_code_ptr[ip + 2] & ADDR_MASK);
+				Ref<GDScript> gdscript;
+				if (_code_ptr[ip + 2] == ADDR_CLASS) {
+					gdscript = Ref<GDScript>(_script);
+				} else {
+					gdscript = get_constant(_code_ptr[ip + 2] & ADDR_MASK);
+				}
 
 				text += "get_static_variable ";
 				text += DADDR(1);

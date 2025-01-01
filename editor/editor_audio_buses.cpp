@@ -995,8 +995,8 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 	hbc->add_child(bus_options);
 
 	bus_popup = bus_options->get_popup();
-	bus_popup->add_shortcut(ED_SHORTCUT("audio_bus_editor/duplicate_selected_bus", TTR("Duplicate Bus"), KeyModifierMask::CMD_OR_CTRL | Key::D));
-	bus_popup->add_shortcut(ED_SHORTCUT("audio_bus_editor/delete_selected_bus", TTR("Delete Bus"), Key::KEY_DELETE));
+	bus_popup->add_shortcut(ED_SHORTCUT("audio_bus_editor/duplicate_selected_bus", TTRC("Duplicate Bus"), KeyModifierMask::CMD_OR_CTRL | Key::D));
+	bus_popup->add_shortcut(ED_SHORTCUT("audio_bus_editor/delete_selected_bus", TTRC("Delete Bus"), Key::KEY_DELETE));
 	bus_popup->set_item_disabled(1, is_master);
 	bus_popup->add_item(TTR("Reset Volume"));
 	bus_popup->connect("index_pressed", callable_mp(this, &EditorAudioBus::_bus_popup_pressed));
@@ -1082,7 +1082,7 @@ void EditorAudioBuses::_rebuild_buses() {
 
 EditorAudioBuses *EditorAudioBuses::register_editor() {
 	EditorAudioBuses *audio_buses = memnew(EditorAudioBuses);
-	EditorNode::get_bottom_panel()->add_item(TTR("Audio"), audio_buses, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_audio_bottom_panel", TTR("Toggle Audio Bottom Panel"), KeyModifierMask::ALT | Key::A));
+	EditorNode::get_bottom_panel()->add_item(TTR("Audio"), audio_buses, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_audio_bottom_panel", TTRC("Toggle Audio Bottom Panel"), KeyModifierMask::ALT | Key::A));
 	return audio_buses;
 }
 

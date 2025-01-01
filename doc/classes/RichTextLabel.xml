@@ -112,6 +112,15 @@
 				[b]Note:[/b] If [member threaded] is enabled, this method returns a value for the loaded part of the document. Use [method is_finished] or [signal finished] to determine whether document is fully loaded.
 			</description>
 		</method>
+		<method name="get_line_range">
+			<return type="Vector2i" />
+			<param index="0" name="line" type="int" />
+			<description>
+				Returns the indexes of the first and last visible characters for the given [param line], as a [Vector2i].
+				[b]Note:[/b] If [member visible_characters_behavior] is set to [constant TextServer.VC_CHARS_BEFORE_SHAPING] only visible wrapped lines are counted.
+				[b]Note:[/b] If [member threaded] is enabled, this method returns a value for the loaded part of the document. Use [method is_finished] or [signal finished] to determine whether document is fully loaded.
+			</description>
+		</method>
 		<method name="get_menu" qualifiers="const">
 			<return type="PopupMenu" />
 			<description>
@@ -703,6 +712,7 @@
 		<signal name="finished">
 			<description>
 				Triggered when the document is fully loaded.
+				[b]Note:[/b] This can happen before the text is processed for drawing. Scrolling values may not be valid until the document is drawn for the first time after this signal.
 			</description>
 		</signal>
 		<signal name="meta_clicked">

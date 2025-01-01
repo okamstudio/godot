@@ -216,7 +216,7 @@ NodePath MeshInstance3D::get_skeleton_path() {
 }
 
 AABB MeshInstance3D::get_aabb() const {
-	if (!mesh.is_null()) {
+	if (mesh.is_valid()) {
 		return mesh->get_aabb();
 	}
 
@@ -381,21 +381,24 @@ Ref<Material> MeshInstance3D::get_active_material(int p_surface) const {
 
 void MeshInstance3D::_mesh_changed() {
 	ERR_FAIL_COND(mesh.is_null());
-	surface_override_materials.resize(mesh->get_surface_count());
+	const int surface_count = mesh->get_surface_count();
+
+	surface_override_materials.resize(surface_count);
 
 	uint32_t initialize_bs_from = blend_shape_tracks.size();
 	blend_shape_tracks.resize(mesh->get_blend_shape_count());
 
-	for (uint32_t i = 0; i < blend_shape_tracks.size(); i++) {
-		blend_shape_properties["blend_shapes/" + String(mesh->get_blend_shape_name(i))] = i;
-		if (i < initialize_bs_from) {
-			set_blend_shape_value(i, blend_shape_tracks[i]);
-		} else {
-			set_blend_shape_value(i, 0);
+	if (surface_count > 0) {
+		for (uint32_t i = 0; i < blend_shape_tracks.size(); i++) {
+			blend_shape_properties["blend_shapes/" + String(mesh->get_blend_shape_name(i))] = i;
+			if (i < initialize_bs_from) {
+				set_blend_shape_value(i, blend_shape_tracks[i]);
+			} else {
+				set_blend_shape_value(i, 0);
+			}
 		}
 	}
 
-	int surface_count = mesh->get_surface_count();
 	for (int surface_index = 0; surface_index < surface_count; ++surface_index) {
 		if (surface_override_materials[surface_index].is_valid()) {
 			RS::get_singleton()->instance_set_surface_override_material(get_instance(), surface_index, surface_override_materials[surface_index]->get_rid());
@@ -410,7 +413,7 @@ MeshInstance3D *MeshInstance3D::create_debug_tangents_node() {
 	Vector<Color> colors;
 
 	Ref<Mesh> m = get_mesh();
-	if (!m.is_valid()) {
+	if (m.is_null()) {
 		return nullptr;
 	}
 

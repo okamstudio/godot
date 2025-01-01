@@ -30,7 +30,6 @@
 
 #include "xr_interface_extension.h"
 #include "servers/rendering/renderer_rd/storage_rd/texture_storage.h"
-#include "servers/rendering/rendering_server_globals.h"
 
 void XRInterfaceExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_name);

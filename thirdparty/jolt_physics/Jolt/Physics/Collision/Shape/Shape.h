@@ -331,7 +331,7 @@ public:
 	/// Collect the leaf transformed shapes of all leaf shapes of this shape.
 	/// inBox is the world space axis aligned box which leaf shapes should collide with.
 	/// inPositionCOM/inRotation/inScale describes the transform of this shape.
-	/// inSubShapeIDCeator represents the current sub shape ID of this shape.
+	/// inSubShapeIDCreator represents the current sub shape ID of this shape.
 	virtual void					CollectTransformedShapes(const AABox &inBox, Vec3Arg inPositionCOM, QuatArg inRotation, Vec3Arg inScale, const SubShapeIDCreator &inSubShapeIDCreator, TransformedShapeCollector &ioCollector, const ShapeFilter &inShapeFilter) const;
 
 	/// Transforms this shape and all of its children with inTransform, resulting shape(s) are passed to ioCollector.

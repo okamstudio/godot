@@ -34,7 +34,6 @@
 #include "core/input/input_enums.h"
 #include "core/object/object.h"
 #include "core/os/keyboard.h"
-#include "core/templates/list.h"
 #include "core/templates/simple_type.h"
 #include "core/typedefs.h"
 #include "core/variant/method_ptrcall.h"

@@ -31,7 +31,6 @@
 #include "audio_stream.h"
 
 #include "core/config/project_settings.h"
-#include "core/os/os.h"
 
 void AudioStreamPlayback::start(double p_from_pos) {
 	if (GDVIRTUAL_CALL(_start, p_from_pos)) {

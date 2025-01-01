@@ -34,6 +34,8 @@
 #include "core/os/memory.h"
 #include "core/typedefs.h"
 
+#include <initializer_list>
+
 // based on the very nice implementation of rb-trees by:
 // https://web.archive.org/web/20120507164830/https://web.mit.edu/~emin/www/source_code/red_black_tree/index.html
 
@@ -699,6 +701,12 @@ public:
 
 	RBSet(const RBSet &p_set) {
 		_copy_from(p_set);
+	}
+
+	RBSet(std::initializer_list<T> p_init) {
+		for (const T &E : p_init) {
+			insert(E);
+		}
 	}
 
 	_FORCE_INLINE_ RBSet() {}

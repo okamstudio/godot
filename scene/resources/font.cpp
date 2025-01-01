@@ -32,8 +32,6 @@
 #include "font.compat.inc"
 
 #include "core/io/image_loader.h"
-#include "core/io/resource_loader.h"
-#include "core/string/translation.h"
 #include "core/templates/hash_map.h"
 #include "core/templates/hashfuncs.h"
 #include "scene/resources/image_texture.h"
@@ -1100,7 +1098,7 @@ bool FontFile::_set(const StringName &p_name, const Variant &p_value) {
 		Array textures = p_value;
 		for (int i = 0; i < textures.size(); i++) {
 			Ref<ImageTexture> tex = textures[i];
-			ERR_CONTINUE(!tex.is_valid());
+			ERR_CONTINUE(tex.is_null());
 			set_texture_image(0, Vector2i(16, 0), i, tex->get_image());
 		}
 	} else if (tokens.size() == 1 && tokens[0] == "chars") {

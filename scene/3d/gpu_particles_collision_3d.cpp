@@ -172,7 +172,7 @@ void GPUParticlesCollisionSDF3D::_find_meshes(const AABB &p_aabb, Node *p_at_nod
 			for (int i = 0; i < meshes.size(); i += 2) {
 				Transform3D mxf = meshes[i];
 				Ref<Mesh> mesh = meshes[i + 1];
-				if (!mesh.is_valid()) {
+				if (mesh.is_null()) {
 					continue;
 				}
 

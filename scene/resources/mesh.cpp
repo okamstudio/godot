@@ -905,7 +905,7 @@ Vector<Ref<Shape3D>> Mesh::convex_decompose(const Ref<MeshConvexDecompositionSet
 	ERR_FAIL_NULL_V(convex_decomposition_function, Vector<Ref<Shape3D>>());
 
 	Ref<TriangleMesh> tm = generate_triangle_mesh();
-	ERR_FAIL_COND_V(!tm.is_valid(), Vector<Ref<Shape3D>>());
+	ERR_FAIL_COND_V(tm.is_null(), Vector<Ref<Shape3D>>());
 
 	const Vector<TriangleMesh::Triangle> &triangles = tm->get_triangles();
 	int triangle_count = triangles.size();
@@ -1740,7 +1740,7 @@ void ArrayMesh::_get_property_list(List<PropertyInfo> *p_list) const {
 	}
 
 	for (int i = 0; i < surfaces.size(); i++) {
-		p_list->push_back(PropertyInfo(Variant::STRING, "surface_" + itos(i) + "/name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
+		p_list->push_back(PropertyInfo(Variant::STRING, "surface_" + itos(i) + "/name", PROPERTY_HINT_NO_NODEPATH, "", PROPERTY_USAGE_EDITOR));
 		if (surfaces[i].is_2d) {
 			p_list->push_back(PropertyInfo(Variant::OBJECT, "surface_" + itos(i) + "/material", PROPERTY_HINT_RESOURCE_TYPE, "CanvasItemMaterial,ShaderMaterial", PROPERTY_USAGE_EDITOR));
 		} else {
@@ -2005,6 +2005,17 @@ void ArrayMesh::clear_surfaces() {
 	RS::get_singleton()->mesh_clear(mesh);
 	surfaces.clear();
 	aabb = AABB();
+}
+
+void ArrayMesh::surface_remove(int p_surface) {
+	ERR_FAIL_INDEX(p_surface, surfaces.size());
+	RS::get_singleton()->mesh_surface_remove(mesh, p_surface);
+	surfaces.remove_at(p_surface);
+
+	clear_cache();
+	_recompute_aabb();
+	notify_property_list_changed();
+	emit_changed();
 }
 
 void ArrayMesh::set_custom_aabb(const AABB &p_custom) {
@@ -2275,6 +2286,7 @@ void ArrayMesh::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("add_surface_from_arrays", "primitive", "arrays", "blend_shapes", "lods", "flags"), &ArrayMesh::add_surface_from_arrays, DEFVAL(Array()), DEFVAL(Dictionary()), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("clear_surfaces"), &ArrayMesh::clear_surfaces);
+	ClassDB::bind_method(D_METHOD("surface_remove", "surf_idx"), &ArrayMesh::surface_remove);
 	ClassDB::bind_method(D_METHOD("surface_update_vertex_region", "surf_idx", "offset", "data"), &ArrayMesh::surface_update_vertex_region);
 	ClassDB::bind_method(D_METHOD("surface_update_attribute_region", "surf_idx", "offset", "data"), &ArrayMesh::surface_update_attribute_region);
 	ClassDB::bind_method(D_METHOD("surface_update_skin_region", "surf_idx", "offset", "data"), &ArrayMesh::surface_update_skin_region);
@@ -2308,10 +2320,10 @@ void ArrayMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_surfaces", "surfaces"), &ArrayMesh::_set_surfaces);
 	ClassDB::bind_method(D_METHOD("_get_surfaces"), &ArrayMesh::_get_surfaces);
 
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "_blend_shape_names", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_blend_shape_names", "_get_blend_shape_names");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "_surfaces", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_surfaces", "_get_surfaces");
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_STRING_ARRAY, "_blend_shape_names", PROPERTY_HINT_NO_NODEPATH, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_blend_shape_names", "_get_blend_shape_names");
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "_surfaces", PROPERTY_HINT_NO_NODEPATH, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_surfaces", "_get_surfaces");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "blend_shape_mode", PROPERTY_HINT_ENUM, "Normalized,Relative"), "set_blend_shape_mode", "get_blend_shape_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::AABB, "custom_aabb", PROPERTY_HINT_NONE, "suffix:m"), "set_custom_aabb", "get_custom_aabb");
+	ADD_PROPERTY(PropertyInfo(Variant::AABB, "custom_aabb", PROPERTY_HINT_NO_NODEPATH, "suffix:m"), "set_custom_aabb", "get_custom_aabb");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shadow_mesh", PROPERTY_HINT_RESOURCE_TYPE, "ArrayMesh"), "set_shadow_mesh", "get_shadow_mesh");
 }
 

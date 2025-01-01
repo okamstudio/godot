@@ -31,7 +31,6 @@
 #ifndef THEME_DB_H
 #define THEME_DB_H
 
-#include "core/object/class_db.h"
 #include "core/object/ref_counted.h"
 #include "scene/resources/theme.h"
 

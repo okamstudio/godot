@@ -61,7 +61,7 @@ class API_AVAILABLE(macos(11.0), ios(14.0)) RenderingDeviceDriverMetal : public 
 
 	uint32_t version_major = 2;
 	uint32_t version_minor = 0;
-	MetalDeviceProperties *metal_device_properties = nullptr;
+	MetalDeviceProperties *device_properties = nullptr;
 	PixelFormats *pixel_formats = nullptr;
 	std::unique_ptr<MDResourceCache> resource_cache;
 
@@ -431,10 +431,10 @@ public:
 	id<MTLDevice> get_device() const { return device; }
 	PixelFormats &get_pixel_formats() const { return *pixel_formats; }
 	MDResourceCache &get_resource_cache() const { return *resource_cache; }
-	MetalDeviceProperties const &get_device_properties() const { return *metal_device_properties; }
+	MetalDeviceProperties const &get_device_properties() const { return *device_properties; }
 
 	_FORCE_INLINE_ uint32_t get_metal_buffer_index_for_vertex_attribute_binding(uint32_t p_binding) {
-		return (metal_device_properties->limits.maxPerStageBufferCount - 1) - p_binding;
+		return (device_properties->limits.maxPerStageBufferCount - 1) - p_binding;
 	}
 
 	size_t get_texel_buffer_alignment_for_format(RDD::DataFormat p_format) const;

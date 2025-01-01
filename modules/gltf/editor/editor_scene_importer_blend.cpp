@@ -574,7 +574,6 @@ bool EditorFileSystemImportFormatSupportQueryBlend::query() {
 	confirmed = false;
 
 	while (true) {
-		OS::get_singleton()->delay_usec(1);
 		DisplayServer::get_singleton()->process_events();
 		Main::iteration();
 		if (!configure_blender_dialog->is_visible() || confirmed) {

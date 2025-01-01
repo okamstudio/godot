@@ -31,7 +31,6 @@
 #include "sphere_shape_3d.h"
 
 #include "scene/resources/3d/primitive_meshes.h"
-#include "scene/resources/material.h"
 #include "servers/physics_server_3d.h"
 
 Vector<Vector3> SphereShape3D::get_debug_mesh_lines() const {

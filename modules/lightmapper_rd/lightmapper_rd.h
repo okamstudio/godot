@@ -57,8 +57,9 @@ class LightmapperRD : public Lightmapper {
 		uint32_t bounces = 0;
 
 		float bounce_indirect_energy = 0.0f;
-		int shadowmask_light_idx = 0;
-		uint32_t pad[2] = {};
+		uint32_t shadowmask_light_idx = 0;
+		uint32_t transparency_rays = 0;
+		uint32_t pad[1] = {};
 	};
 
 	struct MeshInstance {
@@ -185,7 +186,7 @@ class LightmapperRD : public Lightmapper {
 		uint32_t indices[3] = {};
 		uint32_t slice = 0;
 		float min_bounds[3] = {};
-		float pad0 = 0.0;
+		uint32_t cull_mode = 0;
 		float max_bounds[3] = {};
 		float pad1 = 0.0;
 		bool operator<(const Triangle &p_triangle) const {

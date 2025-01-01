@@ -58,6 +58,7 @@
 		[/csharp]
 		[/codeblocks]
 		[b]Note:[/b] Godot does not support MIDI output, so there is no way to emit MIDI messages from Godot. Only MIDI input is supported.
+		[b]Note:[/b] On the Web platform, using MIDI input requires a browser permission to be granted first. This permission request is performed when calling [method OS.open_midi_inputs]. MIDI input will not work until the user accepts the permission request.
 	</description>
 	<tutorials>
 		<link title="MIDI Message Status Byte List">https://www.midi.org/specifications-old/item/table-2-expanded-messages-list-status-bytes</link>

@@ -37,7 +37,7 @@
 #include "scene/gui/grid_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/line_edit.h"
-#include "scene/gui/separator.h"
+#include "scene/gui/popup_menu.h"
 #include "scene/gui/spin_box.h"
 #include "scene/gui/tree.h"
 #include "scene/main/timer.h"
@@ -63,8 +63,8 @@ void RunInstancesDialog::_refresh_argument_count() {
 	while (instance_count->get_value() > stored_data.size()) {
 		stored_data.append(Dictionary());
 	}
-	stored_data.resize(instance_count->get_value());
-	instances_data.resize(stored_data.size());
+
+	instances_data.resize(instance_count->get_value());
 	InstanceData *instances_write = instances_data.ptrw();
 
 	for (int i = 0; i < instances_data.size(); i++) {
@@ -105,8 +105,6 @@ void RunInstancesDialog::_save_main_args() {
 }
 
 void RunInstancesDialog::_save_arguments() {
-	stored_data.resize(instances_data.size());
-
 	for (int i = 0; i < instances_data.size(); i++) {
 		const InstanceData &instance = instances_data[i];
 		Dictionary dict;
@@ -117,6 +115,7 @@ void RunInstancesDialog::_save_arguments() {
 		stored_data[i] = dict;
 	}
 	EditorSettings::get_singleton()->set_project_metadata("debug_options", "run_instances_config", stored_data);
+	EditorSettings::get_singleton()->set_project_metadata("debug_options", "run_instance_count", instance_count->get_value());
 }
 
 Vector<String> RunInstancesDialog::_split_cmdline_args(const String &p_arg_string) const {
@@ -153,6 +152,45 @@ Vector<String> RunInstancesDialog::_split_cmdline_args(const String &p_arg_strin
 		split_args.push_back(p_arg_string.substr(arg_start, arg_length));
 	}
 	return split_args;
+}
+
+void RunInstancesDialog::_instance_menu_id_pressed(int p_option) {
+	switch (p_option) {
+		case CLEAR_ITEM: {
+			int item_to_clear = popup_menu->get_item_metadata(0);
+			if (item_to_clear >= 0 && item_to_clear < stored_data.size()) {
+				stored_data[item_to_clear] = Dictionary();
+			}
+		} break;
+		case CLEAR_ALL: {
+			stored_data.clear();
+			stored_data.resize(instance_count->get_value());
+		} break;
+	}
+
+	_start_instance_timer();
+	_refresh_argument_count();
+}
+
+void RunInstancesDialog::_instance_tree_rmb(const Vector2 &p_pos, MouseButton p_button) {
+	if (p_button != MouseButton::RIGHT) {
+		return;
+	}
+
+	popup_menu->clear();
+	popup_menu->add_item(TTR("Clear"), CLEAR_ITEM);
+
+	TreeItem *item = instance_tree->get_item_at_position(p_pos);
+	if (item) {
+		popup_menu->set_item_metadata(0, item->get_index());
+	} else {
+		popup_menu->set_item_disabled(0, true);
+	}
+
+	popup_menu->add_item(TTR("Clear All"), CLEAR_ALL);
+	popup_menu->set_position(instance_tree->get_screen_position() + p_pos);
+	popup_menu->reset_size();
+	popup_menu->popup();
 }
 
 void RunInstancesDialog::popup_dialog() {
@@ -300,7 +338,8 @@ RunInstancesDialog::RunInstancesDialog() {
 	instance_count = memnew(SpinBox);
 	instance_count->set_min(1);
 	instance_count->set_max(20);
-	instance_count->set_value(stored_data.size());
+	instance_count->set_value(EditorSettings::get_singleton()->get_project_metadata("debug_options", "run_instance_count", stored_data.size()));
+
 	args_gc->add_child(instance_count);
 	instance_count->connect(SceneStringName(value_changed), callable_mp(this, &RunInstancesDialog::_start_instance_timer).unbind(1));
 	instance_count->connect(SceneStringName(value_changed), callable_mp(this, &RunInstancesDialog::_refresh_argument_count).unbind(1));
@@ -342,6 +381,14 @@ RunInstancesDialog::RunInstancesDialog() {
 	instance_tree->set_column_expand(COLUMN_OVERRIDE_FEATURES, false);
 	instance_tree->set_column_title(COLUMN_FEATURE_TAGS, TTR("Feature Tags"));
 	instance_tree->set_hide_root(true);
+	instance_tree->set_allow_rmb_select(true);
+
+	popup_menu = memnew(PopupMenu);
+	popup_menu->connect(SceneStringName(id_pressed), callable_mp(this, &RunInstancesDialog::_instance_menu_id_pressed));
+	instance_tree->add_child(popup_menu);
+
+	instance_tree->connect("item_mouse_selected", callable_mp(this, &RunInstancesDialog::_instance_tree_rmb));
+	instance_tree->connect("empty_clicked", callable_mp(this, &RunInstancesDialog::_instance_tree_rmb));
 	main_vb->add_child(instance_tree);
 
 	_refresh_argument_count();

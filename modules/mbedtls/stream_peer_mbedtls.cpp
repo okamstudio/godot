@@ -30,7 +30,6 @@
 
 #include "stream_peer_mbedtls.h"
 
-#include "core/io/file_access.h"
 #include "core/io/stream_peer_tcp.h"
 
 int StreamPeerMbedTLS::bio_send(void *ctx, const unsigned char *buf, size_t len) {
@@ -236,7 +235,7 @@ Error StreamPeerMbedTLS::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r
 
 void StreamPeerMbedTLS::poll() {
 	ERR_FAIL_COND(status != STATUS_CONNECTED && status != STATUS_HANDSHAKING);
-	ERR_FAIL_COND(!base.is_valid());
+	ERR_FAIL_COND(base.is_null());
 
 	if (status == STATUS_HANDSHAKING) {
 		_do_handshake();

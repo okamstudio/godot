@@ -36,11 +36,9 @@
 #include "core/io/image_loader.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_funcs.h"
-#include "core/string/print_string.h"
 #include "core/templates/hash_map.h"
 #include "core/variant/dictionary.h"
 
-#include <stdio.h>
 #include <cmath>
 
 const char *Image::format_names[Image::FORMAT_MAX] = {
@@ -3994,7 +3992,7 @@ Error Image::load_svg_from_buffer(const Vector<uint8_t> &p_array, float scale) {
 	ERR_FAIL_COND_V(buffer_size == 0, ERR_INVALID_PARAMETER);
 
 	Ref<Image> image = _svg_scalable_mem_loader_func(p_array.ptr(), buffer_size, scale);
-	ERR_FAIL_COND_V(!image.is_valid(), ERR_PARSE_ERROR);
+	ERR_FAIL_COND_V(image.is_null(), ERR_PARSE_ERROR);
 
 	copy_internals_from(image);
 
@@ -4061,7 +4059,7 @@ Error Image::_load_from_buffer(const Vector<uint8_t> &p_array, ImageMemLoadFunc 
 	const uint8_t *r = p_array.ptr();
 
 	Ref<Image> image = p_loader(r, buffer_size);
-	ERR_FAIL_COND_V(!image.is_valid(), ERR_PARSE_ERROR);
+	ERR_FAIL_COND_V(image.is_null(), ERR_PARSE_ERROR);
 
 	copy_internals_from(image);
 

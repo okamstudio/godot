@@ -33,9 +33,6 @@
 
 #ifdef GLES3_ENABLED
 
-#include "core/templates/local_vector.h"
-#include "core/templates/rid_owner.h"
-#include "core/templates/self_list.h"
 #include "servers/rendering/environment/renderer_fog.h"
 
 namespace GLES3 {

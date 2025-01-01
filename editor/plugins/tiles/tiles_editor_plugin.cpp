@@ -45,10 +45,8 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/2d/tile_map.h"
 #include "scene/2d/tile_map_layer.h"
-#include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/control.h"
-#include "scene/gui/separator.h"
 #include "scene/resources/2d/tile_set.h"
 #include "scene/resources/image_texture.h"
 
@@ -147,8 +145,8 @@ void TilesEditorUtils::_thread() {
 }
 
 void TilesEditorUtils::queue_pattern_preview(Ref<TileSet> p_tile_set, Ref<TileMapPattern> p_pattern, Callable p_callback) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
-	ERR_FAIL_COND(!p_pattern.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
+	ERR_FAIL_COND(p_pattern.is_null());
 	{
 		MutexLock lock(pattern_preview_mutex);
 		pattern_preview_queue.push_back({ p_tile_set, p_pattern, p_callback });
@@ -304,18 +302,18 @@ TilesEditorUtils::TilesEditorUtils() {
 	// Pattern preview generation thread.
 	pattern_preview_thread.start(_thread_func, this);
 
-	ED_SHORTCUT("tiles_editor/cut", TTR("Cut"), KeyModifierMask::CMD_OR_CTRL | Key::X);
-	ED_SHORTCUT("tiles_editor/copy", TTR("Copy"), KeyModifierMask::CMD_OR_CTRL | Key::C);
-	ED_SHORTCUT("tiles_editor/paste", TTR("Paste"), KeyModifierMask::CMD_OR_CTRL | Key::V);
-	ED_SHORTCUT("tiles_editor/cancel", TTR("Cancel"), Key::ESCAPE);
-	ED_SHORTCUT("tiles_editor/delete", TTR("Delete"), Key::KEY_DELETE);
+	ED_SHORTCUT("tiles_editor/cut", TTRC("Cut"), KeyModifierMask::CMD_OR_CTRL | Key::X);
+	ED_SHORTCUT("tiles_editor/copy", TTRC("Copy"), KeyModifierMask::CMD_OR_CTRL | Key::C);
+	ED_SHORTCUT("tiles_editor/paste", TTRC("Paste"), KeyModifierMask::CMD_OR_CTRL | Key::V);
+	ED_SHORTCUT("tiles_editor/cancel", TTRC("Cancel"), Key::ESCAPE);
+	ED_SHORTCUT("tiles_editor/delete", TTRC("Delete"), Key::KEY_DELETE);
 
-	ED_SHORTCUT("tiles_editor/paint_tool", TTR("Paint"), Key::D);
-	ED_SHORTCUT("tiles_editor/line_tool", TTR("Line", "Tool"), Key::L);
-	ED_SHORTCUT("tiles_editor/rect_tool", TTR("Rect"), Key::R);
-	ED_SHORTCUT("tiles_editor/bucket_tool", TTR("Bucket"), Key::B);
-	ED_SHORTCUT("tiles_editor/eraser", TTR("Eraser"), Key::E);
-	ED_SHORTCUT("tiles_editor/picker", TTR("Picker"), Key::P);
+	ED_SHORTCUT("tiles_editor/paint_tool", TTRC("Paint Tool"), Key::D);
+	ED_SHORTCUT("tiles_editor/line_tool", TTRC("Line Tool"), Key::L);
+	ED_SHORTCUT("tiles_editor/rect_tool", TTRC("Rect Tool"), Key::R);
+	ED_SHORTCUT("tiles_editor/bucket_tool", TTRC("Bucket Tool"), Key::B);
+	ED_SHORTCUT("tiles_editor/eraser", TTRC("Eraser Tool"), Key::E);
+	ED_SHORTCUT("tiles_editor/picker", TTRC("Picker Tool"), Key::P);
 }
 
 TilesEditorUtils::~TilesEditorUtils() {
@@ -499,7 +497,7 @@ TileMapEditorPlugin::TileMapEditorPlugin() {
 	editor->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
 	editor->hide();
 
-	button = EditorNode::get_bottom_panel()->add_item(TTR("TileMap"), editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_tile_map_bottom_panel", TTR("Toggle TileMap Bottom Panel")));
+	button = EditorNode::get_bottom_panel()->add_item(TTR("TileMap"), editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_tile_map_bottom_panel", TTRC("Toggle TileMap Bottom Panel")));
 	button->hide();
 }
 
@@ -550,7 +548,7 @@ TileSetEditorPlugin::TileSetEditorPlugin() {
 	editor->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
 	editor->hide();
 
-	button = EditorNode::get_bottom_panel()->add_item(TTR("TileSet"), editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_tile_set_bottom_panel", TTR("Toggle TileSet Bottom Panel")));
+	button = EditorNode::get_bottom_panel()->add_item(TTR("TileSet"), editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_tile_set_bottom_panel", TTRC("Toggle TileSet Bottom Panel")));
 	button->hide();
 }
 

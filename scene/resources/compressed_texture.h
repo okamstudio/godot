@@ -31,6 +31,7 @@
 #ifndef COMPRESSED_TEXTURE_H
 #define COMPRESSED_TEXTURE_H
 
+#include "core/io/resource_loader.h"
 #include "scene/resources/texture.h"
 
 class BitMap;

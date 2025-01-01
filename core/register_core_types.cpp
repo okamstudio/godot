@@ -69,8 +69,6 @@
 #include "core/math/a_star.h"
 #include "core/math/a_star_grid_2d.h"
 #include "core/math/expression.h"
-#include "core/math/geometry_2d.h"
-#include "core/math/geometry_3d.h"
 #include "core/math/random_number_generator.h"
 #include "core/math/triangle_mesh.h"
 #include "core/object/class_db.h"

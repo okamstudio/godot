@@ -33,7 +33,6 @@
 #include "core/config/engine.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
-#include "core/os/mutex.h"
 #include "core/version.h"
 
 #define OBJTYPE_RLOCK RWLockRead _rw_lockr_(lock);
@@ -454,7 +453,7 @@ uint32_t ClassDB::get_api_hash(APIType p_api) {
 
 			for (const StringName &F : snames) {
 				hash = hash_murmur3_one_64(F.hash(), hash);
-				hash = hash_murmur3_one_64(t->constant_map[F], hash);
+				hash = hash_murmur3_one_64(uint64_t(t->constant_map[F]), hash);
 			}
 		}
 

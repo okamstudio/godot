@@ -31,7 +31,6 @@
 #include "default_theme.h"
 
 #include "core/io/image.h"
-#include "core/os/os.h"
 #include "default_font.gen.h"
 #include "default_theme_icons.gen.h"
 #include "scene/resources/font.h"
@@ -129,6 +128,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	// StyleBox colors
 	const Color style_normal_color = Color(0.1, 0.1, 0.1, 0.6);
 	const Color style_hover_color = Color(0.225, 0.225, 0.225, 0.6);
+	const Color style_hover_selected_color = Color(1, 1, 1, 0.4);
 	const Color style_pressed_color = Color(0, 0, 0, 0.6);
 	const Color style_disabled_color = Color(0.1, 0.1, 0.1, 0.3);
 	const Color style_focus_color = Color(1, 1, 1, 0.75);
@@ -929,10 +929,13 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 	theme->set_color(SceneStringName(font_color), "ItemList", control_font_lower_color);
 	theme->set_color("font_hovered_color", "ItemList", control_font_hover_color);
+	theme->set_color("font_hovered_selected_color", "ItemList", control_font_pressed_color);
 	theme->set_color("font_selected_color", "ItemList", control_font_pressed_color);
 	theme->set_color("font_outline_color", "ItemList", Color(0, 0, 0));
 	theme->set_color("guide_color", "ItemList", Color(0.7, 0.7, 0.7, 0.25));
 	theme->set_stylebox("hovered", "ItemList", make_flat_stylebox(Color(1, 1, 1, 0.07)));
+	theme->set_stylebox("hovered_selected", "ItemList", make_flat_stylebox(style_hover_selected_color));
+	theme->set_stylebox("hovered_selected_focus", "ItemList", make_flat_stylebox(style_hover_selected_color));
 	theme->set_stylebox("selected", "ItemList", make_flat_stylebox(style_selected_color));
 	theme->set_stylebox("selected_focus", "ItemList", make_flat_stylebox(style_selected_color));
 	theme->set_stylebox("cursor", "ItemList", focus);
@@ -1253,6 +1256,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("selection_stroke", "GraphEdit", Color(1, 1, 1, 0.8));
 	theme->set_color("activity", "GraphEdit", Color(1, 1, 1));
 	theme->set_color("connection_hover_tint_color", "GraphEdit", Color(0, 0, 0, 0.3));
+	theme->set_constant("connection_hover_thickness", "GraphEdit", 0);
 	theme->set_color("connection_valid_target_tint_color", "GraphEdit", Color(1, 1, 1, 0.4));
 	theme->set_color("connection_rim_color", "GraphEdit", style_normal_color);
 

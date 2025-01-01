@@ -368,6 +368,7 @@ typedef struct {
 	GDExtensionBool is_abstract;
 	GDExtensionBool is_exposed;
 	GDExtensionBool is_runtime;
+	GDExtensionConstStringPtr icon_path;
 	GDExtensionClassSet set_func;
 	GDExtensionClassGet get_func;
 	GDExtensionClassGetPropertyList get_property_list_func;

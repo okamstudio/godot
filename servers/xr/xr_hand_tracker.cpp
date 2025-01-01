@@ -30,8 +30,6 @@
 
 #include "xr_hand_tracker.h"
 
-#include "xr_body_tracker.h"
-
 void XRHandTracker::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_has_tracking_data", "has_data"), &XRHandTracker::set_has_tracking_data);
 	ClassDB::bind_method(D_METHOD("get_has_tracking_data"), &XRHandTracker::get_has_tracking_data);

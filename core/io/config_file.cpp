@@ -31,7 +31,6 @@
 #include "config_file.h"
 
 #include "core/io/file_access_encrypted.h"
-#include "core/os/keyboard.h"
 #include "core/string/string_builder.h"
 #include "core/variant/variant_parser.h"
 

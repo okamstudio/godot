@@ -31,7 +31,7 @@
 #ifndef SCENE_CACHE_INTERFACE_H
 #define SCENE_CACHE_INTERFACE_H
 
-#include "scene/main/multiplayer_api.h"
+#include "core/object/ref_counted.h"
 
 class Node;
 class SceneMultiplayer;

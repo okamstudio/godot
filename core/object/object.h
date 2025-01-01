@@ -65,7 +65,7 @@ enum PropertyHint {
 	PROPERTY_HINT_DIR, ///< a directory path must be passed
 	PROPERTY_HINT_GLOBAL_FILE, ///< a file path must be passed, hint_text (optionally) is a filter "*.png,*.wav,*.doc,"
 	PROPERTY_HINT_GLOBAL_DIR, ///< a directory path must be passed
-	PROPERTY_HINT_RESOURCE_TYPE, ///< a resource object type
+	PROPERTY_HINT_RESOURCE_TYPE, ///< a comma-separated resource object type, e.g. "NoiseTexture,GradientTexture2D". Subclasses can be excluded with a "-" prefix if placed *after* the base class, e.g. "Texture2D,-MeshTexture".
 	PROPERTY_HINT_MULTILINE_TEXT, ///< used for string properties that can contain multiple lines
 	PROPERTY_HINT_EXPRESSION, ///< used for string properties that can contain multiple lines
 	PROPERTY_HINT_PLACEHOLDER_TEXT, ///< used to set a placeholder text for string properties
@@ -89,6 +89,7 @@ enum PropertyHint {
 	PROPERTY_HINT_DICTIONARY_TYPE,
 	PROPERTY_HINT_TOOL_BUTTON,
 	PROPERTY_HINT_ONESHOT, ///< the property will be changed by self after setting, such as AudioStreamPlayer.playing, Particles.emitting.
+	PROPERTY_HINT_NO_NODEPATH, /// < this property will not contain a NodePath, regardless of type (Array, Dictionary, List, etc.). Needed for SceneTreeDock.
 	PROPERTY_HINT_MAX,
 };
 

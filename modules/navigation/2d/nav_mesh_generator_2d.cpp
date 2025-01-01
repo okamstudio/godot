@@ -144,10 +144,10 @@ void NavMeshGenerator2D::finish() {
 
 void NavMeshGenerator2D::parse_source_geometry_data(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_root_node, const Callable &p_callback) {
 	ERR_FAIL_COND(!Thread::is_main_thread());
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
 	ERR_FAIL_NULL(p_root_node);
 	ERR_FAIL_COND(!p_root_node->is_inside_tree());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	generator_parse_source_geometry_data(p_navigation_mesh, p_source_geometry_data, p_root_node);
 
@@ -157,8 +157,8 @@ void NavMeshGenerator2D::parse_source_geometry_data(Ref<NavigationPolygon> p_nav
 }
 
 void NavMeshGenerator2D::bake_from_source_geometry_data(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	if (p_navigation_mesh->get_outline_count() == 0 && !p_source_geometry_data->has_data()) {
 		p_navigation_mesh->clear();
@@ -187,8 +187,8 @@ void NavMeshGenerator2D::bake_from_source_geometry_data(Ref<NavigationPolygon> p
 }
 
 void NavMeshGenerator2D::bake_from_source_geometry_data_async(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	if (p_navigation_mesh->get_outline_count() == 0 && !p_source_geometry_data->has_data()) {
 		p_navigation_mesh->clear();
@@ -279,7 +279,7 @@ void NavMeshGenerator2D::generator_parse_meshinstance2d_node(const Ref<Navigatio
 	}
 
 	Ref<Mesh> mesh = mesh_instance->get_mesh();
-	if (!mesh.is_valid()) {
+	if (mesh.is_null()) {
 		return;
 	}
 
@@ -369,7 +369,7 @@ void NavMeshGenerator2D::generator_parse_multimeshinstance2d_node(const Ref<Navi
 	}
 
 	Ref<Mesh> mesh = multimesh->get_mesh();
-	if (!mesh.is_valid()) {
+	if (mesh.is_null()) {
 		return;
 	}
 
@@ -590,7 +590,7 @@ void NavMeshGenerator2D::generator_parse_tile_map_layer_node(const Ref<Navigatio
 	}
 
 	Ref<TileSet> tile_set = tile_map_layer->get_tile_set();
-	if (!tile_set.is_valid()) {
+	if (tile_set.is_null()) {
 		return;
 	}
 

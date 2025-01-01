@@ -31,7 +31,7 @@
 #include "eq_filter.h"
 
 #include "core/error/error_macros.h"
-#include "core/math/math_funcs.h"
+#include "core/math/math_defs.h"
 
 #include <math.h>
 

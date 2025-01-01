@@ -14,7 +14,7 @@ inputs:
     required: false
   sconsflags:
     description: Additional SCons flags.
-    default: ''
+    default: ""
     required: false
   scons-cache:
     description: The SCons cache path.

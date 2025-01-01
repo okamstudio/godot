@@ -31,7 +31,6 @@
 #include "audio_stream_playlist.h"
 
 #include "core/math/math_funcs.h"
-#include "core/string/print_string.h"
 
 Ref<AudioStreamPlayback> AudioStreamPlaylist::instantiate_playback() {
 	Ref<AudioStreamPlaybackPlaylist> playback_playlist;
@@ -311,7 +310,7 @@ int AudioStreamPlaybackPlaylist::mix(AudioFrame *p_buffer, float p_rate_scale, i
 					break;
 				}
 
-				if (!playback[play_order[play_index]].is_valid()) {
+				if (playback[play_order[play_index]].is_null()) {
 					todo = to_mix; // Weird error.
 					active = false;
 					break;

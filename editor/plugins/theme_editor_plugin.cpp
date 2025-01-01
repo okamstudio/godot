@@ -30,7 +30,6 @@
 
 #include "theme_editor_plugin.h"
 
-#include "core/os/keyboard.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_help.h"
 #include "editor/editor_node.h"
@@ -3827,6 +3826,6 @@ ThemeEditorPlugin::ThemeEditorPlugin() {
 	theme_editor->plugin = this;
 	theme_editor->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
 
-	button = EditorNode::get_bottom_panel()->add_item(TTR("Theme"), theme_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_theme_bottom_panel", TTR("Toggle Theme Bottom Panel")));
+	button = EditorNode::get_bottom_panel()->add_item(TTR("Theme"), theme_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_theme_bottom_panel", TTRC("Toggle Theme Bottom Panel")));
 	button->hide();
 }

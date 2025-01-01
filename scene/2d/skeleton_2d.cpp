@@ -767,7 +767,7 @@ Ref<SkeletonModificationStack2D> Skeleton2D::get_modification_stack() const {
 }
 
 void Skeleton2D::execute_modifications(real_t p_delta, int p_execution_mode) {
-	if (!modification_stack.is_valid()) {
+	if (modification_stack.is_null()) {
 		return;
 	}
 

@@ -49,9 +49,9 @@ layout(set = 1, binding = 1) uniform sampler linear_sampler_mipmaps;
 
 #define HISTORY_BITS 10
 
-#define SKY_MODE_DISABLED 0
-#define SKY_MODE_COLOR 1
-#define SKY_MODE_SKY 2
+#define SKY_FLAGS_MODE_COLOR 0x01
+#define SKY_FLAGS_MODE_SKY 0x02
+#define SKY_FLAGS_ORIENTATION_SIGN 0x04
 
 layout(push_constant, std430) uniform Params {
 	vec3 grid_size;
@@ -67,12 +67,12 @@ layout(push_constant, std430) uniform Params {
 	ivec2 image_size;
 
 	ivec3 world_offset;
-	uint sky_mode;
+	uint sky_flags;
 
 	ivec3 scroll;
 	float sky_energy;
 
-	vec3 sky_color;
+	vec3 sky_color_or_orientation;
 	float y_mult;
 
 	bool store_ambient_texture;
@@ -265,17 +265,22 @@ void main() {
 				}
 			}
 
-		} else if (params.sky_mode == SKY_MODE_SKY) {
+		} else if (bool(params.sky_flags & SKY_FLAGS_MODE_SKY)) {
+			// Reconstruct sky orientation as quaternion and rotate ray_dir before sampling.
+			float sky_sign = bool(params.sky_flags & SKY_FLAGS_ORIENTATION_SIGN) ? 1.0 : -1.0;
+			vec4 sky_quat = vec4(params.sky_color_or_orientation, sky_sign * sqrt(1.0 - dot(params.sky_color_or_orientation, params.sky_color_or_orientation)));
+			vec3 sky_dir = cross(sky_quat.xyz, ray_dir);
+			sky_dir = ray_dir + ((sky_dir * sky_quat.w) + cross(sky_quat.xyz, sky_dir)) * 2.0;
 #ifdef USE_CUBEMAP_ARRAY
-			light.rgb = textureLod(samplerCubeArray(sky_irradiance, linear_sampler_mipmaps), vec4(ray_dir, 0.0), 2.0).rgb; // Use second mipmap because we don't usually throw a lot of rays, so this compensates.
+			light.rgb = textureLod(samplerCubeArray(sky_irradiance, linear_sampler_mipmaps), vec4(sky_dir, 0.0), 2.0).rgb; // Use second mipmap because we don't usually throw a lot of rays, so this compensates.
 #else
-			light.rgb = textureLod(samplerCube(sky_irradiance, linear_sampler_mipmaps), ray_dir, 2.0).rgb; // Use second mipmap because we don't usually throw a lot of rays, so this compensates.
+			light.rgb = textureLod(samplerCube(sky_irradiance, linear_sampler_mipmaps), sky_dir, 2.0).rgb; // Use second mipmap because we don't usually throw a lot of rays, so this compensates.
 #endif
 			light.rgb *= params.sky_energy;
 			light.a = 0.0;
 
-		} else if (params.sky_mode == SKY_MODE_COLOR) {
-			light.rgb = params.sky_color;
+		} else if (bool(params.sky_flags & SKY_FLAGS_MODE_COLOR)) {
+			light.rgb = params.sky_color_or_orientation;
 			light.rgb *= params.sky_energy;
 			light.a = 0.0;
 		} else {

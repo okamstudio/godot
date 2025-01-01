@@ -28,9 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "core/config/project_settings.h"
-
 #include "light_3d.h"
+
+#include "core/config/project_settings.h"
 
 void Light3D::set_param(Param p_param, real_t p_value) {
 	ERR_FAIL_INDEX(p_param, PARAM_MAX);
@@ -200,6 +200,20 @@ Light3D::BakeMode Light3D::get_bake_mode() const {
 void Light3D::set_projector(const Ref<Texture2D> &p_texture) {
 	projector = p_texture;
 	RID tex_id = projector.is_valid() ? projector->get_rid() : RID();
+
+#ifdef DEBUG_ENABLED
+	if (p_texture.is_valid() &&
+			(p_texture->is_class("AnimatedTexture") ||
+					p_texture->is_class("AtlasTexture") ||
+					p_texture->is_class("CameraTexture") ||
+					p_texture->is_class("CanvasTexture") ||
+					p_texture->is_class("MeshTexture") ||
+					p_texture->is_class("Texture2DRD") ||
+					p_texture->is_class("ViewportTexture"))) {
+		WARN_PRINT(vformat("%s cannot be used as a Light3D projector texture (%s). As a workaround, assign the value returned by %s's `get_image()` instead.", p_texture->get_class(), get_path(), p_texture->get_class()));
+	}
+#endif
+
 	RS::get_singleton()->light_set_projector(light, tex_id);
 	update_configuration_warnings();
 }
@@ -384,7 +398,8 @@ void Light3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "light_energy", PROPERTY_HINT_RANGE, "0,16,0.001,or_greater"), "set_param", "get_param", PARAM_ENERGY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "light_indirect_energy", PROPERTY_HINT_RANGE, "0,16,0.001,or_greater"), "set_param", "get_param", PARAM_INDIRECT_ENERGY);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "light_volumetric_fog_energy", PROPERTY_HINT_RANGE, "0,16,0.001,or_greater"), "set_param", "get_param", PARAM_VOLUMETRIC_FOG_ENERGY);
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "light_projector", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_projector", "get_projector");
+	// Only allow texture types that display correctly.
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "light_projector", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture"), "set_projector", "get_projector");
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "light_size", PROPERTY_HINT_RANGE, "0,1,0.001,or_greater,suffix:m"), "set_param", "get_param", PARAM_SIZE);
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "light_angular_distance", PROPERTY_HINT_RANGE, "0,90,0.01,degrees"), "set_param", "get_param", PARAM_SIZE);
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "light_negative"), "set_negative", "is_negative");
@@ -545,7 +560,7 @@ void DirectionalLight3D::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 
-	if (p_property.name == "light_size" || p_property.name == "light_projector" || p_property.name == "light_specular") {
+	if (p_property.name == "light_size" || p_property.name == "light_projector") {
 		// Not implemented in DirectionalLight3D (`light_size` is replaced by `light_angular_distance`).
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
@@ -595,6 +610,7 @@ DirectionalLight3D::DirectionalLight3D() :
 	// Increase the default shadow normal bias to better suit most scenes.
 	set_param(PARAM_SHADOW_NORMAL_BIAS, 2.0);
 	set_param(PARAM_INTENSITY, 100000.0); // Specified in Lux, approximate mid-day sun.
+	set_param(PARAM_SPECULAR, 1.0);
 	set_shadow_mode(SHADOW_PARALLEL_4_SPLITS);
 	blend_splits = false;
 	set_sky_mode(SKY_MODE_LIGHT_AND_SKY);

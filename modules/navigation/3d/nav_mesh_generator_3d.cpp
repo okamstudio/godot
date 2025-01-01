@@ -49,7 +49,6 @@
 #include "scene/resources/3d/primitive_meshes.h"
 #include "scene/resources/3d/shape_3d.h"
 #include "scene/resources/3d/sphere_shape_3d.h"
-#include "scene/resources/3d/world_boundary_shape_3d.h"
 #include "scene/resources/navigation_mesh.h"
 
 #include "modules/modules_enabled.gen.h" // For csg, gridmap.
@@ -157,10 +156,10 @@ void NavMeshGenerator3D::finish() {
 
 void NavMeshGenerator3D::parse_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_root_node, const Callable &p_callback) {
 	ERR_FAIL_COND(!Thread::is_main_thread());
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
 	ERR_FAIL_NULL(p_root_node);
 	ERR_FAIL_COND(!p_root_node->is_inside_tree());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	generator_parse_source_geometry_data(p_navigation_mesh, p_source_geometry_data, p_root_node);
 
@@ -170,8 +169,8 @@ void NavMeshGenerator3D::parse_source_geometry_data(Ref<NavigationMesh> p_naviga
 }
 
 void NavMeshGenerator3D::bake_from_source_geometry_data(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	if (!p_source_geometry_data->has_data()) {
 		p_navigation_mesh->clear();
@@ -200,8 +199,8 @@ void NavMeshGenerator3D::bake_from_source_geometry_data(Ref<NavigationMesh> p_na
 }
 
 void NavMeshGenerator3D::bake_from_source_geometry_data_async(Ref<NavigationMesh> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND(!p_navigation_mesh.is_valid());
-	ERR_FAIL_COND(!p_source_geometry_data.is_valid());
+	ERR_FAIL_COND(p_navigation_mesh.is_null());
+	ERR_FAIL_COND(p_source_geometry_data.is_null());
 
 	if (!p_source_geometry_data->has_data()) {
 		p_navigation_mesh->clear();

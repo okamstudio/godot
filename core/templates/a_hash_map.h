@@ -703,6 +703,13 @@ public:
 			capacity(INITIAL_CAPACITY - 1) {
 	}
 
+	AHashMap(std::initializer_list<KeyValue<TKey, TValue>> p_init) {
+		reserve(p_init.size());
+		for (const KeyValue<TKey, TValue> &E : p_init) {
+			insert(E.key, E.value);
+		}
+	}
+
 	void reset() {
 		if (elements != nullptr) {
 			if constexpr (!(std::is_trivially_destructible_v<TKey> && std::is_trivially_destructible_v<TValue>)) {

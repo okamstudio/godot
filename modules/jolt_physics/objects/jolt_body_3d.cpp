@@ -1404,6 +1404,26 @@ void JoltBody3D::set_angular_damp(float p_damp) {
 	_update_damp();
 }
 
+void JoltBody3D::set_linear_damp_mode(DampMode p_mode) {
+	if (p_mode == linear_damp_mode) {
+		return;
+	}
+
+	linear_damp_mode = p_mode;
+
+	_update_damp();
+}
+
+void JoltBody3D::set_angular_damp_mode(DampMode p_mode) {
+	if (p_mode == angular_damp_mode) {
+		return;
+	}
+
+	angular_damp_mode = p_mode;
+
+	_update_damp();
+}
+
 bool JoltBody3D::is_axis_locked(PhysicsServer3D::BodyAxis p_axis) const {
 	return (locked_axes & (uint32_t)p_axis) != 0;
 }

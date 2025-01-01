@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#if defined(UNIX_ENABLED)
+#if defined(UNIX_ENABLED) && !defined(UNIX_SOCKET_UNAVAILABLE)
 
 #include "ip_unix.h"
 

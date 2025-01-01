@@ -712,7 +712,7 @@ void TextShaderEditor::_menu_option(int p_option) {
 			code_editor->get_find_replace_bar()->popup_replace();
 		} break;
 		case SEARCH_GOTO_LINE: {
-			goto_line_dialog->popup_find_line(code_editor->get_text_editor());
+			goto_line_popup->popup_find_line(code_editor);
 		} break;
 		case BOOKMARK_TOGGLE: {
 			code_editor->toggle_bookmark();
@@ -867,7 +867,7 @@ void TextShaderEditor::_check_for_external_edit() {
 
 void TextShaderEditor::_reload_shader_from_disk() {
 	Ref<Shader> rel_shader = ResourceLoader::load(shader->get_path(), shader->get_class(), ResourceFormatLoader::CACHE_MODE_IGNORE);
-	ERR_FAIL_COND(!rel_shader.is_valid());
+	ERR_FAIL_COND(rel_shader.is_null());
 
 	code_editor->set_block_shader_changed(true);
 	shader->set_code(rel_shader->get_code());
@@ -878,7 +878,7 @@ void TextShaderEditor::_reload_shader_from_disk() {
 
 void TextShaderEditor::_reload_shader_include_from_disk() {
 	Ref<ShaderInclude> rel_shader_include = ResourceLoader::load(shader_inc->get_path(), shader_inc->get_class(), ResourceFormatLoader::CACHE_MODE_IGNORE);
-	ERR_FAIL_COND(!rel_shader_include.is_valid());
+	ERR_FAIL_COND(rel_shader_include.is_null());
 
 	code_editor->set_block_shader_changed(true);
 	shader_inc->set_code(rel_shader_include->get_code());
@@ -1235,8 +1235,8 @@ TextShaderEditor::TextShaderEditor() {
 	editor_box->add_child(warnings_panel);
 	code_editor->set_warnings_panel(warnings_panel);
 
-	goto_line_dialog = memnew(GotoLineDialog);
-	add_child(goto_line_dialog);
+	goto_line_popup = memnew(GotoLinePopup);
+	add_child(goto_line_popup);
 
 	disk_changed = memnew(ConfirmationDialog);
 

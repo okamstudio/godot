@@ -168,7 +168,7 @@ bool OS_Android::copy_dynamic_library(const String &p_library_path, const String
 	}
 
 	Ref<DirAccess> da_ref = DirAccess::create_for_path(p_library_path);
-	if (!da_ref.is_valid()) {
+	if (da_ref.is_null()) {
 		return false;
 	}
 

@@ -599,7 +599,7 @@ void SoftBodyMotionProperties::ApplyCollisionConstraintsAndUpdateVelocities(cons
 	JPH_PROFILE_FUNCTION();
 
 	float dt = inContext.mSubStepDeltaTime;
-	float restitution_treshold = -2.0f * inContext.mGravity.Length() * dt;
+	float restitution_threshold = -2.0f * inContext.mGravity.Length() * dt;
 	float vertex_radius = mSettings->mVertexRadius;
 	for (Vertex &v : mVertices)
 		if (v.mInvMass > 0.0f)
@@ -674,7 +674,7 @@ void SoftBodyMotionProperties::ApplyCollisionConstraintsAndUpdateVelocities(cons
 							// Calculate delta relative velocity due to restitution (equation 35)
 							dv += v_normal;
 							float prev_v_normal = (prev_v - v2).Dot(contact_normal);
-							if (prev_v_normal < restitution_treshold)
+							if (prev_v_normal < restitution_threshold)
 								dv += cs.mRestitution * prev_v_normal * contact_normal;
 
 							// Calculate impulse
@@ -707,7 +707,7 @@ void SoftBodyMotionProperties::ApplyCollisionConstraintsAndUpdateVelocities(cons
 						// Apply restitution (equation 35)
 						v.mVelocity -= v_normal;
 						float prev_v_normal = prev_v.Dot(contact_normal);
-						if (prev_v_normal < restitution_treshold)
+						if (prev_v_normal < restitution_threshold)
 							v.mVelocity -= cs.mRestitution * prev_v_normal * contact_normal;
 					}
 				}
@@ -1032,7 +1032,10 @@ void SoftBodyMotionProperties::SkinVertices([[maybe_unused]] RMat44Arg inCenterO
 	const Mat44 *skin_matrices_end = skin_matrices + num_skin_matrices;
 	const InvBind *inv_bind_matrix = mSettings->mInvBindMatrices.data();
 	for (Mat44 *s = skin_matrices; s < skin_matrices_end; ++s, ++inv_bind_matrix)
+	{
+		JPH_ASSERT(inv_bind_matrix->mJointIndex < inNumJoints);
 		*s = inJointMatrices[inv_bind_matrix->mJointIndex] * inv_bind_matrix->mInvBind;
+	}
 
 	// Skin the vertices
 	JPH_IF_DEBUG_RENDERER(mSkinStateTransform = inCenterOfMassTransform;)

@@ -92,7 +92,7 @@ void Path3D::_update_debug_mesh() {
 		debug_mesh.instantiate();
 	}
 
-	if (!(curve.is_valid())) {
+	if (curve.is_null()) {
 		RS::get_singleton()->instance_set_visible(debug_instance, false);
 		return;
 	}
@@ -222,7 +222,7 @@ void PathFollow3D::update_transform() {
 	}
 
 	Ref<Curve3D> c = path->get_curve();
-	if (!c.is_valid()) {
+	if (c.is_null()) {
 		return;
 	}
 

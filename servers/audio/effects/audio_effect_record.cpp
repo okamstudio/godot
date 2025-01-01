@@ -30,6 +30,8 @@
 
 #include "audio_effect_record.h"
 
+#include "core/io/marshalls.h"
+
 void AudioEffectRecordInstance::process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count) {
 	if (!is_recording) {
 		for (int i = 0; i < p_frame_count; i++) {

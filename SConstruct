@@ -58,30 +58,12 @@ import gles3_builders
 import glsl_builders
 import methods
 import scu_builders
-from methods import print_error, print_warning
+from methods import Ansi, print_error, print_info, print_warning
 from platform_methods import architecture_aliases, architectures, compatibility_platform_aliases
 
 if ARGUMENTS.get("target", "editor") == "editor":
     _helper_module("editor.editor_builders", "editor/editor_builders.py")
     _helper_module("editor.template_builders", "editor/template_builders.py")
-
-# Enable ANSI escape code support on Windows 10 and later (for colored console output).
-# <https://github.com/python/cpython/issues/73245>
-if sys.stdout.isatty() and sys.platform == "win32":
-    try:
-        from ctypes import WinError, byref, windll  # type: ignore
-        from ctypes.wintypes import DWORD  # type: ignore
-
-        stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-        mode = DWORD(0)
-        if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-            raise WinError()
-        mode = DWORD(mode.value | 4)
-        if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-            raise WinError()
-    except Exception as e:
-        methods._colorize = False
-        print_error(f"Failed to enable ANSI escape code support, disabling color output.\n{e}")
 
 # Scan possible build platforms
 
@@ -635,7 +617,7 @@ detect.configure(env)
 
 print(f'Building for platform "{env["platform"]}", architecture "{env["arch"]}", target "{env["target"]}".')
 if env.dev_build:
-    print("NOTE: Developer build, with debug optimization level and debug symbols (unless overridden).")
+    print_info("Developer build, with debug optimization level and debug symbols (unless overridden).")
 
 # Enforce our minimal compiler version requirements
 cc_version = methods.get_compiler_version(env)
@@ -1111,10 +1093,10 @@ def print_elapsed_time():
     time_centiseconds = round((elapsed_time_sec % 1) * 100)
     print(
         "{}[Time elapsed: {}.{:02}]{}".format(
-            methods.ANSI.GRAY,
+            Ansi.GRAY,
             time.strftime("%H:%M:%S", time.gmtime(elapsed_time_sec)),
             time_centiseconds,
-            methods.ANSI.RESET,
+            Ansi.RESET,
         )
     )
 

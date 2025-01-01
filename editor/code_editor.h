@@ -37,29 +37,32 @@
 #include "scene/gui/code_edit.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/label.h"
-#include "scene/gui/line_edit.h"
+#include "scene/gui/popup.h"
 #include "scene/main/timer.h"
 
 class MenuButton;
+class CodeTextEditor;
+class LineEdit;
 
-class GotoLineDialog : public ConfirmationDialog {
-	GDCLASS(GotoLineDialog, ConfirmationDialog);
+class GotoLinePopup : public PopupPanel {
+	GDCLASS(GotoLinePopup, PopupPanel);
 
-	Label *line_label = nullptr;
-	LineEdit *line = nullptr;
+	Variant original_state;
+	LineEdit *line_input = nullptr;
+	CodeTextEditor *text_editor = nullptr;
 
-	CodeEdit *text_editor = nullptr;
+	void _goto_line();
+	void _submit();
 
-	virtual void ok_pressed() override;
+protected:
+	void _notification(int p_what);
+	virtual void _input_from_window(const Ref<InputEvent> &p_event) override;
 
 public:
-	void popup_find_line(CodeEdit *p_edit);
-	int get_line() const;
+	void popup_find_line(CodeTextEditor *p_text_editor);
 
-	GotoLineDialog();
+	GotoLinePopup();
 };
-
-class CodeTextEditor;
 
 class FindReplaceBar : public HBoxContainer {
 	GDCLASS(FindReplaceBar, HBoxContainer);
@@ -174,6 +177,8 @@ class CodeTextEditor : public VBoxContainer {
 
 	Label *info = nullptr;
 	Timer *idle = nullptr;
+	float idle_time = 0.0f;
+	float idle_time_with_errors = 0.0f;
 	bool code_complete_enabled = true;
 	Timer *code_complete_timer = nullptr;
 	int code_complete_timer_line = 0;
@@ -184,6 +189,7 @@ class CodeTextEditor : public VBoxContainer {
 	int error_line;
 	int error_column;
 
+	bool preview_navigation_change = false;
 	Dictionary previous_state;
 
 	void _update_text_editor_theme();
@@ -261,6 +267,9 @@ public:
 	Variant get_navigation_state();
 	Variant get_previous_state();
 	void store_previous_state();
+
+	bool is_previewing_navigation_change() const;
+	void set_preview_navigation_change(bool p_preview);
 
 	void set_error_count(int p_error_count);
 	void set_warning_count(int p_warning_count);

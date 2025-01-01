@@ -23,7 +23,7 @@
 			<return type="void" />
 			<description>
 				Shuts down the system MIDI driver. Godot will no longer receive [InputEventMIDI]. See also [method open_midi_inputs] and [method get_connected_midi_inputs].
-				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] This method is implemented on Linux, macOS, Windows, and Web.
 			</description>
 		</method>
 		<method name="crash">
@@ -59,7 +59,7 @@
 				var pid = OS.create_process(OS.get_executable_path(), [])
 				[/gdscript]
 				[csharp]
-				var pid = OS.CreateProcess(OS.GetExecutablePath(), new string[] {});
+				var pid = OS.CreateProcess(OS.GetExecutablePath(), []);
 				[/csharp]
 				[/codeblocks]
 				See [method execute] if you wish to run an external command and retrieve the results.
@@ -105,8 +105,8 @@
 				var exit_code = OS.execute("ls", ["-l", "/tmp"], output)
 				[/gdscript]
 				[csharp]
-				var output = new Godot.Collections.Array();
-				int exitCode = OS.Execute("ls", new string[] {"-l", "/tmp"}, output);
+				Godot.Collections.Array output = [];
+				int exitCode = OS.Execute("ls", ["-l", "/tmp"], output);
 				[/csharp]
 				[/codeblocks]
 				If you wish to access a shell built-in or execute a composite command, a platform-specific shell can be invoked. For example:
@@ -116,8 +116,8 @@
 				OS.execute("CMD.exe", ["/C", "cd %TEMP% &amp;&amp; dir"], output)
 				[/gdscript]
 				[csharp]
-				var output = new Godot.Collections.Array();
-				OS.Execute("CMD.exe", new string[] {"/C", "cd %TEMP% &amp;&amp; dir"}, output);
+				Godot.Collections.Array output = [];
+				OS.Execute("CMD.exe", ["/C", "cd %TEMP% &amp;&amp; dir"], output);
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] This method is implemented on Android, Linux, macOS, and Windows.
@@ -244,7 +244,9 @@
 			<return type="PackedStringArray" />
 			<description>
 				Returns an array of connected MIDI device names, if they exist. Returns an empty array if the system MIDI driver has not previously been initialized with [method open_midi_inputs]. See also [method close_midi_inputs].
-				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] This method is implemented on Linux, macOS, Windows, and Web.
+				[b]Note:[/b] On the Web platform, Web MIDI needs to be supported by the browser. [url=https://caniuse.com/midi]For the time being[/url], it is currently supported by all major browsers, except Safari.
+				[b]Note:[/b] On the Web platform, using MIDI input requires a browser permission to be granted first. This permission request is performed when calling [method open_midi_inputs]. The browser will refrain from processing MIDI input until the user accepts the permission request.
 			</description>
 		</method>
 		<method name="get_data_dir" qualifiers="const">
@@ -582,6 +584,13 @@
 				[b]Note:[/b] This method is not supported on the Web platform. It returns an empty string.
 			</description>
 		</method>
+		<method name="get_version_alias" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the branded version used in marketing, followed by the build number (on Windows) or the version number (on macOS). Examples include [code]11 (build 22000)[/code] and [code]Sequoia (15.0.0)[/code]. This value can then be appended to [method get_name] to get a full, human-readable operating system name and version combination for the operating system. Windows feature updates such as 24H2 are not contained in the resulting string, but Windows Server is recognized as such (e.g. [code]2025 (build 26100)[/code] for Windows Server 2025).
+				[b]Note:[/b] This method is only supported on Windows and macOS. On other operating systems, it returns the same value as [method get_version].
+			</description>
+		</method>
 		<method name="get_video_adapter_driver_info" qualifiers="const">
 			<return type="PackedStringArray" />
 			<description>
@@ -704,7 +713,9 @@
 			<return type="void" />
 			<description>
 				Initializes the singleton for the system MIDI driver, allowing Godot to receive [InputEventMIDI]. See also [method get_connected_midi_inputs] and [method close_midi_inputs].
-				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] This method is implemented on Linux, macOS, Windows, and Web.
+				[b]Note:[/b] On the Web platform, Web MIDI needs to be supported by the browser. [url=https://caniuse.com/midi]For the time being[/url], it is currently supported by all major browsers, except Safari.
+				[b]Note:[/b] On the Web platform, using MIDI input requires a browser permission to be granted first. This permission request is performed when calling [method open_midi_inputs]. The browser will refrain from processing MIDI input until the user accepts the permission request.
 			</description>
 		</method>
 		<method name="read_buffer_from_stdin">

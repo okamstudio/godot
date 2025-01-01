@@ -436,6 +436,30 @@
 				[b]Note:[/b] The equivalent node is [CanvasItem].
 			</description>
 		</method>
+		<method name="canvas_item_get_instance_shader_parameter" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="instance" type="RID" />
+			<param index="1" name="parameter" type="StringName" />
+			<description>
+				Returns the value of the per-instance shader uniform from the specified canvas item instance. Equivalent to [method CanvasItem.get_instance_shader_parameter].
+			</description>
+		</method>
+		<method name="canvas_item_get_instance_shader_parameter_default_value" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="instance" type="RID" />
+			<param index="1" name="parameter" type="StringName" />
+			<description>
+				Returns the default value of the per-instance shader uniform from the specified canvas item instance. Equivalent to [method CanvasItem.get_instance_shader_parameter].
+			</description>
+		</method>
+		<method name="canvas_item_get_instance_shader_parameter_list" qualifiers="const">
+			<return type="Dictionary[]" />
+			<param index="0" name="instance" type="RID" />
+			<description>
+				Returns a dictionary of per-instance shader uniform names of the per-instance shader uniform from the specified canvas item instance.
+				The returned dictionary is in PropertyInfo format, with the keys [code]name[/code], [code]class_name[/code], [code]type[/code], [code]hint[/code], [code]hint_string[/code], and [code]usage[/code].
+			</description>
+		</method>
 		<method name="canvas_item_reset_physics_interpolation">
 			<return type="void" />
 			<param index="0" name="item" type="RID" />
@@ -522,6 +546,15 @@
 			<param index="1" name="index" type="int" />
 			<description>
 				Sets the index for the [CanvasItem].
+			</description>
+		</method>
+		<method name="canvas_item_set_instance_shader_parameter">
+			<return type="void" />
+			<param index="0" name="instance" type="RID" />
+			<param index="1" name="parameter" type="StringName" />
+			<param index="2" name="value" type="Variant" />
+			<description>
+				Sets the per-instance shader uniform on the specified canvas item instance. Equivalent to [method CanvasItem.set_instance_shader_parameter].
 			</description>
 		</method>
 		<method name="canvas_item_set_interpolated">
@@ -2475,6 +2508,14 @@
 				Returns a mesh's surface's material.
 			</description>
 		</method>
+		<method name="mesh_surface_remove">
+			<return type="void" />
+			<param index="0" name="mesh" type="RID" />
+			<param index="1" name="surface" type="int" />
+			<description>
+				Removes the surface at the given index from the Mesh, shifting surfaces with higher index down by one.
+			</description>
+		</method>
 		<method name="mesh_surface_set_material">
 			<return type="void" />
 			<param index="0" name="mesh" type="RID" />
@@ -3850,6 +3891,17 @@
 				If [code]true[/code], sets the viewport active, else sets it inactive.
 			</description>
 		</method>
+		<method name="viewport_set_anisotropic_filtering_level">
+			<return type="void" />
+			<param index="0" name="viewport" type="RID" />
+			<param index="1" name="anisotropic_filtering_level" type="int" enum="RenderingServer.ViewportAnisotropicFiltering" />
+			<description>
+				Sets the maximum number of samples to take when using anisotropic filtering on textures (as a power of two). A higher sample count will result in sharper textures at oblique angles, but is more expensive to compute. A value of [code]0[/code] forcibly disables anisotropic filtering, even on materials where it is enabled.
+				The anisotropic filtering level also affects decals and light projectors if they are configured to use anisotropic filtering. See [member ProjectSettings.rendering/textures/decals/filter] and [member ProjectSettings.rendering/textures/light_projectors/filter].
+				[b]Note:[/b] In 3D, for this setting to have an effect, set [member BaseMaterial3D.texture_filter] to [constant BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on materials.
+				[b]Note:[/b] In 2D, for this setting to have an effect, set [member CanvasItem.texture_filter] to [constant CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC] or [constant CanvasItem.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC] on the [CanvasItem] node displaying the texture (or in [CanvasTexture]). However, anisotropic filtering is rarely useful in 2D, so only enable it for textures in 2D if it makes a meaningful visual difference.
+			</description>
+		</method>
 		<method name="viewport_set_canvas_cull_mask">
 			<return type="void" />
 			<param index="0" name="viewport" type="RID" />
@@ -5005,6 +5057,24 @@
 		</constant>
 		<constant name="VIEWPORT_MSAA_MAX" value="4" enum="ViewportMSAA">
 			Represents the size of the [enum ViewportMSAA] enum.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_DISABLED" value="0" enum="ViewportAnisotropicFiltering">
+			Anisotropic filtering is disabled.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_2X" value="1" enum="ViewportAnisotropicFiltering">
+			Use 2× anisotropic filtering.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_4X" value="2" enum="ViewportAnisotropicFiltering">
+			Use 4× anisotropic filtering. This is the default value.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_8X" value="3" enum="ViewportAnisotropicFiltering">
+			Use 8× anisotropic filtering.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_16X" value="4" enum="ViewportAnisotropicFiltering">
+			Use 16× anisotropic filtering.
+		</constant>
+		<constant name="VIEWPORT_ANISOTROPY_MAX" value="5" enum="ViewportAnisotropicFiltering">
+			Represents the size of the [enum ViewportAnisotropicFiltering] enum.
 		</constant>
 		<constant name="VIEWPORT_SCREEN_SPACE_AA_DISABLED" value="0" enum="ViewportScreenSpaceAA">
 			Do not perform any antialiasing in the full screen post-process.

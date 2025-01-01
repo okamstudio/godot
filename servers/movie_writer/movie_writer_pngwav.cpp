@@ -140,7 +140,7 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 }
 
 Error MovieWriterPNGWAV::write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) {
-	ERR_FAIL_COND_V(!f_wav.is_valid(), ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(f_wav.is_null(), ERR_UNCONFIGURED);
 
 	Vector<uint8_t> png_buffer = p_image->save_png_to_buffer();
 

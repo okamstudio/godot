@@ -31,10 +31,9 @@
 #ifndef AUDIO_RB_RESAMPLER_H
 #define AUDIO_RB_RESAMPLER_H
 
-#include "core/os/memory.h"
+#include "core/math/audio_frame.h"
 #include "core/templates/safe_refcount.h"
 #include "core/typedefs.h"
-#include "servers/audio_server.h"
 
 struct AudioRBResampler {
 	uint32_t rb_bits;

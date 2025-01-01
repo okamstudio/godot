@@ -37,6 +37,24 @@
 
 namespace TestHashSet {
 
+TEST_CASE("[HashSet] List initialization") {
+	HashSet<int> set{ 0, 1, 2, 3, 4 };
+
+	CHECK(set.size() == 5);
+	CHECK(set.has(0));
+	CHECK(set.has(1));
+	CHECK(set.has(2));
+	CHECK(set.has(3));
+	CHECK(set.has(4));
+}
+
+TEST_CASE("[HashSet] List initialization with existing elements") {
+	HashSet<int> set{ 0, 0, 0, 0, 0 };
+
+	CHECK(set.size() == 1);
+	CHECK(set.has(0));
+}
+
 TEST_CASE("[HashSet] Insert element") {
 	HashSet<int> set;
 	HashSet<int>::Iterator e = set.insert(42);

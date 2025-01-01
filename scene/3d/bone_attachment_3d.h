@@ -32,9 +32,6 @@
 #define BONE_ATTACHMENT_3D_H
 
 #include "scene/3d/skeleton_3d.h"
-#ifdef TOOLS_ENABLED
-#include "scene/resources/bone_map.h"
-#endif // TOOLS_ENABLED
 
 class BoneAttachment3D : public Node3D {
 	GDCLASS(BoneAttachment3D, Node3D);

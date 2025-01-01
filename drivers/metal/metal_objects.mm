@@ -56,6 +56,10 @@
 
 #import <os/signpost.h>
 
+// We have to undefine these macros because they are defined in NSObjCRuntime.h.
+#undef MIN
+#undef MAX
+
 void MDCommandBuffer::begin() {
 	DEV_ASSERT(commandBuffer == nil);
 	commandBuffer = queue.commandBufferWithUnretainedReferences;
@@ -249,7 +253,7 @@ void MDCommandBuffer::render_clear_attachments(VectorView<RDD::AttachmentClear> 
 	const MDSubpass &subpass = render.get_subpass();
 
 	uint32_t vertex_count = p_rects.size() * 6 * subpass.view_count;
-	simd::float4 vertices[vertex_count];
+	simd::float4 *vertices = ALLOCA_ARRAY(simd::float4, vertex_count);
 	simd::float4 clear_colors[ClearAttKey::ATTACHMENT_COUNT];
 
 	Size2i size = render.frameBuffer->size;
@@ -362,7 +366,7 @@ void MDCommandBuffer::_render_set_dirty_state() {
 
 	if (render.dirty.has_flag(RenderState::DIRTY_SCISSOR) && !render.scissors.is_empty()) {
 		size_t len = render.scissors.size();
-		MTLScissorRect rects[len];
+		MTLScissorRect *rects = ALLOCA_ARRAY(MTLScissorRect, len);
 		for (size_t i = 0; i < len; i++) {
 			rects[i] = render.clip_to_render_area(render.scissors[i]);
 		}
@@ -466,9 +470,7 @@ void MDCommandBuffer::_render_bind_uniform_sets() {
 	uint64_t set_uniforms = render.uniform_set_mask;
 	render.uniform_set_mask = 0;
 
-	id<MTLRenderCommandEncoder> enc = render.encoder;
 	MDRenderShader *shader = render.pipeline->shader;
-	id<MTLDevice> device = enc.device;
 
 	while (set_uniforms != 0) {
 		// Find the index of the next set bit.
@@ -479,25 +481,7 @@ void MDCommandBuffer::_render_bind_uniform_sets() {
 		if (set == nullptr || set->index >= (uint32_t)shader->sets.size()) {
 			continue;
 		}
-		UniformSet const &set_info = shader->sets[set->index];
-
-		BoundUniformSet &bus = set->boundUniformSetForShader(shader, device);
-		bus.merge_into(render.resource_usage);
-
-		// Set the buffer for the vertex stage.
-		{
-			uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_VERTEX);
-			if (offset) {
-				[enc setVertexBuffer:bus.buffer offset:*offset atIndex:set->index];
-			}
-		}
-		// Set the buffer for the fragment stage.
-		{
-			uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_FRAGMENT);
-			if (offset) {
-				[enc setFragmentBuffer:bus.buffer offset:*offset atIndex:set->index];
-			}
-		}
+		set->bind_uniforms(shader, render);
 	}
 }
 
@@ -784,6 +768,7 @@ void MDCommandBuffer::render_bind_vertex_buffers(uint32_t p_binding_count, const
 		[render.encoder setVertexBuffers:render.vertex_buffers.ptr()
 								 offsets:render.vertex_offsets.ptr()
 							   withRange:NSMakeRange(first, p_binding_count)];
+		render.dirty.clear_flag(RenderState::DIRTY_VERTEX);
 	} else {
 		render.dirty.set_flag(RenderState::DIRTY_VERTEX);
 	}
@@ -968,54 +953,21 @@ void MDCommandBuffer::ComputeState::end_encoding() {
 void MDCommandBuffer::compute_bind_uniform_set(RDD::UniformSetID p_uniform_set, RDD::ShaderID p_shader, uint32_t p_set_index) {
 	DEV_ASSERT(type == MDCommandBufferStateType::Compute);
 
-	id<MTLComputeCommandEncoder> enc = compute.encoder;
-	id<MTLDevice> device = enc.device;
-
 	MDShader *shader = (MDShader *)(p_shader.id);
-	UniformSet const &set_info = shader->sets[p_set_index];
-
 	MDUniformSet *set = (MDUniformSet *)(p_uniform_set.id);
-	BoundUniformSet &bus = set->boundUniformSetForShader(shader, device);
-	bus.merge_into(compute.resource_usage);
-
-	uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_COMPUTE);
-	if (offset) {
-		[enc setBuffer:bus.buffer offset:*offset atIndex:p_set_index];
-	}
+	set->bind_uniforms(shader, compute);
 }
 
 void MDCommandBuffer::compute_bind_uniform_sets(VectorView<RDD::UniformSetID> p_uniform_sets, RDD::ShaderID p_shader, uint32_t p_first_set_index, uint32_t p_set_count) {
 	DEV_ASSERT(type == MDCommandBufferStateType::Compute);
 
-	id<MTLComputeCommandEncoder> enc = compute.encoder;
-	id<MTLDevice> device = enc.device;
-
 	MDShader *shader = (MDShader *)(p_shader.id);
 
-	thread_local LocalVector<__unsafe_unretained id<MTLBuffer>> buffers;
-	thread_local LocalVector<NSUInteger> offsets;
-
-	buffers.resize(p_set_count);
-	offsets.resize(p_set_count);
-
+	// TODO(sgc): Bind multiple buffers using [encoder setBuffers:offsets:withRange:]
 	for (size_t i = 0u; i < p_set_count; ++i) {
-		UniformSet const &set_info = shader->sets[p_first_set_index + i];
-
 		MDUniformSet *set = (MDUniformSet *)(p_uniform_sets[i].id);
-		BoundUniformSet &bus = set->boundUniformSetForShader(shader, device);
-		bus.merge_into(compute.resource_usage);
-
-		uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_COMPUTE);
-		if (offset) {
-			buffers[i] = bus.buffer;
-			offsets[i] = *offset;
-		} else {
-			buffers[i] = nullptr;
-			offsets[i] = 0u;
-		}
+		set->bind_uniforms(shader, compute);
 	}
-
-	[enc setBuffers:buffers.ptr() offsets:offsets.ptr() withRange:NSMakeRange(p_first_set_index, p_set_count)];
 }
 
 void MDCommandBuffer::compute_dispatch(uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) {
@@ -1052,8 +1004,11 @@ void MDCommandBuffer::_end_blit() {
 	type = MDCommandBufferStateType::None;
 }
 
-MDComputeShader::MDComputeShader(CharString p_name, Vector<UniformSet> p_sets, MDLibrary *p_kernel) :
-		MDShader(p_name, p_sets), kernel(p_kernel) {
+MDComputeShader::MDComputeShader(CharString p_name,
+		Vector<UniformSet> p_sets,
+		bool p_uses_argument_buffers,
+		MDLibrary *p_kernel) :
+		MDShader(p_name, p_sets, p_uses_argument_buffers), kernel(p_kernel) {
 }
 
 void MDComputeShader::encode_push_constant_data(VectorView<uint32_t> p_data, MDCommandBuffer *p_cb) {
@@ -1071,15 +1026,19 @@ void MDComputeShader::encode_push_constant_data(VectorView<uint32_t> p_data, MDC
 }
 
 MDRenderShader::MDRenderShader(CharString p_name,
-		bool p_needs_view_mask_buffer,
 		Vector<UniformSet> p_sets,
+		bool p_needs_view_mask_buffer,
+		bool p_uses_argument_buffers,
 		MDLibrary *_Nonnull p_vert, MDLibrary *_Nonnull p_frag) :
-		MDShader(p_name, p_sets), needs_view_mask_buffer(p_needs_view_mask_buffer), vert(p_vert), frag(p_frag) {
+		MDShader(p_name, p_sets, p_uses_argument_buffers),
+		needs_view_mask_buffer(p_needs_view_mask_buffer),
+		vert(p_vert),
+		frag(p_frag) {
 }
 
 void MDRenderShader::encode_push_constant_data(VectorView<uint32_t> p_data, MDCommandBuffer *p_cb) {
 	DEV_ASSERT(p_cb->type == MDCommandBufferStateType::Render);
-	id<MTLRenderCommandEncoder> enc = p_cb->render.encoder;
+	id<MTLRenderCommandEncoder> __unsafe_unretained enc = p_cb->render.encoder;
 
 	void const *ptr = p_data.ptr();
 	size_t length = p_data.size() * sizeof(uint32_t);
@@ -1093,9 +1052,373 @@ void MDRenderShader::encode_push_constant_data(VectorView<uint32_t> p_data, MDCo
 	}
 }
 
-BoundUniformSet &MDUniformSet::boundUniformSetForShader(MDShader *p_shader, id<MTLDevice> p_device) {
+void MDUniformSet::bind_uniforms_argument_buffers(MDShader *p_shader, MDCommandBuffer::RenderState &p_state) {
+	DEV_ASSERT(p_shader->uses_argument_buffers);
+	DEV_ASSERT(p_state.encoder != nil);
+
+	UniformSet const &set_info = p_shader->sets[index];
+
+	id<MTLRenderCommandEncoder> __unsafe_unretained enc = p_state.encoder;
+	id<MTLDevice> __unsafe_unretained device = enc.device;
+
+	BoundUniformSet &bus = bound_uniform_set(p_shader, device, p_state.resource_usage);
+
+	// Set the buffer for the vertex stage.
+	{
+		uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_VERTEX);
+		if (offset) {
+			[enc setVertexBuffer:bus.buffer offset:*offset atIndex:index];
+		}
+	}
+	// Set the buffer for the fragment stage.
+	{
+		uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_FRAGMENT);
+		if (offset) {
+			[enc setFragmentBuffer:bus.buffer offset:*offset atIndex:index];
+		}
+	}
+}
+
+void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::RenderState &p_state) {
+	DEV_ASSERT(!p_shader->uses_argument_buffers);
+	DEV_ASSERT(p_state.encoder != nil);
+
+	id<MTLRenderCommandEncoder> __unsafe_unretained enc = p_state.encoder;
+
+	UniformSet const &set = p_shader->sets[index];
+
+	for (uint32_t i = 0; i < MIN(uniforms.size(), set.uniforms.size()); i++) {
+		RDD::BoundUniform const &uniform = uniforms[i];
+		UniformInfo ui = set.uniforms[i];
+
+		static const RDC::ShaderStage stage_usages[2] = { RDC::ShaderStage::SHADER_STAGE_VERTEX, RDC::ShaderStage::SHADER_STAGE_FRAGMENT };
+		for (const RDC::ShaderStage stage : stage_usages) {
+			ShaderStageUsage const stage_usage = ShaderStageUsage(1 << stage);
+
+			BindingInfo *bi = ui.bindings.getptr(stage);
+			if (bi == nullptr) {
+				// No binding for this stage.
+				continue;
+			}
+
+			if ((ui.active_stages & stage_usage) == 0) {
+				// Not active for this state, so don't bind anything.
+				continue;
+			}
+
+			switch (uniform.type) {
+				case RDD::UNIFORM_TYPE_SAMPLER: {
+					size_t count = uniform.ids.size();
+					id<MTLSamplerState> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLSamplerState> __unsafe_unretained, count);
+					for (size_t j = 0; j < count; j += 1) {
+						objects[j] = rid::get(uniform.ids[j].id);
+					}
+					if (stage == RDD::SHADER_STAGE_VERTEX) {
+						[enc setVertexSamplerStates:objects withRange:NSMakeRange(bi->index, count)];
+					} else {
+						[enc setFragmentSamplerStates:objects withRange:NSMakeRange(bi->index, count)];
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE: {
+					size_t count = uniform.ids.size() / 2;
+					id<MTLTexture> __unsafe_unretained *textures = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+					id<MTLSamplerState> __unsafe_unretained *samplers = ALLOCA_ARRAY(id<MTLSamplerState> __unsafe_unretained, count);
+					for (uint32_t j = 0; j < count; j += 1) {
+						id<MTLSamplerState> sampler = rid::get(uniform.ids[j * 2 + 0]);
+						id<MTLTexture> texture = rid::get(uniform.ids[j * 2 + 1]);
+						samplers[j] = sampler;
+						textures[j] = texture;
+					}
+					BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+					if (sbi) {
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexSamplerStates:samplers withRange:NSMakeRange(sbi->index, count)];
+						} else {
+							[enc setFragmentSamplerStates:samplers withRange:NSMakeRange(sbi->index, count)];
+						}
+					}
+					if (stage == RDD::SHADER_STAGE_VERTEX) {
+						[enc setVertexTextures:textures withRange:NSMakeRange(bi->index, count)];
+					} else {
+						[enc setFragmentTextures:textures withRange:NSMakeRange(bi->index, count)];
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_TEXTURE: {
+					size_t count = uniform.ids.size();
+					if (count == 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[0]);
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTexture:obj atIndex:bi->index];
+						} else {
+							[enc setFragmentTexture:obj atIndex:bi->index];
+						}
+					} else {
+						id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+						for (size_t j = 0; j < count; j += 1) {
+							id<MTLTexture> obj = rid::get(uniform.ids[j]);
+							objects[j] = obj;
+						}
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTextures:objects withRange:NSMakeRange(bi->index, count)];
+						} else {
+							[enc setFragmentTextures:objects withRange:NSMakeRange(bi->index, count)];
+						}
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_IMAGE: {
+					size_t count = uniform.ids.size();
+					if (count == 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[0]);
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTexture:obj atIndex:bi->index];
+						} else {
+							[enc setFragmentTexture:obj atIndex:bi->index];
+						}
+
+						BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+						if (sbi) {
+							id<MTLTexture> tex = obj.parentTexture ? obj.parentTexture : obj;
+							id<MTLBuffer> buf = tex.buffer;
+							if (buf) {
+								if (stage == RDD::SHADER_STAGE_VERTEX) {
+									[enc setVertexBuffer:buf offset:tex.bufferOffset atIndex:sbi->index];
+								} else {
+									[enc setFragmentBuffer:buf offset:tex.bufferOffset atIndex:sbi->index];
+								}
+							}
+						}
+					} else {
+						id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+						for (size_t j = 0; j < count; j += 1) {
+							id<MTLTexture> obj = rid::get(uniform.ids[j]);
+							objects[j] = obj;
+						}
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTextures:objects withRange:NSMakeRange(bi->index, count)];
+						} else {
+							[enc setFragmentTextures:objects withRange:NSMakeRange(bi->index, count)];
+						}
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_TEXTURE_BUFFER: {
+					ERR_PRINT("not implemented: UNIFORM_TYPE_TEXTURE_BUFFER");
+				} break;
+				case RDD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE_BUFFER: {
+					ERR_PRINT("not implemented: UNIFORM_TYPE_SAMPLER_WITH_TEXTURE_BUFFER");
+				} break;
+				case RDD::UNIFORM_TYPE_IMAGE_BUFFER: {
+					CRASH_NOW_MSG("not implemented: UNIFORM_TYPE_IMAGE_BUFFER");
+				} break;
+				case RDD::UNIFORM_TYPE_UNIFORM_BUFFER: {
+					id<MTLBuffer> buffer = rid::get(uniform.ids[0]);
+					if (stage == RDD::SHADER_STAGE_VERTEX) {
+						[enc setVertexBuffer:buffer offset:0 atIndex:bi->index];
+					} else {
+						[enc setFragmentBuffer:buffer offset:0 atIndex:bi->index];
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_STORAGE_BUFFER: {
+					id<MTLBuffer> buffer = rid::get(uniform.ids[0]);
+					if (stage == RDD::SHADER_STAGE_VERTEX) {
+						[enc setVertexBuffer:buffer offset:0 atIndex:bi->index];
+					} else {
+						[enc setFragmentBuffer:buffer offset:0 atIndex:bi->index];
+					}
+				} break;
+				case RDD::UNIFORM_TYPE_INPUT_ATTACHMENT: {
+					size_t count = uniform.ids.size();
+					if (count == 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[0]);
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTexture:obj atIndex:bi->index];
+						} else {
+							[enc setFragmentTexture:obj atIndex:bi->index];
+						}
+					} else {
+						id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+						for (size_t j = 0; j < count; j += 1) {
+							id<MTLTexture> obj = rid::get(uniform.ids[j]);
+							objects[j] = obj;
+						}
+
+						if (stage == RDD::SHADER_STAGE_VERTEX) {
+							[enc setVertexTextures:objects withRange:NSMakeRange(bi->index, count)];
+						} else {
+							[enc setFragmentTextures:objects withRange:NSMakeRange(bi->index, count)];
+						}
+					}
+				} break;
+				default: {
+					DEV_ASSERT(false);
+				}
+			}
+		}
+	}
+}
+
+void MDUniformSet::bind_uniforms(MDShader *p_shader, MDCommandBuffer::RenderState &p_state) {
+	if (p_shader->uses_argument_buffers) {
+		bind_uniforms_argument_buffers(p_shader, p_state);
+	} else {
+		bind_uniforms_direct(p_shader, p_state);
+	}
+}
+
+void MDUniformSet::bind_uniforms_argument_buffers(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state) {
+	DEV_ASSERT(p_shader->uses_argument_buffers);
+	DEV_ASSERT(p_state.encoder != nil);
+
+	UniformSet const &set_info = p_shader->sets[index];
+
+	id<MTLComputeCommandEncoder> enc = p_state.encoder;
+	id<MTLDevice> device = enc.device;
+
+	BoundUniformSet &bus = bound_uniform_set(p_shader, device, p_state.resource_usage);
+
+	uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_COMPUTE);
+	if (offset) {
+		[enc setBuffer:bus.buffer offset:*offset atIndex:index];
+	}
+}
+
+void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state) {
+	DEV_ASSERT(!p_shader->uses_argument_buffers);
+	DEV_ASSERT(p_state.encoder != nil);
+
+	id<MTLComputeCommandEncoder> __unsafe_unretained enc = p_state.encoder;
+
+	UniformSet const &set = p_shader->sets[index];
+
+	for (uint32_t i = 0; i < uniforms.size(); i++) {
+		RDD::BoundUniform const &uniform = uniforms[i];
+		UniformInfo ui = set.uniforms[i];
+
+		const RDC::ShaderStage stage = RDC::ShaderStage::SHADER_STAGE_COMPUTE;
+		const ShaderStageUsage stage_usage = ShaderStageUsage(1 << stage);
+
+		BindingInfo *bi = ui.bindings.getptr(stage);
+		if (bi == nullptr) {
+			// No binding for this stage.
+			continue;
+		}
+
+		if ((ui.active_stages & stage_usage) == 0) {
+			// Not active for this state, so don't bind anything.
+			continue;
+		}
+
+		switch (uniform.type) {
+			case RDD::UNIFORM_TYPE_SAMPLER: {
+				size_t count = uniform.ids.size();
+				id<MTLSamplerState> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLSamplerState> __unsafe_unretained, count);
+				for (size_t j = 0; j < count; j += 1) {
+					objects[j] = rid::get(uniform.ids[j].id);
+				}
+				[enc setSamplerStates:objects withRange:NSMakeRange(bi->index, count)];
+			} break;
+			case RDD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE: {
+				size_t count = uniform.ids.size() / 2;
+				id<MTLTexture> __unsafe_unretained *textures = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+				id<MTLSamplerState> __unsafe_unretained *samplers = ALLOCA_ARRAY(id<MTLSamplerState> __unsafe_unretained, count);
+				for (uint32_t j = 0; j < count; j += 1) {
+					id<MTLSamplerState> sampler = rid::get(uniform.ids[j * 2 + 0]);
+					id<MTLTexture> texture = rid::get(uniform.ids[j * 2 + 1]);
+					samplers[j] = sampler;
+					textures[j] = texture;
+				}
+				BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+				if (sbi) {
+					[enc setSamplerStates:samplers withRange:NSMakeRange(sbi->index, count)];
+				}
+				[enc setTextures:textures withRange:NSMakeRange(bi->index, count)];
+			} break;
+			case RDD::UNIFORM_TYPE_TEXTURE: {
+				size_t count = uniform.ids.size();
+				if (count == 1) {
+					id<MTLTexture> obj = rid::get(uniform.ids[0]);
+					[enc setTexture:obj atIndex:bi->index];
+				} else {
+					id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+					for (size_t j = 0; j < count; j += 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[j]);
+						objects[j] = obj;
+					}
+					[enc setTextures:objects withRange:NSMakeRange(bi->index, count)];
+				}
+			} break;
+			case RDD::UNIFORM_TYPE_IMAGE: {
+				size_t count = uniform.ids.size();
+				if (count == 1) {
+					id<MTLTexture> obj = rid::get(uniform.ids[0]);
+					[enc setTexture:obj atIndex:bi->index];
+
+					BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+					if (sbi) {
+						id<MTLTexture> tex = obj.parentTexture ? obj.parentTexture : obj;
+						id<MTLBuffer> buf = tex.buffer;
+						if (buf) {
+							[enc setBuffer:buf offset:tex.bufferOffset atIndex:sbi->index];
+						}
+					}
+				} else {
+					id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+					for (size_t j = 0; j < count; j += 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[j]);
+						objects[j] = obj;
+					}
+					[enc setTextures:objects withRange:NSMakeRange(bi->index, count)];
+				}
+			} break;
+			case RDD::UNIFORM_TYPE_TEXTURE_BUFFER: {
+				ERR_PRINT("not implemented: UNIFORM_TYPE_TEXTURE_BUFFER");
+			} break;
+			case RDD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE_BUFFER: {
+				ERR_PRINT("not implemented: UNIFORM_TYPE_SAMPLER_WITH_TEXTURE_BUFFER");
+			} break;
+			case RDD::UNIFORM_TYPE_IMAGE_BUFFER: {
+				CRASH_NOW_MSG("not implemented: UNIFORM_TYPE_IMAGE_BUFFER");
+			} break;
+			case RDD::UNIFORM_TYPE_UNIFORM_BUFFER: {
+				id<MTLBuffer> buffer = rid::get(uniform.ids[0]);
+				[enc setBuffer:buffer offset:0 atIndex:bi->index];
+			} break;
+			case RDD::UNIFORM_TYPE_STORAGE_BUFFER: {
+				id<MTLBuffer> buffer = rid::get(uniform.ids[0]);
+				[enc setBuffer:buffer offset:0 atIndex:bi->index];
+			} break;
+			case RDD::UNIFORM_TYPE_INPUT_ATTACHMENT: {
+				size_t count = uniform.ids.size();
+				if (count == 1) {
+					id<MTLTexture> obj = rid::get(uniform.ids[0]);
+					[enc setTexture:obj atIndex:bi->index];
+				} else {
+					id<MTLTexture> __unsafe_unretained *objects = ALLOCA_ARRAY(id<MTLTexture> __unsafe_unretained, count);
+					for (size_t j = 0; j < count; j += 1) {
+						id<MTLTexture> obj = rid::get(uniform.ids[j]);
+						objects[j] = obj;
+					}
+					[enc setTextures:objects withRange:NSMakeRange(bi->index, count)];
+				}
+			} break;
+			default: {
+				DEV_ASSERT(false);
+			}
+		}
+	}
+}
+
+void MDUniformSet::bind_uniforms(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state) {
+	if (p_shader->uses_argument_buffers) {
+		bind_uniforms_argument_buffers(p_shader, p_state);
+	} else {
+		bind_uniforms_direct(p_shader, p_state);
+	}
+}
+
+BoundUniformSet &MDUniformSet::bound_uniform_set(MDShader *p_shader, id<MTLDevice> p_device, ResourceUsageMap &p_resource_usage) {
 	BoundUniformSet *sus = bound_uniforms.getptr(p_shader);
 	if (sus != nullptr) {
+		sus->merge_into(p_resource_usage);
 		return *sus;
 	}
 
@@ -1261,6 +1584,7 @@ BoundUniformSet &MDUniformSet::boundUniformSetForShader(MDShader *p_shader, id<M
 
 	BoundUniformSet bs = { .buffer = enc_buffer, .usage_to_resources = usage_to_resources };
 	bound_uniforms.insert(p_shader, bs);
+	bs.merge_into(p_resource_usage);
 	return bound_uniforms.get(p_shader);
 }
 

@@ -832,8 +832,8 @@ GroupsEditor::GroupsEditor() {
 	node = nullptr;
 	scene_tree = SceneTree::get_singleton();
 
-	ED_SHORTCUT("groups_editor/delete", TTR("Delete"), Key::KEY_DELETE);
-	ED_SHORTCUT("groups_editor/rename", TTR("Rename"), Key::F2);
+	ED_SHORTCUT("groups_editor/delete", TTRC("Delete"), Key::KEY_DELETE);
+	ED_SHORTCUT("groups_editor/rename", TTRC("Rename"), Key::F2);
 	ED_SHORTCUT_OVERRIDE("groups_editor/rename", "macos", Key::ENTER);
 
 	HBoxContainer *hbc = memnew(HBoxContainer);

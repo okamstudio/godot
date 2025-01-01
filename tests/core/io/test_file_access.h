@@ -84,7 +84,7 @@ TEST_CASE("[FileAccess] CSV read") {
 
 TEST_CASE("[FileAccess] Get as UTF-8 String") {
 	Ref<FileAccess> f_lf = FileAccess::open(TestUtils::get_data_path("line_endings_lf.test.txt"), FileAccess::READ);
-	REQUIRE(!f_lf.is_null());
+	REQUIRE(f_lf.is_valid());
 	String s_lf = f_lf->get_as_utf8_string();
 	f_lf->seek(0);
 	String s_lf_nocr = f_lf->get_as_utf8_string(true);
@@ -92,7 +92,7 @@ TEST_CASE("[FileAccess] Get as UTF-8 String") {
 	CHECK(s_lf_nocr == "Hello darkness\nMy old friend\nI've come to talk\nWith you again\n");
 
 	Ref<FileAccess> f_crlf = FileAccess::open(TestUtils::get_data_path("line_endings_crlf.test.txt"), FileAccess::READ);
-	REQUIRE(!f_crlf.is_null());
+	REQUIRE(f_crlf.is_valid());
 	String s_crlf = f_crlf->get_as_utf8_string();
 	f_crlf->seek(0);
 	String s_crlf_nocr = f_crlf->get_as_utf8_string(true);
@@ -100,7 +100,7 @@ TEST_CASE("[FileAccess] Get as UTF-8 String") {
 	CHECK(s_crlf_nocr == "Hello darkness\nMy old friend\nI've come to talk\nWith you again\n");
 
 	Ref<FileAccess> f_cr = FileAccess::open(TestUtils::get_data_path("line_endings_cr.test.txt"), FileAccess::READ);
-	REQUIRE(!f_cr.is_null());
+	REQUIRE(f_cr.is_valid());
 	String s_cr = f_cr->get_as_utf8_string();
 	f_cr->seek(0);
 	String s_cr_nocr = f_cr->get_as_utf8_string(true);

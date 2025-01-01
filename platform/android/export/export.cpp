@@ -52,7 +52,7 @@ void register_android_exporter() {
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/debug_keystore_pass", PROPERTY_HINT_PASSWORD));
 
 #ifdef ANDROID_ENABLED
-	EDITOR_DEF_BASIC("export/android/install_exported_apk", true);
+	EDITOR_DEF_BASIC("export/android/install_exported_apk", !OS::get_singleton()->has_feature("horizonos"));
 #else
 	EDITOR_DEF_BASIC("export/android/java_sdk_path", OS::get_singleton()->get_environment("JAVA_HOME"));
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/java_sdk_path", PROPERTY_HINT_GLOBAL_DIR));

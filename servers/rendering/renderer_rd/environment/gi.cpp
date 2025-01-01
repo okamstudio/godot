@@ -1307,24 +1307,24 @@ void GI::SDFGI::update_probes(RID p_env, SkyRD::Sky *p_sky) {
 	push_constant.store_ambient_texture = RendererSceneRenderRD::get_singleton()->environment_get_volumetric_fog_enabled(p_env);
 
 	RID sky_uniform_set = gi->sdfgi_shader.integrate_default_sky_uniform_set;
-	push_constant.sky_mode = SDFGIShader::IntegratePushConstant::SKY_MODE_DISABLED;
+	push_constant.sky_flags = 0;
 	push_constant.y_mult = y_mult;
 
 	if (reads_sky && p_env.is_valid()) {
 		push_constant.sky_energy = RendererSceneRenderRD::get_singleton()->environment_get_bg_energy_multiplier(p_env);
 
 		if (RendererSceneRenderRD::get_singleton()->environment_get_background(p_env) == RS::ENV_BG_CLEAR_COLOR) {
-			push_constant.sky_mode = SDFGIShader::IntegratePushConstant::SKY_MODE_COLOR;
+			push_constant.sky_flags |= SDFGIShader::IntegratePushConstant::SKY_FLAGS_MODE_COLOR;
 			Color c = RSG::texture_storage->get_default_clear_color().srgb_to_linear();
-			push_constant.sky_color[0] = c.r;
-			push_constant.sky_color[1] = c.g;
-			push_constant.sky_color[2] = c.b;
+			push_constant.sky_color_or_orientation[0] = c.r;
+			push_constant.sky_color_or_orientation[1] = c.g;
+			push_constant.sky_color_or_orientation[2] = c.b;
 		} else if (RendererSceneRenderRD::get_singleton()->environment_get_background(p_env) == RS::ENV_BG_COLOR) {
-			push_constant.sky_mode = SDFGIShader::IntegratePushConstant::SKY_MODE_COLOR;
+			push_constant.sky_flags |= SDFGIShader::IntegratePushConstant::SKY_FLAGS_MODE_COLOR;
 			Color c = RendererSceneRenderRD::get_singleton()->environment_get_bg_color(p_env);
-			push_constant.sky_color[0] = c.r;
-			push_constant.sky_color[1] = c.g;
-			push_constant.sky_color[2] = c.b;
+			push_constant.sky_color_or_orientation[0] = c.r;
+			push_constant.sky_color_or_orientation[1] = c.g;
+			push_constant.sky_color_or_orientation[2] = c.b;
 
 		} else if (RendererSceneRenderRD::get_singleton()->environment_get_background(p_env) == RS::ENV_BG_SKY) {
 			if (p_sky && p_sky->radiance.is_valid()) {
@@ -1350,7 +1350,16 @@ void GI::SDFGI::update_probes(RID p_env, SkyRD::Sky *p_sky) {
 					integrate_sky_uniform_set = RD::get_singleton()->uniform_set_create(uniforms, gi->sdfgi_shader.integrate.version_get_shader(gi->sdfgi_shader.integrate_shader, 0), 1);
 				}
 				sky_uniform_set = integrate_sky_uniform_set;
-				push_constant.sky_mode = SDFGIShader::IntegratePushConstant::SKY_MODE_SKY;
+				push_constant.sky_flags |= SDFGIShader::IntegratePushConstant::SKY_FLAGS_MODE_SKY;
+
+				// Encode sky orientation as quaternion in existing push constants.
+				const Basis sky_basis = RendererSceneRenderRD::get_singleton()->environment_get_sky_orientation(p_env);
+				const Quaternion sky_quaternion = sky_basis.get_quaternion().inverse();
+				push_constant.sky_color_or_orientation[0] = sky_quaternion.x;
+				push_constant.sky_color_or_orientation[1] = sky_quaternion.y;
+				push_constant.sky_color_or_orientation[2] = sky_quaternion.z;
+				// Ideally we would reconstruct the largest component for least error, but sky contribution to GI is low frequency so just needs to get the idea across.
+				push_constant.sky_flags |= SDFGIShader::IntegratePushConstant::SKY_FLAGS_ORIENTATION_SIGN * (sky_quaternion.w < 0.0 ? 0 : 1);
 			}
 		}
 	}
@@ -1396,7 +1405,7 @@ void GI::SDFGI::store_probes() {
 	push_constant.image_size[1] = probe_axis_count;
 	push_constant.store_ambient_texture = false;
 
-	push_constant.sky_mode = 0;
+	push_constant.sky_flags = 0;
 	push_constant.y_mult = y_mult;
 
 	// Then store values into the lightprobe texture. Separating these steps has a small performance hit, but it allows for multiple bounces
@@ -2092,11 +2101,11 @@ void GI::SDFGI::render_region(Ref<RenderSceneBuffersRD> p_render_buffers, int p_
 				ipush_constant.history_size = history_size;
 				ipush_constant.ray_count = 0;
 				ipush_constant.ray_bias = 0;
-				ipush_constant.sky_mode = 0;
+				ipush_constant.sky_flags = 0;
 				ipush_constant.sky_energy = 0;
-				ipush_constant.sky_color[0] = 0;
-				ipush_constant.sky_color[1] = 0;
-				ipush_constant.sky_color[2] = 0;
+				ipush_constant.sky_color_or_orientation[0] = 0;
+				ipush_constant.sky_color_or_orientation[1] = 0;
+				ipush_constant.sky_color_or_orientation[2] = 0;
 				ipush_constant.y_mult = y_mult;
 				ipush_constant.store_ambient_texture = false;
 

@@ -271,7 +271,7 @@
 				Plays the main scene.
 			</description>
 		</method>
-		<method name="popup_create_dialog">
+		<method name="popup_create_dialog" experimental="">
 			<return type="void" />
 			<param index="0" name="callback" type="Callable" />
 			<param index="1" name="base_type" type="StringName" default="&quot;&quot;" />

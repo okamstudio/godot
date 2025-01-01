@@ -243,6 +243,9 @@ class GridMapEditor : public VBoxContainer {
 	void _update_selection_transform();
 	void _validate_selection();
 	void _set_selection(bool p_active, const Vector3 &p_begin = Vector3(), const Vector3 &p_end = Vector3());
+	AABB _get_selection() const;
+	bool _has_selection() const;
+	Array _get_selected_cells() const;
 
 	void _floor_changed(float p_value);
 	void _floor_mouse_exited();
@@ -272,13 +275,26 @@ class GridMapEditorPlugin : public EditorPlugin {
 	GridMapEditor *grid_map_editor = nullptr;
 	Button *panel_button = nullptr;
 
+protected:
+	void _notification(int p_what);
+	static void _bind_methods();
+
 public:
 	virtual EditorPlugin::AfterGUIInput forward_3d_gui_input(Camera3D *p_camera, const Ref<InputEvent> &p_event) override { return grid_map_editor->forward_spatial_input_event(p_camera, p_event); }
-	virtual String get_name() const override { return "GridMap"; }
+	virtual String get_plugin_name() const override { return "GridMap"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;
 	virtual void make_visible(bool p_visible) override;
+
+	GridMap *get_current_grid_map() const;
+	void set_selection(const Vector3i &p_begin, const Vector3i &p_end);
+	void clear_selection();
+	AABB get_selection() const;
+	bool has_selection() const;
+	Array get_selected_cells() const;
+	void set_selected_palette_item(int p_item) const;
+	int get_selected_palette_item() const;
 
 	GridMapEditorPlugin();
 	~GridMapEditorPlugin();

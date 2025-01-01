@@ -50,8 +50,6 @@
 #include "core/config/project_settings.h"
 #include "core/core_constants.h"
 #include "core/io/file_access.h"
-#include "core/io/file_access_encrypted.h"
-#include "core/os/os.h"
 
 #include "scene/resources/packed_scene.h"
 #include "scene/scene_string_names.h"
@@ -479,23 +477,25 @@ void GDScript::_update_exports_values(HashMap<StringName, Variant> &values, List
 	}
 }
 
-void GDScript::_add_doc(const DocData::ClassDoc &p_inner_class) {
-	if (_owner) { // Only the top-level class stores doc info
-		_owner->_add_doc(p_inner_class);
-	} else { // Remove old docs, add new
+void GDScript::_add_doc(const DocData::ClassDoc &p_doc) {
+	doc_class_name = p_doc.name;
+	if (_owner) { // Only the top-level class stores doc info.
+		_owner->_add_doc(p_doc);
+	} else { // Remove old docs, add new.
 		for (int i = 0; i < docs.size(); i++) {
-			if (docs[i].name == p_inner_class.name) {
+			if (docs[i].name == p_doc.name) {
 				docs.remove_at(i);
 				break;
 			}
 		}
-		docs.append(p_inner_class);
+		docs.append(p_doc);
 	}
 }
 
 void GDScript::_clear_doc() {
-	docs.clear();
+	doc_class_name = StringName();
 	doc = DocData::ClassDoc();
+	docs.clear();
 }
 
 String GDScript::get_class_icon_path() const {
@@ -2725,8 +2725,6 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 }
 
 void GDScriptLanguage::frame() {
-	calls = 0;
-
 #ifdef DEBUG_ENABLED
 	if (profiling) {
 		MutexLock lock(mutex);
@@ -2940,7 +2938,6 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 thread_local GDScriptLanguage::CallStack GDScriptLanguage::_call_stack;
 
 GDScriptLanguage::GDScriptLanguage() {
-	calls = 0;
 	ERR_FAIL_COND(singleton);
 	singleton = this;
 	strings._init = StaticCString::create("_init");

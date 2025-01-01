@@ -315,6 +315,7 @@
 		</member>
 		<member name="refraction_enabled" type="bool" setter="set_feature" getter="get_feature" default="false">
 			If [code]true[/code], the refraction effect is enabled. Distorts transparency based on light from behind the object.
+			[b]Note:[/b] Refraction is implemented using the screen texture. Only opaque materials will appear in the refraction, since transparent materials do not appear in the screen texture.
 		</member>
 		<member name="refraction_scale" type="float" setter="set_refraction" getter="get_refraction" default="0.05">
 			The strength of the refraction effect.

@@ -199,7 +199,7 @@
 			<return type="Color" />
 			<description>
 				Returns the OS theme base color (default control background). Returns [code]Color(0, 0, 0, 0)[/code] if the base color is unknown.
-				[b]Note:[/b] This method is implemented on macOS and Windows.
+				[b]Note:[/b] This method is implemented on macOS, Windows, and Android.
 			</description>
 		</method>
 		<method name="get_display_cutouts" qualifiers="const">
@@ -1730,7 +1730,7 @@
 				DisplayServer.WindowSetMousePassthrough(GetNode&lt;Polygon2D&gt;("Polygon2D").Polygon);
 
 				// Reset region to default.
-				DisplayServer.WindowSetMousePassthrough(new Vector2[] {});
+				DisplayServer.WindowSetMousePassthrough([]);
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] On Windows, the portion of a window that lies outside the region is not drawn, while on Linux (X11) and macOS it is.
@@ -1836,7 +1836,7 @@
 			<param index="0" name="window_id" type="int" default="0" />
 			<description>
 				Starts a drag operation on the window with the given [param window_id], using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
-				[b]Note:[/b] This method is implemented only on macOS.
+				[b]Note:[/b] This method is implemented on Linux(X11/Wayland), macOS, and Windows.
 			</description>
 		</method>
 	</methods>
@@ -1924,6 +1924,9 @@
 		</constant>
 		<constant name="FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE" value="28" enum="Feature">
 			Display server supports [constant WINDOW_FLAG_EXCLUDE_FROM_CAPTURE] window flag.
+		</constant>
+		<constant name="FEATURE_WINDOW_EMBEDDING" value="29" enum="Feature">
+			Display server supports embedding a window from another process. [b]Windows, Linux (X11)[/b]
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.

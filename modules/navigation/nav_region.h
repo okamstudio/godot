@@ -37,6 +37,8 @@
 #include "core/os/rw_lock.h"
 #include "scene/resources/navigation_mesh.h"
 
+struct NavRegionIteration;
+
 class NavRegion : public NavBase {
 	RWLock region_rwlock;
 
@@ -48,10 +50,10 @@ class NavRegion : public NavBase {
 
 	bool polygons_dirty = true;
 
-	/// Cache
-	LocalVector<gd::Polygon> polygons;
+	LocalVector<gd::Polygon> navmesh_polygons;
 
 	real_t surface_area = 0.0;
+	AABB bounds;
 
 	RWLock navmesh_rwlock;
 	Vector<Vector3> pending_navmesh_vertices;
@@ -88,7 +90,7 @@ public:
 	void set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh);
 
 	LocalVector<gd::Polygon> const &get_polygons() const {
-		return polygons;
+		return navmesh_polygons;
 	}
 
 	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const;
@@ -96,10 +98,13 @@ public:
 	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
 
 	real_t get_surface_area() const { return surface_area; }
+	AABB get_bounds() const { return bounds; }
 
 	bool sync();
 	void request_sync();
 	void cancel_sync_request();
+
+	void get_iteration_update(NavRegionIteration &r_iteration);
 
 private:
 	void update_polygons();

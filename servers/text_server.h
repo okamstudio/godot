@@ -33,7 +33,6 @@
 
 #include "core/io/image.h"
 #include "core/object/ref_counted.h"
-#include "core/os/os.h"
 #include "core/templates/rid.h"
 #include "core/variant/native_ptr.h"
 #include "core/variant/variant.h"

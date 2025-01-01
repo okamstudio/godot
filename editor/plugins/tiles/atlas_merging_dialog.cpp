@@ -30,7 +30,6 @@
 
 #include "atlas_merging_dialog.h"
 
-#include "editor/editor_properties_vector.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/themes/editor_scale.h"
@@ -178,7 +177,7 @@ void AtlasMergingDialog::_update_texture() {
 }
 
 void AtlasMergingDialog::_merge_confirmed(const String &p_path) {
-	ERR_FAIL_COND(!merged.is_valid());
+	ERR_FAIL_COND(merged.is_null());
 
 	Ref<ImageTexture> output_image_texture = merged->get_texture();
 	output_image_texture->get_image()->save_png(p_path);
@@ -270,7 +269,7 @@ void AtlasMergingDialog::_notification(int p_what) {
 }
 
 void AtlasMergingDialog::update_tile_set(Ref<TileSet> p_tile_set) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	tile_set = p_tile_set;
 
 	atlas_merging_atlases_list->clear();

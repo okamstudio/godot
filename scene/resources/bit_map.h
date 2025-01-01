@@ -33,7 +33,6 @@
 
 #include "core/io/image.h"
 #include "core/io/resource.h"
-#include "core/io/resource_loader.h"
 
 template <typename T>
 class TypedArray;

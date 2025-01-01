@@ -30,13 +30,11 @@
 
 #include "editor_icons.h"
 
-#include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/themes/editor_color_map.h"
 #include "editor/themes/editor_icons.gen.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/resources/image_texture.h"
-#include "scene/resources/texture.h"
 
 #include "modules/modules_enabled.gen.h" // For svg.
 #ifdef MODULE_SVG_ENABLED

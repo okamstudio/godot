@@ -30,7 +30,6 @@
 
 #include "kinematic_collision_2d.h"
 
-#include "scene/2d/physics/character_body_2d.h"
 #include "scene/2d/physics/physics_body_2d.h"
 
 Vector2 KinematicCollision2D::get_position() const {

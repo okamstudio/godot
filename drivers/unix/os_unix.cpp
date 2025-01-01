@@ -169,8 +169,8 @@ void OS_Unix::initialize_core() {
 
 #ifndef UNIX_SOCKET_UNAVAILABLE
 	NetSocketUnix::make_default();
-#endif
 	IPUnix::make_default();
+#endif
 	process_map = memnew((HashMap<ProcessID, ProcessInfo>));
 
 	_setup_clock();

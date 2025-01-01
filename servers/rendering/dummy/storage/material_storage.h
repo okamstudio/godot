@@ -109,6 +109,8 @@ public:
 
 	virtual bool material_is_animated(RID p_material) override { return false; }
 	virtual bool material_casts_shadows(RID p_material) override { return false; }
+	virtual RS::CullMode material_get_cull_mode(RID p_material) const override { return RS::CULL_MODE_DISABLED; }
+
 	virtual void material_get_instance_shader_parameters(RID p_material, List<InstanceShaderParam> *r_parameters) override {}
 	virtual void material_update_dependency(RID p_material, DependencyTracker *p_instance) override {}
 };

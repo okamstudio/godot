@@ -471,7 +471,7 @@ void TileSet::_compute_next_source_id() {
 
 // Sources management
 int TileSet::add_source(Ref<TileSetSource> p_tile_set_source, int p_atlas_source_id_override) {
-	ERR_FAIL_COND_V(!p_tile_set_source.is_valid(), TileSet::INVALID_SOURCE);
+	ERR_FAIL_COND_V(p_tile_set_source.is_null(), TileSet::INVALID_SOURCE);
 	ERR_FAIL_COND_V_MSG(p_atlas_source_id_override >= 0 && (sources.has(p_atlas_source_id_override)), TileSet::INVALID_SOURCE, vformat("Cannot create TileSet atlas source. Another atlas source exists with id %d.", p_atlas_source_id_override));
 	ERR_FAIL_COND_V_MSG(p_atlas_source_id_override < 0 && p_atlas_source_id_override != TileSet::INVALID_SOURCE, TileSet::INVALID_SOURCE, vformat("Provided source ID %d is not valid. Negative source IDs are not allowed.", p_atlas_source_id_override));
 
@@ -1392,7 +1392,7 @@ void TileSet::clear_tile_proxies() {
 }
 
 int TileSet::add_pattern(Ref<TileMapPattern> p_pattern, int p_index) {
-	ERR_FAIL_COND_V(!p_pattern.is_valid(), -1);
+	ERR_FAIL_COND_V(p_pattern.is_null(), -1);
 	ERR_FAIL_COND_V_MSG(p_pattern->is_empty(), -1, "Cannot add an empty pattern to the TileSet.");
 	for (const Ref<TileMapPattern> &pattern : patterns) {
 		ERR_FAIL_COND_V_MSG(pattern == p_pattern, -1, "TileSet has already this pattern.");
@@ -4206,7 +4206,7 @@ void TileSet::_get_property_list(List<PropertyInfo> *p_list) const {
 
 		// physics_layer_%d/physics_material
 		property_info = PropertyInfo(Variant::OBJECT, vformat("physics_layer_%d/physics_material", i), PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial");
-		if (!physics_layers[i].physics_material.is_valid()) {
+		if (physics_layers[i].physics_material.is_null()) {
 			property_info.usage ^= PROPERTY_USAGE_STORAGE;
 		}
 		p_list->push_back(property_info);
@@ -4742,7 +4742,7 @@ bool TileSetAtlasSource::get_use_texture_padding() const {
 
 Vector2i TileSetAtlasSource::get_atlas_grid_size() const {
 	Ref<Texture2D> txt = get_texture();
-	if (!txt.is_valid()) {
+	if (txt.is_null()) {
 		return Vector2i();
 	}
 

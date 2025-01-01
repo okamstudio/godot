@@ -2475,7 +2475,7 @@ Error EditorFileSystem::_reimport_group(const String &p_group_file, const Vector
 		}
 
 		Ref<ResourceImporter> importer = ResourceFormatImporter::get_singleton()->get_importer_by_name(importer_name);
-		ERR_FAIL_COND_V(!importer.is_valid(), ERR_FILE_CORRUPT);
+		ERR_FAIL_COND_V(importer.is_null(), ERR_FILE_CORRUPT);
 		List<ResourceImporter::ImportOption> options;
 		importer->get_import_options(p_files[i], &options);
 		//set default values
@@ -3027,9 +3027,9 @@ void EditorFileSystem::_refresh_filesystem() {
 }
 
 void EditorFileSystem::_reimport_thread(uint32_t p_index, ImportThreadData *p_import_data) {
-	int current_max = p_import_data->reimport_from + int(p_index);
-	p_import_data->max_index.exchange_if_greater(current_max);
-	_reimport_file(p_import_data->reimport_files[current_max].path);
+	int file_idx = p_import_data->reimport_from + int(p_index);
+	_reimport_file(p_import_data->reimport_files[file_idx].path);
+	p_import_data->imported_sem->post();
 }
 
 void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
@@ -3108,6 +3108,7 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 #endif
 
 	int from = 0;
+	Semaphore imported_sem;
 	for (int i = 0; i < reimport_files.size(); i++) {
 		if (groups_to_reimport.has(reimport_files[i].path)) {
 			from = i + 1;
@@ -3131,21 +3132,27 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 					importer->import_threaded_begin();
 
 					ImportThreadData tdata;
-					tdata.max_index.set(from);
 					tdata.reimport_from = from;
 					tdata.reimport_files = reimport_files.ptr();
+					tdata.imported_sem = &imported_sem;
 
-					WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &EditorFileSystem::_reimport_thread, &tdata, i - from + 1, -1, false, vformat(TTR("Import resources of type: %s"), reimport_files[from].importer));
-					int current_index = from - 1;
-					do {
-						if (current_index < tdata.max_index.get()) {
-							current_index = tdata.max_index.get();
-							ep->step(reimport_files[current_index].path.get_file(), current_index, false);
+					int item_count = i - from + 1;
+					WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &EditorFileSystem::_reimport_thread, &tdata, item_count, -1, false, vformat(TTR("Import resources of type: %s"), reimport_files[from].importer));
+
+					int imported_count = 0;
+					while (true) {
+						ep->step(reimport_files[imported_count].path.get_file(), from + imported_count, false);
+						imported_sem.wait();
+						do {
+							imported_count++;
+						} while (imported_sem.try_wait());
+						if (imported_count == item_count) {
+							break;
 						}
-						OS::get_singleton()->delay_usec(1);
-					} while (!WorkerThreadPool::get_singleton()->is_group_task_completed(group_task));
+					}
 
 					WorkerThreadPool::get_singleton()->wait_for_group_task_completion(group_task);
+					DEV_ASSERT(!imported_sem.try_wait());
 
 					importer->import_threaded_end();
 				}

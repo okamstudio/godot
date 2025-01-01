@@ -1,29 +1,13 @@
 #!/usr/bin/env python
-from misc.utility.scons_hints import *
 
 import atexit
-import sys
 import time
+from typing import TYPE_CHECKING
 
 import methods
 
-# Enable ANSI escape code support on Windows 10 and later (for colored console output).
-# <https://github.com/python/cpython/issues/73245>
-if sys.stdout.isatty() and sys.platform == "win32":
-    try:
-        from ctypes import WinError, byref, windll  # type: ignore
-        from ctypes.wintypes import DWORD  # type: ignore
-
-        stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-        mode = DWORD(0)
-        if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-            raise WinError()
-        mode = DWORD(mode.value | 4)
-        if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-            raise WinError()
-    except Exception as e:
-        methods._colorize = False
-        methods.print_error(f"Failed to enable ANSI escape code support, disabling color output.\n{e}")
+if TYPE_CHECKING:
+    from misc.utility.scons_hints import *
 
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -793,10 +777,10 @@ def print_elapsed_time():
     time_centiseconds = round((elapsed_time_sec % 1) * 100)
     print(
         "{}[Time elapsed: {}.{:02}]{}".format(
-            methods.ANSI.GRAY,
+            methods.Ansi.GRAY,
             time.strftime("%H:%M:%S", time.gmtime(elapsed_time_sec)),
             time_centiseconds,
-            methods.ANSI.RESET,
+            methods.Ansi.RESET,
         )
     )
 

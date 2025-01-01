@@ -30,9 +30,6 @@
 
 #include "label.h"
 
-#include "core/config/project_settings.h"
-#include "core/string/print_string.h"
-#include "core/string/translation.h"
 #include "scene/gui/container.h"
 #include "scene/theme/theme_db.h"
 #include "servers/text_server.h"

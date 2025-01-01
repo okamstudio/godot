@@ -38,9 +38,7 @@
 
 #include "core/crypto/crypto_core.h"
 #include "core/error/error_list.h"
-#include "core/io/packet_peer.h"
 #include "core/io/stream_peer_tcp.h"
-#include "core/templates/ring_buffer.h"
 
 #include <wslay/wslay.h>
 

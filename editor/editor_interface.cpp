@@ -55,7 +55,6 @@
 #include "plugins/editor_preview_plugins.h"
 #include "scene/3d/light_3d.h"
 #include "scene/3d/mesh_instance_3d.h"
-#include "scene/3d/world_environment.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/control.h"
 #include "scene/main/window.h"
@@ -170,7 +169,7 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 
 	for (int i = 0; i < p_meshes.size(); i++) {
 		const Ref<Mesh> &mesh = p_meshes[i];
-		if (!mesh.is_valid()) {
+		if (mesh.is_null()) {
 			textures.push_back(Ref<Texture2D>());
 			continue;
 		}
@@ -211,7 +210,7 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 		Main::iteration();
 		Main::iteration();
 		Ref<Image> img = RS::get_singleton()->texture_2d_get(viewport_texture);
-		ERR_CONTINUE(!img.is_valid() || img->is_empty());
+		ERR_CONTINUE(img.is_null() || img->is_empty());
 		Ref<ImageTexture> it = ImageTexture::create_from_image(img);
 
 		RS::get_singleton()->free(inst);

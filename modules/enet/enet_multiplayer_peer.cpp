@@ -30,10 +30,6 @@
 
 #include "enet_multiplayer_peer.h"
 
-#include "core/io/ip.h"
-#include "core/io/marshalls.h"
-#include "core/os/os.h"
-
 void ENetMultiplayerPeer::set_target_peer(int p_peer) {
 	target_peer = p_peer;
 }

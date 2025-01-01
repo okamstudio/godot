@@ -31,7 +31,6 @@
 #ifndef SHADER_TYPES_H
 #define SHADER_TYPES_H
 
-#include "core/templates/rb_map.h"
 #include "servers/rendering_server.h"
 #include "shader_language.h"
 

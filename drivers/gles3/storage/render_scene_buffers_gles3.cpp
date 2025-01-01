@@ -138,6 +138,7 @@ void RenderSceneBuffersGLES3::configure(const RenderSceneBuffersConfiguration *p
 	scaling_3d_mode = p_config->get_scaling_3d_mode();
 	//fsr_sharpness = p_config->get_fsr_sharpness();
 	//texture_mipmap_bias = p_config->get_texture_mipmap_bias();
+	//anisotropic_filtering_level = p_config->get_anisotropic_filtering_level();
 	render_target = p_config->get_render_target();
 	msaa3d.mode = p_config->get_msaa_3d();
 	//screen_space_aa = p_config->get_screen_space_aa();

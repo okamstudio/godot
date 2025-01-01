@@ -31,7 +31,6 @@
 #ifndef EDITOR_PREVIEW_PLUGINS_H
 #define EDITOR_PREVIEW_PLUGINS_H
 
-#include "core/templates/safe_refcount.h"
 #include "editor/editor_resource_preview.h"
 
 class ScriptLanguage;

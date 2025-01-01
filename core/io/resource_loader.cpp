@@ -295,6 +295,8 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	}
 	load_paths_stack.push_back(original_path);
 
+	print_verbose(vformat("Loading resource: %s", p_path));
+
 	// Try all loaders and pick the first match for the type hint
 	bool found = false;
 	Ref<Resource> res;
@@ -304,7 +306,7 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 		}
 		found = true;
 		res = loader[i]->load(p_path, original_path, r_error, p_use_sub_threads, r_progress, p_cache_mode);
-		if (!res.is_null()) {
+		if (res.is_valid()) {
 			break;
 		}
 	}
@@ -313,8 +315,10 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	res_ref_overrides.erase(load_nesting);
 	load_nesting--;
 
-	if (!res.is_null()) {
+	if (res.is_valid()) {
 		return res;
+	} else {
+		print_verbose(vformat("Failed loading resource: %s", p_path));
 	}
 
 	ERR_FAIL_COND_V_MSG(found, Ref<Resource>(),
@@ -361,16 +365,10 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 	bool xl_remapped = false;
 	const String &remapped_path = _path_remap(load_task.local_path, &xl_remapped);
 
-	print_verbose("Loading resource: " + remapped_path);
-
 	Error load_err = OK;
 	Ref<Resource> res = _load(remapped_path, remapped_path != load_task.local_path ? load_task.local_path : String(), load_task.type_hint, load_task.cache_mode, &load_err, load_task.use_sub_threads, &load_task.progress);
 	if (MessageQueue::get_singleton() != MessageQueue::get_main_singleton()) {
 		MessageQueue::get_singleton()->flush();
-	}
-
-	if (res.is_null()) {
-		print_verbose("Failed loading resource: " + remapped_path);
 	}
 
 	thread_load_mutex.lock();
@@ -527,7 +525,7 @@ Ref<Resource> ResourceLoader::load(const String &p_path, const String &p_type_hi
 		thread_mode = LOAD_THREAD_SPAWN_SINGLE;
 	}
 	Ref<LoadToken> load_token = _load_start(p_path, p_type_hint, thread_mode, p_cache_mode);
-	if (!load_token.is_valid()) {
+	if (load_token.is_null()) {
 		if (r_error) {
 			*r_error = FAILED;
 		}
@@ -947,7 +945,7 @@ Ref<Resource> ResourceLoader::ensure_resource_ref_override_for_outer_load(const 
 		Object *obj = ClassDB::instantiate(p_res_type);
 		ERR_FAIL_NULL_V(obj, Ref<Resource>());
 		Ref<Resource> res(obj);
-		if (!res.is_valid()) {
+		if (res.is_null()) {
 			memdelete(obj);
 			ERR_FAIL_V(Ref<Resource>());
 		}

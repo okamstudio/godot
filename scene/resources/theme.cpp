@@ -30,7 +30,6 @@
 
 #include "theme.h"
 
-#include "core/string/print_string.h"
 #include "scene/theme/theme_db.h"
 
 // Dynamic properties.

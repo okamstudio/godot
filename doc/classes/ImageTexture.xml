@@ -20,7 +20,7 @@
 		[b]Note:[/b] The image can be retrieved from an imported texture using the [method Texture2D.get_image] method, which returns a copy of the image:
 		[codeblock]
 		var texture = load("res://icon.svg")
-		var image: Image = texture.get_image()
+		var image = texture.get_image()
 		[/codeblock]
 		An [ImageTexture] is not meant to be operated from within the editor interface directly, and is mostly useful for rendering images on screen dynamically via code. If you need to generate images procedurally from within the editor, consider saving and importing images as custom texture resources implementing a new [EditorImportPlugin].
 		[b]Note:[/b] The maximum texture size is 16384×16384 pixels due to graphics hardware limitations.

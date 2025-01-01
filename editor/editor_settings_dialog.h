@@ -31,10 +31,11 @@
 #ifndef EDITOR_SETTINGS_DIALOG_H
 #define EDITOR_SETTINGS_DIALOG_H
 
-#include "editor/action_map_editor.h"
 #include "scene/gui/dialogs.h"
 
 class CheckButton;
+class EventListenerLineEdit;
+class InputEventConfigurationDialog;
 class PanelContainer;
 class SectionedInspector;
 class TabContainer;
@@ -90,7 +91,7 @@ class EditorSettingsDialog : public AcceptDialog {
 
 	void _event_config_confirmed();
 
-	void _create_shortcut_treeitem(TreeItem *p_parent, const String &p_shortcut_identifier, const String &p_display, Array &p_events, bool p_allow_revert, bool p_is_common, bool p_is_collapsed);
+	TreeItem *_create_shortcut_treeitem(TreeItem *p_parent, const String &p_shortcut_identifier, const String &p_display, Array &p_events, bool p_allow_revert, bool p_is_common, bool p_is_collapsed);
 	Array _event_list_to_array_helper(const List<Ref<InputEvent>> &p_events);
 	void _update_builtin_action(const String &p_name, const Array &p_events);
 	void _update_shortcut_events(const String &p_path, const Array &p_events);
@@ -110,7 +111,7 @@ class EditorSettingsDialog : public AcceptDialog {
 
 	void _filter_shortcuts(const String &p_filter);
 	void _filter_shortcuts_by_event(const Ref<InputEvent> &p_event);
-	bool _should_display_shortcut(const String &p_name, const Array &p_events) const;
+	bool _should_display_shortcut(const String &p_name, const Array &p_events, bool p_match_localized_name) const;
 
 	void _update_shortcuts();
 	void _shortcut_button_pressed(Object *p_item, int p_column, int p_idx, MouseButton p_button = MouseButton::LEFT);

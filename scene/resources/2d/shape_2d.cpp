@@ -30,7 +30,6 @@
 
 #include "shape_2d.h"
 
-#include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "servers/physics_server_2d.h"
 

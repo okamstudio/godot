@@ -31,12 +31,7 @@
 #include "editor_export_plugin.h"
 
 #include "core/config/project_settings.h"
-#include "core/io/dir_access.h"
-#include "core/io/file_access.h"
-#include "editor/editor_paths.h"
-#include "editor/editor_settings.h"
 #include "editor/export/editor_export_platform.h"
-#include "scene/resources/resource_format_text.h"
 
 void EditorExportPlugin::set_export_preset(const Ref<EditorExportPreset> &p_preset) {
 	if (p_preset.is_valid()) {

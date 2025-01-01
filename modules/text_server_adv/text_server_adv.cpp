@@ -50,7 +50,6 @@ using namespace godot;
 #include "core/config/project_settings.h"
 #include "core/error/error_macros.h"
 #include "core/object/worker_thread_pool.h"
-#include "core/string/print_string.h"
 #include "core/string/translation_server.h"
 #include "scene/resources/image_texture.h"
 

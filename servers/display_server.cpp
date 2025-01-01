@@ -657,6 +657,21 @@ bool DisplayServer::get_swap_cancel_ok() {
 void DisplayServer::enable_for_stealing_focus(OS::ProcessID pid) {
 }
 
+Error DisplayServer::embed_process(WindowID p_window, OS::ProcessID p_pid, const Rect2i &p_rect, bool p_visible, bool p_grab_focus) {
+	WARN_PRINT("Embedded process not supported by this display server.");
+	return ERR_UNAVAILABLE;
+}
+
+Error DisplayServer::remove_embedded_process(OS::ProcessID p_pid) {
+	WARN_PRINT("Embedded process not supported by this display server.");
+	return ERR_UNAVAILABLE;
+}
+
+OS::ProcessID DisplayServer::get_focused_process_id() {
+	WARN_PRINT("Embedded process not supported by this display server.");
+	return 0;
+}
+
 Error DisplayServer::dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback) {
 	WARN_PRINT("Native dialogs not supported by this display server.");
 	return ERR_UNAVAILABLE;
@@ -1067,6 +1082,7 @@ void DisplayServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(FEATURE_NATIVE_DIALOG_FILE_EXTRA);
 	BIND_ENUM_CONSTANT(FEATURE_WINDOW_DRAG);
 	BIND_ENUM_CONSTANT(FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE);
+	BIND_ENUM_CONSTANT(FEATURE_WINDOW_EMBEDDING);
 
 	BIND_ENUM_CONSTANT(MOUSE_MODE_VISIBLE);
 	BIND_ENUM_CONSTANT(MOUSE_MODE_HIDDEN);
@@ -1218,9 +1234,9 @@ Vector<String> DisplayServer::get_create_function_rendering_drivers(int p_index)
 	return server_create_functions[p_index].get_rendering_drivers_function();
 }
 
-DisplayServer *DisplayServer::create(int p_index, const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, Error &r_error) {
+DisplayServer *DisplayServer::create(int p_index, const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
 	ERR_FAIL_INDEX_V(p_index, server_create_count, nullptr);
-	return server_create_functions[p_index].create_function(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, r_error);
+	return server_create_functions[p_index].create_function(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error);
 }
 
 void DisplayServer::_input_set_mouse_mode(Input::MouseMode p_mode) {

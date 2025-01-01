@@ -30,9 +30,6 @@
 
 #include "video_stream.h"
 
-#include "core/config/project_settings.h"
-#include "servers/audio_server.h"
-
 // VideoStreamPlayback starts here.
 
 void VideoStreamPlayback::_bind_methods() {

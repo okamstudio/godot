@@ -92,7 +92,7 @@ public:
 		CONTEXT_ENGINE,
 	};
 
-	typedef DisplayServer *(*CreateFunction)(const String &, WindowMode, VSyncMode, uint32_t, const Point2i *, const Size2i &, int p_screen, Context, Error &r_error);
+	typedef DisplayServer *(*CreateFunction)(const String &, WindowMode, VSyncMode, uint32_t, const Point2i *, const Size2i &, int p_screen, Context, int64_t p_parent_window, Error &r_error);
 	typedef Vector<String> (*GetRenderingDriversFunction)();
 
 private:
@@ -155,6 +155,7 @@ public:
 		FEATURE_NATIVE_DIALOG_FILE_EXTRA,
 		FEATURE_WINDOW_DRAG,
 		FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE,
+		FEATURE_WINDOW_EMBEDDING,
 	};
 
 	virtual bool has_feature(Feature p_feature) const = 0;
@@ -550,6 +551,10 @@ public:
 
 	virtual void enable_for_stealing_focus(OS::ProcessID pid);
 
+	virtual Error embed_process(WindowID p_window, OS::ProcessID p_pid, const Rect2i &p_rect, bool p_visible, bool p_grab_focus);
+	virtual Error remove_embedded_process(OS::ProcessID p_pid);
+	virtual OS::ProcessID get_focused_process_id();
+
 	virtual Error dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback);
 	virtual Error dialog_input_text(String p_title, String p_description, String p_partial, const Callable &p_callback);
 
@@ -609,7 +614,7 @@ public:
 	static int get_create_function_count();
 	static const char *get_create_function_name(int p_index);
 	static Vector<String> get_create_function_rendering_drivers(int p_index);
-	static DisplayServer *create(int p_index, const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, Error &r_error);
+	static DisplayServer *create(int p_index, const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
 
 	enum RenderingDeviceCreationStatus {
 		UNKNOWN,

@@ -242,7 +242,7 @@ RID NavigationRegion3D::get_navigation_map() const {
 
 void NavigationRegion3D::bake_navigation_mesh(bool p_on_thread) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "The SceneTree can only be parsed on the main thread. Call this function from the main thread or use call_deferred().");
-	ERR_FAIL_COND_MSG(!navigation_mesh.is_valid(), "Baking the navigation mesh requires a valid `NavigationMesh` resource.");
+	ERR_FAIL_COND_MSG(navigation_mesh.is_null(), "Baking the navigation mesh requires a valid `NavigationMesh` resource.");
 
 	Ref<NavigationMeshSourceGeometryData3D> source_geometry_data;
 	source_geometry_data.instantiate();
@@ -274,7 +274,7 @@ PackedStringArray NavigationRegion3D::get_configuration_warnings() const {
 	PackedStringArray warnings = Node3D::get_configuration_warnings();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
-		if (!navigation_mesh.is_valid()) {
+		if (navigation_mesh.is_null()) {
 			warnings.push_back(RTR("A NavigationMesh resource must be set or created for this node to work."));
 		}
 	}
@@ -481,7 +481,7 @@ void NavigationRegion3D::_update_debug_mesh() {
 		return;
 	}
 
-	if (!navigation_mesh.is_valid()) {
+	if (navigation_mesh.is_null()) {
 		if (debug_instance.is_valid()) {
 			RS::get_singleton()->instance_set_visible(debug_instance, false);
 		}
@@ -658,7 +658,7 @@ void NavigationRegion3D::_update_debug_edge_connections_mesh() {
 		return;
 	}
 
-	if (!navigation_mesh.is_valid()) {
+	if (navigation_mesh.is_null()) {
 		if (debug_edge_connections_instance.is_valid()) {
 			RS::get_singleton()->instance_set_visible(debug_edge_connections_instance, false);
 		}

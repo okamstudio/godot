@@ -331,7 +331,7 @@ void EditorDebuggerNode::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_PROCESS: {
-			if (!server.is_valid()) {
+			if (server.is_null()) {
 				return;
 			}
 

@@ -1,4 +1,3 @@
-/* SET 0, static data that does not change between any call */
 
 layout(set = 0, binding = 0) uniform BakeParameters {
 	vec3 world_size;
@@ -18,8 +17,8 @@ layout(set = 0, binding = 0) uniform BakeParameters {
 
 	float bounce_indirect_energy;
 	int shadowmask_light_idx;
+	uint transparency_rays;
 	uint pad0;
-	uint pad1;
 }
 bake_params;
 
@@ -35,11 +34,15 @@ layout(set = 0, binding = 1, std430) restrict readonly buffer Vertices {
 }
 vertices;
 
+#define CULL_DISABLED 0
+#define CULL_FRONT 1
+#define CULL_BACK 2
+
 struct Triangle {
 	uvec3 indices;
 	uint slice;
 	vec3 min_bounds;
-	uint pad0;
+	uint cull_mode;
 	vec3 max_bounds;
 	uint pad1;
 };

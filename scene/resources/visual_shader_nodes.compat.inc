@@ -30,6 +30,8 @@
 
 #ifndef DISABLE_DEPRECATED
 
+#include "scene/resources/image_texture.h"
+
 // VisualShaderNodeCubemap
 
 void VisualShaderNodeCubemap::_set_cube_map_bind_compat_95126(Ref<Cubemap> p_cube_map) {

@@ -31,7 +31,6 @@
 #include "editor_context_menu_plugin.h"
 
 #include "core/input/shortcut.h"
-#include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
 #include "scene/gui/popup_menu.h"
 #include "scene/resources/texture.h"

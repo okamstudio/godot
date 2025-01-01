@@ -33,7 +33,6 @@
 
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
-#include "core/string/print_string.h"
 #include "core/string/string_name.h"
 #include "scene/2d/audio_stream_player_2d.h"
 #include "scene/animation/animation_player.h"
@@ -47,11 +46,9 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/node_3d.h"
 #include "scene/3d/skeleton_3d.h"
-#include "scene/3d/skeleton_modifier_3d.h"
 #endif // _3D_DISABLED
 
 #ifdef TOOLS_ENABLED
-#include "editor/editor_node.h"
 #include "editor/editor_undo_redo_manager.h"
 #endif // TOOLS_ENABLED
 

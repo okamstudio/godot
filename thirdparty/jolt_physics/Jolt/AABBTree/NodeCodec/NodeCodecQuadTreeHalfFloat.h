@@ -254,6 +254,15 @@ public:
 					const Node *node = reinterpret_cast<const Node *>(inBufferStart + (node_properties << OFFSET_NON_SIGNIFICANT_BITS));
 
 					// Unpack bounds
+				#ifdef JPH_CPU_BIG_ENDIAN
+					Vec4 bounds_minx = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMinX[0] + (node->mBoundsMinX[1] << 16), node->mBoundsMinX[2] + (node->mBoundsMinX[3] << 16), 0, 0));
+					Vec4 bounds_miny = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMinY[0] + (node->mBoundsMinY[1] << 16), node->mBoundsMinY[2] + (node->mBoundsMinY[3] << 16), 0, 0));
+					Vec4 bounds_minz = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMinZ[0] + (node->mBoundsMinZ[1] << 16), node->mBoundsMinZ[2] + (node->mBoundsMinZ[3] << 16), 0, 0));
+
+					Vec4 bounds_maxx = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMaxX[0] + (node->mBoundsMaxX[1] << 16), node->mBoundsMaxX[2] + (node->mBoundsMaxX[3] << 16), 0, 0));
+					Vec4 bounds_maxy = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMaxY[0] + (node->mBoundsMaxY[1] << 16), node->mBoundsMaxY[2] + (node->mBoundsMaxY[3] << 16), 0, 0));
+					Vec4 bounds_maxz = HalfFloatConversion::ToFloat(UVec4(node->mBoundsMaxZ[0] + (node->mBoundsMaxZ[1] << 16), node->mBoundsMaxZ[2] + (node->mBoundsMaxZ[3] << 16), 0, 0));
+				#else
 					UVec4 bounds_minxy = UVec4::sLoadInt4(reinterpret_cast<const uint32 *>(&node->mBoundsMinX[0]));
 					Vec4 bounds_minx = HalfFloatConversion::ToFloat(bounds_minxy);
 					Vec4 bounds_miny = HalfFloatConversion::ToFloat(bounds_minxy.Swizzle<SWIZZLE_Z, SWIZZLE_W, SWIZZLE_UNUSED, SWIZZLE_UNUSED>());
@@ -265,6 +274,7 @@ public:
 					UVec4 bounds_maxyz = UVec4::sLoadInt4(reinterpret_cast<const uint32 *>(&node->mBoundsMaxY[0]));
 					Vec4 bounds_maxy = HalfFloatConversion::ToFloat(bounds_maxyz);
 					Vec4 bounds_maxz = HalfFloatConversion::ToFloat(bounds_maxyz.Swizzle<SWIZZLE_Z, SWIZZLE_W, SWIZZLE_UNUSED, SWIZZLE_UNUSED>());
+				#endif
 
 					// Load properties for 4 children
 					UVec4 properties = UVec4::sLoadInt4(&node->mNodeProperties[0]);

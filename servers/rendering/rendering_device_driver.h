@@ -48,7 +48,6 @@
 
 #include "core/object/object.h"
 #include "core/variant/type_info.h"
-#include "servers/display_server.h"
 #include "servers/rendering/rendering_context_driver.h"
 #include "servers/rendering/rendering_device_commons.h"
 

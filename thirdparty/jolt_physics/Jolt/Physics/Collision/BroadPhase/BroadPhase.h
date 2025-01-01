@@ -75,7 +75,7 @@ public:
 	virtual void		RemoveBodies(BodyID *ioBodies, int inNumber) = 0;
 
 	/// Call whenever the aabb of a body changes (can change order of ioBodies array)
-	/// inTakeLock should be false if we're between LockModifications/UnlockModificiations in which case care needs to be taken to not call this between UpdatePrepare/UpdateFinalize
+	/// inTakeLock should be false if we're between LockModifications/UnlockModifications, in which case care needs to be taken to not call this between UpdatePrepare/UpdateFinalize
 	virtual void		NotifyBodiesAABBChanged(BodyID *ioBodies, int inNumber, bool inTakeLock = true) = 0;
 
 	/// Call whenever the layer (and optionally the aabb as well) of a body changes (can change order of ioBodies array)

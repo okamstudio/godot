@@ -54,6 +54,7 @@ class WindowWrapper : public MarginContainer {
 
 	void _set_window_enabled_with_rect(bool p_visible, const Rect2 p_rect);
 	void _set_window_rect(const Rect2 p_rect);
+	void _window_size_changed();
 
 protected:
 	static void _bind_methods();
@@ -80,6 +81,7 @@ public:
 
 	void set_window_title(const String &p_title);
 	void set_margins_enabled(bool p_enabled);
+	void grab_window_focus();
 
 	WindowWrapper();
 };

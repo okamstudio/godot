@@ -32,6 +32,57 @@
 
 #include "api/java_class_wrapper.h"
 
+jobject callable_to_jcallable(JNIEnv *p_env, const Variant &p_callable) {
+	ERR_FAIL_NULL_V(p_env, nullptr);
+	if (p_callable.get_type() != Variant::CALLABLE) {
+		return nullptr;
+	}
+
+	Variant *callable_jcopy = memnew(Variant(p_callable));
+
+	jclass bclass = p_env->FindClass("org/godotengine/godot/variant/Callable");
+	jmethodID ctor = p_env->GetMethodID(bclass, "<init>", "(J)V");
+	jobject jcallable = p_env->NewObject(bclass, ctor, reinterpret_cast<int64_t>(callable_jcopy));
+	p_env->DeleteLocalRef(bclass);
+
+	return jcallable;
+}
+
+Callable jcallable_to_callable(JNIEnv *p_env, jobject p_jcallable_obj) {
+	ERR_FAIL_NULL_V(p_env, Callable());
+
+	const Variant *callable_variant = nullptr;
+	jclass callable_class = p_env->FindClass("org/godotengine/godot/variant/Callable");
+	if (callable_class && p_env->IsInstanceOf(p_jcallable_obj, callable_class)) {
+		jmethodID get_native_pointer = p_env->GetMethodID(callable_class, "getNativePointer", "()J");
+		jlong native_callable = p_env->CallLongMethod(p_jcallable_obj, get_native_pointer);
+
+		callable_variant = reinterpret_cast<const Variant *>(native_callable);
+	}
+
+	p_env->DeleteLocalRef(callable_class);
+
+	ERR_FAIL_NULL_V(callable_variant, Callable());
+	return *callable_variant;
+}
+
+String charsequence_to_string(JNIEnv *p_env, jobject p_charsequence) {
+	ERR_FAIL_NULL_V(p_env, String());
+
+	String result;
+	jclass bclass = p_env->FindClass("java/lang/CharSequence");
+	if (bclass && p_env->IsInstanceOf(p_charsequence, bclass)) {
+		jmethodID to_string = p_env->GetMethodID(bclass, "toString", "()Ljava/lang/String;");
+		jstring obj_string = (jstring)p_env->CallObjectMethod(p_charsequence, to_string);
+
+		result = jstring_to_string(obj_string, p_env);
+		p_env->DeleteLocalRef(obj_string);
+	}
+
+	p_env->DeleteLocalRef(bclass);
+	return result;
+}
+
 jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_arg, bool force_jobject) {
 	jvalret v;
 
@@ -98,6 +149,12 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			v.val.l = arr;
 			v.obj = arr;
 
+		} break;
+
+		case Variant::CALLABLE: {
+			jobject jcallable = callable_to_jcallable(env, *p_arg);
+			v.val.l = jcallable;
+			v.obj = jcallable;
 		} break;
 
 		case Variant::DICTIONARY: {
@@ -234,6 +291,10 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 		return jstring_to_string((jstring)obj, env);
 	}
 
+	if (name == "java.lang.CharSequence") {
+		return charsequence_to_string(env, obj);
+	}
+
 	if (name == "[Ljava.lang.String;") {
 		jobjectArray arr = (jobjectArray)obj;
 		int stringCount = env->GetArrayLength(arr);
@@ -243,6 +304,20 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 			jstring string = (jstring)env->GetObjectArrayElement(arr, i);
 			sarr.push_back(jstring_to_string(string, env));
 			env->DeleteLocalRef(string);
+		}
+
+		return sarr;
+	}
+
+	if (name == "[Ljava.lang.CharSequence;") {
+		jobjectArray arr = (jobjectArray)obj;
+		int stringCount = env->GetArrayLength(arr);
+		Vector<String> sarr;
+
+		for (int i = 0; i < stringCount; i++) {
+			jobject charsequence = env->GetObjectArrayElement(arr, i);
+			sarr.push_back(charsequence_to_string(env, charsequence));
+			env->DeleteLocalRef(charsequence);
 		}
 
 		return sarr;
@@ -370,6 +445,10 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 		return ret;
 	}
 
+	if (name == "org.godotengine.godot.variant.Callable") {
+		return jcallable_to_callable(env, obj);
+	}
+
 	Ref<JavaObject> generic_object(memnew(JavaObject(JavaClassWrapper::get_singleton()->wrap(name), obj)));
 
 	env->DeleteLocalRef(c);
@@ -389,13 +468,16 @@ Variant::Type get_jni_type(const String &p_type) {
 		{ "float", Variant::FLOAT },
 		{ "double", Variant::FLOAT },
 		{ "java.lang.String", Variant::STRING },
+		{ "java.lang.CharSequence", Variant::STRING },
 		{ "[I", Variant::PACKED_INT32_ARRAY },
 		{ "[J", Variant::PACKED_INT64_ARRAY },
 		{ "[B", Variant::PACKED_BYTE_ARRAY },
 		{ "[F", Variant::PACKED_FLOAT32_ARRAY },
 		{ "[D", Variant::PACKED_FLOAT64_ARRAY },
 		{ "[Ljava.lang.String;", Variant::PACKED_STRING_ARRAY },
+		{ "[Ljava.lang.CharSequence;", Variant::PACKED_STRING_ARRAY },
 		{ "org.godotengine.godot.Dictionary", Variant::DICTIONARY },
+		{ "org.godotengine.godot.variant.Callable", Variant::CALLABLE },
 		{ nullptr, Variant::NIL }
 	};
 
@@ -410,39 +492,4 @@ Variant::Type get_jni_type(const String &p_type) {
 	}
 
 	return Variant::OBJECT;
-}
-
-String get_jni_sig(const String &p_type) {
-	static struct {
-		const char *name;
-		const char *sig;
-	} _type_to_vtype[] = {
-		{ "void", "V" },
-		{ "boolean", "Z" },
-		{ "int", "I" },
-		{ "long", "J" },
-		{ "float", "F" },
-		{ "double", "D" },
-		{ "java.lang.String", "Ljava/lang/String;" },
-		{ "org.godotengine.godot.Dictionary", "Lorg/godotengine/godot/Dictionary;" },
-		{ "[I", "[I" },
-		{ "[J", "[J" },
-		{ "[B", "[B" },
-		{ "[F", "[F" },
-		{ "[D", "[D" },
-		{ "[Ljava.lang.String;", "[Ljava/lang/String;" },
-		{ nullptr, "V" }
-	};
-
-	int idx = 0;
-
-	while (_type_to_vtype[idx].name) {
-		if (p_type == _type_to_vtype[idx].name) {
-			return _type_to_vtype[idx].sig;
-		}
-
-		idx++;
-	}
-
-	return "L" + p_type.replace(".", "/") + ";";
 }

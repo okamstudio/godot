@@ -82,6 +82,7 @@ public:
 	virtual String get_name() const override;
 	virtual String get_distribution_name() const override;
 	virtual String get_version() const override;
+	virtual String get_version_alias() const override;
 
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!") override;
 

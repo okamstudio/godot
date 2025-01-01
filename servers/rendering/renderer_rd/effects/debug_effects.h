@@ -34,9 +34,6 @@
 #include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/motion_vectors.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/shadow_frustum.glsl.gen.h"
-#include "servers/rendering/renderer_scene_render.h"
-
-#include "servers/rendering_server.h"
 
 namespace RendererRD {
 

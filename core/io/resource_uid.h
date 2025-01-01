@@ -39,9 +39,7 @@ class ResourceUID : public Object {
 	GDCLASS(ResourceUID, Object)
 public:
 	typedef int64_t ID;
-	enum {
-		INVALID_ID = -1
-	};
+	constexpr const static ID INVALID_ID = -1;
 
 	static String get_cache_file();
 

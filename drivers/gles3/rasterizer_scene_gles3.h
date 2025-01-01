@@ -461,7 +461,7 @@ private:
 		bool used_depth_prepass = false;
 
 		GLES3::SceneShaderData::BlendMode current_blend_mode = GLES3::SceneShaderData::BLEND_MODE_MIX;
-		GLES3::SceneShaderData::Cull cull_mode = GLES3::SceneShaderData::CULL_BACK;
+		RS::CullMode cull_mode = RS::CULL_MODE_BACK;
 
 		bool current_blend_enabled = false;
 		bool current_depth_draw_enabled = false;
@@ -477,7 +477,7 @@ private:
 
 			glCullFace(GL_BACK);
 			glEnable(GL_CULL_FACE);
-			cull_mode = GLES3::SceneShaderData::CULL_BACK;
+			cull_mode = RS::CULL_MODE_BACK;
 
 			glDepthMask(GL_FALSE);
 			current_depth_draw_enabled = false;
@@ -485,16 +485,16 @@ private:
 			current_depth_test_enabled = false;
 		}
 
-		void set_gl_cull_mode(GLES3::SceneShaderData::Cull p_mode) {
+		void set_gl_cull_mode(RS::CullMode p_mode) {
 			if (cull_mode != p_mode) {
-				if (p_mode == GLES3::SceneShaderData::CULL_DISABLED) {
+				if (p_mode == RS::CULL_MODE_DISABLED) {
 					glDisable(GL_CULL_FACE);
 				} else {
-					if (cull_mode == GLES3::SceneShaderData::CULL_DISABLED) {
+					if (cull_mode == RS::CULL_MODE_DISABLED) {
 						// Last time was disabled, so enable and set proper face.
 						glEnable(GL_CULL_FACE);
 					}
-					glCullFace(p_mode == GLES3::SceneShaderData::CULL_FRONT ? GL_FRONT : GL_BACK);
+					glCullFace(p_mode == RS::CULL_MODE_FRONT ? GL_FRONT : GL_BACK);
 				}
 				cull_mode = p_mode;
 			}

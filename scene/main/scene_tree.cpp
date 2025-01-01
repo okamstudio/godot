@@ -31,17 +31,12 @@
 #include "scene_tree.h"
 
 #include "core/config/project_settings.h"
-#include "core/debugger/engine_debugger.h"
 #include "core/input/input.h"
-#include "core/io/dir_access.h"
 #include "core/io/image_loader.h"
-#include "core/io/marshalls.h"
 #include "core/io/resource_loader.h"
 #include "core/object/message_queue.h"
 #include "core/object/worker_thread_pool.h"
-#include "core/os/keyboard.h"
 #include "core/os/os.h"
-#include "core/string/print_string.h"
 #include "node.h"
 #include "scene/animation/tween.h"
 #include "scene/debugger/scene_debugger.h"
@@ -49,14 +44,11 @@
 #include "scene/main/multiplayer_api.h"
 #include "scene/main/viewport.h"
 #include "scene/resources/environment.h"
-#include "scene/resources/font.h"
 #include "scene/resources/image_texture.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/world_2d.h"
-#include "servers/display_server.h"
-#include "servers/navigation_server_3d.h"
 #include "servers/physics_server_2d.h"
 #ifndef _3D_DISABLED
 #include "scene/3d/node_3d.h"
@@ -64,8 +56,6 @@
 #include "servers/physics_server_3d.h"
 #endif // _3D_DISABLED
 #include "window.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 void SceneTreeTimer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_time_left", "time"), &SceneTreeTimer::set_time_left);
@@ -104,7 +94,7 @@ void SceneTreeTimer::set_ignore_time_scale(bool p_ignore) {
 	ignore_time_scale = p_ignore;
 }
 
-bool SceneTreeTimer::is_ignore_time_scale() {
+bool SceneTreeTimer::is_ignoring_time_scale() {
 	return ignore_time_scale;
 }
 
@@ -667,7 +657,7 @@ void SceneTree::process_timers(double p_delta, bool p_physics_frame) {
 		}
 
 		double time_left = E->get()->get_time_left();
-		if (E->get()->is_ignore_time_scale()) {
+		if (E->get()->is_ignoring_time_scale()) {
 			time_left -= Engine::get_singleton()->get_process_step();
 		} else {
 			time_left -= p_delta;
@@ -701,7 +691,8 @@ void SceneTree::process_tweens(double p_delta, bool p_physics) {
 			continue;
 		}
 
-		if (!E->get()->step(p_delta)) {
+		double time_step = E->get()->is_ignoring_time_scale() ? Engine::get_singleton()->get_process_step() : p_delta;
+		if (!E->get()->step(time_step)) {
 			E->get()->clear();
 			tweens.erase(E);
 		}
@@ -1502,7 +1493,6 @@ Node *SceneTree::get_edited_scene_root() const {
 
 void SceneTree::set_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Changing scene can only be done from the main thread.");
-	ERR_FAIL_COND(p_scene && p_scene->get_parent() != root);
 	current_scene = p_scene;
 }
 
@@ -1515,9 +1505,12 @@ void SceneTree::_flush_scene_change() {
 		memdelete(prev_scene);
 		prev_scene = nullptr;
 	}
-	current_scene = pending_new_scene;
-	root->add_child(pending_new_scene);
+
+	Node *scene = pending_new_scene;
 	pending_new_scene = nullptr;
+
+	add_current_scene(scene);
+
 	// Update display for cursor instantly.
 	root->update_mouse_cursor_state();
 }
@@ -1544,12 +1537,10 @@ Error SceneTree::change_scene_to_packed(const Ref<PackedScene> &p_scene) {
 		pending_new_scene = nullptr;
 	}
 
-	prev_scene = current_scene;
-
 	if (current_scene) {
-		// Let as many side effects as possible happen or be queued now,
-		// so they are run before the scene is actually deleted.
-		root->remove_child(current_scene);
+		prev_scene = remove_current_scene();
+	} else {
+		prev_scene = nullptr;
 	}
 	DEV_ASSERT(!current_scene);
 
@@ -1567,15 +1558,54 @@ Error SceneTree::reload_current_scene() {
 void SceneTree::unload_current_scene() {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Unloading the current scene can only be done from the main thread.");
 	if (current_scene) {
-		memdelete(current_scene);
-		current_scene = nullptr;
+		Node *scene = remove_current_scene();
+		if (scene) {
+			memdelete(scene);
+		}
 	}
 }
 
-void SceneTree::add_current_scene(Node *p_current) {
+void SceneTree::add_current_scene(Node *p_scene) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Adding a current scene can only be done from the main thread.");
-	current_scene = p_current;
-	root->add_child(p_current);
+	ERR_FAIL_COND_MSG(current_scene, "You can only add a current scene when there is no current scene.");
+
+	if (!GDVIRTUAL_IS_OVERRIDDEN(_add_current_scene)) {
+		current_scene = p_scene;
+		root->add_child(p_scene);
+
+		emit_signal(current_scene_added_name, p_scene);
+	} else {
+		GDVIRTUAL_CALL(_add_current_scene, p_scene);
+	}
+}
+
+Node *SceneTree::remove_current_scene() {
+	ERR_FAIL_COND_V_MSG(!Thread::is_main_thread(), nullptr, "Removing a current scene can only be done from the main thread.");
+	ERR_FAIL_COND_V_MSG(!current_scene, nullptr, "You can only remove a current scene when there is a current scene.");
+
+	if (!GDVIRTUAL_IS_OVERRIDDEN(_remove_current_scene)) {
+		Node *scene = current_scene;
+
+		Node *parent = scene->get_parent();
+		if (parent) {
+			parent->remove_child(scene);
+		}
+		current_scene = nullptr;
+
+		return scene;
+	} else {
+		Object *ret = nullptr;
+		GDVIRTUAL_CALL(_remove_current_scene, ret);
+
+		if (!ret) {
+			return nullptr;
+		}
+
+		Node *node = Object::cast_to<Node>(ret);
+		ERR_FAIL_COND_V_MSG(!node, nullptr, "_remove_current_scene must return a node.");
+
+		return node;
+	}
 }
 
 Ref<SceneTreeTimer> SceneTree::create_timer(double p_delay_sec, bool p_process_always, bool p_process_in_physics, bool p_ignore_time_scale) {
@@ -1643,7 +1673,7 @@ Ref<MultiplayerAPI> SceneTree::get_multiplayer(const NodePath &p_for_path) const
 void SceneTree::set_multiplayer(Ref<MultiplayerAPI> p_multiplayer, const NodePath &p_root_path) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "Multiplayer can only be manipulated from the main thread.");
 	if (p_root_path.is_empty()) {
-		ERR_FAIL_COND(!p_multiplayer.is_valid());
+		ERR_FAIL_COND(p_multiplayer.is_null());
 		if (multiplayer.is_valid()) {
 			multiplayer->object_configuration_remove(nullptr, NodePath("/" + root->get_name()));
 		}
@@ -1782,6 +1812,8 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("node_renamed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("node_configuration_warning_changed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 
+	ADD_SIGNAL(MethodInfo("current_scene_added", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
+
 	ADD_SIGNAL(MethodInfo("process_frame"));
 	ADD_SIGNAL(MethodInfo("physics_frame"));
 
@@ -1789,6 +1821,9 @@ void SceneTree::_bind_methods() {
 	BIND_ENUM_CONSTANT(GROUP_CALL_REVERSE);
 	BIND_ENUM_CONSTANT(GROUP_CALL_DEFERRED);
 	BIND_ENUM_CONSTANT(GROUP_CALL_UNIQUE);
+
+	GDVIRTUAL_BIND(_add_current_scene, "scene");
+	GDVIRTUAL_BIND(_remove_current_scene);
 }
 
 SceneTree *SceneTree::singleton = nullptr;
@@ -1859,7 +1894,7 @@ SceneTree::SceneTree() {
 	}
 
 #ifndef _3D_DISABLED
-	if (!root->get_world_3d().is_valid()) {
+	if (root->get_world_3d().is_null()) {
 		root->set_world_3d(Ref<World3D>(memnew(World3D)));
 	}
 	root->set_as_audio_listener_3d(true);

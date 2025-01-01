@@ -31,8 +31,6 @@
 #include "visual_shader_nodes.h"
 #include "visual_shader_nodes.compat.inc"
 
-#include "scene/resources/image_texture.h"
-
 ////////////// Vector Base
 
 VisualShaderNodeVectorBase::PortType VisualShaderNodeVectorBase::get_input_port_type(int p_port) const {

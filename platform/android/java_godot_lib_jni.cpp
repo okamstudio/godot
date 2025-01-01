@@ -42,7 +42,6 @@
 #include "net_socket_android.h"
 #include "os_android.h"
 #include "plugin/godot_plugin_jni.h"
-#include "string_android.h"
 #include "thread_jandroid.h"
 #include "tts_android.h"
 
@@ -486,51 +485,6 @@ JNIEXPORT jstring JNICALL Java_org_godotengine_godot_GodotLib_getEditorSetting(J
 #endif
 
 	return env->NewStringUTF(editor_setting_value.utf8().get_data());
-}
-
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_callobject(JNIEnv *env, jclass clazz, jlong ID, jstring method, jobjectArray params) {
-	Object *obj = ObjectDB::get_instance(ObjectID(ID));
-	ERR_FAIL_NULL(obj);
-
-	String str_method = jstring_to_string(method, env);
-
-	int count = env->GetArrayLength(params);
-
-	Variant *vlist = (Variant *)alloca(sizeof(Variant) * count);
-	const Variant **vptr = (const Variant **)alloca(sizeof(Variant *) * count);
-
-	for (int i = 0; i < count; i++) {
-		jobject jobj = env->GetObjectArrayElement(params, i);
-		ERR_FAIL_NULL(jobj);
-		memnew_placement(&vlist[i], Variant(_jobject_to_variant(env, jobj)));
-		vptr[i] = &vlist[i];
-		env->DeleteLocalRef(jobj);
-	}
-
-	Callable::CallError err;
-	obj->callp(str_method, vptr, count, err);
-}
-
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_calldeferred(JNIEnv *env, jclass clazz, jlong ID, jstring method, jobjectArray params) {
-	Object *obj = ObjectDB::get_instance(ObjectID(ID));
-	ERR_FAIL_NULL(obj);
-
-	String str_method = jstring_to_string(method, env);
-
-	int count = env->GetArrayLength(params);
-
-	Variant *args = (Variant *)alloca(sizeof(Variant) * count);
-	const Variant **argptrs = (const Variant **)alloca(sizeof(Variant *) * count);
-
-	for (int i = 0; i < count; i++) {
-		jobject jobj = env->GetObjectArrayElement(params, i);
-		ERR_FAIL_NULL(jobj);
-		memnew_placement(&args[i], Variant(_jobject_to_variant(env, jobj)));
-		argptrs[i] = &args[i];
-		env->DeleteLocalRef(jobj);
-	}
-
-	Callable(obj, str_method).call_deferredp(argptrs, count);
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_onNightModeChanged(JNIEnv *env, jclass clazz) {

@@ -1373,7 +1373,7 @@ void godotsharp_weakref(Object *p_ptr, Ref<RefCounted> *r_weak_ref) {
 
 	if (rc) {
 		Ref<RefCounted> r = rc;
-		if (!r.is_valid()) {
+		if (r.is_null()) {
 			return;
 		}
 

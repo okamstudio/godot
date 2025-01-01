@@ -32,7 +32,6 @@
 
 #include "core/config/project_settings.h"
 #include "core/os/keyboard.h"
-#include "core/string/print_string.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/label.h"
@@ -398,7 +397,17 @@ void FileDialog::update_dir() {
 }
 
 void FileDialog::_dir_submitted(String p_dir) {
-	_change_dir(root_prefix.path_join(p_dir));
+	String new_dir = p_dir;
+#ifdef WINDOWS_ENABLED
+	if (root_prefix.is_empty() && drives->is_visible() && !new_dir.is_network_share_path() && new_dir.is_absolute_path() && new_dir.find(":/") == -1 && new_dir.find(":\\") == -1) {
+		// Non network path without X:/ prefix on Windows, add drive letter.
+		new_dir = drives->get_item_text(drives->get_selected()).path_join(new_dir);
+	}
+#endif
+	if (!root_prefix.is_empty()) {
+		new_dir = root_prefix.path_join(new_dir);
+	}
+	_change_dir(new_dir);
 	file->set_text("");
 	_push_history();
 }

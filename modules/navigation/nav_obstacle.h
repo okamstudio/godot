@@ -34,7 +34,6 @@
 #include "nav_rid.h"
 
 #include "core/object/class_db.h"
-#include "core/templates/local_vector.h"
 #include "core/templates/self_list.h"
 
 class NavAgent;

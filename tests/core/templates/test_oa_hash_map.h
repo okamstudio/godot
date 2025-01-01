@@ -38,6 +38,32 @@
 
 namespace TestOAHashMap {
 
+TEST_CASE("[OAHashMap] List initialization") {
+	OAHashMap<int, String> map{ { 0, "A" }, { 1, "B" }, { 2, "C" }, { 3, "D" }, { 4, "E" } };
+
+	CHECK(map.get_num_elements() == 5);
+	String value;
+	CHECK(map.lookup(0, value));
+	CHECK(value == "A");
+	CHECK(map.lookup(1, value));
+	CHECK(value == "B");
+	CHECK(map.lookup(2, value));
+	CHECK(value == "C");
+	CHECK(map.lookup(3, value));
+	CHECK(value == "D");
+	CHECK(map.lookup(4, value));
+	CHECK(value == "E");
+}
+
+TEST_CASE("[OAHashMap] List initialization with existing elements") {
+	OAHashMap<int, String> map{ { 0, "A" }, { 0, "B" }, { 0, "C" }, { 0, "D" }, { 0, "E" } };
+
+	CHECK(map.get_num_elements() == 1);
+	String value;
+	CHECK(map.lookup(0, value));
+	CHECK(value == "E");
+}
+
 TEST_CASE("[OAHashMap] Insert element") {
 	OAHashMap<int, int> map;
 	map.insert(42, 84);

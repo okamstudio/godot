@@ -1058,6 +1058,10 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			style_itemlist_hover->set_bg_color(p_config.highlight_color * Color(1, 1, 1, 0.3));
 			style_itemlist_hover->set_border_width_all(0);
 
+			Ref<StyleBoxFlat> style_itemlist_hover_selected = style_tree_selected->duplicate();
+			style_itemlist_hover_selected->set_bg_color(p_config.highlight_color * Color(1, 1, 1, 1.2));
+			style_itemlist_hover_selected->set_border_width_all(0);
+
 			p_theme->set_stylebox(SceneStringName(panel), "ItemList", style_itemlist_bg);
 			p_theme->set_stylebox("focus", "ItemList", p_config.button_style_focus);
 			p_theme->set_stylebox("cursor", "ItemList", style_itemlist_cursor);
@@ -1065,6 +1069,8 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 			p_theme->set_stylebox("selected_focus", "ItemList", style_tree_focus);
 			p_theme->set_stylebox("selected", "ItemList", style_tree_selected);
 			p_theme->set_stylebox("hovered", "ItemList", style_itemlist_hover);
+			p_theme->set_stylebox("hovered_selected", "ItemList", style_itemlist_hover_selected);
+			p_theme->set_stylebox("hovered_selected_focus", "ItemList", style_itemlist_hover_selected);
 			p_theme->set_color(SceneStringName(font_color), "ItemList", p_config.font_color);
 			p_theme->set_color("font_hovered_color", "ItemList", p_config.mono_color);
 			p_theme->set_color("font_selected_color", "ItemList", p_config.mono_color);
@@ -1557,6 +1563,7 @@ void EditorThemeManager::_populate_standard_styles(const Ref<EditorTheme> &p_the
 		p_theme->set_color("activity", "GraphEdit", p_config.dark_theme ? Color(1, 1, 1) : Color(0, 0, 0));
 
 		p_theme->set_color("connection_hover_tint_color", "GraphEdit", p_config.dark_theme ? Color(0, 0, 0, 0.3) : Color(1, 1, 1, 0.3));
+		p_theme->set_constant("connection_hover_thickness", "GraphEdit", 0);
 		p_theme->set_color("connection_valid_target_tint_color", "GraphEdit", p_config.dark_theme ? Color(1, 1, 1, 0.4) : Color(0, 0, 0, 0.4));
 		p_theme->set_color("connection_rim_color", "GraphEdit", p_config.tree_panel_style->get_bg_color());
 
@@ -1957,6 +1964,14 @@ void EditorThemeManager::_populate_editor_styles(const Ref<EditorTheme> &p_theme
 		p_theme->set_color("movie_writer_icon_pressed", EditorStringName(EditorStyles), Color(0, 0, 0, 0.84));
 		p_theme->set_color("movie_writer_icon_hover", EditorStringName(EditorStyles), Color(1, 1, 1, 0.9));
 		p_theme->set_color("movie_writer_icon_hover_pressed", EditorStringName(EditorStyles), Color(0, 0, 0, 0.84));
+
+		// Profiler autostart indicator panel.
+		Ref<StyleBoxFlat> style_profiler_autostart = style_launch_pad->duplicate();
+		style_profiler_autostart->set_bg_color(Color(1, 0.867, 0.396));
+		p_theme->set_type_variation("ProfilerAutostartIndicator", "Button");
+		p_theme->set_stylebox(CoreStringName(normal), "ProfilerAutostartIndicator", style_profiler_autostart);
+		p_theme->set_stylebox(SceneStringName(pressed), "ProfilerAutostartIndicator", style_profiler_autostart);
+		p_theme->set_stylebox("hover", "ProfilerAutostartIndicator", style_profiler_autostart);
 	}
 
 	// Standard GUI variations.

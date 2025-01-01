@@ -971,6 +971,8 @@ public:
 	// Optional - requires xdg_activation_v1
 	void window_request_attention(DisplayServer::WindowID p_window_id);
 
+	void window_start_drag(DisplayServer::WindowID p_window_id);
+
 	// Optional - require idle_inhibit_unstable_v1
 	void window_set_idle_inhibition(DisplayServer::WindowID p_window_id, bool p_enable);
 	bool window_get_idle_inhibition(DisplayServer::WindowID p_window_id) const;

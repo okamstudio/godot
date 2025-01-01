@@ -31,7 +31,8 @@
 #ifndef RIGID_BODY_3D_H
 #define RIGID_BODY_3D_H
 
-#include "scene/3d/physics/static_body_3d.h"
+#include "core/templates/vset.h"
+#include "scene/3d/physics/physics_body_3d.h"
 
 class RigidBody3D : public PhysicsBody3D {
 	GDCLASS(RigidBody3D, PhysicsBody3D);

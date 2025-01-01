@@ -47,8 +47,12 @@ class Shape3D : public Resource {
 	Ref<ArrayMesh> debug_mesh_cache;
 	Ref<Material> collision_material;
 
+	// Not wrapped in `#ifdef DEBUG_ENABLED` as it is used for rendering.
 	Color debug_color = Color(0.0, 0.0, 0.0, 0.0);
 	bool debug_fill = true;
+#ifdef DEBUG_ENABLED
+	bool debug_properties_edited = false;
+#endif // DEBUG_ENABLED
 
 protected:
 	static void _bind_methods();
@@ -77,12 +81,14 @@ public:
 	real_t get_margin() const;
 	void set_margin(real_t p_margin);
 
-#ifdef DEBUG_ENABLED
 	void set_debug_color(const Color &p_color);
 	Color get_debug_color() const;
 
 	void set_debug_fill(bool p_fill);
 	bool get_debug_fill() const;
+
+#ifdef DEBUG_ENABLED
+	_FORCE_INLINE_ bool are_debug_properties_edited() const { return debug_properties_edited; }
 #endif // DEBUG_ENABLED
 
 	Shape3D();

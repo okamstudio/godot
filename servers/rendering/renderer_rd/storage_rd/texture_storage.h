@@ -31,7 +31,6 @@
 #ifndef TEXTURE_STORAGE_RD_H
 #define TEXTURE_STORAGE_RD_H
 
-#include "core/templates/local_vector.h"
 #include "core/templates/paged_array.h"
 #include "core/templates/rid_owner.h"
 #include "servers/rendering/renderer_rd/shaders/canvas_sdf.glsl.gen.h"

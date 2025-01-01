@@ -10,10 +10,10 @@ import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
 
-# Import hardcoded version information from version.py
-root_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../")
-sys.path.append(root_directory)  # Include the root directory
-import version  # noqa: E402
+sys.path.insert(0, root_directory := os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
+
+import version
+from methods import Ansi, toggle_color
 
 # $DOCS_URL/path/to/page.html(#fragment-tag)
 GODOT_DOCS_PATTERN = re.compile(r"^\$DOCS_URL/(.*)\.html(#.*)?$")
@@ -89,8 +89,6 @@ BASE_STRINGS = [
     "[b]Note:[/b] The returned array is [i]copied[/i] and any changes to it will not update the original property value. See [%s] for more details.",
 ]
 strings_l10n: Dict[str, str] = {}
-
-STYLES: Dict[str, str] = {}
 
 CLASS_GROUPS: Dict[str, str] = {
     "global": "Globals",
@@ -699,31 +697,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    should_color = bool(args.color or sys.stdout.isatty() or os.environ.get("CI"))
-
-    # Enable ANSI escape code support on Windows 10 and later (for colored console output).
-    # <https://github.com/python/cpython/issues/73245>
-    if should_color and sys.stdout.isatty() and sys.platform == "win32":
-        try:
-            from ctypes import WinError, byref, windll  # type: ignore
-            from ctypes.wintypes import DWORD  # type: ignore
-
-            stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-            mode = DWORD(0)
-            if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-                raise WinError()
-            mode = DWORD(mode.value | 4)
-            if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-                raise WinError()
-        except Exception:
-            should_color = False
-
-    STYLES["red"] = "\x1b[91m" if should_color else ""
-    STYLES["green"] = "\x1b[92m" if should_color else ""
-    STYLES["yellow"] = "\x1b[93m" if should_color else ""
-    STYLES["bold"] = "\x1b[1m" if should_color else ""
-    STYLES["regular"] = "\x1b[22m" if should_color else ""
-    STYLES["reset"] = "\x1b[0m" if should_color else ""
+    toggle_color(args.color)
 
     # Retrieve heading translations for the given language.
     if not args.dry_run and args.lang != "en":
@@ -834,16 +808,16 @@ def main() -> None:
     if state.script_language_parity_check.hit_count > 0:
         if not args.verbose:
             print(
-                f'{STYLES["yellow"]}{state.script_language_parity_check.hit_count} code samples failed parity check. Use --verbose to get more information.{STYLES["reset"]}'
+                f"{Ansi.YELLOW}{state.script_language_parity_check.hit_count} code samples failed parity check. Use --verbose to get more information.{Ansi.RESET}"
             )
         else:
             print(
-                f'{STYLES["yellow"]}{state.script_language_parity_check.hit_count} code samples failed parity check:{STYLES["reset"]}'
+                f"{Ansi.YELLOW}{state.script_language_parity_check.hit_count} code samples failed parity check:{Ansi.RESET}"
             )
 
             for class_name in state.script_language_parity_check.hit_map.keys():
                 class_hits = state.script_language_parity_check.hit_map[class_name]
-                print(f'{STYLES["yellow"]}- {len(class_hits)} hits in class "{class_name}"{STYLES["reset"]}')
+                print(f'{Ansi.YELLOW}- {len(class_hits)} hits in class "{class_name}"{Ansi.RESET}')
 
                 for context, error in class_hits:
                     print(f"  - {error} in {format_context_name(context)}")
@@ -853,24 +827,22 @@ def main() -> None:
 
     if state.num_warnings >= 2:
         print(
-            f'{STYLES["yellow"]}{state.num_warnings} warnings were found in the class reference XML. Please check the messages above.{STYLES["reset"]}'
+            f"{Ansi.YELLOW}{state.num_warnings} warnings were found in the class reference XML. Please check the messages above.{Ansi.RESET}"
         )
     elif state.num_warnings == 1:
         print(
-            f'{STYLES["yellow"]}1 warning was found in the class reference XML. Please check the messages above.{STYLES["reset"]}'
+            f"{Ansi.YELLOW}1 warning was found in the class reference XML. Please check the messages above.{Ansi.RESET}"
         )
 
     if state.num_errors >= 2:
         print(
-            f'{STYLES["red"]}{state.num_errors} errors were found in the class reference XML. Please check the messages above.{STYLES["reset"]}'
+            f"{Ansi.RED}{state.num_errors} errors were found in the class reference XML. Please check the messages above.{Ansi.RESET}"
         )
     elif state.num_errors == 1:
-        print(
-            f'{STYLES["red"]}1 error was found in the class reference XML. Please check the messages above.{STYLES["reset"]}'
-        )
+        print(f"{Ansi.RED}1 error was found in the class reference XML. Please check the messages above.{Ansi.RESET}")
 
     if state.num_warnings == 0 and state.num_errors == 0:
-        print(f'{STYLES["green"]}No warnings or errors found in the class reference XML.{STYLES["reset"]}')
+        print(f"{Ansi.GREEN}No warnings or errors found in the class reference XML.{Ansi.RESET}")
         if not args.dry_run:
             print(f"Wrote reStructuredText files for each class to: {args.output}")
     else:
@@ -881,12 +853,12 @@ def main() -> None:
 
 
 def print_error(error: str, state: State) -> None:
-    print(f'{STYLES["red"]}{STYLES["bold"]}ERROR:{STYLES["regular"]} {error}{STYLES["reset"]}')
+    print(f"{Ansi.RED}{Ansi.BOLD}ERROR:{Ansi.REGULAR} {error}{Ansi.RESET}")
     state.num_errors += 1
 
 
 def print_warning(warning: str, state: State) -> None:
-    print(f'{STYLES["yellow"]}{STYLES["bold"]}WARNING:{STYLES["regular"]} {warning}{STYLES["reset"]}')
+    print(f"{Ansi.YELLOW}{Ansi.BOLD}WARNING:{Ansi.REGULAR} {warning}{Ansi.RESET}")
     state.num_warnings += 1
 
 

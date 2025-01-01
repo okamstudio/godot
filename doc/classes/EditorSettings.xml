@@ -519,9 +519,6 @@
 		</member>
 		<member name="editors/bone_mapper/handle_colors/unset" type="Color" setter="" getter="">
 		</member>
-		<member name="editors/grid_map/editor_side" type="int" setter="" getter="">
-			Specifies the side of 3D editor's viewport where GridMap's mesh palette will appear.
-		</member>
 		<member name="editors/grid_map/palette_min_width" type="int" setter="" getter="">
 			Minimum width of GridMap's mesh palette side panel.
 		</member>
@@ -1298,6 +1295,9 @@
 		</member>
 		<member name="text_editor/completion/idle_parse_delay" type="float" setter="" getter="">
 			The delay in seconds after which the script editor should check for errors when the user stops typing.
+		</member>
+		<member name="text_editor/completion/idle_parse_delay_with_errors_found" type="float" setter="" getter="">
+			The delay used instead of [member text_editor/completion/idle_parse_delay], when the parser has found errors. A lower value should feel more responsive while fixing code, but may cause notable stuttering and increase CPU usage.
 		</member>
 		<member name="text_editor/completion/put_callhint_tooltip_below_current_line" type="bool" setter="" getter="">
 			If [code]true[/code], the code completion tooltip will appear below the current line unless there is no space on screen below the current line. If [code]false[/code], the code completion tooltip will appear above the current line.

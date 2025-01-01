@@ -40,7 +40,6 @@
 #include "core/io/marshalls.h"
 #include "core/io/resource_uid.h"
 #include "core/object/script_language.h"
-#include "core/os/keyboard.h"
 #include "core/templates/rb_set.h"
 #include "core/variant/typed_array.h"
 #include "core/variant/variant_parser.h"
@@ -870,7 +869,7 @@ Error ProjectSettings::_save_settings_binary(const String &p_file, const RBMap<S
 
 	if (!p_custom_features.is_empty()) {
 		// Store how many properties are saved, add one for custom features, which must always go first.
-		file->store_32(count + 1);
+		file->store_32(uint32_t(count + 1));
 		String key = CoreStringName(_custom_features);
 		file->store_pascal_string(key);
 
@@ -883,12 +882,12 @@ Error ProjectSettings::_save_settings_binary(const String &p_file, const RBMap<S
 
 		err = encode_variant(p_custom_features, buff.ptrw(), len, false);
 		ERR_FAIL_COND_V(err != OK, err);
-		file->store_32(len);
+		file->store_32(uint32_t(len));
 		file->store_buffer(buff.ptr(), buff.size());
 
 	} else {
 		// Store how many properties are saved.
-		file->store_32(count);
+		file->store_32(uint32_t(count));
 	}
 
 	for (const KeyValue<String, List<String>> &E : p_props) {
@@ -915,7 +914,7 @@ Error ProjectSettings::_save_settings_binary(const String &p_file, const RBMap<S
 
 			err = encode_variant(value, buff.ptrw(), len, true);
 			ERR_FAIL_COND_V_MSG(err != OK, ERR_INVALID_DATA, "Error when trying to encode Variant.");
-			file->store_32(len);
+			file->store_32(uint32_t(len));
 			file->store_buffer(buff.ptr(), buff.size());
 		}
 	}

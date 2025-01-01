@@ -31,7 +31,7 @@
 #ifndef FORWARD_ID_STORAGE_H
 #define FORWARD_ID_STORAGE_H
 
-#include "servers/rendering/storage/utilities.h"
+#include <stdint.h>
 
 class RendererSceneRenderRD;
 

@@ -158,7 +158,7 @@ List<StringName> InputMap::get_actions() const {
 }
 
 List<Ref<InputEvent>>::Element *InputMap::_find_event(Action &p_action, const Ref<InputEvent> &p_event, bool p_exact_match, bool *r_pressed, float *r_strength, float *r_raw_strength, int *r_event_index) const {
-	ERR_FAIL_COND_V(!p_event.is_valid(), nullptr);
+	ERR_FAIL_COND_V(p_event.is_null(), nullptr);
 
 	int i = 0;
 	for (List<Ref<InputEvent>>::Element *E = p_action.inputs.front(); E; E = E->next()) {

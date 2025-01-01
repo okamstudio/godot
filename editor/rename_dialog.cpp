@@ -33,13 +33,10 @@
 #include "modules/modules_enabled.gen.h" // For regex.
 #ifdef MODULE_REGEX_ENABLED
 
-#include "core/string/print_string.h"
 #include "editor/editor_node.h"
-#include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/script_editor_plugin.h"
-#include "editor/themes/editor_scale.h"
 #include "modules/regex/regex.h"
 #include "scene/gui/check_box.h"
 #include "scene/gui/check_button.h"

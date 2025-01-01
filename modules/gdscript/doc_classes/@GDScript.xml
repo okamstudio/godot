@@ -734,7 +734,7 @@
 			<description>
 				Mark the following property as assigned when the [Node] is ready. Values for these properties are not assigned immediately when the node is initialized ([method Object._init]), and instead are computed and stored right before [method Node._ready].
 				[codeblock]
-				@onready var character_name: Label = $Label
+				@onready var character_name = $Label
 				[/codeblock]
 			</description>
 		</annotation>

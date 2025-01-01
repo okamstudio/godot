@@ -30,7 +30,7 @@
 
 #include "navigation_mesh_source_geometry_data_2d.h"
 
-#include "scene/resources/mesh.h"
+#include "core/variant/typed_array.h"
 
 void NavigationMeshSourceGeometryData2D::clear() {
 	RWLockWrite write_lock(geometry_rwlock);

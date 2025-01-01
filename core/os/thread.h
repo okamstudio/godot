@@ -42,8 +42,6 @@
 #include "core/templates/safe_refcount.h"
 #include "core/typedefs.h"
 
-#include <new>
-
 #ifdef MINGW_ENABLED
 #define MINGW_STDTHREAD_REDUNDANCY_WARNING
 #include "thirdparty/mingw-std-threads/mingw.thread.h"

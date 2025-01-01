@@ -30,10 +30,6 @@
 
 #include "crypto.h"
 
-#include "core/config/engine.h"
-#include "core/io/certs_compressed.gen.h"
-#include "core/io/compression.h"
-
 /// Resources
 
 CryptoKey *(*CryptoKey::_create)(bool p_notify_postinitialize) = nullptr;

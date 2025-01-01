@@ -423,7 +423,7 @@ void LightmapGI::_find_meshes_and_lights(Node *p_at_node, Vector<MeshesFound> &m
 			Transform3D xf = get_global_transform().affine_inverse() * s->get_global_transform();
 			for (int i = 0; i < bmeshes.size(); i += 2) {
 				Ref<Mesh> mesh = bmeshes[i];
-				if (!mesh.is_valid()) {
+				if (mesh.is_null()) {
 					continue;
 				}
 
@@ -981,7 +981,7 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 					w_albedo[i + 0] = uint8_t(CLAMP(float(r_aa[i + 0]) * (1.0 - float(r_orm[i + 2] / 255.0)), 0, 255));
 					w_albedo[i + 1] = uint8_t(CLAMP(float(r_aa[i + 1]) * (1.0 - float(r_orm[i + 2] / 255.0)), 0, 255));
 					w_albedo[i + 2] = uint8_t(CLAMP(float(r_aa[i + 2]) * (1.0 - float(r_orm[i + 2] / 255.0)), 0, 255));
-					w_albedo[i + 3] = 255;
+					w_albedo[i + 3] = r_aa[i + 3];
 				}
 
 				md.albedo_on_uv2.instantiate();
@@ -1002,6 +1002,11 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 					continue;
 				}
 				Array a = mf.mesh->surface_get_arrays(i);
+				Ref<Material> mat = mf.mesh->surface_get_material(i);
+				RID mat_rid;
+				if (mat.is_valid()) {
+					mat_rid = mat->get_rid();
+				}
 
 				Vector<Vector3> vertices = a[Mesh::ARRAY_VERTEX];
 				const Vector3 *vr = vertices.ptr();
@@ -1051,6 +1056,7 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 
 						md.uv2.push_back(uvr[vidx[k]]);
 						md.normal.push_back(normal_xform.xform(nr[vidx[k]]).normalized());
+						md.material.push_back(mat_rid);
 					}
 				}
 			}
@@ -1490,7 +1496,7 @@ void LightmapGI::_notification(int p_what) {
 }
 
 void LightmapGI::_assign_lightmaps() {
-	ERR_FAIL_COND(!light_data.is_valid());
+	ERR_FAIL_COND(light_data.is_null());
 
 	for (int i = 0; i < light_data->get_user_count(); i++) {
 		Node *node = get_node(light_data->get_user_path(i));
@@ -1509,7 +1515,7 @@ void LightmapGI::_assign_lightmaps() {
 }
 
 void LightmapGI::_clear_lightmaps() {
-	ERR_FAIL_COND(!light_data.is_valid());
+	ERR_FAIL_COND(light_data.is_null());
 	for (int i = 0; i < light_data->get_user_count(); i++) {
 		Node *node = get_node(light_data->get_user_path(i));
 		int instance_idx = light_data->get_user_sub_instance(i);

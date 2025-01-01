@@ -30,7 +30,6 @@
 
 #include "navigation_obstacle_3d_editor_plugin.h"
 
-#include "core/config/project_settings.h"
 #include "core/math/geometry_2d.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
@@ -103,20 +102,12 @@ void NavigationObstacle3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		lines_mesh_vertices_ptrw[vertex_index++] = safe_global_basis.xform(Vector3(point.x, height, point.z));
 	}
 
-	Vector<Vector2> polygon_2d_vertices;
-	polygon_2d_vertices.resize(vertex_count);
-	for (int i = 0; i < vertex_count; i++) {
-		const Vector3 &vert = vertices[i];
-		polygon_2d_vertices.write[i] = Vector2(vert.x, vert.z);
-	}
-	Vector<int> triangulated_polygon_2d_indices = Geometry2D::triangulate_polygon(polygon_2d_vertices);
-
 	NavigationServer3D *ns3d = NavigationServer3D::get_singleton();
 
-	if (triangulated_polygon_2d_indices.is_empty()) {
-		p_gizmo->add_lines(lines_mesh_vertices, ns3d->get_debug_navigation_avoidance_static_obstacle_pushin_edge_material());
-	} else {
+	if (obstacle->are_vertices_valid()) {
 		p_gizmo->add_lines(lines_mesh_vertices, ns3d->get_debug_navigation_avoidance_static_obstacle_pushout_edge_material());
+	} else {
+		p_gizmo->add_lines(lines_mesh_vertices, ns3d->get_debug_navigation_avoidance_static_obstacle_pushin_edge_material());
 	}
 	p_gizmo->add_collision_segments(lines_mesh_vertices);
 

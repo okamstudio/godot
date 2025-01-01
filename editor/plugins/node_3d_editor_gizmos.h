@@ -33,7 +33,6 @@
 
 #include "core/math/dynamic_bvh.h"
 #include "core/templates/hash_map.h"
-#include "core/templates/local_vector.h"
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/node_3d.h"
 #include "scene/3d/skeleton_3d.h"

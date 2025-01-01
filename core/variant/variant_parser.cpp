@@ -31,10 +31,8 @@
 #include "variant_parser.h"
 
 #include "core/crypto/crypto_core.h"
-#include "core/input/input_event.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
-#include "core/os/keyboard.h"
 #include "core/string/string_buffer.h"
 
 char32_t VariantParser::Stream::get_char() {
@@ -99,6 +97,7 @@ bool VariantParser::StreamString::_is_eof() const {
 uint32_t VariantParser::StreamString::_read_buffer(char32_t *p_buffer, uint32_t p_num_chars) {
 	// The buffer is assumed to include at least one character (for null terminator)
 	ERR_FAIL_COND_V(!p_num_chars, 0);
+	ERR_FAIL_NULL_V(p_buffer, 0);
 
 	int available = MAX(s.length() - pos, 0);
 	if (available >= (int)p_num_chars) {

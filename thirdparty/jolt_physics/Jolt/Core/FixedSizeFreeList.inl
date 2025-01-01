@@ -79,7 +79,7 @@ uint32 FixedSizeFreeList<Object>::ConstructObject(Parameters &&... inParameters)
 			// Allocation successful
 			JPH_IF_ENABLE_ASSERTS(mNumFreeObjects.fetch_sub(1, memory_order_relaxed);)
 			ObjectStorage &storage = GetStorage(first_free);
-			::new (&storage.mObject) Object(std::forward<Parameters>(inParameters)...);
+			new (&storage.mObject) Object(std::forward<Parameters>(inParameters)...);
 			storage.mNextFreeObject.store(first_free, memory_order_release);
 			return first_free;
 		}
@@ -97,7 +97,7 @@ uint32 FixedSizeFreeList<Object>::ConstructObject(Parameters &&... inParameters)
 				// Allocation successful
 				JPH_IF_ENABLE_ASSERTS(mNumFreeObjects.fetch_sub(1, memory_order_relaxed);)
 				ObjectStorage &storage = GetStorage(first_free);
-				::new (&storage.mObject) Object(std::forward<Parameters>(inParameters)...);
+				new (&storage.mObject) Object(std::forward<Parameters>(inParameters)...);
 				storage.mNextFreeObject.store(first_free, memory_order_release);
 				return first_free;
 			}

@@ -243,6 +243,7 @@ public:
 	void set_source_code(const String &p_code) override;
 
 #ifdef TOOLS_ENABLED
+	virtual StringName get_doc_class_name() const override { return StringName(); } // TODO
 	virtual Vector<DocData::ClassDoc> get_documentation() const override {
 		// TODO
 		Vector<DocData::ClassDoc> docs;

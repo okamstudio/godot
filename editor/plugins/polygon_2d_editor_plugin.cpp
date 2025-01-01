@@ -49,7 +49,6 @@
 #include "scene/gui/slider.h"
 #include "scene/gui/spin_box.h"
 #include "scene/gui/split_container.h"
-#include "scene/gui/texture_rect.h"
 #include "scene/gui/view_panner.h"
 
 class UVEditDialog : public AcceptDialog {
@@ -108,6 +107,7 @@ void Polygon2DEditor::_notification(int p_what) {
 		}
 		case NOTIFICATION_ENTER_TREE: {
 			uv_panner->setup((ViewPanner::ControlScheme)EDITOR_GET("editors/panning/sub_editors_panning_scheme").operator int(), ED_GET_SHORTCUT("canvas_item_editor/pan_view"), bool(EDITOR_GET("editors/panning/simple_panning")));
+			uv_panner->setup_warped_panning(get_viewport(), EDITOR_GET("editors/panning/warped_mouse_panning"));
 		} break;
 
 		case NOTIFICATION_READY: {
@@ -507,7 +507,7 @@ void Polygon2DEditor::_uv_input(const Ref<InputEvent> &p_input) {
 		return;
 	}
 
-	if (uv_panner->gui_input(p_input)) {
+	if (uv_panner->gui_input(p_input, uv_edit_draw->get_global_rect())) {
 		accept_event();
 		return;
 	}

@@ -76,9 +76,16 @@ public:
 	EXBIND1(set_source_code, const String &)
 	EXBIND1R(Error, reload, bool)
 
+	GDVIRTUAL0RC_REQUIRED(StringName, _get_doc_class_name)
 	GDVIRTUAL0RC_REQUIRED(TypedArray<Dictionary>, _get_documentation)
 	GDVIRTUAL0RC(String, _get_class_icon_path)
 #ifdef TOOLS_ENABLED
+	virtual StringName get_doc_class_name() const override {
+		StringName ret;
+		GDVIRTUAL_CALL(_get_doc_class_name, ret);
+		return ret;
+	}
+
 	virtual Vector<DocData::ClassDoc> get_documentation() const override {
 		TypedArray<Dictionary> doc;
 		GDVIRTUAL_CALL(_get_documentation, doc);
@@ -454,22 +461,31 @@ public:
 	virtual Error lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner, LookupResult &r_result) override {
 		Dictionary ret;
 		GDVIRTUAL_CALL(_lookup_code, p_code, p_symbol, p_path, p_owner, ret);
-		if (!ret.has("result")) {
-			return ERR_UNAVAILABLE;
-		}
+
+		ERR_FAIL_COND_V(!ret.has("result"), ERR_UNAVAILABLE);
+		const Error result = Error(int(ret["result"]));
 
 		ERR_FAIL_COND_V(!ret.has("type"), ERR_UNAVAILABLE);
 		r_result.type = LookupResultType(int(ret["type"]));
-		ERR_FAIL_COND_V(!ret.has("script"), ERR_UNAVAILABLE);
-		r_result.script = ret["script"];
-		ERR_FAIL_COND_V(!ret.has("class_name"), ERR_UNAVAILABLE);
-		r_result.class_name = ret["class_name"];
-		ERR_FAIL_COND_V(!ret.has("class_path"), ERR_UNAVAILABLE);
-		r_result.class_path = ret["class_path"];
-		ERR_FAIL_COND_V(!ret.has("location"), ERR_UNAVAILABLE);
-		r_result.location = ret["location"];
 
-		Error result = Error(int(ret["result"]));
+		r_result.class_name = ret.get("class_name", "");
+		r_result.class_member = ret.get("class_member", "");
+
+		r_result.description = ret.get("description", "");
+		r_result.is_deprecated = ret.get("is_deprecated", false);
+		r_result.deprecated_message = ret.get("deprecated_message", "");
+		r_result.is_deprecated = ret.get("is_deprecated", false);
+		r_result.experimental_message = ret.get("experimental_message", "");
+
+		r_result.doc_type = ret.get("doc_type", "");
+		r_result.enumeration = ret.get("enumeration", "");
+		r_result.is_bitfield = ret.get("is_bitfield", false);
+
+		r_result.value = ret.get("value", "");
+
+		r_result.script = ret.get("script", Ref<Script>());
+		r_result.script_path = ret.get("script_path", "");
+		r_result.location = ret.get("location", -1);
 
 		return result;
 	}

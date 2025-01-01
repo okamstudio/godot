@@ -909,7 +909,7 @@ void VersionControlEditorPlugin::fetch_available_vcs_plugin_names() {
 void VersionControlEditorPlugin::register_editor() {
 	EditorDockManager::get_singleton()->add_dock(version_commit_dock, "", EditorDockManager::DOCK_SLOT_RIGHT_UL);
 
-	version_control_dock_button = EditorNode::get_bottom_panel()->add_item(TTR("Version Control"), version_control_dock, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_version_control_bottom_panel", TTR("Toggle Version Control Bottom Panel")));
+	version_control_dock_button = EditorNode::get_bottom_panel()->add_item(TTR("Version Control"), version_control_dock, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_version_control_bottom_panel", TTRC("Toggle Version Control Bottom Panel")));
 
 	_set_vcs_ui_state(true);
 }
@@ -1255,7 +1255,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	commit_message->connect(SceneStringName(gui_input), callable_mp(this, &VersionControlEditorPlugin::_commit_message_gui_input));
 	commit_area->add_child(commit_message);
 
-	ED_SHORTCUT("version_control/commit", TTR("Commit"), KeyModifierMask::CMD_OR_CTRL | Key::ENTER);
+	ED_SHORTCUT("version_control/commit", TTRC("Commit"), KeyModifierMask::CMD_OR_CTRL | Key::ENTER);
 
 	commit_button = memnew(Button);
 	commit_button->set_text(TTR("Commit Changes"));

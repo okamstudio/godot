@@ -465,7 +465,7 @@ Error ResourceLoaderText::load() {
 		ext_resources[id].path = path;
 		ext_resources[id].type = type;
 		ext_resources[id].load_token = ResourceLoader::_load_start(path, type, use_sub_threads ? ResourceLoader::LOAD_THREAD_DISTRIBUTE : ResourceLoader::LOAD_THREAD_FROM_CURRENT, cache_mode_for_external);
-		if (!ext_resources[id].load_token.is_valid()) {
+		if (ext_resources[id].load_token.is_null()) {
 			if (ResourceLoader::get_abort_on_missing_resources()) {
 				error = ERR_FILE_CORRUPT;
 				error_text = "[ext_resource] referenced non-existent resource at: " + path;
@@ -684,7 +684,7 @@ Error ResourceLoaderText::load() {
 				resource = cache;
 			}
 
-			if (!resource.is_valid()) {
+			if (resource.is_null()) {
 				Object *obj = ClassDB::instantiate(res_type);
 				if (!obj) {
 					if (ResourceLoader::is_creating_missing_resources_if_class_unavailable_enabled()) {
@@ -823,7 +823,7 @@ Error ResourceLoaderText::load() {
 
 		Ref<PackedScene> packed_scene = _parse_node_tag(rp);
 
-		if (!packed_scene.is_valid()) {
+		if (packed_scene.is_null()) {
 			return error;
 		}
 
@@ -2121,7 +2121,7 @@ Error ResourceLoaderText::set_uid(Ref<FileAccess> p_f, ResourceUID::ID p_uid) {
 }
 
 Error ResourceFormatSaverText::save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags) {
-	if (p_path.ends_with(".tscn") && !Ref<PackedScene>(p_resource).is_valid()) {
+	if (p_path.ends_with(".tscn") && Ref<PackedScene>(p_resource).is_null()) {
 		return ERR_FILE_UNRECOGNIZED;
 	}
 

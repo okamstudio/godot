@@ -34,7 +34,6 @@
 #include "core/io/image.h"
 #include "core/math/geometry_3d.h"
 #include "core/math/transform_2d.h"
-#include "core/object/class_db.h"
 #include "core/templates/rid.h"
 #include "core/variant/typed_array.h"
 #include "core/variant/variant.h"
@@ -56,9 +55,6 @@
 #define ERR_NOT_ON_RENDER_THREAD
 #define ERR_NOT_ON_RENDER_THREAD_V(m_ret)
 #endif
-
-template <typename T>
-class TypedArray;
 
 class RenderingServer : public Object {
 	GDCLASS(RenderingServer, Object);
@@ -219,6 +215,12 @@ public:
 		SHADER_SKY,
 		SHADER_FOG,
 		SHADER_MAX
+	};
+
+	enum CullMode {
+		CULL_MODE_DISABLED,
+		CULL_MODE_FRONT,
+		CULL_MODE_BACK,
 	};
 
 	virtual RID shader_create() = 0;
@@ -438,6 +440,7 @@ public:
 
 	virtual void mesh_set_shadow_mesh(RID p_mesh, RID p_shadow_mesh) = 0;
 
+	virtual void mesh_surface_remove(RID p_mesh, int p_surface) = 0;
 	virtual void mesh_clear(RID p_mesh) = 0;
 
 	/* MULTIMESH API */
@@ -919,6 +922,15 @@ public:
 		VIEWPORT_SCALING_3D_MODE_OFF = 255, // for internal use only
 	};
 
+	enum ViewportAnisotropicFiltering {
+		VIEWPORT_ANISOTROPY_DISABLED,
+		VIEWPORT_ANISOTROPY_2X,
+		VIEWPORT_ANISOTROPY_4X,
+		VIEWPORT_ANISOTROPY_8X,
+		VIEWPORT_ANISOTROPY_16X,
+		VIEWPORT_ANISOTROPY_MAX
+	};
+
 	virtual void viewport_set_use_xr(RID p_viewport, bool p_use_xr) = 0;
 	virtual void viewport_set_size(RID p_viewport, int p_width, int p_height) = 0;
 	virtual void viewport_set_active(RID p_viewport, bool p_active) = 0;
@@ -932,6 +944,7 @@ public:
 	virtual void viewport_set_scaling_3d_scale(RID p_viewport, float p_scaling_3d_scale) = 0;
 	virtual void viewport_set_fsr_sharpness(RID p_viewport, float p_fsr_sharpness) = 0;
 	virtual void viewport_set_texture_mipmap_bias(RID p_viewport, float p_texture_mipmap_bias) = 0;
+	virtual void viewport_set_anisotropic_filtering_level(RID p_viewport, ViewportAnisotropicFiltering p_anisotropic_filtering_level) = 0;
 
 	enum ViewportUpdateMode {
 		VIEWPORT_UPDATE_DISABLED,
@@ -1546,6 +1559,11 @@ public:
 
 	virtual void canvas_item_set_use_parent_material(RID p_item, bool p_enable) = 0;
 
+	virtual void canvas_item_set_instance_shader_parameter(RID p_item, const StringName &, const Variant &p_value) = 0;
+	virtual Variant canvas_item_get_instance_shader_parameter(RID p_item, const StringName &) const = 0;
+	virtual Variant canvas_item_get_instance_shader_parameter_default_value(RID p_item, const StringName &) const = 0;
+	virtual void canvas_item_get_instance_shader_parameter_list(RID p_item, List<PropertyInfo> *p_parameters) const = 0;
+
 	virtual void canvas_item_set_visibility_notifier(RID p_item, bool p_enable, const Rect2 &p_area, const Callable &p_enter_callbable, const Callable &p_exit_callable) = 0;
 
 	enum CanvasGroupMode {
@@ -1832,6 +1850,7 @@ private:
 	void _mesh_add_surface(RID p_mesh, const Dictionary &p_surface);
 	Dictionary _mesh_get_surface(RID p_mesh, int p_idx);
 	TypedArray<Dictionary> _instance_geometry_get_shader_parameter_list(RID p_instance) const;
+	TypedArray<Dictionary> _canvas_item_get_instance_shader_parameter_list(RID p_item) const;
 	TypedArray<Image> _bake_render_uv2(RID p_base, const TypedArray<RID> &p_material_overrides, const Size2i &p_image_size);
 	void _particles_set_trail_bind_poses(RID p_particles, const TypedArray<Transform3D> &p_bind_poses);
 #ifdef TOOLS_ENABLED
@@ -1877,6 +1896,7 @@ VARIANT_ENUM_CAST(RenderingServer::ViewportUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportClearMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportEnvironmentMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportMSAA);
+VARIANT_ENUM_CAST(RenderingServer::ViewportAnisotropicFiltering);
 VARIANT_ENUM_CAST(RenderingServer::ViewportScreenSpaceAA);
 VARIANT_ENUM_CAST(RenderingServer::ViewportRenderInfo);
 VARIANT_ENUM_CAST(RenderingServer::ViewportRenderInfoType);

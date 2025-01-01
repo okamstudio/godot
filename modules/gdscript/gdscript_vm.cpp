@@ -511,12 +511,6 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 	Variant **instruction_args = nullptr;
 	int defarg = 0;
 
-#ifdef DEBUG_ENABLED
-
-	//GDScriptLanguage::get_singleton()->calls++;
-
-#endif
-
 	uint32_t alloca_size = 0;
 	GDScript *script;
 	int ip = 0;

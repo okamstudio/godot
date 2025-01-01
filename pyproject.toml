@@ -14,7 +14,7 @@ python_version = "3.8"
 
 [tool.ruff]
 extend-exclude = ["thirdparty"]
-extend-include = ["SConstruct", "SCsub"]
+extend-include = ["*SConstruct", "*SCsub"]
 line-length = 120
 target-version = "py38"
 

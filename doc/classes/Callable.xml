@@ -13,7 +13,7 @@
 		func test():
 		    var callable = Callable(self, "print_args")
 		    callable.call("hello", "world")  # Prints "hello world ".
-		    callable.call(Vector2.UP, 42, callable)  # Prints "(0.0, -1.0) 42 Node(node.gd)::print_args".
+		    callable.call(Vector2.UP, 42, callable)  # Prints "(0.0, -1.0) 42 Node(node.gd)::print_args"
 		    callable.call("invalid")  # Invalid call, should have at least 2 arguments.
 		[/gdscript]
 		[csharp]
@@ -28,7 +28,7 @@
 		    // Invalid calls fail silently.
 		    Callable callable = new Callable(this, MethodName.PrintArgs);
 		    callable.Call("hello", "world"); // Default parameter values are not supported, should have 3 arguments.
-		    callable.Call(Vector2.Up, 42, callable); // Prints "(0, -1) 42 Node(Node.cs)::PrintArgs".
+		    callable.Call(Vector2.Up, 42, callable); // Prints "(0, -1) 42 Node(Node.cs)::PrintArgs"
 		    callable.Call("invalid"); // Invalid call, should have 3 arguments.
 		}
 		[/csharp]
@@ -39,7 +39,7 @@
 		    var my_lambda = func (message):
 		        print(message)
 
-		    # Prints Hello everyone!
+		    # Prints "Hello everyone!"
 		    my_lambda.call("Hello everyone!")
 
 		    # Prints "Attack!", when the button_pressed signal is emitted.

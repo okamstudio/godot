@@ -30,9 +30,6 @@
 
 #include "audio_stream_ogg_vorbis.h"
 
-#include "core/io/file_access.h"
-#include "core/variant/typed_array.h"
-
 #include "modules/vorbis/resource_importer_ogg_vorbis.h"
 #include <ogg/ogg.h>
 

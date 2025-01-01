@@ -10,26 +10,63 @@ from collections import OrderedDict
 from enum import Enum
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import Generator, List, Optional, Union, cast
+from typing import Final, Generator, List, Optional, Union, cast
 
 # Get the "Godot" folder name ahead of time
 base_folder_path = str(os.path.abspath(Path(__file__).parent)) + "/"
 base_folder_only = os.path.basename(os.path.normpath(base_folder_path))
-# Listing all the folders we have converted
-# for SCU in scu_builders.py
-_scu_folders = set()
+
+################################################################################
+# COLORIZE
+################################################################################
+
+IS_CI: Final[bool] = bool(os.environ.get("CI"))
+IS_TTY: Final[bool] = bool(sys.stdout.isatty())
+
+
+def _color_supported() -> bool:
+    """
+    Enables ANSI escape code support on Windows 10 and later (for colored console output).
+    See here: https://github.com/python/cpython/issues/73245
+    """
+    if sys.platform == "win32" and IS_TTY:
+        try:
+            from ctypes import WinError, byref, windll  # type: ignore
+            from ctypes.wintypes import DWORD  # type: ignore
+
+            stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
+            mode = DWORD(0)
+            if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
+                raise WinError()
+            mode = DWORD(mode.value | 4)
+            if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
+                raise WinError()
+        except (TypeError, OSError) as e:
+            print(f"Failed to enable ANSI escape code support, disabling color output.\n{e}", file=sys.stderr)
+            return False
+
+    return IS_TTY or IS_CI
+
+
 # Colors are disabled in non-TTY environments such as pipes. This means
 # that if output is redirected to a file, it won't contain color codes.
 # Colors are always enabled on continuous integration.
-_colorize = bool(sys.stdout.isatty() or os.environ.get("CI"))
+COLOR_SUPPORTED: Final[bool] = _color_supported()
+_can_color: bool = COLOR_SUPPORTED
 
 
-def set_scu_folders(scu_folders):
-    global _scu_folders
-    _scu_folders = scu_folders
+def toggle_color(value: Optional[bool] = None) -> None:
+    """
+    Explicitly toggle color codes, regardless of support.
+
+    - `value`: An optional boolean to explicitly set the color
+    state instead of toggling.
+    """
+    global _can_color
+    _can_color = value if value is not None else not _can_color
 
 
-class ANSI(Enum):
+class Ansi(Enum):
     """
     Enum class for adding ansi colorcodes directly into strings.
     Automatically converts values to strings representing their
@@ -39,6 +76,7 @@ class ANSI(Enum):
     RESET = "\x1b[0m"
 
     BOLD = "\x1b[1m"
+    DIM = "\x1b[2m"
     ITALIC = "\x1b[3m"
     UNDERLINE = "\x1b[4m"
     STRIKETHROUGH = "\x1b[9m"
@@ -53,24 +91,49 @@ class ANSI(Enum):
     CYAN = "\x1b[36m"
     WHITE = "\x1b[37m"
 
-    PURPLE = "\x1b[38;5;93m"
-    PINK = "\x1b[38;5;206m"
-    ORANGE = "\x1b[38;5;214m"
-    GRAY = "\x1b[38;5;244m"
+    LIGHT_BLACK = "\x1b[90m"
+    LIGHT_RED = "\x1b[91m"
+    LIGHT_GREEN = "\x1b[92m"
+    LIGHT_YELLOW = "\x1b[93m"
+    LIGHT_BLUE = "\x1b[94m"
+    LIGHT_MAGENTA = "\x1b[95m"
+    LIGHT_CYAN = "\x1b[96m"
+    LIGHT_WHITE = "\x1b[97m"
+
+    GRAY = LIGHT_BLACK if IS_CI else BLACK
+    """
+    Special case. GitHub Actions doesn't convert `BLACK` to gray as expected, but does convert `LIGHT_BLACK`.
+    By implementing `GRAY`, we handle both cases dynamically, while still allowing for explicit values if desired.
+    """
 
     def __str__(self) -> str:
-        global _colorize
-        return str(self.value) if _colorize else ""
+        global _can_color
+        return str(self.value) if _can_color else ""
+
+
+def print_info(*values: object) -> None:
+    """Prints a informational message with formatting."""
+    print(f"{Ansi.GRAY}{Ansi.BOLD}INFO:{Ansi.REGULAR}", *values, Ansi.RESET)
 
 
 def print_warning(*values: object) -> None:
     """Prints a warning message with formatting."""
-    print(f"{ANSI.YELLOW}{ANSI.BOLD}WARNING:{ANSI.REGULAR}", *values, ANSI.RESET, file=sys.stderr)
+    print(f"{Ansi.YELLOW}{Ansi.BOLD}WARNING:{Ansi.REGULAR}", *values, Ansi.RESET, file=sys.stderr)
 
 
 def print_error(*values: object) -> None:
     """Prints an error message with formatting."""
-    print(f"{ANSI.RED}{ANSI.BOLD}ERROR:{ANSI.REGULAR}", *values, ANSI.RESET, file=sys.stderr)
+    print(f"{Ansi.RED}{Ansi.BOLD}ERROR:{Ansi.REGULAR}", *values, Ansi.RESET, file=sys.stderr)
+
+
+# Listing all the folders we have converted
+# for SCU in scu_builders.py
+_scu_folders = set()
+
+
+def set_scu_folders(scu_folders):
+    global _scu_folders
+    _scu_folders = scu_folders
 
 
 def add_source_files_orig(self, sources, files, allow_gen=False):
@@ -164,7 +227,7 @@ def get_version_info(module_version_string="", silent=False):
     if os.getenv("BUILD_NAME") is not None:
         build_name = str(os.getenv("BUILD_NAME"))
         if not silent:
-            print(f"Using custom build name: '{build_name}'.")
+            print_info(f"Using custom build name: '{build_name}'.")
 
     import version
 
@@ -186,7 +249,7 @@ def get_version_info(module_version_string="", silent=False):
     if os.getenv("GODOT_VERSION_STATUS") is not None:
         version_info["status"] = str(os.getenv("GODOT_VERSION_STATUS"))
         if not silent:
-            print(f"Using version status '{version_info['status']}', overriding the original '{version.status}'.")
+            print_info(f"Using version status '{version_info['status']}', overriding the original '{version.status}'.")
 
     # Parse Git hash if we're in a Git repo.
     githash = ""
@@ -442,7 +505,7 @@ def use_windows_spawn_fix(self, platform=None):
 
 
 def no_verbose(env):
-    colors = [ANSI.BLUE, ANSI.BOLD, ANSI.REGULAR, ANSI.RESET]
+    colors = [Ansi.BLUE, Ansi.BOLD, Ansi.REGULAR, Ansi.RESET]
 
     # There is a space before "..." to ensure that source file names can be
     # Ctrl + clicked in the VS Code terminal.
@@ -794,10 +857,8 @@ def using_emcc(env):
 
 
 def show_progress(env):
-    # Progress reporting is not available in non-TTY environments since it messes with the output
-    # (for example, when writing to a file). Ninja has its own progress/tracking tool that clashes
-    # with ours.
-    if not env["progress"] or not sys.stdout.isatty() or env["ninja"]:
+    # Ninja has its own progress/tracking tool that clashes with ours.
+    if env["ninja"]:
         return
 
     NODE_COUNT_FILENAME = f"{base_folder_path}.scons_node_count"
@@ -814,30 +875,33 @@ def show_progress(env):
             if self.max == 0:
                 print("NOTE: Performing initial build, progress percentage unavailable!")
 
+            # Progress reporting is not available in non-TTY environments since it
+            # messes with the output (for example, when writing to a file).
+            self.display = cast(bool, self.max and env["progress"] and IS_TTY)
+
         def __call__(self, node, *args, **kw):
             self.count += 1
-            if self.max != 0:
+            if self.display:
                 percent = int(min(self.count * 100 / self.max, 100))
                 sys.stdout.write(f"\r[{percent:3d}%] ")
                 sys.stdout.flush()
 
     from SCons.Script import Progress
+    from SCons.Script.Main import GetBuildFailures
 
     progressor = ShowProgress()
     Progress(progressor)
 
-    def progress_finish(target, source, env):
+    def progress_finish():
+        if len(GetBuildFailures()):
+            return
         try:
             with open(NODE_COUNT_FILENAME, "w", encoding="utf-8", newline="\n") as f:
                 f.write(f"{progressor.count}\n")
         except OSError:
             pass
 
-    env.AlwaysBuild(
-        env.CommandNoCache(
-            "progress_finish", [], env.Action(progress_finish, "Building node count database .scons_node_count")
-        )
-    )
+    atexit.register(progress_finish)
 
 
 def convert_size(size_bytes: int) -> str:
@@ -1485,7 +1549,7 @@ def generate_copyright_header(filename: str) -> str:
 """
     filename = filename.split("/")[-1].ljust(MARGIN)
     if len(filename) > MARGIN:
-        print(f'WARNING: Filename "{filename}" too large for copyright header.')
+        print_warning(f'Filename "{filename}" too large for copyright header.')
     return TEMPLATE % filename
 
 

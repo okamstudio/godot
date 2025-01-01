@@ -34,7 +34,6 @@
 #include "scene/3d/node_3d.h"
 
 #include "scene/3d/skeleton_3d.h"
-#include "scene/animation/animation_mixer.h"
 
 class SkeletonModifier3D : public Node3D {
 	GDCLASS(SkeletonModifier3D, Node3D);

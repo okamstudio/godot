@@ -98,6 +98,7 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 	features.quadPermute = [p_device supportsFamily:MTLGPUFamilyApple4];
 	features.simdPermute = [p_device supportsFamily:MTLGPUFamilyApple6];
 	features.simdReduction = [p_device supportsFamily:MTLGPUFamilyApple7];
+	features.argument_buffers_tier = p_device.argumentBuffersSupport;
 
 	MTLCompileOptions *opts = [MTLCompileOptions new];
 	features.mslVersionEnum = opts.languageVersion; // By default, Metal uses the most recent language version.

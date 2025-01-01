@@ -9,7 +9,7 @@ jobs:
   # First stage: Only static checks, fast and prevent expensive builds from running.
 
   static-checks:
-    if: '!vars.DISABLE_GODOT_CI'
+    if: "!vars.DISABLE_GODOT_CI"
     name: 📊 Static checks
     uses: ./.github/workflows/static_checks.yml
 

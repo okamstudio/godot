@@ -811,11 +811,25 @@ public:
 	static void construct_from_string(const String &p_string, Variant &r_value, ObjectConstruct p_obj_construct = nullptr, void *p_construct_ud = nullptr);
 
 	void operator=(const Variant &p_variant); // only this is enough for all the other types
+	void operator=(Variant &&p_variant) {
+		if (unlikely(this == &p_variant)) {
+			return;
+		}
+		clear();
+		type = p_variant.type;
+		_data = p_variant._data;
+		p_variant.type = NIL;
+	}
 
 	static void register_types();
 	static void unregister_types();
 
 	Variant(const Variant &p_variant);
+	Variant(Variant &&p_variant) {
+		type = p_variant.type;
+		_data = p_variant._data;
+		p_variant.type = NIL;
+	}
 	_FORCE_INLINE_ Variant() {}
 	_FORCE_INLINE_ ~Variant() {
 		clear();

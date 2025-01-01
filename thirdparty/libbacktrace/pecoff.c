@@ -1,5 +1,5 @@
 /* pecoff.c -- Get debug data from a PE/COFFF file for backtraces.
-   Copyright (C) 2015-2021 Free Software Foundation, Inc.
+   Copyright (C) 2015-2024 Free Software Foundation, Inc.
    Adapted from elf.c by Tristan Gingold, AdaCore.
 
 Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,58 @@ POSSIBILITY OF SUCH DAMAGE.  */
 
 #include "backtrace.h"
 #include "internal.h"
+
+#ifdef HAVE_WINDOWS_H
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
+#include <windows.h>
+
+#ifdef HAVE_TLHELP32_H
+#include <tlhelp32.h>
+
+#ifdef UNICODE
+/* If UNICODE is defined, all the symbols are replaced by a macro to use the
+   wide variant. But we need the ansi variant, so undef the macros. */
+#undef MODULEENTRY32
+#undef Module32First
+#undef Module32Next
+#endif
+#endif
+
+#if defined(_ARM_)
+#define NTAPI
+#else
+#define NTAPI __stdcall
+#endif
+
+/* This is a simplified (but binary compatible) version of what Microsoft
+   defines in their documentation. */
+struct dll_notification_data
+{
+  ULONG reserved;
+  /* The name as UNICODE_STRING struct. */
+  PVOID full_dll_name;
+  PVOID base_dll_name;
+  PVOID dll_base;
+  ULONG size_of_image;
+};
+
+#define LDR_DLL_NOTIFICATION_REASON_LOADED 1
+
+typedef LONG NTSTATUS;
+typedef VOID (CALLBACK *LDR_DLL_NOTIFICATION)(ULONG,
+					      struct dll_notification_data*,
+					      PVOID);
+typedef NTSTATUS (NTAPI *LDR_REGISTER_FUNCTION)(ULONG,
+						LDR_DLL_NOTIFICATION, PVOID,
+						PVOID*);
+#endif
 
 /* Coff file header.  */
 
@@ -188,7 +240,7 @@ coff_nodebug (struct backtrace_state *state ATTRIBUTE_UNUSED,
 	      backtrace_full_callback callback ATTRIBUTE_UNUSED,
 	      backtrace_error_callback error_callback, void *data)
 {
-  error_callback (data, "no debug info in PE/COFF executable", -1);
+  error_callback (data, "no debug info in PE/COFF executable (make sure to compile with -g)", -1);
   return 0;
 }
 
@@ -330,10 +382,11 @@ coff_is_function_symbol (const b_coff_internal_symbol *isym)
 
 static int
 coff_initialize_syminfo (struct backtrace_state *state,
-			 uintptr_t base_address, int is_64,
-			 const b_coff_section_header *sects, size_t sects_num,
-			 const b_coff_external_symbol *syms, size_t syms_size,
-			 const unsigned char *strtab, size_t strtab_size,
+			 struct libbacktrace_base_address base_address,
+			 int is_64, const b_coff_section_header *sects,
+			 size_t sects_num, const b_coff_external_symbol *syms,
+			 size_t syms_size, const unsigned char *strtab,
+			 size_t strtab_size,
 			 backtrace_error_callback error_callback,
 			 void *data, struct coff_syminfo_data *sdata)
 {
@@ -438,9 +491,10 @@ coff_initialize_syminfo (struct backtrace_state *state,
 	  secnum = coff_read2 (asym->section_number);
 
 	  coff_sym->name = name;
-	  coff_sym->address = (coff_read4 (asym->value)
-			       + sects[secnum - 1].virtual_address
-			       + base_address);
+	  coff_sym->address =
+	    libbacktrace_add_base ((coff_read4 (asym->value)
+				    + sects[secnum - 1].virtual_address),
+				   base_address);
 	  coff_sym++;
 	}
 
@@ -580,7 +634,8 @@ coff_syminfo (struct backtrace_state *state, uintptr_t addr,
 static int
 coff_add (struct backtrace_state *state, int descriptor,
 	  backtrace_error_callback error_callback, void *data,
-	  fileline *fileline_fn, int *found_sym, int *found_dwarf)
+	  fileline *fileline_fn, int *found_sym, int *found_dwarf,
+	  uintptr_t module_handle ATTRIBUTE_UNUSED)
 {
   struct backtrace_view fhdr_view;
   off_t fhdr_off;
@@ -609,7 +664,8 @@ coff_add (struct backtrace_state *state, int descriptor,
   struct backtrace_view debug_view;
   int debug_view_valid;
   int is_64;
-  uintptr_t image_base;
+  struct libbacktrace_base_address image_base;
+  struct libbacktrace_base_address base_address;
   struct dwarf_sections dwarf_sections;
 
   *found_sym = 0;
@@ -648,7 +704,7 @@ coff_add (struct backtrace_state *state, int descriptor,
       magic_ok = memcmp (magic, "PE\0", 4) == 0;
       fhdr_off += 4;
 
-      memcpy (&fhdr, fhdr_view.data + 4, sizeof fhdr);
+      memcpy (&fhdr, (const unsigned char *) fhdr_view.data + 4, sizeof fhdr);
     }
   else
     {
@@ -682,16 +738,17 @@ coff_add (struct backtrace_state *state, int descriptor,
   sects_view_valid = 1;
   opt_hdr = (const b_coff_optional_header *) sects_view.data;
   sects = (const b_coff_section_header *)
-    (sects_view.data + fhdr.size_of_optional_header);
+    ((const unsigned char *) sects_view.data + fhdr.size_of_optional_header);
 
   is_64 = 0;
+  memset (&image_base, 0, sizeof image_base);
   if (fhdr.size_of_optional_header > sizeof (*opt_hdr))
     {
       if (opt_hdr->magic == PE_MAGIC)
-	image_base = opt_hdr->u.pe.image_base;
+	image_base.m = opt_hdr->u.pe.image_base;
       else if (opt_hdr->magic == PEP_MAGIC)
 	{
-	  image_base = opt_hdr->u.pep.image_base;
+	  image_base.m = opt_hdr->u.pep.image_base;
 	  is_64 = 1;
 	}
       else
@@ -700,8 +757,6 @@ coff_add (struct backtrace_state *state, int descriptor,
 	  goto fail;
 	}
     }
-  else
-    image_base = 0;
 
   /* Read the symbol table and the string table.  */
 
@@ -726,7 +781,8 @@ coff_add (struct backtrace_state *state, int descriptor,
 	goto fail;
       syms_view_valid = 1;
 
-      str_size = coff_read4 (syms_view.data + syms_size);
+      str_size = coff_read4 ((const unsigned char *) syms_view.data
+			     + syms_size);
 
       str_off = syms_off + syms_size;
 
@@ -856,7 +912,12 @@ coff_add (struct backtrace_state *state, int descriptor,
 				  + (sections[i].offset - min_offset));
     }
 
-  if (!backtrace_dwarf_add (state, /* base_address */ 0, &dwarf_sections,
+  memset (&base_address, 0, sizeof base_address);
+#ifdef HAVE_WINDOWS_H
+  base_address.m = module_handle - image_base.m;
+#endif
+
+  if (!backtrace_dwarf_add (state, base_address, &dwarf_sections,
 			    0, /* FIXME: is_bigendian */
 			    NULL, /* altlink */
 			    error_callback, data, fileline_fn,
@@ -881,6 +942,53 @@ coff_add (struct backtrace_state *state, int descriptor,
   return 0;
 }
 
+#ifdef HAVE_WINDOWS_H
+struct dll_notification_context
+{
+  struct backtrace_state *state;
+  backtrace_error_callback error_callback;
+  void *data;
+};
+
+static VOID CALLBACK
+dll_notification (ULONG reason,
+		  struct dll_notification_data *notification_data,
+		  PVOID context)
+{
+  char module_name[MAX_PATH];
+  int descriptor;
+  struct dll_notification_context* dll_context =
+    (struct dll_notification_context*) context;
+  struct backtrace_state *state = dll_context->state;
+  void *data = dll_context->data;
+  backtrace_error_callback error_callback = dll_context->data;
+  fileline fileline;
+  int found_sym;
+  int found_dwarf;
+  HMODULE module_handle;
+
+  if (reason != LDR_DLL_NOTIFICATION_REASON_LOADED)
+    return;
+
+  if (!GetModuleHandleExW ((GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
+			    | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT),
+			   (wchar_t*) notification_data->dll_base,
+			   &module_handle))
+    return;
+
+  if (!GetModuleFileNameA ((HMODULE) module_handle, module_name, MAX_PATH - 1))
+    return;
+
+  descriptor = backtrace_open (module_name, error_callback, data, NULL);
+
+  if (descriptor < 0)
+    return;
+
+  coff_add (state, descriptor, error_callback, data, &fileline, &found_sym,
+	    &found_dwarf, (uintptr_t) module_handle);
+}
+#endif /* defined(HAVE_WINDOWS_H) */
+
 /* Initialize the backtrace data we need from an ELF executable.  At
    the ELF level, all we need to do is find the debug info
    sections.  */
@@ -895,11 +1003,91 @@ backtrace_initialize (struct backtrace_state *state,
   int found_sym;
   int found_dwarf;
   fileline coff_fileline_fn;
+  uintptr_t module_handle = 0;
+#ifdef HAVE_TLHELP32_H
+  fileline module_fileline_fn;
+  int module_found_sym;
+  HANDLE snapshot;
+#endif
+
+#ifdef HAVE_WINDOWS_H
+  HMODULE nt_dll_handle;
+
+  module_handle = (uintptr_t) GetModuleHandle (NULL);
+#endif
 
   ret = coff_add (state, descriptor, error_callback, data,
-		  &coff_fileline_fn, &found_sym, &found_dwarf);
+		  &coff_fileline_fn, &found_sym, &found_dwarf, module_handle);
   if (!ret)
     return 0;
+
+#ifdef HAVE_TLHELP32_H
+  do
+    {
+      snapshot = CreateToolhelp32Snapshot (TH32CS_SNAPMODULE, 0);
+    }
+  while (snapshot == INVALID_HANDLE_VALUE
+	 && GetLastError () == ERROR_BAD_LENGTH);
+
+  if (snapshot != INVALID_HANDLE_VALUE)
+    {
+      MODULEENTRY32 entry;
+      BOOL ok;
+      entry.dwSize = sizeof (MODULEENTRY32);
+
+      for (ok = Module32First (snapshot, &entry); ok; ok = Module32Next (snapshot, &entry))
+	{
+	  if (strcmp (filename, entry.szExePath) == 0)
+	    continue;
+
+	  module_handle = (uintptr_t) entry.hModule;
+	  if (module_handle == 0)
+	    continue;
+
+	  descriptor = backtrace_open (entry.szExePath, error_callback, data,
+				       NULL);
+	  if (descriptor < 0)
+	    continue;
+
+	  coff_add (state, descriptor, error_callback, data,
+		    &module_fileline_fn, &module_found_sym, &found_dwarf,
+		    module_handle);
+	  if (module_found_sym)
+	    found_sym = 1;
+	}
+
+      CloseHandle (snapshot);
+    }
+#endif
+
+#ifdef HAVE_WINDOWS_H
+  nt_dll_handle = GetModuleHandleW (L"ntdll.dll");
+  if (nt_dll_handle)
+    {
+      LDR_REGISTER_FUNCTION register_func;
+      const char register_name[] = "LdrRegisterDllNotification";
+      register_func = (void*) GetProcAddress (nt_dll_handle,
+					      register_name);
+
+      if (register_func)
+	{
+	  PVOID cookie;
+	  struct dll_notification_context *context
+	    = backtrace_alloc (state,
+			       sizeof (struct dll_notification_context),
+			       error_callback, data);
+
+	  if (context)
+	    {
+	      context->state = state;
+	      context->data = data;
+	      context->error_callback = error_callback;
+
+	      register_func (0, &dll_notification, context, &cookie);
+	    }
+	}
+    }
+#endif /* defined(HAVE_WINDOWS_H) */
 
   if (!state->threaded)
     {

@@ -30,7 +30,6 @@
 
 #include "post_import_plugin_skeleton_rest_fixer.h"
 
-#include "editor/import/3d/scene_import_settings.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
 #include "scene/3d/retarget_modifier_3d.h"
@@ -93,7 +92,7 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 		}
 		BoneMap *bone_map = Object::cast_to<BoneMap>(map);
 		Ref<SkeletonProfile> profile = bone_map->get_profile();
-		if (!profile.is_valid()) {
+		if (profile.is_null()) {
 			return;
 		}
 		Skeleton3D *src_skeleton = Object::cast_to<Skeleton3D>(p_node);

@@ -30,9 +30,6 @@
 
 #include "dtls_server.h"
 
-#include "core/config/project_settings.h"
-#include "core/io/file_access.h"
-
 DTLSServer *(*DTLSServer::_create)(bool p_notify_postinitialize) = nullptr;
 bool DTLSServer::available = false;
 

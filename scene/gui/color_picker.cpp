@@ -39,7 +39,6 @@
 #include "scene/gui/line_edit.h"
 #include "scene/gui/margin_container.h"
 #include "scene/gui/menu_button.h"
-#include "scene/gui/option_button.h"
 #include "scene/gui/panel.h"
 #include "scene/gui/popup_menu.h"
 #include "scene/gui/slider.h"
@@ -1933,7 +1932,7 @@ void ColorPicker::_pick_button_pressed_legacy() {
 			}
 
 			Ref<Image> img = w->get_texture()->get_image();
-			if (!img.is_valid() || img->is_empty()) {
+			if (img.is_null() || img->is_empty()) {
 				continue;
 			}
 			img->convert(Image::FORMAT_RGB8);

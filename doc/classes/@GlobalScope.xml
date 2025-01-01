@@ -388,9 +388,9 @@
 				Returns a human-readable name for the given [enum Error] code.
 				[codeblock]
 				print(OK)                              # Prints 0
-				print(error_string(OK))                # Prints OK
-				print(error_string(ERR_BUSY))          # Prints Busy
-				print(error_string(ERR_OUT_OF_MEMORY)) # Prints Out of memory
+				print(error_string(OK))                # Prints "OK"
+				print(error_string(ERR_BUSY))          # Prints "Busy"
+				print(error_string(ERR_OUT_OF_MEMORY)) # Prints "Out of memory"
 				[/codeblock]
 			</description>
 		</method>
@@ -495,23 +495,23 @@
 				Returns the [Object] that corresponds to [param instance_id]. All Objects have a unique instance ID. See also [method Object.get_instance_id].
 				[codeblocks]
 				[gdscript]
-				var foo = "bar"
+				var drink = "water"
 
 				func _ready():
 				    var id = get_instance_id()
-				    var inst = instance_from_id(id)
-				    print(inst.foo) # Prints bar
+				    var instance = instance_from_id(id)
+				    print(instance.foo) # Prints "water"
 				[/gdscript]
 				[csharp]
 				public partial class MyNode : Node
 				{
-				    public string Foo { get; set; } = "bar";
+				    public string Drink { get; set; } = "water";
 
 				    public override void _Ready()
 				    {
 				        ulong id = GetInstanceId();
-				        var inst = (MyNode)InstanceFromId(Id);
-				        GD.Print(inst.Foo); // Prints bar
+				        var instance = (MyNode)InstanceFromId(Id);
+				        GD.Print(instance.Drink); // Prints "water"
 				    }
 				}
 				[/csharp]
@@ -844,22 +844,24 @@
 			</description>
 		</method>
 		<method name="print" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Converts one or more arguments of any type to string in the best way possible and prints them to the console.
 				[codeblocks]
 				[gdscript]
 				var a = [1, 2, 3]
-				print("a", "b", a) # Prints ab[1, 2, 3]
+				print("a", "b", a) # Prints "ab[1, 2, 3]"
 				[/gdscript]
 				[csharp]
-				var a = new Godot.Collections.Array { 1, 2, 3 };
-				GD.Print("a", "b", a); // Prints ab[1, 2, 3]
+				Godot.Collections.Array a = [1, 2, 3];
+				GD.Print("a", "b", a); // Prints "ab[1, 2, 3]"
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] Consider using [method push_error] and [method push_warning] to print error and warning messages instead of [method print] or [method print_rich]. This distinguishes them from print messages used for debugging purposes, while also displaying a stack trace when an error or warning is printed. See also [member Engine.print_to_stdout] and [member ProjectSettings.application/run/disable_stdout].
 			</description>
 		</method>
 		<method name="print_rich" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Converts one or more arguments of any type to string in the best way possible and prints them to the console.
 				The following BBCode tags are supported: [code]b[/code], [code]i[/code], [code]u[/code], [code]s[/code], [code]indent[/code], [code]code[/code], [code]url[/code], [code]center[/code], [code]right[/code], [code]color[/code], [code]bgcolor[/code], [code]fgcolor[/code].
@@ -867,10 +869,10 @@
 				When printing to standard output, the supported subset of BBCode is converted to ANSI escape codes for the terminal emulator to display. Support for ANSI escape codes varies across terminal emulators, especially for italic and strikethrough. In standard output, [code]code[/code] is represented with faint text but without any font change. Unsupported tags are left as-is in standard output.
 				[codeblocks]
 				[gdscript skip-lint]
-				print_rich("[color=green][b]Hello world![/b][/color]") # Prints out "Hello world!" in green with a bold font
+				print_rich("[color=green][b]Hello world![/b][/color]") # Prints "Hello world!", in green with a bold font.
 				[/gdscript]
 				[csharp skip-lint]
-				GD.PrintRich("[color=green][b]Hello world![/b][/color]"); // Prints out "Hello world!" in green with a bold font
+				GD.PrintRich("[color=green][b]Hello world![/b][/color]"); // Prints "Hello world!", in green with a bold font.
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] Consider using [method push_error] and [method push_warning] to print error and warning messages instead of [method print] or [method print_rich]. This distinguishes them from print messages used for debugging purposes, while also displaying a stack trace when an error or warning is printed.
@@ -879,11 +881,13 @@
 			</description>
 		</method>
 		<method name="print_verbose" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				If verbose mode is enabled ([method OS.is_stdout_verbose] returning [code]true[/code]), converts one or more arguments of any type to string in the best way possible and prints them to the console.
 			</description>
 		</method>
 		<method name="printerr" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Prints one or more arguments to strings in the best way possible to standard error line.
 				[codeblocks]
@@ -897,74 +901,79 @@
 			</description>
 		</method>
 		<method name="printraw" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Prints one or more arguments to strings in the best way possible to the OS terminal. Unlike [method print], no newline is automatically added at the end.
 				[b]Note:[/b] The OS terminal is [i]not[/i] the same as the editor's Output dock. The output sent to the OS terminal can be seen when running Godot from a terminal. On Windows, this requires using the [code]console.exe[/code] executable.
 				[codeblocks]
 				[gdscript]
+				# Prints "ABC" to terminal.
 				printraw("A")
 				printraw("B")
 				printraw("C")
-				# Prints ABC to terminal
 				[/gdscript]
 				[csharp]
+				// Prints "ABC" to terminal.
 				GD.PrintRaw("A");
 				GD.PrintRaw("B");
 				GD.PrintRaw("C");
-				// Prints ABC to terminal
 				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="prints" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Prints one or more arguments to the console with a space between each argument.
 				[codeblocks]
 				[gdscript]
-				prints("A", "B", "C") # Prints A B C
+				prints("A", "B", "C") # Prints "A B C"
 				[/gdscript]
 				[csharp]
-				GD.PrintS("A", "B", "C"); // Prints A B C
+				GD.PrintS("A", "B", "C"); // Prints "A B C"
 				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="printt" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Prints one or more arguments to the console with a tab between each argument.
 				[codeblocks]
 				[gdscript]
-				printt("A", "B", "C") # Prints A       B       C
+				printt("A", "B", "C") # Prints "A       B       C"
 				[/gdscript]
 				[csharp]
-				GD.PrintT("A", "B", "C"); // Prints A       B       C
+				GD.PrintT("A", "B", "C"); // Prints "A       B       C"
 				[/csharp]
 				[/codeblocks]
 			</description>
 		</method>
 		<method name="push_error" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Pushes an error message to Godot's built-in debugger and to the OS terminal.
 				[codeblocks]
 				[gdscript]
-				push_error("test error") # Prints "test error" to debugger and terminal as error call
+				push_error("test error") # Prints "test error" to debugger and terminal as an error.
 				[/gdscript]
 				[csharp]
-				GD.PushError("test error"); // Prints "test error" to debugger and terminal as error call
+				GD.PushError("test error"); // Prints "test error" to debugger and terminal as an error.
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] This function does not pause project execution. To print an error message and pause project execution in debug builds, use [code]assert(false, "test error")[/code] instead.
 			</description>
 		</method>
 		<method name="push_warning" qualifiers="vararg">
+			<return type="void" />
 			<description>
 				Pushes a warning message to Godot's built-in debugger and to the OS terminal.
 				[codeblocks]
 				[gdscript]
-				push_warning("test warning") # Prints "test warning" to debugger and terminal as warning call
+				push_warning("test warning") # Prints "test warning" to debugger and terminal as a warning.
 				[/gdscript]
 				[csharp]
-				GD.PushWarning("test warning"); // Prints "test warning" to debugger and terminal as warning call
+				GD.PushWarning("test warning"); // Prints "test warning" to debugger and terminal as a warning.
 				[/csharp]
 				[/codeblocks]
 			</description>
@@ -1075,6 +1084,7 @@
 			</description>
 		</method>
 		<method name="randomize">
+			<return type="void" />
 			<description>
 				Randomizes the seed (or the internal state) of the random number generator. The current implementation uses a number based on the device's time.
 				[b]Note:[/b] This function is called automatically when the project is run. If you need to fix the seed to have consistent, reproducible results, use [method seed] to initialize the random number generator.
@@ -1151,6 +1161,7 @@
 			</description>
 		</method>
 		<method name="seed">
+			<return type="void" />
 			<param index="0" name="base" type="int" />
 			<description>
 				Sets the seed for the random number generator to [param base]. Setting the seed manually can ensure consistent, repeatable results for most random functions.
@@ -1402,9 +1413,9 @@
 			<description>
 				Returns a human-readable name of the given [param type], using the [enum Variant.Type] values.
 				[codeblock]
-				print(TYPE_INT) # Prints 2.
-				print(type_string(TYPE_INT)) # Prints "int".
-				print(type_string(TYPE_STRING)) # Prints "String".
+				print(TYPE_INT) # Prints 2
+				print(type_string(TYPE_INT)) # Prints "int"
+				print(type_string(TYPE_STRING)) # Prints "String"
 				[/codeblock]
 				See also [method typeof].
 			</description>
@@ -1418,10 +1429,10 @@
 				var json = JSON.new()
 				json.parse('["a", "b", "c"]')
 				var result = json.get_data()
-				if typeof(result) == TYPE_ARRAY:
-				    print(result[0]) # Prints a
+				if result is Array:
+				    print(result[0]) # Prints "a"
 				else:
-				    print("Unexpected result")
+				    print("Unexpected result!")
 				[/codeblock]
 				See also [method type_string].
 			</description>
@@ -2019,16 +2030,16 @@
 			Help key.
 		</constant>
 		<constant name="KEY_BACK" value="4194376" enum="Key">
-			Media back key. Not to be confused with the Back button on an Android device.
+			Back key.
 		</constant>
 		<constant name="KEY_FORWARD" value="4194377" enum="Key">
-			Media forward key.
+			Forward key.
 		</constant>
 		<constant name="KEY_STOP" value="4194378" enum="Key">
 			Media stop key.
 		</constant>
 		<constant name="KEY_REFRESH" value="4194379" enum="Key">
-			Media refresh key.
+			Refresh key.
 		</constant>
 		<constant name="KEY_VOLUMEDOWN" value="4194380" enum="Key">
 			Volume down key.
@@ -2354,7 +2365,7 @@
 		<constant name="KEY_CODE_MASK" value="8388607" enum="KeyModifierMask" is_bitfield="true">
 			Key Code mask.
 		</constant>
-		<constant name="KEY_MODIFIER_MASK" value="532676608" enum="KeyModifierMask" is_bitfield="true">
+		<constant name="KEY_MODIFIER_MASK" value="2130706432" enum="KeyModifierMask" is_bitfield="true">
 			Modifier key mask.
 		</constant>
 		<constant name="KEY_MASK_CMD_OR_CTRL" value="16777216" enum="KeyModifierMask" is_bitfield="true">
@@ -2943,7 +2954,7 @@
 		<constant name="PROPERTY_HINT_ONESHOT" value="40" enum="PropertyHint">
 			Hints that a property will be changed on its own after setting, such as [member AudioStreamPlayer.playing] or [member GPUParticles3D.emitting].
 		</constant>
-		<constant name="PROPERTY_HINT_MAX" value="41" enum="PropertyHint">
+		<constant name="PROPERTY_HINT_MAX" value="42" enum="PropertyHint">
 			Represents the size of the [enum PropertyHint] enum.
 		</constant>
 		<constant name="PROPERTY_USAGE_NONE" value="0" enum="PropertyUsageFlags" is_bitfield="true">

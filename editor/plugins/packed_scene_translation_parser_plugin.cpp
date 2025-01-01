@@ -32,7 +32,6 @@
 
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
-#include "scene/gui/option_button.h"
 #include "scene/resources/packed_scene.h"
 
 void PackedSceneEditorTranslationParserPlugin::get_recognized_extensions(List<String> *r_extensions) const {
@@ -49,7 +48,9 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 		ERR_PRINT("Failed to load " + p_path);
 		return err;
 	}
-	Ref<SceneState> state = Ref<PackedScene>(loaded_res)->get_state();
+	Ref<PackedScene> packed_scene = loaded_res;
+	ERR_FAIL_COND_V_MSG(packed_scene.is_null(), ERR_FILE_UNRECOGNIZED, vformat("'%s' is not a valid PackedScene resource.", p_path));
+	Ref<SceneState> state = packed_scene->get_state();
 
 	Vector<String> parsed_strings;
 	Vector<Pair<NodePath, bool>> atr_owners;

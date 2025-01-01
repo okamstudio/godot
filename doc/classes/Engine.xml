@@ -240,6 +240,12 @@
 				[b]Note:[/b] To detect whether the script is running on an editor [i]build[/i] (such as when pressing [kbd]F5[/kbd]), use [method OS.has_feature] with the [code]"editor"[/code] argument instead. [code]OS.has_feature("editor")[/code] evaluate to [code]true[/code] both when the script is running in the editor and when running the project from the editor, but returns [code]false[/code] when run from an exported project.
 			</description>
 		</method>
+		<method name="is_embedded_in_editor" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the engine is running embedded in the editor. This is useful to prevent attempting to update window mode or window flags that are not supported when running the project embedded in the editor.
+			</description>
+		</method>
 		<method name="is_in_physics_frame" qualifiers="const">
 			<return type="bool" />
 			<description>

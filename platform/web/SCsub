@@ -22,10 +22,13 @@ if "serve" in COMMAND_LINE_TARGETS or "run" in COMMAND_LINE_TARGETS:
 
 web_files = [
     "audio_driver_web.cpp",
+    "webmidi_driver.cpp",
     "display_server_web.cpp",
     "http_client_web.cpp",
     "javascript_bridge_singleton.cpp",
     "web_main.cpp",
+    "ip_web.cpp",
+    "net_socket_web.cpp",
     "os_web.cpp",
 ]
 
@@ -38,6 +41,7 @@ sys_env.AddJSLibraries(
         "js/libs/library_godot_audio.js",
         "js/libs/library_godot_display.js",
         "js/libs/library_godot_fetch.js",
+        "js/libs/library_godot_webmidi.js",
         "js/libs/library_godot_os.js",
         "js/libs/library_godot_runtime.js",
         "js/libs/library_godot_input.js",

@@ -30,7 +30,7 @@
 
 #include "node_path.h"
 
-#include "core/string/print_string.h"
+#include "core/variant/variant.h"
 
 void NodePath::_update_hash_cache() const {
 	uint32_t h = data->absolute ? 1 : 0;

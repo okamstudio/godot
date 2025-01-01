@@ -48,6 +48,7 @@
 #include "core/io/ip.h"
 #include "core/io/resource_loader.h"
 #include "core/object/message_queue.h"
+#include "core/object/script_language.h"
 #include "core/os/os.h"
 #include "core/os/time.h"
 #include "core/register_core_types.h"
@@ -66,6 +67,7 @@
 #include "scene/register_scene_types.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/theme/theme_db.h"
+#include "servers/audio/audio_driver_dummy.h"
 #include "servers/audio_server.h"
 #include "servers/camera_server.h"
 #include "servers/display_server.h"
@@ -228,6 +230,7 @@ static bool init_always_on_top = false;
 static bool init_use_custom_pos = false;
 static bool init_use_custom_screen = false;
 static Vector2 init_custom_pos;
+static int64_t init_embed_parent_window_id = 0;
 
 // Debug
 
@@ -623,6 +626,7 @@ void Main::print_help(const char *p_binary) {
 #ifndef _3D_DISABLED
 	print_help_option("--xr-mode <mode>", "Select XR (Extended Reality) mode [\"default\", \"off\", \"on\"].\n");
 #endif
+	print_help_option("--wid <window_id>", "Request parented to window.\n");
 
 	print_help_title("Debug options");
 	print_help_option("-d, --debug", "Debug (local stdout debugger).\n");
@@ -1826,6 +1830,23 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				goto error;
 			}
 #endif // TOOLS_ENABLED
+		} else if (arg == "--wid") {
+			if (N) {
+				init_embed_parent_window_id = N->get().to_int();
+				if (init_embed_parent_window_id == 0) {
+					OS::get_singleton()->print("<window_id> argument for --wid <window_id> must be different then 0.\n");
+					goto error;
+				}
+
+				OS::get_singleton()->_embedded_in_editor = true;
+				Engine::get_singleton()->set_embedded_in_editor(true);
+
+				N = N->next();
+			} else {
+				OS::get_singleton()->print("Missing <window_id> argument for --wid <window_id>.\n");
+				goto error;
+			}
+
 		} else if (arg == "--" || arg == "++") {
 			adding_user_args = true;
 		} else {
@@ -2992,9 +3013,16 @@ Error Main::setup2(bool p_show_boot_logo) {
 			context = DisplayServer::CONTEXT_ENGINE;
 		}
 
+		if (init_embed_parent_window_id) {
+			// Reset flags and other settings to be sure it's borderless and windowed. The position and size should have been initialized correctly
+			// from --position and --resolution parameters.
+			window_mode = DisplayServer::WINDOW_MODE_WINDOWED;
+			window_flags = DisplayServer::WINDOW_FLAG_BORDERLESS_BIT;
+		}
+
 		// rendering_driver now held in static global String in main and initialized in setup()
 		Error err;
-		display_server = DisplayServer::create(display_driver_idx, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, err);
+		display_server = DisplayServer::create(display_driver_idx, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, init_embed_parent_window_id, err);
 		if (err != OK || display_server == nullptr) {
 			String last_name = DisplayServer::get_create_function_name(display_driver_idx);
 
@@ -3008,7 +3036,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 				String name = DisplayServer::get_create_function_name(i);
 				WARN_PRINT(vformat("Display driver %s failed, falling back to %s.", last_name, name));
 
-				display_server = DisplayServer::create(i, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, err);
+				display_server = DisplayServer::create(i, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, init_embed_parent_window_id, err);
 				if (err == OK && display_server != nullptr) {
 					break;
 				}
@@ -3211,15 +3239,17 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 		MAIN_PRINT("Main: Setup Logo");
 
-		if (init_windowed) {
-			//do none..
-		} else if (init_maximized) {
-			DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_MAXIMIZED);
-		} else if (init_fullscreen) {
-			DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_FULLSCREEN);
-		}
-		if (init_always_on_top) {
-			DisplayServer::get_singleton()->window_set_flag(DisplayServer::WINDOW_FLAG_ALWAYS_ON_TOP, true);
+		if (!init_embed_parent_window_id) {
+			if (init_windowed) {
+				//do none..
+			} else if (init_maximized) {
+				DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_MAXIMIZED);
+			} else if (init_fullscreen) {
+				DisplayServer::get_singleton()->window_set_mode(DisplayServer::WINDOW_MODE_FULLSCREEN);
+			}
+			if (init_always_on_top) {
+				DisplayServer::get_singleton()->window_set_flag(DisplayServer::WINDOW_FLAG_ALWAYS_ON_TOP, true);
+			}
 		}
 
 		Color clear = GLOBAL_DEF_BASIC("rendering/environment/defaults/default_clear_color", Color(0.3, 0.3, 0.3));
@@ -3835,8 +3865,8 @@ int Main::start() {
 
 #endif // TOOLS_ENABLED
 
-	if (script.is_empty() && game_path.is_empty() && String(GLOBAL_GET("application/run/main_scene")) != "") {
-		game_path = GLOBAL_GET("application/run/main_scene");
+	if (script.is_empty() && game_path.is_empty()) {
+		game_path = ResourceUID::ensure_path(GLOBAL_GET("application/run/main_scene"));
 	}
 
 #ifdef TOOLS_ENABLED
@@ -3849,6 +3879,21 @@ int Main::start() {
 		ERR_FAIL_V_MSG(EXIT_FAILURE, "Couldn't detect whether to run the editor, the project manager or a specific project. Aborting.");
 	}
 #endif
+
+	if (!project_manager && !editor) { // game
+		HashMap<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
+
+		//first pass, add the constants so they exist before any script is loaded (including MainLoop scripts)
+		for (const KeyValue<StringName, ProjectSettings::AutoloadInfo> &E : autoloads) {
+			const ProjectSettings::AutoloadInfo &info = E.value;
+
+			if (info.is_singleton) {
+				for (int i = 0; i < ScriptServer::get_language_count(); i++) {
+					ScriptServer::get_language(i)->add_global_constant(info.name, Variant());
+				}
+			}
+		}
+	}
 
 	MainLoop *main_loop = nullptr;
 	if (editor) {
@@ -3972,17 +4017,6 @@ int Main::start() {
 				OS::get_singleton()->benchmark_begin_measure("Startup", "Load Autoloads");
 				HashMap<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
 
-				//first pass, add the constants so they exist before any script is loaded
-				for (const KeyValue<StringName, ProjectSettings::AutoloadInfo> &E : autoloads) {
-					const ProjectSettings::AutoloadInfo &info = E.value;
-
-					if (info.is_singleton) {
-						for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-							ScriptServer::get_language(i)->add_global_constant(info.name, Variant());
-						}
-					}
-				}
-
 				//second pass, load into global constants
 				List<Node *> to_add;
 				for (const KeyValue<StringName, ProjectSettings::AutoloadInfo> &E : autoloads) {
@@ -3995,7 +4029,7 @@ int Main::start() {
 						scn.instantiate();
 						scn->set_path(info.path);
 						scn->reload_from_file();
-						ERR_CONTINUE_MSG(!scn.is_valid(), vformat("Failed to instantiate an autoload, can't load from path: %s.", info.path));
+						ERR_CONTINUE_MSG(scn.is_null(), vformat("Failed to instantiate an autoload, can't load from path: %s.", info.path));
 
 						if (scn.is_valid()) {
 							n = scn->instantiate();

@@ -167,7 +167,7 @@ ObjectID EditorDebuggerInspector::add_object(const Array &p_arr) {
 					if (debug_obj->get_script() != var) {
 						debug_obj->set_script(Ref<RefCounted>());
 						Ref<Script> scr(var);
-						if (!scr.is_null()) {
+						if (scr.is_valid()) {
 							ScriptInstance *scr_instance = scr->placeholder_instance_create(debug_obj);
 							if (scr_instance) {
 								debug_obj->set_script_and_instance(var, scr_instance);

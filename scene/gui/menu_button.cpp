@@ -30,7 +30,6 @@
 
 #include "menu_button.h"
 
-#include "core/os/keyboard.h"
 #include "scene/main/window.h"
 
 void MenuButton::shortcut_input(const Ref<InputEvent> &p_event) {
@@ -138,7 +137,7 @@ void MenuButton::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_INTERNAL_PROCESS: {
-			MenuButton *menu_btn_other = Object::cast_to<MenuButton>(get_viewport()->gui_find_control(get_viewport()->get_mouse_position()));
+			MenuButton *menu_btn_other = Object::cast_to<MenuButton>(get_viewport()->gui_get_hovered_control());
 
 			if (menu_btn_other && menu_btn_other != this && menu_btn_other->is_switch_on_hover() && !menu_btn_other->is_disabled() &&
 					(get_parent()->is_ancestor_of(menu_btn_other) || menu_btn_other->get_parent()->is_ancestor_of(popup))) {

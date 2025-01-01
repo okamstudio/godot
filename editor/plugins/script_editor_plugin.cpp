@@ -65,6 +65,7 @@
 #include "editor/themes/editor_theme_manager.h"
 #include "editor/window_wrapper.h"
 #include "scene/gui/separator.h"
+#include "scene/gui/tab_container.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/main/node.h"
 #include "scene/main/window.h"
@@ -1372,7 +1373,7 @@ void ScriptEditor::_menu_option(int p_option) {
 				}
 
 				Ref<Resource> scr = ResourceLoader::load(path);
-				if (!scr.is_valid()) {
+				if (scr.is_null()) {
 					EditorNode::get_singleton()->show_warning(TTR("Could not load file at:") + "\n\n" + path, TTR("Error!"));
 					file_dialog_option = -1;
 					return;
@@ -2840,7 +2841,7 @@ void ScriptEditor::_reload_scripts(bool p_refresh_only) {
 			Ref<Script> scr = edited_res;
 			if (scr.is_valid()) {
 				Ref<Script> rel_scr = ResourceLoader::load(scr->get_path(), scr->get_class(), ResourceFormatLoader::CACHE_MODE_IGNORE);
-				ERR_CONTINUE(!rel_scr.is_valid());
+				ERR_CONTINUE(rel_scr.is_null());
 				scr->set_source_code(rel_scr->get_source_code());
 				scr->set_last_modified_time(rel_scr->get_last_modified_time());
 				scr->reload(true);
@@ -2851,7 +2852,7 @@ void ScriptEditor::_reload_scripts(bool p_refresh_only) {
 			Ref<JSON> json = edited_res;
 			if (json.is_valid()) {
 				Ref<JSON> rel_json = ResourceLoader::load(json->get_path(), json->get_class(), ResourceFormatLoader::CACHE_MODE_IGNORE);
-				ERR_CONTINUE(!rel_json.is_valid());
+				ERR_CONTINUE(rel_json.is_null());
 				json->parse(rel_json->get_parsed_text(), true);
 				json->set_last_modified_time(rel_json->get_last_modified_time());
 			}
@@ -2887,7 +2888,7 @@ Ref<Resource> ScriptEditor::open_file(const String &p_file) {
 	ResourceLoader::get_recognized_extensions_for_type("JSON", &extensions);
 	if (extensions.find(p_file.get_extension())) {
 		Ref<Resource> scr = ResourceLoader::load(p_file);
-		if (!scr.is_valid()) {
+		if (scr.is_null()) {
 			EditorNode::get_singleton()->show_warning(TTR("Could not load file at:") + "\n\n" + p_file, TTR("Error!"));
 			return Ref<Resource>();
 		}
@@ -2924,7 +2925,7 @@ void ScriptEditor::_editor_stop() {
 void ScriptEditor::_add_callback(Object *p_obj, const String &p_function, const PackedStringArray &p_args) {
 	ERR_FAIL_NULL(p_obj);
 	Ref<Script> scr = p_obj->get_script();
-	ERR_FAIL_COND(!scr.is_valid());
+	ERR_FAIL_COND(scr.is_null());
 
 	if (!scr->get_language()->can_make_function()) {
 		return;
@@ -3142,7 +3143,7 @@ Variant ScriptEditor::get_drag_data_fw(const Point2 &p_point, Control *p_from) {
 		preview_icon = get_editor_theme_icon(SNAME("Help"));
 	}
 
-	if (!preview_icon.is_null()) {
+	if (preview_icon.is_valid()) {
 		TextureRect *tf = memnew(TextureRect);
 		tf->set_texture(preview_icon);
 		tf->set_stretch_mode(TextureRect::STRETCH_KEEP_CENTERED);
@@ -3411,12 +3412,10 @@ void ScriptEditor::_make_script_list_context_menu() {
 	context_menu->add_separator();
 	if (se) {
 		Ref<Script> scr = se->get_edited_resource();
-		if (scr.is_valid()) {
-			if (!scr.is_null() && scr->is_tool()) {
-				context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/reload_script_soft"), FILE_TOOL_RELOAD_SOFT);
-				context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/run_file"), FILE_RUN);
-				context_menu->add_separator();
-			}
+		if (scr.is_valid() && scr->is_tool()) {
+			context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/reload_script_soft"), FILE_TOOL_RELOAD_SOFT);
+			context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/run_file"), FILE_RUN);
+			context_menu->add_separator();
 		}
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_path"), FILE_COPY_PATH);
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/show_in_file_system"), SHOW_IN_FILE_SYSTEM);
@@ -3491,7 +3490,7 @@ void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 
 		if (extensions.find(path.get_extension())) {
 			Ref<Resource> scr = ResourceLoader::load(path);
-			if (!scr.is_valid()) {
+			if (scr.is_null()) {
 				continue;
 			}
 			if (!edit(scr, false)) {
@@ -3500,7 +3499,7 @@ void ScriptEditor::set_window_layout(Ref<ConfigFile> p_layout) {
 		} else {
 			Error error;
 			Ref<TextFile> text_file = _load_text_file(path, &error);
-			if (error != OK || !text_file.is_valid()) {
+			if (error != OK || text_file.is_null()) {
 				continue;
 			}
 			if (!edit(text_file, false)) {
@@ -3724,9 +3723,9 @@ void ScriptEditor::_update_selected_editor_menu() {
 	EditorHelp *eh = Object::cast_to<EditorHelp>(tab_container->get_current_tab_control());
 	script_search_menu->get_popup()->clear();
 	if (eh) {
-		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find", TTR("Find..."), KeyModifierMask::CMD_OR_CTRL | Key::F), HELP_SEARCH_FIND);
-		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find_next", TTR("Find Next"), Key::F3), HELP_SEARCH_FIND_NEXT);
-		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find_previous", TTR("Find Previous"), KeyModifierMask::SHIFT | Key::F3), HELP_SEARCH_FIND_PREVIOUS);
+		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find", TTRC("Find..."), KeyModifierMask::CMD_OR_CTRL | Key::F), HELP_SEARCH_FIND);
+		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find_next", TTRC("Find Next"), Key::F3), HELP_SEARCH_FIND_NEXT);
+		script_search_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/find_previous", TTRC("Find Previous"), KeyModifierMask::SHIFT | Key::F3), HELP_SEARCH_FIND_PREVIOUS);
 		script_search_menu->get_popup()->add_separator();
 		script_search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_editor/find_in_files"), SEARCH_IN_FILES);
 		script_search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_editor/replace_in_files"), REPLACE_IN_FILES);
@@ -4229,12 +4228,12 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	code_editor_container->add_child(find_replace_bar);
 	find_replace_bar->hide();
 
-	ED_SHORTCUT("script_editor/window_sort", TTR("Sort"));
-	ED_SHORTCUT("script_editor/window_move_up", TTR("Move Up"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::UP);
-	ED_SHORTCUT("script_editor/window_move_down", TTR("Move Down"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::DOWN);
+	ED_SHORTCUT("script_editor/window_sort", TTRC("Sort"));
+	ED_SHORTCUT("script_editor/window_move_up", TTRC("Move Up"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::UP);
+	ED_SHORTCUT("script_editor/window_move_down", TTRC("Move Down"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::DOWN);
 	// FIXME: These should be `Key::GREATER` and `Key::LESS` but those don't work.
-	ED_SHORTCUT("script_editor/next_script", TTR("Next Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::PERIOD);
-	ED_SHORTCUT("script_editor/prev_script", TTR("Previous Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::COMMA);
+	ED_SHORTCUT("script_editor/next_script", TTRC("Next Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::PERIOD);
+	ED_SHORTCUT("script_editor/prev_script", TTRC("Previous Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::COMMA);
 	set_process_input(true);
 	set_process_shortcut_input(true);
 
@@ -4244,9 +4243,9 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	file_menu->set_shortcut_context(this);
 	menu_hb->add_child(file_menu);
 
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new", TTR("New Script..."), KeyModifierMask::CMD_OR_CTRL | Key::N), FILE_NEW);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new_textfile", TTR("New Text File..."), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::N), FILE_NEW_TEXTFILE);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/open", TTR("Open...")), FILE_OPEN);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new", TTRC("New Script..."), KeyModifierMask::CMD_OR_CTRL | Key::N), FILE_NEW);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new_textfile", TTRC("New Text File..."), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::N), FILE_NEW_TEXTFILE);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/open", TTRC("Open...")), FILE_OPEN);
 	file_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_editor/reopen_closed_script"), FILE_REOPEN_CLOSED);
 
 	recent_scripts = memnew(PopupMenu);
@@ -4256,44 +4255,50 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	_update_recent_scripts();
 
 	file_menu->get_popup()->add_separator();
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save", TTR("Save"), KeyModifierMask::ALT | KeyModifierMask::CMD_OR_CTRL | Key::S), FILE_SAVE);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_as", TTR("Save As...")), FILE_SAVE_AS);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_all", TTR("Save All"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::S), FILE_SAVE_ALL);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save", TTRC("Save"), KeyModifierMask::ALT | KeyModifierMask::CMD_OR_CTRL | Key::S), FILE_SAVE);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_as", TTRC("Save As...")), FILE_SAVE_AS);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/save_all", TTRC("Save All"), KeyModifierMask::SHIFT | KeyModifierMask::ALT | Key::S), FILE_SAVE_ALL);
 	ED_SHORTCUT_OVERRIDE("script_editor/save_all", "macos", KeyModifierMask::META | KeyModifierMask::CTRL | Key::S);
 	file_menu->get_popup()->add_separator();
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/reload_script_soft", TTR("Soft Reload Tool Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R), FILE_TOOL_RELOAD_SOFT);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_path", TTR("Copy Script Path")), FILE_COPY_PATH);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/show_in_file_system", TTR("Show in FileSystem")), SHOW_IN_FILE_SYSTEM);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/reload_script_soft", TTRC("Soft Reload Tool Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R), FILE_TOOL_RELOAD_SOFT);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_path", TTRC("Copy Script Path")), FILE_COPY_PATH);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/show_in_file_system", TTRC("Show in FileSystem")), SHOW_IN_FILE_SYSTEM);
 	file_menu->get_popup()->add_separator();
 
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/history_previous", TTR("History Previous"), KeyModifierMask::ALT | Key::LEFT), WINDOW_PREV);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/history_next", TTR("History Next"), KeyModifierMask::ALT | Key::RIGHT), WINDOW_NEXT);
+	file_menu->get_popup()->add_shortcut(
+			ED_SHORTCUT_ARRAY("script_editor/history_previous", TTRC("History Previous"),
+					{ int32_t(KeyModifierMask::ALT | Key::LEFT), int32_t(Key::BACK) }),
+			WINDOW_PREV);
+	file_menu->get_popup()->add_shortcut(
+			ED_SHORTCUT_ARRAY("script_editor/history_next", TTRC("History Next"),
+					{ int32_t(KeyModifierMask::ALT | Key::RIGHT), int32_t(Key::FORWARD) }),
+			WINDOW_NEXT);
 	ED_SHORTCUT_OVERRIDE("script_editor/history_previous", "macos", KeyModifierMask::ALT | KeyModifierMask::META | Key::LEFT);
 	ED_SHORTCUT_OVERRIDE("script_editor/history_next", "macos", KeyModifierMask::ALT | KeyModifierMask::META | Key::RIGHT);
 
 	file_menu->get_popup()->add_separator();
 
 	theme_submenu = memnew(PopupMenu);
-	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/import_theme", TTR("Import Theme...")), THEME_IMPORT);
-	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/reload_theme", TTR("Reload Theme")), THEME_RELOAD);
+	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/import_theme", TTRC("Import Theme...")), THEME_IMPORT);
+	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/reload_theme", TTRC("Reload Theme")), THEME_RELOAD);
 	file_menu->get_popup()->add_submenu_node_item(TTR("Theme"), theme_submenu, FILE_THEME);
 	theme_submenu->connect(SceneStringName(id_pressed), callable_mp(this, &ScriptEditor::_theme_option));
 
 	theme_submenu->add_separator();
-	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/save_theme", TTR("Save Theme")), THEME_SAVE);
-	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/save_theme_as", TTR("Save Theme As...")), THEME_SAVE_AS);
+	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/save_theme", TTRC("Save Theme")), THEME_SAVE);
+	theme_submenu->add_shortcut(ED_SHORTCUT("script_editor/save_theme_as", TTRC("Save Theme As...")), THEME_SAVE_AS);
 
 	file_menu->get_popup()->add_separator();
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_file", TTR("Close"), KeyModifierMask::CMD_OR_CTRL | Key::W), FILE_CLOSE);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_all", TTR("Close All")), CLOSE_ALL);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_other_tabs", TTR("Close Other Tabs")), CLOSE_OTHER_TABS);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_docs", TTR("Close Docs")), CLOSE_DOCS);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_file", TTRC("Close"), KeyModifierMask::CMD_OR_CTRL | Key::W), FILE_CLOSE);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_all", TTRC("Close All")), CLOSE_ALL);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_other_tabs", TTRC("Close Other Tabs")), CLOSE_OTHER_TABS);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/close_docs", TTRC("Close Docs")), CLOSE_DOCS);
 
 	file_menu->get_popup()->add_separator();
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/run_file", TTR("Run"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::X), FILE_RUN);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/run_file", TTRC("Run"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::X), FILE_RUN);
 
 	file_menu->get_popup()->add_separator();
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/toggle_scripts_panel", TTR("Toggle Scripts Panel"), KeyModifierMask::CMD_OR_CTRL | Key::BACKSLASH), TOGGLE_SCRIPTS_PANEL);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/toggle_scripts_panel", TTRC("Toggle Scripts Panel"), KeyModifierMask::CMD_OR_CTRL | Key::BACKSLASH), TOGGLE_SCRIPTS_PANEL);
 	file_menu->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &ScriptEditor::_menu_option));
 	file_menu->get_popup()->connect("about_to_popup", callable_mp(this, &ScriptEditor::_prepare_file_menu));
 	file_menu->get_popup()->connect("popup_hide", callable_mp(this, &ScriptEditor::_file_menu_closed));
@@ -4441,7 +4446,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	find_in_files_dialog->connect(FindInFilesDialog::SIGNAL_REPLACE_REQUESTED, callable_mp(this, &ScriptEditor::_start_find_in_files).bind(true));
 	add_child(find_in_files_dialog);
 	find_in_files = memnew(FindInFilesPanel);
-	find_in_files_button = EditorNode::get_bottom_panel()->add_item(TTR("Search Results"), find_in_files, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_search_results_bottom_panel", TTR("Toggle Search Results Bottom Panel")));
+	find_in_files_button = EditorNode::get_bottom_panel()->add_item(TTR("Search Results"), find_in_files, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_search_results_bottom_panel", TTRC("Toggle Search Results Bottom Panel")));
 	find_in_files->set_custom_minimum_size(Size2(0, 200) * EDSCALE);
 	find_in_files->connect(FindInFilesPanel::SIGNAL_RESULT_SELECTED, callable_mp(this, &ScriptEditor::_on_find_in_files_result_selected));
 	find_in_files->connect(FindInFilesPanel::SIGNAL_FILES_MODIFIED, callable_mp(this, &ScriptEditor::_on_find_in_files_modified_files));
@@ -4481,7 +4486,7 @@ void ScriptEditorPlugin::_focus_another_editor() {
 }
 
 void ScriptEditorPlugin::_save_last_editor(const String &p_editor) {
-	if (p_editor != get_name()) {
+	if (p_editor != get_plugin_name()) {
 		last_editor = p_editor;
 	}
 }
@@ -4655,21 +4660,21 @@ void ScriptEditorPlugin::edited_scene_changed() {
 }
 
 ScriptEditorPlugin::ScriptEditorPlugin() {
-	ED_SHORTCUT("script_editor/reopen_closed_script", TTR("Reopen Closed Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::T);
-	ED_SHORTCUT("script_editor/clear_recent", TTR("Clear Recent Scripts"));
-	ED_SHORTCUT("script_editor/find_in_files", TTR("Find in Files"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::F);
-	ED_SHORTCUT("script_editor/replace_in_files", TTR("Replace in Files"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::R);
+	ED_SHORTCUT("script_editor/reopen_closed_script", TTRC("Reopen Closed Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::T);
+	ED_SHORTCUT("script_editor/clear_recent", TTRC("Clear Recent Scripts"));
+	ED_SHORTCUT("script_editor/find_in_files", TTRC("Find in Files"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::F);
+	ED_SHORTCUT("script_editor/replace_in_files", TTRC("Replace in Files"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::R);
 
-	ED_SHORTCUT("script_text_editor/convert_to_uppercase", TTR("Uppercase"), KeyModifierMask::SHIFT | Key::F4);
-	ED_SHORTCUT("script_text_editor/convert_to_lowercase", TTR("Lowercase"), KeyModifierMask::SHIFT | Key::F5);
-	ED_SHORTCUT("script_text_editor/capitalize", TTR("Capitalize"), KeyModifierMask::SHIFT | Key::F6);
+	ED_SHORTCUT("script_text_editor/convert_to_uppercase", TTRC("Uppercase"), KeyModifierMask::SHIFT | Key::F4);
+	ED_SHORTCUT("script_text_editor/convert_to_lowercase", TTRC("Lowercase"), KeyModifierMask::SHIFT | Key::F5);
+	ED_SHORTCUT("script_text_editor/capitalize", TTRC("Capitalize"), KeyModifierMask::SHIFT | Key::F6);
 
 	window_wrapper = memnew(WindowWrapper);
 	window_wrapper->set_window_title(vformat(TTR("%s - Godot Engine"), TTR("Script Editor")));
 	window_wrapper->set_margins_enabled(true);
 
 	script_editor = memnew(ScriptEditor(window_wrapper));
-	Ref<Shortcut> make_floating_shortcut = ED_SHORTCUT_AND_COMMAND("script_editor/make_floating", TTR("Make Floating"));
+	Ref<Shortcut> make_floating_shortcut = ED_SHORTCUT_AND_COMMAND("script_editor/make_floating", TTRC("Make Floating"));
 	window_wrapper->set_wrapped_control(script_editor, make_floating_shortcut);
 
 	EditorNode::get_singleton()->get_editor_main_screen()->get_control()->add_child(window_wrapper);

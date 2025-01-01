@@ -254,7 +254,15 @@ bool EditorExportPlatformIOS::get_export_option_visibility(const EditorExportPre
 	}
 
 	bool advanced_options_enabled = p_preset->are_advanced_options_enabled();
-	if (p_option.begins_with("privacy") || p_option == "application/generate_simulator_library_if_missing" || (p_option.begins_with("icons/") && !p_option.begins_with("icons/icon") && !p_option.begins_with("icons/app_store"))) {
+	if (p_option.begins_with("privacy") ||
+			p_option == "application/generate_simulator_library_if_missing" ||
+			(p_option.begins_with("icons/") && !p_option.begins_with("icons/icon") && !p_option.begins_with("icons/app_store")) ||
+			p_option == "custom_template/debug" ||
+			p_option == "custom_template/release" ||
+			p_option == "application/additional_plist_content" ||
+			p_option == "application/delete_old_export_files_unconditionally" ||
+			p_option == "application/icon_interpolation" ||
+			p_option == "application/signature") {
 		return advanced_options_enabled;
 	}
 

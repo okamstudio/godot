@@ -113,7 +113,7 @@ void VSGraphNode::_draw_port(int p_slot_index, Point2i p_pos, bool p_left, const
 	Ref<Texture2D> port_icon = p_left ? get_slot_custom_icon_left(p_slot_index) : get_slot_custom_icon_right(p_slot_index);
 
 	Point2 icon_offset;
-	if (!port_icon.is_valid()) {
+	if (port_icon.is_null()) {
 		port_icon = get_theme_icon(SNAME("port"), SNAME("GraphNode"));
 	}
 
@@ -333,7 +333,7 @@ void VisualShaderGraphPlugin::set_parameter_name(VisualShader::Type p_type, int 
 void VisualShaderGraphPlugin::update_curve(int p_node_id) {
 	if (links.has(p_node_id) && links[p_node_id].curve_editors[0]) {
 		Ref<VisualShaderNodeCurveTexture> tex = Object::cast_to<VisualShaderNodeCurveTexture>(links[p_node_id].visual_node);
-		ERR_FAIL_COND(!tex.is_valid());
+		ERR_FAIL_COND(tex.is_null());
 
 		if (tex->get_texture().is_valid()) {
 			links[p_node_id].curve_editors[0]->set_curve(tex->get_texture()->get_curve());
@@ -345,7 +345,7 @@ void VisualShaderGraphPlugin::update_curve(int p_node_id) {
 void VisualShaderGraphPlugin::update_curve_xyz(int p_node_id) {
 	if (links.has(p_node_id) && links[p_node_id].curve_editors[0] && links[p_node_id].curve_editors[1] && links[p_node_id].curve_editors[2]) {
 		Ref<VisualShaderNodeCurveXYZTexture> tex = Object::cast_to<VisualShaderNodeCurveXYZTexture>(links[p_node_id].visual_node);
-		ERR_FAIL_COND(!tex.is_valid());
+		ERR_FAIL_COND(tex.is_null());
 
 		if (tex->get_texture().is_valid()) {
 			links[p_node_id].curve_editors[0]->set_curve(tex->get_texture()->get_curve_x());
@@ -514,7 +514,7 @@ void VisualShaderGraphPlugin::update_frames(VisualShader::Type p_type, int p_nod
 	}
 
 	Ref<VisualShaderNode> vsnode = visual_shader->get_node(p_type, p_node);
-	if (!vsnode.is_valid()) {
+	if (vsnode.is_null()) {
 		WARN_PRINT("Update linked frames: Node not found.");
 		return;
 	}
@@ -525,7 +525,7 @@ void VisualShaderGraphPlugin::update_frames(VisualShader::Type p_type, int p_nod
 	}
 
 	Ref<VisualShaderNodeFrame> frame_node = visual_shader->get_node(p_type, frame_vsnode_id);
-	if (!frame_node.is_valid() || !links.has(frame_vsnode_id)) {
+	if (frame_node.is_null() || !links.has(frame_vsnode_id)) {
 		return;
 	}
 
@@ -605,7 +605,7 @@ bool VisualShaderGraphPlugin::is_node_has_parameter_instances_relatively(VisualS
 }
 
 void VisualShaderGraphPlugin::add_node(VisualShader::Type p_type, int p_id, bool p_just_update, bool p_update_frames) {
-	if (!visual_shader.is_valid() || p_type != visual_shader->get_shader_type()) {
+	if (visual_shader.is_null() || p_type != visual_shader->get_shader_type()) {
 		return;
 	}
 	GraphEdit *graph = editor->graph;
@@ -1597,7 +1597,7 @@ void VisualShaderEditor::clear_custom_types() {
 
 void VisualShaderEditor::add_custom_type(const String &p_name, const String &p_type, const Ref<Script> &p_script, const String &p_description, int p_return_icon_type, const String &p_category, bool p_highend) {
 	ERR_FAIL_COND(!p_name.is_valid_ascii_identifier());
-	ERR_FAIL_COND(p_type.is_empty() && !p_script.is_valid());
+	ERR_FAIL_COND(p_type.is_empty() && p_script.is_null());
 
 	for (int i = 0; i < add_options.size(); i++) {
 		const AddOption &op = add_options[i];
@@ -2234,7 +2234,7 @@ void VisualShaderEditor::_update_options_menu() {
 
 	int current_func = -1;
 
-	if (!visual_shader.is_null()) {
+	if (visual_shader.is_valid()) {
 		current_func = visual_shader->get_mode();
 	}
 
@@ -2256,7 +2256,7 @@ void VisualShaderEditor::_update_options_menu() {
 
 				if (!add_options[i].is_custom) {
 					vsn = Ref<VisualShaderNode>(Object::cast_to<VisualShaderNode>(ClassDB::instantiate(add_options[i].type)));
-					if (!vsn.is_valid()) {
+					if (vsn.is_null()) {
 						continue;
 					}
 
@@ -2698,7 +2698,7 @@ void VisualShaderEditor::_change_input_port_name(const String &p_text, Object *p
 	VisualShader::Type type = get_current_shader_type();
 
 	Ref<VisualShaderNodeGroupBase> node = visual_shader->get_node(type, p_node_id);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 
 	String prev_name = node->get_input_port_name(p_port_id);
 	if (prev_name == p_text) {
@@ -2725,7 +2725,7 @@ void VisualShaderEditor::_change_output_port_name(const String &p_text, Object *
 	VisualShader::Type type = get_current_shader_type();
 
 	Ref<VisualShaderNodeGroupBase> node = visual_shader->get_node(type, p_node_id);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 
 	String prev_name = node->get_output_port_name(p_port_id);
 	if (prev_name == p_text) {
@@ -2752,7 +2752,7 @@ void VisualShaderEditor::_expand_output_port(int p_node, int p_port, bool p_expa
 	VisualShader::Type type = get_current_shader_type();
 
 	Ref<VisualShaderNode> node = visual_shader->get_node(type, p_node);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	if (p_expand) {
@@ -2995,7 +2995,7 @@ void VisualShaderEditor::_set_node_size(int p_type, int p_node, const Vector2 &p
 	if (get_current_shader_type() == type) {
 		Ref<VisualShaderNodeExpression> expression_node = Object::cast_to<VisualShaderNodeExpression>(node.ptr());
 		Control *text_box = nullptr;
-		if (!expression_node.is_null()) {
+		if (expression_node.is_valid()) {
 			text_box = expression_node->is_ctrl_pressed(0);
 			if (text_box) {
 				text_box->set_custom_minimum_size(Size2(0, 0));
@@ -3208,7 +3208,7 @@ void VisualShaderEditor::_parameter_line_edit_changed(const String &p_text, int 
 	VisualShader::Type type = get_current_shader_type();
 
 	Ref<VisualShaderNodeParameter> node = visual_shader->get_node(type, p_node_id);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 
 	String validated_name = visual_shader->validate_parameter_name(p_text, node);
 
@@ -3250,7 +3250,7 @@ void VisualShaderEditor::_port_name_focus_out(Object *line_edit, int p_node_id, 
 void VisualShaderEditor::_port_edited(const StringName &p_property, const Variant &p_value, const String &p_field, bool p_changing) {
 	VisualShader::Type type = get_current_shader_type();
 	Ref<VisualShaderNode> vsn = visual_shader->get_node(type, editing_node);
-	ERR_FAIL_COND(!vsn.is_valid());
+	ERR_FAIL_COND(vsn.is_null());
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Set Input Default Port"));
@@ -4254,7 +4254,7 @@ bool VisualShaderEditor::_check_node_drop_on_connection(const Vector2 &p_positio
 	}
 
 	// Only a single node - which has both input and output ports but is not connected yet - can be inserted.
-	if (selected_node_count != 1 || !selected_vsnode.is_valid()) {
+	if (selected_node_count != 1 || selected_vsnode.is_null()) {
 		return false;
 	}
 
@@ -4462,7 +4462,7 @@ void VisualShaderEditor::_replace_node(VisualShader::Type p_type_id, int p_node_
 
 void VisualShaderEditor::_update_constant(VisualShader::Type p_type_id, int p_node_id, const Variant &p_var, int p_preview_port) {
 	Ref<VisualShaderNode> node = visual_shader->get_node(p_type_id, p_node_id);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 	ERR_FAIL_COND(!node->has_method("set_constant"));
 	node->call("set_constant", p_var);
 	if (p_preview_port != -1) {
@@ -4472,7 +4472,7 @@ void VisualShaderEditor::_update_constant(VisualShader::Type p_type_id, int p_no
 
 void VisualShaderEditor::_update_parameter(VisualShader::Type p_type_id, int p_node_id, const Variant &p_var, int p_preview_port) {
 	Ref<VisualShaderNodeParameter> parameter = visual_shader->get_node(p_type_id, p_node_id);
-	ERR_FAIL_COND(!parameter.is_valid());
+	ERR_FAIL_COND(parameter.is_null());
 
 	String valid_name = visual_shader->validate_parameter_name(parameter->get_parameter_name(), parameter);
 	parameter->set_parameter_name(valid_name);
@@ -4666,7 +4666,7 @@ void VisualShaderEditor::_convert_constants_to_parameters(bool p_vice_versa) {
 			undo_redo->add_undo_method(this, "_update_parameter", type_id, node_id, var, preview_port);
 
 			Ref<VisualShaderNodeParameter> parameter = Object::cast_to<VisualShaderNodeParameter>(node.ptr());
-			ERR_CONTINUE(!parameter.is_valid());
+			ERR_CONTINUE(parameter.is_null());
 
 			deleted_names.insert(parameter->get_parameter_name());
 		}
@@ -4689,7 +4689,7 @@ void VisualShaderEditor::_detach_nodes_from_frame(int p_type, const List<int> &p
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	for (int node_id : p_nodes) {
 		Ref<VisualShaderNode> node = visual_shader->get_node((VisualShader::Type)p_type, node_id);
-		if (!node.is_valid()) {
+		if (node.is_null()) {
 			continue;
 		}
 		int frame_id = node->get_frame();
@@ -4787,7 +4787,7 @@ void VisualShaderEditor::_node_selected(Object *p_node) {
 	int id = String(graph_element->get_name()).to_int();
 
 	Ref<VisualShaderNode> vsnode = visual_shader->get_node(type, id);
-	ERR_FAIL_COND(!vsnode.is_valid());
+	ERR_FAIL_COND(vsnode.is_null());
 }
 
 void VisualShaderEditor::_graph_gui_input(const Ref<InputEvent> &p_event) {
@@ -5160,7 +5160,7 @@ void VisualShaderEditor::_notification(int p_what) {
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("editors/panning")) {
 				graph->get_panner()->setup((ViewPanner::ControlScheme)EDITOR_GET("editors/panning/sub_editors_panning_scheme").operator int(), ED_GET_SHORTCUT("canvas_item_editor/pan_view"), bool(EDITOR_GET("editors/panning/simple_panning")));
-				graph->set_warped_panning(bool(EDITOR_GET("editors/panning/warped_mouse_panning")));
+				graph->set_warped_panning(EDITOR_GET("editors/panning/warped_mouse_panning"));
 			}
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("editors/visual_editors")) {
 				graph->set_minimap_opacity(EDITOR_GET("editors/visual_editors/minimap_opacity"));
@@ -5188,7 +5188,7 @@ void VisualShaderEditor::_notification(int p_what) {
 			}
 
 			graph->get_panner()->setup((ViewPanner::ControlScheme)EDITOR_GET("editors/panning/sub_editors_panning_scheme").operator int(), ED_GET_SHORTCUT("canvas_item_editor/pan_view"), bool(EDITOR_GET("editors/panning/simple_panning")));
-			graph->set_warped_panning(bool(EDITOR_GET("editors/panning/warped_mouse_panning")));
+			graph->set_warped_panning(EDITOR_GET("editors/panning/warped_mouse_panning"));
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
@@ -5780,7 +5780,7 @@ void VisualShaderEditor::_float_constant_selected(int p_which) {
 
 	VisualShader::Type type = get_current_shader_type();
 	Ref<VisualShaderNodeFloatConstant> node = visual_shader->get_node(type, selected_float_constant);
-	ERR_FAIL_COND(!node.is_valid());
+	ERR_FAIL_COND(node.is_null());
 
 	if (Math::is_equal_approx(node->get_constant(), float_constant_defs[p_which].value)) {
 		return; // same
@@ -7806,7 +7806,7 @@ public:
 			} else {
 				undo_redo->add_do_method(this, "_open_inspector", (Ref<Resource>)curr_res.ptr());
 			}
-			if (!prev_res.is_null()) {
+			if (prev_res.is_valid()) {
 				undo_redo->add_undo_method(this, "_open_inspector", (Ref<Resource>)prev_res.ptr());
 			} else {
 				undo_redo->add_undo_method(this, "_open_inspector", (Ref<Resource>)parent_resource.ptr());
@@ -8027,7 +8027,7 @@ void EditorPropertyVisualShaderMode::_option_selected(int p_which) {
 		Vector<int> nodes = visual_shader->get_node_list(type);
 		for (int j = 0; j < nodes.size(); j++) {
 			Ref<VisualShaderNodeInput> input = visual_shader->get_node(type, nodes[j]);
-			if (!input.is_valid()) {
+			if (input.is_null()) {
 				continue;
 			}
 
@@ -8227,7 +8227,7 @@ bool VisualShaderConversionPlugin::handles(const Ref<Resource> &p_resource) cons
 
 Ref<Resource> VisualShaderConversionPlugin::convert(const Ref<Resource> &p_resource) const {
 	Ref<VisualShader> vshader = p_resource;
-	ERR_FAIL_COND_V(!vshader.is_valid(), Ref<Resource>());
+	ERR_FAIL_COND_V(vshader.is_null(), Ref<Resource>());
 
 	Ref<Shader> shader;
 	shader.instantiate();

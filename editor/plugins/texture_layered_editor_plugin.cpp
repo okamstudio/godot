@@ -256,13 +256,13 @@ void TextureLayeredEditor::_texture_rect_update_area() {
 }
 
 void TextureLayeredEditor::edit(Ref<TextureLayered> p_texture) {
-	if (!texture.is_null()) {
+	if (texture.is_valid()) {
 		texture->disconnect_changed(callable_mp(this, &TextureLayeredEditor::_texture_changed));
 	}
 
 	texture = p_texture;
 
-	if (!texture.is_null()) {
+	if (texture.is_valid()) {
 		if (shaders[0].is_null()) {
 			_make_shaders();
 		}

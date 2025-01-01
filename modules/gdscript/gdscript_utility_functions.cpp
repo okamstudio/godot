@@ -284,10 +284,10 @@ struct GDScriptUtilityFunctionsDefinitions {
 		VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, !d.has("@path"), RTR("Invalid instance dictionary format (missing @path)."));
 
 		Ref<Script> scr = ResourceLoader::load(d["@path"]);
-		VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, !scr.is_valid(), RTR("Invalid instance dictionary format (can't load script at @path)."));
+		VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, scr.is_null(), RTR("Invalid instance dictionary format (can't load script at @path)."));
 
 		Ref<GDScript> gdscr = scr;
-		VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, !gdscr.is_valid(), RTR("Invalid instance dictionary format (invalid script at @path)."));
+		VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, gdscr.is_null(), RTR("Invalid instance dictionary format (invalid script at @path)."));
 
 		NodePath sub;
 		if (d.has("@subpath")) {
@@ -296,7 +296,7 @@ struct GDScriptUtilityFunctionsDefinitions {
 
 		for (int i = 0; i < sub.get_name_count(); i++) {
 			gdscr = gdscr->subclasses[sub.get_name(i)];
-			VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, !gdscr.is_valid(), RTR("Invalid instance dictionary (invalid subclasses)."));
+			VALIDATE_ARG_CUSTOM(0, Variant::DICTIONARY, gdscr.is_null(), RTR("Invalid instance dictionary (invalid subclasses)."));
 		}
 
 		*r_ret = gdscr->_new(nullptr, -1 /* skip initializer */, r_error);

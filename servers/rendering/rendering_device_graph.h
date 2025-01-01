@@ -723,6 +723,7 @@ private:
 	RBMap<ResourceTracker *, uint32_t> write_dependency_counters;
 #endif
 
+	static String _usage_to_string(ResourceUsage p_usage);
 	static bool _is_write_usage(ResourceUsage p_usage);
 	static RDD::TextureLayout _usage_to_image_layout(ResourceUsage p_usage);
 	static RDD::BarrierAccessBits _usage_to_access_bits(ResourceUsage p_usage);

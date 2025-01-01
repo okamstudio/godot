@@ -562,6 +562,13 @@
 				Returns all navigation regions [RID]s that are currently assigned to the requested navigation [param map].
 			</description>
 		</method>
+		<method name="map_get_use_async_iterations" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="map" type="RID" />
+			<description>
+				Returns [code]true[/code] if the [param map] synchronization uses an async process that runs on a background thread.
+			</description>
+		</method>
 		<method name="map_get_use_edge_connections" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="map" type="RID" />
@@ -606,6 +613,14 @@
 			<param index="1" name="radius" type="float" />
 			<description>
 				Set the map's link connection radius used to connect links to navigation polygons.
+			</description>
+		</method>
+		<method name="map_set_use_async_iterations">
+			<return type="void" />
+			<param index="0" name="map" type="RID" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If [param enabled] is [code]true[/code] the [param map] synchronization uses an async process that runs on a background thread.
 			</description>
 		</method>
 		<method name="map_set_use_edge_connections">

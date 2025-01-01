@@ -39,7 +39,6 @@
 #include "core/templates/list.h"
 #include "core/templates/vector.h"
 
-#include <stdarg.h>
 #include <stdlib.h>
 
 class OS {
@@ -63,6 +62,7 @@ class OS {
 	bool _stderr_enabled = true;
 	bool _writing_movie = false;
 	bool _in_editor = false;
+	bool _embedded_in_editor = false;
 
 	CompositeLogger *_logger = nullptr;
 
@@ -218,6 +218,7 @@ public:
 	virtual String get_identifier() const;
 	virtual String get_distribution_name() const = 0;
 	virtual String get_version() const = 0;
+	virtual String get_version_alias() const { return get_version(); }
 	virtual List<String> get_cmdline_args() const { return _cmdline; }
 	virtual List<String> get_cmdline_user_args() const { return _user_args; }
 	virtual List<String> get_cmdline_platform_args() const { return List<String>(); }

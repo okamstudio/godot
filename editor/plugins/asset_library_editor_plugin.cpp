@@ -30,7 +30,6 @@
 
 #include "asset_library_editor_plugin.h"
 
-#include "core/input/input.h"
 #include "core/io/json.h"
 #include "core/io/stream_peer_tls.h"
 #include "core/os/keyboard.h"
@@ -44,6 +43,7 @@
 #include "editor/project_settings_editor.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/menu_button.h"
+#include "scene/gui/separator.h"
 #include "scene/resources/image_texture.h"
 
 static inline void setup_http_request(HTTPRequest *request) {
@@ -446,7 +446,7 @@ void EditorAssetLibraryItemDownload::configure(const String &p_title, int p_asse
 	title->set_text(p_title);
 	icon->set_texture(p_preview);
 	asset_id = p_asset_id;
-	if (!p_preview.is_valid()) {
+	if (p_preview.is_null()) {
 		icon->set_texture(get_editor_theme_icon(SNAME("FileBrokenBigThumb")));
 	}
 	host = p_download_url;

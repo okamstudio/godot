@@ -70,7 +70,7 @@ class StyleBoxEditorPlugin : public EditorPlugin {
 	GDCLASS(StyleBoxEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "StyleBox"; }
+	virtual String get_plugin_name() const override { return "StyleBox"; }
 
 	StyleBoxEditorPlugin();
 };

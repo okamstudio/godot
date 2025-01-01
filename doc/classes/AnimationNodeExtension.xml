@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="AnimationNodeExtension" inherits="AnimationRootNode" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="AnimationNodeExtension" inherits="AnimationNode" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Base class for extending [AnimationRootNode]s from GDScript, C#, or C++.
 	</brief_description>
@@ -9,7 +9,7 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="_process" qualifiers="virtual">
+		<method name="_process_animation_node" qualifiers="virtual">
 			<return type="PackedFloat32Array" />
 			<param index="0" name="playback_info" type="PackedFloat64Array" />
 			<param index="1" name="test_only" type="bool" />

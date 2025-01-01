@@ -33,8 +33,6 @@
 #include "editor/editor_properties_vector.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/themes/editor_scale.h"
-#include "scene/gui/dialogs.h"
 #include "scene/gui/popup_menu.h"
 #include "scene/gui/separator.h"
 
@@ -320,7 +318,7 @@ void TileProxiesManagerDialog::_bind_methods() {
 }
 
 void TileProxiesManagerDialog::update_tile_set(Ref<TileSet> p_tile_set) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	tile_set = p_tile_set;
 	commited_actions_count = 0;
 	_update_lists();

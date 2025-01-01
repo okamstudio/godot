@@ -43,7 +43,7 @@ public:
 	static int zstd_window_log_size;
 	static int gzip_chunk;
 
-	enum Mode {
+	enum Mode : int32_t {
 		MODE_FASTLZ,
 		MODE_DEFLATE,
 		MODE_ZSTD,

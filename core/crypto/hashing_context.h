@@ -37,7 +37,7 @@ class HashingContext : public RefCounted {
 	GDCLASS(HashingContext, RefCounted);
 
 public:
-	enum HashType {
+	enum HashType : int32_t {
 		HASH_MD5,
 		HASH_SHA1,
 		HASH_SHA256

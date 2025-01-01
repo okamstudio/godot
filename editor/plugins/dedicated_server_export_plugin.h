@@ -31,7 +31,7 @@
 #ifndef DEDICATED_SERVER_EXPORT_PLUGIN_H
 #define DEDICATED_SERVER_EXPORT_PLUGIN_H
 
-#include "editor/export/editor_export.h"
+#include "editor/export/editor_export_plugin.h"
 
 class DedicatedServerExportPlugin : public EditorExportPlugin {
 private:

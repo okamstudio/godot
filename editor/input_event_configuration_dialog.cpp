@@ -637,7 +637,7 @@ void InputEventConfigurationDialog::set_allowed_input_types(int p_type_masks) {
 InputEventConfigurationDialog::InputEventConfigurationDialog() {
 	allowed_input_types = INPUT_KEY | INPUT_MOUSE_BUTTON | INPUT_JOY_BUTTON | INPUT_JOY_MOTION;
 
-	set_min_size(Size2i(550, 0) * EDSCALE);
+	set_min_size(Size2i(800, 0) * EDSCALE);
 
 	VBoxContainer *main_vbox = memnew(VBoxContainer);
 	add_child(main_vbox);
@@ -674,7 +674,7 @@ InputEventConfigurationDialog::InputEventConfigurationDialog() {
 
 	input_list_tree = memnew(Tree);
 	input_list_tree->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
-	input_list_tree->set_custom_minimum_size(Size2(0, 100 * EDSCALE)); // Min height for tree
+	input_list_tree->set_custom_minimum_size(Size2(0, 300 * EDSCALE)); // Min height for tree
 	input_list_tree->connect("item_activated", callable_mp(this, &InputEventConfigurationDialog::_input_list_item_activated));
 	input_list_tree->connect(SceneStringName(item_selected), callable_mp(this, &InputEventConfigurationDialog::_input_list_item_selected));
 	input_list_tree->set_v_size_flags(Control::SIZE_EXPAND_FILL);

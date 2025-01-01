@@ -242,7 +242,7 @@ void OccluderInstance3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	Ref<Occluder3D> o = occluder_instance->get_occluder();
 
-	if (!o.is_valid()) {
+	if (o.is_null()) {
 		return;
 	}
 

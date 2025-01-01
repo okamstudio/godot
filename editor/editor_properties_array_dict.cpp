@@ -32,6 +32,7 @@
 
 #include "core/input/input.h"
 #include "core/io/marshalls.h"
+#include "editor/editor_file_system.h"
 #include "editor/editor_properties.h"
 #include "editor/editor_properties_vector.h"
 #include "editor/editor_settings.h"
@@ -39,10 +40,8 @@
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/inspector_dock.h"
 #include "editor/themes/editor_scale.h"
-#include "editor/themes/editor_theme_manager.h"
 #include "scene/gui/button.h"
 #include "scene/gui/margin_container.h"
-#include "scene/resources/packed_scene.h"
 
 bool EditorPropertyArrayObject::_set(const StringName &p_name, const Variant &p_value) {
 	String name = p_name;

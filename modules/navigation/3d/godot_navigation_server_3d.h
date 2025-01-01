@@ -147,6 +147,9 @@ public:
 	virtual void map_force_update(RID p_map) override;
 	virtual uint32_t map_get_iteration_id(RID p_map) const override;
 
+	COMMAND_2(map_set_use_async_iterations, RID, p_map, bool, p_enabled);
+	virtual bool map_get_use_async_iterations(RID p_map) const override;
+
 	virtual Vector3 map_get_random_point(RID p_map, uint32_t p_navigation_layers, bool p_uniformly) const override;
 
 	virtual RID region_create() override;

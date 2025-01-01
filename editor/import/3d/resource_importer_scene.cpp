@@ -44,7 +44,6 @@
 #include "scene/3d/occluder_instance_3d.h"
 #include "scene/3d/physics/area_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
-#include "scene/3d/physics/physics_body_3d.h"
 #include "scene/3d/physics/static_body_3d.h"
 #include "scene/3d/physics/vehicle_body_3d.h"
 #include "scene/animation/animation_player.h"
@@ -57,7 +56,6 @@
 #include "scene/resources/bone_map.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/resource_format_text.h"
-#include "scene/resources/surface_tool.h"
 
 uint32_t EditorSceneFormatImporter::get_import_flags() const {
 	uint32_t ret;
@@ -669,7 +667,7 @@ Node *ResourceImporterScene::_pre_fix_node(Node *p_node, Node *p_root, HashMap<R
 		if (m.is_valid()) {
 			for (int i = 0; i < m->get_surface_count(); i++) {
 				Ref<BaseMaterial3D> mat = m->get_surface_material(i);
-				if (!mat.is_valid()) {
+				if (mat.is_null()) {
 					continue;
 				}
 
@@ -999,7 +997,7 @@ Node *ResourceImporterScene::_pre_fix_node(Node *p_node, Node *p_root, HashMap<R
 		ImporterMeshInstance3D *mi = Object::cast_to<ImporterMeshInstance3D>(p_node);
 
 		Ref<ImporterMesh> mesh = mi->get_mesh();
-		if (!mesh.is_null()) {
+		if (mesh.is_valid()) {
 			Vector<Ref<Shape3D>> shapes;
 			if (r_collision_map.has(mesh)) {
 				shapes = r_collision_map[mesh];
@@ -1585,7 +1583,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 								col->set_transform(get_collision_shapes_transform(node_settings));
 								col->set_position(p_applied_root_scale * col->get_position());
 								const Ref<PhysicsMaterial> &pmo = node_settings["physics/physics_material_override"];
-								if (!pmo.is_null()) {
+								if (pmo.is_valid()) {
 									col->set_physics_material_override(pmo);
 								}
 								base = col;
@@ -1602,7 +1600,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 								rigid_body->add_child(mi, true);
 								mi->set_owner(rigid_body->get_owner());
 								const Ref<PhysicsMaterial> &pmo = node_settings["physics/physics_material_override"];
-								if (!pmo.is_null()) {
+								if (pmo.is_valid()) {
 									rigid_body->set_physics_material_override(pmo);
 								}
 								base = rigid_body;
@@ -1618,7 +1616,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 								memdelete(p_node);
 								p_node = col;
 								const Ref<PhysicsMaterial> &pmo = node_settings["physics/physics_material_override"];
-								if (!pmo.is_null()) {
+								if (pmo.is_valid()) {
 									col->set_physics_material_override(pmo);
 								}
 								base = col;
@@ -2849,7 +2847,7 @@ Node *ResourceImporterScene::pre_import(const String &p_source_file, const HashM
 		}
 	}
 
-	ERR_FAIL_COND_V(!importer.is_valid(), nullptr);
+	ERR_FAIL_COND_V(importer.is_null(), nullptr);
 	ERR_FAIL_COND_V(p_options.is_empty(), nullptr);
 
 	Error err = OK;
@@ -2908,7 +2906,7 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 		}
 	}
 
-	ERR_FAIL_COND_V(!importer.is_valid(), ERR_FILE_UNRECOGNIZED);
+	ERR_FAIL_COND_V(importer.is_null(), ERR_FILE_UNRECOGNIZED);
 	ERR_FAIL_COND_V(p_options.is_empty(), ERR_BUG);
 
 	int import_flags = 0;
@@ -3100,7 +3098,7 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 			post_import_script_path = p_source_file.get_base_dir().path_join(post_import_script_path);
 		}
 		Ref<Script> scr = ResourceLoader::load(post_import_script_path);
-		if (!scr.is_valid()) {
+		if (scr.is_null()) {
 			EditorNode::add_io_error(TTR("Couldn't load post-import script:") + " " + post_import_script_path);
 		} else {
 			post_import_script.instantiate();
@@ -3162,7 +3160,7 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 			}
 		}
 
-		if (!library.is_valid()) {
+		if (library.is_null()) {
 			library.instantiate(); // Will be empty
 		}
 
@@ -3274,7 +3272,7 @@ void EditorSceneFormatImporterESCN::get_extensions(List<String> *r_extensions) c
 Node *EditorSceneFormatImporterESCN::import_scene(const String &p_path, uint32_t p_flags, const HashMap<StringName, Variant> &p_options, List<String> *r_missing_deps, Error *r_err) {
 	Error error;
 	Ref<PackedScene> ps = ResourceFormatLoaderText::singleton->load(p_path, p_path, &error);
-	ERR_FAIL_COND_V_MSG(!ps.is_valid(), nullptr, "Cannot load scene as text resource from path '" + p_path + "'.");
+	ERR_FAIL_COND_V_MSG(ps.is_null(), nullptr, "Cannot load scene as text resource from path '" + p_path + "'.");
 	Node *scene = ps->instantiate();
 	TypedArray<Node> nodes = scene->find_children("*", "MeshInstance3D");
 	for (int32_t node_i = 0; node_i < nodes.size(); node_i++) {

@@ -33,7 +33,6 @@
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/ref_counted.h"
-#include "core/templates/list.h"
 #include "core/templates/local_vector.h"
 
 class AStarGrid2D : public RefCounted {

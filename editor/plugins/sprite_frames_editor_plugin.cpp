@@ -30,7 +30,6 @@
 
 #include "sprite_frames_editor_plugin.h"
 
-#include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/os/keyboard.h"
 #include "editor/editor_command_palette.h"
@@ -43,6 +42,8 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
+#include "scene/2d/animated_sprite_2d.h"
+#include "scene/3d/sprite_3d.h"
 #include "scene/gui/center_container.h"
 #include "scene/gui/flow_container.h"
 #include "scene/gui/margin_container.h"
@@ -1960,11 +1961,11 @@ SpriteFramesEditor::SpriteFramesEditor() {
 	animations->set_allow_reselect(true);
 
 	add_anim->set_shortcut_context(animations);
-	add_anim->set_shortcut(ED_SHORTCUT("sprite_frames/new_animation", TTR("Add Animation"), KeyModifierMask::CMD_OR_CTRL | Key::N));
+	add_anim->set_shortcut(ED_SHORTCUT("sprite_frames/new_animation", TTRC("Add Animation"), KeyModifierMask::CMD_OR_CTRL | Key::N));
 	duplicate_anim->set_shortcut_context(animations);
-	duplicate_anim->set_shortcut(ED_SHORTCUT("sprite_frames/duplicate_animation", TTR("Duplicate Animation"), KeyModifierMask::CMD_OR_CTRL | Key::D));
+	duplicate_anim->set_shortcut(ED_SHORTCUT("sprite_frames/duplicate_animation", TTRC("Duplicate Animation"), KeyModifierMask::CMD_OR_CTRL | Key::D));
 	delete_anim->set_shortcut_context(animations);
-	delete_anim->set_shortcut(ED_SHORTCUT("sprite_frames/delete_animation", TTR("Delete Animation"), Key::KEY_DELETE));
+	delete_anim->set_shortcut(ED_SHORTCUT("sprite_frames/delete_animation", TTRC("Delete Animation"), Key::KEY_DELETE));
 
 	missing_anim_label = memnew(Label);
 	missing_anim_label->set_text(TTR("This resource does not have any animations."));
@@ -2102,19 +2103,19 @@ SpriteFramesEditor::SpriteFramesEditor() {
 	zoom_out = memnew(Button);
 	zoom_out->connect(SceneStringName(pressed), callable_mp(this, &SpriteFramesEditor::_zoom_out));
 	zoom_out->set_flat(true);
-	zoom_out->set_tooltip_text(TTR("Zoom Out"));
+	zoom_out->set_tooltip_text(TTRC("Zoom Out"));
 	hbc_zoom->add_child(zoom_out);
 
 	zoom_reset = memnew(Button);
 	zoom_reset->connect(SceneStringName(pressed), callable_mp(this, &SpriteFramesEditor::_zoom_reset));
 	zoom_reset->set_flat(true);
-	zoom_reset->set_tooltip_text(TTR("Zoom Reset"));
+	zoom_reset->set_tooltip_text(TTRC("Zoom Reset"));
 	hbc_zoom->add_child(zoom_reset);
 
 	zoom_in = memnew(Button);
 	zoom_in->connect(SceneStringName(pressed), callable_mp(this, &SpriteFramesEditor::_zoom_in));
 	zoom_in->set_flat(true);
-	zoom_in->set_tooltip_text(TTR("Zoom In"));
+	zoom_in->set_tooltip_text(TTRC("Zoom In"));
 	hbc_zoom->add_child(zoom_in);
 
 	file = memnew(EditorFileDialog);
@@ -2152,29 +2153,29 @@ SpriteFramesEditor::SpriteFramesEditor() {
 	move_down->connect(SceneStringName(pressed), callable_mp(this, &SpriteFramesEditor::_down_pressed));
 
 	load->set_shortcut_context(frame_list);
-	load->set_shortcut(ED_SHORTCUT("sprite_frames/load_from_file", TTR("Add frame from file"), KeyModifierMask::CMD_OR_CTRL | Key::O));
+	load->set_shortcut(ED_SHORTCUT("sprite_frames/load_from_file", TTRC("Add frame from file"), KeyModifierMask::CMD_OR_CTRL | Key::O));
 	load_sheet->set_shortcut_context(frame_list);
-	load_sheet->set_shortcut(ED_SHORTCUT("sprite_frames/load_from_sheet", TTR("Add frames from sprite sheet"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::O));
+	load_sheet->set_shortcut(ED_SHORTCUT("sprite_frames/load_from_sheet", TTRC("Add frames from sprite sheet"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::O));
 	delete_frame->set_shortcut_context(frame_list);
-	delete_frame->set_shortcut(ED_SHORTCUT("sprite_frames/delete", TTR("Delete Frame"), Key::KEY_DELETE));
+	delete_frame->set_shortcut(ED_SHORTCUT("sprite_frames/delete", TTRC("Delete Frame"), Key::KEY_DELETE));
 	copy->set_shortcut_context(frame_list);
-	copy->set_shortcut(ED_SHORTCUT("sprite_frames/copy", TTR("Copy Frame(s)"), KeyModifierMask::CMD_OR_CTRL | Key::C));
+	copy->set_shortcut(ED_SHORTCUT("sprite_frames/copy", TTRC("Copy Frame(s)"), KeyModifierMask::CMD_OR_CTRL | Key::C));
 	paste->set_shortcut_context(frame_list);
-	paste->set_shortcut(ED_SHORTCUT("sprite_frames/paste", TTR("Paste Frame(s)"), KeyModifierMask::CMD_OR_CTRL | Key::V));
+	paste->set_shortcut(ED_SHORTCUT("sprite_frames/paste", TTRC("Paste Frame(s)"), KeyModifierMask::CMD_OR_CTRL | Key::V));
 	empty_before->set_shortcut_context(frame_list);
-	empty_before->set_shortcut(ED_SHORTCUT("sprite_frames/empty_before", TTR("Insert Empty (Before Selected)"), KeyModifierMask::ALT | Key::LEFT));
+	empty_before->set_shortcut(ED_SHORTCUT("sprite_frames/empty_before", TTRC("Insert Empty (Before Selected)"), KeyModifierMask::ALT | Key::LEFT));
 	empty_after->set_shortcut_context(frame_list);
-	empty_after->set_shortcut(ED_SHORTCUT("sprite_frames/empty_after", TTR("Insert Empty (After Selected)"), KeyModifierMask::ALT | Key::RIGHT));
+	empty_after->set_shortcut(ED_SHORTCUT("sprite_frames/empty_after", TTRC("Insert Empty (After Selected)"), KeyModifierMask::ALT | Key::RIGHT));
 	move_up->set_shortcut_context(frame_list);
-	move_up->set_shortcut(ED_SHORTCUT("sprite_frames/move_left", TTR("Move Frame Left"), KeyModifierMask::CMD_OR_CTRL | Key::LEFT));
+	move_up->set_shortcut(ED_SHORTCUT("sprite_frames/move_left", TTRC("Move Frame Left"), KeyModifierMask::CMD_OR_CTRL | Key::LEFT));
 	move_down->set_shortcut_context(frame_list);
-	move_down->set_shortcut(ED_SHORTCUT("sprite_frames/move_right", TTR("Move Frame Right"), KeyModifierMask::CMD_OR_CTRL | Key::RIGHT));
+	move_down->set_shortcut(ED_SHORTCUT("sprite_frames/move_right", TTRC("Move Frame Right"), KeyModifierMask::CMD_OR_CTRL | Key::RIGHT));
 
 	zoom_out->set_shortcut_context(frame_list);
-	zoom_out->set_shortcut(ED_SHORTCUT_ARRAY("sprite_frames/zoom_out", TTR("Zoom Out"),
+	zoom_out->set_shortcut(ED_SHORTCUT_ARRAY("sprite_frames/zoom_out", TTRC("Zoom Out"),
 			{ int32_t(KeyModifierMask::CMD_OR_CTRL | Key::MINUS), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_SUBTRACT) }));
 	zoom_in->set_shortcut_context(frame_list);
-	zoom_in->set_shortcut(ED_SHORTCUT_ARRAY("sprite_frames/zoom_in", TTR("Zoom In"),
+	zoom_in->set_shortcut(ED_SHORTCUT_ARRAY("sprite_frames/zoom_in", TTRC("Zoom In"),
 			{ int32_t(KeyModifierMask::CMD_OR_CTRL | Key::EQUAL), int32_t(KeyModifierMask::CMD_OR_CTRL | Key::KP_ADD) }));
 
 	loading_scene = false;
@@ -2491,7 +2492,7 @@ void SpriteFramesEditorPlugin::make_visible(bool p_visible) {
 SpriteFramesEditorPlugin::SpriteFramesEditorPlugin() {
 	frames_editor = memnew(SpriteFramesEditor);
 	frames_editor->set_custom_minimum_size(Size2(0, 300) * EDSCALE);
-	button = EditorNode::get_bottom_panel()->add_item(TTR("SpriteFrames"), frames_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_sprite_frames_bottom_panel", TTR("Toggle SpriteFrames Bottom Panel")));
+	button = EditorNode::get_bottom_panel()->add_item(TTR("SpriteFrames"), frames_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_sprite_frames_bottom_panel", TTRC("Toggle SpriteFrames Bottom Panel")));
 	button->hide();
 }
 

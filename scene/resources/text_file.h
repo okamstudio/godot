@@ -31,8 +31,7 @@
 #ifndef TEXT_FILE_H
 #define TEXT_FILE_H
 
-#include "core/io/resource_loader.h"
-#include "core/io/resource_saver.h"
+#include "core/io/resource.h"
 
 class TextFile : public Resource {
 	GDCLASS(TextFile, Resource);

@@ -45,17 +45,24 @@ class CollisionShape2D : public Node2D {
 	bool disabled = false;
 	bool one_way_collision = false;
 	real_t one_way_collision_margin = 1.0;
-	Color debug_color;
 
 	void _shape_changed();
 	void _update_in_shape_owner(bool p_xform_only = false);
+
+	// Not wrapped in `#ifdef DEBUG_ENABLED` as it is used for rendering.
+	Color debug_color = Color(0.0, 0.0, 0.0, 0.0);
+
 	Color _get_default_debug_color() const;
 
 protected:
 	void _notification(int p_what);
+
+#ifdef DEBUG_ENABLED
 	bool _property_can_revert(const StringName &p_name) const;
 	bool _property_get_revert(const StringName &p_name, Variant &r_property) const;
 	void _validate_property(PropertyInfo &p_property) const;
+#endif // DEBUG_ENABLED
+
 	static void _bind_methods();
 
 public:

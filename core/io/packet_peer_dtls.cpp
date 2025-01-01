@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "packet_peer_dtls.h"
-#include "core/config/project_settings.h"
-#include "core/io/file_access.h"
 
 PacketPeerDTLS *(*PacketPeerDTLS::_create)(bool p_notify_postinitialize) = nullptr;
 bool PacketPeerDTLS::available = false;

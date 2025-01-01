@@ -110,11 +110,13 @@ class GDScript : public Script {
 	HashMap<StringName, MethodInfo> _signals;
 	Dictionary rpc_config;
 
+public:
 	struct LambdaInfo {
 		int capture_count;
 		bool use_self;
 	};
 
+private:
 	HashMap<GDScriptFunction *, LambdaInfo> lambda_info;
 
 public:
@@ -157,16 +159,18 @@ private:
 	bool placeholder_fallback_enabled = false;
 	void _update_exports_values(HashMap<StringName, Variant> &values, List<PropertyInfo> &propnames);
 
+	StringName doc_class_name;
 	DocData::ClassDoc doc;
 	Vector<DocData::ClassDoc> docs;
+	void _add_doc(const DocData::ClassDoc &p_doc);
 	void _clear_doc();
-	void _add_doc(const DocData::ClassDoc &p_inner_class);
 #endif
 
-	GDScriptFunction *implicit_initializer = nullptr;
-	GDScriptFunction *initializer = nullptr; //direct pointer to new , faster to locate
-	GDScriptFunction *implicit_ready = nullptr;
-	GDScriptFunction *static_initializer = nullptr;
+	GDScriptFunction *initializer = nullptr; // Direct pointer to `new()`/`_init()` member function, faster to locate.
+
+	GDScriptFunction *implicit_initializer = nullptr; // `@implicit_new()` special function.
+	GDScriptFunction *implicit_ready = nullptr; // `@implicit_ready()` special function.
+	GDScriptFunction *static_initializer = nullptr; // `@static_initializer()` special function.
 
 	Error _static_init();
 	void _static_default_init(); // Initialize static variables with default values based on their types.
@@ -257,8 +261,14 @@ public:
 		CRASH_COND(!member_indices.has(p_member));
 		return member_indices[p_member].data_type;
 	}
-	const HashMap<StringName, GDScriptFunction *> &get_member_functions() const { return member_functions; }
 	const Ref<GDScriptNativeClass> &get_native() const { return native; }
+
+	_FORCE_INLINE_ const HashMap<StringName, GDScriptFunction *> &get_member_functions() const { return member_functions; }
+	_FORCE_INLINE_ const HashMap<GDScriptFunction *, LambdaInfo> &get_lambda_info() const { return lambda_info; }
+
+	_FORCE_INLINE_ const GDScriptFunction *get_implicit_initializer() const { return implicit_initializer; }
+	_FORCE_INLINE_ const GDScriptFunction *get_implicit_ready() const { return implicit_ready; }
+	_FORCE_INLINE_ const GDScriptFunction *get_static_initializer() const { return static_initializer; }
 
 	RBSet<GDScript *> get_dependencies();
 	HashMap<GDScript *, RBSet<GDScript *>> get_all_dependencies();
@@ -292,9 +302,8 @@ public:
 	virtual void update_exports() override;
 
 #ifdef TOOLS_ENABLED
-	virtual Vector<DocData::ClassDoc> get_documentation() const override {
-		return docs;
-	}
+	virtual StringName get_doc_class_name() const override { return doc_class_name; }
+	virtual Vector<DocData::ClassDoc> get_documentation() const override { return docs; }
 	virtual String get_class_icon_path() const override;
 #endif // TOOLS_ENABLED
 
@@ -476,8 +485,6 @@ class GDScriptLanguage : public ScriptLanguage {
 #endif
 
 public:
-	int calls;
-
 	bool debug_break(const String &p_error, bool p_allow_continue = true);
 	bool debug_break_parse(const String &p_file, int p_line, const String &p_error);
 

@@ -47,7 +47,7 @@ class OpenXREditorPlugin : public EditorPlugin {
 #endif
 
 public:
-	virtual String get_name() const override { return "OpenXRPlugin"; }
+	virtual String get_plugin_name() const override { return "OpenXRPlugin"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_node) override;
 	virtual bool handles(Object *p_node) const override;

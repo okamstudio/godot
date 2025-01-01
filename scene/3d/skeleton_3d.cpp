@@ -31,9 +31,7 @@
 #include "skeleton_3d.h"
 #include "skeleton_3d.compat.inc"
 
-#include "core/variant/type_info.h"
 #include "scene/3d/skeleton_modifier_3d.h"
-#include "scene/resources/surface_tool.h"
 #ifndef DISABLE_DEPRECATED
 #include "scene/3d/physical_bone_simulator_3d.h"
 #endif // _DISABLE_DEPRECATED

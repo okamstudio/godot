@@ -30,7 +30,6 @@
 
 #include "shape_3d.h"
 
-#include "core/os/os.h"
 #include "scene/main/scene_tree.h"
 #include "scene/resources/mesh.h"
 #include "servers/physics_server_3d.h"
@@ -66,13 +65,15 @@ void Shape3D::set_margin(real_t p_margin) {
 	PhysicsServer3D::get_singleton()->shape_set_margin(shape, margin);
 }
 
-#ifdef DEBUG_ENABLED
 void Shape3D::set_debug_color(const Color &p_color) {
 	if (p_color == debug_color) {
 		return;
 	}
 
 	debug_color = p_color;
+#ifdef DEBUG_ENABLED
+	debug_properties_edited = true;
+#endif // DEBUG_ENABLED
 	_update_shape();
 }
 
@@ -86,13 +87,15 @@ void Shape3D::set_debug_fill(bool p_fill) {
 	}
 
 	debug_fill = p_fill;
+#ifdef DEBUG_ENABLED
+	debug_properties_edited = true;
+#endif // DEBUG_ENABLED
 	_update_shape();
 }
 
 bool Shape3D::get_debug_fill() const {
 	return debug_fill;
 }
-#endif // DEBUG_ENABLED
 
 Ref<ArrayMesh> Shape3D::get_debug_mesh() {
 	if (debug_mesh_cache.is_valid()) {

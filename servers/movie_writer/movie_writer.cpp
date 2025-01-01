@@ -32,6 +32,7 @@
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "core/os/time.h"
+#include "servers/audio/audio_driver_dummy.h"
 #include "servers/display_server.h"
 #include "servers/rendering_server.h"
 

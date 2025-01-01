@@ -154,10 +154,6 @@ public class GodotInputHandler implements InputManager.InputDeviceListener, Sens
 	}
 
 	public boolean onKeyUp(final int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			return true;
-		}
-
 		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
 			return false;
 		}
@@ -183,13 +179,6 @@ public class GodotInputHandler implements InputManager.InputDeviceListener, Sens
 	}
 
 	public boolean onKeyDown(final int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			godot.onBackPressed();
-			// press 'back' button should not terminate program
-			//normal handle 'back' event in game logic
-			return true;
-		}
-
 		if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
 			return false;
 		}

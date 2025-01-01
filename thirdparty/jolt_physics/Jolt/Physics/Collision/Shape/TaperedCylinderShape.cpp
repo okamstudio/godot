@@ -313,7 +313,7 @@ MassProperties TaperedCylinderShape::GetMassProperties() const
 	// Ixx(br,tr,b,t):=integrate(dix(x)+area(x)*x^2,x,b,t)*density(b,t);
 	// Inertia tensor element yy:
 	// Iyy(br,tr,b,t):=integrate(diy(x),x,b,t)*density(b,t);
-	// Note that we can simplfy Ixx by using:
+	// Note that we can simplify Ixx by using:
 	// Ixx_delta(br,tr,b,t):=Ixx(br,tr,b,t)-Iyy(br,tr,b,t)/2;
 	// For a cylinder this formula matches what is listed on the wiki:
 	// factor(Ixx(r,r,-h/2,h/2));

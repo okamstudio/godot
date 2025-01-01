@@ -35,7 +35,6 @@
 
 #include "core/debugger/engine_debugger.h"
 #include "core/object/class_db.h"
-#include "core/templates/local_vector.h"
 #include "core/variant/variant_internal.h"
 
 /**** NAMED SETTERS AND GETTERS ****/

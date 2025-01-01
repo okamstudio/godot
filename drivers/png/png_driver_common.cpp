@@ -30,7 +30,7 @@
 
 #include "png_driver_common.h"
 
-#include "core/os/os.h"
+#include "core/config/engine.h"
 
 #include <png.h>
 #include <string.h>

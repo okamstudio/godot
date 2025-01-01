@@ -9,7 +9,7 @@
 	</description>
 	<tutorials>
 		<link title="Runtime file loading and saving">$DOCS_URL/tutorials/io/runtime_file_loading_and_saving.html</link>
-		<link title="glTF asset header schema">https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/asset.schema.json"</link>
+		<link title="glTF asset header schema">https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/asset.schema.json</link>
 	</tutorials>
 	<methods>
 		<method name="add_used_extension">

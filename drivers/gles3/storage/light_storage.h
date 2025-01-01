@@ -38,9 +38,7 @@
 
 #include "core/templates/local_vector.h"
 #include "core/templates/rid_owner.h"
-#include "core/templates/self_list.h"
 #include "drivers/gles3/storage/texture_storage.h"
-#include "servers/rendering/renderer_compositor.h"
 #include "servers/rendering/storage/light_storage.h"
 #include "servers/rendering/storage/utilities.h"
 

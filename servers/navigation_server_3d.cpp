@@ -70,6 +70,8 @@ void NavigationServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("map_force_update", "map"), &NavigationServer3D::map_force_update);
 	ClassDB::bind_method(D_METHOD("map_get_iteration_id", "map"), &NavigationServer3D::map_get_iteration_id);
+	ClassDB::bind_method(D_METHOD("map_set_use_async_iterations", "map", "enabled"), &NavigationServer3D::map_set_use_async_iterations);
+	ClassDB::bind_method(D_METHOD("map_get_use_async_iterations", "map"), &NavigationServer3D::map_get_use_async_iterations);
 
 	ClassDB::bind_method(D_METHOD("map_get_random_point", "map", "navigation_layers", "uniformly"), &NavigationServer3D::map_get_random_point);
 
@@ -244,6 +246,8 @@ NavigationServer3D::NavigationServer3D() {
 	GLOBAL_DEF("navigation/3d/use_edge_connections", true);
 	GLOBAL_DEF_BASIC("navigation/3d/default_edge_connection_margin", NavigationDefaults3D::edge_connection_margin);
 	GLOBAL_DEF_BASIC("navigation/3d/default_link_connection_radius", NavigationDefaults3D::link_connection_radius);
+
+	GLOBAL_DEF("navigation/world/map_use_async_iterations", true);
 
 	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_multiple_threads", true);
 	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_high_priority_threads", true);

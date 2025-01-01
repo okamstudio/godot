@@ -277,6 +277,7 @@ public:
 	void set_icon_max_width(int p_column, int p_max);
 	int get_icon_max_width(int p_column) const;
 
+	void clear_buttons();
 	void add_button(int p_column, const Ref<Texture2D> &p_button, int p_id = -1, bool p_disabled = false, const String &p_tooltip = "");
 	int get_button_count(int p_column) const;
 	String get_button_tooltip_text(int p_column, int p_index) const;

@@ -31,7 +31,7 @@
 #ifndef GLTF_ANIMATION_H
 #define GLTF_ANIMATION_H
 
-#include "scene/animation/animation_player.h"
+#include "scene/resources/animation.h"
 
 class GLTFAnimation : public Resource {
 	GDCLASS(GLTFAnimation, Resource);

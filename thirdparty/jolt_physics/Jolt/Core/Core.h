@@ -180,6 +180,18 @@
 		#define JPH_VECTOR_ALIGNMENT 8 // 32-bit ARM does not support aligning on the stack on 16 byte boundaries
 		#define JPH_DVECTOR_ALIGNMENT 8
 	#endif
+#elif defined(__riscv)
+	// RISC-V CPU architecture
+	#define JPH_CPU_RISCV
+	#if __riscv_xlen == 64
+		#define JPH_CPU_ADDRESS_BITS 64
+		#define JPH_VECTOR_ALIGNMENT 16
+		#define JPH_DVECTOR_ALIGNMENT 32
+	#else
+		#define JPH_CPU_ADDRESS_BITS 32
+		#define JPH_VECTOR_ALIGNMENT 16
+		#define JPH_DVECTOR_ALIGNMENT 8
+	#endif
 #elif defined(JPH_PLATFORM_WASM)
 	// WebAssembly CPU architecture
 	#define JPH_CPU_WASM
@@ -191,6 +203,29 @@
 		#define JPH_USE_SSE4_1
 		#define JPH_USE_SSE4_2
 	#endif
+#elif defined(__powerpc__) || defined(__powerpc64__)
+	// PowerPC CPU architecture
+	#define JPH_CPU_PPC
+	#if defined(__powerpc64__)
+		#define JPH_CPU_ADDRESS_BITS 64
+	#else
+		#define JPH_CPU_ADDRESS_BITS 32
+	#endif
+	#ifdef _BIG_ENDIAN
+		#define JPH_CPU_BIG_ENDIAN
+	#endif
+	#define JPH_VECTOR_ALIGNMENT 16
+	#define JPH_DVECTOR_ALIGNMENT 8
+#elif defined(__loongarch__)
+	// LoongArch CPU architecture
+	#define JPH_CPU_LOONGARCH
+	#if defined(__loongarch64)
+		#define JPH_CPU_ADDRESS_BITS 64
+	#else
+		#define JPH_CPU_ADDRESS_BITS 32
+	#endif
+	#define JPH_VECTOR_ALIGNMENT 16
+	#define JPH_DVECTOR_ALIGNMENT 8
 #elif defined(__e2k__)
 	// E2K CPU architecture (MCST Elbrus 2000)
 	#define JPH_CPU_E2K
@@ -358,10 +393,10 @@
 #elif defined(JPH_PLATFORM_LINUX) || defined(JPH_PLATFORM_ANDROID) || defined(JPH_PLATFORM_MACOS) || defined(JPH_PLATFORM_IOS) || defined(JPH_PLATFORM_FREEBSD)
 	#if defined(JPH_CPU_X86)
 		#define JPH_BREAKPOINT	__asm volatile ("int $0x3")
-	#elif defined(JPH_CPU_ARM)
+	#elif defined(JPH_CPU_ARM) || defined(JPH_CPU_RISCV) || defined(JPH_CPU_E2K) || defined(JPH_CPU_PPC) || defined(JPH_CPU_LOONGARCH)
 		#define JPH_BREAKPOINT	__builtin_trap()
-	#elif defined(JPH_CPU_E2K)
-		#define JPH_BREAKPOINT	__builtin_trap()
+	#else
+		#error Unknown CPU architecture
 	#endif
 #elif defined(JPH_PLATFORM_WASM)
 	#define JPH_BREAKPOINT		do { } while (false) // Not supported

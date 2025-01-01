@@ -34,13 +34,11 @@
 #include "gdscript_tokenizer_buffer.h"
 
 #include "core/config/project_settings.h"
-#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
 #include "scene/main/multiplayer_api.h"
 
 #ifdef DEBUG_ENABLED
-#include "core/os/os.h"
 #include "core/string/string_builder.h"
 #include "servers/text_server.h"
 #endif
@@ -736,19 +734,35 @@ void GDScriptParser::parse_program() {
 #undef PUSH_PENDING_ANNOTATIONS_TO_HEAD
 
 	parse_class_body(true);
+
+	head->end_line = current.end_line;
+	head->end_column = current.end_column;
+	head->leftmost_column = MIN(head->leftmost_column, current.leftmost_column);
+	head->rightmost_column = MAX(head->rightmost_column, current.rightmost_column);
+
 	complete_extents(head);
 
 #ifdef TOOLS_ENABLED
 	const HashMap<int, GDScriptTokenizer::CommentData> &comments = tokenizer->get_comments();
-	int line = MIN(max_script_doc_line, head->end_line);
-	while (line > 0) {
+
+	int max_line = head->end_line;
+	if (!head->members.is_empty()) {
+		max_line = MIN(max_script_doc_line, head->members[0].get_line() - 1);
+	}
+
+	int line = 0;
+	while (line <= max_line) {
+		// Find the start.
 		if (comments.has(line) && comments[line].new_line && comments[line].comment.begins_with("##")) {
+			// Find the end.
+			while (line + 1 <= max_line && comments.has(line + 1) && comments[line + 1].new_line && comments[line + 1].comment.begins_with("##")) {
+				line++;
+			}
 			head->doc_data = parse_class_doc_comment(line);
 			break;
 		}
-		line--;
+		line++;
 	}
-
 #endif // TOOLS_ENABLED
 
 	if (!check(GDScriptTokenizer::Token::TK_EOF)) {
@@ -1612,6 +1626,7 @@ GDScriptParser::FunctionNode *GDScriptParser::parse_function(bool p_is_static) {
 	function->is_static = p_is_static;
 
 	SuiteNode *body = alloc_node<SuiteNode>();
+
 	SuiteNode *previous_suite = current_suite;
 	current_suite = body;
 
@@ -1620,6 +1635,11 @@ GDScriptParser::FunctionNode *GDScriptParser::parse_function(bool p_is_static) {
 	parse_function_signature(function, body, "function");
 
 	current_suite = previous_suite;
+
+#ifdef TOOLS_ENABLED
+	function->min_local_doc_line = previous.end_line + 1;
+#endif
+
 	function->body = parse_suite("function declaration", body);
 
 	current_function = previous_function;
@@ -1988,11 +2008,44 @@ GDScriptParser::Node *GDScriptParser::parse_statement() {
 		}
 	}
 
+#ifdef TOOLS_ENABLED
+	int doc_comment_line = 0;
+	if (result != nullptr) {
+		doc_comment_line = result->start_line - 1;
+	}
+#endif // TOOLS_ENABLED
+
 	if (result != nullptr && !annotations.is_empty()) {
 		for (AnnotationNode *&annotation : annotations) {
 			result->annotations.push_back(annotation);
+#ifdef TOOLS_ENABLED
+			if (annotation->start_line <= doc_comment_line) {
+				doc_comment_line = annotation->start_line - 1;
+			}
+#endif // TOOLS_ENABLED
 		}
 	}
+
+#ifdef TOOLS_ENABLED
+	if (result != nullptr) {
+		MemberDocData doc_data;
+		if (has_comment(result->start_line, true)) {
+			// Inline doc comment.
+			doc_data = parse_doc_comment(result->start_line, true);
+		} else if (doc_comment_line >= current_function->min_local_doc_line && has_comment(doc_comment_line, true) && tokenizer->get_comments()[doc_comment_line].new_line) {
+			// Normal doc comment.
+			doc_data = parse_doc_comment(doc_comment_line);
+		}
+
+		if (result->type == Node::CONSTANT) {
+			static_cast<ConstantNode *>(result)->doc_data = doc_data;
+		} else if (result->type == Node::VARIABLE) {
+			static_cast<VariableNode *>(result)->doc_data = doc_data;
+		}
+
+		current_function->min_local_doc_line = result->end_line + 1; // Prevent multiple locals from using the same doc comment.
+	}
+#endif // TOOLS_ENABLED
 
 #ifdef DEBUG_ENABLED
 	if (unreachable && result != nullptr) {

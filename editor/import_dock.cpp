@@ -665,7 +665,7 @@ void ImportDock::_reimport() {
 
 			//handle group file
 			Ref<ResourceImporter> importer = ResourceFormatImporter::get_singleton()->get_importer_by_name(importer_name);
-			ERR_CONTINUE(!importer.is_valid());
+			ERR_CONTINUE(importer.is_null());
 			String group_file_property = importer->get_option_group_file();
 			if (!group_file_property.is_empty()) {
 				//can import from a group (as in, atlas)
