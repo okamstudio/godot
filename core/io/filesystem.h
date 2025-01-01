@@ -48,8 +48,8 @@ private:
 
 	HashMap<String, Ref<FileSystemProtocol>> protocols;
 
-	// for paths that doesn't have the protocol part, it fallsback to host://
-	// if r_protocol returns null, the protocol of the path targeted is invalid.
+	// for paths that doesn't have the protocol part, it fallsback to os://
+	// if r_protocol returns null ref, the protocol of the path targeted is invalid.
 	void process_path(const String &p_path, String *r_protocol_name, Ref<FileSystemProtocol> *r_protocol, String *r_file_path) const;
 
 	Error open_error = OK;
@@ -69,6 +69,7 @@ public:
 	static String protocol_name_pipe;
 	static String protocol_name_resources;
 	static String protocol_name_user;
+	static String protocol_name_uid;
 	static String protocol_name_gdscript;
 	static String protocol_name_memory;
 
@@ -88,13 +89,12 @@ public:
 	Error get_open_error() const;
 
 	// If failed, returns empty string
-	// Not the same behavior as ProjectSettings::globalize_path
+	// !! NOT !! the same behavior as the original ProjectSettings::globalize_path
 	String globalize_path(const String &path) const;
 
-	// If failed, returns file path (with protocol part stripped)
-	// It's the same behavior as ProjectSettings::globalize_path
+	// If failed, returns file path without protocol part
+	// The same behavior as the original ProjectSettings:globalize_path
 	String globalize_path_or_fallback(const String &path) const;
-
 
 	Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error *r_error = nullptr) const;
 	bool file_exists(const String &p_path) const;

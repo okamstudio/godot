@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  filesystem_protocol_placeholder.h                                     */
+/*  filesystem_protocol_uid.h                                             */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,28 +28,36 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILESYSTEM_PROTOCOL_PLACEHOLDER_H
-#define FILESYSTEM_PROTOCOL_PLACEHOLDER_H
+#ifndef FILESYSTEM_PROTOCOL_UID_H
+#define FILESYSTEM_PROTOCOL_UID_H
 
 #include "core/io/filesystem_protocol.h"
 
-class FileSystemProtocolPlaceholder : public FileSystemProtocol {
-	GDCLASS(FileSystemProtocolPlaceholder, FileSystemProtocol);
+class FileSystemProtocolUID : public FileSystemProtocol {
+	GDCLASS(FileSystemProtocolUID, FileSystemProtocol);
+
+private:
+	Ref<FileSystemProtocol> protocol_res;
+	String get_next_path(const String &p_path) const;
 
 public:
-	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override {
-		r_error = ERR_FILE_NOT_FOUND;
-		return Ref<FileAccess>();
-	}
-	virtual bool file_exists(const String &p_path) const override { return false; }
+	FileSystemProtocolUID();
+	FileSystemProtocolUID(const Ref<FileSystemProtocol> &p_protocol_res);
+	
+	void set_protocol_resources(const Ref<FileSystemProtocol> &p_protocol_res);
 
-	virtual uint64_t get_modified_time(const String &p_path) const override { return 0; }
-	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const override { return 0; }
-	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const override { return ERR_UNAVAILABLE; }
-	virtual bool get_hidden_attribute(const String &p_path) const override { return false; }
-	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const override { return ERR_UNAVAILABLE; }
-	virtual bool get_read_only_attribute(const String &p_path) const override { return 0; }
-	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const override { return ERR_UNAVAILABLE; }
+	virtual String globalize_path(const String &p_path) const override;
+
+	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override;
+	virtual bool file_exists(const String &p_path) const override;
+
+	virtual uint64_t get_modified_time(const String &p_path) const override;
+	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const override;
+	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const override;
+	virtual bool get_hidden_attribute(const String &p_path) const override;
+	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const override;
+	virtual bool get_read_only_attribute(const String &p_path) const override;
+	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const override;
 };
 
-#endif // FILESYSTEM_PROTOCOL_PLACEHOLDER_H
+#endif // FILESYSTEM_PROTOCOL_USER_H

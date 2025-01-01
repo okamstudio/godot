@@ -29,8 +29,8 @@
 /**************************************************************************/
 
 #include "filesystem.h"
-#include "filesystem_protocol_placeholder.h"
 #include "filesystem_protocol_resources.h"
+#include "filesystem_protocol_uid.h"
 #include "filesystem_protocol_user.h"
 
 FileSystem *FileSystem::singleton = nullptr;
@@ -50,8 +50,33 @@ String FileSystem::protocol_name_os = "os";
 String FileSystem::protocol_name_pipe = "pipe";
 String FileSystem::protocol_name_resources = "res";
 String FileSystem::protocol_name_user = "user";
+String FileSystem::protocol_name_uid = "uid";
 String FileSystem::protocol_name_gdscript = "gdscript";
 String FileSystem::protocol_name_memory = "mem";
+
+void FileSystem::register_protocols() {
+	Ref<FileSystemProtocol> protocol_os = get_protocol_or_null(protocol_name_os);
+	ERR_FAIL_COND_MSG(protocol_os.is_null(), "Cannot get os:// protocol handler! Make sure you have registered the platform os filesystem protocol in OS_XXX::initialize_filesystem()!");
+
+	Ref<FileSystemProtocolUser> protocol_user = Ref<FileSystemProtocolUser>();
+	protocol_user.instantiate(protocol_os);
+	add_protocol(protocol_name_user, protocol_user);
+
+	Ref<FileSystemProtocolResources> protocol_resources = Ref<FileSystemProtocolResources>();
+	protocol_resources.instantiate(protocol_os);
+	add_protocol(protocol_name_resources, protocol_resources);
+
+	Ref<FileSystemProtocolUID> protocol_uid = Ref<FileSystemProtocolUID>();
+	protocol_uid.instantiate(protocol_resources);
+	add_protocol(protocol_name_uid, protocol_uid);
+
+	// gdscript:// represents a script instance in memory.
+	// We reserve it and make it a placeholder which fails all accesses silently
+	// to prevent stepping in the old code.
+	Ref<FileSystemProtocol> protocol_gdscript = Ref<FileSystemProtocol>();
+	protocol_gdscript.instantiate();
+	add_protocol(protocol_name_gdscript, protocol_gdscript);
+}
 
 bool FileSystem::has_protocol(const String &p_name) const {
 	_THREAD_SAFE_METHOD_
@@ -118,22 +143,37 @@ bool FileSystem::split_path(const String &p_path, String *r_protocol_name, Strin
 	int protocol_name_end;
 	int file_path_start;
 	if (!try_find_protocol_in_path(p_path, &protocol_name_end, &file_path_start)) {
-		*r_protocol_name = "";
-		*r_file_path = p_path;
+		if (r_protocol_name != nullptr) {
+			*r_protocol_name = "";
+		}
+		if (r_file_path != nullptr) {
+			*r_file_path = p_path;
+		}
 		return false;
 	}
 
-	*r_protocol_name = p_path.substr(0, protocol_name_end);
-	*r_file_path = p_path.substr(file_path_start);
+	if (r_protocol_name != nullptr) {
+		*r_protocol_name = p_path.substr(0, protocol_name_end);
+	}
+	if (r_file_path != nullptr) {
+		*r_file_path = p_path.substr(file_path_start);
+	}
 	return true;
 }
 
 void FileSystem::process_path(const String &p_path, String *r_protocol_name, Ref<FileSystemProtocol> *r_protocol, String *r_file_path) const {
-	bool has_protcol_part = split_path(p_path, r_protocol_name, r_file_path);
+	// protocol name is needed for fetching protocol objects
+	String protocol_name = "";
+	bool has_protcol_part = split_path(p_path, &protocol_name, r_file_path);
 	if (!has_protcol_part) {
-		*r_protocol_name = protocol_name_os;
+		protocol_name = protocol_name_os;
 	}
-	*r_protocol = get_protocol_or_null(*r_protocol_name);
+	if (r_protocol_name != nullptr) {
+		*r_protocol_name = protocol_name;
+	}
+	if (r_protocol != nullptr) {
+		*r_protocol = get_protocol_or_null(protocol_name);
+	}
 	return;
 }
 
@@ -152,14 +192,16 @@ String FileSystem::globalize_path_or_fallback(const String &p_path) const {
 	Ref<FileSystemProtocol> protocol = Ref<FileSystemProtocol>();
 	String file_path = String();
 	process_path(p_path, &protocol_name, &protocol, &file_path);
-	ERR_FAIL_COND_V_MSG(protocol.is_null(), String(), "Unknown filesystem protocol " + protocol_name);
+	ERR_FAIL_COND_V_MSG(protocol.is_null(), file_path, "Unknown filesystem protocol " + protocol_name);
 
-	String r_path = protocol->globalize_path(file_path);
-	if (r_path.is_empty()) {
-		r_path = file_path;
+	String result = protocol->globalize_path(file_path);
+	if (result.is_empty()) {
+		return file_path;
 	}
-	return r_path;
+
+	return result;
 }
+
 Ref<FileAccess> FileSystem::open_file(const String &p_path, int p_mode_flags, Error *r_error) const {
 	String protocol_name = String();
 	Ref<FileSystemProtocol> protocol = Ref<FileSystemProtocol>();
@@ -194,26 +236,6 @@ Ref<FileAccess> FileSystem::_open_file(const String &p_path, int p_mode_flags) {
 	return open_file(p_path, p_mode_flags, &open_error);
 }
 
-void FileSystem::register_protocols() {
-	Ref<FileSystemProtocol> protocol_os = get_protocol_or_null(protocol_name_os);
-	ERR_FAIL_COND_MSG(protocol_os.is_null(), "Cannot get os:// protocol handler! Make sure you have registered the platform os filesystem protocol in OS_XXX::initialize_filesystem()!");
-
-	Ref<FileSystemProtocolUser> protocol_user = Ref<FileSystemProtocolUser>();
-	protocol_user.instantiate(protocol_os);
-	add_protocol(protocol_name_user, protocol_user);
-
-	Ref<FileSystemProtocolResources> protocol_resources = Ref<FileSystemProtocolResources>();
-	protocol_resources.instantiate(protocol_os);
-	add_protocol(protocol_name_resources, protocol_resources);
-
-	// gdscript:// represents a script instance in memory.
-	// We reserve it and make it a placeholder which fails all accesses silently
-	// to prevent stepping in the old code.
-	Ref<FileSystemProtocolPlaceholder> protocol_gdscript = Ref<FileSystemProtocolPlaceholder>();
-	protocol_gdscript.instantiate();
-	add_protocol(protocol_name_gdscript, protocol_gdscript);
-}
-
 uint64_t FileSystem::get_modified_time(const String &p_path) const {
 	String protocol_name = String();
 	Ref<FileSystemProtocol> protocol = Ref<FileSystemProtocol>();
@@ -221,7 +243,7 @@ uint64_t FileSystem::get_modified_time(const String &p_path) const {
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), 0, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->get_modified_time(p_path);
+	return protocol->get_modified_time(file_path);
 }
 BitField<FileAccess::UnixPermissionFlags> FileSystem::get_unix_permissions(const String &p_path) const {
 	String protocol_name = String();
@@ -230,7 +252,7 @@ BitField<FileAccess::UnixPermissionFlags> FileSystem::get_unix_permissions(const
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), 0, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->get_unix_permissions(p_path);
+	return protocol->get_unix_permissions(file_path);
 }
 Error FileSystem::set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const {
 	String protocol_name = String();
@@ -239,7 +261,7 @@ Error FileSystem::set_unix_permissions(const String &p_path, BitField<FileAccess
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), ERR_FILE_BAD_PATH, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->set_unix_permissions(p_path, p_permissions);
+	return protocol->set_unix_permissions(file_path, p_permissions);
 }
 bool FileSystem::get_hidden_attribute(const String &p_path) const {
 	String protocol_name = String();
@@ -248,7 +270,7 @@ bool FileSystem::get_hidden_attribute(const String &p_path) const {
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), false, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->get_hidden_attribute(p_path);
+	return protocol->get_hidden_attribute(file_path);
 }
 Error FileSystem::set_hidden_attribute(const String &p_path, bool p_hidden) const {
 	String protocol_name = String();
@@ -257,7 +279,7 @@ Error FileSystem::set_hidden_attribute(const String &p_path, bool p_hidden) cons
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), ERR_FILE_BAD_PATH, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->set_hidden_attribute(p_path, p_hidden);
+	return protocol->set_hidden_attribute(file_path, p_hidden);
 }
 bool FileSystem::get_read_only_attribute(const String &p_path) const {
 	String protocol_name = String();
@@ -266,7 +288,7 @@ bool FileSystem::get_read_only_attribute(const String &p_path) const {
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), false, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->get_read_only_attribute(p_path);
+	return protocol->get_read_only_attribute(file_path);
 }
 Error FileSystem::set_read_only_attribute(const String &p_path, bool p_ro) const {
 	String protocol_name = String();
@@ -275,7 +297,7 @@ Error FileSystem::set_read_only_attribute(const String &p_path, bool p_ro) const
 	process_path(p_path, &protocol_name, &protocol, &file_path);
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), ERR_FILE_BAD_PATH, "Unknown filesystem protocol " + protocol_name);
 
-	return protocol->set_read_only_attribute(p_path, p_ro);
+	return protocol->set_read_only_attribute(file_path, p_ro);
 }
 
 void FileSystem::_bind_methods() {

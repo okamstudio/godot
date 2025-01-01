@@ -50,18 +50,18 @@ public:
 
 	virtual String globalize_path(const String &p_path) const { return String(); }
 
-	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const = 0;
-	virtual bool file_exists(const String &p_path) const = 0;
+	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const;
+	virtual bool file_exists(const String &p_path) const { return false; }
 
 	virtual void disguise_file(const Ref<FileAccess> &p_file, const String &p_protocol_name, const String &p_path) const;
 
-	virtual uint64_t get_modified_time(const String &p_path) const = 0;
-	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const = 0;
-	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const = 0;
-	virtual bool get_hidden_attribute(const String &p_path) const = 0;
-	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const = 0;
-	virtual bool get_read_only_attribute(const String &p_path) const = 0;
-	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const = 0;
+	virtual uint64_t get_modified_time(const String &p_path) const { return 0; }
+	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const { return 0; }
+	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const { return ERR_UNAVAILABLE; }
+	virtual bool get_hidden_attribute(const String &p_path) const { return false; }
+	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const { return ERR_UNAVAILABLE; }
+	virtual bool get_read_only_attribute(const String &p_path) const { return false; }
+	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const { return ERR_UNAVAILABLE; }
 };
 
 #endif // FILESYSTEM_PROTOCOL_H
