@@ -176,6 +176,7 @@ public:
 	}
 
 	_FORCE_INLINE_ void set_max_contacts_reported(int p_size) {
+		ERR_FAIL_INDEX(p_size, MAX_CONTACTS_REPORTED_3D_MAX);
 		contacts.resize(p_size);
 		contact_count = 0;
 		if (mode == PhysicsServer3D::BODY_MODE_KINEMATIC && p_size) {
