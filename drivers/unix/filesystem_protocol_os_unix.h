@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  file_access_unix_pipe.h                                               */
+/*  filesystem_protocol_os_unix.h                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,59 +28,39 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_UNIX_PIPE_H
-#define FILE_ACCESS_UNIX_PIPE_H
+#ifndef FILESYSTEM_PROTOCOL_OS_UNIX_H
+#define FILESYSTEM_PROTOCOL_OS_UNIX_H
 
-#include "core/io/file_access.h"
-#include "core/os/memory.h"
+#ifdef UNIX_ENABLED
 
-#include <stdio.h>
+#include "core/io/filesystem_protocol.h"
 
-#if defined(UNIX_ENABLED)
-
-class FileAccessUnixPipe : public FileAccess {
-	bool unlink_on_close = false;
-
-	int fd[2] = { -1, -1 };
-
-	mutable Error last_error = OK;
-	String path;
-	String path_src;
-
-	void _close();
-
-protected:
-	virtual String _get_path() const override; /// returns the path for the current open file
-
+class FileSystemProtocolOSUnix : public FileSystemProtocol {
 public:
-	Error open_existing(int p_rfd, int p_wfd, bool p_blocking);
-	virtual Error open_internal(const String &p_path, int p_mode_flags) override; ///< open a file
+	static String fix_path(const String &p_path);
+	static bool file_exists_static(const String &p_path);
+	static uint64_t get_modified_time_static(const String &p_path);
+	static BitField<FileAccess::UnixPermissionFlags> get_unix_permissions_static(const String &p_path);
+	static Error set_unix_permissions_static(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions);
+	static bool get_hidden_attribute_static(const String &p_path);
+	static Error set_hidden_attribute_static(const String &p_path, bool p_hidden);
+	static bool get_read_only_attribute_static(const String &p_path);
+	static Error set_read_only_attribute_static(const String &p_path, bool p_ro);
 
-	virtual bool is_open() const override; ///< true when file is open
+	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override;
+	virtual bool file_exists(const String &p_path) const override;
 
-	virtual String get_path_absolute() const override; /// returns the absolute path for the current open file
+	// OS files don't need to be disguised when they are opened directly.
+	virtual void disguise_file(const Ref<FileAccess> &p_file, const String &p_protocol_name, const String &p_path) const override {}
 
-	virtual void seek(uint64_t p_position) override {}
-	virtual void seek_end(int64_t p_position = 0) override {}
-	virtual uint64_t get_position() const override { return 0; }
-	virtual uint64_t get_length() const override { return 0; }
-
-	virtual bool eof_reached() const override { return false; }
-
-	virtual uint64_t get_buffer(uint8_t *p_dst, uint64_t p_length) const override;
-
-	virtual Error get_error() const override; ///< get last error
-
-	virtual Error resize(int64_t p_length) override { return ERR_UNAVAILABLE; }
-	virtual void flush() override {}
-	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override; ///< store an array of bytes
-
-	virtual void close() override;
-
-	FileAccessUnixPipe() {}
-	virtual ~FileAccessUnixPipe();
+	virtual uint64_t get_modified_time(const String &p_path) const override;
+	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const override;
+	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const override;
+	virtual bool get_hidden_attribute(const String &p_path) const override;
+	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const override;
+	virtual bool get_read_only_attribute(const String &p_path) const override;
+	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const override;
 };
-
 #endif // UNIX_ENABLED
 
-#endif // FILE_ACCESS_UNIX_PIPE_H
+#endif // FILESYSTEM_PROTOCOL_OS_UNIX_H

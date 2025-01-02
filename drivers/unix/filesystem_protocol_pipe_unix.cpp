@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  file_access_unix_pipe.h                                               */
+/*  filesystem_protocol_pipe_unix.cpp                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,59 +28,22 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_UNIX_PIPE_H
-#define FILE_ACCESS_UNIX_PIPE_H
+#ifdef UNIX_ENABLED
 
-#include "core/io/file_access.h"
-#include "core/os/memory.h"
+#include "filesystem_protocol_pipe_unix.h"
+#include "core/io/filesystem.h"
+#include "file_access_unix_pipe.h"
 
-#include <stdio.h>
+Ref<FileAccess> FileSystemProtocolPipeUnix::open_file(const String &p_path, int p_mode_flags, Error &r_error) const {
+	Ref<FileAccessUnixPipe> file = Ref<FileAccessUnixPipe>();
+	file.instantiate();
 
-#if defined(UNIX_ENABLED)
+	r_error = file->open_internal(p_path, p_mode_flags);
 
-class FileAccessUnixPipe : public FileAccess {
-	bool unlink_on_close = false;
+	if (r_error != OK) {
+		file.unref();
+	}
 
-	int fd[2] = { -1, -1 };
-
-	mutable Error last_error = OK;
-	String path;
-	String path_src;
-
-	void _close();
-
-protected:
-	virtual String _get_path() const override; /// returns the path for the current open file
-
-public:
-	Error open_existing(int p_rfd, int p_wfd, bool p_blocking);
-	virtual Error open_internal(const String &p_path, int p_mode_flags) override; ///< open a file
-
-	virtual bool is_open() const override; ///< true when file is open
-
-	virtual String get_path_absolute() const override; /// returns the absolute path for the current open file
-
-	virtual void seek(uint64_t p_position) override {}
-	virtual void seek_end(int64_t p_position = 0) override {}
-	virtual uint64_t get_position() const override { return 0; }
-	virtual uint64_t get_length() const override { return 0; }
-
-	virtual bool eof_reached() const override { return false; }
-
-	virtual uint64_t get_buffer(uint8_t *p_dst, uint64_t p_length) const override;
-
-	virtual Error get_error() const override; ///< get last error
-
-	virtual Error resize(int64_t p_length) override { return ERR_UNAVAILABLE; }
-	virtual void flush() override {}
-	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override; ///< store an array of bytes
-
-	virtual void close() override;
-
-	FileAccessUnixPipe() {}
-	virtual ~FileAccessUnixPipe();
-};
-
+	return file;
+}
 #endif // UNIX_ENABLED
-
-#endif // FILE_ACCESS_UNIX_PIPE_H

@@ -56,6 +56,8 @@ protected:
 public:
 	OS_Unix();
 
+	virtual void initialize_filesystem() override;
+
 	virtual Vector<String> get_video_adapter_driver_info() const override;
 
 	virtual String get_stdin_string(int64_t p_buffer_size = 1024) override;
