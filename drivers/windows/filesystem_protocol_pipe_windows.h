@@ -38,15 +38,6 @@
 class FileSystemProtocolPipeWindows : public FileSystemProtocol {
 public:
 	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override;
-	virtual bool file_exists(const String &p_path) const override { return false; }
-
-	virtual uint64_t get_modified_time(const String &p_path) const override { return 0; }
-	virtual BitField<FileAccess::UnixPermissionFlags> get_unix_permissions(const String &p_path) const override { return 0; }
-	virtual Error set_unix_permissions(const String &p_path, BitField<FileAccess::UnixPermissionFlags> p_permissions) const override { return ERR_UNAVAILABLE; }
-	virtual bool get_hidden_attribute(const String &p_path) const override { return false; }
-	virtual Error set_hidden_attribute(const String &p_path, bool p_hidden) const override { return ERR_UNAVAILABLE; }
-	virtual bool get_read_only_attribute(const String &p_path) const override { return false; }
-	virtual Error set_read_only_attribute(const String &p_path, bool p_ro) const override { return ERR_UNAVAILABLE; }
 };
 #endif // WINDOWS_ENABLED
 
