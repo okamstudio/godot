@@ -141,6 +141,40 @@ inline bool is_power_of_2(const T x) {
 	return x && ((x & (x - 1)) == 0);
 }
 
+static _FORCE_INLINE_ int count_trailing_zeros(uint32_t value) {
+	if (value == 0) {
+		return 32;
+	}
+#if defined(__GNUC__) || defined(__clang__)
+	return __builtin_ctz(value);
+
+#elif defined(_MSC_VER)
+	unsigned long index;
+	_BitScanForward(&index, value);
+	return static_cast<int>(index);
+
+#else
+	int c = 31;
+	uint32_t x = value & (~value + 1);
+	if (x & 0x0000FFFF) {
+		c -= 16;
+	}
+	if (x & 0x00FF00FF) {
+		c -= 8;
+	}
+	if (x & 0x0F0F0F0F) {
+		c -= 4;
+	}
+	if (x & 0x33333333) {
+		c -= 2;
+	}
+	if (x & 0x55555555) {
+		c -= 1;
+	}
+	return c;
+#endif
+}
+
 // Function to find the next power of 2 to an integer.
 static _FORCE_INLINE_ unsigned int next_power_of_2(unsigned int x) {
 	if (x == 0) {
