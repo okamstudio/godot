@@ -1749,6 +1749,33 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 		}
 	}
 
+	if (p_function->is_vararg()) {
+		resolve_parameter(p_function->rest_parameter);
+		if (p_function->rest_parameter->datatype_specifier != nullptr) {
+			GDScriptParser::DataType specified_type = p_function->rest_parameter->get_datatype();
+			if (specified_type.kind != GDScriptParser::DataType::BUILTIN || specified_type.builtin_type != Variant::ARRAY) {
+				push_error(vformat(R"(The rest parameter type must be "Array", but "%s" is specified.)", specified_type.to_string()), p_function->rest_parameter->datatype_specifier);
+			} else if ((specified_type.has_container_element_type(0) && !specified_type.get_container_element_type(0).is_variant())) {
+				push_error(R"(Typed arrays are currently not supported for the rest parameter.)", p_function->rest_parameter->datatype_specifier);
+			}
+		} else {
+			GDScriptParser::DataType inferred_type;
+			inferred_type.type_source = GDScriptParser::DataType::INFERRED;
+			inferred_type.kind = GDScriptParser::DataType::BUILTIN;
+			inferred_type.builtin_type = Variant::ARRAY;
+			p_function->rest_parameter->set_datatype(inferred_type);
+#ifdef DEBUG_ENABLED
+			parser->push_warning(p_function->rest_parameter, GDScriptWarning::UNTYPED_DECLARATION, "Parameter", p_function->rest_parameter->identifier->name);
+#endif
+		}
+#ifdef DEBUG_ENABLED
+		if (p_function->rest_parameter->usages == 0 && !String(p_function->rest_parameter->identifier->name).begins_with("_")) {
+			parser->push_warning(p_function->rest_parameter->identifier, GDScriptWarning::UNUSED_PARAMETER, function_visible_name, p_function->rest_parameter->identifier->name);
+		}
+		is_shadowing(p_function->rest_parameter->identifier, "function parameter", true);
+#endif // DEBUG_ENABLED
+	}
+
 	if (!p_is_lambda && function_name == GDScriptLanguage::get_singleton()->strings._init) {
 		// Constructor.
 		GDScriptParser::DataType return_type = parser->current_class->get_datatype();
@@ -1815,15 +1842,23 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 				}
 			}
 
-			int par_count_diff = p_function->parameters.size() - parameters_types.size();
-			valid = valid && par_count_diff >= 0;
-			valid = valid && default_value_count >= default_par_count + par_count_diff;
+			int parent_min_argc = parameters_types.size() - default_par_count;
+			int parent_max_argc = (method_flags & METHOD_FLAG_VARARG) ? INT_MAX : parameters_types.size();
+			int current_min_argc = p_function->parameters.size() - default_value_count;
+			int current_max_argc = p_function->is_vararg() ? INT_MAX : p_function->parameters.size();
+
+			// `[current_min_argc..current_max_argc]` must include `[parent_min_argc..parent_max_argc]`.
+			valid = valid && current_min_argc <= parent_min_argc && parent_max_argc <= current_max_argc;
 
 			if (valid) {
 				int i = 0;
 				for (const GDScriptParser::DataType &parent_par_type : parameters_types) {
+					if (i >= p_function->parameters.size()) {
+						break;
+					}
+					const GDScriptParser::DataType &current_par_type = p_function->parameters[i]->datatype;
+					i++;
 					// Check parameter type contravariance.
-					GDScriptParser::DataType current_par_type = p_function->parameters[i++]->get_datatype();
 					if (parent_par_type.is_variant() && parent_par_type.is_hard_type()) {
 						// `is_type_compatible()` returns `true` if one of the types is `Variant`.
 						// Don't allow narrowing a hard `Variant`.
@@ -1852,6 +1887,12 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 					}
 
 					j++;
+				}
+				if (method_flags & METHOD_FLAG_VARARG) {
+					if (!parameters_types.is_empty()) {
+						parent_signature += ", ";
+					}
+					parent_signature += "...";
 				}
 				parent_signature += ") -> ";
 
@@ -5738,6 +5779,9 @@ bool GDScriptAnalyzer::get_function_signature(GDScriptParser::Node *p_source, bo
 			if (found_function->parameters[i]->initializer != nullptr) {
 				r_default_arg_count++;
 			}
+		}
+		if (found_function->is_vararg()) {
+			r_method_flags.set_flag(METHOD_FLAG_VARARG);
 		}
 		r_return_type = p_is_constructor ? p_base_type : found_function->get_datatype();
 		r_return_type.is_meta_type = false;

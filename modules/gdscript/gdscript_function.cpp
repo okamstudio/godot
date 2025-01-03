@@ -252,8 +252,9 @@ Variant GDScriptFunctionState::resume(const Variant &p_arg) {
 void GDScriptFunctionState::_clear_stack() {
 	if (state.stack_size) {
 		Variant *stack = (Variant *)state.stack.ptr();
-		// The first 3 are special addresses and not copied to the state, so we skip them here.
-		for (int i = 3; i < state.stack_size; i++) {
+		// First `GDScriptFunction::FIXED_ADDRESSES_MAX` stack addresses are special
+		// and not copied to the state, so we skip them here.
+		for (int i = GDScriptFunction::FIXED_ADDRESSES_MAX; i < state.stack_size; i++) {
 			stack[i].~Variant();
 		}
 		state.stack_size = 0;

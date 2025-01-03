@@ -483,7 +483,7 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 				k--;
 			}
 
-			if (str[k] == '.') {
+			if (str[k] == '.' && (k < 1 || str[k - 1] != '.')) {
 				in_member_variable = true;
 			}
 		}

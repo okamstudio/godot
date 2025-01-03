@@ -1562,20 +1562,40 @@ void GDScriptParser::parse_function_signature(FunctionNode *p_function, SuiteNod
 				// Allow for trailing comma.
 				break;
 			}
+
+			bool is_rest = false;
+			if (match(GDScriptTokenizer::Token::PERIOD_PERIOD_PERIOD)) {
+				is_rest = true;
+			}
+
 			ParameterNode *parameter = parse_parameter();
 			if (parameter == nullptr) {
 				break;
 			}
+
+			if (p_function->is_vararg()) {
+				push_error("Cannot have parameters after the rest parameter.");
+				continue;
+			}
+
 			if (parameter->initializer != nullptr) {
+				if (is_rest) {
+					push_error("The rest parameter cannot have a default value.");
+					continue;
+				}
 				default_used = true;
 			} else {
-				if (default_used) {
+				if (default_used && !is_rest) {
 					push_error("Cannot have mandatory parameters after optional parameters.");
 					continue;
 				}
 			}
+
 			if (p_function->parameters_indices.has(parameter->identifier->name)) {
 				push_error(vformat(R"(Parameter with name "%s" was already declared for this %s.)", parameter->identifier->name, p_type));
+			} else if (is_rest) {
+				p_function->rest_parameter = parameter;
+				p_body->add_local(parameter, current_function);
 			} else {
 				p_function->parameters_indices[parameter->identifier->name] = p_function->parameters.size();
 				p_function->parameters.push_back(parameter);
@@ -1599,7 +1619,7 @@ void GDScriptParser::parse_function_signature(FunctionNode *p_function, SuiteNod
 		if (!p_function->is_static) {
 			push_error(R"(Static constructor must be declared static.)");
 		}
-		if (p_function->parameters.size() != 0) {
+		if (!p_function->parameters.is_empty() || p_function->is_vararg()) {
 			push_error(R"(Static constructor cannot have parameters.)");
 		}
 		current_class->has_static_data = true;
@@ -4106,6 +4126,7 @@ GDScriptParser::ParseRule *GDScriptParser::get_rule(GDScriptTokenizer::Token::Ty
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // SEMICOLON,
 		{ nullptr,                                          &GDScriptParser::parse_attribute,            	PREC_ATTRIBUTE }, // PERIOD,
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // PERIOD_PERIOD,
+		{ nullptr,                                          nullptr,                                        PREC_NONE }, // PERIOD_PERIOD_PERIOD,
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // COLON,
 		{ &GDScriptParser::parse_get_node,               	nullptr,                                        PREC_NONE }, // DOLLAR,
 		{ nullptr,                                          nullptr,                                        PREC_NONE }, // FORWARD_ARROW,

@@ -1,0 +1,5 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 15: The rest parameter type must be "Array", but "int" is specified.
+>> ERROR at line 18: Typed arrays are currently not supported for the rest parameter.
+>> ERROR at line 9: The function signature doesn't match the parent. Parent signature is "f1(int, ...) -> void".
+>> ERROR at line 12: The function signature doesn't match the parent. Parent signature is "f2(int, ...) -> void".

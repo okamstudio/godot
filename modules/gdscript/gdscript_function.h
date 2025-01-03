@@ -457,6 +457,7 @@ private:
 	GDScript *_script = nullptr;
 	int _initial_line = 0;
 	int _argument_count = 0;
+	int _vararg_index = -1;
 	int _stack_size = 0;
 	int _instruction_args_size = 0;
 
@@ -578,6 +579,7 @@ public:
 	_FORCE_INLINE_ StringName get_source() const { return source; }
 	_FORCE_INLINE_ GDScript *get_script() const { return _script; }
 	_FORCE_INLINE_ bool is_static() const { return _static; }
+	_FORCE_INLINE_ bool is_vararg() const { return _vararg_index >= 0; }
 	_FORCE_INLINE_ MethodInfo get_method_info() const { return method_info; }
 	_FORCE_INLINE_ int get_argument_count() const { return _argument_count; }
 	_FORCE_INLINE_ Variant get_rpc_config() const { return rpc_config; }

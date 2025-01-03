@@ -286,7 +286,18 @@ void PropertySelector::_update_search() {
 				}
 			}
 
+			if (mi.flags & METHOD_FLAG_VARARG) {
+				if (!mi.arguments.is_empty()) {
+					desc += ", ";
+				}
+				desc += "...";
+			}
+
 			desc += ")";
+
+			if (mi.flags & METHOD_FLAG_VARARG) {
+				desc += " vararg";
+			}
 
 			if (mi.flags & METHOD_FLAG_CONST) {
 				desc += " const";

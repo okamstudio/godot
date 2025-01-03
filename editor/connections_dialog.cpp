@@ -307,13 +307,16 @@ List<MethodInfo> ConnectDialog::_filter_method_list(const List<MethodInfo> &p_me
 		}
 
 		if (check_signal) {
-			if (mi.arguments.size() != effective_args.size()) {
+			const int min_argc = mi.arguments.size() - mi.default_arguments.size();
+			const int max_argc = (mi.flags & METHOD_FLAG_VARARG) ? INT_MAX : mi.arguments.size();
+
+			if (effective_args.size() < min_argc || effective_args.size() > max_argc) {
 				continue;
 			}
 
 			bool type_mismatch = false;
 			const List<Pair<Variant::Type, StringName>>::Element *E = effective_args.front();
-			for (const List<PropertyInfo>::Element *F = mi.arguments.front(); F; F = F->next(), E = E->next()) {
+			for (const List<PropertyInfo>::Element *F = mi.arguments.front(); F && E; F = F->next(), E = E->next()) {
 				Variant::Type stype = E->get().first;
 				Variant::Type mtype = F->get().type;
 
@@ -603,8 +606,15 @@ String ConnectDialog::get_signature(const MethodInfo &p_method, PackedStringArra
 		String arg_name = pi.name.is_empty() ? "arg" + itos(i) : pi.name;
 		signature.append(arg_name + ": " + type_name);
 		if (r_arg_names) {
-			r_arg_names->push_back(arg_name + ":" + type_name);
+			r_arg_names->push_back(arg_name + ": " + type_name);
 		}
+	}
+
+	if (p_method.flags & METHOD_FLAG_VARARG) {
+		if (!p_method.arguments.is_empty()) {
+			signature.append(", ");
+		}
+		signature.append("...");
 	}
 
 	signature.append(")");
@@ -988,7 +998,7 @@ void ConnectionsDock::_make_or_edit_connection() {
 		PackedStringArray script_function_args = connect_dialog->get_signal_args();
 		script_function_args.resize(script_function_args.size() - cd.unbinds);
 		for (int i = 0; i < cd.binds.size(); i++) {
-			script_function_args.push_back("extra_arg_" + itos(i) + ":" + Variant::get_type_name(cd.binds[i].get_type()));
+			script_function_args.push_back("extra_arg_" + itos(i) + ": " + Variant::get_type_name(cd.binds[i].get_type()));
 		}
 
 		EditorNode::get_singleton()->emit_signal(SNAME("script_add_function_request"), target, cd.method, script_function_args);
@@ -1126,9 +1136,9 @@ bool ConnectionsDock::_is_connection_inherited(Connection &p_connection) {
  * Open connection dialog with TreeItem data to CREATE a brand-new connection.
  */
 void ConnectionsDock::_open_connection_dialog(TreeItem &p_item) {
-	Dictionary sinfo = p_item.get_metadata(0);
-	String signal_name = sinfo["name"];
-	PackedStringArray signal_args = sinfo["args"];
+	const Dictionary sinfo = p_item.get_metadata(0);
+	const StringName signal_name = sinfo["name"];
+	const PackedStringArray signal_args = sinfo["args"];
 
 	Node *dst_node = selected_node->get_owner() ? selected_node->get_owner() : selected_node;
 	if (!dst_node || dst_node->get_script().is_null()) {
@@ -1137,12 +1147,12 @@ void ConnectionsDock::_open_connection_dialog(TreeItem &p_item) {
 
 	ConnectDialog::ConnectionData cd;
 	cd.source = selected_node;
-	cd.signal = StringName(signal_name);
+	cd.signal = signal_name;
 	cd.target = dst_node;
 	cd.method = ConnectDialog::generate_method_callback_name(cd.source, signal_name, cd.target);
 	connect_dialog->init(cd, signal_args);
 	connect_dialog->set_title(TTR("Connect a Signal to a Method"));
-	connect_dialog->popup_dialog(signal_name + "(" + String(", ").join(signal_args) + ")");
+	connect_dialog->popup_dialog(signal_name.operator String() + "(" + String(", ").join(signal_args) + ")");
 }
 
 /*
@@ -1159,12 +1169,12 @@ void ConnectionsDock::_open_edit_connection_dialog(TreeItem &p_item) {
 	Node *dst = Object::cast_to<Node>(cd.target);
 
 	if (src && dst) {
-		const String &signal_name_ref = cd.signal;
-		PackedStringArray signal_args = signal_item->get_metadata(0).operator Dictionary()["args"];
+		const StringName &signal_name = cd.signal;
+		const PackedStringArray signal_args = signal_item->get_metadata(0).operator Dictionary()["args"];
 
-		connect_dialog->set_title(vformat(TTR("Edit Connection: '%s'"), cd.signal));
-		connect_dialog->popup_dialog(signal_name_ref);
 		connect_dialog->init(cd, signal_args, true);
+		connect_dialog->set_title(vformat(TTR("Edit Connection: '%s'"), cd.signal));
+		connect_dialog->popup_dialog(signal_name.operator String() + "(" + String(", ").join(signal_args) + ")");
 	}
 }
 

@@ -2295,6 +2295,7 @@ GDScriptFunction *GDScriptCompiler::_parse_function(Error &r_error, GDScript *p_
 	codegen.generator->write_start(p_script, func_name, is_static, rpc_config, return_type);
 
 	int optional_parameters = 0;
+	GDScriptCodeGenerator::Address vararg_addr;
 
 	if (p_func) {
 		for (int i = 0; i < p_func->parameters.size(); i++) {
@@ -2308,6 +2309,11 @@ GDScriptFunction *GDScriptCompiler::_parse_function(Error &r_error, GDScript *p_
 			if (parameter->initializer != nullptr) {
 				optional_parameters++;
 			}
+		}
+
+		if (p_func->is_vararg()) {
+			vararg_addr = codegen.add_local(p_func->rest_parameter->identifier->name, _gdtype_from_datatype(p_func->rest_parameter->get_datatype(), codegen.script));
+			method_info.flags |= METHOD_FLAG_VARARG;
 		}
 
 		method_info.default_arguments.append_array(p_func->default_arg_values);
@@ -2476,6 +2482,10 @@ GDScriptFunction *GDScriptCompiler::_parse_function(Error &r_error, GDScript *p_
 			gd_function->return_type.has_type = true;
 			gd_function->return_type.kind = GDScriptDataType::BUILTIN;
 			gd_function->return_type.builtin_type = Variant::NIL;
+		}
+
+		if (p_func->is_vararg()) {
+			gd_function->_vararg_index = vararg_addr.address;
 		}
 	}
 

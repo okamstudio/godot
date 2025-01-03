@@ -115,6 +115,11 @@ static func get_method_signature(method: Dictionary, is_signal: bool = false) ->
 		if i >= mandatory_argc:
 			result += " = " + var_to_str(default_args[i - mandatory_argc])
 
+	if method.flags & METHOD_FLAG_VARARG:
+		if not args.is_empty():
+			result += ", "
+		result += "...args" # `MethodInfo` does not support the rest parameter name.
+
 	result += ")"
 	if is_signal:
 		if get_type(method.return, true) != "void":
