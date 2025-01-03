@@ -26,6 +26,13 @@
 				In order for this UID to be registered, you must call [method add_id] or [method set_id].
 			</description>
 		</method>
+		<method name="create_id_for_path">
+			<return type="int" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Like [method create_id], but the UID is seeded with the provided [param path] and project name. UIDs generated for that path will be always the same within the current project.
+			</description>
+		</method>
 		<method name="get_id_path" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="id" type="int" />

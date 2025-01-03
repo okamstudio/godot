@@ -65,6 +65,7 @@ public:
 	ID text_to_id(const String &p_text) const;
 
 	ID create_id();
+	ID create_id_for_path(const String &p_path);
 	bool has_id(ID p_id) const;
 	void add_id(ID p_id, const String &p_path);
 	void set_id(ID p_id, const String &p_path);

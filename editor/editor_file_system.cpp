@@ -1264,7 +1264,7 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 				// Create a UID.
 				Ref<FileAccess> f = FileAccess::open(path + ".uid", FileAccess::WRITE);
 				if (f.is_valid()) {
-					fi->uid = ResourceUID::get_singleton()->create_id();
+					fi->uid = ResourceUID::get_singleton()->create_id_for_path(path);
 					f->store_line(ResourceUID::get_singleton()->id_to_text(fi->uid));
 				}
 			}
@@ -2529,7 +2529,7 @@ Error EditorFileSystem::_reimport_group(const String &p_group_file, const Vector
 			}
 
 			if (uid == ResourceUID::INVALID_ID) {
-				uid = ResourceUID::get_singleton()->create_id();
+				uid = ResourceUID::get_singleton()->create_id_for_path(file);
 			}
 
 			f->store_line("uid=\"" + ResourceUID::get_singleton()->id_to_text(uid) + "\""); // Store in readable format.
@@ -2753,7 +2753,7 @@ Error EditorFileSystem::_reimport_file(const String &p_file, const HashMap<Strin
 	}
 
 	if (uid == ResourceUID::INVALID_ID) {
-		uid = ResourceUID::get_singleton()->create_id();
+		uid = ResourceUID::get_singleton()->create_id_for_path(p_file);
 	}
 
 	//finally, perform import!!
@@ -3440,14 +3440,14 @@ ResourceUID::ID EditorFileSystem::_resource_saver_get_resource_id_for_path(const
 		}
 
 		if (p_generate) {
-			return ResourceUID::get_singleton()->create_id(); // Just create a new one, we will be notified of save anyway and fetch the right UID at that time, to keep things simple.
+			return ResourceUID::get_singleton()->create_id_for_path(p_path); // Just create a new one, we will be notified of save anyway and fetch the right UID at that time, to keep things simple.
 		} else {
 			return ResourceUID::INVALID_ID;
 		}
 	} else if (fs->files[cpos]->uid != ResourceUID::INVALID_ID) {
 		return fs->files[cpos]->uid;
 	} else if (p_generate) {
-		return ResourceUID::get_singleton()->create_id(); // Just create a new one, we will be notified of save anyway and fetch the right UID at that time, to keep things simple.
+		return ResourceUID::get_singleton()->create_id_for_path(p_path); // Just create a new one, we will be notified of save anyway and fetch the right UID at that time, to keep things simple.
 	} else {
 		return ResourceUID::INVALID_ID;
 	}

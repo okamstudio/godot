@@ -1453,7 +1453,7 @@ void EditorNode::ensure_uid_file(const String &p_new_resource_path) {
 	if (ResourceLoader::exists(p_new_resource_path) && !ResourceLoader::has_custom_uid_support(p_new_resource_path) && !FileAccess::exists(p_new_resource_path + ".uid")) {
 		Ref<FileAccess> f = FileAccess::open(p_new_resource_path + ".uid", FileAccess::WRITE);
 		if (f.is_valid()) {
-			const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
+			const ResourceUID::ID id = ResourceUID::get_singleton()->create_id_for_path(p_new_resource_path);
 			f->store_line(ResourceUID::get_singleton()->id_to_text(id));
 		}
 	}

@@ -121,10 +121,31 @@ ResourceUID::ID ResourceUID::create_id() {
 	}
 }
 
+ResourceUID::ID ResourceUID::create_id_for_path(const String &p_path) {
+	ID id = INVALID_ID;
+	RandomPCG rng;
+
+	const String project_name = GLOBAL_GET("application/config/name");
+	rng.seed(project_name.hash64() * p_path.hash64());
+
+	while (true) {
+		int64_t num1 = rng.rand();
+		int64_t num2 = ((int64_t)rng.rand()) << 32;
+		id = (num1 | num2) & 0x7FFFFFFFFFFFFFFF;
+
+		MutexLock lock(mutex);
+		if (!unique_ids.has(id)) {
+			break;
+		}
+	}
+	return id;
+}
+
 bool ResourceUID::has_id(ID p_id) const {
 	MutexLock l(mutex);
 	return unique_ids.has(p_id);
 }
+
 void ResourceUID::add_id(ID p_id, const String &p_path) {
 	MutexLock l(mutex);
 	ERR_FAIL_COND(unique_ids.has(p_id));
@@ -292,6 +313,7 @@ void ResourceUID::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("text_to_id", "text_id"), &ResourceUID::text_to_id);
 
 	ClassDB::bind_method(D_METHOD("create_id"), &ResourceUID::create_id);
+	ClassDB::bind_method(D_METHOD("create_id_for_path", "path"), &ResourceUID::create_id_for_path);
 
 	ClassDB::bind_method(D_METHOD("has_id", "id"), &ResourceUID::has_id);
 	ClassDB::bind_method(D_METHOD("add_id", "id", "path"), &ResourceUID::add_id);
