@@ -65,11 +65,12 @@ void GDScriptTextDocument::_bind_methods() {
 void GDScriptTextDocument::didOpen(const Variant &p_param) {
 	lsp::TextDocumentItem doc = load_document_item(p_param);
 	sync_script_content(doc.uri, doc.text);
+	GDScriptLanguageProtocol::get_singleton()->get_scene_cache()->set_for_uri(doc.uri);
 }
 
 void GDScriptTextDocument::didClose(const Variant &p_param) {
-	// Left empty on purpose. Godot does nothing special on closing a document,
-	// but it satisfies LSP clients that require didClose be implemented.
+	lsp::TextDocumentItem doc = load_document_item(p_param);
+	GDScriptLanguageProtocol::get_singleton()->get_scene_cache()->erase_for_uri(doc.uri);
 }
 
 void GDScriptTextDocument::didChange(const Variant &p_param) {
@@ -82,6 +83,7 @@ void GDScriptTextDocument::didChange(const Variant &p_param) {
 		doc.text = evt.text;
 	}
 	sync_script_content(doc.uri, doc.text);
+	GDScriptLanguageProtocol::get_singleton()->get_scene_cache()->get_for_uri(doc.uri);
 }
 
 void GDScriptTextDocument::willSaveWaitUntil(const Variant &p_param) {

@@ -31,11 +31,14 @@
 #include "gdscript_language_protocol.h"
 
 #include "core/config/project_settings.h"
+#include "core/error/error_list.h"
+#include "core/io/resource_loader.h"
 #include "editor/doc_tools.h"
 #include "editor/editor_help.h"
 #include "editor/editor_log.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
+#include "scene/resources/packed_scene.h"
 
 GDScriptLanguageProtocol *GDScriptLanguageProtocol::singleton = nullptr;
 
@@ -136,6 +139,7 @@ Error GDScriptLanguageProtocol::on_client_connected() {
 
 void GDScriptLanguageProtocol::on_client_disconnected(const int &p_client_id) {
 	clients.erase(p_client_id);
+	scene_cache.clear();
 	EditorNode::get_log()->add_message("[LSP] Disconnected", EditorLog::MSG_TYPE_EDITOR);
 }
 
@@ -236,6 +240,8 @@ void GDScriptLanguageProtocol::poll(int p_limit_usec) {
 		on_client_connected();
 	}
 
+	scene_cache._check_thread_for_cache_update();
+
 	HashMap<int, Ref<LSPeer>>::Iterator E = clients.begin();
 	while (E != clients.end()) {
 		Ref<LSPeer> peer = E->value;
@@ -281,7 +287,7 @@ void GDScriptLanguageProtocol::stop() {
 		Ref<LSPeer> peer = clients.get(E.key);
 		peer->connection->disconnect_from_host();
 	}
-
+	scene_cache.clear();
 	server->stop();
 }
 
@@ -345,4 +351,209 @@ GDScriptLanguageProtocol::GDScriptLanguageProtocol() {
 	set_scope("completionItem", text_document.ptr());
 	set_scope("workspace", workspace.ptr());
 	workspace->root = ProjectSettings::get_singleton()->get_resource_path();
+	scene_cache.workspace = workspace;
+}
+
+void SceneCache::_get_owners(EditorFileSystemDirectory *p_efsd, const String &p_path, List<String> &r_owners) {
+	if (!p_efsd) {
+		return;
+	}
+
+	for (int i = 0; i < p_efsd->get_subdir_count(); i++) {
+		_get_owners(p_efsd->get_subdir(i), p_path, r_owners);
+	}
+
+	for (int i = 0; i < p_efsd->get_file_count(); i++) {
+		Vector<String> deps = p_efsd->get_file_deps(i);
+		bool found = false;
+		for (int j = 0; j < deps.size(); j++) {
+			if (deps[j] == p_path) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			continue;
+		}
+
+		r_owners.push_back(p_efsd->get_file_path(i));
+	}
+}
+
+void SceneCache::_set_owner_scene_node(const String &p_path) {
+	if (cache.has(p_path)) {
+		return;
+	}
+
+	Node *owner_scene_node = nullptr;
+	List<String> owners;
+
+	_get_owners(EditorFileSystem::get_singleton()->get_filesystem(), p_path, owners);
+	owners_path_cache[p_path] = owners;
+
+	for (const String &owner : owners) {
+		NodePath owner_path = owner;
+		Ref<Resource> owner_res = ResourceLoader::load(owner_path);
+		if (Object::cast_to<PackedScene>(owner_res.ptr())) {
+			Ref<PackedScene> owner_packed_scene = Ref<PackedScene>(Object::cast_to<PackedScene>(*owner_res));
+			owner_scene_node = owner_packed_scene->instantiate();
+			break;
+		}
+	}
+
+	cache[p_path] = owner_scene_node;
+}
+
+/**
+ * Does only one threaded request to the ResourceLoader at a time.
+ * Because loading the same subresources in parallel can bring up errors in the editor.
+ * */
+void SceneCache::_add_owner_scene_request(String p_path = "") {
+	if (p_path.is_empty()) {
+		if (resource_request_queue.size() > 0) {
+			p_path = resource_request_queue.front();
+		} else {
+			return;
+		}
+	}
+	if (cache.has(p_path) && resource_request_queue.size() == 0) {
+		return;
+	}
+	if (!cache.has(p_path) && !resource_request_queue.has(p_path)) {
+		resource_request_queue.push_back(p_path);
+	}
+	if (is_loading) {
+		return;
+	}
+
+	String path = resource_request_queue.front();
+	if (!owners_path_cache.has(p_path)) {
+		_get_owners(EditorFileSystem::get_singleton()->get_filesystem(), path, owners_path_cache[p_path]);
+	}
+	Error r_error = Error::FAILED;
+	while (r_error != Error::OK && owners_path_cache[p_path].size() > 0) {
+		NodePath owner_path = owners_path_cache[p_path].front()->get();
+		r_error = ResourceLoader::load_threaded_request(owner_path);
+		if (r_error != Error::OK) {
+			owners_path_cache[path].pop_front();
+		}
+	}
+	if (owners_path_cache[path].size() > 0) {
+		is_loading = true;
+	} else {
+		cache[path] = nullptr;
+		owners_path_cache.erase(path);
+		resource_request_queue.pop_front();
+		_add_owner_scene_request();
+	}
+}
+
+void SceneCache::_check_thread_for_cache_update() {
+	if (!is_loading) {
+		return;
+	}
+
+	String check_path = resource_request_queue.front();
+
+	NodePath owner_path = owners_path_cache[check_path].front()->get();
+
+	if (ResourceLoader::load_threaded_get_status(owner_path) != ResourceLoader::ThreadLoadStatus::THREAD_LOAD_LOADED) {
+		return;
+	}
+
+	is_loading = false;
+
+	Ref<PackedScene> owner_res = ResourceLoader::load_threaded_get(owner_path);
+	if (owner_res.is_valid()) {
+		cache[check_path] = owner_res->instantiate();
+		owners_path_cache.erase(check_path);
+		resource_request_queue.pop_front();
+		_add_owner_scene_request();
+		return;
+	}
+	owners_path_cache[check_path].pop_front();
+	if (owners_path_cache[check_path].size() == 0) {
+		cache[check_path] = nullptr;
+		owners_path_cache.erase(check_path);
+		resource_request_queue.pop_front();
+	}
+	_add_owner_scene_request();
+}
+
+bool SceneCache::has(const String &p_path) {
+	return cache.has(p_path);
+}
+
+Node *SceneCache::get(const String &p_path) {
+	bool remote_use_thread = (bool)_EDITOR_GET("network/language_server/use_thread");
+	if (remote_use_thread) {
+		_check_thread_for_cache_update();
+		_add_owner_scene_request(p_path);
+	}
+	return cache.has(p_path) ? cache[p_path] : nullptr;
+}
+
+Node *SceneCache::get_for_uri(const String &p_uri) {
+	String path = workspace->get_file_path(p_uri);
+	return get(path);
+}
+
+void SceneCache::set(const String &p_path) {
+	bool remote_use_thread = (bool)_EDITOR_GET("network/language_server/use_thread");
+	if (remote_use_thread) {
+		_check_thread_for_cache_update();
+		_add_owner_scene_request(p_path);
+	} else {
+		_set_owner_scene_node(p_path);
+	}
+}
+
+void SceneCache::set_for_uri(const String &p_uri) {
+	String path = workspace->get_file_path(p_uri);
+	set(path);
+}
+
+void SceneCache::erase(const String &p_path) {
+	bool remote_use_thread = (bool)_EDITOR_GET("network/language_server/use_thread");
+	if (remote_use_thread && resource_request_queue.has(p_path)) {
+		if (is_loading && resource_request_queue.front() == p_path) {
+			while (is_loading) {
+				_check_thread_for_cache_update();
+				OS::get_singleton()->delay_usec(50000);
+			}
+		} else {
+			resource_request_queue.erase(p_path);
+		}
+	}
+	if (!cache.has(p_path)) {
+		return;
+	}
+	if (cache[p_path]) {
+		memdelete(cache[p_path]);
+	}
+	cache.erase(p_path);
+	owners_path_cache.erase(p_path);
+}
+
+void SceneCache::erase_for_uri(const String &p_uri) {
+	String path = workspace->get_file_path(p_uri);
+	erase(path);
+}
+
+void SceneCache::clear() {
+	if (is_loading) {
+		while (is_loading) {
+			_check_thread_for_cache_update();
+			OS::get_singleton()->delay_usec(100);
+		}
+	}
+	resource_request_queue.clear();
+	for (const KeyValue<String, Node *> &E : cache) {
+		if (E.value) {
+			memdelete(E.value);
+		}
+	}
+	cache.clear();
+	owners_path_cache.clear();
+	is_loading = false;
 }
