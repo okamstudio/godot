@@ -54,8 +54,6 @@ def configure(env):
 
     env['OBJSUFFIX'] = '.bc'
     env['LIBSUFFIX'] = '.bc'
-    env['CCCOM'] = "$CC -o $TARGET $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES"
-    env['CXXCOM'] = "$CC -o $TARGET $CFLAGS $CCFLAGS $_CCCOMCOM $SOURCES"
 
 #	env.Append(LIBS=['c','m','stdc++','log','GLESv1_CM','GLESv2'])
 

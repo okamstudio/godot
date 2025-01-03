@@ -2,7 +2,6 @@ import os
 import sys
 import string
 import platform
-from distutils.version import LooseVersion
 
 def is_active():
     return True
@@ -193,8 +192,14 @@ def configure(env):
 
     lib_sysroot = env["ANDROID_NDK_ROOT"] + "/platforms/" + env['ndk_platform'] + "/" + env['ARCH']
 
+    # HACK: Replaced use of now obsoleted distutils.version.LooseVersion with this simple method,
+    # which isn't bullet proof but should be sufficient here with "x.y.z" parameters.
+    # Alternatives imply adding more dependencies.
+    def version_tuple(v):
+        return tuple(map(int, (v.split("."))))
+
     ndk_version = get_ndk_version(env["ANDROID_NDK_ROOT"])
-    if ndk_version != None and LooseVersion(ndk_version) >= LooseVersion("15.0.4075724"):
+    if ndk_version != None and version_tuple(ndk_version) >= version_tuple("15.0.4075724"):
         print("Using NDK unified headers")
         sysroot = env["ANDROID_NDK_ROOT"] + "/sysroot"
         env.Append(CPPFLAGS=["--sysroot="+sysroot])
@@ -251,9 +256,9 @@ def configure(env):
     if (sys.platform.startswith("darwin")):
         env['SHLIBSUFFIX'] = '.so'
 
-    if ndk_version != None and LooseVersion(ndk_version) >= LooseVersion("15.0.4075724"):
+    if ndk_version != None and version_tuple(ndk_version) >= version_tuple("15.0.4075724"):
         if env['android_stl'] == 'yes':
-            if LooseVersion(ndk_version) >= LooseVersion("17.1.4828580"):
+            if version_tuple(ndk_version) >= version_tuple("17.1.4828580"):
                 env.Append(LINKFLAGS=['-Wl,--exclude-libs,libgcc.a','-Wl,--exclude-libs,libatomic.a','-nostdlib++'])
             else:
                 env.Append(LINKFLAGS=[env["ANDROID_NDK_ROOT"] +"/sources/cxx-stl/llvm-libc++/libs/"+arch_subpath+"/libandroid_support.a"])

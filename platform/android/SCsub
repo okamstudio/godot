@@ -2,7 +2,6 @@
 
 import shutil
 from compat import open_utf8
-from distutils.version import LooseVersion
 from detect import get_ndk_version
 
 Import('env')
@@ -143,6 +142,7 @@ manifest = manifest.replace("$$ADD_APPLICATION_CHUNKS$$", env.android_manifest_c
 manifest = manifest.replace("$$ADD_PERMISSION_CHUNKS$$", env.android_permission_chunk)
 manifest = manifest.replace("$$ADD_APPATTRIBUTE_CHUNKS$$", env.android_appattributes_chunk)
 pp_baseout.write(manifest)
+pp_baseout.close()
 
 
 lib = env_android.add_shared_library("#bin/libgodot", [android_objects], SHLIBSUFFIX=env["SHLIBSUFFIX"])
@@ -167,10 +167,16 @@ if lib_arch_dir != '':
     else:  # release_debug, debug
         lib_type_dir = 'debug'
 
+    # HACK: Replaced use of now obsoleted distutils.version.LooseVersion with this simple method,
+    # which isn't bullet proof but should be sufficient here with "x.y.z" parameters.
+    # Alternatives imply adding more dependencies.
+    def version_tuple(v):
+        return tuple(map(int, (v.split("."))))
+
     out_dir = '#platform/android/java/libs/' + lib_type_dir + '/' + lib_arch_dir
     env_android.Command(out_dir + '/libgodot_android.so', '#bin/libgodot' + env['SHLIBSUFFIX'], Move("$TARGET", "$SOURCE"))
     ndk_version = get_ndk_version(env["ANDROID_NDK_ROOT"])
-    if ndk_version != None and LooseVersion(ndk_version) >= LooseVersion("15.0.4075724"):
+    if ndk_version != None and version_tuple(ndk_version) >= version_tuple("15.0.4075724"):
         if env['android_stl'] == 'yes':
             stl_lib_path = str(env['ANDROID_NDK_ROOT']) + '/sources/cxx-stl/llvm-libc++/libs/' + lib_arch_dir + '/libc++_shared.so'
             env_android.Command(out_dir + '/libc++_shared.so', stl_lib_path, Copy("$TARGET", "$SOURCE"))

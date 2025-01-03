@@ -99,6 +99,7 @@ def make_class_list(class_list, columns):
     for n in range(0, columns):
         f.write("--+-------+")
     f.write("\n")
+    f.close()
 
 
 def rstize_text(text, cclass):
@@ -504,6 +505,7 @@ def make_rst_class(node):
             f.write(rstize_text(d.text.strip(), name))
             f.write("\n\n")
         f.write('\n')
+    f.close()
 
 
 for file in input_list:

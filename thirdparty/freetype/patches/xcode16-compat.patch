@@ -1,0 +1,13 @@
+diff --git a/thirdparty/freetype/src/gzip/ftzconf.h b/thirdparty/freetype/src/gzip/ftzconf.h
+index 3abf0ba03b..d88a82a2ee 100644
+--- a/thirdparty/freetype/src/gzip/ftzconf.h
++++ b/thirdparty/freetype/src/gzip/ftzconf.h
+@@ -215,7 +215,7 @@
+ #   define FAR
+ #endif
+ 
+-#if !defined(MACOS) && !defined(TARGET_OS_MAC)
++#if !defined(__MACTYPES__)
+ typedef unsigned char  Byte;  /* 8 bits */
+ #endif
+ typedef unsigned int   uInt;  /* 16 bits or more */

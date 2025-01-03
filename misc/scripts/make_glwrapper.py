@@ -176,3 +176,4 @@ for x in functions:
 f.write("\n\n")
 f.write("}\n")
 f.write("\n\n")
+f.close()
