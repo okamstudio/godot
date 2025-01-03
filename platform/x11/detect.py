@@ -29,11 +29,6 @@ def can_build():
 		print("X11 not found.. x11 disabled.")
 		return False
 
-        ssl_error=os.system("pkg-config openssl --modversion > /dev/null ")
-        if (ssl_error):
-                print("OpenSSL not found.. x11 disabled.")
-                return False
-
 	x11_error=os.system("pkg-config xcursor --modversion > /dev/null ")
 	if (x11_error):
 		print("xcursor not found.. x11 disabled.")
@@ -52,8 +47,9 @@ def get_opts():
 def get_flags():
 
 	return [
-	('builtin_zlib', 'no'),
-	("openssl", "yes"),
+	('builtin_zlib', 'yes'),
+	("openssl", "builtin"),
+	("freetype", "builtin"),
 	("theora","no"),
         ]
 			
@@ -101,31 +97,38 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-g2', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
+		env.Append(CCFLAGS=['-g2', '-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
 	env.ParseConfig('pkg-config x11 --cflags --libs')
 	env.ParseConfig('pkg-config xcursor --cflags --libs')
-	env.ParseConfig('pkg-config openssl --cflags --libs')
 
+	if (env["openssl"]=="yes"):
+		env.ParseConfig('pkg-config openssl --cflags --libs')
 
-	env.ParseConfig('pkg-config freetype2 --cflags --libs')
-	env.Append(CCFLAGS=['-DFREETYPE_ENABLED'])
+	if (env["freetype"]!="no"):
+		env.Append(CCFLAGS=['-DFREETYPE_ENABLED'])
+		if (env["freetype"]=="builtin"):
+			env.Append(CPPPATH=['#tools/freetype'])
+			env.Append(CPPPATH=['#tools/freetype/freetype/include'])
+		else:
+			env.ParseConfig('pkg-config freetype2 --cflags --libs')
 
-	
 	env.Append(CPPFLAGS=['-DOPENGL_ENABLED','-DGLEW_ENABLED'])
 	env.Append(CPPFLAGS=["-DALSA_ENABLED"])
 	env.Append(CPPFLAGS=['-DX11_ENABLED','-DUNIX_ENABLED','-DGLES2_ENABLED','-DGLES1_ENABLED','-DGLES_OVER_GL'])
-	env.Append(LIBS=['GL', 'GLU', 'pthread','asound','z']) #TODO detect linux/BSD!
+	env.Append(LIBS=['GL', 'pthread', 'asound']) #TODO detect linux/BSD!
+	if (env["builtin_zlib"]=="no"):
+		env.Append(LIBS=['z'])
 	#env.Append(CPPFLAGS=['-DMPC_FIXED_POINT'])
 
 #host compiler is default..
 
 	if (is64 and env["bits"]=="32"):
 		env.Append(CPPFLAGS=['-m32'])
-		env.Append(LINKFLAGS=['-m32','-L/usr/lib/i386-linux-gnu'])
+		env.Append(LINKFLAGS=['-m32'])
 	elif (not is64 and env["bits"]=="64"):
 		env.Append(CPPFLAGS=['-m64'])
-		env.Append(LINKFLAGS=['-m64','-L/usr/lib/i686-linux-gnu'])
+		env.Append(LINKFLAGS=['-m64'])
 
 
 	if (env["CXX"]=="clang++"):

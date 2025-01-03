@@ -75,8 +75,9 @@ def make_class_list(class_list,columns):
 			
 		s+="\n"
 		f.write(s)
-	
-	
+	f.close()
+
+
 def dokuize_text(txt):
 	
 	return txt
@@ -220,7 +221,7 @@ def make_method(f,name,m,declare,event=False):
 		s+=" "+m.attrib["qualifiers"]
 		
 	f.write(s+"\n")
-	
+	f.close()
   
 def make_doku_class(node):
 
@@ -302,8 +303,7 @@ def make_doku_class(node):
 			f.write(dokuize_text(d.text.strip()))
 			f.write("\n")
 			
-			
-				
+	f.close()
 
 			
 	"""

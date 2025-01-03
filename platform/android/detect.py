@@ -150,7 +150,7 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-D_DEBUG', '-g1', '-Wall', '-O0', '-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-D_DEBUG', '-g1', '-O0', '-DDEBUG_ENABLED'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ALLOC'])
 
 	if env["armv6"] == "no" and env['x86'] != 'yes':

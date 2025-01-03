@@ -157,6 +157,7 @@ f.write("void glWrapperInit( GLWrapperFuncPtr (*wrapperFunc)(const char*) );\n")
 f.write("#ifdef __cplusplus\n}\n#endif\n")
 
 f.write("#endif\n\n")
+f.close()
   
 f=open("glwrapper.c","w")
 
@@ -177,8 +178,7 @@ for x in functions:
 f.write("\n\n")
 f.write("}\n")
 f.write("\n\n")
-
-
+f.close()
 
       
     

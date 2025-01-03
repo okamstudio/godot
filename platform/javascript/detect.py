@@ -70,7 +70,7 @@ def configure(env):
 		env.Append(CCFLAGS=['-O2','-DDEBUG_ENABLED'])
 
 	elif (env["target"]=="debug"):
-		env.Append(CCFLAGS=['-D_DEBUG', '-Wall', '-O2', '-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-D_DEBUG', '-O2', '-DDEBUG_ENABLED'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ALLOC'])
 
 	env.Append(CPPFLAGS=["-fno-exceptions",'-DNO_SAFE_CAST','-fno-rtti'])

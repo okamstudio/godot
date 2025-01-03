@@ -54,7 +54,7 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-g', '-O0', '-Wall','-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-g', '-O0', '-DDEBUG_ENABLED'])
 
 
 	elif (env["target"]=="profile"):

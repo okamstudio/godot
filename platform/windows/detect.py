@@ -26,8 +26,8 @@ def can_build():
 			
 	if (os.name=="posix"):
 
-		mingw = "i586-mingw32msvc-"
-		mingw64 = "i686-w64-mingw32-"
+		mingw = "i686-w64-mingw32-"
+		mingw64 = "x86_64-w64-mingw32-"
 		if (os.getenv("MINGW32_PREFIX")):
 			mingw=os.getenv("MINGW32_PREFIX")
 		if (os.getenv("MINGW64_PREFIX")):
@@ -45,8 +45,8 @@ def get_opts():
 	mingw=""
 	mingw64=""
 	if (os.name!="nt"):
-		mingw = "i586-mingw32msvc-"
-		mingw64 = "i686-w64-mingw32-"
+		mingw = "i686-w64-mingw32-"
+		mingw64 = "x86_64-w64-mingw32-"
 		if (os.getenv("MINGW32_PREFIX")):
 			mingw=os.getenv("MINGW32_PREFIX")
 		if (os.getenv("MINGW64_PREFIX")):
@@ -188,7 +188,7 @@ def configure(env):
 
 		elif (env["target"]=="debug"):
 					
-			env.Append(CCFLAGS=['-g', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
+			env.Append(CCFLAGS=['-g', '-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
 		if (env["freetype"]!="no"):
 			env.Append(CCFLAGS=['-DFREETYPE_ENABLED'])

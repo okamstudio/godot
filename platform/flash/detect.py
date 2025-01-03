@@ -98,7 +98,7 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-D_DEBUG', '-g0', '-Wall', '-O0', '-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-D_DEBUG', '-g0', '-O0', '-DDEBUG_ENABLED'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ALLOC'])
 
 	env.Append(CPPFLAGS=['-DFLASH_ENABLED', '-DGLES1_ENABLED', '-DNO_FCNTL', '-DUNIX_ENABLED'])

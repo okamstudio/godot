@@ -57,6 +57,7 @@ pp_baseout = open(abspath+"/java/AndroidManifest.xml","wb")
 manifest = pp_basein.read()
 manifest = manifest.replace("$$ADD_APPLICATION_CHUNKS$$",env.android_manifest_chunk)
 pp_baseout.write( manifest )
+pp_baseout.close()
 
 
 for x in env.android_source_files:

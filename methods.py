@@ -42,6 +42,7 @@ def build_shader_header( target, source, env ):
 			line=fs.readline()
 			
 		fd.write(";\n")
+		fd.close()
 			
 	return 0
 		
@@ -1098,6 +1099,7 @@ def update_version():
 	f.write("#define VERSION_MINOR "+str(version.minor)+"\n")
 	f.write("#define VERSION_REVISION "+str(rev)+"\n")
 	f.write("#define VERSION_STATUS "+str(version.status)+"\n")
+	f.close()
 
 def parse_cg_file(fname, uniforms, sizes, conditionals):
 
@@ -1167,8 +1169,8 @@ def build_cg_shader(sname):
 		fd.write('\t\tVP_%s,\n' % vp_uniforms[i].upper())
 
 	fd.write("\t};\n");
+	fd.close()
 
-		
 
 import glob
 def detect_modules():
@@ -1219,6 +1221,7 @@ void unregister_module_types() {
 
 	f=open("modules/register_module_types.cpp","wb")
 	f.write(modules_cpp)
+	f.close()
 
 	return module_list
 
@@ -1315,4 +1318,5 @@ def save_active_platforms(apnames,ap):
 		wf = x+"/logo.h"
 		logow = open(wf,"wb")
 		logow.write(str)
+		logow.close()
 

@@ -1588,6 +1588,7 @@ class DaeExporter:
 		f.write(bytes('\t<instance_visual_scene url="#'+self.scene_name+'" />\n',"UTF-8"))
 		f.write(bytes('</scene>\n',"UTF-8"))
 		f.write(bytes('</COLLADA>\n',"UTF-8"))
+		f.close()
 		return True
 
 	def __init__(self,path,kwargs):

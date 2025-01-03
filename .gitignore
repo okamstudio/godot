@@ -12,6 +12,7 @@ drivers/gles2/shaders/*.h
 modules/register_module_types.cpp
 core/version.h
 core/method_bind.inc
+core/method_bind_ext.inc
 core/script_encryption_key.cpp
 core/global_defaults.cpp
 tools/editor/register_exporters.cpp
