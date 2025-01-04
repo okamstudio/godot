@@ -57,11 +57,15 @@ class ProjectListItemControl : public HBoxContainer {
 	TextureRect *project_unsupported_features = nullptr;
 	HBoxContainer *tag_container = nullptr;
 
+	Color favorite_focus_color;
+
 	bool project_is_missing = false;
 	bool icon_needs_reload = true;
 	bool is_selected = false;
 	bool is_hovering = false;
+	bool is_favourite = false;
 
+	void _update_favorite_button_focus_color();
 	void _favorite_button_pressed();
 	void _explore_button_pressed();
 
@@ -207,7 +211,7 @@ private:
 	static void _scan_folder_recursive(const String &p_path, List<String> *r_projects, const SafeFlag &p_scan_active);
 
 	// Project list items.
-
+	void _on_child_focus_entered(ProjectListItemControl *p_hb);
 	void _create_project_item_control(int p_index);
 	void _toggle_project(int p_index);
 	void _remove_project(int p_index, bool p_update_settings);
