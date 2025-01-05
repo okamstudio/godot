@@ -224,7 +224,7 @@ ScriptLanguage *ScriptServer::get_language_for_extension(const String &p_extensi
 	MutexLock lock(languages_mutex);
 
 	for (int i = 0; i < _language_count; i++) {
-		if (_languages[i] && _languages[i]->get_extension() == p_extension) {
+		if (_languages[i] && _languages[i]->get_extensions().has(p_extension)) {
 			return _languages[i];
 		}
 	}
@@ -238,9 +238,25 @@ Error ScriptServer::register_language(ScriptLanguage *p_language) {
 	ERR_FAIL_COND_V_MSG(_language_count >= MAX_LANGUAGES, ERR_UNAVAILABLE, "Script languages limit has been reach, cannot register more.");
 	for (int i = 0; i < _language_count; i++) {
 		const ScriptLanguage *other_language = _languages[i];
-		ERR_FAIL_COND_V_MSG(other_language->get_extension() == p_language->get_extension(), ERR_ALREADY_EXISTS, vformat("A script language with extension '%s' is already registered.", p_language->get_extension()));
+		String shared_extensions;
+		String shared_types;
+		for (String ext : p_language->get_extensions()) {
+			if (other_language->get_extensions().has(ext)) {
+				if (!shared_extensions.is_empty()) {
+					shared_extensions += ", ";
+				}
+				shared_extensions += ext;
+			}
+			if (other_language->get_type(ext) == p_language->get_type(ext)) {
+				if (!shared_types.is_empty()) {
+					shared_types += ", ";
+				}
+				shared_types += ext;
+			}
+		}
+		ERR_FAIL_COND_V_MSG(!shared_extensions.is_empty(), ERR_ALREADY_EXISTS, vformat("A script language with extension '%s' is already registered.", shared_extensions));
 		ERR_FAIL_COND_V_MSG(other_language->get_name() == p_language->get_name(), ERR_ALREADY_EXISTS, vformat("A script language with name '%s' is already registered.", p_language->get_name()));
-		ERR_FAIL_COND_V_MSG(other_language->get_type() == p_language->get_type(), ERR_ALREADY_EXISTS, vformat("A script language with type '%s' is already registered.", p_language->get_type()));
+		ERR_FAIL_COND_V_MSG(!shared_types.is_empty(), ERR_ALREADY_EXISTS, vformat("A script language with type '%s' is already registered.", shared_types));
 	}
 	_languages[_language_count++] = p_language;
 	return OK;

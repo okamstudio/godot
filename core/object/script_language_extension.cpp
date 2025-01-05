@@ -65,6 +65,7 @@ void ScriptExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_is_tool);
 	GDVIRTUAL_BIND(_is_valid);
 	GDVIRTUAL_BIND(_is_abstract);
+	GDVIRTUAL_BIND(_is_attachable);
 	GDVIRTUAL_BIND(_get_language);
 
 	GDVIRTUAL_BIND(_has_script_signal, "signal");
@@ -89,8 +90,8 @@ void ScriptExtension::_bind_methods() {
 void ScriptLanguageExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_name);
 	GDVIRTUAL_BIND(_init);
-	GDVIRTUAL_BIND(_get_type);
-	GDVIRTUAL_BIND(_get_extension);
+	GDVIRTUAL_BIND(_get_type, "extension");
+	GDVIRTUAL_BIND(_get_extensions);
 	GDVIRTUAL_BIND(_finish);
 
 	GDVIRTUAL_BIND(_get_reserved_words);
@@ -98,13 +99,14 @@ void ScriptLanguageExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_comment_delimiters);
 	GDVIRTUAL_BIND(_get_doc_comment_delimiters);
 	GDVIRTUAL_BIND(_get_string_delimiters);
-	GDVIRTUAL_BIND(_make_template, "template", "class_name", "base_class_name");
+	GDVIRTUAL_BIND(_make_template, "template", "class_name", "base_class_name", "extension");
 	GDVIRTUAL_BIND(_get_built_in_templates, "object");
 	GDVIRTUAL_BIND(_is_using_templates);
 	GDVIRTUAL_BIND(_validate, "script", "path", "validate_functions", "validate_errors", "validate_warnings", "validate_safe_lines");
 
 	GDVIRTUAL_BIND(_validate_path, "path");
-	GDVIRTUAL_BIND(_create_script);
+	GDVIRTUAL_BIND(_is_script_attachable, "extension");
+	GDVIRTUAL_BIND(_create_script, "extension");
 #ifndef DISABLE_DEPRECATED
 	GDVIRTUAL_BIND(_has_named_classes);
 #endif

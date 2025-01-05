@@ -136,7 +136,7 @@ public:
 		return GDVIRTUAL_CALL(_is_abstract, abst) && abst;
 	}
 	GDVIRTUAL0RC(bool, _is_abstract)
-
+	EXBIND0RC(bool, is_attachable)
 	EXBIND0RC(ScriptLanguage *, get_language)
 	EXBIND1RC(bool, has_script_signal, const StringName &)
 
@@ -234,8 +234,8 @@ public:
 	EXBIND0RC(String, get_name)
 
 	EXBIND0(init)
-	EXBIND0RC(String, get_type)
-	EXBIND0RC(String, get_extension)
+	EXBIND1RC(String, get_type, const String &)
+	EXBIND0RC(Vector<String>, get_extensions)
 	EXBIND0(finish)
 
 	/* EDITOR FUNCTIONS */
@@ -281,7 +281,7 @@ public:
 		}
 	}
 
-	EXBIND3RC(Ref<Script>, make_template, const String &, const String &, const String &)
+	EXBIND4RC(Ref<Script>, make_template, const String &, const String &, const String &, const String &)
 
 	GDVIRTUAL1RC_REQUIRED(TypedArray<Dictionary>, _get_built_in_templates, StringName)
 
@@ -378,10 +378,11 @@ public:
 	}
 
 	EXBIND1RC(String, validate_path, const String &)
-	GDVIRTUAL0RC_REQUIRED(Object *, _create_script)
-	Script *create_script() const override {
+	EXBIND1RC(bool, is_script_attachable, const String &)
+	GDVIRTUAL1RC_REQUIRED(Object *, _create_script, const String &)
+	Script *create_script(const String &p_extension) const override {
 		Object *ret = nullptr;
-		GDVIRTUAL_CALL(_create_script, ret);
+		GDVIRTUAL_CALL(_create_script, p_extension, ret);
 		return Object::cast_to<Script>(ret);
 	}
 #ifndef DISABLE_DEPRECATED

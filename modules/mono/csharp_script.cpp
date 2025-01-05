@@ -91,12 +91,12 @@ String CSharpLanguage::get_name() const {
 	return "C#";
 }
 
-String CSharpLanguage::get_type() const {
+String CSharpLanguage::get_type(const String &p_extension) const {
 	return "CSharpScript";
 }
 
-String CSharpLanguage::get_extension() const {
-	return "cs";
+Vector<String> CSharpLanguage::get_extensions() const {
+	return Vector<String>({ "cs" });
 }
 
 void CSharpLanguage::init() {
@@ -360,7 +360,7 @@ bool CSharpLanguage::is_using_templates() {
 	return true;
 }
 
-Ref<Script> CSharpLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
+Ref<Script> CSharpLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const {
 	Ref<CSharpScript> scr;
 	scr.instantiate();
 
@@ -401,7 +401,7 @@ String CSharpLanguage::validate_path(const String &p_path) const {
 	return "";
 }
 
-Script *CSharpLanguage::create_script() const {
+Script *CSharpLanguage::create_script(const String &p_extension) const {
 	return memnew(CSharpScript);
 }
 
@@ -442,7 +442,7 @@ String CSharpLanguage::_get_indentation() const {
 }
 
 bool CSharpLanguage::handles_global_class_type(const String &p_type) const {
-	return p_type == get_type();
+	return p_type == get_type("");
 }
 
 String CSharpLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
@@ -2868,11 +2868,11 @@ void ResourceFormatLoaderCSharpScript::get_recognized_extensions(List<String> *p
 }
 
 bool ResourceFormatLoaderCSharpScript::handles_type(const String &p_type) const {
-	return p_type == "Script" || p_type == CSharpLanguage::get_singleton()->get_type();
+	return p_type == "Script" || p_type == CSharpLanguage::get_singleton()->get_type("");
 }
 
 String ResourceFormatLoaderCSharpScript::get_resource_type(const String &p_path) const {
-	return p_path.get_extension().to_lower() == "cs" ? CSharpLanguage::get_singleton()->get_type() : "";
+	return p_path.get_extension().to_lower() == "cs" ? CSharpLanguage::get_singleton()->get_type("") : "";
 }
 
 Error ResourceFormatSaverCSharpScript::save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags) {

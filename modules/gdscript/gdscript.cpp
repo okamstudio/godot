@@ -2334,12 +2334,18 @@ void GDScriptLanguage::_extension_unloading(const Ref<GDExtension> &p_extension)
 }
 #endif
 
-String GDScriptLanguage::get_type() const {
+String GDScriptLanguage::get_type(const String &p_extension) const {
+	if (p_extension == "gdt") {
+		return "GDTrait";
+	}
 	return "GDScript";
 }
 
-String GDScriptLanguage::get_extension() const {
-	return "gd";
+Vector<String> GDScriptLanguage::get_extensions() const {
+	Vector<String> extensions;
+	extensions.push_back("gd");
+	extensions.push_back("gdt");
+	return extensions;
 }
 
 void GDScriptLanguage::finish() {

@@ -358,6 +358,13 @@ public:
 	~GDScript();
 };
 
+class GDTrait : public GDScript {
+	GDCLASS(GDTrait, GDScript);
+
+public:
+	virtual bool is_attachable() const override { return false; }
+};
+
 class GDScriptInstance : public ScriptInstance {
 	friend class GDScript;
 	friend class GDScriptFunction;
@@ -596,8 +603,8 @@ public:
 
 	/* LANGUAGE FUNCTIONS */
 	virtual void init() override;
-	virtual String get_type() const override;
-	virtual String get_extension() const override;
+	virtual String get_type(const String &p_extension) const override;
+	virtual Vector<String> get_extensions() const override;
 	virtual void finish() override;
 
 	/* EDITOR FUNCTIONS */
@@ -607,10 +614,11 @@ public:
 	virtual void get_doc_comment_delimiters(List<String> *p_delimiters) const override;
 	virtual void get_string_delimiters(List<String> *p_delimiters) const override;
 	virtual bool is_using_templates() override;
-	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
+	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const override;
 	virtual Vector<ScriptTemplate> get_built_in_templates(const StringName &p_object) override;
 	virtual bool validate(const String &p_script, const String &p_path = "", List<String> *r_functions = nullptr, List<ScriptLanguage::ScriptError> *r_errors = nullptr, List<ScriptLanguage::Warning> *r_warnings = nullptr, HashSet<int> *r_safe_lines = nullptr) const override;
-	virtual Script *create_script() const override;
+	virtual bool is_script_attachable(const String &p_extension) const override;
+	virtual Script *create_script(const String &p_extension) const override;
 #ifndef DISABLE_DEPRECATED
 	virtual bool has_named_classes() const override { return false; }
 #endif
@@ -679,24 +687,6 @@ public:
 
 	GDScriptLanguage();
 	~GDScriptLanguage();
-};
-
-/* GDTRAIT */
-class GDTrait : public GDScript {
-	GDCLASS(GDTrait, GDScript);
-
-public:
-	virtual bool is_attachable() const override { return false; }
-};
-
-class GDTraitLanguage : public GDScriptLanguage {
-public:
-	virtual String get_name() const override { return "GDTrait"; }
-	virtual String get_type() const override { return "GDTrait"; }
-	virtual String get_extension() const override { return "gdt"; }
-	virtual bool is_language_script_attachable() const override { return false; }
-	virtual Script *create_script() const override { return memnew(GDTrait); }
-	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
 };
 
 class ResourceFormatLoaderGDScript : public ResourceFormatLoader {

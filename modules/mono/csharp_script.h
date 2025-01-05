@@ -492,8 +492,8 @@ public:
 	String get_name() const override;
 
 	/* LANGUAGE FUNCTIONS */
-	String get_type() const override;
-	String get_extension() const override;
+	String get_type(const String &p_extension) const override;
+	Vector<String> get_extensions() const override;
 	void init() override;
 	void finish() override;
 
@@ -506,14 +506,14 @@ public:
 	void get_doc_comment_delimiters(List<String> *p_delimiters) const override;
 	void get_string_delimiters(List<String> *p_delimiters) const override;
 	bool is_using_templates() override;
-	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
+	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const override;
 	virtual Vector<ScriptTemplate> get_built_in_templates(const StringName &p_object) override;
 	/* TODO */ bool validate(const String &p_script, const String &p_path, List<String> *r_functions,
 			List<ScriptLanguage::ScriptError> *r_errors = nullptr, List<ScriptLanguage::Warning> *r_warnings = nullptr, HashSet<int> *r_safe_lines = nullptr) const override {
 		return true;
 	}
 	String validate_path(const String &p_path) const override;
-	Script *create_script() const override;
+	Script *create_script(const String &p_extension) const override;
 #ifndef DISABLE_DEPRECATED
 	virtual bool has_named_classes() const override { return false; }
 #endif

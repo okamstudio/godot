@@ -499,7 +499,7 @@ Error GDScriptAnalyzer::resolve_class_inheritance(GDScriptParser::ClassNode *p_c
 				}
 			} else if (ProjectSettings::get_singleton()->has_autoload(name) && ProjectSettings::get_singleton()->get_autoload(name).is_singleton) {
 				const ProjectSettings::AutoloadInfo &info = ProjectSettings::get_singleton()->get_autoload(name);
-				if (info.path.get_extension().to_lower() != GDScriptLanguage::get_singleton()->get_extension()) {
+				if (!GDScriptLanguage::get_singleton()->get_extensions().has(info.path.get_extension().to_lower())) {
 					push_error(vformat(R"(Singleton %s is not a GDScript.)", info.name), id);
 					return ERR_PARSE_ERROR;
 				}
@@ -852,7 +852,7 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 			} else {
 				String path = ScriptServer::get_global_class_path(first);
 				String ext = path.get_extension();
-				if (ext == GDScriptLanguage::get_singleton()->get_extension() || ext == "gdt") {
+				if (GDScriptLanguage::get_singleton()->get_extensions().has(ext)) {
 					Ref<GDScriptParserRef> ref = parser->get_depended_parser_for(path);
 					if (ref.is_null() || ref->raise_status(GDScriptParserRef::USES_SOLVED) != OK) {
 						push_error(vformat(R"(Could not parse global class "%s" from "%s".)", first, ScriptServer::get_global_class_path(first)), p_type);
@@ -4294,7 +4294,7 @@ GDScriptParser::DataType GDScriptAnalyzer::make_global_class_meta_type(const Str
 	GDScriptParser::DataType type;
 	String path = ScriptServer::get_global_class_path(p_class_name);
 	String ext = path.get_extension();
-	if (ext == GDScriptLanguage::get_singleton()->get_extension() || ext == "gdt") {
+	if (GDScriptLanguage::get_singleton()->get_extensions().has(ext)) {
 		Ref<GDScriptParserRef> ref = parser->get_depended_parser_for(path);
 		if (ref.is_null()) {
 			push_error(vformat(R"(Could not find script for class "%s".)", p_class_name), p_source);

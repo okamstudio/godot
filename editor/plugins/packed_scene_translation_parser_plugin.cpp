@@ -149,7 +149,7 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 					continue;
 				}
 
-				String extension = s->get_language()->get_extension();
+				String extension = s->get_language()->get_extensions()[0];
 				if (EditorTranslationParser::get_singleton()->can_parse(extension)) {
 					Vector<String> temp;
 					Vector<Vector<String>> ids_context_plural;

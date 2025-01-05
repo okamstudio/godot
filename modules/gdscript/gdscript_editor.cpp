@@ -72,9 +72,15 @@ bool GDScriptLanguage::is_using_templates() {
 	return true;
 }
 
-Ref<Script> GDScriptLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
+Ref<Script> GDScriptLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const {
 	Ref<GDScript> scr;
-	scr.instantiate();
+	if (p_extension == "gdt") {
+		Ref<GDTrait> trait_script;
+		trait_script.instantiate();
+		scr = trait_script;
+	} else {
+		scr.instantiate();
+	}
 	String processed_template = p_template;
 	bool type_hints = false;
 #ifdef TOOLS_ENABLED
@@ -104,14 +110,6 @@ Ref<Script> GDScriptLanguage::make_template(const String &p_template, const Stri
 								 .replace("_TS_", _get_indentation());
 	scr->set_source_code(processed_template);
 	return scr;
-}
-
-Ref<Script> GDTraitLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
-	Ref<GDTrait> return_script;
-	return_script.instantiate();
-	Ref<GDScript> scr = GDScriptLanguage::get_singleton()->make_template(p_template, p_class_name, p_base_class_name);
-	return_script->set_source_code(scr->get_source_code());
-	return return_script;
 }
 
 Vector<ScriptLanguage::ScriptTemplate> GDScriptLanguage::get_built_in_templates(const StringName &p_object) {
@@ -250,7 +248,17 @@ int GDScriptLanguage::find_function(const String &p_function, const String &p_co
 	return -1;
 }
 
-Script *GDScriptLanguage::create_script() const {
+bool GDScriptLanguage::is_script_attachable(const String &p_extension) const {
+	if (p_extension == "gdt") {
+		return false;
+	}
+	return true;
+}
+
+Script *GDScriptLanguage::create_script(const String &p_extension) const {
+	if (p_extension == "gdt") {
+		return memnew(GDTrait);
+	}
 	return memnew(GDScript);
 }
 

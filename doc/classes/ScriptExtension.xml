@@ -165,6 +165,12 @@
 				Returns [code]true[/code] if the script is an abstract script. An abstract script does not have a constructor and cannot be instantiated.
 			</description>
 		</method>
+		<method name="_is_attachable" qualifiers="virtual const">
+			<return type="bool" />
+			<description>
+				Determines if the script can be attached to [Object]s including [Node]s.
+			</description>
+		</method>
 		<method name="_is_placeholder_fallback_enabled" qualifiers="virtual const">
 			<return type="bool" />
 			<description>
