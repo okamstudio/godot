@@ -33,6 +33,8 @@
 
 #include "editor/plugins/editor_plugin.h"
 
+class MarginContainer;
+class LineEdit;
 class CheckBox;
 class ConfirmationDialog;
 class EditorFileDialog;
@@ -87,24 +89,49 @@ protected:
 		MENU_LOAD_EMISSION_MASK = 100,
 	};
 
-	enum EmissionMode {
-		EMISSION_MODE_SOLID,
-		EMISSION_MODE_BORDER,
-		EMISSION_MODE_BORDER_DIRECTED
+	enum MaskMode {
+		MASK_MODE_SOLID,
+		MASK_MODE_BORDER,
 	};
 
-	EditorFileDialog *file = nullptr;
-	ConfirmationDialog *emission_mask = nullptr;
+	enum DirectionMode {
+		DIRECTION_MODE_NONE,
+		DIRECTION_MODE_GENERATE,
+		DIRECTION_MODE_TEXTURE,
+	};
+
+	enum TextureType {
+		TEXTURE_TYPE_MASK,
+		TEXTURE_TYPE_DIRECTION,
+	};
+
+	EditorFileDialog *file_dialog = nullptr;
+	ConfirmationDialog *emission_mask_dialog = nullptr;
 	OptionButton *emission_mask_mode = nullptr;
+	OptionButton *emission_direction_mode = nullptr;
 	CheckBox *emission_mask_centered = nullptr;
-	CheckBox *emission_colors = nullptr;
-	String source_emission_file;
+	CheckBox *emission_mask_colors = nullptr;
+	LineEdit *mask_img_path_line_edit = nullptr;
+	LineEdit *direction_img_path_line_edit = nullptr;
+	HBoxContainer *direction_img_hbox = nullptr;
+	Label *direction_img_label = nullptr;
+	Button *mask_browse_button = nullptr;
+	Button *direction_browse_button = nullptr;
+	Label *error_message = nullptr;
+	TextureType browsing_texture_type;
 
 	virtual void _menu_callback(int p_idx) override;
 	virtual void _add_menu_options(PopupMenu *p_menu) override;
 
+	void _validate_textures();
+	void _mask_img_path_line_edit_text_changed(const String &p_text);
+	void _direction_img_path_line_edit_text_changed(const String &p_text);
+	void _emission_mask_mode_item_changed(int p_idx) const;
+	void _emission_direction_mode_item_changed(int p_idx);
+	void _browse_mask_texture_pressed();
+	void _browse_direction_texture_pressed();
 	void _file_selected(const String &p_file);
-	void _get_base_emission_mask(PackedVector2Array &r_valid_positions, PackedVector2Array &r_valid_normals, PackedByteArray &r_valid_colors, Vector2i &r_image_size);
+	void _process_emission_masks(PackedVector2Array &r_valid_positions, PackedVector2Array &r_valid_normals, PackedByteArray &r_valid_colors, Vector2i &r_image_size);
 	virtual void _generate_emission_mask() = 0;
 
 public:
@@ -144,6 +171,7 @@ class CPUParticles2DEditorPlugin : public Particles2DEditorPlugin {
 	GDCLASS(CPUParticles2DEditorPlugin, Particles2DEditorPlugin);
 
 protected:
+	void _notification(int p_what);
 	Node *_convert_particles() override;
 
 	void _generate_emission_mask() override;
