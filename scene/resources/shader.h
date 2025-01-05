@@ -100,6 +100,9 @@ public:
 
 	virtual RID get_rid() const override;
 
+	virtual void _start_load(const StringName &p_res_format_type, int p_res_format_version) override;
+	virtual void _finish_load(const StringName &p_res_format_type, int p_res_format_version) override;
+
 	Shader();
 	~Shader();
 };

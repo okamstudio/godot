@@ -33,8 +33,10 @@
 
 #include "core/io/file_access.h"
 #include "scene/main/scene_tree.h"
+#include "servers/rendering/rendering_server_globals.h"
 #include "servers/rendering/shader_language.h"
 #include "servers/rendering/shader_preprocessor.h"
+#include "servers/rendering/shader_types.h"
 #include "servers/rendering_server.h"
 #include "texture.h"
 
@@ -46,6 +48,12 @@
 #include "modules/regex/regex.h"
 #endif
 #endif
+
+#ifndef DISABLE_DEPRECATED
+#include "servers/rendering/shader_converter.h"
+#endif
+
+#define _LOAD_COMPAT_META_PROPERTY "_load_compat"
 
 Shader::Mode Shader::get_mode() const {
 	return mode;
@@ -82,6 +90,13 @@ void Shader::set_include_path(const String &p_path) {
 	include_path = p_path;
 }
 
+#ifndef DISABLE_DEPRECATED
+ShaderLanguage::DataType _get_global_shader_uniform_type(const StringName &p_name) {
+	RS::GlobalShaderParameterType gvt = RenderingServerGlobals::material_storage->global_shader_parameter_get_type(p_name);
+	return (ShaderLanguage::DataType)RS::global_shader_uniform_type_get_shader_datatype(gvt);
+}
+#endif
+
 void Shader::set_code(const String &p_code) {
 	for (const Ref<ShaderInclude> &E : include_dependencies) {
 		E->disconnect_changed(callable_mp(this, &Shader::_dependency_changed));
@@ -89,6 +104,43 @@ void Shader::set_code(const String &p_code) {
 
 	code = p_code;
 	preprocessed_code = p_code;
+#ifndef DISABLE_DEPRECATED
+	if (get_meta(_LOAD_COMPAT_META_PROPERTY, false)) {
+		// check if the Shader code compiles; if not, it's probably an old shader.
+
+		ShaderLanguage sl;
+		ShaderLanguage::ShaderCompileInfo info;
+		String mode_string = ShaderLanguage::get_shader_type(p_code);
+
+		RS::ShaderMode new_mode;
+		if (mode_string == "canvas_item") {
+			new_mode = RS::SHADER_CANVAS_ITEM;
+		} else if (mode_string == "particles") {
+			new_mode = RS::SHADER_PARTICLES;
+		} else if (mode_string == "spatial") {
+			new_mode = RS::SHADER_SPATIAL;
+		} else {
+			new_mode = RS::SHADER_MAX;
+		}
+		if (new_mode != RS::SHADER_MAX) {
+			info.functions = ShaderTypes::get_singleton()->get_functions(new_mode);
+			info.render_modes = ShaderTypes::get_singleton()->get_modes(new_mode);
+			info.shader_types = ShaderTypes::get_singleton()->get_types();
+			info.global_shader_uniform_type_func = _get_global_shader_uniform_type;
+			Error err = sl.compile(p_code, info);
+			if (err) {
+				ShaderDeprecatedConverter sdc;
+				if (sdc.is_code_deprecated(p_code)) {
+					ERR_FAIL_COND_MSG(!sdc.convert_code(p_code), vformat("Shader conversion failed (line %d): %s", sdc.get_error_line(), sdc.get_error_text()));
+					code = sdc.emit_code();
+					preprocessed_code = code;
+				} else if (sdc.get_error_text() != "") { // Preprocessing failed.
+					WARN_PRINT(vformat("Shader conversion failed (line %d): %s", sdc.get_error_line(), sdc.get_error_text()));
+				} // If the code is reported as not deprecated, let it fall through to the compile step after this if block so that we get the full compile error.
+			}
+		}
+	}
+#endif
 
 	{
 		String path = get_path();
@@ -100,7 +152,7 @@ void Shader::set_code(const String &p_code) {
 		// 2) Server does not do interaction with Resource filetypes, this is a scene level feature.
 		HashSet<Ref<ShaderInclude>> new_include_dependencies;
 		ShaderPreprocessor preprocessor;
-		Error result = preprocessor.preprocess(p_code, path, preprocessed_code, nullptr, nullptr, nullptr, &new_include_dependencies);
+		Error result = preprocessor.preprocess(code, path, preprocessed_code, nullptr, nullptr, nullptr, &new_include_dependencies);
 		if (result == OK) {
 			// This ensures previous include resources are not freed and then re-loaded during parse (which would make compiling slower)
 			include_dependencies = new_include_dependencies;
@@ -263,6 +315,20 @@ Array Shader::_get_shader_uniform_list(bool p_get_groups) {
 		ret.push_back(pi.operator Dictionary());
 	}
 	return ret;
+}
+
+void Shader::_start_load(const StringName &p_res_format_type, int p_res_format_version) {
+#ifndef DISABLE_DEPRECATED
+	if ((p_res_format_type == "binary" && p_res_format_version == 3) || (p_res_format_type == "text" && p_res_format_version == 2)) {
+		set_meta(_LOAD_COMPAT_META_PROPERTY, true);
+	}
+#endif
+}
+
+void Shader::_finish_load(const StringName &p_res_format_type, int p_res_format_version) {
+#ifndef DISABLE_DEPRECATED
+	set_meta(_LOAD_COMPAT_META_PROPERTY, Variant());
+#endif
 }
 
 void Shader::_bind_methods() {
