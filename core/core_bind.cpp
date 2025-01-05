@@ -49,7 +49,7 @@ namespace core_bind {
 ResourceLoader *ResourceLoader::singleton = nullptr;
 
 Error ResourceLoader::load_threaded_request(const String &p_path, const String &p_type_hint, bool p_use_sub_threads, CacheMode p_cache_mode) {
-	return ::ResourceLoader::load_threaded_request(p_path, p_type_hint, p_use_sub_threads, ResourceFormatLoader::CacheMode(p_cache_mode));
+	return ::ResourceLoader::load_threaded_request(p_path, p_type_hint, p_use_sub_threads, p_cache_mode);
 }
 
 ResourceLoader::ThreadLoadStatus ResourceLoader::load_threaded_get_status(const String &p_path, Array r_progress) {
@@ -60,7 +60,7 @@ ResourceLoader::ThreadLoadStatus ResourceLoader::load_threaded_get_status(const 
 		r_progress.resize(1);
 		r_progress[0] = progress;
 	}
-	return (ThreadLoadStatus)tls;
+	return tls;
 }
 
 Ref<Resource> ResourceLoader::load_threaded_get(const String &p_path) {
@@ -71,7 +71,7 @@ Ref<Resource> ResourceLoader::load_threaded_get(const String &p_path) {
 
 Ref<Resource> ResourceLoader::load(const String &p_path, const String &p_type_hint, CacheMode p_cache_mode) {
 	Error err = OK;
-	Ref<Resource> ret = ::ResourceLoader::load(p_path, p_type_hint, ResourceFormatLoader::CacheMode(p_cache_mode), &err);
+	Ref<Resource> ret = ::ResourceLoader::load(p_path, p_type_hint, p_cache_mode, &err);
 
 	ERR_FAIL_COND_V_MSG(err != OK, ret, vformat("Error loading resource: '%s'.", p_path));
 	return ret;
@@ -315,15 +315,15 @@ PackedByteArray OS::read_buffer_from_stdin(int64_t p_buffer_size) {
 }
 
 OS::StdHandleType OS::get_stdin_type() const {
-	return (OS::StdHandleType)::OS::get_singleton()->get_stdin_type();
+	return ::OS::get_singleton()->get_stdin_type();
 }
 
 OS::StdHandleType OS::get_stdout_type() const {
-	return (OS::StdHandleType)::OS::get_singleton()->get_stdout_type();
+	return ::OS::get_singleton()->get_stdout_type();
 }
 
 OS::StdHandleType OS::get_stderr_type() const {
-	return (OS::StdHandleType)::OS::get_singleton()->get_stderr_type();
+	return ::OS::get_singleton()->get_stderr_type();
 }
 
 int OS::execute(const String &p_path, const Vector<String> &p_arguments, Array r_output, bool p_read_stderr, bool p_open_console) {
@@ -593,7 +593,7 @@ bool OS::is_debug_build() const {
 }
 
 String OS::get_system_dir(SystemDir p_dir, bool p_shared_storage) const {
-	return ::OS::get_singleton()->get_system_dir(::OS::SystemDir(p_dir), p_shared_storage);
+	return ::OS::get_singleton()->get_system_dir(p_dir, p_shared_storage);
 }
 
 String OS::get_keycode_string(Key p_code) const {
@@ -917,7 +917,7 @@ TypedArray<PackedVector2Array> Geometry2D::intersect_polyline_with_polygon(const
 }
 
 TypedArray<PackedVector2Array> Geometry2D::offset_polygon(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type) {
-	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polygon(p_polygon, p_delta, ::Geometry2D::PolyJoinType(p_join_type));
+	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polygon(p_polygon, p_delta, p_join_type);
 
 	TypedArray<PackedVector2Array> ret;
 
@@ -928,7 +928,7 @@ TypedArray<PackedVector2Array> Geometry2D::offset_polygon(const Vector<Vector2> 
 }
 
 TypedArray<PackedVector2Array> Geometry2D::offset_polyline(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type, PolyEndType p_end_type) {
-	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polyline(p_polygon, p_delta, ::Geometry2D::PolyJoinType(p_join_type), ::Geometry2D::PolyEndType(p_end_type));
+	Vector<Vector<Point2>> polys = ::Geometry2D::offset_polyline(p_polygon, p_delta, p_join_type, p_end_type);
 
 	TypedArray<PackedVector2Array> ret;
 
@@ -1373,7 +1373,7 @@ Error Thread::start(const Callable &p_callable, Priority p_priority) {
 	Ref<Thread> *ud = memnew(Ref<Thread>(this));
 
 	::Thread::Settings s;
-	s.priority = (::Thread::Priority)p_priority;
+	s.priority = p_priority;
 	thread.start(_start_func, ud, s);
 
 	return OK;
@@ -1482,8 +1482,7 @@ Variant ClassDB::instantiate(const StringName &p_class) const {
 }
 
 ClassDB::APIType ClassDB::class_get_api_type(const StringName &p_class) const {
-	::ClassDB::APIType api_type = ::ClassDB::get_api_type(p_class);
-	return (APIType)api_type;
+	return ::ClassDB::get_api_type(p_class);
 }
 
 bool ClassDB::class_has_signal(const StringName &p_class, const StringName &p_signal) const {

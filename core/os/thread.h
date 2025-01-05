@@ -76,7 +76,8 @@ public:
 	enum Priority {
 		PRIORITY_LOW,
 		PRIORITY_NORMAL,
-		PRIORITY_HIGH
+		PRIORITY_HIGH,
+		PRIORITY_MAX,
 	};
 
 	struct Settings {
@@ -166,7 +167,8 @@ public:
 	enum Priority {
 		PRIORITY_LOW,
 		PRIORITY_NORMAL,
-		PRIORITY_HIGH
+		PRIORITY_HIGH,
+		PRIORITY_MAX,
 	};
 
 	struct Settings {
