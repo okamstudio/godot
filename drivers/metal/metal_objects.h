@@ -48,14 +48,11 @@
 /* permissions and limitations under the License.                         */
 /**************************************************************************/
 
-#ifndef METAL_OBJECTS_H
-#define METAL_OBJECTS_H
-
 #import "metal_device_properties.h"
 #import "metal_utils.h"
 #import "pixel_formats.h"
 
-#import "servers/rendering/rendering_device_driver.h"
+#include "servers/rendering/rendering_device_driver.h"
 
 #import <CommonCrypto/CommonDigest.h>
 #import <Foundation/Foundation.h>
@@ -976,5 +973,3 @@ auto release(RDD::ID p_id) {
 }
 
 } // namespace rid
-
-#endif // METAL_OBJECTS_H

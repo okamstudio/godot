@@ -28,14 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "gl_manager_macos_angle.h"
+#import "gl_manager_macos_angle.h"
 
 #if defined(MACOS_ENABLED) && defined(GLES3_ENABLED)
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <EGL/eglext_angle.h>
+#import <EGL/eglext_angle.h>
 
 const char *GLManagerANGLE_MacOS::_get_platform_extension_name() const {
 	return "EGL_ANGLE_platform_angle";

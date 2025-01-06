@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IOS_H
-#define IOS_H
-
 #include "core/object/class_db.h"
 
 #import <CoreHaptics/CoreHaptics.h>
@@ -58,5 +55,3 @@ public:
 
 	iOS();
 };
-
-#endif // IOS_H

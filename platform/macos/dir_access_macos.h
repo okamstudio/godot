@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DIR_ACCESS_MACOS_H
-#define DIR_ACCESS_MACOS_H
-
 #if defined(UNIX_ENABLED)
 
 #include "core/io/dir_access.h"
@@ -55,5 +52,3 @@ protected:
 };
 
 #endif // UNIX ENABLED
-
-#endif // DIR_ACCESS_MACOS_H

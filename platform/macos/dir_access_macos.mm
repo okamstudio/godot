@@ -28,11 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "dir_access_macos.h"
-
-#include "core/config/project_settings.h"
+#import "dir_access_macos.h"
 
 #if defined(UNIX_ENABLED)
+
+#include "core/config/project_settings.h"
 
 #include <errno.h>
 

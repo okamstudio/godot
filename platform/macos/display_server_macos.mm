@@ -28,19 +28,19 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "display_server_macos.h"
+#import "display_server_macos.h"
 
-#include "godot_button_view.h"
-#include "godot_content_view.h"
-#include "godot_menu_delegate.h"
-#include "godot_menu_item.h"
-#include "godot_open_save_delegate.h"
-#include "godot_status_item.h"
-#include "godot_window.h"
-#include "godot_window_delegate.h"
-#include "key_mapping_macos.h"
-#include "os_macos.h"
-#include "tts_macos.h"
+#import "godot_button_view.h"
+#import "godot_content_view.h"
+#import "godot_menu_delegate.h"
+#import "godot_menu_item.h"
+#import "godot_open_save_delegate.h"
+#import "godot_status_item.h"
+#import "godot_window.h"
+#import "godot_window_delegate.h"
+#import "key_mapping_macos.h"
+#import "os_macos.h"
+#import "tts_macos.h"
 
 #include "core/config/project_settings.h"
 #include "core/io/marshalls.h"

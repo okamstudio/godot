@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef KEY_MAPPING_IOS_H
-#define KEY_MAPPING_IOS_H
-
 #include "core/os/keyboard.h"
 
 #import <UIKit/UIKit.h>
@@ -43,5 +40,3 @@ public:
 	static Key remap_key(CFIndex p_keycode);
 	static KeyLocation key_location(CFIndex p_keycode);
 };
-
-#endif // KEY_MAPPING_IOS_H

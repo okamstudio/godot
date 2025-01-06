@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_IOS_H
-#define OS_IOS_H
-
 #ifdef IOS_ENABLED
 
 #import "ios.h"
@@ -136,5 +133,3 @@ public:
 };
 
 #endif // IOS_ENABLED
-
-#endif // OS_IOS_H

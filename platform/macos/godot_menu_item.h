@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_MENU_ITEM_H
-#define GODOT_MENU_ITEM_H
-
 #include "servers/display_server.h"
 
 #import <AppKit/AppKit.h>
@@ -59,5 +56,3 @@ enum GlobalMenuCheckType {
 }
 
 @end
-
-#endif // GODOT_MENU_ITEM_H

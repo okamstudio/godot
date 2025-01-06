@@ -28,6 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#ifndef PLATFORM_CONFIG_H
+#define PLATFORM_CONFIG_H
+
 #ifdef __linux__
 #include <alloca.h>
 #endif
@@ -43,3 +46,5 @@
 #define PTHREAD_BSD_SET_NAME
 #endif
 #endif
+
+#endif // PLATFORM_CONFIG_H

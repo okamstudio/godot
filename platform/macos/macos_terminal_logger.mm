@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "macos_terminal_logger.h"
+#import "macos_terminal_logger.h"
 
 #ifdef MACOS_ENABLED
 

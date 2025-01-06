@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "gl_manager_macos_legacy.h"
+#import "gl_manager_macos_legacy.h"
 
 #if defined(MACOS_ENABLED) && defined(GLES3_ENABLED)
 

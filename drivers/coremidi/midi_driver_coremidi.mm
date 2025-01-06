@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  midi_driver_coremidi.cpp                                              */
+/*  midi_driver_coremidi.mm                                               */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "midi_driver_coremidi.h"
+#import "midi_driver_coremidi.h"
 
 #ifdef COREMIDI_ENABLED
 

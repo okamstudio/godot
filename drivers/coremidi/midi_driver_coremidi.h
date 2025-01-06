@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MIDI_DRIVER_COREMIDI_H
-#define MIDI_DRIVER_COREMIDI_H
-
 #ifdef COREMIDI_ENABLED
 
 #include "core/os/midi_driver.h"
@@ -67,5 +64,3 @@ public:
 };
 
 #endif // COREMIDI_ENABLED
-
-#endif // MIDI_DRIVER_COREMIDI_H

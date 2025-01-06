@@ -28,10 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "openxr_metal_extension.h"
+#import "openxr_metal_extension.h"
 
 #include "../../openxr_util.h"
-#include "drivers/metal/rendering_device_driver_metal.h"
+
+#import "drivers/metal/rendering_device_driver_metal.h"
 #include "servers/rendering/rendering_server_globals.h"
 
 HashMap<String, bool *> OpenXRMetalExtension::get_requested_extensions() {

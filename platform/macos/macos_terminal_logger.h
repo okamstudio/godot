@@ -28,9 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MACOS_TERMINAL_LOGGER_H
-#define MACOS_TERMINAL_LOGGER_H
-
 #ifdef MACOS_ENABLED
 
 #include "core/io/logger.h"
@@ -41,5 +38,3 @@ public:
 };
 
 #endif // MACOS_ENABLED
-
-#endif // MACOS_TERMINAL_LOGGER_H

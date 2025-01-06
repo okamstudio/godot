@@ -28,11 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_window_delegate.h"
+#import "godot_window_delegate.h"
 
-#include "display_server_macos.h"
-#include "godot_button_view.h"
-#include "godot_window.h"
+#import "display_server_macos.h"
+#import "godot_button_view.h"
+#import "godot_window.h"
 
 @implementation GodotWindowDelegate
 

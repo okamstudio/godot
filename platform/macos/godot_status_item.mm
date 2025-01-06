@@ -28,9 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "godot_status_item.h"
+#import "godot_status_item.h"
 
-#include "display_server_macos.h"
+#import "display_server_macos.h"
 
 @implementation GodotStatusItemDelegate
 

@@ -30,7 +30,7 @@
 
 #import "joypad_apple.h"
 
-#include <CoreHaptics/CoreHaptics.h>
+#import <CoreHaptics/CoreHaptics.h>
 #import <os/log.h>
 
 #include "core/config/project_settings.h"

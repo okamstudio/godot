@@ -28,9 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "macos_utils.h"
-
 #ifdef MACOS_ENABLED
+
+#import "macos_utils.h"
 
 #include "core/string/print_string.h"
 
