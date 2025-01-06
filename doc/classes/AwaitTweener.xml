@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AwaitTweener" inherits="Tweener" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Awaits a specified signal.
+	</brief_description>
+	<description>
+		[AwaitTweener] is used to await a specified signal, allowing asynchronous steps in [Tween] animation. See [method Tween.tween_await] for more usage information.
+		The [signal Tweener.finished] signal is emitted when either the awaited signal is received, when timeout is reached, or when the target object is freed.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="set_timeout">
+			<return type="AwaitTweener" />
+			<param index="0" name="timeout" type="float" />
+			<description>
+				Sets the maximum time an [AwaitTweener] can wait for the signal. Can be used as a safeguard for signals that may never be emitted. If not specified, the tweener will wait indefinitely.
+			</description>
+		</method>
+	</methods>
+</class>

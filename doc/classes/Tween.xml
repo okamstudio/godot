@@ -317,6 +317,36 @@
 				[b]Note:[/b] If a Tween is stopped and not bound to any node, it will exist indefinitely until manually started or invalidated. If you lose a reference to such Tween, you can retrieve it using [method SceneTree.get_processed_tweens].
 			</description>
 		</method>
+		<method name="tween_await">
+			<return type="AwaitTweener" />
+			<param index="0" name="signal" type="Signal" />
+			<description>
+				Creates and appends an [AwaitTweener]. This method can be used to await a signal to be emitted and create asynchronous animations or cutscenes.
+				The animation will not progress to the next step until the awaited signal is emitted or the connection becomes invalid (e.g. as a result of freeing the target object). If you know that the emission may not happen, use [method AwaitTweener.set_timeout].
+				[b]Example:[/b] An object launches itself and explodes upon collision or after 4 seconds.
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_callback(launch)
+				tween.tween_await(collided).set_timeout(4.0)
+				tween.tween_callback(explode)
+				[/codeblock]
+				[b]Example:[/b] A character walks to a specific point, says some lines and walks back when the player closes the message box.
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_callback(walk_to.bind(600.0))
+				tween.tween_await(destination_reached)
+				tween.tween_callback(say_dialogue.bind("Good day, sir!"))
+				tween.tween_await(dialogue_closed)
+				tween.tween_callback(walk_to.bind(0.0))
+				[/codeblock]
+				[b]Note:[/b] If you are awaiting a signal from a callback called in the same [Tween], make sure the signal is emitted [i]after[/i] the await starts. If it can't be reasonably guaranteed, you can await and emit in the same step:
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_await(signal)
+				tween.parallel().tween_callback(method_that_emits_signal)
+				[/codeblock]
+			</description>
+		</method>
 		<method name="tween_callback">
 			<return type="CallbackTweener" />
 			<param index="0" name="callback" type="Callable" />
