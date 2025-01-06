@@ -59,6 +59,7 @@ manifest = manifest.replace("$$ADD_APPLICATION_CHUNKS$$",env.android_manifest_ch
 manifest = manifest.replace("$$ADD_PERMISSION_CHUNKS$$",env.android_permission_chunk)
 manifest = manifest.replace("$$ADD_APPATTRIBUTE_CHUNKS$$",env.android_appattributes_chunk)
 pp_baseout.write( manifest )
+pp_baseout.close()
 
 
 for x in env.android_source_files:

@@ -219,6 +219,21 @@ if selected_platform in platform_list:
 
 	detect.configure(env)
 
+	# Set our C and C++ standard requirements.
+	# Prepending to make it possible to override.
+	# This MSVC "detection" is an extreme hack.
+	is_msvc = (os.name=="nt") and (os.getenv("VSINSTALLDIR")!=None or os.getenv("VCINSTALLDIR")!=None) and (selected_platform in ["windows", "winrt"])
+	if (not is_msvc):
+		# Specifying GNU extensions support explicitly, which are supported by both GCC and Clang.
+		# We don't support C++17 so stick to earlier standards.
+		# Godot 1.0 definitely started as a C++98 codebase.
+		env.Prepend(CFLAGS=["-std=gnu11"])
+		env.Prepend(CXXFLAGS=["-std=gnu++98"])
+		# Disable these auto-enabled warnings which are treated as errors by modern compilers.
+		env.Prepend(CCFLAGS=["-Wno-error=implicit-function-declaration", "-Wno-error=incompatible-pointer-types"])
+	else:
+		# MSVC doesn't support setting C++ to pre-C++14 standards, so do nothing and hope it works.
+		pass
 
 	flag_list = platform_flags[selected_platform]
 	for f in flag_list:

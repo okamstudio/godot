@@ -205,4 +205,4 @@ for c in list(new_doc):
 	write_class(c)
 write_string(f,'</doc>\n')
 
-
+f.close()

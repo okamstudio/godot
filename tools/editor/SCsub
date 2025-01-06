@@ -23,6 +23,7 @@ def make_doc_header(target,source,env):
 		g.write(str(ord(buf[i]))+",\n")
 	g.write("};\n")
 	g.write("#endif")
+	g.close()
 
 
 

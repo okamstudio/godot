@@ -1168,12 +1168,17 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 
 /* ---------------------------------- GLU ---------------------------------- */
 
+// -- GODOT start --
+// We don't use GLU, so remove a dependency.
+#if 0
 /* this is where we can safely include GLU */
 #if defined(__APPLE__) && defined(__MACH__)
 #include <OpenGL/glu.h>
 #else
 #include <GL/glu.h>
 #endif
+#endif
+// -- GODOT end --
 
 /* ----------------------------- GL_VERSION_1_2 ---------------------------- */
 

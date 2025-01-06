@@ -85,6 +85,7 @@ def make_class_list(class_list, columns):
 
 		s += '\n'
 		f.write(s)
+	f.close()
 
 
 def dokuize_text(txt):
@@ -317,6 +318,7 @@ def make_doku_class(node):
 			f.write('\n')
 			f.write(dokuize_text(d.text.strip()))
 			f.write('\n')
+	f.close()
 
 
 for file in input_list:

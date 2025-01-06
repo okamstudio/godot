@@ -51,7 +51,7 @@ def configure(env):
 	env['AR'] = 'ar'
 
 	import string
-	env['CCFLAGS'] = string.split('-arch i386 -fobjc-abi-version=2 -fobjc-legacy-dispatch -fmessage-length=0 -fpascal-strings -fasm-blocks  -Wall -D__IPHONE_OS_VERSION_MIN_REQUIRED=40100 -isysroot $ISIMSDK -mios-simulator-version-min=4.3 -DCUSTOM_MATRIX_TRANSFORM_H=\\\"build/iphone/matrix4_iphone.h\\\" -DCUSTOM_VECTOR3_TRANSFORM_H=\\\"build/iphone/vector3_iphone.h\\\"')
+	env['CCFLAGS'] = string.split('-arch i386 -fobjc-abi-version=2 -fobjc-legacy-dispatch -fmessage-length=0 -fpascal-strings -fasm-blocks -D__IPHONE_OS_VERSION_MIN_REQUIRED=40100 -isysroot $ISIMSDK -mios-simulator-version-min=4.3 -DCUSTOM_MATRIX_TRANSFORM_H=\\\"build/iphone/matrix4_iphone.h\\\" -DCUSTOM_VECTOR3_TRANSFORM_H=\\\"build/iphone/vector3_iphone.h\\\"')
 
 	env.Append(LINKFLAGS=['-arch', 'i386',
 							'-mios-simulator-version-min=4.3',
@@ -84,7 +84,7 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-DDEBUG', '-D_DEBUG', '-gdwarf-2', '-Wall', '-O0', '-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-DDEBUG', '-D_DEBUG', '-gdwarf-2', '-O0', '-DDEBUG_ENABLED'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ALLOC'])
 
 	elif (env["target"]=="profile"):

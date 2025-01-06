@@ -11,16 +11,16 @@ def get_name():
 
 def can_build():
 
-	if (sys.platform != "darwin"):
-		return False
+	if (sys.platform == "darwin" or ("OSXCROSS_ROOT" in os.environ)):
+		return True
 
-	return True # osx enabled
+	return False
 
 def get_opts():
 
 	return [
 	    ('force_64_bits','Force 64 bits binary','no'),
-
+	    ('osxcross_sdk', 'OSXCross SDK version', 'darwin14'),
 	 ]
 
 def get_flags():
@@ -51,7 +51,7 @@ def configure(env):
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-g3', '-Wall','-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
+		env.Append(CCFLAGS=['-g3', '-DDEBUG_ENABLED','-DDEBUG_MEMORY_ENABLED'])
 
 
 	if (env["freetype"]!="no"):
@@ -59,12 +59,25 @@ def configure(env):
 		env.Append(CPPPATH=['#tools/freetype'])
 		env.Append(CPPPATH=['#tools/freetype/freetype/include'])
 
-	if (env["bits"]=="64"):
-		env.Append(CCFLAGS=['-arch', 'x86_64'])
-		env.Append(LINKFLAGS=['-arch', 'x86_64'])
+	if ("OSXCROSS_ROOT" not in os.environ):
+		# regular native build
+		if (env["bits"]=="64"):
+			env.Append(CCFLAGS=['-arch', 'x86_64'])
+			env.Append(LINKFLAGS=['-arch', 'x86_64'])
+		else:
+			env.Append(CCFLAGS=['-arch', 'i386'])
+			env.Append(LINKFLAGS=['-arch', 'i386'])
 	else:
-		env.Append(CCFLAGS=['-arch', 'i386'])
-		env.Append(LINKFLAGS=['-arch', 'i386'])
+		# osxcross build
+		root = os.environ.get("OSXCROSS_ROOT", 0)
+		arch = "i686" if env["bits"]=="32" else "x86_64"
+		basecmd = root + "/target/bin/" + arch + "-apple-" + env["osxcross_sdk"] + "-"
+
+		env['CC'] = basecmd + "cc"
+		env['CXX'] = basecmd + "c++"
+		env['AR'] = basecmd + "ar"
+		env['RANLIB'] = basecmd + "ranlib"
+		env['AS'] = basecmd + "as"
 
 #	env.Append(CPPPATH=['#platform/osx/include/freetype2', '#platform/osx/include'])
 #	env.Append(LIBPATH=['#platform/osx/lib'])

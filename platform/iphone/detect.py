@@ -109,17 +109,17 @@ def configure(env):
 
 	if (env["target"]=="release"):
 
-		env.Append(CCFLAGS=['-O3', '-ffast-math', '-DNS_BLOCK_ASSERTIONS=1','-Wall'])
+		env.Append(CCFLAGS=['-O3', '-ffast-math', '-DNS_BLOCK_ASSERTIONS=1'])
 		env.Append(LINKFLAGS=['-O3', '-ffast-math'])
 
 	elif env["target"] == "release_debug":
-		env.Append(CCFLAGS=['-Os', '-ffast-math', '-DNS_BLOCK_ASSERTIONS=1','-Wall','-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-Os', '-ffast-math', '-DNS_BLOCK_ASSERTIONS=1','-DDEBUG_ENABLED'])
 		env.Append(LINKFLAGS=['-Os', '-ffast-math'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ENABLED'])
 
 	elif (env["target"]=="debug"):
 
-		env.Append(CCFLAGS=['-D_DEBUG', '-DDEBUG=1', '-gdwarf-2', '-Wall', '-O0', '-DDEBUG_ENABLED'])
+		env.Append(CCFLAGS=['-D_DEBUG', '-DDEBUG=1', '-gdwarf-2', '-O0', '-DDEBUG_ENABLED'])
 		env.Append(CPPFLAGS=['-DDEBUG_MEMORY_ENABLED'])
 
 	elif (env["target"]=="profile"):
