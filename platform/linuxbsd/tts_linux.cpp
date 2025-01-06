@@ -166,9 +166,9 @@ void TTS_Linux::_speech_event(int p_msg_id, int p_type) {
 		spd_set_voice_pitch(synth, (message.pitch - 1) * 100);
 		float rate = 0;
 		if (message.rate > 1.f) {
-			rate = log10(MIN(message.rate, 2.5f)) / log10(2.5f) * 100;
+			rate = Math::log10(MIN(message.rate, 2.5f)) / Math::log10(2.5f) * 100;
 		} else if (message.rate < 1.f) {
-			rate = log10(MAX(message.rate, 0.5f)) / log10(0.5f) * -100;
+			rate = Math::log10(MAX(message.rate, 0.5f)) / Math::log10(0.5f) * -100;
 		}
 		spd_set_voice_rate(synth, rate);
 		spd_set_data_mode(synth, SPD_DATA_SSML);

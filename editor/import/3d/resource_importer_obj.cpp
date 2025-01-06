@@ -436,7 +436,7 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 					ERR_FAIL_COND_V(tangents.is_empty(), ERR_FILE_CORRUPT);
 					for (int vert = 0; vert < norms.size(); vert++) {
 						Vector3 tan = Vector3(tangents[vert * 4 + 0], tangents[vert * 4 + 1], tangents[vert * 4 + 2]);
-						if (abs(tan.dot(norms[vert])) > 0.0001) {
+						if (Math::abs(tan.dot(norms[vert])) > 0.0001) {
 							// Tangent is not perpendicular to the normal, so we can't use compression.
 							mesh_flags &= ~RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES;
 						}

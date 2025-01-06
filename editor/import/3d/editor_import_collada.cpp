@@ -1020,7 +1020,7 @@ Error ColladaImport::_create_mesh_surfaces(bool p_optimize, Ref<ImporterMesh> &p
 				Vector<float> tangents = d[Mesh::ARRAY_TANGENT];
 				for (int vert = 0; vert < normals.size(); vert++) {
 					Vector3 tan = Vector3(tangents[vert * 4 + 0], tangents[vert * 4 + 1], tangents[vert * 4 + 2]);
-					if (abs(tan.dot(normals[vert])) > 0.0001) {
+					if (Math::abs(tan.dot(normals[vert])) > 0.0001) {
 						// Tangent is not perpendicular to the normal, so we can't use compression.
 						mesh_flags &= ~RS::ARRAY_FLAG_COMPRESS_ATTRIBUTES;
 					}

@@ -259,7 +259,7 @@ TEST_CASE_MAY_FAIL("[RandomNumberGenerator] randi_range bias check") {
 		int val = rng->randi_range(0, 1);
 		val == 0 ? zeros++ : ones++;
 	}
-	CHECK_MESSAGE(abs(zeros * 1.0 / ones - 1.0) < 0.1, "The ratio of zeros to ones should be nearly 1");
+	CHECK_MESSAGE(Math::abs(zeros * 1.0 / ones - 1.0) < 0.1, "The ratio of zeros to ones should be nearly 1");
 
 	int vals[10] = { 0 };
 	for (int i = 0; i < 1000000; i++) {
@@ -267,7 +267,7 @@ TEST_CASE_MAY_FAIL("[RandomNumberGenerator] randi_range bias check") {
 	}
 
 	for (int i = 0; i < 10; i++) {
-		CHECK_MESSAGE(abs(vals[i] / 1000000.0 - 0.1) < 0.01, "Each element should appear roughly 10% of the time");
+		CHECK_MESSAGE(Math::abs(vals[i] / 1000000.0 - 0.1) < 0.01, "Each element should appear roughly 10% of the time");
 	}
 }
 } // namespace TestRandomNumberGenerator

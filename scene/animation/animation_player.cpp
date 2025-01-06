@@ -160,7 +160,7 @@ void AnimationPlayer::_notification(int p_what) {
 
 void AnimationPlayer::_process_playback_data(PlaybackData &cd, double p_delta, float p_blend, bool p_seeked, bool p_internal_seeked, bool p_started, bool p_is_current) {
 	double speed = speed_scale * cd.speed_scale;
-	bool backwards = signbit(speed); // Negative zero means playing backwards too.
+	bool backwards = Math::sign_bit(speed); // Negative zero means playing backwards too.
 	double delta = p_started ? 0 : p_delta * speed;
 	double next_pos = cd.pos + delta;
 
@@ -546,7 +546,7 @@ void AnimationPlayer::_capture(const StringName &p_name, bool p_from_end, double
 	if (anim.is_null() || !anim->is_capture_included()) {
 		return;
 	}
-	if (signbit(p_duration)) {
+	if (Math::sign_bit(p_duration)) {
 		double max_dur = 0;
 		double current_pos = playback.current.pos;
 		if (playback.assigned != name) {
@@ -588,7 +588,7 @@ void AnimationPlayer::set_current_animation(const String &p_animation) {
 		play(p_animation);
 	} else if (playback.assigned != p_animation) {
 		float speed = playback.current.speed_scale;
-		play(p_animation, -1.0, speed, signbit(speed));
+		play(p_animation, -1.0, speed, Math::sign_bit(speed));
 	} else {
 		// Same animation, do not replay from start.
 	}
@@ -601,7 +601,7 @@ String AnimationPlayer::get_current_animation() const {
 void AnimationPlayer::set_assigned_animation(const String &p_animation) {
 	if (is_playing()) {
 		float speed = playback.current.speed_scale;
-		play(p_animation, -1.0, speed, signbit(speed));
+		play(p_animation, -1.0, speed, Math::sign_bit(speed));
 	} else {
 		ERR_FAIL_COND_MSG(!animation_set.has(p_animation), vformat("Animation not found: %s.", p_animation));
 		playback.current.pos = 0;

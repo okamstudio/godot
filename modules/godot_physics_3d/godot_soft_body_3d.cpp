@@ -963,7 +963,7 @@ Vector3 GodotSoftBody3D::_compute_area_windforce(const GodotArea3D *p_area, cons
 	const Vector3 &ws = p_area->get_wind_source();
 	real_t projection_on_tri_normal = vec3_dot(p_face->normal, wd);
 	real_t projection_toward_centroid = vec3_dot(p_face->centroid - ws, wd);
-	real_t attenuation_over_distance = pow(projection_toward_centroid, -waf);
+	real_t attenuation_over_distance = Math::pow(projection_toward_centroid, -waf);
 	real_t nodal_force_magnitude = wfm * 0.33333333333 * p_face->ra * projection_on_tri_normal * attenuation_over_distance;
 	return nodal_force_magnitude * p_face->normal;
 }

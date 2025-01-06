@@ -366,7 +366,7 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace1D::_process(const AnimationM
 		double new_closest_dist = 1e20;
 
 		for (int i = 0; i < blend_points_used; i++) {
-			double d = abs(blend_points[i].position - blend_pos);
+			double d = Math::abs(blend_points[i].position - blend_pos);
 			if (d < new_closest_dist) {
 				new_closest = i;
 				new_closest_dist = d;

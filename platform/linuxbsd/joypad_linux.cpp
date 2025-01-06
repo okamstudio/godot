@@ -443,9 +443,9 @@ void JoypadLinux::joypad_vibration_start(Joypad &p_joypad, float p_weak_magnitud
 	struct ff_effect effect;
 	effect.type = FF_RUMBLE;
 	effect.id = -1;
-	effect.u.rumble.weak_magnitude = floor(p_weak_magnitude * (float)0xffff);
-	effect.u.rumble.strong_magnitude = floor(p_strong_magnitude * (float)0xffff);
-	effect.replay.length = floor(p_duration * 1000);
+	effect.u.rumble.weak_magnitude = Math::floor(p_weak_magnitude * (float)0xffff);
+	effect.u.rumble.strong_magnitude = Math::floor(p_strong_magnitude * (float)0xffff);
+	effect.replay.length = Math::floor(p_duration * 1000);
 	effect.replay.delay = 0;
 
 	if (ioctl(p_joypad.fd, EVIOCSFF, &effect) < 0) {

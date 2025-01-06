@@ -104,7 +104,7 @@ void TTS_Windows::process_events() {
 		ut.id = message.id;
 
 		synth->SetVolume(message.volume);
-		synth->SetRate(10.f * log10(message.rate) / log10(3.f));
+		synth->SetRate(10.f * Math::log10(message.rate) / Math::log10(3.f));
 		synth->Speak((LPCWSTR)ut.string.get_data(), flags, &stream_number);
 
 		ids[(uint32_t)stream_number] = ut;

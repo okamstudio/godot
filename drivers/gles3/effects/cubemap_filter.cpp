@@ -92,13 +92,13 @@ CubemapFilter::~CubemapFilter() {
 Vector3 importance_sample_GGX(Vector2 xi, float roughness4) {
 	// Compute distribution direction
 	float phi = 2.0 * Math_PI * xi.x;
-	float cos_theta = sqrt((1.0 - xi.y) / (1.0 + (roughness4 - 1.0) * xi.y));
-	float sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+	float cos_theta = Math::sqrt((1.0 - xi.y) / (1.0 + (roughness4 - 1.0) * xi.y));
+	float sin_theta = Math::sqrt(1.0 - cos_theta * cos_theta);
 
 	// Convert to spherical direction
 	Vector3 half_vector;
-	half_vector.x = sin_theta * cos(phi);
-	half_vector.y = sin_theta * sin(phi);
+	half_vector.x = sin_theta * Math::cos(phi);
+	half_vector.y = sin_theta * Math::sin(phi);
 	half_vector.z = cos_theta;
 
 	return half_vector;
@@ -182,7 +182,7 @@ void CubemapFilter::filter_radiance(GLuint p_source_cubemap, GLuint p_dest_cubem
 
 			float solid_angle_sample = 1.0 / (float(sample_count) * pdf + 0.0001);
 
-			float mip_level = MAX(0.5 * log2(solid_angle_sample / solid_angle_texel) + float(MAX(1, p_layer - 3)), 1.0);
+			float mip_level = MAX(0.5 * Math::log2(solid_angle_sample / solid_angle_texel) + float(MAX(1, p_layer - 3)), 1.0);
 
 			sample_directions[index * 4 + 3] = mip_level;
 			weight += light_vec.z;

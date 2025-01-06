@@ -131,7 +131,7 @@ Control *EditorAudioStreamTooltipPlugin::make_tooltip_for_path(const String &p_r
 
 	double length = p_metadata.get("length", 0.0);
 	if (length >= 60.0) {
-		vb->add_child(memnew(Label(vformat(TTR("Length: %0dm %0ds"), int(length / 60.0), int(fmod(length, 60))))));
+		vb->add_child(memnew(Label(vformat(TTR("Length: %0dm %0ds"), int(length / 60.0), int(Math::fmod(length, 60))))));
 	} else if (length >= 1.0) {
 		vb->add_child(memnew(Label(vformat(TTR("Length: %0.1fs"), length))));
 	} else {

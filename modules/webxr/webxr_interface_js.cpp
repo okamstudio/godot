@@ -728,7 +728,7 @@ void WebXRInterfaceJS::_update_input_source(int p_input_source_id) {
 				Vector2 delta = position - touches[touch_index].position;
 
 				// If position has changed by at least 1 pixel, generate a drag event.
-				if (abs(delta.x) >= 1.0 || abs(delta.y) >= 1.0) {
+				if (Math::abs(delta.x) >= 1.0 || Math::abs(delta.y) >= 1.0) {
 					Ref<InputEventScreenDrag> event;
 					event.instantiate();
 					event->set_index(touch_index);

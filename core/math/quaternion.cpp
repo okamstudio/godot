@@ -192,11 +192,11 @@ Quaternion Quaternion::spherical_cubic_interpolate(const Quaternion &p_b, const 
 	post_q = Basis(post_q).get_rotation_quaternion();
 
 	// Flip quaternions to shortest path if necessary.
-	bool flip1 = signbit(from_q.dot(pre_q));
+	bool flip1 = Math::sign_bit(from_q.dot(pre_q));
 	pre_q = flip1 ? -pre_q : pre_q;
-	bool flip2 = signbit(from_q.dot(to_q));
+	bool flip2 = Math::sign_bit(from_q.dot(to_q));
 	to_q = flip2 ? -to_q : to_q;
-	bool flip3 = flip2 ? to_q.dot(post_q) <= 0 : signbit(to_q.dot(post_q));
+	bool flip3 = flip2 ? to_q.dot(post_q) <= 0 : Math::sign_bit(to_q.dot(post_q));
 	post_q = flip3 ? -post_q : post_q;
 
 	// Calc by Expmap in from_q space.
@@ -243,11 +243,11 @@ Quaternion Quaternion::spherical_cubic_interpolate_in_time(const Quaternion &p_b
 	post_q = Basis(post_q).get_rotation_quaternion();
 
 	// Flip quaternions to shortest path if necessary.
-	bool flip1 = signbit(from_q.dot(pre_q));
+	bool flip1 = Math::sign_bit(from_q.dot(pre_q));
 	pre_q = flip1 ? -pre_q : pre_q;
-	bool flip2 = signbit(from_q.dot(to_q));
+	bool flip2 = Math::sign_bit(from_q.dot(to_q));
 	to_q = flip2 ? -to_q : to_q;
-	bool flip3 = flip2 ? to_q.dot(post_q) <= 0 : signbit(to_q.dot(post_q));
+	bool flip3 = flip2 ? to_q.dot(post_q) <= 0 : Math::sign_bit(to_q.dot(post_q));
 	post_q = flip3 ? -post_q : post_q;
 
 	// Calc by Expmap in from_q space.

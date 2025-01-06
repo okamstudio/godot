@@ -2204,8 +2204,8 @@ float GraphEdit::get_zoom() const {
 }
 
 void GraphEdit::set_zoom_step(float p_zoom_step) {
-	p_zoom_step = abs(p_zoom_step);
-	ERR_FAIL_COND(!isfinite(p_zoom_step));
+	p_zoom_step = Math::abs(p_zoom_step);
+	ERR_FAIL_COND(!Math::is_finite(p_zoom_step));
 	if (zoom_step == p_zoom_step) {
 		return;
 	}

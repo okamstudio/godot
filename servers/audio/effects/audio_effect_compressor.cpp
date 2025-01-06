@@ -35,17 +35,17 @@ void AudioEffectCompressorInstance::process(const AudioFrame *p_src_frames, Audi
 	float threshold = Math::db_to_linear(base->threshold);
 	float sample_rate = AudioServer::get_singleton()->get_mix_rate();
 
-	float ratatcoef = exp(-1 / (0.00001f * sample_rate));
-	float ratrelcoef = exp(-1 / (0.5f * sample_rate));
+	float ratatcoef = Math::exp(-1 / (0.00001f * sample_rate));
+	float ratrelcoef = Math::exp(-1 / (0.5f * sample_rate));
 	float attime = base->attack_us / 1000000.0;
 	float reltime = base->release_ms / 1000.0;
-	float atcoef = exp(-1 / (attime * sample_rate));
-	float relcoef = exp(-1 / (reltime * sample_rate));
+	float atcoef = Math::exp(-1 / (attime * sample_rate));
+	float relcoef = Math::exp(-1 / (reltime * sample_rate));
 
 	float makeup = Math::db_to_linear(base->gain);
 
 	float mix = base->mix;
-	float gr_meter_decay = exp(1 / (1 * sample_rate));
+	float gr_meter_decay = Math::exp(1 / (1 * sample_rate));
 
 	const AudioFrame *src = p_src_frames;
 

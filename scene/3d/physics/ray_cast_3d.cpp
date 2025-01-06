@@ -408,7 +408,7 @@ void RayCast3D::_update_debug_shape_vertices() {
 		float scale_factor = 100.0;
 		Vector3 dir = Vector3(target_position).normalized();
 		// Draw truncated pyramid
-		Vector3 normal = (fabs(dir.x) + fabs(dir.y) > CMP_EPSILON) ? Vector3(-dir.y, dir.x, 0).normalized() : Vector3(0, -dir.z, dir.y).normalized();
+		Vector3 normal = (Math::abs(dir.x) + Math::abs(dir.y) > CMP_EPSILON) ? Vector3(-dir.y, dir.x, 0).normalized() : Vector3(0, -dir.z, dir.y).normalized();
 		normal *= debug_shape_thickness / scale_factor;
 		int vertices_strip_order[14] = { 4, 5, 0, 1, 2, 5, 6, 4, 7, 0, 3, 2, 7, 6 };
 		for (int v = 0; v < 14; v++) {

@@ -1692,7 +1692,7 @@ void WaylandThread::_wl_pointer_on_frame(void *data, struct wl_pointer *wl_point
 				if (test_button == MouseButton::WHEEL_RIGHT || test_button == MouseButton::WHEEL_LEFT) {
 					// If this is a discrete scroll, specify how many "clicks" it did for this
 					// pointer frame.
-					mb->set_factor(fabs(pd.discrete_scroll_vector_120.x / (float)120));
+					mb->set_factor(Math::abs(pd.discrete_scroll_vector_120.x / (float)120));
 				}
 
 				mb->set_button_mask(pd.pressed_button_mask);
@@ -3042,8 +3042,8 @@ void WaylandThread::window_state_update_size(WindowState *p_ws, int p_width, int
 // must be scaled with away from zero half-rounding.
 Vector2i WaylandThread::scale_vector2i(const Vector2i &p_vector, double p_amount) {
 	// This snippet is tiny, I know, but this is done a lot.
-	int x = round(p_vector.x * p_amount);
-	int y = round(p_vector.y * p_amount);
+	int x = Math::round(p_vector.x * p_amount);
+	int y = Math::round(p_vector.y * p_amount);
 
 	return Vector2i(x, y);
 }
@@ -3727,8 +3727,8 @@ void WaylandThread::pointer_set_hint(const Point2i &p_hint) {
 		// discussing about this. I'm not really sure about the maths behind this but,
 		// oh well, we're setting a cursor hint. ¯\_(ツ)_/¯
 		// See: https://oftc.irclog.whitequark.org/wayland/2023-08-23#1692756914-1692816818
-		hint_x = round(p_hint.x / window_state_get_scale_factor(ws));
-		hint_y = round(p_hint.y / window_state_get_scale_factor(ws));
+		hint_x = Math::round(p_hint.x / window_state_get_scale_factor(ws));
+		hint_y = Math::round(p_hint.y / window_state_get_scale_factor(ws));
 	}
 
 	if (ss) {
@@ -3919,7 +3919,7 @@ void WaylandThread::cursor_shape_set_custom_image(DisplayServer::CursorShape p_c
 
 	// Fill the cursor buffer with the image data.
 	for (unsigned int index = 0; index < (unsigned int)(image_size.width * image_size.height); index++) {
-		int row_index = floor(index / image_size.width);
+		int row_index = Math::floor(index / float(image_size.width));
 		int column_index = (index % int(image_size.width));
 
 		cursor.buffer_data[index] = p_image->get_pixel(column_index, row_index).to_argb32();

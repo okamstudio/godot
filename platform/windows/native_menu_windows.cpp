@@ -58,7 +58,7 @@ HBITMAP NativeMenuWindows::_make_bitmap(const Ref<Image> &p_img) const {
 	HDC dc = GetDC(nullptr);
 	HBITMAP bitmap = CreateDIBSection(dc, reinterpret_cast<BITMAPINFO *>(&bi), DIB_RGB_COLORS, reinterpret_cast<void **>(&buffer), nullptr, 0);
 	for (UINT index = 0; index < image_size; index++) {
-		int row_index = floor(index / texture_size.width);
+		int row_index = Math::floor(float(index) / texture_size.width);
 		int column_index = (index % int(texture_size.width));
 		const Color &c = p_img->get_pixel(column_index, row_index);
 		*(buffer + index) = c.to_argb32();
