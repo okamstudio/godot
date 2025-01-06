@@ -103,11 +103,12 @@ public:
 
 class ColorModeRAW : public ColorMode {
 public:
-	String labels[3] = { "R", "G", "B" };
-	float slider_max[4] = { 100, 100, 100, 1 };
+	String labels[4] = { "R", "G", "B", "I" };
+	float slider_max[5] = { 1, 1, 1, 5, 1 };
 
 	virtual String get_name() const override { return "RAW"; }
 
+	virtual int get_slider_count() const override { return 4; }
 	virtual float get_slider_step() const override { return 0.001; }
 	virtual float get_spinbox_arrow_step() const override { return 0.01; }
 	virtual String get_slider_label(int idx) const override;
