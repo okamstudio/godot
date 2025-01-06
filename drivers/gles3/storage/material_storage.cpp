@@ -1150,6 +1150,7 @@ MaterialStorage::MaterialStorage() {
 		actions.renames["NORMAL"] = "normal";
 		actions.renames["NORMAL_MAP"] = "normal_map";
 		actions.renames["NORMAL_MAP_DEPTH"] = "normal_map_depth";
+		actions.renames["BENT_NORMAL_MAP"] = "bent_normal_map";
 		actions.renames["TEXTURE"] = "color_texture";
 		actions.renames["TEXTURE_PIXEL_SIZE"] = "color_texture_pixel_size";
 		actions.renames["NORMAL_TEXTURE"] = "normal_texture";
@@ -1183,6 +1184,7 @@ MaterialStorage::MaterialStorage() {
 		actions.usage_defines["SCREEN_PIXEL_SIZE"] = "@SCREEN_UV";
 		actions.usage_defines["NORMAL"] = "#define NORMAL_USED\n";
 		actions.usage_defines["NORMAL_MAP"] = "#define NORMAL_MAP_USED\n";
+		actions.usage_defines["BENT_NORMAL_MAP"] = "#define BENT_NORMAL_MAP_USED\n";
 		actions.usage_defines["SPECULAR_SHININESS"] = "#define SPECULAR_SHININESS_USED\n";
 		actions.usage_defines["CUSTOM0"] = "#define CUSTOM0_USED\n";
 		actions.usage_defines["CUSTOM1"] = "#define CUSTOM1_USED\n";
@@ -1246,6 +1248,7 @@ MaterialStorage::MaterialStorage() {
 		actions.renames["FRONT_FACING"] = "gl_FrontFacing";
 		actions.renames["NORMAL_MAP"] = "normal_map";
 		actions.renames["NORMAL_MAP_DEPTH"] = "normal_map_depth";
+		actions.renames["BENT_NORMAL_MAP"] = "bent_normal_map";
 		actions.renames["ALBEDO"] = "albedo";
 		actions.renames["ALPHA"] = "alpha";
 		actions.renames["PREMUL_ALPHA_FACTOR"] = "premul_alpha";
@@ -1323,6 +1326,7 @@ MaterialStorage::MaterialStorage() {
 		actions.usage_defines["CUSTOM3"] = "#define CUSTOM3_USED\n";
 		actions.usage_defines["NORMAL_MAP"] = "#define NORMAL_MAP_USED\n";
 		actions.usage_defines["NORMAL_MAP_DEPTH"] = "@NORMAL_MAP";
+		actions.usage_defines["BENT_NORMAL_MAP"] = "#define BENT_NORMAL_MAP_USED\n";
 		actions.usage_defines["COLOR"] = "#define COLOR_USED\n";
 		actions.usage_defines["INSTANCE_CUSTOM"] = "#define ENABLE_INSTANCE_CUSTOM\n";
 		actions.usage_defines["POSITION"] = "#define OVERRIDE_POSITION\n";
@@ -2895,6 +2899,7 @@ void SceneShaderData::set_code(const String &p_code) {
 	uses_screen_texture_mipmaps = false;
 	uses_depth_texture = false;
 	uses_normal_texture = false;
+	uses_bent_normal_texture = false;
 	uses_time = false;
 	uses_vertex_time = false;
 	uses_fragment_time = false;
@@ -2968,6 +2973,7 @@ void SceneShaderData::set_code(const String &p_code) {
 	actions.usage_flag_pointers["ROUGHNESS"] = &uses_roughness;
 	actions.usage_flag_pointers["NORMAL"] = &uses_normal;
 	actions.usage_flag_pointers["NORMAL_MAP"] = &uses_normal;
+	actions.usage_flag_pointers["BENT_NORMAL_MAP"] = &uses_bent_normal_texture;
 
 	actions.usage_flag_pointers["POINT_SIZE"] = &uses_point_size;
 	actions.usage_flag_pointers["POINT_COORD"] = &uses_point_size;

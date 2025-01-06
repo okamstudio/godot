@@ -1835,6 +1835,10 @@ void main() {
 	vec3 normal_map = vec3(0.5);
 #endif
 
+#if defined(BENT_NORMAL_MAP_USED)
+	vec3 bent_normal_map = vec3(0.5);
+#endif
+
 	float normal_map_depth = 1.0;
 
 	vec2 screen_uv = gl_FragCoord.xy * scene_data.screen_pixel_size;

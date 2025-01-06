@@ -120,6 +120,15 @@
 		<member name="backlight_texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Texture used to control the backlight effect per-pixel. Added to [member backlight].
 		</member>
+		<member name="bent_normal_enabled" type="bool" setter="set_feature" getter="get_feature" default="false">
+			If [code]true[/code], the bent normal map is enabled. This allows for more accurate specular occlusion and indirect lighting.
+		</member>
+		<member name="bent_normal_texture" type="Texture2D" setter="set_texture" getter="get_texture">
+			Texture used to specify the vector pointing in the average direction of incoming ambient light at a given pixel. The [member bent_normal_texture] only uses the red and green channels; the blue and alpha channels are ignored. The normal read from [member bent_normal_texture] is oriented around the surface normal provided by the [Mesh].
+			[b]Note:[/b] The mesh must have both normals and tangents defined in its vertex data. Otherwise, the bent normal effect won't render correctly. If creating geometry with [SurfaceTool], you can use [method SurfaceTool.generate_normals] and [method SurfaceTool.generate_tangents] to automatically generate normals and tangents respectively.
+			[b]Note:[/b] Godot expects the normal map to use X+, Y+, and Z+ coordinates. See [url=http://wiki.polycount.com/wiki/Normal_Map_Technical_Details#Common_Swizzle_Coordinates]this page[/url] for a comparison of normal map coordinates expected by popular engines.
+			[b]Note:[/b] The bent normal vectors must have a cosine weighted angle distribution. Otherwise, the resulting specular occlusion and indirect lighting will not look correct.
+		</member>
 		<member name="billboard_keep_scale" type="bool" setter="set_flag" getter="get_flag" default="false">
 			If [code]true[/code], the shader will keep the scale set for the mesh. Otherwise, the scale is lost when billboarding. Only applies when [member billboard_mode] is not [constant BILLBOARD_DISABLED].
 		</member>
@@ -458,6 +467,9 @@
 		<constant name="TEXTURE_NORMAL" value="4" enum="TextureParam">
 			Texture specifying per-pixel normal vector.
 		</constant>
+		<constant name="TEXTURE_BENT_NORMAL" value="18" enum="TextureParam">
+			Texture specifying per-pixel bent normal vector.
+		</constant>
 		<constant name="TEXTURE_RIM" value="5" enum="TextureParam">
 			Texture specifying per-pixel rim value.
 		</constant>
@@ -497,7 +509,7 @@
 		<constant name="TEXTURE_ORM" value="17" enum="TextureParam">
 			Texture holding ambient occlusion, roughness, and metallic.
 		</constant>
-		<constant name="TEXTURE_MAX" value="18" enum="TextureParam">
+		<constant name="TEXTURE_MAX" value="19" enum="TextureParam">
 			Represents the size of the [enum TextureParam] enum.
 		</constant>
 		<constant name="TEXTURE_FILTER_NEAREST" value="0" enum="TextureFilter">
@@ -593,7 +605,10 @@
 		<constant name="FEATURE_DETAIL" value="11" enum="Feature">
 			Constant for setting [member detail_enabled].
 		</constant>
-		<constant name="FEATURE_MAX" value="12" enum="Feature">
+		<constant name="FEATURE_BENT_NORMAL_MAPPING" value="12" enum="Feature">
+			Constant for setting [member bent_normal_enabled].
+		</constant>
+		<constant name="FEATURE_MAX" value="13" enum="Feature">
 			Represents the size of the [enum Feature] enum.
 		</constant>
 		<constant name="BLEND_MODE_MIX" value="0" enum="BlendMode">
