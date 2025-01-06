@@ -1357,6 +1357,11 @@ DisplayServer::VSyncMode DisplayServerWeb::window_get_vsync_mode(WindowID p_vsyn
 }
 
 void DisplayServerWeb::process_events() {
+	RenderingDevice *rendering_device = RenderingDevice::get_singleton();
+	if (rendering_device) {
+		rendering_device->pre_input_hook(Engine::get_singleton()->get_max_fps());
+	}
+
 	process_keys();
 	Input::get_singleton()->flush_buffered_events();
 	if (godot_js_input_gamepad_sample() == OK) {

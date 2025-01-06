@@ -62,6 +62,8 @@
 #define D3D12MA_D3D12_HEADERS_ALREADY_INCLUDED
 #include "D3D12MemAlloc.h"
 
+#include "thirdparty/amd-antilag2/ffx_antilag2_dx12.h"
+
 #include <wrl/client.h>
 
 #if defined(_MSC_VER) && defined(MemoryBarrier)
@@ -1034,6 +1036,19 @@ private:
 public:
 	RenderingDeviceDriverD3D12(RenderingContextDriverD3D12 *p_context_driver);
 	virtual ~RenderingDeviceDriverD3D12();
+
+private:
+	/***************/
+	/**** INPUT ****/
+	/***************/
+
+	AMD::AntiLag2DX12::Context amd_antilag_ctx = {};
+	bool amd_antilag_present;
+	bool amd_antilag_enabled;
+
+	/***************/
+public:
+	virtual void pre_input_hook(unsigned max_fps) override;
 };
 
 #endif // RENDERING_DEVICE_DRIVER_D3D12_H

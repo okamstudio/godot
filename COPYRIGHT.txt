@@ -156,6 +156,11 @@ Comment: Temporal Anti-Aliasing resolve implementation
 Copyright: 2016, Panos Karabelas
 License: Expat
 
+Files: ./thirdparty/amd-antilag2/
+Comment: AMD Anti-Lag 2
+Copyright: 2024, Advanced Micro Devices, Inc.
+License: Expat
+
 Files: ./thirdparty/amd-fsr/
 Comment: AMD FidelityFX Super Resolution
 Copyright: 2021, Advanced Micro Devices, Inc.

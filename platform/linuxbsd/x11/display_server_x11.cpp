@@ -4401,6 +4401,10 @@ bool DisplayServerX11::_window_focus_check() {
 void DisplayServerX11::process_events() {
 	ERR_FAIL_COND(!Thread::is_main_thread());
 
+	if (rendering_device) {
+		rendering_device->pre_input_hook(Engine::get_singleton()->get_max_fps());
+	}
+
 	_THREAD_SAFE_LOCK_
 
 #ifdef DISPLAY_SERVER_X11_DEBUG_LOGS_ENABLED

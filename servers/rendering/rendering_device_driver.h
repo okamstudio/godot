@@ -506,6 +506,12 @@ public:
 	virtual void shader_free(ShaderID p_shader) = 0;
 	virtual void shader_destroy_modules(ShaderID p_shader) = 0;
 
+	/***************/
+	/**** INPUT ****/
+	/***************/
+
+	virtual void pre_input_hook(unsigned max_fps) {}
+
 protected:
 	// An optional service to implementations.
 	Error _reflect_spirv(VectorView<ShaderStageSPIRVData> p_spirv, ShaderReflection &r_reflection);

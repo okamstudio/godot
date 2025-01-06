@@ -1573,6 +1573,7 @@ ProjectSettings::ProjectSettings() {
 	custom_prop_info["rendering/rendering_device/d3d12/max_sampler_descriptors_per_frame"] = PropertyInfo(Variant::INT, "rendering/rendering_device/d3d12/max_sampler_descriptors_per_frame", PROPERTY_HINT_RANGE, "256,2048");
 	GLOBAL_DEF_RST("rendering/rendering_device/d3d12/max_misc_descriptors_per_frame", 512);
 	custom_prop_info["rendering/rendering_device/d3d12/max_misc_descriptors_per_frame"] = PropertyInfo(Variant::INT, "rendering/rendering_device/d3d12/max_misc_descriptors_per_frame", PROPERTY_HINT_RANGE, "32,4096");
+	GLOBAL_DEF_RST(PropertyInfo(Variant::BOOL, "rendering/rendering_device/d3d12/amd_antilag2_enabled"), true);
 
 	// The default value must match the minor part of the Agility SDK version
 	// installed by the scripts provided in the repository

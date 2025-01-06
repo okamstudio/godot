@@ -8201,3 +8201,7 @@ void RenderingDevice::_compute_list_set_push_constant(ComputeListID p_list, cons
 	ERR_FAIL_COND(p_data_size > (uint32_t)p_data.size());
 	compute_list_set_push_constant(p_list, p_data.ptr(), p_data_size);
 }
+
+void RenderingDevice::pre_input_hook(unsigned max_fps) {
+	driver->pre_input_hook(max_fps);
+}

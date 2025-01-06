@@ -552,6 +552,9 @@ bool DisplayServerAndroid::can_any_window_draw() const {
 }
 
 void DisplayServerAndroid::process_events() {
+	if (rendering_device) {
+		rendering_device->pre_input_hook(Engine::get_singleton()->get_max_fps());
+	}
 	Input::get_singleton()->flush_buffered_events();
 }
 

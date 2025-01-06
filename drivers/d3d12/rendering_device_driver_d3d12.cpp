@@ -33,6 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/io/marshalls.h"
 #include "servers/rendering/rendering_device.h"
+#include "thirdparty/amd-antilag2/ffx_antilag2_dx12.h"
 #include "thirdparty/zlib/zlib.h"
 
 #include "d3d12_godot_nir_bridge.h"
@@ -6313,6 +6314,7 @@ RenderingDeviceDriverD3D12::RenderingDeviceDriverD3D12(RenderingContextDriverD3D
 
 RenderingDeviceDriverD3D12::~RenderingDeviceDriverD3D12() {
 	glsl_type_singleton_decref();
+	AMD::AntiLag2DX12::DeInitialize(&amd_antilag_ctx);
 }
 
 bool RenderingDeviceDriverD3D12::is_in_developer_mode() {
@@ -6409,6 +6411,9 @@ Error RenderingDeviceDriverD3D12::_initialize_device() {
 		res = info_queue->PushStorageFilter(&filter);
 		ERR_FAIL_COND_V(!SUCCEEDED(res), ERR_CANT_CREATE);
 	}
+
+	amd_antilag_present = AMD::AntiLag2DX12::Initialize(&amd_antilag_ctx, device.Get()) == S_OK;
+	amd_antilag_enabled = GLOBAL_GET("rendering/rendering_device/d3d12/amd_antilag2_enabled");
 
 	return OK;
 }
@@ -6741,4 +6746,10 @@ Error RenderingDeviceDriverD3D12::initialize(uint32_t p_device_index, uint32_t p
 	glsl_type_singleton_init_or_ref();
 
 	return OK;
+}
+
+void RenderingDeviceDriverD3D12::pre_input_hook(unsigned max_fps) {
+	if (amd_antilag_present) {
+		AMD::AntiLag2DX12::Update(&amd_antilag_ctx, amd_antilag_enabled, max_fps);
+	}
 }

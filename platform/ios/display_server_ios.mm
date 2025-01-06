@@ -244,6 +244,9 @@ void DisplayServerIOS::window_set_drop_files_callback(const Callable &p_callable
 }
 
 void DisplayServerIOS::process_events() {
+	if (rendering_device) {
+		rendering_device->pre_input_hook(Engine::get_singleton()->get_max_fps());
+	}
 	Input::get_singleton()->flush_buffered_events();
 }
 
