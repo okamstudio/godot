@@ -30,12 +30,12 @@
 
 #include "sprite_2d_editor_plugin.h"
 
-#include "canvas_item_editor_plugin.h"
 #include "core/math/geometry_2d.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_zoom_widget.h"
+#include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/2d/light_occluder_2d.h"
