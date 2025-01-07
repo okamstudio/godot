@@ -2967,6 +2967,12 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			}
 		} break;
 
+		case FILE_SET_MAIN_SCENE: {
+			String path = editor_data.get_scene_path(editor_data.get_edited_scene());
+			ProjectSettings::get_singleton()->set("application/run/main_scene", path);
+			ProjectSettings::get_singleton()->save();
+		} break;
+
 		case RUN_SETTINGS: {
 			project_settings_editor->popup_project_settings();
 		} break;

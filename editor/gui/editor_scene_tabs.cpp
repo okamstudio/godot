@@ -189,9 +189,12 @@ void EditorSceneTabs::_update_context_menu() {
 	_disable_menu_option_if(EditorNode::FILE_SAVE_ALL_SCENES, !can_save_all_scenes);
 
 	if (tab_id >= 0) {
+		bool scene_file_exists = ResourceLoader::exists(EditorNode::get_editor_data().get_scene_path(tab_id));
 		scene_tabs_context_menu->add_separator();
 		scene_tabs_context_menu->add_item(TTR("Show in FileSystem"), EditorNode::FILE_SHOW_IN_FILESYSTEM);
-		_disable_menu_option_if(EditorNode::FILE_SHOW_IN_FILESYSTEM, !ResourceLoader::exists(EditorNode::get_editor_data().get_scene_path(tab_id)));
+		_disable_menu_option_if(EditorNode::FILE_SHOW_IN_FILESYSTEM, !scene_file_exists);
+		scene_tabs_context_menu->add_item(TTR("Set as Main Scene"), EditorNode::FILE_SET_MAIN_SCENE);
+		_disable_menu_option_if(EditorNode::FILE_SET_MAIN_SCENE, !scene_file_exists);
 		scene_tabs_context_menu->add_item(TTR("Play This Scene"), EditorNode::FILE_RUN_SCENE);
 		_disable_menu_option_if(EditorNode::FILE_RUN_SCENE, no_root_node);
 
