@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+Import("env_modules")
+
+env_navigation = env_modules.Clone()
+
+# Thirdparty source files
+
+thirdparty_obj = []
+
+# Recast Thirdparty source files
+if env["builtin_recastnavigation"]:
+    thirdparty_dir = "#thirdparty/recastnavigation/Recast/"
+    thirdparty_sources = [
+        "Source/Recast.cpp",
+        "Source/RecastAlloc.cpp",
+        "Source/RecastArea.cpp",
+        "Source/RecastAssert.cpp",
+        "Source/RecastContour.cpp",
+        "Source/RecastFilter.cpp",
+        "Source/RecastLayers.cpp",
+        "Source/RecastMesh.cpp",
+        "Source/RecastMeshDetail.cpp",
+        "Source/RecastRasterization.cpp",
+        "Source/RecastRegion.cpp",
+    ]
+    thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+    env_navigation.Prepend(CPPPATH=[thirdparty_dir + "Include"])
+
+    env_thirdparty = env_navigation.Clone()
+    env_thirdparty.disable_warnings()
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+# RVO 2D Thirdparty source files
+if env["builtin_rvo2_2d"]:
+    thirdparty_dir = "#thirdparty/rvo2/rvo2_2d/"
+    thirdparty_sources = [
+        "Agent2d.cpp",
+        "Obstacle2d.cpp",
+        "KdTree2d.cpp",
+        "RVOSimulator2d.cpp",
+    ]
+    thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+
+    env_thirdparty = env_navigation.Clone()
+    env_thirdparty.disable_warnings()
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+# RVO 3D Thirdparty source files
+if env["builtin_rvo2_3d"]:
+    thirdparty_dir = "#thirdparty/rvo2/rvo2_3d/"
+    thirdparty_sources = [
+        "Agent3d.cpp",
+        "KdTree3d.cpp",
+        "RVOSimulator3d.cpp",
+    ]
+    thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+
+    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+
+    env_thirdparty = env_navigation.Clone()
+    env_thirdparty.disable_warnings()
+    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+
+
+env.modules_sources += thirdparty_obj
+
+# Godot source files
+
+module_obj = []
+
+env_navigation.add_source_files(module_obj, "*.cpp")
+env_navigation.add_source_files(module_obj, "2d/*.cpp")
+if not env["disable_3d"]:
+    env_navigation.add_source_files(module_obj, "3d/*.cpp")
+if env.editor_build:
+    env_navigation.add_source_files(module_obj, "editor/*.cpp")
+env.modules_sources += module_obj
+
+# Needed to force rebuilding the module files when the thirdparty library is updated.
+env.Depends(module_obj, thirdparty_obj)
