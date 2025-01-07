@@ -1038,7 +1038,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(NavigationObstacle2D);
 	GDREGISTER_CLASS(NavigationLink2D);
 
-	OS::get_singleton()->yield(); // may take time to init
+	OS::get_singleton()->yield(); // may take time to init.
 
 	// 2D nodes that support navmesh baking need to server register their source geometry parsers.
 	MeshInstance2D::navmesh_parse_init();
@@ -1054,7 +1054,7 @@ void register_scene_types() {
 	MultiMeshInstance3D::navmesh_parse_init();
 	NavigationObstacle3D::navmesh_parse_init();
 	StaticBody3D::navmesh_parse_init();
-#endif
+#endif // _3D_DISABLED
 
 	OS::get_singleton()->yield(); // may take time to init
 

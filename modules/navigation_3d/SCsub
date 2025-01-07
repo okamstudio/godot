@@ -4,7 +4,7 @@ from misc.utility.scons_hints import *
 Import("env")
 Import("env_modules")
 
-env_navigation = env_modules.Clone()
+env_navigation_3d = env_modules.Clone()
 
 # Thirdparty source files
 
@@ -29,9 +29,9 @@ if env["builtin_recastnavigation"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir + "Include"])
+    env_navigation_3d.Prepend(CPPPATH=[thirdparty_dir + "Include"])
 
-    env_thirdparty = env_navigation.Clone()
+    env_thirdparty = env_navigation_3d.Clone()
     env_thirdparty.disable_warnings()
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
@@ -46,11 +46,11 @@ if env["builtin_rvo2_2d"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+    env_navigation_3d.Prepend(CPPPATH=[thirdparty_dir])
 
     # Don't build rvo_2d if 2D navigation is enabled.
     if not navigation_2d_enabled:
-        env_thirdparty = env_navigation.Clone()
+        env_thirdparty = env_navigation_3d.Clone()
         env_thirdparty.disable_warnings()
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
@@ -64,9 +64,9 @@ if env["builtin_rvo2_3d"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+    env_navigation_3d.Prepend(CPPPATH=[thirdparty_dir])
 
-    env_thirdparty = env_navigation.Clone()
+    env_thirdparty = env_navigation_3d.Clone()
     env_thirdparty.disable_warnings()
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
@@ -77,10 +77,10 @@ env.modules_sources += thirdparty_obj
 
 module_obj = []
 
-env_navigation.add_source_files(module_obj, "*.cpp")
-env_navigation.add_source_files(module_obj, "3d/*.cpp")
+env_navigation_3d.add_source_files(module_obj, "*.cpp")
+env_navigation_3d.add_source_files(module_obj, "3d/*.cpp")
 if env.editor_build:
-    env_navigation.add_source_files(module_obj, "editor/*.cpp")
+    env_navigation_3d.add_source_files(module_obj, "editor/*.cpp")
 env.modules_sources += module_obj
 
 # Needed to force rebuilding the module files when the thirdparty library is updated.

@@ -61,7 +61,7 @@ static inline Array build_array(Variant item, Targs... Fargs) {
 	return a;
 }
 
-TEST_SUITE("[Navigation]") {
+TEST_SUITE("[Navigation3D]") {
 	TEST_CASE("[NavigationServer3D] Server should be empty when initialized") {
 		NavigationServer3D *navigation_server = NavigationServer3D::get_singleton();
 		CHECK_EQ(navigation_server->get_maps().size(), 0);

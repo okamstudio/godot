@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  register_types.h                                                      */
+/*  register_types.cpp                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,12 +28,55 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_REGISTER_TYPES_H
-#define NAVIGATION_REGISTER_TYPES_H
+#include "register_types.h"
 
-#include "modules/register_module_types.h"
+#include "3d/godot_navigation_server_3d.h"
 
-void initialize_navigation_module(ModuleInitializationLevel p_level);
-void uninitialize_navigation_module(ModuleInitializationLevel p_level);
+#ifndef DISABLE_DEPRECATED
+#include "3d/navigation_mesh_generator.h"
+#endif // DISABLE_DEPRECATED
 
-#endif // NAVIGATION_REGISTER_TYPES_H
+#ifdef TOOLS_ENABLED
+#include "editor/navigation_mesh_editor_plugin.h"
+#endif
+
+#include "core/config/engine.h"
+#include "servers/navigation_server_3d.h"
+
+#ifndef DISABLE_DEPRECATED
+NavigationMeshGenerator *_nav_mesh_generator = nullptr;
+#endif // DISABLE_DEPRECATED
+
+NavigationServer3D *new_navigation_server_3d() {
+	return memnew(GodotNavigationServer3D);
+}
+
+void initialize_navigation_3d_module(ModuleInitializationLevel p_level) {
+	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
+		NavigationServer3DManager::set_default_server(new_navigation_server_3d);
+
+#ifndef DISABLE_DEPRECATED
+		_nav_mesh_generator = memnew(NavigationMeshGenerator);
+		GDREGISTER_CLASS(NavigationMeshGenerator);
+		Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationMeshGenerator", NavigationMeshGenerator::get_singleton()));
+#endif // DISABLE_DEPRECATED
+	}
+
+#ifdef TOOLS_ENABLED
+	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+		EditorPlugins::add_by_type<NavigationMeshEditorPlugin>();
+	}
+#endif
+}
+
+void uninitialize_navigation_3d_module(ModuleInitializationLevel p_level) {
+	if (p_level != MODULE_INITIALIZATION_LEVEL_SERVERS) {
+		return;
+	}
+
+#ifndef DISABLE_DEPRECATED
+	if (_nav_mesh_generator) {
+		memdelete(_nav_mesh_generator);
+	}
+#endif // DISABLE_DEPRECATED
+}

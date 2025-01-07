@@ -166,12 +166,12 @@
 #endif // MODULE_NAVIGATION_2D_ENABLED
 
 #ifndef _3D_DISABLED
-#ifdef MODULE_NAVIGATION_ENABLED
+#ifdef MODULE_NAVIGATION_3D_ENABLED
 #include "tests/scene/test_navigation_agent_3d.h"
 #include "tests/scene/test_navigation_obstacle_3d.h"
 #include "tests/scene/test_navigation_region_3d.h"
 #include "tests/servers/test_navigation_server_3d.h"
-#endif // MODULE_NAVIGATION_ENABLED
+#endif // MODULE_NAVIGATION_3D_ENABLED
 
 #include "tests/scene/test_arraymesh.h"
 #include "tests/scene/test_camera_3d.h"
@@ -362,7 +362,7 @@ struct GodotTestCaseListener : public doctest::IReporter {
 		}
 
 #ifndef _3D_DISABLED
-		if (suite_name.contains("[Navigation]") && navigation_server_3d == nullptr) {
+		if (suite_name.contains("[Navigation3D]") && navigation_server_3d == nullptr) {
 			ERR_PRINT_OFF;
 			navigation_server_3d = NavigationServer3DManager::new_default_server();
 			ERR_PRINT_ON;
