@@ -197,6 +197,17 @@ class ResourceImporterScene : public ResourceImporter {
 		MESH_OVERRIDE_DISABLE,
 	};
 
+	enum PhysicsMode {
+		PHYSICS_DEFAULT,
+		PHYSICS_ENABLE,
+		PHYSICS_DISABLE,
+	};
+
+	enum CollisionMode {
+		COLLISION_DISABLED,
+		COLLISION_STATIC,
+	};
+
 	enum BodyType {
 		BODY_TYPE_STATIC,
 		BODY_TYPE_DYNAMIC,
@@ -290,7 +301,7 @@ public:
 	void _pre_fix_global(Node *p_scene, const HashMap<StringName, Variant> &p_options) const;
 	Node *_pre_fix_node(Node *p_node, Node *p_root, HashMap<Ref<ImporterMesh>, Vector<Ref<Shape3D>>> &r_collision_map, Pair<PackedVector3Array, PackedInt32Array> *r_occluder_arrays, List<Pair<NodePath, Node *>> &r_node_renames, const HashMap<StringName, Variant> &p_options);
 	Node *_pre_fix_animations(Node *p_node, Node *p_root, const Dictionary &p_node_data, const Dictionary &p_animation_data, float p_animation_fps);
-	Node *_post_fix_node(Node *p_node, Node *p_root, HashMap<Ref<ImporterMesh>, Vector<Ref<Shape3D>>> &collision_map, Pair<PackedVector3Array, PackedInt32Array> &r_occluder_arrays, HashSet<Ref<ImporterMesh>> &r_scanned_meshes, const Dictionary &p_node_data, const Dictionary &p_material_data, const Dictionary &p_animation_data, float p_animation_fps, float p_applied_root_scale);
+	Node *_post_fix_node(Node *p_node, Node *p_root, HashMap<Ref<ImporterMesh>, Vector<Ref<Shape3D>>> &collision_map, Pair<PackedVector3Array, PackedInt32Array> &r_occluder_arrays, HashSet<Ref<ImporterMesh>> &r_scanned_meshes, const Dictionary &p_node_data, const Dictionary &p_material_data, const Dictionary &p_animation_data, float p_animation_fps, float p_applied_root_scale, int p_default_collision);
 	Node *_post_fix_animations(Node *p_node, Node *p_root, const Dictionary &p_node_data, const Dictionary &p_animation_data, float p_animation_fps, bool p_remove_immutable_tracks);
 
 	Ref<Animation> _save_animation_to_file(Ref<Animation> anim, bool p_save_to_file, const String &p_save_to_path, bool p_keep_custom_tracks);

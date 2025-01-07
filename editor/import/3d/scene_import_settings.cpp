@@ -86,7 +86,12 @@ class SceneImportSettingsData : public Object {
 				}
 			} else {
 				if (category == ResourceImporterScene::INTERNAL_IMPORT_CATEGORY_MAX) {
-					if (ResourceImporterScene::get_scene_singleton()->get_option_visibility(path, p_name, current)) {
+					String name_string = p_name;
+					if (name_string.begins_with("meshes/physics/") || name_string.begins_with("meshes/decomposition") || name_string.begins_with("meshes/primitive/")) {
+						SceneImportSettingsDialog::get_singleton()->request_generate_collider();
+					}
+
+					if (ResourceImporterScene::get_scene_singleton()->get_option_visibility(path, name_string, current)) {
 						SceneImportSettingsDialog::get_singleton()->update_view();
 					}
 				} else {
@@ -553,9 +558,24 @@ void SceneImportSettingsDialog::_update_view_gizmos() {
 		}
 
 		// Determine if the mesh collider should be visible.
+		HashMap<StringName, Variant> physics_settings;
 		bool show_collider_view = false;
+		if (defaults.has(SNAME("meshes/generate_collisions"))) {
+			if (int(defaults.get(SNAME("meshes/generate_collisions"))) > 0) {
+				show_collider_view = true;
+				for (const KeyValue<StringName, Variant> &param : defaults) {
+					if (String(param.key).begins_with("meshes/physics/") || String(param.key).begins_with("meshes/decomposition/") || String(param.key).begins_with("meshes/primitive/")) {
+						physics_settings.insert(String(param.key).lstrip("meshes/"), param.value);
+					}
+				}
+			}
+		}
+
 		if (e.value.settings.has(SNAME("generate/physics"))) {
-			show_collider_view = e.value.settings[SNAME("generate/physics")];
+			if (int(e.value.settings[SNAME("generate/physics")]) > 0) {
+				show_collider_view = int(e.value.settings[SNAME("generate/physics")]) == 1;
+				physics_settings = e.value.settings;
+			}
 		}
 
 		// Get the collider_view MeshInstance3D.
@@ -566,7 +586,7 @@ void SceneImportSettingsDialog::_update_view_gizmos() {
 		// Regenerate the physics collider for this MeshInstance3D if either:
 		// - A regeneration is requested for the selected import node.
 		// - The collider is being made visible.
-		if ((generate_collider && e.key == selected_id) || (show_collider_view && !collider_view->is_visible())) {
+		if ((generate_collider && (e.key == selected_id || selected_id == "PATH:.")) || (show_collider_view && !collider_view->is_visible())) {
 			// This collider_view doesn't have a mesh so we need to generate a new one.
 			Ref<ImporterMesh> mesh;
 			mesh.instantiate();
@@ -606,8 +626,8 @@ void SceneImportSettingsDialog::_update_view_gizmos() {
 			}
 
 			// Generate the mesh collider.
-			Vector<Ref<Shape3D>> shapes = ResourceImporterScene::get_collision_shapes(mesh, e.value.settings, 1.0);
-			const Transform3D transform = ResourceImporterScene::get_collision_shapes_transform(e.value.settings);
+			Vector<Ref<Shape3D>> shapes = ResourceImporterScene::get_collision_shapes(mesh, physics_settings, 1.0);
+			const Transform3D transform = ResourceImporterScene::get_collision_shapes_transform(physics_settings);
 
 			Ref<ArrayMesh> collider_view_mesh;
 			collider_view_mesh.instantiate();
