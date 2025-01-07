@@ -288,10 +288,9 @@ class EditorSelection : public Object {
 
 	// Editor plugins which are related to selection.
 	List<Object *> editor_plugins;
-	List<Node *> selected_node_list;
+	List<Node *> top_selected_node_list;
 
 	void _update_node_list();
-	TypedArray<Node> _get_transformable_selected_nodes();
 	void _emit_change();
 
 protected:
@@ -316,13 +315,15 @@ public:
 	void update();
 	void clear();
 
-	// Returns all the selected nodes.
-	TypedArray<Node> get_selected_nodes();
 	// Returns only the top level selected nodes.
 	// That is, if the selection includes some node and a child of that node, only the parent is returned.
-	List<Node *> &get_selected_node_list();
+	List<Node *> &get_top_selected_node_list();
+	// Same as get_top_selected_node_list but returns a copy in a TypedArray for binding to scripts.
+	TypedArray<Node> get_top_selected_nodes();
 	// Returns all the selected nodes (list version of "get_selected_nodes").
 	List<Node *> get_full_selected_node_list();
+	// Same as get_full_selected_node_list but returns a copy in a TypedArray for binding to scripts.
+	TypedArray<Node> get_selected_nodes();
 	// Returns the map of selected objects and their metadata.
 	HashMap<Node *, Object *> &get_selection() { return selection; }
 

@@ -292,7 +292,7 @@ Particles2DEditorPlugin::Particles2DEditorPlugin() {
 }
 
 void GPUParticles2DEditorPlugin::_selection_changed() {
-	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
+	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_top_selected_node_list();
 	if (selected_particles.is_empty() && selected_nodes.is_empty()) {
 		return;
 	}
