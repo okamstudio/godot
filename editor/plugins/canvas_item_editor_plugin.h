@@ -259,6 +259,7 @@ private:
 
 	bool ruler_tool_active = false;
 	Point2 ruler_tool_origin;
+	Point2 right_click_origin;
 	Point2 node_create_position;
 
 	MenuOption last_option;
