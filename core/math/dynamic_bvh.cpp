@@ -394,17 +394,6 @@ void DynamicBVH::remove(const ID &p_id) {
 	--total_leaves;
 }
 
-void DynamicBVH::_extract_leaves(Node *p_node, List<ID> *r_elements) {
-	if (p_node->is_internal()) {
-		_extract_leaves(p_node->children[0], r_elements);
-		_extract_leaves(p_node->children[1], r_elements);
-	} else {
-		ID id;
-		id.node = p_node;
-		r_elements->push_back(id);
-	}
-}
-
 void DynamicBVH::set_index(uint32_t p_index) {
 	ERR_FAIL_COND(bvh_root != nullptr);
 	index = p_index;
@@ -412,12 +401,6 @@ void DynamicBVH::set_index(uint32_t p_index) {
 
 uint32_t DynamicBVH::get_index() const {
 	return index;
-}
-
-void DynamicBVH::get_elements(List<ID> *r_elements) {
-	if (bvh_root) {
-		_extract_leaves(bvh_root, r_elements);
-	}
 }
 
 int DynamicBVH::get_leaf_count() const {
