@@ -149,7 +149,7 @@ bool OpenXRVisibilityMaskExtension::on_event_polled(const XrEventDataBuffer &eve
 	if (event.type == XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR) {
 		XrEventDataVisibilityMaskChangedKHR *vismask_event = (XrEventDataVisibilityMaskChangedKHR *)&event;
 
-		print_verbose("OpenXR EVENT: Visibility mask changed for view " + String::num_uint64(vismask_event->viewIndex));
+		PRINT_VERBOSE("OpenXR EVENT: Visibility mask changed for view " + String::num_uint64(vismask_event->viewIndex));
 
 		if (available) { // This event won't be called if this extension is not available but better safe than sorry.
 			_update_mesh_data(vismask_event->viewIndex);

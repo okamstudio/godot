@@ -726,7 +726,7 @@ Node *ResourceImporterScene::_pre_fix_node(Node *p_node, Node *p_root, HashMap<R
 					for (const Pair<NodePath, Node *> &F : r_node_renames) {
 						if (F.first == absolute_path) {
 							NodePath new_path(ap_root->get_path_to(F.second).get_names(), path.get_subnames(), false);
-							print_verbose(vformat("Fix: Correcting node path in animation track: %s should be %s", path, new_path));
+							PRINT_VERBOSE(vformat("Fix: Correcting node path in animation track: %s should be %s", path, new_path));
 							anim->track_set_path(i, new_path);
 							break; // Only one match is possible.
 						}
@@ -1029,7 +1029,7 @@ Node *ResourceImporterScene::_pre_fix_node(Node *p_node, Node *p_root, HashMap<R
 	if (p_node) {
 		NodePath new_path = p_root->get_path_to(p_node);
 		if (new_path != original_path) {
-			print_verbose(vformat("Fix: Renamed %s to %s", original_path, new_path));
+			PRINT_VERBOSE(vformat("Fix: Renamed %s to %s", original_path, new_path));
 			r_node_renames.push_back({ original_path, p_node });
 		}
 		// If we created new node instead, merge meta values from the original node.
@@ -3164,13 +3164,13 @@ Error ResourceImporterScene::import(ResourceUID::ID p_source_id, const String &p
 			library.instantiate(); // Will be empty
 		}
 
-		print_verbose("Saving animation to: " + p_save_path + ".res");
+		PRINT_VERBOSE("Saving animation to: " + p_save_path + ".res");
 		err = ResourceSaver::save(library, p_save_path + ".res", flags); //do not take over, let the changed files reload themselves
 		ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save animation to file '" + p_save_path + ".res'.");
 	} else if (_scene_import_type == "PackedScene") {
 		Ref<PackedScene> packer = memnew(PackedScene);
 		packer->pack(scene);
-		print_verbose("Saving scene to: " + p_save_path + ".scn");
+		PRINT_VERBOSE("Saving scene to: " + p_save_path + ".scn");
 		err = ResourceSaver::save(packer, p_save_path + ".scn", flags); //do not take over, let the changed files reload themselves
 		ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save scene to file '" + p_save_path + ".scn'.");
 		_generate_editor_preview_for_scene(p_source_file, scene);

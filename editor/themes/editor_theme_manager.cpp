@@ -170,7 +170,7 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 	theme->set_generated_fonts_hash(config.hash_fonts());
 	theme->set_generated_icons_hash(config.hash_icons());
 
-	print_verbose(vformat("EditorTheme: Generating new theme for the config '%d'.", theme->get_generated_hash()));
+	PRINT_VERBOSE(vformat("EditorTheme: Generating new theme for the config '%d'.", theme->get_generated_hash()));
 
 	_create_shared_styles(theme, config);
 
@@ -185,10 +185,10 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 		// Otherwise, regenerate them.
 		bool keep_old_icons = (p_old_theme.is_valid() && theme->get_generated_icons_hash() == p_old_theme->get_generated_icons_hash());
 		if (keep_old_icons) {
-			print_verbose("EditorTheme: Can keep old icons, copying.");
+			PRINT_VERBOSE("EditorTheme: Can keep old icons, copying.");
 			editor_copy_icons(theme, p_old_theme);
 		} else {
-			print_verbose("EditorTheme: Generating new icons.");
+			PRINT_VERBOSE("EditorTheme: Generating new icons.");
 			editor_register_icons(theme, config.dark_theme, config.icon_saturation, config.thumb_size, config.gizmo_handle_scale);
 		}
 
@@ -202,7 +202,7 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 		// TODO: Check if existing font definitions from the old theme are usable and copy them.
 
 		// External function, see editor_fonts.cpp.
-		print_verbose("EditorTheme: Generating new fonts.");
+		PRINT_VERBOSE("EditorTheme: Generating new fonts.");
 		editor_register_fonts(theme);
 
 		OS::get_singleton()->benchmark_end_measure(get_benchmark_key(), "Register Fonts");
@@ -210,7 +210,7 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 
 	// TODO: Check if existing style definitions from the old theme are usable and copy them.
 
-	print_verbose("EditorTheme: Generating new styles.");
+	PRINT_VERBOSE("EditorTheme: Generating new styles.");
 	_populate_standard_styles(theme, config);
 	_populate_editor_styles(theme, config);
 	_populate_text_editor_styles(theme, config);

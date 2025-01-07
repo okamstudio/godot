@@ -2548,7 +2548,7 @@ struct GDScriptDepSort {
 
 void GDScriptLanguage::reload_all_scripts() {
 #ifdef DEBUG_ENABLED
-	print_verbose("GDScript: Reloading all scripts");
+	PRINT_VERBOSE("GDScript: Reloading all scripts");
 	Array scripts;
 	{
 		MutexLock lock(mutex);
@@ -2556,7 +2556,7 @@ void GDScriptLanguage::reload_all_scripts() {
 		SelfList<GDScript> *elem = script_list.first();
 		while (elem) {
 			if (elem->self()->get_path().is_resource_file()) {
-				print_verbose("GDScript: Found: " + elem->self()->get_path());
+				PRINT_VERBOSE("GDScript: Found: " + elem->self()->get_path());
 				scripts.push_back(Ref<GDScript>(elem->self())); //cast to gdscript to avoid being erased by accident
 			}
 			elem = elem->next();
@@ -2657,7 +2657,7 @@ void GDScriptLanguage::reload_scripts(const Array &p_scripts, bool p_soft_reload
 
 	for (KeyValue<Ref<GDScript>, HashMap<ObjectID, List<Pair<StringName, Variant>>>> &E : to_reload) {
 		Ref<GDScript> scr = E.key;
-		print_verbose("GDScript: Reloading: " + scr->get_path());
+		PRINT_VERBOSE("GDScript: Reloading: " + scr->get_path());
 		if (scr->is_built_in()) {
 			// TODO: It would be nice to do it more efficiently than loading the whole scene again.
 			Ref<PackedScene> scene = ResourceLoader::load(scr->get_path().get_slice("::", 0), "", ResourceFormatLoader::CACHE_MODE_IGNORE_DEEP);

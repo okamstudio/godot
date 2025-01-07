@@ -123,7 +123,7 @@ Error AudioDriverALSA::init_output_device() {
 	status = snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &period_size, nullptr);
 	CHECK_FAIL(status < 0);
 
-	print_verbose("Audio buffer frames: " + itos(period_size) + " calculated latency: " + itos(period_size * 1000 / mix_rate) + "ms");
+	PRINT_VERBOSE("Audio buffer frames: " + itos(period_size) + " calculated latency: " + itos(period_size * 1000 / mix_rate) + "ms");
 
 	status = snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &periods, nullptr);
 	CHECK_FAIL(status < 0);
@@ -176,9 +176,9 @@ Error AudioDriverALSA::init() {
 	if (ver_parts.size() >= 2) {
 		ver_ok = ((ver_parts[0].to_int() == 1 && ver_parts[1].to_int() >= 1)) || (ver_parts[0].to_int() > 1); // 1.1.0
 	}
-	print_verbose(vformat("ALSA %s detected.", version));
+	PRINT_VERBOSE(vformat("ALSA %s detected.", version));
 	if (!ver_ok) {
-		print_verbose("Unsupported ALSA library version!");
+		PRINT_VERBOSE("Unsupported ALSA library version!");
 		return ERR_CANT_OPEN;
 	}
 

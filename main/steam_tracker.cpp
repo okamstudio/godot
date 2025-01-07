@@ -70,7 +70,7 @@ SteamTracker::SteamTracker() {
 		steam_library_handle = nullptr;
 		return;
 	}
-	print_verbose("Loaded SteamAPI library");
+	PRINT_VERBOSE("Loaded SteamAPI library");
 
 	void *symbol_handle = nullptr;
 	err = OS::get_singleton()->get_dynamic_library_symbol_handle(steam_library_handle, "SteamAPI_InitFlat", symbol_handle, true); // Try new API, 1.59+.

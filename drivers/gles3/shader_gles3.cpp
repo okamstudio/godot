@@ -811,7 +811,7 @@ void ShaderGLES3::initialize(const String &p_general_defines, int p_base_texture
 		}
 		shader_cache_dir_valid = true;
 
-		print_verbose("Shader '" + name + "' SHA256: " + base_sha256);
+		PRINT_VERBOSE("Shader '" + name + "' SHA256: " + base_sha256);
 	}
 
 	GLES3::Config *config = GLES3::Config::get_singleton();

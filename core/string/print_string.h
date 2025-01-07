@@ -62,7 +62,7 @@ extern void print_error(const String &p_string);
 extern bool is_print_verbose_enabled();
 
 // This version avoids processing the text to be printed until it actually has to be printed, saving some CPU usage.
-#define print_verbose(m_text)             \
+#define PRINT_VERBOSE(m_text)             \
 	{                                     \
 		if (is_print_verbose_enabled()) { \
 			print_line(m_text);           \

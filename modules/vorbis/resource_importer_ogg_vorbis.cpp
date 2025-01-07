@@ -198,7 +198,7 @@ Ref<AudioStreamOggVorbis> ResourceImporterOggVorbis::load_from_buffer(const Vect
 				break;
 			}
 			if (packet_count == 0 && vorbis_synthesis_idheader(&packet) == 0) {
-				print_verbose("Found a non-vorbis-header packet in a header position");
+				PRINT_VERBOSE("Found a non-vorbis-header packet in a header position");
 				// Clearly this logical stream is not a vorbis stream, so destroy it and try again with the next page.
 				if (initialized_stream) {
 					ogg_stream_clear(&stream_state);

@@ -509,11 +509,11 @@ void OpenXRInterface::tracker_profile_changed(RID p_tracker, RID p_interaction_p
 	tracker->interaction_profile = p_interaction_profile;
 
 	if (p_interaction_profile.is_null()) {
-		print_verbose("OpenXR: Interaction profile for " + tracker->tracker_name + " changed to " + INTERACTION_PROFILE_NONE);
+		PRINT_VERBOSE("OpenXR: Interaction profile for " + tracker->tracker_name + " changed to " + INTERACTION_PROFILE_NONE);
 		tracker->controller_tracker->set_tracker_profile(INTERACTION_PROFILE_NONE);
 	} else {
 		String name = openxr_api->interaction_profile_get_name(p_interaction_profile);
-		print_verbose("OpenXR: Interaction profile for " + tracker->tracker_name + " changed to " + name);
+		PRINT_VERBOSE("OpenXR: Interaction profile for " + tracker->tracker_name + " changed to " + name);
 		tracker->controller_tracker->set_tracker_profile(name);
 	}
 }

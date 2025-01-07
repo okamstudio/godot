@@ -4128,11 +4128,11 @@ Error RenderingDeviceDriverMetal::initialize(uint32_t p_device_index, uint32_t p
 		// NOTE: I'm not sure what the limit is as I don't see it referenced anywhere
 		multiview_capabilities.max_instance_count = UINT32_MAX;
 
-		print_verbose("- Metal multiview supported:");
-		print_verbose("  max view count: " + itos(multiview_capabilities.max_view_count));
-		print_verbose("  max instances: " + itos(multiview_capabilities.max_instance_count));
+		PRINT_VERBOSE("- Metal multiview supported:");
+		PRINT_VERBOSE("  max view count: " + itos(multiview_capabilities.max_view_count));
+		PRINT_VERBOSE("  max instances: " + itos(multiview_capabilities.max_instance_count));
 	} else {
-		print_verbose("- Metal multiview not supported");
+		PRINT_VERBOSE("- Metal multiview not supported");
 	}
 
 	// The Metal renderer requires Apple4 family. This is 2017 era A11 chips and newer.

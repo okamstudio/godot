@@ -2315,9 +2315,9 @@ Error EditorExportPlatform::ssh_run_on_remote(const String &p_host, const String
 
 	Error err = OS::get_singleton()->execute(ssh_path, args, &out, &exit_code, true);
 	if (out.is_empty()) {
-		print_verbose(vformat("Exit code: %d", exit_code));
+		PRINT_VERBOSE(vformat("Exit code: %d", exit_code));
 	} else {
-		print_verbose(vformat("Exit code: %d, Output: %s", exit_code, out.replace("\r\n", "\n")));
+		PRINT_VERBOSE(vformat("Exit code: %d, Output: %s", exit_code, out.replace("\r\n", "\n")));
 	}
 	if (r_out) {
 		*r_out = out.replace("\r\n", "\n").get_slice("\n", 0);

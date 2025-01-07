@@ -3007,7 +3007,7 @@ void EditorHelp::generate_doc(bool p_use_cache) {
 	if (p_use_cache && FileAccess::exists(get_cache_full_path())) {
 		worker_thread.start(_load_doc_thread, nullptr);
 	} else {
-		print_verbose("Regenerating editor help cache");
+		PRINT_VERBOSE("Regenerating editor help cache");
 		doc->generate();
 		worker_thread.start(_gen_doc_thread, nullptr);
 	}

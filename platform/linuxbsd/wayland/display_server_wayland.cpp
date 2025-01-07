@@ -34,7 +34,7 @@
 
 #define WAYLAND_DISPLAY_SERVER_DEBUG_LOGS_ENABLED
 #ifdef WAYLAND_DISPLAY_SERVER_DEBUG_LOGS_ENABLED
-#define DEBUG_LOG_WAYLAND(...) print_verbose(__VA_ARGS__)
+#define DEBUG_LOG_WAYLAND(...) PRINT_VERBOSE(__VA_ARGS__)
 #else
 #define DEBUG_LOG_WAYLAND(...)
 #endif
@@ -163,7 +163,7 @@ void DisplayServerWayland::_show_window() {
 			emulate_vsync = (rendering_context->window_get_vsync_mode(wd.id) == DisplayServer::VSYNC_ENABLED);
 
 			if (emulate_vsync) {
-				print_verbose("VSYNC: manually throttling frames using MAILBOX.");
+				PRINT_VERBOSE("VSYNC: manually throttling frames using MAILBOX.");
 				rendering_context->window_set_vsync_mode(wd.id, DisplayServer::VSYNC_MAILBOX);
 			}
 		}
@@ -418,7 +418,7 @@ String DisplayServerWayland::clipboard_get() const {
 
 	for (String mime : text_mimes) {
 		if (wayland_thread.selection_has_mime(mime)) {
-			print_verbose(vformat("Selecting media type \"%s\" from offered types.", mime));
+			PRINT_VERBOSE(vformat("Selecting media type \"%s\" from offered types.", mime));
 			data = wayland_thread.selection_get_mime(mime);
 			break;
 		}
@@ -477,7 +477,7 @@ String DisplayServerWayland::clipboard_get_primary() const {
 
 	for (String mime : text_mimes) {
 		if (wayland_thread.primary_has_mime(mime)) {
-			print_verbose(vformat("Selecting media type \"%s\" from offered types.", mime));
+			PRINT_VERBOSE(vformat("Selecting media type \"%s\" from offered types.", mime));
 			data = wayland_thread.primary_get_mime(mime);
 			break;
 		}
@@ -947,7 +947,7 @@ void DisplayServerWayland::window_set_vsync_mode(DisplayServer::VSyncMode p_vsyn
 		emulate_vsync = (rendering_context->window_get_vsync_mode(p_window_id) == DisplayServer::VSYNC_ENABLED);
 
 		if (emulate_vsync) {
-			print_verbose("VSYNC: manually throttling frames using MAILBOX.");
+			PRINT_VERBOSE("VSYNC: manually throttling frames using MAILBOX.");
 			rendering_context->window_set_vsync_mode(p_window_id, DisplayServer::VSYNC_MAILBOX);
 		}
 	}
@@ -960,7 +960,7 @@ void DisplayServerWayland::window_set_vsync_mode(DisplayServer::VSyncMode p_vsyn
 		emulate_vsync = egl_manager->is_using_vsync();
 
 		if (emulate_vsync) {
-			print_verbose("VSYNC: manually throttling frames with swap delay 0.");
+			PRINT_VERBOSE("VSYNC: manually throttling frames with swap delay 0.");
 			egl_manager->set_use_vsync(false);
 		}
 	}
@@ -1425,7 +1425,7 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 					getenv("PRIMUS_LOAD_GLOBAL") ||
 					getenv("BUMBLEBEE_SOCKET") ||
 					getenv("__NV_PRIME_RENDER_OFFLOAD")) {
-				print_verbose("Optirun/primusrun detected. Skipping GPU detection");
+				PRINT_VERBOSE("Optirun/primusrun detected. Skipping GPU detection");
 				prime_idx = 0;
 			}
 
@@ -1439,14 +1439,14 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 				for (int i = 0; i < libraries.size(); ++i) {
 					if (FileAccess::exists(libraries[i] + "/libGL.so.1") ||
 							FileAccess::exists(libraries[i] + "/libGL.so")) {
-						print_verbose("Custom libGL override detected. Skipping GPU detection");
+						PRINT_VERBOSE("Custom libGL override detected. Skipping GPU detection");
 						prime_idx = 0;
 					}
 				}
 			}
 
 			if (prime_idx == -1) {
-				print_verbose("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
+				PRINT_VERBOSE("Detecting GPUs, set DRI_PRIME in the environment to override GPU detection logic.");
 				prime_idx = DetectPrimeEGL::detect_prime(EGL_PLATFORM_WAYLAND_KHR);
 			}
 

@@ -166,7 +166,7 @@ Error X509CertificateMbedTLS::load(const String &p_path) {
 	int ret = mbedtls_x509_crt_parse(&cert, out.ptr(), out.size());
 	ERR_FAIL_COND_V_MSG(ret < 0, FAILED, vformat("Error parsing X509 certificates from file '%s': %d.", p_path, ret));
 	if (ret > 0) { // Some certs parsed fine, don't error.
-		print_verbose(vformat("MbedTLS: Some X509 certificates could not be parsed from file '%s' (%d certificates skipped).", p_path, ret));
+		PRINT_VERBOSE(vformat("MbedTLS: Some X509 certificates could not be parsed from file '%s' (%d certificates skipped).", p_path, ret));
 	}
 
 	return OK;
@@ -178,7 +178,7 @@ Error X509CertificateMbedTLS::load_from_memory(const uint8_t *p_buffer, int p_le
 	int ret = mbedtls_x509_crt_parse(&cert, p_buffer, p_len);
 	ERR_FAIL_COND_V_MSG(ret < 0, FAILED, vformat("Error parsing X509 certificates: %d.", ret));
 	if (ret > 0) { // Some certs parsed fine, don't error.
-		print_verbose(vformat("MbedTLS: Some X509 certificates could not be parsed (%d certificates skipped).", ret));
+		PRINT_VERBOSE(vformat("MbedTLS: Some X509 certificates could not be parsed (%d certificates skipped).", ret));
 	}
 	return OK;
 }
@@ -228,7 +228,7 @@ Error X509CertificateMbedTLS::load_from_string(const String &p_string_key) {
 	int ret = mbedtls_x509_crt_parse(&cert, (const unsigned char *)cs.get_data(), cs.size());
 	ERR_FAIL_COND_V_MSG(ret < 0, FAILED, vformat("Error parsing X509 certificates: %d.", ret));
 	if (ret > 0) { // Some certs parsed fine, don't error.
-		print_verbose(vformat("MbedTLS: Some X509 certificates could not be parsed (%d certificates skipped).", ret));
+		PRINT_VERBOSE(vformat("MbedTLS: Some X509 certificates could not be parsed (%d certificates skipped).", ret));
 	}
 
 	return OK;
@@ -362,7 +362,7 @@ void CryptoMbedTLS::load_default_certificates(const String &p_path) {
 		if (!system_certs.is_empty()) {
 			CharString cs = system_certs.utf8();
 			default_certs->load_from_memory((const uint8_t *)cs.get_data(), cs.size());
-			print_verbose("Loaded system CA certificates");
+			PRINT_VERBOSE("Loaded system CA certificates");
 		}
 #ifdef BUILTIN_CERTS_ENABLED
 		else {
@@ -372,7 +372,7 @@ void CryptoMbedTLS::load_default_certificates(const String &p_path) {
 			Compression::decompress(certs.ptrw(), _certs_uncompressed_size, _certs_compressed, _certs_compressed_size, Compression::MODE_DEFLATE);
 			certs.write[_certs_uncompressed_size] = 0; // Make sure it ends with string terminator
 			default_certs->load_from_memory(certs.ptr(), certs.size());
-			print_verbose("Loaded builtin CA certificates");
+			PRINT_VERBOSE("Loaded builtin CA certificates");
 		}
 #endif
 	}

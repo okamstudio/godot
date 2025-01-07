@@ -468,7 +468,7 @@ Error RenderingContextDriverVulkan::_initialize_instance_extensions() {
 
 #ifdef DEV_ENABLED
 	for (uint32_t i = 0; i < instance_extension_count; i++) {
-		print_verbose(String("VULKAN: Found instance extension ") + String::utf8(instance_extensions[i].extensionName) + String("."));
+		PRINT_VERBOSE(String("VULKAN: Found instance extension ") + String::utf8(instance_extensions[i].extensionName) + String("."));
 	}
 #endif
 
@@ -486,7 +486,7 @@ Error RenderingContextDriverVulkan::_initialize_instance_extensions() {
 			if (requested_extension.value) {
 				ERR_FAIL_V_MSG(ERR_BUG, String("Required extension ") + String::utf8(requested_extension.key) + String(" not found."));
 			} else {
-				print_verbose(String("Optional extension ") + String::utf8(requested_extension.key) + String(" not found."));
+				PRINT_VERBOSE(String("Optional extension ") + String::utf8(requested_extension.key) + String(" not found."));
 			}
 		}
 	}
@@ -630,7 +630,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingContextDriverVulkan::_debug_messenger_ca
 	// Convert VK severity to our own log macros.
 	switch (p_message_severity) {
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-			print_verbose(error_message);
+			PRINT_VERBOSE(error_message);
 			break;
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 			print_line(error_message);

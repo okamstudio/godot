@@ -303,7 +303,7 @@ void _setup_shape_mesh_resource_from_index_if_needed(Ref<GLTFState> p_state, Ref
 
 #ifndef DISABLE_DEPRECATED
 CollisionObject3D *_generate_shape_with_body(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Ref<GLTFPhysicsShape> p_physics_shape, Ref<GLTFPhysicsBody> p_physics_body) {
-	print_verbose("glTF: Creating shape with body for: " + p_gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Creating shape with body for: " + p_gltf_node->get_name());
 	bool is_trigger = p_physics_shape->get_is_trigger();
 	// This method is used for the case where we must generate a parent body.
 	// This is can happen for multiple reasons. One possibility is that this

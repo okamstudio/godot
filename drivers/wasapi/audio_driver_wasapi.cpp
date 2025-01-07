@@ -288,9 +288,9 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 			// IID_IAudioClient3 will never activate on OS versions before Windows 10.
 			// Older Windows versions should fall back gracefully.
 			using_audio_client_3 = false;
-			print_verbose("WASAPI: Couldn't activate output_device with IAudioClient3 interface, falling back to IAudioClient interface");
+			PRINT_VERBOSE("WASAPI: Couldn't activate output_device with IAudioClient3 interface, falling back to IAudioClient interface");
 		} else {
-			print_verbose("WASAPI: Activated output_device using IAudioClient3 interface");
+			PRINT_VERBOSE("WASAPI: Activated output_device using IAudioClient3 interface");
 		}
 	}
 	if (!using_audio_client_3) {
@@ -318,26 +318,26 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 	hr = p_device->audio_client->GetMixFormat(&pwfex);
 	ERR_FAIL_COND_V(hr != S_OK, ERR_CANT_OPEN);
 
-	print_verbose("WASAPI: wFormatTag = " + itos(pwfex->wFormatTag));
-	print_verbose("WASAPI: nChannels = " + itos(pwfex->nChannels));
-	print_verbose("WASAPI: nSamplesPerSec = " + itos(pwfex->nSamplesPerSec));
-	print_verbose("WASAPI: nAvgBytesPerSec = " + itos(pwfex->nAvgBytesPerSec));
-	print_verbose("WASAPI: nBlockAlign = " + itos(pwfex->nBlockAlign));
-	print_verbose("WASAPI: wBitsPerSample = " + itos(pwfex->wBitsPerSample));
-	print_verbose("WASAPI: cbSize = " + itos(pwfex->cbSize));
+	PRINT_VERBOSE("WASAPI: wFormatTag = " + itos(pwfex->wFormatTag));
+	PRINT_VERBOSE("WASAPI: nChannels = " + itos(pwfex->nChannels));
+	PRINT_VERBOSE("WASAPI: nSamplesPerSec = " + itos(pwfex->nSamplesPerSec));
+	PRINT_VERBOSE("WASAPI: nAvgBytesPerSec = " + itos(pwfex->nAvgBytesPerSec));
+	PRINT_VERBOSE("WASAPI: nBlockAlign = " + itos(pwfex->nBlockAlign));
+	PRINT_VERBOSE("WASAPI: wBitsPerSample = " + itos(pwfex->wBitsPerSample));
+	PRINT_VERBOSE("WASAPI: cbSize = " + itos(pwfex->cbSize));
 
 	WAVEFORMATEX *closest = nullptr;
 	hr = p_device->audio_client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED, pwfex, &closest);
 	if (hr == S_FALSE) {
 		WARN_PRINT("WASAPI: Mix format is not supported by the output_device");
 		if (closest) {
-			print_verbose("WASAPI: closest->wFormatTag = " + itos(closest->wFormatTag));
-			print_verbose("WASAPI: closest->nChannels = " + itos(closest->nChannels));
-			print_verbose("WASAPI: closest->nSamplesPerSec = " + itos(closest->nSamplesPerSec));
-			print_verbose("WASAPI: closest->nAvgBytesPerSec = " + itos(closest->nAvgBytesPerSec));
-			print_verbose("WASAPI: closest->nBlockAlign = " + itos(closest->nBlockAlign));
-			print_verbose("WASAPI: closest->wBitsPerSample = " + itos(closest->wBitsPerSample));
-			print_verbose("WASAPI: closest->cbSize = " + itos(closest->cbSize));
+			PRINT_VERBOSE("WASAPI: closest->wFormatTag = " + itos(closest->wFormatTag));
+			PRINT_VERBOSE("WASAPI: closest->nChannels = " + itos(closest->nChannels));
+			PRINT_VERBOSE("WASAPI: closest->nSamplesPerSec = " + itos(closest->nSamplesPerSec));
+			PRINT_VERBOSE("WASAPI: closest->nAvgBytesPerSec = " + itos(closest->nAvgBytesPerSec));
+			PRINT_VERBOSE("WASAPI: closest->nBlockAlign = " + itos(closest->nBlockAlign));
+			PRINT_VERBOSE("WASAPI: closest->wBitsPerSample = " + itos(closest->wBitsPerSample));
+			PRINT_VERBOSE("WASAPI: closest->cbSize = " + itos(closest->cbSize));
 
 			WARN_PRINT("WASAPI: Using closest match instead");
 			pwfex = closest;
@@ -399,7 +399,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 		// AUDCLNT_STREAMFLAGS_RATEADJUST is an invalid flag with IAudioClient3, therefore we have to use
 		// the closest supported mix rate supported by the audio driver.
 		mix_rate = pwfex->nSamplesPerSec;
-		print_verbose("WASAPI: mix_rate = " + itos(mix_rate));
+		PRINT_VERBOSE("WASAPI: mix_rate = " + itos(mix_rate));
 
 		UINT32 default_period_frames, fundamental_period_frames, min_period_frames, max_period_frames;
 		hr = device_audio_client_3->GetSharedModeEnginePeriod(
@@ -409,7 +409,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 				&min_period_frames,
 				&max_period_frames);
 		if (hr != S_OK) {
-			print_verbose("WASAPI: GetSharedModeEnginePeriod failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
+			PRINT_VERBOSE("WASAPI: GetSharedModeEnginePeriod failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
 			CoTaskMemFree(pwfex);
 			return audio_device_init(p_device, p_input, p_reinit, true);
 		}
@@ -422,15 +422,15 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 			period_frames = period_frames + fundamental_period_frames;
 		}
 		period_frames = CLAMP(period_frames, min_period_frames, max_period_frames);
-		print_verbose("WASAPI: fundamental_period_frames = " + itos(fundamental_period_frames));
-		print_verbose("WASAPI: min_period_frames = " + itos(min_period_frames));
-		print_verbose("WASAPI: max_period_frames = " + itos(max_period_frames));
-		print_verbose("WASAPI: selected a period frame size of " + itos(period_frames));
+		PRINT_VERBOSE("WASAPI: fundamental_period_frames = " + itos(fundamental_period_frames));
+		PRINT_VERBOSE("WASAPI: min_period_frames = " + itos(min_period_frames));
+		PRINT_VERBOSE("WASAPI: max_period_frames = " + itos(max_period_frames));
+		PRINT_VERBOSE("WASAPI: selected a period frame size of " + itos(period_frames));
 		buffer_frames = period_frames;
 
 		hr = device_audio_client_3->InitializeSharedAudioStream(0, period_frames, pwfex, nullptr);
 		if (hr != S_OK) {
-			print_verbose("WASAPI: InitializeSharedAudioStream failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
+			PRINT_VERBOSE("WASAPI: InitializeSharedAudioStream failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
 			CoTaskMemFree(pwfex);
 			return audio_device_init(p_device, p_input, p_reinit, true);
 		} else {
@@ -441,7 +441,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 				real_latency = (float)output_latency_in_frames / (float)current_pwfex->nSamplesPerSec;
 				CoTaskMemFree(current_pwfex);
 			} else {
-				print_verbose("WASAPI: GetCurrentSharedModeEnginePeriod failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
+				PRINT_VERBOSE("WASAPI: GetCurrentSharedModeEnginePeriod failed with error 0x" + String::num_uint64(hr, 16) + ", falling back to IAudioClient.");
 				CoTaskMemFree(pwfex);
 				return audio_device_init(p_device, p_input, p_reinit, true);
 			}
@@ -495,8 +495,8 @@ Error AudioDriverWASAPI::init_output_device(bool p_reinit) {
 	input_position = 0;
 	input_size = 0;
 
-	print_verbose("WASAPI: detected " + itos(audio_output.channels) + " channels");
-	print_verbose("WASAPI: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
+	PRINT_VERBOSE("WASAPI: detected " + itos(audio_output.channels) + " channels");
+	PRINT_VERBOSE("WASAPI: audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
 
 	return OK;
 }

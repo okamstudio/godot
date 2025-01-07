@@ -268,7 +268,7 @@ void WebSocketMultiplayerPeer::_poll_client() {
 		// Still connecting
 		ERR_FAIL_COND(!pending_peers.has(1)); // Bug.
 		if (OS::get_singleton()->get_ticks_msec() - pending_peers[1].time > handshake_timeout) {
-			print_verbose(vformat("WebSocket handshake timed out after %.3f seconds.", handshake_timeout * 0.001));
+			PRINT_VERBOSE(vformat("WebSocket handshake timed out after %.3f seconds.", handshake_timeout * 0.001));
 			_clear();
 			return;
 		}
@@ -295,7 +295,7 @@ void WebSocketMultiplayerPeer::_poll_server() {
 		int id = E.key;
 
 		if (OS::get_singleton()->get_ticks_msec() - peer.time > handshake_timeout) {
-			print_verbose(vformat("WebSocket handshake timed out after %.3f seconds.", handshake_timeout * 0.001));
+			PRINT_VERBOSE(vformat("WebSocket handshake timed out after %.3f seconds.", handshake_timeout * 0.001));
 			to_remove.insert(id);
 			continue;
 		}

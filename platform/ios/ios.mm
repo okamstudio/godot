@@ -193,7 +193,7 @@ String iOS::get_rate_url(int p_app_id) const {
 
 	String ret = app_url_path.replace("APP_ID", String::num(p_app_id));
 
-	print_verbose(vformat("Returning rate url %s", ret));
+	PRINT_VERBOSE(vformat("Returning rate url %s", ret));
 	return ret;
 }
 

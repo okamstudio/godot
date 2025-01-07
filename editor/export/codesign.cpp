@@ -175,7 +175,7 @@ bool CodeSignCodeResources::add_file1(const String &p_root, const String &p_path
 	f.optional = (found == CRMatch::CR_MATCH_OPTIONAL);
 	f.nested = false;
 	f.hash = hash_sha1_base64(p_root.path_join(p_path));
-	print_verbose(vformat("CodeSign/CodeResources: File(V1) %s hash1:%s", f.name, f.hash));
+	PRINT_VERBOSE(vformat("CodeSign/CodeResources: File(V1) %s hash1:%s", f.name, f.hash));
 
 	files1.push_back(f);
 	return true;
@@ -197,7 +197,7 @@ bool CodeSignCodeResources::add_file2(const String &p_root, const String &p_path
 	f.hash = hash_sha1_base64(p_root.path_join(p_path));
 	f.hash2 = hash_sha256_base64(p_root.path_join(p_path));
 
-	print_verbose(vformat("CodeSign/CodeResources: File(V2) %s hash1:%s hash2:%s", f.name, f.hash, f.hash2));
+	PRINT_VERBOSE(vformat("CodeSign/CodeResources: File(V2) %s hash1:%s hash2:%s", f.name, f.hash, f.hash2));
 
 	files2.push_back(f);
 	return true;
@@ -268,7 +268,7 @@ bool CodeSignCodeResources::add_nested_file(const String &p_root, const String &
 		if (req_string.is_empty()) {
 			req_string = "cdhash H\"" + String::hex_encode_buffer(hash.ptr(), hash.size()) + "\"";
 		}
-		print_verbose(vformat("CodeSign/CodeResources: Nested object %s (cputype: %d) cdhash:%s designated rq:%s", f.name, mh.get_cputype(), f.hash, req_string));
+		PRINT_VERBOSE(vformat("CodeSign/CodeResources: Nested object %s (cputype: %d) cdhash:%s designated rq:%s", f.name, mh.get_cputype(), f.hash, req_string));
 		if (f.requirements != req_string) {
 			if (i != 0) {
 				f.requirements += " or ";
@@ -355,7 +355,7 @@ bool CodeSignCodeResources::add_folder_recursive(const String &p_root, const Str
 bool CodeSignCodeResources::save_to_file(const String &p_path) {
 	PList pl;
 
-	print_verbose(vformat("CodeSign/CodeResources: Writing to file: %s", p_path));
+	PRINT_VERBOSE(vformat("CodeSign/CodeResources: Writing to file: %s", p_path));
 
 	// Write version 1 hashes.
 	Ref<PListNode> files1_dict = PListNode::new_dict();
@@ -1202,7 +1202,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 		}                                                \
 	}
 
-	print_verbose(vformat("CodeSign: Signing executable: %s, bundle: %s with entitlements %s", p_exe_path, p_bundle_path, p_ent_path));
+	PRINT_VERBOSE(vformat("CodeSign: Signing executable: %s, bundle: %s with entitlements %s", p_exe_path, p_bundle_path, p_ent_path));
 
 	PackedByteArray info_hash1, info_hash2;
 	PackedByteArray res_hash1, res_hash2;
@@ -1217,7 +1217,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 
 	// Read Info.plist.
 	if (!p_info.is_empty()) {
-		print_verbose("CodeSign: Reading bundle info...");
+		PRINT_VERBOSE("CodeSign: Reading bundle info...");
 		PList info_plist;
 		if (info_plist.load_file(p_info)) {
 			info_hash1 = file_hash_sha1(p_info);
@@ -1249,7 +1249,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 	// Extract fat binary.
 	Vector<String> files_to_sign;
 	if (LipO::is_lipo(main_exe)) {
-		print_verbose(vformat("CodeSign: Executable is fat, extracting..."));
+		PRINT_VERBOSE(vformat("CodeSign: Executable is fat, extracting..."));
 		String tmp_path_name = EditorPaths::get_singleton()->get_temp_dir().path_join("_lipo");
 		Error err = da->make_dir_recursive(tmp_path_name);
 		if (err != OK) {
@@ -1268,7 +1268,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 			}
 		}
 	} else if (MachO::is_macho(main_exe)) {
-		print_verbose("CodeSign: Executable is thin...");
+		PRINT_VERBOSE("CodeSign: Executable is thin...");
 		files_to_sign.push_back(main_exe);
 	} else {
 		r_error_msg = TTR("Invalid binary format.");
@@ -1290,7 +1290,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 
 	// Generate core resources.
 	if (!p_bundle_path.is_empty()) {
-		print_verbose("CodeSign: Generating bundle CodeResources...");
+		PRINT_VERBOSE("CodeSign: Generating bundle CodeResources...");
 		CodeSignCodeResources cr;
 
 		if (p_ios_bundle) {
@@ -1370,9 +1370,9 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 		id = (String("a-55554944") /*a-UUID*/ + String::hex_encode_buffer(uuid, 16));
 	}
 	CharString uuid_str = id.utf8();
-	print_verbose(vformat("CodeSign: Used bundle ID: %s", id));
+	PRINT_VERBOSE(vformat("CodeSign: Used bundle ID: %s", id));
 
-	print_verbose("CodeSign: Processing entitlements...");
+	PRINT_VERBOSE("CodeSign: Processing entitlements...");
 
 	Ref<CodeSignEntitlementsText> cet;
 	Ref<CodeSignEntitlementsBinary> ceb;
@@ -1387,7 +1387,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 		ceb.instantiate(entitlements);
 	}
 
-	print_verbose("CodeSign: Generating requirements...");
+	PRINT_VERBOSE("CodeSign: Generating requirements...");
 	Ref<CodeSignRequirements> rq;
 	String team_id = "";
 	rq.instantiate();
@@ -1400,12 +1400,12 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 			r_error_msg = TTR("Invalid executable file.");
 			ERR_FAIL_V_MSG(FAILED, "CodeSign: Invalid executable file.");
 		}
-		print_verbose(vformat("CodeSign: Signing executable for cputype: %d ...", mh.get_cputype()));
+		PRINT_VERBOSE(vformat("CodeSign: Signing executable for cputype: %d ...", mh.get_cputype()));
 
-		print_verbose("CodeSign: Generating CodeDirectory...");
+		PRINT_VERBOSE("CodeSign: Generating CodeDirectory...");
 		Ref<CodeSignCodeDirectory> cd1 = memnew(CodeSignCodeDirectory(0x14, 0x01, true, uuid_str, team_id.utf8(), 12, mh.get_exe_limit(), mh.get_code_limit()));
 		Ref<CodeSignCodeDirectory> cd2 = memnew(CodeSignCodeDirectory(0x20, 0x02, true, uuid_str, team_id.utf8(), 12, mh.get_exe_limit(), mh.get_code_limit()));
-		print_verbose("CodeSign: Calculating special slot hashes...");
+		PRINT_VERBOSE("CodeSign: Calculating special slot hashes...");
 		if (info_hash2.size() == 0x20) {
 			cd2->set_hash_in_slot(info_hash2, CodeSignCodeDirectory::SLOT_INFO_PLIST);
 		}
@@ -1443,14 +1443,14 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 		sign_size += 16; // Empty signature size.
 
 		// Alloc/resize signature load command.
-		print_verbose(vformat("CodeSign: Reallocating space for the signature superblob (%d)...", sign_size));
+		PRINT_VERBOSE(vformat("CodeSign: Reallocating space for the signature superblob (%d)...", sign_size));
 		if (!mh.set_signature_size(sign_size)) {
 			CLEANUP();
 			r_error_msg = TTR("Can't resize signature load command.");
 			ERR_FAIL_V_MSG(FAILED, "CodeSign: Can't resize signature load command.");
 		}
 
-		print_verbose("CodeSign: Calculating executable code hashes...");
+		PRINT_VERBOSE("CodeSign: Calculating executable code hashes...");
 		// Calculate executable code hashes.
 		PackedByteArray buffer;
 		PackedByteArray hash1, hash2;
@@ -1487,11 +1487,11 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 			cd1->set_hash_in_slot(hash1, cd1->get_page_count());
 		}
 
-		print_verbose("CodeSign: Generating signature...");
+		PRINT_VERBOSE("CodeSign: Generating signature...");
 		Ref<CodeSignSignature> cs;
 		cs.instantiate();
 
-		print_verbose("CodeSign: Writing signature superblob...");
+		PRINT_VERBOSE("CodeSign: Writing signature superblob...");
 		// Write signature data to the executable.
 		CodeSignSuperBlob sb = CodeSignSuperBlob();
 		sb.add_blob(cd2);
@@ -1508,7 +1508,7 @@ Error CodeSign::_codesign_file(bool p_use_hardened_runtime, bool p_force, const 
 		sb.write_to_file(mh.get_file());
 	}
 	if (files_to_sign.size() > 1) {
-		print_verbose("CodeSign: Rebuilding fat executable...");
+		PRINT_VERBOSE("CodeSign: Rebuilding fat executable...");
 		LipO lip;
 		if (!lip.create_file(main_exe, files_to_sign)) {
 			CLEANUP();

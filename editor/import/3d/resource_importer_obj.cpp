@@ -416,8 +416,8 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 
 				surf_tool->index();
 
-				print_verbose("OBJ: Current material library " + current_material_library + " has " + itos(material_map.has(current_material_library)));
-				print_verbose("OBJ: Current material " + current_material + " has " + itos(material_map.has(current_material_library) && material_map[current_material_library].has(current_material)));
+				PRINT_VERBOSE("OBJ: Current material library " + current_material_library + " has " + itos(material_map.has(current_material_library)));
+				PRINT_VERBOSE("OBJ: Current material " + current_material + " has " + itos(material_map.has(current_material_library) && material_map[current_material_library].has(current_material)));
 				Ref<StandardMaterial3D> material;
 				if (material_map.has(current_material_library) && material_map[current_material_library].has(current_material)) {
 					material = material_map[current_material_library][current_material];
@@ -445,7 +445,7 @@ static Error _parse_obj(const String &p_path, List<Ref<ImporterMesh>> &r_meshes,
 
 				mesh->add_surface(Mesh::PRIMITIVE_TRIANGLES, array, TypedArray<Array>(), Dictionary(), material, name, mesh_flags);
 
-				print_verbose("OBJ: Added surface :" + mesh->get_surface_name(mesh->get_surface_count() - 1));
+				PRINT_VERBOSE("OBJ: Added surface :" + mesh->get_surface_name(mesh->get_surface_count() - 1));
 
 				if (!current_material.is_empty()) {
 					if (mesh->get_surface_count() >= 1) {

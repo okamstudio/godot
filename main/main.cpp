@@ -3157,7 +3157,7 @@ Error Main::setup2(bool p_show_boot_logo) {
 			DisplayServer::get_singleton()->tablet_set_current_driver(DisplayServer::get_singleton()->tablet_get_driver_name(0));
 		}
 
-		print_verbose("Using \"" + tablet_driver + "\" pen tablet driver...");
+		PRINT_VERBOSE("Using \"" + tablet_driver + "\" pen tablet driver...");
 
 		OS::get_singleton()->benchmark_end_measure("Servers", "Tablet Driver");
 	}
@@ -3496,8 +3496,8 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 	ClassDB::set_current_api(ClassDB::API_NONE); //no more APIs are registered at this point
 
-	print_verbose("CORE API HASH: " + uitos(ClassDB::get_api_hash(ClassDB::API_CORE)));
-	print_verbose("EDITOR API HASH: " + uitos(ClassDB::get_api_hash(ClassDB::API_EDITOR)));
+	PRINT_VERBOSE("CORE API HASH: " + uitos(ClassDB::get_api_hash(ClassDB::API_CORE)));
+	PRINT_VERBOSE("EDITOR API HASH: " + uitos(ClassDB::get_api_hash(ClassDB::API_EDITOR)));
 	MAIN_PRINT("Main: Done");
 
 	OS::get_singleton()->benchmark_end_measure("Startup", "Main::Setup2");

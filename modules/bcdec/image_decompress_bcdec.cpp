@@ -162,7 +162,7 @@ void image_decompress_bcdec(Image *p_image) {
 		int new_width = width + (4 - (width % 4));
 		int new_height = height + (4 - (height % 4));
 
-		print_verbose(vformat("Compressed image's dimensions are not multiples of 4 (%dx%d), aligning to (%dx%d)", width, height, new_width, new_height));
+		PRINT_VERBOSE(vformat("Compressed image's dimensions are not multiples of 4 (%dx%d), aligning to (%dx%d)", width, height, new_width, new_height));
 
 		width = new_width;
 		height = new_height;
@@ -246,6 +246,6 @@ void image_decompress_bcdec(Image *p_image) {
 		p_image->convert_ra_rgba8_to_rg();
 	}
 
-	print_verbose(vformat("bcdec: Decompression of a %dx%d %s image with %d mipmaps took %d ms.",
+	PRINT_VERBOSE(vformat("bcdec: Decompression of a %dx%d %s image with %d mipmaps took %d ms.",
 			p_image->get_width(), p_image->get_height(), Image::get_format_name(source_format), p_image->get_mipmap_count(), OS::get_singleton()->get_ticks_msec() - start_time));
 }

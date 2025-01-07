@@ -3415,7 +3415,7 @@ void EditorNode::_exit_editor(int p_exit_code) {
 
 void EditorNode::unload_editor_addons() {
 	for (const KeyValue<String, EditorPlugin *> &E : addon_name_to_plugin) {
-		print_verbose(vformat("Unloading addon: %s", E.key));
+		PRINT_VERBOSE(vformat("Unloading addon: %s", E.key));
 		remove_editor_plugin(E.value, false);
 		memdelete(E.value);
 	}
@@ -6697,7 +6697,7 @@ void EditorNode::_print_handler_impl(const String &p_string, bool p_error, bool 
 static void _execute_thread(void *p_ud) {
 	EditorNode::ExecuteThreadArgs *eta = (EditorNode::ExecuteThreadArgs *)p_ud;
 	Error err = OS::get_singleton()->execute(eta->path, eta->args, &eta->output, &eta->exitcode, true, &eta->execute_output_mutex);
-	print_verbose("Thread exit status: " + itos(eta->exitcode));
+	PRINT_VERBOSE("Thread exit status: " + itos(eta->exitcode));
 	if (err != OK) {
 		eta->exitcode = err;
 	}
@@ -7801,7 +7801,7 @@ EditorNode::EditorNode() {
 	if (AssetLibraryEditorPlugin::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin));
 	} else {
-		print_verbose("Asset Library not available (due to using Web editor, or SSL support disabled).");
+		PRINT_VERBOSE("Asset Library not available (due to using Web editor, or SSL support disabled).");
 	}
 
 	// More visually meaningful to have this later.

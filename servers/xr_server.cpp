@@ -271,7 +271,7 @@ void XRServer::remove_interface(const Ref<XRInterface> &p_interface) {
 	}
 
 	ERR_FAIL_COND_MSG(idx == -1, "Interface not found.");
-	print_verbose("XR: Removed interface \"" + p_interface->get_name() + "\"");
+	PRINT_VERBOSE("XR: Removed interface \"" + p_interface->get_name() + "\"");
 	emit_signal(SNAME("interface_removed"), p_interface->get_name());
 	interfaces.remove_at(idx);
 }
@@ -316,12 +316,12 @@ Ref<XRInterface> XRServer::get_primary_interface() const {
 
 void XRServer::set_primary_interface(const Ref<XRInterface> &p_primary_interface) {
 	if (p_primary_interface.is_null()) {
-		print_verbose("XR: Clearing primary interface");
+		PRINT_VERBOSE("XR: Clearing primary interface");
 		primary_interface.unref();
 	} else {
 		primary_interface = p_primary_interface;
 
-		print_verbose("XR: Primary interface set to: " + primary_interface->get_name());
+		PRINT_VERBOSE("XR: Primary interface set to: " + primary_interface->get_name());
 	}
 }
 

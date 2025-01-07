@@ -89,7 +89,7 @@ JoypadLinux::JoypadLinux(Input *in) {
 		// libudev doesn't work there. So we need to fallback to manual parsing
 		// of /dev/input in such case.
 		use_udev = false;
-		print_verbose("JoypadLinux: udev enabled, but detected incompatible sandboxed mode. Falling back to /dev/input to detect joypads.");
+		PRINT_VERBOSE("JoypadLinux: udev enabled, but detected incompatible sandboxed mode. Falling back to /dev/input to detect joypads.");
 	}
 #ifdef SOWRAP_ENABLED
 	else {
@@ -103,17 +103,17 @@ JoypadLinux::JoypadLinux(Input *in) {
 			if (!udev_new || !udev_unref || !udev_enumerate_new || !udev_enumerate_add_match_subsystem || !udev_enumerate_scan_devices || !udev_enumerate_get_list_entry || !udev_list_entry_get_next || !udev_list_entry_get_name || !udev_device_new_from_syspath || !udev_device_get_devnode || !udev_device_get_action || !udev_device_unref || !udev_enumerate_unref || !udev_monitor_new_from_netlink || !udev_monitor_filter_add_match_subsystem_devtype || !udev_monitor_enable_receiving || !udev_monitor_get_fd || !udev_monitor_receive_device || !udev_monitor_unref) {
 				// There's no API to check version, check if functions are available instead.
 				use_udev = false;
-				print_verbose("JoypadLinux: Unsupported udev library version!");
+				PRINT_VERBOSE("JoypadLinux: Unsupported udev library version!");
 			} else {
-				print_verbose("JoypadLinux: udev enabled and loaded successfully.");
+				PRINT_VERBOSE("JoypadLinux: udev enabled and loaded successfully.");
 			}
 		} else {
-			print_verbose("JoypadLinux: udev enabled, but couldn't be loaded. Falling back to /dev/input to detect joypads.");
+			PRINT_VERBOSE("JoypadLinux: udev enabled, but couldn't be loaded. Falling back to /dev/input to detect joypads.");
 		}
 	}
 #endif // SOWRAP_ENABLED
 #else
-	print_verbose("JoypadLinux: udev disabled, parsing /dev/input to detect joypads.");
+	PRINT_VERBOSE("JoypadLinux: udev disabled, parsing /dev/input to detect joypads.");
 #endif // UDEV_ENABLED
 
 	input = in;
@@ -457,7 +457,7 @@ void JoypadLinux::joypad_vibration_start(Joypad &p_joypad, float p_weak_magnitud
 	play.code = effect.id;
 	play.value = 1;
 	if (write(p_joypad.fd, (const void *)&play, sizeof(play)) == -1) {
-		print_verbose("Couldn't write to Joypad device.");
+		PRINT_VERBOSE("Couldn't write to Joypad device.");
 	}
 
 	p_joypad.ff_effect_id = effect.id;

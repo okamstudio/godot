@@ -165,9 +165,9 @@ Error AudioDriverCoreAudio::init() {
 	unsigned int buffer_size = buffer_frames * channels;
 	samples_in.resize(buffer_size);
 
-	print_verbose("CoreAudio: detected " + itos(channels) + " channels");
-	print_verbose("CoreAudio: output sampling rate: " + itos(mix_rate) + " Hz");
-	print_verbose("CoreAudio: output audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
+	PRINT_VERBOSE("CoreAudio: detected " + itos(channels) + " channels");
+	PRINT_VERBOSE("CoreAudio: output sampling rate: " + itos(mix_rate) + " Hz");
+	PRINT_VERBOSE("CoreAudio: output audio buffer frames: " + itos(buffer_frames) + " calculated latency: " + itos(buffer_frames * 1000 / mix_rate) + "ms");
 
 	AURenderCallbackStruct callback;
 	memset(&callback, 0, sizeof(AURenderCallbackStruct));
@@ -473,8 +473,8 @@ Error AudioDriverCoreAudio::init_input_device() {
 	result = AudioUnitInitialize(input_unit);
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
-	print_verbose("CoreAudio: input sampling rate: " + itos(capture_mix_rate) + " Hz");
-	print_verbose("CoreAudio: input audio buffer frames: " + itos(capture_buffer_frames) + " calculated latency: " + itos(capture_buffer_frames * 1000 / capture_mix_rate) + "ms");
+	PRINT_VERBOSE("CoreAudio: input sampling rate: " + itos(capture_mix_rate) + " Hz");
+	PRINT_VERBOSE("CoreAudio: input audio buffer frames: " + itos(capture_buffer_frames) + " calculated latency: " + itos(capture_buffer_frames * 1000 / capture_mix_rate) + "ms");
 
 	return OK;
 }

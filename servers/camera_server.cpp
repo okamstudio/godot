@@ -105,7 +105,7 @@ void CameraServer::add_feed(const Ref<CameraFeed> &p_feed) {
 	// add our feed
 	feeds.push_back(p_feed);
 
-	print_verbose("CameraServer: Registered camera " + p_feed->get_name() + " with ID " + itos(p_feed->get_id()) + " and position " + itos(p_feed->get_position()) + " at index " + itos(feeds.size() - 1));
+	PRINT_VERBOSE("CameraServer: Registered camera " + p_feed->get_name() + " with ID " + itos(p_feed->get_id()) + " and position " + itos(p_feed->get_position()) + " at index " + itos(feeds.size() - 1));
 
 	// let whomever is interested know
 	emit_signal(SNAME("camera_feed_added"), p_feed->get_id());
@@ -116,7 +116,7 @@ void CameraServer::remove_feed(const Ref<CameraFeed> &p_feed) {
 		if (feeds[i] == p_feed) {
 			int feed_id = p_feed->get_id();
 
-			print_verbose("CameraServer: Removed camera " + p_feed->get_name() + " with ID " + itos(feed_id) + " and position " + itos(p_feed->get_position()));
+			PRINT_VERBOSE("CameraServer: Removed camera " + p_feed->get_name() + " with ID " + itos(feed_id) + " and position " + itos(p_feed->get_position()));
 
 			// remove it from our array, if this results in our feed being unreferenced it will be destroyed
 			feeds.remove_at(i);

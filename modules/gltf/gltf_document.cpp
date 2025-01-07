@@ -711,7 +711,7 @@ static Vector<uint8_t> _parse_base64_uri(const String &p_uri) {
 }
 
 Error GLTFDocument::_encode_buffer_glb(Ref<GLTFState> p_state, const String &p_path) {
-	print_verbose("glTF: Total buffers: " + itos(p_state->buffers.size()));
+	PRINT_VERBOSE("glTF: Total buffers: " + itos(p_state->buffers.size()));
 
 	if (p_state->buffers.is_empty()) {
 		return OK;
@@ -750,7 +750,7 @@ Error GLTFDocument::_encode_buffer_glb(Ref<GLTFState> p_state, const String &p_p
 }
 
 Error GLTFDocument::_encode_buffer_bins(Ref<GLTFState> p_state, const String &p_path) {
-	print_verbose("glTF: Total buffers: " + itos(p_state->buffers.size()));
+	PRINT_VERBOSE("glTF: Total buffers: " + itos(p_state->buffers.size()));
 
 	if (p_state->buffers.is_empty()) {
 		return OK;
@@ -821,7 +821,7 @@ Error GLTFDocument::_parse_buffers(Ref<GLTFState> p_state, const String &p_base_
 		}
 	}
 
-	print_verbose("glTF: Total buffers: " + itos(p_state->buffers.size()));
+	PRINT_VERBOSE("glTF: Total buffers: " + itos(p_state->buffers.size()));
 
 	return OK;
 }
@@ -852,7 +852,7 @@ Error GLTFDocument::_encode_buffer_views(Ref<GLTFState> p_state) {
 		ERR_FAIL_COND_V(!d.has("byteLength"), ERR_INVALID_DATA);
 		buffers.push_back(d);
 	}
-	print_verbose("glTF: Total buffer views: " + itos(p_state->buffer_views.size()));
+	PRINT_VERBOSE("glTF: Total buffer views: " + itos(p_state->buffer_views.size()));
 	if (!buffers.size()) {
 		return OK;
 	}
@@ -893,7 +893,7 @@ Error GLTFDocument::_parse_buffer_views(Ref<GLTFState> p_state) {
 		p_state->buffer_views.push_back(buffer_view);
 	}
 
-	print_verbose("glTF: Total buffer views: " + itos(p_state->buffer_views.size()));
+	PRINT_VERBOSE("glTF: Total buffer views: " + itos(p_state->buffer_views.size()));
 
 	return OK;
 }
@@ -949,7 +949,7 @@ Error GLTFDocument::_encode_accessors(Ref<GLTFState> p_state) {
 	}
 	p_state->json["accessors"] = accessors;
 	ERR_FAIL_COND_V(!p_state->json.has("accessors"), ERR_FILE_CORRUPT);
-	print_verbose("glTF: Total accessors: " + itos(p_state->accessors.size()));
+	PRINT_VERBOSE("glTF: Total accessors: " + itos(p_state->accessors.size()));
 
 	return OK;
 }
@@ -1076,7 +1076,7 @@ Error GLTFDocument::_parse_accessors(Ref<GLTFState> p_state) {
 		p_state->accessors.push_back(accessor);
 	}
 
-	print_verbose("glTF: Total accessors: " + itos(p_state->accessors.size()));
+	PRINT_VERBOSE("glTF: Total accessors: " + itos(p_state->accessors.size()));
 
 	return OK;
 }
@@ -1161,9 +1161,9 @@ Error GLTFDocument::_encode_buffer_view(Ref<GLTFState> p_state, const double *p_
 		stride += 4 - (stride % 4); //according to spec must be multiple of 4
 	}
 	//use to debug
-	print_verbose("glTF: encoding accessor type " + _get_accessor_type_name(p_accessor_type) + " component type: " + _get_component_type_name(p_component_type) + " stride: " + itos(stride) + " amount " + itos(p_count));
+	PRINT_VERBOSE("glTF: encoding accessor type " + _get_accessor_type_name(p_accessor_type) + " component type: " + _get_component_type_name(p_component_type) + " stride: " + itos(stride) + " amount " + itos(p_count));
 
-	print_verbose("glTF: encoding accessor offset " + itos(p_byte_offset) + " view offset: " + itos(bv->byte_offset) + " total buffer len: " + itos(gltf_buffer.size()) + " view len " + itos(bv->byte_length));
+	PRINT_VERBOSE("glTF: encoding accessor offset " + itos(p_byte_offset) + " view offset: " + itos(bv->byte_offset) + " total buffer len: " + itos(gltf_buffer.size()) + " view len " + itos(bv->byte_length));
 
 	const int buffer_end = (stride * (p_count - 1)) + component_size;
 	// TODO define bv->byte_stride
@@ -1430,8 +1430,8 @@ Error GLTFDocument::_decode_buffer_view(Ref<GLTFState> p_state, double *p_dst, c
 	const uint8_t *bufptr = buffer.ptr();
 
 	//use to debug
-	print_verbose("glTF: accessor type " + _get_accessor_type_name(p_accessor_type) + " component type: " + _get_component_type_name(p_component_type) + " stride: " + itos(stride) + " amount " + itos(p_count));
-	print_verbose("glTF: accessor offset " + itos(p_byte_offset) + " view offset: " + itos(bv->byte_offset) + " total buffer len: " + itos(buffer.size()) + " view len " + itos(bv->byte_length));
+	PRINT_VERBOSE("glTF: accessor type " + _get_accessor_type_name(p_accessor_type) + " component type: " + _get_component_type_name(p_component_type) + " stride: " + itos(stride) + " amount " + itos(p_count));
+	PRINT_VERBOSE("glTF: accessor offset " + itos(p_byte_offset) + " view offset: " + itos(bv->byte_offset) + " total buffer len: " + itos(buffer.size()) + " view len " + itos(bv->byte_length));
 
 	const int buffer_end = (stride * (p_count - 1)) + p_element_size;
 	ERR_FAIL_COND_V(buffer_end > bv->byte_length, ERR_PARSE_ERROR);
@@ -2784,7 +2784,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 Error GLTFDocument::_serialize_meshes(Ref<GLTFState> p_state) {
 	Array meshes;
 	for (GLTFMeshIndex gltf_mesh_i = 0; gltf_mesh_i < p_state->meshes.size(); gltf_mesh_i++) {
-		print_verbose("glTF: Serializing mesh: " + itos(gltf_mesh_i));
+		PRINT_VERBOSE("glTF: Serializing mesh: " + itos(gltf_mesh_i));
 		Ref<ImporterMesh> import_mesh = p_state->meshes.write[gltf_mesh_i]->get_mesh();
 		if (import_mesh.is_null()) {
 			continue;
@@ -3080,7 +3080,7 @@ Error GLTFDocument::_serialize_meshes(Ref<GLTFState> p_state) {
 			primitive["attributes"] = attributes;
 
 			// Blend shapes
-			print_verbose("glTF: Mesh has targets");
+			PRINT_VERBOSE("glTF: Mesh has targets");
 			if (import_mesh->get_blend_shape_count()) {
 				ArrayMesh::BlendShapeMode shape_mode = import_mesh->get_blend_shape_mode();
 				const float normal_tangent_sparse_rounding = 0.001;
@@ -3203,7 +3203,7 @@ Error GLTFDocument::_serialize_meshes(Ref<GLTFState> p_state) {
 		return OK;
 	}
 	p_state->json["meshes"] = meshes;
-	print_verbose("glTF: Total meshes: " + itos(meshes.size()));
+	PRINT_VERBOSE("glTF: Total meshes: " + itos(meshes.size()));
 
 	return OK;
 }
@@ -3215,7 +3215,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 
 	Array meshes = p_state->json["meshes"];
 	for (GLTFMeshIndex i = 0; i < meshes.size(); i++) {
-		print_verbose("glTF: Parsing mesh: " + itos(i));
+		PRINT_VERBOSE("glTF: Parsing mesh: " + itos(i));
 		Dictionary mesh_dict = meshes[i];
 
 		Ref<GLTFMesh> mesh;
@@ -3575,7 +3575,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 			Array morphs;
 			// Blend shapes
 			if (mesh_prim.has("targets")) {
-				print_verbose("glTF: Mesh has targets");
+				PRINT_VERBOSE("glTF: Mesh has targets");
 				const Array &targets = mesh_prim["targets"];
 
 				import_mesh->set_blend_shape_mode(Mesh::BLEND_SHAPE_MODE_NORMALIZED);
@@ -3757,7 +3757,7 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> p_state) {
 		p_state->meshes.push_back(mesh);
 	}
 
-	print_verbose("glTF: Total meshes: " + itos(p_state->meshes.size()));
+	PRINT_VERBOSE("glTF: Total meshes: " + itos(p_state->meshes.size()));
 
 	return OK;
 }
@@ -3883,7 +3883,7 @@ Error GLTFDocument::_serialize_images(Ref<GLTFState> p_state) {
 		images.push_back(image_dict);
 	}
 
-	print_verbose("Total images: " + itos(p_state->images.size()));
+	PRINT_VERBOSE("Total images: " + itos(p_state->images.size()));
 
 	if (!images.size()) {
 		return OK;
@@ -4165,7 +4165,7 @@ Error GLTFDocument::_parse_images(Ref<GLTFState> p_state, const String &p_base_p
 		_parse_image_save_image(p_state, data, resource_uri, file_extension, i, img);
 	}
 
-	print_verbose("glTF: Total images: " + itos(p_state->images.size()));
+	PRINT_VERBOSE("glTF: Total images: " + itos(p_state->images.size()));
 
 	return OK;
 }
@@ -4652,7 +4652,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 		return OK;
 	}
 	p_state->json["materials"] = materials;
-	print_verbose("Total materials: " + itos(p_state->materials.size()));
+	PRINT_VERBOSE("Total materials: " + itos(p_state->materials.size()));
 
 	return OK;
 }
@@ -4855,7 +4855,7 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 		p_state->materials.push_back(material);
 	}
 
-	print_verbose("Total materials: " + itos(p_state->materials.size()));
+	PRINT_VERBOSE("Total materials: " + itos(p_state->materials.size()));
 
 	return OK;
 }
@@ -5020,7 +5020,7 @@ Error GLTFDocument::_parse_skins(Ref<GLTFState> p_state) {
 		ERR_FAIL_COND_V(SkinTool::_verify_skin(p_state->nodes, skin), ERR_PARSE_ERROR);
 	}
 
-	print_verbose("glTF: Total skins: " + itos(p_state->skins.size()));
+	PRINT_VERBOSE("glTF: Total skins: " + itos(p_state->skins.size()));
 
 	return OK;
 }
@@ -5145,7 +5145,7 @@ Error GLTFDocument::_serialize_lights(Ref<GLTFState> p_state) {
 	extensions["KHR_lights_punctual"] = lights_punctual;
 	lights_punctual["lights"] = lights;
 
-	print_verbose("glTF: Total lights: " + itos(p_state->lights.size()));
+	PRINT_VERBOSE("glTF: Total lights: " + itos(p_state->lights.size()));
 
 	return OK;
 }
@@ -5163,7 +5163,7 @@ Error GLTFDocument::_serialize_cameras(Ref<GLTFState> p_state) {
 
 	p_state->json["cameras"] = cameras;
 
-	print_verbose("glTF: Total cameras: " + itos(p_state->cameras.size()));
+	PRINT_VERBOSE("glTF: Total cameras: " + itos(p_state->cameras.size()));
 
 	return OK;
 }
@@ -5191,7 +5191,7 @@ Error GLTFDocument::_parse_lights(Ref<GLTFState> p_state) {
 		p_state->lights.push_back(light);
 	}
 
-	print_verbose("glTF: Total lights: " + itos(p_state->lights.size()));
+	PRINT_VERBOSE("glTF: Total lights: " + itos(p_state->lights.size()));
 
 	return OK;
 }
@@ -5207,7 +5207,7 @@ Error GLTFDocument::_parse_cameras(Ref<GLTFState> p_state) {
 		p_state->cameras.push_back(GLTFCamera::from_dictionary(cameras[i]));
 	}
 
-	print_verbose("glTF: Total cameras: " + itos(p_state->cameras.size()));
+	PRINT_VERBOSE("glTF: Total cameras: " + itos(p_state->cameras.size()));
 
 	return OK;
 }
@@ -5434,7 +5434,7 @@ Error GLTFDocument::_serialize_animations(Ref<GLTFState> p_state) {
 	}
 	p_state->json["animations"] = animations;
 
-	print_verbose("glTF: Total animations '" + itos(p_state->animations.size()) + "'.");
+	PRINT_VERBOSE("glTF: Total animations '" + itos(p_state->animations.size()) + "'.");
 
 	return OK;
 }
@@ -5580,7 +5580,7 @@ Error GLTFDocument::_parse_animations(Ref<GLTFState> p_state) {
 		p_state->animations.push_back(animation);
 	}
 
-	print_verbose("glTF: Total animations '" + itos(p_state->animations.size()) + "'.");
+	PRINT_VERBOSE("glTF: Total animations '" + itos(p_state->animations.size()) + "'.");
 
 	return OK;
 }
@@ -5710,7 +5710,7 @@ BoneAttachment3D *GLTFDocument::_generate_bone_attachment(Ref<GLTFState> p_state
 	Ref<GLTFNode> gltf_node = p_state->nodes[p_node_index];
 	Ref<GLTFNode> bone_node = p_state->nodes[p_bone_index];
 	BoneAttachment3D *bone_attachment = memnew(BoneAttachment3D);
-	print_verbose("glTF: Creating bone attachment for: " + gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Creating bone attachment for: " + gltf_node->get_name());
 
 	ERR_FAIL_COND_V(!bone_node->joint, nullptr);
 
@@ -5753,7 +5753,7 @@ ImporterMeshInstance3D *GLTFDocument::_generate_mesh_instance(Ref<GLTFState> p_s
 	ERR_FAIL_INDEX_V(gltf_node->mesh, p_state->meshes.size(), nullptr);
 
 	ImporterMeshInstance3D *mi = memnew(ImporterMeshInstance3D);
-	print_verbose("glTF: Creating mesh for: " + gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Creating mesh for: " + gltf_node->get_name());
 
 	p_state->scene_mesh_instances.insert(p_node_index, mi);
 	Ref<GLTFMesh> mesh = p_state->meshes.write[gltf_node->mesh];
@@ -5774,7 +5774,7 @@ Light3D *GLTFDocument::_generate_light(Ref<GLTFState> p_state, const GLTFNodeInd
 
 	ERR_FAIL_INDEX_V(gltf_node->light, p_state->lights.size(), nullptr);
 
-	print_verbose("glTF: Creating light for: " + gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Creating light for: " + gltf_node->get_name());
 
 	Ref<GLTFLight> l = p_state->lights[gltf_node->light];
 	return l->to_node();
@@ -5785,14 +5785,14 @@ Camera3D *GLTFDocument::_generate_camera(Ref<GLTFState> p_state, const GLTFNodeI
 
 	ERR_FAIL_INDEX_V(gltf_node->camera, p_state->cameras.size(), nullptr);
 
-	print_verbose("glTF: Creating camera for: " + gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Creating camera for: " + gltf_node->get_name());
 
 	Ref<GLTFCamera> c = p_state->cameras[gltf_node->camera];
 	return c->to_node();
 }
 
 GLTFCameraIndex GLTFDocument::_convert_camera(Ref<GLTFState> p_state, Camera3D *p_camera) {
-	print_verbose("glTF: Converting camera: " + p_camera->get_name());
+	PRINT_VERBOSE("glTF: Converting camera: " + p_camera->get_name());
 
 	Ref<GLTFCamera> c = GLTFCamera::from_node(p_camera);
 	GLTFCameraIndex camera_index = p_state->cameras.size();
@@ -5801,7 +5801,7 @@ GLTFCameraIndex GLTFDocument::_convert_camera(Ref<GLTFState> p_state, Camera3D *
 }
 
 GLTFLightIndex GLTFDocument::_convert_light(Ref<GLTFState> p_state, Light3D *p_light) {
-	print_verbose("glTF: Converting light: " + p_light->get_name());
+	PRINT_VERBOSE("glTF: Converting light: " + p_light->get_name());
 
 	Ref<GLTFLight> l = GLTFLight::from_node(p_light);
 
@@ -5818,7 +5818,7 @@ Node3D *GLTFDocument::_generate_spatial(Ref<GLTFState> p_state, const GLTFNodeIn
 	Ref<GLTFNode> gltf_node = p_state->nodes[p_node_index];
 
 	Node3D *spatial = memnew(Node3D);
-	print_verbose("glTF: Converting spatial: " + gltf_node->get_name());
+	PRINT_VERBOSE("glTF: Converting spatial: " + gltf_node->get_name());
 
 	return spatial;
 }

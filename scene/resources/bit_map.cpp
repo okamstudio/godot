@@ -538,7 +538,7 @@ Vector<Vector<Vector2>> BitMap::clip_opaque_to_polygons(const Rect2i &p_rect, fl
 					polygon = reduce(polygon, r, p_epsilon);
 
 					if (polygon.size() < 3) {
-						print_verbose("Invalid polygon, skipped");
+						PRINT_VERBOSE("Invalid polygon, skipped");
 						continue;
 					}
 

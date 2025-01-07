@@ -86,7 +86,7 @@ void FreeDesktopScreenSaver::inhibit() {
 	DBusMessageIter reply_iter;
 	dbus_message_iter_init(reply, &reply_iter);
 	dbus_message_iter_get_basic(&reply_iter, &cookie);
-	print_verbose("FreeDesktopScreenSaver: Acquired screensaver inhibition cookie: " + uitos(cookie));
+	PRINT_VERBOSE("FreeDesktopScreenSaver: Acquired screensaver inhibition cookie: " + uitos(cookie));
 
 	dbus_message_unref(reply);
 	dbus_connection_unref(bus);
@@ -123,7 +123,7 @@ void FreeDesktopScreenSaver::uninhibit() {
 		return;
 	}
 
-	print_verbose("FreeDesktopScreenSaver: Released screensaver inhibition cookie: " + uitos(cookie));
+	PRINT_VERBOSE("FreeDesktopScreenSaver: Released screensaver inhibition cookie: " + uitos(cookie));
 
 	dbus_message_unref(message);
 	dbus_message_unref(reply);
@@ -152,9 +152,9 @@ FreeDesktopScreenSaver::FreeDesktopScreenSaver() {
 	int version_rev = 0;
 	dbus_get_version(&version_major, &version_minor, &version_rev);
 	ver_ok = (version_major == 1 && version_minor >= 10) || (version_major > 1); // 1.10.0
-	print_verbose(vformat("ScreenSaver: DBus %d.%d.%d detected.", version_major, version_minor, version_rev));
+	PRINT_VERBOSE(vformat("ScreenSaver: DBus %d.%d.%d detected.", version_major, version_minor, version_rev));
 	if (!ver_ok) {
-		print_verbose("ScreenSaver:: Unsupported DBus library version!");
+		PRINT_VERBOSE("ScreenSaver:: Unsupported DBus library version!");
 		unsupported = true;
 	}
 }

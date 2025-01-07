@@ -41,11 +41,11 @@
 	if (@available(macOS 10.14, *)) {
 		self->synth = [[AVSpeechSynthesizer alloc] init];
 		[self->synth setDelegate:self];
-		print_verbose("Text-to-Speech: AVSpeechSynthesizer initialized.");
+		PRINT_VERBOSE("Text-to-Speech: AVSpeechSynthesizer initialized.");
 	} else {
 		self->synth = [[NSSpeechSynthesizer alloc] init];
 		[self->synth setDelegate:self];
-		print_verbose("Text-to-Speech: NSSpeechSynthesizer initialized.");
+		PRINT_VERBOSE("Text-to-Speech: NSSpeechSynthesizer initialized.");
 	}
 	return self;
 }

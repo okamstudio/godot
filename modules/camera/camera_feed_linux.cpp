@@ -112,7 +112,7 @@ void CameraFeedLinux::_add_format(v4l2_fmtdesc p_description, v4l2_frmsize_discr
 	feed_format.frame_numerator = p_frame_numerator;
 	feed_format.frame_denominator = p_frame_denominator;
 	feed_format.pixel_format = p_description.pixelformat;
-	print_verbose(vformat("%s %dx%d@%d/%dfps", (char *)p_description.description, p_size.width, p_size.height, p_frame_denominator, p_frame_numerator));
+	PRINT_VERBOSE(vformat("%s %dx%d@%d/%dfps", (char *)p_description.description, p_size.width, p_size.height, p_frame_denominator, p_frame_numerator));
 	formats.push_back(feed_format);
 }
 

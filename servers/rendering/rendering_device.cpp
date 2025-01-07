@@ -6584,7 +6584,7 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 	context = p_context;
 	driver = context->driver_create();
 
-	print_verbose("Devices:");
+	PRINT_VERBOSE("Devices:");
 	int32_t device_index = Engine::get_singleton()->get_gpu_index();
 	const uint32_t device_count = context->device_get_count();
 	const bool detect_device = (device_index < 0) || (device_index >= int32_t(device_count));
@@ -6595,7 +6595,7 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 		String vendor = _get_device_vendor_name(device_option);
 		String type = _get_device_type_name(device_option);
 		bool present_supported = main_surface != 0 ? context->device_supports_present(i, main_surface) : false;
-		print_verbose("  #" + itos(i) + ": " + vendor + " " + name + " - " + (present_supported ? "Supported" : "Unsupported") + ", " + type);
+		PRINT_VERBOSE("  #" + itos(i) + ": " + vendor + " " + name + " - " + (present_supported ? "Supported" : "Unsupported") + ", " + type);
 		if (detect_device && (present_supported || main_surface == 0)) {
 			// If a window was specified, present must be supported by the device to be available as an option.
 			// Assign a score for each type of device and prefer the device with the higher score.
@@ -6793,7 +6793,7 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 		pipeline_cache_enabled = driver->pipeline_cache_create(cache_data);
 		if (pipeline_cache_enabled) {
 			pipeline_cache_size = driver->pipeline_cache_query_size();
-			print_verbose(vformat("Startup PSO cache (%.1f MiB)", pipeline_cache_size / (1024.0f * 1024.0f)));
+			PRINT_VERBOSE(vformat("Startup PSO cache (%.1f MiB)", pipeline_cache_size / (1024.0f * 1024.0f)));
 		}
 	}
 
@@ -6866,7 +6866,7 @@ void RenderingDevice::_save_pipeline_cache(void *p_data) {
 	if (cache_blob.size() == 0) {
 		return;
 	}
-	print_verbose(vformat("Updated PSO cache (%.1f MiB)", cache_blob.size() / (1024.0f * 1024.0f)));
+	PRINT_VERBOSE(vformat("Updated PSO cache (%.1f MiB)", cache_blob.size() / (1024.0f * 1024.0f)));
 
 	Ref<FileAccess> f = FileAccess::open(self->pipeline_cache_file_path, FileAccess::WRITE, nullptr);
 	if (f.is_valid()) {

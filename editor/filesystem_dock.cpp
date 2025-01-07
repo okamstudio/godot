@@ -1458,7 +1458,7 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 	}
 
 	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-	print_verbose("Moving " + old_path + " -> " + new_path);
+	PRINT_VERBOSE("Moving " + old_path + " -> " + new_path);
 	Error err = da->rename(old_path, new_path);
 	if (err == OK) {
 		// Move/Rename any corresponding import settings too.
@@ -1494,7 +1494,7 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 		// Only treat as a changed dependency if it was successfully moved.
 		for (int i = 0; i < file_changed_paths.size(); ++i) {
 			p_file_renames[file_changed_paths[i]] = file_changed_paths[i].replace_first(old_path, new_path);
-			print_verbose("  Remap: " + file_changed_paths[i] + " -> " + p_file_renames[file_changed_paths[i]]);
+			PRINT_VERBOSE("  Remap: " + file_changed_paths[i] + " -> " + p_file_renames[file_changed_paths[i]]);
 			emit_signal(SNAME("files_moved"), file_changed_paths[i], p_file_renames[file_changed_paths[i]]);
 		}
 		for (int i = 0; i < folder_changed_paths.size(); ++i) {
@@ -1523,7 +1523,7 @@ void FileSystemDock::_try_duplicate_item(const FileOrFolder &p_item, const Strin
 	}
 
 	if (p_item.is_file) {
-		print_verbose("Duplicating " + old_path + " -> " + new_path);
+		PRINT_VERBOSE("Duplicating " + old_path + " -> " + new_path);
 
 		// Create the directory structure.
 		EditorFileSystem::get_singleton()->make_dir_recursive(p_new_path.get_base_dir());
@@ -1589,7 +1589,7 @@ void FileSystemDock::_update_dependencies_after_move(const HashMap<String, Strin
 		// Because we haven't called a rescan yet the found remap might still be an old path itself.
 		const HashMap<String, String>::ConstIterator I = p_renames.find(E);
 		const String file = I ? I->value : E;
-		print_verbose("Remapping dependencies for: " + file);
+		PRINT_VERBOSE("Remapping dependencies for: " + file);
 		const Error err = ResourceLoader::rename_dependencies(file, p_renames);
 		if (err == OK) {
 			if (ResourceLoader::get_resource_type(file) == "PackedScene") {
@@ -1843,7 +1843,7 @@ void FileSystemDock::_rename_operation_confirm() {
 		current_path_line_edit->set_text(current_path);
 	}
 
-	print_verbose("FileSystem: calling rescan.");
+	PRINT_VERBOSE("FileSystem: calling rescan.");
 	_rescan();
 }
 
@@ -1999,7 +1999,7 @@ void FileSystemDock::_move_operation_confirm(const String &p_to_path, bool p_cop
 
 			EditorSceneTabs::get_singleton()->set_current_tab(current_tab);
 
-			print_verbose("FileSystem: calling rescan.");
+			PRINT_VERBOSE("FileSystem: calling rescan.");
 			_rescan();
 
 			current_path = p_to_path;

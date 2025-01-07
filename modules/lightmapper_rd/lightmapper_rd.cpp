@@ -936,7 +936,7 @@ LightmapperRD::BakeError LightmapperRD::_denoise_oidn(RenderingDevice *p_rd, RID
 
 			if (err != OK || exitcode != 0) {
 				da->remove(fname_out);
-				print_verbose(str);
+				PRINT_VERBOSE(str);
 				ERR_FAIL_V_MSG(BAKE_ERROR_LIGHTMAP_CANT_PRE_BAKE_MESHES, vformat("OIDN denoiser failed, return code: %d", exitcode));
 			}
 

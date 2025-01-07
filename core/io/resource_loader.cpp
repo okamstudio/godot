@@ -294,7 +294,7 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	}
 	load_paths_stack.push_back(original_path);
 
-	print_verbose(vformat("Loading resource: %s", p_path));
+	PRINT_VERBOSE(vformat("Loading resource: %s", p_path));
 
 	// Try all loaders and pick the first match for the type hint
 	bool found = false;
@@ -317,7 +317,7 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	if (res.is_valid()) {
 		return res;
 	} else {
-		print_verbose(vformat("Failed loading resource: %s", p_path));
+		PRINT_VERBOSE(vformat("Failed loading resource: %s", p_path));
 	}
 
 	ERR_FAIL_COND_V_MSG(found, Ref<Resource>(),
@@ -494,7 +494,7 @@ Error ResourceLoader::load_threaded_request(const String &p_path, const String &
 ResourceLoader::LoadToken *ResourceLoader::_load_threaded_request_reuse_user_token(const String &p_path) {
 	HashMap<String, LoadToken *>::Iterator E = user_load_tokens.find(p_path);
 	if (E) {
-		print_verbose("load_threaded_request(): Another threaded load for resource path '" + p_path + "' has been initiated. Not an error.");
+		PRINT_VERBOSE("load_threaded_request(): Another threaded load for resource path '" + p_path + "' has been initiated. Not an error.");
 		LoadToken *token = E->value;
 		token->user_rc++;
 		return token;
@@ -664,7 +664,7 @@ ResourceLoader::ThreadLoadStatus ResourceLoader::load_threaded_get_status(const 
 		MutexLock thread_load_lock(thread_load_mutex);
 
 		if (!user_load_tokens.has(p_path)) {
-			print_verbose("load_threaded_get_status(): No threaded load for resource path '" + p_path + "' has been initiated or its result has already been collected.");
+			PRINT_VERBOSE("load_threaded_get_status(): No threaded load for resource path '" + p_path + "' has been initiated or its result has already been collected.");
 			return THREAD_LOAD_INVALID_RESOURCE;
 		}
 
@@ -705,7 +705,7 @@ Ref<Resource> ResourceLoader::load_threaded_get(const String &p_path, Error *r_e
 		MutexLock thread_load_lock(thread_load_mutex);
 
 		if (!user_load_tokens.has(p_path)) {
-			print_verbose("load_threaded_get(): No threaded load for resource path '" + p_path + "' has been initiated or its result has already been collected.");
+			PRINT_VERBOSE("load_threaded_get(): No threaded load for resource path '" + p_path + "' has been initiated or its result has already been collected.");
 			if (r_error) {
 				*r_error = ERR_INVALID_PARAMETER;
 			}

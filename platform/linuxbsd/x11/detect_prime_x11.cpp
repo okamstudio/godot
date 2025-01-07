@@ -95,7 +95,7 @@ void create_context() {
 	};
 
 	if (gladLoaderLoadGLX(x11_display, XScreenNumberOfScreen(XDefaultScreenOfDisplay(x11_display))) == 0) {
-		print_verbose("Unable to load GLX, GPU detection skipped.");
+		PRINT_VERBOSE("Unable to load GLX, GPU detection skipped.");
 		quick_exit(1);
 	}
 	int fbcount;
@@ -140,7 +140,7 @@ void create_context() {
 int silent_error_handler(Display *display, XErrorEvent *error) {
 	static char message[1024];
 	XGetErrorText(display, error->error_code, message, sizeof(message));
-	print_verbose(vformat("XServer error: %s"
+	PRINT_VERBOSE(vformat("XServer error: %s"
 						  "\n   Major opcode of failed request: %d"
 						  "\n   Serial number of failed request: %d"
 						  "\n   Current serial number in output stream: %d",
@@ -165,7 +165,7 @@ int detect_prime() {
 		int fdset[2];
 
 		if (pipe(fdset) == -1) {
-			print_verbose("Failed to pipe(), using default GPU");
+			PRINT_VERBOSE("Failed to pipe(), using default GPU");
 			return 0;
 		}
 
@@ -216,7 +216,7 @@ int detect_prime() {
 
 			PFNGLGETSTRINGPROC glGetString = (PFNGLGETSTRINGPROC)glXGetProcAddressARB((GLubyte *)"glGetString");
 			if (!glGetString) {
-				print_verbose("Unable to get glGetString, GPU detection skipped.");
+				PRINT_VERBOSE("Unable to get glGetString, GPU detection skipped.");
 				quick_exit(1);
 			}
 
@@ -234,7 +234,7 @@ int detect_prime() {
 			memcpy(&string[vendor_len], renderer, renderer_len);
 
 			if (write(fdset[1], string, vendor_len + renderer_len) == -1) {
-				print_verbose("Couldn't write vendor/renderer string.");
+				PRINT_VERBOSE("Couldn't write vendor/renderer string.");
 			}
 			close(fdset[1]);
 
@@ -248,7 +248,7 @@ int detect_prime() {
 	int priority = 0;
 
 	if (vendors[0] == vendors[1]) {
-		print_verbose("Only one GPU found, using default.");
+		PRINT_VERBOSE("Only one GPU found, using default.");
 		return 0;
 	}
 
@@ -267,12 +267,12 @@ int detect_prime() {
 		}
 	}
 
-	print_verbose("Found renderers:");
+	PRINT_VERBOSE("Found renderers:");
 	for (int i = 0; i < 2; ++i) {
-		print_verbose("Renderer " + itos(i) + ": " + renderers[i] + " with priority: " + itos(priorities[i]));
+		PRINT_VERBOSE("Renderer " + itos(i) + ": " + renderers[i] + " with priority: " + itos(priorities[i]));
 	}
 
-	print_verbose("Using renderer: " + renderers[preferred]);
+	PRINT_VERBOSE("Using renderer: " + renderers[preferred]);
 	return preferred;
 }
 

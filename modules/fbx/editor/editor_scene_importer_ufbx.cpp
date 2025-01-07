@@ -63,7 +63,7 @@ Node *EditorSceneFormatImporterUFBX::import_scene(const String &p_path, uint32_t
 	fbx.instantiate();
 	Ref<FBXState> state;
 	state.instantiate();
-	print_verbose(vformat("FBX path: %s", p_path));
+	PRINT_VERBOSE(vformat("FBX path: %s", p_path));
 	String path = ProjectSettings::get_singleton()->globalize_path(p_path);
 	bool allow_geometry_helper_nodes = p_options.has("fbx/allow_geometry_helper_nodes") ? (bool)p_options["fbx/allow_geometry_helper_nodes"] : false;
 	if (allow_geometry_helper_nodes) {

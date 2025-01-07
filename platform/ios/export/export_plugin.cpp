@@ -1219,7 +1219,7 @@ Error EditorExportPlatformIOS::_codesign(String p_file, void *p_userdata) {
 		codesign_args.push_back(p_file);
 		String str;
 		Error err = OS::get_singleton()->execute("codesign", codesign_args, &str, nullptr, true);
-		print_verbose("codesign (" + p_file + "):\n" + str);
+		PRINT_VERBOSE("codesign (" + p_file + "):\n" + str);
 
 		return err;
 	}
