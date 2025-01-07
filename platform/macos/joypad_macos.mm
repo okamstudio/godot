@@ -127,6 +127,13 @@
 	}
 
 	self.ff_effect_timestamp = 0;
+	if (@available(macOS 10.15, *)) {
+		self.switch_joycon = (controller != nil) ? ([controller.productCategory isEqualToString:@"Nintendo Switch Joy-Con (L)"] || [controller.productCategory isEqualToString:@"Nintendo Switch Joy-Con (R)"]) : NO;
+		self.switch_pro = (controller != nil) ? ([controller.productCategory isEqualToString:@"Nintendo Switch Joy-Con (L/R)"] || [controller.productCategory isEqualToString:@"Switch Pro Controller"]) : NO;
+	} else {
+		self.switch_joycon = NO;
+		self.switch_pro = NO;
+	}
 
 	return self;
 }
@@ -315,6 +322,19 @@ void JoypadMacOS::joypad_vibration_stop(Joypad *p_joypad, uint64_t p_timestamp) 
 	return final_keys;
 }
 
+- (Joypad *)getJoypadForController:(GCController *)controller {
+	NSArray *keys = [self.connectedJoypads allKeys];
+
+	for (NSNumber *key in keys) {
+		Joypad *joypad = [self.connectedJoypads objectForKey:key];
+		if (joypad.controller == controller) {
+			return joypad;
+		}
+	}
+
+	return nullptr;
+}
+
 - (int)getJoyIdForController:(GCController *)controller {
 	NSArray *keys = [self getAllKeysForController:controller];
 
@@ -442,19 +462,48 @@ void JoypadMacOS::joypad_vibration_stop(Joypad *p_joypad, uint64_t p_timestamp) 
 			_strongify(controller);
 
 			int joy_id = [self getJoyIdForController:controller];
+			Joypad *joypad = [self getJoypadForController:controller];
+			bool switch_joycon = (joypad != nil) ? joypad.switch_joycon : false;
+			bool switch_pro = (joypad != nil) ? joypad.switch_pro : false;
 
 			if (element == gamepad.buttonA) {
-				Input::get_singleton()->joy_button(joy_id, JoyButton::A,
-						gamepad.buttonA.isPressed);
+				if (switch_pro) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::B,
+							gamepad.buttonA.isPressed);
+				} else {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::A,
+							gamepad.buttonA.isPressed);
+				}
 			} else if (element == gamepad.buttonB) {
-				Input::get_singleton()->joy_button(joy_id, JoyButton::B,
-						gamepad.buttonB.isPressed);
+				if (switch_pro) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::A,
+							gamepad.buttonB.isPressed);
+				} else if (switch_joycon) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::X,
+							gamepad.buttonB.isPressed);
+				} else {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::B,
+							gamepad.buttonB.isPressed);
+				}
 			} else if (element == gamepad.buttonX) {
-				Input::get_singleton()->joy_button(joy_id, JoyButton::X,
-						gamepad.buttonX.isPressed);
+				if (switch_pro) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::B,
+							gamepad.buttonX.isPressed);
+				} else if (switch_joycon) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::Y,
+							gamepad.buttonX.isPressed);
+				} else {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::X,
+							gamepad.buttonX.isPressed);
+				}
 			} else if (element == gamepad.buttonY) {
-				Input::get_singleton()->joy_button(joy_id, JoyButton::Y,
-						gamepad.buttonY.isPressed);
+				if (switch_pro) {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::X,
+							gamepad.buttonY.isPressed);
+				} else {
+					Input::get_singleton()->joy_button(joy_id, JoyButton::Y,
+							gamepad.buttonY.isPressed);
+				}
 			} else if (element == gamepad.leftShoulder) {
 				Input::get_singleton()->joy_button(joy_id, JoyButton::LEFT_SHOULDER,
 						gamepad.leftShoulder.isPressed);

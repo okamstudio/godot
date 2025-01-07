@@ -61,6 +61,8 @@ API_AVAILABLE(macosx(11))
 // however haptics (vibrations) are only supported in macOS 11+.
 @interface Joypad : NSObject
 
+@property(assign, nonatomic) BOOL switch_joycon;
+@property(assign, nonatomic) BOOL switch_pro;
 @property(assign, nonatomic) BOOL force_feedback;
 @property(assign, nonatomic) NSInteger ff_effect_timestamp;
 @property(strong, nonatomic) GCController *controller;
