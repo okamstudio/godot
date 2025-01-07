@@ -353,6 +353,13 @@
 				Creates a new [Image] and loads data from the specified file.
 			</description>
 		</method>
+		<method name="load_exr_from_buffer">
+			<return type="int" enum="Error" />
+			<param index="0" name="buffer" type="PackedByteArray" />
+			<description>
+				Loads an image from the binary contents of a OpenEXR file.
+			</description>
+		</method>
 		<method name="load_jpg_from_buffer">
 			<return type="int" enum="Error" />
 			<param index="0" name="buffer" type="PackedByteArray" />
