@@ -411,6 +411,19 @@ float VideoStreamPlayer::get_volume_db() const {
 	}
 }
 
+void VideoStreamPlayer::set_stream_speed(float p_speed) {
+	if (playback.is_valid()) {
+		playback->set_playback_speed(p_speed);
+	}
+}
+
+float VideoStreamPlayer::get_stream_speed() const {
+	if (playback.is_null()) {
+		return 1;
+	}
+	return playback->get_playback_speed();
+}
+
 String VideoStreamPlayer::get_stream_name() const {
 	if (stream.is_null()) {
 		return "<No Stream>";
@@ -506,6 +519,9 @@ void VideoStreamPlayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_volume_db", "db"), &VideoStreamPlayer::set_volume_db);
 	ClassDB::bind_method(D_METHOD("get_volume_db"), &VideoStreamPlayer::get_volume_db);
 
+	ClassDB::bind_method(D_METHOD("set_stream_speed", "speed"), &VideoStreamPlayer::set_stream_speed);
+	ClassDB::bind_method(D_METHOD("get_stream_speed"), &VideoStreamPlayer::get_stream_speed);
+
 	ClassDB::bind_method(D_METHOD("set_audio_track", "track"), &VideoStreamPlayer::set_audio_track);
 	ClassDB::bind_method(D_METHOD("get_audio_track"), &VideoStreamPlayer::get_audio_track);
 
@@ -535,6 +551,7 @@ void VideoStreamPlayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "stream", PROPERTY_HINT_RESOURCE_TYPE, "VideoStream"), "set_stream", "get_stream");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "volume_db", PROPERTY_HINT_RANGE, "-80,24,0.01,suffix:dB"), "set_volume_db", "get_volume_db");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "volume", PROPERTY_HINT_RANGE, "0,15,0.01,exp", PROPERTY_USAGE_NONE), "set_volume", "get_volume");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "stream_speed", PROPERTY_HINT_RANGE, "0,1280000,0.1", PROPERTY_USAGE_NONE), "set_stream_speed", "get_stream_speed");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autoplay"), "set_autoplay", "has_autoplay");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "paused"), "set_paused", "is_paused");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "expand"), "set_expand", "has_expand");

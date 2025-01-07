@@ -52,6 +52,8 @@ protected:
 	GDVIRTUAL1(_set_paused, bool);
 	GDVIRTUAL0RC(bool, _is_paused);
 	GDVIRTUAL0RC(double, _get_length);
+	GDVIRTUAL0RC(double, _get_playback_speed);
+	GDVIRTUAL1(_set_playback_speed, double);
 	GDVIRTUAL0RC(double, _get_playback_position);
 	GDVIRTUAL1(_seek, double);
 	GDVIRTUAL1(_set_audio_track, int);
@@ -75,6 +77,9 @@ public:
 	virtual bool is_paused() const;
 
 	virtual double get_length() const;
+
+	virtual double get_playback_speed() const;
+	virtual void set_playback_speed(double p_speed);
 
 	virtual double get_playback_position() const;
 	virtual void seek(double p_time);
