@@ -35,6 +35,7 @@
 #include "scene/main/node.h"
 #include "scene/main/scene_tree.h"
 #include "servers/audio_server.h"
+#include "servers/navigation_server_2d.h"
 #include "servers/navigation_server_3d.h"
 #include "servers/rendering_server.h"
 
@@ -97,6 +98,26 @@ void Performance::_bind_methods() {
 	BIND_ENUM_CONSTANT(PIPELINE_COMPILATIONS_SURFACE);
 	BIND_ENUM_CONSTANT(PIPELINE_COMPILATIONS_DRAW);
 	BIND_ENUM_CONSTANT(PIPELINE_COMPILATIONS_SPECIALIZATION);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_ACTIVE_MAPS);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_REGION_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_AGENT_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_LINK_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_POLYGON_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_EDGE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_EDGE_MERGE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_EDGE_CONNECTION_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_EDGE_FREE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_2D_OBSTACLE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_ACTIVE_MAPS);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_REGION_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_AGENT_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_LINK_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_POLYGON_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_EDGE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_EDGE_MERGE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_EDGE_CONNECTION_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_EDGE_FREE_COUNT);
+	BIND_ENUM_CONSTANT(NAVIGATION_3D_OBSTACLE_COUNT);
 	BIND_ENUM_CONSTANT(MONITOR_MAX);
 }
 
@@ -151,6 +172,26 @@ String Performance::get_monitor_name(Monitor p_monitor) const {
 		PNAME("pipeline/compilations_surface"),
 		PNAME("pipeline/compilations_draw"),
 		PNAME("pipeline/compilations_specialization"),
+		PNAME("navigation_2d/active_maps"),
+		PNAME("navigation_2d/regions"),
+		PNAME("navigation_2d/agents"),
+		PNAME("navigation_2d/links"),
+		PNAME("navigation_2d/polygons"),
+		PNAME("navigation_2d/edges"),
+		PNAME("navigation_2d/edges_merged"),
+		PNAME("navigation_2d/edges_connected"),
+		PNAME("navigation_2d/edges_free"),
+		PNAME("navigation_2d/obstacles"),
+		PNAME("navigation_2d/active_maps"),
+		PNAME("navigation_3d/regions"),
+		PNAME("navigation_3d/agents"),
+		PNAME("navigation_3d/links"),
+		PNAME("navigation_3d/polygons"),
+		PNAME("navigation_3d/edges"),
+		PNAME("navigation_3d/edges_merged"),
+		PNAME("navigation_3d/edges_connected"),
+		PNAME("navigation_3d/edges_free"),
+		PNAME("navigation_3d/obstacles"),
 	};
 	static_assert((sizeof(names) / sizeof(const char *)) == MONITOR_MAX);
 
@@ -227,25 +268,78 @@ double Performance::get_monitor(Monitor p_monitor) const {
 
 		case AUDIO_OUTPUT_LATENCY:
 			return AudioServer::get_singleton()->get_output_latency();
+
 		case NAVIGATION_ACTIVE_MAPS:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_ACTIVE_MAPS);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_ACTIVE_MAPS) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_ACTIVE_MAPS);
 		case NAVIGATION_REGION_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_REGION_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_REGION_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_REGION_COUNT);
 		case NAVIGATION_AGENT_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_AGENT_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_AGENT_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_AGENT_COUNT);
 		case NAVIGATION_LINK_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_LINK_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_LINK_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_LINK_COUNT);
 		case NAVIGATION_POLYGON_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_POLYGON_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_POLYGON_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_POLYGON_COUNT);
 		case NAVIGATION_EDGE_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_COUNT);
 		case NAVIGATION_EDGE_MERGE_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_MERGE_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_MERGE_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_MERGE_COUNT);
 		case NAVIGATION_EDGE_CONNECTION_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_CONNECTION_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_CONNECTION_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_CONNECTION_COUNT);
 		case NAVIGATION_EDGE_FREE_COUNT:
-			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_FREE_COUNT);
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_FREE_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_FREE_COUNT);
 		case NAVIGATION_OBSTACLE_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_OBSTACLE_COUNT) +
+					NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_OBSTACLE_COUNT);
+
+		case NAVIGATION_2D_ACTIVE_MAPS:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_ACTIVE_MAPS);
+		case NAVIGATION_2D_REGION_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_REGION_COUNT);
+		case NAVIGATION_2D_AGENT_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_AGENT_COUNT);
+		case NAVIGATION_2D_LINK_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_LINK_COUNT);
+		case NAVIGATION_2D_POLYGON_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_POLYGON_COUNT);
+		case NAVIGATION_2D_EDGE_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_COUNT);
+		case NAVIGATION_2D_EDGE_MERGE_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_MERGE_COUNT);
+		case NAVIGATION_2D_EDGE_CONNECTION_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_CONNECTION_COUNT);
+		case NAVIGATION_2D_EDGE_FREE_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_EDGE_FREE_COUNT);
+		case NAVIGATION_2D_OBSTACLE_COUNT:
+			return NavigationServer2D::get_singleton()->get_process_info(NavigationServer2D::INFO_OBSTACLE_COUNT);
+
+		case NAVIGATION_3D_ACTIVE_MAPS:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_ACTIVE_MAPS);
+		case NAVIGATION_3D_REGION_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_REGION_COUNT);
+		case NAVIGATION_3D_AGENT_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_AGENT_COUNT);
+		case NAVIGATION_3D_LINK_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_LINK_COUNT);
+		case NAVIGATION_3D_POLYGON_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_POLYGON_COUNT);
+		case NAVIGATION_3D_EDGE_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_COUNT);
+		case NAVIGATION_3D_EDGE_MERGE_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_MERGE_COUNT);
+		case NAVIGATION_3D_EDGE_CONNECTION_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_CONNECTION_COUNT);
+		case NAVIGATION_3D_EDGE_FREE_COUNT:
+			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_EDGE_FREE_COUNT);
+		case NAVIGATION_3D_OBSTACLE_COUNT:
 			return NavigationServer3D::get_singleton()->get_process_info(NavigationServer3D::INFO_OBSTACLE_COUNT);
 
 		default: {
@@ -283,6 +377,26 @@ Performance::MonitorType Performance::get_monitor_type(Monitor p_monitor) const 
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_TIME,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
