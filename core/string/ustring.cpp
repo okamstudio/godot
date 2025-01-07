@@ -88,6 +88,33 @@ bool select_word(const String &p_s, int p_col, int &r_beg, int &r_end) {
 	}
 }
 
+// This function assumes both strings are at least len length.
+template <typename LHS, typename RHS, typename = std::enable_if_t<std::is_fundamental_v<LHS>>, typename = std::enable_if_t<std::is_fundamental_v<RHS>>>
+_FORCE_INLINE_ constexpr bool string_equal(const LHS *lhs, const RHS *rhs, size_t len) {
+	if constexpr (std::is_same_v<LHS, RHS>) {
+		// Can optimize this case.
+		return memcmp(lhs, rhs, len * sizeof(LHS)) == 0;
+	} else {
+		for (size_t j = 0; j < len; j++) {
+			if ((char32_t)lhs[j] != (char32_t)rhs[j]) {
+				return false;
+			}
+		}
+		return true;
+	}
+}
+
+// This function assumes both strings are at least len length.
+template <typename LHS, typename RHS>
+_FORCE_INLINE_ constexpr bool string_equal_lower(const LHS *lhs, const RHS *rhs, size_t len) {
+	for (size_t j = 0; j < len; j++) {
+		if (_find_lower(lhs[j]) != _find_lower(rhs[j])) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /*************************************************************************/
 /*  Char16String                                                         */
 /*************************************************************************/
@@ -3101,38 +3128,22 @@ int String::find(const String &p_str, int p_from) const {
 		return -1;
 	}
 
-	const int src_len = p_str.length();
-
+	const int str_len = p_str.length();
 	const int len = length();
 
-	if (src_len == 0 || len == 0) {
-		return -1; // won't find anything!
+	if (str_len == 0 || len == 0 || str_len > (len - p_from)) {
+		return -1; // Won't find anything!
 	}
 
-	if (src_len == 1) {
+	if (str_len == 1) {
 		return find_char(p_str[0], p_from); // Optimize with single-char find.
 	}
 
 	const char32_t *src = get_data();
 	const char32_t *str = p_str.get_data();
 
-	for (int i = p_from; i <= (len - src_len); i++) {
-		bool found = true;
-		for (int j = 0; j < src_len; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= len) {
-				ERR_PRINT("read_pos>=len");
-				return -1;
-			}
-
-			if (src[read_pos] != str[j]) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = p_from; i <= (len - str_len); i++) {
+		if (string_equal(src + i, str, str_len)) {
 			return i;
 		}
 	}
@@ -3145,49 +3156,22 @@ int String::find(const char *p_str, int p_from) const {
 		return -1;
 	}
 
-	const int src_len = strlen(p_str);
-
+	const int str_len = strlen(p_str);
 	const int len = length();
 
-	if (len == 0 || src_len == 0) {
-		return -1; // won't find anything!
+	if (len == 0 || str_len == 0 || str_len > (len - p_from)) {
+		return -1; // Won't find anything!
 	}
 
-	if (src_len == 1) {
+	if (str_len == 1) {
 		return find_char(*p_str, p_from); // Optimize with single-char find.
 	}
 
 	const char32_t *src = get_data();
 
-	if (src_len == 1) {
-		const char32_t needle = p_str[0];
-
-		for (int i = p_from; i < len; i++) {
-			if (src[i] == needle) {
-				return i;
-			}
-		}
-
-	} else {
-		for (int i = p_from; i <= (len - src_len); i++) {
-			bool found = true;
-			for (int j = 0; j < src_len; j++) {
-				int read_pos = i + j;
-
-				if (read_pos >= len) {
-					ERR_PRINT("read_pos>=len");
-					return -1;
-				}
-
-				if (src[read_pos] != (char32_t)p_str[j]) {
-					found = false;
-					break;
-				}
-			}
-
-			if (found) {
-				return i;
-			}
+	for (int i = p_from; i <= (len - str_len); i++) {
+		if (string_equal(src + i, p_str, str_len)) {
+			return i;
 		}
 	}
 
@@ -3206,47 +3190,31 @@ int String::findmk(const Vector<String> &p_keys, int p_from, int *r_key) const {
 		return -1;
 	}
 
-	//int src_len=p_str.length();
 	const String *keys = &p_keys[0];
-	int key_count = p_keys.size();
-	int len = length();
+	const int key_count = p_keys.size();
+	const int len = length();
 
 	if (len == 0) {
-		return -1; // won't find anything!
+		return -1; // Won't find anything!
 	}
 
 	const char32_t *src = get_data();
 
 	for (int i = p_from; i < len; i++) {
-		bool found = true;
 		for (int k = 0; k < key_count; k++) {
-			found = true;
-			if (r_key) {
-				*r_key = k;
+			const int str_len = keys[k].length();
+
+			if (i + str_len > len) {
+				continue; // Can't find this key here.
 			}
-			const char32_t *cmp = keys[k].get_data();
-			int l = keys[k].length();
 
-			for (int j = 0; j < l; j++) {
-				int read_pos = i + j;
-
-				if (read_pos >= len) {
-					found = false;
-					break;
+			const char32_t *str = keys[k].get_data();
+			if (string_equal(src + i, str, str_len)) {
+				if (r_key) {
+					*r_key = k;
 				}
-
-				if (src[read_pos] != cmp[j]) {
-					found = false;
-					break;
-				}
+				return i;
 			}
-			if (found) {
-				break;
-			}
-		}
-
-		if (found) {
-			return i;
 		}
 	}
 
@@ -3258,34 +3226,18 @@ int String::findn(const String &p_str, int p_from) const {
 		return -1;
 	}
 
-	int src_len = p_str.length();
+	const int str_len = p_str.length();
+	const int len = length();
 
-	if (src_len == 0 || length() == 0) {
-		return -1; // won't find anything!
+	if (str_len == 0 || len == 0 || str_len > (len - p_from)) {
+		return -1; // Won't find anything!
 	}
 
-	const char32_t *srcd = get_data();
+	const char32_t *src = get_data();
+	const char32_t *str = p_str.get_data();
 
-	for (int i = p_from; i <= (length() - src_len); i++) {
-		bool found = true;
-		for (int j = 0; j < src_len; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= length()) {
-				ERR_PRINT("read_pos>=length()");
-				return -1;
-			}
-
-			char32_t src = _find_lower(srcd[read_pos]);
-			char32_t dst = _find_lower(p_str[j]);
-
-			if (src != dst) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = p_from; i <= (len - str_len); i++) {
+		if (string_equal_lower(src + i, str, str_len)) {
 			return i;
 		}
 	}
@@ -3294,38 +3246,21 @@ int String::findn(const String &p_str, int p_from) const {
 }
 
 int String::findn(const char *p_str, int p_from) const {
-	if (p_from < 0) {
+	if (p_from < 0 || !p_str) {
 		return -1;
 	}
 
-	int src_len = strlen(p_str);
+	const int str_len = strlen(p_str);
+	const int len = length();
 
-	if (src_len == 0 || length() == 0) {
-		return -1; // won't find anything!
+	if (str_len == 0 || len == 0 || str_len > (len - p_from)) {
+		return -1; // Won't find anything!
 	}
 
-	const char32_t *srcd = get_data();
+	const char32_t *src = get_data();
 
-	for (int i = p_from; i <= (length() - src_len); i++) {
-		bool found = true;
-		for (int j = 0; j < src_len; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= length()) {
-				ERR_PRINT("read_pos>=length()");
-				return -1;
-			}
-
-			char32_t src = _find_lower(srcd[read_pos]);
-			char32_t dst = _find_lower(p_str[j]);
-
-			if (src != dst) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = p_from; i <= (len - str_len); i++) {
+		if (string_equal_lower(src + i, p_str, str_len)) {
 			return i;
 		}
 	}
@@ -3334,45 +3269,20 @@ int String::findn(const char *p_str, int p_from) const {
 }
 
 int String::rfind(const String &p_str, int p_from) const {
-	// establish a limit
-	int limit = length() - p_str.length();
-	if (limit < 0) {
-		return -1;
+	const int str_len = p_str.length();
+	const int len = length();
+	const int max_findable_idx = length() - str_len;
+
+	if (str_len == 0 || len == 0 || max_findable_idx < 0) {
+		return -1; // Won't find anything!
 	}
 
-	// establish a starting point
-	if (p_from < 0) {
-		p_from = limit;
-	} else if (p_from > limit) {
-		p_from = limit;
-	}
-
-	int src_len = p_str.length();
-	int len = length();
-
-	if (src_len == 0 || len == 0) {
-		return -1; // won't find anything!
-	}
-
+	const int from = p_from < 0 ? max_findable_idx : MIN(p_from, max_findable_idx);
 	const char32_t *src = get_data();
+	const char32_t *str = p_str.get_data();
 
-	for (int i = p_from; i >= 0; i--) {
-		bool found = true;
-		for (int j = 0; j < src_len; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= len) {
-				ERR_PRINT("read_pos>=len");
-				return -1;
-			}
-
-			if (src[read_pos] != p_str[j]) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = from; i >= 0; i--) {
+		if (string_equal(src + i, str, str_len)) {
 			return i;
 		}
 	}
@@ -3381,49 +3291,19 @@ int String::rfind(const String &p_str, int p_from) const {
 }
 
 int String::rfind(const char *p_str, int p_from) const {
-	const int source_length = length();
-	int substring_length = strlen(p_str);
+	const int len = length();
+	const int str_len = strlen(p_str);
+	const int max_findable_idx = length() - str_len;
 
-	if (source_length == 0 || substring_length == 0) {
-		return -1; // won't find anything!
+	if (len == 0 || str_len == 0 || max_findable_idx < 0) {
+		return -1; // Won't find anything!
 	}
 
-	// establish a limit
-	int limit = length() - substring_length;
-	if (limit < 0) {
-		return -1;
-	}
+	const int from = p_from < 0 ? max_findable_idx : MIN(p_from, max_findable_idx);
+	const char32_t *src = get_data();
 
-	// establish a starting point
-	int starting_point;
-	if (p_from < 0) {
-		starting_point = limit;
-	} else if (p_from > limit) {
-		starting_point = limit;
-	} else {
-		starting_point = p_from;
-	}
-
-	const char32_t *source = get_data();
-
-	for (int i = starting_point; i >= 0; i--) {
-		bool found = true;
-		for (int j = 0; j < substring_length; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= source_length) {
-				ERR_PRINT("read_pos>=source_length");
-				return -1;
-			}
-
-			const char32_t key_needle = p_str[j];
-			if (source[read_pos] != key_needle) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = from; i >= 0; i--) {
+		if (string_equal(src + i, p_str, str_len)) {
 			return i;
 		}
 	}
@@ -3436,48 +3316,20 @@ int String::rfind_char(char32_t p_char, int p_from) const {
 }
 
 int String::rfindn(const String &p_str, int p_from) const {
-	// establish a limit
-	int limit = length() - p_str.length();
-	if (limit < 0) {
-		return -1;
+	const int str_len = p_str.length();
+	const int len = length();
+	const int max_findable_idx = length() - str_len;
+
+	if (str_len == 0 || len == 0 || max_findable_idx < 0) {
+		return -1; // Won't find anything!
 	}
 
-	// establish a starting point
-	if (p_from < 0) {
-		p_from = limit;
-	} else if (p_from > limit) {
-		p_from = limit;
-	}
-
-	int src_len = p_str.length();
-	int len = length();
-
-	if (src_len == 0 || len == 0) {
-		return -1; // won't find anything!
-	}
-
+	const int from = p_from < 0 ? max_findable_idx : MIN(p_from, max_findable_idx);
 	const char32_t *src = get_data();
+	const char32_t *str = p_str.get_data();
 
-	for (int i = p_from; i >= 0; i--) {
-		bool found = true;
-		for (int j = 0; j < src_len; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= len) {
-				ERR_PRINT("read_pos>=len");
-				return -1;
-			}
-
-			char32_t srcc = _find_lower(src[read_pos]);
-			char32_t dstc = _find_lower(p_str[j]);
-
-			if (srcc != dstc) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = from; i >= 0; i--) {
+		if (string_equal_lower(src + i, str, str_len)) {
 			return i;
 		}
 	}
@@ -3486,52 +3338,19 @@ int String::rfindn(const String &p_str, int p_from) const {
 }
 
 int String::rfindn(const char *p_str, int p_from) const {
-	const int source_length = length();
-	int substring_length = strlen(p_str);
+	const int len = length();
+	const int str_len = strlen(p_str);
+	const int max_findable_idx = length() - str_len;
 
-	if (source_length == 0 || substring_length == 0) {
-		return -1; // won't find anything!
+	if (len == 0 || str_len == 0 || max_findable_idx < 0) {
+		return -1; // Won't find anything!
 	}
 
-	// establish a limit
-	int limit = length() - substring_length;
-	if (limit < 0) {
-		return -1;
-	}
+	const char32_t *src = get_data();
+	const int from = p_from < 0 ? max_findable_idx : MIN(p_from, max_findable_idx);
 
-	// establish a starting point
-	int starting_point;
-	if (p_from < 0) {
-		starting_point = limit;
-	} else if (p_from > limit) {
-		starting_point = limit;
-	} else {
-		starting_point = p_from;
-	}
-
-	const char32_t *source = get_data();
-
-	for (int i = starting_point; i >= 0; i--) {
-		bool found = true;
-		for (int j = 0; j < substring_length; j++) {
-			int read_pos = i + j;
-
-			if (read_pos >= source_length) {
-				ERR_PRINT("read_pos>=source_length");
-				return -1;
-			}
-
-			const char32_t key_needle = p_str[j];
-			int srcc = _find_lower(source[read_pos]);
-			int keyc = _find_lower(key_needle);
-
-			if (srcc != keyc) {
-				found = false;
-				break;
-			}
-		}
-
-		if (found) {
+	for (int i = from; i >= 0; i--) {
+		if (string_equal_lower(src + i, p_str, str_len)) {
 			return i;
 		}
 	}
