@@ -28,8 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef _3D_DISABLED
-
 #include "navigation_mesh_generator.h"
 
 #include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
@@ -74,5 +72,3 @@ void NavigationMeshGenerator::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("parse_source_geometry_data", "navigation_mesh", "source_geometry_data", "root_node", "callback"), &NavigationMeshGenerator::parse_source_geometry_data, DEFVAL(Callable()));
 	ClassDB::bind_method(D_METHOD("bake_from_source_geometry_data", "navigation_mesh", "source_geometry_data", "callback"), &NavigationMeshGenerator::bake_from_source_geometry_data, DEFVAL(Callable()));
 }
-
-#endif

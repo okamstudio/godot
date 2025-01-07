@@ -28,8 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef _3D_DISABLED
-
 #include "nav_mesh_generator_3d.h"
 
 #include "core/config/project_settings.h"
@@ -560,5 +558,3 @@ bool NavMeshGenerator3D::generator_emit_callback(const Callable &p_callback) {
 
 	return ce.error == Callable::CallError::CALL_OK;
 }
-
-#endif // _3D_DISABLED

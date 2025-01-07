@@ -28,8 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef _3D_DISABLED
-
 #include "nav_map_builder_3d.h"
 
 #include "../nav_link_3d.h"
@@ -406,5 +404,3 @@ void NavMapBuilder3D::_build_update_map_iteration(NavMapIterationBuild3D &r_buil
 	}
 	map_iteration->path_query_slots_mutex.unlock();
 }
-
-#endif // _3D_DISABLED

@@ -33,9 +33,7 @@
 #include "3d/godot_navigation_server_3d.h"
 
 #ifndef DISABLE_DEPRECATED
-#ifndef _3D_DISABLED
 #include "3d/navigation_mesh_generator.h"
-#endif
 #endif // DISABLE_DEPRECATED
 
 #ifdef TOOLS_ENABLED
@@ -46,9 +44,7 @@
 #include "servers/navigation_server_3d.h"
 
 #ifndef DISABLE_DEPRECATED
-#ifndef _3D_DISABLED
 NavigationMeshGenerator *_nav_mesh_generator = nullptr;
-#endif
 #endif // DISABLE_DEPRECATED
 
 NavigationServer3D *new_navigation_server_3d() {
@@ -60,11 +56,9 @@ void initialize_navigation_module(ModuleInitializationLevel p_level) {
 		NavigationServer3DManager::set_default_server(new_navigation_server_3d);
 
 #ifndef DISABLE_DEPRECATED
-#ifndef _3D_DISABLED
 		_nav_mesh_generator = memnew(NavigationMeshGenerator);
 		GDREGISTER_CLASS(NavigationMeshGenerator);
 		Engine::get_singleton()->add_singleton(Engine::Singleton("NavigationMeshGenerator", NavigationMeshGenerator::get_singleton()));
-#endif
 #endif // DISABLE_DEPRECATED
 	}
 
@@ -81,10 +75,8 @@ void uninitialize_navigation_module(ModuleInitializationLevel p_level) {
 	}
 
 #ifndef DISABLE_DEPRECATED
-#ifndef _3D_DISABLED
 	if (_nav_mesh_generator) {
 		memdelete(_nav_mesh_generator);
 	}
-#endif
 #endif // DISABLE_DEPRECATED
 }
