@@ -48,6 +48,10 @@
 		<member name="environment_custom_sky" type="Sky" setter="set_environment_custom_sky" getter="get_environment_custom_sky">
 			The sky to use as a source of environment lighting. Only effective if [member environment_mode] is [constant ENVIRONMENT_MODE_CUSTOM_SKY].
 		</member>
+		<member name="environment_min_light" type="Color" setter="set_environment_min_light" getter="get_environment_min_light" default="Color(0, 0, 0, 1)">
+			The minimum ambient light to use for all the lightmap texels. This doesn't take into account any occlusion from the scene's geometry, it simply ensures a minimum amount of light on all the lightmap texels. This can be used to avoid overly dark areas or for artistic control on shadow color. However, colors that are too bright will result in dull-looking shadows.
+			[b]Note:[/b] After changing [member environment_min_light], the lightmap must be baked again for the changes to be visible.
+		</member>
 		<member name="environment_mode" type="int" setter="set_environment_mode" getter="get_environment_mode" enum="LightmapGI.EnvironmentMode" default="1">
 			The environment mode to use when baking lightmaps.
 		</member>
