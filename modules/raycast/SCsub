@@ -62,7 +62,7 @@ if env["builtin_embree"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in embree_src]
 
-    env_raycast.Prepend(CPPPATH=[thirdparty_dir, thirdparty_dir + "include"])
+    env_raycast.AddExternalIncludes([thirdparty_dir, thirdparty_dir + "include"])
     env_raycast.Append(CPPDEFINES=["EMBREE_TARGET_SSE2", "EMBREE_LOWEST_ISA", "TASKING_INTERNAL"])
     env_raycast.AppendUnique(CPPDEFINES=["NDEBUG"])  # No assert() even in debug builds.
 

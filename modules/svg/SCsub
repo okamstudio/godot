@@ -65,15 +65,15 @@ if env["module_webp_enabled"]:
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-env_svg.Prepend(CPPPATH=[thirdparty_dir + "inc"])
+env_svg.AddExternalIncludes(thirdparty_dir + "inc")
 
 # Enable ThorVG static object linking.
 env_svg.Append(CPPDEFINES=["TVG_STATIC"])
 
 env_thirdparty = env_svg.Clone()
 env_thirdparty.disable_warnings()
-env_thirdparty.Prepend(
-    CPPPATH=[
+env_thirdparty.AddExternalIncludes(
+    [
         thirdparty_dir + "src/common",
         thirdparty_dir + "src/loaders/svg",
         thirdparty_dir + "src/renderer",
@@ -84,11 +84,11 @@ env_thirdparty.Prepend(
     ]
 )
 if env["builtin_libpng"]:
-    env_thirdparty.Prepend(CPPPATH=["#thirdparty/libpng"])
+    env_thirdparty.AddExternalIncludes("#thirdparty/libpng")
 if env["module_webp_enabled"]:
-    env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "src/loaders/external_webp"])
+    env_thirdparty.AddExternalIncludes(thirdparty_dir + "src/loaders/external_webp")
     if env["builtin_libwebp"]:
-        env_thirdparty.Prepend(CPPPATH=["#thirdparty/libwebp/src"])
+        env_thirdparty.AddExternalIncludes("#thirdparty/libwebp/src")
 
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 env.modules_sources += thirdparty_obj

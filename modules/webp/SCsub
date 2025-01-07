@@ -139,7 +139,7 @@ if env["builtin_libwebp"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_webp.Prepend(CPPPATH=[thirdparty_dir, thirdparty_dir + "src/"])
+    env_webp.AddExternalIncludes([thirdparty_dir, thirdparty_dir + "src/"])
 
     env_thirdparty = env_webp.Clone()
     env_thirdparty.disable_warnings()

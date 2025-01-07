@@ -15,15 +15,14 @@ thirdparty_obj = []
 
 # DirectX Headers (must take precedence over Windows SDK's).
 
-env.Prepend(CPPPATH=["#thirdparty/directx_headers/include/directx"])
-env_d3d12_rdd.Prepend(CPPPATH=["#thirdparty/directx_headers/include/directx"])
-env_d3d12_rdd.Prepend(CPPPATH=["#thirdparty/directx_headers/include/dxguids"])
-
+env.AddExternalIncludes("#thirdparty/directx_headers/include/directx")
+env_d3d12_rdd.AddExternalIncludes("#thirdparty/directx_headers/include/directx")
+env_d3d12_rdd.AddExternalIncludes("#thirdparty/directx_headers/include/dxguids")
 
 # Direct3D 12 Memory Allocator.
 
-env.Append(CPPPATH=["#thirdparty/d3d12ma"])
-env_d3d12_rdd.Append(CPPPATH=["#thirdparty/d3d12ma"])
+env.AddExternalIncludes("#thirdparty/d3d12ma")
+env_d3d12_rdd.AddExternalIncludes("#thirdparty/d3d12ma")
 
 
 # Agility SDK.
@@ -38,7 +37,7 @@ if env["agility_sdk_path"] != "" and os.path.exists(env["agility_sdk_path"]):
 
 if env["use_pix"]:
     env_d3d12_rdd.Append(CPPDEFINES=["PIX_ENABLED"])
-    env_d3d12_rdd.Append(CPPPATH=[env["pix_path"] + "/Include"])
+    env_d3d12_rdd.AddExternalIncludes(env["pix_path"] + "/Include")
 
 
 # Mesa (SPIR-V to DXIL functionality).
@@ -147,7 +146,7 @@ else:
         env.Append(CCFLAGS=["-Wno-unknown-pragmas"])
 
 # This is needed since rendering_device_d3d12.cpp needs to include some Mesa internals.
-env_d3d12_rdd.Prepend(CPPPATH=mesa_private_inc_paths)
+env_d3d12_rdd.AddExternalIncludes(mesa_private_inc_paths)
 # For the same reason as above, the defines must be the same as in the 3rd-party code itself.
 env_d3d12_rdd.Append(CPPDEFINES=extra_defines)
 

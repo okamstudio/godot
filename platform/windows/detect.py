@@ -453,7 +453,7 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
 
     if vcvars_msvc_config:  # should be automatic if SCons found it
         if os.getenv("WindowsSdkDir") is not None:
-            env.Prepend(CPPPATH=[str(os.getenv("WindowsSdkDir")) + "/Include"])
+            env.AddExternalIncludes(str(os.getenv("WindowsSdkDir")) + "/Include")
         else:
             print_warning("Missing environment variable: WindowsSdkDir")
 
@@ -555,7 +555,7 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
                 "libGLES.windows." + env["arch"] + prebuilt_lib_extra_suffix,
             ]
             LIBS += ["dxgi", "d3d9", "d3d11"]
-        env.Prepend(CPPPATH=["#thirdparty/angle/include"])
+        env.AddExternalIncludes("#thirdparty/angle/include")
 
     if env["target"] in ["editor", "template_debug"]:
         LIBS += ["psapi", "dbghelp"]
@@ -594,7 +594,7 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
         env.AppendUnique(ARFLAGS=["/LTCG"])
 
     if vcvars_msvc_config:
-        env.Prepend(CPPPATH=[p for p in str(os.getenv("INCLUDE")).split(";")])
+        env.AddExternalIncludes(str(os.getenv("INCLUDE")).split(";"))
         env.Append(LIBPATH=[p for p in str(os.getenv("LIB")).split(";")])
 
     # Incremental linking fix
@@ -896,7 +896,7 @@ def configure_mingw(env: "SConsEnvironment"):
                 ]
             )
             env.Append(LIBS=["dxgi", "d3d9", "d3d11"])
-        env.Prepend(CPPPATH=["#thirdparty/angle/include"])
+        env.AddExternalIncludes("#thirdparty/angle/include")
 
     env.Append(CPPDEFINES=["MINGW_ENABLED", ("MINGW_HAS_SECURE_API", 1)])
 

@@ -62,13 +62,9 @@ if env["builtin_glslang"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    # Treat glslang headers as system headers to avoid raising warnings. Not supported on MSVC.
     # Include `#thirdparty` to workaround mismatch between location of `SPIRV` in library source
     # and in installed public headers.
-    if not env.msvc:
-        env_glslang.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path, "-isystem", Dir("#thirdparty").path])
-    else:
-        env_glslang.Prepend(CPPPATH=[thirdparty_dir, "#thirdparty"])
+    env_glslang.AddExternalIncludes([thirdparty_dir, "#thirdparty"])
 
     env_glslang.Append(CPPDEFINES=["ENABLE_OPT=0"])
 

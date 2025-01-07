@@ -14,7 +14,7 @@ env_betsy.Depends(Glob("*.glsl.gen.h"), ["#glsl_builders.py"])
 # Thirdparty source files
 thirdparty_obj = []
 thirdparty_dir = "#thirdparty/betsy/"
-env_betsy.Prepend(CPPPATH=[thirdparty_dir])
+env_betsy.AddExternalIncludes(thirdparty_dir)
 
 env_thirdparty = env_betsy.Clone()
 env_thirdparty.disable_warnings()

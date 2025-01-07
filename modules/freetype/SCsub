@@ -62,9 +62,9 @@ if env["builtin_freetype"]:
     if env["brotli"]:
         env_freetype.Append(CPPDEFINES=["FT_CONFIG_OPTION_USE_BROTLI"])
 
-    env_freetype.Prepend(CPPPATH=[thirdparty_dir + "/include"])
+    env_freetype.AddExternalIncludes(thirdparty_dir + "/include")
     # Also needed in main env for scene/
-    env.Prepend(CPPPATH=[thirdparty_dir + "/include"])
+    env.AddExternalIncludes(thirdparty_dir + "/include")
 
     env_freetype.Append(CPPDEFINES=["FT2_BUILD_LIBRARY", "FT_CONFIG_OPTION_USE_PNG", "FT_CONFIG_OPTION_SYSTEM_ZLIB"])
     if env.dev_build:
@@ -72,7 +72,7 @@ if env["builtin_freetype"]:
 
     # Also requires libpng headers
     if env["builtin_libpng"]:
-        env_freetype.Prepend(CPPPATH=["#thirdparty/libpng"])
+        env_freetype.AddExternalIncludes("#thirdparty/libpng")
 
     sfnt = thirdparty_dir + "src/sfnt/sfnt.c"
     # Must be done after all CPPDEFINES are being set so we can copy them.
@@ -81,7 +81,7 @@ if env["builtin_freetype"]:
         # since currently unsupported in WASM
         tmp_env = env_freetype.Clone()
         tmp_env.disable_warnings()
-        tmp_env.Append(CPPFLAGS=["-U__OPTIMIZE__"])
+        tmp_env.Append(CCFLAGS=["-U__OPTIMIZE__"])
         sfnt = tmp_env.Object(sfnt)
     thirdparty_sources += [sfnt]
 

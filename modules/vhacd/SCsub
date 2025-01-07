@@ -27,7 +27,7 @@ thirdparty_sources = [
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-env_vhacd.Prepend(CPPPATH=[thirdparty_dir + "inc"])
+env_vhacd.AddExternalIncludes(thirdparty_dir + "inc")
 
 env_thirdparty = env_vhacd.Clone()
 env_thirdparty.disable_warnings()

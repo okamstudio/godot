@@ -8,11 +8,7 @@ env_minimp3 = env_modules.Clone()
 
 thirdparty_dir = "#thirdparty/minimp3/"
 
-# Treat minimp3 headers as system headers to avoid raising warnings. Not supported on MSVC.
-if not env.msvc:
-    env_minimp3.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
-else:
-    env_minimp3.Prepend(CPPPATH=[thirdparty_dir])
+env_minimp3.AddExternalIncludes(thirdparty_dir)
 
 if not env["minimp3_extra_formats"]:
     env_minimp3.Append(CPPDEFINES=["MINIMP3_ONLY_MP3"])

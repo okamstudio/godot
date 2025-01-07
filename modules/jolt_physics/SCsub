@@ -144,7 +144,7 @@ thirdparty_sources = [
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-env_jolt.Prepend(CPPPATH=[thirdparty_dir])
+env_jolt.AddExternalIncludes(thirdparty_dir)
 
 if env.dev_build:
     env_jolt.Append(CPPDEFINES=["JPH_ENABLE_ASSERTS"])

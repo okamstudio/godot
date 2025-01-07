@@ -29,13 +29,13 @@ if env["builtin_miniupnpc"] and env["platform"] != "web":
     ]
     thirdparty_sources = [thirdparty_dir + "src/" + file for file in thirdparty_sources]
 
-    env_upnp.Prepend(CPPPATH=[thirdparty_dir + "include"])
+    env_upnp.AddExternalIncludes(thirdparty_dir + "include")
     env_upnp.Append(CPPDEFINES=["MINIUPNP_STATICLIB"])
     if env["platform"] != "windows":
         env_upnp.Append(CPPDEFINES=["MINIUPNPC_SET_SOCKET_TIMEOUT"])
 
     env_thirdparty = env_upnp.Clone()
-    env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "include/miniupnpc"])
+    env_thirdparty.AddExternalIncludes(thirdparty_dir + "include/miniupnpc")
     env_thirdparty.disable_warnings()
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
     env.modules_sources += thirdparty_obj

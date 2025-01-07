@@ -31,7 +31,7 @@ thirdparty_sources = [
 ]
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
-env_csg.Prepend(CPPPATH=[thirdparty_dir + "include"])
+env_csg.AddExternalIncludes(thirdparty_dir + "include")
 env_thirdparty = env_csg.Clone()
 env_thirdparty.disable_warnings()
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)

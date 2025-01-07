@@ -30,9 +30,9 @@ if env["builtin_libpng"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_png.Prepend(CPPPATH=[thirdparty_dir])
+    env_png.AddExternalIncludes(thirdparty_dir)
     # Needed for drivers includes and in platform/web.
-    env.Prepend(CPPPATH=[thirdparty_dir])
+    env.AddExternalIncludes(thirdparty_dir)
 
     env_thirdparty = env_png.Clone()
     env_thirdparty.disable_warnings()

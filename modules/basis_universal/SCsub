@@ -42,18 +42,14 @@ if basisu_encoder:
 
 transcoder_sources = [thirdparty_dir + "transcoder/basisu_transcoder.cpp"]
 
-# Treat Basis headers as system headers to avoid raising warnings. Not supported on MSVC.
-if not env.msvc:
-    env_basisu.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
-else:
-    env_basisu.Prepend(CPPPATH=[thirdparty_dir])
+env_basisu.AddExternalIncludes(thirdparty_dir)
 
 if basisu_encoder:
-    env_basisu.Prepend(CPPPATH=["#thirdparty/jpeg-compressor"])
-    env_basisu.Prepend(CPPPATH=["#thirdparty/tinyexr"])
+    env_basisu.AddExternalIncludes("#thirdparty/jpeg-compressor")
+    env_basisu.AddExternalIncludes("#thirdparty/tinyexr")
 
 if env["builtin_zstd"]:
-    env_basisu.Prepend(CPPPATH=["#thirdparty/zstd"])
+    env_basisu.AddExternalIncludes("#thirdparty/zstd")
 
 env_thirdparty = env_basisu.Clone()
 env_thirdparty.disable_warnings()

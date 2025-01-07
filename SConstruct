@@ -150,6 +150,7 @@ env.__class__.disable_warnings = methods.disable_warnings
 env.__class__.force_optimization_on_debug = methods.force_optimization_on_debug
 env.__class__.module_add_dependencies = methods.module_add_dependencies
 env.__class__.module_check_dependencies = methods.module_check_dependencies
+env.__class__.AddExternalIncludes = methods.add_external_includes
 
 env["x86_libtheora_opt_gcc"] = False
 env["x86_libtheora_opt_vc"] = False
@@ -895,6 +896,17 @@ else:  # GCC, Clang
 
     if env["werror"]:
         env.Append(CCFLAGS=["-Werror"])
+
+
+# Allow marking includes as external/system to avoid raising warnings.
+if env.msvc:
+    if cc_version_major < 16 or (cc_version_major == 16 and cc_version_minor < 10):
+        env.AppendUnique(CPPFLAGS=["/experimental:external"])
+    env.AppendUnique(CPPFLAGS=["/external:W0"])
+    env["EXTHEADERPREFIX"] = "/external:I"
+else:
+    env["EXTHEADERPREFIX"] = "-isystem"
+
 
 if hasattr(detect, "get_program_suffix"):
     suffix = "." + detect.get_program_suffix()

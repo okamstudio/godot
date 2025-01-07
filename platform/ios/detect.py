@@ -164,7 +164,7 @@ def configure(env: "SConsEnvironment"):
                 "$IOS_SDK_PATH/System/Library/Frameworks/QuartzCore.framework/Headers",
             ]
         )
-        env.Prepend(CPPPATH=["#thirdparty/spirv-cross"])
+        env.AddExternalIncludes("#thirdparty/spirv-cross")
 
     if env["vulkan"]:
         env.AppendUnique(CPPDEFINES=["VULKAN_ENABLED", "RD_ENABLED"])

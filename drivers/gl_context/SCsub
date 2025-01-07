@@ -13,12 +13,7 @@ if env["platform"] in ["macos", "windows", "linuxbsd"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    # Treat glad headers as system headers to avoid raising warnings. Not supported on MSVC.
-    if not env.msvc:
-        env.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
-    else:
-        env.Prepend(CPPPATH=[thirdparty_dir])
-
+    env.AddExternalIncludes(thirdparty_dir)
     env.Append(CPPDEFINES=["GLAD_ENABLED"])
     env.Append(CPPDEFINES=["EGL_ENABLED"])
 

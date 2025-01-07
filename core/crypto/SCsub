@@ -13,7 +13,7 @@ if is_builtin or not has_module:
     # Use our headers for builtin or if the module is not going to be compiled.
     # We decided not to depend on system mbedtls just for these few files that can
     # be easily extracted.
-    env_crypto.Prepend(CPPPATH=["#thirdparty/mbedtls/include"])
+    env_crypto.AddExternalIncludes("#thirdparty/mbedtls/include")
 
 # MbedTLS core functions (for CryptoCore).
 # If the mbedtls module is compiled we don't need to add the .c files with our

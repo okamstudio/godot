@@ -39,8 +39,8 @@ freetype_enabled = "freetype" in env.module_list
 msdfgen_enabled = "msdfgen" in env.module_list
 
 if "svg" in env.module_list:
-    env_text_server_adv.Prepend(
-        CPPPATH=[
+    env_text_server_adv.AddExternalIncludes(
+        [
             "#thirdparty/thorvg/inc",
             "#thirdparty/thorvg/src/common",
             "#thirdparty/thorvg/src/renderer",
@@ -139,11 +139,11 @@ if env["builtin_harfbuzz"]:
             ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_harfbuzz.Prepend(CPPPATH=["#thirdparty/harfbuzz/src"])
+    env_harfbuzz.AddExternalIncludes("#thirdparty/harfbuzz/src")
 
     env_harfbuzz.Append(CCFLAGS=["-DHAVE_ICU"])
     if env["builtin_icu4c"]:
-        env_harfbuzz.Prepend(CPPPATH=["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
+        env_harfbuzz.AddExternalIncludes(["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
         env_harfbuzz.Append(
             CCFLAGS=[
                 "-DU_STATIC_IMPLEMENTATION",
@@ -166,15 +166,15 @@ if env["builtin_harfbuzz"]:
                 ]
             )
         if env["builtin_freetype"]:
-            env_harfbuzz.Prepend(CPPPATH=["#thirdparty/freetype/include"])
+            env_harfbuzz.AddExternalIncludes("#thirdparty/freetype/include")
         if env["builtin_graphite"] and env["graphite"]:
-            env_harfbuzz.Prepend(CPPPATH=["#thirdparty/graphite/include"])
+            env_harfbuzz.AddExternalIncludes("#thirdparty/graphite/include")
             env_harfbuzz.Append(CCFLAGS=["-DGRAPHITE2_STATIC"])
 
     if env["platform"] in ["android", "linuxbsd", "web"]:
         env_harfbuzz.Append(CCFLAGS=["-DHAVE_PTHREAD"])
 
-    env_text_server_adv.Prepend(CPPPATH=["#thirdparty/harfbuzz/src"])
+    env_text_server_adv.AddExternalIncludes("#thirdparty/harfbuzz/src")
 
     lib = env_harfbuzz.add_library("harfbuzz_builtin", thirdparty_sources)
     thirdparty_obj += lib
@@ -237,7 +237,7 @@ if env["builtin_graphite"] and freetype_enabled and env["graphite"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_graphite.Prepend(CPPPATH=["#thirdparty/graphite/src", "#thirdparty/graphite/include"])
+    env_graphite.AddExternalIncludes(["#thirdparty/graphite/src", "#thirdparty/graphite/include"])
     env_graphite.Append(
         CCFLAGS=[
             "-DGRAPHITE2_STATIC",
@@ -480,13 +480,14 @@ if env["builtin_icu4c"]:
     icu_data_name = "icudt76l.dat"
 
     if env.editor_build:
-        env_icu.Depends("#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/" + icu_data_name)
-        env_icu.Command("#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/" + icu_data_name, make_icu_data)
-        env_text_server_adv.Prepend(CPPPATH=["#thirdparty/icu4c/"])
+        thirdparty_obj += env_icu.CommandNoCache(
+            "#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/" + icu_data_name, env.Run(make_icu_data)
+        )
+        env_text_server_adv.AddExternalIncludes("#thirdparty/icu4c/")
     else:
         thirdparty_sources += ["icu_data/icudata_stub.cpp"]
 
-    env_icu.Prepend(CPPPATH=["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
+    env_icu.AddExternalIncludes(["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
     env_icu.Append(
         CXXFLAGS=[
             "-DU_STATIC_IMPLEMENTATION",
@@ -517,7 +518,7 @@ if env["builtin_icu4c"]:
     if env.editor_build:
         env_text_server_adv.Append(CXXFLAGS=["-DICU_STATIC_DATA"])
 
-    env_text_server_adv.Prepend(CPPPATH=["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
+    env_text_server_adv.AddExternalIncludes(["#thirdparty/icu4c/common/", "#thirdparty/icu4c/i18n/"])
 
     lib = env_icu.add_library("icu_builtin", thirdparty_sources)
     thirdparty_obj += lib
@@ -541,19 +542,15 @@ if env["builtin_icu4c"]:
 module_obj = []
 
 if env["builtin_msdfgen"] and msdfgen_enabled:
-    # Treat msdfgen headers as system headers to avoid raising warnings. Not supported on MSVC.
     env_text_server_adv.Append(CPPDEFINES=[("MSDFGEN_PUBLIC", "")])
-    if not env.msvc:
-        env_text_server_adv.Append(CPPFLAGS=["-isystem", Dir("#thirdparty/msdfgen").path])
-    else:
-        env_text_server_adv.Prepend(CPPPATH=["#thirdparty/msdfgen"])
+    env_text_server_adv.AddExternalIncludes("#thirdparty/msdfgen")
 
 if env["builtin_freetype"] and freetype_enabled:
     env_text_server_adv.Append(CPPDEFINES=["FT_CONFIG_OPTION_USE_BROTLI"])
-    env_text_server_adv.Prepend(CPPPATH=["#thirdparty/freetype/include"])
+    env_text_server_adv.AddExternalIncludes("#thirdparty/freetype/include")
 
 if env["builtin_graphite"] and freetype_enabled and env["graphite"]:
-    env_text_server_adv.Prepend(CPPPATH=["#thirdparty/graphite/include"])
+    env_text_server_adv.AddExternalIncludes("#thirdparty/graphite/include")
 
 env_text_server_adv.add_source_files(module_obj, "*.cpp")
 env.modules_sources += module_obj

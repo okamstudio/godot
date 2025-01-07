@@ -13,7 +13,7 @@ thirdparty_obj = []
 thirdparty_dir = "#thirdparty/ufbx/"
 thirdparty_sources = [thirdparty_dir + "ufbx.c"]
 
-env_fbx.Prepend(CPPPATH=[thirdparty_dir])
+env_fbx.AddExternalIncludes(thirdparty_dir)
 
 env_thirdparty = env_fbx.Clone()
 env_thirdparty.disable_warnings()

@@ -19,7 +19,7 @@ thirdparty_sources = [
 ]
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-env_etcpak.Prepend(CPPPATH=[thirdparty_dir])
+env_etcpak.AddExternalIncludes(thirdparty_dir)
 
 env_thirdparty = env_etcpak.Clone()
 env_thirdparty.disable_warnings()

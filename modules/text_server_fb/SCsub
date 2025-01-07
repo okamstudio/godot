@@ -10,22 +10,18 @@ msdfgen_enabled = "msdfgen" in env.module_list
 env_text_server_fb = env_modules.Clone()
 
 if "svg" in env.module_list:
-    env_text_server_fb.Prepend(
-        CPPPATH=["#thirdparty/thorvg/inc", "#thirdparty/thorvg/src/common", "#thirdparty/thorvg/src/renderer"]
+    env_text_server_fb.AddExternalIncludes(
+        ["#thirdparty/thorvg/inc", "#thirdparty/thorvg/src/common", "#thirdparty/thorvg/src/renderer"]
     )
     # Enable ThorVG static object linking.
     env_text_server_fb.Append(CPPDEFINES=["TVG_STATIC"])
 
 if env["builtin_msdfgen"] and msdfgen_enabled:
-    # Treat msdfgen headers as system headers to avoid raising warnings. Not supported on MSVC.
     env_text_server_fb.Append(CPPDEFINES=[("MSDFGEN_PUBLIC", "")])
-    if not env.msvc:
-        env_text_server_fb.Append(CPPFLAGS=["-isystem", Dir("#thirdparty/msdfgen").path])
-    else:
-        env_text_server_fb.Prepend(CPPPATH=["#thirdparty/msdfgen"])
+    env_text_server_fb.AddExternalIncludes("#thirdparty/msdfgen")
 
 if env["builtin_freetype"] and freetype_enabled:
     env_text_server_fb.Append(CPPDEFINES=["FT_CONFIG_OPTION_USE_BROTLI"])
-    env_text_server_fb.Prepend(CPPPATH=["#thirdparty/freetype/include"])
+    env_text_server_fb.AddExternalIncludes("#thirdparty/freetype/include")
 
 env_text_server_fb.add_source_files(env.modules_sources, "*.cpp")

@@ -42,11 +42,11 @@ if env["builtin_libvorbis"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_vorbis.Prepend(CPPPATH=[thirdparty_dir])
+    env_vorbis.AddExternalIncludes(thirdparty_dir)
 
     # also requires libogg
     if env["builtin_libogg"]:
-        env_vorbis.Prepend(CPPPATH=["#thirdparty/libogg"])
+        env_vorbis.AddExternalIncludes("#thirdparty/libogg")
 
     env_thirdparty = env_vorbis.Clone()
     env_thirdparty.disable_warnings()

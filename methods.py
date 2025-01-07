@@ -202,6 +202,11 @@ def disable_warnings(self):
         self.AppendUnique(CCFLAGS=["-w"])
 
 
+def add_external_includes(self, dirs) -> None:
+    for dir in dirs if isinstance(dirs, list) else [dirs]:
+        self.AppendUnique(CPPFLAGS=["${EXTHEADERPREFIX}" + self.Dir(dir).path])
+
+
 def force_optimization_on_debug(self):
     # 'self' is the environment
     if self["target"] == "template_release":

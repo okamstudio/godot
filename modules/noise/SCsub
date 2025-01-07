@@ -7,7 +7,7 @@ Import("env_modules")
 env_noise = env_modules.Clone()
 
 thirdparty_dir = "#thirdparty/noise/"
-env_noise.Prepend(CPPPATH=[thirdparty_dir])
+env_noise.AddExternalIncludes(thirdparty_dir)
 
 # Godot source files
 

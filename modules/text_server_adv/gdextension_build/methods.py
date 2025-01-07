@@ -50,6 +50,11 @@ def disable_warnings(self):
         self.AppendUnique(CCFLAGS=["-w"])
 
 
+def add_external_includes(self, dirs) -> None:
+    for dir in dirs if isinstance(dirs, list) else [dirs]:
+        self.AppendUnique(CPPFLAGS=["${EXTHEADERPREFIX}" + self.Dir(dir).path])
+
+
 def make_icu_data(target, source, env):
     dst = target[0].srcnode().abspath
     with open(dst, "w", encoding="utf-8", newline="\n") as g:

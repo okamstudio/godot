@@ -24,7 +24,7 @@ if env["builtin_enet"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_enet.Prepend(CPPPATH=[thirdparty_dir])
+    env_enet.AddExternalIncludes(thirdparty_dir)
     env_enet.Append(CPPDEFINES=["GODOT_ENET"])
 
     env_thirdparty = env_enet.Clone()

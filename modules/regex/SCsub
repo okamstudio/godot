@@ -52,7 +52,7 @@ if env["builtin_pcre2"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_regex.Prepend(CPPPATH=[thirdparty_dir])
+    env_regex.AddExternalIncludes(thirdparty_dir)
     env_regex.Append(CPPDEFINES=thirdparty_flags)
 
     def pcre2_builtin(width):

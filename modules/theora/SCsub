@@ -79,13 +79,13 @@ if env["builtin_libtheora"]:
 
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_theora.Prepend(CPPPATH=[thirdparty_dir])
+    env_theora.AddExternalIncludes(thirdparty_dir)
 
     # also requires libogg and libvorbis
     if env["builtin_libogg"]:
-        env_theora.Prepend(CPPPATH=["#thirdparty/libogg"])
+        env_theora.AddExternalIncludes("#thirdparty/libogg")
     if env["builtin_libvorbis"]:
-        env_theora.Prepend(CPPPATH=["#thirdparty/libvorbis"])
+        env_theora.AddExternalIncludes("#thirdparty/libvorbis")
 
     env_thirdparty = env_theora.Clone()
     env_thirdparty.disable_warnings()

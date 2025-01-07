@@ -18,7 +18,7 @@ if env["builtin_libogg"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_ogg.Prepend(CPPPATH=[thirdparty_dir])
+    env_ogg.AddExternalIncludes(thirdparty_dir)
 
     env_thirdparty = env_ogg.Clone()
     env_thirdparty.disable_warnings()

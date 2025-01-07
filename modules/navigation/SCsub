@@ -28,7 +28,7 @@ if env["builtin_recastnavigation"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir + "Include"])
+    env_navigation.AddExternalIncludes(thirdparty_dir + "Include")
 
     env_thirdparty = env_navigation.Clone()
     env_thirdparty.disable_warnings()
@@ -45,7 +45,7 @@ if env["builtin_rvo2_2d"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+    env_navigation.AddExternalIncludes(thirdparty_dir)
 
     env_thirdparty = env_navigation.Clone()
     env_thirdparty.disable_warnings()
@@ -61,7 +61,7 @@ if env["builtin_rvo2_3d"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_navigation.Prepend(CPPPATH=[thirdparty_dir])
+    env_navigation.AddExternalIncludes(thirdparty_dir)
 
     env_thirdparty = env_navigation.Clone()
     env_thirdparty.disable_warnings()

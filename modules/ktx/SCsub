@@ -33,18 +33,18 @@ thirdparty_sources = [
 ]
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-env_ktx.Prepend(CPPPATH=[thirdparty_dir + "include"])
-env_ktx.Prepend(CPPPATH=[thirdparty_dir + "utils"])
-env_ktx.Prepend(CPPPATH=[thirdparty_dir + "lib"])
-env_ktx.Prepend(CPPPATH=[thirdparty_dir + "other_include"])
+env_ktx.AddExternalIncludes(thirdparty_dir + "include")
+env_ktx.AddExternalIncludes(thirdparty_dir + "utils")
+env_ktx.AddExternalIncludes(thirdparty_dir + "lib")
+env_ktx.AddExternalIncludes(thirdparty_dir + "other_include")
 
-env_ktx.Prepend(CPPPATH=["#thirdparty/basis_universal"])
+env_ktx.AddExternalIncludes("#thirdparty/basis_universal")
 if env.editor_build:
     # We already build miniz in the basis_universal module (editor only).
     env_ktx.Append(CPPDEFINES=["MINIZ_HEADER_FILE_ONLY"])
 
 if env["vulkan"]:
-    env_ktx.Prepend(CPPPATH=["#thirdparty/vulkan/include"])
+    env_ktx.AddExternalIncludes("#thirdparty/vulkan/include")
 else:
     # Falls back on bundled `vkformat_enum.h`.
     env_ktx.Append(CPPDEFINES=["LIBKTX"])

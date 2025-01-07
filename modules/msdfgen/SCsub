@@ -36,7 +36,7 @@ if env["builtin_msdfgen"]:
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
     env_msdfgen.Append(CPPDEFINES=[("MSDFGEN_PUBLIC", "")])
-    env_msdfgen.Prepend(CPPPATH=["#thirdparty/freetype/include", "#thirdparty/msdfgen", "#thirdparty/nanosvg"])
+    env_msdfgen.AddExternalIncludes(["#thirdparty/freetype/include", "#thirdparty/msdfgen", "#thirdparty/nanosvg"])
 
     lib = env_msdfgen.add_library("msdfgen_builtin", thirdparty_sources)
     thirdparty_obj += lib

@@ -21,6 +21,7 @@ time_at_start = time.time()
 
 env = SConscript("./godot-cpp/SConstruct")
 env.__class__.disable_warnings = methods.disable_warnings
+env.__class__.AddExternalIncludes = methods.add_external_includes
 
 opts = Variables([], ARGUMENTS)
 opts.Add(BoolVariable("brotli_enabled", "Use Brotli library", True))
@@ -36,8 +37,13 @@ opts.Update(env)
 if not env["verbose"]:
     methods.no_verbose(env)
 
+# Allow marking includes as external/system to avoid raising warnings.
 if env["platform"] == "windows" and not env["use_mingw"]:
     env.AppendUnique(CCFLAGS=["/utf-8"])  # Force to use Unicode encoding.
+    env.AppendUnique(CPPFLAGS=["/external:W0"])
+    env["EXTHEADERPREFIX"] = "/external:I"
+else:
+    env["EXTHEADERPREFIX"] = "-isystem"
 
 # ThorVG
 if env["thorvg_enabled"] and env["freetype_enabled"]:
@@ -94,8 +100,8 @@ if env["thorvg_enabled"] and env["freetype_enabled"]:
     ]
     thirdparty_tvg_sources = [thirdparty_tvg_dir + file for file in thirdparty_tvg_sources]
 
-    env_tvg.Append(
-        CPPPATH=[
+    env_tvg.AddExternalIncludes(
+        [
             "../../../thirdparty/thorvg/inc",
             "../../../thirdparty/thorvg/src/common",
             "../../../thirdparty/thorvg/src/renderer",
@@ -111,8 +117,8 @@ if env["thorvg_enabled"] and env["freetype_enabled"]:
     # Enable ThorVG static object linking.
     env_tvg.Append(CPPDEFINES=["TVG_STATIC"])
 
-    env.Append(
-        CPPPATH=[
+    env.AddExternalIncludes(
+        [
             "../../../thirdparty/thorvg/inc",
             "../../../thirdparty/thorvg/src/common",
             "../../../thirdparty/thorvg/src/renderer",
@@ -154,8 +160,8 @@ if env["msdfgen_enabled"] and env["freetype_enabled"]:
     thirdparty_msdfgen_sources = [thirdparty_msdfgen_dir + file for file in thirdparty_msdfgen_sources]
 
     env_msdfgen.Append(CPPDEFINES=[("MSDFGEN_PUBLIC", "")])
-    env_msdfgen.Append(CPPPATH=["../../../thirdparty/freetype/include", "../../../thirdparty/msdfgen"])
-    env.Append(CPPPATH=["../../../thirdparty/msdfgen"])
+    env_msdfgen.AddExternalIncludes(["../../../thirdparty/freetype/include", "../../../thirdparty/msdfgen"])
+    env.AddExternalIncludes("../../../thirdparty/msdfgen")
     env.Append(CPPDEFINES=[("MSDFGEN_PUBLIC", "")])
     env.Append(CPPDEFINES=["MODULE_MSDFGEN_ENABLED"])
 
@@ -270,11 +276,11 @@ if env["freetype_enabled"]:
         ]
         thirdparty_freetype_sources += [thirdparty_brotli_dir + file for file in thirdparty_brotli_sources]
         env_freetype.Append(CPPDEFINES=["FT_CONFIG_OPTION_USE_BROTLI"])
-        env_freetype.Prepend(CPPPATH=[thirdparty_brotli_dir + "include"])
+        env_freetype.AddExternalIncludes(thirdparty_brotli_dir + "include")
         env.Append(CPPDEFINES=["FT_CONFIG_OPTION_USE_BROTLI"])
 
-    env_freetype.Append(CPPPATH=[thirdparty_freetype_dir + "/include", thirdparty_zlib_dir, thirdparty_png_dir])
-    env.Append(CPPPATH=[thirdparty_freetype_dir + "/include"])
+    env_freetype.AddExternalIncludes([thirdparty_freetype_dir + "/include", thirdparty_zlib_dir, thirdparty_png_dir])
+    env.AddExternalIncludes(thirdparty_freetype_dir + "/include")
 
     env_freetype.Append(
         CPPDEFINES=[
@@ -381,8 +387,8 @@ if env["freetype_enabled"]:
     ]
 thirdparty_harfbuzz_sources = [thirdparty_harfbuzz_dir + file for file in thirdparty_harfbuzz_sources]
 
-env_harfbuzz.Append(
-    CPPPATH=[
+env_harfbuzz.AddExternalIncludes(
+    [
         "../../../thirdparty/harfbuzz/src",
         "../../../thirdparty/icu4c/common/",
         "../../../thirdparty/icu4c/i18n/",
@@ -390,8 +396,8 @@ env_harfbuzz.Append(
 )
 
 if env["freetype_enabled"]:
-    env_harfbuzz.Append(
-        CPPPATH=[
+    env_harfbuzz.AddExternalIncludes(
+        [
             "../../../thirdparty/freetype/include",
             "../../../thirdparty/graphite/include",
         ]
@@ -419,7 +425,7 @@ if env["freetype_enabled"]:
         ]
     )
 
-env.Append(CPPPATH=["../../../thirdparty/harfbuzz/src"])
+env.AddExternalIncludes("../../../thirdparty/harfbuzz/src")
 
 lib = env_harfbuzz.Library(
     f'harfbuzz_builtin{env["suffix"]}{env["LIBSUFFIX"]}',
@@ -472,7 +478,7 @@ if env["graphite_enabled"] and env["freetype_enabled"]:
 
     thirdparty_graphite_sources = [thirdparty_graphite_dir + file for file in thirdparty_graphite_sources]
 
-    env_graphite.Append(CPPPATH=["../../../thirdparty/graphite/src", "../../../thirdparty/graphite/include"])
+    env_graphite.AddExternalIncludes(["../../../thirdparty/graphite/src", "../../../thirdparty/graphite/include"])
     env_graphite.Append(
         CCFLAGS=[
             "-DGRAPHITE2_STATIC",
@@ -704,16 +710,15 @@ thirdparty_icu_sources = [thirdparty_icu_dir + file for file in thirdparty_icu_s
 icu_data_name = "icudt76l.dat"
 
 if env["static_icu_data"]:
-    env_icu.Depends("../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/" + icu_data_name)
-    env_icu.Command(
+    thirdparty_icu_sources += env_icu.Command(
         "../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/" + icu_data_name, methods.make_icu_data
     )
     env.Append(CXXFLAGS=["-DICU_STATIC_DATA"])
-    env.Append(CPPPATH=["../../../thirdparty/icu4c/"])
+    env.AddExternalIncludes("../../../thirdparty/icu4c/")
 else:
     thirdparty_icu_sources += ["../icu_data/icudata_stub.cpp"]
 
-env_icu.Append(CPPPATH=["../../../thirdparty/icu4c/common/", "../../../thirdparty/icu4c/i18n/"])
+env_icu.AddExternalIncludes(["../../../thirdparty/icu4c/common/", "../../../thirdparty/icu4c/i18n/"])
 env_icu.Append(
     CXXFLAGS=[
         "-DU_STATIC_IMPLEMENTATION",
@@ -740,7 +745,7 @@ env.Append(
         "-DICU_DATA_NAME=" + icu_data_name,
     ]
 )
-env.Append(CPPPATH=["../../../thirdparty/icu4c/common/", "../../../thirdparty/icu4c/i18n/"])
+env.AddExternalIncludes(["../../../thirdparty/icu4c/common/", "../../../thirdparty/icu4c/i18n/"])
 
 if env["platform"] == "windows":
     env.Append(LIBS=["advapi32"])

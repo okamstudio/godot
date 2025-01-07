@@ -17,7 +17,7 @@ if env["builtin_xatlas"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_xatlas_unwrap.Prepend(CPPPATH=[thirdparty_dir])
+    env_xatlas_unwrap.AddExternalIncludes(thirdparty_dir)
 
     env_thirdparty = env_xatlas_unwrap.Clone()
     env_thirdparty.disable_warnings()

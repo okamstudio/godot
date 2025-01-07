@@ -120,7 +120,7 @@ if env["builtin_mbedtls"]:
     thirdparty_dir = "#thirdparty/mbedtls/library/"
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    env_mbed_tls.Prepend(CPPPATH=["#thirdparty/mbedtls/include/"])
+    env_mbed_tls.AddExternalIncludes("#thirdparty/mbedtls/include/")
     config_path = "thirdparty/mbedtls/include/godot_module_mbedtls_config.h"
     config_path = f"<{config_path}>" if env_mbed_tls["ninja"] and env_mbed_tls.msvc else f'\\"{config_path}\\"'
     env_mbed_tls.Append(CPPDEFINES=[("MBEDTLS_CONFIG_FILE", config_path)])

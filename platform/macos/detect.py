@@ -231,7 +231,7 @@ def configure(env: "SConsEnvironment"):
             env.Append(LINKFLAGS=["-lANGLE.macos." + env["arch"]])
             env.Append(LINKFLAGS=["-lEGL.macos." + env["arch"]])
             env.Append(LINKFLAGS=["-lGLES.macos." + env["arch"]])
-        env.Prepend(CPPPATH=["#thirdparty/angle/include"])
+        env.AddExternalIncludes("#thirdparty/angle/include")
 
     env.Append(LINKFLAGS=["-rpath", "@executable_path/../Frameworks", "-rpath", "@executable_path"])
 
@@ -246,7 +246,7 @@ def configure(env: "SConsEnvironment"):
         extra_frameworks.add("Metal")
         extra_frameworks.add("MetalKit")
         extra_frameworks.add("MetalFX")
-        env.Prepend(CPPPATH=["#thirdparty/spirv-cross"])
+        env.AddExternalIncludes("#thirdparty/spirv-cross")
 
     if env["vulkan"]:
         env.AppendUnique(CPPDEFINES=["VULKAN_ENABLED", "RD_ENABLED"])
