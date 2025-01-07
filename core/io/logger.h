@@ -34,6 +34,7 @@
 #include "core/io/file_access.h"
 #include "core/string/ustring.h"
 #include "core/templates/vector.h"
+#include "core/variant/callable.h"
 #include "modules/modules_enabled.gen.h" // For regex.
 #ifdef MODULE_REGEX_ENABLED
 #include "modules/regex/regex.h"
@@ -112,6 +113,18 @@ public:
 	void add_logger(Logger *p_logger);
 
 	virtual ~CompositeLogger();
+};
+
+class ScriptCallbackLogger : public Logger {
+	Vector<Callable> cbs;
+
+public:
+	explicit ScriptCallbackLogger() {}
+
+	void add_callback(const Callable &p_cb);
+	void remove_callback(const Callable &p_cb);
+
+	virtual void logv(const char *p_format, va_list p_list, bool p_err) override _PRINTF_FORMAT_ATTRIBUTE_2_0;
 };
 
 #endif // LOGGER_H

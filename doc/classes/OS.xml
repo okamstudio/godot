@@ -11,6 +11,13 @@
 		<link title="Operating System Testing Demo">https://godotengine.org/asset-library/asset/2789</link>
 	</tutorials>
 	<methods>
+		<method name="add_logger">
+			<return type="void" />
+			<param index="0" name="callback" type="Callable" />
+			<description>
+				Adds a callback function, which is called when a log message is printed. The callback function takes two arguments: [code]message: String[/code] and [code]error: bool[/code].
+			</description>
+		</method>
 		<method name="alert">
 			<return type="void" />
 			<param index="0" name="text" type="String" />
@@ -741,6 +748,13 @@
 				[b]Note:[/b] This method automatically replaces [code]\r\n[/code] line breaks with [code]\n[/code] and removes them from the end of the string. Use [method read_buffer_from_stdin] to read the unprocessed data.
 				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
 				[b]Note:[/b] On exported Windows builds, run the console wrapper executable to access the terminal. If standard input is console, calling this method without console wrapped will freeze permanently. If standard input is pipe or file, it can be used without console wrapper. If you need a single executable with full console support, use a custom build compiled with the [code]windows_subsystem=console[/code] flag.
+			</description>
+		</method>
+		<method name="remove_logger">
+			<return type="void" />
+			<param index="0" name="callback" type="Callable" />
+			<description>
+				Removes the given callback function if it was previously added with [method add_logger].
 			</description>
 		</method>
 		<method name="request_permission">

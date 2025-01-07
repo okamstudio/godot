@@ -65,6 +65,7 @@ class OS {
 	bool _embedded_in_editor = false;
 
 	CompositeLogger *_logger = nullptr;
+	ScriptCallbackLogger *_cb_logger = nullptr;
 
 	bool restart_on_exit = false;
 	List<String> restart_commandline;
@@ -130,6 +131,9 @@ public:
 	typedef int64_t ProcessID;
 
 	static OS *get_singleton();
+
+	void _add_logger(const Callable &p_callback);
+	void _remove_logger(const Callable &p_callback);
 
 	void set_current_rendering_driver_name(const String &p_driver_name) { _current_rendering_driver_name = p_driver_name; }
 	void set_current_rendering_method(const String &p_name) { _current_rendering_method = p_name; }

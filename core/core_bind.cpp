@@ -224,6 +224,14 @@ String OS::get_system_ca_certificates() {
 	return ::OS::get_singleton()->get_system_ca_certificates();
 }
 
+void OS::add_logger(const Callable &p_callback) {
+	::OS::get_singleton()->_add_logger(p_callback);
+}
+
+void OS::remove_logger(const Callable &p_callback) {
+	::OS::get_singleton()->_remove_logger(p_callback);
+}
+
 PackedStringArray OS::get_connected_midi_inputs() {
 	return ::OS::get_singleton()->get_connected_midi_inputs();
 }
@@ -631,6 +639,9 @@ String OS::get_unique_id() const {
 OS *OS::singleton = nullptr;
 
 void OS::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("add_logger", "callback"), &OS::add_logger);
+	ClassDB::bind_method(D_METHOD("remove_logger", "callback"), &OS::remove_logger);
+
 	ClassDB::bind_method(D_METHOD("get_entropy", "size"), &OS::get_entropy);
 	ClassDB::bind_method(D_METHOD("get_system_ca_certificates"), &OS::get_system_ca_certificates);
 	ClassDB::bind_method(D_METHOD("get_connected_midi_inputs"), &OS::get_connected_midi_inputs);

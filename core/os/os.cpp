@@ -70,6 +70,20 @@ void OS::_set_logger(CompositeLogger *p_logger) {
 	_logger = p_logger;
 }
 
+void OS::_add_logger(const Callable &p_callback) {
+	if (!_cb_logger) {
+		_cb_logger = memnew(ScriptCallbackLogger);
+		add_logger(_cb_logger);
+	}
+	_cb_logger->add_callback(p_callback);
+}
+
+void OS::_remove_logger(const Callable &p_callback) {
+	if (_cb_logger) {
+		_cb_logger->remove_callback(p_callback);
+	}
+}
+
 void OS::add_logger(Logger *p_logger) {
 	if (!_logger) {
 		Vector<Logger *> loggers;

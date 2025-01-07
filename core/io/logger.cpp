@@ -275,3 +275,42 @@ CompositeLogger::~CompositeLogger() {
 		memdelete(loggers[i]);
 	}
 }
+
+void ScriptCallbackLogger::add_callback(const Callable &p_cb) {
+	cbs.push_back(p_cb);
+}
+
+void ScriptCallbackLogger::remove_callback(const Callable &p_cb) {
+	cbs.erase(p_cb);
+}
+
+void ScriptCallbackLogger::logv(const char *p_format, va_list p_list, bool p_err) {
+	if (cbs.size()) {
+		const int static_buf_size = 512;
+		char static_buf[static_buf_size];
+		char *buf = static_buf;
+		va_list list_copy;
+		va_copy(list_copy, p_list);
+		int len = vsnprintf(buf, static_buf_size, p_format, p_list);
+		if (len >= static_buf_size) {
+			buf = (char *)Memory::alloc_static(len + 1);
+			vsnprintf(buf, len + 1, p_format, list_copy);
+		}
+		va_end(list_copy);
+
+		Variant v_message = String::utf8(buf, len);
+		Variant v_error = p_err;
+		const Variant *v_args[2] = { &v_message, &v_error };
+		Variant ret;
+		Callable::CallError ce;
+		for (Callable &cb : cbs) {
+			if (cb.is_valid()) {
+				cb.callp((const Variant **)&v_args, 2, ret, ce);
+			}
+		}
+
+		if (len >= static_buf_size) {
+			Memory::free_static(buf);
+		}
+	}
+}

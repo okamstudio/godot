@@ -155,6 +155,9 @@ public:
 		STD_HANDLE_UNKNOWN,
 	};
 
+	void add_logger(const Callable &p_callback);
+	void remove_logger(const Callable &p_callback);
+
 	virtual PackedStringArray get_connected_midi_inputs();
 	virtual void open_midi_inputs();
 	virtual void close_midi_inputs();
