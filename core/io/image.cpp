@@ -3967,7 +3967,7 @@ Error Image::load_exr_from_buffer(const Vector<uint8_t> &p_array) {
 	ERR_FAIL_NULL_V_MSG(
 			_exr_mem_loader_func,
 			ERR_UNAVAILABLE,
-			"The TinyEXR module isn't enabled. Recompile the Godot editor or export template binary with the `tinyexr_always=yes` SCons option.");
+			"The TinyEXR module isn't enabled. Recompile the Godot editor or export template binary with the `tinyexr_export_templates=yes` SCons option.");
 	return _load_from_buffer(p_array, _exr_mem_loader_func);
 }
 
