@@ -636,7 +636,7 @@ bool GDMono::_load_project_assembly() {
 	}
 
 	String loaded_assembly_path;
-	bool success = plugin_callbacks.LoadProjectAssemblyCallback(assembly_path.utf16(), &loaded_assembly_path);
+	bool success = plugin_callbacks.LoadProjectAssemblyCallback(assembly_path.utf16().get_data(), &loaded_assembly_path);
 
 	if (success) {
 		project_assembly_path = loaded_assembly_path.simplify_path();

@@ -469,13 +469,13 @@ _FORCE_INLINE_ void CodeSignRequirements::_parse_certificate_slot(uint32_t &r_po
 _FORCE_INLINE_ void CodeSignRequirements::_parse_key(uint32_t &r_pos, String &r_out, uint32_t p_rq_size) const {
 #define _R(x) BSWAP32(*(uint32_t *)(blob.ptr() + x))
 	ERR_FAIL_COND_MSG(r_pos >= p_rq_size, "CodeSign/Requirements: Out of bounds.");
-	uint32_t key_size = _R(r_pos);
+	const uint32_t key_size = _R(r_pos);
 	ERR_FAIL_COND_MSG(r_pos + key_size > p_rq_size, "CodeSign/Requirements: Out of bounds.");
 	CharString key;
 	key.resize(key_size);
 	memcpy(key.ptrw(), blob.ptr() + r_pos + 4, key_size);
 	r_pos += 4 + key_size + PAD(key_size, 4);
-	r_out += "[" + String::utf8(key, key_size) + "]";
+	r_out += "[" + String::utf8(key) + "]";
 #undef _R
 }
 
@@ -526,13 +526,13 @@ _FORCE_INLINE_ void CodeSignRequirements::_parse_hash_string(uint32_t &r_pos, St
 _FORCE_INLINE_ void CodeSignRequirements::_parse_value(uint32_t &r_pos, String &r_out, uint32_t p_rq_size) const {
 #define _R(x) BSWAP32(*(uint32_t *)(blob.ptr() + x))
 	ERR_FAIL_COND_MSG(r_pos >= p_rq_size, "CodeSign/Requirements: Out of bounds.");
-	uint32_t key_size = _R(r_pos);
+	const uint32_t key_size = _R(r_pos);
 	ERR_FAIL_COND_MSG(r_pos + key_size > p_rq_size, "CodeSign/Requirements: Out of bounds.");
 	CharString key;
 	key.resize(key_size);
 	memcpy(key.ptrw(), blob.ptr() + r_pos + 4, key_size);
 	r_pos += 4 + key_size + PAD(key_size, 4);
-	r_out += "\"" + String::utf8(key, key_size) + "\"";
+	r_out += "\"" + String::utf8(key) + "\"";
 #undef _R
 }
 
