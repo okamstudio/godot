@@ -125,7 +125,8 @@ TEST_CASE("[Image] Saving and loading") {
 
 #ifdef MODULE_EXR_ENABLED
 	// Load EXR
-	Ref<Image> image_exr = memnew(Image());
+	Ref<Image> image_exr;
+	image_exr.instantiate();
 	Ref<FileAccess> f_exr = FileAccess::open(TestUtils::get_data_path("images/icon.exr"), FileAccess::READ, &err);
 	REQUIRE(f_exr.is_valid());
 	PackedByteArray data_exr;
