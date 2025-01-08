@@ -30,6 +30,7 @@
 
 #include "file_access_filesystem_jandroid.h"
 
+#include "filesystem_protocol_os_jandroid.h"
 #include "thread_jandroid.h"
 
 #include "core/os/os.h"
@@ -55,7 +56,7 @@ jmethodID FileAccessFilesystemJAndroid::_file_exists = nullptr;
 jmethodID FileAccessFilesystemJAndroid::_file_last_modified = nullptr;
 jmethodID FileAccessFilesystemJAndroid::_file_resize = nullptr;
 
-String FileAccessFilesystemJAndroid::get_path() const {
+String FileAccessFilesystemJAndroid::_get_path() const {
 	return path_src;
 }
 
@@ -72,7 +73,7 @@ Error FileAccessFilesystemJAndroid::open_internal(const String &p_path, int p_mo
 		JNIEnv *env = get_jni_env();
 		ERR_FAIL_NULL_V(env, ERR_UNCONFIGURED);
 
-		String path = fix_path(p_path).simplify_path();
+		String path = FileSystemProtocolOSJAndroid::fix_path(p_path).simplify_path();
 		jstring js = env->NewStringUTF(path.utf8().get_data());
 		int res = env->CallIntMethod(file_access_handler, _file_open, js, p_mode_flags);
 		env->DeleteLocalRef(js);
@@ -279,36 +280,6 @@ void FileAccessFilesystemJAndroid::flush() {
 		ERR_FAIL_NULL(env);
 		ERR_FAIL_COND_MSG(!is_open(), "File must be opened before use.");
 		env->CallVoidMethod(file_access_handler, _file_flush, id);
-	}
-}
-
-bool FileAccessFilesystemJAndroid::file_exists(const String &p_path) {
-	if (_file_exists) {
-		JNIEnv *env = get_jni_env();
-		ERR_FAIL_NULL_V(env, false);
-
-		String path = fix_path(p_path).simplify_path();
-		jstring js = env->NewStringUTF(path.utf8().get_data());
-		bool result = env->CallBooleanMethod(file_access_handler, _file_exists, js);
-		env->DeleteLocalRef(js);
-		return result;
-	} else {
-		return false;
-	}
-}
-
-uint64_t FileAccessFilesystemJAndroid::_get_modified_time(const String &p_file) {
-	if (_file_last_modified) {
-		JNIEnv *env = get_jni_env();
-		ERR_FAIL_NULL_V(env, false);
-
-		String path = fix_path(p_file).simplify_path();
-		jstring js = env->NewStringUTF(path.utf8().get_data());
-		uint64_t result = env->CallLongMethod(file_access_handler, _file_last_modified, js);
-		env->DeleteLocalRef(js);
-		return result;
-	} else {
-		return 0;
 	}
 }
 

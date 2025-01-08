@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  file_access_android.h                                                 */
+/*  filesystem_protocol_os_jandroid.h                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,63 +28,18 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_ANDROID_H
-#define FILE_ACCESS_ANDROID_H
+#ifndef FILESYSTEM_PROTOCOL_OS_JANDROID_H
+#define FILESYSTEM_PROTOCOL_OS_JANDROID_H
 
-#include "core/io/file_access.h"
+#include "core/io/filesystem_protocol.h"
 
-#include <android/asset_manager.h>
-#include <android/log.h>
-#include <jni.h>
-#include <stdio.h>
-
-class FileAccessAndroid : public FileAccess {
-	static AAssetManager *asset_manager;
-	static jobject j_asset_manager;
-
-	mutable AAsset *asset = nullptr;
-	mutable uint64_t len = 0;
-	mutable uint64_t pos = 0;
-	mutable bool eof = false;
-	String absolute_path;
-	String path_src;
-
-	void _close();
-
-	friend class FileSystemProtocolOSAndroid;
-
-protected:
-	/// returns the path for the current open file
-	virtual String _get_path() const override;
+class FileSystemProtocolOSJAndroid : public FileSystemProtocol {
 public:
-	virtual Error open_internal(const String &p_path, int p_mode_flags) override; // open a file
-	virtual bool is_open() const override; // true when file is open
-
-	/// returns the absolute path for the current open file
-	virtual String get_path_absolute() const override;
-
-	virtual void seek(uint64_t p_position) override; // seek to a given position
-	virtual void seek_end(int64_t p_position = 0) override; // seek from the end of file
-	virtual uint64_t get_position() const override; // get position in the file
-	virtual uint64_t get_length() const override; // get size of the file
-
-	virtual bool eof_reached() const override; // reading passed EOF
-
-	virtual Error resize(int64_t p_length) override { return ERR_UNAVAILABLE; }
-	virtual uint64_t get_buffer(uint8_t *p_dst, uint64_t p_length) const override;
-
-	virtual Error get_error() const override; // get last error
-
-	virtual void flush() override;
-	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override;
-
-	virtual void close() override;
-
-	static void setup(jobject p_asset_manager);
-
-	static void terminate();
-
-	~FileAccessAndroid();
+	static String fix_path(const String &p_path);
+	
+	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override;
+	virtual bool file_exists(const String &p_path) const override;
+	virtual uint64_t get_modified_time(const String &p_file) const override;
 };
 
-#endif // FILE_ACCESS_ANDROID_H
+#endif // FILESYSTEM_PROTOCOL_OS_JANDROID_H

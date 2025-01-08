@@ -34,15 +34,19 @@
 #include "display_server_android.h"
 #include "file_access_android.h"
 #include "file_access_filesystem_jandroid.h"
+#include "filesystem_protocol_os_android.h"
+#include "filesystem_protocol_os_jandroid.h"
 #include "java_godot_io_wrapper.h"
 #include "java_godot_wrapper.h"
 #include "net_socket_android.h"
 
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
+#include "core/io/filesystem.h"
 #include "core/io/xml_parser.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
+#include "drivers/unix/filesystem_protocol_os_unix.h"
 #include "main/main.h"
 #include "scene/main/scene_tree.h"
 #include "servers/rendering_server.h"
@@ -86,17 +90,50 @@ void OS_Android::alert(const String &p_alert, const String &p_title) {
 void OS_Android::initialize_core() {
 	OS_Unix::initialize_core();
 
+	NetSocketAndroid::make_default();
+}
+
+void OS_Android::initialize() {
+	initialize_core();
+}
+
+const String OS_Android::filesystem_protocol_name_os_unix = "os-unix";
+const String OS_Android::filesystem_protocol_name_os_android = "os-android";
+const String OS_Android::filesystem_protocol_name_os_jandroid = "os-jandroid";
+
+void OS_Android::initialize_filesystem() {
+	FileSystem *fs = FileSystem::get_singleton();
+
+	// Unix
+	Ref<FileSystemProtocolOSUnix> protocol_os_unix = Ref<FileSystemProtocolOSUnix>();
+	protocol_os_unix.instantiate();
+	fs->add_protocol(filesystem_protocol_name_os_unix, protocol_os_unix);
+
+	// Android
+	Ref<FileSystemProtocolOSAndroid> protocol_os_android = Ref<FileSystemProtocolOSAndroid>();
+	protocol_os_android.instantiate();
+	fs->add_protocol(filesystem_protocol_name_os_android, protocol_os_android);
+
+	// Filesystem JAndroid
+	Ref<FileSystemProtocolOSJAndroid> protocol_os_jandroid = Ref<FileSystemProtocolOSJAndroid>();
+	protocol_os_jandroid.instantiate();
+	fs->add_protocol(filesystem_protocol_name_os_jandroid, protocol_os_jandroid);
+	// JAndroid is the main protocol for direct OS file accessing
+	fs->add_protocol(FileSystem::protocol_name_os, protocol_os_jandroid);
+
+	// user:// uses Unix
+	fs->set_underlying_protocol_name_for_user(filesystem_protocol_name_os_unix);
+
+	// res:// uses Unix or Android depending on apk expansion usage
 #ifdef TOOLS_ENABLED
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
+	fs->set_underlying_protocol_name_for_resources(filesystem_protocol_name_os_unix);
 #else
 	if (use_apk_expansion) {
-		FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
+		fs->set_underlying_protocol_name_for_resources(filesystem_protocol_name_os_unix);
 	} else {
-		FileAccess::make_default<FileAccessAndroid>(FileAccess::ACCESS_RESOURCES);
+		fs->set_underlying_protocol_name_for_resources(filesystem_protocol_name_os_android);
 	}
 #endif
-	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
-	FileAccess::make_default<FileAccessFilesystemJAndroid>(FileAccess::ACCESS_FILESYSTEM);
 
 #ifdef TOOLS_ENABLED
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
@@ -109,12 +146,6 @@ void OS_Android::initialize_core() {
 #endif
 	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
 	DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_FILESYSTEM);
-
-	NetSocketAndroid::make_default();
-}
-
-void OS_Android::initialize() {
-	initialize_core();
 }
 
 void OS_Android::initialize_joypads() {
@@ -901,7 +932,7 @@ Error OS_Android::setup_remote_filesystem(const String &p_server_host, int p_por
 	Error err = OS_Unix::setup_remote_filesystem(p_server_host, p_port, p_password, r_project_path);
 	if (err == OK) {
 		remote_fs_dir = r_project_path;
-		FileAccess::make_default<FileAccessFilesystemJAndroid>(FileAccess::ACCESS_RESOURCES);
+		FileSystem::get_singleton()->set_underlying_protocol_name_for_resources(filesystem_protocol_name_os_jandroid);
 	}
 	return err;
 }

@@ -59,19 +59,22 @@ private:
 
 	void register_protocols();
 
+	String underlying_protocol_name_for_resources;
+	String underlying_protocol_name_for_user;
+
 public:
 	// out values are only valid when method returns true
 	static bool try_find_protocol_in_path(const String &p_path, int *r_protocol_name_end, int *r_file_path_start);
 	// returns whether it found a protocol present in the path
 	static bool split_path(const String &p_path, String *r_protocol_name, String *r_file_path);
 
-	static String protocol_name_os;
-	static String protocol_name_pipe;
-	static String protocol_name_resources;
-	static String protocol_name_user;
-	static String protocol_name_uid;
-	static String protocol_name_gdscript;
-	static String protocol_name_memory;
+	static const String protocol_name_os;
+	static const String protocol_name_pipe;
+	static const String protocol_name_resources;
+	static const String protocol_name_user;
+	static const String protocol_name_uid;
+	static const String protocol_name_gdscript;
+	static const String protocol_name_memory;
 
 	FileSystem();
 	~FileSystem();
@@ -106,6 +109,9 @@ public:
 	Error set_hidden_attribute(const String &p_path, bool p_hidden) const;
 	bool get_read_only_attribute(const String &p_path) const;
 	Error set_read_only_attribute(const String &p_path, bool p_ro) const;
+
+	void set_underlying_protocol_name_for_resources(const String& name);
+	void set_underlying_protocol_name_for_user(const String& name);
 };
 
 #endif // FILESYSTEM_H

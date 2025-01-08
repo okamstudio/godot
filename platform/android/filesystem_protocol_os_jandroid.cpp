@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  file_access_android.h                                                 */
+/*  filesystem_protocol_os_jandroid.cpp                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,63 +28,55 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_ANDROID_H
-#define FILE_ACCESS_ANDROID_H
+#include "filesystem_protocol_os_jandroid.h"
+#include "core/io/filesystem.h"
+#include "file_access_filesystem_jandroid.h"
+#include "thread_jandroid.h"
 
-#include "core/io/file_access.h"
+String FileSystemProtocolOSJAndroid::fix_path(const String &p_path) {
+	String r_path = FileSystem::fix_path(p_path);
+	return r_path;
+}
 
-#include <android/asset_manager.h>
-#include <android/log.h>
-#include <jni.h>
-#include <stdio.h>
+Ref<FileAccess> FileSystemProtocolOSJAndroid::open_file(const String &p_path, int p_mode_flags, Error &r_error) const {
+	Ref<FileAccessFilesystemJAndroid> file = Ref<FileAccessFilesystemJAndroid>();
+	file.instantiate();
 
-class FileAccessAndroid : public FileAccess {
-	static AAssetManager *asset_manager;
-	static jobject j_asset_manager;
+	r_error = file->open_internal(p_path, p_mode_flags);
 
-	mutable AAsset *asset = nullptr;
-	mutable uint64_t len = 0;
-	mutable uint64_t pos = 0;
-	mutable bool eof = false;
-	String absolute_path;
-	String path_src;
+	if (r_error != OK) {
+		file.unref();
+	}
 
-	void _close();
+	return file;
+}
 
-	friend class FileSystemProtocolOSAndroid;
+bool FileSystemProtocolOSJAndroid::file_exists(const String &p_path) const {
+	if (FileAccessFilesystemJAndroid::_file_exists) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, false);
 
-protected:
-	/// returns the path for the current open file
-	virtual String _get_path() const override;
-public:
-	virtual Error open_internal(const String &p_path, int p_mode_flags) override; // open a file
-	virtual bool is_open() const override; // true when file is open
+		String path = fix_path(p_path).simplify_path();
+		jstring js = env->NewStringUTF(path.utf8().get_data());
+		bool result = env->CallBooleanMethod(FileAccessFilesystemJAndroid::file_access_handler, FileAccessFilesystemJAndroid::_file_exists, js);
+		env->DeleteLocalRef(js);
+		return result;
+	} else {
+		return false;
+	}
+}
 
-	/// returns the absolute path for the current open file
-	virtual String get_path_absolute() const override;
+uint64_t FileSystemProtocolOSJAndroid::get_modified_time(const String &p_file) const {
+	if (FileAccessFilesystemJAndroid::_file_last_modified) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, false);
 
-	virtual void seek(uint64_t p_position) override; // seek to a given position
-	virtual void seek_end(int64_t p_position = 0) override; // seek from the end of file
-	virtual uint64_t get_position() const override; // get position in the file
-	virtual uint64_t get_length() const override; // get size of the file
-
-	virtual bool eof_reached() const override; // reading passed EOF
-
-	virtual Error resize(int64_t p_length) override { return ERR_UNAVAILABLE; }
-	virtual uint64_t get_buffer(uint8_t *p_dst, uint64_t p_length) const override;
-
-	virtual Error get_error() const override; // get last error
-
-	virtual void flush() override;
-	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override;
-
-	virtual void close() override;
-
-	static void setup(jobject p_asset_manager);
-
-	static void terminate();
-
-	~FileAccessAndroid();
-};
-
-#endif // FILE_ACCESS_ANDROID_H
+		String path = fix_path(p_file).simplify_path();
+		jstring js = env->NewStringUTF(path.utf8().get_data());
+		uint64_t result = env->CallLongMethod(FileAccessFilesystemJAndroid::file_access_handler, FileAccessFilesystemJAndroid::_file_last_modified, js);
+		env->DeleteLocalRef(js);
+		return result;
+	} else {
+		return 0;
+	}
+}

@@ -39,6 +39,9 @@ FileSystem *FileSystem::get_singleton() {
 }
 FileSystem::FileSystem() {
 	singleton = this;
+
+	underlying_protocol_name_for_resources = protocol_name_os;
+	underlying_protocol_name_for_user = protocol_name_os;
 }
 FileSystem::~FileSystem() {
 	if (singleton == this) {
@@ -46,13 +49,13 @@ FileSystem::~FileSystem() {
 	}
 }
 
-String FileSystem::protocol_name_os = "os";
-String FileSystem::protocol_name_pipe = "pipe";
-String FileSystem::protocol_name_resources = "res";
-String FileSystem::protocol_name_user = "user";
-String FileSystem::protocol_name_uid = "uid";
-String FileSystem::protocol_name_gdscript = "gdscript";
-String FileSystem::protocol_name_memory = "mem";
+const String FileSystem::protocol_name_os = "os";
+const String FileSystem::protocol_name_pipe = "pipe";
+const String FileSystem::protocol_name_resources = "res";
+const String FileSystem::protocol_name_user = "user";
+const String FileSystem::protocol_name_uid = "uid";
+const String FileSystem::protocol_name_gdscript = "gdscript";
+const String FileSystem::protocol_name_memory = "mem";
 
 void FileSystem::register_protocols() {
 	Ref<FileSystemProtocol> protocol_os = get_protocol_or_null(protocol_name_os);
@@ -298,6 +301,13 @@ Error FileSystem::set_read_only_attribute(const String &p_path, bool p_ro) const
 	ERR_FAIL_COND_V_MSG(protocol.is_null(), ERR_FILE_BAD_PATH, "Unknown filesystem protocol " + protocol_name);
 
 	return protocol->set_read_only_attribute(file_path, p_ro);
+}
+
+void FileSystem::set_underlying_protocol_name_for_resources(const String &name) {
+	underlying_protocol_name_for_resources = name;
+}
+void FileSystem::set_underlying_protocol_name_for_user(const String &name) {
+	underlying_protocol_name_for_user = name;
 }
 
 void FileSystem::_bind_methods() {
