@@ -58,17 +58,23 @@ const String FileSystem::protocol_name_gdscript = "gdscript";
 const String FileSystem::protocol_name_memory = "mem";
 
 void FileSystem::register_protocols() {
-	Ref<FileSystemProtocol> protocol_os = get_protocol_or_null(protocol_name_os);
-	ERR_FAIL_COND_MSG(protocol_os.is_null(), "Cannot get os:// protocol handler! Make sure you have registered the platform os filesystem protocol in OS_XXX::initialize_filesystem()!");
+	// Register user://
+	Ref<FileSystemProtocol> protocol_os_for_user = get_protocol_or_null(underlying_protocol_name_for_user);
+	ERR_FAIL_COND_MSG(protocol_os_for_user.is_null(), "Cannot get " + underlying_protocol_name_for_user + ":// protocol handler! Make sure you have registered it in OS_XXX::initialize_filesystem()!");
 
 	Ref<FileSystemProtocolUser> protocol_user = Ref<FileSystemProtocolUser>();
-	protocol_user.instantiate(protocol_os);
+	protocol_user.instantiate(protocol_os_for_user);
 	add_protocol(protocol_name_user, protocol_user);
 
+	// Register res://
+	Ref<FileSystemProtocol> protocol_os_for_res = get_protocol_or_null(underlying_protocol_name_for_resources);
+	ERR_FAIL_COND_MSG(protocol_os_for_res.is_null(), "Cannot get " + underlying_protocol_name_for_resources + ":// protocol handler! Make sure you have registered it in OS_XXX::initialize_filesystem()!");
+
 	Ref<FileSystemProtocolResources> protocol_resources = Ref<FileSystemProtocolResources>();
-	protocol_resources.instantiate(protocol_os);
+	protocol_resources.instantiate(protocol_os_for_res);
 	add_protocol(protocol_name_resources, protocol_resources);
 
+	// Register uid://
 	Ref<FileSystemProtocolUID> protocol_uid = Ref<FileSystemProtocolUID>();
 	protocol_uid.instantiate(protocol_resources);
 	add_protocol(protocol_name_uid, protocol_uid);
