@@ -36,7 +36,7 @@
 class FileSystemProtocolOSJAndroid : public FileSystemProtocol {
 public:
 	static String fix_path(const String &p_path);
-	
+
 	virtual Ref<FileAccess> open_file(const String &p_path, int p_mode_flags, Error &r_error) const override;
 	virtual bool file_exists(const String &p_path) const override;
 	virtual uint64_t get_modified_time(const String &p_file) const override;

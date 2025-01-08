@@ -56,6 +56,7 @@ class FileAccessAndroid : public FileAccess {
 protected:
 	/// returns the path for the current open file
 	virtual String _get_path() const override;
+
 public:
 	virtual Error open_internal(const String &p_path, int p_mode_flags) override; // open a file
 	virtual bool is_open() const override; // true when file is open

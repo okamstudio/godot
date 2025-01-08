@@ -110,8 +110,8 @@ public:
 	bool get_read_only_attribute(const String &p_path) const;
 	Error set_read_only_attribute(const String &p_path, bool p_ro) const;
 
-	void set_underlying_protocol_name_for_resources(const String& name);
-	void set_underlying_protocol_name_for_user(const String& name);
+	void set_underlying_protocol_name_for_resources(const String &name);
+	void set_underlying_protocol_name_for_user(const String &name);
 };
 
 #endif // FILESYSTEM_H
