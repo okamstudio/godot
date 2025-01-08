@@ -1,14 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:background="@android:color/black"
+	tools:background="@android:color/background_light"
 	xmlns:app="http://schemas.android.com/apk/res-auto">
 
 	<FrameLayout
 		android:id="@+id/godot_fragment_container"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent" />
+		android:layout_height="match_parent"/>
+
+	<FrameLayout
+		android:id="@+id/game_menu_message_container"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:background="#22bebebe"
+		android:visibility="gone"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		tools:visibility="visible">
+
+		<TextView
+			android:layout_width="445dp"
+			android:layout_height="250dp"
+			android:layout_gravity="center"
+			android:background="@drawable/game_menu_message_bg"
+			android:gravity="center"
+			android:text="@string/embedded_game_not_running_message"
+			android:textColor="@android:color/white"
+			android:textSize="18sp"
+			android:textStyle="bold" />
+	</FrameLayout>
 
 	<ProgressBar
 		style="@android:style/Widget.Holo.ProgressBar.Large"

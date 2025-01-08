@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="16dp"
+	android:height="16dp"
+	android:viewportWidth="16"
+	android:viewportHeight="16">
+	<path
+		android:pathData="M8,0a2,2 0,0 0,0 4,2 2,0 0,0 0,-4zM8,6a2,2 0,0 0,0 4,2 2,0 0,0 0,-4zM8,12a2,2 0,0 0,0 4,2 2,0 0,0 0,-4z"
+		android:fillColor="@color/game_menu_icon_disabled_color"/>
+</vector>

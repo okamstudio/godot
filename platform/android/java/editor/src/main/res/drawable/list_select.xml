@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+  <path
+      android:pathData="m1,1v14h8.258l-0.822,-2h-5.436v-2h4.611l-0.822,-2h-3.789v-2h3.887a1.5,1.5 0,0 1,1.098 -0.498v-0.002a1.5,1.5 0,0 1,0.586 0.111l0.945,0.389h0.484v0.199l2,0.822v-7.022h-11zM3,3h7v2h-7zM8,8 L11.291,16 12.238,13.18 14.121,15.063 15.064,14.121 13.18,12.238 16,11.291 8,8z"
+      android:fillColor="@color/game_menu_icon_default_color"/>
+</vector>

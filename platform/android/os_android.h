@@ -187,6 +187,10 @@ private:
 	String get_dynamic_libraries_path() const;
 	// Copy a dynamic library to the given location to make it accessible for loading.
 	bool copy_dynamic_library(const String &p_library_path, const String &p_target_dir, String *r_copy_path = nullptr);
+
+#ifdef TOOLS_ENABLED
+	static void _on_main_screen_changed(const String &p_screen_name);
+#endif
 };
 
 #endif // OS_ANDROID_H

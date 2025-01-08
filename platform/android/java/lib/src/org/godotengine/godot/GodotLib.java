@@ -197,6 +197,30 @@ public class GodotLib {
 	public static native String getEditorSetting(String settingKey);
 
 	/**
+	 * Update the 'key' editor setting with the given data. Must be called on the render thread.
+	 * @param key
+	 * @param data
+	 */
+	public static native void setEditorSetting(String key, Object data);
+
+	/**
+	 * Used to access project metadata from the editor settings. Must be accessed on the render thread.
+	 * @param section
+	 * @param key
+	 * @param defaultValue
+	 * @return
+	 */
+	public static native Object getEditorProjectMetadata(String section, String key, Object defaultValue);
+
+	/**
+	 * Set the project metadata to the editor settings. Must be accessed on the render thread.
+	 * @param section
+	 * @param key
+	 * @param data
+	 */
+	public static native void setEditorProjectMetadata(String section, String key, Object data);
+
+	/**
 	 * Invoke method |p_method| on the Godot object specified by |p_id|
 	 * @param p_id Id of the Godot object to invoke
 	 * @param p_method Name of the method to invoke
@@ -267,4 +291,8 @@ public class GodotLib {
 	 * @return the project resource directory
 	 */
 	public static native String getProjectResourceDir();
+
+	static native boolean isEditorHint();
+
+	static native boolean isProjectManagerHint();
 }

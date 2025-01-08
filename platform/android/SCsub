@@ -30,6 +30,7 @@ android_files = [
     "rendering_context_driver_vulkan_android.cpp",
     "variant/callable_jni.cpp",
     "dialog_utils_jni.cpp",
+    "game_menu_utils_jni.cpp",
 ]
 
 env_android = env.Clone()

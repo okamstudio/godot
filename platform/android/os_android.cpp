@@ -43,6 +43,10 @@
 #include "core/io/xml_parser.h"
 #include "drivers/unix/dir_access_unix.h"
 #include "drivers/unix/file_access_unix.h"
+#ifdef TOOLS_ENABLED
+#include "editor/editor_node.h"
+#include "editor/plugins/game_view_plugin.h"
+#endif
 #include "main/main.h"
 #include "scene/main/scene_tree.h"
 #include "servers/rendering_server.h"
@@ -331,6 +335,15 @@ void OS_Android::main_loop_begin() {
 	if (main_loop) {
 		main_loop->initialize();
 	}
+
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint()) {
+		GameViewPlugin *game_view_plugin = Object::cast_to<GameViewPlugin>(EditorNode::get_singleton()->get_editor_main_screen()->get_plugin_by_name("Game"));
+		if (game_view_plugin != nullptr) {
+			game_view_plugin->connect("main_screen_changed", callable_mp_static(&OS_Android::_on_main_screen_changed));
+		}
+	}
+#endif
 }
 
 bool OS_Android::main_loop_iterate(bool *r_should_swap_buffers) {
@@ -353,6 +366,15 @@ bool OS_Android::main_loop_iterate(bool *r_should_swap_buffers) {
 }
 
 void OS_Android::main_loop_end() {
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint()) {
+		GameViewPlugin *game_view_plugin = Object::cast_to<GameViewPlugin>(EditorNode::get_singleton()->get_editor_main_screen()->get_plugin_by_name("Game"));
+		if (game_view_plugin != nullptr) {
+			game_view_plugin->disconnect("main_screen_changed", callable_mp_static(&OS_Android::_on_main_screen_changed));
+		}
+	}
+#endif
+
 	if (main_loop) {
 		SceneTree *scene_tree = Object::cast_to<SceneTree>(main_loop);
 		if (scene_tree) {
@@ -361,6 +383,14 @@ void OS_Android::main_loop_end() {
 		main_loop->finalize();
 	}
 }
+
+#ifdef TOOLS_ENABLED
+void OS_Android::_on_main_screen_changed(const String &p_screen_name) {
+	if (OS_Android::get_singleton() != nullptr && OS_Android::get_singleton()->get_godot_java() != nullptr) {
+		OS_Android::get_singleton()->get_godot_java()->on_editor_workspace_selected(p_screen_name);
+	}
+}
+#endif
 
 void OS_Android::main_loop_focusout() {
 	DisplayServerAndroid::get_singleton()->send_window_event(DisplayServer::WINDOW_EVENT_FOCUS_OUT);

@@ -93,6 +93,7 @@ GodotJavaWrapper::GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_
 	_verify_apk = p_env->GetMethodID(godot_class, "nativeVerifyApk", "(Ljava/lang/String;)I");
 	_enable_immersive_mode = p_env->GetMethodID(godot_class, "nativeEnableImmersiveMode", "(Z)V");
 	_is_in_immersive_mode = p_env->GetMethodID(godot_class, "isInImmersiveMode", "()Z");
+	_on_editor_workspace_selected = p_env->GetMethodID(godot_class, "nativeOnEditorWorkspaceSelected", "(Ljava/lang/String;)V");
 }
 
 GodotJavaWrapper::~GodotJavaWrapper() {
@@ -586,5 +587,15 @@ bool GodotJavaWrapper::is_in_immersive_mode() {
 		return env->CallBooleanMethod(godot_instance, _is_in_immersive_mode);
 	} else {
 		return false;
+	}
+}
+
+void GodotJavaWrapper::on_editor_workspace_selected(const String &p_workspace) {
+	if (_on_editor_workspace_selected) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL(env);
+
+		jstring j_workspace = env->NewStringUTF(p_workspace.utf8().get_data());
+		env->CallVoidMethod(godot_instance, _on_editor_workspace_selected, j_workspace);
 	}
 }

@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+  <path
+      android:pathData="M4,12a1,1 0,0 0,1.555 0.832l6,-4a1,1 0,0 0,0 -1.664l-6,-4A1,1 0,0 0,4 4z"
+      android:fillColor="@color/game_menu_icon_activated_color"/>
+</vector>

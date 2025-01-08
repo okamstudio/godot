@@ -228,6 +228,11 @@ EditorPlugin *EditorMainScreen::get_selected_plugin() const {
 	return selected_plugin;
 }
 
+EditorPlugin *EditorMainScreen::get_plugin_by_name(const String &p_plugin_name) const {
+	ERR_FAIL_COND_V(!main_editor_plugins.has(p_plugin_name), nullptr);
+	return main_editor_plugins[p_plugin_name];
+}
+
 VBoxContainer *EditorMainScreen::get_control() const {
 	return main_screen_vbox;
 }
@@ -254,6 +259,7 @@ void EditorMainScreen::add_main_plugin(EditorPlugin *p_editor) {
 	buttons.push_back(tb);
 	button_hb->add_child(tb);
 	editor_table.push_back(p_editor);
+	main_editor_plugins.insert(p_editor->get_plugin_name(), p_editor);
 }
 
 void EditorMainScreen::remove_main_plugin(EditorPlugin *p_editor) {
@@ -280,6 +286,7 @@ void EditorMainScreen::remove_main_plugin(EditorPlugin *p_editor) {
 	}
 
 	editor_table.erase(p_editor);
+	main_editor_plugins.erase(p_editor->get_plugin_name());
 }
 
 EditorMainScreen::EditorMainScreen() {

@@ -3,5 +3,16 @@
 	<string name="godot_game_activity_name">Godot Play window</string>
 	<string name="denied_storage_permission_error_msg">Missing storage access permission!</string>
 	<string name="denied_install_packages_permission_error_msg">Missing install packages permission!</string>
-    <string name="pip_button_description">Button used to toggle picture-in-picture mode for the Play window</string>
+	<string name="game_menu_input_event_joypad_motion_label">Input</string>
+	<string name="game_menu_nodes_2d_button_label">2D</string>
+	<string name="game_menu_node_3d_button_label">3D</string>
+	<string name="menu_reset_2d_camera_label">Reset 2D Camera</string>
+	<string name="menu_reset_3d_camera_label">Reset 3D Camera</string>
+	<string name="menu_manipulate_in_game_label">Manipulate In-Game</string>
+	<string name="menu_manipulate_from_editors_label">Manipulate From Editors</string>
+    <string name="menu_embed_game_on_play_label">Embed Game On Play</string>
+	<string name="menu_camera_label">Camera Options</string>
+	<string name="menu_camera_override_label">Override Camera</string>
+	<string name="embedded_game_not_running_message">Press play to start the game.</string>
+	<string name="menu_keep_embed_game_on_top_label">Keep on Top using PiP</string>
 </resources>

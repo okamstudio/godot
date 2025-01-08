@@ -36,7 +36,7 @@ import org.godotengine.godot.xr.XRMode
 /**
  * Provide support for running XR apps / games from the editor window.
  */
-open class GodotXRGame: GodotGame() {
+open class GodotXRGame: BaseGodotGame() {
 
 	override fun overrideOrientationRequest() = true
 
@@ -55,6 +55,8 @@ open class GodotXRGame: GodotGame() {
 	}
 
 	override fun getEditorWindowInfo() = XR_RUN_GAME_INFO
+
+	override fun getGodotAppLayout() = R.layout.godot_xr_game_layout
 
 	override fun getProjectPermissionsToEnable(): MutableList<String> {
 		val permissionsToEnable = super.getProjectPermissionsToEnable()
