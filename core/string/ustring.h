@@ -519,6 +519,15 @@ public:
 	char32_t unicode_at(int p_idx) const;
 
 	CharString ascii(bool p_allow_extended = false) const;
+	// Parse an ascii string.
+	// If any character is > 127, an error will be logged, and 0xfffd will be inserted.
+	Error parse_ascii(const StrRange<char> &p_range);
+	static String ascii(const StrRange<char> &p_range) {
+		String s;
+		s.parse_ascii(p_range);
+		return s;
+	}
+
 	CharString utf8() const;
 	Error parse_utf8(const char *p_utf8, int p_len = -1, bool p_skip_cr = false);
 	Error parse_utf8(const StrRange<char> p_range, bool p_skip_cr = false) {
