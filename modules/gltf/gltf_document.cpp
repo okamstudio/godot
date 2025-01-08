@@ -3814,10 +3814,9 @@ Error GLTFDocument::_serialize_images(Ref<GLTFState> p_state) {
 		if (p_state->filename.to_lower().ends_with("gltf")) {
 			String img_name = p_state->images[i]->get_name();
 			if (img_name.is_empty()) {
-				img_name = itos(i);
+				img_name = itos(i).pad_zeros(3);
 			}
 			img_name = _gen_unique_name(p_state, img_name);
-			img_name = img_name.pad_zeros(3);
 			String relative_texture_dir = "textures";
 			String full_texture_dir = p_state->base_path.path_join(relative_texture_dir);
 			Ref<DirAccess> da = DirAccess::open(p_state->base_path);
