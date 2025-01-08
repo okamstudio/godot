@@ -3175,9 +3175,11 @@ Error GLTFDocument::_serialize_meshes(Ref<GLTFState> p_state) {
 			primitives.push_back(primitive);
 		}
 
-		Dictionary e;
-		e["targetNames"] = target_names;
-		gltf_mesh["extras"] = e;
+		if (!target_names.is_empty()) {
+			Dictionary e;
+			e["targetNames"] = target_names;
+			gltf_mesh["extras"] = e;
+		}
 		_attach_meta_to_extras(import_mesh, gltf_mesh);
 
 		weights.resize(target_names.size());
