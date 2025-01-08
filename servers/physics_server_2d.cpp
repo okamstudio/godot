@@ -232,6 +232,9 @@ void PhysicsPointQueryParameters2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_position", "position"), &PhysicsPointQueryParameters2D::set_position);
 	ClassDB::bind_method(D_METHOD("get_position"), &PhysicsPointQueryParameters2D::get_position);
 
+	ClassDB::bind_method(D_METHOD("set_check_canvas_instance_id", "canvas_instance_id"), &PhysicsPointQueryParameters2D::set_check_canvas_instance_id);
+	ClassDB::bind_method(D_METHOD("get_check_canvas_instance_id"), &PhysicsPointQueryParameters2D::get_check_canvas_instance_id);
+
 	ClassDB::bind_method(D_METHOD("set_canvas_instance_id", "canvas_instance_id"), &PhysicsPointQueryParameters2D::set_canvas_instance_id);
 	ClassDB::bind_method(D_METHOD("get_canvas_instance_id"), &PhysicsPointQueryParameters2D::get_canvas_instance_id);
 
@@ -248,6 +251,7 @@ void PhysicsPointQueryParameters2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_collide_with_areas_enabled"), &PhysicsPointQueryParameters2D::is_collide_with_areas_enabled);
 
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "position"), "set_position", "get_position");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "check_canvas_instance_id"), "set_check_canvas_instance_id", "get_check_canvas_instance_id");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "canvas_instance_id", PROPERTY_HINT_OBJECT_ID), "set_canvas_instance_id", "get_canvas_instance_id");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "collision_mask", PROPERTY_HINT_LAYERS_2D_PHYSICS), "set_collision_mask", "get_collision_mask");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "exclude", PROPERTY_HINT_ARRAY_TYPE, "RID"), "set_exclude", "get_exclude");

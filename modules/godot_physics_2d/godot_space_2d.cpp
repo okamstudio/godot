@@ -84,7 +84,7 @@ int GodotPhysicsDirectSpaceState2D::intersect_point(const PointParameters &p_par
 			continue;
 		}
 
-		if (col_obj->get_canvas_instance_id() != p_parameters.canvas_instance_id) {
+		if (p_parameters.check_canvas_instance_id && col_obj->get_canvas_instance_id() != p_parameters.canvas_instance_id) {
 			continue;
 		}
 

@@ -48,6 +48,7 @@
 			<param index="4" name="collide_with_areas" type="bool" />
 			<param index="5" name="results" type="PhysicsServer2DExtensionShapeResult*" />
 			<param index="6" name="max_results" type="int" />
+			<param index="7" name="check_canvas_instance_id" type="bool" />
 			<description>
 			</description>
 		</method>
