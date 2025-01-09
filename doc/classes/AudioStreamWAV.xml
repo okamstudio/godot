@@ -78,6 +78,12 @@
 		<member name="stereo" type="bool" setter="set_stereo" getter="is_stereo" default="false">
 			If [code]true[/code], audio is stereo.
 		</member>
+		<member name="tags" type="Dictionary" setter="set_tags" getter="get_tags" default="{}">
+			Contains user-defined tags if found in the WAV data.
+			Commonly used tags include [code]title[/code], [code]artist[/code], [code]album[/code], [code]tracknumber[/code] and [code]date[/code] ([code]date[/code] does not have a standard date format).
+			[b]Note:[/b] No tag is [i]guaranteed[/i] to be present in every file, so make sure to account for the keys not always existing.
+			[b]Note:[/b] Only WAV files using a [code]LIST[/code] chunk with an identifier of [code]INFO[/code] to encode the tags are currently supported.
+		</member>
 	</members>
 	<constants>
 		<constant name="FORMAT_8_BITS" value="0" enum="Format">

@@ -538,6 +538,18 @@ bool AudioStreamWAV::is_stereo() const {
 	return stereo;
 }
 
+void AudioStreamWAV::set_tags(Dictionary p_tags) {
+	tags = p_tags;
+}
+
+Dictionary AudioStreamWAV::get_tags() const {
+	return tags;
+}
+
+HashMap<String, String>::ConstIterator AudioStreamWAV::remap_tag_id(String p_tag_id) {
+	return tag_id_remaps.find(p_tag_id);
+}
+
 double AudioStreamWAV::get_length() const {
 	int len = data_bytes;
 	switch (format) {
@@ -748,6 +760,9 @@ void AudioStreamWAV::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamWAV::set_stereo);
 	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamWAV::is_stereo);
 
+	ClassDB::bind_method(D_METHOD("set_tags", "tags"), &AudioStreamWAV::set_tags);
+	ClassDB::bind_method(D_METHOD("get_tags"), &AudioStreamWAV::get_tags);
+
 	ClassDB::bind_method(D_METHOD("save_to_wav", "path"), &AudioStreamWAV::save_to_wav);
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
@@ -757,6 +772,7 @@ void AudioStreamWAV::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_end"), "set_loop_end", "get_loop_end");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mix_rate"), "set_mix_rate", "get_mix_rate");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stereo"), "set_stereo", "is_stereo");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "tags", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_tags", "get_tags");
 
 	BIND_ENUM_CONSTANT(FORMAT_8_BITS);
 	BIND_ENUM_CONSTANT(FORMAT_16_BITS);
@@ -824,6 +840,8 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_fi
 	int frames = 0;
 
 	Vector<float> data;
+
+	HashMap<String, String> tag_map;
 
 	while (!file->eof_reached()) {
 		/* chunk */
@@ -980,6 +998,38 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_fi
 				loop_end = file->get_32();
 			}
 		}
+
+		if (chunk_id[0] == 'L' && chunk_id[1] == 'I' && chunk_id[2] == 'S' && chunk_id[3] == 'T') {
+			// RIFF 'LIST' chunk.
+			// See https://www.recordingblogs.com/wiki/list-chunk-of-a-wave-file
+
+			char list_id[4];
+			file->get_buffer((uint8_t *)&list_id, 4);
+
+			if (list_id[0] == 'I' && list_id[1] == 'N' && list_id[2] == 'F' && list_id[3] == 'O') {
+				// 'INFO' list type.
+				// The size of info entry can be arbitrary.
+				uint32_t end_of_chunk = file_pos + chunksize - 4;
+				while (file->get_position() < end_of_chunk) {
+					char info_id[4];
+					file->get_buffer((uint8_t *)&info_id, 4);
+
+					uint32_t text_size = file->get_32();
+
+					Vector<char> text;
+					text.resize(text_size);
+					file->get_buffer((uint8_t *)&text[0], text_size);
+
+					// The data is always an ASCII string.
+					String tag = String(info_id, 4);
+					String tag_value;
+					tag_value.parse_utf8(&text[0], text_size);
+
+					tag_map[tag] = tag_value;
+				}
+			}
+		}
+
 		// Move to the start of the next chunk. Note that RIFF requires a padding byte for odd
 		// chunk sizes.
 		file->seek(file_pos + chunksize + (chunksize & 1));
@@ -1219,6 +1269,18 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_fi
 	sample->set_loop_begin(loop_begin);
 	sample->set_loop_end(loop_end);
 	sample->set_stereo(format_channels == 2);
+
+	Dictionary tag_dictionary;
+	for (const KeyValue<String, String> &E : tag_map) {
+		HashMap<String, String>::ConstIterator remap = sample->remap_tag_id(E.key);
+		if (remap) {
+			tag_map.replace_key(E.key, remap->value);
+		}
+
+		tag_dictionary[E.key] = E.value;
+	}
+	sample->set_tags(tag_dictionary);
+
 	return sample;
 }
 
@@ -1228,6 +1290,23 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_file(const String &p_path, const D
 	return load_from_buffer(file_data, p_options);
 }
 
-AudioStreamWAV::AudioStreamWAV() {}
+AudioStreamWAV::AudioStreamWAV() {
+	// Used to make the metadata tags more unified across different AudioStreams.
+	// See https://www.recordingblogs.com/wiki/list-chunk-of-a-wave-file
+	tag_id_remaps["IARL"] = "location";
+	tag_id_remaps["IART"] = "artist";
+	tag_id_remaps["ICMS"] = "organization";
+	tag_id_remaps["ICMT"] = "comments";
+	tag_id_remaps["ICOP"] = "copyright";
+	tag_id_remaps["ICRD"] = "date";
+	tag_id_remaps["IGNR"] = "genre";
+	tag_id_remaps["IKEY"] = "keywords";
+	tag_id_remaps["IMED"] = "medium";
+	tag_id_remaps["INAM"] = "title";
+	tag_id_remaps["IPRD"] = "album";
+	tag_id_remaps["ISBJ"] = "description";
+	tag_id_remaps["ISFT"] = "software";
+	tag_id_remaps["ITRK"] = "tracknumber";
+}
 
 AudioStreamWAV::~AudioStreamWAV() {}

@@ -297,6 +297,12 @@ int AudioStream::get_beat_count() const {
 	return ret;
 }
 
+Dictionary AudioStream::get_tags() const {
+	Dictionary ret;
+	GDVIRTUAL_CALL(_get_tags, ret);
+	return ret;
+}
+
 void AudioStream::tag_used(float p_offset) {
 	if (tagged_frame != AudioServer::get_singleton()->get_mixed_frames()) {
 		offset_count = 0;
@@ -350,6 +356,7 @@ void AudioStream::_bind_methods() {
 	GDVIRTUAL_BIND(_is_monophonic);
 	GDVIRTUAL_BIND(_get_bpm)
 	GDVIRTUAL_BIND(_get_beat_count)
+	GDVIRTUAL_BIND(_get_tags);
 	GDVIRTUAL_BIND(_get_parameter_list)
 	GDVIRTUAL_BIND(_has_loop);
 	GDVIRTUAL_BIND(_get_bar_beats);

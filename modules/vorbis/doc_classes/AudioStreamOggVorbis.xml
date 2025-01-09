@@ -41,5 +41,10 @@
 		<member name="packet_sequence" type="OggPacketSequence" setter="set_packet_sequence" getter="get_packet_sequence">
 			Contains the raw Ogg data for this stream.
 		</member>
+		<member name="tags" type="Dictionary" setter="set_tags" getter="get_tags" default="{}">
+			Contains user-defined tags if found in the Ogg Vorbis data.
+			Commonly used tags include [code]title[/code], [code]artist[/code], [code]album[/code], [code]tracknumber[/code] and [code]date[/code] ([code]date[/code] does not have a standard date format).
+			[b]Note:[/b] No tag is [i]guaranteed[/i] to be present in every file, so make sure to account for the keys not always existing.
+		</member>
 	</members>
 </class>

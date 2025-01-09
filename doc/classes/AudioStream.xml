@@ -51,6 +51,13 @@
 				Override this method to customize the name assigned to this audio stream. Unused by the engine.
 			</description>
 		</method>
+		<method name="_get_tags" qualifiers="virtual const">
+			<return type="Dictionary" />
+			<description>
+				Override this method to customize the tags for this audio stream. Should return a [Dictionary] of strings with the tag as the key and its content as the value.
+				Commonly used tags include [code]title[/code], [code]artist[/code], [code]album[/code], [code]tracknumber[/code] and [code]date[/code].
+			</description>
+		</method>
 		<method name="_has_loop" qualifiers="virtual const">
 			<return type="bool" />
 			<description>

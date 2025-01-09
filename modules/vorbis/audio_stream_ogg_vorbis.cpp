@@ -458,6 +458,23 @@ void AudioStreamOggVorbis::maybe_update_info() {
 		ERR_FAIL_COND_MSG(err != 0, "Error parsing header packet " + itos(i) + ": " + itos(err));
 	}
 
+	Dictionary dictionary;
+	for (int i = 0; i < comment.comments; i++) {
+		String c = String::utf8(comment.user_comments[i]);
+		int equals = c.find_char('=');
+
+		if (equals == -1) {
+			WARN_PRINT("Invalid comment in Ogg Vorbis file.");
+			continue;
+		}
+
+		String tag = c.substr(0, equals);
+		String tag_value = c.erase(0, equals + 1);
+
+		dictionary[tag.to_lower()] = tag_value;
+	}
+	tags = dictionary;
+
 	packet_sequence->set_sampling_rate(info.rate);
 
 	vorbis_comment_clear(&comment);
@@ -526,6 +543,14 @@ int AudioStreamOggVorbis::get_bar_beats() const {
 	return bar_beats;
 }
 
+void AudioStreamOggVorbis::set_tags(Dictionary p_tags) {
+	tags = p_tags;
+}
+
+Dictionary AudioStreamOggVorbis::get_tags() const {
+	return tags;
+}
+
 bool AudioStreamOggVorbis::is_monophonic() const {
 	return false;
 }
@@ -568,10 +593,14 @@ void AudioStreamOggVorbis::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bar_beats", "count"), &AudioStreamOggVorbis::set_bar_beats);
 	ClassDB::bind_method(D_METHOD("get_bar_beats"), &AudioStreamOggVorbis::get_bar_beats);
 
+	ClassDB::bind_method(D_METHOD("set_tags", "tags"), &AudioStreamOggVorbis::set_tags);
+	ClassDB::bind_method(D_METHOD("get_tags"), &AudioStreamOggVorbis::get_tags);
+
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "packet_sequence", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_packet_sequence", "get_packet_sequence");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bpm", PROPERTY_HINT_RANGE, "0,400,0.01,or_greater"), "set_bpm", "get_bpm");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "beat_count", PROPERTY_HINT_RANGE, "0,512,1,or_greater"), "set_beat_count", "get_beat_count");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bar_beats", PROPERTY_HINT_RANGE, "2,32,1,or_greater"), "set_bar_beats", "get_bar_beats");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "tags", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_tags", "get_tags");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "loop"), "set_loop", "has_loop");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "loop_offset"), "set_loop_offset", "get_loop_offset");
 }
