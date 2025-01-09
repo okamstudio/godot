@@ -107,6 +107,7 @@ Config::Config() {
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &max_texture_image_units);
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
 	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, max_viewport_size);
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_vertex_attribs);
 	glGetInteger64v(GL_MAX_UNIFORM_BLOCK_SIZE, &max_uniform_buffer_size);
 
 	// sanity clamp buffer size to 16K..1MB

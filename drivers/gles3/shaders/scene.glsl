@@ -37,6 +37,7 @@ ADDITIVE_SPOT = false
 RENDER_MATERIAL = false
 SECOND_REFLECTION_PROBE = false
 LIGHTMAP_BICUBIC_FILTER = false
+RENDER_MOTION_VECTORS = false
 
 
 #[vertex]
@@ -149,13 +150,24 @@ layout(location = 14) in highp vec4 instance_xform2;
 layout(location = 15) in highp uvec4 instance_color_custom_data; // Color packed into xy, Custom data into zw.
 #endif
 
+#if defined(RENDER_MOTION_VECTORS)
+layout(location = 16) in highp vec4 prev_vertex_attrib;
+layout(location = 17) in highp vec4 prev_normal_attrib;
+#ifdef USE_INSTANCING
+layout(location = 18) in highp vec4 prev_instance_xform0;
+layout(location = 19) in highp vec4 prev_instance_xform1;
+layout(location = 20) in highp vec4 prev_instance_xform2;
+layout(location = 21) in highp uvec4 prev_instance_color_custom_data;
+#endif // USE_INSTANCING
+#endif // RENDER_MOTION_VECTORS
+
 #define FLAGS_NON_UNIFORM_SCALE (1 << 4)
 
 layout(std140) uniform GlobalShaderUniformData { //ubo:1
 	vec4 global_shader_uniforms[MAX_GLOBAL_SHADER_UNIFORMS];
 };
 
-layout(std140) uniform SceneData { // ubo:2
+struct SceneData {
 	highp mat4 projection_matrix;
 	highp mat4 inv_projection_matrix;
 	highp mat4 inv_view_matrix;
@@ -203,9 +215,15 @@ layout(std140) uniform SceneData { // ubo:2
 	float luminance_multiplier;
 	uint camera_visible_layers;
 	bool pancake_shadows;
-}
-scene_data;
+};
 
+layout(std140) uniform SceneDataBlock { // ubo:2
+	SceneData data;
+	SceneData prev_data;
+}
+scene_data_block;
+
+#ifndef RENDER_MOTION_VECTORS
 #ifdef USE_ADDITIVE_LIGHTING
 
 #if defined(ADDITIVE_OMNI) || defined(ADDITIVE_SPOT)
@@ -420,14 +438,20 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float 
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
 
 #endif // USE_VERTEX_LIGHTING
+#endif // RENDER_MOTION_VECTORS
 
 #ifdef USE_MULTIVIEW
-layout(std140) uniform MultiviewData { // ubo:8
+struct MultiviewData {
 	highp mat4 projection_matrix_view[MAX_VIEWS];
 	highp mat4 inv_projection_matrix_view[MAX_VIEWS];
 	highp vec4 eye_offset[MAX_VIEWS];
+};
+
+layout(std140) uniform MultiviewDataBlock { // ubo:8
+	MultiviewData data;
+	MultiviewData prev_data;
 }
-multiview_data;
+multiview_data_block;
 #endif
 
 uniform highp mat4 world_transform;
@@ -435,6 +459,10 @@ uniform highp vec3 compressed_aabb_position;
 uniform highp vec3 compressed_aabb_size;
 uniform highp vec4 uv_scale;
 uniform highp uint instance_offset;
+
+#if defined(RENDER_MOTION_VECTORS)
+uniform highp mat4 prev_world_transform;
+#endif
 
 uniform highp uint model_flags;
 
@@ -466,6 +494,7 @@ out vec3 tangent_interp;
 out vec3 binormal_interp;
 #endif
 
+#ifndef RENDER_MOTION_VECTORS
 #ifdef USE_ADDITIVE_LIGHTING
 out highp vec4 shadow_coord;
 
@@ -476,8 +505,9 @@ out highp vec4 shadow_coord2;
 #ifdef LIGHT_USE_PSSM4
 out highp vec4 shadow_coord3;
 out highp vec4 shadow_coord4;
-#endif //LIGHT_USE_PSSM4
-#endif
+#endif // LIGHT_USE_PSSM4
+#endif // USE_ADDITIVE_LIGHTING
+#endif // RENDER_MOTION_VECTORS
 
 #ifdef MATERIAL_UNIFORMS_USED
 
@@ -493,27 +523,60 @@ layout(std140) uniform MaterialUniforms { // ubo:3
 
 /* clang-format off */
 
+#if defined(RENDER_MOTION_VECTORS)
+out highp vec4 clip_position;
+out highp vec4 prev_clip_position;
+#endif
+
 #GLOBALS
 
 /* clang-format on */
 invariant gl_Position;
 
-void main() {
-	highp vec3 vertex = vertex_angle_attrib.xyz * compressed_aabb_size + compressed_aabb_position;
-
-	highp mat4 model_matrix = world_transform;
+void vertex_shader(vec4 vertex_angle_attrib_input,
+		vec3 compressed_aabb_size_input,
+		vec3 compressed_aabb_position_input,
+		mat4 world_transform_input,
+		uint model_flags_input,
+		SceneData scene_data_input,
 #ifdef USE_INSTANCING
-	highp mat4 m = mat4(instance_xform0, instance_xform1, instance_xform2, vec4(0.0, 0.0, 0.0, 1.0));
+		vec4 instance_xform0_input, vec4 instance_xform1_input, vec4 instance_xform2_input,
+		uvec4 instance_color_custom_data_input,
+#endif
+#ifdef NORMAL_USED
+		vec4 axis_tangent_attrib_input,
+#endif
+#if defined(COLOR_USED)
+		vec4 color_attrib_input,
+#endif
+#if defined(UV_USED)
+		vec2 uv_attrib_input,
+#endif
+#if defined(UV2_USED) || defined(USE_LIGHTMAP)
+		vec2 uv2_attrib_input,
+#endif
+#ifdef USE_MULTIVIEW
+		mat4 projection_matrix,
+		mat4 inv_projection_matrix,
+		vec3 eye_offset,
+#endif
+		vec4 uv_scale_input,
+		out vec4 clip_position_output) {
+	highp vec3 vertex = vertex_angle_attrib_input.xyz * compressed_aabb_size_input + compressed_aabb_position_input;
+
+	highp mat4 model_matrix = world_transform_input;
+#ifdef USE_INSTANCING
+	highp mat4 m = mat4(instance_xform0_input, instance_xform1_input, instance_xform2_input, vec4(0.0, 0.0, 0.0, 1.0));
 	model_matrix = model_matrix * transpose(m);
 #endif
 
 #ifdef NORMAL_USED
-	vec3 normal = oct_to_vec3(axis_tangent_attrib.xy * 2.0 - 1.0);
+	vec3 normal = oct_to_vec3(axis_tangent_attrib_input.xy * 2.0 - 1.0);
 #endif
 
 	highp mat3 model_normal_matrix;
 
-	if (bool(model_flags & uint(FLAGS_NON_UNIFORM_SCALE))) {
+	if (bool(model_flags_input & uint(FLAGS_NON_UNIFORM_SCALE))) {
 		model_normal_matrix = transpose(inverse(mat3(model_matrix)));
 	} else {
 		model_normal_matrix = mat3(model_matrix);
@@ -532,7 +595,7 @@ void main() {
 		binormal = normalize(cross(normal, tangent) * binormal_sign);
 	} else {
 		// Compressed format.
-		float angle = vertex_angle_attrib.w;
+		float angle = vertex_angle_attrib_input.w;
 		binormal_sign = angle > 0.5 ? 1.0 : -1.0; // 0.5 does not exist in UNORM16, so values are either greater or smaller.
 		angle = abs(angle * 2.0 - 1.0) * M_PI; // 0.5 is basically zero, allowing to encode both signs reliably.
 		vec3 axis = normal;
@@ -542,29 +605,29 @@ void main() {
 #endif
 
 #if defined(COLOR_USED)
-	color_interp = color_attrib;
+	color_interp = color_attrib_input;
 #ifdef USE_INSTANCING
 	vec4 instance_color;
-	instance_color.xy = unpackHalf2x16(instance_color_custom_data.x);
-	instance_color.zw = unpackHalf2x16(instance_color_custom_data.y);
+	instance_color.xy = unpackHalf2x16(instance_color_custom_data_input.x);
+	instance_color.zw = unpackHalf2x16(instance_color_custom_data_input.y);
 	color_interp *= instance_color;
 #endif
 #endif
 
 #if defined(UV_USED)
-	uv_interp = uv_attrib;
+	uv_interp = uv_attrib_input;
 #endif
 
 #if defined(UV2_USED) || defined(USE_LIGHTMAP)
-	uv2_interp = uv2_attrib;
+	uv2_interp = uv2_attrib_input;
 #endif
 
-	if (uv_scale != vec4(0.0)) { // Compression enabled
+	if (uv_scale_input != vec4(0.0)) { // Compression enabled
 #ifdef UV_USED
-		uv_interp = (uv_interp - 0.5) * uv_scale.xy;
+		uv_interp = (uv_interp - 0.5) * uv_scale_input.xy;
 #endif
 #if defined(UV2_USED) || defined(USE_LIGHTMAP)
-		uv2_interp = (uv2_interp - 0.5) * uv_scale.zw;
+		uv2_interp = (uv2_interp - 0.5) * uv_scale_input.zw;
 #endif
 	}
 
@@ -572,20 +635,15 @@ void main() {
 	highp vec4 position;
 #endif
 
-#ifdef USE_MULTIVIEW
-	mat4 projection_matrix = multiview_data.projection_matrix_view[ViewIndex];
-	mat4 inv_projection_matrix = multiview_data.inv_projection_matrix_view[ViewIndex];
-	vec3 eye_offset = multiview_data.eye_offset[ViewIndex].xyz;
-#else
-	mat4 projection_matrix = scene_data.projection_matrix;
-	mat4 inv_projection_matrix = scene_data.inv_projection_matrix;
-	vec3 eye_offset = vec3(0.0, 0.0, 0.0);
-#endif //USE_MULTIVIEW
+#ifndef USE_MULTIVIEW
+	mat4 projection_matrix = scene_data_input.projection_matrix;
+	mat4 inv_projection_matrix = scene_data_input.inv_projection_matrix;
+#endif //!USE_MULTIVIEW
 
 #ifdef USE_INSTANCING
 	vec4 instance_custom;
-	instance_custom.xy = unpackHalf2x16(instance_color_custom_data.z);
-	instance_custom.zw = unpackHalf2x16(instance_color_custom_data.w);
+	instance_custom.xy = unpackHalf2x16(instance_color_custom_data_input.z);
+	instance_custom.zw = unpackHalf2x16(instance_color_custom_data_input.w);
 #else
 	vec4 instance_custom = vec4(0.0);
 #endif
@@ -609,8 +667,8 @@ void main() {
 
 	float roughness = 1.0;
 
-	highp mat4 modelview = scene_data.view_matrix * model_matrix;
-	highp mat3 modelview_normal = mat3(scene_data.view_matrix) * model_normal_matrix;
+	highp mat4 modelview = scene_data_input.view_matrix * model_matrix;
+	highp mat3 modelview_normal = mat3(scene_data_input.view_matrix) * model_normal_matrix;
 
 	float point_size = 1.0;
 
@@ -638,14 +696,14 @@ void main() {
 	// Using world coordinates
 #if !defined(SKIP_TRANSFORM_USED) && defined(VERTEX_WORLD_COORDS_USED)
 
-	vertex = (scene_data.view_matrix * vec4(vertex, 1.0)).xyz;
+	vertex = (scene_data_input.view_matrix * vec4(vertex, 1.0)).xyz;
 #ifdef NORMAL_USED
-	normal = (scene_data.view_matrix * vec4(normal, 0.0)).xyz;
+	normal = (scene_data_input.view_matrix * vec4(normal, 0.0)).xyz;
 #endif
 
 #if defined(TANGENT_USED) || defined(NORMAL_MAP_USED) || defined(LIGHT_ANISOTROPY_USED)
-	binormal = (scene_data.view_matrix * vec4(binormal, 0.0)).xyz;
-	tangent = (scene_data.view_matrix * vec4(tangent, 0.0)).xyz;
+	binormal = (scene_data_input.view_matrix * vec4(binormal, 0.0)).xyz;
+	tangent = (scene_data_input.view_matrix * vec4(tangent, 0.0)).xyz;
 #endif
 #endif
 
@@ -662,6 +720,7 @@ void main() {
 	binormal_interp = normalize(binormal);
 #endif
 
+#ifndef RENDER_MOTION_VECTORS
 	// Calculate shadows.
 #ifdef USE_ADDITIVE_LIGHTING
 #if defined(ADDITIVE_OMNI) || defined(ADDITIVE_SPOT)
@@ -701,23 +760,25 @@ void main() {
 #endif // USE_ADDITIVE_LIGHTING
 
 #if defined(RENDER_SHADOWS) && !defined(RENDER_SHADOWS_LINEAR)
-	// This is an optimized version of normalize(vertex_interp) * scene_data.shadow_bias / length(vertex_interp).
+	// This is an optimized version of normalize(vertex_interp) * scene_data_input.shadow_bias / length(vertex_interp).
 	float light_length_sq = dot(vertex_interp, vertex_interp);
-	vertex_interp += vertex_interp * scene_data.shadow_bias / light_length_sq;
+	vertex_interp += vertex_interp * scene_data_input.shadow_bias / light_length_sq;
 #endif
+#endif // RENDER_MOTION_VECTORS
 
 #if defined(OVERRIDE_POSITION)
-	gl_Position = position;
+	clip_position_output = position;
 #else
-	gl_Position = projection_matrix * vec4(vertex_interp, 1.0);
+	clip_position_output = projection_matrix * vec4(vertex_interp, 1.0);
 #endif
 
 #ifdef RENDER_MATERIAL
-	gl_Position.xy = (uv2_attrib.xy + uv_offset) * 2.0 - 1.0;
-	gl_Position.z = 0.00001;
-	gl_Position.w = 1.0;
+	clip_position_output.xy = (uv2_attrib_input.xy + uv_offset) * 2.0 - 1.0;
+	clip_position_output.z = 0.00001;
+	clip_position_output.w = 1.0;
 #endif
 
+#ifndef RENDER_MOTION_VECTORS
 #ifdef USE_VERTEX_LIGHTING
 #if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED)
 #ifdef USE_MULTIVIEW
@@ -729,7 +790,7 @@ void main() {
 	specular_light_interp = vec3(0.0);
 #ifdef BASE_PASS
 #ifndef DISABLE_LIGHT_DIRECTIONAL
-	for (uint i = uint(0); i < scene_data.directional_light_count; i++) {
+	for (uint i = uint(0); i < scene_data_input.directional_light_count; i++) {
 #if defined(USE_LIGHTMAP) && !defined(DISABLE_LIGHTMAP)
 		if (directional_lights[i].bake_mode == LIGHT_BAKE_STATIC) {
 			continue;
@@ -780,7 +841,97 @@ void main() {
 #endif // USE_ADDITIVE_LIGHTING
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED)
 #endif // USE_VERTEX_LIGHTING
+#endif // RENDER_MOTION_VECTORS
 }
+
+void main() {
+#if defined(RENDER_MOTION_VECTORS)
+
+#ifdef USE_INSTANCING
+	// Check for inactive particle instances.
+	highp vec4 input_instance_xform0;
+	highp vec4 input_instance_xform1;
+	highp vec4 input_instance_xform2;
+	highp uvec4 input_instance_color_custom_data;
+	if (prev_instance_xform0.xyz == vec3(0.0, 0.0, 0.0)) {
+		input_instance_xform0 = instance_xform0;
+		input_instance_xform1 = instance_xform1;
+		input_instance_xform2 = instance_xform2;
+		input_instance_color_custom_data = instance_color_custom_data;
+	} else {
+		input_instance_xform0 = prev_instance_xform0;
+		input_instance_xform1 = prev_instance_xform1;
+		input_instance_xform2 = prev_instance_xform2;
+		input_instance_color_custom_data = prev_instance_color_custom_data;
+	}
+#endif
+
+	vertex_shader(prev_vertex_attrib,
+			compressed_aabb_size,
+			compressed_aabb_position,
+			prev_world_transform,
+			model_flags,
+			scene_data_block.prev_data,
+#ifdef USE_INSTANCING
+			input_instance_xform0, input_instance_xform1, input_instance_xform2,
+			input_instance_color_custom_data,
+#endif
+#ifdef NORMAL_USED
+			prev_normal_attrib,
+#endif
+#if defined(COLOR_USED)
+			color_attrib,
+#endif
+#if defined(UV_USED)
+			uv_attrib,
+#endif
+#if defined(UV2_USED) || defined(USE_LIGHTMAP)
+			uv2_attrib,
+#endif
+#ifdef USE_MULTIVIEW
+			multiview_data_block.prev_data.projection_matrix_view[ViewIndex],
+			multiview_data_block.prev_data.inv_projection_matrix_view[ViewIndex],
+			multiview_data_block.prev_data.eye_offset[ViewIndex].xyz,
+#endif
+			uv_scale,
+			prev_clip_position);
+#else
+	vec4 clip_position;
+#endif // defined(RENDER_MOTION_VECTORS)
+
+	vertex_shader(vertex_angle_attrib,
+			compressed_aabb_size,
+			compressed_aabb_position,
+			world_transform,
+			model_flags,
+			scene_data_block.data,
+#ifdef USE_INSTANCING
+			instance_xform0, instance_xform1, instance_xform2,
+			instance_color_custom_data,
+#endif
+#ifdef NORMAL_USED
+			axis_tangent_attrib,
+#endif
+#if defined(COLOR_USED)
+			color_attrib,
+#endif
+#if defined(UV_USED)
+			uv_attrib,
+#endif
+#if defined(UV2_USED) || defined(USE_LIGHTMAP)
+			uv2_attrib,
+#endif
+#ifdef USE_MULTIVIEW
+			multiview_data_block.data.projection_matrix_view[ViewIndex],
+			multiview_data_block.data.inv_projection_matrix_view[ViewIndex],
+			multiview_data_block.data.eye_offset[ViewIndex].xyz,
+#endif
+			uv_scale,
+			clip_position);
+
+	gl_Position = clip_position;
+}
+
 /* clang-format off */
 #[fragment]
 
@@ -830,6 +981,12 @@ void main() {
 
 /* Varyings */
 
+#if defined(RENDER_MOTION_VECTORS)
+in highp vec4 clip_position;
+in highp vec4 prev_clip_position;
+#endif
+
+#ifndef RENDER_MOTION_VECTORS
 #if defined(COLOR_USED)
 in vec4 color_interp;
 #endif
@@ -929,7 +1086,7 @@ layout(std140) uniform MaterialUniforms { // ubo:3
 
 #endif
 
-layout(std140) uniform SceneData { // ubo:2
+struct SceneData {
 	highp mat4 projection_matrix;
 	highp mat4 inv_projection_matrix;
 	highp mat4 inv_view_matrix;
@@ -977,16 +1134,26 @@ layout(std140) uniform SceneData { // ubo:2
 	float luminance_multiplier;
 	uint camera_visible_layers;
 	bool pancake_shadows;
+};
+
+layout(std140) uniform SceneDataBlock { // ubo:2
+	SceneData data;
+	SceneData prev_data;
 }
-scene_data;
+scene_data_block;
 
 #ifdef USE_MULTIVIEW
-layout(std140) uniform MultiviewData { // ubo:8
+struct MultiviewData {
 	highp mat4 projection_matrix_view[MAX_VIEWS];
 	highp mat4 inv_projection_matrix_view[MAX_VIEWS];
 	highp vec4 eye_offset[MAX_VIEWS];
+};
+
+layout(std140) uniform MultiviewDataBlock { // ubo:8
+	MultiviewData data;
+	MultiviewData prev_data;
 }
-multiview_data;
+multiview_data_block;
 #endif
 
 uniform highp mat4 world_transform;
@@ -1226,6 +1393,7 @@ ivec2 multiview_uv(ivec2 uv) {
 #endif
 
 uniform mediump float opaque_prepass_threshold;
+#endif // !RENDER_MOTION_VECTORS
 
 #if defined(RENDER_MATERIAL)
 layout(location = 0) out vec4 albedo_output_buffer;
@@ -1234,11 +1402,17 @@ layout(location = 2) out vec4 orm_output_buffer;
 layout(location = 3) out vec4 emission_output_buffer;
 
 #else // !RENDER_MATERIAL
+
+#ifndef RENDER_MOTION_VECTORS
 // Normal color rendering.
 layout(location = 0) out vec4 frag_color;
+#else
+layout(location = 0) out vec4 motion_vectors;
+#endif // !RENDER_MOTION_VECTORS
 
 #endif // !RENDER_MATERIAL
 
+#ifndef RENDER_MOTION_VECTORS
 vec3 F0(float metallic, float specular, vec3 albedo) {
 	float dielectric = 0.16 * specular * specular;
 	// use albedo * metallic as colored specular reflectance at 0 angle for metallic materials;
@@ -1301,8 +1475,8 @@ void light_compute(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_di
 	// light is written by the light shader
 
 	highp mat4 model_matrix = world_transform;
-	mat4 projection_matrix = scene_data.projection_matrix;
-	mat4 inv_projection_matrix = scene_data.inv_projection_matrix;
+	mat4 projection_matrix = scene_data_block.data.projection_matrix;
+	mat4 inv_projection_matrix = scene_data_block.data.inv_projection_matrix;
 
 	vec3 normal = N;
 	vec3 light = L;
@@ -1550,32 +1724,32 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
 #endif // !USE_VERTEX_LIGHTING
 
 vec4 fog_process(vec3 vertex) {
-	vec3 fog_color = scene_data.fog_light_color;
+	vec3 fog_color = scene_data_block.data.fog_light_color;
 
 #ifdef USE_RADIANCE_MAP
 /*
-		if (scene_data.fog_aerial_perspective > 0.0) {
+		if (scene_data_block.data.fog_aerial_perspective > 0.0) {
 		vec3 sky_fog_color = vec3(0.0);
-		vec3 cube_view = scene_data.radiance_inverse_xform * vertex;
+		vec3 cube_view = scene_data_block.data.radiance_inverse_xform * vertex;
 		// mip_level always reads from the second mipmap and higher so the fog is always slightly blurred
-		float mip_level = mix(1.0 / MAX_ROUGHNESS_LOD, 1.0, 1.0 - (abs(vertex.z) - scene_data.z_near) / (scene_data.z_far - scene_data.z_near));
+		float mip_level = mix(1.0 / MAX_ROUGHNESS_LOD, 1.0, 1.0 - (abs(vertex.z) - scene_data_block.data.z_near) / (scene_data_block.data.z_far - scene_data_block.data.z_near));
 
 		sky_fog_color = textureLod(radiance_map, cube_view, mip_level * RADIANCE_MAX_LOD).rgb;
 
-		fog_color = mix(fog_color, sky_fog_color, scene_data.fog_aerial_perspective);
+		fog_color = mix(fog_color, sky_fog_color, scene_data_block.data.fog_aerial_perspective);
 	}
 	*/
 #endif
 
 #ifndef DISABLE_LIGHT_DIRECTIONAL
-	if (scene_data.fog_sun_scatter > 0.001) {
+	if (scene_data_block.data.fog_sun_scatter > 0.001) {
 		vec4 sun_scatter = vec4(0.0);
 		float sun_total = 0.0;
 		vec3 view = normalize(vertex);
-		for (uint i = uint(0); i < scene_data.directional_light_count; i++) {
+		for (uint i = uint(0); i < scene_data_block.data.directional_light_count; i++) {
 			vec3 light_color = directional_lights[i].color * directional_lights[i].energy;
 			float light_amount = pow(max(dot(view, directional_lights[i].direction), 0.0), 8.0);
-			fog_color += light_color * light_amount * scene_data.fog_sun_scatter;
+			fog_color += light_color * light_amount * scene_data_block.data.fog_sun_scatter;
 		}
 	}
 #endif // !DISABLE_LIGHT_DIRECTIONAL
@@ -1583,18 +1757,18 @@ vec4 fog_process(vec3 vertex) {
 	float fog_amount = 0.0;
 
 #ifdef USE_DEPTH_FOG
-	float fog_z = smoothstep(scene_data.fog_depth_begin, scene_data.fog_depth_end, length(vertex));
-	fog_amount = pow(fog_z, scene_data.fog_depth_curve) * scene_data.fog_density;
+	float fog_z = smoothstep(scene_data_block.data.fog_depth_begin, scene_data_block.data.fog_depth_end, length(vertex));
+	fog_amount = pow(fog_z, scene_data_block.data.fog_depth_curve) * scene_data_block.data.fog_density;
 #else
-	fog_amount = 1.0 - exp(min(0.0, -length(vertex) * scene_data.fog_density));
+	fog_amount = 1.0 - exp(min(0.0, -length(vertex) * scene_data_block.data.fog_density));
 #endif // USE_DEPTH_FOG
 
-	if (abs(scene_data.fog_height_density) >= 0.0001) {
-		float y = (scene_data.inv_view_matrix * vec4(vertex, 1.0)).y;
+	if (abs(scene_data_block.data.fog_height_density) >= 0.0001) {
+		float y = (scene_data_block.data.inv_view_matrix * vec4(vertex, 1.0)).y;
 
-		float y_dist = y - scene_data.fog_height;
+		float y_dist = y - scene_data_block.data.fog_height;
 
-		float vfog_amount = 1.0 - exp(min(0.0, y_dist * scene_data.fog_height_density));
+		float vfog_amount = 1.0 - exp(min(0.0, y_dist * scene_data_block.data.fog_height_density));
 
 		fog_amount = max(vfog_amount, fog_amount);
 	}
@@ -1752,20 +1926,22 @@ vec4 textureArray_bicubic(sampler2DArray tex, vec3 uv, vec2 texture_size) {
 			(g1(fuv.y) * (g0x * texture(tex, vec3(p2, uv.z)) + g1x * texture(tex, vec3(p3, uv.z))));
 }
 #endif //LIGHTMAP_BICUBIC_FILTER
+#endif // RENDER_MOTION_VECTORS
 
 void main() {
+#ifndef RENDER_MOTION_VECTORS
 	//lay out everything, whatever is unused is optimized away anyway
 	vec3 vertex = vertex_interp;
 #ifdef USE_MULTIVIEW
-	vec3 eye_offset = multiview_data.eye_offset[ViewIndex].xyz;
+	vec3 eye_offset = multiview_data_block.data.eye_offset[ViewIndex].xyz;
 	vec3 view = -normalize(vertex_interp - eye_offset);
-	mat4 projection_matrix = multiview_data.projection_matrix_view[ViewIndex];
-	mat4 inv_projection_matrix = multiview_data.inv_projection_matrix_view[ViewIndex];
+	mat4 projection_matrix = multiview_data_block.data.projection_matrix_view[ViewIndex];
+	mat4 inv_projection_matrix = multiview_data_block.data.inv_projection_matrix_view[ViewIndex];
 #else
 	vec3 eye_offset = vec3(0.0, 0.0, 0.0);
 	vec3 view = -normalize(vertex_interp);
-	mat4 projection_matrix = scene_data.projection_matrix;
-	mat4 inv_projection_matrix = scene_data.inv_projection_matrix;
+	mat4 projection_matrix = scene_data_block.data.projection_matrix;
+	mat4 inv_projection_matrix = scene_data_block.data.inv_projection_matrix;
 #endif
 	highp mat4 model_matrix = world_transform;
 	vec3 albedo = vec3(1.0);
@@ -1837,7 +2013,7 @@ void main() {
 
 	float normal_map_depth = 1.0;
 
-	vec2 screen_uv = gl_FragCoord.xy * scene_data.screen_pixel_size;
+	vec2 screen_uv = gl_FragCoord.xy * scene_data_block.data.screen_pixel_size;
 
 	float sss_strength = 0.0;
 
@@ -1943,7 +2119,7 @@ void main() {
 	// fog must be processed as early as possible and then packed.
 	// to maximize VGPR usage
 
-	if (scene_data.fog_enabled) {
+	if (scene_data_block.data.fog_enabled) {
 		fog = fog_process(vertex);
 	}
 #endif // !DISABLE_FOG
@@ -1972,7 +2148,7 @@ void main() {
 	vec3 F = f0 + (max(vec3(1.0 - roughness), f0) - f0) * pow(1.0 - ndotv, 5.0);
 
 #ifdef USE_RADIANCE_MAP
-	if (scene_data.use_reflection_cubemap) {
+	if (scene_data_block.data.use_reflection_cubemap) {
 #ifdef LIGHT_ANISOTROPY_USED
 		// https://google.github.io/filament/Filament.html#lighting/imagebasedlights/anisotropy
 		vec3 anisotropic_direction = anisotropy >= 0.0 ? binormal : tangent;
@@ -1985,11 +2161,11 @@ void main() {
 #endif
 		ref_vec = mix(ref_vec, normal, roughness * roughness);
 		float horizon = min(1.0 + dot(ref_vec, normal), 1.0);
-		ref_vec = scene_data.radiance_inverse_xform * ref_vec;
+		ref_vec = scene_data_block.data.radiance_inverse_xform * ref_vec;
 		specular_light = textureLod(radiance_map, ref_vec, sqrt(roughness) * RADIANCE_MAX_LOD).rgb;
 		specular_light = srgb_to_linear(specular_light);
 		specular_light *= horizon * horizon;
-		specular_light *= scene_data.ambient_light_color_energy.a;
+		specular_light *= scene_data_block.data.ambient_light_color_energy.a;
 	}
 #endif // USE_RADIANCE_MAP
 
@@ -2025,21 +2201,21 @@ void main() {
 
 #ifndef USE_LIGHTMAP
 	//lightmap overrides everything
-	if (scene_data.use_ambient_light) {
-		ambient_light = scene_data.ambient_light_color_energy.rgb;
+	if (scene_data_block.data.use_ambient_light) {
+		ambient_light = scene_data_block.data.ambient_light_color_energy.rgb;
 
 #ifdef USE_RADIANCE_MAP
-		if (scene_data.use_ambient_cubemap) {
-			vec3 ambient_dir = scene_data.radiance_inverse_xform * normal;
+		if (scene_data_block.data.use_ambient_cubemap) {
+			vec3 ambient_dir = scene_data_block.data.radiance_inverse_xform * normal;
 			vec3 cubemap_ambient = textureLod(radiance_map, ambient_dir, RADIANCE_MAX_LOD).rgb;
 			cubemap_ambient = srgb_to_linear(cubemap_ambient);
-			ambient_light = mix(ambient_light, cubemap_ambient * scene_data.ambient_light_color_energy.a, scene_data.ambient_color_sky_mix);
+			ambient_light = mix(ambient_light, cubemap_ambient * scene_data_block.data.ambient_light_color_energy.a, scene_data_block.data.ambient_color_sky_mix);
 		}
 #endif // USE_RADIANCE_MAP
 
 #ifndef DISABLE_REFLECTION_PROBE
 		if (ambient_accum.a > 0.0) {
-			ambient_light = mix(ambient_light, (ambient_accum.rgb / ambient_accum.a) * scene_data.ambient_light_color_energy.a, scene_data.ambient_color_sky_mix);
+			ambient_light = mix(ambient_light, (ambient_accum.rgb / ambient_accum.a) * scene_data_block.data.ambient_light_color_energy.a, scene_data_block.data.ambient_color_sky_mix);
 		}
 #endif // DISABLE_REFLECTION_PROBE
 	}
@@ -2052,7 +2228,7 @@ void main() {
 #ifndef DISABLE_LIGHTMAP
 #ifdef USE_LIGHTMAP_CAPTURE
 	{
-		vec3 wnormal = mat3(scene_data.inv_view_matrix) * normal;
+		vec3 wnormal = mat3(scene_data_block.data.inv_view_matrix) * normal;
 		const float c1 = 0.429043;
 		const float c2 = 0.511664;
 		const float c3 = 0.743125;
@@ -2068,7 +2244,7 @@ void main() {
 								 2.0 * c2 * lightmap_captures[3].rgb * wnormal.x +
 								 2.0 * c2 * lightmap_captures[1].rgb * wnormal.y +
 								 2.0 * c2 * lightmap_captures[2].rgb * wnormal.z) *
-				scene_data.emissive_exposure_normalization;
+				scene_data_block.data.emissive_exposure_normalization;
 	}
 #else
 #ifdef USE_LIGHTMAP
@@ -2146,7 +2322,7 @@ void main() {
 #else
 
 #ifndef DISABLE_LIGHT_DIRECTIONAL
-	for (uint i = uint(0); i < scene_data.directional_light_count; i++) {
+	for (uint i = uint(0); i < scene_data_block.data.directional_light_count; i++) {
 #if defined(USE_LIGHTMAP) && !defined(DISABLE_LIGHTMAP)
 		if (directional_lights[i].bake_mode == LIGHT_BAKE_STATIC) {
 			continue;
@@ -2249,7 +2425,7 @@ void main() {
 #ifdef MODE_RENDER_DEPTH
 #ifdef RENDER_SHADOWS_LINEAR
 	// Linearize the depth buffer if rendering cubemap shadows.
-	gl_FragDepth = (scene_data.z_far - (length(vertex) + scene_data.shadow_bias)) / scene_data.z_far;
+	gl_FragDepth = (scene_data_block.data.z_far - (length(vertex) + scene_data_block.data.shadow_bias)) / scene_data_block.data.z_far;
 #endif
 
 // Nothing happens, so a tree-ssa optimizer will result in no fragment shader :)
@@ -2568,7 +2744,7 @@ void main() {
 
 	frag_color.rgb += additive_light_color;
 #endif // USE_ADDITIVE_LIGHTING
-	frag_color.rgb *= scene_data.luminance_multiplier;
+	frag_color.rgb *= scene_data_block.data.luminance_multiplier;
 
 #endif // !RENDER_MATERIAL
 #endif // !MODE_RENDER_DEPTH
@@ -2576,4 +2752,14 @@ void main() {
 #ifdef PREMUL_ALPHA_USED
 	frag_color.rgb *= premul_alpha;
 #endif // PREMUL_ALPHA_USED
+#endif // !RENDER_MOTION_VECTORS
+
+#if defined(RENDER_MOTION_VECTORS)
+	// These motion vectors are in NDC space (as opposed to screen space) to fit the OpenXR XR_FB_space_warp specification.
+	// https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_FB_space_warp
+
+	vec3 ndc = clip_position.xyz / clip_position.w;
+	vec3 prev_ndc = prev_clip_position.xyz / prev_clip_position.w;
+	motion_vectors = vec4(ndc - prev_ndc, 0.0);
+#endif // RENDER_MOTION_VECTORS
 }

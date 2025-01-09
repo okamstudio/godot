@@ -55,6 +55,7 @@
 #define _EXT_DEBUG_TYPE_PORTABILITY_ARB 0x824F
 #define _EXT_DEBUG_TYPE_PERFORMANCE_ARB 0x8250
 #define _EXT_DEBUG_TYPE_OTHER_ARB 0x8251
+#define _EXT_DEBUG_TYPE_MARKER_ARB 0x8268
 #define _EXT_MAX_DEBUG_MESSAGE_LENGTH_ARB 0x9143
 #define _EXT_MAX_DEBUG_LOGGED_MESSAGES_ARB 0x9144
 #define _EXT_DEBUG_LOGGED_MESSAGES_ARB 0x9145
@@ -140,7 +141,7 @@ void RasterizerGLES3::clear_depth(float p_depth) {
 #ifdef CAN_DEBUG
 static void GLAPIENTRY _gl_debug_print(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const GLvoid *userParam) {
 	// These are ultimately annoying, so removing for now.
-	if (type == _EXT_DEBUG_TYPE_OTHER_ARB || type == _EXT_DEBUG_TYPE_PERFORMANCE_ARB) {
+	if (type == _EXT_DEBUG_TYPE_OTHER_ARB || type == _EXT_DEBUG_TYPE_PERFORMANCE_ARB || type == _EXT_DEBUG_TYPE_MARKER_ARB) {
 		return;
 	}
 

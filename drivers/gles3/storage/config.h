@@ -61,6 +61,7 @@ public:
 	GLint max_texture_image_units = 0;
 	GLint max_texture_size = 0;
 	GLint max_viewport_size[2] = { 0, 0 };
+	GLint max_vertex_attribs = 0;
 	GLint64 max_uniform_buffer_size = 0;
 
 	int64_t max_renderable_elements = 0;
@@ -110,7 +111,13 @@ public:
 	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC eglFramebufferTexture2DMultisampleEXT = nullptr;
 	PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC eglFramebufferTextureMultisampleMultiviewOVR = nullptr;
 	PFNEGLIMAGETARGETTEXTURE2DOESPROC eglEGLImageTargetTexture2DOES = nullptr;
-#endif
+
+#define glFramebufferTextureMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultiviewOVR
+#define glTexStorage3DMultisample GLES3::Config::get_singleton()->eglTexStorage3DMultisample
+#define glFramebufferTexture2DMultisampleEXT GLES3::Config::get_singleton()->eglFramebufferTexture2DMultisampleEXT
+#define glFramebufferTextureMultisampleMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultisampleMultiviewOVR
+#define glEGLImageTargetTexture2DOES GLES3::Config::get_singleton()->eglEGLImageTargetTexture2DOES
+#endif // ANDROID_ENABLED
 
 	static Config *get_singleton() { return singleton; }
 

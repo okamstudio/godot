@@ -349,6 +349,8 @@ struct RenderTarget {
 	GLuint backbuffer = 0;
 	GLuint backbuffer_depth = 0;
 
+	Size2i velocity_target_size;
+
 	bool hdr = false; // For Compatibility this effects both 2D and 3D rendering!
 	GLuint color_internal_format = GL_RGBA8;
 	GLuint color_format = GL_RGBA;
@@ -377,6 +379,7 @@ struct RenderTarget {
 		RID color;
 		RID depth;
 		RID velocity;
+		RID velocity_depth;
 
 		struct FBOCacheEntry {
 			GLuint fbo;
@@ -386,6 +389,9 @@ struct RenderTarget {
 			Vector<GLuint> allocated_textures;
 		};
 		RBMap<uint32_t, FBOCacheEntry> fbo_cache;
+
+		GLuint velocity_fbo = 0;
+		RBMap<uint32_t, GLuint> velocity_fbo_cache;
 	} overridden;
 
 	RID texture;
@@ -450,7 +456,8 @@ private:
 	mutable RID_Owner<RenderTarget> render_target_owner;
 
 	void _clear_render_target(RenderTarget *rt);
-	void _update_render_target(RenderTarget *rt);
+	void _update_render_target_color(RenderTarget *rt);
+	void _update_render_target_velocity(RenderTarget *rt);
 	void _create_render_target_backbuffer(RenderTarget *rt);
 	void _render_target_allocate_sdf(RenderTarget *rt);
 	void _render_target_clear_sdf(RenderTarget *rt);
@@ -689,12 +696,12 @@ public:
 	virtual RID render_target_get_override_color(RID p_render_target) const override;
 	virtual RID render_target_get_override_depth(RID p_render_target) const override;
 	virtual RID render_target_get_override_velocity(RID p_render_target) const override;
-	virtual RID render_target_get_override_velocity_depth(RID p_render_target) const override { return RID(); }
+	virtual RID render_target_get_override_velocity_depth(RID p_render_target) const override;
 
 	virtual RID render_target_get_texture(RID p_render_target) override;
 
-	virtual void render_target_set_velocity_target_size(RID p_render_target, const Size2i &p_target_size) override {}
-	virtual Size2i render_target_get_velocity_target_size(RID p_render_target) const override { return Size2i(); }
+	virtual void render_target_set_velocity_target_size(RID p_render_target, const Size2i &p_target_size) override;
+	virtual Size2i render_target_get_velocity_target_size(RID p_render_target) const override;
 
 	void bind_framebuffer(GLuint framebuffer) {
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);

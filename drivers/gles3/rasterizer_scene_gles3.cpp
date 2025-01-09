@@ -1458,147 +1458,147 @@ void RasterizerSceneGLES3::_setup_environment(const RenderDataGLES3 *p_render_da
 	correction.set_depth_correction(p_flip_y, true, false);
 	Projection projection = correction * p_render_data->cam_projection;
 	//store camera into ubo
-	GLES3::MaterialStorage::store_camera(projection, scene_state.ubo.projection_matrix);
-	GLES3::MaterialStorage::store_camera(projection.inverse(), scene_state.ubo.inv_projection_matrix);
-	GLES3::MaterialStorage::store_transform(p_render_data->cam_transform, scene_state.ubo.inv_view_matrix);
-	GLES3::MaterialStorage::store_transform(p_render_data->inv_cam_transform, scene_state.ubo.view_matrix);
-	GLES3::MaterialStorage::store_transform(p_render_data->main_cam_transform, scene_state.ubo.main_cam_inv_view_matrix);
-	scene_state.ubo.camera_visible_layers = p_render_data->camera_visible_layers;
+	GLES3::MaterialStorage::store_camera(projection, scene_state.data.projection_matrix);
+	GLES3::MaterialStorage::store_camera(projection.inverse(), scene_state.data.inv_projection_matrix);
+	GLES3::MaterialStorage::store_transform(p_render_data->cam_transform, scene_state.data.inv_view_matrix);
+	GLES3::MaterialStorage::store_transform(p_render_data->inv_cam_transform, scene_state.data.view_matrix);
+	GLES3::MaterialStorage::store_transform(p_render_data->main_cam_transform, scene_state.data.main_cam_inv_view_matrix);
+	scene_state.data.camera_visible_layers = p_render_data->camera_visible_layers;
 
 	if (p_render_data->view_count > 1) {
 		for (uint32_t v = 0; v < p_render_data->view_count; v++) {
 			projection = correction * p_render_data->view_projection[v];
-			GLES3::MaterialStorage::store_camera(projection, scene_state.multiview_ubo.projection_matrix_view[v]);
-			GLES3::MaterialStorage::store_camera(projection.inverse(), scene_state.multiview_ubo.inv_projection_matrix_view[v]);
+			GLES3::MaterialStorage::store_camera(projection, scene_state.multiview_data.projection_matrix_view[v]);
+			GLES3::MaterialStorage::store_camera(projection.inverse(), scene_state.multiview_data.inv_projection_matrix_view[v]);
 
-			scene_state.multiview_ubo.eye_offset[v][0] = p_render_data->view_eye_offset[v].x;
-			scene_state.multiview_ubo.eye_offset[v][1] = p_render_data->view_eye_offset[v].y;
-			scene_state.multiview_ubo.eye_offset[v][2] = p_render_data->view_eye_offset[v].z;
-			scene_state.multiview_ubo.eye_offset[v][3] = 0.0;
+			scene_state.multiview_data.eye_offset[v][0] = p_render_data->view_eye_offset[v].x;
+			scene_state.multiview_data.eye_offset[v][1] = p_render_data->view_eye_offset[v].y;
+			scene_state.multiview_data.eye_offset[v][2] = p_render_data->view_eye_offset[v].z;
+			scene_state.multiview_data.eye_offset[v][3] = 0.0;
 		}
 	}
 
 	// Only render the lights without shadows in the base pass.
-	scene_state.ubo.directional_light_count = p_render_data->directional_light_count - p_render_data->directional_shadow_count;
+	scene_state.data.directional_light_count = p_render_data->directional_light_count - p_render_data->directional_shadow_count;
 
-	scene_state.ubo.z_far = p_render_data->z_far;
-	scene_state.ubo.z_near = p_render_data->z_near;
+	scene_state.data.z_far = p_render_data->z_far;
+	scene_state.data.z_near = p_render_data->z_near;
 
-	scene_state.ubo.viewport_size[0] = p_screen_size.x;
-	scene_state.ubo.viewport_size[1] = p_screen_size.y;
+	scene_state.data.viewport_size[0] = p_screen_size.x;
+	scene_state.data.viewport_size[1] = p_screen_size.y;
 
 	Size2 screen_pixel_size = Vector2(1.0, 1.0) / Size2(p_screen_size);
-	scene_state.ubo.screen_pixel_size[0] = screen_pixel_size.x;
-	scene_state.ubo.screen_pixel_size[1] = screen_pixel_size.y;
+	scene_state.data.screen_pixel_size[0] = screen_pixel_size.x;
+	scene_state.data.screen_pixel_size[1] = screen_pixel_size.y;
 
-	scene_state.ubo.luminance_multiplier = p_render_data->luminance_multiplier;
+	scene_state.data.luminance_multiplier = p_render_data->luminance_multiplier;
 
-	scene_state.ubo.shadow_bias = p_shadow_bias;
-	scene_state.ubo.pancake_shadows = p_pancake_shadows;
+	scene_state.data.shadow_bias = p_shadow_bias;
+	scene_state.data.pancake_shadows = p_pancake_shadows;
 
 	//time global variables
-	scene_state.ubo.time = time;
+	scene_state.data.time = time;
 
 	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_UNSHADED) {
-		scene_state.ubo.use_ambient_light = true;
-		scene_state.ubo.ambient_light_color_energy[0] = 1;
-		scene_state.ubo.ambient_light_color_energy[1] = 1;
-		scene_state.ubo.ambient_light_color_energy[2] = 1;
-		scene_state.ubo.ambient_light_color_energy[3] = 1.0;
-		scene_state.ubo.use_ambient_cubemap = false;
-		scene_state.ubo.use_reflection_cubemap = false;
+		scene_state.data.use_ambient_light = true;
+		scene_state.data.ambient_light_color_energy[0] = 1;
+		scene_state.data.ambient_light_color_energy[1] = 1;
+		scene_state.data.ambient_light_color_energy[2] = 1;
+		scene_state.data.ambient_light_color_energy[3] = 1.0;
+		scene_state.data.use_ambient_cubemap = false;
+		scene_state.data.use_reflection_cubemap = false;
 	} else if (is_environment(p_render_data->environment)) {
 		RS::EnvironmentBG env_bg = environment_get_background(p_render_data->environment);
 		RS::EnvironmentAmbientSource ambient_src = environment_get_ambient_source(p_render_data->environment);
 
 		float bg_energy_multiplier = environment_get_bg_energy_multiplier(p_render_data->environment);
 
-		scene_state.ubo.ambient_light_color_energy[3] = bg_energy_multiplier;
+		scene_state.data.ambient_light_color_energy[3] = bg_energy_multiplier;
 
-		scene_state.ubo.ambient_color_sky_mix = environment_get_ambient_sky_contribution(p_render_data->environment);
+		scene_state.data.ambient_color_sky_mix = environment_get_ambient_sky_contribution(p_render_data->environment);
 
 		//ambient
 		if (ambient_src == RS::ENV_AMBIENT_SOURCE_BG && (env_bg == RS::ENV_BG_CLEAR_COLOR || env_bg == RS::ENV_BG_COLOR)) {
 			Color color = env_bg == RS::ENV_BG_CLEAR_COLOR ? p_default_bg_color : environment_get_bg_color(p_render_data->environment);
 			color = color.srgb_to_linear();
 
-			scene_state.ubo.ambient_light_color_energy[0] = color.r * bg_energy_multiplier;
-			scene_state.ubo.ambient_light_color_energy[1] = color.g * bg_energy_multiplier;
-			scene_state.ubo.ambient_light_color_energy[2] = color.b * bg_energy_multiplier;
-			scene_state.ubo.use_ambient_light = true;
-			scene_state.ubo.use_ambient_cubemap = false;
+			scene_state.data.ambient_light_color_energy[0] = color.r * bg_energy_multiplier;
+			scene_state.data.ambient_light_color_energy[1] = color.g * bg_energy_multiplier;
+			scene_state.data.ambient_light_color_energy[2] = color.b * bg_energy_multiplier;
+			scene_state.data.use_ambient_light = true;
+			scene_state.data.use_ambient_cubemap = false;
 		} else {
 			float energy = environment_get_ambient_light_energy(p_render_data->environment);
 			Color color = environment_get_ambient_light(p_render_data->environment);
 			color = color.srgb_to_linear();
-			scene_state.ubo.ambient_light_color_energy[0] = color.r * energy;
-			scene_state.ubo.ambient_light_color_energy[1] = color.g * energy;
-			scene_state.ubo.ambient_light_color_energy[2] = color.b * energy;
+			scene_state.data.ambient_light_color_energy[0] = color.r * energy;
+			scene_state.data.ambient_light_color_energy[1] = color.g * energy;
+			scene_state.data.ambient_light_color_energy[2] = color.b * energy;
 
 			Basis sky_transform = environment_get_sky_orientation(p_render_data->environment);
 			sky_transform = sky_transform.inverse() * p_render_data->cam_transform.basis;
-			GLES3::MaterialStorage::store_transform_3x3(sky_transform, scene_state.ubo.radiance_inverse_xform);
-			scene_state.ubo.use_ambient_cubemap = (ambient_src == RS::ENV_AMBIENT_SOURCE_BG && env_bg == RS::ENV_BG_SKY) || ambient_src == RS::ENV_AMBIENT_SOURCE_SKY;
-			scene_state.ubo.use_ambient_light = scene_state.ubo.use_ambient_cubemap || ambient_src == RS::ENV_AMBIENT_SOURCE_COLOR;
+			GLES3::MaterialStorage::store_transform_3x3(sky_transform, scene_state.data.radiance_inverse_xform);
+			scene_state.data.use_ambient_cubemap = (ambient_src == RS::ENV_AMBIENT_SOURCE_BG && env_bg == RS::ENV_BG_SKY) || ambient_src == RS::ENV_AMBIENT_SOURCE_SKY;
+			scene_state.data.use_ambient_light = scene_state.data.use_ambient_cubemap || ambient_src == RS::ENV_AMBIENT_SOURCE_COLOR;
 		}
 
 		//specular
 		RS::EnvironmentReflectionSource ref_src = environment_get_reflection_source(p_render_data->environment);
 		if ((ref_src == RS::ENV_REFLECTION_SOURCE_BG && env_bg == RS::ENV_BG_SKY) || ref_src == RS::ENV_REFLECTION_SOURCE_SKY) {
-			scene_state.ubo.use_reflection_cubemap = true;
+			scene_state.data.use_reflection_cubemap = true;
 		} else {
-			scene_state.ubo.use_reflection_cubemap = false;
+			scene_state.data.use_reflection_cubemap = false;
 		}
 
-		scene_state.ubo.fog_enabled = environment_get_fog_enabled(p_render_data->environment);
-		scene_state.ubo.fog_mode = environment_get_fog_mode(p_render_data->environment);
-		scene_state.ubo.fog_density = environment_get_fog_density(p_render_data->environment);
-		scene_state.ubo.fog_height = environment_get_fog_height(p_render_data->environment);
-		scene_state.ubo.fog_depth_curve = environment_get_fog_depth_curve(p_render_data->environment);
-		scene_state.ubo.fog_depth_end = environment_get_fog_depth_end(p_render_data->environment) > 0.0 ? environment_get_fog_depth_end(p_render_data->environment) : scene_state.ubo.z_far;
-		scene_state.ubo.fog_depth_begin = MIN(environment_get_fog_depth_begin(p_render_data->environment), scene_state.ubo.fog_depth_end - 0.001);
-		scene_state.ubo.fog_height_density = environment_get_fog_height_density(p_render_data->environment);
-		scene_state.ubo.fog_aerial_perspective = environment_get_fog_aerial_perspective(p_render_data->environment);
+		scene_state.data.fog_enabled = environment_get_fog_enabled(p_render_data->environment);
+		scene_state.data.fog_mode = environment_get_fog_mode(p_render_data->environment);
+		scene_state.data.fog_density = environment_get_fog_density(p_render_data->environment);
+		scene_state.data.fog_height = environment_get_fog_height(p_render_data->environment);
+		scene_state.data.fog_depth_curve = environment_get_fog_depth_curve(p_render_data->environment);
+		scene_state.data.fog_depth_end = environment_get_fog_depth_end(p_render_data->environment) > 0.0 ? environment_get_fog_depth_end(p_render_data->environment) : scene_state.data.z_far;
+		scene_state.data.fog_depth_begin = MIN(environment_get_fog_depth_begin(p_render_data->environment), scene_state.data.fog_depth_end - 0.001);
+		scene_state.data.fog_height_density = environment_get_fog_height_density(p_render_data->environment);
+		scene_state.data.fog_aerial_perspective = environment_get_fog_aerial_perspective(p_render_data->environment);
 
 		Color fog_color = environment_get_fog_light_color(p_render_data->environment).srgb_to_linear();
 		float fog_energy = environment_get_fog_light_energy(p_render_data->environment);
 
-		scene_state.ubo.fog_light_color[0] = fog_color.r * fog_energy;
-		scene_state.ubo.fog_light_color[1] = fog_color.g * fog_energy;
-		scene_state.ubo.fog_light_color[2] = fog_color.b * fog_energy;
+		scene_state.data.fog_light_color[0] = fog_color.r * fog_energy;
+		scene_state.data.fog_light_color[1] = fog_color.g * fog_energy;
+		scene_state.data.fog_light_color[2] = fog_color.b * fog_energy;
 
-		scene_state.ubo.fog_sun_scatter = environment_get_fog_sun_scatter(p_render_data->environment);
+		scene_state.data.fog_sun_scatter = environment_get_fog_sun_scatter(p_render_data->environment);
 
 	} else {
 	}
 
 	if (p_render_data->camera_attributes.is_valid()) {
-		scene_state.ubo.emissive_exposure_normalization = RSG::camera_attributes->camera_attributes_get_exposure_normalization_factor(p_render_data->camera_attributes);
-		scene_state.ubo.IBL_exposure_normalization = 1.0;
+		scene_state.data.emissive_exposure_normalization = RSG::camera_attributes->camera_attributes_get_exposure_normalization_factor(p_render_data->camera_attributes);
+		scene_state.data.IBL_exposure_normalization = 1.0;
 		if (is_environment(p_render_data->environment)) {
 			RID sky_rid = environment_get_sky(p_render_data->environment);
 			if (sky_rid.is_valid()) {
 				float current_exposure = RSG::camera_attributes->camera_attributes_get_exposure_normalization_factor(p_render_data->camera_attributes) * environment_get_bg_intensity(p_render_data->environment);
-				scene_state.ubo.IBL_exposure_normalization = current_exposure / MAX(0.001, sky_get_baked_exposure(sky_rid));
+				scene_state.data.IBL_exposure_normalization = current_exposure / MAX(0.001, sky_get_baked_exposure(sky_rid));
 			}
 		}
-	} else if (scene_state.ubo.emissive_exposure_normalization > 0.0) {
+	} else if (scene_state.data.emissive_exposure_normalization > 0.0) {
 		// This branch is triggered when using render_material().
 		// Emissive is set outside the function, so don't set it.
 		// IBL isn't used don't set it.
 	} else {
-		scene_state.ubo.emissive_exposure_normalization = 1.0;
-		scene_state.ubo.IBL_exposure_normalization = 1.0;
+		scene_state.data.emissive_exposure_normalization = 1.0;
+		scene_state.data.IBL_exposure_normalization = 1.0;
 	}
 
 	if (scene_state.ubo_buffer == 0) {
 		glGenBuffers(1, &scene_state.ubo_buffer);
 		glBindBufferBase(GL_UNIFORM_BUFFER, SCENE_DATA_UNIFORM_LOCATION, scene_state.ubo_buffer);
-		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_UNIFORM_BUFFER, scene_state.ubo_buffer, sizeof(SceneState::UBO), &scene_state.ubo, GL_STREAM_DRAW, "Scene state UBO");
+		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_UNIFORM_BUFFER, scene_state.ubo_buffer, sizeof(SceneState::UBO) * 2, &scene_state.data, GL_STREAM_DRAW, "Scene state UBO");
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	} else {
 		glBindBufferBase(GL_UNIFORM_BUFFER, SCENE_DATA_UNIFORM_LOCATION, scene_state.ubo_buffer);
-		glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneState::UBO), &scene_state.ubo, GL_STREAM_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneState::UBO) * 2, &scene_state.data, GL_STREAM_DRAW);
 	}
 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -1607,10 +1607,10 @@ void RasterizerSceneGLES3::_setup_environment(const RenderDataGLES3 *p_render_da
 		if (scene_state.multiview_buffer == 0) {
 			glGenBuffers(1, &scene_state.multiview_buffer);
 			glBindBufferBase(GL_UNIFORM_BUFFER, SCENE_MULTIVIEW_UNIFORM_LOCATION, scene_state.multiview_buffer);
-			GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_UNIFORM_BUFFER, scene_state.multiview_buffer, sizeof(SceneState::MultiviewUBO), &scene_state.multiview_ubo, GL_STREAM_DRAW, "Multiview UBO");
+			GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_UNIFORM_BUFFER, scene_state.multiview_buffer, sizeof(SceneState::MultiviewUBO) * 2, &scene_state.multiview_data, GL_STREAM_DRAW, "Multiview UBO");
 		} else {
 			glBindBufferBase(GL_UNIFORM_BUFFER, SCENE_MULTIVIEW_UNIFORM_LOCATION, scene_state.multiview_buffer);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneState::MultiviewUBO), &scene_state.multiview_ubo, GL_STREAM_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(SceneState::MultiviewUBO) * 2, &scene_state.multiview_data, GL_STREAM_DRAW);
 		}
 
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -2359,7 +2359,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	scene_state.ubo.emissive_exposure_normalization = -1.0; // Use default exposure normalization.
+	scene_state.data.emissive_exposure_normalization = -1.0; // Use default exposure normalization.
 
 	bool flip_y = !is_reflection_probe;
 
@@ -2470,6 +2470,46 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 		}
 	}
 
+	scene_state.reset_gl_state();
+
+	GLuint motion_vectors_fbo = rt->overridden.velocity_fbo;
+	if (motion_vectors_fbo != 0 && GLES3::Config::get_singleton()->max_vertex_attribs >= 22) {
+		RENDER_TIMESTAMP("Motion Vectors Pass");
+		glBindFramebuffer(GL_FRAMEBUFFER, motion_vectors_fbo);
+
+		Size2i motion_vectors_target_size = rt->velocity_target_size;
+		glViewport(0, 0, motion_vectors_target_size.x, motion_vectors_target_size.y);
+
+		if (!scene_state.is_prev_data_stored) {
+			scene_state.prev_data = scene_state.data;
+			scene_state.prev_multiview_data = scene_state.multiview_data;
+			scene_state.is_prev_data_stored = true;
+		}
+
+		scene_state.enable_gl_depth_test(true);
+		scene_state.enable_gl_depth_draw(true);
+		scene_state.enable_gl_blend(false);
+		glDepthFunc(GL_GEQUAL);
+		scene_state.enable_gl_scissor_test(false);
+
+		glColorMask(1, 1, 1, 1);
+		RasterizerGLES3::clear_depth(0.0);
+		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		GLuint db = GL_COLOR_ATTACHMENT0;
+		glDrawBuffers(1, &db);
+
+		uint64_t spec_constant = SceneShaderGLES3::DISABLE_FOG | SceneShaderGLES3::DISABLE_LIGHT_DIRECTIONAL |
+				SceneShaderGLES3::DISABLE_LIGHTMAP | SceneShaderGLES3::DISABLE_LIGHT_OMNI |
+				SceneShaderGLES3::DISABLE_LIGHT_SPOT;
+
+		RenderListParameters render_list_params(render_list[RENDER_LIST_OPAQUE].elements.ptr(), render_list[RENDER_LIST_OPAQUE].elements.size(), reverse_cull, spec_constant, use_wireframe);
+		_render_list_template<PASS_MODE_MOTION_VECTORS>(&render_list_params, &render_data, 0, render_list[RENDER_LIST_OPAQUE].elements.size());
+
+		scene_state.prev_data = scene_state.data;
+		scene_state.prev_multiview_data = scene_state.multiview_data;
+	}
+
 	GLuint fbo = 0;
 	if (is_reflection_probe) {
 		fbo = GLES3::LightStorage::get_singleton()->reflection_probe_instance_get_framebuffer(render_data.reflection_probe, render_data.reflection_probe_pass);
@@ -2480,8 +2520,6 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glViewport(0, 0, rb->internal_size.x, rb->internal_size.y);
-
-	scene_state.reset_gl_state();
 
 	// Do depth prepass if it's explicitly enabled
 	bool use_depth_prepass = config->use_depth_prepass;
@@ -2947,6 +2985,8 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 
 	} else if constexpr (p_pass_mode == PASS_MODE_DEPTH || p_pass_mode == PASS_MODE_SHADOW) {
 		shader_variant = SceneShaderGLES3::MODE_DEPTH;
+	} else if constexpr (p_pass_mode == PASS_MODE_MOTION_VECTORS) {
+		base_spec_constants |= SceneShaderGLES3::RENDER_MOTION_VECTORS;
 	}
 
 	if (p_render_data->view_count > 1) {
@@ -2954,8 +2994,8 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 	}
 
 	bool should_request_redraw = false;
-	if constexpr (p_pass_mode != PASS_MODE_DEPTH) {
-		// Don't count elements during depth pre-pass to match the RD renderers.
+	if constexpr (p_pass_mode != PASS_MODE_DEPTH && p_pass_mode != PASS_MODE_MOTION_VECTORS) {
+		// Don't count elements during depth pre-pass or motion vector pass to match the RD renderers.
 		if (p_render_data->render_info) {
 			p_render_data->render_info->info[RS::VIEWPORT_RENDER_INFO_TYPE_VISIBLE][RS::VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME] += p_to_element - p_from_element;
 		}
@@ -3010,7 +3050,7 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 
 		if constexpr (p_pass_mode != PASS_MODE_SHADOW) {
 			if (shader->depth_draw == GLES3::SceneShaderData::DEPTH_DRAW_OPAQUE) {
-				scene_state.enable_gl_depth_draw((p_pass_mode == PASS_MODE_COLOR && !GLES3::Config::get_singleton()->use_depth_prepass) || p_pass_mode == PASS_MODE_DEPTH);
+				scene_state.enable_gl_depth_draw((p_pass_mode == PASS_MODE_COLOR && !GLES3::Config::get_singleton()->use_depth_prepass) || p_pass_mode == PASS_MODE_DEPTH || p_pass_mode == PASS_MODE_MOTION_VECTORS);
 			} else {
 				scene_state.enable_gl_depth_draw(shader->depth_draw == GLES3::SceneShaderData::DEPTH_DRAW_ALWAYS);
 			}
@@ -3026,9 +3066,9 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 		 */
 
 		for (int32_t pass = 0; pass < MAX(1, int32_t(inst->light_passes.size() + p_render_data->directional_shadow_count)); pass++) {
-			if constexpr (p_pass_mode == PASS_MODE_DEPTH || p_pass_mode == PASS_MODE_SHADOW) {
+			if constexpr (p_pass_mode == PASS_MODE_DEPTH || p_pass_mode == PASS_MODE_SHADOW || p_pass_mode == PASS_MODE_MOTION_VECTORS) {
 				if (pass > 0) {
-					// Don't render shadow passes when doing depth or shadow pass.
+					// Don't render shadow passes when doing depth, shadow, or motion vector pass.
 					break;
 				}
 			}
@@ -3143,9 +3183,9 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 
 			// Skeleton and blend shapes.
 			if (surf->owner->mesh_instance.is_valid()) {
-				mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, vertex_input_mask, vertex_array_gl);
+				mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(surf->owner->mesh_instance, surf->surface_index, vertex_input_mask, p_pass_mode == PASS_MODE_MOTION_VECTORS, vertex_array_gl);
 			} else {
-				mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, vertex_input_mask, vertex_array_gl);
+				mesh_storage->mesh_surface_get_vertex_arrays_and_format(mesh_surface, vertex_input_mask, p_pass_mode == PASS_MODE_MOTION_VECTORS, vertex_array_gl);
 			}
 
 			index_array_gl = mesh_storage->mesh_surface_get_index_buffer(mesh_surface, surf->lod_index);
@@ -3331,7 +3371,7 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 				}
 
 				float opaque_prepass_threshold = 0.0;
-				if constexpr (p_pass_mode == PASS_MODE_DEPTH) {
+				if constexpr (p_pass_mode == PASS_MODE_DEPTH || p_pass_mode == PASS_MODE_MOTION_VECTORS) {
 					opaque_prepass_threshold = 0.99;
 				} else if constexpr (p_pass_mode == PASS_MODE_SHADOW) {
 					opaque_prepass_threshold = 0.1;
@@ -3516,6 +3556,16 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 				}
 			}
 
+			if constexpr (p_pass_mode == PASS_MODE_MOTION_VECTORS) {
+				if (unlikely(!inst->is_prev_transform_stored)) {
+					inst->prev_transform = world_transform;
+					inst->is_prev_transform_stored = true;
+				}
+
+				material_storage->shaders.scene_shader.version_set_uniform(SceneShaderGLES3::PREV_WORLD_TRANSFORM, inst->prev_transform, shader->version, instance_variant, spec_constants);
+				inst->prev_transform = world_transform;
+			}
+
 			material_storage->shaders.scene_shader.version_set_uniform(SceneShaderGLES3::WORLD_TRANSFORM, world_transform, shader->version, instance_variant, spec_constants);
 			{
 				GLES3::Mesh::Surface *s = reinterpret_cast<GLES3::Mesh::Surface *>(surf->surface);
@@ -3550,8 +3600,8 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 				count = count * 2;
 			}
 
-			if constexpr (p_pass_mode != PASS_MODE_DEPTH) {
-				// Don't count draw calls during depth pre-pass to match the RD renderers.
+			if constexpr (p_pass_mode != PASS_MODE_DEPTH && p_pass_mode != PASS_MODE_MOTION_VECTORS) {
+				// Don't count draw calls during depth pre-pass or motion vector pass to match the RD renderers.
 				if (p_render_data->render_info) {
 					p_render_data->render_info->info[RS::VIEWPORT_RENDER_INFO_TYPE_VISIBLE][RS::VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME]++;
 				}
@@ -3576,32 +3626,40 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 					break;
 				}
 
-				glBindBuffer(GL_ARRAY_BUFFER, instance_buffer);
+				bool uses_format_2d = inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D;
+				bool has_color_or_custom_data = (inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_HAS_COLOR) || (inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_HAS_CUSTOM_DATA);
+				// Current data multimesh vertex attrib data begins at index 12.
+				mesh_storage->multimesh_vertex_attrib_setup(instance_buffer, stride, uses_format_2d, has_color_or_custom_data, 12);
 
-				glEnableVertexAttribArray(12);
-				glVertexAttribPointer(12, 4, GL_FLOAT, GL_FALSE, stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(0));
-				glVertexAttribDivisor(12, 1);
-				glEnableVertexAttribArray(13);
-				glVertexAttribPointer(13, 4, GL_FLOAT, GL_FALSE, stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(sizeof(float) * 4));
-				glVertexAttribDivisor(13, 1);
-				if (!(inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D)) {
-					glEnableVertexAttribArray(14);
-					glVertexAttribPointer(14, 4, GL_FLOAT, GL_FALSE, stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(sizeof(float) * 8));
-					glVertexAttribDivisor(14, 1);
-				}
+				if (p_pass_mode == PASS_MODE_MOTION_VECTORS) {
+					GLuint prev_instance_buffer = 0;
+					if (inst->flags_cache & INSTANCE_DATA_FLAG_PARTICLES) {
+						prev_instance_buffer = particles_storage->particles_get_prev_gl_buffer(inst->data->base);
+					} else {
+						prev_instance_buffer = mesh_storage->multimesh_get_prev_gl_buffer(inst->data->base);
+					}
 
-				if ((inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_HAS_COLOR) || (inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_HAS_CUSTOM_DATA)) {
-					uint32_t color_custom_offset = inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH_FORMAT_2D ? 8 : 12;
-					glEnableVertexAttribArray(15);
-					glVertexAttribIPointer(15, 4, GL_UNSIGNED_INT, stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(color_custom_offset * sizeof(float)));
-					glVertexAttribDivisor(15, 1);
-				} else {
-					// Set all default instance color and custom data values to 1.0 or 0.0 using a compressed format.
-					uint16_t zero = Math::make_half_float(0.0f);
-					uint16_t one = Math::make_half_float(1.0f);
-					GLuint default_color = (uint32_t(one) << 16) | one;
-					GLuint default_custom = (uint32_t(zero) << 16) | zero;
-					glVertexAttribI4ui(15, default_color, default_color, default_custom, default_custom);
+					if (prev_instance_buffer == 0) {
+						break;
+					}
+
+					GLuint secondary_instance_buffer = 0;
+					if (inst->flags_cache & INSTANCE_DATA_FLAG_PARTICLES) {
+						if (particles_storage->particles_get_last_change(inst->data->base) == RSG::rasterizer->get_frame_number()) {
+							secondary_instance_buffer = prev_instance_buffer;
+						} else {
+							secondary_instance_buffer = instance_buffer;
+						}
+					} else {
+						if (mesh_storage->multimesh_get_last_change(inst->data->base) == RSG::rasterizer->get_frame_number()) {
+							secondary_instance_buffer = prev_instance_buffer;
+						} else {
+							secondary_instance_buffer = instance_buffer;
+						}
+					}
+
+					// Previous data multimesh vertex attrib data begins at index 18.
+					mesh_storage->multimesh_vertex_attrib_setup(secondary_instance_buffer, stride, uses_format_2d, has_color_or_custom_data, 18);
 				}
 
 				if (use_wireframe) {
@@ -3725,7 +3783,7 @@ void RasterizerSceneGLES3::_render_uv2(const PagedArray<RenderGeometryInstance *
 	RenderDataGLES3 render_data;
 	render_data.instances = &p_instances;
 
-	scene_state.ubo.emissive_exposure_normalization = -1.0; // Use default exposure normalization.
+	scene_state.data.emissive_exposure_normalization = -1.0; // Use default exposure normalization.
 
 	_setup_environment(&render_data, true, Vector2(1, 1), true, Color(), false);
 

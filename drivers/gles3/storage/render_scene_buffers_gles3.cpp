@@ -35,13 +35,6 @@
 #include "texture_storage.h"
 #include "utilities.h"
 
-#ifdef ANDROID_ENABLED
-#define glFramebufferTextureMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultiviewOVR
-#define glTexStorage3DMultisample GLES3::Config::get_singleton()->eglTexStorage3DMultisample
-#define glFramebufferTexture2DMultisampleEXT GLES3::Config::get_singleton()->eglFramebufferTexture2DMultisampleEXT
-#define glFramebufferTextureMultisampleMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultisampleMultiviewOVR
-#endif // ANDROID_ENABLED
-
 // Will only be defined if GLES 3.2 headers are included
 #ifndef GL_TEXTURE_2D_MULTISAMPLE_ARRAY
 #define GL_TEXTURE_2D_MULTISAMPLE_ARRAY 0x9102

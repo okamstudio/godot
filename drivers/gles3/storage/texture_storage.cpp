@@ -37,10 +37,6 @@
 #include "config.h"
 #include "utilities.h"
 
-#ifdef ANDROID_ENABLED
-#define glFramebufferTextureMultiviewOVR GLES3::Config::get_singleton()->eglFramebufferTextureMultiviewOVR
-#endif
-
 using namespace GLES3;
 
 TextureStorage *TextureStorage::singleton = nullptr;
@@ -2062,7 +2058,7 @@ AABB TextureStorage::decal_get_aabb(RID p_decal) const {
 
 GLuint TextureStorage::system_fbo = 0;
 
-void TextureStorage::_update_render_target(RenderTarget *rt) {
+void TextureStorage::_update_render_target_color(RenderTarget *rt) {
 	// do not allocate a render target with no size
 	if (rt->size.x <= 0 || rt->size.y <= 0) {
 		return;
@@ -2230,6 +2226,60 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 	glBindFramebuffer(GL_FRAMEBUFFER, system_fbo);
 }
 
+void TextureStorage::_update_render_target_velocity(RenderTarget *rt) {
+	GLuint new_velocity_fbo;
+	glGenFramebuffers(1, &new_velocity_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, new_velocity_fbo);
+
+	uint32_t view_count = rt->view_count;
+	GLuint texture_target = view_count > 1 ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+
+	GLuint velocity_texture_id = texture_get_texid(rt->overridden.velocity);
+	glBindTexture(texture_target, velocity_texture_id);
+	glTexParameteri(texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+#ifndef IOS_ENABLED
+	if (view_count > 1) {
+		glFramebufferTextureMultiviewOVR(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, velocity_texture_id, 0, 0, view_count);
+	} else {
+#else
+	{
+#endif
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, velocity_texture_id, 0);
+	}
+
+	GLuint velocity_depth_texture_id = texture_get_texid(rt->overridden.velocity_depth);
+	glBindTexture(texture_target, velocity_depth_texture_id);
+	glTexParameteri(texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+#ifndef IOS_ENABLED
+	if (view_count > 1) {
+		glFramebufferTextureMultiviewOVR(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, velocity_depth_texture_id, 0, 0, view_count);
+	} else {
+#else
+	{
+#endif
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, velocity_depth_texture_id, 0);
+	}
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		glDeleteFramebuffers(1, &new_velocity_fbo);
+		WARN_PRINT(vformat("Could not create motion vector render target, status: %s.", GLES3::TextureStorage::get_singleton()->get_framebuffer_error(status)));
+	} else {
+		rt->overridden.velocity_fbo = new_velocity_fbo;
+	}
+
+	glBindTexture(texture_target, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void TextureStorage::_create_render_target_backbuffer(RenderTarget *rt) {
 	ERR_FAIL_COND_MSG(rt->backbuffer_fbo != 0, "Cannot allocate RenderTarget backbuffer: already initialized.");
 	ERR_FAIL_COND(rt->direct_to_screen);
@@ -2350,6 +2400,12 @@ void TextureStorage::_clear_render_target(RenderTarget *rt) {
 		return;
 	}
 
+	for (KeyValue<uint32_t, GLuint> &E : rt->overridden.velocity_fbo_cache) {
+		glDeleteFramebuffers(1, &E.value);
+	}
+	rt->overridden.velocity_fbo_cache.clear();
+	rt->overridden.velocity_fbo = 0;
+
 	// Dispose of the cached fbo's and the allocated textures
 	for (KeyValue<uint32_t, RenderTarget::RTOverridden::FBOCacheEntry> &E : rt->overridden.fbo_cache) {
 		glDeleteTextures(E.value.allocated_textures.size(), E.value.allocated_textures.ptr());
@@ -2402,7 +2458,6 @@ void TextureStorage::_clear_render_target(RenderTarget *rt) {
 	}
 	rt->depth = 0;
 
-	rt->overridden.velocity = RID();
 	rt->overridden.is_overridden = false;
 
 	if (rt->backbuffer_fbo != 0) {
@@ -2431,7 +2486,7 @@ RID TextureStorage::render_target_create() {
 	t.is_render_target = true;
 
 	render_target.texture = texture_owner.make_rid(t);
-	_update_render_target(&render_target);
+	_update_render_target_color(&render_target);
 	return render_target_owner.make_rid(render_target);
 }
 
@@ -2480,7 +2535,7 @@ void TextureStorage::render_target_set_size(RID p_render_target, int p_width, in
 	rt->size = Size2i(p_width, p_height);
 	rt->view_count = p_view_count;
 
-	_update_render_target(rt);
+	_update_render_target_color(rt);
 }
 
 // TODO: convert to Size2i internally
@@ -2496,16 +2551,17 @@ void TextureStorage::render_target_set_override(RID p_render_target, RID p_color
 	ERR_FAIL_NULL(rt);
 	ERR_FAIL_COND(rt->direct_to_screen);
 
-	rt->overridden.velocity = p_velocity_texture;
+	bool create_new_color_fbo = true;
+	bool create_new_velocity_fbo = true;
 
-	if (rt->overridden.color == p_color_texture && rt->overridden.depth == p_depth_texture) {
+	if (rt->overridden.color == p_color_texture && rt->overridden.depth == p_depth_texture && rt->overridden.velocity == p_velocity_texture && rt->overridden.velocity_depth == p_velocity_depth_texture) {
 		return;
 	}
 
 	if (p_color_texture.is_null() && p_depth_texture.is_null()) {
 		_clear_render_target(rt);
-		_update_render_target(rt);
-		return;
+		_update_render_target_color(rt);
+		create_new_color_fbo = false;
 	}
 
 	if (!rt->overridden.is_overridden) {
@@ -2514,6 +2570,8 @@ void TextureStorage::render_target_set_override(RID p_render_target, RID p_color
 
 	rt->overridden.color = p_color_texture;
 	rt->overridden.depth = p_depth_texture;
+	rt->overridden.velocity = p_velocity_texture;
+	rt->overridden.velocity_depth = p_velocity_depth_texture;
 	rt->overridden.is_overridden = true;
 
 	uint32_t hash_key = hash_murmur3_one_64(p_color_texture.get_id());
@@ -2527,24 +2585,51 @@ void TextureStorage::render_target_set_override(RID p_render_target, RID p_color
 		rt->depth = cache->get().depth;
 		rt->size = cache->get().size;
 		rt->texture = p_color_texture;
-		return;
+		create_new_color_fbo = false;
 	}
 
-	_update_render_target(rt);
+	uint32_t velocity_hash_key = hash_murmur3_one_64(p_velocity_texture.get_id());
+	velocity_hash_key = hash_murmur3_one_64(p_velocity_depth_texture.get_id(), velocity_hash_key);
+	velocity_hash_key = hash_fmix32(velocity_hash_key);
 
-	RenderTarget::RTOverridden::FBOCacheEntry new_entry;
-	new_entry.fbo = rt->fbo;
-	new_entry.color = rt->color;
-	new_entry.depth = rt->depth;
-	new_entry.size = rt->size;
-	// Keep track of any textures we had to allocate because they weren't overridden.
-	if (p_color_texture.is_null()) {
-		new_entry.allocated_textures.push_back(rt->color);
+	RBMap<uint32_t, GLuint>::Element *fbo = rt->overridden.velocity_fbo_cache.find(velocity_hash_key);
+	if (fbo != nullptr) {
+		rt->overridden.velocity_fbo = fbo->get();
+		create_new_velocity_fbo = false;
 	}
-	if (p_depth_texture.is_null()) {
-		new_entry.allocated_textures.push_back(rt->depth);
+
+	if (p_velocity_texture.is_null()) {
+		for (KeyValue<uint32_t, GLuint> &E : rt->overridden.velocity_fbo_cache) {
+			glDeleteFramebuffers(1, &E.value);
+		}
+
+		rt->overridden.velocity_fbo_cache.clear();
+		rt->overridden.velocity_fbo = 0;
+		create_new_velocity_fbo = false;
 	}
-	rt->overridden.fbo_cache.insert(hash_key, new_entry);
+
+	if (create_new_color_fbo) {
+		_update_render_target_color(rt);
+
+		RenderTarget::RTOverridden::FBOCacheEntry new_entry;
+		new_entry.fbo = rt->fbo;
+		new_entry.color = rt->color;
+		new_entry.depth = rt->depth;
+		new_entry.size = rt->size;
+		// Keep track of any textures we had to allocate because they weren't overridden.
+		if (p_color_texture.is_null()) {
+			new_entry.allocated_textures.push_back(rt->color);
+		}
+		if (p_depth_texture.is_null()) {
+			new_entry.allocated_textures.push_back(rt->depth);
+		}
+		rt->overridden.fbo_cache.insert(hash_key, new_entry);
+	}
+
+	if (create_new_velocity_fbo) {
+		_update_render_target_velocity(rt);
+		rt->overridden.velocity_fbo_cache.insert(velocity_hash_key, rt->overridden.velocity_fbo);
+	}
 }
 
 RID TextureStorage::render_target_get_override_color(RID p_render_target) const {
@@ -2568,6 +2653,13 @@ RID TextureStorage::render_target_get_override_velocity(RID p_render_target) con
 	return rt->overridden.velocity;
 }
 
+RID TextureStorage::render_target_get_override_velocity_depth(RID p_render_target) const {
+	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
+	ERR_FAIL_NULL_V(rt, RID());
+
+	return rt->overridden.velocity_depth;
+}
+
 RID TextureStorage::render_target_get_texture(RID p_render_target) {
 	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
 	ERR_FAIL_NULL_V(rt, RID());
@@ -2579,6 +2671,20 @@ RID TextureStorage::render_target_get_texture(RID p_render_target) {
 	return rt->texture;
 }
 
+void TextureStorage::render_target_set_velocity_target_size(RID p_render_target, const Size2i &p_target_size) {
+	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
+	ERR_FAIL_NULL(rt);
+
+	rt->velocity_target_size = p_target_size;
+}
+
+Size2i TextureStorage::render_target_get_velocity_target_size(RID p_render_target) const {
+	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
+	ERR_FAIL_NULL_V(rt, Size2i(0, 0));
+
+	return rt->velocity_target_size;
+}
+
 void TextureStorage::render_target_set_transparent(RID p_render_target, bool p_transparent) {
 	RenderTarget *rt = render_target_owner.get_or_null(p_render_target);
 	ERR_FAIL_NULL(rt);
@@ -2587,7 +2693,7 @@ void TextureStorage::render_target_set_transparent(RID p_render_target, bool p_t
 
 	if (rt->overridden.color.is_null()) {
 		_clear_render_target(rt);
-		_update_render_target(rt);
+		_update_render_target_color(rt);
 	}
 }
 
@@ -2613,8 +2719,9 @@ void TextureStorage::render_target_set_direct_to_screen(RID p_render_target, boo
 		rt->overridden.color = RID();
 		rt->overridden.depth = RID();
 		rt->overridden.velocity = RID();
+		rt->overridden.velocity_depth = RID();
 	}
-	_update_render_target(rt);
+	_update_render_target_color(rt);
 }
 
 bool TextureStorage::render_target_get_direct_to_screen(RID p_render_target) const {
@@ -2650,7 +2757,7 @@ void TextureStorage::render_target_set_msaa(RID p_render_target, RS::ViewportMSA
 
 	_clear_render_target(rt);
 	rt->msaa = p_msaa;
-	_update_render_target(rt);
+	_update_render_target_color(rt);
 }
 
 RS::ViewportMSAA TextureStorage::render_target_get_msaa(RID p_render_target) const {
@@ -2670,7 +2777,7 @@ void TextureStorage::render_target_set_use_hdr(RID p_render_target, bool p_use_h
 
 	_clear_render_target(rt);
 	rt->hdr = p_use_hdr_2d;
-	_update_render_target(rt);
+	_update_render_target_color(rt);
 }
 
 bool TextureStorage::render_target_is_using_hdr(RID p_render_target) const {

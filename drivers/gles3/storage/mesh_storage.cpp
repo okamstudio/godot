@@ -857,7 +857,7 @@ void MeshStorage::mesh_clear(RID p_mesh) {
 	}
 }
 
-void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint64_t p_input_mask, MeshInstance::Surface *mis) {
+void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint64_t p_input_mask, bool p_uses_motion_vectors, MeshInstance::Surface *mis, int p_current_vertex_buffer, int p_prev_vertex_buffer) {
 	Mesh::Surface::Attrib attribs[RS::ARRAY_MAX];
 
 	int position_stride = 0; // Vertex position only.
@@ -1009,7 +1009,7 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 		if (i <= RS::ARRAY_TANGENT) {
 			attribs[i].stride = (i == RS::ARRAY_VERTEX) ? position_stride : normal_tangent_stride;
 			if (mis) {
-				glBindBuffer(GL_ARRAY_BUFFER, mis->vertex_buffer);
+				glBindBuffer(GL_ARRAY_BUFFER, mis->vertex_buffers[p_current_vertex_buffer]);
 			} else {
 				glBindBuffer(GL_ARRAY_BUFFER, s->vertex_buffer);
 			}
@@ -1029,12 +1029,28 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 		glEnableVertexAttribArray(i);
 	}
 
+	if (p_uses_motion_vectors) {
+		for (int i = 0; i < RS::ARRAY_TANGENT; i++) {
+			if (mis) {
+				glBindBuffer(GL_ARRAY_BUFFER, mis->vertex_buffers[mis->prev_vertex_buffer]);
+			} else {
+				glBindBuffer(GL_ARRAY_BUFFER, s->vertex_buffer);
+			}
+
+			glVertexAttribPointer(i + 16, attribs[i].size, attribs[i].type, attribs[i].normalized, attribs[i].stride, CAST_INT_TO_UCHAR_PTR(attribs[i].offset));
+			glEnableVertexAttribArray(i + 16);
+		}
+	}
+
 	// Do not bind index here as we want to switch between index buffers for LOD
 
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	v.input_mask = p_input_mask;
+	v.uses_motion_vectors = p_uses_motion_vectors;
+	v.current_vertex_buffer = p_current_vertex_buffer;
+	v.prev_vertex_buffer = p_prev_vertex_buffer;
 }
 
 void MeshStorage::mesh_surface_remove(RID p_mesh, int p_surface) {
@@ -1174,16 +1190,17 @@ void MeshStorage::_mesh_instance_add_surface(MeshInstance *mi, Mesh *mesh, uint3
 
 		int buffer_size = s.vertex_stride_cache * mesh->surfaces[p_surface]->vertex_count;
 
-		// Buffer to be used for rendering. Final output of skeleton and blend shapes.
-		glGenBuffers(1, &s.vertex_buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, s.vertex_buffer);
-		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, s.vertex_buffer, buffer_size, nullptr, GL_DYNAMIC_DRAW, "MeshInstance vertex buffer");
+		// First buffer to be used for rendering. Final output of skeleton and blend shapes.
+		// If motion vectors are enabled, a second buffer will be created on demand, and they'll be swapped every frame.
+		glGenBuffers(1, &s.vertex_buffers[0]);
+		glBindBuffer(GL_ARRAY_BUFFER, s.vertex_buffers[0]);
+		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, s.vertex_buffers[0], buffer_size, nullptr, GL_DYNAMIC_DRAW, "MeshInstance vertex buffer");
 		if (mesh->blend_shape_count > 0) {
 			// Ping-Pong buffers for processing blendshapes.
-			glGenBuffers(2, s.vertex_buffers);
+			glGenBuffers(2, s.blend_shape_vertex_buffers);
 			for (uint32_t i = 0; i < 2; i++) {
-				glBindBuffer(GL_ARRAY_BUFFER, s.vertex_buffers[i]);
-				GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, s.vertex_buffers[i], buffer_size, nullptr, GL_DYNAMIC_DRAW, "MeshInstance process buffer[" + itos(i) + "]");
+				glBindBuffer(GL_ARRAY_BUFFER, s.blend_shape_vertex_buffers[i]);
+				GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, s.blend_shape_vertex_buffers[i], buffer_size, nullptr, GL_DYNAMIC_DRAW, "MeshInstance process buffer[" + itos(i) + "]");
 			}
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
@@ -1211,9 +1228,11 @@ void MeshStorage::_mesh_instance_remove_surface(MeshInstance *mi, int p_surface)
 		surface.vertex_buffers[1] = 0;
 	}
 
-	if (surface.vertex_buffer != 0) {
-		GLES3::Utilities::get_singleton()->buffer_free_data(surface.vertex_buffer);
-		surface.vertex_buffer = 0;
+	for (int i = 0; i < 2; i++) {
+		if (surface.vertex_buffers[i] != 0) {
+			GLES3::Utilities::get_singleton()->buffer_free_data(surface.vertex_buffers[i]);
+			surface.vertex_buffers[i] = 0;
+		}
 	}
 
 	mi->surfaces.remove_at(p_surface);
@@ -1253,7 +1272,7 @@ void MeshStorage::mesh_instance_set_canvas_item_transform(RID p_mesh_instance, c
 }
 
 void MeshStorage::_blend_shape_bind_mesh_instance_buffer(MeshInstance *p_mi, uint32_t p_surface) {
-	glBindBuffer(GL_ARRAY_BUFFER, p_mi->surfaces[p_surface].vertex_buffers[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, p_mi->surfaces[p_surface].blend_shape_vertex_buffers[0]);
 
 	if ((p_mi->surfaces[p_surface].format_cache & (1ULL << RS::ARRAY_VERTEX))) {
 		glEnableVertexAttribArray(RS::ARRAY_VERTEX);
@@ -1295,7 +1314,7 @@ void MeshStorage::_compute_skeleton(MeshInstance *p_mi, Skeleton *p_sk, uint32_t
 		glVertexAttribPointer(RS::ARRAY_WEIGHTS, 4, GL_UNSIGNED_SHORT, GL_TRUE, skin_stride, CAST_INT_TO_UCHAR_PTR(4 * sizeof(uint16_t)));
 	}
 
-	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, p_mi->surfaces[p_surface].vertex_buffer);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, p_mi->surfaces[p_surface].vertex_buffers[p_mi->surfaces[p_surface].current_vertex_buffer]);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, p_sk->transforms_texture);
 
@@ -1322,6 +1341,36 @@ void MeshStorage::update_mesh_instances() {
 	while (dirty_mesh_instance_arrays.first()) {
 		MeshInstance *mi = dirty_mesh_instance_arrays.first()->self();
 
+		bool uses_motion_vectors = RSG::viewport->get_num_viewports_with_motion_vectors() > 0;
+		int frame = RSG::rasterizer->get_frame_number();
+		if (uses_motion_vectors) {
+			for (uint32_t i = 0; i < mi->surfaces.size(); i++) {
+				mi->surfaces[i].prev_vertex_buffer = mi->surfaces[i].current_vertex_buffer;
+
+				if (frame - mi->surfaces[i].last_change == 1) {
+					// Previous buffer's data can only be one frame old to be able to use motion vectors.
+					uint32_t new_buffer_index = mi->surfaces[i].current_vertex_buffer ^ 1;
+
+					if (mi->surfaces[i].vertex_buffers[new_buffer_index] == 0) {
+						// Create the new vertex buffer on demand where the result for the current frame will be stored.
+						GLuint new_vertex_buffer = 0;
+						GLES3::Mesh::Surface *surface = mi->mesh->surfaces[i];
+						int buffer_size = mi->surfaces[i].vertex_stride_cache * surface->vertex_count;
+						glGenBuffers(1, &new_vertex_buffer);
+						glBindBuffer(GL_ARRAY_BUFFER, new_vertex_buffer);
+						GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, new_vertex_buffer, buffer_size, nullptr, (surface->format & RS::ARRAY_FLAG_USE_DYNAMIC_UPDATE) ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW, "Secondary mesh vertex buffer");
+						glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+						mi->surfaces[i].vertex_buffers[new_buffer_index] = new_vertex_buffer;
+					}
+
+					mi->surfaces[i].current_vertex_buffer = new_buffer_index;
+				}
+
+				mi->surfaces[i].last_change = frame;
+			}
+		}
+
 		Skeleton *sk = skeleton_owner.get_or_null(mi->skeleton);
 
 		// Precompute base weight if using blend shapes.
@@ -1333,7 +1382,7 @@ void MeshStorage::update_mesh_instances() {
 		}
 
 		for (uint32_t i = 0; i < mi->surfaces.size(); i++) {
-			if (mi->surfaces[i].vertex_buffer == 0) {
+			if (mi->surfaces[i].vertex_buffers[mi->surfaces[i].current_vertex_buffer] == 0) {
 				continue;
 			}
 
@@ -1368,9 +1417,9 @@ void MeshStorage::update_mesh_instances() {
 				GLuint vertex_array_gl = 0;
 				uint64_t mask = RS::ARRAY_FORMAT_VERTEX | RS::ARRAY_FORMAT_NORMAL | RS::ARRAY_FORMAT_VERTEX;
 				uint64_t format = mi->mesh->surfaces[i]->format & mask; // Format should only have vertex, normal, tangent (as necessary).
-				mesh_surface_get_vertex_arrays_and_format(mi->mesh->surfaces[i], format, vertex_array_gl);
+				mesh_surface_get_vertex_arrays_and_format(mi->mesh->surfaces[i], format, false, vertex_array_gl);
 				glBindVertexArray(vertex_array_gl);
-				glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].vertex_buffers[0]);
+				glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].blend_shape_vertex_buffers[0]);
 				glBeginTransformFeedback(GL_POINTS);
 				glDrawArrays(GL_POINTS, 0, mi->mesh->surfaces[i]->vertex_count);
 				glEndTransformFeedback();
@@ -1392,15 +1441,17 @@ void MeshStorage::update_mesh_instances() {
 					skeleton_shader.shader.version_set_uniform(SkeletonShaderGLES3::BLEND_WEIGHT, weight, skeleton_shader.shader_version, variant, specialization);
 					skeleton_shader.shader.version_set_uniform(SkeletonShaderGLES3::BLEND_SHAPE_COUNT, float(mi->mesh->blend_shape_count), skeleton_shader.shader_version, variant, specialization);
 
+					// Ensure the skeleton shader outputs to the correct (current) VBO.
+
 					glBindVertexArray(mi->mesh->surfaces[i]->blend_shapes[bs].vertex_array);
 					_blend_shape_bind_mesh_instance_buffer(mi, i);
-					glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].vertex_buffers[1]);
+					glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].blend_shape_vertex_buffers[1]);
 
 					glBeginTransformFeedback(GL_POINTS);
 					glDrawArrays(GL_POINTS, 0, mi->mesh->surfaces[i]->vertex_count);
 					glEndTransformFeedback();
 
-					SWAP(mi->surfaces[i].vertex_buffers[0], mi->surfaces[i].vertex_buffers[1]);
+					SWAP(mi->surfaces[i].blend_shape_vertex_buffers[0], mi->surfaces[i].blend_shape_vertex_buffers[1]);
 				}
 				uint32_t bs = mi->mesh->blend_shape_count - 1;
 
@@ -1436,7 +1487,7 @@ void MeshStorage::update_mesh_instances() {
 					can_use_skeleton = false;
 				} else {
 					// Do last blendshape by itself and prepare vertex data for use by the renderer.
-					glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].vertex_buffer);
+					glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, mi->surfaces[i].vertex_buffers[mi->surfaces[i].current_vertex_buffer]);
 
 					glBeginTransformFeedback(GL_POINTS);
 					glDrawArrays(GL_POINTS, 0, mi->mesh->surfaces[i]->vertex_count);
@@ -1482,7 +1533,7 @@ void MeshStorage::update_mesh_instances() {
 				GLuint vertex_array_gl = 0;
 				uint64_t mask = RS::ARRAY_FORMAT_VERTEX | RS::ARRAY_FORMAT_NORMAL | RS::ARRAY_FORMAT_VERTEX;
 				uint64_t format = mi->mesh->surfaces[i]->format & mask; // Format should only have vertex, normal, tangent (as necessary).
-				mesh_surface_get_vertex_arrays_and_format(mi->mesh->surfaces[i], format, vertex_array_gl);
+				mesh_surface_get_vertex_arrays_and_format(mi->mesh->surfaces[i], format, false, vertex_array_gl);
 				glBindVertexArray(vertex_array_gl);
 				_compute_skeleton(mi, sk, i);
 			}
@@ -1526,9 +1577,11 @@ void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS:
 		return;
 	}
 
-	if (multimesh->buffer) {
-		GLES3::Utilities::get_singleton()->buffer_free_data(multimesh->buffer);
-		multimesh->buffer = 0;
+	for (int i = 0; i < 2; i++) {
+		if (multimesh->buffer[i] != 0) {
+			GLES3::Utilities::get_singleton()->buffer_free_data(multimesh->buffer[i]);
+			multimesh->buffer[i] = 0;
+		}
 	}
 
 	if (multimesh->data_cache_dirty_regions) {
@@ -1556,9 +1609,9 @@ void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS:
 	multimesh->visible_instances = MIN(multimesh->visible_instances, multimesh->instances);
 
 	if (multimesh->instances) {
-		glGenBuffers(1, &multimesh->buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
-		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float), nullptr, GL_STATIC_DRAW, "MultiMesh buffer");
+		glGenBuffers(1, &multimesh->buffer[0]);
+		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer[0]);
+		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, multimesh->buffer[0], multimesh->instances * multimesh->stride_cache * sizeof(float), nullptr, GL_STATIC_DRAW, "MultiMesh buffer");
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
@@ -1589,7 +1642,7 @@ void MeshStorage::_multimesh_set_mesh(RID p_multimesh, RID p_mesh) {
 	} else if (multimesh->instances) {
 		// Need to re-create AABB. Unfortunately, calling this has a penalty.
 		if (multimesh->buffer_set) {
-			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float));
+			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer[multimesh->current_buffer], multimesh->instances * multimesh->stride_cache * sizeof(float));
 			const uint8_t *r = buffer.ptr();
 			const float *data = (const float *)r;
 			_multimesh_re_create_aabb(multimesh, data, multimesh->instances);
@@ -1613,7 +1666,7 @@ void MeshStorage::_multimesh_make_local(MultiMesh *multimesh) const {
 		float *w = multimesh->data_cache.ptrw();
 
 		if (multimesh->buffer_set) {
-			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float));
+			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer[multimesh->current_buffer], multimesh->instances * multimesh->stride_cache * sizeof(float));
 
 			{
 				const uint8_t *r = buffer.ptr();
@@ -1956,6 +2009,10 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
 	ERR_FAIL_NULL(multimesh);
 
+	// Assign data to previous buffer if motion vectors are used, that data will be made current in _update_dirty_multimeshes().
+	bool uses_motion_vectors = RSG::viewport->get_num_viewports_with_motion_vectors() > 0;
+	int buffer_index = uses_motion_vectors ? multimesh->prev_buffer : multimesh->current_buffer;
+
 	if (multimesh->uses_colors || multimesh->uses_custom_data) {
 		// Color and custom need to be packed so copy buffer to data_cache and pack.
 
@@ -2001,7 +2058,7 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 
 		multimesh->data_cache.resize(multimesh->instances * (int)multimesh->stride_cache);
 		const float *r = multimesh->data_cache.ptr();
-		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer[buffer_index]);
 		glBufferData(GL_ARRAY_BUFFER, multimesh->data_cache.size() * sizeof(float), r, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -2014,7 +2071,7 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 		// Only Transform is being used, so we can upload directly.
 		ERR_FAIL_COND(p_buffer.size() != (multimesh->instances * (int)multimesh->stride_cache));
 		const float *r = p_buffer.ptr();
-		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer[buffer_index]);
 		glBufferData(GL_ARRAY_BUFFER, p_buffer.size() * sizeof(float), r, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
@@ -2049,14 +2106,14 @@ Vector<float> MeshStorage::_multimesh_get_buffer(RID p_multimesh) const {
 	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
 	ERR_FAIL_NULL_V(multimesh, Vector<float>());
 	Vector<float> ret;
-	if (multimesh->buffer == 0 || multimesh->instances == 0) {
+	if (multimesh->buffer[multimesh->current_buffer] == 0 || multimesh->instances == 0) {
 		return Vector<float>();
 	} else if (multimesh->data_cache.size()) {
 		ret = multimesh->data_cache;
 	} else {
 		// Buffer not cached, so fetch from GPU memory. This can be a stalling operation, avoid whenever possible.
 
-		Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float));
+		Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer[multimesh->current_buffer], multimesh->instances * multimesh->stride_cache * sizeof(float));
 		ret.resize(multimesh->instances * multimesh->stride_cache);
 		{
 			float *w = ret.ptrw();
@@ -2156,52 +2213,26 @@ void MeshStorage::_update_dirty_multimeshes() {
 	while (multimesh_dirty_list) {
 		MultiMesh *multimesh = multimesh_dirty_list;
 
-		if (multimesh->data_cache.size()) { //may have been cleared, so only process if it exists
-			const float *data = multimesh->data_cache.ptr();
+		bool uses_motion_vectors = RSG::viewport->get_num_viewports_with_motion_vectors() > 0;
+		if (uses_motion_vectors) {
+			multimesh->prev_buffer = multimesh->current_buffer;
+			uint32_t new_buffer_index = multimesh->current_buffer ^ 1;
 
-			uint32_t visible_instances = multimesh->visible_instances >= 0 ? multimesh->visible_instances : multimesh->instances;
-
-			if (multimesh->data_cache_used_dirty_regions) {
-				uint32_t data_cache_dirty_region_count = Math::division_round_up(multimesh->instances, (int)MULTIMESH_DIRTY_REGION_SIZE);
-				uint32_t visible_region_count = visible_instances == 0 ? 0 : Math::division_round_up(visible_instances, (uint32_t)MULTIMESH_DIRTY_REGION_SIZE);
-
-				GLint region_size = multimesh->stride_cache * MULTIMESH_DIRTY_REGION_SIZE * sizeof(float);
-
-				if (multimesh->data_cache_used_dirty_regions > 32 || multimesh->data_cache_used_dirty_regions > visible_region_count / 2) {
-					// If there too many dirty regions, or represent the majority of regions, just copy all, else transfer cost piles up too much
-					glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, MIN(visible_region_count * region_size, multimesh->instances * multimesh->stride_cache * sizeof(float)), data);
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-				} else {
-					// Not that many regions? update them all
-					// TODO: profile the performance cost on low end
-					glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
-					for (uint32_t i = 0; i < visible_region_count; i++) {
-						if (multimesh->data_cache_dirty_regions[i]) {
-							GLint offset = i * region_size;
-							GLint size = multimesh->stride_cache * (uint32_t)multimesh->instances * (uint32_t)sizeof(float);
-							uint32_t region_start_index = multimesh->stride_cache * MULTIMESH_DIRTY_REGION_SIZE * i;
-							glBufferSubData(GL_ARRAY_BUFFER, offset, MIN(region_size, size - offset), &data[region_start_index]);
-						}
-					}
-					glBindBuffer(GL_ARRAY_BUFFER, 0);
-				}
-
-				for (uint32_t i = 0; i < data_cache_dirty_region_count; i++) {
-					multimesh->data_cache_dirty_regions[i] = false;
-				}
-
-				multimesh->data_cache_used_dirty_regions = 0;
+			// Generate secondary buffer if it doesn't exist.
+			if (multimesh->buffer[new_buffer_index] == 0 && multimesh->instances) {
+				GLuint new_buffer = 0;
+				glGenBuffers(1, &new_buffer);
+				glBindBuffer(GL_ARRAY_BUFFER, new_buffer);
+				GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, new_buffer, multimesh->instances * multimesh->stride_cache * sizeof(float), nullptr, GL_STATIC_DRAW, "MultiMesh secondary buffer");
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				multimesh->buffer[new_buffer_index] = new_buffer;
 			}
 
-			if (multimesh->aabb_dirty && multimesh->mesh.is_valid()) {
-				multimesh->aabb_dirty = false;
-				if (multimesh->custom_aabb == AABB()) {
-					_multimesh_re_create_aabb(multimesh, data, visible_instances);
-					multimesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
-				}
-			}
+			multimesh->current_buffer = new_buffer_index;
+			multimesh->last_change = RSG::rasterizer->get_frame_number();
 		}
+
+		_update_dirty_multimesh(multimesh, uses_motion_vectors);
 
 		multimesh_dirty_list = multimesh->dirty_list;
 
@@ -2210,6 +2241,86 @@ void MeshStorage::_update_dirty_multimeshes() {
 	}
 
 	multimesh_dirty_list = nullptr;
+}
+
+void MeshStorage::_update_dirty_multimesh(MultiMesh *p_multimesh, bool p_uses_motion_vectors) {
+	if (p_multimesh->data_cache.size()) { // May have been cleared, so only process if it exists.
+		const float *data = p_multimesh->data_cache.ptr();
+
+		uint32_t visible_instances = p_multimesh->visible_instances >= 0 ? p_multimesh->visible_instances : p_multimesh->instances;
+
+		if (p_multimesh->data_cache_used_dirty_regions) {
+			uint32_t data_cache_dirty_region_count = Math::division_round_up(p_multimesh->instances, (int)MULTIMESH_DIRTY_REGION_SIZE);
+			uint32_t visible_region_count = visible_instances == 0 ? 0 : Math::division_round_up(visible_instances, (uint32_t)MULTIMESH_DIRTY_REGION_SIZE);
+
+			GLint region_size = p_multimesh->stride_cache * MULTIMESH_DIRTY_REGION_SIZE * sizeof(float);
+
+			if (p_multimesh->data_cache_used_dirty_regions > 32 || p_multimesh->data_cache_used_dirty_regions > visible_region_count / 2 || p_uses_motion_vectors) {
+				// If there are too many dirty regions, the dirty regions represent the majority of visible regions, or motion vectors are used:
+				// Just copy all, else transfer cost piles up too much.
+				glBindBuffer(GL_ARRAY_BUFFER, p_multimesh->buffer[p_multimesh->current_buffer]);
+				glBufferSubData(GL_ARRAY_BUFFER, 0, MIN(visible_region_count * region_size, p_multimesh->instances * p_multimesh->stride_cache * sizeof(float)), data);
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+			} else {
+				// Not that many regions? Update them all.
+				// TODO: profile the performance cost on low end
+				glBindBuffer(GL_ARRAY_BUFFER, p_multimesh->buffer[p_multimesh->current_buffer]);
+				for (uint32_t i = 0; i < visible_region_count; i++) {
+					if (p_multimesh->data_cache_dirty_regions[i]) {
+						GLint offset = i * region_size;
+						GLint size = p_multimesh->stride_cache * (uint32_t)p_multimesh->instances * (uint32_t)sizeof(float);
+						uint32_t region_start_index = p_multimesh->stride_cache * MULTIMESH_DIRTY_REGION_SIZE * i;
+						glBufferSubData(GL_ARRAY_BUFFER, offset, MIN(region_size, size - offset), &data[region_start_index]);
+					}
+				}
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+			}
+
+			for (uint32_t i = 0; i < data_cache_dirty_region_count; i++) {
+				p_multimesh->data_cache_dirty_regions[i] = false;
+			}
+
+			p_multimesh->data_cache_used_dirty_regions = 0;
+		}
+
+		if (p_multimesh->aabb_dirty && p_multimesh->mesh.is_valid()) {
+			p_multimesh->aabb_dirty = false;
+			if (p_multimesh->custom_aabb == AABB()) {
+				_multimesh_re_create_aabb(p_multimesh, data, visible_instances);
+				p_multimesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
+			}
+		}
+	}
+}
+
+void GLES3::MeshStorage::multimesh_vertex_attrib_setup(GLuint p_instance_buffer, uint32_t p_stride, bool p_uses_format_2d, bool p_has_color_or_custom_data, int p_attrib_base_index) {
+	glBindBuffer(GL_ARRAY_BUFFER, p_instance_buffer);
+
+	glEnableVertexAttribArray(p_attrib_base_index + 0);
+	glVertexAttribPointer(p_attrib_base_index + 0, 4, GL_FLOAT, GL_FALSE, p_stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(0));
+	glVertexAttribDivisor(p_attrib_base_index + 0, 1);
+	glEnableVertexAttribArray(p_attrib_base_index + 1);
+	glVertexAttribPointer(p_attrib_base_index + 1, 4, GL_FLOAT, GL_FALSE, p_stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(sizeof(float) * 4));
+	glVertexAttribDivisor(p_attrib_base_index + 1, 1);
+	if (!p_uses_format_2d) {
+		glEnableVertexAttribArray(p_attrib_base_index + 2);
+		glVertexAttribPointer(p_attrib_base_index + 2, 4, GL_FLOAT, GL_FALSE, p_stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(sizeof(float) * 8));
+		glVertexAttribDivisor(p_attrib_base_index + 2, 1);
+	}
+
+	if (p_has_color_or_custom_data) {
+		uint32_t color_custom_offset = p_uses_format_2d ? 8 : 12;
+		glEnableVertexAttribArray(p_attrib_base_index + 3);
+		glVertexAttribIPointer(p_attrib_base_index + 3, 4, GL_UNSIGNED_INT, p_stride * sizeof(float), CAST_INT_TO_UCHAR_PTR(color_custom_offset * sizeof(float)));
+		glVertexAttribDivisor(p_attrib_base_index + 3, 1);
+	} else {
+		// Set all default instance color and custom data values to 1.0 or 0.0 using a compressed format.
+		uint16_t zero = Math::make_half_float(0.0f);
+		uint16_t one = Math::make_half_float(1.0f);
+		GLuint default_color = (uint32_t(one) << 16) | one;
+		GLuint default_custom = (uint32_t(zero) << 16) | zero;
+		glVertexAttribI4ui(p_attrib_base_index + 3, default_color, default_color, default_custom, default_custom);
+	}
 }
 
 /* SKELETON API */
