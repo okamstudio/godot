@@ -123,6 +123,11 @@ private:
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
+#ifndef DISABLE_DEPRECATED
+	void _set_http_proxy_bind_compat_101358(const String &p_host, int p_port);
+	void _set_https_proxy_bind_compat_101358(const String &p_host, int p_port);
+	static void _bind_compatibility_methods();
+#endif
 
 public:
 	Error request(const String &p_url, const Vector<String> &p_custom_headers = Vector<String>(), HTTPClient::Method p_method = HTTPClient::METHOD_GET, const String &p_request_data = ""); //connects to a full url and perform request
@@ -158,8 +163,8 @@ public:
 	int get_downloaded_bytes() const;
 	int get_body_size() const;
 
-	void set_http_proxy(const String &p_host, int p_port);
-	void set_https_proxy(const String &p_host, int p_port);
+	void set_http_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "");
+	void set_https_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "");
 
 	void set_tls_options(const Ref<TLSOptions> &p_options);
 
