@@ -107,7 +107,7 @@
 		<method name="_get_name" qualifiers="virtual const">
 			<return type="String" />
 			<description>
-				Override this method to define the name of the associated custom node in the Visual Shader Editor's members dialog and graph.
+				Override this method to define the name of the associated custom node in the Visual Shader Editor's members dialog and graph. See also [method _get_shortcut_notation].
 				Defining this method is [b]optional[/b], but recommended. If not overridden, the node will be named as "Unnamed".
 			</description>
 		</method>
@@ -170,6 +170,15 @@
 			<description>
 				Override this method to define the return icon of the associated custom node in the Visual Shader Editor's members dialog.
 				Defining this method is [b]optional[/b]. If not overridden, no return icon is shown.
+			</description>
+		</method>
+		<method name="_get_shortcut_notation" qualifiers="virtual const">
+			<return type="String" />
+			<description>
+				Override this method to define the shortcut notation that is displayed next to the node name within square brackets. This can be used to quickly find a node in the node creation dialog by entering its shortcut notation instead of its name. See also [method _get_name].
+				A good shortcut notation is easy to type, easy to remember and is unique among all nodes. The convention is to use uppercase characters for the first characters of each "word", and lowercase characters for additional characters that are present for context.
+				Examples of shortcuts used for built-in nodes: [code]V3Ct[/code] for [code]Vector3Constant[/code], [code]IPMx[/code] for [code]InvProjectionMatrix[/code], [code]GXp[/code] for [code]GlobalExpression[/code].
+				Defining this method is [b]optional[/b], but recommended. If not overridden, the node won't have any shortcut notation.
 			</description>
 		</method>
 		<method name="_is_available" qualifiers="virtual const">
