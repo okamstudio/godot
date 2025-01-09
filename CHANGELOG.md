@@ -2099,7 +2099,7 @@ Table of contents:
 - Autocompletion: Register depended parsers with the main parser ([GH-94424](https://github.com/godotengine/godot/pull/94424)).
 - Speed up `GDScriptLanguage::finish` ([GH-94505](https://github.com/godotengine/godot/pull/94505)).
 - Fix false positive cases of `ENUM_VARIABLE_WITHOUT_DEFAULT` ([GH-94635](https://github.com/godotengine/godot/pull/94635)).
-- Fix incorrect default values ​​in `_make_arguments_hint()` ([GH-94664](https://github.com/godotengine/godot/pull/94664)).
+- Fix incorrect default values in `_make_arguments_hint()` ([GH-94664](https://github.com/godotengine/godot/pull/94664)).
 - Fix incorrect setter call for reference types ([GH-94674](https://github.com/godotengine/godot/pull/94674)).
 - GDScriptTestRunner: Fix compiler error output ([GH-94676](https://github.com/godotengine/godot/pull/94676)).
 - GDScriptCache: Clear abandoned parser refs ([GH-94678](https://github.com/godotengine/godot/pull/94678)).
