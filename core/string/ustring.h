@@ -267,8 +267,6 @@ class String {
 	static const char32_t _replacement_char;
 
 	// Known-length copy.
-	void parse_latin1(const StrRange<char> &p_cstr);
-	void parse_utf32(const StrRange<char32_t> &p_cstr);
 	void parse_utf32(const char32_t &p_char);
 	void copy_from_unchecked(const char32_t *p_char, int p_length);
 
@@ -521,6 +519,14 @@ public:
 	char32_t unicode_at(int p_idx) const;
 
 	CharString ascii(bool p_allow_extended = false) const;
+	CharString latin1() const { return ascii(true); }
+	void parse_latin1(const StrRange<char> &p_cstr);
+	static String latin1(const StrRange<char> &p_string) {
+		String string;
+		string.parse_latin1(p_string);
+		return string;
+	}
+
 	CharString utf8() const;
 	Error parse_utf8(const char *p_utf8, int p_len = -1, bool p_skip_cr = false);
 	static String utf8(const char *p_utf8, int p_len = -1);
@@ -528,6 +534,8 @@ public:
 	Char16String utf16() const;
 	Error parse_utf16(const char16_t *p_utf16, int p_len = -1, bool p_default_little_endian = true);
 	static String utf16(const char16_t *p_utf16, int p_len = -1);
+
+	void parse_utf32(const StrRange<char32_t> &p_cstr);
 
 	static uint32_t hash(const char32_t *p_cstr, int p_len); /* hash the string */
 	static uint32_t hash(const char32_t *p_cstr); /* hash the string */
