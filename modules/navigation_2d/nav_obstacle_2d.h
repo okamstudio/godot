@@ -39,18 +39,16 @@
 class NavAgent2D;
 class NavMap2D;
 
-class NavObstacle2D : public NavRid {
+class NavObstacle2D : public NavRid2D {
 	NavAgent2D *agent = nullptr;
 	NavMap2D *map = nullptr;
-	Vector3 velocity;
-	Vector3 position;
-	Vector<Vector3> vertices;
+	Vector2 velocity;
+	Vector2 position;
+	Vector<Vector2> vertices;
 
 	real_t radius = 0.0;
-	real_t height = 0.0;
 
 	bool avoidance_enabled = false;
-	bool use_3d_avoidance = false;
 	uint32_t avoidance_layers = 1;
 
 	bool obstacle_dirty = true;
@@ -67,29 +65,23 @@ public:
 	void set_avoidance_enabled(bool p_enabled);
 	bool is_avoidance_enabled() { return avoidance_enabled; }
 
-	void set_use_3d_avoidance(bool p_enabled);
-	bool get_use_3d_avoidance() { return use_3d_avoidance; }
-
 	void set_map(NavMap2D *p_map);
 	NavMap2D *get_map() { return map; }
 
 	void set_agent(NavAgent2D *p_agent);
 	NavAgent2D *get_agent() { return agent; }
 
-	void set_position(const Vector3 p_position);
-	const Vector3 &get_position() const { return position; }
+	void set_position(const Vector2 &p_position);
+	Vector2 get_position() const { return position; }
 
 	void set_radius(real_t p_radius);
 	real_t get_radius() const { return radius; }
 
-	void set_height(const real_t p_height);
-	real_t get_height() const { return height; }
+	void set_velocity(const Vector2 &p_velocity);
+	Vector2 get_velocity() const { return velocity; }
 
-	void set_velocity(const Vector3 p_velocity);
-	const Vector3 &get_velocity() const { return velocity; }
-
-	void set_vertices(const Vector<Vector3> &p_vertices);
-	const Vector<Vector3> &get_vertices() const { return vertices; }
+	void set_vertices(const Vector<Vector2> &p_vertices);
+	const Vector<Vector2> &get_vertices() const { return vertices; }
 
 	bool is_map_changed();
 

@@ -37,30 +37,22 @@ void NavAgent2D::set_avoidance_enabled(bool p_enabled) {
 	_update_rvo_agent_properties();
 }
 
-void NavAgent2D::set_use_3d_avoidance(bool p_enabled) {
-	use_3d_avoidance = p_enabled;
-	_update_rvo_agent_properties();
-}
-
 void NavAgent2D::_update_rvo_agent_properties() {
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.neighborDist_ = neighbor_distance;
-		rvo_agent_2d.maxNeighbors_ = max_neighbors;
-		rvo_agent_2d.timeHorizon_ = time_horizon_agents;
-		rvo_agent_2d.timeHorizonObst_ = time_horizon_obstacles;
-		rvo_agent_2d.radius_ = radius;
-		rvo_agent_2d.maxSpeed_ = max_speed;
-		rvo_agent_2d.position_ = RVO2D::Vector2(position.x, position.z);
-		rvo_agent_2d.elevation_ = position.y;
-		// Replacing the internal velocity directly causes major jitter / bugs due to unpredictable velocity jumps, left line here for testing.
-		//rvo_agent_2d.velocity_ = RVO2D::Vector2(velocity.x, velocity.z);
-		rvo_agent_2d.prefVelocity_ = RVO2D::Vector2(velocity.x, velocity.z);
-		rvo_agent_2d.height_ = height;
-		rvo_agent_2d.avoidance_layers_ = avoidance_layers;
-		rvo_agent_2d.avoidance_mask_ = avoidance_mask;
-		rvo_agent_2d.avoidance_priority_ = avoidance_priority;
-	}
+	rvo_agent.neighborDist_ = neighbor_distance;
+	rvo_agent.maxNeighbors_ = max_neighbors;
+	rvo_agent.timeHorizon_ = time_horizon_agents;
+	rvo_agent.timeHorizonObst_ = time_horizon_obstacles;
+	rvo_agent.radius_ = radius;
+	rvo_agent.maxSpeed_ = max_speed;
+	rvo_agent.position_ = RVO2D::Vector2(position.x, position.y);
+	rvo_agent.elevation_ = 0.0; // TODO: Remove?
+	// Replacing the internal velocity directly causes major jitter / bugs due to unpredictable velocity jumps, left line here for testing.
+	//rvo_agent.velocity_ = RVO2D::Vector2(velocity.x, velocity.y);
+	rvo_agent.prefVelocity_ = RVO2D::Vector2(velocity.x, velocity.y);
+	rvo_agent.height_ = 1.0; // TODO: Remove?
+	rvo_agent.avoidance_layers_ = avoidance_layers;
+	rvo_agent.avoidance_mask_ = avoidance_mask;
+	rvo_agent.avoidance_priority_ = avoidance_priority;
 
 	if (map != nullptr) {
 		if (avoidance_enabled) {
@@ -123,10 +115,7 @@ void NavAgent2D::dispatch_avoidance_callback() {
 
 	Vector3 new_velocity;
 
-	if (use_3d_avoidance) {
-	} else {
-		new_velocity = Vector3(rvo_agent_2d.velocity_.x(), 0.0, rvo_agent_2d.velocity_.y());
-	}
+	new_velocity = Vector3(rvo_agent.velocity_.x(), 0.0, rvo_agent.velocity_.y());
 
 	if (clamp_speed) {
 		new_velocity = new_velocity.limit_length(max_speed);
@@ -138,10 +127,7 @@ void NavAgent2D::dispatch_avoidance_callback() {
 
 void NavAgent2D::set_neighbor_distance(real_t p_neighbor_distance) {
 	neighbor_distance = p_neighbor_distance;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.neighborDist_ = neighbor_distance;
-	}
+	rvo_agent.neighborDist_ = neighbor_distance;
 	agent_dirty = true;
 
 	request_sync();
@@ -149,10 +135,7 @@ void NavAgent2D::set_neighbor_distance(real_t p_neighbor_distance) {
 
 void NavAgent2D::set_max_neighbors(int p_max_neighbors) {
 	max_neighbors = p_max_neighbors;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.maxNeighbors_ = max_neighbors;
-	}
+	rvo_agent.maxNeighbors_ = max_neighbors;
 	agent_dirty = true;
 
 	request_sync();
@@ -160,10 +143,7 @@ void NavAgent2D::set_max_neighbors(int p_max_neighbors) {
 
 void NavAgent2D::set_time_horizon_agents(real_t p_time_horizon) {
 	time_horizon_agents = p_time_horizon;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.timeHorizon_ = time_horizon_agents;
-	}
+	rvo_agent.timeHorizon_ = time_horizon_agents;
 	agent_dirty = true;
 
 	request_sync();
@@ -171,10 +151,7 @@ void NavAgent2D::set_time_horizon_agents(real_t p_time_horizon) {
 
 void NavAgent2D::set_time_horizon_obstacles(real_t p_time_horizon) {
 	time_horizon_obstacles = p_time_horizon;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.timeHorizonObst_ = time_horizon_obstacles;
-	}
+	rvo_agent.timeHorizonObst_ = time_horizon_obstacles;
 	agent_dirty = true;
 
 	request_sync();
@@ -182,21 +159,7 @@ void NavAgent2D::set_time_horizon_obstacles(real_t p_time_horizon) {
 
 void NavAgent2D::set_radius(real_t p_radius) {
 	radius = p_radius;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.radius_ = radius;
-	}
-	agent_dirty = true;
-
-	request_sync();
-}
-
-void NavAgent2D::set_height(real_t p_height) {
-	height = p_height;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.height_ = height;
-	}
+	rvo_agent.radius_ = radius;
 	agent_dirty = true;
 
 	request_sync();
@@ -205,60 +168,48 @@ void NavAgent2D::set_height(real_t p_height) {
 void NavAgent2D::set_max_speed(real_t p_max_speed) {
 	max_speed = p_max_speed;
 	if (avoidance_enabled) {
-		if (use_3d_avoidance) {
-		} else {
-			rvo_agent_2d.maxSpeed_ = max_speed;
-		}
+		rvo_agent.maxSpeed_ = max_speed;
 	}
 	agent_dirty = true;
 
 	request_sync();
 }
 
-void NavAgent2D::set_position(const Vector3 p_position) {
+void NavAgent2D::set_position(const Vector2 &p_position) {
 	position = p_position;
 	if (avoidance_enabled) {
-		if (use_3d_avoidance) {
-		} else {
-			rvo_agent_2d.elevation_ = p_position.y;
-			rvo_agent_2d.position_ = RVO2D::Vector2(p_position.x, p_position.z);
-		}
+		rvo_agent.elevation_ = 0.0; // TODO: Remove?
+		rvo_agent.position_ = RVO2D::Vector2(p_position.x, p_position.y);
 	}
 	agent_dirty = true;
 
 	request_sync();
 }
 
-void NavAgent2D::set_target_position(const Vector3 p_target_position) {
+void NavAgent2D::set_target_position(const Vector2 &p_target_position) {
 	target_position = p_target_position;
 }
 
-void NavAgent2D::set_velocity(const Vector3 p_velocity) {
+void NavAgent2D::set_velocity(const Vector2 &p_velocity) {
 	// Sets the "wanted" velocity for an agent as a suggestion
 	// This velocity is not guaranteed, RVO simulation will only try to fulfill it
 	velocity = p_velocity;
 	if (avoidance_enabled) {
-		if (use_3d_avoidance) {
-		} else {
-			rvo_agent_2d.prefVelocity_ = RVO2D::Vector2(velocity.x, velocity.z);
-		}
+		rvo_agent.prefVelocity_ = RVO2D::Vector2(velocity.x, velocity.y);
 	}
 	agent_dirty = true;
 
 	request_sync();
 }
 
-void NavAgent2D::set_velocity_forced(const Vector3 p_velocity) {
+void NavAgent2D::set_velocity_forced(const Vector2 &p_velocity) {
 	// This function replaces the internal rvo simulation velocity
 	// should only be used after the agent was teleported
 	// as it destroys consistency in movement in cramped situations
 	// use velocity instead to update with a safer "suggestion"
 	velocity_forced = p_velocity;
 	if (avoidance_enabled) {
-		if (use_3d_avoidance) {
-		} else {
-			rvo_agent_2d.velocity_ = RVO2D::Vector2(p_velocity.x, p_velocity.z);
-		}
+		rvo_agent.velocity_ = RVO2D::Vector2(p_velocity.x, p_velocity.y);
 	}
 	agent_dirty = true;
 
@@ -268,19 +219,13 @@ void NavAgent2D::set_velocity_forced(const Vector3 p_velocity) {
 void NavAgent2D::update() {
 	// Updates this agent with the calculated results from the rvo simulation
 	if (avoidance_enabled) {
-		if (use_3d_avoidance) {
-		} else {
-			velocity = Vector3(rvo_agent_2d.velocity_.x(), 0.0, rvo_agent_2d.velocity_.y());
-		}
+		velocity = Vector2(rvo_agent.velocity_.x(), rvo_agent.velocity_.y());
 	}
 }
 
 void NavAgent2D::set_avoidance_mask(uint32_t p_mask) {
 	avoidance_mask = p_mask;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.avoidance_mask_ = avoidance_mask;
-	}
+	rvo_agent.avoidance_mask_ = avoidance_mask;
 	agent_dirty = true;
 
 	request_sync();
@@ -288,10 +233,7 @@ void NavAgent2D::set_avoidance_mask(uint32_t p_mask) {
 
 void NavAgent2D::set_avoidance_layers(uint32_t p_layers) {
 	avoidance_layers = p_layers;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.avoidance_layers_ = avoidance_layers;
-	}
+	rvo_agent.avoidance_layers_ = avoidance_layers;
 	agent_dirty = true;
 
 	request_sync();
@@ -301,10 +243,7 @@ void NavAgent2D::set_avoidance_priority(real_t p_priority) {
 	ERR_FAIL_COND_MSG(p_priority < 0.0, "Avoidance priority must be between 0.0 and 1.0 inclusive.");
 	ERR_FAIL_COND_MSG(p_priority > 1.0, "Avoidance priority must be between 0.0 and 1.0 inclusive.");
 	avoidance_priority = p_priority;
-	if (use_3d_avoidance) {
-	} else {
-		rvo_agent_2d.avoidance_priority_ = avoidance_priority;
-	}
+	rvo_agent.avoidance_priority_ = avoidance_priority;
 	agent_dirty = true;
 
 	request_sync();
@@ -321,23 +260,22 @@ void NavAgent2D::sync() {
 const Dictionary NavAgent2D::get_avoidance_data() const {
 	// Returns debug data from RVO simulation internals of this agent.
 	Dictionary _avoidance_data;
-	if (use_3d_avoidance) {
-	} else {
-		_avoidance_data["max_neighbors"] = int(rvo_agent_2d.maxNeighbors_);
-		_avoidance_data["max_speed"] = float(rvo_agent_2d.maxSpeed_);
-		_avoidance_data["neighbor_distance"] = float(rvo_agent_2d.neighborDist_);
-		_avoidance_data["new_velocity"] = Vector3(rvo_agent_2d.newVelocity_.x(), 0.0, rvo_agent_2d.newVelocity_.y());
-		_avoidance_data["velocity"] = Vector3(rvo_agent_2d.velocity_.x(), 0.0, rvo_agent_2d.velocity_.y());
-		_avoidance_data["position"] = Vector3(rvo_agent_2d.position_.x(), 0.0, rvo_agent_2d.position_.y());
-		_avoidance_data["preferred_velocity"] = Vector3(rvo_agent_2d.prefVelocity_.x(), 0.0, rvo_agent_2d.prefVelocity_.y());
-		_avoidance_data["radius"] = float(rvo_agent_2d.radius_);
-		_avoidance_data["time_horizon_agents"] = float(rvo_agent_2d.timeHorizon_);
-		_avoidance_data["time_horizon_obstacles"] = float(rvo_agent_2d.timeHorizonObst_);
-		_avoidance_data["height"] = float(rvo_agent_2d.height_);
-		_avoidance_data["avoidance_layers"] = int(rvo_agent_2d.avoidance_layers_);
-		_avoidance_data["avoidance_mask"] = int(rvo_agent_2d.avoidance_mask_);
-		_avoidance_data["avoidance_priority"] = float(rvo_agent_2d.avoidance_priority_);
-	}
+
+	_avoidance_data["max_neighbors"] = int(rvo_agent.maxNeighbors_);
+	_avoidance_data["max_speed"] = float(rvo_agent.maxSpeed_);
+	_avoidance_data["neighbor_distance"] = float(rvo_agent.neighborDist_);
+	// TODO: Change type?
+	_avoidance_data["new_velocity"] = Vector3(rvo_agent.newVelocity_.x(), 0.0, rvo_agent.newVelocity_.y());
+	_avoidance_data["velocity"] = Vector3(rvo_agent.velocity_.x(), 0.0, rvo_agent.velocity_.y());
+	_avoidance_data["position"] = Vector3(rvo_agent.position_.x(), 0.0, rvo_agent.position_.y());
+	_avoidance_data["preferred_velocity"] = Vector3(rvo_agent.prefVelocity_.x(), 0.0, rvo_agent.prefVelocity_.y());
+	_avoidance_data["radius"] = float(rvo_agent.radius_);
+	_avoidance_data["time_horizon_agents"] = float(rvo_agent.timeHorizon_);
+	_avoidance_data["time_horizon_obstacles"] = float(rvo_agent.timeHorizonObst_);
+	_avoidance_data["height"] = float(rvo_agent.height_); // TODO: Remove?
+	_avoidance_data["avoidance_layers"] = int(rvo_agent.avoidance_layers_);
+	_avoidance_data["avoidance_mask"] = int(rvo_agent.avoidance_mask_);
+	_avoidance_data["avoidance_priority"] = float(rvo_agent.avoidance_priority_);
 	return _avoidance_data;
 }
 

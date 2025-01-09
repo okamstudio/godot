@@ -31,10 +31,13 @@
 #include "nav_region_2d.h"
 
 #include "nav_map_2d.h"
+#include "triangle2.h"
 
 #include "2d/nav_map_builder_2d.h"
 #include "2d/nav_mesh_queries_2d.h"
 #include "2d/nav_region_iteration_2d.h"
+
+using namespace nav_2d;
 
 void NavRegion2D::set_map(NavMap2D *p_map) {
 	if (map == p_map) {
@@ -77,7 +80,7 @@ void NavRegion2D::set_use_edge_connections(bool p_enabled) {
 	request_sync();
 }
 
-void NavRegion2D::set_transform(Transform3D p_transform) {
+void NavRegion2D::set_transform(const Transform2D &p_transform) {
 	if (transform == p_transform) {
 		return;
 	}
@@ -85,22 +88,12 @@ void NavRegion2D::set_transform(Transform3D p_transform) {
 	polygons_dirty = true;
 
 	request_sync();
-
-#ifdef DEBUG_ENABLED
-	if (map && Math::rad_to_deg(map->get_up().angle_to(transform.basis.get_column(1))) >= 90.0f) {
-		ERR_PRINT_ONCE("Attempted to update a navigation region transform rotated 90 degrees or more away from the current navigation map UP orientation.");
-	}
-#endif // DEBUG_ENABLED
 }
 
-void NavRegion2D::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
+void NavRegion2D::set_navigation_polygon(Ref<NavigationPolygon> p_navigation_polygon) {
 #ifdef DEBUG_ENABLED
-	if (map && p_navigation_mesh.is_valid() && !Math::is_equal_approx(double(map->get_cell_size()), double(p_navigation_mesh->get_cell_size()))) {
-		ERR_PRINT_ONCE(vformat("Attempted to update a navigation region with a navigation mesh that uses a `cell_size` of %s while assigned to a navigation map set to a `cell_size` of %s. The cell size for navigation maps can be changed by using the NavigationServer map_set_cell_size() function. The cell size for default navigation maps can also be changed in the ProjectSettings.", double(p_navigation_mesh->get_cell_size()), double(map->get_cell_size())));
-	}
-
-	if (map && p_navigation_mesh.is_valid() && !Math::is_equal_approx(double(map->get_cell_height()), double(p_navigation_mesh->get_cell_height()))) {
-		ERR_PRINT_ONCE(vformat("Attempted to update a navigation region with a navigation mesh that uses a `cell_height` of %s while assigned to a navigation map set to a `cell_height` of %s. The cell height for navigation maps can be changed by using the NavigationServer map_set_cell_height() function. The cell height for default navigation maps can also be changed in the ProjectSettings.", double(p_navigation_mesh->get_cell_height()), double(map->get_cell_height())));
+	if (map && p_navigation_polygon.is_valid() && !Math::is_equal_approx(double(map->get_cell_size()), double(p_navigation_polygon->get_cell_size()))) {
+		ERR_PRINT_ONCE(vformat("Attempted to update a navigation region with a navigation mesh that uses a `cell_size` of %s while assigned to a navigation map set to a `cell_size` of %s. The cell size for navigation maps can be changed by using the NavigationServer map_set_cell_size() function. The cell size for default navigation maps can also be changed in the ProjectSettings.", double(p_navigation_polygon->get_cell_size()), double(map->get_cell_size())));
 	}
 #endif // DEBUG_ENABLED
 
@@ -109,8 +102,8 @@ void NavRegion2D::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
 	pending_navmesh_vertices.clear();
 	pending_navmesh_polygons.clear();
 
-	if (p_navigation_mesh.is_valid()) {
-		p_navigation_mesh->get_data(pending_navmesh_vertices, pending_navmesh_polygons);
+	if (p_navigation_polygon.is_valid()) {
+		p_navigation_polygon->get_data(pending_navmesh_vertices, pending_navmesh_polygons);
 	}
 
 	polygons_dirty = true;
@@ -118,24 +111,17 @@ void NavRegion2D::set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) {
 	request_sync();
 }
 
-Vector3 NavRegion2D::get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const {
-	RWLockRead read_lock(region_rwlock);
-
-	return NavMeshQueries2D::polygons_get_closest_point_to_segment(
-			get_polygons(), p_from, p_to, p_use_collision);
-}
-
-nav_2d::ClosestPointQueryResult NavRegion2D::get_closest_point_info(const Vector3 &p_point) const {
+ClosestPointQueryResult NavRegion2D::get_closest_point_info(const Vector2 &p_point) const {
 	RWLockRead read_lock(region_rwlock);
 
 	return NavMeshQueries2D::polygons_get_closest_point_info(get_polygons(), p_point);
 }
 
-Vector3 NavRegion2D::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
+Vector2 NavRegion2D::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
 	RWLockRead read_lock(region_rwlock);
 
 	if (!get_enabled()) {
-		return Vector3();
+		return Vector2();
 	}
 
 	return NavMeshQueries2D::polygons_get_random_point(get_polygons(), p_navigation_layers, p_uniformly);
@@ -157,7 +143,7 @@ void NavRegion2D::update_polygons() {
 	}
 	navmesh_polygons.clear();
 	surface_area = 0.0;
-	bounds = AABB();
+	bounds = Rect2();
 	polygons_dirty = false;
 
 	if (map == nullptr) {
@@ -175,12 +161,12 @@ void NavRegion2D::update_polygons() {
 		return;
 	}
 
-	const Vector3 *vertices_r = pending_navmesh_vertices.ptr();
+	const Vector2 *vertices_r = pending_navmesh_vertices.ptr();
 
 	navmesh_polygons.resize(pending_navmesh_polygons.size());
 
 	real_t _new_region_surface_area = 0.0;
-	AABB _new_bounds;
+	Rect2 _new_bounds;
 
 	bool first_vertex = true;
 	int navigation_mesh_polygon_index = 0;
@@ -205,12 +191,12 @@ void NavRegion2D::update_polygons() {
 		real_t _new_polygon_surface_area = 0.0;
 
 		for (int j(2); j < navigation_mesh_polygon_size; j++) {
-			const Face3 face = Face3(
+			const Triangle2 triangle = Triangle2(
 					transform.xform(vertices_r[indices[0]]),
 					transform.xform(vertices_r[indices[j - 1]]),
 					transform.xform(vertices_r[indices[j]]));
 
-			_new_polygon_surface_area += face.get_area();
+			_new_polygon_surface_area += triangle.get_area();
 		}
 
 		polygon.surface_area = _new_polygon_surface_area;
@@ -223,7 +209,7 @@ void NavRegion2D::update_polygons() {
 				break;
 			}
 
-			Vector3 point_position = transform.xform(vertices_r[idx]);
+			Vector2 point_position = transform.xform(vertices_r[idx]);
 			polygon.points[j].pos = point_position;
 			polygon.points[j].key = NavMapBuilder2D::get_point_key(point_position, map->get_merge_rasterizer_cell_size());
 
@@ -236,7 +222,7 @@ void NavRegion2D::update_polygons() {
 		}
 
 		if (!valid) {
-			ERR_BREAK_MSG(!valid, "The navigation mesh set in this region is not valid!");
+			ERR_BREAK_MSG(!valid, "The navigation polygon set in this region is not valid!");
 		}
 	}
 
@@ -244,7 +230,7 @@ void NavRegion2D::update_polygons() {
 	bounds = _new_bounds;
 }
 
-void NavRegion2D::get_iteration_update(NavRegionIteration &r_iteration) {
+void NavRegion2D::get_iteration_update(NavRegionIteration2D &r_iteration) {
 	r_iteration.navigation_layers = get_navigation_layers();
 	r_iteration.enter_cost = get_enter_cost();
 	r_iteration.travel_cost = get_travel_cost();

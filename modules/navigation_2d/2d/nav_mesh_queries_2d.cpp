@@ -32,10 +32,13 @@
 
 #include "../nav_base_2d.h"
 #include "../nav_map_2d.h"
+#include "../triangle2.h"
 #include "nav_region_iteration_2d.h"
 
-#include "core/math/geometry_3d.h"
+#include "core/math/geometry_2d.h"
 #include "servers/navigation/navigation_utilities.h"
+
+using namespace nav_2d;
 
 #define THREE_POINTS_CROSS_PRODUCT(m_a, m_b, m_c) (((m_c) - (m_a)).cross((m_b) - (m_a)))
 
@@ -49,11 +52,11 @@ bool NavMeshQueries2D::emit_callback(const Callable &p_callback) {
 	return ce.error == Callable::CallError::CALL_OK;
 }
 
-Vector3 NavMeshQueries2D::polygons_get_random_point(const LocalVector<nav_2d::Polygon> &p_polygons, uint32_t p_navigation_layers, bool p_uniformly) {
-	const LocalVector<nav_2d::Polygon> &region_polygons = p_polygons;
+Vector2 NavMeshQueries2D::polygons_get_random_point(const LocalVector<Polygon> &p_polygons, uint32_t p_navigation_layers, bool p_uniformly) {
+	const LocalVector<Polygon> &region_polygons = p_polygons;
 
 	if (region_polygons.is_empty()) {
-		return Vector3();
+		return Vector2();
 	}
 
 	if (p_uniformly) {
@@ -61,7 +64,7 @@ Vector3 NavMeshQueries2D::polygons_get_random_point(const LocalVector<nav_2d::Po
 		RBMap<real_t, uint32_t> region_area_map;
 
 		for (uint32_t rp_index = 0; rp_index < region_polygons.size(); rp_index++) {
-			const nav_2d::Polygon &region_polygon = region_polygons[rp_index];
+			const Polygon &region_polygon = region_polygons[rp_index];
 			real_t polyon_area = region_polygon.surface_area;
 
 			if (polyon_area == 0.0) {
@@ -72,62 +75,62 @@ Vector3 NavMeshQueries2D::polygons_get_random_point(const LocalVector<nav_2d::Po
 		}
 		if (region_area_map.is_empty() || accumulated_area == 0) {
 			// All polygons have no real surface / no area.
-			return Vector3();
+			return Vector2();
 		}
 
 		real_t region_area_map_pos = Math::random(real_t(0), accumulated_area);
 
 		RBMap<real_t, uint32_t>::Iterator region_E = region_area_map.find_closest(region_area_map_pos);
-		ERR_FAIL_COND_V(!region_E, Vector3());
+		ERR_FAIL_COND_V(!region_E, Vector2());
 		uint32_t rrp_polygon_index = region_E->value;
-		ERR_FAIL_UNSIGNED_INDEX_V(rrp_polygon_index, region_polygons.size(), Vector3());
+		ERR_FAIL_UNSIGNED_INDEX_V(rrp_polygon_index, region_polygons.size(), Vector2());
 
-		const nav_2d::Polygon &rr_polygon = region_polygons[rrp_polygon_index];
+		const Polygon &rr_polygon = region_polygons[rrp_polygon_index];
 
 		real_t accumulated_polygon_area = 0;
 		RBMap<real_t, uint32_t> polygon_area_map;
 
 		for (uint32_t rpp_index = 2; rpp_index < rr_polygon.points.size(); rpp_index++) {
-			real_t face_area = Face3(rr_polygon.points[0].pos, rr_polygon.points[rpp_index - 1].pos, rr_polygon.points[rpp_index].pos).get_area();
+			real_t triangle_area = Triangle2(rr_polygon.points[0].pos, rr_polygon.points[rpp_index - 1].pos, rr_polygon.points[rpp_index].pos).get_area();
 
-			if (face_area == 0.0) {
+			if (triangle_area == 0.0) {
 				continue;
 			}
 			polygon_area_map[accumulated_polygon_area] = rpp_index;
-			accumulated_polygon_area += face_area;
+			accumulated_polygon_area += triangle_area;
 		}
 		if (polygon_area_map.is_empty() || accumulated_polygon_area == 0) {
 			// All faces have no real surface / no area.
-			return Vector3();
+			return Vector2();
 		}
 
 		real_t polygon_area_map_pos = Math::random(real_t(0), accumulated_polygon_area);
 
 		RBMap<real_t, uint32_t>::Iterator polygon_E = polygon_area_map.find_closest(polygon_area_map_pos);
-		ERR_FAIL_COND_V(!polygon_E, Vector3());
+		ERR_FAIL_COND_V(!polygon_E, Vector2());
 		uint32_t rrp_face_index = polygon_E->value;
-		ERR_FAIL_UNSIGNED_INDEX_V(rrp_face_index, rr_polygon.points.size(), Vector3());
+		ERR_FAIL_UNSIGNED_INDEX_V(rrp_face_index, rr_polygon.points.size(), Vector2());
 
-		const Face3 face(rr_polygon.points[0].pos, rr_polygon.points[rrp_face_index - 1].pos, rr_polygon.points[rrp_face_index].pos);
+		const Triangle2 triangle(rr_polygon.points[0].pos, rr_polygon.points[rrp_face_index - 1].pos, rr_polygon.points[rrp_face_index].pos);
 
-		Vector3 face_random_position = face.get_random_point_inside();
-		return face_random_position;
+		Vector2 triangle_random_position = triangle.get_random_point_inside();
+		return triangle_random_position;
 
 	} else {
 		uint32_t rrp_polygon_index = Math::random(int(0), region_polygons.size() - 1);
 
-		const nav_2d::Polygon &rr_polygon = region_polygons[rrp_polygon_index];
+		const Polygon &rr_polygon = region_polygons[rrp_polygon_index];
 
 		uint32_t rrp_face_index = Math::random(int(2), rr_polygon.points.size() - 1);
 
-		const Face3 face(rr_polygon.points[0].pos, rr_polygon.points[rrp_face_index - 1].pos, rr_polygon.points[rrp_face_index].pos);
+		const Triangle2 triangle(rr_polygon.points[0].pos, rr_polygon.points[rrp_face_index - 1].pos, rr_polygon.points[rrp_face_index].pos);
 
-		Vector3 face_random_position = face.get_random_point_inside();
-		return face_random_position;
+		Vector2 triangle_random_position = triangle.get_random_point_inside();
+		return triangle_random_position;
 	}
 }
 
-void NavMeshQueries2D::_query_task_push_back_point_with_metadata(NavMeshPathQueryTask3D &p_query_task, const Vector3 &p_point, const nav_2d::Polygon *p_point_polygon) {
+void NavMeshQueries2D::_query_task_push_back_point_with_metadata(NavMeshPathQueryTask2D &p_query_task, const Vector2 &p_point, const Polygon *p_point_polygon) {
 	if (p_query_task.metadata_flags.has_flag(PathMetadataFlags::PATH_INCLUDE_TYPES)) {
 		p_query_task.path_meta_point_types.push_back(p_point_polygon->owner->get_type());
 	}
@@ -143,21 +146,21 @@ void NavMeshQueries2D::_query_task_push_back_point_with_metadata(NavMeshPathQuer
 	p_query_task.path_points.push_back(p_point);
 }
 
-void NavMeshQueries2D::map_query_path(NavMap2D *map, const Ref<NavigationPathQueryParameters3D> &p_query_parameters, Ref<NavigationPathQueryResult3D> p_query_result, const Callable &p_callback) {
-	ERR_FAIL_NULL(map);
+void NavMeshQueries2D::map_query_path(NavMap2D *p_map, const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result, const Callable &p_callback) {
+	ERR_FAIL_NULL(p_map);
 	ERR_FAIL_COND(p_query_parameters.is_null());
 	ERR_FAIL_COND(p_query_result.is_null());
 
 	using namespace NavigationUtilities;
 
-	NavMeshQueries2D::NavMeshPathQueryTask3D query_task;
+	NavMeshQueries2D::NavMeshPathQueryTask2D query_task;
 	query_task.start_position = p_query_parameters->get_start_position();
 	query_task.target_position = p_query_parameters->get_target_position();
 	query_task.navigation_layers = p_query_parameters->get_navigation_layers();
 	query_task.callback = p_callback;
 
 	switch (p_query_parameters->get_pathfinding_algorithm()) {
-		case NavigationPathQueryParameters3D::PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR: {
+		case NavigationPathQueryParameters2D::PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR: {
 			query_task.pathfinding_algorithm = PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR;
 		} break;
 		default: {
@@ -167,13 +170,13 @@ void NavMeshQueries2D::map_query_path(NavMap2D *map, const Ref<NavigationPathQue
 	}
 
 	switch (p_query_parameters->get_path_postprocessing()) {
-		case NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL: {
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL: {
 			query_task.path_postprocessing = PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL;
 		} break;
-		case NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED: {
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED: {
 			query_task.path_postprocessing = PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED;
 		} break;
-		case NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_NONE: {
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_NONE: {
 			query_task.path_postprocessing = PathPostProcessing::PATH_POSTPROCESSING_NONE;
 		} break;
 		default: {
@@ -185,9 +188,9 @@ void NavMeshQueries2D::map_query_path(NavMap2D *map, const Ref<NavigationPathQue
 	query_task.metadata_flags = (int64_t)p_query_parameters->get_metadata_flags();
 	query_task.simplify_path = p_query_parameters->get_simplify_path();
 	query_task.simplify_epsilon = p_query_parameters->get_simplify_epsilon();
-	query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_STARTED;
+	query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_STARTED;
 
-	map->query_path(query_task);
+	p_map->query_path(query_task);
 
 	p_query_result->set_data(
 			query_task.path_points,
@@ -197,36 +200,36 @@ void NavMeshQueries2D::map_query_path(NavMap2D *map, const Ref<NavigationPathQue
 
 	if (query_task.callback.is_valid()) {
 		if (emit_callback(query_task.callback)) {
-			query_task.status = NavMeshPathQueryTask3D::TaskStatus::CALLBACK_DISPATCHED;
+			query_task.status = NavMeshPathQueryTask2D::TaskStatus::CALLBACK_DISPATCHED;
 		} else {
-			query_task.status = NavMeshPathQueryTask3D::TaskStatus::CALLBACK_FAILED;
+			query_task.status = NavMeshPathQueryTask2D::TaskStatus::CALLBACK_FAILED;
 		}
 	}
 }
 
-void NavMeshQueries2D::_query_task_find_start_end_positions(NavMeshPathQueryTask3D &p_query_task, const NavMapIteration &p_map_iteration) {
+void NavMeshQueries2D::_query_task_find_start_end_positions(NavMeshPathQueryTask2D &p_query_task, const NavMapIteration2D &p_map_iteration) {
 	real_t begin_d = FLT_MAX;
 	real_t end_d = FLT_MAX;
 
-	const LocalVector<NavRegionIteration> &regions = p_map_iteration.region_iterations;
+	const LocalVector<NavRegionIteration2D> &regions = p_map_iteration.region_iterations;
 
-	for (const NavRegionIteration &region : regions) {
+	for (const NavRegionIteration2D &region : regions) {
 		if (!region.get_enabled()) {
 			continue;
 		}
 
 		// Find the initial poly and the end poly on this map.
-		for (const nav_2d::Polygon &p : region.get_navmesh_polygons()) {
+		for (const Polygon &p : region.get_navmesh_polygons()) {
 			// Only consider the polygon if it in a region with compatible layers.
 			if ((p_query_task.navigation_layers & p.owner->get_navigation_layers()) == 0) {
 				continue;
 			}
 
-			// For each face check the distance between the origin/destination.
+			// For each triangle check the distance between the origin/destination.
 			for (size_t point_id = 2; point_id < p.points.size(); point_id++) {
-				const Face3 face(p.points[0].pos, p.points[point_id - 1].pos, p.points[point_id].pos);
+				const Triangle2 triangle(p.points[0].pos, p.points[point_id - 1].pos, p.points[point_id].pos);
 
-				Vector3 point = face.get_closest_point_to(p_query_task.start_position);
+				Vector2 point = triangle.get_closest_point_to(p_query_task.start_position);
 				real_t distance_to_point = point.distance_to(p_query_task.start_position);
 				if (distance_to_point < begin_d) {
 					begin_d = distance_to_point;
@@ -234,7 +237,7 @@ void NavMeshQueries2D::_query_task_find_start_end_positions(NavMeshPathQueryTask
 					p_query_task.begin_position = point;
 				}
 
-				point = face.get_closest_point_to(p_query_task.target_position);
+				point = triangle.get_closest_point_to(p_query_task.target_position);
 				distance_to_point = point.distance_to(p_query_task.target_position);
 				if (distance_to_point < end_d) {
 					end_d = distance_to_point;
@@ -246,60 +249,60 @@ void NavMeshQueries2D::_query_task_find_start_end_positions(NavMeshPathQueryTask
 	}
 }
 
-void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p_query_task) {
-	const Vector3 p_target_position = p_query_task.target_position;
+void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask2D &p_query_task) {
+	const Vector2 p_target_position = p_query_task.target_position;
 	const uint32_t p_navigation_layers = p_query_task.navigation_layers;
-	const nav_2d::Polygon *begin_poly = p_query_task.begin_polygon;
-	const nav_2d::Polygon *end_poly = p_query_task.end_polygon;
-	Vector3 begin_point = p_query_task.begin_position;
-	Vector3 end_point = p_query_task.end_position;
+	const Polygon *begin_poly = p_query_task.begin_polygon;
+	const Polygon *end_poly = p_query_task.end_polygon;
+	Vector2 begin_point = p_query_task.begin_position;
+	Vector2 end_point = p_query_task.end_position;
 
 	// Heap of polygons to travel next.
-	Heap<nav_2d::NavigationPoly *, nav_2d::NavPolyTravelCostGreaterThan, nav_2d::NavPolyHeapIndexer>
+	Heap<NavigationPoly *, NavPolyTravelCostGreaterThan, NavPolyHeapIndexer>
 			&traversable_polys = p_query_task.path_query_slot->traversable_polys;
 	traversable_polys.clear();
 
-	LocalVector<nav_2d::NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
-	for (nav_2d::NavigationPoly &polygon : navigation_polys) {
+	LocalVector<NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
+	for (NavigationPoly &polygon : navigation_polys) {
 		polygon.reset();
 	}
 
 	// Initialize the matching navigation polygon.
-	nav_2d::NavigationPoly &begin_navigation_poly = navigation_polys[begin_poly->id];
+	NavigationPoly &begin_navigation_poly = navigation_polys[begin_poly->id];
 	begin_navigation_poly.poly = begin_poly;
 	begin_navigation_poly.entry = begin_point;
 	begin_navigation_poly.back_navigation_edge_pathway_start = begin_point;
 	begin_navigation_poly.back_navigation_edge_pathway_end = begin_point;
-	begin_navigation_poly.traveled_distance = 0.f;
+	begin_navigation_poly.traveled_distance = 0.0;
 
 	// This is an implementation of the A* algorithm.
 	uint32_t least_cost_id = begin_poly->id;
 	bool found_route = false;
 
-	const nav_2d::Polygon *reachable_end = nullptr;
+	const Polygon *reachable_end = nullptr;
 	real_t distance_to_reachable_end = FLT_MAX;
 	bool is_reachable = true;
 	real_t poly_enter_cost = 0.0;
 
 	while (true) {
-		const nav_2d::NavigationPoly &least_cost_poly = navigation_polys[least_cost_id];
+		const NavigationPoly &least_cost_poly = navigation_polys[least_cost_id];
 		real_t poly_travel_cost = least_cost_poly.poly->owner->get_travel_cost();
 
 		// Takes the current least_cost_poly neighbors (iterating over its edges) and compute the traveled_distance.
-		for (const nav_2d::Edge &edge : least_cost_poly.poly->edges) {
+		for (const Edge &edge : least_cost_poly.poly->edges) {
 			// Iterate over connections in this edge, then compute the new optimized travel distance assigned to this polygon.
 			for (uint32_t connection_index = 0; connection_index < edge.connections.size(); connection_index++) {
-				const nav_2d::Edge::Connection &connection = edge.connections[connection_index];
+				const Edge::Connection &connection = edge.connections[connection_index];
 
 				// Only consider the connection to another polygon if this polygon is in a region with compatible layers.
-				const NavBaseIteration *owner = connection.polygon->owner;
+				const NavBaseIteration2D *owner = connection.polygon->owner;
 				if ((p_navigation_layers & owner->get_navigation_layers()) != 0) {
-					Vector3 pathway[2] = { connection.pathway_start, connection.pathway_end };
-					const Vector3 new_entry = Geometry3D::get_closest_point_to_segment(least_cost_poly.entry, pathway);
-					const real_t new_traveled_distance = least_cost_poly.entry.distance_to(new_entry) * poly_travel_cost + poly_enter_cost + least_cost_poly.traveled_distance;
+					Vector2 pathway[2] = { connection.pathway_start, connection.pathway_end };
+					const Vector2 new_entry = Geometry2D::get_closest_point_to_segment(least_cost_poly.entry, pathway);
+					const real_t new_traveled_distance = least_cost_poly.entry.distance_squared_to(new_entry) * poly_travel_cost + poly_enter_cost + least_cost_poly.traveled_distance;
 
 					// Check if the neighbor polygon has already been processed.
-					nav_2d::NavigationPoly &neighbor_poly = navigation_polys[connection.polygon->id];
+					NavigationPoly &neighbor_poly = navigation_polys[connection.polygon->id];
 					if (new_traveled_distance < neighbor_poly.traveled_distance) {
 						// Add the polygon to the heap of polygons to traverse next.
 						neighbor_poly.back_navigation_poly_id = least_cost_id;
@@ -339,8 +342,8 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 			end_poly = reachable_end;
 			real_t end_d = FLT_MAX;
 			for (size_t point_id = 2; point_id < end_poly->points.size(); point_id++) {
-				Face3 f(end_poly->points[0].pos, end_poly->points[point_id - 1].pos, end_poly->points[point_id].pos);
-				Vector3 spoint = f.get_closest_point_to(p_target_position);
+				Triangle2 t(end_poly->points[0].pos, end_poly->points[point_id - 1].pos, end_poly->points[point_id].pos);
+				Vector2 spoint = t.get_closest_point_to(p_target_position);
 				real_t dpoint = spoint.distance_squared_to(p_target_position);
 				if (dpoint < end_d) {
 					end_point = spoint;
@@ -351,8 +354,8 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 			// Search all faces of start polygon as well.
 			bool closest_point_on_start_poly = false;
 			for (size_t point_id = 2; point_id < begin_poly->points.size(); point_id++) {
-				Face3 f(begin_poly->points[0].pos, begin_poly->points[point_id - 1].pos, begin_poly->points[point_id].pos);
-				Vector3 spoint = f.get_closest_point_to(p_target_position);
+				Triangle2 t(begin_poly->points[0].pos, begin_poly->points[point_id - 1].pos, begin_poly->points[point_id].pos);
+				Vector2 spoint = t.get_closest_point_to(p_target_position);
 				real_t dpoint = spoint.distance_squared_to(p_target_position);
 				if (dpoint < end_d) {
 					end_point = spoint;
@@ -367,11 +370,11 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 
 				_query_task_push_back_point_with_metadata(p_query_task, begin_point, begin_poly);
 				_query_task_push_back_point_with_metadata(p_query_task, end_point, begin_poly);
-				p_query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED;
+				p_query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED;
 				return;
 			}
 
-			for (nav_2d::NavigationPoly &nav_poly : navigation_polys) {
+			for (NavigationPoly &nav_poly : navigation_polys) {
 				nav_poly.poly = nullptr;
 				nav_poly.traveled_distance = FLT_MAX;
 			}
@@ -410,8 +413,8 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 		real_t end_d = FLT_MAX;
 		// Search all faces of the start polygon for the closest point to our target position.
 		for (size_t point_id = 2; point_id < begin_poly->points.size(); point_id++) {
-			Face3 f(begin_poly->points[0].pos, begin_poly->points[point_id - 1].pos, begin_poly->points[point_id].pos);
-			Vector3 spoint = f.get_closest_point_to(p_target_position);
+			Triangle2 t(begin_poly->points[0].pos, begin_poly->points[point_id - 1].pos, begin_poly->points[point_id].pos);
+			Vector2 spoint = t.get_closest_point_to(p_target_position);
 			real_t dpoint = spoint.distance_squared_to(p_target_position);
 			if (dpoint < end_d) {
 				end_point = spoint;
@@ -423,7 +426,7 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 
 		_query_task_push_back_point_with_metadata(p_query_task, begin_point, begin_poly);
 		_query_task_push_back_point_with_metadata(p_query_task, end_point, begin_poly);
-		p_query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED;
+		p_query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED;
 	} else {
 		p_query_task.end_position = end_point;
 		p_query_task.end_polygon = end_poly;
@@ -433,27 +436,27 @@ void NavMeshQueries2D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 	}
 }
 
-void NavMeshQueries2D::query_task_map_iteration_get_path(NavMeshPathQueryTask3D &p_query_task, const NavMapIteration &p_map_iteration) {
+void NavMeshQueries2D::query_task_map_iteration_get_path(NavMeshPathQueryTask2D &p_query_task, const NavMapIteration2D &p_map_iteration) {
 	p_query_task.path_clear();
 
 	_query_task_find_start_end_positions(p_query_task, p_map_iteration);
 
 	// Check for trivial cases.
 	if (!p_query_task.begin_polygon || !p_query_task.end_polygon) {
-		p_query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED;
+		p_query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED;
 		return;
 	}
 	if (p_query_task.begin_polygon == p_query_task.end_polygon) {
 		p_query_task.path_clear();
 		_query_task_push_back_point_with_metadata(p_query_task, p_query_task.begin_position, p_query_task.begin_polygon);
 		_query_task_push_back_point_with_metadata(p_query_task, p_query_task.end_position, p_query_task.end_polygon);
-		p_query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED;
+		p_query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED;
 		return;
 	}
 
 	_query_task_build_path_corridor(p_query_task);
 
-	if (p_query_task.status == NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED || p_query_task.status == NavMeshPathQueryTask3D::TaskStatus::QUERY_FAILED) {
+	if (p_query_task.status == NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED || p_query_task.status == NavMeshPathQueryTask2D::TaskStatus::QUERY_FAILED) {
 		return;
 	}
 
@@ -495,10 +498,10 @@ void NavMeshQueries2D::query_task_map_iteration_get_path(NavMeshPathQueryTask3D 
 	}
 #endif // DEBUG_ENABLED
 
-	p_query_task.status = NavMeshPathQueryTask3D::TaskStatus::QUERY_FINISHED;
+	p_query_task.status = NavMeshPathQueryTask2D::TaskStatus::QUERY_FINISHED;
 }
 
-void NavMeshQueries2D::_query_task_simplified_path_points(NavMeshPathQueryTask3D &p_query_task) {
+void NavMeshQueries2D::_query_task_simplified_path_points(NavMeshPathQueryTask2D &p_query_task) {
 	if (!p_query_task.simplify_path || p_query_task.path_points.size() <= 2) {
 		return;
 	}
@@ -508,7 +511,7 @@ void NavMeshQueries2D::_query_task_simplified_path_points(NavMeshPathQueryTask3D
 	uint32_t index_count = simplified_path_indices.size();
 
 	{
-		Vector3 *points_ptr = p_query_task.path_points.ptr();
+		Vector2 *points_ptr = p_query_task.path_points.ptr();
 		for (uint32_t i = 0; i < index_count; i++) {
 			points_ptr[i] = points_ptr[simplified_path_indices[i]];
 		}
@@ -540,20 +543,19 @@ void NavMeshQueries2D::_query_task_simplified_path_points(NavMeshPathQueryTask3D
 	}
 }
 
-void NavMeshQueries2D::_query_task_post_process_corridorfunnel(NavMeshPathQueryTask3D &p_query_task) {
-	Vector3 end_point = p_query_task.end_position;
-	const nav_2d::Polygon *end_poly = p_query_task.end_polygon;
-	Vector3 begin_point = p_query_task.begin_position;
-	const nav_2d::Polygon *begin_poly = p_query_task.begin_polygon;
+void NavMeshQueries2D::_query_task_post_process_corridorfunnel(NavMeshPathQueryTask2D &p_query_task) {
+	Vector2 end_point = p_query_task.end_position;
+	const Polygon *end_poly = p_query_task.end_polygon;
+	Vector2 begin_point = p_query_task.begin_position;
+	const Polygon *begin_poly = p_query_task.begin_polygon;
 	uint32_t least_cost_id = p_query_task.least_cost_id;
-	LocalVector<nav_2d::NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
-	Vector3 p_map_up = p_query_task.map_up;
+	LocalVector<NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
 
-	// Set the apex poly/point to the end point
-	nav_2d::NavigationPoly *apex_poly = &navigation_polys[least_cost_id];
+	// Set the apex poly/point to the end point.
+	NavigationPoly *apex_poly = &navigation_polys[least_cost_id];
 
-	Vector3 back_pathway[2] = { apex_poly->back_navigation_edge_pathway_start, apex_poly->back_navigation_edge_pathway_end };
-	const Vector3 back_edge_closest_point = Geometry3D::get_closest_point_to_segment(end_point, back_pathway);
+	Vector2 back_pathway[2] = { apex_poly->back_navigation_edge_pathway_start, apex_poly->back_navigation_edge_pathway_end };
+	const Vector2 back_edge_closest_point = Geometry2D::get_closest_point_to_segment(end_point, back_pathway);
 	if (end_point.is_equal_approx(back_edge_closest_point)) {
 		// The end point is basically on top of the last crossed edge, funneling around the corners would at best do nothing.
 		// At worst it would add an unwanted path point before the last point due to precision issues so skip to the next polygon.
@@ -562,29 +564,29 @@ void NavMeshQueries2D::_query_task_post_process_corridorfunnel(NavMeshPathQueryT
 		}
 	}
 
-	Vector3 apex_point = end_point;
+	Vector2 apex_point = end_point;
 
-	nav_2d::NavigationPoly *left_poly = apex_poly;
-	Vector3 left_portal = apex_point;
-	nav_2d::NavigationPoly *right_poly = apex_poly;
-	Vector3 right_portal = apex_point;
+	NavigationPoly *left_poly = apex_poly;
+	Vector2 left_portal = apex_point;
+	NavigationPoly *right_poly = apex_poly;
+	Vector2 right_portal = apex_point;
 
-	nav_2d::NavigationPoly *p = apex_poly;
+	NavigationPoly *p = apex_poly;
 
 	_query_task_push_back_point_with_metadata(p_query_task, end_point, end_poly);
 
 	while (p) {
 		// Set left and right points of the pathway between polygons.
-		Vector3 left = p->back_navigation_edge_pathway_start;
-		Vector3 right = p->back_navigation_edge_pathway_end;
-		if (THREE_POINTS_CROSS_PRODUCT(apex_point, left, right).dot(p_map_up) < 0) {
+		Vector2 left = p->back_navigation_edge_pathway_start;
+		Vector2 right = p->back_navigation_edge_pathway_end;
+		if (THREE_POINTS_CROSS_PRODUCT(apex_point, left, right) < 0) {
 			SWAP(left, right);
 		}
 
 		bool skip = false;
-		if (THREE_POINTS_CROSS_PRODUCT(apex_point, left_portal, left).dot(p_map_up) >= 0) {
-			//process
-			if (left_portal == apex_point || THREE_POINTS_CROSS_PRODUCT(apex_point, left, right_portal).dot(p_map_up) > 0) {
+		if (THREE_POINTS_CROSS_PRODUCT(apex_point, left_portal, left) >= 0) {
+			// Process.
+			if (left_portal == apex_point || THREE_POINTS_CROSS_PRODUCT(apex_point, left, right_portal) > 0) {
 				left_poly = p;
 				left_portal = left;
 			} else {
@@ -602,9 +604,9 @@ void NavMeshQueries2D::_query_task_post_process_corridorfunnel(NavMeshPathQueryT
 			}
 		}
 
-		if (!skip && THREE_POINTS_CROSS_PRODUCT(apex_point, right_portal, right).dot(p_map_up) <= 0) {
-			//process
-			if (right_portal == apex_point || THREE_POINTS_CROSS_PRODUCT(apex_point, right, left_portal).dot(p_map_up) < 0) {
+		if (!skip && THREE_POINTS_CROSS_PRODUCT(apex_point, right_portal, right) <= 0) {
+			// Process.
+			if (right_portal == apex_point || THREE_POINTS_CROSS_PRODUCT(apex_point, right, left_portal) < 0) {
 				right_poly = p;
 				right_portal = right;
 			} else {
@@ -636,23 +638,23 @@ void NavMeshQueries2D::_query_task_post_process_corridorfunnel(NavMeshPathQueryT
 	}
 }
 
-void NavMeshQueries2D::_query_task_post_process_edgecentered(NavMeshPathQueryTask3D &p_query_task) {
-	Vector3 end_point = p_query_task.end_position;
-	const nav_2d::Polygon *end_poly = p_query_task.end_polygon;
-	Vector3 begin_point = p_query_task.begin_position;
-	const nav_2d::Polygon *begin_poly = p_query_task.begin_polygon;
+void NavMeshQueries2D::_query_task_post_process_edgecentered(NavMeshPathQueryTask2D &p_query_task) {
+	Vector2 end_point = p_query_task.end_position;
+	const Polygon *end_poly = p_query_task.end_polygon;
+	Vector2 begin_point = p_query_task.begin_position;
+	const Polygon *begin_poly = p_query_task.begin_polygon;
 	uint32_t least_cost_id = p_query_task.least_cost_id;
-	LocalVector<nav_2d::NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
+	LocalVector<NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
 
 	_query_task_push_back_point_with_metadata(p_query_task, end_point, end_poly);
 
-	// Add mid points
+	// Add mid points.
 	int np_id = least_cost_id;
 	while (np_id != -1 && navigation_polys[np_id].back_navigation_poly_id != -1) {
 		if (navigation_polys[np_id].back_navigation_edge != -1) {
 			int prev = navigation_polys[np_id].back_navigation_edge;
 			int prev_n = (navigation_polys[np_id].back_navigation_edge + 1) % navigation_polys[np_id].poly->points.size();
-			Vector3 point = (navigation_polys[np_id].poly->points[prev].pos + navigation_polys[np_id].poly->points[prev_n].pos) * 0.5;
+			Vector2 point = (navigation_polys[np_id].poly->points[prev].pos + navigation_polys[np_id].poly->points[prev_n].pos) * 0.5;
 
 			_query_task_push_back_point_with_metadata(p_query_task, point, navigation_polys[np_id].poly);
 		} else {
@@ -665,17 +667,17 @@ void NavMeshQueries2D::_query_task_post_process_edgecentered(NavMeshPathQueryTas
 	_query_task_push_back_point_with_metadata(p_query_task, begin_point, begin_poly);
 }
 
-void NavMeshQueries2D::_query_task_post_process_nopostprocessing(NavMeshPathQueryTask3D &p_query_task) {
-	Vector3 end_point = p_query_task.end_position;
-	const nav_2d::Polygon *end_poly = p_query_task.end_polygon;
-	Vector3 begin_point = p_query_task.begin_position;
-	const nav_2d::Polygon *begin_poly = p_query_task.begin_polygon;
+void NavMeshQueries2D::_query_task_post_process_nopostprocessing(NavMeshPathQueryTask2D &p_query_task) {
+	Vector2 end_point = p_query_task.end_position;
+	const Polygon *end_poly = p_query_task.end_polygon;
+	Vector2 begin_point = p_query_task.begin_position;
+	const Polygon *begin_poly = p_query_task.begin_polygon;
 	uint32_t least_cost_id = p_query_task.least_cost_id;
-	LocalVector<nav_2d::NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
+	LocalVector<NavigationPoly> &navigation_polys = p_query_task.path_query_slot->path_corridor;
 
 	_query_task_push_back_point_with_metadata(p_query_task, end_point, end_poly);
 
-	// Add mid points
+	// Add mid points.
 	int np_id = least_cost_id;
 	while (np_id != -1 && navigation_polys[np_id].back_navigation_poly_id != -1) {
 		_query_task_push_back_point_with_metadata(p_query_task, navigation_polys[np_id].entry, navigation_polys[np_id].poly);
@@ -686,104 +688,35 @@ void NavMeshQueries2D::_query_task_post_process_nopostprocessing(NavMeshPathQuer
 	_query_task_push_back_point_with_metadata(p_query_task, begin_point, begin_poly);
 }
 
-Vector3 NavMeshQueries2D::map_iteration_get_closest_point_to_segment(const NavMapIteration &p_map_iteration, const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision) {
-	bool use_collision = p_use_collision;
-	Vector3 closest_point;
-	real_t closest_point_distance = FLT_MAX;
-
-	const LocalVector<NavRegionIteration> &regions = p_map_iteration.region_iterations;
-	for (const NavRegionIteration &region : regions) {
-		for (const nav_2d::Polygon &polygon : region.get_navmesh_polygons()) {
-			// For each face check the distance to the segment.
-			for (size_t point_id = 2; point_id < polygon.points.size(); point_id += 1) {
-				const Face3 face(polygon.points[0].pos, polygon.points[point_id - 1].pos, polygon.points[point_id].pos);
-				Vector3 intersection_point;
-				if (face.intersects_segment(p_from, p_to, &intersection_point)) {
-					const real_t d = p_from.distance_to(intersection_point);
-					if (!use_collision) {
-						closest_point = intersection_point;
-						use_collision = true;
-						closest_point_distance = d;
-					} else if (closest_point_distance > d) {
-						closest_point = intersection_point;
-						closest_point_distance = d;
-					}
-				}
-				// If segment does not itersect face, check the distance from segment's endpoints.
-				else if (!use_collision) {
-					const Vector3 p_from_closest = face.get_closest_point_to(p_from);
-					const real_t d_p_from = p_from.distance_to(p_from_closest);
-					if (closest_point_distance > d_p_from) {
-						closest_point = p_from_closest;
-						closest_point_distance = d_p_from;
-					}
-
-					const Vector3 p_to_closest = face.get_closest_point_to(p_to);
-					const real_t d_p_to = p_to.distance_to(p_to_closest);
-					if (closest_point_distance > d_p_to) {
-						closest_point = p_to_closest;
-						closest_point_distance = d_p_to;
-					}
-				}
-			}
-			// Finally, check for a case when shortest distance is between some point located on a face's edge and some point located on a line segment.
-			if (!use_collision) {
-				for (size_t point_id = 0; point_id < polygon.points.size(); point_id += 1) {
-					Vector3 a, b;
-
-					Geometry3D::get_closest_points_between_segments(
-							p_from,
-							p_to,
-							polygon.points[point_id].pos,
-							polygon.points[(point_id + 1) % polygon.points.size()].pos,
-							a,
-							b);
-
-					const real_t d = a.distance_to(b);
-					if (d < closest_point_distance) {
-						closest_point_distance = d;
-						closest_point = b;
-					}
-				}
-			}
-		}
-	}
-
-	return closest_point;
-}
-
-Vector3 NavMeshQueries2D::map_iteration_get_closest_point(const NavMapIteration &p_map_iteration, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = map_iteration_get_closest_point_info(p_map_iteration, p_point);
+Vector2 NavMeshQueries2D::map_iteration_get_closest_point(const NavMapIteration2D &p_map_iteration, const Vector2 &p_point) {
+	ClosestPointQueryResult cp = map_iteration_get_closest_point_info(p_map_iteration, p_point);
 	return cp.point;
 }
 
-Vector3 NavMeshQueries2D::map_iteration_get_closest_point_normal(const NavMapIteration &p_map_iteration, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = map_iteration_get_closest_point_info(p_map_iteration, p_point);
-	return cp.normal;
-}
-
-RID NavMeshQueries2D::map_iteration_get_closest_point_owner(const NavMapIteration &p_map_iteration, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = map_iteration_get_closest_point_info(p_map_iteration, p_point);
+RID NavMeshQueries2D::map_iteration_get_closest_point_owner(const NavMapIteration2D &p_map_iteration, const Vector2 &p_point) {
+	ClosestPointQueryResult cp = map_iteration_get_closest_point_info(p_map_iteration, p_point);
 	return cp.owner;
 }
 
-nav_2d::ClosestPointQueryResult NavMeshQueries2D::map_iteration_get_closest_point_info(const NavMapIteration &p_map_iteration, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult result;
+ClosestPointQueryResult NavMeshQueries2D::map_iteration_get_closest_point_info(const NavMapIteration2D &p_map_iteration, const Vector2 &p_point) {
+	ClosestPointQueryResult result;
 	real_t closest_point_distance_squared = FLT_MAX;
 
-	const LocalVector<NavRegionIteration> &regions = p_map_iteration.region_iterations;
-	for (const NavRegionIteration &region : regions) {
-		for (const nav_2d::Polygon &polygon : region.get_navmesh_polygons()) {
-			Vector3 plane_normal = (polygon.points[1].pos - polygon.points[0].pos).cross(polygon.points[2].pos - polygon.points[0].pos);
-			Vector3 closest_on_polygon;
+	// TODO: Check for further 2D improvements.
+
+	const LocalVector<NavRegionIteration2D> &regions = p_map_iteration.region_iterations;
+	for (const NavRegionIteration2D &region : regions) {
+		for (const Polygon &polygon : region.get_navmesh_polygons()) {
+			real_t cross = (polygon.points[1].pos - polygon.points[0].pos).cross(polygon.points[2].pos - polygon.points[0].pos);
+			Vector2 closest_on_polygon;
 			real_t closest = FLT_MAX;
 			bool inside = true;
-			Vector3 previous = polygon.points[polygon.points.size() - 1].pos;
+			Vector2 previous = polygon.points[polygon.points.size() - 1].pos;
 			for (size_t point_id = 0; point_id < polygon.points.size(); ++point_id) {
-				Vector3 edge = polygon.points[point_id].pos - previous;
-				Vector3 to_point = p_point - previous;
-				Vector3 edge_to_point_pormal = edge.cross(to_point);
-				bool clockwise = edge_to_point_pormal.dot(plane_normal) > 0;
+				Vector2 edge = polygon.points[point_id].pos - previous;
+				Vector2 to_point = p_point - previous;
+				real_t edge_to_point_cross = edge.cross(to_point);
+				bool clockwise = (edge_to_point_cross * cross) > 0;
 				// If we are not clockwise, the point will never be inside the polygon and so the closest point will be on an edge.
 				if (!clockwise) {
 					inside = false;
@@ -796,7 +729,7 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::map_iteration_get_closest_poin
 							closest_on_polygon = polygon.points[point_id].pos;
 							closest = distance;
 						}
-					} else if (point_projected_on_edge < 0.f) {
+					} else if (point_projected_on_edge < 0.0) {
 						real_t distance = previous.distance_squared_to(p_point);
 						if (distance < closest) {
 							closest_on_polygon = previous;
@@ -813,25 +746,16 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::map_iteration_get_closest_poin
 			}
 
 			if (inside) {
-				Vector3 plane_normalized = plane_normal.normalized();
-				real_t distance = plane_normalized.dot(p_point - polygon.points[0].pos);
-				real_t distance_squared = distance * distance;
-				if (distance_squared < closest_point_distance_squared) {
-					closest_point_distance_squared = distance_squared;
-					result.point = p_point - plane_normalized * distance;
-					result.normal = plane_normal;
-					result.owner = polygon.owner->get_self();
+				closest_point_distance_squared = 0.0;
+				result.point = p_point;
+				result.owner = polygon.owner->get_self();
 
-					if (Math::is_zero_approx(distance)) {
-						break;
-					}
-				}
+				break;
 			} else {
 				real_t distance = closest_on_polygon.distance_squared_to(p_point);
 				if (distance < closest_point_distance_squared) {
 					closest_point_distance_squared = distance;
 					result.point = closest_on_polygon;
-					result.normal = plane_normal;
 					result.owner = polygon.owner->get_self();
 				}
 			}
@@ -841,16 +765,16 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::map_iteration_get_closest_poin
 	return result;
 }
 
-Vector3 NavMeshQueries2D::map_iteration_get_random_point(const NavMapIteration &p_map_iteration, uint32_t p_navigation_layers, bool p_uniformly) {
+Vector2 NavMeshQueries2D::map_iteration_get_random_point(const NavMapIteration2D &p_map_iteration, uint32_t p_navigation_layers, bool p_uniformly) {
 	if (p_map_iteration.region_iterations.is_empty()) {
-		return Vector3();
+		return Vector2();
 	}
 
 	LocalVector<uint32_t> accessible_regions;
 	accessible_regions.reserve(p_map_iteration.region_iterations.size());
 
 	for (uint32_t i = 0; i < p_map_iteration.region_iterations.size(); i++) {
-		const NavRegionIteration &region = p_map_iteration.region_iterations[i];
+		const NavRegionIteration2D &region = p_map_iteration.region_iterations[i];
 		if (!region.enabled || (p_navigation_layers & region.navigation_layers) == 0) {
 			continue;
 		}
@@ -859,7 +783,7 @@ Vector3 NavMeshQueries2D::map_iteration_get_random_point(const NavMapIteration &
 
 	if (accessible_regions.is_empty()) {
 		// All existing region polygons are disabled.
-		return Vector3();
+		return Vector2();
 	}
 
 	if (p_uniformly) {
@@ -867,7 +791,7 @@ Vector3 NavMeshQueries2D::map_iteration_get_random_point(const NavMapIteration &
 		RBMap<real_t, uint32_t> accessible_regions_area_map;
 
 		for (uint32_t accessible_region_index = 0; accessible_region_index < accessible_regions.size(); accessible_region_index++) {
-			const NavRegionIteration &region = p_map_iteration.region_iterations[accessible_regions[accessible_region_index]];
+			const NavRegionIteration2D &region = p_map_iteration.region_iterations[accessible_regions[accessible_region_index]];
 
 			real_t region_surface_area = region.surface_area;
 
@@ -880,117 +804,51 @@ Vector3 NavMeshQueries2D::map_iteration_get_random_point(const NavMapIteration &
 		}
 		if (accessible_regions_area_map.is_empty() || accumulated_region_surface_area == 0) {
 			// All faces have no real surface / no area.
-			return Vector3();
+			return Vector2();
 		}
 
 		real_t random_accessible_regions_area_map = Math::random(real_t(0), accumulated_region_surface_area);
 
 		RBMap<real_t, uint32_t>::Iterator E = accessible_regions_area_map.find_closest(random_accessible_regions_area_map);
-		ERR_FAIL_COND_V(!E, Vector3());
+		ERR_FAIL_COND_V(!E, Vector2());
 		uint32_t random_region_index = E->value;
-		ERR_FAIL_UNSIGNED_INDEX_V(random_region_index, accessible_regions.size(), Vector3());
+		ERR_FAIL_UNSIGNED_INDEX_V(random_region_index, accessible_regions.size(), Vector2());
 
-		const NavRegionIteration &random_region = p_map_iteration.region_iterations[accessible_regions[random_region_index]];
+		const NavRegionIteration2D &random_region = p_map_iteration.region_iterations[accessible_regions[random_region_index]];
 
 		return NavMeshQueries2D::polygons_get_random_point(random_region.navmesh_polygons, p_navigation_layers, p_uniformly);
 
 	} else {
 		uint32_t random_region_index = Math::random(int(0), accessible_regions.size() - 1);
 
-		const NavRegionIteration &random_region = p_map_iteration.region_iterations[accessible_regions[random_region_index]];
+		const NavRegionIteration2D &random_region = p_map_iteration.region_iterations[accessible_regions[random_region_index]];
 
 		return NavMeshQueries2D::polygons_get_random_point(random_region.navmesh_polygons, p_navigation_layers, p_uniformly);
 	}
 }
 
-Vector3 NavMeshQueries2D::polygons_get_closest_point_to_segment(const LocalVector<nav_2d::Polygon> &p_polygons, const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision) {
-	bool use_collision = p_use_collision;
-	Vector3 closest_point;
-	real_t closest_point_distance = FLT_MAX;
-
-	for (const nav_2d::Polygon &polygon : p_polygons) {
-		// For each face check the distance to the segment.
-		for (size_t point_id = 2; point_id < polygon.points.size(); point_id += 1) {
-			const Face3 face(polygon.points[0].pos, polygon.points[point_id - 1].pos, polygon.points[point_id].pos);
-			Vector3 intersection_point;
-			if (face.intersects_segment(p_from, p_to, &intersection_point)) {
-				const real_t d = p_from.distance_to(intersection_point);
-				if (!use_collision) {
-					closest_point = intersection_point;
-					use_collision = true;
-					closest_point_distance = d;
-				} else if (closest_point_distance > d) {
-					closest_point = intersection_point;
-					closest_point_distance = d;
-				}
-			}
-			// If segment does not itersect face, check the distance from segment's endpoints.
-			else if (!use_collision) {
-				const Vector3 p_from_closest = face.get_closest_point_to(p_from);
-				const real_t d_p_from = p_from.distance_to(p_from_closest);
-				if (closest_point_distance > d_p_from) {
-					closest_point = p_from_closest;
-					closest_point_distance = d_p_from;
-				}
-
-				const Vector3 p_to_closest = face.get_closest_point_to(p_to);
-				const real_t d_p_to = p_to.distance_to(p_to_closest);
-				if (closest_point_distance > d_p_to) {
-					closest_point = p_to_closest;
-					closest_point_distance = d_p_to;
-				}
-			}
-		}
-		// Finally, check for a case when shortest distance is between some point located on a face's edge and some point located on a line segment.
-		if (!use_collision) {
-			for (size_t point_id = 0; point_id < polygon.points.size(); point_id += 1) {
-				Vector3 a, b;
-
-				Geometry3D::get_closest_points_between_segments(
-						p_from,
-						p_to,
-						polygon.points[point_id].pos,
-						polygon.points[(point_id + 1) % polygon.points.size()].pos,
-						a,
-						b);
-
-				const real_t d = a.distance_to(b);
-				if (d < closest_point_distance) {
-					closest_point_distance = d;
-					closest_point = b;
-				}
-			}
-		}
-	}
-
-	return closest_point;
-}
-
-Vector3 NavMeshQueries2D::polygons_get_closest_point(const LocalVector<nav_2d::Polygon> &p_polygons, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = polygons_get_closest_point_info(p_polygons, p_point);
+Vector2 NavMeshQueries2D::polygons_get_closest_point(const LocalVector<Polygon> &p_polygons, const Vector2 &p_point) {
+	ClosestPointQueryResult cp = polygons_get_closest_point_info(p_polygons, p_point);
 	return cp.point;
 }
 
-Vector3 NavMeshQueries2D::polygons_get_closest_point_normal(const LocalVector<nav_2d::Polygon> &p_polygons, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = polygons_get_closest_point_info(p_polygons, p_point);
-	return cp.normal;
-}
-
-nav_2d::ClosestPointQueryResult NavMeshQueries2D::polygons_get_closest_point_info(const LocalVector<nav_2d::Polygon> &p_polygons, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult result;
+ClosestPointQueryResult NavMeshQueries2D::polygons_get_closest_point_info(const LocalVector<Polygon> &p_polygons, const Vector2 &p_point) {
+	ClosestPointQueryResult result;
 	real_t closest_point_distance_squared = FLT_MAX;
 
-	for (const nav_2d::Polygon &polygon : p_polygons) {
-		Vector3 plane_normal = (polygon.points[1].pos - polygon.points[0].pos).cross(polygon.points[2].pos - polygon.points[0].pos);
-		Vector3 closest_on_polygon;
+	// TODO: Check for further 2D improvements.
+
+	for (const Polygon &polygon : p_polygons) {
+		real_t cross = (polygon.points[1].pos - polygon.points[0].pos).cross(polygon.points[2].pos - polygon.points[0].pos);
+		Vector2 closest_on_polygon;
 		real_t closest = FLT_MAX;
 		bool inside = true;
-		Vector3 previous = polygon.points[polygon.points.size() - 1].pos;
+		Vector2 previous = polygon.points[polygon.points.size() - 1].pos;
 		for (size_t point_id = 0; point_id < polygon.points.size(); ++point_id) {
-			Vector3 edge = polygon.points[point_id].pos - previous;
-			Vector3 to_point = p_point - previous;
-			Vector3 edge_to_point_pormal = edge.cross(to_point);
-			bool clockwise = edge_to_point_pormal.dot(plane_normal) > 0;
+			Vector2 edge = polygon.points[point_id].pos - previous;
+			Vector2 to_point = p_point - previous;
+			real_t edge_to_point_cross = edge.cross(to_point);
+			bool clockwise = (edge_to_point_cross * cross) > 0;
 			// If we are not clockwise, the point will never be inside the polygon and so the closest point will be on an edge.
 			if (!clockwise) {
 				inside = false;
@@ -1003,7 +861,7 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::polygons_get_closest_point_inf
 						closest_on_polygon = polygon.points[point_id].pos;
 						closest = distance;
 					}
-				} else if (point_projected_on_edge < 0.f) {
+				} else if (point_projected_on_edge < 0.0) {
 					real_t distance = previous.distance_squared_to(p_point);
 					if (distance < closest) {
 						closest_on_polygon = previous;
@@ -1020,25 +878,15 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::polygons_get_closest_point_inf
 		}
 
 		if (inside) {
-			Vector3 plane_normalized = plane_normal.normalized();
-			real_t distance = plane_normalized.dot(p_point - polygon.points[0].pos);
-			real_t distance_squared = distance * distance;
-			if (distance_squared < closest_point_distance_squared) {
-				closest_point_distance_squared = distance_squared;
-				result.point = p_point - plane_normalized * distance;
-				result.normal = plane_normal;
-				result.owner = polygon.owner->get_self();
-
-				if (Math::is_zero_approx(distance)) {
-					break;
-				}
-			}
+			closest_point_distance_squared = 0.0;
+			result.point = p_point;
+			result.owner = polygon.owner->get_self();
+			break;
 		} else {
 			real_t distance = closest_on_polygon.distance_squared_to(p_point);
 			if (distance < closest_point_distance_squared) {
 				closest_point_distance_squared = distance;
 				result.point = closest_on_polygon;
-				result.normal = plane_normal;
 				result.owner = polygon.owner->get_self();
 			}
 		}
@@ -1047,47 +895,60 @@ nav_2d::ClosestPointQueryResult NavMeshQueries2D::polygons_get_closest_point_inf
 	return result;
 }
 
-RID NavMeshQueries2D::polygons_get_closest_point_owner(const LocalVector<nav_2d::Polygon> &p_polygons, const Vector3 &p_point) {
-	nav_2d::ClosestPointQueryResult cp = polygons_get_closest_point_info(p_polygons, p_point);
+RID NavMeshQueries2D::polygons_get_closest_point_owner(const LocalVector<Polygon> &p_polygons, const Vector2 &p_point) {
+	ClosestPointQueryResult cp = polygons_get_closest_point_info(p_polygons, p_point);
 	return cp.owner;
 }
 
-void NavMeshQueries2D::_query_task_clip_path(NavMeshPathQueryTask3D &p_query_task, const nav_2d::NavigationPoly *from_poly, const Vector3 &p_to_point, const nav_2d::NavigationPoly *p_to_poly) {
-	Vector3 from = p_query_task.path_points[p_query_task.path_points.size() - 1];
-	const LocalVector<nav_2d::NavigationPoly> &p_navigation_polys = p_query_task.path_query_slot->path_corridor;
-	const Vector3 p_map_up = p_query_task.map_up;
+static bool _line_intersects_segment(const Vector2 &p_line_normal, real_t p_line_d, const Vector2 &p_segment_begin, const Vector2 &p_segment_end, Vector2 &r_intersection) {
+	Vector2 segment = p_segment_begin - p_segment_end;
+	real_t den = p_line_normal.dot(segment);
+
+	if (Math::is_zero_approx(den)) {
+		return false;
+	}
+
+	real_t dist = (p_line_normal.dot(p_segment_begin) - p_line_d) / den;
+
+	if (dist < (real_t)-CMP_EPSILON || dist > (1.0 + (real_t)CMP_EPSILON)) {
+		return false;
+	}
+
+	r_intersection = p_segment_begin - segment * dist;
+	return true;
+}
+
+void NavMeshQueries2D::_query_task_clip_path(NavMeshPathQueryTask2D &p_query_task, const NavigationPoly *p_from_poly, const Vector2 &p_to_point, const NavigationPoly *p_to_poly) {
+	Vector2 from = p_query_task.path_points[p_query_task.path_points.size() - 1];
+	const LocalVector<NavigationPoly> &p_navigation_polys = p_query_task.path_query_slot->path_corridor;
 
 	if (from.is_equal_approx(p_to_point)) {
 		return;
 	}
 
-	Plane cut_plane;
-	cut_plane.normal = (from - p_to_point).cross(p_map_up);
-	if (cut_plane.normal == Vector3()) {
-		return;
-	}
-	cut_plane.normal.normalize();
-	cut_plane.d = cut_plane.normal.dot(from);
+	// Compute line parameters (equivalent to the Plane case in 3D).
+	const Vector2 normal = -(from - p_to_point).orthogonal().normalized();
+	const real_t d = normal.dot(from);
 
-	while (from_poly != p_to_poly) {
-		Vector3 pathway_start = from_poly->back_navigation_edge_pathway_start;
-		Vector3 pathway_end = from_poly->back_navigation_edge_pathway_end;
+	while (p_from_poly != p_to_poly) {
+		Vector2 pathway_start = p_from_poly->back_navigation_edge_pathway_start;
+		Vector2 pathway_end = p_from_poly->back_navigation_edge_pathway_end;
 
-		ERR_FAIL_COND(from_poly->back_navigation_poly_id == -1);
-		from_poly = &p_navigation_polys[from_poly->back_navigation_poly_id];
+		ERR_FAIL_COND(p_from_poly->back_navigation_poly_id == -1);
+		p_from_poly = &p_navigation_polys[p_from_poly->back_navigation_poly_id];
 
 		if (!pathway_start.is_equal_approx(pathway_end)) {
-			Vector3 inters;
-			if (cut_plane.intersects_segment(pathway_start, pathway_end, &inters)) {
+			Vector2 inters;
+			if (_line_intersects_segment(normal, d, pathway_start, pathway_end, inters)) {
 				if (!inters.is_equal_approx(p_to_point) && !inters.is_equal_approx(p_query_task.path_points[p_query_task.path_points.size() - 1])) {
-					_query_task_push_back_point_with_metadata(p_query_task, inters, from_poly->poly);
+					_query_task_push_back_point_with_metadata(p_query_task, inters, p_from_poly->poly);
 				}
 			}
 		}
 	}
 }
 
-LocalVector<uint32_t> NavMeshQueries2D::get_simplified_path_indices(const LocalVector<Vector3> &p_path, real_t p_epsilon) {
+LocalVector<uint32_t> NavMeshQueries2D::get_simplified_path_indices(const LocalVector<Vector2> &p_path, real_t p_epsilon) {
 	p_epsilon = MAX(0.0, p_epsilon);
 	real_t squared_epsilon = p_epsilon * p_epsilon;
 
@@ -1100,16 +961,16 @@ LocalVector<uint32_t> NavMeshQueries2D::get_simplified_path_indices(const LocalV
 	return simplified_path_indices;
 }
 
-void NavMeshQueries2D::simplify_path_segment(int p_start_inx, int p_end_inx, const LocalVector<Vector3> &p_points, real_t p_epsilon, LocalVector<uint32_t> &r_simplified_path_indices) {
-	Vector3 path_segment[2] = { p_points[p_start_inx], p_points[p_end_inx] };
+void NavMeshQueries2D::simplify_path_segment(int p_start_inx, int p_end_inx, const LocalVector<Vector2> &p_points, real_t p_epsilon, LocalVector<uint32_t> &r_simplified_path_indices) {
+	Vector2 path_segment[2] = { p_points[p_start_inx], p_points[p_end_inx] };
 
 	real_t point_max_distance = 0.0;
 	int point_max_index = 0;
 
 	for (int i = p_start_inx; i < p_end_inx; i++) {
-		const Vector3 &checked_point = p_points[i];
+		const Vector2 &checked_point = p_points[i];
 
-		const Vector3 closest_point = Geometry3D::get_closest_point_to_segment(checked_point, path_segment);
+		const Vector2 closest_point = Geometry2D::get_closest_point_to_segment(checked_point, path_segment);
 		real_t distance_squared = closest_point.distance_squared_to(checked_point);
 
 		if (distance_squared > point_max_distance) {

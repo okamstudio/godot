@@ -33,20 +33,20 @@
 
 #include "../nav_utils_2d.h"
 
-struct NavMapIterationBuild;
+struct NavMapIterationBuild2D;
 
 class NavMapBuilder2D {
-	static void _build_step_gather_region_polygons(NavMapIterationBuild &r_build);
-	static void _build_step_find_edge_connection_pairs(NavMapIterationBuild &r_build);
-	static void _build_step_merge_edge_connection_pairs(NavMapIterationBuild &r_build);
-	static void _build_step_edge_connection_margin_connections(NavMapIterationBuild &r_build);
-	static void _build_step_navlink_connections(NavMapIterationBuild &r_build);
-	static void _build_update_map_iteration(NavMapIterationBuild &r_build);
+	static void _build_step_gather_region_polygons(NavMapIterationBuild2D &r_build);
+	static void _build_step_find_edge_connection_pairs(NavMapIterationBuild2D &r_build);
+	static void _build_step_merge_edge_connection_pairs(NavMapIterationBuild2D &r_build);
+	static void _build_step_edge_connection_margin_connections(NavMapIterationBuild2D &r_build);
+	static void _build_step_navlink_connections(NavMapIterationBuild2D &r_build);
+	static void _build_update_map_iteration(NavMapIterationBuild2D &r_build);
 
 public:
-	static nav_2d::PointKey get_point_key(const Vector3 &p_pos, const Vector3 &p_cell_size);
+	static nav_2d::PointKey get_point_key(const Vector2 &p_pos, const Vector2 &p_cell_size);
 
-	static void build_navmap_iteration(NavMapIterationBuild &r_build);
+	static void build_navmap_iteration(NavMapIterationBuild2D &r_build);
 };
 
 #endif // NAV_MAP_BUILDER_2D_H

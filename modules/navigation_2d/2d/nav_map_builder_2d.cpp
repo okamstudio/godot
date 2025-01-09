@@ -33,24 +33,25 @@
 #include "../nav_link_2d.h"
 #include "../nav_map_2d.h"
 #include "../nav_region_2d.h"
+#include "../triangle2.h"
 #include "nav_map_iteration_2d.h"
 #include "nav_region_iteration_2d.h"
 
-nav_2d::PointKey NavMapBuilder2D::get_point_key(const Vector3 &p_pos, const Vector3 &p_cell_size) {
+using namespace nav_2d;
+
+PointKey NavMapBuilder2D::get_point_key(const Vector2 &p_pos, const Vector2 &p_cell_size) {
 	const int x = static_cast<int>(Math::floor(p_pos.x / p_cell_size.x));
 	const int y = static_cast<int>(Math::floor(p_pos.y / p_cell_size.y));
-	const int z = static_cast<int>(Math::floor(p_pos.z / p_cell_size.z));
 
-	nav_2d::PointKey p;
+	PointKey p;
 	p.key = 0;
 	p.x = x;
 	p.y = y;
-	p.z = z;
 	return p;
 }
 
-void NavMapBuilder2D::build_navmap_iteration(NavMapIterationBuild &r_build) {
-	nav_2d::PerformanceData &performance_data = r_build.performance_data;
+void NavMapBuilder2D::build_navmap_iteration(NavMapIterationBuild2D &r_build) {
+	PerformanceData &performance_data = r_build.performance_data;
 
 	performance_data.pm_polygon_count = 0;
 	performance_data.pm_edge_count = 0;
@@ -71,26 +72,26 @@ void NavMapBuilder2D::build_navmap_iteration(NavMapIterationBuild &r_build) {
 	_build_update_map_iteration(r_build);
 }
 
-void NavMapBuilder2D::_build_step_gather_region_polygons(NavMapIterationBuild &r_build) {
-	nav_2d::PerformanceData &performance_data = r_build.performance_data;
-	NavMapIteration *map_iteration = r_build.map_iteration;
+void NavMapBuilder2D::_build_step_gather_region_polygons(NavMapIterationBuild2D &r_build) {
+	PerformanceData &performance_data = r_build.performance_data;
+	NavMapIteration2D *map_iteration = r_build.map_iteration;
 
-	LocalVector<NavRegionIteration> &regions = map_iteration->region_iterations;
-	HashMap<uint32_t, LocalVector<nav_2d::Edge::Connection>> &region_external_connections = map_iteration->external_region_connections;
+	LocalVector<NavRegionIteration2D> &regions = map_iteration->region_iterations;
+	HashMap<uint32_t, LocalVector<Edge::Connection>> &region_external_connections = map_iteration->external_region_connections;
 
 	// Remove regions connections.
 	region_external_connections.clear();
-	for (const NavRegionIteration &region : regions) {
-		region_external_connections[region.id] = LocalVector<nav_2d::Edge::Connection>();
+	for (const NavRegionIteration2D &region : regions) {
+		region_external_connections[region.id] = LocalVector<Edge::Connection>();
 	}
 
 	// Copy all region polygons in the map.
 	int polygon_count = 0;
-	for (NavRegionIteration &region : regions) {
+	for (NavRegionIteration2D &region : regions) {
 		if (!region.get_enabled()) {
 			continue;
 		}
-		LocalVector<nav_2d::Polygon> &polygons_source = region.navmesh_polygons;
+		LocalVector<Polygon> &polygons_source = region.navmesh_polygons;
 		for (uint32_t n = 0; n < polygons_source.size(); n++) {
 			polygons_source[n].id = polygon_count;
 			polygon_count++;
@@ -101,38 +102,38 @@ void NavMapBuilder2D::_build_step_gather_region_polygons(NavMapIterationBuild &r
 	r_build.polygon_count = polygon_count;
 }
 
-void NavMapBuilder2D::_build_step_find_edge_connection_pairs(NavMapIterationBuild &r_build) {
-	nav_2d::PerformanceData &performance_data = r_build.performance_data;
-	NavMapIteration *map_iteration = r_build.map_iteration;
+void NavMapBuilder2D::_build_step_find_edge_connection_pairs(NavMapIterationBuild2D &r_build) {
+	PerformanceData &performance_data = r_build.performance_data;
+	NavMapIteration2D *map_iteration = r_build.map_iteration;
 	int polygon_count = r_build.polygon_count;
 
-	HashMap<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair, nav_2d::EdgeKey> &connection_pairs_map = r_build.iter_connection_pairs_map;
+	HashMap<EdgeKey, EdgeConnectionPair, EdgeKey> &connection_pairs_map = r_build.iter_connection_pairs_map;
 
 	// Group all edges per key.
 	connection_pairs_map.clear();
 	connection_pairs_map.reserve(polygon_count);
 	int free_edges_count = 0; // How many ConnectionPairs have only one Connection.
 
-	for (NavRegionIteration &region : map_iteration->region_iterations) {
+	for (NavRegionIteration2D &region : map_iteration->region_iterations) {
 		if (!region.get_enabled()) {
 			continue;
 		}
 
-		for (nav_2d::Polygon &poly : region.navmesh_polygons) {
+		for (Polygon &poly : region.navmesh_polygons) {
 			for (uint32_t p = 0; p < poly.points.size(); p++) {
 				const int next_point = (p + 1) % poly.points.size();
-				const nav_2d::EdgeKey ek(poly.points[p].key, poly.points[next_point].key);
+				const EdgeKey ek(poly.points[p].key, poly.points[next_point].key);
 
-				HashMap<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair, nav_2d::EdgeKey>::Iterator pair_it = connection_pairs_map.find(ek);
+				HashMap<EdgeKey, EdgeConnectionPair, EdgeKey>::Iterator pair_it = connection_pairs_map.find(ek);
 				if (!pair_it) {
-					pair_it = connection_pairs_map.insert(ek, nav_2d::EdgeConnectionPair());
+					pair_it = connection_pairs_map.insert(ek, EdgeConnectionPair());
 					performance_data.pm_edge_count += 1;
 					++free_edges_count;
 				}
-				nav_2d::EdgeConnectionPair &pair = pair_it->value;
+				EdgeConnectionPair &pair = pair_it->value;
 				if (pair.size < 2) {
 					// Add the polygon/edge tuple to this key.
-					nav_2d::Edge::Connection new_connection;
+					Edge::Connection new_connection;
 					new_connection.polygon = &poly;
 					new_connection.edge = p;
 					new_connection.pathway_start = poly.points[p].pos;
@@ -155,23 +156,23 @@ void NavMapBuilder2D::_build_step_find_edge_connection_pairs(NavMapIterationBuil
 	r_build.free_edge_count = free_edges_count;
 }
 
-void NavMapBuilder2D::_build_step_merge_edge_connection_pairs(NavMapIterationBuild &r_build) {
-	nav_2d::PerformanceData &performance_data = r_build.performance_data;
+void NavMapBuilder2D::_build_step_merge_edge_connection_pairs(NavMapIterationBuild2D &r_build) {
+	PerformanceData &performance_data = r_build.performance_data;
 
-	HashMap<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair, nav_2d::EdgeKey> &connection_pairs_map = r_build.iter_connection_pairs_map;
-	LocalVector<nav_2d::Edge::Connection> &free_edges = r_build.iter_free_edges;
+	HashMap<EdgeKey, EdgeConnectionPair, EdgeKey> &connection_pairs_map = r_build.iter_connection_pairs_map;
+	LocalVector<Edge::Connection> &free_edges = r_build.iter_free_edges;
 	int free_edges_count = r_build.free_edge_count;
 	bool use_edge_connections = r_build.use_edge_connections;
 
 	free_edges.clear();
 	free_edges.reserve(free_edges_count);
 
-	for (const KeyValue<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair> &pair_it : connection_pairs_map) {
-		const nav_2d::EdgeConnectionPair &pair = pair_it.value;
+	for (const KeyValue<EdgeKey, EdgeConnectionPair> &pair_it : connection_pairs_map) {
+		const EdgeConnectionPair &pair = pair_it.value;
 		if (pair.size == 2) {
 			// Connect edge that are shared in different polygons.
-			const nav_2d::Edge::Connection &c1 = pair.connections[0];
-			const nav_2d::Edge::Connection &c2 = pair.connections[1];
+			const Edge::Connection &c1 = pair.connections[0];
+			const Edge::Connection &c2 = pair.connections[1];
 			c1.polygon->edges[c1.edge].connections.push_back(c2);
 			c2.polygon->edges[c2.edge].connections.push_back(c1);
 			// Note: The pathway_start/end are full for those connection and do not need to be modified.
@@ -185,13 +186,13 @@ void NavMapBuilder2D::_build_step_merge_edge_connection_pairs(NavMapIterationBui
 	}
 }
 
-void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapIterationBuild &r_build) {
-	nav_2d::PerformanceData &performance_data = r_build.performance_data;
-	NavMapIteration *map_iteration = r_build.map_iteration;
+void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapIterationBuild2D &r_build) {
+	PerformanceData &performance_data = r_build.performance_data;
+	NavMapIteration2D *map_iteration = r_build.map_iteration;
 
 	real_t edge_connection_margin = r_build.edge_connection_margin;
-	LocalVector<nav_2d::Edge::Connection> &free_edges = r_build.iter_free_edges;
-	HashMap<uint32_t, LocalVector<nav_2d::Edge::Connection>> &region_external_connections = map_iteration->external_region_connections;
+	LocalVector<Edge::Connection> &free_edges = r_build.iter_free_edges;
+	HashMap<uint32_t, LocalVector<Edge::Connection>> &region_external_connections = map_iteration->external_region_connections;
 
 	// Find the compatible near edges.
 	//
@@ -205,30 +206,30 @@ void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapItera
 	const real_t edge_connection_margin_squared = edge_connection_margin * edge_connection_margin;
 
 	for (uint32_t i = 0; i < free_edges.size(); i++) {
-		const nav_2d::Edge::Connection &free_edge = free_edges[i];
-		Vector3 edge_p1 = free_edge.polygon->points[free_edge.edge].pos;
-		Vector3 edge_p2 = free_edge.polygon->points[(free_edge.edge + 1) % free_edge.polygon->points.size()].pos;
+		const Edge::Connection &free_edge = free_edges[i];
+		Vector2 edge_p1 = free_edge.polygon->points[free_edge.edge].pos;
+		Vector2 edge_p2 = free_edge.polygon->points[(free_edge.edge + 1) % free_edge.polygon->points.size()].pos;
 
 		for (uint32_t j = 0; j < free_edges.size(); j++) {
-			const nav_2d::Edge::Connection &other_edge = free_edges[j];
+			const Edge::Connection &other_edge = free_edges[j];
 			if (i == j || free_edge.polygon->owner == other_edge.polygon->owner) {
 				continue;
 			}
 
-			Vector3 other_edge_p1 = other_edge.polygon->points[other_edge.edge].pos;
-			Vector3 other_edge_p2 = other_edge.polygon->points[(other_edge.edge + 1) % other_edge.polygon->points.size()].pos;
+			Vector2 other_edge_p1 = other_edge.polygon->points[other_edge.edge].pos;
+			Vector2 other_edge_p2 = other_edge.polygon->points[(other_edge.edge + 1) % other_edge.polygon->points.size()].pos;
 
-			// Compute the projection of the opposite edge on the current one
-			Vector3 edge_vector = edge_p2 - edge_p1;
-			real_t projected_p1_ratio = edge_vector.dot(other_edge_p1 - edge_p1) / (edge_vector.length_squared());
-			real_t projected_p2_ratio = edge_vector.dot(other_edge_p2 - edge_p1) / (edge_vector.length_squared());
+			// Compute the projection of the opposite edge on the current one.
+			Vector2 edge_vector = edge_p2 - edge_p1;
+			real_t projected_p1_ratio = edge_vector.dot(other_edge_p1 - edge_p1) / edge_vector.length_squared();
+			real_t projected_p2_ratio = edge_vector.dot(other_edge_p2 - edge_p1) / edge_vector.length_squared();
 			if ((projected_p1_ratio < 0.0 && projected_p2_ratio < 0.0) || (projected_p1_ratio > 1.0 && projected_p2_ratio > 1.0)) {
 				continue;
 			}
 
 			// Check if the two edges are close to each other enough and compute a pathway between the two regions.
-			Vector3 self1 = edge_vector * CLAMP(projected_p1_ratio, 0.0, 1.0) + edge_p1;
-			Vector3 other1;
+			Vector2 self1 = edge_vector * CLAMP(projected_p1_ratio, 0.0, 1.0) + edge_p1;
+			Vector2 other1;
 			if (projected_p1_ratio >= 0.0 && projected_p1_ratio <= 1.0) {
 				other1 = other_edge_p1;
 			} else {
@@ -238,8 +239,8 @@ void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapItera
 				continue;
 			}
 
-			Vector3 self2 = edge_vector * CLAMP(projected_p2_ratio, 0.0, 1.0) + edge_p1;
-			Vector3 other2;
+			Vector2 self2 = edge_vector * CLAMP(projected_p2_ratio, 0.0, 1.0) + edge_p1;
+			Vector2 other2;
 			if (projected_p2_ratio >= 0.0 && projected_p2_ratio <= 1.0) {
 				other2 = other_edge_p2;
 			} else {
@@ -250,7 +251,7 @@ void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapItera
 			}
 
 			// The edges can now be connected.
-			nav_2d::Edge::Connection new_connection = other_edge;
+			Edge::Connection new_connection = other_edge;
 			new_connection.pathway_start = (self1 + other1) / 2.0;
 			new_connection.pathway_end = (self2 + other2) / 2.0;
 			free_edge.polygon->edges[free_edge.edge].connections.push_back(new_connection);
@@ -262,14 +263,14 @@ void NavMapBuilder2D::_build_step_edge_connection_margin_connections(NavMapItera
 	}
 }
 
-void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_build) {
-	NavMapIteration *map_iteration = r_build.map_iteration;
+void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild2D &r_build) {
+	NavMapIteration2D *map_iteration = r_build.map_iteration;
 
 	real_t link_connection_radius = r_build.link_connection_radius;
-	Vector3 merge_rasterizer_cell_size = r_build.merge_rasterizer_cell_size;
+	Vector2 merge_rasterizer_cell_size = r_build.merge_rasterizer_cell_size;
 
-	LocalVector<nav_2d::Polygon> &link_polygons = map_iteration->link_polygons;
-	LocalVector<NavLinkIteration> &links = map_iteration->link_iterations;
+	LocalVector<Polygon> &link_polygons = map_iteration->link_polygons;
+	LocalVector<NavLinkIteration2D> &links = map_iteration->link_iterations;
 	int polygon_count = r_build.polygon_count;
 
 	real_t link_connection_radius_sqr = link_connection_radius * link_connection_radius;
@@ -277,37 +278,37 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 	link_polygons.resize(links.size());
 
 	// Search for polygons within range of a nav link.
-	for (const NavLinkIteration &link : links) {
+	for (const NavLinkIteration2D &link : links) {
 		if (!link.get_enabled()) {
 			continue;
 		}
-		const Vector3 link_start_pos = link.get_start_position();
-		const Vector3 link_end_pos = link.get_end_position();
+		const Vector2 link_start_pos = link.get_start_position();
+		const Vector2 link_end_pos = link.get_end_position();
 
-		nav_2d::Polygon *closest_start_polygon = nullptr;
+		Polygon *closest_start_polygon = nullptr;
 		real_t closest_start_sqr_dist = link_connection_radius_sqr;
-		Vector3 closest_start_point;
+		Vector2 closest_start_point;
 
-		nav_2d::Polygon *closest_end_polygon = nullptr;
+		Polygon *closest_end_polygon = nullptr;
 		real_t closest_end_sqr_dist = link_connection_radius_sqr;
-		Vector3 closest_end_point;
+		Vector2 closest_end_point;
 
-		for (NavRegionIteration &region : map_iteration->region_iterations) {
+		for (NavRegionIteration2D &region : map_iteration->region_iterations) {
 			if (!region.get_enabled()) {
 				continue;
 			}
-			AABB region_bounds = region.get_bounds().grow(link_connection_radius);
+			Rect2 region_bounds = region.get_bounds().grow(link_connection_radius);
 			if (!region_bounds.has_point(link_start_pos) && !region_bounds.has_point(link_end_pos)) {
 				continue;
 			}
 
-			for (nav_2d::Polygon &polyon : region.navmesh_polygons) {
-				//for (nav_2d::Polygon &polyon : polygons) {
+			for (Polygon &polyon : region.navmesh_polygons) {
+				//for (Polygon &polyon : polygons) {
 				for (uint32_t point_id = 2; point_id < polyon.points.size(); point_id += 1) {
-					const Face3 face(polyon.points[0].pos, polyon.points[point_id - 1].pos, polyon.points[point_id].pos);
+					const Triangle2 triangle(polyon.points[0].pos, polyon.points[point_id - 1].pos, polyon.points[point_id].pos);
 
 					{
-						const Vector3 start_point = face.get_closest_point_to(link_start_pos);
+						const Vector2 start_point = triangle.get_closest_point_to(link_start_pos);
 						const real_t sqr_dist = start_point.distance_squared_to(link_start_pos);
 
 						// Pick the polygon that is within our radius and is closer than anything we've seen yet.
@@ -319,7 +320,7 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 					}
 
 					{
-						const Vector3 end_point = face.get_closest_point_to(link_end_pos);
+						const Vector2 end_point = triangle.get_closest_point_to(link_end_pos);
 						const real_t sqr_dist = end_point.distance_squared_to(link_end_pos);
 
 						// Pick the polygon that is within our radius and is closer than anything we've seen yet.
@@ -335,7 +336,7 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 
 		// If we have both a start and end point, then create a synthetic polygon to route through.
 		if (closest_start_polygon && closest_end_polygon) {
-			nav_2d::Polygon &new_polygon = link_polygons[link_poly_idx++];
+			Polygon &new_polygon = link_polygons[link_poly_idx++];
 			new_polygon.id = polygon_count++;
 			new_polygon.owner = &link;
 
@@ -351,14 +352,14 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 
 			// Setup connections to go forward in the link.
 			{
-				nav_2d::Edge::Connection entry_connection;
+				Edge::Connection entry_connection;
 				entry_connection.polygon = &new_polygon;
 				entry_connection.edge = -1;
 				entry_connection.pathway_start = new_polygon.points[0].pos;
 				entry_connection.pathway_end = new_polygon.points[1].pos;
 				closest_start_polygon->edges[0].connections.push_back(entry_connection);
 
-				nav_2d::Edge::Connection exit_connection;
+				Edge::Connection exit_connection;
 				exit_connection.polygon = closest_end_polygon;
 				exit_connection.edge = -1;
 				exit_connection.pathway_start = new_polygon.points[2].pos;
@@ -368,14 +369,14 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 
 			// If the link is bi-directional, create connections from the end to the start.
 			if (link.is_bidirectional()) {
-				nav_2d::Edge::Connection entry_connection;
+				Edge::Connection entry_connection;
 				entry_connection.polygon = &new_polygon;
 				entry_connection.edge = -1;
 				entry_connection.pathway_start = new_polygon.points[2].pos;
 				entry_connection.pathway_end = new_polygon.points[3].pos;
 				closest_end_polygon->edges[0].connections.push_back(entry_connection);
 
-				nav_2d::Edge::Connection exit_connection;
+				Edge::Connection exit_connection;
 				exit_connection.polygon = closest_start_polygon;
 				exit_connection.edge = -1;
 				exit_connection.pathway_start = new_polygon.points[0].pos;
@@ -386,10 +387,10 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild &r_bu
 	}
 }
 
-void NavMapBuilder2D::_build_update_map_iteration(NavMapIterationBuild &r_build) {
-	NavMapIteration *map_iteration = r_build.map_iteration;
+void NavMapBuilder2D::_build_update_map_iteration(NavMapIterationBuild2D &r_build) {
+	NavMapIteration2D *map_iteration = r_build.map_iteration;
 
-	LocalVector<nav_2d::Polygon> &link_polygons = map_iteration->link_polygons;
+	LocalVector<Polygon> &link_polygons = map_iteration->link_polygons;
 
 	map_iteration->navmesh_polygon_count = r_build.polygon_count;
 	map_iteration->link_polygon_count = link_polygons.size();

@@ -40,25 +40,23 @@
 
 class NavMap2D;
 
-class NavAgent2D : public NavRid {
-	Vector3 position;
-	Vector3 target_position;
-	Vector3 velocity;
-	Vector3 velocity_forced;
-	real_t height = 1.0;
+class NavAgent2D : public NavRid2D {
+	Vector2 position;
+	Vector2 target_position;
+	Vector2 velocity;
+	Vector2 velocity_forced;
 	real_t radius = 1.0;
 	real_t max_speed = 1.0;
 	real_t time_horizon_agents = 1.0;
 	real_t time_horizon_obstacles = 0.0;
 	int max_neighbors = 5;
 	real_t neighbor_distance = 5.0;
-	Vector3 safe_velocity;
+	Vector2 safe_velocity;
 	bool clamp_speed = true; // Experimental, clamps velocity to max_speed.
 
 	NavMap2D *map = nullptr;
 
-	RVO2D::Agent2D rvo_agent_2d;
-	bool use_3d_avoidance = false;
+	RVO2D::Agent2D rvo_agent;
 	bool avoidance_enabled = false;
 
 	uint32_t avoidance_layers = 1;
@@ -81,15 +79,12 @@ public:
 	void set_avoidance_enabled(bool p_enabled);
 	bool is_avoidance_enabled() { return avoidance_enabled; }
 
-	void set_use_3d_avoidance(bool p_enabled);
-	bool get_use_3d_avoidance() { return use_3d_avoidance; }
-
 	void set_map(NavMap2D *p_map);
 	NavMap2D *get_map() { return map; }
 
 	bool is_map_changed();
 
-	RVO2D::Agent2D *get_rvo_agent_2d() { return &rvo_agent_2d; }
+	RVO2D::Agent2D *get_rvo_agent() { return &rvo_agent; }
 
 	void set_avoidance_callback(Callable p_callback);
 	bool has_avoidance_callback() const;
@@ -111,23 +106,20 @@ public:
 	void set_radius(real_t p_radius);
 	real_t get_radius() const { return radius; }
 
-	void set_height(real_t p_height);
-	real_t get_height() const { return height; }
-
 	void set_max_speed(real_t p_max_speed);
 	real_t get_max_speed() const { return max_speed; }
 
-	void set_position(const Vector3 p_position);
-	const Vector3 &get_position() const { return position; }
+	void set_position(const Vector2 &p_position);
+	Vector2 get_position() const { return position; }
 
-	void set_target_position(const Vector3 p_target_position);
-	const Vector3 &get_target_position() const { return target_position; }
+	void set_target_position(const Vector2 &p_target_position);
+	Vector2 get_target_position() const { return target_position; }
 
-	void set_velocity(const Vector3 p_velocity);
-	const Vector3 &get_velocity() const { return velocity; }
+	void set_velocity(const Vector2 &p_velocity);
+	Vector2 get_velocity() const { return velocity; }
 
-	void set_velocity_forced(const Vector3 p_velocity);
-	const Vector3 &get_velocity_forced() const { return velocity_forced; }
+	void set_velocity_forced(const Vector2 &p_velocity);
+	Vector2 get_velocity_forced() const { return velocity_forced; }
 
 	void set_avoidance_layers(uint32_t p_layers);
 	uint32_t get_avoidance_layers() const { return avoidance_layers; }

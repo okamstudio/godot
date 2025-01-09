@@ -34,18 +34,18 @@
 #include "../nav_utils_2d.h"
 #include "nav_base_iteration_2d.h"
 
-#include "core/math/aabb.h"
+#include "core/math/rect2.h"
 
-struct NavRegionIteration : NavBaseIteration {
-	Transform3D transform;
+struct NavRegionIteration2D : NavBaseIteration2D {
+	Transform2D transform;
 	LocalVector<nav_2d::Polygon> navmesh_polygons;
 	real_t surface_area = 0.0;
-	AABB bounds;
+	Rect2 bounds;
 
-	const Transform3D &get_transform() const { return transform; }
+	const Transform2D &get_transform() const { return transform; }
 	const LocalVector<nav_2d::Polygon> &get_navmesh_polygons() const { return navmesh_polygons; }
 	real_t get_surface_area() const { return surface_area; }
-	AABB get_bounds() const { return bounds; }
+	Rect2 get_bounds() const { return bounds; }
 };
 
 #endif // NAV_REGION_ITERATION_2D_H

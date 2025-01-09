@@ -58,21 +58,6 @@ void NavObstacle2D::set_avoidance_enabled(bool p_enabled) {
 	request_sync();
 }
 
-void NavObstacle2D::set_use_3d_avoidance(bool p_enabled) {
-	if (use_3d_avoidance == p_enabled) {
-		return;
-	}
-
-	use_3d_avoidance = p_enabled;
-	obstacle_dirty = true;
-
-	if (agent) {
-		agent->set_use_3d_avoidance(use_3d_avoidance);
-	}
-
-	request_sync();
-}
-
 void NavObstacle2D::set_map(NavMap2D *p_map) {
 	if (map == p_map) {
 		return;
@@ -98,7 +83,7 @@ void NavObstacle2D::set_map(NavMap2D *p_map) {
 	}
 }
 
-void NavObstacle2D::set_position(const Vector3 p_position) {
+void NavObstacle2D::set_position(const Vector2 &p_position) {
 	if (position == p_position) {
 		return;
 	}
@@ -125,22 +110,7 @@ void NavObstacle2D::set_radius(real_t p_radius) {
 	}
 }
 
-void NavObstacle2D::set_height(const real_t p_height) {
-	if (height == p_height) {
-		return;
-	}
-
-	height = p_height;
-	obstacle_dirty = true;
-
-	if (agent) {
-		agent->set_height(height);
-	}
-
-	request_sync();
-}
-
-void NavObstacle2D::set_velocity(const Vector3 p_velocity) {
+void NavObstacle2D::set_velocity(const Vector2 &p_velocity) {
 	velocity = p_velocity;
 
 	if (agent) {
@@ -148,7 +118,7 @@ void NavObstacle2D::set_velocity(const Vector3 p_velocity) {
 	}
 }
 
-void NavObstacle2D::set_vertices(const Vector<Vector3> &p_vertices) {
+void NavObstacle2D::set_vertices(const Vector<Vector2> &p_vertices) {
 	if (vertices == p_vertices) {
 		return;
 	}
@@ -204,11 +174,9 @@ void NavObstacle2D::internal_update_agent() {
 		agent->set_map(map);
 		agent->set_paused(paused);
 		agent->set_radius(radius);
-		agent->set_height(height);
 		agent->set_position(position);
 		agent->set_avoidance_layers(avoidance_layers);
 		agent->set_avoidance_enabled(avoidance_enabled);
-		agent->set_use_3d_avoidance(use_3d_avoidance);
 	}
 }
 

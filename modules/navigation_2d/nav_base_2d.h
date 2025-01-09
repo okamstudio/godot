@@ -38,7 +38,7 @@
 
 class NavMap2D;
 
-class NavBase : public NavRid {
+class NavBase2D : public NavRid2D {
 protected:
 	uint32_t navigation_layers = 1;
 	real_t enter_cost = 0.0;
@@ -64,7 +64,7 @@ public:
 	void set_owner_id(ObjectID p_owner_id) { owner_id = p_owner_id; }
 	ObjectID get_owner_id() const { return owner_id; }
 
-	virtual ~NavBase() {}
+	virtual ~NavBase2D() {}
 };
 
 #endif // NAV_BASE_2D_H

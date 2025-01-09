@@ -38,13 +38,13 @@
 #include "core/math/math_defs.h"
 #include "core/os/semaphore.h"
 
-struct NavLinkIteration;
+struct NavLinkIteration2D;
 class NavRegion2D;
-struct NavRegionIteration;
-struct NavMapIteration;
+struct NavRegionIteration2D;
+struct NavMapIteration2D;
 
-struct NavMapIterationBuild {
-	Vector3 merge_rasterizer_cell_size;
+struct NavMapIterationBuild2D {
+	Vector2 merge_rasterizer_cell_size;
 	bool use_edge_connections = true;
 	real_t edge_connection_margin;
 	real_t link_connection_radius;
@@ -55,7 +55,7 @@ struct NavMapIterationBuild {
 	HashMap<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair, nav_2d::EdgeKey> iter_connection_pairs_map;
 	LocalVector<nav_2d::Edge::Connection> iter_free_edges;
 
-	NavMapIteration *map_iteration = nullptr;
+	NavMapIteration2D *map_iteration = nullptr;
 
 	int navmesh_polygon_count = 0;
 	int link_polygon_count = 0;
@@ -73,15 +73,14 @@ struct NavMapIterationBuild {
 	}
 };
 
-struct NavMapIteration {
+struct NavMapIteration2D {
 	mutable SafeNumeric<uint32_t> users;
 	RWLock rwlock;
 
-	Vector3 map_up;
 	LocalVector<nav_2d::Polygon> link_polygons;
 
-	LocalVector<NavRegionIteration> region_iterations;
-	LocalVector<NavLinkIteration> link_iterations;
+	LocalVector<NavRegionIteration2D> region_iterations;
+	LocalVector<NavLinkIteration2D> link_iterations;
 
 	int navmesh_polygon_count = 0;
 	int link_polygon_count = 0;
@@ -96,16 +95,16 @@ struct NavMapIteration {
 	Semaphore path_query_slots_semaphore;
 };
 
-class NavMapIterationRead {
-	const NavMapIteration &map_iteration;
+class NavMapIterationRead2D {
+	const NavMapIteration2D &map_iteration;
 
 public:
-	_ALWAYS_INLINE_ NavMapIterationRead(const NavMapIteration &p_iteration) :
+	_ALWAYS_INLINE_ NavMapIterationRead2D(const NavMapIteration2D &p_iteration) :
 			map_iteration(p_iteration) {
 		map_iteration.rwlock.read_lock();
 		map_iteration.users.increment();
 	}
-	_ALWAYS_INLINE_ ~NavMapIterationRead() {
+	_ALWAYS_INLINE_ ~NavMapIterationRead2D() {
 		map_iteration.users.decrement();
 		map_iteration.rwlock.read_unlock();
 	}

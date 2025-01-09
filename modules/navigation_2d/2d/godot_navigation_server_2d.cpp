@@ -76,77 +76,6 @@
 	}                                                                   \
 	void GodotNavigationServer2D::MERGE(_cmd_, F_NAME)(T_0 D_0, T_1 D_1)
 
-static Vector3 v2_to_v3(const Vector2 &p_v) {
-	return Vector3(p_v.x, 0.0, p_v.y);
-}
-
-static Vector2 v3_to_v2(const Vector3 &p_v) {
-	return Vector2(p_v.x, p_v.z);
-}
-
-static Transform3D t2_to_t3(const Transform2D &p_t) {
-	Vector3 o(v2_to_v3(p_t.get_origin()));
-	Basis b;
-	b.rotate(Vector3(0, -1, 0), p_t.get_rotation());
-	b.scale(v2_to_v3(p_t.get_scale()));
-	return Transform3D(b, o);
-}
-
-static Transform2D t3_to_t2(const Transform3D &p_t) {
-	Vector3 o = p_t.get_origin();
-	Vector3 nx = p_t.xform(Vector3(1, 0, 0)) - o;
-	Vector3 nz = p_t.xform(Vector3(0, 0, 1)) - o;
-	return Transform2D(nx.x, nx.z, nz.x, nz.z, o.x, o.z);
-}
-
-static Vector<Vector3> v2_to_v3_vec(const Vector<Vector2> &p_vec) {
-	Vector<Vector3> ret;
-	ret.resize(p_vec.size());
-
-	for (int i = 0; i < p_vec.size(); ++i) {
-		ret.write[i] = v2_to_v3(p_vec[i]);
-	}
-
-	return ret;
-}
-
-static Vector<Vector2> v3_to_v2_vec(const Vector<Vector3> &p_vec) {
-	Vector<Vector2> ret;
-	ret.resize(p_vec.size());
-
-	for (int i = 0; i < p_vec.size(); ++i) {
-		ret.write[i] = v3_to_v2(p_vec[i]);
-	}
-
-	return ret;
-}
-
-static LocalVector<Vector3> v2_to_v3_lvec(const LocalVector<Vector2> &p_vec) {
-	LocalVector<Vector3> ret;
-	ret.reserve(p_vec.size());
-
-	for (const Vector2 &v : p_vec) {
-		ret.push_back(v2_to_v3(v));
-	}
-
-	return ret;
-}
-
-static Ref<NavigationMesh> poly_to_mesh(const Ref<NavigationPolygon> &p_p) {
-	if (p_p.is_valid()) {
-		return p_p->get_navigation_mesh();
-	} else {
-		return Ref<NavigationMesh>();
-	}
-}
-
-static Rect2 aabb_to_rect2(AABB aabb) {
-	Rect2 rect2;
-	rect2.position = Vector2(aabb.position.x, aabb.position.z);
-	rect2.size = Vector2(aabb.size.x, aabb.size.z);
-	return rect2;
-}
-
 void GodotNavigationServer2D::init() {
 #ifdef CLIPPER2_ENABLED
 	navmesh_generator_2d = memnew(NavMeshGenerator2D);
@@ -233,7 +162,7 @@ Vector<Vector2> GodotNavigationServer2D::simplify_path(const Vector<Vector2> &p_
 		}
 	}
 
-	LocalVector<uint32_t> simplified_path_indices = NavMeshQueries2D::get_simplified_path_indices(v2_to_v3_lvec(source_path), p_epsilon);
+	LocalVector<uint32_t> simplified_path_indices = NavMeshQueries2D::get_simplified_path_indices(source_path, p_epsilon);
 
 	uint32_t index_count = simplified_path_indices.size();
 
@@ -495,21 +424,21 @@ Vector2 GodotNavigationServer2D::map_get_closest_point(RID p_map, const Vector2 
 	const NavMap2D *map = map_owner.get_or_null(p_map);
 	ERR_FAIL_NULL_V(map, Vector2());
 
-	return v3_to_v2(map->get_closest_point(v2_to_v3(p_point)));
+	return map->get_closest_point(p_point);
 }
 
 RID GodotNavigationServer2D::map_get_closest_point_owner(RID p_map, const Vector2 &p_point) const {
 	const NavMap2D *map = map_owner.get_or_null(p_map);
 	ERR_FAIL_NULL_V(map, RID());
 
-	return map->get_closest_point_owner(v2_to_v3(p_point));
+	return map->get_closest_point_owner(p_point);
 }
 
 Vector2 GodotNavigationServer2D::map_get_random_point(RID p_map, uint32_t p_navigation_layers, bool p_uniformly) const {
 	const NavMap2D *map = map_owner.get_or_null(p_map);
 	ERR_FAIL_NULL_V(map, Vector2());
 
-	return v3_to_v2(map->get_random_point(p_navigation_layers, p_uniformly));
+	return map->get_random_point(p_navigation_layers, p_uniformly);
 }
 
 RID GodotNavigationServer2D::region_create() {
@@ -631,21 +560,21 @@ COMMAND_2(region_set_transform, RID, p_region, Transform2D, p_transform) {
 	NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL(region);
 
-	region->set_transform(t2_to_t3(p_transform));
+	region->set_transform(p_transform);
 }
 
 Transform2D GodotNavigationServer2D::region_get_transform(RID p_region) const {
 	NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL_V(region, Transform2D());
 
-	return t3_to_t2(region->get_transform());
+	return region->get_transform();
 }
 
 void GodotNavigationServer2D::region_set_navigation_polygon(RID p_region, Ref<NavigationPolygon> p_navigation_polygon) {
 	NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL(region);
 
-	region->set_navigation_mesh(poly_to_mesh(p_navigation_polygon));
+	region->set_navigation_polygon(p_navigation_polygon);
 }
 
 int GodotNavigationServer2D::region_get_connections_count(RID p_region) const {
@@ -663,7 +592,7 @@ Vector2 GodotNavigationServer2D::region_get_connection_pathway_start(RID p_regio
 	ERR_FAIL_NULL_V(region, Vector2());
 	NavMap2D *map = region->get_map();
 	if (map) {
-		return v3_to_v2(map->get_region_connection_pathway_start(region, p_connection_id));
+		return map->get_region_connection_pathway_start(region, p_connection_id);
 	}
 	return Vector2();
 }
@@ -673,7 +602,7 @@ Vector2 GodotNavigationServer2D::region_get_connection_pathway_end(RID p_region,
 	ERR_FAIL_NULL_V(region, Vector2());
 	NavMap2D *map = region->get_map();
 	if (map) {
-		return v3_to_v2(map->get_region_connection_pathway_end(region, p_connection_id));
+		return map->get_region_connection_pathway_end(region, p_connection_id);
 	}
 	return Vector2();
 }
@@ -682,21 +611,21 @@ Vector2 GodotNavigationServer2D::region_get_closest_point(RID p_region, const Ve
 	const NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL_V(region, Vector2());
 
-	return v3_to_v2(region->get_closest_point_info(v2_to_v3(p_point)).point);
+	return region->get_closest_point_info(p_point).point;
 }
 
 Vector2 GodotNavigationServer2D::region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const {
 	const NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL_V(region, Vector2());
 
-	return v3_to_v2(region->get_random_point(p_navigation_layers, p_uniformly));
+	return region->get_random_point(p_navigation_layers, p_uniformly);
 }
 
 Rect2 GodotNavigationServer2D::region_get_bounds(RID p_region) const {
 	const NavRegion2D *region = region_owner.get_or_null(p_region);
 	ERR_FAIL_NULL_V(region, Rect2());
 
-	return aabb_to_rect2(region->get_bounds());
+	return region->get_bounds();
 }
 
 RID GodotNavigationServer2D::link_create() {
@@ -773,28 +702,28 @@ COMMAND_2(link_set_start_position, RID, p_link, Vector2, p_position) {
 	NavLink2D *link = link_owner.get_or_null(p_link);
 	ERR_FAIL_NULL(link);
 
-	link->set_start_position(v2_to_v3(p_position));
+	link->set_start_position(p_position);
 }
 
 Vector2 GodotNavigationServer2D::link_get_start_position(RID p_link) const {
 	const NavLink2D *link = link_owner.get_or_null(p_link);
 	ERR_FAIL_NULL_V(link, Vector2());
 
-	return v3_to_v2(link->get_start_position());
+	return link->get_start_position();
 }
 
 COMMAND_2(link_set_end_position, RID, p_link, Vector2, p_position) {
 	NavLink2D *link = link_owner.get_or_null(p_link);
 	ERR_FAIL_NULL(link);
 
-	link->set_end_position(v2_to_v3(p_position));
+	link->set_end_position(p_position);
 }
 
 Vector2 GodotNavigationServer2D::link_get_end_position(RID p_link) const {
 	const NavLink2D *link = link_owner.get_or_null(p_link);
 	ERR_FAIL_NULL_V(link, Vector2());
 
-	return v3_to_v2(link->get_end_position());
+	return link->get_end_position();
 }
 
 COMMAND_2(link_set_enter_cost, RID, p_link, real_t, p_enter_cost) {
@@ -963,35 +892,35 @@ COMMAND_2(agent_set_velocity_forced, RID, p_agent, Vector2, p_velocity) {
 	NavAgent2D *agent = agent_owner.get_or_null(p_agent);
 	ERR_FAIL_NULL(agent);
 
-	agent->set_velocity_forced(v2_to_v3(p_velocity));
+	agent->set_velocity_forced(p_velocity);
 }
 
 COMMAND_2(agent_set_velocity, RID, p_agent, Vector2, p_velocity) {
 	NavAgent2D *agent = agent_owner.get_or_null(p_agent);
 	ERR_FAIL_NULL(agent);
 
-	agent->set_velocity(v2_to_v3(p_velocity));
+	agent->set_velocity(p_velocity);
 }
 
 Vector2 GodotNavigationServer2D::agent_get_velocity(RID p_agent) const {
 	NavAgent2D *agent = agent_owner.get_or_null(p_agent);
 	ERR_FAIL_NULL_V(agent, Vector2());
 
-	return v3_to_v2(agent->get_velocity());
+	return agent->get_velocity();
 }
 
 COMMAND_2(agent_set_position, RID, p_agent, Vector2, p_position) {
 	NavAgent2D *agent = agent_owner.get_or_null(p_agent);
 	ERR_FAIL_NULL(agent);
 
-	agent->set_position(v2_to_v3(p_position));
+	agent->set_position(p_position);
 }
 
 Vector2 GodotNavigationServer2D::agent_get_position(RID p_agent) const {
 	NavAgent2D *agent = agent_owner.get_or_null(p_agent);
 	ERR_FAIL_NULL_V(agent, Vector2());
 
-	return v3_to_v2(agent->get_position());
+	return agent->get_position();
 }
 
 bool GodotNavigationServer2D::agent_is_map_changed(RID p_agent) const {
@@ -1159,27 +1088,27 @@ COMMAND_2(obstacle_set_velocity, RID, p_obstacle, Vector2, p_velocity) {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL(obstacle);
 
-	obstacle->set_velocity(v2_to_v3(p_velocity));
+	obstacle->set_velocity(p_velocity);
 }
 
 Vector2 GodotNavigationServer2D::obstacle_get_velocity(RID p_obstacle) const {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL_V(obstacle, Vector2());
 
-	return v3_to_v2(obstacle->get_velocity());
+	return obstacle->get_velocity();
 }
 
 COMMAND_2(obstacle_set_position, RID, p_obstacle, Vector2, p_position) {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL(obstacle);
-	obstacle->set_position(v2_to_v3(p_position));
+	obstacle->set_position(p_position);
 }
 
 Vector2 GodotNavigationServer2D::obstacle_get_position(RID p_obstacle) const {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL_V(obstacle, Vector2());
 
-	return v3_to_v2(obstacle->get_position());
+	return obstacle->get_position();
 }
 
 COMMAND_2(obstacle_set_avoidance_layers, RID, p_obstacle, uint32_t, p_layers) {
@@ -1198,14 +1127,14 @@ uint32_t GodotNavigationServer2D::obstacle_get_avoidance_layers(RID p_obstacle) 
 void GodotNavigationServer2D::obstacle_set_vertices(RID p_obstacle, const Vector<Vector2> &p_vertices) {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL(obstacle);
-	obstacle->set_vertices(v2_to_v3_vec(p_vertices));
+	obstacle->set_vertices(p_vertices);
 }
 
 Vector<Vector2> GodotNavigationServer2D::obstacle_get_vertices(RID p_obstacle) const {
 	NavObstacle2D *obstacle = obstacle_owner.get_or_null(p_obstacle);
 	ERR_FAIL_NULL_V(obstacle, Vector<Vector2>());
 
-	return v3_to_v2_vec(obstacle->get_vertices());
+	return obstacle->get_vertices();
 }
 
 void GodotNavigationServer2D::flush_queries() {
@@ -1397,44 +1326,7 @@ void GodotNavigationServer2D::query_path(const Ref<NavigationPathQueryParameters
 	NavMap2D *map = map_owner.get_or_null(p_query_parameters->get_map());
 	ERR_FAIL_NULL(map);
 
-	Ref<NavigationPathQueryParameters3D> query_parameters;
-	query_parameters.instantiate();
-
-	query_parameters->set_map(p_query_parameters->get_map());
-	query_parameters->set_start_position(v2_to_v3(p_query_parameters->get_start_position()));
-	query_parameters->set_target_position(v2_to_v3(p_query_parameters->get_target_position()));
-	query_parameters->set_navigation_layers(p_query_parameters->get_navigation_layers());
-	query_parameters->set_pathfinding_algorithm(NavigationPathQueryParameters3D::PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR);
-
-	switch (p_query_parameters->get_path_postprocessing()) {
-		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL: {
-			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL);
-		} break;
-		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED: {
-			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED);
-		} break;
-		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_NONE: {
-			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_NONE);
-		} break;
-		default: {
-			WARN_PRINT("No match for used PathPostProcessing - fallback to default");
-			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL);
-		} break;
-	}
-
-	query_parameters->set_metadata_flags((int64_t)p_query_parameters->get_metadata_flags());
-	query_parameters->set_simplify_path(p_query_parameters->get_simplify_path());
-	query_parameters->set_simplify_epsilon(p_query_parameters->get_simplify_epsilon());
-
-	Ref<NavigationPathQueryResult3D> query_result;
-	query_result.instantiate();
-
-	NavMeshQueries2D::map_query_path(map, query_parameters, query_result, p_callback);
-
-	p_query_result->set_path(v3_to_v2_vec(query_result->get_path()));
-	p_query_result->set_path_types(query_result->get_path_types());
-	p_query_result->set_path_rids(query_result->get_path_rids());
-	p_query_result->set_path_owner_ids(query_result->get_path_owner_ids());
+	NavMeshQueries2D::map_query_path(map, p_query_parameters, p_query_result, p_callback);
 }
 
 RID GodotNavigationServer2D::source_geometry_parser_create() {

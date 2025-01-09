@@ -48,17 +48,13 @@ class NavRegion2D;
 class NavAgent2D;
 class NavObstacle2D;
 
-class NavMap2D : public NavRid {
-	/// Map Up
-	Vector3 up = Vector3(0, 1, 0);
-
+class NavMap2D : public NavRid2D {
 	/// To find the polygons edges the vertices are displaced in a grid where
-	/// each cell has the following cell_size and cell_height.
+	/// each cell has the following cell_size.
 	real_t cell_size = NavigationDefaults2D::navmesh_cell_size;
-	real_t cell_height = NavigationDefaults3D::navmesh_cell_height;
 
 	// For the inter-region merging to work, internal rasterization is performed.
-	Vector3 merge_rasterizer_cell_size = Vector3(cell_size, cell_height, cell_size);
+	Vector2 merge_rasterizer_cell_size = Vector2(cell_size, cell_size);
 
 	// This value is used to control sensitivity of internal rasterizer.
 	float merge_rasterizer_cell_scale = 1.0;
@@ -72,32 +68,31 @@ class NavMap2D : public NavRid {
 
 	bool map_settings_dirty = true;
 
-	/// Map regions
+	/// Map regions.
 	LocalVector<NavRegion2D *> regions;
 
-	/// Map links
+	/// Map links.
 	LocalVector<NavLink2D *> links;
 
-	/// RVO avoidance worlds
-	RVO2D::RVOSimulator2D rvo_simulation_2d;
+	/// RVO avoidance world.
+	RVO2D::RVOSimulator2D rvo_simulation;
 
-	/// avoidance controlled agents
-	LocalVector<NavAgent2D *> active_2d_avoidance_agents;
-	LocalVector<NavAgent2D *> active_3d_avoidance_agents;
+	/// Avoidance controlled agents.
+	LocalVector<NavAgent2D *> active_avoidance_agents;
 
-	/// dirty flag when one of the agent's arrays are modified
+	/// dirty flag when one of the agent's arrays are modified.
 	bool agents_dirty = true;
 
-	/// All the Agents (even the controlled one)
+	/// All the Agents (even the controlled one).
 	LocalVector<NavAgent2D *> agents;
 
-	/// All the avoidance obstacles (both static and dynamic)
+	/// All the avoidance obstacles (both static and dynamic).
 	LocalVector<NavObstacle2D *> obstacles;
 
 	/// Are rvo obstacles modified?
 	bool obstacles_dirty = true;
 
-	/// Physics delta time
+	/// Physics delta time.
 	real_t deltatime = 0.0;
 
 	/// Change the id each time the map is updated.
@@ -122,10 +117,10 @@ class NavMap2D : public NavRid {
 	bool use_async_iterations = true;
 
 	uint32_t iteration_slot_index = 0;
-	LocalVector<NavMapIteration> iteration_slots;
+	LocalVector<NavMapIteration2D> iteration_slots;
 	mutable RWLock iteration_slot_rwlock;
 
-	NavMapIterationBuild iteration_build;
+	NavMapIterationBuild2D iteration_build;
 	bool iteration_build_use_threads = false;
 	WorkerThreadPool::TaskID iteration_build_thread_task_id = WorkerThreadPool::INVALID_TASK_ID;
 	static void _build_iteration_threaded(void *p_arg);
@@ -143,18 +138,10 @@ public:
 
 	uint32_t get_iteration_id() const { return iteration_id; }
 
-	void set_up(Vector3 p_up);
-	Vector3 get_up() const {
-		return up;
-	}
-
 	void set_cell_size(real_t p_cell_size);
 	real_t get_cell_size() const {
 		return cell_size;
 	}
-
-	void set_cell_height(real_t p_cell_height);
-	real_t get_cell_height() const { return cell_height; }
 
 	void set_merge_rasterizer_cell_scale(float p_value);
 	float get_merge_rasterizer_cell_scale() const {
@@ -176,16 +163,14 @@ public:
 		return link_connection_radius;
 	}
 
-	nav_2d::PointKey get_point_key(const Vector3 &p_pos) const;
-	const Vector3 &get_merge_rasterizer_cell_size() const;
+	nav_2d::PointKey get_point_key(const Vector2 &p_pos) const;
+	Vector2 get_merge_rasterizer_cell_size() const;
 
-	void query_path(NavMeshQueries2D::NavMeshPathQueryTask3D &p_query_task);
+	void query_path(NavMeshQueries2D::NavMeshPathQueryTask2D &p_query_task);
 
-	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision) const;
-	Vector3 get_closest_point(const Vector3 &p_point) const;
-	Vector3 get_closest_point_normal(const Vector3 &p_point) const;
-	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
-	RID get_closest_point_owner(const Vector3 &p_point) const;
+	Vector2 get_closest_point(const Vector2 &p_point) const;
+	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector2 &p_point) const;
+	RID get_closest_point_owner(const Vector2 &p_point) const;
 
 	void add_region(NavRegion2D *p_region);
 	void remove_region(NavRegion2D *p_region);
@@ -199,24 +184,24 @@ public:
 		return links;
 	}
 
-	bool has_agent(NavAgent2D *agent) const;
-	void add_agent(NavAgent2D *agent);
-	void remove_agent(NavAgent2D *agent);
+	bool has_agent(NavAgent2D *p_agent) const;
+	void add_agent(NavAgent2D *p_agent);
+	void remove_agent(NavAgent2D *p_agent);
 	const LocalVector<NavAgent2D *> &get_agents() const {
 		return agents;
 	}
 
-	void set_agent_as_controlled(NavAgent2D *agent);
-	void remove_agent_as_controlled(NavAgent2D *agent);
+	void set_agent_as_controlled(NavAgent2D *p_agent);
+	void remove_agent_as_controlled(NavAgent2D *p_agent);
 
-	bool has_obstacle(NavObstacle2D *obstacle) const;
-	void add_obstacle(NavObstacle2D *obstacle);
-	void remove_obstacle(NavObstacle2D *obstacle);
+	bool has_obstacle(NavObstacle2D *p_obstacle) const;
+	void add_obstacle(NavObstacle2D *p_obstacle);
+	void remove_obstacle(NavObstacle2D *p_obstacle);
 	const LocalVector<NavObstacle2D *> &get_obstacles() const {
 		return obstacles;
 	}
 
-	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
+	Vector2 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
 
 	void sync();
 	void step(real_t p_deltatime);
@@ -234,8 +219,8 @@ public:
 	int get_pm_obstacle_count() const { return performance_data.pm_obstacle_count; }
 
 	int get_region_connections_count(NavRegion2D *p_region) const;
-	Vector3 get_region_connection_pathway_start(NavRegion2D *p_region, int p_connection_id) const;
-	Vector3 get_region_connection_pathway_end(NavRegion2D *p_region, int p_connection_id) const;
+	Vector2 get_region_connection_pathway_start(NavRegion2D *p_region, int p_connection_id) const;
+	Vector2 get_region_connection_pathway_end(NavRegion2D *p_region, int p_connection_id) const;
 
 	void add_region_sync_dirty_request(SelfList<NavRegion2D> *p_sync_request);
 	void add_link_sync_dirty_request(SelfList<NavLink2D> *p_sync_request);
@@ -254,14 +239,14 @@ private:
 	void _sync_dirty_map_update_requests();
 	void _sync_dirty_avoidance_update_requests();
 
-	void compute_single_step(uint32_t index, NavAgent2D **agent);
+	void compute_single_step(uint32_t p_index, NavAgent2D **p_agent);
 
-	void compute_single_avoidance_step_2d(uint32_t index, NavAgent2D **agent);
+	void compute_single_avoidance_step(uint32_t p_index, NavAgent2D **p_agent);
 
 	void _sync_avoidance();
 	void _update_rvo_simulation();
-	void _update_rvo_obstacles_tree_2d();
-	void _update_rvo_agents_tree_2d();
+	void _update_rvo_obstacles_tree();
+	void _update_rvo_agents_tree();
 
 	void _update_merge_rasterizer_cell_dimensions();
 };

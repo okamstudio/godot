@@ -35,15 +35,15 @@
 #include "nav_utils_2d.h"
 
 #include "core/os/rw_lock.h"
-#include "scene/resources/navigation_mesh.h"
+#include "scene/resources/2d/navigation_polygon.h"
 
-struct NavRegionIteration;
+struct NavRegionIteration2D;
 
-class NavRegion2D : public NavBase {
+class NavRegion2D : public NavBase2D {
 	RWLock region_rwlock;
 
 	NavMap2D *map = nullptr;
-	Transform3D transform;
+	Transform2D transform;
 	bool enabled = true;
 
 	bool use_edge_connections = true;
@@ -53,10 +53,10 @@ class NavRegion2D : public NavBase {
 	LocalVector<nav_2d::Polygon> navmesh_polygons;
 
 	real_t surface_area = 0.0;
-	AABB bounds;
+	Rect2 bounds;
 
 	RWLock navmesh_rwlock;
-	Vector<Vector3> pending_navmesh_vertices;
+	Vector<Vector2> pending_navmesh_vertices;
 	Vector<Vector<int>> pending_navmesh_polygons;
 
 	SelfList<NavRegion2D> sync_dirty_request_list_element;
@@ -82,29 +82,28 @@ public:
 		return use_edge_connections;
 	}
 
-	void set_transform(Transform3D transform);
-	const Transform3D &get_transform() const {
+	void set_transform(const Transform2D &p_transform);
+	const Transform2D &get_transform() const {
 		return transform;
 	}
 
-	void set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh);
+	void set_navigation_polygon(Ref<NavigationPolygon> p_navigation_polygon);
 
 	LocalVector<nav_2d::Polygon> const &get_polygons() const {
 		return navmesh_polygons;
 	}
 
-	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const;
-	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
-	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
+	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector2 &p_point) const;
+	Vector2 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
 
 	real_t get_surface_area() const { return surface_area; }
-	AABB get_bounds() const { return bounds; }
+	Rect2 get_bounds() const { return bounds; }
 
 	bool sync();
 	void request_sync();
 	void cancel_sync_request();
 
-	void get_iteration_update(NavRegionIteration &r_iteration);
+	void get_iteration_update(NavRegionIteration2D &r_iteration);
 
 private:
 	void update_polygons();

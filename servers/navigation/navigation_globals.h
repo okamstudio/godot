@@ -55,6 +55,7 @@ namespace NavigationDefaults2D {
 
 // Same as in 3D but larger since 1px is treated as 1m.
 constexpr float navmesh_cell_size{ 1.0f }; // Must match ProjectSettings default 2D cell_size.
+constexpr float navmesh_cell_size_min{ 0.01f };
 constexpr auto navmesh_cell_size_hint{ "0.001,100,0.001,or_greater" };
 
 // Map.

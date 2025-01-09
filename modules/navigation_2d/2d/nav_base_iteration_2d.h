@@ -33,7 +33,7 @@
 
 #include "servers/navigation/navigation_utilities.h"
 
-struct NavBaseIteration {
+struct NavBaseIteration2D {
 	uint32_t id = UINT32_MAX;
 	bool enabled = true;
 	uint32_t navigation_layers = 1;
