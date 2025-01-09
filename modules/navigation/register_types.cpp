@@ -30,7 +30,6 @@
 
 #include "register_types.h"
 
-#include "2d/godot_navigation_server_2d.h"
 #include "3d/godot_navigation_server_3d.h"
 
 #ifndef DISABLE_DEPRECATED
@@ -44,7 +43,6 @@
 #endif
 
 #include "core/config/engine.h"
-#include "servers/navigation_server_2d.h"
 #include "servers/navigation_server_3d.h"
 
 #ifndef DISABLE_DEPRECATED
@@ -57,14 +55,9 @@ NavigationServer3D *new_navigation_server_3d() {
 	return memnew(GodotNavigationServer3D);
 }
 
-NavigationServer2D *new_navigation_server_2d() {
-	return memnew(GodotNavigationServer2D);
-}
-
 void initialize_navigation_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SERVERS) {
 		NavigationServer3DManager::set_default_server(new_navigation_server_3d);
-		NavigationServer2DManager::set_default_server(new_navigation_server_2d);
 
 #ifndef DISABLE_DEPRECATED
 #ifndef _3D_DISABLED

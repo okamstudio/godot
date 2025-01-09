@@ -9,6 +9,7 @@ env_navigation = env_modules.Clone()
 # Thirdparty source files
 
 thirdparty_obj = []
+navigation_2d_enabled = "navigation_2d" in env.module_list
 
 # Recast Thirdparty source files
 if env["builtin_recastnavigation"]:
@@ -47,9 +48,11 @@ if env["builtin_rvo2_2d"]:
 
     env_navigation.Prepend(CPPPATH=[thirdparty_dir])
 
-    env_thirdparty = env_navigation.Clone()
-    env_thirdparty.disable_warnings()
-    env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+    # Don't build rvo_2d if 2D navigation is enabled.
+    if not navigation_2d_enabled:
+        env_thirdparty = env_navigation.Clone()
+        env_thirdparty.disable_warnings()
+        env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 
 # RVO 3D Thirdparty source files
 if env["builtin_rvo2_3d"]:
@@ -75,9 +78,7 @@ env.modules_sources += thirdparty_obj
 module_obj = []
 
 env_navigation.add_source_files(module_obj, "*.cpp")
-env_navigation.add_source_files(module_obj, "2d/*.cpp")
-if not env["disable_3d"]:
-    env_navigation.add_source_files(module_obj, "3d/*.cpp")
+env_navigation.add_source_files(module_obj, "3d/*.cpp")
 if env.editor_build:
     env_navigation.add_source_files(module_obj, "editor/*.cpp")
 env.modules_sources += module_obj

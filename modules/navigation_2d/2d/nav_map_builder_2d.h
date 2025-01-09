@@ -31,11 +31,11 @@
 #ifndef NAV_MAP_BUILDER_2D_H
 #define NAV_MAP_BUILDER_2D_H
 
-#include "../nav_utils.h"
+#include "../nav_utils_2d.h"
 
 struct NavMapIterationBuild;
 
-class NavMapBuilder3D {
+class NavMapBuilder2D {
 	static void _build_step_gather_region_polygons(NavMapIterationBuild &r_build);
 	static void _build_step_find_edge_connection_pairs(NavMapIterationBuild &r_build);
 	static void _build_step_merge_edge_connection_pairs(NavMapIterationBuild &r_build);
@@ -44,7 +44,7 @@ class NavMapBuilder3D {
 	static void _build_update_map_iteration(NavMapIterationBuild &r_build);
 
 public:
-	static gd::PointKey get_point_key(const Vector3 &p_pos, const Vector3 &p_cell_size);
+	static nav_2d::PointKey get_point_key(const Vector3 &p_pos, const Vector3 &p_cell_size);
 
 	static void build_navmap_iteration(NavMapIterationBuild &r_build);
 };

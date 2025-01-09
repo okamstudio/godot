@@ -31,15 +31,15 @@
 #ifndef NAV_MAP_ITERATION_2D_H
 #define NAV_MAP_ITERATION_2D_H
 
-#include "../nav_rid.h"
-#include "../nav_utils.h"
-#include "nav_mesh_queries_3d.h"
+#include "../nav_rid_2d.h"
+#include "../nav_utils_2d.h"
+#include "nav_mesh_queries_2d.h"
 
 #include "core/math/math_defs.h"
 #include "core/os/semaphore.h"
 
 struct NavLinkIteration;
-class NavRegion;
+class NavRegion2D;
 struct NavRegionIteration;
 struct NavMapIteration;
 
@@ -48,12 +48,12 @@ struct NavMapIterationBuild {
 	bool use_edge_connections = true;
 	real_t edge_connection_margin;
 	real_t link_connection_radius;
-	gd::PerformanceData performance_data;
+	nav_2d::PerformanceData performance_data;
 	int polygon_count = 0;
 	int free_edge_count = 0;
 
-	HashMap<gd::EdgeKey, gd::EdgeConnectionPair, gd::EdgeKey> iter_connection_pairs_map;
-	LocalVector<gd::Edge::Connection> iter_free_edges;
+	HashMap<nav_2d::EdgeKey, nav_2d::EdgeConnectionPair, nav_2d::EdgeKey> iter_connection_pairs_map;
+	LocalVector<nav_2d::Edge::Connection> iter_free_edges;
 
 	NavMapIteration *map_iteration = nullptr;
 
@@ -78,7 +78,7 @@ struct NavMapIteration {
 	RWLock rwlock;
 
 	Vector3 map_up;
-	LocalVector<gd::Polygon> link_polygons;
+	LocalVector<nav_2d::Polygon> link_polygons;
 
 	LocalVector<NavRegionIteration> region_iterations;
 	LocalVector<NavLinkIteration> link_iterations;
@@ -87,11 +87,11 @@ struct NavMapIteration {
 	int link_polygon_count = 0;
 
 	// The edge connections that the map builds on top with the edge connection margin.
-	HashMap<uint32_t, LocalVector<gd::Edge::Connection>> external_region_connections;
+	HashMap<uint32_t, LocalVector<nav_2d::Edge::Connection>> external_region_connections;
 
-	HashMap<NavRegion *, uint32_t> region_ptr_to_region_id;
+	HashMap<NavRegion2D *, uint32_t> region_ptr_to_region_id;
 
-	LocalVector<NavMeshQueries3D::PathQuerySlot> path_query_slots;
+	LocalVector<NavMeshQueries2D::PathQuerySlot> path_query_slots;
 	Mutex path_query_slots_mutex;
 	Semaphore path_query_slots_semaphore;
 };

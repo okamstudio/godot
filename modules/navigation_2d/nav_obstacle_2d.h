@@ -31,17 +31,17 @@
 #ifndef NAV_OBSTACLE_2D_H
 #define NAV_OBSTACLE_2D_H
 
-#include "nav_rid.h"
+#include "nav_rid_2d.h"
 
 #include "core/object/class_db.h"
 #include "core/templates/self_list.h"
 
-class NavAgent;
-class NavMap;
+class NavAgent2D;
+class NavMap2D;
 
-class NavObstacle : public NavRid {
-	NavAgent *agent = nullptr;
-	NavMap *map = nullptr;
+class NavObstacle2D : public NavRid {
+	NavAgent2D *agent = nullptr;
+	NavMap2D *map = nullptr;
 	Vector3 velocity;
 	Vector3 position;
 	Vector<Vector3> vertices;
@@ -58,11 +58,11 @@ class NavObstacle : public NavRid {
 	uint32_t last_map_iteration_id = 0;
 	bool paused = false;
 
-	SelfList<NavObstacle> sync_dirty_request_list_element;
+	SelfList<NavObstacle2D> sync_dirty_request_list_element;
 
 public:
-	NavObstacle();
-	~NavObstacle();
+	NavObstacle2D();
+	~NavObstacle2D();
 
 	void set_avoidance_enabled(bool p_enabled);
 	bool is_avoidance_enabled() { return avoidance_enabled; }
@@ -70,11 +70,11 @@ public:
 	void set_use_3d_avoidance(bool p_enabled);
 	bool get_use_3d_avoidance() { return use_3d_avoidance; }
 
-	void set_map(NavMap *p_map);
-	NavMap *get_map() { return map; }
+	void set_map(NavMap2D *p_map);
+	NavMap2D *get_map() { return map; }
 
-	void set_agent(NavAgent *p_agent);
-	NavAgent *get_agent() { return agent; }
+	void set_agent(NavAgent2D *p_agent);
+	NavAgent2D *get_agent() { return agent; }
 
 	void set_position(const Vector3 p_position);
 	const Vector3 &get_position() const { return position; }

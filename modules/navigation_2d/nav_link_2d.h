@@ -31,15 +31,15 @@
 #ifndef NAV_LINK_2D_H
 #define NAV_LINK_2D_H
 
-#include "3d/nav_base_iteration_3d.h"
-#include "nav_base.h"
-#include "nav_utils.h"
+#include "2d/nav_base_iteration_2d.h"
+#include "nav_base_2d.h"
+#include "nav_utils_2d.h"
 
 struct NavLinkIteration : NavBaseIteration {
 	bool bidirectional = true;
 	Vector3 start_position;
 	Vector3 end_position;
-	LocalVector<gd::Polygon> navmesh_polygons;
+	LocalVector<nav_2d::Polygon> navmesh_polygons;
 
 	Vector3 get_start_position() const { return start_position; }
 	Vector3 get_end_position() const { return end_position; }
@@ -48,8 +48,8 @@ struct NavLinkIteration : NavBaseIteration {
 
 #include "core/templates/self_list.h"
 
-class NavLink : public NavBase {
-	NavMap *map = nullptr;
+class NavLink2D : public NavBase {
+	NavMap2D *map = nullptr;
 	bool bidirectional = true;
 	Vector3 start_position;
 	Vector3 end_position;
@@ -57,14 +57,14 @@ class NavLink : public NavBase {
 
 	bool link_dirty = true;
 
-	SelfList<NavLink> sync_dirty_request_list_element;
+	SelfList<NavLink2D> sync_dirty_request_list_element;
 
 public:
-	NavLink();
-	~NavLink();
+	NavLink2D();
+	~NavLink2D();
 
-	void set_map(NavMap *p_map);
-	NavMap *get_map() const {
+	void set_map(NavMap2D *p_map);
+	NavMap2D *get_map() const {
 		return map;
 	}
 

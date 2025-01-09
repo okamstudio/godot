@@ -31,17 +31,16 @@
 #ifndef NAV_AGENT_2D_H
 #define NAV_AGENT_2D_H
 
-#include "nav_rid.h"
+#include "nav_rid_2d.h"
 
 #include "core/object/class_db.h"
 #include "core/templates/self_list.h"
 
 #include <Agent2d.h>
-#include <Agent3d.h>
 
-class NavMap;
+class NavMap2D;
 
-class NavAgent : public NavRid {
+class NavAgent2D : public NavRid {
 	Vector3 position;
 	Vector3 target_position;
 	Vector3 velocity;
@@ -56,10 +55,9 @@ class NavAgent : public NavRid {
 	Vector3 safe_velocity;
 	bool clamp_speed = true; // Experimental, clamps velocity to max_speed.
 
-	NavMap *map = nullptr;
+	NavMap2D *map = nullptr;
 
 	RVO2D::Agent2D rvo_agent_2d;
-	RVO3D::Agent3D rvo_agent_3d;
 	bool use_3d_avoidance = false;
 	bool avoidance_enabled = false;
 
@@ -74,11 +72,11 @@ class NavAgent : public NavRid {
 	uint32_t last_map_iteration_id = 0;
 	bool paused = false;
 
-	SelfList<NavAgent> sync_dirty_request_list_element;
+	SelfList<NavAgent2D> sync_dirty_request_list_element;
 
 public:
-	NavAgent();
-	~NavAgent();
+	NavAgent2D();
+	~NavAgent2D();
 
 	void set_avoidance_enabled(bool p_enabled);
 	bool is_avoidance_enabled() { return avoidance_enabled; }
@@ -86,13 +84,12 @@ public:
 	void set_use_3d_avoidance(bool p_enabled);
 	bool get_use_3d_avoidance() { return use_3d_avoidance; }
 
-	void set_map(NavMap *p_map);
-	NavMap *get_map() { return map; }
+	void set_map(NavMap2D *p_map);
+	NavMap2D *get_map() { return map; }
 
 	bool is_map_changed();
 
 	RVO2D::Agent2D *get_rvo_agent_2d() { return &rvo_agent_2d; }
-	RVO3D::Agent3D *get_rvo_agent_3d() { return &rvo_agent_3d; }
 
 	void set_avoidance_callback(Callable p_callback);
 	bool has_avoidance_callback() const;

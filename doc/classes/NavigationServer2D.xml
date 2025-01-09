@@ -303,6 +303,12 @@
 				Returns all created navigation map [RID]s on the NavigationServer. This returns both 2D and 3D created navigation maps as there is technically no distinction between them.
 			</description>
 		</method>
+		<method name="get_process_info" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="process_info" type="int" enum="NavigationServer2D.ProcessInfo" />
+			<description>
+			</description>
+		</method>
 		<method name="is_baking_navigation_polygon" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="navigation_polygon" type="NavigationPolygon" />
@@ -971,6 +977,12 @@
 				If [param enabled] is [code]true[/code], the navigation [param region] will use edge connections to connect with other navigation regions within proximity of the navigation map edge connection margin.
 			</description>
 		</method>
+		<method name="set_active">
+			<return type="void" />
+			<param index="0" name="active" type="bool" />
+			<description>
+			</description>
+		</method>
 		<method name="set_debug_enabled">
 			<return type="void" />
 			<param index="0" name="enabled" type="bool" />
@@ -1006,6 +1018,10 @@
 		</method>
 	</methods>
 	<signals>
+		<signal name="avoidance_debug_changed">
+			<description>
+			</description>
+		</signal>
 		<signal name="map_changed">
 			<param index="0" name="map" type="RID" />
 			<description>
@@ -1018,4 +1034,26 @@
 			</description>
 		</signal>
 	</signals>
+	<constants>
+		<constant name="INFO_ACTIVE_MAPS" value="0" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_REGION_COUNT" value="1" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_AGENT_COUNT" value="2" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_LINK_COUNT" value="3" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_POLYGON_COUNT" value="4" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_EDGE_COUNT" value="5" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_EDGE_MERGE_COUNT" value="6" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_EDGE_CONNECTION_COUNT" value="7" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_EDGE_FREE_COUNT" value="8" enum="ProcessInfo">
+		</constant>
+		<constant name="INFO_OBSTACLE_COUNT" value="9" enum="ProcessInfo">
+		</constant>
+	</constants>
 </class>

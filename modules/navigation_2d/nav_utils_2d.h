@@ -39,7 +39,7 @@
 
 struct NavBaseIteration;
 
-namespace gd {
+namespace nav_2d {
 struct Polygon;
 
 union PointKey {
@@ -214,6 +214,6 @@ struct PerformanceData {
 	}
 };
 
-} // namespace gd
+} // namespace nav_2d
 
 #endif // NAV_UTILS_2D_H

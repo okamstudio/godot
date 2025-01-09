@@ -64,6 +64,8 @@ public:
 	const Vector<int64_t> &get_path_owner_ids() const;
 
 	void reset();
+
+	void set_data(const LocalVector<Vector2> &p_path, const LocalVector<int32_t> &p_path_types, const LocalVector<RID> &p_path_rids, const LocalVector<int64_t> &p_path_owner_ids);
 };
 
 VARIANT_ENUM_CAST(NavigationPathQueryResult2D::PathSegmentType);

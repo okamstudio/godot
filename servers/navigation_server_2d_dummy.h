@@ -163,9 +163,14 @@ public:
 
 	void query_path(const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result, const Callable &p_callback = Callable()) override {}
 
+	void set_active(bool p_active) override {}
+
+	void process(real_t delta_time) override {}
 	void init() override {}
 	void sync() override {}
 	void finish() override {}
+
+	int get_process_info(ProcessInfo p_info) const override { return 0; }
 
 	void free(RID p_object) override {}
 

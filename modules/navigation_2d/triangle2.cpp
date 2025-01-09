@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_region_2d.h                                                       */
+/*  triangle2.cpp                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,86 +28,85 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_REGION_2D_H
-#define NAV_REGION_2D_H
+#include "triangle2.h"
 
-#include "nav_base_2d.h"
-#include "nav_utils_2d.h"
-
-#include "core/os/rw_lock.h"
-#include "scene/resources/navigation_mesh.h"
-
-struct NavRegionIteration;
-
-class NavRegion2D : public NavBase {
-	RWLock region_rwlock;
-
-	NavMap2D *map = nullptr;
-	Transform3D transform;
-	bool enabled = true;
-
-	bool use_edge_connections = true;
-
-	bool polygons_dirty = true;
-
-	LocalVector<nav_2d::Polygon> navmesh_polygons;
-
-	real_t surface_area = 0.0;
-	AABB bounds;
-
-	RWLock navmesh_rwlock;
-	Vector<Vector3> pending_navmesh_vertices;
-	Vector<Vector<int>> pending_navmesh_polygons;
-
-	SelfList<NavRegion2D> sync_dirty_request_list_element;
-
-public:
-	NavRegion2D();
-	~NavRegion2D();
-
-	void scratch_polygons() {
-		polygons_dirty = true;
+Vector2 Triangle2::get_random_point_inside() const {
+	real_t a = Math::random(0.0, 1.0);
+	real_t b = Math::random(0.0, 1.0);
+	if (a > b) {
+		SWAP(a, b);
 	}
 
-	void set_enabled(bool p_enabled);
-	bool get_enabled() const { return enabled; }
+	return vertex[0] * a + vertex[1] * (b - a) + vertex[2] * (1.0f - b);
+}
 
-	void set_map(NavMap2D *p_map);
-	NavMap2D *get_map() const {
-		return map;
+Vector2 Triangle2::get_closest_point_to(const Vector2 &p_point) const {
+	Vector2 edge0 = vertex[1] - vertex[0];
+	Vector2 edge1 = vertex[2] - vertex[0];
+	Vector2 v0 = vertex[0] - p_point;
+
+	real_t a = edge0.dot(edge0);
+	real_t b = edge0.dot(edge1);
+	real_t c = edge1.dot(edge1);
+	real_t d = edge0.dot(v0);
+	real_t e = edge1.dot(v0);
+
+	real_t det = a * c - b * b;
+	real_t s = b * e - c * d;
+	real_t t = b * d - a * e;
+
+	if (s + t < det) {
+		if (s < 0.f) {
+			if (t < 0.f) {
+				if (d < 0.f) {
+					s = CLAMP(-d / a, 0.f, 1.f);
+					t = 0.f;
+				} else {
+					s = 0.f;
+					t = CLAMP(-e / c, 0.f, 1.f);
+				}
+			} else {
+				s = 0.f;
+				t = CLAMP(-e / c, 0.f, 1.f);
+			}
+		} else if (t < 0.f) {
+			s = CLAMP(-d / a, 0.f, 1.f);
+			t = 0.f;
+		} else {
+			real_t inv_det = 1.f / det;
+			s *= inv_det;
+			t *= inv_det;
+		}
+	} else {
+		if (s < 0.f) {
+			real_t tmp0 = b + d;
+			real_t tmp1 = c + e;
+			if (tmp1 > tmp0) {
+				real_t numer = tmp1 - tmp0;
+				real_t denom = a - 2 * b + c;
+				s = CLAMP(numer / denom, 0.f, 1.f);
+				t = 1 - s;
+			} else {
+				t = CLAMP(-e / c, 0.f, 1.f);
+				s = 0.f;
+			}
+		} else if (t < 0.f) {
+			if (a + d > b + e) {
+				real_t numer = c + e - b - d;
+				real_t denom = a - 2 * b + c;
+				s = CLAMP(numer / denom, 0.f, 1.f);
+				t = 1 - s;
+			} else {
+				s = CLAMP(-d / a, 0.f, 1.f);
+				t = 0.f;
+			}
+		} else {
+			real_t numer = c + e - b - d;
+			real_t denom = a - 2 * b + c;
+			s = CLAMP(numer / denom, 0.f, 1.f);
+			t = 1.f - s;
+		}
 	}
 
-	void set_use_edge_connections(bool p_enabled);
-	bool get_use_edge_connections() const {
-		return use_edge_connections;
-	}
-
-	void set_transform(Transform3D transform);
-	const Transform3D &get_transform() const {
-		return transform;
-	}
-
-	void set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh);
-
-	LocalVector<nav_2d::Polygon> const &get_polygons() const {
-		return navmesh_polygons;
-	}
-
-	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const;
-	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
-	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
-
-	real_t get_surface_area() const { return surface_area; }
-	AABB get_bounds() const { return bounds; }
-
-	bool sync();
-	void request_sync();
-	void cancel_sync_request();
-
-	void get_iteration_update(NavRegionIteration &r_iteration);
-
-private:
-	void update_polygons();
-};
-
-#endif // NAV_REGION_2D_H
+	return vertex[0] + s * edge0 + t * edge1;
+}

@@ -31,12 +31,12 @@
 #ifndef NAV_BASE_2D_H
 #define NAV_BASE_2D_H
 
-#include "nav_rid.h"
-#include "nav_utils.h"
+#include "nav_rid_2d.h"
+#include "nav_utils_2d.h"
 
 #include "servers/navigation/navigation_utilities.h"
 
-class NavMap;
+class NavMap2D;
 
 class NavBase : public NavRid {
 protected:

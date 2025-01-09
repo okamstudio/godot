@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_region_2d.h                                                       */
+/*  triangle2.h                                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,86 +28,28 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_REGION_2D_H
-#define NAV_REGION_2D_H
+#ifndef TRIANGLE2_H
+#define TRIANGLE2_H
 
-#include "nav_base_2d.h"
-#include "nav_utils_2d.h"
+#include "core/math/vector2.h"
 
-#include "core/os/rw_lock.h"
-#include "scene/resources/navigation_mesh.h"
+struct Triangle2 {
+	Vector2 vertex[3];
 
-struct NavRegionIteration;
-
-class NavRegion2D : public NavBase {
-	RWLock region_rwlock;
-
-	NavMap2D *map = nullptr;
-	Transform3D transform;
-	bool enabled = true;
-
-	bool use_edge_connections = true;
-
-	bool polygons_dirty = true;
-
-	LocalVector<nav_2d::Polygon> navmesh_polygons;
-
-	real_t surface_area = 0.0;
-	AABB bounds;
-
-	RWLock navmesh_rwlock;
-	Vector<Vector3> pending_navmesh_vertices;
-	Vector<Vector<int>> pending_navmesh_polygons;
-
-	SelfList<NavRegion2D> sync_dirty_request_list_element;
-
-public:
-	NavRegion2D();
-	~NavRegion2D();
-
-	void scratch_polygons() {
-		polygons_dirty = true;
+	real_t get_area() const {
+		return Math::sqrt((vertex[0] - vertex[1]).cross(vertex[0] - vertex[2])) * 0.5f;
 	}
 
-	void set_enabled(bool p_enabled);
-	bool get_enabled() const { return enabled; }
+	Vector2 get_random_point_inside() const;
 
-	void set_map(NavMap2D *p_map);
-	NavMap2D *get_map() const {
-		return map;
+	Vector2 get_closest_point_to(const Vector2 &p_point) const;
+
+	Triangle2() {}
+	Triangle2(const Vector2 &p_v1, const Vector2 &p_v2, const Vector2 &p_v3) {
+		vertex[0] = p_v1;
+		vertex[1] = p_v2;
+		vertex[2] = p_v3;
 	}
-
-	void set_use_edge_connections(bool p_enabled);
-	bool get_use_edge_connections() const {
-		return use_edge_connections;
-	}
-
-	void set_transform(Transform3D transform);
-	const Transform3D &get_transform() const {
-		return transform;
-	}
-
-	void set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh);
-
-	LocalVector<nav_2d::Polygon> const &get_polygons() const {
-		return navmesh_polygons;
-	}
-
-	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const;
-	nav_2d::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
-	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
-
-	real_t get_surface_area() const { return surface_area; }
-	AABB get_bounds() const { return bounds; }
-
-	bool sync();
-	void request_sync();
-	void cancel_sync_request();
-
-	void get_iteration_update(NavRegionIteration &r_iteration);
-
-private:
-	void update_polygons();
 };
 
-#endif // NAV_REGION_2D_H
+#endif // TRIANGLE2_H
