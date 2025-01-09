@@ -462,7 +462,7 @@ const uint16_t VP8I16ModeOffsets[4] = { I16DC16, I16TM16, I16VE16, I16HE16 };
 const uint16_t VP8UVModeOffsets[4] = { C8DC8, C8TM8, C8VE8, C8HE8 };
 
 // Must be indexed using {B_DC_PRED -> B_HU_PRED} as index
-const uint16_t VP8I4ModeOffsets[NUM_BMODES] = {
+static const uint16_t VP8I4ModeOffsets[NUM_BMODES] = {
   I4DC4, I4TM4, I4VE4, I4HE4, I4RD4, I4VR4, I4LD4, I4VL4, I4HD4, I4HU4
 };
 
@@ -478,7 +478,9 @@ void VP8MakeChroma8Preds(const VP8EncIterator* const it) {
   VP8EncPredChroma8(it->yuv_p_, left, top);
 }
 
-void VP8MakeIntra4Preds(const VP8EncIterator* const it) {
+// Form all the ten Intra4x4 predictions in the yuv_p_ cache
+// for the 4x4 block it->i4_
+static void MakeIntra4Preds(const VP8EncIterator* const it) {
   VP8EncPredLuma4(it->yuv_p_, it->i4_top_);
 }
 
@@ -1104,7 +1106,7 @@ static int PickBestIntra4(VP8EncIterator* WEBP_RESTRICT const it,
     uint8_t* tmp_dst = it->yuv_p_ + I4TMP;    // scratch buffer.
 
     InitScore(&rd_i4);
-    VP8MakeIntra4Preds(it);
+    MakeIntra4Preds(it);
     for (mode = 0; mode < NUM_BMODES; ++mode) {
       VP8ModeScore rd_tmp;
       int16_t tmp_levels[16];
@@ -1239,7 +1241,7 @@ static void SimpleQuantize(VP8EncIterator* WEBP_RESTRICT const it,
           it->preds_[(it->i4_ & 3) + (it->i4_ >> 2) * enc->preds_w_];
       const uint8_t* const src = it->yuv_in_ + Y_OFF_ENC + VP8Scan[it->i4_];
       uint8_t* const dst = it->yuv_out_ + Y_OFF_ENC + VP8Scan[it->i4_];
-      VP8MakeIntra4Preds(it);
+      MakeIntra4Preds(it);
       nz |= ReconstructIntra4(it, rd->y_ac_levels[it->i4_],
                               src, dst, mode) << it->i4_;
     } while (VP8IteratorRotateI4(it, it->yuv_out_ + Y_OFF_ENC));
@@ -1307,7 +1309,7 @@ static void RefineUsingDistortion(VP8EncIterator* WEBP_RESTRICT const it,
       const uint8_t* const src = it->yuv_in_ + Y_OFF_ENC + VP8Scan[it->i4_];
       const uint16_t* const mode_costs = GetCostModeI4(it, rd->modes_i4);
 
-      VP8MakeIntra4Preds(it);
+      MakeIntra4Preds(it);
       for (mode = 0; mode < NUM_BMODES; ++mode) {
         const uint8_t* const ref = it->yuv_p_ + VP8I4ModeOffsets[mode];
         const score_t score = VP8SSE4x4(src, ref) * RD_DISTO_MULT

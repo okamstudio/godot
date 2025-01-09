@@ -191,6 +191,12 @@ static void PaletteSortMinimizeDeltas(const uint32_t* const palette_sorted,
   // Find greedily always the closest color of the predicted color to minimize
   // deltas in the palette. This reduces storage needs since the
   // palette is stored with delta encoding.
+  if (num_colors > 17) {
+    if (palette[0] == 0) {
+      --num_colors;
+      SwapColor(&palette[num_colors], &palette[0]);
+    }
+  }
   for (i = 0; i < num_colors; ++i) {
     int best_ix = i;
     uint32_t best_score = ~0U;
@@ -384,8 +390,13 @@ int PaletteSort(PaletteSorting method, const struct WebPPicture* const pic,
                 uint32_t* const palette) {
   switch (method) {
     case kSortedDefault:
-      // Nothing to do, we have already sorted the palette.
-      memcpy(palette, palette_sorted, num_colors * sizeof(*palette));
+      if (palette_sorted[0] == 0 && num_colors > 17) {
+        memcpy(palette, palette_sorted + 1,
+               (num_colors - 1) * sizeof(*palette_sorted));
+        palette[num_colors - 1] = 0;
+      } else {
+        memcpy(palette, palette_sorted, num_colors * sizeof(*palette));
+      }
       return 1;
     case kMinimizeDelta:
       PaletteSortMinimizeDeltas(palette_sorted, num_colors, palette);

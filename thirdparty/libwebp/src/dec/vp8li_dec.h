@@ -121,10 +121,6 @@ WEBP_NODISCARD int VP8LDecodeHeader(VP8LDecoder* const dec, VP8Io* const io);
 // this function. Returns false in case of error, with updated dec->status_.
 WEBP_NODISCARD int VP8LDecodeImage(VP8LDecoder* const dec);
 
-// Resets the decoder in its initial state, reclaiming memory.
-// Preserves the dec->status_ value.
-void VP8LClear(VP8LDecoder* const dec);
-
 // Clears and deallocate a lossless decoder instance.
 void VP8LDelete(VP8LDecoder* const dec);
 

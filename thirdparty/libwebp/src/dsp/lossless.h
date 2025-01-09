@@ -18,6 +18,7 @@
 #include "src/webp/types.h"
 #include "src/webp/decode.h"
 
+#include "src/dsp/dsp.h"
 #include "src/enc/histogram_enc.h"
 #include "src/utils/utils.h"
 
@@ -32,10 +33,6 @@ typedef uint32_t (*VP8LPredictorFunc)(const uint32_t* const left,
                                       const uint32_t* const top);
 extern VP8LPredictorFunc VP8LPredictors[16];
 
-uint32_t VP8LPredictor0_C(const uint32_t* const left,
-                          const uint32_t* const top);
-uint32_t VP8LPredictor1_C(const uint32_t* const left,
-                          const uint32_t* const top);
 uint32_t VP8LPredictor2_C(const uint32_t* const left,
                           const uint32_t* const top);
 uint32_t VP8LPredictor3_C(const uint32_t* const left,
@@ -64,7 +61,7 @@ uint32_t VP8LPredictor13_C(const uint32_t* const left,
 // These Add/Sub function expects upper[-1] and out[-1] to be readable.
 typedef void (*VP8LPredictorAddSubFunc)(const uint32_t* in,
                                         const uint32_t* upper, int num_pixels,
-                                        uint32_t* out);
+                                        uint32_t* WEBP_RESTRICT out);
 extern VP8LPredictorAddSubFunc VP8LPredictorsAdd[16];
 extern VP8LPredictorAddSubFunc VP8LPredictorsAdd_C[16];
 
@@ -95,8 +92,8 @@ void VP8LInverseTransform(const struct VP8LTransform* const transform,
                           const uint32_t* const in, uint32_t* const out);
 
 // Color space conversion.
-typedef void (*VP8LConvertFunc)(const uint32_t* src, int num_pixels,
-                                uint8_t* dst);
+typedef void (*VP8LConvertFunc)(const uint32_t* WEBP_RESTRICT src,
+                                int num_pixels, uint8_t* WEBP_RESTRICT dst);
 extern VP8LConvertFunc VP8LConvertBGRAToRGB;
 extern VP8LConvertFunc VP8LConvertBGRAToRGBA;
 extern VP8LConvertFunc VP8LConvertBGRAToRGBA4444;
@@ -131,13 +128,16 @@ void VP8LTransformColorInverse_C(const VP8LMultipliers* const m,
                                  const uint32_t* src, int num_pixels,
                                  uint32_t* dst);
 
-void VP8LConvertBGRAToRGB_C(const uint32_t* src, int num_pixels, uint8_t* dst);
-void VP8LConvertBGRAToRGBA_C(const uint32_t* src, int num_pixels, uint8_t* dst);
-void VP8LConvertBGRAToRGBA4444_C(const uint32_t* src,
-                                 int num_pixels, uint8_t* dst);
-void VP8LConvertBGRAToRGB565_C(const uint32_t* src,
-                               int num_pixels, uint8_t* dst);
-void VP8LConvertBGRAToBGR_C(const uint32_t* src, int num_pixels, uint8_t* dst);
+void VP8LConvertBGRAToRGB_C(const uint32_t* WEBP_RESTRICT src, int num_pixels,
+                            uint8_t* WEBP_RESTRICT dst);
+void VP8LConvertBGRAToRGBA_C(const uint32_t* WEBP_RESTRICT src, int num_pixels,
+                             uint8_t* WEBP_RESTRICT dst);
+void VP8LConvertBGRAToRGBA4444_C(const uint32_t* WEBP_RESTRICT src,
+                                 int num_pixels, uint8_t* WEBP_RESTRICT dst);
+void VP8LConvertBGRAToRGB565_C(const uint32_t* WEBP_RESTRICT src,
+                               int num_pixels, uint8_t* WEBP_RESTRICT dst);
+void VP8LConvertBGRAToBGR_C(const uint32_t* WEBP_RESTRICT src, int num_pixels,
+                            uint8_t* WEBP_RESTRICT dst);
 void VP8LAddGreenToBlueAndRed_C(const uint32_t* src, int num_pixels,
                                 uint32_t* dst);
 
@@ -149,32 +149,35 @@ void VP8LDspInit(void);
 
 typedef void (*VP8LProcessEncBlueAndRedFunc)(uint32_t* dst, int num_pixels);
 extern VP8LProcessEncBlueAndRedFunc VP8LSubtractGreenFromBlueAndRed;
-typedef void (*VP8LTransformColorFunc)(const VP8LMultipliers* const m,
-                                       uint32_t* dst, int num_pixels);
+typedef void (*VP8LTransformColorFunc)(
+    const VP8LMultipliers* WEBP_RESTRICT const m, uint32_t* WEBP_RESTRICT dst,
+    int num_pixels);
 extern VP8LTransformColorFunc VP8LTransformColor;
 typedef void (*VP8LCollectColorBlueTransformsFunc)(
-    const uint32_t* argb, int stride,
+    const uint32_t* WEBP_RESTRICT argb, int stride,
     int tile_width, int tile_height,
-    int green_to_blue, int red_to_blue, int histo[]);
+    int green_to_blue, int red_to_blue, uint32_t histo[]);
 extern VP8LCollectColorBlueTransformsFunc VP8LCollectColorBlueTransforms;
 
 typedef void (*VP8LCollectColorRedTransformsFunc)(
-    const uint32_t* argb, int stride,
+    const uint32_t* WEBP_RESTRICT argb, int stride,
     int tile_width, int tile_height,
-    int green_to_red, int histo[]);
+    int green_to_red, uint32_t histo[]);
 extern VP8LCollectColorRedTransformsFunc VP8LCollectColorRedTransforms;
 
 // Expose some C-only fallback functions
-void VP8LTransformColor_C(const VP8LMultipliers* const m,
-                          uint32_t* data, int num_pixels);
+void VP8LTransformColor_C(const VP8LMultipliers* WEBP_RESTRICT const m,
+                          uint32_t* WEBP_RESTRICT data, int num_pixels);
 void VP8LSubtractGreenFromBlueAndRed_C(uint32_t* argb_data, int num_pixels);
-void VP8LCollectColorRedTransforms_C(const uint32_t* argb, int stride,
+void VP8LCollectColorRedTransforms_C(const uint32_t* WEBP_RESTRICT argb,
+                                     int stride,
                                      int tile_width, int tile_height,
-                                     int green_to_red, int histo[]);
-void VP8LCollectColorBlueTransforms_C(const uint32_t* argb, int stride,
+                                     int green_to_red, uint32_t histo[]);
+void VP8LCollectColorBlueTransforms_C(const uint32_t* WEBP_RESTRICT argb,
+                                      int stride,
                                       int tile_width, int tile_height,
                                       int green_to_blue, int red_to_blue,
-                                      int histo[]);
+                                      uint32_t histo[]);
 
 extern VP8LPredictorAddSubFunc VP8LPredictorsSub[16];
 extern VP8LPredictorAddSubFunc VP8LPredictorsSub_C[16];
@@ -183,14 +186,17 @@ extern VP8LPredictorAddSubFunc VP8LPredictorsSub_C[16];
 // Huffman-cost related functions.
 
 typedef uint32_t (*VP8LCostFunc)(const uint32_t* population, int length);
-typedef uint32_t (*VP8LCostCombinedFunc)(const uint32_t* X, const uint32_t* Y,
+typedef uint32_t (*VP8LCostCombinedFunc)(const uint32_t* WEBP_RESTRICT X,
+                                         const uint32_t* WEBP_RESTRICT Y,
                                          int length);
-typedef float (*VP8LCombinedShannonEntropyFunc)(const int X[256],
-                                                const int Y[256]);
+typedef uint64_t (*VP8LCombinedShannonEntropyFunc)(const uint32_t X[256],
+                                                   const uint32_t Y[256]);
+typedef uint64_t (*VP8LShannonEntropyFunc)(const uint32_t* X, int length);
 
 extern VP8LCostFunc VP8LExtraCost;
 extern VP8LCostCombinedFunc VP8LExtraCostCombined;
 extern VP8LCombinedShannonEntropyFunc VP8LCombinedShannonEntropy;
+extern VP8LShannonEntropyFunc VP8LShannonEntropy;
 
 typedef struct {        // small struct to hold counters
   int counts[2];        // index: 0=zero streak, 1=non-zero streak
@@ -198,7 +204,7 @@ typedef struct {        // small struct to hold counters
 } VP8LStreaks;
 
 typedef struct {            // small struct to hold bit entropy results
-  float entropy;            // entropy
+  uint64_t entropy;         // entropy
   uint32_t sum;             // sum of the population
   int nonzeros;             // number of non-zero elements in the population
   uint32_t max_val;         // maximum value in the population
@@ -212,26 +218,30 @@ void VP8LBitEntropyInit(VP8LBitEntropy* const entropy);
 // codec specific heuristics.
 typedef void (*VP8LGetCombinedEntropyUnrefinedFunc)(
     const uint32_t X[], const uint32_t Y[], int length,
-    VP8LBitEntropy* const bit_entropy, VP8LStreaks* const stats);
+    VP8LBitEntropy* WEBP_RESTRICT const bit_entropy,
+    VP8LStreaks* WEBP_RESTRICT const stats);
 extern VP8LGetCombinedEntropyUnrefinedFunc VP8LGetCombinedEntropyUnrefined;
 
 // Get the entropy for the distribution 'X'.
-typedef void (*VP8LGetEntropyUnrefinedFunc)(const uint32_t X[], int length,
-                                            VP8LBitEntropy* const bit_entropy,
-                                            VP8LStreaks* const stats);
+typedef void (*VP8LGetEntropyUnrefinedFunc)(
+    const uint32_t X[], int length,
+    VP8LBitEntropy* WEBP_RESTRICT const bit_entropy,
+    VP8LStreaks* WEBP_RESTRICT const stats);
 extern VP8LGetEntropyUnrefinedFunc VP8LGetEntropyUnrefined;
 
-void VP8LBitsEntropyUnrefined(const uint32_t* const array, int n,
-                              VP8LBitEntropy* const entropy);
+void VP8LBitsEntropyUnrefined(const uint32_t* WEBP_RESTRICT const array, int n,
+                              VP8LBitEntropy* WEBP_RESTRICT const entropy);
 
-typedef void (*VP8LAddVectorFunc)(const uint32_t* a, const uint32_t* b,
-                                  uint32_t* out, int size);
+typedef void (*VP8LAddVectorFunc)(const uint32_t* WEBP_RESTRICT a,
+                                  const uint32_t* WEBP_RESTRICT b,
+                                  uint32_t* WEBP_RESTRICT out, int size);
 extern VP8LAddVectorFunc VP8LAddVector;
-typedef void (*VP8LAddVectorEqFunc)(const uint32_t* a, uint32_t* out, int size);
+typedef void (*VP8LAddVectorEqFunc)(const uint32_t* WEBP_RESTRICT a,
+                                    uint32_t* WEBP_RESTRICT out, int size);
 extern VP8LAddVectorEqFunc VP8LAddVectorEq;
-void VP8LHistogramAdd(const VP8LHistogram* const a,
-                      const VP8LHistogram* const b,
-                      VP8LHistogram* const out);
+void VP8LHistogramAdd(const VP8LHistogram* WEBP_RESTRICT const a,
+                      const VP8LHistogram* WEBP_RESTRICT const b,
+                      VP8LHistogram* WEBP_RESTRICT const out);
 
 // -----------------------------------------------------------------------------
 // PrefixEncode()
@@ -241,11 +251,12 @@ typedef int (*VP8LVectorMismatchFunc)(const uint32_t* const array1,
 // Returns the first index where array1 and array2 are different.
 extern VP8LVectorMismatchFunc VP8LVectorMismatch;
 
-typedef void (*VP8LBundleColorMapFunc)(const uint8_t* const row, int width,
-                                       int xbits, uint32_t* dst);
+typedef void (*VP8LBundleColorMapFunc)(const uint8_t* WEBP_RESTRICT const row,
+                                       int width, int xbits,
+                                       uint32_t* WEBP_RESTRICT dst);
 extern VP8LBundleColorMapFunc VP8LBundleColorMap;
-void VP8LBundleColorMap_C(const uint8_t* const row, int width, int xbits,
-                          uint32_t* dst);
+void VP8LBundleColorMap_C(const uint8_t* WEBP_RESTRICT const row,
+                          int width, int xbits, uint32_t* WEBP_RESTRICT dst);
 
 // Must be called before calling any of the above methods.
 void VP8LEncDspInit(void);

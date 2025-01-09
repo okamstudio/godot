@@ -186,7 +186,7 @@ static uint32_t Predictor13_SSE2(const uint32_t* const left,
 
 // Predictor0: ARGB_BLACK.
 static void PredictorAdd0_SSE2(const uint32_t* in, const uint32_t* upper,
-                               int num_pixels, uint32_t* out) {
+                               int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   const __m128i black = _mm_set1_epi32((int)ARGB_BLACK);
   for (i = 0; i + 4 <= num_pixels; i += 4) {
@@ -202,7 +202,7 @@ static void PredictorAdd0_SSE2(const uint32_t* in, const uint32_t* upper,
 
 // Predictor1: left.
 static void PredictorAdd1_SSE2(const uint32_t* in, const uint32_t* upper,
-                               int num_pixels, uint32_t* out) {
+                               int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   __m128i prev = _mm_set1_epi32((int)out[-1]);
   for (i = 0; i + 4 <= num_pixels; i += 4) {
@@ -230,7 +230,8 @@ static void PredictorAdd1_SSE2(const uint32_t* in, const uint32_t* upper,
 // per 8 bit channel.
 #define GENERATE_PREDICTOR_1(X, IN)                                           \
 static void PredictorAdd##X##_SSE2(const uint32_t* in, const uint32_t* upper, \
-                                  int num_pixels, uint32_t* out) {            \
+                                   int num_pixels,                            \
+                                   uint32_t* WEBP_RESTRICT out) {             \
   int i;                                                                      \
   for (i = 0; i + 4 <= num_pixels; i += 4) {                                  \
     const __m128i src = _mm_loadu_si128((const __m128i*)&in[i]);              \
@@ -259,7 +260,8 @@ GENERATE_PREDICTOR_ADD(Predictor7_SSE2, PredictorAdd7_SSE2)
 
 #define GENERATE_PREDICTOR_2(X, IN)                                           \
 static void PredictorAdd##X##_SSE2(const uint32_t* in, const uint32_t* upper, \
-                                   int num_pixels, uint32_t* out) {           \
+                                   int num_pixels,                            \
+                                   uint32_t* WEBP_RESTRICT out) {             \
   int i;                                                                      \
   for (i = 0; i + 4 <= num_pixels; i += 4) {                                  \
     const __m128i Tother = _mm_loadu_si128((const __m128i*)&(IN));            \
@@ -297,7 +299,7 @@ GENERATE_PREDICTOR_2(9, upper[i + 1])
 } while (0)
 
 static void PredictorAdd10_SSE2(const uint32_t* in, const uint32_t* upper,
-                                int num_pixels, uint32_t* out) {
+                                int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   __m128i L = _mm_cvtsi32_si128((int)out[-1]);
   for (i = 0; i + 4 <= num_pixels; i += 4) {
@@ -344,7 +346,7 @@ static void PredictorAdd10_SSE2(const uint32_t* in, const uint32_t* upper,
 } while (0)
 
 static void PredictorAdd11_SSE2(const uint32_t* in, const uint32_t* upper,
-                                int num_pixels, uint32_t* out) {
+                                int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   __m128i pa;
   __m128i L = _mm_cvtsi32_si128((int)out[-1]);
@@ -395,7 +397,7 @@ static void PredictorAdd11_SSE2(const uint32_t* in, const uint32_t* upper,
 } while (0)
 
 static void PredictorAdd12_SSE2(const uint32_t* in, const uint32_t* upper,
-                                int num_pixels, uint32_t* out) {
+                                int num_pixels, uint32_t* WEBP_RESTRICT out) {
   int i;
   const __m128i zero = _mm_setzero_si128();
   const __m128i L8 = _mm_cvtsi32_si128((int)out[-1]);
@@ -490,8 +492,8 @@ static void TransformColorInverse_SSE2(const VP8LMultipliers* const m,
 //------------------------------------------------------------------------------
 // Color-space conversion functions
 
-static void ConvertBGRAToRGB_SSE2(const uint32_t* src, int num_pixels,
-                                  uint8_t* dst) {
+static void ConvertBGRAToRGB_SSE2(const uint32_t* WEBP_RESTRICT src,
+                                  int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const __m128i* in = (const __m128i*)src;
   __m128i* out = (__m128i*)dst;
 
@@ -526,8 +528,8 @@ static void ConvertBGRAToRGB_SSE2(const uint32_t* src, int num_pixels,
   }
 }
 
-static void ConvertBGRAToRGBA_SSE2(const uint32_t* src,
-                                   int num_pixels, uint8_t* dst) {
+static void ConvertBGRAToRGBA_SSE2(const uint32_t* WEBP_RESTRICT src,
+                                   int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const __m128i red_blue_mask = _mm_set1_epi32(0x00ff00ff);
   const __m128i* in = (const __m128i*)src;
   __m128i* out = (__m128i*)dst;
@@ -554,8 +556,9 @@ static void ConvertBGRAToRGBA_SSE2(const uint32_t* src,
   }
 }
 
-static void ConvertBGRAToRGBA4444_SSE2(const uint32_t* src,
-                                       int num_pixels, uint8_t* dst) {
+static void ConvertBGRAToRGBA4444_SSE2(const uint32_t* WEBP_RESTRICT src,
+                                       int num_pixels,
+                                       uint8_t* WEBP_RESTRICT dst) {
   const __m128i mask_0x0f = _mm_set1_epi8(0x0f);
   const __m128i mask_0xf0 = _mm_set1_epi8((char)0xf0);
   const __m128i* in = (const __m128i*)src;
@@ -590,8 +593,9 @@ static void ConvertBGRAToRGBA4444_SSE2(const uint32_t* src,
   }
 }
 
-static void ConvertBGRAToRGB565_SSE2(const uint32_t* src,
-                                     int num_pixels, uint8_t* dst) {
+static void ConvertBGRAToRGB565_SSE2(const uint32_t* WEBP_RESTRICT src,
+                                     int num_pixels,
+                                     uint8_t* WEBP_RESTRICT dst) {
   const __m128i mask_0xe0 = _mm_set1_epi8((char)0xe0);
   const __m128i mask_0xf8 = _mm_set1_epi8((char)0xf8);
   const __m128i mask_0x07 = _mm_set1_epi8(0x07);
@@ -631,8 +635,8 @@ static void ConvertBGRAToRGB565_SSE2(const uint32_t* src,
   }
 }
 
-static void ConvertBGRAToBGR_SSE2(const uint32_t* src,
-                                  int num_pixels, uint8_t* dst) {
+static void ConvertBGRAToBGR_SSE2(const uint32_t* WEBP_RESTRICT src,
+                                  int num_pixels, uint8_t* WEBP_RESTRICT dst) {
   const __m128i mask_l = _mm_set_epi32(0, 0x00ffffff, 0, 0x00ffffff);
   const __m128i mask_h = _mm_set_epi32(0x00ffffff, 0, 0x00ffffff, 0);
   const __m128i* in = (const __m128i*)src;

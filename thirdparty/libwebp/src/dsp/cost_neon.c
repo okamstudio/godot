@@ -19,8 +19,8 @@
 static const uint8_t position[16] = { 1, 2,  3,  4,  5,  6,  7,  8,
                                       9, 10, 11, 12, 13, 14, 15, 16 };
 
-static void SetResidualCoeffs_NEON(const int16_t* const coeffs,
-                                   VP8Residual* const res) {
+static void SetResidualCoeffs_NEON(const int16_t* WEBP_RESTRICT const coeffs,
+                                   VP8Residual* WEBP_RESTRICT const res) {
   const int16x8_t minus_one = vdupq_n_s16(-1);
   const int16x8_t coeffs_0 = vld1q_s16(coeffs);
   const int16x8_t coeffs_1 = vld1q_s16(coeffs + 8);

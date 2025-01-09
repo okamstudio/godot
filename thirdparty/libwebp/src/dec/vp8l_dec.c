@@ -20,10 +20,9 @@
 #include "src/dsp/dsp.h"
 #include "src/dsp/lossless.h"
 #include "src/dsp/lossless_common.h"
-#include "src/dsp/yuv.h"
-#include "src/utils/endian_inl_utils.h"
 #include "src/utils/huffman_utils.h"
 #include "src/utils/utils.h"
+#include "src/webp/format_constants.h"
 
 #define NUM_ARGB_CACHE_ROWS          16
 
@@ -381,7 +380,8 @@ static int ReadHuffmanCodes(VP8LDecoder* const dec, int xsize, int ysize,
 
   if (allow_recursion && VP8LReadBits(br, 1)) {
     // use meta Huffman codes.
-    const int huffman_precision = VP8LReadBits(br, 3) + 2;
+    const int huffman_precision =
+        MIN_HUFFMAN_BITS + VP8LReadBits(br, NUM_HUFFMAN_BITS);
     const int huffman_xsize = VP8LSubSampleSize(xsize, huffman_precision);
     const int huffman_ysize = VP8LSubSampleSize(ysize, huffman_precision);
     const int huffman_pixs = huffman_xsize * huffman_ysize;
@@ -1351,7 +1351,8 @@ static int ReadTransform(int* const xsize, int const* ysize,
   switch (type) {
     case PREDICTOR_TRANSFORM:
     case CROSS_COLOR_TRANSFORM:
-      transform->bits_ = VP8LReadBits(br, 3) + 2;
+      transform->bits_ =
+          MIN_TRANSFORM_BITS + VP8LReadBits(br, NUM_TRANSFORM_BITS);
       ok = DecodeImageStream(VP8LSubSampleSize(transform->xsize_,
                                                transform->bits_),
                              VP8LSubSampleSize(transform->ysize_,
@@ -1416,7 +1417,9 @@ VP8LDecoder* VP8LNew(void) {
   return dec;
 }
 
-void VP8LClear(VP8LDecoder* const dec) {
+// Resets the decoder in its initial state, reclaiming memory.
+// Preserves the dec->status_ value.
+static void VP8LClear(VP8LDecoder* const dec) {
   int i;
   if (dec == NULL) return;
   ClearMetadata(&dec->hdr_);

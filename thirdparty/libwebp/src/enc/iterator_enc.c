@@ -13,6 +13,7 @@
 
 #include <string.h>
 
+#include "src/dsp/cpu.h"
 #include "src/enc/vp8i_enc.h"
 
 //------------------------------------------------------------------------------
@@ -54,7 +55,8 @@ void VP8IteratorSetRow(VP8EncIterator* const it, int y) {
   InitLeft(it);
 }
 
-void VP8IteratorReset(VP8EncIterator* const it) {
+// restart a scan
+static void VP8IteratorReset(VP8EncIterator* const it) {
   VP8Encoder* const enc = it->enc_;
   VP8IteratorSetRow(it, 0);
   VP8IteratorSetCountDown(it, enc->mb_w_ * enc->mb_h_);  // default
@@ -424,6 +426,15 @@ void VP8IteratorStartI4(VP8EncIterator* const it) {
       it->i4_boundary_[17 + i] = it->i4_boundary_[17 + 15];
     }
   }
+#if WEBP_AARCH64 && BPS == 32 && defined(WEBP_MSAN)
+  // Intra4Preds_NEON() reads 3 uninitialized bytes from i4_boundary_ when top
+  // is positioned at offset 29 (VP8TopLeftI4[3]). The values are not used
+  // meaningfully, but due to limitations in MemorySanitizer related to
+  // modeling of tbl instructions, a warning will be issued. This can be
+  // removed if MSan is updated to support the instructions. See
+  // https://issues.webmproject.org/372109644.
+  memset(it->i4_boundary_ + sizeof(it->i4_boundary_) - 3, 0xaa, 3);
+#endif
   VP8IteratorNzToBytes(it);  // import the non-zero context
 }
 

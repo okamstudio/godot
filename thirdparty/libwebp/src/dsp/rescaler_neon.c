@@ -45,8 +45,8 @@
 #error "MULT_FIX/WEBP_RESCALER_RFIX need some more work"
 #endif
 
-static uint32x4_t Interpolate_NEON(const rescaler_t* const frow,
-                                   const rescaler_t* const irow,
+static uint32x4_t Interpolate_NEON(const rescaler_t* WEBP_RESTRICT const frow,
+                                   const rescaler_t* WEBP_RESTRICT const irow,
                                    uint32_t A, uint32_t B) {
   LOAD_32x4(frow, A0);
   LOAD_32x4(irow, B0);

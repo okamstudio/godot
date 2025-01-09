@@ -13,8 +13,6 @@
 #include "src/enc/backward_references_enc.h"
 
 #include <assert.h>
-#include <float.h>
-#include <math.h>
 
 #include "src/dsp/dsp.h"
 #include "src/dsp/lossless.h"
@@ -26,8 +24,6 @@
 #include "src/webp/encode.h"
 
 #define MIN_BLOCK_SIZE 256  // minimum block size for backward references
-
-#define MAX_ENTROPY    (1e30f)
 
 // 1M window (4M bytes) minus 120 special codes for short distances.
 #define WINDOW_SIZE ((1 << WINDOW_SIZE_BITS) - 120)
@@ -758,7 +754,7 @@ static int CalculateBestCacheSize(const uint32_t* argb, int quality,
                                   int* const best_cache_bits) {
   int i;
   const int cache_bits_max = (quality <= 25) ? 0 : *best_cache_bits;
-  float entropy_min = MAX_ENTROPY;
+  uint64_t entropy_min = WEBP_UINT64_MAX;
   int cc_init[MAX_COLOR_CACHE_BITS + 1] = { 0 };
   VP8LColorCache hashers[MAX_COLOR_CACHE_BITS + 1];
   VP8LRefsCursor c = VP8LRefsCursorInit(refs);
@@ -843,7 +839,7 @@ static int CalculateBestCacheSize(const uint32_t* argb, int quality,
   }
 
   for (i = 0; i <= cache_bits_max; ++i) {
-    const float entropy = VP8LHistogramEstimateBits(histos[i]);
+    const uint64_t entropy = VP8LHistogramEstimateBits(histos[i]);
     if (i == 0 || entropy < entropy_min) {
       entropy_min = entropy;
       *best_cache_bits = i;
@@ -920,7 +916,7 @@ static int GetBackwardReferences(int width, int height,
   int i, lz77_type;
   // Index 0 is for a color cache, index 1 for no cache (if needed).
   int lz77_types_best[2] = {0, 0};
-  float bit_costs_best[2] = {FLT_MAX, FLT_MAX};
+  uint64_t bit_costs_best[2] = {WEBP_UINT64_MAX, WEBP_UINT64_MAX};
   VP8LHashChain hash_chain_box;
   VP8LBackwardRefs* const refs_tmp = &refs[do_no_cache ? 2 : 1];
   int status = 0;
@@ -932,7 +928,7 @@ static int GetBackwardReferences(int width, int height,
   for (lz77_type = 1; lz77_types_to_try;
        lz77_types_to_try &= ~lz77_type, lz77_type <<= 1) {
     int res = 0;
-    float bit_cost = 0.f;
+    uint64_t bit_cost = 0u;
     if ((lz77_types_to_try & lz77_type) == 0) continue;
     switch (lz77_type) {
       case kLZ77RLE:
@@ -1006,7 +1002,7 @@ static int GetBackwardReferences(int width, int height,
       const VP8LHashChain* const hash_chain_tmp =
           (lz77_types_best[i] == kLZ77Standard) ? hash_chain : &hash_chain_box;
       const int cache_bits = (i == 1) ? 0 : *cache_bits_best;
-      float bit_cost_trace;
+      uint64_t bit_cost_trace;
       if (!VP8LBackwardReferencesTraceBackwards(width, height, argb, cache_bits,
                                                 hash_chain_tmp, &refs[i],
                                                 refs_tmp)) {

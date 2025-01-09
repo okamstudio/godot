@@ -124,7 +124,8 @@ int32_t VP8GetSignedValue(VP8BitReader* const br, int bits,
 
 #if defined(__arm__) || defined(_M_ARM) || WEBP_AARCH64 || \
     defined(__i386__) || defined(_M_IX86) || \
-    defined(__x86_64__) || defined(_M_X64)
+    defined(__x86_64__) || defined(_M_X64) || \
+    defined(__wasm__)
 #define VP8L_USE_FAST_LOAD
 #endif
 

@@ -21,7 +21,8 @@
 
 static WEBP_INLINE void PredictLineInverse0(const uint8_t* src,
                                             const uint8_t* pred,
-                                            uint8_t* dst, int length) {
+                                            uint8_t* WEBP_RESTRICT dst,
+                                            int length) {
   v16u8 src0, pred0, dst0;
   assert(length >= 0);
   while (length >= 32) {
@@ -58,8 +59,9 @@ static WEBP_INLINE void PredictLineInverse0(const uint8_t* src,
 
 #define DCHECK(in, out)        \
   do {                         \
-    assert(in != NULL);        \
-    assert(out != NULL);       \
+    assert((in) != NULL);      \
+    assert((out) != NULL);     \
+    assert((in) != (out));     \
     assert(width > 0);         \
     assert(height > 0);        \
     assert(stride >= width);   \
@@ -68,8 +70,9 @@ static WEBP_INLINE void PredictLineInverse0(const uint8_t* src,
 //------------------------------------------------------------------------------
 // Horrizontal filter
 
-static void HorizontalFilter_MSA(const uint8_t* data, int width, int height,
-                                 int stride, uint8_t* filtered_data) {
+static void HorizontalFilter_MSA(const uint8_t* WEBP_RESTRICT data,
+                                 int width, int height, int stride,
+                                 uint8_t* WEBP_RESTRICT filtered_data) {
   const uint8_t* preds = data;
   const uint8_t* in = data;
   uint8_t* out = filtered_data;
@@ -99,8 +102,8 @@ static void HorizontalFilter_MSA(const uint8_t* data, int width, int height,
 
 static WEBP_INLINE void PredictLineGradient(const uint8_t* pinput,
                                             const uint8_t* ppred,
-                                            uint8_t* poutput, int stride,
-                                            int size) {
+                                            uint8_t* WEBP_RESTRICT poutput,
+                                            int stride, int size) {
   int w;
   const v16i8 zero = { 0 };
   while (size >= 16) {
@@ -131,8 +134,9 @@ static WEBP_INLINE void PredictLineGradient(const uint8_t* pinput,
 }
 
 
-static void GradientFilter_MSA(const uint8_t* data, int width, int height,
-                               int stride, uint8_t* filtered_data) {
+static void GradientFilter_MSA(const uint8_t* WEBP_RESTRICT data,
+                               int width, int height, int stride,
+                               uint8_t* WEBP_RESTRICT filtered_data) {
   const uint8_t* in = data;
   const uint8_t* preds = data;
   uint8_t* out = filtered_data;
@@ -159,8 +163,9 @@ static void GradientFilter_MSA(const uint8_t* data, int width, int height,
 //------------------------------------------------------------------------------
 // Vertical filter
 
-static void VerticalFilter_MSA(const uint8_t* data, int width, int height,
-                               int stride, uint8_t* filtered_data) {
+static void VerticalFilter_MSA(const uint8_t* WEBP_RESTRICT data,
+                               int width, int height, int stride,
+                               uint8_t* WEBP_RESTRICT filtered_data) {
   const uint8_t* in = data;
   const uint8_t* preds = data;
   uint8_t* out = filtered_data;

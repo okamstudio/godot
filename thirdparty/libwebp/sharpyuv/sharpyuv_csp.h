@@ -41,10 +41,15 @@ SHARPYUV_EXTERN void SharpYuvComputeConversionMatrix(
 
 // Enums for precomputed conversion matrices.
 typedef enum {
+  // WebP's matrix, similar but not identical to kSharpYuvMatrixRec601Limited
   kSharpYuvMatrixWebp = 0,
+  // Kr=0.2990f Kb=0.1140f bit_depth=8 range=kSharpYuvRangeLimited
   kSharpYuvMatrixRec601Limited,
+  // Kr=0.2990f Kb=0.1140f bit_depth=8 range=kSharpYuvRangeFull
   kSharpYuvMatrixRec601Full,
+  // Kr=0.2126f Kb=0.0722f bit_depth=8 range=kSharpYuvRangeLimited
   kSharpYuvMatrixRec709Limited,
+  // Kr=0.2126f Kb=0.0722f bit_depth=8 range=kSharpYuvRangeFull
   kSharpYuvMatrixRec709Full,
   kSharpYuvMatrixNum
 } SharpYuvMatrixType;

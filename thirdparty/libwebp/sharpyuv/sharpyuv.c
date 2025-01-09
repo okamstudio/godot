@@ -565,10 +565,11 @@ int SharpYuvConvertWithOptions(const void* r_ptr, const void* g_ptr,
   scaled_matrix.rgb_to_u[3] = Shift(yuv_matrix->rgb_to_u[3], sfix);
   scaled_matrix.rgb_to_v[3] = Shift(yuv_matrix->rgb_to_v[3], sfix);
 
-  return DoSharpArgbToYuv(r_ptr, g_ptr, b_ptr, rgb_step, rgb_stride,
-                          rgb_bit_depth, y_ptr, y_stride, u_ptr, u_stride,
-                          v_ptr, v_stride, yuv_bit_depth, width, height,
-                          &scaled_matrix, transfer_type);
+  return DoSharpArgbToYuv(
+      (const uint8_t*)r_ptr, (const uint8_t*)g_ptr, (const uint8_t*)b_ptr,
+      rgb_step, rgb_stride, rgb_bit_depth, (uint8_t*)y_ptr, y_stride,
+      (uint8_t*)u_ptr, u_stride, (uint8_t*)v_ptr, v_stride, yuv_bit_depth,
+      width, height, &scaled_matrix, transfer_type);
 }
 
 //------------------------------------------------------------------------------

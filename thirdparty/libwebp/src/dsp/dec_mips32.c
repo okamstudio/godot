@@ -133,26 +133,26 @@ static void HFilter16(uint8_t* p, int stride,
 }
 
 // 8-pixels wide variant, for chroma filtering
-static void VFilter8(uint8_t* u, uint8_t* v, int stride,
-                     int thresh, int ithresh, int hev_thresh) {
+static void VFilter8(uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
+                     int stride, int thresh, int ithresh, int hev_thresh) {
   FilterLoop26(u, stride, 1, 8, thresh, ithresh, hev_thresh);
   FilterLoop26(v, stride, 1, 8, thresh, ithresh, hev_thresh);
 }
 
-static void HFilter8(uint8_t* u, uint8_t* v, int stride,
-                     int thresh, int ithresh, int hev_thresh) {
+static void HFilter8(uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
+                     int stride, int thresh, int ithresh, int hev_thresh) {
   FilterLoop26(u, 1, stride, 8, thresh, ithresh, hev_thresh);
   FilterLoop26(v, 1, stride, 8, thresh, ithresh, hev_thresh);
 }
 
-static void VFilter8i(uint8_t* u, uint8_t* v, int stride,
-                      int thresh, int ithresh, int hev_thresh) {
+static void VFilter8i(uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
+                      int stride, int thresh, int ithresh, int hev_thresh) {
   FilterLoop24(u + 4 * stride, stride, 1, 8, thresh, ithresh, hev_thresh);
   FilterLoop24(v + 4 * stride, stride, 1, 8, thresh, ithresh, hev_thresh);
 }
 
-static void HFilter8i(uint8_t* u, uint8_t* v, int stride,
-                      int thresh, int ithresh, int hev_thresh) {
+static void HFilter8i(uint8_t* WEBP_RESTRICT u, uint8_t* WEBP_RESTRICT v,
+                      int stride, int thresh, int ithresh, int hev_thresh) {
   FilterLoop24(u + 4, 1, stride, 8, thresh, ithresh, hev_thresh);
   FilterLoop24(v + 4, 1, stride, 8, thresh, ithresh, hev_thresh);
 }
@@ -215,7 +215,8 @@ static void SimpleHFilter16i(uint8_t* p, int stride, int thresh) {
   }
 }
 
-static void TransformOne(const int16_t* in, uint8_t* dst) {
+static void TransformOne(const int16_t* WEBP_RESTRICT in,
+                         uint8_t* WEBP_RESTRICT dst) {
   int temp0, temp1, temp2, temp3, temp4;
   int temp5, temp6, temp7, temp8, temp9;
   int temp10, temp11, temp12, temp13, temp14;
@@ -532,7 +533,8 @@ static void TransformOne(const int16_t* in, uint8_t* dst) {
   );
 }
 
-static void TransformTwo(const int16_t* in, uint8_t* dst, int do_two) {
+static void TransformTwo(const int16_t* WEBP_RESTRICT in,
+                         uint8_t* WEBP_RESTRICT dst, int do_two) {
   TransformOne(in, dst);
   if (do_two) {
     TransformOne(in + 16, dst + 4);

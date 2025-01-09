@@ -21,8 +21,8 @@
 //------------------------------------------------------------------------------
 // Row import
 
-static void ImportRowShrink_MIPS32(WebPRescaler* const wrk,
-                                   const uint8_t* src) {
+static void ImportRowShrink_MIPS32(WebPRescaler* WEBP_RESTRICT const wrk,
+                                   const uint8_t* WEBP_RESTRICT src) {
   const int x_stride = wrk->num_channels;
   const int x_out_max = wrk->dst_width * wrk->num_channels;
   const int fx_scale = wrk->fx_scale;
@@ -81,8 +81,8 @@ static void ImportRowShrink_MIPS32(WebPRescaler* const wrk,
   }
 }
 
-static void ImportRowExpand_MIPS32(WebPRescaler* const wrk,
-                                   const uint8_t* src) {
+static void ImportRowExpand_MIPS32(WebPRescaler* WEBP_RESTRICT const wrk,
+                                   const uint8_t* WEBP_RESTRICT src) {
   const int x_stride = wrk->num_channels;
   const int x_out_max = wrk->dst_width * wrk->num_channels;
   const int x_add = wrk->x_add;

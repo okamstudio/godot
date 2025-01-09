@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define WEBP_ENCODER_ABI_VERSION 0x020f    // MAJOR(8b) + MINOR(8b)
+#define WEBP_ENCODER_ABI_VERSION 0x0210  // MAJOR(8b) + MINOR(8b)
 
 // Note: forward declaring enumerations is not allowed in (strict) C and C++,
 // the types are left here for reference.
@@ -145,7 +145,7 @@ struct WebPConfig {
                           // RGB information for better compression. The default
                           // value is 0.
 
-  int use_delta_palette;  // reserved for future lossless feature
+  int use_delta_palette;  // reserved
   int use_sharp_yuv;      // if needed, use sharp (and slow) RGB->YUV conversion
 
   int qmin;               // minimum permissible quality factor
@@ -224,14 +224,15 @@ struct WebPAuxStats {
   uint32_t lossless_features;  // bit0:predictor bit1:cross-color transform
                                // bit2:subtract-green bit3:color indexing
   int histogram_bits;          // number of precision bits of histogram
-  int transform_bits;          // precision bits for transform
+  int transform_bits;          // precision bits for predictor transform
   int cache_bits;              // number of bits for color cache lookup
   int palette_size;            // number of color in palette, if used
   int lossless_size;           // final lossless size
   int lossless_hdr_size;       // lossless header (transform, huffman etc) size
   int lossless_data_size;      // lossless image data size
+  int cross_color_transform_bits;  // precision bits for cross-color transform
 
-  uint32_t pad[2];        // padding for later use
+  uint32_t pad[1];  // padding for later use
 };
 
 // Signature for output function. Should return true if writing was successful.

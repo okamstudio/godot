@@ -48,8 +48,8 @@
   dst = VSHF_UB(src, t0, mask1);                                \
 } while (0)
 
-static void TransformColor_MSA(const VP8LMultipliers* const m, uint32_t* data,
-                               int num_pixels) {
+static void TransformColor_MSA(const VP8LMultipliers* WEBP_RESTRICT const m,
+                               uint32_t* WEBP_RESTRICT data, int num_pixels) {
   v16u8 src0, dst0;
   const v16i8 g2br = (v16i8)__msa_fill_w(m->green_to_blue_ |
                                          (m->green_to_red_ << 16));
