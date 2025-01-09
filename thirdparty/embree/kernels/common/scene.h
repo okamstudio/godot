@@ -206,6 +206,10 @@ namespace embree
       modified = f; 
     }
 
+    __forceinline bool hasMotionBlur() const { return maxTimeSegments > 1; };
+
+    __forceinline uint32_t getMaxTimeSegments() const { return maxTimeSegments; };
+
     __forceinline bool isGeometryModified(size_t geomID)
     {
       Ref<Geometry>& g = geometries[geomID];
@@ -293,11 +297,18 @@ namespace embree
 #if defined(EMBREE_SYCL_SUPPORT)
   public:
     BBox3f hwaccel_bounds = empty;
-    AccelBuffer hwaccel;
+    AccelBuffer hwaccel;   // the buffer containing the HW acceleration structures corresponding to the scene. One for each time segment, stored in a contiguous chunk of memory.
+    size_t hwaccel_stride; // the stride between two HW acceleration structures for different time segments stored in hwaccel.
+
+    __forceinline char* getHWAccel(uint32_t time_segment) const {
+      char* ptr = (char*)hwaccel.data() + time_segment * hwaccel_stride;
+      return ptr;
+    }
 #endif
     
   private:
-    bool modified;                   //!< true if scene got modified
+    bool modified;            //!< true if scene got modified
+    uint32_t maxTimeSegments; //!< maximal number of motion blur time segments in scene
 
   public:
 

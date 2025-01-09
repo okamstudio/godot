@@ -229,6 +229,7 @@ namespace embree
 #endif
     std::cout << std::endl;
 
+#if defined(__X86_64__)
     /* check of FTZ and DAZ flags are set in CSR */
     if (!hasFTZ || !hasDAZ) 
     {
@@ -252,57 +253,68 @@ namespace embree
         std::cout << std::endl;
       }
     }
+#endif
     std::cout << std::endl;
   }
 
-  void Device::setDeviceErrorCode(RTCError error)
+  void Device::setDeviceErrorCode(RTCError error, std::string const& msg)
   {
-    RTCError* stored_error = errorHandler.error();
-    if (*stored_error == RTC_ERROR_NONE)
-      *stored_error = error;
+    RTCErrorMessage* stored_error = errorHandler.error();
+    if (stored_error->error == RTC_ERROR_NONE) {
+      stored_error->error = error;
+      if (msg != "")
+        stored_error->msg = msg;
+    }
   }
 
   RTCError Device::getDeviceErrorCode()
   {
-    RTCError* stored_error = errorHandler.error();
-    RTCError error = *stored_error;
-    *stored_error = RTC_ERROR_NONE;
-    return error;
+    RTCErrorMessage* stored_error = errorHandler.error();
+    RTCErrorMessage error = *stored_error;
+    stored_error->error = RTC_ERROR_NONE;
+    return error.error;
   }
 
-  void Device::setThreadErrorCode(RTCError error)
+  const char* Device::getDeviceLastErrorMessage()
   {
-    RTCError* stored_error = g_errorHandler.error();
-    if (*stored_error == RTC_ERROR_NONE)
-      *stored_error = error;
+    RTCErrorMessage* stored_error = errorHandler.error();
+    return stored_error->msg.c_str();
+  }
+
+  void Device::setThreadErrorCode(RTCError error, std::string const& msg)
+  {
+    RTCErrorMessage* stored_error = g_errorHandler.error();
+    if (stored_error->error == RTC_ERROR_NONE) {
+      stored_error->error = error;
+      if (msg != "")
+        stored_error->msg = msg;
+    }
   }
 
   RTCError Device::getThreadErrorCode()
   {
-    RTCError* stored_error = g_errorHandler.error();
-    RTCError error = *stored_error;
-    *stored_error = RTC_ERROR_NONE;
-    return error;
+    RTCErrorMessage* stored_error = g_errorHandler.error();
+    RTCErrorMessage error = *stored_error;
+    stored_error->error = RTC_ERROR_NONE;
+    return error.error;
+  }
+
+  const char* Device::getThreadLastErrorMessage()
+  {
+    RTCErrorMessage* stored_error = g_errorHandler.error();
+    return stored_error->msg.c_str();
   }
 
   void Device::process_error(Device* device, RTCError error, const char* str)
-  { 
+  {
     /* store global error code when device construction failed */
     if (!device)
-      return setThreadErrorCode(error);
+      return setThreadErrorCode(error, str ? std::string(str) : std::string());
 
     /* print error when in verbose mode */
-    if (device->verbosity(1)) 
+    if (device->verbosity(1))
     {
-      switch (error) {
-      case RTC_ERROR_NONE         : std::cerr << "Embree: No error"; break;
-      case RTC_ERROR_UNKNOWN    : std::cerr << "Embree: Unknown error"; break;
-      case RTC_ERROR_INVALID_ARGUMENT : std::cerr << "Embree: Invalid argument"; break;
-      case RTC_ERROR_INVALID_OPERATION: std::cerr << "Embree: Invalid operation"; break;
-      case RTC_ERROR_OUT_OF_MEMORY    : std::cerr << "Embree: Out of memory"; break;
-      case RTC_ERROR_UNSUPPORTED_CPU  : std::cerr << "Embree: Unsupported CPU"; break;
-      default                   : std::cerr << "Embree: Invalid error code"; break;                   
-      };
+      std::cerr << "Embree: " << getErrorString(error);
       if (str) std::cerr << ", (" << str << ")";
       std::cerr << std::endl;
     }
@@ -312,7 +324,7 @@ namespace embree
       device->error_function(device->error_function_userptr,error,str); 
 
     /* record error code */
-    device->setDeviceErrorCode(error);
+    device->setDeviceErrorCode(error, str ? std::string(str) : std::string());
   }
 
   void Device::memoryMonitor(ssize_t bytes, bool post)
@@ -570,6 +582,22 @@ namespace embree
     case RTC_DEVICE_PROPERTY_PARALLEL_COMMIT_SUPPORTED: return 0;
 #endif
 
+#if defined(EMBREE_SYCL_SUPPORT)
+    case RTC_DEVICE_PROPERTY_CPU_DEVICE:  {
+      if (!dynamic_cast<DeviceGPU*>(this))
+        return 1;
+      return 0;
+    };
+    case RTC_DEVICE_PROPERTY_SYCL_DEVICE: {
+      if (!dynamic_cast<DeviceGPU*>(this))
+        return 0;
+      return 1;
+    };
+#else
+    case RTC_DEVICE_PROPERTY_CPU_DEVICE:  return 1;
+    case RTC_DEVICE_PROPERTY_SYCL_DEVICE: return 0;
+#endif
+
     default: throw_RTCError(RTC_ERROR_INVALID_ARGUMENT, "unknown readable property"); break;
     };
   }
@@ -582,6 +610,23 @@ namespace embree
     alignedFree(ptr);
   }
 
+  const std::vector<std::string> Device::error_strings = {
+    "No Error",
+    "Unknown error",
+    "Invalid argument",
+    "Invalid operation",
+    "Out of Memory",
+    "Unsupported CPU",
+    "Build cancelled",
+    "Level Zero raytracing support missing"
+  };
+
+  const char* Device::getErrorString(RTCError error) {
+    if (error >= 0 && error < error_strings.size()) {
+      return error_strings.at(error).c_str();
+    }
+    return "Invalid error code";
+  }
 
 #if defined(EMBREE_SYCL_SUPPORT)
 
@@ -621,11 +666,12 @@ namespace embree
         ze_rtas_builder = true;
     }
     if (!ze_rtas_builder)
-      throw_RTCError(RTC_ERROR_UNKNOWN, "ZE_experimental_rtas_builder extension not found");
+      throw_RTCError(RTC_ERROR_LEVEL_ZERO_RAYTRACING_SUPPORT_MISSING, "ZE_experimental_rtas_builder extension not found. Please install a recent driver. On Linux, make sure that the package intel-level-zero-gpu-raytracing is installed");
 
     result = ZeWrapper::initRTASBuilder(hDriver,ZeWrapper::LEVEL_ZERO);
-    if (result == ZE_RESULT_ERROR_DEPENDENCY_UNAVAILABLE)
-      throw_RTCError(RTC_ERROR_UNKNOWN, "cannot load ZE_experimental_rtas_builder extension");
+    if (result == ZE_RESULT_ERROR_DEPENDENCY_UNAVAILABLE) {
+      throw_RTCError(RTC_ERROR_LEVEL_ZERO_RAYTRACING_SUPPORT_MISSING, "cannot load ZE_experimental_rtas_builder extension. Please install a recent driver. On Linux, make sure that the package intel-level-zero-gpu-raytracing is installed");
+    }
     if (result != ZE_RESULT_SUCCESS)
       throw_RTCError(RTC_ERROR_UNKNOWN, "cannot initialize ZE_experimental_rtas_builder extension");
 #else

@@ -66,7 +66,10 @@ enum RTCDeviceProperty
 
   RTC_DEVICE_PROPERTY_TASKING_SYSTEM        = 128,
   RTC_DEVICE_PROPERTY_JOIN_COMMIT_SUPPORTED = 129,
-  RTC_DEVICE_PROPERTY_PARALLEL_COMMIT_SUPPORTED = 130
+  RTC_DEVICE_PROPERTY_PARALLEL_COMMIT_SUPPORTED = 130,
+
+  RTC_DEVICE_PROPERTY_CPU_DEVICE  = 140,
+  RTC_DEVICE_PROPERTY_SYCL_DEVICE = 141
 };
 
 /* Gets a device property. */
@@ -78,17 +81,26 @@ RTC_API void rtcSetDeviceProperty(RTCDevice device, const enum RTCDeviceProperty
 /* Error codes */
 enum RTCError
 {
-  RTC_ERROR_NONE              = 0,
-  RTC_ERROR_UNKNOWN           = 1,
-  RTC_ERROR_INVALID_ARGUMENT  = 2,
-  RTC_ERROR_INVALID_OPERATION = 3,
-  RTC_ERROR_OUT_OF_MEMORY     = 4,
-  RTC_ERROR_UNSUPPORTED_CPU   = 5,
-  RTC_ERROR_CANCELLED         = 6,
+  RTC_ERROR_NONE                                  = 0,
+  RTC_ERROR_UNKNOWN                               = 1,
+  RTC_ERROR_INVALID_ARGUMENT                      = 2,
+  RTC_ERROR_INVALID_OPERATION                     = 3,
+  RTC_ERROR_OUT_OF_MEMORY                         = 4,
+  RTC_ERROR_UNSUPPORTED_CPU                       = 5,
+  RTC_ERROR_CANCELLED                             = 6,
+  RTC_ERROR_LEVEL_ZERO_RAYTRACING_SUPPORT_MISSING = 7,
 };
+
+/* Returns the string representation for the error code. For example, for RTC_ERROR_UNKNOWN the string "RTC_ERROR_UNKNOWN" will be returned. */
+RTC_API const char* rtcGetErrorString(enum RTCError error);
 
 /* Returns the error code. */
 RTC_API enum RTCError rtcGetDeviceError(RTCDevice device);
+
+/* Returns a message corresponding to the last error code (returned by rtcGetDeviceError) which provides details about the error that happened.
+   The same message will be written to console when verbosity is > 0 or when an error callback function is set for the device.
+   However, when device creation itself fails this is the only way to get additional information about the error. */
+RTC_API const char* rtcGetDeviceLastErrorMessage(RTCDevice device);
 
 /* Error callback function */
 typedef void (*RTCErrorFunction)(void* userPtr, enum RTCError code, const char* str);

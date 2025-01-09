@@ -95,8 +95,8 @@ namespace embree
   __forceinline Vec2fa abs  ( const Vec2fa& a ) { return Vec2fa(sycl::fabs(a.x),sycl::fabs(a.y)); }
   __forceinline Vec2fa sign ( const Vec2fa& a ) { return Vec2fa(sycl::sign(a.x),sycl::sign(a.y)); }
 
-   //__forceinline Vec2fa rcp  ( const Vec2fa& a ) { return Vec2fa(sycl::recip(a.x),sycl::recip(a.y)); }
-  __forceinline Vec2fa rcp  ( const Vec2fa& a ) { return Vec2fa(__sycl_std::__invoke_native_recip<float>(a.x),__sycl_std::__invoke_native_recip<float>(a.y)); }
+   //__forceinline Vec2fa rcp  ( const Vec2fa& a ) { return Vec2fa(sycl::native::recip(a.x),sycl::native::recip(a.y)); }
+  __forceinline Vec2fa rcp  ( const Vec2fa& a ) { return Vec2fa(sycl::native::recip(a.x),sycl::native::recip(a.y)); }
   __forceinline Vec2fa sqrt ( const Vec2fa& a ) { return Vec2fa(sycl::sqrt(a.x),sycl::sqrt(a.y)); }
   __forceinline Vec2fa sqr  ( const Vec2fa& a ) { return Vec2fa(a.x*a.x,a.y*a.y); }
   

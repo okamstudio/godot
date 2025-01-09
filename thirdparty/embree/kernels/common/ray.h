@@ -143,7 +143,7 @@ namespace embree
       vbool<K> valid = valid0 & geomID != vuint<K>(RTC_INVALID_GEOMETRY_ID);
       const vbool<K> vt = (abs(tfar) <= vfloat<K>(FLT_LARGE)) | (tfar == vfloat<K>(neg_inf));
       const vbool<K> vu = (abs(u) <= vfloat<K>(FLT_LARGE));
-      const vbool<K> vv = (abs(u) <= vfloat<K>(FLT_LARGE));
+      const vbool<K> vv = (abs(v) <= vfloat<K>(FLT_LARGE));
       const vbool<K> vnx = abs(Ng.x) <= vfloat<K>(FLT_LARGE);
       const vbool<K> vny = abs(Ng.y) <= vfloat<K>(FLT_LARGE);
       const vbool<K> vnz = abs(Ng.z) <= vfloat<K>(FLT_LARGE);
