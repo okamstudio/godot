@@ -198,6 +198,7 @@ private:
 
 	/* Code Hint */
 	String code_hint = "";
+	Control *code_hint_custom_control = nullptr;
 
 	bool code_hint_draw_below = true;
 	int code_hint_xpos = -0xFFFF;
@@ -467,6 +468,7 @@ public:
 
 	/* Code hint */
 	void set_code_hint(const String &p_hint);
+	void set_code_hint_custom_control(Control *p_control);
 	void set_code_hint_draw_below(bool p_below);
 
 	/* Code Completion */
