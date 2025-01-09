@@ -409,6 +409,25 @@ Transform3D WebXRInterfaceJS::_js_matrix_to_transform(float *p_js_matrix) {
 	return transform;
 }
 
+void WebXRInterfaceJS::_transform_to_js_matrix(const Transform3D &p_transform, float *r_js_matrix) {
+	r_js_matrix[0] = p_transform.basis.rows[0].x;
+	r_js_matrix[1] = p_transform.basis.rows[1].x;
+	r_js_matrix[2] = p_transform.basis.rows[2].x;
+	r_js_matrix[3] = 0.0;
+	r_js_matrix[4] = p_transform.basis.rows[0].y;
+	r_js_matrix[5] = p_transform.basis.rows[1].y;
+	r_js_matrix[6] = p_transform.basis.rows[2].y;
+	r_js_matrix[7] = 0.0;
+	r_js_matrix[8] = p_transform.basis.rows[0].z;
+	r_js_matrix[9] = p_transform.basis.rows[1].z;
+	r_js_matrix[10] = p_transform.basis.rows[2].z;
+	r_js_matrix[11] = 0.0;
+	r_js_matrix[12] = p_transform.origin.x;
+	r_js_matrix[13] = p_transform.origin.y;
+	r_js_matrix[14] = p_transform.origin.z;
+	r_js_matrix[15] = 0.0;
+}
+
 Size2 WebXRInterfaceJS::get_render_target_size() {
 	if (render_targetsize.width != 0 && render_targetsize.height != 0) {
 		return render_targetsize;
@@ -500,6 +519,8 @@ bool WebXRInterfaceJS::pre_draw_viewport(RID p_render_target) {
 	// Cache the resources so we don't have to get them from JS twice.
 	color_texture = _get_color_texture();
 	depth_texture = _get_depth_texture();
+	velocity_texture = _get_velocity_texture();
+	velocity_depth_texture = _get_velocity_depth_texture();
 
 	// Per the WebXR spec, it returns "opaque textures" to us, which may be the
 	// same WebGLTexture object (which would be the same GLuint in C++) but
@@ -547,6 +568,24 @@ RID WebXRInterfaceJS::_get_depth_texture() {
 	return _get_texture(texture_id);
 }
 
+RID WebXRInterfaceJS::_get_velocity_texture() {
+	unsigned int texture_id = godot_webxr_get_velocity_texture();
+	if (texture_id == 0) {
+		return RID();
+	}
+
+	return _get_texture(texture_id);
+}
+
+RID WebXRInterfaceJS::_get_velocity_depth_texture() {
+	unsigned int texture_id = godot_webxr_get_velocity_depth_texture();
+	if (texture_id == 0) {
+		return RID();
+	}
+
+	return _get_texture(texture_id);
+}
+
 RID WebXRInterfaceJS::_get_texture(unsigned int p_texture_id) {
 	RBMap<unsigned int, RID>::Element *cache = texture_cache.find(p_texture_id);
 	if (cache != nullptr) {
@@ -584,12 +623,27 @@ RID WebXRInterfaceJS::get_depth_texture() {
 }
 
 RID WebXRInterfaceJS::get_velocity_texture() {
-	unsigned int texture_id = godot_webxr_get_velocity_texture();
-	if (texture_id == 0) {
-		return RID();
+	return velocity_texture;
+}
+
+RID WebXRInterfaceJS::get_velocity_depth_texture() {
+	return velocity_depth_texture;
+}
+
+Size2i WebXRInterfaceJS::get_velocity_target_size() {
+	if (motion_vector_targetsize.width != 0 && motion_vector_targetsize.height != 0) {
+		return motion_vector_targetsize;
 	}
 
-	return _get_texture(texture_id);
+	int js_size[2];
+	bool has_size = godot_webxr_get_motion_vector_target_size(js_size);
+
+	if (has_size) {
+		motion_vector_targetsize.width = js_size[0];
+		motion_vector_targetsize.height = js_size[1];
+	}
+
+	return motion_vector_targetsize;
 }
 
 void WebXRInterfaceJS::process() {
@@ -608,6 +662,23 @@ void WebXRInterfaceJS::process() {
 			_update_input_source(i);
 		}
 	};
+}
+
+void WebXRInterfaceJS::pre_render() {
+	if (initialized) {
+		XRServer *xr_server = XRServer::get_singleton();
+		ERR_FAIL_NULL(xr_server);
+
+		Transform3D world_transform = xr_server->get_world_origin();
+		Transform3D delta_transform = previous_world_transform.affine_inverse() * world_transform;
+
+		// Convert to JS matrix and pass into WebXR.
+		float js_transform[16];
+		_transform_to_js_matrix(delta_transform, js_transform);
+		godot_webxr_set_delta_pose(js_transform);
+
+		previous_world_transform = world_transform;
+	}
 }
 
 void WebXRInterfaceJS::_update_input_source(int p_input_source_id) {

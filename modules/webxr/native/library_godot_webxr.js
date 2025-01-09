@@ -44,6 +44,9 @@ const GodotWebXR = {
 		touches: new Array(5),
 		onsimpleevent: null,
 
+		required_features: [],
+		optional_features: [],
+
 		// Monkey-patch the requestAnimationFrame() used by Emscripten for the main
 		// loop, so that we can swap it out for XRSession.requestAnimationFrame()
 		// when an XR session is started.
@@ -84,8 +87,12 @@ const GodotWebXR = {
 			}, 0);
 		},
 
+		getDefaultViewCount: () =>
+			// If we don't know the view count yet, we default to 1, unless space-warp was requested, in which case we default to 2.
+			GodotWebXR.required_features.includes('space-warp') || GodotWebXR.optional_features.includes('space-warp') ? 2 : 1,
+
 		getLayer: () => {
-			const new_view_count = (GodotWebXR.pose) ? GodotWebXR.pose.views.length : 1;
+			const new_view_count = (GodotWebXR.pose) ? GodotWebXR.pose.views.length : GodotWebXR.getDefaultViewCount();
 			let layer = GodotWebXR.layer;
 
 			// If the view count hasn't changed since creating this layer, then
@@ -239,8 +246,8 @@ const GodotWebXR = {
 		GodotWebXR.monkeyPatchRequestAnimationFrame(true);
 
 		const session_mode = GodotRuntime.parseString(p_session_mode);
-		const required_features = GodotRuntime.parseString(p_required_features).split(',').map((s) => s.trim()).filter((s) => s !== '');
-		const optional_features = GodotRuntime.parseString(p_optional_features).split(',').map((s) => s.trim()).filter((s) => s !== '');
+		GodotWebXR.required_features = GodotRuntime.parseString(p_required_features).split(',').map((s) => s.trim()).filter((s) => s !== '');
+		GodotWebXR.optional_features = GodotRuntime.parseString(p_optional_features).split(',').map((s) => s.trim()).filter((s) => s !== '');
 		const requested_reference_space_types = GodotRuntime.parseString(p_requested_reference_spaces).split(',').map((s) => s.trim());
 		const onstarted = GodotRuntime.get_func(p_on_session_started);
 		const onended = GodotRuntime.get_func(p_on_session_ended);
@@ -249,11 +256,11 @@ const GodotWebXR = {
 		const onsimpleevent = GodotRuntime.get_func(p_on_simple_event);
 
 		const session_init = {};
-		if (required_features.length > 0) {
-			session_init['requiredFeatures'] = required_features;
+		if (GodotWebXR.required_features.length > 0) {
+			session_init['requiredFeatures'] = GodotWebXR.required_features;
 		}
-		if (optional_features.length > 0) {
-			session_init['optionalFeatures'] = optional_features;
+		if (GodotWebXR.optional_features.length > 0) {
+			session_init['optionalFeatures'] = GodotWebXR.optional_features;
 		}
 
 		navigator.xr.requestSession(session_mode, session_init).then(function (session) {
@@ -466,7 +473,9 @@ const GodotWebXR = {
 		if (subimage === null) {
 			return 0;
 		}
-		if (!subimage.depthStencilTexture) {
+		// If subimage.motionVectorTexture exists, then we use this depth texture for motion vectors,
+		// rather than for the color pass - so in that case return 0.
+		if (!subimage.depthStencilTexture || subimage.motionVectorTexture) {
 			return 0;
 		}
 		return GodotWebXR.getTextureId(subimage.depthStencilTexture);
@@ -483,6 +492,58 @@ const GodotWebXR = {
 			return 0;
 		}
 		return GodotWebXR.getTextureId(subimage.motionVectorTexture);
+	},
+
+	godot_webxr_get_velocity_depth_texture__proxy: 'sync',
+	godot_webxr_get_velocity_depth_texture__sig: 'i',
+	godot_webxr_get_velocity_depth_texture: function () {
+		const subimage = GodotWebXR.getSubImage();
+		if (subimage === null) {
+			return 0;
+		}
+		// This is only used for motion vectors, if subimage.motionVectorTexture exists.
+		if (!subimage.motionVectorTexture || !subimage.depthStencilTexture) {
+			return 0;
+		}
+		return GodotWebXR.getTextureId(subimage.depthStencilTexture);
+	},
+
+	godot_webxr_get_motion_vector_target_size__proxy: 'sync',
+	godot_webxr_get_motion_vector_target_size__sig: 'ii',
+	godot_webxr_get_motion_vector_target_size: function (r_size) {
+		const subimage = GodotWebXR.getSubImage();
+		if (subimage === null) {
+			return false;
+		}
+
+		if (!subimage.motionVectorTextureWidth || !subimage.motionVectorTextureHeight) {
+			return false;
+		}
+
+		GodotRuntime.setHeapValue(r_size + 0, subimage.motionVectorTextureWidth, 'i32');
+		GodotRuntime.setHeapValue(r_size + 4, subimage.motionVectorTextureHeight, 'i32');
+
+		return true;
+	},
+
+	godot_webxr_set_delta_pose__proxy: 'sync',
+	godot_webxr_set_delta_pose__sig: 'vi',
+	godot_webxr_set_delta_pose: function (p_transform) {
+		const layer = GodotWebXR.getLayer();
+		if (!layer || layer.deltaPose === undefined) {
+			return;
+		}
+
+		const delta_pose = layer.deltaPose === null ? new XRRigidTransform() : layer.deltaPose;
+		const delta_pose_matrix = delta_pose.matrix;
+
+		let current_transform_ptr = p_transform;
+		for (let i = 0; i < 16; i++) {
+			delta_pose_matrix[i] = GodotRuntime.getHeapValue(current_transform_ptr, 'float');
+			current_transform_ptr += 4;
+		}
+
+		layer.deltaPose = delta_pose;
 	},
 
 	godot_webxr_update_input_source__proxy: 'sync',

@@ -1466,9 +1466,9 @@ void RasterizerCanvasGLES3::_render_batch(Light *p_lights, uint32_t p_index, Ren
 				uint64_t vertex_input_mask = state.canvas_instance_batches[p_index].vertex_input_mask;
 
 				if (mesh_instance.is_valid()) {
-					mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(mesh_instance, j, vertex_input_mask, vertex_array_gl);
+					mesh_storage->mesh_instance_surface_get_vertex_arrays_and_format(mesh_instance, j, vertex_input_mask, false, vertex_array_gl);
 				} else {
-					mesh_storage->mesh_surface_get_vertex_arrays_and_format(surface, vertex_input_mask, vertex_array_gl);
+					mesh_storage->mesh_surface_get_vertex_arrays_and_format(surface, vertex_input_mask, false, vertex_array_gl);
 				}
 
 				index_array_gl = mesh_storage->mesh_surface_get_index_buffer(surface, 0);

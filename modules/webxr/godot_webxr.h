@@ -73,6 +73,9 @@ extern bool godot_webxr_get_projection_for_view(int p_view, float *r_transform);
 extern unsigned int godot_webxr_get_color_texture();
 extern unsigned int godot_webxr_get_depth_texture();
 extern unsigned int godot_webxr_get_velocity_texture();
+extern unsigned int godot_webxr_get_velocity_depth_texture();
+extern bool godot_webxr_get_motion_vector_target_size(int *r_size);
+extern void godot_webxr_set_delta_pose(float *p_transform);
 
 extern bool godot_webxr_update_input_source(
 		int p_input_source_id,

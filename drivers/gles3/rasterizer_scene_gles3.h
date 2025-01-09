@@ -62,6 +62,7 @@ enum PassMode {
 	PASS_MODE_SHADOW,
 	PASS_MODE_DEPTH,
 	PASS_MODE_MATERIAL,
+	PASS_MODE_MOTION_VECTORS,
 };
 
 // These should share as much as possible with SkyUniform Location
@@ -299,6 +300,10 @@ private:
 		//used during rendering
 		bool store_transform_cache = true;
 
+		// Used for generating motion vectors.
+		Transform3D prev_transform;
+		bool is_prev_transform_stored = false;
+
 		int32_t instance_count = 0;
 
 		bool can_sdfgi = false;
@@ -452,11 +457,15 @@ private:
 		};
 		static_assert(sizeof(TonemapUBO) % 16 == 0, "Tonemap UBO size must be a multiple of 16 bytes");
 
-		UBO ubo;
+		UBO data;
+		UBO prev_data;
 		GLuint ubo_buffer = 0;
-		MultiviewUBO multiview_ubo;
+		MultiviewUBO multiview_data;
+		MultiviewUBO prev_multiview_data;
 		GLuint multiview_buffer = 0;
 		GLuint tonemap_buffer = 0;
+
+		bool is_prev_data_stored = false;
 
 		bool used_depth_prepass = false;
 

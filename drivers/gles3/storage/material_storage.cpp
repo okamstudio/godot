@@ -1206,13 +1206,13 @@ MaterialStorage::MaterialStorage() {
 
 		actions.renames["MODEL_MATRIX"] = "model_matrix";
 		actions.renames["MODEL_NORMAL_MATRIX"] = "model_normal_matrix";
-		actions.renames["VIEW_MATRIX"] = "scene_data.view_matrix";
-		actions.renames["INV_VIEW_MATRIX"] = "scene_data.inv_view_matrix";
+		actions.renames["VIEW_MATRIX"] = "scene_data_block.data.view_matrix";
+		actions.renames["INV_VIEW_MATRIX"] = "scene_data_block.data.inv_view_matrix";
 		actions.renames["PROJECTION_MATRIX"] = "projection_matrix";
 		actions.renames["INV_PROJECTION_MATRIX"] = "inv_projection_matrix";
 		actions.renames["MODELVIEW_MATRIX"] = "modelview";
 		actions.renames["MODELVIEW_NORMAL_MATRIX"] = "modelview_normal";
-		actions.renames["MAIN_CAM_INV_VIEW_MATRIX"] = "scene_data.main_cam_inv_view_matrix";
+		actions.renames["MAIN_CAM_INV_VIEW_MATRIX"] = "scene_data_block.data.main_cam_inv_view_matrix";
 
 		actions.renames["VERTEX"] = "vertex";
 		actions.renames["NORMAL"] = "normal";
@@ -1233,14 +1233,14 @@ MaterialStorage::MaterialStorage() {
 
 		//builtins
 
-		actions.renames["TIME"] = "scene_data.time";
-		actions.renames["EXPOSURE"] = "(1.0 / scene_data.emissive_exposure_normalization)";
+		actions.renames["TIME"] = "scene_data_block.data.time";
+		actions.renames["EXPOSURE"] = "(1.0 / scene_data_block.data.emissive_exposure_normalization)";
 		actions.renames["PI"] = _MKSTR(Math_PI);
 		actions.renames["TAU"] = _MKSTR(Math_TAU);
 		actions.renames["E"] = _MKSTR(Math_E);
 		actions.renames["OUTPUT_IS_SRGB"] = "SHADER_IS_SRGB";
 		actions.renames["CLIP_SPACE_FAR"] = "SHADER_SPACE_FAR";
-		actions.renames["VIEWPORT_SIZE"] = "scene_data.viewport_size";
+		actions.renames["VIEWPORT_SIZE"] = "scene_data_block.data.viewport_size";
 
 		actions.renames["FRAGCOORD"] = "gl_FragCoord";
 		actions.renames["FRONT_FACING"] = "gl_FrontFacing";
@@ -1282,10 +1282,10 @@ MaterialStorage::MaterialStorage() {
 		actions.renames["LIGHT_VERTEX"] = "light_vertex";
 
 		actions.renames["NODE_POSITION_WORLD"] = "model_matrix[3].xyz";
-		actions.renames["CAMERA_POSITION_WORLD"] = "scene_data.inv_view_matrix[3].xyz";
-		actions.renames["CAMERA_DIRECTION_WORLD"] = "scene_data.inv_view_matrix[2].xyz";
-		actions.renames["CAMERA_VISIBLE_LAYERS"] = "scene_data.camera_visible_layers";
-		actions.renames["NODE_POSITION_VIEW"] = "(scene_data.view_matrix * model_matrix)[3].xyz";
+		actions.renames["CAMERA_POSITION_WORLD"] = "scene_data_block.data.inv_view_matrix[3].xyz";
+		actions.renames["CAMERA_DIRECTION_WORLD"] = "scene_data_block.data.inv_view_matrix[2].xyz";
+		actions.renames["CAMERA_VISIBLE_LAYERS"] = "scene_data_block.data.camera_visible_layers";
+		actions.renames["NODE_POSITION_VIEW"] = "(scene_data_block.data.view_matrix * model_matrix)[3].xyz";
 
 		actions.renames["VIEW_INDEX"] = "ViewIndex";
 		actions.renames["VIEW_MONO_LEFT"] = "uint(0)";

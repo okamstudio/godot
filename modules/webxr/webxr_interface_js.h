@@ -63,6 +63,8 @@ private:
 	XRInterface::EnvironmentBlendMode environment_blend_mode = XRInterface::XR_ENV_BLEND_MODE_OPAQUE;
 
 	Size2 render_targetsize;
+	Size2i motion_vector_targetsize;
+	Transform3D previous_world_transform;
 	RBMap<unsigned int, RID> texture_cache;
 	struct Touch {
 		bool is_touching = false;
@@ -84,11 +86,18 @@ private:
 
 	RID color_texture;
 	RID depth_texture;
+	RID velocity_texture;
+	RID velocity_depth_texture;
 
 	RID _get_color_texture();
 	RID _get_depth_texture();
+	RID _get_velocity_texture();
+	RID _get_velocity_depth_texture();
+
+	static Transform3D _js_matrix_to_transform(float *p_js_matrix);
+	static void _transform_to_js_matrix(const Transform3D &p_transform, float *r_js_matrix);
+
 	RID _get_texture(unsigned int p_texture_id);
-	Transform3D _js_matrix_to_transform(float *p_js_matrix);
 	void _update_input_source(int p_input_source_id);
 
 	Vector2 _get_screen_position_from_joy_vector(const Vector2 &p_joy_vector);
@@ -137,8 +146,11 @@ public:
 	virtual RID get_color_texture() override;
 	virtual RID get_depth_texture() override;
 	virtual RID get_velocity_texture() override;
+	virtual RID get_velocity_depth_texture() override;
+	virtual Size2i get_velocity_target_size() override;
 
 	virtual void process() override;
+	virtual void pre_render() override;
 
 	void _on_input_event(int p_event_type, int p_input_source_id);
 
