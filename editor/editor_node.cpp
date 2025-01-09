@@ -3014,6 +3014,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				}
 			}
 		} break;
+		case RUN_PROJECT_FOLDER: {
+			OS::get_singleton()->shell_show_in_file_manager(OS::get_singleton()->get_resource_dir(), true);
+		} break;
 		case RUN_USER_DATA_FOLDER: {
 			// Ensure_user_data_dir() to prevent the edge case: "Open User Data Folder" won't work after the project was renamed in ProjectSettingsEditor unless the project is saved.
 			OS::get_singleton()->ensure_user_data_dir();
@@ -7381,6 +7384,7 @@ EditorNode::EditorNode() {
 	project_menu->add_shortcut(ED_SHORTCUT_AND_COMMAND("editor/export", TTRC("Export..."), Key::NONE, TTRC("Export")), FILE_EXPORT_PROJECT);
 #ifndef ANDROID_ENABLED
 	project_menu->add_item(TTR("Install Android Build Template..."), FILE_INSTALL_ANDROID_SOURCE);
+	project_menu->add_item(TTR("Open Project Folder"), RUN_PROJECT_FOLDER);
 	project_menu->add_item(TTR("Open User Data Folder"), RUN_USER_DATA_FOLDER);
 #endif
 
