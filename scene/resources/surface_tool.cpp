@@ -135,18 +135,24 @@ bool SurfaceTool::Vertex::operator==(const Vertex &p_vertex) const {
 }
 
 uint32_t SurfaceTool::VertexHasher::hash(const Vertex &p_vtx) {
-	uint32_t h = hash_djb2_buffer((const uint8_t *)&p_vtx.vertex, sizeof(real_t) * 3);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.normal, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.binormal, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.tangent, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv, sizeof(real_t) * 2, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv2, sizeof(real_t) * 2, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.color, sizeof(real_t) * 4, h);
-	h = hash_djb2_buffer((const uint8_t *)p_vtx.bones.ptr(), p_vtx.bones.size() * sizeof(int), h);
-	h = hash_djb2_buffer((const uint8_t *)p_vtx.weights.ptr(), p_vtx.weights.size() * sizeof(float), h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.custom[0], sizeof(Color) * RS::ARRAY_CUSTOM_COUNT, h);
-	h = hash_murmur3_one_32(p_vtx.smooth_group, h);
-	h = hash_fmix32(h);
+	uint32_t h = hash_murmur3_one_32(p_vtx.smooth_group);
+
+	h = hash_murmur3_one_float(p_vtx.color.r, h);
+	h = hash_murmur3_one_float(p_vtx.color.g, h);
+	h = hash_murmur3_one_float(p_vtx.color.b, h);
+	h = hash_murmur3_one_float(p_vtx.color.a, h);
+
+	h = HashMapHasherDefault::hash_seed(p_vtx.normal, h);
+	h = HashMapHasherDefault::hash_seed(p_vtx.binormal, h);
+	h = HashMapHasherDefault::hash_seed(p_vtx.tangent, h);
+	h = HashMapHasherDefault::hash_seed(p_vtx.uv, h);
+	h = HashMapHasherDefault::hash_seed(p_vtx.uv2, h);
+	h = HashMapHasherDefault::hash_seed(p_vtx.vertex, h);
+
+	h = hash_murmur3_buffer((const uint8_t *)p_vtx.bones.ptr(), p_vtx.bones.size() * sizeof(int), h);
+	h = hash_murmur3_buffer((const uint8_t *)p_vtx.weights.ptr(), p_vtx.weights.size() * sizeof(float), h);
+	h = hash_murmur3_buffer((const uint8_t *)&p_vtx.custom[0], sizeof(Color) * RS::ARRAY_CUSTOM_COUNT, h);
+
 	return h;
 }
 
@@ -163,10 +169,9 @@ bool SurfaceTool::SmoothGroupVertex::operator==(const SmoothGroupVertex &p_verte
 }
 
 uint32_t SurfaceTool::SmoothGroupVertexHasher::hash(const SmoothGroupVertex &p_vtx) {
-	uint32_t h = hash_djb2_buffer((const uint8_t *)&p_vtx.vertex, sizeof(real_t) * 3);
-	h = hash_murmur3_one_32(p_vtx.smooth_group, h);
-	h = hash_fmix32(h);
-	return h;
+	uint32_t h = hash_murmur3_one_32(p_vtx.smooth_group);
+	h = HashMapHasherDefault::hash_seed(p_vtx.vertex, h);
+	return hash_fmix32(h);
 }
 
 uint32_t SurfaceTool::TriangleHasher::hash(const int *p_triangle) {

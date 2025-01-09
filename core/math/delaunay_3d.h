@@ -99,9 +99,9 @@ class Delaunay3D {
 
 	struct TriangleHasher {
 		_FORCE_INLINE_ static uint32_t hash(const Triangle &p_triangle) {
-			uint32_t h = hash_djb2_one_32(p_triangle.triangle[0]);
-			h = hash_djb2_one_32(p_triangle.triangle[1], h);
-			return hash_fmix32(hash_djb2_one_32(p_triangle.triangle[2], h));
+			uint32_t h = hash_murmur3_one_32(p_triangle.triangle[0]);
+			h = hash_murmur3_one_32(p_triangle.triangle[1], h);
+			return hash_fmix32(hash_murmur3_one_32(p_triangle.triangle[2], h));
 		}
 	};
 

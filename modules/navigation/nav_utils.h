@@ -57,7 +57,9 @@ struct EdgeKey {
 	PointKey b;
 
 	static uint32_t hash(const EdgeKey &p_val) {
-		return hash_one_uint64(p_val.a.key) ^ hash_one_uint64(p_val.b.key);
+		uint32_t hash = hash_murmur3_one_64(p_val.a.key);
+		hash = hash_murmur3_one_64(p_val.b.key, hash);
+		return hash_fmix32(hash);
 	}
 
 	bool operator==(const EdgeKey &p_key) const {

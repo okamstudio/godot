@@ -351,7 +351,7 @@ private:
 		}
 
 		static uint32_t hash(const MaterialKey &p_key) {
-			return hash_djb2_buffer((const uint8_t *)&p_key, sizeof(MaterialKey));
+			return hash_murmur3_buffer((const uint8_t *)&p_key, sizeof(MaterialKey));
 		}
 		bool operator==(const MaterialKey &p_key) const {
 			return memcmp(this, &p_key, sizeof(MaterialKey)) == 0;
