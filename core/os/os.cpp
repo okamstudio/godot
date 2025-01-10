@@ -754,6 +754,16 @@ void OS::benchmark_dump() {
 #endif
 }
 
+VirtualController *OS::get_virtual_controller() const {
+	return nullptr;
+}
+
+void OS::controller_connected() const {
+}
+
+void OS::controller_disconnected() const {
+}
+
 OS::OS() {
 	singleton = this;
 

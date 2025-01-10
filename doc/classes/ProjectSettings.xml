@@ -1458,6 +1458,28 @@
 		<member name="input_devices/sensors/enable_magnetometer" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the magnetometer sensor is enabled and [method Input.get_magnetometer] returns valid data.
 		</member>
+		<member name="input_devices/virtual_controller/ios/enable_button_a" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the button "A" shows in the virtual controller.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_button_b" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the button "B" shows in the virtual controller.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_button_x" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the button "X" shows in the virtual controller.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_button_y" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the button "Y" shows in the virtual controller.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_controller" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], if there are no physical controllers connected, the game shows the virtual controller.
+			[b]Note:[/b] Currently implemented only on iOS 15.0+.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_left_thumbstick" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the left thumbstick shows in the virtual controller.
+		</member>
+		<member name="input_devices/virtual_controller/ios/enable_right_thumbstick" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the right thumbstick shows in the virtual controller.
+		</member>
 		<member name="internationalization/locale/fallback" type="String" setter="" getter="" default="&quot;en&quot;">
 			The locale to fall back to if a translation isn't available in a given language. If left empty, [code]en[/code] (English) will be used.
 		</member>

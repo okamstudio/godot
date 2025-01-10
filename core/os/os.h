@@ -32,6 +32,7 @@
 #define OS_H
 
 #include "core/config/engine.h"
+#include "core/input/virtual_controller.h"
 #include "core/io/logger.h"
 #include "core/io/remote_filesystem_client.h"
 #include "core/os/time_enums.h"
@@ -355,6 +356,12 @@ public:
 	// Load GDExtensions specific to this platform.
 	// This is invoked by the GDExtensionManager after loading GDExtensions specified by the project.
 	virtual void load_platform_gdextensions() const {}
+
+	virtual VirtualController *get_virtual_controller() const;
+
+	virtual void controller_connected() const;
+
+	virtual void controller_disconnected() const;
 
 	OS();
 	virtual ~OS();

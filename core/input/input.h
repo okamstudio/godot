@@ -32,6 +32,7 @@
 #define INPUT_H
 
 #include "core/input/input_event.h"
+#include "core/input/virtual_controller.h"
 #include "core/object/object.h"
 #include "core/os/keyboard.h"
 #include "core/os/thread_safe.h"
@@ -389,6 +390,8 @@ public:
 	void set_agile_input_event_flushing(bool p_enable);
 	void set_use_accumulated_input(bool p_enable);
 	bool is_using_accumulated_input();
+
+	VirtualController *get_virtual_controller();
 
 	void release_pressed_events();
 
