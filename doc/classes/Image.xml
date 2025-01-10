@@ -351,7 +351,7 @@
 			<param index="0" name="buffer" type="PackedByteArray" />
 			<description>
 				Loads an image from the binary contents of a OpenEXR file.
-				Note: The TinyEXR module is disabled in non-editor builds, which means load_exr_from_buffer will return an error in exported builds unless it is explicitly enabled at build-time using [code]tinyexr_export_templates=yes[/code] SCons option.
+				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means this method will return an error in exported builds unless it is explicitly enabled at build-time using [code]tinyexr_export_templates=yes[/code] SCons option.
 			</description>
 		</method>
 		<method name="load_from_file" qualifiers="static">
