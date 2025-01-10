@@ -135,7 +135,7 @@ TEST_CASE("[Image] Saving and loading") {
 	CHECK_MESSAGE(
 			image_exr->load_exr_from_buffer(data_exr) == OK,
 			"The EXR image should load successfully.");
-#endif // MODULE_exr_ENABLED
+#endif // MODULE_EXR_ENABLED
 
 #ifdef MODULE_JPG_ENABLED
 	// Load JPG
