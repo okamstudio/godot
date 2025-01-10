@@ -1727,11 +1727,26 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 	}
 #endif
 
+#ifdef DEBUG_ENABLED
+	bool is_overridden = false;
+
+	if (parser->current_class->base_type.kind == GDScriptParser::DataType::NATIVE) {
+		is_overridden = ClassDB::has_virtual_method(parser->current_class->base_type.native_type, function_name);
+	} else if (parser->current_class->base_type.kind == GDScriptParser::DataType::CLASS) {
+		is_overridden = is_function_overridden_in_class(parser->current_class->base_type.class_type, function_name);
+	}
+
+#endif // DEBUG_ENABLED
+
 	for (int i = 0; i < p_function->parameters.size(); i++) {
 		resolve_parameter(p_function->parameters[i]);
 #ifdef DEBUG_ENABLED
 		if (p_function->parameters[i]->usages == 0 && !String(p_function->parameters[i]->identifier->name).begins_with("_")) {
-			parser->push_warning(p_function->parameters[i]->identifier, GDScriptWarning::UNUSED_PARAMETER, function_visible_name, p_function->parameters[i]->identifier->name);
+			if (is_overridden) {
+				parser->push_warning(p_function->parameters[i]->identifier, GDScriptWarning::UNUSED_OVERRIDDEN_PARAMETER, function_visible_name, p_function->parameters[i]->identifier->name);
+			} else {
+				parser->push_warning(p_function->parameters[i]->identifier, GDScriptWarning::UNUSED_PARAMETER, function_visible_name, p_function->parameters[i]->identifier->name);
+			}
 		}
 		is_shadowing(p_function->parameters[i]->identifier, "function parameter", true);
 #endif // DEBUG_ENABLED
@@ -5303,6 +5318,21 @@ Variant GDScriptAnalyzer::make_subscript_reduced_value(GDScriptParser::Subscript
 			return Variant();
 		}
 	}
+}
+
+bool GDScriptAnalyzer::is_function_overridden_in_class(GDScriptParser::ClassNode *base_class, const StringName &function_name) {
+	while (base_class != nullptr) {
+		if (base_class->has_function(function_name)) {
+			return true;
+		}
+		if (base_class->base_type.kind == GDScriptParser::DataType::NATIVE) {
+			if (ClassDB::has_virtual_method(base_class->base_type.native_type, function_name)) {
+				return true;
+			}
+		}
+		base_class = base_class->base_type.class_type;
+	}
+	return false;
 }
 
 Array GDScriptAnalyzer::make_array_from_element_datatype(const GDScriptParser::DataType &p_element_datatype, const GDScriptParser::Node *p_source_node) {

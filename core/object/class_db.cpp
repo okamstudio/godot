@@ -2036,6 +2036,24 @@ void ClassDB::get_virtual_methods(const StringName &p_class, List<MethodInfo> *p
 #endif
 }
 
+bool ClassDB::has_virtual_method(const StringName &p_class, const StringName &p_method, bool p_no_inheritance) {
+#ifdef DEBUG_METHODS_ENABLED
+	ClassInfo *type = classes.getptr(p_class);
+	ClassInfo *check = type;
+	while (check) {
+		if (check->virtual_methods_map.has(p_method)) {
+			return true;
+		}
+
+		if (p_no_inheritance) {
+			return false;
+		}
+		check = check->inherits_ptr;
+	}
+#endif
+	return false;
+}
+
 void ClassDB::add_extension_class_virtual_method(const StringName &p_class, const GDExtensionClassVirtualMethodInfo *p_method_info) {
 	ERR_FAIL_COND_MSG(!classes.has(p_class), vformat("Request for nonexistent class '%s'.", p_class));
 

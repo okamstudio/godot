@@ -609,6 +609,10 @@
 		<member name="debug/gdscript/warnings/unused_local_constant" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a local constant is never used.
 		</member>
+		<member name="debug/gdscript/warnings/unused_overridden_parameter" type="int" setter="" getter="" default="1">
+			When set to [code]warn[/code] or [code]error[/code], it produces a warning or error respectively if a parameter in an overridden function is unused.
+			Helps to avoid overlooking important parameters that may need to be used, but can add clutter when parameters are intentionally left unused.
+		</member>
 		<member name="debug/gdscript/warnings/unused_parameter" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a function parameter is never used.
 		</member>

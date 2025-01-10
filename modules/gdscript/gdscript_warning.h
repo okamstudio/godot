@@ -52,6 +52,7 @@ public:
 		UNUSED_LOCAL_CONSTANT, // Local constant is declared but never used.
 		UNUSED_PRIVATE_CLASS_VARIABLE, // Class variable is declared private ("_" prefix) but never used in the class.
 		UNUSED_PARAMETER, // Function parameter is never used.
+		UNUSED_OVERRIDDEN_PARAMETER, // Function parameter is never used, but it overrides a base class or native virtual method.
 		UNUSED_SIGNAL, // Signal is defined but never explicitly used in the class.
 		SHADOWED_VARIABLE, // A local variable/constant shadows a current class member.
 		SHADOWED_VARIABLE_BASE_CLASS, // A local variable/constant shadows a base class member.
@@ -109,6 +110,7 @@ public:
 		WARN, // UNUSED_LOCAL_CONSTANT
 		WARN, // UNUSED_PRIVATE_CLASS_VARIABLE
 		WARN, // UNUSED_PARAMETER
+		WARN, // UNUSED_OVERRIDDEN_PARAMETER
 		WARN, // UNUSED_SIGNAL
 		WARN, // SHADOWED_VARIABLE
 		WARN, // SHADOWED_VARIABLE_BASE_CLASS
