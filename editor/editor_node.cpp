@@ -6806,7 +6806,6 @@ EditorNode::EditorNode() {
 
 	SceneState::set_disable_placeholders(true);
 	ResourceLoader::clear_translation_remaps(); // Using no remaps if in editor.
-	ResourceLoader::clear_path_remaps();
 	ResourceLoader::set_create_missing_resources_if_class_unavailable(true);
 
 	EditorPropertyNameProcessor *epnp = memnew(EditorPropertyNameProcessor);

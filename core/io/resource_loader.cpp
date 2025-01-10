@@ -1221,43 +1221,38 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 		}
 	}
 
-	if (path_remaps.has(new_path)) {
-		new_path = path_remaps[new_path];
-	} else {
-		// Try file remap.
-		// Usually, there's no remap file and FileAccess::exists() is faster than FileAccess::open().
-		if (FileAccess::exists(new_path + ".remap")) {
-			Error err;
-			Ref<FileAccess> f = FileAccess::open(new_path + ".remap", FileAccess::READ, &err);
-			if (f.is_valid()) {
-				VariantParser::StreamFile stream;
-				stream.f = f;
+	// Usually, there's no remap file and FileAccess::exists() is faster than FileAccess::open().
+	if (FileAccess::exists(new_path + ".remap")) {
+		Error err;
+		Ref<FileAccess> f = FileAccess::open(new_path + ".remap", FileAccess::READ, &err);
+		if (f.is_valid()) {
+			VariantParser::StreamFile stream;
+			stream.f = f;
 
-				String assign;
-				Variant value;
-				VariantParser::Tag next_tag;
+			String assign;
+			Variant value;
+			VariantParser::Tag next_tag;
 
-				int lines = 0;
-				String error_text;
-				while (true) {
-					assign = Variant();
-					next_tag.fields.clear();
-					next_tag.name = String();
+			int lines = 0;
+			String error_text;
+			while (true) {
+				assign = Variant();
+				next_tag.fields.clear();
+				next_tag.name = String();
 
-					err = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, nullptr, true);
-					if (err == ERR_FILE_EOF) {
-						break;
-					} else if (err != OK) {
-						ERR_PRINT(vformat("Parse error: %s.remap:%d error: %s.", p_path, lines, error_text));
-						break;
-					}
+				err = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, nullptr, true);
+				if (err == ERR_FILE_EOF) {
+					break;
+				} else if (err != OK) {
+					ERR_PRINT(vformat("Parse error: %s.remap:%d error: %s.", p_path, lines, error_text));
+					break;
+				}
 
-					if (assign == "path") {
-						new_path = value;
-						break;
-					} else if (next_tag.name != "remap") {
-						break;
-					}
+				if (assign == "path") {
+					new_path = value;
+					break;
+				} else if (next_tag.name != "remap") {
+					break;
 				}
 			}
 		}
@@ -1365,25 +1360,6 @@ void ResourceLoader::clear_thread_load_tasks() {
 	thread_load_tasks.clear();
 
 	cleaning_tasks = false;
-}
-
-void ResourceLoader::load_path_remaps() {
-	if (!ProjectSettings::get_singleton()->has_setting("path_remap/remapped_paths")) {
-		return;
-	}
-
-	Vector<String> remaps = GLOBAL_GET("path_remap/remapped_paths");
-	int rc = remaps.size();
-	ERR_FAIL_COND(rc & 1); //must be even
-	const String *r = remaps.ptr();
-
-	for (int i = 0; i < rc; i += 2) {
-		path_remaps[r[i]] = r[i + 1];
-	}
-}
-
-void ResourceLoader::clear_path_remaps() {
-	path_remaps.clear();
 }
 
 void ResourceLoader::set_load_callback(ResourceLoadedCallback p_callback) {
@@ -1549,6 +1525,5 @@ HashMap<String, ResourceLoader::LoadToken *> ResourceLoader::user_load_tokens;
 
 SelfList<Resource>::List ResourceLoader::remapped_list;
 HashMap<String, Vector<String>> ResourceLoader::translation_remaps;
-HashMap<String, String> ResourceLoader::path_remaps;
 
 ResourceLoaderImport ResourceLoader::import = nullptr;
