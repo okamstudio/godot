@@ -1,3 +1,0 @@
-{
-  "code": "#[versions]\n\nlines = \"#define MODE_LINES\";\n\n#[vertex]\n\n#version 450\n\n#VERSION_DEFINES\n\nlayout(location = 0) out vec3 uv_interp;\n\nvoid main() {\n\n#ifdef MODE_LINES\n\tuv_interp = vec3(0,0,1);\n#endif\n}\n\n#[fragment]\n\n#version 450\n\n#VERSION_DEFINES\n\n#define M_PI 3.14159265359\n\nlayout(location = 0) out vec4 dst_color;\n\nvoid main() {\n\tdst_color = vec4(1,1,0,0);\n}\n"
-}
