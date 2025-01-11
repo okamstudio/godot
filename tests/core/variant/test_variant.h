@@ -57,6 +57,23 @@ static inline Dictionary build_dictionary(Variant key, Variant item, Targs... Fa
 	return d;
 }
 
+static inline void collection_writer_parser(Variant p_variant, String p_serialized) {
+	String v_str;
+	VariantWriter::write_to_string(p_variant, v_str);
+
+	CHECK_EQ(v_str, p_serialized);
+
+	VariantParser::StreamString ss;
+	String errs;
+	int line;
+	Variant v_parsed;
+
+	ss.s = v_str;
+	VariantParser::parse(&ss, v_parsed, errs, line);
+
+	CHECK_MESSAGE(v_parsed == Variant(p_variant), "Should parse back.");
+}
+
 TEST_CASE("[Variant] Writer and parser integer") {
 	int64_t a32 = 2147483648; // 2^31, so out of bounds for 32-bit signed int [-2^31, +2^31-1].
 	String a32_str;
@@ -1738,21 +1755,7 @@ TEST_CASE("[Variant] Assignment To Color from Bool,Int,Float,String,Vec2,Vec2i,V
 }
 
 TEST_CASE("[Variant] Writer and parser array") {
-	Array a = build_array(1, String("hello"), build_array(Variant()));
-	String a_str;
-	VariantWriter::write_to_string(a, a_str);
-
-	CHECK_EQ(a_str, "[1, \"hello\", [null]]");
-
-	VariantParser::StreamString ss;
-	String errs;
-	int line;
-	Variant a_parsed;
-
-	ss.s = a_str;
-	VariantParser::parse(&ss, a_parsed, errs, line);
-
-	CHECK_MESSAGE(a_parsed == Variant(a), "Should parse back.");
+	collection_writer_parser(build_array(1, String("hello"), build_array(Variant())), "[1, \"hello\", [null]]");
 }
 
 TEST_CASE("[Variant] Writer recursive array") {
@@ -1787,31 +1790,38 @@ TEST_CASE("[Variant] Writer recursive array") {
 	a2.clear();
 }
 
+TEST_CASE("[Variant] Writer and parser typed Variant array") {
+	collection_writer_parser(Array(build_array(1, String("hello"), build_array(Variant())), Variant::NIL, "", Variant::NIL), "[1, \"hello\", [null]]");
+}
+
+TEST_CASE("[Variant] Writer and parser typed int array") {
+	collection_writer_parser(Array(build_array(), Variant::INT, "", Variant::NIL), "Array[int]([])");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Resource array") {
+	collection_writer_parser(Array(build_array(), Variant::OBJECT, "Resource", Variant::NIL), "Array[Resource]([])");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Node array") {
+	collection_writer_parser(Array(build_array(), Variant::OBJECT, "Node", Variant::NIL), "Array[Node]([])");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Array array") {
+	collection_writer_parser(Array(build_array(build_array(1, String("hello")), build_array(Variant())), Variant::ARRAY, "", Variant::NIL), "Array[Array]([[1, \"hello\"], [null]])");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Dictionary array") {
+	// a = Array[Dictionary]([{{1: 2}: 3}, {4: "hello"}, {null: []}])
+	collection_writer_parser(Array(build_array(build_dictionary(build_dictionary(1, 2), 3), build_dictionary(4, String("hello")), build_dictionary(5, build_dictionary(Variant(), build_array()))), Variant::DICTIONARY, "", Variant::NIL), "Array[Dictionary]([{\n{\n1: 2\n}: 3\n}, {\n4: \"hello\"\n}, {\n5: {\nnull: []\n}\n}])");
+}
+
 TEST_CASE("[Variant] Writer and parser dictionary") {
 	// d = {{1: 2}: 3, 4: "hello", 5: {null: []}}
-	Dictionary d = build_dictionary(build_dictionary(1, 2), 3, 4, String("hello"), 5, build_dictionary(Variant(), build_array()));
-	String d_str;
-	VariantWriter::write_to_string(d, d_str);
-
-	CHECK_EQ(d_str, "{\n4: \"hello\",\n5: {\nnull: []\n},\n{\n1: 2\n}: 3\n}");
-
-	VariantParser::StreamString ss;
-	String errs;
-	int line;
-	Variant d_parsed;
-
-	ss.s = d_str;
-	VariantParser::parse(&ss, d_parsed, errs, line);
-
-	CHECK_MESSAGE(d_parsed == Variant(d), "Should parse back.");
+	collection_writer_parser(build_dictionary(build_dictionary(1, 2), 3, 4, String("hello"), 5, build_dictionary(Variant(), build_array())), "{\n4: \"hello\",\n5: {\nnull: []\n},\n{\n1: 2\n}: 3\n}");
 }
 
 TEST_CASE("[Variant] Writer key sorting") {
-	Dictionary d = build_dictionary(StringName("C"), 3, "A", 1, StringName("B"), 2, "D", 4);
-	String d_str;
-	VariantWriter::write_to_string(d, d_str);
-
-	CHECK_EQ(d_str, "{\n\"A\": 1,\n&\"B\": 2,\n&\"C\": 3,\n\"D\": 4\n}");
+	collection_writer_parser(build_dictionary(StringName("C"), 3, "A", 1, StringName("B"), 2, "D", 4), "{\n\"A\": 1,\n&\"B\": 2,\n&\"C\": 3,\n\"D\": 4\n}");
 }
 
 TEST_CASE("[Variant] Writer recursive dictionary") {
@@ -1847,7 +1857,7 @@ TEST_CASE("[Variant] Writer recursive dictionary") {
 }
 
 #if 0 // TODO: recursion in dict key is currently buggy
-TEST_CASE("[Variant] Writer recursive dictionary on keys") {
+	TEST_CASE("[Variant] Writer recursive dictionary on keys") {
 	// There is no way to accurately represent a recursive dictionary,
 	// the only thing we can do is make sure the writer doesn't blow up
 
@@ -1879,6 +1889,40 @@ TEST_CASE("[Variant] Writer recursive dictionary on keys") {
 	d2.clear();
 }
 #endif
+
+TEST_CASE("[Variant] Writer and parser typed Variant;Variant dictionary") {
+	// d = Dictionary[Variant, Variant]({{1: 2}: 3, 4: "hello", 5: {null: []}})
+	collection_writer_parser(Dictionary(build_dictionary(build_dictionary(1, 2), 3, 4, String("hello"), 5, build_dictionary(Variant(), build_array())), Variant::NIL, "", Variant::NIL, Variant::NIL, "", Variant::NIL), "{\n4: \"hello\",\n5: {\nnull: []\n},\n{\n1: 2\n}: 3\n}");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Variant;int dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(), Variant::NIL, "", Variant::NIL, Variant::INT, "", Variant::NIL), "Dictionary[Variant, int]({})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed int;Variant dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(), Variant::INT, "", Variant::NIL, Variant::NIL, "", Variant::NIL), "Dictionary[int, Variant]({})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed int;int dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(), Variant::INT, "", Variant::NIL, Variant::INT, "", Variant::NIL), "Dictionary[int, int]({})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Resource;Resource dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(), Variant::OBJECT, "Resource", Variant::NIL, Variant::OBJECT, "Resource", Variant::NIL), "Dictionary[Resource, Resource]({})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Node;Node dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(), Variant::OBJECT, "Node", Variant::NIL, Variant::OBJECT, "Node", Variant::NIL), "Dictionary[Node, Node]({})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Array;Array dictionary") {
+	collection_writer_parser(Dictionary(build_dictionary(build_array(1, String("hello")), build_array(Variant())), Variant::ARRAY, "", Variant::NIL, Variant::ARRAY, "", Variant::NIL), "Dictionary[Array, Array]({\n[1, \"hello\"]: [null]\n})");
+}
+
+TEST_CASE("[Variant] Writer and parser typed Dictionary;Dictionary dictionary") {
+	// a = Dictionary[Dictionary, Dictionary]({{1: 2}: {4: "hello"}})
+	collection_writer_parser(Dictionary(build_dictionary(build_dictionary(1, 2), build_dictionary(4, String("hello"))), Variant::DICTIONARY, "", Variant::NIL, Variant::DICTIONARY, "", Variant::NIL), "Dictionary[Dictionary, Dictionary]({\n{\n1: 2\n}: {\n4: \"hello\"\n}\n})");
+}
 
 TEST_CASE("[Variant] Basic comparison") {
 	CHECK_EQ(Variant(1), Variant(1));
