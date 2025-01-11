@@ -60,6 +60,10 @@
 #define DEBUG_LOG_WAYLAND_THREAD(...)
 #endif
 
+// Since we're never going to use this interface directly, it's not worth
+// generating the whole deal.
+#define FIFO_INTERFACE_NAME "wp_fifo_manager_v1"
+
 // Read the content pointed by fd into a Vector<uint8_t>.
 Vector<uint8_t> WaylandThread::_read_fd(int fd) {
 	// This is pretty much an arbitrary size.
@@ -589,6 +593,10 @@ void WaylandThread::_wl_registry_on_global(void *data, struct wl_registry *wl_re
 
 		return;
 	}
+
+	if (strcmp(interface, FIFO_INTERFACE_NAME) == 0) {
+		registry->wp_fifo_manager_name = name;
+	}
 }
 
 void WaylandThread::_wl_registry_on_global_remove(void *data, struct wl_registry *wl_registry, uint32_t name) {
@@ -973,6 +981,10 @@ void WaylandThread::_wl_registry_on_global_remove(void *data, struct wl_registry
 
 			it = it->next();
 		}
+	}
+
+	if (name == registry->wp_fifo_manager_name) {
+		registry->wp_fifo_manager_name = 0;
 	}
 }
 
@@ -3891,6 +3903,10 @@ Error WaylandThread::init() {
 	}
 #endif // DBUS_ENABLED
 
+	if (!registry.wp_fifo_manager_name) {
+		WARN_PRINT("FIFO protocol not found! Frame pacing will be degraded.");
+	}
+
 	// Wait for seat capabilities.
 	wl_display_roundtrip(wl_display);
 
@@ -4366,6 +4382,10 @@ bool WaylandThread::wait_frame_suspend_ms(int p_timeout) {
 
 	DEBUG_LOG_WAYLAND_THREAD("Frame timeout.");
 	return false;
+}
+
+bool WaylandThread::is_fifo_available() const {
+	return registry.wp_fifo_manager_name != 0;
 }
 
 bool WaylandThread::is_suspended() const {

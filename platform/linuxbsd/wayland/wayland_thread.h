@@ -196,6 +196,10 @@ public:
 
 		struct zwp_text_input_manager_v3 *wp_text_input_manager = nullptr;
 		uint32_t wp_text_input_manager_name = 0;
+
+		// We're really not meant to use this one directly but we still need to know
+		// whether it's available.
+		uint32_t wp_fifo_manager_name = 0;
 	};
 
 	// General Wayland-specific states. Shouldn't be accessed directly.
@@ -1023,6 +1027,7 @@ public:
 	void set_frame();
 	bool get_reset_frame();
 	bool wait_frame_suspend_ms(int p_timeout);
+	bool is_fifo_available() const;
 
 	bool is_suspended() const;
 
