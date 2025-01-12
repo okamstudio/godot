@@ -146,7 +146,7 @@ unzFile ZipArchive::get_file_handle(const String &p_file) const {
 	return pkg;
 }
 
-bool ZipArchive::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset = 0) {
+bool ZipArchive::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const Ref<CryptoKey> &p_key) {
 	// load with offset feature only supported for PCK files
 	ERR_FAIL_COND_V_MSG(p_offset != 0, false, "Invalid PCK data. Note that loading files with a non-zero offset isn't supported with ZIP archives.");
 
@@ -194,8 +194,8 @@ bool ZipArchive::try_open_pack(const String &p_path, bool p_replace_files, uint6
 		String fname = String("res://") + String::utf8(filename_inzip);
 		files[fname] = f;
 
-		uint8_t md5[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		PackedData::get_singleton()->add_path(p_path, fname, 1, 0, md5, this, p_replace_files, false);
+		uint8_t sha256[32] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		PackedData::get_singleton()->add_path(p_path, fname, 1, 0, sha256, this, p_replace_files, false, false);
 		//printf("packed data add path %s, %s\n", p_name.utf8().get_data(), fname.utf8().get_data());
 
 		if ((i + 1) < gi.number_entry) {

@@ -147,6 +147,7 @@
 			<param index="0" name="pack" type="String" />
 			<param index="1" name="replace_files" type="bool" default="true" />
 			<param index="2" name="offset" type="int" default="0" />
+			<param index="3" name="key" type="CryptoKey" default="null" />
 			<description>
 				Loads the contents of the .pck or .zip file specified by [param pack] into the resource filesystem ([code]res://[/code]). Returns [code]true[/code] on success.
 				[b]Note:[/b] If a file from [param pack] shares the same path as a file already in the resource filesystem, any attempts to load that file will use the file from [param pack] unless [param replace_files] is set to [code]false[/code].

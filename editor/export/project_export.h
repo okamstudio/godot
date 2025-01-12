@@ -115,8 +115,15 @@ class ProjectExportDialog : public ConfirmationDialog {
 	LineEdit *custom_features = nullptr;
 	RichTextLabel *custom_feature_display = nullptr;
 
-	LineEdit *script_key = nullptr;
-	Label *script_key_error = nullptr;
+	LineEdit *pck_key = nullptr;
+	Button *pck_key_gen = nullptr;
+	Label *pck_key_error = nullptr;
+
+	LineEdit *sign_key_priv = nullptr;
+	LineEdit *sign_key_pub = nullptr;
+	OptionButton *sign_type = nullptr;
+	Button *sign_key_gen = nullptr;
+	Label *sign_key_error = nullptr;
 
 	ProjectExportTextureFormatError *export_texture_format_error = nullptr;
 	Label *export_error = nullptr;
@@ -175,6 +182,7 @@ class ProjectExportDialog : public ConfirmationDialog {
 	LineEdit *seed_input = nullptr;
 
 	OptionButton *script_mode = nullptr;
+	CheckButton *sign_pck = nullptr;
 
 	void _open_export_template_manager();
 
@@ -191,15 +199,25 @@ class ProjectExportDialog : public ConfirmationDialog {
 	void _update_feature_list();
 	void _custom_features_changed(const String &p_text);
 
-	bool updating_script_key = false;
+	bool updating_pck_key = false;
 	bool updating_enc_filters = false;
 	bool updating_seed = false;
 	void _enc_pck_changed(bool p_pressed);
 	void _enc_directory_changed(bool p_pressed);
 	void _enc_filters_changed(const String &p_text);
 	void _seed_input_changed(const String &p_text);
-	void _script_encryption_key_changed(const String &p_key);
-	bool _validate_script_encryption_key(const String &p_key);
+	void _pck_encryption_key_changed(const String &p_key);
+	bool _validate_pck_encryption_key(const String &p_key);
+
+	bool updating_sign_key = false;
+	void _sign_pck_changed(bool p_pressed);
+	void _pck_sign_key_priv_changed(const String &p_key);
+	void _pck_sign_key_pub_changed(const String &p_key);
+	void _pck_sign_type_changed(int p_type);
+	bool _validate_pck_sign_key(const String &p_priv_key, const String &p_pub_key, int p_type);
+
+	void _pck_key_gen();
+	void _sign_key_gen();
 
 	void _script_export_mode_changed(int p_mode);
 

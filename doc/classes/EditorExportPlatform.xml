@@ -72,7 +72,7 @@
 			<param index="3" name="shared_cb" type="Callable" default="Callable()" />
 			<description>
 				Exports project files for the specified preset. This method can be used to implement custom export format, other than PCK and ZIP. One of the callbacks is called for each exported file.
-				[param save_cb] is called for all exported files and have the following arguments: [code]file_path: String[/code], [code]file_data: PackedByteArray[/code], [code]file_index: int[/code], [code]file_count: int[/code], [code]encryption_include_filters: PackedStringArray[/code], [code]encryption_exclude_filters: PackedStringArray[/code], [code]encryption_key: PackedByteArray[/code].
+				[param save_cb] is called for all exported files and have the following arguments: [code]info: Dictionary[/code], [code]file_data: PackedByteArray[/code]. [code]info: Dictionary[/code] argument contains following values: [code]source_path: String[/code], [code]path: String[/code], [code]file_idx: int[/code], [code]total_files: int[/code], [code]enc_in: PackedStringArray[/code], [code]enc_ex: PackedStringArray[/code], [code]enc_key: PackedByteArray[/code], [code]enc_seed: int[/code], [code]signed: bool[/code].
 				[param shared_cb] is called for exported native shared/static libraries and have the following arguments: [code]file_path: String[/code], [code]tags: PackedStringArray[/code], [code]target_folder: String[/code].
 				[b]Note:[/b] [code]file_index[/code] and [code]file_count[/code] are intended for progress tracking only and aren't necesserely unique and precise.
 			</description>

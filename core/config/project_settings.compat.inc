@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  pck_packer.h                                                          */
+/*  project_settings.compat.inc                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,46 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PCK_PACKER_H
-#define PCK_PACKER_H
+#ifndef DISABLE_DEPRECATED
 
-#include "core/crypto/crypto.h"
-#include "core/crypto/crypto_core.h"
-#include "core/object/ref_counted.h"
+bool ProjectSettings::_load_resource_pack_bind_compat_87696(const String &p_pack, bool p_replace_files, int p_offset) {
+	return _load_resource_pack(p_pack, p_replace_files, p_offset);
+}
 
-class PCKPacker : public RefCounted {
-	GDCLASS(PCKPacker, RefCounted);
+void ProjectSettings::_bind_compatibility_methods() {
+	ClassDB::bind_compatibility_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::_load_resource_pack_bind_compat_87696, DEFVAL(true), DEFVAL(0));
+}
 
-private:
-	Ref<FileAccess> file;
-	int alignment = 0;
-	uint64_t ofs = 0;
-
-	Vector<uint8_t> key;
-	bool enc_dir = false;
-
-	struct File {
-		String path;
-		String src_path;
-		uint64_t ofs = 0;
-		uint64_t size = 0;
-		bool encrypted = false;
-		bool removal = false;
-		Vector<uint8_t> sha256;
-	};
-	Vector<File> files;
-
-protected:
-	static void _bind_methods();
-
-public:
-	Error pck_start(const String &p_file, int p_alignment = 32, const String &p_key = "0000000000000000000000000000000000000000000000000000000000000000", bool p_encrypt_directory = false);
-	Error add_file(const String &p_file, const String &p_src, bool p_encrypt = false);
-	Error add_file_removal(const String &p_target_path);
-	Error flush(bool p_verbose = false);
-	Error flush_and_sign(const Ref<CryptoKey> &p_sign_key, bool p_verbose = false);
-
-	PCKPacker() {}
-};
-
-#endif // PCK_PACKER_H
+#endif

@@ -169,11 +169,11 @@ Error store_string_at_path(const String &p_path, const String &p_data) {
 // It is used by the export_project_files method to save all the asset files into the gradle project.
 // It's functionality mirrors that of the method save_apk_file.
 // This method will be called ONLY when gradle build is enabled.
-Error rename_and_store_file_in_gradle_project(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed) {
+Error rename_and_store_file_in_gradle_project(void *p_userdata, const EditorExportPlatform::ExportFileData &p_info, const Vector<uint8_t> &p_data) {
 	CustomExportData *export_data = static_cast<CustomExportData *>(p_userdata);
-	const String path = ResourceUID::ensure_path(p_path);
-	const String dst_path = path.replace_first("res://", export_data->assets_directory + "/");
-	print_verbose("Saving project files from " + path + " into " + dst_path);
+	const String path = ResourceUID::ensure_path(p_info.path);
+	String dst_path = p_info.path.replace_first("res://", export_data->assets_directory + "/");
+	print_verbose("Saving project files from " + p_info.path + " into " + dst_path);
 	Error err = store_file_at_path(dst_path, p_data);
 	return err;
 }

@@ -44,7 +44,13 @@ struct EditorProgress;
 
 class EditorExportPlugin;
 
+#ifndef DISABLE_DEPRECATED
 const String ENV_SCRIPT_ENCRYPTION_KEY = "GODOT_SCRIPT_ENCRYPTION_KEY";
+#endif
+const String ENV_PCK_ENCRYPTION_KEY = "GODOT_PCK_ENCRYPTION_KEY";
+const String ENV_PCK_SIGNING_KEY_PRIVATE = "GODOT_ENV_PCK_SIGNING_KEY_PRIVATE";
+const String ENV_PCK_SIGNING_KEY_PUBLIC = "GODOT_ENV_PCK_SIGNING_KEY_PUBLIC";
+const String ENV_PCK_SIGNING_TYPE = "GODOT_ENV_PCK_SIGNING_TYPE";
 
 class EditorExportPlatform : public RefCounted {
 	GDCLASS(EditorExportPlatform, RefCounted);
@@ -53,7 +59,18 @@ protected:
 	static void _bind_methods();
 
 public:
-	typedef Error (*EditorExportSaveFunction)(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
+	struct ExportFileData {
+		String source_path;
+		String path;
+		int file_index = 0;
+		int total_files = 0;
+		uint64_t seed = 0;
+		Vector<String> enc_in_filters;
+		Vector<String> enc_ex_filters;
+		Vector<uint8_t> enc_key;
+		bool is_signed = false;
+	};
+	typedef Error (*EditorExportSaveFunction)(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
 	typedef Error (*EditorExportRemoveFunction)(void *p_userdata, const String &p_path);
 	typedef Error (*EditorExportSaveSharedObject)(void *p_userdata, const SharedObject &p_so);
 
@@ -84,7 +101,7 @@ private:
 		uint64_t size = 0;
 		bool encrypted = false;
 		bool removal = false;
-		Vector<uint8_t> md5;
+		Vector<uint8_t> sha256;
 		CharString path_utf8;
 
 		bool operator<(const SavedData &p_data) const {
@@ -114,14 +131,14 @@ private:
 
 	static bool _check_hash(const uint8_t *p_hash, const Vector<uint8_t> &p_data);
 
-	static Error _save_pack_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
-	static Error _save_pack_patch_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
+	static Error _save_pack_file(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
+	static Error _save_pack_patch_file(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
 	static Error _pack_add_shared_object(void *p_userdata, const SharedObject &p_so);
 
 	static Error _remove_pack_file(void *p_userdata, const String &p_path);
 
-	static Error _save_zip_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
-	static Error _save_zip_patch_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
+	static Error _save_zip_file(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
+	static Error _save_zip_patch_file(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
 	static Error _zip_add_shared_object(void *p_userdata, const SharedObject &p_so);
 
 	struct ScriptCallbackData {
@@ -129,7 +146,7 @@ private:
 		Callable so_cb;
 	};
 
-	static Error _script_save_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed);
+	static Error _script_save_file(void *p_userdata, const ExportFileData &p_info, const Vector<uint8_t> &p_data);
 	static Error _script_add_shared_object(void *p_userdata, const SharedObject &p_so);
 
 	void _edit_files_with_filter(Ref<DirAccess> &da, const Vector<String> &p_filters, HashSet<String> &r_list, bool exclude);
@@ -151,7 +168,10 @@ private:
 	bool _is_editable_ancestor(Node *p_root, Node *p_node);
 
 	String _export_customize(const String &p_path, LocalVector<Ref<EditorExportPlugin>> &customize_resources_plugins, LocalVector<Ref<EditorExportPlugin>> &customize_scenes_plugins, HashMap<String, FileExportCache> &export_cache, const String &export_base_path, bool p_force_save);
-	String _get_script_encryption_key(const Ref<EditorExportPreset> &p_preset) const;
+	String _get_pck_encryption_key(const Ref<EditorExportPreset> &p_preset) const;
+	String _get_pck_signing_key_priv(const Ref<EditorExportPreset> &p_preset) const;
+	String _get_pck_signing_key_pub(const Ref<EditorExportPreset> &p_preset) const;
+	int _get_pck_signing_type(const Ref<EditorExportPreset> &p_preset) const;
 
 protected:
 	struct ExportNotifier {

@@ -30,7 +30,6 @@
 
 #include "pck_packer.h"
 
-#include "core/crypto/crypto_core.h"
 #include "core/io/file_access.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/io/file_access_pack.h" // PACK_HEADER_MAGIC, PACK_FORMAT_VERSION
@@ -47,10 +46,11 @@ static int _get_pad(int p_alignment, int p_n) {
 }
 
 void PCKPacker::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("pck_start", "pck_path", "alignment", "key", "encrypt_directory"), &PCKPacker::pck_start, DEFVAL(32), DEFVAL("0000000000000000000000000000000000000000000000000000000000000000"), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("add_file", "target_path", "source_path", "encrypt"), &PCKPacker::add_file, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("pck_start", "pck_name", "alignment", "key", "encrypt_directory"), &PCKPacker::pck_start, DEFVAL(32), DEFVAL("0000000000000000000000000000000000000000000000000000000000000000"), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("add_file", "pck_path", "source_path", "encrypt"), &PCKPacker::add_file, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("add_file_removal", "target_path"), &PCKPacker::add_file_removal);
 	ClassDB::bind_method(D_METHOD("flush", "verbose"), &PCKPacker::flush, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("flush_and_sign", "key", "verbose"), &PCKPacker::flush_and_sign, DEFVAL(false));
 }
 
 Error PCKPacker::pck_start(const String &p_pck_path, int p_alignment, const String &p_key, bool p_encrypt_directory) {
@@ -118,8 +118,8 @@ Error PCKPacker::add_file_removal(const String &p_target_path) {
 	pf.size = 0;
 	pf.removal = true;
 
-	pf.md5.resize(16);
-	pf.md5.fill(0);
+	pf.sha256.resize(32);
+	pf.sha256.fill(0);
 
 	files.push_back(pf);
 
@@ -144,12 +144,8 @@ Error PCKPacker::add_file(const String &p_target_path, const String &p_source_pa
 
 	Vector<uint8_t> data = FileAccess::get_file_as_bytes(p_source_path);
 	{
-		unsigned char hash[16];
-		CryptoCore::md5(data.ptr(), data.size(), hash);
-		pf.md5.resize(16);
-		for (int i = 0; i < 16; i++) {
-			pf.md5.write[i] = hash[i];
-		}
+		pf.sha256.resize(32);
+		CryptoCore::sha256(data.ptr(), data.size(), pf.sha256.ptrw());
 	}
 	pf.encrypted = p_encrypt;
 
@@ -172,12 +168,20 @@ Error PCKPacker::add_file(const String &p_target_path, const String &p_source_pa
 }
 
 Error PCKPacker::flush(bool p_verbose) {
+	return flush_and_sign(Ref<CryptoKey>(), p_verbose);
+}
+
+Error PCKPacker::flush_and_sign(const Ref<CryptoKey> &p_sign_key, bool p_verbose) {
 	ERR_FAIL_COND_V_MSG(file.is_null(), ERR_INVALID_PARAMETER, "File must be opened before use.");
 
 	int64_t file_base_ofs = file->get_position();
 	file->store_64(0); // files base
 
-	for (int i = 0; i < 16; i++) {
+	uint64_t signature_info_ofs = file->get_position();
+	file->store_64(0); // signature ofs
+	file->store_64(0); // signature size
+
+	for (int i = 0; i < 12; i++) {
 		file->store_32(0); // reserved
 	}
 
@@ -197,20 +201,33 @@ Error PCKPacker::flush(bool p_verbose) {
 		fhead = fae;
 	}
 
+	Vector<uint8_t> directory_hash;
+	directory_hash.resize(32);
+	CryptoCore::SHA256Context sha_ctx;
+	sha_ctx.start();
+
 	for (int i = 0; i < files.size(); i++) {
+		static uint8_t zero = 0;
 		CharString utf8_string = files[i].path.utf8();
 		int string_len = utf8_string.length();
 		int pad = _get_pad(4, string_len);
 
-		fhead->store_32(uint32_t(string_len + pad));
+		uint32_t full_len = string_len + pad;
+		fhead->store_32(full_len);
+		sha_ctx.update((const unsigned char *)&full_len, 4);
 		fhead->store_buffer((const uint8_t *)utf8_string.get_data(), string_len);
+		sha_ctx.update((const unsigned char *)utf8_string.get_data(), string_len);
 		for (int j = 0; j < pad; j++) {
 			fhead->store_8(0);
+			sha_ctx.update((const unsigned char *)&zero, 1);
 		}
 
 		fhead->store_64(files[i].ofs);
+		sha_ctx.update((const unsigned char *)&files[i].ofs, 8);
 		fhead->store_64(files[i].size); // pay attention here, this is where file is
-		fhead->store_buffer(files[i].md5.ptr(), 16); //also save md5 for file
+		sha_ctx.update((const unsigned char *)&files[i].size, 8);
+		fhead->store_buffer(files[i].sha256.ptr(), 32); //also save sha256 for file
+		sha_ctx.update((const unsigned char *)files[i].sha256.ptr(), 32);
 
 		uint32_t flags = 0;
 		if (files[i].encrypted) {
@@ -220,6 +237,18 @@ Error PCKPacker::flush(bool p_verbose) {
 			flags |= PACK_FILE_REMOVAL;
 		}
 		fhead->store_32(flags);
+		sha_ctx.update((const unsigned char *)&flags, 4);
+	}
+	sha_ctx.finish((unsigned char *)directory_hash.ptrw());
+
+	Vector<uint8_t> signature;
+	if (p_sign_key.is_valid()) {
+		Ref<Crypto> tls_ctx = Crypto::create();
+
+		ERR_FAIL_COND_V(tls_ctx.is_null(), ERR_CANT_CREATE);
+
+		signature = tls_ctx->sign(HashingContext::HASH_SHA256, directory_hash, p_sign_key);
+		ERR_FAIL_COND_V_MSG(signature.is_empty(), ERR_CANT_CREATE, "Pack directory signing failed.");
 	}
 
 	if (fae.is_valid()) {
@@ -280,6 +309,22 @@ Error PCKPacker::flush(bool p_verbose) {
 		if (p_verbose && (file_num > 0)) {
 			print_line(vformat("[%d/%d - %d%%] PCKPacker flush: %s -> %s", count, file_num, float(count) / file_num * 100, files[i].src_path, files[i].path));
 		}
+	}
+
+	if (p_sign_key.is_valid()) {
+		int signature_padding = _get_pad(alignment, file->get_position());
+		for (int i = 0; i < signature_padding; i++) {
+			file->store_8(0);
+		}
+		uint64_t signature_offset = file->get_position();
+		file->store_buffer(signature);
+		uint64_t signature_end = file->get_position();
+
+		// Update signature offset and size.
+		file->seek(signature_info_ofs);
+		file->store_64(signature_offset);
+		file->store_64(signature.size());
+		file->seek(signature_end);
 	}
 
 	file.unref();

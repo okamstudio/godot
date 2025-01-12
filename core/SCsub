@@ -3,6 +3,7 @@ from misc.utility.scons_hints import *
 
 Import("env")
 
+import base64
 import os
 
 import core_builders
@@ -219,35 +220,88 @@ gen_hash = env.CommandNoCache(
 env.add_source_files(env.core_sources, gen_hash)
 
 
-# Generate AES256 script encryption key
-def encryption_key_builder(target, source, env):
+# Generate encryption and signing keys
+def encryption_key_h_builder(target, source, env):
+    with methods.generated_wrapper(target) as file:
+        file.write(
+            f"""\
+extern uint8_t pck_encryption_key[32];
+extern uint8_t pck_sign_pub_key[{source[0]}];
+extern size_t pck_sign_pub_key_len;"""
+        )
+
+
+def encryption_key_cpp_builder(target, source, env):
     with methods.generated_wrapper(target) as file:
         file.write(
             f"""\
 #include "core/config/project_settings.h"
 
-uint8_t script_encryption_key[32] = {{
-	{source[0]}
-}};"""
+uint8_t pck_encryption_key[32] = {{
+    {source[0]}
+}};
+uint8_t pck_sign_pub_key[{source[1]}] = {{
+    {source[2]}
+}};
+size_t pck_sign_pub_key_len = {source[1]};"""
         )
 
 
-gdkey = os.environ.get("SCRIPT_AES256_ENCRYPTION_KEY", "0" * 64)
-ec_valid = len(gdkey) == 64
-if ec_valid:
-    try:
-        gdkey = ", ".join([str(int(f"{a}{b}", 16)) for a, b in zip(gdkey[0::2], gdkey[1::2])])
-    except Exception:
-        ec_valid = False
+gdkey = "0" * 64
+ec_valid = True
+if ("SCRIPT_AES256_ENCRYPTION_KEY" in os.environ) or ("PCK_AES256_ENCRYPTION_KEY" in os.environ):
+    if "SCRIPT_AES256_ENCRYPTION_KEY" in os.environ:
+        gdkey = os.environ["SCRIPT_AES256_ENCRYPTION_KEY"]
+    elif "PCK_AES256_ENCRYPTION_KEY" in os.environ:
+        gdkey = os.environ["PCK_AES256_ENCRYPTION_KEY"]
+    ec_valid = len(gdkey) == 64
+    if ec_valid:
+        try:
+            gdkey = ",".join([str(int(f"{a}{b}", 16)) for a, b in zip(gdkey[0::2], gdkey[1::2])])
+        except Exception:
+            ec_valid = False
+
+pubkey = "0"
+pubkey_len = 1
+if "PCK_SIGNING_PUBLIC_KEY" in os.environ:
+    if not env["module_mbedtls_enabled"]:
+        methods.print_error(
+            "`mbedtls` module required for PCK signing. Unset `PCK_SIGNING_PUBLIC_KEY` in your environment, or enable `mbedtls` module."
+        )
+        Exit(255)
+    raw_key = base64.b64decode(os.environ["PCK_SIGNING_PUBLIC_KEY"]).hex()
+    if len(raw_key) >= 64:
+        pubkey = ""
+        pubkey_len = len(raw_key) >> 1
+        for i in range(pubkey_len):
+            if i > 0:
+                pubkey += ","
+            pubkey += "0x" + raw_key[i * 2 : i * 2 + 2]
+        env.Append(CPPDEFINES=["PCK_SIGNING_ENABLED"])
+
 if not ec_valid:
     methods.print_error(
         f'Invalid AES256 encryption key, not 64 hexadecimal characters: "{gdkey}".\n'
-        "Unset `SCRIPT_AES256_ENCRYPTION_KEY` in your environment "
+        "Unset `PCK_AES256_ENCRYPTION_KEY` in your environment "
         "or make sure that it contains exactly 64 hexadecimal characters."
     )
     Exit(255)
-gen_encrypt = env.CommandNoCache("script_encryption_key.gen.cpp", env.Value(gdkey), env.Run(encryption_key_builder))
-env.add_source_files(env.core_sources, gen_encrypt)
+
+env.Depends(
+    "#core/script_encryption_key.gen.h",
+    [env.Value(pubkey_len)],
+)
+env.CommandNoCache("#core/script_encryption_key.gen.h", env.Value(pubkey_len), env.Run(encryption_key_h_builder))
+env.Depends(
+    "#core/script_encryption_key.gen.cpp",
+    [env.Value(gdkey), env.Value(pubkey_len), env.Value(pubkey)],
+)
+gen_encrypt_cpp = env.CommandNoCache(
+    "#core/script_encryption_key.gen.cpp",
+    [env.Value(gdkey), env.Value(pubkey_len), env.Value(pubkey)],
+    env.Run(encryption_key_cpp_builder),
+)
+env.add_source_files(env.core_sources, gen_encrypt_cpp)
 
 
 # Certificates

@@ -88,7 +88,7 @@ private:
 
 	String custom_features;
 
-	String enc_in_filters;
+	String enc_in_filters = "*.gd";
 	String enc_ex_filters;
 	bool enc_pck = false;
 	bool enc_directory = false;
@@ -96,6 +96,12 @@ private:
 
 	String script_key;
 	int script_mode = MODE_SCRIPT_BINARY_TOKENS_COMPRESSED;
+
+	bool sign_pck = false;
+
+	String sign_key_priv;
+	String sign_key_pub;
+	int sign_type = 1;
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -175,8 +181,20 @@ public:
 	void set_enc_directory(bool p_enabled);
 	bool get_enc_directory() const;
 
-	void set_script_encryption_key(const String &p_key);
-	String get_script_encryption_key() const;
+	void set_pck_encryption_key(const String &p_key);
+	String get_pck_encryption_key() const;
+
+	void set_sign_pck(bool p_enabled);
+	bool get_sign_pck() const;
+
+	void set_pck_signing_key_priv(const String &p_key);
+	String get_pck_signing_key_priv() const;
+
+	void set_pck_signing_type(int p_type);
+	int get_pck_signing_type() const;
+
+	void set_pck_signing_key_pub(const String &p_key);
+	String get_pck_signing_key_pub() const;
 
 	void set_script_export_mode(int p_mode);
 	int get_script_export_mode() const;
