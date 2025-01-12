@@ -60,7 +60,7 @@ class OptimizedTranslation : public Translation {
 		Elem elem[1];
 	};
 
-	_FORCE_INLINE_ uint32_t hash(uint32_t d, const char *p_str) const {
+	_FORCE_INLINE_ uint32_t hash(uint32_t d, const char *p_str, uint32_t p_n) const {
 		if (d == 0) {
 			d = 0x1000193;
 		}
@@ -68,9 +68,14 @@ class OptimizedTranslation : public Translation {
 			d = (d * 0x1000193) ^ uint32_t(*p_str);
 			p_str++;
 		}
+		d = (d * 0x1000193) ^ p_n;
 
 		return d;
 	}
+
+	mutable StringName last_plural_key;
+	mutable int last_plural_n = -1; // Set it to an impossible value at the beginning.
+	mutable int last_plural_mapped_index = 0;
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);

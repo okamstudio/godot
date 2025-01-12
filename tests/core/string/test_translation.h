@@ -138,12 +138,36 @@ TEST_CASE("[OptimizedTranslation] Generate from Translation and read messages") 
 	translation->add_message("Hello2", "Bonjour2");
 	translation->add_message("Hello3", "Bonjour3");
 
+	translation->set_plural_rule("nplurals=2; plural=(n >= 2);");
+	CHECK(translation->get_plural_forms() == 2);
+
+	PackedStringArray plurals;
+	plurals.push_back("Il y a %d pomme");
+	plurals.push_back("Il y a %d pommes");
+	translation->add_plural_message("There are %d apples", plurals);
+
+	ERR_PRINT_OFF;
+	// This is invalid, as the number passed to `get_plural_message()` may not be negative.
+	CHECK(vformat(translation->get_plural_message("There are %d apples", "", -1), -1) == "");
+	ERR_PRINT_ON;
+	CHECK(vformat(translation->get_plural_message("There are %d apples", "", 0), 0) == "Il y a 0 pomme");
+	CHECK(vformat(translation->get_plural_message("There are %d apples", "", 1), 1) == "Il y a 1 pomme");
+	CHECK(vformat(translation->get_plural_message("There are %d apples", "", 2), 2) == "Il y a 2 pommes");
+
 	Ref<OptimizedTranslation> optimized_translation = memnew(OptimizedTranslation);
 	optimized_translation->generate(translation);
 	CHECK(optimized_translation->get_message("Hello") == "Bonjour");
 	CHECK(optimized_translation->get_message("Hello2") == "Bonjour2");
 	CHECK(optimized_translation->get_message("Hello3") == "Bonjour3");
 	CHECK(optimized_translation->get_message("DoesNotExist") == "");
+
+	ERR_PRINT_OFF;
+	// This is invalid, as the number passed to `get_plural_message()` may not be negative.
+	CHECK(vformat(optimized_translation->get_plural_message("There are %d apples", "", -1), -1) == "");
+	ERR_PRINT_ON;
+	CHECK(vformat(optimized_translation->get_plural_message("There are %d apples", "", 0), 0) == "Il y a 0 pomme");
+	CHECK(vformat(optimized_translation->get_plural_message("There are %d apples", "", 1), 1) == "Il y a 1 pomme");
+	CHECK(vformat(optimized_translation->get_plural_message("There are %d apples", "", 2), 2) == "Il y a 2 pommes");
 
 	List<StringName> messages;
 	// `get_message_list()` can't return the list of messages stored in an OptimizedTranslation.
@@ -164,7 +188,7 @@ TEST_CASE("[TranslationCSV] CSV import") {
 	Error result = import_csv_translation->import(0, TestUtils::get_data_path("translations.csv"),
 			"", options, nullptr, &gen_files);
 	CHECK(result == OK);
-	CHECK(gen_files.size() == 4);
+	CHECK(gen_files.size() == 5);
 
 	TranslationServer *ts = TranslationServer::get_singleton();
 
@@ -189,6 +213,15 @@ TEST_CASE("[TranslationCSV] CSV import") {
 
 	CHECK(ts->tr("GOOD_MORNING") == String::utf8("おはよう"));
 	CHECK(ts->tr("GOOD_EVENING") == String::utf8("こんばんは"));
+
+	ts->set_locale("fr");
+	ERR_PRINT_OFF;
+	// This is invalid, as the number passed to `translate_plural()` may not be negative.
+	CHECK(vformat(ts->translate_plural("There are %d apples", "", -1), -1) == "");
+	ERR_PRINT_ON;
+	CHECK(vformat(ts->translate_plural("There are %d apples", "", 0), 0) == "Il y a 0 pomme");
+	CHECK(vformat(ts->translate_plural("There are %d apples", "", 1), 1) == "Il y a 1 pomme");
+	CHECK(vformat(ts->translate_plural("There are %d apples", "", 2), 2) == "Il y a 2 pommes");
 
 	/* FIXME: This passes, but triggers a chain reaction that makes test_viewport
 	 * and test_text_edit explode in a billion glittery Unicode particles.
