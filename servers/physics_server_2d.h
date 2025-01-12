@@ -160,6 +160,7 @@ public:
 
 	struct PointParameters {
 		Vector2 position;
+		bool check_canvas_instance_id = true;
 		ObjectID canvas_instance_id;
 		HashSet<RID> exclude;
 		uint32_t collision_mask = UINT32_MAX;
@@ -660,6 +661,9 @@ public:
 
 	void set_position(const Vector2 &p_position) { parameters.position = p_position; }
 	const Vector2 &get_position() const { return parameters.position; }
+
+	void set_check_canvas_instance_id(bool p_check_canvas_instance_id) { parameters.check_canvas_instance_id = p_check_canvas_instance_id; }
+	bool get_check_canvas_instance_id() const { return parameters.check_canvas_instance_id; }
 
 	void set_canvas_instance_id(ObjectID p_canvas_instance_id) { parameters.canvas_instance_id = p_canvas_instance_id; }
 	ObjectID get_canvas_instance_id() const { return parameters.canvas_instance_id; }

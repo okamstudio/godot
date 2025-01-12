@@ -10,8 +10,12 @@
 	</tutorials>
 	<members>
 		<member name="canvas_instance_id" type="int" setter="set_canvas_instance_id" getter="get_canvas_instance_id" default="0">
-			If different from [code]0[/code], restricts the query to a specific canvas layer specified by its instance ID. See [method Object.get_instance_id].
+			If different from [code]0[/code], restricts the query to a specific canvas instance ID. See [method PhysicsServer2D.area_get_canvas_instance_id] and [method PhysicsServer2D.body_get_canvas_instance_id].
 			If [code]0[/code], restricts the query to the Viewport's default canvas layer.
+			[member check_canvas_instance_id] needs to be enabled for this property to be taken into account.
+		</member>
+		<member name="check_canvas_instance_id" type="bool" setter="set_check_canvas_instance_id" getter="get_check_canvas_instance_id" default="true">
+			If [code]true[/code], the query will take the set [member canvas_instance_id] into account.
 		</member>
 		<member name="collide_with_areas" type="bool" setter="set_collide_with_areas" getter="is_collide_with_areas_enabled" default="false">
 			If [code]true[/code], the query will take [Area2D]s into account.
