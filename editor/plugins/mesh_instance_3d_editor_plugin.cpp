@@ -44,9 +44,13 @@
 #include "scene/gui/dialogs.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/spin_box.h"
+#include "scene/resources/3d/box_shape_3d.h"
+#include "scene/resources/3d/capsule_shape_3d.h"
 #include "scene/resources/3d/concave_polygon_shape_3d.h"
 #include "scene/resources/3d/convex_polygon_shape_3d.h"
+#include "scene/resources/3d/cylinder_shape_3d.h"
 #include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/3d/sphere_shape_3d.h"
 
 void MeshInstance3DEditor::_node_removed(Node *p_node) {
 	if (p_node == node) {
@@ -103,10 +107,210 @@ Vector<Ref<Shape3D>> MeshInstance3DEditor::create_shape_from_mesh(Ref<Mesh> p_me
 			}
 		} break;
 
+		case SHAPE_TYPE_BOUNDING_BOX: {
+			const Ref<BoxMesh> box_mesh = p_mesh;
+			if (box_mesh.is_valid()) {
+				Ref<BoxShape3D> box_shape;
+				box_shape.instantiate();
+				box_shape->set_size(box_mesh->get_size().maxf(0.001));
+				shapes.push_back(box_shape);
+			} else {
+				Ref<BoxShape3D> box_shape;
+				box_shape.instantiate();
+				AABB mesh_aabb = p_mesh->get_aabb();
+				box_shape->set_size(mesh_aabb.get_size().maxf(0.001));
+				shapes.push_back(box_shape);
+				shape_offset_transform.origin = mesh_aabb.get_center();
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a bounding box shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
+		case SHAPE_TYPE_CAPSULE: {
+			const Ref<CapsuleMesh> capsule_mesh = p_mesh;
+			if (capsule_mesh.is_valid()) {
+				Ref<CapsuleShape3D> capsule_shape;
+				capsule_shape.instantiate();
+				capsule_shape->set_height(capsule_mesh->get_height());
+				capsule_shape->set_radius(MAX(capsule_mesh->get_radius(), 0.001));
+				shapes.push_back(capsule_shape);
+			} else {
+				// Use AABB to estimate shape.
+				Ref<CapsuleShape3D> capsule_shape;
+				capsule_shape.instantiate();
+				AABB mesh_aabb = p_mesh->get_aabb();
+				int axis = shape_axis->get_selected_id();
+				if (axis == (int)SHAPE_AXIS_LONGEST) {
+					axis = mesh_aabb.get_longest_axis_index();
+				}
+				int perpendicular_axis = axis == 0 ? 1 : 0;
+
+				capsule_shape->set_height(mesh_aabb.get_size()[axis]);
+				capsule_shape->set_radius(MAX(mesh_aabb.get_size()[perpendicular_axis] / 2.0, 0.001));
+				shapes.push_back(capsule_shape);
+
+				shape_offset_transform.origin = mesh_aabb.get_center();
+				if (axis == Vector3::AXIS_X) {
+					shape_offset_transform.rotate_basis(Vector3(0, 0, 1), Math_PI / 2.0);
+				} else if (axis == Vector3::AXIS_Z) {
+					shape_offset_transform.rotate_basis(Vector3(1, 0, 0), -Math_PI / 2.0);
+				}
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a capsule shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
+		case SHAPE_TYPE_CYLINDER: {
+			const Ref<CylinderMesh> cylinder_mesh = p_mesh;
+			if (cylinder_mesh.is_valid()) {
+				Ref<CylinderShape3D> cylinder_shape;
+				cylinder_shape.instantiate();
+				cylinder_shape->set_height(MAX(cylinder_mesh->get_height(), 0.001));
+				cylinder_shape->set_radius((cylinder_mesh->get_top_radius() + cylinder_mesh->get_bottom_radius()) / 2.0);
+				shapes.push_back(cylinder_shape);
+			} else {
+				// Use AABB to estimate shape.
+				Ref<CylinderShape3D> cylinder_shape;
+				cylinder_shape.instantiate();
+				AABB mesh_aabb = p_mesh->get_aabb();
+				int axis = shape_axis->get_selected_id();
+				if (axis == (int)SHAPE_AXIS_LONGEST) {
+					axis = mesh_aabb.get_longest_axis_index();
+				}
+				int perpendicular_axis = axis == 0 ? 1 : 0;
+
+				cylinder_shape->set_height(MAX(mesh_aabb.get_size()[axis], 0.001));
+				cylinder_shape->set_radius(mesh_aabb.get_size()[perpendicular_axis] / 2.0);
+				shapes.push_back(cylinder_shape);
+
+				shape_offset_transform.origin = mesh_aabb.get_center();
+				if (axis == Vector3::AXIS_X) {
+					shape_offset_transform.rotate_basis(Vector3(0, 0, 1), Math_PI / 2.0);
+				} else if (axis == Vector3::AXIS_Z) {
+					shape_offset_transform.rotate_basis(Vector3(1, 0, 0), -Math_PI / 2.0);
+				}
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a cylinder shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
+		case SHAPE_TYPE_SPHERE: {
+			const Ref<SphereMesh> sphere_mesh = p_mesh;
+			if (sphere_mesh.is_valid()) {
+				Ref<SphereShape3D> sphere_shape;
+				sphere_shape.instantiate();
+				sphere_shape->set_radius(MAX(sphere_mesh->get_radius(), 0.001));
+				shapes.push_back(sphere_shape);
+			} else {
+				// Use AABB to estimate shape.
+				Ref<SphereShape3D> sphere_shape;
+				sphere_shape.instantiate();
+				AABB mesh_aabb = p_mesh->get_aabb();
+				sphere_shape->set_radius(MAX(mesh_aabb.get_size()[mesh_aabb.get_size().max_axis_index()] / 2.0, 0.001));
+				shapes.push_back(sphere_shape);
+				shape_offset_transform.origin = mesh_aabb.get_center();
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a sphere shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
+		case SHAPE_TYPE_PRIMITIVE: {
+			const Ref<BoxMesh> box_mesh = p_mesh;
+			if (box_mesh.is_valid()) {
+				Ref<BoxShape3D> box_shape;
+				box_shape.instantiate();
+				box_shape->set_size(box_mesh->get_size().maxf(0.001));
+				shapes.push_back(box_shape);
+			}
+
+			const Ref<CapsuleMesh> capsule_mesh = p_mesh;
+			if (capsule_mesh.is_valid()) {
+				Ref<CapsuleShape3D> capsule_shape;
+				capsule_shape.instantiate();
+				capsule_shape->set_height(capsule_mesh->get_height());
+				capsule_shape->set_radius(MAX(capsule_mesh->get_radius(), 0.001));
+				shapes.push_back(capsule_shape);
+			}
+
+			const Ref<CylinderMesh> cylinder_mesh = p_mesh;
+			if (cylinder_mesh.is_valid()) {
+				Ref<CylinderShape3D> cylinder_shape;
+				cylinder_shape.instantiate();
+				cylinder_shape->set_height(MAX(cylinder_mesh->get_height(), 0.001));
+				cylinder_shape->set_radius((cylinder_mesh->get_top_radius() + cylinder_mesh->get_bottom_radius()) / 2.0);
+				shapes.push_back(cylinder_shape);
+			}
+
+			const Ref<SphereMesh> sphere_mesh = p_mesh;
+			if (sphere_mesh.is_valid()) {
+				Ref<SphereShape3D> sphere_shape;
+				sphere_shape.instantiate();
+				sphere_shape->set_radius(MAX(sphere_mesh->get_radius(), 0.001));
+				shapes.push_back(sphere_shape);
+			}
+
+			if (p_verbose && shapes.is_empty()) {
+				err_dialog->set_text(TTR("Couldn't create a primitive collision shape."));
+				err_dialog->popup_centered();
+			}
+		} break;
+
 		default:
 			break;
 	}
 	return shapes;
+}
+
+void MeshInstance3DEditor::_shape_dialog_about_to_popup() {
+	EditorSelection *editor_selection = EditorNode::get_singleton()->get_editor_selection();
+	List<Node *> selection = editor_selection->get_selected_node_list();
+	if (selection.is_empty()) {
+		selection.push_back(node);
+	}
+
+	bool disable_primitive = true;
+	for (Node *E : selection) {
+		MeshInstance3D *instance = Object::cast_to<MeshInstance3D>(E);
+		if (!instance) {
+			continue;
+		}
+		Ref<Mesh> m = instance->get_mesh();
+		if (m.is_null()) {
+			continue;
+		}
+		if (((Ref<BoxMesh>)m).is_valid() || ((Ref<CapsuleMesh>)m).is_valid() || ((Ref<CylinderMesh>)m).is_valid() || ((Ref<SphereMesh>)m).is_valid()) {
+			disable_primitive = false;
+			break;
+		}
+	}
+	if (disable_primitive && shape_type->get_selected() == SHAPE_TYPE_PRIMITIVE) {
+		shape_type->select(SHAPE_TYPE_TRIMESH);
+	}
+
+	shape_type->set_item_disabled(shape_type->get_popup()->get_item_index(SHAPE_TYPE_PRIMITIVE), disable_primitive);
+
+	ShapeType selected_shape_type = (ShapeType)shape_type->get_selected_id();
+	bool shape_axis_visible = selected_shape_type == SHAPE_TYPE_CAPSULE || selected_shape_type == SHAPE_TYPE_CYLINDER;
+	shape_axis->set_visible(shape_axis_visible);
+	shape_axis_label->set_visible(shape_axis_visible);
+}
+
+void MeshInstance3DEditor::_shape_type_selected(int p_option) {
+	bool shape_axis_visible = (ShapeType)p_option == SHAPE_TYPE_CAPSULE || (ShapeType)p_option == SHAPE_TYPE_CYLINDER;
+	shape_axis->set_visible(shape_axis_visible);
+	shape_axis_label->set_visible(shape_axis_visible);
 }
 
 void MeshInstance3DEditor::_create_collision_shape() {
@@ -116,18 +320,36 @@ void MeshInstance3DEditor::_create_collision_shape() {
 	EditorSelection *editor_selection = EditorNode::get_singleton()->get_editor_selection();
 	EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
 
+	String placement_action_name = placement_option == SHAPE_PLACEMENT_SIBLING ? TTR("Create %s Collision Shape Sibling") : TTR("Create %s Static Body Child");
+
 	switch (shape_type_option) {
 		case SHAPE_TYPE_TRIMESH: {
-			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Trimesh Collision Shape Sibling" : "Create Trimesh Static Body"));
+			ur->create_action(vformat(placement_action_name, TTR("Trimesh")));
 		} break;
 		case SHAPE_TYPE_SINGLE_CONVEX: {
-			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Single Convex Collision Shape Sibling" : "Create Single Convex Static Body"));
+			ur->create_action(vformat(placement_action_name, TTR("Single Convex")));
 		} break;
 		case SHAPE_TYPE_SIMPLIFIED_CONVEX: {
-			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Simplified Convex Collision Shape Sibling" : "Create Simplified Convex Static Body"));
+			ur->create_action(vformat(placement_action_name, TTR("Simplified Convex")));
 		} break;
 		case SHAPE_TYPE_MULTIPLE_CONVEX: {
-			ur->create_action(TTR(placement_option == SHAPE_PLACEMENT_SIBLING ? "Create Multiple Convex Collision Shape Siblings" : "Create Multiple Convex Static Body"));
+			placement_action_name = placement_option == SHAPE_PLACEMENT_SIBLING ? TTR("Create %s Collision Shape Siblings") : TTR("Create %s Static Body Children");
+			ur->create_action(vformat(placement_action_name, TTR("Multiple Convex")));
+		} break;
+		case SHAPE_TYPE_BOUNDING_BOX: {
+			ur->create_action(vformat(placement_action_name, TTR("Bounding Box")));
+		} break;
+		case SHAPE_TYPE_CAPSULE: {
+			ur->create_action(vformat(placement_action_name, TTR("Capsule")));
+		} break;
+		case SHAPE_TYPE_CYLINDER: {
+			ur->create_action(vformat(placement_action_name, TTR("Cylinder")));
+		} break;
+		case SHAPE_TYPE_SPHERE: {
+			ur->create_action(vformat(placement_action_name, TTR("Sphere")));
+		} break;
+		case SHAPE_TYPE_PRIMITIVE: {
+			ur->create_action(vformat(placement_action_name, TTR("Primitive")));
 		} break;
 		default:
 			break;
@@ -160,14 +382,16 @@ void MeshInstance3DEditor::_create_collision_shape() {
 			continue;
 		}
 
+		shape_offset_transform = Transform3D();
 		Vector<Ref<Shape3D>> shapes = create_shape_from_mesh(m, shape_type_option, verbose);
 		if (shapes.is_empty()) {
-			return;
+			continue;
 		}
 
 		Node *owner = get_tree()->get_edited_scene_root();
 		if (placement_option == SHAPE_PLACEMENT_STATIC_BODY_CHILD) {
 			StaticBody3D *body = memnew(StaticBody3D);
+			body->set_transform(shape_offset_transform);
 
 			ur->add_do_method(instance, "add_child", body, true);
 			ur->add_do_method(body, "set_owner", owner);
@@ -187,7 +411,7 @@ void MeshInstance3DEditor::_create_collision_shape() {
 				CollisionShape3D *cshape = memnew(CollisionShape3D);
 				cshape->set_shape(shape);
 				cshape->set_name("CollisionShape3D");
-				cshape->set_transform(instance->get_transform());
+				cshape->set_transform(instance->get_transform() * shape_offset_transform);
 				ur->add_do_method(E, "add_sibling", cshape, true);
 				ur->add_do_method(cshape, "set_owner", owner);
 				ur->add_do_method(Node3DEditor::get_singleton(), SceneStringName(_request_gizmo), cshape);
@@ -605,6 +829,7 @@ MeshInstance3DEditor::MeshInstance3DEditor() {
 	shape_dialog = memnew(ConfirmationDialog);
 	shape_dialog->set_title(TTR("Create Collision Shape"));
 	shape_dialog->set_ok_button_text(TTR("Create"));
+	shape_dialog->connect("about_to_popup", callable_mp(this, &MeshInstance3DEditor::_shape_dialog_about_to_popup));
 
 	VBoxContainer *shape_dialog_vbc = memnew(VBoxContainer);
 	shape_dialog->add_child(shape_dialog_vbc);
@@ -630,12 +855,39 @@ MeshInstance3DEditor::MeshInstance3DEditor() {
 	shape_type->add_item(TTR("Trimesh"), SHAPE_TYPE_TRIMESH);
 	shape_type->set_item_tooltip(-1, TTR("Creates a polygon-based collision shape.\nThis is the most accurate (but slowest) option for collision detection."));
 	shape_type->add_item(TTR("Single Convex"), SHAPE_TYPE_SINGLE_CONVEX);
-	shape_type->set_item_tooltip(-1, TTR("Creates a single convex collision shape.\nThis is the fastest (but least accurate) option for collision detection."));
+	shape_type->set_item_tooltip(-1, TTR("Creates a single convex collision shape.\nThis is the faster than the trimesh or multiple convex option, but is less accurate for collision detection."));
 	shape_type->add_item(TTR("Simplified Convex"), SHAPE_TYPE_SIMPLIFIED_CONVEX);
 	shape_type->set_item_tooltip(-1, TTR("Creates a simplified convex collision shape.\nThis is similar to single collision shape, but can result in a simpler geometry in some cases, at the cost of accuracy."));
 	shape_type->add_item(TTR("Multiple Convex"), SHAPE_TYPE_MULTIPLE_CONVEX);
-	shape_type->set_item_tooltip(-1, TTR("Creates a polygon-based collision shape.\nThis is a performance middle-ground between a single convex collision and a polygon-based collision."));
+	shape_type->set_item_tooltip(-1, TTR("Creates multiple convex collision shapes. These are decomposed from the original mesh.\nThis is a performance and accuracy middle-ground between a single convex collision and a polygon-based trimesh collision."));
+	shape_type->add_item(TTR("Bounding Box"), SHAPE_TYPE_BOUNDING_BOX);
+	shape_type->set_item_tooltip(-1, TTR("Creates an bounding box collision shape.\nThis will use the mesh's AABB if the shape is not a built-in BoxMesh.\nThis is faster than the convex collision shape option for collision detection."));
+	shape_type->add_item(TTR("Capsule"), SHAPE_TYPE_CAPSULE);
+	shape_type->set_item_tooltip(-1, TTR("Creates a capsule collision shape.\nThis will use the mesh's AABB if the shape is not a built-in CapsuleMesh.\nThis is faster than the convex collision shape option for collision detection."));
+	shape_type->add_item(TTR("Cylinder"), SHAPE_TYPE_CYLINDER);
+	shape_type->set_item_tooltip(-1, TTR("Creates a cylinder collision shape.\nThis will use the mesh's AABB if the shape is not a built-in CylinderMesh.\nThis is faster than the convex collision shape option for collision detection."));
+	shape_type->add_item(TTR("Sphere"), SHAPE_TYPE_SPHERE);
+	shape_type->set_item_tooltip(-1, TTR("Creates a sphere collision shape.\nThis will use the mesh's AABB if the shape is not a built-in SphereMesh.\nThis is faster than the convex collision shape option for collision detection."));
+	shape_type->add_item(TTR("Primitive"), SHAPE_TYPE_PRIMITIVE);
+	shape_type->set_item_tooltip(-1, TTR("Creates a box, capsule, cylinder, or sphere primitive collision shape if the mesh is a primitive.\nThe mesh must use the built-in BoxMesh, CapsuleMesh, CylinderMesh, or SphereMesh primitive.\nThis is faster than the convex collision shape option for collision detection."));
 	shape_dialog_vbc->add_child(shape_type);
+	shape_type->connect(SceneStringName(item_selected), callable_mp(this, &MeshInstance3DEditor::_shape_type_selected));
+
+	shape_axis_label = memnew(Label);
+	shape_axis_label->set_text(TTR("Alignment Axis"));
+	shape_dialog_vbc->add_child(shape_axis_label);
+
+	shape_axis = memnew(OptionButton);
+	shape_axis->set_h_size_flags(SIZE_EXPAND_FILL);
+	shape_axis->add_item(TTR("Longest Axis"), SHAPE_AXIS_LONGEST);
+	shape_axis->set_item_tooltip(-1, TTR("Create the shape along the longest axis of the mesh's AABB."));
+	shape_axis->add_item(TTR("X-Axis"), SHAPE_AXIS_X);
+	shape_axis->set_item_tooltip(-1, TTR("Create the shape along the local X-Axis."));
+	shape_axis->add_item(TTR("Y-Axis"), SHAPE_AXIS_Y);
+	shape_axis->set_item_tooltip(-1, TTR("Create the shape along the local Y-Axis."));
+	shape_axis->add_item(TTR("Z-Axis"), SHAPE_AXIS_Z);
+	shape_axis->set_item_tooltip(-1, TTR("Create the shape along the local Z-Axis."));
+	shape_dialog_vbc->add_child(shape_axis);
 
 	add_child(shape_dialog);
 	shape_dialog->connect(SceneStringName(confirmed), callable_mp(this, &MeshInstance3DEditor::_create_collision_shape));

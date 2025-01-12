@@ -64,6 +64,18 @@ class MeshInstance3DEditor : public Control {
 		SHAPE_TYPE_SINGLE_CONVEX,
 		SHAPE_TYPE_SIMPLIFIED_CONVEX,
 		SHAPE_TYPE_MULTIPLE_CONVEX,
+		SHAPE_TYPE_BOUNDING_BOX,
+		SHAPE_TYPE_CAPSULE,
+		SHAPE_TYPE_CYLINDER,
+		SHAPE_TYPE_SPHERE,
+		SHAPE_TYPE_PRIMITIVE,
+	};
+
+	enum ShapeAxis {
+		SHAPE_AXIS_X,
+		SHAPE_AXIS_Y,
+		SHAPE_AXIS_Z,
+		SHAPE_AXIS_LONGEST,
 	};
 
 	MeshInstance3D *node = nullptr;
@@ -76,6 +88,9 @@ class MeshInstance3DEditor : public Control {
 	ConfirmationDialog *shape_dialog = nullptr;
 	OptionButton *shape_type = nullptr;
 	OptionButton *shape_placement = nullptr;
+	Label *shape_axis_label = nullptr;
+	OptionButton *shape_axis = nullptr;
+	Transform3D shape_offset_transform;
 
 	AcceptDialog *err_dialog = nullptr;
 
@@ -86,6 +101,8 @@ class MeshInstance3DEditor : public Control {
 
 	ConfirmationDialog *navigation_mesh_dialog = nullptr;
 
+	void _shape_dialog_about_to_popup();
+	void _shape_type_selected(int p_option);
 	void _create_collision_shape();
 	Vector<Ref<Shape3D>> create_shape_from_mesh(Ref<Mesh> p_mesh, int p_option, bool p_verbose);
 	void _menu_option(int p_option);
