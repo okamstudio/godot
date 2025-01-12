@@ -34,8 +34,19 @@
 #include "core/templates/rid.h"
 #include "scene/resources/material.h"
 
-class ProceduralSkyMaterial : public Material {
-	GDCLASS(ProceduralSkyMaterial, Material);
+class SkyMaterial : public Material {
+	GDCLASS(SkyMaterial, Material);
+
+protected:
+	static void _bind_methods() {}
+	virtual Shader::Mode get_shader_mode() const override;
+
+public:
+	SkyMaterial();
+};
+
+class ProceduralSkyMaterial : public SkyMaterial {
+	GDCLASS(ProceduralSkyMaterial, SkyMaterial);
 
 private:
 	Color sky_top_color;
@@ -107,7 +118,6 @@ public:
 	void set_energy_multiplier(float p_multiplier);
 	float get_energy_multiplier() const;
 
-	virtual Shader::Mode get_shader_mode() const override;
 	virtual RID get_shader_rid() const override;
 	virtual RID get_rid() const override;
 
@@ -120,8 +130,8 @@ public:
 //////////////////////////////////////////////////////
 /* PanoramaSkyMaterial */
 
-class PanoramaSkyMaterial : public Material {
-	GDCLASS(PanoramaSkyMaterial, Material);
+class PanoramaSkyMaterial : public SkyMaterial {
+	GDCLASS(PanoramaSkyMaterial, SkyMaterial);
 
 private:
 	Ref<Texture2D> panorama;
@@ -147,7 +157,6 @@ public:
 	void set_energy_multiplier(float p_multiplier);
 	float get_energy_multiplier() const;
 
-	virtual Shader::Mode get_shader_mode() const override;
 	virtual RID get_shader_rid() const override;
 	virtual RID get_rid() const override;
 
@@ -160,8 +169,8 @@ public:
 //////////////////////////////////////////////////////
 /* PanoramaSkyMaterial */
 
-class PhysicalSkyMaterial : public Material {
-	GDCLASS(PhysicalSkyMaterial, Material);
+class PhysicalSkyMaterial : public SkyMaterial {
+	GDCLASS(PhysicalSkyMaterial, SkyMaterial);
 
 private:
 	static Mutex shader_mutex;
@@ -222,7 +231,6 @@ public:
 	void set_night_sky(const Ref<Texture2D> &p_night_sky);
 	Ref<Texture2D> get_night_sky() const;
 
-	virtual Shader::Mode get_shader_mode() const override;
 	virtual RID get_shader_rid() const override;
 
 	static void cleanup_shader();

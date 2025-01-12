@@ -33,6 +33,14 @@
 #include "core/config/project_settings.h"
 #include "core/version.h"
 
+SkyMaterial::SkyMaterial() {
+	_set_material(RS::get_singleton()->material_create());
+}
+
+Shader::Mode SkyMaterial::get_shader_mode() const {
+	return Shader::MODE_SKY;
+}
+
 Mutex ProceduralSkyMaterial::shader_mutex;
 RID ProceduralSkyMaterial::shader_cache[2];
 
@@ -168,10 +176,6 @@ void ProceduralSkyMaterial::set_energy_multiplier(float p_multiplier) {
 
 float ProceduralSkyMaterial::get_energy_multiplier() const {
 	return global_energy_multiplier;
-}
-
-Shader::Mode ProceduralSkyMaterial::get_shader_mode() const {
-	return Shader::MODE_SKY;
 }
 
 RID ProceduralSkyMaterial::get_rid() const {
@@ -357,7 +361,6 @@ void sky() {
 }
 
 ProceduralSkyMaterial::ProceduralSkyMaterial() {
-	_set_material(RS::get_singleton()->material_create());
 	set_sky_top_color(Color(0.385, 0.454, 0.55));
 	set_sky_horizon_color(Color(0.6463, 0.6558, 0.6708));
 	set_sky_curve(0.15);
@@ -415,10 +418,6 @@ void PanoramaSkyMaterial::set_energy_multiplier(float p_multiplier) {
 
 float PanoramaSkyMaterial::get_energy_multiplier() const {
 	return energy_multiplier;
-}
-
-Shader::Mode PanoramaSkyMaterial::get_shader_mode() const {
-	return Shader::MODE_SKY;
 }
 
 RID PanoramaSkyMaterial::get_rid() const {
@@ -487,7 +486,6 @@ void sky() {
 }
 
 PanoramaSkyMaterial::PanoramaSkyMaterial() {
-	_set_material(RS::get_singleton()->material_create());
 	set_energy_multiplier(1.0);
 }
 
@@ -602,10 +600,6 @@ void PhysicalSkyMaterial::set_night_sky(const Ref<Texture2D> &p_night_sky) {
 
 Ref<Texture2D> PhysicalSkyMaterial::get_night_sky() const {
 	return night_sky;
-}
-
-Shader::Mode PhysicalSkyMaterial::get_shader_mode() const {
-	return Shader::MODE_SKY;
 }
 
 RID PhysicalSkyMaterial::get_rid() const {
@@ -787,7 +781,6 @@ void sky() {
 }
 
 PhysicalSkyMaterial::PhysicalSkyMaterial() {
-	_set_material(RS::get_singleton()->material_create());
 	set_rayleigh_coefficient(2.0);
 	set_rayleigh_color(Color(0.3, 0.405, 0.6));
 	set_mie_coefficient(0.005);
