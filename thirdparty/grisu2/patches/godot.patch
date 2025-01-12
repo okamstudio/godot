@@ -1,0 +1,121 @@
+diff --git a/thirdparty/grisu2/grisu2.h b/thirdparty/grisu2/grisu2.h
+index 19886cce47f..dbc09755fad 100644
+--- a/thirdparty/grisu2/grisu2.h
++++ b/thirdparty/grisu2/grisu2.h
+@@ -1,15 +1,12 @@
+-#ifndef SIMDJSON_SRC_TO_CHARS_CPP
+-#define SIMDJSON_SRC_TO_CHARS_CPP
+-
+-#include <base.h>
++#ifndef SIMDJSON_GRISU2_H
++#define SIMDJSON_GRISU2_H
+ 
+ #include <cstring>
+ #include <cstdint>
+ #include <array>
+ #include <cmath>
+ 
+-namespace simdjson {
+-namespace internal {
++namespace grisu2 {
+ /*!
+ implements the Grisu2 algorithm for binary to decimal floating-point
+ conversion.
+@@ -26,7 +23,6 @@ PLDI 2010 [2] Burger, Dybvig, "Printing Floating-Point Numbers Quickly and
+ Accurately", Proceedings of the ACM SIGPLAN 1996 Conference on Programming
+ Language Design and Implementation, PLDI 1996
+ */
+-namespace dtoa_impl {
+ 
+ template <typename Target, typename Source>
+ Target reinterpret_bits(const Source source) {
+@@ -718,7 +714,7 @@ v = buf * 10^decimal_exponent
+ len is the length of the buffer (number of decimal digits)
+ The buffer must be large enough, i.e. >= max_digits10.
+ */
+-inline void grisu2(char *buf, int &len, int &decimal_exponent, diyfp m_minus,
++inline void grisu2_core(char *buf, int &len, int &decimal_exponent, diyfp m_minus,
+                    diyfp v, diyfp m_plus) {
+ 
+   //  --------(-----------------------+-----------------------)--------    (A)
+@@ -775,7 +771,7 @@ len is the length of the buffer (number of decimal digits)
+ The buffer must be large enough, i.e. >= max_digits10.
+ */
+ template <typename FloatType>
+-void grisu2(char *buf, int &len, int &decimal_exponent, FloatType value) {
++void grisu2_wrap(char *buf, int &len, int &decimal_exponent, FloatType value) {
+   static_assert(diyfp::kPrecision >= std::numeric_limits<FloatType>::digits + 3,
+                 "internal error: not enough precision");
+ 
+@@ -804,7 +800,7 @@ void grisu2(char *buf, int &len, int &decimal_exponent, FloatType value) {
+   const boundaries w = compute_boundaries(value);
+ #endif
+ 
+-  grisu2(buf, len, decimal_exponent, w.minus, w.w, w.plus);
++  grisu2_core(buf, len, decimal_exponent, w.minus, w.w, w.plus);
+ }
+ 
+ /*!
+@@ -864,10 +860,7 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent,
+     // len <= max_exp + 2
+ 
+     std::memset(buf + k, '0', static_cast<size_t>(n) - static_cast<size_t>(k));
+-    // Make it look like a floating-point number (#362, #378)
+-    buf[n + 0] = '.';
+-    buf[n + 1] = '0';
+-    return buf + (static_cast<size_t>(n)) + 2;
++    return buf + (static_cast<size_t>(n));
+   }
+ 
+   if (0 < n && n <= max_exp) {
+@@ -909,8 +902,6 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent,
+   return append_exponent(buf, n - 1);
+ }
+ 
+-} // namespace dtoa_impl
+-
+ /*!
+ The format of the resulting decimal representation is similar to printf's %g
+ format. Returns an iterator pointing past-the-end of the decimal representation.
+@@ -918,19 +909,15 @@ format. Returns an iterator pointing past-the-end of the decimal representation.
+ @note The buffer must be large enough.
+ @note The result is NOT null-terminated.
+ */
+-char *to_chars(char *first, const char *last, double value) {
+-  static_cast<void>(last); // maybe unused - fix warning
++template <typename FloatType>
++char *to_chars(char *first, FloatType value) {
+   bool negative = std::signbit(value);
+   if (negative) {
+     value = -value;
+     *first++ = '-';
+   }
+-
+   if (value == 0) // +-0
+   {
+-    *first++ = '0';
+-    // Make it look like a floating-point number (#362, #378)
+-    *first++ = '.';
+     *first++ = '0';
+     return first;
+   }
+@@ -940,15 +927,13 @@ char *to_chars(char *first, const char *last, double value) {
+   // len is the length of the buffer, i.e. the number of decimal digits.
+   int len = 0;
+   int decimal_exponent = 0;
+-  dtoa_impl::grisu2(first, len, decimal_exponent, value);
++  grisu2_wrap(first, len, decimal_exponent, value);
+   // Format the buffer like printf("%.*g", prec, value)
+   constexpr int kMinExp = -4;
+   constexpr int kMaxExp = std::numeric_limits<double>::digits10;
+ 
+-  return dtoa_impl::format_buffer(first, len, decimal_exponent, kMinExp,
+-                                  kMaxExp);
++  return format_buffer(first, len, decimal_exponent, kMinExp, kMaxExp);
+ }
+-} // namespace internal
+-} // namespace simdjson
++} // namespace grisu2
+ 
+-#endif // SIMDJSON_SRC_TO_CHARS_CPP
++#endif // SIMDJSON_GRISU2_H

@@ -377,10 +377,10 @@
 		<member name="zoom" type="float" setter="set_zoom" getter="get_zoom" default="1.0">
 			The current zoom value.
 		</member>
-		<member name="zoom_max" type="float" setter="set_zoom_max" getter="get_zoom_max" default="2.0736">
+		<member name="zoom_max" type="float" setter="set_zoom_max" getter="get_zoom_max" default="2.0736003">
 			The upper zoom limit.
 		</member>
-		<member name="zoom_min" type="float" setter="set_zoom_min" getter="get_zoom_min" default="0.232568">
+		<member name="zoom_min" type="float" setter="set_zoom_min" getter="get_zoom_min" default="0.23256795">
 			The lower zoom limit.
 		</member>
 		<member name="zoom_step" type="float" setter="set_zoom_step" getter="get_zoom_step" default="1.2">

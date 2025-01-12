@@ -65,7 +65,7 @@
 		<member name="light_type" type="String" setter="set_light_type" getter="get_light_type" default="&quot;&quot;">
 			The type of the light. The values accepted by Godot are "point", "spot", and "directional", which correspond to Godot's [OmniLight3D], [SpotLight3D], and [DirectionalLight3D] respectively.
 		</member>
-		<member name="outer_cone_angle" type="float" setter="set_outer_cone_angle" getter="get_outer_cone_angle" default="0.785398">
+		<member name="outer_cone_angle" type="float" setter="set_outer_cone_angle" getter="get_outer_cone_angle" default="0.7853982">
 			The outer angle of the cone in a spotlight. Must be greater than or equal to the inner angle.
 			At this angle, the light drops off to zero brightness. Between the inner and outer cone angles, there is a transition from full brightness to zero brightness. If this angle is a half turn, then the spotlight emits in all directions. When creating a Godot [SpotLight3D], the outer cone angle is used as the angle of the spotlight.
 		</member>

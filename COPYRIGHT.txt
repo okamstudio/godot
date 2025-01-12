@@ -280,6 +280,11 @@ Comment: Graphite engine
 Copyright: 2010, SIL International
 License: Expat
 
+Files: ./thirdparty/grisu2/grisu2.h
+Comment: Grisu2 float serialization algorithm
+Copyright: 2009 Florian Loitsch and 2018-2023 The simdjson authors
+License: Expat and Apache
+
 Files: ./thirdparty/harfbuzz/
 Comment: HarfBuzz text shaping library
 Copyright: 2010-2022, Google, Inc.

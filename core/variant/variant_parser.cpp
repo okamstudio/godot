@@ -1932,20 +1932,26 @@ Error VariantParser::parse(Stream *p_stream, Variant &r_ret, String &r_err_str, 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
 
-static String rtos_fix(double p_value) {
+// These two functions serialize floats or doubles using num_scientific to ensure
+// it can be read back in the same way (except collapsing -0 to 0, and NaN values).
+static String serialize_real(float p_value) {
 	if (p_value == 0.0) {
-		return "0"; //avoid negative zero (-0) being written, which may annoy git, svn, etc. for changes when they don't exist.
-	} else if (isnan(p_value)) {
-		return "nan";
-	} else if (isinf(p_value)) {
-		if (p_value > 0) {
-			return "inf";
-		} else {
-			return "inf_neg";
-		}
-	} else {
-		return rtoss(p_value);
+		return "0"; // Avoid negative zero (-0) being written, which may annoy git, svn, etc. for changes when they don't exist.
 	}
+	if (isinf(p_value) && p_value < 0) {
+		return "inf_neg"; // TODO: Replace with -inf or -INF.
+	}
+	return String::num_scientific(p_value);
+}
+
+static String serialize_real(double p_value) {
+	if (p_value == 0.0) {
+		return "0"; // Avoid negative zero (-0) being written, which may annoy git, svn, etc. for changes when they don't exist.
+	}
+	if (isinf(p_value) && p_value < 0) {
+		return "inf_neg"; // TODO: Replace with -inf or -INF.
+	}
+	return String::num_scientific(p_value);
 }
 
 Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_string_func, void *p_store_string_ud, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, int p_recursion_count, bool p_compat) {
@@ -1960,7 +1966,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 			p_store_string_func(p_store_string_ud, itos(p_variant.operator int64_t()));
 		} break;
 		case Variant::FLOAT: {
-			String s = rtos_fix(p_variant.operator double());
+			String s = serialize_real(p_variant.operator double());
 			if (s != "inf" && s != "inf_neg" && s != "nan") {
 				if (!s.contains_char('.') && !s.contains_char('e')) {
 					s += ".0";
@@ -1977,7 +1983,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		// Math types.
 		case Variant::VECTOR2: {
 			Vector2 v = p_variant;
-			p_store_string_func(p_store_string_ud, "Vector2(" + rtos_fix(v.x) + ", " + rtos_fix(v.y) + ")");
+			p_store_string_func(p_store_string_ud, "Vector2(" + serialize_real(v.x) + ", " + serialize_real(v.y) + ")");
 		} break;
 		case Variant::VECTOR2I: {
 			Vector2i v = p_variant;
@@ -1985,7 +1991,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		} break;
 		case Variant::RECT2: {
 			Rect2 aabb = p_variant;
-			p_store_string_func(p_store_string_ud, "Rect2(" + rtos_fix(aabb.position.x) + ", " + rtos_fix(aabb.position.y) + ", " + rtos_fix(aabb.size.x) + ", " + rtos_fix(aabb.size.y) + ")");
+			p_store_string_func(p_store_string_ud, "Rect2(" + serialize_real(aabb.position.x) + ", " + serialize_real(aabb.position.y) + ", " + serialize_real(aabb.size.x) + ", " + serialize_real(aabb.size.y) + ")");
 		} break;
 		case Variant::RECT2I: {
 			Rect2i aabb = p_variant;
@@ -1993,7 +1999,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		} break;
 		case Variant::VECTOR3: {
 			Vector3 v = p_variant;
-			p_store_string_func(p_store_string_ud, "Vector3(" + rtos_fix(v.x) + ", " + rtos_fix(v.y) + ", " + rtos_fix(v.z) + ")");
+			p_store_string_func(p_store_string_ud, "Vector3(" + serialize_real(v.x) + ", " + serialize_real(v.y) + ", " + serialize_real(v.z) + ")");
 		} break;
 		case Variant::VECTOR3I: {
 			Vector3i v = p_variant;
@@ -2001,7 +2007,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		} break;
 		case Variant::VECTOR4: {
 			Vector4 v = p_variant;
-			p_store_string_func(p_store_string_ud, "Vector4(" + rtos_fix(v.x) + ", " + rtos_fix(v.y) + ", " + rtos_fix(v.z) + ", " + rtos_fix(v.w) + ")");
+			p_store_string_func(p_store_string_ud, "Vector4(" + serialize_real(v.x) + ", " + serialize_real(v.y) + ", " + serialize_real(v.z) + ", " + serialize_real(v.w) + ")");
 		} break;
 		case Variant::VECTOR4I: {
 			Vector4i v = p_variant;
@@ -2009,15 +2015,15 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		} break;
 		case Variant::PLANE: {
 			Plane p = p_variant;
-			p_store_string_func(p_store_string_ud, "Plane(" + rtos_fix(p.normal.x) + ", " + rtos_fix(p.normal.y) + ", " + rtos_fix(p.normal.z) + ", " + rtos_fix(p.d) + ")");
+			p_store_string_func(p_store_string_ud, "Plane(" + serialize_real(p.normal.x) + ", " + serialize_real(p.normal.y) + ", " + serialize_real(p.normal.z) + ", " + serialize_real(p.d) + ")");
 		} break;
 		case Variant::AABB: {
 			AABB aabb = p_variant;
-			p_store_string_func(p_store_string_ud, "AABB(" + rtos_fix(aabb.position.x) + ", " + rtos_fix(aabb.position.y) + ", " + rtos_fix(aabb.position.z) + ", " + rtos_fix(aabb.size.x) + ", " + rtos_fix(aabb.size.y) + ", " + rtos_fix(aabb.size.z) + ")");
+			p_store_string_func(p_store_string_ud, "AABB(" + serialize_real(aabb.position.x) + ", " + serialize_real(aabb.position.y) + ", " + serialize_real(aabb.position.z) + ", " + serialize_real(aabb.size.x) + ", " + serialize_real(aabb.size.y) + ", " + serialize_real(aabb.size.z) + ")");
 		} break;
 		case Variant::QUATERNION: {
 			Quaternion quaternion = p_variant;
-			p_store_string_func(p_store_string_ud, "Quaternion(" + rtos_fix(quaternion.x) + ", " + rtos_fix(quaternion.y) + ", " + rtos_fix(quaternion.z) + ", " + rtos_fix(quaternion.w) + ")");
+			p_store_string_func(p_store_string_ud, "Quaternion(" + serialize_real(quaternion.x) + ", " + serialize_real(quaternion.y) + ", " + serialize_real(quaternion.z) + ", " + serialize_real(quaternion.w) + ")");
 		} break;
 		case Variant::TRANSFORM2D: {
 			String s = "Transform2D(";
@@ -2027,7 +2033,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(m3.columns[i][j]);
+					s += serialize_real(m3.columns[i][j]);
 				}
 			}
 
@@ -2041,7 +2047,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(m3.rows[i][j]);
+					s += serialize_real(m3.rows[i][j]);
 				}
 			}
 
@@ -2056,11 +2062,11 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(m3.rows[i][j]);
+					s += serialize_real(m3.rows[i][j]);
 				}
 			}
 
-			s = s + ", " + rtos_fix(t.origin.x) + ", " + rtos_fix(t.origin.y) + ", " + rtos_fix(t.origin.z);
+			s = s + ", " + serialize_real(t.origin.x) + ", " + serialize_real(t.origin.y) + ", " + serialize_real(t.origin.z);
 
 			p_store_string_func(p_store_string_ud, s + ")");
 		} break;
@@ -2072,7 +2078,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 					if (i != 0 || j != 0) {
 						s += ", ";
 					}
-					s += rtos_fix(t.columns[i][j]);
+					s += serialize_real(t.columns[i][j]);
 				}
 			}
 
@@ -2082,7 +2088,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		// Misc types.
 		case Variant::COLOR: {
 			Color c = p_variant;
-			p_store_string_func(p_store_string_ud, "Color(" + rtos_fix(c.r) + ", " + rtos_fix(c.g) + ", " + rtos_fix(c.b) + ", " + rtos_fix(c.a) + ")");
+			p_store_string_func(p_store_string_ud, "Color(" + serialize_real(c.r) + ", " + serialize_real(c.g) + ", " + serialize_real(c.b) + ", " + serialize_real(c.a) + ")");
 		} break;
 		case Variant::STRING_NAME: {
 			String str = p_variant;
@@ -2397,7 +2403,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i]));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i]));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");
@@ -2412,7 +2418,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i]));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i]));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");
@@ -2442,7 +2448,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i].x) + ", " + rtos_fix(ptr[i].y));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i].x) + ", " + serialize_real(ptr[i].y));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");
@@ -2457,7 +2463,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i].x) + ", " + rtos_fix(ptr[i].y) + ", " + rtos_fix(ptr[i].z));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i].x) + ", " + serialize_real(ptr[i].y) + ", " + serialize_real(ptr[i].z));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");
@@ -2472,7 +2478,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i].r) + ", " + rtos_fix(ptr[i].g) + ", " + rtos_fix(ptr[i].b) + ", " + rtos_fix(ptr[i].a));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i].r) + ", " + serialize_real(ptr[i].g) + ", " + serialize_real(ptr[i].b) + ", " + serialize_real(ptr[i].a));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");
@@ -2487,7 +2493,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 				if (i > 0) {
 					p_store_string_func(p_store_string_ud, ", ");
 				}
-				p_store_string_func(p_store_string_ud, rtos_fix(ptr[i].x) + ", " + rtos_fix(ptr[i].y) + ", " + rtos_fix(ptr[i].z) + ", " + rtos_fix(ptr[i].w));
+				p_store_string_func(p_store_string_ud, serialize_real(ptr[i].x) + ", " + serialize_real(ptr[i].y) + ", " + serialize_real(ptr[i].z) + ", " + serialize_real(ptr[i].w));
 			}
 
 			p_store_string_func(p_store_string_ud, ")");

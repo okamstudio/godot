@@ -1621,6 +1621,16 @@ StringName Variant::get_enum_for_enumeration(Variant::Type p_type, const StringN
 #endif
 
 #ifdef DEBUG_METHODS_ENABLED
+#define bind_static_methodv(m_type, m_name, m_method, m_arg_names, m_default_args) \
+	STATIC_METHOD_CLASS(m_type, m_name, m_method);                                 \
+	register_builtin_method<Method_##m_type##_##m_name>(m_arg_names, m_default_args);
+#else
+#define bind_static_methodv(m_type, m_name, m_method, m_arg_names, m_default_args) \
+	STATIC_METHOD_CLASS(m_type, m_name, m_method);                                 \
+	register_builtin_method<Method_##m_type##_##m_name>(sarray(), m_default_args);
+#endif
+
+#ifdef DEBUG_METHODS_ENABLED
 #define bind_methodv(m_type, m_name, m_method, m_arg_names, m_default_args) \
 	METHOD_CLASS(m_type, m_name, m_method);                                 \
 	register_builtin_method<Method_##m_type##_##m_name>(m_arg_names, m_default_args);
@@ -1798,7 +1808,7 @@ static void _register_variant_builtin_methods_string() {
 	bind_string_method(hex_decode, sarray(), varray());
 	bind_string_method(to_wchar_buffer, sarray(), varray());
 
-	bind_static_method(String, num_scientific, sarray("number"), varray());
+	bind_static_methodv(String, num_scientific, static_cast<String (*)(double)>(&String::num_scientific), sarray("number"), varray());
 	bind_static_method(String, num, sarray("number", "decimals"), varray(-1));
 	bind_static_method(String, num_int64, sarray("number", "base", "capitalize_hex"), varray(10, false));
 	bind_static_method(String, num_uint64, sarray("number", "base", "capitalize_hex"), varray(10, false));

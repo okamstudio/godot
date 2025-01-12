@@ -391,6 +391,17 @@ Files extracted from upstream source:
 - `COPYING`
 
 
+## grisu2
+
+- Upstream: https://github.com/simdjson/simdjson/blob/master/src/to_chars.cpp
+- Version: git (4f4e81668ecb9d4d37fd5f59a1556d492507421d, 2023)
+- License: Apache and MIT
+
+Files extracted from upstream source:
+
+- The `src/to_chars.cpp` file renamed to `grisu2.h` and slightly modified.
+
+
 ## harfbuzz
 
 - Upstream: https://github.com/harfbuzz/harfbuzz
