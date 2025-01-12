@@ -107,6 +107,11 @@ layout(location = 8) highp out vec4 specular_light_interp;
 
 #include "../scene_forward_vertex_lights_inc.glsl"
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
+
+#ifdef USE_LIGHTMAP
+layout(location = 13) highp out vec4 lightmap_uv_interp;
+#endif // USE_LIGHTMAP
+
 #ifdef MATERIAL_UNIFORMS_USED
 /* clang-format off */
 layout(set = MATERIAL_UNIFORM_SET, binding = 0, std140) uniform MaterialUniforms {
@@ -215,6 +220,10 @@ void main() {
 	mat4 matrix;
 	mat4 read_model_matrix = model_matrix;
 
+#ifdef USE_LIGHTMAP
+	vec4 lightmap_uv;
+#endif
+
 	if (sc_multimesh()) {
 		//multimesh, instances are for it
 
@@ -285,6 +294,12 @@ void main() {
 			instance_custom = transforms.data[offset];
 		}
 
+#ifdef USE_LIGHTMAP
+		uint lightmap_start = floatBitsToUint(instances.data[draw_call.instance_index].lightmap_uv_scale.x);
+		uint lightmap_offset = lightmap_start + gl_InstanceIndex;
+		lightmap_uv.xyzw = transforms.data[lightmap_offset].xyzw;
+#endif
+
 #endif
 		//transpose
 		matrix = transpose(matrix);
@@ -298,6 +313,11 @@ void main() {
 #endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
 #endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
+	} else {
+#ifdef USE_LIGHTMAP
+		lightmap_uv.xy = instances.data[draw_call.instance_index].lightmap_uv_scale.xy;
+		lightmap_uv.z = float(instances.data[draw_call.instance_index].gi_offset >> 16);
+#endif
 	}
 
 	vec3 vertex = vertex_angle_attrib.xyz * instances.data[draw_call.instance_index].compressed_aabb_size_pad.xyz + instances.data[draw_call.instance_index].compressed_aabb_position_pad.xyz;
@@ -345,6 +365,11 @@ void main() {
 		uv2_interp = (uv2_interp - 0.5) * uv_scale.zw;
 #endif
 	}
+
+#ifdef USE_LIGHTMAP
+	vec2 lm_uv = lightmap_uv.xy + uv2_attrib * instances.data[draw_call.instance_index].lightmap_uv_scale.zw;
+	lightmap_uv_interp = vec4(lm_uv, lightmap_uv.z, 0.0);
+#endif
 
 #ifdef OVERRIDE_POSITION
 	vec4 position = vec4(1.0);
@@ -671,6 +696,9 @@ vec4 textureArray_bicubic(texture2DArray tex, vec3 uv, vec2 texture_size) {
 	return (g0(fuv.y) * (g0x * texture(sampler2DArray(tex, SAMPLER_LINEAR_CLAMP), vec3(p0, uv.z)) + g1x * texture(sampler2DArray(tex, SAMPLER_LINEAR_CLAMP), vec3(p1, uv.z)))) +
 			(g1(fuv.y) * (g0x * texture(sampler2DArray(tex, SAMPLER_LINEAR_CLAMP), vec3(p2, uv.z)) + g1x * texture(sampler2DArray(tex, SAMPLER_LINEAR_CLAMP), vec3(p3, uv.z))));
 }
+
+layout(location = 13) mediump in vec4 lightmap_uv_interp;
+
 #endif //USE_LIGHTMAP
 
 #ifdef USE_MULTIVIEW
@@ -1333,9 +1361,7 @@ void main() {
 		bool uses_sh = bool(instances.data[draw_call.instance_index].flags & INSTANCE_FLAGS_USE_SH_LIGHTMAP);
 		uint ofs = instances.data[draw_call.instance_index].gi_offset & 0xFFFF;
 		uint slice = instances.data[draw_call.instance_index].gi_offset >> 16;
-		vec3 uvw;
-		uvw.xy = uv2 * instances.data[draw_call.instance_index].lightmap_uv_scale.zw + instances.data[draw_call.instance_index].lightmap_uv_scale.xy;
-		uvw.z = float(slice);
+		vec3 uvw = lightmap_uv_interp.xyz;
 
 		if (uses_sh) {
 			uvw.z *= 4.0; //SH textures use 4 times more data

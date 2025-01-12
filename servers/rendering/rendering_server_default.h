@@ -390,6 +390,7 @@ public:
 	FUNC3(multimesh_instance_set_transform_2d, RID, int, const Transform2D &)
 	FUNC3(multimesh_instance_set_color, RID, int, const Color &)
 	FUNC3(multimesh_instance_set_custom_data, RID, int, const Color &)
+	FUNC4(multimesh_instance_set_lightmap, RID, int, const Rect2 &, int)
 
 	FUNC2(multimesh_set_custom_aabb, RID, const AABB &)
 	FUNC1RC(AABB, multimesh_get_custom_aabb, RID)
@@ -904,7 +905,7 @@ public:
 	FUNC2(instance_geometry_set_material_overlay, RID, RID)
 
 	FUNC6(instance_geometry_set_visibility_range, RID, float, float, float, float, VisibilityRangeFadeMode)
-	FUNC4(instance_geometry_set_lightmap, RID, RID, const Rect2 &, int)
+	FUNC5(instance_geometry_set_lightmap, RID, RID, const Rect2 &, int, int)
 	FUNC2(instance_geometry_set_lod_bias, RID, float)
 	FUNC2(instance_geometry_set_transparency, RID, float)
 	FUNC3(instance_geometry_set_shader_parameter, RID, const StringName &, const Variant &)

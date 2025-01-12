@@ -1549,6 +1549,7 @@ void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS:
 	multimesh->custom_data_offset_cache = multimesh->color_offset_cache + color_and_custom_strides;
 	multimesh->stride_cache = multimesh->custom_data_offset_cache + color_and_custom_strides;
 	multimesh->buffer_set = false;
+	multimesh->uses_lightmap = false;
 
 	multimesh->data_cache = Vector<float>();
 	multimesh->aabb = AABB();
@@ -1608,19 +1609,19 @@ void MeshStorage::_multimesh_make_local(MultiMesh *multimesh) const {
 	ERR_FAIL_COND(multimesh->data_cache.size() > 0);
 	// this means that the user wants to load/save individual elements,
 	// for this, the data must reside on CPU, so just copy it there.
-	multimesh->data_cache.resize(multimesh->instances * multimesh->stride_cache);
+	multimesh->data_cache.resize(multimesh->instances * multimesh->stride_cache + multimesh->uses_lightmap * multimesh->instances * 4);
 	{
 		float *w = multimesh->data_cache.ptrw();
 
 		if (multimesh->buffer_set) {
-			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float));
+			Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float) + multimesh->uses_lightmap * multimesh->instances * sizeof(float) * 4);
 
 			{
 				const uint8_t *r = buffer.ptr();
 				memcpy(w, r, buffer.size());
 			}
 		} else {
-			memset(w, 0, (size_t)multimesh->instances * multimesh->stride_cache * sizeof(float));
+			memset(w, 0, (size_t)multimesh->instances * multimesh->stride_cache * sizeof(float) + multimesh->uses_lightmap * multimesh->instances * 4);
 		}
 	}
 	uint32_t data_cache_dirty_region_count = Math::division_round_up(multimesh->instances, MULTIMESH_DIRTY_REGION_SIZE);
@@ -1816,6 +1817,53 @@ void MeshStorage::_multimesh_instance_set_custom_data(RID p_multimesh, int p_ind
 	_multimesh_mark_dirty(multimesh, p_index, false);
 }
 
+void MeshStorage::_multimesh_instance_set_lightmap(RID p_multimesh, int p_index, const Rect2 &p_position, int p_slice) {
+	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
+	ERR_FAIL_NULL(multimesh);
+	ERR_FAIL_INDEX(p_index, multimesh->instances);
+
+	_multimesh_make_local(multimesh);
+
+	if ((multimesh->uses_lightmap && p_slice == -1) || (!multimesh->uses_lightmap && p_slice != -1)) {
+		multimesh->uses_lightmap = p_slice >= 0;
+		const uint32_t instances_size = multimesh->instances * multimesh->stride_cache * sizeof(float);
+		const uint32_t lightmap_size = multimesh->uses_lightmap * multimesh->instances * 4 * sizeof(float);
+		const uint32_t new_buffer_size = instances_size + lightmap_size;
+		GLuint new_buffer;
+		glGenBuffers(1, &new_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, new_buffer);
+		GLES3::Utilities::get_singleton()->buffer_allocate_data(GL_ARRAY_BUFFER, new_buffer, new_buffer_size, nullptr, GL_STATIC_DRAW, "MultiMesh buffer");
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		// Old buffer is already local due to the make local call above.
+		Vector<float> new_data_cache;
+		new_data_cache.resize(multimesh->instances * multimesh->stride_cache);
+		new_data_cache.fill(0);
+		memcpy(new_data_cache.ptrw(), multimesh->data_cache.ptr(), multimesh->data_cache.size() * sizeof(float));
+
+		if (multimesh->buffer) {
+			GLES3::Utilities::get_singleton()->buffer_free_data(multimesh->buffer);
+		}
+
+		multimesh->buffer = new_buffer;
+		multimesh->data_cache = new_data_cache;
+
+		_multimesh_mark_all_dirty(multimesh, true, false);
+	}
+
+	float *w = multimesh->data_cache.ptrw();
+
+	float *dataptr = w + multimesh->instances * multimesh->stride_cache + p_index * 4;
+	float data[4];
+	data[0] = p_position.position.x;
+	data[1] = p_position.position.y;
+	data[2] = float(p_slice);
+	data[3] = 0;
+	memcpy(dataptr, data, sizeof(data));
+
+	_multimesh_mark_dirty(multimesh, p_index, false);
+}
+
 RID MeshStorage::_multimesh_get_mesh(RID p_multimesh) const {
 	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
 	ERR_FAIL_NULL_V(multimesh, RID());
@@ -1999,7 +2047,10 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 			}
 		}
 
-		multimesh->data_cache.resize(multimesh->instances * (int)multimesh->stride_cache);
+		const uint32_t instances_size = multimesh->instances * (int)multimesh->stride_cache;
+		const uint32_t lightmap_size = multimesh->uses_lightmap ? multimesh->instances * 4 : 0;
+		const uint32_t buffer_size = instances_size + lightmap_size;
+		multimesh->data_cache.resize(buffer_size);
 		const float *r = multimesh->data_cache.ptr();
 		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
 		glBufferData(GL_ARRAY_BUFFER, multimesh->data_cache.size() * sizeof(float), r, GL_STATIC_DRAW);
@@ -2012,7 +2063,7 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 		}
 
 		// Only Transform is being used, so we can upload directly.
-		ERR_FAIL_COND(p_buffer.size() != (multimesh->instances * (int)multimesh->stride_cache));
+		ERR_FAIL_COND(p_buffer.size() < (multimesh->instances * (int)multimesh->stride_cache));
 		const float *r = p_buffer.ptr();
 		glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
 		glBufferData(GL_ARRAY_BUFFER, p_buffer.size() * sizeof(float), r, GL_STATIC_DRAW);
@@ -2056,12 +2107,12 @@ Vector<float> MeshStorage::_multimesh_get_buffer(RID p_multimesh) const {
 	} else {
 		// Buffer not cached, so fetch from GPU memory. This can be a stalling operation, avoid whenever possible.
 
-		Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float));
+		Vector<uint8_t> buffer = Utilities::buffer_get_data(GL_ARRAY_BUFFER, multimesh->buffer, multimesh->instances * multimesh->stride_cache * sizeof(float) + multimesh->uses_lightmap * multimesh->instances * sizeof(float) * 4);
 		ret.resize(multimesh->instances * multimesh->stride_cache);
 		{
 			float *w = ret.ptrw();
 			const uint8_t *r = buffer.ptr();
-			memcpy(w, r, buffer.size());
+			memcpy(w, r, ret.size());
 		}
 	}
 	if (multimesh->uses_colors || multimesh->uses_custom_data) {
@@ -2170,7 +2221,7 @@ void MeshStorage::_update_dirty_multimeshes() {
 				if (multimesh->data_cache_used_dirty_regions > 32 || multimesh->data_cache_used_dirty_regions > visible_region_count / 2) {
 					// If there too many dirty regions, or represent the majority of regions, just copy all, else transfer cost piles up too much
 					glBindBuffer(GL_ARRAY_BUFFER, multimesh->buffer);
-					glBufferSubData(GL_ARRAY_BUFFER, 0, MIN(visible_region_count * region_size, multimesh->instances * multimesh->stride_cache * sizeof(float)), data);
+					glBufferSubData(GL_ARRAY_BUFFER, 0, MIN(visible_region_count * region_size, multimesh->instances * multimesh->stride_cache * sizeof(float) + multimesh->uses_lightmap * multimesh->instances * sizeof(float) * 4), data);
 					glBindBuffer(GL_ARRAY_BUFFER, 0);
 				} else {
 					// Not that many regions? update them all

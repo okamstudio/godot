@@ -1584,7 +1584,7 @@ void RendererSceneCull::_update_instance_visibility_dependencies(Instance *p_ins
 	}
 }
 
-void RendererSceneCull::instance_geometry_set_lightmap(RID p_instance, RID p_lightmap, const Rect2 &p_lightmap_uv_scale, int p_slice_index) {
+void RendererSceneCull::instance_geometry_set_lightmap(RID p_instance, RID p_lightmap, const Rect2 &p_lightmap_uv_scale, int p_slice_index, int p_sub_instance) {
 	Instance *instance = instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL(instance);
 
@@ -1612,6 +1612,10 @@ void RendererSceneCull::instance_geometry_set_lightmap(RID p_instance, RID p_lig
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(instance->base_data);
 		ERR_FAIL_NULL(geom->geometry_instance);
 		geom->geometry_instance->set_use_lightmap(lightmap_instance_rid, p_lightmap_uv_scale, p_slice_index);
+
+		if (instance->base_type == RS::INSTANCE_MULTIMESH && p_sub_instance != -1) {
+			RSG::mesh_storage->multimesh_instance_set_lightmap(instance->base, p_sub_instance, p_lightmap_uv_scale, p_slice_index);
+		}
 	}
 }
 

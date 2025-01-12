@@ -36,6 +36,7 @@
 #include "core/object/object.h"
 #include "scene/3d/lightmap_probe.h"
 #include "scene/3d/mesh_instance_3d.h"
+#include "scene/3d/multimesh_instance_3d.h"
 #include "scene/resources/camera_attributes.h"
 #include "scene/resources/environment.h"
 #include "scene/resources/image_texture.h"
@@ -418,8 +419,28 @@ void LightmapGI::_find_meshes_and_lights(Node *p_at_node, Vector<MeshesFound> &m
 		}
 	}
 
-	Node3D *s = Object::cast_to<Node3D>(p_at_node);
+	MultiMeshInstance3D *multi_mesh = Object::cast_to<MultiMeshInstance3D>(p_at_node);
+	if (multi_mesh && multi_mesh->get_gi_mode() == GeometryInstance3D::GI_MODE_STATIC && multi_mesh->is_visible_in_tree()) {
+		Array multi_meshes = multi_mesh->get_bake_meshes();
+		Transform3D xf = get_global_transform().affine_inverse();
+		for (int idx = 0; idx < multi_meshes.size(); idx += 2) {
+			Ref<Mesh> mesh = multi_meshes[idx];
 
+			if (mesh.is_valid()) {
+				MeshesFound mf;
+				Transform3D mesh_xf = multi_meshes[idx + 1];
+				mf.xform = xf * mesh_xf;
+				mf.node_path = get_path_to(multi_mesh);
+				mf.subindex = idx / 2;
+				mf.mesh = mesh;
+				mf.lightmap_scale = multi_mesh->get_lightmap_texel_scale();
+
+				meshes.push_back(mf);
+			}
+		}
+	}
+
+	Node3D *s = Object::cast_to<Node3D>(p_at_node);
 	if (!mi && s) {
 		Array bmeshes = p_at_node->call("get_bake_meshes");
 		if (bmeshes.size() && (bmeshes.size() & 1) == 0) {
@@ -1507,12 +1528,22 @@ void LightmapGI::_assign_lightmaps() {
 	ERR_FAIL_COND(light_data.is_null());
 
 	for (int i = 0; i < light_data->get_user_count(); i++) {
-		Node *node = get_node(light_data->get_user_path(i));
-		int instance_idx = light_data->get_user_sub_instance(i);
-		if (instance_idx >= 0) {
-			RID instance_id = node->call("get_bake_mesh_instance", instance_idx);
+		Node *node = get_node_or_null(light_data->get_user_path(i));
+		if (!node) {
+			continue;
+		}
+
+		int sub_idx = light_data->get_user_sub_instance(i);
+		MultiMeshInstance3D *mmi = Object::cast_to<MultiMeshInstance3D>(node);
+		if (sub_idx >= 0) {
+			RID instance_id = node->call("get_bake_mesh_instance", sub_idx);
 			if (instance_id.is_valid()) {
 				RS::get_singleton()->instance_geometry_set_lightmap(instance_id, get_instance(), light_data->get_user_lightmap_uv_scale(i), light_data->get_user_lightmap_slice_index(i));
+			} else if (mmi) {
+				Ref<MultiMesh> mm = mmi->get_multimesh();
+				if (mm.is_valid()) {
+					RS::get_singleton()->instance_geometry_set_lightmap(mmi->get_instance(), get_instance(), light_data->get_user_lightmap_uv_scale(i), light_data->get_user_lightmap_slice_index(i), sub_idx);
+				}
 			}
 		} else {
 			VisualInstance3D *vi = Object::cast_to<VisualInstance3D>(node);
@@ -1525,12 +1556,20 @@ void LightmapGI::_assign_lightmaps() {
 void LightmapGI::_clear_lightmaps() {
 	ERR_FAIL_COND(light_data.is_null());
 	for (int i = 0; i < light_data->get_user_count(); i++) {
-		Node *node = get_node(light_data->get_user_path(i));
+		Node *node = get_node_or_null(light_data->get_user_path(i));
+		if (!node) {
+			continue;
+		}
+
 		int instance_idx = light_data->get_user_sub_instance(i);
 		if (instance_idx >= 0) {
+			MultiMeshInstance3D *mmi = Object::cast_to<MultiMeshInstance3D>(node);
 			RID instance_id = node->call("get_bake_mesh_instance", instance_idx);
 			if (instance_id.is_valid()) {
 				RS::get_singleton()->instance_geometry_set_lightmap(instance_id, RID(), Rect2(), 0);
+			} else if (mmi) {
+				Ref<MultiMesh> mm = mmi->get_multimesh();
+				RS::get_singleton()->instance_geometry_set_lightmap(mmi->get_instance(), RID(), Rect2(), 0, instance_idx);
 			}
 		} else {
 			VisualInstance3D *vi = Object::cast_to<VisualInstance3D>(node);

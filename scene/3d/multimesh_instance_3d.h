@@ -53,6 +53,7 @@ public:
 	Array get_meshes() const;
 
 	virtual AABB get_aabb() const override;
+	Array get_bake_meshes();
 
 	MultiMeshInstance3D();
 	~MultiMeshInstance3D();

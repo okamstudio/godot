@@ -32,11 +32,11 @@
 #define MESH_INSTANCE_3D_EDITOR_PLUGIN_H
 
 #include "editor/plugins/editor_plugin.h"
+#include "editor/plugins/mesh_editor_uv_tools.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/option_button.h"
 
 class AcceptDialog;
-class AspectRatioContainer;
 class ConfirmationDialog;
 class MenuButton;
 class SpinBox;
@@ -79,12 +79,9 @@ class MeshInstance3DEditor : public Control {
 
 	AcceptDialog *err_dialog = nullptr;
 
-	AcceptDialog *debug_uv_dialog = nullptr;
-	AspectRatioContainer *debug_uv_arc = nullptr;
-	Control *debug_uv = nullptr;
-	Vector<Vector2> uv_lines;
-
 	ConfirmationDialog *navigation_mesh_dialog = nullptr;
+
+	MeshEditorUVTools *uv_tools = nullptr;
 
 	void _create_collision_shape();
 	Vector<Ref<Shape3D>> create_shape_from_mesh(Ref<Mesh> p_mesh, int p_option, bool p_verbose);
@@ -92,10 +89,7 @@ class MeshInstance3DEditor : public Control {
 	void _create_outline_mesh();
 	void _create_navigation_mesh();
 
-	void _create_uv_lines(int p_layer);
 	friend class MeshInstance3DEditorPlugin;
-
-	void _debug_uv_draw();
 
 protected:
 	void _node_removed(Node *p_node);

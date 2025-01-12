@@ -1520,6 +1520,7 @@ void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS:
 	multimesh->custom_data_offset_cache = multimesh->color_offset_cache + (p_use_colors ? 4 : 0);
 	multimesh->stride_cache = multimesh->custom_data_offset_cache + (p_use_custom_data ? 4 : 0);
 	multimesh->buffer_set = false;
+	multimesh->use_lightmap = false;
 
 	//print_line("allocate, elements: " + itos(p_instances) + " 2D: " + itos(p_transform_format == RS::MULTIMESH_TRANSFORM_2D) + " colors " + itos(multimesh->uses_colors) + " data " + itos(multimesh->uses_custom_data) + " stride " + itos(multimesh->stride_cache) + " total size " + itos(multimesh->stride_cache * multimesh->instances));
 	multimesh->data_cache = Vector<float>();
@@ -1554,18 +1555,27 @@ void MeshStorage::_multimesh_enable_motion_vectors(MultiMesh *multimesh) {
 		multimesh->data_cache.append_array(multimesh->data_cache);
 	}
 
-	uint32_t buffer_size = multimesh->instances * multimesh->stride_cache * sizeof(float);
-	uint32_t new_buffer_size = buffer_size * 2;
+	uint32_t instances_size = multimesh->instances * multimesh->stride_cache * sizeof(float);
+	uint32_t lightmap_size = multimesh->use_lightmap ? multimesh->instances * 4 * sizeof(float) : 0;
+	uint32_t new_buffer_size = instances_size * 2 + lightmap_size;
 	RID new_buffer = RD::get_singleton()->storage_buffer_create(new_buffer_size);
 
 	if (multimesh->buffer_set && multimesh->data_cache.is_empty()) {
 		// If the buffer was set but there's no data cached in the CPU, we copy the buffer directly on the GPU.
-		RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, 0, 0, buffer_size);
-		RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, 0, buffer_size, buffer_size);
+		RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, 0, 0, instances_size);
+		RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, 0, instances_size, instances_size);
+		if (multimesh->use_lightmap) {
+			RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, instances_size, instances_size * 2, lightmap_size);
+		}
 	} else if (!multimesh->data_cache.is_empty()) {
 		// Simply upload the data cached in the CPU, which should already be doubled in size.
-		ERR_FAIL_COND(multimesh->data_cache.size() * sizeof(float) != size_t(new_buffer_size));
-		RD::get_singleton()->buffer_update(new_buffer, 0, new_buffer_size, multimesh->data_cache.ptr());
+		ERR_FAIL_COND(multimesh->data_cache.size() * sizeof(float) != size_t(instances_size * 2));
+
+		// Only need to copy the second copy.
+		RD::get_singleton()->buffer_update(new_buffer, 0, instances_size, multimesh->data_cache.ptr());
+		if (multimesh->use_lightmap) {
+			RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, instances_size, instances_size * 2, lightmap_size);
+		}
 	}
 
 	if (multimesh->buffer.is_valid()) {
@@ -1707,7 +1717,7 @@ void MeshStorage::_multimesh_mark_dirty(MultiMesh *multimesh, int p_index, bool 
 	uint32_t data_cache_dirty_region_count = Math::division_round_up(multimesh->instances, MULTIMESH_DIRTY_REGION_SIZE);
 	ERR_FAIL_UNSIGNED_INDEX(region_index, data_cache_dirty_region_count); //bug
 #endif
-	if (!multimesh->data_cache_dirty_regions[region_index]) {
+	if (multimesh->data_cache_dirty_regions && !multimesh->data_cache_dirty_regions[region_index]) {
 		multimesh->data_cache_dirty_regions[region_index] = true;
 		multimesh->data_cache_dirty_region_count++;
 	}
@@ -1807,10 +1817,7 @@ void MeshStorage::_multimesh_instance_set_transform(RID p_multimesh, int p_index
 	_multimesh_update_motion_vectors_data_cache(multimesh);
 
 	{
-		float *w = multimesh->data_cache.ptrw();
-
-		float *dataptr = w + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache;
-
+		float *dataptr = _multimesh_instance_ptr(multimesh, p_index);
 		dataptr[0] = p_transform.basis.rows[0][0];
 		dataptr[1] = p_transform.basis.rows[0][1];
 		dataptr[2] = p_transform.basis.rows[0][2];
@@ -1838,10 +1845,7 @@ void MeshStorage::_multimesh_instance_set_transform_2d(RID p_multimesh, int p_in
 	_multimesh_update_motion_vectors_data_cache(multimesh);
 
 	{
-		float *w = multimesh->data_cache.ptrw();
-
-		float *dataptr = w + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache;
-
+		float *dataptr = _multimesh_instance_ptr(multimesh, p_index);
 		dataptr[0] = p_transform.columns[0][0];
 		dataptr[1] = p_transform.columns[1][0];
 		dataptr[2] = 0;
@@ -1865,10 +1869,7 @@ void MeshStorage::_multimesh_instance_set_color(RID p_multimesh, int p_index, co
 	_multimesh_update_motion_vectors_data_cache(multimesh);
 
 	{
-		float *w = multimesh->data_cache.ptrw();
-
-		float *dataptr = w + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache + multimesh->color_offset_cache;
-
+		float *dataptr = _multimesh_instance_ptr(multimesh, p_index, multimesh->color_offset_cache);
 		dataptr[0] = p_color.r;
 		dataptr[1] = p_color.g;
 		dataptr[2] = p_color.b;
@@ -1888,10 +1889,7 @@ void MeshStorage::_multimesh_instance_set_custom_data(RID p_multimesh, int p_ind
 	_multimesh_update_motion_vectors_data_cache(multimesh);
 
 	{
-		float *w = multimesh->data_cache.ptrw();
-
-		float *dataptr = w + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache + multimesh->custom_data_offset_cache;
-
+		float *dataptr = _multimesh_instance_ptr(multimesh, p_index, multimesh->custom_data_offset_cache);
 		dataptr[0] = p_color.r;
 		dataptr[1] = p_color.g;
 		dataptr[2] = p_color.b;
@@ -1899,6 +1897,47 @@ void MeshStorage::_multimesh_instance_set_custom_data(RID p_multimesh, int p_ind
 	}
 
 	_multimesh_mark_dirty(multimesh, p_index, false);
+}
+
+void MeshStorage::_multimesh_instance_set_lightmap(RID p_multimesh, int p_index, const Rect2 &p_position, int p_slice) {
+	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
+	ERR_FAIL_NULL(multimesh);
+	ERR_FAIL_INDEX(p_index, multimesh->instances);
+
+	if ((multimesh->use_lightmap && p_slice == -1) || (!multimesh->use_lightmap && p_slice != -1)) {
+		multimesh->use_lightmap = (p_slice >= 0);
+		const uint32_t instances_size = (multimesh->instances * (multimesh->motion_vectors_enabled ? 2 : 1)) * multimesh->stride_cache * sizeof(float);
+		const uint32_t lightmap_size = multimesh->use_lightmap ? multimesh->instances * 4 * sizeof(float) : 0;
+		const uint32_t new_buffer_size = instances_size + lightmap_size;
+		RID new_buffer = RD::get_singleton()->storage_buffer_create(new_buffer_size);
+		RD::get_singleton()->buffer_copy(multimesh->buffer, new_buffer, 0, 0, instances_size);
+
+		if (multimesh->use_lightmap) {
+			Vector<float> zero;
+			zero.resize(multimesh->instances * 4);
+			zero.fill(0);
+			const uint32_t lightmap_start = multimesh->instances * multimesh->stride_cache * sizeof(float) * (multimesh->motion_vectors_enabled ? 2 : 1);
+			const float *data = zero.ptr();
+			RD::get_singleton()->buffer_update(new_buffer, lightmap_start, zero.size() * sizeof(float), data);
+		}
+
+		if (multimesh->buffer.is_valid()) {
+			RD::get_singleton()->free(multimesh->buffer);
+		}
+		multimesh->buffer = new_buffer;
+	}
+
+	if (multimesh->use_lightmap) {
+		const uint32_t lightmap_start = multimesh->instances * multimesh->stride_cache * sizeof(float) * (multimesh->motion_vectors_enabled ? 2 : 1);
+		const uint32_t lightmap_offset = 4 * sizeof(float) * p_index;
+		uint32_t byteoffset = lightmap_start + lightmap_offset;
+		float data[4] = { (float)p_position.position.x, (float)p_position.position.y, (float)p_slice, 0 };
+		RD::get_singleton()->buffer_update(multimesh->buffer, byteoffset, sizeof(data), data);
+	}
+
+	// Invalidate any references to the buffer that was released and the uniform set that was pointing to it.
+	multimesh->uniform_set_3d = RID(); // Cleared by dependency.
+	multimesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_MULTIMESH);
 }
 
 RID MeshStorage::_multimesh_get_mesh(RID p_multimesh) const {
@@ -1925,10 +1964,7 @@ Transform3D MeshStorage::_multimesh_instance_get_transform(RID p_multimesh, int 
 
 	Transform3D t;
 	{
-		const float *r = multimesh->data_cache.ptr();
-
-		const float *dataptr = r + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache;
-
+		const float *dataptr = _multimesh_instance_ptr(multimesh, p_index);
 		t.basis.rows[0][0] = dataptr[0];
 		t.basis.rows[0][1] = dataptr[1];
 		t.basis.rows[0][2] = dataptr[2];
@@ -1956,10 +1992,7 @@ Transform2D MeshStorage::_multimesh_instance_get_transform_2d(RID p_multimesh, i
 
 	Transform2D t;
 	{
-		const float *r = multimesh->data_cache.ptr();
-
-		const float *dataptr = r + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache;
-
+		const float *dataptr = _multimesh_instance_ptr(multimesh, p_index);
 		t.columns[0][0] = dataptr[0];
 		t.columns[1][0] = dataptr[1];
 		t.columns[2][0] = dataptr[3];
@@ -1981,10 +2014,7 @@ Color MeshStorage::_multimesh_instance_get_color(RID p_multimesh, int p_index) c
 
 	Color c;
 	{
-		const float *r = multimesh->data_cache.ptr();
-
-		const float *dataptr = r + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache + multimesh->color_offset_cache;
-
+		const float *dataptr = _multimesh_instance_ptr(multimesh, p_index, multimesh->color_offset_cache);
 		c.r = dataptr[0];
 		c.g = dataptr[1];
 		c.b = dataptr[2];
@@ -2004,10 +2034,7 @@ Color MeshStorage::_multimesh_instance_get_custom_data(RID p_multimesh, int p_in
 
 	Color c;
 	{
-		const float *r = multimesh->data_cache.ptr();
-
-		const float *dataptr = r + (multimesh->motion_vectors_current_offset + p_index) * multimesh->stride_cache + multimesh->custom_data_offset_cache;
-
+		const float *dataptr = _multimesh_instance_ptr(multimesh, p_index, multimesh->custom_data_offset_cache);
 		c.r = dataptr[0];
 		c.g = dataptr[1];
 		c.b = dataptr[2];

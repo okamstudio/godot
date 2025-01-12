@@ -175,6 +175,10 @@ void RendererMeshStorage::multimesh_instance_set_custom_data(RID p_multimesh, in
 	_multimesh_instance_set_custom_data(p_multimesh, p_index, p_color);
 }
 
+void RendererMeshStorage::multimesh_instance_set_lightmap(RID p_multimesh, int p_index, const Rect2 &p_position, int p_slice) {
+	_multimesh_instance_set_lightmap(p_multimesh, p_index, p_position, p_slice);
+}
+
 void RendererMeshStorage::multimesh_set_custom_aabb(RID p_multimesh, const AABB &p_aabb) {
 	_multimesh_set_custom_aabb(p_multimesh, p_aabb);
 }

@@ -87,7 +87,13 @@ layout(location = 0) in highp vec4 vertex_angle_attrib;
 layout(location = 1) in vec4 axis_tangent_attrib;
 #endif
 
-// location 2 is unused.
+#ifdef USE_INSTANCING
+#ifndef DISABLE_LIGHTMAP
+#ifdef USE_LIGHTMAP
+layout(location = 2) in highp vec4 instance_lightmap_uv;
+#endif // USE_LIGHTMAP
+#endif // DISABLE_LIGHTMAP
+#endif // USE_INSTANCING
 
 #if defined(COLOR_USED)
 layout(location = 3) in vec4 color_attrib;
@@ -442,6 +448,13 @@ uniform highp uint model_flags;
 uniform mediump vec2 uv_offset;
 #endif
 
+#ifndef DISABLE_LIGHTMAP
+#ifdef USE_LIGHTMAP
+uniform lowp uint lightmap_slice;
+uniform highp vec4 lightmap_uv_scale;
+#endif
+#endif
+
 /* Varyings */
 
 out highp vec3 vertex_interp;
@@ -477,6 +490,12 @@ out highp vec4 shadow_coord2;
 out highp vec4 shadow_coord3;
 out highp vec4 shadow_coord4;
 #endif //LIGHT_USE_PSSM4
+#endif
+
+#ifndef DISABLE_LIGHTMAP
+#ifdef USE_LIGHTMAP
+out highp vec3 lightmap_uvw;
+#endif
 #endif
 
 #ifdef MATERIAL_UNIFORMS_USED
@@ -588,6 +607,20 @@ void main() {
 	instance_custom.zw = unpackHalf2x16(instance_color_custom_data.w);
 #else
 	vec4 instance_custom = vec4(0.0);
+#endif
+
+#ifndef DISABLE_LIGHTMAP
+#ifdef USE_LIGHTMAP
+	vec3 uvw;
+#ifdef USE_INSTANCING
+	uvw = instance_lightmap_uv.xyz;
+#else
+	uvw.xy = lightmap_uv_scale.xy;
+	uvw.z = float(lightmap_slice);
+#endif
+	uvw.xy = uv2_interp * lightmap_uv_scale.zw + uvw.xy;
+	lightmap_uvw = uvw;
+#endif
 #endif
 
 	// Using world coordinates
@@ -868,6 +901,12 @@ in highp vec4 shadow_coord2;
 in highp vec4 shadow_coord3;
 in highp vec4 shadow_coord4;
 #endif //LIGHT_USE_PSSM4
+#endif
+
+#ifndef DISABLE_LIGHTMAP
+#ifdef USE_LIGHTMAP
+in highp vec3 lightmap_uvw;
+#endif
 #endif
 
 #ifdef USE_RADIANCE_MAP
@@ -1181,8 +1220,6 @@ float sample_shadow(highp sampler2DShadow shadow, float shadow_pixel_size, vec4 
 #ifdef USE_LIGHTMAP
 uniform mediump sampler2DArray lightmap_textures; //texunit:-4
 uniform lowp sampler2DArray shadowmask_textures; //texunit:-5
-uniform lowp uint lightmap_slice;
-uniform highp vec4 lightmap_uv_scale;
 uniform float lightmap_exposure_normalization;
 uniform uint lightmap_shadowmask_mode;
 
@@ -2073,9 +2110,7 @@ void main() {
 #else
 #ifdef USE_LIGHTMAP
 	{
-		vec3 uvw;
-		uvw.xy = uv2 * lightmap_uv_scale.zw + lightmap_uv_scale.xy;
-		uvw.z = float(lightmap_slice);
+		vec3 uvw = lightmap_uvw;
 
 #ifdef USE_SH_LIGHTMAP
 		uvw.z *= 4.0; // SH textures use 4 times more data.

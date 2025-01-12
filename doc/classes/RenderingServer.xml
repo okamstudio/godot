@@ -1860,6 +1860,7 @@
 			<param index="1" name="lightmap" type="RID" />
 			<param index="2" name="lightmap_uv_scale" type="Rect2" />
 			<param index="3" name="lightmap_slice" type="int" />
+			<param index="4" name="sub_instance" type="int" default="-1" />
 			<description>
 				Sets the lightmap GI instance to use for the specified 3D geometry instance. The lightmap UV scale for the specified instance (equivalent to [member GeometryInstance3D.gi_lightmap_scale]) and lightmap atlas slice must also be specified.
 			</description>

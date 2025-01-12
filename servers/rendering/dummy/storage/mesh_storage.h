@@ -159,6 +159,7 @@ public:
 	virtual void _multimesh_instance_set_transform_2d(RID p_multimesh, int p_index, const Transform2D &p_transform) override {}
 	virtual void _multimesh_instance_set_color(RID p_multimesh, int p_index, const Color &p_color) override {}
 	virtual void _multimesh_instance_set_custom_data(RID p_multimesh, int p_index, const Color &p_color) override {}
+	virtual void _multimesh_instance_set_lightmap(RID p_multimesh, int p_index, const Rect2 &p_position, int p_slice) override {}
 
 	virtual void _multimesh_set_custom_aabb(RID p_multimesh, const AABB &p_aabb) override {}
 	virtual AABB _multimesh_get_custom_aabb(RID p_multimesh) const override { return AABB(); }

@@ -449,6 +449,9 @@ void RasterizerSceneGLES3::_geometry_instance_update(RenderGeometryInstance *p_g
 		if (mesh_storage->multimesh_uses_custom_data(ginstance->data->base)) {
 			ginstance->base_flags |= INSTANCE_DATA_FLAG_MULTIMESH_HAS_CUSTOM_DATA;
 		}
+		if (mesh_storage->multimesh_uses_lightmap(ginstance->data->base)) {
+			ginstance->base_flags |= INSTANCE_DATA_FLAG_USE_LIGHTMAP;
+		}
 
 	} else if (ginstance->data->base_type == RS::INSTANCE_PARTICLES) {
 		ginstance->base_flags |= INSTANCE_DATA_FLAG_PARTICLES;
@@ -3314,7 +3317,9 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 						uint32_t shadow_id = MAX_DIRECTIONAL_LIGHTS - 1 - (pass - int32_t(inst->light_passes.size()));
 						if (pass == 0 && inst->lightmap_instance.is_valid() && scene_state.directional_lights[shadow_id].bake_mode == RenderingServer::LIGHT_BAKE_STATIC) {
 							// Disable additive lighting with a static light and a lightmap.
-							spec_constants &= ~SceneShaderGLES3::USE_ADDITIVE_LIGHTING;
+							if ((inst->data->base_type != RS::INSTANCE_MULTIMESH) || (inst->data->base_type == RS::INSTANCE_MULTIMESH && mesh_storage->multimesh_uses_lightmap(inst->data->base))) {
+								spec_constants &= ~SceneShaderGLES3::USE_ADDITIVE_LIGHTING;
+							}
 						}
 						if (scene_state.directional_shadows[shadow_id].shadow_split_offsets[0] == scene_state.directional_shadows[shadow_id].shadow_split_offsets[1]) {
 							// Orthogonal, do nothing.
@@ -3576,6 +3581,7 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 
 				GLuint instance_buffer = 0;
 				uint32_t stride = 0;
+				uint32_t instance_count = mesh_storage->multimesh_get_instance_count(inst->data->base);
 				if (inst->flags_cache & INSTANCE_DATA_FLAG_PARTICLES) {
 					instance_buffer = particles_storage->particles_get_gl_buffer(inst->data->base);
 					stride = 16; // 12 bytes for instance transform and 4 bytes for packed color and custom.
@@ -3617,6 +3623,13 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 					glVertexAttribI4ui(15, default_color, default_color, default_custom, default_custom);
 				}
 
+				if ((inst->flags_cache & INSTANCE_DATA_FLAG_USE_LIGHTMAP) && (inst->flags_cache & INSTANCE_DATA_FLAG_MULTIMESH)) {
+					uint32_t lightmap_offset = stride * instance_count * sizeof(float);
+					glEnableVertexAttribArray(2);
+					glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), CAST_INT_TO_UCHAR_PTR(lightmap_offset));
+					glVertexAttribDivisor(2, 1);
+				}
+
 				if (use_wireframe) {
 					glDrawElementsInstanced(GL_LINES, count, GL_UNSIGNED_INT, nullptr, inst->instance_count);
 				} else {
@@ -3644,6 +3657,7 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 				glDisableVertexAttribArray(13);
 				glDisableVertexAttribArray(14);
 				glDisableVertexAttribArray(15);
+				glDisableVertexAttribArray(2);
 			}
 		}
 		if constexpr (p_pass_mode == PASS_MODE_COLOR) {

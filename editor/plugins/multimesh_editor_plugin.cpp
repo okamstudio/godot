@@ -32,12 +32,14 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
+#include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/scene_tree_editor.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/option_button.h"
+#include "scene/resources/3d/primitive_meshes.h"
 
 void MultiMeshEditor::_node_removed(Node *p_node) {
 	if (p_node == node) {
@@ -246,6 +248,49 @@ void MultiMeshEditor::_menu_option(int p_option) {
 			populate_dialog->popup_centered(Size2(250, 380));
 
 		} break;
+		case MENU_OPTION_CREATE_UV2: {
+			Ref<MultiMesh> multimesh = node->get_multimesh();
+			if (multimesh.is_null()) {
+				err_dialog->set_text(TTR("No multimesh."));
+				err_dialog->popup_centered();
+				return;
+			}
+
+			Ref<Mesh> mesh2 = multimesh->get_mesh();
+			uv_tools->create_uv2(node, mesh2);
+		} break;
+		case MENU_OPTION_DEBUG_UV1: {
+			Ref<MultiMesh> multimesh = node->get_multimesh();
+			if (multimesh.is_null()) {
+				err_dialog->set_text(TTR("No multimesh."));
+				err_dialog->popup_centered();
+				return;
+			}
+
+			Ref<Mesh> mesh2 = multimesh->get_mesh();
+			if (mesh2.is_null()) {
+				err_dialog->set_text(TTR("No mesh to debug."));
+				err_dialog->popup_centered();
+				return;
+			}
+			uv_tools->create_uv_lines(mesh2, 0);
+		} break;
+		case MENU_OPTION_DEBUG_UV2: {
+			Ref<MultiMesh> multimesh = node->get_multimesh();
+			if (multimesh.is_null()) {
+				err_dialog->set_text(TTR("No multimesh."));
+				err_dialog->popup_centered();
+				return;
+			}
+
+			Ref<Mesh> mesh2 = multimesh->get_mesh();
+			if (mesh2.is_null()) {
+				err_dialog->set_text(TTR("No mesh to debug."));
+				err_dialog->popup_centered();
+				return;
+			}
+			uv_tools->create_uv_lines(mesh2, 1);
+		} break;
 	}
 }
 
@@ -275,6 +320,10 @@ MultiMeshEditor::MultiMeshEditor() {
 	options->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("MultiMeshInstance3D"), EditorStringName(EditorIcons)));
 
 	options->get_popup()->add_item(TTR("Populate Surface"));
+	options->get_popup()->add_separator();
+	options->get_popup()->add_item(TTR("View UV1"), MENU_OPTION_DEBUG_UV1);
+	options->get_popup()->add_item(TTR("View UV2"), MENU_OPTION_DEBUG_UV2);
+	options->get_popup()->add_item(TTR("Unwrap UV2 for Lightmap/AO"), MENU_OPTION_CREATE_UV2);
 	options->get_popup()->connect(SceneStringName(id_pressed), callable_mp(this, &MultiMeshEditor::_menu_option));
 
 	populate_dialog = memnew(ConfirmationDialog);
@@ -363,6 +412,9 @@ MultiMeshEditor::MultiMeshEditor() {
 
 	err_dialog = memnew(AcceptDialog);
 	add_child(err_dialog);
+
+	uv_tools = memnew(MeshEditorUVTools);
+	add_child(uv_tools);
 }
 
 void MultiMeshEditorPlugin::edit(Object *p_object) {

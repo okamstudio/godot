@@ -180,6 +180,11 @@ uint cluster_get_range_clip_mask(uint i, uint z_min, uint z_max) {
 	return bitfieldInsert(uint(0), uint(0xFFFFFFFF), local_min, mask_width);
 }
 #endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
+
+#ifdef USE_LIGHTMAP
+layout(location = 14) highp out vec4 lightmap_uv_interp;
+#endif // USE_LIGHTMAP
+
 invariant gl_Position;
 
 #GLOBALS
@@ -255,6 +260,10 @@ void vertex_shader(vec3 vertex_input,
 	mat4 matrix;
 	mat4 read_model_matrix = model_matrix;
 
+#ifdef USE_LIGHTMAP
+	vec4 lightmap_uv;
+#endif
+
 	if (sc_multimesh()) {
 		//multimesh, instances are for it
 
@@ -325,6 +334,12 @@ void vertex_shader(vec3 vertex_input,
 			instance_custom = transforms.data[offset];
 		}
 
+#ifdef USE_LIGHTMAP
+		uint lightmap_start = floatBitsToUint(instances.data[instance_index].lightmap_uv_scale.x);
+		uint lightmap_offset = lightmap_start + gl_InstanceIndex;
+		lightmap_uv = transforms.data[lightmap_offset];
+#endif
+
 #endif
 		//transpose
 		matrix = transpose(matrix);
@@ -337,6 +352,11 @@ void vertex_shader(vec3 vertex_input,
 #endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
 #endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
+	} else {
+#ifdef USE_LIGHTMAP
+		lightmap_uv.xy = instances.data[instance_index].lightmap_uv_scale.xy;
+		lightmap_uv.z = float(instances.data[instance_index].gi_offset >> 16);
+#endif
 	}
 
 	vec3 vertex = vertex_input;
@@ -367,6 +387,11 @@ void vertex_shader(vec3 vertex_input,
 		uv2_interp = (uv2_interp - 0.5) * uv_scale.zw;
 #endif
 	}
+
+#ifdef USE_LIGHTMAP
+	vec2 lm_uv = lightmap_uv.xy + uv2_attrib * instances.data[instance_index].lightmap_uv_scale.zw;
+	lightmap_uv_interp = vec4(lm_uv, lightmap_uv.z, 0.0);
+#endif
 
 #ifdef OVERRIDE_POSITION
 	vec4 position = vec4(1.0);
@@ -925,6 +950,11 @@ ivec2 multiview_uv(ivec2 uv) {
 layout(location = 12) highp in vec4 diffuse_light_interp;
 layout(location = 13) highp in vec4 specular_light_interp;
 #endif
+
+#ifdef USE_LIGHTMAP
+layout(location = 14) highp in vec4 lightmap_uv_interp;
+#endif // USE_LIGHTMAP
+
 //defines to keep compatibility with vertex
 
 #ifdef USE_MULTIVIEW
@@ -1669,10 +1699,7 @@ void fragment_shader(in SceneData scene_data) {
 	} else if (bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_LIGHTMAP)) { // has actual lightmap
 		bool uses_sh = bool(instances.data[instance_index].flags & INSTANCE_FLAGS_USE_SH_LIGHTMAP);
 		uint ofs = instances.data[instance_index].gi_offset & 0xFFFF;
-		uint slice = instances.data[instance_index].gi_offset >> 16;
-		vec3 uvw;
-		uvw.xy = uv2 * instances.data[instance_index].lightmap_uv_scale.zw + instances.data[instance_index].lightmap_uv_scale.xy;
-		uvw.z = float(slice);
+		vec3 uvw = lightmap_uv_interp.xyz;
 
 		if (uses_sh) {
 			uvw.z *= 4.0; //SH textures use 4 times more data
