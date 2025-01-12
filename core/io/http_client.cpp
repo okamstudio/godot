@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "http_client.h"
+#include "http_client.compat.inc"
 
 const char *HTTPClient::_methods[METHOD_MAX] = {
 	"GET",
@@ -49,11 +50,11 @@ HTTPClient *HTTPClient::create(bool p_notify_postinitialize) {
 	return nullptr;
 }
 
-void HTTPClient::set_http_proxy(const String &p_host, int p_port) {
+void HTTPClient::set_http_proxy(const String &p_host, int p_port, const String &p_user, const String &p_pass) {
 	WARN_PRINT("HTTP proxy feature is not available");
 }
 
-void HTTPClient::set_https_proxy(const String &p_host, int p_port) {
+void HTTPClient::set_https_proxy(const String &p_host, int p_port, const String &p_user, const String &p_pass) {
 	WARN_PRINT("HTTPS proxy feature is not available");
 }
 
@@ -162,8 +163,8 @@ void HTTPClient::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_status"), &HTTPClient::get_status);
 	ClassDB::bind_method(D_METHOD("poll"), &HTTPClient::poll);
 
-	ClassDB::bind_method(D_METHOD("set_http_proxy", "host", "port"), &HTTPClient::set_http_proxy);
-	ClassDB::bind_method(D_METHOD("set_https_proxy", "host", "port"), &HTTPClient::set_https_proxy);
+	ClassDB::bind_method(D_METHOD("set_http_proxy", "host", "port", "username", "password"), &HTTPClient::set_http_proxy, DEFVAL(String()), DEFVAL(String()));
+	ClassDB::bind_method(D_METHOD("set_https_proxy", "host", "port", "username", "password"), &HTTPClient::set_https_proxy, DEFVAL(String()), DEFVAL(String()));
 
 	ClassDB::bind_method(D_METHOD("query_string_from_dict", "fields"), &HTTPClient::query_string_from_dict);
 

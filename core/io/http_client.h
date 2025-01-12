@@ -161,6 +161,11 @@ protected:
 	static HTTPClient *(*_create)(bool p_notify_postinitialize);
 
 	static void _bind_methods();
+#ifndef DISABLE_DEPRECATED
+	void _set_http_proxy_bind_compat_101358(const String &p_host, int p_port);
+	void _set_https_proxy_bind_compat_101358(const String &p_host, int p_port);
+	static void _bind_compatibility_methods();
+#endif
 
 public:
 	static HTTPClient *create(bool p_notify_postinitialize = true);
@@ -195,8 +200,8 @@ public:
 	virtual Error poll() = 0;
 
 	// Use empty string or -1 to unset
-	virtual void set_http_proxy(const String &p_host, int p_port);
-	virtual void set_https_proxy(const String &p_host, int p_port);
+	virtual void set_http_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "");
+	virtual void set_https_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "");
 
 	HTTPClient() {}
 	virtual ~HTTPClient() {}

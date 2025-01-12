@@ -32,6 +32,7 @@
 
 #include "http_client_tcp.h"
 
+#include "core/crypto/crypto_core.h"
 #include "core/io/stream_peer_tls.h"
 #include "core/version.h"
 
@@ -201,6 +202,11 @@ Error HTTPClientTCP::request(Method p_method, const String &p_url, const Vector<
 	if (add_accept) {
 		request += "Accept: */*\r\n";
 	}
+	if (tls_options.is_null() && http_proxy_port != -1) {
+		CharString auth = vformat("%s:%s", http_proxy_user, http_proxy_pass).utf8();
+		String encoded_auth = CryptoCore::b64_encode_str((unsigned char *)auth.get_data(), auth.size() - 1);
+		request += vformat("Proxy-Authorization: Basic %s\r\n", encoded_auth);
+	}
 	request += "\r\n";
 	CharString cs = request.utf8();
 
@@ -323,7 +329,9 @@ Error HTTPClientTCP::poll() {
 						Error err = proxy_client->poll();
 						if (err == ERR_UNCONFIGURED) {
 							proxy_client->set_connection(tcp_connection);
-							const Vector<String> headers;
+							CharString auth = vformat("%s:%s", https_proxy_user, https_proxy_pass).utf8();
+							String encoded_auth = CryptoCore::b64_encode_str((unsigned char *)auth.get_data(), auth.size() - 1);
+							const Vector<String> headers({ vformat("Proxy-Authorization: Basic %s", encoded_auth) });
 							err = proxy_client->request(METHOD_CONNECT, vformat("%s:%d", conn_host, conn_port), headers, nullptr, 0);
 							if (err != OK) {
 								status = STATUS_CANT_CONNECT;
@@ -768,7 +776,7 @@ int HTTPClientTCP::get_read_chunk_size() const {
 	return read_chunk_size;
 }
 
-void HTTPClientTCP::set_http_proxy(const String &p_host, int p_port) {
+void HTTPClientTCP::set_http_proxy(const String &p_host, int p_port, const String &p_user, const String &p_pass) {
 	if (p_host.is_empty() || p_port == -1) {
 		http_proxy_host = "";
 		http_proxy_port = -1;
@@ -776,9 +784,11 @@ void HTTPClientTCP::set_http_proxy(const String &p_host, int p_port) {
 		http_proxy_host = p_host;
 		http_proxy_port = p_port;
 	}
+	http_proxy_user = p_user;
+	http_proxy_pass = p_pass;
 }
 
-void HTTPClientTCP::set_https_proxy(const String &p_host, int p_port) {
+void HTTPClientTCP::set_https_proxy(const String &p_host, int p_port, const String &p_user, const String &p_pass) {
 	if (p_host.is_empty() || p_port == -1) {
 		https_proxy_host = "";
 		https_proxy_port = -1;
@@ -786,6 +796,8 @@ void HTTPClientTCP::set_https_proxy(const String &p_host, int p_port) {
 		https_proxy_host = p_host;
 		https_proxy_port = p_port;
 	}
+	https_proxy_user = p_user;
+	https_proxy_pass = p_pass;
 }
 
 HTTPClientTCP::HTTPClientTCP() {

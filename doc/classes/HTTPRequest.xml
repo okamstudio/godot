@@ -210,6 +210,8 @@
 			<return type="void" />
 			<param index="0" name="host" type="String" />
 			<param index="1" name="port" type="int" />
+			<param index="2" name="username" type="String" default="&quot;&quot;" />
+			<param index="3" name="password" type="String" default="&quot;&quot;" />
 			<description>
 				Sets the proxy server for HTTP requests.
 				The proxy server is unset if [param host] is empty or [param port] is -1.
@@ -219,6 +221,8 @@
 			<return type="void" />
 			<param index="0" name="host" type="String" />
 			<param index="1" name="port" type="int" />
+			<param index="2" name="username" type="String" default="&quot;&quot;" />
+			<param index="3" name="password" type="String" default="&quot;&quot;" />
 			<description>
 				Sets the proxy server for HTTPS requests.
 				The proxy server is unset if [param host] is empty or [param port] is -1.

@@ -46,8 +46,12 @@ private:
 	String server_host;
 	int http_proxy_port = -1; // Proxy server for http requests.
 	String http_proxy_host;
+	String http_proxy_user;
+	String http_proxy_pass;
 	int https_proxy_port = -1; // Proxy server for https requests.
 	String https_proxy_host;
+	String https_proxy_user;
+	String https_proxy_pass;
 	bool blocking = false;
 	bool handshaking = false;
 	bool head_request = false;
@@ -96,8 +100,8 @@ public:
 	void set_read_chunk_size(int p_size) override;
 	int get_read_chunk_size() const override;
 	Error poll() override;
-	void set_http_proxy(const String &p_host, int p_port) override;
-	void set_https_proxy(const String &p_host, int p_port) override;
+	void set_http_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "") override;
+	void set_https_proxy(const String &p_host, int p_port, const String &p_user = "", const String &p_pass = "") override;
 	HTTPClientTCP();
 };
 

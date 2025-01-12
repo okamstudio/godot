@@ -268,3 +268,13 @@ GH-98441
 Validate extension JSON: Error: Field 'global_enums/KeyModifierMask/values/KEY_MODIFIER_MASK': value changed value in new API, from 5.32677e+08 to 2130706432.
 
 Key modifier mask value corrected. API change documented for compatibility.
+
+
+GH-101358
+--------
+Validate extension JSON: Error: Field 'classes/HTTPClient/methods/set_http_proxy/arguments': size changed value in new API, from 2 to 4.
+Validate extension JSON: Error: Field 'classes/HTTPClient/methods/set_https_proxy/arguments': size changed value in new API, from 2 to 4.
+Validate extension JSON: Error: Field 'classes/HTTPRequest/methods/set_http_proxy/arguments': size changed value in new API, from 2 to 4.
+Validate extension JSON: Error: Field 'classes/HTTPRequest/methods/set_https_proxy/arguments': size changed value in new API, from 2 to 4.
+
+Added optional "user" and "pass" argument allowing Basic authentication in both http and https proxy.
