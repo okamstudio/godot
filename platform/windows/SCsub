@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from misc.utility.scons_hints import *
 
+import methods
+
 Import("env")
 
 import os
@@ -49,10 +51,23 @@ def arrange_program_clean(prog):
         Clean(prog, extra_files_to_clean)
 
 
+def rc_defs_builder(target, source, env):
+    dst = str(target[0])
+
+    with methods.generated_wrapper(dst) as file:
+        file.write(
+            """\
+#define ICON_PATH platform/windows/icons/godot_{status}.ico
+#define ICON_WRAP_PATH platform/windows/icons/godot_console_{status}.ico
+""".format(**env.version_info)
+        )
+
+
+env.CommandNoCache("godot_rc_defs.gen.h", env.Value(env.version_info), env.Run(rc_defs_builder))
 res_file = "godot_res.rc"
 res_target = "godot_res" + env["OBJSUFFIX"]
 res_obj = env.RES(res_target, res_file)
-env.Depends(res_obj, "#core/version_generated.gen.h")
+env.Depends(res_obj, ["#core/version_generated.gen.h", "godot_rc_defs.gen.h"])
 
 env.add_source_files(sources, common_win)
 sources += res_obj
@@ -69,7 +84,7 @@ if env["windows_subsystem"] == "gui":
     res_wrap_file = "godot_res_wrap.rc"
     res_wrap_target = "godot_res_wrap" + env["OBJSUFFIX"]
     res_wrap_obj = env_wrap.RES(res_wrap_target, res_wrap_file)
-    env_wrap.Depends(res_wrap_obj, "#core/version_generated.gen.h")
+    env_wrap.Depends(res_wrap_obj, ["#core/version_generated.gen.h", "godot_rc_defs.gen.h"])
 
     if env.msvc:
         env_wrap.Append(LINKFLAGS=["/SUBSYSTEM:CONSOLE"])

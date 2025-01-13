@@ -80,6 +80,13 @@ if lib_arch_dir != "":
         out_dir + "/libgodot_android.so", "#bin/libgodot" + env["SHLIBSUFFIX"], Move("$TARGET", "$SOURCE")
     )
 
+    for mipmap_dir_name in ["mipmap", "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi"]:
+        env_android.Command(
+            "#platform/android/java/lib/res/" + mipmap_dir_name,
+            "#platform/android/icons/" + env_android.version_info["status"] + "/" + mipmap_dir_name,
+            Copy("$TARGET", "$SOURCE"),
+        )
+
     stl_lib_path = (
         str(env["ANDROID_NDK_ROOT"]) + "/sources/cxx-stl/llvm-libc++/libs/" + lib_arch_dir + "/libc++_shared.so"
     )

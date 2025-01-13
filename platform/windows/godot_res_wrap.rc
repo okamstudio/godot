@@ -1,10 +1,11 @@
 #include "core/version.h"
+#include "godot_rc_defs.gen.h"
 
 #ifndef RT_MANIFEST
 #define RT_MANIFEST 24
 #endif
 
-GODOT_ICON ICON platform/windows/godot_console.ico
+GODOT_ICON ICON ICON_WRAP_PATH
 1 RT_MANIFEST "godot.manifest"
 
 1 VERSIONINFO

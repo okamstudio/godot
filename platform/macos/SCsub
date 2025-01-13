@@ -40,6 +40,10 @@ def generate_bundle(target, source, env):
             shutil.copy(target_bin, app_dir + "/Contents/MacOS/Godot")
         if "mono" in env.module_version_string:
             shutil.copytree(Dir("#bin/GodotSharp").abspath, app_dir + "/Contents/Resources/GodotSharp")
+        shutil.copy(
+            File("#platform/macos/icons/Godot_" + env.version_info["status"] + ".icns").abspath,
+            app_dir + "/Contents/Resources/Godot.icns",
+        )
         version = get_build_version(False)
         short_version = get_build_version(True)
         with open(Dir("#misc/dist/macos").abspath + "/editor_info_plist.template", "rt", encoding="utf-8") as fin:
