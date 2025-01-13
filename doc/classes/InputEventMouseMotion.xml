@@ -32,14 +32,16 @@
 			[b]Note:[/b] This coordinate is [i]not[/i] scaled according to the content scale factor or calls to [method InputEvent.xformed_by]. This should be preferred over [member relative] for mouse aiming when using the [constant Input.MOUSE_MODE_CAPTURED] mouse mode, regardless of the project's stretch mode.
 		</member>
 		<member name="screen_velocity" type="Vector2" setter="set_screen_velocity" getter="get_screen_velocity" default="Vector2(0, 0)">
-			The unscaled mouse velocity in pixels per second in screen coordinates. This velocity is [i]not[/i] scaled according to the content scale factor or calls to [method InputEvent.xformed_by]. This should be preferred over [member velocity] for mouse aiming when using the [constant Input.MOUSE_MODE_CAPTURED] mouse mode, regardless of the project's stretch mode.
+			The unscaled mouse velocity in pixels per second in screen coordinates. This velocity is [i]not[/i] scaled according to the content scale factor or calls to [method InputEvent.xformed_by].
+			[b]Note:[/b] In [constant Input.MOUSE_MODE_CAPTURED] mode, [member screen_velocity] returns [code](0, 0)[/code] because the mouse cursor is hidden and locked. To determine mouse movement in this mode, calculate the relative position difference between frames.
 		</member>
 		<member name="tilt" type="Vector2" setter="set_tilt" getter="get_tilt" default="Vector2(0, 0)">
 			Represents the angles of tilt of the pen. Positive X-coordinate value indicates a tilt to the right. Positive Y-coordinate value indicates a tilt toward the user. Ranges from [code]-1.0[/code] to [code]1.0[/code] for both axes.
 		</member>
 		<member name="velocity" type="Vector2" setter="set_velocity" getter="get_velocity" default="Vector2(0, 0)">
 			The mouse velocity in pixels per second.
-			[b]Note:[/b] [member velocity] is automatically scaled according to the content scale factor, which is defined by the project's stretch mode settings. This means mouse sensitivity will appear different depending on resolution when using [member velocity] in a script that handles mouse aiming with the [constant Input.MOUSE_MODE_CAPTURED] mouse mode. To avoid this, use [member screen_velocity] instead.
+			[b]Note:[/b] [member velocity] is automatically scaled according to the content scale factor, which is defined by the project's stretch mode settings. This means mouse sensitivity will appear different depending on resolution when using [member velocity] in a script that handles mouse aiming.
+			[b]Note:[/b] In [constant Input.MOUSE_MODE_CAPTURED] mode, [member velocity] returns [code](0, 0)[/code] because the mouse cursor is hidden and locked. To determine mouse movement in this mode, calculate the relative position difference between frames.
 		</member>
 	</members>
 </class>
