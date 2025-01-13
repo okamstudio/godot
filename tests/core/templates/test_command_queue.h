@@ -201,10 +201,10 @@ public:
 						command_queue.push_and_sync(this, &SharedThreadState::func2, tr, f);
 						break;
 					case TEST_MSGRET_FUNC1_TRANSFORM:
-						command_queue.push_and_ret(this, &SharedThreadState::func1r, tr, &otr);
+						command_queue.push_and_ret(this, &SharedThreadState::func1r, &otr, tr);
 						break;
 					case TEST_MSGRET_FUNC2_TRANSFORM_FLOAT:
-						command_queue.push_and_ret(this, &SharedThreadState::func2r, tr, f, &otr);
+						command_queue.push_and_ret(this, &SharedThreadState::func2r, &otr, tr, f);
 						break;
 					default:
 						break;
@@ -243,6 +243,44 @@ public:
 			reader_thread.wait_to_finish();
 		}
 		writer_thread.wait_to_finish();
+	}
+
+	struct CopyMoveTestType {
+		inline static int copy_count;
+		inline static int move_count;
+		int value = 0;
+
+		CopyMoveTestType(int p_value = 0) :
+				value(p_value) {}
+
+		CopyMoveTestType(const CopyMoveTestType &p_other) :
+				value(p_other.value) {
+			copy_count++;
+		}
+
+		CopyMoveTestType(CopyMoveTestType &&p_other) :
+				value(p_other.value) {
+			move_count++;
+		}
+
+		CopyMoveTestType &operator=(const CopyMoveTestType &p_other) {
+			value = p_other.value;
+			copy_count++;
+			return *this;
+		}
+
+		CopyMoveTestType &operator=(CopyMoveTestType &&p_other) {
+			value = p_other.value;
+			move_count++;
+			return *this;
+		}
+	};
+
+	void copy_move_test_copy(CopyMoveTestType p_test_type) {
+	}
+	void copy_move_test_ref(const CopyMoveTestType &p_test_type) {
+	}
+	void copy_move_test_move(CopyMoveTestType &&p_test_type) {
 	}
 };
 
@@ -445,6 +483,83 @@ TEST_CASE("[Stress][CommandQueue] Stress test command queue") {
 			"Reader should have read no additional messages after join");
 	ProjectSettings::get_singleton()->set_setting(COMMAND_QUEUE_SETTING,
 			ProjectSettings::get_singleton()->property_get_revert(COMMAND_QUEUE_SETTING));
+}
+
+TEST_CASE("[CommandQueue] Test Parameter Passing Semantics") {
+	SharedThreadState sts;
+	sts.init_threads();
+
+	SUBCASE("Testing with lvalue") {
+		SharedThreadState::CopyMoveTestType::copy_count = 0;
+		SharedThreadState::CopyMoveTestType::move_count = 0;
+
+		SharedThreadState::CopyMoveTestType lvalue(42);
+
+		SUBCASE("Pass by copy") {
+			sts.command_queue.push(&sts, &SharedThreadState::copy_move_test_copy, lvalue);
+
+			sts.message_count_to_read = -1;
+			sts.reader_threadwork.main_start_work();
+			sts.reader_threadwork.main_wait_for_done();
+
+			CHECK(SharedThreadState::CopyMoveTestType::copy_count == 1);
+			CHECK(SharedThreadState::CopyMoveTestType::move_count == 1);
+		}
+
+		SUBCASE("Pass by reference") {
+			sts.command_queue.push(&sts, &SharedThreadState::copy_move_test_ref, lvalue);
+
+			sts.message_count_to_read = -1;
+			sts.reader_threadwork.main_start_work();
+			sts.reader_threadwork.main_wait_for_done();
+
+			CHECK(SharedThreadState::CopyMoveTestType::copy_count == 1);
+			CHECK(SharedThreadState::CopyMoveTestType::move_count == 0);
+		}
+	}
+
+	SUBCASE("Testing with rvalue") {
+		SharedThreadState::CopyMoveTestType::copy_count = 0;
+		SharedThreadState::CopyMoveTestType::move_count = 0;
+
+		SUBCASE("Pass by copy") {
+			sts.command_queue.push(&sts, &SharedThreadState::copy_move_test_copy,
+					SharedThreadState::CopyMoveTestType(43));
+
+			sts.message_count_to_read = -1;
+			sts.reader_threadwork.main_start_work();
+			sts.reader_threadwork.main_wait_for_done();
+
+			CHECK(SharedThreadState::CopyMoveTestType::copy_count == 0);
+			CHECK(SharedThreadState::CopyMoveTestType::move_count == 2);
+		}
+
+		SUBCASE("Pass by reference") {
+			sts.command_queue.push(&sts, &SharedThreadState::copy_move_test_ref,
+					SharedThreadState::CopyMoveTestType(43));
+
+			sts.message_count_to_read = -1;
+			sts.reader_threadwork.main_start_work();
+			sts.reader_threadwork.main_wait_for_done();
+
+			CHECK(SharedThreadState::CopyMoveTestType::copy_count == 0);
+			CHECK(SharedThreadState::CopyMoveTestType::move_count == 1);
+		}
+
+		SUBCASE("Pass by rvalue reference") {
+			sts.command_queue.push(&sts, &SharedThreadState::copy_move_test_move,
+					SharedThreadState::CopyMoveTestType(43));
+
+			sts.message_count_to_read = -1;
+			sts.reader_threadwork.main_start_work();
+			sts.reader_threadwork.main_wait_for_done();
+
+			CHECK(SharedThreadState::CopyMoveTestType::copy_count == 0);
+			CHECK(SharedThreadState::CopyMoveTestType::move_count == 1);
+		}
+	}
+
+	sts.destroy_threads();
 }
 } // namespace TestCommandQueue
 

@@ -438,11 +438,19 @@ Error DirAccessUnix::remove(String p_path) {
 		return FAILED;
 	}
 
+	int err;
 	if (S_ISDIR(flags.st_mode) && !is_link(p_path)) {
-		return ::rmdir(p_path.utf8().get_data()) == 0 ? OK : FAILED;
+		err = ::rmdir(p_path.utf8().get_data());
 	} else {
-		return ::unlink(p_path.utf8().get_data()) == 0 ? OK : FAILED;
+		err = ::unlink(p_path.utf8().get_data());
 	}
+	if (err != 0) {
+		return FAILED;
+	}
+	if (remove_notification_func != nullptr) {
+		remove_notification_func(p_path);
+	}
+	return OK;
 }
 
 bool DirAccessUnix::is_link(String p_file) {
@@ -551,6 +559,8 @@ DirAccessUnix::DirAccessUnix() {
 
 	change_dir(current_dir);
 }
+
+DirAccessUnix::RemoveNotificationFunc DirAccessUnix::remove_notification_func = nullptr;
 
 DirAccessUnix::~DirAccessUnix() {
 	list_dir_end();

@@ -84,6 +84,9 @@ hb_ft_face_create_cached (FT_Face ft_face);
 HB_EXTERN hb_face_t *
 hb_ft_face_create_referenced (FT_Face ft_face);
 
+HB_EXTERN hb_face_t *
+hb_ft_face_create_from_file_or_fail (const char   *file_name,
+				     unsigned int  index);
 
 /*
  * hb-font from ft-face.

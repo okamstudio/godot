@@ -241,6 +241,9 @@
 		<member name="docks/scene_tree/center_node_on_reparent" type="bool" setter="" getter="">
 			If [code]true[/code], new node created when reparenting node(s) will be positioned at the average position of the selected node(s).
 		</member>
+		<member name="docks/scene_tree/hide_filtered_out_parents" type="bool" setter="" getter="">
+			If [code]true[/code], the scene tree dock will only show nodes that match the filter, without showing parents that don't. This settings can also be changed in the Scene dock's top menu.
+		</member>
 		<member name="docks/scene_tree/start_create_dialog_fully_expanded" type="bool" setter="" getter="">
 			If [code]true[/code], the Create dialog (Create New Node/Create New Resource) will start with all its sections expanded. Otherwise, sections will be collapsed until the user starts searching (which will automatically expand sections as needed).
 		</member>
@@ -432,6 +435,9 @@
 		<member name="editors/3d_gizmos/gizmo_colors/fog_volume" type="Color" setter="" getter="">
 			The 3D editor gizmo color for [FogVolume] nodes.
 		</member>
+		<member name="editors/3d_gizmos/gizmo_colors/gridmap_grid" type="Color" setter="" getter="">
+			The 3D editor gizmo color for the [GridMap] grid.
+		</member>
 		<member name="editors/3d_gizmos/gizmo_colors/instantiated" type="Color" setter="" getter="">
 			The color override to use for 3D editor gizmos if the [Node3D] in question is part of an instantiated scene file (from the perspective of the current scene).
 		</member>
@@ -518,9 +524,6 @@
 		<member name="editors/bone_mapper/handle_colors/set" type="Color" setter="" getter="">
 		</member>
 		<member name="editors/bone_mapper/handle_colors/unset" type="Color" setter="" getter="">
-		</member>
-		<member name="editors/grid_map/editor_side" type="int" setter="" getter="">
-			Specifies the side of 3D editor's viewport where GridMap's mesh palette will appear.
 		</member>
 		<member name="editors/grid_map/palette_min_width" type="int" setter="" getter="">
 			Minimum width of GridMap's mesh palette side panel.
@@ -1298,6 +1301,9 @@
 		</member>
 		<member name="text_editor/completion/idle_parse_delay" type="float" setter="" getter="">
 			The delay in seconds after which the script editor should check for errors when the user stops typing.
+		</member>
+		<member name="text_editor/completion/idle_parse_delay_with_errors_found" type="float" setter="" getter="">
+			The delay used instead of [member text_editor/completion/idle_parse_delay], when the parser has found errors. A lower value should feel more responsive while fixing code, but may cause notable stuttering and increase CPU usage.
 		</member>
 		<member name="text_editor/completion/put_callhint_tooltip_below_current_line" type="bool" setter="" getter="">
 			If [code]true[/code], the code completion tooltip will appear below the current line unless there is no space on screen below the current line. If [code]false[/code], the code completion tooltip will appear above the current line.

@@ -67,8 +67,6 @@
 #include "core/math/a_star.h"
 #include "core/math/a_star_grid_2d.h"
 #include "core/math/expression.h"
-#include "core/math/geometry_2d.h"
-#include "core/math/geometry_3d.h"
 #include "core/math/random_number_generator.h"
 #include "core/math/triangle_mesh.h"
 #include "core/object/class_db.h"
@@ -306,7 +304,7 @@ void register_core_types() {
 void register_core_settings() {
 	// Since in register core types, globals may not be present.
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "network/limits/tcp/connect_timeout_seconds", PROPERTY_HINT_RANGE, "1,1800,1"), (30));
-	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "network/limits/packet_peer_stream/max_buffer_po2", PROPERTY_HINT_RANGE, "0,64,1,or_greater"), (16));
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "network/limits/packet_peer_stream/max_buffer_po2", PROPERTY_HINT_RANGE, "8,64,1,or_greater"), (16));
 	GLOBAL_DEF(PropertyInfo(Variant::STRING, "network/tls/certificate_bundle_override", PROPERTY_HINT_FILE, "*.crt"), "");
 
 	GLOBAL_DEF("threading/worker_pool/max_threads", -1);

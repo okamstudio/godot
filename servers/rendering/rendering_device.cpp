@@ -37,9 +37,6 @@
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 
-// TODO: Thread safety
-// - Roll back thread safe attribute for RID_Owner members after the read-only/atomic update scheme is implemented.
-
 #define FORCE_SEPARATE_PRESENT_QUEUE 0
 #define PRINT_FRAMEBUFFER_FORMAT 0
 
@@ -557,6 +554,59 @@ Error RenderingDevice::buffer_update(RID p_buffer, uint32_t p_offset, uint32_t p
 	}
 
 	gpu_copy_count++;
+
+	return OK;
+}
+
+Error RenderingDevice::driver_callback_add(RDD::DriverCallback p_callback, void *p_userdata, VectorView<CallbackResource> p_resources) {
+	ERR_RENDER_THREAD_GUARD_V(ERR_UNAVAILABLE);
+
+	ERR_FAIL_COND_V_MSG(draw_list, ERR_INVALID_PARAMETER,
+			"Driver callback is forbidden during creation of a draw list");
+	ERR_FAIL_COND_V_MSG(compute_list, ERR_INVALID_PARAMETER,
+			"Driver callback is forbidden during creation of a compute list");
+
+	thread_local LocalVector<RDG::ResourceTracker *> trackers;
+	thread_local LocalVector<RDG::ResourceUsage> usages;
+
+	uint32_t resource_count = p_resources.size();
+	trackers.resize(resource_count);
+	usages.resize(resource_count);
+
+	if (resource_count > 0) {
+		for (uint32_t i = 0; i < p_resources.size(); i++) {
+			const CallbackResource &cr = p_resources[i];
+			switch (cr.type) {
+				case CALLBACK_RESOURCE_TYPE_BUFFER: {
+					Buffer *buffer = _get_buffer_from_owner(cr.rid);
+					if (!buffer) {
+						ERR_FAIL_V_MSG(ERR_INVALID_PARAMETER, vformat("Argument %d is not a valid buffer of any type.", i));
+					}
+					if (_buffer_make_mutable(buffer, cr.rid)) {
+						draw_graph.add_synchronization();
+					}
+					trackers[i] = buffer->draw_tracker;
+					usages[i] = (RDG::ResourceUsage)cr.usage;
+				} break;
+				case CALLBACK_RESOURCE_TYPE_TEXTURE: {
+					Texture *texture = texture_owner.get_or_null(cr.rid);
+					if (!texture) {
+						ERR_FAIL_V_MSG(ERR_INVALID_PARAMETER, vformat("Argument %d is not a valid texture.", i));
+					}
+					if (_texture_make_mutable(texture, cr.rid)) {
+						draw_graph.add_synchronization();
+					}
+					trackers[i] = texture->draw_tracker;
+					usages[i] = (RDG::ResourceUsage)cr.usage;
+				} break;
+				default: {
+					CRASH_NOW_MSG("Invalid callback resource type.");
+				} break;
+			}
+		}
+	}
+
+	draw_graph.add_driver_callback(p_callback, p_userdata, trackers, usages);
 
 	return OK;
 }
@@ -7855,6 +7905,8 @@ void RenderingDevice::_bind_methods() {
 	BIND_ENUM_CONSTANT(LIMIT_MAX_COMPUTE_WORKGROUP_SIZE_Z);
 	BIND_ENUM_CONSTANT(LIMIT_MAX_VIEWPORT_DIMENSIONS_X);
 	BIND_ENUM_CONSTANT(LIMIT_MAX_VIEWPORT_DIMENSIONS_Y);
+	BIND_ENUM_CONSTANT(LIMIT_METALFX_TEMPORAL_SCALER_MIN_SCALE);
+	BIND_ENUM_CONSTANT(LIMIT_METALFX_TEMPORAL_SCALER_MAX_SCALE);
 
 	BIND_ENUM_CONSTANT(MEMORY_TEXTURES);
 	BIND_ENUM_CONSTANT(MEMORY_BUFFERS);
@@ -8104,7 +8156,7 @@ RID RenderingDevice::_uniform_set_create(const TypedArray<RDUniform> &p_uniforms
 	uniforms.resize(p_uniforms.size());
 	for (int i = 0; i < p_uniforms.size(); i++) {
 		Ref<RDUniform> uniform = p_uniforms[i];
-		ERR_FAIL_COND_V(!uniform.is_valid(), RID());
+		ERR_FAIL_COND_V(uniform.is_null(), RID());
 		uniforms.write[i] = uniform->base;
 	}
 	return uniform_set_create(uniforms, p_shader, p_shader_set);
@@ -8201,3 +8253,23 @@ void RenderingDevice::_compute_list_set_push_constant(ComputeListID p_list, cons
 	ERR_FAIL_COND(p_data_size > (uint32_t)p_data.size());
 	compute_list_set_push_constant(p_list, p_data.ptr(), p_data_size);
 }
+
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_NONE, RDG::RESOURCE_USAGE_NONE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_COPY_FROM, RDG::RESOURCE_USAGE_COPY_FROM));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_COPY_TO, RDG::RESOURCE_USAGE_COPY_TO));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_RESOLVE_FROM, RDG::RESOURCE_USAGE_RESOLVE_FROM));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_RESOLVE_TO, RDG::RESOURCE_USAGE_RESOLVE_TO));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_UNIFORM_BUFFER_READ, RDG::RESOURCE_USAGE_UNIFORM_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_INDIRECT_BUFFER_READ, RDG::RESOURCE_USAGE_INDIRECT_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ, RDG::RESOURCE_USAGE_TEXTURE_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ_WRITE, RDG::RESOURCE_USAGE_TEXTURE_BUFFER_READ_WRITE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ, RDG::RESOURCE_USAGE_STORAGE_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ_WRITE, RDG::RESOURCE_USAGE_STORAGE_BUFFER_READ_WRITE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_VERTEX_BUFFER_READ, RDG::RESOURCE_USAGE_VERTEX_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_INDEX_BUFFER_READ, RDG::RESOURCE_USAGE_INDEX_BUFFER_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_TEXTURE_SAMPLE, RDG::RESOURCE_USAGE_TEXTURE_SAMPLE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ, RDG::RESOURCE_USAGE_STORAGE_IMAGE_READ));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE, RDG::RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE, RDG::RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE, RDG::RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE));
+static_assert(ENUM_MEMBERS_EQUAL(RD::CALLBACK_RESOURCE_USAGE_MAX, RDG::RESOURCE_USAGE_MAX));

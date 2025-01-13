@@ -38,7 +38,7 @@ public:
 		// <=> (x', y') = (a^2 x / (t + a^2), b^2 y / (t + b^2))
 		// Requiring point to be on ellipse (substituting into [1]): g(t) = (a x / (t + a^2))^2 + (b y / (t + b^2))^2 - 1 = 0
 
-		// Newton raphson iteration, starting at t = 0
+		// Newton Raphson iteration, starting at t = 0
 		float t = 0.0f;
 		for (;;)
 		{

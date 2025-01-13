@@ -31,7 +31,7 @@
 #ifndef JAVA_GODOT_VIEW_WRAPPER_H
 #define JAVA_GODOT_VIEW_WRAPPER_H
 
-#include "string_android.h"
+#include "jni_utils.h"
 
 #include "core/math/vector2.h"
 

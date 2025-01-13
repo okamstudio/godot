@@ -172,7 +172,7 @@ public:
 
 	virtual AABB get_aabb() const override;
 
-	Ref<TriangleMesh> generate_triangle_mesh() const;
+	virtual Ref<TriangleMesh> generate_triangle_mesh() const override;
 
 	SpriteBase3D();
 	~SpriteBase3D();

@@ -42,7 +42,7 @@ public:
 		bool inserted = this->InsertKey(inKey, index);
 		value_type &key_value = this->GetElement(index);
 		if (inserted)
-			::new (&key_value) value_type(inKey, Value());
+			new (&key_value) value_type(inKey, Value());
 		return key_value.second;
 	}
 
@@ -52,7 +52,7 @@ public:
 		size_type index;
 		bool inserted = this->InsertKey(inKey, index);
 		if (inserted)
-			::new (&this->GetElement(index)) value_type(std::piecewise_construct, std::forward_as_tuple(inKey), std::forward_as_tuple(std::forward<Args>(inArgs)...));
+			new (&this->GetElement(index)) value_type(std::piecewise_construct, std::forward_as_tuple(inKey), std::forward_as_tuple(std::forward<Args>(inArgs)...));
 		return std::make_pair(iterator(this, index), inserted);
 	}
 
@@ -62,7 +62,7 @@ public:
 		size_type index;
 		bool inserted = this->InsertKey(inKey, index);
 		if (inserted)
-			::new (&this->GetElement(index)) value_type(std::piecewise_construct, std::forward_as_tuple(std::move(inKey)), std::forward_as_tuple(std::forward<Args>(inArgs)...));
+			new (&this->GetElement(index)) value_type(std::piecewise_construct, std::forward_as_tuple(std::move(inKey)), std::forward_as_tuple(std::forward<Args>(inArgs)...));
 		return std::make_pair(iterator(this, index), inserted);
 	}
 

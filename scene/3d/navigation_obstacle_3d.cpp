@@ -258,6 +258,19 @@ NavigationObstacle3D::~NavigationObstacle3D() {
 void NavigationObstacle3D::set_vertices(const Vector<Vector3> &p_vertices) {
 	vertices = p_vertices;
 
+	Vector<Vector2> vertices_2d;
+	vertices_2d.resize(vertices.size());
+
+	const Vector3 *vertices_ptr = vertices.ptr();
+	Vector2 *vertices_2d_ptrw = vertices_2d.ptrw();
+
+	for (int i = 0; i < vertices.size(); i++) {
+		vertices_2d_ptrw[i] = Vector2(vertices_ptr[i].x, vertices_ptr[i].z);
+	}
+
+	vertices_are_clockwise = !Geometry2D::is_polygon_clockwise(vertices_2d); // Geometry2D is inverted.
+	vertices_are_valid = !Geometry2D::triangulate_polygon(vertices_2d).is_empty();
+
 	const Basis basis = is_inside_tree() ? get_global_basis() : get_basis();
 	const float rotation_y = is_inside_tree() ? get_global_rotation().y : get_rotation().y;
 	const Vector3 safe_scale = basis.get_scale().abs().maxf(0.001);
@@ -604,21 +617,12 @@ void NavigationObstacle3D::_update_static_obstacle_debug() {
 
 	rs->mesh_add_surface_from_arrays(static_obstacle_debug_mesh_rid, RS::PRIMITIVE_LINES, edge_mesh_array);
 
-	Vector<Vector2> polygon_2d_vertices;
-	polygon_2d_vertices.resize(vertex_count);
-	for (int i = 0; i < vertex_count; i++) {
-		const Vector3 &vert = vertices[i];
-		polygon_2d_vertices.write[i] = Vector2(vert.x, vert.z);
-	}
-
-	Vector<int> triangulated_polygon_2d_indices = Geometry2D::triangulate_polygon(polygon_2d_vertices);
-
 	Ref<StandardMaterial3D> edge_material;
 
-	if (triangulated_polygon_2d_indices.is_empty()) {
-		edge_material = ns3d->get_debug_navigation_avoidance_static_obstacle_pushin_edge_material();
-	} else {
+	if (are_vertices_valid()) {
 		edge_material = ns3d->get_debug_navigation_avoidance_static_obstacle_pushout_edge_material();
+	} else {
+		edge_material = ns3d->get_debug_navigation_avoidance_static_obstacle_pushin_edge_material();
 	}
 
 	rs->instance_set_surface_override_material(static_obstacle_debug_instance_rid, 0, edge_material->get_rid());

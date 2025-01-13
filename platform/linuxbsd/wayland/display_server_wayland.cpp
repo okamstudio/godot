@@ -217,7 +217,8 @@ bool DisplayServerWayland::has_feature(Feature p_feature) const {
 		//case FEATURE_NATIVE_DIALOG_INPUT:
 #ifdef DBUS_ENABLED
 		case FEATURE_NATIVE_DIALOG_FILE:
-		case FEATURE_NATIVE_DIALOG_FILE_EXTRA: {
+		case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME: {
 			return true;
 		} break;
 #endif
@@ -905,11 +906,11 @@ bool DisplayServerWayland::window_is_focused(WindowID p_window_id) const {
 }
 
 bool DisplayServerWayland::window_can_draw(DisplayServer::WindowID p_window_id) const {
-	return !suspended;
+	return suspend_state == SuspendState::NONE;
 }
 
 bool DisplayServerWayland::can_any_window_draw() const {
-	return !suspended;
+	return suspend_state == SuspendState::NONE;
 }
 
 void DisplayServerWayland::window_set_ime_active(const bool p_active, DisplayServer::WindowID p_window_id) {
@@ -984,6 +985,19 @@ DisplayServer::VSyncMode DisplayServerWayland::window_get_vsync_mode(DisplayServ
 #endif // GLES3_ENABLED
 
 	return DisplayServer::VSYNC_ENABLED;
+}
+
+void DisplayServerWayland::window_start_drag(WindowID p_window) {
+	MutexLock mutex_lock(wayland_thread.mutex);
+
+	wayland_thread.window_start_drag(p_window);
+}
+
+void DisplayServerWayland::window_start_resize(WindowResizeEdge p_edge, WindowID p_window) {
+	MutexLock mutex_lock(wayland_thread.mutex);
+
+	ERR_FAIL_INDEX(int(p_edge), WINDOW_EDGE_MAX);
+	wayland_thread.window_start_resize(p_edge, p_window);
 }
 
 void DisplayServerWayland::cursor_set_shape(CursorShape p_shape) {
@@ -1118,16 +1132,21 @@ void DisplayServerWayland::try_suspend() {
 	if (emulate_vsync) {
 		bool frame = wayland_thread.wait_frame_suspend_ms(1000);
 		if (!frame) {
-			suspended = true;
-		}
-	} else {
-		if (wayland_thread.is_suspended()) {
-			suspended = true;
+			suspend_state = SuspendState::TIMEOUT;
 		}
 	}
 
-	if (suspended) {
-		DEBUG_LOG_WAYLAND("Window suspended.");
+	// If we suspended by capability, we'll know with this check. We must do this
+	// after `wait_frame_suspend_ms` as it progressively dispatches the event queue
+	// during the "timeout".
+	if (wayland_thread.is_suspended()) {
+		suspend_state = SuspendState::CAPABILITY;
+	}
+
+	if (suspend_state == SuspendState::TIMEOUT) {
+		DEBUG_LOG_WAYLAND("Suspending. Reason: timeout.");
+	} else if (suspend_state == SuspendState::CAPABILITY) {
+		DEBUG_LOG_WAYLAND("Suspending. Reason: capability.");
 	}
 }
 
@@ -1212,7 +1231,7 @@ void DisplayServerWayland::process_events() {
 
 	wayland_thread.keyboard_echo_keys();
 
-	if (!suspended) {
+	if (suspend_state == SuspendState::NONE) {
 		// Due to the way legacy suspension works, we have to treat low processor
 		// usage mode very differently than the regular one.
 		if (OS::get_singleton()->is_in_low_processor_usage_mode()) {
@@ -1236,9 +1255,23 @@ void DisplayServerWayland::process_events() {
 		} else {
 			try_suspend();
 		}
-	} else if (!wayland_thread.is_suspended() || wayland_thread.get_reset_frame()) {
-		// At last, a sign of life! We're no longer suspended.
-		suspended = false;
+	} else {
+		if (suspend_state == SuspendState::CAPABILITY) {
+			// If we suspended by capability we can assume that it will be reset when
+			// the compositor wants us to repaint.
+			if (!wayland_thread.is_suspended()) {
+				suspend_state = SuspendState::NONE;
+				DEBUG_LOG_WAYLAND("Unsuspending from capability.");
+			}
+		} else if (suspend_state == SuspendState::TIMEOUT) {
+			// Certain compositors might not report the "suspended" wm_capability flag.
+			// Because of this we'll wake up at the next frame event, indicating the
+			// desire for the compositor to let us repaint.
+			if (wayland_thread.get_reset_frame()) {
+				suspend_state = SuspendState::NONE;
+				DEBUG_LOG_WAYLAND("Unsuspending from timeout.");
+			}
+		}
 	}
 
 #ifdef DBUS_ENABLED
@@ -1303,8 +1336,8 @@ Vector<String> DisplayServerWayland::get_rendering_drivers_func() {
 	return drivers;
 }
 
-DisplayServer *DisplayServerWayland::create_func(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Point2i *p_position, const Size2i &p_resolution, int p_screen, Context p_context, Error &r_error) {
-	DisplayServer *ds = memnew(DisplayServerWayland(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_resolution, p_context, r_error));
+DisplayServer *DisplayServerWayland::create_func(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Point2i *p_position, const Size2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
+	DisplayServer *ds = memnew(DisplayServerWayland(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_resolution, p_context, p_parent_window, r_error));
 	if (r_error != OK) {
 		ERR_PRINT("Can't create the Wayland display server.");
 		memdelete(ds);
@@ -1314,7 +1347,7 @@ DisplayServer *DisplayServerWayland::create_func(const String &p_rendering_drive
 	return ds;
 }
 
-DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i &p_resolution, Context p_context, Error &r_error) {
+DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i &p_resolution, Context p_context, int64_t p_parent_window, Error &r_error) {
 #ifdef GLES3_ENABLED
 #ifdef SOWRAP_ENABLED
 #ifdef DEBUG_ENABLED

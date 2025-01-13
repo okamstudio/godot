@@ -637,6 +637,8 @@ void CompilerReflection::emit_resources(const char *tag, const SmallVector<Resou
 			json_stream->emit_json_key_value("WeightTextureQCOM", get_decoration(res.id, DecorationWeightTextureQCOM));
 		if (mask.get(DecorationBlockMatchTextureQCOM))
 			json_stream->emit_json_key_value("BlockMatchTextureQCOM", get_decoration(res.id, DecorationBlockMatchTextureQCOM));
+		if (mask.get(DecorationBlockMatchSamplerQCOM))
+			json_stream->emit_json_key_value("BlockMatchSamplerQCOM", get_decoration(res.id, DecorationBlockMatchSamplerQCOM));
 
 		// For images, the type itself adds a layout qualifer.
 		// Only emit the format for storage images.

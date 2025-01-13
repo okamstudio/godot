@@ -33,7 +33,6 @@
 
 #ifdef GLES3_ENABLED
 
-#include "core/templates/local_vector.h"
 #include "core/templates/rid_owner.h"
 #include "core/templates/self_list.h"
 #include "drivers/gles3/shaders/particles_copy.glsl.gen.h"

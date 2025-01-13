@@ -12,18 +12,18 @@
 		<link title="Importing audio samples">$DOCS_URL/tutorials/assets_pipeline/importing_audio_samples.html</link>
 	</tutorials>
 	<methods>
-		<method name="load_from_buffer" qualifiers="static">
+		<method name="load_from_buffer" qualifiers="static" deprecated="Use [method AudioStreamOggVorbis.load_from_buffer] instead.">
 			<return type="AudioStreamOggVorbis" />
-			<param index="0" name="buffer" type="PackedByteArray" />
+			<param index="0" name="stream_data" type="PackedByteArray" />
 			<description>
-				This method loads audio data from a PackedByteArray buffer into an AudioStreamOggVorbis object.
+				Creates a new [AudioStreamOggVorbis] instance from the given buffer. The buffer must contain Ogg Vorbis data.
 			</description>
 		</method>
-		<method name="load_from_file" qualifiers="static">
+		<method name="load_from_file" qualifiers="static" deprecated="Use [method AudioStreamOggVorbis.load_from_file] instead.">
 			<return type="AudioStreamOggVorbis" />
 			<param index="0" name="path" type="String" />
 			<description>
-				This method loads audio data from a file into an AudioStreamOggVorbis object. The file path is provided as a string.
+				Creates a new [AudioStreamOggVorbis] instance from the given file path. The file must be in Ogg Vorbis format.
 			</description>
 		</method>
 	</methods>

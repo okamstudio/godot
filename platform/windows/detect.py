@@ -359,6 +359,11 @@ def configure_msvc(env: "SConsEnvironment", vcvars_msvc_config):
         env.AppendUnique(CPPDEFINES=["R128_STDC_ONLY"])
         env.extra_suffix = ".llvm" + env.extra_suffix
 
+        # Ensure intellisense tools like `compile_commands.json` play nice with MSVC syntax.
+        env["CPPDEFPREFIX"] = "-D"
+        env["INCPREFIX"] = "-I"
+        env.AppendUnique(CPPDEFINES=[("alloca", "_alloca")])
+
     if env["silence_msvc"] and not env.GetOption("clean"):
         from tempfile import mkstemp
 
@@ -757,8 +762,8 @@ def configure_mingw(env: "SConsEnvironment"):
 
     ## LTO
 
-    if env["lto"] == "auto":  # Full LTO for production with MinGW.
-        env["lto"] = "full"
+    if env["lto"] == "auto":  # Enable LTO for production with MinGW.
+        env["lto"] = "thin" if env["use_llvm"] else "full"
 
     if env["lto"] != "none":
         if env["lto"] == "thin":
@@ -806,9 +811,6 @@ def configure_mingw(env: "SConsEnvironment"):
         env.Append(CFLAGS=san_flags)
         env.Append(CCFLAGS=san_flags)
         env.Append(LINKFLAGS=san_flags)
-
-    if env["use_llvm"] and os.name == "nt" and methods._colorize:
-        env.Append(CCFLAGS=["$(-fansi-escape-codes$)", "$(-fcolor-diagnostics$)"])
 
     if get_is_ar_thin_supported(env):
         env.Append(ARFLAGS=["--thin"])

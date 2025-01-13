@@ -32,10 +32,10 @@
 
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
-#include "servers/rendering/rendering_server_globals.h"
 
 #include "extensions/openxr_eye_gaze_interaction.h"
 #include "extensions/openxr_hand_interaction_extension.h"
+#include "servers/rendering/renderer_compositor.h"
 
 #include <openxr/openxr.h>
 
@@ -1055,6 +1055,14 @@ Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_as
 	return cm;
 }
 
+Rect2i OpenXRInterface::get_render_region() {
+	if (openxr_api) {
+		return openxr_api->get_render_region();
+	} else {
+		return Rect2i();
+	}
+}
+
 RID OpenXRInterface::get_color_texture() {
 	if (openxr_api) {
 		return openxr_api->get_color_texture();
@@ -1527,6 +1535,8 @@ RID OpenXRInterface::get_vrs_texture() {
 	for (uint32_t v = 0; v < view_count; v++) {
 		eye_foci.push_back(openxr_api->get_eye_focus(v, aspect_ratio));
 	}
+
+	xr_vrs.set_vrs_render_region(get_render_region());
 
 	return xr_vrs.make_vrs_texture(target_size, eye_foci);
 }

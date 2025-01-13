@@ -9,10 +9,6 @@ env:
   # Used for the godot-cpp checkout.
   GODOT_CPP_BRANCH: 4.3
 
-concurrency:
-  group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-cpp-tests
-  cancel-in-progress: true
-
 jobs:
   godot-cpp-tests:
     runs-on: ubuntu-24.04

@@ -277,7 +277,8 @@ public:
 		return worst_type;
 	}
 
-	static Dictionary get_internal_export_files();
+	Dictionary get_internal_export_files(const Ref<EditorExportPreset> &p_preset, bool p_debug);
+
 	static Vector<String> get_forced_export_files();
 
 	virtual bool fill_log_messages(RichTextLabel *p_log, Error p_err);

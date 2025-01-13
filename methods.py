@@ -7,70 +7,24 @@ import re
 import subprocess
 import sys
 from collections import OrderedDict
-from enum import Enum
 from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import Generator, List, Optional, Union, cast
 
+from misc.utility.color import print_error, print_info, print_warning
+
 # Get the "Godot" folder name ahead of time
 base_folder_path = str(os.path.abspath(Path(__file__).parent)) + "/"
 base_folder_only = os.path.basename(os.path.normpath(base_folder_path))
+
 # Listing all the folders we have converted
 # for SCU in scu_builders.py
 _scu_folders = set()
-# Colors are disabled in non-TTY environments such as pipes. This means
-# that if output is redirected to a file, it won't contain color codes.
-# Colors are always enabled on continuous integration.
-_colorize = bool(sys.stdout.isatty() or os.environ.get("CI"))
 
 
 def set_scu_folders(scu_folders):
     global _scu_folders
     _scu_folders = scu_folders
-
-
-class ANSI(Enum):
-    """
-    Enum class for adding ansi colorcodes directly into strings.
-    Automatically converts values to strings representing their
-    internal value, or an empty string in a non-colorized scope.
-    """
-
-    RESET = "\x1b[0m"
-
-    BOLD = "\x1b[1m"
-    ITALIC = "\x1b[3m"
-    UNDERLINE = "\x1b[4m"
-    STRIKETHROUGH = "\x1b[9m"
-    REGULAR = "\x1b[22;23;24;29m"
-
-    BLACK = "\x1b[30m"
-    RED = "\x1b[31m"
-    GREEN = "\x1b[32m"
-    YELLOW = "\x1b[33m"
-    BLUE = "\x1b[34m"
-    MAGENTA = "\x1b[35m"
-    CYAN = "\x1b[36m"
-    WHITE = "\x1b[37m"
-
-    PURPLE = "\x1b[38;5;93m"
-    PINK = "\x1b[38;5;206m"
-    ORANGE = "\x1b[38;5;214m"
-    GRAY = "\x1b[38;5;244m"
-
-    def __str__(self) -> str:
-        global _colorize
-        return str(self.value) if _colorize else ""
-
-
-def print_warning(*values: object) -> None:
-    """Prints a warning message with formatting."""
-    print(f"{ANSI.YELLOW}{ANSI.BOLD}WARNING:{ANSI.REGULAR}", *values, ANSI.RESET, file=sys.stderr)
-
-
-def print_error(*values: object) -> None:
-    """Prints an error message with formatting."""
-    print(f"{ANSI.RED}{ANSI.BOLD}ERROR:{ANSI.REGULAR}", *values, ANSI.RESET, file=sys.stderr)
 
 
 def add_source_files_orig(self, sources, files, allow_gen=False):
@@ -164,7 +118,7 @@ def get_version_info(module_version_string="", silent=False):
     if os.getenv("BUILD_NAME") is not None:
         build_name = str(os.getenv("BUILD_NAME"))
         if not silent:
-            print(f"Using custom build name: '{build_name}'.")
+            print_info(f"Using custom build name: '{build_name}'.")
 
     import version
 
@@ -186,7 +140,7 @@ def get_version_info(module_version_string="", silent=False):
     if os.getenv("GODOT_VERSION_STATUS") is not None:
         version_info["status"] = str(os.getenv("GODOT_VERSION_STATUS"))
         if not silent:
-            print(f"Using version status '{version_info['status']}', overriding the original '{version.status}'.")
+            print_info(f"Using version status '{version_info['status']}', overriding the original '{version.status}'.")
 
     # Parse Git hash if we're in a Git repo.
     githash = ""
@@ -442,7 +396,9 @@ def use_windows_spawn_fix(self, platform=None):
 
 
 def no_verbose(env):
-    colors = [ANSI.BLUE, ANSI.BOLD, ANSI.REGULAR, ANSI.RESET]
+    from misc.utility.color import Ansi
+
+    colors = [Ansi.BLUE, Ansi.BOLD, Ansi.REGULAR, Ansi.RESET]
 
     # There is a space before "..." to ensure that source file names can be
     # Ctrl + clicked in the VS Code terminal.
@@ -794,10 +750,8 @@ def using_emcc(env):
 
 
 def show_progress(env):
-    # Progress reporting is not available in non-TTY environments since it messes with the output
-    # (for example, when writing to a file). Ninja has its own progress/tracking tool that clashes
-    # with ours.
-    if not env["progress"] or not sys.stdout.isatty() or env["ninja"]:
+    # Ninja has its own progress/tracking tool that clashes with ours.
+    if env["ninja"]:
         return
 
     NODE_COUNT_FILENAME = f"{base_folder_path}.scons_node_count"
@@ -811,33 +765,36 @@ def show_progress(env):
                     self.max = int(f.readline())
             except OSError:
                 pass
-            if self.max == 0:
-                print("NOTE: Performing initial build, progress percentage unavailable!")
+
+            # Progress reporting is not available in non-TTY environments since it
+            # messes with the output (for example, when writing to a file).
+            self.display = cast(bool, self.max and env["progress"] and sys.stdout.isatty())
+            if self.display and not self.max:
+                print_info("Performing initial build, progress percentage unavailable!")
 
         def __call__(self, node, *args, **kw):
             self.count += 1
-            if self.max != 0:
+            if self.display:
                 percent = int(min(self.count * 100 / self.max, 100))
                 sys.stdout.write(f"\r[{percent:3d}%] ")
                 sys.stdout.flush()
 
     from SCons.Script import Progress
+    from SCons.Script.Main import GetBuildFailures
 
     progressor = ShowProgress()
     Progress(progressor)
 
-    def progress_finish(target, source, env):
+    def progress_finish():
+        if GetBuildFailures() or not progressor.count:
+            return
         try:
             with open(NODE_COUNT_FILENAME, "w", encoding="utf-8", newline="\n") as f:
                 f.write(f"{progressor.count}\n")
         except OSError:
             pass
 
-    env.AlwaysBuild(
-        env.CommandNoCache(
-            "progress_finish", [], env.Action(progress_finish, "Building node count database .scons_node_count")
-        )
-    )
+    atexit.register(progress_finish)
 
 
 def convert_size(size_bytes: int) -> str:
@@ -953,6 +910,31 @@ def prepare_cache(env) -> None:
         )
 
     atexit.register(clean_cache, cache_path, cache_limit, env["verbose"])
+
+
+def prepare_purge(env):
+    from SCons.Script.Main import GetBuildFailures
+
+    def purge_flaky_files():
+        paths_to_keep = [env["ninja_file"]]
+        for build_failure in GetBuildFailures():
+            path = build_failure.node.path
+            if os.path.isfile(path) and path not in paths_to_keep:
+                os.remove(path)
+
+    atexit.register(purge_flaky_files)
+
+
+def prepare_timer():
+    import time
+
+    def print_elapsed_time(time_at_start: float):
+        time_elapsed = time.time() - time_at_start
+        time_formatted = time.strftime("%H:%M:%S", time.gmtime(time_elapsed))
+        time_centiseconds = round((time_elapsed % 1) * 100)
+        print_info(f"Time elapsed: {time_formatted}.{time_centiseconds}")
+
+    atexit.register(print_elapsed_time, time.time())
 
 
 def dump(env):
@@ -1485,7 +1467,7 @@ def generate_copyright_header(filename: str) -> str:
 """
     filename = filename.split("/")[-1].ljust(MARGIN)
     if len(filename) > MARGIN:
-        print(f'WARNING: Filename "{filename}" too large for copyright header.')
+        print_warning(f'Filename "{filename}" too large for copyright header.')
     return TEMPLATE % filename
 
 

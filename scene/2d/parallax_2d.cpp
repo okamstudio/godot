@@ -30,7 +30,6 @@
 
 #include "parallax_2d.h"
 
-#include "core/config/project_settings.h"
 #include "scene/main/viewport.h"
 
 void Parallax2D::_notification(int p_what) {

@@ -31,8 +31,8 @@
 #ifndef PHYSICAL_BONE_3D_H
 #define PHYSICAL_BONE_3D_H
 
-#include "scene/3d/physical_bone_simulator_3d.h"
 #include "scene/3d/physics/physics_body_3d.h"
+#include "scene/3d/skeleton_3d.h"
 
 class PhysicalBoneSimulator3D;
 

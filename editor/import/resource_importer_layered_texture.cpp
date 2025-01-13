@@ -32,15 +32,12 @@
 
 #include "core/config/project_settings.h"
 #include "core/error/error_macros.h"
-#include "core/io/config_file.h"
 #include "core/io/image_loader.h"
 #include "core/object/ref_counted.h"
 #include "editor/editor_file_system.h"
-#include "editor/editor_node.h"
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_texture_settings.h"
 #include "scene/resources/compressed_texture.h"
-#include "scene/resources/texture.h"
 
 String ResourceImporterLayeredTexture::get_importer_name() const {
 	switch (mode) {
@@ -492,7 +489,7 @@ void ResourceImporterLayeredTexture::_check_compress_ctex(const String &p_source
 		_save_tex(*r_texture_import->slices, r_texture_import->save_path + "." + extension, r_texture_import->compress_mode, r_texture_import->lossy, Image::COMPRESS_S3TC /* IGNORED */, *r_texture_import->csource, r_texture_import->used_channels, r_texture_import->mipmaps, false);
 		return;
 	}
-	// Must import in all formats, in order of priority (so platform choses the best supported one. IE, etc2 over etc).
+	// Must import in all formats, in order of priority (so platform chooses the best supported one. IE, etc2 over etc).
 	// Android, GLES 2.x
 
 	const bool can_s3tc_bptc = ResourceImporterTextureSettings::should_import_s3tc_bptc();

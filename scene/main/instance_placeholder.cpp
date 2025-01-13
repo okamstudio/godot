@@ -85,7 +85,7 @@ Node *InstancePlaceholder::create_instance(bool p_replace, const Ref<PackedScene
 		ps = ResourceLoader::load(path, "PackedScene");
 	}
 
-	if (!ps.is_valid()) {
+	if (ps.is_null()) {
 		return nullptr;
 	}
 	Node *instance = ps->instantiate();
@@ -163,7 +163,7 @@ void InstancePlaceholder::set_value_on_instance(InstancePlaceholder *p_placehold
 	switch (current_type) {
 		case Variant::Type::NIL: {
 			Ref<Resource> resource = p_set.value;
-			if (placeholder_type != Variant::Type::NODE_PATH && !resource.is_valid()) {
+			if (placeholder_type != Variant::Type::NODE_PATH && resource.is_null()) {
 				break;
 			}
 			// If it's nil but we have a NodePath or a Resource, we guess what works.

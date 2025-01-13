@@ -80,6 +80,10 @@ void OpenXRAPIExtension::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("openxr_swapchain_get_image", "swapchain"), &OpenXRAPIExtension::openxr_swapchain_get_image);
 	ClassDB::bind_method(D_METHOD("openxr_swapchain_release", "swapchain"), &OpenXRAPIExtension::openxr_swapchain_release);
 
+	ClassDB::bind_method(D_METHOD("get_projection_layer"), &OpenXRAPIExtension::get_projection_layer);
+
+	ClassDB::bind_method(D_METHOD("set_render_region", "render_region"), &OpenXRAPIExtension::set_render_region);
+
 	ClassDB::bind_method(D_METHOD("set_emulate_environment_blend_mode_alpha_blend", "enabled"), &OpenXRAPIExtension::set_emulate_environment_blend_mode_alpha_blend);
 	ClassDB::bind_method(D_METHOD("is_environment_blend_mode_alpha_supported"), &OpenXRAPIExtension::is_environment_blend_mode_alpha_blend_supported);
 
@@ -298,6 +302,16 @@ void OpenXRAPIExtension::openxr_swapchain_release(uint64_t p_swapchain_info) {
 
 	OpenXRAPI::OpenXRSwapChainInfo *swapchain_info = reinterpret_cast<OpenXRAPI::OpenXRSwapChainInfo *>(p_swapchain_info);
 	swapchain_info->release();
+}
+
+uint64_t OpenXRAPIExtension::get_projection_layer() {
+	ERR_FAIL_NULL_V(OpenXRAPI::get_singleton(), 0);
+	return (uint64_t)OpenXRAPI::get_singleton()->get_projection_layer();
+}
+
+void OpenXRAPIExtension::set_render_region(const Rect2i &p_render_region) {
+	ERR_FAIL_NULL(OpenXRAPI::get_singleton());
+	OpenXRAPI::get_singleton()->set_render_region(p_render_region);
 }
 
 void OpenXRAPIExtension::set_emulate_environment_blend_mode_alpha_blend(bool p_enabled) {

@@ -617,10 +617,9 @@ hb_blob_create_from_file (const char *file_name)
 
 /**
  * hb_blob_create_from_file_or_fail:
- * @file_name: A font filename
+ * @file_name: A filename
  *
- * Creates a new blob containing the data from the
- * specified binary font file.
+ * Creates a new blob containing the data from the specified file.
  *
  * The filename is passed directly to the system on all platforms,
  * except on Windows, where the filename is interpreted as UTF-8.

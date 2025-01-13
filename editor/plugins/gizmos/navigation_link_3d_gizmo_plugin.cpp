@@ -125,6 +125,34 @@ void NavigationLink3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		}
 	}
 
+	const Vector3 link_segment = end_position - start_position;
+	const Vector3 up = Vector3(0.0, 1.0, 0.0);
+	const float arror_len = 0.5;
+
+	{
+		Vector3 anchor = start_position + (link_segment * 0.75);
+		Vector3 direction = start_position.direction_to(end_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+
+		arrow_dir = -direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+	}
+
+	if (link->is_bidirectional()) {
+		Vector3 anchor = start_position + (link_segment * 0.25);
+		Vector3 direction = end_position.direction_to(start_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+
+		arrow_dir = -direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+	}
+
 	p_gizmo->add_lines(lines, link->is_enabled() ? link_material : link_material_disabled);
 	p_gizmo->add_collision_segments(lines);
 

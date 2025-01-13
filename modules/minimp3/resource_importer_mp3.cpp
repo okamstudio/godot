@@ -32,7 +32,6 @@
 
 #include "core/io/file_access.h"
 #include "core/io/resource_saver.h"
-#include "scene/resources/texture.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/import/audio_stream_import_settings.h"
@@ -86,34 +85,14 @@ void ResourceImporterMP3::get_import_options(const String &p_path, List<ImportOp
 bool ResourceImporterMP3::has_advanced_options() const {
 	return true;
 }
+
 void ResourceImporterMP3::show_advanced_options(const String &p_path) {
-	Ref<AudioStreamMP3> mp3_stream = import_mp3(p_path);
+	Ref<AudioStreamMP3> mp3_stream = AudioStreamMP3::load_from_file(p_path);
 	if (mp3_stream.is_valid()) {
 		AudioStreamImportSettingsDialog::get_singleton()->edit(p_path, "mp3", mp3_stream);
 	}
 }
 #endif
-
-Ref<AudioStreamMP3> ResourceImporterMP3::import_mp3(const String &p_path) {
-	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
-	ERR_FAIL_COND_V(f.is_null(), Ref<AudioStreamMP3>());
-
-	uint64_t len = f->get_length();
-
-	Vector<uint8_t> data;
-	data.resize(len);
-	uint8_t *w = data.ptrw();
-
-	f->get_buffer(w, len);
-
-	Ref<AudioStreamMP3> mp3_stream;
-	mp3_stream.instantiate();
-
-	mp3_stream->set_data(data);
-	ERR_FAIL_COND_V(mp3_stream->get_data().is_empty(), Ref<AudioStreamMP3>());
-
-	return mp3_stream;
-}
 
 Error ResourceImporterMP3::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
 	bool loop = p_options["loop"];
@@ -122,10 +101,11 @@ Error ResourceImporterMP3::import(ResourceUID::ID p_source_id, const String &p_s
 	float beat_count = p_options["beat_count"];
 	float bar_beats = p_options["bar_beats"];
 
-	Ref<AudioStreamMP3> mp3_stream = import_mp3(p_source_file);
+	Ref<AudioStreamMP3> mp3_stream = AudioStreamMP3::load_from_file(p_source_file);
 	if (mp3_stream.is_null()) {
 		return ERR_CANT_OPEN;
 	}
+
 	mp3_stream->set_loop(loop);
 	mp3_stream->set_loop_offset(loop_offset);
 	mp3_stream->set_bpm(bpm);

@@ -213,6 +213,19 @@ void RetargetModifier3D::_reset_child_skeletons() {
 	child_skeletons.clear();
 }
 
+#ifdef TOOLS_ENABLED
+void RetargetModifier3D::_force_update_child_skeletons() {
+	for (const RetargetInfo &E : child_skeletons) {
+		Skeleton3D *c = Object::cast_to<Skeleton3D>(ObjectDB::get_instance(E.skeleton_id));
+		if (!c) {
+			continue;
+		}
+		c->force_update_all_dirty_bones();
+		c->emit_signal(SceneStringName(skeleton_updated));
+	}
+}
+#endif // TOOLS_ENABLED
+
 /// General functions
 
 void RetargetModifier3D::add_child_notify(Node *p_child) {
@@ -236,7 +249,7 @@ void RetargetModifier3D::remove_child_notify(Node *p_child) {
 
 void RetargetModifier3D::_validate_property(PropertyInfo &p_property) const {
 	if (use_global_pose) {
-		if (p_property.name == "position_enabled" || p_property.name == "rotation_enabled" || p_property.name == "scale_enabled") {
+		if (p_property.name == "enable_flags") {
 			p_property.usage = PROPERTY_USAGE_NONE;
 		}
 	}
@@ -247,6 +260,9 @@ void RetargetModifier3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_profile"), &RetargetModifier3D::get_profile);
 	ClassDB::bind_method(D_METHOD("set_use_global_pose", "use_global_pose"), &RetargetModifier3D::set_use_global_pose);
 	ClassDB::bind_method(D_METHOD("is_using_global_pose"), &RetargetModifier3D::is_using_global_pose);
+	ClassDB::bind_method(D_METHOD("set_enable_flags", "enable_flags"), &RetargetModifier3D::set_enable_flags);
+	ClassDB::bind_method(D_METHOD("get_enable_flags"), &RetargetModifier3D::get_enable_flags);
+
 	ClassDB::bind_method(D_METHOD("set_position_enabled", "enabled"), &RetargetModifier3D::set_position_enabled);
 	ClassDB::bind_method(D_METHOD("is_position_enabled"), &RetargetModifier3D::is_position_enabled);
 	ClassDB::bind_method(D_METHOD("set_rotation_enabled", "enabled"), &RetargetModifier3D::set_rotation_enabled);
@@ -256,9 +272,12 @@ void RetargetModifier3D::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "profile", PROPERTY_HINT_RESOURCE_TYPE, "SkeletonProfile"), "set_profile", "get_profile");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_global_pose"), "set_use_global_pose", "is_using_global_pose");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "position_enabled"), "set_position_enabled", "is_position_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "rotation_enabled"), "set_rotation_enabled", "is_rotation_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scale_enabled"), "set_scale_enabled", "is_scale_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "enable", PROPERTY_HINT_FLAGS, "Position,Rotation,Scale"), "set_enable_flags", "get_enable_flags");
+
+	BIND_BITFIELD_FLAG(TRANSFORM_FLAG_POSITION);
+	BIND_BITFIELD_FLAG(TRANSFORM_FLAG_ROTATION);
+	BIND_BITFIELD_FLAG(TRANSFORM_FLAG_SCALE);
+	BIND_BITFIELD_FLAG(TRANSFORM_FLAG_ALL);
 }
 
 void RetargetModifier3D::_set_active(bool p_active) {
@@ -338,17 +357,15 @@ void RetargetModifier3D::_retarget_pose() {
 			extracted_transform.basis = E.humanoid_bone_rests[i].pre_basis * extracted_transform.basis * E.humanoid_bone_rests[i].post_basis;
 			extracted_transform.origin = E.humanoid_bone_rests[i].pre_basis.xform((extracted_transform.origin - source_skeleton->get_bone_rest(source_bone_id).origin) * motion_scale_ratio) + target_skeleton->get_bone_rest(target_bone_id).origin;
 
-			Transform3D retarget_pose = target_skeleton->get_bone_pose(target_bone_id);
-			if (enable_position) {
-				retarget_pose.origin = extracted_transform.origin;
+			if (enable_flags.has_flag(TRANSFORM_FLAG_POSITION)) {
+				target_skeleton->set_bone_pose_position(target_bone_id, extracted_transform.origin);
 			}
-			if (enable_rotation) {
-				retarget_pose.basis = extracted_transform.basis.get_rotation_quaternion();
+			if (enable_flags.has_flag(TRANSFORM_FLAG_ROTATION)) {
+				target_skeleton->set_bone_pose_rotation(target_bone_id, extracted_transform.basis.get_rotation_quaternion());
 			}
-			if (enable_scale) {
-				retarget_pose.basis.scale_local(extracted_transform.basis.get_scale());
+			if (enable_flags.has_flag(TRANSFORM_FLAG_SCALE)) {
+				target_skeleton->set_bone_pose_scale(target_bone_id, extracted_transform.basis.get_scale());
 			}
-			target_skeleton->set_bone_pose(target_bone_id, retarget_pose);
 		}
 	}
 }
@@ -387,37 +404,60 @@ bool RetargetModifier3D::is_using_global_pose() const {
 	return use_global_pose;
 }
 
-void RetargetModifier3D::set_position_enabled(bool p_enabled) {
-	if (enable_position != p_enabled) {
+void RetargetModifier3D::set_enable_flags(BitField<TransformFlag> p_enable_flag) {
+	if (enable_flags != p_enable_flag) {
 		_reset_child_skeleton_poses();
 	}
-	enable_position = p_enabled;
+	enable_flags = p_enable_flag;
+}
+
+BitField<RetargetModifier3D::TransformFlag> RetargetModifier3D::get_enable_flags() const {
+	return enable_flags;
+}
+
+void RetargetModifier3D::set_position_enabled(bool p_enabled) {
+	if (enable_flags.has_flag(TRANSFORM_FLAG_POSITION) != p_enabled) {
+		_reset_child_skeleton_poses();
+	}
+	if (p_enabled) {
+		enable_flags.set_flag(TRANSFORM_FLAG_POSITION);
+	} else {
+		enable_flags.clear_flag(TRANSFORM_FLAG_POSITION);
+	}
 }
 
 bool RetargetModifier3D::is_position_enabled() const {
-	return enable_position;
+	return enable_flags.has_flag(TRANSFORM_FLAG_POSITION);
 }
 
 void RetargetModifier3D::set_rotation_enabled(bool p_enabled) {
-	if (enable_rotation != p_enabled) {
+	if (enable_flags.has_flag(TRANSFORM_FLAG_ROTATION) != p_enabled) {
 		_reset_child_skeleton_poses();
 	}
-	enable_rotation = p_enabled;
+	if (p_enabled) {
+		enable_flags.set_flag(TRANSFORM_FLAG_ROTATION);
+	} else {
+		enable_flags.clear_flag(TRANSFORM_FLAG_ROTATION);
+	}
 }
 
 bool RetargetModifier3D::is_rotation_enabled() const {
-	return enable_rotation;
+	return enable_flags.has_flag(TRANSFORM_FLAG_ROTATION);
 }
 
 void RetargetModifier3D::set_scale_enabled(bool p_enabled) {
-	if (enable_scale != p_enabled) {
+	if (enable_flags.has_flag(TRANSFORM_FLAG_SCALE) != p_enabled) {
 		_reset_child_skeleton_poses();
 	}
-	enable_scale = p_enabled;
+	if (p_enabled) {
+		enable_flags.set_flag(TRANSFORM_FLAG_SCALE);
+	} else {
+		enable_flags.clear_flag(TRANSFORM_FLAG_SCALE);
+	}
 }
 
 bool RetargetModifier3D::is_scale_enabled() const {
-	return enable_scale;
+	return enable_flags.has_flag(TRANSFORM_FLAG_SCALE);
 }
 
 void RetargetModifier3D::_notification(int p_what) {
@@ -425,9 +465,12 @@ void RetargetModifier3D::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			_update_child_skeletons();
 		} break;
+#ifdef TOOLS_ENABLED
 		case NOTIFICATION_EDITOR_PRE_SAVE: {
 			_reset_child_skeleton_poses();
+			_force_update_child_skeletons();
 		} break;
+#endif // TOOLS_ENABLED
 		case NOTIFICATION_EXIT_TREE: {
 			_reset_child_skeletons();
 		} break;

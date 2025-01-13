@@ -135,9 +135,9 @@ class Delaunay3D {
 		R128 row3_y = v3_y - v0_y;
 		R128 row3_z = v3_z - v0_z;
 
-		R128 sq_lenght1 = row1_x * row1_x + row1_y * row1_y + row1_z * row1_z;
-		R128 sq_lenght2 = row2_x * row2_x + row2_y * row2_y + row2_z * row2_z;
-		R128 sq_lenght3 = row3_x * row3_x + row3_y * row3_y + row3_z * row3_z;
+		R128 sq_length1 = row1_x * row1_x + row1_y * row1_y + row1_z * row1_z;
+		R128 sq_length2 = row2_x * row2_x + row2_y * row2_y + row2_z * row2_z;
+		R128 sq_length3 = row3_x * row3_x + row3_y * row3_y + row3_z * row3_z;
 
 		// Compute the determinant of said matrix.
 		R128 determinant = row1_x * (row2_y * row3_z - row3_y * row2_z) - row2_x * (row1_y * row3_z - row3_y * row1_z) + row3_x * (row1_y * row2_z - row2_y * row1_z);
@@ -146,9 +146,9 @@ class Delaunay3D {
 		R128 volume = determinant / R128(6.f);
 		R128 i12volume = R128(1.f) / (volume * R128(12.f));
 
-		R128 center_x = v0_x + i12volume * ((row2_y * row3_z - row3_y * row2_z) * sq_lenght1 - (row1_y * row3_z - row3_y * row1_z) * sq_lenght2 + (row1_y * row2_z - row2_y * row1_z) * sq_lenght3);
-		R128 center_y = v0_y + i12volume * (-(row2_x * row3_z - row3_x * row2_z) * sq_lenght1 + (row1_x * row3_z - row3_x * row1_z) * sq_lenght2 - (row1_x * row2_z - row2_x * row1_z) * sq_lenght3);
-		R128 center_z = v0_z + i12volume * ((row2_x * row3_y - row3_x * row2_y) * sq_lenght1 - (row1_x * row3_y - row3_x * row1_y) * sq_lenght2 + (row1_x * row2_y - row2_x * row1_y) * sq_lenght3);
+		R128 center_x = v0_x + i12volume * ((row2_y * row3_z - row3_y * row2_z) * sq_length1 - (row1_y * row3_z - row3_y * row1_z) * sq_length2 + (row1_y * row2_z - row2_y * row1_z) * sq_length3);
+		R128 center_y = v0_y + i12volume * (-(row2_x * row3_z - row3_x * row2_z) * sq_length1 + (row1_x * row3_z - row3_x * row1_z) * sq_length2 - (row1_x * row2_z - row2_x * row1_z) * sq_length3);
+		R128 center_z = v0_z + i12volume * ((row2_x * row3_y - row3_x * row2_y) * sq_length1 - (row1_x * row3_y - row3_x * row1_y) * sq_length2 + (row1_x * row2_y - row2_x * row1_y) * sq_length3);
 
 		// Once we know the center, the radius is clearly the distance to any vertex.
 		R128 rel1_x = center_x - v0_x;

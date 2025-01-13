@@ -87,6 +87,7 @@ public:
 
 	virtual bool material_is_animated(RID p_material) = 0;
 	virtual bool material_casts_shadows(RID p_material) = 0;
+	virtual RS::CullMode material_get_cull_mode(RID p_material) const = 0;
 
 	struct InstanceShaderParam {
 		PropertyInfo info;

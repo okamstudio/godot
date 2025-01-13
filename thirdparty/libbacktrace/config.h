@@ -21,6 +21,10 @@
    don't. */
 #define HAVE_DECL_STRNLEN 1
 
+/* Define to 1 if you have the declaration of `_pgmptr', and to 0 if you
+   don't. */
+#define HAVE_DECL__PGMPTR 1
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 /* #undef HAVE_DLFCN_H */
 
@@ -48,7 +52,7 @@
 /* #undef HAVE_KERN_PROC_ARGS */
 
 /* Define if -llzma is available. */
-#define HAVE_LIBLZMA 1
+/* #undef HAVE_LIBLZMA */
 
 /* Define to 1 if you have the <link.h> header file. */
 /* #undef HAVE_LINK_H */
@@ -86,6 +90,9 @@
 /* Define to 1 if you have the <sys/ldr.h> header file. */
 /* #undef HAVE_SYS_LDR_H */
 
+/* Define to 1 if you have the <sys/link.h> header file. */
+/* #undef HAVE_SYS_LINK_H */
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 /* #undef HAVE_SYS_MMAN_H */
 
@@ -95,11 +102,20 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
+/* Define to 1 if you have the <tlhelp32.h> header file. */
+#define HAVE_TLHELP32_H 1
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #define HAVE_UNISTD_H 1
 
+/* Define to 1 if you have the <windows.h> header file. */
+#define HAVE_WINDOWS_H 1
+
 /* Define if -lz is available. */
 #define HAVE_ZLIB 1
+
+/* Define if -lzstd is available. */
+/* #undef HAVE_ZSTD */
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */

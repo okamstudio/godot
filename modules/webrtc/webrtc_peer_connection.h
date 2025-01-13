@@ -33,8 +33,6 @@
 
 #include "webrtc_data_channel.h"
 
-#include "core/io/packet_peer.h"
-
 class WebRTCPeerConnection : public RefCounted {
 	GDCLASS(WebRTCPeerConnection, RefCounted);
 

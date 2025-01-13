@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "audio_effect_phaser.h"
-#include "core/math/math_funcs.h"
 #include "servers/audio_server.h"
 
 void AudioEffectPhaserInstance::process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count) {

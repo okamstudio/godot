@@ -30,8 +30,6 @@
 
 #include "shape_cast_3d_gizmo_plugin.h"
 
-#include "editor/editor_settings.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/physics/shape_cast_3d.h"
 
 ShapeCast3DGizmoPlugin::ShapeCast3DGizmoPlugin() {

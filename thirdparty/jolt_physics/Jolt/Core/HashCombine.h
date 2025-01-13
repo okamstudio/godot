@@ -17,8 +17,8 @@ inline uint64 HashBytes(const void *inData, uint inSize, uint64 inSeed = 0xcbf29
 	uint64 hash = inSeed;
 	for (const uint8 *data = reinterpret_cast<const uint8 *>(inData); data < reinterpret_cast<const uint8 *>(inData) + inSize; ++data)
 	{
-		hash = hash ^ uint64(*data);
-		hash = hash * 0x100000001b3UL;
+		hash ^= uint64(*data);
+		hash *= 0x100000001b3UL;
 	}
 	return hash;
 }
@@ -31,7 +31,7 @@ constexpr uint64 HashString(const char *inString, uint64 inSeed = 0xcbf29ce48422
 	for (const char *c = inString; *c != 0; ++c)
 	{
 		hash ^= uint64(*c);
-		hash = hash * 0x100000001b3UL;
+		hash *= 0x100000001b3UL;
 	}
 	return hash;
 }
@@ -142,12 +142,33 @@ JPH_DEFINE_TRIVIAL_HASH(int)
 JPH_DEFINE_TRIVIAL_HASH(uint32)
 JPH_DEFINE_TRIVIAL_HASH(uint64)
 
-/// @brief Helper function that hashes a single value into ioSeed
-/// Taken from: https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
+/// Helper function that hashes a single value into ioSeed
+/// Based on https://github.com/jonmaiga/mx3 by Jon Maiga
 template <typename T>
 inline void HashCombine(uint64 &ioSeed, const T &inValue)
 {
-	ioSeed ^= Hash<T> { } (inValue) + 0x9e3779b9 + (ioSeed << 6) + (ioSeed >> 2);
+	constexpr uint64 c = 0xbea225f9eb34556dUL;
+
+	uint64 h = ioSeed;
+	uint64 x = Hash<T> { } (inValue);
+
+	// See: https://github.com/jonmaiga/mx3/blob/master/mx3.h
+	// mix_stream(h, x)
+	x *= c;
+	x ^= x >> 39;
+	h += x * c;
+	h *= c;
+
+	// mix(h)
+	h ^= h >> 32;
+	h *= c;
+	h ^= h >> 29;
+	h *= c;
+	h ^= h >> 32;
+	h *= c;
+	h ^= h >> 29;
+
+	ioSeed = h;
 }
 
 /// Hash combiner to use a custom struct in an unordered map or set
@@ -174,11 +195,6 @@ inline uint64 HashCombineArgs(const FirstValue &inFirstValue, Values... inValues
 	return seed;
 }
 
-JPH_NAMESPACE_END
-
-JPH_SUPPRESS_WARNING_PUSH
-JPH_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic")
-
 #define JPH_MAKE_HASH_STRUCT(type, name, ...)				\
 	struct [[nodiscard]] name								\
 	{														\
@@ -188,6 +204,22 @@ JPH_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic")
 		}													\
 	};
 
+#define JPH_MAKE_STD_HASH(type)								\
+	JPH_SUPPRESS_WARNING_PUSH								\
+	JPH_SUPPRESS_WARNINGS									\
+	namespace std											\
+	{														\
+		template<>											\
+		struct [[nodiscard]] hash<type>						\
+		{													\
+			size_t operator()(const type &t) const			\
+			{												\
+				return size_t(::JPH::Hash<type>{ }(t));		\
+			}												\
+		};													\
+	}														\
+	JPH_SUPPRESS_WARNING_POP
+
 #define JPH_MAKE_HASHABLE(type, ...)						\
 	JPH_SUPPRESS_WARNING_PUSH								\
 	JPH_SUPPRESS_WARNINGS									\
@@ -196,17 +228,7 @@ JPH_CLANG_SUPPRESS_WARNING("-Wc++98-compat-pedantic")
 		template<>											\
 		JPH_MAKE_HASH_STRUCT(type, Hash<type>, __VA_ARGS__) \
 	}														\
-	namespace std											\
-	{														\
-		template<>											\
-		struct [[nodiscard]] hash<type>						\
-		{													\
-			std::size_t operator()(const type &t) const		\
-			{												\
-				return std::size_t(::JPH::Hash<type>{ }(t));\
-			}												\
-		};													\
-	}														\
-	JPH_SUPPRESS_WARNING_POP
+	JPH_SUPPRESS_WARNING_POP								\
+	JPH_MAKE_STD_HASH(type)
 
-JPH_SUPPRESS_WARNING_POP
+JPH_NAMESPACE_END

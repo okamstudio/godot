@@ -92,7 +92,7 @@ class TextureLayeredEditorPlugin : public EditorPlugin {
 	GDCLASS(TextureLayeredEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "TextureLayered"; }
+	virtual String get_plugin_name() const override { return "TextureLayered"; }
 
 	TextureLayeredEditorPlugin();
 };

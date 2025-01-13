@@ -32,15 +32,12 @@
 #define EDITOR_HELP_H
 
 #include "core/os/thread.h"
-#include "editor/code_editor.h"
 #include "editor/doc_tools.h"
 #include "editor/plugins/editor_plugin.h"
-#include "scene/gui/menu_button.h"
-#include "scene/gui/panel_container.h"
+#include "scene/gui/dialogs.h"
 #include "scene/gui/popup.h"
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/split_container.h"
-#include "scene/gui/tab_container.h"
 #include "scene/gui/text_edit.h"
 #include "scene/main/timer.h"
 
@@ -188,7 +185,6 @@ class EditorHelp : public VBoxContainer {
 	void _request_help(const String &p_string);
 	void _search(bool p_search_previous = false);
 
-	String _fix_constant(const String &p_constant) const;
 	void _toggle_scripts_pressed();
 
 	static int doc_generation_count;
@@ -254,6 +250,13 @@ public:
 class EditorHelpBit : public VBoxContainer {
 	GDCLASS(EditorHelpBit, VBoxContainer);
 
+	enum SymbolHint {
+		SYMBOL_HINT_NONE,
+		SYMBOL_HINT_INHERITANCE, // [ < ParentClass[ < ...]]
+		SYMBOL_HINT_ASSIGNABLE, // [: Type][ = value]
+		SYMBOL_HINT_SIGNATURE, // (arguments)[ -> Type][ qualifiers]
+	};
+
 	struct DocType {
 		String type;
 		String enumeration;
@@ -270,23 +273,31 @@ class EditorHelpBit : public VBoxContainer {
 		String description;
 		String deprecated_message;
 		String experimental_message;
-		DocType doc_type; // For method return type.
-		Vector<ArgumentData> arguments; // For methods and signals.
+		DocType doc_type;
+		String value;
+		Vector<ArgumentData> arguments;
+		String qualifiers;
 	};
 
 	inline static HashMap<StringName, HelpData> doc_class_cache;
+	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_enum_cache;
+	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_constant_cache;
 	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_property_cache;
+	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_theme_item_cache;
 	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_method_cache;
 	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_signal_cache;
-	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_theme_item_cache;
+	inline static HashMap<StringName, HashMap<StringName, HelpData>> doc_annotation_cache;
 
 	RichTextLabel *title = nullptr;
 	RichTextLabel *content = nullptr;
 
+	bool use_class_prefix = false;
+
+	String symbol_doc_link;
 	String symbol_class_name;
 	String symbol_type;
-	String symbol_visible_type;
 	String symbol_name;
+	SymbolHint symbol_hint = SYMBOL_HINT_NONE;
 
 	HelpData help_data;
 
@@ -294,10 +305,13 @@ class EditorHelpBit : public VBoxContainer {
 	float content_max_height = 0.0;
 
 	static HelpData _get_class_help_data(const StringName &p_class_name);
+	static HelpData _get_enum_help_data(const StringName &p_class_name, const StringName &p_enum_name);
+	static HelpData _get_constant_help_data(const StringName &p_class_name, const StringName &p_constant_name);
 	static HelpData _get_property_help_data(const StringName &p_class_name, const StringName &p_property_name);
+	static HelpData _get_theme_item_help_data(const StringName &p_class_name, const StringName &p_theme_item_name);
 	static HelpData _get_method_help_data(const StringName &p_class_name, const StringName &p_method_name);
 	static HelpData _get_signal_help_data(const StringName &p_class_name, const StringName &p_signal_name);
-	static HelpData _get_theme_item_help_data(const StringName &p_class_name, const StringName &p_theme_item_name);
+	static HelpData _get_annotation_help_data(const StringName &p_class_name, const StringName &p_annotation_name);
 
 	void _add_type_to_title(const DocType &p_doc_type);
 	void _update_labels();
@@ -315,7 +329,7 @@ public:
 	void set_content_height_limits(float p_min, float p_max);
 	void update_content_height();
 
-	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_allow_selection = true);
+	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_use_class_prefix = false, bool p_allow_selection = true);
 };
 
 // Standard tooltips do not allow you to hover over them.
@@ -338,7 +352,7 @@ protected:
 	void _notification(int p_what);
 
 public:
-	static Control *show_tooltip(Control *p_target, const String &p_symbol, const String &p_prologue = String());
+	static Control *show_tooltip(Control *p_target, const String &p_symbol, const String &p_prologue = String(), bool p_use_class_prefix = false);
 
 	void popup_under_cursor();
 

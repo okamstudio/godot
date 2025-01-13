@@ -74,7 +74,7 @@ public:
 	bool is_process_in_physics();
 
 	void set_ignore_time_scale(bool p_ignore);
-	bool is_ignore_time_scale();
+	bool is_ignoring_time_scale();
 
 	void release_connections();
 
@@ -411,6 +411,7 @@ public:
 
 	Ref<SceneTreeTimer> create_timer(double p_delay_sec, bool p_process_always = true, bool p_process_in_physics = false, bool p_ignore_time_scale = false);
 	Ref<Tween> create_tween();
+	void remove_tween(const Ref<Tween> &p_tween);
 	TypedArray<Tween> get_processed_tweens();
 
 	//used by Main::start, don't use otherwise

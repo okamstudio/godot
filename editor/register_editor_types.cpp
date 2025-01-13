@@ -45,6 +45,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_translation_parser.h"
 #include "editor/editor_undo_redo_manager.h"
+#include "editor/editor_vcs_interface.h"
 #include "editor/export/editor_export_platform.h"
 #include "editor/export/editor_export_platform_extension.h"
 #include "editor/export/editor_export_platform_pc.h"
@@ -126,8 +127,6 @@
 #include "editor/plugins/theme_editor_plugin.h"
 #include "editor/plugins/tiles/tiles_editor_plugin.h"
 #include "editor/plugins/tool_button_editor_plugin.h"
-#include "editor/plugins/version_control_editor_plugin.h"
-#include "editor/plugins/visual_shader_editor_plugin.h"
 #include "editor/plugins/voxel_gi_editor_plugin.h"
 #include "editor/register_exporters.h"
 
@@ -215,7 +214,9 @@ void register_editor_types() {
 	EditorPlugins::add_by_type<ControlEditorPlugin>();
 	EditorPlugins::add_by_type<CPUParticles3DEditorPlugin>();
 	EditorPlugins::add_by_type<CurveEditorPlugin>();
-	EditorPlugins::add_by_type<DebugAdapterServer>();
+	if (!Engine::get_singleton()->is_recovery_mode_hint()) {
+		EditorPlugins::add_by_type<DebugAdapterServer>();
+	}
 	EditorPlugins::add_by_type<FontEditorPlugin>();
 	EditorPlugins::add_by_type<GPUParticles3DEditorPlugin>();
 	EditorPlugins::add_by_type<GPUParticlesCollisionSDF3DEditorPlugin>();

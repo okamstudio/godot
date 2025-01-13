@@ -31,9 +31,7 @@
 #ifndef RENDER_SCENE_DATA_RD_H
 #define RENDER_SCENE_DATA_RD_H
 
-#include "render_scene_buffers_rd.h"
 #include "servers/rendering/renderer_scene_render.h"
-#include "servers/rendering/rendering_device.h"
 #include "servers/rendering/storage/render_scene_data.h"
 
 // This is a container for data related to rendering a single frame of a viewport where we load this data into a UBO

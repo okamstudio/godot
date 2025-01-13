@@ -338,7 +338,7 @@ public:
 	class DecodingContext
 	{
 	private:
-		/// Private helper functions to unpack the 1 vertex of 4 triangles (outX contains the x coordinate of triangle 0 .. 3 etc.)
+		/// Private helper function to unpack the 1 vertex of 4 triangles (outX contains the x coordinate of triangle 0 .. 3 etc.)
 		JPH_INLINE void				Unpack(const VertexData *inVertices, UVec4Arg inIndex, Vec4 &outX, Vec4 &outY, Vec4 &outZ) const
 		{
 			// Get compressed data
@@ -354,6 +354,28 @@ public:
 			outX = Vec4::sFusedMultiplyAdd(xc.ToFloat(), mScaleX, mOffsetX);
 			outY = Vec4::sFusedMultiplyAdd(yc.ToFloat(), mScaleY, mOffsetY);
 			outZ = Vec4::sFusedMultiplyAdd(zc.ToFloat(), mScaleZ, mOffsetZ);
+		}
+
+		/// Private helper function to unpack 4 triangles from a triangle block
+		JPH_INLINE void				Unpack(const TriangleBlock *inBlock, const VertexData *inVertices, Vec4 &outX1, Vec4 &outY1, Vec4 &outZ1, Vec4 &outX2, Vec4 &outY2, Vec4 &outZ2, Vec4 &outX3, Vec4 &outY3, Vec4 &outZ3) const
+		{
+			// Get the indices for the three vertices (reads 4 bytes extra, but these are the flags so that's ok)
+			UVec4 indices = UVec4::sLoadInt4(reinterpret_cast<const uint32 *>(&inBlock->mIndices[0]));
+			UVec4 iv1 = indices.Expand4Byte0();
+			UVec4 iv2 = indices.Expand4Byte4();
+			UVec4 iv3 = indices.Expand4Byte8();
+
+		#ifdef JPH_CPU_BIG_ENDIAN
+			// On big endian systems we need to reverse the bytes
+			iv1 = iv1.Swizzle<SWIZZLE_W, SWIZZLE_Z, SWIZZLE_Y, SWIZZLE_X>();
+			iv2 = iv2.Swizzle<SWIZZLE_W, SWIZZLE_Z, SWIZZLE_Y, SWIZZLE_X>();
+			iv3 = iv3.Swizzle<SWIZZLE_W, SWIZZLE_Z, SWIZZLE_Y, SWIZZLE_X>();
+		#endif
+
+			// Decompress the triangle data
+			Unpack(inVertices, iv1, outX1, outY1, outZ1);
+			Unpack(inVertices, iv2, outX2, outY2, outZ2);
+			Unpack(inVertices, iv3, outX3, outY3, outZ3);
 		}
 
 	public:
@@ -380,17 +402,9 @@ public:
 
 			do
 			{
-				// Get the indices for the three vertices (reads 4 bytes extra, but these are the flags so that's ok)
-				UVec4 indices = UVec4::sLoadInt4(reinterpret_cast<const uint32 *>(&t->mIndices[0]));
-				UVec4 iv1 = indices.Expand4Byte0();
-				UVec4 iv2 = indices.Expand4Byte4();
-				UVec4 iv3 = indices.Expand4Byte8();
-
-				// Decompress the triangle data
+				// Unpack the vertices for 4 triangles
 				Vec4 v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z;
-				Unpack(vertices, iv1, v1x, v1y, v1z);
-				Unpack(vertices, iv2, v2x, v2y, v2z);
-				Unpack(vertices, iv3, v3x, v3y, v3z);
+				Unpack(t, vertices, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
 
 				// Transpose it so we get normal vectors
 				Mat44 v1 = Mat44(v1x, v1y, v1z, Vec4::sZero()).Transposed();
@@ -425,17 +439,9 @@ public:
 			UVec4 start_triangle_idx = UVec4::sZero();
 			do
 			{
-				// Get the indices for the three vertices (reads 4 bytes extra, but these are the flags so that's ok)
-				UVec4 indices = UVec4::sLoadInt4(reinterpret_cast<const uint32 *>(&t->mIndices[0]));
-				UVec4 iv1 = indices.Expand4Byte0();
-				UVec4 iv2 = indices.Expand4Byte4();
-				UVec4 iv3 = indices.Expand4Byte8();
-
-				// Decompress the triangle data
+				// Unpack the vertices for 4 triangles
 				Vec4 v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z;
-				Unpack(vertices, iv1, v1x, v1y, v1z);
-				Unpack(vertices, iv2, v2x, v2y, v2z);
-				Unpack(vertices, iv3, v3x, v3y, v3z);
+				Unpack(t, vertices, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);
 
 				// Perform ray vs triangle test
 				Vec4 distance = RayTriangle4(inRayOrigin, inRayDirection, v1x, v1y, v1z, v2x, v2y, v2z, v3x, v3y, v3z);

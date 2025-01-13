@@ -53,6 +53,7 @@
 #include "tests/core/io/test_packet_peer.h"
 #include "tests/core/io/test_pck_packer.h"
 #include "tests/core/io/test_resource.h"
+#include "tests/core/io/test_resource_uid.h"
 #include "tests/core/io/test_stream_peer.h"
 #include "tests/core/io/test_stream_peer_buffer.h"
 #include "tests/core/io/test_tcp_server.h"
@@ -149,6 +150,7 @@
 #include "tests/scene/test_color_picker.h"
 #include "tests/scene/test_graph_node.h"
 #include "tests/scene/test_option_button.h"
+#include "tests/scene/test_split_container.h"
 #include "tests/scene/test_tab_bar.h"
 #include "tests/scene/test_tab_container.h"
 #include "tests/scene/test_text_edit.h"
@@ -169,6 +171,7 @@
 
 #include "tests/scene/test_arraymesh.h"
 #include "tests/scene/test_camera_3d.h"
+#include "tests/scene/test_gltf_document.h"
 #include "tests/scene/test_height_map_shape_3d.h"
 #include "tests/scene/test_path_3d.h"
 #include "tests/scene/test_path_follow_3d.h"
@@ -290,7 +293,7 @@ struct GodotTestCaseListener : public doctest::IReporter {
 			OS::get_singleton()->set_has_server_feature_callback(nullptr);
 			for (int i = 0; i < DisplayServer::get_create_function_count(); i++) {
 				if (String("mock") == DisplayServer::get_create_function_name(i)) {
-					DisplayServer::create(i, "", DisplayServer::WindowMode::WINDOW_MODE_MINIMIZED, DisplayServer::VSyncMode::VSYNC_ENABLED, 0, nullptr, Vector2i(0, 0), DisplayServer::SCREEN_PRIMARY, DisplayServer::CONTEXT_EDITOR, err);
+					DisplayServer::create(i, "", DisplayServer::WindowMode::WINDOW_MODE_MINIMIZED, DisplayServer::VSyncMode::VSYNC_ENABLED, 0, nullptr, Vector2i(0, 0), DisplayServer::SCREEN_PRIMARY, DisplayServer::CONTEXT_EDITOR, 0, err);
 					break;
 				}
 			}
@@ -369,6 +372,9 @@ struct GodotTestCaseListener : public doctest::IReporter {
 #ifdef TOOLS_ENABLED
 		if (EditorSettings::get_singleton()) {
 			EditorSettings::destroy();
+
+			// Instantiating the EditorSettings singleton sets the locale to the editor's language.
+			TranslationServer::get_singleton()->set_locale("en");
 		}
 		if (EditorPaths::get_singleton()) {
 			EditorPaths::free();

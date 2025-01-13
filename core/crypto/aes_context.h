@@ -38,7 +38,7 @@ class AESContext : public RefCounted {
 	GDCLASS(AESContext, RefCounted);
 
 public:
-	enum Mode {
+	enum Mode : int32_t {
 		MODE_ECB_ENCRYPT,
 		MODE_ECB_DECRYPT,
 		MODE_CBC_ENCRYPT,

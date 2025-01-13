@@ -3,24 +3,18 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
+indent_size = 4
 indent_style = tab
 insert_final_newline = true
-
-[*.{cpp,hpp,c,h,mm}]
+max_line_length = 120
 trim_trailing_whitespace = true
-
-[{*.gradle,AndroidManifest.xml}]
-indent_style = space
-indent_size = 4
 
 [{*.py,SConstruct,SCsub}]
 indent_style = space
-indent_size = 4
 
-# YAML requires indentation with spaces instead of tabs.
-[*.{yml,yaml}]
-indent_style = space
+[{*.{yml,yaml},.clang{-format,-tidy,d}}]
 indent_size = 2
+indent_style = space
 
 [*.svg]
 insert_final_newline = false

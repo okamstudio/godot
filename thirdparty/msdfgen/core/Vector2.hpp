@@ -24,8 +24,8 @@ struct Vector2 {
     }
 
     /// Sets individual elements of the vector.
-    inline void set(double x, double y) {
-        this->x = x, this->y = y;
+    inline void set(double newX, double newY) {
+        x = newX, y = newY;
     }
 
     /// Returns the vector's squared length.

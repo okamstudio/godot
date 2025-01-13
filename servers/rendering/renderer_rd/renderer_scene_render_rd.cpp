@@ -32,13 +32,11 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/image.h"
-#include "core/os/os.h"
 #include "renderer_compositor_rd.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
 #include "servers/rendering/renderer_rd/shaders/decal_data_inc.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/light_data_inc.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/scene_data_inc.glsl.gen.h"
-#include "servers/rendering/renderer_rd/storage_rd/material_storage.h"
 #include "servers/rendering/renderer_rd/storage_rd/texture_storage.h"
 #include "servers/rendering/rendering_server_default.h"
 #include "servers/rendering/shader_include_db.h"
@@ -138,7 +136,7 @@ Ref<Image> RendererSceneRenderRD::environment_bake_panorama(RID p_env, bool p_ba
 
 	if (use_cube_map) {
 		Ref<Image> panorama = sky_bake_panorama(environment_get_sky(p_env), environment_get_bg_energy_multiplier(p_env), p_bake_irradiance, p_size);
-		if (use_ambient_light) {
+		if (use_ambient_light && panorama.is_valid()) {
 			for (int x = 0; x < p_size.width; x++) {
 				for (int y = 0; y < p_size.height; y++) {
 					panorama->set_pixel(x, y, ambient_color.lerp(panorama->get_pixel(x, y), ambient_color_sky_mix));
@@ -431,8 +429,18 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 	can_use_effects &= _debug_draw_can_use_effects(debug_draw);
 	bool can_use_storage = _render_buffers_can_be_storage();
 
-	bool use_fsr = fsr && can_use_effects && rb->get_scaling_3d_mode() == RS::VIEWPORT_SCALING_3D_MODE_FSR;
-	bool use_upscaled_texture = rb->has_upscaled_texture() && rb->get_scaling_3d_mode() == RS::VIEWPORT_SCALING_3D_MODE_FSR2;
+	RS::ViewportScaling3DMode scale_mode = rb->get_scaling_3d_mode();
+	bool use_upscaled_texture = rb->has_upscaled_texture() && (scale_mode == RS::VIEWPORT_SCALING_3D_MODE_FSR2 || scale_mode == RS::VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL);
+	SpatialUpscaler *spatial_upscaler = nullptr;
+	if (can_use_effects) {
+		if (scale_mode == RS::VIEWPORT_SCALING_3D_MODE_FSR) {
+			spatial_upscaler = fsr;
+		} else if (scale_mode == RS::VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL) {
+#if METAL_ENABLED
+			spatial_upscaler = mfx_spatial;
+#endif
+		}
+	}
 
 	RID render_target = rb->get_render_target();
 	RID color_texture = use_upscaled_texture ? rb->get_upscaled_texture() : rb->get_internal_texture();
@@ -646,9 +654,8 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		tonemap.convert_to_srgb = !texture_storage->render_target_is_using_hdr(render_target);
 
 		RID dest_fb;
-		bool use_intermediate_fb = use_fsr;
-		if (use_intermediate_fb) {
-			// If we use FSR to upscale we need to write our result into an intermediate buffer.
+		if (spatial_upscaler != nullptr) {
+			// If we use a spatial upscaler to upscale we need to write our result into an intermediate buffer.
 			// Note that this is cached so we only create the texture the first time.
 			RID dest_texture = rb->create_texture(SNAME("Tonemapper"), SNAME("destination"), _render_buffers_get_color_format(), RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT, RD::TEXTURE_SAMPLES_1, Size2i(), 0, 1, true, true);
 			dest_fb = FramebufferCacheRD::get_singleton()->get_cache(dest_texture);
@@ -670,14 +677,16 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		RD::get_singleton()->draw_command_end_label();
 	}
 
-	if (use_fsr) {
-		RD::get_singleton()->draw_command_begin_label("FSR 1.0 Upscale");
+	if (rb.is_valid() && spatial_upscaler) {
+		spatial_upscaler->ensure_context(rb);
+
+		RD::get_singleton()->draw_command_begin_label(spatial_upscaler->get_label());
 
 		for (uint32_t v = 0; v < rb->get_view_count(); v++) {
 			RID source_texture = rb->get_texture_slice(SNAME("Tonemapper"), SNAME("destination"), v, 0);
 			RID dest_texture = texture_storage->render_target_get_rd_texture_slice(render_target, v);
 
-			fsr->fsr_upscale(rb, source_texture, dest_texture);
+			spatial_upscaler->process(rb, source_texture, dest_texture);
 		}
 
 		if (dest_is_msaa_2d) {
@@ -1219,6 +1228,7 @@ void RendererSceneRenderRD::render_scene(const Ref<RenderSceneBuffers> &p_render
 
 		if (p_render_buffers.is_valid() && p_reflection_probe.is_null()) {
 			render_data.transparent_bg = texture_storage->render_target_get_transparent(rb->get_render_target());
+			render_data.render_region = texture_storage->render_target_get_render_region(rb->get_render_target());
 		}
 	}
 
@@ -1522,6 +1532,9 @@ void RendererSceneRenderRD::init() {
 	if (can_use_storage) {
 		fsr = memnew(RendererRD::FSR);
 	}
+#ifdef METAL_ENABLED
+	mfx_spatial = memnew(RendererRD::MFXSpatialEffect);
+#endif
 }
 
 RendererSceneRenderRD::~RendererSceneRenderRD() {
@@ -1550,6 +1563,11 @@ RendererSceneRenderRD::~RendererSceneRenderRD() {
 	if (fsr) {
 		memdelete(fsr);
 	}
+#ifdef METAL_ENABLED
+	if (mfx_spatial) {
+		memdelete(mfx_spatial);
+	}
+#endif
 
 	if (sky.sky_scene_state.uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(sky.sky_scene_state.uniform_set)) {
 		RD::get_singleton()->free(sky.sky_scene_state.uniform_set);

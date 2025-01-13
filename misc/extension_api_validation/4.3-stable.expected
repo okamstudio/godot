@@ -236,3 +236,35 @@ Validate extension JSON: Error: Field 'classes/EditorInterface/methods/open_scen
 
 Added optional argument to open_scene_from_path to create a new inherited scene.
 Compatibility method registered.
+
+
+GH-97449
+--------
+Validate extension JSON: Error: Field 'classes/GraphEdit/methods/connect_node/arguments': size changed value in new API, from 4 to 5.
+
+Added optional argument to connect_node to specify whether the connection should be automatically deleted if invalid. Compatibility method registered.
+
+
+GH-88349
+--------
+Validate extension JSON: Error: Field 'classes/CSGMesh3D/properties/mesh': type changed value in new API, from "Mesh" to "Mesh,-PlaneMesh,-PointMesh,-QuadMesh,-RibbonTrailMesh".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_albedo': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_emission': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_normal': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_orm': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_albedo': type changed value in new API, from "Texture" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_emission': type changed value in new API, from "Texture" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_normal': type changed value in new API, from "Texture" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Decal/properties/texture_orm': type changed value in new API, from "Texture" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/Light3D/properties/light_projector': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+Validate extension JSON: Error: Field 'classes/PointLight2D/properties/texture': type changed value in new API, from "Texture2D" to "Texture2D,-AnimatedTexture,-AtlasTexture,-CameraTexture,-CanvasTexture,-MeshTexture,-Texture2DRD,-ViewportTexture".
+
+Property hints modified to disallow resource types that don't work. The types allowed are now more restricted, but this change only impacts the editor and not the actual exposed API. No adjustments should be necessary.
+Decal properties were previously changed from Texture to Texture2D in 4.2, so we need to silence those warnings too.
+
+
+GH-98441
+--------
+Validate extension JSON: Error: Field 'global_enums/KeyModifierMask/values/KEY_MODIFIER_MASK': value changed value in new API, from 5.32677e+08 to 2130706432.
+
+Key modifier mask value corrected. API change documented for compatibility.

@@ -532,6 +532,31 @@ TEST_CASE("[Vector] Operators") {
 	CHECK(vector != vector_other);
 }
 
+struct CyclicVectorHolder {
+	Vector<CyclicVectorHolder> *vector = nullptr;
+	bool is_destructing = false;
+
+	~CyclicVectorHolder() {
+		if (is_destructing) {
+			// The vector must exist and not expose its backing array at this point.
+			CHECK_NE(vector, nullptr);
+			CHECK_EQ(vector->ptr(), nullptr);
+		}
+	}
+};
+
+TEST_CASE("[Vector] Cyclic Reference") {
+	// Create a stack-space vector.
+	Vector<CyclicVectorHolder> vector;
+	// Add a new (empty) element.
+	vector.resize(1);
+	// Expose the vector to its element through CyclicVectorHolder.
+	// This is questionable behavior, but should still behave graciously.
+	vector.ptrw()[0] = CyclicVectorHolder{ &vector };
+	vector.ptrw()[0].is_destructing = true;
+	// The vector goes out of scope and destructs, calling CyclicVectorHolder's destructor.
+}
+
 } // namespace TestVector
 
 #endif // TEST_VECTOR_H

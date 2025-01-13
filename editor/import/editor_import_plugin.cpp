@@ -214,6 +214,7 @@ Error EditorImportPlugin::_append_import_external_resource(const String &p_file,
 }
 
 Error EditorImportPlugin::append_import_external_resource(const String &p_file, const HashMap<StringName, Variant> &p_custom_options, const String &p_custom_importer, Variant p_generator_parameters) {
+	ERR_FAIL_COND_V_MSG(!EditorFileSystem::get_singleton()->is_importing(), ERR_INVALID_PARAMETER, "Can only append files to import during a current reimport process.");
 	return EditorFileSystem::get_singleton()->reimport_append(p_file, p_custom_options, p_custom_importer, p_generator_parameters);
 }
 

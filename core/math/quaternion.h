@@ -142,14 +142,15 @@ struct [[nodiscard]] Quaternion {
 
 	Quaternion(const Vector3 &p_v0, const Vector3 &p_v1) { // Shortest arc.
 		Vector3 c = p_v0.cross(p_v1);
-		real_t d = p_v0.dot(p_v1);
 
-		if (d < -1.0f + (real_t)CMP_EPSILON) {
-			x = 0;
-			y = 1;
-			z = 0;
+		if (c.is_zero_approx()) {
+			Vector3 axis = p_v0.get_any_perpendicular();
+			x = axis.x;
+			y = axis.y;
+			z = axis.z;
 			w = 0;
 		} else {
+			real_t d = p_v0.dot(p_v1);
 			real_t s = Math::sqrt((1.0f + d) * 2.0f);
 			real_t rs = 1.0f / s;
 

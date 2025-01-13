@@ -39,14 +39,14 @@
 #include "core/os/memory.h"
 #include "core/version.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif
-
 #include "openxr_platform_inc.h"
 
 #ifdef VULKAN_ENABLED
 #include "extensions/platform/openxr_vulkan_extension.h"
+#endif
+
+#ifdef METAL_ENABLED
+#include "extensions/platform/openxr_metal_extension.h"
 #endif
 
 #if defined(GLES3_ENABLED) && !defined(MACOS_ENABLED)
@@ -1200,12 +1200,9 @@ bool OpenXRAPI::obtain_swapchain_formats() {
 			}
 		}
 
-		if (color_swapchain_format == 0) {
-			color_swapchain_format = usable_swapchain_formats[0]; // just use the first one and hope for the best...
-			print_line("Couldn't find usable color swap chain format, using", get_swapchain_format_name(color_swapchain_format), "instead.");
-		} else {
-			print_verbose(String("Using color swap chain format:") + get_swapchain_format_name(color_swapchain_format));
-		}
+		ERR_FAIL_COND_V_MSG(color_swapchain_format == 0, false, "OpenXR: No usable color swap chain format available!");
+
+		print_verbose(String("Using color swap chain format:") + get_swapchain_format_name(color_swapchain_format));
 	}
 
 	{
@@ -1222,11 +1219,9 @@ bool OpenXRAPI::obtain_swapchain_formats() {
 			}
 		}
 
-		if (depth_swapchain_format == 0) {
-			WARN_PRINT_ONCE("Couldn't find usable depth swap chain format, depth buffer will not be submitted if requested.");
-		} else {
-			print_verbose(String("Using depth swap chain format:") + get_swapchain_format_name(depth_swapchain_format));
-		}
+		ERR_FAIL_COND_V_MSG(depth_swapchain_format == 0, false, "OpenXR: No usable depth swap chain format available!");
+
+		print_verbose(String("Using depth swap chain format:") + get_swapchain_format_name(depth_swapchain_format));
 	}
 
 	return true;
@@ -1679,6 +1674,14 @@ bool OpenXRAPI::initialize(const String &p_rendering_driver) {
 	if (p_rendering_driver == "vulkan") {
 #ifdef VULKAN_ENABLED
 		graphics_extension = memnew(OpenXRVulkanExtension);
+		register_extension_wrapper(graphics_extension);
+#else
+		// shouldn't be possible...
+		ERR_FAIL_V(false);
+#endif
+	} else if (p_rendering_driver == "metal") {
+#ifdef METAL_ENABLED
+		graphics_extension = memnew(OpenXRMetalExtension);
 		register_extension_wrapper(graphics_extension);
 #else
 		// shouldn't be possible...
@@ -2164,6 +2167,14 @@ void OpenXRAPI::_set_render_state_multiplier(double p_render_target_size_multipl
 	openxr_api->render_state.render_target_size_multiplier = p_render_target_size_multiplier;
 }
 
+void OpenXRAPI::_set_render_state_render_region(const Rect2i &p_render_region) {
+	ERR_NOT_ON_RENDER_THREAD;
+
+	OpenXRAPI *openxr_api = OpenXRAPI::get_singleton();
+	ERR_FAIL_NULL(openxr_api);
+	openxr_api->render_state.render_region = p_render_region;
+}
+
 bool OpenXRAPI::process() {
 	ERR_FAIL_COND_V(instance == XR_NULL_HANDLE, false);
 
@@ -2396,6 +2407,12 @@ Size2i OpenXRAPI::get_velocity_target_size() {
 	return velocity_target_size;
 }
 
+const XrCompositionLayerProjection *OpenXRAPI::get_projection_layer() const {
+	ERR_NOT_ON_RENDER_THREAD_V(nullptr);
+
+	return &render_state.projection_layer;
+}
+
 void OpenXRAPI::post_draw_viewport(RID p_render_target) {
 	// Must be called from rendering thread!
 	ERR_NOT_ON_RENDER_THREAD;
@@ -2426,6 +2443,23 @@ void OpenXRAPI::end_frame() {
 			print_line("OpenXR: No viewport was marked with use_xr, there is no rendered output!");
 		} else if (!render_state.main_swapchains[OPENXR_SWAPCHAIN_COLOR].is_image_acquired()) {
 			print_line("OpenXR: No swapchain could be acquired to render to!");
+		}
+	}
+
+	Rect2i new_render_region = (render_state.render_region != Rect2i()) ? render_state.render_region : Rect2i(Point2i(0, 0), render_state.main_swapchain_size);
+
+	for (uint32_t i = 0; i < render_state.view_count; i++) {
+		render_state.projection_views[i].subImage.imageRect.offset.x = new_render_region.position.x;
+		render_state.projection_views[i].subImage.imageRect.offset.y = new_render_region.position.y;
+		render_state.projection_views[i].subImage.imageRect.extent.width = new_render_region.size.width;
+		render_state.projection_views[i].subImage.imageRect.extent.height = new_render_region.size.height;
+	}
+	if (render_state.submit_depth_buffer && OpenXRCompositionLayerDepthExtension::get_singleton()->is_available() && render_state.depth_views) {
+		for (uint32_t i = 0; i < render_state.view_count; i++) {
+			render_state.depth_views[i].subImage.imageRect.offset.x = new_render_region.position.x;
+			render_state.depth_views[i].subImage.imageRect.offset.y = new_render_region.position.y;
+			render_state.depth_views[i].subImage.imageRect.extent.width = new_render_region.size.width;
+			render_state.depth_views[i].subImage.imageRect.extent.height = new_render_region.size.height;
 		}
 	}
 
@@ -2493,14 +2527,10 @@ void OpenXRAPI::end_frame() {
 		layer_flags |= XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 	}
 
-	XrCompositionLayerProjection projection_layer = {
-		XR_TYPE_COMPOSITION_LAYER_PROJECTION, // type
-		nullptr, // next
-		layer_flags, // layerFlags
-		render_state.play_space, // space
-		render_state.view_count, // viewCount
-		render_state.projection_views, // views
-	};
+	render_state.projection_layer.layerFlags = layer_flags;
+	render_state.projection_layer.space = render_state.play_space;
+	render_state.projection_layer.viewCount = render_state.view_count;
+	render_state.projection_layer.views = render_state.projection_views;
 
 	if (projection_views_extensions.size() > 0) {
 		for (uint32_t v = 0; v < render_state.view_count; v++) {
@@ -2515,7 +2545,7 @@ void OpenXRAPI::end_frame() {
 		}
 	}
 
-	ordered_layers_list.push_back({ (const XrCompositionLayerBaseHeader *)&projection_layer, 0 });
+	ordered_layers_list.push_back({ (const XrCompositionLayerBaseHeader *)&render_state.projection_layer, 0 });
 
 	// Sort our layers.
 	ordered_layers_list.sort_custom<OrderedCompositionLayer>();
@@ -2575,6 +2605,15 @@ double OpenXRAPI::get_render_target_size_multiplier() const {
 void OpenXRAPI::set_render_target_size_multiplier(double multiplier) {
 	render_target_size_multiplier = multiplier;
 	set_render_state_multiplier(multiplier);
+}
+
+Rect2i OpenXRAPI::get_render_region() const {
+	return render_region;
+}
+
+void OpenXRAPI::set_render_region(const Rect2i &p_render_region) {
+	render_region = p_render_region;
+	set_render_state_render_region(p_render_region);
 }
 
 bool OpenXRAPI::is_foveation_supported() const {

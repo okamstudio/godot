@@ -49,7 +49,7 @@ class ToolButtonEditorPlugin : public EditorPlugin {
 	GDCLASS(ToolButtonEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "ToolButtonEditorPlugin"; }
+	virtual String get_plugin_name() const override { return "ToolButtonEditorPlugin"; }
 
 	ToolButtonEditorPlugin();
 };

@@ -609,10 +609,9 @@ void Input::joy_connection_changed(int p_idx, bool p_connected, const String &p_
 		for (int i = 0; i < map_db.size(); i++) {
 			if (js.uid == map_db[i].uid) {
 				mapping = i;
-				js.name = map_db[i].name;
 			}
 		}
-		js.mapping = mapping;
+		_set_joypad_mapping(js, mapping);
 	} else {
 		js.connected = false;
 		for (int i = 0; i < (int)JoyButton::MAX; i++) {
@@ -1706,7 +1705,7 @@ void Input::add_joy_mapping(const String &p_mapping, bool p_update_existing) {
 		for (KeyValue<int, Joypad> &E : joy_names) {
 			Joypad &joy = E.value;
 			if (joy.uid == uid) {
-				joy.mapping = map_db.size() - 1;
+				_set_joypad_mapping(joy, map_db.size() - 1);
 			}
 		}
 	}
@@ -1721,9 +1720,20 @@ void Input::remove_joy_mapping(const String &p_guid) {
 	for (KeyValue<int, Joypad> &E : joy_names) {
 		Joypad &joy = E.value;
 		if (joy.uid == p_guid) {
-			joy.mapping = -1;
+			_set_joypad_mapping(joy, -1);
 		}
 	}
+}
+
+void Input::_set_joypad_mapping(Joypad &p_js, int p_map_index) {
+	if (p_map_index != fallback_mapping && p_map_index >= 0 && p_map_index < map_db.size() && p_js.uid != "__XINPUT_DEVICE__") {
+		// Prefer the joypad name defined in the mapping.
+		// Exceptions:
+		// * On Windows for XInput devices the mapping would change the joypad's name to a collective name.
+		// * A fallback mapping is not allowed to override the joypad's name.
+		p_js.name = map_db[p_map_index].name;
+	}
+	p_js.mapping = p_map_index;
 }
 
 void Input::set_fallback_mapping(const String &p_guid) {

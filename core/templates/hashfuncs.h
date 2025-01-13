@@ -323,9 +323,9 @@ struct HashMapHasherDefault {
 
 	static _FORCE_INLINE_ uint32_t hash(const String &p_string) { return p_string.hash(); }
 	static _FORCE_INLINE_ uint32_t hash(const char *p_cstr) { return hash_djb2(p_cstr); }
-	static _FORCE_INLINE_ uint32_t hash(const wchar_t p_wchar) { return hash_fmix32(p_wchar); }
-	static _FORCE_INLINE_ uint32_t hash(const char16_t p_uchar) { return hash_fmix32(p_uchar); }
-	static _FORCE_INLINE_ uint32_t hash(const char32_t p_uchar) { return hash_fmix32(p_uchar); }
+	static _FORCE_INLINE_ uint32_t hash(const wchar_t p_wchar) { return hash_fmix32(uint32_t(p_wchar)); }
+	static _FORCE_INLINE_ uint32_t hash(const char16_t p_uchar) { return hash_fmix32(uint32_t(p_uchar)); }
+	static _FORCE_INLINE_ uint32_t hash(const char32_t p_uchar) { return hash_fmix32(uint32_t(p_uchar)); }
 	static _FORCE_INLINE_ uint32_t hash(const RID &p_rid) { return hash_one_uint64(p_rid.get_id()); }
 	static _FORCE_INLINE_ uint32_t hash(const CharString &p_char_string) { return hash_djb2(p_char_string.get_data()); }
 	static _FORCE_INLINE_ uint32_t hash(const StringName &p_string_name) { return p_string_name.hash(); }
@@ -333,31 +333,31 @@ struct HashMapHasherDefault {
 	static _FORCE_INLINE_ uint32_t hash(const ObjectID &p_id) { return hash_one_uint64(p_id); }
 
 	static _FORCE_INLINE_ uint32_t hash(const uint64_t p_int) { return hash_one_uint64(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const int64_t p_int) { return hash_one_uint64(p_int); }
+	static _FORCE_INLINE_ uint32_t hash(const int64_t p_int) { return hash_one_uint64(uint64_t(p_int)); }
 	static _FORCE_INLINE_ uint32_t hash(const float p_float) { return hash_murmur3_one_float(p_float); }
 	static _FORCE_INLINE_ uint32_t hash(const double p_double) { return hash_murmur3_one_double(p_double); }
 	static _FORCE_INLINE_ uint32_t hash(const uint32_t p_int) { return hash_fmix32(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const int32_t p_int) { return hash_fmix32(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const uint16_t p_int) { return hash_fmix32(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const int16_t p_int) { return hash_fmix32(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const uint8_t p_int) { return hash_fmix32(p_int); }
-	static _FORCE_INLINE_ uint32_t hash(const int8_t p_int) { return hash_fmix32(p_int); }
+	static _FORCE_INLINE_ uint32_t hash(const int32_t p_int) { return hash_fmix32(uint32_t(p_int)); }
+	static _FORCE_INLINE_ uint32_t hash(const uint16_t p_int) { return hash_fmix32(uint32_t(p_int)); }
+	static _FORCE_INLINE_ uint32_t hash(const int16_t p_int) { return hash_fmix32(uint32_t(p_int)); }
+	static _FORCE_INLINE_ uint32_t hash(const uint8_t p_int) { return hash_fmix32(uint32_t(p_int)); }
+	static _FORCE_INLINE_ uint32_t hash(const int8_t p_int) { return hash_fmix32(uint32_t(p_int)); }
 	static _FORCE_INLINE_ uint32_t hash(const Vector2i &p_vec) {
-		uint32_t h = hash_murmur3_one_32(p_vec.x);
-		h = hash_murmur3_one_32(p_vec.y, h);
+		uint32_t h = hash_murmur3_one_32(uint32_t(p_vec.x));
+		h = hash_murmur3_one_32(uint32_t(p_vec.y), h);
 		return hash_fmix32(h);
 	}
 	static _FORCE_INLINE_ uint32_t hash(const Vector3i &p_vec) {
-		uint32_t h = hash_murmur3_one_32(p_vec.x);
-		h = hash_murmur3_one_32(p_vec.y, h);
-		h = hash_murmur3_one_32(p_vec.z, h);
+		uint32_t h = hash_murmur3_one_32(uint32_t(p_vec.x));
+		h = hash_murmur3_one_32(uint32_t(p_vec.y), h);
+		h = hash_murmur3_one_32(uint32_t(p_vec.z), h);
 		return hash_fmix32(h);
 	}
 	static _FORCE_INLINE_ uint32_t hash(const Vector4i &p_vec) {
-		uint32_t h = hash_murmur3_one_32(p_vec.x);
-		h = hash_murmur3_one_32(p_vec.y, h);
-		h = hash_murmur3_one_32(p_vec.z, h);
-		h = hash_murmur3_one_32(p_vec.w, h);
+		uint32_t h = hash_murmur3_one_32(uint32_t(p_vec.x));
+		h = hash_murmur3_one_32(uint32_t(p_vec.y), h);
+		h = hash_murmur3_one_32(uint32_t(p_vec.z), h);
+		h = hash_murmur3_one_32(uint32_t(p_vec.w), h);
 		return hash_fmix32(h);
 	}
 	static _FORCE_INLINE_ uint32_t hash(const Vector2 &p_vec) {
@@ -379,10 +379,10 @@ struct HashMapHasherDefault {
 		return hash_fmix32(h);
 	}
 	static _FORCE_INLINE_ uint32_t hash(const Rect2i &p_rect) {
-		uint32_t h = hash_murmur3_one_32(p_rect.position.x);
-		h = hash_murmur3_one_32(p_rect.position.y, h);
-		h = hash_murmur3_one_32(p_rect.size.x, h);
-		h = hash_murmur3_one_32(p_rect.size.y, h);
+		uint32_t h = hash_murmur3_one_32(uint32_t(p_rect.position.x));
+		h = hash_murmur3_one_32(uint32_t(p_rect.position.y), h);
+		h = hash_murmur3_one_32(uint32_t(p_rect.size.x), h);
+		h = hash_murmur3_one_32(uint32_t(p_rect.size.y), h);
 		return hash_fmix32(h);
 	}
 	static _FORCE_INLINE_ uint32_t hash(const Rect2 &p_rect) {

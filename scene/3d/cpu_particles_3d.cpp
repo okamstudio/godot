@@ -35,7 +35,6 @@
 #include "scene/main/viewport.h"
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/gradient_texture.h"
-#include "scene/resources/image_texture.h"
 #include "scene/resources/particle_process_material.h"
 
 AABB CPUParticles3D::get_aabb() const {
@@ -310,7 +309,7 @@ real_t CPUParticles3D::get_param_max(Parameter p_param) const {
 
 static void _adjust_curve_range(const Ref<Curve> &p_curve, real_t p_min, real_t p_max) {
 	Ref<Curve> curve = p_curve;
-	if (!curve.is_valid()) {
+	if (curve.is_null()) {
 		return;
 	}
 
@@ -410,14 +409,17 @@ bool CPUParticles3D::get_particle_flag(ParticleFlags p_particle_flag) const {
 void CPUParticles3D::set_emission_shape(EmissionShape p_shape) {
 	ERR_FAIL_INDEX(p_shape, EMISSION_SHAPE_MAX);
 	emission_shape = p_shape;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_sphere_radius(real_t p_radius) {
 	emission_sphere_radius = p_radius;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_box_extents(Vector3 p_extents) {
 	emission_box_extents = p_extents;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_points(const Vector<Vector3> &p_points) {
@@ -434,22 +436,27 @@ void CPUParticles3D::set_emission_colors(const Vector<Color> &p_colors) {
 
 void CPUParticles3D::set_emission_ring_axis(Vector3 p_axis) {
 	emission_ring_axis = p_axis;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_ring_height(real_t p_height) {
 	emission_ring_height = p_height;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_ring_radius(real_t p_radius) {
 	emission_ring_radius = p_radius;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_ring_inner_radius(real_t p_radius) {
 	emission_ring_inner_radius = p_radius;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_emission_ring_cone_angle(real_t p_angle) {
 	emission_ring_cone_angle = p_angle;
+	update_gizmos();
 }
 
 void CPUParticles3D::set_scale_curve_x(Ref<Curve> p_scale_curve) {
@@ -1410,6 +1417,11 @@ void CPUParticles3D::convert_from_particles(Node *p_particles) {
 	set_emission_shape(EmissionShape(material->get_emission_shape()));
 	set_emission_sphere_radius(material->get_emission_sphere_radius());
 	set_emission_box_extents(material->get_emission_box_extents());
+	set_emission_ring_height(material->get_emission_ring_height());
+	set_emission_ring_radius(material->get_emission_ring_radius());
+	set_emission_ring_inner_radius(material->get_emission_ring_inner_radius());
+	set_emission_ring_cone_angle(material->get_emission_ring_cone_angle());
+
 	Ref<CurveXYZTexture> scale3D = material->get_param_texture(ParticleProcessMaterial::PARAM_SCALE);
 	if (scale3D.is_valid()) {
 		split_scale = true;
@@ -1490,7 +1502,7 @@ void CPUParticles3D::_bind_methods() {
 	ADD_GROUP("Time", "");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "lifetime", PROPERTY_HINT_RANGE, "0.01,600.0,0.01,or_greater,exp,suffix:s"), "set_lifetime", "get_lifetime");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "get_one_shot");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "preprocess", PROPERTY_HINT_RANGE, "0.00,600.0,0.01,exp,suffix:s"), "set_pre_process_time", "get_pre_process_time");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "preprocess", PROPERTY_HINT_RANGE, "0.00,10.0,0.01,or_greater,exp,suffix:s"), "set_pre_process_time", "get_pre_process_time");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "speed_scale", PROPERTY_HINT_RANGE, "0,64,0.01"), "set_speed_scale", "get_speed_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "explosiveness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_explosiveness_ratio", "get_explosiveness_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "randomness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_randomness_ratio", "get_randomness_ratio");

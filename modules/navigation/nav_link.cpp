@@ -122,3 +122,17 @@ NavLink::NavLink() :
 NavLink::~NavLink() {
 	cancel_sync_request();
 }
+
+void NavLink::get_iteration_update(NavLinkIteration &r_iteration) {
+	r_iteration.navigation_layers = get_navigation_layers();
+	r_iteration.enter_cost = get_enter_cost();
+	r_iteration.travel_cost = get_travel_cost();
+	r_iteration.owner_object_id = get_owner_id();
+	r_iteration.owner_type = get_type();
+	r_iteration.owner_rid = get_self();
+
+	r_iteration.enabled = get_enabled();
+	r_iteration.start_position = get_start_position();
+	r_iteration.end_position = get_end_position();
+	r_iteration.bidirectional = is_bidirectional();
+}

@@ -42,10 +42,15 @@ PackedVector2Array GraphEdit::_get_connection_line_bind_compat_86158(const Vecto
 	return get_connection_line(p_from, p_to);
 }
 
+Error GraphEdit::_connect_node_bind_compat_97449(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port) {
+	return connect_node(p_from, p_from_port, p_to, p_to_port);
+}
+
 void GraphEdit::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("is_arrange_nodes_button_hidden"), &GraphEdit::_is_arrange_nodes_button_hidden_bind_compat_81582);
 	ClassDB::bind_compatibility_method(D_METHOD("set_arrange_nodes_button_hidden", "enable"), &GraphEdit::_set_arrange_nodes_button_hidden_bind_compat_81582);
 	ClassDB::bind_compatibility_method(D_METHOD("get_connection_line", "from_node", "to_node"), &GraphEdit::_get_connection_line_bind_compat_86158);
+	ClassDB::bind_compatibility_method(D_METHOD("connect_node", "from_node", "from_port", "to_node", "to_port"), &GraphEdit::_connect_node_bind_compat_97449);
 }
 
 #endif

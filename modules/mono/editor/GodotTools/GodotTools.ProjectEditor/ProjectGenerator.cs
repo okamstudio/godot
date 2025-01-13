@@ -12,6 +12,8 @@ namespace GodotTools.ProjectEditor
     {
         public static string GodotSdkAttrValue => $"Godot.NET.Sdk/{GeneratedGodotNupkgsVersions.GodotNETSdk}";
 
+        public static string GodotMinimumRequiredTfm => "net8.0";
+
         public static ProjectRootElement GenGameProject(string name)
         {
             if (name.Length == 0)
@@ -22,7 +24,7 @@ namespace GodotTools.ProjectEditor
             root.Sdk = GodotSdkAttrValue;
 
             var mainGroup = root.AddPropertyGroup();
-            mainGroup.AddProperty("TargetFramework", "net8.0");
+            mainGroup.AddProperty("TargetFramework", GodotMinimumRequiredTfm);
 
             mainGroup.AddProperty("EnableDynamicLoading", "true");
 

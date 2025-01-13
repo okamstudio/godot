@@ -34,6 +34,7 @@
 #include "editor/editor_log.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
+#include "editor/gui/editor_scene_tabs.h"
 #include "editor/gui/editor_toaster.h"
 #include "editor/themes/editor_scale.h"
 #include "servers/rendering_server.h"
@@ -118,7 +119,7 @@ void SurfaceUpgradeTool::begin_upgrade() {
 }
 
 void SurfaceUpgradeTool::finish_upgrade() {
-	EditorNode::get_singleton()->trigger_menu_option(EditorNode::FILE_CLOSE_ALL, true);
+	EditorNode::get_singleton()->trigger_menu_option(EditorSceneTabs::SCENE_CLOSE_ALL, true);
 
 	// Update all meshes here.
 	Vector<String> resave_paths = EditorSettings::get_singleton()->get_project_metadata("surface_upgrade_tool", "resave_paths", Vector<String>());

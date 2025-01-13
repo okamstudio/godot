@@ -70,12 +70,14 @@
 // These types can be used in Vector and other containers that use
 // pointer operations not supported by ARC.
 namespace MTL {
-#define MTL_CLASS(name)                                  \
-	class name {                                         \
-	public:                                              \
-		name(id<MTL##name> obj = nil) : m_obj(obj) {}    \
-		operator id<MTL##name>() const { return m_obj; } \
-		id<MTL##name> m_obj;                             \
+#define MTL_CLASS(name)                               \
+	class name {                                      \
+	public:                                           \
+		name(id<MTL##name> obj = nil) : m_obj(obj) {} \
+		operator id<MTL##name>() const {              \
+			return m_obj;                             \
+		}                                             \
+		id<MTL##name> m_obj;                          \
 	};
 
 MTL_CLASS(Texture)
@@ -696,11 +698,12 @@ class API_AVAILABLE(macos(11.0), ios(14.0)) MDShader {
 public:
 	CharString name;
 	Vector<UniformSet> sets;
+	bool uses_argument_buffers = true;
 
 	virtual void encode_push_constant_data(VectorView<uint32_t> p_data, MDCommandBuffer *p_cb) = 0;
 
-	MDShader(CharString p_name, Vector<UniformSet> p_sets) :
-			name(p_name), sets(p_sets) {}
+	MDShader(CharString p_name, Vector<UniformSet> p_sets, bool p_uses_argument_buffers) :
+			name(p_name), sets(p_sets), uses_argument_buffers(p_uses_argument_buffers) {}
 	virtual ~MDShader() = default;
 };
 
@@ -719,7 +722,7 @@ public:
 
 	void encode_push_constant_data(VectorView<uint32_t> p_data, MDCommandBuffer *p_cb) final;
 
-	MDComputeShader(CharString p_name, Vector<UniformSet> p_sets, MDLibrary *p_kernel);
+	MDComputeShader(CharString p_name, Vector<UniformSet> p_sets, bool p_uses_argument_buffers, MDLibrary *p_kernel);
 };
 
 class API_AVAILABLE(macos(11.0), ios(14.0)) MDRenderShader final : public MDShader {
@@ -746,8 +749,9 @@ public:
 	void encode_push_constant_data(VectorView<uint32_t> p_data, MDCommandBuffer *p_cb) final;
 
 	MDRenderShader(CharString p_name,
-			bool p_needs_view_mask_buffer,
 			Vector<UniformSet> p_sets,
+			bool p_needs_view_mask_buffer,
+			bool p_uses_argument_buffers,
 			MDLibrary *p_vert, MDLibrary *p_frag);
 };
 
@@ -783,12 +787,21 @@ struct BoundUniformSet {
 };
 
 class API_AVAILABLE(macos(11.0), ios(14.0)) MDUniformSet {
+private:
+	void bind_uniforms_argument_buffers(MDShader *p_shader, MDCommandBuffer::RenderState &p_state);
+	void bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::RenderState &p_state);
+	void bind_uniforms_argument_buffers(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state);
+	void bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state);
+
 public:
 	uint32_t index;
 	LocalVector<RDD::BoundUniform> uniforms;
 	HashMap<MDShader *, BoundUniformSet> bound_uniforms;
 
-	BoundUniformSet &boundUniformSetForShader(MDShader *p_shader, id<MTLDevice> p_device);
+	void bind_uniforms(MDShader *p_shader, MDCommandBuffer::RenderState &p_state);
+	void bind_uniforms(MDShader *p_shader, MDCommandBuffer::ComputeState &p_state);
+
+	BoundUniformSet &bound_uniform_set(MDShader *p_shader, id<MTLDevice> p_device, ResourceUsageMap &p_resource_usage);
 };
 
 class API_AVAILABLE(macos(11.0), ios(14.0)) MDPipeline {
@@ -837,8 +850,9 @@ public:
 			uint32_t front_reference = 0;
 			uint32_t back_reference = 0;
 			_FORCE_INLINE_ void apply(id<MTLRenderCommandEncoder> __unsafe_unretained p_enc) const {
-				if (!enabled)
+				if (!enabled) {
 					return;
+				}
 				[p_enc setStencilFrontReferenceValue:front_reference backReferenceValue:back_reference];
 			}
 		} stencil;
@@ -938,8 +952,10 @@ void *owned(id p_id) {
 	return (__bridge_retained void *)p_id;
 }
 
-#define MAKE_ID(FROM, TO) \
-	_FORCE_INLINE_ TO make(FROM p_obj) { return TO(owned(p_obj)); }
+#define MAKE_ID(FROM, TO)                \
+	_FORCE_INLINE_ TO make(FROM p_obj) { \
+		return TO(owned(p_obj));         \
+	}
 
 MAKE_ID(id<MTLTexture>, RDD::TextureID)
 MAKE_ID(id<MTLBuffer>, RDD::BufferID)

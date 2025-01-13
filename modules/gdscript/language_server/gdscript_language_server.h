@@ -31,7 +31,6 @@
 #ifndef GDSCRIPT_LANGUAGE_SERVER_H
 #define GDSCRIPT_LANGUAGE_SERVER_H
 
-#include "../gdscript_parser.h"
 #include "gdscript_language_protocol.h"
 
 #include "editor/plugins/editor_plugin.h"

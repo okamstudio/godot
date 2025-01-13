@@ -245,6 +245,8 @@ private:
 
 	Vector<JoyDeviceMapping> map_db;
 
+	void _set_joypad_mapping(Joypad &p_js, int p_map_index);
+
 	JoyEvent _get_mapped_button_event(const JoyDeviceMapping &mapping, JoyButton p_button);
 	JoyEvent _get_mapped_axis_event(const JoyDeviceMapping &mapping, JoyAxis p_axis, float p_value, JoyAxisRange &r_range);
 	void _get_mapped_hat_events(const JoyDeviceMapping &mapping, HatDir p_hat, JoyEvent r_events[(size_t)HatDir::MAX]);

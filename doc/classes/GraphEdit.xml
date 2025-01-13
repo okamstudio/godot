@@ -31,8 +31,8 @@
 				Below is a sample code to help get started:
 				[codeblock]
 				func _is_in_input_hotzone(in_node, in_port, mouse_position):
-				    var port_size: Vector2 = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
-				    var port_pos: Vector2 = in_node.get_position() + in_node.get_input_port_position(in_port) - port_size / 2
+				    var port_size = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
+				    var port_pos = in_node.get_position() + in_node.get_input_port_position(in_port) - port_size / 2
 				    var rect = Rect2(port_pos, port_size)
 
 				    return rect.has_point(mouse_position)
@@ -49,8 +49,8 @@
 				Below is a sample code to help get started:
 				[codeblock]
 				func _is_in_output_hotzone(in_node, in_port, mouse_position):
-				    var port_size: Vector2 = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
-				    var port_pos: Vector2 = in_node.get_position() + in_node.get_output_port_position(in_port) - port_size / 2
+				    var port_size = Vector2(get_theme_constant("port_grab_distance_horizontal"), get_theme_constant("port_grab_distance_vertical"))
+				    var port_pos = in_node.get_position() + in_node.get_output_port_position(in_port) - port_size / 2
 				    var rect = Rect2(port_pos, port_size)
 
 				    return rect.has_point(mouse_position)
@@ -130,8 +130,10 @@
 			<param index="1" name="from_port" type="int" />
 			<param index="2" name="to_node" type="StringName" />
 			<param index="3" name="to_port" type="int" />
+			<param index="4" name="keep_alive" type="bool" default="false" />
 			<description>
 				Create a connection between the [param from_port] of the [param from_node] [GraphNode] and the [param to_port] of the [param to_node] [GraphNode]. If the connection already exists, no connection is created.
+				Connections with [param keep_alive] set to [code]false[/code] may be deleted automatically if invalid during a redraw.
 			</description>
 		</method>
 		<method name="detach_graph_element_from_frame">
@@ -172,7 +174,16 @@
 			<param index="1" name="max_distance" type="float" default="4.0" />
 			<description>
 				Returns the closest connection to the given point in screen space. If no connection is found within [param max_distance] pixels, an empty [Dictionary] is returned.
-				A connection consists in a structure of the form [code]{ from_port: 0, from_node: "GraphNode name 0", to_port: 1, to_node: "GraphNode name 1" }[/code].
+				A connection is represented as a [Dictionary] in the form of:
+				[codeblock]
+				{
+				    from_node: StringName,
+				    from_port: int,
+				    to_node: StringName,
+				    to_port: int,
+				    keep_alive: bool
+				}
+				[/codeblock]
 				For example, getting a connection at a given mouse position can be achieved like this:
 				[codeblocks]
 				[gdscript]
@@ -197,17 +208,21 @@
 				Returns the points which would make up a connection between [param from_node] and [param to_node].
 			</description>
 		</method>
-		<method name="get_connection_list" qualifiers="const">
-			<return type="Dictionary[]" />
-			<description>
-				Returns an [Array] containing the list of connections. A connection consists in a structure of the form [code]{ from_port: 0, from_node: "GraphNode name 0", to_port: 1, to_node: "GraphNode name 1" }[/code].
-			</description>
-		</method>
 		<method name="get_connections_intersecting_with_rect" qualifiers="const">
 			<return type="Dictionary[]" />
 			<param index="0" name="rect" type="Rect2" />
 			<description>
-				Returns an [Array] containing the list of connections that intersect with the given [Rect2]. A connection consists in a structure of the form [code]{ from_port: 0, from_node: "GraphNode name 0", to_port: 1, to_node: "GraphNode name 1" }[/code].
+				Returns an [Array] containing the list of connections that intersect with the given [Rect2].
+				A connection is represented as a [Dictionary] in the form of:
+				[codeblock]
+				{
+				    from_node: StringName,
+				    from_port: int,
+				    to_node: StringName,
+				    to_port: int,
+				    keep_alive: bool
+				}
+				[/codeblock]
 			</description>
 		</method>
 		<method name="get_element_frame">
@@ -295,6 +310,20 @@
 		</member>
 		<member name="connection_lines_thickness" type="float" setter="set_connection_lines_thickness" getter="get_connection_lines_thickness" default="4.0">
 			The thickness of the lines between the nodes.
+		</member>
+		<member name="connections" type="Dictionary[]" setter="set_connections" getter="get_connection_list" default="[]">
+			The connections between [GraphNode]s.
+			A connection is represented as a [Dictionary] in the form of:
+			[codeblock]
+			{
+			    from_node: StringName,
+			    from_port: int,
+			    to_node: StringName,
+			    to_port: int,
+			    keep_alive: bool
+			}
+			[/codeblock]
+			Connections with [code]keep_alive[/code] set to [code]false[/code] may be deleted automatically if invalid during a redraw.
 		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
 		<member name="grid_pattern" type="int" setter="set_grid_pattern" getter="get_grid_pattern" enum="GraphEdit.GridPattern" default="0">
@@ -521,6 +550,9 @@
 		</theme_item>
 		<theme_item name="selection_stroke" data_type="color" type="Color" default="Color(1, 1, 1, 0.8)">
 			The outline color of the selection rectangle.
+		</theme_item>
+		<theme_item name="connection_hover_thickness" data_type="constant" type="int" default="0">
+			Widen the line of the connection when the mouse is hovering over it by a percentage factor. A value of [code]0[/code] disables the highlight. A value of [code]100[/code] doubles the line width.
 		</theme_item>
 		<theme_item name="port_hotzone_inner_extent" data_type="constant" type="int" default="22">
 			The horizontal range within which a port can be grabbed (inner side).

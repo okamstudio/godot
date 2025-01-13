@@ -97,6 +97,7 @@
 		</member>
 		<member name="preprocess" type="float" setter="set_pre_process_time" getter="get_pre_process_time" default="0.0">
 			Particle system starts as if it had already run for this many seconds.
+			[b]Note:[/b] This can be very expensive if set to a high number as it requires running the particle shader a number of times equal to the [member fixed_fps] (or 30, if [member fixed_fps] is 0) for every second. In extreme cases it can even lead to a GPU crash due to the volume of work done in a single frame.
 		</member>
 		<member name="process_material" type="Material" setter="set_process_material" getter="get_process_material">
 			[Material] for processing particles. Can be a [ParticleProcessMaterial] or a [ShaderMaterial].

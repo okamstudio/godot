@@ -366,7 +366,7 @@
 			<param index="0" name="rid" type="RID" />
 			<description>
 				Returns global menu close callback.
-				b]Note:[/b] This method is implemented only on macOS.
+				[b]Note:[/b] This method is implemented on macOS and Windows.
 			</description>
 		</method>
 		<method name="get_popup_open_callback" qualifiers="const">
@@ -708,7 +708,7 @@
 			<description>
 				Registers callable to emit when the menu is about to show.
 				[b]Note:[/b] The OS can simulate menu opening to track menu item changes and global shortcuts, in which case the corresponding close callback is not triggered. Use [method is_opened] to check if the menu is currently opened.
-				[b]Note:[/b] This method is implemented only on macOS.
+				[b]Note:[/b] This method is implemented on macOS and Windows.
 			</description>
 		</method>
 		<method name="set_popup_open_callback">

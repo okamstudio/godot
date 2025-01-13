@@ -37,6 +37,24 @@
 
 namespace TestAHashMap {
 
+TEST_CASE("[AHashMap] List initialization") {
+	AHashMap<int, String> map{ { 0, "A" }, { 1, "B" }, { 2, "C" }, { 3, "D" }, { 4, "E" } };
+
+	CHECK(map.size() == 5);
+	CHECK(map[0] == "A");
+	CHECK(map[1] == "B");
+	CHECK(map[2] == "C");
+	CHECK(map[3] == "D");
+	CHECK(map[4] == "E");
+}
+
+TEST_CASE("[AHashMap] List initialization with existing elements") {
+	AHashMap<int, String> map{ { 0, "A" }, { 0, "B" }, { 0, "C" }, { 0, "D" }, { 0, "E" } };
+
+	CHECK(map.size() == 1);
+	CHECK(map[0] == "E");
+}
+
 TEST_CASE("[AHashMap] Insert element") {
 	AHashMap<int, int> map;
 	AHashMap<int, int>::Iterator e = map.insert(42, 84);

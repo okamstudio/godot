@@ -36,48 +36,48 @@ TrueDistanceSelector::DistanceType TrueDistanceSelector::distance() const {
     return minDistance.distance;
 }
 
-PseudoDistanceSelectorBase::EdgeCache::EdgeCache() : absDistance(0), aDomainDistance(0), bDomainDistance(0), aPseudoDistance(0), bPseudoDistance(0) { }
+PerpendicularDistanceSelectorBase::EdgeCache::EdgeCache() : absDistance(0), aDomainDistance(0), bDomainDistance(0), aPerpendicularDistance(0), bPerpendicularDistance(0) { }
 
-bool PseudoDistanceSelectorBase::getPseudoDistance(double &distance, const Vector2 &ep, const Vector2 &edgeDir) {
+bool PerpendicularDistanceSelectorBase::getPerpendicularDistance(double &distance, const Vector2 &ep, const Vector2 &edgeDir) {
     double ts = dotProduct(ep, edgeDir);
     if (ts > 0) {
-        double pseudoDistance = crossProduct(ep, edgeDir);
-        if (fabs(pseudoDistance) < fabs(distance)) {
-            distance = pseudoDistance;
+        double perpendicularDistance = crossProduct(ep, edgeDir);
+        if (fabs(perpendicularDistance) < fabs(distance)) {
+            distance = perpendicularDistance;
             return true;
         }
     }
     return false;
 }
 
-PseudoDistanceSelectorBase::PseudoDistanceSelectorBase() : minNegativePseudoDistance(-fabs(minTrueDistance.distance)), minPositivePseudoDistance(fabs(minTrueDistance.distance)), nearEdge(NULL), nearEdgeParam(0) { }
+PerpendicularDistanceSelectorBase::PerpendicularDistanceSelectorBase() : minNegativePerpendicularDistance(-fabs(minTrueDistance.distance)), minPositivePerpendicularDistance(fabs(minTrueDistance.distance)), nearEdge(NULL), nearEdgeParam(0) { }
 
-void PseudoDistanceSelectorBase::reset(double delta) {
+void PerpendicularDistanceSelectorBase::reset(double delta) {
     minTrueDistance.distance += nonZeroSign(minTrueDistance.distance)*delta;
-    minNegativePseudoDistance = -fabs(minTrueDistance.distance);
-    minPositivePseudoDistance = fabs(minTrueDistance.distance);
+    minNegativePerpendicularDistance = -fabs(minTrueDistance.distance);
+    minPositivePerpendicularDistance = fabs(minTrueDistance.distance);
     nearEdge = NULL;
     nearEdgeParam = 0;
 }
 
-bool PseudoDistanceSelectorBase::isEdgeRelevant(const EdgeCache &cache, const EdgeSegment *edge, const Point2 &p) const {
+bool PerpendicularDistanceSelectorBase::isEdgeRelevant(const EdgeCache &cache, const EdgeSegment *edge, const Point2 &p) const {
     double delta = DISTANCE_DELTA_FACTOR*(p-cache.point).length();
     return (
         cache.absDistance-delta <= fabs(minTrueDistance.distance) ||
         fabs(cache.aDomainDistance) < delta ||
         fabs(cache.bDomainDistance) < delta ||
-        (cache.aDomainDistance > 0 && (cache.aPseudoDistance < 0 ?
-            cache.aPseudoDistance+delta >= minNegativePseudoDistance :
-            cache.aPseudoDistance-delta <= minPositivePseudoDistance
+        (cache.aDomainDistance > 0 && (cache.aPerpendicularDistance < 0 ?
+            cache.aPerpendicularDistance+delta >= minNegativePerpendicularDistance :
+            cache.aPerpendicularDistance-delta <= minPositivePerpendicularDistance
         )) ||
-        (cache.bDomainDistance > 0 && (cache.bPseudoDistance < 0 ?
-            cache.bPseudoDistance+delta >= minNegativePseudoDistance :
-            cache.bPseudoDistance-delta <= minPositivePseudoDistance
+        (cache.bDomainDistance > 0 && (cache.bPerpendicularDistance < 0 ?
+            cache.bPerpendicularDistance+delta >= minNegativePerpendicularDistance :
+            cache.bPerpendicularDistance-delta <= minPositivePerpendicularDistance
         ))
     );
 }
 
-void PseudoDistanceSelectorBase::addEdgeTrueDistance(const EdgeSegment *edge, const SignedDistance &distance, double param) {
+void PerpendicularDistanceSelectorBase::addEdgeTrueDistance(const EdgeSegment *edge, const SignedDistance &distance, double param) {
     if (distance < minTrueDistance) {
         minTrueDistance = distance;
         nearEdge = edge;
@@ -85,47 +85,47 @@ void PseudoDistanceSelectorBase::addEdgeTrueDistance(const EdgeSegment *edge, co
     }
 }
 
-void PseudoDistanceSelectorBase::addEdgePseudoDistance(double distance) {
-    if (distance <= 0 && distance > minNegativePseudoDistance)
-        minNegativePseudoDistance = distance;
-    if (distance >= 0 && distance < minPositivePseudoDistance)
-        minPositivePseudoDistance = distance;
+void PerpendicularDistanceSelectorBase::addEdgePerpendicularDistance(double distance) {
+    if (distance <= 0 && distance > minNegativePerpendicularDistance)
+        minNegativePerpendicularDistance = distance;
+    if (distance >= 0 && distance < minPositivePerpendicularDistance)
+        minPositivePerpendicularDistance = distance;
 }
 
-void PseudoDistanceSelectorBase::merge(const PseudoDistanceSelectorBase &other) {
+void PerpendicularDistanceSelectorBase::merge(const PerpendicularDistanceSelectorBase &other) {
     if (other.minTrueDistance < minTrueDistance) {
         minTrueDistance = other.minTrueDistance;
         nearEdge = other.nearEdge;
         nearEdgeParam = other.nearEdgeParam;
     }
-    if (other.minNegativePseudoDistance > minNegativePseudoDistance)
-        minNegativePseudoDistance = other.minNegativePseudoDistance;
-    if (other.minPositivePseudoDistance < minPositivePseudoDistance)
-        minPositivePseudoDistance = other.minPositivePseudoDistance;
+    if (other.minNegativePerpendicularDistance > minNegativePerpendicularDistance)
+        minNegativePerpendicularDistance = other.minNegativePerpendicularDistance;
+    if (other.minPositivePerpendicularDistance < minPositivePerpendicularDistance)
+        minPositivePerpendicularDistance = other.minPositivePerpendicularDistance;
 }
 
-double PseudoDistanceSelectorBase::computeDistance(const Point2 &p) const {
-    double minDistance = minTrueDistance.distance < 0 ? minNegativePseudoDistance : minPositivePseudoDistance;
+double PerpendicularDistanceSelectorBase::computeDistance(const Point2 &p) const {
+    double minDistance = minTrueDistance.distance < 0 ? minNegativePerpendicularDistance : minPositivePerpendicularDistance;
     if (nearEdge) {
         SignedDistance distance = minTrueDistance;
-        nearEdge->distanceToPseudoDistance(distance, p, nearEdgeParam);
+        nearEdge->distanceToPerpendicularDistance(distance, p, nearEdgeParam);
         if (fabs(distance.distance) < fabs(minDistance))
             minDistance = distance.distance;
     }
     return minDistance;
 }
 
-SignedDistance PseudoDistanceSelectorBase::trueDistance() const {
+SignedDistance PerpendicularDistanceSelectorBase::trueDistance() const {
     return minTrueDistance;
 }
 
-void PseudoDistanceSelector::reset(const Point2 &p) {
+void PerpendicularDistanceSelector::reset(const Point2 &p) {
     double delta = DISTANCE_DELTA_FACTOR*(p-this->p).length();
-    PseudoDistanceSelectorBase::reset(delta);
+    PerpendicularDistanceSelectorBase::reset(delta);
     this->p = p;
 }
 
-void PseudoDistanceSelector::addEdge(EdgeCache &cache, const EdgeSegment *prevEdge, const EdgeSegment *edge, const EdgeSegment *nextEdge) {
+void PerpendicularDistanceSelector::addEdge(EdgeCache &cache, const EdgeSegment *prevEdge, const EdgeSegment *edge, const EdgeSegment *nextEdge) {
     if (isEdgeRelevant(cache, edge, p)) {
         double param;
         SignedDistance distance = edge->signedDistance(p, param);
@@ -143,22 +143,22 @@ void PseudoDistanceSelector::addEdge(EdgeCache &cache, const EdgeSegment *prevEd
         double bdd = -dotProduct(bp, (bDir+nextDir).normalize(true));
         if (add > 0) {
             double pd = distance.distance;
-            if (getPseudoDistance(pd, ap, -aDir))
-                addEdgePseudoDistance(pd = -pd);
-            cache.aPseudoDistance = pd;
+            if (getPerpendicularDistance(pd, ap, -aDir))
+                addEdgePerpendicularDistance(pd = -pd);
+            cache.aPerpendicularDistance = pd;
         }
         if (bdd > 0) {
             double pd = distance.distance;
-            if (getPseudoDistance(pd, bp, bDir))
-                addEdgePseudoDistance(pd);
-            cache.bPseudoDistance = pd;
+            if (getPerpendicularDistance(pd, bp, bDir))
+                addEdgePerpendicularDistance(pd);
+            cache.bPerpendicularDistance = pd;
         }
         cache.aDomainDistance = add;
         cache.bDomainDistance = bdd;
     }
 }
 
-PseudoDistanceSelector::DistanceType PseudoDistanceSelector::distance() const {
+PerpendicularDistanceSelector::DistanceType PerpendicularDistanceSelector::distance() const {
     return computeDistance(p);
 }
 
@@ -197,28 +197,28 @@ void MultiDistanceSelector::addEdge(EdgeCache &cache, const EdgeSegment *prevEdg
         double bdd = -dotProduct(bp, (bDir+nextDir).normalize(true));
         if (add > 0) {
             double pd = distance.distance;
-            if (PseudoDistanceSelectorBase::getPseudoDistance(pd, ap, -aDir)) {
+            if (PerpendicularDistanceSelectorBase::getPerpendicularDistance(pd, ap, -aDir)) {
                 pd = -pd;
                 if (edge->color&RED)
-                    r.addEdgePseudoDistance(pd);
+                    r.addEdgePerpendicularDistance(pd);
                 if (edge->color&GREEN)
-                    g.addEdgePseudoDistance(pd);
+                    g.addEdgePerpendicularDistance(pd);
                 if (edge->color&BLUE)
-                    b.addEdgePseudoDistance(pd);
+                    b.addEdgePerpendicularDistance(pd);
             }
-            cache.aPseudoDistance = pd;
+            cache.aPerpendicularDistance = pd;
         }
         if (bdd > 0) {
             double pd = distance.distance;
-            if (PseudoDistanceSelectorBase::getPseudoDistance(pd, bp, bDir)) {
+            if (PerpendicularDistanceSelectorBase::getPerpendicularDistance(pd, bp, bDir)) {
                 if (edge->color&RED)
-                    r.addEdgePseudoDistance(pd);
+                    r.addEdgePerpendicularDistance(pd);
                 if (edge->color&GREEN)
-                    g.addEdgePseudoDistance(pd);
+                    g.addEdgePerpendicularDistance(pd);
                 if (edge->color&BLUE)
-                    b.addEdgePseudoDistance(pd);
+                    b.addEdgePerpendicularDistance(pd);
             }
-            cache.bPseudoDistance = pd;
+            cache.bPerpendicularDistance = pd;
         }
         cache.aDomainDistance = add;
         cache.bDomainDistance = bdd;

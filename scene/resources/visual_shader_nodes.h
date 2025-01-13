@@ -31,7 +31,6 @@
 #ifndef VISUAL_SHADER_NODES_H
 #define VISUAL_SHADER_NODES_H
 
-#include "scene/resources/compressed_texture.h"
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/visual_shader.h"
 
@@ -341,6 +340,9 @@ public:
 
 	void set_constant(const Quaternion &p_constant);
 	Quaternion get_constant() const;
+
+	void _set_constant_v4(const Vector4 &p_constant);
+	Vector4 _get_constant_v4() const;
 
 	virtual Vector<StringName> get_editable_properties() const override;
 

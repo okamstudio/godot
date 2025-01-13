@@ -392,9 +392,9 @@ private:
 		};
 		struct IntegratePushConstant {
 			enum {
-				SKY_MODE_DISABLED,
-				SKY_MODE_COLOR,
-				SKY_MODE_SKY,
+				SKY_FLAGS_MODE_COLOR = 0x01,
+				SKY_FLAGS_MODE_SKY = 0x02,
+				SKY_FLAGS_ORIENTATION_SIGN = 0x04,
 			};
 
 			float grid_size[3];
@@ -410,12 +410,12 @@ private:
 			int32_t image_size[2];
 
 			int32_t world_offset[3];
-			uint32_t sky_mode;
+			uint32_t sky_flags;
 
 			int32_t scroll[3];
 			float sky_energy;
 
-			float sky_color[3];
+			float sky_color_or_orientation[3];
 			float y_mult;
 
 			uint32_t store_ambient_texture;

@@ -33,17 +33,12 @@
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/io/file_access.h"
-#include "core/io/image_loader.h"
 #include "core/io/resource_loader.h"
 #include "editor/editor_node.h"
-#include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/multi_node_edit.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
 #include "editor/plugins/editor_plugin.h"
-#include "editor/plugins/script_editor_plugin.h"
-#include "editor/themes/editor_scale.h"
-#include "scene/gui/popup_menu.h"
 #include "scene/resources/packed_scene.h"
 
 void EditorSelectionHistory::cleanup_history() {
@@ -51,7 +46,7 @@ void EditorSelectionHistory::cleanup_history() {
 		bool fail = false;
 
 		for (int j = 0; j < history[i].path.size(); j++) {
-			if (!history[i].path[j].ref.is_null()) {
+			if (history[i].path[j].ref.is_valid()) {
 				// If the node is a MultiNodeEdit node, examine it and see if anything is missing from it.
 				Ref<MultiNodeEdit> multi_node_edit = history[i].path[j].ref;
 				if (multi_node_edit.is_valid()) {
@@ -281,7 +276,7 @@ Vector<EditorPlugin *> EditorData::get_handling_sub_editors(Object *p_object) {
 
 EditorPlugin *EditorData::get_editor_by_name(const String &p_name) {
 	for (int i = editor_plugins.size() - 1; i > -1; i--) {
-		if (editor_plugins[i]->get_name() == p_name) {
+		if (editor_plugins[i]->get_plugin_name() == p_name) {
 			return editor_plugins[i];
 		}
 	}
@@ -320,7 +315,7 @@ Dictionary EditorData::get_editor_plugin_states() const {
 		if (state.is_empty()) {
 			continue;
 		}
-		metadata[editor_plugins[i]->get_name()] = state;
+		metadata[editor_plugins[i]->get_plugin_name()] = state;
 	}
 
 	return metadata;
@@ -348,7 +343,7 @@ void EditorData::set_editor_plugin_states(const Dictionary &p_states) {
 		String name = E->get();
 		int idx = -1;
 		for (int i = 0; i < editor_plugins.size(); i++) {
-			if (editor_plugins[i]->get_name() == name) {
+			if (editor_plugins[i]->get_plugin_name() == name) {
 				idx = i;
 				break;
 			}
@@ -843,9 +838,9 @@ Ref<Script> EditorData::get_scene_root_script(int p_idx) const {
 		return Ref<Script>();
 	}
 	Ref<Script> s = edited_scene[p_idx].root->get_script();
-	if (!s.is_valid() && edited_scene[p_idx].root->get_child_count()) {
+	if (s.is_null() && edited_scene[p_idx].root->get_child_count()) {
 		Node *n = edited_scene[p_idx].root->get_child(0);
-		while (!s.is_valid() && n && n->get_scene_file_path().is_empty()) {
+		while (s.is_null() && n && n->get_scene_file_path().is_empty()) {
 			s = n->get_script();
 			n = n->get_parent();
 		}

@@ -30,10 +30,8 @@
 
 #include "memory.h"
 
-#include "core/error/error_macros.h"
 #include "core/templates/safe_refcount.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,7 +64,9 @@ SafeNumeric<uint64_t> Memory::max_usage;
 
 SafeNumeric<uint64_t> Memory::alloc_count;
 
-inline bool is_power_of_2(size_t x) { return x && ((x & (x - 1U)) == 0U); }
+inline bool is_power_of_2(size_t x) {
+	return x && ((x & (x - 1U)) == 0U);
+}
 
 void *Memory::alloc_aligned_static(size_t p_bytes, size_t p_alignment) {
 	DEV_ASSERT(is_power_of_2(p_alignment));
@@ -87,7 +87,9 @@ void *Memory::realloc_aligned_static(void *p_memory, size_t p_bytes, size_t p_pr
 	}
 
 	void *ret = alloc_aligned_static(p_bytes, p_alignment);
-	memcpy(ret, p_memory, p_prev_bytes);
+	if (ret) {
+		memcpy(ret, p_memory, p_prev_bytes);
+	}
 	free_aligned_static(p_memory);
 	return ret;
 }

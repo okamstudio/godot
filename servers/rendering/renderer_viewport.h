@@ -31,9 +31,7 @@
 #ifndef RENDERER_VIEWPORT_H
 #define RENDERER_VIEWPORT_H
 
-#include "core/templates/local_vector.h"
 #include "core/templates/rid_owner.h"
-#include "core/templates/self_list.h"
 #include "servers/rendering/renderer_scene_render.h"
 #include "servers/rendering/rendering_method.h"
 #include "servers/rendering_server.h"
@@ -65,6 +63,7 @@ public:
 		float scaling_3d_scale = 1.0;
 		float fsr_sharpness = 0.2f;
 		float texture_mipmap_bias = 0.0f;
+		RS::ViewportAnisotropicFiltering anisotropic_filtering_level = RenderingServer::VIEWPORT_ANISOTROPY_4X;
 		bool fsr_enabled = false;
 		uint32_t jitter_phase_count = 0;
 		RS::ViewportUpdateMode update_mode = RenderingServer::VIEWPORT_UPDATE_WHEN_VISIBLE;
@@ -235,6 +234,7 @@ public:
 	void viewport_set_scaling_3d_scale(RID p_viewport, float p_scaling_3d_scale);
 	void viewport_set_fsr_sharpness(RID p_viewport, float p_sharpness);
 	void viewport_set_texture_mipmap_bias(RID p_viewport, float p_mipmap_bias);
+	void viewport_set_anisotropic_filtering_level(RID p_viewport, RS::ViewportAnisotropicFiltering p_anisotropic_filtering_level);
 
 	void viewport_set_update_mode(RID p_viewport, RS::ViewportUpdateMode p_mode);
 	RS::ViewportUpdateMode viewport_get_update_mode(RID p_viewport) const;

@@ -545,7 +545,7 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 			}
 		}
 
-		RID *dst_texture_rid = &dst_texture_primary;
+		RID dst_texture_rid = dst_texture_primary;
 
 		if (needs_alpha_block) {
 			// Set the destination texture width and size.
@@ -638,21 +638,21 @@ Error BetsyCompressor::_compress(BetsyFormat p_format, Image *r_img) {
 				compress_rd->sync();
 			}
 
-			dst_texture_rid = &dst_texture_combined;
+			dst_texture_rid = dst_texture_combined;
 
 			compress_rd->free(dst_texture_primary);
 			compress_rd->free(dst_texture_alpha);
 		}
 
 		// Copy data from the GPU to the buffer.
-		const Vector<uint8_t> texture_data = compress_rd->texture_get_data(*dst_texture_rid, 0);
+		const Vector<uint8_t> texture_data = compress_rd->texture_get_data(dst_texture_rid, 0);
 		int64_t dst_ofs = Image::get_image_mipmap_offset(r_img->get_width(), r_img->get_height(), dest_format, i);
 
 		memcpy(dst_data_ptr + dst_ofs, texture_data.ptr(), texture_data.size());
 
 		// Free the source and dest texture.
 		compress_rd->free(src_texture);
-		compress_rd->free(*dst_texture_rid);
+		compress_rd->free(dst_texture_rid);
 	}
 
 	src_images.clear();

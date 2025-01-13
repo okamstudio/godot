@@ -92,7 +92,7 @@ public:
 	RVec3								GetPosition(bool inLockBodies = true) const;
 
 	/// Set the position of the character, optionally activating it.
-	void								SetPosition(RVec3Arg inPostion, EActivation inActivationMode = EActivation::Activate, bool inLockBodies = true);
+	void								SetPosition(RVec3Arg inPosition, EActivation inActivationMode = EActivation::Activate, bool inLockBodies = true);
 
 	/// Get the rotation of the character
 	Quat								GetRotation(bool inLockBodies = true) const;

@@ -11,7 +11,7 @@
 		<link title="GDScript exports">$DOCS_URL/tutorials/scripting/gdscript/gdscript_exports.html</link>
 	</tutorials>
 	<methods>
-		<method name="Color8">
+		<method name="Color8" deprecated="Use [method Color.from_rgba8] instead.">
 			<return type="Color" />
 			<param index="0" name="r8" type="int" />
 			<param index="1" name="g8" type="int" />
@@ -74,7 +74,7 @@
 				[/codeblock]
 			</description>
 		</method>
-		<method name="dict_to_inst">
+		<method name="dict_to_inst" deprecated="Consider using [method JSON.to_native] or [method Object.get_property_list] instead.">
 			<return type="Object" />
 			<param index="0" name="dictionary" type="Dictionary" />
 			<description>
@@ -103,12 +103,11 @@
 				[b]Note:[/b] Calling this function from a [Thread] is not supported. Doing so will return an empty array.
 			</description>
 		</method>
-		<method name="inst_to_dict">
+		<method name="inst_to_dict" deprecated="Consider using [method JSON.from_native] or [method Object.get_property_list] instead.">
 			<return type="Dictionary" />
 			<param index="0" name="instance" type="Object" />
 			<description>
 				Returns the passed [param instance] converted to a Dictionary. Can be useful for serializing.
-				[b]Note:[/b] Cannot be used to serialize objects with built-in scripts attached or objects allocated within built-in scripts.
 				[codeblock]
 				var foo = "bar"
 				func _ready():
@@ -121,6 +120,8 @@
 				[@subpath, @path, foo]
 				[, res://test.gd, bar]
 				[/codeblock]
+				[b]Note:[/b] This function can only be used to serialize objects with an attached [GDScript] stored in a separate file. Objects without an attached script, with a script written in another language, or with a built-in script are not supported.
+				[b]Note:[/b] This function is not recursive, which means that nested objects will not be represented as dictionaries. Also, properties passed by reference ([Object], [Dictionary], [Array], and packed arrays) are copied by reference, not duplicated.
 			</description>
 		</method>
 		<method name="is_instance_of">
@@ -734,7 +735,7 @@
 			<description>
 				Mark the following property as assigned when the [Node] is ready. Values for these properties are not assigned immediately when the node is initialized ([method Object._init]), and instead are computed and stored right before [method Node._ready].
 				[codeblock]
-				@onready var character_name: Label = $Label
+				@onready var character_name = $Label
 				[/codeblock]
 			</description>
 		</annotation>

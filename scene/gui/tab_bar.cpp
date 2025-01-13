@@ -30,7 +30,6 @@
 
 #include "tab_bar.h"
 
-#include "core/string/translation.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/texture_rect.h"
@@ -1246,7 +1245,7 @@ Variant TabBar::_handle_get_drag_data(const String &p_type, const Point2 &p_poin
 
 	HBoxContainer *drag_preview = memnew(HBoxContainer);
 
-	if (!tabs[tab_over].icon.is_null()) {
+	if (tabs[tab_over].icon.is_valid()) {
 		const Size2 icon_size = _get_tab_icon_size(tab_over);
 
 		TextureRect *tf = memnew(TextureRect);

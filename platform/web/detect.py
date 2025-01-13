@@ -13,7 +13,7 @@ from emscripten_helpers import (
 )
 from SCons.Util import WhereIs
 
-from methods import get_compiler_version, print_error, print_warning
+from methods import get_compiler_version, print_error, print_info, print_warning
 from platform_methods import validate_arch
 
 if TYPE_CHECKING:
@@ -107,7 +107,7 @@ def configure(env: "SConsEnvironment"):
         env.Append(LINKFLAGS=["-sASSERTIONS=1"])
 
     if env.editor_build and env["initial_memory"] < 64:
-        print("Note: Forcing `initial_memory=64` as it is required for the web editor.")
+        print_info("Forcing `initial_memory=64` as it is required for the web editor.")
         env["initial_memory"] = 64
 
     env.Append(LINKFLAGS=["-sINITIAL_MEMORY=%sMB" % env["initial_memory"]])
@@ -117,8 +117,8 @@ def configure(env: "SConsEnvironment"):
 
     # LTO
 
-    if env["lto"] == "auto":  # Full LTO for production.
-        env["lto"] = "full"
+    if env["lto"] == "auto":  # Enable LTO for production.
+        env["lto"] = "thin"
 
     if env["lto"] != "none":
         if env["lto"] == "thin":

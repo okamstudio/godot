@@ -39,11 +39,9 @@
 #include "scene/2d/physics/collision_polygon_2d.h"
 #include "scene/2d/physics/collision_shape_2d.h"
 #ifndef _3D_DISABLED
-#include "scene/3d/label_3d.h"
-#include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/physics/collision_object_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
-#include "scene/3d/sprite_3d.h"
+#include "scene/3d/visual_instance_3d.h"
 #include "scene/resources/surface_tool.h"
 #endif // _3D_DISABLED
 #include "scene/gui/popup_menu.h"
@@ -557,7 +555,7 @@ void SceneDebuggerObject::serialize(Array &r_arr, int p_max_size) {
 
 		PropertyHint hint = pi.hint;
 		String hint_string = pi.hint_string;
-		if (!res.is_null() && !res->get_path().is_empty()) {
+		if (res.is_valid() && !res->get_path().is_empty()) {
 			var = res->get_path();
 		} else { //only send information that can be sent..
 			int len = 0; //test how big is this to encode
@@ -795,7 +793,7 @@ void LiveEditor::_node_set_func(int p_id, const StringName &p_prop, const Varian
 
 void LiveEditor::_node_set_res_func(int p_id, const StringName &p_prop, const String &p_value) {
 	Ref<Resource> r = ResourceLoader::load(p_value);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 	_node_set_func(p_id, p_prop, r);
@@ -877,7 +875,7 @@ void LiveEditor::_res_set_func(int p_id, const StringName &p_prop, const Variant
 	}
 
 	Ref<Resource> r = ResourceCache::get_ref(resp);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 
@@ -886,7 +884,7 @@ void LiveEditor::_res_set_func(int p_id, const StringName &p_prop, const Variant
 
 void LiveEditor::_res_set_res_func(int p_id, const StringName &p_prop, const String &p_value) {
 	Ref<Resource> r = ResourceLoader::load(p_value);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 	_res_set_func(p_id, p_prop, r);
@@ -904,7 +902,7 @@ void LiveEditor::_res_call_func(int p_id, const StringName &p_method, const Vari
 	}
 
 	Ref<Resource> r = ResourceCache::get_ref(resp);
-	if (!r.is_valid()) {
+	if (r.is_null()) {
 		return;
 	}
 
@@ -963,7 +961,7 @@ void LiveEditor::_instance_node_func(const NodePath &p_parent, const String &p_p
 
 	Ref<PackedScene> ps = ResourceLoader::load(p_path);
 
-	if (!ps.is_valid()) {
+	if (ps.is_null()) {
 		return;
 	}
 
@@ -1252,8 +1250,8 @@ void RuntimeNodeSelect::_setup(const Dictionary &p_settings) {
 	int pan_speed = p_settings.get("editors/panning/2d_editor_pan_speed", 20);
 	Array keys = p_settings.get("canvas_item_editor/pan_view", Array()).operator Array();
 	panner->setup(panning_scheme, DebuggerMarshalls::deserialize_key_shortcut(keys), simple_panning);
+	panner->setup_warped_panning(root, p_settings.get("editors/panning/warped_mouse_panning", true));
 	panner->set_scroll_speed(pan_speed);
-	warped_panning = p_settings.get("editors/panning/warped_mouse_panning", false);
 
 	/// 2D Selection Box Generation
 
@@ -1364,7 +1362,7 @@ void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 
 	if (camera_override) {
 		if (node_select_type == NODE_TYPE_2D) {
-			if (panner->gui_input(p_event, warped_panning ? Rect2(Vector2(), root->get_size()) : Rect2())) {
+			if (panner->gui_input(p_event, Rect2(Vector2(), root->get_size()))) {
 				return;
 			}
 		} else if (node_select_type == NODE_TYPE_3D) {
@@ -1377,7 +1375,7 @@ void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 	}
 
 	Ref<InputEventMouseButton> b = p_event;
-	if (!b.is_valid() || !b->is_pressed()) {
+	if (b.is_null() || !b->is_pressed()) {
 		return;
 	}
 
@@ -1898,7 +1896,7 @@ void RuntimeNodeSelect::_find_3d_items_at_pos(const Point2 &p_pos, Vector<Select
 		if (ss->intersect_ray(ray_params, result)) {
 			SelectResult res;
 			res.item = Object::cast_to<Node>(result.collider);
-			res.order = -pos.distance_to(Object::cast_to<Node3D>(res.item)->get_global_transform().xform(result.position));
+			res.order = -pos.distance_to(result.position);
 
 			// Fetch collision shapes.
 			CollisionObject3D *collision = Object::cast_to<CollisionObject3D>(result.collider);
@@ -1925,40 +1923,23 @@ void RuntimeNodeSelect::_find_3d_items_at_pos(const Point2 &p_pos, Vector<Select
 	Vector<ObjectID> items = RS::get_singleton()->instances_cull_ray(pos, to, root->get_world_3d()->get_scenario());
 	for (int i = 0; i < items.size(); i++) {
 		Object *obj = ObjectDB::get_instance(items[i]);
-		GeometryInstance3D *geo_instance = nullptr;
-		Ref<TriangleMesh> mesh_collision;
 
-		MeshInstance3D *mesh_instance = Object::cast_to<MeshInstance3D>(obj);
-		if (mesh_instance) {
-			if (mesh_instance->get_mesh().is_valid()) {
-				geo_instance = mesh_instance;
-				mesh_collision = mesh_instance->get_mesh()->generate_triangle_mesh();
-			}
-		} else {
-			Label3D *label = Object::cast_to<Label3D>(obj);
-			if (label) {
-				geo_instance = label;
-				mesh_collision = label->generate_triangle_mesh();
-			} else {
-				Sprite3D *sprite = Object::cast_to<Sprite3D>(obj);
-				if (sprite) {
-					geo_instance = sprite;
-					mesh_collision = sprite->generate_triangle_mesh();
+		GeometryInstance3D *geo_instance = Object::cast_to<GeometryInstance3D>(obj);
+		if (geo_instance) {
+			Ref<TriangleMesh> mesh_collision = geo_instance->generate_triangle_mesh();
+
+			if (mesh_collision.is_valid()) {
+				Transform3D gt = geo_instance->get_global_transform();
+				Transform3D ai = gt.affine_inverse();
+				Vector3 point, normal;
+				if (mesh_collision->intersect_ray(ai.xform(pos), ai.basis.xform(ray).normalized(), point, normal)) {
+					SelectResult res;
+					res.item = Object::cast_to<Node>(obj);
+					res.order = -pos.distance_to(gt.xform(point));
+					r_items.push_back(res);
+
+					continue;
 				}
-			}
-		}
-
-		if (mesh_collision.is_valid()) {
-			Transform3D gt = geo_instance->get_global_transform();
-			Transform3D ai = gt.affine_inverse();
-			Vector3 point, normal;
-			if (mesh_collision->intersect_ray(ai.xform(pos), ai.basis.xform(ray).normalized(), point, normal)) {
-				SelectResult res;
-				res.item = Object::cast_to<Node>(obj);
-				res.order = -pos.distance_to(gt.xform(point));
-				r_items.push_back(res);
-
-				continue;
 			}
 		}
 

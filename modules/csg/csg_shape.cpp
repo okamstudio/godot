@@ -237,38 +237,6 @@ static void _unpack_manifold(
 	r_mesh_merge->_regen_face_aabbs();
 }
 
-// Errors matching `thirdparty/manifold/include/manifold/manifold.h`.
-static String manifold_error_to_string(const manifold::Manifold::Error &p_error) {
-	switch (p_error) {
-		case manifold::Manifold::Error::NoError:
-			return "No Error";
-		case manifold::Manifold::Error::NonFiniteVertex:
-			return "Non Finite Vertex";
-		case manifold::Manifold::Error::NotManifold:
-			return "Not Manifold";
-		case manifold::Manifold::Error::VertexOutOfBounds:
-			return "Vertex Out Of Bounds";
-		case manifold::Manifold::Error::PropertiesWrongLength:
-			return "Properties Wrong Length";
-		case manifold::Manifold::Error::MissingPositionProperties:
-			return "Missing Position Properties";
-		case manifold::Manifold::Error::MergeVectorsDifferentLengths:
-			return "Merge Vectors Different Lengths";
-		case manifold::Manifold::Error::MergeIndexOutOfBounds:
-			return "Merge Index Out Of Bounds";
-		case manifold::Manifold::Error::TransformWrongLength:
-			return "Transform Wrong Length";
-		case manifold::Manifold::Error::RunIndexWrongLength:
-			return "Run Index Wrong Length";
-		case manifold::Manifold::Error::FaceIDWrongLength:
-			return "Face ID Wrong Length";
-		case manifold::Manifold::Error::InvalidConstruction:
-			return "Invalid Construction";
-		default:
-			return "Unknown Error";
-	}
-}
-
 #ifdef DEV_ENABLED
 static String _export_meshgl_as_json(const manifold::MeshGL64 &p_mesh) {
 	Dictionary mesh_dict;
@@ -400,16 +368,6 @@ static void _pack_manifold(
 	print_verbose(_export_meshgl_as_json(mesh));
 #endif // DEV_ENABLED
 	r_manifold = manifold::Manifold(mesh);
-	manifold::Manifold::Error error = r_manifold.Status();
-	if (error == manifold::Manifold::Error::NoError) {
-		return;
-	}
-	if (p_csg_shape->get_owner()) {
-		NodePath path = p_csg_shape->get_owner()->get_path_to(p_csg_shape, true);
-		print_error(vformat("CSGShape3D manifold creation from mesh failed at %s: %s.", path, manifold_error_to_string(error)));
-	} else {
-		print_error(vformat("CSGShape3D manifold creation from mesh failed at .: %s.", manifold_error_to_string(error)));
-	}
 }
 
 struct ManifoldOperation {
@@ -488,6 +446,7 @@ CSGBrush *CSGShape3D::_get_brush() {
 	node_aabb = aabb;
 	brush = n;
 	dirty = false;
+	update_configuration_warnings();
 	return brush;
 }
 
@@ -766,7 +725,7 @@ bool CSGShape3D::_is_debug_collision_shape_visible() {
 }
 
 void CSGShape3D::_update_debug_collision_shape() {
-	if (!use_collision || !is_root_shape() || !root_collision_shape.is_valid() || !_is_debug_collision_shape_visible()) {
+	if (!use_collision || !is_root_shape() || root_collision_shape.is_null() || !_is_debug_collision_shape_visible()) {
 		return;
 	}
 
@@ -943,6 +902,26 @@ Array CSGShape3D::get_meshes() const {
 	return Array();
 }
 
+PackedStringArray CSGShape3D::get_configuration_warnings() const {
+	PackedStringArray warnings = Node::get_configuration_warnings();
+	const CSGShape3D *current_shape = this;
+	while (current_shape) {
+		if (!current_shape->brush || current_shape->brush->faces.is_empty()) {
+			warnings.push_back(RTR("The CSGShape3D has an empty shape.\nCSGShape3D empty shapes typically occur because the mesh is not manifold.\nA manifold mesh forms a solid object without gaps, holes, or loose edges.\nEach edge must be a member of exactly two faces."));
+			break;
+		}
+		current_shape = current_shape->parent_shape;
+	}
+	return warnings;
+}
+
+Ref<TriangleMesh> CSGShape3D::generate_triangle_mesh() const {
+	if (root_mesh.is_valid()) {
+		return root_mesh->generate_triangle_mesh();
+	}
+	return Ref<TriangleMesh>();
+}
+
 void CSGShape3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_update_shape"), &CSGShape3D::_update_shape);
 	ClassDB::bind_method(D_METHOD("is_root_shape"), &CSGShape3D::is_root_shape);
@@ -1065,7 +1044,7 @@ CSGPrimitive3D::CSGPrimitive3D() {
 /////////////////////
 
 CSGBrush *CSGMesh3D::_build_brush() {
-	if (!mesh.is_valid()) {
+	if (mesh.is_null()) {
 		return memnew(CSGBrush);
 	}
 
@@ -1236,7 +1215,8 @@ void CSGMesh3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_material", "material"), &CSGMesh3D::set_material);
 	ClassDB::bind_method(D_METHOD("get_material"), &CSGMesh3D::get_material);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "mesh", PROPERTY_HINT_RESOURCE_TYPE, "Mesh"), "set_mesh", "get_mesh");
+	// Hide PrimitiveMeshes that are always non-manifold and therefore can't be used as CSG meshes.
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "mesh", PROPERTY_HINT_RESOURCE_TYPE, "Mesh,-PlaneMesh,-PointMesh,-QuadMesh,-RibbonTrailMesh"), "set_mesh", "get_mesh");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material", PROPERTY_HINT_RESOURCE_TYPE, "BaseMaterial3D,ShaderMaterial"), "set_material", "get_material");
 }
 
@@ -2282,7 +2262,11 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 					current_xform.translate_local(Vector3(0, 0, -depth));
 				} break;
 				case MODE_SPIN: {
-					current_xform.rotate(Vector3(0, 1, 0), spin_step);
+					if (end_count == 0 && x0 == extrusions - 1) {
+						current_xform = base_xform;
+					} else {
+						current_xform.rotate(Vector3(0, 1, 0), spin_step);
+					}
 				} break;
 				case MODE_PATH: {
 					double previous_offset = x0 * extrusion_step;

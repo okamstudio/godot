@@ -30,7 +30,6 @@
 
 #include "navigation_region_2d.h"
 
-#include "core/math/geometry_2d.h"
 #include "scene/resources/world_2d.h"
 #include "servers/navigation_server_2d.h"
 
@@ -164,14 +163,14 @@ void NavigationRegion2D::_notification(int p_what) {
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(is_visible_in_tree());
+			_set_debug_visible(is_visible_in_tree());
 #endif // DEBUG_ENABLED
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
 			_region_exit_navigation_map();
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(false);
+			_set_debug_visible(false);
 #endif // DEBUG_ENABLED
 		} break;
 
@@ -209,7 +208,7 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 
 #ifdef DEBUG_ENABLED
 	if (navigation_polygon.is_null()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 	}
 #endif // DEBUG_ENABLED
 
@@ -243,7 +242,7 @@ RID NavigationRegion2D::get_navigation_map() const {
 
 void NavigationRegion2D::bake_navigation_polygon(bool p_on_thread) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "The SceneTree can only be parsed on the main thread. Call this function from the main thread or use call_deferred().");
-	ERR_FAIL_COND_MSG(!navigation_polygon.is_valid(), "Baking the navigation polygon requires a valid `NavigationPolygon` resource.");
+	ERR_FAIL_COND_MSG(navigation_polygon.is_null(), "Baking the navigation polygon requires a valid `NavigationPolygon` resource.");
 
 	Ref<NavigationMeshSourceGeometryData2D> source_geometry_data;
 	source_geometry_data.instantiate();
@@ -300,7 +299,7 @@ PackedStringArray NavigationRegion2D::get_configuration_warnings() const {
 	PackedStringArray warnings = Node2D::get_configuration_warnings();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
-		if (!navigation_polygon.is_valid()) {
+		if (navigation_polygon.is_null()) {
 			warnings.push_back(RTR("A NavigationMesh resource must be set or created for this node to work. Please set a property or draw a polygon."));
 		}
 	}
@@ -446,7 +445,7 @@ void NavigationRegion2D::_region_update_transform() {
 #ifdef DEBUG_ENABLED
 void NavigationRegion2D::_update_debug_mesh() {
 	if (!is_inside_tree()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 		return;
 	}
 
@@ -641,7 +640,7 @@ void NavigationRegion2D::_update_debug_baking_rect() {
 #endif // DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
-void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
+void NavigationRegion2D::_set_debug_visible(bool p_visible) {
 	RenderingServer *rs = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rs);
 	if (debug_instance_rid.is_valid()) {

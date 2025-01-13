@@ -38,7 +38,6 @@
 #include "servers/rendering/storage/compositor_storage.h"
 #include "servers/rendering/storage/environment_storage.h"
 #include "storage/render_scene_buffers.h"
-#include "storage/utilities.h"
 
 class RendererSceneRender {
 private:

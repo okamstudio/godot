@@ -31,8 +31,6 @@
 #include "visual_shader_nodes.h"
 #include "visual_shader_nodes.compat.inc"
 
-#include "scene/resources/image_texture.h"
-
 ////////////// Vector Base
 
 VisualShaderNodeVectorBase::PortType VisualShaderNodeVectorBase::get_input_port_type(int p_port) const {
@@ -582,9 +580,17 @@ Quaternion VisualShaderNodeVec4Constant::get_constant() const {
 	return constant;
 }
 
+void VisualShaderNodeVec4Constant::_set_constant_v4(const Vector4 &p_constant) {
+	set_constant(Quaternion(p_constant.x, p_constant.y, p_constant.z, p_constant.w));
+}
+
+Vector4 VisualShaderNodeVec4Constant::_get_constant_v4() const {
+	return Vector4(constant.x, constant.y, constant.z, constant.w);
+}
+
 Vector<StringName> VisualShaderNodeVec4Constant::get_editable_properties() const {
 	Vector<StringName> props;
-	props.push_back("constant");
+	props.push_back("constant_v4");
 	return props;
 }
 
@@ -592,7 +598,11 @@ void VisualShaderNodeVec4Constant::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_constant", "constant"), &VisualShaderNodeVec4Constant::set_constant);
 	ClassDB::bind_method(D_METHOD("get_constant"), &VisualShaderNodeVec4Constant::get_constant);
 
+	ClassDB::bind_method(D_METHOD("_set_constant_v4", "constant"), &VisualShaderNodeVec4Constant::_set_constant_v4);
+	ClassDB::bind_method(D_METHOD("_get_constant_v4"), &VisualShaderNodeVec4Constant::_get_constant_v4);
+
 	ADD_PROPERTY(PropertyInfo(Variant::QUATERNION, "constant"), "set_constant", "get_constant");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR4, "constant_v4", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_INTERNAL), "_set_constant_v4", "_get_constant_v4");
 }
 
 VisualShaderNodeVec4Constant::VisualShaderNodeVec4Constant() {

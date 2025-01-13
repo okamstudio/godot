@@ -36,6 +36,8 @@
 #include "scene/gui/margin_container.h"
 #include "scene/resources/texture.h"
 
+class AspectRatioContainer;
+class ColorRect;
 class TextureRect;
 
 class TexturePreview : public MarginContainer {
@@ -44,13 +46,20 @@ class TexturePreview : public MarginContainer {
 private:
 	TextureRect *texture_display = nullptr;
 
+	MarginContainer *margin_container = nullptr;
+	AspectRatioContainer *centering_container = nullptr;
+	ColorRect *bg_rect = nullptr;
 	TextureRect *checkerboard = nullptr;
 	Label *metadata_label = nullptr;
 
+	Color cached_outline_color;
+
+	void _draw_outline();
 	void _update_metadata_label_text();
 
 protected:
 	void _notification(int p_what);
+	void _update_texture_display_ratio();
 
 public:
 	TextureRect *get_texture_display();
@@ -69,7 +78,7 @@ class TextureEditorPlugin : public EditorPlugin {
 	GDCLASS(TextureEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "Texture2D"; }
+	virtual String get_plugin_name() const override { return "Texture2D"; }
 
 	TextureEditorPlugin();
 };

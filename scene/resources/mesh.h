@@ -362,6 +362,7 @@ public:
 
 	int get_surface_count() const override;
 
+	void surface_remove(int p_surface);
 	void clear_surfaces();
 
 	void surface_set_custom_aabb(int p_idx, const AABB &p_aabb); //only recognized by driver

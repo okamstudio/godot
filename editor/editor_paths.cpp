@@ -237,6 +237,17 @@ EditorPaths::EditorPaths() {
 		}
 	}
 
+	// Temporary dir.
+	{
+		if (dir->change_dir(temp_dir) != OK) {
+			dir->make_dir_recursive(temp_dir);
+			if (dir->change_dir(temp_dir) != OK) {
+				ERR_PRINT("Could not create editor temporary directory: " + temp_dir);
+				paths_valid = false;
+			}
+		}
+	}
+
 	// Validate or create project-specific editor data dir,
 	// including shader cache subdir.
 	if (Engine::get_singleton()->is_project_manager_hint() || (Main::is_cmdline_tool() && !ProjectSettings::get_singleton()->is_project_loaded())) {

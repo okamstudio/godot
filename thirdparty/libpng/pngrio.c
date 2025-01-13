@@ -1,4 +1,3 @@
-
 /* pngrio.c - functions for data input
  *
  * Copyright (c) 2018 Cosmin Truta

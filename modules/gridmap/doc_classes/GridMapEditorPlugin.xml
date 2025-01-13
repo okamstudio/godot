@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GridMapEditorPlugin" inherits="EditorPlugin" keywords="tilemap" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Editor for [GridMap] nodes.
+	</brief_description>
+	<description>
+		GridMapEditorPlugin provides access to the [GridMap] editor functionality.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="clear_selection">
+			<return type="void" />
+			<description>
+				Deselects any currently selected cells.
+			</description>
+		</method>
+		<method name="get_current_grid_map" qualifiers="const">
+			<return type="GridMap" />
+			<description>
+				Returns the [GridMap] node currently edited by the grid map editor.
+			</description>
+		</method>
+		<method name="get_selected_cells" qualifiers="const">
+			<return type="Array" />
+			<description>
+				Returns an array of [Vector3i]s with the selected cells' coordinates.
+			</description>
+		</method>
+		<method name="get_selected_palette_item" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the index of the selected [MeshLibrary] item in the grid map editor's palette or [code]-1[/code] if no item is selected.
+				[b]Note:[/b] The indices might not be in the same order as they appear in the editor's interface.
+			</description>
+		</method>
+		<method name="get_selection" qualifiers="const">
+			<return type="AABB" />
+			<description>
+				Returns the cell coordinate bounds of the current selection. Use [method has_selection] to check if there is an active selection.
+			</description>
+		</method>
+		<method name="has_selection" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if there are selected cells.
+			</description>
+		</method>
+		<method name="set_selected_palette_item" qualifiers="const">
+			<return type="void" />
+			<param index="0" name="item" type="int" />
+			<description>
+				Selects the [MeshLibrary] item with the given index in the grid map editor's palette. If a negative index is given, no item will be selected. If a value greater than the last index is given, the last item will be selected.
+				[b]Note:[/b] The indices might not be in the same order as they appear in the editor's interface.
+			</description>
+		</method>
+		<method name="set_selection">
+			<return type="void" />
+			<param index="0" name="begin" type="Vector3i" />
+			<param index="1" name="end" type="Vector3i" />
+			<description>
+				Selects the cells inside the given bounds from [param begin] to [param end].
+			</description>
+		</method>
+	</methods>
+</class>

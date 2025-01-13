@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="SkeletonModifier3D" inherits="Node3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		A Node that may modify Skeleton3D's bone.
+		A node that may modify Skeleton3D's bone.
 	</brief_description>
 	<description>
 		[SkeletonModifier3D] retrieves a target [Skeleton3D] by having a [Skeleton3D] parent.
@@ -43,4 +43,24 @@
 			</description>
 		</signal>
 	</signals>
+	<constants>
+		<constant name="BONE_AXIS_PLUS_X" value="0" enum="BoneAxis">
+			Enumerated value for the +X axis.
+		</constant>
+		<constant name="BONE_AXIS_MINUS_X" value="1" enum="BoneAxis">
+			Enumerated value for the -X axis.
+		</constant>
+		<constant name="BONE_AXIS_PLUS_Y" value="2" enum="BoneAxis">
+			Enumerated value for the +Y axis.
+		</constant>
+		<constant name="BONE_AXIS_MINUS_Y" value="3" enum="BoneAxis">
+			Enumerated value for the -Y axis.
+		</constant>
+		<constant name="BONE_AXIS_PLUS_Z" value="4" enum="BoneAxis">
+			Enumerated value for the +Z axis.
+		</constant>
+		<constant name="BONE_AXIS_MINUS_Z" value="5" enum="BoneAxis">
+			Enumerated value for the -Z axis.
+		</constant>
+	</constants>
 </class>

@@ -112,6 +112,50 @@ std::shared_ptr<CsgLeafNode> ImplToLeaf(Manifold::Impl &&impl) {
   return std::make_shared<CsgLeafNode>(std::make_shared<Manifold::Impl>(impl));
 }
 
+std::shared_ptr<CsgLeafNode> SimpleBoolean(const Manifold::Impl &a,
+                                           const Manifold::Impl &b, OpType op) {
+#ifdef MANIFOLD_DEBUG
+  auto dump = [&]() {
+    dump_lock.lock();
+    std::cout << "LHS self-intersecting: " << a.IsSelfIntersecting()
+              << std::endl;
+    std::cout << "RHS self-intersecting: " << b.IsSelfIntersecting()
+              << std::endl;
+    if (ManifoldParams().verbose) {
+      if (op == OpType::Add)
+        std::cout << "Add";
+      else if (op == OpType::Intersect)
+        std::cout << "Intersect";
+      else
+        std::cout << "Subtract";
+      std::cout << std::endl;
+      std::cout << a;
+      std::cout << b;
+    }
+    dump_lock.unlock();
+  };
+  try {
+    Boolean3 boolean(a, b, op);
+    auto impl = boolean.Result(op);
+    if (ManifoldParams().intermediateChecks && impl.IsSelfIntersecting()) {
+      dump_lock.lock();
+      std::cout << "self intersections detected" << std::endl;
+      dump_lock.unlock();
+      throw logicErr("self intersection detected");
+    }
+    return ImplToLeaf(std::move(impl));
+  } catch (logicErr &err) {
+    dump();
+    throw err;
+  } catch (geometryErr &err) {
+    dump();
+    throw err;
+  }
+#else
+  return ImplToLeaf(Boolean3(a, b, op).Result(op));
+#endif
+}
+
 /**
  * Efficient union of a set of pairwise disjoint meshes.
  */
@@ -306,10 +350,9 @@ std::shared_ptr<CsgLeafNode> BatchBoolean(
   // common cases
   if (results.size() == 0) return std::make_shared<CsgLeafNode>();
   if (results.size() == 1) return results.front();
-  if (results.size() == 2) {
-    Boolean3 boolean(*results[0]->GetImpl(), *results[1]->GetImpl(), operation);
-    return ImplToLeaf(boolean.Result(operation));
-  }
+  if (results.size() == 2)
+    return SimpleBoolean(*results[0]->GetImpl(), *results[1]->GetImpl(),
+                         operation);
 #if (MANIFOLD_PAR == 1) && __has_include(<tbb/tbb.h>)
   tbb::task_group group;
   tbb::concurrent_priority_queue<std::shared_ptr<CsgLeafNode>, MeshCompare>
@@ -327,8 +370,7 @@ std::shared_ptr<CsgLeafNode> BatchBoolean(
         continue;
       }
       group.run([&, a, b]() {
-        Boolean3 boolean(*a->GetImpl(), *b->GetImpl(), operation);
-        queue.emplace(ImplToLeaf(boolean.Result(operation)));
+        queue.emplace(SimpleBoolean(*a->GetImpl(), *b->GetImpl(), operation));
         return group.run(process);
       });
     }
@@ -351,11 +393,8 @@ std::shared_ptr<CsgLeafNode> BatchBoolean(
     auto b = std::move(results.back());
     results.pop_back();
     // boolean operation
-    Boolean3 boolean(*a->GetImpl(), *b->GetImpl(), operation);
-    auto result = ImplToLeaf(boolean.Result(operation));
-    if (results.size() == 0) {
-      return result;
-    }
+    auto result = SimpleBoolean(*a->GetImpl(), *b->GetImpl(), operation);
+    if (results.size() == 0) return result;
     results.push_back(result);
     std::push_heap(results.begin(), results.end(), cmpFn);
   }
@@ -429,9 +468,33 @@ CsgOpNode::CsgOpNode() {}
 
 CsgOpNode::CsgOpNode(const std::vector<std::shared_ptr<CsgNode>> &children,
                      OpType op)
-    : impl_(Impl{}), op_(op) {
-  auto impl = impl_.GetGuard();
-  impl->children_ = children;
+    : impl_(children), op_(op) {}
+
+CsgOpNode::~CsgOpNode() {
+  if (impl_.UseCount() == 1) {
+    auto impl = impl_.GetGuard();
+    std::vector<std::shared_ptr<CsgOpNode>> toProcess;
+    auto handleChildren =
+        [&toProcess](std::vector<std::shared_ptr<CsgNode>> &children) {
+          while (!children.empty()) {
+            // move out so shrinking the vector will not trigger recursive drop
+            auto movedChild = std::move(children.back());
+            children.pop_back();
+            if (movedChild->GetNodeType() != CsgNodeType::Leaf)
+              toProcess.push_back(
+                  std::static_pointer_cast<CsgOpNode>(std::move(movedChild)));
+          }
+        };
+    handleChildren(*impl);
+    while (!toProcess.empty()) {
+      auto child = std::move(toProcess.back());
+      toProcess.pop_back();
+      if (impl_.UseCount() == 1) {
+        auto childImpl = child->impl_.GetGuard();
+        handleChildren(*childImpl);
+      }
+    }
+  }
 }
 
 std::shared_ptr<CsgNode> CsgOpNode::Boolean(
@@ -452,21 +515,25 @@ std::shared_ptr<CsgNode> CsgOpNode::Transform(const mat3x4 &m) const {
 }
 
 struct CsgStackFrame {
+  using Nodes = std::vector<std::shared_ptr<CsgLeafNode>>;
+
   bool finalize;
   OpType parent_op;
   mat3x4 transform;
-  std::vector<std::shared_ptr<CsgLeafNode>> *destination;
+  Nodes *positive_dest;
+  Nodes *negative_dest;
   std::shared_ptr<const CsgOpNode> op_node;
-  std::vector<std::shared_ptr<CsgLeafNode>> positive_children;
-  std::vector<std::shared_ptr<CsgLeafNode>> negative_children;
+  Nodes positive_children;
+  Nodes negative_children;
 
   CsgStackFrame(bool finalize, OpType parent_op, mat3x4 transform,
-                std::vector<std::shared_ptr<CsgLeafNode>> *parent,
+                Nodes *positive_dest, Nodes *negative_dest,
                 std::shared_ptr<const CsgOpNode> op_node)
       : finalize(finalize),
         parent_op(parent_op),
         transform(transform),
-        destination(parent),
+        positive_dest(positive_dest),
+        negative_dest(negative_dest),
         op_node(op_node) {}
 };
 
@@ -481,10 +548,10 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
   // when we remove it from the stack, but it is a bit more complicated and
   // there is no measurable overhead from using `shared_ptr` here...
   std::vector<std::shared_ptr<CsgStackFrame>> stack;
-  // initial node, destination is a nullptr because we don't need to put the
+  // initial node, positive_dest is a nullptr because we don't need to put the
   // result anywhere else (except in the cache_).
   stack.push_back(std::make_shared<CsgStackFrame>(
-      false, op_, la::identity, nullptr,
+      false, op_, la::identity, nullptr, nullptr,
       std::static_pointer_cast<const CsgOpNode>(shared_from_this())));
 
   // Instead of actually using recursion in the algorithm, we use an explicit
@@ -494,7 +561,7 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
   // Before performing boolean operations, we should make sure that all children
   // are `CsgLeafNodes`, i.e. are actual meshes that can be operated on. Hence,
   // we do it in two steps:
-  // 1. Populate `children` (`left_children` and `right_children`, see below)
+  // 1. Populate `children` (`positive_children` and `negative_children`)
   //    If the child is a `CsgOpNode`, we either collapse it or compute its
   //    boolean operation result.
   // 2. Performs boolean after populating the `children` set.
@@ -510,21 +577,23 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
   // reused. And in the special case where the children set only contains one
   // element, we don't need any operation, so we can collapse that as well.
   // Instead of moving `b` and `c` into the parent, and running this collapsing
-  // check until a fixed point, we remember the `destination` where we should
-  // put the `CsgLeafNode` into. Normally, the `destination` pointer point to
+  // check until a fixed point, we remember the `positive_dest` where we should
+  // put the `CsgLeafNode` into. Normally, the `positive_dest` pointer point to
   // the parent `children` set. However, when a child is being collapsed, we
-  // keep using the old `destination` pointer for the grandchildren. Hence,
+  // keep using the old `positive_dest` pointer for the grandchildren. Hence,
   // removing a node by collapsing takes O(1) time. We also need to store the
   // parent operation type for checking if the node is eligible for collapsing,
   // and transform matrix because we need to re-apply the transformation to the
   // children.
   //
-  // `Subtract` is handled differently from `Add` and `Intersect`. It is treated
-  // as two `Add` nodes, `positive_children` and `negative_children`, that
-  // should be subtracted later. This allows collapsing children `Add` nodes.
-  // For normal `Add` and `Intersect`, we only use `positive_children`.
+  // `Subtract` is handled differently from `Add` and `Intersect`.
+  // For the first operand, it is treated as normal subtract. Negative children
+  // in this operand is propagated to the parent, which is equivalent to
+  // collapsing `(a - b) - c` into `a - (b + c)`.
+  // For the remaining operands, they are treated as a nested `Add` node,
+  // collapsing `a - (b + (c + d))` into `a - (b + c + d)`.
   //
-  // `impl->children_` should always contain either the raw set of children or
+  // `impl` should always contain either the raw set of children or
   // the NOT transformed result, while `cache_` should contain the transformed
   // result. This is because `impl` can be shared between `CsgOpNode` that
   // differ in `transform_`, so we want it to be able to share the result.
@@ -532,38 +601,39 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
   // Recursive version (pseudocode only):
   //
   // void f(CsgOpNode node, OpType parent_op, mat3x4 transform,
-  //        std::vector<CsgLeafNode> *destination) {
+  //        Nodes *positive_dest, Nodes *negative_dest) {
   //   auto impl = node->impl_.GetGuard();
   //   // can collapse when we have the same operation as the parent and is
   //   // unique, or when we have only one children.
-  //   const bool canCollapse = (node->op_ == parent_op && IsUnique(node)) ||
-  //                            impl->children_.size() == 1;
+  //   const OpType op = node->op_;
+  //   const bool canCollapse = (op == parent_op && IsUnique(node)) ||
+  //                            impl->size() == 1;
   //   const mat3x4 transform2 = canCollapse ? transform * node->transform_
   //                                         : la::identity;
-  //   std::vector<CsgLeafNode> positive_children, negative_children;
-  //   // for subtract, we pretend the operation is Add for our children.
-  //   auto op = node->op_ == OpType::Subtract ? OpType::Add : node->op_;
-  //   for (size_t i = 0; i < impl->children_.size(); i++) {
-  //     auto child = impl->children_[i];
-  //     // negative when it is the remaining operands for Subtract
-  //     auto dest = node->op_ == OpType::Subtract && i != 0 ?
-  //       negative_children : positive_children;
-  //     if (canCollapse) dest = destination;
+  //   Nodes positive_children, negative_children;
+  //   Nodes* pos_dest = canCollapse ? positive_dest : &positive_children;
+  //   Nodes* neg_dest = canCollapse ? negative_dest : &negative_children;
+  //   for (size_t i = 0; i < impl->size(); i++) {
+  //     auto child = (*impl)[i];
+  //     const bool negative = op == OpType::Subtract && i != 0;
+  //     Nodes *dest1 = negative ? neg_dest : pos_dest;
+  //     Nodes *dest2 = (op == OpType::Subtract && i == 0) ?
+  //                      neg_dest : nullptr;
   //     if (child->GetNodeType() == CsgNodeType::Leaf)
-  //       dest.push_back(child);
+  //       dest1.push_back(child);
   //     else
-  //       f(child, op, transform2, dest);
+  //       f(child, op, transform2, dest1, dest2);
   //   }
   //   if (canCollapse) return;
   //   if (node->op_ == OpType::Add)
-  //     impl->children_ = {BatchUnion(positive_children)};
+  //     *impl = {BatchUnion(positive_children)};
   //   else if (node->op_ == OpType::Intersect)
-  //     impl->children_ = {BatchBoolean(Intersect, positive_children)};
+  //     *impl = {BatchBoolean(Intersect, positive_children)};
   //   else // subtract
-  //     impl->children_ = { BatchUnion(positive_children) -
+  //     *impl = { BatchUnion(positive_children) -
   //                         BatchUnion(negative_children)};
   //   // node local transform
-  //   node->cache_ = impl->children_[0].Transform(node.transform);
+  //   node->cache_ = (*impl)[0].Transform(node.transform);
   //   // collapsed node transforms
   //   if (destination)
   //     destination->push_back(node->cache_->Transform(transform));
@@ -574,56 +644,56 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
     if (frame->finalize) {
       switch (frame->op_node->op_) {
         case OpType::Add:
-          impl->children_ = {BatchUnion(frame->positive_children)};
+          *impl = {BatchUnion(frame->positive_children)};
           break;
         case OpType::Intersect: {
-          impl->children_ = {
-              BatchBoolean(OpType::Intersect, frame->positive_children)};
+          *impl = {BatchBoolean(OpType::Intersect, frame->positive_children)};
           break;
         };
         case OpType::Subtract:
           if (frame->positive_children.empty()) {
             // nothing to subtract from, so the result is empty.
-            impl->children_ = {std::make_shared<CsgLeafNode>()};
+            *impl = {std::make_shared<CsgLeafNode>()};
           } else {
             auto positive = BatchUnion(frame->positive_children);
             if (frame->negative_children.empty()) {
               // nothing to subtract, result equal to the LHS.
-              impl->children_ = {frame->positive_children[0]};
+              *impl = {frame->positive_children[0]};
             } else {
-              Boolean3 boolean(*positive->GetImpl(),
-                               *BatchUnion(frame->negative_children)->GetImpl(),
-                               OpType::Subtract);
-              impl->children_ = {ImplToLeaf(boolean.Result(OpType::Subtract))};
+              auto negative = BatchUnion(frame->negative_children);
+              *impl = {SimpleBoolean(*positive->GetImpl(), *negative->GetImpl(),
+                                     OpType::Subtract)};
             }
           }
           break;
       }
       frame->op_node->cache_ = std::static_pointer_cast<CsgLeafNode>(
-          impl->children_[0]->Transform(frame->op_node->transform_));
-      if (frame->destination != nullptr)
-        frame->destination->push_back(std::static_pointer_cast<CsgLeafNode>(
+          (*impl)[0]->Transform(frame->op_node->transform_));
+      if (frame->positive_dest != nullptr)
+        frame->positive_dest->push_back(std::static_pointer_cast<CsgLeafNode>(
             frame->op_node->cache_->Transform(frame->transform)));
       stack.pop_back();
     } else {
-      auto add_children = [&stack](std::shared_ptr<CsgNode> &node, OpType op,
-                                   mat3x4 transform, auto *destination) {
-        if (node->GetNodeType() == CsgNodeType::Leaf)
-          destination->push_back(std::static_pointer_cast<CsgLeafNode>(
-              node->Transform(transform)));
-        else
-          stack.push_back(std::make_shared<CsgStackFrame>(
-              false, op, transform, destination,
-              std::static_pointer_cast<const CsgOpNode>(node)));
-      };
+      auto add_children =
+          [&stack](std::shared_ptr<CsgNode> &node, OpType op, mat3x4 transform,
+                   CsgStackFrame::Nodes *dest1, CsgStackFrame::Nodes *dest2) {
+            if (node->GetNodeType() == CsgNodeType::Leaf)
+              dest1->push_back(std::static_pointer_cast<CsgLeafNode>(
+                  node->Transform(transform)));
+            else
+              stack.push_back(std::make_shared<CsgStackFrame>(
+                  false, op, transform, dest1, dest2,
+                  std::static_pointer_cast<const CsgOpNode>(node)));
+          };
       // op_node use_count == 2 because it is both inside one CsgOpNode
       // and in our stack.
       // if there is only one child, we can also collapse.
-      const bool canCollapse = frame->destination != nullptr &&
-                               ((frame->op_node->op_ == frame->parent_op &&
-                                 frame->op_node.use_count() <= 2 &&
-                                 frame->op_node->impl_.UseCount() == 1) ||
-                                impl->children_.size() == 1);
+      const OpType op = frame->op_node->op_;
+      const bool canCollapse =
+          frame->positive_dest != nullptr &&
+          ((op == frame->parent_op && frame->op_node.use_count() <= 2 &&
+            frame->op_node->impl_.UseCount() == 1) ||
+           impl->size() == 1);
       if (canCollapse)
         stack.pop_back();
       else
@@ -632,14 +702,17 @@ std::shared_ptr<CsgLeafNode> CsgOpNode::ToLeafNode() const {
       const mat3x4 transform =
           canCollapse ? (frame->transform * Mat4(frame->op_node->transform_))
                       : la::identity;
-      OpType op = frame->op_node->op_ == OpType::Subtract ? OpType::Add
-                                                          : frame->op_node->op_;
-      for (size_t i = 0; i < impl->children_.size(); i++) {
-        auto dest = canCollapse ? frame->destination
-                    : (frame->op_node->op_ == OpType::Subtract && i != 0)
-                        ? &frame->negative_children
-                        : &frame->positive_children;
-        add_children(impl->children_[i], op, transform, dest);
+      CsgStackFrame::Nodes *pos_dest =
+          canCollapse ? frame->positive_dest : &frame->positive_children;
+      CsgStackFrame::Nodes *neg_dest =
+          canCollapse ? frame->negative_dest : &frame->negative_children;
+      for (size_t i = 0; i < impl->size(); i++) {
+        const bool negative = op == OpType::Subtract && i != 0;
+        CsgStackFrame::Nodes *dest1 = negative ? neg_dest : pos_dest;
+        CsgStackFrame::Nodes *dest2 =
+            (op == OpType::Subtract && i == 0) ? neg_dest : nullptr;
+        add_children((*impl)[i], negative ? OpType::Add : op, transform, dest1,
+                     dest2);
       }
     }
   }

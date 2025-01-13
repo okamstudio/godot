@@ -37,10 +37,6 @@
 #include "servers/navigation_server_2d.h"
 
 #ifdef DEBUG_ENABLED
-#include "servers/navigation_server_3d.h"
-#endif // DEBUG_ENABLED
-
-#ifdef DEBUG_ENABLED
 /////////////////////////////// Debug //////////////////////////////////////////
 constexpr int TILE_MAP_DEBUG_QUADRANT_SIZE = 16;
 
@@ -313,7 +309,7 @@ void TileMapLayer::_rendering_update(bool p_force_cleanup) {
 							rs->canvas_item_set_material(ci, mat->get_rid());
 						}
 						rs->canvas_item_set_parent(ci, get_canvas_item());
-						rs->canvas_item_set_use_parent_material(ci, !mat.is_valid());
+						rs->canvas_item_set_use_parent_material(ci, mat.is_null());
 
 						Transform2D xform(0, rendering_quadrant->canvas_items_position);
 						rs->canvas_item_set_transform(ci, xform);
@@ -672,7 +668,7 @@ void TileMapLayer::_rendering_draw_cell_debug(const RID &p_canvas_item, const Ve
 			TileSetAtlasSource *atlas_source = Object::cast_to<TileSetAtlasSource>(source);
 			if (atlas_source) {
 				Vector2i grid_size = atlas_source->get_atlas_grid_size();
-				if (!atlas_source->get_runtime_texture().is_valid() || c.get_atlas_coords().x >= grid_size.x || c.get_atlas_coords().y >= grid_size.y) {
+				if (atlas_source->get_runtime_texture().is_null() || c.get_atlas_coords().x >= grid_size.x || c.get_atlas_coords().y >= grid_size.y) {
 					// Generate a random color from the hashed values of the tiles.
 					Array to_hash;
 					to_hash.push_back(c.source_id);
@@ -855,7 +851,7 @@ void TileMapLayer::_physics_update_cell(CellData &r_cell_data) {
 						ps->body_set_state(body, PhysicsServer2D::BODY_STATE_LINEAR_VELOCITY, tile_data->get_constant_linear_velocity(tile_set_physics_layer));
 						ps->body_set_state(body, PhysicsServer2D::BODY_STATE_ANGULAR_VELOCITY, tile_data->get_constant_angular_velocity(tile_set_physics_layer));
 
-						if (!physics_material.is_valid()) {
+						if (physics_material.is_null()) {
 							ps->body_set_param(body, PhysicsServer2D::BODY_PARAM_BOUNCE, 0);
 							ps->body_set_param(body, PhysicsServer2D::BODY_PARAM_FRICTION, 1);
 						} else {
@@ -1332,7 +1328,7 @@ void TileMapLayer::_scenes_draw_cell_debug(const RID &p_canvas_item, const Vecto
 
 		TileSetScenesCollectionSource *scenes_collection_source = Object::cast_to<TileSetScenesCollectionSource>(source);
 		if (scenes_collection_source) {
-			if (!scenes_collection_source->get_scene_tile_scene(c.alternative_tile).is_valid() || scenes_collection_source->get_scene_tile_display_placeholder(c.alternative_tile)) {
+			if (scenes_collection_source->get_scene_tile_scene(c.alternative_tile).is_null() || scenes_collection_source->get_scene_tile_display_placeholder(c.alternative_tile)) {
 				// Generate a random color from the hashed values of the tiles.
 				Array to_hash;
 				to_hash.push_back(c.source_id);
@@ -1838,7 +1834,7 @@ void TileMapLayer::_bind_methods() {
 
 	// --- Runtime ---
 	ClassDB::bind_method(D_METHOD("update_internals"), &TileMapLayer::update_internals);
-	ClassDB::bind_method(D_METHOD("notify_runtime_tile_data_update"), &TileMapLayer::notify_runtime_tile_data_update, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("notify_runtime_tile_data_update"), &TileMapLayer::notify_runtime_tile_data_update);
 
 	// --- Shortcuts to methods defined in TileSet ---
 	ClassDB::bind_method(D_METHOD("map_pattern", "position_in_tilemap", "coords_in_pattern", "pattern"), &TileMapLayer::map_pattern);
@@ -3082,7 +3078,7 @@ HashMap<Vector2i, TileSet::CellNeighbor> TerrainConstraint::get_overlapping_coor
 	HashMap<Vector2i, TileSet::CellNeighbor> output;
 
 	ERR_FAIL_COND_V(is_center_bit(), output);
-	ERR_FAIL_COND_V(!tile_set.is_valid(), output);
+	ERR_FAIL_COND_V(tile_set.is_null(), output);
 
 	TileSet::TileShape shape = tile_set->get_tile_shape();
 	if (shape == TileSet::TILE_SHAPE_SQUARE) {
@@ -3186,7 +3182,7 @@ HashMap<Vector2i, TileSet::CellNeighbor> TerrainConstraint::get_overlapping_coor
 }
 
 TerrainConstraint::TerrainConstraint(Ref<TileSet> p_tile_set, const Vector2i &p_position, int p_terrain) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	tile_set = p_tile_set;
 	bit = 0;
 	base_cell_coords = p_position;
@@ -3195,7 +3191,7 @@ TerrainConstraint::TerrainConstraint(Ref<TileSet> p_tile_set, const Vector2i &p_
 
 TerrainConstraint::TerrainConstraint(Ref<TileSet> p_tile_set, const Vector2i &p_position, const TileSet::CellNeighbor &p_bit, int p_terrain) {
 	// The way we build the constraint make it easy to detect conflicting constraints.
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	tile_set = p_tile_set;
 
 	TileSet::TileShape shape = tile_set->get_tile_shape();

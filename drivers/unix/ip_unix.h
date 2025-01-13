@@ -31,7 +31,7 @@
 #ifndef IP_UNIX_H
 #define IP_UNIX_H
 
-#if defined(UNIX_ENABLED)
+#if defined(UNIX_ENABLED) && !defined(UNIX_SOCKET_UNAVAILABLE)
 
 #include "core/io/ip.h"
 

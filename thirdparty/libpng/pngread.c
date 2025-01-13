@@ -1,7 +1,6 @@
-
 /* pngread.c - read a PNG file
  *
- * Copyright (c) 2018-2024 Cosmin Truta
+ * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -173,6 +172,11 @@ png_read_info(png_structrp png_ptr, png_inforp info_ptr)
 #ifdef PNG_READ_cHRM_SUPPORTED
       else if (chunk_name == png_cHRM)
          png_handle_cHRM(png_ptr, info_ptr, length);
+#endif
+
+#ifdef PNG_READ_cICP_SUPPORTED
+      else if (chunk_name == png_cICP)
+         png_handle_cICP(png_ptr, info_ptr, length);
 #endif
 
 #ifdef PNG_READ_eXIf_SUPPORTED
@@ -850,6 +854,11 @@ png_read_end(png_structrp png_ptr, png_inforp info_ptr)
 #ifdef PNG_READ_cHRM_SUPPORTED
       else if (chunk_name == png_cHRM)
          png_handle_cHRM(png_ptr, info_ptr, length);
+#endif
+
+#ifdef PNG_READ_cICP_SUPPORTED
+      else if (chunk_name == png_cICP)
+         png_handle_cICP(png_ptr, info_ptr, length);
 #endif
 
 #ifdef PNG_READ_eXIf_SUPPORTED

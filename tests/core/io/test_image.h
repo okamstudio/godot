@@ -35,9 +35,10 @@
 #include "core/os/os.h"
 
 #include "tests/test_utils.h"
-#include "thirdparty/doctest/doctest.h"
 
 #include "modules/modules_enabled.gen.h"
+
+#include "thirdparty/doctest/doctest.h"
 
 namespace TestImage {
 
@@ -113,7 +114,7 @@ TEST_CASE("[Image] Saving and loading") {
 	// Load BMP
 	Ref<Image> image_bmp = memnew(Image());
 	Ref<FileAccess> f_bmp = FileAccess::open(TestUtils::get_data_path("images/icon.bmp"), FileAccess::READ, &err);
-	REQUIRE(!f_bmp.is_null());
+	REQUIRE(f_bmp.is_valid());
 	PackedByteArray data_bmp;
 	data_bmp.resize(f_bmp->get_length() + 1);
 	f_bmp->get_buffer(data_bmp.ptrw(), f_bmp->get_length());
@@ -126,7 +127,7 @@ TEST_CASE("[Image] Saving and loading") {
 	// Load JPG
 	Ref<Image> image_jpg = memnew(Image());
 	Ref<FileAccess> f_jpg = FileAccess::open(TestUtils::get_data_path("images/icon.jpg"), FileAccess::READ, &err);
-	REQUIRE(!f_jpg.is_null());
+	REQUIRE(f_jpg.is_valid());
 	PackedByteArray data_jpg;
 	data_jpg.resize(f_jpg->get_length() + 1);
 	f_jpg->get_buffer(data_jpg.ptrw(), f_jpg->get_length());
@@ -139,7 +140,7 @@ TEST_CASE("[Image] Saving and loading") {
 	// Load WebP
 	Ref<Image> image_webp = memnew(Image());
 	Ref<FileAccess> f_webp = FileAccess::open(TestUtils::get_data_path("images/icon.webp"), FileAccess::READ, &err);
-	REQUIRE(!f_webp.is_null());
+	REQUIRE(f_webp.is_valid());
 	PackedByteArray data_webp;
 	data_webp.resize(f_webp->get_length() + 1);
 	f_webp->get_buffer(data_webp.ptrw(), f_webp->get_length());
@@ -151,7 +152,7 @@ TEST_CASE("[Image] Saving and loading") {
 	// Load PNG
 	Ref<Image> image_png = memnew(Image());
 	Ref<FileAccess> f_png = FileAccess::open(TestUtils::get_data_path("images/icon.png"), FileAccess::READ, &err);
-	REQUIRE(!f_png.is_null());
+	REQUIRE(f_png.is_valid());
 	PackedByteArray data_png;
 	data_png.resize(f_png->get_length() + 1);
 	f_png->get_buffer(data_png.ptrw(), f_png->get_length());
@@ -163,7 +164,7 @@ TEST_CASE("[Image] Saving and loading") {
 	// Load TGA
 	Ref<Image> image_tga = memnew(Image());
 	Ref<FileAccess> f_tga = FileAccess::open(TestUtils::get_data_path("images/icon.tga"), FileAccess::READ, &err);
-	REQUIRE(!f_tga.is_null());
+	REQUIRE(f_tga.is_valid());
 	PackedByteArray data_tga;
 	data_tga.resize(f_tga->get_length() + 1);
 	f_tga->get_buffer(data_tga.ptrw(), f_tga->get_length());

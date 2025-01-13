@@ -16,6 +16,13 @@
 				Implement this in GDExtension to handle the (re)sizing of a viewport.
 			</description>
 		</method>
+		<method name="_set_anisotropic_filtering_level" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="anisotropic_filtering_level" type="int" />
+			<description>
+				Implement this in GDExtension to change the anisotropic filtering level.
+			</description>
+		</method>
 		<method name="_set_fsr_sharpness" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="fsr_sharpness" type="float" />

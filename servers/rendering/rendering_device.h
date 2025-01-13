@@ -31,12 +31,10 @@
 #ifndef RENDERING_DEVICE_H
 #define RENDERING_DEVICE_H
 
-#include "core/object/class_db.h"
 #include "core/object/worker_thread_pool.h"
 #include "core/os/condition_variable.h"
 #include "core/os/thread_safe.h"
 #include "core/templates/local_vector.h"
-#include "core/templates/oa_hash_map.h"
 #include "core/templates/rid_owner.h"
 #include "core/variant/typed_array.h"
 #include "servers/display_server.h"
@@ -224,6 +222,47 @@ public:
 	Error buffer_clear(RID p_buffer, uint32_t p_offset, uint32_t p_size);
 	Vector<uint8_t> buffer_get_data(RID p_buffer, uint32_t p_offset = 0, uint32_t p_size = 0); // This causes stall, only use to retrieve large buffers for saving.
 	Error buffer_get_data_async(RID p_buffer, const Callable &p_callback, uint32_t p_offset = 0, uint32_t p_size = 0);
+
+private:
+	/******************/
+	/**** CALLBACK ****/
+	/******************/
+
+public:
+	enum CallbackResourceType {
+		CALLBACK_RESOURCE_TYPE_TEXTURE,
+		CALLBACK_RESOURCE_TYPE_BUFFER,
+	};
+
+	enum CallbackResourceUsage {
+		CALLBACK_RESOURCE_USAGE_NONE,
+		CALLBACK_RESOURCE_USAGE_COPY_FROM,
+		CALLBACK_RESOURCE_USAGE_COPY_TO,
+		CALLBACK_RESOURCE_USAGE_RESOLVE_FROM,
+		CALLBACK_RESOURCE_USAGE_RESOLVE_TO,
+		CALLBACK_RESOURCE_USAGE_UNIFORM_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_INDIRECT_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_VERTEX_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_INDEX_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_SAMPLE,
+		CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ,
+		CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_MAX
+	};
+
+	struct CallbackResource {
+		RID rid;
+		CallbackResourceType type = CALLBACK_RESOURCE_TYPE_TEXTURE;
+		CallbackResourceUsage usage = CALLBACK_RESOURCE_USAGE_NONE;
+	};
+
+	Error driver_callback_add(RDD::DriverCallback p_callback, void *p_userdata, VectorView<CallbackResource> p_resources);
 
 	/*****************/
 	/**** TEXTURE ****/
@@ -857,6 +896,7 @@ private:
 #endif
 
 public:
+	RenderingDeviceDriver *get_device_driver() const { return driver; }
 	RenderingContextDriver *get_context_driver() const { return context; }
 
 	const RDD::Capabilities &get_device_capabilities() const { return driver->get_capabilities(); }

@@ -118,7 +118,8 @@
 			<return type="String" />
 			<param index="0" name="device" type="int" />
 			<description>
-				Returns an SDL2-compatible device GUID on platforms that use gamepad remapping, e.g. [code]030000004c050000c405000000010000[/code]. Returns [code]"Default Gamepad"[/code] otherwise. Godot uses the [url=https://github.com/gabomdq/SDL_GameControllerDB]SDL2 game controller database[/url] to determine gamepad names and mappings based on this GUID.
+				Returns an SDL2-compatible device GUID on platforms that use gamepad remapping, e.g. [code]030000004c050000c405000000010000[/code]. Returns an empty string if it cannot be found. Godot uses the [url=https://github.com/gabomdq/SDL_GameControllerDB]SDL2 game controller database[/url] to determine gamepad names and mappings based on this GUID.
+				On Windows, all XInput joypad GUIDs will be overridden by Godot to [code]__XINPUT_DEVICE__[/code], because their mappings are the same.
 			</description>
 		</method>
 		<method name="get_joy_info" qualifiers="const">
@@ -126,8 +127,10 @@
 			<param index="0" name="device" type="int" />
 			<description>
 				Returns a dictionary with extra platform-specific information about the device, e.g. the raw gamepad name from the OS or the Steam Input index.
-				On Windows the dictionary contains the following fields:
-				[code]xinput_index[/code]: The index of the controller in the XInput system.
+				On Windows, the dictionary contains the following fields:
+				[code]xinput_index[/code]: The index of the controller in the XInput system. Undefined for DirectInput devices.
+				[code]vendor_id[/code]: The USB vendor ID of the device.
+				[code]product_id[/code]: The USB product ID of the device.
 				On Linux:
 				[code]raw_name[/code]: The name of the controller as it came from the OS, before getting renamed by the godot controller database.
 				[code]vendor_id[/code]: The USB vendor ID of the device.

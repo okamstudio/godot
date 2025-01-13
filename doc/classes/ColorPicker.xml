@@ -168,9 +168,6 @@
 		<theme_item name="color_hue" data_type="icon" type="Texture2D">
 			Custom texture for the hue selection slider on the right.
 		</theme_item>
-		<theme_item name="color_okhsl_hue" data_type="icon" type="Texture2D">
-			Custom texture for the H slider in the OKHSL color mode.
-		</theme_item>
 		<theme_item name="expanded_arrow" data_type="icon" type="Texture2D">
 			The icon for color preset drop down menu when expanded.
 		</theme_item>
@@ -185,6 +182,9 @@
 		</theme_item>
 		<theme_item name="picker_cursor" data_type="icon" type="Texture2D">
 			The image displayed over the color box/circle (depending on the [member picker_shape]), marking the currently selected color.
+		</theme_item>
+		<theme_item name="picker_cursor_bg" data_type="icon" type="Texture2D">
+			The fill image displayed behind the picker cursor.
 		</theme_item>
 		<theme_item name="sample_bg" data_type="icon" type="Texture2D">
 			Background panel for the color preview box (visible when the color is translucent).

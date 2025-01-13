@@ -30,8 +30,6 @@
 
 #include "shader_compiler.h"
 
-#include "core/config/project_settings.h"
-#include "core/os/os.h"
 #include "servers/rendering/rendering_server_globals.h"
 #include "servers/rendering/shader_types.h"
 

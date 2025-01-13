@@ -47,6 +47,7 @@ private:
 	RS::ViewportScaling3DMode scaling_3d_mode = RS::VIEWPORT_SCALING_3D_MODE_OFF;
 	RS::ViewportMSAA msaa_3d = RS::VIEWPORT_MSAA_DISABLED;
 	RS::ViewportScreenSpaceAA screen_space_aa = RS::VIEWPORT_SCREEN_SPACE_AA_DISABLED;
+	RS::ViewportAnisotropicFiltering anisotropic_filtering_level = RS::VIEWPORT_ANISOTROPY_4X;
 
 	float fsr_sharpness = 0.0;
 	float texture_mipmap_bias = 0.0;
@@ -84,6 +85,9 @@ public:
 	float get_texture_mipmap_bias() const { return texture_mipmap_bias; }
 	void set_texture_mipmap_bias(float p_texture_mipmap_bias) { texture_mipmap_bias = p_texture_mipmap_bias; }
 
+	RS::ViewportAnisotropicFiltering get_anisotropic_filtering_level() const { return anisotropic_filtering_level; }
+	void set_anisotropic_filtering_level(RS::ViewportAnisotropicFiltering p_anisotropic_filtering_level) { anisotropic_filtering_level = p_anisotropic_filtering_level; }
+
 	bool get_use_taa() const { return use_taa; }
 	void set_use_taa(bool p_use_taa) { use_taa = p_use_taa; }
 
@@ -109,6 +113,7 @@ public:
 	// for those settings that are unlikely to require buffers to be recreated, we'll add setters
 	virtual void set_fsr_sharpness(float p_fsr_sharpness) = 0;
 	virtual void set_texture_mipmap_bias(float p_texture_mipmap_bias) = 0;
+	virtual void set_anisotropic_filtering_level(RS::ViewportAnisotropicFiltering p_anisotropic_filtering_level) = 0;
 	virtual void set_use_debanding(bool p_use_debanding) = 0;
 };
 
@@ -121,6 +126,7 @@ protected:
 	GDVIRTUAL1(_configure, const RenderSceneBuffersConfiguration *)
 	GDVIRTUAL1(_set_fsr_sharpness, float)
 	GDVIRTUAL1(_set_texture_mipmap_bias, float)
+	GDVIRTUAL1(_set_anisotropic_filtering_level, int)
 	GDVIRTUAL1(_set_use_debanding, bool)
 
 public:
@@ -130,6 +136,7 @@ public:
 
 	virtual void set_fsr_sharpness(float p_fsr_sharpness) override;
 	virtual void set_texture_mipmap_bias(float p_texture_mipmap_bias) override;
+	virtual void set_anisotropic_filtering_level(RS::ViewportAnisotropicFiltering p_anisotropic_filtering_level) override;
 	virtual void set_use_debanding(bool p_use_debanding) override;
 };
 

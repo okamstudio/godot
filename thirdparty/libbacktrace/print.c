@@ -1,5 +1,5 @@
 /* print.c -- Print the current backtrace.
-   Copyright (C) 2012-2021 Free Software Foundation, Inc.
+   Copyright (C) 2012-2024 Free Software Foundation, Inc.
    Written by Ian Lance Taylor, Google.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,22 +47,6 @@ struct print_data
   FILE *f;
 };
 
-/* Print one level of a backtrace.  */
-
-static int
-print_callback (void *data, uintptr_t pc, const char *filename, int lineno,
-		const char *function)
-{
-  struct print_data *pdata = (struct print_data *) data;
-
-  fprintf (pdata->f, "0x%lx %s\n\t%s:%d\n",
-	   (unsigned long) pc,
-	   function == NULL ? "???" : function,
-	   filename == NULL ? "???" : filename,
-	   lineno);
-  return 0;
-}
-
 /* Print errors to stderr.  */
 
 static void
@@ -76,6 +60,47 @@ error_callback (void *data, const char *msg, int errnum)
   if (errnum > 0)
     fprintf (stderr, ": %s", strerror (errnum));
   fputc ('\n', stderr);
+}
+
+/* Print one level of a backtrace if we couldn't get a file or function name.
+   Use syminfo to try to get a symbol name.  */
+
+static void print_syminfo_callback (void *data, uintptr_t pc,
+				    const char *symname, uintptr_t symval,
+				    uintptr_t symsize ATTRIBUTE_UNUSED)
+{
+  struct print_data *pdata = (struct print_data *) data;
+
+  if (symname == NULL)
+    fprintf (pdata->f, "0x%lx ???\n\t???:0\n", (unsigned long) pc);
+  else
+    fprintf (pdata->f, "0x%lx ???\n\t%s+0x%lx:0\n",
+	     (unsigned long) pc,
+	     symname,
+	     (unsigned long) (pc - symval));
+}
+
+/* Print one level of a backtrace.  */
+
+static int
+print_callback (void *data, uintptr_t pc, const char *filename, int lineno,
+		const char *function)
+{
+  struct print_data *pdata = (struct print_data *) data;
+
+  if (function == NULL && filename == NULL)
+    {
+      backtrace_syminfo (pdata->state, pc, print_syminfo_callback,
+			 error_callback, data);
+      return 0;
+    }
+
+  fprintf (pdata->f, "0x%lx %s\n\t%s:%d\n",
+	   (unsigned long) pc,
+	   function == NULL ? "???" : function,
+	   filename == NULL ? "???" : filename,
+	   lineno);
+  return 0;
 }
 
 /* Print a backtrace.  */

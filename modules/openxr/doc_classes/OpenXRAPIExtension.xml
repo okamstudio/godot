@@ -82,6 +82,13 @@
 				Returns the predicted display timing for the current frame.
 			</description>
 		</method>
+		<method name="get_projection_layer">
+			<return type="int" />
+			<description>
+				Returns a pointer to the render state's [code]XrCompositionLayerProjection[/code] struct.
+				[b]Note:[/b] This method should only be called from the rendering thread.
+			</description>
+		</method>
 		<method name="get_render_state_z_far">
 			<return type="float" />
 			<description>
@@ -229,6 +236,13 @@
 			<param index="2" name="object_name" type="String" />
 			<description>
 				Set the object name of an OpenXR object, used for debug output. [param object_type] must be a valid OpenXR [code]XrObjectType[/code] enum and [param object_handle] must be a valid OpenXR object handle.
+			</description>
+		</method>
+		<method name="set_render_region">
+			<return type="void" />
+			<param index="0" name="render_region" type="Rect2i" />
+			<description>
+				Sets the render region to [param render_region], overriding the normal render target's rect.
 			</description>
 		</method>
 		<method name="set_velocity_depth_texture">

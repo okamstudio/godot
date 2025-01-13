@@ -463,6 +463,9 @@ public:
 	void edit(const Ref<Theme> &p_theme);
 	Ref<Theme> get_edited_theme();
 
+	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
+	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
+
 	ThemeEditor();
 };
 
@@ -473,7 +476,7 @@ class ThemeEditorPlugin : public EditorPlugin {
 	Button *button = nullptr;
 
 public:
-	virtual String get_name() const override { return "Theme"; }
+	virtual String get_plugin_name() const override { return "Theme"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;

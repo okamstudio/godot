@@ -77,7 +77,7 @@ class Sample {
 	 * Creates a `Sample` based on the params. Will register it to the
 	 * `GodotAudio.samples` registry.
 	 * @param {SampleParams} params Base params
-	 * @param {SampleOptions} [options={{}}] Optional params
+	 * @param {SampleOptions | undefined} options Optional params.
 	 * @returns {Sample}
 	 */
 	static create(params, options = {}) {
@@ -98,7 +98,7 @@ class Sample {
 	/**
 	 * `Sample` constructor.
 	 * @param {SampleParams} params Base params
-	 * @param {SampleOptions} [options={{}}] Optional params
+	 * @param {SampleOptions | undefined} options Optional params.
 	 */
 	constructor(params, options = {}) {
 		/** @type {string} */
@@ -393,7 +393,7 @@ class SampleNode {
 	 * Creates a `SampleNode` based on the params. Will register the `SampleNode` to
 	 * the `GodotAudio.sampleNodes` regisery.
 	 * @param {SampleNodeParams} params Base params.
-	 * @param {SampleNodeOptions} options Optional params.
+	 * @param {SampleNodeOptions | undefined} options Optional params.
 	 * @returns {SampleNode}
 	 */
 	static create(params, options = {}) {
@@ -413,7 +413,7 @@ class SampleNode {
 
 	/**
 	 * @param {SampleNodeParams} params Base params
-	 * @param {SampleNodeOptions} [options={{}}] Optional params
+	 * @param {SampleNodeOptions | undefined} options Optional params.
 	 */
 	constructor(params, options = {}) {
 		/** @type {string} */
@@ -1343,7 +1343,7 @@ const _GodotAudio = {
 		 * @param {string} playbackObjectId The unique id of the sample playback
 		 * @param {string} streamObjectId The unique id of the stream
 		 * @param {number} busIndex Index of the bus currently binded to the sample playback
-		 * @param {SampleNodeOptions} startOptions Optional params
+		 * @param {SampleNodeOptions | undefined} startOptions Optional params.
 		 * @returns {void}
 		 */
 		start_sample: function (

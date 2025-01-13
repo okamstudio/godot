@@ -57,7 +57,7 @@ private:
 
 	bool debug_mesh_dirty = true;
 
-	void _set_debug_visibile(bool p_visible);
+	void _set_debug_visible(bool p_visible);
 	void _update_debug_mesh();
 	void _update_debug_edge_connections_mesh();
 	void _update_debug_baking_rect();

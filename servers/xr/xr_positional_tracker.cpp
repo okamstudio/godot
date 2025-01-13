@@ -30,7 +30,6 @@
 
 #include "xr_positional_tracker.h"
 
-#include "core/input/input.h"
 #include "xr_controller_tracker.h"
 
 void XRPositionalTracker::_bind_methods() {

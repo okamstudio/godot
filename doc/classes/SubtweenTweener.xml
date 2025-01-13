@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SubtweenTweener" inherits="Tweener" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Runs a [Tween] nested within another [Tween].
+	</brief_description>
+	<description>
+		[SubtweenTweener] is used to execute a [Tween] as one step in a sequence defined by another [Tween]. See [method Tween.tween_subtween] for more usage information.
+		[b]Note:[/b] [method Tween.tween_subtween] is the only correct way to create [SubtweenTweener]. Any [SubtweenTweener] created manually will not function correctly.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="set_delay">
+			<return type="SubtweenTweener" />
+			<param index="0" name="delay" type="float" />
+			<description>
+				Sets the time in seconds after which the [SubtweenTweener] will start running the subtween. By default there's no delay.
+			</description>
+		</method>
+	</methods>
+</class>

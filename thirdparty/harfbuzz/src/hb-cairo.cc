@@ -482,7 +482,7 @@ hb_cairo_init_scaled_font (cairo_scaled_font_t  *scaled_font,
 								   &hb_cairo_face_user_data_key);
     font = hb_font_create (face);
 
-#if CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1,16,0)
+#if !defined(HB_NO_VAR) && CAIRO_VERSION >= CAIRO_VERSION_ENCODE(1,16,0)
     cairo_font_options_t *font_options = cairo_font_options_create ();
 
     // Set variations

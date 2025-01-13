@@ -31,7 +31,6 @@
 #include "xr_body_modifier_3d.h"
 
 #include "scene/3d/skeleton_3d.h"
-#include "servers/xr/xr_pose.h"
 #include "servers/xr_server.h"
 
 void XRBodyModifier3D::_bind_methods() {
@@ -251,7 +250,7 @@ void XRBodyModifier3D::_process_modification() {
 	}
 
 	const Ref<XRBodyTracker> tracker = xr_server->get_tracker(tracker_name);
-	if (!tracker.is_valid()) {
+	if (tracker.is_null()) {
 		return;
 	}
 

@@ -36,6 +36,12 @@
 				Calls the [param method] on the actual TreeItem and its children recursively. Pass parameters as a comma separated list.
 			</description>
 		</method>
+		<method name="clear_buttons">
+			<return type="void" />
+			<description>
+				Removes all buttons from all columns of this item.
+			</description>
+		</method>
 		<method name="clear_custom_bg_color">
 			<return type="void" />
 			<param index="0" name="column" type="int" />

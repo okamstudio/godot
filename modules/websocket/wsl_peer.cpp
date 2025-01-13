@@ -611,17 +611,6 @@ void WSLPeer::_wsl_frame_recv_chunk_callback(wslay_event_context_ptr ctx, const 
 	}
 }
 
-void WSLPeer::_wsl_frame_recv_end_callback(wslay_event_context_ptr ctx, void *user_data) {
-	WSLPeer *peer = (WSLPeer *)user_data;
-	PendingMessage &pm = peer->pending_message;
-	if (pm.opcode != 0) {
-		// Only write the packet (since it's now completed).
-		uint8_t is_string = pm.opcode == WSLAY_TEXT_FRAME ? 1 : 0;
-		peer->in_buffer.write_packet(nullptr, pm.payload_size, &is_string);
-		pm.clear();
-	}
-}
-
 ssize_t WSLPeer::_wsl_send_callback(wslay_event_context_ptr ctx, const uint8_t *data, size_t len, int flags, void *user_data) {
 	WSLPeer *peer = (WSLPeer *)user_data;
 	Ref<StreamPeer> conn = peer->connection;
@@ -669,8 +658,15 @@ void WSLPeer::_wsl_msg_recv_callback(wslay_event_context_ptr ctx, const struct w
 
 	if (op == WSLAY_PONG) {
 		peer->heartbeat_waiting = false;
+	} else if (op == WSLAY_TEXT_FRAME || op == WSLAY_BINARY_FRAME) {
+		PendingMessage &pm = peer->pending_message;
+		ERR_FAIL_COND(pm.opcode != op);
+		// Only write the packet (since it's now completed).
+		uint8_t is_string = pm.opcode == WSLAY_TEXT_FRAME ? 1 : 0;
+		peer->in_buffer.write_packet(nullptr, pm.payload_size, &is_string);
+		pm.clear();
 	}
-	// Ping, or message (already parsed in chunks).
+	// Ping.
 }
 
 wslay_event_callbacks WSLPeer::_wsl_callbacks = {
@@ -679,7 +675,7 @@ wslay_event_callbacks WSLPeer::_wsl_callbacks = {
 	_wsl_genmask_callback,
 	_wsl_recv_start_callback,
 	_wsl_frame_recv_chunk_callback,
-	_wsl_frame_recv_end_callback,
+	nullptr,
 	_wsl_msg_recv_callback
 };
 

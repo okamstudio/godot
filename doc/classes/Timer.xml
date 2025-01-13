@@ -45,6 +45,9 @@
 			[b]Note:[/b] After the timer enters the tree, this property is automatically set to [code]false[/code].
 			[b]Note:[/b] This property does nothing when the timer is running in the editor.
 		</member>
+		<member name="ignore_time_scale" type="bool" setter="set_ignore_time_scale" getter="is_ignoring_time_scale" default="false">
+			If [code]true[/code], the timer will ignore [member Engine.time_scale] and update with the real, elapsed time.
+		</member>
 		<member name="one_shot" type="bool" setter="set_one_shot" getter="is_one_shot" default="false">
 			If [code]true[/code], the timer will stop after reaching the end. Otherwise, as by default, the timer will automatically restart.
 		</member>

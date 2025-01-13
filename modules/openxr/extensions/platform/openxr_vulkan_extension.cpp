@@ -291,12 +291,12 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 			// This also means we're reading the values as is for our preview on screen.
 			// The OpenXR runtime however is still treating this as an sRGB format and
 			// will thus do an sRGB -> Linear conversion as expected.
-			// format = RenderingDevice::DATA_FORMAT_R8G8B8A8_SRGB;
+			//format = RenderingDevice::DATA_FORMAT_R8G8B8A8_SRGB;
 			format = RenderingDevice::DATA_FORMAT_R8G8B8A8_UNORM;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
 			break;
 		case VK_FORMAT_B8G8R8A8_SRGB:
-			// format = RenderingDevice::DATA_FORMAT_B8G8R8A8_SRGB;
+			//format = RenderingDevice::DATA_FORMAT_B8G8R8A8_SRGB;
 			format = RenderingDevice::DATA_FORMAT_B8G8R8A8_UNORM;
 			usage_flags |= RenderingDevice::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT;
 			break;
@@ -322,7 +322,7 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 			break;
 		default:
 			// continue with our default value
-			print_line("Unsupported swapchain format ", p_swapchain_format);
+			print_line("OpenXR: Unsupported swapchain format", p_swapchain_format);
 			break;
 	}
 
@@ -350,7 +350,7 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 			break;
 		default:
 			// continue with our default value
-			print_line("Unsupported sample count ", p_sample_count);
+			print_line("OpenXR: Unsupported sample count", p_sample_count);
 			break;
 	}
 
@@ -380,7 +380,7 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 }
 
 bool OpenXRVulkanExtension::create_projection_fov(const XrFovf p_fov, double p_z_near, double p_z_far, Projection &r_camera_matrix) {
-	// Even though this is a Vulkan renderer we're using OpenGL coordinate systems
+	// Even though this is a Vulkan renderer we're using OpenGL coordinate systems.
 	OpenXRUtil::XrMatrix4x4f matrix;
 	OpenXRUtil::XrMatrix4x4f_CreateProjectionFov(&matrix, OpenXRUtil::GRAPHICS_OPENGL, p_fov, (float)p_z_near, (float)p_z_far);
 
@@ -413,9 +413,9 @@ void OpenXRVulkanExtension::cleanup_swapchain_graphics_data(void **p_swapchain_g
 	RenderingDevice *rendering_device = rendering_server->get_rendering_device();
 	ERR_FAIL_NULL(rendering_device);
 
-	for (int i = 0; i < data->texture_rids.size(); i++) {
-		// This should clean up our RIDs and associated texture objects but shouldn't destroy the images, they are owned by our XrSwapchain
-		rendering_device->free(data->texture_rids[i]);
+	for (const RID &texture_rid : data->texture_rids) {
+		// This should clean up our RIDs and associated texture objects but shouldn't destroy the images, they are owned by our XrSwapchain.
+		rendering_device->free(texture_rid);
 	}
 	data->texture_rids.clear();
 

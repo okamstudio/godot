@@ -5,9 +5,26 @@
 	</brief_description>
 	<description>
 		MP3 audio stream driver. See [member data] if you want to load an MP3 file at run-time.
+		[b]Note:[/b] This class can optionally support legacy MP1 and MP2 formats, provided that the engine is compiled with the [code]minimp3_extra_formats=yes[/code] SCons option. These extra formats are not enabled by default.
 	</description>
 	<tutorials>
 	</tutorials>
+	<methods>
+		<method name="load_from_buffer" qualifiers="static">
+			<return type="AudioStreamMP3" />
+			<param index="0" name="stream_data" type="PackedByteArray" />
+			<description>
+				Creates a new [AudioStreamMP3] instance from the given buffer. The buffer must contain MP3 data.
+			</description>
+		</method>
+		<method name="load_from_file" qualifiers="static">
+			<return type="AudioStreamMP3" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Creates a new [AudioStreamMP3] instance from the given file path. The file must be in MP3 format.
+			</description>
+		</method>
+	</methods>
 	<members>
 		<member name="bar_beats" type="int" setter="set_bar_beats" getter="get_bar_beats" default="4">
 		</member>

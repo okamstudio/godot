@@ -87,10 +87,10 @@
 			If [code]false[/code], the exported game will not support threads. As a result, it is more prone to performance and audio issues, but will only require to be run on an HTTPS website.
 		</member>
 		<member name="vram_texture_compression/for_desktop" type="bool" setter="" getter="">
-			If [code]true[/code], allows textures to be optimized for desktop through the S3TC algorithm.
+			If [code]true[/code], allows textures to be optimized for desktop through the S3TC/BPTC algorithm.
 		</member>
 		<member name="vram_texture_compression/for_mobile" type="bool" setter="" getter="">
-			If [code]true[/code] allows textures to be optimized for mobile through the ETC2 algorithm.
+			If [code]true[/code] allows textures to be optimized for mobile through the ETC2/ASTC algorithm.
 		</member>
 	</members>
 </class>

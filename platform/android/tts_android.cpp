@@ -32,7 +32,6 @@
 
 #include "java_godot_wrapper.h"
 #include "os_android.h"
-#include "string_android.h"
 #include "thread_jandroid.h"
 
 bool TTS_Android::initialized = false;

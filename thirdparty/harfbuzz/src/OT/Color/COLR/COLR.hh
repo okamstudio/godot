@@ -2058,7 +2058,7 @@ struct delta_set_index_map_subset_plan_t
       unsigned outer = (*var_idx) >> 16;
       unsigned bit_count = (outer == 0) ? 1 : hb_bit_storage (outer);
       outer_bit_count = hb_max (bit_count, outer_bit_count);
-      
+
       unsigned inner = (*var_idx) & 0xFFFF;
       bit_count = (inner == 0) ? 1 : hb_bit_storage (inner);
       inner_bit_count = hb_max (bit_count, inner_bit_count);
@@ -2080,7 +2080,7 @@ struct COLR
   bool has_v0_data () const { return numBaseGlyphs; }
   bool has_v1_data () const
   {
-    if (version != 1)
+    if (version < 1)
       return false;
     hb_barrier ();
 
@@ -2180,7 +2180,7 @@ struct COLR
                       hb_set_t *variation_indices,
                       hb_set_t *delta_set_indices) const
   {
-    if (version != 1) return;
+    if (version < 1) return;
     hb_barrier ();
 
     hb_set_t visited_glyphs;
@@ -2222,16 +2222,22 @@ struct COLR
   { return (this+baseGlyphList); }
 
   bool has_var_store () const
-  { return version >= 1 && varStore != 0; }
+  { return version >= 1 && hb_barrier () && varStore != 0; }
 
   bool has_delta_set_index_map () const
-  { return version >= 1 && varIdxMap != 0; }
+  { return version >= 1 && hb_barrier () && varIdxMap != 0; }
+
+  bool has_clip_list () const
+  { return version >= 1 && hb_barrier () && clipList != 0; }
 
   const DeltaSetIndexMap &get_delta_set_index_map () const
-  { return (version == 0 || varIdxMap == 0) ? Null (DeltaSetIndexMap) : this+varIdxMap; }
+  { return has_delta_set_index_map () && hb_barrier () ? this+varIdxMap : Null (DeltaSetIndexMap); }
 
   const ItemVariationStore &get_var_store () const
-  { return (version == 0 || varStore == 0) ? Null (ItemVariationStore) : this+varStore; }
+  { return has_var_store () && hb_barrier () ? this+varStore : Null (ItemVariationStore); }
+
+  const ClipList &get_clip_list () const
+  { return has_clip_list () && hb_barrier () ? this+clipList : Null (ClipList); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -2242,7 +2248,6 @@ struct COLR
                   (this+layersZ).sanitize (c, numLayers) &&
                   (version == 0 ||
 		   (hb_barrier () &&
-		    version == 1 &&
 		    baseGlyphList.sanitize (c, this) &&
 		    layerList.sanitize (c, this) &&
 		    clipList.sanitize (c, this) &&
@@ -2465,7 +2470,9 @@ struct COLR
     if (unlikely (!c->serializer->extend_min (colr_prime)))  return_trace (false);
 
     if (version == 0 || downgrade_to_V0 (glyphset))
-    return_trace (colr_prime->serialize_V0 (c->serializer, 0, base_it, layer_it));
+      return_trace (colr_prime->serialize_V0 (c->serializer, 0, base_it, layer_it));
+
+    hb_barrier ();
 
     //start version 1
     if (!c->serializer->allocate_size<void> (5 * HBUINT32::static_size)) return_trace (false);
@@ -2475,8 +2482,8 @@ struct COLR
      * after instancing */
     if (!subset_varstore (c, colr_prime)) return_trace (false);
 
-    ItemVarStoreInstancer instancer (varStore ? &(this+varStore) : nullptr,
-	                         varIdxMap ? &(this+varIdxMap) : nullptr,
+    ItemVarStoreInstancer instancer (&(get_var_store ()),
+	                         &(get_delta_set_index_map ()),
 	                         c->plan->normalized_coords.as_array ());
 
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this, instancer))
@@ -2505,12 +2512,10 @@ struct COLR
   bool
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
-    if (version != 1)
-      return false;
 
-    ItemVarStoreInstancer instancer (&(this+varStore),
-				 &(this+varIdxMap),
-				 hb_array (font->coords, font->num_coords));
+    ItemVarStoreInstancer instancer (&(get_var_store ()),
+                                     &(get_delta_set_index_map ()),
+                                     hb_array (font->coords, font->num_coords));
 
     if (get_clip (glyph, extents, instancer))
     {
@@ -2545,7 +2550,7 @@ struct COLR
   bool
   has_paint_for_glyph (hb_codepoint_t glyph) const
   {
-    if (version == 1)
+    if (version >= 1)
     {
       hb_barrier ();
 
@@ -2561,7 +2566,7 @@ struct COLR
 		 hb_glyph_extents_t *extents,
 		 const ItemVarStoreInstancer instancer) const
   {
-    return (this+clipList).get_extents (glyph,
+    return get_clip_list ().get_extents (glyph,
 					extents,
 					instancer);
   }
@@ -2570,13 +2575,13 @@ struct COLR
   bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette_index, hb_color_t foreground, bool clip = true) const
   {
-    ItemVarStoreInstancer instancer (&(this+varStore),
-	                         &(this+varIdxMap),
+    ItemVarStoreInstancer instancer (&(get_var_store ()),
+	                         &(get_delta_set_index_map ()),
 	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette_index, foreground, instancer);
     c.current_glyphs.add (glyph);
 
-    if (version == 1)
+    if (version >= 1)
     {
       hb_barrier ();
 

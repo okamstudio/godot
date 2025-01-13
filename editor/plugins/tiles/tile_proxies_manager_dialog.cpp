@@ -33,8 +33,6 @@
 #include "editor/editor_properties_vector.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/themes/editor_scale.h"
-#include "scene/gui/dialogs.h"
 #include "scene/gui/popup_menu.h"
 #include "scene/gui/separator.h"
 
@@ -87,7 +85,7 @@ void TileProxiesManagerDialog::_delete_selected_bindings() {
 	undo_redo->add_undo_method(this, "_update_lists");
 	undo_redo->commit_action();
 
-	commited_actions_count += 1;
+	committed_actions_count += 1;
 }
 
 void TileProxiesManagerDialog::_update_lists() {
@@ -193,7 +191,7 @@ void TileProxiesManagerDialog::_add_button_pressed() {
 		undo_redo->add_do_method(this, "_update_lists");
 		undo_redo->add_undo_method(this, "_update_lists");
 		undo_redo->commit_action();
-		commited_actions_count++;
+		committed_actions_count++;
 	}
 }
 
@@ -308,10 +306,10 @@ void TileProxiesManagerDialog::_unhandled_key_input(Ref<InputEvent> p_event) {
 
 void TileProxiesManagerDialog::cancel_pressed() {
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	for (int i = 0; i < commited_actions_count; i++) {
+	for (int i = 0; i < committed_actions_count; i++) {
 		undo_redo->undo();
 	}
-	commited_actions_count = 0;
+	committed_actions_count = 0;
 }
 
 void TileProxiesManagerDialog::_bind_methods() {
@@ -320,9 +318,9 @@ void TileProxiesManagerDialog::_bind_methods() {
 }
 
 void TileProxiesManagerDialog::update_tile_set(Ref<TileSet> p_tile_set) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	tile_set = p_tile_set;
-	commited_actions_count = 0;
+	committed_actions_count = 0;
 	_update_lists();
 }
 

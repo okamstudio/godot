@@ -70,7 +70,7 @@ void CollisionObject3D::_notification(int p_what) {
 
 			if (!disabled || (disable_mode != DISABLE_MODE_REMOVE)) {
 				Ref<World3D> world_ref = get_world_3d();
-				ERR_FAIL_COND(!world_ref.is_valid());
+				ERR_FAIL_COND(world_ref.is_null());
 				RID space = world_ref->get_space();
 				if (area) {
 					PhysicsServer3D::get_singleton()->area_set_space(rid, space);

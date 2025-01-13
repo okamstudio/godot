@@ -101,7 +101,7 @@
 #endif
 
 #ifndef HB_CFF_MAX_OPS
-#define HB_CFF_MAX_OPS 10000
+#define HB_CFF_MAX_OPS 200000
 #endif
 
 #ifndef HB_MAX_COMPOSITE_OPERATIONS_PER_GLYPH

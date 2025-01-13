@@ -39,6 +39,11 @@
 #include "drivers/vulkan/rendering_context_driver_vulkan.h"
 #endif // VULKAN_ENABLED
 
+#ifdef METAL_ENABLED
+#define XR_USE_GRAPHICS_API_METAL
+#include "drivers/metal/rendering_context_driver_metal.h"
+#endif // METAL_ENABLED
+
 #if defined(GLES3_ENABLED) && !defined(MACOS_ENABLED)
 #ifdef ANDROID_ENABLED
 #define XR_USE_GRAPHICS_API_OPENGL_ES

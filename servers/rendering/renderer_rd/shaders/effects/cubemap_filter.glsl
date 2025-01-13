@@ -177,24 +177,27 @@ void main() {
 
 			float theta;
 			if (Ny < Nx) {
-				if (Ny <= -0.999)
+				if (Ny <= -0.999) {
 					theta = Nx;
-				else
+				} else {
 					theta = Ny;
+				}
 			} else {
-				if (Ny >= 0.999)
+				if (Ny >= 0.999) {
 					theta = -Nx;
-				else
+				} else {
 					theta = -Ny;
+				}
 			}
 
 			float phi;
-			if (Nz <= -0.999)
+			if (Nz <= -0.999) {
 				phi = -NmaxXY;
-			else if (Nz >= 0.999)
+			} else if (Nz >= 0.999) {
 				phi = NmaxXY;
-			else
+			} else {
 				phi = Nz;
+			}
 
 			float theta2 = theta * theta;
 			float phi2 = phi * phi;

@@ -177,6 +177,16 @@ void NativeMenuWindows::popup(const RID &p_rid, const Vector2i &p_position) {
 	}
 	SetForegroundWindow(hwnd);
 	TrackPopupMenuEx(md->menu, flags, p_position.x, p_position.y, hwnd, nullptr);
+
+	if (md->close_cb.is_valid()) {
+		Variant ret;
+		Callable::CallError ce;
+		md->close_cb.callp(nullptr, 0, ret, ce);
+		if (ce.error != Callable::CallError::CALL_OK) {
+			ERR_PRINT(vformat("Failed to execute popup close callback: %s.", Variant::get_callable_error_text(md->close_cb, nullptr, 0, ce)));
+		}
+	}
+
 	PostMessage(hwnd, WM_NULL, 0, 0);
 }
 
@@ -200,12 +210,17 @@ Callable NativeMenuWindows::get_popup_open_callback(const RID &p_rid) const {
 }
 
 void NativeMenuWindows::set_popup_close_callback(const RID &p_rid, const Callable &p_callback) {
-	// Not supported.
+	MenuData *md = menus.get_or_null(p_rid);
+	ERR_FAIL_NULL(md);
+
+	md->close_cb = p_callback;
 }
 
 Callable NativeMenuWindows::get_popup_close_callback(const RID &p_rid) const {
-	// Not supported.
-	return Callable();
+	const MenuData *md = menus.get_or_null(p_rid);
+	ERR_FAIL_NULL_V(md, Callable());
+
+	return md->close_cb;
 }
 
 void NativeMenuWindows::set_minimum_width(const RID &p_rid, float p_width) {

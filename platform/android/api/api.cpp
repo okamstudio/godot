@@ -73,6 +73,9 @@ void JavaClassWrapper::_bind_methods() {
 }
 
 #if !defined(ANDROID_ENABLED)
+bool JavaClass::_get(const StringName &p_name, Variant &r_ret) const {
+	return false;
+}
 
 Variant JavaClass::callp(const StringName &, const Variant **, int, Callable::CallError &) {
 	return Variant();

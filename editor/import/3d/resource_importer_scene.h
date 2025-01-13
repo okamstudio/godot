@@ -39,7 +39,6 @@
 #include "scene/resources/3d/capsule_shape_3d.h"
 #include "scene/resources/3d/cylinder_shape_3d.h"
 #include "scene/resources/3d/importer_mesh.h"
-#include "scene/resources/3d/skin.h"
 #include "scene/resources/3d/sphere_shape_3d.h"
 #include "scene/resources/animation.h"
 #include "scene/resources/mesh.h"

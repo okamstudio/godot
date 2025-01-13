@@ -438,7 +438,7 @@ void JoltSoftBody3D::set_is_sleeping(bool p_enabled) {
 	}
 }
 
-bool JoltSoftBody3D::can_sleep() const {
+bool JoltSoftBody3D::is_sleep_allowed() const {
 	if (!in_space()) {
 		return true;
 	}
@@ -449,7 +449,7 @@ bool JoltSoftBody3D::can_sleep() const {
 	return body->GetAllowSleeping();
 }
 
-void JoltSoftBody3D::set_can_sleep(bool p_enabled) {
+void JoltSoftBody3D::set_is_sleep_allowed(bool p_enabled) {
 	if (!in_space()) {
 		return;
 	}
@@ -532,7 +532,7 @@ Variant JoltSoftBody3D::get_state(PhysicsServer3D::BodyState p_state) const {
 			return is_sleeping();
 		}
 		case PhysicsServer3D::BODY_STATE_CAN_SLEEP: {
-			return can_sleep();
+			return is_sleep_allowed();
 		}
 		default: {
 			ERR_FAIL_V_MSG(Variant(), vformat("Unhandled body state: '%d'. This should not happen. Please report this.", p_state));
@@ -555,7 +555,7 @@ void JoltSoftBody3D::set_state(PhysicsServer3D::BodyState p_state, const Variant
 			set_is_sleeping(p_value);
 		} break;
 		case PhysicsServer3D::BODY_STATE_CAN_SLEEP: {
-			set_can_sleep(p_value);
+			set_is_sleep_allowed(p_value);
 		} break;
 		default: {
 			ERR_FAIL_MSG(vformat("Unhandled body state: '%d'. This should not happen. Please report this.", p_state));

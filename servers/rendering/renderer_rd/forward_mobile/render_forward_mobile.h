@@ -33,9 +33,7 @@
 
 #include "core/templates/paged_allocator.h"
 #include "servers/rendering/renderer_rd/forward_mobile/scene_shader_forward_mobile.h"
-#include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
-#include "servers/rendering/renderer_rd/storage_rd/utilities.h"
 
 #define RB_SCOPE_MOBILE SNAME("mobile")
 
@@ -528,6 +526,14 @@ protected:
 		forward_id_storage_mobile = memnew(ForwardIDStorageMobile);
 		return forward_id_storage_mobile;
 	}
+
+	struct ForwardIDByMapSort {
+		uint8_t map;
+		RendererRD::ForwardID forward_id;
+		bool operator<(const ForwardIDByMapSort &p_sort) const {
+			return map > p_sort.map;
+		}
+	};
 
 public:
 	static RenderForwardMobile *get_singleton() { return singleton; }

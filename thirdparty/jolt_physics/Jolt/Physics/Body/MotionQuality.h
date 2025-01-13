@@ -9,7 +9,7 @@ JPH_NAMESPACE_BEGIN
 /// Motion quality, or how well it detects collisions when it has a high velocity
 enum class EMotionQuality : uint8
 {
-	/// Update the body in discrete steps. Body will tunnel throuh thin objects if its velocity is high enough.
+	/// Update the body in discrete steps. Body will tunnel through thin objects if its velocity is high enough.
 	/// This is the cheapest way of simulating a body.
 	Discrete,
 

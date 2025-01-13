@@ -23,7 +23,7 @@ struct InstanceData {
 	vec2 world_y;
 	vec2 world_ofs;
 	uint flags;
-	uint pad2;
+	uint instance_uniforms_ofs;
 #ifdef USE_PRIMITIVE
 	vec2 points[3];
 	vec2 uvs[3];

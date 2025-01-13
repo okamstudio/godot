@@ -53,7 +53,7 @@ private:
 	PopupMenu *bookmarks_menu = nullptr;
 	PopupMenu *context_menu = nullptr;
 
-	GotoLineDialog *goto_line_dialog = nullptr;
+	GotoLinePopup *goto_line_popup = nullptr;
 
 	enum {
 		EDIT_UNDO,
@@ -91,6 +91,7 @@ private:
 		BOOKMARK_GOTO_NEXT,
 		BOOKMARK_GOTO_PREV,
 		BOOKMARK_REMOVE_ALL,
+		EDIT_EMOJI_AND_SYMBOL,
 	};
 
 protected:

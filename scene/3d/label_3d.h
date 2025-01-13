@@ -253,7 +253,7 @@ public:
 	StandardMaterial3D::TextureFilter get_texture_filter() const;
 
 	virtual AABB get_aabb() const override;
-	Ref<TriangleMesh> generate_triangle_mesh() const;
+	virtual Ref<TriangleMesh> generate_triangle_mesh() const override;
 
 	Label3D();
 	~Label3D();

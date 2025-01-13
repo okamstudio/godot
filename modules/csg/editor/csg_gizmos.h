@@ -98,7 +98,7 @@ class EditorPluginCSG : public EditorPlugin {
 	CSGShapeEditor *csg_shape_editor = nullptr;
 
 public:
-	virtual String get_name() const override { return "CSGShape3D"; }
+	virtual String get_plugin_name() const override { return "CSGShape3D"; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;
 

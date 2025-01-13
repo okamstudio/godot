@@ -151,7 +151,7 @@ Comment: Intel ASSAO and related files
 Copyright: 2016, Intel Corporation
 License: Expat
 
-Files: ./servers/rendering/renderer_rd/shaders/taa_resolve.glsl
+Files: ./servers/rendering/renderer_rd/shaders/effects/taa_resolve.glsl
 Comment: Temporal Anti-Aliasing resolve implementation
 Copyright: 2016, Panos Karabelas
 License: Expat
@@ -178,8 +178,13 @@ License: Apache-2.0
 
 Files: ./thirdparty/basis_universal/
 Comment: Basis Universal
-Copyright: 2022, Binomial LLC.
+Copyright: 2019-2024, Binomial LLC.
 License: Apache-2.0
+
+Files: ./thirdparty/betsy/
+Comment: Betsy
+Copyright: 2020-2022, Matias N. Goldberg
+License: Expat
 
 Files: ./thirdparty/brotli/
 Comment: Brotli
@@ -329,8 +334,8 @@ License: BSD-3-clause
 
 Files: ./thirdparty/libpng/
 Comment: libpng
-Copyright: 1995-2024, The PNG Reference Library Authors.
- 2018-2024, Cosmin Truta.
+Copyright: 1995-2025, The PNG Reference Library Authors.
+ 2018-2025, Cosmin Truta.
  2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
  1996-1997, Andreas Dilger.
  1995-1996, Guy Eric Schalnat, Group 42, Inc.
@@ -387,6 +392,11 @@ Copyright: 1998-2010, Gilles Vollant
  2007-2008, Even Rouault
  2009-2010, Mathias Svensson
 License: Zlib
+
+Files: ./thirdparty/misc/bcdec.h
+Comment: bcdec
+Copyright: 2022, Sergii Kudlai
+License: Expat
 
 Files: ./thirdparty/misc/cubemap_coeffs.h
 Comment: Fast Filtering of Reflection Probes
@@ -469,7 +479,7 @@ License: BSD-2-clause
 
 Files: ./thirdparty/msdfgen/
 Comment: Multi-channel signed distance field generator
-Copyright: 2016-2022, Viktor Chlumsky
+Copyright: 2014-2024, Viktor Chlumsky
 License: Expat
 
 Files: ./thirdparty/nvapi/nvapi_minimal.h
@@ -507,11 +517,6 @@ Files: ./thirdparty/spirv-reflect/
 Comment: SPIRV-Reflect
 Copyright: 2017-2022, Google Inc.
 License: Apache-2.0
-
-Files: ./thirdparty/squish/
-Comment: libSquish
-Copyright: 2006, Simon Brown
-License: Expat
 
 Files: ./thirdparty/thorvg/
 Comment: ThorVG

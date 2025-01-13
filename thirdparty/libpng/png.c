@@ -1,7 +1,6 @@
-
 /* png.c - location for general purpose libpng functions
  *
- * Copyright (c) 2018-2024 Cosmin Truta
+ * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -14,7 +13,7 @@
 #include "pngpriv.h"
 
 /* Generate a compiler error if there is an old png.h in the search path. */
-typedef png_libpng_version_1_6_43 Your_png_h_is_not_version_1_6_43;
+typedef png_libpng_version_1_6_45 Your_png_h_is_not_version_1_6_45;
 
 /* Tells libpng that we have already handled the first "num_bytes" bytes
  * of the PNG file signature.  If the PNG data is embedded into another
@@ -794,8 +793,8 @@ png_get_copyright(png_const_structrp png_ptr)
    return PNG_STRING_COPYRIGHT
 #else
    return PNG_STRING_NEWLINE \
-      "libpng version 1.6.43" PNG_STRING_NEWLINE \
-      "Copyright (c) 2018-2024 Cosmin Truta" PNG_STRING_NEWLINE \
+      "libpng version 1.6.45" PNG_STRING_NEWLINE \
+      "Copyright (c) 2018-2025 Cosmin Truta" PNG_STRING_NEWLINE \
       "Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson" \
       PNG_STRING_NEWLINE \
       "Copyright (c) 1996-1997 Andreas Dilger" PNG_STRING_NEWLINE \
@@ -1203,6 +1202,68 @@ png_colorspace_sync(png_const_structrp png_ptr, png_inforp info_ptr)
 #endif /* GAMMA */
 
 #ifdef PNG_COLORSPACE_SUPPORTED
+static png_int_32
+png_fp_add(png_int_32 addend0, png_int_32 addend1, int *error)
+{
+   /* Safely add two fixed point values setting an error flag and returning 0.5
+    * on overflow.
+    * IMPLEMENTATION NOTE: ANSI requires signed overflow not to occur, therefore
+    * relying on addition of two positive values producing a negative one is not
+    * safe.
+    */
+   if (addend0 > 0)
+   {
+      if (0x7fffffff - addend0 >= addend1)
+         return addend0+addend1;
+   }
+   else if (addend0 < 0)
+   {
+      if (-0x7fffffff - addend0 <= addend1)
+         return addend0+addend1;
+   }
+   else
+      return addend1;
+
+   *error = 1;
+   return PNG_FP_1/2;
+}
+
+static png_int_32
+png_fp_sub(png_int_32 addend0, png_int_32 addend1, int *error)
+{
+   /* As above but calculate addend0-addend1. */
+   if (addend1 > 0)
+   {
+      if (-0x7fffffff + addend1 <= addend0)
+         return addend0-addend1;
+   }
+   else if (addend1 < 0)
+   {
+      if (0x7fffffff + addend1 >= addend0)
+         return addend0-addend1;
+   }
+   else
+      return addend0;
+
+   *error = 1;
+   return PNG_FP_1/2;
+}
+
+static int
+png_safe_add(png_int_32 *addend0_and_result, png_int_32 addend1,
+      png_int_32 addend2)
+{
+   /* Safely add three integers.  Returns 0 on success, 1 on overflow.  Does not
+    * set the result on overflow.
+    */
+   int error = 0;
+   int result = png_fp_add(*addend0_and_result,
+                           png_fp_add(addend1, addend2, &error),
+                           &error);
+   if (!error) *addend0_and_result = result;
+   return error;
+}
+
 /* Added at libpng-1.5.5 to support read and write of true CIEXYZ values for
  * cHRM, as opposed to using chromaticities.  These internal APIs return
  * non-zero on a parameter error.  The X, Y and Z values are required to be
@@ -1211,38 +1272,60 @@ png_colorspace_sync(png_const_structrp png_ptr, png_inforp info_ptr)
 static int
 png_xy_from_XYZ(png_xy *xy, const png_XYZ *XYZ)
 {
-   png_int_32 d, dwhite, whiteX, whiteY;
+   png_int_32 d, dred, dgreen, dblue, dwhite, whiteX, whiteY;
 
-   d = XYZ->red_X + XYZ->red_Y + XYZ->red_Z;
-   if (png_muldiv(&xy->redx, XYZ->red_X, PNG_FP_1, d) == 0)
+   /* 'd' in each of the blocks below is just X+Y+Z for each component,
+    * x, y and z are X,Y,Z/(X+Y+Z).
+    */
+   d = XYZ->red_X;
+   if (png_safe_add(&d, XYZ->red_Y, XYZ->red_Z))
       return 1;
-   if (png_muldiv(&xy->redy, XYZ->red_Y, PNG_FP_1, d) == 0)
+   dred = d;
+   if (png_muldiv(&xy->redx, XYZ->red_X, PNG_FP_1, dred) == 0)
+      return 1;
+   if (png_muldiv(&xy->redy, XYZ->red_Y, PNG_FP_1, dred) == 0)
+      return 1;
+
+   d = XYZ->green_X;
+   if (png_safe_add(&d, XYZ->green_Y, XYZ->green_Z))
+      return 1;
+   dgreen = d;
+   if (png_muldiv(&xy->greenx, XYZ->green_X, PNG_FP_1, dgreen) == 0)
+      return 1;
+   if (png_muldiv(&xy->greeny, XYZ->green_Y, PNG_FP_1, dgreen) == 0)
+      return 1;
+
+   d = XYZ->blue_X;
+   if (png_safe_add(&d, XYZ->blue_Y, XYZ->blue_Z))
+      return 1;
+   dblue = d;
+   if (png_muldiv(&xy->bluex, XYZ->blue_X, PNG_FP_1, dblue) == 0)
+      return 1;
+   if (png_muldiv(&xy->bluey, XYZ->blue_Y, PNG_FP_1, dblue) == 0)
+      return 1;
+
+   /* The reference white is simply the sum of the end-point (X,Y,Z) vectors so
+    * the fillowing calculates (X+Y+Z) of the reference white (media white,
+    * encoding white) itself:
+    */
+   d = dblue;
+   if (png_safe_add(&d, dred, dgreen))
       return 1;
    dwhite = d;
-   whiteX = XYZ->red_X;
-   whiteY = XYZ->red_Y;
 
-   d = XYZ->green_X + XYZ->green_Y + XYZ->green_Z;
-   if (png_muldiv(&xy->greenx, XYZ->green_X, PNG_FP_1, d) == 0)
-      return 1;
-   if (png_muldiv(&xy->greeny, XYZ->green_Y, PNG_FP_1, d) == 0)
-      return 1;
-   dwhite += d;
-   whiteX += XYZ->green_X;
-   whiteY += XYZ->green_Y;
-
-   d = XYZ->blue_X + XYZ->blue_Y + XYZ->blue_Z;
-   if (png_muldiv(&xy->bluex, XYZ->blue_X, PNG_FP_1, d) == 0)
-      return 1;
-   if (png_muldiv(&xy->bluey, XYZ->blue_Y, PNG_FP_1, d) == 0)
-      return 1;
-   dwhite += d;
-   whiteX += XYZ->blue_X;
-   whiteY += XYZ->blue_Y;
-
-   /* The reference white is simply the sum of the end-point (X,Y,Z) vectors,
-    * thus:
+   /* Find the white X,Y values from the sum of the red, green and blue X,Y
+    * values.
     */
+   d = XYZ->red_X;
+   if (png_safe_add(&d, XYZ->green_X, XYZ->blue_X))
+      return 1;
+   whiteX = d;
+
+   d = XYZ->red_Y;
+   if (png_safe_add(&d, XYZ->green_Y, XYZ->blue_Y))
+      return 1;
+   whiteY = d;
+
    if (png_muldiv(&xy->whitex, whiteX, PNG_FP_1, dwhite) == 0)
       return 1;
    if (png_muldiv(&xy->whitey, whiteY, PNG_FP_1, dwhite) == 0)
@@ -1261,15 +1344,24 @@ png_XYZ_from_xy(png_XYZ *XYZ, const png_xy *xy)
     * have end points with 0 tristimulus values (these are impossible end
     * points, but they are used to cover the possible colors).  We check
     * xy->whitey against 5, not 0, to avoid a possible integer overflow.
+    *
+    * The limits here will *not* accept ACES AP0, where bluey is -7700
+    * (-0.0770) because the PNG spec itself requires the xy values to be
+    * unsigned.  whitey is also required to be 5 or more to avoid overflow.
+    *
+    * Instead the upper limits have been relaxed to accomodate ACES AP1 where
+    * redz ends up as -600 (-0.006).  ProPhotoRGB was already "in range."
+    * The new limit accomodates the AP0 and AP1 ranges for z but not AP0 redy.
     */
-   if (xy->redx   < 0 || xy->redx > PNG_FP_1) return 1;
-   if (xy->redy   < 0 || xy->redy > PNG_FP_1-xy->redx) return 1;
-   if (xy->greenx < 0 || xy->greenx > PNG_FP_1) return 1;
-   if (xy->greeny < 0 || xy->greeny > PNG_FP_1-xy->greenx) return 1;
-   if (xy->bluex  < 0 || xy->bluex > PNG_FP_1) return 1;
-   if (xy->bluey  < 0 || xy->bluey > PNG_FP_1-xy->bluex) return 1;
-   if (xy->whitex < 0 || xy->whitex > PNG_FP_1) return 1;
-   if (xy->whitey < 5 || xy->whitey > PNG_FP_1-xy->whitex) return 1;
+   const png_fixed_point fpLimit = PNG_FP_1+(PNG_FP_1/10);
+   if (xy->redx   < 0 || xy->redx > fpLimit) return 1;
+   if (xy->redy   < 0 || xy->redy > fpLimit-xy->redx) return 1;
+   if (xy->greenx < 0 || xy->greenx > fpLimit) return 1;
+   if (xy->greeny < 0 || xy->greeny > fpLimit-xy->greenx) return 1;
+   if (xy->bluex  < 0 || xy->bluex > fpLimit) return 1;
+   if (xy->bluey  < 0 || xy->bluey > fpLimit-xy->bluex) return 1;
+   if (xy->whitex < 0 || xy->whitex > fpLimit) return 1;
+   if (xy->whitey < 5 || xy->whitey > fpLimit-xy->whitex) return 1;
 
    /* The reverse calculation is more difficult because the original tristimulus
     * value had 9 independent values (red,green,blue)x(X,Y,Z) however only 8
@@ -1414,18 +1506,23 @@ png_XYZ_from_xy(png_XYZ *XYZ, const png_xy *xy)
     *  (green-x - blue-x)*(red-y - blue-y)-(green-y - blue-y)*(red-x - blue-x)
     *
     * Accuracy:
-    * The input values have 5 decimal digits of accuracy.  The values are all in
-    * the range 0 < value < 1, so simple products are in the same range but may
-    * need up to 10 decimal digits to preserve the original precision and avoid
-    * underflow.  Because we are using a 32-bit signed representation we cannot
-    * match this; the best is a little over 9 decimal digits, less than 10.
+    * The input values have 5 decimal digits of accuracy.
+    *
+    * In the previous implementation the values were all in the range 0 < value
+    * < 1, so simple products are in the same range but may need up to 10
+    * decimal digits to preserve the original precision and avoid underflow.
+    * Because we are using a 32-bit signed representation we cannot match this;
+    * the best is a little over 9 decimal digits, less than 10.
+    *
+    * This range has now been extended to allow values up to 1.1, or 110,000 in
+    * fixed point.
     *
     * The approach used here is to preserve the maximum precision within the
     * signed representation.  Because the red-scale calculation above uses the
-    * difference between two products of values that must be in the range -1..+1
-    * it is sufficient to divide the product by 7; ceil(100,000/32767*2).  The
-    * factor is irrelevant in the calculation because it is applied to both
-    * numerator and denominator.
+    * difference between two products of values that must be in the range
+    * -1.1..+1.1 it is sufficient to divide the product by 8;
+    * ceil(121,000/32767*2).  The factor is irrelevant in the calculation
+    * because it is applied to both numerator and denominator.
     *
     * Note that the values of the differences of the products of the
     * chromaticities in the above equations tend to be small, for example for
@@ -1447,49 +1544,61 @@ png_XYZ_from_xy(png_XYZ *XYZ, const png_xy *xy)
     *  Adobe Wide Gamut RGB
     *    0.258728243040113 0.724682314948566 0.016589442011321
     */
-   /* By the argument, above overflow should be impossible here. The return
-    * value of 2 indicates an internal error to the caller.
+   int error = 0;
+
+   /* By the argument above overflow should be impossible here, however the
+    * code now simply returns a failure code.  The xy subtracts in the arguments
+    * to png_muldiv are *not* checked for overflow because the checks at the
+    * start guarantee they are in the range 0..110000 and png_fixed_point is a
+    * 32-bit signed number.
     */
-   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->redy - xy->bluey, 7) == 0)
-      return 2;
-   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->redx - xy->bluex, 7) == 0)
-      return 2;
-   denominator = left - right;
+   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->redy - xy->bluey, 8) == 0)
+      return 1;
+   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->redx - xy->bluex, 8) == 0)
+      return 1;
+   denominator = png_fp_sub(left, right, &error);
+   if (error) return 1;
 
    /* Now find the red numerator. */
-   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->whitey-xy->bluey, 7) == 0)
-      return 2;
-   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->whitex-xy->bluex, 7) == 0)
-      return 2;
+   if (png_muldiv(&left, xy->greenx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
+      return 1;
+   if (png_muldiv(&right, xy->greeny-xy->bluey, xy->whitex-xy->bluex, 8) == 0)
+      return 1;
 
    /* Overflow is possible here and it indicates an extreme set of PNG cHRM
     * chunk values.  This calculation actually returns the reciprocal of the
     * scale value because this allows us to delay the multiplication of white-y
     * into the denominator, which tends to produce a small number.
     */
-   if (png_muldiv(&red_inverse, xy->whitey, denominator, left-right) == 0 ||
+   if (png_muldiv(&red_inverse, xy->whitey, denominator,
+                  png_fp_sub(left, right, &error)) == 0 || error ||
        red_inverse <= xy->whitey /* r+g+b scales = white scale */)
       return 1;
 
    /* Similarly for green_inverse: */
-   if (png_muldiv(&left, xy->redy-xy->bluey, xy->whitex-xy->bluex, 7) == 0)
-      return 2;
-   if (png_muldiv(&right, xy->redx-xy->bluex, xy->whitey-xy->bluey, 7) == 0)
-      return 2;
-   if (png_muldiv(&green_inverse, xy->whitey, denominator, left-right) == 0 ||
+   if (png_muldiv(&left, xy->redy-xy->bluey, xy->whitex-xy->bluex, 8) == 0)
+      return 1;
+   if (png_muldiv(&right, xy->redx-xy->bluex, xy->whitey-xy->bluey, 8) == 0)
+      return 1;
+   if (png_muldiv(&green_inverse, xy->whitey, denominator,
+                  png_fp_sub(left, right, &error)) == 0 || error ||
        green_inverse <= xy->whitey)
       return 1;
 
    /* And the blue scale, the checks above guarantee this can't overflow but it
     * can still produce 0 for extreme cHRM values.
     */
-   blue_scale = png_reciprocal(xy->whitey) - png_reciprocal(red_inverse) -
-       png_reciprocal(green_inverse);
-   if (blue_scale <= 0)
+   blue_scale = png_fp_sub(png_fp_sub(png_reciprocal(xy->whitey),
+                                      png_reciprocal(red_inverse), &error),
+                           png_reciprocal(green_inverse), &error);
+   if (error || blue_scale <= 0)
       return 1;
 
 
-   /* And fill in the png_XYZ: */
+   /* And fill in the png_XYZ.  Again the subtracts are safe because of the
+    * checks on the xy values at the start (the subtracts just calculate the
+    * corresponding z values.)
+    */
    if (png_muldiv(&XYZ->red_X, xy->redx, PNG_FP_1, red_inverse) == 0)
       return 1;
    if (png_muldiv(&XYZ->red_Y, xy->redy, PNG_FP_1, red_inverse) == 0)
@@ -1520,25 +1629,14 @@ png_XYZ_from_xy(png_XYZ *XYZ, const png_xy *xy)
 static int
 png_XYZ_normalize(png_XYZ *XYZ)
 {
-   png_int_32 Y;
+   png_int_32 Y, Ytemp;
 
-   if (XYZ->red_Y < 0 || XYZ->green_Y < 0 || XYZ->blue_Y < 0 ||
-      XYZ->red_X < 0 || XYZ->green_X < 0 || XYZ->blue_X < 0 ||
-      XYZ->red_Z < 0 || XYZ->green_Z < 0 || XYZ->blue_Z < 0)
+   /* Normalize by scaling so the sum of the end-point Y values is PNG_FP_1. */
+   Ytemp = XYZ->red_Y;
+   if (png_safe_add(&Ytemp, XYZ->green_Y, XYZ->blue_Y))
       return 1;
 
-   /* Normalize by scaling so the sum of the end-point Y values is PNG_FP_1.
-    * IMPLEMENTATION NOTE: ANSI requires signed overflow not to occur, therefore
-    * relying on addition of two positive values producing a negative one is not
-    * safe.
-    */
-   Y = XYZ->red_Y;
-   if (0x7fffffff - Y < XYZ->green_X)
-      return 1;
-   Y += XYZ->green_Y;
-   if (0x7fffffff - Y < XYZ->blue_X)
-      return 1;
-   Y += XYZ->blue_Y;
+   Y = Ytemp;
 
    if (Y != PNG_FP_1)
    {

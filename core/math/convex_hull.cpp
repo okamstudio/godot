@@ -61,11 +61,8 @@ subject to the following restrictions:
 #include "core/error/error_macros.h"
 #include "core/math/aabb.h"
 #include "core/math/math_defs.h"
-#include "core/os/memory.h"
 #include "core/templates/oa_hash_map.h"
 #include "core/templates/paged_allocator.h"
-
-#include <string.h>
 
 //#define DEBUG_CONVEX_HULL
 //#define SHOW_ITERATIONS

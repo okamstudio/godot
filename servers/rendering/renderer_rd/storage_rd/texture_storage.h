@@ -31,7 +31,6 @@
 #ifndef TEXTURE_STORAGE_RD_H
 #define TEXTURE_STORAGE_RD_H
 
-#include "core/templates/local_vector.h"
 #include "core/templates/paged_array.h"
 #include "core/templates/rid_owner.h"
 #include "servers/rendering/renderer_rd/shaders/canvas_sdf.glsl.gen.h"
@@ -388,6 +387,8 @@ private:
 		RS::ViewportVRSMode vrs_mode = RS::VIEWPORT_VRS_DISABLED;
 		RS::ViewportVRSUpdateMode vrs_update_mode = RS::VIEWPORT_VRS_UPDATE_ONCE;
 		RID vrs_texture;
+
+		Rect2i render_region;
 
 		// overridden textures
 		struct RTOverridden {
@@ -786,6 +787,9 @@ public:
 	virtual RID render_target_get_override_velocity(RID p_render_target) const override;
 	RID render_target_get_override_velocity_slice(RID p_render_target, const uint32_t p_layer) const;
 	virtual RID render_target_get_override_velocity_depth(RID p_render_target) const override { return RID(); }
+
+	virtual void render_target_set_render_region(RID p_render_target, const Rect2i &p_render_region) override;
+	virtual Rect2i render_target_get_render_region(RID p_render_target) const override;
 
 	virtual RID render_target_get_texture(RID p_render_target) override;
 

@@ -63,6 +63,13 @@
 				Forces an update to the list size based on its items. This happens automatically whenever size of the items, or other relevant settings like [member auto_height], change. The method can be used to trigger the update ahead of next drawing pass.
 			</description>
 		</method>
+		<method name="get_h_scroll_bar">
+			<return type="HScrollBar" />
+			<description>
+				Returns the horizontal scrollbar.
+				[b]Warning:[/b] This is a required internal node, removing and freeing it may cause a crash. If you wish to hide it or any of its children, use their [member CanvasItem.visible] property.
+			</description>
+		</method>
 		<method name="get_item_at_position" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="position" type="Vector2" />
@@ -420,6 +427,10 @@
 		<member name="text_overrun_behavior" type="int" setter="set_text_overrun_behavior" getter="get_text_overrun_behavior" enum="TextServer.OverrunBehavior" default="3">
 			Sets the clipping behavior when the text exceeds an item's bounding rectangle. See [enum TextServer.OverrunBehavior] for a description of all modes.
 		</member>
+		<member name="wraparound_items" type="bool" setter="set_wraparound_items" getter="has_wraparound_items" default="true">
+			If [code]true[/code], the control will automatically move items into a new row to fit its content. See also [HFlowContainer] for this behavior.
+			If [code]false[/code], the control will add a horizontal scrollbar to make all items visible.
+		</member>
 	</members>
 	<signals>
 		<signal name="empty_clicked">
@@ -484,11 +495,14 @@
 		<theme_item name="font_hovered_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
 			Text [Color] used when the item is hovered and not selected yet.
 		</theme_item>
+		<theme_item name="font_hovered_selected_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			Text [Color] used when the item is hovered and selected.
+		</theme_item>
 		<theme_item name="font_outline_color" data_type="color" type="Color" default="Color(0, 0, 0, 1)">
 			The tint of text outline of the item.
 		</theme_item>
 		<theme_item name="font_selected_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
-			Text [Color] used when the item is selected.
+			Text [Color] used when the item is selected, but not hovered.
 		</theme_item>
 		<theme_item name="guide_color" data_type="color" type="Color" default="Color(0.7, 0.7, 0.7, 0.25)">
 			[Color] of the guideline. The guideline is a line drawn between each row of items.
@@ -526,6 +540,12 @@
 		</theme_item>
 		<theme_item name="hovered" data_type="style" type="StyleBox">
 			[StyleBox] for the hovered, but not selected items.
+		</theme_item>
+		<theme_item name="hovered_selected" data_type="style" type="StyleBox">
+			[StyleBox] for the hovered and selected items, used when the [ItemList] is not being focused.
+		</theme_item>
+		<theme_item name="hovered_selected_focus" data_type="style" type="StyleBox">
+			[StyleBox] for the hovered and selected items, used when the [ItemList] is being focused.
 		</theme_item>
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			The background style for the [ItemList].

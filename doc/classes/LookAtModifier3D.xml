@@ -47,7 +47,7 @@
 		<member name="ease_type" type="int" setter="set_ease_type" getter="get_ease_type" enum="Tween.EaseType" default="0">
 			The ease type of the time-based interpolation. See also [enum Tween.EaseType].
 		</member>
-		<member name="forward_axis" type="int" setter="set_forward_axis" getter="get_forward_axis" enum="LookAtModifier3D.BoneAxis" default="4">
+		<member name="forward_axis" type="int" setter="set_forward_axis" getter="get_forward_axis" enum="SkeletonModifier3D.BoneAxis" default="4">
 			The forward axis of the bone. This [SkeletonModifier3D] modifies the bone so that this axis points toward the [member target_node].
 		</member>
 		<member name="origin_bone" type="int" setter="set_origin_bone" getter="get_origin_bone">
@@ -129,24 +129,6 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="BONE_AXIS_PLUS_X" value="0" enum="BoneAxis">
-			Enumerated value for the +X axis.
-		</constant>
-		<constant name="BONE_AXIS_MINUS_X" value="1" enum="BoneAxis">
-			Enumerated value for the -X axis.
-		</constant>
-		<constant name="BONE_AXIS_PLUS_Y" value="2" enum="BoneAxis">
-			Enumerated value for the +Y axis.
-		</constant>
-		<constant name="BONE_AXIS_MINUS_Y" value="3" enum="BoneAxis">
-			Enumerated value for the -Y axis.
-		</constant>
-		<constant name="BONE_AXIS_PLUS_Z" value="4" enum="BoneAxis">
-			Enumerated value for the +Z axis.
-		</constant>
-		<constant name="BONE_AXIS_MINUS_Z" value="5" enum="BoneAxis">
-			Enumerated value for the -Z axis.
-		</constant>
 		<constant name="ORIGIN_FROM_SELF" value="0" enum="OriginFrom">
 			The bone rest position of the bone specified in [member bone] is used as origin.
 		</constant>

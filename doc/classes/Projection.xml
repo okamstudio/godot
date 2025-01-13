@@ -194,6 +194,7 @@
 			<param index="1" name="aspect" type="float" />
 			<description>
 				Returns the vertical field of view of the projection (in degrees) associated with the given horizontal field of view (in degrees) and aspect ratio.
+				[b]Note:[/b] Unlike most methods of [Projection], [param aspect] is expected to be 1 divided by the X:Y aspect ratio.
 			</description>
 		</method>
 		<method name="get_lod_multiplier" qualifiers="const">

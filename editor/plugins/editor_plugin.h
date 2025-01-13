@@ -181,8 +181,8 @@ public:
 	virtual void forward_3d_draw_over_viewport(Control *p_overlay);
 	virtual void forward_3d_force_draw_over_viewport(Control *p_overlay);
 
-	virtual String get_name() const;
-	virtual const Ref<Texture2D> get_icon() const;
+	virtual String get_plugin_name() const;
+	virtual const Ref<Texture2D> get_plugin_icon() const;
 	virtual String get_plugin_version() const;
 	virtual void set_plugin_version(const String &p_version);
 	virtual bool has_main_screen() const;

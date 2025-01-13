@@ -1,36 +1,46 @@
-proto = """#define GDVIRTUAL$VER($RET m_name $ARG)\\
-	StringName _gdvirtual_##m_name##_sn = #m_name;\\
-	mutable bool _gdvirtual_##m_name##_initialized = false;\\
-	mutable void *_gdvirtual_##m_name = nullptr;\\
-	_FORCE_INLINE_ bool _gdvirtual_##m_name##_call($CALLARGS) $CONST {\\
-		ScriptInstance *_script_instance = ((Object *)(this))->get_script_instance();\\
+script_call = """ScriptInstance *_script_instance = ((Object *)(this))->get_script_instance();\\
 		if (_script_instance) {\\
 			Callable::CallError ce;\\
 			$CALLSIARGS\\
-			$CALLSIBEGIN_script_instance->callp(_gdvirtual_##m_name##_sn, $CALLSIARGPASS, ce);\\
+			$CALLSIBEGIN_script_instance->callp(_gdvirtual_##$VARNAME##_sn, $CALLSIARGPASS, ce);\\
 			if (ce.error == Callable::CallError::CALL_OK) {\\
 				$CALLSIRET\\
 				return true;\\
 			}\\
-		}\\
-		if (unlikely(_get_extension() && !_gdvirtual_##m_name##_initialized)) {\\
-			_gdvirtual_##m_name = nullptr;\\
-			if (_get_extension()->get_virtual_call_data && _get_extension()->call_virtual_with_data) {\\
-				_gdvirtual_##m_name = _get_extension()->get_virtual_call_data(_get_extension()->class_userdata, &_gdvirtual_##m_name##_sn);\\
-			} else if (_get_extension()->get_virtual) {\\
-				_gdvirtual_##m_name = (void *)_get_extension()->get_virtual(_get_extension()->class_userdata, &_gdvirtual_##m_name##_sn);\\
+		}"""
+
+script_has_method = """ScriptInstance *_script_instance = ((Object *)(this))->get_script_instance();\\
+		if (_script_instance && _script_instance->has_method(_gdvirtual_##$VARNAME##_sn)) {\\
+			return true;\\
+		}"""
+
+proto = """#define GDVIRTUAL$VER($ALIAS $RET m_name $ARG)\\
+	StringName _gdvirtual_##$VARNAME##_sn = #m_name;\\
+	mutable bool _gdvirtual_##$VARNAME##_initialized = false;\\
+	mutable void *_gdvirtual_##$VARNAME = nullptr;\\
+	_FORCE_INLINE_ bool _gdvirtual_##$VARNAME##_call($CALLARGS) $CONST {\\
+		$SCRIPTCALL\\
+		if (unlikely(_get_extension() && !_gdvirtual_##$VARNAME##_initialized)) {\\
+			MethodInfo mi = _gdvirtual_##$VARNAME##_get_method_info();\\
+			uint32_t hash = mi.get_compatibility_hash();\\
+			_gdvirtual_##$VARNAME = nullptr;\\
+			if (_get_extension()->get_virtual_call_data2 && _get_extension()->call_virtual_with_data) {\\
+				_gdvirtual_##$VARNAME = _get_extension()->get_virtual_call_data2(_get_extension()->class_userdata, &_gdvirtual_##$VARNAME##_sn, hash);\\
+			} else if (_get_extension()->get_virtual2) {\\
+				_gdvirtual_##$VARNAME = (void *)_get_extension()->get_virtual2(_get_extension()->class_userdata, &_gdvirtual_##$VARNAME##_sn, hash);\\
 			}\\
-			GDVIRTUAL_TRACK(_gdvirtual_##m_name, _gdvirtual_##m_name##_initialized);\\
-			_gdvirtual_##m_name##_initialized = true;\\
+			_GDVIRTUAL_GET_DEPRECATED(_gdvirtual_##$VARNAME, _gdvirtual_##$VARNAME##_sn, $COMPAT)\\
+			_GDVIRTUAL_TRACK(_gdvirtual_##$VARNAME, _gdvirtual_##$VARNAME##_initialized);\\
+			_gdvirtual_##$VARNAME##_initialized = true;\\
 		}\\
-		if (_gdvirtual_##m_name) {\\
+		if (_gdvirtual_##$VARNAME) {\\
 			$CALLPTRARGS\\
 			$CALLPTRRETDEF\\
-			if (_get_extension()->get_virtual_call_data && _get_extension()->call_virtual_with_data) {\\
-				_get_extension()->call_virtual_with_data(_get_extension_instance(), &_gdvirtual_##m_name##_sn, _gdvirtual_##m_name, $CALLPTRARGPASS, $CALLPTRRETPASS);\\
+			if (_get_extension()->call_virtual_with_data) {\\
+				_get_extension()->call_virtual_with_data(_get_extension_instance(), &_gdvirtual_##$VARNAME##_sn, _gdvirtual_##$VARNAME, $CALLPTRARGPASS, $CALLPTRRETPASS);\\
 				$CALLPTRRET\\
 			} else {\\
-				((GDExtensionClassCallVirtual)_gdvirtual_##m_name)(_get_extension_instance(), $CALLPTRARGPASS, $CALLPTRRETPASS);\\
+				((GDExtensionClassCallVirtual)_gdvirtual_##$VARNAME)(_get_extension_instance(), $CALLPTRARGPASS, $CALLPTRRETPASS);\\
 				$CALLPTRRET\\
 			}\\
 			return true;\\
@@ -39,27 +49,27 @@ proto = """#define GDVIRTUAL$VER($RET m_name $ARG)\\
 		$RVOID\\
 		return false;\\
 	}\\
-	_FORCE_INLINE_ bool _gdvirtual_##m_name##_overridden() const {\\
-		ScriptInstance *_script_instance = ((Object *)(this))->get_script_instance();\\
-		if (_script_instance && _script_instance->has_method(_gdvirtual_##m_name##_sn)) {\\
-			return true;\\
-		}\\
-		if (unlikely(_get_extension() && !_gdvirtual_##m_name##_initialized)) {\\
-			_gdvirtual_##m_name = nullptr;\\
-			if (_get_extension()->get_virtual_call_data && _get_extension()->call_virtual_with_data) {\\
-				_gdvirtual_##m_name = _get_extension()->get_virtual_call_data(_get_extension()->class_userdata, &_gdvirtual_##m_name##_sn);\\
-			} else if (_get_extension()->get_virtual) {\\
-				_gdvirtual_##m_name = (void *)_get_extension()->get_virtual(_get_extension()->class_userdata, &_gdvirtual_##m_name##_sn);\\
+	_FORCE_INLINE_ bool _gdvirtual_##$VARNAME##_overridden() const {\\
+		$SCRIPTHASMETHOD\\
+		if (unlikely(_get_extension() && !_gdvirtual_##$VARNAME##_initialized)) {\\
+			MethodInfo mi = _gdvirtual_##$VARNAME##_get_method_info();\\
+			uint32_t hash = mi.get_compatibility_hash();\\
+			_gdvirtual_##$VARNAME = nullptr;\\
+			if (_get_extension()->get_virtual_call_data2 && _get_extension()->call_virtual_with_data) {\\
+				_gdvirtual_##$VARNAME = _get_extension()->get_virtual_call_data2(_get_extension()->class_userdata, &_gdvirtual_##$VARNAME##_sn, hash);\\
+			} else if (_get_extension()->get_virtual2) {\\
+				_gdvirtual_##$VARNAME = (void *)_get_extension()->get_virtual2(_get_extension()->class_userdata, &_gdvirtual_##$VARNAME##_sn, hash);\\
 			}\\
-			GDVIRTUAL_TRACK(_gdvirtual_##m_name, _gdvirtual_##m_name##_initialized);\\
-			_gdvirtual_##m_name##_initialized = true;\\
+			_GDVIRTUAL_GET_DEPRECATED(_gdvirtual_##$VARNAME, _gdvirtual_##$VARNAME##_sn, $COMPAT)\\
+			_GDVIRTUAL_TRACK(_gdvirtual_##$VARNAME, _gdvirtual_##$VARNAME##_initialized);\\
+			_gdvirtual_##$VARNAME##_initialized = true;\\
 		}\\
-		if (_gdvirtual_##m_name) {\\
+		if (_gdvirtual_##$VARNAME) {\\
 			return true;\\
 		}\\
 		return false;\\
 	}\\
-	_FORCE_INLINE_ static MethodInfo _gdvirtual_##m_name##_get_method_info() {\\
+	_FORCE_INLINE_ static MethodInfo _gdvirtual_##$VARNAME##_get_method_info() {\\
 		MethodInfo method_info;\\
 		method_info.name = #m_name;\\
 		method_info.flags = $METHOD_FLAGS;\\
@@ -70,8 +80,15 @@ proto = """#define GDVIRTUAL$VER($RET m_name $ARG)\\
 """
 
 
-def generate_version(argcount, const=False, returns=False, required=False):
+def generate_version(argcount, const=False, returns=False, required=False, compat=False):
     s = proto
+    if compat:
+        s = s.replace("$SCRIPTCALL", "")
+        s = s.replace("$SCRIPTHASMETHOD", "")
+    else:
+        s = s.replace("$SCRIPTCALL", script_call)
+        s = s.replace("$SCRIPTHASMETHOD", script_has_method)
+
     sproto = str(argcount)
     method_info = ""
     method_flags = "METHOD_FLAG_VIRTUAL"
@@ -104,6 +121,16 @@ def generate_version(argcount, const=False, returns=False, required=False):
     else:
         s = s.replace("\t\t$REQCHECK\\\n", "")
 
+    if compat:
+        sproto += "_COMPAT"
+        s = s.replace("$COMPAT", "true")
+        s = s.replace("$ALIAS", "m_alias,")
+        s = s.replace("$VARNAME", "m_alias")
+    else:
+        s = s.replace("$COMPAT", "false")
+        s = s.replace("$ALIAS ", "")
+        s = s.replace("$VARNAME", "m_name")
+
     s = s.replace("$METHOD_FLAGS", method_flags)
     s = s.replace("$VER", sproto)
     argtext = ""
@@ -127,7 +154,7 @@ def generate_version(argcount, const=False, returns=False, required=False):
             callptrargsptr += ", "
         argtext += f"m_type{i + 1}"
         callargtext += f"m_type{i + 1} arg{i + 1}"
-        callsiargs += f"Variant(arg{i + 1})"
+        callsiargs += f"_to_variant(arg{i + 1})"
         callsiargptrs += f"&vargs[{i}]"
         callptrargs += (
             f"PtrToArg<m_type{i + 1}>::EncodeT argval{i + 1} = (PtrToArg<m_type{i + 1}>::EncodeT)arg{i + 1};\\\n"
@@ -185,8 +212,10 @@ def run(target, source, env):
 
 #include "core/object/script_instance.h"
 
+#include <utility>
+
 #ifdef TOOLS_ENABLED
-#define GDVIRTUAL_TRACK(m_virtual, m_initialized)\\
+#define _GDVIRTUAL_TRACK(m_virtual, m_initialized)\\
 	if (_get_extension()->reloadable) {\\
 		VirtualMethodTracker *tracker = memnew(VirtualMethodTracker);\\
 		tracker->method = (void **)&m_virtual;\\
@@ -195,8 +224,52 @@ def run(target, source, env):
 		virtual_method_list = tracker;\\
 	}
 #else
-#define GDVIRTUAL_TRACK(m_virtual, m_initialized)
+#define _GDVIRTUAL_TRACK(m_virtual, m_initialized)
 #endif
+
+#ifndef DISABLE_DEPRECATED
+#define _GDVIRTUAL_GET_DEPRECATED(m_virtual, m_name_sn, m_compat)\\
+	else if (m_compat || ClassDB::get_virtual_method_compatibility_hashes(get_class_static(), m_name_sn).size() == 0) {\\
+		if (_get_extension()->get_virtual_call_data && _get_extension()->call_virtual_with_data) {\\
+			m_virtual = _get_extension()->get_virtual_call_data(_get_extension()->class_userdata, &m_name_sn);\\
+		} else if (_get_extension()->get_virtual) {\\
+			m_virtual = (void *)_get_extension()->get_virtual(_get_extension()->class_userdata, &m_name_sn);\\
+		}\\
+	}
+#else
+#define _GDVIRTUAL_GET_DEPRECATED(m_name, m_name_sn, m_compat)
+#endif
+
+// MSVC WORKAROUND START
+// FIXME The below helper functions are needed to work around an MSVC bug.
+// They should be removed (by modifying core/object/make_virtuals.py) once the bug ceases to be triggered.
+// The bug is triggered by the following code:
+// `Variant(arg)`
+// Through the introduction of the move constructor, MSVC forgets that `operator Variant()`
+// is also a valid way to resolve this call. So for some argument types, it fails the call because
+// it cannot convert to `Variant`.
+// The function `_to_variant` helps the compiler select `.operator Variant()` for appropriate arguments using SFINAE.
+
+template <typename T, typename = void>
+struct has_variant_operator : std::false_type {};
+
+template <typename T>
+struct has_variant_operator<T, std::void_t<decltype(std::declval<T>().operator Variant())>> : std::true_type {};
+
+// Function that is enabled if T has `.operator Variant()`.
+template <typename T>
+_ALWAYS_INLINE_ typename std::enable_if<has_variant_operator<T>::value, Variant>::type
+_to_variant(T&& t) {
+    return std::forward<T>(t).operator Variant();
+}
+
+// Function that is enabled if T does not have `.operator Variant()`.
+template <typename T>
+_ALWAYS_INLINE_ typename std::enable_if<!has_variant_operator<T>::value, Variant>::type
+_to_variant(T&& t) {
+    return Variant(std::forward<T>(t));
+}
+// MSVC WORKAROUND END
 
 """
 
@@ -210,6 +283,10 @@ def run(target, source, env):
         txt += generate_version(i, False, True, True)
         txt += generate_version(i, True, False, True)
         txt += generate_version(i, True, True, True)
+        txt += generate_version(i, False, False, False, True)
+        txt += generate_version(i, False, True, False, True)
+        txt += generate_version(i, True, False, False, True)
+        txt += generate_version(i, True, True, False, True)
 
     txt += "#endif // GDVIRTUAL_GEN_H\n"
 

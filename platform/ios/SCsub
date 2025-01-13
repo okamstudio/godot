@@ -68,7 +68,6 @@ ios_lib = [
     "ios.mm",
     "rendering_context_driver_vulkan_ios.mm",
     "display_server_ios.mm",
-    "joypad_ios.mm",
     "godot_view.mm",
     "tts_ios.mm",
     "display_layer.mm",

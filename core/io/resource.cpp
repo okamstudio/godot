@@ -30,14 +30,10 @@
 
 #include "resource.h"
 
-#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_funcs.h"
-#include "core/object/script_language.h"
 #include "core/os/os.h"
 #include "scene/main/node.h" //only so casting works
-
-#include <stdio.h>
 
 void Resource::emit_changed() {
 	if (ResourceLoader::is_within_load() && !Thread::is_main_thread()) {
@@ -235,7 +231,7 @@ void Resource::reload_from_file() {
 
 	Ref<Resource> s = ResourceLoader::load(ResourceLoader::path_remap(path), get_class(), ResourceFormatLoader::CACHE_MODE_IGNORE);
 
-	if (!s.is_valid()) {
+	if (s.is_null()) {
 		return;
 	}
 
@@ -655,7 +651,7 @@ Ref<Resource> ResourceCache::get_ref(const String &p_path) {
 			ref = Ref<Resource>(*res);
 		}
 
-		if (res && !ref.is_valid()) {
+		if (res && ref.is_null()) {
 			// This resource is in the process of being deleted, ignore its existence
 			(*res)->path_cache = String();
 			resources.erase(p_path);
@@ -674,7 +670,7 @@ void ResourceCache::get_cached_resources(List<Ref<Resource>> *p_resources) {
 	for (KeyValue<String, Resource *> &E : resources) {
 		Ref<Resource> ref = Ref<Resource>(E.value);
 
-		if (!ref.is_valid()) {
+		if (ref.is_null()) {
 			// This resource is in the process of being deleted, ignore its existence
 			E.value->path_cache = String();
 			to_remove.push_back(E.key);

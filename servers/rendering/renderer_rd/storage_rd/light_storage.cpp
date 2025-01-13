@@ -1732,11 +1732,12 @@ void LightStorage::update_reflection_probe_buffer(RenderDataRD *p_render_data, c
 		if (!rpi) {
 			continue;
 		}
-
-		Transform3D transform = rpi->transform;
+		ReflectionProbe *probe = reflection_probe_owner.get_or_null(rpi->probe);
+		Vector3 extents = probe->size / 2;
+		float probe_size = extents.length();
 
 		reflection_sort[reflection_count].probe_instance = rpi;
-		reflection_sort[reflection_count].depth = -p_camera_inverse_transform.xform(transform.origin).z;
+		reflection_sort[reflection_count].size = -probe_size;
 		reflection_count++;
 	}
 
@@ -2574,12 +2575,12 @@ Rect2i LightStorage::get_directional_shadow_rect() {
 	return _get_directional_shadow_rect(directional_shadow.size, directional_shadow.light_count, directional_shadow.current_light);
 }
 
-int LightStorage::get_directional_light_shadow_size(RID p_light_intance) {
+int LightStorage::get_directional_light_shadow_size(RID p_light_instance) {
 	ERR_FAIL_COND_V(directional_shadow.light_count == 0, 0);
 
 	Rect2i r = _get_directional_shadow_rect(directional_shadow.size, directional_shadow.light_count, 0);
 
-	LightInstance *light_instance = light_instance_owner.get_or_null(p_light_intance);
+	LightInstance *light_instance = light_instance_owner.get_or_null(p_light_instance);
 	ERR_FAIL_NULL_V(light_instance, 0);
 
 	switch (light_directional_get_shadow_mode(light_instance->light)) {

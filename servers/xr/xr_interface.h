@@ -139,6 +139,7 @@ public:
 	virtual RID get_velocity_texture(); /* obtain velocity output texture (if applicable, used for spacewarp) */
 	virtual RID get_velocity_depth_texture();
 	virtual Size2i get_velocity_target_size();
+	virtual Rect2i get_render_region();
 	virtual void pre_render() {}
 	virtual bool pre_draw_viewport(RID p_render_target) { return true; } /* inform XR interface we are about to start our viewport draw process */
 	virtual Vector<BlitToScreen> post_draw_viewport(RID p_render_target, const Rect2 &p_screen_rect) = 0; /* inform XR interface we finished our viewport draw process */

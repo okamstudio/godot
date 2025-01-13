@@ -32,8 +32,6 @@
 #define NATIVE_MENU_H
 
 #include "core/input/input.h"
-#include "core/io/resource.h"
-#include "core/os/os.h"
 #include "core/variant/callable.h"
 
 class Texture2D;

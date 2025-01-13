@@ -32,6 +32,7 @@
 #define AUDIO_STREAM_WAV_H
 
 #include "servers/audio/audio_stream.h"
+
 #include "thirdparty/misc/qoa.h"
 
 class AudioStreamWAV;
@@ -141,8 +142,8 @@ protected:
 	static void _bind_methods();
 
 public:
+	static Ref<AudioStreamWAV> load_from_buffer(const Vector<uint8_t> &p_stream_data, const Dictionary &p_options);
 	static Ref<AudioStreamWAV> load_from_file(const String &p_path, const Dictionary &p_options);
-	static Ref<AudioStreamWAV> load_from_buffer(const Vector<uint8_t> &p_file_data, const Dictionary &p_options);
 
 	void set_format(Format p_format);
 	Format get_format() const;

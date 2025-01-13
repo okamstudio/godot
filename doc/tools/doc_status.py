@@ -3,18 +3,21 @@
 import fnmatch
 import math
 import os
-import platform
 import re
 import sys
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Set
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
+
+from misc.utility.color import STDOUT_COLOR, Ansi, toggle_color
 
 ################################################################################
 #                                    Config                                    #
 ################################################################################
 
 flags = {
-    "c": platform.platform() != "Windows",  # Disable by default on windows, since we use ANSI escape codes
+    "c": STDOUT_COLOR,
     "b": False,
     "g": False,
     "s": False,
@@ -85,16 +88,16 @@ table_column_names = [
     "Constructors",
 ]
 colors = {
-    "name": [36],  # cyan
-    "part_big_problem": [4, 31],  # underline, red
-    "part_problem": [31],  # red
-    "part_mostly_good": [33],  # yellow
-    "part_good": [32],  # green
-    "url": [4, 34],  # underline, blue
-    "section": [1, 4],  # bold, underline
-    "state_off": [36],  # cyan
-    "state_on": [1, 35],  # bold, magenta/plum
-    "bold": [1],  # bold
+    "name": [Ansi.CYAN],  # cyan
+    "part_big_problem": [Ansi.RED, Ansi.UNDERLINE],  # underline, red
+    "part_problem": [Ansi.RED],  # red
+    "part_mostly_good": [Ansi.YELLOW],  # yellow
+    "part_good": [Ansi.GREEN],  # green
+    "url": [Ansi.BLUE, Ansi.UNDERLINE],  # underline, blue
+    "section": [Ansi.BOLD, Ansi.UNDERLINE],  # bold, underline
+    "state_off": [Ansi.CYAN],  # cyan
+    "state_on": [Ansi.BOLD, Ansi.MAGENTA],  # bold, magenta/plum
+    "bold": [Ansi.BOLD],  # bold
 }
 overall_progress_description_weight = 10
 
@@ -111,13 +114,8 @@ def validate_tag(elem: ET.Element, tag: str) -> None:
 
 
 def color(color: str, string: str) -> str:
-    if flags["c"] and terminal_supports_color():
-        color_format = ""
-        for code in colors[color]:
-            color_format += "\033[" + str(code) + "m"
-        return color_format + string + "\033[0m"
-    else:
-        return string
+    color_format = "".join([str(x) for x in colors[color]])
+    return f"{color_format}{string}{Ansi.RESET}"
 
 
 ansi_escape = re.compile(r"\x1b[^m]*m")
@@ -125,16 +123,6 @@ ansi_escape = re.compile(r"\x1b[^m]*m")
 
 def nonescape_len(s: str) -> int:
     return len(ansi_escape.sub("", s))
-
-
-def terminal_supports_color():
-    p = sys.platform
-    supported_platform = p != "Pocket PC" and (p != "win32" or "ANSICON" in os.environ)
-
-    is_a_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
-    if not supported_platform or not is_a_tty:
-        return False
-    return True
 
 
 ################################################################################
@@ -342,6 +330,8 @@ if flags["u"]:
     table_column_names.append("Docs URL")
     table_columns.append("url")
 
+if flags["c"]:
+    toggle_color(True)
 
 ################################################################################
 #                                     Help                                     #

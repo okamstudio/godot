@@ -17,8 +17,9 @@ layout(push_constant, std430) uniform Params {
 	vec4 projection; // only applicable if not multiview
 	vec3 position;
 	float time;
-	vec3 pad;
+	vec2 pad;
 	float luminance_multiplier;
+	float brightness_multiplier;
 }
 params;
 
@@ -57,8 +58,9 @@ layout(push_constant, std430) uniform Params {
 	vec4 projection; // only applicable if not multiview
 	vec3 position;
 	float time;
-	vec3 pad;
+	vec2 pad;
 	float luminance_multiplier;
+	float brightness_multiplier;
 }
 params;
 
@@ -254,6 +256,9 @@ void main() {
 
 	frag_color.rgb = color;
 	frag_color.a = alpha;
+
+	// Apply environment 'brightness' setting separately before fog to ensure consistent luminance.
+	frag_color.rgb = frag_color.rgb * params.brightness_multiplier;
 
 #if !defined(DISABLE_FOG) && !defined(USE_CUBEMAP_PASS)
 

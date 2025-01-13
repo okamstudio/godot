@@ -67,8 +67,6 @@ if env["builtin_freetype"]:
     env.Prepend(CPPPATH=[thirdparty_dir + "/include"])
 
     env_freetype.Append(CPPDEFINES=["FT2_BUILD_LIBRARY", "FT_CONFIG_OPTION_USE_PNG", "FT_CONFIG_OPTION_SYSTEM_ZLIB"])
-    if env.dev_build:
-        env_freetype.Append(CPPDEFINES=["ZLIB_DEBUG"])
 
     # Also requires libpng headers
     if env["builtin_libpng"]:

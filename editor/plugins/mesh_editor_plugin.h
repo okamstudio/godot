@@ -38,7 +38,6 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/subviewport_container.h"
 #include "scene/resources/camera_attributes.h"
-#include "scene/resources/material.h"
 
 class SubViewport;
 class Button;
@@ -93,7 +92,7 @@ class MeshEditorPlugin : public EditorPlugin {
 	GDCLASS(MeshEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "Mesh"; }
+	virtual String get_plugin_name() const override { return "Mesh"; }
 
 	MeshEditorPlugin();
 };

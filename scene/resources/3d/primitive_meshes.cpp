@@ -1061,11 +1061,11 @@ void CylinderMesh::create_mesh_array(Array &p_arr, float top_radius, float botto
 	float height_v = height / vertical_length;
 	float padding_v = p_uv2_padding / vertical_length;
 
-	float horizonal_length = MAX(MAX(2.0 * (top_radius + bottom_radius + p_uv2_padding), top_circumference + p_uv2_padding), bottom_circumference + p_uv2_padding);
-	float center_h = 0.5 * (horizonal_length - p_uv2_padding) / horizonal_length;
-	float top_h = top_circumference / horizonal_length;
-	float bottom_h = bottom_circumference / horizonal_length;
-	float padding_h = p_uv2_padding / horizonal_length;
+	float horizontal_length = MAX(MAX(2.0 * (top_radius + bottom_radius + p_uv2_padding), top_circumference + p_uv2_padding), bottom_circumference + p_uv2_padding);
+	float center_h = 0.5 * (horizontal_length - p_uv2_padding) / horizontal_length;
+	float top_h = top_circumference / horizontal_length;
+	float bottom_h = bottom_circumference / horizontal_length;
+	float padding_h = p_uv2_padding / horizontal_length;
 
 	Vector<Vector3> points;
 	Vector<Vector3> normals;
@@ -1132,9 +1132,9 @@ void CylinderMesh::create_mesh_array(Array &p_arr, float top_radius, float botto
 	}
 
 	// Adjust for bottom section, only used if we calculate UV2s.
-	top_h = top_radius / horizonal_length;
+	top_h = top_radius / horizontal_length;
 	float top_v = top_radius / vertical_length;
-	bottom_h = bottom_radius / horizonal_length;
+	bottom_h = bottom_radius / horizontal_length;
 	float bottom_v = bottom_radius / vertical_length;
 
 	// Add top.

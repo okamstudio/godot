@@ -32,13 +32,10 @@
 
 #include "scene/2d/cpu_particles_2d.h"
 #include "scene/resources/atlas_texture.h"
+#include "scene/resources/canvas_item_material.h"
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/gradient_texture.h"
 #include "scene/resources/particle_process_material.h"
-
-#ifdef TOOLS_ENABLED
-#include "core/config/engine.h"
-#endif
 
 void GPUParticles2D::set_emitting(bool p_emitting) {
 	// Do not return even if `p_emitting == emitting` because `emitting` is just an approximation.
@@ -646,10 +643,10 @@ void GPUParticles2D::_notification(int p_what) {
 				};
 
 				Vector<Vector2> uvs;
-				AtlasTexture *atlas_texure = Object::cast_to<AtlasTexture>(*texture);
-				if (atlas_texure && atlas_texure->get_atlas().is_valid()) {
-					Rect2 region_rect = atlas_texure->get_region();
-					Size2 atlas_size = atlas_texure->get_atlas()->get_size();
+				AtlasTexture *atlas_texture = Object::cast_to<AtlasTexture>(*texture);
+				if (atlas_texture && atlas_texture->get_atlas().is_valid()) {
+					Rect2 region_rect = atlas_texture->get_region();
+					Size2 atlas_size = atlas_texture->get_atlas()->get_size();
 					uvs.push_back(Vector2(region_rect.position.x / atlas_size.x, region_rect.position.y / atlas_size.y));
 					uvs.push_back(Vector2((region_rect.position.x + region_rect.size.x) / atlas_size.x, region_rect.position.y / atlas_size.y));
 					uvs.push_back(Vector2((region_rect.position.x + region_rect.size.x) / atlas_size.x, (region_rect.position.y + region_rect.size.y) / atlas_size.y));
@@ -830,7 +827,7 @@ void GPUParticles2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "lifetime", PROPERTY_HINT_RANGE, "0.01,600.0,0.01,or_greater,exp,suffix:s"), "set_lifetime", "get_lifetime");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "interp_to_end", PROPERTY_HINT_RANGE, "0.00,1.0,0.001"), "set_interp_to_end", "get_interp_to_end");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "get_one_shot");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "preprocess", PROPERTY_HINT_RANGE, "0.00,600.0,0.01,exp,suffix:s"), "set_pre_process_time", "get_pre_process_time");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "preprocess", PROPERTY_HINT_RANGE, "0.00,10.0,0.01,or_greater,exp,suffix:s"), "set_pre_process_time", "get_pre_process_time");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "speed_scale", PROPERTY_HINT_RANGE, "0,64,0.01"), "set_speed_scale", "get_speed_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "explosiveness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_explosiveness_ratio", "get_explosiveness_ratio");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "randomness", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_randomness_ratio", "get_randomness_ratio");

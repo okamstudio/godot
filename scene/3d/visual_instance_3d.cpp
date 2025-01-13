@@ -530,6 +530,10 @@ bool GeometryInstance3D::is_ignoring_occlusion_culling() {
 	return ignore_occlusion_culling;
 }
 
+Ref<TriangleMesh> GeometryInstance3D::generate_triangle_mesh() const {
+	return Ref<TriangleMesh>();
+}
+
 PackedStringArray GeometryInstance3D::get_configuration_warnings() const {
 	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
 

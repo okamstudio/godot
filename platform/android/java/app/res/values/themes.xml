@@ -2,7 +2,8 @@
 <resources>
 
 	<style name="GodotAppMainTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
-		<item name ="android:windowDrawsSystemBarBackgrounds">false</item>
+		<item name="android:windowDrawsSystemBarBackgrounds">false</item>
+		<item name="android:windowSwipeToDismiss">false</item>
 	</style>
 
 	<style name="GodotAppSplashTheme" parent="Theme.SplashScreen">

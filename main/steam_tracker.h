@@ -62,7 +62,7 @@ class SteamTracker {
 	SteamAPI_InitFunction steam_init_function = nullptr;
 	SteamAPI_InitFlatFunction steam_init_flat_function = nullptr;
 	SteamAPI_ShutdownFunction steam_shutdown_function = nullptr;
-	bool steam_initalized = false;
+	bool steam_initialized = false;
 
 public:
 	SteamTracker();

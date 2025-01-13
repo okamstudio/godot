@@ -410,7 +410,14 @@ void EditorFileDialog::update_dir() {
 }
 
 void EditorFileDialog::_dir_submitted(const String &p_dir) {
-	dir_access->change_dir(p_dir);
+	String new_dir = p_dir;
+#ifdef WINDOWS_ENABLED
+	if (drives->is_visible() && !new_dir.is_network_share_path() && new_dir.is_absolute_path() && new_dir.find(":/") == -1 && new_dir.find(":\\") == -1) {
+		// Non network path without X:/ prefix on Windows, add drive letter.
+		new_dir = drives->get_item_text(drives->get_selected()).path_join(new_dir);
+	}
+#endif
+	dir_access->change_dir(new_dir);
 	invalidate();
 	update_dir();
 	_push_history();
@@ -1211,50 +1218,83 @@ void EditorFileDialog::update_filters() {
 
 	if (filters.size() > 1) {
 		String all_filters;
+		String all_mime;
 		String all_filters_full;
+		String all_mime_full;
 
 		const int max_filters = 5;
 
+		// "All Recognized" display name.
 		for (int i = 0; i < MIN(max_filters, filters.size()); i++) {
 			String flt = filters[i].get_slicec(';', 0).strip_edges();
-			if (i > 0) {
+			if (!all_filters.is_empty() && !flt.is_empty()) {
 				all_filters += ", ";
 			}
 			all_filters += flt;
+
+			String mime = filters[i].get_slicec(';', 2).strip_edges();
+			if (!all_mime.is_empty() && !mime.is_empty()) {
+				all_mime += ", ";
+			}
+			all_mime += mime;
 		}
+
+		// "All Recognized" filter.
 		for (int i = 0; i < filters.size(); i++) {
 			String flt = filters[i].get_slicec(';', 0).strip_edges();
-			if (i > 0) {
+			if (!all_filters_full.is_empty() && !flt.is_empty()) {
 				all_filters_full += ",";
 			}
 			all_filters_full += flt;
+
+			String mime = filters[i].get_slicec(';', 2).strip_edges();
+			if (!all_mime_full.is_empty() && !mime.is_empty()) {
+				all_mime_full += ",";
+			}
+			all_mime_full += mime;
 		}
+
+		String native_all_name;
+		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_NATIVE_DIALOG_FILE_MIME)) {
+			native_all_name += all_filters;
+		}
+		if (!native_all_name.is_empty()) {
+			native_all_name += ", ";
+		}
+		native_all_name += all_mime;
 
 		if (max_filters < filters.size()) {
 			all_filters += ", ...";
+			native_all_name += ", ...";
 		}
 
-		String f = TTR("All Recognized") + " (" + all_filters + ")";
-		filter->add_item(f);
-		processed_filters.push_back(all_filters_full + ";" + f);
+		filter->add_item(atr(ETR("All Recognized")) + " (" + all_filters + ")");
+		processed_filters.push_back(all_filters_full + ";" + atr(ETR("All Recognized")) + " (" + native_all_name + ")" + ";" + all_mime_full);
 	}
 	for (int i = 0; i < filters.size(); i++) {
 		String flt = filters[i].get_slicec(';', 0).strip_edges();
-		String desc = filters[i].get_slice(";", 1).strip_edges();
-		if (desc.length()) {
-			String f = desc + " (" + flt + ")";
-			filter->add_item(f);
-			processed_filters.push_back(flt + ";" + f);
+		String desc = filters[i].get_slicec(';', 1).strip_edges();
+		String mime = filters[i].get_slicec(';', 2).strip_edges();
+		String native_name;
+		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_NATIVE_DIALOG_FILE_MIME)) {
+			native_name += flt;
+		}
+		if (!native_name.is_empty() && !mime.is_empty()) {
+			native_name += ", ";
+		}
+		native_name += mime;
+		if (!desc.is_empty()) {
+			filter->add_item(atr(desc) + " (" + flt + ")");
+			processed_filters.push_back(flt + ";" + atr(desc) + " (" + native_name + ");" + mime);
 		} else {
-			String f = "(" + flt + ")";
-			filter->add_item(f);
-			processed_filters.push_back(flt + ";" + f);
+			filter->add_item("(" + flt + ")");
+			processed_filters.push_back(flt + ";(" + native_name + ");" + mime);
 		}
 	}
 
 	String f = TTR("All Files") + " (*.*)";
 	filter->add_item(f);
-	processed_filters.push_back("*.*;" + f);
+	processed_filters.push_back("*.*;" + f + ";application/octet-stream");
 }
 
 void EditorFileDialog::clear_filters() {
@@ -1504,9 +1544,11 @@ void EditorFileDialog::_filter_changed(const String &p_text) {
 	search_string = p_text;
 	invalidate();
 
-	item_list->deselect_all();
-	if (item_list->get_item_count() > 0) {
-		item_list->call_deferred("select", 0);
+	if (item_list->get_selected_items().size() > 0) {
+		item_list->deselect_all();
+		if (item_list->get_item_count() > 0) {
+			item_list->call_deferred("select", 0);
+		}
 	}
 }
 
@@ -2295,22 +2337,22 @@ EditorFileDialog::EditorFileDialog() {
 
 	set_title(TTR("Save a File"));
 
-	ED_SHORTCUT("file_dialog/go_back", TTR("Go Back"), KeyModifierMask::ALT | Key::LEFT);
-	ED_SHORTCUT("file_dialog/go_forward", TTR("Go Forward"), KeyModifierMask::ALT | Key::RIGHT);
-	ED_SHORTCUT("file_dialog/go_up", TTR("Go Up"), KeyModifierMask::ALT | Key::UP);
-	ED_SHORTCUT("file_dialog/refresh", TTR("Refresh"), Key::F5);
-	ED_SHORTCUT("file_dialog/toggle_hidden_files", TTR("Toggle Hidden Files"), KeyModifierMask::CTRL | Key::H);
-	ED_SHORTCUT("file_dialog/toggle_favorite", TTR("Toggle Favorite"), KeyModifierMask::ALT | Key::F);
-	ED_SHORTCUT("file_dialog/toggle_mode", TTR("Toggle Mode"), KeyModifierMask::ALT | Key::V);
-	ED_SHORTCUT("file_dialog/create_folder", TTR("Create Folder"), KeyModifierMask::CMD_OR_CTRL | Key::N);
-	ED_SHORTCUT("file_dialog/delete", TTR("Delete"), Key::KEY_DELETE);
-	ED_SHORTCUT("file_dialog/focus_path", TTR("Focus Path"), KeyModifierMask::CMD_OR_CTRL | Key::L);
+	ED_SHORTCUT("file_dialog/go_back", TTRC("Go Back"), KeyModifierMask::ALT | Key::LEFT);
+	ED_SHORTCUT("file_dialog/go_forward", TTRC("Go Forward"), KeyModifierMask::ALT | Key::RIGHT);
+	ED_SHORTCUT("file_dialog/go_up", TTRC("Go Up"), KeyModifierMask::ALT | Key::UP);
+	ED_SHORTCUT("file_dialog/refresh", TTRC("Refresh"), Key::F5);
+	ED_SHORTCUT("file_dialog/toggle_hidden_files", TTRC("Toggle Hidden Files"), KeyModifierMask::CTRL | Key::H);
+	ED_SHORTCUT("file_dialog/toggle_favorite", TTRC("Toggle Favorite"), KeyModifierMask::ALT | Key::F);
+	ED_SHORTCUT("file_dialog/toggle_mode", TTRC("Toggle Mode"), KeyModifierMask::ALT | Key::V);
+	ED_SHORTCUT("file_dialog/create_folder", TTRC("Create Folder"), KeyModifierMask::CMD_OR_CTRL | Key::N);
+	ED_SHORTCUT("file_dialog/delete", TTRC("Delete"), Key::KEY_DELETE);
+	ED_SHORTCUT("file_dialog/focus_path", TTRC("Focus Path"), KeyModifierMask::CMD_OR_CTRL | Key::L);
 	// Allow both Cmd + L and Cmd + Shift + G to match Safari's and Finder's shortcuts respectively.
 	ED_SHORTCUT_OVERRIDE_ARRAY("file_dialog/focus_path", "macos",
 			{ int32_t(KeyModifierMask::META | Key::L), int32_t(KeyModifierMask::META | KeyModifierMask::SHIFT | Key::G) });
-	ED_SHORTCUT("file_dialog/focus_filter", TTR("Focus Filter"), KeyModifierMask::CMD_OR_CTRL | Key::F);
-	ED_SHORTCUT("file_dialog/move_favorite_up", TTR("Move Favorite Up"), KeyModifierMask::CMD_OR_CTRL | Key::UP);
-	ED_SHORTCUT("file_dialog/move_favorite_down", TTR("Move Favorite Down"), KeyModifierMask::CMD_OR_CTRL | Key::DOWN);
+	ED_SHORTCUT("file_dialog/focus_filter", TTRC("Focus Filter"), KeyModifierMask::CMD_OR_CTRL | Key::F);
+	ED_SHORTCUT("file_dialog/move_favorite_up", TTRC("Move Favorite Up"), KeyModifierMask::CMD_OR_CTRL | Key::UP);
+	ED_SHORTCUT("file_dialog/move_favorite_down", TTRC("Move Favorite Down"), KeyModifierMask::CMD_OR_CTRL | Key::DOWN);
 
 	ED_SHORTCUT_OVERRIDE("file_dialog/toggle_hidden_files", "macos", KeyModifierMask::META | KeyModifierMask::SHIFT | Key::PERIOD);
 	ED_SHORTCUT_OVERRIDE("file_dialog/toggle_favorite", "macos", KeyModifierMask::META | KeyModifierMask::CTRL | Key::F);

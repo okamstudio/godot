@@ -79,7 +79,7 @@ protected:
 	void _blend_triangle(const Vector2 &p_pos, const Vector2 *p_points, float *r_weights);
 
 	bool auto_triangles = true;
-	bool trianges_dirty = false;
+	bool triangles_dirty = false;
 
 	void _update_triangles();
 	void _queue_auto_triangles();

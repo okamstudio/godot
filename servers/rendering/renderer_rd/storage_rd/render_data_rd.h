@@ -79,6 +79,7 @@ public:
 
 	/* Viewport data */
 	bool transparent_bg = false;
+	Rect2i render_region;
 
 	/* Shadow data */
 	const RendererSceneRender::RenderShadowData *render_shadows = nullptr;

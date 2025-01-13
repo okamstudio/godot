@@ -141,6 +141,7 @@ class TextureRegionEditor : public AcceptDialog {
 
 protected:
 	void _notification(int p_what);
+	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
 	static void _bind_methods();
 
 	void _texture_preview_draw();
@@ -175,7 +176,7 @@ class TextureRegionEditorPlugin : public EditorPlugin {
 	GDCLASS(TextureRegionEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "TextureRegion"; }
+	virtual String get_plugin_name() const override { return "TextureRegion"; }
 
 	TextureRegionEditorPlugin();
 };

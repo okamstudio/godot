@@ -36,7 +36,6 @@
 #include <climits>
 
 class Callable;
-class Object;
 class StringName;
 class Variant;
 

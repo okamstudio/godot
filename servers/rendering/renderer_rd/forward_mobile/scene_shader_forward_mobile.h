@@ -31,8 +31,8 @@
 #ifndef SCENE_SHADER_FORWARD_MOBILE_H
 #define SCENE_SHADER_FORWARD_MOBILE_H
 
+#include "../storage_rd/material_storage.h"
 #include "servers/rendering/renderer_rd/pipeline_hash_map_rd.h"
-#include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
 #include "servers/rendering/renderer_rd/shaders/forward_mobile/scene_forward_mobile.glsl.gen.h"
 
 namespace RendererSceneRenderImplementation {
@@ -59,6 +59,8 @@ public:
 
 	struct ShaderSpecialization {
 		union {
+			uint32_t packed_0;
+
 			struct {
 				uint32_t use_light_projector : 1;
 				uint32_t use_light_soft_shadows : 1;
@@ -82,11 +84,11 @@ public:
 				uint32_t soft_shadow_samples : 6;
 				uint32_t penumbra_shadow_samples : 6;
 			};
-
-			uint32_t packed_0;
 		};
 
 		union {
+			uint32_t packed_1;
+
 			struct {
 				uint32_t directional_soft_shadow_samples : 6;
 				uint32_t directional_penumbra_shadow_samples : 6;
@@ -96,32 +98,30 @@ public:
 				uint32_t directional_lights : 4;
 				uint32_t decals : 4;
 			};
-
-			uint32_t packed_1;
 		};
 
 		union {
+			uint32_t packed_2;
+
 			struct {
 				uint32_t directional_light_blend_splits : 8;
 				uint32_t padding_1 : 24;
 			};
-
-			uint32_t packed_2;
 		};
 
 		union {
-			float luminance_multiplier;
 			float packed_3;
+			float luminance_multiplier;
 		};
 	};
 
 	struct UbershaderConstants {
 		union {
+			uint32_t packed_0;
+
 			struct {
 				uint32_t cull_mode : 2;
 			};
-
-			uint32_t packed_0;
 		};
 
 		uint32_t padding_1;
@@ -139,12 +139,6 @@ public:
 		enum DepthTest {
 			DEPTH_TEST_DISABLED,
 			DEPTH_TEST_ENABLED
-		};
-
-		enum Cull {
-			CULL_DISABLED,
-			CULL_FRONT,
-			CULL_BACK
 		};
 
 		enum CullVariant {
@@ -209,7 +203,7 @@ public:
 		int blend_mode = BLEND_MODE_MIX;
 		int depth_testi = DEPTH_TEST_ENABLED;
 		int alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF;
-		int cull_mode = CULL_BACK;
+		int cull_mode = RS::CULL_MODE_BACK;
 
 		bool uses_point_size = false;
 		bool uses_alpha = false;

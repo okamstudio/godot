@@ -89,7 +89,7 @@ public:
 	inline Vec3					GetShapeScale() const						{ return Vec3::sLoadFloat3Unsafe(mShapeScale); }
 	inline void					SetShapeScale(Vec3Arg inScale)				{ inScale.StoreFloat3(&mShapeScale); }
 
-	/// Calculates the transform for this shapes's center of mass (excluding scale)
+	/// Calculates the transform for this shape's center of mass (excluding scale)
 	inline RMat44				GetCenterOfMassTransform() const			{ return RMat44::sRotationTranslation(mShapeRotation, mShapePositionCOM); }
 
 	/// Calculates the inverse of the transform for this shape's center of mass (excluding scale)

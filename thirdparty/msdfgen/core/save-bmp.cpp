@@ -8,10 +8,12 @@
 #ifdef MSDFGEN_USE_CPP11
     #include <cstdint>
 #else
+namespace msdfgen {
     typedef int int32_t;
     typedef unsigned uint32_t;
     typedef unsigned short uint16_t;
     typedef unsigned char uint8_t;
+}
 #endif
 
 #include "pixel-conversion.hpp"

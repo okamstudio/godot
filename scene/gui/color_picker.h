@@ -127,6 +127,7 @@ private:
 
 	int current_slider_count = SLIDER_COUNT;
 	static const int MODE_BUTTON_COUNT = 3;
+	const float WHEEL_RADIUS = 0.42;
 
 	bool slider_theme_modified = true;
 
@@ -263,8 +264,8 @@ private:
 		Ref<Texture2D> sample_revert;
 		Ref<Texture2D> overbright_indicator;
 		Ref<Texture2D> picker_cursor;
+		Ref<Texture2D> picker_cursor_bg;
 		Ref<Texture2D> color_hue;
-		Ref<Texture2D> color_okhsl_hue;
 
 		/* Mode buttons */
 		Ref<StyleBox> mode_button_normal;

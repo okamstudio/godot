@@ -38,7 +38,7 @@
 #include "texture_storage.h"
 #include "utilities.h"
 
-#include "servers/rendering/rendering_server_default.h"
+#include "servers/rendering/rendering_server_globals.h"
 
 using namespace GLES3;
 

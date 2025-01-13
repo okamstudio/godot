@@ -307,7 +307,7 @@ struct hb_hashmap_t
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
     if (!items) return item_t::default_value ();
-    auto *item = fetch_item (key, hb_hash (key));
+    auto *item = fetch_item (key, hash);
     if (item)
       return item->value;
     return item_t::default_value ();

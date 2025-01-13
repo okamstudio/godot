@@ -33,15 +33,14 @@
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/error/error_macros.h"
-#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
 #include "core/math/audio_frame.h"
 #include "core/os/os.h"
 #include "core/string/string_name.h"
 #include "core/templates/pair.h"
-#include "scene/resources/audio_stream_wav.h"
 #include "scene/scene_string_names.h"
 #include "servers/audio/audio_driver_dummy.h"
+#include "servers/audio/audio_stream.h"
 #include "servers/audio/effects/audio_effect_compressor.h"
 
 #include <cstring>
@@ -1004,6 +1003,14 @@ float AudioServer::get_bus_volume_db(int p_bus) const {
 	return buses[p_bus]->volume_db;
 }
 
+void AudioServer::set_bus_volume_linear(int p_bus, float p_volume_linear) {
+	set_bus_volume_db(p_bus, Math::linear_to_db(p_volume_linear));
+}
+
+float AudioServer::get_bus_volume_linear(int p_bus) const {
+	return Math::db_to_linear(get_bus_volume_db(p_bus));
+}
+
 int AudioServer::get_bus_channels(int p_bus) const {
 	ERR_FAIL_INDEX_V(p_bus, buses.size(), 0);
 	return buses[p_bus]->channels.size();
@@ -1265,7 +1272,9 @@ void AudioServer::stop_playback_stream(Ref<AudioStreamPlayback> p_playback) {
 		return;
 	}
 
-	p_playback->stop();
+	if (!p_playback->is_playing()) {
+		p_playback->stop();
+	}
 
 	AudioStreamPlaybackListNode *playback_node = _find_playback_list_node(p_playback);
 	if (!playback_node) {
@@ -1486,7 +1495,7 @@ void AudioServer::init_channels_and_buffers() {
 }
 
 void AudioServer::init() {
-	channel_disable_threshold_db = GLOBAL_DEF_RST("audio/buses/channel_disable_threshold_db", -60.0);
+	channel_disable_threshold_db = GLOBAL_DEF_RST(PropertyInfo(Variant::FLOAT, "audio/buses/channel_disable_threshold_db", PROPERTY_HINT_RANGE, "-80,0,0.1,suffix:dB"), -60.0);
 	channel_disable_frames = float(GLOBAL_DEF_RST(PropertyInfo(Variant::FLOAT, "audio/buses/channel_disable_time", PROPERTY_HINT_RANGE, "0,5,0.01,or_greater"), 2.0)) * get_mix_rate();
 	// TODO: Buffer size is hardcoded for now. This would be really nice to have as a project setting because currently it limits audio latency to an absolute minimum of 11ms with default mix rate, but there's some additional work required to make that happen. See TODOs in `_mix_step_for_channel`.
 	// When this becomes a project setting, it should be specified in milliseconds rather than raw sample count, because 512 samples at 192khz is shorter than it is at 48khz, for example.
@@ -1507,7 +1516,7 @@ void AudioServer::init() {
 	set_edited(false); //avoid editors from thinking this was edited
 #endif
 
-	GLOBAL_DEF_RST("audio/video/video_delay_compensation_ms", 0);
+	GLOBAL_DEF_RST(PropertyInfo(Variant::INT, "audio/video/video_delay_compensation_ms", PROPERTY_HINT_RANGE, "-1000,1000,1,suffix:ms"), 0);
 }
 
 void AudioServer::update() {
@@ -1938,6 +1947,9 @@ void AudioServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_bus_volume_db", "bus_idx", "volume_db"), &AudioServer::set_bus_volume_db);
 	ClassDB::bind_method(D_METHOD("get_bus_volume_db", "bus_idx"), &AudioServer::get_bus_volume_db);
+
+	ClassDB::bind_method(D_METHOD("set_bus_volume_linear", "bus_idx", "volume_linear"), &AudioServer::set_bus_volume_linear);
+	ClassDB::bind_method(D_METHOD("get_bus_volume_linear", "bus_idx"), &AudioServer::get_bus_volume_linear);
 
 	ClassDB::bind_method(D_METHOD("set_bus_send", "bus_idx", "send"), &AudioServer::set_bus_send);
 	ClassDB::bind_method(D_METHOD("get_bus_send", "bus_idx"), &AudioServer::get_bus_send);

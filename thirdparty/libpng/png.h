@@ -1,9 +1,8 @@
-
 /* png.h - header file for PNG reference library
  *
- * libpng version 1.6.43
+ * libpng version 1.6.45
  *
- * Copyright (c) 2018-2024 Cosmin Truta
+ * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -15,7 +14,7 @@
  *   libpng versions 0.89, June 1996, through 0.96, May 1997: Andreas Dilger
  *   libpng versions 0.97, January 1998, through 1.6.35, July 2018:
  *     Glenn Randers-Pehrson
- *   libpng versions 1.6.36, December 2018, through 1.6.43, February 2024:
+ *   libpng versions 1.6.36, December 2018, through 1.6.45, January 2025:
  *     Cosmin Truta
  *   See also "Contributing Authors", below.
  */
@@ -27,8 +26,8 @@
  * PNG Reference Library License version 2
  * ---------------------------------------
  *
- *  * Copyright (c) 1995-2024 The PNG Reference Library Authors.
- *  * Copyright (c) 2018-2024 Cosmin Truta.
+ *  * Copyright (c) 1995-2025 The PNG Reference Library Authors.
+ *  * Copyright (c) 2018-2025 Cosmin Truta.
  *  * Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
  *  * Copyright (c) 1996-1997 Andreas Dilger.
  *  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -239,7 +238,7 @@
  *    ...
  *    1.5.30                  15    10530  15.so.15.30[.0]
  *    ...
- *    1.6.43                  16    10643  16.so.16.43[.0]
+ *    1.6.45                  16    10645  16.so.16.45[.0]
  *
  *    Henceforth the source version will match the shared-library major and
  *    minor numbers; the shared-library major version number will be used for
@@ -275,7 +274,7 @@
  */
 
 /* Version information for png.h - this should match the version in png.c */
-#define PNG_LIBPNG_VER_STRING "1.6.43"
+#define PNG_LIBPNG_VER_STRING "1.6.45"
 #define PNG_HEADER_VERSION_STRING " libpng version " PNG_LIBPNG_VER_STRING "\n"
 
 /* The versions of shared library builds should stay in sync, going forward */
@@ -286,18 +285,18 @@
 /* These should match the first 3 components of PNG_LIBPNG_VER_STRING: */
 #define PNG_LIBPNG_VER_MAJOR   1
 #define PNG_LIBPNG_VER_MINOR   6
-#define PNG_LIBPNG_VER_RELEASE 43
+#define PNG_LIBPNG_VER_RELEASE 45
 
 /* This should be zero for a public release, or non-zero for a
  * development version.
  */
-#define PNG_LIBPNG_VER_BUILD  0
+#define PNG_LIBPNG_VER_BUILD 0
 
 /* Release Status */
-#define PNG_LIBPNG_BUILD_ALPHA    1
-#define PNG_LIBPNG_BUILD_BETA     2
-#define PNG_LIBPNG_BUILD_RC       3
-#define PNG_LIBPNG_BUILD_STABLE   4
+#define PNG_LIBPNG_BUILD_ALPHA               1
+#define PNG_LIBPNG_BUILD_BETA                2
+#define PNG_LIBPNG_BUILD_RC                  3
+#define PNG_LIBPNG_BUILD_STABLE              4
 #define PNG_LIBPNG_BUILD_RELEASE_STATUS_MASK 7
 
 /* Release-Specific Flags */
@@ -317,7 +316,7 @@
  * From version 1.0.1 it is:
  * XXYYZZ, where XX=major, YY=minor, ZZ=release
  */
-#define PNG_LIBPNG_VER 10643 /* 1.6.43 */
+#define PNG_LIBPNG_VER 10645 /* 1.6.45 */
 
 /* Library configuration: these options cannot be changed after
  * the library has been built.
@@ -427,7 +426,7 @@ extern "C" {
 /* This triggers a compiler error in png.c, if png.c and png.h
  * do not agree upon the version number.
  */
-typedef char* png_libpng_version_1_6_43;
+typedef char* png_libpng_version_1_6_45;
 
 /* Basic control structions.  Read libpng-manual.txt or libpng.3 for more info.
  *
@@ -745,6 +744,7 @@ typedef png_unknown_chunk * * png_unknown_chunkpp;
 #define PNG_INFO_sCAL 0x4000U  /* ESR, 1.0.6 */
 #define PNG_INFO_IDAT 0x8000U  /* ESR, 1.0.6 */
 #define PNG_INFO_eXIf 0x10000U /* GR-P, 1.6.31 */
+#define PNG_INFO_cICP 0x20000U
 
 /* This is used for the transformation routines, as some of them
  * change these values for the row.  It also should enable using
@@ -824,7 +824,7 @@ typedef PNG_CALLBACK(int, *png_user_chunk_ptr, (png_structp,
  * your compiler.  This may be very difficult - try using a different compiler
  * to build the library!
  */
-PNG_FUNCTION(void, (PNGCAPI *png_longjmp_ptr), PNGARG((jmp_buf, int)), typedef);
+PNG_FUNCTION(void, (PNGCAPI *png_longjmp_ptr), (jmp_buf, int), typedef);
 #endif
 
 /* Transform masks for the high-level interface */
@@ -1972,6 +1972,17 @@ PNG_FIXED_EXPORT(233, void, png_set_cHRM_XYZ_fixed, (png_const_structrp png_ptr,
     png_fixed_point int_green_Y, png_fixed_point int_green_Z,
     png_fixed_point int_blue_X, png_fixed_point int_blue_Y,
     png_fixed_point int_blue_Z))
+#endif
+
+#ifdef PNG_cICP_SUPPORTED
+PNG_EXPORT(250, png_uint_32, png_get_cICP, (png_const_structrp png_ptr,
+    png_inforp info_ptr, png_bytep colour_primaries,
+    png_bytep transfer_function, png_bytep matrix_coefficients,
+    png_bytep video_full_range_flag));
+PNG_EXPORT(251, void, png_set_cICP, (png_const_structrp png_ptr,
+    png_inforp info_ptr, png_byte colour_primaries,
+    png_byte transfer_function, png_byte matrix_coefficients,
+    png_byte video_full_range_flag));
 #endif
 
 #ifdef PNG_eXIf_SUPPORTED
@@ -3238,7 +3249,7 @@ PNG_EXPORT(244, int, png_set_option, (png_structrp png_ptr, int option,
  * one to use is one more than this.)
  */
 #ifdef PNG_EXPORT_LAST_ORDINAL
-  PNG_EXPORT_LAST_ORDINAL(249);
+  PNG_EXPORT_LAST_ORDINAL(251);
 #endif
 
 #ifdef __cplusplus

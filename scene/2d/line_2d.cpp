@@ -41,13 +41,13 @@ Rect2 Line2D::_edit_get_rect() const {
 	if (_points.size() == 0) {
 		return Rect2(0, 0, 0, 0);
 	}
-	Vector2 d = Vector2(_width, _width);
-	Rect2 bounding_rect = Rect2(_points[0] - d, 2 * d);
+	Vector2 min = _points[0];
+	Vector2 max = min;
 	for (int i = 1; i < _points.size(); i++) {
-		bounding_rect.expand_to(_points[i] - d);
-		bounding_rect.expand_to(_points[i] + d);
+		min = min.min(_points[i]);
+		max = max.max(_points[i]);
 	}
-	return bounding_rect;
+	return Rect2(min, max - min).grow(_width);
 }
 
 bool Line2D::_edit_use_rect() const {

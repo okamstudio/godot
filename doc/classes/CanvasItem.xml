@@ -461,6 +461,13 @@
 				Returns the transform from the local coordinate system of this [CanvasItem] to the [Viewport]s coordinate system.
 			</description>
 		</method>
+		<method name="get_instance_shader_parameter" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+				Get the value of a shader parameter as set on this instance.
+			</description>
+		</method>
 		<method name="get_local_mouse_position" qualifiers="const">
 			<return type="Vector2" />
 			<description>
@@ -560,6 +567,16 @@
 			<return type="void" />
 			<description>
 				Queues the [CanvasItem] to redraw. During idle time, if [CanvasItem] is visible, [constant NOTIFICATION_DRAW] is sent and [method _draw] is called. This only occurs [b]once[/b] per frame, even if this method has been called multiple times.
+			</description>
+		</method>
+		<method name="set_instance_shader_parameter">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="value" type="Variant" />
+			<description>
+				Set the value of a shader uniform for this instance only ([url=$DOCS_URL/tutorials/shaders/shader_reference/shading_language.html#per-instance-uniforms]per-instance uniform[/url]). See also [method ShaderMaterial.set_shader_parameter] to assign a uniform on all instances using the same [ShaderMaterial].
+				[b]Note:[/b] For a shader uniform to be assignable on a per-instance basis, it [i]must[/i] be defined with [code]instance uniform ...[/code] rather than [code]uniform ...[/code] in the shader code.
+				[b]Note:[/b] [param name] is case-sensitive and must match the name of the uniform in the code exactly (not the capitalized name in the inspector).
 			</description>
 		</method>
 		<method name="set_notify_local_transform">

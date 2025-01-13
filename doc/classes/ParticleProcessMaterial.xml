@@ -410,6 +410,13 @@
 			A pivot point used to calculate radial and orbital velocity of particles.
 		</member>
 	</members>
+	<signals>
+		<signal name="emission_shape_changed">
+			<description>
+				Emitted when this material's emission shape is changed in any way. This includes changes to [member emission_shape], [member emission_shape_scale], or [member emission_sphere_radius], and any other property that affects the emission shape's offset, size, scale, or orientation.
+			</description>
+		</signal>
+	</signals>
 	<constants>
 		<constant name="PARAM_INITIAL_LINEAR_VELOCITY" value="0" enum="Parameter">
 			Use with [method set_param_min], [method set_param_max], and [method set_param_texture] to set initial velocity properties.

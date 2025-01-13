@@ -99,6 +99,8 @@ if env["builtin_zlib"]:
     env.Prepend(CPPPATH=[thirdparty_zlib_dir])
     if env.dev_build:
         env_thirdparty.Append(CPPDEFINES=["ZLIB_DEBUG"])
+        # Affects headers so it should also be defined for Godot code
+        env.Append(CPPDEFINES=["ZLIB_DEBUG"])
 
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_zlib_sources)
 

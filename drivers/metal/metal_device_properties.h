@@ -71,18 +71,21 @@ typedef NS_OPTIONS(NSUInteger, SampleCount) {
 };
 
 struct API_AVAILABLE(macos(11.0), ios(14.0)) MetalFeatures {
-	uint32_t mslVersion;
-	MTLGPUFamily highestFamily;
-	MTLLanguageVersion mslVersionEnum;
-	SampleCount supportedSampleCounts;
-	long hostMemoryPageSize;
-	bool layeredRendering;
-	bool multisampleLayeredRendering;
-	bool quadPermute; /**< If true, quadgroup permutation functions (vote, ballot, shuffle) are supported in shaders. */
-	bool simdPermute; /**< If true, SIMD-group permutation functions (vote, ballot, shuffle) are supported in shaders. */
-	bool simdReduction; /**< If true, SIMD-group reduction functions (arithmetic) are supported in shaders. */
-	bool tessellationShader; /**< If true, tessellation shaders are supported. */
-	bool imageCubeArray; /**< If true, image cube arrays are supported. */
+	uint32_t mslVersion = 0;
+	MTLGPUFamily highestFamily = MTLGPUFamilyApple4;
+	MTLLanguageVersion mslVersionEnum = MTLLanguageVersion1_2;
+	SampleCount supportedSampleCounts = SampleCount1;
+	long hostMemoryPageSize = 0;
+	bool layeredRendering = false;
+	bool multisampleLayeredRendering = false;
+	bool quadPermute = false; /**< If true, quadgroup permutation functions (vote, ballot, shuffle) are supported in shaders. */
+	bool simdPermute = false; /**< If true, SIMD-group permutation functions (vote, ballot, shuffle) are supported in shaders. */
+	bool simdReduction = false; /**< If true, SIMD-group reduction functions (arithmetic) are supported in shaders. */
+	bool tessellationShader = false; /**< If true, tessellation shaders are supported. */
+	bool imageCubeArray = false; /**< If true, image cube arrays are supported. */
+	MTLArgumentBuffersTier argument_buffers_tier = MTLArgumentBuffersTier1;
+	bool metal_fx_spatial = false; /**< If true, Metal FX spatial functions are supported. */
+	bool metal_fx_temporal = false; /**< If true, Metal FX temporal functions are supported. */
 };
 
 struct MetalLimits {
@@ -113,6 +116,9 @@ struct MetalLimits {
 	uint32_t maxVertexInputBindings;
 	uint32_t maxVertexInputBindingStride;
 	uint32_t maxDrawIndexedIndexValue;
+
+	double temporalScalerInputContentMinScale;
+	double temporalScalerInputContentMaxScale;
 
 	uint32_t minSubgroupSize; /**< The minimum number of threads in a SIMD-group. */
 	uint32_t maxSubgroupSize; /**< The maximum number of threads in a SIMD-group. */

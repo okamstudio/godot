@@ -40,7 +40,6 @@
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
-#include "editor/filesystem_dock.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/window_wrapper.h"
@@ -480,6 +479,8 @@ void EditorDockManager::save_docks_to_config(Ref<ConfigFile> p_layout, const Str
 	Array bottom_docks_dump;
 	Array closed_docks_dump;
 	for (const KeyValue<Control *, DockInfo> &d : all_docks) {
+		d.key->call(SNAME("_save_layout_to_config"), p_layout, p_section);
+
 		if (!d.value.at_bottom && d.value.open && (!d.value.previous_at_bottom || !d.value.dock_window)) {
 			continue;
 		}
@@ -516,16 +517,14 @@ void EditorDockManager::save_docks_to_config(Ref<ConfigFile> p_layout, const Str
 	for (int i = 0; i < hsplits.size(); i++) {
 		p_layout->set_value(p_section, "dock_hsplit_" + itos(i + 1), int(hsplits[i]->get_split_offset() / EDSCALE));
 	}
-
-	FileSystemDock::get_singleton()->save_layout_to_config(p_layout, p_section);
 }
 
-void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
+void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section, bool p_first_load) {
 	Dictionary floating_docks_dump = p_layout->get_value(p_section, "dock_floating", Dictionary());
 	Array dock_bottom = p_layout->get_value(p_section, "dock_bottom", Array());
 	Array closed_docks = p_layout->get_value(p_section, "dock_closed", Array());
 
-	bool restore_window_on_load = EDITOR_GET("interface/multi_window/restore_windows_on_load");
+	bool allow_floating_docks = EditorNode::get_singleton()->is_multi_window_enabled() && (!p_first_load || EDITOR_GET("interface/multi_window/restore_windows_on_load"));
 
 	// Store the docks by name for easy lookup.
 	HashMap<String, Control *> dock_map;
@@ -548,13 +547,14 @@ void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const S
 				continue;
 			}
 			Control *dock = dock_map[name];
+			dock->call(SNAME("_load_layout_from_config"), p_layout, p_section);
 
 			if (!all_docks[dock].enabled) {
 				// Don't open disabled docks.
 				continue;
 			}
 			bool at_bottom = false;
-			if (restore_window_on_load && floating_docks_dump.has(name)) {
+			if (allow_floating_docks && floating_docks_dump.has(name)) {
 				all_docks[dock].previous_at_bottom = dock_bottom.has(name);
 				_restore_dock_to_saved_window(dock, floating_docks_dump[name]);
 			} else if (dock_bottom.has(name)) {
@@ -612,9 +612,6 @@ void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const S
 		int ofs = p_layout->get_value(p_section, "dock_hsplit_" + itos(i + 1));
 		hsplits[i]->set_split_offset(ofs * EDSCALE);
 	}
-
-	FileSystemDock::get_singleton()->load_layout_from_config(p_layout, p_section);
-
 	_update_docks_menu();
 }
 
@@ -717,7 +714,7 @@ void EditorDockManager::focus_dock(Control *p_dock) {
 	}
 
 	if (all_docks[p_dock].at_bottom) {
-		EditorNode::get_bottom_panel()->make_item_visible(p_dock);
+		EditorNode::get_bottom_panel()->make_item_visible(p_dock, true, true);
 		return;
 	}
 

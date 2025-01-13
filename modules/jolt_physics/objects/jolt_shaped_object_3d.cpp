@@ -160,12 +160,13 @@ void JoltShapedObject3D::_update_shape() {
 	const JoltWritableBody3D body = space->write_body(jolt_id);
 	ERR_FAIL_COND(body.is_invalid());
 
-	previous_jolt_shape = jolt_shape;
-	jolt_shape = build_shape();
-
-	if (jolt_shape == previous_jolt_shape) {
+	JPH::ShapeRefC new_shape = build_shape();
+	if (new_shape == jolt_shape) {
 		return;
 	}
+
+	previous_jolt_shape = jolt_shape;
+	jolt_shape = new_shape;
 
 	space->get_body_iface().SetShape(jolt_id, jolt_shape, false, JPH::EActivation::DontActivate);
 

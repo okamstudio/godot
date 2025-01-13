@@ -315,8 +315,8 @@ void OpenXROpenGLExtension::cleanup_swapchain_graphics_data(void **p_swapchain_g
 
 	SwapchainGraphicsData *data = (SwapchainGraphicsData *)*p_swapchain_graphics_data;
 
-	for (int i = 0; i < data->texture_rids.size(); i++) {
-		texture_storage->texture_free(data->texture_rids[i]);
+	for (const RID &texture_rid : data->texture_rids) {
+		texture_storage->texture_free(texture_rid);
 	}
 	data->texture_rids.clear();
 

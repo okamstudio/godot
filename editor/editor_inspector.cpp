@@ -37,6 +37,7 @@
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
+#include "editor/editor_properties.h"
 #include "editor/editor_property_name_processor.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
@@ -48,6 +49,7 @@
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
 #include "scene/gui/margin_container.h"
+#include "scene/gui/separator.h"
 #include "scene/gui/spin_box.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/property_utils.h"
@@ -66,6 +68,126 @@ bool EditorInspector::_property_path_matches(const String &p_property_path, cons
 			return true;
 		}
 	}
+	return false;
+}
+
+bool EditorInspector::_resource_properties_matches(const Ref<Resource> &p_resource, const String &p_filter) {
+	String group;
+	String group_base;
+	String subgroup;
+	String subgroup_base;
+
+	List<PropertyInfo> plist;
+	p_resource->get_property_list(&plist, true);
+
+	// Employ a lighter version of the update_tree() property listing to find a match.
+	for (PropertyInfo &p : plist) {
+		if (p.usage & PROPERTY_USAGE_SUBGROUP) {
+			subgroup = p.name;
+			subgroup_base = p.hint_string.get_slicec(',', 0);
+
+			continue;
+
+		} else if (p.usage & PROPERTY_USAGE_GROUP) {
+			group = p.name;
+			group_base = p.hint_string.get_slicec(',', 0);
+			subgroup = "";
+			subgroup_base = "";
+
+			continue;
+
+		} else if (p.usage & PROPERTY_USAGE_CATEGORY) {
+			group = "";
+			group_base = "";
+			subgroup = "";
+			subgroup_base = "";
+
+			continue;
+
+		} else if (p.name.begins_with("metadata/_") || !(p.usage & PROPERTY_USAGE_EDITOR) || _is_property_disabled_by_feature_profile(p.name) ||
+				(p_filter.is_empty() && restrict_to_basic && !(p.usage & PROPERTY_USAGE_EDITOR_BASIC_SETTING))) {
+			// Ignore properties that are not supposed to be in the inspector.
+			continue;
+		}
+
+		if (p.usage & PROPERTY_USAGE_HIGH_END_GFX && RS::get_singleton()->is_low_end()) {
+			// Do not show this property in low end gfx.
+			continue;
+		}
+
+		if (p.name == "script") {
+			// The script is always hidden in sub inspectors.
+			continue;
+		}
+
+		if (p.name.begins_with("metadata/") && bool(object->call(SNAME("_hide_metadata_from_inspector")))) {
+			// Hide metadata from inspector if required.
+			continue;
+		}
+
+		String path = p.name;
+
+		// Check if we exit or not a subgroup. If there is a prefix, remove it from the property label string.
+		if (!subgroup.is_empty() && !subgroup_base.is_empty()) {
+			if (path.begins_with(subgroup_base)) {
+				path = path.trim_prefix(subgroup_base);
+			} else if (subgroup_base.begins_with(path)) {
+				// Keep it, this is used pretty often.
+			} else {
+				subgroup = ""; // The prefix changed, we are no longer in the subgroup.
+			}
+		}
+
+		// Check if we exit or not a group. If there is a prefix, remove it from the property label string.
+		if (!group.is_empty() && !group_base.is_empty() && subgroup.is_empty()) {
+			if (path.begins_with(group_base)) {
+				path = path.trim_prefix(group_base);
+			} else if (group_base.begins_with(path)) {
+				// Keep it, this is used pretty often.
+			} else {
+				group = ""; // The prefix changed, we are no longer in the group.
+				subgroup = "";
+			}
+		}
+
+		// Add the group and subgroup to the path.
+		if (!subgroup.is_empty()) {
+			path = subgroup + "/" + path;
+		}
+		if (!group.is_empty()) {
+			path = group + "/" + path;
+		}
+
+		// Get the property label's string.
+		String name_override = (path.contains_char('/')) ? path.substr(path.rfind_char('/') + 1) : path;
+		const int dot = name_override.find_char('.');
+		if (dot != -1) {
+			name_override = name_override.substr(0, dot);
+		}
+
+		// Remove the property from the path.
+		int idx = path.rfind_char('/');
+		if (idx > -1) {
+			path = path.left(idx);
+		} else {
+			path = "";
+		}
+
+		// Check if the property matches the filter.
+		const String property_path = (path.is_empty() ? "" : path + "/") + name_override;
+		if (_property_path_matches(property_path, p_filter, property_name_style)) {
+			return true;
+		}
+
+		// Check if the sub-resource has any properties that match the filter.
+		if (p.hint && p.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+			Ref<Resource> res = p_resource->get(p.name);
+			if (res.is_valid() && _resource_properties_matches(res, p_filter)) {
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -164,6 +286,9 @@ void EditorProperty::_notification(int p_what) {
 				if (no_children) {
 					text_size = size.width;
 					rect = Rect2(size.width - 1, 0, 1, height);
+				} else if (!draw_label) {
+					text_size = 0;
+					rect = Rect2(1, 0, size.width - 1, height);
 				} else {
 					text_size = MAX(0, size.width - (child_room + 4 * EDSCALE));
 					if (is_layout_rtl()) {
@@ -268,10 +393,10 @@ void EditorProperty::_notification(int p_what) {
 			}
 
 			Ref<StyleBox> bg_stylebox = get_theme_stylebox(SNAME("child_bg"));
-			if (draw_top_bg && right_child_rect != Rect2()) {
+			if (draw_top_bg && right_child_rect != Rect2() && draw_background) {
 				draw_style_box(bg_stylebox, right_child_rect);
 			}
-			if (bottom_child_rect != Rect2()) {
+			if (bottom_child_rect != Rect2() && draw_background) {
 				draw_style_box(bg_stylebox, bottom_child_rect);
 			}
 
@@ -603,6 +728,25 @@ bool EditorProperty::use_keying_next() const {
 	}
 
 	return false;
+}
+
+void EditorProperty::set_draw_label(bool p_draw_label) {
+	draw_label = p_draw_label;
+	queue_redraw();
+	queue_sort();
+}
+
+bool EditorProperty::is_draw_label() const {
+	return draw_label;
+}
+
+void EditorProperty::set_draw_background(bool p_draw_background) {
+	draw_background = p_draw_background;
+	queue_redraw();
+}
+
+bool EditorProperty::is_draw_background() const {
+	return draw_background;
 }
 
 void EditorProperty::set_checkable(bool p_checkable) {
@@ -1070,6 +1214,12 @@ void EditorProperty::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_read_only", "read_only"), &EditorProperty::set_read_only);
 	ClassDB::bind_method(D_METHOD("is_read_only"), &EditorProperty::is_read_only);
 
+	ClassDB::bind_method(D_METHOD("set_draw_label", "draw_label"), &EditorProperty::set_draw_label);
+	ClassDB::bind_method(D_METHOD("is_draw_label"), &EditorProperty::is_draw_label);
+
+	ClassDB::bind_method(D_METHOD("set_draw_background", "draw_background"), &EditorProperty::set_draw_background);
+	ClassDB::bind_method(D_METHOD("is_draw_background"), &EditorProperty::is_draw_background);
+
 	ClassDB::bind_method(D_METHOD("set_checkable", "checkable"), &EditorProperty::set_checkable);
 	ClassDB::bind_method(D_METHOD("is_checkable"), &EditorProperty::is_checkable);
 
@@ -1112,6 +1262,8 @@ void EditorProperty::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "label"), "set_label", "get_label");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "read_only"), "set_read_only", "is_read_only");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_label"), "set_draw_label", "is_draw_label");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_background"), "set_draw_background", "is_draw_background");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "checkable"), "set_checkable", "is_checkable");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "checked"), "set_checked", "is_checked");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_warning"), "set_draw_warning", "is_draw_warning");
@@ -1853,7 +2005,7 @@ void EditorInspectorArray::_panel_draw(int p_index) {
 	ERR_FAIL_INDEX(p_index, (int)array_elements.size());
 
 	Ref<StyleBox> style = get_theme_stylebox(SNAME("Focus"), EditorStringName(EditorStyles));
-	if (!style.is_valid()) {
+	if (style.is_null()) {
 		return;
 	}
 	if (array_elements[p_index].panel->has_focus()) {
@@ -2922,6 +3074,7 @@ void EditorInspector::update_tree() {
 	HashMap<String, HashMap<String, LocalVector<EditorProperty *>>> favorites_to_add;
 
 	Color sscolor = get_theme_color(SNAME("prop_subsection"), EditorStringName(Editor));
+	bool sub_inspectors_enabled = EDITOR_GET("interface/inspector/open_resources_in_current_inspector");
 
 	// Get the lists of editors to add the beginning.
 	for (Ref<EditorInspectorPlugin> &ped : valid_plugins) {
@@ -3018,24 +3171,14 @@ void EditorInspector::update_tree() {
 				category_label = p.name;
 
 				// Use category's owner script to update some of its information.
-				if (!EditorNode::get_editor_data().is_type_recognized(p.name) && ResourceLoader::exists(p.hint_string)) {
+				if (!EditorNode::get_editor_data().is_type_recognized(p.name) && ResourceLoader::exists(p.hint_string, "Script")) {
 					Ref<Script> scr = ResourceLoader::load(p.hint_string, "Script");
 					if (scr.is_valid()) {
-						StringName script_name = EditorNode::get_editor_data().script_class_get_name(scr->get_path());
+						doc_name = scr->get_doc_class_name();
 
-						// Update the docs reference and the label based on the script.
-						Vector<DocData::ClassDoc> docs = scr->get_documentation();
-						if (!docs.is_empty()) {
-							// The documentation of a GDScript's main class is at the end of the array.
-							// Hacky because this isn't necessarily always guaranteed.
-							doc_name = docs[docs.size() - 1].name;
-						}
+						StringName script_name = EditorNode::get_editor_data().script_class_get_name(scr->get_path());
 						if (script_name != StringName()) {
 							category_label = script_name;
-						}
-
-						// Find the icon corresponding to the script.
-						if (script_name != StringName()) {
 							category_icon = EditorNode::get_singleton()->get_class_icon(script_name);
 						} else {
 							category_icon = EditorNode::get_singleton()->get_object_icon(scr.ptr(), "Object");
@@ -3109,7 +3252,7 @@ void EditorInspector::update_tree() {
 			continue;
 		}
 
-		if (p.name.begins_with("metadata/") && bool(object->call("_hide_metadata_from_inspector"))) {
+		if (p.name.begins_with("metadata/") && bool(object->call(SNAME("_hide_metadata_from_inspector")))) {
 			// Hide metadata from inspector if required.
 			continue;
 		}
@@ -3216,10 +3359,25 @@ void EditorInspector::update_tree() {
 		}
 
 		// Ignore properties that do not fit the filter.
+		bool sub_inspector_use_filter = false;
 		if (use_filter && !filter.is_empty()) {
 			const String property_path = property_prefix + (path.is_empty() ? "" : path + "/") + name_override;
 			if (!_property_path_matches(property_path, filter, property_name_style)) {
-				continue;
+				if (!sub_inspectors_enabled || p.hint != PROPERTY_HINT_RESOURCE_TYPE) {
+					continue;
+				}
+
+				Ref<Resource> res = object->get(p.name);
+				if (res.is_null()) {
+					continue;
+				}
+
+				// Check if the sub-resource has any properties that match the filter.
+				if (!_resource_properties_matches(res, filter)) {
+					continue;
+				}
+
+				sub_inspector_use_filter = true;
 			}
 		}
 
@@ -3532,6 +3690,13 @@ void EditorInspector::update_tree() {
 					}
 				}
 
+				if (sub_inspector_use_filter) {
+					EditorPropertyResource *epr = Object::cast_to<EditorPropertyResource>(ep);
+					if (epr) {
+						epr->set_use_filter(true);
+					}
+				}
+
 				Node *section_search = current_vbox->get_parent();
 				while (section_search) {
 					EditorInspectorSection *section = Object::cast_to<EditorInspectorSection>(section_search);
@@ -3545,13 +3710,6 @@ void EditorInspector::update_tree() {
 					}
 				}
 
-				ep->set_draw_warning(draw_warning);
-				ep->set_use_folding(use_folding);
-				ep->set_favoritable(can_favorite && !disable_favorite);
-				ep->set_checkable(checkable);
-				ep->set_checked(checked);
-				ep->set_keying(keying);
-				ep->set_read_only(property_read_only || all_read_only);
 				if (p.name.begins_with("metadata/")) {
 					Variant _default = Variant();
 					if (node != nullptr) {
@@ -3561,6 +3719,14 @@ void EditorInspector::update_tree() {
 				} else {
 					ep->set_deletable(deletable_properties);
 				}
+
+				ep->set_draw_warning(draw_warning);
+				ep->set_use_folding(use_folding);
+				ep->set_favoritable(can_favorite && !disable_favorite && !ep->is_deletable());
+				ep->set_checkable(checkable);
+				ep->set_checked(checked);
+				ep->set_keying(keying);
+				ep->set_read_only(property_read_only || all_read_only);
 			}
 
 			if (ep && ep->is_favoritable() && current_favorites.has(p.name)) {
@@ -3885,12 +4051,8 @@ void EditorInspector::set_use_filter(bool p_use) {
 void EditorInspector::register_text_enter(Node *p_line_edit) {
 	search_box = Object::cast_to<LineEdit>(p_line_edit);
 	if (search_box) {
-		search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorInspector::_filter_changed));
+		search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorInspector::update_tree).unbind(1));
 	}
-}
-
-void EditorInspector::_filter_changed(const String &p_text) {
-	update_tree();
 }
 
 void EditorInspector::set_use_folding(bool p_use_folding, bool p_update_tree) {
@@ -4360,17 +4522,46 @@ void EditorInspector::_set_property_favorited(const String &p_path, bool p_favor
 		return;
 	}
 
-	StringName class_name = object->get_class_name();
-	while (!class_name.is_empty()) {
-		bool has_prop = ClassDB::has_property(class_name, p_path, true);
-		if (has_prop) {
+	StringName validate_name = object->get_class_name();
+	StringName class_name;
+
+	String theme_property;
+	if (p_path.begins_with("theme_override_")) {
+		theme_property = p_path.get_slice("/", 1);
+	}
+
+	while (!validate_name.is_empty()) {
+		class_name = validate_name;
+
+		if (!theme_property.is_empty()) { // Deal with theme properties.
+			bool found = false;
+			HashMap<String, DocData::ClassDoc>::ConstIterator F = EditorHelp::get_doc_data()->class_list.find(class_name);
+			if (F) {
+				for (const DocData::ThemeItemDoc &prop : F->value.theme_properties) {
+					if (prop.name == theme_property) {
+						found = true;
+						break;
+					}
+				}
+			}
+
+			if (found) {
+				break;
+			}
+		} else if (ClassDB::has_property(class_name, p_path, true)) { // Check if the property is built-in.
 			break;
 		}
 
-		class_name = ClassDB::get_parent_class_nocheck(class_name);
+		validate_name = ClassDB::get_parent_class_nocheck(class_name);
+	}
+
+	// "script" isn't a real property, so a hack is necessary.
+	if (validate_name.is_empty() && p_path != "script") {
+		class_name = "";
 	}
 
 	if (class_name.is_empty()) {
+		// Check if it's part of a script.
 		Ref<Script> scr = object->get_script();
 		if (scr.is_valid()) {
 			List<PropertyInfo> plist;
@@ -4648,6 +4839,7 @@ void EditorInspector::_handle_menu_option(int p_option) {
 }
 
 void EditorInspector::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("edit", "object"), &EditorInspector::edit);
 	ClassDB::bind_method("_edit_request_change", &EditorInspector::_edit_request_change);
 	ClassDB::bind_method("get_selected_path", &EditorInspector::get_selected_path);
 	ClassDB::bind_method("get_edited_object", &EditorInspector::get_edited_object);
@@ -4717,9 +4909,9 @@ EditorInspector::EditorInspector() {
 		refresh_countdown = 0.33;
 	}
 
-	ED_SHORTCUT("property_editor/copy_value", TTR("Copy Value"), KeyModifierMask::CMD_OR_CTRL | Key::C);
-	ED_SHORTCUT("property_editor/paste_value", TTR("Paste Value"), KeyModifierMask::CMD_OR_CTRL | Key::V);
-	ED_SHORTCUT("property_editor/copy_property_path", TTR("Copy Property Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
+	ED_SHORTCUT("property_editor/copy_value", TTRC("Copy Value"), KeyModifierMask::CMD_OR_CTRL | Key::C);
+	ED_SHORTCUT("property_editor/paste_value", TTRC("Paste Value"), KeyModifierMask::CMD_OR_CTRL | Key::V);
+	ED_SHORTCUT("property_editor/copy_property_path", TTRC("Copy Property Path"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::SHIFT | Key::C);
 
 	// `use_settings_name_style` is true by default, set the name style accordingly.
 	set_property_name_style(EditorPropertyNameProcessor::get_singleton()->get_settings_style());

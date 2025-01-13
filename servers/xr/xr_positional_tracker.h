@@ -32,7 +32,6 @@
 #define XR_POSITIONAL_TRACKER_H
 
 #include "core/os/thread_safe.h"
-#include "scene/resources/mesh.h"
 #include "servers/xr/xr_pose.h"
 #include "servers/xr/xr_tracker.h"
 #include "servers/xr_server.h"

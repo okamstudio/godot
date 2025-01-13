@@ -9,6 +9,9 @@
 	<tutorials>
 	</tutorials>
 	<members>
+		<member name="anisotropic_filtering_level" type="int" setter="set_anisotropic_filtering_level" getter="get_anisotropic_filtering_level" enum="RenderingServer.ViewportAnisotropicFiltering" default="2">
+			Level of the anisotropic filter.
+		</member>
 		<member name="fsr_sharpness" type="float" setter="set_fsr_sharpness" getter="get_fsr_sharpness" default="0.0">
 			FSR Sharpness applicable if FSR upscaling is used.
 		</member>

@@ -23,8 +23,8 @@ def parse_template(inherits, source, delimiter):
                 line = line[len(meta_prefix) :]
                 for m in meta:
                     if line.startswith(m):
-                        strip_lenght = len(m) + 1
-                        script_template[m] = line[strip_lenght:].strip()
+                        strip_length = len(m) + 1
+                        script_template[m] = line[strip_length:].strip()
             else:
                 script_template["script"] += line
         if script_template["space-indent"] != "":

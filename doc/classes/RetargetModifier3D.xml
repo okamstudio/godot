@@ -10,18 +10,53 @@
 	</description>
 	<tutorials>
 	</tutorials>
+	<methods>
+		<method name="is_position_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if [member enable] has [constant TRANSFORM_FLAG_POSITION].
+			</description>
+		</method>
+		<method name="is_rotation_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if [member enable] has [constant TRANSFORM_FLAG_ROTATION].
+			</description>
+		</method>
+		<method name="is_scale_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if [member enable] has [constant TRANSFORM_FLAG_SCALE].
+			</description>
+		</method>
+		<method name="set_position_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Sets [constant TRANSFORM_FLAG_POSITION] into [member enable].
+			</description>
+		</method>
+		<method name="set_rotation_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Sets [constant TRANSFORM_FLAG_ROTATION] into [member enable].
+			</description>
+		</method>
+		<method name="set_scale_enabled">
+			<return type="void" />
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Sets [constant TRANSFORM_FLAG_SCALE] into [member enable].
+			</description>
+		</method>
+	</methods>
 	<members>
-		<member name="position_enabled" type="bool" setter="set_position_enabled" getter="is_position_enabled" default="true">
-			If [code]true[/code], allows to retarget the position.
+		<member name="enable" type="int" setter="set_enable_flags" getter="get_enable_flags" enum="RetargetModifier3D.TransformFlag" is_bitfield="true" default="7">
+			Flags to control the process of the transform elements individually when [member use_global_pose] is disabled.
 		</member>
 		<member name="profile" type="SkeletonProfile" setter="set_profile" getter="get_profile">
 			[SkeletonProfile] for retargeting bones with names matching the bone list.
-		</member>
-		<member name="rotation_enabled" type="bool" setter="set_rotation_enabled" getter="is_rotation_enabled" default="true">
-			If [code]true[/code], allows to retarget the rotation.
-		</member>
-		<member name="scale_enabled" type="bool" setter="set_scale_enabled" getter="is_scale_enabled" default="true">
-			If [code]true[/code], allows to retarget the scale.
 		</member>
 		<member name="use_global_pose" type="bool" setter="set_use_global_pose" getter="is_using_global_pose" default="false">
 			If [code]false[/code], in case the target skeleton has fewer bones than the source skeleton, the source bone parent's transform will be ignored.
@@ -31,4 +66,18 @@
 			This is useful for using dummy bone with length [code]0[/code] to match postures when retargeting between models with different number of bones.
 		</member>
 	</members>
+	<constants>
+		<constant name="TRANSFORM_FLAG_POSITION" value="1" enum="TransformFlag" is_bitfield="true">
+			If set, allows to retarget the position.
+		</constant>
+		<constant name="TRANSFORM_FLAG_ROTATION" value="2" enum="TransformFlag" is_bitfield="true">
+			If set, allows to retarget the rotation.
+		</constant>
+		<constant name="TRANSFORM_FLAG_SCALE" value="4" enum="TransformFlag" is_bitfield="true">
+			If set, allows to retarget the scale.
+		</constant>
+		<constant name="TRANSFORM_FLAG_ALL" value="7" enum="TransformFlag" is_bitfield="true">
+			If set, allows to retarget the position/rotation/scale.
+		</constant>
+	</constants>
 </class>

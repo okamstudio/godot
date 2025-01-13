@@ -31,12 +31,11 @@
 #include "base_button.h"
 
 #include "core/config/project_settings.h"
-#include "core/os/keyboard.h"
 #include "scene/gui/label.h"
 #include "scene/main/window.h"
 
 void BaseButton::_unpress_group() {
-	if (!button_group.is_valid()) {
+	if (button_group.is_null()) {
 		return;
 	}
 
@@ -115,6 +114,11 @@ void BaseButton::_notification(int p_what) {
 			} else if (status.hovering) {
 				queue_redraw();
 			}
+
+			if (status.pressed_down_with_focus) {
+				status.pressed_down_with_focus = false;
+				emit_signal(SNAME("button_up"));
+			}
 		} break;
 
 		case NOTIFICATION_VISIBILITY_CHANGED:
@@ -150,7 +154,10 @@ void BaseButton::on_action_event(Ref<InputEvent> p_event) {
 	if (p_event->is_pressed() && (mouse_button.is_null() || status.hovering)) {
 		status.press_attempt = true;
 		status.pressing_inside = true;
-		emit_signal(SNAME("button_down"));
+		if (!status.pressed_down_with_focus) {
+			status.pressed_down_with_focus = true;
+			emit_signal(SNAME("button_down"));
+		}
 	}
 
 	if (status.press_attempt && status.pressing_inside) {
@@ -179,7 +186,10 @@ void BaseButton::on_action_event(Ref<InputEvent> p_event) {
 	if (!p_event->is_pressed()) {
 		status.press_attempt = false;
 		status.pressing_inside = false;
-		emit_signal(SNAME("button_up"));
+		if (status.pressed_down_with_focus) {
+			status.pressed_down_with_focus = false;
+			emit_signal(SNAME("button_up"));
+		}
 	}
 
 	queue_redraw();

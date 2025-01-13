@@ -130,7 +130,7 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual String get_name() const override { return "Shader"; }
+	virtual String get_plugin_name() const override { return "Shader"; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;
 	virtual void make_visible(bool p_visible) override;

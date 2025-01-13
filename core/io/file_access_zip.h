@@ -34,11 +34,8 @@
 #ifdef MINIZIP_ENABLED
 
 #include "core/io/file_access_pack.h"
-#include "core/templates/rb_map.h"
 
 #include "thirdparty/minizip/unzip.h"
-
-#include <stdlib.h>
 
 class ZipArchive : public PackSource {
 public:

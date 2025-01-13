@@ -31,7 +31,6 @@
 #include "audio_stream_polyphonic.h"
 #include "audio_stream_polyphonic.compat.inc"
 
-#include "scene/main/scene_tree.h"
 #include "servers/audio_server.h"
 
 constexpr uint64_t ID_MASK = 0xFFFFFFFF;

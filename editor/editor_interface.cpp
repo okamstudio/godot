@@ -55,7 +55,6 @@
 #include "plugins/editor_preview_plugins.h"
 #include "scene/3d/light_3d.h"
 #include "scene/3d/mesh_instance_3d.h"
-#include "scene/3d/world_environment.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/control.h"
 #include "scene/main/window.h"
@@ -170,7 +169,7 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 
 	for (int i = 0; i < p_meshes.size(); i++) {
 		const Ref<Mesh> &mesh = p_meshes[i];
-		if (!mesh.is_valid()) {
+		if (mesh.is_null()) {
 			textures.push_back(Ref<Texture2D>());
 			continue;
 		}
@@ -211,7 +210,7 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 		Main::iteration();
 		Main::iteration();
 		Ref<Image> img = RS::get_singleton()->texture_2d_get(viewport_texture);
-		ERR_CONTINUE(!img.is_valid() || img->is_empty());
+		ERR_CONTINUE(img.is_null() || img->is_empty());
 		Ref<ImageTexture> it = ImageTexture::create_from_image(img);
 
 		RS::get_singleton()->free(inst);
@@ -513,7 +512,7 @@ void EditorInterface::popup_quick_open(const Callable &p_callback, const TypedAr
 	quick_open->popup_dialog(base_types, callable_mp(this, &EditorInterface::_quick_open).bind(p_callback));
 }
 
-void EditorInterface::popup_create_dialog(const Callable &p_callback, const StringName &p_base_type, const String &p_current_type, const String &p_dialog_title, const TypedArray<StringName> &p_custom_type_blocklist, const Dictionary &p_custom_suffix) {
+void EditorInterface::popup_create_dialog(const Callable &p_callback, const StringName &p_base_type, const String &p_current_type, const String &p_dialog_title, const TypedArray<StringName> &p_custom_type_blocklist) {
 	if (!create_dialog) {
 		create_dialog = memnew(CreateDialog);
 		get_base_control()->add_child(create_dialog);
@@ -524,18 +523,6 @@ void EditorInterface::popup_create_dialog(const Callable &p_callback, const Stri
 		blocklist.insert(E);
 	}
 	create_dialog->set_type_blocklist(blocklist);
-
-	HashMap<StringName, String> suffix_map;
-	List<Variant> keys;
-	p_custom_suffix.get_key_list(&keys);
-	for (Variant &k : keys) {
-		const StringName key = k;
-		if (key.is_empty()) {
-			continue;
-		}
-		suffix_map.insert(key, p_custom_suffix[key]);
-	}
-	create_dialog->set_type_suffixes(suffix_map);
 
 	String safe_base_type = p_base_type;
 	if (p_base_type.is_empty() || (!ClassDB::class_exists(p_base_type) && !ScriptServer::is_global_class(p_base_type))) {
@@ -820,7 +807,7 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("popup_property_selector", "object", "callback", "type_filter", "current_value"), &EditorInterface::popup_property_selector, DEFVAL(PackedInt32Array()), DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("popup_method_selector", "object", "callback", "current_value"), &EditorInterface::popup_method_selector, DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("popup_quick_open", "callback", "base_types"), &EditorInterface::popup_quick_open, DEFVAL(TypedArray<StringName>()));
-	ClassDB::bind_method(D_METHOD("popup_create_dialog", "callback", "base_type", "current_type", "dialog_title", "type_blocklist", "type_suffixes"), &EditorInterface::popup_create_dialog, DEFVAL(""), DEFVAL(""), DEFVAL(""), DEFVAL(TypedArray<StringName>()), DEFVAL(Dictionary()));
+	ClassDB::bind_method(D_METHOD("popup_create_dialog", "callback", "base_type", "current_type", "dialog_title", "type_blocklist"), &EditorInterface::popup_create_dialog, DEFVAL(""), DEFVAL(""), DEFVAL(""), DEFVAL(TypedArray<StringName>()));
 
 	// Editor docks.
 

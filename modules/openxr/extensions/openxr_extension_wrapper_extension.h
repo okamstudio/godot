@@ -35,7 +35,6 @@
 #include "openxr_extension_wrapper.h"
 
 #include "core/object/ref_counted.h"
-#include "core/os/os.h"
 #include "core/os/thread_safe.h"
 #include "core/variant/native_ptr.h"
 #include "core/variant/typed_array.h"

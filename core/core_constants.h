@@ -32,7 +32,7 @@
 #define CORE_CONSTANTS_H
 
 #include "core/string/string_name.h"
-#include "core/templates/hash_set.h"
+#include "core/templates/hash_map.h"
 
 class CoreConstants {
 public:

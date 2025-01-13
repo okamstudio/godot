@@ -34,7 +34,6 @@
 #include "core/object/script_language.h"
 #include "core/string/string_name.h"
 #include "core/templates/hash_set.h"
-#include "core/templates/rb_map.h"
 #include "core/templates/vector.h"
 
 class ScriptDebugger {

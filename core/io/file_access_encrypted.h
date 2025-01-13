@@ -37,7 +37,7 @@
 
 class FileAccessEncrypted : public FileAccess {
 public:
-	enum Mode {
+	enum Mode : int32_t {
 		MODE_READ,
 		MODE_WRITE_AES256,
 		MODE_MAX

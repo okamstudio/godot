@@ -31,8 +31,8 @@
 #ifndef SCENE_SHADER_FORWARD_CLUSTERED_H
 #define SCENE_SHADER_FORWARD_CLUSTERED_H
 
+#include "../storage_rd/material_storage.h"
 #include "servers/rendering/renderer_rd/pipeline_hash_map_rd.h"
-#include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
 #include "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl.gen.h"
 
 namespace RendererSceneRenderImplementation {
@@ -100,6 +100,8 @@ public:
 
 	struct ShaderSpecialization {
 		union {
+			uint32_t packed_0;
+
 			struct {
 				uint32_t use_forward_gi : 1;
 				uint32_t use_light_projector : 1;
@@ -114,19 +116,17 @@ public:
 				uint32_t directional_soft_shadow_samples : 6;
 				uint32_t directional_penumbra_shadow_samples : 6;
 			};
-
-			uint32_t packed_0;
 		};
 
 		union {
+			uint32_t packed_1;
+
 			struct {
 				uint32_t multimesh : 1;
 				uint32_t multimesh_format_2d : 1;
 				uint32_t multimesh_has_color : 1;
 				uint32_t multimesh_has_custom_data : 1;
 			};
-
-			uint32_t packed_1;
 		};
 
 		uint32_t packed_2;
@@ -134,11 +134,11 @@ public:
 
 	struct UbershaderConstants {
 		union {
+			uint32_t packed_0;
+
 			struct {
 				uint32_t cull_mode : 2;
 			};
-
-			uint32_t packed_0;
 		};
 	};
 
@@ -152,12 +152,6 @@ public:
 		enum DepthTest {
 			DEPTH_TEST_DISABLED,
 			DEPTH_TEST_ENABLED
-		};
-
-		enum Cull {
-			CULL_DISABLED,
-			CULL_FRONT,
-			CULL_BACK
 		};
 
 		enum CullVariant {
@@ -251,7 +245,7 @@ public:
 		bool writes_modelview_or_projection = false;
 		bool uses_world_coordinates = false;
 		bool uses_screen_texture_mipmaps = false;
-		Cull cull_mode = CULL_DISABLED;
+		RS::CullMode cull_mode = RS::CULL_MODE_DISABLED;
 
 		uint64_t last_pass = 0;
 		uint32_t index = 0;
@@ -273,7 +267,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool uses_shared_shadow_material() const {
-			bool backface_culling = cull_mode == CULL_BACK;
+			bool backface_culling = cull_mode == RS::CULL_MODE_BACK;
 			return !uses_particle_trails && !writes_modelview_or_projection && !uses_vertex && !uses_position && !uses_discard && !uses_depth_prepass_alpha && !uses_alpha_clip && !uses_alpha_antialiasing && backface_culling && !uses_point_size && !uses_world_coordinates && !wireframe;
 		}
 

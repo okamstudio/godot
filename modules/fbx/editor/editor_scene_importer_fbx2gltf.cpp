@@ -32,11 +32,11 @@
 
 #ifdef TOOLS_ENABLED
 
-#include "editor_scene_importer_ufbx.h"
-#include "modules/gltf/gltf_document.h"
-
 #include "core/config/project_settings.h"
 #include "editor/editor_settings.h"
+#include "editor_scene_importer_ufbx.h"
+
+#include "modules/gltf/gltf_document.h"
 
 uint32_t EditorSceneFormatImporterFBX2GLTF::get_import_flags() const {
 	return ImportFlags::IMPORT_SCENE | ImportFlags::IMPORT_ANIMATION;

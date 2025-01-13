@@ -384,6 +384,9 @@ public:
 	void set_bus_volume_db(int p_bus, float p_volume_db);
 	float get_bus_volume_db(int p_bus) const;
 
+	void set_bus_volume_linear(int p_bus, float p_volume_linear);
+	float get_bus_volume_linear(int p_bus) const;
+
 	void set_bus_send(int p_bus, const StringName &p_send);
 	StringName get_bus_send(int p_bus) const;
 

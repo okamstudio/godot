@@ -6,10 +6,23 @@
 	<description>
 		A camera feed gives you access to a single physical camera attached to your device. When enabled, Godot will start capturing frames from the camera which can then be used. See also [CameraServer].
 		[b]Note:[/b] Many cameras will return YCbCr images which are split into two textures and need to be combined in a shader. Godot does this automatically for you if you set the environment to show the camera image in the background.
+		[b]Note:[/b] This class is currently only implemented on Linux, macOS, and iOS. On other platforms no [CameraFeed]s will be available. To get a [CameraFeed] on iOS, the camera plugin from [url=https://github.com/godotengine/godot-ios-plugins]godot-ios-plugins[/url] is required.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="_activate_feed" qualifiers="virtual">
+			<return type="bool" />
+			<description>
+				Called when the camera feed is activated.
+			</description>
+		</method>
+		<method name="_deactivate_feed" qualifiers="virtual">
+			<return type="void" />
+			<description>
+				Called when the camera feed is deactivated.
+			</description>
+		</method>
 		<method name="get_datatype" qualifiers="const">
 			<return type="int" enum="CameraFeed.FeedDataType" />
 			<description>

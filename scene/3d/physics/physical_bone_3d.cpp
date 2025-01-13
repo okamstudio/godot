@@ -29,6 +29,8 @@
 /**************************************************************************/
 
 #include "physical_bone_3d.h"
+
+#include "scene/3d/physical_bone_simulator_3d.h"
 #ifndef DISABLE_DEPRECATED
 #include "scene/3d/skeleton_3d.h"
 #endif //_DISABLE_DEPRECATED

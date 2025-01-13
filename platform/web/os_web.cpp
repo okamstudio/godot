@@ -33,6 +33,8 @@
 #include "api/javascript_bridge_singleton.h"
 #include "display_server_web.h"
 #include "godot_js.h"
+#include "ip_web.h"
+#include "net_socket_web.h"
 
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
@@ -53,6 +55,8 @@ void OS_Web::alert(const String &p_alert, const String &p_title) {
 // Lifecycle
 void OS_Web::initialize() {
 	OS_Unix::initialize_core();
+	IPWeb::make_default();
+	NetSocketWeb::make_default();
 	DisplayServerWeb::register_web_driver();
 }
 
@@ -178,23 +182,9 @@ void OS_Web::vibrate_handheld(int p_duration_ms, float p_amplitude) {
 	godot_js_input_vibrate_handheld(p_duration_ms);
 }
 
-String OS_Web::get_user_data_dir() const {
+String OS_Web::get_user_data_dir(const String &p_user_dir) const {
 	String userfs = "/userfs";
-	String appname = get_safe_dir_name(GLOBAL_GET("application/config/name"));
-	if (!appname.is_empty()) {
-		bool use_custom_dir = GLOBAL_GET("application/config/use_custom_user_dir");
-		if (use_custom_dir) {
-			String custom_dir = get_safe_dir_name(GLOBAL_GET("application/config/custom_user_dir_name"), true);
-			if (custom_dir.is_empty()) {
-				custom_dir = appname;
-			}
-			return userfs.path_join(custom_dir).replace("\\", "/");
-		} else {
-			return userfs.path_join(get_godot_dir_name()).path_join("app_userdata").path_join(appname).replace("\\", "/");
-		}
-	}
-
-	return userfs.path_join(get_godot_dir_name()).path_join("app_userdata").path_join("[unnamed project]");
+	return userfs.path_join(p_user_dir).replace("\\", "/");
 }
 
 String OS_Web::get_cache_path() const {
@@ -214,6 +204,18 @@ void OS_Web::file_access_close_callback(const String &p_file, int p_flags) {
 	if (!(os->is_userfs_persistent() && (p_flags & FileAccess::WRITE))) {
 		return; // FS persistence is not working or we are not writing.
 	}
+	bool is_file_persistent = p_file.begins_with("/userfs");
+#ifdef TOOLS_ENABLED
+	// Hack for editor persistence (can we track).
+	is_file_persistent = is_file_persistent || p_file.begins_with("/home/web_user/");
+#endif
+	if (is_file_persistent) {
+		os->idb_needs_sync = true;
+	}
+}
+
+void OS_Web::dir_access_remove_callback(const String &p_file) {
+	OS_Web *os = OS_Web::get_singleton();
 	bool is_file_persistent = p_file.begins_with("/userfs");
 #ifdef TOOLS_ENABLED
 	// Hack for editor persistence (can we track).
@@ -288,4 +290,5 @@ OS_Web::OS_Web() {
 	_set_logger(memnew(CompositeLogger(loggers)));
 
 	FileAccessUnix::close_notification_func = file_access_close_callback;
+	DirAccessUnix::remove_notification_func = dir_access_remove_callback;
 }

@@ -673,6 +673,7 @@ class EditorPropertyResource : public EditorProperty {
 	bool use_sub_inspector = false;
 	EditorInspector *sub_inspector = nullptr;
 	bool opened_editor = false;
+	bool use_filter = false;
 
 	void _resource_selected(const Ref<Resource> &p_resource, bool p_inspect);
 	void _resource_changed(const Ref<Resource> &p_resource);
@@ -701,6 +702,7 @@ public:
 	void expand_revertable() override;
 
 	void set_use_sub_inspector(bool p_enable);
+	void set_use_filter(bool p_use);
 	void fold_resource();
 
 	virtual bool is_colored(ColorationMode p_mode) override;

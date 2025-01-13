@@ -2,10 +2,6 @@ name: 📊 Static Checks
 on:
   workflow_call:
 
-concurrency:
-  group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-static
-  cancel-in-progress: true
-
 jobs:
   static-checks:
     name: Code style, file formatting, and docs
@@ -17,9 +13,8 @@ jobs:
           fetch-depth: 2
 
       - name: Install APT dependencies
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: libxml2-utils
+        run: |
+          sudo apt install -y libxml2-utils
 
       - name: Install Python dependencies and general setup
         run: |

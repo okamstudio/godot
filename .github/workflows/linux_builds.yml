@@ -12,10 +12,6 @@ env:
   TSAN_OPTIONS: suppressions=misc/error_suppressions/tsan.txt
   UBSAN_OPTIONS: suppressions=misc/error_suppressions/ubsan.txt
 
-concurrency:
-  group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-linux
-  cancel-in-progress: true
-
 jobs:
   build-linux:
     # Stay one LTS before latest to increase portability of Linux artifacts.
@@ -129,7 +125,7 @@ jobs:
         continue-on-error: true
 
       - name: Setup Python and SCons
-        if: '!matrix.legacy-scons'
+        if: "!matrix.legacy-scons"
         uses: ./.github/actions/godot-deps
 
       - name: Setup Python and SCons (legacy versions)
@@ -139,6 +135,18 @@ jobs:
           # Sync with Ensure*Version in SConstruct.
           python-version: 3.8
           scons-version: 4.0
+
+      - name: Force remove preinstalled .NET SDKs
+        if: matrix.build-mono
+        run: |
+          sudo rm -rf /usr/share/dotnet/sdk/*
+
+      - name: Setup older .NET SDK as baseline
+        if: matrix.build-mono
+        uses: actions/setup-dotnet@v4
+        with:
+          # Targeting the oldest version we want to support to ensure it still builds.
+          dotnet-version: 8.0.100
 
       - name: Compilation
         uses: ./.github/actions/godot-build
@@ -163,7 +171,8 @@ jobs:
       - name: Build .NET solutions
         if: matrix.build-mono
         run: |
-          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=linuxbsd
+          dotnet --info
+          ./modules/mono/build_scripts/build_assemblies.py --godot-output-dir=./bin --godot-platform=linuxbsd --werror
 
       - name: Prepare artifact
         if: matrix.artifact

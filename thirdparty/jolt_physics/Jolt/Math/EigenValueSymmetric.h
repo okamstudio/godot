@@ -11,7 +11,7 @@ JPH_NAMESPACE_BEGIN
 /// Function to determine the eigen vectors and values of a N x N real symmetric matrix
 /// by Jacobi transformations. This method is most suitable for N < 10.
 ///
-/// Taken and adapted from Numerical Recipies paragraph 11.1
+/// Taken and adapted from Numerical Recipes paragraph 11.1
 ///
 /// An eigen vector is a vector v for which \f$A \: v = \lambda \: v\f$
 ///
@@ -95,7 +95,7 @@ bool EigenValueSymmetric(const Matrix &inMatrix, Matrix &outEigVec, Vector &outE
 
 		// On the first three sweeps use a fraction of the sum of the off diagonal elements as threshold
 		// Note that we pick a minimum threshold of FLT_MIN because dividing by a denormalized number is likely to result in infinity.
-		float tresh = sweep < 4? 0.2f * avg_sm : FLT_MIN; // Original code: 0.0f instead of FLT_MIN
+		float thresh = sweep < 4? 0.2f * avg_sm : FLT_MIN; // Original code: 0.0f instead of FLT_MIN
 
 		for (uint ip = 0; ip < n - 1; ++ip)
 			for (uint iq = ip + 1; iq < n; ++iq)
@@ -114,7 +114,7 @@ bool EigenValueSymmetric(const Matrix &inMatrix, Matrix &outEigVec, Vector &outE
 				{
 					a_pq = 0.0f;
 				}
-				else if (abs_a_pq > tresh)
+				else if (abs_a_pq > thresh)
 				{
 					float h = eigval_q - eigval_p;
 					float abs_h = abs(h);

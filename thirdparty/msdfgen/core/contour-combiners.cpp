@@ -16,6 +16,13 @@ static void initDistance(MultiDistance &distance) {
     distance.b = -DBL_MAX;
 }
 
+static void initDistance(MultiAndTrueDistance &distance) {
+    distance.r = -DBL_MAX;
+    distance.g = -DBL_MAX;
+    distance.b = -DBL_MAX;
+    distance.a = -DBL_MAX;
+}
+
 static double resolveDistance(double distance) {
     return distance;
 }
@@ -43,7 +50,7 @@ typename SimpleContourCombiner<EdgeSelector>::DistanceType SimpleContourCombiner
 }
 
 template class SimpleContourCombiner<TrueDistanceSelector>;
-template class SimpleContourCombiner<PseudoDistanceSelector>;
+template class SimpleContourCombiner<PerpendicularDistanceSelector>;
 template class SimpleContourCombiner<MultiDistanceSelector>;
 template class SimpleContourCombiner<MultiAndTrueDistanceSelector>;
 
@@ -127,7 +134,7 @@ typename OverlappingContourCombiner<EdgeSelector>::DistanceType OverlappingConto
 }
 
 template class OverlappingContourCombiner<TrueDistanceSelector>;
-template class OverlappingContourCombiner<PseudoDistanceSelector>;
+template class OverlappingContourCombiner<PerpendicularDistanceSelector>;
 template class OverlappingContourCombiner<MultiDistanceSelector>;
 template class OverlappingContourCombiner<MultiAndTrueDistanceSelector>;
 

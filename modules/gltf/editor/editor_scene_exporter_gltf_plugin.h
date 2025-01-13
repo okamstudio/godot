@@ -52,7 +52,7 @@ class SceneExporterGLTFPlugin : public EditorPlugin {
 	void _export_scene_as_gltf(const String &p_file_path);
 
 public:
-	virtual String get_name() const override;
+	virtual String get_plugin_name() const override;
 	bool has_main_screen() const override;
 	SceneExporterGLTFPlugin();
 };

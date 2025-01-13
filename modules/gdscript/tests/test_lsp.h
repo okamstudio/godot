@@ -45,6 +45,7 @@
 #include "core/os/os.h"
 #include "editor/editor_help.h"
 #include "editor/editor_node.h"
+
 #include "modules/gdscript/gdscript_analyzer.h"
 #include "modules/regex/regex.h"
 

@@ -33,27 +33,6 @@
 
 #ifndef DISABLE_DEPRECATED
 
-#include "modules/modules_enabled.gen.h" // For regex.
-
-#ifndef MODULE_REGEX_ENABLED
-
-#include "core/error/error_macros.h"
-
-class ProjectConverter3To4 {
-public:
-	ProjectConverter3To4(int, int) {}
-
-	bool validate_conversion() {
-		ERR_FAIL_V_MSG(false, "Can't validate conversion for Godot 3.x projects, because RegEx module is disabled.");
-	}
-
-	bool convert() {
-		ERR_FAIL_V_MSG(false, "Can't run converter for Godot 3.x projects, because RegEx module is disabled.");
-	}
-};
-
-#else // Has regex.
-
 #include "core/string/ustring.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/vector.h"
@@ -133,8 +112,6 @@ public:
 	bool validate_conversion();
 	bool convert();
 };
-
-#endif // MODULE_REGEX_ENABLED
 
 #endif // DISABLE_DEPRECATED
 

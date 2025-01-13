@@ -14,6 +14,14 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="edit">
+			<return type="void" />
+			<param index="0" name="object" type="Object" />
+			<description>
+				Shows the properties of the given [param object] in this inspector for editing. To clear the inspector, call this method with [code]null[/code].
+				[b]Note:[/b] If you want to edit an object in the editor's main inspector, use the [code]edit_*[/code] methods in [EditorInterface] instead.
+			</description>
+		</method>
 		<method name="get_edited_object">
 			<return type="Object" />
 			<description>

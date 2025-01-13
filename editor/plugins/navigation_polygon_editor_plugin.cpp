@@ -247,7 +247,7 @@ void NavigationPolygonEditor::_rebake_timer_timeout() {
 		return;
 	}
 	Ref<NavigationPolygon> navigation_polygon = node->get_navigation_polygon();
-	if (!navigation_polygon.is_valid()) {
+	if (navigation_polygon.is_null()) {
 		return;
 	}
 

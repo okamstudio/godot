@@ -578,7 +578,9 @@ struct SPIRType : IVariant
 		// Keep internal types at the end.
 		ControlPointArray,
 		Interpolant,
-		Char
+		Char,
+		// MSL specific type, that is used by 'object'(analog of 'task' from glsl) shader.
+		MeshGridProperties
 	};
 
 	// Scalar/vector/matrix support.
@@ -745,6 +747,10 @@ struct SPIRExpression : IVariant
 
 	// A list of expressions which this expression depends on.
 	SmallVector<ID> expression_dependencies;
+
+	// Similar as expression dependencies, but does not stop the tracking for force-temporary variables.
+	// We need to know the full chain from store back to any SSA variable.
+	SmallVector<ID> invariance_dependencies;
 
 	// By reading this expression, we implicitly read these expressions as well.
 	// Used by access chain Store and Load since we read multiple expressions in this case.
@@ -1598,6 +1604,8 @@ struct AccessChainMeta
 	bool flattened_struct = false;
 	bool relaxed_precision = false;
 	bool access_meshlet_position_y = false;
+	bool chain_is_builtin = false;
+	spv::BuiltIn builtin = {};
 };
 
 enum ExtendedDecorations

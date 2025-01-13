@@ -264,6 +264,61 @@ hb_face_create (hb_blob_t    *blob,
 }
 
 /**
+ * hb_face_create_or_fail:
+ * @blob: #hb_blob_t to work upon
+ * @index: The index of the face within @blob
+ *
+ * Like hb_face_create(), but returns `NULL` if the blob data
+ * contains no usable font face at the specified index.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index.
+ *
+ * Since: 10.1.0
+ **/
+hb_face_t *
+hb_face_create_or_fail (hb_blob_t    *blob,
+			unsigned int  index)
+{
+  unsigned num_faces = hb_face_count (blob);
+  if (index >= num_faces)
+    return nullptr;
+
+  hb_face_t *face = hb_face_create (blob, index);
+  if (hb_object_is_immutable (face))
+    return nullptr;
+
+  return face;
+}
+
+/**
+ * hb_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * A thin wrapper around hb_blob_create_from_file_or_fail()
+ * followed by hb_face_create_or_fail().
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * Since: 10.1.0
+ **/
+HB_EXTERN hb_face_t *
+hb_face_create_from_file_or_fail (const char   *file_name,
+				  unsigned int  index)
+{
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (file_name);
+  if (unlikely (!blob))
+    return nullptr;
+
+  hb_face_t *face = hb_face_create_or_fail (blob, index);
+  hb_blob_destroy (blob);
+
+  return face;
+}
+
+/**
  * hb_face_get_empty:
  *
  * Fetches the singleton empty face object.

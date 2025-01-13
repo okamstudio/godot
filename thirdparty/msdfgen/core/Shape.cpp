@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include "arithmetics.hpp"
 
+#define DECONVERGE_OVERSHOOT 1.11111111111111111 // moves control points slightly more than necessary to account for floating-point errors
+
 namespace msdfgen {
 
 Shape::Shape() : inverseYAxis(false) { }
@@ -39,13 +41,23 @@ bool Shape::validate() const {
     return true;
 }
 
-static void deconvergeEdge(EdgeHolder &edgeHolder, int param) {
+static void deconvergeEdge(EdgeHolder &edgeHolder, int param, Vector2 vector) {
     switch (edgeHolder->type()) {
         case (int) QuadraticSegment::EDGE_TYPE:
             edgeHolder = static_cast<const QuadraticSegment *>(&*edgeHolder)->convertToCubic();
             // fallthrough
         case (int) CubicSegment::EDGE_TYPE:
-            static_cast<CubicSegment *>(&*edgeHolder)->deconverge(param, MSDFGEN_DECONVERGENCE_FACTOR);
+            {
+                Point2 *p = static_cast<CubicSegment *>(&*edgeHolder)->p;
+                switch (param) {
+                    case 0:
+                        p[1] += (p[1]-p[0]).length()*vector;
+                        break;
+                    case 1:
+                        p[2] += (p[2]-p[3]).length()*vector;
+                        break;
+                }
+            }
     }
 }
 
@@ -59,13 +71,19 @@ void Shape::normalize() {
             contour->edges.push_back(EdgeHolder(parts[1]));
             contour->edges.push_back(EdgeHolder(parts[2]));
         } else {
+            // Push apart convergent edge segments
             EdgeHolder *prevEdge = &contour->edges.back();
             for (std::vector<EdgeHolder>::iterator edge = contour->edges.begin(); edge != contour->edges.end(); ++edge) {
                 Vector2 prevDir = (*prevEdge)->direction(1).normalize();
                 Vector2 curDir = (*edge)->direction(0).normalize();
                 if (dotProduct(prevDir, curDir) < MSDFGEN_CORNER_DOT_EPSILON-1) {
-                    deconvergeEdge(*prevEdge, 1);
-                    deconvergeEdge(*edge, 0);
+                    double factor = DECONVERGE_OVERSHOOT*sqrt(1-(MSDFGEN_CORNER_DOT_EPSILON-1)*(MSDFGEN_CORNER_DOT_EPSILON-1))/(MSDFGEN_CORNER_DOT_EPSILON-1);
+                    Vector2 axis = factor*(curDir-prevDir).normalize();
+                    // Determine curve ordering using third-order derivative (t = 0) of crossProduct((*prevEdge)->point(1-t)-p0, (*edge)->point(t)-p0) where p0 is the corner (*edge)->point(0)
+                    if (crossProduct((*prevEdge)->directionChange(1), (*edge)->direction(0))+crossProduct((*edge)->directionChange(0), (*prevEdge)->direction(1)) < 0)
+                        axis = -axis;
+                    deconvergeEdge(*prevEdge, 1, axis.getOrthogonal(true));
+                    deconvergeEdge(*edge, 0, axis.getOrthogonal(false));
                 }
                 prevEdge = &*edge;
             }

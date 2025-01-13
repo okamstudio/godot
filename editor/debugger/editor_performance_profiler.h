@@ -32,7 +32,6 @@
 #define EDITOR_PERFORMANCE_PROFILER_H
 
 #include "core/templates/hash_map.h"
-#include "core/templates/rb_map.h"
 #include "main/performance.h"
 #include "scene/gui/control.h"
 #include "scene/gui/label.h"

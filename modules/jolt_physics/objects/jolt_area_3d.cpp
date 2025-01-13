@@ -59,6 +59,26 @@ JPH::ObjectLayer JoltArea3D::_get_object_layer() const {
 	return space->map_to_object_layer(_get_broad_phase_layer(), collision_layer, collision_mask);
 }
 
+bool JoltArea3D::_has_pending_events() const {
+	if (body_monitor_callback.is_valid()) {
+		for (const KeyValue<JPH::BodyID, Overlap> &E : bodies_by_id) {
+			if (!E.value.pending_added.is_empty() || !E.value.pending_removed.is_empty()) {
+				return true;
+			}
+		}
+	}
+
+	if (area_monitor_callback.is_valid()) {
+		for (const KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
+			if (!E.value.pending_added.is_empty() || !E.value.pending_removed.is_empty()) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void JoltArea3D::_add_to_space() {
 	jolt_shape = build_shape();
 
@@ -88,6 +108,18 @@ void JoltArea3D::_add_to_space() {
 
 	delete jolt_settings;
 	jolt_settings = nullptr;
+}
+
+void JoltArea3D::_enqueue_call_queries() {
+	if (space != nullptr) {
+		space->enqueue_call_queries(&call_queries_element);
+	}
+}
+
+void JoltArea3D::_dequeue_call_queries() {
+	if (space != nullptr) {
+		space->dequeue_call_queries(&call_queries_element);
+	}
 }
 
 void JoltArea3D::_add_shape_pair(Overlap &p_overlap, const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id) {
@@ -270,6 +302,8 @@ void JoltArea3D::_space_changing() {
 		_force_bodies_exited(true);
 		_force_areas_exited(true);
 	}
+
+	_dequeue_call_queries();
 }
 
 void JoltArea3D::_space_changed() {
@@ -304,7 +338,8 @@ void JoltArea3D::_gravity_changed() {
 }
 
 JoltArea3D::JoltArea3D() :
-		JoltShapedObject3D(OBJECT_TYPE_AREA) {
+		JoltShapedObject3D(OBJECT_TYPE_AREA),
+		call_queries_element(this) {
 }
 
 bool JoltArea3D::is_default_area() const {
@@ -659,7 +694,13 @@ void JoltArea3D::area_exited(const JPH::BodyID &p_body_id) {
 	overlap->shape_pairs.clear();
 }
 
-void JoltArea3D::call_queries(JPH::Body &p_jolt_body) {
+void JoltArea3D::call_queries() {
 	_flush_events(bodies_by_id, body_monitor_callback);
 	_flush_events(areas_by_id, area_monitor_callback);
+}
+
+void JoltArea3D::post_step(float p_step, JPH::Body &p_jolt_body) {
+	if (_has_pending_events()) {
+		_enqueue_call_queries();
+	}
 }

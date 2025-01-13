@@ -48,13 +48,15 @@ if env["builtin_libpng"]:
             neon_sources = []
             neon_sources.append(env_neon.Object(thirdparty_dir + "arm/arm_init.c"))
             neon_sources.append(env_neon.Object(thirdparty_dir + "arm/filter_neon_intrinsics.c"))
-            neon_sources.append(env_neon.Object(thirdparty_dir + "arm/filter_neon.S"))
             neon_sources.append(env_neon.Object(thirdparty_dir + "arm/palette_neon_intrinsics.c"))
             thirdparty_obj += neon_sources
     elif env["arch"].startswith("x86"):
         env_thirdparty.Append(CPPDEFINES=["PNG_INTEL_SSE"])
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "intel/intel_init.c")
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "intel/filter_sse2_intrinsics.c")
+    elif env["arch"] == "loongarch64":
+        env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "loongarch/loongarch_lsx_init.c")
+        env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "loongarch/filter_lsx_intrinsics.c")
     elif env["arch"] == "ppc64":
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "powerpc/powerpc_init.c")
         env_thirdparty.add_source_files(thirdparty_obj, thirdparty_dir + "powerpc/filter_vsx_intrinsics.c")

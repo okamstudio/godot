@@ -31,7 +31,6 @@
 #include "default_theme.h"
 
 #include "core/io/image.h"
-#include "core/os/os.h"
 #include "default_font.gen.h"
 #include "default_theme_icons.gen.h"
 #include "scene/resources/font.h"
@@ -129,6 +128,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	// StyleBox colors
 	const Color style_normal_color = Color(0.1, 0.1, 0.1, 0.6);
 	const Color style_hover_color = Color(0.225, 0.225, 0.225, 0.6);
+	const Color style_hover_selected_color = Color(1, 1, 1, 0.4);
 	const Color style_pressed_color = Color(0, 0, 0, 0.6);
 	const Color style_disabled_color = Color(0.1, 0.1, 0.1, 0.3);
 	const Color style_focus_color = Color(1, 1, 1, 0.75);
@@ -929,10 +929,13 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 	theme->set_color(SceneStringName(font_color), "ItemList", control_font_lower_color);
 	theme->set_color("font_hovered_color", "ItemList", control_font_hover_color);
+	theme->set_color("font_hovered_selected_color", "ItemList", control_font_pressed_color);
 	theme->set_color("font_selected_color", "ItemList", control_font_pressed_color);
 	theme->set_color("font_outline_color", "ItemList", Color(0, 0, 0));
 	theme->set_color("guide_color", "ItemList", Color(0.7, 0.7, 0.7, 0.25));
 	theme->set_stylebox("hovered", "ItemList", make_flat_stylebox(Color(1, 1, 1, 0.07)));
+	theme->set_stylebox("hovered_selected", "ItemList", make_flat_stylebox(style_hover_selected_color));
+	theme->set_stylebox("hovered_selected_focus", "ItemList", make_flat_stylebox(style_hover_selected_color));
 	theme->set_stylebox("selected", "ItemList", make_flat_stylebox(style_selected_color));
 	theme->set_stylebox("selected_focus", "ItemList", make_flat_stylebox(style_selected_color));
 	theme->set_stylebox("cursor", "ItemList", focus);
@@ -1050,6 +1053,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("overbright_indicator", "ColorPicker", icons["color_picker_overbright"]);
 	theme->set_icon("bar_arrow", "ColorPicker", icons["color_picker_bar_arrow"]);
 	theme->set_icon("picker_cursor", "ColorPicker", icons["color_picker_cursor"]);
+	theme->set_icon("picker_cursor_bg", "ColorPicker", icons["color_picker_cursor_bg"]);
 
 	{
 		const int precision = 7;
@@ -1076,33 +1080,6 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 		hue_texture->set_gradient(hue_gradient);
 
 		theme->set_icon("color_hue", "ColorPicker", hue_texture);
-	}
-
-	{
-		const int precision = 7;
-
-		Ref<Gradient> hue_gradient;
-		hue_gradient.instantiate();
-		PackedFloat32Array offsets;
-		offsets.resize(precision);
-		PackedColorArray colors;
-		colors.resize(precision);
-
-		for (int i = 0; i < precision; i++) {
-			float h = i / float(precision - 1);
-			offsets.write[i] = h;
-			colors.write[i] = Color::from_ok_hsl(h, 1, 0.5);
-		}
-		hue_gradient->set_offsets(offsets);
-		hue_gradient->set_colors(colors);
-
-		Ref<GradientTexture2D> hue_texture;
-		hue_texture.instantiate();
-		hue_texture->set_width(800);
-		hue_texture->set_height(6);
-		hue_texture->set_gradient(hue_gradient);
-
-		theme->set_icon("color_okhsl_hue", "ColorPicker", hue_texture);
 	}
 
 	// ColorPickerButton
@@ -1253,6 +1230,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("selection_stroke", "GraphEdit", Color(1, 1, 1, 0.8));
 	theme->set_color("activity", "GraphEdit", Color(1, 1, 1));
 	theme->set_color("connection_hover_tint_color", "GraphEdit", Color(0, 0, 0, 0.3));
+	theme->set_constant("connection_hover_thickness", "GraphEdit", 0);
 	theme->set_color("connection_valid_target_tint_color", "GraphEdit", Color(1, 1, 1, 0.4));
 	theme->set_color("connection_rim_color", "GraphEdit", style_normal_color);
 

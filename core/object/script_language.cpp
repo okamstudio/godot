@@ -35,8 +35,6 @@
 #include "core/debugger/script_debugger.h"
 #include "core/io/resource_loader.h"
 
-#include <stdint.h>
-
 ScriptLanguage *ScriptServer::_languages[MAX_LANGUAGES];
 int ScriptServer::_language_count = 0;
 bool ScriptServer::languages_ready = false;

@@ -30,7 +30,7 @@
 
 #include "xml_parser.h"
 
-#include "core/string/print_string.h"
+#include "core/io/file_access.h"
 
 //#define DEBUG_XML
 

@@ -33,6 +33,11 @@
 
 #ifdef TOOLS_ENABLED
 
+#include "tests/test_macros.h"
+
+#include "../gdscript.h"
+#include "gdscript_test_runner.h"
+
 #include "core/config/project_settings.h"
 #include "core/io/config_file.h"
 #include "core/io/dir_access.h"
@@ -40,15 +45,11 @@
 #include "core/object/script_language.h"
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
-#include "gdscript_test_runner.h"
-#include "modules/modules_enabled.gen.h" // For mono.
-#include "scene/resources/packed_scene.h"
-
-#include "../gdscript.h"
-#include "tests/test_macros.h"
-
 #include "editor/editor_settings.h"
+#include "scene/resources/packed_scene.h"
 #include "scene/theme/theme_db.h"
+
+#include "modules/modules_enabled.gen.h" // For mono.
 
 namespace GDScriptTests {
 

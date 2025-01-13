@@ -10,7 +10,7 @@
 namespace msdfgen {
 
 template <int N>
-static void msdfErrorCorrectionInner(const BitmapRef<float, N> &sdf, const Shape &shape, const Projection &projection, double range, const MSDFGeneratorConfig &config) {
+static void msdfErrorCorrectionInner(const BitmapRef<float, N> &sdf, const Shape &shape, const SDFTransformation &transformation, const MSDFGeneratorConfig &config) {
     if (config.errorCorrection.mode == ErrorCorrectionConfig::DISABLED)
         return;
     Bitmap<byte, 1> stencilBuffer;
@@ -19,7 +19,7 @@ static void msdfErrorCorrectionInner(const BitmapRef<float, N> &sdf, const Shape
     BitmapRef<byte, 1> stencil;
     stencil.pixels = config.errorCorrection.buffer ? config.errorCorrection.buffer : (byte *) stencilBuffer;
     stencil.width = sdf.width, stencil.height = sdf.height;
-    MSDFErrorCorrection ec(stencil, projection, range);
+    MSDFErrorCorrection ec(stencil, transformation);
     ec.setMinDeviationRatio(config.errorCorrection.minDeviationRatio);
     ec.setMinImproveRatio(config.errorCorrection.minImproveRatio);
     switch (config.errorCorrection.mode) {
@@ -49,9 +49,9 @@ static void msdfErrorCorrectionInner(const BitmapRef<float, N> &sdf, const Shape
 }
 
 template <int N>
-static void msdfErrorCorrectionShapeless(const BitmapRef<float, N> &sdf, const Projection &projection, double range, double minDeviationRatio, bool protectAll) {
+static void msdfErrorCorrectionShapeless(const BitmapRef<float, N> &sdf, const SDFTransformation &transformation, double minDeviationRatio, bool protectAll) {
     Bitmap<byte, 1> stencilBuffer(sdf.width, sdf.height);
-    MSDFErrorCorrection ec(stencilBuffer, projection, range);
+    MSDFErrorCorrection ec(stencilBuffer, transformation);
     ec.setMinDeviationRatio(minDeviationRatio);
     if (protectAll)
         ec.protectAll();
@@ -59,25 +59,43 @@ static void msdfErrorCorrectionShapeless(const BitmapRef<float, N> &sdf, const P
     ec.apply(sdf);
 }
 
-void msdfErrorCorrection(const BitmapRef<float, 3> &sdf, const Shape &shape, const Projection &projection, double range, const MSDFGeneratorConfig &config) {
-    msdfErrorCorrectionInner(sdf, shape, projection, range, config);
+void msdfErrorCorrection(const BitmapRef<float, 3> &sdf, const Shape &shape, const SDFTransformation &transformation, const MSDFGeneratorConfig &config) {
+    msdfErrorCorrectionInner(sdf, shape, transformation, config);
 }
-void msdfErrorCorrection(const BitmapRef<float, 4> &sdf, const Shape &shape, const Projection &projection, double range, const MSDFGeneratorConfig &config) {
-    msdfErrorCorrectionInner(sdf, shape, projection, range, config);
+void msdfErrorCorrection(const BitmapRef<float, 4> &sdf, const Shape &shape, const SDFTransformation &transformation, const MSDFGeneratorConfig &config) {
+    msdfErrorCorrectionInner(sdf, shape, transformation, config);
+}
+void msdfErrorCorrection(const BitmapRef<float, 3> &sdf, const Shape &shape, const Projection &projection, Range range, const MSDFGeneratorConfig &config) {
+    msdfErrorCorrectionInner(sdf, shape, SDFTransformation(projection, range), config);
+}
+void msdfErrorCorrection(const BitmapRef<float, 4> &sdf, const Shape &shape, const Projection &projection, Range range, const MSDFGeneratorConfig &config) {
+    msdfErrorCorrectionInner(sdf, shape, SDFTransformation(projection, range), config);
 }
 
-void msdfFastDistanceErrorCorrection(const BitmapRef<float, 3> &sdf, const Projection &projection, double range, double minDeviationRatio) {
-    msdfErrorCorrectionShapeless(sdf, projection, range, minDeviationRatio, false);
+void msdfFastDistanceErrorCorrection(const BitmapRef<float, 3> &sdf, const SDFTransformation &transformation, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, transformation, minDeviationRatio, false);
 }
-void msdfFastDistanceErrorCorrection(const BitmapRef<float, 4> &sdf, const Projection &projection, double range, double minDeviationRatio) {
-    msdfErrorCorrectionShapeless(sdf, projection, range, minDeviationRatio, false);
+void msdfFastDistanceErrorCorrection(const BitmapRef<float, 4> &sdf, const SDFTransformation &transformation, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, transformation, minDeviationRatio, false);
+}
+void msdfFastDistanceErrorCorrection(const BitmapRef<float, 3> &sdf, const Projection &projection, Range range, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, SDFTransformation(projection, range), minDeviationRatio, false);
+}
+void msdfFastDistanceErrorCorrection(const BitmapRef<float, 4> &sdf, const Projection &projection, Range range, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, SDFTransformation(projection, range), minDeviationRatio, false);
 }
 
-void msdfFastEdgeErrorCorrection(const BitmapRef<float, 3> &sdf, const Projection &projection, double range, double minDeviationRatio) {
-    msdfErrorCorrectionShapeless(sdf, projection, range, minDeviationRatio, true);
+void msdfFastEdgeErrorCorrection(const BitmapRef<float, 3> &sdf, const SDFTransformation &transformation, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, transformation, minDeviationRatio, true);
 }
-void msdfFastEdgeErrorCorrection(const BitmapRef<float, 4> &sdf, const Projection &projection, double range, double minDeviationRatio) {
-    msdfErrorCorrectionShapeless(sdf, projection, range, minDeviationRatio, true);
+void msdfFastEdgeErrorCorrection(const BitmapRef<float, 4> &sdf, const SDFTransformation &transformation, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, transformation, minDeviationRatio, true);
+}
+void msdfFastEdgeErrorCorrection(const BitmapRef<float, 3> &sdf, const Projection &projection, Range range, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, SDFTransformation(projection, range), minDeviationRatio, true);
+}
+void msdfFastEdgeErrorCorrection(const BitmapRef<float, 4> &sdf, const Projection &projection, Range range, double minDeviationRatio) {
+    msdfErrorCorrectionShapeless(sdf, SDFTransformation(projection, range), minDeviationRatio, true);
 }
 
 

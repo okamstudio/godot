@@ -38,8 +38,6 @@
 #include "upnp_miniupnp.h"
 #endif
 
-#include "core/error/error_macros.h"
-
 void initialize_upnp_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;

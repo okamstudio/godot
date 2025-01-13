@@ -30,14 +30,16 @@
 
 #include "logger.h"
 
-#include "core/config/project_settings.h"
 #include "core/core_globals.h"
 #include "core/io/dir_access.h"
-#include "core/os/os.h"
 #include "core/os/time.h"
-#include "core/string/print_string.h"
 
 #include "modules/modules_enabled.gen.h" // For regex.
+#ifdef MODULE_REGEX_ENABLED
+#include "modules/regex/regex.h"
+#else
+class RegEx : public RefCounted {};
+#endif // MODULE_REGEX_ENABLED
 
 #if defined(MINGW_ENABLED) || defined(_MSC_VER)
 #define sprintf sprintf_s

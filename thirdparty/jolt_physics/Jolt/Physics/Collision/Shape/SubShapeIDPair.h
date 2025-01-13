@@ -62,19 +62,4 @@ static_assert(alignof(SubShapeIDPair) == 4, "Assuming 4 byte aligned");
 
 JPH_NAMESPACE_END
 
-JPH_SUPPRESS_WARNINGS_STD_BEGIN
-
-namespace std
-{
-	/// Declare std::hash for SubShapeIDPair
-	template <>
-	struct hash<JPH::SubShapeIDPair>
-	{
-		inline size_t operator () (const JPH::SubShapeIDPair &inRHS) const
-		{
-			return static_cast<size_t>(inRHS.GetHash());
-		}
-	};
-}
-
-JPH_SUPPRESS_WARNINGS_STD_END
+JPH_MAKE_STD_HASH(JPH::SubShapeIDPair)

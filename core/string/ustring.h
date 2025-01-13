@@ -39,8 +39,6 @@
 #include "core/typedefs.h"
 #include "core/variant/array.h"
 
-#include <utility>
-
 /*************************************************************************/
 /*  Utility Functions                                                    */
 /*************************************************************************/
@@ -269,51 +267,51 @@ class String {
 	static const char32_t _replacement_char;
 
 	// Known-length copy.
-	void copy_from(const StrRange<char> &p_cstr);
-	void copy_from(const StrRange<char32_t> &p_cstr);
-	void copy_from(const char32_t &p_char);
+	void parse_latin1(const StrRange<char> &p_cstr);
+	void parse_utf32(const StrRange<char32_t> &p_cstr);
+	void parse_utf32(const char32_t &p_char);
 	void copy_from_unchecked(const char32_t *p_char, int p_length);
 
 	// NULL-terminated c string copy - automatically parse the string to find the length.
-	void copy_from(const char *p_cstr) {
-		copy_from(StrRange<char>::from_c_str(p_cstr));
+	void parse_latin1(const char *p_cstr) {
+		parse_latin1(StrRange<char>::from_c_str(p_cstr));
 	}
-	void copy_from(const char *p_cstr, int p_clip_to) {
-		copy_from(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+	void parse_latin1(const char *p_cstr, int p_clip_to) {
+		parse_latin1(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
 	}
-	void copy_from(const char32_t *p_cstr) {
-		copy_from(StrRange<char32_t>::from_c_str(p_cstr));
+	void parse_utf32(const char32_t *p_cstr) {
+		parse_utf32(StrRange<char32_t>::from_c_str(p_cstr));
 	}
-	void copy_from(const char32_t *p_cstr, int p_clip_to) {
-		copy_from(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+	void parse_utf32(const char32_t *p_cstr, int p_clip_to) {
+		parse_utf32(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
 	}
 
 	// wchar_t copy_from depends on the platform.
-	void copy_from(const StrRange<wchar_t> &p_cstr) {
+	void parse_wstring(const StrRange<wchar_t> &p_cstr) {
 #ifdef WINDOWS_ENABLED
 		// wchar_t is 16-bit, parse as UTF-16
 		parse_utf16((const char16_t *)p_cstr.c_str, p_cstr.len);
 #else
 		// wchar_t is 32-bit, copy directly
-		copy_from((StrRange<char32_t> &)p_cstr);
+		parse_utf32((StrRange<char32_t> &)p_cstr);
 #endif
 	}
-	void copy_from(const wchar_t *p_cstr) {
+	void parse_wstring(const wchar_t *p_cstr) {
 #ifdef WINDOWS_ENABLED
 		// wchar_t is 16-bit, parse as UTF-16
 		parse_utf16((const char16_t *)p_cstr);
 #else
 		// wchar_t is 32-bit, copy directly
-		copy_from((const char32_t *)p_cstr);
+		parse_utf32((const char32_t *)p_cstr);
 #endif
 	}
-	void copy_from(const wchar_t *p_cstr, int p_clip_to) {
+	void parse_wstring(const wchar_t *p_cstr, int p_clip_to) {
 #ifdef WINDOWS_ENABLED
 		// wchar_t is 16-bit, parse as UTF-16
 		parse_utf16((const char16_t *)p_cstr, p_clip_to);
 #else
 		// wchar_t is 32-bit, copy directly
-		copy_from((const char32_t *)p_cstr, p_clip_to);
+		parse_utf32((const char32_t *)p_cstr, p_clip_to);
 #endif
 	}
 
@@ -615,33 +613,33 @@ public:
 
 	// Constructors for NULL terminated C strings.
 	String(const char *p_cstr) {
-		copy_from(p_cstr);
+		parse_latin1(p_cstr);
 	}
 	String(const wchar_t *p_cstr) {
-		copy_from(p_cstr);
+		parse_wstring(p_cstr);
 	}
 	String(const char32_t *p_cstr) {
-		copy_from(p_cstr);
+		parse_utf32(p_cstr);
 	}
 	String(const char *p_cstr, int p_clip_to_len) {
-		copy_from(p_cstr, p_clip_to_len);
+		parse_latin1(p_cstr, p_clip_to_len);
 	}
 	String(const wchar_t *p_cstr, int p_clip_to_len) {
-		copy_from(p_cstr, p_clip_to_len);
+		parse_wstring(p_cstr, p_clip_to_len);
 	}
 	String(const char32_t *p_cstr, int p_clip_to_len) {
-		copy_from(p_cstr, p_clip_to_len);
+		parse_utf32(p_cstr, p_clip_to_len);
 	}
 
 	// Copy assignment for NULL terminated C strings.
 	void operator=(const char *p_cstr) {
-		copy_from(p_cstr);
+		parse_latin1(p_cstr);
 	}
 	void operator=(const wchar_t *p_cstr) {
-		copy_from(p_cstr);
+		parse_wstring(p_cstr);
 	}
 	void operator=(const char32_t *p_cstr) {
-		copy_from(p_cstr);
+		parse_utf32(p_cstr);
 	}
 
 	explicit operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }

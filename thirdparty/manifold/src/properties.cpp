@@ -202,6 +202,66 @@ bool Manifold::Impl::Is2Manifold() const {
       });
 }
 
+#ifdef MANIFOLD_DEBUG
+std::mutex dump_lock;
+#endif
+
+/**
+ * Returns true if this manifold is self-intersecting.
+ * Note that this is not checking for epsilon-validity.
+ */
+bool Manifold::Impl::IsSelfIntersecting() const {
+  const double epsilonSq = epsilon_ * epsilon_;
+  Vec<Box> faceBox;
+  Vec<uint32_t> faceMorton;
+  GetFaceBoxMorton(faceBox, faceMorton);
+  SparseIndices collisions = collider_.Collisions<true>(faceBox.cview());
+
+  const bool verbose = ManifoldParams().verbose;
+  return !all_of(countAt(0), countAt(collisions.size()), [&](size_t i) {
+    size_t x = collisions.Get(i, false);
+    size_t y = collisions.Get(i, true);
+    std::array<vec3, 3> tri_x, tri_y;
+    for (int i : {0, 1, 2}) {
+      tri_x[i] = vertPos_[halfedge_[3 * x + i].startVert];
+      tri_y[i] = vertPos_[halfedge_[3 * y + i].startVert];
+    }
+    // if triangles x and y share a vertex, return true to skip the
+    // check. we relax the sharing criteria a bit to allow for at most
+    // distance epsilon squared
+    for (int i : {0, 1, 2})
+      for (int j : {0, 1, 2})
+        if (distance2(tri_x[i], tri_y[j]) <= epsilonSq) return true;
+
+    if (DistanceTriangleTriangleSquared(tri_x, tri_y) == 0.0) {
+      // try to move the triangles around the normal of the other face
+      std::array<vec3, 3> tmp_x, tmp_y;
+      for (int i : {0, 1, 2}) tmp_x[i] = tri_x[i] + epsilon_ * faceNormal_[y];
+      if (DistanceTriangleTriangleSquared(tmp_x, tri_y) > 0.0) return true;
+      for (int i : {0, 1, 2}) tmp_x[i] = tri_x[i] - epsilon_ * faceNormal_[y];
+      if (DistanceTriangleTriangleSquared(tmp_x, tri_y) > 0.0) return true;
+      for (int i : {0, 1, 2}) tmp_y[i] = tri_y[i] + epsilon_ * faceNormal_[x];
+      if (DistanceTriangleTriangleSquared(tri_x, tmp_y) > 0.0) return true;
+      for (int i : {0, 1, 2}) tmp_y[i] = tri_y[i] - epsilon_ * faceNormal_[x];
+      if (DistanceTriangleTriangleSquared(tri_x, tmp_y) > 0.0) return true;
+
+#ifdef MANIFOLD_DEBUG
+      if (verbose) {
+        dump_lock.lock();
+        std::cout << "intersecting:" << std::endl;
+        for (int i : {0, 1, 2}) std::cout << tri_x[i] << " ";
+        std::cout << std::endl;
+        for (int i : {0, 1, 2}) std::cout << tri_y[i] << " ";
+        std::cout << std::endl;
+        dump_lock.unlock();
+      }
+#endif
+      return false;
+    }
+    return true;
+  });
+}
+
 /**
  * Returns true if all triangles are CCW relative to their triNormals_.
  */

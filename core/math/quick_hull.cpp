@@ -30,8 +30,6 @@
 
 #include "quick_hull.h"
 
-#include "core/templates/rb_map.h"
-
 uint32_t QuickHull::debug_stop_after = 0xFFFFFFFF;
 
 Error QuickHull::build(const Vector<Vector3> &p_points, Geometry3D::MeshData &r_mesh) {

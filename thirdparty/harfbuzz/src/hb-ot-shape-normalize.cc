@@ -222,8 +222,7 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
 	(void) buffer->next_glyph ();
 
         buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_VARIATION_SELECTOR_FALLBACK;
-	_hb_glyph_info_set_general_category (&buffer->cur(),
-					     _HB_UNICODE_GENERAL_CATEGORY_VARIATION_SELECTOR);
+	_hb_glyph_info_set_variation_selector (&buffer->cur(), true);
 	if (buffer->not_found_variation_selector != HB_CODEPOINT_INVALID)
 	  _hb_glyph_info_clear_default_ignorable (&buffer->cur());
 

@@ -41,6 +41,7 @@
 #include "hb-ot-shaper-arabic-pua.hh"
 #include "hb-paint.hh"
 
+#include FT_MODULE_H
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
 #include FT_OUTLINE_H
@@ -1432,6 +1433,24 @@ hb_ft_font_create_referenced (FT_Face ft_face)
   return hb_ft_font_create (ft_face, _hb_ft_face_destroy);
 }
 
+
+static void * _hb_ft_alloc (FT_Memory memory, long size)
+{ return hb_malloc (size); }
+
+static void _hb_ft_free (FT_Memory memory, void *block)
+{ hb_free (block); }
+
+static void * _hb_ft_realloc (FT_Memory memory, long cur_size, long new_size, void *block)
+{ return hb_realloc (block, new_size); }
+
+static FT_MemoryRec_ m =
+{
+  nullptr,
+  _hb_ft_alloc,
+  _hb_ft_free,
+  _hb_ft_realloc
+};
+
 static inline void free_static_ft_library ();
 
 static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<FT_Library>,
@@ -1440,8 +1459,11 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<F
   static FT_Library create ()
   {
     FT_Library l;
-    if (FT_Init_FreeType (&l))
+    if (FT_New_Library (&m, &l))
       return nullptr;
+
+    FT_Add_Default_Modules (l);
+    FT_Set_Default_Properties (l);
 
     hb_atexit (free_static_ft_library);
 
@@ -1449,7 +1471,7 @@ static struct hb_ft_library_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<F
   }
   static void destroy (FT_Library l)
   {
-    FT_Done_FreeType (l);
+    FT_Done_Library (l);
   }
   static FT_Library get_null ()
   {
@@ -1464,9 +1486,76 @@ void free_static_ft_library ()
 }
 
 static FT_Library
-get_ft_library ()
+reference_ft_library ()
 {
-  return static_ft_library.get_unconst ();
+  FT_Library l = static_ft_library.get_unconst ();
+  if (unlikely (FT_Reference_Library (l)))
+  {
+    DEBUG_MSG (FT, l, "FT_Reference_Library() failed");
+    return nullptr;
+  }
+  return l;
+}
+
+static hb_user_data_key_t ft_library_key = {0};
+
+static void
+finalize_ft_library (void *arg)
+{
+  FT_Face ft_face = (FT_Face) arg;
+  FT_Done_Library ((FT_Library) ft_face->generic.data);
+}
+
+static void
+destroy_ft_library (void *arg)
+{
+  FT_Done_Library ((FT_Library) arg);
+}
+
+/**
+ * hb_ft_face_create_from_file_or_fail:
+ * @file_name: A font filename
+ * @index: The index of the face within the file
+ *
+ * Creates an #hb_face_t face object from the specified
+ * font file and face index.
+ *
+ * This is similar in functionality to hb_face_create_from_file_or_fail(),
+ * but uses the FreeType library for loading the font file.
+ *
+ * Return value: (transfer full): The new face object, or `NULL` if
+ * no face is found at the specified index or the file cannot be read.
+ *
+ * Since: 10.1.0
+ */
+hb_face_t *
+hb_ft_face_create_from_file_or_fail (const char   *file_name,
+				     unsigned int  index)
+{
+  FT_Library ft_library = reference_ft_library ();
+  if (unlikely (!ft_library))
+  {
+    DEBUG_MSG (FT, ft_library, "reference_ft_library failed");
+    return nullptr;
+  }
+
+  FT_Face ft_face;
+  if (unlikely (FT_New_Face (ft_library,
+			     file_name,
+			     index,
+			     &ft_face)))
+    return nullptr;
+
+  hb_face_t *face = hb_ft_face_create_referenced (ft_face);
+  FT_Done_Face (ft_face);
+
+  ft_face->generic.data = ft_library;
+  ft_face->generic.finalizer = finalize_ft_library;
+
+  if (hb_face_is_immutable (face))
+    return nullptr;
+
+  return face;
 }
 
 static void
@@ -1511,25 +1600,35 @@ hb_ft_font_set_funcs (hb_font_t *font)
   if (unlikely (!blob_length))
     DEBUG_MSG (FT, font, "Font face has empty blob");
 
-  FT_Face ft_face = nullptr;
-  FT_Error err = FT_New_Memory_Face (get_ft_library (),
-				     (const FT_Byte *) blob_data,
-				     blob_length,
-				     hb_face_get_index (font->face),
-				     &ft_face);
-
-  if (unlikely (err)) {
+  FT_Library ft_library = reference_ft_library ();
+  if (unlikely (!ft_library))
+  {
     hb_blob_destroy (blob);
-    DEBUG_MSG (FT, font, "Font face FT_New_Memory_Face() failed");
+    DEBUG_MSG (FT, font, "reference_ft_library failed");
+    return;
+  }
+
+  FT_Face ft_face = nullptr;
+  if (unlikely (FT_New_Memory_Face (ft_library,
+				    (const FT_Byte *) blob_data,
+				    blob_length,
+				    hb_face_get_index (font->face),
+				    &ft_face)))
+  {
+    hb_blob_destroy (blob);
+    DEBUG_MSG (FT, font, "FT_New_Memory_Face() failed");
     return;
   }
 
   if (FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL))
     FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
 
-
+  // Hook the blob to the FT_Face
   ft_face->generic.data = blob;
   ft_face->generic.finalizer = _release_blob;
+
+  // And the FT_Library to the blob
+  hb_blob_set_user_data (blob, &ft_library_key, ft_library, destroy_ft_library, true);
 
   _hb_ft_font_set_funcs (font, ft_face, true);
   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);

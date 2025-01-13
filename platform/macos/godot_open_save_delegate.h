@@ -33,6 +33,7 @@
 
 #import <AppKit/AppKit.h>
 #import <Foundation/Foundation.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 #include "core/templates/hash_map.h"
 #include "core/variant/typed_array.h"

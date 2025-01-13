@@ -1,29 +1,7 @@
 #!/usr/bin/env python
-from misc.utility.scons_hints import *
-
-import atexit
-import sys
-import time
+# ruff: noqa: F821
 
 import methods
-
-# Enable ANSI escape code support on Windows 10 and later (for colored console output).
-# <https://github.com/python/cpython/issues/73245>
-if sys.stdout.isatty() and sys.platform == "win32":
-    try:
-        from ctypes import WinError, byref, windll  # type: ignore
-        from ctypes.wintypes import DWORD  # type: ignore
-
-        stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-        mode = DWORD(0)
-        if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-            raise WinError()
-        mode = DWORD(mode.value | 4)
-        if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-            raise WinError()
-    except Exception as e:
-        methods._colorize = False
-        methods.print_error(f"Failed to enable ANSI escape code support, disabling color output.\n{e}")
 
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -32,8 +10,6 @@ if sys.stdout.isatty() and sys.platform == "win32":
 # - CPPFLAGS are for pre-processor flags
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
-
-time_at_start = time.time()
 
 env = SConscript("./godot-cpp/SConstruct")
 env.__class__.disable_warnings = methods.disable_warnings
@@ -46,9 +22,6 @@ opts.Add(BoolVariable("thorvg_enabled", "Use ThorVG library (require FreeType)",
 opts.Add(BoolVariable("verbose", "Enable verbose output for the compilation", False))
 
 opts.Update(env)
-
-if not env["verbose"]:
-    methods.no_verbose(env)
 
 # ThorVG
 if env["thorvg_enabled"] and env["freetype_enabled"]:
@@ -145,6 +118,7 @@ if env["msdfgen_enabled"] and env["freetype_enabled"]:
     thirdparty_msdfgen_dir = "../../../thirdparty/msdfgen/"
     thirdparty_msdfgen_sources = [
         "core/Contour.cpp",
+        "core/DistanceMapping.cpp",
         "core/EdgeHolder.cpp",
         "core/MSDFErrorCorrection.cpp",
         "core/Projection.cpp",
@@ -155,10 +129,15 @@ if env["msdfgen_enabled"] and env["freetype_enabled"]:
         "core/edge-segments.cpp",
         "core/edge-selectors.cpp",
         "core/equation-solver.cpp",
+        # "core/export-svg.cpp",
         "core/msdf-error-correction.cpp",
         "core/msdfgen.cpp",
         "core/rasterization.cpp",
         "core/render-sdf.cpp",
+        # "core/save-bmp.cpp",
+        # "core/save-fl32.cpp",
+        # "core/save-rgba.cpp",
+        # "core/save-tiff.cpp",
         "core/sdf-error-estimation.cpp",
         "core/shape-description.cpp",
     ]
@@ -329,18 +308,4 @@ else:
 
 Default(library)
 
-
-def print_elapsed_time():
-    elapsed_time_sec = round(time.time() - time_at_start, 2)
-    time_centiseconds = round((elapsed_time_sec % 1) * 100)
-    print(
-        "{}[Time elapsed: {}.{:02}]{}".format(
-            methods.ANSI.GRAY,
-            time.strftime("%H:%M:%S", time.gmtime(elapsed_time_sec)),
-            time_centiseconds,
-            methods.ANSI.RESET,
-        )
-    )
-
-
-atexit.register(print_elapsed_time)
+methods.prepare_timer()

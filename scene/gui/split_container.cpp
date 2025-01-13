@@ -30,9 +30,7 @@
 
 #include "split_container.h"
 
-#include "scene/gui/label.h"
-#include "scene/gui/margin_container.h"
-#include "scene/main/window.h"
+#include "scene/main/viewport.h"
 #include "scene/theme/theme_db.h"
 
 void SplitContainerDragger::gui_input(const Ref<InputEvent> &p_event) {

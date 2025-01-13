@@ -70,6 +70,8 @@ void NavigationServer3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("map_force_update", "map"), &NavigationServer3D::map_force_update);
 	ClassDB::bind_method(D_METHOD("map_get_iteration_id", "map"), &NavigationServer3D::map_get_iteration_id);
+	ClassDB::bind_method(D_METHOD("map_set_use_async_iterations", "map", "enabled"), &NavigationServer3D::map_set_use_async_iterations);
+	ClassDB::bind_method(D_METHOD("map_get_use_async_iterations", "map"), &NavigationServer3D::map_get_use_async_iterations);
 
 	ClassDB::bind_method(D_METHOD("map_get_random_point", "map", "navigation_layers", "uniformly"), &NavigationServer3D::map_get_random_point);
 
@@ -234,16 +236,18 @@ NavigationServer3D::NavigationServer3D() {
 
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/2d/default_cell_size", PROPERTY_HINT_RANGE, NavigationDefaults2D::navmesh_cell_size_hint), NavigationDefaults2D::navmesh_cell_size);
 	GLOBAL_DEF("navigation/2d/use_edge_connections", true);
-	GLOBAL_DEF_BASIC("navigation/2d/default_edge_connection_margin", NavigationDefaults2D::edge_connection_margin);
-	GLOBAL_DEF_BASIC("navigation/2d/default_link_connection_radius", NavigationDefaults2D::link_connection_radius);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/2d/default_edge_connection_margin", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), NavigationDefaults2D::edge_connection_margin);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/2d/default_link_connection_radius", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), NavigationDefaults2D::link_connection_radius);
 
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/3d/default_cell_size", PROPERTY_HINT_RANGE, NavigationDefaults3D::navmesh_cell_size_hint), NavigationDefaults3D::navmesh_cell_size);
-	GLOBAL_DEF_BASIC("navigation/3d/default_cell_height", NavigationDefaults3D::navmesh_cell_height);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/3d/default_cell_height", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater"), NavigationDefaults3D::navmesh_cell_height);
 	GLOBAL_DEF("navigation/3d/default_up", Vector3(0, 1, 0));
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "navigation/3d/merge_rasterizer_cell_scale", PROPERTY_HINT_RANGE, "0.001,1,0.001,or_greater"), 1.0);
 	GLOBAL_DEF("navigation/3d/use_edge_connections", true);
-	GLOBAL_DEF_BASIC("navigation/3d/default_edge_connection_margin", NavigationDefaults3D::edge_connection_margin);
-	GLOBAL_DEF_BASIC("navigation/3d/default_link_connection_radius", NavigationDefaults3D::link_connection_radius);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/3d/default_edge_connection_margin", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), NavigationDefaults3D::edge_connection_margin);
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "navigation/3d/default_link_connection_radius", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), NavigationDefaults3D::link_connection_radius);
+
+	GLOBAL_DEF("navigation/world/map_use_async_iterations", true);
 
 	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_multiple_threads", true);
 	GLOBAL_DEF("navigation/avoidance/thread_model/avoidance_use_high_priority_threads", true);
@@ -274,7 +278,7 @@ NavigationServer3D::NavigationServer3D() {
 
 	debug_navigation_enable_agent_paths = GLOBAL_DEF("debug/shapes/navigation/enable_agent_paths", true);
 	debug_navigation_enable_agent_paths_xray = GLOBAL_DEF("debug/shapes/navigation/enable_agent_paths_xray", true);
-	debug_navigation_agent_path_point_size = GLOBAL_DEF("debug/shapes/navigation/agent_path_point_size", 4.0);
+	debug_navigation_agent_path_point_size = GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "debug/shapes/navigation/agent_path_point_size", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), 4.0);
 
 	debug_navigation_avoidance_agents_radius_color = GLOBAL_DEF("debug/shapes/avoidance/agents_radius_color", Color(1.0, 1.0, 0.0, 0.25));
 	debug_navigation_avoidance_obstacles_radius_color = GLOBAL_DEF("debug/shapes/avoidance/obstacles_radius_color", Color(1.0, 0.5, 0.0, 0.25));

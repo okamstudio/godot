@@ -31,7 +31,6 @@
 #include "resource_importer_shader_file.h"
 
 #include "core/io/file_access.h"
-#include "core/io/marshalls.h"
 #include "core/io/resource_saver.h"
 #include "editor/editor_node.h"
 #include "editor/plugins/shader_file_editor_plugin.h"
@@ -97,7 +96,7 @@ Error ResourceImporterShaderFile::import(ResourceUID::ID p_source_id, const Stri
 	Error err;
 	Ref<FileAccess> file = FileAccess::open(p_source_file, FileAccess::READ, &err);
 	ERR_FAIL_COND_V(err != OK, ERR_CANT_OPEN);
-	ERR_FAIL_COND_V(!file.is_valid(), ERR_CANT_OPEN);
+	ERR_FAIL_COND_V(file.is_null(), ERR_CANT_OPEN);
 
 	String file_txt = file->get_as_utf8_string();
 	Ref<RDShaderFile> shader_file;

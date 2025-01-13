@@ -260,14 +260,14 @@ void main() {
 #ifdef MODE_COMPOSITE_BOKEH
 	frag_color.rgb = texture(source_color, uv).rgb;
 
-	float center_weigth = texture(source_weight, uv).r;
+	float center_weight = texture(source_weight, uv).r;
 	float sample_weight = texture(original_weight, uv).r;
 
 	float mix_amount;
-	if (sample_weight < center_weigth) {
-		mix_amount = min(1.0, max(0.0, max(abs(center_weigth), abs(sample_weight)) - DEPTH_GAP));
+	if (sample_weight < center_weight) {
+		mix_amount = min(1.0, max(0.0, max(abs(center_weight), abs(sample_weight)) - DEPTH_GAP));
 	} else {
-		mix_amount = min(1.0, max(0.0, abs(center_weigth) - DEPTH_GAP));
+		mix_amount = min(1.0, max(0.0, abs(center_weight) - DEPTH_GAP));
 	}
 
 	// let alpha blending take care of mixing

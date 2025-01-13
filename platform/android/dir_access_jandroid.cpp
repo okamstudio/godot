@@ -30,7 +30,7 @@
 
 #include "dir_access_jandroid.h"
 
-#include "string_android.h"
+#include "jni_utils.h"
 #include "thread_jandroid.h"
 
 #include "core/string/print_string.h"

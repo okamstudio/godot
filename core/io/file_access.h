@@ -46,7 +46,7 @@ class FileAccess : public RefCounted {
 	GDCLASS(FileAccess, RefCounted);
 
 public:
-	enum AccessType {
+	enum AccessType : int32_t {
 		ACCESS_RESOURCES,
 		ACCESS_USERDATA,
 		ACCESS_FILESYSTEM,
@@ -54,14 +54,14 @@ public:
 		ACCESS_MAX
 	};
 
-	enum ModeFlags {
+	enum ModeFlags : int32_t {
 		READ = 1,
 		WRITE = 2,
 		READ_WRITE = 3,
 		WRITE_READ = 7,
 	};
 
-	enum UnixPermissionFlags {
+	enum UnixPermissionFlags : int32_t {
 		UNIX_EXECUTE_OTHER = 0x001,
 		UNIX_WRITE_OTHER = 0x002,
 		UNIX_READ_OTHER = 0x004,
@@ -76,7 +76,7 @@ public:
 		UNIX_SET_USER_ID = 0x800,
 	};
 
-	enum CompressionMode {
+	enum CompressionMode : int32_t {
 		COMPRESSION_FASTLZ = Compression::MODE_FASTLZ,
 		COMPRESSION_DEFLATE = Compression::MODE_DEFLATE,
 		COMPRESSION_ZSTD = Compression::MODE_ZSTD,

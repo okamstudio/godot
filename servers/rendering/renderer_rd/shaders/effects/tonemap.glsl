@@ -207,6 +207,14 @@ vec4 texture2D_bicubic(sampler2D tex, vec2 uv, int p_lod) {
 
 #endif // !USE_GLOW_FILTER_BICUBIC
 
+// Based on Reinhard's extended formula, see equation 4 in https://doi.org/cjbgrt
+vec3 tonemap_reinhard(vec3 color, float white) {
+	float white_squared = white * white;
+	vec3 white_squared_color = white_squared * color;
+	// Equivalent to color * (1 + color / white_squared) / (1 + color)
+	return (white_squared_color + color * color) / (white_squared_color + white_squared);
+}
+
 vec3 tonemap_filmic(vec3 color, float white) {
 	// exposure bias: input scale (color *= bias, white *= bias) to make the brightness consistent with other tonemappers
 	// also useful to scale the input to the range that the tonemapper is designed for (some require very high input values)
@@ -256,12 +264,75 @@ vec3 tonemap_aces(vec3 color, float white) {
 	return color_tonemapped / white_tonemapped;
 }
 
-// Based on Reinhard's extended formula, see equation 4 in https://doi.org/cjbgrt
-vec3 tonemap_reinhard(vec3 color, float white) {
-	float white_squared = white * white;
-	vec3 white_squared_color = white_squared * color;
-	// Equivalent to color * (1 + color / white_squared) / (1 + color)
-	return (white_squared_color + color * color) / (white_squared_color + white_squared);
+// Polynomial approximation of EaryChow's AgX sigmoid curve.
+// x must be within the range [0.0, 1.0]
+vec3 agx_default_contrast_approx(vec3 x) {
+	// Generated with Excel trendline
+	// Input data: Generated using python sigmoid with EaryChow's configuration and 57 steps
+	// Additional padding values were added to give correct intersections at 0.0 and 1.0
+	// 6th order, intercept of 0.0 to remove an operation and ensure intersection at 0.0
+	vec3 x2 = x * x;
+	vec3 x4 = x2 * x2;
+	return 0.021 * x + 4.0111 * x2 - 25.682 * x2 * x + 70.359 * x4 - 74.778 * x4 * x + 27.069 * x4 * x2;
+}
+
+const mat3 LINEAR_SRGB_TO_LINEAR_REC2020 = mat3(
+		vec3(0.6274, 0.0691, 0.0164),
+		vec3(0.3293, 0.9195, 0.0880),
+		vec3(0.0433, 0.0113, 0.8956));
+
+// This is an approximation and simplification of EaryChow's AgX implementation that is used by Blender.
+// This code is based off of the script that generates the AgX_Base_sRGB.cube LUT that Blender uses.
+// Source: https://github.com/EaryChow/AgX_LUT_Gen/blob/main/AgXBasesRGB.py
+vec3 tonemap_agx(vec3 color) {
+	const mat3 agx_inset_matrix = mat3(
+			0.856627153315983, 0.137318972929847, 0.11189821299995,
+			0.0951212405381588, 0.761241990602591, 0.0767994186031903,
+			0.0482516061458583, 0.101439036467562, 0.811302368396859);
+
+	// Combined inverse AgX outset matrix and linear Rec 2020 to linear sRGB matrices.
+	const mat3 agx_outset_rec2020_to_srgb_matrix = mat3(
+			1.9648846919172409596, -0.29937618452442253746, -0.16440106280678278299,
+			-0.85594737466675834968, 1.3263980951083531115, -0.23819967517076844919,
+			-0.10883731725048386702, -0.02702191058393112346, 1.4025007379775505276);
+
+	// LOG2_MIN      = -10.0
+	// LOG2_MAX      =  +6.5
+	// MIDDLE_GRAY   =  0.18
+	const float min_ev = -12.4739311883324; // log2(pow(2, LOG2_MIN) * MIDDLE_GRAY)
+	const float max_ev = 4.02606881166759; // log2(pow(2, LOG2_MAX) * MIDDLE_GRAY)
+
+	// Do AGX in rec2020 to match Blender.
+	color = LINEAR_SRGB_TO_LINEAR_REC2020 * color;
+
+	// Preventing negative values is required for the AgX inset matrix to behave correctly.
+	// This could also be done before the Rec. 2020 transform, allowing the transform to
+	// be combined with the AgX inset matrix, but doing this causes a loss of color information
+	// that could be correctly interpreted within the Rec. 2020 color space.
+	color = max(color, vec3(0.0));
+
+	color = agx_inset_matrix * color;
+
+	// Log2 space encoding.
+	color = max(color, 1e-10); // Prevent log2(0.0). Possibly unnecessary.
+	// Must be clamped because agx_blender_default_contrast_approx may not work
+	// well with values outside of the range [0.0, 1.0]
+	color = clamp(log2(color), min_ev, max_ev);
+	color = (color - min_ev) / (max_ev - min_ev);
+
+	// Apply sigmoid function approximation.
+	color = agx_default_contrast_approx(color);
+
+	// Convert back to linear before applying outset matrix.
+	color = pow(color, vec3(2.4));
+
+	// Apply outset to make the result more chroma-laden and then go back to linear sRGB.
+	color = agx_outset_rec2020_to_srgb_matrix * color;
+
+	// Simply hard clip instead of Blender's complex lusRGB.compensate_low_side.
+	color = max(color, vec3(0.0));
+
+	return color;
 }
 
 vec3 linear_to_srgb(vec3 color) {
@@ -275,6 +346,7 @@ vec3 linear_to_srgb(vec3 color) {
 #define TONEMAPPER_REINHARD 1
 #define TONEMAPPER_FILMIC 2
 #define TONEMAPPER_ACES 3
+#define TONEMAPPER_AGX 4
 
 vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 	// Ensure color values passed to tonemappers are positive.
@@ -285,8 +357,10 @@ vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 		return tonemap_reinhard(max(vec3(0.0f), color), white);
 	} else if (params.tonemapper == TONEMAPPER_FILMIC) {
 		return tonemap_filmic(max(vec3(0.0f), color), white);
-	} else { // TONEMAPPER_ACES
+	} else if (params.tonemapper == TONEMAPPER_ACES) {
 		return tonemap_aces(max(vec3(0.0f), color), white);
+	} else { // TONEMAPPER_AGX
+		return tonemap_agx(color);
 	}
 }
 

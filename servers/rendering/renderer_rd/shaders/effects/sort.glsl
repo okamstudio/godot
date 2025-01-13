@@ -70,8 +70,9 @@ void main() {
 
 	int i;
 	for (i = 0; i < 2 * ITERATIONS; ++i) {
-		if (GI + i * NUM_THREADS < numElementsInThreadGroup)
+		if (GI + i * NUM_THREADS < numElementsInThreadGroup) {
 			g_LDS[LocalBaseIndex + i * NUM_THREADS] = sort_buffer.data[GlobalBaseIndex + i * NUM_THREADS];
+		}
 	}
 
 	groupMemoryBarrier();
@@ -163,8 +164,9 @@ void main() {
 
 	// Load shared data
 	for (i = 0; i < 2; ++i) {
-		if (GI + i * NUM_THREADS < tgp.w)
+		if (GI + i * NUM_THREADS < tgp.w) {
 			g_LDS[LocalBaseIndex + i * NUM_THREADS] = sort_buffer.data[GlobalBaseIndex + i * NUM_THREADS];
+		}
 	}
 
 	groupMemoryBarrier();

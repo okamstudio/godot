@@ -44,11 +44,13 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,11 +78,11 @@ public final class PermissionsUtil {
 	 * @param activity the caller activity for this method.
 	 * @return true/false. "true" if permissions are already granted, "false" if a permissions request was dispatched.
 	 */
-	public static boolean requestPermissions(Activity activity, List<String> permissions) {
-		if (activity == null) {
-			return false;
-		}
+	public static boolean requestPermissions(@NonNull Activity activity, List<String> permissions) {
+		return requestPermissions(activity, permissions, REQUEST_ALL_PERMISSION_REQ_CODE);
+	}
 
+	private static boolean requestPermissions(@NonNull Activity activity, List<String> permissions, int requestCode) {
 		if (permissions == null || permissions.isEmpty()) {
 			return true;
 		}
@@ -90,6 +92,7 @@ public final class PermissionsUtil {
 			return true;
 		}
 
+		boolean dispatchedPermissionsRequest = false;
 		Set<String> requestedPermissions = new HashSet<>();
 		for (String permission : permissions) {
 			try {
@@ -104,6 +107,7 @@ public final class PermissionsUtil {
 							Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
 							activity.startActivityForResult(intent, REQUEST_MANAGE_EXTERNAL_STORAGE_REQ_CODE);
 						}
+						dispatchedPermissionsRequest = true;
 					}
 				} else if (permission.equals(Manifest.permission.REQUEST_INSTALL_PACKAGES)) {
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.getPackageManager().canRequestPackageInstalls()) {
@@ -111,6 +115,7 @@ public final class PermissionsUtil {
 							Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
 							intent.setData(Uri.parse(String.format("package:%s", activity.getPackageName())));
 							activity.startActivityForResult(intent, REQUEST_INSTALL_PACKAGES_REQ_CODE);
+							dispatchedPermissionsRequest = true;
 						} catch (Exception e) {
 							Log.e(TAG, "Unable to request permission " + Manifest.permission.REQUEST_INSTALL_PACKAGES);
 						}
@@ -129,13 +134,12 @@ public final class PermissionsUtil {
 			}
 		}
 
-		if (requestedPermissions.isEmpty()) {
-			// If list is empty, all of dangerous permissions were granted.
-			return true;
+		if (!requestedPermissions.isEmpty()) {
+			activity.requestPermissions(requestedPermissions.toArray(new String[0]), requestCode);
+			dispatchedPermissionsRequest = true;
 		}
 
-		activity.requestPermissions(requestedPermissions.toArray(new String[0]), REQUEST_ALL_PERMISSION_REQ_CODE);
-		return false;
+		return !dispatchedPermissionsRequest;
 	}
 
 	/**
@@ -144,57 +148,37 @@ public final class PermissionsUtil {
 	 * @param activity the caller activity for this method.
 	 * @return true/false. "true" if permission is already granted, "false" if a permission request was dispatched.
 	 */
-	public static boolean requestPermission(String permissionName, Activity activity) {
-		if (activity == null || TextUtils.isEmpty(permissionName)) {
-			return false;
-		}
-
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-			// Not necessary, asked on install already
+	public static boolean requestPermission(String permissionName, @NonNull Activity activity) {
+		if (TextUtils.isEmpty(permissionName)) {
 			return true;
 		}
 
+		final int requestCode;
+		final String updatedPermissionName;
 		switch (permissionName) {
 			case "RECORD_AUDIO":
-			case Manifest.permission.RECORD_AUDIO:
-				if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-					activity.requestPermissions(new String[] { Manifest.permission.RECORD_AUDIO }, REQUEST_RECORD_AUDIO_PERMISSION);
-					return false;
-				}
-				return true;
+				updatedPermissionName = Manifest.permission.RECORD_AUDIO;
+				requestCode = REQUEST_RECORD_AUDIO_PERMISSION;
+				break;
 
 			case "CAMERA":
-			case Manifest.permission.CAMERA:
-				if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-					activity.requestPermissions(new String[] { Manifest.permission.CAMERA }, REQUEST_CAMERA_PERMISSION);
-					return false;
-				}
-				return true;
+				updatedPermissionName = Manifest.permission.CAMERA;
+				requestCode = REQUEST_CAMERA_PERMISSION;
+				break;
 
 			case "VIBRATE":
-			case Manifest.permission.VIBRATE:
-				if (ContextCompat.checkSelfPermission(activity, Manifest.permission.VIBRATE) != PackageManager.PERMISSION_GRANTED) {
-					activity.requestPermissions(new String[] { Manifest.permission.VIBRATE }, REQUEST_VIBRATE_PERMISSION);
-					return false;
-				}
-				return true;
+				updatedPermissionName = Manifest.permission.VIBRATE;
+				requestCode = REQUEST_VIBRATE_PERMISSION;
+				break;
 
 			default:
-				// Check if the given permission is a dangerous permission
-				try {
-					PermissionInfo permissionInfo = getPermissionInfo(activity, permissionName);
-					int protectionLevel = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? permissionInfo.getProtection() : permissionInfo.protectionLevel;
-					if ((protectionLevel & PermissionInfo.PROTECTION_DANGEROUS) == PermissionInfo.PROTECTION_DANGEROUS && ContextCompat.checkSelfPermission(activity, permissionName) != PackageManager.PERMISSION_GRANTED) {
-						activity.requestPermissions(new String[] { permissionName }, REQUEST_SINGLE_PERMISSION_REQ_CODE);
-						return false;
-					}
-				} catch (PackageManager.NameNotFoundException e) {
-					// Unknown permission - return false as it can't be granted.
-					Log.w(TAG, "Unable to identify permission " + permissionName, e);
-					return false;
-				}
-				return true;
+				updatedPermissionName = permissionName;
+				requestCode = REQUEST_SINGLE_PERMISSION_REQ_CODE;
+				break;
 		}
+
+		List<String> permissions = Collections.singletonList(updatedPermissionName);
+		return requestPermissions(activity, permissions, requestCode);
 	}
 
 	/**

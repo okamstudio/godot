@@ -124,7 +124,7 @@ public:
 
 	Error compress(BetsyFormat p_format, Image *r_img) {
 		Error err;
-		command_queue.push_and_ret(this, &BetsyCompressor::_compress, p_format, r_img, &err);
+		command_queue.push_and_ret(this, &BetsyCompressor::_compress, &err, p_format, r_img);
 		return err;
 	}
 };

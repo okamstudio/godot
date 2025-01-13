@@ -147,7 +147,7 @@ struct [[nodiscard]] Color {
 		// of the mantissa, rounding the truncated bits.
 		union {
 			float f;
-			int32_t i;
+			uint32_t i;
 		} R, G, B, E;
 
 		E.f = MaxChannel;
@@ -168,7 +168,7 @@ struct [[nodiscard]] Color {
 		// Combine the fields. RGB floats have unwanted data in the upper 9
 		// bits. Only red needs to mask them off because green and blue shift
 		// it out to the left.
-		return E.i | (B.i << 18) | (G.i << 9) | (R.i & 511);
+		return E.i | (B.i << 18U) | (G.i << 9U) | (R.i & 511U);
 	}
 
 	_FORCE_INLINE_ Color blend(const Color &p_over) const {
@@ -187,16 +187,16 @@ struct [[nodiscard]] Color {
 
 	_FORCE_INLINE_ Color srgb_to_linear() const {
 		return Color(
-				r < 0.04045f ? r * (1.0f / 12.92f) : Math::pow((r + 0.055f) * (float)(1.0 / (1.0 + 0.055)), 2.4f),
-				g < 0.04045f ? g * (1.0f / 12.92f) : Math::pow((g + 0.055f) * (float)(1.0 / (1.0 + 0.055)), 2.4f),
-				b < 0.04045f ? b * (1.0f / 12.92f) : Math::pow((b + 0.055f) * (float)(1.0 / (1.0 + 0.055)), 2.4f),
+				r < 0.04045f ? r * (1.0f / 12.92f) : Math::pow(float((r + 0.055) * (1.0 / (1.0 + 0.055))), 2.4f),
+				g < 0.04045f ? g * (1.0f / 12.92f) : Math::pow(float((g + 0.055) * (1.0 / (1.0 + 0.055))), 2.4f),
+				b < 0.04045f ? b * (1.0f / 12.92f) : Math::pow(float((b + 0.055) * (1.0 / (1.0 + 0.055))), 2.4f),
 				a);
 	}
 	_FORCE_INLINE_ Color linear_to_srgb() const {
 		return Color(
-				r < 0.0031308f ? 12.92f * r : (1.0f + 0.055f) * Math::pow(r, 1.0f / 2.4f) - 0.055f,
-				g < 0.0031308f ? 12.92f * g : (1.0f + 0.055f) * Math::pow(g, 1.0f / 2.4f) - 0.055f,
-				b < 0.0031308f ? 12.92f * b : (1.0f + 0.055f) * Math::pow(b, 1.0f / 2.4f) - 0.055f, a);
+				r < 0.0031308f ? 12.92f * r : (1.0 + 0.055) * Math::pow(r, 1.0f / 2.4f) - 0.055,
+				g < 0.0031308f ? 12.92f * g : (1.0 + 0.055) * Math::pow(g, 1.0f / 2.4f) - 0.055,
+				b < 0.0031308f ? 12.92f * b : (1.0 + 0.055) * Math::pow(b, 1.0f / 2.4f) - 0.055, a);
 	}
 
 	static Color hex(uint32_t p_hex);
@@ -213,6 +213,7 @@ struct [[nodiscard]] Color {
 	static Color from_hsv(float p_h, float p_s, float p_v, float p_alpha = 1.0f);
 	static Color from_ok_hsl(float p_h, float p_s, float p_l, float p_alpha = 1.0f);
 	static Color from_rgbe9995(uint32_t p_rgbe);
+	static Color from_rgba8(int64_t p_r8, int64_t p_g8, int64_t p_b8, int64_t p_a8 = 255);
 
 	_FORCE_INLINE_ bool operator<(const Color &p_color) const; // Used in set keys.
 	operator String() const;

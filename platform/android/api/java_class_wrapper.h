@@ -58,6 +58,8 @@ class JavaClass : public RefCounted {
 		ARG_TYPE_FLOAT,
 		ARG_TYPE_DOUBLE,
 		ARG_TYPE_STRING, //special case
+		ARG_TYPE_CHARSEQUENCE,
+		ARG_TYPE_CALLABLE,
 		ARG_TYPE_CLASS,
 		ARG_ARRAY_BIT = 1 << 16,
 		ARG_NUMBER_CLASS_BIT = 1 << 17,
@@ -123,7 +125,11 @@ class JavaClass : public RefCounted {
 				likelihood = 0.5;
 				break;
 			case ARG_TYPE_STRING:
+			case ARG_TYPE_CHARSEQUENCE:
 				r_type = Variant::STRING;
+				break;
+			case ARG_TYPE_CALLABLE:
+				r_type = Variant::CALLABLE;
 				break;
 			case ARG_TYPE_CLASS:
 				r_type = Variant::OBJECT;
@@ -163,9 +169,11 @@ class JavaClass : public RefCounted {
 				likelihood = 0.5;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_STRING:
+			case ARG_ARRAY_BIT | ARG_TYPE_CHARSEQUENCE:
 				r_type = Variant::PACKED_STRING_ARRAY;
 				break;
 			case ARG_ARRAY_BIT | ARG_TYPE_CLASS:
+			case ARG_ARRAY_BIT | ARG_TYPE_CALLABLE:
 				r_type = Variant::ARRAY;
 				break;
 		}
@@ -185,6 +193,7 @@ class JavaClass : public RefCounted {
 
 protected:
 	static void _bind_methods();
+	bool _get(const StringName &p_name, Variant &r_ret) const;
 
 public:
 	virtual Variant callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) override;

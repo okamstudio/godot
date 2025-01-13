@@ -1,29 +1,7 @@
 #!/usr/bin/env python
-from misc.utility.scons_hints import *
-
-import atexit
-import sys
-import time
+# ruff: noqa: F821
 
 import methods
-
-# Enable ANSI escape code support on Windows 10 and later (for colored console output).
-# <https://github.com/python/cpython/issues/73245>
-if sys.stdout.isatty() and sys.platform == "win32":
-    try:
-        from ctypes import WinError, byref, windll  # type: ignore
-        from ctypes.wintypes import DWORD  # type: ignore
-
-        stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-        mode = DWORD(0)
-        if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-            raise WinError()
-        mode = DWORD(mode.value | 4)
-        if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-            raise WinError()
-    except Exception as e:
-        methods._colorize = False
-        methods.print_error(f"Failed to enable ANSI escape code support, disabling color output.\n{e}")
 
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
@@ -32,8 +10,6 @@ if sys.stdout.isatty() and sys.platform == "win32":
 # - CPPFLAGS are for pre-processor flags
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
-
-time_at_start = time.time()
 
 env = SConscript("./godot-cpp/SConstruct")
 env.__class__.disable_warnings = methods.disable_warnings
@@ -48,9 +24,6 @@ opts.Add(BoolVariable("static_icu_data", "Use built-in ICU data", True))
 opts.Add(BoolVariable("verbose", "Enable verbose output for the compilation", False))
 
 opts.Update(env)
-
-if not env["verbose"]:
-    methods.no_verbose(env)
 
 if env["platform"] == "windows" and not env["use_mingw"]:
     env.AppendUnique(CCFLAGS=["/utf-8"])  # Force to use Unicode encoding.
@@ -150,6 +123,7 @@ if env["msdfgen_enabled"] and env["freetype_enabled"]:
     thirdparty_msdfgen_dir = "../../../thirdparty/msdfgen/"
     thirdparty_msdfgen_sources = [
         "core/Contour.cpp",
+        "core/DistanceMapping.cpp",
         "core/EdgeHolder.cpp",
         "core/MSDFErrorCorrection.cpp",
         "core/Projection.cpp",
@@ -160,10 +134,15 @@ if env["msdfgen_enabled"] and env["freetype_enabled"]:
         "core/edge-segments.cpp",
         "core/edge-selectors.cpp",
         "core/equation-solver.cpp",
+        # "core/export-svg.cpp",
         "core/msdf-error-correction.cpp",
         "core/msdfgen.cpp",
         "core/rasterization.cpp",
         "core/render-sdf.cpp",
+        # "core/save-bmp.cpp",
+        # "core/save-fl32.cpp",
+        # "core/save-rgba.cpp",
+        # "core/save-tiff.cpp",
         "core/sdf-error-estimation.cpp",
         "core/shape-description.cpp",
     ]
@@ -325,7 +304,8 @@ thirdparty_harfbuzz_sources = [
     # "src/hb-cairo-utils.cc",
     # "src/hb-cairo.cc",
     "src/hb-common.cc",
-    # "src/hb-coretext.cc",
+    # "src/hb-coretext-font.cc",
+    # "src/hb-coretext-shape.cc",
     # "src/hb-directwrite.cc",
     "src/hb-draw.cc",
     "src/hb-face-builder.cc",
@@ -717,12 +697,10 @@ thirdparty_icu_sources = [
 ]
 thirdparty_icu_sources = [thirdparty_icu_dir + file for file in thirdparty_icu_sources]
 
-icu_data_name = "icudt76l.dat"
-
 if env["static_icu_data"]:
-    env_icu.Depends("../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/" + icu_data_name)
+    env_icu.Depends("../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/icudt_godot.dat")
     env_icu.Command(
-        "../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/" + icu_data_name, methods.make_icu_data
+        "../../../thirdparty/icu4c/icudata.gen.h", "../../../thirdparty/icu4c/icudt_godot.dat", methods.make_icu_data
     )
     env.Append(CXXFLAGS=["-DICU_STATIC_DATA"])
     env.Append(CPPPATH=["../../../thirdparty/icu4c/"])
@@ -745,7 +723,6 @@ env_icu.Append(
         "-DU_ENABLE_DYLOAD=0",
         "-DU_HAVE_LIB_SUFFIX=1",
         "-DU_LIB_SUFFIX_C_NAME=_godot",
-        "-DICU_DATA_NAME=" + icu_data_name,
     ]
 )
 env.Append(
@@ -753,7 +730,6 @@ env.Append(
         "-DU_STATIC_IMPLEMENTATION",
         "-DU_HAVE_LIB_SUFFIX=1",
         "-DU_LIB_SUFFIX_C_NAME=_godot",
-        "-DICU_DATA_NAME=" + icu_data_name,
     ]
 )
 env.Append(CPPPATH=["../../../thirdparty/icu4c/common/", "../../../thirdparty/icu4c/i18n/"])
@@ -787,18 +763,4 @@ else:
 
 Default(library)
 
-
-def print_elapsed_time():
-    elapsed_time_sec = round(time.time() - time_at_start, 2)
-    time_centiseconds = round((elapsed_time_sec % 1) * 100)
-    print(
-        "{}[Time elapsed: {}.{:02}]{}".format(
-            methods.ANSI.GRAY,
-            time.strftime("%H:%M:%S", time.gmtime(elapsed_time_sec)),
-            time_centiseconds,
-            methods.ANSI.RESET,
-        )
-    )
-
-
-atexit.register(print_elapsed_time)
+methods.prepare_timer()

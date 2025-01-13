@@ -30,9 +30,9 @@
 
 #include "editor_network_profiler.h"
 
-#include "core/os/os.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
+#include "editor/gui/editor_run_bar.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/check_box.h"
 
@@ -227,6 +227,7 @@ void EditorNetworkProfiler::_clear_pressed() {
 
 void EditorNetworkProfiler::_autostart_toggled(bool p_toggled_on) {
 	EditorSettings::get_singleton()->set_project_metadata("debug_options", "autostart_network_profiler", p_toggled_on);
+	EditorRunBar::get_singleton()->update_profiler_autostart_indicator();
 }
 
 void EditorNetworkProfiler::_replication_button_clicked(TreeItem *p_item, int p_column, int p_idx, MouseButton p_button) {

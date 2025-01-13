@@ -40,7 +40,7 @@ class DirAccess : public RefCounted {
 	GDCLASS(DirAccess, RefCounted);
 
 public:
-	enum AccessType {
+	enum AccessType : int32_t {
 		ACCESS_RESOURCES,
 		ACCESS_USERDATA,
 		ACCESS_FILESYSTEM,

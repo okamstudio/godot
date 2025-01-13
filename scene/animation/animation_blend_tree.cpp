@@ -44,6 +44,18 @@ Vector<String> (*AnimationNodeAnimation::get_editable_animation_list)() = nullpt
 
 void AnimationNodeAnimation::get_parameter_list(List<PropertyInfo> *r_list) const {
 	AnimationNode::get_parameter_list(r_list);
+	r_list->push_back(PropertyInfo(Variant::BOOL, backward, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE));
+}
+
+Variant AnimationNodeAnimation::get_parameter_default_value(const StringName &p_parameter) const {
+	Variant ret = AnimationNode::get_parameter_default_value(p_parameter);
+	if (ret != Variant()) {
+		return ret;
+	}
+	if (p_parameter == backward) {
+		return false;
+	}
+	return 0;
 }
 
 AnimationNode::NodeTimeInfo AnimationNodeAnimation::get_node_time_info() const {
@@ -97,7 +109,7 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::process(const AnimationMixer
 			pi.delta = get_node_time_info().position - p_playback_info.time;
 		}
 	} else {
-		pi.time = get_node_time_info().position + (backward ? -p_playback_info.delta : p_playback_info.delta);
+		pi.time = get_node_time_info().position + (get_parameter(backward) ? -p_playback_info.delta : p_playback_info.delta);
 	}
 
 	NodeTimeInfo nti = _process(pi, p_test_only);
@@ -130,6 +142,7 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::_process(const AnimationMixe
 	double cur_len = cur_nti.length;
 	double cur_time = p_playback_info.time;
 	double cur_delta = p_playback_info.delta;
+	bool cur_backward = get_parameter(backward);
 
 	Animation::LoopMode cur_loop_mode = cur_nti.loop_mode;
 	double prev_time = cur_nti.position;
@@ -153,13 +166,13 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::_process(const AnimationMixe
 			if (!Math::is_zero_approx(cur_len)) {
 				cur_time = Math::fposmod(cur_time, cur_len);
 			}
-			backward = false;
+			cur_backward = false;
 		} else {
 			if (!Math::is_zero_approx(cur_len)) {
 				if (Animation::is_greater_or_equal_approx(prev_time, 0) && Animation::is_less_approx(cur_time, 0)) {
-					backward = !backward;
+					cur_backward = !cur_backward;
 				} else if (Animation::is_less_or_equal_approx(prev_time, cur_len) && Animation::is_greater_approx(cur_time, cur_len)) {
-					backward = !backward;
+					cur_backward = !cur_backward;
 				}
 				cur_time = Math::pingpong(cur_time, cur_len);
 			}
@@ -172,7 +185,7 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::_process(const AnimationMixe
 			cur_delta += cur_time - cur_len;
 			cur_time = cur_len;
 		}
-		backward = false;
+		cur_backward = false;
 		// If ended, don't progress AnimationNode. So set delta to 0.
 		if (!Math::is_zero_approx(cur_delta)) {
 			if (play_mode == PLAY_MODE_FORWARD) {
@@ -267,6 +280,8 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::_process(const AnimationMixe
 		blend_animation(animation, pi);
 	}
 
+	set_parameter(backward, cur_backward);
+
 	return nti;
 }
 
@@ -283,11 +298,11 @@ AnimationNodeAnimation::PlayMode AnimationNodeAnimation::get_play_mode() const {
 }
 
 void AnimationNodeAnimation::set_backward(bool p_backward) {
-	backward = p_backward;
+	set_parameter(backward, p_backward);
 }
 
 bool AnimationNodeAnimation::is_backward() const {
-	return backward;
+	return get_parameter(backward);
 }
 
 void AnimationNodeAnimation::set_advance_on_start(bool p_advance_on_start) {
@@ -315,8 +330,8 @@ double AnimationNodeAnimation::get_timeline_length() const {
 	return timeline_length;
 }
 
-void AnimationNodeAnimation::set_stretch_time_scale(bool p_strech_time_scale) {
-	stretch_time_scale = p_strech_time_scale;
+void AnimationNodeAnimation::set_stretch_time_scale(bool p_stretch_time_scale) {
+	stretch_time_scale = p_stretch_time_scale;
 	notify_property_list_changed();
 }
 
@@ -1184,7 +1199,7 @@ bool AnimationNodeTransition::set_input_name(int p_input, const String &p_name) 
 
 void AnimationNodeTransition::set_input_as_auto_advance(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].auto_advance = p_enable;
+	input_data[p_input].auto_advance = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_set_as_auto_advance(int p_input) const {
@@ -1194,7 +1209,7 @@ bool AnimationNodeTransition::is_input_set_as_auto_advance(int p_input) const {
 
 void AnimationNodeTransition::set_input_break_loop_at_end(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].break_loop_at_end = p_enable;
+	input_data[p_input].break_loop_at_end = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_loop_broken_at_end(int p_input) const {
@@ -1204,7 +1219,7 @@ bool AnimationNodeTransition::is_input_loop_broken_at_end(int p_input) const {
 
 void AnimationNodeTransition::set_input_reset(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].reset = p_enable;
+	input_data[p_input].reset = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_reset(int p_input) const {

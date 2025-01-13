@@ -119,7 +119,8 @@ float JoltProjectSettings::get_soft_body_point_radius() {
 }
 
 float JoltProjectSettings::get_bounce_velocity_threshold() {
-	return GLOBAL_GET("physics/jolt_physics_3d/simulation/bounce_velocity_threshold");
+	static const float value = GLOBAL_GET("physics/jolt_physics_3d/simulation/bounce_velocity_threshold");
+	return value;
 }
 
 bool JoltProjectSettings::is_sleep_allowed() {

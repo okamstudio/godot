@@ -38,11 +38,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/file_access.h"
-#include "core/io/file_access_pack.h"
-#include "core/os/main_loop.h"
 #include "core/os/os.h"
 #include "core/string/string_builder.h"
-#include "scene/resources/packed_scene.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_settings.h"
@@ -182,32 +179,57 @@ static void test_parser(const String &p_code, const String &p_script_path, const
 #endif
 }
 
-static void recursively_disassemble_functions(const Ref<GDScript> script, const Vector<String> &p_lines) {
-	for (const KeyValue<StringName, GDScriptFunction *> &E : script->get_member_functions()) {
-		const GDScriptFunction *func = E.value;
+static void disassemble_function(const GDScriptFunction *p_func, const Vector<String> &p_lines) {
+	ERR_FAIL_NULL(p_func);
 
-		const MethodInfo &mi = func->get_method_info();
-		String signature = "Disassembling " + mi.name + "(";
-		for (List<PropertyInfo>::ConstIterator arg_itr = mi.arguments.begin(); arg_itr != mi.arguments.end(); ++arg_itr) {
-			if (arg_itr != mi.arguments.begin()) {
-				signature += ", ";
-			}
-			signature += arg_itr->name;
+	String arg_string;
+	bool is_first_arg = true;
+	for (const PropertyInfo &arg_info : p_func->get_method_info().arguments) {
+		if (!is_first_arg) {
+			arg_string += ", ";
 		}
-		print_line(signature + ")");
-#ifdef TOOLS_ENABLED
-		func->disassemble(p_lines);
-#endif
-		print_line("");
-		print_line("");
+		arg_string += arg_info.name;
+		is_first_arg = false;
 	}
 
-	for (const KeyValue<StringName, Ref<GDScript>> &F : script->get_subclasses()) {
-		const Ref<GDScript> inner_script = F.value;
-		print_line("");
-		print_line(vformat("Inner Class: %s", inner_script->get_local_name()));
-		print_line("");
-		recursively_disassemble_functions(inner_script, p_lines);
+	print_line(vformat("Function %s(%s)", p_func->get_name(), arg_string));
+#ifdef TOOLS_ENABLED
+	p_func->disassemble(p_lines);
+#endif
+	print_line("");
+	print_line("");
+}
+
+static void recursively_disassemble_functions(const Ref<GDScript> p_script, const Vector<String> &p_lines) {
+	print_line(vformat("Class %s", p_script->get_fully_qualified_name()));
+	print_line("");
+	print_line("");
+
+	const GDScriptFunction *implicit_initializer = p_script->get_implicit_initializer();
+	if (implicit_initializer != nullptr) {
+		disassemble_function(implicit_initializer, p_lines);
+	}
+
+	const GDScriptFunction *implicit_ready = p_script->get_implicit_ready();
+	if (implicit_ready != nullptr) {
+		disassemble_function(implicit_ready, p_lines);
+	}
+
+	const GDScriptFunction *static_initializer = p_script->get_static_initializer();
+	if (static_initializer != nullptr) {
+		disassemble_function(static_initializer, p_lines);
+	}
+
+	for (const KeyValue<GDScriptFunction *, GDScript::LambdaInfo> &E : p_script->get_lambda_info()) {
+		disassemble_function(E.key, p_lines);
+	}
+
+	for (const KeyValue<StringName, GDScriptFunction *> &E : p_script->get_member_functions()) {
+		disassemble_function(E.value, p_lines);
+	}
+
+	for (const KeyValue<StringName, Ref<GDScript>> &E : p_script->get_subclasses()) {
+		recursively_disassemble_functions(E.value, p_lines);
 	}
 }
 

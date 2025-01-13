@@ -34,6 +34,8 @@
 #include "godot_physics_server_3d.h"
 
 #include "core/config/project_settings.h"
+#include "godot_area_pair_3d.h"
+#include "godot_body_pair_3d.h"
 
 #define TEST_MOTION_MARGIN_MIN_VALUE 0.0001
 #define TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR 0.05

@@ -33,8 +33,6 @@
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access_compressed.h"
-#include "core/io/image.h"
-#include "core/io/marshalls.h"
 #include "core/io/missing_resource.h"
 #include "core/object/script_language.h"
 #include "core/version.h"
@@ -699,7 +697,7 @@ Error ResourceLoaderBinary::load() {
 
 		external_resources.write[i].path = path; //remap happens here, not on load because on load it can actually be used for filesystem dock resource remap
 		external_resources.write[i].load_token = ResourceLoader::_load_start(path, external_resources[i].type, use_sub_threads ? ResourceLoader::LOAD_THREAD_DISTRIBUTE : ResourceLoader::LOAD_THREAD_FROM_CURRENT, cache_mode_for_external);
-		if (!external_resources[i].load_token.is_valid()) {
+		if (external_resources[i].load_token.is_null()) {
 			if (!ResourceLoader::get_abort_on_missing_resources()) {
 				ResourceLoader::notify_dependency_error(local_path, path, external_resources[i].type);
 			} else {
@@ -911,7 +909,7 @@ void ResourceLoaderBinary::set_translation_remapped(bool p_remapped) {
 
 static void save_ustring(Ref<FileAccess> f, const String &p_string) {
 	CharString utf8 = p_string.utf8();
-	f->store_32(utf8.length() + 1);
+	f->store_32(uint32_t(utf8.length() + 1));
 	f->store_buffer((const uint8_t *)utf8.get_data(), utf8.length() + 1);
 }
 
@@ -1051,7 +1049,7 @@ void ResourceLoaderBinary::open(Ref<FileAccess> p_f, bool p_no_resources, bool p
 	f->real_is_double = (flags & ResourceFormatSaverBinaryInstance::FORMAT_FLAG_REAL_T_IS_DOUBLE) != 0;
 
 	if (using_uids) {
-		uid = f->get_64();
+		uid = ResourceUID::ID(f->get_64());
 	} else {
 		f->get_64(); // skip over uid field
 		uid = ResourceUID::INVALID_ID;
@@ -1084,7 +1082,7 @@ void ResourceLoaderBinary::open(Ref<FileAccess> p_f, bool p_no_resources, bool p
 		er.type = get_unicode_string();
 		er.path = get_unicode_string();
 		if (using_uids) {
-			er.uid = f->get_64();
+			er.uid = ResourceUID::ID(f->get_64());
 			if (!p_keep_uuid_paths && er.uid != ResourceUID::INVALID_ID) {
 				if (ResourceUID::get_singleton()->has_id(er.uid)) {
 					// If a UID is found and the path is valid, it will be used, otherwise, it falls back to the path.
@@ -1389,7 +1387,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 
 		ERR_FAIL_COND_V(err != ERR_FILE_EOF, ERR_FILE_CORRUPT);
 		Ref<Resource> res = loader.get_resource();
-		ERR_FAIL_COND_V(!res.is_valid(), ERR_FILE_CORRUPT);
+		ERR_FAIL_COND_V(res.is_null(), ERR_FILE_CORRUPT);
 
 		return ResourceFormatSaverBinary::singleton->save(res, p_path);
 	}
@@ -1477,7 +1475,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 
 		if (using_uids) {
 			ResourceUID::ID uid = ResourceSaver::get_resource_id_for_path(full_path);
-			fw->store_64(uid);
+			fw->store_64(uint64_t(uid));
 		}
 	}
 
@@ -1609,11 +1607,11 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			int64_t val = p_property;
 			if (val > 0x7FFFFFFF || val < -(int64_t)0x80000000) {
 				f->store_32(VARIANT_INT64);
-				f->store_64(val);
+				f->store_64(uint64_t(val));
 
 			} else {
 				f->store_32(VARIANT_INT);
-				f->store_32(int32_t(p_property));
+				f->store_32(uint32_t(p_property));
 			}
 
 		} break;
@@ -1645,8 +1643,8 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 		case Variant::VECTOR2I: {
 			f->store_32(VARIANT_VECTOR2I);
 			Vector2i val = p_property;
-			f->store_32(val.x);
-			f->store_32(val.y);
+			f->store_32(uint32_t(val.x));
+			f->store_32(uint32_t(val.y));
 
 		} break;
 		case Variant::RECT2: {
@@ -1661,10 +1659,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 		case Variant::RECT2I: {
 			f->store_32(VARIANT_RECT2I);
 			Rect2i val = p_property;
-			f->store_32(val.position.x);
-			f->store_32(val.position.y);
-			f->store_32(val.size.x);
-			f->store_32(val.size.y);
+			f->store_32(uint32_t(val.position.x));
+			f->store_32(uint32_t(val.position.y));
+			f->store_32(uint32_t(val.size.x));
+			f->store_32(uint32_t(val.size.y));
 
 		} break;
 		case Variant::VECTOR3: {
@@ -1678,9 +1676,9 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 		case Variant::VECTOR3I: {
 			f->store_32(VARIANT_VECTOR3I);
 			Vector3i val = p_property;
-			f->store_32(val.x);
-			f->store_32(val.y);
-			f->store_32(val.z);
+			f->store_32(uint32_t(val.x));
+			f->store_32(uint32_t(val.y));
+			f->store_32(uint32_t(val.z));
 
 		} break;
 		case Variant::VECTOR4: {
@@ -1695,10 +1693,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 		case Variant::VECTOR4I: {
 			f->store_32(VARIANT_VECTOR4I);
 			Vector4i val = p_property;
-			f->store_32(val.x);
-			f->store_32(val.y);
-			f->store_32(val.z);
-			f->store_32(val.w);
+			f->store_32(uint32_t(val.x));
+			f->store_32(uint32_t(val.y));
+			f->store_32(uint32_t(val.z));
+			f->store_32(uint32_t(val.w));
 
 		} break;
 		case Variant::PLANE: {
@@ -1821,14 +1819,14 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_16(snc);
 			for (int i = 0; i < np.get_name_count(); i++) {
 				if (string_map.has(np.get_name(i))) {
-					f->store_32(string_map[np.get_name(i)]);
+					f->store_32(uint32_t(string_map[np.get_name(i)]));
 				} else {
 					save_unicode_string(f, np.get_name(i), true);
 				}
 			}
 			for (int i = 0; i < np.get_subname_count(); i++) {
 				if (string_map.has(np.get_subname(i))) {
-					f->store_32(string_map[np.get_subname(i)]);
+					f->store_32(uint32_t(string_map[np.get_subname(i)]));
 				} else {
 					save_unicode_string(f, np.get_subname(i), true);
 				}
@@ -1839,7 +1837,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_RID);
 			WARN_PRINT("Can't save RIDs.");
 			RID val = p_property;
-			f->store_32(val.get_id());
+			f->store_32(uint32_t(val.get_id()));
 		} break;
 		case Variant::OBJECT: {
 			f->store_32(VARIANT_OBJECT);
@@ -1851,7 +1849,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 
 			if (!res->is_built_in()) {
 				f->store_32(OBJECT_EXTERNAL_RESOURCE_INDEX);
-				f->store_32(external_resources[res]);
+				f->store_32(uint32_t(external_resources[res]));
 			} else {
 				if (!resource_map.has(res)) {
 					f->store_32(OBJECT_EMPTY);
@@ -1859,7 +1857,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 				}
 
 				f->store_32(OBJECT_INTERNAL_RESOURCE);
-				f->store_32(resource_map[res]);
+				f->store_32(uint32_t(resource_map[res]));
 				//internal resource
 			}
 
@@ -1900,7 +1898,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_BYTE_ARRAY);
 			Vector<uint8_t> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const uint8_t *r = arr.ptr();
 			f->store_buffer(r, len);
 			_pad_buffer(f, len);
@@ -1910,10 +1908,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_INT32_ARRAY);
 			Vector<int32_t> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const int32_t *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
-				f->store_32(r[i]);
+				f->store_32(uint32_t(r[i]));
 			}
 
 		} break;
@@ -1921,10 +1919,10 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_INT64_ARRAY);
 			Vector<int64_t> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const int64_t *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
-				f->store_64(r[i]);
+				f->store_64(uint64_t(r[i]));
 			}
 
 		} break;
@@ -1932,7 +1930,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_FLOAT32_ARRAY);
 			Vector<float> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const float *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_float(r[i]);
@@ -1943,7 +1941,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_FLOAT64_ARRAY);
 			Vector<double> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const double *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_double(r[i]);
@@ -1954,7 +1952,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_STRING_ARRAY);
 			Vector<String> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const String *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				save_unicode_string(f, r[i]);
@@ -1965,7 +1963,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_VECTOR2_ARRAY);
 			Vector<Vector2> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const Vector2 *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_real(r[i].x);
@@ -1977,7 +1975,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_VECTOR3_ARRAY);
 			Vector<Vector3> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const Vector3 *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_real(r[i].x);
@@ -1990,7 +1988,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_COLOR_ARRAY);
 			Vector<Color> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const Color *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_float(r[i].r);
@@ -2004,7 +2002,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			f->store_32(VARIANT_PACKED_VECTOR4_ARRAY);
 			Vector<Vector4> arr = p_property;
 			int len = arr.size();
-			f->store_32(len);
+			f->store_32(uint32_t(len));
 			const Vector4 *r = arr.ptr();
 			for (int i = 0; i < len; i++) {
 				f->store_real(r[i].x);
@@ -2115,9 +2113,9 @@ void ResourceFormatSaverBinaryInstance::_find_resources(const Variant &p_variant
 void ResourceFormatSaverBinaryInstance::save_unicode_string(Ref<FileAccess> p_f, const String &p_string, bool p_bit_on_len) {
 	CharString utf8 = p_string.utf8();
 	if (p_bit_on_len) {
-		p_f->store_32((utf8.length() + 1) | 0x80000000);
+		p_f->store_32(uint32_t((utf8.length() + 1) | 0x80000000));
 	} else {
-		p_f->store_32(utf8.length() + 1);
+		p_f->store_32(uint32_t(utf8.length() + 1));
 	}
 	p_f->store_buffer((const uint8_t *)utf8.get_data(), utf8.length() + 1);
 }
@@ -2218,7 +2216,7 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const Ref<Re
 		f->store_32(format_flags);
 	}
 	ResourceUID::ID uid = ResourceSaver::get_resource_id_for_path(p_path, true);
-	f->store_64(uid);
+	f->store_64(uint64_t(uid));
 	if (!script_class.is_empty()) {
 		save_unicode_string(f, script_class);
 	}
@@ -2284,7 +2282,7 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const Ref<Re
 		}
 	}
 
-	f->store_32(strings.size()); //string table size
+	f->store_32(uint32_t(strings.size())); //string table size
 	for (int i = 0; i < strings.size(); i++) {
 		save_unicode_string(f, strings[i]);
 	}
@@ -2304,10 +2302,10 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const Ref<Re
 		res_path = relative_paths ? local_path.path_to_file(res_path) : res_path;
 		save_unicode_string(f, res_path);
 		ResourceUID::ID ruid = ResourceSaver::get_resource_id_for_path(save_order[i]->get_path(), false);
-		f->store_64(ruid);
+		f->store_64(uint64_t(ruid));
 	}
 	// save internal resource table
-	f->store_32(saved_resources.size()); //amount of internal resources
+	f->store_32(uint32_t(saved_resources.size())); //amount of internal resources
 	Vector<uint64_t> ofs_pos;
 	HashSet<String> used_unique_ids;
 
@@ -2362,10 +2360,10 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const Ref<Re
 	for (const ResourceData &rd : resources) {
 		ofs_table.push_back(f->get_position());
 		save_unicode_string(f, rd.type);
-		f->store_32(rd.properties.size());
+		f->store_32(uint32_t(rd.properties.size()));
 
 		for (const Property &p : rd.properties) {
-			f->store_32(p.name_idx);
+			f->store_32(uint32_t(p.name_idx));
 			write_variant(f, p.value, resource_map, external_resources, string_map, p.pi);
 		}
 	}
@@ -2473,7 +2471,7 @@ Error ResourceFormatSaverBinaryInstance::set_uid(const String &p_path, ResourceU
 	f->get_64(); // Skip previous UID
 
 	fw->store_32(flags);
-	fw->store_64(p_uid);
+	fw->store_64(uint64_t(p_uid));
 
 	if (flags & ResourceFormatSaverBinaryInstance::FORMAT_FLAG_HAS_SCRIPT_CLASS) {
 		save_ustring(fw, get_ustring(f));

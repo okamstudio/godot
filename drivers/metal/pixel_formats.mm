@@ -144,8 +144,8 @@ MTLFormatType PixelFormats::getFormatType(DataFormat p_format) {
 	return getDataFormatDesc(p_format).formatType;
 }
 
-MTLFormatType PixelFormats::getFormatType(MTLPixelFormat p_formt) {
-	return getDataFormatDesc(p_formt).formatType;
+MTLFormatType PixelFormats::getFormatType(MTLPixelFormat p_format) {
+	return getDataFormatDesc(p_format).formatType;
 }
 
 MTLPixelFormat PixelFormats::getMTLPixelFormat(DataFormat p_format) {

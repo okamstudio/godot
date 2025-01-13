@@ -33,8 +33,6 @@
 
 #include "core/templates/rid.h"
 #include "scene/3d/visual_instance_3d.h"
-#include "scene/main/node.h"
-#include "scene/main/viewport.h"
 #include "scene/resources/material.h"
 
 class FogVolume : public VisualInstance3D {

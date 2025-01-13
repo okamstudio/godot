@@ -55,7 +55,6 @@
 		<member name="binary_format/architecture" type="String" setter="" getter="">
 			Application executable architecture.
 			Supported architectures: [code]x86_32[/code], [code]x86_64[/code], and [code]arm64[/code].
-			Official export templates include [code]x86_32[/code] and [code]x86_64[/code] binaries only.
 		</member>
 		<member name="binary_format/embed_pck" type="bool" setter="" getter="">
 			If [code]true[/code], project resources are embedded into the executable.

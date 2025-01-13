@@ -5,12 +5,10 @@ EnsureSConsVersion(4, 0)
 EnsurePythonVersion(3, 8)
 
 # System
-import atexit
 import glob
 import os
 import pickle
 import sys
-import time
 from collections import OrderedDict
 from importlib.util import module_from_spec, spec_from_file_location
 from types import ModuleType
@@ -52,36 +50,19 @@ _helper_module("platform_methods", "platform_methods.py")
 _helper_module("version", "version.py")
 _helper_module("core.core_builders", "core/core_builders.py")
 _helper_module("main.main_builders", "main/main_builders.py")
+_helper_module("misc.utility.color", "misc/utility/color.py")
 
 # Local
 import gles3_builders
 import glsl_builders
 import methods
 import scu_builders
-from methods import print_error, print_warning
+from misc.utility.color import STDERR_COLOR, print_error, print_info, print_warning
 from platform_methods import architecture_aliases, architectures, compatibility_platform_aliases
 
 if ARGUMENTS.get("target", "editor") == "editor":
     _helper_module("editor.editor_builders", "editor/editor_builders.py")
     _helper_module("editor.template_builders", "editor/template_builders.py")
-
-# Enable ANSI escape code support on Windows 10 and later (for colored console output).
-# <https://github.com/python/cpython/issues/73245>
-if sys.stdout.isatty() and sys.platform == "win32":
-    try:
-        from ctypes import WinError, byref, windll  # type: ignore
-        from ctypes.wintypes import DWORD  # type: ignore
-
-        stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-        mode = DWORD(0)
-        if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-            raise WinError()
-        mode = DWORD(mode.value | 4)
-        if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-            raise WinError()
-    except Exception as e:
-        methods._colorize = False
-        print_error(f"Failed to enable ANSI escape code support, disabling color output.\n{e}")
 
 # Scan possible build platforms
 
@@ -91,8 +72,6 @@ platform_flags = {}  # flags for each platform
 platform_doc_class_path = {}
 platform_exporters = []
 platform_apis = []
-
-time_at_start = time.time()
 
 for x in sorted(glob.glob("platform/*")):
     if not os.path.isdir(x) or not os.path.exists(x + "/detect.py"):
@@ -216,7 +195,7 @@ opts.Add(BoolVariable("threads", "Enable threading support", True))
 opts.Add(BoolVariable("deprecated", "Enable compatibility code for deprecated and removed features", True))
 opts.Add(EnumVariable("precision", "Set the floating-point precision level", "single", ("single", "double")))
 opts.Add(BoolVariable("minizip", "Enable ZIP archive support using minizip", True))
-opts.Add(BoolVariable("brotli", "Enable Brotli for decompresson and WOFF2 fonts support", True))
+opts.Add(BoolVariable("brotli", "Enable Brotli for decompression and WOFF2 fonts support", True))
 opts.Add(BoolVariable("xaudio2", "Enable the XAudio2 audio driver on supported platforms", False))
 opts.Add(BoolVariable("vulkan", "Enable the vulkan rendering driver", True))
 opts.Add(BoolVariable("opengl3", "Enable the OpenGL/GLES3 rendering driver", True))
@@ -635,7 +614,7 @@ detect.configure(env)
 
 print(f'Building for platform "{env["platform"]}", architecture "{env["arch"]}", target "{env["target"]}".')
 if env.dev_build:
-    print("NOTE: Developer build, with debug optimization level and debug symbols (unless overridden).")
+    print_info("Developer build, with debug optimization level and debug symbols (unless overridden).")
 
 # Enforce our minimal compiler version requirements
 cc_version = methods.get_compiler_version(env)
@@ -719,6 +698,14 @@ if env["arch"] == "x86_32":
         env.Append(CCFLAGS=["/arch:SSE2"])
     else:
         env.Append(CCFLAGS=["-msse2"])
+
+# Explicitly specify colored output.
+if methods.using_gcc(env):
+    env.AppendUnique(CCFLAGS=["-fdiagnostics-color" if STDERR_COLOR else "-fno-diagnostics-color"])
+elif methods.using_clang(env) or methods.using_emcc(env):
+    env.AppendUnique(CCFLAGS=["-fcolor-diagnostics" if STDERR_COLOR else "-fno-color-diagnostics"])
+    if sys.platform == "win32":
+        env.AppendUnique(CCFLAGS=["-fansi-escape-codes"])
 
 # Set optimize and debug_symbols flags.
 # "custom" means do nothing and let users set their own optimization flags.
@@ -979,7 +966,7 @@ methods.sort_module_list(env)
 
 if env.editor_build:
     # Add editor-specific dependencies to the dependency graph.
-    env.module_add_dependencies("editor", ["freetype", "svg"])
+    env.module_add_dependencies("editor", ["freetype", "regex", "svg"])
 
     # And check if they are met.
     if not env.module_check_dependencies("editor"):
@@ -1104,30 +1091,5 @@ methods.show_progress(env)
 # TODO: replace this with `env.Dump(format="json")`
 # once we start requiring SCons 4.0 as min version.
 methods.dump(env)
-
-
-def print_elapsed_time():
-    elapsed_time_sec = round(time.time() - time_at_start, 2)
-    time_centiseconds = round((elapsed_time_sec % 1) * 100)
-    print(
-        "{}[Time elapsed: {}.{:02}]{}".format(
-            methods.ANSI.GRAY,
-            time.strftime("%H:%M:%S", time.gmtime(elapsed_time_sec)),
-            time_centiseconds,
-            methods.ANSI.RESET,
-        )
-    )
-
-
-atexit.register(print_elapsed_time)
-
-
-def purge_flaky_files():
-    paths_to_keep = [env["ninja_file"]]
-    for build_failure in GetBuildFailures():
-        path = build_failure.node.path
-        if os.path.isfile(path) and path not in paths_to_keep:
-            os.remove(path)
-
-
-atexit.register(purge_flaky_files)
+methods.prepare_purge(env)
+methods.prepare_timer()

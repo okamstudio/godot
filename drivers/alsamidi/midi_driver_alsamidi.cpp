@@ -33,7 +33,6 @@
 #include "midi_driver_alsamidi.h"
 
 #include "core/os/os.h"
-#include "core/string/print_string.h"
 
 #include <errno.h>
 

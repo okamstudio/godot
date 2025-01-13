@@ -1,4 +1,3 @@
-
 /* pngerror.c - stub functions for i/o and memory allocation
  *
  * Copyright (c) 2018-2024 Cosmin Truta
@@ -20,13 +19,14 @@
 
 #if defined(PNG_READ_SUPPORTED) || defined(PNG_WRITE_SUPPORTED)
 
-static PNG_FUNCTION(void, png_default_error,PNGARG((png_const_structrp png_ptr,
-    png_const_charp error_message)),PNG_NORETURN);
+static PNG_FUNCTION(void /* PRIVATE */,
+png_default_error,(png_const_structrp png_ptr, png_const_charp error_message),
+    PNG_NORETURN);
 
 #ifdef PNG_WARNINGS_SUPPORTED
 static void /* PRIVATE */
-png_default_warning PNGARG((png_const_structrp png_ptr,
-    png_const_charp warning_message));
+png_default_warning(png_const_structrp png_ptr,
+    png_const_charp warning_message);
 #endif /* WARNINGS */
 
 /* This function is called whenever there is a fatal error.  This function

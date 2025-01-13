@@ -100,7 +100,7 @@
 			var saved_state = rng.state # Store current state.
 			print(rng.randf()) # Advance internal state.
 			rng.state = saved_state # Restore the state.
-			print(rng.randf()) # Prints the same value as in previous.
+			print(rng.randf()) # Prints the same value as previously.
 			[/codeblock]
 			[b]Note:[/b] Do not set state to arbitrary values, since the random number generator requires the state to have certain qualities to behave properly. It should only be set to values that came from the state property itself. To initialize the random number generator with arbitrary input, use [member seed] instead.
 			[b]Note:[/b] The default value of this property is pseudo-random, and changes when calling [method randomize]. The [code]0[/code] value documented here is a placeholder, and not the actual default seed.

@@ -46,7 +46,7 @@ class SkeletonIK3DEditorPlugin : public EditorPlugin {
 	void _play();
 
 public:
-	virtual String get_name() const override { return "SkeletonIK3D"; }
+	virtual String get_plugin_name() const override { return "SkeletonIK3D"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;

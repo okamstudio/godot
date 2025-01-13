@@ -34,7 +34,6 @@
 #include "openxr_api.h"
 
 #include "core/object/ref_counted.h"
-#include "core/os/os.h"
 #include "core/os/thread_safe.h"
 #include "core/variant/native_ptr.h"
 
@@ -100,6 +99,10 @@ public:
 	void openxr_swapchain_acquire(uint64_t p_swapchain_info);
 	RID openxr_swapchain_get_image(uint64_t p_swapchain_info);
 	void openxr_swapchain_release(uint64_t p_swapchain_info);
+
+	uint64_t get_projection_layer();
+
+	void set_render_region(const Rect2i &p_render_region);
 
 	enum OpenXRAlphaBlendModeSupport {
 		OPENXR_ALPHA_BLEND_MODE_SUPPORT_NONE = 0,

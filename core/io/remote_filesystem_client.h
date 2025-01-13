@@ -31,7 +31,6 @@
 #ifndef REMOTE_FILESYSTEM_CLIENT_H
 #define REMOTE_FILESYSTEM_CLIENT_H
 
-#include "core/io/ip_address.h"
 #include "core/string/ustring.h"
 #include "core/templates/hash_set.h"
 #include "core/templates/local_vector.h"

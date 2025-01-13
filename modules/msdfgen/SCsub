@@ -16,6 +16,7 @@ if env["builtin_msdfgen"]:
     thirdparty_dir = "#thirdparty/msdfgen/"
     thirdparty_sources = [
         "core/Contour.cpp",
+        "core/DistanceMapping.cpp",
         "core/EdgeHolder.cpp",
         "core/MSDFErrorCorrection.cpp",
         "core/Projection.cpp",
@@ -26,10 +27,15 @@ if env["builtin_msdfgen"]:
         "core/edge-segments.cpp",
         "core/edge-selectors.cpp",
         "core/equation-solver.cpp",
+        # "core/export-svg.cpp",
         "core/msdf-error-correction.cpp",
         "core/msdfgen.cpp",
         "core/rasterization.cpp",
         "core/render-sdf.cpp",
+        # "core/save-bmp.cpp",
+        # "core/save-fl32.cpp",
+        # "core/save-rgba.cpp",
+        # "core/save-tiff.cpp",
         "core/sdf-error-estimation.cpp",
         "core/shape-description.cpp",
     ]

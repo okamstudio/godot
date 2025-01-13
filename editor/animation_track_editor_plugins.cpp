@@ -39,7 +39,6 @@
 #include "scene/2d/sprite_2d.h"
 #include "scene/3d/sprite_3d.h"
 #include "scene/animation/animation_player.h"
-#include "scene/resources/text_line.h"
 #include "servers/audio/audio_stream.h"
 
 /// BOOL ///
@@ -221,7 +220,7 @@ Rect2 AnimationTrackEditAudio::get_key_rect(int p_index, float p_pixels_sec) {
 
 	Ref<AudioStream> stream = object->call("get_stream");
 
-	if (!stream.is_valid()) {
+	if (stream.is_null()) {
 		return AnimationTrackEdit::get_key_rect(p_index, p_pixels_sec);
 	}
 
@@ -261,7 +260,7 @@ void AnimationTrackEditAudio::draw_key(int p_index, float p_pixels_sec, int p_x,
 
 	Ref<AudioStream> stream = object->call("get_stream");
 
-	if (!stream.is_valid()) {
+	if (stream.is_null()) {
 		AnimationTrackEdit::draw_key(p_index, p_pixels_sec, p_x, p_selected, p_clip_left, p_clip_right);
 		return;
 	}
@@ -380,7 +379,7 @@ Rect2 AnimationTrackEditSpriteFrame::get_key_rect(int p_index, float p_pixels_se
 
 	if (Object::cast_to<Sprite2D>(object) || Object::cast_to<Sprite3D>(object)) {
 		Ref<Texture2D> texture = object->call("get_texture");
-		if (!texture.is_valid()) {
+		if (texture.is_null()) {
 			return AnimationTrackEdit::get_key_rect(p_index, p_pixels_sec);
 		}
 
@@ -418,12 +417,12 @@ Rect2 AnimationTrackEditSpriteFrame::get_key_rect(int p_index, float p_pixels_se
 			animation_path = animation_path.replace(":frame", ":animation");
 			int animation_track = get_animation()->find_track(animation_path, get_animation()->track_get_type(get_track()));
 			float track_time = get_animation()->track_get_key_time(get_track(), p_index);
-			int animaiton_index = get_animation()->track_find_key(animation_track, track_time);
-			animation_name = get_animation()->track_get_key_value(animation_track, animaiton_index);
+			int animation_index = get_animation()->track_find_key(animation_track, track_time);
+			animation_name = get_animation()->track_get_key_value(animation_track, animation_index);
 		}
 
 		Ref<Texture2D> texture = sf->get_frame_texture(animation_name, frame);
-		if (!texture.is_valid()) {
+		if (texture.is_null()) {
 			return AnimationTrackEdit::get_key_rect(p_index, p_pixels_sec);
 		}
 
@@ -457,7 +456,7 @@ void AnimationTrackEditSpriteFrame::draw_key(int p_index, float p_pixels_sec, in
 
 	if (Object::cast_to<Sprite2D>(object) || Object::cast_to<Sprite3D>(object)) {
 		texture = object->call("get_texture");
-		if (!texture.is_valid()) {
+		if (texture.is_null()) {
 			AnimationTrackEdit::draw_key(p_index, p_pixels_sec, p_x, p_selected, p_clip_left, p_clip_right);
 			return;
 		}
@@ -510,12 +509,12 @@ void AnimationTrackEditSpriteFrame::draw_key(int p_index, float p_pixels_sec, in
 			animation_path = animation_path.replace(":frame", ":animation");
 			int animation_track = get_animation()->find_track(animation_path, get_animation()->track_get_type(get_track()));
 			float track_time = get_animation()->track_get_key_time(get_track(), p_index);
-			int animaiton_index = get_animation()->track_find_key(animation_track, track_time);
-			animation_name = get_animation()->track_get_key_value(animation_track, animaiton_index);
+			int animation_index = get_animation()->track_find_key(animation_track, track_time);
+			animation_name = get_animation()->track_get_key_value(animation_track, animation_index);
 		}
 
 		texture = sf->get_frame_texture(animation_name, frame);
-		if (!texture.is_valid()) {
+		if (texture.is_null()) {
 			AnimationTrackEdit::draw_key(p_index, p_pixels_sec, p_x, p_selected, p_clip_left, p_clip_right);
 			return;
 		}
@@ -809,7 +808,7 @@ int AnimationTrackEditTypeAudio::get_key_height() const {
 Rect2 AnimationTrackEditTypeAudio::get_key_rect(int p_index, float p_pixels_sec) {
 	Ref<AudioStream> stream = get_animation()->audio_track_get_key_stream(get_track(), p_index);
 
-	if (!stream.is_valid()) {
+	if (stream.is_null()) {
 		return AnimationTrackEdit::get_key_rect(p_index, p_pixels_sec);
 	}
 
@@ -842,7 +841,7 @@ bool AnimationTrackEditTypeAudio::is_key_selectable_by_distance() const {
 
 void AnimationTrackEditTypeAudio::draw_key(int p_index, float p_pixels_sec, int p_x, bool p_selected, int p_clip_left, int p_clip_right) {
 	Ref<AudioStream> stream = get_animation()->audio_track_get_key_stream(get_track(), p_index);
-	if (!stream.is_valid()) {
+	if (stream.is_null()) {
 		AnimationTrackEdit::draw_key(p_index, p_pixels_sec, p_x, p_selected, p_clip_left, p_clip_right); // Draw diamond.
 		return;
 	}
@@ -1026,7 +1025,7 @@ void AnimationTrackEditTypeAudio::gui_input(const Ref<InputEvent> &p_event) {
 		for (int i = 0; i < get_animation()->track_get_key_count(get_track()); i++) {
 			Ref<AudioStream> stream = get_animation()->audio_track_get_key_stream(get_track(), i);
 
-			if (!stream.is_valid()) {
+			if (stream.is_null()) {
 				continue;
 			}
 

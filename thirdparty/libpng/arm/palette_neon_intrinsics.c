@@ -1,4 +1,3 @@
-
 /* palette_neon_intrinsics.c - NEON optimised palette expansion functions
  *
  * Copyright (c) 2018-2019 Cosmin Truta
@@ -64,7 +63,7 @@ png_do_expand_palette_rgba8_neon(png_structrp png_ptr, png_row_infop row_info,
 {
    png_uint_32 row_width = row_info->width;
    const png_uint_32 *riffled_palette =
-      (const png_uint_32 *)png_ptr->riffled_palette;
+      png_aligncastconst(png_const_uint_32p, png_ptr->riffled_palette);
    const png_uint_32 pixels_per_chunk = 4;
    png_uint_32 i;
 

@@ -88,7 +88,7 @@ class ResourcePreloaderEditorPlugin : public EditorPlugin {
 	Button *button = nullptr;
 
 public:
-	virtual String get_name() const override { return "ResourcePreloader"; }
+	virtual String get_plugin_name() const override { return "ResourcePreloader"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_object) override;
 	virtual bool handles(Object *p_object) const override;

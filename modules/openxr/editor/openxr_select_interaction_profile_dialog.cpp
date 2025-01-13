@@ -29,6 +29,8 @@
 /**************************************************************************/
 
 #include "openxr_select_interaction_profile_dialog.h"
+
+#include "../action_map/openxr_interaction_profile_metadata.h"
 #include "../openxr_api.h"
 
 void OpenXRSelectInteractionProfileDialog::_bind_methods() {

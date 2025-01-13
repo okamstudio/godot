@@ -30,7 +30,6 @@
 
 #include "menu_bar.h"
 
-#include "core/os/keyboard.h"
 #include "scene/main/window.h"
 #include "scene/theme/theme_db.h"
 
@@ -507,8 +506,9 @@ void MenuBar::_refresh_menu_names() {
 
 	Vector<PopupMenu *> popups = _get_popups();
 	for (int i = 0; i < popups.size(); i++) {
-		if (!popups[i]->has_meta("_menu_name") && String(popups[i]->get_name()) != get_menu_title(i)) {
-			menu_cache.write[i].name = popups[i]->get_name();
+		String menu_name = popups[i]->get_title().is_empty() ? String(popups[i]->get_name()) : popups[i]->get_title();
+		if (!popups[i]->has_meta("_menu_name") && menu_name != get_menu_title(i)) {
+			menu_cache.write[i].name = menu_name;
 			shape(menu_cache.write[i]);
 			queue_redraw();
 			if (is_global && menu_cache[i].submenu_rid.is_valid()) {
@@ -547,6 +547,24 @@ int MenuBar::get_menu_idx_from_control(PopupMenu *p_child) const {
 	return -1;
 }
 
+void MenuBar::_popup_changed(ObjectID p_menu) {
+	PopupMenu *pm = Object::cast_to<PopupMenu>(ObjectDB::get_instance(p_menu));
+	if (!pm) {
+		return;
+	}
+
+	int idx = get_menu_idx_from_control(pm);
+
+	String menu_name = pm->get_title().is_empty() ? String(pm->get_name()) : pm->get_title();
+	menu_name = String(pm->get_meta("_menu_name", menu_name));
+
+	menu_cache.write[idx].name = menu_name;
+	shape(menu_cache.write[idx]);
+
+	update_minimum_size();
+	queue_redraw();
+}
+
 void MenuBar::add_child_notify(Node *p_child) {
 	Control::add_child_notify(p_child);
 
@@ -554,8 +572,11 @@ void MenuBar::add_child_notify(Node *p_child) {
 	if (!pm) {
 		return;
 	}
-	Menu menu = Menu(p_child->get_name());
+	String menu_name = pm->get_title().is_empty() ? String(pm->get_name()) : pm->get_title();
+	Menu menu = Menu(menu_name);
 	shape(menu);
+
+	pm->connect("title_changed", callable_mp(this, &MenuBar::_popup_changed).bind(pm->get_instance_id()), CONNECT_REFERENCE_COUNTED);
 
 	menu_cache.push_back(menu);
 	p_child->connect("renamed", callable_mp(this, &MenuBar::_refresh_menu_names));
@@ -584,7 +605,8 @@ void MenuBar::move_child_notify(Node *p_child) {
 	}
 
 	int old_idx = -1;
-	String menu_name = String(pm->get_meta("_menu_name", pm->get_name()));
+	String menu_name = pm->get_title().is_empty() ? String(pm->get_name()) : pm->get_title();
+	menu_name = String(pm->get_meta("_menu_name", menu_name));
 	// Find the previous menu index of the control.
 	for (int i = 0; i < get_menu_count(); i++) {
 		if (get_menu_title(i) == menu_name) {
@@ -640,6 +662,7 @@ void MenuBar::remove_child_notify(Node *p_child) {
 		}
 	}
 
+	pm->disconnect("title_changed", callable_mp(this, &MenuBar::_popup_changed));
 	menu_cache.remove_at(idx);
 
 	p_child->remove_meta("_menu_name");
@@ -827,7 +850,8 @@ int MenuBar::get_menu_count() const {
 void MenuBar::set_menu_title(int p_menu, const String &p_title) {
 	ERR_FAIL_INDEX(p_menu, menu_cache.size());
 	PopupMenu *pm = get_menu_popup(p_menu);
-	if (p_title == pm->get_name()) {
+	String menu_name = pm->get_title().is_empty() ? String(pm->get_name()) : pm->get_title();
+	if (p_title == menu_name) {
 		pm->remove_meta("_menu_name");
 	} else {
 		pm->set_meta("_menu_name", p_title);

@@ -139,7 +139,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////
 
-String NoiseEditorPlugin::get_name() const {
+String NoiseEditorPlugin::get_plugin_name() const {
 	return Noise::get_class_static();
 }
 

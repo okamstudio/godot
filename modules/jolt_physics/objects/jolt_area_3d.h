@@ -89,6 +89,8 @@ private:
 
 	typedef HashMap<JPH::BodyID, Overlap, BodyIDHasher> OverlapsById;
 
+	SelfList<JoltArea3D> call_queries_element;
+
 	OverlapsById bodies_by_id;
 	OverlapsById areas_by_id;
 
@@ -115,7 +117,12 @@ private:
 
 	virtual JPH::EMotionType _get_motion_type() const override { return JPH::EMotionType::Kinematic; }
 
+	bool _has_pending_events() const;
+
 	virtual void _add_to_space() override;
+
+	void _enqueue_call_queries();
+	void _dequeue_call_queries();
 
 	void _add_shape_pair(Overlap &p_overlap, const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
 	bool _remove_shape_pair(Overlap &p_overlap, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id);
@@ -217,10 +224,12 @@ public:
 	void body_exited(const JPH::BodyID &p_body_id, bool p_notify = true);
 	void area_exited(const JPH::BodyID &p_body_id);
 
-	void call_queries(JPH::Body &p_jolt_body);
+	void call_queries();
 
 	virtual bool has_custom_center_of_mass() const override { return false; }
 	virtual Vector3 get_center_of_mass_custom() const override { return Vector3(); }
+
+	virtual void post_step(float p_step, JPH::Body &p_jolt_body) override;
 };
 
 #endif // JOLT_AREA_3D_H

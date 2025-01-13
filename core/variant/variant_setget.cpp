@@ -390,9 +390,15 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			OOB_TEST(index, v.size());                                                                                               \
 			v.write[index] = PtrToArg<m_elem_type>::convert(member);                                                                 \
 		}                                                                                                                            \
-		static Variant::Type get_index_type() { return GetTypeInfo<m_elem_type>::VARIANT_TYPE; }                                     \
-		static uint32_t get_index_usage() { return GetTypeInfo<m_elem_type>::get_class_info().usage; }                               \
-		static uint64_t get_indexed_size(const Variant *base) { return VariantGetInternalPtr<m_base_type>::get_ptr(base)->size(); }  \
+		static Variant::Type get_index_type() {                                                                                      \
+			return GetTypeInfo<m_elem_type>::VARIANT_TYPE;                                                                           \
+		}                                                                                                                            \
+		static uint32_t get_index_usage() {                                                                                          \
+			return GetTypeInfo<m_elem_type>::get_class_info().usage;                                                                 \
+		}                                                                                                                            \
+		static uint64_t get_indexed_size(const Variant *base) {                                                                      \
+			return VariantGetInternalPtr<m_base_type>::get_ptr(base)->size();                                                        \
+		}                                                                                                                            \
 	};
 
 #define INDEXED_SETGET_STRUCT_TYPED_NUMERIC(m_base_type, m_elem_type, m_assign_type)                                                 \
@@ -462,12 +468,18 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			OOB_TEST(index, v.size());                                                                                               \
 			v.write[index] = PtrToArg<m_elem_type>::convert(member);                                                                 \
 		}                                                                                                                            \
-		static Variant::Type get_index_type() { return GetTypeInfo<m_elem_type>::VARIANT_TYPE; }                                     \
-		static uint32_t get_index_usage() { return GetTypeInfo<m_elem_type>::get_class_info().usage; }                               \
-		static uint64_t get_indexed_size(const Variant *base) { return VariantGetInternalPtr<m_base_type>::get_ptr(base)->size(); }  \
+		static Variant::Type get_index_type() {                                                                                      \
+			return GetTypeInfo<m_elem_type>::VARIANT_TYPE;                                                                           \
+		}                                                                                                                            \
+		static uint32_t get_index_usage() {                                                                                          \
+			return GetTypeInfo<m_elem_type>::get_class_info().usage;                                                                 \
+		}                                                                                                                            \
+		static uint64_t get_indexed_size(const Variant *base) {                                                                      \
+			return VariantGetInternalPtr<m_base_type>::get_ptr(base)->size();                                                        \
+		}                                                                                                                            \
 	};
 
-#define INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(m_base_type, m_elem_type, m_assign_type, m_max)                                   \
+#define INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(m_base_type, m_elem_type, m_assign_type, m_max)                                  \
 	struct VariantIndexedSetGet_##m_base_type {                                                                                \
 		static void get(const Variant *base, int64_t index, Variant *value, bool *oob) {                                       \
 			if (index < 0 || index >= m_max) {                                                                                 \
@@ -518,12 +530,18 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			OOB_TEST(index, m_max);                                                                                            \
 			v[index] = PtrToArg<m_elem_type>::convert(member);                                                                 \
 		}                                                                                                                      \
-		static Variant::Type get_index_type() { return GetTypeInfo<m_elem_type>::VARIANT_TYPE; }                               \
-		static uint32_t get_index_usage() { return GetTypeInfo<m_elem_type>::get_class_info().usage; }                         \
-		static uint64_t get_indexed_size(const Variant *base) { return m_max; }                                                \
+		static Variant::Type get_index_type() {                                                                                \
+			return GetTypeInfo<m_elem_type>::VARIANT_TYPE;                                                                     \
+		}                                                                                                                      \
+		static uint32_t get_index_usage() {                                                                                    \
+			return GetTypeInfo<m_elem_type>::get_class_info().usage;                                                           \
+		}                                                                                                                      \
+		static uint64_t get_indexed_size(const Variant *base) {                                                                \
+			return m_max;                                                                                                      \
+		}                                                                                                                      \
 	};
 
-#define INDEXED_SETGET_STRUCT_BULTIN_ACCESSOR(m_base_type, m_elem_type, m_accessor, m_max)                                                \
+#define INDEXED_SETGET_STRUCT_BUILTIN_ACCESSOR(m_base_type, m_elem_type, m_accessor, m_max)                                               \
 	struct VariantIndexedSetGet_##m_base_type {                                                                                           \
 		static void get(const Variant *base, int64_t index, Variant *value, bool *oob) {                                                  \
 			if (index < 0 || index >= m_max) {                                                                                            \
@@ -568,12 +586,18 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			OOB_TEST(index, m_max);                                                                                                       \
 			v m_accessor[index] = PtrToArg<m_elem_type>::convert(member);                                                                 \
 		}                                                                                                                                 \
-		static Variant::Type get_index_type() { return GetTypeInfo<m_elem_type>::VARIANT_TYPE; }                                          \
-		static uint32_t get_index_usage() { return GetTypeInfo<m_elem_type>::get_class_info().usage; }                                    \
-		static uint64_t get_indexed_size(const Variant *base) { return m_max; }                                                           \
+		static Variant::Type get_index_type() {                                                                                           \
+			return GetTypeInfo<m_elem_type>::VARIANT_TYPE;                                                                                \
+		}                                                                                                                                 \
+		static uint32_t get_index_usage() {                                                                                               \
+			return GetTypeInfo<m_elem_type>::get_class_info().usage;                                                                      \
+		}                                                                                                                                 \
+		static uint64_t get_indexed_size(const Variant *base) {                                                                           \
+			return m_max;                                                                                                                 \
+		}                                                                                                                                 \
 	};
 
-#define INDEXED_SETGET_STRUCT_BULTIN_FUNC(m_base_type, m_elem_type, m_set, m_get, m_max)                                           \
+#define INDEXED_SETGET_STRUCT_BUILTIN_FUNC(m_base_type, m_elem_type, m_set, m_get, m_max)                                          \
 	struct VariantIndexedSetGet_##m_base_type {                                                                                    \
 		static void get(const Variant *base, int64_t index, Variant *value, bool *oob) {                                           \
 			if (index < 0 || index >= m_max) {                                                                                     \
@@ -618,9 +642,15 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			OOB_TEST(index, m_max);                                                                                                \
 			v.m_set(index, PtrToArg<m_elem_type>::convert(member));                                                                \
 		}                                                                                                                          \
-		static Variant::Type get_index_type() { return GetTypeInfo<m_elem_type>::VARIANT_TYPE; }                                   \
-		static uint32_t get_index_usage() { return GetTypeInfo<m_elem_type>::get_class_info().usage; }                             \
-		static uint64_t get_indexed_size(const Variant *base) { return m_max; }                                                    \
+		static Variant::Type get_index_type() {                                                                                    \
+			return GetTypeInfo<m_elem_type>::VARIANT_TYPE;                                                                         \
+		}                                                                                                                          \
+		static uint32_t get_index_usage() {                                                                                        \
+			return GetTypeInfo<m_elem_type>::get_class_info().usage;                                                               \
+		}                                                                                                                          \
+		static uint64_t get_indexed_size(const Variant *base) {                                                                    \
+			return m_max;                                                                                                          \
+		}                                                                                                                          \
 	};
 
 struct VariantIndexedSetGet_Array {
@@ -814,18 +844,18 @@ struct VariantIndexedSetGet_String {
 	static uint64_t get_indexed_size(const Variant *base) { return VariantInternal::get_string(base)->length(); }
 };
 
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector2, double, real_t, 2)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector2i, int64_t, int32_t, 2)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector3, double, real_t, 3)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector3i, int64_t, int32_t, 3)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector4, double, real_t, 4)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Vector4i, int64_t, int32_t, 4)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Quaternion, double, real_t, 4)
-INDEXED_SETGET_STRUCT_BULTIN_NUMERIC(Color, double, float, 4)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector2, double, real_t, 2)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector2i, int64_t, int32_t, 2)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector3, double, real_t, 3)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector3i, int64_t, int32_t, 3)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector4, double, real_t, 4)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Vector4i, int64_t, int32_t, 4)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Quaternion, double, real_t, 4)
+INDEXED_SETGET_STRUCT_BUILTIN_NUMERIC(Color, double, float, 4)
 
-INDEXED_SETGET_STRUCT_BULTIN_ACCESSOR(Transform2D, Vector2, .columns, 3)
-INDEXED_SETGET_STRUCT_BULTIN_FUNC(Basis, Vector3, set_column, get_column, 3)
-INDEXED_SETGET_STRUCT_BULTIN_ACCESSOR(Projection, Vector4, .columns, 4)
+INDEXED_SETGET_STRUCT_BUILTIN_ACCESSOR(Transform2D, Vector2, .columns, 3)
+INDEXED_SETGET_STRUCT_BUILTIN_FUNC(Basis, Vector3, set_column, get_column, 3)
+INDEXED_SETGET_STRUCT_BUILTIN_ACCESSOR(Projection, Vector4, .columns, 4)
 
 INDEXED_SETGET_STRUCT_TYPED_NUMERIC(PackedByteArray, int64_t, uint8_t)
 INDEXED_SETGET_STRUCT_TYPED_NUMERIC(PackedInt32Array, int64_t, int32_t)

@@ -3360,7 +3360,9 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 						cs_emitsignal_params << ", ";
 					}
 
-					p_output << arg_type->cs_type << " " << iarg.name;
+					String arg_cs_type = arg_type->cs_type + _get_generic_type_parameters(*arg_type, iarg.type.generic_type_parameters);
+
+					p_output << arg_cs_type << " " << iarg.name;
 
 					if (arg_type->is_enum) {
 						cs_emitsignal_params << "(long)";

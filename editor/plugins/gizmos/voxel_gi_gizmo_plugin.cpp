@@ -33,9 +33,7 @@
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
-#include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/gizmos/gizmo_3d_helper.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/voxel_gi.h"
 
 VoxelGIGizmoPlugin::VoxelGIGizmoPlugin() {
@@ -46,11 +44,8 @@ VoxelGIGizmoPlugin::VoxelGIGizmoPlugin() {
 	create_material("voxel_gi_material", gizmo_color);
 
 	// This gizmo draws a lot of lines. Use a low opacity to make it not too intrusive.
-	gizmo_color.a = 0.03;
+	gizmo_color.a = 0.02;
 	create_material("voxel_gi_internal_material", gizmo_color);
-
-	gizmo_color.a = 0.025;
-	create_material("voxel_gi_solid_material", gizmo_color);
 
 	create_icon_material("voxel_gi_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoVoxelGI"), EditorStringName(EditorIcons)));
 	create_handle_material("handles");
@@ -163,11 +158,6 @@ void VoxelGIGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		p_gizmo->add_lines(lines, material_internal);
 
 		Vector<Vector3> handles = helper->box_get_handles(probe->get_size());
-
-		if (p_gizmo->is_selected()) {
-			Ref<Material> solid_material = get_material("voxel_gi_solid_material", p_gizmo);
-			p_gizmo->add_solid_box(solid_material, aabb.get_size());
-		}
 
 		p_gizmo->add_handles(handles, get_material("handles"));
 	}

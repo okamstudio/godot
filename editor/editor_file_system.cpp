@@ -843,11 +843,26 @@ bool EditorFileSystem::_update_scan_actions() {
 
 				fs_changed = true;
 
+				const String new_file_path = ia.dir->get_file_path(idx);
+				const ResourceUID::ID existing_id = ResourceLoader::get_resource_uid(new_file_path);
+				if (existing_id != ResourceUID::INVALID_ID) {
+					const String old_path = ResourceUID::get_singleton()->get_id_path(existing_id);
+					if (old_path != new_file_path && FileAccess::exists(old_path)) {
+						const ResourceUID::ID new_id = ResourceUID::get_singleton()->create_id();
+						ResourceUID::get_singleton()->add_id(new_id, new_file_path);
+						ResourceSaver::set_uid(new_file_path, new_id);
+						WARN_PRINT(vformat("Duplicate UID detected for Resource at \"%s\".\nOld Resource path: \"%s\". The new file UID was changed automatically.", new_file_path, old_path));
+					} else {
+						// Re-assign the UID to file, just in case it was pulled from cache.
+						ResourceSaver::set_uid(new_file_path, existing_id);
+					}
+				}
+
 				if (ClassDB::is_parent_class(ia.new_file->type, SNAME("Script"))) {
-					_queue_update_script_class(ia.dir->get_file_path(idx), ia.new_file->type, ia.new_file->script_class_name, ia.new_file->script_class_extends, ia.new_file->script_class_icon_path);
+					_queue_update_script_class(new_file_path, ia.new_file->type, ia.new_file->script_class_name, ia.new_file->script_class_extends, ia.new_file->script_class_icon_path);
 				}
 				if (ia.new_file->type == SNAME("PackedScene")) {
-					_queue_update_scene_groups(ia.dir->get_file_path(idx));
+					_queue_update_scene_groups(new_file_path);
 				}
 
 			} break;
@@ -1260,11 +1275,15 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 				}
 			}
 
-			if (fi->uid == ResourceUID::INVALID_ID && ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
-				// Create a UID.
+			if (ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
+				// Create a UID file and new UID, if it's invalid.
 				Ref<FileAccess> f = FileAccess::open(path + ".uid", FileAccess::WRITE);
 				if (f.is_valid()) {
-					fi->uid = ResourceUID::get_singleton()->create_id();
+					if (fi->uid == ResourceUID::INVALID_ID) {
+						fi->uid = ResourceUID::get_singleton()->create_id();
+					} else {
+						WARN_PRINT(vformat("Missing .uid file for path \"%s\". The file was re-created from cache.", path));
+					}
 					f->store_line(ResourceUID::get_singleton()->id_to_text(fi->uid));
 				}
 			}
@@ -2475,7 +2494,7 @@ Error EditorFileSystem::_reimport_group(const String &p_group_file, const Vector
 		}
 
 		Ref<ResourceImporter> importer = ResourceFormatImporter::get_singleton()->get_importer_by_name(importer_name);
-		ERR_FAIL_COND_V(!importer.is_valid(), ERR_FILE_CORRUPT);
+		ERR_FAIL_COND_V(importer.is_null(), ERR_FILE_CORRUPT);
 		List<ResourceImporter::ImportOption> options;
 		importer->get_import_options(p_files[i], &options);
 		//set default values
@@ -3027,9 +3046,9 @@ void EditorFileSystem::_refresh_filesystem() {
 }
 
 void EditorFileSystem::_reimport_thread(uint32_t p_index, ImportThreadData *p_import_data) {
-	int current_max = p_import_data->reimport_from + int(p_index);
-	p_import_data->max_index.exchange_if_greater(current_max);
-	_reimport_file(p_import_data->reimport_files[current_max].path);
+	int file_idx = p_import_data->reimport_from + int(p_index);
+	_reimport_file(p_import_data->reimport_files[file_idx].path);
+	p_import_data->imported_sem->post();
 }
 
 void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
@@ -3108,6 +3127,7 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 #endif
 
 	int from = 0;
+	Semaphore imported_sem;
 	for (int i = 0; i < reimport_files.size(); i++) {
 		if (groups_to_reimport.has(reimport_files[i].path)) {
 			from = i + 1;
@@ -3131,21 +3151,27 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 					importer->import_threaded_begin();
 
 					ImportThreadData tdata;
-					tdata.max_index.set(from);
 					tdata.reimport_from = from;
 					tdata.reimport_files = reimport_files.ptr();
+					tdata.imported_sem = &imported_sem;
 
-					WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &EditorFileSystem::_reimport_thread, &tdata, i - from + 1, -1, false, vformat(TTR("Import resources of type: %s"), reimport_files[from].importer));
-					int current_index = from - 1;
-					do {
-						if (current_index < tdata.max_index.get()) {
-							current_index = tdata.max_index.get();
-							ep->step(reimport_files[current_index].path.get_file(), current_index, false);
+					int item_count = i - from + 1;
+					WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &EditorFileSystem::_reimport_thread, &tdata, item_count, -1, false, vformat(TTR("Import resources of type: %s"), reimport_files[from].importer));
+
+					int imported_count = 0;
+					while (true) {
+						ep->step(reimport_files[imported_count].path.get_file(), from + imported_count, false);
+						imported_sem.wait();
+						do {
+							imported_count++;
+						} while (imported_sem.try_wait());
+						if (imported_count == item_count) {
+							break;
 						}
-						OS::get_singleton()->delay_usec(1);
-					} while (!WorkerThreadPool::get_singleton()->is_group_task_completed(group_task));
+					}
 
 					WorkerThreadPool::get_singleton()->wait_for_group_task_completion(group_task);
+					DEV_ASSERT(!imported_sem.try_wait());
 
 					importer->import_threaded_end();
 				}
@@ -3205,7 +3231,6 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 }
 
 Error EditorFileSystem::reimport_append(const String &p_file, const HashMap<StringName, Variant> &p_custom_options, const String &p_custom_importer, Variant p_generator_parameters) {
-	ERR_FAIL_COND_V_MSG(!importing, ERR_INVALID_PARAMETER, "Can only append files to import during a current reimport process.");
 	Vector<String> reloads;
 	reloads.append(p_file);
 

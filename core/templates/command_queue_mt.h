@@ -33,295 +33,74 @@
 
 #include "core/object/worker_thread_pool.h"
 #include "core/os/condition_variable.h"
-#include "core/os/memory.h"
 #include "core/os/mutex.h"
-#include "core/string/print_string.h"
 #include "core/templates/local_vector.h"
 #include "core/templates/simple_type.h"
+#include "core/templates/tuple.h"
 #include "core/typedefs.h"
-
-#define COMMA(N) _COMMA_##N
-#define _COMMA_0
-#define _COMMA_1 ,
-#define _COMMA_2 ,
-#define _COMMA_3 ,
-#define _COMMA_4 ,
-#define _COMMA_5 ,
-#define _COMMA_6 ,
-#define _COMMA_7 ,
-#define _COMMA_8 ,
-#define _COMMA_9 ,
-#define _COMMA_10 ,
-#define _COMMA_11 ,
-#define _COMMA_12 ,
-#define _COMMA_13 ,
-#define _COMMA_14 ,
-#define _COMMA_15 ,
-
-// 1-based comma separated list of ITEMs
-#define COMMA_SEP_LIST(ITEM, LENGTH) _COMMA_SEP_LIST_##LENGTH(ITEM)
-#define _COMMA_SEP_LIST_15(ITEM) \
-	_COMMA_SEP_LIST_14(ITEM)     \
-	, ITEM(15)
-#define _COMMA_SEP_LIST_14(ITEM) \
-	_COMMA_SEP_LIST_13(ITEM)     \
-	, ITEM(14)
-#define _COMMA_SEP_LIST_13(ITEM) \
-	_COMMA_SEP_LIST_12(ITEM)     \
-	, ITEM(13)
-#define _COMMA_SEP_LIST_12(ITEM) \
-	_COMMA_SEP_LIST_11(ITEM)     \
-	, ITEM(12)
-#define _COMMA_SEP_LIST_11(ITEM) \
-	_COMMA_SEP_LIST_10(ITEM)     \
-	, ITEM(11)
-#define _COMMA_SEP_LIST_10(ITEM) \
-	_COMMA_SEP_LIST_9(ITEM)      \
-	, ITEM(10)
-#define _COMMA_SEP_LIST_9(ITEM) \
-	_COMMA_SEP_LIST_8(ITEM)     \
-	, ITEM(9)
-#define _COMMA_SEP_LIST_8(ITEM) \
-	_COMMA_SEP_LIST_7(ITEM)     \
-	, ITEM(8)
-#define _COMMA_SEP_LIST_7(ITEM) \
-	_COMMA_SEP_LIST_6(ITEM)     \
-	, ITEM(7)
-#define _COMMA_SEP_LIST_6(ITEM) \
-	_COMMA_SEP_LIST_5(ITEM)     \
-	, ITEM(6)
-#define _COMMA_SEP_LIST_5(ITEM) \
-	_COMMA_SEP_LIST_4(ITEM)     \
-	, ITEM(5)
-#define _COMMA_SEP_LIST_4(ITEM) \
-	_COMMA_SEP_LIST_3(ITEM)     \
-	, ITEM(4)
-#define _COMMA_SEP_LIST_3(ITEM) \
-	_COMMA_SEP_LIST_2(ITEM)     \
-	, ITEM(3)
-#define _COMMA_SEP_LIST_2(ITEM) \
-	_COMMA_SEP_LIST_1(ITEM)     \
-	, ITEM(2)
-#define _COMMA_SEP_LIST_1(ITEM) \
-	_COMMA_SEP_LIST_0(ITEM)     \
-	ITEM(1)
-#define _COMMA_SEP_LIST_0(ITEM)
-
-// 1-based semicolon separated list of ITEMs
-#define SEMIC_SEP_LIST(ITEM, LENGTH) _SEMIC_SEP_LIST_##LENGTH(ITEM)
-#define _SEMIC_SEP_LIST_15(ITEM) \
-	_SEMIC_SEP_LIST_14(ITEM);    \
-	ITEM(15)
-#define _SEMIC_SEP_LIST_14(ITEM) \
-	_SEMIC_SEP_LIST_13(ITEM);    \
-	ITEM(14)
-#define _SEMIC_SEP_LIST_13(ITEM) \
-	_SEMIC_SEP_LIST_12(ITEM);    \
-	ITEM(13)
-#define _SEMIC_SEP_LIST_12(ITEM) \
-	_SEMIC_SEP_LIST_11(ITEM);    \
-	ITEM(12)
-#define _SEMIC_SEP_LIST_11(ITEM) \
-	_SEMIC_SEP_LIST_10(ITEM);    \
-	ITEM(11)
-#define _SEMIC_SEP_LIST_10(ITEM) \
-	_SEMIC_SEP_LIST_9(ITEM);     \
-	ITEM(10)
-#define _SEMIC_SEP_LIST_9(ITEM) \
-	_SEMIC_SEP_LIST_8(ITEM);    \
-	ITEM(9)
-#define _SEMIC_SEP_LIST_8(ITEM) \
-	_SEMIC_SEP_LIST_7(ITEM);    \
-	ITEM(8)
-#define _SEMIC_SEP_LIST_7(ITEM) \
-	_SEMIC_SEP_LIST_6(ITEM);    \
-	ITEM(7)
-#define _SEMIC_SEP_LIST_6(ITEM) \
-	_SEMIC_SEP_LIST_5(ITEM);    \
-	ITEM(6)
-#define _SEMIC_SEP_LIST_5(ITEM) \
-	_SEMIC_SEP_LIST_4(ITEM);    \
-	ITEM(5)
-#define _SEMIC_SEP_LIST_4(ITEM) \
-	_SEMIC_SEP_LIST_3(ITEM);    \
-	ITEM(4)
-#define _SEMIC_SEP_LIST_3(ITEM) \
-	_SEMIC_SEP_LIST_2(ITEM);    \
-	ITEM(3)
-#define _SEMIC_SEP_LIST_2(ITEM) \
-	_SEMIC_SEP_LIST_1(ITEM);    \
-	ITEM(2)
-#define _SEMIC_SEP_LIST_1(ITEM) \
-	_SEMIC_SEP_LIST_0(ITEM)     \
-	ITEM(1)
-#define _SEMIC_SEP_LIST_0(ITEM)
-
-// 1-based space separated list of ITEMs
-#define SPACE_SEP_LIST(ITEM, LENGTH) _SPACE_SEP_LIST_##LENGTH(ITEM)
-#define _SPACE_SEP_LIST_15(ITEM) \
-	_SPACE_SEP_LIST_14(ITEM)     \
-	ITEM(15)
-#define _SPACE_SEP_LIST_14(ITEM) \
-	_SPACE_SEP_LIST_13(ITEM)     \
-	ITEM(14)
-#define _SPACE_SEP_LIST_13(ITEM) \
-	_SPACE_SEP_LIST_12(ITEM)     \
-	ITEM(13)
-#define _SPACE_SEP_LIST_12(ITEM) \
-	_SPACE_SEP_LIST_11(ITEM)     \
-	ITEM(12)
-#define _SPACE_SEP_LIST_11(ITEM) \
-	_SPACE_SEP_LIST_10(ITEM)     \
-	ITEM(11)
-#define _SPACE_SEP_LIST_10(ITEM) \
-	_SPACE_SEP_LIST_9(ITEM)      \
-	ITEM(10)
-#define _SPACE_SEP_LIST_9(ITEM) \
-	_SPACE_SEP_LIST_8(ITEM)     \
-	ITEM(9)
-#define _SPACE_SEP_LIST_8(ITEM) \
-	_SPACE_SEP_LIST_7(ITEM)     \
-	ITEM(8)
-#define _SPACE_SEP_LIST_7(ITEM) \
-	_SPACE_SEP_LIST_6(ITEM)     \
-	ITEM(7)
-#define _SPACE_SEP_LIST_6(ITEM) \
-	_SPACE_SEP_LIST_5(ITEM)     \
-	ITEM(6)
-#define _SPACE_SEP_LIST_5(ITEM) \
-	_SPACE_SEP_LIST_4(ITEM)     \
-	ITEM(5)
-#define _SPACE_SEP_LIST_4(ITEM) \
-	_SPACE_SEP_LIST_3(ITEM)     \
-	ITEM(4)
-#define _SPACE_SEP_LIST_3(ITEM) \
-	_SPACE_SEP_LIST_2(ITEM)     \
-	ITEM(3)
-#define _SPACE_SEP_LIST_2(ITEM) \
-	_SPACE_SEP_LIST_1(ITEM)     \
-	ITEM(2)
-#define _SPACE_SEP_LIST_1(ITEM) \
-	_SPACE_SEP_LIST_0(ITEM)     \
-	ITEM(1)
-#define _SPACE_SEP_LIST_0(ITEM)
-
-#define ARG(N) p##N
-#define PARAM(N) P##N p##N
-#define TYPE_PARAM(N) typename P##N
-#define PARAM_DECL(N) GetSimpleTypeT<P##N> p##N
-
-#define DECL_CMD(N)                                                          \
-	template <typename T, typename M COMMA(N) COMMA_SEP_LIST(TYPE_PARAM, N)> \
-	struct Command##N : public CommandBase {                                 \
-		T *instance;                                                         \
-		M method;                                                            \
-		SEMIC_SEP_LIST(PARAM_DECL, N);                                       \
-		virtual void call() override {                                       \
-			(instance->*method)(COMMA_SEP_LIST(ARG, N));                     \
-		}                                                                    \
-	};
-
-#define DECL_CMD_RET(N)                                                                  \
-	template <typename T, typename M, COMMA_SEP_LIST(TYPE_PARAM, N) COMMA(N) typename R> \
-	struct CommandRet##N : public SyncCommand {                                          \
-		R *ret;                                                                          \
-		T *instance;                                                                     \
-		M method;                                                                        \
-		SEMIC_SEP_LIST(PARAM_DECL, N);                                                   \
-		virtual void call() override {                                                   \
-			*ret = (instance->*method)(COMMA_SEP_LIST(ARG, N));                          \
-		}                                                                                \
-	};
-
-#define DECL_CMD_SYNC(N)                                                     \
-	template <typename T, typename M COMMA(N) COMMA_SEP_LIST(TYPE_PARAM, N)> \
-	struct CommandSync##N : public SyncCommand {                             \
-		T *instance;                                                         \
-		M method;                                                            \
-		SEMIC_SEP_LIST(PARAM_DECL, N);                                       \
-		virtual void call() override {                                       \
-			(instance->*method)(COMMA_SEP_LIST(ARG, N));                     \
-		}                                                                    \
-	};
-
-#define TYPE_ARG(N) P##N
-#define CMD_TYPE(N) Command##N<T, M COMMA(N) COMMA_SEP_LIST(TYPE_ARG, N)>
-#define CMD_ASSIGN_PARAM(N) cmd->p##N = p##N
-
-#define DECL_PUSH(N)                                                            \
-	template <typename T, typename M COMMA(N) COMMA_SEP_LIST(TYPE_PARAM, N)>    \
-	void push(T *p_instance, M p_method COMMA(N) COMMA_SEP_LIST(PARAM, N)) {    \
-		MutexLock mlock(mutex);                                                 \
-		CMD_TYPE(N) *cmd = allocate<CMD_TYPE(N)>();                             \
-		cmd->instance = p_instance;                                             \
-		cmd->method = p_method;                                                 \
-		SEMIC_SEP_LIST(CMD_ASSIGN_PARAM, N);                                    \
-		if (pump_task_id != WorkerThreadPool::INVALID_TASK_ID) {                \
-			WorkerThreadPool::get_singleton()->notify_yield_over(pump_task_id); \
-		}                                                                       \
-	}
-
-#define CMD_RET_TYPE(N) CommandRet##N<T, M, COMMA_SEP_LIST(TYPE_ARG, N) COMMA(N) R>
-
-#define DECL_PUSH_AND_RET(N)                                                                   \
-	template <typename T, typename M, COMMA_SEP_LIST(TYPE_PARAM, N) COMMA(N) typename R>       \
-	void push_and_ret(T *p_instance, M p_method, COMMA_SEP_LIST(PARAM, N) COMMA(N) R *r_ret) { \
-		MutexLock mlock(mutex);                                                                \
-		CMD_RET_TYPE(N) *cmd = allocate<CMD_RET_TYPE(N)>();                                    \
-		cmd->instance = p_instance;                                                            \
-		cmd->method = p_method;                                                                \
-		SEMIC_SEP_LIST(CMD_ASSIGN_PARAM, N);                                                   \
-		cmd->ret = r_ret;                                                                      \
-		if (pump_task_id != WorkerThreadPool::INVALID_TASK_ID) {                               \
-			WorkerThreadPool::get_singleton()->notify_yield_over(pump_task_id);                \
-		}                                                                                      \
-		sync_tail++;                                                                           \
-		_wait_for_sync(mlock);                                                                 \
-	}
-
-#define CMD_SYNC_TYPE(N) CommandSync##N<T, M COMMA(N) COMMA_SEP_LIST(TYPE_ARG, N)>
-
-#define DECL_PUSH_AND_SYNC(N)                                                         \
-	template <typename T, typename M COMMA(N) COMMA_SEP_LIST(TYPE_PARAM, N)>          \
-	void push_and_sync(T *p_instance, M p_method COMMA(N) COMMA_SEP_LIST(PARAM, N)) { \
-		MutexLock mlock(mutex);                                                       \
-		CMD_SYNC_TYPE(N) *cmd = allocate<CMD_SYNC_TYPE(N)>();                         \
-		cmd->instance = p_instance;                                                   \
-		cmd->method = p_method;                                                       \
-		SEMIC_SEP_LIST(CMD_ASSIGN_PARAM, N);                                          \
-		if (pump_task_id != WorkerThreadPool::INVALID_TASK_ID) {                      \
-			WorkerThreadPool::get_singleton()->notify_yield_over(pump_task_id);       \
-		}                                                                             \
-		sync_tail++;                                                                  \
-		_wait_for_sync(mlock);                                                        \
-	}
-
-#define MAX_CMD_PARAMS 15
 
 class CommandQueueMT {
 	struct CommandBase {
 		bool sync = false;
 		virtual void call() = 0;
 		virtual ~CommandBase() = default;
+
+		CommandBase(bool p_sync) :
+				sync(p_sync) {}
 	};
 
-	struct SyncCommand : public CommandBase {
-		virtual void call() override {}
-		SyncCommand() {
-			sync = true;
+	template <typename T, typename M, bool NeedsSync, typename... Args>
+	struct Command : public CommandBase {
+		T *instance;
+		M method;
+		Tuple<GetSimpleTypeT<Args>...> args;
+
+		template <typename... FwdArgs>
+		_FORCE_INLINE_ Command(T *p_instance, M p_method, FwdArgs &&...p_args) :
+				CommandBase(NeedsSync), instance(p_instance), method(p_method), args(std::forward<FwdArgs>(p_args)...) {}
+
+		void call() {
+			call_impl(BuildIndexSequence<sizeof...(Args)>{});
 		}
+
+	private:
+		template <size_t... I>
+		_FORCE_INLINE_ void call_impl(IndexSequence<I...>) {
+			// Move out of the Tuple, this will be destroyed as soon as the call is complete.
+			(instance->*method)(std::move(get<I>())...);
+		}
+
+		// This method exists so we can call it in the parameter pack expansion in call_impl.
+		template <size_t I>
+		_FORCE_INLINE_ auto &get() { return ::tuple_get<I>(args); }
 	};
 
-	DECL_CMD(0)
-	SPACE_SEP_LIST(DECL_CMD, 15)
+	// Separate class from Command so we can save the space of the ret pointer for commands that don't return.
+	template <typename T, typename M, typename R, typename... Args>
+	struct CommandRet : public CommandBase {
+		T *instance;
+		M method;
+		R *ret;
+		Tuple<GetSimpleTypeT<Args>...> args;
 
-	// Commands that return.
-	DECL_CMD_RET(0)
-	SPACE_SEP_LIST(DECL_CMD_RET, 15)
+		_FORCE_INLINE_ CommandRet(T *p_instance, M p_method, R *p_ret, GetSimpleTypeT<Args>... p_args) :
+				CommandBase(true), instance(p_instance), method(p_method), ret(p_ret), args{ p_args... } {}
 
-	/* commands that don't return but sync */
-	DECL_CMD_SYNC(0)
-	SPACE_SEP_LIST(DECL_CMD_SYNC, 15)
+		void call() override {
+			*ret = call_impl(BuildIndexSequence<sizeof...(Args)>{});
+		}
+
+	private:
+		template <size_t... I>
+		_FORCE_INLINE_ R call_impl(IndexSequence<I...>) {
+			// Move out of the Tuple, this will be destroyed as soon as the call is complete.
+			return (instance->*method)(std::move(get<I>())...);
+		}
+
+		// This method exists so we can call it in the parameter pack expansion in call_impl.
+		template <size_t I>
+		_FORCE_INLINE_ auto &get() { return ::tuple_get<I>(args); }
+	};
 
 	/***** BASE *******/
 
@@ -336,15 +115,32 @@ class CommandQueueMT {
 	WorkerThreadPool::TaskID pump_task_id = WorkerThreadPool::INVALID_TASK_ID;
 	uint64_t flush_read_ptr = 0;
 
-	template <typename T>
-	T *allocate() {
+	template <typename T, typename... Args>
+	_FORCE_INLINE_ void create_command(Args &&...p_args) {
 		// alloc size is size+T+safeguard
-		uint32_t alloc_size = ((sizeof(T) + 8 - 1) & ~(8 - 1));
+		constexpr uint64_t alloc_size = ((sizeof(T) + 8U - 1U) & ~(8U - 1U));
+		static_assert(alloc_size < UINT32_MAX, "Type too large to fit in the command queue.");
+
 		uint64_t size = command_mem.size();
-		command_mem.resize(size + alloc_size + 8);
+		command_mem.resize(size + alloc_size + sizeof(uint64_t));
 		*(uint64_t *)&command_mem[size] = alloc_size;
-		T *cmd = memnew_placement(&command_mem[size + 8], T);
-		return cmd;
+		void *cmd = &command_mem[size + sizeof(uint64_t)];
+		new (cmd) T(std::forward<Args>(p_args)...);
+	}
+
+	template <typename T, bool NeedsSync, typename... Args>
+	_FORCE_INLINE_ void _push_internal(Args &&...args) {
+		MutexLock mlock(mutex);
+		create_command<T>(std::forward<Args>(args)...);
+
+		if (pump_task_id != WorkerThreadPool::INVALID_TASK_ID) {
+			WorkerThreadPool::get_singleton()->notify_yield_over(pump_task_id);
+		}
+
+		if constexpr (NeedsSync) {
+			sync_tail++;
+			_wait_for_sync(mlock);
+		}
 	}
 
 	_FORCE_INLINE_ void _prevent_sync_wraparound() {
@@ -408,17 +204,26 @@ class CommandQueueMT {
 	void _no_op() {}
 
 public:
-	/* NORMAL PUSH COMMANDS */
-	DECL_PUSH(0)
-	SPACE_SEP_LIST(DECL_PUSH, 15)
+	template <typename T, typename M, typename... Args>
+	void push(T *p_instance, M p_method, Args &&...p_args) {
+		// Standard command, no sync.
+		using CommandType = Command<T, M, false, Args...>;
+		_push_internal<CommandType, false>(p_instance, p_method, std::forward<Args>(p_args)...);
+	}
 
-	/* PUSH AND RET COMMANDS */
-	DECL_PUSH_AND_RET(0)
-	SPACE_SEP_LIST(DECL_PUSH_AND_RET, 15)
+	template <typename T, typename M, typename... Args>
+	void push_and_sync(T *p_instance, M p_method, Args... p_args) {
+		// Standard command, sync.
+		using CommandType = Command<T, M, true, Args...>;
+		_push_internal<CommandType, true>(p_instance, p_method, std::forward<Args>(p_args)...);
+	}
 
-	/* PUSH AND RET SYNC COMMANDS*/
-	DECL_PUSH_AND_SYNC(0)
-	SPACE_SEP_LIST(DECL_PUSH_AND_SYNC, 15)
+	template <typename T, typename M, typename R, typename... Args>
+	void push_and_ret(T *p_instance, M p_method, R *r_ret, Args... p_args) {
+		// Command with return value, sync.
+		using CommandType = CommandRet<T, M, R, Args...>;
+		_push_internal<CommandType, true>(p_instance, p_method, r_ret, std::forward<Args>(p_args)...);
+	}
 
 	_FORCE_INLINE_ void flush_if_pending() {
 		if (unlikely(command_mem.size() > 0)) {
@@ -448,21 +253,5 @@ public:
 	CommandQueueMT();
 	~CommandQueueMT();
 };
-
-#undef ARG
-#undef PARAM
-#undef TYPE_PARAM
-#undef PARAM_DECL
-#undef DECL_CMD
-#undef DECL_CMD_RET
-#undef DECL_CMD_SYNC
-#undef TYPE_ARG
-#undef CMD_TYPE
-#undef CMD_ASSIGN_PARAM
-#undef DECL_PUSH
-#undef CMD_RET_TYPE
-#undef DECL_PUSH_AND_RET
-#undef CMD_SYNC_TYPE
-#undef DECL_CMD_SYNC
 
 #endif // COMMAND_QUEUE_MT_H

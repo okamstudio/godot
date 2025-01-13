@@ -316,7 +316,7 @@ void AnimationNodeBlendSpace2D::_set_triangles(const Vector<int> &p_triangles) {
 
 Vector<int> AnimationNodeBlendSpace2D::_get_triangles() const {
 	Vector<int> t;
-	if (auto_triangles && trianges_dirty) {
+	if (auto_triangles && triangles_dirty) {
 		return t;
 	}
 
@@ -330,20 +330,20 @@ Vector<int> AnimationNodeBlendSpace2D::_get_triangles() const {
 }
 
 void AnimationNodeBlendSpace2D::_queue_auto_triangles() {
-	if (!auto_triangles || trianges_dirty) {
+	if (!auto_triangles || triangles_dirty) {
 		return;
 	}
 
-	trianges_dirty = true;
+	triangles_dirty = true;
 	callable_mp(this, &AnimationNodeBlendSpace2D::_update_triangles).call_deferred();
 }
 
 void AnimationNodeBlendSpace2D::_update_triangles() {
-	if (!auto_triangles || !trianges_dirty) {
+	if (!auto_triangles || !triangles_dirty) {
 		return;
 	}
 
-	trianges_dirty = false;
+	triangles_dirty = false;
 	triangles.clear();
 	if (blend_points_used < 3) {
 		emit_signal(SNAME("triangles_updated"));
@@ -551,21 +551,20 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace2D::_process(const AnimationM
 		}
 
 		if (new_closest != cur_closest && new_closest != -1) {
-			NodeTimeInfo from;
 			if (blend_mode == BLEND_MODE_DISCRETE_CARRY && cur_closest != -1) {
-				//for ping-pong loop
+				NodeTimeInfo from;
+				// For ping-pong loop.
 				Ref<AnimationNodeAnimation> na_c = static_cast<Ref<AnimationNodeAnimation>>(blend_points[cur_closest].node);
 				Ref<AnimationNodeAnimation> na_n = static_cast<Ref<AnimationNodeAnimation>>(blend_points[new_closest].node);
-				if (!na_c.is_null() && !na_n.is_null()) {
+				if (na_c.is_valid() && na_n.is_valid()) {
 					na_n->set_backward(na_c->is_backward());
 				}
-				//see how much animation remains
+				// See how much animation remains.
 				pi.seeked = false;
 				pi.weight = 0;
-				from = blend_node(blend_points[cur_closest].node, blend_points[cur_closest].name, pi, FILTER_IGNORE, true, p_test_only);
+				from = blend_node(blend_points[cur_closest].node, blend_points[cur_closest].name, pi, FILTER_IGNORE, true, true);
+				pi.time = from.position;
 			}
-
-			pi.time = from.position;
 			pi.seeked = true;
 			pi.weight = 1.0;
 			mind = blend_node(blend_points[new_closest].node, blend_points[new_closest].name, pi, FILTER_IGNORE, true, p_test_only);

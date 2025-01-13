@@ -32,7 +32,6 @@
 
 #include "mesh_storage.h"
 #include "config.h"
-#include "material_storage.h"
 #include "texture_storage.h"
 #include "utilities.h"
 
@@ -448,6 +447,72 @@ void MeshStorage::mesh_add_surface(RID p_mesh, const RS::SurfaceData &p_surface)
 	mesh->material_cache.clear();
 }
 
+void MeshStorage::_mesh_surface_clear(Mesh *mesh, int p_surface) {
+	Mesh::Surface &s = *mesh->surfaces[p_surface];
+
+	if (s.vertex_buffer != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(s.vertex_buffer);
+		s.vertex_buffer = 0;
+	}
+
+	if (s.version_count != 0) {
+		for (uint32_t j = 0; j < s.version_count; j++) {
+			glDeleteVertexArrays(1, &s.versions[j].vertex_array);
+			s.versions[j].vertex_array = 0;
+		}
+	}
+
+	if (s.attribute_buffer != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(s.attribute_buffer);
+		s.attribute_buffer = 0;
+	}
+
+	if (s.skin_buffer != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(s.skin_buffer);
+		s.skin_buffer = 0;
+	}
+
+	if (s.index_buffer != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(s.index_buffer);
+		s.index_buffer = 0;
+	}
+
+	if (s.versions) {
+		memfree(s.versions); // reallocs, so free with memfree.
+	}
+
+	if (s.wireframe) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(s.wireframe->index_buffer);
+		memdelete(s.wireframe);
+	}
+
+	if (s.lod_count) {
+		for (uint32_t j = 0; j < s.lod_count; j++) {
+			if (s.lods[j].index_buffer != 0) {
+				GLES3::Utilities::get_singleton()->buffer_free_data(s.lods[j].index_buffer);
+				s.lods[j].index_buffer = 0;
+			}
+		}
+		memdelete_arr(s.lods);
+	}
+
+	if (mesh->blend_shape_count) {
+		for (uint32_t j = 0; j < mesh->blend_shape_count; j++) {
+			if (s.blend_shapes[j].vertex_buffer != 0) {
+				GLES3::Utilities::get_singleton()->buffer_free_data(s.blend_shapes[j].vertex_buffer);
+				s.blend_shapes[j].vertex_buffer = 0;
+			}
+			if (s.blend_shapes[j].vertex_array != 0) {
+				glDeleteVertexArrays(1, &s.blend_shapes[j].vertex_array);
+				s.blend_shapes[j].vertex_array = 0;
+			}
+		}
+		memdelete_arr(s.blend_shapes);
+	}
+
+	memdelete(mesh->surfaces[p_surface]);
+}
+
 int MeshStorage::mesh_get_blend_shape_count(RID p_mesh) const {
 	const Mesh *mesh = mesh_owner.get_or_null(p_mesh);
 	ERR_FAIL_NULL_V(mesh, -1);
@@ -772,69 +837,7 @@ void MeshStorage::mesh_clear(RID p_mesh) {
 	}
 
 	for (uint32_t i = 0; i < mesh->surface_count; i++) {
-		Mesh::Surface &s = *mesh->surfaces[i];
-
-		if (s.vertex_buffer != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(s.vertex_buffer);
-			s.vertex_buffer = 0;
-		}
-
-		if (s.version_count != 0) {
-			for (uint32_t j = 0; j < s.version_count; j++) {
-				glDeleteVertexArrays(1, &s.versions[j].vertex_array);
-				s.versions[j].vertex_array = 0;
-			}
-		}
-
-		if (s.attribute_buffer != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(s.attribute_buffer);
-			s.attribute_buffer = 0;
-		}
-
-		if (s.skin_buffer != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(s.skin_buffer);
-			s.skin_buffer = 0;
-		}
-
-		if (s.index_buffer != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(s.index_buffer);
-			s.index_buffer = 0;
-		}
-
-		if (s.versions) {
-			memfree(s.versions); //reallocs, so free with memfree.
-		}
-
-		if (s.wireframe) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(s.wireframe->index_buffer);
-			memdelete(s.wireframe);
-		}
-
-		if (s.lod_count) {
-			for (uint32_t j = 0; j < s.lod_count; j++) {
-				if (s.lods[j].index_buffer != 0) {
-					GLES3::Utilities::get_singleton()->buffer_free_data(s.lods[j].index_buffer);
-					s.lods[j].index_buffer = 0;
-				}
-			}
-			memdelete_arr(s.lods);
-		}
-
-		if (mesh->blend_shape_count) {
-			for (uint32_t j = 0; j < mesh->blend_shape_count; j++) {
-				if (s.blend_shapes[j].vertex_buffer != 0) {
-					GLES3::Utilities::get_singleton()->buffer_free_data(s.blend_shapes[j].vertex_buffer);
-					s.blend_shapes[j].vertex_buffer = 0;
-				}
-				if (s.blend_shapes[j].vertex_array != 0) {
-					glDeleteVertexArrays(1, &s.blend_shapes[j].vertex_array);
-					s.blend_shapes[j].vertex_array = 0;
-				}
-			}
-			memdelete_arr(s.blend_shapes);
-		}
-
-		memdelete(mesh->surfaces[i]);
+		_mesh_surface_clear(mesh, i);
 	}
 	if (mesh->surfaces) {
 		memfree(mesh->surfaces);
@@ -1034,6 +1037,56 @@ void MeshStorage::_mesh_surface_generate_version_for_input_mask(Mesh::Surface::V
 	v.input_mask = p_input_mask;
 }
 
+void MeshStorage::mesh_surface_remove(RID p_mesh, int p_surface) {
+	Mesh *mesh = mesh_owner.get_or_null(p_mesh);
+	ERR_FAIL_NULL(mesh);
+	ERR_FAIL_UNSIGNED_INDEX((uint32_t)p_surface, mesh->surface_count);
+
+	// Clear instance data before mesh data.
+	for (MeshInstance *mi : mesh->instances) {
+		_mesh_instance_remove_surface(mi, p_surface);
+	}
+
+	_mesh_surface_clear(mesh, p_surface);
+
+	if ((uint32_t)p_surface < mesh->surface_count - 1) {
+		memmove(mesh->surfaces + p_surface, mesh->surfaces + p_surface + 1, sizeof(Mesh::Surface *) * (mesh->surface_count - (p_surface + 1)));
+	}
+	mesh->surfaces = (Mesh::Surface **)memrealloc(mesh->surfaces, sizeof(Mesh::Surface *) * (mesh->surface_count - 1));
+	--mesh->surface_count;
+
+	mesh->material_cache.clear();
+
+	mesh->skeleton_aabb_version = 0;
+
+	if (mesh->has_bone_weights) {
+		mesh->has_bone_weights = false;
+		for (uint32_t i = 0; i < mesh->surface_count; i++) {
+			if (mesh->surfaces[i]->format & RS::ARRAY_FORMAT_BONES) {
+				mesh->has_bone_weights = true;
+				break;
+			}
+		}
+	}
+
+	if (mesh->surface_count == 0) {
+		mesh->aabb = AABB();
+	} else {
+		mesh->aabb = mesh->surfaces[0]->aabb;
+		for (uint32_t i = 1; i < mesh->surface_count; i++) {
+			mesh->aabb.merge_with(mesh->surfaces[i]->aabb);
+		}
+	}
+
+	mesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_MESH);
+
+	for (Mesh *E : mesh->shadow_owners) {
+		Mesh *shadow_owner = E;
+		shadow_owner->shadow_mesh = RID();
+		shadow_owner->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_MESH);
+	}
+}
+
 /* MESH INSTANCE API */
 
 RID MeshStorage::mesh_instance_create(RID p_base) {
@@ -1084,30 +1137,10 @@ void MeshStorage::mesh_instance_set_blend_shape_weight(RID p_mesh_instance, int 
 }
 
 void MeshStorage::_mesh_instance_clear(MeshInstance *mi) {
-	for (uint32_t i = 0; i < mi->surfaces.size(); i++) {
-		if (mi->surfaces[i].version_count != 0) {
-			for (uint32_t j = 0; j < mi->surfaces[i].version_count; j++) {
-				glDeleteVertexArrays(1, &mi->surfaces[i].versions[j].vertex_array);
-				mi->surfaces[i].versions[j].vertex_array = 0;
-			}
-			memfree(mi->surfaces[i].versions);
-		}
-
-		if (mi->surfaces[i].vertex_buffers[0] != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(mi->surfaces[i].vertex_buffers[0]);
-			GLES3::Utilities::get_singleton()->buffer_free_data(mi->surfaces[i].vertex_buffers[1]);
-			mi->surfaces[i].vertex_buffers[0] = 0;
-			mi->surfaces[i].vertex_buffers[1] = 0;
-		}
-
-		if (mi->surfaces[i].vertex_buffer != 0) {
-			GLES3::Utilities::get_singleton()->buffer_free_data(mi->surfaces[i].vertex_buffer);
-			mi->surfaces[i].vertex_buffer = 0;
-		}
+	while (mi->surfaces.size()) {
+		_mesh_instance_remove_surface(mi, mi->surfaces.size() - 1);
 	}
-	mi->surfaces.clear();
-	mi->blend_weights.clear();
-	mi->skeleton_version = 0;
+	mi->dirty = false;
 }
 
 void MeshStorage::_mesh_instance_add_surface(MeshInstance *mi, Mesh *mesh, uint32_t p_surface) {
@@ -1157,6 +1190,39 @@ void MeshStorage::_mesh_instance_add_surface(MeshInstance *mi, Mesh *mesh, uint3
 	}
 
 	mi->surfaces.push_back(s);
+	mi->dirty = true;
+}
+
+void MeshStorage::_mesh_instance_remove_surface(MeshInstance *mi, int p_surface) {
+	MeshInstance::Surface &surface = mi->surfaces[p_surface];
+
+	if (surface.version_count != 0) {
+		for (uint32_t j = 0; j < surface.version_count; j++) {
+			glDeleteVertexArrays(1, &surface.versions[j].vertex_array);
+			surface.versions[j].vertex_array = 0;
+		}
+		memfree(surface.versions);
+	}
+
+	if (surface.vertex_buffers[0] != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(surface.vertex_buffers[0]);
+		GLES3::Utilities::get_singleton()->buffer_free_data(surface.vertex_buffers[1]);
+		surface.vertex_buffers[0] = 0;
+		surface.vertex_buffers[1] = 0;
+	}
+
+	if (surface.vertex_buffer != 0) {
+		GLES3::Utilities::get_singleton()->buffer_free_data(surface.vertex_buffer);
+		surface.vertex_buffer = 0;
+	}
+
+	mi->surfaces.remove_at(p_surface);
+
+	if (mi->surfaces.is_empty()) {
+		mi->blend_weights.clear();
+		mi->weights_dirty = false;
+		mi->skeleton_version = 0;
+	}
 	mi->dirty = true;
 }
 
@@ -1260,7 +1326,7 @@ void MeshStorage::update_mesh_instances() {
 
 		// Precompute base weight if using blend shapes.
 		float base_weight = 1.0;
-		if (mi->mesh->blend_shape_count && mi->mesh->blend_shape_mode == RS::BLEND_SHAPE_MODE_NORMALIZED) {
+		if (mi->surfaces.size() && mi->mesh->blend_shape_count && mi->mesh->blend_shape_mode == RS::BLEND_SHAPE_MODE_NORMALIZED) {
 			for (uint32_t i = 0; i < mi->mesh->blend_shape_count; i++) {
 				base_weight -= mi->blend_weights[i];
 			}

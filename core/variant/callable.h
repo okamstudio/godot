@@ -33,7 +33,6 @@
 
 #include "core/object/object_id.h"
 #include "core/string/string_name.h"
-#include "core/templates/list.h"
 
 class Object;
 class Variant;

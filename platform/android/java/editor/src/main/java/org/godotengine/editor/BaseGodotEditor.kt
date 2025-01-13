@@ -130,11 +130,20 @@ abstract class BaseGodotEditor : GodotActivity() {
 	 */
 	@CallSuper
 	protected open fun getExcludedPermissions(): MutableSet<String> {
-		return mutableSetOf(
+		val excludedPermissions = mutableSetOf(
 			// The RECORD_AUDIO permission is requested when the "audio/driver/enable_input" project
 			// setting is enabled.
-			Manifest.permission.RECORD_AUDIO
+			Manifest.permission.RECORD_AUDIO,
 		)
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			excludedPermissions.add(
+				// The REQUEST_INSTALL_PACKAGES permission is requested the first time we attempt to
+				// open an apk file.
+				Manifest.permission.REQUEST_INSTALL_PACKAGES,
+			)
+		}
+		return excludedPermissions
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {

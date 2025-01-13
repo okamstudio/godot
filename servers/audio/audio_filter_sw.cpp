@@ -30,6 +30,8 @@
 
 #include "audio_filter_sw.h"
 
+#include "core/math/math_funcs.h"
+
 void AudioFilterSW::set_mode(Mode p_mode) {
 	mode = p_mode;
 }

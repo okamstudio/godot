@@ -900,19 +900,49 @@ String EditorExportPlatform::_get_script_encryption_key(const Ref<EditorExportPr
 	return p_preset->get_script_encryption_key().to_lower();
 }
 
-Dictionary EditorExportPlatform::get_internal_export_files() {
+Dictionary EditorExportPlatform::get_internal_export_files(const Ref<EditorExportPreset> &p_preset, bool p_debug) {
 	Dictionary files;
 
 	// Text server support data.
 	if (TS->has_feature(TextServer::FEATURE_USE_SUPPORT_DATA) && (bool)GLOBAL_GET("internationalization/locale/include_text_server_data")) {
 		String ts_name = TS->get_support_data_filename();
+		String ts_target = "res://" + ts_name;
 		if (!ts_name.is_empty()) {
-			ts_name = "res://" + ts_name;
-			if (!FileAccess::exists(ts_name)) { // Do not include if user supplied data file exist.
-				const PackedByteArray &ts_data = TS->get_support_data();
+			bool export_ok = false;
+			if (FileAccess::exists(ts_target)) { // Include user supplied data file.
+				const PackedByteArray &ts_data = FileAccess::get_file_as_bytes(ts_target);
 				if (!ts_data.is_empty()) {
-					files[ts_name] = ts_data;
+					add_message(EXPORT_MESSAGE_INFO, TTR("Export"), TTR("Using user provided text server data, text display in the exported project might be broken if export template was built with different ICU version!"));
+					files[ts_target] = ts_data;
+					export_ok = true;
 				}
+			} else {
+				String current_version = VERSION_FULL_CONFIG;
+				String template_path = EditorPaths::get_singleton()->get_export_templates_dir().path_join(current_version);
+				if (p_debug && p_preset->has("custom_template/debug") && p_preset->get("custom_template/debug") != "") {
+					template_path = p_preset->get("custom_template/debug").operator String().get_base_dir();
+				} else if (!p_debug && p_preset->has("custom_template/release") && p_preset->get("custom_template/release") != "") {
+					template_path = p_preset->get("custom_template/release").operator String().get_base_dir();
+				}
+				String data_file_name = template_path.path_join(ts_name);
+				if (FileAccess::exists(data_file_name)) {
+					const PackedByteArray &ts_data = FileAccess::get_file_as_bytes(data_file_name);
+					if (!ts_data.is_empty()) {
+						print_line("Using text server data from export templates.");
+						files[ts_target] = ts_data;
+						export_ok = true;
+					}
+				} else {
+					const PackedByteArray &ts_data = TS->get_support_data();
+					if (!ts_data.is_empty()) {
+						add_message(EXPORT_MESSAGE_INFO, TTR("Export"), TTR("Using editor embedded text server data, text display in the exported project might be broken if export template was built with different ICU version!"));
+						files[ts_target] = ts_data;
+						export_ok = true;
+					}
+				}
+			}
+			if (!export_ok) {
+				add_message(EXPORT_MESSAGE_WARNING, TTR("Export"), TTR("Missing text server data, text display in the exported project might be broken!"));
 			}
 		}
 	}
@@ -941,17 +971,6 @@ Vector<String> EditorExportPlatform::get_forced_export_files() {
 	String extension_list_config_file = GDExtension::get_extension_list_config_file();
 	if (FileAccess::exists(extension_list_config_file)) {
 		files.push_back(extension_list_config_file);
-	}
-
-	// Text server support data.
-	if (TS->has_feature(TextServer::FEATURE_USE_SUPPORT_DATA) && (bool)GLOBAL_GET("internationalization/locale/include_text_server_data")) {
-		String ts_name = TS->get_support_data_filename();
-		if (!ts_name.is_empty()) {
-			ts_name = "res://" + ts_name;
-			if (FileAccess::exists(ts_name)) { // Include user supplied data file.
-				files.push_back(ts_name);
-			}
-		}
 	}
 
 	return files;
@@ -1518,7 +1537,7 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 		}
 	}
 
-	Dictionary int_export = get_internal_export_files();
+	Dictionary int_export = get_internal_export_files(p_preset, p_debug);
 	for (const Variant &int_name : int_export.keys()) {
 		const PackedByteArray &array = int_export[int_name];
 		err = p_save_func(p_udata, int_name, array, idx, total, enc_in_filters, enc_ex_filters, key, seed);
@@ -1666,8 +1685,8 @@ void EditorExportPlatform::zip_folder_recursive(zipFile &p_zip, const String &p_
 					0x0314, // "version made by", 0x03 - Unix, 0x14 - ZIP specification version 2.0, required to store Unix file permissions
 					1 << 11); // Bit 11 is the language encoding flag. When set, filename and comment fields must be encoded using UTF-8.
 
-			String target = da->read_link(f);
-			zipWriteInFileInZip(p_zip, target.utf8().get_data(), target.utf8().size());
+			const CharString target_utf8 = da->read_link(f).utf8();
+			zipWriteInFileInZip(p_zip, target_utf8.get_data(), target_utf8.size());
 			zipCloseFileInZip(p_zip);
 		} else if (da->current_is_dir()) {
 			zip_folder_recursive(p_zip, p_root_path, p_folder.path_join(f), p_pkg_name);
@@ -2443,8 +2462,9 @@ void EditorExportPlatform::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("ssh_run_on_remote_no_wait", "host", "port", "ssh_args", "cmd_args", "port_fwd"), &EditorExportPlatform::_ssh_run_on_remote_no_wait, DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("ssh_push_to_remote", "host", "port", "scp_args", "src_file", "dst_file"), &EditorExportPlatform::ssh_push_to_remote);
 
+	ClassDB::bind_method(D_METHOD("get_internal_export_files", "preset", "debug"), &EditorExportPlatform::get_internal_export_files);
+
 	ClassDB::bind_static_method("EditorExportPlatform", D_METHOD("get_forced_export_files"), &EditorExportPlatform::get_forced_export_files);
-	ClassDB::bind_static_method("EditorExportPlatform", D_METHOD("get_internal_export_files"), &EditorExportPlatform::get_internal_export_files);
 
 	BIND_ENUM_CONSTANT(EXPORT_MESSAGE_NONE);
 	BIND_ENUM_CONSTANT(EXPORT_MESSAGE_INFO);

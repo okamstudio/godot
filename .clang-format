@@ -44,7 +44,7 @@ AllowAllParametersOfDeclarationOnNextLine: false
 # AllowShortBlocksOnASingleLine: Never
 # AllowShortCaseLabelsOnASingleLine: false
 # AllowShortEnumsOnASingleLine: true
-# AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: Inline
 # AllowShortIfStatementsOnASingleLine: Never
 # AllowShortLambdasOnASingleLine: All
 # AllowShortLoopsOnASingleLine: false
@@ -88,7 +88,7 @@ BreakConstructorInitializers: AfterColon
 # BreakInheritanceList: BeforeColon
 # BreakStringLiterals: true
 ColumnLimit: 0
-# CommentPragmas: '^ IWYU pragma:'
+# CommentPragmas: "^ IWYU pragma:"
 # CompactNamespaces: false
 ConstructorInitializerIndentWidth: 8
 ContinuationIndentWidth: 8
@@ -114,7 +114,7 @@ IncludeCategories:
   - Regex: ^<.*>$
     Priority: 3
 # IncludeIsMainRegex: (Test)?$
-# IncludeIsMainSourceRegex: ''
+# IncludeIsMainSourceRegex: ""
 # IndentAccessModifiers: false
 # IndentCaseBlocks: false
 IndentCaseLabels: true
@@ -124,7 +124,7 @@ IndentCaseLabels: true
 # IndentRequiresClause: true
 IndentWidth: 4
 # IndentWrappedFunctionNames: false
-# InsertBraces: false
+InsertBraces: true
 # InsertNewlineAtEOF: false
 # InsertTrailingCommas: None
 # IntegerLiteralSeparator:
@@ -149,8 +149,8 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 # LambdaBodyIndentation: Signature
 # Language: Cpp
 # LineEnding: DeriveLF
-# MacroBlockBegin: ''
-# MacroBlockEnd: ''
+# MacroBlockBegin: ""
+# MacroBlockEnd: ""
 # MaxEmptyLinesToKeep: 1
 # NamespaceIndentation: None
 # ObjCBinPackProtocolList: Auto

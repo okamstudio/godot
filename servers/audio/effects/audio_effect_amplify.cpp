@@ -60,11 +60,22 @@ float AudioEffectAmplify::get_volume_db() const {
 	return volume_db;
 }
 
+void AudioEffectAmplify::set_volume_linear(float p_volume) {
+	set_volume_db(Math::linear_to_db(p_volume));
+}
+
+float AudioEffectAmplify::get_volume_linear() const {
+	return Math::db_to_linear(get_volume_db());
+}
+
 void AudioEffectAmplify::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_volume_db", "volume"), &AudioEffectAmplify::set_volume_db);
 	ClassDB::bind_method(D_METHOD("get_volume_db"), &AudioEffectAmplify::get_volume_db);
+	ClassDB::bind_method(D_METHOD("set_volume_linear", "volume"), &AudioEffectAmplify::set_volume_linear);
+	ClassDB::bind_method(D_METHOD("get_volume_linear"), &AudioEffectAmplify::get_volume_linear);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "volume_db", PROPERTY_HINT_RANGE, "-80,24,0.01,suffix:dB"), "set_volume_db", "get_volume_db");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "volume_linear", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_volume_linear", "get_volume_linear");
 }
 
 AudioEffectAmplify::AudioEffectAmplify() {

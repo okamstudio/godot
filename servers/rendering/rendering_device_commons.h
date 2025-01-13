@@ -595,7 +595,7 @@ public:
 		RENDER_PRIMITIVE_TRIANGLES,
 		RENDER_PRIMITIVE_TRIANGLES_WITH_ADJACENCY,
 		RENDER_PRIMITIVE_TRIANGLE_STRIPS,
-		RENDER_PRIMITIVE_TRIANGLE_STRIPS_WITH_AJACENCY,
+		RENDER_PRIMITIVE_TRIANGLE_STRIPS_WITH_AJACENCY, // TODO: Fix typo in "ADJACENCY" (in 5.0).
 		RENDER_PRIMITIVE_TRIANGLE_STRIPS_WITH_RESTART_INDEX,
 		RENDER_PRIMITIVE_TESSELATION_PATCH,
 		RENDER_PRIMITIVE_MAX
@@ -873,13 +873,17 @@ public:
 		LIMIT_VRS_TEXEL_HEIGHT,
 		LIMIT_VRS_MAX_FRAGMENT_WIDTH,
 		LIMIT_VRS_MAX_FRAGMENT_HEIGHT,
+		LIMIT_METALFX_TEMPORAL_SCALER_MIN_SCALE,
+		LIMIT_METALFX_TEMPORAL_SCALER_MAX_SCALE,
 	};
 
 	enum Features {
 		SUPPORTS_MULTIVIEW,
 		SUPPORTS_FSR_HALF_FLOAT,
 		SUPPORTS_ATTACHMENT_VRS,
-		// If not supported, a fragment shader with only side effets (i.e., writes  to buffers, but doesn't output to attachments), may be optimized down to no-op by the GPU driver.
+		SUPPORTS_METALFX_SPATIAL,
+		SUPPORTS_METALFX_TEMPORAL,
+		// If not supported, a fragment shader with only side effects (i.e., writes  to buffers, but doesn't output to attachments), may be optimized down to no-op by the GPU driver.
 		SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS,
 	};
 

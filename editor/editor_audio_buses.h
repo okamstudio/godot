@@ -274,7 +274,7 @@ class AudioBusesEditorPlugin : public EditorPlugin {
 	EditorAudioBuses *audio_bus_editor = nullptr;
 
 public:
-	virtual String get_name() const override { return "SampleLibrary"; }
+	virtual String get_plugin_name() const override { return "SampleLibrary"; }
 	bool has_main_screen() const override { return false; }
 	virtual void edit(Object *p_node) override;
 	virtual bool handles(Object *p_node) const override;

@@ -34,6 +34,9 @@
     <!-- Scene api -->
     <uses-permission android:name="com.oculus.permission.USE_SCENE" />
 
+    <!-- Temp removal of the 'REQUEST_INSTALL_PACKAGES' permission as it's currently forbidden by the Horizon OS store -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+
     <application>
 
         <activity

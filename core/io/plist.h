@@ -33,9 +33,7 @@
 
 // Property list file format (application/x-plist) parser, property list ASN-1 serialization.
 
-#include "core/crypto/crypto_core.h"
 #include "core/io/file_access.h"
-#include "core/os/time.h"
 
 class PListNode;
 

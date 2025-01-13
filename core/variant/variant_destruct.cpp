@@ -30,8 +30,6 @@
 
 #include "variant_destruct.h"
 
-#include "core/templates/local_vector.h"
-
 static Variant::PTRDestructor destruct_pointers[Variant::VARIANT_MAX] = { nullptr };
 
 template <typename T>

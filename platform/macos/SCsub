@@ -123,7 +123,6 @@ files = [
     "native_menu_macos.mm",
     "dir_access_macos.mm",
     "tts_macos.mm",
-    "joypad_macos.mm",
     "rendering_context_driver_vulkan_macos.mm",
     "gl_manager_macos_angle.mm",
     "gl_manager_macos_legacy.mm",

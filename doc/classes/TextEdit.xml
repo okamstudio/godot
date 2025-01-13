@@ -1299,6 +1299,9 @@
 		<member name="editable" type="bool" setter="set_editable" getter="is_editable" default="true" keywords="readonly, disabled, enabled">
 			If [code]false[/code], existing text cannot be modified and new text cannot be added.
 		</member>
+		<member name="emoji_menu_enabled" type="bool" setter="set_emoji_menu_enabled" getter="is_emoji_menu_enabled" default="true">
+			If [code]false[/code], "Emoji and Symbols" menu is enabled.
+		</member>
 		<member name="empty_selection_clipboard_enabled" type="bool" setter="set_empty_selection_clipboard_enabled" getter="is_empty_selection_clipboard_enabled" default="true">
 			If [code]true[/code], copying or cutting without a selection is performed on all lines with a caret. Otherwise, copy and cut require a selection.
 		</member>
@@ -1519,7 +1522,10 @@
 		<constant name="MENU_INSERT_SHY" value="29" enum="MenuItems">
 			Inserts soft hyphen (SHY) character.
 		</constant>
-		<constant name="MENU_MAX" value="30" enum="MenuItems">
+		<constant name="MENU_EMOJI_AND_SYMBOL" value="30" enum="MenuItems">
+			Opens system emoji and symbol picker.
+		</constant>
+		<constant name="MENU_MAX" value="31" enum="MenuItems">
 			Represents the size of the [enum MenuItems] enum.
 		</constant>
 		<constant name="ACTION_NONE" value="0" enum="EditAction">

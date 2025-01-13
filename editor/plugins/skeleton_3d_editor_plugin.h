@@ -264,7 +264,7 @@ public:
 	bool has_main_screen() const override { return false; }
 	virtual bool handles(Object *p_object) const override;
 
-	virtual String get_name() const override { return "Skeleton3D"; }
+	virtual String get_plugin_name() const override { return "Skeleton3D"; }
 
 	Skeleton3DEditorPlugin();
 };

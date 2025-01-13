@@ -33,8 +33,6 @@
 #include "godot_collision_solver_3d.h"
 #include "godot_space_3d.h"
 
-#include "core/os/os.h"
-
 #define MIN_VELOCITY 0.0001
 #define MAX_BIAS_ROTATION (Math_PI / 8)
 

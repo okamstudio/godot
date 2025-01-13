@@ -29,7 +29,7 @@
 
     <application
         android:allowBackup="false"
-        android:icon="@mipmap/icon"
+        android:icon="@mipmap/themed_icon"
         android:label="${editorAppName}${editorBuildSuffix}"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/GodotEditorSplashScreenTheme"
@@ -43,7 +43,7 @@
             android:name=".GodotEditor"
             android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|density|keyboard|navigation|screenLayout|uiMode"
             android:exported="true"
-            android:icon="@mipmap/icon"
+            android:icon="@mipmap/themed_icon"
             android:launchMode="singleTask"
             android:screenOrientation="userLandscape">
             <layout

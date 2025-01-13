@@ -100,6 +100,8 @@ public:
 		SCALING_3D_MODE_BILINEAR,
 		SCALING_3D_MODE_FSR,
 		SCALING_3D_MODE_FSR2,
+		SCALING_3D_MODE_METALFX_SPATIAL,
+		SCALING_3D_MODE_METALFX_TEMPORAL,
 		SCALING_3D_MODE_MAX
 	};
 
@@ -121,6 +123,15 @@ public:
 		MSAA_8X,
 		// 16x MSAA is not supported due to its high cost and driver bugs.
 		MSAA_MAX
+	};
+
+	enum AnisotropicFiltering {
+		ANISOTROPY_DISABLED,
+		ANISOTROPY_2X,
+		ANISOTROPY_4X,
+		ANISOTROPY_8X,
+		ANISOTROPY_16X,
+		ANISOTROPY_MAX
 	};
 
 	enum ScreenSpaceAA {
@@ -303,6 +314,7 @@ private:
 	float scaling_3d_scale = 1.0;
 	float fsr_sharpness = 0.2f;
 	float texture_mipmap_bias = 0.0f;
+	AnisotropicFiltering anisotropic_filtering_level = ANISOTROPY_4X;
 	bool use_debanding = false;
 	float mesh_lod_threshold = 1.0;
 	bool use_occlusion_culling = false;
@@ -476,6 +488,9 @@ private:
 	void _process_dirty_canvas_parent_orders();
 	void _propagate_world_2d_changed(Node *p_node);
 
+	void _window_start_drag(Window *p_window);
+	void _window_start_resize(SubWindowResize p_edge, Window *p_window);
+
 protected:
 	bool _set_size(const Size2i &p_size, const Size2i &p_size_2d_override, bool p_allocated);
 
@@ -561,6 +576,9 @@ public:
 	void set_texture_mipmap_bias(float p_texture_mipmap_bias);
 	float get_texture_mipmap_bias() const;
 
+	void set_anisotropic_filtering_level(AnisotropicFiltering p_anisotropic_filtering_level);
+	AnisotropicFiltering get_anisotropic_filtering_level() const;
+
 	void set_use_debanding(bool p_use_debanding);
 	bool is_using_debanding() const;
 
@@ -586,6 +604,7 @@ public:
 
 	Vector2 get_mouse_position() const;
 	void warp_mouse(const Vector2 &p_position);
+	Point2 wrap_mouse_in_rect(const Vector2 &p_relative, const Rect2 &p_rect);
 	virtual void update_mouse_cursor_state();
 
 	void set_physics_object_picking(bool p_enable);
@@ -862,6 +881,7 @@ VARIANT_ENUM_CAST(Viewport::Scaling3DMode);
 VARIANT_ENUM_CAST(SubViewport::UpdateMode);
 VARIANT_ENUM_CAST(Viewport::PositionalShadowAtlasQuadrantSubdiv);
 VARIANT_ENUM_CAST(Viewport::MSAA);
+VARIANT_ENUM_CAST(Viewport::AnisotropicFiltering);
 VARIANT_ENUM_CAST(Viewport::ScreenSpaceAA);
 VARIANT_ENUM_CAST(Viewport::DebugDraw);
 VARIANT_ENUM_CAST(Viewport::SDFScale);

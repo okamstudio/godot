@@ -1794,7 +1794,7 @@ void WaylandThread::_wl_pointer_on_axis_discrete(void *data, struct wl_pointer *
 		pd.discrete_scroll_vector_120.y = discrete * 120;
 	}
 
-	if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+	if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
 		pd.discrete_scroll_vector_120.x = discrete * 120;
 	}
 }
@@ -1815,7 +1815,7 @@ void WaylandThread::_wl_pointer_on_axis_value120(void *data, struct wl_pointer *
 		pd.discrete_scroll_vector_120.y += value120;
 	}
 
-	if (axis == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+	if (axis == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
 		pd.discrete_scroll_vector_120.x += value120;
 	}
 }
@@ -2734,7 +2734,7 @@ void WaylandThread::_wp_text_input_on_done(void *data, struct zwp_text_input_v3 
 		msg.instantiate();
 		msg->text = ss->ime_text_commit;
 		ss->wayland_thread->push_message(msg);
-	} else if (!ss->ime_text.is_empty()) {
+	} else {
 		Ref<IMEUpdateEventMessage> msg;
 		msg.instantiate();
 		msg->text = ss->ime_text;
@@ -3338,6 +3338,96 @@ void WaylandThread::beep() const {
 	}
 }
 
+void WaylandThread::window_start_drag(DisplayServer::WindowID p_window_id) {
+	// TODO: Use window IDs for multiwindow support.
+	WindowState &ws = main_window;
+	SeatState *ss = wl_seat_get_seat_state(wl_seat_current);
+
+	if (ss && ws.xdg_toplevel) {
+		xdg_toplevel_move(ws.xdg_toplevel, ss->wl_seat, ss->pointer_data.button_serial);
+	}
+
+#ifdef LIBDECOR_ENABLED
+	if (ws.libdecor_frame) {
+		libdecor_frame_move(ws.libdecor_frame, ss->wl_seat, ss->pointer_data.button_serial);
+	}
+#endif
+}
+
+void WaylandThread::window_start_resize(DisplayServer::WindowResizeEdge p_edge, DisplayServer::WindowID p_window) {
+	// TODO: Use window IDs for multiwindow support.
+	WindowState &ws = main_window;
+	SeatState *ss = wl_seat_get_seat_state(wl_seat_current);
+
+	if (ss && ws.xdg_toplevel) {
+		xdg_toplevel_resize_edge edge = XDG_TOPLEVEL_RESIZE_EDGE_NONE;
+		switch (p_edge) {
+			case DisplayServer::WINDOW_EDGE_TOP_LEFT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_TOP_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_TOP: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_TOP;
+			} break;
+			case DisplayServer::WINDOW_EDGE_TOP_RIGHT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_TOP_RIGHT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_LEFT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_RIGHT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_RIGHT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM_LEFT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM_RIGHT: {
+				edge = XDG_TOPLEVEL_RESIZE_EDGE_BOTTOM_RIGHT;
+			} break;
+			default:
+				break;
+		}
+		xdg_toplevel_resize(ws.xdg_toplevel, ss->wl_seat, ss->pointer_data.button_serial, edge);
+	}
+
+#ifdef LIBDECOR_ENABLED
+	if (ws.libdecor_frame) {
+		libdecor_resize_edge edge = LIBDECOR_RESIZE_EDGE_NONE;
+		switch (p_edge) {
+			case DisplayServer::WINDOW_EDGE_TOP_LEFT: {
+				edge = LIBDECOR_RESIZE_EDGE_TOP_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_TOP: {
+				edge = LIBDECOR_RESIZE_EDGE_TOP;
+			} break;
+			case DisplayServer::WINDOW_EDGE_TOP_RIGHT: {
+				edge = LIBDECOR_RESIZE_EDGE_TOP_RIGHT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_LEFT: {
+				edge = LIBDECOR_RESIZE_EDGE_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_RIGHT: {
+				edge = LIBDECOR_RESIZE_EDGE_RIGHT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM_LEFT: {
+				edge = LIBDECOR_RESIZE_EDGE_BOTTOM_LEFT;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM: {
+				edge = LIBDECOR_RESIZE_EDGE_BOTTOM;
+			} break;
+			case DisplayServer::WINDOW_EDGE_BOTTOM_RIGHT: {
+				edge = LIBDECOR_RESIZE_EDGE_BOTTOM_RIGHT;
+			} break;
+			default:
+				break;
+		}
+		libdecor_frame_resize(ws.libdecor_frame, ss->wl_seat, ss->pointer_data.button_serial, edge);
+	}
+#endif
+}
+
 void WaylandThread::window_set_max_size(DisplayServer::WindowID p_window_id, const Size2i &p_size) {
 	// TODO: Use window IDs for multiwindow support.
 	WindowState &ws = main_window;
@@ -3532,7 +3622,8 @@ void WaylandThread::window_try_set_mode(DisplayServer::WindowID p_window_id, Dis
 #endif // LIBDECOR_ENABLED
 		} break;
 
-		case DisplayServer::WINDOW_MODE_FULLSCREEN: {
+		case DisplayServer::WINDOW_MODE_FULLSCREEN:
+		case DisplayServer::WINDOW_MODE_EXCLUSIVE_FULLSCREEN: {
 			if (ws.xdg_toplevel) {
 				xdg_toplevel_set_fullscreen(ws.xdg_toplevel, nullptr);
 			}
@@ -3864,7 +3955,7 @@ void WaylandThread::cursor_set_shape(DisplayServer::CursorShape p_cursor_shape) 
 }
 
 void WaylandThread::cursor_shape_set_custom_image(DisplayServer::CursorShape p_cursor_shape, Ref<Image> p_image, const Point2i &p_hotspot) {
-	ERR_FAIL_COND(!p_image.is_valid());
+	ERR_FAIL_COND(p_image.is_null());
 
 	Size2i image_size = p_image->get_size();
 

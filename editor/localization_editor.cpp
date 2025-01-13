@@ -38,6 +38,7 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/pot_generator.h"
 #include "scene/gui/control.h"
+#include "scene/gui/tab_container.h"
 
 void LocalizationEditor::_notification(int p_what) {
 	switch (p_what) {

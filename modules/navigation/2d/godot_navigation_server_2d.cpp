@@ -185,7 +185,7 @@ void GodotNavigationServer2D::finish() {
 
 void GodotNavigationServer2D::parse_source_geometry_data(const Ref<NavigationPolygon> &p_navigation_mesh, const Ref<NavigationMeshSourceGeometryData2D> &p_source_geometry_data, Node *p_root_node, const Callable &p_callback) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "The SceneTree can only be parsed on the main thread. Call this function from the main thread or use call_deferred().");
-	ERR_FAIL_COND_MSG(!p_navigation_mesh.is_valid(), "Invalid navigation polygon.");
+	ERR_FAIL_COND_MSG(p_navigation_mesh.is_null(), "Invalid navigation polygon.");
 	ERR_FAIL_NULL_MSG(p_root_node, "No parsing root node specified.");
 	ERR_FAIL_COND_MSG(!p_root_node->is_inside_tree(), "The root node needs to be inside the SceneTree.");
 
@@ -196,8 +196,8 @@ void GodotNavigationServer2D::parse_source_geometry_data(const Ref<NavigationPol
 }
 
 void GodotNavigationServer2D::bake_from_source_geometry_data(const Ref<NavigationPolygon> &p_navigation_mesh, const Ref<NavigationMeshSourceGeometryData2D> &p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND_MSG(!p_navigation_mesh.is_valid(), "Invalid navigation polygon.");
-	ERR_FAIL_COND_MSG(!p_source_geometry_data.is_valid(), "Invalid NavigationMeshSourceGeometryData2D.");
+	ERR_FAIL_COND_MSG(p_navigation_mesh.is_null(), "Invalid navigation polygon.");
+	ERR_FAIL_COND_MSG(p_source_geometry_data.is_null(), "Invalid NavigationMeshSourceGeometryData2D.");
 
 #ifdef CLIPPER2_ENABLED
 	ERR_FAIL_NULL(NavMeshGenerator2D::get_singleton());
@@ -206,8 +206,8 @@ void GodotNavigationServer2D::bake_from_source_geometry_data(const Ref<Navigatio
 }
 
 void GodotNavigationServer2D::bake_from_source_geometry_data_async(const Ref<NavigationPolygon> &p_navigation_mesh, const Ref<NavigationMeshSourceGeometryData2D> &p_source_geometry_data, const Callable &p_callback) {
-	ERR_FAIL_COND_MSG(!p_navigation_mesh.is_valid(), "Invalid navigation mesh.");
-	ERR_FAIL_COND_MSG(!p_source_geometry_data.is_valid(), "Invalid NavigationMeshSourceGeometryData2D.");
+	ERR_FAIL_COND_MSG(p_navigation_mesh.is_null(), "Invalid navigation mesh.");
+	ERR_FAIL_COND_MSG(p_source_geometry_data.is_null(), "Invalid NavigationMeshSourceGeometryData2D.");
 
 #ifdef CLIPPER2_ENABLED
 	ERR_FAIL_NULL(NavMeshGenerator2D::get_singleton());
@@ -257,6 +257,14 @@ void GodotNavigationServer2D::map_force_update(RID p_map) {
 
 uint32_t GodotNavigationServer2D::map_get_iteration_id(RID p_map) const {
 	return NavigationServer3D::get_singleton()->map_get_iteration_id(p_map);
+}
+
+void GodotNavigationServer2D::map_set_use_async_iterations(RID p_map, bool p_enabled) {
+	return NavigationServer3D::get_singleton()->map_set_use_async_iterations(p_map, p_enabled);
+}
+
+bool GodotNavigationServer2D::map_get_use_async_iterations(RID p_map) const {
+	return NavigationServer3D::get_singleton()->map_get_use_async_iterations(p_map);
 }
 
 void FORWARD_2(map_set_cell_size, RID, p_map, real_t, p_cell_size, rid_to_rid, real_to_real);
@@ -453,8 +461,8 @@ Vector<Vector2> GodotNavigationServer2D::obstacle_get_vertices(RID p_obstacle) c
 }
 
 void GodotNavigationServer2D::query_path(const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result, const Callable &p_callback) {
-	ERR_FAIL_COND(!p_query_parameters.is_valid());
-	ERR_FAIL_COND(!p_query_result.is_valid());
+	ERR_FAIL_COND(p_query_parameters.is_null());
+	ERR_FAIL_COND(p_query_result.is_null());
 
 	Ref<NavigationPathQueryParameters3D> query_parameters;
 	query_parameters.instantiate();

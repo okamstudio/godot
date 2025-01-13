@@ -31,32 +31,31 @@
 #include "check_box.h"
 
 #include "scene/theme/theme_db.h"
-#include "servers/rendering_server.h"
 
 Size2 CheckBox::get_icon_size() const {
 	Size2 tex_size = Size2(0, 0);
-	if (!theme_cache.checked.is_null()) {
+	if (theme_cache.checked.is_valid()) {
 		tex_size = theme_cache.checked->get_size();
 	}
-	if (!theme_cache.unchecked.is_null()) {
+	if (theme_cache.unchecked.is_valid()) {
 		tex_size = tex_size.max(theme_cache.unchecked->get_size());
 	}
-	if (!theme_cache.radio_checked.is_null()) {
+	if (theme_cache.radio_checked.is_valid()) {
 		tex_size = tex_size.max(theme_cache.radio_checked->get_size());
 	}
-	if (!theme_cache.radio_unchecked.is_null()) {
+	if (theme_cache.radio_unchecked.is_valid()) {
 		tex_size = tex_size.max(theme_cache.radio_unchecked->get_size());
 	}
-	if (!theme_cache.checked_disabled.is_null()) {
+	if (theme_cache.checked_disabled.is_valid()) {
 		tex_size = tex_size.max(theme_cache.checked_disabled->get_size());
 	}
-	if (!theme_cache.unchecked_disabled.is_null()) {
+	if (theme_cache.unchecked_disabled.is_valid()) {
 		tex_size = tex_size.max(theme_cache.unchecked_disabled->get_size());
 	}
-	if (!theme_cache.radio_checked_disabled.is_null()) {
+	if (theme_cache.radio_checked_disabled.is_valid()) {
 		tex_size = tex_size.max(theme_cache.radio_checked_disabled->get_size());
 	}
-	if (!theme_cache.radio_unchecked_disabled.is_null()) {
+	if (theme_cache.radio_unchecked_disabled.is_valid()) {
 		tex_size = tex_size.max(theme_cache.radio_unchecked_disabled->get_size());
 	}
 	return _fit_icon_size(tex_size);

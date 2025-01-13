@@ -32,12 +32,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/object/worker_thread_pool.h"
-#include "core/os/os.h"
 #include "rendering_light_culler.h"
-#include "rendering_server_constants.h"
 #include "rendering_server_default.h"
-
-#include <new>
 
 #if defined(DEBUG_ENABLED) && defined(TOOLS_ENABLED)
 // This is used only to obtain node paths for user-friendly physics interpolation warnings.
@@ -701,7 +697,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 				geom->geometry_instance->set_use_baked_light(instance->baked_light);
 				geom->geometry_instance->set_use_dynamic_gi(instance->dynamic_gi);
 				geom->geometry_instance->set_use_lightmap(RID(), instance->lightmap_uv_scale, instance->lightmap_slice_index);
-				geom->geometry_instance->set_instance_shader_uniforms_offset(instance->instance_allocated_shader_uniforms_offset);
+				geom->geometry_instance->set_instance_shader_uniforms_offset(instance->instance_uniforms.location());
 				geom->geometry_instance->set_cast_double_sided_shadows(instance->cast_shadows == RS::SHADOW_CASTING_SETTING_DOUBLE_SIDED);
 				if (instance->lightmap_sh.size() == 9) {
 					geom->geometry_instance->set_lightmap_capture(instance->lightmap_sh.ptr());
@@ -1636,58 +1632,21 @@ void RendererSceneCull::instance_geometry_set_shader_parameter(RID p_instance, c
 	Instance *instance = instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL(instance);
 
-	ERR_FAIL_COND(p_value.get_type() == Variant::OBJECT);
-
-	HashMap<StringName, Instance::InstanceShaderParameter>::Iterator E = instance->instance_shader_uniforms.find(p_parameter);
-
-	if (!E) {
-		Instance::InstanceShaderParameter isp;
-		isp.index = -1;
-		isp.info = PropertyInfo();
-		isp.value = p_value;
-		instance->instance_shader_uniforms[p_parameter] = isp;
-	} else {
-		E->value.value = p_value;
-		if (E->value.index >= 0 && instance->instance_allocated_shader_uniforms) {
-			int flags_count = 0;
-			if (E->value.info.hint == PROPERTY_HINT_FLAGS) {
-				// A small hack to detect boolean flags count and prevent overhead.
-				switch (E->value.info.hint_string.length()) {
-					case 3: // "x,y"
-						flags_count = 1;
-						break;
-					case 5: // "x,y,z"
-						flags_count = 2;
-						break;
-					case 7: // "x,y,z,w"
-						flags_count = 3;
-						break;
-				}
-			}
-			//update directly
-			RSG::material_storage->global_shader_parameters_instance_update(p_instance, E->value.index, p_value, flags_count);
-		}
-	}
+	instance->instance_uniforms.set(instance->self, p_parameter, p_value);
 }
 
 Variant RendererSceneCull::instance_geometry_get_shader_parameter(RID p_instance, const StringName &p_parameter) const {
 	const Instance *instance = instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL_V(instance, Variant());
 
-	if (instance->instance_shader_uniforms.has(p_parameter)) {
-		return instance->instance_shader_uniforms[p_parameter].value;
-	}
-	return Variant();
+	return instance->instance_uniforms.get(p_parameter);
 }
 
 Variant RendererSceneCull::instance_geometry_get_shader_parameter_default_value(RID p_instance, const StringName &p_parameter) const {
 	const Instance *instance = instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL_V(instance, Variant());
 
-	if (instance->instance_shader_uniforms.has(p_parameter)) {
-		return instance->instance_shader_uniforms[p_parameter].default_value;
-	}
-	return Variant();
+	return instance->instance_uniforms.get_default(p_parameter);
 }
 
 void RendererSceneCull::mesh_generate_pipelines(RID p_mesh, bool p_background_compilation) {
@@ -1699,20 +1658,13 @@ uint32_t RendererSceneCull::get_pipeline_compilations(RS::PipelineSource p_sourc
 }
 
 void RendererSceneCull::instance_geometry_get_shader_parameter_list(RID p_instance, List<PropertyInfo> *p_parameters) const {
+	ERR_FAIL_NULL(p_parameters);
 	const Instance *instance = instance_owner.get_or_null(p_instance);
 	ERR_FAIL_NULL(instance);
 
 	update_dirty_instances();
 
-	Vector<StringName> names;
-	for (const KeyValue<StringName, Instance::InstanceShaderParameter> &E : instance->instance_shader_uniforms) {
-		names.push_back(E.key);
-	}
-	names.sort_custom<StringName::AlphCompare>();
-	for (int i = 0; i < names.size(); i++) {
-		PropertyInfo pinfo = instance->instance_shader_uniforms[names[i]].info;
-		p_parameters->push_back(pinfo);
-	}
+	instance->instance_uniforms.get_property_list(*p_parameters);
 }
 
 void RendererSceneCull::_update_instance(Instance *p_instance) const {
@@ -2558,7 +2510,7 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 				}
 
 				real_t radius = RSG::light_storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_RANGE);
-				real_t z_near = 0.005f;
+				real_t z_near = MIN(0.005f, radius);
 				Projection cm;
 				cm.set_perspective(90, 1, z_near, radius);
 
@@ -2648,7 +2600,7 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 
 			real_t radius = RSG::light_storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_RANGE);
 			real_t angle = RSG::light_storage->light_get_param(p_instance->base, RS::LIGHT_PARAM_SPOT_ANGLE);
-			real_t z_near = 0.005f;
+			real_t z_near = MIN(0.005f, radius);
 
 			Projection cm;
 			cm.set_perspective(angle * 2.0, 1.0, z_near, radius);
@@ -3283,7 +3235,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 				continue;
 			}
 
-			if (directional_lights.size() > RendererSceneRender::MAX_DIRECTIONAL_LIGHTS) {
+			if (directional_lights.size() >= RendererSceneRender::MAX_DIRECTIONAL_LIGHTS) {
 				break;
 			}
 
@@ -4047,34 +3999,6 @@ void RendererSceneCull::render_particle_colliders() {
 	}
 }
 
-void RendererSceneCull::_update_instance_shader_uniforms_from_material(HashMap<StringName, Instance::InstanceShaderParameter> &isparams, const HashMap<StringName, Instance::InstanceShaderParameter> &existing_isparams, RID p_material) const {
-	List<RendererMaterialStorage::InstanceShaderParam> plist;
-	RSG::material_storage->material_get_instance_shader_parameters(p_material, &plist);
-	for (const RendererMaterialStorage::InstanceShaderParam &E : plist) {
-		StringName name = E.info.name;
-		if (isparams.has(name)) {
-			if (isparams[name].info.type != E.info.type) {
-				WARN_PRINT("More than one material in instance export the same instance shader uniform '" + E.info.name + "', but they do it with different data types. Only the first one (in order) will display correctly.");
-			}
-			if (isparams[name].index != E.index) {
-				WARN_PRINT("More than one material in instance export the same instance shader uniform '" + E.info.name + "', but they do it with different indices. Only the first one (in order) will display correctly.");
-			}
-			continue; //first one found always has priority
-		}
-
-		Instance::InstanceShaderParameter isp;
-		isp.index = E.index;
-		isp.info = E.info;
-		isp.default_value = E.default_value;
-		if (existing_isparams.has(name)) {
-			isp.value = existing_isparams[name].value;
-		} else {
-			isp.value = E.default_value;
-		}
-		isparams[name] = isp;
-	}
-}
-
 void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 	if (p_instance->update_aabb) {
 		_update_instance_aabb(p_instance);
@@ -4118,7 +4042,8 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 
 			bool can_cast_shadows = true;
 			bool is_animated = false;
-			HashMap<StringName, Instance::InstanceShaderParameter> isparams;
+
+			p_instance->instance_uniforms.materials_start();
 
 			if (p_instance->cast_shadows == RS::SHADOW_CASTING_SETTING_OFF) {
 				can_cast_shadows = false;
@@ -4129,7 +4054,7 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 					can_cast_shadows = false;
 				}
 				is_animated = RSG::material_storage->material_is_animated(p_instance->material_override);
-				_update_instance_shader_uniforms_from_material(isparams, p_instance->instance_shader_uniforms, p_instance->material_override);
+				p_instance->instance_uniforms.materials_append(p_instance->material_override);
 			} else {
 				if (p_instance->base_type == RS::INSTANCE_MESH) {
 					RID mesh = p_instance->base;
@@ -4151,7 +4076,7 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 									is_animated = true;
 								}
 
-								_update_instance_shader_uniforms_from_material(isparams, p_instance->instance_shader_uniforms, mat);
+								p_instance->instance_uniforms.materials_append(mat);
 
 								RSG::material_storage->material_update_dependency(mat, &p_instance->dependency_tracker);
 							}
@@ -4182,7 +4107,7 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 									is_animated = true;
 								}
 
-								_update_instance_shader_uniforms_from_material(isparams, p_instance->instance_shader_uniforms, mat);
+								p_instance->instance_uniforms.materials_append(mat);
 
 								RSG::material_storage->material_update_dependency(mat, &p_instance->dependency_tracker);
 							}
@@ -4220,7 +4145,7 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 									is_animated = true;
 								}
 
-								_update_instance_shader_uniforms_from_material(isparams, p_instance->instance_shader_uniforms, mat);
+								p_instance->instance_uniforms.materials_append(mat);
 
 								RSG::material_storage->material_update_dependency(mat, &p_instance->dependency_tracker);
 							}
@@ -4236,7 +4161,7 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 			if (p_instance->material_overlay.is_valid()) {
 				can_cast_shadows = can_cast_shadows && RSG::material_storage->material_casts_shadows(p_instance->material_overlay);
 				is_animated = is_animated || RSG::material_storage->material_is_animated(p_instance->material_overlay);
-				_update_instance_shader_uniforms_from_material(isparams, p_instance->instance_shader_uniforms, p_instance->material_overlay);
+				p_instance->instance_uniforms.materials_append(p_instance->material_overlay);
 			}
 
 			if (can_cast_shadows != geom->can_cast_shadows) {
@@ -4250,41 +4175,9 @@ void RendererSceneCull::_update_dirty_instance(Instance *p_instance) const {
 			}
 
 			geom->material_is_animated = is_animated;
-			p_instance->instance_shader_uniforms = isparams;
 
-			if (p_instance->instance_allocated_shader_uniforms != (p_instance->instance_shader_uniforms.size() > 0)) {
-				p_instance->instance_allocated_shader_uniforms = (p_instance->instance_shader_uniforms.size() > 0);
-				if (p_instance->instance_allocated_shader_uniforms) {
-					p_instance->instance_allocated_shader_uniforms_offset = RSG::material_storage->global_shader_parameters_instance_allocate(p_instance->self);
-					ERR_FAIL_NULL(geom->geometry_instance);
-					geom->geometry_instance->set_instance_shader_uniforms_offset(p_instance->instance_allocated_shader_uniforms_offset);
-
-					for (const KeyValue<StringName, Instance::InstanceShaderParameter> &E : p_instance->instance_shader_uniforms) {
-						if (E.value.value.get_type() != Variant::NIL) {
-							int flags_count = 0;
-							if (E.value.info.hint == PROPERTY_HINT_FLAGS) {
-								// A small hack to detect boolean flags count and prevent overhead.
-								switch (E.value.info.hint_string.length()) {
-									case 3: // "x,y"
-										flags_count = 1;
-										break;
-									case 5: // "x,y,z"
-										flags_count = 2;
-										break;
-									case 7: // "x,y,z,w"
-										flags_count = 3;
-										break;
-								}
-							}
-							RSG::material_storage->global_shader_parameters_instance_update(p_instance->self, E.value.index, E.value.value, flags_count);
-						}
-					}
-				} else {
-					RSG::material_storage->global_shader_parameters_instance_free(p_instance->self);
-					p_instance->instance_allocated_shader_uniforms_offset = -1;
-					ERR_FAIL_NULL(geom->geometry_instance);
-					geom->geometry_instance->set_instance_shader_uniforms_offset(-1);
-				}
+			if (p_instance->instance_uniforms.materials_finish(p_instance->self)) {
+				geom->geometry_instance->set_instance_shader_uniforms_offset(p_instance->instance_uniforms.location());
 			}
 		}
 
@@ -4379,10 +4272,7 @@ bool RendererSceneCull::free(RID p_rid) {
 		instance_geometry_set_material_overlay(p_rid, RID());
 		instance_attach_skeleton(p_rid, RID());
 
-		if (instance->instance_allocated_shader_uniforms) {
-			//free the used shader parameters
-			RSG::material_storage->global_shader_parameters_instance_free(instance->self);
-		}
+		instance->instance_uniforms.free(instance->self);
 		update_dirty_instances(); //in case something changed this
 
 		instance_owner.free(p_rid);

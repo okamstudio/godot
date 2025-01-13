@@ -39,6 +39,7 @@ namespace NavigationDefaults3D {
 // each cell has the following cell_size and cell_height.
 constexpr float navmesh_cell_size{ 0.25f }; // Must match ProjectSettings default 3D cell_size and NavigationMesh cell_size.
 constexpr float navmesh_cell_height{ 0.25f }; // Must match ProjectSettings default 3D cell_height and NavigationMesh cell_height.
+constexpr float navmesh_cell_size_min{ 0.01f };
 constexpr auto navmesh_cell_size_hint{ "0.001,100,0.001,or_greater" };
 
 // Map.

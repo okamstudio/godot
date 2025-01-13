@@ -137,6 +137,10 @@ public:
 	inline const T &operator[](int p_index) const {
 		return _data[p_index];
 	}
+
+	_FORCE_INLINE_ VSet() {}
+	_FORCE_INLINE_ VSet(std::initializer_list<T> p_init) :
+			_data(p_init) {}
 };
 
 #endif // VSET_H

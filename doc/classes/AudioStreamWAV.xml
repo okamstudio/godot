@@ -13,11 +13,11 @@
 	<methods>
 		<method name="load_from_buffer" qualifiers="static">
 			<return type="AudioStreamWAV" />
-			<param index="0" name="buffer" type="PackedByteArray" />
+			<param index="0" name="stream_data" type="PackedByteArray" />
 			<param index="1" name="options" type="Dictionary" default="{}" />
 			<description>
-				Creates a new [AudioStreamWAV] instance from the given buffer. The keys and values of [param options] match the properties of [ResourceImporterWAV].
-				The usage of [param options] is identical to [method AudioStreamWAV.load_from_file].
+				Creates a new [AudioStreamWAV] instance from the given buffer. The buffer must contain WAV data.
+				The keys and values of [param options] match the properties of [ResourceImporterWAV]. The usage of [param options] is identical to [method AudioStreamWAV.load_from_file].
 			</description>
 		</method>
 		<method name="load_from_file" qualifiers="static">
@@ -25,7 +25,8 @@
 			<param index="0" name="path" type="String" />
 			<param index="1" name="options" type="Dictionary" default="{}" />
 			<description>
-				Creates a new [AudioStreamWAV] instance from the given file path. The keys and values of [param options] match the properties of [ResourceImporterWAV].
+				Creates a new [AudioStreamWAV] instance from the given file path. The file must be in WAV format.
+				The keys and values of [param options] match the properties of [ResourceImporterWAV].
 				[b]Example:[/b] Load the first file dropped as a WAV and play it:
 				[codeblock]
 				@onready var audio_player = $AudioStreamPlayer

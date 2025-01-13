@@ -250,19 +250,25 @@ vec3 clip_aabb(vec3 aabb_min, vec3 aabb_max, vec3 p, vec3 q) {
 	vec3 rmax = (aabb_max - p.xyz);
 	vec3 rmin = (aabb_min - p.xyz);
 
-	if (r.x > rmax.x + FLT_MIN)
+	if (r.x > rmax.x + FLT_MIN) {
 		r *= (rmax.x / r.x);
-	if (r.y > rmax.y + FLT_MIN)
+	}
+	if (r.y > rmax.y + FLT_MIN) {
 		r *= (rmax.y / r.y);
-	if (r.z > rmax.z + FLT_MIN)
+	}
+	if (r.z > rmax.z + FLT_MIN) {
 		r *= (rmax.z / r.z);
+	}
 
-	if (r.x < rmin.x - FLT_MIN)
+	if (r.x < rmin.x - FLT_MIN) {
 		r *= (rmin.x / r.x);
-	if (r.y < rmin.y - FLT_MIN)
+	}
+	if (r.y < rmin.y - FLT_MIN) {
 		r *= (rmin.y / r.y);
-	if (r.z < rmin.z - FLT_MIN)
+	}
+	if (r.z < rmin.z - FLT_MIN) {
 		r *= (rmin.z / r.z);
+	}
 
 	return p + r;
 }

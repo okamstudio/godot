@@ -259,7 +259,7 @@ Error RenderingDeviceDriver::_reflect_spirv(VectorView<ShaderStageSPIRVData> p_s
 							}
 						}
 
-						if (existing > 0) {
+						if (existing >= 0) {
 							r_reflection.specialization_constants.write[existing].stages.set_flag(stage_flag);
 						} else {
 							r_reflection.specialization_constants.push_back(sconst);

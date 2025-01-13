@@ -557,6 +557,19 @@
 				Makes the [Window] appear. This enables interactions with the [Window] and doesn't change any of its property other than visibility (unlike e.g. [method popup]).
 			</description>
 		</method>
+		<method name="start_drag">
+			<return type="void" />
+			<description>
+				Starts an interactive drag operation on the window, using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
+			</description>
+		</method>
+		<method name="start_resize">
+			<return type="void" />
+			<param index="0" name="edge" type="int" enum="DisplayServer.WindowResizeEdge" />
+			<description>
+				Starts an interactive resize operation on the window, using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's edge.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="always_on_top" type="bool" setter="set_flag" getter="get_flag" default="false">
@@ -641,13 +654,13 @@
 			[/gdscript]
 			[csharp]
 			// Set region, using Path2D node.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = GetNode&lt;Path2D&gt;("Path2D").Curve.GetBakedPoints();
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = GetNode&lt;Path2D&gt;("Path2D").Curve.GetBakedPoints();
 
 			// Set region, using Polygon2D node.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = GetNode&lt;Polygon2D&gt;("Polygon2D").Polygon;
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = GetNode&lt;Polygon2D&gt;("Polygon2D").Polygon;
 
 			// Reset region to default.
-			GetNode&lt;Window&gt;("Window").MousePassthrough = new Vector2[] {};
+			GetNode&lt;Window&gt;("Window").MousePassthroughPolygon = [];
 			[/csharp]
 			[/codeblocks]
 			[b]Note:[/b] This property is ignored if [member mouse_passthrough] is set to [code]true[/code].
@@ -766,6 +779,11 @@
 		<signal name="theme_changed">
 			<description>
 				Emitted when the [constant NOTIFICATION_THEME_CHANGED] notification is sent.
+			</description>
+		</signal>
+		<signal name="title_changed">
+			<description>
+				Emitted when window title bar text is changed.
 			</description>
 		</signal>
 		<signal name="titlebar_changed">

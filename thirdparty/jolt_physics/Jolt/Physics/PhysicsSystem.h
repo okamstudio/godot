@@ -65,7 +65,7 @@ public:
 
 	/// Set the function that combines the restitution of two bodies and returns it
 	/// Default method is max(restitution1, restitution1)
-	void						SetCombineRestitution(ContactConstraintManager::CombineFunction inCombineRestition) { mContactManager.SetCombineRestitution(inCombineRestition); }
+	void						SetCombineRestitution(ContactConstraintManager::CombineFunction inCombineRestitution) { mContactManager.SetCombineRestitution(inCombineRestitution); }
 	ContactConstraintManager::CombineFunction GetCombineRestitution() const					{ return mContactManager.GetCombineRestitution(); }
 
 	/// Set/get the shape filter that will be used during simulation. This can be used to exclude shapes within a body from colliding with each other.
@@ -126,6 +126,8 @@ public:
 	/// The world steps for a total of inDeltaTime seconds. This is divided in inCollisionSteps iterations.
 	/// Each iteration consists of collision detection followed by an integration step.
 	/// This function internally spawns jobs using inJobSystem and waits for them to complete, so no jobs will be running when this function returns.
+	/// The temp allocator is used, for example, to store the list of bodies that are in contact, how they form islands together
+	/// and data to solve the contacts between bodies. At the end of the Update call, all allocated memory will have been freed.
 	EPhysicsUpdateError			Update(float inDeltaTime, int inCollisionSteps, TempAllocator *inTempAllocator, JobSystem *inJobSystem);
 
 	/// Saving state for replay

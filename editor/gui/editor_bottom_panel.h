@@ -75,7 +75,7 @@ public:
 
 	Button *add_item(String p_text, Control *p_item, const Ref<Shortcut> &p_shortcut = nullptr, bool p_at_front = false);
 	void remove_item(Control *p_item);
-	void make_item_visible(Control *p_item, bool p_visible = true);
+	void make_item_visible(Control *p_item, bool p_visible = true, bool p_ignore_lock = false);
 	void move_item_to_end(Control *p_item);
 	void hide_bottom_panel();
 	void toggle_last_opened_bottom_panel();

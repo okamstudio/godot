@@ -5,6 +5,8 @@
 #pragma once
 
 #include <Jolt/Core/Reference.h>
+#include <Jolt/Core/Result.h>
+#include <Jolt/Core/StreamUtils.h>
 #include <Jolt/ObjectStream/SerializableObject.h>
 
 JPH_NAMESPACE_BEGIN
@@ -62,12 +64,24 @@ public:
 	/// Scale the size of all joints by inScale
 	void								ScaleJoints(float inScale);
 
+	/// If the animation is looping or not. If an animation is looping, the animation will continue playing after completion
+	void 								SetIsLooping(bool inIsLooping)						{ mIsLooping = inIsLooping; }
+	bool								IsLooping() const									{ return mIsLooping; }
+
 	/// Get the (interpolated) joint transforms at time inTime
 	void								Sample(float inTime, SkeletonPose &ioPose) const;
 
 	/// Get joint samples
 	const AnimatedJointVector &			GetAnimatedJoints() const							{ return mAnimatedJoints; }
 	AnimatedJointVector &				GetAnimatedJoints()									{ return mAnimatedJoints; }
+
+	/// Saves the state of this animation in binary form to inStream.
+	void								SaveBinaryState(StreamOut &inStream) const;
+
+	using AnimationResult = Result<Ref<SkeletalAnimation>>;
+
+	/// Restore a saved ragdoll from inStream
+	static AnimationResult				sRestoreFromBinaryState(StreamIn &inStream);
 
 private:
 	AnimatedJointVector					mAnimatedJoints;									///< List of joints and keyframes

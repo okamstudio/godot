@@ -30,6 +30,7 @@
 
 #include "websocket_multiplayer_peer.h"
 
+#include "core/io/stream_peer_tls.h"
 #include "core/os/os.h"
 
 WebSocketMultiplayerPeer::WebSocketMultiplayerPeer() {

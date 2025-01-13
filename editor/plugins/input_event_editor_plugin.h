@@ -70,7 +70,7 @@ class InputEventEditorPlugin : public EditorPlugin {
 	GDCLASS(InputEventEditorPlugin, EditorPlugin);
 
 public:
-	virtual String get_name() const override { return "InputEvent"; }
+	virtual String get_plugin_name() const override { return "InputEvent"; }
 
 	InputEventEditorPlugin();
 };

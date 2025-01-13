@@ -82,7 +82,6 @@ public:
 		ENUM_VARIABLE_WITHOUT_DEFAULT, // A variable with an enum type does not have a default value. The default will be set to `0` instead of the first enum value.
 		EMPTY_FILE, // A script file is empty.
 		DEPRECATED_KEYWORD, // The keyword is deprecated and should be replaced.
-		RENAMED_IN_GODOT_4_HINT, // A variable or function that could not be found has been renamed in Godot 4.
 		CONFUSABLE_IDENTIFIER, // The identifier contains misleading characters that can be confused. E.g. "usеr" (has Cyrillic "е" instead of Latin "e").
 		CONFUSABLE_LOCAL_DECLARATION, // The parent block declares an identifier with the same name below.
 		CONFUSABLE_LOCAL_USAGE, // The identifier will be shadowed below in the block.
@@ -98,6 +97,10 @@ public:
 #endif
 		WARNING_MAX,
 	};
+
+#ifndef DISABLE_DEPRECATED
+	static constexpr int FIRST_DEPRECATED_WARNING = PROPERTY_USED_AS_FUNCTION;
+#endif
 
 	constexpr static WarnLevel default_warning_levels[] = {
 		WARN, // UNASSIGNED_VARIABLE
@@ -136,7 +139,6 @@ public:
 		WARN, // ENUM_VARIABLE_WITHOUT_DEFAULT
 		WARN, // EMPTY_FILE
 		WARN, // DEPRECATED_KEYWORD
-		WARN, // RENAMED_IN_GODOT_4_HINT
 		WARN, // CONFUSABLE_IDENTIFIER
 		WARN, // CONFUSABLE_LOCAL_DECLARATION
 		WARN, // CONFUSABLE_LOCAL_USAGE

@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "shortcut.h"
-#include "core/os/keyboard.h"
 
 void Shortcut::set_events(const Array &p_events) {
 	for (int i = 0; i < p_events.size(); i++) {

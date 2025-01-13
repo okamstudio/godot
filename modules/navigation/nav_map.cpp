@@ -30,6 +30,9 @@
 
 #include "nav_map.h"
 
+#include "3d/nav_map_builder_3d.h"
+#include "3d/nav_mesh_queries_3d.h"
+#include "3d/nav_region_iteration_3d.h"
 #include "nav_agent.h"
 #include "nav_link.h"
 #include "nav_obstacle.h"
@@ -49,6 +52,18 @@
 #define NAVMAP_ITERATION_ZERO_ERROR_MSG()
 #endif // DEBUG_ENABLED
 
+#define GET_MAP_ITERATION()                                                 \
+	iteration_slot_rwlock.read_lock();                                      \
+	NavMapIteration &map_iteration = iteration_slots[iteration_slot_index]; \
+	NavMapIterationRead iteration_read_lock(map_iteration);                 \
+	iteration_slot_rwlock.read_unlock();
+
+#define GET_MAP_ITERATION_CONST()                                                 \
+	iteration_slot_rwlock.read_lock();                                            \
+	const NavMapIteration &map_iteration = iteration_slots[iteration_slot_index]; \
+	NavMapIterationRead iteration_read_lock(map_iteration);                       \
+	iteration_slot_rwlock.read_unlock();
+
 void NavMap::set_up(Vector3 p_up) {
 	if (up == p_up) {
 		return;
@@ -61,7 +76,7 @@ void NavMap::set_cell_size(real_t p_cell_size) {
 	if (cell_size == p_cell_size) {
 		return;
 	}
-	cell_size = p_cell_size;
+	cell_size = MAX(p_cell_size, NavigationDefaults3D::navmesh_cell_size_min);
 	_update_merge_rasterizer_cell_dimensions();
 	map_settings_dirty = true;
 }
@@ -70,7 +85,7 @@ void NavMap::set_cell_height(real_t p_cell_height) {
 	if (cell_height == p_cell_height) {
 		return;
 	}
-	cell_height = p_cell_height;
+	cell_height = MAX(p_cell_height, NavigationDefaults3D::navmesh_cell_size_min);
 	_update_merge_rasterizer_cell_dimensions();
 	map_settings_dirty = true;
 }
@@ -79,7 +94,7 @@ void NavMap::set_merge_rasterizer_cell_scale(float p_value) {
 	if (merge_rasterizer_cell_scale == p_value) {
 		return;
 	}
-	merge_rasterizer_cell_scale = p_value;
+	merge_rasterizer_cell_scale = MAX(p_value, NavigationDefaults3D::navmesh_cell_size_min);
 	_update_merge_rasterizer_cell_dimensions();
 	map_settings_dirty = true;
 }
@@ -108,10 +123,14 @@ void NavMap::set_link_connection_radius(real_t p_link_connection_radius) {
 	iteration_dirty = true;
 }
 
+const Vector3 &NavMap::get_merge_rasterizer_cell_size() const {
+	return merge_rasterizer_cell_size;
+}
+
 gd::PointKey NavMap::get_point_key(const Vector3 &p_pos) const {
-	const int x = static_cast<int>(Math::floor(p_pos.x / merge_rasterizer_cell_size));
-	const int y = static_cast<int>(Math::floor(p_pos.y / merge_rasterizer_cell_height));
-	const int z = static_cast<int>(Math::floor(p_pos.z / merge_rasterizer_cell_size));
+	const int x = static_cast<int>(Math::floor(p_pos.x / merge_rasterizer_cell_size.x));
+	const int y = static_cast<int>(Math::floor(p_pos.y / merge_rasterizer_cell_size.y));
+	const int z = static_cast<int>(Math::floor(p_pos.z / merge_rasterizer_cell_size.z));
 
 	gd::PointKey p;
 	p.key = 0;
@@ -122,85 +141,90 @@ gd::PointKey NavMap::get_point_key(const Vector3 &p_pos) const {
 }
 
 void NavMap::query_path(NavMeshQueries3D::NavMeshPathQueryTask3D &p_query_task) {
-	RWLockRead read_lock(map_rwlock);
 	if (iteration_id == 0) {
 		return;
 	}
 
-	path_query_slots_semaphore.wait();
+	GET_MAP_ITERATION();
 
-	path_query_slots_mutex.lock();
-	for (NavMeshQueries3D::PathQuerySlot &p_path_query_slot : path_query_slots) {
+	map_iteration.path_query_slots_semaphore.wait();
+
+	map_iteration.path_query_slots_mutex.lock();
+	for (NavMeshQueries3D::PathQuerySlot &p_path_query_slot : map_iteration.path_query_slots) {
 		if (!p_path_query_slot.in_use) {
 			p_path_query_slot.in_use = true;
 			p_query_task.path_query_slot = &p_path_query_slot;
 			break;
 		}
 	}
-	path_query_slots_mutex.unlock();
+	map_iteration.path_query_slots_mutex.unlock();
 
 	if (p_query_task.path_query_slot == nullptr) {
-		path_query_slots_semaphore.post();
+		map_iteration.path_query_slots_semaphore.post();
 		ERR_FAIL_NULL_MSG(p_query_task.path_query_slot, "No unused NavMap path query slot found! This should never happen :(.");
 	}
 
-	p_query_task.map_up = get_up();
+	p_query_task.map_up = map_iteration.map_up;
 
-	NavMeshQueries3D::query_task_polygons_get_path(p_query_task, polygons, up, link_polygons.size());
+	NavMeshQueries3D::query_task_map_iteration_get_path(p_query_task, map_iteration);
 
-	path_query_slots_mutex.lock();
+	map_iteration.path_query_slots_mutex.lock();
 	uint32_t used_slot_index = p_query_task.path_query_slot->slot_index;
-	path_query_slots[used_slot_index].in_use = false;
+	map_iteration.path_query_slots[used_slot_index].in_use = false;
 	p_query_task.path_query_slot = nullptr;
-	path_query_slots_mutex.unlock();
+	map_iteration.path_query_slots_mutex.unlock();
 
-	path_query_slots_semaphore.post();
+	map_iteration.path_query_slots_semaphore.post();
 }
 
 Vector3 NavMap::get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision) const {
-	RWLockRead read_lock(map_rwlock);
 	if (iteration_id == 0) {
 		NAVMAP_ITERATION_ZERO_ERROR_MSG();
 		return Vector3();
 	}
 
-	return NavMeshQueries3D::polygons_get_closest_point_to_segment(polygons, p_from, p_to, p_use_collision);
+	GET_MAP_ITERATION_CONST();
+
+	return NavMeshQueries3D::map_iteration_get_closest_point_to_segment(map_iteration, p_from, p_to, p_use_collision);
 }
 
 Vector3 NavMap::get_closest_point(const Vector3 &p_point) const {
-	RWLockRead read_lock(map_rwlock);
 	if (iteration_id == 0) {
 		NAVMAP_ITERATION_ZERO_ERROR_MSG();
 		return Vector3();
 	}
 
-	return NavMeshQueries3D::polygons_get_closest_point(polygons, p_point);
+	GET_MAP_ITERATION_CONST();
+
+	return NavMeshQueries3D::map_iteration_get_closest_point(map_iteration, p_point);
 }
 
 Vector3 NavMap::get_closest_point_normal(const Vector3 &p_point) const {
-	RWLockRead read_lock(map_rwlock);
 	if (iteration_id == 0) {
 		NAVMAP_ITERATION_ZERO_ERROR_MSG();
 		return Vector3();
 	}
 
-	return NavMeshQueries3D::polygons_get_closest_point_normal(polygons, p_point);
+	GET_MAP_ITERATION_CONST();
+
+	return NavMeshQueries3D::map_iteration_get_closest_point_normal(map_iteration, p_point);
 }
 
 RID NavMap::get_closest_point_owner(const Vector3 &p_point) const {
-	RWLockRead read_lock(map_rwlock);
 	if (iteration_id == 0) {
 		NAVMAP_ITERATION_ZERO_ERROR_MSG();
 		return RID();
 	}
 
-	return NavMeshQueries3D::polygons_get_closest_point_owner(polygons, p_point);
+	GET_MAP_ITERATION_CONST();
+
+	return NavMeshQueries3D::map_iteration_get_closest_point_owner(map_iteration, p_point);
 }
 
 gd::ClosestPointQueryResult NavMap::get_closest_point_info(const Vector3 &p_point) const {
-	RWLockRead read_lock(map_rwlock);
+	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point_info(polygons, p_point);
+	return NavMeshQueries3D::map_iteration_get_closest_point_info(map_iteration, p_point);
 }
 
 void NavMap::add_region(NavRegion *p_region) {
@@ -310,74 +334,135 @@ void NavMap::remove_agent_as_controlled(NavAgent *agent) {
 }
 
 Vector3 NavMap::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
-	RWLockRead read_lock(map_rwlock);
+	GET_MAP_ITERATION_CONST();
 
-	const LocalVector<NavRegion *> map_regions = get_regions();
+	return NavMeshQueries3D::map_iteration_get_random_point(map_iteration, p_navigation_layers, p_uniformly);
+}
 
-	if (map_regions.is_empty()) {
-		return Vector3();
+void NavMap::_build_iteration() {
+	if (!iteration_dirty || iteration_building || iteration_ready) {
+		return;
 	}
 
-	LocalVector<const NavRegion *> accessible_regions;
+	// Get the next free iteration slot that should be potentially unused.
+	iteration_slot_rwlock.read_lock();
+	NavMapIteration &next_map_iteration = iteration_slots[(iteration_slot_index + 1) % 2];
+	// Check if the iteration slot is truly free or still used by an external thread.
+	bool iteration_is_free = next_map_iteration.users.get() == 0;
+	iteration_slot_rwlock.read_unlock();
 
-	for (const NavRegion *region : map_regions) {
-		if (!region->get_enabled() || (p_navigation_layers & region->get_navigation_layers()) == 0) {
+	if (!iteration_is_free) {
+		// A long running pathfinding thread or something is still reading
+		// from this older iteration and needs to finish first.
+		// Return and wait for the next sync cycle to check again.
+		return;
+	}
+
+	// Iteration slot is free and no longer used by anything, let's build.
+
+	iteration_dirty = false;
+	iteration_building = true;
+	iteration_ready = false;
+
+	// We don't need to hold any lock because at this point nothing else can touch it.
+	// All new queries are already forwarded to the other iteration slot.
+
+	iteration_build.reset();
+
+	iteration_build.merge_rasterizer_cell_size = get_merge_rasterizer_cell_size();
+	iteration_build.use_edge_connections = get_use_edge_connections();
+	iteration_build.edge_connection_margin = get_edge_connection_margin();
+	iteration_build.link_connection_radius = get_link_connection_radius();
+
+	uint32_t enabled_region_count = 0;
+	uint32_t enabled_link_count = 0;
+
+	for (NavRegion *region : regions) {
+		if (!region->get_enabled()) {
 			continue;
 		}
-		accessible_regions.push_back(region);
+		enabled_region_count++;
+	}
+	for (NavLink *link : links) {
+		if (!link->get_enabled()) {
+			continue;
+		}
+		enabled_link_count++;
 	}
 
-	if (accessible_regions.is_empty()) {
-		// All existing region polygons are disabled.
-		return Vector3();
+	next_map_iteration.region_ptr_to_region_id.clear();
+
+	next_map_iteration.region_iterations.clear();
+	next_map_iteration.link_iterations.clear();
+
+	next_map_iteration.region_iterations.resize(enabled_region_count);
+	next_map_iteration.link_iterations.resize(enabled_link_count);
+
+	uint32_t region_id_count = 0;
+	uint32_t link_id_count = 0;
+
+	for (NavRegion *region : regions) {
+		if (!region->get_enabled()) {
+			continue;
+		}
+		NavRegionIteration &region_iteration = next_map_iteration.region_iterations[region_id_count];
+		region_iteration.id = region_id_count++;
+		region->get_iteration_update(region_iteration);
+		next_map_iteration.region_ptr_to_region_id[region] = (uint32_t)region_iteration.id;
+	}
+	for (NavLink *link : links) {
+		if (!link->get_enabled()) {
+			continue;
+		}
+		NavLinkIteration &link_iteration = next_map_iteration.link_iterations[link_id_count];
+		link_iteration.id = link_id_count++;
+		link->get_iteration_update(link_iteration);
 	}
 
-	if (p_uniformly) {
-		real_t accumulated_region_surface_area = 0;
-		RBMap<real_t, uint32_t> accessible_regions_area_map;
+	next_map_iteration.map_up = get_up();
 
-		for (uint32_t accessible_region_index = 0; accessible_region_index < accessible_regions.size(); accessible_region_index++) {
-			const NavRegion *region = accessible_regions[accessible_region_index];
+	iteration_build.map_iteration = &next_map_iteration;
 
-			real_t region_surface_area = region->get_surface_area();
-
-			if (region_surface_area == 0.0f) {
-				continue;
-			}
-
-			accessible_regions_area_map[accumulated_region_surface_area] = accessible_region_index;
-			accumulated_region_surface_area += region_surface_area;
-		}
-		if (accessible_regions_area_map.is_empty() || accumulated_region_surface_area == 0) {
-			// All faces have no real surface / no area.
-			return Vector3();
-		}
-
-		real_t random_accessible_regions_area_map = Math::random(real_t(0), accumulated_region_surface_area);
-
-		RBMap<real_t, uint32_t>::Iterator E = accessible_regions_area_map.find_closest(random_accessible_regions_area_map);
-		ERR_FAIL_COND_V(!E, Vector3());
-		uint32_t random_region_index = E->value;
-		ERR_FAIL_UNSIGNED_INDEX_V(random_region_index, accessible_regions.size(), Vector3());
-
-		const NavRegion *random_region = accessible_regions[random_region_index];
-		ERR_FAIL_NULL_V(random_region, Vector3());
-
-		return random_region->get_random_point(p_navigation_layers, p_uniformly);
-
+	if (use_async_iterations) {
+		iteration_build_thread_task_id = WorkerThreadPool::get_singleton()->add_native_task(&NavMap::_build_iteration_threaded, &iteration_build, true, SNAME("NavMapBuilder3D"));
 	} else {
-		uint32_t random_region_index = Math::random(int(0), accessible_regions.size() - 1);
+		NavMapBuilder3D::build_navmap_iteration(iteration_build);
 
-		const NavRegion *random_region = accessible_regions[random_region_index];
-		ERR_FAIL_NULL_V(random_region, Vector3());
-
-		return random_region->get_random_point(p_navigation_layers, p_uniformly);
+		iteration_building = false;
+		iteration_ready = true;
 	}
 }
 
-void NavMap::sync() {
-	RWLockWrite write_lock(map_rwlock);
+void NavMap::_build_iteration_threaded(void *p_arg) {
+	NavMapIterationBuild *_iteration_build = static_cast<NavMapIterationBuild *>(p_arg);
 
+	NavMapBuilder3D::build_navmap_iteration(*_iteration_build);
+}
+
+void NavMap::_sync_iteration() {
+	if (iteration_building || !iteration_ready) {
+		return;
+	}
+
+	performance_data.pm_polygon_count = iteration_build.performance_data.pm_polygon_count;
+	performance_data.pm_edge_count = iteration_build.performance_data.pm_edge_count;
+	performance_data.pm_edge_merge_count = iteration_build.performance_data.pm_edge_merge_count;
+	performance_data.pm_edge_connection_count = iteration_build.performance_data.pm_edge_connection_count;
+	performance_data.pm_edge_free_count = iteration_build.performance_data.pm_edge_free_count;
+
+	iteration_id = iteration_id % UINT32_MAX + 1;
+
+	// Finally ping-pong switch the iteration slot.
+	iteration_slot_rwlock.write_lock();
+	uint32_t next_iteration_slot_index = (iteration_slot_index + 1) % 2;
+	iteration_slot_index = next_iteration_slot_index;
+	iteration_slot_rwlock.write_unlock();
+
+	iteration_ready = false;
+}
+
+void NavMap::sync() {
+	// Performance Monitor.
 	performance_data.pm_region_count = regions.size();
 	performance_data.pm_agent_count = agents.size();
 	performance_data.pm_link_count = links.size();
@@ -385,295 +470,23 @@ void NavMap::sync() {
 
 	_sync_dirty_map_update_requests();
 
-	if (iteration_dirty) {
-		performance_data.pm_polygon_count = 0;
-		performance_data.pm_edge_count = 0;
-		performance_data.pm_edge_merge_count = 0;
-		performance_data.pm_edge_connection_count = 0;
-		performance_data.pm_edge_free_count = 0;
+	if (iteration_dirty && !iteration_building && !iteration_ready) {
+		_build_iteration();
+	}
+	if (use_async_iterations && iteration_build_thread_task_id != WorkerThreadPool::INVALID_TASK_ID) {
+		if (WorkerThreadPool::get_singleton()->is_task_completed(iteration_build_thread_task_id)) {
+			WorkerThreadPool::get_singleton()->wait_for_task_completion(iteration_build_thread_task_id);
 
-		// Remove regions connections.
-		region_external_connections.clear();
-		for (NavRegion *region : regions) {
-			region_external_connections[region] = LocalVector<gd::Edge::Connection>();
+			iteration_build_thread_task_id = WorkerThreadPool::INVALID_TASK_ID;
+			iteration_building = false;
+			iteration_ready = true;
 		}
-
-		// Resize the polygon count.
-		int polygon_count = 0;
-		for (const NavRegion *region : regions) {
-			if (!region->get_enabled()) {
-				continue;
-			}
-			polygon_count += region->get_polygons().size();
-		}
-		polygons.resize(polygon_count);
-
-		// Copy all region polygons in the map.
-		polygon_count = 0;
-		for (const NavRegion *region : regions) {
-			if (!region->get_enabled()) {
-				continue;
-			}
-			const LocalVector<gd::Polygon> &polygons_source = region->get_polygons();
-			for (uint32_t n = 0; n < polygons_source.size(); n++) {
-				polygons[polygon_count] = polygons_source[n];
-				polygons[polygon_count].id = polygon_count;
-				polygon_count++;
-			}
-		}
-
-		performance_data.pm_polygon_count = polygon_count;
-
-		// Group all edges per key.
-		connection_pairs_map.clear();
-		connection_pairs_map.reserve(polygons.size());
-		int free_edges_count = 0; // How many ConnectionPairs have only one Connection.
-
-		for (gd::Polygon &poly : polygons) {
-			for (uint32_t p = 0; p < poly.points.size(); p++) {
-				const int next_point = (p + 1) % poly.points.size();
-				const gd::EdgeKey ek(poly.points[p].key, poly.points[next_point].key);
-
-				HashMap<gd::EdgeKey, ConnectionPair, gd::EdgeKey>::Iterator pair_it = connection_pairs_map.find(ek);
-				if (!pair_it) {
-					pair_it = connection_pairs_map.insert(ek, ConnectionPair());
-					performance_data.pm_edge_count += 1;
-					++free_edges_count;
-				}
-				ConnectionPair &pair = pair_it->value;
-				if (pair.size < 2) {
-					// Add the polygon/edge tuple to this key.
-					gd::Edge::Connection new_connection;
-					new_connection.polygon = &poly;
-					new_connection.edge = p;
-					new_connection.pathway_start = poly.points[p].pos;
-					new_connection.pathway_end = poly.points[next_point].pos;
-
-					pair.connections[pair.size] = new_connection;
-					++pair.size;
-					if (pair.size == 2) {
-						--free_edges_count;
-					}
-
-				} else {
-					// The edge is already connected with another edge, skip.
-					ERR_PRINT_ONCE("Navigation map synchronization error. Attempted to merge a navigation mesh polygon edge with another already-merged edge. This is usually caused by crossing edges, overlapping polygons, or a mismatch of the NavigationMesh / NavigationPolygon baked 'cell_size' and navigation map 'cell_size'. If you're certain none of above is the case, change 'navigation/3d/merge_rasterizer_cell_scale' to 0.001.");
-				}
-			}
-		}
-
-		free_edges.clear();
-		free_edges.reserve(free_edges_count);
-
-		for (const KeyValue<gd::EdgeKey, ConnectionPair> &pair_it : connection_pairs_map) {
-			const ConnectionPair &pair = pair_it.value;
-			if (pair.size == 2) {
-				// Connect edge that are shared in different polygons.
-				const gd::Edge::Connection &c1 = pair.connections[0];
-				const gd::Edge::Connection &c2 = pair.connections[1];
-				c1.polygon->edges[c1.edge].connections.push_back(c2);
-				c2.polygon->edges[c2.edge].connections.push_back(c1);
-				// Note: The pathway_start/end are full for those connection and do not need to be modified.
-				performance_data.pm_edge_merge_count += 1;
-			} else {
-				CRASH_COND_MSG(pair.size != 1, vformat("Number of connection != 1. Found: %d", pair.size));
-				if (use_edge_connections && pair.connections[0].polygon->owner->get_use_edge_connections()) {
-					free_edges.push_back(pair.connections[0]);
-				}
-			}
-		}
-
-		// Find the compatible near edges.
-		//
-		// Note:
-		// Considering that the edges must be compatible (for obvious reasons)
-		// to be connected, create new polygons to remove that small gap is
-		// not really useful and would result in wasteful computation during
-		// connection, integration and path finding.
-		performance_data.pm_edge_free_count = free_edges.size();
-
-		const real_t edge_connection_margin_squared = edge_connection_margin * edge_connection_margin;
-
-		for (uint32_t i = 0; i < free_edges.size(); i++) {
-			const gd::Edge::Connection &free_edge = free_edges[i];
-			Vector3 edge_p1 = free_edge.polygon->points[free_edge.edge].pos;
-			Vector3 edge_p2 = free_edge.polygon->points[(free_edge.edge + 1) % free_edge.polygon->points.size()].pos;
-
-			for (uint32_t j = 0; j < free_edges.size(); j++) {
-				const gd::Edge::Connection &other_edge = free_edges[j];
-				if (i == j || free_edge.polygon->owner == other_edge.polygon->owner) {
-					continue;
-				}
-
-				Vector3 other_edge_p1 = other_edge.polygon->points[other_edge.edge].pos;
-				Vector3 other_edge_p2 = other_edge.polygon->points[(other_edge.edge + 1) % other_edge.polygon->points.size()].pos;
-
-				// Compute the projection of the opposite edge on the current one
-				Vector3 edge_vector = edge_p2 - edge_p1;
-				real_t projected_p1_ratio = edge_vector.dot(other_edge_p1 - edge_p1) / (edge_vector.length_squared());
-				real_t projected_p2_ratio = edge_vector.dot(other_edge_p2 - edge_p1) / (edge_vector.length_squared());
-				if ((projected_p1_ratio < 0.0 && projected_p2_ratio < 0.0) || (projected_p1_ratio > 1.0 && projected_p2_ratio > 1.0)) {
-					continue;
-				}
-
-				// Check if the two edges are close to each other enough and compute a pathway between the two regions.
-				Vector3 self1 = edge_vector * CLAMP(projected_p1_ratio, 0.0, 1.0) + edge_p1;
-				Vector3 other1;
-				if (projected_p1_ratio >= 0.0 && projected_p1_ratio <= 1.0) {
-					other1 = other_edge_p1;
-				} else {
-					other1 = other_edge_p1.lerp(other_edge_p2, (1.0 - projected_p1_ratio) / (projected_p2_ratio - projected_p1_ratio));
-				}
-				if (other1.distance_squared_to(self1) > edge_connection_margin_squared) {
-					continue;
-				}
-
-				Vector3 self2 = edge_vector * CLAMP(projected_p2_ratio, 0.0, 1.0) + edge_p1;
-				Vector3 other2;
-				if (projected_p2_ratio >= 0.0 && projected_p2_ratio <= 1.0) {
-					other2 = other_edge_p2;
-				} else {
-					other2 = other_edge_p1.lerp(other_edge_p2, (0.0 - projected_p1_ratio) / (projected_p2_ratio - projected_p1_ratio));
-				}
-				if (other2.distance_squared_to(self2) > edge_connection_margin_squared) {
-					continue;
-				}
-
-				// The edges can now be connected.
-				gd::Edge::Connection new_connection = other_edge;
-				new_connection.pathway_start = (self1 + other1) / 2.0;
-				new_connection.pathway_end = (self2 + other2) / 2.0;
-				free_edge.polygon->edges[free_edge.edge].connections.push_back(new_connection);
-
-				// Add the connection to the region_connection map.
-				region_external_connections[(NavRegion *)free_edge.polygon->owner].push_back(new_connection);
-				performance_data.pm_edge_connection_count += 1;
-			}
-		}
-
-		uint32_t link_poly_idx = 0;
-		link_polygons.resize(links.size());
-
-		// Search for polygons within range of a nav link.
-		for (const NavLink *link : links) {
-			if (!link->get_enabled()) {
-				continue;
-			}
-			const Vector3 start = link->get_start_position();
-			const Vector3 end = link->get_end_position();
-
-			gd::Polygon *closest_start_polygon = nullptr;
-			real_t closest_start_sqr_dist = link_connection_radius * link_connection_radius;
-			Vector3 closest_start_point;
-
-			gd::Polygon *closest_end_polygon = nullptr;
-			real_t closest_end_sqr_dist = link_connection_radius * link_connection_radius;
-			Vector3 closest_end_point;
-
-			// Create link to any polygons within the search radius of the start point.
-			for (uint32_t start_index = 0; start_index < polygons.size(); start_index++) {
-				gd::Polygon &start_poly = polygons[start_index];
-
-				// For each face check the distance to the start
-				for (uint32_t start_point_id = 2; start_point_id < start_poly.points.size(); start_point_id += 1) {
-					const Face3 start_face(start_poly.points[0].pos, start_poly.points[start_point_id - 1].pos, start_poly.points[start_point_id].pos);
-					const Vector3 start_point = start_face.get_closest_point_to(start);
-					const real_t sqr_dist = start_point.distance_squared_to(start);
-
-					// Pick the polygon that is within our radius and is closer than anything we've seen yet.
-					if (sqr_dist < closest_start_sqr_dist) {
-						closest_start_sqr_dist = sqr_dist;
-						closest_start_point = start_point;
-						closest_start_polygon = &start_poly;
-					}
-				}
-			}
-
-			// Find any polygons within the search radius of the end point.
-			for (gd::Polygon &end_poly : polygons) {
-				// For each face check the distance to the end
-				for (uint32_t end_point_id = 2; end_point_id < end_poly.points.size(); end_point_id += 1) {
-					const Face3 end_face(end_poly.points[0].pos, end_poly.points[end_point_id - 1].pos, end_poly.points[end_point_id].pos);
-					const Vector3 end_point = end_face.get_closest_point_to(end);
-					const real_t sqr_dist = end_point.distance_squared_to(end);
-
-					// Pick the polygon that is within our radius and is closer than anything we've seen yet.
-					if (sqr_dist < closest_end_sqr_dist) {
-						closest_end_sqr_dist = sqr_dist;
-						closest_end_point = end_point;
-						closest_end_polygon = &end_poly;
-					}
-				}
-			}
-
-			// If we have both a start and end point, then create a synthetic polygon to route through.
-			if (closest_start_polygon && closest_end_polygon) {
-				gd::Polygon &new_polygon = link_polygons[link_poly_idx++];
-				new_polygon.id = polygon_count++;
-				new_polygon.owner = link;
-
-				new_polygon.edges.clear();
-				new_polygon.edges.resize(4);
-				new_polygon.points.clear();
-				new_polygon.points.reserve(4);
-
-				// Build a set of vertices that create a thin polygon going from the start to the end point.
-				new_polygon.points.push_back({ closest_start_point, get_point_key(closest_start_point) });
-				new_polygon.points.push_back({ closest_start_point, get_point_key(closest_start_point) });
-				new_polygon.points.push_back({ closest_end_point, get_point_key(closest_end_point) });
-				new_polygon.points.push_back({ closest_end_point, get_point_key(closest_end_point) });
-
-				// Setup connections to go forward in the link.
-				{
-					gd::Edge::Connection entry_connection;
-					entry_connection.polygon = &new_polygon;
-					entry_connection.edge = -1;
-					entry_connection.pathway_start = new_polygon.points[0].pos;
-					entry_connection.pathway_end = new_polygon.points[1].pos;
-					closest_start_polygon->edges[0].connections.push_back(entry_connection);
-
-					gd::Edge::Connection exit_connection;
-					exit_connection.polygon = closest_end_polygon;
-					exit_connection.edge = -1;
-					exit_connection.pathway_start = new_polygon.points[2].pos;
-					exit_connection.pathway_end = new_polygon.points[3].pos;
-					new_polygon.edges[2].connections.push_back(exit_connection);
-				}
-
-				// If the link is bi-directional, create connections from the end to the start.
-				if (link->is_bidirectional()) {
-					gd::Edge::Connection entry_connection;
-					entry_connection.polygon = &new_polygon;
-					entry_connection.edge = -1;
-					entry_connection.pathway_start = new_polygon.points[2].pos;
-					entry_connection.pathway_end = new_polygon.points[3].pos;
-					closest_end_polygon->edges[0].connections.push_back(entry_connection);
-
-					gd::Edge::Connection exit_connection;
-					exit_connection.polygon = closest_start_polygon;
-					exit_connection.edge = -1;
-					exit_connection.pathway_start = new_polygon.points[0].pos;
-					exit_connection.pathway_end = new_polygon.points[1].pos;
-					new_polygon.edges[0].connections.push_back(exit_connection);
-				}
-			}
-		}
-
-		// Some code treats 0 as a failure case, so we avoid returning 0 and modulo wrap UINT32_MAX manually.
-		iteration_id = iteration_id % UINT32_MAX + 1;
-
-		path_query_slots_mutex.lock();
-		for (NavMeshQueries3D::PathQuerySlot &p_path_query_slot : path_query_slots) {
-			p_path_query_slot.path_corridor.clear();
-			p_path_query_slot.path_corridor.resize(polygons.size() + link_polygons.size());
-			p_path_query_slot.traversable_polys.clear();
-			p_path_query_slot.traversable_polys.reserve(polygons.size() * 0.25);
-		}
-		path_query_slots_mutex.unlock();
+	}
+	if (iteration_ready) {
+		_sync_iteration();
 	}
 
 	map_settings_dirty = false;
-	iteration_dirty = false;
 
 	_sync_avoidance();
 }
@@ -857,27 +670,39 @@ void NavMap::dispatch_callbacks() {
 }
 
 void NavMap::_update_merge_rasterizer_cell_dimensions() {
-	merge_rasterizer_cell_size = cell_size * merge_rasterizer_cell_scale;
-	merge_rasterizer_cell_height = cell_height * merge_rasterizer_cell_scale;
+	merge_rasterizer_cell_size.x = cell_size * merge_rasterizer_cell_scale;
+	merge_rasterizer_cell_size.y = cell_height * merge_rasterizer_cell_scale;
+	merge_rasterizer_cell_size.z = cell_size * merge_rasterizer_cell_scale;
 }
 
 int NavMap::get_region_connections_count(NavRegion *p_region) const {
 	ERR_FAIL_NULL_V(p_region, 0);
 
-	HashMap<NavRegion *, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = region_external_connections.find(p_region);
-	if (found_connections) {
-		return found_connections->value.size();
+	GET_MAP_ITERATION_CONST();
+
+	HashMap<NavRegion *, uint32_t>::ConstIterator found_id = map_iteration.region_ptr_to_region_id.find(p_region);
+	if (found_id) {
+		HashMap<uint32_t, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = map_iteration.external_region_connections.find(found_id->value);
+		if (found_connections) {
+			return found_connections->value.size();
+		}
 	}
+
 	return 0;
 }
 
 Vector3 NavMap::get_region_connection_pathway_start(NavRegion *p_region, int p_connection_id) const {
 	ERR_FAIL_NULL_V(p_region, Vector3());
 
-	HashMap<NavRegion *, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = region_external_connections.find(p_region);
-	if (found_connections) {
-		ERR_FAIL_INDEX_V(p_connection_id, int(found_connections->value.size()), Vector3());
-		return found_connections->value[p_connection_id].pathway_start;
+	GET_MAP_ITERATION_CONST();
+
+	HashMap<NavRegion *, uint32_t>::ConstIterator found_id = map_iteration.region_ptr_to_region_id.find(p_region);
+	if (found_id) {
+		HashMap<uint32_t, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = map_iteration.external_region_connections.find(found_id->value);
+		if (found_connections) {
+			ERR_FAIL_INDEX_V(p_connection_id, int(found_connections->value.size()), Vector3());
+			return found_connections->value[p_connection_id].pathway_start;
+		}
 	}
 
 	return Vector3();
@@ -886,10 +711,15 @@ Vector3 NavMap::get_region_connection_pathway_start(NavRegion *p_region, int p_c
 Vector3 NavMap::get_region_connection_pathway_end(NavRegion *p_region, int p_connection_id) const {
 	ERR_FAIL_NULL_V(p_region, Vector3());
 
-	HashMap<NavRegion *, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = region_external_connections.find(p_region);
-	if (found_connections) {
-		ERR_FAIL_INDEX_V(p_connection_id, int(found_connections->value.size()), Vector3());
-		return found_connections->value[p_connection_id].pathway_end;
+	GET_MAP_ITERATION_CONST();
+
+	HashMap<NavRegion *, uint32_t>::ConstIterator found_id = map_iteration.region_ptr_to_region_id.find(p_region);
+	if (found_id) {
+		HashMap<uint32_t, LocalVector<gd::Edge::Connection>>::ConstIterator found_connections = map_iteration.external_region_connections.find(found_id->value);
+		if (found_connections) {
+			ERR_FAIL_INDEX_V(p_connection_id, int(found_connections->value.size()), Vector3());
+			return found_connections->value[p_connection_id].pathway_end;
+		}
 	}
 
 	return Vector3();
@@ -997,6 +827,19 @@ void NavMap::_sync_dirty_avoidance_update_requests() {
 	sync_dirty_requests.obstacles.clear();
 }
 
+void NavMap::set_use_async_iterations(bool p_enabled) {
+	if (use_async_iterations == p_enabled) {
+		return;
+	}
+#ifdef THREADS_ENABLED
+	use_async_iterations = p_enabled;
+#endif
+}
+
+bool NavMap::get_use_async_iterations() const {
+	return use_async_iterations;
+}
+
 NavMap::NavMap() {
 	avoidance_use_multiple_threads = GLOBAL_GET("navigation/avoidance/thread_model/avoidance_use_multiple_threads");
 	avoidance_use_high_priority_threads = GLOBAL_GET("navigation/avoidance/thread_model/avoidance_use_high_priority_threads");
@@ -1014,13 +857,26 @@ NavMap::NavMap() {
 		path_query_slots_max = 1;
 	}
 
-	path_query_slots.resize(path_query_slots_max);
-	for (uint32_t i = 0; i < path_query_slots.size(); i++) {
-		path_query_slots[i].slot_index = i;
+	iteration_slots.resize(2);
+
+	for (NavMapIteration &iteration_slot : iteration_slots) {
+		iteration_slot.path_query_slots.resize(path_query_slots_max);
+		for (uint32_t i = 0; i < iteration_slot.path_query_slots.size(); i++) {
+			iteration_slot.path_query_slots[i].slot_index = i;
+		}
+		iteration_slot.path_query_slots_semaphore.post(path_query_slots_max);
 	}
 
-	path_query_slots_semaphore.post(path_query_slots_max);
+#ifdef THREADS_ENABLED
+	use_async_iterations = GLOBAL_GET("navigation/world/map_use_async_iterations");
+#else
+	use_async_iterations = false;
+#endif
 }
 
 NavMap::~NavMap() {
+	if (iteration_build_thread_task_id != WorkerThreadPool::INVALID_TASK_ID) {
+		WorkerThreadPool::get_singleton()->wait_for_task_completion(iteration_build_thread_task_id);
+		iteration_build_thread_task_id = WorkerThreadPool::INVALID_TASK_ID;
+	}
 }

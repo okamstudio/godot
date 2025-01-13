@@ -34,14 +34,46 @@
 #include "core/os/memory.h"
 #include "core/os/mutex.h"
 #include "core/string/print_string.h"
-#include "core/templates/hash_set.h"
 #include "core/templates/list.h"
-#include "core/templates/oa_hash_map.h"
 #include "core/templates/rid.h"
 #include "core/templates/safe_refcount.h"
 
 #include <stdio.h>
 #include <typeinfo>
+
+#ifdef SANITIZERS_ENABLED
+#ifdef __has_feature
+#if __has_feature(thread_sanitizer)
+#define TSAN_ENABLED
+#endif
+#elif defined(__SANITIZE_THREAD__)
+#define TSAN_ENABLED
+#endif
+#endif
+
+#ifdef TSAN_ENABLED
+#include <sanitizer/tsan_interface.h>
+#endif
+
+// The following macros would need to be implemented somehow
+// for purely weakly ordered architectures. There's a test case
+// ("[RID_Owner] Thread safety") with potential to catch issues
+// on such architectures if these primitives fail to be implemented.
+// For now, they will be just markers about needs that may arise.
+#define WEAK_MEMORY_ORDER 0
+#if WEAK_MEMORY_ORDER
+// Ideally, we'd have implementations that collaborate with the
+// sync mechanism used (e.g., the mutex) so instead of some full
+// memory barriers being issued, some acquire-release on the
+// primitive itself. However, these implementations will at least
+// provide correctness.
+#define SYNC_ACQUIRE std::atomic_thread_fence(std::memory_order_acquire);
+#define SYNC_RELEASE std::atomic_thread_fence(std::memory_order_release);
+#else
+// Compiler barriers are enough in this case.
+#define SYNC_ACQUIRE std::atomic_signal_fence(std::memory_order_acquire);
+#define SYNC_RELEASE std::atomic_signal_fence(std::memory_order_release);
+#endif
 
 class RID_AllocBase {
 	static SafeNumeric<uint64_t> base_id;
@@ -120,7 +152,12 @@ class RID_Alloc : public RID_AllocBase {
 				free_list_chunks[chunk_count][i] = alloc_count + i;
 			}
 
-			max_alloc += elements_in_chunk;
+			if constexpr (THREAD_SAFE) {
+				// Store atomically to avoid data race with the load in get_or_null().
+				((std::atomic<uint32_t> *)&max_alloc)->store(max_alloc + elements_in_chunk, std::memory_order_relaxed);
+			} else {
+				max_alloc += elements_in_chunk;
+			}
 		}
 
 		uint32_t free_index = free_list_chunks[alloc_count / elements_in_chunk][alloc_count % elements_in_chunk];
@@ -168,9 +205,19 @@ public:
 			return nullptr;
 		}
 
+		if constexpr (THREAD_SAFE) {
+			SYNC_ACQUIRE;
+		}
+
 		uint64_t id = p_rid.get_id();
 		uint32_t idx = uint32_t(id & 0xFFFFFFFF);
-		if (unlikely(idx >= max_alloc)) {
+		uint32_t ma;
+		if constexpr (THREAD_SAFE) { // Read atomically to avoid data race with the store in _allocate_rid().
+			ma = ((std::atomic<uint32_t> *)&max_alloc)->load(std::memory_order_relaxed);
+		} else {
+			ma = max_alloc;
+		}
+		if (unlikely(idx >= ma)) {
 			return nullptr;
 		}
 
@@ -179,7 +226,23 @@ public:
 
 		uint32_t validator = uint32_t(id >> 32);
 
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_acquire(&chunks[idx_chunk]); // We know not a race in practice.
+			__tsan_acquire(&chunks[idx_chunk][idx_element]); // We know not a race in practice.
+#endif
+		}
+
 		Chunk &c = chunks[idx_chunk][idx_element];
+
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_release(&chunks[idx_chunk]);
+			__tsan_release(&chunks[idx_chunk][idx_element]);
+			__tsan_acquire(&c.validator); // We know not a race in practice.
+#endif
+		}
+
 		if (unlikely(p_initialize)) {
 			if (unlikely(!(c.validator & 0x80000000))) {
 				ERR_FAIL_V_MSG(nullptr, "Initializing already initialized RID");
@@ -198,6 +261,12 @@ public:
 			return nullptr;
 		}
 
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_release(&c.validator);
+#endif
+		}
+
 		T *ptr = &c.data;
 
 		return ptr;
@@ -205,12 +274,41 @@ public:
 	void initialize_rid(RID p_rid) {
 		T *mem = get_or_null(p_rid, true);
 		ERR_FAIL_NULL(mem);
+
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_acquire(mem); // We know not a race in practice.
+#endif
+		}
+
 		memnew_placement(mem, T);
+
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_release(mem);
+#endif
+			SYNC_RELEASE;
+		}
 	}
+
 	void initialize_rid(RID p_rid, const T &p_value) {
 		T *mem = get_or_null(p_rid, true);
 		ERR_FAIL_NULL(mem);
+
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_acquire(mem); // We know not a race in practice.
+#endif
+		}
+
 		memnew_placement(mem, T(p_value));
+
+		if constexpr (THREAD_SAFE) {
+#ifdef TSAN_ENABLED
+			__tsan_release(mem);
+#endif
+			SYNC_RELEASE;
+		}
 	}
 
 	_FORCE_INLINE_ bool owns(const RID &p_rid) const {
@@ -319,8 +417,8 @@ public:
 		}
 	}
 
-	void set_description(const char *p_descrption) {
-		description = p_descrption;
+	void set_description(const char *p_description) {
+		description = p_description;
 	}
 
 	RID_Alloc(uint32_t p_target_chunk_byte_size = 65536, uint32_t p_maximum_number_of_elements = 262144) {
@@ -329,16 +427,21 @@ public:
 			chunk_limit = (p_maximum_number_of_elements / elements_in_chunk) + 1;
 			chunks = (Chunk **)memalloc(sizeof(Chunk *) * chunk_limit);
 			free_list_chunks = (uint32_t **)memalloc(sizeof(uint32_t *) * chunk_limit);
+			SYNC_RELEASE;
 		}
 	}
 
 	~RID_Alloc() {
+		if constexpr (THREAD_SAFE) {
+			SYNC_ACQUIRE;
+		}
+
 		if (alloc_count) {
 			print_error(vformat("ERROR: %d RID allocations of type '%s' were leaked at exit.",
 					alloc_count, description ? description : typeid(T).name()));
 
 			for (size_t i = 0; i < max_alloc; i++) {
-				uint64_t validator = chunks[i / elements_in_chunk][i % elements_in_chunk].validator;
+				uint32_t validator = chunks[i / elements_in_chunk][i % elements_in_chunk].validator;
 				if (validator & 0x80000000) {
 					continue; //uninitialized
 				}
@@ -412,8 +515,8 @@ public:
 		alloc.fill_owned_buffer(p_rid_buffer);
 	}
 
-	void set_description(const char *p_descrption) {
-		alloc.set_description(p_descrption);
+	void set_description(const char *p_description) {
+		alloc.set_description(p_description);
 	}
 
 	RID_PtrOwner(uint32_t p_target_chunk_byte_size = 65536, uint32_t p_maximum_number_of_elements = 262144) :
@@ -467,8 +570,8 @@ public:
 		alloc.fill_owned_buffer(p_rid_buffer);
 	}
 
-	void set_description(const char *p_descrption) {
-		alloc.set_description(p_descrption);
+	void set_description(const char *p_description) {
+		alloc.set_description(p_description);
 	}
 	RID_Owner(uint32_t p_target_chunk_byte_size = 65536, uint32_t p_maximum_number_of_elements = 262144) :
 			alloc(p_target_chunk_byte_size, p_maximum_number_of_elements) {}

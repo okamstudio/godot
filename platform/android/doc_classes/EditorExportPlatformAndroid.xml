@@ -615,6 +615,10 @@
 		<member name="version/name" type="String" setter="" getter="">
 			Application version visible to the user. Falls back to [member ProjectSettings.application/config/version] if left empty.
 		</member>
+		<member name="wear_os/swipe_to_dismiss" type="bool" setter="" getter="">
+			If [code]true[/code], [url=https://developer.android.com/design/ui/wear/guides/components/swipe-to-dismiss]Swipe to dismiss[/url] will be enabled on Wear OS.
+			[b]Note:[/b] This is [code]true[/code] by default. To disable this behavior, [member EditorExportPlatformAndroid.gradle_build/use_gradle_build] is required.
+		</member>
 		<member name="xr_features/xr_mode" type="int" setter="" getter="">
 			The extended reality (XR) mode for this application.
 		</member>

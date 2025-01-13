@@ -188,7 +188,7 @@ class CurveEditorPlugin : public EditorPlugin {
 public:
 	CurveEditorPlugin();
 
-	virtual String get_name() const override { return "Curve"; }
+	virtual String get_plugin_name() const override { return "Curve"; }
 };
 
 class CurvePreviewGenerator : public EditorResourcePreviewGenerator {
