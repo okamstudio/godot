@@ -34,6 +34,8 @@
 #include "core/version.h"
 #if defined(MODULE_GDSCRIPT_ENABLED) && defined(DEBUG_ENABLED)
 #include "modules/gdscript/gdscript.h"
+#else
+#include "core/object/script_language.h"
 #endif
 #include "scene/debugger/scene_debugger.h"
 #include "zlib.h"

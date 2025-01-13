@@ -33,6 +33,7 @@
 
 #include "../snapshot_data.h"
 #include "scene/gui/control.h"
+#include "scene/gui/tree.h"
 
 class SnapshotView : public Control {
 	GDCLASS(SnapshotView, Control);

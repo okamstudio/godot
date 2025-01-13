@@ -33,6 +33,7 @@
 #include "editor/editor_node.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/panel_container.h"
+#include "scene/gui/split_container.h"
 #include "shared_controls.h"
 
 int ClassData::instance_count(GameStateSnapshot *p_snapshot) {
