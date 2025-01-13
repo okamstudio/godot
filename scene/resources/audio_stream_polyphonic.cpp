@@ -278,6 +278,21 @@ AudioStreamPlaybackPolyphonic::Stream *AudioStreamPlaybackPolyphonic::_find_stre
 	return &streams[index];
 }
 
+const AudioStreamPlaybackPolyphonic::Stream *AudioStreamPlaybackPolyphonic::_find_stream(int64_t p_id) const {
+	uint32_t index = static_cast<uint64_t>(p_id) >> INDEX_SHIFT;
+	if (index >= streams.size()) {
+		return nullptr;
+	}
+	if (!streams[index].active.is_set()) {
+		return nullptr; // Not active, no longer exists.
+	}
+	int64_t id = static_cast<uint64_t>(p_id) & ID_MASK;
+	if (streams[index].id != id) {
+		return nullptr;
+	}
+	return &streams[index];
+}
+
 void AudioStreamPlaybackPolyphonic::set_stream_volume(ID p_stream_id, float p_volume_db) {
 	Stream *s = _find_stream(p_stream_id);
 	if (!s) {
@@ -295,7 +310,7 @@ void AudioStreamPlaybackPolyphonic::set_stream_pitch_scale(ID p_stream_id, float
 }
 
 bool AudioStreamPlaybackPolyphonic::is_stream_playing(ID p_stream_id) const {
-	return const_cast<AudioStreamPlaybackPolyphonic *>(this)->_find_stream(p_stream_id) != nullptr;
+	return _find_stream(p_stream_id) != nullptr;
 }
 
 void AudioStreamPlaybackPolyphonic::stop_stream(ID p_stream_id) {

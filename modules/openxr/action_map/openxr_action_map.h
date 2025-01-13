@@ -57,6 +57,7 @@ public:
 	void add_action_set(Ref<OpenXRActionSet> p_action_set); // Add an action set to our action map
 	void remove_action_set(Ref<OpenXRActionSet> p_action_set); // Remove an action set from our action map
 
+	void clear_interaction_profiles(); // Remove all our interaction profiles
 	void set_interaction_profiles(Array p_interaction_profiles); // Set our interaction profiles by providing an array (for loading from resource)
 	Array get_interaction_profiles() const; // Get our interaction profiles as an array (for saving to resource)
 

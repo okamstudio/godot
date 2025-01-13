@@ -52,133 +52,110 @@ void OpenXRMetaControllerExtension::on_register_metadata() {
 
 	// Note, we register controllers regardless if they are supported on the current hardware.
 
-	// Normal touch controller is part of the core spec, but we do have some extensions.
-	metadata->register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger proximity", "/user/hand/left", "/user/hand/left/input/trigger/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger proximity", "/user/hand/right", "/user/hand/right/input/trigger/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
+	{ // Normal touch controller is part of the core spec, but we do have some extensions.
+		const String profile_path = "/interaction_profiles/oculus/touch_controller";
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			metadata->register_io_path(profile_path, "Trigger proximity", user_path, user_path + "/input/trigger/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumb proximity", user_path, user_path + "/input/thumb_fb/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
+		}
+	}
 
-	metadata->register_io_path("/interaction_profiles/oculus/touch_controller", "Thumb proximity", "/user/hand/left", "/user/hand/left/input/thumb_fb/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/oculus/touch_controller", "Thumb proximity", "/user/hand/right", "/user/hand/right/input/thumb_fb/proximity_fb ", "XR_FB_touch_controller_proximity", OpenXRAction::OPENXR_ACTION_BOOL);
+	{ // Touch controller pro (Quest Pro)
+		const String profile_path = "/interaction_profiles/facebook/touch_controller_pro";
+		metadata->register_interaction_profile("Touch controller pro", profile_path, "XR_FB_touch_controller_pro");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			metadata->register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Palm pose", user_path, user_path + "/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	// Touch controller pro (Quest Pro)
-	metadata->register_interaction_profile("Touch controller pro", "/interaction_profiles/facebook/touch_controller_pro", "XR_FB_touch_controller_pro");
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger touch", user_path, user_path + "/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trigger proximity", user_path, user_path + "/input/trigger/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trigger curl", user_path, user_path + "/input/trigger/curl_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger slide", user_path, user_path + "/input/trigger/slide_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger force", user_path, user_path + "/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Squeeze", user_path, user_path + "/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumb proximity", user_path, user_path + "/input/thumb_fb/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger touch", "/user/hand/left", "/user/hand/left/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger proximity", "/user/hand/left", "/user/hand/left/input/trigger/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger curl", "/user/hand/left", "/user/hand/left/input/trigger/curl_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger slide", "/user/hand/left", "/user/hand/left/input/trigger/slide_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger force", "/user/hand/left", "/user/hand/left/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger touch", "/user/hand/right", "/user/hand/right/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger proximity", "/user/hand/right", "/user/hand/right/input/trigger/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger curl", "/user/hand/right", "/user/hand/right/input/trigger/curl_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger slide", "/user/hand/right", "/user/hand/right/input/trigger/slide_fb", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Trigger force", "/user/hand/right", "/user/hand/right/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick", user_path, user_path + "/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			metadata->register_io_path(profile_path, "Thumbstick X", user_path, user_path + "/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick Y", user_path, user_path + "/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick click", user_path, user_path + "/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick touch", user_path, user_path + "/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Up", user_path, user_path + "/input/thumbstick/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Down", user_path, user_path + "/input/thumbstick/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Left", user_path, user_path + "/input/thumbstick/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Right", user_path, user_path + "/input/thumbstick/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Squeeze", "/user/hand/left", "/user/hand/left/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Squeeze", "/user/hand/right", "/user/hand/right/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbrest touch", user_path, user_path + "/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbrest force", user_path, user_path + "/input/thumbrest/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumb proximity", "/user/hand/left", "/user/hand/left/input/thumb_fb/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumb proximity", "/user/hand/right", "/user/hand/right/input/thumb_fb/proximity_fb", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Stylus force", user_path, user_path + "/input/stylus_fb/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick", "/user/hand/left", "/user/hand/left/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick X", "/user/hand/left", "/user/hand/left/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick Y", "/user/hand/left", "/user/hand/left/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick click", "/user/hand/left", "/user/hand/left/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick touch", "/user/hand/left", "/user/hand/left/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick", "/user/hand/right", "/user/hand/right/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick X", "/user/hand/right", "/user/hand/right/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick Y", "/user/hand/right", "/user/hand/right/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick click", "/user/hand/right", "/user/hand/right/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbstick touch", "/user/hand/right", "/user/hand/right/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			metadata->register_io_path(profile_path, "Haptic trigger output", user_path, user_path + "/output/haptic_trigger_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			metadata->register_io_path(profile_path, "Haptic thumb output", user_path, user_path + "/output/haptic_thumb_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbrest touch", "/user/hand/left", "/user/hand/left/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbrest force", "/user/hand/left", "/user/hand/left/input/thumbrest/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbrest touch", "/user/hand/right", "/user/hand/right/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Thumbrest force", "/user/hand/right", "/user/hand/right/input/thumbrest/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+		metadata->register_io_path(profile_path, "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Stylus force", "/user/hand/left", "/user/hand/left/input/stylus_fb/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Stylus force", "/user/hand/right", "/user/hand/right/input/stylus_fb/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+		metadata->register_io_path(profile_path, "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+	}
 
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic trigger output", "/user/hand/left", "/user/hand/left/output/haptic_trigger_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic thumb output", "/user/hand/left", "/user/hand/left/output/haptic_thumb_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic trigger output", "/user/hand/right", "/user/hand/right/output/haptic_trigger_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/facebook/touch_controller_pro", "Haptic thumb output", "/user/hand/right", "/user/hand/right/output/haptic_thumb_fb", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+	{ // Touch controller plus (Quest 3)
+		const String profile_path = "/interaction_profiles/meta/touch_controller_plus";
+		metadata->register_interaction_profile("Touch controller plus", profile_path, "XR_META_touch_controller_plus");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			metadata->register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	// Touch controller plus (Quest 3)
-	metadata->register_interaction_profile("Touch controller plus", "/interaction_profiles/meta/touch_controller_plus", "XR_META_touch_controller_plus");
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger touch", user_path, user_path + "/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trigger proximity", user_path, user_path + "/input/trigger/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trigger curl", user_path, user_path + "/input/trigger/curl_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger slide", user_path, user_path + "/input/trigger/slide_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger force", user_path, user_path + "/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Squeeze", user_path, user_path + "/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumb proximity", user_path, user_path + "/input/thumb_meta/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger touch", "/user/hand/left", "/user/hand/left/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger proximity", "/user/hand/left", "/user/hand/left/input/trigger/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger curl", "/user/hand/left", "/user/hand/left/input/trigger/curl_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger slide", "/user/hand/left", "/user/hand/left/input/trigger/slide_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger force", "/user/hand/left", "/user/hand/left/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger touch", "/user/hand/right", "/user/hand/right/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger proximity", "/user/hand/right", "/user/hand/right/input/trigger/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger curl", "/user/hand/right", "/user/hand/right/input/trigger/curl_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger slide", "/user/hand/right", "/user/hand/right/input/trigger/slide_meta", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Trigger force", "/user/hand/right", "/user/hand/right/input/trigger/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick", user_path, user_path + "/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			metadata->register_io_path(profile_path, "Thumbstick X", user_path, user_path + "/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick Y", user_path, user_path + "/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbstick click", user_path, user_path + "/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick touch", user_path, user_path + "/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Up", user_path, user_path + "/input/thumbstick/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Down", user_path, user_path + "/input/thumbstick/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Left", user_path, user_path + "/input/thumbstick/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Thumbstick Dpad Right", user_path, user_path + "/input/thumbstick/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Squeeze", "/user/hand/left", "/user/hand/left/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Squeeze", "/user/hand/right", "/user/hand/right/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Thumbrest touch", user_path, user_path + "/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumb proximity", "/user/hand/left", "/user/hand/left/input/thumb_meta/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumb proximity", "/user/hand/right", "/user/hand/right/input/thumb_meta/proximity_meta", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick", "/user/hand/left", "/user/hand/left/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick X", "/user/hand/left", "/user/hand/left/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick Y", "/user/hand/left", "/user/hand/left/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick click", "/user/hand/left", "/user/hand/left/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick touch", "/user/hand/left", "/user/hand/left/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick", "/user/hand/right", "/user/hand/right/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick X", "/user/hand/right", "/user/hand/right/input/thumbstick/x", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick Y", "/user/hand/right", "/user/hand/right/input/thumbstick/y", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick click", "/user/hand/right", "/user/hand/right/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbstick touch", "/user/hand/right", "/user/hand/right/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbrest touch", "/user/hand/left", "/user/hand/left/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Thumbrest touch", "/user/hand/right", "/user/hand/right/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/meta/touch_controller_plus", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		metadata->register_io_path(profile_path, "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		metadata->register_io_path(profile_path, "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+	}
 }

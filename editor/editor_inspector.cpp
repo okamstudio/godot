@@ -69,6 +69,12 @@ bool EditorInspector::_property_path_matches(const String &p_property_path, cons
 	return false;
 }
 
+String EditorProperty::get_tooltip_string(const String &p_string) const {
+	// Trim to 100 characters to prevent the tooltip from being too long.
+	constexpr int TOOLTIP_MAX_LENGTH = 100;
+	return p_string.left(TOOLTIP_MAX_LENGTH).strip_edges() + String((p_string.length() > TOOLTIP_MAX_LENGTH) ? "..." : "");
+}
+
 Size2 EditorProperty::get_minimum_size() const {
 	Size2 ms;
 	Ref<Font> font = get_theme_font(SceneStringName(font), SNAME("Tree"));
@@ -275,7 +281,7 @@ void EditorProperty::_notification(int p_what) {
 			} else {
 				color = get_theme_color(is_read_only() ? SNAME("readonly_color") : SNAME("property_color"));
 			}
-			if (label.contains(".")) {
+			if (label.contains_char('.')) {
 				// FIXME: Move this to the project settings editor, as this is only used
 				// for project settings feature tag overrides.
 				color.a = 0.5;
@@ -999,36 +1005,33 @@ void EditorProperty::_update_flags() {
 }
 
 Control *EditorProperty::make_custom_tooltip(const String &p_text) const {
-	String custom_warning;
+	String symbol;
+	String prologue;
+
 	if (object->has_method("_get_property_warning")) {
-		custom_warning = object->call("_get_property_warning", property);
+		const String custom_warning = object->call("_get_property_warning", property);
+		if (!custom_warning.is_empty()) {
+			prologue = "[b][color=" + get_theme_color(SNAME("warning_color")).to_html(false) + "]" + custom_warning + "[/color][/b]";
+		}
 	}
 
-	if (has_doc_tooltip || !custom_warning.is_empty()) {
-		EditorHelpBit *help_bit = memnew(EditorHelpBit);
+	if (has_doc_tooltip) {
+		symbol = p_text;
 
-		if (has_doc_tooltip) {
-			help_bit->parse_symbol(p_text);
-
-			const EditorInspector *inspector = get_parent_inspector();
-			if (inspector) {
-				const String custom_description = inspector->get_custom_property_description(p_text);
-				if (!custom_description.is_empty()) {
-					help_bit->set_description(custom_description);
+		const EditorInspector *inspector = get_parent_inspector();
+		if (inspector) {
+			const String custom_description = inspector->get_custom_property_description(p_text);
+			if (!custom_description.is_empty()) {
+				if (!prologue.is_empty()) {
+					prologue += '\n';
 				}
+				prologue += custom_description;
 			}
 		}
+	}
 
-		if (!custom_warning.is_empty()) {
-			String description = "[b][color=" + get_theme_color(SNAME("warning_color")).to_html(false) + "]" + custom_warning + "[/color][/b]";
-			if (!help_bit->get_description().is_empty()) {
-				description += "\n" + help_bit->get_description();
-			}
-			help_bit->set_description(description);
-		}
-
-		EditorHelpBitTooltip::show_tooltip(help_bit, const_cast<EditorProperty *>(this));
-		return memnew(Control); // Make the standard tooltip invisible.
+	if (!symbol.is_empty() || !prologue.is_empty()) {
+		return EditorHelpBitTooltip::show_tooltip(const_cast<EditorProperty *>(this), symbol, prologue);
 	}
 
 	return nullptr;
@@ -1090,6 +1093,21 @@ void EditorProperty::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_focusable", "control"), &EditorProperty::add_focusable);
 	ClassDB::bind_method(D_METHOD("set_bottom_editor", "editor"), &EditorProperty::set_bottom_editor);
 
+	ClassDB::bind_method(D_METHOD("set_selectable", "selectable"), &EditorProperty::set_selectable);
+	ClassDB::bind_method(D_METHOD("is_selectable"), &EditorProperty::is_selectable);
+
+	ClassDB::bind_method(D_METHOD("set_use_folding", "use_folding"), &EditorProperty::set_use_folding);
+	ClassDB::bind_method(D_METHOD("is_using_folding"), &EditorProperty::is_using_folding);
+
+	ClassDB::bind_method(D_METHOD("set_name_split_ratio", "ratio"), &EditorProperty::set_name_split_ratio);
+	ClassDB::bind_method(D_METHOD("get_name_split_ratio"), &EditorProperty::get_name_split_ratio);
+
+	ClassDB::bind_method(D_METHOD("deselect"), &EditorProperty::deselect);
+	ClassDB::bind_method(D_METHOD("is_selected"), &EditorProperty::is_selected);
+	ClassDB::bind_method(D_METHOD("select", "focusable"), &EditorProperty::select, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("set_object_and_property", "object", "property"), &EditorProperty::set_object_and_property);
+	ClassDB::bind_method(D_METHOD("set_label_reference", "control"), &EditorProperty::set_label_reference);
+
 	ClassDB::bind_method(D_METHOD("emit_changed", "property", "value", "field", "changing"), &EditorProperty::emit_changed, DEFVAL(StringName()), DEFVAL(false));
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "label"), "set_label", "get_label");
@@ -1099,6 +1117,9 @@ void EditorProperty::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_warning"), "set_draw_warning", "is_draw_warning");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "keying"), "set_keying", "is_keying");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "deletable"), "set_deletable", "is_deletable");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "selectable"), "set_selectable", "is_selectable");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_folding"), "set_use_folding", "is_using_folding");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "name_split_ratio"), "set_name_split_ratio", "get_name_split_ratio");
 
 	ADD_SIGNAL(MethodInfo("property_changed", PropertyInfo(Variant::STRING_NAME, "property"), PropertyInfo(Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), PropertyInfo(Variant::STRING_NAME, "field"), PropertyInfo(Variant::BOOL, "changing")));
 	ADD_SIGNAL(MethodInfo("multiple_properties_changed", PropertyInfo(Variant::PACKED_STRING_ARRAY, "properties"), PropertyInfo(Variant::ARRAY, "value")));
@@ -1307,9 +1328,7 @@ Control *EditorInspectorCategory::make_custom_tooltip(const String &p_text) cons
 		return nullptr;
 	}
 
-	EditorHelpBit *help_bit = memnew(EditorHelpBit(p_text));
-	EditorHelpBitTooltip::show_tooltip(help_bit, const_cast<EditorInspectorCategory *>(this));
-	return memnew(Control); // Make the standard tooltip invisible.
+	return EditorHelpBitTooltip::show_tooltip(const_cast<EditorInspectorCategory *>(this), p_text);
 }
 
 void EditorInspectorCategory::set_as_favorite(EditorInspector *p_for_inspector) {
@@ -2534,7 +2553,7 @@ EditorInspectorArray::EditorInspectorArray(bool p_read_only) {
 	new_size_spin_box = memnew(SpinBox);
 	new_size_spin_box->set_max(16384);
 	new_size_spin_box->connect(SceneStringName(value_changed), callable_mp(this, &EditorInspectorArray::_new_size_spin_box_value_changed));
-	new_size_spin_box->get_line_edit()->connect("text_submitted", callable_mp(this, &EditorInspectorArray::_new_size_spin_box_text_submitted));
+	new_size_spin_box->get_line_edit()->connect(SceneStringName(text_submitted), callable_mp(this, &EditorInspectorArray::_new_size_spin_box_text_submitted));
 	new_size_spin_box->set_editable(!read_only);
 	resize_dialog_vbox->add_margin_child(TTRC("New Size:"), new_size_spin_box);
 
@@ -2617,7 +2636,7 @@ EditorPaginator::EditorPaginator() {
 	add_child(prev_page_button);
 
 	page_line_edit = memnew(LineEdit);
-	page_line_edit->connect("text_submitted", callable_mp(this, &EditorPaginator::_page_line_edit_text_submitted));
+	page_line_edit->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPaginator::_page_line_edit_text_submitted));
 	page_line_edit->add_theme_constant_override("minimum_character_width", 2);
 	add_child(page_line_edit);
 
@@ -3131,7 +3150,7 @@ void EditorInspector::update_tree() {
 
 		if (!array_prefix.is_empty()) {
 			path = path.trim_prefix(array_prefix);
-			int char_index = path.find("/");
+			int char_index = path.find_char('/');
 			if (char_index >= 0) {
 				path = path.right(-char_index - 1);
 			} else {
@@ -3171,10 +3190,10 @@ void EditorInspector::update_tree() {
 		}
 
 		// Get the property label's string.
-		String name_override = (path.contains("/")) ? path.substr(path.rfind("/") + 1) : path;
+		String name_override = (path.contains_char('/')) ? path.substr(path.rfind_char('/') + 1) : path;
 		String feature_tag;
 		{
-			const int dot = name_override.find(".");
+			const int dot = name_override.find_char('.');
 			if (dot != -1) {
 				feature_tag = name_override.substr(dot);
 				name_override = name_override.substr(0, dot);
@@ -3189,7 +3208,7 @@ void EditorInspector::update_tree() {
 		const String property_label_string = EditorPropertyNameProcessor::get_singleton()->process_name(name_override, name_style, p.name, doc_name) + feature_tag;
 
 		// Remove the property from the path.
-		int idx = path.rfind("/");
+		int idx = path.rfind_char('/');
 		if (idx > -1) {
 			path = path.left(idx);
 		} else {
@@ -3320,7 +3339,7 @@ void EditorInspector::update_tree() {
 				array_element_prefix = class_name_components[0];
 				editor_inspector_array = memnew(EditorInspectorArray(all_read_only));
 
-				String array_label = path.contains("/") ? path.substr(path.rfind("/") + 1) : path;
+				String array_label = path.contains_char('/') ? path.substr(path.rfind_char('/') + 1) : path;
 				array_label = EditorPropertyNameProcessor::get_singleton()->process_name(property_label_string, property_name_style, p.name, doc_name);
 				int page = per_array_page.has(array_element_prefix) ? per_array_page[array_element_prefix] : 0;
 				editor_inspector_array->setup_with_move_element_function(object, array_label, array_element_prefix, page, c, use_folding);
@@ -3472,6 +3491,14 @@ void EditorInspector::update_tree() {
 
 		editors.append_array(late_editors);
 
+		const Node *node = Object::cast_to<Node>(object);
+
+		Vector<SceneState::PackState> sstack;
+		if (node != nullptr) {
+			const Node *es = EditorNode::get_singleton()->get_edited_scene();
+			sstack = PropertyUtils::get_node_states_stack(node, es);
+		}
+
 		for (int i = 0; i < editors.size(); i++) {
 			EditorProperty *ep = Object::cast_to<EditorProperty>(editors[i].property_editor);
 			const Vector<String> &properties = editors[i].properties;
@@ -3525,7 +3552,15 @@ void EditorInspector::update_tree() {
 				ep->set_checked(checked);
 				ep->set_keying(keying);
 				ep->set_read_only(property_read_only || all_read_only);
-				ep->set_deletable(deletable_properties || p.name.begins_with("metadata/"));
+				if (p.name.begins_with("metadata/")) {
+					Variant _default = Variant();
+					if (node != nullptr) {
+						_default = PropertyUtils::get_property_default_value(node, p.name, nullptr, &sstack, false, nullptr, nullptr);
+					}
+					ep->set_deletable(_default == Variant());
+				} else {
+					ep->set_deletable(deletable_properties);
+				}
 			}
 
 			if (ep && ep->is_favoritable() && current_favorites.has(p.name)) {
@@ -3648,8 +3683,6 @@ void EditorInspector::update_tree() {
 		for (List<EditorInspectorSection *>::Element *I = sections.back(); I; I = I->prev()) {
 			EditorInspectorSection *section = I->get();
 			if (section->get_vbox()->get_child_count() == 0) {
-				I = I->prev();
-
 				sections.erase(section);
 				vbox_per_path[main_vbox].erase(section->get_section());
 				memdelete(section);
@@ -4009,7 +4042,11 @@ void EditorInspector::_edit_set(const String &p_name, const Variant &p_value, bo
 		bool valid = false;
 		Variant value = object->get(p_name, &valid);
 		if (valid) {
-			undo_redo->add_undo_property(object, p_name, value);
+			if (Object::cast_to<Control>(object) && (p_name == "anchors_preset" || p_name == "layout_mode")) {
+				undo_redo->add_undo_method(object, "_edit_set_state", Object::cast_to<Control>(object)->_edit_get_state());
+			} else {
+				undo_redo->add_undo_property(object, p_name, value);
+			}
 		}
 
 		List<StringName> linked_properties;
@@ -4417,6 +4454,7 @@ void EditorInspector::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_READY: {
+			ERR_FAIL_NULL(EditorFeatureProfileManager::get_singleton());
 			EditorFeatureProfileManager::get_singleton()->connect("current_feature_profile_changed", callable_mp(this, &EditorInspector::_feature_profile_changed));
 			set_process(is_visible_in_tree());
 			add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), SNAME("Tree")));
@@ -4614,6 +4652,8 @@ void EditorInspector::_bind_methods() {
 	ClassDB::bind_method("get_selected_path", &EditorInspector::get_selected_path);
 	ClassDB::bind_method("get_edited_object", &EditorInspector::get_edited_object);
 
+	ClassDB::bind_static_method("EditorInspector", D_METHOD("instantiate_property_editor", "object", "type", "path", "hint", "hint_text", "usage", "wide"), &EditorInspector::instantiate_property_editor, DEFVAL(false));
+
 	ADD_SIGNAL(MethodInfo("property_selected", PropertyInfo(Variant::STRING, "property")));
 	ADD_SIGNAL(MethodInfo("property_keyed", PropertyInfo(Variant::STRING, "property"), PropertyInfo(Variant::NIL, "value", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NIL_IS_VARIANT), PropertyInfo(Variant::BOOL, "advance")));
 	ADD_SIGNAL(MethodInfo("property_deleted", PropertyInfo(Variant::STRING, "property")));
@@ -4664,6 +4704,7 @@ EditorInspector::EditorInspector() {
 	search_box = nullptr;
 	_prop_edited = "property_edited";
 	set_process(false);
+	set_focus_mode(FocusMode::FOCUS_ALL);
 	property_focusable = -1;
 	property_clipboard = Variant();
 
@@ -4682,4 +4723,6 @@ EditorInspector::EditorInspector() {
 
 	// `use_settings_name_style` is true by default, set the name style accordingly.
 	set_property_name_style(EditorPropertyNameProcessor::get_singleton()->get_settings_style());
+
+	set_draw_focus_border(true);
 }

@@ -30,6 +30,8 @@
 
 #include "sphere_shape_3d.h"
 
+#include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/material.h"
 #include "servers/physics_server_3d.h"
 
 Vector<Vector3> SphereShape3D::get_debug_mesh_lines() const {
@@ -52,6 +54,24 @@ Vector<Vector3> SphereShape3D::get_debug_mesh_lines() const {
 	}
 
 	return points;
+}
+
+Ref<ArrayMesh> SphereShape3D::get_debug_arraymesh_faces(const Color &p_modulate) const {
+	Array sphere_array;
+	sphere_array.resize(RS::ARRAY_MAX);
+	SphereMesh::create_mesh_array(sphere_array, radius, radius * 2, 32);
+
+	Vector<Color> colors;
+	const PackedVector3Array &verts = sphere_array[RS::ARRAY_VERTEX];
+	const int32_t verts_size = verts.size();
+	for (int i = 0; i < verts_size; i++) {
+		colors.append(p_modulate);
+	}
+
+	Ref<ArrayMesh> sphere_mesh = memnew(ArrayMesh);
+	sphere_array[RS::ARRAY_COLOR] = colors;
+	sphere_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, sphere_array);
+	return sphere_mesh;
 }
 
 real_t SphereShape3D::get_enclosing_radius() const {

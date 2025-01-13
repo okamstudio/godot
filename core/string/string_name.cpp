@@ -191,12 +191,6 @@ bool StringName::operator!=(const char *p_name) const {
 	return !(operator==(p_name));
 }
 
-bool StringName::operator!=(const StringName &p_name) const {
-	// the real magic of all this mess happens here.
-	// this is why path comparisons are very fast
-	return _data != p_name._data;
-}
-
 char32_t StringName::operator[](int p_index) const {
 	if (_data) {
 		if (_data->cname) {

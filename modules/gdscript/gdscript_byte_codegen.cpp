@@ -585,8 +585,25 @@ void GDScriptByteCodeGenerator::write_unary_operator(const Address &p_target, Va
 }
 
 void GDScriptByteCodeGenerator::write_binary_operator(const Address &p_target, Variant::Operator p_operator, const Address &p_left_operand, const Address &p_right_operand) {
-	// Avoid validated evaluator for modulo and division when operands are int, since there's no check for division by zero.
-	if (HAS_BUILTIN_TYPE(p_left_operand) && HAS_BUILTIN_TYPE(p_right_operand) && ((p_operator != Variant::OP_DIVIDE && p_operator != Variant::OP_MODULE) || p_left_operand.type.builtin_type != Variant::INT || p_right_operand.type.builtin_type != Variant::INT)) {
+	bool valid = HAS_BUILTIN_TYPE(p_left_operand) && HAS_BUILTIN_TYPE(p_right_operand);
+
+	// Avoid validated evaluator for modulo and division when operands are int or integer vector, since there's no check for division by zero.
+	if (valid && (p_operator == Variant::OP_DIVIDE || p_operator == Variant::OP_MODULE)) {
+		switch (p_left_operand.type.builtin_type) {
+			case Variant::INT:
+				valid = p_right_operand.type.builtin_type != Variant::INT;
+				break;
+			case Variant::VECTOR2I:
+			case Variant::VECTOR3I:
+			case Variant::VECTOR4I:
+				valid = p_right_operand.type.builtin_type != Variant::INT && p_right_operand.type.builtin_type != p_left_operand.type.builtin_type;
+				break;
+			default:
+				break;
+		}
+	}
+
+	if (valid) {
 		if (p_target.mode == Address::TEMPORARY) {
 			Variant::Type result_type = Variant::get_operator_return_type(p_operator, p_left_operand.type.builtin_type, p_right_operand.type.builtin_type);
 			Variant::Type temp_type = temporaries[p_target.address].type;
@@ -1862,7 +1879,7 @@ void GDScriptByteCodeGenerator::end_block() {
 
 void GDScriptByteCodeGenerator::clear_temporaries() {
 	for (int slot_idx : temporaries_pending_clear) {
-		// The temporary may have been re-used as something else since it was added to the list.
+		// The temporary may have been reused as something else since it was added to the list.
 		// In that case, there's **no** need to clear it.
 		if (temporaries[slot_idx].can_contain_object) {
 			clear_address(Address(Address::TEMPORARY, slot_idx)); // Can contain `RefCounted`, so clear it.
@@ -1911,7 +1928,7 @@ void GDScriptByteCodeGenerator::clear_address(const Address &p_address) {
 	}
 }
 
-// Returns `true` if the local has been re-used and not cleaned up with `clear_address()`.
+// Returns `true` if the local has been reused and not cleaned up with `clear_address()`.
 bool GDScriptByteCodeGenerator::is_local_dirty(const Address &p_address) const {
 	ERR_FAIL_COND_V(p_address.mode != Address::LOCAL_VARIABLE, false);
 	return dirty_locals.has(p_address.address);

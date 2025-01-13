@@ -500,6 +500,20 @@ bool TextServerAdvanced::_save_support_data(const String &p_filename) const {
 #endif
 }
 
+PackedByteArray TextServerAdvanced::_get_support_data() const {
+	_THREAD_SAFE_METHOD_
+#ifdef ICU_STATIC_DATA
+
+	PackedByteArray icu_data_static;
+	icu_data_static.resize(U_ICUDATA_SIZE);
+	memcpy(icu_data_static.ptrw(), U_ICUDATA_ENTRY_POINT, U_ICUDATA_SIZE);
+
+	return icu_data_static;
+#else
+	return icu_data;
+#endif
+}
+
 bool TextServerAdvanced::_is_locale_right_to_left(const String &p_locale) const {
 	String l = p_locale.get_slicec('_', 0);
 	if ((l == "ar") || (l == "dv") || (l == "he") || (l == "fa") || (l == "ff") || (l == "ku") || (l == "ur")) {
@@ -2465,6 +2479,22 @@ TextServer::SubpixelPositioning TextServerAdvanced::_font_get_subpixel_positioni
 
 	MutexLock lock(fd->mutex);
 	return fd->subpixel_positioning;
+}
+
+void TextServerAdvanced::_font_set_keep_rounding_remainders(const RID &p_font_rid, bool p_keep_rounding_remainders) {
+	FontAdvanced *fd = _get_font_data(p_font_rid);
+	ERR_FAIL_NULL(fd);
+
+	MutexLock lock(fd->mutex);
+	fd->keep_rounding_remainders = p_keep_rounding_remainders;
+}
+
+bool TextServerAdvanced::_font_get_keep_rounding_remainders(const RID &p_font_rid) const {
+	FontAdvanced *fd = _get_font_data(p_font_rid);
+	ERR_FAIL_NULL_V(fd, false);
+
+	MutexLock lock(fd->mutex);
+	return fd->keep_rounding_remainders;
 }
 
 void TextServerAdvanced::_font_set_embolden(const RID &p_font_rid, double p_strength) {
@@ -4846,10 +4876,10 @@ double TextServerAdvanced::_shaped_text_fit_to_width(const RID &p_shaped, double
 
 	MutexLock lock(sd->mutex);
 	if (!sd->valid.is_set()) {
-		const_cast<TextServerAdvanced *>(this)->_shaped_text_shape(p_shaped);
+		_shaped_text_shape(p_shaped);
 	}
 	if (!sd->justification_ops_valid) {
-		const_cast<TextServerAdvanced *>(this)->_shaped_text_update_justification_ops(p_shaped);
+		_shaped_text_update_justification_ops(p_shaped);
 	}
 
 	sd->fit_width_minimum_reached = false;
@@ -5003,10 +5033,10 @@ double TextServerAdvanced::_shaped_text_tab_align(const RID &p_shaped, const Pac
 
 	MutexLock lock(sd->mutex);
 	if (!sd->valid.is_set()) {
-		const_cast<TextServerAdvanced *>(this)->_shaped_text_shape(p_shaped);
+		_shaped_text_shape(p_shaped);
 	}
 	if (!sd->line_breaks_valid) {
-		const_cast<TextServerAdvanced *>(this)->_shaped_text_update_breaks(p_shaped);
+		_shaped_text_update_breaks(p_shaped);
 	}
 
 	for (int i = 0; i < p_tab_stops.size(); i++) {
@@ -5195,6 +5225,7 @@ RID TextServerAdvanced::_find_sys_font_for_text(const RID &p_fdef, const String 
 			_font_set_force_autohinter(sysf.rid, key.force_autohinter);
 			_font_set_hinting(sysf.rid, key.hinting);
 			_font_set_subpixel_positioning(sysf.rid, key.subpixel_positioning);
+			_font_set_keep_rounding_remainders(sysf.rid, key.keep_rounding_remainders);
 			_font_set_variation_coordinates(sysf.rid, var);
 			_font_set_oversampling(sysf.rid, key.oversampling);
 			_font_set_embolden(sysf.rid, key.embolden);
@@ -6235,6 +6266,9 @@ void TextServerAdvanced::_shape_run(ShapedTextDataAdvanced *p_sd, int64_t p_star
 #endif
 
 			gl.index = glyph_info[i].codepoint;
+			if ((p_sd->text[glyph_info[i].cluster] == 0x0009) || u_isblank(p_sd->text[glyph_info[i].cluster]) || is_linebreak(p_sd->text[glyph_info[i].cluster])) {
+				adv_rem = 0.0; // Reset on blank.
+			}
 			if (gl.index != 0) {
 				FontGlyph fgl;
 				_ensure_glyph(fd, fss, gl.index | mod, fgl);
@@ -6256,12 +6290,16 @@ void TextServerAdvanced::_shape_run(ShapedTextDataAdvanced *p_sd, int64_t p_star
 					} else {
 						double full_adv = adv_rem + ((double)glyph_pos[i].x_advance / (64.0 / scale) + ea);
 						gl.advance = Math::round(full_adv);
-						adv_rem = full_adv - gl.advance;
+						if (fd->keep_rounding_remainders) {
+							adv_rem = full_adv - gl.advance;
+						}
 					}
 				} else {
 					double full_adv = adv_rem + ((double)glyph_pos[i].y_advance / (64.0 / scale));
 					gl.advance = -Math::round(full_adv);
-					adv_rem = full_adv + gl.advance;
+					if (fd->keep_rounding_remainders) {
+						adv_rem = full_adv + gl.advance;
+					}
 				}
 				if (p_sd->orientation == ORIENTATION_HORIZONTAL) {
 					gl.y_off += _font_get_baseline_offset(gl.font_rid) * (double)(_font_get_ascent(gl.font_rid, gl.font_size) + _font_get_descent(gl.font_rid, gl.font_size));
@@ -6596,7 +6634,7 @@ const Glyph *TextServerAdvanced::_shaped_text_sort_logical(const RID &p_shaped) 
 
 	MutexLock lock(sd->mutex);
 	if (!sd->valid.is_set()) {
-		const_cast<TextServerAdvanced *>(this)->_shaped_text_shape(p_shaped);
+		_shaped_text_shape(p_shaped);
 	}
 
 	if (!sd->sort_valid) {

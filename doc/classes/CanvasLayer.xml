@@ -45,8 +45,8 @@
 			The custom [Viewport] node assigned to the [CanvasLayer]. If [code]null[/code], uses the default viewport instead.
 		</member>
 		<member name="follow_viewport_enabled" type="bool" setter="set_follow_viewport" getter="is_following_viewport" default="false">
-			If enabled, the [CanvasLayer] will use the viewport's transform, so it will move when camera moves instead of being anchored in a fixed position on the screen.
-			Together with [member follow_viewport_scale] it can be used for a pseudo 3D effect.
+			If enabled, the [CanvasLayer] stays in a fixed position on the screen. If disabled, the [CanvasLayer] maintains its position in world space.
+			Together with [member follow_viewport_scale], this can be used for a pseudo-3D effect.
 		</member>
 		<member name="follow_viewport_scale" type="float" setter="set_follow_viewport_scale" getter="get_follow_viewport_scale" default="1.0">
 			Scales the layer when using [member follow_viewport_enabled]. Layers moving into the foreground should have increasing scales, while layers moving into the background should have decreasing scales.

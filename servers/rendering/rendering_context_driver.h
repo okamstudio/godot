@@ -52,16 +52,20 @@ public:
 	void window_destroy(DisplayServer::WindowID p_window);
 
 public:
-	enum Vendor {
-		VENDOR_UNKNOWN = 0x0,
-		VENDOR_AMD = 0x1002,
-		VENDOR_IMGTEC = 0x1010,
-		VENDOR_APPLE = 0x106B,
-		VENDOR_NVIDIA = 0x10DE,
-		VENDOR_ARM = 0x13B5,
-		VENDOR_MICROSOFT = 0x1414,
-		VENDOR_QUALCOMM = 0x5143,
-		VENDOR_INTEL = 0x8086
+	// Not an enum as these values are matched against values returned by
+	// the various drivers, which report them in uint32_t. Casting to an
+	// enum value is dangerous in this case as we don't actually know what
+	// range the driver is reporting a value in.
+	struct Vendor {
+		constexpr static uint32_t VENDOR_UNKNOWN = 0x0;
+		constexpr static uint32_t VENDOR_AMD = 0x1002;
+		constexpr static uint32_t VENDOR_IMGTEC = 0x1010;
+		constexpr static uint32_t VENDOR_APPLE = 0x106B;
+		constexpr static uint32_t VENDOR_NVIDIA = 0x10DE;
+		constexpr static uint32_t VENDOR_ARM = 0x13B5;
+		constexpr static uint32_t VENDOR_MICROSOFT = 0x1414;
+		constexpr static uint32_t VENDOR_QUALCOMM = 0x5143;
+		constexpr static uint32_t VENDOR_INTEL = 0x8086;
 	};
 
 	enum DeviceType {
@@ -79,7 +83,7 @@ public:
 
 	struct Device {
 		String name = "Unknown";
-		Vendor vendor = VENDOR_UNKNOWN;
+		uint32_t vendor = Vendor::VENDOR_UNKNOWN;
 		DeviceType type = DEVICE_TYPE_OTHER;
 		Workarounds workarounds;
 	};

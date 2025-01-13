@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Tool buttons can only be used in tool scripts (add "@tool" to the top of the script).
+>> ERROR at line 1: Tool buttons can only be used in tool scripts (add "@tool" to the top of the script).

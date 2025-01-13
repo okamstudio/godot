@@ -1,6 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 9
->> UNUSED_VARIABLE
->> The local variable "value" is declared but never used in the block. If this is intended, prefix it with an underscore: "_value".
+~~ WARNING at line 9: (UNUSED_VARIABLE) The local variable "value" is declared but never used in the block. If this is intended, prefix it with an underscore: "_value".
 value

@@ -154,7 +154,7 @@ public:
 	}
 
 	virtual bool is_vararg() const override {
-		return false;
+		return vararg;
 	}
 
 #ifdef TOOLS_ENABLED

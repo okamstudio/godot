@@ -485,21 +485,44 @@ namespace Godot.Collections
     /// <typeparam name="TValue">The type of the dictionary's values.</typeparam>
     [DebuggerTypeProxy(typeof(DictionaryDebugView<,>))]
     [DebuggerDisplay("Count = {Count}")]
+    [SuppressMessage("Design", "CA1001", MessageId = "Types that own disposable fields should be disposable",
+            Justification = "Known issue. Requires explicit refcount management to not dispose untyped collections.")]
     public class Dictionary<[MustBeVariant] TKey, [MustBeVariant] TValue> :
         IDictionary<TKey, TValue>,
         IReadOnlyDictionary<TKey, TValue>,
         IGenericGodotDictionary
     {
-        private static godot_variant ToVariantFunc(in Dictionary<TKey, TValue> godotDictionary) =>
+        private static godot_variant ToVariantFunc(scoped in Dictionary<TKey, TValue> godotDictionary) =>
             VariantUtils.CreateFromDictionary(godotDictionary);
 
         private static Dictionary<TKey, TValue> FromVariantFunc(in godot_variant variant) =>
             VariantUtils.ConvertToDictionary<TKey, TValue>(variant);
 
+        private void SetTypedForUnderlyingDictionary()
+        {
+            Marshaling.GetTypedCollectionParameterInfo<TKey>(out var keyVariantType, out var keyClassName, out var keyScriptRef);
+            Marshaling.GetTypedCollectionParameterInfo<TValue>(out var valueVariantType, out var valueClassName, out var valueScriptRef);
+
+            var self = (godot_dictionary)NativeValue;
+
+            using (keyScriptRef)
+            using (valueScriptRef)
+            {
+                NativeFuncs.godotsharp_dictionary_set_typed(
+                    ref self,
+                    (uint)keyVariantType,
+                    keyClassName,
+                    keyScriptRef,
+                    (uint)valueVariantType,
+                    valueClassName,
+                    valueScriptRef);
+            }
+        }
+
         static unsafe Dictionary()
         {
-            VariantUtils.GenericConversion<Dictionary<TKey, TValue>>.ToVariantCb = &ToVariantFunc;
-            VariantUtils.GenericConversion<Dictionary<TKey, TValue>>.FromVariantCb = &FromVariantFunc;
+            VariantUtils.GenericConversion<Dictionary<TKey, TValue>>.ToVariantCb = ToVariantFunc;
+            VariantUtils.GenericConversion<Dictionary<TKey, TValue>>.FromVariantCb = FromVariantFunc;
         }
 
         private readonly Dictionary _underlyingDict;
@@ -519,6 +542,7 @@ namespace Godot.Collections
         public Dictionary()
         {
             _underlyingDict = new Dictionary();
+            SetTypedForUnderlyingDictionary();
         }
 
         /// <summary>
@@ -531,10 +555,10 @@ namespace Godot.Collections
         /// <returns>A new Godot Dictionary.</returns>
         public Dictionary(IDictionary<TKey, TValue> dictionary)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
+            ArgumentNullException.ThrowIfNull(dictionary);
 
             _underlyingDict = new Dictionary();
+            SetTypedForUnderlyingDictionary();
 
             foreach (KeyValuePair<TKey, TValue> entry in dictionary)
                 Add(entry.Key, entry.Value);
@@ -550,8 +574,7 @@ namespace Godot.Collections
         /// <returns>A new Godot Dictionary.</returns>
         public Dictionary(Dictionary dictionary)
         {
-            if (dictionary == null)
-                throw new ArgumentNullException(nameof(dictionary));
+            ArgumentNullException.ThrowIfNull(dictionary);
 
             _underlyingDict = dictionary;
         }

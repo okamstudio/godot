@@ -37,19 +37,18 @@
 class NavigationPathQueryParameters2D : public RefCounted {
 	GDCLASS(NavigationPathQueryParameters2D, RefCounted);
 
-	NavigationUtilities::PathQueryParameters parameters;
-
 protected:
 	static void _bind_methods();
 
 public:
 	enum PathfindingAlgorithm {
-		PATHFINDING_ALGORITHM_ASTAR = 0,
+		PATHFINDING_ALGORITHM_ASTAR = NavigationUtilities::PATHFINDING_ALGORITHM_ASTAR,
 	};
 
 	enum PathPostProcessing {
-		PATH_POSTPROCESSING_CORRIDORFUNNEL = 0,
-		PATH_POSTPROCESSING_EDGECENTERED,
+		PATH_POSTPROCESSING_CORRIDORFUNNEL = NavigationUtilities::PATH_POSTPROCESSING_CORRIDORFUNNEL,
+		PATH_POSTPROCESSING_EDGECENTERED = NavigationUtilities::PATH_POSTPROCESSING_EDGECENTERED,
+		PATH_POSTPROCESSING_NONE = NavigationUtilities::PATH_POSTPROCESSING_NONE,
 	};
 
 	enum PathMetadataFlags {
@@ -60,16 +59,26 @@ public:
 		PATH_METADATA_INCLUDE_ALL = NavigationUtilities::PathMetadataFlags::PATH_INCLUDE_ALL
 	};
 
-	const NavigationUtilities::PathQueryParameters &get_parameters() const { return parameters; }
+private:
+	PathfindingAlgorithm pathfinding_algorithm = PATHFINDING_ALGORITHM_ASTAR;
+	PathPostProcessing path_postprocessing = PATH_POSTPROCESSING_CORRIDORFUNNEL;
+	RID map;
+	Vector2 start_position;
+	Vector2 target_position;
+	uint32_t navigation_layers = 1;
+	BitField<PathMetadataFlags> metadata_flags = PATH_METADATA_INCLUDE_ALL;
+	bool simplify_path = false;
+	real_t simplify_epsilon = 0.0;
 
+public:
 	void set_pathfinding_algorithm(const PathfindingAlgorithm p_pathfinding_algorithm);
 	PathfindingAlgorithm get_pathfinding_algorithm() const;
 
 	void set_path_postprocessing(const PathPostProcessing p_path_postprocessing);
 	PathPostProcessing get_path_postprocessing() const;
 
-	void set_map(const RID &p_map);
-	const RID &get_map() const;
+	void set_map(RID p_map);
+	RID get_map() const;
 
 	void set_start_position(const Vector2 p_start_position);
 	Vector2 get_start_position() const;

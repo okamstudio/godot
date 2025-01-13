@@ -33,6 +33,8 @@
 
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
+#include "core/string/print_string.h"
+#include "core/string/string_name.h"
 #include "scene/2d/audio_stream_player_2d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/audio/audio_stream_player.h"
@@ -127,6 +129,9 @@ void AnimationMixer::_validate_property(PropertyInfo &p_property) const {
 		p_property.usage |= PROPERTY_USAGE_READ_ONLY;
 	}
 #endif // TOOLS_ENABLED
+	if (root_motion_track.is_empty() && p_property.name == "root_motion_local") {
+		p_property.usage = PROPERTY_USAGE_NONE;
+	}
 }
 
 /* -------------------------------------------- */
@@ -267,6 +272,16 @@ bool AnimationMixer::has_animation_library(const StringName &p_name) const {
 	return false;
 }
 
+StringName AnimationMixer::get_animation_library_name(const Ref<AnimationLibrary> &p_animation_library) const {
+	ERR_FAIL_COND_V(p_animation_library.is_null(), StringName());
+	for (const AnimationLibraryData &lib : animation_libraries) {
+		if (lib.library == p_animation_library) {
+			return lib.name;
+		}
+	}
+	return StringName();
+}
+
 StringName AnimationMixer::find_animation_library(const Ref<Animation> &p_animation) const {
 	for (const KeyValue<StringName, AnimationData> &E : animation_set) {
 		if (E.value.animation == p_animation) {
@@ -279,7 +294,7 @@ StringName AnimationMixer::find_animation_library(const Ref<Animation> &p_animat
 Error AnimationMixer::add_animation_library(const StringName &p_name, const Ref<AnimationLibrary> &p_animation_library) {
 	ERR_FAIL_COND_V(p_animation_library.is_null(), ERR_INVALID_PARAMETER);
 #ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_V_MSG(String(p_name).contains("/") || String(p_name).contains(":") || String(p_name).contains(",") || String(p_name).contains("["), ERR_INVALID_PARAMETER, "Invalid animation name: " + String(p_name) + ".");
+	ERR_FAIL_COND_V_MSG(String(p_name).contains_char('/') || String(p_name).contains_char(':') || String(p_name).contains_char(',') || String(p_name).contains_char('['), ERR_INVALID_PARAMETER, "Invalid animation name: " + String(p_name) + ".");
 #endif
 
 	int insert_pos = 0;
@@ -341,7 +356,7 @@ void AnimationMixer::rename_animation_library(const StringName &p_name, const St
 		return;
 	}
 #ifdef DEBUG_ENABLED
-	ERR_FAIL_COND_MSG(String(p_new_name).contains("/") || String(p_new_name).contains(":") || String(p_new_name).contains(",") || String(p_new_name).contains("["), "Invalid animation library name: " + String(p_new_name) + ".");
+	ERR_FAIL_COND_MSG(String(p_new_name).contains_char('/') || String(p_new_name).contains_char(':') || String(p_new_name).contains_char(',') || String(p_new_name).contains_char('['), "Invalid animation library name: " + String(p_new_name) + ".");
 #endif
 
 	bool found = false;
@@ -733,6 +748,15 @@ bool AnimationMixer::_update_caches() {
 							}
 						}
 
+						if (is_value && callback_mode_discrete == ANIMATION_CALLBACK_MODE_DISCRETE_FORCE_CONTINUOUS) {
+							if (child) {
+								PropertyInfo prop_info;
+								ClassDB::get_property_info(child->get_class_name(), path.get_concatenated_subnames(), &prop_info);
+								if (prop_info.hint == PROPERTY_HINT_ONESHOT) {
+									WARN_PRINT_ED(vformat("%s: '%s', Value Track: '%s' is oneshot property, but will be continuously updated. Consider setting a value other than ANIMATION_CALLBACK_MODE_DISCRETE_FORCE_CONTINUOUS to AnimationMixer.callback_mode_dominant.", mixer_name, String(E), String(path)));
+								}
+							}
+						}
 					} break;
 					case Animation::TYPE_POSITION_3D:
 					case Animation::TYPE_ROTATION_3D:
@@ -1200,6 +1224,10 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 					}
 					TrackCacheTransform *t = static_cast<TrackCacheTransform *>(track);
 					if (track->root_motion && calc_root) {
+						int rot_track = -1;
+						if (root_motion_local) {
+							rot_track = a->find_track(a->track_get_path(i), Animation::TYPE_ROTATION_3D);
+						}
 						double prev_time = time - delta;
 						if (!backward) {
 							if (Animation::is_less_approx(prev_time, start)) {
@@ -1234,41 +1262,92 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 								}
 							}
 						}
-						Vector3 loc[2];
-						if (!backward) {
-							if (Animation::is_greater_approx(prev_time, time)) {
-								Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
-								if (err != OK) {
-									continue;
+						if (rot_track >= 0) {
+							Vector3 loc[2];
+							Quaternion rot;
+							if (!backward) {
+								if (Animation::is_greater_approx(prev_time, time)) {
+									Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+									if (err != OK) {
+										continue;
+									}
+									loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+									a->try_position_track_interpolate(i, end, &loc[1]);
+									loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+
+									a->try_rotation_track_interpolate(rot_track, end, &rot);
+									rot = post_process_key_value(a, rot_track, rot, t->object_id, t->bone_idx);
+
+									root_motion_cache.loc += rot.xform_inv(loc[1] - loc[0]) * blend;
+									prev_time = start;
 								}
-								loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
-								a->try_position_track_interpolate(i, end, &loc[1]);
-								loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
-								root_motion_cache.loc += (loc[1] - loc[0]) * blend;
-								prev_time = start;
+							} else {
+								if (Animation::is_less_approx(prev_time, time)) {
+									Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+									if (err != OK) {
+										continue;
+									}
+									loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+									a->try_position_track_interpolate(i, start, &loc[1]);
+									loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+
+									a->try_rotation_track_interpolate(rot_track, start, &rot);
+									rot = post_process_key_value(a, rot_track, rot, t->object_id, t->bone_idx);
+
+									root_motion_cache.loc += rot.xform_inv(loc[1] - loc[0]) * blend;
+									prev_time = end;
+								}
 							}
+							Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+							if (err != OK) {
+								continue;
+							}
+							loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+							a->try_position_track_interpolate(i, time, &loc[1]);
+							loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+
+							a->try_rotation_track_interpolate(rot_track, time, &rot);
+							rot = post_process_key_value(a, rot_track, rot, t->object_id, t->bone_idx);
+
+							root_motion_cache.loc += rot.xform_inv(loc[1] - loc[0]) * blend;
+							prev_time = !backward ? start : end;
 						} else {
-							if (Animation::is_less_approx(prev_time, time)) {
-								Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
-								if (err != OK) {
-									continue;
+							Vector3 loc[2];
+							if (!backward) {
+								if (Animation::is_greater_approx(prev_time, time)) {
+									Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+									if (err != OK) {
+										continue;
+									}
+									loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+									a->try_position_track_interpolate(i, end, &loc[1]);
+									loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+									root_motion_cache.loc += (loc[1] - loc[0]) * blend;
+									prev_time = start;
 								}
-								loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
-								a->try_position_track_interpolate(i, start, &loc[1]);
-								loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
-								root_motion_cache.loc += (loc[1] - loc[0]) * blend;
-								prev_time = end;
+							} else {
+								if (Animation::is_less_approx(prev_time, time)) {
+									Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+									if (err != OK) {
+										continue;
+									}
+									loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+									a->try_position_track_interpolate(i, start, &loc[1]);
+									loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+									root_motion_cache.loc += (loc[1] - loc[0]) * blend;
+									prev_time = end;
+								}
 							}
+							Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
+							if (err != OK) {
+								continue;
+							}
+							loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
+							a->try_position_track_interpolate(i, time, &loc[1]);
+							loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
+							root_motion_cache.loc += (loc[1] - loc[0]) * blend;
+							prev_time = !backward ? start : end;
 						}
-						Error err = a->try_position_track_interpolate(i, prev_time, &loc[0]);
-						if (err != OK) {
-							continue;
-						}
-						loc[0] = post_process_key_value(a, i, loc[0], t->object_id, t->bone_idx);
-						a->try_position_track_interpolate(i, time, &loc[1]);
-						loc[1] = post_process_key_value(a, i, loc[1], t->object_id, t->bone_idx);
-						root_motion_cache.loc += (loc[1] - loc[0]) * blend;
-						prev_time = !backward ? start : end;
 					}
 					{
 						Vector3 loc;
@@ -1343,6 +1422,7 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 								}
 								rot[0] = post_process_key_value(a, i, rot[0], t->object_id, t->bone_idx);
 								a->try_rotation_track_interpolate(i, start, &rot[1]);
+								rot[1] = post_process_key_value(a, i, rot[1], t->object_id, t->bone_idx);
 								root_motion_cache.rot = (root_motion_cache.rot * Quaternion().slerp(rot[0].inverse() * rot[1], blend)).normalized();
 								prev_time = end;
 							}
@@ -1418,8 +1498,8 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 								}
 								scale[0] = post_process_key_value(a, i, scale[0], t->object_id, t->bone_idx);
 								a->try_scale_track_interpolate(i, end, &scale[1]);
-								root_motion_cache.scale += (scale[1] - scale[0]) * blend;
 								scale[1] = post_process_key_value(a, i, scale[1], t->object_id, t->bone_idx);
+								root_motion_cache.scale += (scale[1] - scale[0]) * blend;
 								prev_time = start;
 							}
 						} else {
@@ -1990,10 +2070,19 @@ void AnimationMixer::clear_caches() {
 
 void AnimationMixer::set_root_motion_track(const NodePath &p_track) {
 	root_motion_track = p_track;
+	notify_property_list_changed();
 }
 
 NodePath AnimationMixer::get_root_motion_track() const {
 	return root_motion_track;
+}
+
+void AnimationMixer::set_root_motion_local(bool p_enabled) {
+	root_motion_local = p_enabled;
+}
+
+bool AnimationMixer::is_root_motion_local() const {
+	return root_motion_local;
 }
 
 Vector3 AnimationMixer::get_root_motion_position() const {
@@ -2341,6 +2430,8 @@ void AnimationMixer::_bind_methods() {
 	/* ---- Root motion accumulator for Skeleton3D ---- */
 	ClassDB::bind_method(D_METHOD("set_root_motion_track", "path"), &AnimationMixer::set_root_motion_track);
 	ClassDB::bind_method(D_METHOD("get_root_motion_track"), &AnimationMixer::get_root_motion_track);
+	ClassDB::bind_method(D_METHOD("set_root_motion_local", "enabled"), &AnimationMixer::set_root_motion_local);
+	ClassDB::bind_method(D_METHOD("is_root_motion_local"), &AnimationMixer::is_root_motion_local);
 
 	ClassDB::bind_method(D_METHOD("get_root_motion_position"), &AnimationMixer::get_root_motion_position);
 	ClassDB::bind_method(D_METHOD("get_root_motion_rotation"), &AnimationMixer::get_root_motion_rotation);
@@ -2368,6 +2459,7 @@ void AnimationMixer::_bind_methods() {
 
 	ADD_GROUP("Root Motion", "root_motion_");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "root_motion_track"), "set_root_motion_track", "get_root_motion_track");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "root_motion_local"), "set_root_motion_local", "is_root_motion_local");
 
 	ADD_GROUP("Audio", "audio_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "audio_max_polyphony", PROPERTY_HINT_RANGE, "1,127,1"), "set_audio_max_polyphony", "get_audio_max_polyphony");

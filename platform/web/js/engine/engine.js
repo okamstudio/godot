@@ -241,7 +241,11 @@ const Engine = (function () {
 			 */
 			installServiceWorker: function () {
 				if (this.config.serviceWorker && 'serviceWorker' in navigator) {
-					return navigator.serviceWorker.register(this.config.serviceWorker);
+					try {
+						return navigator.serviceWorker.register(this.config.serviceWorker);
+					} catch (e) {
+						return Promise.reject(e);
+					}
 				}
 				return Promise.resolve();
 			},

@@ -23,8 +23,12 @@ layout(push_constant, std430) uniform DrawCall {
 #ifdef UBERSHADER
 	uint sc_packed_0;
 	uint sc_packed_1;
-	float sc_packed_2;
+	uint sc_packed_2;
+	float sc_packed_3;
 	uint uc_packed_0;
+	uint uc_padding_1;
+	uint uc_padding_2;
+	uint uc_padding_3;
 #endif
 }
 draw_call;
@@ -46,8 +50,12 @@ uint sc_packed_1() {
 	return draw_call.sc_packed_1;
 }
 
-float sc_packed_2() {
+uint sc_packed_2() {
 	return draw_call.sc_packed_2;
+}
+
+float sc_packed_3() {
+	return draw_call.sc_packed_3;
 }
 
 uint uc_cull_mode() {
@@ -59,7 +67,8 @@ uint uc_cull_mode() {
 // Pull the constants from the pipeline's specialization constants.
 layout(constant_id = 0) const uint pso_sc_packed_0 = 0;
 layout(constant_id = 1) const uint pso_sc_packed_1 = 0;
-layout(constant_id = 2) const float pso_sc_packed_2 = 2.0;
+layout(constant_id = 2) const uint pso_sc_packed_2 = 0;
+layout(constant_id = 3) const float pso_sc_packed_3 = 2.0;
 
 uint sc_packed_0() {
 	return pso_sc_packed_0;
@@ -69,8 +78,12 @@ uint sc_packed_1() {
 	return pso_sc_packed_1;
 }
 
-float sc_packed_2() {
+uint sc_packed_2() {
 	return pso_sc_packed_2;
+}
+
+float sc_packed_3() {
+	return pso_sc_packed_3;
 }
 
 #endif
@@ -103,36 +116,48 @@ bool sc_use_depth_fog() {
 	return ((sc_packed_0() >> 6) & 1U) != 0;
 }
 
-bool sc_use_lightmap_bicubic_filter() {
+bool sc_use_fog_aerial_perspective() {
 	return ((sc_packed_0() >> 7) & 1U) != 0;
 }
 
-bool sc_multimesh() {
+bool sc_use_fog_sun_scatter() {
 	return ((sc_packed_0() >> 8) & 1U) != 0;
 }
 
-bool sc_multimesh_format_2d() {
+bool sc_use_fog_height_density() {
 	return ((sc_packed_0() >> 9) & 1U) != 0;
 }
 
-bool sc_multimesh_has_color() {
+bool sc_use_lightmap_bicubic_filter() {
 	return ((sc_packed_0() >> 10) & 1U) != 0;
 }
 
-bool sc_multimesh_has_custom_data() {
+bool sc_multimesh() {
 	return ((sc_packed_0() >> 11) & 1U) != 0;
 }
 
-bool sc_scene_use_ambient_cubemap() {
+bool sc_multimesh_format_2d() {
 	return ((sc_packed_0() >> 12) & 1U) != 0;
 }
 
-bool sc_scene_use_reflection_cubemap() {
+bool sc_multimesh_has_color() {
 	return ((sc_packed_0() >> 13) & 1U) != 0;
 }
 
-bool sc_scene_roughness_limiter_enabled() {
+bool sc_multimesh_has_custom_data() {
 	return ((sc_packed_0() >> 14) & 1U) != 0;
+}
+
+bool sc_scene_use_ambient_cubemap() {
+	return ((sc_packed_0() >> 15) & 1U) != 0;
+}
+
+bool sc_scene_use_reflection_cubemap() {
+	return ((sc_packed_0() >> 16) & 1U) != 0;
+}
+
+bool sc_scene_roughness_limiter_enabled() {
+	return ((sc_packed_0() >> 17) & 1U) != 0;
 }
 
 uint sc_soft_shadow_samples() {
@@ -171,8 +196,12 @@ uint sc_decals() {
 	return (sc_packed_1() >> 28) & 15U;
 }
 
+bool sc_directional_light_blend_split(uint i) {
+	return ((sc_packed_2() >> i) & 1U) != 0;
+}
+
 float sc_luminance_multiplier() {
-	return sc_packed_2();
+	return sc_packed_3();
 }
 
 /* Set 0: Base Pass (never changes) */
@@ -217,11 +246,16 @@ directional_lights;
 #define LIGHTMAP_FLAG_USE_DIRECTION 1
 #define LIGHTMAP_FLAG_USE_SPECULAR_DIRECTION 2
 
+#define LIGHTMAP_SHADOWMASK_MODE_NONE 0
+#define LIGHTMAP_SHADOWMASK_MODE_REPLACE 1
+#define LIGHTMAP_SHADOWMASK_MODE_OVERLAY 2
+#define LIGHTMAP_SHADOWMASK_MODE_ONLY 3
+
 struct Lightmap {
 	mediump mat3 normal_xform;
 	vec2 light_texture_size;
 	float exposure_normalization;
-	float pad;
+	uint flags;
 };
 
 layout(set = 0, binding = 7, std140) restrict readonly buffer Lightmaps {
@@ -301,7 +335,7 @@ layout(set = 1, binding = 4) uniform highp texture2D shadow_atlas;
 layout(set = 1, binding = 5) uniform highp texture2D directional_shadow_atlas;
 
 // this needs to change to providing just the lightmap we're using..
-layout(set = 1, binding = 6) uniform texture2DArray lightmap_textures[MAX_LIGHTMAP_TEXTURES];
+layout(set = 1, binding = 6) uniform texture2DArray lightmap_textures[MAX_LIGHTMAP_TEXTURES * 2];
 
 #ifdef USE_MULTIVIEW
 layout(set = 1, binding = 9) uniform highp texture2DArray depth_buffer;

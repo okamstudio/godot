@@ -65,17 +65,21 @@ static int pk_write_rsa_der(unsigned char **p, unsigned char *buf,
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
         uint8_t tmp[PSA_EXPORT_KEY_PAIR_MAX_SIZE];
-        size_t len = 0, tmp_len = 0;
+        size_t tmp_len = 0;
 
         if (psa_export_key(pk->priv_id, tmp, sizeof(tmp), &tmp_len) != PSA_SUCCESS) {
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
         }
+        /* Ensure there's enough space in the provided buffer before copying data into it. */
+        if (tmp_len > (size_t) (*p - buf)) {
+            mbedtls_platform_zeroize(tmp, sizeof(tmp));
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
+        }
         *p -= tmp_len;
         memcpy(*p, tmp, tmp_len);
-        len += tmp_len;
         mbedtls_platform_zeroize(tmp, sizeof(tmp));
 
-        return (int) len;
+        return (int) tmp_len;
     }
 #endif /* MBEDTLS_USE_PSA_CRYPTO */
     return mbedtls_rsa_write_key(mbedtls_pk_rsa(*pk), buf, p);
@@ -124,6 +128,10 @@ static int pk_write_ec_pubkey(unsigned char **p, unsigned char *start,
     if (mbedtls_pk_get_type(pk) == MBEDTLS_PK_OPAQUE) {
         if (psa_export_public_key(pk->priv_id, buf, sizeof(buf), &len) != PSA_SUCCESS) {
             return MBEDTLS_ERR_PK_BAD_INPUT_DATA;
+        }
+        /* Ensure there's enough space in the provided buffer before copying data into it. */
+        if (len > (size_t) (*p - start)) {
+            return MBEDTLS_ERR_ASN1_BUF_TOO_SMALL;
         }
         *p -= len;
         memcpy(*p, buf, len);

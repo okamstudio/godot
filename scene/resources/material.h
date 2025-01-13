@@ -467,15 +467,18 @@ private:
 		StringName albedo_texture_size;
 	};
 
+	static Mutex material_mutex;
+	static SelfList<BaseMaterial3D>::List dirty_materials;
 	static ShaderNames *shader_names;
 
-	void _mark_dirty();
+	SelfList<BaseMaterial3D> element;
+
 	void _update_shader();
+	_FORCE_INLINE_ void _queue_shader_change();
 	void _check_material_rid();
 	void _material_set_param(const StringName &p_name, const Variant &p_value);
 
 	bool orm;
-	bool dirty = true;
 	RID shader_rid;
 	HashMap<StringName, Variant> pending_params;
 
@@ -780,6 +783,7 @@ public:
 
 	static void init_shaders();
 	static void finish_shaders();
+	static void flush_changes();
 
 	static Ref<Material> get_material_for_2d(bool p_shaded, Transparency p_transparency, bool p_double_sided, bool p_billboard = false, bool p_billboard_y = false, bool p_msdf = false, bool p_no_depth = false, bool p_fixed_size = false, TextureFilter p_filter = TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, AlphaAntiAliasing p_alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF, RID *r_shader_rid = nullptr);
 

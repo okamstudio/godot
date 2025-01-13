@@ -55,12 +55,18 @@ LightStorage::LightStorage() {
 
 		if (textures_per_stage <= 256) {
 			lightmap_textures.resize(32);
+			shadowmask_textures.resize(32);
 		} else {
 			lightmap_textures.resize(1024);
+			shadowmask_textures.resize(1024);
 		}
 
-		for (int i = 0; i < lightmap_textures.size(); i++) {
-			lightmap_textures.write[i] = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
+		for (RID &lightmap_texture : lightmap_textures) {
+			lightmap_texture = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
+		}
+
+		for (RID &shadowmask_texture : shadowmask_textures) {
+			shadowmask_texture = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
 		}
 	}
 
@@ -676,12 +682,13 @@ void LightStorage::update_light_buffers(RenderDataRD *p_render_data, const Paged
 					angular_diameter = 0.0;
 				}
 
+				light_data.bake_mode = light->bake_mode;
+
 				if (light_data.shadow_opacity > 0.001) {
 					RS::LightDirectionalShadowMode smode = light->directional_shadow_mode;
 
 					light_data.soft_shadow_scale = light->param[RS::LIGHT_PARAM_SHADOW_BLUR];
 					light_data.softshadow_angle = angular_diameter;
-					light_data.bake_mode = light->bake_mode;
 
 					if (angular_diameter <= 0.0) {
 						light_data.soft_shadow_scale *= RendererSceneRenderRD::get_singleton()->directional_shadow_quality_radius_get(); // Only use quality radius for PCF
@@ -1066,6 +1073,13 @@ void LightStorage::reflection_probe_set_intensity(RID p_probe, float p_intensity
 	reflection_probe->intensity = p_intensity;
 }
 
+void LightStorage::reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL(reflection_probe);
+
+	reflection_probe->blend_distance = p_blend_distance;
+}
+
 void LightStorage::reflection_probe_set_ambient_mode(RID p_probe, RS::ReflectionProbeAmbientMode p_mode) {
 	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL(reflection_probe);
@@ -1264,6 +1278,13 @@ float LightStorage::reflection_probe_get_intensity(RID p_probe) const {
 	ERR_FAIL_NULL_V(reflection_probe, 0);
 
 	return reflection_probe->intensity;
+}
+
+float LightStorage::reflection_probe_get_blend_distance(RID p_probe) const {
+	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_NULL_V(reflection_probe, 0);
+
+	return reflection_probe->blend_distance;
 }
 
 bool LightStorage::reflection_probe_is_interior(RID p_probe) const {
@@ -1755,6 +1776,7 @@ void LightStorage::update_reflection_probe_buffer(RenderDataRD *p_render_data, c
 		reflection_ubo.mask = probe->reflection_mask;
 
 		reflection_ubo.intensity = probe->intensity;
+		reflection_ubo.blend_distance = probe->blend_distance;
 		reflection_ubo.ambient_mode = probe->ambient_mode;
 
 		reflection_ubo.exterior = !probe->interior;
@@ -2000,6 +2022,64 @@ AABB LightStorage::lightmap_get_aabb(RID p_lightmap) const {
 	const Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
 	ERR_FAIL_NULL_V(lm, AABB());
 	return lm->bounds;
+}
+
+void LightStorage::lightmap_set_shadowmask_textures(RID p_lightmap, RID p_shadow) {
+	TextureStorage *texture_storage = TextureStorage::get_singleton();
+
+	Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
+	ERR_FAIL_NULL(lm);
+
+	// Erase lightmap users from shadow texture.
+	if (lm->shadow_texture.is_valid()) {
+		TextureStorage::Texture *t = texture_storage->get_texture(lm->shadow_texture);
+		if (t) {
+			t->lightmap_users.erase(p_lightmap);
+		}
+	}
+
+	TextureStorage::Texture *t = texture_storage->get_texture(p_shadow);
+	lm->shadow_texture = p_shadow;
+
+	RID default_2d_array = texture_storage->texture_rd_get_default(TextureStorage::DEFAULT_RD_TEXTURE_2D_ARRAY_WHITE);
+	if (!t) {
+		if (lm->array_index >= 0) {
+			shadowmask_textures.write[lm->array_index] = default_2d_array;
+			lm->array_index = -1;
+		}
+
+		return;
+	}
+
+	t->lightmap_users.insert(p_lightmap);
+
+	if (lm->array_index < 0) {
+		// Not in array, try to put in array.
+		for (int i = 0; i < shadowmask_textures.size(); i++) {
+			if (shadowmask_textures[i] == default_2d_array) {
+				lm->array_index = i;
+				break;
+			}
+		}
+	}
+
+	ERR_FAIL_COND_MSG(lm->array_index < 0, vformat("Maximum amount of shadowmasks in use (%d) has been exceeded, shadowmask will not display properly.", shadowmask_textures.size()));
+
+	shadowmask_textures.write[lm->array_index] = t->rd_texture;
+}
+
+RS::ShadowmaskMode LightStorage::lightmap_get_shadowmask_mode(RID p_lightmap) {
+	Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
+	ERR_FAIL_NULL_V(lm, RS::SHADOWMASK_MODE_NONE);
+
+	return lm->shadowmask_mode;
+}
+
+void LightStorage::lightmap_set_shadowmask_mode(RID p_lightmap, RS::ShadowmaskMode p_mode) {
+	Lightmap *lm = lightmap_owner.get_or_null(p_lightmap);
+	ERR_FAIL_NULL(lm);
+
+	lm->shadowmask_mode = p_mode;
 }
 
 /* LIGHTMAP INSTANCE */
@@ -2328,7 +2408,7 @@ bool LightStorage::shadow_atlas_update_light(RID p_atlas, RID p_light_instance, 
 		old_quadrant = (old_key >> QUADRANT_SHIFT) & 0x3;
 		old_shadow = old_key & SHADOW_INDEX_MASK;
 
-		should_realloc = shadow_atlas->quadrants[old_quadrant].subdivision != (uint32_t)best_subdiv && (shadow_atlas->quadrants[old_quadrant].shadows[old_shadow].alloc_tick - tick > shadow_atlas_realloc_tolerance_msec);
+		should_realloc = shadow_atlas->quadrants[old_quadrant].subdivision != (uint32_t)best_subdiv && (tick - shadow_atlas->quadrants[old_quadrant].shadows[old_shadow].alloc_tick > shadow_atlas_realloc_tolerance_msec);
 		should_redraw = shadow_atlas->quadrants[old_quadrant].shadows[old_shadow].version != p_light_version;
 
 		if (!should_realloc) {

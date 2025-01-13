@@ -156,7 +156,7 @@ Vector<String> RunInstancesDialog::_split_cmdline_args(const String &p_arg_strin
 }
 
 void RunInstancesDialog::popup_dialog() {
-	popup_centered(Vector2i(1200, 600) * EDSCALE);
+	popup_centered(Vector2(1200, 600) * EDSCALE);
 }
 
 int RunInstancesDialog::get_instance_count() const {

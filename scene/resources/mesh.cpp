@@ -1315,7 +1315,7 @@ bool ArrayMesh::_set(const StringName &p_name, const Variant &p_value) {
 	String sname = p_name;
 
 	if (sname.begins_with("surface_")) {
-		int sl = sname.find("/");
+		int sl = sname.find_char('/');
 		if (sl == -1) {
 			return false;
 		}
@@ -1708,7 +1708,7 @@ bool ArrayMesh::_get(const StringName &p_name, Variant &r_ret) const {
 
 	String sname = p_name;
 	if (sname.begins_with("surface_")) {
-		int sl = sname.find("/");
+		int sl = sname.find_char('/');
 		if (sl == -1) {
 			return false;
 		}

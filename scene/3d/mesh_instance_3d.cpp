@@ -87,17 +87,9 @@ bool MeshInstance3D::_get(const StringName &p_name, Variant &r_ret) const {
 }
 
 void MeshInstance3D::_get_property_list(List<PropertyInfo> *p_list) const {
-	List<String> ls;
-	for (const KeyValue<StringName, int> &E : blend_shape_properties) {
-		ls.push_back(E.key);
+	for (uint32_t i = 0; i < blend_shape_tracks.size(); i++) {
+		p_list->push_back(PropertyInfo(Variant::FLOAT, vformat("blend_shapes/%s", String(mesh->get_blend_shape_name(i))), PROPERTY_HINT_RANGE, "-1,1,0.00001"));
 	}
-
-	ls.sort();
-
-	for (const String &E : ls) {
-		p_list->push_back(PropertyInfo(Variant::FLOAT, E, PROPERTY_HINT_RANGE, "-1,1,0.00001"));
-	}
-
 	if (mesh.is_valid()) {
 		for (int i = 0; i < mesh->get_surface_count(); i++) {
 			p_list->push_back(PropertyInfo(Variant::OBJECT, vformat("%s/%d", PNAME("surface_material_override"), i), PROPERTY_HINT_RESOURCE_TYPE, "BaseMaterial3D,ShaderMaterial", PROPERTY_USAGE_DEFAULT));
@@ -142,6 +134,7 @@ int MeshInstance3D::get_blend_shape_count() const {
 	}
 	return mesh->get_blend_shape_count();
 }
+
 int MeshInstance3D::find_blend_shape_by_name(const StringName &p_name) {
 	if (mesh.is_null()) {
 		return -1;
@@ -153,11 +146,13 @@ int MeshInstance3D::find_blend_shape_by_name(const StringName &p_name) {
 	}
 	return -1;
 }
+
 float MeshInstance3D::get_blend_shape_value(int p_blend_shape) const {
 	ERR_FAIL_COND_V(mesh.is_null(), 0.0);
 	ERR_FAIL_INDEX_V(p_blend_shape, (int)blend_shape_tracks.size(), 0);
 	return blend_shape_tracks[p_blend_shape];
 }
+
 void MeshInstance3D::set_blend_shape_value(int p_blend_shape, float p_value) {
 	ERR_FAIL_COND(mesh.is_null());
 	ERR_FAIL_INDEX(p_blend_shape, (int)blend_shape_tracks.size());

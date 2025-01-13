@@ -1,0 +1,25 @@
+GDTEST_OK
+var test_type_1: Variant.Type = 1
+  hint=ENUM hint_string="Type Nil:0,Type Bool:1,Type Int:2,Type Float:3,Type String:4,Type Vector 2:5,Type Vector 2i:6,Type Rect 2:7,Type Rect 2i:8,Type Vector 3:9,Type Vector 3i:10,Type Transform 2d:11,Type Vector 4:12,Type Vector 4i:13,Type Plane:14,Type Quaternion:15,Type Aabb:16,Type Basis:17,Type Transform 3d:18,Type Projection:19,Type Color:20,Type String Name:21,Type Node Path:22,Type Rid:23,Type Object:24,Type Callable:25,Type Signal:26,Type Dictionary:27,Type Array:28,Type Packed Byte Array:29,Type Packed Int 32 Array:30,Type Packed Int 64 Array:31,Type Packed Float 32 Array:32,Type Packed Float 64 Array:33,Type Packed String Array:34,Type Packed Vector 2 Array:35,Type Packed Vector 3 Array:36,Type Packed Color Array:37,Type Packed Vector 4 Array:38,Type Max:39" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Variant.Type"
+var test_type_2: Variant.Type = 1
+  hint=ENUM hint_string="Type Nil:0,Type Bool:1,Type Int:2,Type Float:3,Type String:4,Type Vector 2:5,Type Vector 2i:6,Type Rect 2:7,Type Rect 2i:8,Type Vector 3:9,Type Vector 3i:10,Type Transform 2d:11,Type Vector 4:12,Type Vector 4i:13,Type Plane:14,Type Quaternion:15,Type Aabb:16,Type Basis:17,Type Transform 3d:18,Type Projection:19,Type Color:20,Type String Name:21,Type Node Path:22,Type Rid:23,Type Object:24,Type Callable:25,Type Signal:26,Type Dictionary:27,Type Array:28,Type Packed Byte Array:29,Type Packed Int 32 Array:30,Type Packed Int 64 Array:31,Type Packed Float 32 Array:32,Type Packed Float 64 Array:33,Type Packed String Array:34,Type Packed Vector 2 Array:35,Type Packed Vector 3 Array:36,Type Packed Color Array:37,Type Packed Vector 4 Array:38,Type Max:39" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Variant.Type"
+var test_type_3: Variant.Type = 0
+  hint=ENUM hint_string="Type Nil:0,Type Bool:1,Type Int:2,Type Float:3,Type String:4,Type Vector 2:5,Type Vector 2i:6,Type Rect 2:7,Type Rect 2i:8,Type Vector 3:9,Type Vector 3i:10,Type Transform 2d:11,Type Vector 4:12,Type Vector 4i:13,Type Plane:14,Type Quaternion:15,Type Aabb:16,Type Basis:17,Type Transform 3d:18,Type Projection:19,Type Color:20,Type String Name:21,Type Node Path:22,Type Rid:23,Type Object:24,Type Callable:25,Type Signal:26,Type Dictionary:27,Type Array:28,Type Packed Byte Array:29,Type Packed Int 32 Array:30,Type Packed Int 64 Array:31,Type Packed Float 32 Array:32,Type Packed Float 64 Array:33,Type Packed String Array:34,Type Packed Vector 2 Array:35,Type Packed Vector 3 Array:36,Type Packed Color Array:37,Type Packed Vector 4 Array:38,Type Max:39" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Variant.Type"
+var test_side_1: Side = 2
+  hint=ENUM hint_string="Side Left:0,Side Top:1,Side Right:2,Side Bottom:3" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Side"
+var test_side_2: Side = 2
+  hint=ENUM hint_string="Side Left:0,Side Top:1,Side Right:2,Side Bottom:3" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Side"
+var test_side_3: Side = 0
+  hint=ENUM hint_string="Side Left:0,Side Top:1,Side Right:2,Side Bottom:3" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Side"
+var test_axis_1: Vector3.Axis = 1
+  hint=ENUM hint_string="Axis X:0,Axis Y:1,Axis Z:2" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Vector3.Axis"
+var test_axis_2: Vector3.Axis = 1
+  hint=ENUM hint_string="Axis X:0,Axis Y:1,Axis Z:2" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Vector3.Axis"
+var test_axis_3: Vector3.Axis = 0
+  hint=ENUM hint_string="Axis X:0,Axis Y:1,Axis Z:2" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Vector3.Axis"
+var test_mode_1: Node.ProcessMode = 3
+  hint=ENUM hint_string="Process Mode Inherit:0,Process Mode Pausable:1,Process Mode When Paused:2,Process Mode Always:3,Process Mode Disabled:4" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Node.ProcessMode"
+var test_mode_2: Node.ProcessMode = 3
+  hint=ENUM hint_string="Process Mode Inherit:0,Process Mode Pausable:1,Process Mode When Paused:2,Process Mode Always:3,Process Mode Disabled:4" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Node.ProcessMode"
+var test_mode_3: Node.ProcessMode = 0
+  hint=ENUM hint_string="Process Mode Inherit:0,Process Mode Pausable:1,Process Mode When Paused:2,Process Mode Always:3,Process Mode Disabled:4" usage=DEFAULT|SCRIPT_VARIABLE|CLASS_IS_ENUM class_name=&"Node.ProcessMode"

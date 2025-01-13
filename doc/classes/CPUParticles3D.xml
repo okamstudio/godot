@@ -63,7 +63,7 @@
 			<param index="0" name="param" type="int" enum="CPUParticles3D.Parameter" />
 			<param index="1" name="curve" type="Curve" />
 			<description>
-				Sets the [Curve] of the parameter specified by [enum Parameter].
+				Sets the [Curve] of the parameter specified by [enum Parameter]. Should be a unit [Curve].
 			</description>
 		</method>
 		<method name="set_param_max">
@@ -96,7 +96,7 @@
 			Number of particles emitted in one emission cycle.
 		</member>
 		<member name="angle_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's rotation will be animated along this [Curve].
+			Each particle's rotation will be animated along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="angle_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum angle.
@@ -105,7 +105,7 @@
 			Minimum angle.
 		</member>
 		<member name="angular_velocity_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's angular velocity (rotation speed) will vary along this [Curve] over its lifetime.
+			Each particle's angular velocity (rotation speed) will vary along this [Curve] over its lifetime. Should be a unit [Curve].
 		</member>
 		<member name="angular_velocity_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum initial angular velocity (rotation speed) applied to each particle in [i]degrees[/i] per second.
@@ -114,7 +114,7 @@
 			Minimum initial angular velocity (rotation speed) applied to each particle in [i]degrees[/i] per second.
 		</member>
 		<member name="anim_offset_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's animation offset will vary along this [Curve].
+			Each particle's animation offset will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="anim_offset_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum animation offset.
@@ -123,7 +123,7 @@
 			Minimum animation offset.
 		</member>
 		<member name="anim_speed_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's animation speed will vary along this [Curve].
+			Each particle's animation speed will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="anim_speed_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum particle animation speed.
@@ -144,7 +144,7 @@
 			[b]Note:[/b] [member color_ramp] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color_ramp] will have no visible effect.
 		</member>
 		<member name="damping_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Damping will vary along this [Curve].
+			Damping will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="damping_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum damping.
@@ -212,7 +212,7 @@
 			Gravity applied to every particle.
 		</member>
 		<member name="hue_variation_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's hue will vary along this [Curve].
+			Each particle's hue will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="hue_variation_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum hue variation.
@@ -233,7 +233,7 @@
 			Particle lifetime randomness ratio.
 		</member>
 		<member name="linear_accel_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's linear acceleration will vary along this [Curve].
+			Each particle's linear acceleration will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="linear_accel_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum linear acceleration.
@@ -251,7 +251,7 @@
 			If [code]true[/code], only one emission cycle occurs. If set [code]true[/code] during a cycle, emission will stop at the cycle's end.
 		</member>
 		<member name="orbit_velocity_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's orbital velocity will vary along this [Curve].
+			Each particle's orbital velocity will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="orbit_velocity_max" type="float" setter="set_param_max" getter="get_param_max">
 			Maximum orbit velocity.
@@ -272,7 +272,7 @@
 			Particle system starts as if it had already run for this many seconds.
 		</member>
 		<member name="radial_accel_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's radial acceleration will vary along this [Curve].
+			Each particle's radial acceleration will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="radial_accel_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum radial acceleration.
@@ -284,7 +284,7 @@
 			Emission lifetime randomness ratio.
 		</member>
 		<member name="scale_amount_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's scale will vary along this [Curve].
+			Each particle's scale will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="scale_amount_max" type="float" setter="set_param_max" getter="get_param_max" default="1.0">
 			Maximum scale.
@@ -311,7 +311,7 @@
 			Each particle's initial direction range from [code]+spread[/code] to [code]-spread[/code] degrees. Applied to X/Z plane and Y/Z planes.
 		</member>
 		<member name="tangential_accel_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
-			Each particle's tangential acceleration will vary along this [Curve].
+			Each particle's tangential acceleration will vary along this [Curve]. Should be a unit [Curve].
 		</member>
 		<member name="tangential_accel_max" type="float" setter="set_param_max" getter="get_param_max" default="0.0">
 			Maximum tangent acceleration.

@@ -128,7 +128,7 @@ public:
 	void blit_render_targets_to_screen(DisplayServer::WindowID p_screen, const BlitToScreen *p_render_targets, int p_amount);
 
 	void gl_end_frame(bool p_swap_buffers) {}
-	void end_frame(bool p_swap_buffers);
+	void end_frame(bool p_present);
 	void finalize();
 
 	_ALWAYS_INLINE_ uint64_t get_frame_number() const { return frame; }

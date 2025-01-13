@@ -758,7 +758,7 @@ FindReplaceBar::FindReplaceBar() {
 	search_text->set_tooltip_text(TTR("Find"));
 	search_text->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
 	search_text->connect(SceneStringName(text_changed), callable_mp(this, &FindReplaceBar::_search_text_changed));
-	search_text->connect("text_submitted", callable_mp(this, &FindReplaceBar::_search_text_submitted));
+	search_text->connect(SceneStringName(text_submitted), callable_mp(this, &FindReplaceBar::_search_text_submitted));
 	search_text->connect(SceneStringName(focus_exited), callable_mp(this, &FindReplaceBar::_focus_lost));
 
 	matches_label = memnew(Label);
@@ -797,7 +797,7 @@ FindReplaceBar::FindReplaceBar() {
 	replace_text->set_placeholder(TTR("Replace"));
 	replace_text->set_tooltip_text(TTR("Replace"));
 	replace_text->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
-	replace_text->connect("text_submitted", callable_mp(this, &FindReplaceBar::_replace_text_submitted));
+	replace_text->connect(SceneStringName(text_submitted), callable_mp(this, &FindReplaceBar::_replace_text_submitted));
 	replace_text->connect(SceneStringName(focus_exited), callable_mp(this, &FindReplaceBar::_focus_lost));
 
 	replace = memnew(Button);

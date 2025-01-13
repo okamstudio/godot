@@ -112,7 +112,7 @@ class PopupMenu : public Popup {
 	Timer *minimum_lifetime_timer = nullptr;
 	Timer *submenu_timer = nullptr;
 	List<Rect2> autohide_areas;
-	Vector<Item> items;
+	mutable Vector<Item> items;
 	BitField<MouseButtonMask> initial_button_mask;
 	bool during_grabbed_click = false;
 	bool is_scrolling = false;
@@ -127,7 +127,7 @@ class PopupMenu : public Popup {
 	int _get_items_total_height() const;
 	Size2 _get_item_icon_size(int p_idx) const;
 
-	void _shape_item(int p_idx);
+	void _shape_item(int p_idx) const;
 
 	void _activate_submenu(int p_over, bool p_by_keyboard = false);
 	void _submenu_timeout();

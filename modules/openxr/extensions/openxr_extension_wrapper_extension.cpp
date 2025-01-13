@@ -39,6 +39,7 @@ void OpenXRExtensionWrapperExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_set_session_create_and_get_next_pointer, "next_pointer");
 	GDVIRTUAL_BIND(_set_swapchain_create_info_and_get_next_pointer, "next_pointer");
 	GDVIRTUAL_BIND(_set_hand_joint_locations_and_get_next_pointer, "hand_index", "next_pointer");
+	GDVIRTUAL_BIND(_set_projection_views_and_get_next_pointer, "view_index", "next_pointer");
 	GDVIRTUAL_BIND(_get_composition_layer_count);
 	GDVIRTUAL_BIND(_get_composition_layer, "index");
 	GDVIRTUAL_BIND(_get_composition_layer_order, "index");
@@ -134,6 +135,16 @@ void *OpenXRExtensionWrapperExtension::set_hand_joint_locations_and_get_next_poi
 	uint64_t pointer;
 
 	if (GDVIRTUAL_CALL(_set_hand_joint_locations_and_get_next_pointer, p_hand_index, GDExtensionPtr<void>(p_next_pointer), pointer)) {
+		return reinterpret_cast<void *>(pointer);
+	}
+
+	return nullptr;
+}
+
+void *OpenXRExtensionWrapperExtension::set_projection_views_and_get_next_pointer(int p_view_index, void *p_next_pointer) {
+	uint64_t pointer = 0;
+
+	if (GDVIRTUAL_CALL(_set_projection_views_and_get_next_pointer, p_view_index, GDExtensionPtr<void>(p_next_pointer), pointer)) {
 		return reinterpret_cast<void *>(pointer);
 	}
 

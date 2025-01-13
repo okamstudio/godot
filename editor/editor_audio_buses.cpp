@@ -815,28 +815,28 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 	set_v_size_flags(SIZE_EXPAND_FILL);
 
 	track_name = memnew(LineEdit);
-	track_name->connect("text_submitted", callable_mp(this, &EditorAudioBus::_name_changed));
+	track_name->connect(SceneStringName(text_submitted), callable_mp(this, &EditorAudioBus::_name_changed));
 	track_name->connect(SceneStringName(focus_exited), callable_mp(this, &EditorAudioBus::_name_focus_exit));
 	vb->add_child(track_name);
 
 	HBoxContainer *hbc = memnew(HBoxContainer);
 	vb->add_child(hbc);
 	solo = memnew(Button);
-	solo->set_theme_type_variation("FlatButton");
+	solo->set_theme_type_variation(SceneStringName(FlatButton));
 	solo->set_toggle_mode(true);
 	solo->set_tooltip_text(TTR("Solo"));
 	solo->set_focus_mode(FOCUS_NONE);
 	solo->connect(SceneStringName(pressed), callable_mp(this, &EditorAudioBus::_solo_toggled));
 	hbc->add_child(solo);
 	mute = memnew(Button);
-	mute->set_theme_type_variation("FlatButton");
+	mute->set_theme_type_variation(SceneStringName(FlatButton));
 	mute->set_toggle_mode(true);
 	mute->set_tooltip_text(TTR("Mute"));
 	mute->set_focus_mode(FOCUS_NONE);
 	mute->connect(SceneStringName(pressed), callable_mp(this, &EditorAudioBus::_mute_toggled));
 	hbc->add_child(mute);
 	bypass = memnew(Button);
-	bypass->set_theme_type_variation("FlatButton");
+	bypass->set_theme_type_variation(SceneStringName(FlatButton));
 	bypass->set_toggle_mode(true);
 	bypass->set_tooltip_text(TTR("Bypass"));
 	bypass->set_focus_mode(FOCUS_NONE);
@@ -849,7 +849,7 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 		Control *child = Object::cast_to<Control>(hbc->get_child(i));
 		child->begin_bulk_theme_override();
 		child->add_theme_style_override(CoreStringName(normal), sbempty);
-		child->add_theme_style_override("hover", sbempty);
+		child->add_theme_style_override(SceneStringName(hover), sbempty);
 		child->add_theme_style_override("hover_mirrored", sbempty);
 		child->add_theme_style_override("focus", sbempty);
 		child->add_theme_style_override("focus_mirrored", sbempty);
@@ -959,6 +959,7 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 	effects->set_allow_rmb_select(true);
 	effects->set_focus_mode(FOCUS_CLICK);
 	effects->set_allow_reselect(true);
+	effects->set_theme_type_variation("TreeSecondary");
 	effects->connect(SceneStringName(gui_input), callable_mp(this, &EditorAudioBus::_effects_gui_input));
 
 	send = memnew(OptionButton);

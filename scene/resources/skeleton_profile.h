@@ -97,6 +97,7 @@ public:
 
 	int find_bone(const StringName &p_bone_name) const;
 
+	PackedStringArray get_bone_names();
 	StringName get_bone_name(int p_bone_idx) const;
 	void set_bone_name(int p_bone_idx, const StringName &p_bone_name);
 

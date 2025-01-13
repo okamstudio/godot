@@ -96,6 +96,7 @@ private:
 	double world_scale = 1.0; /* scale by which we multiply our tracker positions */
 	Transform3D world_origin; /* our world origin point, maps a location in our virtual world to the origin point in our real world tracking volume */
 	Transform3D reference_frame; /* our reference frame */
+	bool camera_locked_to_origin = false;
 
 	// As we may be updating our main state for our next frame while we're still rendering our previous frame,
 	// we need to keep copies around.
@@ -197,6 +198,9 @@ public:
 		get_hmd_transform gets our hmd transform (centered between eyes) with most up to date tracking, relative to the origin
 	*/
 	Transform3D get_hmd_transform();
+
+	void set_camera_locked_to_origin(bool p_enable);
+	inline bool is_camera_locked_to_origin() const { return camera_locked_to_origin; }
 
 	/*
 		Interfaces are objects that 'glue' Godot to an AR or VR SDK such as the Oculus SDK, OpenVR, OpenHMD, etc.

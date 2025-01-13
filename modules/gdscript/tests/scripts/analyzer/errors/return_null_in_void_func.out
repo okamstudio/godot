@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-A void function cannot return a value.
+>> ERROR at line 2: A void function cannot return a value.

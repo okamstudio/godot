@@ -64,7 +64,7 @@ static void decompress_image(BCdecFormat format, const void *src, void *dst, con
 			const uint32_t yblock = MIN(height - y, 4ul);                                                                                             \
 			const uint32_t xblock = MIN(width - x, 4ul);                                                                                              \
                                                                                                                                                       \
-			const bool incomplete = yblock < 4 && xblock < 4;                                                                                         \
+			const bool incomplete = yblock < 4 || xblock < 4;                                                                                         \
 			uint8_t *dec_out = incomplete ? output : &dec_blocks[y * 4 * width + x * color_bytesize];                                                 \
                                                                                                                                                       \
 			func(&src_blocks[src_pos], dec_out, 4 * color_components);                                                                                \

@@ -97,7 +97,7 @@
 			<description>
 				Multiplies each component of the [Vector2i] by the given [float]. Returns a [Vector2].
 				[codeblock]
-				print(0.9 * Vector2i(10, 15)) # Prints "(9, 13.5)"
+				print(0.9 * Vector2i(10, 15)) # Prints (9.0, 13.5)
 				[/codeblock]
 			</description>
 		</operator>
@@ -114,7 +114,7 @@
 			<description>
 				Multiplies each component of the [Vector3i] by the given [float]. Returns a [Vector3].
 				[codeblock]
-				print(0.9 * Vector3i(10, 15, 20)) # Prints "(9, 13.5, 18)"
+				print(0.9 * Vector3i(10, 15, 20)) # Prints (9.0, 13.5, 18.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -131,7 +131,7 @@
 			<description>
 				Multiplies each component of the [Vector4i] by the given [float]. Returns a [Vector4].
 				[codeblock]
-				print(0.9 * Vector4i(10, 15, 20, -10)) # Prints "(9, 13.5, 18, -9)"
+				print(0.9 * Vector4i(10, 15, 20, -10)) # Prints (9.0, 13.5, 18.0, -9.0)
 				[/codeblock]
 			</description>
 		</operator>

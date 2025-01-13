@@ -37,8 +37,7 @@ void GodotShape2D::configure(const Rect2 &p_aabb) {
 	aabb = p_aabb;
 	configured = true;
 	for (const KeyValue<GodotShapeOwner2D *, int> &E : owners) {
-		GodotShapeOwner2D *co = const_cast<GodotShapeOwner2D *>(E.key);
-		co->_shape_changed();
+		E.key->_shape_changed();
 	}
 }
 

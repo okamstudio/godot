@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Not all code paths return a value.
+>> ERROR at line 2: Not all code paths return a value.

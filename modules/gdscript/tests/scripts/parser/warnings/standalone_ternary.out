@@ -1,10 +1,4 @@
 GDTEST_OK
->> WARNING
->> Line: 2
->> STANDALONE_TERNARY
->> Standalone ternary operator: the return value is being discarded.
->> WARNING
->> Line: 3
->> STANDALONE_TERNARY
->> Standalone ternary operator: the return value is being discarded.
+~~ WARNING at line 2: (STANDALONE_TERNARY) Standalone ternary operator: the return value is being discarded.
+~~ WARNING at line 3: (STANDALONE_TERNARY) Standalone ternary operator: the return value is being discarded.
 1

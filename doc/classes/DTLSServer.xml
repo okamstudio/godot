@@ -11,8 +11,8 @@
 		# server_node.gd
 		extends Node
 
-		var dtls := DTLSServer.new()
-		var server := UDPServer.new()
+		var dtls = DTLSServer.new()
+		var server = UDPServer.new()
 		var peers = []
 
 		func _ready():
@@ -90,8 +90,8 @@
 		# client_node.gd
 		extends Node
 
-		var dtls := PacketPeerDTLS.new()
-		var udp := PacketPeerUDP.new()
+		var dtls = PacketPeerDTLS.new()
+		var udp = PacketPeerUDP.new()
 		var connected = false
 
 		func _ready():

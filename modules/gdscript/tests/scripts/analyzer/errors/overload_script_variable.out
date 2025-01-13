@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Member "script" redefined (original in native class 'Node')
+>> ERROR at line 3: Member "script" redefined (original in native class 'Node')

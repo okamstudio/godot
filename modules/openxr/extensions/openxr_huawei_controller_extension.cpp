@@ -48,37 +48,33 @@ void OpenXRHuaweiControllerExtension::on_register_metadata() {
 	OpenXRInteractionProfileMetadata *metadata = OpenXRInteractionProfileMetadata::get_singleton();
 	ERR_FAIL_NULL(metadata);
 
-	// Huawei controller
-	metadata->register_interaction_profile("Huawei controller", "/interaction_profiles/huawei/controller", XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Huawei controller
+		const String profile_path = "/interaction_profiles/huawei/controller";
+		metadata->register_interaction_profile("Huawei controller", profile_path, XR_HUAWEI_CONTROLLER_INTERACTION_EXTENSION_NAME);
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			metadata->register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			metadata->register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
 
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Home click", "/user/hand/left", "/user/hand/left/input/home/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Home click", "/user/hand/right", "/user/hand/right/input/home/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Back click", "/user/hand/left", "/user/hand/left/input/back/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Back click", "/user/hand/right", "/user/hand/right/input/back/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Home click", user_path, user_path + "/input/home/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Back click", user_path, user_path + "/input/back/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Volume up click", "/user/hand/left", "/user/hand/left/input/volume_up/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Volume up click", "/user/hand/right", "/user/hand/right/input/volume_up/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Volume down click", "/user/hand/left", "/user/hand/left/input/volume_down/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Volume down click", "/user/hand/right", "/user/hand/right/input/volume_down/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Volume up click", user_path, user_path + "/input/volume_up/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Volume down click", user_path, user_path + "/input/volume_down/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trigger click", "/user/hand/left", "/user/hand/left/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trigger click", "/user/hand/right", "/user/hand/right/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			metadata->register_io_path(profile_path, "Trigger click", user_path, user_path + "/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad", "/user/hand/left", "/user/hand/left/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad click", "/user/hand/left", "/user/hand/left/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad touch", "/user/hand/left", "/user/hand/left/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad", "/user/hand/right", "/user/hand/right/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad click", "/user/hand/right", "/user/hand/right/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Trackpad touch", "/user/hand/right", "/user/hand/right/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad", user_path, user_path + "/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			metadata->register_io_path(profile_path, "Trackpad click", user_path, user_path + "/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad touch", user_path, user_path + "/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad Dpad Up", user_path, user_path + "/input/trackpad/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad Dpad Down", user_path, user_path + "/input/trackpad/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad Dpad Left", user_path, user_path + "/input/trackpad/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad Dpad Right", user_path, user_path + "/input/trackpad/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			metadata->register_io_path(profile_path, "Trackpad Dpad Center", user_path, user_path + "/input/trackpad/dpad_center", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	metadata->register_io_path("/interaction_profiles/huawei/controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			metadata->register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
+	}
 }

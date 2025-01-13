@@ -33,6 +33,7 @@
 #include "editor/import/3d/scene_import_settings.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
+#include "scene/3d/retarget_modifier_3d.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/bone_map.h"
@@ -42,8 +43,18 @@ void PostImportPluginSkeletonRestFixer::get_internal_import_options(InternalImpo
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/apply_node_transforms"), true));
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/normalize_position_tracks"), true));
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/reset_all_bone_poses_after_import"), true));
-		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/overwrite_axis", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), true));
+
+		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::INT, "retarget/rest_fixer/retarget_method", PROPERTY_HINT_ENUM, "None,Overwrite Axis,Use Retarget Modifier", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), 1));
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/keep_global_rest_on_leftovers"), true));
+		String skeleton_bones_must_be_renamed_warning = String(
+				"The skeleton modifier option uses SkeletonProfile as a list of bone names and retargets by name matching. Without renaming, retargeting by modifier will not work and the track path of the animation will be broken and it will be not playbacked correctly."); // TODO: translate.
+		r_options->push_back(ResourceImporter::ImportOption(
+				PropertyInfo(
+						Variant::STRING, U"retarget/rest_fixer/\u26A0_validation_warning/skeleton_bones_must_be_renamed",
+						PROPERTY_HINT_MULTILINE_TEXT, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY),
+				Variant(skeleton_bones_must_be_renamed_warning)));
+		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/use_global_pose"), true));
+		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::STRING, "retarget/rest_fixer/original_skeleton_name"), "OriginalSkeleton"));
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/rest_fixer/fix_silhouette/enable", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), false));
 		// TODO: PostImportPlugin need to be implemented such as validate_option(PropertyInfo &property, const Dictionary &p_options).
 		// get_internal_option_visibility() is not sufficient because it can only retrieve options implemented in the core and can only read option values.
@@ -63,7 +74,11 @@ Variant PostImportPluginSkeletonRestFixer::get_internal_option_visibility(Intern
 				}
 			}
 		} else if (p_option == "retarget/rest_fixer/keep_global_rest_on_leftovers") {
-			return bool(p_options["retarget/rest_fixer/overwrite_axis"]);
+			return int(p_options["retarget/rest_fixer/retarget_method"]) == 1;
+		} else if (p_option == "retarget/rest_fixer/original_skeleton_name" || p_option == "retarget/rest_fixer/use_global_pose") {
+			return int(p_options["retarget/rest_fixer/retarget_method"]) == 2;
+		} else if (p_option.begins_with("retarget/") && p_option.ends_with("skeleton_bones_must_be_renamed")) {
+			return int(p_options["retarget/rest_fixer/retarget_method"]) == 2 && bool(p_options["retarget/bone_renamer/rename_bones"]) == false;
 		}
 	}
 	return true;
@@ -147,7 +162,7 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 				src_skeleton->set_bone_pose_position(src_idx, src_skeleton->get_bone_pose_position(src_idx) * scl);
 			}
 
-			// Fix animation.
+			// Fix animation by changing node transform.
 			bones_to_process = src_skeleton->get_parentless_bones();
 			{
 				TypedArray<Node> nodes = p_base_scene->find_children("*", "AnimationPlayer");
@@ -224,6 +239,10 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 				List<StringName> anims;
 				ap->get_animation_list(&anims);
 				for (const StringName &name : anims) {
+					if (String(name).contains_char('/')) {
+						continue; // Avoid animation library which may be created by importer dynamically.
+					}
+
 					Ref<Animation> anim = ap->get_animation(name);
 					int track_len = anim->get_track_count();
 
@@ -454,8 +473,13 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 			}
 		}
 
-		// Overwrite axis.
-		if (bool(p_options["retarget/rest_fixer/overwrite_axis"])) {
+		bool is_using_modifier = int(p_options["retarget/rest_fixer/retarget_method"]) == 2;
+		bool is_using_global_pose = bool(p_options["retarget/rest_fixer/use_global_pose"]);
+		Skeleton3D *orig_skeleton = nullptr;
+		Skeleton3D *profile_skeleton = nullptr;
+
+		// Retarget in some way.
+		if (int(p_options["retarget/rest_fixer/retarget_method"]) > 0) {
 			LocalVector<Transform3D> old_skeleton_rest;
 			LocalVector<Transform3D> old_skeleton_global_rest;
 			for (int i = 0; i < src_skeleton->get_bone_count(); i++) {
@@ -463,11 +487,151 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 				old_skeleton_global_rest.push_back(src_skeleton->get_bone_global_rest(i));
 			}
 
+			// Build structure for modifier.
+			if (is_using_modifier) {
+				orig_skeleton = src_skeleton;
+
+				// Duplicate src_skeleton to modify animation tracks, it will memdelele after that animation track modification.
+				src_skeleton = memnew(Skeleton3D);
+				for (int i = 0; i < orig_skeleton->get_bone_count(); i++) {
+					src_skeleton->add_bone(orig_skeleton->get_bone_name(i));
+					src_skeleton->set_bone_rest(i, orig_skeleton->get_bone_rest(i));
+					src_skeleton->set_bone_pose(i, orig_skeleton->get_bone_pose(i));
+				}
+				for (int i = 0; i < orig_skeleton->get_bone_count(); i++) {
+					src_skeleton->set_bone_parent(i, orig_skeleton->get_bone_parent(i));
+				}
+				src_skeleton->set_motion_scale(orig_skeleton->get_motion_scale());
+
+				// Rename orig_skeleton (previous src_skeleton), since it is not animated by animation track with GeneralSkeleton.
+				String original_skeleton_name = String(p_options["retarget/rest_fixer/original_skeleton_name"]);
+				String skel_name = orig_skeleton->get_name();
+				ERR_FAIL_COND_MSG(original_skeleton_name.is_empty(), "Original skeleton name cannot be empty.");
+				ERR_FAIL_COND_MSG(original_skeleton_name == skel_name, "Original skeleton name must be different from unique skeleton name.");
+
+				// Rename profile skeleton to be general skeleton.
+				profile_skeleton = memnew(Skeleton3D);
+				bool is_unique = orig_skeleton->is_unique_name_in_owner();
+				if (is_unique) {
+					orig_skeleton->set_unique_name_in_owner(false);
+				}
+				orig_skeleton->set_name(original_skeleton_name);
+				profile_skeleton->set_name(skel_name);
+				if (is_unique) {
+					profile_skeleton->set_unique_name_in_owner(true);
+				}
+				// Build profile skeleton bones.
+				int len = profile->get_bone_size();
+				for (int i = 0; i < len; i++) {
+					profile_skeleton->add_bone(profile->get_bone_name(i));
+					profile_skeleton->set_bone_rest(i, profile->get_reference_pose(i));
+				}
+				for (int i = 0; i < len; i++) {
+					int target_parent = profile_skeleton->find_bone(profile->get_bone_parent(i));
+					if (target_parent >= 0) {
+						profile_skeleton->set_bone_parent(i, target_parent);
+					}
+				}
+				for (int i = 0; i < len; i++) {
+					Vector3 origin;
+					int found = orig_skeleton->find_bone(profile->get_bone_name(i));
+					String parent_name = profile->get_bone_parent(i);
+					if (found >= 0) {
+						origin = orig_skeleton->get_bone_global_rest(found).origin;
+						if (profile->get_bone_name(i) != profile->get_root_bone()) {
+							int src_parent = -1;
+							while (src_parent < 0 && !parent_name.is_empty()) {
+								src_parent = orig_skeleton->find_bone(parent_name);
+								parent_name = profile->get_bone_parent(profile->find_bone(parent_name));
+							}
+							if (src_parent >= 0) {
+								Transform3D parent_grest = orig_skeleton->get_bone_global_rest(src_parent);
+								origin = origin - parent_grest.origin;
+							}
+						}
+					}
+					int target_parent = profile_skeleton->find_bone(profile->get_bone_parent(i));
+					if (target_parent >= 0) {
+						origin = profile_skeleton->get_bone_global_rest(target_parent).basis.get_rotation_quaternion().xform_inv(origin);
+					}
+					profile_skeleton->set_bone_rest(i, Transform3D(profile_skeleton->get_bone_rest(i).basis, origin));
+				}
+				profile_skeleton->set_motion_scale(orig_skeleton->get_motion_scale());
+				profile_skeleton->reset_bone_poses();
+				// Make structure with modifier.
+				Node *owner = p_node->get_owner();
+
+				Node *pr = orig_skeleton->get_parent();
+				pr->add_child(profile_skeleton);
+				profile_skeleton->set_owner(owner);
+
+				RetargetModifier3D *mod = memnew(RetargetModifier3D);
+				profile_skeleton->add_child(mod);
+				mod->set_owner(owner);
+				mod->set_name("RetargetModifier3D");
+
+				orig_skeleton->set_owner(nullptr);
+				orig_skeleton->reparent(mod, false);
+				orig_skeleton->set_owner(owner);
+				orig_skeleton->set_unique_name_in_owner(true);
+
+				mod->set_use_global_pose(is_using_global_pose);
+				mod->set_profile(profile);
+
+				// Fix skeleton name in animation.
+				// Mapped skeleton is animated by %GenerarSkeleton:RenamedBoneName.
+				// Unmapped skeleton is animated by %OriginalSkeleton:OriginalBoneName.
+				if (is_using_modifier) {
+					TypedArray<Node> nodes = p_base_scene->find_children("*", "AnimationPlayer");
+					String general_skeleton_pathname = UNIQUE_NODE_PREFIX + profile_skeleton->get_name();
+					while (nodes.size()) {
+						AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(nodes.pop_back());
+						List<StringName> anims;
+						ap->get_animation_list(&anims);
+						for (const StringName &name : anims) {
+							Ref<Animation> anim = ap->get_animation(name);
+							int track_len = anim->get_track_count();
+							for (int i = 0; i < track_len; i++) {
+								if (anim->track_get_path(i).get_name_count() == 0) {
+									return;
+								}
+								if (anim->track_get_path(i).get_name(0) == general_skeleton_pathname) {
+									bool replace = false;
+									if (anim->track_get_path(i).get_subname_count() > 0) {
+										int found = profile_skeleton->find_bone(anim->track_get_path(i).get_concatenated_subnames());
+										if (found < 0) {
+											replace = true;
+										}
+									} else {
+										replace = true;
+									}
+									if (replace) {
+										String path_string = UNIQUE_NODE_PREFIX + original_skeleton_name;
+										if (anim->track_get_path(i).get_name_count() > 1) {
+											Vector<StringName> names = anim->track_get_path(i).get_names();
+											names.remove_at(0);
+											for (int j = 0; j < names.size(); j++) {
+												path_string += "/" + names[i].operator String();
+											}
+										}
+										if (anim->track_get_path(i).get_subname_count() > 0) {
+											path_string = path_string + String(":") + anim->track_get_path(i).get_concatenated_subnames();
+										}
+										anim->track_set_path(i, path_string);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 			bool keep_global_rest_leftovers = bool(p_options["retarget/rest_fixer/keep_global_rest_on_leftovers"]);
 
 			// Scan hierarchy and populate a whitelist of unmapped bones without mapped descendants.
+			// When both is_using_modifier and is_using_global_pose are enabled, this array is used for detecting warning.
 			Vector<int> keep_bone_rest;
-			if (keep_global_rest_leftovers) {
+			if (is_using_modifier || keep_global_rest_leftovers) {
 				Vector<int> bones_to_process = src_skeleton->get_parentless_bones();
 				while (bones_to_process.size() > 0) {
 					int src_idx = bones_to_process[0];
@@ -526,12 +690,14 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 					if (src_parent_idx >= 0) {
 						src_pg = src_skeleton->get_bone_global_rest(src_parent_idx).basis;
 					}
-
 					int prof_idx = profile->find_bone(src_bone_name);
 					if (prof_idx >= 0) {
-						tgt_rot = src_pg.inverse() * prof_skeleton->get_bone_global_rest(prof_idx).basis; // Mapped bone uses reference pose.
+						// Mapped bone uses reference pose.
+						// It is fine to change rest here even though is_using_modifier is enabled, since next process is aborted with unmapped bones.
+						tgt_rot = src_pg.inverse() * prof_skeleton->get_bone_global_rest(prof_idx).basis;
 					} else if (keep_global_rest_leftovers && keep_bone_rest.has(src_idx)) {
-						tgt_rot = src_pg.inverse() * old_skeleton_global_rest[src_idx].basis; // Non-Mapped bone without mapped children keeps global rest.
+						// Non-Mapped bones without mapped children keeps global rest.
+						tgt_rot = src_pg.inverse() * old_skeleton_global_rest[src_idx].basis;
 					}
 				}
 
@@ -548,7 +714,8 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 				src_skeleton->set_bone_rest(src_idx, Transform3D(tgt_rot, diff.xform(src_skeleton->get_bone_rest(src_idx).origin)));
 			}
 
-			// Fix animation.
+			// Fix animation by changing rest.
+			bool warning_detected = false;
 			{
 				TypedArray<Node> nodes = p_base_scene->find_children("*", "AnimationPlayer");
 				while (nodes.size()) {
@@ -573,7 +740,9 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 							ERR_CONTINUE(!node);
 
 							Skeleton3D *track_skeleton = Object::cast_to<Skeleton3D>(node);
-							if (!track_skeleton || track_skeleton != src_skeleton) {
+							if (!track_skeleton ||
+									(is_using_modifier && track_skeleton != profile_skeleton && track_skeleton != orig_skeleton) ||
+									(!is_using_modifier && track_skeleton != src_skeleton)) {
 								continue;
 							}
 
@@ -583,6 +752,16 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 							}
 
 							int bone_idx = src_skeleton->find_bone(bn);
+
+							if (is_using_modifier) {
+								int prof_idx = profile->find_bone(bn);
+								if (prof_idx < 0) {
+									if (keep_bone_rest.has(bone_idx)) {
+										warning_detected = true;
+									}
+									continue; // If is_using_modifier, the original skeleton rest is not changed.
+								}
+							}
 
 							Transform3D old_rest = old_skeleton_rest[bone_idx];
 							Transform3D new_rest = src_skeleton->get_bone_rest(bone_idx);
@@ -629,6 +808,13 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 					}
 				}
 			}
+			if (is_using_global_pose && warning_detected) {
+				// TODO:
+				// Theoretically, if A and its conversion are calculated correctly taking into account the difference in the number of bones,
+				// there is no need to disable use_global_pose, but this is probably a fairly niche case.
+				WARN_PRINT_ED("Animated extra bone between mapped bones detected, consider disabling Use Global Pose option to prevent that the pose origin be overridden by the RetargetModifier3D.");
+			}
+
 			if (p_options.has("retarget/rest_fixer/reset_all_bone_poses_after_import") && !bool(p_options["retarget/rest_fixer/reset_all_bone_poses_after_import"])) {
 				// If Reset All Bone Poses After Import is disabled, preserve the original bone pose, adjusted for the new bone rolls.
 				for (int bone_idx = 0; bone_idx < src_skeleton->get_bone_count(); bone_idx++) {
@@ -652,6 +838,11 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 					Vector3 ps = src_skeleton->get_bone_pose_position(bone_idx);
 					src_skeleton->set_bone_pose_position(bone_idx, new_pg_q.xform_inv(old_pg_q.xform(ps - old_rest.origin)) + new_rest.origin);
 				}
+			}
+
+			if (is_using_modifier) {
+				memdelete(src_skeleton);
+				src_skeleton = profile_skeleton;
 			}
 
 			is_rest_changed = true;
@@ -681,7 +872,9 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 						ERR_CONTINUE(!node);
 
 						Skeleton3D *track_skeleton = Object::cast_to<Skeleton3D>(node);
-						if (!track_skeleton || track_skeleton != src_skeleton) {
+						if (!track_skeleton ||
+								(is_using_modifier && track_skeleton != profile_skeleton && track_skeleton != orig_skeleton) ||
+								(!is_using_modifier && track_skeleton != src_skeleton)) {
 							continue;
 						}
 
@@ -696,7 +889,7 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 			}
 		}
 
-		if (is_rest_changed) {
+		if (!is_using_modifier && is_rest_changed) {
 			// Fix skin.
 			{
 				HashSet<Ref<Skin>> mutated_skins;
@@ -765,6 +958,14 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 					src_skeleton->set_bone_pose_position(i, fixed_rest.origin);
 					src_skeleton->set_bone_pose_rotation(i, fixed_rest.basis.get_rotation_quaternion());
 					src_skeleton->set_bone_pose_scale(i, fixed_rest.basis.get_scale());
+				}
+				if (orig_skeleton) {
+					for (int i = 0; i < orig_skeleton->get_bone_count(); i++) {
+						Transform3D fixed_rest = orig_skeleton->get_bone_rest(i);
+						orig_skeleton->set_bone_pose_position(i, fixed_rest.origin);
+						orig_skeleton->set_bone_pose_rotation(i, fixed_rest.basis.get_rotation_quaternion());
+						orig_skeleton->set_bone_pose_scale(i, fixed_rest.basis.get_scale());
+					}
 				}
 			}
 		}

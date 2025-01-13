@@ -1677,7 +1677,7 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 	}
 
 	// -- \t.func() -> \tsuper.func()       Object
-	if (line.contains("(") && line.contains(".")) {
+	if (line.contains_char('(') && line.contains_char('.')) {
 		line = reg_container.reg_super.sub(line, "$1super.$2", true); // TODO, not sure if possible, but for now this broke String text e.g. "Chosen .gitignore" -> "Chosen super.gitignore"
 	}
 
@@ -1970,7 +1970,7 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 	// -- func c(var a, var b) -> func c(a, b)
 	if (line.contains("func ") && line.contains("var ")) {
 		int start = line.find("func ");
-		start = line.substr(start).find("(") + start;
+		start = line.substr(start).find_char('(') + start;
 		int end = get_end_parenthesis(line.substr(start)) + 1;
 		if (end > -1) {
 			Vector<String> parts = parse_arguments(line.substr(start, end));
@@ -2120,12 +2120,12 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 		}
 	}
 	// -- func _init(p_x:int).(p_x):  -> func _init(p_x:int):\n\tsuper(p_x)    Object # https://github.com/godotengine/godot/issues/70542
-	if (line.contains(" _init(") && line.rfind(":") > 0) {
+	if (line.contains(" _init(") && line.rfind_char(':') > 0) {
 		//     func _init(p_arg1).(super4, super5, super6)->void:
 		// ^--^indent            ^super_start   super_end^
 		int indent = line.count("\t", 0, line.find("func"));
 		int super_start = line.find(".(");
-		int super_end = line.rfind(")");
+		int super_end = line.rfind_char(')');
 		if (super_start > 0 && super_end > super_start) {
 			line = line.substr(0, super_start) + line.substr(super_end + 1) + "\n" + String("\t").repeat(indent + 1) + "super" + line.substr(super_start + 1, super_end - super_start);
 		}

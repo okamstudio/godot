@@ -147,7 +147,7 @@
 		<method name="generate_tangents">
 			<return type="void" />
 			<description>
-				Generates a tangent vector for each vertex. Requires that each vertex have UVs and normals set already (see [method generate_normals]).
+				Generates a tangent vector for each vertex. Requires that each vertex already has UVs and normals set (see [method generate_normals]).
 			</description>
 		</method>
 		<method name="get_aabb" qualifiers="const">

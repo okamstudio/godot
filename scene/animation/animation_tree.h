@@ -226,6 +226,10 @@ public:
 	void set_deletable(bool p_closable);
 	bool is_deletable() const;
 
+	ObjectID get_processing_animation_tree_instance_id() const;
+
+	bool is_process_testing() const;
+
 	virtual bool has_filter() const;
 
 #ifdef TOOLS_ENABLED
@@ -284,15 +288,15 @@ private:
 
 	friend class AnimationNode;
 
-	List<PropertyInfo> properties;
-	AHashMap<StringName, AHashMap<StringName, StringName>> property_parent_map;
-	AHashMap<ObjectID, StringName> property_reference_map;
-	AHashMap<StringName, Pair<Variant, bool>> property_map; // Property value and read-only flag.
+	mutable List<PropertyInfo> properties;
+	mutable AHashMap<StringName, AHashMap<StringName, StringName>> property_parent_map;
+	mutable AHashMap<ObjectID, StringName> property_reference_map;
+	mutable AHashMap<StringName, Pair<Variant, bool>> property_map; // Property value and read-only flag.
 
-	bool properties_dirty = true;
+	mutable bool properties_dirty = true;
 
-	void _update_properties();
-	void _update_properties_for_node(const String &p_base_path, Ref<AnimationNode> p_node);
+	void _update_properties() const;
+	void _update_properties_for_node(const String &p_base_path, Ref<AnimationNode> p_node) const;
 
 	void _tree_changed();
 	void _animation_node_renamed(const ObjectID &p_oid, const String &p_old_name, const String &p_new_name);
@@ -302,8 +306,8 @@ private:
 		uint64_t last_pass = 0;
 		real_t activity = 0.0;
 	};
-	HashMap<StringName, Vector<Activity>> input_activity_map;
-	HashMap<StringName, Vector<Activity> *> input_activity_map_get;
+	mutable HashMap<StringName, Vector<Activity>> input_activity_map;
+	mutable HashMap<StringName, Vector<Activity> *> input_activity_map_get;
 
 	NodePath animation_player;
 

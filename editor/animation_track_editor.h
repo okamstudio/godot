@@ -232,7 +232,7 @@ class AnimationTimelineEdit : public Range {
 	double hscroll_on_zoom_buffer = -1.0;
 
 	Vector2 zoom_scroll_origin;
-	bool zoom_callback_occured = false;
+	bool zoom_callback_occurred = false;
 
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 	void _track_added(int p_track);
@@ -977,6 +977,7 @@ class AnimationTrackKeyEditEditor : public EditorProperty {
 		Variant value;
 	} key_data_cache;
 
+	void _time_edit_spun();
 	void _time_edit_entered();
 	void _time_edit_exited();
 
@@ -996,7 +997,6 @@ class AnimationMarkerKeyEditEditor : public EditorProperty {
 
 	EditorSpinSlider *spinner = nullptr;
 
-	void _time_edit_entered();
 	void _time_edit_exited();
 
 public:

@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-The member "V" already exists in parent class A.
+>> ERROR at line 5: The member "V" already exists in parent class A.

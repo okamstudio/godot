@@ -1341,8 +1341,8 @@ TEST_CASE("[SceneTree][Viewport] Controls and InputEvent handling") {
 				SEND_GUI_MOUSE_MOTION_EVENT(on_d, MouseButtonMask::NONE, Key::NONE);
 
 				// Force Drop doesn't get triggered by mouse Buttons other than LMB.
-				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::RIGHT, MouseButtonMask::RIGHT, Key::NONE);
-				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_a, MouseButton::RIGHT, MouseButtonMask::NONE, Key::NONE);
+				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::MIDDLE, MouseButtonMask::MIDDLE, Key::NONE);
+				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_a, MouseButton::MIDDLE, MouseButtonMask::NONE, Key::NONE);
 				CHECK(root->gui_is_dragging());
 
 				// Force Drop with LMB-Down.
@@ -1351,6 +1351,15 @@ TEST_CASE("[SceneTree][Viewport] Controls and InputEvent handling") {
 				CHECK(root->gui_is_drag_successful());
 
 				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_d, MouseButton::LEFT, MouseButtonMask::NONE, Key::NONE);
+
+				node_a->force_drag(SNAME("Drag Data"), nullptr);
+				CHECK(root->gui_is_dragging());
+
+				// Cancel with RMB.
+				SEND_GUI_MOUSE_BUTTON_EVENT(on_d, MouseButton::RIGHT, MouseButtonMask::RIGHT, Key::NONE);
+				CHECK_FALSE(root->gui_is_dragging());
+				CHECK_FALSE(root->gui_is_drag_successful());
+				SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(on_a, MouseButton::RIGHT, MouseButtonMask::NONE, Key::NONE);
 			}
 		}
 

@@ -20,6 +20,38 @@
  * SOFTWARE.
  */
 
+
+template<typename PIXEL_T>
+static void inline cRasterTranslucentPixels(PIXEL_T* dst, PIXEL_T* src, uint32_t len, uint32_t opacity)
+{
+    //TODO: 64bits faster?
+    if (opacity == 255) {
+        for (uint32_t x = 0; x < len; ++x, ++dst, ++src) {
+            *dst = *src + ALPHA_BLEND(*dst, IA(*src));
+        }
+    } else {
+        for (uint32_t x = 0; x < len; ++x, ++dst, ++src) {
+            auto tmp = ALPHA_BLEND(*src, opacity);
+            *dst = tmp + ALPHA_BLEND(*dst, IA(tmp));
+        }
+    }
+}
+
+
+template<typename PIXEL_T>
+static void inline cRasterPixels(PIXEL_T* dst, PIXEL_T* src, uint32_t len, uint32_t opacity)
+{
+    //TODO: 64bits faster?
+    if (opacity == 255) {
+        for (uint32_t x = 0; x < len; ++x, ++dst, ++src) {
+            *dst = *src;
+        }
+    } else {
+        cRasterTranslucentPixels(dst, src, len, opacity);
+    }
+}
+
+
 template<typename PIXEL_T>
 static void inline cRasterPixels(PIXEL_T* dst, PIXEL_T val, uint32_t offset, int32_t len)
 {
@@ -60,7 +92,7 @@ static void inline cRasterPixels(PIXEL_T* dst, PIXEL_T val, uint32_t offset, int
 }
 
 
-static bool inline cRasterTranslucentRle(SwSurface* surface, const SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool inline cRasterTranslucentRle(SwSurface* surface, const SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     auto span = rle->spans;
 
@@ -125,7 +157,7 @@ static bool inline cRasterTranslucentRect(SwSurface* surface, const SwBBox& regi
 }
 
 
-static bool inline cRasterABGRtoARGB(Surface* surface)
+static bool inline cRasterABGRtoARGB(RenderSurface* surface)
 {
     TVGLOG("SW_ENGINE", "Convert ColorSpace ABGR - ARGB [Size: %d x %d]", surface->w, surface->h);
 
@@ -156,7 +188,7 @@ static bool inline cRasterABGRtoARGB(Surface* surface)
 }
 
 
-static bool inline cRasterARGBtoABGR(Surface* surface)
+static bool inline cRasterARGBtoABGR(RenderSurface* surface)
 {
     //exactly same with ABGRtoARGB
     return cRasterABGRtoARGB(surface);

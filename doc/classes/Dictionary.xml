@@ -281,9 +281,9 @@
 				    { 210, default },
 				};
 
-				GD.Print(myDict.ContainsKey("Godot")); // Prints true
-				GD.Print(myDict.ContainsKey(210));     // Prints true
-				GD.Print(myDict.ContainsKey(4));       // Prints false
+				GD.Print(myDict.ContainsKey("Godot")); // Prints True
+				GD.Print(myDict.ContainsKey(210));     // Prints True
+				GD.Print(myDict.ContainsKey(4));       // Prints False
 				[/csharp]
 				[/codeblocks]
 				In GDScript, this is equivalent to the [code]in[/code] operator:
@@ -321,7 +321,7 @@
 				var dict2 = new Godot.Collections.Dictionary{{"A", 10}, {"B", 2}};
 
 				// Godot.Collections.Dictionary has no Hash() method. Use GD.Hash() instead.
-				GD.Print(GD.Hash(dict1) == GD.Hash(dict2)); // Prints true
+				GD.Print(GD.Hash(dict1) == GD.Hash(dict2)); // Prints True
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] Dictionaries with the same entries but in a different order will not have the same hash.

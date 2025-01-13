@@ -86,10 +86,10 @@ bool PngLoader::read()
 
     if (cs == ColorSpace::ARGB8888 || cs == ColorSpace::ARGB8888S) {
         image->format = PNG_FORMAT_BGRA;
-        surface.cs = ColorSpace::ARGB8888;
+        surface.cs = ColorSpace::ARGB8888S;
     } else {
         image->format = PNG_FORMAT_RGBA;
-        surface.cs = ColorSpace::ABGR8888;
+        surface.cs = ColorSpace::ABGR8888S;
     }
 
     auto buffer = static_cast<png_bytep>(malloc(PNG_IMAGE_SIZE((*image))));

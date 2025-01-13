@@ -164,7 +164,13 @@ extern void CrashHandlerException(int signal) {
 	int64_t image_file_base = get_image_base(_execpath);
 	data.offset = image_mem_base - image_file_base;
 
-	data.state = backtrace_create_state(_execpath.utf8().get_data(), 0, &error_callback, reinterpret_cast<void *>(&data));
+	if (FileAccess::exists(_execpath + ".debugsymbols")) {
+		_execpath = _execpath + ".debugsymbols";
+	}
+	_execpath = _execpath.replace("/", "\\");
+
+	CharString cs = _execpath.utf8(); // Note: should remain in scope during backtrace_simple call.
+	data.state = backtrace_create_state(cs.get_data(), 0, &error_callback, reinterpret_cast<void *>(&data));
 	if (data.state != nullptr) {
 		data.index = 1;
 		backtrace_simple(data.state, 1, &trace_callback, &error_callback, reinterpret_cast<void *>(&data));

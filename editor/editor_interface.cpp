@@ -31,6 +31,8 @@
 #include "editor_interface.h"
 #include "editor_interface.compat.inc"
 
+#include "core/config/project_settings.h"
+#include "editor/create_dialog.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_main_screen.h"
@@ -50,6 +52,10 @@
 #include "editor/property_selector.h"
 #include "editor/themes/editor_scale.h"
 #include "main/main.h"
+#include "plugins/editor_preview_plugins.h"
+#include "scene/3d/light_3d.h"
+#include "scene/3d/mesh_instance_3d.h"
+#include "scene/3d/world_environment.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/control.h"
 #include "scene/main/window.h"
@@ -96,6 +102,27 @@ EditorToaster *EditorInterface::get_editor_toaster() const {
 
 EditorUndoRedoManager *EditorInterface::get_editor_undo_redo() const {
 	return EditorUndoRedoManager::get_singleton();
+}
+
+AABB EditorInterface::_calculate_aabb_for_scene(Node *p_node, AABB &p_scene_aabb) {
+	MeshInstance3D *mesh_node = Object::cast_to<MeshInstance3D>(p_node);
+	if (mesh_node && mesh_node->get_mesh().is_valid()) {
+		Transform3D accum_xform;
+		Node3D *base = mesh_node;
+		while (base) {
+			accum_xform = base->get_transform() * accum_xform;
+			base = Object::cast_to<Node3D>(base->get_parent());
+		}
+
+		AABB aabb = accum_xform.xform(mesh_node->get_mesh()->get_aabb());
+		p_scene_aabb.merge_with(aabb);
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		p_scene_aabb = _calculate_aabb_for_scene(p_node->get_child(i), p_scene_aabb);
+	}
+
+	return p_scene_aabb;
 }
 
 TypedArray<Texture2D> EditorInterface::_make_mesh_previews(const TypedArray<Mesh> &p_meshes, int p_preview_size) {
@@ -201,6 +228,137 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 	RS::get_singleton()->free(scenario);
 
 	return textures;
+}
+
+void EditorInterface::make_scene_preview(const String &p_path, Node *p_scene, int p_preview_size) {
+	ERR_FAIL_NULL_MSG(p_scene, "The provided scene is null.");
+	ERR_FAIL_COND_MSG(p_scene->is_inside_tree(), "The scene must not be inside the tree.");
+	ERR_FAIL_COND_MSG(!Engine::get_singleton()->is_editor_hint(), "This function can only be called from the editor.");
+	ERR_FAIL_NULL_MSG(EditorNode::get_singleton(), "EditorNode doesn't exist.");
+
+	SubViewport *sub_viewport_node = memnew(SubViewport);
+	AABB scene_aabb;
+	scene_aabb = _calculate_aabb_for_scene(p_scene, scene_aabb);
+
+	sub_viewport_node->set_update_mode(SubViewport::UPDATE_ALWAYS);
+	sub_viewport_node->set_size(Vector2i(p_preview_size, p_preview_size));
+	sub_viewport_node->set_transparent_background(false);
+	Ref<World3D> world;
+	world.instantiate();
+	sub_viewport_node->set_world_3d(world);
+
+	EditorNode::get_singleton()->add_child(sub_viewport_node);
+	Ref<Environment> env;
+	env.instantiate();
+	env->set_background(Environment::BG_CLEAR_COLOR);
+
+	Ref<CameraAttributesPractical> camera_attributes;
+	camera_attributes.instantiate();
+
+	Node3D *root = memnew(Node3D);
+	root->set_name("Root");
+	sub_viewport_node->add_child(root);
+
+	Camera3D *camera = memnew(Camera3D);
+	camera->set_environment(env);
+	camera->set_attributes(camera_attributes);
+	camera->set_name("Camera3D");
+	root->add_child(camera);
+	camera->set_current(true);
+
+	camera->set_position(Vector3(0.0, 0.0, 3.0));
+
+	DirectionalLight3D *light = memnew(DirectionalLight3D);
+	light->set_name("Light");
+	DirectionalLight3D *light2 = memnew(DirectionalLight3D);
+	light2->set_name("Light2");
+	light2->set_color(Color(0.7, 0.7, 0.7, 1.0));
+
+	root->add_child(light);
+	root->add_child(light2);
+
+	sub_viewport_node->add_child(p_scene);
+
+	// Calculate the camera and lighting position based on the size of the scene.
+	Vector3 center = scene_aabb.get_center();
+	float camera_size = scene_aabb.get_longest_axis_size();
+
+	const float cam_rot_x = -Math_PI / 4;
+	const float cam_rot_y = -Math_PI / 4;
+
+	camera->set_orthogonal(camera_size * 2.0, 0.0001, camera_size * 2.0);
+
+	Transform3D xf;
+	xf.basis = Basis(Vector3(0, 1, 0), cam_rot_y) * Basis(Vector3(1, 0, 0), cam_rot_x);
+	xf.origin = center;
+	xf.translate_local(0, 0, camera_size);
+
+	camera->set_transform(xf);
+
+	Transform3D xform;
+	xform.basis = Basis().rotated(Vector3(0, 1, 0), -Math_PI / 6);
+	xform.basis = Basis().rotated(Vector3(1, 0, 0), Math_PI / 6) * xform.basis;
+
+	light->set_transform(xform * Transform3D().looking_at(Vector3(-2, -1, -1), Vector3(0, 1, 0)));
+	light2->set_transform(xform * Transform3D().looking_at(Vector3(+1, -1, -2), Vector3(0, 1, 0)));
+
+	// Update the renderer to get the screenshot.
+	DisplayServer::get_singleton()->process_events();
+	Main::iteration();
+	Main::iteration();
+
+	// Get the texture.
+	Ref<Texture2D> texture = sub_viewport_node->get_texture();
+	ERR_FAIL_COND_MSG(texture.is_null(), "Failed to get texture from sub_viewport_node.");
+
+	// Remove the initial scene node.
+	sub_viewport_node->remove_child(p_scene);
+
+	// Cleanup the viewport.
+	if (sub_viewport_node) {
+		if (sub_viewport_node->get_parent()) {
+			sub_viewport_node->get_parent()->remove_child(sub_viewport_node);
+		}
+		sub_viewport_node->queue_free();
+		sub_viewport_node = nullptr;
+	}
+
+	// Now generate the cache image.
+	Ref<Image> img = texture->get_image();
+	if (img.is_valid() && img->get_width() > 0 && img->get_height() > 0) {
+		img = img->duplicate();
+
+		int preview_size = EDITOR_GET("filesystem/file_dialog/thumbnail_size");
+		preview_size *= EDSCALE;
+
+		int vp_size = MIN(img->get_width(), img->get_height());
+		int x = (img->get_width() - vp_size) / 2;
+		int y = (img->get_height() - vp_size) / 2;
+
+		if (vp_size < preview_size) {
+			img->crop_from_point(x, y, vp_size, vp_size);
+		} else {
+			int ratio = vp_size / preview_size;
+			int size = preview_size * MAX(1, ratio / 2);
+
+			x = (img->get_width() - size) / 2;
+			y = (img->get_height() - size) / 2;
+
+			img->crop_from_point(x, y, size, size);
+			img->resize(preview_size, preview_size, Image::INTERPOLATE_LANCZOS);
+		}
+		img->convert(Image::FORMAT_RGB8);
+
+		String temp_path = EditorPaths::get_singleton()->get_cache_dir();
+		String cache_base = ProjectSettings::get_singleton()->globalize_path(p_path).md5_text();
+		cache_base = temp_path.path_join("resthumb-" + cache_base);
+
+		post_process_preview(img);
+		img->save_png(cache_base + ".png");
+	}
+
+	EditorResourcePreview::get_singleton()->check_for_invalidation(p_path);
+	EditorFileSystem::get_singleton()->emit_signal(SNAME("filesystem_changed"));
 }
 
 void EditorInterface::set_plugin_enabled(const String &p_plugin, bool p_enabled) {
@@ -355,6 +513,45 @@ void EditorInterface::popup_quick_open(const Callable &p_callback, const TypedAr
 	quick_open->popup_dialog(base_types, callable_mp(this, &EditorInterface::_quick_open).bind(p_callback));
 }
 
+void EditorInterface::popup_create_dialog(const Callable &p_callback, const StringName &p_base_type, const String &p_current_type, const String &p_dialog_title, const TypedArray<StringName> &p_custom_type_blocklist, const Dictionary &p_custom_suffix) {
+	if (!create_dialog) {
+		create_dialog = memnew(CreateDialog);
+		get_base_control()->add_child(create_dialog);
+	}
+
+	HashSet<StringName> blocklist;
+	for (const Variant &E : p_custom_type_blocklist) {
+		blocklist.insert(E);
+	}
+	create_dialog->set_type_blocklist(blocklist);
+
+	HashMap<StringName, String> suffix_map;
+	List<Variant> keys;
+	p_custom_suffix.get_key_list(&keys);
+	for (Variant &k : keys) {
+		const StringName key = k;
+		if (key.is_empty()) {
+			continue;
+		}
+		suffix_map.insert(key, p_custom_suffix[key]);
+	}
+	create_dialog->set_type_suffixes(suffix_map);
+
+	String safe_base_type = p_base_type;
+	if (p_base_type.is_empty() || (!ClassDB::class_exists(p_base_type) && !ScriptServer::is_global_class(p_base_type))) {
+		ERR_PRINT(vformat("Invalid base type '%s'. The base type has fallen back to 'Object'.", p_base_type));
+		safe_base_type = "Object";
+	}
+
+	create_dialog->set_base_type(safe_base_type);
+	create_dialog->popup_create(false, true, p_current_type, "");
+	create_dialog->set_title(p_dialog_title.is_empty() ? vformat(TTR("Create New %s"), p_base_type) : p_dialog_title);
+
+	const Callable callback = callable_mp(this, &EditorInterface::_create_dialog_item_selected);
+	create_dialog->connect(SNAME("create"), callback.bind(false, p_callback), CONNECT_DEFERRED);
+	create_dialog->connect(SNAME("canceled"), callback.bind(true, p_callback), CONNECT_DEFERRED);
+}
+
 void EditorInterface::_node_selected(const NodePath &p_node_path, const Callable &p_callback) {
 	const Callable callback = callable_mp(this, &EditorInterface::_node_selected);
 	node_selector->disconnect(SNAME("selected"), callback);
@@ -396,6 +593,13 @@ void EditorInterface::_quick_open(const String &p_file_path, const Callable &p_c
 	EditorQuickOpenDialog *quick_open = EditorNode::get_singleton()->get_quick_open_dialog();
 	quick_open->disconnect(SNAME("canceled"), callable_mp(this, &EditorInterface::_quick_open));
 	_call_dialog_callback(p_callback, p_file_path, "quick open");
+}
+
+void EditorInterface::_create_dialog_item_selected(bool p_is_canceled, const Callable &p_callback) {
+	const Callable callback = callable_mp(this, &EditorInterface::_create_dialog_item_selected);
+	create_dialog->disconnect(SNAME("create"), callback);
+	create_dialog->disconnect(SNAME("canceled"), callback);
+	_call_dialog_callback(p_callback, p_is_canceled ? "" : create_dialog->get_selected_type(), "create dialog");
 }
 
 void EditorInterface::_call_dialog_callback(const Callable &p_callback, const Variant &p_selected, const String &p_context) {
@@ -452,12 +656,12 @@ void EditorInterface::edit_script(const Ref<Script> &p_script, int p_line, int p
 	ScriptEditor::get_singleton()->edit(p_script, p_line - 1, p_col - 1, p_grab_focus);
 }
 
-void EditorInterface::open_scene_from_path(const String &scene_path) {
+void EditorInterface::open_scene_from_path(const String &scene_path, bool p_set_inherited) {
 	if (EditorNode::get_singleton()->is_changing_scene()) {
 		return;
 	}
 
-	EditorNode::get_singleton()->open_request(scene_path);
+	EditorNode::get_singleton()->open_request(scene_path, p_set_inherited);
 }
 
 void EditorInterface::reload_scene_from_path(const String &scene_path) {
@@ -616,6 +820,7 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("popup_property_selector", "object", "callback", "type_filter", "current_value"), &EditorInterface::popup_property_selector, DEFVAL(PackedInt32Array()), DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("popup_method_selector", "object", "callback", "current_value"), &EditorInterface::popup_method_selector, DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("popup_quick_open", "callback", "base_types"), &EditorInterface::popup_quick_open, DEFVAL(TypedArray<StringName>()));
+	ClassDB::bind_method(D_METHOD("popup_create_dialog", "callback", "base_type", "current_type", "dialog_title", "type_blocklist", "type_suffixes"), &EditorInterface::popup_create_dialog, DEFVAL(""), DEFVAL(""), DEFVAL(""), DEFVAL(TypedArray<StringName>()), DEFVAL(Dictionary()));
 
 	// Editor docks.
 
@@ -634,7 +839,7 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("edit_resource", "resource"), &EditorInterface::edit_resource);
 	ClassDB::bind_method(D_METHOD("edit_node", "node"), &EditorInterface::edit_node);
 	ClassDB::bind_method(D_METHOD("edit_script", "script", "line", "column", "grab_focus"), &EditorInterface::edit_script, DEFVAL(-1), DEFVAL(0), DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("open_scene_from_path", "scene_filepath"), &EditorInterface::open_scene_from_path);
+	ClassDB::bind_method(D_METHOD("open_scene_from_path", "scene_filepath", "set_inherited"), &EditorInterface::open_scene_from_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("reload_scene_from_path", "scene_filepath"), &EditorInterface::reload_scene_from_path);
 
 	ClassDB::bind_method(D_METHOD("get_open_scenes"), &EditorInterface::get_open_scenes);

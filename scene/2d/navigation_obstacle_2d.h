@@ -111,6 +111,7 @@ public:
 private:
 	void _update_map(RID p_map);
 	void _update_position(const Vector2 p_position);
+	void _update_transform();
 };
 
 #endif // NAVIGATION_OBSTACLE_2D_H

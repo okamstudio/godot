@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AnimationNodeExtension" inherits="AnimationRootNode" experimental="" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Base class for extending [AnimationRootNode]s from GDScript, C#, or C++.
+	</brief_description>
+	<description>
+		[AnimationNodeExtension] exposes the APIs of [AnimationRootNode] to allow users to extend it from GDScript, C#, or C++. This class is not meant to be used directly, but to be extended by other classes. It is used to create custom nodes for the [AnimationTree] system.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_process" qualifiers="virtual">
+			<return type="PackedFloat32Array" />
+			<param index="0" name="playback_info" type="PackedFloat64Array" />
+			<param index="1" name="test_only" type="bool" />
+			<description>
+				A version of the [method AnimationNode._process] method that is meant to be overridden by custom nodes. It returns a [PackedFloat32Array] with the processed animation data.
+				The [PackedFloat64Array] parameter contains the playback information, containing the following values encoded as floating point numbers (in order): playback time and delta, start and end times, whether a seek was requested (encoded as a float greater than [code]0[/code]), whether the seek request was externally requested (encoded as a float greater than [code]0[/code]), the current [enum Animation.LoopedFlag] (encoded as a float), and the current blend weight.
+				The function must return a [PackedFloat32Array] of the node's time info, containing the following values (in order): animation length, time position, delta, [enum Animation.LoopMode] (encoded as a float), whether the animation is about to end (encoded as a float greater than [code]0[/code]) and whether the animation is infinite (encoded as a float greater than [code]0[/code]). All values must be included in the returned array.
+			</description>
+		</method>
+		<method name="get_remaining_time" qualifiers="static">
+			<return type="float" />
+			<param index="0" name="node_info" type="PackedFloat32Array" />
+			<param index="1" name="break_loop" type="bool" />
+			<description>
+				Returns the animation's remaining time for the given node info. For looping animations, it will only return the remaining time if [param break_loop] is [code]true[/code], a large integer value will be returned otherwise.
+			</description>
+		</method>
+		<method name="is_looping" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="node_info" type="PackedFloat32Array" />
+			<description>
+				Returns [code]true[/code] if the animation for the given [param node_info] is looping.
+			</description>
+		</method>
+	</methods>
+</class>

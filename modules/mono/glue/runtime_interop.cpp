@@ -1098,6 +1098,20 @@ void godotsharp_array_make_read_only(Array *p_self) {
 	p_self->make_read_only();
 }
 
+void godotsharp_array_set_typed(Array *p_self, uint32_t p_elem_type, const StringName *p_elem_class_name, const Ref<CSharpScript> *p_elem_script) {
+	Variant elem_script_variant;
+	StringName elem_class_name = *p_elem_class_name;
+	if (p_elem_script && p_elem_script->is_valid()) {
+		elem_script_variant = Variant(p_elem_script->ptr());
+		elem_class_name = p_elem_script->ptr()->get_instance_base_type();
+	}
+	p_self->set_typed(p_elem_type, elem_class_name, p_elem_script->ptr());
+}
+
+bool godotsharp_array_is_typed(const Array *p_self) {
+	return p_self->is_typed();
+}
+
 void godotsharp_array_max(const Array *p_self, Variant *r_value) {
 	*r_value = p_self->max();
 }
@@ -1205,6 +1219,54 @@ bool godotsharp_dictionary_remove_key(Dictionary *p_self, const Variant *p_key) 
 
 void godotsharp_dictionary_make_read_only(Dictionary *p_self) {
 	p_self->make_read_only();
+}
+
+void godotsharp_dictionary_set_typed(Dictionary *p_self, uint32_t p_key_type, const StringName *p_key_class_name, const Ref<CSharpScript> *p_key_script, uint32_t p_value_type, const StringName *p_value_class_name, const Ref<CSharpScript> *p_value_script) {
+	Variant key_script_variant;
+	StringName key_class_name = *p_key_class_name;
+	if (p_key_script && p_key_script->is_valid()) {
+		key_script_variant = Variant(p_key_script->ptr());
+		key_class_name = p_key_script->ptr()->get_instance_base_type();
+	}
+	Variant value_script_variant;
+	StringName value_class_name = *p_value_class_name;
+	if (p_value_script && p_value_script->is_valid()) {
+		value_script_variant = Variant(p_value_script->ptr());
+		value_class_name = p_value_script->ptr()->get_instance_base_type();
+	}
+	p_self->set_typed(p_key_type, key_class_name, p_key_script->ptr(), p_value_type, value_class_name, p_value_script->ptr());
+}
+
+bool godotsharp_dictionary_is_typed_key(const Dictionary *p_self) {
+	return p_self->is_typed_key();
+}
+
+bool godotsharp_dictionary_is_typed_value(const Dictionary *p_self) {
+	return p_self->is_typed_value();
+}
+
+uint32_t godotsharp_dictionary_get_typed_key_builtin(const Dictionary *p_self) {
+	return p_self->get_typed_key_builtin();
+}
+
+uint32_t godotsharp_dictionary_get_typed_value_builtin(const Dictionary *p_self) {
+	return p_self->get_typed_value_builtin();
+}
+
+void godotsharp_dictionary_get_typed_key_class_name(const Dictionary *p_self, StringName *r_dest) {
+	memnew_placement(r_dest, StringName(p_self->get_typed_key_class_name()));
+}
+
+void godotsharp_dictionary_get_typed_value_class_name(const Dictionary *p_self, StringName *r_dest) {
+	memnew_placement(r_dest, StringName(p_self->get_typed_value_class_name()));
+}
+
+void godotsharp_dictionary_get_typed_key_script(const Dictionary *p_self, Variant *r_dest) {
+	memnew_placement(r_dest, Variant(p_self->get_typed_key_script()));
+}
+
+void godotsharp_dictionary_get_typed_value_script(const Dictionary *p_self, Variant *r_dest) {
+	memnew_placement(r_dest, Variant(p_self->get_typed_value_script()));
 }
 
 void godotsharp_dictionary_to_string(const Dictionary *p_self, String *r_str) {
@@ -1585,6 +1647,8 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_array_insert,
 	(void *)godotsharp_array_last_index_of,
 	(void *)godotsharp_array_make_read_only,
+	(void *)godotsharp_array_set_typed,
+	(void *)godotsharp_array_is_typed,
 	(void *)godotsharp_array_max,
 	(void *)godotsharp_array_min,
 	(void *)godotsharp_array_pick_random,
@@ -1610,6 +1674,15 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_dictionary_recursive_equal,
 	(void *)godotsharp_dictionary_remove_key,
 	(void *)godotsharp_dictionary_make_read_only,
+	(void *)godotsharp_dictionary_set_typed,
+	(void *)godotsharp_dictionary_is_typed_key,
+	(void *)godotsharp_dictionary_is_typed_value,
+	(void *)godotsharp_dictionary_get_typed_key_builtin,
+	(void *)godotsharp_dictionary_get_typed_value_builtin,
+	(void *)godotsharp_dictionary_get_typed_key_class_name,
+	(void *)godotsharp_dictionary_get_typed_value_class_name,
+	(void *)godotsharp_dictionary_get_typed_key_script,
+	(void *)godotsharp_dictionary_get_typed_value_script,
 	(void *)godotsharp_dictionary_to_string,
 	(void *)godotsharp_string_simplify_path,
 	(void *)godotsharp_string_to_camel_case,

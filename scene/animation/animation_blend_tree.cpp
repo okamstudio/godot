@@ -1003,6 +1003,14 @@ String AnimationNodeTimeSeek::get_caption() const {
 	return "TimeSeek";
 }
 
+void AnimationNodeTimeSeek::set_explicit_elapse(bool p_enable) {
+	explicit_elapse = p_enable;
+}
+
+bool AnimationNodeTimeSeek::is_explicit_elapse() const {
+	return explicit_elapse;
+}
+
 AnimationNode::NodeTimeInfo AnimationNodeTimeSeek::_process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only) {
 	double cur_seek_pos = get_parameter(seek_pos_request);
 
@@ -1011,7 +1019,7 @@ AnimationNode::NodeTimeInfo AnimationNodeTimeSeek::_process(const AnimationMixer
 	if (Animation::is_greater_or_equal_approx(cur_seek_pos, 0)) {
 		pi.time = cur_seek_pos;
 		pi.seeked = true;
-		pi.is_external_seeking = true;
+		pi.is_external_seeking = explicit_elapse;
 		set_parameter(seek_pos_request, -1.0); // Reset.
 	}
 
@@ -1020,6 +1028,12 @@ AnimationNode::NodeTimeInfo AnimationNodeTimeSeek::_process(const AnimationMixer
 
 AnimationNodeTimeSeek::AnimationNodeTimeSeek() {
 	add_input("in");
+}
+
+void AnimationNodeTimeSeek::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_explicit_elapse", "enable"), &AnimationNodeTimeSeek::set_explicit_elapse);
+	ClassDB::bind_method(D_METHOD("is_explicit_elapse"), &AnimationNodeTimeSeek::is_explicit_elapse);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "explicit_elapse"), "set_explicit_elapse", "is_explicit_elapse");
 }
 
 /////////////////////////////////////////////////
@@ -1423,7 +1437,7 @@ void AnimationNodeBlendTree::add_node(const StringName &p_name, Ref<AnimationNod
 	ERR_FAIL_COND(nodes.has(p_name));
 	ERR_FAIL_COND(p_node.is_null());
 	ERR_FAIL_COND(p_name == SceneStringName(output));
-	ERR_FAIL_COND(String(p_name).contains("/"));
+	ERR_FAIL_COND(String(p_name).contains_char('/'));
 
 	Node n;
 	n.node = p_node;

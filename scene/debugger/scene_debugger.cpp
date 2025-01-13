@@ -96,7 +96,7 @@ void SceneDebugger::deinitialize() {
 #ifdef DEBUG_ENABLED
 void SceneDebugger::_handle_input(const Ref<InputEvent> &p_event, const Ref<Shortcut> &p_shortcut) {
 	Ref<InputEventKey> k = p_event;
-	if (k.is_valid() && k->is_pressed() && !k->is_echo() && p_shortcut->matches_event(k)) {
+	if (p_shortcut.is_valid() && k.is_valid() && k->is_pressed() && !k->is_echo() && p_shortcut->matches_event(k)) {
 		EngineDebugger::get_singleton()->send_message("request_quit", Array());
 	}
 }
@@ -1244,13 +1244,6 @@ void RuntimeNodeSelect::_setup(const Dictionary &p_settings) {
 	root->connect(SceneStringName(window_input), callable_mp(this, &RuntimeNodeSelect::_root_window_input));
 	root->connect("size_changed", callable_mp(this, &RuntimeNodeSelect::_queue_selection_update), CONNECT_DEFERRED);
 
-	selection_list = memnew(PopupMenu);
-	selection_list->set_theme(ThemeDB::get_singleton()->get_default_theme());
-	selection_list->set_auto_translate_mode(Node::AUTO_TRANSLATE_MODE_DISABLED);
-	selection_list->set_force_native(true);
-	selection_list->connect("index_pressed", callable_mp(this, &RuntimeNodeSelect::_items_popup_index_pressed).bind(selection_list));
-	selection_list->connect("popup_hide", callable_mp(Object::cast_to<Node>(root), &Node::remove_child).bind(selection_list));
-
 	panner.instantiate();
 	panner->set_callbacks(callable_mp(this, &RuntimeNodeSelect::_pan_callback), callable_mp(this, &RuntimeNodeSelect::_zoom_callback));
 
@@ -1358,9 +1351,9 @@ void RuntimeNodeSelect::_set_camera_override_enabled(bool p_enabled) {
 
 void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 	Window *root = SceneTree::get_singleton()->get_root();
-	if (node_select_type == NODE_TYPE_NONE || selection_list->is_visible()) {
+	if (node_select_type == NODE_TYPE_NONE || (selection_list && selection_list->is_visible())) {
 		// Workaround for platforms that don't allow subwindows.
-		if (selection_list->is_visible() && selection_list->is_embedded()) {
+		if (selection_list && selection_list->is_visible() && selection_list->is_embedded()) {
 			root->set_disable_input_override(false);
 			selection_list->push_input(p_event);
 			callable_mp(root->get_viewport(), &Viewport::set_disable_input_override).call_deferred(true);
@@ -1532,21 +1525,9 @@ void RuntimeNodeSelect::_click_point() {
 		message.append(items[0].item->get_instance_id());
 		EngineDebugger::get_singleton()->send_message("remote_node_clicked", message);
 	} else if (list_shortcut_pressed || node_select_mode == SELECT_MODE_LIST) {
-		if (!selection_list->is_inside_tree()) {
-			root->add_child(selection_list);
+		if (!selection_list) {
+			_open_selection_list(items, pos);
 		}
-
-		selection_list->clear();
-		for (const SelectResult &I : items) {
-			selection_list->add_item(I.item->get_name());
-			selection_list->set_item_metadata(-1, I.item);
-		}
-
-		selection_list->set_position(selection_list->is_embedded() ? pos : selection_position + root->get_position());
-		selection_list->reset_size();
-		selection_list->popup();
-		// FIXME: Ugly hack that stops the popup from hiding when the button is released.
-		selection_list->call_deferred(SNAME("set_position"), selection_list->get_position() + Point2(1, 0));
 	}
 }
 
@@ -1736,6 +1717,35 @@ void RuntimeNodeSelect::_clear_selection() {
 		RS::get_singleton()->free(sbox_3d_instance_xray_ofs);
 	}
 #endif // _3D_DISABLED
+}
+
+void RuntimeNodeSelect::_open_selection_list(const Vector<SelectResult> &p_items, const Point2 &p_pos) {
+	Window *root = SceneTree::get_singleton()->get_root();
+
+	selection_list = memnew(PopupMenu);
+	selection_list->set_theme(ThemeDB::get_singleton()->get_default_theme());
+	selection_list->set_auto_translate_mode(Node::AUTO_TRANSLATE_MODE_DISABLED);
+	selection_list->set_force_native(true);
+	selection_list->connect("index_pressed", callable_mp(this, &RuntimeNodeSelect::_items_popup_index_pressed).bind(selection_list));
+	selection_list->connect("popup_hide", callable_mp(this, &RuntimeNodeSelect::_close_selection_list));
+
+	root->add_child(selection_list);
+
+	for (const SelectResult &I : p_items) {
+		selection_list->add_item(I.item->get_name());
+		selection_list->set_item_metadata(-1, I.item);
+	}
+
+	selection_list->set_position(selection_list->is_embedded() ? p_pos : selection_position + root->get_position());
+	selection_list->reset_size();
+	selection_list->popup();
+	// FIXME: Ugly hack that stops the popup from hiding when the button is released.
+	selection_list->call_deferred(SNAME("set_position"), selection_list->get_position() + Point2(1, 0));
+}
+
+void RuntimeNodeSelect::_close_selection_list() {
+	selection_list->queue_free();
+	selection_list = nullptr;
 }
 
 void RuntimeNodeSelect::_set_selection_visible(bool p_visible) {

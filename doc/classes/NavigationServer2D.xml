@@ -533,7 +533,7 @@
 				Returns all navigation obstacle [RID]s that are currently assigned to the requested navigation [param map].
 			</description>
 		</method>
-		<method name="map_get_path" qualifiers="const">
+		<method name="map_get_path">
 			<return type="PackedVector2Array" />
 			<param index="0" name="map" type="RID" />
 			<param index="1" name="origin" type="Vector2" />
@@ -754,12 +754,13 @@
 				[b]Performance:[/b] While convenient, reading data arrays from [Mesh] resources can affect the frame rate negatively. The data needs to be received from the GPU, stalling the [RenderingServer] in the process. For performance prefer the use of e.g. collision shapes or creating the data arrays entirely in code.
 			</description>
 		</method>
-		<method name="query_path" qualifiers="const">
+		<method name="query_path">
 			<return type="void" />
 			<param index="0" name="parameters" type="NavigationPathQueryParameters2D" />
 			<param index="1" name="result" type="NavigationPathQueryResult2D" />
+			<param index="2" name="callback" type="Callable" default="Callable()" />
 			<description>
-				Queries a path in a given navigation map. Start and target position and other parameters are defined through [NavigationPathQueryParameters2D]. Updates the provided [NavigationPathQueryResult2D] result object with the path among other results requested by the query.
+				Queries a path in a given navigation map. Start and target position and other parameters are defined through [NavigationPathQueryParameters2D]. Updates the provided [NavigationPathQueryResult2D] result object with the path among other results requested by the query. After the process is finished the optional [param callback] will be called.
 			</description>
 		</method>
 		<method name="region_create">

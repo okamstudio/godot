@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-"@export_enum" annotation requires a variable of type "int", "Array[int]", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "String", "Array[String]", or "PackedStringArray", but type "Color" was given instead.
+>> ERROR at line 1: "@export_enum" annotation requires a variable of type "int", "Array[int]", "PackedByteArray", "PackedInt32Array", "PackedInt64Array", "String", "Array[String]", or "PackedStringArray", but type "Color" was given instead.

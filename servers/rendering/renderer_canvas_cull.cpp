@@ -278,6 +278,19 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 		ci->children_order_dirty = false;
 	}
 
+	if (ci->use_parent_material && p_material_owner) {
+		ci->material_owner = p_material_owner;
+	} else {
+		p_material_owner = ci;
+		ci->material_owner = nullptr;
+	}
+
+	Color modulate = ci->modulate * p_modulate;
+
+	if (modulate.a < 0.007) {
+		return;
+	}
+
 	Rect2 rect = ci->get_rect();
 
 	if (ci->visibility_notifier) {
@@ -345,19 +358,6 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 		global_rect = global_rect.merge(corner_rect);
 	}
 	global_rect.position += p_clip_rect.position;
-
-	if (ci->use_parent_material && p_material_owner) {
-		ci->material_owner = p_material_owner;
-	} else {
-		p_material_owner = ci;
-		ci->material_owner = nullptr;
-	}
-
-	Color modulate(ci->modulate.r * p_modulate.r, ci->modulate.g * p_modulate.g, ci->modulate.b * p_modulate.b, ci->modulate.a * p_modulate.a);
-
-	if (modulate.a < 0.007) {
-		return;
-	}
 
 	int child_item_count = ci->child_items.size();
 	Item **child_items = ci->child_items.ptrw();

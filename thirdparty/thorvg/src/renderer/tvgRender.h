@@ -24,6 +24,7 @@
 #define _TVG_RENDER_H_
 
 #include <math.h>
+#include <cstdarg>
 #include "tvgCommon.h"
 #include "tvgArray.h"
 #include "tvgLock.h"
@@ -36,9 +37,8 @@ using pixel_t = uint32_t;
 
 enum RenderUpdateFlag : uint8_t {None = 0, Path = 1, Color = 2, Gradient = 4, Stroke = 8, Transform = 16, Image = 32, GradientStroke = 64, Blend = 128, All = 255};
 
-struct Surface;
-
-enum ColorSpace
+//TODO: Move this in public header unifying with SwCanvas::Colorspace
+enum ColorSpace : uint8_t
 {
     ABGR8888 = 0,      //The channels are joined in the order: alpha, blue, green, red. Colors are alpha-premultiplied.
     ARGB8888,          //The channels are joined in the order: alpha, red, green, blue. Colors are alpha-premultiplied.
@@ -48,7 +48,7 @@ enum ColorSpace
     Unsupported        //TODO: Change to the default, At the moment, we put it in the last to align with SwCanvas::Colorspace.
 };
 
-struct Surface
+struct RenderSurface
 {
     union {
         pixel_t* data = nullptr;    //system based data pointer
@@ -62,11 +62,11 @@ struct Surface
     uint8_t channelSize = 0;
     bool premultiplied = false;         //Alpha-premultiplied
 
-    Surface()
+    RenderSurface()
     {
     }
 
-    Surface(const Surface* rhs)
+    RenderSurface(const RenderSurface* rhs)
     {
         data = rhs->data;
         stride = rhs->stride;
@@ -80,21 +80,10 @@ struct Surface
 
 };
 
-struct Compositor
+struct RenderCompositor
 {
     CompositeMethod method;
-    uint8_t        opacity;
-};
-
-struct Vertex
-{
-   Point pt;
-   Point uv;
-};
-
-struct Polygon
-{
-   Vertex vertex[3];
+    uint8_t opacity;
 };
 
 struct RenderRegion
@@ -270,8 +259,63 @@ struct RenderShape
     float strokeMiterlimit() const
     {
         if (!stroke) return 4.0f;
-
         return stroke->miterlimit;;
+    }
+};
+
+struct RenderEffect
+{
+    RenderData rd = nullptr;
+    RenderRegion extend = {0, 0, 0, 0};
+    SceneEffect type;
+    bool invalid = false;
+
+    virtual ~RenderEffect()
+    {
+        free(rd);
+    }
+};
+
+struct RenderEffectGaussianBlur : RenderEffect
+{
+    float sigma;
+    uint8_t direction; //0: both, 1: horizontal, 2: vertical
+    uint8_t border;    //0: duplicate, 1: wrap
+    uint8_t quality;   //0 ~ 100  (optional)
+
+    static RenderEffectGaussianBlur* gen(va_list& args)
+    {
+        auto inst = new RenderEffectGaussianBlur;
+        inst->sigma = std::max((float) va_arg(args, double), 0.0f);
+        inst->direction = std::min(va_arg(args, int), 2);
+        inst->border = std::min(va_arg(args, int), 1);
+        inst->quality = std::min(va_arg(args, int), 100);
+        inst->type = SceneEffect::GaussianBlur;
+        return inst;
+    }
+};
+
+struct RenderEffectDropShadow : RenderEffect
+{
+    uint8_t color[4];  //rgba
+    float angle;
+    float distance;
+    float sigma;
+    uint8_t quality;   //0 ~ 100  (optional)
+
+    static RenderEffectDropShadow* gen(va_list& args)
+    {
+        auto inst = new RenderEffectDropShadow;
+        inst->color[0] = va_arg(args, int);
+        inst->color[1] = va_arg(args, int);
+        inst->color[2] = va_arg(args, int);
+        inst->color[3] = std::min(va_arg(args, int), 255);
+        inst->angle = (float) va_arg(args, double);
+        inst->distance = (float) va_arg(args, double);
+        inst->sigma = std::max((float) va_arg(args, double), 0.0f);
+        inst->quality = std::min(va_arg(args, int), 100);
+        inst->type = SceneEffect::DropShadow;
+        return inst;
     }
 };
 
@@ -287,7 +331,7 @@ public:
 
     virtual ~RenderMethod() {}
     virtual RenderData prepare(const RenderShape& rshape, RenderData data, const Matrix& transform, Array<RenderData>& clips, uint8_t opacity, RenderUpdateFlag flags, bool clipper) = 0;
-    virtual RenderData prepare(Surface* surface, RenderData data, const Matrix& transform, Array<RenderData>& clips, uint8_t opacity, RenderUpdateFlag flags) = 0;
+    virtual RenderData prepare(RenderSurface* surface, RenderData data, const Matrix& transform, Array<RenderData>& clips, uint8_t opacity, RenderUpdateFlag flags) = 0;
     virtual bool preRender() = 0;
     virtual bool renderShape(RenderData data) = 0;
     virtual bool renderImage(RenderData data) = 0;
@@ -298,14 +342,17 @@ public:
     virtual bool viewport(const RenderRegion& vp) = 0;
     virtual bool blend(BlendMethod method) = 0;
     virtual ColorSpace colorSpace() = 0;
-    virtual const Surface* mainSurface() = 0;
+    virtual const RenderSurface* mainSurface() = 0;
 
     virtual bool clear() = 0;
     virtual bool sync() = 0;
 
-    virtual Compositor* target(const RenderRegion& region, ColorSpace cs) = 0;
-    virtual bool beginComposite(Compositor* cmp, CompositeMethod method, uint8_t opacity) = 0;
-    virtual bool endComposite(Compositor* cmp) = 0;
+    virtual RenderCompositor* target(const RenderRegion& region, ColorSpace cs) = 0;
+    virtual bool beginComposite(RenderCompositor* cmp, CompositeMethod method, uint8_t opacity) = 0;
+    virtual bool endComposite(RenderCompositor* cmp) = 0;
+
+    virtual bool prepare(RenderEffect* effect) = 0;
+    virtual bool effect(RenderCompositor* cmp, const RenderEffect* effect, uint8_t opacity, bool direct) = 0;
 };
 
 static inline bool MASK_REGION_MERGING(CompositeMethod method)
@@ -373,7 +420,6 @@ static inline uint8_t MULTIPLY(uint8_t c, uint8_t a)
 {
     return (((c) * (a) + 0xff) >> 8);
 }
-
 
 }
 

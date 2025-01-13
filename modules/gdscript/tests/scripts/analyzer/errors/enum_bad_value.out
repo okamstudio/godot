@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot find member "V3" in base "enum_bad_value.gd.Enum".
+>> ERROR at line 4: Cannot find member "V3" in base "enum_bad_value.gd.Enum".

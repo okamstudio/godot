@@ -57,7 +57,7 @@ TileMapEditorPlugin *tile_map_plugin_singleton = nullptr;
 TileSetEditorPlugin *tile_set_plugin_singleton = nullptr;
 
 void TilesEditorUtils::_preview_frame_started() {
-	RS::get_singleton()->request_frame_drawn_callback(callable_mp(const_cast<TilesEditorUtils *>(this), &TilesEditorUtils::_pattern_preview_done));
+	RS::get_singleton()->request_frame_drawn_callback(callable_mp(this, &TilesEditorUtils::_pattern_preview_done));
 }
 
 void TilesEditorUtils::_pattern_preview_done() {
@@ -130,7 +130,7 @@ void TilesEditorUtils::_thread() {
 				// Add the viewport at the last moment to avoid rendering too early.
 				callable_mp((Node *)EditorNode::get_singleton(), &Node::add_child).call_deferred(viewport, false, Node::INTERNAL_MODE_DISABLED);
 
-				RS::get_singleton()->connect(SNAME("frame_pre_draw"), callable_mp(const_cast<TilesEditorUtils *>(this), &TilesEditorUtils::_preview_frame_started), Object::CONNECT_ONE_SHOT);
+				RS::get_singleton()->connect(SNAME("frame_pre_draw"), callable_mp(this, &TilesEditorUtils::_preview_frame_started), Object::CONNECT_ONE_SHOT);
 
 				pattern_preview_done.wait();
 

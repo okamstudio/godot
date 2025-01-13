@@ -10,14 +10,19 @@
 	</tutorials>
 	<members>
 		<member name="format" type="int" setter="set_format" getter="get_format" enum="RenderingDevice.DataFormat" default="218">
+			The way that this attribute's data is interpreted when sent to a shader.
 		</member>
 		<member name="frequency" type="int" setter="set_frequency" getter="get_frequency" enum="RenderingDevice.VertexFrequency" default="0">
+			The rate at which this attribute is pulled from its vertex buffer.
 		</member>
 		<member name="location" type="int" setter="set_location" getter="get_location" default="0">
+			The location in the shader that this attribute is bound to.
 		</member>
 		<member name="offset" type="int" setter="set_offset" getter="get_offset" default="0">
+			The number of bytes between the start of the vertex buffer and the first instance of this attribute.
 		</member>
 		<member name="stride" type="int" setter="set_stride" getter="get_stride" default="0">
+			The number of bytes between the starts of consecutive instances of this attribute.
 		</member>
 	</members>
 </class>

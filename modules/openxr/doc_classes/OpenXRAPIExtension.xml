@@ -82,10 +82,30 @@
 				Returns the predicted display timing for the current frame.
 			</description>
 		</method>
+		<method name="get_render_state_z_far">
+			<return type="float" />
+			<description>
+				Returns the far boundary value of the camera frustum.
+				[b]Note:[/b] This is only accessible in the render thread.
+			</description>
+		</method>
+		<method name="get_render_state_z_near">
+			<return type="float" />
+			<description>
+				Returns the near boundary value of the camera frustum.
+				[b]Note:[/b] This is only accessible in the render thread.
+			</description>
+		</method>
 		<method name="get_session">
 			<return type="int" />
 			<description>
 				Returns the OpenXR session, which is an [url=https://registry.khronos.org/OpenXR/specs/1.0/man/html/XrSession.html]XrSession[/url] cast to an integer.
+			</description>
+		</method>
+		<method name="get_supported_swapchain_formats">
+			<return type="PackedInt64Array" />
+			<description>
+				Returns an array of supported swapchain formats.
 			</description>
 		</method>
 		<method name="get_swapchain_format_name">
@@ -133,11 +153,66 @@
 				Returns [code]true[/code] if OpenXR is enabled.
 			</description>
 		</method>
+		<method name="openxr_swapchain_acquire">
+			<return type="void" />
+			<param index="0" name="swapchain" type="int" />
+			<description>
+				Acquires the image of the provided swapchain.
+			</description>
+		</method>
+		<method name="openxr_swapchain_create">
+			<return type="int" />
+			<param index="0" name="create_flags" type="int" />
+			<param index="1" name="usage_flags" type="int" />
+			<param index="2" name="swapchain_format" type="int" />
+			<param index="3" name="width" type="int" />
+			<param index="4" name="height" type="int" />
+			<param index="5" name="sample_count" type="int" />
+			<param index="6" name="array_size" type="int" />
+			<description>
+				Returns a pointer to a new swapchain created using the provided parameters.
+			</description>
+		</method>
+		<method name="openxr_swapchain_free">
+			<return type="void" />
+			<param index="0" name="swapchain" type="int" />
+			<description>
+				Destroys the provided swapchain and frees it from memory.
+			</description>
+		</method>
+		<method name="openxr_swapchain_get_image">
+			<return type="RID" />
+			<param index="0" name="swapchain" type="int" />
+			<description>
+				Returns the RID of the provided swapchain's image.
+			</description>
+		</method>
+		<method name="openxr_swapchain_get_swapchain">
+			<return type="int" />
+			<param index="0" name="swapchain" type="int" />
+			<description>
+				Returns the [code]XrSwapchain[/code] handle of the provided swapchain.
+			</description>
+		</method>
+		<method name="openxr_swapchain_release">
+			<return type="void" />
+			<param index="0" name="swapchain" type="int" />
+			<description>
+				Releases the image of the provided swapchain.
+			</description>
+		</method>
 		<method name="register_composition_layer_provider">
 			<return type="void" />
 			<param index="0" name="extension" type="OpenXRExtensionWrapperExtension" />
 			<description>
 				Registers the given extension as a composition layer provider.
+			</description>
+		</method>
+		<method name="register_projection_views_extension">
+			<return type="void" />
+			<param index="0" name="extension" type="OpenXRExtensionWrapperExtension" />
+			<description>
+				Registers the given extension as a provider of additional data structures to projections views.
 			</description>
 		</method>
 		<method name="set_emulate_environment_blend_mode_alpha_blend">
@@ -156,6 +231,27 @@
 				Set the object name of an OpenXR object, used for debug output. [param object_type] must be a valid OpenXR [code]XrObjectType[/code] enum and [param object_handle] must be a valid OpenXR object handle.
 			</description>
 		</method>
+		<method name="set_velocity_depth_texture">
+			<return type="void" />
+			<param index="0" name="render_target" type="RID" />
+			<description>
+				Sets the render target of the velocity depth texture.
+			</description>
+		</method>
+		<method name="set_velocity_target_size">
+			<return type="void" />
+			<param index="0" name="target_size" type="Vector2i" />
+			<description>
+				Sets the target size of the velocity and velocity depth textures.
+			</description>
+		</method>
+		<method name="set_velocity_texture">
+			<return type="void" />
+			<param index="0" name="render_target" type="RID" />
+			<description>
+				Sets the render target of the velocity texture.
+			</description>
+		</method>
 		<method name="transform_from_pose">
 			<return type="Transform3D" />
 			<param index="0" name="pose" type="const void*" />
@@ -168,6 +264,13 @@
 			<param index="0" name="extension" type="OpenXRExtensionWrapperExtension" />
 			<description>
 				Unregisters the given extension as a composition layer provider.
+			</description>
+		</method>
+		<method name="unregister_projection_views_extension">
+			<return type="void" />
+			<param index="0" name="extension" type="OpenXRExtensionWrapperExtension" />
+			<description>
+				Unregisters the given extension as a provider of additional data structures to projections views.
 			</description>
 		</method>
 		<method name="xr_result">

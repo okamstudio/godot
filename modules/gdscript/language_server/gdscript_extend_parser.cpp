@@ -57,11 +57,17 @@ lsp::Position GodotPosition::to_lsp(const Vector<String> &p_lines) const {
 		return res;
 	}
 	res.line = line - 1;
+
+	// Special case: `column = 0` -> Starts at beginning of line.
+	if (column <= 0) {
+		return res;
+	}
+
 	// Note: character outside of `pos_line.length()-1` is valid.
 	res.character = column - 1;
 
 	String pos_line = p_lines[res.line];
-	if (pos_line.contains("\t")) {
+	if (pos_line.contains_char('\t')) {
 		int tab_size = get_indent_size();
 
 		int in_col = 1;
@@ -238,9 +244,12 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 	r_symbol.kind = lsp::SymbolKind::Class;
 	r_symbol.deprecated = false;
 	r_symbol.range = range_of_node(p_class);
-	r_symbol.range.start.line = MAX(r_symbol.range.start.line, 0);
 	if (p_class->identifier) {
 		r_symbol.selectionRange = range_of_node(p_class->identifier);
+	} else {
+		// No meaningful `selectionRange`, but we must ensure that it is inside of `range`.
+		r_symbol.selectionRange.start = r_symbol.range.start;
+		r_symbol.selectionRange.end = r_symbol.range.start;
 	}
 	r_symbol.detail = "class " + r_symbol.name;
 	{

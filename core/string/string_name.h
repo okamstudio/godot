@@ -132,9 +132,12 @@ public:
 		return _data >= p_name._data;
 	}
 	_FORCE_INLINE_ bool operator==(const StringName &p_name) const {
-		// the real magic of all this mess happens here.
-		// this is why path comparisons are very fast
+		// The real magic of all this mess happens here.
+		// This is why path comparisons are very fast.
 		return _data == p_name._data;
+	}
+	_FORCE_INLINE_ bool operator!=(const StringName &p_name) const {
+		return _data != p_name._data;
 	}
 	_FORCE_INLINE_ uint32_t hash() const {
 		if (_data) {
@@ -146,7 +149,6 @@ public:
 	_FORCE_INLINE_ const void *data_unique_pointer() const {
 		return (void *)_data;
 	}
-	bool operator!=(const StringName &p_name) const;
 
 	_FORCE_INLINE_ operator String() const {
 		if (_data) {

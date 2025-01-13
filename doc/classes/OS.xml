@@ -537,6 +537,12 @@
 				[b]Note:[/b] This method is implemented on Android, iOS, Linux, macOS and Windows.
 			</description>
 		</method>
+		<method name="get_temp_dir" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the [i]global[/i] temporary data directory according to the operating system's standards.
+			</description>
+		</method>
 		<method name="get_thread_caller_id" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -623,10 +629,10 @@
 				print(OS.is_keycode_unicode(KEY_ESCAPE)) # Prints false
 				[/gdscript]
 				[csharp]
-				GD.Print(OS.IsKeycodeUnicode((long)Key.G));      // Prints true
-				GD.Print(OS.IsKeycodeUnicode((long)Key.Kp4));    // Prints true
-				GD.Print(OS.IsKeycodeUnicode((long)Key.Tab));    // Prints false
-				GD.Print(OS.IsKeycodeUnicode((long)Key.Escape)); // Prints false
+				GD.Print(OS.IsKeycodeUnicode((long)Key.G));      // Prints True
+				GD.Print(OS.IsKeycodeUnicode((long)Key.Kp4));    // Prints True
+				GD.Print(OS.IsKeycodeUnicode((long)Key.Tab));    // Prints False
+				GD.Print(OS.IsKeycodeUnicode((long)Key.Escape)); // Prints False
 				[/csharp]
 				[/codeblocks]
 			</description>
@@ -721,6 +727,7 @@
 				- If standard input is console, this method will block until the program receives a line break in standard input (usually by the user pressing [kbd]Enter[/kbd]).
 				- If standard input is pipe, this method will block until a specific amount of data is read or pipe is closed.
 				- If standard input is a file, this method will read a specific amount of data (or less if end-of-file is reached) and return immediately.
+				[b]Note:[/b] This method automatically replaces [code]\r\n[/code] line breaks with [code]\n[/code] and removes them from the end of the string. Use [method read_buffer_from_stdin] to read the unprocessed data.
 				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
 				[b]Note:[/b] On exported Windows builds, run the console wrapper executable to access the terminal. If standard input is console, calling this method without console wrapped will freeze permanently. If standard input is pipe or file, it can be used without console wrapper. If you need a single executable with full console support, use a custom build compiled with the [code]windows_subsystem=console[/code] flag.
 			</description>

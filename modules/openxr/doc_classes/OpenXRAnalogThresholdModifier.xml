@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRAnalogThresholdModifier" inherits="OpenXRActionBindingModifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The analog threshold binding modifier can modify a float input to a boolean input with specified thresholds.
+	</brief_description>
+	<description>
+		The analog threshold binding modifier can modify a float input to a boolean input with specified thresholds.
+		See [url=https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_VALVE_analog_threshold]XR_VALVE_analog_threshold[/url] for in-depth details.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="off_haptic" type="OpenXRHapticBase" setter="set_off_haptic" getter="get_off_haptic">
+			Haptic pulse to emit when the user releases the input.
+		</member>
+		<member name="off_threshold" type="float" setter="set_off_threshold" getter="get_off_threshold" default="0.4">
+			When our input value falls below this, our output becomes false.
+		</member>
+		<member name="on_haptic" type="OpenXRHapticBase" setter="set_on_haptic" getter="get_on_haptic">
+			Haptic pulse to emit when the user presses the input.
+		</member>
+		<member name="on_threshold" type="float" setter="set_on_threshold" getter="get_on_threshold" default="0.6">
+			When our input value is equal or larger than this value, our output becomes true. It stays true until it falls under the [member off_threshold] value.
+		</member>
+	</members>
+</class>

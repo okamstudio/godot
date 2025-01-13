@@ -108,8 +108,8 @@ public:
 
 	};
 
-	typedef void (*BakeBeginFunc)(int);
-	typedef void (*BakeStepFunc)(int, const String &);
+	typedef void (*BakeBeginFunc)();
+	typedef bool (*BakeStepFunc)(int, const String &);
 	typedef void (*BakeEndFunc)();
 
 private:

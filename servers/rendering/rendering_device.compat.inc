@@ -86,11 +86,29 @@ RenderingDevice::FinalAction RenderingDevice::_convert_final_action_84976(FinalA
 }
 
 RenderingDevice::DrawListID RenderingDevice::_draw_list_begin_bind_compat_84976(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region, const TypedArray<RID> &p_storage_textures) {
-	return draw_list_begin(p_framebuffer, _convert_initial_action_84976(p_initial_color_action), _convert_final_action_84976(p_final_color_action), _convert_initial_action_84976(p_initial_depth_action), _convert_final_action_84976(p_final_depth_action), p_clear_color_values, p_clear_depth, p_clear_stencil, p_region, RDD::BreadcrumbMarker::NONE);
+	return _draw_list_begin_bind_compat_98670(p_framebuffer, _convert_initial_action_84976(p_initial_color_action), _convert_final_action_84976(p_final_color_action), _convert_initial_action_84976(p_initial_depth_action), _convert_final_action_84976(p_final_depth_action), p_clear_color_values, p_clear_depth, p_clear_stencil, p_region, RDD::BreadcrumbMarker::NONE);
 }
 
 RenderingDevice::DrawListID RenderingDevice::_draw_list_begin_bind_compat_90993(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region) {
-	return draw_list_begin(p_framebuffer, p_initial_color_action, p_final_color_action, p_initial_depth_action, p_final_depth_action, p_clear_color_values, p_clear_depth, p_clear_stencil, p_region, RDD::BreadcrumbMarker::NONE);
+	return _draw_list_begin_bind_compat_98670(p_framebuffer, p_initial_color_action, p_final_color_action, p_initial_depth_action, p_final_depth_action, p_clear_color_values, p_clear_depth, p_clear_stencil, p_region, RDD::BreadcrumbMarker::NONE);
+}
+
+RenderingDevice::DrawListID RenderingDevice::_draw_list_begin_bind_compat_98670(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region, uint32_t p_breadcrumb) {
+	// Deduce flags from initial and final actions.
+	BitField<DrawFlags> draw_flags = RD::DRAW_DEFAULT_ALL;
+	if (p_initial_color_action == RD::INITIAL_ACTION_CLEAR) {
+		draw_flags.set_flag(DrawFlags(RD::DRAW_CLEAR_COLOR_ALL));
+	} else if (p_initial_color_action == RD::INITIAL_ACTION_DISCARD) {
+		draw_flags.set_flag(DrawFlags(RD::DRAW_IGNORE_COLOR_ALL));
+	}
+
+	if (p_initial_depth_action == RD::INITIAL_ACTION_CLEAR) {
+		draw_flags.set_flag(DrawFlags(RD::DRAW_CLEAR_DEPTH | RD::DRAW_CLEAR_STENCIL));
+	} else if (p_initial_depth_action == RD::INITIAL_ACTION_DISCARD) {
+		draw_flags.set_flag(DrawFlags(RD::DRAW_IGNORE_DEPTH | RD::DRAW_IGNORE_STENCIL));
+	}
+
+	return draw_list_begin(p_framebuffer, draw_flags, p_clear_color_values, p_clear_depth, p_clear_stencil, p_region, p_breadcrumb);
 }
 
 RenderingDevice::ComputeListID RenderingDevice::_compute_list_begin_bind_compat_84976(bool p_allow_draw_overlap) {
@@ -146,6 +164,8 @@ void RenderingDevice::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("screen_get_framebuffer_format"), &RenderingDevice::_screen_get_framebuffer_format_bind_compat_87340);
 
 	ClassDB::bind_compatibility_method(D_METHOD("draw_list_begin", "framebuffer", "initial_color_action", "final_color_action", "initial_depth_action", "final_depth_action", "clear_color_values", "clear_depth", "clear_stencil", "region"), &RenderingDevice::_draw_list_begin_bind_compat_90993, DEFVAL(Vector<Color>()), DEFVAL(1.0), DEFVAL(0), DEFVAL(Rect2()));
+
+	ClassDB::bind_compatibility_method(D_METHOD("draw_list_begin", "framebuffer", "initial_color_action", "final_color_action", "initial_depth_action", "final_depth_action", "clear_color_values", "clear_depth", "clear_stencil", "region", "breadcrumb"), &RenderingDevice::_draw_list_begin_bind_compat_98670, DEFVAL(Vector<Color>()), DEFVAL(1.0), DEFVAL(0), DEFVAL(Rect2()), DEFVAL(0));
 }
 
 #endif

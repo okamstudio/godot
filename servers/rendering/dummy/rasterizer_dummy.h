@@ -90,8 +90,8 @@ public:
 
 	void gl_end_frame(bool p_swap_buffers) override {}
 
-	void end_frame(bool p_swap_buffers) override {
-		if (p_swap_buffers) {
+	void end_frame(bool p_present) override {
+		if (p_present) {
 			DisplayServer::get_singleton()->swap_buffers();
 		}
 	}

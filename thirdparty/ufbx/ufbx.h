@@ -9,10 +9,11 @@
 
 // -- Headers
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <string.h>
+#if !defined(UFBX_NO_LIBC_TYPES)
+	#include <stdint.h>
+	#include <stddef.h>
+	#include <stdbool.h>
+#endif
 
 // -- Platform
 
@@ -99,7 +100,7 @@
 // make sure that it is also used within `ufbx.c`.
 // Defining `UFBX_NO_ASSERT` to any value disables assertions.
 #ifndef ufbx_assert
-	#if defined(UFBX_NO_ASSERT)
+	#if defined(UFBX_NO_ASSERT) || defined(UFBX_NO_LIBC)
 		#define ufbx_assert(cond) (void)0
 	#else
 		#include <assert.h>
@@ -266,7 +267,7 @@ struct ufbx_converter { };
 // `ufbx_source_version` contains the version of the corresponding source file.
 // HINT: The version can be compared numerically to the result of `ufbx_pack_version()`,
 // for example `#if UFBX_VERSION >= ufbx_pack_version(0, 12, 0)`.
-#define UFBX_HEADER_VERSION ufbx_pack_version(0, 14, 3)
+#define UFBX_HEADER_VERSION ufbx_pack_version(0, 15, 0)
 #define UFBX_VERSION UFBX_HEADER_VERSION
 
 // -- Basic types
@@ -3984,12 +3985,17 @@ typedef size_t ufbx_read_fn(void *user, void *data, size_t size);
 // Skip `size` bytes in the file.
 typedef bool ufbx_skip_fn(void *user, size_t size);
 
+// Get the size of the file.
+// Return `0` if unknown, `UINT64_MAX` if error.
+typedef uint64_t ufbx_size_fn(void *user);
+
 // Close the file
 typedef void ufbx_close_fn(void *user);
 
 typedef struct ufbx_stream {
 	ufbx_read_fn *read_fn;   // < Required
 	ufbx_skip_fn *skip_fn;   // < Optional: Will use `read_fn()` if missing
+	ufbx_size_fn *size_fn;   // < Optional
 	ufbx_close_fn *close_fn; // < Optional
 
 	// Context passed to other functions
@@ -4006,12 +4012,16 @@ typedef enum ufbx_open_file_type UFBX_ENUM_REPR {
 
 UFBX_ENUM_TYPE(ufbx_open_file_type, UFBX_OPEN_FILE_TYPE, UFBX_OPEN_FILE_OBJ_MTL);
 
+typedef uintptr_t ufbx_open_file_context;
+
 typedef struct ufbx_open_file_info {
+	// Context that can be passed to the following functions to use a shared allocator:
+	//   ufbx_open_file_ctx()
+	//   ufbx_open_memory_ctx()
+	ufbx_open_file_context context;
+
 	// Kind of file to load.
 	ufbx_open_file_type type;
-
-	// Temporary allocator to use.
-	ufbx_allocator temp_allocator;
 
 	// Original filename in the file, not resolved or UTF-8 encoded.
 	// NOTE: Not necessarily NULL-terminated!
@@ -4029,6 +4039,19 @@ typedef struct ufbx_open_file_cb {
 		(void *user, ufbx_stream *stream, const char *path, size_t path_len, const ufbx_open_file_info *info),
 		(stream, path, path_len, info))
 } ufbx_open_file_cb;
+
+// Options for `ufbx_open_file()`.
+typedef struct ufbx_open_file_opts {
+	uint32_t _begin_zero;
+
+	// Allocator to allocate the memory with.
+	ufbx_allocator_opts allocator;
+
+	// The filename is guaranteed to be NULL-terminated.
+	ufbx_unsafe bool filename_null_terminated;
+
+	uint32_t _end_zero;
+} ufbx_open_file_opts;
 
 // Memory stream options
 typedef void ufbx_close_memory_fn(void *user, void *data, size_t data_size);
@@ -5092,6 +5115,7 @@ ufbx_abi_data const size_t ufbx_element_type_size[UFBX_ELEMENT_TYPE_COUNT];
 // Version of the source file, comparable to `UFBX_HEADER_VERSION`
 ufbx_abi_data const uint32_t ufbx_source_version;
 
+
 // Practically always `true` (see below), if not you need to be careful with threads.
 //
 // Guaranteed to be `true` in _any_ of the following conditions:
@@ -5160,23 +5184,23 @@ ufbx_abi size_t ufbx_format_error(char *dst, size_t dst_size, const ufbx_error *
 // Find a property `name` from `props`, returns `NULL` if not found.
 // Searches through `ufbx_props.defaults` as well.
 ufbx_abi ufbx_prop *ufbx_find_prop_len(const ufbx_props *props, const char *name, size_t name_len);
-ufbx_inline ufbx_prop *ufbx_find_prop(const ufbx_props *props, const char *name) { return ufbx_find_prop_len(props, name, strlen(name));}
+ufbx_abi ufbx_prop *ufbx_find_prop(const ufbx_props *props, const char *name);
 
 // Utility functions for finding the value of a property, returns `def` if not found.
 // NOTE: For `ufbx_string` you need to ensure the lifetime of the default is
 // sufficient as no copy is made.
 ufbx_abi ufbx_real ufbx_find_real_len(const ufbx_props *props, const char *name, size_t name_len, ufbx_real def);
-ufbx_inline ufbx_real ufbx_find_real(const ufbx_props *props, const char *name, ufbx_real def) { return ufbx_find_real_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_real ufbx_find_real(const ufbx_props *props, const char *name, ufbx_real def);
 ufbx_abi ufbx_vec3 ufbx_find_vec3_len(const ufbx_props *props, const char *name, size_t name_len, ufbx_vec3 def);
-ufbx_inline ufbx_vec3 ufbx_find_vec3(const ufbx_props *props, const char *name, ufbx_vec3 def) { return ufbx_find_vec3_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_vec3 ufbx_find_vec3(const ufbx_props *props, const char *name, ufbx_vec3 def);
 ufbx_abi int64_t ufbx_find_int_len(const ufbx_props *props, const char *name, size_t name_len, int64_t def);
-ufbx_inline int64_t ufbx_find_int(const ufbx_props *props, const char *name, int64_t def) { return ufbx_find_int_len(props, name, strlen(name), def); }
+ufbx_abi int64_t ufbx_find_int(const ufbx_props *props, const char *name, int64_t def);
 ufbx_abi bool ufbx_find_bool_len(const ufbx_props *props, const char *name, size_t name_len, bool def);
-ufbx_inline bool ufbx_find_bool(const ufbx_props *props, const char *name, bool def) { return ufbx_find_bool_len(props, name, strlen(name), def); }
+ufbx_abi bool ufbx_find_bool(const ufbx_props *props, const char *name, bool def);
 ufbx_abi ufbx_string ufbx_find_string_len(const ufbx_props *props, const char *name, size_t name_len, ufbx_string def);
-ufbx_inline ufbx_string ufbx_find_string(const ufbx_props *props, const char *name, ufbx_string def) { return ufbx_find_string_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_string ufbx_find_string(const ufbx_props *props, const char *name, ufbx_string def);
 ufbx_abi ufbx_blob ufbx_find_blob_len(const ufbx_props *props, const char *name, size_t name_len, ufbx_blob def);
-ufbx_inline ufbx_blob ufbx_find_blob(const ufbx_props *props, const char *name, ufbx_blob def) { return ufbx_find_blob_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_blob ufbx_find_blob(const ufbx_props *props, const char *name, ufbx_blob def);
 
 // Find property in `props` with concatendated `parts[num_parts]`.
 ufbx_abi ufbx_prop *ufbx_find_prop_concat(const ufbx_props *props, const ufbx_string *parts, size_t num_parts);
@@ -5186,30 +5210,30 @@ ufbx_abi ufbx_element *ufbx_get_prop_element(const ufbx_element *element, const 
 
 // Find an element connected to a property by name.
 ufbx_abi ufbx_element *ufbx_find_prop_element_len(const ufbx_element *element, const char *name, size_t name_len, ufbx_element_type type);
-ufbx_inline ufbx_element *ufbx_find_prop_element(const ufbx_element *element, const char *name, ufbx_element_type type) { return ufbx_find_prop_element_len(element, name, strlen(name), type); }
+ufbx_abi ufbx_element *ufbx_find_prop_element(const ufbx_element *element, const char *name, ufbx_element_type type);
 
 // Find any element of type `type` in `scene` by `name`.
 // For example if you want to find `ufbx_material` named `Mat`:
 //   (ufbx_material*)ufbx_find_element(scene, UFBX_ELEMENT_MATERIAL, "Mat");
 ufbx_abi ufbx_element *ufbx_find_element_len(const ufbx_scene *scene, ufbx_element_type type, const char *name, size_t name_len);
-ufbx_inline ufbx_element *ufbx_find_element(const ufbx_scene *scene, ufbx_element_type type, const char *name) { return ufbx_find_element_len(scene, type, name, strlen(name)); }
+ufbx_abi ufbx_element *ufbx_find_element(const ufbx_scene *scene, ufbx_element_type type, const char *name);
 
 // Find node in `scene` by `name` (shorthand for `ufbx_find_element(UFBX_ELEMENT_NODE)`).
 ufbx_abi ufbx_node *ufbx_find_node_len(const ufbx_scene *scene, const char *name, size_t name_len);
-ufbx_inline ufbx_node *ufbx_find_node(const ufbx_scene *scene, const char *name) { return ufbx_find_node_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_node *ufbx_find_node(const ufbx_scene *scene, const char *name);
 
 // Find an animation stack in `scene` by `name` (shorthand for `ufbx_find_element(UFBX_ELEMENT_ANIM_STACK)`)
 ufbx_abi ufbx_anim_stack *ufbx_find_anim_stack_len(const ufbx_scene *scene, const char *name, size_t name_len);
-ufbx_inline ufbx_anim_stack *ufbx_find_anim_stack(const ufbx_scene *scene, const char *name) { return ufbx_find_anim_stack_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_anim_stack *ufbx_find_anim_stack(const ufbx_scene *scene, const char *name);
 
 // Find a material in `scene` by `name` (shorthand for `ufbx_find_element(UFBX_ELEMENT_MATERIAL)`).
 ufbx_abi ufbx_material *ufbx_find_material_len(const ufbx_scene *scene, const char *name, size_t name_len);
-ufbx_inline ufbx_material *ufbx_find_material(const ufbx_scene *scene, const char *name) { return ufbx_find_material_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_material *ufbx_find_material(const ufbx_scene *scene, const char *name);
 
 // Find a single animated property `prop` of `element` in `layer`.
 // Returns `NULL` if not found.
 ufbx_abi ufbx_anim_prop *ufbx_find_anim_prop_len(const ufbx_anim_layer *layer, const ufbx_element *element, const char *prop, size_t prop_len);
-ufbx_inline ufbx_anim_prop *ufbx_find_anim_prop(const ufbx_anim_layer *layer, const ufbx_element *element, const char *prop) { return ufbx_find_anim_prop_len(layer, element, prop, strlen(prop)); }
+ufbx_abi ufbx_anim_prop *ufbx_find_anim_prop(const ufbx_anim_layer *layer, const ufbx_element *element, const char *prop);
 
 // Find all animated properties of `element` in `layer`.
 ufbx_abi ufbx_anim_prop_list ufbx_find_anim_props(const ufbx_anim_layer *layer, const ufbx_element *element);
@@ -5228,16 +5252,18 @@ ufbx_abi ufbx_matrix ufbx_get_compatible_matrix_for_normals(const ufbx_node *nod
 // but the rest can be uninitialized.
 ufbx_abi ptrdiff_t ufbx_inflate(void *dst, size_t dst_size, const ufbx_inflate_input *input, ufbx_inflate_retain *retain);
 
-// Open a `ufbx_stream` from a file.
-// Use `path_len == SIZE_MAX` for NULL terminated string.
-ufbx_abi bool ufbx_open_file(ufbx_stream *stream, const char *path, size_t path_len);
-
 // Same as `ufbx_open_file()` but compatible with the callback in `ufbx_open_file_fn`.
 // The `user` parameter is actually not used here.
 ufbx_abi bool ufbx_default_open_file(void *user, ufbx_stream *stream, const char *path, size_t path_len, const ufbx_open_file_info *info);
 
+// Open a `ufbx_stream` from a file.
+// Use `path_len == SIZE_MAX` for NULL terminated string.
+ufbx_abi bool ufbx_open_file(ufbx_stream *stream, const char *path, size_t path_len, const ufbx_open_file_opts *opts, ufbx_error *error);
+ufbx_unsafe ufbx_abi bool ufbx_open_file_ctx(ufbx_stream *stream, ufbx_open_file_context ctx, const char *path, size_t path_len, const ufbx_open_file_opts *opts, ufbx_error *error);
+
 // NOTE: Uses the default ufbx allocator!
 ufbx_abi bool ufbx_open_memory(ufbx_stream *stream, const void *data, size_t data_size, const ufbx_open_memory_opts *opts, ufbx_error *error);
+ufbx_unsafe ufbx_abi bool ufbx_open_memory_ctx(ufbx_stream *stream, ufbx_open_file_context ctx, const void *data, size_t data_size, const ufbx_open_memory_opts *opts, ufbx_error *error);
 
 // Animation evaluation
 
@@ -5252,9 +5278,7 @@ ufbx_abi ufbx_vec3 ufbx_evaluate_anim_value_vec3(const ufbx_anim_value *anim_val
 // Evaluate an animated property `name` from `element` at `time`.
 // NOTE: If the property is not found it will have the flag `UFBX_PROP_FLAG_NOT_FOUND`.
 ufbx_abi ufbx_prop ufbx_evaluate_prop_len(const ufbx_anim *anim, const ufbx_element *element, const char *name, size_t name_len, double time);
-ufbx_inline ufbx_prop ufbx_evaluate_prop(const ufbx_anim *anim, const ufbx_element *element, const char *name, double time) {
-	return ufbx_evaluate_prop_len(anim, element, name, strlen(name), time);
-}
+ufbx_abi ufbx_prop ufbx_evaluate_prop(const ufbx_anim *anim, const ufbx_element *element, const char *name, double time);
 
 // Evaluate all _animated_ properties of `element`.
 // HINT: This function returns an `ufbx_props` structure with the original properties as
@@ -5351,27 +5375,19 @@ ufbx_abi ufbx_bone_pose *ufbx_get_bone_pose(const ufbx_pose *pose, const ufbx_no
 
 // Find a texture for a given material FBX property.
 ufbx_abi ufbx_texture *ufbx_find_prop_texture_len(const ufbx_material *material, const char *name, size_t name_len);
-ufbx_inline ufbx_texture *ufbx_find_prop_texture(const ufbx_material *material, const char *name) {
-	return ufbx_find_prop_texture_len(material, name, strlen(name));
-}
+ufbx_abi ufbx_texture *ufbx_find_prop_texture(const ufbx_material *material, const char *name);
 
 // Find a texture for a given shader property.
 ufbx_abi ufbx_string ufbx_find_shader_prop_len(const ufbx_shader *shader, const char *name, size_t name_len);
-ufbx_inline ufbx_string ufbx_find_shader_prop(const ufbx_shader *shader, const char *name) {
-	return ufbx_find_shader_prop_len(shader, name, strlen(name));
-}
+ufbx_abi ufbx_string ufbx_find_shader_prop(const ufbx_shader *shader, const char *name);
 
 // Map from a shader property to material property.
 ufbx_abi ufbx_shader_prop_binding_list ufbx_find_shader_prop_bindings_len(const ufbx_shader *shader, const char *name, size_t name_len);
-ufbx_inline ufbx_shader_prop_binding_list ufbx_find_shader_prop_bindings(const ufbx_shader *shader, const char *name) {
-	return ufbx_find_shader_prop_bindings_len(shader, name, strlen(name));
-}
+ufbx_abi ufbx_shader_prop_binding_list ufbx_find_shader_prop_bindings(const ufbx_shader *shader, const char *name);
 
 // Find an input in a shader texture.
 ufbx_abi ufbx_shader_texture_input *ufbx_find_shader_texture_input_len(const ufbx_shader_texture *shader, const char *name, size_t name_len);
-ufbx_inline ufbx_shader_texture_input *ufbx_find_shader_texture_input(const ufbx_shader_texture *shader, const char *name) {
-	return ufbx_find_shader_texture_input_len(shader, name, strlen(name));
-}
+ufbx_abi ufbx_shader_texture_input *ufbx_find_shader_texture_input(const ufbx_shader_texture *shader, const char *name);
 
 // Math
 
@@ -5471,37 +5487,27 @@ ufbx_abi uint32_t ufbx_find_face_index(ufbx_mesh *mesh, size_t index);
 // NOTE: You need to space for `(face.num_indices - 2) * 3 - 1` indices!
 // HINT: Using `ufbx_mesh.max_face_triangles * 3` is always safe.
 ufbx_abi uint32_t ufbx_catch_triangulate_face(ufbx_panic *panic, uint32_t *indices, size_t num_indices, const ufbx_mesh *mesh, ufbx_face face);
-ufbx_inline uint32_t ufbx_triangulate_face(uint32_t *indices, size_t num_indices, const ufbx_mesh *mesh, ufbx_face face) {
-	return ufbx_catch_triangulate_face(NULL, indices, num_indices, mesh, face);
-}
+ufbx_abi uint32_t ufbx_triangulate_face(uint32_t *indices, size_t num_indices, const ufbx_mesh *mesh, ufbx_face face);
 
 // Generate the half-edge representation of `mesh` to `topo[mesh->num_indices]`
 ufbx_abi void ufbx_catch_compute_topology(ufbx_panic *panic, const ufbx_mesh *mesh, ufbx_topo_edge *topo, size_t num_topo);
-ufbx_inline void ufbx_compute_topology(const ufbx_mesh *mesh, ufbx_topo_edge *topo, size_t num_topo) {
-	ufbx_catch_compute_topology(NULL, mesh, topo, num_topo);
-}
+ufbx_abi void ufbx_compute_topology(const ufbx_mesh *mesh, ufbx_topo_edge *topo, size_t num_topo);
 
 // Get the next/previous edge around a vertex
 // NOTE: Does not return the half-edge on the opposite side (ie. `topo[index].twin`)
 
 // Get the next half-edge in `topo`.
 ufbx_abi uint32_t ufbx_catch_topo_next_vertex_edge(ufbx_panic *panic, const ufbx_topo_edge *topo, size_t num_topo, uint32_t index);
-ufbx_inline uint32_t ufbx_topo_next_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index) {
-	return ufbx_catch_topo_next_vertex_edge(NULL, topo, num_topo, index);
-}
+ufbx_abi uint32_t ufbx_topo_next_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index);
 
 // Get the previous half-edge in `topo`.
 ufbx_abi uint32_t ufbx_catch_topo_prev_vertex_edge(ufbx_panic *panic, const ufbx_topo_edge *topo, size_t num_topo, uint32_t index);
-ufbx_inline uint32_t ufbx_topo_prev_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index) {
-	return ufbx_catch_topo_prev_vertex_edge(NULL, topo, num_topo, index);
-}
+ufbx_abi uint32_t ufbx_topo_prev_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index);
 
 // Calculate a normal for a given face.
 // The returned normal is weighted by face area.
 ufbx_abi ufbx_vec3 ufbx_catch_get_weighted_face_normal(ufbx_panic *panic, const ufbx_vertex_vec3 *positions, ufbx_face face);
-ufbx_inline ufbx_vec3 ufbx_get_weighted_face_normal(const ufbx_vertex_vec3 *positions, ufbx_face face) {
-	return ufbx_catch_get_weighted_face_normal(NULL, positions, face);
-}
+ufbx_abi ufbx_vec3 ufbx_get_weighted_face_normal(const ufbx_vertex_vec3 *positions, ufbx_face face);
 
 // Generate indices for normals from the topology.
 // Respects smoothing groups.
@@ -5558,7 +5564,7 @@ ufbx_abi size_t ufbx_sample_geometry_cache_vec3(const ufbx_cache_channel *channe
 
 // Find a DOM node given a name.
 ufbx_abi ufbx_dom_node *ufbx_dom_find_len(const ufbx_dom_node *parent, const char *name, size_t name_len);
-ufbx_inline ufbx_dom_node *ufbx_dom_find(const ufbx_dom_node *parent, const char *name) { return ufbx_dom_find_len(parent, name, strlen(name)); }
+ufbx_abi ufbx_dom_node *ufbx_dom_find(const ufbx_dom_node *parent, const char *name);
 
 // Utility
 

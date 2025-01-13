@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Identifier "a" not declared in the current scope.
+>> ERROR at line 3: Identifier "a" not declared in the current scope.

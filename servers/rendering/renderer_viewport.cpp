@@ -789,7 +789,16 @@ void RendererViewport::draw_viewports(bool p_swap_buffers) {
 				RSG::texture_storage->render_target_set_override(vp->render_target,
 						xr_interface->get_color_texture(),
 						xr_interface->get_depth_texture(),
-						xr_interface->get_velocity_texture());
+						xr_interface->get_velocity_texture(),
+						xr_interface->get_velocity_depth_texture());
+
+				RSG::texture_storage->render_target_set_velocity_target_size(vp->render_target, xr_interface->get_velocity_target_size());
+
+				if (xr_interface->get_velocity_texture().is_valid()) {
+					viewport_set_force_motion_vectors(vp->self, true);
+				} else {
+					viewport_set_force_motion_vectors(vp->self, false);
+				}
 
 				// render...
 				RSG::scene->set_debug_draw_mode(vp->debug_draw);
@@ -990,7 +999,7 @@ void RendererViewport::_viewport_set_size(Viewport *p_viewport, int p_width, int
 }
 
 bool RendererViewport::_viewport_requires_motion_vectors(Viewport *p_viewport) {
-	return p_viewport->use_taa || p_viewport->scaling_3d_mode == RenderingServer::VIEWPORT_SCALING_3D_MODE_FSR2 || p_viewport->debug_draw == RenderingServer::VIEWPORT_DEBUG_DRAW_MOTION_VECTORS;
+	return p_viewport->use_taa || p_viewport->scaling_3d_mode == RenderingServer::VIEWPORT_SCALING_3D_MODE_FSR2 || p_viewport->debug_draw == RenderingServer::VIEWPORT_DEBUG_DRAW_MOTION_VECTORS || p_viewport->force_motion_vectors;
 }
 
 void RendererViewport::viewport_set_active(RID p_viewport, bool p_active) {
@@ -1335,6 +1344,25 @@ void RendererViewport::viewport_set_use_debanding(RID p_viewport, bool p_use_deb
 		return;
 	}
 	viewport->use_debanding = p_use_debanding;
+	_configure_3d_render_buffers(viewport);
+}
+
+void RendererViewport::viewport_set_force_motion_vectors(RID p_viewport, bool p_force_motion_vectors) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	if (viewport->force_motion_vectors == p_force_motion_vectors) {
+		return;
+	}
+
+	bool motion_vectors_before = _viewport_requires_motion_vectors(viewport);
+	viewport->force_motion_vectors = p_force_motion_vectors;
+
+	bool motion_vectors_after = _viewport_requires_motion_vectors(viewport);
+	if (motion_vectors_before != motion_vectors_after) {
+		num_viewports_with_motion_vectors += motion_vectors_after ? 1 : -1;
+	}
+
 	_configure_3d_render_buffers(viewport);
 }
 

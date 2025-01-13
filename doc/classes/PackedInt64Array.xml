@@ -6,7 +6,7 @@
 	<description>
 		An array specifically designed to hold 64-bit integer values. Packs data tightly, so it saves memory for large array sizes.
 		[b]Note:[/b] This type stores signed 64-bit integers, which means it can take values in the interval [code][-2^63, 2^63 - 1][/code], i.e. [code][-9223372036854775808, 9223372036854775807][/code]. Exceeding those bounds will wrap around. If you only need to pack 32-bit integers tightly, see [PackedInt32Array] for a more memory-friendly alternative.
-		[b]Differences between packed arrays, typed arrays, and untyped arrays:[/b] Packed arrays are generally faster to iterate on and modify compared to a typed array of the same type (e.g. [PackedInt32Array] versus [code]Array[int][/code]). Also, packed arrays consume less memory. As a downside, packed arrays are less flexible as they don't offer as many convenience methods such as [method Array.map]. Typed arrays are in turn faster to iterate on and modify than untyped arrays.
+		[b]Differences between packed arrays, typed arrays, and untyped arrays:[/b] Packed arrays are generally faster to iterate on and modify compared to a typed array of the same type (e.g. [PackedInt64Array] versus [code]Array[int][/code]). Also, packed arrays consume less memory. As a downside, packed arrays are less flexible as they don't offer as many convenience methods such as [method Array.map]. Typed arrays are in turn faster to iterate on and modify than untyped arrays.
 		[b]Note:[/b] Packed arrays are always passed by reference. To get a copy of an array that can be modified independently of the original array, use [method duplicate]. This is [i]not[/i] the case for built-in properties and methods. The returned packed array of these are a copies, and changing it will [i]not[/i] affect the original value. To update a built-in property you need to modify the returned array, and then assign it to the property again.
 	</description>
 	<tutorials>
@@ -187,7 +187,7 @@
 		<method name="to_byte_array" qualifiers="const">
 			<return type="PackedByteArray" />
 			<description>
-				Returns a copy of the data converted to a [PackedByteArray], where each element have been encoded as 8 bytes.
+				Returns a copy of the data converted to a [PackedByteArray], where each element has been encoded as 8 bytes.
 				The size of the new array will be [code]int64_array.size() * 8[/code].
 			</description>
 		</method>

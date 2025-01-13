@@ -1,0 +1,2 @@
+GDTEST_PARSER_ERROR
+"@deprecated" annotation does not exist. Use "## @deprecated: Reason here." instead.

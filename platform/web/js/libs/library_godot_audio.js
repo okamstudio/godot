@@ -2160,7 +2160,7 @@ autoAddDeps(GodotAudioWorklet, '$GodotAudioWorklet');
 mergeInto(LibraryManager.library, GodotAudioWorklet);
 
 /*
- * The ScriptProcessorNode API, used when threads are disabled.
+ * The ScriptProcessorNode API, used as a fallback if AudioWorklet is not available.
  */
 const GodotAudioScript = {
 	$GodotAudioScript__deps: ['$GodotAudio'],

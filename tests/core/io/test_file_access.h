@@ -39,7 +39,7 @@ namespace TestFileAccess {
 
 TEST_CASE("[FileAccess] CSV read") {
 	Ref<FileAccess> f = FileAccess::open(TestUtils::get_data_path("testdata.csv"), FileAccess::READ);
-	REQUIRE(!f.is_null());
+	REQUIRE(f.is_valid());
 
 	Vector<String> header = f->get_csv_line(); // Default delimiter: ",".
 	REQUIRE(header.size() == 4);
@@ -107,6 +107,98 @@ TEST_CASE("[FileAccess] Get as UTF-8 String") {
 	CHECK(s_cr == "Hello darkness\rMy old friend\rI've come to talk\rWith you again\r");
 	CHECK(s_cr_nocr == "Hello darknessMy old friendI've come to talkWith you again");
 }
+
+TEST_CASE("[FileAccess] Get/Store floating point values") {
+	// BigEndian Hex: 0x40490E56
+	// LittleEndian Hex: 0x560E4940
+	float value = 3.1415f;
+
+	SUBCASE("Little Endian") {
+		const String file_path = TestUtils::get_data_path("floating_point_little_endian.bin");
+		const String file_path_new = TestUtils::get_data_path("floating_point_little_endian_new.bin");
+
+		Ref<FileAccess> f = FileAccess::open(file_path, FileAccess::READ);
+		REQUIRE(f.is_valid());
+		CHECK_EQ(f->get_float(), value);
+
+		Ref<FileAccess> fw = FileAccess::open(file_path_new, FileAccess::WRITE);
+		REQUIRE(fw.is_valid());
+		fw->store_float(value);
+		fw->close();
+
+		CHECK_EQ(FileAccess::get_sha256(file_path_new), FileAccess::get_sha256(file_path));
+
+		DirAccess::remove_file_or_error(file_path_new);
+	}
+
+	SUBCASE("Big Endian") {
+		const String file_path = TestUtils::get_data_path("floating_point_big_endian.bin");
+		const String file_path_new = TestUtils::get_data_path("floating_point_big_endian_new.bin");
+
+		Ref<FileAccess> f = FileAccess::open(file_path, FileAccess::READ);
+		REQUIRE(f.is_valid());
+		f->set_big_endian(true);
+		CHECK_EQ(f->get_float(), value);
+
+		Ref<FileAccess> fw = FileAccess::open(file_path_new, FileAccess::WRITE);
+		REQUIRE(fw.is_valid());
+		fw->set_big_endian(true);
+		fw->store_float(value);
+		fw->close();
+
+		CHECK_EQ(FileAccess::get_sha256(file_path_new), FileAccess::get_sha256(file_path));
+
+		DirAccess::remove_file_or_error(file_path_new);
+	}
+}
+
+TEST_CASE("[FileAccess] Get/Store floating point half precision values") {
+	// IEEE 754 half-precision binary floating-point format:
+	// sign exponent (5 bits)    fraction (10 bits)
+	//  0        01101               0101010101
+	// BigEndian Hex: 0x3555
+	// LittleEndian Hex: 0x5535
+	float value = 0.33325195f;
+
+	SUBCASE("Little Endian") {
+		const String file_path = TestUtils::get_data_path("half_precision_floating_point_little_endian.bin");
+		const String file_path_new = TestUtils::get_data_path("half_precision_floating_point_little_endian_new.bin");
+
+		Ref<FileAccess> f = FileAccess::open(file_path, FileAccess::READ);
+		REQUIRE(f.is_valid());
+		CHECK_EQ(f->get_half(), value);
+
+		Ref<FileAccess> fw = FileAccess::open(file_path_new, FileAccess::WRITE);
+		REQUIRE(fw.is_valid());
+		fw->store_half(value);
+		fw->close();
+
+		CHECK_EQ(FileAccess::get_sha256(file_path_new), FileAccess::get_sha256(file_path));
+
+		DirAccess::remove_file_or_error(file_path_new);
+	}
+
+	SUBCASE("Big Endian") {
+		const String file_path = TestUtils::get_data_path("half_precision_floating_point_big_endian.bin");
+		const String file_path_new = TestUtils::get_data_path("half_precision_floating_point_big_endian_new.bin");
+
+		Ref<FileAccess> f = FileAccess::open(file_path, FileAccess::READ);
+		REQUIRE(f.is_valid());
+		f->set_big_endian(true);
+		CHECK_EQ(f->get_half(), value);
+
+		Ref<FileAccess> fw = FileAccess::open(file_path_new, FileAccess::WRITE);
+		REQUIRE(fw.is_valid());
+		fw->set_big_endian(true);
+		fw->store_half(value);
+		fw->close();
+
+		CHECK_EQ(FileAccess::get_sha256(file_path_new), FileAccess::get_sha256(file_path));
+
+		DirAccess::remove_file_or_error(file_path_new);
+	}
+}
+
 } // namespace TestFileAccess
 
 #endif // TEST_FILE_ACCESS_H

@@ -43,7 +43,7 @@ void __stdcall TTS_Windows::speech_event_callback(WPARAM wParam, LPARAM lParam) 
 			} else if (event.eEventId == SPEI_END_INPUT_STREAM) {
 				DisplayServer::get_singleton()->tts_post_utterance_event(DisplayServer::TTS_UTTERANCE_ENDED, tts->ids[stream_num].id);
 				tts->ids.erase(stream_num);
-				tts->_update_tts();
+				tts->update_requested = true;
 			} else if (event.eEventId == SPEI_WORD_BOUNDARY) {
 				const Char16String &string = tts->ids[stream_num].string;
 				int pos = 0;
@@ -60,8 +60,8 @@ void __stdcall TTS_Windows::speech_event_callback(WPARAM wParam, LPARAM lParam) 
 	}
 }
 
-void TTS_Windows::_update_tts() {
-	if (!is_speaking() && !paused && queue.size() > 0) {
+void TTS_Windows::process_events() {
+	if (update_requested && !paused && queue.size() > 0 && !is_speaking()) {
 		DisplayServer::TTSUtterance &message = queue.front()->get();
 
 		String text;
@@ -110,6 +110,8 @@ void TTS_Windows::_update_tts() {
 		ids[(uint32_t)stream_number] = ut;
 
 		queue.pop_front();
+
+		update_requested = false;
 	}
 }
 
@@ -207,7 +209,7 @@ void TTS_Windows::speak(const String &p_text, const String &p_voice, int p_volum
 	if (is_paused()) {
 		resume();
 	} else {
-		_update_tts();
+		update_requested = true;
 	}
 }
 

@@ -153,7 +153,7 @@ static unique_ptr<RadialGradient> _applyRadialGradientProperty(SvgStyleGradient*
     if (isTransform) finalTransform = *g->transform;
 
     if (g->userSpace) {
-        //The radius scalling is done according to the Units section:
+        //The radius scaling is done according to the Units section:
         //https://www.w3.org/TR/2015/WD-SVG2-20150915/coords.html
         g->radial->cx = g->radial->cx * vBox.w;
         g->radial->cy = g->radial->cy * vBox.h;
@@ -215,7 +215,7 @@ static bool _appendClipUseNode(SvgLoaderData& loaderData, SvgNode* node, Shape* 
     }
     if (child->transform) finalTransform = *child->transform * finalTransform;
 
-    return _appendClipShape(loaderData, child, shape, vBox, svgPath, mathIdentity((const Matrix*)(&finalTransform)) ? nullptr : &finalTransform);
+    return _appendClipShape(loaderData, child, shape, vBox, svgPath, identity((const Matrix*)(&finalTransform)) ? nullptr : &finalTransform);
 }
 
 
@@ -272,8 +272,7 @@ static void _applyComposition(SvgLoaderData& loaderData, Paint* paint, const Svg
             if (valid) {
                 Matrix finalTransform = _compositionTransform(paint, node, compNode, SvgNodeType::ClipPath);
                 comp->transform(finalTransform);
-
-                paint->composite(std::move(comp), CompositeMethod::ClipPath);
+                paint->clip(std::move(comp));
             }
 
             node->style->clipPath.applying = false;
@@ -714,7 +713,6 @@ static Matrix _calculateAspectRatioMatrix(AspectRatioAlign align, AspectRatioMee
 
 static unique_ptr<Scene> _useBuildHelper(SvgLoaderData& loaderData, const SvgNode* node, const Box& vBox, const string& svgPath, int depth, bool* isMaskWhite)
 {
-    unique_ptr<Scene> finalScene;
     auto scene = _sceneBuildHelper(loaderData, node, vBox, svgPath, false, depth + 1, isMaskWhite);
 
     // mUseTransform = mUseTransform * mTranslate
@@ -736,10 +734,10 @@ static unique_ptr<Scene> _useBuildHelper(SvgLoaderData& loaderData, const SvgNod
         auto vh = (symbol.hasViewBox ? symbol.vh : height);
 
         Matrix mViewBox = {1, 0, 0, 0, 1, 0, 0, 0, 1};
-        if ((!mathEqual(width, vw) || !mathEqual(height, vh)) && vw > 0 && vh > 0) {
+        if ((!tvg::equal(width, vw) || !tvg::equal(height, vh)) && vw > 0 && vh > 0) {
             Box box = {symbol.vx, symbol.vy, vw, vh};
             mViewBox = _calculateAspectRatioMatrix(symbol.align, symbol.meetOrSlice, width, height, box);
-        } else if (!mathZero(symbol.vx) || !mathZero(symbol.vy)) {
+        } else if (!tvg::zero(symbol.vx) || !tvg::zero(symbol.vy)) {
             mViewBox = {1, 0, -symbol.vx, 0, 1, -symbol.vy, 0, 0, 1};
         }
 
@@ -751,9 +749,7 @@ static unique_ptr<Scene> _useBuildHelper(SvgLoaderData& loaderData, const SvgNod
         mSceneTransform = mUseTransform * mSceneTransform;
         scene->transform(mSceneTransform);
 
-        if (node->node.use.symbol->node.symbol.overflowVisible) {
-            finalScene = std::move(scene);
-        } else {
+        if (!node->node.use.symbol->node.symbol.overflowVisible) {
             auto viewBoxClip = Shape::gen();
             viewBoxClip->appendRect(0, 0, width, height, 0, 0);
 
@@ -764,21 +760,13 @@ static unique_ptr<Scene> _useBuildHelper(SvgLoaderData& loaderData, const SvgNod
             }
             viewBoxClip->transform(mClipTransform);
 
-            auto compositeLayer = Scene::gen();
-            compositeLayer->composite(std::move(viewBoxClip), CompositeMethod::ClipPath);
-            compositeLayer->push(std::move(scene));
-
-            auto root = Scene::gen();
-            root->push(std::move(compositeLayer));
-
-            finalScene = std::move(root);
+            scene->clip(std::move(viewBoxClip));
         }
     } else {
         scene->transform(mUseTransform);
-        finalScene = std::move(scene);
     }
 
-    return finalScene;
+    return scene;
 }
 
 
@@ -821,7 +809,7 @@ static unique_ptr<Text> _textBuildHelper(SvgLoaderData& loaderData, const SvgNod
 
     Matrix textTransform = {1, 0, 0, 0, 1, 0, 0, 0, 1};
     if (node->transform) textTransform = *node->transform;
-    mathTranslateR(&textTransform, node->node.text.x, node->node.text.y - textNode->fontSize);
+    translateR(&textTransform, node->node.text.x, node->node.text.y - textNode->fontSize);
     text->transform(textTransform);
 
     //TODO: handle def values of font and size as used in a system?
@@ -926,10 +914,10 @@ Scene* svgSceneBuild(SvgLoaderData& loaderData, Box vBox, float w, float h, Aspe
 
     if (!(viewFlag & SvgViewFlag::Viewbox)) _updateInvalidViewSize(docNode.get(), vBox, w, h, viewFlag);
 
-    if (!mathEqual(w, vBox.w) || !mathEqual(h, vBox.h)) {
+    if (!tvg::equal(w, vBox.w) || !tvg::equal(h, vBox.h)) {
         Matrix m = _calculateAspectRatioMatrix(align, meetOrSlice, w, h, vBox);
         docNode->transform(m);
-    } else if (!mathZero(vBox.x) || !mathZero(vBox.y)) {
+    } else if (!tvg::zero(vBox.x) || !tvg::zero(vBox.y)) {
         docNode->translate(-vBox.x, -vBox.y);
     }
 
@@ -937,7 +925,7 @@ Scene* svgSceneBuild(SvgLoaderData& loaderData, Box vBox, float w, float h, Aspe
     viewBoxClip->appendRect(0, 0, w, h);
 
     auto compositeLayer = Scene::gen();
-    compositeLayer->composite(std::move(viewBoxClip), CompositeMethod::ClipPath);
+    compositeLayer->clip(std::move(viewBoxClip));
     compositeLayer->push(std::move(docNode));
 
     auto root = Scene::gen();

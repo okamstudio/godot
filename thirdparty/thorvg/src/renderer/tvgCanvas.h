@@ -26,7 +26,7 @@
 #include "tvgPaint.h"
 
 
-enum Status : uint8_t {Synced = 0, Updating, Drawing, Damanged};
+enum Status : uint8_t {Synced = 0, Updating, Drawing, Damaged};
 
 struct Canvas::Impl
 {
@@ -42,7 +42,7 @@ struct Canvas::Impl
 
     ~Impl()
     {
-        //make it sure any deffered jobs
+        //make it sure any deferred jobs
         renderer->sync();
         renderer->clear();
 
@@ -61,7 +61,7 @@ struct Canvas::Impl
 
     Result push(unique_ptr<Paint> paint)
     {
-        //You can not push paints during rendering.
+        //You cannot push paints during rendering.
         if (status == Status::Drawing) return Result::InsufficientCondition;
 
         auto p = paint.release();
@@ -91,7 +91,7 @@ struct Canvas::Impl
 
         Array<RenderData> clips;
         auto flag = RenderUpdateFlag::None;
-        if (status == Status::Damanged || force) flag = RenderUpdateFlag::All;
+        if (status == Status::Damaged || force) flag = RenderUpdateFlag::All;
 
         auto m = Matrix{1, 0, 0, 0, 1, 0, 0, 0, 1};
 
@@ -108,7 +108,7 @@ struct Canvas::Impl
 
     Result draw()
     {
-        if (status == Status::Damanged) update(nullptr, false);
+        if (status == Status::Damaged) update(nullptr, false);
         if (status == Status::Drawing || paints.empty() || !renderer->preRender()) return Result::InsufficientCondition;
 
         bool rendered = false;
@@ -124,7 +124,7 @@ struct Canvas::Impl
 
     Result sync()
     {
-        if (status == Status::Synced || status == Status::Damanged) return Result::InsufficientCondition;
+        if (status == Status::Synced || status == Status::Damaged) return Result::InsufficientCondition;
 
         if (renderer->sync()) {
             status = Status::Synced;
@@ -136,7 +136,7 @@ struct Canvas::Impl
 
     Result viewport(int32_t x, int32_t y, int32_t w, int32_t h)
     {
-        if (status != Status::Damanged && status != Status::Synced) return Result::InsufficientCondition;
+        if (status != Status::Damaged && status != Status::Synced) return Result::InsufficientCondition;
 
         RenderRegion val = {x, y, w, h};
         //intersect if the target buffer is already set.
@@ -147,7 +147,7 @@ struct Canvas::Impl
         if (vport == val) return Result::Success;
         renderer->viewport(val);
         vport = val;
-        status = Status::Damanged;
+        status = Status::Damaged;
         return Result::Success;
     }
 };

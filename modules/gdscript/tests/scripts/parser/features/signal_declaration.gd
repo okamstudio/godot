@@ -1,3 +1,5 @@
+@warning_ignore_start("unused_signal")
+
 # No parentheses.
 signal a
 
@@ -16,13 +18,6 @@ signal d(
 
 # With type hints.
 signal e(a: int, b: Variant, c: Node)
-
-func no_exec():
-	a.emit()
-	b.emit()
-	c.emit()
-	d.emit()
-	e.emit()
 
 func test():
 	print("Ok")

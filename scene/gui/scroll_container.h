@@ -72,12 +72,17 @@ private:
 
 	struct ThemeCache {
 		Ref<StyleBox> panel_style;
+		Ref<StyleBox> focus_style;
 	} theme_cache;
 
 	void _cancel_drag();
 
 	bool _is_h_scroll_visible() const;
 	bool _is_v_scroll_visible() const;
+
+	bool draw_focus_border = false;
+	bool focus_border_is_drawn = false;
+	bool child_has_focus();
 
 protected:
 	Size2 get_minimum_size() const override;
@@ -124,6 +129,9 @@ public:
 	void ensure_control_visible(Control *p_control);
 
 	PackedStringArray get_configuration_warnings() const override;
+
+	void set_draw_focus_border(bool p_draw);
+	bool get_draw_focus_border();
 
 	ScrollContainer();
 };

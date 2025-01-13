@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid index type "bool" for a base of type "Array".
+>> ERROR at line 3: Invalid index type "bool" for a base of type "Array".

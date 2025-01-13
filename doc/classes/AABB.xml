@@ -46,8 +46,8 @@
 				[gdscript]
 				var box = AABB(Vector3(5, 0, 5), Vector3(-20, -10, -5))
 				var absolute = box.abs()
-				print(absolute.position) # Prints (-15, -10, 0)
-				print(absolute.size)     # Prints (20, 10, 5)
+				print(absolute.position) # Prints (-15.0, -10.0, 0.0)
+				print(absolute.size)     # Prints (20.0, 10.0, 5.0)
 				[/gdscript]
 				[csharp]
 				var box = new Aabb(new Vector3(5, 0, 5), new Vector3(-20, -10, -5));
@@ -96,12 +96,12 @@
 				var box = AABB(Vector3(0, 0, 0), Vector3(5, 2, 5))
 
 				box = box.expand(Vector3(10, 0, 0))
-				print(box.position) # Prints (0, 0, 0)
-				print(box.size)     # Prints (10, 2, 5)
+				print(box.position) # Prints (0.0, 0.0, 0.0)
+				print(box.size)     # Prints (10.0, 2.0, 5.0)
 
 				box = box.expand(Vector3(-5, 0, 5))
-				print(box.position) # Prints (-5, 0, 0)
-				print(box.size)     # Prints (15, 2, 5)
+				print(box.position) # Prints (-5.0, 0.0, 0.0)
+				print(box.size)     # Prints (15.0, 2.0, 5.0)
 				[/gdscript]
 				[csharp]
 				var box = new Aabb(new Vector3(0, 0, 0), new Vector3(5, 2, 5));
@@ -138,15 +138,15 @@
 				[gdscript]
 				var box = AABB(Vector3(0, 0, 0), Vector3(2, 4, 8))
 
-				print(box.get_longest_axis())       # Prints (0, 0, 1)
+				print(box.get_longest_axis())       # Prints (0.0, 0.0, 1.0)
 				print(box.get_longest_axis_index()) # Prints 2
-				print(box.get_longest_axis_size())  # Prints 8
+				print(box.get_longest_axis_size())  # Prints 8.0
 				[/gdscript]
 				[csharp]
 				var box = new Aabb(new Vector3(0, 0, 0), new Vector3(2, 4, 8));
 
 				GD.Print(box.GetLongestAxis());      // Prints (0, 0, 1)
-				GD.Print(box.GetLongestAxisIndex()); // Prints 2
+				GD.Print(box.GetLongestAxisIndex()); // Prints Z
 				GD.Print(box.GetLongestAxisSize());  // Prints 8
 				[/csharp]
 				[/codeblocks]
@@ -175,15 +175,15 @@
 				[gdscript]
 				var box = AABB(Vector3(0, 0, 0), Vector3(2, 4, 8))
 
-				print(box.get_shortest_axis())       # Prints (1, 0, 0)
+				print(box.get_shortest_axis())       # Prints (1.0, 0.0, 0.0)
 				print(box.get_shortest_axis_index()) # Prints 0
-				print(box.get_shortest_axis_size())  # Prints 2
+				print(box.get_shortest_axis_size())  # Prints 2.0
 				[/gdscript]
 				[csharp]
 				var box = new Aabb(new Vector3(0, 0, 0), new Vector3(2, 4, 8));
 
 				GD.Print(box.GetShortestAxis());      // Prints (1, 0, 0)
-				GD.Print(box.GetShortestAxisIndex()); // Prints 0
+				GD.Print(box.GetShortestAxisIndex()); // Prints X
 				GD.Print(box.GetShortestAxisSize());  // Prints 2
 				[/csharp]
 				[/codeblocks]
@@ -225,12 +225,12 @@
 				[codeblocks]
 				[gdscript]
 				var a = AABB(Vector3(4, 4, 4), Vector3(8, 8, 8)).grow(4)
-				print(a.position) # Prints (0, 0, 0)
-				print(a.size)     # Prints (16, 16, 16)
+				print(a.position) # Prints (0.0, 0.0, 0.0)
+				print(a.size)     # Prints (16.0, 16.0, 16.0)
 
 				var b = AABB(Vector3(0, 0, 0), Vector3(8, 4, 2)).grow(2)
-				print(b.position) # Prints (-2, -2, -2)
-				print(b.size)     # Prints (12, 8, 6)
+				print(b.position) # Prints (-2.0, -2.0, -2.0)
+				print(b.size)     # Prints (12.0, 8.0, 6.0)
 				[/gdscript]
 				[csharp]
 				var a = new Aabb(new Vector3(4, 4, 4), new Vector3(8, 8, 8)).Grow(4);
@@ -275,8 +275,8 @@
 				var box2 = AABB(Vector3(2, 0, 2), Vector3(8, 4, 4))
 
 				var intersection = box1.intersection(box2)
-				print(intersection.position) # Prints (2, 0, 2)
-				print(intersection.size)     # Prints (3, 2, 4)
+				print(intersection.position) # Prints (2.0, 0.0, 2.0)
+				print(intersection.size)     # Prints (3.0, 2.0, 4.0)
 				[/gdscript]
 				[csharp]
 				var box1 = new Aabb(new Vector3(0, 0, 0), new Vector3(5, 2, 8));
@@ -345,14 +345,14 @@
 	</methods>
 	<members>
 		<member name="end" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
-			The ending point. This is usually the corner on the top-right and forward of the bounding box, and is equivalent to [code]position + size[/code]. Setting this point affects the [member size].
+			The ending point. This is usually the corner on the top-right and back of the bounding box, and is equivalent to [code]position + size[/code]. Setting this point affects the [member size].
 		</member>
 		<member name="position" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
-			The origin point. This is usually the corner on the bottom-left and back of the bounding box.
+			The origin point. This is usually the corner on the bottom-left and forward of the bounding box.
 		</member>
 		<member name="size" type="Vector3" setter="" getter="" default="Vector3(0, 0, 0)">
 			The bounding box's width, height, and depth starting from [member position]. Setting this value also affects the [member end] point.
-			[b]Note:[/b] It's recommended setting the width, height, and depth to non-negative values. This is because most methods in Godot assume that the [member position] is the bottom-left-back corner, and the [member end] is the top-right-forward corner. To get an equivalent bounding box with non-negative size, use [method abs].
+			[b]Note:[/b] It's recommended setting the width, height, and depth to non-negative values. This is because most methods in Godot assume that the [member position] is the bottom-left-forward corner, and the [member end] is the top-right-back corner. To get an equivalent bounding box with non-negative size, use [method abs].
 		</member>
 	</members>
 	<operators>

@@ -46,7 +46,7 @@ public:
     bool read() override;
     bool close() override;
 
-    Surface* bitmap() override;
+    RenderSurface* bitmap() override;
 };
 
 #endif //_TVG_JPG_LOADER_H_

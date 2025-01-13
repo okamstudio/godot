@@ -81,12 +81,19 @@ void CollisionShape3D::_update_in_shape_owner(bool p_xform_only) {
 void CollisionShape3D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PARENTED: {
+#ifdef DEBUG_ENABLED
+			if (debug_color == get_placeholder_default_color()) {
+				debug_color = SceneTree::get_singleton()->get_debug_collisions_color();
+			}
+#endif // DEBUG_ENABLED
+
 			collision_object = Object::cast_to<CollisionObject3D>(get_parent());
 			if (collision_object) {
 				owner_id = collision_object->create_shape_owner(this);
 				if (shape.is_valid()) {
 					collision_object->shape_owner_add_shape(owner_id, shape);
 				}
+
 				_update_in_shape_owner();
 			}
 		} break;
@@ -166,11 +173,26 @@ void CollisionShape3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_shape"), &CollisionShape3D::get_shape);
 	ClassDB::bind_method(D_METHOD("set_disabled", "enable"), &CollisionShape3D::set_disabled);
 	ClassDB::bind_method(D_METHOD("is_disabled"), &CollisionShape3D::is_disabled);
+
 	ClassDB::bind_method(D_METHOD("make_convex_from_siblings"), &CollisionShape3D::make_convex_from_siblings);
 	ClassDB::set_method_flags("CollisionShape3D", "make_convex_from_siblings", METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "shape", PROPERTY_HINT_RESOURCE_TYPE, "Shape3D"), "set_shape", "get_shape");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disabled"), "set_disabled", "is_disabled");
+
+#ifdef DEBUG_ENABLED
+	ClassDB::bind_method(D_METHOD("set_debug_color", "color"), &CollisionShape3D::set_debug_color);
+	ClassDB::bind_method(D_METHOD("get_debug_color"), &CollisionShape3D::get_debug_color);
+
+	ClassDB::bind_method(D_METHOD("set_enable_debug_fill", "enable"), &CollisionShape3D::set_debug_fill_enabled);
+	ClassDB::bind_method(D_METHOD("get_enable_debug_fill"), &CollisionShape3D::get_debug_fill_enabled);
+
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "debug_color"), "set_debug_color", "get_debug_color");
+	// Default value depends on a project setting, override for doc generation purposes.
+	ADD_PROPERTY_DEFAULT("debug_color", get_placeholder_default_color());
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_fill"), "set_enable_debug_fill", "get_enable_debug_fill");
+#endif // DEBUG_ENABLED
 }
 
 void CollisionShape3D::set_shape(const Ref<Shape3D> &p_shape) {
@@ -178,11 +200,27 @@ void CollisionShape3D::set_shape(const Ref<Shape3D> &p_shape) {
 		return;
 	}
 	if (shape.is_valid()) {
+		shape->disconnect_changed(callable_mp(this, &CollisionShape3D::shape_changed));
 		shape->disconnect_changed(callable_mp((Node3D *)this, &Node3D::update_gizmos));
 	}
 	shape = p_shape;
 	if (shape.is_valid()) {
+#ifdef DEBUG_ENABLED
+		if (shape->get_debug_color() != get_placeholder_default_color()) {
+			set_debug_color(shape->get_debug_color());
+			set_debug_fill_enabled(shape->get_debug_fill());
+		} else if (get_debug_color() != get_placeholder_default_color()) {
+			shape->set_debug_color(debug_color);
+			shape->set_debug_fill(debug_fill);
+		} else {
+			set_debug_color(SceneTree::get_singleton()->get_debug_collisions_color());
+			shape->set_debug_color(SceneTree::get_singleton()->get_debug_collisions_color());
+			shape->set_debug_fill(debug_fill);
+		}
+#endif // DEBUG_ENABLED
+
 		shape->connect_changed(callable_mp((Node3D *)this, &Node3D::update_gizmos));
+		shape->connect_changed(callable_mp(this, &CollisionShape3D::shape_changed));
 	}
 	update_gizmos();
 	if (collision_object) {
@@ -213,6 +251,66 @@ void CollisionShape3D::set_disabled(bool p_disabled) {
 
 bool CollisionShape3D::is_disabled() const {
 	return disabled;
+}
+
+#ifdef DEBUG_ENABLED
+void CollisionShape3D::set_debug_color(const Color &p_color) {
+	if (p_color == get_placeholder_default_color()) {
+		debug_color = SceneTree::get_singleton()->get_debug_collisions_color();
+	} else if (debug_color != p_color) {
+		debug_color = p_color;
+
+		if (shape.is_valid()) {
+			shape->set_debug_color(p_color);
+		}
+	}
+}
+
+Color CollisionShape3D::get_debug_color() const {
+	return debug_color;
+}
+
+void CollisionShape3D::set_debug_fill_enabled(bool p_enable) {
+	if (debug_fill == p_enable) {
+		return;
+	}
+
+	debug_fill = p_enable;
+
+	if (shape.is_valid()) {
+		shape->set_debug_fill(p_enable);
+	}
+}
+
+bool CollisionShape3D::get_debug_fill_enabled() const {
+	return debug_fill;
+}
+
+bool CollisionShape3D::_property_can_revert(const StringName &p_name) const {
+	if (p_name == "debug_color") {
+		return true;
+	}
+	return false;
+}
+
+bool CollisionShape3D::_property_get_revert(const StringName &p_name, Variant &r_property) const {
+	if (p_name == "debug_color") {
+		r_property = SceneTree::get_singleton()->get_debug_collisions_color();
+		return true;
+	}
+	return false;
+}
+#endif // DEBUG_ENABLED
+
+void CollisionShape3D::shape_changed() {
+#ifdef DEBUG_ENABLED
+	if (shape->get_debug_color() != debug_color) {
+		set_debug_color(shape->get_debug_color());
+	}
+	if (shape->get_debug_fill() != debug_fill) {
+		set_debug_fill_enabled(shape->get_debug_fill());
+	}
+#endif // DEBUG_ENABLED
 }
 
 CollisionShape3D::CollisionShape3D() {

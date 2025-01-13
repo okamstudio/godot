@@ -389,6 +389,17 @@ VoxelGI::BakeBeginFunc VoxelGI::bake_begin_function = nullptr;
 VoxelGI::BakeStepFunc VoxelGI::bake_step_function = nullptr;
 VoxelGI::BakeEndFunc VoxelGI::bake_end_function = nullptr;
 
+static int voxelizer_plot_bake_base = 0;
+static int voxelizer_plot_bake_total = 0;
+
+static bool voxelizer_plot_bake_step_function(int current, int) {
+	return VoxelGI::bake_step_function((voxelizer_plot_bake_base + current) * 500 / voxelizer_plot_bake_total, RTR("Plotting Meshes"));
+}
+
+static bool voxelizer_sdf_bake_step_function(int current, int total) {
+	return VoxelGI::bake_step_function(500 + current * 500 / total, RTR("Generating Distance Field"));
+}
+
 Vector3i VoxelGI::get_estimated_cell_size() const {
 	static const int subdiv_value[SUBDIV_MAX] = { 6, 7, 8, 9 };
 	int cell_subdiv = subdiv_value[subdiv];
@@ -432,22 +443,27 @@ void VoxelGI::bake(Node *p_from_node, bool p_create_visual_debug) {
 	_find_meshes(p_from_node, mesh_list);
 
 	if (bake_begin_function) {
-		bake_begin_function(mesh_list.size() + 1);
+		bake_begin_function();
 	}
 
-	int pmc = 0;
+	Voxelizer::BakeStepFunc voxelizer_step_func = bake_step_function != nullptr ? voxelizer_plot_bake_step_function : nullptr;
 
+	voxelizer_plot_bake_total = voxelizer_plot_bake_base = 0;
 	for (PlotMesh &E : mesh_list) {
-		if (bake_step_function) {
-			bake_step_function(pmc, RTR("Plotting Meshes") + " " + itos(pmc) + "/" + itos(mesh_list.size()));
+		voxelizer_plot_bake_total += baker.get_bake_steps(E.mesh);
+	}
+	for (PlotMesh &E : mesh_list) {
+		if (baker.plot_mesh(E.local_xform, E.mesh, E.instance_materials, E.override_material, voxelizer_step_func) != Voxelizer::BAKE_RESULT_OK) {
+			baker.end_bake();
+			if (bake_end_function) {
+				bake_end_function();
+			}
+			return;
 		}
-
-		pmc++;
-
-		baker.plot_mesh(E.local_xform, E.mesh, E.instance_materials, E.override_material);
+		voxelizer_plot_bake_base += baker.get_bake_steps(E.mesh);
 	}
 	if (bake_step_function) {
-		bake_step_function(pmc++, RTR("Finishing Plot"));
+		bake_step_function(500, RTR("Finishing Plot"));
 	}
 
 	baker.end_bake();
@@ -476,19 +492,22 @@ void VoxelGI::bake(Node *p_from_node, bool p_create_visual_debug) {
 		}
 
 		if (bake_step_function) {
-			bake_step_function(pmc++, RTR("Generating Distance Field"));
+			bake_step_function(500, RTR("Generating Distance Field"));
 		}
 
-		Vector<uint8_t> df = baker.get_sdf_3d_image();
+		voxelizer_step_func = bake_step_function != nullptr ? voxelizer_sdf_bake_step_function : nullptr;
 
-		RS::get_singleton()->voxel_gi_set_baked_exposure_normalization(probe_data_new->get_rid(), exposure_normalization);
+		Vector<uint8_t> df;
+		if (baker.get_sdf_3d_image(df, voxelizer_step_func) == Voxelizer::BAKE_RESULT_OK) {
+			RS::get_singleton()->voxel_gi_set_baked_exposure_normalization(probe_data_new->get_rid(), exposure_normalization);
 
-		probe_data_new->allocate(baker.get_to_cell_space_xform(), AABB(-size / 2, size), baker.get_voxel_gi_octree_size(), baker.get_voxel_gi_octree_cells(), baker.get_voxel_gi_data_cells(), df, baker.get_voxel_gi_level_cell_count());
+			probe_data_new->allocate(baker.get_to_cell_space_xform(), AABB(-size / 2, size), baker.get_voxel_gi_octree_size(), baker.get_voxel_gi_octree_cells(), baker.get_voxel_gi_data_cells(), df, baker.get_voxel_gi_level_cell_count());
 
-		set_probe_data(probe_data_new);
+			set_probe_data(probe_data_new);
 #ifdef TOOLS_ENABLED
-		probe_data_new->set_edited(true); //so it gets saved
+			probe_data_new->set_edited(true); //so it gets saved
 #endif
+		}
 	}
 
 	if (bake_end_function) {
@@ -521,7 +540,7 @@ PackedStringArray VoxelGI::get_configuration_warnings() const {
 	PackedStringArray warnings = VisualInstance3D::get_configuration_warnings();
 
 	if (OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("VoxelGI nodes are not supported when using the GL Compatibility backend yet. Support will be added in a future release."));
+		warnings.push_back(RTR("VoxelGI nodes are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
 	} else if (probe_data.is_null()) {
 		warnings.push_back(RTR("No VoxelGI data set, so this node is disabled. Bake static objects to enable GI."));
 	}

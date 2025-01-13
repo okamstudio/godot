@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid operands "String" and "Array" for "+" operator.
+>> ERROR at line 2: Invalid operands "String" and "Array" for "+" operator.

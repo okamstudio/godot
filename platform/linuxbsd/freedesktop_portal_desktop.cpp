@@ -142,7 +142,7 @@ void FreeDesktopPortalDesktop::append_dbus_string(DBusMessageIter *p_iter, const
 	}
 }
 
-void FreeDesktopPortalDesktop::append_dbus_dict_options(DBusMessageIter *p_iter, const TypedArray<Dictionary> &p_options) {
+void FreeDesktopPortalDesktop::append_dbus_dict_options(DBusMessageIter *p_iter, const TypedArray<Dictionary> &p_options, HashMap<String, String> &r_ids) {
 	DBusMessageIter dict_iter;
 	DBusMessageIter var_iter;
 	DBusMessageIter arr_iter;
@@ -153,6 +153,7 @@ void FreeDesktopPortalDesktop::append_dbus_dict_options(DBusMessageIter *p_iter,
 	dbus_message_iter_open_container(&dict_iter, DBUS_TYPE_VARIANT, "a(ssa(ss)s)", &var_iter);
 	dbus_message_iter_open_container(&var_iter, DBUS_TYPE_ARRAY, "(ss(ss)s)", &arr_iter);
 
+	r_ids.clear();
 	for (int i = 0; i < p_options.size(); i++) {
 		const Dictionary &item = p_options[i];
 		if (!item.has("name") || !item.has("values") || !item.has("default")) {
@@ -166,8 +167,9 @@ void FreeDesktopPortalDesktop::append_dbus_dict_options(DBusMessageIter *p_iter,
 		DBusMessageIter array_iter;
 		DBusMessageIter array_struct_iter;
 		dbus_message_iter_open_container(&arr_iter, DBUS_TYPE_STRUCT, nullptr, &struct_iter);
-		append_dbus_string(&struct_iter, name); // ID.
+		append_dbus_string(&struct_iter, "option_" + itos(i)); // ID.
 		append_dbus_string(&struct_iter, name); // User visible name.
+		r_ids["option_" + itos(i)] = name;
 
 		dbus_message_iter_open_container(&struct_iter, DBUS_TYPE_ARRAY, "(ss)", &array_iter);
 		for (int j = 0; j < options.size(); j++) {
@@ -279,7 +281,7 @@ void FreeDesktopPortalDesktop::append_dbus_dict_bool(DBusMessageIter *p_iter, co
 	dbus_message_iter_close_container(p_iter, &dict_iter);
 }
 
-bool FreeDesktopPortalDesktop::file_chooser_parse_response(DBusMessageIter *p_iter, const Vector<String> &p_names, bool &r_cancel, Vector<String> &r_urls, int &r_index, Dictionary &r_options) {
+bool FreeDesktopPortalDesktop::file_chooser_parse_response(DBusMessageIter *p_iter, const Vector<String> &p_names, const HashMap<String, String> &p_ids, bool &r_cancel, Vector<String> &r_urls, int &r_index, Dictionary &r_options) {
 	ERR_FAIL_COND_V(dbus_message_iter_get_arg_type(p_iter) != DBUS_TYPE_UINT32, false);
 
 	dbus_uint32_t resp_code;
@@ -328,17 +330,20 @@ bool FreeDesktopPortalDesktop::file_chooser_parse_response(DBusMessageIter *p_it
 							const char *opt_key = nullptr;
 							dbus_message_iter_get_basic(&opt_iter, &opt_key);
 							String opt_skey = String::utf8(opt_key);
-
 							dbus_message_iter_next(&opt_iter);
 							const char *opt_val = nullptr;
 							dbus_message_iter_get_basic(&opt_iter, &opt_val);
 							String opt_sval = String::utf8(opt_val);
-							if (opt_sval == "true") {
-								r_options[opt_skey] = true;
-							} else if (opt_sval == "false") {
-								r_options[opt_skey] = false;
-							} else {
-								r_options[opt_skey] = opt_sval.to_int();
+
+							if (p_ids.has(opt_skey)) {
+								opt_skey = p_ids[opt_skey];
+								if (opt_sval == "true") {
+									r_options[opt_skey] = true;
+								} else if (opt_sval == "false") {
+									r_options[opt_skey] = false;
+								} else {
+									r_options[opt_skey] = opt_sval.to_int();
+								}
 							}
 
 							if (!dbus_message_iter_next(&struct_iter)) {
@@ -394,7 +399,7 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 				} else {
 					if (flt == "*.*") {
 						filter_exts.push_back("*");
-						filter_names.push_back(RTR("All Files") + " (*)");
+						filter_names.push_back(RTR("All Files") + " (*.*)");
 					} else {
 						filter_exts.push_back(flt);
 						filter_names.push_back(flt);
@@ -405,7 +410,7 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 	}
 	if (filter_names.is_empty()) {
 		filter_exts.push_back("*");
-		filter_names.push_back(RTR("All Files") + " (*)");
+		filter_names.push_back(RTR("All Files") + " (*.*)");
 	}
 
 	DBusError err;
@@ -461,7 +466,7 @@ Error FreeDesktopPortalDesktop::file_dialog_show(DisplayServer::WindowID p_windo
 		append_dbus_dict_bool(&arr_iter, "directory", p_mode == DisplayServer::FILE_DIALOG_MODE_OPEN_DIR);
 		append_dbus_dict_filters(&arr_iter, filter_names, filter_exts);
 
-		append_dbus_dict_options(&arr_iter, p_options);
+		append_dbus_dict_options(&arr_iter, p_options, fd.option_ids);
 		append_dbus_dict_string(&arr_iter, "current_folder", p_current_directory, true);
 		if (p_mode == DisplayServer::FILE_DIALOG_MODE_SAVE_FILE) {
 			append_dbus_dict_string(&arr_iter, "current_name", p_filename);
@@ -576,7 +581,7 @@ void FreeDesktopPortalDesktop::_thread_monitor(void *p_ud) {
 								Vector<String> uris;
 								Dictionary options;
 								int index = 0;
-								file_chooser_parse_response(&iter, fd.filter_names, cancel, uris, index, options);
+								file_chooser_parse_response(&iter, fd.filter_names, fd.option_ids, cancel, uris, index, options);
 
 								if (fd.callback.is_valid()) {
 									FileDialogCallback cb;

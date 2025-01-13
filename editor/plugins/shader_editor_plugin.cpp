@@ -821,6 +821,7 @@ ShaderEditorPlugin::ShaderEditorPlugin() {
 	shader_list = memnew(ItemList);
 	shader_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	shader_list->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	shader_list->set_theme_type_variation("ItemListSecondary");
 	left_panel->add_child(shader_list);
 	shader_list->connect(SceneStringName(item_selected), callable_mp(this, &ShaderEditorPlugin::_shader_selected));
 	shader_list->connect("item_clicked", callable_mp(this, &ShaderEditorPlugin::_shader_list_clicked));

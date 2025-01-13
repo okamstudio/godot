@@ -204,6 +204,9 @@
 		<member name="bake_interval" type="float" setter="set_bake_interval" getter="get_bake_interval" default="0.2">
 			The distance in meters between two adjacent cached points. Changing it forces the cache to be recomputed the next time the [method get_baked_points] or [method get_baked_length] function is called. The smaller the distance, the more points in the cache and the more memory it will consume, so use with care.
 		</member>
+		<member name="closed" type="bool" setter="set_closed" getter="is_closed" default="false">
+			If [code]true[/code], and the curve has more than 2 control points, the last point and the first one will be connected in a loop.
+		</member>
 		<member name="point_count" type="int" setter="set_point_count" getter="get_point_count" default="0">
 			The number of points describing the curve.
 		</member>

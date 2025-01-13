@@ -43,6 +43,13 @@ class CollisionShape3D : public Node3D {
 	uint32_t owner_id = 0;
 	CollisionObject3D *collision_object = nullptr;
 
+#ifdef DEBUG_ENABLED
+	Color debug_color = get_placeholder_default_color();
+	bool debug_fill = true;
+
+	static const Color get_placeholder_default_color() { return Color(0.0, 0.0, 0.0, 0.0); }
+#endif // DEBUG_ENABLED
+
 #ifndef DISABLE_DEPRECATED
 	void resource_changed(Ref<Resource> res);
 #endif
@@ -55,6 +62,13 @@ protected:
 	void _notification(int p_what);
 	static void _bind_methods();
 
+#ifdef DEBUG_ENABLED
+	bool _property_can_revert(const StringName &p_name) const;
+	bool _property_get_revert(const StringName &p_name, Variant &r_property) const;
+#endif // DEBUG_ENABLED
+
+	void shape_changed();
+
 public:
 	void make_convex_from_siblings();
 
@@ -63,6 +77,14 @@ public:
 
 	void set_disabled(bool p_disabled);
 	bool is_disabled() const;
+
+#ifdef DEBUG_ENABLED
+	void set_debug_color(const Color &p_color);
+	Color get_debug_color() const;
+
+	void set_debug_fill_enabled(bool p_enable);
+	bool get_debug_fill_enabled() const;
+#endif // DEBUG_ENABLED
 
 	PackedStringArray get_configuration_warnings() const override;
 

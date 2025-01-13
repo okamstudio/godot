@@ -128,6 +128,12 @@
 				If this importer's implementation is thread-safe and can be run in parallel, override this with [code]true[/code] to optimize for concurrency.
 			</description>
 		</method>
+		<method name="_get_format_version" qualifiers="virtual const">
+			<return type="int" />
+			<description>
+				Gets the format version of this importer. Increment this version when making incompatible changes to the format of the imported resources.
+			</description>
+		</method>
 		<method name="_get_import_options" qualifiers="virtual const">
 			<return type="Dictionary[]" />
 			<param index="0" name="path" type="String" />

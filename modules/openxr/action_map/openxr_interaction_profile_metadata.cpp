@@ -93,9 +93,9 @@ void OpenXRInteractionProfileMetadata::register_io_path(const String &p_interact
 	ERR_FAIL_COND_MSG(!has_interaction_profile(p_interaction_profile), "Unknown interaction profile " + p_interaction_profile);
 	ERR_FAIL_COND_MSG(!has_top_level_path(p_toplevel_path), "Unknown top level path " + p_toplevel_path);
 
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		if (interaction_profiles[i].openxr_path == p_interaction_profile) {
-			ERR_FAIL_COND_MSG(interaction_profiles[i].has_io_path(p_openxr_path), p_interaction_profile + " already has io path " + p_openxr_path + " registered!");
+	for (InteractionProfile &interaction_profile : interaction_profiles) {
+		if (interaction_profile.openxr_path == p_interaction_profile) {
+			ERR_FAIL_COND_MSG(interaction_profile.has_io_path(p_openxr_path), p_interaction_profile + " already has io path " + p_openxr_path + " registered!");
 
 			IOPath new_io_path = {
 				p_display_name,
@@ -105,7 +105,7 @@ void OpenXRInteractionProfileMetadata::register_io_path(const String &p_interact
 				p_action_type
 			};
 
-			interaction_profiles.ptrw()[i].io_paths.push_back(new_io_path);
+			interaction_profile.io_paths.push_back(new_io_path);
 		}
 	}
 }
@@ -141,8 +141,8 @@ String OpenXRInteractionProfileMetadata::get_top_level_extension(const String p_
 }
 
 bool OpenXRInteractionProfileMetadata::has_interaction_profile(const String p_openxr_path) const {
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		if (interaction_profiles[i].openxr_path == p_openxr_path) {
+	for (const InteractionProfile &interaction_profile : interaction_profiles) {
+		if (interaction_profile.openxr_path == p_openxr_path) {
 			return true;
 		}
 	}
@@ -151,9 +151,9 @@ bool OpenXRInteractionProfileMetadata::has_interaction_profile(const String p_op
 }
 
 String OpenXRInteractionProfileMetadata::get_interaction_profile_extension(const String p_openxr_path) const {
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		if (interaction_profiles[i].openxr_path == p_openxr_path) {
-			return interaction_profiles[i].openxr_extension_name;
+	for (const InteractionProfile &interaction_profile : interaction_profiles) {
+		if (interaction_profile.openxr_path == p_openxr_path) {
+			return interaction_profile.openxr_extension_name;
 		}
 	}
 
@@ -161,9 +161,9 @@ String OpenXRInteractionProfileMetadata::get_interaction_profile_extension(const
 }
 
 const OpenXRInteractionProfileMetadata::InteractionProfile *OpenXRInteractionProfileMetadata::get_profile(const String p_openxr_path) const {
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		if (interaction_profiles[i].openxr_path == p_openxr_path) {
-			return &interaction_profiles[i];
+	for (const InteractionProfile &interaction_profile : interaction_profiles) {
+		if (interaction_profile.openxr_path == p_openxr_path) {
+			return &interaction_profile;
 		}
 	}
 
@@ -202,8 +202,8 @@ const OpenXRInteractionProfileMetadata::IOPath *OpenXRInteractionProfileMetadata
 PackedStringArray OpenXRInteractionProfileMetadata::get_interaction_profile_paths() const {
 	PackedStringArray arr;
 
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		arr.push_back(interaction_profiles[i].openxr_path);
+	for (const InteractionProfile &interaction_profile : interaction_profiles) {
+		arr.push_back(interaction_profile.openxr_path);
 	}
 
 	return arr;
@@ -225,179 +225,164 @@ void OpenXRInteractionProfileMetadata::_register_core_metadata() {
 	register_top_level_path("Gamepad", "/user/gamepad", "");
 	register_top_level_path("Treadmill", "/user/treadmill", "");
 
-	// Fallback Khronos simple controller
-	register_interaction_profile("Simple controller", "/interaction_profiles/khr/simple_controller", "");
-	register_io_path("/interaction_profiles/khr/simple_controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Fallback Khronos simple controller
+		const String profile_path = "/interaction_profiles/khr/simple_controller";
+		register_interaction_profile("Simple controller", profile_path, "");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	register_io_path("/interaction_profiles/khr/simple_controller", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Menu click", "/user/hand/right", "/user/hand/right/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Select click", "/user/hand/left", "/user/hand/left/input/select/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Select click", "/user/hand/right", "/user/hand/right/input/select/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Menu click", user_path, user_path + "/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Select click", user_path, user_path + "/input/select/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/khr/simple_controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	register_io_path("/interaction_profiles/khr/simple_controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
+	}
 
-	// Original HTC Vive wands
-	register_interaction_profile("HTC Vive wand", "/interaction_profiles/htc/vive_controller", "");
-	register_io_path("/interaction_profiles/htc/vive_controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Original HTC Vive wands
+		const String profile_path = "/interaction_profiles/htc/vive_controller";
+		register_interaction_profile("HTC Vive wand", profile_path, "");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	register_io_path("/interaction_profiles/htc/vive_controller", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Menu click", "/user/hand/right", "/user/hand/right/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "System click", "/user/hand/left", "/user/hand/left/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Menu click", user_path, user_path + "/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "System click", user_path, user_path + "/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trigger click", "/user/hand/left", "/user/hand/left/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trigger click", "/user/hand/right", "/user/hand/right/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Trigger click", user_path, user_path + "/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/htc/vive_controller", "Squeeze click", "/user/hand/left", "/user/hand/left/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Squeeze click", "/user/hand/right", "/user/hand/right/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Squeeze click", user_path, user_path + "/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad", "/user/hand/left", "/user/hand/left/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad click", "/user/hand/left", "/user/hand/left/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad touch", "/user/hand/left", "/user/hand/left/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad", "/user/hand/right", "/user/hand/right/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad click", "/user/hand/right", "/user/hand/right/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Trackpad touch", "/user/hand/right", "/user/hand/right/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad", user_path, user_path + "/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Trackpad click", user_path, user_path + "/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad touch", user_path, user_path + "/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Up", user_path, user_path + "/input/trackpad/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Down", user_path, user_path + "/input/trackpad/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Left", user_path, user_path + "/input/trackpad/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Right", user_path, user_path + "/input/trackpad/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Center", user_path, user_path + "/input/trackpad/dpad_center", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/htc/vive_controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	register_io_path("/interaction_profiles/htc/vive_controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
+	}
 
-	// Microsoft motion controller (original WMR controllers)
-	register_interaction_profile("MS Motion controller", "/interaction_profiles/microsoft/motion_controller", "");
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Microsoft motion controller (original WMR controllers)
+		const String profile_path = "/interaction_profiles/microsoft/motion_controller";
+		register_interaction_profile("MS Motion controller", profile_path, "");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Menu click", "/user/hand/right", "/user/hand/right/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Menu click", user_path, user_path + "/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trigger click", "/user/hand/left", "/user/hand/left/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trigger click", "/user/hand/right", "/user/hand/right/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Trigger click", user_path, user_path + "/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Squeeze click", "/user/hand/left", "/user/hand/left/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Squeeze click", "/user/hand/right", "/user/hand/right/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Squeeze click", user_path, user_path + "/input/squeeze/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Thumbstick", "/user/hand/left", "/user/hand/left/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Thumbstick click", "/user/hand/left", "/user/hand/left/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Thumbstick", "/user/hand/right", "/user/hand/right/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Thumbstick click", "/user/hand/right", "/user/hand/right/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick", user_path, user_path + "/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Thumbstick click", user_path, user_path + "/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Up", user_path, user_path + "/input/thumbstick/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Down", user_path, user_path + "/input/thumbstick/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Left", user_path, user_path + "/input/thumbstick/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Right", user_path, user_path + "/input/thumbstick/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad", "/user/hand/left", "/user/hand/left/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad click", "/user/hand/left", "/user/hand/left/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad touch", "/user/hand/left", "/user/hand/left/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad", "/user/hand/right", "/user/hand/right/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad click", "/user/hand/right", "/user/hand/right/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Trackpad touch", "/user/hand/right", "/user/hand/right/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad", user_path, user_path + "/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Trackpad click", user_path, user_path + "/input/trackpad/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad touch", user_path, user_path + "/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Up", user_path, user_path + "/input/trackpad/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Down", user_path, user_path + "/input/trackpad/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Left", user_path, user_path + "/input/trackpad/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Right", user_path, user_path + "/input/trackpad/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Center", user_path, user_path + "/input/trackpad/dpad_center", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	register_io_path("/interaction_profiles/microsoft/motion_controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
+	}
 
-	// Meta touch controller (original touch controllers, Quest 1 and Quest 2 controllers)
-	register_interaction_profile("Touch controller", "/interaction_profiles/oculus/touch_controller", "");
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Meta touch controller (original touch controllers, Quest 1 and Quest 2 controllers)
+		const String profile_path = "/interaction_profiles/oculus/touch_controller";
+		register_interaction_profile("Touch controller", profile_path, "");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Trigger touch", user_path, user_path + "/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Squeeze", user_path, user_path + "/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger touch", "/user/hand/left", "/user/hand/left/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Trigger touch", "/user/hand/right", "/user/hand/right/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick", user_path, user_path + "/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Thumbstick click", user_path, user_path + "/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick touch", user_path, user_path + "/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Up", user_path, user_path + "/input/thumbstick/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Down", user_path, user_path + "/input/thumbstick/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Left", user_path, user_path + "/input/thumbstick/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Right", user_path, user_path + "/input/thumbstick/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Squeeze", "/user/hand/left", "/user/hand/left/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Squeeze", "/user/hand/right", "/user/hand/right/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Thumbrest touch", user_path, user_path + "/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick", "/user/hand/left", "/user/hand/left/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick click", "/user/hand/left", "/user/hand/left/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick touch", "/user/hand/left", "/user/hand/left/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick", "/user/hand/right", "/user/hand/right/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick click", "/user/hand/right", "/user/hand/right/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbstick touch", "/user/hand/right", "/user/hand/right/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbrest touch", "/user/hand/left", "/user/hand/left/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Thumbrest touch", "/user/hand/right", "/user/hand/right/input/thumbrest/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "Menu click", "/user/hand/left", "/user/hand/left/input/menu/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	register_io_path("/interaction_profiles/oculus/touch_controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		register_io_path(profile_path, "X click", "/user/hand/left", "/user/hand/left/input/x/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "X touch", "/user/hand/left", "/user/hand/left/input/x/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "Y click", "/user/hand/left", "/user/hand/left/input/y/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "Y touch", "/user/hand/left", "/user/hand/left/input/y/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+		register_io_path(profile_path, "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+	}
 
-	// Valve Index controller
-	register_interaction_profile("Index controller", "/interaction_profiles/valve/index_controller", "");
-	register_io_path("/interaction_profiles/valve/index_controller", "Grip pose", "/user/hand/left", "/user/hand/left/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/valve/index_controller", "Grip pose", "/user/hand/right", "/user/hand/right/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/valve/index_controller", "Aim pose", "/user/hand/left", "/user/hand/left/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/valve/index_controller", "Aim pose", "/user/hand/right", "/user/hand/right/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/valve/index_controller", "Palm pose", "/user/hand/left", "/user/hand/left/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
-	register_io_path("/interaction_profiles/valve/index_controller", "Palm pose", "/user/hand/right", "/user/hand/right/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
+	{ // Valve Index controller
+		const String profile_path = "/interaction_profiles/valve/index_controller";
+		register_interaction_profile("Index controller", profile_path, "");
+		for (const String user_path : { "/user/hand/left", "/user/hand/right" }) {
+			register_io_path(profile_path, "Grip pose", user_path, user_path + "/input/grip/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Aim pose", user_path, user_path + "/input/aim/pose", "", OpenXRAction::OPENXR_ACTION_POSE);
+			register_io_path(profile_path, "Palm pose", user_path, user_path + "/input/palm_ext/pose", XR_EXT_PALM_POSE_EXTENSION_NAME, OpenXRAction::OPENXR_ACTION_POSE);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "System click", "/user/hand/left", "/user/hand/left/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "System click", "/user/hand/right", "/user/hand/right/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "System click", user_path, user_path + "/input/system/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "A click", "/user/hand/left", "/user/hand/left/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "A touch", "/user/hand/left", "/user/hand/left/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "A click", "/user/hand/right", "/user/hand/right/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "A touch", "/user/hand/right", "/user/hand/right/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "B click", "/user/hand/left", "/user/hand/left/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "B touch", "/user/hand/left", "/user/hand/left/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "B click", "/user/hand/right", "/user/hand/right/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "B touch", "/user/hand/right", "/user/hand/right/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "A click", user_path, user_path + "/input/a/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "A touch", user_path, user_path + "/input/a/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "B click", user_path, user_path + "/input/b/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "B touch", user_path, user_path + "/input/b/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger", "/user/hand/left", "/user/hand/left/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger click", "/user/hand/left", "/user/hand/left/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger touch", "/user/hand/left", "/user/hand/left/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger", "/user/hand/right", "/user/hand/right/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger click", "/user/hand/right", "/user/hand/right/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trigger touch", "/user/hand/right", "/user/hand/right/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trigger", user_path, user_path + "/input/trigger/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Trigger click", user_path, user_path + "/input/trigger/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trigger touch", user_path, user_path + "/input/trigger/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "Squeeze", "/user/hand/left", "/user/hand/left/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Squeeze force", "/user/hand/left", "/user/hand/left/input/squeeze/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Squeeze", "/user/hand/right", "/user/hand/right/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Squeeze force", "/user/hand/right", "/user/hand/right/input/squeeze/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Squeeze", user_path, user_path + "/input/squeeze/value", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Squeeze force", user_path, user_path + "/input/squeeze/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick", "/user/hand/left", "/user/hand/left/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick click", "/user/hand/left", "/user/hand/left/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick touch", "/user/hand/left", "/user/hand/left/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick", "/user/hand/right", "/user/hand/right/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick click", "/user/hand/right", "/user/hand/right/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Thumbstick touch", "/user/hand/right", "/user/hand/right/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick", user_path, user_path + "/input/thumbstick", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Thumbstick click", user_path, user_path + "/input/thumbstick/click", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick touch", user_path, user_path + "/input/thumbstick/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Up", user_path, user_path + "/input/thumbstick/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Down", user_path, user_path + "/input/thumbstick/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Left", user_path, user_path + "/input/thumbstick/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Thumbstick Dpad Right", user_path, user_path + "/input/thumbstick/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad", "/user/hand/left", "/user/hand/left/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad force", "/user/hand/left", "/user/hand/left/input/trackpad/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad touch", "/user/hand/left", "/user/hand/left/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad", "/user/hand/right", "/user/hand/right/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad force", "/user/hand/right", "/user/hand/right/input/trackpad/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
-	register_io_path("/interaction_profiles/valve/index_controller", "Trackpad touch", "/user/hand/right", "/user/hand/right/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad", user_path, user_path + "/input/trackpad", "", OpenXRAction::OPENXR_ACTION_VECTOR2);
+			register_io_path(profile_path, "Trackpad force", user_path, user_path + "/input/trackpad/force", "", OpenXRAction::OPENXR_ACTION_FLOAT);
+			register_io_path(profile_path, "Trackpad touch", user_path, user_path + "/input/trackpad/touch", "", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Up", user_path, user_path + "/input/trackpad/dpad_up", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Down", user_path, user_path + "/input/trackpad/dpad_down", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Left", user_path, user_path + "/input/trackpad/dpad_left", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Right", user_path, user_path + "/input/trackpad/dpad_right", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
+			register_io_path(profile_path, "Trackpad Dpad Center", user_path, user_path + "/input/trackpad/dpad_center", "XR_EXT_dpad_binding", OpenXRAction::OPENXR_ACTION_BOOL);
 
-	register_io_path("/interaction_profiles/valve/index_controller", "Haptic output", "/user/hand/left", "/user/hand/left/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
-	register_io_path("/interaction_profiles/valve/index_controller", "Haptic output", "/user/hand/right", "/user/hand/right/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+			register_io_path(profile_path, "Haptic output", user_path, user_path + "/output/haptic", "", OpenXRAction::OPENXR_ACTION_HAPTIC);
+		}
+	}
 }

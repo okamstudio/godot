@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cyclic inheritance.
+>> ERROR at line 4: Cyclic inheritance.

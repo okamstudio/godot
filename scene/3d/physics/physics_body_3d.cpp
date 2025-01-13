@@ -167,8 +167,7 @@ bool PhysicsBody3D::test_move(const Transform3D &p_from, const Vector3 &p_motion
 	PhysicsServer3D::MotionResult *r = nullptr;
 	PhysicsServer3D::MotionResult temp_result;
 	if (r_collision.is_valid()) {
-		// Needs const_cast because method bindings don't support non-const Ref.
-		r = const_cast<PhysicsServer3D::MotionResult *>(&r_collision->result);
+		r = &r_collision->result;
 	} else {
 		r = &temp_result;
 	}

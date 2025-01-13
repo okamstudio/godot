@@ -93,7 +93,7 @@ void ScrollBar::gui_input(const Ref<InputEvent> &p_event) {
 				return;
 			}
 
-			ofs -= decr_size;
+			ofs -= decr_size + theme_cache.scroll_style->get_margin(orientation == VERTICAL ? SIDE_TOP : SIDE_LEFT);
 
 			if (ofs < grabber_ofs) {
 				if (scrolling) {
@@ -151,7 +151,7 @@ void ScrollBar::gui_input(const Ref<InputEvent> &p_event) {
 			Ref<Texture2D> decr = theme_cache.decrement_icon;
 
 			double decr_size = orientation == VERTICAL ? decr->get_height() : decr->get_width();
-			ofs -= decr_size;
+			ofs -= decr_size + theme_cache.scroll_style->get_margin(orientation == VERTICAL ? SIDE_TOP : SIDE_LEFT);
 
 			double diff = (ofs - drag.pos_at_click) / get_area_size();
 
@@ -248,8 +248,6 @@ void ScrollBar::_notification(int p_what) {
 				incr = theme_cache.increment_icon;
 			}
 
-			Ref<StyleBox> bg = has_focus() ? theme_cache.scroll_focus_style : theme_cache.scroll_style;
-
 			Ref<StyleBox> grabber;
 			if (drag.active) {
 				grabber = theme_cache.grabber_pressed_style;
@@ -277,7 +275,11 @@ void ScrollBar::_notification(int p_what) {
 				area.height -= incr->get_height() + decr->get_height();
 			}
 
-			bg->draw(ci, Rect2(ofs, area));
+			if (has_focus()) {
+				theme_cache.scroll_focus_style->draw(ci, Rect2(ofs, area));
+			} else {
+				theme_cache.scroll_style->draw(ci, Rect2(ofs, area));
+			}
 
 			if (orientation == HORIZONTAL) {
 				ofs.width += area.width;
@@ -292,11 +294,11 @@ void ScrollBar::_notification(int p_what) {
 				grabber_rect.size.width = get_grabber_size();
 				grabber_rect.size.height = get_size().height;
 				grabber_rect.position.y = 0;
-				grabber_rect.position.x = get_grabber_offset() + decr->get_width() + bg->get_margin(SIDE_LEFT);
+				grabber_rect.position.x = get_grabber_offset() + decr->get_width() + theme_cache.scroll_style->get_margin(SIDE_LEFT);
 			} else {
 				grabber_rect.size.width = get_size().width;
 				grabber_rect.size.height = get_grabber_size();
-				grabber_rect.position.y = get_grabber_offset() + decr->get_height() + bg->get_margin(SIDE_TOP);
+				grabber_rect.position.y = get_grabber_offset() + decr->get_height() + theme_cache.scroll_style->get_margin(SIDE_TOP);
 				grabber_rect.position.x = 0;
 			}
 

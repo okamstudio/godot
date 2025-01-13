@@ -181,6 +181,14 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="get_connection_count">
+			<return type="int" />
+			<param index="0" name="from_node" type="StringName" />
+			<param index="1" name="from_port" type="int" />
+			<description>
+				Returns the number of connections from [param from_port] of [param from_node].
+			</description>
+		</method>
 		<method name="get_connection_line" qualifiers="const">
 			<return type="PackedVector2Array" />
 			<param index="0" name="from_node" type="Vector2" />

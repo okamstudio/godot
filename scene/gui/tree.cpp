@@ -2002,7 +2002,7 @@ void Tree::update_column(int p_col) {
 	columns.write[p_col].cached_minimum_width_dirty = true;
 }
 
-void Tree::update_item_cell(TreeItem *p_item, int p_col) {
+void Tree::update_item_cell(TreeItem *p_item, int p_col) const {
 	String valtext;
 
 	p_item->cells.write[p_col].text_buf->clear();
@@ -2090,7 +2090,7 @@ void Tree::update_item_cell(TreeItem *p_item, int p_col) {
 	p_item->cells.write[p_col].dirty = false;
 }
 
-void Tree::update_item_cache(TreeItem *p_item) {
+void Tree::update_item_cache(TreeItem *p_item) const {
 	for (int i = 0; i < p_item->cells.size(); i++) {
 		update_item_cell(p_item, i);
 	}
@@ -2342,7 +2342,7 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 			Color icon_col = p_item->cells[i].icon_color;
 
 			if (p_item->cells[i].dirty) {
-				const_cast<Tree *>(this)->update_item_cell(p_item, i);
+				update_item_cell(p_item, i);
 			}
 
 			if (rtl) {
@@ -3845,7 +3845,7 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 					if (drag_speed == 0) {
 						drag_touching_deaccel = false;
 						drag_touching = false;
-						set_physics_process_internal(false);
+						set_process_internal(false);
 					} else {
 						drag_touching_deaccel = true;
 					}
@@ -3932,7 +3932,7 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 				}
 
 				if (drag_touching) {
-					set_physics_process_internal(false);
+					set_process_internal(false);
 					drag_touching_deaccel = false;
 					drag_touching = false;
 					drag_speed = 0;
@@ -3947,7 +3947,7 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 					drag_touching = DisplayServer::get_singleton()->is_touchscreen_available();
 					drag_touching_deaccel = false;
 					if (drag_touching) {
-						set_physics_process_internal(true);
+						set_process_internal(true);
 					}
 
 					if (mb->get_button_index() == MouseButton::LEFT) {
@@ -4427,7 +4427,7 @@ void Tree::_notification(int p_what) {
 		case NOTIFICATION_DRAG_END: {
 			drop_mode_flags = 0;
 			scrolling = false;
-			set_physics_process_internal(false);
+			set_process_internal(false);
 			queue_redraw();
 		} break;
 
@@ -4435,21 +4435,21 @@ void Tree::_notification(int p_what) {
 			single_select_defer = nullptr;
 			if (theme_cache.scroll_speed > 0) {
 				scrolling = true;
-				set_physics_process_internal(true);
+				set_process_internal(true);
 			}
 		} break;
 
-		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
+		case NOTIFICATION_INTERNAL_PROCESS: {
 			if (drag_touching) {
 				if (drag_touching_deaccel) {
 					float pos = v_scroll->get_value();
-					pos += drag_speed * get_physics_process_delta_time();
+					pos += drag_speed * get_process_delta_time();
 
 					bool turnoff = false;
 					if (pos < 0) {
 						pos = 0;
 						turnoff = true;
-						set_physics_process_internal(false);
+						set_process_internal(false);
 						drag_touching = false;
 						drag_touching_deaccel = false;
 					}
@@ -4461,7 +4461,7 @@ void Tree::_notification(int p_what) {
 					v_scroll->set_value(pos);
 					float sgn = drag_speed < 0 ? -1 : 1;
 					float val = Math::abs(drag_speed);
-					val -= 1000 * get_physics_process_delta_time();
+					val -= 1000 * get_process_delta_time();
 
 					if (val < 0) {
 						turnoff = true;
@@ -4469,7 +4469,7 @@ void Tree::_notification(int p_what) {
 					drag_speed = sgn * val;
 
 					if (turnoff) {
-						set_physics_process_internal(false);
+						set_process_internal(false);
 						drag_touching = false;
 						drag_touching_deaccel = false;
 					}
@@ -4492,7 +4492,7 @@ void Tree::_notification(int p_what) {
 					point.y = mouse_position.y - (get_size().height - theme_cache.scroll_border);
 				}
 
-				point *= theme_cache.scroll_speed * get_physics_process_delta_time();
+				point *= theme_cache.scroll_speed * get_process_delta_time();
 				point += get_scroll();
 				h_scroll->set_value(point.x);
 				v_scroll->set_value(point.y);
@@ -5791,7 +5791,7 @@ String Tree::get_tooltip(const Point2 &p_pos) const {
 
 	if (it) {
 		const String item_tooltip = it->get_tooltip_text(col);
-		if (item_tooltip.is_empty()) {
+		if (enable_auto_tooltip && item_tooltip.is_empty()) {
 			return it->get_text(col);
 		}
 		return item_tooltip;
@@ -5871,6 +5871,14 @@ void Tree::set_allow_search(bool p_allow) {
 
 bool Tree::get_allow_search() const {
 	return allow_search;
+}
+
+void Tree::set_auto_tooltip(bool p_enable) {
+	enable_auto_tooltip = p_enable;
+}
+
+bool Tree::is_auto_tooltip_enabled() const {
+	return enable_auto_tooltip;
 }
 
 void Tree::_bind_methods() {
@@ -5959,6 +5967,9 @@ void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_allow_search", "allow"), &Tree::set_allow_search);
 	ClassDB::bind_method(D_METHOD("get_allow_search"), &Tree::get_allow_search);
 
+	ClassDB::bind_method(D_METHOD("set_auto_tooltip", "enable"), &Tree::set_auto_tooltip);
+	ClassDB::bind_method(D_METHOD("is_auto_tooltip_enabled"), &Tree::is_auto_tooltip_enabled);
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "columns"), "set_columns", "get_columns");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "column_titles_visible"), "set_column_titles_visible", "are_column_titles_visible");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_reselect"), "set_allow_reselect", "get_allow_reselect");
@@ -5971,6 +5982,7 @@ void Tree::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Row,Multi"), "set_select_mode", "get_select_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scroll_horizontal_enabled"), "set_h_scroll_enabled", "is_h_scroll_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scroll_vertical_enabled"), "set_v_scroll_enabled", "is_v_scroll_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_tooltip"), "set_auto_tooltip", "is_auto_tooltip_enabled");
 
 	ADD_SIGNAL(MethodInfo("item_selected"));
 	ADD_SIGNAL(MethodInfo("cell_selected"));
@@ -6120,7 +6132,7 @@ Tree::Tree() {
 
 	h_scroll->connect(SceneStringName(value_changed), callable_mp(this, &Tree::_scroll_moved));
 	v_scroll->connect(SceneStringName(value_changed), callable_mp(this, &Tree::_scroll_moved));
-	line_editor->connect("text_submitted", callable_mp(this, &Tree::_line_editor_submit));
+	line_editor->connect(SceneStringName(text_submitted), callable_mp(this, &Tree::_line_editor_submit));
 	text_editor->connect(SceneStringName(gui_input), callable_mp(this, &Tree::_text_editor_gui_input));
 	popup_editor->connect("popup_hide", callable_mp(this, &Tree::_text_editor_popup_modal_close));
 	popup_menu->connect(SceneStringName(id_pressed), callable_mp(this, &Tree::popup_select));

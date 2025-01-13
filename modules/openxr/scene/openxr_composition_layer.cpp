@@ -443,7 +443,7 @@ void OpenXRCompositionLayer::_get_property_list(List<PropertyInfo> *p_property_l
 
 	for (const PropertyInfo &pinfo : extension_properties) {
 		StringName prop_name = pinfo.name;
-		if (!String(prop_name).contains("/")) {
+		if (!String(prop_name).contains_char('/')) {
 			WARN_PRINT_ONCE(vformat("Discarding OpenXRCompositionLayer property name '%s' from extension because it doesn't contain a '/'."));
 			continue;
 		}

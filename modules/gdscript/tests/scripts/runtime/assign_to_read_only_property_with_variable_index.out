@@ -1,6 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: assign()
->> runtime/assign_to_read_only_property_with_variable_index.gd
->> 8
->> Cannot set value into property "center_of_mass" (on base "PhysicsDirectBodyState3DExtension") because it is read-only.

@@ -147,7 +147,7 @@ Dictionary DebugAdapterParser::req_initialize(const Dictionary &p_params) const 
 		for (List<String>::Element *E = breakpoints.front(); E; E = E->next()) {
 			String breakpoint = E->get();
 
-			String path = breakpoint.left(breakpoint.find(":", 6)); // Skip initial part of path, aka "res://"
+			String path = breakpoint.left(breakpoint.find_char(':', 6)); // Skip initial part of path, aka "res://"
 			int line = breakpoint.substr(path.size()).to_int();
 
 			DebugAdapterProtocol::get_singleton()->on_debug_breakpoint_toggled(path, line, true);
@@ -359,7 +359,7 @@ Dictionary DebugAdapterParser::req_setBreakpoints(const Dictionary &p_params) co
 	}
 
 	// If path contains \, it's a Windows path, so we need to convert it to /, and make the drive letter uppercase
-	if (source.path.contains("\\")) {
+	if (source.path.contains_char('\\')) {
 		source.path = source.path.replace("\\", "/");
 		source.path = source.path.substr(0, 1).to_upper() + source.path.substr(1);
 	}

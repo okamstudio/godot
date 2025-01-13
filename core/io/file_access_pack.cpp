@@ -71,7 +71,7 @@ void PackedData::add_path(const String &p_pkg_path, const String &p_path, uint64
 		// Search for directory.
 		PackedDir *cd = root;
 
-		if (simplified_path.contains("/")) { // In a subdirectory.
+		if (simplified_path.contains_char('/')) { // In a subdirectory.
 			Vector<String> ds = simplified_path.get_base_dir().split("/");
 
 			for (int j = 0; j < ds.size(); j++) {
@@ -104,7 +104,7 @@ void PackedData::remove_path(const String &p_path) {
 	// Search for directory.
 	PackedDir *cd = root;
 
-	if (simplified_path.contains("/")) { // In a subdirectory.
+	if (simplified_path.contains_char('/')) { // In a subdirectory.
 		Vector<String> ds = simplified_path.get_base_dir().split("/");
 
 		for (int j = 0; j < ds.size(); j++) {
@@ -309,7 +309,7 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		cs[sl] = 0;
 
 		String path;
-		path.parse_utf8(cs.ptr());
+		path.parse_utf8(cs.ptr(), sl);
 
 		uint64_t ofs = f->get_64();
 		uint64_t size = f->get_64();
@@ -417,8 +417,8 @@ void FileAccessPack::flush() {
 	ERR_FAIL();
 }
 
-void FileAccessPack::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	ERR_FAIL();
+bool FileAccessPack::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+	ERR_FAIL_V(false);
 }
 
 bool FileAccessPack::file_exists(const String &p_name) {
@@ -590,8 +590,6 @@ String DirAccessPack::get_current_dir(bool p_include_drive) const {
 }
 
 bool DirAccessPack::file_exists(String p_file) {
-	p_file = fix_path(p_file);
-
 	PackedData::PackedDir *pd = _find_dir(p_file.get_base_dir());
 	if (!pd) {
 		return false;
@@ -600,8 +598,6 @@ bool DirAccessPack::file_exists(String p_file) {
 }
 
 bool DirAccessPack::dir_exists(String p_dir) {
-	p_dir = fix_path(p_dir);
-
 	return _find_dir(p_dir) != nullptr;
 }
 

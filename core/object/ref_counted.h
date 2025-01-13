@@ -222,7 +222,7 @@ struct PtrToArg<Ref<T>> {
 			return Ref<T>();
 		}
 		// p_ptr points to a RefCounted object
-		return Ref<T>(const_cast<T *>(*reinterpret_cast<T *const *>(p_ptr)));
+		return Ref<T>(*reinterpret_cast<T *const *>(p_ptr));
 	}
 
 	typedef Ref<T> EncodeT;

@@ -63,7 +63,6 @@ register_module_types = env.CommandNoCache(
 )
 
 
-vs_sources = []
 test_headers = []
 # libmodule_<name>.a for each active module.
 for name, path in env.module_list.items():
@@ -75,8 +74,6 @@ for name, path in env.module_list.items():
 
     lib = env_modules.add_library("module_%s" % name, env.modules_sources)
     env.Prepend(LIBS=[lib])
-    if env["vsproj"]:
-        vs_sources += env.modules_sources
 
     if env["tests"]:
         # Lookup potential headers in `tests` subfolder.
@@ -104,5 +101,3 @@ env.modules_sources = []
 env_modules.add_source_files(env.modules_sources, register_module_types)
 lib = env_modules.add_library("modules", env.modules_sources)
 env.Prepend(LIBS=[lib])
-if env["vsproj"]:
-    env.modules_sources += vs_sources

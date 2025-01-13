@@ -608,25 +608,38 @@ bool SceneTree::process(double p_time) {
 #ifdef TOOLS_ENABLED
 #ifndef _3D_DISABLED
 	if (Engine::get_singleton()->is_editor_hint()) {
-		//simple hack to reload fallback environment if it changed from editor
 		String env_path = GLOBAL_GET(SNAME("rendering/environment/defaults/default_environment"));
-		env_path = env_path.strip_edges(); //user may have added a space or two
-		String cpath;
-		Ref<Environment> fallback = get_root()->get_world_3d()->get_fallback_environment();
-		if (fallback.is_valid()) {
-			cpath = fallback->get_path();
-		}
-		if (cpath != env_path) {
-			if (!env_path.is_empty()) {
-				fallback = ResourceLoader::load(env_path);
-				if (fallback.is_null()) {
-					//could not load fallback, set as empty
-					ProjectSettings::get_singleton()->set("rendering/environment/defaults/default_environment", "");
-				}
-			} else {
-				fallback.unref();
+		env_path = env_path.strip_edges(); // User may have added a space or two.
+
+		bool can_load = true;
+		if (env_path.begins_with("uid://")) {
+			// If an uid path, ensure it is mapped to a resource which could not be
+			// the case if the editor is still scanning the filesystem.
+			ResourceUID::ID id = ResourceUID::get_singleton()->text_to_id(env_path);
+			can_load = ResourceUID::get_singleton()->has_id(id);
+			if (can_load) {
+				env_path = ResourceUID::get_singleton()->get_id_path(id);
 			}
-			get_root()->get_world_3d()->set_fallback_environment(fallback);
+		}
+
+		if (can_load) {
+			String cpath;
+			Ref<Environment> fallback = get_root()->get_world_3d()->get_fallback_environment();
+			if (fallback.is_valid()) {
+				cpath = fallback->get_path();
+			}
+			if (cpath != env_path) {
+				if (!env_path.is_empty()) {
+					fallback = ResourceLoader::load(env_path);
+					if (fallback.is_null()) {
+						//could not load fallback, set as empty
+						ProjectSettings::get_singleton()->set("rendering/environment/defaults/default_environment", "");
+					}
+				} else {
+					fallback.unref();
+				}
+				get_root()->get_world_3d()->set_fallback_environment(fallback);
+			}
 		}
 	}
 #endif // _3D_DISABLED

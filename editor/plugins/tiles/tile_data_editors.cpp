@@ -918,7 +918,7 @@ GenericTilePolygonEditor::GenericTilePolygonEditor() {
 	tools_button_group.instantiate();
 
 	button_expand = memnew(Button);
-	button_expand->set_theme_type_variation("FlatButton");
+	button_expand->set_theme_type_variation(SceneStringName(FlatButton));
 	button_expand->set_toggle_mode(true);
 	button_expand->set_pressed(false);
 	button_expand->set_tooltip_text(TTR("Expand editor"));
@@ -928,7 +928,7 @@ GenericTilePolygonEditor::GenericTilePolygonEditor() {
 	toolbar->add_child(memnew(VSeparator));
 
 	button_create = memnew(Button);
-	button_create->set_theme_type_variation("FlatButton");
+	button_create->set_theme_type_variation(SceneStringName(FlatButton));
 	button_create->set_toggle_mode(true);
 	button_create->set_button_group(tools_button_group);
 	button_create->set_pressed(true);
@@ -936,14 +936,14 @@ GenericTilePolygonEditor::GenericTilePolygonEditor() {
 	toolbar->add_child(button_create);
 
 	button_edit = memnew(Button);
-	button_edit->set_theme_type_variation("FlatButton");
+	button_edit->set_theme_type_variation(SceneStringName(FlatButton));
 	button_edit->set_toggle_mode(true);
 	button_edit->set_button_group(tools_button_group);
 	button_edit->set_tooltip_text(TTR("Edit points tool"));
 	toolbar->add_child(button_edit);
 
 	button_delete = memnew(Button);
-	button_delete->set_theme_type_variation("FlatButton");
+	button_delete->set_theme_type_variation(SceneStringName(FlatButton));
 	button_delete->set_toggle_mode(true);
 	button_delete->set_button_group(tools_button_group);
 	button_delete->set_tooltip_text(TTR("Delete points tool"));
@@ -1015,7 +1015,7 @@ GenericTilePolygonEditor::GenericTilePolygonEditor() {
 	button_center_view->set_anchors_and_offsets_preset(Control::PRESET_TOP_RIGHT, Control::PRESET_MODE_MINSIZE, 5);
 	button_center_view->set_grow_direction_preset(Control::PRESET_TOP_RIGHT);
 	button_center_view->connect(SceneStringName(pressed), callable_mp(this, &GenericTilePolygonEditor::_center_view));
-	button_center_view->set_theme_type_variation("FlatButton");
+	button_center_view->set_theme_type_variation(SceneStringName(FlatButton));
 	button_center_view->set_tooltip_text(TTR("Center View"));
 	button_center_view->set_disabled(true);
 	root->add_child(button_center_view);
@@ -1379,7 +1379,7 @@ TileDataDefaultEditor::TileDataDefaultEditor() {
 	add_child(label);
 
 	picker_button = memnew(Button);
-	picker_button->set_theme_type_variation("FlatButton");
+	picker_button->set_theme_type_variation(SceneStringName(FlatButton));
 	picker_button->set_toggle_mode(true);
 	picker_button->set_shortcut(ED_GET_SHORTCUT("tiles_editor/picker"));
 	toolbar->add_child(picker_button);
@@ -2880,7 +2880,7 @@ TileDataTerrainsEditor::TileDataTerrainsEditor() {
 
 	// Toolbar
 	picker_button = memnew(Button);
-	picker_button->set_theme_type_variation("FlatButton");
+	picker_button->set_theme_type_variation(SceneStringName(FlatButton));
 	picker_button->set_toggle_mode(true);
 	picker_button->set_shortcut(ED_GET_SHORTCUT("tiles_editor/picker"));
 	toolbar->add_child(picker_button);

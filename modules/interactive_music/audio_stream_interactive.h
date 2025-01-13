@@ -100,7 +100,7 @@ private:
 		TransitionFromTime from_time = TRANSITION_FROM_TIME_NEXT_BEAT;
 		TransitionToTime to_time = TRANSITION_TO_TIME_START;
 		FadeMode fade_mode = FADE_AUTOMATIC;
-		int fade_beats = 1;
+		float fade_beats = 1;
 		bool use_filler_clip = false;
 		int filler_clip = 0;
 		bool hold_previous = false;
@@ -259,6 +259,7 @@ public:
 
 	void switch_to_clip_by_name(const StringName &p_name);
 	void switch_to_clip(int p_index);
+	int get_current_clip_index() const;
 
 	virtual void set_parameter(const StringName &p_name, const Variant &p_value) override;
 	virtual Variant get_parameter(const StringName &p_name) const override;

@@ -29,6 +29,12 @@
 		</method>
 	</methods>
 	<members>
+		<member name="debug_color" type="Color" setter="set_debug_color" getter="get_debug_color" default="Color(0, 0, 0, 0)">
+			The collision shape color that is displayed in the editor, or in the running project if [b]Debug &gt; Visible Collision Shapes[/b] is checked at the top of the editor. If this is reset to its default value of [code]Color(0, 0, 0, 0)[/code], the value of [member ProjectSettings.debug/shapes/collision/shape_color] will be used instead.
+		</member>
+		<member name="debug_fill" type="bool" setter="set_enable_debug_fill" getter="get_enable_debug_fill" default="true">
+			If [code]true[/code], when the shape is displayed, it will show a solid fill color in addition to its wireframe.
+		</member>
 		<member name="disabled" type="bool" setter="set_disabled" getter="is_disabled" default="false" keywords="enabled">
 			A disabled collision shape has no effect in the world.
 		</member>

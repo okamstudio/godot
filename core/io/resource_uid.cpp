@@ -145,7 +145,12 @@ String ResourceUID::uid_to_path(const String &p_uid) {
 }
 
 String ResourceUID::path_to_uid(const String &p_path) {
-	return singleton->id_to_text(ResourceLoader::get_resource_uid(p_path));
+	const ID id = ResourceLoader::get_resource_uid(p_path);
+	if (id == INVALID_ID) {
+		return p_path;
+	} else {
+		return singleton->id_to_text(id);
+	}
 }
 
 String ResourceUID::ensure_path(const String &p_uid_or_path) {

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
 namespace Godot.SourceGenerators.Tests;
@@ -17,7 +16,7 @@ public static class CSharpCodeFixVerifier<TCodeFix, TAnalyzer>
     {
         public Test()
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
+            ReferenceAssemblies = Constants.Net80;
             SolutionTransforms.Add((Solution solution, ProjectId projectId) =>
             {
                 Project project = solution.GetProject(projectId)!

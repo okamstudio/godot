@@ -1091,6 +1091,11 @@ struct _VariantCall {
 	static ConstantData *constant_data;
 
 	static void add_constant(int p_type, const StringName &p_constant_name, int64_t p_constant_value) {
+#ifdef DEBUG_ENABLED
+		ERR_FAIL_COND(constant_data[p_type].value.has(p_constant_name));
+		ERR_FAIL_COND(enum_data[p_type].value.has(p_constant_name));
+		ERR_FAIL_COND(enum_data[p_type].value_to_enum.has(p_constant_name));
+#endif
 		constant_data[p_type].value[p_constant_name] = p_constant_value;
 #ifdef DEBUG_ENABLED
 		constant_data[p_type].value_ordered.push_back(p_constant_name);
@@ -1106,12 +1111,19 @@ struct _VariantCall {
 
 	struct EnumData {
 		HashMap<StringName, HashMap<StringName, int>> value;
+		HashMap<StringName, StringName> value_to_enum;
 	};
 
 	static EnumData *enum_data;
 
 	static void add_enum_constant(int p_type, const StringName &p_enum_type_name, const StringName &p_enumeration_name, int p_enum_value) {
+#ifdef DEBUG_ENABLED
+		ERR_FAIL_COND(constant_data[p_type].value.has(p_enumeration_name));
+		ERR_FAIL_COND(enum_data[p_type].value.has(p_enumeration_name));
+		ERR_FAIL_COND(enum_data[p_type].value_to_enum.has(p_enumeration_name));
+#endif
 		enum_data[p_type].value[p_enum_type_name][p_enumeration_name] = p_enum_value;
+		enum_data[p_type].value_to_enum[p_enumeration_name] = p_enum_type_name;
 	}
 };
 
@@ -1559,6 +1571,23 @@ int Variant::get_enum_value(Variant::Type p_type, const StringName &p_enum_name,
 	}
 
 	return V->value;
+}
+
+bool Variant::has_enum(Variant::Type p_type, const StringName &p_enum_name) {
+	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, false);
+
+	_VariantCall::EnumData &enum_data = _VariantCall::enum_data[p_type];
+
+	return enum_data.value.has(p_enum_name);
+}
+
+StringName Variant::get_enum_for_enumeration(Variant::Type p_type, const StringName &p_enumeration) {
+	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, StringName());
+
+	_VariantCall::EnumData &enum_data = _VariantCall::enum_data[p_type];
+
+	const StringName *enum_name = enum_data.value_to_enum.getptr(p_enumeration);
+	return (enum_name == nullptr) ? StringName() : *enum_name;
 }
 
 #ifdef DEBUG_METHODS_ENABLED
@@ -2660,10 +2689,6 @@ static void _register_variant_builtin_constants() {
 		_VariantCall::add_variant_constant(Variant::COLOR, Color::get_named_color_name(i), Color::get_named_color(i));
 	}
 
-	_VariantCall::add_constant(Variant::VECTOR3, "AXIS_X", Vector3::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR3, "AXIS_Y", Vector3::AXIS_Y);
-	_VariantCall::add_constant(Variant::VECTOR3, "AXIS_Z", Vector3::AXIS_Z);
-
 	_VariantCall::add_enum_constant(Variant::VECTOR3, "Axis", "AXIS_X", Vector3::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR3, "Axis", "AXIS_Y", Vector3::AXIS_Y);
 	_VariantCall::add_enum_constant(Variant::VECTOR3, "Axis", "AXIS_Z", Vector3::AXIS_Z);
@@ -2685,31 +2710,18 @@ static void _register_variant_builtin_constants() {
 	_VariantCall::add_variant_constant(Variant::VECTOR3, "MODEL_FRONT", Vector3(0, 0, 1));
 	_VariantCall::add_variant_constant(Variant::VECTOR3, "MODEL_REAR", Vector3(0, 0, -1));
 
-	_VariantCall::add_constant(Variant::VECTOR4, "AXIS_X", Vector4::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR4, "AXIS_Y", Vector4::AXIS_Y);
-	_VariantCall::add_constant(Variant::VECTOR4, "AXIS_Z", Vector4::AXIS_Z);
-	_VariantCall::add_constant(Variant::VECTOR4, "AXIS_W", Vector4::AXIS_W);
-
 	_VariantCall::add_enum_constant(Variant::VECTOR4, "Axis", "AXIS_X", Vector4::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR4, "Axis", "AXIS_Y", Vector4::AXIS_Y);
 	_VariantCall::add_enum_constant(Variant::VECTOR4, "Axis", "AXIS_Z", Vector4::AXIS_Z);
 	_VariantCall::add_enum_constant(Variant::VECTOR4, "Axis", "AXIS_W", Vector4::AXIS_W);
+
 	_VariantCall::add_variant_constant(Variant::VECTOR4, "ZERO", Vector4(0, 0, 0, 0));
 	_VariantCall::add_variant_constant(Variant::VECTOR4, "ONE", Vector4(1, 1, 1, 1));
 	_VariantCall::add_variant_constant(Variant::VECTOR4, "INF", Vector4(INFINITY, INFINITY, INFINITY, INFINITY));
 
-	_VariantCall::add_constant(Variant::VECTOR3I, "AXIS_X", Vector3i::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR3I, "AXIS_Y", Vector3i::AXIS_Y);
-	_VariantCall::add_constant(Variant::VECTOR3I, "AXIS_Z", Vector3i::AXIS_Z);
-
 	_VariantCall::add_enum_constant(Variant::VECTOR3I, "Axis", "AXIS_X", Vector3i::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR3I, "Axis", "AXIS_Y", Vector3i::AXIS_Y);
 	_VariantCall::add_enum_constant(Variant::VECTOR3I, "Axis", "AXIS_Z", Vector3i::AXIS_Z);
-
-	_VariantCall::add_constant(Variant::VECTOR4I, "AXIS_X", Vector4i::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR4I, "AXIS_Y", Vector4i::AXIS_Y);
-	_VariantCall::add_constant(Variant::VECTOR4I, "AXIS_Z", Vector4i::AXIS_Z);
-	_VariantCall::add_constant(Variant::VECTOR4I, "AXIS_W", Vector4i::AXIS_W);
 
 	_VariantCall::add_enum_constant(Variant::VECTOR4I, "Axis", "AXIS_X", Vector4i::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR4I, "Axis", "AXIS_Y", Vector4i::AXIS_Y);
@@ -2732,14 +2744,8 @@ static void _register_variant_builtin_constants() {
 	_VariantCall::add_variant_constant(Variant::VECTOR3I, "FORWARD", Vector3i(0, 0, -1));
 	_VariantCall::add_variant_constant(Variant::VECTOR3I, "BACK", Vector3i(0, 0, 1));
 
-	_VariantCall::add_constant(Variant::VECTOR2, "AXIS_X", Vector2::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR2, "AXIS_Y", Vector2::AXIS_Y);
-
 	_VariantCall::add_enum_constant(Variant::VECTOR2, "Axis", "AXIS_X", Vector2::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR2, "Axis", "AXIS_Y", Vector2::AXIS_Y);
-
-	_VariantCall::add_constant(Variant::VECTOR2I, "AXIS_X", Vector2i::AXIS_X);
-	_VariantCall::add_constant(Variant::VECTOR2I, "AXIS_Y", Vector2i::AXIS_Y);
 
 	_VariantCall::add_enum_constant(Variant::VECTOR2I, "Axis", "AXIS_X", Vector2i::AXIS_X);
 	_VariantCall::add_enum_constant(Variant::VECTOR2I, "Axis", "AXIS_Y", Vector2i::AXIS_Y);
@@ -2788,13 +2794,6 @@ static void _register_variant_builtin_constants() {
 	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XY", Plane(Vector3(0, 0, 1), 0));
 
 	_VariantCall::add_variant_constant(Variant::QUATERNION, "IDENTITY", Quaternion(0, 0, 0, 1));
-
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_NEAR", Projection::PLANE_NEAR);
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_FAR", Projection::PLANE_FAR);
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_LEFT", Projection::PLANE_LEFT);
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_TOP", Projection::PLANE_TOP);
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_RIGHT", Projection::PLANE_RIGHT);
-	_VariantCall::add_constant(Variant::PROJECTION, "PLANE_BOTTOM", Projection::PLANE_BOTTOM);
 
 	_VariantCall::add_enum_constant(Variant::PROJECTION, "Planes", "PLANE_NEAR", Projection::PLANE_NEAR);
 	_VariantCall::add_enum_constant(Variant::PROJECTION, "Planes", "PLANE_FAR", Projection::PLANE_FAR);

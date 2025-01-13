@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot use variable "A" in extends chain.
+>> ERROR at line 5: Cannot use variable "A" in extends chain.

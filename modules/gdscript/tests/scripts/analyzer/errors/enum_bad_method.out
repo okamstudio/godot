@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot call non-const Dictionary function "clear()" on enum "Enum".
+>> ERROR at line 4: Cannot call non-const Dictionary function "clear()" on enum "Enum".

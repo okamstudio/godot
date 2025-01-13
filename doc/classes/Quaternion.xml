@@ -21,7 +21,7 @@
 		<constructor name="Quaternion">
 			<return type="Quaternion" />
 			<description>
-				Constructs a [Quaternion] identical to the [constant IDENTITY].
+				Constructs a [Quaternion] identical to [constant IDENTITY].
 				[b]Note:[/b] In C#, this constructs a [Quaternion] with all of its components set to [code]0.0[/code].
 			</description>
 		</constructor>
@@ -129,7 +129,7 @@
 			<return type="bool" />
 			<param index="0" name="to" type="Quaternion" />
 			<description>
-				Returns [code]true[/code] if this quaternion and [param to] are approximately equal, by running [method @GlobalScope.is_equal_approx] on each component.
+				Returns [code]true[/code] if this quaternion and [param to] are approximately equal, by calling [method @GlobalScope.is_equal_approx] on each component.
 			</description>
 		</method>
 		<method name="is_finite" qualifiers="const">
@@ -232,6 +232,7 @@
 		<constant name="IDENTITY" value="Quaternion(0, 0, 0, 1)">
 			The identity quaternion, representing no rotation. This has the same rotation as [constant Basis.IDENTITY].
 			If a [Vector3] is rotated (multiplied) by this quaternion, it does not change.
+			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Quaternion] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>
 	</constants>
 	<operators>

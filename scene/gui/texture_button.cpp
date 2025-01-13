@@ -343,7 +343,7 @@ Ref<Texture2D> TextureButton::get_texture_focused() const {
 }
 
 void TextureButton::set_texture_focused(const Ref<Texture2D> &p_focused) {
-	focused = p_focused;
+	_set_texture(&focused, p_focused);
 }
 
 void TextureButton::_set_texture(Ref<Texture2D> *p_destination, const Ref<Texture2D> &p_texture) {

@@ -1,33 +1,9 @@
 GDTEST_OK
->> WARNING
->> Line: 5
->> UNSAFE_CAST
->> Casting "Variant" to "int" is unsafe.
->> WARNING
->> Line: 6
->> UNSAFE_CAST
->> Casting "Variant" to "Node" is unsafe.
->> WARNING
->> Line: 10
->> UNSAFE_CAST
->> Casting "Variant" to "int" is unsafe.
->> WARNING
->> Line: 11
->> UNSAFE_CAST
->> Casting "Variant" to "Node" is unsafe.
->> WARNING
->> Line: 15
->> UNSAFE_CAST
->> Casting "Variant" to "int" is unsafe.
->> WARNING
->> Line: 16
->> UNSAFE_CAST
->> Casting "Variant" to "Node" is unsafe.
->> WARNING
->> Line: 20
->> UNSAFE_CAST
->> Casting "Variant" to "int" is unsafe.
->> WARNING
->> Line: 21
->> UNSAFE_CAST
->> Casting "Variant" to "Node" is unsafe.
+~~ WARNING at line 5: (UNSAFE_CAST) Casting "Variant" to "int" is unsafe.
+~~ WARNING at line 6: (UNSAFE_CAST) Casting "Variant" to "Node" is unsafe.
+~~ WARNING at line 10: (UNSAFE_CAST) Casting "Variant" to "int" is unsafe.
+~~ WARNING at line 11: (UNSAFE_CAST) Casting "Variant" to "Node" is unsafe.
+~~ WARNING at line 15: (UNSAFE_CAST) Casting "Variant" to "int" is unsafe.
+~~ WARNING at line 16: (UNSAFE_CAST) Casting "Variant" to "Node" is unsafe.
+~~ WARNING at line 20: (UNSAFE_CAST) Casting "Variant" to "int" is unsafe.
+~~ WARNING at line 21: (UNSAFE_CAST) Casting "Variant" to "Node" is unsafe.

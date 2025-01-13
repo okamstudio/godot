@@ -181,7 +181,7 @@ class ProjectManager : public Control {
 	void _erase_missing_projects_confirm();
 	void _update_project_buttons();
 
-	void _on_project_created(const String &dir);
+	void _on_project_created(const String &dir, bool edit);
 	void _on_projects_updated();
 
 	void _on_order_option_changed(int p_idx);

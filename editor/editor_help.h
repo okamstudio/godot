@@ -309,15 +309,13 @@ protected:
 	void _notification(int p_what);
 
 public:
-	void parse_symbol(const String &p_symbol);
+	void parse_symbol(const String &p_symbol, const String &p_prologue = String());
 	void set_custom_text(const String &p_type, const String &p_name, const String &p_description);
-	void set_description(const String &p_text);
-	_FORCE_INLINE_ String get_description() const { return help_data.description; }
 
 	void set_content_height_limits(float p_min, float p_max);
 	void update_content_height();
 
-	EditorHelpBit(const String &p_symbol = String());
+	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_allow_selection = true);
 };
 
 // Standard tooltips do not allow you to hover over them.
@@ -325,20 +323,22 @@ public:
 class EditorHelpBitTooltip : public PopupPanel {
 	GDCLASS(EditorHelpBitTooltip, PopupPanel);
 
+	static bool _is_tooltip_visible;
+
 	Timer *timer = nullptr;
-	int _pushing_input = 0;
-	bool _need_free = false;
+	uint64_t _enter_tree_time = 0;
+	bool _is_mouse_inside_tooltip = false;
+
+	static Control *_make_invisible_control();
 
 	void _start_timer();
-	void _safe_queue_free();
 	void _target_gui_input(const Ref<InputEvent> &p_event);
 
 protected:
 	void _notification(int p_what);
-	virtual void _input_from_window(const Ref<InputEvent> &p_event) override;
 
 public:
-	static void show_tooltip(EditorHelpBit *p_help_bit, Control *p_target);
+	static Control *show_tooltip(Control *p_target, const String &p_symbol, const String &p_prologue = String());
 
 	void popup_under_cursor();
 

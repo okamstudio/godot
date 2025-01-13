@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid cast. Cannot convert from "RefCounted" to "int".
+>> ERROR at line 3: Invalid cast. Cannot convert from "RefCounted" to "int".

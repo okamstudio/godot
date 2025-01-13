@@ -287,13 +287,13 @@ void ParticlesStorage::particles_set_fractional_delta(RID p_particles, bool p_en
 
 void ParticlesStorage::particles_set_trails(RID p_particles, bool p_enable, double p_length) {
 	if (p_enable) {
-		WARN_PRINT_ONCE_ED("The GL Compatibility rendering backend does not support particle trails.");
+		WARN_PRINT_ONCE_ED("The Compatibility renderer does not support particle trails.");
 	}
 }
 
 void ParticlesStorage::particles_set_trail_bind_poses(RID p_particles, const Vector<Transform3D> &p_bind_poses) {
 	if (p_bind_poses.size() != 0) {
-		WARN_PRINT_ONCE_ED("The GL Compatibility rendering backend does not support particle trails.");
+		WARN_PRINT_ONCE_ED("The Compatibility renderer does not support particle trails.");
 	}
 }
 
@@ -357,12 +357,12 @@ void ParticlesStorage::particles_restart(RID p_particles) {
 
 void ParticlesStorage::particles_set_subemitter(RID p_particles, RID p_subemitter_particles) {
 	if (p_subemitter_particles.is_valid()) {
-		WARN_PRINT_ONCE_ED("The GL Compatibility rendering backend does not support particle sub-emitters.");
+		WARN_PRINT_ONCE_ED("The Compatibility renderer does not support particle sub-emitters.");
 	}
 }
 
 void ParticlesStorage::particles_emit(RID p_particles, const Transform3D &p_transform, const Vector3 &p_velocity, const Color &p_color, const Color &p_custom, uint32_t p_emit_flags) {
-	WARN_PRINT_ONCE_ED("The GL Compatibility rendering backend does not support manually emitting particles.");
+	WARN_PRINT_ONCE_ED("The Compatibility renderer does not support manually emitting particles.");
 }
 
 void ParticlesStorage::particles_request_process(RID p_particles) {
@@ -645,7 +645,7 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 						attr.extents[2] = extents.z;
 					} break;
 					case RS::PARTICLES_COLLISION_TYPE_VECTOR_FIELD_ATTRACT: {
-						WARN_PRINT_ONCE_ED("Vector field particle attractors are not available in the GL Compatibility rendering backend.");
+						WARN_PRINT_ONCE_ED("Vector field particle attractors are not available in the Compatibility renderer.");
 					} break;
 					default: {
 					}
@@ -678,7 +678,7 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 						col.extents[2] = extents.z;
 					} break;
 					case RS::PARTICLES_COLLISION_TYPE_SDF_COLLIDE: {
-						WARN_PRINT_ONCE_ED("SDF Particle Colliders are not available in the GL Compatibility rendering backend.");
+						WARN_PRINT_ONCE_ED("SDF Particle Colliders are not available in the Compatibility renderer.");
 					} break;
 					case RS::PARTICLES_COLLISION_TYPE_HEIGHTFIELD_COLLIDE: {
 						if (collision_heightmap_texture != 0) { //already taken
@@ -1341,7 +1341,7 @@ void ParticlesStorage::particles_collision_set_attractor_attenuation(RID p_parti
 }
 
 void ParticlesStorage::particles_collision_set_field_texture(RID p_particles_collision, RID p_texture) {
-	WARN_PRINT_ONCE_ED("The GL Compatibility rendering backend does not support SDF collisions in 3D particle shaders");
+	WARN_PRINT_ONCE_ED("The Compatibility renderer does not support SDF collisions in 3D particle shaders");
 }
 
 void ParticlesStorage::particles_collision_height_field_update(RID p_particles_collision) {

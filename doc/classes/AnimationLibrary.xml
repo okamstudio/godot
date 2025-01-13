@@ -31,6 +31,12 @@
 				Returns the keys for the [Animation]s stored in the library.
 			</description>
 		</method>
+		<method name="get_animation_list_size" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the key count for the [Animation]s stored in the library.
+			</description>
+		</method>
 		<method name="has_animation" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="name" type="StringName" />

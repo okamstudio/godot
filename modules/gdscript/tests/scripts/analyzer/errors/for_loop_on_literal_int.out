@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Expression is of type "int" so it can't be of type "String".
+>> ERROR at line 3: Expression is of type "int" so it can't be of type "String".

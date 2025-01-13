@@ -43,6 +43,7 @@ enum PathfindingAlgorithm {
 enum PathPostProcessing {
 	PATH_POSTPROCESSING_CORRIDORFUNNEL = 0,
 	PATH_POSTPROCESSING_EDGECENTERED,
+	PATH_POSTPROCESSING_NONE,
 };
 
 enum PathSegmentType {
@@ -56,25 +57,6 @@ enum PathMetadataFlags {
 	PATH_INCLUDE_RIDS = 2,
 	PATH_INCLUDE_OWNERS = 4,
 	PATH_INCLUDE_ALL = PATH_INCLUDE_TYPES | PATH_INCLUDE_RIDS | PATH_INCLUDE_OWNERS
-};
-
-struct PathQueryParameters {
-	PathfindingAlgorithm pathfinding_algorithm = PATHFINDING_ALGORITHM_ASTAR;
-	PathPostProcessing path_postprocessing = PATH_POSTPROCESSING_CORRIDORFUNNEL;
-	RID map;
-	Vector3 start_position;
-	Vector3 target_position;
-	uint32_t navigation_layers = 1;
-	BitField<PathMetadataFlags> metadata_flags = PATH_INCLUDE_ALL;
-	bool simplify_path = false;
-	real_t simplify_epsilon = 0.0;
-};
-
-struct PathQueryResult {
-	PackedVector3Array path;
-	PackedInt32Array path_types;
-	TypedArray<RID> path_rids;
-	PackedInt64Array path_owner_ids;
 };
 
 } //namespace NavigationUtilities

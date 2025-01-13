@@ -169,7 +169,9 @@ static GDScriptParser::DataType make_native_enum_type(const StringName &p_enum_n
 
 	GDScriptParser::DataType type = make_enum_type(p_enum_name, native_base, p_meta);
 	if (p_meta) {
-		type.builtin_type = Variant::NIL; // Native enum types are not Dictionaries.
+		// Native enum types are not dictionaries.
+		type.builtin_type = Variant::NIL;
+		type.is_pseudo_type = true;
 	}
 
 	List<StringName> enum_values;
@@ -182,10 +184,29 @@ static GDScriptParser::DataType make_native_enum_type(const StringName &p_enum_n
 	return type;
 }
 
+static GDScriptParser::DataType make_builtin_enum_type(const StringName &p_enum_name, Variant::Type p_type, bool p_meta = true) {
+	GDScriptParser::DataType type = make_enum_type(p_enum_name, Variant::get_type_name(p_type), p_meta);
+	if (p_meta) {
+		// Built-in enum types are not dictionaries.
+		type.builtin_type = Variant::NIL;
+		type.is_pseudo_type = true;
+	}
+
+	List<StringName> enum_values;
+	Variant::get_enumerations_for_enum(p_type, p_enum_name, &enum_values);
+
+	for (const StringName &E : enum_values) {
+		type.enum_values[E] = Variant::get_enum_value(p_type, p_enum_name, E);
+	}
+
+	return type;
+}
+
 static GDScriptParser::DataType make_global_enum_type(const StringName &p_enum_name, const StringName &p_base, bool p_meta = true) {
 	GDScriptParser::DataType type = make_enum_type(p_enum_name, p_base, p_meta);
 	if (p_meta) {
-		type.builtin_type = Variant::NIL; // Native enum types are not Dictionaries.
+		// Global enum types are not dictionaries.
+		type.builtin_type = Variant::NIL;
 		type.is_pseudo_type = true;
 	}
 
@@ -703,8 +724,8 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 		if (first == SNAME("Variant")) {
 			if (p_type->type_chain.size() == 2) {
 				// May be nested enum.
-				StringName enum_name = p_type->type_chain[1]->name;
-				StringName qualified_name = String(first) + ENUM_SEPARATOR + String(p_type->type_chain[1]->name);
+				const StringName enum_name = p_type->type_chain[1]->name;
+				const StringName qualified_name = String(first) + ENUM_SEPARATOR + String(p_type->type_chain[1]->name);
 				if (CoreConstants::is_global_enum(qualified_name)) {
 					result = make_global_enum_type(enum_name, first, true);
 					return result;
@@ -719,21 +740,34 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 			result.kind = GDScriptParser::DataType::VARIANT;
 		} else if (GDScriptParser::get_builtin_type(first) < Variant::VARIANT_MAX) {
 			// Built-in types.
-			if (p_type->type_chain.size() > 1) {
-				push_error(R"(Built-in types don't contain nested types.)", p_type->type_chain[1]);
+			const Variant::Type builtin_type = GDScriptParser::get_builtin_type(first);
+
+			if (p_type->type_chain.size() == 2) {
+				// May be nested enum.
+				const StringName enum_name = p_type->type_chain[1]->name;
+				if (Variant::has_enum(builtin_type, enum_name)) {
+					result = make_builtin_enum_type(enum_name, builtin_type, true);
+					return result;
+				} else {
+					push_error(vformat(R"(Name "%s" is not a nested type of "%s".)", enum_name, first), p_type->type_chain[1]);
+					return bad_type;
+				}
+			} else if (p_type->type_chain.size() > 2) {
+				push_error(R"(Built-in types only contain enum types, which do not have nested types.)", p_type->type_chain[2]);
 				return bad_type;
 			}
-			result.kind = GDScriptParser::DataType::BUILTIN;
-			result.builtin_type = GDScriptParser::get_builtin_type(first);
 
-			if (result.builtin_type == Variant::ARRAY) {
+			result.kind = GDScriptParser::DataType::BUILTIN;
+			result.builtin_type = builtin_type;
+
+			if (builtin_type == Variant::ARRAY) {
 				GDScriptParser::DataType container_type = type_from_metatype(resolve_datatype(p_type->get_container_type_or_null(0)));
 				if (container_type.kind != GDScriptParser::DataType::VARIANT) {
 					container_type.is_constant = false;
 					result.set_container_element_type(0, container_type);
 				}
 			}
-			if (result.builtin_type == Variant::DICTIONARY) {
+			if (builtin_type == Variant::DICTIONARY) {
 				GDScriptParser::DataType key_type = type_from_metatype(resolve_datatype(p_type->get_container_type_or_null(0)));
 				if (key_type.kind != GDScriptParser::DataType::VARIANT) {
 					key_type.is_constant = false;
@@ -3970,13 +4004,36 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 
 	if (base.kind == GDScriptParser::DataType::BUILTIN) {
 		if (base.is_meta_type) {
-			bool valid = true;
-			Variant result = Variant::get_constant_value(base.builtin_type, name, &valid);
-			if (valid) {
+			bool valid = false;
+
+			if (Variant::has_constant(base.builtin_type, name)) {
+				valid = true;
+
+				const Variant constant_value = Variant::get_constant_value(base.builtin_type, name);
+
 				p_identifier->is_constant = true;
-				p_identifier->reduced_value = result;
-				p_identifier->set_datatype(type_from_variant(result, p_identifier));
-			} else if (base.is_hard_type()) {
+				p_identifier->reduced_value = constant_value;
+				p_identifier->set_datatype(type_from_variant(constant_value, p_identifier));
+			}
+
+			if (!valid) {
+				const StringName enum_name = Variant::get_enum_for_enumeration(base.builtin_type, name);
+				if (enum_name != StringName()) {
+					valid = true;
+
+					p_identifier->is_constant = true;
+					p_identifier->reduced_value = Variant::get_enum_value(base.builtin_type, enum_name, name);
+					p_identifier->set_datatype(make_builtin_enum_type(enum_name, base.builtin_type, false));
+				}
+			}
+
+			if (!valid && Variant::has_enum(base.builtin_type, name)) {
+				valid = true;
+
+				p_identifier->set_datatype(make_builtin_enum_type(name, base.builtin_type, true));
+			}
+
+			if (!valid && base.is_hard_type()) {
 #ifdef SUGGEST_GODOT4_RENAMES
 				String rename_hint;
 				if (GLOBAL_GET(GDScriptWarning::get_settings_path_from_code(GDScriptWarning::RENAMED_IN_GODOT_4_HINT)).booleanize()) {
@@ -3985,9 +4042,9 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 						rename_hint = " " + vformat(R"(Did you mean to use "%s"?)", renamed_identifier_name);
 					}
 				}
-				push_error(vformat(R"(Cannot find constant "%s" on base "%s".%s)", name, base.to_string(), rename_hint), p_identifier);
+				push_error(vformat(R"(Cannot find member "%s" in base "%s".%s)", name, base.to_string(), rename_hint), p_identifier);
 #else
-				push_error(vformat(R"(Cannot find constant "%s" on base "%s".)", name, base.to_string()), p_identifier);
+				push_error(vformat(R"(Cannot find member "%s" in base "%s".)", name, base.to_string()), p_identifier);
 #endif // SUGGEST_GODOT4_RENAMES
 			}
 		} else {
@@ -4029,9 +4086,9 @@ void GDScriptAnalyzer::reduce_identifier_from_base(GDScriptParser::IdentifierNod
 								rename_hint = " " + vformat(R"(Did you mean to use "%s"?)", renamed_identifier_name);
 							}
 						}
-						push_error(vformat(R"(Cannot find property "%s" on base "%s".%s)", name, base.to_string(), rename_hint), p_identifier);
+						push_error(vformat(R"(Cannot find member "%s" in base "%s".%s)", name, base.to_string(), rename_hint), p_identifier);
 #else
-						push_error(vformat(R"(Cannot find property "%s" on base "%s".)", name, base.to_string()), p_identifier);
+						push_error(vformat(R"(Cannot find member "%s" in base "%s".)", name, base.to_string()), p_identifier);
 #endif // SUGGEST_GODOT4_RENAMES
 					}
 				}
@@ -5572,7 +5629,7 @@ GDScriptParser::DataType GDScriptAnalyzer::type_from_property(const PropertyInfo
 				} else {
 					Vector<String> names = String(p_property.class_name).split(ENUM_SEPARATOR);
 					if (names.size() == 2) {
-						result = make_native_enum_type(names[1], names[0], false);
+						result = make_enum_type(names[1], names[0], false);
 						result.is_constant = false;
 					}
 				}

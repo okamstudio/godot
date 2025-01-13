@@ -33,11 +33,11 @@
 #include "scene/scene_string_names.h"
 
 bool AnimationLibrary::is_valid_animation_name(const String &p_name) {
-	return !(p_name.is_empty() || p_name.contains("/") || p_name.contains(":") || p_name.contains(",") || p_name.contains("["));
+	return !(p_name.is_empty() || p_name.contains_char('/') || p_name.contains_char(':') || p_name.contains_char(',') || p_name.contains_char('['));
 }
 
 bool AnimationLibrary::is_valid_library_name(const String &p_name) {
-	return !(p_name.contains("/") || p_name.contains(":") || p_name.contains(",") || p_name.contains("["));
+	return !(p_name.contains_char('/') || p_name.contains_char(':') || p_name.contains_char(',') || p_name.contains_char('['));
 }
 
 String AnimationLibrary::validate_library_name(const String &p_name) {
@@ -125,6 +125,10 @@ void AnimationLibrary::get_animation_list(List<StringName> *p_animations) const 
 	}
 }
 
+int AnimationLibrary::get_animation_list_size() const {
+	return animations.size();
+}
+
 void AnimationLibrary::_set_data(const Dictionary &p_data) {
 	for (KeyValue<StringName, Ref<Animation>> &K : animations) {
 		K.value->disconnect_changed(callable_mp(this, &AnimationLibrary::_animation_changed));
@@ -166,6 +170,7 @@ void AnimationLibrary::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("has_animation", "name"), &AnimationLibrary::has_animation);
 	ClassDB::bind_method(D_METHOD("get_animation", "name"), &AnimationLibrary::get_animation);
 	ClassDB::bind_method(D_METHOD("get_animation_list"), &AnimationLibrary::_get_animation_list);
+	ClassDB::bind_method(D_METHOD("get_animation_list_size"), &AnimationLibrary::get_animation_list_size);
 
 	ClassDB::bind_method(D_METHOD("_set_data", "data"), &AnimationLibrary::_set_data);
 	ClassDB::bind_method(D_METHOD("_get_data"), &AnimationLibrary::_get_data);

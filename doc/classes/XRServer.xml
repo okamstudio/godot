@@ -111,6 +111,10 @@
 		</method>
 	</methods>
 	<members>
+		<member name="camera_locked_to_origin" type="bool" setter="set_camera_locked_to_origin" getter="is_camera_locked_to_origin" default="false">
+			If set to [code]true[/code], the scene will be rendered as if the camera is locked to the [XROrigin3D].
+			[b]Note:[/b] This doesn't provide a very comfortable experience for users. This setting exists for doing benchmarking or automated testing, where you want to control what is rendered via code.
+		</member>
 		<member name="primary_interface" type="XRInterface" setter="set_primary_interface" getter="get_primary_interface">
 			The primary [XRInterface] currently bound to the [XRServer].
 		</member>

@@ -1,57 +1,15 @@
 GDTEST_OK
->> WARNING
->> Line: 28
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
->> WARNING
->> Line: 29
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
->> WARNING
->> Line: 30
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
->> WARNING
->> Line: 31
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
->> WARNING
->> Line: 34
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
->> WARNING
->> Line: 35
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
->> WARNING
->> Line: 36
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
->> WARNING
->> Line: 37
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
->> WARNING
->> Line: 40
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "node_func()" requires the subtype "Node" but the supertype "Variant" was provided.
->> WARNING
->> Line: 41
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the function "node_func()" requires the subtype "Node" but the supertype "Object" was provided.
->> WARNING
->> Line: 47
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the constructor "Callable()" requires the subtype "Object" but the supertype "Variant" was provided.
->> WARNING
->> Line: 49
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the constructor "Dictionary()" requires the subtype "Dictionary" but the supertype "Variant" was provided.
->> WARNING
->> Line: 50
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the constructor "Vector2()" requires the subtype "Vector2" or "Vector2i" but the supertype "Variant" was provided.
->> WARNING
->> Line: 51
->> UNSAFE_CALL_ARGUMENT
->> The argument 1 of the constructor "int()" requires the subtype "int", "bool", or "float" but the supertype "Variant" was provided.
+~~ WARNING at line 28: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
+~~ WARNING at line 29: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
+~~ WARNING at line 30: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
+~~ WARNING at line 31: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "int_func()" requires the subtype "int" but the supertype "Variant" was provided.
+~~ WARNING at line 34: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
+~~ WARNING at line 35: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
+~~ WARNING at line 36: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
+~~ WARNING at line 37: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "float_func()" requires the subtype "float" but the supertype "Variant" was provided.
+~~ WARNING at line 40: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "node_func()" requires the subtype "Node" but the supertype "Variant" was provided.
+~~ WARNING at line 41: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "node_func()" requires the subtype "Node" but the supertype "Object" was provided.
+~~ WARNING at line 47: (UNSAFE_CALL_ARGUMENT) The argument 1 of the constructor "Callable()" requires the subtype "Object" but the supertype "Variant" was provided.
+~~ WARNING at line 49: (UNSAFE_CALL_ARGUMENT) The argument 1 of the constructor "Dictionary()" requires the subtype "Dictionary" but the supertype "Variant" was provided.
+~~ WARNING at line 50: (UNSAFE_CALL_ARGUMENT) The argument 1 of the constructor "Vector2()" requires the subtype "Vector2" or "Vector2i" but the supertype "Variant" was provided.
+~~ WARNING at line 51: (UNSAFE_CALL_ARGUMENT) The argument 1 of the constructor "int()" requires the subtype "int", "bool", or "float" but the supertype "Variant" was provided.

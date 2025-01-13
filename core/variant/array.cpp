@@ -41,8 +41,7 @@
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
 
-class ArrayPrivate {
-public:
+struct ArrayPrivate {
 	SafeRefCount refcount;
 	Vector<Variant> array;
 	Variant *read_only = nullptr; // If enabled, a pointer is used to a temporary value that is used to return read-only values.
@@ -843,6 +842,10 @@ Array::Array(const Array &p_from, uint32_t p_type, const StringName &p_class_nam
 	assign(p_from);
 }
 
+void Array::set_typed(const ContainerType &p_element_type) {
+	set_typed(p_element_type.builtin_type, p_element_type.class_name, p_element_type.script);
+}
+
 void Array::set_typed(uint32_t p_type, const StringName &p_class_name, const Variant &p_script) {
 	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
 	ERR_FAIL_COND_MSG(_p->array.size() > 0, "Type can only be set when array is empty.");
@@ -868,6 +871,14 @@ bool Array::is_same_typed(const Array &p_other) const {
 
 bool Array::is_same_instance(const Array &p_other) const {
 	return _p == p_other._p;
+}
+
+ContainerType Array::get_element_type() const {
+	ContainerType type;
+	type.builtin_type = _p->typed.type;
+	type.class_name = _p->typed.class_name;
+	type.script = _p->typed.script;
+	return type;
 }
 
 uint32_t Array::get_typed_builtin() const {

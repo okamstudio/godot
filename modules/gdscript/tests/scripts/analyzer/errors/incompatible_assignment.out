@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid operands "bool" and "String" for assignment operator.
+>> ERROR at line 3: Invalid operands "bool" and "String" for assignment operator.

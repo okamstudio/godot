@@ -30,11 +30,13 @@
 
 #include "rendering_device_binds.h"
 
+#include "shader_include_db.h"
+
 Error RDShaderFile::parse_versions_from_text(const String &p_text, const String p_defines, OpenIncludeFunction p_include_func, void *p_include_func_userdata) {
 	ERR_FAIL_NULL_V_MSG(
 			RenderingDevice::get_singleton(),
 			ERR_UNAVAILABLE,
-			"Cannot import custom .glsl shaders when running without a RenderingDevice. This can happen if you are using the headless more or the Compatibility backend.");
+			"Cannot import custom .glsl shaders when running without a RenderingDevice. This can happen if you are using the headless more or the Compatibility renderer.");
 
 	Vector<String> lines = p_text.split("\n");
 
@@ -104,11 +106,11 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 		if (reading_versions) {
 			String l = line.strip_edges();
 			if (!l.is_empty()) {
-				if (!l.contains("=")) {
+				if (!l.contains_char('=')) {
 					base_error = "Missing `=` in '" + l + "'. Version syntax is `version = \"<defines with C escaping>\";`.";
 					break;
 				}
-				if (!l.contains(";")) {
+				if (!l.contains_char(';')) {
 					// We don't require a semicolon per se, but it's needed for clang-format to handle things properly.
 					base_error = "Missing `;` in '" + l + "'. Version syntax is `version = \"<defines with C escaping>\";`.";
 					break;
@@ -144,11 +146,17 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 							break;
 						}
 						include = include.substr(1, include.length() - 2).strip_edges();
-						String include_text = p_include_func(include, p_include_func_userdata);
-						if (!include_text.is_empty()) {
-							stage_code[stage] += "\n" + include_text + "\n";
+
+						String include_code = ShaderIncludeDB::get_built_in_include_file(include);
+						if (!include_code.is_empty()) {
+							stage_code[stage] += "\n" + include_code + "\n";
 						} else {
-							base_error = "#include failed for file '" + include + "'";
+							String include_text = p_include_func(include, p_include_func_userdata);
+							if (!include_text.is_empty()) {
+								stage_code[stage] += "\n" + include_text + "\n";
+							} else {
+								base_error = "#include failed for file '" + include + "'.";
+							}
 						}
 					} else {
 						base_error = "#include used, but no include function provided.";

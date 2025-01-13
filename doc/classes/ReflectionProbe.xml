@@ -23,6 +23,9 @@
 		<member name="ambient_mode" type="int" setter="set_ambient_mode" getter="get_ambient_mode" enum="ReflectionProbe.AmbientMode" default="1">
 			The ambient color to use within the [ReflectionProbe]'s box defined by its [member size]. The ambient color will smoothly blend with other [ReflectionProbe]s and the rest of the scene (outside the [ReflectionProbe]'s box defined by its [member size]).
 		</member>
+		<member name="blend_distance" type="float" setter="set_blend_distance" getter="get_blend_distance" default="1.0">
+			Defines the distance in meters over which a probe blends into the scene.
+		</member>
 		<member name="box_projection" type="bool" setter="set_enable_box_projection" getter="is_box_projection_enabled" default="false">
 			If [code]true[/code], enables box projection. This makes reflections look more correct in rectangle-shaped rooms by offsetting the reflection center depending on the camera's location.
 			[b]Note:[/b] To better fit rectangle-shaped rooms that are not aligned to the grid, you can rotate the [ReflectionProbe] node.

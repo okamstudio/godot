@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Static function "not_existing_method()" not found in base "MyClass".
+>> ERROR at line 7: Static function "not_existing_method()" not found in base "MyClass".

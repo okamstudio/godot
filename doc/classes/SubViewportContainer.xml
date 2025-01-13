@@ -21,6 +21,11 @@
 	</methods>
 	<members>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="1" />
+		<member name="mouse_target" type="bool" setter="set_mouse_target" getter="is_mouse_target_enabled" default="false">
+			Configure, if either the [SubViewportContainer] or alternatively the [Control] nodes of its [SubViewport] children should be available as targets of mouse-related functionalities, like identifying the drop target in drag-and-drop operations or cursor shape of hovered [Control] node.
+			If [code]false[/code], the [Control] nodes inside its [SubViewport] children are considered as targets.
+			If [code]true[/code], the [SubViewportContainer] itself will be considered as a target.
+		</member>
 		<member name="stretch" type="bool" setter="set_stretch" getter="is_stretch_enabled" default="false">
 			If [code]true[/code], the sub-viewport will be automatically resized to the control's size.
 			[b]Note:[/b] If [code]true[/code], this will prohibit changing [member SubViewport.size] of its children manually.

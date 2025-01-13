@@ -6,7 +6,12 @@
 	<description>
 		The [Basis] built-in [Variant] type is a 3×3 [url=https://en.wikipedia.org/wiki/Matrix_(mathematics)]matrix[/url] used to represent 3D rotation, scale, and shear. It is frequently used within a [Transform3D].
 		A [Basis] is composed by 3 axis vectors, each representing a column of the matrix: [member x], [member y], and [member z]. The length of each axis ([method Vector3.length]) influences the basis's scale, while the direction of all axes influence the rotation. Usually, these axes are perpendicular to one another. However, when you rotate any axis individually, the basis becomes sheared. Applying a sheared basis to a 3D model will make the model appear distorted.
-		A [Basis] is [b]orthogonal[/b] if its axes are perpendicular to each other. A basis is [b]normalized[/b] if the length of every axis is [code]1[/code]. A basis is [b]uniform[/b] if all axes share the same length (see [method get_scale]). A basis is [b]orthonormal[/b] if it is both orthogonal and normalized, which allows it to only represent rotations. A basis is [b]conformal[/b] if it is both orthogonal and uniform, which ensures it is not distorted.
+		A [Basis] is:
+		- [b]Orthogonal[/b] if its axes are perpendicular to each other.
+		- [b]Normalized[/b] if the length of every axis is [code]1.0[/code].
+		- [b]Uniform[/b] if all axes share the same length (see [method get_scale]).
+		- [b]Orthonormal[/b] if it is both orthogonal and normalized, which allows it to only represent rotations (see [method orthonormalized]).
+		- [b]Conformal[/b] if it is both orthogonal and uniform, which ensures it is not distorted.
 		For a general introduction, see the [url=$DOCS_URL/tutorials/math/matrices_and_transforms.html]Matrices and transforms[/url] tutorial.
 		[b]Note:[/b] Godot uses a [url=https://en.wikipedia.org/wiki/Right-hand_rule]right-handed coordinate system[/url], which is a common standard. For directions, the convention for built-in types like [Camera3D] is for -Z to point forward (+X is right, +Y is up, and +Z is back). Other objects may use different direction conventions. For more information, see the [url=$DOCS_URL/tutorials/assets_pipeline/importing_3d_scenes/model_export_considerations.html#d-asset-direction-conventions]3D asset direction conventions[/url] tutorial.
 		[b]Note:[/b] The basis matrices are exposed as [url=https://www.mindcontrol.org/~hplus/graphics/matrix-layout.html]column-major[/url] order, which is the same as OpenGL. However, they are stored internally in row-major order, which is the same as DirectX.
@@ -24,7 +29,7 @@
 		<constructor name="Basis">
 			<return type="Basis" />
 			<description>
-				Constructs a [Basis] identical to the [constant IDENTITY].
+				Constructs a [Basis] identical to [constant IDENTITY].
 				[b]Note:[/b] In C#, this constructs a [Basis] with all of its components set to [constant Vector3.ZERO].
 			</description>
 		</constructor>
@@ -67,7 +72,7 @@
 			<return type="float" />
 			<description>
 				Returns the [url=https://en.wikipedia.org/wiki/Determinant]determinant[/url] of this basis's matrix. For advanced math, this number can be used to determine a few attributes:
-				- If the determinant is exactly [code]0[/code], the basis is not invertible (see [method inverse]).
+				- If the determinant is exactly [code]0.0[/code], the basis is not invertible (see [method inverse]).
 				- If the determinant is a negative number, the basis represents a negative scale.
 				[b]Note:[/b] If the basis's scale is the same for every axis, its determinant is always that scale by the power of 2.
 			</description>
@@ -78,21 +83,21 @@
 			<param index="1" name="order" type="int" default="2" />
 			<description>
 				Constructs a new [Basis] that only represents rotation from the given [Vector3] of [url=https://en.wikipedia.org/wiki/Euler_angles]Euler angles[/url], in radians.
-				- The [member Vector3.x] should contain the angle around the [member x] axis (pitch).
-				- The [member Vector3.y] should contain the angle around the [member y] axis (yaw).
+				- The [member Vector3.x] should contain the angle around the [member x] axis (pitch);
+				- The [member Vector3.y] should contain the angle around the [member y] axis (yaw);
 				- The [member Vector3.z] should contain the angle around the [member z] axis (roll).
 				[codeblocks]
 				[gdscript]
 				# Creates a Basis whose z axis points down.
 				var my_basis = Basis.from_euler(Vector3(TAU / 4, 0, 0))
 
-				print(my_basis.z) # Prints (0, -1, 0).
+				print(my_basis.z) # Prints (0.0, -1.0, 0.0)
 				[/gdscript]
 				[csharp]
 				// Creates a Basis whose z axis points down.
 				var myBasis = Basis.FromEuler(new Vector3(Mathf.Tau / 4.0f, 0.0f, 0.0f));
 
-				GD.Print(myBasis.Z); // Prints (0, -1, 0).
+				GD.Print(myBasis.Z); // Prints (0, -1, 0)
 				[/csharp]
 				[/codeblocks]
 				The order of each consecutive rotation can be changed with [param order] (see [enum EulerOrder] constants). By default, the YXZ convention is used ([constant EULER_ORDER_YXZ]): the basis rotates first around the Y axis (yaw), then X (pitch), and lastly Z (roll). When using the opposite method [method get_euler], this order is reversed.
@@ -107,16 +112,16 @@
 				[gdscript]
 				var my_basis = Basis.from_scale(Vector3(2, 4, 8))
 
-				print(my_basis.x) # Prints (2, 0, 0).
-				print(my_basis.y) # Prints (0, 4, 0).
-				print(my_basis.z) # Prints (0, 0, 8).
+				print(my_basis.x) # Prints (2.0, 0.0, 0.0)
+				print(my_basis.y) # Prints (0.0, 4.0, 0.0)
+				print(my_basis.z) # Prints (0.0, 0.0, 8.0)
 				[/gdscript]
 				[csharp]
 				var myBasis = Basis.FromScale(new Vector3(2.0f, 4.0f, 8.0f));
 
-				GD.Print(myBasis.X); // Prints (2, 0, 0).
-				GD.Print(myBasis.Y); // Prints (0, 4, 0).
-				GD.Print(myBasis.Z); // Prints (0, 0, 8).
+				GD.Print(myBasis.X); // Prints (2, 0, 0)
+				GD.Print(myBasis.Y); // Prints (0, 4, 0)
+				GD.Print(myBasis.Z); // Prints (0, 0, 8)
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] In linear algebra, the matrix of this basis is also known as a [url=https://en.wikipedia.org/wiki/Diagonal_matrix]diagonal matrix[/url].
@@ -126,11 +131,12 @@
 			<return type="Vector3" />
 			<param index="0" name="order" type="int" default="2" />
 			<description>
-				Returns this basis's rotation as a [Vector3] of [url=https://en.wikipedia.org/wiki/Euler_angles]Euler angles[/url], in radians.
+				Returns this basis's rotation as a [Vector3] of [url=https://en.wikipedia.org/wiki/Euler_angles]Euler angles[/url], in radians. For the returned value:
 				- The [member Vector3.x] contains the angle around the [member x] axis (pitch);
 				- The [member Vector3.y] contains the angle around the [member y] axis (yaw);
 				- The [member Vector3.z] contains the angle around the [member z] axis (roll).
 				The order of each consecutive rotation can be changed with [param order] (see [enum EulerOrder] constants). By default, the YXZ convention is used ([constant EULER_ORDER_YXZ]): Z (roll) is calculated first, then X (pitch), and lastly Y (yaw). When using the opposite method [method from_euler], this order is reversed.
+				[b]Note:[/b] For this method to return correctly, the basis needs to be [i]orthonormal[/i] (see [method orthonormalized]).
 				[b]Note:[/b] Euler angles are much more intuitive but are not suitable for 3D math. Because of this, consider using the [method get_rotation_quaternion] method instead, which returns a [Quaternion].
 				[b]Note:[/b] In the Inspector dock, a basis's rotation is often displayed in Euler angles (in degrees), as is the case with the [member Node3D.rotation] property.
 			</description>
@@ -145,7 +151,7 @@
 		<method name="get_scale" qualifiers="const">
 			<return type="Vector3" />
 			<description>
-				Returns the length of each axis of this basis, as a [Vector3]. If the basis is not sheared, this is the scaling factor. It is not affected by rotation.
+				Returns the length of each axis of this basis, as a [Vector3]. If the basis is not sheared, this value is the scaling factor. It is not affected by rotation.
 				[codeblocks]
 				[gdscript]
 				var my_basis = Basis(
@@ -157,7 +163,7 @@
 				my_basis = my_basis.rotated(Vector3.UP, TAU / 2)
 				my_basis = my_basis.rotated(Vector3.RIGHT, TAU / 4)
 
-				print(my_basis.get_scale()) # Prints (2, 4, 8).
+				print(my_basis.get_scale()) # Prints (2.0, 4.0, 8.0)
 				[/gdscript]
 				[csharp]
 				var myBasis = new Basis(
@@ -169,7 +175,7 @@
 				myBasis = myBasis.Rotated(Vector3.Up, Mathf.Tau / 2.0f);
 				myBasis = myBasis.Rotated(Vector3.Right, Mathf.Tau / 4.0f);
 
-				GD.Print(myBasis.Scale); // Prints (2, 4, 8).
+				GD.Print(myBasis.Scale); // Prints (2, 4, 8)
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] If the value returned by [method determinant] is negative, the scale is also negative.
@@ -214,7 +220,7 @@
 		<method name="orthonormalized" qualifiers="const">
 			<return type="Basis" />
 			<description>
-				Returns the orthonormalized version of this basis. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1[/code]), which also means it can only represent rotation.
+				Returns the orthonormalized version of this basis. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1.0[/code]), which also means it can only represent a rotation.
 				It is often useful to call this method to avoid rounding errors on a rotating basis:
 				[codeblocks]
 				[gdscript]
@@ -242,8 +248,8 @@
 			<param index="0" name="axis" type="Vector3" />
 			<param index="1" name="angle" type="float" />
 			<description>
-				Returns this basis rotated around the given [param axis] by [param angle] (in radians). The [param axis] must be a normalized vector (see [method Vector3.normalized]).
-				Positive values rotate this basis clockwise around the axis, while negative values rotate it counterclockwise.
+				Returns a copy of this basis rotated around the given [param axis] by the given [param angle] (in radians).
+				The [param axis] must be a normalized vector (see [method Vector3.normalized]). If [param angle] is positive, the basis is rotated counter-clockwise around the axis.
 				[codeblocks]
 				[gdscript]
 				var my_basis = Basis.IDENTITY
@@ -279,9 +285,9 @@
 				)
 				my_basis = my_basis.scaled(Vector3(0, 2, -2))
 
-				print(my_basis.x) # Prints (0, 2, -2).
-				print(my_basis.y) # Prints (0, 4, -4).
-				print(my_basis.z) # Prints (0, 6, -6).
+				print(my_basis.x) # Prints (0.0, 2.0, -2.0)
+				print(my_basis.y) # Prints (0.0, 4.0, -4.0)
+				print(my_basis.z) # Prints (0.0, 6.0, -6.0)
 				[/gdscript]
 				[csharp]
 				var myBasis = new Basis(
@@ -291,9 +297,9 @@
 				);
 				myBasis = myBasis.Scaled(new Vector3(0.0f, 2.0f, -2.0f));
 
-				GD.Print(myBasis.X); // Prints (0, 2, -2).
-				GD.Print(myBasis.Y); // Prints (0, 4, -4).
-				GD.Print(myBasis.Z); // Prints (0, 6, -6).
+				GD.Print(myBasis.X); // Prints (0, 2, -2)
+				GD.Print(myBasis.Y); // Prints (0, 4, -4)
+				GD.Print(myBasis.Z); // Prints (0, 6, -6)
 				[/csharp]
 				[/codeblocks]
 			</description>
@@ -354,9 +360,9 @@
 				)
 				my_basis = my_basis.transposed()
 
-				print(my_basis.x) # Prints (1, 4, 7).
-				print(my_basis.y) # Prints (2, 5, 8).
-				print(my_basis.z) # Prints (3, 6, 9).
+				print(my_basis.x) # Prints (1.0, 4.0, 7.0)
+				print(my_basis.y) # Prints (2.0, 5.0, 8.0)
+				print(my_basis.z) # Prints (3.0, 6.0, 9.0)
 				[/gdscript]
 				[csharp]
 				var myBasis = new Basis(
@@ -366,9 +372,9 @@
 				);
 				myBasis = myBasis.Transposed();
 
-				GD.Print(myBasis.X); // Prints (1, 4, 7).
-				GD.Print(myBasis.Y); // Prints (2, 5, 8).
-				GD.Print(myBasis.Z); // Prints (3, 6, 9).
+				GD.Print(myBasis.X); // Prints (1, 4, 7)
+				GD.Print(myBasis.Y); // Prints (2, 5, 8)
+				GD.Print(myBasis.Z); // Prints (3, 6, 9)
 				[/csharp]
 				[/codeblocks]
 			</description>
@@ -390,23 +396,24 @@
 	</members>
 	<constants>
 		<constant name="IDENTITY" value="Basis(1, 0, 0, 0, 1, 0, 0, 0, 1)">
-			The identity basis. This is a basis with no rotation, no shear, and its scale being [code]1[/code]. This means that:
+			The identity [Basis]. This is an orthonormal basis with no rotation, no shear, and a scale of [constant Vector3.ONE]. This also means that:
 			- The [member x] points right ([constant Vector3.RIGHT]);
 			- The [member y] points up ([constant Vector3.UP]);
 			- The [member z] points back ([constant Vector3.BACK]).
 			[codeblock]
-			var basis := Basis.IDENTITY
+			var basis = Basis.IDENTITY
 			print("| X | Y | Z")
-			print("| %s | %s | %s" % [basis.x.x, basis.y.x, basis.z.x])
-			print("| %s | %s | %s" % [basis.x.y, basis.y.y, basis.z.y])
-			print("| %s | %s | %s" % [basis.x.z, basis.y.z, basis.z.z])
+			print("| %.f | %.f | %.f" % [basis.x.x, basis.y.x, basis.z.x])
+			print("| %.f | %.f | %.f" % [basis.x.y, basis.y.y, basis.z.y])
+			print("| %.f | %.f | %.f" % [basis.x.z, basis.y.z, basis.z.z])
 			# Prints:
 			# | X | Y | Z
 			# | 1 | 0 | 0
 			# | 0 | 1 | 0
 			# | 0 | 0 | 1
 			[/codeblock]
-			This is identical to creating [constructor Basis] without any parameters. This constant can be used to make your code clearer, and for consistency with C#.
+			If a [Vector3] or another [Basis] is transformed (multiplied) by this constant, no transformation occurs.
+			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Basis] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>
 		<constant name="FLIP_X" value="Basis(-1, 0, 0, 0, 1, 0, 0, 0, 1)">
 			When any basis is multiplied by [constant FLIP_X], it negates all components of the [member x] axis (the X column).
@@ -447,7 +454,7 @@
 				[gdscript]
 				# Basis that swaps the X/Z axes and doubles the scale.
 				var my_basis = Basis(Vector3(0, 2, 0), Vector3(2, 0, 0), Vector3(0, 0, 2))
-				print(my_basis * Vector3(1, 2, 3)) # Prints (4, 2, 6)
+				print(my_basis * Vector3(1, 2, 3)) # Prints (4.0, 2.0, 6.0)
 				[/gdscript]
 				[csharp]
 				// Basis that swaps the X/Z axes and doubles the scale.

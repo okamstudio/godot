@@ -253,7 +253,11 @@ public:
 
 		radius *= p_radius;
 
-		if (p_type == LIGHT_TYPE_OMNI) {
+		// Spotlights with wide angle are trated as Omni lights.
+		// If the spot angle is above the threshold, we need a sphere instead of a cone for building the clusters
+		// since the cone gets too flat/large (spot angle close to 90 degrees) or
+		// can't even cover the affected area of the light (spot angle above 90 degrees).
+		if (p_type == LIGHT_TYPE_OMNI || (p_type == LIGHT_TYPE_SPOT && p_spot_aperture > WIDE_SPOT_ANGLE_THRESHOLD_DEG)) {
 			radius *= shared->sphere_overfit; // Overfit icosphere.
 
 			float depth = -xform.origin.z;
@@ -269,15 +273,21 @@ public:
 			e.scale[0] = radius;
 			e.scale[1] = radius;
 			e.scale[2] = radius;
-			e.type = ELEMENT_TYPE_OMNI_LIGHT;
-			e.original_index = cluster_count_by_type[ELEMENT_TYPE_OMNI_LIGHT];
+			if (p_type == LIGHT_TYPE_OMNI) {
+				e.type = ELEMENT_TYPE_OMNI_LIGHT;
+				e.original_index = cluster_count_by_type[ELEMENT_TYPE_OMNI_LIGHT];
+				cluster_count_by_type[ELEMENT_TYPE_OMNI_LIGHT]++;
+			} else { // LIGHT_TYPE_SPOT with wide angle.
+				e.type = ELEMENT_TYPE_SPOT_LIGHT;
+				e.has_wide_spot_angle = true;
+				e.original_index = cluster_count_by_type[ELEMENT_TYPE_SPOT_LIGHT];
+				cluster_count_by_type[ELEMENT_TYPE_SPOT_LIGHT]++;
+			}
 
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(xform, e.transform_inv);
 
-			cluster_count_by_type[ELEMENT_TYPE_OMNI_LIGHT]++;
-
-		} else /*LIGHT_TYPE_SPOT */ {
-			radius *= shared->cone_overfit; // Overfit icosphere
+		} else /*LIGHT_TYPE_SPOT with no wide angle*/ {
+			radius *= shared->cone_overfit; // Overfit cone.
 
 			real_t len = Math::tan(Math::deg_to_rad(p_spot_aperture)) * radius;
 			// Approximate, probably better to use a cone support function.
@@ -310,24 +320,12 @@ public:
 			}
 
 			e.touches_far = max_d > z_far;
-
-			// If the spot angle is above the threshold, use a sphere instead of a cone for building the clusters
-			// since the cone gets too flat/large (spot angle close to 90 degrees) or
-			// can't even cover the affected area of the light (spot angle above 90 degrees).
-			if (p_spot_aperture > WIDE_SPOT_ANGLE_THRESHOLD_DEG) {
-				e.scale[0] = radius;
-				e.scale[1] = radius;
-				e.scale[2] = radius;
-				e.has_wide_spot_angle = true;
-			} else {
-				e.scale[0] = len * shared->cone_overfit;
-				e.scale[1] = len * shared->cone_overfit;
-				e.scale[2] = radius;
-				e.has_wide_spot_angle = false;
-			}
-
+			e.scale[0] = len * shared->cone_overfit;
+			e.scale[1] = len * shared->cone_overfit;
+			e.scale[2] = radius;
+			e.has_wide_spot_angle = false;
 			e.type = ELEMENT_TYPE_SPOT_LIGHT;
-			e.original_index = cluster_count_by_type[ELEMENT_TYPE_SPOT_LIGHT]; // Use omni light since they share index.
+			e.original_index = cluster_count_by_type[ELEMENT_TYPE_SPOT_LIGHT];
 
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(xform, e.transform_inv);
 

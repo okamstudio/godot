@@ -84,6 +84,7 @@ ignore-words-list = [
 	"outin",
 	"parm",
 	"requestor",
+	"streamin",
 	"te",
 	"textin",
 	"thirdparty",

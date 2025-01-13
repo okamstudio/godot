@@ -42,6 +42,7 @@ void TextServerExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_support_data_filename);
 	GDVIRTUAL_BIND(_get_support_data_info);
 	GDVIRTUAL_BIND(_save_support_data, "filename");
+	GDVIRTUAL_BIND(_get_support_data);
 
 	GDVIRTUAL_BIND(_is_locale_right_to_left, "locale");
 
@@ -112,6 +113,9 @@ void TextServerExtension::_bind_methods() {
 
 	GDVIRTUAL_BIND(_font_set_subpixel_positioning, "font_rid", "subpixel_positioning");
 	GDVIRTUAL_BIND(_font_get_subpixel_positioning, "font_rid");
+
+	GDVIRTUAL_BIND(_font_set_keep_rounding_remainders, "font_rid", "keep_rounding_remainders");
+	GDVIRTUAL_BIND(_font_get_keep_rounding_remainders, "font_rid");
 
 	GDVIRTUAL_BIND(_font_set_embolden, "font_rid", "strength");
 	GDVIRTUAL_BIND(_font_get_embolden, "font_rid");
@@ -402,6 +406,12 @@ bool TextServerExtension::save_support_data(const String &p_filename) const {
 	return ret;
 }
 
+PackedByteArray TextServerExtension::get_support_data() const {
+	PackedByteArray ret;
+	GDVIRTUAL_CALL(_get_support_data, ret);
+	return ret;
+}
+
 bool TextServerExtension::is_locale_right_to_left(const String &p_locale) const {
 	bool ret = false;
 	GDVIRTUAL_CALL(_is_locale_right_to_left, p_locale, ret);
@@ -637,6 +647,16 @@ void TextServerExtension::font_set_subpixel_positioning(const RID &p_font_rid, T
 TextServer::SubpixelPositioning TextServerExtension::font_get_subpixel_positioning(const RID &p_font_rid) const {
 	TextServer::SubpixelPositioning ret = TextServer::SUBPIXEL_POSITIONING_DISABLED;
 	GDVIRTUAL_CALL(_font_get_subpixel_positioning, p_font_rid, ret);
+	return ret;
+}
+
+void TextServerExtension::font_set_keep_rounding_remainders(const RID &p_font_rid, bool p_keep_rounding_remainders) {
+	GDVIRTUAL_CALL(_font_set_keep_rounding_remainders, p_font_rid, p_keep_rounding_remainders);
+}
+
+bool TextServerExtension::font_get_keep_rounding_remainders(const RID &p_font_rid) const {
+	bool ret = true;
+	GDVIRTUAL_CALL(_font_get_keep_rounding_remainders, p_font_rid, ret);
 	return ret;
 }
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRInteractionProfileEditor" inherits="OpenXRInteractionProfileEditorBase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Default OpenXR interaction profile editor.
+	</brief_description>
+	<description>
+		This is the default OpenXR interaction profile editor that provides a generic interface for editing any interaction profile for which no custom editor has been defined.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

@@ -230,7 +230,7 @@ String DirAccessWindows::get_current_dir(bool p_include_drive) const {
 		return cdir;
 	} else {
 		if (_get_root_string().is_empty()) {
-			int pos = cdir.find(":");
+			int pos = cdir.find_char(':');
 			if (pos != -1) {
 				return cdir.substr(pos + 1);
 			}
@@ -344,7 +344,7 @@ String DirAccessWindows::get_filesystem_type() const {
 		return "Network Share";
 	}
 
-	int unit_end = path.find(":");
+	int unit_end = path.find_char(':');
 	ERR_FAIL_COND_V(unit_end == -1, String());
 	String unit = path.substr(0, unit_end + 1) + "\\";
 

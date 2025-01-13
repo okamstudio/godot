@@ -38,6 +38,9 @@ void LabelSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_line_spacing", "spacing"), &LabelSettings::set_line_spacing);
 	ClassDB::bind_method(D_METHOD("get_line_spacing"), &LabelSettings::get_line_spacing);
 
+	ClassDB::bind_method(D_METHOD("set_paragraph_spacing", "spacing"), &LabelSettings::set_paragraph_spacing);
+	ClassDB::bind_method(D_METHOD("get_paragraph_spacing"), &LabelSettings::get_paragraph_spacing);
+
 	ClassDB::bind_method(D_METHOD("set_font", "font"), &LabelSettings::set_font);
 	ClassDB::bind_method(D_METHOD("get_font"), &LabelSettings::get_font);
 
@@ -63,6 +66,7 @@ void LabelSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_shadow_offset"), &LabelSettings::get_shadow_offset);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "line_spacing", PROPERTY_HINT_NONE, "suffix:px"), "set_line_spacing", "get_line_spacing");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "paragraph_spacing", PROPERTY_HINT_NONE, "suffix:px"), "set_paragraph_spacing", "get_paragraph_spacing");
 
 	ADD_GROUP("Font", "font_");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "font", PROPERTY_HINT_RESOURCE_TYPE, "Font"), "set_font", "get_font");
@@ -88,6 +92,17 @@ void LabelSettings::set_line_spacing(real_t p_spacing) {
 
 real_t LabelSettings::get_line_spacing() const {
 	return line_spacing;
+}
+
+void LabelSettings::set_paragraph_spacing(real_t p_spacing) {
+	if (paragraph_spacing != p_spacing) {
+		paragraph_spacing = p_spacing;
+		emit_changed();
+	}
+}
+
+real_t LabelSettings::get_paragraph_spacing() const {
+	return paragraph_spacing;
 }
 
 void LabelSettings::set_font(const Ref<Font> &p_font) {

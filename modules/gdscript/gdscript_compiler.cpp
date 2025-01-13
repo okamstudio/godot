@@ -120,8 +120,8 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 
 #ifdef DEBUG_ENABLED
 			if (unlikely(!GDScriptLanguage::get_singleton()->get_global_map().has(result.native_type))) {
-				ERR_PRINT(vformat(R"(GDScript bug: Native class "%s" not found.)", result.native_type));
-				result.native_type = Object::get_class_static();
+				_set_error(vformat(R"(GDScript bug (please report): Native class "%s" not found.)", result.native_type), nullptr);
+				return GDScriptDataType();
 			}
 #endif
 		} break;
@@ -161,6 +161,7 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 				script = GDScriptCache::get_shallow_script(p_datatype.script_path, err, p_owner->path);
 				if (err) {
 					_set_error(vformat(R"(Could not find script "%s": %s)", p_datatype.script_path, error_names[err]), nullptr);
+					return GDScriptDataType();
 				}
 			}
 
@@ -193,7 +194,7 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 			break;
 		case GDScriptParser::DataType::RESOLVING:
 		case GDScriptParser::DataType::UNRESOLVED: {
-			ERR_PRINT("Parser bug: converting unresolved type.");
+			_set_error("Parser bug (please report): converting unresolved type.", nullptr);
 			return GDScriptDataType();
 		}
 	}
@@ -491,7 +492,7 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 		case GDScriptParser::Node::SELF: {
 			//return constant
 			if (codegen.function_node && codegen.function_node->is_static) {
-				_set_error("'self' not present in static function!", p_expression);
+				_set_error("'self' not present in static function.", p_expression);
 				r_error = ERR_COMPILATION_FAILED;
 				return GDScriptCodeGenerator::Address();
 			}
@@ -726,6 +727,7 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 							return GDScriptCodeGenerator::Address();
 						}
 					} else {
+						_set_error("Compiler bug (please report): incorrect callee type in call node.", call->callee);
 						r_error = ERR_COMPILATION_FAILED;
 						return GDScriptCodeGenerator::Address();
 					}
@@ -1276,7 +1278,11 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 				}
 			} else {
 				// Regular assignment.
-				ERR_FAIL_COND_V_MSG(assignment->assignee->type != GDScriptParser::Node::IDENTIFIER, GDScriptCodeGenerator::Address(), "Expected the assignee to be an identifier here.");
+				if (assignment->assignee->type != GDScriptParser::Node::IDENTIFIER) {
+					_set_error("Compiler bug (please report): Expected the assignee to be an identifier here.", assignment->assignee);
+					r_error = ERR_COMPILATION_FAILED;
+					return GDScriptCodeGenerator::Address();
+				}
 				GDScriptCodeGenerator::Address member;
 				bool is_member = false;
 				bool has_setter = false;
@@ -1417,7 +1423,9 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_expression(CodeGen &code
 			return result;
 		} break;
 		default: {
-			ERR_FAIL_V_MSG(GDScriptCodeGenerator::Address(), "Bug in bytecode compiler, unexpected node in parse tree while parsing expression."); // Unreachable code.
+			_set_error("Compiler bug (please report): Unexpected node in parse tree while parsing expression.", p_expression); // Unreachable code.
+			r_error = ERR_COMPILATION_FAILED;
+			return GDScriptCodeGenerator::Address();
 		} break;
 	}
 }
@@ -1854,7 +1862,10 @@ GDScriptCodeGenerator::Address GDScriptCompiler::_parse_match_pattern(CodeGen &c
 			}
 			return p_previous_test;
 	}
-	ERR_FAIL_V_MSG(p_previous_test, "Reaching the end of pattern compilation without matching a pattern.");
+
+	_set_error("Compiler bug (please report): Reaching the end of pattern compilation without matching a pattern.", p_pattern);
+	r_error = ERR_COMPILATION_FAILED;
+	return p_previous_test;
 }
 
 List<GDScriptCodeGenerator::Address> GDScriptCompiler::_add_block_locals(CodeGen &codegen, const GDScriptParser::SuiteNode *p_block) {
@@ -2188,7 +2199,7 @@ Error GDScriptCompiler::_parse_block(CodeGen &codegen, const GDScriptParser::Sui
 					initialized = true;
 				} else if ((local_type.has_type && local_type.kind == GDScriptDataType::BUILTIN) || codegen.generator->is_local_dirty(local)) {
 					// Initialize with default for the type. Built-in types must always be cleared (they cannot be `null`).
-					// Objects and untyped variables are assigned to `null` only if the stack address has been re-used and not cleared.
+					// Objects and untyped variables are assigned to `null` only if the stack address has been reused and not cleared.
 					codegen.generator->clear_address(local);
 					initialized = true;
 				}
@@ -2222,7 +2233,8 @@ Error GDScriptCompiler::_parse_block(CodeGen &codegen, const GDScriptParser::Sui
 						codegen.generator->pop_temporary();
 					}
 				} else {
-					ERR_FAIL_V_MSG(ERR_INVALID_DATA, "Bug in bytecode compiler, unexpected node in parse tree while parsing statement."); // Unreachable code.
+					_set_error("Compiler bug (please report): unexpected node in parse tree while parsing statement.", s); // Unreachable code.
+					return ERR_INVALID_DATA;
 				}
 			} break;
 		}
@@ -2707,12 +2719,18 @@ Error GDScriptCompiler::_prepare_compilation(GDScript *p_script, const GDScriptP
 
 	GDScriptDataType base_type = _gdtype_from_datatype(p_class->base_type, p_script, false);
 
-	ERR_FAIL_COND_V_MSG(base_type.native_type == StringName(), ERR_BUG, vformat(R"(Failed to get base class for "%s")", p_script->path));
+	if (base_type.native_type == StringName()) {
+		_set_error(vformat(R"(Parser bug (please report): Empty native type in base class "%s")", p_script->path), p_class);
+		return ERR_BUG;
+	}
 
 	int native_idx = GDScriptLanguage::get_singleton()->get_global_map()[base_type.native_type];
 
 	p_script->native = GDScriptLanguage::get_singleton()->get_global_array()[native_idx];
-	ERR_FAIL_COND_V(p_script->native.is_null(), ERR_BUG);
+	if (p_script->native.is_null()) {
+		_set_error("Compiler bug (please report): script native type is null.", nullptr);
+		return ERR_BUG;
+	}
 
 	// Inheritance
 	switch (base_type.kind) {
@@ -2722,7 +2740,8 @@ Error GDScriptCompiler::_prepare_compilation(GDScript *p_script, const GDScriptP
 		case GDScriptDataType::GDSCRIPT: {
 			Ref<GDScript> base = Ref<GDScript>(base_type.script_type);
 			if (base.is_null()) {
-				return ERR_COMPILATION_FAILED;
+				_set_error("Compiler bug (please report): base script type is null.", nullptr);
+				return ERR_BUG;
 			}
 
 			if (main_script->has_class(base.ptr())) {
@@ -2757,7 +2776,7 @@ Error GDScriptCompiler::_prepare_compilation(GDScript *p_script, const GDScriptP
 			p_script->member_indices = base->member_indices;
 		} break;
 		default: {
-			_set_error("Parser bug: invalid inheritance.", nullptr);
+			_set_error("Parser bug (please report): invalid inheritance.", nullptr);
 			return ERR_BUG;
 		} break;
 	}
@@ -3059,9 +3078,9 @@ void GDScriptCompiler::convert_to_initializer_type(Variant &p_variant, const GDS
 	if (member_t.is_hard_type() && init_t.is_hard_type() &&
 			member_t.kind == GDScriptParser::DataType::BUILTIN && init_t.kind == GDScriptParser::DataType::BUILTIN) {
 		if (Variant::can_convert_strict(init_t.builtin_type, member_t.builtin_type)) {
-			Variant *v = &p_node->initializer->reduced_value;
+			const Variant *v = &p_node->initializer->reduced_value;
 			Callable::CallError ce;
-			Variant::construct(member_t.builtin_type, p_variant, const_cast<const Variant **>(&v), 1, ce);
+			Variant::construct(member_t.builtin_type, p_variant, &v, 1, ce);
 		}
 	}
 }
@@ -3270,7 +3289,11 @@ Error GDScriptCompiler::compile(const GDScriptParser *p_parser, GDScript *p_scri
 		GDScriptCache::add_static_script(p_script);
 	}
 
-	return GDScriptCache::finish_compiling(main_script->path);
+	err = GDScriptCache::finish_compiling(main_script->path);
+	if (err) {
+		_set_error(R"(Failed to compile depended scripts.)", nullptr);
+	}
+	return err;
 }
 
 String GDScriptCompiler::get_error() const {

@@ -57,10 +57,11 @@ class NavRegion : public NavBase {
 	Vector<Vector3> pending_navmesh_vertices;
 	Vector<Vector<int>> pending_navmesh_polygons;
 
+	SelfList<NavRegion> sync_dirty_request_list_element;
+
 public:
-	NavRegion() {
-		type = NavigationUtilities::PathSegmentType::PATH_SEGMENT_TYPE_REGION;
-	}
+	NavRegion();
+	~NavRegion();
 
 	void scratch_polygons() {
 		polygons_dirty = true;
@@ -97,6 +98,8 @@ public:
 	real_t get_surface_area() const { return surface_area; }
 
 	bool sync();
+	void request_sync();
+	void cancel_sync_request();
 
 private:
 	void update_polygons();

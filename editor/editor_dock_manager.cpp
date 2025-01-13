@@ -174,6 +174,9 @@ void EditorDockManager::_update_docks_menu() {
 	docks_menu_docks.clear();
 	int id = 0;
 	for (const KeyValue<Control *, DockInfo> &dock : all_docks) {
+		if (!dock.value.enabled) {
+			continue;
+		}
 		if (dock.value.shortcut.is_valid()) {
 			docks_menu->add_shortcut(dock.value.shortcut, id);
 			docks_menu->set_item_text(id, dock.value.title);
@@ -184,8 +187,10 @@ void EditorDockManager::_update_docks_menu() {
 		docks_menu->set_item_icon(id, icon.is_valid() ? icon : default_icon);
 		if (!dock.value.open) {
 			docks_menu->set_item_icon_modulate(id, closed_icon_color_mod);
+			docks_menu->set_item_tooltip(id, vformat(TTR("Open the %s dock."), dock.value.title));
+		} else {
+			docks_menu->set_item_tooltip(id, vformat(TTR("Focus on the %s dock."), dock.value.title));
 		}
-		docks_menu->set_item_disabled(id, !dock.value.enabled);
 		docks_menu_docks.push_back(dock.key);
 		id++;
 	}

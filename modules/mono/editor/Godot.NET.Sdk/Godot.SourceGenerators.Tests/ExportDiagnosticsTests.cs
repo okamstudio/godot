@@ -74,4 +74,31 @@ public class ExportDiagnosticsTests
             }
         );
     }
+
+    [Fact]
+    public async void ExportToolButtonInNonToolClass()
+    {
+        await CSharpSourceGeneratorVerifier<ScriptPropertiesGenerator>.Verify(
+            new string[] { "ExportDiagnostics_GD0108.cs" },
+            new string[] { "ExportDiagnostics_GD0108_ScriptProperties.generated.cs" }
+        );
+    }
+
+    [Fact]
+    public async void ExportAndExportToolButtonOnSameMember()
+    {
+        await CSharpSourceGeneratorVerifier<ScriptPropertiesGenerator>.Verify(
+            new string[] { "ExportDiagnostics_GD0109.cs" },
+            new string[] { "ExportDiagnostics_GD0109_ScriptProperties.generated.cs" }
+        );
+    }
+
+    [Fact]
+    public async void ExportToolButtonOnNonCallable()
+    {
+        await CSharpSourceGeneratorVerifier<ScriptPropertiesGenerator>.Verify(
+            new string[] { "ExportDiagnostics_GD0110.cs" },
+            new string[] { "ExportDiagnostics_GD0110_ScriptProperties.generated.cs" }
+        );
+    }
 }

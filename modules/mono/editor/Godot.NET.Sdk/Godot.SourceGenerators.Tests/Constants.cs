@@ -1,11 +1,19 @@
 using System.IO;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Godot.SourceGenerators.Tests;
 
 public static class Constants
 {
     public static Assembly GodotSharpAssembly => typeof(GodotObject).Assembly;
+
+    // Can't find what needs updating to be able to access ReferenceAssemblies.Net.Net80, so we're making our own one.
+    public static ReferenceAssemblies Net80 => new ReferenceAssemblies(
+        "net8.0",
+        new PackageIdentity("Microsoft.NETCore.App.Ref", "8.0.0"),
+        Path.Combine("ref", "net8.0")
+    );
 
     public static string ExecutingAssemblyPath { get; }
     public static string SourceFolderPath { get; }

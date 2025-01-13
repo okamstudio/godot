@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRHapticBase" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		OpenXR Haptic feedback base class.
+	</brief_description>
+	<description>
+		This is a base class for haptic feedback resources.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

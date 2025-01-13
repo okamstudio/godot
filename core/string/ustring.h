@@ -39,6 +39,91 @@
 #include "core/typedefs.h"
 #include "core/variant/array.h"
 
+#include <utility>
+
+/*************************************************************************/
+/*  Utility Functions                                                    */
+/*************************************************************************/
+
+// Not defined by std.
+// strlen equivalent function for char16_t * arguments.
+constexpr size_t strlen(const char16_t *p_str) {
+	const char16_t *ptr = p_str;
+	while (*ptr != 0) {
+		++ptr;
+	}
+	return ptr - p_str;
+}
+
+// strlen equivalent function for char32_t * arguments.
+constexpr size_t strlen(const char32_t *p_str) {
+	const char32_t *ptr = p_str;
+	while (*ptr != 0) {
+		++ptr;
+	}
+	return ptr - p_str;
+}
+
+// strlen equivalent function for wchar_t * arguments; depends on the platform.
+constexpr size_t strlen(const wchar_t *str) {
+	// Use static_cast twice because reinterpret_cast is not allowed in constexpr
+#ifdef WINDOWS_ENABLED
+	// wchar_t is 16-bit
+	return strlen(static_cast<const char16_t *>(static_cast<const void *>(str)));
+#else
+	// wchar_t is 32-bit
+	return strlen(static_cast<const char32_t *>(static_cast<const void *>(str)));
+#endif
+}
+
+constexpr size_t _strlen_clipped(const char *p_str, int p_clip_to_len) {
+	if (p_clip_to_len < 0) {
+		return strlen(p_str);
+	}
+
+	int len = 0;
+	while (len < p_clip_to_len && *(p_str++) != 0) {
+		len++;
+	}
+	return len;
+}
+
+constexpr size_t _strlen_clipped(const char32_t *p_str, int p_clip_to_len) {
+	if (p_clip_to_len < 0) {
+		return strlen(p_str);
+	}
+
+	int len = 0;
+	while (len < p_clip_to_len && *(p_str++) != 0) {
+		len++;
+	}
+	return len;
+}
+
+/*************************************************************************/
+/*  StrRange                                                             */
+/*************************************************************************/
+
+template <typename Element>
+struct StrRange {
+	const Element *c_str;
+	size_t len;
+
+	explicit StrRange(const std::nullptr_t p_cstring) :
+			c_str(nullptr), len(0) {}
+
+	explicit StrRange(const Element *p_cstring, const size_t p_len) :
+			c_str(p_cstring), len(p_len) {}
+
+	template <size_t len>
+	explicit StrRange(const Element (&p_cstring)[len]) :
+			c_str(p_cstring), len(strlen(p_cstring)) {}
+
+	static StrRange from_c_str(const Element *p_cstring) {
+		return StrRange(p_cstring, p_cstring ? strlen(p_cstring) : 0);
+	}
+};
+
 /*************************************************************************/
 /*  CharProxy                                                            */
 /*************************************************************************/
@@ -110,7 +195,10 @@ public:
 
 	_FORCE_INLINE_ Char16String() {}
 	_FORCE_INLINE_ Char16String(const Char16String &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ Char16String(Char16String &&p_str) :
+			_cowdata(std::move(p_str._cowdata)) {}
 	_FORCE_INLINE_ void operator=(const Char16String &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ void operator=(Char16String &&p_str) { _cowdata = std::move(p_str._cowdata); }
 	_FORCE_INLINE_ Char16String(const char16_t *p_cstr) { copy_from(p_cstr); }
 
 	void operator=(const char16_t *p_cstr);
@@ -119,6 +207,7 @@ public:
 	int length() const { return size() ? size() - 1 : 0; }
 	const char16_t *get_data() const;
 	operator const char16_t *() const { return get_data(); }
+	explicit operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char16_t *p_cstr);
@@ -151,7 +240,10 @@ public:
 
 	_FORCE_INLINE_ CharString() {}
 	_FORCE_INLINE_ CharString(const CharString &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ CharString(CharString &&p_str) :
+			_cowdata(std::move(p_str._cowdata)) {}
 	_FORCE_INLINE_ void operator=(const CharString &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ void operator=(CharString &&p_str) { _cowdata = std::move(p_str._cowdata); }
 	_FORCE_INLINE_ CharString(const char *p_cstr) { copy_from(p_cstr); }
 
 	void operator=(const char *p_cstr);
@@ -161,6 +253,7 @@ public:
 	int length() const { return size() ? size() - 1 : 0; }
 	const char *get_data() const;
 	operator const char *() const { return get_data(); }
+	explicit operator StrRange<char>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char *p_cstr);
@@ -170,31 +263,59 @@ protected:
 /*  String                                                               */
 /*************************************************************************/
 
-struct StrRange {
-	const char32_t *c_str;
-	int len;
-
-	StrRange(const char32_t *p_c_str = nullptr, int p_len = 0) {
-		c_str = p_c_str;
-		len = p_len;
-	}
-};
-
 class String {
 	CowData<char32_t> _cowdata;
 	static const char32_t _null;
 	static const char32_t _replacement_char;
 
-	void copy_from(const char *p_cstr);
-	void copy_from(const char *p_cstr, const int p_clip_to);
-	void copy_from(const wchar_t *p_cstr);
-	void copy_from(const wchar_t *p_cstr, const int p_clip_to);
-	void copy_from(const char32_t *p_cstr);
-	void copy_from(const char32_t *p_cstr, const int p_clip_to);
-
+	// Known-length copy.
+	void copy_from(const StrRange<char> &p_cstr);
+	void copy_from(const StrRange<char32_t> &p_cstr);
 	void copy_from(const char32_t &p_char);
+	void copy_from_unchecked(const char32_t *p_char, int p_length);
 
-	void copy_from_unchecked(const char32_t *p_char, const int p_length);
+	// NULL-terminated c string copy - automatically parse the string to find the length.
+	void copy_from(const char *p_cstr) {
+		copy_from(StrRange<char>::from_c_str(p_cstr));
+	}
+	void copy_from(const char *p_cstr, int p_clip_to) {
+		copy_from(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+	}
+	void copy_from(const char32_t *p_cstr) {
+		copy_from(StrRange<char32_t>::from_c_str(p_cstr));
+	}
+	void copy_from(const char32_t *p_cstr, int p_clip_to) {
+		copy_from(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+	}
+
+	// wchar_t copy_from depends on the platform.
+	void copy_from(const StrRange<wchar_t> &p_cstr) {
+#ifdef WINDOWS_ENABLED
+		// wchar_t is 16-bit, parse as UTF-16
+		parse_utf16((const char16_t *)p_cstr.c_str, p_cstr.len);
+#else
+		// wchar_t is 32-bit, copy directly
+		copy_from((StrRange<char32_t> &)p_cstr);
+#endif
+	}
+	void copy_from(const wchar_t *p_cstr) {
+#ifdef WINDOWS_ENABLED
+		// wchar_t is 16-bit, parse as UTF-16
+		parse_utf16((const char16_t *)p_cstr);
+#else
+		// wchar_t is 32-bit, copy directly
+		copy_from((const char32_t *)p_cstr);
+#endif
+	}
+	void copy_from(const wchar_t *p_cstr, int p_clip_to) {
+#ifdef WINDOWS_ENABLED
+		// wchar_t is 16-bit, parse as UTF-16
+		parse_utf16((const char16_t *)p_cstr, p_clip_to);
+#else
+		// wchar_t is 32-bit, copy directly
+		copy_from((const char32_t *)p_cstr, p_clip_to);
+#endif
+	}
 
 	bool _base_is_subsequence_of(const String &p_string, bool case_insensitive) const;
 	int _count(const String &p_string, int p_from, int p_to, bool p_case_insensitive) const;
@@ -227,6 +348,8 @@ public:
 	}
 	_FORCE_INLINE_ CharProxy<char32_t> operator[](int p_index) { return CharProxy<char32_t>(p_index, _cowdata); }
 
+	/* Compatibility Operators */
+
 	bool operator==(const String &p_str) const;
 	bool operator!=(const String &p_str) const;
 	String operator+(const String &p_str) const;
@@ -238,16 +361,10 @@ public:
 	String &operator+=(const wchar_t *p_str);
 	String &operator+=(const char32_t *p_str);
 
-	/* Compatibility Operators */
-
-	void operator=(const char *p_str);
-	void operator=(const wchar_t *p_str);
-	void operator=(const char32_t *p_str);
-
 	bool operator==(const char *p_str) const;
 	bool operator==(const wchar_t *p_str) const;
 	bool operator==(const char32_t *p_str) const;
-	bool operator==(const StrRange &p_str_range) const;
+	bool operator==(const StrRange<char32_t> &p_str_range) const;
 
 	bool operator!=(const char *p_str) const;
 	bool operator!=(const wchar_t *p_str) const;
@@ -432,6 +549,7 @@ public:
 	_FORCE_INLINE_ bool is_empty() const { return length() == 0; }
 	_FORCE_INLINE_ bool contains(const char *p_str) const { return find(p_str) != -1; }
 	_FORCE_INLINE_ bool contains(const String &p_str) const { return find(p_str) != -1; }
+	_FORCE_INLINE_ bool contains_char(char32_t p_chr) const { return find_char(p_chr) != -1; }
 	_FORCE_INLINE_ bool containsn(const char *p_str) const { return findn(p_str) != -1; }
 	_FORCE_INLINE_ bool containsn(const String &p_str) const { return findn(p_str) != -1; }
 
@@ -484,7 +602,10 @@ public:
 
 	_FORCE_INLINE_ String() {}
 	_FORCE_INLINE_ String(const String &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ String(String &&p_str) :
+			_cowdata(std::move(p_str._cowdata)) {}
 	_FORCE_INLINE_ void operator=(const String &p_str) { _cowdata._ref(p_str._cowdata); }
+	_FORCE_INLINE_ void operator=(String &&p_str) { _cowdata = std::move(p_str._cowdata); }
 
 	Vector<uint8_t> to_ascii_buffer() const;
 	Vector<uint8_t> to_utf8_buffer() const;
@@ -492,13 +613,38 @@ public:
 	Vector<uint8_t> to_utf32_buffer() const;
 	Vector<uint8_t> to_wchar_buffer() const;
 
-	String(const char *p_str);
-	String(const wchar_t *p_str);
-	String(const char32_t *p_str);
-	String(const char *p_str, int p_clip_to_len);
-	String(const wchar_t *p_str, int p_clip_to_len);
-	String(const char32_t *p_str, int p_clip_to_len);
-	String(const StrRange &p_range);
+	// Constructors for NULL terminated C strings.
+	String(const char *p_cstr) {
+		copy_from(p_cstr);
+	}
+	String(const wchar_t *p_cstr) {
+		copy_from(p_cstr);
+	}
+	String(const char32_t *p_cstr) {
+		copy_from(p_cstr);
+	}
+	String(const char *p_cstr, int p_clip_to_len) {
+		copy_from(p_cstr, p_clip_to_len);
+	}
+	String(const wchar_t *p_cstr, int p_clip_to_len) {
+		copy_from(p_cstr, p_clip_to_len);
+	}
+	String(const char32_t *p_cstr, int p_clip_to_len) {
+		copy_from(p_cstr, p_clip_to_len);
+	}
+
+	// Copy assignment for NULL terminated C strings.
+	void operator=(const char *p_cstr) {
+		copy_from(p_cstr);
+	}
+	void operator=(const wchar_t *p_cstr) {
+		copy_from(p_cstr);
+	}
+	void operator=(const char32_t *p_cstr) {
+		copy_from(p_cstr);
+	}
+
+	explicit operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }
 };
 
 bool operator==(const char *p_chr, const String &p_str);

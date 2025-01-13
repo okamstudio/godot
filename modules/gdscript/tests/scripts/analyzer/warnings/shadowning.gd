@@ -4,11 +4,10 @@ extends ShadowingBase
 var member: int = 0
 
 var print_debug := 'print_debug'
-@warning_ignore("shadowed_global_identifier")
+@warning_ignore('shadowed_global_identifier')
 var print := 'print'
 
-@warning_ignore("unused_variable")
-@warning_ignore("unused_local_constant")
+@warning_ignore_start('unused_variable', 'unused_local_constant')
 func test():
 	var Array := 'Array'
 	var Node := 'Node'

@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Could not resolve external class member "v".
+>> ERROR at line 4: Could not resolve external class member "v".
+>> ERROR at line 4: Cannot find member "v" in base "TestCyclicRefExternalA".

@@ -188,6 +188,9 @@
 			If [code]true[/code], automatically switches to the [b]Remote[/b] scene tree when running the project from the editor. If [code]false[/code], stays on the [b]Local[/b] scene tree when running the project from the editor.
 			[b]Warning:[/b] Enabling this setting can cause stuttering when running a project with a large amount of nodes (typically a few thousands of nodes or more), even if the editor window isn't focused. This is due to the remote scene tree being updated every second regardless of whether the editor is focused.
 		</member>
+		<member name="debugger/auto_switch_to_stack_trace" type="bool" setter="" getter="">
+			If [code]true[/code], automatically switches to the [b]Stack Trace[/b] panel when the debugger hits a breakpoint or steps.
+		</member>
 		<member name="debugger/profile_native_calls" type="bool" setter="" getter="">
 			If [code]true[/code], enables collection of profiling data from non-GDScript Godot functions, such as engine class methods. Enabling this slows execution while profiling further.
 		</member>
@@ -357,12 +360,13 @@
 			If [code]true[/code], invert the vertical mouse axis when panning, orbiting, or using freelook mode in the 3D editor.
 		</member>
 		<member name="editors/3d/navigation/navigation_scheme" type="int" setter="" getter="">
-			The navigation scheme preset to use in the 3D editor. Changing this setting will affect the mouse button and modifier controls used to navigate the 3D editor viewport.
+			The navigation scheme preset to use in the 3D editor. Changing this setting will affect the mouse button and modifier keys used to navigate the 3D editor viewport.
 			All schemes can use [kbd]Mouse wheel[/kbd] to zoom.
 			- [b]Godot:[/b] [kbd]Middle mouse button[/kbd] to orbit. [kbd]Shift + Middle mouse button[/kbd] to pan. [kbd]Ctrl + Middle mouse button[/kbd] to zoom.
 			- [b]Maya:[/b] [kbd]Alt + Left mouse button[/kbd] to orbit. [kbd]Middle mouse button[/kbd] to pan, [kbd]Shift + Middle mouse button[/kbd] to pan 10 times faster. [kbd]Alt + Right mouse button[/kbd] to zoom.
 			- [b]Modo:[/b] [kbd]Alt + Left mouse button[/kbd] to orbit. [kbd]Alt + Shift + Left mouse button[/kbd] to pan. [kbd]Ctrl + Alt + Left mouse button[/kbd] to zoom.
-			See also [member editors/3d/navigation/orbit_mouse_button], [member editors/3d/navigation/pan_mouse_button], [member editors/3d/navigation/zoom_mouse_button], and [member editors/3d/freelook/freelook_navigation_scheme].
+			- [b]Tablet/Trackpad:[/b] [kbd]Alt[/kbd] to orbit. [kbd]Shift[/kbd] to pan. [kbd]Ctrl[/kbd] to zoom. Enables 3-button mouse emulation mode.
+			See also [member editors/3d/navigation/orbit_mouse_button], [member editors/3d/navigation/pan_mouse_button], [member editors/3d/navigation/zoom_mouse_button], [member editors/3d/freelook/freelook_navigation_scheme], and [member editors/3d/navigation/emulate_3_button_mouse].
 			[b]Note:[/b] On certain window managers on Linux, the [kbd]Alt[/kbd] key will be intercepted by the window manager when clicking a mouse button at the same time. This means Godot will not see the modifier key as being pressed.
 		</member>
 		<member name="editors/3d/navigation/orbit_mouse_button" type="int" setter="" getter="">
@@ -394,6 +398,9 @@
 		</member>
 		<member name="editors/3d/navigation_feel/translation_inertia" type="float" setter="" getter="">
 			The inertia to use when panning in the 3D editor. Higher values make the camera start and stop slower, which looks smoother but adds latency.
+		</member>
+		<member name="editors/3d/navigation_feel/translation_sensitivity" type="float" setter="" getter="">
+			The mouse sensitivity to use when panning in the 3D editor.
 		</member>
 		<member name="editors/3d/navigation_feel/zoom_inertia" type="float" setter="" getter="">
 			The inertia to use when zooming in the 3D editor. Higher values make the camera start and stop slower, which looks smoother but adds latency.
@@ -1031,7 +1038,7 @@
 		</member>
 		<member name="interface/theme/use_system_accent_color" type="bool" setter="" getter="">
 			If [code]true[/code], set accent color based on system settings.
-			[b]Note:[/b] This setting is only effective on Windows and MacOS.
+			[b]Note:[/b] This setting is only effective on Windows, MacOS, and Android.
 		</member>
 		<member name="interface/touchscreen/enable_long_press_as_right_click" type="bool" setter="" getter="">
 			If [code]true[/code], long press on touchscreen is treated as right click.
@@ -1275,7 +1282,7 @@
 			If [code]true[/code], adds [url=$DOCS_URL/tutorials/scripting/gdscript/static_typing.html]GDScript static typing[/url] hints such as [code]-&gt; void[/code] and [code]: int[/code] when using code autocompletion or when creating onready variables by drag and dropping nodes into the script editor while pressing the [kbd]Ctrl[/kbd] key. If [code]true[/code], newly created scripts will also automatically have type hints added to their method parameters and return types.
 		</member>
 		<member name="text_editor/completion/auto_brace_complete" type="bool" setter="" getter="">
-			If [code]true[/code], automatically completes braces when making use of code completion.
+			If [code]true[/code], automatically inserts the matching closing brace when the opening brace is inserted by typing or autocompletion. Also automatically removes the closing brace when pressing [kbd]Backspace[/kbd] on the opening brace. This includes brackets ([code]()[/code], [code][][/code], [code]{}[/code]), string quotation marks ([code]''[/code], [code]""[/code]), and comments ([code]/**/[/code]) if the language supports it.
 		</member>
 		<member name="text_editor/completion/code_complete_delay" type="float" setter="" getter="">
 			The delay in seconds after which autocompletion suggestions should be displayed when the user stops typing.

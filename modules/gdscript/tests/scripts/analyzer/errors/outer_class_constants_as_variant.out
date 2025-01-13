@@ -1,6 +1,0 @@
-GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> analyzer/errors/outer_class_constants_as_variant.gd
->> 9
->> Invalid access to property or key 'OUTER_CONST' on a base object of type 'GDScript'.

@@ -760,7 +760,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	PhysicsServer2D::MotionResult *get_result_ptr() const { return const_cast<PhysicsServer2D::MotionResult *>(&result); }
+	PhysicsServer2D::MotionResult *get_result_ptr() { return &result; }
 
 	Vector2 get_travel() const;
 	Vector2 get_remainder() const;

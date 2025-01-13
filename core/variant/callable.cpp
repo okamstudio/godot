@@ -361,8 +361,12 @@ Callable::operator String() const {
 		if (base) {
 			String class_name = base->get_class();
 			Ref<Script> script = base->get_script();
-			if (script.is_valid() && script->get_path().is_resource_file()) {
-				class_name += "(" + script->get_path().get_file() + ")";
+			if (script.is_valid()) {
+				if (!script->get_global_name().is_empty()) {
+					class_name += "(" + script->get_global_name() + ")";
+				} else if (script->get_path().is_resource_file()) {
+					class_name += "(" + script->get_path().get_file() + ")";
+				}
 			}
 			return class_name + "::" + String(method);
 		} else {

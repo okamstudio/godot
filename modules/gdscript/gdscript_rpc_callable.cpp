@@ -49,7 +49,14 @@ uint32_t GDScriptRPCCallable::hash() const {
 String GDScriptRPCCallable::get_as_text() const {
 	String class_name = object->get_class();
 	Ref<Script> script = object->get_script();
-	return class_name + "(" + script->get_path().get_file() + ")::" + String(method) + " (rpc)";
+	if (script.is_valid()) {
+		if (!script->get_global_name().is_empty()) {
+			class_name += "(" + script->get_global_name() + ")";
+		} else if (script->get_path().is_resource_file()) {
+			class_name += "(" + script->get_path().get_file() + ")";
+		}
+	}
+	return class_name + "::" + String(method) + " (rpc)";
 }
 
 CallableCustom::CompareEqualFunc GDScriptRPCCallable::get_compare_equal_func() const {

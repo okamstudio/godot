@@ -745,6 +745,7 @@ class Godot(private val context: Context) {
 
 		runOnUiThread {
 			registerSensorsIfNeeded()
+			enableImmersiveMode(useImmersive.get(), true)
 		}
 
 		for (plugin in pluginRegistry.allPlugins) {
@@ -1123,7 +1124,7 @@ class Godot(private val context: Context) {
 
 	@Keep
 	private fun createNewGodotInstance(args: Array<String>): Int {
-		return primaryHost?.onNewGodotInstanceRequested(args) ?: 0
+		return primaryHost?.onNewGodotInstanceRequested(args) ?: -1
 	}
 
 	@Keep

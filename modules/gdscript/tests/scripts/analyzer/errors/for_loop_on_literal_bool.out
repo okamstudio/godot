@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Unable to iterate on value of type "bool".
+>> ERROR at line 2: Unable to iterate on value of type "bool".

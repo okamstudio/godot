@@ -492,13 +492,13 @@ bool simpleXmlParseW3CAttribute(const char* buf, unsigned bufLength, simpleXMLAt
         key[0] = '\0';
         val[0] = '\0';
 
-        if (next == nullptr && sep != nullptr) {
+        if (sep != nullptr && next == nullptr) {
             memcpy(key, buf, sep - buf);
             key[sep - buf] = '\0';
 
             memcpy(val, sep + 1, end - sep - 1);
             val[end - sep - 1] = '\0';
-        } else if (sep < next && sep != nullptr) {
+        } else if (sep != nullptr && sep < next) {
             memcpy(key, buf, sep - buf);
             key[sep - buf] = '\0';
 
@@ -522,8 +522,9 @@ bool simpleXmlParseW3CAttribute(const char* buf, unsigned bufLength, simpleXMLAt
             }
         }
 
+        if (!next) break;
         buf = next + 1;
-    } while (next != nullptr);
+    } while (true);
 
     return true;
 }

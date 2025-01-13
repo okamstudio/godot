@@ -112,13 +112,13 @@
 				The most basic example is applying position to [CharacterBody3D]:
 				[codeblocks]
 				[gdscript]
-				var current_rotation: Quaternion
+				var current_rotation
 
 				func _process(delta):
 				    if Input.is_action_just_pressed("animate"):
 				        current_rotation = get_quaternion()
 				        state_machine.travel("Animate")
-				    var velocity: Vector3 = current_rotation * animation_tree.get_root_motion_position() / delta
+				    var velocity = current_rotation * animation_tree.get_root_motion_position() / delta
 				    set_velocity(velocity)
 				    move_and_slide()
 				[/gdscript]
@@ -130,7 +130,20 @@
 				    if Input.is_action_just_pressed("animate"):
 				        state_machine.travel("Animate")
 				    set_quaternion(get_quaternion() * animation_tree.get_root_motion_rotation())
-				    var velocity: Vector3 = (animation_tree.get_root_motion_rotation_accumulator().inverse() * get_quaternion()) * animation_tree.get_root_motion_position() / delta
+				    var velocity = (animation_tree.get_root_motion_rotation_accumulator().inverse() * get_quaternion()) * animation_tree.get_root_motion_position() / delta
+				    set_velocity(velocity)
+				    move_and_slide()
+				[/gdscript]
+				[/codeblocks]
+				If [member root_motion_local] is [code]true[/code], return the pre-multiplied translation value with the inverted rotation.
+				In this case, the code can be written as follows:
+				[codeblocks]
+				[gdscript]
+				func _process(delta):
+				    if Input.is_action_just_pressed("animate"):
+				        state_machine.travel("Animate")
+				    set_quaternion(get_quaternion() * animation_tree.get_root_motion_rotation())
+				    var velocity = get_quaternion() * animation_tree.get_root_motion_position() / delta
 				    set_velocity(velocity)
 				    move_and_slide()
 				[/gdscript]
@@ -145,13 +158,13 @@
 				For example, if an animation with only one key [code]Vector3(0, 0, 0)[/code] is played in the previous frame and then an animation with only one key [code]Vector3(1, 0, 1)[/code] is played in the next frame, the difference can be calculated as follows:
 				[codeblocks]
 				[gdscript]
-				var prev_root_motion_position_accumulator: Vector3
+				var prev_root_motion_position_accumulator
 
 				func _process(delta):
 				    if Input.is_action_just_pressed("animate"):
 				        state_machine.travel("Animate")
-				    var current_root_motion_position_accumulator: Vector3 = animation_tree.get_root_motion_position_accumulator()
-				    var difference: Vector3 = current_root_motion_position_accumulator - prev_root_motion_position_accumulator
+				    var current_root_motion_position_accumulator = animation_tree.get_root_motion_position_accumulator()
+				    var difference = current_root_motion_position_accumulator - prev_root_motion_position_accumulator
 				    prev_root_motion_position_accumulator = current_root_motion_position_accumulator
 				    transform.origin += difference
 				[/gdscript]
@@ -185,13 +198,13 @@
 				For example, if an animation with only one key [code]Quaternion(0, 0, 0, 1)[/code] is played in the previous frame and then an animation with only one key [code]Quaternion(0, 0.707, 0, 0.707)[/code] is played in the next frame, the difference can be calculated as follows:
 				[codeblocks]
 				[gdscript]
-				var prev_root_motion_rotation_accumulator: Quaternion
+				var prev_root_motion_rotation_accumulator
 
 				func _process(delta):
 				    if Input.is_action_just_pressed("animate"):
 				        state_machine.travel("Animate")
-				    var current_root_motion_rotation_accumulator: Quaternion = animation_tree.get_root_motion_rotation_accumulator()
-				    var difference: Quaternion = prev_root_motion_rotation_accumulator.inverse() * current_root_motion_rotation_accumulator
+				    var current_root_motion_rotation_accumulator = animation_tree.get_root_motion_rotation_accumulator()
+				    var difference = prev_root_motion_rotation_accumulator.inverse() * current_root_motion_rotation_accumulator
 				    prev_root_motion_rotation_accumulator = current_root_motion_rotation_accumulator
 				    transform.basis *=  Basis(difference)
 				[/gdscript]
@@ -208,8 +221,8 @@
 				The most basic example is applying scale to [CharacterBody3D]:
 				[codeblocks]
 				[gdscript]
-				var current_scale: Vector3 = Vector3(1, 1, 1)
-				var scale_accum: Vector3 = Vector3(1, 1, 1)
+				var current_scale = Vector3(1, 1, 1)
+				var scale_accum = Vector3(1, 1, 1)
 
 				func _process(delta):
 				    if Input.is_action_just_pressed("animate"):
@@ -229,13 +242,13 @@
 				For example, if an animation with only one key [code]Vector3(1, 1, 1)[/code] is played in the previous frame and then an animation with only one key [code]Vector3(2, 2, 2)[/code] is played in the next frame, the difference can be calculated as follows:
 				[codeblocks]
 				[gdscript]
-				var prev_root_motion_scale_accumulator: Vector3
+				var prev_root_motion_scale_accumulator
 
 				func _process(delta):
 				    if Input.is_action_just_pressed("animate"):
 				        state_machine.travel("Animate")
-				    var current_root_motion_scale_accumulator: Vector3 = animation_tree.get_root_motion_scale_accumulator()
-				    var difference: Vector3 = current_root_motion_scale_accumulator - prev_root_motion_scale_accumulator
+				    var current_root_motion_scale_accumulator = animation_tree.get_root_motion_scale_accumulator()
+				    var difference = current_root_motion_scale_accumulator - prev_root_motion_scale_accumulator
 				    prev_root_motion_scale_accumulator = current_root_motion_scale_accumulator
 				    transform.basis = transform.basis.scaled(difference)
 				[/gdscript]
@@ -303,6 +316,9 @@
 		<member name="reset_on_save" type="bool" setter="set_reset_on_save_enabled" getter="is_reset_on_save_enabled" default="true">
 			This is used by the editor. If set to [code]true[/code], the scene will be saved with the effects of the reset animation (the animation with the key [code]"RESET"[/code]) applied as if it had been seeked to time 0, with the editor keeping the values that the scene had before saving.
 			This makes it more convenient to preview and edit animations in the editor, as changes to the scene will not be saved as long as they are set in the reset animation.
+		</member>
+		<member name="root_motion_local" type="bool" setter="set_root_motion_local" getter="is_root_motion_local">
+			If [code]true[/code], [method get_root_motion_position] value is extracted as a local translation value before blending. In other words, it is treated like the translation is done after the rotation.
 		</member>
 		<member name="root_motion_track" type="NodePath" setter="set_root_motion_track" getter="get_root_motion_track" default="NodePath(&quot;&quot;)">
 			The path to the Animation track used for root motion. Paths must be valid scene-tree paths to a node, and must be specified starting from the parent node of the node that will reproduce the animation. The [member root_motion_track] uses the same format as [method Animation.track_set_path], but note that a bone must be specified.

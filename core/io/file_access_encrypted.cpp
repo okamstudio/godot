@@ -228,16 +228,17 @@ Error FileAccessEncrypted::get_error() const {
 	return eofed ? ERR_FILE_EOF : OK;
 }
 
-void FileAccessEncrypted::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	ERR_FAIL_COND_MSG(!writing, "File has not been opened in write mode.");
-	ERR_FAIL_COND(!p_src && p_length > 0);
+bool FileAccessEncrypted::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+	ERR_FAIL_COND_V_MSG(!writing, false, "File has not been opened in write mode.");
+	ERR_FAIL_COND_V(!p_src && p_length > 0, false);
 
 	if (pos + p_length >= get_length()) {
-		data.resize(pos + p_length);
+		ERR_FAIL_COND_V(data.resize(pos + p_length) != OK, false);
 	}
 
 	memcpy(data.ptrw() + pos, p_src, p_length);
 	pos += p_length;
+	return true;
 }
 
 void FileAccessEncrypted::flush() {

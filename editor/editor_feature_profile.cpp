@@ -472,7 +472,7 @@ void EditorFeatureProfileManager::_erase_selected_profile() {
 
 void EditorFeatureProfileManager::_create_new_profile() {
 	String name = new_profile_name->get_text().strip_edges();
-	if (!name.is_valid_filename() || name.contains(".")) {
+	if (!name.is_valid_filename() || name.contains_char('.')) {
 		EditorNode::get_singleton()->show_warning(TTR("Profile must be a valid filename and must not contain '.'"));
 		return;
 	}
@@ -989,6 +989,7 @@ EditorFeatureProfileManager::EditorFeatureProfileManager() {
 	class_list->connect("cell_selected", callable_mp(this, &EditorFeatureProfileManager::_class_list_item_selected));
 	class_list->connect("item_edited", callable_mp(this, &EditorFeatureProfileManager::_class_list_item_edited), CONNECT_DEFERRED);
 	class_list->connect("item_collapsed", callable_mp(this, &EditorFeatureProfileManager::_class_list_item_collapsed));
+	class_list->set_theme_type_variation("TreeSecondary");
 	// It will be displayed once the user creates or chooses a profile.
 	class_list_vbc->hide();
 

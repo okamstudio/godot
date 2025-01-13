@@ -67,6 +67,9 @@ public:
 				uint32_t projector_use_mipmaps : 1;
 				uint32_t disable_fog : 1;
 				uint32_t use_depth_fog : 1;
+				uint32_t use_fog_aerial_perspective : 1;
+				uint32_t use_fog_sun_scatter : 1;
+				uint32_t use_fog_height_density : 1;
 				uint32_t use_lightmap_bicubic_filter : 1;
 				uint32_t multimesh : 1;
 				uint32_t multimesh_format_2d : 1;
@@ -75,7 +78,7 @@ public:
 				uint32_t scene_use_ambient_cubemap : 1;
 				uint32_t scene_use_reflection_cubemap : 1;
 				uint32_t scene_roughness_limiter_enabled : 1;
-				uint32_t padding : 5;
+				uint32_t padding_0 : 2;
 				uint32_t soft_shadow_samples : 6;
 				uint32_t penumbra_shadow_samples : 6;
 			};
@@ -98,8 +101,17 @@ public:
 		};
 
 		union {
+			struct {
+				uint32_t directional_light_blend_splits : 8;
+				uint32_t padding_1 : 24;
+			};
+
+			uint32_t packed_2;
+		};
+
+		union {
 			float luminance_multiplier;
-			float packed_2;
+			float packed_3;
 		};
 	};
 
@@ -111,6 +123,10 @@ public:
 
 			uint32_t packed_0;
 		};
+
+		uint32_t padding_1;
+		uint32_t padding_2;
+		uint32_t padding_3;
 	};
 
 	struct ShaderData : public RendererRD::MaterialStorage::ShaderData {
@@ -243,7 +259,7 @@ public:
 		}
 
 		_FORCE_INLINE_ bool uses_shared_shadow_material() const {
-			return !uses_particle_trails && !writes_modelview_or_projection && !uses_vertex && !uses_discard && !uses_depth_prepass_alpha && !uses_alpha_clip && !uses_alpha_antialiasing && !uses_world_coordinates;
+			return !uses_particle_trails && !writes_modelview_or_projection && !uses_vertex && !uses_discard && !uses_depth_prepass_alpha && !uses_alpha_clip && !uses_alpha_antialiasing && !uses_world_coordinates && !wireframe;
 		}
 
 		virtual void set_code(const String &p_Code);

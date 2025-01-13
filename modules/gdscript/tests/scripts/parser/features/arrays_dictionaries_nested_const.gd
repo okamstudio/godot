@@ -1,6 +1,6 @@
 # https://github.com/godotengine/godot/issues/50285
 
-@warning_ignore("unused_local_constant")
+@warning_ignore_start("unused_local_constant")
 func test():
 	const CONST_INNER_DICTIONARY = { "key": true }
 	const CONST_NESTED_DICTIONARY_OLD_WORKAROUND = {

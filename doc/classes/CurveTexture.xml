@@ -4,14 +4,14 @@
 		A 1D texture where pixel brightness corresponds to points on a curve.
 	</brief_description>
 	<description>
-		A 1D texture where pixel brightness corresponds to points on a [Curve] resource, either in grayscale or in red. This visual representation simplifies the task of saving curves as image files.
+		A 1D texture where pixel brightness corresponds to points on a unit [Curve] resource, either in grayscale or in red. This visual representation simplifies the task of saving curves as image files.
 		If you need to store up to 3 curves within a single texture, use [CurveXYZTexture] instead. See also [GradientTexture1D] and [GradientTexture2D].
 	</description>
 	<tutorials>
 	</tutorials>
 	<members>
 		<member name="curve" type="Curve" setter="set_curve" getter="get_curve">
-			The [Curve] that is rendered onto the texture.
+			The [Curve] that is rendered onto the texture. Should be a unit [Curve].
 		</member>
 		<member name="resource_local_to_scene" type="bool" setter="set_local_to_scene" getter="is_local_to_scene" overrides="Resource" default="false" />
 		<member name="texture_mode" type="int" setter="set_texture_mode" getter="get_texture_mode" enum="CurveTexture.TextureMode" default="0">

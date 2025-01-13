@@ -77,7 +77,7 @@ void EditorSettingsDialog::_settings_property_edited(const String &p_name) {
 		EditorSettings::get_singleton()->set_manually("text_editor/theme/color_theme", "Custom");
 	} else if (full_name.begins_with("editors/visual_editors/connection_colors") || full_name.begins_with("editors/visual_editors/category_colors")) {
 		EditorSettings::get_singleton()->set_manually("editors/visual_editors/color_theme", "Custom");
-	} else if (full_name == "editors/3d/navigation/orbit_mouse_button" || full_name == "editors/3d/navigation/pan_mouse_button" || full_name == "editors/3d/navigation/zoom_mouse_button") {
+	} else if (full_name == "editors/3d/navigation/orbit_mouse_button" || full_name == "editors/3d/navigation/pan_mouse_button" || full_name == "editors/3d/navigation/zoom_mouse_button" || full_name == "editors/3d/navigation/emulate_3_button_mouse") {
 		EditorSettings::get_singleton()->set_manually("editors/3d/navigation/navigation_scheme", (int)Node3DEditorViewport::NAVIGATION_CUSTOM);
 	} else if (full_name == "editors/3d/navigation/navigation_scheme") {
 		update_navigation_preset();
@@ -89,6 +89,7 @@ void EditorSettingsDialog::update_navigation_preset() {
 	Node3DEditorViewport::ViewportNavMouseButton set_orbit_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
 	Node3DEditorViewport::ViewportNavMouseButton set_pan_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
 	Node3DEditorViewport::ViewportNavMouseButton set_zoom_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
+	bool set_3_button_mouse = false;
 	Ref<InputEventKey> orbit_mod_key_1;
 	Ref<InputEventKey> orbit_mod_key_2;
 	Ref<InputEventKey> pan_mod_key_1;
@@ -102,6 +103,7 @@ void EditorSettingsDialog::update_navigation_preset() {
 		set_orbit_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
 		set_pan_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
 		set_zoom_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
+		set_3_button_mouse = false;
 		orbit_mod_key_1 = InputEventKey::create_reference(Key::NONE);
 		orbit_mod_key_2 = InputEventKey::create_reference(Key::NONE);
 		pan_mod_key_1 = InputEventKey::create_reference(Key::SHIFT);
@@ -113,6 +115,7 @@ void EditorSettingsDialog::update_navigation_preset() {
 		set_orbit_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
 		set_pan_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
 		set_zoom_mouse_button = Node3DEditorViewport::NAVIGATION_RIGHT_MOUSE;
+		set_3_button_mouse = false;
 		orbit_mod_key_1 = InputEventKey::create_reference(Key::ALT);
 		orbit_mod_key_2 = InputEventKey::create_reference(Key::NONE);
 		pan_mod_key_1 = InputEventKey::create_reference(Key::NONE);
@@ -124,18 +127,32 @@ void EditorSettingsDialog::update_navigation_preset() {
 		set_orbit_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
 		set_pan_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
 		set_zoom_mouse_button = Node3DEditorViewport::NAVIGATION_LEFT_MOUSE;
+		set_3_button_mouse = false;
 		orbit_mod_key_1 = InputEventKey::create_reference(Key::ALT);
 		orbit_mod_key_2 = InputEventKey::create_reference(Key::NONE);
 		pan_mod_key_1 = InputEventKey::create_reference(Key::SHIFT);
 		pan_mod_key_2 = InputEventKey::create_reference(Key::ALT);
 		zoom_mod_key_1 = InputEventKey::create_reference(Key::ALT);
 		zoom_mod_key_2 = InputEventKey::create_reference(Key::CTRL);
+	} else if (nav_scheme == Node3DEditorViewport::NAVIGATION_TABLET) {
+		set_preset = true;
+		set_orbit_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
+		set_pan_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
+		set_zoom_mouse_button = Node3DEditorViewport::NAVIGATION_MIDDLE_MOUSE;
+		set_3_button_mouse = true;
+		orbit_mod_key_1 = InputEventKey::create_reference(Key::ALT);
+		orbit_mod_key_2 = InputEventKey::create_reference(Key::NONE);
+		pan_mod_key_1 = InputEventKey::create_reference(Key::SHIFT);
+		pan_mod_key_2 = InputEventKey::create_reference(Key::NONE);
+		zoom_mod_key_1 = InputEventKey::create_reference(Key::CTRL);
+		zoom_mod_key_2 = InputEventKey::create_reference(Key::NONE);
 	}
 	// Set settings to the desired preset values.
 	if (set_preset) {
 		EditorSettings::get_singleton()->set_manually("editors/3d/navigation/orbit_mouse_button", (int)set_orbit_mouse_button);
 		EditorSettings::get_singleton()->set_manually("editors/3d/navigation/pan_mouse_button", (int)set_pan_mouse_button);
 		EditorSettings::get_singleton()->set_manually("editors/3d/navigation/zoom_mouse_button", (int)set_zoom_mouse_button);
+		EditorSettings::get_singleton()->set_manually("editors/3d/navigation/emulate_3_button_mouse", set_3_button_mouse);
 		_set_shortcut_input("spatial_editor/viewport_orbit_modifier_1", orbit_mod_key_1);
 		_set_shortcut_input("spatial_editor/viewport_orbit_modifier_2", orbit_mod_key_2);
 		_set_shortcut_input("spatial_editor/viewport_pan_modifier_1", pan_mod_key_1);
@@ -332,7 +349,10 @@ void EditorSettingsDialog::_update_shortcut_events(const String &p_path, const A
 	Ref<Shortcut> current_sc = EditorSettings::get_singleton()->get_shortcut(p_path);
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	undo_redo->create_action(vformat(TTR("Edit Shortcut: %s"), p_path));
+	undo_redo->create_action(vformat(TTR("Edit Shortcut: %s"), p_path), UndoRedo::MERGE_DISABLE, EditorSettings::get_singleton());
+	// History must be fixed based on the EditorSettings object because current_sc would
+	// incorrectly make this action use the scene history.
+	undo_redo->force_fixed_history();
 	undo_redo->add_do_method(current_sc.ptr(), "set_events", p_events);
 	undo_redo->add_undo_method(current_sc.ptr(), "set_events", current_sc->get_events());
 	undo_redo->add_do_method(EditorSettings::get_singleton(), "mark_setting_changed", "shortcuts");
@@ -775,7 +795,11 @@ PropertyInfo EditorSettingsDialog::_create_mouse_shortcut_property_info(const St
 	hint_string += _get_shortcut_button_string(p_shortcut_1_name) + _get_shortcut_button_string(p_shortcut_2_name);
 	hint_string += "Middle Mouse,";
 	hint_string += _get_shortcut_button_string(p_shortcut_1_name) + _get_shortcut_button_string(p_shortcut_2_name);
-	hint_string += "Right Mouse";
+	hint_string += "Right Mouse,";
+	hint_string += _get_shortcut_button_string(p_shortcut_1_name) + _get_shortcut_button_string(p_shortcut_2_name);
+	hint_string += "Mouse Button 4,";
+	hint_string += _get_shortcut_button_string(p_shortcut_1_name) + _get_shortcut_button_string(p_shortcut_2_name);
+	hint_string += "Mouse Button 5";
 
 	return PropertyInfo(Variant::INT, p_property_name, PROPERTY_HINT_ENUM, hint_string);
 }

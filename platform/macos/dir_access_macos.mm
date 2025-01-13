@@ -96,4 +96,14 @@ bool DirAccessMacOS::is_case_sensitive(const String &p_path) const {
 	return [cs boolValue];
 }
 
+bool DirAccessMacOS::is_bundle(const String &p_file) const {
+	String f = p_file;
+	if (!f.is_absolute_path()) {
+		f = get_current_dir().path_join(f);
+	}
+	f = fix_path(f);
+
+	return [[NSWorkspace sharedWorkspace] isFilePackageAtPath:[NSString stringWithUTF8String:f.utf8().get_data()]];
+}
+
 #endif // UNIX_ENABLED

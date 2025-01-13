@@ -65,31 +65,31 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	};
 
 	enum {
+		INSTANCE_FLAGS_LIGHT_COUNT_SHIFT = 0, // 4 bits for light count.
 
-		FLAGS_INSTANCING_MASK = 0x7F,
-		FLAGS_INSTANCING_HAS_COLORS = (1 << 7),
-		FLAGS_INSTANCING_HAS_CUSTOM_DATA = (1 << 8),
+		INSTANCE_FLAGS_CLIP_RECT_UV = (1 << 4),
+		INSTANCE_FLAGS_TRANSPOSE_RECT = (1 << 5),
+		INSTANCE_FLAGS_USE_MSDF = (1 << 6),
+		INSTANCE_FLAGS_USE_LCD = (1 << 7),
 
-		FLAGS_CLIP_RECT_UV = (1 << 9),
-		FLAGS_TRANSPOSE_RECT = (1 << 10),
+		INSTANCE_FLAGS_NINEPACH_DRAW_CENTER = (1 << 8),
+		INSTANCE_FLAGS_NINEPATCH_H_MODE_SHIFT = 9,
+		INSTANCE_FLAGS_NINEPATCH_V_MODE_SHIFT = 11,
 
-		FLAGS_CONVERT_ATTRIBUTES_TO_LINEAR = (1 << 11),
+		INSTANCE_FLAGS_SHADOW_MASKED_SHIFT = 13, // 16 bits.
+	};
 
-		FLAGS_NINEPACH_DRAW_CENTER = (1 << 12),
+	enum {
+		BATCH_FLAGS_INSTANCING_MASK = 0x7F,
+		BATCH_FLAGS_INSTANCING_HAS_COLORS = (1 << 7),
+		BATCH_FLAGS_INSTANCING_HAS_CUSTOM_DATA = (1 << 8),
 
-		FLAGS_USE_SKELETON = (1 << 15),
-		FLAGS_NINEPATCH_H_MODE_SHIFT = 16,
-		FLAGS_NINEPATCH_V_MODE_SHIFT = 18,
-		FLAGS_LIGHT_COUNT_SHIFT = 20,
+		BATCH_FLAGS_DEFAULT_NORMAL_MAP_USED = (1 << 9),
+		BATCH_FLAGS_DEFAULT_SPECULAR_MAP_USED = (1 << 10),
+	};
 
-		FLAGS_DEFAULT_NORMAL_MAP_USED = (1 << 24),
-		FLAGS_DEFAULT_SPECULAR_MAP_USED = (1 << 25),
-
-		FLAGS_USE_MSDF = (1 << 26),
-		FLAGS_USE_LCD = (1 << 27),
-
-		FLAGS_FLIP_H = (1 << 28),
-		FLAGS_FLIP_V = (1 << 29),
+	enum {
+		CANVAS_FLAGS_CONVERT_ATTRIBUTES_TO_LINEAR = (1 << 0),
 	};
 
 	enum {
@@ -138,7 +138,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 		uint32_t hash() const {
 			uint32_t h = hash_murmur3_one_32(variant);
 			h = hash_murmur3_one_32(framebuffer_format_id, h);
-			h = hash_murmur3_one_32(vertex_format_id, h);
+			h = hash_murmur3_one_64((uint64_t)vertex_format_id, h);
 			h = hash_murmur3_one_32(render_primitive, h);
 			h = hash_murmur3_one_32(shader_specialization.packed_0, h);
 			h = hash_murmur3_one_32(lcd_blend, h);
@@ -370,7 +370,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 		uint32_t base_instance_index;
 		ShaderSpecialization shader_specialization;
 		uint32_t specular_shininess;
-		uint32_t pad;
+		uint32_t batch_flags;
 	};
 
 	// TextureState is used to determine when a new batch is required due to a change of texture state.
@@ -508,6 +508,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 			uint32_t mesh_instance_count;
 		};
 		bool has_blend = false;
+		uint32_t flags = 0;
 	};
 
 	HashMap<TextureState, TextureInfo, HashableHasher<TextureState>> texture_info_map;
@@ -535,7 +536,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 
 			uint32_t directional_light_count;
 			float tex_to_sdf;
-			uint32_t pad1;
+			uint32_t flags;
 			uint32_t pad2;
 		};
 
@@ -596,9 +597,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	struct RenderTarget {
 		// Current render target for the canvas.
 		RID render_target;
-		// The base flags for each InstanceData, derived from the render target.
-		// Either FLAGS_CONVERT_ATTRIBUTES_TO_LINEAR or 0
-		uint32_t base_flags = 0;
+		bool use_linear_colors = false;
 	};
 
 	inline RID _get_pipeline_specialization_or_ubershader(CanvasShaderData *p_shader_data, PipelineKey &r_pipeline_key, PushConstant &r_push_constant, RID p_mesh_instance = RID(), void *p_surface = nullptr, uint32_t p_surface_index = 0, RID *r_vertex_array = nullptr);

@@ -35,9 +35,13 @@
 #include "core/os/os.h"
 #include "renderer_compositor_rd.h"
 #include "servers/rendering/renderer_rd/environment/fog.h"
+#include "servers/rendering/renderer_rd/shaders/decal_data_inc.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/light_data_inc.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/scene_data_inc.glsl.gen.h"
 #include "servers/rendering/renderer_rd/storage_rd/material_storage.h"
 #include "servers/rendering/renderer_rd/storage_rd/texture_storage.h"
 #include "servers/rendering/rendering_server_default.h"
+#include "servers/rendering/shader_include_db.h"
 #include "servers/rendering/storage/camera_attributes_storage.h"
 
 void get_vogel_disk(float *r_kernel, int p_sample_count) {
@@ -646,7 +650,7 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 		if (use_intermediate_fb) {
 			// If we use FSR to upscale we need to write our result into an intermediate buffer.
 			// Note that this is cached so we only create the texture the first time.
-			RID dest_texture = rb->create_texture(SNAME("Tonemapper"), SNAME("destination"), _render_buffers_get_color_format(), RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT);
+			RID dest_texture = rb->create_texture(SNAME("Tonemapper"), SNAME("destination"), _render_buffers_get_color_format(), RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT | RD::TEXTURE_USAGE_COLOR_ATTACHMENT_BIT, RD::TEXTURE_SAMPLES_1, Size2i(), 0, 1, true, true);
 			dest_fb = FramebufferCacheRD::get_singleton()->get_cache(dest_texture);
 		} else {
 			// If we do a bilinear upscale we just render into our render target and our shader will upscale automatically.
@@ -1451,6 +1455,13 @@ void RendererSceneRenderRD::init() {
 
 	/* Forward ID */
 	forward_id_storage = create_forward_id_storage();
+
+	/* Register the include files we make available by default to our users */
+	{
+		ShaderIncludeDB::register_built_in_include_file("godot/decal_data_inc.glsl", decal_data_inc_shader_glsl);
+		ShaderIncludeDB::register_built_in_include_file("godot/light_data_inc.glsl", light_data_inc_shader_glsl);
+		ShaderIncludeDB::register_built_in_include_file("godot/scene_data_inc.glsl", scene_data_inc_shader_glsl);
+	}
 
 	/* SKY SHADER */
 

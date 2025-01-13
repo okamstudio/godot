@@ -1,10 +1,11 @@
 # Some tests handle invalid syntax deliberately; exclude relevant attributes.
+# See also the `file-format` section in `.pre-commit-config.yaml`.
 
 [parser/features/mixed_indentation_on_blank_lines.gd]
 trim_trailing_whitespace = false
 
-[parser/warnings/empty_file_newline.notest.gd]
+[parser/warnings/empty_file_newline.norun.gd]
 insert_final_newline = false
 
-[parser/warnings/empty_file_newline_comment.notest.gd]
+[parser/warnings/empty_file_newline_comment.norun.gd]
 insert_final_newline = false

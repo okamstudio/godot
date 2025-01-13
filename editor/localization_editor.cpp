@@ -441,7 +441,7 @@ void LocalizationEditor::_filesystem_files_moved(const String &p_old_file, const
 		bool remapped_files_updated = false;
 
 		for (int j = 0; j < remapped_files.size(); j++) {
-			int splitter_pos = remapped_files[j].rfind(":");
+			int splitter_pos = remapped_files[j].rfind_char(':');
 			String res_path = remapped_files[j].substr(0, splitter_pos);
 
 			if (res_path == p_old_file) {
@@ -482,7 +482,7 @@ void LocalizationEditor::_filesystem_file_removed(const String &p_file) {
 		for (int i = 0; i < remap_keys.size() && !remaps_changed; i++) {
 			PackedStringArray remapped_files = remaps[remap_keys[i]];
 			for (int j = 0; j < remapped_files.size() && !remaps_changed; j++) {
-				int splitter_pos = remapped_files[j].rfind(":");
+				int splitter_pos = remapped_files[j].rfind_char(':');
 				String res_path = remapped_files[j].substr(0, splitter_pos);
 				remaps_changed = p_file == res_path;
 				if (remaps_changed) {
@@ -567,7 +567,7 @@ void LocalizationEditor::update_translations() {
 				PackedStringArray selected = remaps[keys[i]];
 				for (int j = 0; j < selected.size(); j++) {
 					const String &s2 = selected[j];
-					int qp = s2.rfind(":");
+					int qp = s2.rfind_char(':');
 					String path = s2.substr(0, qp);
 					String locale = s2.substr(qp + 1, s2.length());
 

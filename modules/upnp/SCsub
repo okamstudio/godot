@@ -10,7 +10,7 @@ env_upnp = env_modules.Clone()
 
 thirdparty_obj = []
 
-if env["builtin_miniupnpc"]:
+if env["builtin_miniupnpc"] and env["platform"] != "web":
     thirdparty_dir = "#thirdparty/miniupnpc/"
     thirdparty_sources = [
         "igd_desc_parse.c",
@@ -35,6 +35,7 @@ if env["builtin_miniupnpc"]:
         env_upnp.Append(CPPDEFINES=["MINIUPNPC_SET_SOCKET_TIMEOUT"])
 
     env_thirdparty = env_upnp.Clone()
+    env_thirdparty.Prepend(CPPPATH=[thirdparty_dir + "include/miniupnpc"])
     env_thirdparty.disable_warnings()
     env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
     env.modules_sources += thirdparty_obj

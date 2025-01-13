@@ -31,6 +31,7 @@
 #ifndef NAV_MAP_H
 #define NAV_MAP_H
 
+#include "3d/nav_mesh_queries_3d.h"
 #include "nav_rid.h"
 #include "nav_utils.h"
 
@@ -72,8 +73,8 @@ class NavMap : public NavRid {
 	/// This value is used to limit how far links search to find polygons to connect to.
 	real_t link_connection_radius = NavigationDefaults3D::link_connection_radius;
 
-	bool regenerate_polygons = true;
-	bool regenerate_links = true;
+	bool map_settings_dirty = true;
+	bool iteration_dirty = true;
 
 	/// Map regions
 	LocalVector<NavRegion *> regions;
@@ -116,15 +117,7 @@ class NavMap : public NavRid {
 	bool avoidance_use_high_priority_threads = true;
 
 	// Performance Monitor
-	int pm_region_count = 0;
-	int pm_agent_count = 0;
-	int pm_link_count = 0;
-	int pm_polygon_count = 0;
-	int pm_edge_count = 0;
-	int pm_edge_merge_count = 0;
-	int pm_edge_connection_count = 0;
-	int pm_edge_free_count = 0;
-	int pm_obstacle_count = 0;
+	gd::PerformanceData performance_data;
 
 	HashMap<NavRegion *, LocalVector<gd::Edge::Connection>> region_external_connections;
 
@@ -135,6 +128,18 @@ class NavMap : public NavRid {
 
 	HashMap<gd::EdgeKey, ConnectionPair, gd::EdgeKey> connection_pairs_map;
 	LocalVector<gd::Edge::Connection> free_edges;
+
+	struct {
+		SelfList<NavRegion>::List regions;
+		SelfList<NavLink>::List links;
+		SelfList<NavAgent>::List agents;
+		SelfList<NavObstacle>::List obstacles;
+	} sync_dirty_requests;
+
+	LocalVector<NavMeshQueries3D::PathQuerySlot> path_query_slots;
+	int path_query_slots_max = 4;
+	Mutex path_query_slots_mutex;
+	Semaphore path_query_slots_semaphore;
 
 public:
 	NavMap();
@@ -177,7 +182,8 @@ public:
 
 	gd::PointKey get_point_key(const Vector3 &p_pos) const;
 
-	Vector<Vector3> get_path(Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers, Vector<int32_t> *r_path_types, TypedArray<RID> *r_path_rids, Vector<int64_t> *r_path_owners) const;
+	void query_path(NavMeshQueries3D::NavMeshPathQueryTask3D &p_query_task);
+
 	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision) const;
 	Vector3 get_closest_point(const Vector3 &p_point) const;
 	Vector3 get_closest_point_normal(const Vector3 &p_point) const;
@@ -220,26 +226,40 @@ public:
 	void dispatch_callbacks();
 
 	// Performance Monitor
-	int get_pm_region_count() const { return pm_region_count; }
-	int get_pm_agent_count() const { return pm_agent_count; }
-	int get_pm_link_count() const { return pm_link_count; }
-	int get_pm_polygon_count() const { return pm_polygon_count; }
-	int get_pm_edge_count() const { return pm_edge_count; }
-	int get_pm_edge_merge_count() const { return pm_edge_merge_count; }
-	int get_pm_edge_connection_count() const { return pm_edge_connection_count; }
-	int get_pm_edge_free_count() const { return pm_edge_free_count; }
-	int get_pm_obstacle_count() const { return pm_obstacle_count; }
+	int get_pm_region_count() const { return performance_data.pm_region_count; }
+	int get_pm_agent_count() const { return performance_data.pm_agent_count; }
+	int get_pm_link_count() const { return performance_data.pm_link_count; }
+	int get_pm_polygon_count() const { return performance_data.pm_polygon_count; }
+	int get_pm_edge_count() const { return performance_data.pm_edge_count; }
+	int get_pm_edge_merge_count() const { return performance_data.pm_edge_merge_count; }
+	int get_pm_edge_connection_count() const { return performance_data.pm_edge_connection_count; }
+	int get_pm_edge_free_count() const { return performance_data.pm_edge_free_count; }
+	int get_pm_obstacle_count() const { return performance_data.pm_obstacle_count; }
 
 	int get_region_connections_count(NavRegion *p_region) const;
 	Vector3 get_region_connection_pathway_start(NavRegion *p_region, int p_connection_id) const;
 	Vector3 get_region_connection_pathway_end(NavRegion *p_region, int p_connection_id) const;
 
+	void add_region_sync_dirty_request(SelfList<NavRegion> *p_sync_request);
+	void add_link_sync_dirty_request(SelfList<NavLink> *p_sync_request);
+	void add_agent_sync_dirty_request(SelfList<NavAgent> *p_sync_request);
+	void add_obstacle_sync_dirty_request(SelfList<NavObstacle> *p_sync_request);
+
+	void remove_region_sync_dirty_request(SelfList<NavRegion> *p_sync_request);
+	void remove_link_sync_dirty_request(SelfList<NavLink> *p_sync_request);
+	void remove_agent_sync_dirty_request(SelfList<NavAgent> *p_sync_request);
+	void remove_obstacle_sync_dirty_request(SelfList<NavObstacle> *p_sync_request);
+
 private:
+	void _sync_dirty_map_update_requests();
+	void _sync_dirty_avoidance_update_requests();
+
 	void compute_single_step(uint32_t index, NavAgent **agent);
 
 	void compute_single_avoidance_step_2d(uint32_t index, NavAgent **agent);
 	void compute_single_avoidance_step_3d(uint32_t index, NavAgent **agent);
 
+	void _sync_avoidance();
 	void _update_rvo_simulation();
 	void _update_rvo_obstacles_tree_2d();
 	void _update_rvo_agents_tree_2d();

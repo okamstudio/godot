@@ -1205,7 +1205,7 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 					if (F.name.begins_with("_")) {
 						continue; //hidden property
 					}
-					if (F.name.contains("/")) {
+					if (F.name.contains_char('/')) {
 						// Ignore properties with '/' (slash) in the name. These are only meant for use in the inspector.
 						continue;
 					}

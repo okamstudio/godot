@@ -60,7 +60,7 @@ struct Picture::Impl
     ImageLoader* loader = nullptr;
 
     Paint* paint = nullptr;           //vector picture uses
-    Surface* surface = nullptr;       //bitmap picture uses
+    RenderSurface* surface = nullptr; //bitmap picture uses
     RenderData rd = nullptr;          //engine data
     float w = 0, h = 0;
     Picture* picture = nullptr;

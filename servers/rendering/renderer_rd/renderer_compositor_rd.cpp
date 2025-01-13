@@ -112,10 +112,8 @@ void RendererCompositorRD::begin_frame(double frame_step) {
 	scene->set_time(time, frame_step);
 }
 
-void RendererCompositorRD::end_frame(bool p_swap_buffers) {
-	if (p_swap_buffers) {
-		RD::get_singleton()->swap_buffers();
-	}
+void RendererCompositorRD::end_frame(bool p_present) {
+	RD::get_singleton()->swap_buffers(p_present);
 }
 
 void RendererCompositorRD::initialize() {
@@ -133,6 +131,9 @@ void RendererCompositorRD::initialize() {
 
 		for (int i = 0; i < BLIT_MODE_MAX; i++) {
 			blit.pipelines[i] = RD::get_singleton()->render_pipeline_create(blit.shader.version_get_shader(blit.shader_version, i), RD::get_singleton()->screen_get_framebuffer_format(DisplayServer::MAIN_WINDOW_ID), RD::INVALID_ID, RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), RD::PipelineDepthStencilState(), i == BLIT_MODE_NORMAL_ALPHA ? RenderingDevice::PipelineColorBlendState::create_blend() : RenderingDevice::PipelineColorBlendState::create_disabled(), 0);
+
+			// Unload shader modules to save memory.
+			RD::get_singleton()->shader_destroy_modules(blit.shader.version_get_shader(blit.shader_version, i));
 		}
 
 		//create index array for copy shader
@@ -264,7 +265,7 @@ void RendererCompositorRD::set_boot_image(const Ref<Image> &p_image, const Color
 
 	RD::get_singleton()->draw_list_end();
 
-	RD::get_singleton()->swap_buffers();
+	RD::get_singleton()->swap_buffers(true);
 
 	texture_storage->texture_free(texture);
 	RD::get_singleton()->free(sampler);

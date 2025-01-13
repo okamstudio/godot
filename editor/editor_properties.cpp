@@ -52,6 +52,7 @@
 #include "scene/3d/fog_volume.h"
 #include "scene/3d/gpu_particles_3d.h"
 #include "scene/gui/color_picker.h"
+#include "scene/gui/grid_container.h"
 #include "scene/main/window.h"
 #include "scene/resources/font.h"
 #include "scene/resources/mesh.h"
@@ -90,6 +91,10 @@ void EditorPropertyText::_text_changed(const String &p_string) {
 		return;
 	}
 
+	// Set tooltip so that the full text is displayed in a tooltip if hovered.
+	// This is useful when using a narrow inspector, as the text can be trimmed otherwise.
+	text->set_tooltip_text(get_tooltip_string(text->get_text()));
+
 	if (string_name) {
 		emit_changed(get_edited_property(), StringName(p_string));
 	} else {
@@ -103,6 +108,7 @@ void EditorPropertyText::update_property() {
 	if (text->get_text() != s) {
 		int caret = text->get_caret_column();
 		text->set_text(s);
+		text->set_tooltip_text(get_tooltip_string(s));
 		text->set_caret_column(caret);
 	}
 	text->set_editable(!is_read_only());
@@ -137,7 +143,7 @@ EditorPropertyText::EditorPropertyText() {
 	add_focusable(text);
 	text->set_h_size_flags(SIZE_EXPAND_FILL);
 	text->connect(SceneStringName(text_changed), callable_mp(this, &EditorPropertyText::_text_changed));
-	text->connect("text_submitted", callable_mp(this, &EditorPropertyText::_text_submitted));
+	text->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPropertyText::_text_submitted));
 }
 
 ///////////////////// MULTILINE TEXT /////////////////////////
@@ -149,10 +155,14 @@ void EditorPropertyMultilineText::_set_read_only(bool p_read_only) {
 
 void EditorPropertyMultilineText::_big_text_changed() {
 	text->set_text(big_text->get_text());
+	// Set tooltip so that the full text is displayed in a tooltip if hovered.
+	// This is useful when using a narrow inspector, as the text can be trimmed otherwise.
+	text->set_tooltip_text(get_tooltip_string(big_text->get_text()));
 	emit_changed(get_edited_property(), big_text->get_text(), "", true);
 }
 
 void EditorPropertyMultilineText::_text_changed() {
+	text->set_tooltip_text(get_tooltip_string(text->get_text()));
 	emit_changed(get_edited_property(), text->get_text(), "", true);
 }
 
@@ -181,6 +191,7 @@ void EditorPropertyMultilineText::update_property() {
 	String t = get_edited_property_value();
 	if (text->get_text() != t) {
 		text->set_text(t);
+		text->set_tooltip_text(get_tooltip_string(t));
 		if (big_text && big_text->is_visible_in_tree()) {
 			big_text->set_text(t);
 		}
@@ -377,7 +388,7 @@ EditorPropertyTextEnum::EditorPropertyTextEnum() {
 	custom_value_edit = memnew(LineEdit);
 	custom_value_edit->set_h_size_flags(SIZE_EXPAND_FILL);
 	edit_custom_layout->add_child(custom_value_edit);
-	custom_value_edit->connect("text_submitted", callable_mp(this, &EditorPropertyTextEnum::_custom_value_submitted));
+	custom_value_edit->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPropertyTextEnum::_custom_value_submitted));
 
 	accept_button = memnew(Button);
 	accept_button->set_flat(true);
@@ -442,7 +453,7 @@ EditorPropertyLocale::EditorPropertyLocale() {
 	add_child(locale_hb);
 	locale = memnew(LineEdit);
 	locale_hb->add_child(locale);
-	locale->connect("text_submitted", callable_mp(this, &EditorPropertyLocale::_locale_selected));
+	locale->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPropertyLocale::_locale_selected));
 	locale->connect(SceneStringName(focus_exited), callable_mp(this, &EditorPropertyLocale::_locale_focus_exited));
 	locale->set_h_size_flags(SIZE_EXPAND_FILL);
 
@@ -463,10 +474,12 @@ void EditorPropertyPath::_set_read_only(bool p_read_only) {
 
 void EditorPropertyPath::_path_selected(const String &p_path) {
 	String full_path = p_path;
-	ResourceUID::ID id = ResourceLoader::get_resource_uid(full_path);
 
-	if (id != ResourceUID::INVALID_ID) {
-		full_path = ResourceUID::get_singleton()->id_to_text(id);
+	if (!global) {
+		const ResourceUID::ID id = ResourceLoader::get_resource_uid(full_path);
+		if (id != ResourceUID::INVALID_ID) {
+			full_path = ResourceUID::get_singleton()->id_to_text(id);
+		}
 	}
 
 	emit_changed(get_edited_property(), full_path);
@@ -595,7 +608,7 @@ EditorPropertyPath::EditorPropertyPath() {
 	SET_DRAG_FORWARDING_CDU(path, EditorPropertyPath);
 	path->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
 	path_hb->add_child(path);
-	path->connect("text_submitted", callable_mp(this, &EditorPropertyPath::_path_selected));
+	path->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPropertyPath::_path_selected));
 	path->connect(SceneStringName(focus_exited), callable_mp(this, &EditorPropertyPath::_path_focus_exited));
 	path->set_h_size_flags(SIZE_EXPAND_FILL);
 
@@ -824,7 +837,7 @@ void EditorPropertyLayersGrid::_rename_operation_confirm() {
 	if (new_name.length() == 0) {
 		EditorNode::get_singleton()->show_warning(TTR("No name provided."));
 		return;
-	} else if (new_name.contains("/") || new_name.contains("\\") || new_name.contains(":")) {
+	} else if (new_name.contains_char('/') || new_name.contains_char('\\') || new_name.contains_char(':')) {
 		EditorNode::get_singleton()->show_warning(TTR("Name contains invalid characters."));
 		return;
 	}
@@ -2643,7 +2656,7 @@ EditorPropertyColor::EditorPropertyColor() {
 	add_child(picker);
 	picker->set_flat(true);
 	picker->connect("color_changed", callable_mp(this, &EditorPropertyColor::_color_changed));
-	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed));
+	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed), CONNECT_DEFERRED);
 	picker->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(picker->get_picker()));
 	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_picker_opening));
 }
@@ -2860,7 +2873,7 @@ void EditorPropertyNodePath::update_property() {
 	const Node *target_node = base_node->get_node(p);
 	ERR_FAIL_NULL(target_node);
 
-	if (String(target_node->get_name()).contains("@")) {
+	if (String(target_node->get_name()).contains_char('@')) {
 		assign->set_button_icon(Ref<Texture2D>());
 		assign->set_text(p);
 		return;
@@ -2944,7 +2957,7 @@ EditorPropertyNodePath::EditorPropertyNodePath() {
 	edit->set_h_size_flags(SIZE_EXPAND_FILL);
 	edit->hide();
 	edit->connect(SceneStringName(focus_exited), callable_mp(this, &EditorPropertyNodePath::_accept_text));
-	edit->connect(SNAME("text_submitted"), callable_mp(this, &EditorPropertyNodePath::_text_submitted));
+	edit->connect(SceneStringName(text_submitted), callable_mp(this, &EditorPropertyNodePath::_text_submitted));
 	hbc->add_child(edit);
 }
 
@@ -3278,6 +3291,8 @@ void EditorPropertyResource::update_property() {
 				sub_inspector->set_keying(is_keying());
 				sub_inspector->set_read_only(is_read_only());
 				sub_inspector->set_use_folding(is_using_folding());
+
+				sub_inspector->set_draw_focus_border(false);
 
 				sub_inspector->set_mouse_filter(MOUSE_FILTER_STOP);
 				add_child(sub_inspector);

@@ -159,7 +159,7 @@ Error read_all_file_utf8(const String &p_path, String &r_content) {
 	w[len] = 0;
 
 	String source;
-	if (source.parse_utf8((const char *)w) != OK) {
+	if (source.parse_utf8((const char *)w, len) != OK) {
 		ERR_FAIL_V(ERR_INVALID_DATA);
 	}
 

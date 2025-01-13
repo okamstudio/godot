@@ -76,7 +76,7 @@ public:
 		virtual void clear() override;
 		virtual void resize(const Size2i &p_size) override;
 		void sort_rays(const Vector3 &p_camera_dir, bool p_orthogonal);
-		void update_camera_rays(const Transform3D &p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal);
+		void update_camera_rays(const Transform3D &p_cam_transform, const Vector3 &p_near_bottom_left, const Vector2 &p_near_extents, real_t p_z_far, bool p_cam_orthogonal);
 
 		~RaycastHZBuffer();
 	};
@@ -109,7 +109,7 @@ private:
 	struct OccluderInstance {
 		RID occluder;
 		LocalVector<uint32_t> indices;
-		LocalVector<Vector3> xformed_vertices;
+		LocalVector<float> xformed_vertices;
 		Transform3D xform;
 		bool enabled = true;
 		bool removed = false;
@@ -126,7 +126,7 @@ private:
 			uint32_t vertex_count;
 			Transform3D xform;
 			const Vector3 *read;
-			Vector3 *write = nullptr;
+			float *write = nullptr;
 		};
 
 		Thread *commit_thread = nullptr;
@@ -144,7 +144,7 @@ private:
 		void _update_dirty_instance_thread(int p_idx, RID *p_instances);
 		void _update_dirty_instance(int p_idx, RID *p_instances);
 		void _transform_vertices_thread(uint32_t p_thread, TransformThreadData *p_data);
-		void _transform_vertices_range(const Vector3 *p_read, Vector3 *p_write, const Transform3D &p_xform, int p_from, int p_to);
+		void _transform_vertices_range(const Vector3 *p_read, float *p_write, const Transform3D &p_xform, int p_from, int p_to);
 		static void _commit_scene(void *p_ud);
 		void free();
 		void update();
@@ -166,7 +166,7 @@ private:
 	bool _jitter_enabled = false;
 
 	void _init_embree();
-	Projection _jitter_projection(const Projection &p_cam_projection, const Size2i &p_viewport_size);
+	Vector2 _jitter_half_extents(const Vector2 &p_half_extents, const Size2i &p_viewport_size);
 
 public:
 	virtual bool is_occluder(RID p_rid) override;

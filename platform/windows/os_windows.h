@@ -37,7 +37,6 @@
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/os/os.h"
-#include "drivers/unix/ip_unix.h"
 #include "drivers/wasapi/audio_driver_wasapi.h"
 #include "drivers/winmidi/midi_driver_winmidi.h"
 #include "servers/audio_server.h"
@@ -95,8 +94,10 @@ public:
 class JoypadWindows;
 
 class OS_Windows : public OS {
+	uint64_t target_ticks = 0;
 	uint64_t ticks_start = 0;
 	uint64_t ticks_per_second = 0;
+	uint64_t delay_resolution = 1000;
 
 	HINSTANCE hInstance;
 	MainLoop *main_loop = nullptr;
@@ -189,6 +190,7 @@ public:
 
 	virtual Error set_cwd(const String &p_cwd) override;
 
+	virtual void add_frame_delay(bool p_can_draw) override;
 	virtual void delay_usec(uint32_t p_usec) const override;
 	virtual uint64_t get_ticks_usec() const override;
 
@@ -224,6 +226,7 @@ public:
 	virtual String get_config_path() const override;
 	virtual String get_data_path() const override;
 	virtual String get_cache_path() const override;
+	virtual String get_temp_path() const override;
 	virtual String get_godot_dir_name() const override;
 
 	virtual String get_system_dir(SystemDir p_dir, bool p_shared_storage = true) const override;

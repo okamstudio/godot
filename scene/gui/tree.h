@@ -518,8 +518,8 @@ private:
 	int get_item_height(TreeItem *p_item) const;
 	void _update_all();
 	void update_column(int p_col);
-	void update_item_cell(TreeItem *p_item, int p_col);
-	void update_item_cache(TreeItem *p_item);
+	void update_item_cell(TreeItem *p_item, int p_col) const;
+	void update_item_cache(TreeItem *p_item) const;
 	//void draw_item_text(String p_text,const Ref<Texture2D>& p_icon,int p_icon_max_w,bool p_tool,Rect2i p_rect,const Color& p_color);
 	void draw_item_rect(TreeItem::Cell &p_cell, const Rect2i &p_rect, const Color &p_color, const Color &p_icon_color, int p_ol_size, const Color &p_ol_color);
 	int draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 &p_draw_size, TreeItem *p_item, int &r_self_height);
@@ -700,6 +700,8 @@ private:
 
 	bool enable_recursive_folding = true;
 
+	bool enable_auto_tooltip = true;
+
 	void _determine_hovered_item();
 
 	int _count_selected_items(TreeItem *p_from) const;
@@ -833,6 +835,9 @@ public:
 
 	void set_allow_search(bool p_allow);
 	bool get_allow_search() const;
+
+	void set_auto_tooltip(bool p_enable);
+	bool is_auto_tooltip_enabled() const;
 
 	Size2 get_minimum_size() const override;
 

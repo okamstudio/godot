@@ -4,7 +4,7 @@
 		Provides methods for file reading and writing operations.
 	</brief_description>
 	<description>
-		This class can be used to permanently store data in the user device's file system and to read from it. This is useful for store game save data or player configuration files.
+		This class can be used to permanently store data in the user device's file system and to read from it. This is useful for storing game save data or player configuration files.
 		Here's a sample on how to write and read from a file:
 		[codeblocks]
 		[gdscript]
@@ -48,6 +48,20 @@
 			<description>
 				Closes the currently opened file and prevents subsequent read/write operations. Use [method flush] to persist the data to disk without closing the file.
 				[b]Note:[/b] [FileAccess] will automatically close when it's freed, which happens when it goes out of scope or when it gets assigned with [code]null[/code]. In C# the reference must be disposed after we are done using it, this can be done with the [code]using[/code] statement or calling the [code]Dispose[/code] method directly.
+			</description>
+		</method>
+		<method name="create_temp" qualifiers="static">
+			<return type="FileAccess" />
+			<param index="0" name="mode_flags" type="int" />
+			<param index="1" name="prefix" type="String" default="&quot;&quot;" />
+			<param index="2" name="extension" type="String" default="&quot;&quot;" />
+			<param index="3" name="keep" type="bool" default="false" />
+			<description>
+				Creates a temporary file. This file will be freed when the returned [FileAccess] is freed.
+				If [param prefix] is not empty, it will be prefixed to the file name, separated by a [code]-[/code].
+				If [param extension] is not empty, it will be appended to the temporary file name.
+				If [param keep] is [code]true[/code], the file is not deleted when the returned [FileAccess] is freed.
+				Returns [code]null[/code] if opening the file failed. You can use [method get_open_error] to check the error that occurred.
 			</description>
 		</method>
 		<method name="eof_reached" qualifiers="const">
@@ -171,6 +185,12 @@
 			<return type="float" />
 			<description>
 				Returns the next 32 bits from the file as a floating-point number.
+			</description>
+		</method>
+		<method name="get_half" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the next 16 bits from the file as a half-precision floating-point number.
 			</description>
 		</method>
 		<method name="get_hidden_attribute" qualifiers="static">
@@ -375,20 +395,22 @@
 			</description>
 		</method>
 		<method name="store_8">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="int" />
 			<description>
 				Stores an integer as 8 bits in the file.
 				[b]Note:[/b] The [param value] should lie in the interval [code][0, 255][/code]. Any other value will overflow and wrap around.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 				To store a signed integer, use [method store_64], or convert it manually (see [method store_16] for an example).
 			</description>
 		</method>
 		<method name="store_16">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="int" />
 			<description>
 				Stores an integer as 16 bits in the file.
 				[b]Note:[/b] The [param value] should lie in the interval [code][0, 2^16 - 1][/code]. Any other value will overflow and wrap around.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 				To store a signed integer, use [method store_64] or store a signed integer from the interval [code][-2^15, 2^15 - 1][/code] (i.e. keeping one bit for the signedness) and compute its sign manually when reading. For example:
 				[codeblocks]
 				[gdscript]
@@ -425,90 +447,108 @@
 			</description>
 		</method>
 		<method name="store_32">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="int" />
 			<description>
 				Stores an integer as 32 bits in the file.
 				[b]Note:[/b] The [param value] should lie in the interval [code][0, 2^32 - 1][/code]. Any other value will overflow and wrap around.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 				To store a signed integer, use [method store_64], or convert it manually (see [method store_16] for an example).
 			</description>
 		</method>
 		<method name="store_64">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="int" />
 			<description>
 				Stores an integer as 64 bits in the file.
 				[b]Note:[/b] The [param value] must lie in the interval [code][-2^63, 2^63 - 1][/code] (i.e. be a valid [int] value).
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_buffer">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="buffer" type="PackedByteArray" />
 			<description>
 				Stores the given array of bytes in the file.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_csv_line">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="values" type="PackedStringArray" />
 			<param index="1" name="delim" type="String" default="&quot;,&quot;" />
 			<description>
 				Store the given [PackedStringArray] in the file as a line formatted in the CSV (Comma-Separated Values) format. You can pass a different delimiter [param delim] to use other than the default [code]","[/code] (comma). This delimiter must be one-character long.
 				Text will be encoded as UTF-8.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_double">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="float" />
 			<description>
 				Stores a floating-point number as 64 bits in the file.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_float">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="float" />
 			<description>
 				Stores a floating-point number as 32 bits in the file.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
+			</description>
+		</method>
+		<method name="store_half">
+			<return type="bool" />
+			<param index="0" name="value" type="float" />
+			<description>
+				Stores a half-precision floating-point number as 16 bits in the file.
 			</description>
 		</method>
 		<method name="store_line">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="line" type="String" />
 			<description>
 				Stores [param line] in the file followed by a newline character ([code]\n[/code]), encoding the text as UTF-8.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_pascal_string">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="string" type="String" />
 			<description>
 				Stores the given [String] as a line in the file in Pascal format (i.e. also store the length of the string).
 				Text will be encoded as UTF-8.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_real">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="float" />
 			<description>
 				Stores a floating-point number in the file.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_string">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="string" type="String" />
 			<description>
 				Stores [param string] in the file without a newline character ([code]\n[/code]), encoding the text as UTF-8.
 				[b]Note:[/b] This method is intended to be used to write text files. The string is stored as a UTF-8 encoded buffer without string length or terminating zero, which means that it can't be loaded back easily. If you want to store a retrievable string in a binary file, consider using [method store_pascal_string] instead. For retrieving strings from a text file, you can use [code]get_buffer(length).get_string_from_utf8()[/code] (if you know the length) or [method get_as_text].
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 		<method name="store_var">
-			<return type="void" />
+			<return type="bool" />
 			<param index="0" name="value" type="Variant" />
 			<param index="1" name="full_objects" type="bool" default="false" />
 			<description>
 				Stores any Variant value in the file. If [param full_objects] is [code]true[/code], encoding objects is allowed (and can potentially include code).
 				Internally, this uses the same encoding mechanism as the [method @GlobalScope.var_to_bytes] method.
 				[b]Note:[/b] Not all properties are included. Only properties that are configured with the [constant PROPERTY_USAGE_STORAGE] flag set will be serialized. You can add a new usage flag to a property by overriding the [method Object._get_property_list] method in your class. You can also check how property usage is configured by calling [method Object._get_property_list]. See [enum PropertyUsageFlags] for the possible usage flags.
+				[b]Note:[/b] If an error occurs, the resulting value of the file position indicator is indeterminate.
 			</description>
 		</method>
 	</methods>

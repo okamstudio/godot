@@ -407,7 +407,7 @@ NodePath::NodePath(const String &p_path) {
 	bool absolute = (path[0] == '/');
 	bool last_is_slash = true;
 	int slices = 0;
-	int subpath_pos = path.find(":");
+	int subpath_pos = path.find_char(':');
 
 	if (subpath_pos != -1) {
 		int from = subpath_pos + 1;

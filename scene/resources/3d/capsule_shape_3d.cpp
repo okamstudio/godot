@@ -30,6 +30,7 @@
 
 #include "capsule_shape_3d.h"
 
+#include "scene/resources/3d/primitive_meshes.h"
 #include "servers/physics_server_3d.h"
 
 Vector<Vector3> CapsuleShape3D::get_debug_mesh_lines() const {
@@ -65,6 +66,24 @@ Vector<Vector3> CapsuleShape3D::get_debug_mesh_lines() const {
 	}
 
 	return points;
+}
+
+Ref<ArrayMesh> CapsuleShape3D::get_debug_arraymesh_faces(const Color &p_modulate) const {
+	Array capsule_array;
+	capsule_array.resize(RS::ARRAY_MAX);
+	CapsuleMesh::create_mesh_array(capsule_array, radius, height, 32, 8);
+
+	Vector<Color> colors;
+	const PackedVector3Array &verts = capsule_array[RS::ARRAY_VERTEX];
+	const int32_t verts_size = verts.size();
+	for (int i = 0; i < verts_size; i++) {
+		colors.append(p_modulate);
+	}
+
+	Ref<ArrayMesh> capsule_mesh = memnew(ArrayMesh);
+	capsule_array[RS::ARRAY_COLOR] = colors;
+	capsule_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, capsule_array);
+	return capsule_mesh;
 }
 
 real_t CapsuleShape3D::get_enclosing_radius() const {

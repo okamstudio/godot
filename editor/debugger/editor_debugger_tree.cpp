@@ -382,7 +382,7 @@ void EditorDebuggerTree::_item_menu_id_pressed(int p_option) {
 				text = ".";
 			} else {
 				text = text.replace("/root/", "");
-				int slash = text.find("/");
+				int slash = text.find_char('/');
 				if (slash < 0) {
 					text = ".";
 				} else {

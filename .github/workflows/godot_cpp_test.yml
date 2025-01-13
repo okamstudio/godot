@@ -21,7 +21,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          sparse-checkout: .github
+          sparse-checkout: |
+            .github
+            misc/utility/problem-matchers.json
 
       - name: Checkout godot-cpp
         uses: actions/checkout@v4
@@ -33,9 +35,6 @@ jobs:
 
       - name: Setup Python and SCons
         uses: ./.github/actions/godot-deps
-
-      - name: Setup GCC problem matcher
-        uses: ammaraskar/gcc-problem-matcher@master
 
       - name: Download GDExtension interface and API dump
         uses: ./.github/actions/download-artifact

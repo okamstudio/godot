@@ -1,5 +1,2 @@
 GDTEST_OK
->> WARNING
->> Line: 5
->> NARROWING_CONVERSION
->> Narrowing conversion (float is converted to int and loses precision).
+~~ WARNING at line 5: (NARROWING_CONVERSION) Narrowing conversion (float is converted to int and loses precision).

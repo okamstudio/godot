@@ -1,0 +1,3 @@
+GDTEST_RUNTIME_ERROR
+>> SCRIPT ERROR at runtime/errors/assign_freed_instance.gd:10 on subtest_native(): Trying to assign invalid previously freed instance.
+>> SCRIPT ERROR at runtime/errors/assign_freed_instance.gd:18 on subtest_script(): Trying to assign invalid previously freed instance.

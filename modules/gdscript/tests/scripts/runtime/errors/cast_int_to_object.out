@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/cast_int_to_object.gd
->> 4
->> Invalid cast: can't convert a non-object value to an object type.
+>> SCRIPT ERROR at runtime/errors/cast_int_to_object.gd:4 on test(): Invalid cast: can't convert a non-object value to an object type.

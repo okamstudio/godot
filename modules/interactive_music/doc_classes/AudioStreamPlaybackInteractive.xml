@@ -9,6 +9,18 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="get_current_clip_index" qualifiers="const">
+			<return type="int" />
+			<description>
+				Return the index of the currently playing clip. You can use this to get the name of the currently playing clip with [method AudioStreamInteractive.get_clip_name].
+				[b]Example:[/b] Get the currently playing clip name from inside an [AudioStreamPlayer] node.
+				[codeblocks]
+				[gdscript]
+				var playing_clip_name = stream.get_clip_name(get_stream_playback().get_current_clip_index())
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="switch_to_clip">
 			<return type="void" />
 			<param index="0" name="clip_index" type="int" />

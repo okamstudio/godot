@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Enum values must be integers.
+>> ERROR at line 3: Enum values must be integers.

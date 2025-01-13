@@ -190,7 +190,7 @@ PackedStringArray CollisionShape2D::get_configuration_warnings() const {
 	Ref<ConvexPolygonShape2D> convex = shape;
 	Ref<ConcavePolygonShape2D> concave = shape;
 	if (convex.is_valid() || concave.is_valid()) {
-		warnings.push_back(RTR("Polygon-based shapes are not meant be used nor edited directly through the CollisionShape2D node. Please use the CollisionPolygon2D node instead."));
+		warnings.push_back(RTR("The CollisionShape2D node has limited editing options for polygon-based shapes. Consider using a CollisionPolygon2D node instead."));
 	}
 
 	return warnings;

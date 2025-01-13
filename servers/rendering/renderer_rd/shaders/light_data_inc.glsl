@@ -41,10 +41,14 @@ struct ReflectionData {
 	uint mask;
 	mediump vec3 ambient; // ambient color
 	mediump float intensity;
+	mediump float blend_distance;
 	bool exterior;
 	bool box_project;
 	uint ambient_mode;
 	float exposure_normalization;
+	float pad0;
+	float pad1;
+	float pad2;
 	//0-8 is intensity,8-9 is ambient, mode
 	highp mat4 local_matrix; // up to here for spot and omni, rest is for directional
 	// notes: for ambientblend, use distance to edge to blend between already existing global environment

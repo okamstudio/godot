@@ -338,7 +338,7 @@ EditorHelpSearch::EditorHelpSearch() {
 	hbox->add_child(search_box);
 
 	case_sensitive_button = memnew(Button);
-	case_sensitive_button->set_theme_type_variation("FlatButton");
+	case_sensitive_button->set_theme_type_variation(SceneStringName(FlatButton));
 	case_sensitive_button->set_tooltip_text(TTR("Case Sensitive"));
 	case_sensitive_button->connect(SceneStringName(pressed), callable_mp(this, &EditorHelpSearch::_update_results));
 	case_sensitive_button->set_toggle_mode(true);
@@ -346,7 +346,7 @@ EditorHelpSearch::EditorHelpSearch() {
 	hbox->add_child(case_sensitive_button);
 
 	hierarchy_button = memnew(Button);
-	hierarchy_button->set_theme_type_variation("FlatButton");
+	hierarchy_button->set_theme_type_variation(SceneStringName(FlatButton));
 	hierarchy_button->set_tooltip_text(TTR("Show Hierarchy"));
 	hierarchy_button->connect(SceneStringName(pressed), callable_mp(this, &EditorHelpSearch::_update_results));
 	hierarchy_button->set_toggle_mode(true);
@@ -957,7 +957,7 @@ void EditorHelpSearch::Runner::_match_method_name_and_push_back(Vector<DocData::
 				(term.begins_with(".") && method_name.begins_with(term.substr(1))) ||
 				(term.ends_with("(") && method_name.ends_with(term.left(term.length() - 1).strip_edges())) ||
 				(term.begins_with(".") && term.ends_with("(") && method_name == term.substr(1, term.length() - 2).strip_edges())) {
-			method.doc = const_cast<DocData::MethodDoc *>(&p_methods[i]);
+			method.doc = &p_methods[i];
 			r_match_methods->push_back(method);
 		}
 	}

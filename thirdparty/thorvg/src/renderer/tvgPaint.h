@@ -49,6 +49,7 @@ namespace tvg
     {
         Paint* paint = nullptr;
         Composite* compData = nullptr;
+        Paint* clipper = nullptr;
         RenderMethod* renderer = nullptr;
         struct {
             Matrix m;                 //input matrix
@@ -67,8 +68,8 @@ namespace tvg
                 m.e31 = 0.0f;
                 m.e32 = 0.0f;
                 m.e33 = 1.0f;
-                mathScale(&m, scale, scale);
-                mathRotate(&m, degree);
+                tvg::scale(&m, scale, scale);
+                tvg::rotate(&m, degree);
             }
         } tr;
         BlendMethod blendMethod;
@@ -76,7 +77,6 @@ namespace tvg
         uint8_t ctxFlag;
         uint8_t opacity;
         uint8_t refCnt = 0;                              //reference count
-        uint8_t id;         //TODO: deprecated, remove it
 
         Impl(Paint* pnt) : paint(pnt)
         {
@@ -89,6 +89,7 @@ namespace tvg
                 if (P(compData->target)->unref() == 0) delete(compData->target);
                 free(compData);
             }
+            if (clipper && P(clipper)->unref() == 0) delete(clipper);
             if (renderer && (renderer->unref() == 0)) delete(renderer);
         }
 
@@ -106,7 +107,7 @@ namespace tvg
 
         bool transform(const Matrix& m)
         {
-            tr.m = m;
+            if (&tr.m != &m) tr.m = m;
             tr.overriding = true;
             renderFlag |= RenderUpdateFlag::Transform;
 
@@ -119,6 +120,20 @@ namespace tvg
             if (renderFlag & RenderUpdateFlag::Transform) tr.update();
             if (origin) return tr.cm;
             return tr.m;
+        }
+
+        void clip(Paint* clp)
+        {
+            if (this->clipper) {
+                P(this->clipper)->unref();
+                if (this->clipper != clp && P(this->clipper)->refCnt == 0) {
+                    delete(this->clipper);
+                }
+            }
+            this->clipper = clp;
+            if (!clp) return;
+
+            P(clipper)->ref();
         }
 
         bool composite(Paint* source, Paint* target, CompositeMethod method)

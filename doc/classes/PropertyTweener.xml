@@ -16,10 +16,16 @@
 			<description>
 				When called, the final value will be used as a relative value instead.
 				[b]Example:[/b] Move the node by [code]100[/code] pixels to the right.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var tween = get_tree().create_tween()
 				tween.tween_property(self, "position", Vector2.RIGHT * 100, 1).as_relative()
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				Tween tween = GetTree().CreateTween();
+				tween.TweenProperty(this, "position", Vector2.Right * 100.0f, 1.0f).AsRelative();
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="from">
@@ -28,20 +34,32 @@
 			<description>
 				Sets a custom initial value to the [PropertyTweener].
 				[b]Example:[/b] Move the node from position [code](100, 100)[/code] to [code](200, 100)[/code].
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				var tween = get_tree().create_tween()
 				tween.tween_property(self, "position", Vector2(200, 100), 1).from(Vector2(100, 100))
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				Tween tween = GetTree().CreateTween();
+				tween.TweenProperty(this, "position", new Vector2(200.0f, 100.0f), 1.0f).From(new Vector2(100.0f, 100.0f));
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="from_current">
 			<return type="PropertyTweener" />
 			<description>
 				Makes the [PropertyTweener] use the current property value (i.e. at the time of creating this [PropertyTweener]) as a starting point. This is equivalent of using [method from] with the current value. These two calls will do the same:
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				tween.tween_property(self, "position", Vector2(200, 100), 1).from(position)
 				tween.tween_property(self, "position", Vector2(200, 100), 1).from_current()
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				tween.TweenProperty(this, "position", new Vector2(200.0f, 100.0f), 1.0f).From(Position);
+				tween.TweenProperty(this, "position", new Vector2(200.0f, 100.0f), 1.0f).FromCurrent();
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="set_custom_interpolator">
@@ -49,7 +67,8 @@
 			<param index="0" name="interpolator_method" type="Callable" />
 			<description>
 				Allows interpolating the value with a custom easing function. The provided [param interpolator_method] will be called with a value ranging from [code]0.0[/code] to [code]1.0[/code] and is expected to return a value within the same range (values outside the range can be used for overshoot). The return value of the method is then used for interpolation between initial and final value. Note that the parameter passed to the method is still subject to the tweener's own easing.
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				@export var curve: Curve
 
 				func _ready():
@@ -59,7 +78,25 @@
 
 				func tween_curve(v):
 				    return curve.sample_baked(v)
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				[Export]
+				public Curve Curve { get; set; }
+
+				public override void _Ready()
+				{
+				    Tween tween = CreateTween();
+				    // Interpolate the value using a custom curve.
+				    Callable tweenCurveCallable = Callable.From&lt;float, float&gt;(TweenCurve);
+				    tween.TweenProperty(this, "position:x", 300.0f, 1.0f).AsRelative().SetCustomInterpolator(tweenCurveCallable);
+				}
+
+				private float TweenCurve(float value)
+				{
+				    return Curve.SampleBaked(value);
+				}
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="set_delay">

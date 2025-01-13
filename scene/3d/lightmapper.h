@@ -133,7 +133,6 @@ public:
 		GENERATE_PROBES_SUBDIV_8,
 		GENERATE_PROBES_SUBDIV_16,
 		GENERATE_PROBES_SUBDIV_32,
-
 	};
 
 	enum LightType {
@@ -147,6 +146,7 @@ public:
 		BAKE_ERROR_TEXTURE_EXCEEDS_MAX_SIZE,
 		BAKE_ERROR_LIGHTMAP_CANT_PRE_BAKE_MESHES,
 		BAKE_ERROR_ATLAS_TOO_SMALL,
+		BAKE_ERROR_USER_ABORTED,
 	};
 
 	enum BakeQuality {
@@ -177,14 +177,16 @@ public:
 	};
 
 	virtual void add_mesh(const MeshData &p_mesh) = 0;
-	virtual void add_directional_light(bool p_static, const Vector3 &p_direction, const Color &p_color, float p_energy, float p_indirect_energy, float p_angular_distance, float p_shadow_blur) = 0;
-	virtual void add_omni_light(bool p_static, const Vector3 &p_position, const Color &p_color, float p_energy, float p_indirect_energy, float p_range, float p_attenuation, float p_size, float p_shadow_blur) = 0;
-	virtual void add_spot_light(bool p_static, const Vector3 &p_position, const Vector3 p_direction, const Color &p_color, float p_energy, float p_indirect_energy, float p_range, float p_attenuation, float p_spot_angle, float p_spot_attenuation, float p_size, float p_shadow_blur) = 0;
+	virtual void add_directional_light(const String &p_name, bool p_static, const Vector3 &p_direction, const Color &p_color, float p_energy, float p_indirect_energy, float p_angular_distance, float p_shadow_blur) = 0;
+	virtual void add_omni_light(const String &p_name, bool p_static, const Vector3 &p_position, const Color &p_color, float p_energy, float p_indirect_energy, float p_range, float p_attenuation, float p_size, float p_shadow_blur) = 0;
+	virtual void add_spot_light(const String &p_name, bool p_static, const Vector3 &p_position, const Vector3 p_direction, const Color &p_color, float p_energy, float p_indirect_energy, float p_range, float p_attenuation, float p_spot_angle, float p_spot_attenuation, float p_size, float p_shadow_blur) = 0;
 	virtual void add_probe(const Vector3 &p_position) = 0;
-	virtual BakeError bake(BakeQuality p_quality, bool p_use_denoiser, float p_denoiser_strength, int p_denoiser_range, int p_bounces, float p_bounce_indirect_energy, float p_bias, int p_max_texture_size, bool p_bake_sh, bool p_texture_for_bounces, GenerateProbes p_generate_probes, const Ref<Image> &p_environment_panorama, const Basis &p_environment_transform, BakeStepFunc p_step_function = nullptr, void *p_step_userdata = nullptr, float p_exposure_normalization = 1.0) = 0;
+	virtual BakeError bake(BakeQuality p_quality, bool p_use_denoiser, float p_denoiser_strength, int p_denoiser_range, int p_bounces, float p_bounce_indirect_energy, float p_bias, int p_max_texture_size, bool p_bake_sh, bool p_bake_shadowmask, bool p_texture_for_bounces, GenerateProbes p_generate_probes, const Ref<Image> &p_environment_panorama, const Basis &p_environment_transform, BakeStepFunc p_step_function = nullptr, void *p_step_userdata = nullptr, float p_exposure_normalization = 1.0) = 0;
 
 	virtual int get_bake_texture_count() const = 0;
 	virtual Ref<Image> get_bake_texture(int p_index) const = 0;
+	virtual int get_shadowmask_texture_count() const = 0;
+	virtual Ref<Image> get_shadowmask_texture(int p_index) const = 0;
 	virtual int get_bake_mesh_count() const = 0;
 	virtual Variant get_bake_mesh_userdata(int p_index) const = 0;
 	virtual Rect2 get_bake_mesh_uv_scale(int p_index) const = 0;

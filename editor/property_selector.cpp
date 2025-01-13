@@ -258,7 +258,7 @@ void PropertySelector::_update_search() {
 			TreeItem *item = search_options->create_item(category ? category : root);
 
 			String desc;
-			if (mi.name.contains(":")) {
+			if (mi.name.contains_char(':')) {
 				desc = mi.name.get_slice(":", 1) + " ";
 				mi.name = mi.name.get_slice(":", 0);
 			} else if (mi.return_val.type != Variant::NIL) {
@@ -278,7 +278,7 @@ void PropertySelector::_update_search() {
 
 				if (arg_itr->type == Variant::NIL) {
 					desc += ": Variant";
-				} else if (arg_itr->name.contains(":")) {
+				} else if (arg_itr->name.contains_char(':')) {
 					desc += vformat(": %s", arg_itr->name.get_slice(":", 1));
 					arg_itr->name = arg_itr->name.get_slice(":", 0);
 				} else {

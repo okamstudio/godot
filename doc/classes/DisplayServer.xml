@@ -10,6 +10,13 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="beep" qualifiers="const">
+			<return type="void" />
+			<description>
+				Plays the beep sound from the operative system, if possible. Because it comes from the OS, the beep sound will be audible even if the application is muted. It may also be disabled for the entire OS by the user.
+				[b]Note:[/b] This method is implemented on macOS, Linux (X11/Wayland), and Windows.
+			</description>
+		</method>
 		<method name="clipboard_get" qualifiers="const">
 			<return type="String" />
 			<description>
@@ -1072,6 +1079,15 @@
 				[b]Note:[/b] On macOS, this method requires "Screen Recording" permission, if permission is not granted it will return desktop wallpaper color.
 			</description>
 		</method>
+		<method name="screen_get_image_rect" qualifiers="const">
+			<return type="Image" />
+			<param index="0" name="rect" type="Rect2i" />
+			<description>
+				Returns screenshot of the screen [param rect].
+				[b]Note:[/b] This method is implemented on macOS and Windows.
+				[b]Note:[/b] On macOS, this method requires "Screen Recording" permission, if permission is not granted it will return desktop wallpaper color.
+			</description>
+		</method>
 		<method name="screen_get_max_scale" qualifiers="const">
 			<return type="float" />
 			<description>
@@ -1135,7 +1151,7 @@
 				Returns the scale factor of the specified screen by index.
 				[b]Note:[/b] On macOS, the returned value is [code]2.0[/code] for hiDPI (Retina) screens, and [code]1.0[/code] for all other cases.
 				[b]Note:[/b] On Linux (Wayland), the returned value is accurate only when [param screen] is [constant SCREEN_OF_MAIN_WINDOW]. Due to API limitations, passing a direct index will return a rounded-up integer, if the screen has a fractional scale (e.g. [code]1.25[/code] would get rounded up to [code]2.0[/code]).
-				[b]Note:[/b] This method is implemented only on macOS and Linux (Wayland).
+				[b]Note:[/b] This method is implemented on Android, iOS, Web, macOS, and Linux (Wayland).
 			</description>
 		</method>
 		<method name="screen_get_size" qualifiers="const">
@@ -1815,6 +1831,14 @@
 				[b]Warning:[/b] Advanced users only! Adding such a callback to a [Window] node will override its default implementation, which can introduce bugs.
 			</description>
 		</method>
+		<method name="window_start_drag">
+			<return type="void" />
+			<param index="0" name="window_id" type="int" default="0" />
+			<description>
+				Starts a drag operation on the window with the given [param window_id], using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
+				[b]Note:[/b] This method is implemented only on macOS.
+			</description>
+		</method>
 	</methods>
 	<constants>
 		<constant name="FEATURE_GLOBAL_MENU" value="0" enum="Feature" deprecated="Use [NativeMenu] or [PopupMenu] instead.">
@@ -1894,6 +1918,12 @@
 		</constant>
 		<constant name="FEATURE_NATIVE_DIALOG_FILE_EXTRA" value="26" enum="Feature">
 			The display server supports all features of [constant FEATURE_NATIVE_DIALOG_FILE], with the added functionality of Options and native dialog file access to [code]res://[/code] and [code]user://[/code] paths. See [method file_dialog_show] and [method file_dialog_with_options_show]. [b]Windows, macOS, Linux (X11/Wayland)[/b]
+		</constant>
+		<constant name="FEATURE_WINDOW_DRAG" value="27" enum="Feature">
+			The display server supports initiating window drag operation on demand. See [method window_start_drag].
+		</constant>
+		<constant name="FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE" value="28" enum="Feature">
+			Display server supports [constant WINDOW_FLAG_EXCLUDE_FROM_CAPTURE] window flag.
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.
@@ -2110,7 +2140,12 @@
 			Window style is overridden, forcing sharp corners.
 			[b]Note:[/b] This flag is implemented only on Windows (11).
 		</constant>
-		<constant name="WINDOW_FLAG_MAX" value="9" enum="WindowFlags">
+		<constant name="WINDOW_FLAG_EXCLUDE_FROM_CAPTURE" value="9" enum="WindowFlags">
+			Windows is excluded from screenshots taken by [method screen_get_image], [method screen_get_image_rect], and [method screen_get_pixel].
+			[b]Note:[/b] This flag is implemented on macOS and Windows.
+			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
+		</constant>
+		<constant name="WINDOW_FLAG_MAX" value="10" enum="WindowFlags">
 			Max value of the [enum WindowFlags].
 		</constant>
 		<constant name="WINDOW_EVENT_MOUSE_ENTER" value="0" enum="WindowEvent">
@@ -2170,12 +2205,12 @@
 		</constant>
 		<constant name="WINDOW_VIEW" value="2" enum="HandleType">
 			Window view:
-			- Windows: [code]HDC[/code] for the window (only with the GL Compatibility renderer).
+			- Windows: [code]HDC[/code] for the window (only with the Compatibility renderer).
 			- macOS: [code]NSView*[/code] for the window main view.
 			- iOS: [code]UIView*[/code] for the window main view.
 		</constant>
 		<constant name="OPENGL_CONTEXT" value="3" enum="HandleType">
-			OpenGL context (only with the GL Compatibility renderer):
+			OpenGL context (only with the Compatibility renderer):
 			- Windows: [code]HGLRC[/code] for the window (native GL), or [code]EGLContext[/code] for the window (ANGLE).
 			- Linux (X11): [code]GLXContext*[/code] for the window.
 			- Linux (Wayland): [code]EGLContext[/code] for the window.

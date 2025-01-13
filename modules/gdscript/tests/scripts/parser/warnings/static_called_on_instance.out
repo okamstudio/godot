@@ -1,15 +1,6 @@
 GDTEST_OK
->> WARNING
->> Line: 13
->> STATIC_CALLED_ON_INSTANCE
->> The function "num_uint64()" is a static function but was called from an instance. Instead, it should be directly called from the type: "String.num_uint64()".
->> WARNING
->> Line: 19
->> STATIC_CALLED_ON_INSTANCE
->> The function "static_func()" is a static function but was called from an instance. Instead, it should be directly called from the type: "TestStaticCalledOnInstance.static_func()".
->> WARNING
->> Line: 23
->> STATIC_CALLED_ON_INSTANCE
->> The function "static_func()" is a static function but was called from an instance. Instead, it should be directly called from the type: "Inner.static_func()".
+~~ WARNING at line 13: (STATIC_CALLED_ON_INSTANCE) The function "num_uint64()" is a static function but was called from an instance. Instead, it should be directly called from the type: "String.num_uint64()".
+~~ WARNING at line 19: (STATIC_CALLED_ON_INSTANCE) The function "static_func()" is a static function but was called from an instance. Instead, it should be directly called from the type: "TestStaticCalledOnInstance.static_func()".
+~~ WARNING at line 23: (STATIC_CALLED_ON_INSTANCE) The function "static_func()" is a static function but was called from an instance. Instead, it should be directly called from the type: "Inner.static_func()".
 8589934592
 8589934592

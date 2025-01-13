@@ -235,6 +235,7 @@ static FfxErrorCode create_resource_rd(FfxFsr2Interface *p_backend_interface, co
 	texture_format.height = res_desc.height;
 	texture_format.depth = res_desc.depth;
 	texture_format.mipmaps = res_desc.mipCount;
+	texture_format.is_discardable = true;
 
 	RID texture = rd->texture_create(texture_format, RD::TextureView(), initial_data);
 	ERR_FAIL_COND_V(texture.is_null(), FFX_ERROR_BACKEND_API_ERROR);
@@ -393,7 +394,9 @@ static FfxErrorCode execute_gpu_job_compute_rd(FSR2Context::Scratch &p_scratch, 
 	FSR2Effect::Pipeline &backend_pipeline = *reinterpret_cast<FSR2Effect::Pipeline *>(p_job.pipeline.pipeline);
 	ERR_FAIL_COND_V(backend_pipeline.pipeline_rid.is_null(), FFX_ERROR_INVALID_ARGUMENT);
 
-	Vector<RD::Uniform> compute_uniforms;
+	thread_local LocalVector<RD::Uniform> compute_uniforms;
+	compute_uniforms.clear();
+
 	for (uint32_t i = 0; i < p_job.pipeline.srvCount; i++) {
 		RID texture_rid = p_scratch.resources.rids[p_job.srvs[i].internalIndex];
 		RD::Uniform texture_uniform(RD::UNIFORM_TYPE_TEXTURE, p_job.pipeline.srvResourceBindings[i].slotIndex, texture_rid);

@@ -31,14 +31,12 @@
 #include "api.h"
 
 #include "javascript_bridge_singleton.h"
-#include "web_tools_editor_plugin.h"
 
 #include "core/config/engine.h"
 
 static JavaScriptBridge *javascript_bridge_singleton;
 
 void register_web_api() {
-	WebToolsEditorPlugin::initialize();
 	GDREGISTER_ABSTRACT_CLASS(JavaScriptObject);
 	GDREGISTER_ABSTRACT_CLASS(JavaScriptBridge);
 	javascript_bridge_singleton = memnew(JavaScriptBridge);

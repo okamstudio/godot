@@ -344,7 +344,12 @@ void SceneTreeEditor::_add_nodes(Node *p_node, TreeItem *p_parent) {
 		}
 
 		if (p_node->is_unique_name_in_owner()) {
-			item->add_button(0, get_editor_theme_icon(SNAME("SceneUniqueName")), BUTTON_UNIQUE, p_node->get_owner() != EditorNode::get_singleton()->get_edited_scene(), vformat(TTR("This node can be accessed from within anywhere in the scene by preceding it with the '%s' prefix in a node path.\nClick to disable this."), UNIQUE_NODE_PREFIX));
+			const bool disabled = p_node->get_owner() != EditorNode::get_singleton()->get_edited_scene();
+			String button_text = vformat(TTR("This node can be accessed from anywhere within the scene it belongs to by using the '%s' prefix in the node path."), UNIQUE_NODE_PREFIX);
+			if (!disabled) {
+				button_text += "\n" + TTR("Click to disable this.");
+			}
+			item->add_button(0, get_editor_theme_icon(SNAME("SceneUniqueName")), BUTTON_UNIQUE, disabled, button_text);
 		}
 
 		int num_connections = p_node->get_persistent_signal_connection_count();
@@ -754,7 +759,7 @@ bool SceneTreeEditor::_item_matches_all_terms(TreeItem *p_item, const PackedStri
 		const String &term = p_terms[i];
 
 		// Recognize special filter.
-		if (term.contains(":") && !term.get_slicec(':', 0).is_empty()) {
+		if (term.contains_char(':') && !term.get_slicec(':', 0).is_empty()) {
 			String parameter = term.get_slicec(':', 0);
 			String argument = term.get_slicec(':', 1);
 

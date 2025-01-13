@@ -37,7 +37,7 @@
 bool Theme::_set(const StringName &p_name, const Variant &p_value) {
 	String sname = p_name;
 
-	if (sname.contains("/")) {
+	if (sname.contains_char('/')) {
 		String type = sname.get_slicec('/', 1);
 		String theme_type = sname.get_slicec('/', 0);
 		String prop_name = sname.get_slicec('/', 2);
@@ -69,7 +69,7 @@ bool Theme::_set(const StringName &p_name, const Variant &p_value) {
 bool Theme::_get(const StringName &p_name, Variant &r_ret) const {
 	String sname = p_name;
 
-	if (sname.contains("/")) {
+	if (sname.contains_char('/')) {
 		String type = sname.get_slicec('/', 1);
 		String theme_type = sname.get_slicec('/', 0);
 		String prop_name = sname.get_slicec('/', 2);

@@ -177,6 +177,9 @@
 		<theme_item name="folded_arrow" data_type="icon" type="Texture2D">
 			The icon for color preset drop down menu when folded.
 		</theme_item>
+		<theme_item name="menu_option" data_type="icon" type="Texture2D">
+			The icon for color preset option menu.
+		</theme_item>
 		<theme_item name="overbright_indicator" data_type="icon" type="Texture2D">
 			The indicator used to signalize that the color value is outside the 0-1 range.
 		</theme_item>

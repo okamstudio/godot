@@ -61,7 +61,7 @@ void ProgressBar::_notification(int p_what) {
 				Size2 size = get_size();
 				real_t fill_size = MIN(size.width, size.height) * 2;
 
-				if (Engine::get_singleton()->is_editor_hint() && !editor_preview_indeterminate) {
+				if (is_part_of_edited_scene() && !editor_preview_indeterminate) {
 					// Center the filled bar when we're not previewing the animation.
 					_inderminate_fill_progress = (MAX(size.width, size.height) / 2) + (fill_size / 2);
 				}
@@ -217,7 +217,7 @@ void ProgressBar::set_indeterminate(bool p_indeterminate) {
 	indeterminate = p_indeterminate;
 	_inderminate_fill_progress = 0;
 
-	bool should_process = !Engine::get_singleton()->is_editor_hint() || editor_preview_indeterminate;
+	bool should_process = !is_part_of_edited_scene() || editor_preview_indeterminate;
 	set_process_internal(indeterminate && should_process);
 
 	notify_property_list_changed();
@@ -235,7 +235,7 @@ void ProgressBar::set_editor_preview_indeterminate(bool p_preview_indeterminate)
 	}
 	editor_preview_indeterminate = p_preview_indeterminate;
 
-	if (Engine::get_singleton()->is_editor_hint()) {
+	if (is_part_of_edited_scene()) {
 		_inderminate_fill_progress = 0;
 		set_process_internal(indeterminate && editor_preview_indeterminate);
 		queue_redraw();

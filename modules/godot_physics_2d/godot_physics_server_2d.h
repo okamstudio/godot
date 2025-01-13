@@ -56,7 +56,7 @@ class GodotPhysicsServer2D : public PhysicsServer2D {
 	bool flushing_queries = false;
 
 	GodotStep2D *stepper = nullptr;
-	HashSet<const GodotSpace2D *> active_spaces;
+	HashSet<GodotSpace2D *> active_spaces;
 
 	mutable RID_PtrOwner<GodotShape2D, true> shape_owner;
 	mutable RID_PtrOwner<GodotSpace2D, true> space_owner;

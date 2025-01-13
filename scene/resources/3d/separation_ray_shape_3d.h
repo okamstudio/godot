@@ -33,6 +33,8 @@
 
 #include "scene/resources/3d/shape_3d.h"
 
+class ArrayMesh;
+
 class SeparationRayShape3D : public Shape3D {
 	GDCLASS(SeparationRayShape3D, Shape3D);
 	float length = 1.0;
@@ -50,6 +52,7 @@ public:
 	bool get_slide_on_slope() const;
 
 	virtual Vector<Vector3> get_debug_mesh_lines() const override;
+	virtual Ref<ArrayMesh> get_debug_arraymesh_faces(const Color &p_modulate) const override;
 	virtual real_t get_enclosing_radius() const override;
 
 	SeparationRayShape3D();

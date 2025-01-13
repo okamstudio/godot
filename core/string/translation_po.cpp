@@ -227,11 +227,11 @@ void TranslationPO::set_plural_rule(const String &p_plural_rule) {
 	// Set plural_forms and plural_rule.
 	// p_plural_rule passed in has the form "Plural-Forms: nplurals=2; plural=(n >= 2);".
 
-	int first_semi_col = p_plural_rule.find(";");
-	plural_forms = p_plural_rule.substr(p_plural_rule.find("=") + 1, first_semi_col - (p_plural_rule.find("=") + 1)).to_int();
+	int first_semi_col = p_plural_rule.find_char(';');
+	plural_forms = p_plural_rule.substr(p_plural_rule.find_char('=') + 1, first_semi_col - (p_plural_rule.find_char('=') + 1)).to_int();
 
-	int expression_start = p_plural_rule.find("=", first_semi_col) + 1;
-	int second_semi_col = p_plural_rule.rfind(";");
+	int expression_start = p_plural_rule.find_char('=', first_semi_col) + 1;
+	int second_semi_col = p_plural_rule.rfind_char(';');
 	plural_rule = p_plural_rule.substr(expression_start, second_semi_col - expression_start).strip_edges();
 
 	// Setup the cache to make evaluating plural rule faster later on.

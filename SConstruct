@@ -227,7 +227,6 @@ opts.Add(BoolVariable("use_volk", "Use the volk library to load the Vulkan loade
 opts.Add(BoolVariable("disable_exceptions", "Force disabling exception handling code", True))
 opts.Add("custom_modules", "A list of comma-separated directory paths containing custom modules to build.", "")
 opts.Add(BoolVariable("custom_modules_recursive", "Detect custom modules recursively for each specified path.", True))
-opts.Add(BoolVariable("swappy", "Use Swappy Frame Pacing Library in Android builds.", False))
 
 # Advanced options
 opts.Add(
@@ -383,8 +382,7 @@ if env["platform"] not in platform_list:
 
 # Add platform-specific options.
 if env["platform"] in platform_opts:
-    for opt in platform_opts[env["platform"]]:
-        opts.Add(opt)
+    opts.AddVariables(*platform_opts[env["platform"]])
 
 # Platform-specific flags.
 # These can sometimes override default options, so they need to be processed
@@ -440,12 +438,11 @@ for name, path in modules_detected.items():
     else:
         enabled = False
 
-    opts.Add(BoolVariable("module_" + name + "_enabled", "Enable module '%s'" % (name,), enabled))
+    opts.Add(BoolVariable(f"module_{name}_enabled", f"Enable module '{name}'", enabled))
 
     # Add module-specific options.
     try:
-        for opt in config.get_opts(env["platform"]):
-            opts.Add(opt)
+        opts.AddVariables(*config.get_opts(env["platform"]))
     except AttributeError:
         pass
 
@@ -504,14 +501,19 @@ else:
     # Disable assert() for production targets (only used in thirdparty code).
     env.Append(CPPDEFINES=["NDEBUG"])
 
+# This is not part of fast_unsafe because the only downside it has compared to
+# the default is that SCons won't mark files that were changed in the last second
+# as different. This is unlikely to be a problem in any real situation as just booting
+# up scons takes more than that time.
+# Renamed to `content-timestamp` in SCons >= 4.2, keeping MD5 for compat.
+env.Decider("MD5-timestamp")
+
 # SCons speed optimization controlled by the `fast_unsafe` option, which provide
 # more than 10 s speed up for incremental rebuilds.
 # Unsafe as they reduce the certainty of rebuilding all changed files, so it's
 # enabled by default for `debug` builds, and can be overridden from command line.
 # Ref: https://github.com/SCons/scons/wiki/GoFastButton
 if methods.get_cmdline_bool("fast_unsafe", env.dev_build):
-    # Renamed to `content-timestamp` in SCons >= 4.2, keeping MD5 for compat.
-    env.Decider("MD5-timestamp")
     env.SetOption("implicit_cache", 1)
     env.SetOption("max_drift", 60)
 
@@ -580,7 +582,7 @@ env.Append(RCFLAGS=env.get("rcflags", "").split())
 # Feature build profile
 env.disabled_classes = []
 if env["build_profile"] != "":
-    print('Using feature build profile: "{}"'.format(env["build_profile"]))
+    print(f'Using feature build profile: "{env["build_profile"]}"')
     import json
 
     try:
@@ -592,7 +594,7 @@ if env["build_profile"] != "":
             for c in dbo:
                 env[c] = dbo[c]
     except json.JSONDecodeError:
-        print_error('Failed to open feature build profile: "{}"'.format(env["build_profile"]))
+        print_error(f'Failed to open feature build profile: "{env["build_profile"]}"')
         Exit(255)
 
 # 'dev_mode' and 'production' are aliases to set default options if they haven't been
@@ -711,6 +713,12 @@ elif env.msvc:
         )
         Exit(255)
 
+# Default architecture flags.
+if env["arch"] == "x86_32":
+    if env.msvc:
+        env.Append(CCFLAGS=["/arch:SSE2"])
+    else:
+        env.Append(CCFLAGS=["-msse2"])
 
 # Set optimize and debug_symbols flags.
 # "custom" means do nothing and let users set their own optimization flags.
@@ -734,9 +742,15 @@ if env.msvc:
         env.Append(CCFLAGS=["/Od"])
 else:
     if env["debug_symbols"]:
-        # Adding dwarf-4 explicitly makes stacktraces work with clang builds,
-        # otherwise addr2line doesn't understand them
-        env.Append(CCFLAGS=["-gdwarf-4"])
+        if env["platform"] == "windows":
+            if methods.using_clang(env):
+                env.Append(CCFLAGS=["-gdwarf-4"])  # clang dwarf-5 symbols are broken on Windows.
+            else:
+                env.Append(CCFLAGS=["-gdwarf-5"])  # For gcc, only dwarf-5 symbols seem usable by libbacktrace.
+        else:
+            # Adding dwarf-4 explicitly makes stacktraces work with clang builds,
+            # otherwise addr2line doesn't understand them
+            env.Append(CCFLAGS=["-gdwarf-4"])
         if methods.using_emcc(env):
             # Emscripten only produces dwarf symbols when using "-g3".
             env.Append(CCFLAGS=["-g3"])
@@ -818,44 +832,41 @@ elif env.msvc:
 
 # Configure compiler warnings
 if env.msvc and not methods.using_clang(env):  # MSVC
-    if env["warnings"] == "no":
-        env.Append(CCFLAGS=["/w"])
-    else:
-        if env["warnings"] == "extra":
-            env.Append(CCFLAGS=["/W4"])
-        elif env["warnings"] == "all":
-            # C4458 is like -Wshadow. Part of /W4 but let's apply it for the default /W3 too.
-            env.Append(CCFLAGS=["/W3", "/w34458"])
-        elif env["warnings"] == "moderate":
-            env.Append(CCFLAGS=["/W2"])
-        # Disable warnings which we don't plan to fix.
+    # Disable warnings which we don't plan to fix.
+    disabled_warnings = [
+        "/wd4100",  # C4100 (unreferenced formal parameter): Doesn't play nice with polymorphism.
+        "/wd4127",  # C4127 (conditional expression is constant)
+        "/wd4201",  # C4201 (non-standard nameless struct/union): Only relevant for C89.
+        "/wd4244",  # C4244 C4245 C4267 (narrowing conversions): Unavoidable at this scale.
+        "/wd4245",
+        "/wd4267",
+        "/wd4305",  # C4305 (truncation): double to float or real_t, too hard to avoid.
+        "/wd4324",  # C4820 (structure was padded due to alignment specifier)
+        "/wd4514",  # C4514 (unreferenced inline function has been removed)
+        "/wd4714",  # C4714 (function marked as __forceinline not inlined)
+        "/wd4820",  # C4820 (padding added after construct)
+    ]
 
-        env.Append(
-            CCFLAGS=[
-                "/wd4100",  # C4100 (unreferenced formal parameter): Doesn't play nice with polymorphism.
-                "/wd4127",  # C4127 (conditional expression is constant)
-                "/wd4201",  # C4201 (non-standard nameless struct/union): Only relevant for C89.
-                "/wd4244",  # C4244 C4245 C4267 (narrowing conversions): Unavoidable at this scale.
-                "/wd4245",
-                "/wd4267",
-                "/wd4305",  # C4305 (truncation): double to float or real_t, too hard to avoid.
-                "/wd4324",  # C4820 (structure was padded due to alignment specifier)
-                "/wd4514",  # C4514 (unreferenced inline function has been removed)
-                "/wd4714",  # C4714 (function marked as __forceinline not inlined)
-                "/wd4820",  # C4820 (padding added after construct)
-            ]
-        )
+    if env["warnings"] == "extra":
+        env.Append(CCFLAGS=["/W4"] + disabled_warnings)
+    elif env["warnings"] == "all":
+        # C4458 is like -Wshadow. Part of /W4 but let's apply it for the default /W3 too.
+        env.Append(CCFLAGS=["/W3", "/w34458"] + disabled_warnings)
+    elif env["warnings"] == "moderate":
+        env.Append(CCFLAGS=["/W2"] + disabled_warnings)
+    else:  # 'no'
+        # C4267 is particularly finicky & needs to be explicitly disabled.
+        env.Append(CCFLAGS=["/w", "/wd4267"])
 
     if env["werror"]:
         env.Append(CCFLAGS=["/WX"])
         env.Append(LINKFLAGS=["/WX"])
+
 else:  # GCC, Clang
     common_warnings = []
 
     if methods.using_gcc(env):
         common_warnings += ["-Wshadow", "-Wno-misleading-indentation"]
-        if cc_version_major == 7:  # Bogus warning fixed in 8+.
-            common_warnings += ["-Wno-strict-overflow"]
         if cc_version_major < 11:
             # Regression in GCC 9/10, spams so much in our variadic templates
             # that we need to outright disable it.
@@ -931,7 +942,7 @@ env.module_icons_paths = []
 env.doc_class_path = platform_doc_class_path
 
 for name, path in modules_detected.items():
-    if not env["module_" + name + "_enabled"]:
+    if not env[f"module_{name}_enabled"]:
         continue
     sys.path.insert(0, path)
     env.current_module = name
@@ -1044,13 +1055,13 @@ if env["compiledb"]:
 
 if env["ninja"]:
     if env.scons_version < (4, 2, 0):
-        print_error("The `ninja=yes` option requires SCons 4.2 or later, but your version is %s." % scons_raw_version)
+        print_error(f"The `ninja=yes` option requires SCons 4.2 or later, but your version is {scons_raw_version}.")
         Exit(255)
 
     SetOption("experimental", "ninja")
     env["NINJA_FILE_NAME"] = env["ninja_file"]
     env["NINJA_DISABLE_AUTO_RUN"] = not env["ninja_auto_run"]
-    env.Tool("ninja", "build.ninja")
+    env.Tool("ninja", env["ninja_file"])
 
 # Threads
 if env["threads"]:
@@ -1112,7 +1123,7 @@ atexit.register(print_elapsed_time)
 
 
 def purge_flaky_files():
-    paths_to_keep = ["build.ninja"]
+    paths_to_keep = [env["ninja_file"]]
     for build_failure in GetBuildFailures():
         path = build_failure.node.path
         if os.path.isfile(path) and path not in paths_to_keep:

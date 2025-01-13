@@ -29,7 +29,6 @@ namespace tvg
 {
 
 float strToFloat(const char *nPtr, char **endPtr);  //convert to float
-int str2int(const char* str, size_t n);             //convert to integer
 char* strDuplicate(const char *str, size_t n);      //copy the string
 char* strAppend(char* lhs, const char* rhs, size_t n);  //append the rhs to the lhs
 char* strDirname(const char* path);                 //return the full directory name

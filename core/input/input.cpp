@@ -236,7 +236,7 @@ void Input::get_argument_options(const StringName &p_function, int p_idx, List<S
 				continue;
 			}
 
-			String name = pi.name.substr(pi.name.find("/") + 1, pi.name.length());
+			String name = pi.name.substr(pi.name.find_char('/') + 1, pi.name.length());
 			r_options->push_back(name.quote());
 		}
 	}
@@ -296,6 +296,26 @@ bool Input::is_anything_pressed() const {
 	}
 
 	if (!keys_pressed.is_empty() || !joy_buttons_pressed.is_empty() || !mouse_button_mask.is_empty()) {
+		return true;
+	}
+
+	for (const KeyValue<StringName, Input::ActionState> &E : action_states) {
+		if (E.value.cache.pressed) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Input::is_anything_pressed_except_mouse() const {
+	_THREAD_SAFE_METHOD_
+
+	if (disable_input) {
+		return false;
+	}
+
+	if (!keys_pressed.is_empty() || !joy_buttons_pressed.is_empty()) {
 		return true;
 	}
 

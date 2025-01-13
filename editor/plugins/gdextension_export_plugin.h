@@ -73,6 +73,7 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 	all_archs.insert("ppc32");
 	all_archs.insert("ppc64");
 	all_archs.insert("wasm32");
+	all_archs.insert("loongarch64");
 	all_archs.insert("universal");
 
 	HashSet<String> archs;

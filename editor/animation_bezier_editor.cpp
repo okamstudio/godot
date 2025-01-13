@@ -275,7 +275,7 @@ void AnimationBezierTrackEdit::_notification(int p_what) {
 				}
 
 				String base_path = animation->track_get_path(i);
-				int end = base_path.find(":");
+				int end = base_path.find_char(':');
 				if (end != -1) {
 					base_path = base_path.substr(0, end + 1);
 				}

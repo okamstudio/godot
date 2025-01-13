@@ -1,9 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 11
->> UNUSED_SIGNAL
->> The signal "used_with_dynamic_name" is declared but never explicitly used in the class.
->> WARNING
->> Line: 12
->> UNUSED_SIGNAL
->> The signal "just_unused" is declared but never explicitly used in the class.
+~~ WARNING at line 11: (UNUSED_SIGNAL) The signal "used_with_dynamic_name" is declared but never explicitly used in the class.
+~~ WARNING at line 12: (UNUSED_SIGNAL) The signal "just_unused" is declared but never explicitly used in the class.

@@ -135,6 +135,8 @@ private:
 	void _edit_files_with_filter(Ref<DirAccess> &da, const Vector<String> &p_filters, HashSet<String> &r_list, bool exclude);
 	void _edit_filter_list(HashSet<String> &r_list, const String &p_filter, bool exclude);
 
+	static Vector<uint8_t> _filter_extension_list_config_file(const String &p_config_path, const HashSet<String> &p_paths);
+
 	struct FileExportCache {
 		uint64_t source_modified_time = 0;
 		String source_md5;
@@ -275,6 +277,7 @@ public:
 		return worst_type;
 	}
 
+	static Dictionary get_internal_export_files();
 	static Vector<String> get_forced_export_files();
 
 	virtual bool fill_log_messages(RichTextLabel *p_log, Error p_err);

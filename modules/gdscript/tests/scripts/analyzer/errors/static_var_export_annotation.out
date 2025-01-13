@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Annotation "@export" cannot be applied to a static variable.
+>> ERROR at line 5: Annotation "@export" cannot be applied to a static variable.

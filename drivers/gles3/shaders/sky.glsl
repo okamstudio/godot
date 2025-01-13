@@ -2,17 +2,15 @@
 #[modes]
 
 mode_background =
-mode_half_res = #define USE_HALF_RES_PASS
-mode_quarter_res = #define USE_QUARTER_RES_PASS
 mode_cubemap = #define USE_CUBEMAP_PASS
-mode_cubemap_half_res = #define USE_CUBEMAP_PASS \n#define USE_HALF_RES_PASS
-mode_cubemap_quarter_res = #define USE_CUBEMAP_PASS \n#define USE_QUARTER_RES_PASS
 
 #[specializations]
 
 USE_MULTIVIEW = false
 USE_INVERTED_Y = true
 APPLY_TONEMAPPING = true
+USE_QUARTER_RES_PASS = false
+USE_HALF_RES_PASS = false
 
 #[vertex]
 

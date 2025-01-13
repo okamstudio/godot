@@ -31,7 +31,8 @@
 #include "json.h"
 
 #include "core/config/engine.h"
-#include "core/string/print_string.h"
+#include "core/object/script_language.h"
+#include "core/variant/container_type_validate.h"
 
 const char *JSON::tk_name[TK_MAX] = {
 	"'{'",
@@ -563,18 +564,18 @@ String JSON::get_parsed_text() const {
 }
 
 String JSON::stringify(const Variant &p_var, const String &p_indent, bool p_sort_keys, bool p_full_precision) {
-	Ref<JSON> jason;
-	jason.instantiate();
+	Ref<JSON> json;
+	json.instantiate();
 	HashSet<const void *> markers;
-	return jason->_stringify(p_var, p_indent, 0, p_sort_keys, markers, p_full_precision);
+	return json->_stringify(p_var, p_indent, 0, p_sort_keys, markers, p_full_precision);
 }
 
 Variant JSON::parse_string(const String &p_json_string) {
-	Ref<JSON> jason;
-	jason.instantiate();
-	Error error = jason->parse(p_json_string);
-	ERR_FAIL_COND_V_MSG(error != Error::OK, Variant(), vformat("Parse JSON failed. Error at line %d: %s", jason->get_error_line(), jason->get_error_message()));
-	return jason->get_data();
+	Ref<JSON> json;
+	json.instantiate();
+	Error error = json->parse(p_json_string);
+	ERR_FAIL_COND_V_MSG(error != Error::OK, Variant(), vformat("Parse JSON failed. Error at line %d: %s", json->get_error_line(), json->get_error_message()));
+	return json->get_data();
 }
 
 void JSON::_bind_methods() {
@@ -588,756 +589,1015 @@ void JSON::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_error_line"), &JSON::get_error_line);
 	ClassDB::bind_method(D_METHOD("get_error_message"), &JSON::get_error_message);
 
-	ClassDB::bind_static_method("JSON", D_METHOD("to_native", "json", "allow_classes", "allow_scripts"), &JSON::to_native, DEFVAL(false), DEFVAL(false));
-	ClassDB::bind_static_method("JSON", D_METHOD("from_native", "variant", "allow_classes", "allow_scripts"), &JSON::from_native, DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_static_method("JSON", D_METHOD("from_native", "variant", "full_objects"), &JSON::from_native, DEFVAL(false));
+	ClassDB::bind_static_method("JSON", D_METHOD("to_native", "json", "allow_objects"), &JSON::to_native, DEFVAL(false));
 
 	ADD_PROPERTY(PropertyInfo(Variant::NIL, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT), "set_data", "get_data"); // Ensures that it can be serialized as binary.
 }
 
-#define GDTYPE "__gdtype"
-#define VALUES "values"
-#define PASS_ARG p_allow_classes, p_allow_scripts
+#define TYPE "type"
+#define ELEM_TYPE "elem_type"
+#define KEY_TYPE "key_type"
+#define VALUE_TYPE "value_type"
+#define ARGS "args"
+#define PROPS "props"
 
-Variant JSON::from_native(const Variant &p_variant, bool p_allow_classes, bool p_allow_scripts) {
+static bool _encode_container_type(Dictionary &r_dict, const String &p_key, const ContainerType &p_type, bool p_full_objects) {
+	if (p_type.builtin_type != Variant::NIL) {
+		if (p_type.script.is_valid()) {
+			ERR_FAIL_COND_V(!p_full_objects, false);
+			const String path = p_type.script->get_path();
+			ERR_FAIL_COND_V_MSG(path.is_empty() || !path.begins_with("res://"), false, "Failed to encode a path to a custom script for a container type.");
+			r_dict[p_key] = path;
+		} else if (p_type.class_name != StringName()) {
+			ERR_FAIL_COND_V(!p_full_objects, false);
+			r_dict[p_key] = String(p_type.class_name);
+		} else {
+			// No need to check `p_full_objects` since `class_name` should be non-empty for `builtin_type == Variant::OBJECT`.
+			r_dict[p_key] = Variant::get_type_name(p_type.builtin_type);
+		}
+	}
+	return true;
+}
+
+Variant JSON::_from_native(const Variant &p_variant, bool p_full_objects, int p_depth) {
+#define RETURN_ARGS                                           \
+	Dictionary ret;                                           \
+	ret[TYPE] = Variant::get_type_name(p_variant.get_type()); \
+	ret[ARGS] = args;                                         \
+	return ret
+
 	switch (p_variant.get_type()) {
-		case Variant::NIL: {
-			Dictionary nil;
-			nil[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return nil;
-		} break;
+		case Variant::NIL:
 		case Variant::BOOL: {
 			return p_variant;
 		} break;
+
 		case Variant::INT: {
-			return p_variant;
+			return "i:" + String(p_variant);
 		} break;
 		case Variant::FLOAT: {
-			return p_variant;
+			return "f:" + String(p_variant);
 		} break;
 		case Variant::STRING: {
-			return p_variant;
-		} break;
-		case Variant::VECTOR2: {
-			Dictionary d;
-			Vector2 v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::VECTOR2I: {
-			Dictionary d;
-			Vector2i v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::RECT2: {
-			Dictionary d;
-			Rect2 r = p_variant;
-			d["position"] = from_native(r.position);
-			d["size"] = from_native(r.size);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::RECT2I: {
-			Dictionary d;
-			Rect2i r = p_variant;
-			d["position"] = from_native(r.position);
-			d["size"] = from_native(r.size);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::VECTOR3: {
-			Dictionary d;
-			Vector3 v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			values.push_back(v.z);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::VECTOR3I: {
-			Dictionary d;
-			Vector3i v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			values.push_back(v.z);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::TRANSFORM2D: {
-			Dictionary d;
-			Transform2D t = p_variant;
-			d["x"] = from_native(t[0]);
-			d["y"] = from_native(t[1]);
-			d["origin"] = from_native(t[2]);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::VECTOR4: {
-			Dictionary d;
-			Vector4 v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			values.push_back(v.z);
-			values.push_back(v.w);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::VECTOR4I: {
-			Dictionary d;
-			Vector4i v = p_variant;
-			Array values;
-			values.push_back(v.x);
-			values.push_back(v.y);
-			values.push_back(v.z);
-			values.push_back(v.w);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::PLANE: {
-			Dictionary d;
-			Plane p = p_variant;
-			d["normal"] = from_native(p.normal);
-			d["d"] = p.d;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::QUATERNION: {
-			Dictionary d;
-			Quaternion q = p_variant;
-			Array values;
-			values.push_back(q.x);
-			values.push_back(q.y);
-			values.push_back(q.z);
-			values.push_back(q.w);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::AABB: {
-			Dictionary d;
-			AABB aabb = p_variant;
-			d["position"] = from_native(aabb.position);
-			d["size"] = from_native(aabb.size);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::BASIS: {
-			Dictionary d;
-			Basis t = p_variant;
-			d["x"] = from_native(t.get_column(0));
-			d["y"] = from_native(t.get_column(1));
-			d["z"] = from_native(t.get_column(2));
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::TRANSFORM3D: {
-			Dictionary d;
-			Transform3D t = p_variant;
-			d["basis"] = from_native(t.basis);
-			d["origin"] = from_native(t.origin);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::PROJECTION: {
-			Dictionary d;
-			Projection t = p_variant;
-			d["x"] = from_native(t[0]);
-			d["y"] = from_native(t[1]);
-			d["z"] = from_native(t[2]);
-			d["w"] = from_native(t[3]);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::COLOR: {
-			Dictionary d;
-			Color c = p_variant;
-			Array values;
-			values.push_back(c.r);
-			values.push_back(c.g);
-			values.push_back(c.b);
-			values.push_back(c.a);
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+			return "s:" + String(p_variant);
 		} break;
 		case Variant::STRING_NAME: {
-			Dictionary d;
-			d["name"] = String(p_variant);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+			return "sn:" + String(p_variant);
 		} break;
 		case Variant::NODE_PATH: {
-			Dictionary d;
-			d["path"] = String(p_variant);
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+			return "np:" + String(p_variant);
 		} break;
-		case Variant::RID: {
-			Dictionary d;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
-		} break;
-		case Variant::OBJECT: {
-			Object *obj = p_variant.get_validated_object();
 
-			if (p_allow_classes && obj) {
-				Dictionary d;
-				List<PropertyInfo> property_list;
-				obj->get_property_list(&property_list);
-
-				d["type"] = obj->get_class();
-				Dictionary p;
-				for (const PropertyInfo &P : property_list) {
-					if (P.usage & PROPERTY_USAGE_STORAGE) {
-						if (P.name == "script" && !p_allow_scripts) {
-							continue;
-						}
-						p[P.name] = from_native(obj->get(P.name), PASS_ARG);
-					}
-				}
-				d["properties"] = p;
-				d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-				return d;
-			} else {
-				Dictionary nil;
-				nil[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-				return nil;
-			}
-		} break;
+		case Variant::RID:
 		case Variant::CALLABLE:
 		case Variant::SIGNAL: {
-			Dictionary nil;
-			nil[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return nil;
-		} break;
-		case Variant::DICTIONARY: {
-			Dictionary d = p_variant;
-			List<Variant> keys;
-			d.get_key_list(&keys);
-			bool all_strings = true;
-			for (const Variant &K : keys) {
-				if (K.get_type() != Variant::STRING) {
-					all_strings = false;
-					break;
-				}
-			}
-
-			if (all_strings) {
-				Dictionary ret_dict;
-				for (const Variant &K : keys) {
-					ret_dict[K] = from_native(d[K], PASS_ARG);
-				}
-				return ret_dict;
-			} else {
-				Dictionary ret;
-				Array pairs;
-				for (const Variant &K : keys) {
-					Dictionary pair;
-					pair["key"] = from_native(K, PASS_ARG);
-					pair["value"] = from_native(d[K], PASS_ARG);
-					pairs.push_back(pair);
-				}
-				ret["pairs"] = pairs;
-				ret[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-				return ret;
-			}
-		} break;
-		case Variant::ARRAY: {
-			Array arr = p_variant;
-			Array ret;
-			for (int i = 0; i < arr.size(); i++) {
-				ret.push_back(from_native(arr[i], PASS_ARG));
-			}
+			Dictionary ret;
+			ret[TYPE] = Variant::get_type_name(p_variant.get_type());
 			return ret;
 		} break;
-		case Variant::PACKED_BYTE_ARRAY: {
-			Dictionary d;
-			PackedByteArray arr = p_variant;
-			Array values;
-			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
+
+		case Variant::VECTOR2: {
+			const Vector2 v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::VECTOR2I: {
+			const Vector2i v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::RECT2: {
+			const Rect2 r = p_variant;
+
+			Array args;
+			args.push_back(r.position.x);
+			args.push_back(r.position.y);
+			args.push_back(r.size.width);
+			args.push_back(r.size.height);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::RECT2I: {
+			const Rect2i r = p_variant;
+
+			Array args;
+			args.push_back(r.position.x);
+			args.push_back(r.position.y);
+			args.push_back(r.size.width);
+			args.push_back(r.size.height);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::VECTOR3: {
+			const Vector3 v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+			args.push_back(v.z);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::VECTOR3I: {
+			const Vector3i v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+			args.push_back(v.z);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::TRANSFORM2D: {
+			const Transform2D t = p_variant;
+
+			Array args;
+			args.push_back(t[0].x);
+			args.push_back(t[0].y);
+			args.push_back(t[1].x);
+			args.push_back(t[1].y);
+			args.push_back(t[2].x);
+			args.push_back(t[2].y);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::VECTOR4: {
+			const Vector4 v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+			args.push_back(v.z);
+			args.push_back(v.w);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::VECTOR4I: {
+			const Vector4i v = p_variant;
+
+			Array args;
+			args.push_back(v.x);
+			args.push_back(v.y);
+			args.push_back(v.z);
+			args.push_back(v.w);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::PLANE: {
+			const Plane p = p_variant;
+
+			Array args;
+			args.push_back(p.normal.x);
+			args.push_back(p.normal.y);
+			args.push_back(p.normal.z);
+			args.push_back(p.d);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::QUATERNION: {
+			const Quaternion q = p_variant;
+
+			Array args;
+			args.push_back(q.x);
+			args.push_back(q.y);
+			args.push_back(q.z);
+			args.push_back(q.w);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::AABB: {
+			const AABB aabb = p_variant;
+
+			Array args;
+			args.push_back(aabb.position.x);
+			args.push_back(aabb.position.y);
+			args.push_back(aabb.position.z);
+			args.push_back(aabb.size.x);
+			args.push_back(aabb.size.y);
+			args.push_back(aabb.size.z);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::BASIS: {
+			const Basis b = p_variant;
+
+			Array args;
+			args.push_back(b.get_column(0).x);
+			args.push_back(b.get_column(0).y);
+			args.push_back(b.get_column(0).z);
+			args.push_back(b.get_column(1).x);
+			args.push_back(b.get_column(1).y);
+			args.push_back(b.get_column(1).z);
+			args.push_back(b.get_column(2).x);
+			args.push_back(b.get_column(2).y);
+			args.push_back(b.get_column(2).z);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::TRANSFORM3D: {
+			const Transform3D t = p_variant;
+
+			Array args;
+			args.push_back(t.basis.get_column(0).x);
+			args.push_back(t.basis.get_column(0).y);
+			args.push_back(t.basis.get_column(0).z);
+			args.push_back(t.basis.get_column(1).x);
+			args.push_back(t.basis.get_column(1).y);
+			args.push_back(t.basis.get_column(1).z);
+			args.push_back(t.basis.get_column(2).x);
+			args.push_back(t.basis.get_column(2).y);
+			args.push_back(t.basis.get_column(2).z);
+			args.push_back(t.origin.x);
+			args.push_back(t.origin.y);
+			args.push_back(t.origin.z);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::PROJECTION: {
+			const Projection p = p_variant;
+
+			Array args;
+			args.push_back(p[0].x);
+			args.push_back(p[0].y);
+			args.push_back(p[0].z);
+			args.push_back(p[0].w);
+			args.push_back(p[1].x);
+			args.push_back(p[1].y);
+			args.push_back(p[1].z);
+			args.push_back(p[1].w);
+			args.push_back(p[2].x);
+			args.push_back(p[2].y);
+			args.push_back(p[2].z);
+			args.push_back(p[2].w);
+			args.push_back(p[3].x);
+			args.push_back(p[3].y);
+			args.push_back(p[3].z);
+			args.push_back(p[3].w);
+
+			RETURN_ARGS;
+		} break;
+		case Variant::COLOR: {
+			const Color c = p_variant;
+
+			Array args;
+			args.push_back(c.r);
+			args.push_back(c.g);
+			args.push_back(c.b);
+			args.push_back(c.a);
+
+			RETURN_ARGS;
+		} break;
+
+		case Variant::OBJECT: {
+			ERR_FAIL_COND_V(!p_full_objects, Variant());
+
+			ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, Variant(), "Variant is too deep. Bailing.");
+
+			const Object *obj = p_variant.get_validated_object();
+			if (obj == nullptr) {
+				return Variant();
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			ERR_FAIL_COND_V(!ClassDB::can_instantiate(obj->get_class()), Variant());
+
+			List<PropertyInfo> prop_list;
+			obj->get_property_list(&prop_list);
+
+			Array props;
+			for (const PropertyInfo &pi : prop_list) {
+				if (!(pi.usage & PROPERTY_USAGE_STORAGE)) {
+					continue;
+				}
+
+				Variant value;
+				if (pi.name == CoreStringName(script)) {
+					const Ref<Script> script = obj->get_script();
+					if (script.is_valid()) {
+						const String path = script->get_path();
+						ERR_FAIL_COND_V_MSG(path.is_empty() || !path.begins_with("res://"), Variant(), "Failed to encode a path to a custom script.");
+						value = path;
+					}
+				} else {
+					value = obj->get(pi.name);
+				}
+
+				props.push_back(pi.name);
+				props.push_back(_from_native(value, p_full_objects, p_depth + 1));
+			}
+
+			Dictionary ret;
+			ret[TYPE] = obj->get_class();
+			ret[PROPS] = props;
+			return ret;
+		} break;
+
+		case Variant::DICTIONARY: {
+			const Dictionary dict = p_variant;
+
+			Array args;
+
+			Dictionary ret;
+			ret[TYPE] = Variant::get_type_name(p_variant.get_type());
+			if (!_encode_container_type(ret, KEY_TYPE, dict.get_key_type(), p_full_objects)) {
+				return Variant();
+			}
+			if (!_encode_container_type(ret, VALUE_TYPE, dict.get_value_type(), p_full_objects)) {
+				return Variant();
+			}
+			ret[ARGS] = args;
+
+			ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, ret, "Variant is too deep. Bailing.");
+
+			List<Variant> keys;
+			dict.get_key_list(&keys);
+
+			for (const Variant &key : keys) {
+				args.push_back(_from_native(key, p_full_objects, p_depth + 1));
+				args.push_back(_from_native(dict[key], p_full_objects, p_depth + 1));
+			}
+
+			return ret;
+		} break;
+
+		case Variant::ARRAY: {
+			const Array arr = p_variant;
+
+			Variant ret;
+			Array args;
+
+			if (arr.is_typed()) {
+				Dictionary d;
+				d[TYPE] = Variant::get_type_name(p_variant.get_type());
+				if (!_encode_container_type(d, ELEM_TYPE, arr.get_element_type(), p_full_objects)) {
+					return Variant();
+				}
+				d[ARGS] = args;
+				ret = d;
+			} else {
+				ret = args;
+			}
+
+			ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, ret, "Variant is too deep. Bailing.");
+
+			for (int i = 0; i < arr.size(); i++) {
+				args.push_back(_from_native(arr[i], p_full_objects, p_depth + 1));
+			}
+
+			return ret;
+		} break;
+
+		case Variant::PACKED_BYTE_ARRAY: {
+			const PackedByteArray arr = p_variant;
+
+			Array args;
+			for (int i = 0; i < arr.size(); i++) {
+				args.push_back(arr[i]);
+			}
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_INT32_ARRAY: {
-			Dictionary d;
-			PackedInt32Array arr = p_variant;
-			Array values;
-			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
-			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+			const PackedInt32Array arr = p_variant;
 
+			Array args;
+			for (int i = 0; i < arr.size(); i++) {
+				args.push_back(arr[i]);
+			}
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_INT64_ARRAY: {
-			Dictionary d;
-			PackedInt64Array arr = p_variant;
-			Array values;
+			const PackedInt64Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
+				args.push_back(arr[i]);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_FLOAT32_ARRAY: {
-			Dictionary d;
-			PackedFloat32Array arr = p_variant;
-			Array values;
+			const PackedFloat32Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
+				args.push_back(arr[i]);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_FLOAT64_ARRAY: {
-			Dictionary d;
-			PackedFloat64Array arr = p_variant;
-			Array values;
+			const PackedFloat64Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
+				args.push_back(arr[i]);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_STRING_ARRAY: {
-			Dictionary d;
-			PackedStringArray arr = p_variant;
-			Array values;
+			const PackedStringArray arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
-				values.push_back(arr[i]);
+				args.push_back(arr[i]);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_VECTOR2_ARRAY: {
-			Dictionary d;
-			PackedVector2Array arr = p_variant;
-			Array values;
+			const PackedVector2Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
 				Vector2 v = arr[i];
-				values.push_back(v.x);
-				values.push_back(v.y);
+				args.push_back(v.x);
+				args.push_back(v.y);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_VECTOR3_ARRAY: {
-			Dictionary d;
-			PackedVector3Array arr = p_variant;
-			Array values;
+			const PackedVector3Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
 				Vector3 v = arr[i];
-				values.push_back(v.x);
-				values.push_back(v.y);
-				values.push_back(v.z);
+				args.push_back(v.x);
+				args.push_back(v.y);
+				args.push_back(v.z);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_COLOR_ARRAY: {
-			Dictionary d;
-			PackedColorArray arr = p_variant;
-			Array values;
+			const PackedColorArray arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
 				Color v = arr[i];
-				values.push_back(v.r);
-				values.push_back(v.g);
-				values.push_back(v.b);
-				values.push_back(v.a);
+				args.push_back(v.r);
+				args.push_back(v.g);
+				args.push_back(v.b);
+				args.push_back(v.a);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
 		case Variant::PACKED_VECTOR4_ARRAY: {
-			Dictionary d;
-			PackedVector4Array arr = p_variant;
-			Array values;
+			const PackedVector4Array arr = p_variant;
+
+			Array args;
 			for (int i = 0; i < arr.size(); i++) {
 				Vector4 v = arr[i];
-				values.push_back(v.x);
-				values.push_back(v.y);
-				values.push_back(v.z);
-				values.push_back(v.w);
+				args.push_back(v.x);
+				args.push_back(v.y);
+				args.push_back(v.z);
+				args.push_back(v.w);
 			}
-			d[VALUES] = values;
-			d[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-			return d;
+
+			RETURN_ARGS;
 		} break;
-		default: {
-			ERR_PRINT(vformat("Unhandled conversion from native Variant type '%s' to JSON.", Variant::get_type_name(p_variant.get_type())));
+
+		case Variant::VARIANT_MAX: {
+			// Nothing to do.
 		} break;
 	}
 
-	Dictionary nil;
-	nil[GDTYPE] = Variant::get_type_name(p_variant.get_type());
-	return nil;
+#undef RETURN_ARGS
+
+	ERR_FAIL_V_MSG(Variant(), vformat(R"(Unhandled Variant type "%s".)", Variant::get_type_name(p_variant.get_type())));
 }
 
-Variant JSON::to_native(const Variant &p_json, bool p_allow_classes, bool p_allow_scripts) {
+static bool _decode_container_type(const Dictionary &p_dict, const String &p_key, ContainerType &r_type, bool p_allow_objects) {
+	if (!p_dict.has(p_key)) {
+		return true;
+	}
+
+	const String type_name = p_dict[p_key];
+
+	const Variant::Type builtin_type = Variant::get_type_by_name(type_name);
+	if (builtin_type < Variant::VARIANT_MAX && builtin_type != Variant::OBJECT) {
+		r_type.builtin_type = builtin_type;
+		return true;
+	}
+
+	if (ClassDB::class_exists(type_name)) {
+		ERR_FAIL_COND_V(!p_allow_objects, false);
+
+		r_type.builtin_type = Variant::OBJECT;
+		r_type.class_name = type_name;
+		return true;
+	}
+
+	if (type_name.begins_with("res://")) {
+		ERR_FAIL_COND_V(!p_allow_objects, false);
+
+		ERR_FAIL_COND_V_MSG(!ResourceLoader::exists(type_name, "Script"), false, vformat(R"(Invalid script path "%s".)", type_name));
+		const Ref<Script> script = ResourceLoader::load(type_name, "Script");
+		ERR_FAIL_COND_V_MSG(script.is_null(), false, vformat(R"(Can't load script at path "%s".)", type_name));
+
+		r_type.builtin_type = Variant::OBJECT;
+		r_type.class_name = script->get_instance_base_type();
+		r_type.script = script;
+		return true;
+	}
+
+	ERR_FAIL_V_MSG(false, vformat(R"(Invalid type "%s".)", type_name));
+}
+
+Variant JSON::_to_native(const Variant &p_json, bool p_allow_objects, int p_depth) {
 	switch (p_json.get_type()) {
+		case Variant::NIL:
 		case Variant::BOOL: {
 			return p_json;
 		} break;
-		case Variant::INT: {
-			return p_json;
-		} break;
-		case Variant::FLOAT: {
-			return p_json;
-		} break;
+
 		case Variant::STRING: {
-			return p_json;
-		} break;
-		case Variant::STRING_NAME: {
-			return p_json;
-		} break;
-		case Variant::CALLABLE: {
-			return p_json;
-		} break;
-		case Variant::DICTIONARY: {
-			Dictionary d = p_json;
-			if (d.has(GDTYPE)) {
-				// Specific Godot Variant types serialized to JSON.
-				String type = d[GDTYPE];
-				if (type == Variant::get_type_name(Variant::VECTOR2)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 2, Variant());
-					Vector2 v;
-					v.x = values[0];
-					v.y = values[1];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::VECTOR2I)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 2, Variant());
-					Vector2i v;
-					v.x = values[0];
-					v.y = values[1];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::RECT2)) {
-					ERR_FAIL_COND_V(!d.has("position"), Variant());
-					ERR_FAIL_COND_V(!d.has("size"), Variant());
-					Rect2 r;
-					r.position = to_native(d["position"]);
-					r.size = to_native(d["size"]);
-					return r;
-				} else if (type == Variant::get_type_name(Variant::RECT2I)) {
-					ERR_FAIL_COND_V(!d.has("position"), Variant());
-					ERR_FAIL_COND_V(!d.has("size"), Variant());
-					Rect2i r;
-					r.position = to_native(d["position"]);
-					r.size = to_native(d["size"]);
-					return r;
-				} else if (type == Variant::get_type_name(Variant::VECTOR3)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 3, Variant());
-					Vector3 v;
-					v.x = values[0];
-					v.y = values[1];
-					v.z = values[2];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::VECTOR3I)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 3, Variant());
-					Vector3i v;
-					v.x = values[0];
-					v.y = values[1];
-					v.z = values[2];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::TRANSFORM2D)) {
-					ERR_FAIL_COND_V(!d.has("x"), Variant());
-					ERR_FAIL_COND_V(!d.has("y"), Variant());
-					ERR_FAIL_COND_V(!d.has("origin"), Variant());
-					Transform2D t;
-					t[0] = to_native(d["x"]);
-					t[1] = to_native(d["y"]);
-					t[2] = to_native(d["origin"]);
-					return t;
-				} else if (type == Variant::get_type_name(Variant::VECTOR4)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 4, Variant());
-					Vector4 v;
-					v.x = values[0];
-					v.y = values[1];
-					v.z = values[2];
-					v.w = values[3];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::VECTOR4I)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 4, Variant());
-					Vector4i v;
-					v.x = values[0];
-					v.y = values[1];
-					v.z = values[2];
-					v.w = values[3];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::PLANE)) {
-					ERR_FAIL_COND_V(!d.has("normal"), Variant());
-					ERR_FAIL_COND_V(!d.has("d"), Variant());
-					Plane p;
-					p.normal = to_native(d["normal"]);
-					p.d = d["d"];
-					return p;
-				} else if (type == Variant::get_type_name(Variant::QUATERNION)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 4, Variant());
-					Quaternion v;
-					v.x = values[0];
-					v.y = values[1];
-					v.z = values[2];
-					v.w = values[3];
-					return v;
-				} else if (type == Variant::get_type_name(Variant::AABB)) {
-					ERR_FAIL_COND_V(!d.has("position"), Variant());
-					ERR_FAIL_COND_V(!d.has("size"), Variant());
-					AABB r;
-					r.position = to_native(d["position"]);
-					r.size = to_native(d["size"]);
-					return r;
-				} else if (type == Variant::get_type_name(Variant::BASIS)) {
-					ERR_FAIL_COND_V(!d.has("x"), Variant());
-					ERR_FAIL_COND_V(!d.has("y"), Variant());
-					ERR_FAIL_COND_V(!d.has("z"), Variant());
-					Basis b;
-					b.set_column(0, to_native(d["x"]));
-					b.set_column(1, to_native(d["y"]));
-					b.set_column(2, to_native(d["z"]));
-					return b;
-				} else if (type == Variant::get_type_name(Variant::TRANSFORM3D)) {
-					ERR_FAIL_COND_V(!d.has("basis"), Variant());
-					ERR_FAIL_COND_V(!d.has("origin"), Variant());
-					Transform3D t;
-					t.basis = to_native(d["basis"]);
-					t.origin = to_native(d["origin"]);
-					return t;
-				} else if (type == Variant::get_type_name(Variant::PROJECTION)) {
-					ERR_FAIL_COND_V(!d.has("x"), Variant());
-					ERR_FAIL_COND_V(!d.has("y"), Variant());
-					ERR_FAIL_COND_V(!d.has("z"), Variant());
-					ERR_FAIL_COND_V(!d.has("w"), Variant());
-					Projection p;
-					p[0] = to_native(d["x"]);
-					p[1] = to_native(d["y"]);
-					p[2] = to_native(d["z"]);
-					p[3] = to_native(d["w"]);
-					return p;
-				} else if (type == Variant::get_type_name(Variant::COLOR)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() != 4, Variant());
-					Color c;
-					c.r = values[0];
-					c.g = values[1];
-					c.b = values[2];
-					c.a = values[3];
-					return c;
-				} else if (type == Variant::get_type_name(Variant::NODE_PATH)) {
-					ERR_FAIL_COND_V(!d.has("path"), Variant());
-					NodePath np = d["path"];
-					return np;
-				} else if (type == Variant::get_type_name(Variant::STRING_NAME)) {
-					ERR_FAIL_COND_V(!d.has("name"), Variant());
-					StringName s = d["name"];
-					return s;
-				} else if (type == Variant::get_type_name(Variant::OBJECT)) {
-					ERR_FAIL_COND_V(!d.has("type"), Variant());
-					ERR_FAIL_COND_V(!d.has("properties"), Variant());
+			const String s = p_json;
 
-					ERR_FAIL_COND_V(!p_allow_classes, Variant());
-
-					String obj_type = d["type"];
-					bool is_script = obj_type == "Script" || ClassDB::is_parent_class(obj_type, "Script");
-					ERR_FAIL_COND_V(!p_allow_scripts && is_script, Variant());
-					Object *obj = ClassDB::instantiate(obj_type);
-					ERR_FAIL_NULL_V(obj, Variant());
-
-					Dictionary p = d["properties"];
-
-					List<Variant> keys;
-					p.get_key_list(&keys);
-
-					for (const Variant &K : keys) {
-						String property = K;
-						Variant value = to_native(p[K], PASS_ARG);
-						obj->set(property, value);
-					}
-
-					Variant v(obj);
-
-					return v;
-				} else if (type == Variant::get_type_name(Variant::DICTIONARY)) {
-					ERR_FAIL_COND_V(!d.has("pairs"), Variant());
-					Array pairs = d["pairs"];
-					Dictionary r;
-					for (int i = 0; i < pairs.size(); i++) {
-						Dictionary p = pairs[i];
-						ERR_CONTINUE(!p.has("key"));
-						ERR_CONTINUE(!p.has("value"));
-						r[to_native(p["key"], PASS_ARG)] = to_native(p["value"]);
-					}
-					return r;
-				} else if (type == Variant::get_type_name(Variant::ARRAY)) {
-					ERR_PRINT(vformat("Unexpected Array with '%s' key. Arrays are supported natively.", GDTYPE));
-				} else if (type == Variant::get_type_name(Variant::PACKED_BYTE_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedByteArray pbarr;
-					pbarr.resize(values.size());
-					for (int i = 0; i < pbarr.size(); i++) {
-						pbarr.write[i] = values[i];
-					}
-					return pbarr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_INT32_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedInt32Array arr;
-					arr.resize(values.size());
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = values[i];
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_INT64_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedInt64Array arr;
-					arr.resize(values.size());
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = values[i];
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_FLOAT32_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedFloat32Array arr;
-					arr.resize(values.size());
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = values[i];
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_FLOAT64_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedFloat64Array arr;
-					arr.resize(values.size());
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = values[i];
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_STRING_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					PackedStringArray arr;
-					arr.resize(values.size());
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = values[i];
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_VECTOR2_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() % 2 != 0, Variant());
-					PackedVector2Array arr;
-					arr.resize(values.size() / 2);
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = Vector2(values[i * 2 + 0], values[i * 2 + 1]);
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_VECTOR3_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() % 3 != 0, Variant());
-					PackedVector3Array arr;
-					arr.resize(values.size() / 3);
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = Vector3(values[i * 3 + 0], values[i * 3 + 1], values[i * 3 + 2]);
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_COLOR_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() % 4 != 0, Variant());
-					PackedColorArray arr;
-					arr.resize(values.size() / 4);
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = Color(values[i * 4 + 0], values[i * 4 + 1], values[i * 4 + 2], values[i * 4 + 3]);
-					}
-					return arr;
-				} else if (type == Variant::get_type_name(Variant::PACKED_VECTOR4_ARRAY)) {
-					ERR_FAIL_COND_V(!d.has(VALUES), Variant());
-					Array values = d[VALUES];
-					ERR_FAIL_COND_V(values.size() % 4 != 0, Variant());
-					PackedVector4Array arr;
-					arr.resize(values.size() / 4);
-					for (int i = 0; i < arr.size(); i++) {
-						arr.write[i] = Vector4(values[i * 4 + 0], values[i * 4 + 1], values[i * 4 + 2], values[i * 4 + 3]);
-					}
-					return arr;
-				} else {
-					return Variant();
-				}
-			} else {
-				// Regular dictionary with string keys.
-				List<Variant> keys;
-				d.get_key_list(&keys);
-				Dictionary r;
-				for (const Variant &K : keys) {
-					r[K] = to_native(d[K], PASS_ARG);
-				}
-				return r;
+			if (s.begins_with("i:")) {
+				return s.substr(2).to_int();
+			} else if (s.begins_with("f:")) {
+				return s.substr(2).to_float();
+			} else if (s.begins_with("s:")) {
+				return s.substr(2);
+			} else if (s.begins_with("sn:")) {
+				return StringName(s.substr(3));
+			} else if (s.begins_with("np:")) {
+				return NodePath(s.substr(3));
 			}
+
+			ERR_FAIL_V_MSG(Variant(), "Invalid string, the type prefix is not recognized.");
 		} break;
+
+		case Variant::DICTIONARY: {
+			const Dictionary dict = p_json;
+
+			ERR_FAIL_COND_V(!dict.has(TYPE), Variant());
+
+#define LOAD_ARGS()                              \
+	ERR_FAIL_COND_V(!dict.has(ARGS), Variant()); \
+	const Array args = dict[ARGS]
+
+#define LOAD_ARGS_CHECK_SIZE(m_size)             \
+	ERR_FAIL_COND_V(!dict.has(ARGS), Variant()); \
+	const Array args = dict[ARGS];               \
+	ERR_FAIL_COND_V(args.size() != (m_size), Variant())
+
+#define LOAD_ARGS_CHECK_FACTOR(m_factor)         \
+	ERR_FAIL_COND_V(!dict.has(ARGS), Variant()); \
+	const Array args = dict[ARGS];               \
+	ERR_FAIL_COND_V(args.size() % (m_factor) != 0, Variant())
+
+			switch (Variant::get_type_by_name(dict[TYPE])) {
+				case Variant::NIL:
+				case Variant::BOOL: {
+					ERR_FAIL_V_MSG(Variant(), vformat(R"(Unexpected "%s": Variant type "%s" is JSON-compliant.)", TYPE, dict[TYPE]));
+				} break;
+
+				case Variant::INT:
+				case Variant::FLOAT:
+				case Variant::STRING:
+				case Variant::STRING_NAME:
+				case Variant::NODE_PATH: {
+					ERR_FAIL_V_MSG(Variant(), vformat(R"(Unexpected "%s": Variant type "%s" must be represented as a string.)", TYPE, dict[TYPE]));
+				} break;
+
+				case Variant::RID: {
+					return RID();
+				} break;
+				case Variant::CALLABLE: {
+					return Callable();
+				} break;
+				case Variant::SIGNAL: {
+					return Signal();
+				} break;
+
+				case Variant::VECTOR2: {
+					LOAD_ARGS_CHECK_SIZE(2);
+
+					Vector2 v;
+					v.x = args[0];
+					v.y = args[1];
+
+					return v;
+				} break;
+				case Variant::VECTOR2I: {
+					LOAD_ARGS_CHECK_SIZE(2);
+
+					Vector2i v;
+					v.x = args[0];
+					v.y = args[1];
+
+					return v;
+				} break;
+				case Variant::RECT2: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Rect2 r;
+					r.position = Point2(args[0], args[1]);
+					r.size = Size2(args[2], args[3]);
+
+					return r;
+				} break;
+				case Variant::RECT2I: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Rect2i r;
+					r.position = Point2i(args[0], args[1]);
+					r.size = Size2i(args[2], args[3]);
+
+					return r;
+				} break;
+				case Variant::VECTOR3: {
+					LOAD_ARGS_CHECK_SIZE(3);
+
+					Vector3 v;
+					v.x = args[0];
+					v.y = args[1];
+					v.z = args[2];
+
+					return v;
+				} break;
+				case Variant::VECTOR3I: {
+					LOAD_ARGS_CHECK_SIZE(3);
+
+					Vector3i v;
+					v.x = args[0];
+					v.y = args[1];
+					v.z = args[2];
+
+					return v;
+				} break;
+				case Variant::TRANSFORM2D: {
+					LOAD_ARGS_CHECK_SIZE(6);
+
+					Transform2D t;
+					t[0] = Vector2(args[0], args[1]);
+					t[1] = Vector2(args[2], args[3]);
+					t[2] = Vector2(args[4], args[5]);
+
+					return t;
+				} break;
+				case Variant::VECTOR4: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Vector4 v;
+					v.x = args[0];
+					v.y = args[1];
+					v.z = args[2];
+					v.w = args[3];
+
+					return v;
+				} break;
+				case Variant::VECTOR4I: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Vector4i v;
+					v.x = args[0];
+					v.y = args[1];
+					v.z = args[2];
+					v.w = args[3];
+
+					return v;
+				} break;
+				case Variant::PLANE: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Plane p;
+					p.normal = Vector3(args[0], args[1], args[2]);
+					p.d = args[3];
+
+					return p;
+				} break;
+				case Variant::QUATERNION: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Quaternion q;
+					q.x = args[0];
+					q.y = args[1];
+					q.z = args[2];
+					q.w = args[3];
+
+					return q;
+				} break;
+				case Variant::AABB: {
+					LOAD_ARGS_CHECK_SIZE(6);
+
+					AABB aabb;
+					aabb.position = Vector3(args[0], args[1], args[2]);
+					aabb.size = Vector3(args[3], args[4], args[5]);
+
+					return aabb;
+				} break;
+				case Variant::BASIS: {
+					LOAD_ARGS_CHECK_SIZE(9);
+
+					Basis b;
+					b.set_column(0, Vector3(args[0], args[1], args[2]));
+					b.set_column(1, Vector3(args[3], args[4], args[5]));
+					b.set_column(2, Vector3(args[6], args[7], args[8]));
+
+					return b;
+				} break;
+				case Variant::TRANSFORM3D: {
+					LOAD_ARGS_CHECK_SIZE(12);
+
+					Transform3D t;
+					t.basis.set_column(0, Vector3(args[0], args[1], args[2]));
+					t.basis.set_column(1, Vector3(args[3], args[4], args[5]));
+					t.basis.set_column(2, Vector3(args[6], args[7], args[8]));
+					t.origin = Vector3(args[9], args[10], args[11]);
+
+					return t;
+				} break;
+				case Variant::PROJECTION: {
+					LOAD_ARGS_CHECK_SIZE(16);
+
+					Projection p;
+					p[0] = Vector4(args[0], args[1], args[2], args[3]);
+					p[1] = Vector4(args[4], args[5], args[6], args[7]);
+					p[2] = Vector4(args[8], args[9], args[10], args[11]);
+					p[3] = Vector4(args[12], args[13], args[14], args[15]);
+
+					return p;
+				} break;
+				case Variant::COLOR: {
+					LOAD_ARGS_CHECK_SIZE(4);
+
+					Color c;
+					c.r = args[0];
+					c.g = args[1];
+					c.b = args[2];
+					c.a = args[3];
+
+					return c;
+				} break;
+
+				case Variant::OBJECT: {
+					// Nothing to do at this stage. `Object` should be treated as a class, not as a built-in type.
+				} break;
+
+				case Variant::DICTIONARY: {
+					LOAD_ARGS_CHECK_FACTOR(2);
+
+					ContainerType key_type;
+					if (!_decode_container_type(dict, KEY_TYPE, key_type, p_allow_objects)) {
+						return Variant();
+					}
+
+					ContainerType value_type;
+					if (!_decode_container_type(dict, VALUE_TYPE, value_type, p_allow_objects)) {
+						return Variant();
+					}
+
+					Dictionary ret;
+
+					if (key_type.builtin_type != Variant::NIL || value_type.builtin_type != Variant::NIL) {
+						ret.set_typed(key_type, value_type);
+					}
+
+					ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, ret, "Variant is too deep. Bailing.");
+
+					for (int i = 0; i < args.size() / 2; i++) {
+						ret[_to_native(args[i * 2 + 0], p_allow_objects, p_depth + 1)] = _to_native(args[i * 2 + 1], p_allow_objects, p_depth + 1);
+					}
+
+					return ret;
+				} break;
+
+				case Variant::ARRAY: {
+					LOAD_ARGS();
+
+					ContainerType elem_type;
+					if (!_decode_container_type(dict, ELEM_TYPE, elem_type, p_allow_objects)) {
+						return Variant();
+					}
+
+					Array ret;
+
+					if (elem_type.builtin_type != Variant::NIL) {
+						ret.set_typed(elem_type);
+					}
+
+					ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, ret, "Variant is too deep. Bailing.");
+
+					ret.resize(args.size());
+					for (int i = 0; i < args.size(); i++) {
+						ret[i] = _to_native(args[i], p_allow_objects, p_depth + 1);
+					}
+
+					return ret;
+				} break;
+
+				case Variant::PACKED_BYTE_ARRAY: {
+					LOAD_ARGS();
+
+					PackedByteArray arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_INT32_ARRAY: {
+					LOAD_ARGS();
+
+					PackedInt32Array arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_INT64_ARRAY: {
+					LOAD_ARGS();
+
+					PackedInt64Array arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_FLOAT32_ARRAY: {
+					LOAD_ARGS();
+
+					PackedFloat32Array arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_FLOAT64_ARRAY: {
+					LOAD_ARGS();
+
+					PackedFloat64Array arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_STRING_ARRAY: {
+					LOAD_ARGS();
+
+					PackedStringArray arr;
+					arr.resize(args.size());
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = args[i];
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_VECTOR2_ARRAY: {
+					LOAD_ARGS_CHECK_FACTOR(2);
+
+					PackedVector2Array arr;
+					arr.resize(args.size() / 2);
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = Vector2(args[i * 2 + 0], args[i * 2 + 1]);
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_VECTOR3_ARRAY: {
+					LOAD_ARGS_CHECK_FACTOR(3);
+
+					PackedVector3Array arr;
+					arr.resize(args.size() / 3);
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = Vector3(args[i * 3 + 0], args[i * 3 + 1], args[i * 3 + 2]);
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_COLOR_ARRAY: {
+					LOAD_ARGS_CHECK_FACTOR(4);
+
+					PackedColorArray arr;
+					arr.resize(args.size() / 4);
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = Color(args[i * 4 + 0], args[i * 4 + 1], args[i * 4 + 2], args[i * 4 + 3]);
+					}
+
+					return arr;
+				} break;
+				case Variant::PACKED_VECTOR4_ARRAY: {
+					LOAD_ARGS_CHECK_FACTOR(4);
+
+					PackedVector4Array arr;
+					arr.resize(args.size() / 4);
+					for (int i = 0; i < arr.size(); i++) {
+						arr.write[i] = Vector4(args[i * 4 + 0], args[i * 4 + 1], args[i * 4 + 2], args[i * 4 + 3]);
+					}
+
+					return arr;
+				} break;
+
+				case Variant::VARIANT_MAX: {
+					// Nothing to do.
+				} break;
+			}
+
+#undef LOAD_ARGS
+#undef LOAD_ARGS_CHECK_SIZE
+#undef LOAD_ARGS_CHECK_FACTOR
+
+			if (ClassDB::class_exists(dict[TYPE])) {
+				ERR_FAIL_COND_V(!p_allow_objects, Variant());
+
+				ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, Variant(), "Variant is too deep. Bailing.");
+
+				ERR_FAIL_COND_V(!dict.has(PROPS), Variant());
+				const Array props = dict[PROPS];
+				ERR_FAIL_COND_V(props.size() % 2 != 0, Variant());
+
+				ERR_FAIL_COND_V(!ClassDB::can_instantiate(dict[TYPE]), Variant());
+
+				Object *obj = ClassDB::instantiate(dict[TYPE]);
+				ERR_FAIL_NULL_V(obj, Variant());
+
+				// Avoid premature free `RefCounted`. This must be done before properties are initialized,
+				// since script functions (setters, implicit initializer) may be called. See GH-68666.
+				Variant variant;
+				if (Object::cast_to<RefCounted>(obj)) {
+					const Ref<RefCounted> ref = Ref<RefCounted>(Object::cast_to<RefCounted>(obj));
+					variant = ref;
+				} else {
+					variant = obj;
+				}
+
+				for (int i = 0; i < props.size() / 2; i++) {
+					const StringName name = props[i * 2 + 0];
+					const Variant value = _to_native(props[i * 2 + 1], p_allow_objects, p_depth + 1);
+
+					if (name == CoreStringName(script) && value.get_type() != Variant::NIL) {
+						const String path = value;
+						ERR_FAIL_COND_V_MSG(path.is_empty() || !path.begins_with("res://") || !ResourceLoader::exists(path, "Script"),
+								Variant(),
+								vformat(R"(Invalid script path "%s".)", path));
+
+						const Ref<Script> script = ResourceLoader::load(path, "Script");
+						ERR_FAIL_COND_V_MSG(script.is_null(), Variant(), vformat(R"(Can't load script at path "%s".)", path));
+
+						obj->set_script(script);
+					} else {
+						obj->set(name, value);
+					}
+				}
+
+				return variant;
+			}
+
+			ERR_FAIL_V_MSG(Variant(), vformat(R"(Invalid type "%s".)", dict[TYPE]));
+		} break;
+
 		case Variant::ARRAY: {
-			Array arr = p_json;
+			ERR_FAIL_COND_V_MSG(p_depth > Variant::MAX_RECURSION_DEPTH, Array(), "Variant is too deep. Bailing.");
+
+			const Array arr = p_json;
+
 			Array ret;
 			ret.resize(arr.size());
 			for (int i = 0; i < arr.size(); i++) {
-				ret[i] = to_native(arr[i], PASS_ARG);
+				ret[i] = _to_native(arr[i], p_allow_objects, p_depth + 1);
 			}
+
 			return ret;
 		} break;
+
 		default: {
-			ERR_PRINT(vformat("Unhandled conversion from JSON type '%s' to native Variant type.", Variant::get_type_name(p_json.get_type())));
-			return Variant();
-		}
+			// Nothing to do.
+		} break;
 	}
 
-	return Variant();
+	ERR_FAIL_V_MSG(Variant(), vformat(R"(Variant type "%s" is not JSON-compliant.)", Variant::get_type_name(p_json.get_type())));
 }
 
-#undef GDTYPE
-#undef VALUES
-#undef PASS_ARG
+#undef TYPE
+#undef ELEM_TYPE
+#undef KEY_TYPE
+#undef VALUE_TYPE
+#undef ARGS
+#undef PROPS
 
 ////////////
 

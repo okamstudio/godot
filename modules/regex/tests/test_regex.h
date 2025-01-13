@@ -145,6 +145,15 @@ TEST_CASE("[RegEx] Substitution") {
 	CHECK(re5.sub(s5, "cc", true, 0, 2) == "ccccaa");
 	CHECK(re5.sub(s5, "cc", true, 1, 3) == "acccca");
 	CHECK(re5.sub(s5, "", true, 0, 2) == "aa");
+
+	const String s6 = "property get_property set_property";
+
+	RegEx re6("(get_|set_)?property");
+	REQUIRE(re6.is_valid());
+	CHECK(re6.sub(s6, "$1new_property", true) == "new_property get_new_property set_new_property");
+	ERR_PRINT_OFF;
+	CHECK(re6.sub(s6, "$5new_property", true) == "new_property new_property new_property");
+	ERR_PRINT_ON;
 }
 
 TEST_CASE("[RegEx] Substitution with empty input and/or replacement") {

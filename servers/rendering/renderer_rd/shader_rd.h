@@ -63,6 +63,8 @@ private:
 	HashMap<int, LocalVector<int>> group_to_variant_map;
 	Vector<bool> group_enabled;
 
+	Vector<RD::PipelineImmutableSampler> immutable_samplers;
+
 	struct Version {
 		CharString uniforms;
 		CharString vertex_globals;
@@ -211,7 +213,7 @@ public:
 
 	RS::ShaderNativeSourceCode version_get_native_source_code(RID p_version);
 
-	void initialize(const Vector<String> &p_variant_defines, const String &p_general_defines = "");
+	void initialize(const Vector<String> &p_variant_defines, const String &p_general_defines = "", const Vector<RD::PipelineImmutableSampler> &r_immutable_samplers = Vector<RD::PipelineImmutableSampler>());
 	void initialize(const Vector<VariantDefine> &p_variant_defines, const String &p_general_defines = "");
 
 	virtual ~ShaderRD();

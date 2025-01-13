@@ -91,7 +91,7 @@ static String _include_function(const String &p_path, void *userpointer) {
 
 Error ResourceImporterShaderFile::import(ResourceUID::ID p_source_id, const String &p_source_file, const String &p_save_path, const HashMap<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
 	/* STEP 1, Read shader code */
-	ERR_FAIL_COND_V_EDMSG((OS::get_singleton()->get_current_rendering_method() == "gl_compatibility"), ERR_UNAVAILABLE, "Cannot import custom .glsl shaders when using the gl_compatibility rendering_method. Please switch to the forward_plus or mobile rendering methods to use custom shaders.");
+	ERR_FAIL_COND_V_EDMSG((OS::get_singleton()->get_current_rendering_method() == "gl_compatibility"), ERR_UNAVAILABLE, "Cannot import custom .glsl shaders when using the Compatibility renderer. Please switch to the Forward+ or Mobile renderer to use custom shaders.");
 	ERR_FAIL_COND_V_EDMSG((DisplayServer::get_singleton()->get_name() == "headless"), ERR_UNAVAILABLE, "Cannot import custom .glsl shaders when running in headless mode.");
 
 	Error err;

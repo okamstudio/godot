@@ -41,9 +41,15 @@
 #include "scene/gui/check_button.h"
 #include "scene/gui/color_picker.h"
 #include "scene/gui/color_rect.h"
+#include "scene/gui/label.h"
 #include "scene/gui/margin_container.h"
+#include "scene/gui/menu_button.h"
+#include "scene/gui/option_button.h"
+#include "scene/gui/panel.h"
 #include "scene/gui/progress_bar.h"
 #include "scene/gui/scroll_container.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/spin_box.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/text_edit.h"
 #include "scene/gui/tree.h"
@@ -240,7 +246,7 @@ ThemeEditorPreview::ThemeEditorPreview() {
 
 	picker_button = memnew(Button);
 	preview_toolbar->add_child(picker_button);
-	picker_button->set_theme_type_variation("FlatButton");
+	picker_button->set_theme_type_variation(SceneStringName(FlatButton));
 	picker_button->set_toggle_mode(true);
 	picker_button->set_tooltip_text(TTR("Toggle the control picker, allowing to visually select control types for edit."));
 	picker_button->connect(SceneStringName(pressed), callable_mp(this, &ThemeEditorPreview::_picker_button_cbk));

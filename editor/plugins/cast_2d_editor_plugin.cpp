@@ -35,6 +35,7 @@
 #include "editor/editor_undo_redo_manager.h"
 #include "scene/2d/physics/ray_cast_2d.h"
 #include "scene/2d/physics/shape_cast_2d.h"
+#include "scene/main/viewport.h"
 
 void Cast2DEditor::_notification(int p_what) {
 	switch (p_what) {
@@ -59,7 +60,12 @@ bool Cast2DEditor::forward_canvas_gui_input(const Ref<InputEvent> &p_event) {
 		return false;
 	}
 
-	Transform2D xform = canvas_item_editor->get_canvas_transform() * node->get_global_transform();
+	Viewport *vp = node->get_viewport();
+	if (vp && !vp->is_visible_subviewport()) {
+		return false;
+	}
+
+	Transform2D xform = canvas_item_editor->get_canvas_transform() * node->get_screen_transform();
 
 	Ref<InputEventMouseButton> mb = p_event;
 	if (mb.is_valid() && mb->get_button_index() == MouseButton::LEFT) {
@@ -98,7 +104,7 @@ bool Cast2DEditor::forward_canvas_gui_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseMotion> mm = p_event;
 	if (mm.is_valid() && pressed) {
 		Vector2 point = canvas_item_editor->snap_point(canvas_item_editor->get_canvas_transform().affine_inverse().xform(mm->get_position()));
-		point = node->get_global_transform().affine_inverse().xform(point);
+		point = node->get_screen_transform().affine_inverse().xform(point);
 
 		node->set("target_position", point);
 		canvas_item_editor->update_viewport();
@@ -114,7 +120,12 @@ void Cast2DEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 		return;
 	}
 
-	Transform2D gt = canvas_item_editor->get_canvas_transform() * node->get_global_transform();
+	Viewport *vp = node->get_viewport();
+	if (vp && !vp->is_visible_subviewport()) {
+		return;
+	}
+
+	Transform2D gt = canvas_item_editor->get_canvas_transform() * node->get_screen_transform();
 
 	const Ref<Texture2D> handle = get_editor_theme_icon(SNAME("EditorHandle"));
 	p_overlay->draw_texture(handle, gt.xform((Vector2)node->get("target_position")) - handle->get_size() / 2);

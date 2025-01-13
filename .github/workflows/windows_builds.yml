@@ -31,6 +31,7 @@ jobs:
             sconsflags: debug_symbols=no vsproj=yes vsproj_gen_only=no windows_subsystem=console
             bin: ./bin/godot.windows.editor.x86_64.exe
             compiler: msvc
+            cache-limit: 2
 
           - name: Editor w/ clang-cl (target=editor, tests=yes, use_llvm=yes)
             cache-name: windows-editor-clang
@@ -39,6 +40,7 @@ jobs:
             sconsflags: debug_symbols=no windows_subsystem=console use_llvm=yes
             bin: ./bin/godot.windows.editor.x86_64.llvm.exe
             compiler: clang
+            cache-limit: 1
 
           - name: Template (target=template_release, tests=yes)
             cache-name: windows-template
@@ -47,6 +49,7 @@ jobs:
             sconsflags: debug_symbols=no
             bin: ./bin/godot.windows.template_release.x86_64.console.exe
             compiler: msvc
+            cache-limit: 2
 
           - name: Template w/ GCC (target=template_release, tests=yes, use_mingw=yes)
             cache-name: windows-template-gcc
@@ -56,6 +59,7 @@ jobs:
             sconsflags: debug_symbols=no use_mingw=yes
             bin: ./bin/godot.windows.template_release.x86_64.console.exe
             compiler: gcc
+            cache-limit: 1
 
     steps:
       - name: Checkout
@@ -86,14 +90,6 @@ jobs:
       - name: Extract pre-built ANGLE static libraries
         run: Expand-Archive -Force angle/angle.zip ${{ github.workspace }}/
 
-      - name: Setup MSVC problem matcher
-        if: matrix.compiler == 'msvc'
-        uses: ammaraskar/msvc-problem-matcher@master
-
-      - name: Setup GCC problem matcher
-        if: matrix.compiler != 'msvc'
-        uses: ammaraskar/gcc-problem-matcher@master
-
       - name: Compilation
         uses: ./.github/actions/godot-build
         with:
@@ -101,6 +97,7 @@ jobs:
           platform: windows
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
+          scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

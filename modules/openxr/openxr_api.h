@@ -102,6 +102,9 @@ private:
 	// composition layer providers
 	Vector<OpenXRCompositionLayerProvider *> composition_layer_providers;
 
+	// projection views extensions
+	Vector<OpenXRExtensionWrapper *> projection_views_extensions;
+
 	// view configuration
 	uint32_t num_view_configuration_types = 0;
 	XrViewConfigurationType *supported_view_configuration_types = nullptr;
@@ -153,7 +156,6 @@ private:
 	enum OpenXRSwapChainTypes {
 		OPENXR_SWAPCHAIN_COLOR,
 		OPENXR_SWAPCHAIN_DEPTH,
-		// OPENXR_SWAPCHAIN_VELOCITY,
 		OPENXR_SWAPCHAIN_MAX
 	};
 
@@ -164,6 +166,10 @@ private:
 	XrSpace play_space = XR_NULL_HANDLE;
 	XrSpace view_space = XR_NULL_HANDLE;
 	XRPose::TrackingConfidence head_pose_confidence = XRPose::XR_TRACKING_CONFIDENCE_NONE;
+
+	RID velocity_texture;
+	RID velocity_depth_texture;
+	Size2i velocity_target_size;
 
 	// When LOCAL_FLOOR isn't supported, we use an approach based on the example code in the
 	// OpenXR spec in order to emulate it.
@@ -300,6 +306,7 @@ private:
 		String name; // Name of the interaction profile (i.e. "/interaction_profiles/valve/index_controller")
 		XrPath path; // OpenXR path for this profile
 		Vector<XrActionSuggestedBinding> bindings; // OpenXR action bindings
+		Vector<PackedByteArray> modifiers; // Array of modifiers we'll add into XrBindingModificationsKHR
 	};
 	RID_Owner<InteractionProfile, true> interaction_profile_owner;
 	RID get_interaction_profile_rid(XrPath p_path);
@@ -344,6 +351,9 @@ private:
 		XrCompositionLayerDepthInfoKHR *depth_views = nullptr; // Only used by Composition Layer Depth Extension if available
 		bool submit_depth_buffer = false; // if set to true we submit depth buffers to OpenXR if a suitable extension is enabled.
 		bool view_pose_valid = false;
+
+		double z_near = 0.0;
+		double z_far = 0.0;
 
 		Size2i main_swapchain_size;
 		OpenXRSwapChainInfo main_swapchains[OPENXR_SWAPCHAIN_MAX];
@@ -410,8 +420,8 @@ public:
 	XRPose::TrackingConfidence transform_from_location(const XrSpaceLocation &p_location, Transform3D &r_transform);
 	XRPose::TrackingConfidence transform_from_location(const XrHandJointLocationEXT &p_location, Transform3D &r_transform);
 	void parse_velocities(const XrSpaceVelocity &p_velocity, Vector3 &r_linear_velocity, Vector3 &r_angular_velocity);
-
 	bool xr_result(XrResult result, const char *format, Array args = Array()) const;
+	XrPath get_xr_path(const String &p_path);
 	bool is_top_level_path_supported(const String &p_toplevel_path);
 	bool is_interaction_profile_supported(const String &p_ip_path);
 	bool interaction_profile_supports_io_path(const String &p_ip_path, const String &p_io_path);
@@ -435,6 +445,7 @@ public:
 	static const Vector<OpenXRExtensionWrapper *> &get_registered_extension_wrappers();
 	static void register_extension_metadata();
 	static void cleanup_extension_wrappers();
+	static PackedStringArray get_all_requested_extensions();
 
 	void set_form_factor(XrFormFactor p_form_factor);
 	XrFormFactor get_form_factor() const { return form_factor; }
@@ -477,6 +488,12 @@ public:
 	XrSwapchain get_color_swapchain();
 	RID get_color_texture();
 	RID get_depth_texture();
+	void set_velocity_texture(RID p_render_target);
+	RID get_velocity_texture();
+	void set_velocity_depth_texture(RID p_render_target);
+	RID get_velocity_depth_texture();
+	void set_velocity_target_size(const Size2i &p_target_size);
+	Size2i get_velocity_target_size();
 	void post_draw_viewport(RID p_render_target);
 	void end_frame();
 
@@ -502,8 +519,12 @@ public:
 	Size2 get_play_space_bounds() const;
 
 	// swapchains
+	PackedInt64Array get_supported_swapchain_formats();
 	int64_t get_color_swapchain_format() const { return color_swapchain_format; }
 	int64_t get_depth_swapchain_format() const { return depth_swapchain_format; }
+
+	double get_render_state_z_near() const { return render_state.z_near; }
+	double get_render_state_z_far() const { return render_state.z_far; }
 
 	// action map
 	String get_default_action_map_resource_name();
@@ -515,22 +536,26 @@ public:
 
 	RID action_set_create(const String p_name, const String p_localized_name, const int p_priority);
 	String action_set_get_name(RID p_action_set);
+	XrActionSet action_set_get_handle(RID p_action_set);
 	bool attach_action_sets(const Vector<RID> &p_action_sets);
 	void action_set_free(RID p_action_set);
 
 	RID action_create(RID p_action_set, const String p_name, const String p_localized_name, OpenXRAction::ActionType p_action_type, const Vector<RID> &p_trackers);
 	String action_get_name(RID p_action);
+	XrAction action_get_handle(RID p_action);
 	void action_free(RID p_action);
 
 	RID interaction_profile_create(const String p_name);
 	String interaction_profile_get_name(RID p_interaction_profile);
 	void interaction_profile_clear_bindings(RID p_interaction_profile);
-	bool interaction_profile_add_binding(RID p_interaction_profile, RID p_action, const String p_path);
+	int interaction_profile_add_binding(RID p_interaction_profile, RID p_action, const String p_path);
+	bool interaction_profile_add_modifier(RID p_interaction_profile, const PackedByteArray &p_modifier);
 	bool interaction_profile_suggest_bindings(RID p_interaction_profile);
 	void interaction_profile_free(RID p_interaction_profile);
 
 	RID find_tracker(const String &p_name);
-	RID find_action(const String &p_name);
+	RID find_action_set(const String p_name);
+	RID find_action(const String &p_name, const RID &p_action_set = RID());
 
 	bool sync_action_sets(const Vector<RID> p_active_sets);
 	bool get_action_bool(RID p_action, RID p_tracker);
@@ -541,6 +566,9 @@ public:
 
 	void register_composition_layer_provider(OpenXRCompositionLayerProvider *provider);
 	void unregister_composition_layer_provider(OpenXRCompositionLayerProvider *provider);
+
+	void register_projection_views_extension(OpenXRExtensionWrapper *p_extension);
+	void unregister_projection_views_extension(OpenXRExtensionWrapper *p_extension);
 
 	const XrEnvironmentBlendMode *get_supported_environment_blend_modes(uint32_t &count);
 	bool is_environment_blend_mode_supported(XrEnvironmentBlendMode p_blend_mode) const;

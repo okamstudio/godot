@@ -164,16 +164,14 @@ void NavigationRegion2D::_notification(int p_what) {
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 #ifdef DEBUG_ENABLED
-			if (debug_instance_rid.is_valid()) {
-				RS::get_singleton()->canvas_item_set_visible(debug_instance_rid, is_visible_in_tree());
-			}
+			_set_debug_visibile(is_visible_in_tree());
 #endif // DEBUG_ENABLED
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
 			_region_exit_navigation_map();
 #ifdef DEBUG_ENABLED
-			_free_debug();
+			_set_debug_visibile(false);
 #endif // DEBUG_ENABLED
 		} break;
 
@@ -208,6 +206,13 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 	if (navigation_polygon.is_valid()) {
 		navigation_polygon->connect_changed(callable_mp(this, &NavigationRegion2D::_navigation_polygon_changed));
 	}
+
+#ifdef DEBUG_ENABLED
+	if (navigation_polygon.is_null()) {
+		_set_debug_visibile(false);
+	}
+#endif // DEBUG_ENABLED
+
 	_navigation_polygon_changed();
 
 	update_configuration_warnings();
@@ -392,6 +397,12 @@ NavigationRegion2D::~NavigationRegion2D() {
 #ifdef DEBUG_ENABLED
 	NavigationServer2D::get_singleton()->disconnect(SNAME("map_changed"), callable_mp(this, &NavigationRegion2D::_navigation_map_changed));
 	NavigationServer2D::get_singleton()->disconnect(SNAME("navigation_debug_changed"), callable_mp(this, &NavigationRegion2D::_navigation_debug_changed));
+	if (debug_instance_rid.is_valid()) {
+		RS::get_singleton()->free(debug_instance_rid);
+	}
+	if (debug_mesh_rid.is_valid()) {
+		RS::get_singleton()->free(debug_mesh_rid);
+	}
 #endif // DEBUG_ENABLED
 }
 
@@ -435,7 +446,7 @@ void NavigationRegion2D::_region_update_transform() {
 #ifdef DEBUG_ENABLED
 void NavigationRegion2D::_update_debug_mesh() {
 	if (!is_inside_tree()) {
-		_free_debug();
+		_set_debug_visibile(false);
 		return;
 	}
 
@@ -630,17 +641,11 @@ void NavigationRegion2D::_update_debug_baking_rect() {
 #endif // DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
-void NavigationRegion2D::_free_debug() {
+void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
 	RenderingServer *rs = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rs);
 	if (debug_instance_rid.is_valid()) {
-		rs->canvas_item_clear(debug_instance_rid);
-		rs->free(debug_instance_rid);
-		debug_instance_rid = RID();
-	}
-	if (debug_mesh_rid.is_valid()) {
-		rs->free(debug_mesh_rid);
-		debug_mesh_rid = RID();
+		RS::get_singleton()->canvas_item_set_visible(debug_instance_rid, p_visible);
 	}
 }
 #endif // DEBUG_ENABLED

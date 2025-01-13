@@ -568,7 +568,7 @@ void ScriptLanguage::frame() {
 }
 
 TypedArray<int> ScriptLanguage::CodeCompletionOption::get_option_characteristics(const String &p_base) {
-	// Return characacteristics of the match found by order of importance.
+	// Return characteristics of the match found by order of importance.
 	// Matches will be ranked by a lexicographical order on the vector returned by this function.
 	// The lower values indicate better matches and that they should go before in the order of appearance.
 	if (last_matches == matches) {

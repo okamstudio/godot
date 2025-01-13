@@ -134,7 +134,7 @@ bool WebpLoader::read()
 }
 
 
-Surface* WebpLoader::bitmap()
+RenderSurface* WebpLoader::bitmap()
 {
     this->done();
 

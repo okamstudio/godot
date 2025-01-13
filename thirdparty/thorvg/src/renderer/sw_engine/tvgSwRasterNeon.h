@@ -89,7 +89,7 @@ static void neonRasterPixel32(uint32_t *dst, uint32_t val, uint32_t offset, int3
 }
 
 
-static bool neonRasterTranslucentRle(SwSurface* surface, const SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool neonRasterTranslucentRle(SwSurface* surface, const SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     auto span = rle->spans;
 

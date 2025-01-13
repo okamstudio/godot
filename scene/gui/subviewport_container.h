@@ -38,6 +38,8 @@ class SubViewportContainer : public Container {
 
 	bool stretch = false;
 	int shrink = 1;
+	bool mouse_target = false;
+
 	void _notify_viewports(int p_notification);
 	bool _is_propagated_in_gui_input(const Ref<InputEvent> &p_event);
 	void _send_event_to_viewports(const Ref<InputEvent> &p_event);
@@ -62,6 +64,9 @@ public:
 	void set_stretch_shrink(int p_shrink);
 	int get_stretch_shrink() const;
 	void recalc_force_viewport_sizes();
+
+	void set_mouse_target(bool p_enable);
+	bool is_mouse_target_enabled();
 
 	virtual Size2 get_minimum_size() const override;
 

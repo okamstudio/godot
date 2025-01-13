@@ -141,7 +141,7 @@ void OpenXRActionSet::remove_action(Ref<OpenXRAction> p_action) {
 	if (idx != -1) {
 		actions.remove_at(idx);
 
-		ERR_FAIL_COND_MSG(p_action->action_set != this, "Removing action that belongs to this action set but had incorrect action set pointer."); // this should never happen!
+		ERR_FAIL_COND_MSG(p_action->action_set != this, "Removing action that belongs to this action set but had incorrect action set pointer."); // This should never happen!
 		p_action->action_set = nullptr;
 
 		emit_changed();

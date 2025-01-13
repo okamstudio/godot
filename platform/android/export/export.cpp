@@ -37,6 +37,8 @@
 #include "editor/editor_settings.h"
 #include "editor/export/editor_export.h"
 
+String get_default_android_sdk_path();
+
 void register_android_exporter_types() {
 	GDREGISTER_VIRTUAL_CLASS(EditorExportPlatformAndroid);
 }
@@ -54,8 +56,10 @@ void register_android_exporter() {
 #else
 	EDITOR_DEF_BASIC("export/android/java_sdk_path", OS::get_singleton()->get_environment("JAVA_HOME"));
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/java_sdk_path", PROPERTY_HINT_GLOBAL_DIR));
-	EDITOR_DEF_BASIC("export/android/android_sdk_path", OS::get_singleton()->get_environment("ANDROID_HOME"));
+
+	EDITOR_DEF_BASIC("export/android/android_sdk_path", OS::get_singleton()->has_environment("ANDROID_HOME") ? OS::get_singleton()->get_environment("ANDROID_HOME") : get_default_android_sdk_path());
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/android_sdk_path", PROPERTY_HINT_GLOBAL_DIR));
+
 	EDITOR_DEF("export/android/force_system_user", false);
 
 	EDITOR_DEF("export/android/shutdown_adb_on_exit", true);
@@ -68,4 +72,16 @@ void register_android_exporter() {
 
 	Ref<EditorExportPlatformAndroid> exporter = Ref<EditorExportPlatformAndroid>(memnew(EditorExportPlatformAndroid));
 	EditorExport::get_singleton()->add_export_platform(exporter);
+}
+
+inline String get_default_android_sdk_path() {
+#ifdef WINDOWS_ENABLED
+	return OS::get_singleton()->get_environment("LOCALAPPDATA").path_join("Android/Sdk");
+#elif LINUXBSD_ENABLED
+	return OS::get_singleton()->get_environment("HOME").path_join("Android/Sdk");
+#elif MACOS_ENABLED
+	return OS::get_singleton()->get_environment("HOME").path_join("Library/Android/sdk");
+#else
+	return String();
+#endif
 }

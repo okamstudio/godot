@@ -50,6 +50,8 @@ protected:
 
 	virtual bool is_hidden(const String &p_name) override;
 	virtual bool is_case_sensitive(const String &p_path) const override;
+
+	virtual bool is_bundle(const String &p_file) const override;
 };
 
 #endif // UNIX ENABLED

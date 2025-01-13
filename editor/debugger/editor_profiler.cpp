@@ -152,6 +152,11 @@ Color EditorProfiler::_get_color_from_signature(const StringName &p_signature) c
 	return c.lerp(get_theme_color(SNAME("base_color"), EditorStringName(Editor)), 0.07);
 }
 
+int EditorProfiler::_get_zoom_left_border() const {
+	const int max_profiles_shown = frame_metrics.size() / Math::exp(graph_zoom);
+	return CLAMP(zoom_center - max_profiles_shown / 2, 0, frame_metrics.size() - max_profiles_shown);
+}
+
 void EditorProfiler::_item_edited() {
 	if (updating_frame) {
 		return;
@@ -237,12 +242,17 @@ void EditorProfiler::_update_plot() {
 
 		HashMap<StringName, int> prev_plots;
 
-		for (int i = 0; i < total_metrics * w / frame_metrics.size() - 1; i++) {
+		const int max_profiles_shown = frame_metrics.size() / Math::exp(graph_zoom);
+		const int left_border = _get_zoom_left_border();
+		const int profiles_drawn = CLAMP(total_metrics - left_border, 0, max_profiles_shown);
+		const int pixel_cols = (profiles_drawn * w) / max_profiles_shown - 1;
+
+		for (int i = 0; i < pixel_cols; i++) {
 			for (int j = 0; j < h * 4; j++) {
 				column[j] = 0;
 			}
 
-			int current = i * frame_metrics.size() / w;
+			int current = (i * max_profiles_shown / w) + left_border;
 
 			for (const StringName &E : plot_sigs) {
 				const Metric &m = _get_frame_metric(current);
@@ -449,10 +459,12 @@ void EditorProfiler::_graph_tex_draw() {
 	}
 	if (seeking) {
 		int frame = cursor_metric_edit->get_value() - _get_frame_metric(0).frame_number;
-		int cur_x = (2 * frame + 1) * graph->get_size().x / (2 * frame_metrics.size()) + 1;
+		frame = frame - _get_zoom_left_border() + 1;
+		int cur_x = (frame * graph->get_size().width * Math::exp(graph_zoom)) / frame_metrics.size();
+		cur_x = CLAMP(cur_x, 0, graph->get_size().width);
 		graph->draw_line(Vector2(cur_x, 0), Vector2(cur_x, graph->get_size().y), theme_cache.seek_line_color);
 	}
-	if (hover_metric > -1 && hover_metric < total_metrics) {
+	if (hover_metric > -1) {
 		int cur_x = (2 * hover_metric + 1) * graph->get_size().x / (2 * frame_metrics.size()) + 1;
 		graph->draw_line(Vector2(cur_x, 0), Vector2(cur_x, graph->get_size().y), theme_cache.seek_line_hover_color);
 	}
@@ -480,22 +492,17 @@ void EditorProfiler::_graph_tex_input(const Ref<InputEvent> &p_ev) {
 	Ref<InputEventMouse> me = p_ev;
 	Ref<InputEventMouseButton> mb = p_ev;
 	Ref<InputEventMouseMotion> mm = p_ev;
+	MouseButton button_idx = mb.is_valid() ? mb->get_button_index() : MouseButton();
 
 	if (
-			(mb.is_valid() && mb->get_button_index() == MouseButton::LEFT && mb->is_pressed()) ||
+			(mb.is_valid() && button_idx == MouseButton::LEFT && mb->is_pressed()) ||
 			(mm.is_valid())) {
 		int x = me->get_position().x - 1;
+		hover_metric = x * frame_metrics.size() / graph->get_size().width;
+
 		x = x * frame_metrics.size() / graph->get_size().width;
-
-		hover_metric = x;
-
-		if (x < 0) {
-			x = 0;
-		}
-
-		if (x >= frame_metrics.size()) {
-			x = frame_metrics.size() - 1;
-		}
+		x = x / Math::exp(graph_zoom) + _get_zoom_left_border();
+		x = CLAMP(x, 0, frame_metrics.size() - 1);
 
 		if (mb.is_valid() || (mm->get_button_mask().has_flag(MouseButtonMask::LEFT))) {
 			updating_frame = true;
@@ -518,9 +525,34 @@ void EditorProfiler::_graph_tex_input(const Ref<InputEvent> &p_ev) {
 				frame_delay->start();
 			}
 		}
-
-		graph->queue_redraw();
 	}
+
+	if (graph_zoom > 0 && mm.is_valid() && (mm->get_button_mask().has_flag(MouseButtonMask::MIDDLE) || mm->get_button_mask().has_flag(MouseButtonMask::RIGHT))) {
+		// Panning.
+		const int max_profiles_shown = frame_metrics.size() / Math::exp(graph_zoom);
+		pan_accumulator += (float)mm->get_relative().x * max_profiles_shown / graph->get_size().width;
+
+		if (Math::abs(pan_accumulator) > 1) {
+			zoom_center = CLAMP(zoom_center - (int)pan_accumulator, max_profiles_shown / 2, frame_metrics.size() - max_profiles_shown / 2);
+			pan_accumulator -= (int)pan_accumulator;
+			_update_plot();
+		}
+	}
+
+	if (button_idx == MouseButton::WHEEL_DOWN) {
+		// Zooming.
+		graph_zoom = MAX(-0.05 + graph_zoom, 0);
+		_update_plot();
+	} else if (button_idx == MouseButton::WHEEL_UP) {
+		if (graph_zoom == 0) {
+			zoom_center = me->get_position().x;
+			zoom_center = zoom_center * frame_metrics.size() / graph->get_size().width;
+		}
+		graph_zoom = MIN(0.05 + graph_zoom, 2);
+		_update_plot();
+	}
+
+	graph->queue_redraw();
 }
 
 void EditorProfiler::disable_seeking() {
@@ -712,9 +744,11 @@ EditorProfiler::EditorProfiler() {
 	variables->set_column_expand(2, false);
 	variables->set_column_clip_content(2, true);
 	variables->set_column_custom_minimum_width(2, 50 * EDSCALE);
+	variables->set_theme_type_variation("TreeSecondary");
 	variables->connect("item_edited", callable_mp(this, &EditorProfiler::_item_edited));
 
 	graph = memnew(TextureRect);
+	graph->set_custom_minimum_size(Size2(250 * EDSCALE, 0));
 	graph->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
 	graph->set_mouse_filter(MOUSE_FILTER_STOP);
 	graph->connect(SceneStringName(draw), callable_mp(this, &EditorProfiler::_graph_tex_draw));

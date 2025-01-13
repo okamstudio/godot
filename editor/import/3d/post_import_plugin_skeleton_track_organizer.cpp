@@ -39,7 +39,7 @@ void PostImportPluginSkeletonTrackOrganizer::get_internal_import_options(Interna
 	if (p_category == INTERNAL_IMPORT_CATEGORY_SKELETON_3D_NODE) {
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/remove_tracks/except_bone_transform"), false));
 		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/remove_tracks/unimportant_positions"), true));
-		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "retarget/remove_tracks/unmapped_bones"), false));
+		r_options->push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::INT, "retarget/remove_tracks/unmapped_bones", PROPERTY_HINT_ENUM, "None,Remove,Separate Library"), 0));
 	}
 }
 
@@ -61,9 +61,9 @@ void PostImportPluginSkeletonTrackOrganizer::internal_process(InternalImportCate
 		}
 		bool remove_except_bone = bool(p_options["retarget/remove_tracks/except_bone_transform"]);
 		bool remove_positions = bool(p_options["retarget/remove_tracks/unimportant_positions"]);
-		bool remove_unmapped_bones = bool(p_options["retarget/remove_tracks/unmapped_bones"]);
+		int separate_unmapped_bones = int(p_options["retarget/remove_tracks/unmapped_bones"]);
 
-		if (!remove_positions && !remove_unmapped_bones) {
+		if (!remove_positions && separate_unmapped_bones == 0) {
 			return;
 		}
 
@@ -72,10 +72,16 @@ void PostImportPluginSkeletonTrackOrganizer::internal_process(InternalImportCate
 			AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(nodes.pop_back());
 			List<StringName> anims;
 			ap->get_animation_list(&anims);
+
+			Ref<AnimationLibrary> unmapped_al;
+			unmapped_al.instantiate();
+
 			for (const StringName &name : anims) {
 				Ref<Animation> anim = ap->get_animation(name);
 				int track_len = anim->get_track_count();
 				Vector<int> remove_indices;
+				Vector<int> mapped_bone_indices;
+				Vector<int> unmapped_bone_indices;
 				for (int i = 0; i < track_len; i++) {
 					String track_path = String(anim->track_get_path(i).get_concatenated_names());
 					Node *node = (ap->get_node(ap->get_root_node()))->get_node(NodePath(track_path));
@@ -96,16 +102,19 @@ void PostImportPluginSkeletonTrackOrganizer::internal_process(InternalImportCate
 						StringName bn = anim->track_get_path(i).get_subname(0);
 						if (bn) {
 							int prof_idx = profile->find_bone(bone_map->find_profile_bone_name(bn));
-							if (remove_unmapped_bones && prof_idx < 0) {
-								remove_indices.push_back(i);
+							if (prof_idx < 0) {
+								unmapped_bone_indices.push_back(i);
 								continue;
 							}
 							if (remove_positions && anim->track_get_type(i) == Animation::TYPE_POSITION_3D && prof_idx >= 0) {
 								StringName prof_bn = profile->get_bone_name(prof_idx);
 								if (prof_bn == profile->get_root_bone() || prof_bn == profile->get_scale_base_bone()) {
+									mapped_bone_indices.push_back(i);
 									continue;
 								}
 								remove_indices.push_back(i);
+							} else {
+								mapped_bone_indices.push_back(i);
 							}
 						}
 					}
@@ -114,10 +123,33 @@ void PostImportPluginSkeletonTrackOrganizer::internal_process(InternalImportCate
 					}
 				}
 
+				if (separate_unmapped_bones == 2 && !unmapped_bone_indices.is_empty()) {
+					Ref<Animation> unmapped_anim = anim->duplicate();
+					Vector<int> to_delete;
+					to_delete.append_array(mapped_bone_indices);
+					to_delete.append_array(remove_indices);
+					to_delete.sort();
+					to_delete.reverse();
+					for (int E : to_delete) {
+						unmapped_anim->remove_track(E);
+					}
+					unmapped_al->add_animation(name, unmapped_anim);
+				}
+
+				if (separate_unmapped_bones >= 1) {
+					remove_indices.append_array(unmapped_bone_indices);
+					remove_indices.sort();
+				}
 				remove_indices.reverse();
 				for (int i = 0; i < remove_indices.size(); i++) {
 					anim->remove_track(remove_indices[i]);
 				}
+			}
+
+			if (unmapped_al->get_animation_list_size() == 0) {
+				unmapped_al.unref();
+			} else if (separate_unmapped_bones == 2) {
+				ap->add_animation_library("unmapped_bones", unmapped_al);
 			}
 		}
 	}

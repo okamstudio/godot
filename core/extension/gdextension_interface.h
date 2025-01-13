@@ -198,6 +198,7 @@ typedef struct {
 
 typedef void (*GDExtensionVariantFromTypeConstructorFunc)(GDExtensionUninitializedVariantPtr, GDExtensionTypePtr);
 typedef void (*GDExtensionTypeFromVariantConstructorFunc)(GDExtensionUninitializedTypePtr, GDExtensionVariantPtr);
+typedef void *(*GDExtensionVariantGetInternalPtrFunc)(GDExtensionVariantPtr);
 typedef void (*GDExtensionPtrOperatorEvaluator)(GDExtensionConstTypePtr p_left, GDExtensionConstTypePtr p_right, GDExtensionTypePtr r_result);
 typedef void (*GDExtensionPtrBuiltInMethod)(GDExtensionTypePtr p_base, const GDExtensionConstTypePtr *p_args, GDExtensionTypePtr r_return, int p_argument_count);
 typedef void (*GDExtensionPtrConstructor)(GDExtensionUninitializedTypePtr p_base, const GDExtensionConstTypePtr *p_args);
@@ -841,7 +842,7 @@ typedef void (*GDExtensionInterfaceMemFree)(void *p_ptr);
  *
  * Logs an error to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
  * @param p_line The line where the error occurred.
@@ -855,7 +856,7 @@ typedef void (*GDExtensionInterfacePrintError)(const char *p_description, const 
  *
  * Logs an error with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_message The message to show along with the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
@@ -870,7 +871,7 @@ typedef void (*GDExtensionInterfacePrintErrorWithMessage)(const char *p_descript
  *
  * Logs a warning to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the warning.
+ * @param p_description The code triggering the warning.
  * @param p_function The function name where the warning occurred.
  * @param p_file The file where the warning occurred.
  * @param p_line The line where the warning occurred.
@@ -884,7 +885,7 @@ typedef void (*GDExtensionInterfacePrintWarning)(const char *p_description, cons
  *
  * Logs a warning with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the warning.
+ * @param p_description The code triggering the warning.
  * @param p_message The message to show along with the warning.
  * @param p_function The function name where the warning occurred.
  * @param p_file The file where the warning occurred.
@@ -899,7 +900,7 @@ typedef void (*GDExtensionInterfacePrintWarningWithMessage)(const char *p_descri
  *
  * Logs a script error to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
  * @param p_line The line where the error occurred.
@@ -913,7 +914,7 @@ typedef void (*GDExtensionInterfacePrintScriptError)(const char *p_description, 
  *
  * Logs a script error with a message to Godot's built-in debugger and to the OS terminal.
  *
- * @param p_description The code trigging the error.
+ * @param p_description The code triggering the error.
  * @param p_message The message to show along with the error.
  * @param p_function The function name where the error occurred.
  * @param p_file The file where the error occurred.
@@ -1382,6 +1383,23 @@ typedef GDExtensionVariantFromTypeConstructorFunc (*GDExtensionInterfaceGetVaria
  * @return A pointer to a function that can get the raw value from a Variant of the given type.
  */
 typedef GDExtensionTypeFromVariantConstructorFunc (*GDExtensionInterfaceGetVariantToTypeConstructor)(GDExtensionVariantType p_type);
+
+/**
+ * @name variant_get_ptr_internal_getter
+ * @since 4.4
+ *
+ * Provides a function pointer for retrieving a pointer to a variant's internal value.
+ * Access to a variant's internal value can be used to modify it in-place, or to retrieve its value without the overhead of variant conversion functions.
+ * It is recommended to cache the getter for all variant types in a function table to avoid retrieval overhead upon use.
+ *
+ * @note Each function assumes the variant's type has already been determined and matches the function.
+ * Invoking the function with a variant of a mismatched type has undefined behavior, and may lead to a segmentation fault.
+ *
+ * @param p_type The Variant type.
+ *
+ * @return A pointer to a type-specific function that returns a pointer to the internal value of a variant. Check the implementation of this function (gdextension_variant_get_ptr_internal_getter) for pointee type info of each variant type.
+ */
+typedef GDExtensionVariantGetInternalPtrFunc (*GDExtensionInterfaceGetVariantGetInternalPtrFunc)(GDExtensionVariantType p_type);
 
 /**
  * @name variant_get_ptr_operator_evaluator

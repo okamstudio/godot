@@ -112,14 +112,12 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		return false;
 	}
 
-	for (int i = 0; i < Variant::VARIANT_MAX; i++) {
-		if (Variant::get_type_name(Variant::Type(i)) == p_name) {
-			if (r_error) {
-				*r_error = TTR("Invalid name.") + " " + TTR("Must not collide with an existing built-in type name.");
-			}
-
-			return false;
+	if (Variant::get_type_by_name(p_name) < Variant::VARIANT_MAX) {
+		if (r_error) {
+			*r_error = TTR("Invalid name.") + " " + TTR("Must not collide with an existing built-in type name.");
 		}
+
+		return false;
 	}
 
 	for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
@@ -921,7 +919,7 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 
 	autoload_add_name = memnew(LineEdit);
 	autoload_add_name->set_h_size_flags(SIZE_EXPAND_FILL);
-	autoload_add_name->connect("text_submitted", callable_mp(this, &EditorAutoloadSettings::_autoload_text_submitted));
+	autoload_add_name->connect(SceneStringName(text_submitted), callable_mp(this, &EditorAutoloadSettings::_autoload_text_submitted));
 	autoload_add_name->connect(SceneStringName(text_changed), callable_mp(this, &EditorAutoloadSettings::_autoload_text_changed));
 	hbc->add_child(autoload_add_name);
 
@@ -975,7 +973,7 @@ EditorAutoloadSettings::~EditorAutoloadSettings() {
 
 void EditorAutoloadSettings::_set_autoload_add_path(const String &p_text) {
 	autoload_add_path->set_text(p_text);
-	autoload_add_path->emit_signal(SNAME("text_submitted"), p_text);
+	autoload_add_path->emit_signal(SceneStringName(text_submitted), p_text);
 }
 
 void EditorAutoloadSettings::_browse_autoload_add_path() {

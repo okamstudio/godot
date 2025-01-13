@@ -127,6 +127,17 @@ TEST_CASE("[StreamPeer] Get and sets through StreamPeerBuffer") {
 		CHECK_EQ(spb->get_u64(), value);
 	}
 
+	SUBCASE("A half-precision float value") {
+		float value = 3.1415927f;
+		float expected = 3.14062f;
+
+		spb->clear();
+		spb->put_half(value);
+		spb->seek(0);
+
+		CHECK(spb->get_half() == doctest::Approx(expected));
+	}
+
 	SUBCASE("A float value") {
 		float value = 42.0f;
 
@@ -253,6 +264,17 @@ TEST_CASE("[StreamPeer] Get and sets big endian through StreamPeerBuffer") {
 		spb->seek(0);
 
 		CHECK_EQ(spb->get_float(), value);
+	}
+
+	SUBCASE("A half-precision float value") {
+		float value = 3.1415927f;
+		float expected = 3.14062f;
+
+		spb->clear();
+		spb->put_half(value);
+		spb->seek(0);
+
+		CHECK(spb->get_half() == doctest::Approx(expected));
 	}
 
 	SUBCASE("A double value") {

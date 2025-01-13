@@ -468,7 +468,7 @@ size_t b64Decode(const char* encoded, const size_t len, char** decoded)
         encoded += 4;
     }
     *decoded = output;
-    return reserved;
+    return idx;
 }
 
 

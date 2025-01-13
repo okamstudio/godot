@@ -27,6 +27,9 @@
 		<member name="outline_size" type="int" setter="set_outline_size" getter="get_outline_size" default="0">
 			Text outline size.
 		</member>
+		<member name="paragraph_spacing" type="float" setter="set_paragraph_spacing" getter="get_paragraph_spacing" default="0.0">
+			Vertical space between paragraphs. Added on top of [member line_spacing].
+		</member>
 		<member name="shadow_color" type="Color" setter="set_shadow_color" getter="get_shadow_color" default="Color(0, 0, 0, 0)">
 			Color of the shadow effect. If alpha is [code]0[/code], no shadow will be drawn.
 		</member>

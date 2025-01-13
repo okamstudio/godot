@@ -393,6 +393,11 @@
 				[b]Note:[/b] During the update process, this signal is not fired, so modification by [SkeletonModifier3D] is not detected.
 			</description>
 		</signal>
+		<signal name="rest_updated">
+			<description>
+				Emitted when the rest is updated.
+			</description>
+		</signal>
 		<signal name="show_rest_only_changed">
 			<description>
 				Emitted when the value of [member show_rest_only] changes.

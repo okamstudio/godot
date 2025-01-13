@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/gd_utility_function_wrong_arg.gd
->> 3
->> Error calling GDScript utility function "len()": Value of type 'Color' can't provide a length.
+>> SCRIPT ERROR at runtime/errors/gd_utility_function_wrong_arg.gd:3 on test(): Error calling GDScript utility function "len()": Value of type 'Color' can't provide a length.

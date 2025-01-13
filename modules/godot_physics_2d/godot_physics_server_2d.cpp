@@ -239,7 +239,7 @@ void GodotPhysicsServer2D::space_set_active(RID p_space, bool p_active) {
 }
 
 bool GodotPhysicsServer2D::space_is_active(RID p_space) const {
-	const GodotSpace2D *space = space_owner.get_or_null(p_space);
+	GodotSpace2D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL_V(space, false);
 
 	return active_spaces.has(space);
@@ -1297,8 +1297,8 @@ void GodotPhysicsServer2D::step(real_t p_step) {
 	island_count = 0;
 	active_objects = 0;
 	collision_pairs = 0;
-	for (const GodotSpace2D *E : active_spaces) {
-		stepper->step(const_cast<GodotSpace2D *>(E), p_step);
+	for (GodotSpace2D *E : active_spaces) {
+		stepper->step(E, p_step);
 		island_count += E->get_island_count();
 		active_objects += E->get_active_objects();
 		collision_pairs += E->get_collision_pairs();
@@ -1318,9 +1318,8 @@ void GodotPhysicsServer2D::flush_queries() {
 
 	uint64_t time_beg = OS::get_singleton()->get_ticks_usec();
 
-	for (const GodotSpace2D *E : active_spaces) {
-		GodotSpace2D *space = const_cast<GodotSpace2D *>(E);
-		space->call_queries();
+	for (GodotSpace2D *E : active_spaces) {
+		E->call_queries();
 	}
 
 	flushing_queries = false;

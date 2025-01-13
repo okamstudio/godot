@@ -112,6 +112,14 @@ int EditorImportPlugin::get_import_order() const {
 	ERR_FAIL_V_MSG(-1, "Unimplemented _get_import_order in add-on.");
 }
 
+int EditorImportPlugin::get_format_version() const {
+	int ret = 0;
+	if (GDVIRTUAL_CALL(_get_format_version, ret)) {
+		return ret;
+	}
+	return 0;
+}
+
 void EditorImportPlugin::get_import_options(const String &p_path, List<ResourceImporter::ImportOption> *r_options, int p_preset) const {
 	Array needed;
 	needed.push_back("name");
@@ -220,6 +228,7 @@ void EditorImportPlugin::_bind_methods() {
 	GDVIRTUAL_BIND(_get_resource_type)
 	GDVIRTUAL_BIND(_get_priority)
 	GDVIRTUAL_BIND(_get_import_order)
+	GDVIRTUAL_BIND(_get_format_version)
 	GDVIRTUAL_BIND(_get_option_visibility, "path", "option_name", "options")
 	GDVIRTUAL_BIND(_import, "source_file", "save_path", "options", "platform_variants", "gen_files");
 	GDVIRTUAL_BIND(_can_import_threaded);

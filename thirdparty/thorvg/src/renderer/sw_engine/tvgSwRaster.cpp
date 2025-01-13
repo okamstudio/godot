@@ -490,7 +490,7 @@ static bool _rasterRect(SwSurface* surface, const SwBBox& region, uint8_t r, uin
 /* Rle                                                                  */
 /************************************************************************/
 
-static bool _rasterCompositeMaskedRle(SwSurface* surface, SwRleData* rle, SwMask maskOp, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterCompositeMaskedRle(SwSurface* surface, SwRle* rle, SwMask maskOp, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     auto span = rle->spans;
     auto cbuffer = surface->compositor->image.buf8;
@@ -510,7 +510,7 @@ static bool _rasterCompositeMaskedRle(SwSurface* surface, SwRleData* rle, SwMask
 }
 
 
-static bool _rasterDirectMaskedRle(SwSurface* surface, SwRleData* rle, SwMask maskOp, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterDirectMaskedRle(SwSurface* surface, SwRle* rle, SwMask maskOp, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     auto span = rle->spans;
     auto cbuffer = surface->compositor->image.buf8;
@@ -531,7 +531,7 @@ static bool _rasterDirectMaskedRle(SwSurface* surface, SwRleData* rle, SwMask ma
 }
 
 
-static bool _rasterMaskedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterMaskedRle(SwSurface* surface, SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     TVGLOG("SW_ENGINE", "Masked(%d) Rle", (int)surface->compositor->method);
 
@@ -545,7 +545,7 @@ static bool _rasterMaskedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint
 }
 
 
-static bool _rasterMattedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterMattedRle(SwSurface* surface, SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     TVGLOG("SW_ENGINE", "Matted(%d) Rle", (int)surface->compositor->method);
 
@@ -568,10 +568,8 @@ static bool _rasterMattedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint
                 *dst = tmp + ALPHA_BLEND(*dst, IA(tmp));
             }
         }
-        return true;
-    }
     //8bit grayscale
-    if (surface->channelSize == sizeof(uint8_t)) {
+    } else if (surface->channelSize == sizeof(uint8_t)) {
         uint8_t src;
         for (uint32_t i = 0; i < rle->size; ++i, ++span) {
             auto dst = &surface->buf8[span->y * surface->stride + span->x];
@@ -582,13 +580,12 @@ static bool _rasterMattedRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint
                 *dst = INTERPOLATE8(src, *dst, alpha(cmp));
             }
         }
-        return true;
     }
-    return false;
+    return true;
 }
 
 
-static bool _rasterBlendingRle(SwSurface* surface, const SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterBlendingRle(SwSurface* surface, const SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     if (surface->channelSize != sizeof(uint32_t)) return false;
 
@@ -612,7 +609,7 @@ static bool _rasterBlendingRle(SwSurface* surface, const SwRleData* rle, uint8_t
 }
 
 
-static bool _rasterTranslucentRle(SwSurface* surface, const SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterTranslucentRle(SwSurface* surface, const SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 #if defined(THORVG_AVX_VECTOR_SUPPORT)
     return avxRasterTranslucentRle(surface, rle, r, g, b, a);
@@ -624,7 +621,7 @@ static bool _rasterTranslucentRle(SwSurface* surface, const SwRleData* rle, uint
 }
 
 
-static bool _rasterSolidRle(SwSurface* surface, const SwRleData* rle, uint8_t r, uint8_t g, uint8_t b)
+static bool _rasterSolidRle(SwSurface* surface, const SwRle* rle, uint8_t r, uint8_t g, uint8_t b)
 {
     auto span = rle->spans;
 
@@ -661,7 +658,7 @@ static bool _rasterSolidRle(SwSurface* surface, const SwRleData* rle, uint8_t r,
 }
 
 
-static bool _rasterRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static bool _rasterRle(SwSurface* surface, SwRle* rle, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
     if (!rle) return false;
 
@@ -697,66 +694,9 @@ static bool _rasterRle(SwSurface* surface, SwRleData* rle, uint8_t r, uint8_t g,
     auto sx = (x) * itransform->e11 + itransform->e13 - 0.49f; \
     if (sx <= -0.5f || (uint32_t)(sx + 0.5f) >= image->w) continue; \
 
-
-#if 0 //Enable it when GRAYSCALE image is supported
-static bool _rasterCompositeScaledMaskedRleImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto scaleMethod = image->scale < DOWN_SCALE_TOLERANCE ? _interpDownScaler : _interpUpScaler;
-    auto sampleSize = _sampleSize(image->scale);
-    auto span = image->rle->spans;
-    int32_t miny = 0, maxy = 0;
-
-    for (uint32_t i = 0; i < image->rle->size; ++i, ++span) {
-        SCALED_IMAGE_RANGE_Y(span->y)
-        auto cmp = &surface->compositor->image.buf8[span->y * surface->compositor->image.stride + span->x];
-        auto a = MULTIPLY(span->coverage, opacity);
-        for (uint32_t x = static_cast<uint32_t>(span->x); x < static_cast<uint32_t>(span->x) + span->len; ++x, ++cmp) {
-            SCALED_IMAGE_RANGE_X
-            auto src = scaleMethod(image->buf8, image->stride, image->w, image->h, sx, sy, miny, maxy, sampleSize);
-            if (a < 255) src = MULTIPLY(src, a);
-            *cmp = maskOp(src, *cmp, ~src);
-        }
-    }
-    return true;
-}
-
-
-static bool _rasterDirectScaledMaskedRleImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto scaleMethod = image->scale < DOWN_SCALE_TOLERANCE ? _interpDownScaler : _interpUpScaler;
-    auto sampleSize = _sampleSize(image->scale);
-    auto span = image->rle->spans;
-    int32_t miny = 0, maxy = 0;
-
-    for (uint32_t i = 0; i < image->rle->size; ++i, ++span) {        
-        SCALED_IMAGE_RANGE_Y(span->y)
-        auto cmp = &surface->compositor->image.buf8[span->y * surface->compositor->image.stride + span->x];
-        auto dst = &surface->buf8[span->y * surface->stride + span->x];
-        auto a = MULTIPLY(span->coverage, opacity);
-        for (uint32_t x = static_cast<uint32_t>(span->x); x < static_cast<uint32_t>(span->x) + span->len; ++x, ++cmp, ++dst) {
-            SCALED_IMAGE_RANGE_X
-            auto src = scaleMethod(image->buf8, image->stride, image->w, image->h, sx, sy, miny, maxy, sampleSize);
-            if (a < 255) src = MULTIPLY(src, a);
-            src = maskOp(src, *cmp, 0);  //not use alpha
-            *dst = src + MULTIPLY(*dst, ~src);
-        }
-    }
-    return _compositeMaskImage(surface, &surface->compositor->image, surface->compositor->bbox);
-}
-#endif
-
 static bool _rasterScaledMaskedRleImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint8_t opacity)
 {
-#if 0 //Enable it when GRAYSCALE image is supported
-    TVGLOG("SW_ENGINE", "Scaled Masked(%d) Rle Image", (int)surface->compositor->method);
-
-    //8bit masking channels composition
-    if (surface->channelSize != sizeof(uint8_t)) return false;
-
-    auto maskOp = _getMaskOp(surface->compositor->method);
-    if (_direct(surface->compositor->method)) return _rasterDirectScaledMaskedRleImage(surface, image, itransform, region, maskOp, opacity);
-    else return _rasterCompositeScaledMaskedRleImage(surface, image, itransform, region, maskOp, opacity);
-#endif
+    TVGERR("SW_ENGINE", "Not Supported Scaled Masked(%d) Rle Image", (int)surface->compositor->method);
     return false;
 }
 
@@ -784,7 +724,6 @@ static bool _rasterScaledMattedRleImage(SwSurface* surface, const SwImage* image
             *dst = src + ALPHA_BLEND(*dst, IA(src));
         }
     }
-
     return true;
 }
 
@@ -851,7 +790,7 @@ static bool _scaledRleImage(SwSurface* surface, const SwImage* image, const Matr
 
     Matrix itransform;
 
-    if (!mathInverse(&transform, &itransform)) return true;
+    if (!inverse(&transform, &itransform)) return true;
 
     if (_compositing(surface)) {
         if (_matting(surface)) return _rasterScaledMattedRleImage(surface, image, &itransform, region, opacity);
@@ -868,75 +807,6 @@ static bool _scaledRleImage(SwSurface* surface, const SwImage* image, const Matr
 /************************************************************************/
 /* RLE Direct Image                                                     */
 /************************************************************************/
-
-#if 0 //Enable it when GRAYSCALE image is supported
-static bool _rasterCompositeDirectMaskedRleImage(SwSurface* surface, const SwImage* image, SwMask maskOp, uint8_t opacity)
-{
-    auto span = image->rle->spans;
-    auto cbuffer = surface->compositor->image.buf8;
-    auto ctride = surface->compositor->image.stride;
-
-    for (uint32_t i = 0; i < image->rle->size; ++i, ++span) {
-        auto src = image->buf8 + (span->y + image->oy) * image->stride + (span->x + image->ox);
-        auto cmp = &cbuffer[span->y * ctride + span->x];
-        auto alpha = MULTIPLY(span->coverage, opacity);
-        if (alpha == 255) {
-            for (uint32_t x = 0; x < span->len; ++x, ++src, ++cmp) {
-                *cmp = maskOp(*src, *cmp, ~*src);
-            }
-        } else {
-            for (uint32_t x = 0; x < span->len; ++x, ++src, ++cmp) {
-                auto tmp = MULTIPLY(*src, alpha);
-                *cmp = maskOp(*src, *cmp, ~tmp);
-            }
-        }
-    }
-    return _compositeMaskImage(surface, &surface->compositor->image, surface->compositor->bbox);
-}
-
-
-static bool _rasterDirectDirectMaskedRleImage(SwSurface* surface, const SwImage* image, SwMask maskOp, uint8_t opacity)
-{
-    auto span = image->rle->spans;
-    auto cbuffer = surface->compositor->image.buf8;
-    auto ctride = surface->compositor->image.stride;
-
-    for (uint32_t i = 0; i < image->rle->size; ++i, ++span) {
-        auto src = image->buf8 + (span->y + image->oy) * image->stride + (span->x + image->ox);
-        auto cmp = &cbuffer[span->y * ctride + span->x];
-        auto dst = &surface->buf8[span->y * surface->stride + span->x];
-        auto alpha = MULTIPLY(span->coverage, opacity);
-        if (alpha == 255) {
-            for (uint32_t x = 0; x < span->len; ++x, ++src, ++cmp, ++dst) {
-                auto tmp = maskOp(*src, *cmp, 0);  //not use alpha
-                *dst = INTERPOLATE8(tmp, *dst, (255 - tmp));
-            }
-        } else {
-            for (uint32_t x = 0; x < span->len; ++x, ++src, ++cmp, ++dst) {
-                auto tmp = maskOp(MULTIPLY(*src, alpha), *cmp, 0); //not use alpha
-                *dst = INTERPOLATE8(tmp, *dst, (255 - tmp));
-            }
-        }
-    }
-    return true;
-}
-#endif
-
-static bool _rasterDirectMaskedRleImage(SwSurface* surface, const SwImage* image, uint8_t opacity)
-{
-#if 0 //Enable it when GRAYSCALE image is supported
-    TVGLOG("SW_ENGINE", "Direct Masked(%d) Rle Image", (int)surface->compositor->method);
-
-    //8bit masking channels composition
-    if (surface->channelSize != sizeof(uint8_t)) return false;
-
-    auto maskOp = _getMaskOp(surface->compositor->method);
-    if (_direct(surface->compositor->method)) _rasterDirectDirectMaskedRleImage(surface, image, maskOp, opacity);
-    else return _rasterCompositeDirectMaskedRleImage(surface, image, maskOp, opacity);
-#endif
-    return false;
-}
-
 
 static bool _rasterDirectMattedRleImage(SwSurface* surface, const SwImage* image, uint8_t opacity)
 {
@@ -999,18 +869,16 @@ static bool _rasterDirectRleImage(SwSurface* surface, const SwImage* image, uint
         auto dst = &surface->buf32[span->y * surface->stride + span->x];
         auto img = image->buf32 + (span->y + image->oy) * image->stride + (span->x + image->ox);
         auto alpha = MULTIPLY(span->coverage, opacity);
-        if (alpha == 255) {
-            for (uint32_t x = 0; x < span->len; ++x, ++dst, ++img) {
-                *dst = *img + ALPHA_BLEND(*dst, IA(*img));
-            }
-        } else {
-            for (uint32_t x = 0; x < span->len; ++x, ++dst, ++img) {
-                auto src = ALPHA_BLEND(*img, alpha);
-                *dst = src + ALPHA_BLEND(*dst, IA(src));
-            }
-        }
+        rasterTranslucentPixel32(dst, img, span->len, alpha);
     }
     return true;
+}
+
+
+static bool _rasterDirectMaskedRleImage(SwSurface* surface, const SwImage* image, uint8_t opacity)
+{
+    TVGERR("SW_ENGINE", "Not Supported Direct Masked(%d) Rle Image", (int)surface->compositor->method);
+    return false;
 }
 
 
@@ -1037,67 +905,9 @@ static bool _directRleImage(SwSurface* surface, const SwImage* image, uint8_t op
 /*Scaled Image                                                          */
 /************************************************************************/
 
-#if 0 //Enable it when GRAYSCALE image is supported
-static bool _rasterCompositeScaledMaskedImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto scaleMethod = image->scale < DOWN_SCALE_TOLERANCE ? _interpDownScaler : _interpUpScaler;
-    auto sampleSize = _sampleSize(image->scale);
-    auto cstride = surface->compositor->image.stride;
-    auto cbuffer = surface->compositor->image.buf8 + (region.min.y * cstride + region.min.x);
-    int32_t miny = 0, maxy = 0;
-
-    for (auto y = region.min.y; y < region.max.y; ++y) {
-        SCALED_IMAGE_RANGE_Y(y)
-        auto cmp = cbuffer;
-        for (auto x = region.min.x; x < region.max.x; ++x, ++cmp) {
-            SCALED_IMAGE_RANGE_X
-            auto src = scaleMethod(image->buf8, image->stride, image->w, image->h, sx, sy, miny, maxy, sampleSize);
-            if (opacity < 255) src = MULTIPLY(src, opacity);
-            *cmp = maskOp(src, *cmp, ~src);
-        }
-        cbuffer += cstride;
-    }
-    return _compositeMaskImage(surface, &surface->compositor->image, surface->compositor->bbox);
-}
-
-
-static bool _rasterDirectScaledMaskedImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto scaleMethod = image->scale < DOWN_SCALE_TOLERANCE ? _interpDownScaler : _interpUpScaler;
-    auto sampleSize = _sampleSize(image->scale);
-    auto cstride = surface->compositor->image.stride;
-    auto cbuffer = surface->compositor->image.buf8 + (region.min.y * cstride + region.min.x);
-    auto dbuffer = surface->buf8 + (region.min.y * surface->stride + region.min.x);
-    int32_t miny = 0, maxy = 0;
-
-    for (auto y = region.min.y; y < region.max.y; ++y) {
-        SCALED_IMAGE_RANGE_Y(y)
-        auto cmp = cbuffer;
-        auto dst = dbuffer;
-        for (auto x = region.min.x; x < region.max.x; ++x, ++cmp, ++dst) {
-            SCALED_IMAGE_RANGE_X
-            auto src = scaleMethod(image->buf8, image->stride, image->w, image->h, sx, sy, miny, maxy, sampleSize);
-            if (opacity < 255) src = MULTIPLY(src, opacity);
-            src = maskOp(src, *cmp, 0);  //not use alpha
-            *dst = src + MULTIPLY(*dst, ~src);
-        }
-        cbuffer += cstride;
-        dbuffer += surface->stride;
-    }
-    return true;
-}
-#endif
-
 static bool _rasterScaledMaskedImage(SwSurface* surface, const SwImage* image, const Matrix* itransform, const SwBBox& region, uint8_t opacity)
 {
-    TVGERR("SW_ENGINE", "Not supported ScaledMaskedImage!");
-#if 0 //Enable it when GRAYSCALE image is supported
-    TVGLOG("SW_ENGINE", "Scaled Masked(%d) Image [Region: %lu %lu %lu %lu]", (int)surface->compositor->method, region.min.x, region.min.y, region.max.x - region.min.x, region.max.y - region.min.y);
-
-    auto maskOp = _getMaskOp(surface->compositor->method);
-    if (_direct(surface->compositor->method)) return _rasterDirectScaledMaskedImage(surface, image, itransform, region, maskOp, opacity);
-    else return _rasterCompositeScaledMaskedImage(surface, image, itransform, region, maskOp, opacity);
-#endif
+    TVGERR("SW_ENGINE", "Not Supported Scaled Masked Image!");
     return false;
 }
 
@@ -1202,7 +1012,7 @@ static bool _scaledImage(SwSurface* surface, const SwImage* image, const Matrix&
 {
     Matrix itransform;
 
-    if (!mathInverse(&transform, &itransform)) return true;
+    if (!inverse(&transform, &itransform)) return true;
 
     if (_compositing(surface)) {
         if (_matting(surface)) return _rasterScaledMattedImage(surface, image, &itransform, region, opacity);
@@ -1220,78 +1030,9 @@ static bool _scaledImage(SwSurface* surface, const SwImage* image, const Matrix&
 /* Direct Image                                                         */
 /************************************************************************/
 
-#if 0 //Enable it when GRAYSCALE image is supported
-static bool _rasterCompositeDirectMaskedImage(SwSurface* surface, const SwImage* image, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto h = static_cast<uint32_t>(region.max.y - region.min.y);
-    auto w = static_cast<uint32_t>(region.max.x - region.min.x);
-    auto cstride = surface->compositor->image.stride;
-
-    auto cbuffer = surface->compositor->image.buf8 + (region.min.y * cstride + region.min.x); //compositor buffer
-    auto sbuffer = image->buf8 + (region.min.y + image->oy) * image->stride + (region.min.x + image->ox);
-
-    for (uint32_t y = 0; y < h; ++y) {
-        auto cmp = cbuffer;
-        auto src = sbuffer;
-        if (opacity == 255) {
-            for (uint32_t x = 0; x < w; ++x, ++src, ++cmp) {
-                *cmp = maskOp(*src, *cmp, ~*src);
-            }
-        } else {
-            for (uint32_t x = 0; x < w; ++x, ++src, ++cmp) {
-                auto tmp = MULTIPLY(*src, opacity);
-                *cmp = maskOp(tmp, *cmp, ~tmp);
-            }
-        }
-        cbuffer += cstride;
-        sbuffer += image->stride;
-    }
-    return _compositeMaskImage(surface, &surface->compositor->image, surface->compositor->bbox);
-}
-
-
-static bool _rasterDirectDirectMaskedImage(SwSurface* surface, const SwImage* image, const SwBBox& region, SwMask maskOp, uint8_t opacity)
-{
-    auto h = static_cast<uint32_t>(region.max.y - region.min.y);
-    auto w = static_cast<uint32_t>(region.max.x - region.min.x);
-    auto cstride = surface->compositor->image.stride;
-
-    auto cbuffer = surface->compositor->image.buf32 + (region.min.y * cstride + region.min.x); //compositor buffer
-    auto dbuffer = surface->buf8 + (region.min.y * surface->stride + region.min.x);            //destination buffer
-    auto sbuffer = image->buf8 + (region.min.y + image->oy) * image->stride + (region.min.x + image->ox);
-
-    for (uint32_t y = 0; y < h; ++y) {
-        auto cmp = cbuffer;
-        auto dst = dbuffer;
-        auto src = sbuffer;
-        if (opacity == 255) {
-            for (uint32_t x = 0; x < w; ++x, ++src, ++cmp, ++dst) {
-                auto tmp = maskOp(*src, *cmp, 0); //not use alpha
-                *dst = tmp + MULTIPLY(*dst, ~tmp);
-            }
-        } else {
-            for (uint32_t x = 0; x < w; ++x, ++src, ++cmp, ++dst) {
-                auto tmp = maskOp(MULTIPLY(*src, opacity), *cmp, 0); //not use alpha
-                *dst = tmp + MULTIPLY(*dst, ~tmp);
-            }
-        }
-        cbuffer += cstride;
-        dbuffer += surface->stride;
-        sbuffer += image->stride;
-    }
-    return true;
-}
-#endif
-
 static bool _rasterDirectMaskedImage(SwSurface* surface, const SwImage* image, const SwBBox& region, uint8_t opacity)
 {
-    TVGERR("SW_ENGINE", "Not Supported: Direct Masked(%d) Image [Region: %lu %lu %lu %lu]", (int)surface->compositor->method, region.min.x, region.min.y, region.max.x - region.min.x, region.max.y - region.min.y);
-
-#if 0 //Enable it when GRAYSCALE image is supported
-    auto maskOp = _getMaskOp(surface->compositor->method);
-    if (_direct(surface->compositor->method)) return _rasterDirectDirectMaskedImage(surface, image, region, maskOp, opacity);
-    else return _rasterCompositeDirectMaskedImage(surface, image, region, maskOp, opacity);
-#endif
+    TVGERR("SW_ENGINE", "Not Supported: Direct Masked Image");
     return false;
 }
 
@@ -1394,37 +1135,24 @@ static bool _rasterDirectImage(SwSurface* surface, const SwImage* image, const S
     //32bits channels
     if (surface->channelSize == sizeof(uint32_t)) {
         auto dbuffer = &surface->buf32[region.min.y * surface->stride + region.min.x];
-
         for (auto y = region.min.y; y < region.max.y; ++y) {
-            auto dst = dbuffer;
-            auto src = sbuffer;
-            if (opacity == 255) {
-                for (auto x = region.min.x; x < region.max.x; x++, dst++, src++) {
-                    *dst = *src + ALPHA_BLEND(*dst, IA(*src));
-                }
-            } else {
-                for (auto x = region.min.x; x < region.max.x; ++x, ++dst, ++src) {
-                    auto tmp = ALPHA_BLEND(*src, opacity);
-                    *dst = tmp + ALPHA_BLEND(*dst, IA(tmp));
-                }
-            }
+            rasterTranslucentPixel32(dbuffer, sbuffer, region.max.x - region.min.x, opacity);
             dbuffer += surface->stride;
             sbuffer += image->stride;
         }
     //8bits grayscale
     } else if (surface->channelSize == sizeof(uint8_t)) {
         auto dbuffer = &surface->buf8[region.min.y * surface->stride + region.min.x];
-
         for (auto y = region.min.y; y < region.max.y; ++y, dbuffer += surface->stride, sbuffer += image->stride) {
             auto dst = dbuffer;
             auto src = sbuffer;
             if (opacity == 255) {
                 for (auto x = region.min.x; x < region.max.x; ++x, ++dst, ++src) {
-                    *dst = *src + MULTIPLY(*dst, ~*src);
+                    *dst = *src + MULTIPLY(*dst, IA(*src));
                 }
             } else {
                 for (auto x = region.min.x; x < region.max.x; ++x, ++dst, ++src) {
-                    *dst = INTERPOLATE8(*src, *dst, opacity);
+                    *dst = INTERPOLATE8(A(*src), *dst, opacity);
                 }
             }
         }
@@ -1602,13 +1330,23 @@ static bool _rasterBlendingGradientRect(SwSurface* surface, const SwBBox& region
 template<typename fillMethod>
 static bool _rasterTranslucentGradientRect(SwSurface* surface, const SwBBox& region, const SwFill* fill)
 {
-    auto buffer = surface->buf32 + (region.min.y * surface->stride) + region.min.x;
     auto h = static_cast<uint32_t>(region.max.y - region.min.y);
     auto w = static_cast<uint32_t>(region.max.x - region.min.x);
 
-    for (uint32_t y = 0; y < h; ++y) {
-        fillMethod()(fill, buffer, region.min.y + y, region.min.x, w, opBlendPreNormal, 255);
-        buffer += surface->stride;
+    //32 bits
+    if (surface->channelSize == sizeof(uint32_t)) {
+        auto buffer = surface->buf32 + (region.min.y * surface->stride) + region.min.x;
+        for (uint32_t y = 0; y < h; ++y) {
+            fillMethod()(fill, buffer, region.min.y + y, region.min.x, w, opBlendPreNormal, 255);
+            buffer += surface->stride;
+        }
+    //8 bits
+    } else if (surface->channelSize == sizeof(uint8_t)) {
+        auto buffer = surface->buf8 + (region.min.y * surface->stride) + region.min.x;
+        for (uint32_t y = 0; y < h; ++y) {
+            fillMethod()(fill, buffer, region.min.y + y, region.min.x, w, _opMaskAdd, 255);
+            buffer += surface->stride;
+        }
     }
     return true;
 }
@@ -1617,12 +1355,23 @@ static bool _rasterTranslucentGradientRect(SwSurface* surface, const SwBBox& reg
 template<typename fillMethod>
 static bool _rasterSolidGradientRect(SwSurface* surface, const SwBBox& region, const SwFill* fill)
 {
-    auto buffer = surface->buf32 + (region.min.y * surface->stride) + region.min.x;
     auto w = static_cast<uint32_t>(region.max.x - region.min.x);
     auto h = static_cast<uint32_t>(region.max.y - region.min.y);
 
-    for (uint32_t y = 0; y < h; ++y) {
-        fillMethod()(fill, buffer + y * surface->stride, region.min.y + y, region.min.x, w, opBlendSrcOver, 255);
+    //32 bits
+    if (surface->channelSize == sizeof(uint32_t)) {
+        auto buffer = surface->buf32 + (region.min.y * surface->stride) + region.min.x;
+        for (uint32_t y = 0; y < h; ++y) {
+            fillMethod()(fill, buffer, region.min.y + y, region.min.x, w, opBlendSrcOver, 255);
+            buffer += surface->stride;
+        }
+    //8 bits
+    } else if (surface->channelSize == sizeof(uint8_t)) {
+        auto buffer = surface->buf8 + (region.min.y * surface->stride) + region.min.x;
+        for (uint32_t y = 0; y < h; ++y) {
+            fillMethod()(fill, buffer, region.min.y + y, region.min.x, w, _opMaskNone, 255);
+            buffer += surface->stride;
+        }
     }
     return true;
 }
@@ -1663,7 +1412,7 @@ static bool _rasterRadialGradientRect(SwSurface* surface, const SwBBox& region, 
 /************************************************************************/
 
 template<typename fillMethod>
-static bool _rasterCompositeGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, SwMask maskOp)
+static bool _rasterCompositeGradientMaskedRle(SwSurface* surface, const SwRle* rle, const SwFill* fill, SwMask maskOp)
 {
     auto span = rle->spans;
     auto cstride = surface->compositor->image.stride;
@@ -1678,7 +1427,7 @@ static bool _rasterCompositeGradientMaskedRle(SwSurface* surface, const SwRleDat
 
 
 template<typename fillMethod>
-static bool _rasterDirectGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill, SwMask maskOp)
+static bool _rasterDirectGradientMaskedRle(SwSurface* surface, const SwRle* rle, const SwFill* fill, SwMask maskOp)
 {
     auto span = rle->spans;
     auto cstride = surface->compositor->image.stride;
@@ -1695,7 +1444,7 @@ static bool _rasterDirectGradientMaskedRle(SwSurface* surface, const SwRleData* 
 
 
 template<typename fillMethod>
-static bool _rasterGradientMaskedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterGradientMaskedRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     auto method = surface->compositor->method;
 
@@ -1710,7 +1459,7 @@ static bool _rasterGradientMaskedRle(SwSurface* surface, const SwRleData* rle, c
 
 
 template<typename fillMethod>
-static bool _rasterGradientMattedRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterGradientMattedRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     TVGLOG("SW_ENGINE", "Matted(%d) Rle Linear Gradient", (int)surface->compositor->method);
 
@@ -1729,7 +1478,7 @@ static bool _rasterGradientMattedRle(SwSurface* surface, const SwRleData* rle, c
 
 
 template<typename fillMethod>
-static bool _rasterBlendingGradientRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterBlendingGradientRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     auto span = rle->spans;
 
@@ -1742,7 +1491,7 @@ static bool _rasterBlendingGradientRle(SwSurface* surface, const SwRleData* rle,
 
 
 template<typename fillMethod>
-static bool _rasterTranslucentGradientRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterTranslucentGradientRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     auto span = rle->spans;
 
@@ -1757,7 +1506,7 @@ static bool _rasterTranslucentGradientRle(SwSurface* surface, const SwRleData* r
     } else if (surface->channelSize == sizeof(uint8_t)) {
         for (uint32_t i = 0; i < rle->size; ++i, ++span) {
             auto dst = &surface->buf8[span->y * surface->stride + span->x];
-            fillMethod()(fill, dst, span->y, span->x, span->len, _opMaskAdd, 255);
+            fillMethod()(fill, dst, span->y, span->x, span->len, _opMaskAdd, span->coverage);
         }
     }
     return true;
@@ -1765,7 +1514,7 @@ static bool _rasterTranslucentGradientRle(SwSurface* surface, const SwRleData* r
 
 
 template<typename fillMethod>
-static bool _rasterSolidGradientRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterSolidGradientRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     auto span = rle->spans;
 
@@ -1789,7 +1538,7 @@ static bool _rasterSolidGradientRle(SwSurface* surface, const SwRleData* rle, co
 }
 
 
-static bool _rasterLinearGradientRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterLinearGradientRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     if (!rle) return false;
 
@@ -1806,7 +1555,7 @@ static bool _rasterLinearGradientRle(SwSurface* surface, const SwRleData* rle, c
 }
 
 
-static bool _rasterRadialGradientRle(SwSurface* surface, const SwRleData* rle, const SwFill* fill)
+static bool _rasterRadialGradientRle(SwSurface* surface, const SwRle* rle, const SwFill* fill)
 {
     if (!rle) return false;
 
@@ -1814,9 +1563,9 @@ static bool _rasterRadialGradientRle(SwSurface* surface, const SwRleData* rle, c
         if (_matting(surface)) return _rasterGradientMattedRle<FillRadial>(surface, rle, fill);
         else return _rasterGradientMaskedRle<FillRadial>(surface, rle, fill);
     } else if (_blending(surface)) {
-        _rasterBlendingGradientRle<FillRadial>(surface, rle, fill);
+        return _rasterBlendingGradientRle<FillRadial>(surface, rle, fill);
     } else {
-        if (fill->translucent) _rasterTranslucentGradientRle<FillRadial>(surface, rle, fill);
+        if (fill->translucent) return _rasterTranslucentGradientRle<FillRadial>(surface, rle, fill);
         else return _rasterSolidGradientRle<FillRadial>(surface, rle, fill);
     }
     return false;
@@ -1826,6 +1575,19 @@ static bool _rasterRadialGradientRle(SwSurface* surface, const SwRleData* rle, c
 /************************************************************************/
 /* External Class Implementation                                        */
 /************************************************************************/
+
+void rasterTranslucentPixel32(uint32_t* dst, uint32_t* src, uint32_t len, uint8_t opacity)
+{
+    //TODO: Support SIMD accelerations
+    cRasterTranslucentPixels(dst, src, len, opacity);
+}
+
+
+void rasterPixel32(uint32_t* dst, uint32_t* src, uint32_t len, uint8_t opacity)
+{
+    //TODO: Support SIMD accelerations
+    cRasterPixels(dst, src, len, opacity);
+}
 
 
 void rasterGrayscale8(uint8_t *dst, uint8_t val, uint32_t offset, int32_t len)
@@ -1905,7 +1667,7 @@ bool rasterClear(SwSurface* surface, uint32_t x, uint32_t y, uint32_t w, uint32_
 }
 
 
-void rasterUnpremultiply(Surface* surface)
+void rasterUnpremultiply(RenderSurface* surface)
 {
     if (surface->channelSize != sizeof(uint32_t)) return;
 
@@ -1935,7 +1697,7 @@ void rasterUnpremultiply(Surface* surface)
 }
 
 
-void rasterPremultiply(Surface* surface)
+void rasterPremultiply(RenderSurface* surface)
 {
     ScopedLock lock(surface->key);
     if (surface->premultiplied || (surface->channelSize != sizeof(uint32_t))) return;
@@ -1965,13 +1727,13 @@ bool rasterGradientShape(SwSurface* surface, SwShape* shape, const Fill* fdata, 
         return a > 0 ? rasterShape(surface, shape, color->r, color->g, color->b, a) : true;
     }
 
-    auto id = fdata->identifier();
+    auto type = fdata->type();
     if (shape->fastTrack) {
-        if (id == TVG_CLASS_ID_LINEAR) return _rasterLinearGradientRect(surface, shape->bbox, shape->fill);
-        else if (id == TVG_CLASS_ID_RADIAL)return _rasterRadialGradientRect(surface, shape->bbox, shape->fill);
+        if (type == Type::LinearGradient) return _rasterLinearGradientRect(surface, shape->bbox, shape->fill);
+        else if (type == Type::RadialGradient)return _rasterRadialGradientRect(surface, shape->bbox, shape->fill);
     } else {
-        if (id == TVG_CLASS_ID_LINEAR) return _rasterLinearGradientRle(surface, shape->rle, shape->fill);
-        else if (id == TVG_CLASS_ID_RADIAL) return _rasterRadialGradientRle(surface, shape->rle, shape->fill);
+        if (type == Type::LinearGradient) return _rasterLinearGradientRle(surface, shape->rle, shape->fill);
+        else if (type == Type::RadialGradient) return _rasterRadialGradientRle(surface, shape->rle, shape->fill);
     }
     return false;
 }
@@ -1986,9 +1748,9 @@ bool rasterGradientStroke(SwSurface* surface, SwShape* shape, const Fill* fdata,
         return a > 0 ? rasterStroke(surface, shape, color->r, color->g, color->b, a) : true;
     }
 
-    auto id = fdata->identifier();
-    if (id == TVG_CLASS_ID_LINEAR) return _rasterLinearGradientRle(surface, shape->strokeRle, shape->stroke->fill);
-    else if (id == TVG_CLASS_ID_RADIAL) return _rasterRadialGradientRle(surface, shape->strokeRle, shape->stroke->fill);
+    auto type = fdata->type();
+    if (type == Type::LinearGradient) return _rasterLinearGradientRle(surface, shape->strokeRle, shape->stroke->fill);
+    else if (type == Type::RadialGradient) return _rasterRadialGradientRle(surface, shape->strokeRle, shape->stroke->fill);
 
     return false;
 }
@@ -2027,12 +1789,12 @@ bool rasterImage(SwSurface* surface, SwImage* image, const Matrix& transform, co
 }
 
 
-bool rasterConvertCS(Surface* surface, ColorSpace to)
+bool rasterConvertCS(RenderSurface* surface, ColorSpace to)
 {
     ScopedLock lock(surface->key);
     if (surface->cs == to) return true;
 
-    //TOOD: Support SIMD accelerations
+    //TODO: Support SIMD accelerations
     auto from = surface->cs;
 
     if (((from == ColorSpace::ABGR8888) || (from == ColorSpace::ABGR8888S)) && ((to == ColorSpace::ARGB8888) || (to == ColorSpace::ARGB8888S))) {
@@ -2044,4 +1806,40 @@ bool rasterConvertCS(Surface* surface, ColorSpace to)
         return cRasterARGBtoABGR(surface);
     }
     return false;
+}
+
+
+//TODO: SIMD OPTIMIZATION?
+void rasterXYFlip(uint32_t* src, uint32_t* dst, int32_t stride, int32_t w, int32_t h, const SwBBox& bbox, bool flipped)
+{
+    constexpr int BLOCK = 8;  //experimental decision
+
+    if (flipped) {
+        src += ((bbox.min.x * stride) + bbox.min.y);
+        dst += ((bbox.min.y * stride) + bbox.min.x);
+    } else {
+        src += ((bbox.min.y * stride) + bbox.min.x);
+        dst += ((bbox.min.x * stride) + bbox.min.y);
+    }
+
+    #pragma omp parallel for
+    for (int x = 0; x < w; x += BLOCK) {
+        auto bx = std::min(w, x + BLOCK) - x;
+        auto in = &src[x];
+        auto out = &dst[x * stride];
+        for (int y = 0; y < h; y += BLOCK) {
+            auto p = &in[y * stride];
+            auto q = &out[y];
+            auto by = std::min(h, y + BLOCK) - y;
+            for (int xx = 0; xx < bx; ++xx) {
+                for (int yy = 0; yy < by; ++yy) {
+                    *q = *p;
+                    p += stride;
+                    ++q;
+                }
+                p += 1 - by * stride;
+                q += stride - by;
+            }
+        }
+    }
 }

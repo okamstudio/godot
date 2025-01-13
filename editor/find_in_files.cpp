@@ -320,7 +320,7 @@ FindInFilesDialog::FindInFilesDialog() {
 	_search_text_line_edit = memnew(LineEdit);
 	_search_text_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	_search_text_line_edit->connect(SceneStringName(text_changed), callable_mp(this, &FindInFilesDialog::_on_search_text_modified));
-	_search_text_line_edit->connect("text_submitted", callable_mp(this, &FindInFilesDialog::_on_search_text_submitted));
+	_search_text_line_edit->connect(SceneStringName(text_submitted), callable_mp(this, &FindInFilesDialog::_on_search_text_submitted));
 	gc->add_child(_search_text_line_edit);
 
 	_replace_label = memnew(Label);
@@ -330,7 +330,7 @@ FindInFilesDialog::FindInFilesDialog() {
 
 	_replace_text_line_edit = memnew(LineEdit);
 	_replace_text_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	_replace_text_line_edit->connect("text_submitted", callable_mp(this, &FindInFilesDialog::_on_replace_text_submitted));
+	_replace_text_line_edit->connect(SceneStringName(text_submitted), callable_mp(this, &FindInFilesDialog::_on_replace_text_submitted));
 	_replace_text_line_edit->hide();
 	gc->add_child(_replace_text_line_edit);
 

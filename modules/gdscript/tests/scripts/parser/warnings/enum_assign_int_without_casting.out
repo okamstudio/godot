@@ -1,20 +1,8 @@
 GDTEST_OK
->> WARNING
->> Line: 5
->> INT_AS_ENUM_WITHOUT_CAST
->> Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
->> WARNING
->> Line: 9
->> INT_AS_ENUM_WITHOUT_CAST
->> Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
->> WARNING
->> Line: 12
->> INT_AS_ENUM_WITHOUT_CAST
->> Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
->> WARNING
->> Line: 14
->> INT_AS_ENUM_WITHOUT_CAST
->> Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
+~~ WARNING at line 5: (INT_AS_ENUM_WITHOUT_CAST) Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
+~~ WARNING at line 9: (INT_AS_ENUM_WITHOUT_CAST) Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
+~~ WARNING at line 12: (INT_AS_ENUM_WITHOUT_CAST) Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
+~~ WARNING at line 14: (INT_AS_ENUM_WITHOUT_CAST) Integer used when an enum value is expected. If this is intended cast the integer to the enum type.
 0
 1
 0

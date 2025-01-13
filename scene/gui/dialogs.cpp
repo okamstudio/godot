@@ -214,7 +214,7 @@ String AcceptDialog::get_ok_button_text() const {
 
 void AcceptDialog::register_text_enter(LineEdit *p_line_edit) {
 	ERR_FAIL_NULL(p_line_edit);
-	p_line_edit->connect("text_submitted", callable_mp(this, &AcceptDialog::_text_submitted));
+	p_line_edit->connect(SceneStringName(text_submitted), callable_mp(this, &AcceptDialog::_text_submitted));
 }
 
 void AcceptDialog::_update_child_rects() {

@@ -25,18 +25,21 @@ jobs:
             target: editor
             tests: false
             sconsflags: arch=arm64 production=yes swappy=yes
+            cache-limit: 1
 
           - name: Template arm32 (target=template_release, arch=arm32)
             cache-name: android-template-arm32
             target: template_release
             tests: false
             sconsflags: arch=arm32 swappy=yes
+            cache-limit: 1
 
           - name: Template arm64 (target=template_release, arch=arm64)
             cache-name: android-template-arm64
             target: template_release
             tests: false
             sconsflags: arch=arm64 swappy=yes
+            cache-limit: 1
 
     steps:
       - name: Checkout
@@ -77,6 +80,7 @@ jobs:
           platform: android
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
+          scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

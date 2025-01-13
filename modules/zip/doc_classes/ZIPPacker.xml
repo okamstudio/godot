@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ZIPPacker" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
 	<brief_description>
-		Allows the creation of zip files.
+		Allows the creation of ZIP files.
 	</brief_description>
 	<description>
-		This class implements a writer that allows storing the multiple blobs in a zip archive.
+		This class implements a writer that allows storing the multiple blobs in a ZIP archive. See also [ZIPReader] and [PCKPacker].
 		[codeblock]
+		# Create a ZIP archive with a single file at its root.
 		func write_zip_file():
-		    var writer := ZIPPacker.new()
-		    var err := writer.open("user://archive.zip")
+		    var writer = ZIPPacker.new()
+		    var err = writer.open("user://archive.zip")
 		    if err != OK:
 		        return err
 		    writer.start_file("hello.txt")

@@ -197,6 +197,11 @@ void ShaderGlobalsOverride::_get_property_list(List<PropertyInfo> *p_list) const
 				pinfo.hint = PROPERTY_HINT_RESOURCE_TYPE;
 				pinfo.hint_string = "Cubemap";
 			} break;
+			case RS::GLOBAL_VAR_TYPE_SAMPLEREXT: {
+				pinfo.type = Variant::OBJECT;
+				pinfo.hint = PROPERTY_HINT_RESOURCE_TYPE;
+				pinfo.hint_string = "ExternalTexture";
+			} break;
 			default: {
 			} break;
 		}

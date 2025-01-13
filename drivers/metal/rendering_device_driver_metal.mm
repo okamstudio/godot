@@ -275,11 +275,19 @@ RDD::TextureID RenderingDeviceDriverMetal::texture_create(const TextureFormat &p
 	}
 
 	// Usage.
-	MTLResourceOptions options = MTLResourceCPUCacheModeDefaultCache | MTLResourceHazardTrackingModeTracked;
-	if (p_format.usage_bits & TEXTURE_USAGE_CPU_READ_BIT) {
-		options |= MTLResourceStorageModeShared;
+
+	MTLResourceOptions options = 0;
+	const bool supports_memoryless = (*metal_device_properties).features.highestFamily >= MTLGPUFamilyApple2 && (*metal_device_properties).features.highestFamily < MTLGPUFamilyMac1;
+	if (supports_memoryless && p_format.usage_bits & TEXTURE_USAGE_TRANSIENT_BIT) {
+		options = MTLResourceStorageModeMemoryless | MTLResourceHazardTrackingModeTracked;
+		desc.storageMode = MTLStorageModeMemoryless;
 	} else {
-		options |= MTLResourceStorageModePrivate;
+		options = MTLResourceCPUCacheModeDefaultCache | MTLResourceHazardTrackingModeTracked;
+		if (p_format.usage_bits & TEXTURE_USAGE_CPU_READ_BIT) {
+			options |= MTLResourceStorageModeShared;
+		} else {
+			options |= MTLResourceStorageModePrivate;
+		}
 	}
 	desc.resourceOptions = options;
 
@@ -358,11 +366,25 @@ RDD::TextureID RenderingDeviceDriverMetal::texture_create(const TextureFormat &p
 }
 
 RDD::TextureID RenderingDeviceDriverMetal::texture_create_from_extension(uint64_t p_native_texture, TextureType p_type, DataFormat p_format, uint32_t p_array_layers, bool p_depth_stencil) {
-	id<MTLTexture> obj = (__bridge id<MTLTexture>)(void *)(uintptr_t)p_native_texture;
+	id<MTLTexture> res = (__bridge id<MTLTexture>)(void *)(uintptr_t)p_native_texture;
 
-	// We only need to create a RDD::TextureID for an existing, natively-provided texture.
+	// If the requested format is different, we need to create a view.
+	MTLPixelFormat format = pixel_formats->getMTLPixelFormat(p_format);
+	if (res.pixelFormat != format) {
+		MTLTextureSwizzleChannels swizzle = MTLTextureSwizzleChannelsMake(
+				MTLTextureSwizzleRed,
+				MTLTextureSwizzleGreen,
+				MTLTextureSwizzleBlue,
+				MTLTextureSwizzleAlpha);
+		res = [res newTextureViewWithPixelFormat:format
+									 textureType:res.textureType
+										  levels:NSMakeRange(0, res.mipmapLevelCount)
+										  slices:NSMakeRange(0, p_array_layers)
+										 swizzle:swizzle];
+		ERR_FAIL_NULL_V_MSG(res, TextureID(), "Unable to create texture view.");
+	}
 
-	return rid::make(obj);
+	return rid::make(res);
 }
 
 RDD::TextureID RenderingDeviceDriverMetal::texture_create_shared(TextureID p_original_texture, const TextureView &p_view) {
@@ -874,6 +896,10 @@ void RenderingDeviceDriverMetal::command_queue_free(CommandQueueID p_cmd_queue) 
 RDD::CommandPoolID RenderingDeviceDriverMetal::command_pool_create(CommandQueueFamilyID p_cmd_queue_family, CommandBufferType p_cmd_buffer_type) {
 	DEV_ASSERT(p_cmd_buffer_type == COMMAND_BUFFER_TYPE_PRIMARY);
 	return rid::make(device_queue);
+}
+
+bool RenderingDeviceDriverMetal::command_pool_reset(CommandPoolID p_cmd_pool) {
+	return true;
 }
 
 void RenderingDeviceDriverMetal::command_pool_free(CommandPoolID p_cmd_pool) {
@@ -2020,7 +2046,8 @@ Vector<uint8_t> RenderingDeviceDriverMetal::shader_compile_binary_from_spirv(Vec
 
 		ERR_FAIL_COND_V_MSG(compiler.get_entry_points_and_stages().size() != 1, Result(), "Expected a single entry point and stage.");
 
-		EntryPoint &entry_point_stage = compiler.get_entry_points_and_stages().front();
+		SmallVector<EntryPoint> entry_pts_stages = compiler.get_entry_points_and_stages();
+		EntryPoint &entry_point_stage = entry_pts_stages.front();
 		SPIREntryPoint &entry_point = compiler.get_entry_point(entry_point_stage.name, entry_point_stage.execution_model);
 
 		// Process specialization constants.
@@ -2332,7 +2359,7 @@ void RenderingDeviceDriverMetal::shader_cache_free_entry(const SHA256Digest &key
 	}
 }
 
-RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vector<uint8_t> &p_shader_binary, ShaderDescription &r_shader_desc, String &r_name) {
+RDD::ShaderID RenderingDeviceDriverMetal::shader_create_from_bytecode(const Vector<uint8_t> &p_shader_binary, ShaderDescription &r_shader_desc, String &r_name, const Vector<ImmutableSampler> &p_immutable_samplers) {
 	r_shader_desc = {}; // Driver-agnostic.
 
 	const uint8_t *binptr = p_shader_binary.ptr();
@@ -2542,7 +2569,9 @@ void RenderingDeviceDriverMetal::shader_destroy_modules(ShaderID p_shader) {
 /**** UNIFORM SET ****/
 /*********************/
 
-RDD::UniformSetID RenderingDeviceDriverMetal::uniform_set_create(VectorView<BoundUniform> p_uniforms, ShaderID p_shader, uint32_t p_set_index) {
+RDD::UniformSetID RenderingDeviceDriverMetal::uniform_set_create(VectorView<BoundUniform> p_uniforms, ShaderID p_shader, uint32_t p_set_index, int p_linear_pool_index) {
+	//p_linear_pool_index = -1; // TODO:? Linear pools not implemented or not supported by API backend.
+
 	MDUniformSet *set = new MDUniformSet();
 	Vector<BoundUniform> bound_uniforms;
 	bound_uniforms.resize(p_uniforms.size());
@@ -3097,6 +3126,11 @@ void RenderingDeviceDriverMetal::command_bind_render_uniform_set(CommandBufferID
 	cb->render_bind_uniform_set(p_uniform_set, p_shader, p_set_index);
 }
 
+void RenderingDeviceDriverMetal::command_bind_render_uniform_sets(CommandBufferID p_cmd_buffer, VectorView<UniformSetID> p_uniform_sets, ShaderID p_shader, uint32_t p_first_set_index, uint32_t p_set_count) {
+	MDCommandBuffer *cb = (MDCommandBuffer *)(p_cmd_buffer.id);
+	cb->render_bind_uniform_sets(p_uniform_sets, p_shader, p_first_set_index, p_set_count);
+}
+
 void RenderingDeviceDriverMetal::command_render_draw(CommandBufferID p_cmd_buffer, uint32_t p_vertex_count, uint32_t p_instance_count, uint32_t p_base_vertex, uint32_t p_first_instance) {
 	MDCommandBuffer *cb = (MDCommandBuffer *)(p_cmd_buffer.id);
 	cb->render_draw(p_vertex_count, p_instance_count, p_base_vertex, p_first_instance);
@@ -3568,6 +3602,11 @@ void RenderingDeviceDriverMetal::command_bind_compute_uniform_set(CommandBufferI
 	cb->compute_bind_uniform_set(p_uniform_set, p_shader, p_set_index);
 }
 
+void RenderingDeviceDriverMetal::command_bind_compute_uniform_sets(CommandBufferID p_cmd_buffer, VectorView<UniformSetID> p_uniform_sets, ShaderID p_shader, uint32_t p_first_set_index, uint32_t p_set_count) {
+	MDCommandBuffer *cb = (MDCommandBuffer *)(p_cmd_buffer.id);
+	cb->compute_bind_uniform_sets(p_uniform_sets, p_shader, p_first_set_index, p_set_count);
+}
+
 void RenderingDeviceDriverMetal::command_compute_dispatch(CommandBufferID p_cmd_buffer, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) {
 	MDCommandBuffer *cb = (MDCommandBuffer *)(p_cmd_buffer.id);
 	cb->compute_dispatch(p_x_groups, p_y_groups, p_z_groups);
@@ -3769,6 +3808,10 @@ uint64_t RenderingDeviceDriverMetal::get_resource_native_handle(DriverResource p
 
 uint64_t RenderingDeviceDriverMetal::get_total_memory_used() {
 	return device.currentAllocatedSize;
+}
+
+uint64_t RenderingDeviceDriverMetal::get_lazily_memory_used() {
+	return 0; // TODO: Track this (grep for memoryless in Godot's Metal backend).
 }
 
 uint64_t RenderingDeviceDriverMetal::limit_get(Limit p_limit) {

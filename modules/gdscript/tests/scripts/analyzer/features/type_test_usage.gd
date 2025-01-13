@@ -123,4 +123,4 @@ func test():
 	Utils.check((const_null is A) == false)
 	Utils.check(is_instance_of(const_null, A) == false)
 
-	print('ok')
+	print("ok")

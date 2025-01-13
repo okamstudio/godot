@@ -195,6 +195,9 @@ Vector<Color> MultiMesh::_get_custom_data_array() const {
 #endif // DISABLE_DEPRECATED
 
 void MultiMesh::set_buffer(const Vector<float> &p_buffer) {
+	if (instance_count == 0) {
+		return;
+	}
 	RS::get_singleton()->multimesh_set_buffer(multimesh, p_buffer);
 }
 

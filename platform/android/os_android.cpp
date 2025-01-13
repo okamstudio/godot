@@ -416,7 +416,7 @@ String OS_Android::get_data_path() const {
 	return get_user_data_dir();
 }
 
-void OS_Android::_load_system_font_config() {
+void OS_Android::_load_system_font_config() const {
 	font_aliases.clear();
 	fonts.clear();
 	font_names.clear();
@@ -541,7 +541,7 @@ void OS_Android::_load_system_font_config() {
 
 Vector<String> OS_Android::get_system_fonts() const {
 	if (!font_config_loaded) {
-		const_cast<OS_Android *>(this)->_load_system_font_config();
+		_load_system_font_config();
 	}
 	Vector<String> ret;
 	for (const String &E : font_names) {
@@ -552,7 +552,7 @@ Vector<String> OS_Android::get_system_fonts() const {
 
 Vector<String> OS_Android::get_system_font_path_for_text(const String &p_font_name, const String &p_text, const String &p_locale, const String &p_script, int p_weight, int p_stretch, bool p_italic) const {
 	if (!font_config_loaded) {
-		const_cast<OS_Android *>(this)->_load_system_font_config();
+		_load_system_font_config();
 	}
 	String font_name = p_font_name.to_lower();
 	if (font_aliases.has(font_name)) {
@@ -604,7 +604,7 @@ Vector<String> OS_Android::get_system_font_path_for_text(const String &p_font_na
 
 String OS_Android::get_system_font_path(const String &p_font_name, int p_weight, int p_stretch, bool p_italic) const {
 	if (!font_config_loaded) {
-		const_cast<OS_Android *>(this)->_load_system_font_config();
+		_load_system_font_config();
 	}
 	String font_name = p_font_name.to_lower();
 	if (font_aliases.has(font_name)) {
@@ -673,6 +673,19 @@ String OS_Android::get_cache_path() const {
 	if (!cache_dir.is_empty()) {
 		cache_dir_cache = _remove_symlink(cache_dir);
 		return cache_dir_cache;
+	}
+	return ".";
+}
+
+String OS_Android::get_temp_path() const {
+	if (!temp_dir_cache.is_empty()) {
+		return temp_dir_cache;
+	}
+
+	String temp_dir = godot_io_java->get_temp_dir();
+	if (!temp_dir.is_empty()) {
+		temp_dir_cache = _remove_symlink(temp_dir);
+		return temp_dir_cache;
 	}
 	return ".";
 }
@@ -863,6 +876,9 @@ Error OS_Android::create_process(const String &p_path, const List<String> &p_arg
 
 Error OS_Android::create_instance(const List<String> &p_arguments, ProcessID *r_child_id) {
 	int instance_id = godot_java->create_new_godot_instance(p_arguments);
+	if (instance_id == -1) {
+		return FAILED;
+	}
 	if (r_child_id) {
 		*r_child_id = instance_id;
 	}

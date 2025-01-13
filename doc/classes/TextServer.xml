@@ -317,6 +317,13 @@
 				Returns the font hinting mode. Used by dynamic fonts only.
 			</description>
 		</method>
+		<method name="font_get_keep_rounding_remainders" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="font_rid" type="RID" />
+			<description>
+				Returns glyph position rounding behavior. If set to [code]true[/code], when aligning glyphs to the pixel boundaries rounding remainders are accumulated to ensure more uniform glyph distribution. This setting has no effect if subpixel positioning is enabled.
+			</description>
+		</method>
 		<method name="font_get_kerning" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="font_rid" type="RID" />
@@ -824,6 +831,14 @@
 				Sets font hinting mode. Used by dynamic fonts only.
 			</description>
 		</method>
+		<method name="font_set_keep_rounding_remainders">
+			<return type="void" />
+			<param index="0" name="font_rid" type="RID" />
+			<param index="1" name="keep_rounding_remainders" type="bool" />
+			<description>
+				Sets glyph position rounding behavior. If set to [code]true[/code], when aligning glyphs to the pixel boundaries rounding remainders are accumulated to ensure more uniform glyph distribution. This setting has no effect if subpixel positioning is enabled.
+			</description>
+		</method>
 		<method name="font_set_kerning">
 			<return type="void" />
 			<param index="0" name="font_rid" type="RID" />
@@ -1065,6 +1080,12 @@
 			<return type="String" />
 			<description>
 				Returns the name of the server interface.
+			</description>
+		</method>
+		<method name="get_support_data" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Returns default TextServer database (e.g. ICU break iterators and dictionaries).
 			</description>
 		</method>
 		<method name="get_support_data_filename" qualifiers="const">
@@ -1914,6 +1935,7 @@
 		</constant>
 		<constant name="VC_CHARS_BEFORE_SHAPING" value="0" enum="VisibleCharactersBehavior">
 			Trims text before the shaping. e.g, increasing [member Label.visible_characters] or [member RichTextLabel.visible_characters] value is visually identical to typing the text.
+			[b]Note:[/b] In this mode, trimmed text is not processed at all. It is not accounted for in line breaking and size calculations.
 		</constant>
 		<constant name="VC_CHARS_AFTER_SHAPING" value="1" enum="VisibleCharactersBehavior">
 			Displays glyphs that are mapped to the first [member Label.visible_characters] or [member RichTextLabel.visible_characters] characters from the beginning of the text.

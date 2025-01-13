@@ -189,7 +189,7 @@ void main() {
 	vec3 cube_normal;
 #ifdef USE_MULTIVIEW
 	// In multiview our projection matrices will contain positional and rotational offsets that we need to properly unproject.
-	vec4 unproject = vec4(uv_interp.x, -uv_interp.y, 0.0, 1.0); // unproject at the far plane
+	vec4 unproject = vec4(uv_interp.x, uv_interp.y, 0.0, 1.0); // unproject at the far plane
 	vec4 unprojected = sky_scene_data.view_inv_projections[ViewIndex] * unproject;
 	cube_normal = unprojected.xyz / unprojected.w;
 
@@ -198,7 +198,7 @@ void main() {
 #else
 	cube_normal.z = -1.0;
 	cube_normal.x = (cube_normal.z * (-uv_interp.x - params.projection.x)) / params.projection.y;
-	cube_normal.y = -(cube_normal.z * (-uv_interp.y - params.projection.z)) / params.projection.w;
+	cube_normal.y = -(cube_normal.z * (uv_interp.y - params.projection.z)) / params.projection.w;
 #endif
 	cube_normal = mat3(params.orientation) * cube_normal;
 	cube_normal = normalize(cube_normal);

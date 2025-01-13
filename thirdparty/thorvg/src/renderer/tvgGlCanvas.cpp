@@ -62,7 +62,7 @@ GlCanvas::~GlCanvas()
 Result GlCanvas::target(int32_t id, uint32_t w, uint32_t h) noexcept
 {
 #ifdef THORVG_GL_RASTER_SUPPORT
-    if (Canvas::pImpl->status != Status::Damanged && Canvas::pImpl->status != Status::Synced) {
+    if (Canvas::pImpl->status != Status::Damaged && Canvas::pImpl->status != Status::Synced) {
         return Result::InsufficientCondition;
     }
 
@@ -75,7 +75,7 @@ Result GlCanvas::target(int32_t id, uint32_t w, uint32_t h) noexcept
     renderer->viewport(Canvas::pImpl->vport);
 
     //Paints must be updated again with this new target.
-    Canvas::pImpl->status = Status::Damanged;
+    Canvas::pImpl->status = Status::Damaged;
 
     return Result::Success;
 #endif

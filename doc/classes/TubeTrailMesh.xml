@@ -19,7 +19,7 @@
 			If [code]true[/code], generates a cap at the top of the tube. This can be set to [code]false[/code] to speed up generation and rendering when the cap is never seen by the camera.
 		</member>
 		<member name="curve" type="Curve" setter="set_curve" getter="get_curve">
-			Determines the radius of the tube along its length. The radius of a particular section ring is obtained by multiplying the baseline [member radius] by the value of this curve at the given distance. For values smaller than [code]0[/code], the faces will be inverted.
+			Determines the radius of the tube along its length. The radius of a particular section ring is obtained by multiplying the baseline [member radius] by the value of this curve at the given distance. For values smaller than [code]0[/code], the faces will be inverted. Should be a unit [Curve].
 		</member>
 		<member name="radial_steps" type="int" setter="set_radial_steps" getter="get_radial_steps" default="8">
 			The number of sides on the tube. For example, a value of [code]5[/code] means the tube will be pentagonal. Higher values result in a more detailed tube at the cost of performance.

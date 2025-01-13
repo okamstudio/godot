@@ -1,0 +1,3 @@
+GDTEST_RUNTIME_ERROR
+~~ WARNING at line 2: (UNUSED_VARIABLE) The local variable "integer" is declared but never used in the block. If this is intended, prefix it with an underscore: "_integer".
+>> SCRIPT ERROR at runtime/errors/modulo_by_zero.gd:3 on test(): Modulo by zero error in operator '%'.

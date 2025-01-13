@@ -20,6 +20,7 @@
  * SOFTWARE.
  */
 
+#include "tvgPaint.h"
 #include "tvgPicture.h"
 
 /************************************************************************/
@@ -73,11 +74,11 @@ bool Picture::Impl::needComposition(uint8_t opacity)
 bool Picture::Impl::render(RenderMethod* renderer)
 {
     bool ret = false;
-    renderer->blend(picture->blend());
+    renderer->blend(PP(picture)->blendMethod);
 
     if (surface) return renderer->renderImage(rd);
     else if (paint) {
-        Compositor* cmp = nullptr;
+        RenderCompositor* cmp = nullptr;
         if (needComp) {
             cmp = renderer->target(bounds(renderer), renderer->colorSpace());
             renderer->beginComposite(cmp, CompositeMethod::None, 255);
@@ -134,7 +135,6 @@ Result Picture::Impl::load(ImageLoader* loader)
 
 Picture::Picture() : pImpl(new Impl(this))
 {
-    Paint::pImpl->id = TVG_CLASS_ID_PICTURE;
 }
 
 
@@ -150,9 +150,15 @@ unique_ptr<Picture> Picture::gen() noexcept
 }
 
 
-uint32_t Picture::identifier() noexcept
+TVG_DEPRECATED uint32_t Picture::identifier() noexcept
 {
-    return TVG_CLASS_ID_PICTURE;
+    return (uint32_t) Type::Picture;
+}
+
+
+Type Picture::type() const noexcept
+{
+    return Type::Picture;
 }
 
 

@@ -30,6 +30,7 @@
 
 #include "separation_ray_shape_3d.h"
 
+#include "scene/resources/mesh.h"
 #include "servers/physics_server_3d.h"
 
 Vector<Vector3> SeparationRayShape3D::get_debug_mesh_lines() const {
@@ -39,6 +40,10 @@ Vector<Vector3> SeparationRayShape3D::get_debug_mesh_lines() const {
 	};
 
 	return points;
+}
+
+Ref<ArrayMesh> SeparationRayShape3D::get_debug_arraymesh_faces(const Color &p_modulate) const {
+	return memnew(ArrayMesh);
 }
 
 real_t SeparationRayShape3D::get_enclosing_radius() const {

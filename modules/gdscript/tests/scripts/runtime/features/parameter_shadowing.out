@@ -1,12 +1,6 @@
 GDTEST_OK
->> WARNING
->> Line: 5
->> SHADOWED_VARIABLE
->> The local function parameter "a" is shadowing an already-declared variable at line 3 in the current class.
->> WARNING
->> Line: 15
->> SHADOWED_VARIABLE
->> The local function parameter "v" is shadowing an already-declared variable at line 13 in the current class.
+~~ WARNING at line 5: (SHADOWED_VARIABLE) The local function parameter "a" is shadowing an already-declared variable at line 3 in the current class.
+~~ WARNING at line 15: (SHADOWED_VARIABLE) The local function parameter "v" is shadowing an already-declared variable at line 13 in the current class.
 a
 1
 b

@@ -48,6 +48,7 @@ private:
 	jmethodID _open_URI = 0;
 	jmethodID _get_cache_dir = 0;
 	jmethodID _get_data_dir = 0;
+	jmethodID _get_temp_dir = 0;
 	jmethodID _get_display_cutouts = 0;
 	jmethodID _get_display_safe_area = 0;
 	jmethodID _get_locale = 0;
@@ -71,6 +72,7 @@ public:
 
 	Error open_uri(const String &p_uri);
 	String get_cache_dir();
+	String get_temp_dir();
 	String get_user_data_dir();
 	String get_locale();
 	String get_model();

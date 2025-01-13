@@ -119,16 +119,18 @@ Error FileAccessWindowsPipe::get_error() const {
 	return last_error;
 }
 
-void FileAccessWindowsPipe::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	ERR_FAIL_COND_MSG(fd[1] == nullptr, "Pipe must be opened before use.");
-	ERR_FAIL_COND(!p_src && p_length > 0);
+bool FileAccessWindowsPipe::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+	ERR_FAIL_COND_V_MSG(fd[1] == nullptr, false, "Pipe must be opened before use.");
+	ERR_FAIL_COND_V(!p_src && p_length > 0, false);
 
 	DWORD read = -1;
 	bool ok = WriteFile(fd[1], p_src, p_length, &read, nullptr);
 	if (!ok || read != p_length) {
 		last_error = ERR_FILE_CANT_WRITE;
+		return false;
 	} else {
 		last_error = OK;
+		return true;
 	}
 }
 

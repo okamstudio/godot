@@ -13,7 +13,7 @@ func param_inferred(param := variant()) -> void: print(param)
 func return_untyped(): return variant()
 func return_typed() -> Variant: return variant()
 
-@warning_ignore("unused_variable", "inference_on_variant")
+@warning_ignore_start("unused_variable", "inference_on_variant")
 func test() -> void:
 	var weak = variant()
 	var typed: Variant = variant()
@@ -32,4 +32,4 @@ func test() -> void:
 	if typed != null: pass
 	if typed is Node: pass
 
-	print('ok')
+	print("ok")

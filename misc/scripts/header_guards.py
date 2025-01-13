@@ -36,10 +36,15 @@ for file in sys.argv[1:]:
                 break
 
     if HEADER_CHECK_OFFSET < 0:
+        invalid.append(file)
         continue
 
     HEADER_BEGIN_OFFSET = HEADER_CHECK_OFFSET + 1
     HEADER_END_OFFSET = len(lines) - 1
+
+    if HEADER_BEGIN_OFFSET >= HEADER_END_OFFSET:
+        invalid.append(file)
+        continue
 
     split = file.split("/")  # Already in posix-format.
 

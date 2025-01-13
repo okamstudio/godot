@@ -296,6 +296,9 @@ private:
 	void _clear_selection();
 	void _set_selection_visible(bool p_visible);
 
+	void _open_selection_list(const Vector<SelectResult> &p_items, const Point2 &p_pos);
+	void _close_selection_list();
+
 	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, Vector<SelectResult> &r_items, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
 	void _pan_callback(Vector2 p_scroll_vec, Ref<InputEvent> p_event);
 	void _zoom_callback(float p_zoom_factor, Vector2 p_origin, Ref<InputEvent> p_event);

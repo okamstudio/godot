@@ -1,6 +1,6 @@
 # Commented out parameters are those with the same value as base LLVM style.
 # We can uncomment them if we want to change their value, or enforce the
-# chosen value in case the base style changes (last sync: Clang 18.1.8).
+# chosen value in case the base style changes (last sync: Clang 17.0.6).
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: DontAlign
@@ -10,28 +10,24 @@ AlignAfterOpenBracket: DontAlign
 #   AcrossEmptyLines: false
 #   AcrossComments: false
 #   AlignCompound: false
-#   AlignFunctionPointers: false
 #   PadOperators: true
 # AlignConsecutiveBitFields:
 #   Enabled: false
 #   AcrossEmptyLines: false
 #   AcrossComments: false
 #   AlignCompound: false
-#   AlignFunctionPointers: false
 #   PadOperators: false
 # AlignConsecutiveDeclarations:
 #   Enabled: false
 #   AcrossEmptyLines: false
 #   AcrossComments: false
 #   AlignCompound: false
-#   AlignFunctionPointers: false
 #   PadOperators: false
 # AlignConsecutiveMacros:
 #   Enabled: false
 #   AcrossEmptyLines: false
 #   AcrossComments: false
 #   AlignCompound: false
-#   AlignFunctionPointers: false
 #   PadOperators: false
 # AlignConsecutiveShortCaseStatements:
 #   Enabled: false
@@ -45,15 +41,14 @@ AlignTrailingComments:
   OverEmptyLines: 0
 # AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
-# AllowBreakBeforeNoexceptSpecifier: Never
 # AllowShortBlocksOnASingleLine: Never
 # AllowShortCaseLabelsOnASingleLine: false
-# AllowShortCompoundRequirementOnASingleLine: true
 # AllowShortEnumsOnASingleLine: true
 # AllowShortFunctionsOnASingleLine: All
 # AllowShortIfStatementsOnASingleLine: Never
 # AllowShortLambdasOnASingleLine: All
 # AllowShortLoopsOnASingleLine: false
+# AlwaysBreakAfterDefinitionReturnType: None
 # AlwaysBreakAfterReturnType: None
 # AlwaysBreakBeforeMultilineStrings: false
 # AlwaysBreakTemplateDeclarations: MultiLine
@@ -81,8 +76,7 @@ AllowAllParametersOfDeclarationOnNextLine: false
 #   SplitEmptyFunction: true
 #   SplitEmptyRecord: true
 #   SplitEmptyNamespace: true
-# BreakAdjacentStringLiterals: true
-# BreakAfterAttributes: Leave
+# BreakAfterAttributes: Never
 # BreakAfterJavaFieldAnnotations: false
 # BreakArrays: true
 # BreakBeforeBinaryOperators: None
@@ -171,7 +165,6 @@ PackConstructorInitializers: NextLine
 # PenaltyBreakComment: 300
 # PenaltyBreakFirstLessLess: 120
 # PenaltyBreakOpenParenthesis: 0
-# PenaltyBreakScopeResolution: 500
 # PenaltyBreakString: 1000
 # PenaltyBreakTemplateDeclaration: 10
 # PenaltyExcessCharacter: 1000000
@@ -188,7 +181,6 @@ RemoveSemicolon: true
 # RequiresExpressionIndentation: OuterScope
 # SeparateDefinitionBlocks: Leave
 # ShortNamespaceLines: 1
-# SkipMacroDefinitionBody: false
 # SortIncludes: CaseSensitive
 # SortJavaStaticImport: Before
 # SortUsingDeclarations: LexicographicNumeric
@@ -202,6 +194,7 @@ RemoveSemicolon: true
 # SpaceBeforeCtorInitializerColon: true
 # SpaceBeforeInheritanceColon: true
 # SpaceBeforeJsonColon: false
+# SpaceBeforeParens: ControlStatements
 # SpaceBeforeParensOptions:
 #   AfterControlStatements: true
 #   AfterForeachMacros: true
@@ -209,7 +202,6 @@ RemoveSemicolon: true
 #   AfterFunctionDefinitionName: false
 #   AfterIfMacros: true
 #   AfterOverloadedOperator: false
-#   AfterPlacementOperator: true
 #   AfterRequiresInClause: false
 #   AfterRequiresInExpression: false
 #   BeforeNonEmptyParentheses: false
@@ -219,10 +211,8 @@ RemoveSemicolon: true
 # SpacesBeforeTrailingComments: 1
 # SpacesInAngles: Never
 # SpacesInContainerLiterals: true
-## Godot TODO: We'll want to use a min of 1, but we need to see how to fix
-## our comment capitalization at the same time.
 SpacesInLineCommentPrefix:
-  Minimum: 0
+  Minimum: 0 # We want a minimum of 1 for comments, but allow 0 for disabled code.
   Maximum: -1
 # SpacesInParens: Never
 # SpacesInParensOptions:

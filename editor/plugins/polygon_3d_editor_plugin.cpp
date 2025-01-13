@@ -536,13 +536,13 @@ Polygon3DEditor::Polygon3DEditor() {
 	node = nullptr;
 
 	button_create = memnew(Button);
-	button_create->set_theme_type_variation("FlatButton");
+	button_create->set_theme_type_variation(SceneStringName(FlatButton));
 	add_child(button_create);
 	button_create->connect(SceneStringName(pressed), callable_mp(this, &Polygon3DEditor::_menu_option).bind(MODE_CREATE));
 	button_create->set_toggle_mode(true);
 
 	button_edit = memnew(Button);
-	button_edit->set_theme_type_variation("FlatButton");
+	button_edit->set_theme_type_variation(SceneStringName(FlatButton));
 	add_child(button_edit);
 	button_edit->connect(SceneStringName(pressed), callable_mp(this, &Polygon3DEditor::_menu_option).bind(MODE_EDIT));
 	button_edit->set_toggle_mode(true);

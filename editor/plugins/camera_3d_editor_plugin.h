@@ -32,7 +32,10 @@
 #define CAMERA_3D_EDITOR_PLUGIN_H
 
 #include "editor/plugins/editor_plugin.h"
-#include "scene/3d/camera_3d.h"
+#include "editor/plugins/texture_editor_plugin.h"
+
+class Camera3D;
+class SubViewport;
 
 class Camera3DEditor : public Control {
 	GDCLASS(Camera3DEditor, Control);
@@ -51,10 +54,28 @@ public:
 	Camera3DEditor();
 };
 
+class Camera3DPreview : public TexturePreview {
+	GDCLASS(Camera3DPreview, TexturePreview);
+
+	Camera3D *camera = nullptr;
+	SubViewport *sub_viewport = nullptr;
+
+	void _update_sub_viewport_size();
+
+public:
+	Camera3DPreview(Camera3D *p_camera);
+};
+
+class EditorInspectorPluginCamera3DPreview : public EditorInspectorPluginTexture {
+	GDCLASS(EditorInspectorPluginCamera3DPreview, EditorInspectorPluginTexture);
+
+public:
+	virtual bool can_handle(Object *p_object) override;
+	virtual void parse_begin(Object *p_object) override;
+};
+
 class Camera3DEditorPlugin : public EditorPlugin {
 	GDCLASS(Camera3DEditorPlugin, EditorPlugin);
-
-	//CameraEditor *camera_editor;
 
 public:
 	virtual String get_name() const override { return "Camera3D"; }

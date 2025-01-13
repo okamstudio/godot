@@ -550,7 +550,9 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 				pending_select_all_on_focus = false;
 			}
 
-			show_virtual_keyboard();
+			if (editable) {
+				show_virtual_keyboard();
+			}
 		}
 
 		queue_redraw();
@@ -615,6 +617,45 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 		emit_signal(SNAME("editing_toggled"), true);
 		accept_event();
 		return;
+	}
+
+	// Open context menu.
+	if (context_menu_enabled) {
+		if (k->is_action("ui_menu", true)) {
+			_update_context_menu();
+			Point2 pos = Point2(get_caret_pixel_pos().x, (get_size().y + theme_cache.font->get_height(theme_cache.font_size)) / 2);
+			menu->set_position(get_screen_position() + pos);
+			menu->reset_size();
+			menu->popup();
+			menu->grab_focus();
+
+			accept_event();
+			return;
+		}
+	}
+
+	if (is_shortcut_keys_enabled()) {
+		if (k->is_action("ui_copy", true)) {
+			copy_text();
+			accept_event();
+			return;
+		}
+
+		if (k->is_action("ui_text_select_all", true)) {
+			select();
+			accept_event();
+			return;
+		}
+
+		if (k->is_action("ui_cut", true)) {
+			if (editable) {
+				cut_text();
+			} else {
+				copy_text();
+			}
+			accept_event();
+			return;
+		}
 	}
 
 	if (!editing) {
@@ -725,24 +766,9 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 		return;
 	}
 
-	// Open context menu.
-	if (context_menu_enabled) {
-		if (k->is_action("ui_menu", true)) {
-			_update_context_menu();
-			Point2 pos = Point2(get_caret_pixel_pos().x, (get_size().y + theme_cache.font->get_height(theme_cache.font_size)) / 2);
-			menu->set_position(get_screen_position() + pos);
-			menu->reset_size();
-			menu->popup();
-			menu->grab_focus();
-
-			accept_event();
-			return;
-		}
-	}
-
 	// Default is ENTER and KP_ENTER. Cannot use ui_accept as default includes SPACE.
 	if (k->is_action_pressed("ui_text_submit")) {
-		emit_signal(SNAME("text_submitted"), text);
+		emit_signal(SceneStringName(text_submitted), text);
 		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_VIRTUAL_KEYBOARD) && virtual_keyboard_enabled) {
 			DisplayServer::get_singleton()->virtual_keyboard_hide();
 		}
@@ -767,25 +793,6 @@ void LineEdit::gui_input(const Ref<InputEvent> &p_event) {
 	}
 
 	if (is_shortcut_keys_enabled()) {
-		if (k->is_action("ui_copy", true)) {
-			copy_text();
-			accept_event();
-			return;
-		}
-
-		if (k->is_action("ui_text_select_all", true)) {
-			select();
-			accept_event();
-			return;
-		}
-
-		// Cut / Paste
-		if (k->is_action("ui_cut", true)) {
-			cut_text();
-			accept_event();
-			return;
-		}
-
 		if (k->is_action("ui_paste", true)) {
 			paste_text();
 			accept_event();
@@ -2480,11 +2487,27 @@ bool LineEdit::is_drag_and_drop_selection_enabled() const {
 	return drag_and_drop_selection_enabled;
 }
 
+void LineEdit::_texture_changed() {
+	_fit_to_width();
+	update_minimum_size();
+	queue_redraw();
+}
+
 void LineEdit::set_right_icon(const Ref<Texture2D> &p_icon) {
 	if (right_icon == p_icon) {
 		return;
 	}
+
+	if (right_icon.is_valid()) {
+		right_icon->disconnect_changed(callable_mp(this, &LineEdit::_texture_changed));
+	}
+
 	right_icon = p_icon;
+
+	if (right_icon.is_valid()) {
+		right_icon->connect_changed(callable_mp(this, &LineEdit::_texture_changed));
+	}
+
 	_fit_to_width();
 	update_minimum_size();
 	queue_redraw();

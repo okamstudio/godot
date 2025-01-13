@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "openxr_select_interaction_profile_dialog.h"
+#include "../openxr_api.h"
 
 void OpenXRSelectInteractionProfileDialog::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("interaction_profile_selected", PropertyInfo(Variant::STRING, "interaction_profile")));
@@ -66,22 +67,27 @@ void OpenXRSelectInteractionProfileDialog::_on_select_interaction_profile(const 
 void OpenXRSelectInteractionProfileDialog::open(PackedStringArray p_do_not_include) {
 	int available_count = 0;
 
+	OpenXRInteractionProfileMetadata *meta_data = OpenXRInteractionProfileMetadata::get_singleton();
+	ERR_FAIL_NULL(meta_data);
+
 	// Out with the old.
 	while (main_vb->get_child_count() > 1) {
 		memdelete(main_vb->get_child(1));
 	}
 
+	PackedStringArray requested_extensions = OpenXRAPI::get_all_requested_extensions();
+
 	selected_interaction_profile = "";
 	ip_buttons.clear();
 
 	// In with the new.
-	PackedStringArray interaction_profiles = OpenXRInteractionProfileMetadata::get_singleton()->get_interaction_profile_paths();
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		const String &path = interaction_profiles[i];
-		if (!p_do_not_include.has(path)) {
+	PackedStringArray interaction_profiles = meta_data->get_interaction_profile_paths();
+	for (const String &path : interaction_profiles) {
+		const String extension = meta_data->get_interaction_profile_extension(path);
+		if (!p_do_not_include.has(path) && (extension.is_empty() || requested_extensions.has(extension))) {
 			Button *ip_button = memnew(Button);
 			ip_button->set_flat(true);
-			ip_button->set_text(OpenXRInteractionProfileMetadata::get_singleton()->get_profile(path)->display_name);
+			ip_button->set_text(meta_data->get_profile(path)->display_name);
 			ip_button->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
 			ip_button->connect(SceneStringName(pressed), callable_mp(this, &OpenXRSelectInteractionProfileDialog::_on_select_interaction_profile).bind(path));
 			main_vb->add_child(ip_button);

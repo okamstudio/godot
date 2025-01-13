@@ -223,6 +223,10 @@ void RendererMeshStorage::multimesh_set_buffer(RID p_multimesh, const Vector<flo
 	_multimesh_set_buffer(p_multimesh, p_buffer);
 }
 
+RID RendererMeshStorage::multimesh_get_buffer_rd_rid(RID p_multimesh) const {
+	return _multimesh_get_buffer_rd_rid(p_multimesh);
+}
+
 Vector<float> RendererMeshStorage::multimesh_get_buffer(RID p_multimesh) const {
 	return _multimesh_get_buffer(p_multimesh);
 }

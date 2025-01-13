@@ -908,6 +908,23 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 		c.properties.sort();
 
+		List<StringName> enums;
+		Variant::get_enums_for_type(Variant::Type(i), &enums);
+
+		for (const StringName &E : enums) {
+			List<StringName> enumerations;
+			Variant::get_enumerations_for_enum(Variant::Type(i), E, &enumerations);
+
+			for (const StringName &F : enumerations) {
+				DocData::ConstantDoc constant;
+				constant.name = F;
+				constant.value = itos(Variant::get_enum_value(Variant::Type(i), E, F));
+				constant.is_value_valid = true;
+				constant.enumeration = E;
+				c.constants.push_back(constant);
+			}
+		}
+
 		List<StringName> constants;
 		Variant::get_constants_for_type(Variant::Type(i), &constants);
 

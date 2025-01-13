@@ -6,7 +6,47 @@ Import("env_modules")
 
 env_csg = env_modules.Clone()
 
+env_csg.Append(CPPDEFINES=("MANIFOLD_PAR", "-1"))
+
+# Thirdparty source files
+
+thirdparty_obj = []
+
+thirdparty_dir = "#thirdparty/manifold/"
+thirdparty_sources = [
+    "src/boolean_result.cpp",
+    "src/boolean3.cpp",
+    "src/constructors.cpp",
+    "src/csg_tree.cpp",
+    "src/edge_op.cpp",
+    "src/face_op.cpp",
+    "src/impl.cpp",
+    "src/manifold.cpp",
+    "src/polygon.cpp",
+    "src/properties.cpp",
+    "src/quickhull.cpp",
+    "src/smoothing.cpp",
+    "src/sort.cpp",
+    "src/subdivision.cpp",
+]
+
+thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
+env_csg.Prepend(CPPPATH=[thirdparty_dir + "include"])
+env_thirdparty = env_csg.Clone()
+env_thirdparty.disable_warnings()
+env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
+env.modules_sources += thirdparty_obj
+
 # Godot source files
-env_csg.add_source_files(env.modules_sources, "*.cpp")
+
+module_obj = []
+
+env_csg.add_source_files(module_obj, "*.cpp")
+
 if env.editor_build:
-    env_csg.add_source_files(env.modules_sources, "editor/*.cpp")
+    env_csg.add_source_files(module_obj, "editor/*.cpp")
+
+env.modules_sources += module_obj
+
+# Needed to force rebuilding the module files when the thirdparty library is updated.
+env.Depends(module_obj, thirdparty_obj)

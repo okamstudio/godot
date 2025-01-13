@@ -274,7 +274,7 @@ void XRNode3D::set_tracker(const StringName &p_tracker_name) {
 
 	// copy the name
 	tracker_name = p_tracker_name;
-	pose_name = "default";
+	pose_name = SceneStringName(default_);
 
 	// see if it's already available
 	_bind_tracker();

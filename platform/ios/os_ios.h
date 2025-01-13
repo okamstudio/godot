@@ -117,6 +117,7 @@ public:
 	virtual String get_user_data_dir() const override;
 
 	virtual String get_cache_path() const override;
+	virtual String get_temp_path() const override;
 
 	virtual String get_locale() const override;
 

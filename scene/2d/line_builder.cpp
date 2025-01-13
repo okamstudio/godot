@@ -370,7 +370,7 @@ void LineBuilder::build() {
 			}
 
 			if (!is_intersecting) {
-				// In this case the joint is too corrupted to be re-used,
+				// In this case the joint is too corrupted to be reused,
 				// start again the strip with fallback points
 				strip_begin(pos_up0, pos_down0, color1, uvx1);
 			}

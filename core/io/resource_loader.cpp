@@ -295,13 +295,13 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 	load_paths_stack.push_back(original_path);
 
 	// Try all loaders and pick the first match for the type hint
-	bool loader_found = false;
+	bool found = false;
 	Ref<Resource> res;
 	for (int i = 0; i < loader_count; i++) {
 		if (!loader[i]->recognize_path(p_path, p_type_hint)) {
 			continue;
 		}
-		loader_found = true;
+		found = true;
 		res = loader[i]->load(p_path, original_path, r_error, p_use_sub_threads, r_progress, p_cache_mode);
 		if (!res.is_null()) {
 			break;
@@ -316,24 +316,15 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 		return res;
 	}
 
-	if (!loader_found) {
-		if (r_error) {
-			*r_error = ERR_FILE_UNRECOGNIZED;
-		}
-		ERR_FAIL_V_MSG(Ref<Resource>(), vformat("No loader found for resource: %s (expected type: %s)", p_path, p_type_hint));
-	}
+	ERR_FAIL_COND_V_MSG(found, Ref<Resource>(),
+			vformat("Failed loading resource: %s. Make sure resources have been imported by opening the project in the editor at least once.", p_path));
 
 #ifdef TOOLS_ENABLED
 	Ref<FileAccess> file_check = FileAccess::create(FileAccess::ACCESS_RESOURCES);
-	if (!file_check->file_exists(p_path)) {
-		if (r_error) {
-			*r_error = ERR_FILE_NOT_FOUND;
-		}
-		ERR_FAIL_V_MSG(Ref<Resource>(), vformat("Resource file not found: %s (expected type: %s)", p_path, p_type_hint));
-	}
+	ERR_FAIL_COND_V_MSG(!file_check->file_exists(p_path), Ref<Resource>(), vformat("Resource file not found: %s (expected type: %s)", p_path, p_type_hint));
 #endif
 
-	ERR_FAIL_V_MSG(Ref<Resource>(), vformat("Failed loading resource: %s. Make sure resources have been imported by opening the project in the editor at least once.", p_path));
+	ERR_FAIL_V_MSG(Ref<Resource>(), vformat("No loader found for resource: %s (expected type: %s)", p_path, p_type_hint));
 }
 
 // This implementation must allow re-entrancy for a task that started awaiting in a deeper stack frame.
@@ -894,7 +885,7 @@ bool ResourceLoader::_ensure_load_progress() {
 	// Some servers may need a new engine iteration to allow the load to progress.
 	// Since the only known one is the rendering server (in single thread mode), let's keep it simple and just sync it.
 	// This may be refactored in the future to support other servers and have less coupling.
-	if (OS::get_singleton()->get_render_thread_mode() == OS::RENDER_SEPARATE_THREAD) {
+	if (OS::get_singleton()->is_separate_thread_rendering_enabled()) {
 		return false; // Not needed.
 	}
 	RenderingServer::get_singleton()->sync();
@@ -1206,7 +1197,7 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 
 		int best_score = 0;
 		for (int i = 0; i < res_remaps.size(); i++) {
-			int split = res_remaps[i].rfind(":");
+			int split = res_remaps[i].rfind_char(':');
 			if (split == -1) {
 				continue;
 			}
@@ -1498,11 +1489,11 @@ Vector<String> ResourceLoader::list_directory(const String &p_directory) {
 			}
 		} else {
 			if (d.ends_with(".import") || d.ends_with(".remap") || d.ends_with(".uid")) {
-				d = d.substr(0, d.rfind("."));
+				d = d.substr(0, d.rfind_char('.'));
 			}
 
 			if (d.ends_with(".gdc")) {
-				d = d.substr(0, d.rfind("."));
+				d = d.substr(0, d.rfind_char('.'));
 				d += ".gd";
 			}
 

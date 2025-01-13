@@ -1,8 +1,4 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: weak()
->> runtime/errors/bad_conversion_for_default_parameter.gd
->> 2
->> Trying to assign value of type 'String' to a variable of type 'float'.
+>> SCRIPT ERROR at runtime/errors/bad_conversion_for_default_parameter.gd:2 on weak(): Trying to assign value of type 'String' to a variable of type 'float'.
 0
 not ok

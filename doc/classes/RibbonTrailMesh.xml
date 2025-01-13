@@ -13,7 +13,7 @@
 	</tutorials>
 	<members>
 		<member name="curve" type="Curve" setter="set_curve" getter="get_curve">
-			Determines the size of the ribbon along its length. The size of a particular section segment is obtained by multiplying the baseline [member size] by the value of this curve at the given distance. For values smaller than [code]0[/code], the faces will be inverted.
+			Determines the size of the ribbon along its length. The size of a particular section segment is obtained by multiplying the baseline [member size] by the value of this curve at the given distance. For values smaller than [code]0[/code], the faces will be inverted. Should be a unit [Curve].
 		</member>
 		<member name="section_length" type="float" setter="set_section_length" getter="get_section_length" default="0.2">
 			The length of a section of the ribbon.

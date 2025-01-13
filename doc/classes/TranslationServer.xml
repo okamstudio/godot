@@ -160,8 +160,9 @@
 		<method name="standardize_locale" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="locale" type="String" />
+			<param index="1" name="add_defaults" type="bool" default="false" />
 			<description>
-				Returns a [param locale] string standardized to match known locales (e.g. [code]en-US[/code] would be matched to [code]en_US[/code]).
+				Returns a [param locale] string standardized to match known locales (e.g. [code]en-US[/code] would be matched to [code]en_US[/code]). If [param add_defaults] is [code]true[/code], the locale may have a default script or country added.
 			</description>
 		</method>
 		<method name="translate" qualifiers="const">

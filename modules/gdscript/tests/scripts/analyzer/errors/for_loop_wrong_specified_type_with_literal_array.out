@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Cannot include a value of type "int" as "String".
+>> ERROR at line 4: Cannot include a value of type "int" as "String".
+>> ERROR at line 4: Cannot have an element of type "int" in an array of type "Array[String]".

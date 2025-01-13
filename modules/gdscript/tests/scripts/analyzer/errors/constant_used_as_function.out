@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Member "CONSTANT" is not a function.
+>> ERROR at line 5: Member "CONSTANT" is not a function.
+>> ERROR at line 5: Name "CONSTANT" called as a function but is a "int".

@@ -40,6 +40,7 @@ class LabelSettings : public Resource {
 	GDCLASS(LabelSettings, Resource);
 
 	real_t line_spacing = 3;
+	real_t paragraph_spacing = 0;
 
 	Ref<Font> font;
 	int font_size = Font::DEFAULT_FONT_SIZE;
@@ -60,6 +61,9 @@ protected:
 public:
 	void set_line_spacing(real_t p_spacing);
 	real_t get_line_spacing() const;
+
+	void set_paragraph_spacing(real_t p_spacing);
+	real_t get_paragraph_spacing() const;
 
 	void set_font(const Ref<Font> &p_font);
 	Ref<Font> get_font() const;

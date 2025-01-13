@@ -46,24 +46,6 @@ Camera3DGizmoPlugin::Camera3DGizmoPlugin() {
 	create_handle_material("handles");
 }
 
-Size2i Camera3DGizmoPlugin::_get_viewport_size(Camera3D *p_camera) {
-	Viewport *viewport = p_camera->get_viewport();
-
-	Window *window = Object::cast_to<Window>(viewport);
-	if (window) {
-		return window->get_size();
-	}
-
-	SubViewport *sub_viewport = Object::cast_to<SubViewport>(viewport);
-	ERR_FAIL_NULL_V(sub_viewport, Size2i());
-
-	if (sub_viewport == EditorNode::get_singleton()->get_scene_root()) {
-		return Size2(GLOBAL_GET("display/window/size/viewport_width"), GLOBAL_GET("display/window/size/viewport_height"));
-	}
-
-	return sub_viewport->get_size();
-}
-
 bool Camera3DGizmoPlugin::has_gizmo(Node3D *p_spatial) {
 	return Object::cast_to<Camera3D>(p_spatial) != nullptr;
 }
@@ -166,7 +148,7 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	Ref<Material> material = get_material("camera_material", p_gizmo);
 	Ref<Material> icon = get_material("camera_icon", p_gizmo);
 
-	const Size2i viewport_size = _get_viewport_size(camera);
+	const Size2i viewport_size = Node3DEditor::get_camera_viewport_size(camera);
 	const real_t viewport_aspect = viewport_size.x > 0 && viewport_size.y > 0 ? viewport_size.aspect() : 1.0;
 	const Size2 size_factor = viewport_aspect > 1.0 ? Size2(1.0, 1.0 / viewport_aspect) : Size2(viewport_aspect, 1.0);
 

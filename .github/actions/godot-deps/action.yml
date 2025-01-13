@@ -10,7 +10,7 @@ inputs:
     default: x64
   scons-version:
     description: The SCons version to use.
-    default: 4.8.0
+    default: 4.8.1
 
 runs:
   using: composite
@@ -29,3 +29,7 @@ runs:
         python -c "import sys; print(sys.version)"
         python -m pip install scons==${{ inputs.scons-version }}
         scons --version
+
+    - name: Setup problem matchers
+      shell: bash
+      run: echo ::add-matcher::misc/utility/problem-matchers.json

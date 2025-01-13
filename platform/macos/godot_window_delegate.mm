@@ -194,7 +194,7 @@
 	}
 
 	// Restore on-top state.
-	if (wd.on_top) {
+	if (ds->is_always_on_top_recursive(window_id)) {
 		[wd.window_object setLevel:NSFloatingWindowLevel];
 	}
 

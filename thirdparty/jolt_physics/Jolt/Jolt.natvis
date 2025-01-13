@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="JPH::Color">
+		<DisplayString>r={(int)r}, g={(int)g}, b={(int)b}, a={(int)a}</DisplayString>
+	</Type>
+	<Type Name="JPH::Float2">
+		<DisplayString>{x}, {y}</DisplayString>
+	</Type>
+	<Type Name="JPH::Float3">
+		<DisplayString>{x}, {y}, {z}</DisplayString>
+	</Type>
+	<Type Name="JPH::Float4">
+		<DisplayString>{x}, {y}, {z}, {w}</DisplayString>
+	</Type>
+	<Type Name="JPH::Vec3">
+		<DisplayString>{mF32[0]}, {mF32[1]}, {mF32[2]}, L^2={mF32[0]*mF32[0]+mF32[1]*mF32[1]+mF32[2]*mF32[2]}</DisplayString>
+	</Type>
+	<Type Name="JPH::DVec3">
+		<DisplayString>{mF64[0]}, {mF64[1]}, {mF64[2]}, L^2={mF64[0]*mF64[0]+mF64[1]*mF64[1]+mF64[2]*mF64[2]}</DisplayString>
+	</Type>
+	<Type Name="JPH::Vec4">
+		<DisplayString>{mF32[0]}, {mF32[1]}, {mF32[2]}, {mF32[3]}, L^2={mF32[0]*mF32[0]+mF32[1]*mF32[1]+mF32[2]*mF32[2]+mF32[3]*mF32[3]}</DisplayString>
+	</Type>
+	<Type Name="JPH::UVec4">
+		<DisplayString>{mU32[0]}, {mU32[1]}, {mU32[2]}, {mU32[3]}</DisplayString>
+	</Type>
+	<Type Name="JPH::BVec16">
+		<DisplayString>{uint(mU8[0])}, {uint(mU8[1])}, {uint(mU8[2])}, {uint(mU8[3])}, {uint(mU8[4])}, {uint(mU8[5])}, {uint(mU8[6])}, {uint(mU8[7])}, {uint(mU8[8])}, {uint(mU8[9])}, {uint(mU8[10])}, {uint(mU8[11])}, {uint(mU8[12])}, {uint(mU8[13])}, {uint(mU8[14])}, {uint(mU8[15])}</DisplayString>
+	</Type>
+	<Type Name="JPH::Quat">
+		<DisplayString>{mValue}</DisplayString>
+	</Type>
+	<Type Name="JPH::Mat44">
+		<DisplayString>{mCol[0].mF32[0]}, {mCol[1].mF32[0]}, {mCol[2].mF32[0]}, {mCol[3].mF32[0]} | {mCol[0].mF32[1]}, {mCol[1].mF32[1]}, {mCol[2].mF32[1]}, {mCol[3].mF32[1]} | {mCol[0].mF32[2]}, {mCol[1].mF32[2]}, {mCol[2].mF32[2]}, {mCol[3].mF32[2]}</DisplayString>
+		<Expand>
+			<Synthetic Name="[Row 0]">
+				<DisplayString>{mCol[0].mF32[0]}, {mCol[1].mF32[0]}, {mCol[2].mF32[0]}, {mCol[3].mF32[0]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 1]">
+				<DisplayString>{mCol[0].mF32[1]}, {mCol[1].mF32[1]}, {mCol[2].mF32[1]}, {mCol[3].mF32[1]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 2]">
+				<DisplayString>{mCol[0].mF32[2]}, {mCol[1].mF32[2]}, {mCol[2].mF32[2]}, {mCol[3].mF32[2]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 3]">
+				<DisplayString>{mCol[0].mF32[3]}, {mCol[1].mF32[3]}, {mCol[2].mF32[3]}, {mCol[3].mF32[3]}</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	<Type Name="JPH::DMat44">
+		<DisplayString>{mCol[0].mF32[0]}, {mCol[1].mF32[0]}, {mCol[2].mF32[0]}, {mCol3.mF64[0]} | {mCol[0].mF32[1]}, {mCol[1].mF32[1]}, {mCol[2].mF32[1]}, {mCol3.mF64[1]} | {mCol[0].mF32[2]}, {mCol[1].mF32[2]}, {mCol[2].mF32[2]}, {mCol3.mF64[2]}</DisplayString>
+		<Expand>
+			<Synthetic Name="[Row 0]">
+				<DisplayString>{mCol[0].mF32[0]}, {mCol[1].mF32[0]}, {mCol[2].mF32[0]}, {mCol3.mF64[0]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 1]">
+				<DisplayString>{mCol[0].mF32[1]}, {mCol[1].mF32[1]}, {mCol[2].mF32[1]}, {mCol3.mF64[1]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 2]">
+				<DisplayString>{mCol[0].mF32[2]}, {mCol[1].mF32[2]}, {mCol[2].mF32[2]}, {mCol3.mF64[2]}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Row 3]">
+				<DisplayString>{mCol[0].mF32[3]}, {mCol[1].mF32[3]}, {mCol[2].mF32[3]}, 1}</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	<Type Name="JPH::AABox">
+		<DisplayString>min=({mMin}), max=({mMax})</DisplayString>
+	</Type>
+	<Type Name="JPH::BodyID">
+		<DisplayString>{mID}</DisplayString>
+	</Type>
+	<Type Name="JPH::Body">
+		<DisplayString>{mDebugName}: p=({mPosition.mF32[0],g}, {mPosition.mF32[1],g}, {mPosition.mF32[2],g}), r=({mRotation.mValue.mF32[0],g}, {mRotation.mValue.mF32[1],g}, {mRotation.mValue.mF32[2],g}, {mRotation.mValue.mF32[3],g}), v=({mLinearVelocity.mF32[0],g}, {mLinearVelocity.mF32[1],g}, {mLinearVelocity.mF32[2],g}), w=({mAngularVelocity.mF32[0],g}, {mAngularVelocity.mF32[1],g}, {mAngularVelocity.mF32[2],g})</DisplayString>
+	</Type>
+	<Type Name="JPH::BodyManager">
+		<DisplayString>bodies={mBodies._Mypair._Myval2._Mylast - mBodies._Mypair._Myval2._Myfirst}, active={mActiveBodies._Mypair._Myval2._Mylast - mActiveBodies._Mypair._Myval2._Myfirst}</DisplayString>
+	</Type>
+	<Type Name="JPH::StaticArray&lt;*&gt;">
+		<DisplayString>size={mSize}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mSize</Item>
+			<ArrayItems>
+				<Size>mSize</Size>
+				<ValuePointer>(value_type *)mElements</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	<Type Name="JPH::Array&lt;*&gt;">
+		<DisplayString>size={mSize}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mSize</Item>
+			<Item Name="[capacity]" ExcludeView="simple">mCapacity</Item>
+			<ArrayItems>
+				<Size>mSize</Size>
+				<ValuePointer>mElements</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+	<Type Name="JPH::HashTable&lt;*&gt;">
+		<DisplayString>size={mSize}</DisplayString>
+		<Expand>
+			<Item Name="[size]" ExcludeView="simple">mSize</Item>
+			<Item Name="[bucket_count]" ExcludeView="simple">mMaxSize</Item>
+			<IndexListItems Condition="mData != nullptr">
+				<Size>mMaxSize</Size>
+				<ValueNode Condition="mControl[$i] &amp; 0x80">mData[$i]</ValueNode>
+				<ValueNode Condition="mControl[$i] == 0">"--Empty--"</ValueNode>
+				<ValueNode Condition="mControl[$i] == 0x7f">"--Deleted--"</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+	<Type Name="JPH::StridedPtr&lt;*&gt;">
+		<DisplayString>{(value_type *)mPtr}, stride={mStride}</DisplayString>
+	</Type>
+</AutoVisualizer>

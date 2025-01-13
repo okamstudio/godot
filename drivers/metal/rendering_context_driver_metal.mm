@@ -52,7 +52,7 @@ Error RenderingContextDriverMetal::initialize() {
 	}
 #endif
 	device.type = DEVICE_TYPE_INTEGRATED_GPU;
-	device.vendor = VENDOR_APPLE;
+	device.vendor = Vendor::VENDOR_APPLE;
 	device.workarounds = Workarounds();
 
 	MetalDeviceProperties props(metal_device);
@@ -172,7 +172,11 @@ public:
 		count--;
 		front = (front + 1) % frame_buffers.size();
 
-		[p_cmd_buffer->get_command_buffer() presentDrawable:drawable afterMinimumDuration:present_minimum_duration];
+		if (vsync_mode != DisplayServer::VSYNC_DISABLED) {
+			[p_cmd_buffer->get_command_buffer() presentDrawable:drawable afterMinimumDuration:present_minimum_duration];
+		} else {
+			[p_cmd_buffer->get_command_buffer() presentDrawable:drawable];
+		}
 	}
 };
 

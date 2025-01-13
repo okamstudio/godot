@@ -325,7 +325,7 @@ bool AnimationNode::add_input(const String &p_name) {
 	// Root nodes can't add inputs.
 	ERR_FAIL_COND_V(Object::cast_to<AnimationRootNode>(this) != nullptr, false);
 	Input input;
-	ERR_FAIL_COND_V(p_name.contains(".") || p_name.contains("/"), false);
+	ERR_FAIL_COND_V(p_name.contains_char('.') || p_name.contains_char('/'), false);
 	input.name = p_name;
 	inputs.push_back(input);
 	emit_changed();
@@ -340,7 +340,7 @@ void AnimationNode::remove_input(int p_index) {
 
 bool AnimationNode::set_input_name(int p_input, const String &p_name) {
 	ERR_FAIL_INDEX_V(p_input, inputs.size(), false);
-	ERR_FAIL_COND_V(p_name.contains(".") || p_name.contains("/"), false);
+	ERR_FAIL_COND_V(p_name.contains_char('.') || p_name.contains_char('/'), false);
 	inputs.write[p_input].name = p_name;
 	emit_changed();
 	return true;
@@ -417,6 +417,16 @@ void AnimationNode::set_deletable(bool p_closable) {
 
 bool AnimationNode::is_deletable() const {
 	return closable;
+}
+
+ObjectID AnimationNode::get_processing_animation_tree_instance_id() const {
+	ERR_FAIL_NULL_V(process_state, ObjectID());
+	return process_state->tree->get_instance_id();
+}
+
+bool AnimationNode::is_process_testing() const {
+	ERR_FAIL_NULL_V(process_state, false);
+	return process_state->is_testing;
 }
 
 bool AnimationNode::is_path_filtered(const NodePath &p_path) const {
@@ -543,6 +553,10 @@ void AnimationNode::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_filter_enabled", "enable"), &AnimationNode::set_filter_enabled);
 	ClassDB::bind_method(D_METHOD("is_filter_enabled"), &AnimationNode::is_filter_enabled);
+
+	ClassDB::bind_method(D_METHOD("get_processing_animation_tree_instance_id"), &AnimationNode::get_processing_animation_tree_instance_id);
+
+	ClassDB::bind_method(D_METHOD("is_process_testing"), &AnimationNode::is_process_testing);
 
 	ClassDB::bind_method(D_METHOD("_set_filters", "filters"), &AnimationNode::_set_filters);
 	ClassDB::bind_method(D_METHOD("_get_filters"), &AnimationNode::_get_filters);
@@ -745,7 +759,7 @@ void AnimationTree::_animation_node_removed(const ObjectID &p_oid, const StringN
 	_update_properties();
 }
 
-void AnimationTree::_update_properties_for_node(const String &p_base_path, Ref<AnimationNode> p_node) {
+void AnimationTree::_update_properties_for_node(const String &p_base_path, Ref<AnimationNode> p_node) const {
 	ERR_FAIL_COND(p_node.is_null());
 	if (!property_parent_map.has(p_base_path)) {
 		property_parent_map[p_base_path] = AHashMap<StringName, StringName>();
@@ -792,7 +806,7 @@ void AnimationTree::_update_properties_for_node(const String &p_base_path, Ref<A
 	}
 }
 
-void AnimationTree::_update_properties() {
+void AnimationTree::_update_properties() const {
 	if (!properties_dirty) {
 		return;
 	}
@@ -809,7 +823,7 @@ void AnimationTree::_update_properties() {
 
 	properties_dirty = false;
 
-	notify_property_list_changed();
+	const_cast<AnimationTree *>(this)->notify_property_list_changed();
 }
 
 void AnimationTree::_notification(int p_what) {
@@ -925,7 +939,7 @@ bool AnimationTree::_get(const StringName &p_name, Variant &r_ret) const {
 	}
 #endif // DISABLE_DEPRECATED
 	if (properties_dirty) {
-		const_cast<AnimationTree *>(this)->_update_properties();
+		_update_properties();
 	}
 
 	if (property_map.has(p_name)) {
@@ -938,7 +952,7 @@ bool AnimationTree::_get(const StringName &p_name, Variant &r_ret) const {
 
 void AnimationTree::_get_property_list(List<PropertyInfo> *p_list) const {
 	if (properties_dirty) {
-		const_cast<AnimationTree *>(this)->_update_properties();
+		_update_properties();
 	}
 
 	for (const PropertyInfo &E : properties) {

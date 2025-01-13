@@ -108,7 +108,7 @@ void CanvasLayer::_update_xform() {
 	}
 }
 
-void CanvasLayer::_update_locrotscale() {
+void CanvasLayer::_update_locrotscale() const {
 	ofs = transform.columns[2];
 	rot = transform.get_rotation();
 	scale = transform.get_scale();
@@ -126,7 +126,7 @@ void CanvasLayer::set_offset(const Vector2 &p_offset) {
 
 Vector2 CanvasLayer::get_offset() const {
 	if (locrotscale_dirty) {
-		const_cast<CanvasLayer *>(this)->_update_locrotscale();
+		_update_locrotscale();
 	}
 
 	return ofs;
@@ -143,7 +143,7 @@ void CanvasLayer::set_rotation(real_t p_radians) {
 
 real_t CanvasLayer::get_rotation() const {
 	if (locrotscale_dirty) {
-		const_cast<CanvasLayer *>(this)->_update_locrotscale();
+		_update_locrotscale();
 	}
 
 	return rot;
@@ -160,7 +160,7 @@ void CanvasLayer::set_scale(const Vector2 &p_scale) {
 
 Vector2 CanvasLayer::get_scale() const {
 	if (locrotscale_dirty) {
-		const_cast<CanvasLayer *>(this)->_update_locrotscale();
+		_update_locrotscale();
 	}
 
 	return scale;

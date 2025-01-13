@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid cast. Cannot convert from "int" to "Node".
+>> ERROR at line 3: Invalid cast. Cannot convert from "int" to "Node".

@@ -1,4 +1,3 @@
-
 // for slow incremental optimization, we will periodically remove each
 // item from the tree and reinsert, to give it a chance to find a better position
 void _logic_item_remove_and_reinsert(uint32_t p_ref_id) {

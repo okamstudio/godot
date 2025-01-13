@@ -1,10 +1,10 @@
-diff --git a/thirdparty/thorvg/src/common/tvgLines.cpp b/thirdparty/thorvg/src/common/tvgLines.cpp
-index 49d992f127..9d704900a5 100644
---- a/thirdparty/thorvg/src/common/tvgLines.cpp
-+++ b/thirdparty/thorvg/src/common/tvgLines.cpp
+diff --git a/thirdparty/thorvg/src/common/tvgMath.cpp b/thirdparty/thorvg/src/common/tvgMath.cpp
+index cb7f24ff40..f27f69faeb 100644
+--- a/thirdparty/thorvg/src/common/tvgMath.cpp
++++ b/thirdparty/thorvg/src/common/tvgMath.cpp
 @@ -79,7 +79,7 @@ float _bezAt(const Bezier& bz, float at, float length, LengthFunc lineLengthFunc
          Bezier left;
-         bezSplitLeft(right, t, left);
+         right.split(t, left);
          length = _bezLength(left, lineLengthFunc);
 -        if (fabsf(length - at) < BEZIER_EPSILON || fabsf(smallest - biggest) < 1e-3f) {
 +        if (fabsf(length - at) < BEZIER_EPSILON || fabsf(smallest - biggest) < BEZIER_EPSILON) {

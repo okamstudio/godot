@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Identifier "_123" not declared in the current scope.
+>> ERROR at line 3: Identifier "_123" not declared in the current scope.

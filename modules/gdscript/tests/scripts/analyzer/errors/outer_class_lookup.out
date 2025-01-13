@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot find member "D" in base "B".
+>> ERROR at line 4: Cannot find member "D" in base "B".

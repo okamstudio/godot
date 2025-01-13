@@ -33,10 +33,12 @@
 
 #include "core/string/ustring.h"
 #include "core/templates/list.h"
+#include "core/templates/pair.h"
 #include "core/variant/array.h"
 
 class Variant;
 
+struct ContainerType;
 struct DictionaryPrivate;
 
 class Dictionary {
@@ -91,13 +93,18 @@ public:
 	Dictionary duplicate(bool p_deep = false) const;
 	Dictionary recursive_duplicate(bool p_deep, int recursion_count) const;
 
+	void set_typed(const ContainerType &p_key_type, const ContainerType &p_value_type);
 	void set_typed(uint32_t p_key_type, const StringName &p_key_class_name, const Variant &p_key_script, uint32_t p_value_type, const StringName &p_value_class_name, const Variant &p_value_script);
+
 	bool is_typed() const;
 	bool is_typed_key() const;
 	bool is_typed_value() const;
 	bool is_same_typed(const Dictionary &p_other) const;
 	bool is_same_typed_key(const Dictionary &p_other) const;
 	bool is_same_typed_value(const Dictionary &p_other) const;
+
+	ContainerType get_key_type() const;
+	ContainerType get_value_type() const;
 	uint32_t get_typed_key_builtin() const;
 	uint32_t get_typed_value_builtin() const;
 	StringName get_typed_key_class_name() const;
@@ -112,6 +119,7 @@ public:
 
 	Dictionary(const Dictionary &p_base, uint32_t p_key_type, const StringName &p_key_class_name, const Variant &p_key_script, uint32_t p_value_type, const StringName &p_value_class_name, const Variant &p_value_script);
 	Dictionary(const Dictionary &p_from);
+	Dictionary(std::initializer_list<KeyValue<Variant, Variant>> p_init);
 	Dictionary();
 	~Dictionary();
 };

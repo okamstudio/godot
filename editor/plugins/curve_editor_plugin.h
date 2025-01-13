@@ -78,14 +78,14 @@ private:
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 	void _curve_changed();
 
-	int get_point_at(Vector2 p_pos) const;
-	TangentIndex get_tangent_at(Vector2 p_pos) const;
+	int get_point_at(const Vector2 &p_pos) const;
+	TangentIndex get_tangent_at(const Vector2 &p_pos) const;
 
 	float get_offset_without_collision(int p_current_index, float p_offset, bool p_prioritize_right = true);
 
-	void add_point(Vector2 p_pos);
+	void add_point(const Vector2 &p_pos);
 	void remove_point(int p_index);
-	void set_point_position(int p_index, Vector2 p_pos);
+	void set_point_position(int p_index, const Vector2 &p_pos);
 
 	void set_point_tangents(int p_index, float p_left, float p_right);
 	void set_point_left_tangent(int p_index, float p_tangent);
@@ -94,17 +94,20 @@ private:
 
 	void update_view_transform();
 
+	void plot_curve_accurate(float p_step, const Color &p_line_color, const Color &p_edge_line_color);
+
 	void set_selected_index(int p_index);
-	void set_selected_tangent_index(TangentIndex p_tangent);
 
 	Vector2 get_tangent_view_pos(int p_index, TangentIndex p_tangent) const;
-	Vector2 get_view_pos(Vector2 p_world_pos) const;
-	Vector2 get_world_pos(Vector2 p_view_pos) const;
+	Vector2 get_view_pos(const Vector2 &p_world_pos) const;
+	Vector2 get_world_pos(const Vector2 &p_view_pos) const;
 
 	void _redraw();
 
 private:
 	const float ASPECT_RATIO = 6.f / 13.f;
+	const float LINE_WIDTH = 0.5f;
+	const int STEP_SIZE = 2; // Number of pixels between plot points.
 
 	Transform2D _world_to_view;
 
@@ -136,9 +139,9 @@ private:
 	};
 	GrabMode grabbing = GRAB_NONE;
 	Vector2 initial_grab_pos;
-	int initial_grab_index;
-	float initial_grab_left_tangent;
-	float initial_grab_right_tangent;
+	int initial_grab_index = -1;
+	float initial_grab_left_tangent = 0;
+	float initial_grab_right_tangent = 0;
 
 	bool snap_enabled = false;
 	int snap_count = 10;

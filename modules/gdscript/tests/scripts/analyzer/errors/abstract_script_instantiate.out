@@ -1,2 +1,0 @@
-GDTEST_ANALYZER_ERROR
-Class "abstract_script_instantiate.gd::B" cannot be constructed as it is based on abstract native class "InstancePlaceholder".

@@ -1,6 +1,5 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/typed_dictionary_assign_differently_typed_value.gd
->> 6
->> Invalid assignment of property or key '0' with value of type 'String' on a base object of type 'Dictionary[int, int]'.
+>> ERROR: Method/function failed. Returning: false
+>>   Attempted to set a variable of type 'String' into a TypedDictionary.Value of type 'int'.
+>> ERROR: Condition "!_p->typed_value.validate(value, "set")" is true. Returning: false
+>> SCRIPT ERROR at runtime/errors/typed_dictionary_assign_differently_typed_value.gd:6 on test(): Invalid assignment of property or key '0' with value of type 'String' on a base object of type 'Dictionary[int, int]'.

@@ -661,12 +661,12 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 	List<Ref<PListNode>> stack;
 	String key;
 	while (pos >= 0) {
-		int open_token_s = p_string.find("<", pos);
+		int open_token_s = p_string.find_char('<', pos);
 		if (open_token_s == -1) {
 			r_err_out = "Unexpected end of data. No tags found.";
 			return false;
 		}
-		int open_token_e = p_string.find(">", open_token_s);
+		int open_token_e = p_string.find_char('>', open_token_s);
 		pos = open_token_e;
 
 		String token = p_string.substr(open_token_s + 1, open_token_e - open_token_s - 1);
@@ -676,7 +676,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 		}
 		String value;
 		if (token[0] == '?' || token[0] == '!') { // Skip <?xml ... ?> and <!DOCTYPE ... >
-			int end_token_e = p_string.find(">", open_token_s);
+			int end_token_e = p_string.find_char('>', open_token_s);
 			pos = end_token_e;
 			continue;
 		}
@@ -769,7 +769,7 @@ bool PList::load_string(const String &p_string, String &r_err_out) {
 				r_err_out = vformat("Mismatched <%s> tag.", token);
 				return false;
 			}
-			int end_token_e = p_string.find(">", end_token_s);
+			int end_token_e = p_string.find_char('>', end_token_s);
 			pos = end_token_e;
 			String end_token = p_string.substr(end_token_s + 2, end_token_e - end_token_s - 2);
 			if (end_token != token) {

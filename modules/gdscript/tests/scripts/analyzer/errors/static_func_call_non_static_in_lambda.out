@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot call non-static function "non_static_func()" from the static function "static_func()".
+>> ERROR at line 9: Cannot call non-static function "non_static_func()" from the static function "static_func()".

@@ -58,6 +58,27 @@
 			<param index="2" name="size_bytes" type="int" default="0" />
 			<description>
 				Returns a copy of the data of the specified [param buffer], optionally [param offset_bytes] and [param size_bytes] can be set to copy only a portion of the buffer.
+				[b]Note:[/b] This method will block the GPU from working until the data is retrieved. Refer to [method buffer_get_data_async] for an alternative that returns the data in more performant way.
+			</description>
+		</method>
+		<method name="buffer_get_data_async">
+			<return type="int" enum="Error" />
+			<param index="0" name="buffer" type="RID" />
+			<param index="1" name="callback" type="Callable" />
+			<param index="2" name="offset_bytes" type="int" default="0" />
+			<param index="3" name="size_bytes" type="int" default="0" />
+			<description>
+				Asynchronous version of [method buffer_get_data]. RenderingDevice will call [param callback] in a certain amount of frames with the data the buffer had at the time of the request.
+				[b]Note:[/b] At the moment, the delay corresponds to the amount of frames specified by [member ProjectSettings.rendering/rendering_device/vsync/frame_queue_size].
+				[b]Note:[/b] Downloading large buffers can have a prohibitive cost for real-time even when using the asynchronous method due to hardware bandwidth limitations. When dealing with large resources, you can adjust settings such as [member ProjectSettings.rendering/rendering_device/staging_buffer/block_size_kb] to improve the transfer speed at the cost of extra memory.
+				[codeblock]
+				func _buffer_get_data_callback(array):
+				    value = array.decode_u32(0)
+
+				...
+
+				rd.buffer_get_data_async(buffer, _buffer_get_data_callback)
+				[/codeblock]
 			</description>
 		</method>
 		<method name="buffer_update">
@@ -210,15 +231,12 @@
 		<method name="draw_list_begin">
 			<return type="int" />
 			<param index="0" name="framebuffer" type="RID" />
-			<param index="1" name="initial_color_action" type="int" enum="RenderingDevice.InitialAction" />
-			<param index="2" name="final_color_action" type="int" enum="RenderingDevice.FinalAction" />
-			<param index="3" name="initial_depth_action" type="int" enum="RenderingDevice.InitialAction" />
-			<param index="4" name="final_depth_action" type="int" enum="RenderingDevice.FinalAction" />
-			<param index="5" name="clear_color_values" type="PackedColorArray" default="PackedColorArray()" />
-			<param index="6" name="clear_depth" type="float" default="1.0" />
-			<param index="7" name="clear_stencil" type="int" default="0" />
-			<param index="8" name="region" type="Rect2" default="Rect2(0, 0, 0, 0)" />
-			<param index="9" name="breadcrumb" type="int" default="0" />
+			<param index="1" name="draw_flags" type="int" enum="RenderingDevice.DrawFlags" is_bitfield="true" default="0" />
+			<param index="2" name="clear_color_values" type="PackedColorArray" default="PackedColorArray()" />
+			<param index="3" name="clear_depth_value" type="float" default="1.0" />
+			<param index="4" name="clear_stencil_value" type="int" default="0" />
+			<param index="5" name="region" type="Rect2" default="Rect2(0, 0, 0, 0)" />
+			<param index="6" name="breadcrumb" type="int" default="0" />
 			<description>
 				Starts a list of raster drawing commands created with the [code]draw_*[/code] methods. The returned value should be passed to other [code]draw_list_*[/code] functions.
 				Multiple draw lists cannot be created at the same time; you must finish the previous draw list first using [method draw_list_end].
@@ -226,7 +244,7 @@
 				[codeblock]
 				var rd = RenderingDevice.new()
 				var clear_colors = PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)])
-				var draw_list = rd.draw_list_begin(framebuffers[i], RenderingDevice.INITIAL_ACTION_CLEAR, RenderingDevice.FINAL_ACTION_READ, RenderingDevice.INITIAL_ACTION_CLEAR, RenderingDevice.FINAL_ACTION_DISCARD, clear_colors, RenderingDevice.OPAQUE_PASS)
+				var draw_list = rd.draw_list_begin(framebuffers[i], RenderingDevice.CLEAR_COLOR_ALL, clear_colors, true, 1.0f, true, 0, Rect2(), RenderingDevice.OPAQUE_PASS)
 
 				# Draw opaque.
 				rd.draw_list_bind_render_pipeline(draw_list, raster_pipeline)
@@ -241,10 +259,11 @@
 
 				rd.draw_list_end()
 				[/codeblock]
+				The [param draw_flags] indicates if the texture attachments of the framebuffer should be cleared or ignored. Only one of the two flags can be used for each individual attachment. Ignoring an attachment means that any contents that existed before the draw list will be completely discarded, reducing the memory bandwidth used by the render pass but producing garbage results if the pixels aren't replaced. The default behavior allows the engine to figure out the right operation to use if the texture is discardable, which can result in increased performance. See [RDTextureFormat] or [method texture_set_discardable].
 				The [param breadcrumb] parameter can be an arbitrary 32-bit integer that is useful to diagnose GPU crashes. If Godot is built in dev or debug mode; when the GPU crashes Godot will dump all shaders that were being executed at the time of the crash and the breadcrumb is useful to diagnose what passes did those shaders belong to.
 				It does not affect rendering behavior and can be set to 0. It is recommended to use [enum BreadcrumbMarker] enumerations for consistency but it's not required. It is also possible to use bitwise operations to add extra data. e.g.
 				[codeblock]
-				rd.draw_list_begin(fb[i], RenderingDevice.INITIAL_ACTION_CLEAR, RenderingDevice.FINAL_ACTION_READ, RenderingDevice.INITIAL_ACTION_CLEAR, RenderingDevice.FINAL_ACTION_DISCARD, clear_colors, RenderingDevice.OPAQUE_PASS | 5)
+				rd.draw_list_begin(fb[i], RenderingDevice.CLEAR_COLOR_ALL, clear_colors, true, 1.0f, true, 0, Rect2(), RenderingDevice.OPAQUE_PASS | 5)
 				[/codeblock]
 			</description>
 		</method>
@@ -930,6 +949,26 @@
 				Returns the [param texture] data for the specified [param layer] as raw binary data. For 2D textures (which only have one layer), [param layer] must be [code]0[/code].
 				[b]Note:[/b] [param texture] can't be retrieved while a draw list that uses it as part of a framebuffer is being created. Ensure the draw list is finalized (and that the color/depth texture using it is not set to [constant FINAL_ACTION_CONTINUE]) to retrieve this texture. Otherwise, an error is printed and a empty [PackedByteArray] is returned.
 				[b]Note:[/b] [param texture] requires the [constant TEXTURE_USAGE_CAN_COPY_FROM_BIT] to be retrieved. Otherwise, an error is printed and a empty [PackedByteArray] is returned.
+				[b]Note:[/b] This method will block the GPU from working until the data is retrieved. Refer to [method texture_get_data_async] for an alternative that returns the data in more performant way.
+			</description>
+		</method>
+		<method name="texture_get_data_async">
+			<return type="int" enum="Error" />
+			<param index="0" name="texture" type="RID" />
+			<param index="1" name="layer" type="int" />
+			<param index="2" name="callback" type="Callable" />
+			<description>
+				Asynchronous version of [method texture_get_data]. RenderingDevice will call [param callback] in a certain amount of frames with the data the texture had at the time of the request.
+				[b]Note:[/b] At the moment, the delay corresponds to the amount of frames specified by [member ProjectSettings.rendering/rendering_device/vsync/frame_queue_size].
+				[b]Note:[/b] Downloading large textures can have a prohibitive cost for real-time even when using the asynchronous method due to hardware bandwidth limitations. When dealing with large resources, you can adjust settings such as [member ProjectSettings.rendering/rendering_device/staging_buffer/texture_download_region_size_px] and [member ProjectSettings.rendering/rendering_device/staging_buffer/block_size_kb] to improve the transfer speed at the cost of extra memory.
+				[codeblock]
+				func _texture_get_data_callback(array):
+				    value = array.decode_u32(0)
+
+				...
+
+				rd.texture_get_data_async(texture, 0, _texture_get_data_callback)
+				[/codeblock]
 			</description>
 		</method>
 		<method name="texture_get_format">
@@ -945,6 +984,13 @@
 			<description>
 				Returns the internal graphics handle for this texture object. For use when communicating with third-party APIs mostly with GDExtension.
 				[b]Note:[/b] This function returns a [code]uint64_t[/code] which internally maps to a [code]GLuint[/code] (OpenGL) or [code]VkImage[/code] (Vulkan).
+			</description>
+		</method>
+		<method name="texture_is_discardable">
+			<return type="bool" />
+			<param index="0" name="texture" type="RID" />
+			<description>
+				Returns [code]true[/code] if the [param texture] is discardable, [code]false[/code] otherwise. See [RDTextureFormat] or [method texture_set_discardable].
 			</description>
 		</method>
 		<method name="texture_is_format_supported_for_usage" qualifiers="const">
@@ -982,6 +1028,16 @@
 				[b]Note:[/b] [param to_texture] can't be copied while a draw list that uses it as part of a framebuffer is being created. Ensure the draw list is finalized (and that the color/depth texture using it is not set to [constant FINAL_ACTION_CONTINUE]) to resolve this texture.
 				[b]Note:[/b] [param to_texture] texture requires the [constant TEXTURE_USAGE_CAN_COPY_TO_BIT] to be retrieved.
 				[b]Note:[/b] [param to_texture] texture must [b]not[/b] be multisampled and must also be 2D (or a slice of a 3D/cubemap texture).
+			</description>
+		</method>
+		<method name="texture_set_discardable">
+			<return type="void" />
+			<param index="0" name="texture" type="RID" />
+			<param index="1" name="discardable" type="bool" />
+			<description>
+				Updates the discardable property of [param texture].
+				If a texture is discardable, its contents do not need to be preserved between frames. This flag is only relevant when the texture is used as target in a draw list.
+				This information is used by [RenderingDevice] to figure out if a texture's contents can be discarded, eliminating unnecessary writes to memory and boosting performance.
 			</description>
 		</method>
 		<method name="texture_update">
@@ -2279,40 +2335,40 @@
 		</constant>
 		<constant name="DYNAMIC_STATE_STENCIL_REFERENCE" value="64" enum="PipelineDynamicStateFlags" is_bitfield="true">
 		</constant>
-		<constant name="INITIAL_ACTION_LOAD" value="0" enum="InitialAction">
+		<constant name="INITIAL_ACTION_LOAD" value="0" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 			Load the previous contents of the framebuffer.
 		</constant>
-		<constant name="INITIAL_ACTION_CLEAR" value="1" enum="InitialAction">
+		<constant name="INITIAL_ACTION_CLEAR" value="1" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 			Clear the whole framebuffer or its specified region.
 		</constant>
-		<constant name="INITIAL_ACTION_DISCARD" value="2" enum="InitialAction">
+		<constant name="INITIAL_ACTION_DISCARD" value="2" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 			Ignore the previous contents of the framebuffer. This is the fastest option if you'll overwrite all of the pixels and don't need to read any of them.
 		</constant>
-		<constant name="INITIAL_ACTION_MAX" value="3" enum="InitialAction">
+		<constant name="INITIAL_ACTION_MAX" value="3" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 			Represents the size of the [enum InitialAction] enum.
 		</constant>
-		<constant name="INITIAL_ACTION_CLEAR_REGION" value="1" enum="InitialAction" deprecated="Use [constant INITIAL_ACTION_CLEAR] instead.">
+		<constant name="INITIAL_ACTION_CLEAR_REGION" value="1" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="INITIAL_ACTION_CLEAR_REGION_CONTINUE" value="1" enum="InitialAction" deprecated="Use [constant INITIAL_ACTION_LOAD] instead.">
+		<constant name="INITIAL_ACTION_CLEAR_REGION_CONTINUE" value="1" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="INITIAL_ACTION_KEEP" value="0" enum="InitialAction" deprecated="Use [constant INITIAL_ACTION_LOAD] instead.">
+		<constant name="INITIAL_ACTION_KEEP" value="0" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="INITIAL_ACTION_DROP" value="2" enum="InitialAction" deprecated="Use [constant INITIAL_ACTION_DISCARD] instead.">
+		<constant name="INITIAL_ACTION_DROP" value="2" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="INITIAL_ACTION_CONTINUE" value="0" enum="InitialAction" deprecated="Use [constant INITIAL_ACTION_LOAD] instead.">
+		<constant name="INITIAL_ACTION_CONTINUE" value="0" enum="InitialAction" deprecated="Initial actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="FINAL_ACTION_STORE" value="0" enum="FinalAction">
+		<constant name="FINAL_ACTION_STORE" value="0" enum="FinalAction" deprecated="Final actions are solved automatically by RenderingDevice.">
 			Store the result of the draw list in the framebuffer. This is generally what you want to do.
 		</constant>
-		<constant name="FINAL_ACTION_DISCARD" value="1" enum="FinalAction">
+		<constant name="FINAL_ACTION_DISCARD" value="1" enum="FinalAction" deprecated="Final actions are solved automatically by RenderingDevice.">
 			Discard the contents of the framebuffer. This is the fastest option if you don't need to use the results of the draw list.
 		</constant>
-		<constant name="FINAL_ACTION_MAX" value="2" enum="FinalAction">
+		<constant name="FINAL_ACTION_MAX" value="2" enum="FinalAction" deprecated="Final actions are solved automatically by RenderingDevice.">
 			Represents the size of the [enum FinalAction] enum.
 		</constant>
-		<constant name="FINAL_ACTION_READ" value="0" enum="FinalAction" deprecated="Use [constant FINAL_ACTION_STORE] instead.">
+		<constant name="FINAL_ACTION_READ" value="0" enum="FinalAction" deprecated="Final actions are solved automatically by RenderingDevice.">
 		</constant>
-		<constant name="FINAL_ACTION_CONTINUE" value="0" enum="FinalAction" deprecated="Use [constant FINAL_ACTION_STORE] instead.">
+		<constant name="FINAL_ACTION_CONTINUE" value="0" enum="FinalAction" deprecated="Final actions are solved automatically by RenderingDevice.">
 		</constant>
 		<constant name="SHADER_STAGE_VERTEX" value="0" enum="ShaderStage">
 			Vertex shader stage. This can be used to manipulate vertices from a shader (but not create new vertices).
@@ -2513,6 +2569,87 @@
 		<constant name="UI_PASS" value="720896" enum="BreadcrumbMarker">
 		</constant>
 		<constant name="DEBUG_PASS" value="786432" enum="BreadcrumbMarker">
+		</constant>
+		<constant name="DRAW_DEFAULT_ALL" value="0" enum="DrawFlags" is_bitfield="true">
+			Do not clear or ignore any attachments.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_0" value="1" enum="DrawFlags" is_bitfield="true">
+			Clear the first color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_1" value="2" enum="DrawFlags" is_bitfield="true">
+			Clear the second color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_2" value="4" enum="DrawFlags" is_bitfield="true">
+			Clear the third color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_3" value="8" enum="DrawFlags" is_bitfield="true">
+			Clear the fourth color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_4" value="16" enum="DrawFlags" is_bitfield="true">
+			Clear the fifth color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_5" value="32" enum="DrawFlags" is_bitfield="true">
+			Clear the sixth color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_6" value="64" enum="DrawFlags" is_bitfield="true">
+			Clear the seventh color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_7" value="128" enum="DrawFlags" is_bitfield="true">
+			Clear the eighth color attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_MASK" value="255" enum="DrawFlags" is_bitfield="true">
+			Mask for clearing all color attachments.
+		</constant>
+		<constant name="DRAW_CLEAR_COLOR_ALL" value="255" enum="DrawFlags" is_bitfield="true">
+			Clear all color attachments.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_0" value="256" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the first color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_1" value="512" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the second color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_2" value="1024" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the third color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_3" value="2048" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the fourth color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_4" value="4096" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the fifth color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_5" value="8192" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the sixth color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_6" value="16384" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the seventh color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_7" value="32768" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the eighth color attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_MASK" value="65280" enum="DrawFlags" is_bitfield="true">
+			Mask for ignoring all the previous contents of the color attachments.
+		</constant>
+		<constant name="DRAW_IGNORE_COLOR_ALL" value="65280" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of all color attachments.
+		</constant>
+		<constant name="DRAW_CLEAR_DEPTH" value="65536" enum="DrawFlags" is_bitfield="true">
+			Clear the depth attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_DEPTH" value="131072" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the depth attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_STENCIL" value="262144" enum="DrawFlags" is_bitfield="true">
+			Clear the stencil attachment.
+		</constant>
+		<constant name="DRAW_IGNORE_STENCIL" value="524288" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of the stencil attachment.
+		</constant>
+		<constant name="DRAW_CLEAR_ALL" value="327935" enum="DrawFlags" is_bitfield="true">
+			Clear all attachments.
+		</constant>
+		<constant name="DRAW_IGNORE_ALL" value="720640" enum="DrawFlags" is_bitfield="true">
+			Ignore the previous contents of all attachments.
 		</constant>
 	</constants>
 </class>

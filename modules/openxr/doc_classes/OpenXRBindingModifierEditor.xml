@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRBindingModifierEditor" inherits="PanelContainer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Binding modifier editor.
+	</brief_description>
+	<description>
+		This is the default binding modifier editor used in the OpenXR action map.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_binding_modifier" qualifiers="const">
+			<return type="OpenXRBindingModifier" />
+			<description>
+				Returns the [OpenXRBindingModifier] currently being edited.
+			</description>
+		</method>
+		<method name="setup">
+			<return type="void" />
+			<param index="0" name="action_map" type="OpenXRActionMap" />
+			<param index="1" name="binding_modifier" type="OpenXRBindingModifier" />
+			<description>
+				Setup this editor for the provided [param action_map] and [param binding_modifier].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="size_flags_horizontal" type="int" setter="set_h_size_flags" getter="get_h_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+	</members>
+	<signals>
+		<signal name="binding_modifier_removed">
+			<param index="0" name="binding_modifier_editor" type="Object" />
+			<description>
+				Signal emitted when the user presses the delete binding modifier button for this modifier.
+			</description>
+		</signal>
+	</signals>
+</class>

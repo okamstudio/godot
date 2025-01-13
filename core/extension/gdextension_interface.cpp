@@ -700,6 +700,91 @@ static GDExtensionTypeFromVariantConstructorFunc gdextension_get_variant_to_type
 	ERR_FAIL_V_MSG(nullptr, "Getting Variant conversion function with invalid type");
 }
 
+static GDExtensionVariantGetInternalPtrFunc gdextension_variant_get_ptr_internal_getter(GDExtensionVariantType p_type) {
+	switch (p_type) {
+		case GDEXTENSION_VARIANT_TYPE_BOOL:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<bool *(*)(Variant *)>(VariantInternal::get_bool));
+		case GDEXTENSION_VARIANT_TYPE_INT:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<int64_t *(*)(Variant *)>(VariantInternal::get_int));
+		case GDEXTENSION_VARIANT_TYPE_FLOAT:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<double *(*)(Variant *)>(VariantInternal::get_float));
+		case GDEXTENSION_VARIANT_TYPE_STRING:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<String *(*)(Variant *)>(VariantInternal::get_string));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR2:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector2 *(*)(Variant *)>(VariantInternal::get_vector2));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR2I:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector2i *(*)(Variant *)>(VariantInternal::get_vector2i));
+		case GDEXTENSION_VARIANT_TYPE_RECT2:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Rect2 *(*)(Variant *)>(VariantInternal::get_rect2));
+		case GDEXTENSION_VARIANT_TYPE_RECT2I:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Rect2i *(*)(Variant *)>(VariantInternal::get_rect2i));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR3:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector3 *(*)(Variant *)>(VariantInternal::get_vector3));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR3I:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector3i *(*)(Variant *)>(VariantInternal::get_vector3i));
+		case GDEXTENSION_VARIANT_TYPE_TRANSFORM2D:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Transform2D *(*)(Variant *)>(VariantInternal::get_transform2d));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR4:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector4 *(*)(Variant *)>(VariantInternal::get_vector4));
+		case GDEXTENSION_VARIANT_TYPE_VECTOR4I:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Vector4i *(*)(Variant *)>(VariantInternal::get_vector4i));
+		case GDEXTENSION_VARIANT_TYPE_PLANE:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Plane *(*)(Variant *)>(VariantInternal::get_plane));
+		case GDEXTENSION_VARIANT_TYPE_QUATERNION:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Quaternion *(*)(Variant *)>(VariantInternal::get_quaternion));
+		case GDEXTENSION_VARIANT_TYPE_AABB:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<AABB *(*)(Variant *)>(VariantInternal::get_aabb));
+		case GDEXTENSION_VARIANT_TYPE_BASIS:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Basis *(*)(Variant *)>(VariantInternal::get_basis));
+		case GDEXTENSION_VARIANT_TYPE_TRANSFORM3D:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Transform3D *(*)(Variant *)>(VariantInternal::get_transform));
+		case GDEXTENSION_VARIANT_TYPE_PROJECTION:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Projection *(*)(Variant *)>(VariantInternal::get_projection));
+		case GDEXTENSION_VARIANT_TYPE_COLOR:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Color *(*)(Variant *)>(VariantInternal::get_color));
+		case GDEXTENSION_VARIANT_TYPE_STRING_NAME:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<StringName *(*)(Variant *)>(VariantInternal::get_string_name));
+		case GDEXTENSION_VARIANT_TYPE_NODE_PATH:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<NodePath *(*)(Variant *)>(VariantInternal::get_node_path));
+		case GDEXTENSION_VARIANT_TYPE_RID:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<RID *(*)(Variant *)>(VariantInternal::get_rid));
+		case GDEXTENSION_VARIANT_TYPE_OBJECT:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Object **(*)(Variant *)>(VariantInternal::get_object));
+		case GDEXTENSION_VARIANT_TYPE_CALLABLE:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Callable *(*)(Variant *)>(VariantInternal::get_callable));
+		case GDEXTENSION_VARIANT_TYPE_SIGNAL:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Signal *(*)(Variant *)>(VariantInternal::get_signal));
+		case GDEXTENSION_VARIANT_TYPE_DICTIONARY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Dictionary *(*)(Variant *)>(VariantInternal::get_dictionary));
+		case GDEXTENSION_VARIANT_TYPE_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<Array *(*)(Variant *)>(VariantInternal::get_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedByteArray *(*)(Variant *)>(VariantInternal::get_byte_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_INT32_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedInt32Array *(*)(Variant *)>(VariantInternal::get_int32_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_INT64_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedInt64Array *(*)(Variant *)>(VariantInternal::get_int64_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT32_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedFloat32Array *(*)(Variant *)>(VariantInternal::get_float32_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT64_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedFloat64Array *(*)(Variant *)>(VariantInternal::get_float64_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedStringArray *(*)(Variant *)>(VariantInternal::get_string_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedVector2Array *(*)(Variant *)>(VariantInternal::get_vector2_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedVector3Array *(*)(Variant *)>(VariantInternal::get_vector3_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedColorArray *(*)(Variant *)>(VariantInternal::get_color_array));
+		case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR4_ARRAY:
+			return reinterpret_cast<GDExtensionVariantGetInternalPtrFunc>(static_cast<PackedVector4Array *(*)(Variant *)>(VariantInternal::get_vector4_array));
+		case GDEXTENSION_VARIANT_TYPE_NIL:
+		case GDEXTENSION_VARIANT_TYPE_VARIANT_MAX:
+			ERR_FAIL_V_MSG(nullptr, "Getting Variant get internal pointer function with invalid type.");
+	}
+	ERR_FAIL_V_MSG(nullptr, "Getting Variant get internal pointer function with invalid type.");
+}
+
 // ptrcalls
 static GDExtensionPtrOperatorEvaluator gdextension_variant_get_ptr_operator_evaluator(GDExtensionVariantOperator p_operator, GDExtensionVariantType p_type_a, GDExtensionVariantType p_type_b) {
 	return (GDExtensionPtrOperatorEvaluator)Variant::get_ptr_operator_evaluator(Variant::Operator(p_operator), Variant::Type(p_type_a), Variant::Type(p_type_b));
@@ -1625,6 +1710,7 @@ void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(variant_can_convert_strict);
 	REGISTER_INTERFACE_FUNC(get_variant_from_type_constructor);
 	REGISTER_INTERFACE_FUNC(get_variant_to_type_constructor);
+	REGISTER_INTERFACE_FUNC(variant_get_ptr_internal_getter);
 	REGISTER_INTERFACE_FUNC(variant_get_ptr_operator_evaluator);
 	REGISTER_INTERFACE_FUNC(variant_get_ptr_builtin_method);
 	REGISTER_INTERFACE_FUNC(variant_get_ptr_constructor);

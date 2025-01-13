@@ -105,7 +105,7 @@ void SurfaceUpgradeTool::prepare_upgrade() {
 	EditorSettings::get_singleton()->set_project_metadata("surface_upgrade_tool", "resave_paths", resave_paths);
 
 	// Delay to avoid deadlocks, since this dialog can be triggered by loading a scene.
-	callable_mp(EditorNode::get_singleton(), &EditorNode::restart_editor).call_deferred();
+	callable_mp(EditorNode::get_singleton(), &EditorNode::restart_editor).call_deferred(false);
 }
 
 // Ensure that the warnings and popups are skipped.

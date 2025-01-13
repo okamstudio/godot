@@ -338,7 +338,7 @@ void RemoteDebugger::_send_stack_vars(List<String> &p_names, List<Variant> &p_va
 }
 
 Error RemoteDebugger::_try_capture(const String &p_msg, const Array &p_data, bool &r_captured) {
-	const int idx = p_msg.find(":");
+	const int idx = p_msg.find_char(':');
 	r_captured = false;
 	if (idx < 0) { // No prefix, unknown message.
 		return OK;
@@ -610,7 +610,7 @@ void RemoteDebugger::poll_events(bool p_is_idle) {
 		ERR_CONTINUE(arr[1].get_type() != Variant::ARRAY);
 
 		const String cmd = arr[0];
-		const int idx = cmd.find(":");
+		const int idx = cmd.find_char(':');
 		bool parsed = false;
 		if (idx < 0) { // Not prefix, use scripts capture.
 			capture_parse("core", cmd, arr[1], parsed);

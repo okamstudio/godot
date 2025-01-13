@@ -13,6 +13,12 @@
 		<link title="Audio Spectrum Visualizer Demo">https://godotengine.org/asset-library/asset/2762</link>
 	</tutorials>
 	<methods>
+		<method name="_get_bar_beats" qualifiers="virtual const">
+			<return type="int" />
+			<description>
+				Override this method to return the bar beats of this stream.
+			</description>
+		</method>
 		<method name="_get_beat_count" qualifiers="virtual const">
 			<return type="int" />
 			<description>
@@ -45,10 +51,16 @@
 				Override this method to customize the name assigned to this audio stream. Unused by the engine.
 			</description>
 		</method>
+		<method name="_has_loop" qualifiers="virtual const">
+			<return type="bool" />
+			<description>
+				Override this method to return [code]true[/code] if this stream has a loop.
+			</description>
+		</method>
 		<method name="_instantiate_playback" qualifiers="virtual const">
 			<return type="AudioStreamPlayback" />
 			<description>
-				Override this method to customize the returned value of [method instantiate_playback]. Should returned a new [AudioStreamPlayback] created when the stream is played (such as by an [AudioStreamPlayer])..
+				Override this method to customize the returned value of [method instantiate_playback]. Should return a new [AudioStreamPlayback] created when the stream is played (such as by an [AudioStreamPlayer]).
 			</description>
 		</method>
 		<method name="_is_monophonic" qualifiers="virtual const">

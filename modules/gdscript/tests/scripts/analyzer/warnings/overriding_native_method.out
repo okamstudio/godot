@@ -1,6 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 4
->> NATIVE_METHOD_OVERRIDE
->> The method "get()" overrides a method from native class "Object". This won't be called by the engine and may not work as expected.
+~~ WARNING at line 4: (NATIVE_METHOD_OVERRIDE) The method "get()" overrides a method from native class "Object". This won't be called by the engine and may not work as expected.
 warn

@@ -126,8 +126,7 @@ bool PhysicsBody2D::test_move(const Transform2D &p_from, const Vector2 &p_motion
 	PhysicsServer2D::MotionResult *r = nullptr;
 	PhysicsServer2D::MotionResult temp_result;
 	if (r_collision.is_valid()) {
-		// Needs const_cast because method bindings don't support non-const Ref.
-		r = const_cast<PhysicsServer2D::MotionResult *>(&r_collision->result);
+		r = &r_collision->result;
 	} else {
 		r = &temp_result;
 	}

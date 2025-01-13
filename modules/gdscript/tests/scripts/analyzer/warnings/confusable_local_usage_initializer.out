@@ -1,15 +1,6 @@
 GDTEST_OK
->> WARNING
->> Line: 4
->> CONFUSABLE_LOCAL_USAGE
->> The identifier "a" will be shadowed below in the block.
->> WARNING
->> Line: 5
->> CONFUSABLE_LOCAL_USAGE
->> The identifier "a" will be shadowed below in the block.
->> WARNING
->> Line: 5
->> SHADOWED_VARIABLE
->> The local variable "a" is shadowing an already-declared variable at line 1 in the current class.
+~~ WARNING at line 4: (CONFUSABLE_LOCAL_USAGE) The identifier "a" will be shadowed below in the block.
+~~ WARNING at line 5: (CONFUSABLE_LOCAL_USAGE) The identifier "a" will be shadowed below in the block.
+~~ WARNING at line 5: (SHADOWED_VARIABLE) The local variable "a" is shadowing an already-declared variable at line 1 in the current class.
 1
 2

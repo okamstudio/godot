@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/cast_object_to_int.gd
->> 4
->> Invalid cast: could not convert value to 'int'.
+>> SCRIPT ERROR at runtime/errors/cast_object_to_int.gd:4 on test(): Invalid cast: could not convert value to 'int'.

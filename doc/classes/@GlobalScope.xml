@@ -370,7 +370,7 @@
 				Returns an "eased" value of [param x] based on an easing function defined with [param curve]. This easing function is based on an exponent. The [param curve] can be any floating-point number, with specific values leading to the following behaviors:
 				[codeblock lang=text]
 				- Lower than -1.0 (exclusive): Ease in-out
-				- 1.0: Linear
+				- -1.0: Linear
 				- Between -1.0 and 0.0 (exclusive): Ease out-in
 				- 0.0: Constant
 				- Between 0.0 to 1.0 (exclusive): Ease out
@@ -863,7 +863,6 @@
 			<description>
 				Converts one or more arguments of any type to string in the best way possible and prints them to the console.
 				The following BBCode tags are supported: [code]b[/code], [code]i[/code], [code]u[/code], [code]s[/code], [code]indent[/code], [code]code[/code], [code]url[/code], [code]center[/code], [code]right[/code], [code]color[/code], [code]bgcolor[/code], [code]fgcolor[/code].
-				Color tags only support the following named colors: [code]black[/code], [code]red[/code], [code]green[/code], [code]yellow[/code], [code]blue[/code], [code]magenta[/code], [code]pink[/code], [code]purple[/code], [code]cyan[/code], [code]white[/code], [code]orange[/code], [code]gray[/code]. Hexadecimal color codes are not supported.
 				URL tags only support URLs wrapped by a URL tag, not URLs with a different title.
 				When printing to standard output, the supported subset of BBCode is converted to ANSI escape codes for the terminal emulator to display. Support for ANSI escape codes varies across terminal emulators, especially for italic and strikethrough. In standard output, [code]code[/code] is represented with faint text but without any font change. Unsupported tags are left as-is in standard output.
 				[codeblocks]
@@ -2143,49 +2142,49 @@
 			Space key.
 		</constant>
 		<constant name="KEY_EXCLAM" value="33" enum="Key">
-			! key.
+			Exclamation mark ([code]![/code]) key.
 		</constant>
 		<constant name="KEY_QUOTEDBL" value="34" enum="Key">
-			" key.
+			Double quotation mark ([code]"[/code]) key.
 		</constant>
-		<constant name="KEY_NUMBERSIGN" value="35" enum="Key">
-			# key.
+		<constant name="KEY_NUMBERSIGN" value="35" enum="Key" keywords="pound, hash">
+			Number sign or [i]hash[/i] ([code]#[/code]) key.
 		</constant>
 		<constant name="KEY_DOLLAR" value="36" enum="Key">
-			$ key.
+			Dollar sign ([code]$[/code]) key.
 		</constant>
 		<constant name="KEY_PERCENT" value="37" enum="Key">
-			% key.
+			Percent sign ([code]%[/code]) key.
 		</constant>
 		<constant name="KEY_AMPERSAND" value="38" enum="Key">
-			&amp; key.
+			Ampersand ([code]&amp;[/code]) key.
 		</constant>
 		<constant name="KEY_APOSTROPHE" value="39" enum="Key">
-			' key.
+			Apostrophe ([code]'[/code]) key.
 		</constant>
-		<constant name="KEY_PARENLEFT" value="40" enum="Key">
-			( key.
+		<constant name="KEY_PARENLEFT" value="40" enum="Key" keywords="open round bracket">
+			Left parenthesis ([code]([/code]) key.
 		</constant>
-		<constant name="KEY_PARENRIGHT" value="41" enum="Key">
-			) key.
+		<constant name="KEY_PARENRIGHT" value="41" enum="Key" keywords="close round bracket">
+			Right parenthesis ([code])[/code]) key.
 		</constant>
 		<constant name="KEY_ASTERISK" value="42" enum="Key">
-			* key.
+			Asterisk ([code]*[/code]) key.
 		</constant>
 		<constant name="KEY_PLUS" value="43" enum="Key">
-			+ key.
+			Plus ([code]+[/code]) key.
 		</constant>
 		<constant name="KEY_COMMA" value="44" enum="Key">
-			, key.
+			Comma ([code],[/code]) key.
 		</constant>
-		<constant name="KEY_MINUS" value="45" enum="Key">
-			- key.
+		<constant name="KEY_MINUS" value="45" enum="Key" keywords="hyphen">
+			Minus ([code]-[/code]) key.
 		</constant>
-		<constant name="KEY_PERIOD" value="46" enum="Key">
-			. key.
+		<constant name="KEY_PERIOD" value="46" enum="Key" keywords="dot">
+			Period ([code].[/code]) key.
 		</constant>
 		<constant name="KEY_SLASH" value="47" enum="Key">
-			/ key.
+			Slash ([code]/[/code]) key.
 		</constant>
 		<constant name="KEY_0" value="48" enum="Key">
 			Number 0 key.
@@ -2218,25 +2217,25 @@
 			Number 9 key.
 		</constant>
 		<constant name="KEY_COLON" value="58" enum="Key">
-			: key.
+			Colon ([code]:[/code]) key.
 		</constant>
 		<constant name="KEY_SEMICOLON" value="59" enum="Key">
-			; key.
+			Semicolon ([code];[/code]) key.
 		</constant>
 		<constant name="KEY_LESS" value="60" enum="Key">
-			&lt; key.
+			Less-than sign ([code]&lt;[/code]) key.
 		</constant>
 		<constant name="KEY_EQUAL" value="61" enum="Key">
-			= key.
+			Equal sign ([code]=[/code]) key.
 		</constant>
 		<constant name="KEY_GREATER" value="62" enum="Key">
-			&gt; key.
+			Greater-than sign ([code]&gt;[/code]) key.
 		</constant>
 		<constant name="KEY_QUESTION" value="63" enum="Key">
-			? key.
+			Question mark ([code]?[/code]) key.
 		</constant>
-		<constant name="KEY_AT" value="64" enum="Key">
-			@ key.
+		<constant name="KEY_AT" value="64" enum="Key" keywords="commercial at">
+			At sign ([code]@[/code]) key.
 		</constant>
 		<constant name="KEY_A" value="65" enum="Key">
 			A key.
@@ -2316,41 +2315,41 @@
 		<constant name="KEY_Z" value="90" enum="Key">
 			Z key.
 		</constant>
-		<constant name="KEY_BRACKETLEFT" value="91" enum="Key">
-			[ key.
+		<constant name="KEY_BRACKETLEFT" value="91" enum="Key" keywords="open square bracket">
+			Left bracket ([code][lb][/code]) key.
 		</constant>
 		<constant name="KEY_BACKSLASH" value="92" enum="Key">
-			\ key.
+			Backslash ([code]\[/code]) key.
 		</constant>
-		<constant name="KEY_BRACKETRIGHT" value="93" enum="Key">
-			] key.
+		<constant name="KEY_BRACKETRIGHT" value="93" enum="Key" keywords="close square bracket">
+			Right bracket ([code][rb][/code]) key.
 		</constant>
-		<constant name="KEY_ASCIICIRCUM" value="94" enum="Key">
-			^ key.
+		<constant name="KEY_ASCIICIRCUM" value="94" enum="Key" keywords="caret">
+			Caret ([code]^[/code]) key.
 		</constant>
-		<constant name="KEY_UNDERSCORE" value="95" enum="Key">
-			_ key.
+		<constant name="KEY_UNDERSCORE" value="95" enum="Key" keywords="underline">
+			Underscore ([code]_[/code]) key.
 		</constant>
-		<constant name="KEY_QUOTELEFT" value="96" enum="Key">
-			` key.
+		<constant name="KEY_QUOTELEFT" value="96" enum="Key" keywords="backtick, backquote">
+			Backtick ([code]`[/code]) key.
 		</constant>
-		<constant name="KEY_BRACELEFT" value="123" enum="Key">
-			{ key.
+		<constant name="KEY_BRACELEFT" value="123" enum="Key" keywords="open curly bracket">
+			Left brace ([code]{[/code]) key.
 		</constant>
-		<constant name="KEY_BAR" value="124" enum="Key">
-			| key.
+		<constant name="KEY_BAR" value="124" enum="Key" keywords="pipe">
+			Vertical bar or [i]pipe[/i] ([code]|[/code]) key.
 		</constant>
-		<constant name="KEY_BRACERIGHT" value="125" enum="Key">
-			} key.
+		<constant name="KEY_BRACERIGHT" value="125" enum="Key" keywords="close curly bracket">
+			Right brace ([code]}[/code]) key.
 		</constant>
 		<constant name="KEY_ASCIITILDE" value="126" enum="Key">
-			~ key.
+			Tilde ([code]~[/code]) key.
 		</constant>
 		<constant name="KEY_YEN" value="165" enum="Key">
-			¥ key.
+			Yen symbol ([code]¥[/code]) key.
 		</constant>
-		<constant name="KEY_SECTION" value="167" enum="Key">
-			§ key.
+		<constant name="KEY_SECTION" value="167" enum="Key" keywords="silcrow">
+			Section sign ([code]§[/code]) key.
 		</constant>
 		<constant name="KEY_CODE_MASK" value="8388607" enum="KeyModifierMask" is_bitfield="true">
 			Key Code mask.
@@ -2941,7 +2940,10 @@
 			[/codeblock]
 			[b]Note:[/b] A [Callable] cannot be properly serialized and stored in a file, so it is recommended to use [constant PROPERTY_USAGE_EDITOR] instead of [constant PROPERTY_USAGE_DEFAULT].
 		</constant>
-		<constant name="PROPERTY_HINT_MAX" value="40" enum="PropertyHint">
+		<constant name="PROPERTY_HINT_ONESHOT" value="40" enum="PropertyHint">
+			Hints that a property will be changed on its own after setting, such as [member AudioStreamPlayer.playing] or [member GPUParticles3D.emitting].
+		</constant>
+		<constant name="PROPERTY_HINT_MAX" value="41" enum="PropertyHint">
 			Represents the size of the [enum PropertyHint] enum.
 		</constant>
 		<constant name="PROPERTY_USAGE_NONE" value="0" enum="PropertyUsageFlags" is_bitfield="true">

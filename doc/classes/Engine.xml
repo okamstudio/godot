@@ -13,21 +13,7 @@
 			<return type="String" />
 			<description>
 				Returns the name of the CPU architecture the Godot binary was built for. Possible return values include [code]"x86_64"[/code], [code]"x86_32"[/code], [code]"arm64"[/code], [code]"arm32"[/code], [code]"rv64"[/code], [code]"riscv"[/code], [code]"ppc64"[/code], [code]"ppc"[/code], [code]"wasm64"[/code], and [code]"wasm32"[/code].
-				To detect whether the current build is 64-bit, you can use the fact that all 64-bit architecture names contain [code]64[/code] in their name:
-				[codeblocks]
-				[gdscript]
-				if "64" in Engine.get_architecture_name():
-				    print("Running a 64-bit build of Godot.")
-				else:
-				    print("Running a 32-bit build of Godot.")
-				[/gdscript]
-				[csharp]
-				if (Engine.GetArchitectureName().Contains("64"))
-				    GD.Print("Running a 64-bit build of Godot.");
-				else
-				    GD.Print("Running a 32-bit build of Godot.");
-				[/csharp]
-				[/codeblocks]
+				To detect whether the current build is 64-bit, or the type of architecture, don't use the architecture name. Instead, use [method OS.has_feature] to check for the [code]"64"[/code] feature tag, or tags such as [code]"x86"[/code] or [code]"arm"[/code]. See the [url=$DOCS_URL/tutorials/export/feature_tags.html]Feature Tags[/url] documentation for more details.
 				[b]Note:[/b] This method does [i]not[/i] return the name of the system's CPU architecture (like [method OS.get_processor_name]). For example, when running an [code]x86_32[/code] Godot binary on an [code]x86_64[/code] system, the returned value will still be [code]"x86_32"[/code].
 			</description>
 		</method>
@@ -223,10 +209,10 @@
 				print(Engine.has_singleton("Unknown"))     # Prints false
 				[/gdscript]
 				[csharp]
-				GD.Print(Engine.HasSingleton("OS"));          // Prints true
-				GD.Print(Engine.HasSingleton("Engine"));      // Prints true
-				GD.Print(Engine.HasSingleton("AudioServer")); // Prints true
-				GD.Print(Engine.HasSingleton("Unknown"));     // Prints false
+				GD.Print(Engine.HasSingleton("OS"));          // Prints True
+				GD.Print(Engine.HasSingleton("Engine"));      // Prints True
+				GD.Print(Engine.HasSingleton("AudioServer")); // Prints True
+				GD.Print(Engine.HasSingleton("Unknown"));     // Prints False
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] Global singletons are not the same as autoloaded nodes, which are configurable in the project settings.

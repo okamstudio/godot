@@ -44,6 +44,9 @@
 			[b]Light:[/b] Sharp result by snapping glyph edges to pixels on the Y axis only.
 			[b]Full:[/b] Sharpest by snapping glyph edges to pixels on both X and Y axes.
 		</member>
+		<member name="keep_rounding_remainders" type="bool" setter="" getter="" default="true">
+			If set to [code]true[/code], when aligning glyphs to the pixel boundaries rounding remainders are accumulated to ensure more uniform glyph distribution. This setting has no effect if subpixel positioning is enabled.
+		</member>
 		<member name="language_support" type="Dictionary" setter="" getter="" default="{}">
 			Override the list of languages supported by this font. If left empty, this is supplied by the font metadata. There is usually no need to change this. See also [member script_support].
 		</member>

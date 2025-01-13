@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Identifier "X" is not a preloaded script or class.
+>> ERROR at line 8: Identifier "X" is not a preloaded script or class.

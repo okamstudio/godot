@@ -30,6 +30,7 @@
 			<param index="6" name="layers" type="int" />
 			<param index="7" name="mipmaps" type="int" />
 			<param index="8" name="unique" type="bool" />
+			<param index="9" name="discardable" type="bool" />
 			<description>
 				Create a new texture with the given definition and cache this under the given name. Will return the existing texture if it already exists.
 			</description>

@@ -80,7 +80,7 @@
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns if the given line is foldable, that is, it has indented lines right below it or a comment / string block.
+				Returns [code]true[/code] if the given line is foldable. A line is foldable if it is the start of a valid code region (see [method get_code_region_start_tag]), if it is the start of a comment or string block, or if the next non-empty line is more indented (see [method TextEdit.get_indent_level]).
 			</description>
 		</method>
 		<method name="cancel_code_completion">
@@ -153,7 +153,7 @@
 		<method name="do_indent">
 			<return type="void" />
 			<description>
-				Perform an indent as if the user activated the "ui_text_indent" action.
+				If there is no selection, indentation is inserted at the caret. Otherwise, the selected lines are indented like [method indent_lines]. Equivalent to the [member ProjectSettings.input/ui_text_indent] action. The indentation characters used depend on [member indent_use_spaces] and [member indent_size].
 			</description>
 		</method>
 		<method name="duplicate_lines">
@@ -276,7 +276,7 @@
 		<method name="get_folded_lines" qualifiers="const">
 			<return type="int[]" />
 			<description>
-				Returns all lines that are current folded.
+				Returns all lines that are currently folded.
 			</description>
 		</method>
 		<method name="get_text_for_code_completion" qualifiers="const">
@@ -330,7 +330,7 @@
 		<method name="indent_lines">
 			<return type="void" />
 			<description>
-				Indents selected lines, or in the case of no selection the caret line by one.
+				Indents all lines that are selected or have a caret on them. Uses spaces or a tab depending on [member indent_use_spaces]. See [method unindent_lines].
 			</description>
 		</method>
 		<method name="is_in_comment" qualifiers="const">
@@ -353,42 +353,42 @@
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is bookmarked or not.
+				Returns [code]true[/code] if the given line is bookmarked. See [method set_line_as_bookmarked].
 			</description>
 		</method>
 		<method name="is_line_breakpointed" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is breakpointed or not.
+				Returns [code]true[/code] if the given line is breakpointed. See [method set_line_as_breakpoint].
 			</description>
 		</method>
 		<method name="is_line_code_region_end" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is a code region end.
+				Returns [code]true[/code] if the given line is a code region end. See [method set_code_region_tags].
 			</description>
 		</method>
 		<method name="is_line_code_region_start" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is a code region start.
+				Returns [code]true[/code] if the given line is a code region start. See [method set_code_region_tags].
 			</description>
 		</method>
 		<method name="is_line_executing" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is marked as executing or not.
+				Returns [code]true[/code] if the given line is marked as executing. See [method set_line_as_executing].
 			</description>
 		</method>
 		<method name="is_line_folded" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns whether the line at the specified index is folded or not.
+				Returns [code]true[/code] if the given line is folded. See [method fold_line].
 			</description>
 		</method>
 		<method name="move_lines_down">
@@ -442,7 +442,7 @@
 			<return type="void" />
 			<param index="0" name="draw_below" type="bool" />
 			<description>
-				Sets if the code hint should draw below the text.
+				If [code]true[/code], the code hint will draw below the main caret. If [code]false[/code], the code hint will draw above the main caret. See [method set_code_hint].
 			</description>
 		</method>
 		<method name="set_code_region_tags">
@@ -458,7 +458,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="bookmarked" type="bool" />
 			<description>
-				Sets the line as bookmarked.
+				Sets the given line as bookmarked. If [code]true[/code] and [member gutters_draw_bookmarks] is [code]true[/code], draws the [theme_item bookmark] icon in the gutter for this line. See [method get_bookmarked_lines] and [method is_line_bookmarked].
 			</description>
 		</method>
 		<method name="set_line_as_breakpoint">
@@ -466,7 +466,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="breakpointed" type="bool" />
 			<description>
-				Sets the line as breakpointed.
+				Sets the given line as a breakpoint. If [code]true[/code] and [member gutters_draw_breakpoints_gutter] is [code]true[/code], draws the [theme_item breakpoint] icon in the gutter for this line. See [method get_breakpointed_lines] and [method is_line_breakpointed].
 			</description>
 		</method>
 		<method name="set_line_as_executing">
@@ -474,7 +474,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="executing" type="bool" />
 			<description>
-				Sets the line as executing.
+				Sets the given line as executing. If [code]true[/code] and [member gutters_draw_executing_lines] is [code]true[/code], draws the [theme_item executing_line] icon in the gutter for this line. See [method get_executing_lines] and [method is_line_executing].
 			</description>
 		</method>
 		<method name="set_symbol_lookup_word_as_valid">
@@ -500,20 +500,20 @@
 		<method name="unfold_all_lines">
 			<return type="void" />
 			<description>
-				Unfolds all lines, folded or not.
+				Unfolds all lines that are folded.
 			</description>
 		</method>
 		<method name="unfold_line">
 			<return type="void" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Unfolds all lines that were previously folded.
+				Unfolds the given line if it is folded or if it is hidden under a folded line.
 			</description>
 		</method>
 		<method name="unindent_lines">
 			<return type="void" />
 			<description>
-				Unindents selected lines, or in the case of no selection the caret line by one. Same as performing "ui_text_unindent" action.
+				Unindents all lines that are selected or have a caret on them. Uses spaces or a tab depending on [member indent_use_spaces]. Equivalent to the [member ProjectSettings.input/ui_text_dedent] action. See [method indent_lines].
 			</description>
 		</method>
 		<method name="update_code_completion_options">
@@ -527,16 +527,16 @@
 	</methods>
 	<members>
 		<member name="auto_brace_completion_enabled" type="bool" setter="set_auto_brace_completion_enabled" getter="is_auto_brace_completion_enabled" default="false">
-			Sets whether brace pairs should be autocompleted.
+			If [code]true[/code], uses [member auto_brace_completion_pairs] to automatically insert the closing brace when the opening brace is inserted by typing or autocompletion. Also automatically removes the closing brace when using backspace on the opening brace.
 		</member>
 		<member name="auto_brace_completion_highlight_matching" type="bool" setter="set_highlight_matching_braces_enabled" getter="is_highlight_matching_braces_enabled" default="false">
-			Highlight mismatching brace pairs.
+			If [code]true[/code], highlights brace pairs when the caret is on either one, using [member auto_brace_completion_pairs]. If matching, the pairs will be underlined. If a brace is unmatched, it is colored with [theme_item brace_mismatch_color].
 		</member>
 		<member name="auto_brace_completion_pairs" type="Dictionary" setter="set_auto_brace_completion_pairs" getter="get_auto_brace_completion_pairs" default="{ &quot;\&quot;&quot;: &quot;\&quot;&quot;, &quot;&apos;&quot;: &quot;&apos;&quot;, &quot;(&quot;: &quot;)&quot;, &quot;[&quot;: &quot;]&quot;, &quot;{&quot;: &quot;}&quot; }">
-			Sets the brace pairs to be autocompleted.
+			Sets the brace pairs to be autocompleted. For each entry in the dictionary, the key is the opening brace and the value is the closing brace that matches it. A brace is a [String] made of symbols. See [member auto_brace_completion_enabled] and [member auto_brace_completion_highlight_matching].
 		</member>
 		<member name="code_completion_enabled" type="bool" setter="set_code_completion_enabled" getter="is_code_completion_enabled" default="false">
-			Sets whether code completion is allowed.
+			If [code]true[/code], the [member ProjectSettings.input/ui_text_completion_query] action requests code completion. To handle it, see [method _request_code_completion] or [signal code_completion_requested].
 		</member>
 		<member name="code_completion_prefixes" type="String[]" setter="set_code_completion_prefixes" getter="get_code_completion_prefixes" default="[]">
 			Sets prefixes that will trigger code completion.
@@ -548,28 +548,28 @@
 			Sets the string delimiters. All existing string delimiters will be removed.
 		</member>
 		<member name="gutters_draw_bookmarks" type="bool" setter="set_draw_bookmarks_gutter" getter="is_drawing_bookmarks_gutter" default="false">
-			Sets if bookmarked should be drawn in the gutter. This gutter is shared with breakpoints and executing lines.
+			If [code]true[/code], bookmarks are drawn in the gutter. This gutter is shared with breakpoints and executing lines. See [method set_line_as_bookmarked].
 		</member>
 		<member name="gutters_draw_breakpoints_gutter" type="bool" setter="set_draw_breakpoints_gutter" getter="is_drawing_breakpoints_gutter" default="false">
-			Sets if breakpoints should be drawn in the gutter. This gutter is shared with bookmarks and executing lines.
+			If [code]true[/code], breakpoints are drawn in the gutter. This gutter is shared with bookmarks and executing lines. Clicking the gutter will toggle the breakpoint for the line, see [method set_line_as_breakpoint].
 		</member>
 		<member name="gutters_draw_executing_lines" type="bool" setter="set_draw_executing_lines_gutter" getter="is_drawing_executing_lines_gutter" default="false">
-			Sets if executing lines should be marked in the gutter. This gutter is shared with breakpoints and bookmarks lines.
+			If [code]true[/code], executing lines are marked in the gutter. This gutter is shared with breakpoints and bookmarks. See [method set_line_as_executing].
 		</member>
 		<member name="gutters_draw_fold_gutter" type="bool" setter="set_draw_fold_gutter" getter="is_drawing_fold_gutter" default="false">
-			Sets if foldable lines icons should be drawn in the gutter.
+			If [code]true[/code], the fold gutter is drawn. In this gutter, the [theme_item can_fold_code_region] icon is drawn for each foldable line (see [method can_fold_line]) and the [theme_item folded_code_region] icon is drawn for each folded line (see [method is_line_folded]). These icons can be clicked to toggle the fold state, see [method toggle_foldable_line]. [member line_folding] must be [code]true[/code] to show icons.
 		</member>
 		<member name="gutters_draw_line_numbers" type="bool" setter="set_draw_line_numbers" getter="is_draw_line_numbers_enabled" default="false">
-			Sets if line numbers should be drawn in the gutter.
+			If [code]true[/code], the line number gutter is drawn. Line numbers start at [code]1[/code] and are incremented for each line of text. Clicking and dragging in the line number gutter will select entire lines of text.
 		</member>
 		<member name="gutters_zero_pad_line_numbers" type="bool" setter="set_line_numbers_zero_padded" getter="is_line_numbers_zero_padded" default="false">
-			Sets if line numbers drawn in the gutter are zero padded.
+			If [code]true[/code], line numbers drawn in the gutter are zero padded based on the total line count. Requires [member gutters_draw_line_numbers] to be set to [code]true[/code].
 		</member>
 		<member name="indent_automatic" type="bool" setter="set_auto_indent_enabled" getter="is_auto_indent_enabled" default="false">
-			Sets whether automatic indent are enabled, this will add an extra indent if a prefix or brace is found.
+			If [code]true[/code], an extra indent is automatically inserted when a new line is added and a prefix in [member indent_automatic_prefixes] is found. If a brace pair opening key is found, the matching closing brace will be moved to another new line (see [member auto_brace_completion_pairs]).
 		</member>
 		<member name="indent_automatic_prefixes" type="String[]" setter="set_auto_indent_prefixes" getter="get_auto_indent_prefixes" default="[&quot;:&quot;, &quot;{&quot;, &quot;[&quot;, &quot;(&quot;]">
-			Prefixes to trigger an automatic indent.
+			Prefixes to trigger an automatic indent. Used when [member indent_automatic] is set to [code]true[/code].
 		</member>
 		<member name="indent_size" type="int" setter="set_indent_size" getter="get_indent_size" default="4">
 			Size of the tabulation indent (one [kbd]Tab[/kbd] press) in characters. If [member indent_use_spaces] is enabled the number of spaces to use.
@@ -579,7 +579,7 @@
 		</member>
 		<member name="layout_direction" type="int" setter="set_layout_direction" getter="get_layout_direction" overrides="Control" enum="Control.LayoutDirection" default="2" />
 		<member name="line_folding" type="bool" setter="set_line_folding_enabled" getter="is_line_folding_enabled" default="false">
-			Sets whether line folding is allowed.
+			If [code]true[/code], lines can be folded. Otherwise, line folding methods like [method fold_line] will not work and [method can_fold_line] will always return [code]false[/code]. See [member gutters_draw_fold_gutter].
 		</member>
 		<member name="line_length_guidelines" type="int[]" setter="set_line_length_guidelines" getter="get_line_length_guidelines" default="[]">
 			Draws vertical lines at the provided columns. The first entry is considered a main hard guideline and is draw more prominently.
@@ -598,7 +598,7 @@
 		</signal>
 		<signal name="code_completion_requested">
 			<description>
-				Emitted when the user requests code completion.
+				Emitted when the user requests code completion. This signal will not be sent if [method _request_code_completion] is overridden or [member code_completion_enabled] is [code]false[/code].
 			</description>
 		</signal>
 		<signal name="symbol_lookup">

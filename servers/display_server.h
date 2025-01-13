@@ -153,6 +153,8 @@ public:
 		FEATURE_NATIVE_DIALOG_INPUT,
 		FEATURE_NATIVE_DIALOG_FILE,
 		FEATURE_NATIVE_DIALOG_FILE_EXTRA,
+		FEATURE_WINDOW_DRAG,
+		FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE,
 	};
 
 	virtual bool has_feature(Feature p_feature) const = 0;
@@ -345,6 +347,7 @@ public:
 	virtual float screen_get_refresh_rate(int p_screen = SCREEN_OF_MAIN_WINDOW) const = 0;
 	virtual Color screen_get_pixel(const Point2i &p_position) const { return Color(); }
 	virtual Ref<Image> screen_get_image(int p_screen = SCREEN_OF_MAIN_WINDOW) const { return Ref<Image>(); }
+	virtual Ref<Image> screen_get_image_rect(const Rect2i &p_rect) const { return Ref<Image>(); }
 	virtual bool is_touchscreen_available() const;
 
 	// Keep the ScreenOrientation enum values in sync with the `display/window/handheld/orientation`
@@ -386,6 +389,7 @@ public:
 		WINDOW_FLAG_EXTEND_TO_TITLE,
 		WINDOW_FLAG_MOUSE_PASSTHROUGH,
 		WINDOW_FLAG_SHARP_CORNERS,
+		WINDOW_FLAG_EXCLUDE_FROM_CAPTURE,
 		WINDOW_FLAG_MAX,
 	};
 
@@ -400,6 +404,7 @@ public:
 		WINDOW_FLAG_EXTEND_TO_TITLE_BIT = (1 << WINDOW_FLAG_EXTEND_TO_TITLE),
 		WINDOW_FLAG_MOUSE_PASSTHROUGH_BIT = (1 << WINDOW_FLAG_MOUSE_PASSTHROUGH),
 		WINDOW_FLAG_SHARP_CORNERS_BIT = (1 << WINDOW_FLAG_SHARP_CORNERS),
+		WINDOW_FLAG_EXCLUDE_FROM_CAPTURE_BIT = (1 << WINDOW_FLAG_EXCLUDE_FROM_CAPTURE),
 	};
 
 	virtual WindowID create_sub_window(WindowMode p_mode, VSyncMode p_vsync_mode, uint32_t p_flags, const Rect2i &p_rect = Rect2i(), bool p_exclusive = false, WindowID p_transient_parent = INVALID_WINDOW_ID);
@@ -490,6 +495,8 @@ public:
 	virtual bool window_maximize_on_title_dbl_click() const { return false; }
 	virtual bool window_minimize_on_title_dbl_click() const { return false; }
 
+	virtual void window_start_drag(WindowID p_window = MAIN_WINDOW_ID) {}
+
 	// necessary for GL focus, may be able to use one of the existing functions for this, not sure yet
 	virtual void gl_window_make_current(DisplayServer::WindowID p_window_id);
 
@@ -556,6 +563,8 @@ public:
 	};
 	virtual Error file_dialog_show(const String &p_title, const String &p_current_directory, const String &p_filename, bool p_show_hidden, FileDialogMode p_mode, const Vector<String> &p_filters, const Callable &p_callback);
 	virtual Error file_dialog_with_options_show(const String &p_title, const String &p_current_directory, const String &p_root, const String &p_filename, bool p_show_hidden, FileDialogMode p_mode, const Vector<String> &p_filters, const TypedArray<Dictionary> &p_options, const Callable &p_callback);
+
+	virtual void beep() const;
 
 	virtual int keyboard_get_layout_count() const;
 	virtual int keyboard_get_current_layout() const;

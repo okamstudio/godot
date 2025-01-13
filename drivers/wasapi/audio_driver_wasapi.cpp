@@ -92,7 +92,7 @@ __CRT_UUID_DECL(IAudioClient3, 0x7ED4EE07, 0x8E67, 0x4CD4, 0x8C, 0x1A, 0x2B, 0x7
 
 #endif // __MINGW32__ || __MINGW64__
 
-#ifndef PKEY_Device_FriendlyName
+#ifndef PKEY_Device_FriendlyNameGodot
 
 #undef DEFINE_PROPERTYKEY
 /* clang-format off */
@@ -100,7 +100,7 @@ __CRT_UUID_DECL(IAudioClient3, 0x7ED4EE07, 0x8E67, 0x4CD4, 0x8C, 0x1A, 0x2B, 0x7
 	const PROPERTYKEY id = { { a, b, c, { d, e, f, g, h, i, j, k, } }, l };
 /* clang-format on */
 
-DEFINE_PROPERTYKEY(PKEY_Device_FriendlyName, 0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 14);
+DEFINE_PROPERTYKEY(PKEY_Device_FriendlyNameGodot, 0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 14);
 #endif
 
 const CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
@@ -234,7 +234,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 			PROPVARIANT propvar;
 			PropVariantInit(&propvar);
 
-			hr = props->GetValue(PKEY_Device_FriendlyName, &propvar);
+			hr = props->GetValue(PKEY_Device_FriendlyNameGodot, &propvar);
 			ERR_BREAK(hr != S_OK);
 
 			if (p_device->device_name == String(propvar.pwszVal)) {
@@ -597,7 +597,7 @@ PackedStringArray AudioDriverWASAPI::audio_device_get_list(bool p_input) {
 		PROPVARIANT propvar;
 		PropVariantInit(&propvar);
 
-		hr = props->GetValue(PKEY_Device_FriendlyName, &propvar);
+		hr = props->GetValue(PKEY_Device_FriendlyNameGodot, &propvar);
 		ERR_BREAK(hr != S_OK);
 
 		list.push_back(String(propvar.pwszVal));

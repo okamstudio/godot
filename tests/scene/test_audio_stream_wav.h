@@ -37,11 +37,6 @@
 
 #include "tests/test_macros.h"
 
-#ifdef TOOLS_ENABLED
-#include "core/io/resource_loader.h"
-#include "editor/import/resource_importer_wav.h"
-#endif
-
 namespace TestAudioStreamWAV {
 
 // Default wav rate for test cases.
@@ -148,25 +143,8 @@ void run_test(String file_name, AudioStreamWAV::Format data_format, bool stereo,
 		Ref<FileAccess> wav_file = FileAccess::open(save_path, FileAccess::READ, &error);
 		REQUIRE(error == OK);
 
-#ifdef TOOLS_ENABLED
-		// The WAV importer can be used if enabled to check that the saved file is valid.
-		Ref<ResourceImporterWAV> wav_importer = memnew(ResourceImporterWAV);
-
-		List<ResourceImporter::ImportOption> options_list;
-		wav_importer->get_import_options("", &options_list);
-
-		HashMap<StringName, Variant> options_map;
-		for (const ResourceImporter::ImportOption &E : options_list) {
-			options_map[E.option.name] = E.default_value;
-		}
-		// Compressed streams can't be saved, disable compression.
-		options_map["compress/mode"] = 0;
-
-		REQUIRE(wav_importer->import(0, save_path, save_path, options_map, nullptr) == OK);
-
-		String load_path = save_path + "." + wav_importer->get_save_extension();
-		Ref<AudioStreamWAV> loaded_stream = ResourceLoader::load(load_path, "AudioStreamWAV", ResourceFormatImporter::CACHE_MODE_IGNORE, &error);
-		REQUIRE(error == OK);
+		Dictionary options;
+		Ref<AudioStreamWAV> loaded_stream = AudioStreamWAV::load_from_file(save_path, options);
 
 		CHECK(loaded_stream->get_format() == stream->get_format());
 		CHECK(loaded_stream->get_loop_mode() == stream->get_loop_mode());
@@ -177,7 +155,6 @@ void run_test(String file_name, AudioStreamWAV::Format data_format, bool stereo,
 		CHECK(loaded_stream->get_length() == stream->get_length());
 		CHECK(loaded_stream->is_monophonic() == stream->is_monophonic());
 		CHECK(loaded_stream->get_data() == stream->get_data());
-#endif
 	}
 }
 

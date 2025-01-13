@@ -74,6 +74,9 @@
 			Limits the lines of text the node shows on screen.
 		</member>
 		<member name="mouse_filter" type="int" setter="set_mouse_filter" getter="get_mouse_filter" overrides="Control" enum="Control.MouseFilter" default="2" />
+		<member name="paragraph_separator" type="String" setter="set_paragraph_separator" getter="get_paragraph_separator" default="&quot;\\n&quot;">
+			String used as a paragraph separator. Each paragraph is processed independently, in its own BiDi context.
+		</member>
 		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="4" />
 		<member name="structured_text_bidi_override" type="int" setter="set_structured_text_bidi_override" getter="get_structured_text_bidi_override" enum="TextServer.StructuredTextParser" default="0">
 			Set BiDi algorithm override for the structured text.
@@ -128,6 +131,9 @@
 			Text outline size.
 			[b]Note:[/b] If using a font with [member FontFile.multichannel_signed_distance_field] enabled, its [member FontFile.msdf_pixel_range] must be set to at least [i]twice[/i] the value of [theme_item outline_size] for outline rendering to look correct. Otherwise, the outline may appear to be cut off earlier than intended.
 			[b]Note:[/b] Using a value that is larger than half the font size is not recommended, as the font outline may fail to be fully closed in this case.
+		</theme_item>
+		<theme_item name="paragraph_spacing" data_type="constant" type="int" default="0">
+			Vertical space between paragraphs. Added on top of [theme_item line_spacing].
 		</theme_item>
 		<theme_item name="shadow_offset_x" data_type="constant" type="int" default="1">
 			The horizontal offset of the text's shadow.

@@ -40,6 +40,7 @@
 #include "scene/property_list_helper.h"
 
 class GridContainer;
+class PopupMenu;
 
 class FileDialog : public ConfirmationDialog {
 	GDCLASS(FileDialog, ConfirmationDialog);
@@ -57,6 +58,12 @@ public:
 		FILE_MODE_OPEN_DIR,
 		FILE_MODE_OPEN_ANY,
 		FILE_MODE_SAVE_FILE
+	};
+
+	enum ItemMenu {
+		ITEM_MENU_COPY_PATH,
+		ITEM_MENU_SHOW_IN_EXPLORER,
+		ITEM_MENU_SHOW_BUNDLE_CONTENT,
 	};
 
 	typedef Ref<Texture2D> (*GetIconFunc)(const String &);
@@ -89,6 +96,7 @@ private:
 	AcceptDialog *exterr = nullptr;
 	Ref<DirAccess> dir_access;
 	ConfirmationDialog *confirm_save = nullptr;
+	PopupMenu *item_menu = nullptr;
 
 	Label *message = nullptr;
 
@@ -152,6 +160,7 @@ private:
 	Vector<Option> options;
 	Dictionary selected_options;
 	bool options_dirty = false;
+	String full_dir;
 
 	void update_dir();
 	void update_file_name();
@@ -159,6 +168,10 @@ private:
 	void update_filename_filter();
 	void update_filename_filter_gui();
 	void update_filters();
+
+	void _item_menu_id_pressed(int p_option);
+	void _empty_clicked(const Vector2 &p_pos, MouseButton p_button);
+	void _rmb_select(const Vector2 &p_pos, MouseButton p_button = MouseButton::RIGHT);
 
 	void _focus_file_text();
 

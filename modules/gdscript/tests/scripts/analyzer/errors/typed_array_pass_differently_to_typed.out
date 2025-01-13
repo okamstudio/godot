@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid argument for "expect_typed()" function: argument 1 should be "Array[int]" but is "Array[float]".
+>> ERROR at line 6: Invalid argument for "expect_typed()" function: argument 1 should be "Array[int]" but is "Array[float]".

@@ -84,6 +84,12 @@ static inline unsigned int encode_uint32(uint32_t p_uint, uint8_t *p_arr) {
 	return sizeof(uint32_t);
 }
 
+static inline unsigned int encode_half(float p_float, uint8_t *p_arr) {
+	encode_uint16(Math::make_half_float(p_float), p_arr);
+
+	return sizeof(uint16_t);
+}
+
 static inline unsigned int encode_float(float p_float, uint8_t *p_arr) {
 	MarshallFloat mf;
 	mf.f = p_float;
@@ -170,6 +176,10 @@ static inline uint32_t decode_uint32(const uint8_t *p_arr) {
 	}
 
 	return u;
+}
+
+static inline float decode_half(const uint8_t *p_arr) {
+	return Math::half_to_float(decode_uint16(p_arr));
 }
 
 static inline float decode_float(const uint8_t *p_arr) {

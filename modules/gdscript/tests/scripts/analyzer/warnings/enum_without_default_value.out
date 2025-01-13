@@ -1,7 +1,4 @@
 GDTEST_OK
->> WARNING
->> Line: 4
->> ENUM_VARIABLE_WITHOUT_DEFAULT
->> The variable "has_no_zero" has an enum type and does not set an explicit default value. The default will be set to "0".
+~~ WARNING at line 4: (ENUM_VARIABLE_WITHOUT_DEFAULT) The variable "has_no_zero" has an enum type and does not set an explicit default value. The default will be set to "0".
 0
 0

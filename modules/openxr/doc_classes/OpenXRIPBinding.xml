@@ -16,6 +16,19 @@
 				Add an input/output path to this binding.
 			</description>
 		</method>
+		<method name="get_binding_modifier" qualifiers="const">
+			<return type="OpenXRActionBindingModifier" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Get the [OpenXRBindingModifier] at this index.
+			</description>
+		</method>
+		<method name="get_binding_modifier_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Get the number of binding modifiers for this binding.
+			</description>
+		</method>
 		<method name="get_path_count" qualifiers="const" deprecated="Binding is for a single path.">
 			<return type="int" />
 			<description>
@@ -40,6 +53,9 @@
 	<members>
 		<member name="action" type="OpenXRAction" setter="set_action" getter="get_action">
 			[OpenXRAction] that is bound to [member binding_path].
+		</member>
+		<member name="binding_modifiers" type="Array" setter="set_binding_modifiers" getter="get_binding_modifiers" default="[]">
+			Binding modifiers for this binding.
 		</member>
 		<member name="binding_path" type="String" setter="set_binding_path" getter="get_binding_path" default="&quot;&quot;">
 			Binding path that defines the input or output bound to [member action].

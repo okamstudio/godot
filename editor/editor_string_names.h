@@ -34,9 +34,7 @@
 #include "core/string/string_name.h"
 
 class EditorStringNames {
-	static EditorStringNames *singleton;
-
-	EditorStringNames();
+	inline static EditorStringNames *singleton = nullptr;
 
 public:
 	static void create() { singleton = memnew(EditorStringNames); }
@@ -47,10 +45,10 @@ public:
 
 	_FORCE_INLINE_ static EditorStringNames *get_singleton() { return singleton; }
 
-	StringName Editor;
-	StringName EditorFonts;
-	StringName EditorIcons;
-	StringName EditorStyles;
+	const StringName Editor = StaticCString::create("Editor");
+	const StringName EditorFonts = StaticCString::create("EditorFonts");
+	const StringName EditorIcons = StaticCString::create("EditorIcons");
+	const StringName EditorStyles = StaticCString::create("EditorStyles");
 };
 
 #define EditorStringName(m_name) EditorStringNames::get_singleton()->m_name

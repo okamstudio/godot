@@ -617,7 +617,7 @@ PackedStringArray OmniLight3D::get_configuration_warnings() const {
 	}
 
 	if (get_projector().is_valid() && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("Projector textures are not supported when using the GL Compatibility backend yet. Support will be added in a future release."));
+		warnings.push_back(RTR("Projector textures are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
 	}
 
 	return warnings;
@@ -653,7 +653,7 @@ PackedStringArray SpotLight3D::get_configuration_warnings() const {
 	}
 
 	if (get_projector().is_valid() && OS::get_singleton()->get_current_rendering_method() == "gl_compatibility") {
-		warnings.push_back(RTR("Projector textures are not supported when using the GL Compatibility backend yet. Support will be added in a future release."));
+		warnings.push_back(RTR("Projector textures are not supported when using the Compatibility renderer yet. Support will be added in a future release."));
 	}
 
 	return warnings;

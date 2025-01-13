@@ -78,6 +78,8 @@ class RegEx : public RefCounted {
 
 	void _pattern_info(uint32_t what, void *where) const;
 
+	int _sub(const String &p_subject, const String &p_replacement, int p_offset, int p_end, uint32_t p_flags, String &r_output) const;
+
 protected:
 	static void _bind_methods();
 

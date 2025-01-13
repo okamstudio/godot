@@ -103,7 +103,7 @@ public:
 	virtual real_t map_get_link_connection_radius(RID p_map) const = 0;
 
 	/// Returns the navigation path to reach the destination from the origin.
-	virtual Vector<Vector3> map_get_path(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers = 1) const = 0;
+	virtual Vector<Vector3> map_get_path(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers = 1) = 0;
 
 	virtual Vector3 map_get_closest_point_to_segment(RID p_map, const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision = false) const = 0;
 	virtual Vector3 map_get_closest_point(RID p_map, const Vector3 &p_point) const = 0;
@@ -343,9 +343,7 @@ public:
 	virtual void finish() = 0;
 
 	/// Returns a customized navigation path using a query parameters object
-	virtual void query_path(const Ref<NavigationPathQueryParameters3D> &p_query_parameters, Ref<NavigationPathQueryResult3D> p_query_result) const;
-
-	virtual NavigationUtilities::PathQueryResult _query_path(const NavigationUtilities::PathQueryParameters &p_parameters) const = 0;
+	virtual void query_path(const Ref<NavigationPathQueryParameters3D> &p_query_parameters, Ref<NavigationPathQueryResult3D> p_query_result, const Callable &p_callback = Callable()) = 0;
 
 #ifndef _3D_DISABLED
 	virtual void parse_source_geometry_data(const Ref<NavigationMesh> &p_navigation_mesh, const Ref<NavigationMeshSourceGeometryData3D> &p_source_geometry_data, Node *p_root_node, const Callable &p_callback = Callable()) = 0;
@@ -379,6 +377,13 @@ public:
 
 	void set_debug_enabled(bool p_enabled);
 	bool get_debug_enabled() const;
+
+protected:
+#ifndef DISABLE_DEPRECATED
+	Vector<Vector3> _map_get_path_bind_compat_100129(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers = 1) const;
+	void _query_path_bind_compat_100129(const Ref<NavigationPathQueryParameters3D> &p_query_parameters, Ref<NavigationPathQueryResult3D> p_query_result) const;
+	static void _bind_compatibility_methods();
+#endif
 
 private:
 	bool debug_enabled = false;

@@ -469,14 +469,14 @@ void CharacterBody3D::apply_floor_snap() {
 		_set_collision_direction(result, result_state, CollisionState(true, false, false));
 
 		if (result_state.floor) {
-			if (floor_stop_on_slope) {
-				// move and collide may stray the object a bit because of pre un-stucking,
-				// so only ensure that motion happens on floor direction in this case.
-				if (result.travel.length() > margin) {
-					result.travel = up_direction * up_direction.dot(result.travel);
-				} else {
-					result.travel = Vector3();
-				}
+			// Ensure that we only move the body along the up axis, because
+			// move_and_collide may stray the object a bit when getting it unstuck.
+			// Canceling this motion should not affect move_and_slide, as previous
+			// calls to move_and_collide already took care of freeing the body.
+			if (result.travel.length() > margin) {
+				result.travel = up_direction * up_direction.dot(result.travel);
+			} else {
+				result.travel = Vector3();
 			}
 
 			parameters.from.origin += result.travel;

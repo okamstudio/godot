@@ -163,7 +163,7 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 							}
 							if (from + end_key_length > line_length) {
 								// If it's key length and there is a '\', dont skip to highlight esc chars.
-								if (str.find("\\", from) >= 0) {
+								if (str.find_char('\\', from) >= 0) {
 									break;
 								}
 							}
@@ -236,7 +236,7 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 						for (; from < line_length; from++) {
 							if (line_length - from < end_key_length) {
 								// Don't break if '\' to highlight esc chars.
-								if (str.find("\\", from) < 0) {
+								if (str.find_char('\\', from) < 0) {
 									break;
 								}
 							}
@@ -815,7 +815,7 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 				if (E.usage & PROPERTY_USAGE_CATEGORY || E.usage & PROPERTY_USAGE_GROUP || E.usage & PROPERTY_USAGE_SUBGROUP) {
 					continue;
 				}
-				if (prop_name.contains("/")) {
+				if (prop_name.contains_char('/')) {
 					continue;
 				}
 				member_keywords[prop_name] = member_variable_color;

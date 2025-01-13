@@ -54,6 +54,8 @@
 // of these is set, they will override the values set in the credentials file.
 const String ENV_IOS_PROFILE_UUID_DEBUG = "GODOT_IOS_PROVISIONING_PROFILE_UUID_DEBUG";
 const String ENV_IOS_PROFILE_UUID_RELEASE = "GODOT_IOS_PROVISIONING_PROFILE_UUID_RELEASE";
+const String ENV_IOS_PROFILE_SPECIFIER_DEBUG = "GODOT_IOS_PROFILE_SPECIFIER_DEBUG";
+const String ENV_IOS_PROFILE_SPECIFIER_RELEASE = "GODOT_IOS_PROFILE_SPECIFIER_RELEASE";
 
 class EditorExportPlatformIOS : public EditorExportPlatform {
 	GDCLASS(EditorExportPlatformIOS, EditorExportPlatform);

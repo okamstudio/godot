@@ -28,22 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#if defined(UNIX_ENABLED)
+
 #include "ip_unix.h"
-
-#if defined(UNIX_ENABLED) || defined(WINDOWS_ENABLED)
-
-#ifdef WINDOWS_ENABLED
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-
-#include <iphlpapi.h>
-
-#include <stdio.h>
-
-#else // UNIX
 
 #include <netdb.h>
 
@@ -66,8 +53,6 @@
 #endif
 
 #include <net/if.h> // Order is important on OpenBSD, leave as last.
-
-#endif // UNIX
 
 #include <string.h>
 
@@ -108,7 +93,7 @@ void IPUnix::_resolve_hostname(List<IPAddress> &r_addresses, const String &p_hos
 	}
 
 	if (result == nullptr || result->ai_addr == nullptr) {
-		print_verbose("Invalid response from getaddrinfo");
+		print_verbose("Invalid response from getaddrinfo.");
 		if (result) {
 			freeaddrinfo(result);
 		}
@@ -131,56 +116,6 @@ void IPUnix::_resolve_hostname(List<IPAddress> &r_addresses, const String &p_hos
 
 	freeaddrinfo(result);
 }
-
-#if defined(WINDOWS_ENABLED)
-
-void IPUnix::get_local_interfaces(HashMap<String, Interface_Info> *r_interfaces) const {
-	ULONG buf_size = 1024;
-	IP_ADAPTER_ADDRESSES *addrs;
-
-	while (true) {
-		addrs = (IP_ADAPTER_ADDRESSES *)memalloc(buf_size);
-		int err = GetAdaptersAddresses(AF_UNSPEC, GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST | GAA_FLAG_SKIP_DNS_SERVER | GAA_FLAG_SKIP_FRIENDLY_NAME,
-				nullptr, addrs, &buf_size);
-		if (err == NO_ERROR) {
-			break;
-		}
-		memfree(addrs);
-		if (err == ERROR_BUFFER_OVERFLOW) {
-			continue; // will go back and alloc the right size
-		}
-
-		ERR_FAIL_MSG("Call to GetAdaptersAddresses failed with error " + itos(err) + ".");
-	}
-
-	IP_ADAPTER_ADDRESSES *adapter = addrs;
-
-	while (adapter != nullptr) {
-		Interface_Info info;
-		info.name = adapter->AdapterName;
-		info.name_friendly = adapter->FriendlyName;
-		info.index = String::num_uint64(adapter->IfIndex);
-
-		IP_ADAPTER_UNICAST_ADDRESS *address = adapter->FirstUnicastAddress;
-		while (address != nullptr) {
-			int family = address->Address.lpSockaddr->sa_family;
-			if (family != AF_INET && family != AF_INET6) {
-				continue;
-			}
-			info.ip_addresses.push_front(_sockaddr2ip(address->Address.lpSockaddr));
-			address = address->Next;
-		}
-		adapter = adapter->Next;
-		// Only add interface if it has at least one IP
-		if (info.ip_addresses.size() > 0) {
-			r_interfaces->insert(info.name, info);
-		}
-	}
-
-	memfree(addrs);
-}
-
-#else // UNIX
 
 void IPUnix::get_local_interfaces(HashMap<String, Interface_Info> *r_interfaces) const {
 	struct ifaddrs *ifAddrStruct = nullptr;
@@ -219,8 +154,6 @@ void IPUnix::get_local_interfaces(HashMap<String, Interface_Info> *r_interfaces)
 	}
 }
 
-#endif // UNIX
-
 void IPUnix::make_default() {
 	_create = _create_unix;
 }
@@ -232,4 +165,4 @@ IP *IPUnix::_create_unix() {
 IPUnix::IPUnix() {
 }
 
-#endif // UNIX_ENABLED || WINDOWS_ENABLED
+#endif // UNIX_ENABLED

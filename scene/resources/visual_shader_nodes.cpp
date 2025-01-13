@@ -3243,6 +3243,29 @@ String VisualShaderNodeColorFunc::generate_code(Shader::Mode p_mode, VisualShade
 			code += "		" + p_output_vars[0] + " = vec3(r, g, b);\n";
 			code += "	}\n";
 			break;
+		case FUNC_LINEAR_TO_SRGB:
+			code += "	{\n";
+			if (RenderingServer::get_singleton()->is_low_end()) {
+				code += "		vec3 c = " + p_input_vars[0] + ";\n";
+				code += "		" + p_output_vars[0] + " = max(vec3(1.055) * pow(c, vec3(0.416666667)) - vec3(0.055), vec3(0.0));\n";
+			} else {
+				code += "		vec3 c = clamp(" + p_input_vars[0] + ", vec3(0.0), vec3(1.0));\n";
+				code += "		const vec3 a = vec3(0.055f);\n";
+				code += "		" + p_output_vars[0] + " = mix((vec3(1.0f) + a) * pow(c.rgb, vec3(1.0f / 2.4f)) - a, 12.92f * c.rgb, lessThan(c.rgb, vec3(0.0031308f)));\n";
+			}
+			code += "	}\n";
+			break;
+		case FUNC_SRGB_TO_LINEAR:
+			code += "	{\n";
+			if (RenderingServer::get_singleton()->is_low_end()) {
+				code += "		vec3 c = " + p_input_vars[0] + ";\n";
+				code += "		" + p_output_vars[0] + " = c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);\n";
+			} else {
+				code += "		vec3 c = " + p_input_vars[0] + ";\n";
+				code += "		" + p_output_vars[0] + " = mix(pow((c.rgb + vec3(0.055)) * (1.0 / (1.0 + 0.055)), vec3(2.4)), c.rgb * (1.0 / 12.92), lessThan(c.rgb, vec3(0.04045)));\n";
+			}
+			code += "	}\n";
+			break;
 		default:
 			break;
 	}
@@ -3273,12 +3296,14 @@ void VisualShaderNodeColorFunc::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_function", "func"), &VisualShaderNodeColorFunc::set_function);
 	ClassDB::bind_method(D_METHOD("get_function"), &VisualShaderNodeColorFunc::get_function);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "function", PROPERTY_HINT_ENUM, "Grayscale,HSV2RGB,RGB2HSV,Sepia"), "set_function", "get_function");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "function", PROPERTY_HINT_ENUM, "Grayscale,HSV2RGB,RGB2HSV,Sepia,LinearToSRGB,SRGBToLinear"), "set_function", "get_function");
 
 	BIND_ENUM_CONSTANT(FUNC_GRAYSCALE);
 	BIND_ENUM_CONSTANT(FUNC_HSV2RGB);
 	BIND_ENUM_CONSTANT(FUNC_RGB2HSV);
 	BIND_ENUM_CONSTANT(FUNC_SEPIA);
+	BIND_ENUM_CONSTANT(FUNC_LINEAR_TO_SRGB);
+	BIND_ENUM_CONSTANT(FUNC_SRGB_TO_LINEAR);
 	BIND_ENUM_CONSTANT(FUNC_MAX);
 }
 
@@ -4878,19 +4903,22 @@ void VisualShaderNodeVectorCompose::set_op_type(OpType p_op_type) {
 		case OP_TYPE_VECTOR_3D: {
 			float p1 = get_input_port_default_value(0);
 			float p2 = get_input_port_default_value(1);
+			float p3 = get_input_port_default_value(2);
 
 			set_input_port_default_value(0, p1);
 			set_input_port_default_value(1, p2);
-			set_input_port_default_value(2, 0.0);
+			set_input_port_default_value(2, p3);
 		} break;
 		case OP_TYPE_VECTOR_4D: {
 			float p1 = get_input_port_default_value(0);
 			float p2 = get_input_port_default_value(1);
+			float p3 = get_input_port_default_value(2);
+			float p4 = get_input_port_default_value(3);
 
 			set_input_port_default_value(0, p1);
 			set_input_port_default_value(1, p2);
-			set_input_port_default_value(2, 0.0);
-			set_input_port_default_value(3, 0.0);
+			set_input_port_default_value(2, p3);
+			set_input_port_default_value(3, p4);
 		} break;
 		default:
 			break;

@@ -1,4 +1,3 @@
-
 int _handle_get_tree_id(BVHHandle p_handle) const {
 	if (USE_PAIRS) {
 		return _extra[p_handle.id()].tree_id;

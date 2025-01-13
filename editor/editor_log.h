@@ -98,8 +98,6 @@ private:
 			toggle_button->set_pressed(true);
 			toggle_button->set_text(itos(message_count));
 			toggle_button->set_tooltip_text(TTR(p_tooltip));
-			// Don't tint the icon even when in "pressed" state.
-			toggle_button->add_theme_color_override("icon_color_pressed", Color(1, 1, 1, 1));
 			toggle_button->set_focus_mode(FOCUS_NONE);
 			// When toggled call the callback and pass the MessageType this button is for.
 			toggle_button->connect(SceneStringName(toggled), p_toggled_callback.bind(type));
@@ -145,11 +143,10 @@ private:
 	Button *show_search_button = nullptr;
 	LineEdit *search_box = nullptr;
 
-	// Reference to the "Output" button on the toolbar so we can update it's icon when
-	// Warnings or Errors are encounetered.
+	// Reference to the "Output" button on the toolbar so we can update its icon when warnings or errors are encountered.
 	Button *tool_button = nullptr;
 
-	bool is_loading_state = false; // Used to disable saving requests while loading (some signals from buttons will try trigger a save, which happens during loading).
+	bool is_loading_state = false; // Used to disable saving requests while loading (some signals from buttons will try to trigger a save, which happens during loading).
 	Timer *save_state_timer = nullptr;
 
 	static void _error_handler(void *p_self, const char *p_func, const char *p_file, int p_line, const char *p_error, const char *p_errorexp, bool p_editor_notify, ErrorHandlerType p_type);

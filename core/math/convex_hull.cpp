@@ -2152,10 +2152,11 @@ static int32_t get_vertex_copy(ConvexHullInternal::Vertex *p_vertex, LocalVector
 }
 
 real_t ConvexHullComputer::compute(const Vector3 *p_coords, int32_t p_count, real_t p_shrink, real_t p_shrink_clamp) {
+	vertices.clear();
+	edges.clear();
+	faces.clear();
+
 	if (p_count <= 0) {
-		vertices.clear();
-		edges.clear();
-		faces.clear();
 		return 0;
 	}
 
@@ -2164,15 +2165,8 @@ real_t ConvexHullComputer::compute(const Vector3 *p_coords, int32_t p_count, rea
 
 	real_t shift = 0;
 	if ((p_shrink > 0) && ((shift = hull.shrink(p_shrink, p_shrink_clamp)) < 0)) {
-		vertices.clear();
-		edges.clear();
-		faces.clear();
 		return shift;
 	}
-
-	vertices.clear();
-	edges.clear();
-	faces.clear();
 
 	LocalVector<ConvexHullInternal::Vertex *> old_vertices;
 	get_vertex_copy(hull.vertex_list, old_vertices);

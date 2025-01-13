@@ -110,7 +110,7 @@ EditorExpressionEvaluator::EditorExpressionEvaluator() {
 	expression_input->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	expression_input->set_placeholder(TTR("Expression to evaluate"));
 	expression_input->set_clear_button_enabled(true);
-	expression_input->connect("text_submitted", callable_mp(this, &EditorExpressionEvaluator::_evaluate).unbind(1));
+	expression_input->connect(SceneStringName(text_submitted), callable_mp(this, &EditorExpressionEvaluator::_evaluate).unbind(1));
 	expression_input->connect(SceneStringName(text_changed), callable_mp(this, &EditorExpressionEvaluator::_on_expression_input_changed));
 	hb->add_child(expression_input);
 

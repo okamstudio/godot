@@ -88,7 +88,7 @@ namespace Godot
 
                 lock (_tasks)
                 {
-                    if (_tasks.Any())
+                    if (_tasks.Count > 0)
                     {
                         task = _tasks.First.Value;
                         _tasks.RemoveFirst();

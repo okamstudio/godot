@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+WARNING: The content of this file must always match the constant 'platform/android/export/export_plugin.cpp#ICON_XML_TEMPLATE'.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@mipmap/icon_background"/>
     <foreground android:drawable="@mipmap/icon_foreground"/>
-    <monochrome android:drawable="@mipmap/icon_monochrome"/>
 </adaptive-icon>

@@ -132,6 +132,7 @@ protected:
 	static void _bind_methods();
 
 #ifndef DISABLE_DEPRECATED
+	void _push_meta_bind_compat_99481(const Variant &p_meta, MetaUnderline p_underline_mode);
 	void _push_meta_bind_compat_89024(const Variant &p_meta);
 	void _add_image_bind_compat_80410(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region);
 	bool _remove_paragraph_bind_compat_91098(int p_paragraph);
@@ -152,6 +153,7 @@ private:
 		Color dc_ol_color;
 
 		Vector2 offset;
+		float indent = 0.0;
 		int char_offset = 0;
 		int char_count = 0;
 
@@ -204,6 +206,7 @@ private:
 		Size2 min_size_over = Size2(-1, -1);
 		Size2 max_size_over = Size2(-1, -1);
 		Rect2 padding;
+		int indent_level = 0;
 
 		ItemFrame() {
 			type = ITEM_FRAME;
@@ -291,6 +294,7 @@ private:
 	struct ItemMeta : public Item {
 		Variant meta;
 		MetaUnderline underline = META_UNDERLINE_ALWAYS;
+		String tooltip;
 		ItemMeta() { type = ITEM_META; }
 	};
 
@@ -455,6 +459,7 @@ private:
 	std::atomic<bool> updating;
 	std::atomic<bool> validating;
 	std::atomic<double> loaded;
+	std::atomic<bool> parsing_bbcode;
 
 	uint64_t loading_started = 0;
 	int progress_delay = 1000;
@@ -481,6 +486,7 @@ private:
 	bool use_selected_font_color = false;
 
 	HorizontalAlignment default_alignment = HORIZONTAL_ALIGNMENT_LEFT;
+	VerticalAlignment vertical_alignment = VERTICAL_ALIGNMENT_TOP;
 	BitField<TextServer::JustificationFlag> default_jst_flags = TextServer::JUSTIFICATION_WORD_BOUND | TextServer::JUSTIFICATION_KASHIDA | TextServer::JUSTIFICATION_SKIP_LAST_LINE | TextServer::JUSTIFICATION_DO_NOT_SKIP_SINGLE_LINE;
 	PackedFloat32Array default_tab_stops;
 
@@ -504,6 +510,7 @@ private:
 	void _texture_changed(RID p_item);
 
 	RID_PtrOwner<Item> items;
+	List<String> tag_stack;
 
 	String language;
 	TextDirection text_direction = TEXT_DIRECTION_AUTO;
@@ -561,8 +568,8 @@ private:
 	void _set_table_size(ItemTable *p_table, int p_available_width);
 
 	void _update_line_font(ItemFrame *p_frame, int p_line, const Ref<Font> &p_base_font, int p_base_font_size);
-	int _draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, const Color &p_base_color, int p_outline_size, const Color &p_outline_color, const Color &p_font_shadow_color, int p_shadow_outline_size, const Point2 &p_shadow_ofs, int &r_processed_glyphs);
-	float _find_click_in_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, const Point2i &p_click, ItemFrame **r_click_frame = nullptr, int *r_click_line = nullptr, Item **r_click_item = nullptr, int *r_click_char = nullptr, bool p_table = false, bool p_meta = false);
+	int _draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, float p_vsep, const Color &p_base_color, int p_outline_size, const Color &p_outline_color, const Color &p_font_shadow_color, int p_shadow_outline_size, const Point2 &p_shadow_ofs, int &r_processed_glyphs);
+	float _find_click_in_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, float p_vsep, const Point2i &p_click, ItemFrame **r_click_frame = nullptr, int *r_click_line = nullptr, Item **r_click_item = nullptr, int *r_click_char = nullptr, bool p_table = false, bool p_meta = false);
 
 	String _roman(int p_num, bool p_capitalize) const;
 	String _letters(int p_num, bool p_capitalize) const;
@@ -625,6 +632,9 @@ private:
 	bool use_bbcode = false;
 	String text;
 	void _apply_translation();
+
+	bool internal_stack_editing = false;
+	bool stack_externally_modified = false;
 
 	bool fit_content = false;
 
@@ -698,7 +708,7 @@ public:
 	void push_paragraph(HorizontalAlignment p_alignment, Control::TextDirection p_direction = Control::TEXT_DIRECTION_INHERITED, const String &p_language = "", TextServer::StructuredTextParser p_st_parser = TextServer::STRUCTURED_TEXT_DEFAULT, BitField<TextServer::JustificationFlag> p_jst_flags = TextServer::JUSTIFICATION_WORD_BOUND | TextServer::JUSTIFICATION_KASHIDA | TextServer::JUSTIFICATION_SKIP_LAST_LINE | TextServer::JUSTIFICATION_DO_NOT_SKIP_SINGLE_LINE, const PackedFloat32Array &p_tab_stops = PackedFloat32Array());
 	void push_indent(int p_level);
 	void push_list(int p_level, ListType p_list, bool p_capitalize, const String &p_bullet = String::utf8("•"));
-	void push_meta(const Variant &p_meta, MetaUnderline p_underline_mode = META_UNDERLINE_ALWAYS);
+	void push_meta(const Variant &p_meta, MetaUnderline p_underline_mode = META_UNDERLINE_ALWAYS, const String &p_tooltip = String());
 	void push_hint(const String &p_string);
 	void push_table(int p_columns, InlineAlignment p_alignment = INLINE_ALIGNMENT_TOP, int p_align_to_row = -1);
 	void push_fade(int p_start_index, int p_length);
@@ -815,6 +825,9 @@ public:
 
 	void set_horizontal_alignment(HorizontalAlignment p_alignment);
 	HorizontalAlignment get_horizontal_alignment() const;
+
+	void set_vertical_alignment(VerticalAlignment p_alignment);
+	VerticalAlignment get_vertical_alignment() const;
 
 	void set_justification_flags(BitField<TextServer::JustificationFlag> p_flags);
 	BitField<TextServer::JustificationFlag> get_justification_flags() const;

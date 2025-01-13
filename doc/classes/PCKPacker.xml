@@ -20,6 +20,7 @@
 		[/csharp]
 		[/codeblocks]
 		The above [PCKPacker] creates package [code]test.pck[/code], then adds a file named [code]text.txt[/code] at the root of the package.
+		[b]Note:[/b] PCK is Godot's own pack file format. To create ZIP archives that can be read by any program, use [ZIPPacker] instead.
 	</description>
 	<tutorials>
 	</tutorials>

@@ -22,7 +22,6 @@
 
 #include "tvgSwCommon.h"
 #include "tvgMath.h"
-#include "tvgLines.h"
 
 /************************************************************************/
 /* Internal Class Implementation                                        */
@@ -102,9 +101,9 @@ static bool _outlineClose(SwOutline& outline)
 static void _dashLineTo(SwDashStroke& dash, const Point* to, const Matrix& transform)
 {
     Line cur = {dash.ptCur, *to};
-    auto len = lineLength(cur.pt1, cur.pt2);
+    auto len = cur.length();
 
-    if (mathZero(len)) {
+    if (tvg::zero(len)) {
         _outlineMoveTo(*dash.outline, &dash.ptCur, transform);
     //draw the current line fully
     } else if (len <= dash.curLen) {
@@ -122,7 +121,7 @@ static void _dashLineTo(SwDashStroke& dash, const Point* to, const Matrix& trans
             Line left, right;
             if (dash.curLen > 0) {
                 len -= dash.curLen;
-                lineSplitAt(cur, dash.curLen, left, right);
+                cur.split(dash.curLen, left, right);
                 if (!dash.curOpGap) {
                     if (dash.move || dash.pattern[dash.curIdx] - dash.curLen < FLOAT_EPSILON) {
                         _outlineMoveTo(*dash.outline, &left.pt1, transform);
@@ -163,10 +162,10 @@ static void _dashLineTo(SwDashStroke& dash, const Point* to, const Matrix& trans
 static void _dashCubicTo(SwDashStroke& dash, const Point* ctrl1, const Point* ctrl2, const Point* to, const Matrix& transform)
 {
     Bezier cur = {dash.ptCur, *ctrl1, *ctrl2, *to};
-    auto len = bezLength(cur);
+    auto len = cur.length();
 
     //draw the current line fully
-    if (mathZero(len)) {
+    if (tvg::zero(len)) {
         _outlineMoveTo(*dash.outline, &dash.ptCur, transform);
     } else if (len <= dash.curLen) {
         dash.curLen -= len;
@@ -183,7 +182,7 @@ static void _dashCubicTo(SwDashStroke& dash, const Point* ctrl1, const Point* ct
             Bezier left, right;
             if (dash.curLen > 0) {
                 len -= dash.curLen;
-                bezSplitAt(cur, dash.curLen, left, right);
+                cur.split(dash.curLen, left, right);
                 if (!dash.curOpGap) {
                     if (dash.move || dash.pattern[dash.curIdx] - dash.curLen < FLOAT_EPSILON) {
                         _outlineMoveTo(*dash.outline, &left.start, transform);
@@ -284,7 +283,7 @@ static float _outlineLength(const RenderShape* rshape, uint32_t shiftPts, uint32
     if (cmdCnt <= 0 || ptsCnt <= 0) return 0.0f;
 
     const Point* close = nullptr;
-    auto length = 0.0f;
+    auto len = 0.0f;
 
     //must begin with moveTo
     if (cmds[0] == PathCommand::MoveTo) {
@@ -297,30 +296,30 @@ static float _outlineLength(const RenderShape* rshape, uint32_t shiftPts, uint32
     while (cmdCnt-- > 0) {
         switch (*cmds) {
             case PathCommand::Close: {
-                length += mathLength(pts - 1, close);
-                if (subpath) return length;
+                len += length(pts - 1, close);
+                if (subpath) return len;
                 break;
             }
             case PathCommand::MoveTo: {
-                if (subpath) return length;
+                if (subpath) return len;
                 close = pts;
                 ++pts;
                 break;
             }
             case PathCommand::LineTo: {
-                length += mathLength(pts - 1, pts);
+                len += length(pts - 1, pts);
                 ++pts;
                 break;
             }
             case PathCommand::CubicTo: {
-                length += bezLength({*(pts - 1), *pts, *(pts + 1), *(pts + 2)});
+                len += Bezier{*(pts - 1), *pts, *(pts + 1), *(pts + 2)}.length();
                 pts += 3;
                 break;
             }
         }
         ++cmds;
     }
-    return length;
+    return len;
 }
 
 
@@ -355,7 +354,7 @@ static SwOutline* _genDashOutline(const RenderShape* rshape, const Matrix& trans
     //offset
     auto patternLength = 0.0f;
     uint32_t offIdx = 0;
-    if (!mathZero(offset)) {
+    if (!tvg::zero(offset)) {
         for (size_t i = 0; i < dash.cnt; ++i) patternLength += dash.pattern[i];
         bool isOdd = dash.cnt % 2;
         if (isOdd) patternLength *= 2;
@@ -499,7 +498,6 @@ bool shapePrepare(SwShape* shape, const RenderShape* rshape, const Matrix& trans
     if (!_genOutline(shape, rshape, transform, mpool, tid, hasComposite)) return false;
     if (!mathUpdateOutlineBBox(shape->outline, clipRegion, renderRegion, shape->fastTrack)) return false;
 
-    //Keep it for Rasterization Region
     shape->bbox = renderRegion;
 
     //Check valid region

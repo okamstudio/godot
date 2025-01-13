@@ -194,7 +194,7 @@ String ProjectSettings::localize_path(const String &p_path) const {
 
 		return cwd.replace_first(res_path, "res://");
 	} else {
-		int sep = path.rfind("/");
+		int sep = path.rfind_char('/');
 		if (sep == -1) {
 			return "res://" + path;
 		}
@@ -262,6 +262,12 @@ String ProjectSettings::globalize_path(const String &p_path) const {
 			return p_path.replace("res:/", resource_path);
 		}
 		return p_path.replace("res://", "");
+	} else if (p_path.begins_with("uid://")) {
+		const String path = ResourceUID::uid_to_path(p_path);
+		if (!resource_path.is_empty()) {
+			return path.replace("res:/", resource_path);
+		}
+		return path.replace("res://", "");
 	} else if (p_path.begins_with("user://")) {
 		String data_dir = OS::get_singleton()->get_user_data_dir();
 		if (!data_dir.is_empty()) {
@@ -300,7 +306,7 @@ bool ProjectSettings::_set(const StringName &p_name, const Variant &p_value) {
 		}
 
 		{ // Feature overrides.
-			int dot = p_name.operator String().find(".");
+			int dot = p_name.operator String().find_char('.');
 			if (dot != -1) {
 				Vector<String> s = p_name.operator String().split(".");
 
@@ -435,7 +441,7 @@ void ProjectSettings::_get_property_list(List<PropertyInfo> *p_list) const {
 
 	for (const _VCSort &E : vclist) {
 		String prop_info_name = E.name;
-		int dot = prop_info_name.find(".");
+		int dot = prop_info_name.find_char('.');
 		if (dot != -1 && !custom_prop_info.has(prop_info_name)) {
 			prop_info_name = prop_info_name.substr(0, dot);
 		}
@@ -508,16 +514,19 @@ void ProjectSettings::_convert_to_last_version(int p_from_version) {
 			}
 		}
 	}
-	if (p_from_version <= 5) {
-		// Converts the device in events from -1 (emulated events) to -3 (all events).
+	if (p_from_version == 5) {
+		// Converts the device in events from -3 to -1.
+		// -3 was introduced in GH-97707 as a way to prevent a clash in device IDs, but as reported in GH-99243, this leads to problems.
+		// -3 was used during dev-releases, so this conversion helps to revert such affected projects.
+		// This conversion doesn't affect any other projects, since -3 is not used otherwise.
 		for (KeyValue<StringName, ProjectSettings::VariantContainer> &E : props) {
 			if (String(E.key).begins_with("input/")) {
 				Dictionary action = E.value.variant;
 				Array events = action["events"];
 				for (int i = 0; i < events.size(); i++) {
 					Ref<InputEvent> ev = events[i];
-					if (ev.is_valid() && ev->get_device() == -1) { // -1 was the previous value (GH-97707).
-						ev->set_device(InputEvent::DEVICE_ID_ALL_DEVICES);
+					if (ev.is_valid() && ev->get_device() == -3) {
+						ev->set_device(-1);
 					}
 				}
 			}
@@ -740,7 +749,7 @@ Error ProjectSettings::_load_settings_binary(const String &p_path) {
 		cs[slen] = 0;
 		f->get_buffer((uint8_t *)cs.ptr(), slen);
 		String key;
-		key.parse_utf8(cs.ptr());
+		key.parse_utf8(cs.ptr(), slen);
 
 		uint32_t vlen = f->get_32();
 		Vector<uint8_t> d;
@@ -1092,7 +1101,7 @@ Error ProjectSettings::save_custom(const String &p_path, const CustomMap &p_cust
 		String category = E.name;
 		String name = E.name;
 
-		int div = category.find("/");
+		int div = category.find_char('/');
 
 		if (div < 0) {
 			category = "";
@@ -1507,7 +1516,11 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("display/window/frame_pacing/android/enable_frame_pacing", true);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "display/window/frame_pacing/android/swappy_mode", PROPERTY_HINT_ENUM, "pipeline_forced_on,auto_fps_pipeline_forced_on,auto_fps_auto_pipeline"), 2);
 
-	custom_prop_info["rendering/driver/threads/thread_model"] = PropertyInfo(Variant::INT, "rendering/driver/threads/thread_model", PROPERTY_HINT_ENUM, "Single-Unsafe,Single-Safe,Multi-Threaded");
+#ifdef DISABLE_DEPRECATED
+	custom_prop_info["rendering/driver/threads/thread_model"] = PropertyInfo(Variant::INT, "rendering/driver/threads/thread_model", PROPERTY_HINT_ENUM, "Safe:1,Separate");
+#else
+	custom_prop_info["rendering/driver/threads/thread_model"] = PropertyInfo(Variant::INT, "rendering/driver/threads/thread_model", PROPERTY_HINT_ENUM, "Unsafe (deprecated),Safe,Separate");
+#endif
 	GLOBAL_DEF("physics/2d/run_on_separate_thread", false);
 	GLOBAL_DEF("physics/3d/run_on_separate_thread", false);
 
@@ -1550,6 +1563,7 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/rendering_device/staging_buffer/block_size_kb", PROPERTY_HINT_RANGE, "4,2048,1,or_greater"), 256);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/rendering_device/staging_buffer/max_size_mb", PROPERTY_HINT_RANGE, "1,1024,1,or_greater"), 128);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/rendering_device/staging_buffer/texture_upload_region_size_px", PROPERTY_HINT_RANGE, "1,256,1,or_greater"), 64);
+	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/rendering_device/staging_buffer/texture_download_region_size_px", PROPERTY_HINT_RANGE, "1,256,1,or_greater"), 64);
 	GLOBAL_DEF_RST(PropertyInfo(Variant::BOOL, "rendering/rendering_device/pipeline_cache/enable"), true);
 	GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "rendering/rendering_device/pipeline_cache/save_chunk_size_mb", PROPERTY_HINT_RANGE, "0.000001,64.0,0.001,or_greater"), 3.0);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "rendering/rendering_device/vulkan/max_descriptors_per_pool", PROPERTY_HINT_RANGE, "1,256,1,or_greater"), 64);

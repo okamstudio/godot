@@ -213,9 +213,9 @@
 			<description>
 				Creates a unit [Vector2] rotated to the given [param angle] in radians. This is equivalent to doing [code]Vector2(cos(angle), sin(angle))[/code] or [code]Vector2.RIGHT.rotated(angle)[/code].
 				[codeblock]
-				print(Vector2.from_angle(0)) # Prints (1, 0).
-				print(Vector2(1, 0).angle()) # Prints 0, which is the angle used above.
-				print(Vector2.from_angle(PI / 2)) # Prints (0, 1).
+				print(Vector2.from_angle(0)) # Prints (1.0, 0.0).
+				print(Vector2(1, 0).angle()) # Prints 0.0, which is the angle used above.
+				print(Vector2.from_angle(PI / 2)) # Prints (0.0, 1.0).
 				[/codeblock]
 			</description>
 		</method>
@@ -270,7 +270,7 @@
 			<return type="Vector2" />
 			<param index="0" name="length" type="float" default="1.0" />
 			<description>
-				Returns the vector with a maximum length by limiting its length to [param length].
+				Returns the vector with a maximum length by limiting its length to [param length]. If the vector is non-finite, the result is undefined.
 			</description>
 		</method>
 		<method name="max" qualifiers="const">
@@ -424,10 +424,10 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="AXIS_X" value="0">
+		<constant name="AXIS_X" value="0" enum="Axis">
 			Enumerated value for the X axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
-		<constant name="AXIS_Y" value="1">
+		<constant name="AXIS_Y" value="1" enum="Axis">
 			Enumerated value for the Y axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
 		<constant name="ZERO" value="Vector2(0, 0)">
@@ -477,7 +477,7 @@
 			<description>
 				Multiplies each component of the [Vector2] by the components of the given [Vector2].
 				[codeblock]
-				print(Vector2(10, 20) * Vector2(3, 4)) # Prints "(30, 80)"
+				print(Vector2(10, 20) * Vector2(3, 4)) # Prints (30.0, 80.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -501,7 +501,7 @@
 			<description>
 				Adds each component of the [Vector2] by the components of the given [Vector2].
 				[codeblock]
-				print(Vector2(10, 20) + Vector2(3, 4)) # Prints "(13, 24)"
+				print(Vector2(10, 20) + Vector2(3, 4)) # Prints (13.0, 24.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -511,7 +511,7 @@
 			<description>
 				Subtracts each component of the [Vector2] by the components of the given [Vector2].
 				[codeblock]
-				print(Vector2(10, 20) - Vector2(3, 4)) # Prints "(7, 16)"
+				print(Vector2(10, 20) - Vector2(3, 4)) # Prints (7.0, 16.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -521,7 +521,7 @@
 			<description>
 				Divides each component of the [Vector2] by the components of the given [Vector2].
 				[codeblock]
-				print(Vector2(10, 20) / Vector2(2, 5)) # Prints "(5, 4)"
+				print(Vector2(10, 20) / Vector2(2, 5)) # Prints (5.0, 4.0)
 				[/codeblock]
 			</description>
 		</operator>

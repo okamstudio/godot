@@ -289,24 +289,16 @@ TypedArray<RegExMatch> RegEx::search_all(const String &p_subject, int p_offset, 
 	return result;
 }
 
-String RegEx::sub(const String &p_subject, const String &p_replacement, bool p_all, int p_offset, int p_end) const {
-	ERR_FAIL_COND_V(!is_valid(), String());
-	ERR_FAIL_COND_V_MSG(p_offset < 0, String(), "RegEx sub offset must be >= 0");
-
-	// safety_zone is the number of chars we allocate in addition to the number of chars expected in order to
-	// guard against the PCRE API writing one additional \0 at the end. PCRE's API docs are unclear on whether
-	// PCRE understands outlength in pcre2_substitute() as counting an implicit additional terminating char or
-	// not. always allocating one char more than telling PCRE has us on the safe side.
+int RegEx::_sub(const String &p_subject, const String &p_replacement, int p_offset, int p_end, uint32_t p_flags, String &r_output) const {
+	// `safety_zone` is the number of chars we allocate in addition to the number of chars expected in order to
+	// guard against the PCRE API writing one additional `\0` at the end. PCRE's API docs are unclear on whether
+	// PCRE understands outlength in `pcre2_substitute(`) as counting an implicit additional terminating char or
+	// not. Always allocating one char more than telling PCRE has us on the safe side.
 	const int safety_zone = 1;
 
-	PCRE2_SIZE olength = p_subject.length() + 1; // space for output string and one terminating \0 character
+	PCRE2_SIZE olength = p_subject.length() + 1; // Space for output string and one terminating `\0` character.
 	Vector<char32_t> output;
 	output.resize(olength + safety_zone);
-
-	uint32_t flags = PCRE2_SUBSTITUTE_OVERFLOW_LENGTH;
-	if (p_all) {
-		flags |= PCRE2_SUBSTITUTE_GLOBAL;
-	}
 
 	PCRE2_SIZE length = p_subject.length();
 	if (p_end >= 0 && (uint32_t)p_end < length) {
@@ -322,22 +314,49 @@ String RegEx::sub(const String &p_subject, const String &p_replacement, bool p_a
 
 	pcre2_match_data_32 *match = pcre2_match_data_create_from_pattern_32(c, gctx);
 
-	int res = pcre2_substitute_32(c, s, length, p_offset, flags, match, mctx, r, p_replacement.length(), o, &olength);
+	int res = pcre2_substitute_32(c, s, length, p_offset, p_flags, match, mctx, r, p_replacement.length(), o, &olength);
 
 	if (res == PCRE2_ERROR_NOMEMORY) {
 		output.resize(olength + safety_zone);
 		o = (PCRE2_UCHAR32 *)output.ptrw();
-		res = pcre2_substitute_32(c, s, length, p_offset, flags, match, mctx, r, p_replacement.length(), o, &olength);
+		res = pcre2_substitute_32(c, s, length, p_offset, p_flags, match, mctx, r, p_replacement.length(), o, &olength);
 	}
 
 	pcre2_match_data_free_32(match);
 	pcre2_match_context_free_32(mctx);
 
-	if (res < 0) {
-		return String();
+	if (res >= 0) {
+		r_output = String(output.ptr(), olength) + p_subject.substr(length);
 	}
 
-	return String(output.ptr(), olength) + p_subject.substr(length);
+	return res;
+}
+
+String RegEx::sub(const String &p_subject, const String &p_replacement, bool p_all, int p_offset, int p_end) const {
+	ERR_FAIL_COND_V(!is_valid(), String());
+	ERR_FAIL_COND_V_MSG(p_offset < 0, String(), "RegEx sub offset must be >= 0");
+
+	uint32_t flags = PCRE2_SUBSTITUTE_OVERFLOW_LENGTH | PCRE2_SUBSTITUTE_UNSET_EMPTY;
+	if (p_all) {
+		flags |= PCRE2_SUBSTITUTE_GLOBAL;
+	}
+
+	String output;
+	const int res = _sub(p_subject, p_replacement, p_offset, p_end, flags, output);
+
+	if (res < 0) {
+		PCRE2_UCHAR32 buf[256];
+		pcre2_get_error_message_32(res, buf, 256);
+		String message = "PCRE2 Error: " + String((const char32_t *)buf);
+		ERR_PRINT(message.utf8());
+
+		if (res == PCRE2_ERROR_NOSUBSTRING) {
+			flags |= PCRE2_SUBSTITUTE_UNKNOWN_UNSET;
+			_sub(p_subject, p_replacement, p_offset, p_end, flags, output);
+		}
+	}
+
+	return output;
 }
 
 bool RegEx::is_valid() const {

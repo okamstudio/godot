@@ -122,10 +122,10 @@ _ALWAYS_INLINE_ T *_post_initialize(T *p_obj) {
 	return p_obj;
 }
 
-#define memnew(m_class) _post_initialize(new ("") m_class)
+#define memnew(m_class) _post_initialize(::new ("") m_class)
 
-#define memnew_allocator(m_class, m_allocator) _post_initialize(new (m_allocator::alloc) m_class)
-#define memnew_placement(m_placement, m_class) _post_initialize(new (m_placement) m_class)
+#define memnew_allocator(m_class, m_allocator) _post_initialize(::new (m_allocator::alloc) m_class)
+#define memnew_placement(m_placement, m_class) _post_initialize(::new (m_placement) m_class)
 
 _ALWAYS_INLINE_ bool predelete_handler(void *) {
 	return true;
@@ -189,7 +189,7 @@ T *memnew_arr_template(size_t p_elements) {
 
 		/* call operator new */
 		for (size_t i = 0; i < p_elements; i++) {
-			new (&elems[i]) T;
+			::new (&elems[i]) T;
 		}
 	}
 

@@ -10,6 +10,7 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   TSAN_OPTIONS: suppressions=misc/error_suppressions/tsan.txt
+  UBSAN_OPTIONS: suppressions=misc/error_suppressions/ubsan.txt
 
 concurrency:
   group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-linux
@@ -35,6 +36,7 @@ jobs:
             proj-conv: true
             api-compat: true
             artifact: true
+            cache-limit: 1
 
           - name: Editor with doubles and GCC sanitizers (target=editor, tests=yes, dev_build=yes, scu_build=yes, precision=double, use_asan=yes, use_ubsan=yes, linker=gold)
             cache-name: linux-editor-double-sanitizers
@@ -49,6 +51,7 @@ jobs:
             api-dump: true
             # Skip 2GiB artifact speeding up action.
             artifact: false
+            cache-limit: 7
 
           - name: Editor with clang sanitizers (target=editor, tests=yes, dev_build=yes, use_asan=yes, use_ubsan=yes, use_llvm=yes, linker=lld)
             cache-name: linux-editor-llvm-sanitizers
@@ -61,6 +64,7 @@ jobs:
             artifact: false
             # Test our oldest supported SCons/Python versions on one arbitrary editor build.
             legacy-scons: true
+            cache-limit: 7
 
           - name: Editor with ThreadSanitizer (target=editor, tests=yes, dev_build=yes, use_tsan=yes, use_llvm=yes, linker=lld)
             cache-name: linux-editor-thread-sanitizer
@@ -71,6 +75,7 @@ jobs:
             build-mono: false
             # Skip 2GiB artifact speeding up action.
             artifact: false
+            cache-limit: 5
 
           - name: Template w/ Mono (target=template_release, tests=yes)
             cache-name: linux-template-mono
@@ -80,6 +85,7 @@ jobs:
             build-mono: false
             tests: true
             artifact: true
+            cache-limit: 1
 
           - name: Minimal template (target=template_release, tests=yes, everything disabled)
             cache-name: linux-template-minimal
@@ -88,6 +94,7 @@ jobs:
             bin: ./bin/godot.linuxbsd.template_release.x86_64
             tests: true
             artifact: true
+            cache-limit: 1
 
     steps:
       - name: Checkout
@@ -133,9 +140,6 @@ jobs:
           python-version: 3.8
           scons-version: 4.0
 
-      - name: Setup GCC problem matcher
-        uses: ammaraskar/gcc-problem-matcher@master
-
       - name: Compilation
         uses: ./.github/actions/godot-build
         with:
@@ -143,6 +147,7 @@ jobs:
           platform: linuxbsd
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
+          scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

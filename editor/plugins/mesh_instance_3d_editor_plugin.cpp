@@ -668,7 +668,7 @@ MeshInstance3DEditor::MeshInstance3DEditor() {
 	navigation_mesh_dialog_vbc->add_child(navigation_mesh_l);
 
 	add_child(navigation_mesh_dialog);
-	navigation_mesh_dialog->connect("confirmed", callable_mp(this, &MeshInstance3DEditor::_create_navigation_mesh));
+	navigation_mesh_dialog->connect(SceneStringName(confirmed), callable_mp(this, &MeshInstance3DEditor::_create_navigation_mesh));
 }
 
 void MeshInstance3DEditorPlugin::edit(Object *p_object) {

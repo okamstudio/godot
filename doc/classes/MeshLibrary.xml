@@ -45,6 +45,13 @@
 				Returns the item's mesh.
 			</description>
 		</method>
+		<method name="get_item_mesh_cast_shadow" qualifiers="const">
+			<return type="int" enum="RenderingServer.ShadowCastingSetting" />
+			<param index="0" name="id" type="int" />
+			<description>
+				Returns the item's shadow casting mode. See [enum RenderingServer.ShadowCastingSetting] for possible values.
+			</description>
+		</method>
 		<method name="get_item_mesh_transform" qualifiers="const">
 			<return type="Transform3D" />
 			<param index="0" name="id" type="int" />
@@ -114,6 +121,14 @@
 			<param index="1" name="mesh" type="Mesh" />
 			<description>
 				Sets the item's mesh.
+			</description>
+		</method>
+		<method name="set_item_mesh_cast_shadow">
+			<return type="void" />
+			<param index="0" name="id" type="int" />
+			<param index="1" name="shadow_casting_setting" type="int" enum="RenderingServer.ShadowCastingSetting" />
+			<description>
+				Sets the item's shadow casting mode. See [enum RenderingServer.ShadowCastingSetting] for possible values.
 			</description>
 		</method>
 		<method name="set_item_mesh_transform">

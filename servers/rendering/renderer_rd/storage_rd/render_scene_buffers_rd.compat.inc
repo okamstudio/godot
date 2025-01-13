@@ -54,6 +54,10 @@ RID RenderSceneBuffersRD::_get_velocity_layer_compat_80214(const uint32_t p_laye
 	return _get_velocity_layer(p_layer, msaa_3d != RS::VIEWPORT_MSAA_DISABLED);
 }
 
+RID RenderSceneBuffersRD::_create_texture_bind_compat_98670(const StringName &p_context, const StringName &p_texture_name, const RD::DataFormat p_data_format, const uint32_t p_usage_bits, const RD::TextureSamples p_texture_samples, const Size2i p_size, const uint32_t p_layers, const uint32_t p_mipmaps, bool p_unique) {
+	return create_texture(p_context, p_texture_name, p_data_format, p_usage_bits, p_texture_samples, p_size, p_layers, p_mipmaps, p_unique, false);
+}
+
 void RenderSceneBuffersRD::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("get_color_texture"), &RenderSceneBuffersRD::_get_color_texture_compat_80214);
 	ClassDB::bind_compatibility_method(D_METHOD("get_color_layer", "layer"), &RenderSceneBuffersRD::_get_color_layer_compat_80214);
@@ -61,6 +65,8 @@ void RenderSceneBuffersRD::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("get_depth_layer", "layer"), &RenderSceneBuffersRD::_get_depth_layer_compat_80214);
 	ClassDB::bind_compatibility_method(D_METHOD("get_velocity_texture"), &RenderSceneBuffersRD::_get_velocity_texture_compat_80214);
 	ClassDB::bind_compatibility_method(D_METHOD("get_velocity_layer", "layer"), &RenderSceneBuffersRD::_get_velocity_layer_compat_80214);
+
+	ClassDB::bind_compatibility_method(D_METHOD("create_texture", "context", "name", "data_format", "usage_bits", "texture_samples", "size", "layers", "mipmaps", "unique"), &RenderSceneBuffersRD::_create_texture_bind_compat_98670);
 }
 
 #endif // DISABLE_DEPRECATED

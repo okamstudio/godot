@@ -20,9 +20,7 @@ class Members:
 		Utils.check(str(two) == '[486]')
 		return true
 
-
-@warning_ignore("unsafe_method_access")
-@warning_ignore("return_value_discarded")
+@warning_ignore_start('unsafe_method_access', 'return_value_discarded')
 func test():
 	var untyped_basic = [459]
 	Utils.check(str(untyped_basic) == '[459]')
@@ -207,7 +205,7 @@ func test():
 
 	var a := A.new()
 	var typed_natives: Array[RefCounted] = [a]
-	var typed_scripts = Array(typed_natives, TYPE_OBJECT, "RefCounted", A)
+	var typed_scripts = Array(typed_natives, TYPE_OBJECT, 'RefCounted', A)
 	Utils.check(typed_scripts[0] == a)
 
 

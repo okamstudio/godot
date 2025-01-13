@@ -32,8 +32,12 @@
 
 #ifdef WAYLAND_ENABLED
 
-// FIXME: Does this cause issues with *BSDs?
+#ifdef __FreeBSD__
+#include <dev/evdev/input-event-codes.h>
+#else
+// Assume Linux.
 #include <linux/input-event-codes.h>
+#endif
 
 // For the actual polling thread.
 #include <poll.h>
@@ -193,10 +197,7 @@ bool WaylandThread::_seat_state_configure_key_event(SeatState &p_ss, Ref<InputEv
 	Key keycode = KeyMappingXKB::get_keycode(xkb_state_key_get_one_sym(p_ss.xkb_state, p_keycode));
 	Key physical_keycode = KeyMappingXKB::get_scancode(p_keycode);
 	KeyLocation key_location = KeyMappingXKB::get_location(p_keycode);
-
-	if (physical_keycode == Key::NONE) {
-		return false;
-	}
+	uint32_t unicode = xkb_state_key_get_utf32(p_ss.xkb_state, p_keycode);
 
 	if (keycode == Key::NONE) {
 		keycode = physical_keycode;
@@ -204,6 +205,10 @@ bool WaylandThread::_seat_state_configure_key_event(SeatState &p_ss, Ref<InputEv
 
 	if (keycode >= Key::A + 32 && keycode <= Key::Z + 32) {
 		keycode -= 'a' - 'A';
+	}
+
+	if (physical_keycode == Key::NONE && keycode == Key::NONE && unicode == 0) {
+		return false;
 	}
 
 	p_event->set_window_id(DisplayServer::MAIN_WINDOW_ID);
@@ -218,8 +223,6 @@ bool WaylandThread::_seat_state_configure_key_event(SeatState &p_ss, Ref<InputEv
 	p_event->set_keycode(keycode);
 	p_event->set_physical_keycode(physical_keycode);
 	p_event->set_location(key_location);
-
-	uint32_t unicode = xkb_state_key_get_utf32(p_ss.xkb_state, p_keycode);
 
 	if (unicode != 0) {
 		p_event->set_key_label(fix_key_label(unicode, keycode));
@@ -374,9 +377,16 @@ void WaylandThread::_wl_registry_on_global(void *data, struct wl_registry *wl_re
 		return;
 	}
 
+	// NOTE: Deprecated.
 	if (strcmp(interface, zxdg_exporter_v1_interface.name) == 0) {
-		registry->xdg_exporter = (struct zxdg_exporter_v1 *)wl_registry_bind(wl_registry, name, &zxdg_exporter_v1_interface, 1);
-		registry->xdg_exporter_name = name;
+		registry->xdg_exporter_v1 = (struct zxdg_exporter_v1 *)wl_registry_bind(wl_registry, name, &zxdg_exporter_v1_interface, 1);
+		registry->xdg_exporter_v1_name = name;
+		return;
+	}
+
+	if (strcmp(interface, zxdg_exporter_v2_interface.name) == 0) {
+		registry->xdg_exporter_v2 = (struct zxdg_exporter_v2 *)wl_registry_bind(wl_registry, name, &zxdg_exporter_v2_interface, 1);
+		registry->xdg_exporter_v2_name = name;
 		return;
 	}
 
@@ -497,6 +507,12 @@ void WaylandThread::_wl_registry_on_global(void *data, struct wl_registry *wl_re
 		return;
 	}
 
+	if (strcmp(interface, xdg_system_bell_v1_interface.name) == 0) {
+		registry->xdg_system_bell = (struct xdg_system_bell_v1 *)wl_registry_bind(wl_registry, name, &xdg_system_bell_v1_interface, 1);
+		registry->xdg_system_bell_name = name;
+		return;
+	}
+
 	if (strcmp(interface, xdg_activation_v1_interface.name) == 0) {
 		registry->xdg_activation = (struct xdg_activation_v1 *)wl_registry_bind(wl_registry, name, &xdg_activation_v1_interface, 1);
 		registry->xdg_activation_name = name;
@@ -590,13 +606,25 @@ void WaylandThread::_wl_registry_on_global_remove(void *data, struct wl_registry
 		return;
 	}
 
-	if (name == registry->xdg_exporter_name) {
-		if (registry->xdg_exporter) {
-			zxdg_exporter_v1_destroy(registry->xdg_exporter);
-			registry->xdg_exporter = nullptr;
+	// NOTE: Deprecated.
+	if (name == registry->xdg_exporter_v1_name) {
+		if (registry->xdg_exporter_v1) {
+			zxdg_exporter_v1_destroy(registry->xdg_exporter_v1);
+			registry->xdg_exporter_v1 = nullptr;
 		}
 
-		registry->xdg_exporter_name = 0;
+		registry->xdg_exporter_v1_name = 0;
+
+		return;
+	}
+
+	if (name == registry->xdg_exporter_v2_name) {
+		if (registry->xdg_exporter_v2) {
+			zxdg_exporter_v2_destroy(registry->xdg_exporter_v2);
+			registry->xdg_exporter_v2 = nullptr;
+		}
+
+		registry->xdg_exporter_v2_name = 0;
 
 		return;
 	}
@@ -688,6 +716,17 @@ void WaylandThread::_wl_registry_on_global_remove(void *data, struct wl_registry
 		}
 
 		registry->xdg_decoration_manager_name = 0;
+
+		return;
+	}
+
+	if (name == registry->xdg_system_bell_name) {
+		if (registry->xdg_system_bell) {
+			xdg_system_bell_v1_destroy(registry->xdg_system_bell);
+			registry->xdg_system_bell = nullptr;
+		}
+
+		registry->xdg_system_bell_name = 0;
 
 		return;
 	}
@@ -1166,7 +1205,15 @@ void WaylandThread::_xdg_toplevel_on_wm_capabilities(void *data, struct xdg_topl
 	}
 }
 
-void WaylandThread::_xdg_exported_on_exported(void *data, zxdg_exported_v1 *exported, const char *handle) {
+// NOTE: Deprecated.
+void WaylandThread::_xdg_exported_v1_on_handle(void *data, zxdg_exported_v1 *exported, const char *handle) {
+	WindowState *ws = (WindowState *)data;
+	ERR_FAIL_NULL(ws);
+
+	ws->exported_handle = vformat("wayland:%s", String::utf8(handle));
+}
+
+void WaylandThread::_xdg_exported_v2_on_handle(void *data, zxdg_exported_v2 *exported, const char *handle) {
 	WindowState *ws = (WindowState *)data;
 	ERR_FAIL_NULL(ws);
 
@@ -3264,9 +3311,12 @@ void WaylandThread::window_create(DisplayServer::WindowID p_window_id, int p_wid
 	ws.frame_callback = wl_surface_frame(ws.wl_surface);
 	wl_callback_add_listener(ws.frame_callback, &frame_wl_callback_listener, &ws);
 
-	if (registry.xdg_exporter) {
-		ws.xdg_exported = zxdg_exporter_v1_export(registry.xdg_exporter, ws.wl_surface);
-		zxdg_exported_v1_add_listener(ws.xdg_exported, &xdg_exported_listener, &ws);
+	if (registry.xdg_exporter_v2) {
+		ws.xdg_exported_v2 = zxdg_exporter_v2_export_toplevel(registry.xdg_exporter_v2, ws.wl_surface);
+		zxdg_exported_v2_add_listener(ws.xdg_exported_v2, &xdg_exported_v2_listener, &ws);
+	} else if (registry.xdg_exporter_v1) {
+		ws.xdg_exported_v1 = zxdg_exporter_v1_export(registry.xdg_exporter_v1, ws.wl_surface);
+		zxdg_exported_v1_add_listener(ws.xdg_exported_v1, &xdg_exported_v1_listener, &ws);
 	}
 
 	wl_surface_commit(ws.wl_surface);
@@ -3280,6 +3330,12 @@ struct wl_surface *WaylandThread::window_get_wl_surface(DisplayServer::WindowID 
 	const WindowState &ws = main_window;
 
 	return ws.wl_surface;
+}
+
+void WaylandThread::beep() const {
+	if (registry.xdg_system_bell) {
+		xdg_system_bell_v1_ring(registry.xdg_system_bell, nullptr);
+	}
 }
 
 void WaylandThread::window_set_max_size(DisplayServer::WindowID p_window_id, const Size2i &p_size) {
@@ -3988,10 +4044,10 @@ void WaylandThread::selection_set_text(const String &p_text) {
 		wl_data_source_add_listener(ss->wl_data_source_selection, &wl_data_source_listener, ss);
 		wl_data_source_offer(ss->wl_data_source_selection, "text/plain;charset=utf-8");
 		wl_data_source_offer(ss->wl_data_source_selection, "text/plain");
-	}
 
-	// TODO: Implement a good way of getting the latest serial from the user.
-	wl_data_device_set_selection(ss->wl_data_device, ss->wl_data_source_selection, MAX(ss->pointer_data.button_serial, ss->last_key_pressed_serial));
+		// TODO: Implement a good way of getting the latest serial from the user.
+		wl_data_device_set_selection(ss->wl_data_device, ss->wl_data_source_selection, MAX(ss->pointer_data.button_serial, ss->last_key_pressed_serial));
+	}
 
 	// Wait for the message to get to the server before continuing, otherwise the
 	// clipboard update might come with a delay.
@@ -4364,6 +4420,10 @@ void WaylandThread::destroy() {
 		xdg_activation_v1_destroy(registry.xdg_activation);
 	}
 
+	if (registry.xdg_system_bell) {
+		xdg_system_bell_v1_destroy(registry.xdg_system_bell);
+	}
+
 	if (registry.xdg_decoration_manager) {
 		zxdg_decoration_manager_v1_destroy(registry.xdg_decoration_manager);
 	}
@@ -4380,10 +4440,14 @@ void WaylandThread::destroy() {
 		xdg_wm_base_destroy(registry.xdg_wm_base);
 	}
 
-	if (registry.xdg_exporter) {
-		zxdg_exporter_v1_destroy(registry.xdg_exporter);
+	// NOTE: Deprecated.
+	if (registry.xdg_exporter_v1) {
+		zxdg_exporter_v1_destroy(registry.xdg_exporter_v1);
 	}
 
+	if (registry.xdg_exporter_v2) {
+		zxdg_exporter_v2_destroy(registry.xdg_exporter_v2);
+	}
 	if (registry.wl_shm) {
 		wl_shm_destroy(registry.wl_shm);
 	}

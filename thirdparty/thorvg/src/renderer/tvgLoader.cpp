@@ -294,10 +294,10 @@ LoadModule* LoaderMgr::loader(const string& path, bool* invalid)
 {
     *invalid = false;
 
-    //TODO: lottie is not sharable.
+    //TODO: svg & lottie is not sharable.
     auto allowCache = true;
     auto ext = path.substr(path.find_last_of(".") + 1);
-    if (!ext.compare("json")) allowCache = false;
+    if (!ext.compare("svg") || !ext.compare("json")) allowCache = false;
 
     if (allowCache) {
         if (auto loader = _findFromCache(path)) return loader;
@@ -317,7 +317,7 @@ LoadModule* LoaderMgr::loader(const string& path, bool* invalid)
         }
         delete(loader);
     }
-    //Unkown MimeType. Try with the candidates in the order
+    //Unknown MimeType. Try with the candidates in the order
     for (int i = 0; i < static_cast<int>(FileType::Raw); i++) {
         if (auto loader = _find(static_cast<FileType>(i))) {
             if (loader->open(path)) {
@@ -392,7 +392,7 @@ LoadModule* LoaderMgr::loader(const char* data, uint32_t size, const string& mim
             }
         }
     }
-    //Unkown MimeType. Try with the candidates in the order
+    //Unknown MimeType. Try with the candidates in the order
     for (int i = 0; i < static_cast<int>(FileType::Raw); i++) {
         auto loader = _find(static_cast<FileType>(i));
         if (loader) {

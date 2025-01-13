@@ -41,8 +41,10 @@
 #include "editor/project_manager/project_tag.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/button.h"
+#include "scene/gui/dialogs.h"
 #include "scene/gui/label.h"
 #include "scene/gui/line_edit.h"
+#include "scene/gui/progress_bar.h"
 #include "scene/gui/texture_button.h"
 #include "scene/gui/texture_rect.h"
 #include "scene/resources/image_texture.h"
@@ -350,7 +352,7 @@ const char *ProjectList::SIGNAL_PROJECT_ASK_OPEN = "project_ask_open";
 // Helpers.
 
 bool ProjectList::project_feature_looks_like_version(const String &p_feature) {
-	return p_feature.contains(".") && p_feature.substr(0, 3).is_numeric();
+	return p_feature.contains_char('.') && p_feature.substr(0, 3).is_numeric();
 }
 
 // Notifications.
@@ -358,7 +360,7 @@ bool ProjectList::project_feature_looks_like_version(const String &p_feature) {
 void ProjectList::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
-			// Load icons as a coroutine to speed up launch when you have hundreds of projects
+			// Load icons as a coroutine to speed up launch when you have hundreds of projects.
 			if (_icon_load_index < _projects.size()) {
 				Item &item = _projects.write[_icon_load_index];
 				if (item.control->should_load_project_icon()) {
@@ -366,10 +368,59 @@ void ProjectList::_notification(int p_what) {
 				}
 				_icon_load_index++;
 
+				// Scan directories in thread to avoid blocking the window.
+			} else if (scan_data && scan_data->scan_in_progress.is_set()) {
+				// Wait for the thread.
 			} else {
 				set_process(false);
+				if (scan_data) {
+					_scan_finished();
+				}
 			}
 		} break;
+	}
+}
+
+// Projects scan.
+
+void ProjectList::_scan_thread(void *p_scan_data) {
+	ScanData *scan_data = static_cast<ScanData *>(p_scan_data);
+
+	for (const String &base_path : scan_data->paths_to_scan) {
+		print_verbose(vformat("Scanning for projects in \"%s\".", base_path));
+		_scan_folder_recursive(base_path, &scan_data->found_projects, scan_data->scan_in_progress);
+
+		if (!scan_data->scan_in_progress.is_set()) {
+			print_verbose("Scan aborted.");
+			break;
+		}
+	}
+	print_verbose(vformat("Found %d project(s).", scan_data->found_projects.size()));
+	scan_data->scan_in_progress.clear();
+}
+
+void ProjectList::_scan_finished() {
+	if (scan_data->scan_in_progress.is_set()) {
+		// Abort scanning.
+		scan_data->scan_in_progress.clear();
+	}
+
+	scan_data->thread->wait_to_finish();
+	memdelete(scan_data->thread);
+	if (scan_progress) {
+		scan_progress->hide();
+	}
+
+	for (const String &E : scan_data->found_projects) {
+		add_project(E, false);
+	}
+	memdelete(scan_data);
+	scan_data = nullptr;
+
+	save_config();
+
+	if (ProjectManager::get_singleton()->is_initialized()) {
+		update_project_list();
 	}
 }
 
@@ -581,7 +632,7 @@ void ProjectList::sort_projects() {
 		bool item_visible = true;
 		if (!_search_term.is_empty()) {
 			String search_path;
-			if (search_term.contains("/")) {
+			if (search_term.contains_char('/')) {
 				// Search path will match the whole path
 				search_path = item.path;
 			} else {
@@ -624,25 +675,39 @@ void ProjectList::find_projects(const String &p_path) {
 }
 
 void ProjectList::find_projects_multiple(const PackedStringArray &p_paths) {
-	List<String> projects;
+	if (!scan_progress && is_inside_tree()) {
+		scan_progress = memnew(AcceptDialog);
+		scan_progress->set_title(TTR("Scanning"));
+		scan_progress->set_ok_button_text(TTR("Cancel"));
 
-	for (int i = 0; i < p_paths.size(); i++) {
-		const String &base_path = p_paths.get(i);
-		print_verbose(vformat("Scanning for projects in \"%s\".", base_path));
+		VBoxContainer *vb = memnew(VBoxContainer);
+		scan_progress->add_child(vb);
 
-		_scan_folder_recursive(base_path, &projects);
-		print_verbose(vformat("Found %d project(s).", projects.size()));
+		Label *label = memnew(Label);
+		label->set_text(TTR("Scanning for projects..."));
+		vb->add_child(label);
+
+		ProgressBar *progress = memnew(ProgressBar);
+		progress->set_indeterminate(true);
+		vb->add_child(progress);
+
+		add_child(scan_progress);
+		scan_progress->connect(SceneStringName(confirmed), callable_mp(this, &ProjectList::_scan_finished));
+		scan_progress->connect("canceled", callable_mp(this, &ProjectList::_scan_finished));
 	}
 
-	for (const String &E : projects) {
-		add_project(E, false);
-	}
+	scan_data = memnew(ScanData);
+	scan_data->paths_to_scan = p_paths;
+	scan_data->scan_in_progress.set();
 
-	save_config();
+	scan_data->thread = memnew(Thread);
+	scan_data->thread->start(_scan_thread, scan_data);
 
-	if (ProjectManager::get_singleton()->is_initialized()) {
-		update_project_list();
+	if (scan_progress) {
+		scan_progress->reset_size();
+		scan_progress->popup_centered();
 	}
+	set_process(true);
 }
 
 void ProjectList::load_project_list() {
@@ -656,7 +721,11 @@ void ProjectList::load_project_list() {
 	}
 }
 
-void ProjectList::_scan_folder_recursive(const String &p_path, List<String> *r_projects) {
+void ProjectList::_scan_folder_recursive(const String &p_path, List<String> *r_projects, const SafeFlag &p_scan_active) {
+	if (!p_scan_active.is_set()) {
+		return;
+	}
+
 	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	Error error = da->change_dir(p_path);
 	ERR_FAIL_COND_MSG(error != OK, vformat("Failed to open the path \"%s\" for scanning (code %d).", p_path, error));
@@ -664,8 +733,12 @@ void ProjectList::_scan_folder_recursive(const String &p_path, List<String> *r_p
 	da->list_dir_begin();
 	String n = da->get_next();
 	while (!n.is_empty()) {
+		if (!p_scan_active.is_set()) {
+			return;
+		}
+
 		if (da->current_is_dir() && n[0] != '.') {
-			_scan_folder_recursive(da->get_current_dir().path_join(n), r_projects);
+			_scan_folder_recursive(da->get_current_dir().path_join(n), r_projects, p_scan_active);
 		} else if (n == "project.godot") {
 			r_projects->push_back(da->get_current_dir());
 		}

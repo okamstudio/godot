@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRDpadBindingModifier" inherits="OpenXRIPBindingModifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The DPad binding modifier converts an axis input to a dpad output.
+	</brief_description>
+	<description>
+		The DPad binding modifier converts an axis input to a dpad output, emulating a DPad. New input paths for each dpad direction will be added to the interaction profile. When bound to actions the DPad emulation will be activated. You should [b]not[/b] combine dpad inputs with normal inputs in the same action set for the same control, this will result in an error being returned when suggested bindings are submitted to OpenXR.
+		See [url=https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html#XR_EXT_dpad_binding]XR_EXT_dpad_binding[/url] for in-depth details.
+		[b]Note:[/b] If the DPad binding modifier extension is enabled, all dpad binding paths will be available in the action map. Adding the modifier to an interaction profile allows you to further customize the behavior.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="action_set" type="OpenXRActionSet" setter="set_action_set" getter="get_action_set">
+			Action set for which this dpad binding modifier is active.
+		</member>
+		<member name="center_region" type="float" setter="set_center_region" getter="get_center_region" default="0.1">
+			Center region in which our center position of our dpad return [code]true[/code].
+		</member>
+		<member name="input_path" type="String" setter="set_input_path" getter="get_input_path" default="&quot;&quot;">
+			Input path for this dpad binding modifier.
+		</member>
+		<member name="is_sticky" type="bool" setter="set_is_sticky" getter="get_is_sticky" default="false">
+			If [code]false[/code], when the joystick enters a new dpad zone this becomes true.
+			If [code]true[/code], when the joystick remains in active dpad zone, this remains true even if we overlap with another zone.
+		</member>
+		<member name="off_haptic" type="OpenXRHapticBase" setter="set_off_haptic" getter="get_off_haptic">
+			Haptic pulse to emit when the user releases the input.
+		</member>
+		<member name="on_haptic" type="OpenXRHapticBase" setter="set_on_haptic" getter="get_on_haptic">
+			Haptic pulse to emit when the user presses the input.
+		</member>
+		<member name="threshold" type="float" setter="set_threshold" getter="get_threshold" default="0.6">
+			When our input value is equal or larger than this value, our dpad in that direction becomes true. It stays true until it falls under the [member threshold_released] value.
+		</member>
+		<member name="threshold_released" type="float" setter="set_threshold_released" getter="get_threshold_released" default="0.4">
+			When our input value falls below this, our output becomes false.
+		</member>
+		<member name="wedge_angle" type="float" setter="set_wedge_angle" getter="get_wedge_angle" default="1.5708">
+			The angle of each wedge that identifies the 4 directions of the emulated dpad.
+		</member>
+	</members>
+</class>

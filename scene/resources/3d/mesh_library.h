@@ -35,6 +35,7 @@
 #include "core/templates/rb_map.h"
 #include "scene/3d/navigation_region_3d.h"
 #include "scene/resources/mesh.h"
+#include "servers/rendering_server.h"
 #include "shape_3d.h"
 
 class MeshLibrary : public Resource {
@@ -50,6 +51,7 @@ public:
 		String name;
 		Ref<Mesh> mesh;
 		Transform3D mesh_transform;
+		RS::ShadowCastingSetting mesh_cast_shadow = RS::ShadowCastingSetting::SHADOW_CASTING_SETTING_ON;
 		Vector<ShapeData> shapes;
 		Ref<Texture2D> preview;
 		Ref<NavigationMesh> navigation_mesh;
@@ -75,6 +77,7 @@ public:
 	void set_item_name(int p_item, const String &p_name);
 	void set_item_mesh(int p_item, const Ref<Mesh> &p_mesh);
 	void set_item_mesh_transform(int p_item, const Transform3D &p_transform);
+	void set_item_mesh_cast_shadow(int p_item, RS::ShadowCastingSetting p_shadow_casting_setting);
 	void set_item_navigation_mesh(int p_item, const Ref<NavigationMesh> &p_navigation_mesh);
 	void set_item_navigation_mesh_transform(int p_item, const Transform3D &p_transform);
 	void set_item_navigation_layers(int p_item, uint32_t p_navigation_layers);
@@ -83,6 +86,7 @@ public:
 	String get_item_name(int p_item) const;
 	Ref<Mesh> get_item_mesh(int p_item) const;
 	Transform3D get_item_mesh_transform(int p_item) const;
+	RS::ShadowCastingSetting get_item_mesh_cast_shadow(int p_item) const;
 	Ref<NavigationMesh> get_item_navigation_mesh(int p_item) const;
 	Transform3D get_item_navigation_mesh_transform(int p_item) const;
 	uint32_t get_item_navigation_layers(int p_item) const;

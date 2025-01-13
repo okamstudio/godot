@@ -40,6 +40,9 @@
 	</methods>
 	<members>
 		<member name="clip_contents" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
+		<member name="draw_focus_border" type="bool" setter="set_draw_focus_border" getter="get_draw_focus_border" default="false">
+			If [code]true[/code], [theme_item focus] is drawn when the ScrollContainer or one of its descendant nodes is focused.
+		</member>
 		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="is_following_focus" default="false">
 			If [code]true[/code], the ScrollContainer will automatically scroll to focused children (including indirect children) to make sure they are fully visible.
 		</member>
@@ -107,6 +110,9 @@
 		</constant>
 	</constants>
 	<theme_items>
+		<theme_item name="focus" data_type="style" type="StyleBox">
+			The focus border [StyleBox] of the [ScrollContainer]. Only used if [member draw_focus_border] is [code]true[/code].
+		</theme_item>
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			The background [StyleBox] of the [ScrollContainer].
 		</theme_item>

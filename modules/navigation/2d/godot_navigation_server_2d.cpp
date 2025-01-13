@@ -81,12 +81,6 @@
 		return CONV_R(NavigationServer3D::get_singleton()->FUNC_NAME(CONV_0(D_0), CONV_1(D_1))); \
 	}
 
-#define FORWARD_5_R_C(CONV_R, FUNC_NAME, T_0, D_0, T_1, D_1, T_2, D_2, T_3, D_3, T_4, D_4, CONV_0, CONV_1, CONV_2, CONV_3, CONV_4)      \
-	GodotNavigationServer2D::FUNC_NAME(T_0 D_0, T_1 D_1, T_2 D_2, T_3 D_3, T_4 D_4)                                                     \
-			const {                                                                                                                     \
-		return CONV_R(NavigationServer3D::get_singleton()->FUNC_NAME(CONV_0(D_0), CONV_1(D_1), CONV_2(D_2), CONV_3(D_3), CONV_4(D_4))); \
-	}
-
 static RID rid_to_rid(const RID d) {
 	return d;
 }
@@ -277,7 +271,9 @@ real_t FORWARD_1_C(map_get_edge_connection_margin, RID, p_map, rid_to_rid);
 void FORWARD_2(map_set_link_connection_radius, RID, p_map, real_t, p_connection_radius, rid_to_rid, real_to_real);
 real_t FORWARD_1_C(map_get_link_connection_radius, RID, p_map, rid_to_rid);
 
-Vector<Vector2> FORWARD_5_R_C(vector_v3_to_v2, map_get_path, RID, p_map, Vector2, p_origin, Vector2, p_destination, bool, p_optimize, uint32_t, p_layers, rid_to_rid, v2_to_v3, v2_to_v3, bool_to_bool, uint32_to_uint32);
+Vector<Vector2> GodotNavigationServer2D::map_get_path(RID p_map, Vector2 p_origin, Vector2 p_destination, bool p_optimize, uint32_t p_navigation_layers) {
+	return vector_v3_to_v2(NavigationServer3D::get_singleton()->map_get_path(p_map, v2_to_v3(p_origin), v2_to_v3(p_destination), p_optimize, p_navigation_layers));
+}
 
 Vector2 FORWARD_2_R_C(v3_to_v2, map_get_closest_point, RID, p_map, const Vector2 &, p_point, rid_to_rid, v2_to_v3);
 RID FORWARD_2_C(map_get_closest_point_owner, RID, p_map, const Vector2 &, p_point, rid_to_rid, v2_to_v3);
@@ -456,16 +452,48 @@ Vector<Vector2> GodotNavigationServer2D::obstacle_get_vertices(RID p_obstacle) c
 	return vector_v3_to_v2(NavigationServer3D::get_singleton()->obstacle_get_vertices(p_obstacle));
 }
 
-void GodotNavigationServer2D::query_path(const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result) const {
+void GodotNavigationServer2D::query_path(const Ref<NavigationPathQueryParameters2D> &p_query_parameters, Ref<NavigationPathQueryResult2D> p_query_result, const Callable &p_callback) {
 	ERR_FAIL_COND(!p_query_parameters.is_valid());
 	ERR_FAIL_COND(!p_query_result.is_valid());
 
-	const NavigationUtilities::PathQueryResult _query_result = NavigationServer3D::get_singleton()->_query_path(p_query_parameters->get_parameters());
+	Ref<NavigationPathQueryParameters3D> query_parameters;
+	query_parameters.instantiate();
 
-	p_query_result->set_path(vector_v3_to_v2(_query_result.path));
-	p_query_result->set_path_types(_query_result.path_types);
-	p_query_result->set_path_rids(_query_result.path_rids);
-	p_query_result->set_path_owner_ids(_query_result.path_owner_ids);
+	query_parameters->set_map(p_query_parameters->get_map());
+	query_parameters->set_start_position(v2_to_v3(p_query_parameters->get_start_position()));
+	query_parameters->set_target_position(v2_to_v3(p_query_parameters->get_target_position()));
+	query_parameters->set_navigation_layers(p_query_parameters->get_navigation_layers());
+	query_parameters->set_pathfinding_algorithm(NavigationPathQueryParameters3D::PathfindingAlgorithm::PATHFINDING_ALGORITHM_ASTAR);
+
+	switch (p_query_parameters->get_path_postprocessing()) {
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL: {
+			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL);
+		} break;
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED: {
+			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_EDGECENTERED);
+		} break;
+		case NavigationPathQueryParameters2D::PathPostProcessing::PATH_POSTPROCESSING_NONE: {
+			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_NONE);
+		} break;
+		default: {
+			WARN_PRINT("No match for used PathPostProcessing - fallback to default");
+			query_parameters->set_path_postprocessing(NavigationPathQueryParameters3D::PathPostProcessing::PATH_POSTPROCESSING_CORRIDORFUNNEL);
+		} break;
+	}
+
+	query_parameters->set_metadata_flags((int64_t)p_query_parameters->get_metadata_flags());
+	query_parameters->set_simplify_path(p_query_parameters->get_simplify_path());
+	query_parameters->set_simplify_epsilon(p_query_parameters->get_simplify_epsilon());
+
+	Ref<NavigationPathQueryResult3D> query_result;
+	query_result.instantiate();
+
+	NavigationServer3D::get_singleton()->query_path(query_parameters, query_result, p_callback);
+
+	p_query_result->set_path(vector_v3_to_v2(query_result->get_path()));
+	p_query_result->set_path_types(query_result->get_path_types());
+	p_query_result->set_path_rids(query_result->get_path_rids());
+	p_query_result->set_path_owner_ids(query_result->get_path_owner_ids());
 }
 
 RID GodotNavigationServer2D::source_geometry_parser_create() {

@@ -30,8 +30,12 @@
 
 #ifndef DISABLE_DEPRECATED
 
+void RichTextLabel::_push_meta_bind_compat_99481(const Variant &p_meta, MetaUnderline p_underline_mode) {
+	push_meta(p_meta, p_underline_mode, String());
+}
+
 void RichTextLabel::_push_meta_bind_compat_89024(const Variant &p_meta) {
-	push_meta(p_meta, RichTextLabel::MetaUnderline::META_UNDERLINE_ALWAYS);
+	push_meta(p_meta, RichTextLabel::MetaUnderline::META_UNDERLINE_ALWAYS, String());
 }
 
 void RichTextLabel::_add_image_bind_compat_80410(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region) {
@@ -43,6 +47,7 @@ bool RichTextLabel::_remove_paragraph_bind_compat_91098(int p_paragraph) {
 }
 
 void RichTextLabel::_bind_compatibility_methods() {
+	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data", "underline_mode"), &RichTextLabel::_push_meta_bind_compat_99481, DEFVAL(META_UNDERLINE_ALWAYS));
 	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data"), &RichTextLabel::_push_meta_bind_compat_89024);
 	ClassDB::bind_compatibility_method(D_METHOD("add_image", "image", "width", "height", "color", "inline_align", "region"), &RichTextLabel::_add_image_bind_compat_80410, DEFVAL(0), DEFVAL(0), DEFVAL(Color(1.0, 1.0, 1.0)), DEFVAL(INLINE_ALIGNMENT_CENTER), DEFVAL(Rect2()));
 	ClassDB::bind_compatibility_method(D_METHOD("remove_paragraph", "paragraph"), &RichTextLabel::_remove_paragraph_bind_compat_91098);

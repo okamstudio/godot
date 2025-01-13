@@ -67,6 +67,7 @@ jobs:
           platform: web
           target: ${{ matrix.target }}
           tests: ${{ matrix.tests }}
+          scons-cache-limit: 0.5
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

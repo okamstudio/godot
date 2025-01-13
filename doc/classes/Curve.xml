@@ -4,8 +4,8 @@
 		A mathematical curve.
 	</brief_description>
 	<description>
-		This resource describes a mathematical curve by defining a set of points and tangents at each point. By default, it ranges between [code]0[/code] and [code]1[/code] on the Y axis and positions points relative to the [code]0.5[/code] Y position.
-		See also [Gradient] which is designed for color interpolation. See also [Curve2D] and [Curve3D].
+		This resource describes a mathematical curve by defining a set of points and tangents at each point. By default, it ranges between [code]0[/code] and [code]1[/code] on the X and Y axes, but these ranges can be changed.
+		Please note that many resources and nodes assume they are given [i]unit curves[/i]. A unit curve is a curve whose domain (the X axis) is between [code]0[/code] and [code]1[/code]. Some examples of unit curve usage are [member CPUParticles2D.angle_curve] and [member Line2D.width_curve].
 	</description>
 	<tutorials>
 	</tutorials>
@@ -37,6 +37,12 @@
 			<return type="void" />
 			<description>
 				Removes all points from the curve.
+			</description>
+		</method>
+		<method name="get_domain_range" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the difference between [member min_domain] and [member max_domain].
 			</description>
 		</method>
 		<method name="get_point_left_mode" qualifiers="const">
@@ -72,6 +78,12 @@
 			<param index="0" name="index" type="int" />
 			<description>
 				Returns the right tangent angle (in degrees) for the point at [param index].
+			</description>
+		</method>
+		<method name="get_value_range" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the difference between [member min_value] and [member max_value].
 			</description>
 		</method>
 		<method name="remove_point">
@@ -148,17 +160,28 @@
 		<member name="bake_resolution" type="int" setter="set_bake_resolution" getter="get_bake_resolution" default="100">
 			The number of points to include in the baked (i.e. cached) curve data.
 		</member>
+		<member name="max_domain" type="float" setter="set_max_domain" getter="get_max_domain" default="1.0">
+			The maximum domain (x-coordinate) that points can have.
+		</member>
 		<member name="max_value" type="float" setter="set_max_value" getter="get_max_value" default="1.0">
-			The maximum value the curve can reach.
+			The maximum value (y-coordinate) that points can have. Tangents can cause higher values between points.
+		</member>
+		<member name="min_domain" type="float" setter="set_min_domain" getter="get_min_domain" default="0.0">
+			The minimum domain (x-coordinate) that points can have.
 		</member>
 		<member name="min_value" type="float" setter="set_min_value" getter="get_min_value" default="0.0">
-			The minimum value the curve can reach.
+			The minimum value (y-coordinate) that points can have. Tangents can cause lower values between points.
 		</member>
 		<member name="point_count" type="int" setter="set_point_count" getter="get_point_count" default="0">
 			The number of points describing the curve.
 		</member>
 	</members>
 	<signals>
+		<signal name="domain_changed">
+			<description>
+				Emitted when [member max_domain] or [member min_domain] is changed.
+			</description>
+		</signal>
 		<signal name="range_changed">
 			<description>
 				Emitted when [member max_value] or [member min_value] is changed.

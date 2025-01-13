@@ -54,15 +54,6 @@ using namespace tvg;
     #define strdup _strdup
 #endif
 
-//TVG class identifier values
-#define TVG_CLASS_ID_UNDEFINED 0
-#define TVG_CLASS_ID_SHAPE     1
-#define TVG_CLASS_ID_SCENE     2
-#define TVG_CLASS_ID_PICTURE   3
-#define TVG_CLASS_ID_LINEAR    4
-#define TVG_CLASS_ID_RADIAL    5
-#define TVG_CLASS_ID_TEXT      6
-
 enum class FileType { Png = 0, Jpg, Webp, Tvg, Svg, Lottie, Ttf, Raw, Gif, Unknown };
 
 using Size = Point;

@@ -1,6 +1,3 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/use_return_value_of_free_call.gd
->> 4
->> Trying to get a return value of a method that returns "void"
+~~ WARNING at line 4: (UNSAFE_METHOD_ACCESS) The method "free()" is not present on the inferred type "Variant" (but may be present on a subtype).
+>> SCRIPT ERROR at runtime/errors/use_return_value_of_free_call.gd:4 on test(): Trying to get a return value of a method that returns "void"

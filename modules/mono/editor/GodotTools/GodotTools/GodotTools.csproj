@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <ProjectGuid>{27B00618-A6F2-4828-B922-05CAEB08C286}</ProjectGuid>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12</LangVersion>
     <EnableDynamicLoading>true</EnableDynamicLoading>
-    <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
     <!-- The Godot editor uses the Debug Godot API assemblies -->
     <GodotApiConfiguration>Debug</GodotApiConfiguration>
@@ -13,13 +14,16 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
   <!-- Needed for our source generators to work despite this not being a Godot game project -->
   <PropertyGroup>
     <IsGodotToolsProject>true</IsGodotToolsProject>
   </PropertyGroup>
+
   <ItemGroup>
     <CompilerVisibleProperty Include="IsGodotToolsProject" />
   </ItemGroup>
+
   <PropertyGroup Condition=" Exists('$(GodotApiAssembliesDir)/GodotSharp.dll') ">
     <!-- The project is part of the Godot source tree -->
     <!-- Use the Godot source tree output folder instead of '$(ProjectDir)/bin' -->
@@ -27,6 +31,7 @@
     <!-- Must not append '$(TargetFramework)' to the output path in this case -->
     <AppendTargetFrameworkToOutputPath>False</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2019.1.3.0" ExcludeAssets="runtime" PrivateAssets="all" />
     <PackageReference Include="JetBrains.Rider.PathLocator" Version="1.0.9" />
@@ -41,14 +46,17 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\Godot.NET.Sdk\Godot.SourceGenerators\Godot.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\..\..\glue\GodotSharp\Godot.SourceGenerators.Internal\Godot.SourceGenerators.Internal.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\GodotTools.BuildLogger\GodotTools.BuildLogger.csproj" />
     <ProjectReference Include="..\GodotTools.IdeMessaging\GodotTools.IdeMessaging.csproj" />
     <ProjectReference Include="..\GodotTools.ProjectEditor\GodotTools.ProjectEditor.csproj" />
     <ProjectReference Include="..\GodotTools.Core\GodotTools.Core.csproj" />
   </ItemGroup>
+
 </Project>

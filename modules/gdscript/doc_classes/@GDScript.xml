@@ -726,7 +726,7 @@
 				[/codeblock]
 				[b]Note:[/b] Only the script can have a custom icon. Inner classes are not supported.
 				[b]Note:[/b] As annotations describe their subject, the [annotation @icon] annotation must be placed before the class definition and inheritance.
-				[b]Note:[/b] Unlike other annotations, the argument of the [annotation @icon] annotation must be a string literal (constant expressions are not supported).
+				[b]Note:[/b] Unlike most other annotations, the argument of the [annotation @icon] annotation must be a string literal (constant expressions are not supported).
 			</description>
 		</annotation>
 		<annotation name="@onready">
@@ -794,6 +794,33 @@
 				    @warning_ignore("unreachable_code")
 				    print("unreachable")
 				[/codeblock]
+				See also [annotation @warning_ignore_start] and [annotation @warning_ignore_restore].
+			</description>
+		</annotation>
+		<annotation name="@warning_ignore_restore" qualifiers="vararg">
+			<return type="void" />
+			<param index="0" name="warning" type="String" />
+			<description>
+				Stops ignoring the listed warning types after [annotation @warning_ignore_start]. Ignoring the specified warning types will be reset to Project Settings. This annotation can be omitted to ignore the warning types until the end of the file.
+				[b]Note:[/b] Unlike most other annotations, arguments of the [annotation @warning_ignore_restore] annotation must be string literals (constant expressions are not supported).
+			</description>
+		</annotation>
+		<annotation name="@warning_ignore_start" qualifiers="vararg">
+			<return type="void" />
+			<param index="0" name="warning" type="String" />
+			<description>
+				Starts ignoring the listed warning types until the end of the file or the [annotation @warning_ignore_restore] annotation with the given warning type.
+				[codeblock]
+				func test():
+				    var a = 1 # Warning (if enabled in the Project Settings).
+				    @warning_ignore_start("unused_variable")
+				    var b = 2 # No warning.
+				    var c = 3 # No warning.
+				    @warning_ignore_restore("unused_variable")
+				    var d = 4 # Warning (if enabled in the Project Settings).
+				[/codeblock]
+				[b]Note:[/b] To suppress a single warning, use [annotation @warning_ignore] instead.
+				[b]Note:[/b] Unlike most other annotations, arguments of the [annotation @warning_ignore_start] annotation must be string literals (constant expressions are not supported).
 			</description>
 		</annotation>
 	</annotations>

@@ -65,6 +65,8 @@ protected:
 	static void _bind_methods();
 	void _validate_property(PropertyInfo &p_property) const;
 
+	void _call_render_callback(int p_effect_callback_type, const RenderData *p_render_data);
+
 	GDVIRTUAL2(_render_callback, int, const RenderData *)
 
 public:

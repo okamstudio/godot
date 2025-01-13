@@ -111,7 +111,7 @@ Files extracted from upstream source:
 ## clipper2
 
 - Upstream: https://github.com/AngusJohnson/Clipper2
-- Version: 1.3.0 (98db5662e8dd1808a5a7b50c5605a2289bb390e8, 2023)
+- Version: 1.4.0 (736ddb0b53d97fd5f65dd3d9bbf8a0993eaf387c, 2024)
 - License: BSL 1.0
 
 Files extracted from upstream source:
@@ -257,10 +257,6 @@ Files extracted from upstream source:
   * Upstream: https://github.com/JetBrains/JetBrainsMono
   * Version: 2.304 (cd5227bd1f61dff3bbd6c814ceaf7ffd95e947d9, 2023)
   * License: OFL-1.1
-- `NotoNaskhArabicUI*.woff2`:
-  * Upstream: https://github.com/notofonts/arabic
-  * Version: 2.014 (133ccaebf922ca080a7eef22998611ac3c242df9, 2022)
-  * License: OFL-1.1
 - `NotoSans*.woff2`:
   * Upstream: https://github.com/notofonts/latin-greek-cyrillic
   * Version: 2.012 (9ea0c8d37bff0c0067b03777f40aa04f2bf78f99, 2023)
@@ -309,6 +305,10 @@ Files extracted from upstream source:
   * Upstream: https://fonts.google.com/specimen/Open+Sans
   * Version: 1.10 (downloaded from Google Fonts in February 2021)
   * License: Apache 2.0
+- `Vazirmatn*.woff2`:
+  * Upstream: https://github.com/rastikerdar/vazirmatn
+  * Version: 33.003 (83629f877e8f084cc07b47030b5d3a0ff06c76ec, 2022)
+  * License: OFL-1.1
 
 All fonts are converted from the unhinted `.ttf` sources using the
 `https://github.com/google/woff2` tool.
@@ -433,6 +433,18 @@ Files generated from upstream source:
 5. Copy `source/data/out/icudt76l.dat` to the `{GODOT_SOURCE}/thirdparty/icu4c/icudt76l.dat`
 
 
+## jolt_physics
+
+- Upstream: https://github.com/jrouwe/JoltPhysics
+- Version: 5.2.1 (e3d3cdf644389b621914bb6e73d52ee3137591a7, 2024)
+- License: MIT
+
+Files extracted from upstream source:
+
+- All files in `Jolt/`, except `Jolt/Jolt.cmake` and any files dependent on `ENABLE_OBJECT_STREAM`, as seen in `Jolt/Jolt.cmake`
+- `LICENSE`
+
+
 ## jpeg-compressor
 
 - Upstream: https://github.com/richgel999/jpeg-compressor
@@ -455,6 +467,10 @@ Files extracted from upstream source:
 
 - `*.{c,h}` files for Windows platform
 - `LICENSE`
+
+Important: Some files have Godot-made changes to load big debug symbol files.
+They are marked with `/* GODOT start */` and `/* GODOT end */`
+comments and a patch is provided in the `patches` folder.
 
 
 ## libktx
@@ -546,10 +562,22 @@ Patch `godot-node-debug-fix.patch` workarounds shadowing of Godot's Node class
 in the MSVC debugger.
 
 
+## manifold
+
+- Upstream: https://github.com/elalish/manifold
+- Version: master (36035428bc32302a9d7c9ee1ecc833fb8394a2a3, 2024)
+- License: Apache 2.0
+
+File extracted from upstream source:
+
+- `src/`
+- `AUTHORS`, `LICENSE`
+
+
 ## mbedtls
 
 - Upstream: https://github.com/Mbed-TLS/mbedtls
-- Version: 3.6.1 (71c569d44bf3a8bd53d874c81ee8ac644dd6e9e3, 2024)
+- Version: 3.6.2 (107ea89daaefb9867ea9121002fbbdf926780e98, 2024)
 - License: Apache 2.0
 
 File extracted from upstream release tarball:
@@ -628,7 +656,8 @@ to solve some MSVC warnings. See the patches in the `patches` directory.
 
 Files extracted from upstream source:
 
-- Copy `miniupnpc/src` and `miniupnpc/include` to `thirdparty/miniupnpc`
+- `miniupnpc/src/` as `src/`
+- `miniupnpc/include/` as `include/miniupnpc/`
 - Remove the following test or sample files:
   `listdevices.c,minihttptestserver.c,miniupnpcmodule.c,upnpc.c,upnperrors.*,test*`
 - `LICENSE`
@@ -703,8 +732,8 @@ Collection of single-file libraries used in Godot components.
   * License: MIT
 - `qoa.h`
   * Upstream: https://github.com/phoboslab/qoa
-  * Version: git (e0c69447d4d3945c3c92ac1751e4cdc9803a8303, 2024)
-  * Modifications: Added a few modifiers to comply with C++ nature.
+  * Version: git (a2d927f8ce78a85e903676a33e0f956e53b89f7d, 2024)
+  * Modifications: Added implementation through `qoa.c`.
   * License: MIT
 - `r128.{c,h}`
   * Upstream: https://github.com/fahickman/r128
@@ -903,7 +932,7 @@ instead of `miniz.h` as an external dependency.
 ## thorvg
 
 - Upstream: https://github.com/thorvg/thorvg
-- Version: 0.14.10 (366dcd72850c360b49e841e568fc5a154d7cce9e, 2024)
+- Version: 0.15.5 (89ab573acb253567975b2494069c7ee9abc9267c, 2024)
 - License: MIT
 
 Files extracted from upstream source:
@@ -911,11 +940,13 @@ Files extracted from upstream source:
 See `thorvg/update-thorvg.sh` for extraction instructions. Set the version
 number and run the script.
 
+Patches in the `patches/` directory should be re-applied after updating.
+
 
 ## ufbx
 
 - Upstream: https://github.com/ufbx/ufbx
-- Version: 0.14.3 (19bdb7e7ef02eb914d5e7211a3685f50ee6d27e3, 2024)
+- Version: 0.15.0 (24eea6f40929fe0f679b7950def378edb003afdb, 2024)
 - License: MIT
 
 Files extracted from upstream source:
@@ -1013,6 +1044,7 @@ Files extracted from upstream source:
 - `staging/fractional-scale/fractional-scale-v1.xml`
 - `staging/xdg-activation/README`
 - `staging/xdg-activation/xdg-activation-v1.xml`
+- `staging/xdg-system-bell/xdg-system-bell-v1.xml`
 - `unstable/idle-inhibit/README`
 - `unstable/idle-inhibit/idle-inhibit-unstable-v1.xml`
 - `unstable/pointer-constraints/README`

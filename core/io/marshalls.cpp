@@ -33,6 +33,7 @@
 #include "core/io/resource_loader.h"
 #include "core/object/ref_counted.h"
 #include "core/object/script_language.h"
+#include "core/variant/container_type_validate.h"
 
 #include <limits.h>
 #include <stdio.h>
@@ -82,12 +83,6 @@ enum ContainerTypeKind {
 	CONTAINER_TYPE_KIND_BUILTIN = 0b01,
 	CONTAINER_TYPE_KIND_CLASS_NAME = 0b10,
 	CONTAINER_TYPE_KIND_SCRIPT = 0b11,
-};
-
-struct ContainerType {
-	Variant::Type builtin_type = Variant::NIL;
-	StringName class_name;
-	Ref<Script> script;
 };
 
 #define GET_CONTAINER_TYPE_KIND(m_header, m_field) \
@@ -844,7 +839,7 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 
 			Dictionary dict;
 			if (key_type.builtin_type != Variant::NIL || value_type.builtin_type != Variant::NIL) {
-				dict.set_typed(key_type.builtin_type, key_type.class_name, key_type.script, value_type.builtin_type, value_type.class_name, value_type.script);
+				dict.set_typed(key_type, value_type);
 			}
 
 			for (int i = 0; i < count; i++) {
@@ -901,7 +896,7 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 
 			Array array;
 			if (type.builtin_type != Variant::NIL) {
-				array.set_typed(type.builtin_type, type.class_name, type.script);
+				array.set_typed(type);
 			}
 
 			for (int i = 0; i < count; i++) {
@@ -1402,31 +1397,13 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			}
 		} break;
 		case Variant::DICTIONARY: {
-			Dictionary dict = p_variant;
-
-			ContainerType key_type;
-			key_type.builtin_type = (Variant::Type)dict.get_typed_key_builtin();
-			key_type.class_name = dict.get_typed_key_class_name();
-			key_type.script = dict.get_typed_key_script();
-
-			_encode_container_type_header(key_type, header, HEADER_DATA_FIELD_TYPED_DICTIONARY_KEY_SHIFT, p_full_objects);
-
-			ContainerType value_type;
-			value_type.builtin_type = (Variant::Type)dict.get_typed_value_builtin();
-			value_type.class_name = dict.get_typed_value_class_name();
-			value_type.script = dict.get_typed_value_script();
-
-			_encode_container_type_header(value_type, header, HEADER_DATA_FIELD_TYPED_DICTIONARY_VALUE_SHIFT, p_full_objects);
+			const Dictionary dict = p_variant;
+			_encode_container_type_header(dict.get_key_type(), header, HEADER_DATA_FIELD_TYPED_DICTIONARY_KEY_SHIFT, p_full_objects);
+			_encode_container_type_header(dict.get_value_type(), header, HEADER_DATA_FIELD_TYPED_DICTIONARY_VALUE_SHIFT, p_full_objects);
 		} break;
 		case Variant::ARRAY: {
-			Array array = p_variant;
-
-			ContainerType type;
-			type.builtin_type = (Variant::Type)array.get_typed_builtin();
-			type.class_name = array.get_typed_class_name();
-			type.script = array.get_typed_script();
-
-			_encode_container_type_header(type, header, HEADER_DATA_FIELD_TYPED_ARRAY_SHIFT, p_full_objects);
+			const Array array = p_variant;
+			_encode_container_type_header(array.get_element_type(), header, HEADER_DATA_FIELD_TYPED_ARRAY_SHIFT, p_full_objects);
 		} break;
 #ifdef REAL_T_IS_DOUBLE
 		case Variant::VECTOR2:
@@ -1850,27 +1827,17 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			r_len += 8;
 		} break;
 		case Variant::DICTIONARY: {
-			Dictionary dict = p_variant;
+			const Dictionary dict = p_variant;
 
 			{
-				ContainerType key_type;
-				key_type.builtin_type = (Variant::Type)dict.get_typed_key_builtin();
-				key_type.class_name = dict.get_typed_key_class_name();
-				key_type.script = dict.get_typed_key_script();
-
-				Error err = _encode_container_type(key_type, buf, r_len, p_full_objects);
+				Error err = _encode_container_type(dict.get_key_type(), buf, r_len, p_full_objects);
 				if (err) {
 					return err;
 				}
 			}
 
 			{
-				ContainerType value_type;
-				value_type.builtin_type = (Variant::Type)dict.get_typed_value_builtin();
-				value_type.class_name = dict.get_typed_value_class_name();
-				value_type.script = dict.get_typed_value_script();
-
-				Error err = _encode_container_type(value_type, buf, r_len, p_full_objects);
+				Error err = _encode_container_type(dict.get_value_type(), buf, r_len, p_full_objects);
 				if (err) {
 					return err;
 				}
@@ -1894,7 +1861,7 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 				if (buf) {
 					buf += len;
 				}
-				Variant *value = dict.getptr(key);
+				const Variant *value = dict.getptr(key);
 				ERR_FAIL_NULL_V(value, ERR_BUG);
 				err = encode_variant(*value, buf, len, p_full_objects, p_depth + 1);
 				ERR_FAIL_COND_V(err, err);
@@ -1907,15 +1874,10 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 
 		} break;
 		case Variant::ARRAY: {
-			Array array = p_variant;
+			const Array array = p_variant;
 
 			{
-				ContainerType type;
-				type.builtin_type = (Variant::Type)array.get_typed_builtin();
-				type.class_name = array.get_typed_class_name();
-				type.script = array.get_typed_script();
-
-				Error err = _encode_container_type(type, buf, r_len, p_full_objects);
+				Error err = _encode_container_type(array.get_element_type(), buf, r_len, p_full_objects);
 				if (err) {
 					return err;
 				}

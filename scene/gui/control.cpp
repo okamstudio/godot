@@ -1672,7 +1672,7 @@ Size2 Control::get_custom_minimum_size() const {
 	return data.custom_minimum_size;
 }
 
-void Control::_update_minimum_size_cache() {
+void Control::_update_minimum_size_cache() const {
 	Size2 minsize = get_minimum_size();
 	minsize = minsize.max(data.custom_minimum_size);
 
@@ -1683,7 +1683,7 @@ void Control::_update_minimum_size_cache() {
 Size2 Control::get_combined_minimum_size() const {
 	ERR_READ_THREAD_GUARD_V(Size2());
 	if (!data.minimum_size_valid) {
-		const_cast<Control *>(this)->_update_minimum_size_cache();
+		_update_minimum_size_cache();
 	}
 	return data.minimum_size_cache;
 }
@@ -3059,11 +3059,11 @@ Control::LayoutDirection Control::get_layout_direction() const {
 bool Control::is_layout_rtl() const {
 	ERR_READ_THREAD_GUARD_V(false);
 	if (data.is_rtl_dirty) {
-		const_cast<Control *>(this)->data.is_rtl_dirty = false;
+		data.is_rtl_dirty = false;
 		if (data.layout_dir == LAYOUT_DIRECTION_INHERITED) {
 #ifdef TOOLS_ENABLED
 			if (is_part_of_edited_scene() && GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				const_cast<Control *>(this)->data.is_rtl = true;
+				data.is_rtl = true;
 				return data.is_rtl;
 			}
 			if (is_inside_tree()) {
@@ -3071,22 +3071,22 @@ bool Control::is_layout_rtl() const {
 				if (edited_scene_root == this) {
 					int proj_root_layout_direction = GLOBAL_GET(SNAME("internationalization/rendering/root_node_layout_direction"));
 					if (proj_root_layout_direction == 1) {
-						const_cast<Control *>(this)->data.is_rtl = false;
+						data.is_rtl = false;
 					} else if (proj_root_layout_direction == 2) {
-						const_cast<Control *>(this)->data.is_rtl = true;
+						data.is_rtl = true;
 					} else if (proj_root_layout_direction == 3) {
 						String locale = OS::get_singleton()->get_locale();
-						const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
+						data.is_rtl = TS->is_locale_right_to_left(locale);
 					} else {
 						String locale = TranslationServer::get_singleton()->get_tool_locale();
-						const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
+						data.is_rtl = TS->is_locale_right_to_left(locale);
 					}
 					return data.is_rtl;
 				}
 			}
 #else
 			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				const_cast<Control *>(this)->data.is_rtl = true;
+				data.is_rtl = true;
 				return data.is_rtl;
 			}
 #endif // TOOLS_ENABLED
@@ -3094,35 +3094,35 @@ bool Control::is_layout_rtl() const {
 			while (parent_node) {
 				Control *parent_control = Object::cast_to<Control>(parent_node);
 				if (parent_control) {
-					const_cast<Control *>(this)->data.is_rtl = parent_control->is_layout_rtl();
+					data.is_rtl = parent_control->is_layout_rtl();
 					return data.is_rtl;
 				}
 
 				Window *parent_window = Object::cast_to<Window>(parent_node);
 				if (parent_window) {
-					const_cast<Control *>(this)->data.is_rtl = parent_window->is_layout_rtl();
+					data.is_rtl = parent_window->is_layout_rtl();
 					return data.is_rtl;
 				}
 				parent_node = parent_node->get_parent();
 			}
 
 			if (root_layout_direction == 1) {
-				const_cast<Control *>(this)->data.is_rtl = false;
+				data.is_rtl = false;
 			} else if (root_layout_direction == 2) {
-				const_cast<Control *>(this)->data.is_rtl = true;
+				data.is_rtl = true;
 			} else if (root_layout_direction == 3) {
 				String locale = OS::get_singleton()->get_locale();
-				const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
+				data.is_rtl = TS->is_locale_right_to_left(locale);
 			} else {
 				String locale = TranslationServer::get_singleton()->get_tool_locale();
-				const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
+				data.is_rtl = TS->is_locale_right_to_left(locale);
 			}
 		} else if (data.layout_dir == LAYOUT_DIRECTION_APPLICATION_LOCALE) {
 			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
-				const_cast<Control *>(this)->data.is_rtl = true;
+				data.is_rtl = true;
 			} else {
 				String locale = TranslationServer::get_singleton()->get_tool_locale();
-				const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
+				data.is_rtl = TS->is_locale_right_to_left(locale);
 			}
 		} else if (data.layout_dir == LAYOUT_DIRECTION_SYSTEM_LOCALE) {
 			if (GLOBAL_GET(SNAME("internationalization/rendering/force_right_to_left_layout_direction"))) {
@@ -3132,7 +3132,7 @@ bool Control::is_layout_rtl() const {
 				const_cast<Control *>(this)->data.is_rtl = TS->is_locale_right_to_left(locale);
 			}
 		} else {
-			const_cast<Control *>(this)->data.is_rtl = (data.layout_dir == LAYOUT_DIRECTION_RTL);
+			data.is_rtl = (data.layout_dir == LAYOUT_DIRECTION_RTL);
 		}
 	}
 	return data.is_rtl;
@@ -3602,10 +3602,10 @@ void Control::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "anchor_bottom", PROPERTY_HINT_RANGE, "0,1,0.001,or_less,or_greater"), "_set_anchor", "get_anchor", SIDE_BOTTOM);
 
 	ADD_SUBGROUP_INDENT("Anchor Offsets", "offset_", 1);
-	ADD_PROPERTYI(PropertyInfo(Variant::INT, "offset_left", PROPERTY_HINT_RANGE, "-4096,4096,suffix:px"), "set_offset", "get_offset", SIDE_LEFT);
-	ADD_PROPERTYI(PropertyInfo(Variant::INT, "offset_top", PROPERTY_HINT_RANGE, "-4096,4096,suffix:px"), "set_offset", "get_offset", SIDE_TOP);
-	ADD_PROPERTYI(PropertyInfo(Variant::INT, "offset_right", PROPERTY_HINT_RANGE, "-4096,4096,suffix:px"), "set_offset", "get_offset", SIDE_RIGHT);
-	ADD_PROPERTYI(PropertyInfo(Variant::INT, "offset_bottom", PROPERTY_HINT_RANGE, "-4096,4096,suffix:px"), "set_offset", "get_offset", SIDE_BOTTOM);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "offset_left", PROPERTY_HINT_RANGE, "-4096,4096,1,or_less,or_greater,suffix:px"), "set_offset", "get_offset", SIDE_LEFT);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "offset_top", PROPERTY_HINT_RANGE, "-4096,4096,1,or_less,or_greater,suffix:px"), "set_offset", "get_offset", SIDE_TOP);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "offset_right", PROPERTY_HINT_RANGE, "-4096,4096,1,or_less,or_greater,suffix:px"), "set_offset", "get_offset", SIDE_RIGHT);
+	ADD_PROPERTYI(PropertyInfo(Variant::FLOAT, "offset_bottom", PROPERTY_HINT_RANGE, "-4096,4096,1,or_less,or_greater,suffix:px"), "set_offset", "get_offset", SIDE_BOTTOM);
 
 	ADD_SUBGROUP_INDENT("Grow Direction", "grow_", 1);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "grow_horizontal", PROPERTY_HINT_ENUM, "Left,Right,Both"), "set_h_grow_direction", "get_h_grow_direction");

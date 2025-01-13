@@ -62,8 +62,8 @@
 		<method name="affine_inverse" qualifiers="const">
 			<return type="Transform2D" />
 			<description>
-				Returns the inverted version of this transform. Unlike [method inverse], this method works with almost any basis, including non-uniform ones, but is slower. See also [method inverse].
-				[b]Note:[/b] For this method to return correctly, the transform's basis needs to have a determinant that is not exactly [code]0[/code] (see [method determinant]).
+				Returns the inverted version of this transform. Unlike [method inverse], this method works with almost any basis, including non-uniform ones, but is slower.
+				[b]Note:[/b] For this method to return correctly, the transform's basis needs to have a determinant that is not exactly [code]0.0[/code] (see [method determinant]).
 			</description>
 		</method>
 		<method name="basis_xform" qualifiers="const">
@@ -85,7 +85,7 @@
 			<return type="float" />
 			<description>
 				Returns the [url=https://en.wikipedia.org/wiki/Determinant]determinant[/url] of this transform basis's matrix. For advanced math, this number can be used to determine a few attributes:
-				- If the determinant is exactly [code]0[/code], the basis is not invertible (see [method inverse]).
+				- If the determinant is exactly [code]0.0[/code], the basis is not invertible (see [method inverse]).
 				- If the determinant is a negative number, the basis represents a negative scale.
 				[b]Note:[/b] If the basis's scale is the same for every axis, its determinant is always that scale by the power of 2.
 			</description>
@@ -116,7 +116,7 @@
 				# Rotating the Transform2D in any way preserves its scale.
 				my_transform = my_transform.rotated(TAU / 2)
 
-				print(my_transform.get_scale()) # Prints (2, 4).
+				print(my_transform.get_scale()) # Prints (2.0, 4.0)
 				[/gdscript]
 				[csharp]
 				var myTransform = new Transform2D(
@@ -127,7 +127,7 @@
 				// Rotating the Transform2D in any way preserves its scale.
 				myTransform = myTransform.Rotated(Mathf.Tau / 2.0f);
 
-				GD.Print(myTransform.GetScale()); // Prints (2, 4, 8).
+				GD.Print(myTransform.GetScale()); // Prints (2, 4)
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] If the value returned by [method determinant] is negative, the scale is also negative.
@@ -152,7 +152,7 @@
 			<return type="Transform2D" />
 			<description>
 				Returns the [url=https://en.wikipedia.org/wiki/Invertible_matrix]inverted version of this transform[/url].
-				[b]Note:[/b] For this method to return correctly, the transform's basis needs to be [i]orthonormal[/i] (see [method orthonormalized]). That means, the basis should only represent a rotation. If it does not, use [method affine_inverse] instead.
+				[b]Note:[/b] For this method to return correctly, the transform's basis needs to be [i]orthonormal[/i] (see [method orthonormalized]). That means the basis should only represent a rotation. If it does not, use [method affine_inverse] instead.
 			</description>
 		</method>
 		<method name="is_conformal" qualifiers="const">
@@ -184,14 +184,15 @@
 		<method name="orthonormalized" qualifiers="const">
 			<return type="Transform2D" />
 			<description>
-				Returns a copy of this transform with its basis orthonormalized. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1[/code]), which also means it can only represent rotation.
+				Returns a copy of this transform with its basis orthonormalized. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1.0[/code]), which also means it can only represent a rotation.
 			</description>
 		</method>
 		<method name="rotated" qualifiers="const">
 			<return type="Transform2D" />
 			<param index="0" name="angle" type="float" />
 			<description>
-				Returns a copy of the transform rotated by the given [param angle] (in radians).
+				Returns a copy of this transform rotated by the given [param angle] (in radians).
+				If [param angle] is positive, the transform is rotated clockwise.
 				This method is an optimized version of multiplying the given transform [code]X[/code] with a corresponding rotation transform [code]R[/code] from the left, i.e., [code]R * X[/code].
 				This can be seen as transforming with respect to the global/parent frame.
 			</description>
@@ -257,28 +258,29 @@
 	</members>
 	<constants>
 		<constant name="IDENTITY" value="Transform2D(1, 0, 0, 1, 0, 0)">
-			The identity [Transform2D]. A transform with no translation, no rotation, and its scale being [code]1[/code]. When multiplied by another [Variant] such as [Rect2] or another [Transform2D], no transformation occurs. This means that:
+			The identity [Transform2D]. This is a transform with no translation, no rotation, and a scale of [constant Vector2.ONE]. This also means that:
 			- The [member x] points right ([constant Vector2.RIGHT]);
 			- The [member y] points down ([constant Vector2.DOWN]).
 			[codeblock]
 			var transform = Transform2D.IDENTITY
 			print("| X | Y | Origin")
-			print("| %s | %s | %s" % [transform.x.x, transform.y.x, transform.origin.x])
-			print("| %s | %s | %s" % [transform.x.y, transform.y.y, transform.origin.y])
+			print("| %.f | %.f | %.f" % [transform.x.x, transform.y.x, transform.origin.x])
+			print("| %.f | %.f | %.f" % [transform.x.y, transform.y.y, transform.origin.y])
 			# Prints:
 			# | X | Y | Origin
 			# | 1 | 0 | 0
 			# | 0 | 1 | 0
 			[/codeblock]
-			This is identical to creating [constructor Transform2D] without any parameters. This constant can be used to make your code clearer, and for consistency with C#.
+			If a [Vector2], a [Rect2], a [PackedVector2Array], or another [Transform2D] is transformed (multiplied) by this constant, no transformation occurs.
+			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Transform2D] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>
 		<constant name="FLIP_X" value="Transform2D(-1, 0, 0, 1, 0, 0)">
 			When any transform is multiplied by [constant FLIP_X], it negates all components of the [member x] axis (the X column).
-			When [constant FLIP_X] is multiplied by any basis, it negates the [member Vector2.x] component of all axes (the X row).
+			When [constant FLIP_X] is multiplied by any transform, it negates the [member Vector2.x] component of all axes (the X row).
 		</constant>
 		<constant name="FLIP_Y" value="Transform2D(1, 0, 0, -1, 0, 0)">
 			When any transform is multiplied by [constant FLIP_Y], it negates all components of the [member y] axis (the Y column).
-			When [constant FLIP_Y] is multiplied by any basis, it negates the [member Vector2.y] component of all axes (the Y row).
+			When [constant FLIP_Y] is multiplied by any transform, it negates the [member Vector2.y] component of all axes (the Y row).
 		</constant>
 	</constants>
 	<operators>

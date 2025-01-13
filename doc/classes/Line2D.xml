@@ -101,7 +101,7 @@
 			The polyline's width.
 		</member>
 		<member name="width_curve" type="Curve" setter="set_curve" getter="get_curve">
-			The polyline's width curve. The width of the polyline over its length will be equivalent to the value of the width curve over its domain.
+			The polyline's width curve. The width of the polyline over its length will be equivalent to the value of the width curve over its domain. The width curve should be a unit [Curve].
 		</member>
 	</members>
 	<constants>

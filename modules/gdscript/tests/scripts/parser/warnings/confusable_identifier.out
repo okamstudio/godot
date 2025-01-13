@@ -1,10 +1,4 @@
 GDTEST_OK
->> WARNING
->> Line: 5
->> CONFUSABLE_IDENTIFIER
->> The identifier "pοrt" has misleading characters and might be confused with something else.
->> WARNING
->> Line: 12
->> CONFUSABLE_IDENTIFIER
->> The identifier "pοrt" has misleading characters and might be confused with something else.
+~~ WARNING at line 5: (CONFUSABLE_IDENTIFIER) The identifier "pοrt" has misleading characters and might be confused with something else.
+~~ WARNING at line 12: (CONFUSABLE_IDENTIFIER) The identifier "pοrt" has misleading characters and might be confused with something else.
 0 1

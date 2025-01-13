@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Could not find type "Foo" in the current scope.
+>> ERROR at line 2: Could not find type "Foo" in the current scope.

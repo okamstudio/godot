@@ -61,6 +61,57 @@ TEST_CASE("[SceneTree][Control]") {
 	}
 }
 
+TEST_CASE("[SceneTree][Control] Focus") {
+	Control *ctrl = memnew(Control);
+	SceneTree::get_singleton()->get_root()->add_child(ctrl);
+
+	SUBCASE("[SceneTree][Control] Default focus") {
+		CHECK_FALSE(ctrl->has_focus());
+	}
+
+	SUBCASE("[SceneTree][Control] Can't grab focus with default focus mode") {
+		ERR_PRINT_OFF
+		ctrl->grab_focus();
+		ERR_PRINT_ON
+
+		CHECK_FALSE(ctrl->has_focus());
+	}
+
+	SUBCASE("[SceneTree][Control] Can grab focus") {
+		ctrl->set_focus_mode(Control::FocusMode::FOCUS_ALL);
+		ctrl->grab_focus();
+
+		CHECK(ctrl->has_focus());
+	}
+
+	SUBCASE("[SceneTree][Control] Can release focus") {
+		ctrl->set_focus_mode(Control::FocusMode::FOCUS_ALL);
+		ctrl->grab_focus();
+		CHECK(ctrl->has_focus());
+
+		ctrl->release_focus();
+		CHECK_FALSE(ctrl->has_focus());
+	}
+
+	SUBCASE("[SceneTree][Control] Only one can grab focus at the same time") {
+		ctrl->set_focus_mode(Control::FocusMode::FOCUS_ALL);
+		ctrl->grab_focus();
+		CHECK(ctrl->has_focus());
+
+		Control *other_ctrl = memnew(Control);
+		SceneTree::get_singleton()->get_root()->add_child(other_ctrl);
+		other_ctrl->set_focus_mode(Control::FocusMode::FOCUS_ALL);
+		other_ctrl->grab_focus();
+
+		CHECK(other_ctrl->has_focus());
+		CHECK_FALSE(ctrl->has_focus());
+
+		memdelete(other_ctrl);
+	}
+
+	memdelete(ctrl);
+}
+
 } // namespace TestControl
 
 #endif // TEST_CONTROL_H

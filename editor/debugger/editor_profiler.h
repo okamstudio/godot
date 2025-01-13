@@ -104,6 +104,11 @@ private:
 	TextureRect *graph = nullptr;
 	Ref<ImageTexture> graph_texture;
 	Vector<uint8_t> graph_image;
+
+	float graph_zoom = 0.0f;
+	float pan_accumulator = 0.0f;
+	int zoom_center = -1;
+
 	Tree *variables = nullptr;
 	HSplitContainer *h_split = nullptr;
 
@@ -155,6 +160,7 @@ private:
 	void _graph_tex_input(const Ref<InputEvent> &p_ev);
 
 	Color _get_color_from_signature(const StringName &p_signature) const;
+	int _get_zoom_left_border() const;
 
 	void _cursor_metric_changed(double);
 

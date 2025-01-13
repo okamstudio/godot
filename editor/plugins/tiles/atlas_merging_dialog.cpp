@@ -318,6 +318,7 @@ AtlasMergingDialog::AtlasMergingDialog() {
 	atlas_merging_atlases_list->set_texture_filter(CanvasItem::TEXTURE_FILTER_NEAREST_WITH_MIPMAPS);
 	atlas_merging_atlases_list->set_custom_minimum_size(Size2(100, 200));
 	atlas_merging_atlases_list->set_select_mode(ItemList::SELECT_MULTI);
+	atlas_merging_atlases_list->set_theme_type_variation("ItemListSecondary");
 	atlas_merging_atlases_list->connect("multi_selected", callable_mp(this, &AtlasMergingDialog::_update_texture).unbind(2));
 	atlas_merging_h_split_container->add_child(atlas_merging_atlases_list);
 

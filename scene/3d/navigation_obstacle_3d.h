@@ -121,6 +121,7 @@ public:
 private:
 	void _update_map(RID p_map);
 	void _update_position(const Vector3 p_position);
+	void _update_transform();
 	void _update_use_3d_avoidance(bool p_use_3d_avoidance);
 };
 

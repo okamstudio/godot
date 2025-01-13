@@ -240,8 +240,8 @@ EngineUpdateLabel::VersionType EngineUpdateLabel::_get_version_type(const String
 }
 
 String EngineUpdateLabel::_extract_sub_string(const String &p_line) const {
-	int j = p_line.find("\"") + 1;
-	return p_line.substr(j, p_line.find("\"", j) - j);
+	int j = p_line.find_char('"') + 1;
+	return p_line.substr(j, p_line.find_char('"', j) - j);
 }
 
 void EngineUpdateLabel::_notification(int p_what) {

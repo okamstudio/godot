@@ -441,8 +441,12 @@ const GodotPWA = {
 	godot_js_pwa_cb__sig: 'vi',
 	godot_js_pwa_cb: function (p_update_cb) {
 		if ('serviceWorker' in navigator) {
-			const cb = GodotRuntime.get_func(p_update_cb);
-			navigator.serviceWorker.getRegistration().then(GodotPWA.updateState.bind(null, cb));
+			try {
+				const cb = GodotRuntime.get_func(p_update_cb);
+				navigator.serviceWorker.getRegistration().then(GodotPWA.updateState.bind(null, cb));
+			} catch (e) {
+				GodotRuntime.error('Failed to assign PWA callback', e);
+			}
 		}
 	},
 
@@ -450,12 +454,17 @@ const GodotPWA = {
 	godot_js_pwa_update__sig: 'i',
 	godot_js_pwa_update: function () {
 		if ('serviceWorker' in navigator && GodotPWA.hasUpdate) {
-			navigator.serviceWorker.getRegistration().then(function (reg) {
-				if (!reg || !reg.waiting) {
-					return;
-				}
-				reg.waiting.postMessage('update');
-			});
+			try {
+				navigator.serviceWorker.getRegistration().then(function (reg) {
+					if (!reg || !reg.waiting) {
+						return;
+					}
+					reg.waiting.postMessage('update');
+				});
+			} catch (e) {
+				GodotRuntime.error(e);
+				return 1;
+			}
 			return 0;
 		}
 		return 1;

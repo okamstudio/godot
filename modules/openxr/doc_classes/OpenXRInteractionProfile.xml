@@ -23,8 +23,24 @@
 				Get the number of bindings in this interaction profile.
 			</description>
 		</method>
+		<method name="get_binding_modifier" qualifiers="const">
+			<return type="OpenXRIPBindingModifier" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Get the [OpenXRBindingModifier] at this index.
+			</description>
+		</method>
+		<method name="get_binding_modifier_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Get the number of binding modifiers in this interaction profile.
+			</description>
+		</method>
 	</methods>
 	<members>
+		<member name="binding_modifiers" type="Array" setter="set_binding_modifiers" getter="get_binding_modifiers" default="[]">
+			Binding modifiers for this interaction profile.
+		</member>
 		<member name="bindings" type="Array" setter="set_bindings" getter="get_bindings" default="[]">
 			Action bindings for this interaction profile.
 		</member>

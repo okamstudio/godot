@@ -1,9 +1,9 @@
 diff --git a/thirdparty/clipper2/include/clipper2/clipper.core.h b/thirdparty/clipper2/include/clipper2/clipper.core.h
-index b3dddeeaa2..a77cdad5f4 100644
+index 925c04685e..d0d159b949 100644
 --- a/thirdparty/clipper2/include/clipper2/clipper.core.h
 +++ b/thirdparty/clipper2/include/clipper2/clipper.core.h
-@@ -21,6 +21,8 @@
- #include <numeric>
+@@ -22,6 +22,8 @@
+ #include <optional>
  #include "clipper2/clipper.version.h"
  
 +#define CLIPPER2_THROW(exception) std::abort()
@@ -11,7 +11,7 @@ index b3dddeeaa2..a77cdad5f4 100644
  namespace Clipper2Lib
  {
  
-@@ -78,18 +80,18 @@ namespace Clipper2Lib
+@@ -79,18 +81,18 @@ namespace Clipper2Lib
      switch (error_code)
      {
      case precision_error_i:

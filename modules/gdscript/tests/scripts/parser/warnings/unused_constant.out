@@ -1,5 +1,2 @@
 GDTEST_OK
->> WARNING
->> Line: 2
->> UNUSED_LOCAL_CONSTANT
->> The local constant "UNUSED" is declared but never used in the block. If this is intended, prefix it with an underscore: "_UNUSED".
+~~ WARNING at line 2: (UNUSED_LOCAL_CONSTANT) The local constant "UNUSED" is declared but never used in the block. If this is intended, prefix it with an underscore: "_UNUSED".

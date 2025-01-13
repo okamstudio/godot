@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Cannot assign a value of type "Color" as "String".
+>> ERROR at line 2: Cannot assign a value of type "Color" as "String".
+>> ERROR at line 2: Cannot assign a value of type Color to variable "var_color" with specified type String.

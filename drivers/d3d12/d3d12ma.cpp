@@ -58,7 +58,7 @@
 #endif
 
 #if defined(_MSC_VER)
-#pragma warning(disable : 4189 4324 4505)
+#pragma warning(disable : 4189 4505)
 #endif
 
 #include "thirdparty/d3d12ma/D3D12MemAlloc.cpp"

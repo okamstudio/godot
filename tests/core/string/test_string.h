@@ -1687,6 +1687,10 @@ TEST_CASE("[String] Path functions") {
 	for (int i = 0; i < 3; i++) {
 		CHECK(String(file_name[i]).is_valid_filename() == valid[i]);
 	}
+
+	CHECK(String("res://texture.png") == String("res://folder/../folder/../texture.png").simplify_path());
+	CHECK(String("res://texture.png") == String("res://folder/sub/../../texture.png").simplify_path());
+	CHECK(String("res://../../texture.png") == String("res://../../texture.png").simplify_path());
 }
 
 TEST_CASE("[String] hash") {

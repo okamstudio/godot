@@ -287,16 +287,16 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="AXIS_X" value="0">
+		<constant name="AXIS_X" value="0" enum="Axis">
 			Enumerated value for the X axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
-		<constant name="AXIS_Y" value="1">
+		<constant name="AXIS_Y" value="1" enum="Axis">
 			Enumerated value for the Y axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
-		<constant name="AXIS_Z" value="2">
+		<constant name="AXIS_Z" value="2" enum="Axis">
 			Enumerated value for the Z axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
-		<constant name="AXIS_W" value="3">
+		<constant name="AXIS_W" value="3" enum="Axis">
 			Enumerated value for the W axis. Returned by [method max_axis_index] and [method min_axis_index].
 		</constant>
 		<constant name="ZERO" value="Vector4(0, 0, 0, 0)">
@@ -333,7 +333,7 @@
 			<description>
 				Multiplies each component of the [Vector4] by the components of the given [Vector4].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) * Vector4(3, 4, 5, 6)) # Prints "(30, 80, 150, 240)"
+				print(Vector4(10, 20, 30, 40) * Vector4(3, 4, 5, 6)) # Prints (30.0, 80.0, 150.0, 240.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -343,7 +343,7 @@
 			<description>
 				Multiplies each component of the [Vector4] by the given [float].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) * 2) # Prints "(20, 40, 60, 80)"
+				print(Vector4(10, 20, 30, 40) * 2) # Prints (20.0, 40.0, 60.0, 80.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -360,7 +360,7 @@
 			<description>
 				Adds each component of the [Vector4] by the components of the given [Vector4].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) + Vector4(3, 4, 5, 6)) # Prints "(13, 24, 35, 46)"
+				print(Vector4(10, 20, 30, 40) + Vector4(3, 4, 5, 6)) # Prints (13.0, 24.0, 35.0, 46.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -370,7 +370,7 @@
 			<description>
 				Subtracts each component of the [Vector4] by the components of the given [Vector4].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) - Vector4(3, 4, 5, 6)) # Prints "(7, 16, 25, 34)"
+				print(Vector4(10, 20, 30, 40) - Vector4(3, 4, 5, 6)) # Prints (7.0, 16.0, 25.0, 34.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -380,7 +380,7 @@
 			<description>
 				Divides each component of the [Vector4] by the components of the given [Vector4].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) / Vector4(2, 5, 3, 4)) # Prints "(5, 4, 10, 10)"
+				print(Vector4(10, 20, 30, 40) / Vector4(2, 5, 3, 4)) # Prints (5.0, 4.0, 10.0, 10.0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -390,7 +390,7 @@
 			<description>
 				Divides each component of the [Vector4] by the given [float].
 				[codeblock]
-				print(Vector4(10, 20, 30, 40) / 2 # Prints "(5, 10, 15, 20)"
+				print(Vector4(10, 20, 30, 40) / 2 # Prints (5.0, 10.0, 15.0, 20.0)
 				[/codeblock]
 			</description>
 		</operator>

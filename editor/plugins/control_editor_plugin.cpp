@@ -531,7 +531,7 @@ void ControlEditorPopupButton::_notification(int p_what) {
 }
 
 ControlEditorPopupButton::ControlEditorPopupButton() {
-	set_theme_type_variation("FlatButton");
+	set_theme_type_variation(SceneStringName(FlatButton));
 	set_toggle_mode(true);
 	set_focus_mode(FOCUS_NONE);
 
@@ -1081,7 +1081,7 @@ ControlEditorToolbar::ControlEditorToolbar() {
 	keep_ratio_button->connect(SceneStringName(pressed), callable_mp(this, &ControlEditorToolbar::_anchors_to_current_ratio));
 
 	anchor_mode_button = memnew(Button);
-	anchor_mode_button->set_theme_type_variation("FlatButton");
+	anchor_mode_button->set_theme_type_variation(SceneStringName(FlatButton));
 	anchor_mode_button->set_toggle_mode(true);
 	anchor_mode_button->set_tooltip_text(TTR("When active, moving Control nodes changes their anchors instead of their offsets."));
 	add_child(anchor_mode_button);

@@ -120,7 +120,7 @@ ScriptEditorDebugger *EditorDebuggerNode::_add_debugger() {
 
 	tabs->add_child(node);
 
-	node->set_name("Session " + itos(tabs->get_tab_count()));
+	node->set_name(vformat(TTR("Session %d"), tabs->get_tab_count()));
 	if (tabs->get_tab_count() > 1) {
 		node->clear_style();
 		tabs->set_tabs_visible(true);
@@ -160,9 +160,9 @@ void EditorDebuggerNode::_text_editor_stack_goto(const ScriptEditorDebugger *p_d
 	} else {
 		// If the script is built-in, it can be opened only if the scene is loaded in memory.
 		int i = file.find("::");
-		int j = file.rfind("(", i);
+		int j = file.rfind_char('(', i);
 		if (j > -1) { // If the script is named, the string is "name (file)", so we need to extract the path.
-			file = file.substr(j + 1, file.find(")", i) - j - 1);
+			file = file.substr(j + 1, file.find_char(')', i) - j - 1);
 		}
 		Ref<PackedScene> ps = ResourceLoader::load(file.get_slice("::", 0));
 		stack_script = ResourceLoader::load(file);
@@ -183,9 +183,9 @@ void EditorDebuggerNode::_text_editor_stack_clear(const ScriptEditorDebugger *p_
 	} else {
 		// If the script is built-in, it can be opened only if the scene is loaded in memory.
 		int i = file.find("::");
-		int j = file.rfind("(", i);
+		int j = file.rfind_char('(', i);
 		if (j > -1) { // If the script is named, the string is "name (file)", so we need to extract the path.
-			file = file.substr(j + 1, file.find(")", i) - j - 1);
+			file = file.substr(j + 1, file.find_char(')', i) - j - 1);
 		}
 		Ref<PackedScene> ps = ResourceLoader::load(file.get_slice("::", 0));
 		stack_script = ResourceLoader::load(file);

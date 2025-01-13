@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRHapticVibration" inherits="OpenXRHapticBase" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Vibration haptic feedback.
+	</brief_description>
+	<description>
+		This haptic feedback resource makes it possible to define a vibration based haptic feedback pulse that can be triggered through actions in the OpenXR action map.
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="amplitude" type="float" setter="set_amplitude" getter="get_amplitude" default="1.0">
+			The amplitude of the pulse between [code]0.0[/code] and [code]1.0[/code].
+		</member>
+		<member name="duration" type="int" setter="set_duration" getter="get_duration" default="-1">
+			The duration of the pulse in nanoseconds. Use [code]-1[/code] for a minimum duration pulse for the current XR runtime.
+		</member>
+		<member name="frequency" type="float" setter="set_frequency" getter="get_frequency" default="0.0">
+			The frequency of the pulse in Hz. [code]0.0[/code] will let the XR runtime chose an optimal frequency for the device used.
+		</member>
+	</members>
+</class>

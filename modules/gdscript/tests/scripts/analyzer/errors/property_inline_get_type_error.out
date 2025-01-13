@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot return value of type "int" because the function return type is "String".
+>> ERROR at line 6: Cannot return value of type "int" because the function return type is "String".

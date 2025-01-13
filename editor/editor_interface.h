@@ -37,6 +37,7 @@
 #include "core/object/script_language.h"
 
 class Control;
+class CreateDialog;
 class EditorCommandPalette;
 class EditorFileSystem;
 class EditorInspector;
@@ -69,16 +70,19 @@ class EditorInterface : public Object {
 	PropertySelector *property_selector = nullptr;
 	PropertySelector *method_selector = nullptr;
 	SceneTreeDialog *node_selector = nullptr;
+	CreateDialog *create_dialog = nullptr;
 
 	void _node_selected(const NodePath &p_node_paths, const Callable &p_callback);
 	void _property_selected(const String &p_property_name, const Callable &p_callback);
 	void _method_selected(const String &p_property_name, const Callable &p_callback);
 	void _quick_open(const String &p_file_path, const Callable &p_callback);
+	void _create_dialog_item_selected(bool p_is_canceled, const Callable &p_callback);
 	void _call_dialog_callback(const Callable &p_callback, const Variant &p_selected, const String &p_context);
 
 	// Editor tools.
 
 	TypedArray<Texture2D> _make_mesh_previews(const TypedArray<Mesh> &p_meshes, int p_preview_size);
+	AABB _calculate_aabb_for_scene(Node *p_node, AABB &p_scene_aabb);
 
 protected:
 	static void _bind_methods();
@@ -86,7 +90,7 @@ protected:
 #ifndef DISABLE_DEPRECATED
 	void _popup_node_selector_bind_compat_94323(const Callable &p_callback, const TypedArray<StringName> &p_valid_types = TypedArray<StringName>());
 	void _popup_property_selector_bind_compat_94323(Object *p_object, const Callable &p_callback, const PackedInt32Array &p_type_filter = PackedInt32Array());
-
+	void _open_scene_from_path_bind_compat_90057(const String &scene_path);
 	static void _bind_compatibility_methods();
 #endif
 
@@ -107,6 +111,7 @@ public:
 	EditorUndoRedoManager *get_editor_undo_redo() const;
 
 	Vector<Ref<Texture2D>> make_mesh_previews(const Vector<Ref<Mesh>> &p_meshes, Vector<Transform3D> *p_transforms, int p_preview_size);
+	void make_scene_preview(const String &p_path, Node *p_scene, int p_preview_size);
 
 	void set_plugin_enabled(const String &p_plugin, bool p_enabled);
 	bool is_plugin_enabled(const String &p_plugin) const;
@@ -143,6 +148,7 @@ public:
 	void popup_property_selector(Object *p_object, const Callable &p_callback, const PackedInt32Array &p_type_filter = PackedInt32Array(), const String &p_current_value = String());
 	void popup_method_selector(Object *p_object, const Callable &p_callback, const String &p_current_value = String());
 	void popup_quick_open(const Callable &p_callback, const TypedArray<StringName> &p_base_types = TypedArray<StringName>());
+	void popup_create_dialog(const Callable &p_callback, const StringName &p_base_type = "", const String &p_current_type = "", const String &p_dialog_title = "", const TypedArray<StringName> &p_custom_type_blocklist = TypedArray<String>(), const Dictionary &p_custom_suffix = Dictionary());
 
 	// Editor docks.
 
@@ -161,7 +167,7 @@ public:
 	void edit_resource(const Ref<Resource> &p_resource);
 	void edit_node(Node *p_node);
 	void edit_script(const Ref<Script> &p_script, int p_line = -1, int p_col = 0, bool p_grab_focus = true);
-	void open_scene_from_path(const String &scene_path);
+	void open_scene_from_path(const String &scene_path, bool p_set_inherited = false);
 	void reload_scene_from_path(const String &scene_path);
 
 	PackedStringArray get_open_scenes() const;

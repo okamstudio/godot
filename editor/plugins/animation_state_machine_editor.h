@@ -117,6 +117,7 @@ class AnimationNodeStateMachineEditor : public AnimationTreeNodeEditorPlugin {
 		Color transition_icon_disabled_color;
 		Color highlight_color;
 		Color highlight_disabled_color;
+		Color focus_color;
 		Color guideline_color;
 
 		Ref<Texture2D> transition_icons[6]{};
@@ -130,7 +131,7 @@ class AnimationNodeStateMachineEditor : public AnimationTreeNodeEditorPlugin {
 	static AnimationNodeStateMachineEditor *singleton;
 
 	void _state_machine_gui_input(const Ref<InputEvent> &p_event);
-	void _connection_draw(const Vector2 &p_from, const Vector2 &p_to, AnimationNodeStateMachineTransition::SwitchMode p_mode, bool p_enabled, bool p_selected, bool p_travel, float p_fade_ratio, bool p_auto_advance, bool p_is_across_group);
+	void _connection_draw(const Vector2 &p_from, const Vector2 &p_to, AnimationNodeStateMachineTransition::SwitchMode p_mode, bool p_enabled, bool p_selected, bool p_travel, float p_fade_ratio, bool p_auto_advance, bool p_is_across_group, float p_opacity = 1.0);
 
 	void _state_machine_draw();
 
@@ -286,6 +287,11 @@ class AnimationNodeStateMachineEditor : public AnimationTreeNodeEditorPlugin {
 		MENU_PASTE = 1001,
 		MENU_LOAD_FILE_CONFIRM = 1002
 	};
+
+	HashSet<StringName> connected_nodes;
+	void _update_connected_nodes(const StringName &p_node);
+
+	Ref<StyleBox> _adjust_stylebox_opacity(Ref<StyleBox> p_style, float p_opacity);
 
 protected:
 	void _notification(int p_what);

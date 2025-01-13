@@ -16,7 +16,7 @@
 			A type of operands and returned value. See [enum OpType] for options.
 		</member>
 		<member name="precision" type="int" setter="set_precision" getter="get_precision" enum="VisualShaderNodeDerivativeFunc.Precision" default="0">
-			Sets the level of precision to use for the derivative function. See [enum Precision] for options. When using the GL Compatibility renderer, this setting has no effect.
+			Sets the level of precision to use for the derivative function. See [enum Precision] for options. When using the Compatibility renderer, this setting has no effect.
 		</member>
 	</members>
 	<constants>

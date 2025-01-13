@@ -1,6 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 3
->> ONREADY_WITH_EXPORT
->> "@onready" will set the default value after "@export" takes effect and will override it.
+~~ WARNING at line 3: (ONREADY_WITH_EXPORT) "@onready" will set the default value after "@export" takes effect and will override it.
 warn

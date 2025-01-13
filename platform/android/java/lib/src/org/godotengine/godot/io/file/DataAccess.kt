@@ -169,7 +169,7 @@ internal abstract class DataAccess {
 	abstract fun position(): Long
 	abstract fun size(): Long
 	abstract fun read(buffer: ByteBuffer): Int
-	abstract fun write(buffer: ByteBuffer)
+	abstract fun write(buffer: ByteBuffer): Boolean
 
 	fun seekFromEnd(positionFromEnd: Long) {
 		val positionFromBeginning = max(0, size() - positionFromEnd)
@@ -254,14 +254,16 @@ internal abstract class DataAccess {
 			}
 		}
 
-		override fun write(buffer: ByteBuffer) {
+		override fun write(buffer: ByteBuffer): Boolean {
 			try {
 				val writtenBytes = fileChannel.write(buffer)
 				if (writtenBytes > 0) {
 					endOfFile = false
 				}
+				return true
 			} catch (e: IOException) {
 				Log.w(TAG, "Exception while writing to file $filePath.", e)
+				return false
 			}
 		}
 	}

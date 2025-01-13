@@ -259,7 +259,7 @@ public:
 	struct InstanceData {
 		// Store instance pointer as well as common instance processing information,
 		// to make processing more cache friendly.
-		enum Flags {
+		enum Flags : uint32_t {
 			FLAG_BASE_TYPE_MASK = 0xFF,
 			FLAG_CAST_SHADOWS = (1 << 8),
 			FLAG_CAST_SHADOWS_ONLY = (1 << 9),
@@ -370,7 +370,7 @@ public:
 	static void _instance_pair(Instance *p_A, Instance *p_B);
 	static void _instance_unpair(Instance *p_A, Instance *p_B);
 
-	void _instance_update_mesh_instance(Instance *p_instance);
+	void _instance_update_mesh_instance(Instance *p_instance) const;
 
 	virtual RID scenario_allocate();
 	virtual void scenario_initialize(RID p_rid);
@@ -396,7 +396,7 @@ public:
 				list_a(this), list_b(this) {}
 	};
 
-	PagedAllocator<InstancePair> pair_allocator;
+	mutable PagedAllocator<InstancePair> pair_allocator;
 
 	struct InstanceBaseData {
 		virtual ~InstanceBaseData() {}
@@ -651,8 +651,8 @@ public:
 		}
 	};
 
-	SelfList<Instance>::List _instance_update_list;
-	void _instance_queue_update(Instance *p_instance, bool p_update_aabb, bool p_update_dependencies = false);
+	mutable SelfList<Instance>::List _instance_update_list;
+	void _instance_queue_update(Instance *p_instance, bool p_update_aabb, bool p_update_dependencies = false) const;
 
 	struct InstanceGeometryData : public InstanceBaseData {
 		RenderGeometryInstance *geometry_instance = nullptr;
@@ -844,7 +844,7 @@ public:
 		}
 	};
 
-	uint64_t pair_pass = 1;
+	mutable uint64_t pair_pass = 1;
 
 	struct PairInstances {
 		Instance *instance = nullptr;
@@ -904,7 +904,7 @@ public:
 		}
 	};
 
-	HashSet<Instance *> heightfield_particle_colliders_update_list;
+	mutable HashSet<Instance *> heightfield_particle_colliders_update_list;
 
 	PagedArrayPool<Instance *> instance_cull_page_pool;
 	PagedArrayPool<RenderGeometryInstance *> geometry_instance_cull_page_pool;
@@ -1044,7 +1044,7 @@ public:
 
 	uint32_t thread_cull_threshold = 200;
 
-	RID_Owner<Instance, true> instance_owner;
+	mutable RID_Owner<Instance, true> instance_owner;
 
 	uint32_t geometry_instance_pair_mask = 0; // used in traditional forward, unnecessary on clustered
 
@@ -1078,7 +1078,7 @@ public:
 	virtual void instance_set_ignore_culling(RID p_instance, bool p_enabled);
 
 	bool _update_instance_visibility_depth(Instance *p_instance);
-	void _update_instance_visibility_dependencies(Instance *p_instance);
+	void _update_instance_visibility_dependencies(Instance *p_instance) const;
 
 	// don't use these in a game!
 	virtual Vector<ObjectID> instances_cull_aabb(const AABB &p_aabb, RID p_scenario = RID()) const;
@@ -1095,7 +1095,7 @@ public:
 	virtual void instance_geometry_set_lightmap(RID p_instance, RID p_lightmap, const Rect2 &p_lightmap_uv_scale, int p_slice_index);
 	virtual void instance_geometry_set_lod_bias(RID p_instance, float p_lod_bias);
 
-	void _update_instance_shader_uniforms_from_material(HashMap<StringName, Instance::InstanceShaderParameter> &isparams, const HashMap<StringName, Instance::InstanceShaderParameter> &existing_isparams, RID p_material);
+	void _update_instance_shader_uniforms_from_material(HashMap<StringName, Instance::InstanceShaderParameter> &isparams, const HashMap<StringName, Instance::InstanceShaderParameter> &existing_isparams, RID p_material) const;
 
 	virtual void instance_geometry_set_shader_parameter(RID p_instance, const StringName &p_parameter, const Variant &p_value);
 	virtual void instance_geometry_get_shader_parameter_list(RID p_instance, List<PropertyInfo> *p_parameters) const;
@@ -1105,10 +1105,10 @@ public:
 	virtual void mesh_generate_pipelines(RID p_mesh, bool p_background_compilation);
 	virtual uint32_t get_pipeline_compilations(RS::PipelineSource p_source);
 
-	_FORCE_INLINE_ void _update_instance(Instance *p_instance);
-	_FORCE_INLINE_ void _update_instance_aabb(Instance *p_instance);
-	_FORCE_INLINE_ void _update_dirty_instance(Instance *p_instance);
-	_FORCE_INLINE_ void _update_instance_lightmap_captures(Instance *p_instance);
+	_FORCE_INLINE_ void _update_instance(Instance *p_instance) const;
+	_FORCE_INLINE_ void _update_instance_aabb(Instance *p_instance) const;
+	_FORCE_INLINE_ void _update_dirty_instance(Instance *p_instance) const;
+	_FORCE_INLINE_ void _update_instance_lightmap_captures(Instance *p_instance) const;
 	void _unpair_instance(Instance *p_instance);
 
 	void _light_instance_setup_directional_shadow(int p_shadow_index, Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect);
@@ -1184,14 +1184,16 @@ public:
 
 	void _scene_cull_threaded(uint32_t p_thread, CullData *cull_data);
 	void _scene_cull(CullData &cull_data, InstanceCullResult &cull_result, uint64_t p_from, uint64_t p_to);
+	static void _scene_particles_set_view_axis(RID p_particles, const Vector3 &p_axis, const Vector3 &p_up_axis);
 	_FORCE_INLINE_ bool _visibility_parent_check(const CullData &p_cull_data, const InstanceData &p_instance_data);
 
 	bool _render_reflection_probe_step(Instance *p_instance, int p_step);
+
 	void _render_scene(const RendererSceneRender::CameraData *p_camera_data, const Ref<RenderSceneBuffers> &p_render_buffers, RID p_environment, RID p_force_camera_attributes, RID p_compositor, uint32_t p_visible_layers, RID p_scenario, RID p_viewport, RID p_shadow_atlas, RID p_reflection_probe, int p_reflection_probe_pass, float p_screen_mesh_lod_threshold, bool p_using_shadows = true, RenderInfo *r_render_info = nullptr);
 	void render_empty_scene(const Ref<RenderSceneBuffers> &p_render_buffers, RID p_scenario, RID p_shadow_atlas);
 
 	void render_camera(const Ref<RenderSceneBuffers> &p_render_buffers, RID p_camera, RID p_scenario, RID p_viewport, Size2 p_viewport_size, uint32_t p_jitter_phase_count, float p_screen_mesh_lod_threshold, RID p_shadow_atlas, Ref<XRInterface> &p_xr_interface, RenderingMethod::RenderInfo *r_render_info = nullptr);
-	void update_dirty_instances();
+	void update_dirty_instances() const;
 
 	void render_particle_colliders();
 	virtual void render_probes();

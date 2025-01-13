@@ -1,5 +1,2 @@
 GDTEST_OK
->> WARNING
->> Line: 8
->> INCOMPATIBLE_TERNARY
->> Values of the ternary operator are not mutually compatible.
+~~ WARNING at line 8: (INCOMPATIBLE_TERNARY) Values of the ternary operator are not mutually compatible.

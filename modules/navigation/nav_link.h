@@ -34,6 +34,8 @@
 #include "nav_base.h"
 #include "nav_utils.h"
 
+#include "core/templates/self_list.h"
+
 class NavLink : public NavBase {
 	NavMap *map = nullptr;
 	bool bidirectional = true;
@@ -43,10 +45,11 @@ class NavLink : public NavBase {
 
 	bool link_dirty = true;
 
+	SelfList<NavLink> sync_dirty_request_list_element;
+
 public:
-	NavLink() {
-		type = NavigationUtilities::PathSegmentType::PATH_SEGMENT_TYPE_LINK;
-	}
+	NavLink();
+	~NavLink();
 
 	void set_map(NavMap *p_map);
 	NavMap *get_map() const {
@@ -71,7 +74,10 @@ public:
 		return end_position;
 	}
 
-	bool check_dirty();
+	bool is_dirty() const;
+	void sync();
+	void request_sync();
+	void cancel_sync_request();
 };
 
 #endif // NAV_LINK_H

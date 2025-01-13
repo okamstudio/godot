@@ -1,0 +1,7 @@
+GDTEST_RUNTIME_ERROR
+~~ WARNING at line 8: (UNSAFE_PROPERTY_ACCESS) The property "OUTER_CONST" is not present on the inferred type "Inner" (but may be present on a subtype).
+~~ WARNING at line 17: (UNSAFE_PROPERTY_ACCESS) The property "OUTER_CONST" is not present on the inferred type "Inner" (but may be present on a subtype).
+>> SCRIPT ERROR at runtime/errors/outer_class_constants.gd:8 on subtest_type_hard(): Invalid access to property or key 'OUTER_CONST' on a base object of type 'GDScript'.
+>> SCRIPT ERROR at runtime/errors/outer_class_constants.gd:13 on subtest_type_weak(): Invalid access to property or key 'OUTER_CONST' on a base object of type 'GDScript'.
+>> SCRIPT ERROR at runtime/errors/outer_class_constants.gd:17 on subtest_instance_hard(): Invalid access to property or key 'OUTER_CONST' on a base object of type 'RefCounted (Inner)'.
+>> SCRIPT ERROR at runtime/errors/outer_class_constants.gd:22 on subtest_instance_weak(): Invalid access to property or key 'OUTER_CONST' on a base object of type 'RefCounted (Inner)'.

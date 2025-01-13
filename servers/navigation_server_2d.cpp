@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "navigation_server_2d.h"
+#include "navigation_server_2d.compat.inc"
 
 #include "servers/navigation_server_3d.h"
 
@@ -62,7 +63,7 @@ void NavigationServer2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("map_get_random_point", "map", "navigation_layers", "uniformly"), &NavigationServer2D::map_get_random_point);
 
-	ClassDB::bind_method(D_METHOD("query_path", "parameters", "result"), &NavigationServer2D::query_path);
+	ClassDB::bind_method(D_METHOD("query_path", "parameters", "result", "callback"), &NavigationServer2D::query_path, DEFVAL(Callable()));
 
 	ClassDB::bind_method(D_METHOD("region_create"), &NavigationServer2D::region_create);
 	ClassDB::bind_method(D_METHOD("region_set_enabled", "region", "enabled"), &NavigationServer2D::region_set_enabled);

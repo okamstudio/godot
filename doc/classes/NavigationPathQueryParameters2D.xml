@@ -49,6 +49,9 @@
 		<constant name="PATH_POSTPROCESSING_EDGECENTERED" value="1" enum="PathPostProcessing">
 			Centers every path position in the middle of the traveled navigation mesh polygon edge. This creates better paths for tile- or gridbased layouts that restrict the movement to the cells center.
 		</constant>
+		<constant name="PATH_POSTPROCESSING_NONE" value="2" enum="PathPostProcessing">
+			Applies no postprocessing and returns the raw path corridor as found by the pathfinding algorithm.
+		</constant>
 		<constant name="PATH_METADATA_INCLUDE_NONE" value="0" enum="PathMetadataFlags" is_bitfield="true">
 			Don't include any additional metadata about the returned path.
 		</constant>

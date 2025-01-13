@@ -107,14 +107,25 @@ void OpenXRActionMap::remove_action_set(Ref<OpenXRActionSet> p_action_set) {
 	}
 }
 
-void OpenXRActionMap::set_interaction_profiles(Array p_interaction_profiles) {
-	interaction_profiles.clear();
+void OpenXRActionMap::clear_interaction_profiles() {
+	if (interaction_profiles.is_empty()) {
+		return;
+	}
 
-	for (int i = 0; i < p_interaction_profiles.size(); i++) {
-		Ref<OpenXRInteractionProfile> interaction_profile = p_interaction_profiles[i];
-		if (interaction_profile.is_valid() && !interaction_profiles.has(interaction_profile)) {
-			interaction_profiles.push_back(interaction_profile);
-		}
+	// Interaction profiles held within our action map set should be released and destroyed but just in case they are still used some where else.
+	for (Ref<OpenXRInteractionProfile> interaction_profile : interaction_profiles) {
+		interaction_profile->action_map = nullptr;
+	}
+	interaction_profiles.clear();
+	emit_changed();
+}
+
+void OpenXRActionMap::set_interaction_profiles(Array p_interaction_profiles) {
+	clear_interaction_profiles();
+
+	for (const Variant &interaction_profile : p_interaction_profiles) {
+		// Add them anew so we verify our interaction profile pointer.
+		add_interaction_profile(interaction_profile);
 	}
 }
 
@@ -127,8 +138,7 @@ int OpenXRActionMap::get_interaction_profile_count() const {
 }
 
 Ref<OpenXRInteractionProfile> OpenXRActionMap::find_interaction_profile(String p_path) const {
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		Ref<OpenXRInteractionProfile> interaction_profile = interaction_profiles[i];
+	for (Ref<OpenXRInteractionProfile> interaction_profile : interaction_profiles) {
 		if (interaction_profile->get_interaction_profile_path() == p_path) {
 			return interaction_profile;
 		}
@@ -147,6 +157,13 @@ void OpenXRActionMap::add_interaction_profile(Ref<OpenXRInteractionProfile> p_in
 	ERR_FAIL_COND(p_interaction_profile.is_null());
 
 	if (!interaction_profiles.has(p_interaction_profile)) {
+		if (p_interaction_profile->action_map && p_interaction_profile->action_map != this) {
+			// Interaction profiles should only relate to our action map.
+			p_interaction_profile->action_map->remove_interaction_profile(p_interaction_profile);
+		}
+
+		p_interaction_profile->action_map = this;
+
 		interaction_profiles.push_back(p_interaction_profile);
 		emit_changed();
 	}
@@ -156,6 +173,10 @@ void OpenXRActionMap::remove_interaction_profile(Ref<OpenXRInteractionProfile> p
 	int idx = interaction_profiles.find(p_interaction_profile);
 	if (idx != -1) {
 		interaction_profiles.remove_at(idx);
+
+		ERR_FAIL_COND_MSG(p_interaction_profile->action_map != this, "Removing interaction profile that belongs to this action map but had incorrect action map pointer."); // This should never happen!
+		p_interaction_profile->action_map = nullptr;
+
 		emit_changed();
 	}
 }
@@ -549,9 +570,7 @@ Ref<OpenXRAction> OpenXRActionMap::get_action(const String p_path) const {
 void OpenXRActionMap::remove_action(const String p_path, bool p_remove_interaction_profiles) {
 	Ref<OpenXRAction> action = get_action(p_path);
 	if (action.is_valid()) {
-		for (int i = 0; i < interaction_profiles.size(); i++) {
-			Ref<OpenXRInteractionProfile> interaction_profile = interaction_profiles[i];
-
+		for (Ref<OpenXRInteractionProfile> interaction_profile : interaction_profiles) {
 			if (p_remove_interaction_profiles) {
 				// Remove any bindings for this action
 				interaction_profile->remove_binding_for_action(action);
@@ -571,8 +590,7 @@ void OpenXRActionMap::remove_action(const String p_path, bool p_remove_interacti
 PackedStringArray OpenXRActionMap::get_top_level_paths(const Ref<OpenXRAction> p_action) {
 	PackedStringArray arr;
 
-	for (int i = 0; i < interaction_profiles.size(); i++) {
-		Ref<OpenXRInteractionProfile> ip = interaction_profiles[i];
+	for (Ref<OpenXRInteractionProfile> ip : interaction_profiles) {
 		const OpenXRInteractionProfileMetadata::InteractionProfile *profile = OpenXRInteractionProfileMetadata::get_singleton()->get_profile(ip->get_interaction_profile_path());
 
 		if (profile != nullptr) {
@@ -598,5 +616,5 @@ PackedStringArray OpenXRActionMap::get_top_level_paths(const Ref<OpenXRAction> p
 
 OpenXRActionMap::~OpenXRActionMap() {
 	action_sets.clear();
-	interaction_profiles.clear();
+	clear_interaction_profiles();
 }

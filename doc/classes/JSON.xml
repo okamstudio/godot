@@ -40,11 +40,15 @@
 		<method name="from_native" qualifiers="static">
 			<return type="Variant" />
 			<param index="0" name="variant" type="Variant" />
-			<param index="1" name="allow_classes" type="bool" default="false" />
-			<param index="2" name="allow_scripts" type="bool" default="false" />
+			<param index="1" name="full_objects" type="bool" default="false" />
 			<description>
-				Converts a native engine type to a JSON-compliant dictionary.
-				By default, classes and scripts are ignored for security reasons, unless [param allow_classes] or [param allow_scripts] are specified.
+				Converts a native engine type to a JSON-compliant value.
+				By default, objects are ignored for security reasons, unless [param full_objects] is [code]true[/code].
+				You can convert a native value to a JSON string like this:
+				[codeblock]
+				func encode_data(value, full_objects = false):
+				    return JSON.stringify(JSON.from_native(value, full_objects))
+				[/codeblock]
 			</description>
 		</method>
 		<method name="get_error_line" qualifiers="const">
@@ -136,11 +140,15 @@
 		<method name="to_native" qualifiers="static">
 			<return type="Variant" />
 			<param index="0" name="json" type="Variant" />
-			<param index="1" name="allow_classes" type="bool" default="false" />
-			<param index="2" name="allow_scripts" type="bool" default="false" />
+			<param index="1" name="allow_objects" type="bool" default="false" />
 			<description>
-				Converts a JSON-compliant dictionary that was created with [method from_native] back to native engine types.
-				By default, classes and scripts are ignored for security reasons, unless [param allow_classes] or [param allow_scripts] are specified.
+				Converts a JSON-compliant value that was created with [method from_native] back to native engine types.
+				By default, objects are ignored for security reasons, unless [param allow_objects] is [code]true[/code].
+				You can convert a JSON string back to a native value like this:
+				[codeblock]
+				func decode_data(string, allow_objects = false):
+				    return JSON.to_native(JSON.parse_string(string), allow_objects)
+				[/codeblock]
 			</description>
 		</method>
 	</methods>

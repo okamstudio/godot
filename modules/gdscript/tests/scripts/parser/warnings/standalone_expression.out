@@ -1,17 +1,5 @@
 GDTEST_OK
->> WARNING
->> Line: 3
->> STANDALONE_EXPRESSION
->> Standalone expression (the line may have no effect).
->> WARNING
->> Line: 4
->> STANDALONE_EXPRESSION
->> Standalone expression (the line may have no effect).
->> WARNING
->> Line: 6
->> STANDALONE_EXPRESSION
->> Standalone expression (the line may have no effect).
->> WARNING
->> Line: 7
->> STANDALONE_EXPRESSION
->> Standalone expression (the line may have no effect).
+~~ WARNING at line 3: (STANDALONE_EXPRESSION) Standalone expression (the line may have no effect).
+~~ WARNING at line 4: (STANDALONE_EXPRESSION) Standalone expression (the line may have no effect).
+~~ WARNING at line 6: (STANDALONE_EXPRESSION) Standalone expression (the line may have no effect).
+~~ WARNING at line 7: (STANDALONE_EXPRESSION) Standalone expression (the line may have no effect).

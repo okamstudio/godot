@@ -148,7 +148,7 @@ static String _contextualize_class_specifier(const String &p_class_specifier, co
 
 	// Here equal length + begins_with from above implies p_class_specifier == p_edited_class :)
 	if (p_class_specifier.length() == p_edited_class.length()) {
-		int rfind = p_class_specifier.rfind(".");
+		int rfind = p_class_specifier.rfind_char('.');
 		if (rfind == -1) { // Single identifier
 			return p_class_specifier;
 		}
@@ -234,7 +234,7 @@ void EditorHelp::_class_desc_select(const String &p_select) {
 			enum_class_name = "@GlobalScope";
 			enum_name = link;
 		} else {
-			const int dot_pos = link.rfind(".");
+			const int dot_pos = link.rfind_char('.');
 			if (dot_pos >= 0) {
 				enum_class_name = link.left(dot_pos);
 				enum_name = link.substr(dot_pos + 1);
@@ -320,7 +320,7 @@ void EditorHelp::_class_desc_select(const String &p_select) {
 				}
 			}
 
-			if (link.contains(".")) {
+			if (link.contains_char('.')) {
 				const int class_end = link.find_char('.');
 				emit_signal(SNAME("go_to_help"), topic + ":" + link.left(class_end) + ":" + link.substr(class_end + 1));
 			}
@@ -365,7 +365,7 @@ static void _add_type_to_rt(const String &p_type, const String &p_enum, bool p_i
 
 	bool is_enum_type = !p_enum.is_empty();
 	bool is_bitfield = p_is_bitfield && is_enum_type;
-	bool can_ref = !p_type.contains("*") || is_enum_type;
+	bool can_ref = !p_type.contains_char('*') || is_enum_type;
 
 	String link_t = p_type; // For links in metadata
 	String display_t; // For display purposes.
@@ -2378,11 +2378,7 @@ void EditorHelp::_help_callback(const String &p_topic) {
 	}
 
 	if (class_desc->is_finished()) {
-		// call_deferred() is not enough.
-		if (class_desc->is_connected(SceneStringName(draw), callable_mp(class_desc, &RichTextLabel::scroll_to_paragraph))) {
-			class_desc->disconnect(SceneStringName(draw), callable_mp(class_desc, &RichTextLabel::scroll_to_paragraph));
-		}
-		class_desc->connect(SceneStringName(draw), callable_mp(class_desc, &RichTextLabel::scroll_to_paragraph).bind(line), CONNECT_ONE_SHOT | CONNECT_DEFERRED);
+		class_desc->scroll_to_paragraph(line);
 	} else {
 		scroll_to = line;
 	}
@@ -2407,6 +2403,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 	const Ref<Font> doc_code_font = p_owner_node->get_theme_font(SNAME("doc_source"), EditorStringName(EditorFonts));
 	const Ref<Font> doc_kbd_font = p_owner_node->get_theme_font(SNAME("doc_keyboard"), EditorStringName(EditorFonts));
 
+	const int doc_font_size = p_owner_node->get_theme_font_size(SNAME("doc_size"), EditorStringName(EditorFonts));
 	const int doc_code_font_size = p_owner_node->get_theme_font_size(SNAME("doc_source_size"), EditorStringName(EditorFonts));
 	const int doc_kbd_font_size = p_owner_node->get_theme_font_size(SNAME("doc_keyboard_size"), EditorStringName(EditorFonts));
 
@@ -2519,7 +2516,14 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 
 			tag_stack.pop_front();
 			pos = brk_end + 1;
-			if (tag != "/img") {
+			if (tag == "/img") {
+				// Nothing to do.
+			} else if (tag == "/url") {
+				p_rt->pop(); // meta
+				p_rt->pop(); // color
+				p_rt->add_text(" ");
+				p_rt->add_image(p_owner_node->get_editor_theme_icon(SNAME("ExternalLink")), 0, doc_font_size, link_color);
+			} else {
 				p_rt->pop();
 			}
 		} else if (tag.begins_with("method ") || tag.begins_with("constructor ") || tag.begins_with("operator ") || tag.begins_with("member ") || tag.begins_with("signal ") || tag.begins_with("enum ") || tag.begins_with("constant ") || tag.begins_with("annotation ") || tag.begins_with("theme_item ")) {
@@ -2548,7 +2552,7 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 			p_rt->push_meta("@" + link_tag + " " + link_target, underline_mode);
 
 			if (link_tag == "member" &&
-					((!link_target.contains(".") && (p_class == "ProjectSettings" || p_class == "EditorSettings")) ||
+					((!link_target.contains_char('.') && (p_class == "ProjectSettings" || p_class == "EditorSettings")) ||
 							link_target.begins_with("ProjectSettings.") || link_target.begins_with("EditorSettings."))) {
 				// Special formatting for both ProjectSettings and EditorSettings.
 				String prefix;
@@ -2787,19 +2791,20 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt, const C
 		} else if (tag == "rb") {
 			p_rt->add_text("]");
 			pos = brk_end + 1;
-		} else if (tag == "url") {
-			int end = bbcode.find_char('[', brk_end);
-			if (end == -1) {
-				end = bbcode.length();
+		} else if (tag == "url" || tag.begins_with("url=")) {
+			String url;
+			if (tag.begins_with("url=")) {
+				url = tag.substr(4);
+			} else {
+				int end = bbcode.find_char('[', brk_end);
+				if (end == -1) {
+					end = bbcode.length();
+				}
+				url = bbcode.substr(brk_end + 1, end - brk_end - 1);
 			}
-			String url = bbcode.substr(brk_end + 1, end - brk_end - 1);
-			p_rt->push_meta(url);
 
-			pos = brk_end + 1;
-			tag_stack.push_front(tag);
-		} else if (tag.begins_with("url=")) {
-			String url = tag.substr(4);
-			p_rt->push_meta(url);
+			p_rt->push_color(link_color);
+			p_rt->push_meta(url, RichTextLabel::META_UNDERLINE_ON_HOVER, url + "\n\n" + TTR("Click to open in browser."));
 
 			pos = brk_end + 1;
 			tag_stack.push_front("url");
@@ -3252,7 +3257,7 @@ EditorHelpBit::HelpData EditorHelpBit::_get_property_help_data(const StringName 
 				enum_class_name = "@GlobalScope";
 				enum_name = property.enumeration;
 			} else {
-				const int dot_pos = property.enumeration.rfind(".");
+				const int dot_pos = property.enumeration.rfind_char('.');
 				if (dot_pos >= 0) {
 					enum_class_name = property.enumeration.left(dot_pos);
 					enum_name = property.enumeration.substr(dot_pos + 1);
@@ -3619,7 +3624,7 @@ void EditorHelpBit::_meta_clicked(const String &p_select) {
 			enum_class_name = "@GlobalScope";
 			enum_name = link;
 		} else {
-			const int dot_pos = link.rfind(".");
+			const int dot_pos = link.rfind_char('.');
 			if (dot_pos >= 0) {
 				enum_class_name = link.left(dot_pos);
 				enum_name = link.substr(dot_pos + 1);
@@ -3660,7 +3665,7 @@ void EditorHelpBit::_meta_clicked(const String &p_select) {
 			return;
 		}
 
-		if (link.contains(".")) {
+		if (link.contains_char('.')) {
 			const int class_end = link.find_char('.');
 			_go_to_help(topic + ":" + link.left(class_end) + ":" + link.substr(class_end + 1));
 		} else {
@@ -3685,7 +3690,7 @@ void EditorHelpBit::_notification(int p_what) {
 	}
 }
 
-void EditorHelpBit::parse_symbol(const String &p_symbol) {
+void EditorHelpBit::parse_symbol(const String &p_symbol, const String &p_prologue) {
 	const PackedStringArray slices = p_symbol.split("|", true, 2);
 	ERR_FAIL_COND_MSG(slices.size() < 3, "Invalid doc id. The expected format is 'item_type|class_name|item_name'.");
 
@@ -3732,6 +3737,14 @@ void EditorHelpBit::parse_symbol(const String &p_symbol) {
 	symbol_visible_type = visible_type;
 	symbol_name = name;
 
+	if (!p_prologue.is_empty()) {
+		if (help_data.description.is_empty()) {
+			help_data.description = p_prologue;
+		} else {
+			help_data.description = p_prologue + "\n" + help_data.description;
+		}
+	}
+
 	if (help_data.description.is_empty()) {
 		help_data.description = "[color=<EditorHelpBitCommentColor>][i]" + TTR("No description available.") + "[/i][/color]";
 	}
@@ -3749,14 +3762,6 @@ void EditorHelpBit::set_custom_text(const String &p_type, const String &p_name, 
 
 	help_data = HelpData();
 	help_data.description = p_description;
-
-	if (is_inside_tree()) {
-		_update_labels();
-	}
-}
-
-void EditorHelpBit::set_description(const String &p_text) {
-	help_data.description = p_text;
 
 	if (is_inside_tree()) {
 		_update_labels();
@@ -3782,15 +3787,15 @@ void EditorHelpBit::update_content_height() {
 	content->set_custom_minimum_size(Size2(content->get_custom_minimum_size().x, CLAMP(content_height, content_min_height, content_max_height)));
 }
 
-EditorHelpBit::EditorHelpBit(const String &p_symbol) {
+EditorHelpBit::EditorHelpBit(const String &p_symbol, const String &p_prologue, bool p_allow_selection) {
 	add_theme_constant_override("separation", 0);
 
 	title = memnew(RichTextLabel);
 	title->set_theme_type_variation("EditorHelpBitTitle");
 	title->set_custom_minimum_size(Size2(512 * EDSCALE, 0)); // GH-93031. Set the minimum width even if `fit_content` is true.
 	title->set_fit_content(true);
-	title->set_selection_enabled(true);
-	//title->set_context_menu_enabled(true); // TODO: Fix opening context menu hides tooltip.
+	title->set_selection_enabled(p_allow_selection);
+	title->set_context_menu_enabled(p_allow_selection);
 	title->connect("meta_clicked", callable_mp(this, &EditorHelpBit::_meta_clicked));
 	title->hide();
 	add_child(title);
@@ -3801,17 +3806,25 @@ EditorHelpBit::EditorHelpBit(const String &p_symbol) {
 	content = memnew(RichTextLabel);
 	content->set_theme_type_variation("EditorHelpBitContent");
 	content->set_custom_minimum_size(Size2(512 * EDSCALE, content_min_height));
-	content->set_selection_enabled(true);
-	//content->set_context_menu_enabled(true); // TODO: Fix opening context menu hides tooltip.
+	content->set_selection_enabled(p_allow_selection);
+	content->set_context_menu_enabled(p_allow_selection);
 	content->connect("meta_clicked", callable_mp(this, &EditorHelpBit::_meta_clicked));
 	add_child(content);
 
 	if (!p_symbol.is_empty()) {
-		parse_symbol(p_symbol);
+		parse_symbol(p_symbol, p_prologue);
 	}
 }
 
 /// EditorHelpBitTooltip ///
+
+bool EditorHelpBitTooltip::_is_tooltip_visible = false;
+
+Control *EditorHelpBitTooltip::_make_invisible_control() {
+	Control *control = memnew(Control);
+	control->set_visible(false);
+	return control;
+}
 
 void EditorHelpBitTooltip::_start_timer() {
 	if (timer->is_inside_tree() && timer->is_stopped()) {
@@ -3819,58 +3832,82 @@ void EditorHelpBitTooltip::_start_timer() {
 	}
 }
 
-void EditorHelpBitTooltip::_safe_queue_free() {
-	if (_pushing_input > 0) {
-		_need_free = true;
-	} else {
-		queue_free();
-	}
-}
-
 void EditorHelpBitTooltip::_target_gui_input(const Ref<InputEvent> &p_event) {
-	const Ref<InputEventMouse> mouse_event = p_event;
-	if (mouse_event.is_valid()) {
-		_start_timer();
+	// Only scrolling is not checked in `NOTIFICATION_INTERNAL_PROCESS`.
+	const Ref<InputEventMouseButton> mb = p_event;
+	if (mb.is_valid()) {
+		switch (mb->get_button_index()) {
+			case MouseButton::WHEEL_UP:
+			case MouseButton::WHEEL_DOWN:
+			case MouseButton::WHEEL_LEFT:
+			case MouseButton::WHEEL_RIGHT:
+				queue_free();
+				break;
+			default:
+				break;
+		}
 	}
 }
 
 void EditorHelpBitTooltip::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ENTER_TREE:
+			_is_tooltip_visible = true;
+			_enter_tree_time = OS::get_singleton()->get_ticks_msec();
+			break;
+		case NOTIFICATION_EXIT_TREE:
+			_is_tooltip_visible = false;
+			break;
 		case NOTIFICATION_WM_MOUSE_ENTER:
+			_is_mouse_inside_tooltip = true;
 			timer->stop();
 			break;
 		case NOTIFICATION_WM_MOUSE_EXIT:
+			_is_mouse_inside_tooltip = false;
 			_start_timer();
+			break;
+		case NOTIFICATION_INTERNAL_PROCESS:
+			// A workaround to hide the tooltip since the window does not receive keyboard events
+			// with `FLAG_POPUP` and `FLAG_NO_FOCUS` flags, so we can't use `_input_from_window()`.
+			if (is_inside_tree()) {
+				if (Input::get_singleton()->is_action_just_pressed(SNAME("ui_cancel"), true)) {
+					queue_free();
+					get_parent_viewport()->set_input_as_handled();
+				} else if (Input::get_singleton()->is_anything_pressed_except_mouse()) {
+					queue_free();
+				} else if (!Input::get_singleton()->get_mouse_button_mask().is_empty()) {
+					if (!_is_mouse_inside_tooltip) {
+						queue_free();
+					}
+				} else if (!Input::get_singleton()->get_last_mouse_velocity().is_zero_approx()) {
+					if (!_is_mouse_inside_tooltip && OS::get_singleton()->get_ticks_msec() - _enter_tree_time > 250) {
+						_start_timer();
+					}
+				}
+			}
 			break;
 	}
 }
 
-// Forwards non-mouse input to the parent viewport.
-void EditorHelpBitTooltip::_input_from_window(const Ref<InputEvent> &p_event) {
-	if (p_event->is_action_pressed(SNAME("ui_cancel"), false, true)) {
-		_safe_queue_free();
-	} else {
-		const Ref<InputEventMouse> mouse_event = p_event;
-		if (mouse_event.is_null()) {
-			// GH-91652. Prevents use-after-free since `ProgressDialog` calls `Main::iteration()`.
-			_pushing_input++;
-			get_parent_viewport()->push_input(p_event);
-			_pushing_input--;
-			if (_pushing_input <= 0 && _need_free) {
-				queue_free();
-			}
-		}
+Control *EditorHelpBitTooltip::show_tooltip(Control *p_target, const String &p_symbol, const String &p_prologue) {
+	// Show the custom tooltip only if it is not already visible.
+	// The viewport will retrigger `make_custom_tooltip()` every few seconds
+	// because the return control is not visible even if the custom tooltip is displayed.
+	if (_is_tooltip_visible || Input::get_singleton()->is_anything_pressed()) {
+		return _make_invisible_control();
 	}
-}
 
-void EditorHelpBitTooltip::show_tooltip(EditorHelpBit *p_help_bit, Control *p_target) {
-	ERR_FAIL_NULL(p_help_bit);
+	EditorHelpBit *help_bit = memnew(EditorHelpBit(p_symbol, p_prologue, false));
+
 	EditorHelpBitTooltip *tooltip = memnew(EditorHelpBitTooltip(p_target));
-	p_help_bit->connect("request_hide", callable_mp(tooltip, &EditorHelpBitTooltip::_safe_queue_free));
-	tooltip->add_child(p_help_bit);
-	p_target->get_viewport()->add_child(tooltip);
-	p_help_bit->update_content_height();
+	help_bit->connect("request_hide", callable_mp(static_cast<Node *>(tooltip), &Node::queue_free));
+	tooltip->add_child(help_bit);
+	p_target->add_child(tooltip);
+
+	help_bit->update_content_height();
 	tooltip->popup_under_cursor();
+
+	return _make_invisible_control();
 }
 
 // Copy-paste from `Viewport::_gui_show_tooltip()`.
@@ -3910,6 +3947,9 @@ void EditorHelpBitTooltip::popup_under_cursor() {
 		r.position.y = vr.position.y;
 	}
 
+	// When `FLAG_POPUP` is false, it prevents the editor from losing focus when displaying the tooltip.
+	// This way, clicks and double-clicks are still available outside the tooltip.
+	set_flag(Window::FLAG_POPUP, false);
 	set_flag(Window::FLAG_NO_FOCUS, true);
 	popup(r);
 }
@@ -3918,13 +3958,15 @@ EditorHelpBitTooltip::EditorHelpBitTooltip(Control *p_target) {
 	set_theme_type_variation("TooltipPanel");
 
 	timer = memnew(Timer);
-	timer->set_wait_time(0.2);
-	timer->connect("timeout", callable_mp(this, &EditorHelpBitTooltip::_safe_queue_free));
+	timer->set_wait_time(0.25);
+	timer->connect("timeout", callable_mp(static_cast<Node *>(this), &Node::queue_free));
 	add_child(timer);
 
 	ERR_FAIL_NULL(p_target);
 	p_target->connect(SceneStringName(mouse_exited), callable_mp(this, &EditorHelpBitTooltip::_start_timer));
 	p_target->connect(SceneStringName(gui_input), callable_mp(this, &EditorHelpBitTooltip::_target_gui_input));
+
+	set_process_internal(true);
 }
 
 #if defined(MODULE_GDSCRIPT_ENABLED) || defined(MODULE_MONO_ENABLED)
@@ -4103,7 +4145,7 @@ FindBar::FindBar() {
 	search_text->set_custom_minimum_size(Size2(100 * EDSCALE, 0));
 	search_text->set_h_size_flags(SIZE_EXPAND_FILL);
 	search_text->connect(SceneStringName(text_changed), callable_mp(this, &FindBar::_search_text_changed));
-	search_text->connect("text_submitted", callable_mp(this, &FindBar::_search_text_submitted));
+	search_text->connect(SceneStringName(text_submitted), callable_mp(this, &FindBar::_search_text_submitted));
 
 	matches_label = memnew(Label);
 	add_child(matches_label);

@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Too few arguments for "args()" call. Expected at least 2 but received 1.
+>> ERROR at line 6: Too few arguments for "args()" call. Expected at least 2 but received 1.

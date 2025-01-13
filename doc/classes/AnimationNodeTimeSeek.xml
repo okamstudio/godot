@@ -30,4 +30,9 @@
 	<tutorials>
 		<link title="Using AnimationTree">$DOCS_URL/tutorials/animation/animation_tree.html</link>
 	</tutorials>
+	<members>
+		<member name="explicit_elapse" type="bool" setter="set_explicit_elapse" getter="is_explicit_elapse" default="true">
+			If [code]true[/code], some processes are executed to handle keys between seeks, such as calculating root motion and finding the nearest discrete key.
+		</member>
+	</members>
 </class>

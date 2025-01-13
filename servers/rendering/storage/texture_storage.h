@@ -178,13 +178,18 @@ public:
 	virtual RID render_target_get_vrs_texture(RID p_render_target) const = 0;
 
 	// override color, depth and velocity buffers (depth and velocity only for 3D)
-	virtual void render_target_set_override(RID p_render_target, RID p_color_texture, RID p_depth_texture, RID p_velocity_texture) = 0;
+	virtual void render_target_set_override(RID p_render_target, RID p_color_texture, RID p_depth_texture, RID p_velocity_texture, RID p_velocity_depth_texture) = 0;
 	virtual RID render_target_get_override_color(RID p_render_target) const = 0;
 	virtual RID render_target_get_override_depth(RID p_render_target) const = 0;
 	virtual RID render_target_get_override_velocity(RID p_render_target) const = 0;
+	virtual RID render_target_get_override_velocity_depth(RID p_render_target) const = 0;
 
 	// get textures
 	virtual RID render_target_get_texture(RID p_render_target) = 0;
+
+	// Motion vectors
+	virtual void render_target_set_velocity_target_size(RID p_render_target, const Size2i &p_target_size) = 0;
+	virtual Size2i render_target_get_velocity_target_size(RID p_render_target) const = 0;
 };
 
 #endif // TEXTURE_STORAGE_H

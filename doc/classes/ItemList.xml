@@ -473,6 +473,9 @@
 		<constant name="SELECT_MULTI" value="1" enum="SelectMode">
 			Allows selecting multiple items by holding [kbd]Ctrl[/kbd] or [kbd]Shift[/kbd].
 		</constant>
+		<constant name="SELECT_TOGGLE" value="2" enum="SelectMode">
+			Allows selecting multiple items by toggling them on and off.
+		</constant>
 	</constants>
 	<theme_items>
 		<theme_item name="font_color" data_type="color" type="Color" default="Color(0.65, 0.65, 0.65, 1)">

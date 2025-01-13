@@ -42,7 +42,7 @@ class TextLine : public RefCounted {
 private:
 	RID rid;
 
-	bool dirty = true;
+	mutable bool dirty = true;
 
 	float width = -1.0;
 	BitField<TextServer::JustificationFlag> flags = TextServer::JUSTIFICATION_WORD_BOUND | TextServer::JUSTIFICATION_KASHIDA;
@@ -55,7 +55,7 @@ private:
 protected:
 	static void _bind_methods();
 
-	void _shape();
+	void _shape() const;
 
 public:
 	RID get_rid() const;

@@ -55,7 +55,6 @@ struct Fill::Impl
     uint32_t cnt = 0;
     FillSpread spread;
     DuplicateMethod<Fill>* dup = nullptr;
-    uint8_t id;
 
     ~Impl()
     {

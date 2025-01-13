@@ -12,12 +12,12 @@ internal class ReflectionUtils
 {
     private static readonly HashSet<Type>? _tupleTypeSet;
     private static readonly Dictionary<Type, string>? _builtinTypeNameDictionary;
-    private static readonly bool _isEditorHintCached;
+    internal static readonly bool IsEditorHintCached;
 
     static ReflectionUtils()
     {
-        _isEditorHintCached = Engine.IsEditorHint();
-        if (!_isEditorHintCached)
+        IsEditorHintCached = Engine.IsEditorHint();
+        if (!IsEditorHintCached)
         {
             return;
         }
@@ -66,7 +66,7 @@ internal class ReflectionUtils
 
     public static string ConstructTypeName(Type type)
     {
-        if (!_isEditorHintCached)
+        if (!IsEditorHintCached)
         {
             return type.Name;
         }
@@ -109,7 +109,7 @@ internal class ReflectionUtils
             // Append brackets.
             AppendArrayBrackets(sb, type);
 
-            static void AppendArrayBrackets(StringBuilder sb, Type type)
+            static void AppendArrayBrackets(StringBuilder sb, Type? type)
             {
                 while (type != null && type.IsArray)
                 {

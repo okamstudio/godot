@@ -270,7 +270,7 @@
 			The atlas texture.
 		</member>
 		<member name="texture_region_size" type="Vector2i" setter="set_texture_region_size" getter="get_texture_region_size" default="Vector2i(16, 16)">
-			The base tile size in the texture (in pixel). This size must be bigger than the TileSet's [code]tile_size[/code] value.
+			The base tile size in the texture (in pixel). This size must be bigger than or equal to the TileSet's [code]tile_size[/code] value.
 		</member>
 		<member name="use_texture_padding" type="bool" setter="set_use_texture_padding" getter="get_use_texture_padding" default="true">
 			If [code]true[/code], generates an internal texture with an additional one pixel padding around each tile. Texture padding avoids a common artifact where lines appear between tiles.

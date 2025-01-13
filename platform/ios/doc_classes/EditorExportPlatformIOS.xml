@@ -50,6 +50,14 @@
 		<member name="application/min_ios_version" type="String" setter="" getter="">
 			Minimum version of iOS required for this application to run in the [code]major.minor.patch[/code] or [code]major.minor[/code] format, can only contain numeric characters ([code]0-9[/code]) and periods ([code].[/code]).
 		</member>
+		<member name="application/provisioning_profile_specifier_debug" type="String" setter="" getter="">
+			Name of the provisioning profile. Sets XCode PROVISIONING_PROFILE_SPECIFIER for debug. [url=https://developer.apple.com/documentation/xcode/build-settings-reference#Provisioning-Profile]Used for manual provisioning[/url].
+			Can be overridden with the environment variable [code]GODOT_IOS_PROFILE_SPECIFIER_DEBUG[/code].
+		</member>
+		<member name="application/provisioning_profile_specifier_release" type="String" setter="" getter="">
+			Name of the provisioning profile. Sets XCode PROVISIONING_PROFILE_SPECIFIER for release. [url=https://developer.apple.com/documentation/xcode/build-settings-reference#Provisioning-Profile]Used for manual provisioning[/url].
+			Can be overridden with the environment variable [code]GODOT_IOS_PROFILE_SPECIFIER_RELEASE[/code].
+		</member>
 		<member name="application/provisioning_profile_uuid_debug" type="String" setter="" getter="">
 			UUID of the provisioning profile. If left empty, Xcode will download or create a provisioning profile automatically. See [url=https://developer.apple.com/help/account/manage-profiles/edit-download-or-delete-profiles]Edit, download, or delete provisioning profiles[/url].
 			Can be overridden with the environment variable [code]GODOT_IOS_PROVISIONING_PROFILE_UUID_DEBUG[/code].
@@ -76,6 +84,9 @@
 		<member name="capabilities/access_wifi" type="bool" setter="" getter="">
 			If [code]true[/code], networking features related to Wi-Fi access are enabled. See [url=https://developer.apple.com/support/required-device-capabilities/]Required Device Capabilities[/url].
 		</member>
+		<member name="capabilities/additional" type="PackedStringArray" setter="" getter="">
+			Additional data added to the [code]UIRequiredDeviceCapabilities[/code] array of the [code]Info.plist[/code] file.
+		</member>
 		<member name="capabilities/performance_a12" type="bool" setter="" getter="">
 			Requires the graphics performance and features of the A12 Bionic and later chips (devices supporting all Vulkan renderer features).
 			Enabling this option limits supported devices to: iPhone XS, iPhone XR, iPad Mini (5th gen.), iPad Air (3rd gen.), iPad (8th gen) and newer.
@@ -84,14 +95,27 @@
 			Requires the graphics performance and features of the A17 Pro and later chips.
 			Enabling this option limits supported devices to: iPhone 15 Pro and newer.
 		</member>
-		<member name="capabilities/push_notifications" type="bool" setter="" getter="">
-			If [code]true[/code], push notifications are enabled. See [url=https://developer.apple.com/support/required-device-capabilities/]Required Device Capabilities[/url].
-		</member>
 		<member name="custom_template/debug" type="String" setter="" getter="">
 			Path to the custom export template. If left empty, default template is used.
 		</member>
 		<member name="custom_template/release" type="String" setter="" getter="">
 			Path to the custom export template. If left empty, default template is used.
+		</member>
+		<member name="entitlements/additional" type="String" setter="" getter="">
+			Additional data added to the root [code]&lt;dict&gt;[/code] section of the [url=https://developer.apple.com/documentation/bundleresources/entitlements].entitlements[/url] file. The value should be an XML section with pairs of key-value elements, for example:
+			[codeblock lang=text]
+			&lt;key&gt;key_name&lt;/key&gt;
+			&lt;string&gt;value&lt;/string&gt;
+			[/codeblock]
+		</member>
+		<member name="entitlements/game_center" type="bool" setter="" getter="">
+			Enable to allow access to Game Center features. [url=https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_game-center]com.apple.developer.game-center[/url].
+		</member>
+		<member name="entitlements/increased_memory_limit" type="bool" setter="" getter="">
+			Enable if app may perform better with a higher memory limit. [url=https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_developer_kernel_increased-memory-limit]com.apple.developer.kernel.increased-memory-limit[/url].
+		</member>
+		<member name="entitlements/push_notifications" type="String" setter="" getter="">
+			Environment for Apple Push Notification service. See [url=https://developer.apple.com/documentation/bundleresources/entitlements/aps-environment]aps-environment[/url].
 		</member>
 		<member name="icons/app_store_1024x1024" type="String" setter="" getter="">
 			App Store application icon file. If left empty, it will fallback to [member ProjectSettings.application/config/icon]. See [url=https://developer.apple.com/design/human-interface-guidelines/foundations/app-icons]App icons[/url].

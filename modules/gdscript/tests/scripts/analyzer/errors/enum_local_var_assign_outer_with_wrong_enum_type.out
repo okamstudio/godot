@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Cannot assign a value of type "enum_local_var_assign_outer_with_wrong_enum_type.gd::InnerClass.MyEnum" as "enum_local_var_assign_outer_with_wrong_enum_type.gd.MyEnum".
+>> ERROR at line 9: Cannot assign a value of type "enum_local_var_assign_outer_with_wrong_enum_type.gd::InnerClass.MyEnum" as "enum_local_var_assign_outer_with_wrong_enum_type.gd.MyEnum".
+>> ERROR at line 9: Value of type "enum_local_var_assign_outer_with_wrong_enum_type.gd::InnerClass.MyEnum" cannot be assigned to a variable of type "enum_local_var_assign_outer_with_wrong_enum_type.gd.MyEnum".

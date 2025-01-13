@@ -99,6 +99,18 @@ int AudioStreamSynchronized::get_beat_count() const {
 	return max_beats;
 }
 
+int AudioStreamSynchronized::get_bar_beats() const {
+	for (int i = 0; i < stream_count; i++) {
+		if (audio_streams[i].is_valid()) {
+			int bar_beats = audio_streams[i]->get_bar_beats();
+			if (bar_beats != 0) {
+				return bar_beats;
+			}
+		}
+	}
+	return 0;
+}
+
 bool AudioStreamSynchronized::has_loop() const {
 	for (int i = 0; i < stream_count; i++) {
 		if (audio_streams[i].is_valid()) {

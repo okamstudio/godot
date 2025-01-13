@@ -34,6 +34,12 @@
 #include "core/object/script_language.h"
 #include "core/variant/variant.h"
 
+struct ContainerType {
+	Variant::Type builtin_type = Variant::NIL;
+	StringName class_name;
+	Ref<Script> script;
+};
+
 struct ContainerTypeValidate {
 	Variant::Type type = Variant::NIL;
 	StringName class_name;

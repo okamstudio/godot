@@ -1,19 +1,7 @@
 GDTEST_OK
->> WARNING
->> Line: 13
->> CONFUSABLE_CAPTURE_REASSIGNMENT
->> Reassigning lambda capture does not modify the outer local variable "number".
->> WARNING
->> Line: 14
->> CONFUSABLE_CAPTURE_REASSIGNMENT
->> Reassigning lambda capture does not modify the outer local variable "string".
->> WARNING
->> Line: 15
->> CONFUSABLE_CAPTURE_REASSIGNMENT
->> Reassigning lambda capture does not modify the outer local variable "vector".
->> WARNING
->> Line: 16
->> CONFUSABLE_CAPTURE_REASSIGNMENT
->> Reassigning lambda capture does not modify the outer local variable "array_assign".
+~~ WARNING at line 13: (CONFUSABLE_CAPTURE_REASSIGNMENT) Reassigning lambda capture does not modify the outer local variable "number".
+~~ WARNING at line 14: (CONFUSABLE_CAPTURE_REASSIGNMENT) Reassigning lambda capture does not modify the outer local variable "string".
+~~ WARNING at line 15: (CONFUSABLE_CAPTURE_REASSIGNMENT) Reassigning lambda capture does not modify the outer local variable "vector".
+~~ WARNING at line 16: (CONFUSABLE_CAPTURE_REASSIGNMENT) Reassigning lambda capture does not modify the outer local variable "array_assign".
 lambda 2 2 12 (2, 0) [2] [2] { &"x": 2 }
 outer 2 1 1 (1, 0) [1] [2] { &"x": 2 }

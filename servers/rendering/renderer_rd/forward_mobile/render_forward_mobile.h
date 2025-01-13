@@ -184,7 +184,7 @@ private:
 		float normal_xform[12];
 		float texture_size[2];
 		float exposure_normalization;
-		float pad;
+		uint32_t flags;
 	};
 
 	struct LightmapCaptureData {
@@ -257,8 +257,8 @@ private:
 			float screen_mesh_lod_threshold;
 
 			RID framebuffer;
-			RD::InitialAction initial_depth_action;
 			Rect2i rect;
+			bool clear_depth;
 		};
 
 		LocalVector<ShadowPass> shadow_passes;
@@ -332,7 +332,7 @@ private:
 	template <PassMode p_pass_mode>
 	_FORCE_INLINE_ void _render_list_template(RenderingDevice::DrawListID p_draw_list, RenderingDevice::FramebufferFormatID p_framebuffer_Format, RenderListParameters *p_params, uint32_t p_from_element, uint32_t p_to_element);
 	void _render_list(RenderingDevice::DrawListID p_draw_list, RenderingDevice::FramebufferFormatID p_framebuffer_Format, RenderListParameters *p_params, uint32_t p_from_element, uint32_t p_to_element);
-	void _render_list_with_draw_list(RenderListParameters *p_params, RID p_framebuffer, RD::InitialAction p_initial_color_action, RD::FinalAction p_final_color_action, RD::InitialAction p_initial_depth_action, RD::FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth = 0.0, uint32_t p_clear_stencil = 0, const Rect2 &p_region = Rect2());
+	void _render_list_with_draw_list(RenderListParameters *p_params, RID p_framebuffer, BitField<RD::DrawFlags> p_clear_colors = RD::DRAW_DEFAULT_ALL, const Vector<Color> &p_clear_color_values = Vector<Color>(), float p_clear_depth_value = 0.0, uint32_t p_clear_stencil_value = 0, const Rect2 &p_region = Rect2());
 
 	RenderList render_list[RENDER_LIST_MAX];
 

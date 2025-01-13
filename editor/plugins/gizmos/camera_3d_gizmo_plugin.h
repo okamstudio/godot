@@ -37,7 +37,6 @@ class Camera3DGizmoPlugin : public EditorNode3DGizmoPlugin {
 	GDCLASS(Camera3DGizmoPlugin, EditorNode3DGizmoPlugin);
 
 private:
-	static Size2i _get_viewport_size(Camera3D *p_camera);
 	static float _find_closest_angle_to_half_pi_arc(const Vector3 &p_from, const Vector3 &p_to, float p_arc_radius, const Transform3D &p_arc_xform);
 
 public:

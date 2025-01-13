@@ -289,6 +289,15 @@ static Ref<Image> _dds_load_layer(Ref<FileAccess> p_file, DDSFormat p_dds_format
 
 	if (info.compressed) {
 		// BC compressed.
+		w += w % info.divisor;
+		h += h % info.divisor;
+		if (w != p_width) {
+			WARN_PRINT(vformat("%s: DDS width '%d' is not divisible by %d. This is not allowed as per the DDS specification, attempting to load anyway.", p_file->get_path(), p_width, info.divisor));
+		}
+		if (h != p_height) {
+			WARN_PRINT(vformat("%s: DDS height '%d' is not divisible by %d. This is not allowed as per the DDS specification, attempting to load anyway.", p_file->get_path(), p_height, info.divisor));
+		}
+
 		uint32_t size = MAX(info.divisor, w) / info.divisor * MAX(info.divisor, h) / info.divisor * info.block_size;
 
 		if (p_flags & DDSD_LINEARSIZE) {

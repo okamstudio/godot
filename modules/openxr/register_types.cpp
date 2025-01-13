@@ -33,6 +33,7 @@
 #include "action_map/openxr_action.h"
 #include "action_map/openxr_action_map.h"
 #include "action_map/openxr_action_set.h"
+#include "action_map/openxr_haptic_feedback.h"
 #include "action_map/openxr_interaction_profile.h"
 #include "action_map/openxr_interaction_profile_metadata.h"
 #include "openxr_interface.h"
@@ -49,6 +50,7 @@
 #include "extensions/openxr_composition_layer_depth_extension.h"
 #include "extensions/openxr_composition_layer_extension.h"
 #include "extensions/openxr_debug_utils_extension.h"
+#include "extensions/openxr_dpad_binding_extension.h"
 #include "extensions/openxr_eye_gaze_interaction.h"
 #include "extensions/openxr_fb_display_refresh_rate_extension.h"
 #include "extensions/openxr_hand_interaction_extension.h"
@@ -62,6 +64,7 @@
 #include "extensions/openxr_mxink_extension.h"
 #include "extensions/openxr_palm_pose_extension.h"
 #include "extensions/openxr_pico_controller_extension.h"
+#include "extensions/openxr_valve_analog_threshold_extension.h"
 #include "extensions/openxr_visibility_mask_extension.h"
 #include "extensions/openxr_wmr_controller_extension.h"
 
@@ -78,6 +81,10 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_node.h"
+
+#include "editor/openxr_binding_modifier_editor.h"
+#include "editor/openxr_interaction_profile_editor.h"
+
 #endif
 
 static OpenXRAPI *openxr_api = nullptr;
@@ -140,6 +147,14 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 			if (GLOBAL_GET("xr/openxr/extensions/hand_tracking")) {
 				OpenXRAPI::register_extension_wrapper(memnew(OpenXRHandTrackingExtension));
 			}
+
+			// register gated binding modifiers
+			if (GLOBAL_GET("xr/openxr/binding_modifiers/analog_threshold")) {
+				OpenXRAPI::register_extension_wrapper(memnew(OpenXRValveAnalogThresholdExtension));
+			}
+			if (GLOBAL_GET("xr/openxr/binding_modifiers/dpad_binding")) {
+				OpenXRAPI::register_extension_wrapper(memnew(OpenXRDPadBindingExtension));
+			}
 		}
 
 		if (OpenXRAPI::openxr_is_enabled()) {
@@ -181,6 +196,15 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(OpenXRIPBinding);
 		GDREGISTER_CLASS(OpenXRInteractionProfile);
 
+		GDREGISTER_ABSTRACT_CLASS(OpenXRBindingModifier);
+		GDREGISTER_VIRTUAL_CLASS(OpenXRIPBindingModifier);
+		GDREGISTER_VIRTUAL_CLASS(OpenXRActionBindingModifier);
+		GDREGISTER_CLASS(OpenXRAnalogThresholdModifier);
+		GDREGISTER_CLASS(OpenXRDpadBindingModifier);
+
+		GDREGISTER_ABSTRACT_CLASS(OpenXRHapticBase);
+		GDREGISTER_CLASS(OpenXRHapticVibration);
+
 		GDREGISTER_ABSTRACT_CLASS(OpenXRCompositionLayer);
 		GDREGISTER_CLASS(OpenXRCompositionLayerEquirect);
 		GDREGISTER_CLASS(OpenXRCompositionLayerCylinder);
@@ -201,6 +225,10 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		}
 
 #ifdef TOOLS_ENABLED
+		GDREGISTER_ABSTRACT_CLASS(OpenXRInteractionProfileEditorBase);
+		GDREGISTER_CLASS(OpenXRInteractionProfileEditor);
+		GDREGISTER_CLASS(OpenXRBindingModifierEditor);
+
 		EditorNode::add_init_callback(_editor_init);
 #endif
 	}

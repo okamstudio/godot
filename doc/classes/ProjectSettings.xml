@@ -2162,6 +2162,9 @@
 		<member name="navigation/baking/use_crash_prevention_checks" type="bool" setter="" getter="" default="true">
 			If enabled, and baking would potentially lead to an engine crash, the baking will be interrupted and an error message with explanation will be raised.
 		</member>
+		<member name="navigation/pathfinding/max_threads" type="int" setter="" getter="" default="4">
+			Maximum number of threads that can run pathfinding queries simultaneously on the same pathfinding graph, for example the same navigation map. Additional threads increase memory consumption and synchronization time due to the need for extra data copies prepared for each thread. A value of [code]-1[/code] means unlimited and the maximum available OS processor count is used. Defaults to [code]1[/code] when the OS does not support threads.
+		</member>
 		<member name="network/limits/debugger/max_chars_per_second" type="int" setter="" getter="" default="32768">
 			Maximum number of characters allowed to send as output from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
@@ -2364,10 +2367,141 @@
 			[b]Note:[/b] This property is only read when the project starts. To change the physics FPS at runtime, set [member Engine.physics_ticks_per_second] instead.
 			[b]Note:[/b] Only [member physics/common/max_physics_steps_per_frame] physics ticks may be simulated per rendered frame at most. If more physics ticks have to be simulated per rendered frame to keep up with rendering, the project will appear to slow down (even if [code]delta[/code] is used consistently in physics calculations). Therefore, it is recommended to also increase [member physics/common/max_physics_steps_per_frame] if increasing [member physics/common/physics_ticks_per_second] significantly above its default value.
 		</member>
+		<member name="physics/jolt_physics_3d/collisions/active_edge_threshold" type="float" setter="" getter="" default="0.872665">
+			The maximum angle, in radians, between two adjacent triangles in a [ConcavePolygonShape3D] or [HeightMapShape3D] for which the edge between those triangles is considered inactive.
+			Collisions against an inactive edge will have its normal overridden to instead be the surface normal of the triangle. This can help alleviate ghost collisions.
+			[b]Note:[/b] Setting this too high can result in objects not depenetrating properly.
+			[b]Note:[/b] This applies to all shape queries, as well as physics bodies within the simulation.
+			[b]Note:[/b] This does not apply when enabling Jolt's enhanced internal edge removal, which supersedes this.
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/collisions/collision_margin_fraction" type="float" setter="" getter="" default="0.08">
+			The amount of collision margin to use for certain convex collision shapes, such as [BoxShape3D], [CylinderShape3D] and [ConvexPolygonShape3D], as a fraction of the shape's shortest axis, with [member Shape3D.margin] as the upper bound. This is mainly used to speed up collision detection with convex shapes.
+			[b]Note:[/b] Collision margins in Jolt do not add any extra size to the shape. Instead the shape is first shrunk by the margin and then expanded by the same amount, resulting in a shape with rounded corners.
+			[b]Note:[/b] Setting this value too close to [code]0.0[/code] may also negatively affect the accuracy of the collision detection with convex shapes.
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/joints/world_node" type="int" setter="" getter="" default="0">
+			Which of the two nodes bound by a joint should represent the world when one of the two is omitted, as either [member Joint3D.node_a] or [member Joint3D.node_b]. This can be thought of as having the omitted node be a [StaticBody3D] at the joint's position. Joint limits are more easily expressed when [member Joint3D.node_a] represents the world.
+			[b]Note:[/b] In Godot Physics, only [member Joint3D.node_b] can represent the world.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/max_angular_velocity" type="float" setter="" getter="" default="47.1239">
+			The maximum angular velocity that a [RigidBody3D] can reach, in radians per second.
+			This is mainly used as a fail-safe, to prevent the simulation from exploding, as fast-moving objects colliding with complex physics structures can otherwise cause them to go out of control. Fast-moving objects can also cause a lot of stress on the collision detection system, which can slow down the simulation considerably.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/max_bodies" type="int" setter="" getter="" default="10240">
+			The maximum number of [PhysicsBody3D] to support at the same time, awake or sleeping. When this limit is exceeded, an error is reported and anything past that point is undefined behavior.
+			[b]Note:[/b] This limit also applies within the editor.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/max_body_pairs" type="int" setter="" getter="" default="65536">
+			The maximum number of body pairs to allow processing of. When this limit is exceeded, a warning is reported and collisions will randomly be ignored while bodies pass through each other.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/max_contact_constraints" type="int" setter="" getter="" default="20480">
+			The maximum number of contact constraints to allow processing of. When this limit is exceeded, a warning is reported and collisions will randomly be ignored while bodies pass through each other.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/max_linear_velocity" type="float" setter="" getter="" default="500.0">
+			The maximum linear velocity that a [RigidBody3D] can reach, in meters per second.
+			This is mainly used as a fail-safe, to prevent the simulation from exploding, as fast-moving objects colliding with complex physics structures can otherwise cause them to go out of control. Fast-moving objects can also cause a lot of stress on the collision detection system, which can slow down the simulation considerably.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/temporary_memory_buffer_size" type="int" setter="" getter="" default="32">
+			The amount of memory to pre-allocate for the stack allocator used within Jolt, in MiB. This allocator is used within the physics step to store things that are only needed during it, like which bodies are in contact, how they form islands and the data needed to solve the contacts.
+		</member>
+		<member name="physics/jolt_physics_3d/limits/world_boundary_shape_size" type="float" setter="" getter="" default="2000.0">
+			The size of [WorldBoundaryShape3D] boundaries, for all three dimensions. The plane is effectively centered within a box of this size, and anything outside of the box will not collide with it. This is necessary as [WorldBoundaryShape3D] is not unbounded when using Jolt, in order to prevent precision issues.
+			[b]Note:[/b] Setting this value too high can make collision detection less accurate.
+			[b]Note:[/b] Collisions against the effective edges of a [WorldBoundaryShape3D] will be inconsistent.
+		</member>
+		<member name="physics/jolt_physics_3d/motion_queries/recovery_amount" type="float" setter="" getter="" default="0.4">
+			Fraction of the total penetration to depenetrate per iteration during motion queries.
+			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/motion_queries/recovery_iterations" type="int" setter="" getter="" default="4">
+			The number of iterations to run when depenetrating during motion queries.
+			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/motion_queries/use_enhanced_internal_edge_removal" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables Jolt's enhanced internal edge removal during motion queries. This can help alleviate ghost collisions, but only with edges within a single body, meaning edges between separate bodies can still cause ghost collisions.
+			[b]Note:[/b] This affects methods [method CharacterBody3D.move_and_slide], [method PhysicsBody3D.move_and_collide], [method PhysicsBody3D.test_move] and [method PhysicsServer3D.body_test_motion].
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/queries/enable_ray_cast_face_index" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], populates the [code]face_index[/code] field in the results of [method PhysicsDirectSpaceState3D.intersect_ray], also accessed through [method RayCast3D.get_collision_face_index]. If [code]false[/code], the [code]face_index[/code] field will be left at its default value of [code]-1[/code].
+			[b]Note:[/b] Enabling this setting will increase Jolt's memory usage for [ConcavePolygonShape3D] by around 25%.
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/queries/use_enhanced_internal_edge_removal" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], enables Jolt's enhanced internal edge removal during shape queries. This can help alleviate ghost collisions when using shape queries for things like character movement, but only with edges within a single body, meaning edges between separate bodies can still cause ghost collisions.
+			[b]Note:[/b] This affects methods [method PhysicsDirectSpaceState3D.cast_motion], [method PhysicsDirectSpaceState3D.collide_shape], [method PhysicsDirectSpaceState3D.get_rest_info] and [method PhysicsDirectSpaceState3D.intersect_shape].
+			[b]Note:[/b] Enabling this setting can cause certain shapes to be culled from the results entirely, but you will get at least one intersection per body.
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/allow_sleep" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], [RigidBody3D] nodes are allowed to go to sleep if their velocity is below the threshold defined in [member physics/jolt_physics_3d/simulation/sleep_velocity_threshold] for the duration set in [member physics/jolt_physics_3d/simulation/sleep_time_threshold]. This can improve physics simulation performance when there are non-moving [RigidBody3D] nodes, at the cost of some nodes possibly failing to wake up in certain scenarios. Consider disabling this temporarily to troubleshoot [RigidBody3D] nodes not moving when they should.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/areas_detect_static_bodies" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], [Area3D] nodes are able to detect overlaps with [StaticBody3D] nodes.
+			[b]Note:[/b] Enabling this setting can come at a heavy CPU and memory cost if you allow many/large [Area3D] to overlap with complex static geometry, such as [ConcavePolygonShape3D] or [HeightMapShape3D]. It is strongly recommended that you set up your collision layers and masks in such a way that only a few small [Area3D] nodes can detect [StaticBody3D] nodes.
+			[b]Note:[/b] This also applies to overlaps with a [RigidBody3D] frozen with [constant RigidBody3D.FREEZE_MODE_STATIC].
+			[b]Note:[/b] This is not needed to detect overlaps with [AnimatableBody3D], as it is a kinematic body, despite inheriting from [StaticBody3D].
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/baumgarte_stabilization_factor" type="float" setter="" getter="" default="0.2">
+			How much of the position error of a [RigidBody3D] to fix during a physics step, where [code]0.0[/code] is none and [code]1.0[/code] is the full amount. This affects things like how quickly bodies depenetrate.
+			[b]Note:[/b] Setting this value too high can make [RigidBody3D] nodes unstable.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_angle_threshold" type="float" setter="" getter="" default="0.0349066">
+			The maximum relative angle by which a body pair can move and still reuse the collision results from the previous physics step, in radians.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_distance_threshold" type="float" setter="" getter="" default="0.001">
+			The maximum relative distance by which a body pair can move and still reuse the collision results from the previous physics step, in meters.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/body_pair_contact_cache_enabled" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables the body pair contact cache, which removes the need for potentially expensive collision detection when the relative orientation between two bodies hasn't changed much.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/bounce_velocity_threshold" type="float" setter="" getter="" default="1.0">
+			The minimum velocity needed before a collision can be bouncy, in meters per second.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/continuous_cd_max_penetration" type="float" setter="" getter="" default="0.25">
+			Fraction of a body's inner radius that may penetrate another body while using continuous collision detection.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/continuous_cd_movement_threshold" type="float" setter="" getter="" default="0.75">
+			Fraction of a body's inner radius that the body must move per step to make use of continuous collision detection.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/generate_all_kinematic_contacts" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], a [RigidBody3D] frozen with [constant RigidBody3D.FREEZE_MODE_KINEMATIC] is able to collide with other kinematic and static bodies, and therefore generate contacts for them.
+			[b]Note:[/b] This setting can come at a heavy CPU and memory cost if you allow many/large frozen kinematic bodies with a non-zero [member RigidBody3D.max_contacts_reported] to overlap with complex static geometry, such as [ConcavePolygonShape3D] or [HeightMapShape3D].
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/penetration_slop" type="float" setter="" getter="" default="0.02">
+			How much bodies are allowed to penetrate each other, in meters.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/position_steps" type="int" setter="" getter="" default="2">
+			Number of solver position iterations. The greater the number of iterations, the more accurate the simulation will be, at the cost of CPU performance.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/sleep_time_threshold" type="float" setter="" getter="" default="0.5">
+			Time in seconds a [RigidBody3D] will spend below the sleep velocity threshold before going to sleep.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/sleep_velocity_threshold" type="float" setter="" getter="" default="0.03">
+			The linear velocity of specific points on the bounding box of a [RigidBody3D], below which it can be put to sleep, in meters per second. These points help capture both the linear and angular motion of a [RigidBody3D].
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/soft_body_point_radius" type="float" setter="" getter="" default="0.01">
+			How big the points of a [SoftBody3D] are, in meters. A higher value can prevent behavior such as cloth laying perfectly flush against other surfaces and causing Z-fighting.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/speculative_contact_distance" type="float" setter="" getter="" default="0.02">
+			Radius around physics bodies, inside which speculative contact points will be detected, in meters. This is mainly used to prevent tunneling/penetration for [RigidBody3D] nodes during simulation.
+			[b]Note:[/b] Setting this too high may result in ghost collisions, as speculative contacts are based on the closest points during the collision detection step which may not be the actual closest points by the time the two bodies hit.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/use_enhanced_internal_edge_removal" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables Jolt's enhanced internal edge removal for [RigidBody3D]. This can help alleviate ghost collisions when, for example, a [RigidBody3D] collides with the edges of two perfectly joined [BoxShape3D]. The removal only applies to edges internal to a single body, meaning edges between separate bodies can still cause ghost collisions.
+		</member>
+		<member name="physics/jolt_physics_3d/simulation/velocity_steps" type="int" setter="" getter="" default="10">
+			Number of solver velocity iterations. The greater the number of iterations, the more accurate the simulation will be, at the cost of CPU performance.
+			[b]Note:[/b] This needs to be at least [code]2[/code] in order for friction to work, as friction is applied using the non-penetration impulse from the previous iteration.
+		</member>
 		<member name="rendering/2d/batching/item_buffer_size" type="int" setter="" getter="" default="16384">
 			Maximum number of canvas item commands that can be batched into a single draw call.
 		</member>
-		<member name="rendering/2d/batching/uniform_set_cache_size" type="int" setter="" getter="" default="256">
+		<member name="rendering/2d/batching/uniform_set_cache_size" type="int" setter="" getter="" default="4096">
 			Maximum number of uniform sets that will be cached by the 2D renderer when batching draw calls.
 			[b]Note:[/b] A project that uses a large number of unique sprite textures per frame may benefit from increasing this value.
 		</member>
@@ -2702,7 +2836,7 @@
 		</member>
 		<member name="rendering/limits/global_shader_variables/buffer_size" type="int" setter="" getter="" default="65536">
 			The maximum number of uniforms that can be used by the global shader uniform buffer. Each item takes up one slot. In other words, a single uniform float and a uniform vec4 will take the same amount of space in the buffer.
-			[b]Note:[/b] When using the Compatibility backend, most mobile devices (and all web exports) will be limited to a maximum size of 1024 due to hardware constraints.
+			[b]Note:[/b] When using the Compatibility renderer, most mobile devices (and all web exports) will be limited to a maximum size of 1024 due to hardware constraints.
 		</member>
 		<member name="rendering/limits/opengl/max_lights_per_object" type="int" setter="" getter="" default="8">
 			Max number of omnilights and spotlights renderable per object. At the default value of 8, this means that each surface can be affected by up to 8 omnilights and 8 spotlights. This is further limited by hardware support and [member rendering/limits/opengl/max_renderable_lights]. Setting this low will slightly reduce memory usage, may decrease shader compile times, and may result in faster rendering on low-end, mobile, or web devices.
@@ -2775,9 +2909,9 @@
 		</member>
 		<member name="rendering/renderer/rendering_method" type="String" setter="" getter="" default="&quot;forward_plus&quot;">
 			Sets the renderer that will be used by the project. Options are:
-			[b]Forward Plus[/b]: High-end renderer designed for Desktop devices. Has a higher base overhead, but scales well with complex scenes. Not suitable for older devices or mobile.
-			[b]Mobile[/b]: Modern renderer designed for mobile devices. Has a lower base overhead than Forward Plus, but does not scale as well to large scenes with many elements.
-			[b]GL Compatibility[/b]: Low-end renderer designed for older devices. Based on the limitations of the OpenGL 3.3/ OpenGL ES 3.0 / WebGL 2 APIs.
+			[b]forward_plus[/b] (Forward+): High-end renderer designed for desktop devices. Has a higher base overhead, but scales well with complex scenes. Not suitable for older devices or mobile.
+			[b]mobile[/b] (Mobile): Modern renderer designed for mobile devices. Has a lower base overhead than Forward+, but does not scale as well to large scenes with many elements.
+			[b]gl_compatibility[/b] (Compatibility): Low-end renderer designed for older devices. Based on the limitations of the OpenGL 3.3 / OpenGL ES 3.0 / WebGL 2 APIs.
 			This can be overridden using the [code]--rendering-method &lt;method&gt;[/code] command line argument.
 			[b]Note:[/b] The actual rendering method may be automatically changed by the engine as a result of a fallback, or a user-specified command line argument. To get the actual rendering method that is used at runtime, use [method RenderingServer.get_current_rendering_method] instead of reading this project setting's value.
 		</member>
@@ -2803,7 +2937,7 @@
 			Depending on the complexity of scenes, this value may be lowered or may need to be raised.
 		</member>
 		<member name="rendering/rendering_device/driver" type="String" setter="" getter="">
-			Sets the driver to be used by the renderer when using a RenderingDevice-based renderer like the clustered renderer or the mobile renderer. This property can't be edited directly. Instead, set the driver using the platform-specific overrides. This can be overridden using the [code]--rendering-driver &lt;driver&gt;[/code] command line argument.
+			Sets the driver to be used by the renderer when using a RenderingDevice-based renderer like the Forward+ or Mobile renderers. This property can't be edited directly. Instead, set the driver using the platform-specific overrides. This can be overridden using the [code]--rendering-driver &lt;driver&gt;[/code] command line argument.
 			[b]Note:[/b] The actual rendering driver may be automatically changed by the engine as a result of a fallback, or a user-specified command line argument. To get the actual rendering driver that is used at runtime, use [method RenderingServer.get_current_rendering_driver_name] instead of reading this project setting's value.
 		</member>
 		<member name="rendering/rendering_device/driver.android" type="String" setter="" getter="">
@@ -2841,10 +2975,22 @@
 			Determines at which interval pipeline cache is saved to disk. The lower the value, the more often it is saved.
 		</member>
 		<member name="rendering/rendering_device/staging_buffer/block_size_kb" type="int" setter="" getter="" default="256">
+			The size of a block allocated in the staging buffers. Staging buffers are the intermediate resources the engine uses to upload or download data to the GPU. This setting determines the max amount of data that can be transferred in a copy operation. Increasing this will result in faster data transfers at the cost of extra memory.
+			[b]Note:[/b] This property is only read when the project starts. There is currently no way to change this value at run-time.
 		</member>
 		<member name="rendering/rendering_device/staging_buffer/max_size_mb" type="int" setter="" getter="" default="128">
+			The maximum amount of memory allowed to be used by staging buffers. If the amount of data being uploaded or downloaded exceeds this amount, the GPU will stall and wait for previous frames to finish.
+			[b]Note:[/b] This property is only read when the project starts. There is currently no way to change this value at run-time.
+		</member>
+		<member name="rendering/rendering_device/staging_buffer/texture_download_region_size_px" type="int" setter="" getter="" default="64">
+			The region size in pixels used to download texture data from the GPU when using methods like [method RenderingDevice.texture_get_data_async].
+			[b]Note:[/b] This property's upper limit is controlled by [member rendering/rendering_device/staging_buffer/block_size_kb] and whether it's possible to allocate a single block of texture data with this region size in the format that is requested.
+			[b]Note:[/b] This property is only read when the project starts. There is currently no way to change this value at run-time.
 		</member>
 		<member name="rendering/rendering_device/staging_buffer/texture_upload_region_size_px" type="int" setter="" getter="" default="64">
+			The region size in pixels used to upload texture data from the GPU when using methods like [method RenderingDevice.texture_update].
+			[b]Note:[/b] This property's upper limit is controlled by [member rendering/rendering_device/staging_buffer/block_size_kb] and whether it's possible to allocate a single block of texture data with this region size in the format that is requested.
+			[b]Note:[/b] This property is only read when the project starts. There is currently no way to change this value at run-time.
 		</member>
 		<member name="rendering/rendering_device/vsync/frame_queue_size" type="int" setter="" getter="" default="2">
 			The number of frames to track on the CPU side before stalling to wait for the GPU.
@@ -2861,6 +3007,9 @@
 			[b]Note:[/b] Some platforms may restrict the actual value.
 		</member>
 		<member name="rendering/rendering_device/vulkan/max_descriptors_per_pool" type="int" setter="" getter="" default="64">
+			The number of descriptors per pool. Godot's Vulkan backend uses linear pools for descriptors that will be created and destroyed within a single frame. Instead of destroying every single descriptor every frame, they all can be destroyed at once by resetting the pool they belong to.
+			A larger number is more efficient up to a limit, after that it will only waste RAM (maximum efficiency is achieved when there is no more than 1 pool per frame). A small number could end up with one pool per descriptor, which negatively impacts performance.
+			[b]Note:[/b] Changing this property requires a restart to take effect.
 		</member>
 		<member name="rendering/scaling_3d/fsr_sharpness" type="float" setter="" getter="" default="0.2">
 			Determines how sharp the upscaled image will be when using the FSR upscaling mode. Sharpness halves with every whole number. Values go from 0.0 (sharpest) to 2.0. Values above 2.0 won't make a visible difference.
@@ -2928,8 +3077,8 @@
 		</member>
 		<member name="rendering/textures/vram_compression/compress_with_gpu" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], the texture importer will utilize the GPU for compressing textures, improving the import time of large images.
-			[b]Note:[/b] This only functions on a device which supports either Vulkan, D3D12, or Metal available as a rendering backend.
-			[b]Note:[/b] Currently this only affects certain compressed formats (BC1, BC4, and BC6), all of which are exclusive to desktop platforms and consoles.
+			[b]Note:[/b] This only functions on a device which supports either Vulkan, Direct3D 12, or Metal as a rendering driver.
+			[b]Note:[/b] Currently this only affects certain compressed formats (BC1, BC3, BC4, BC5, and BC6), all of which are exclusive to desktop platforms and consoles.
 		</member>
 		<member name="rendering/textures/vram_compression/import_etc2_astc" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the texture importer will import VRAM-compressed textures using the Ericsson Texture Compression 2 algorithm for lower quality textures and normal maps and Adaptable Scalable Texture Compression algorithm for high quality textures (in 4×4 block size).
@@ -2949,7 +3098,7 @@
 		</member>
 		<member name="rendering/viewport/hdr_2d" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables [member Viewport.use_hdr_2d] on the root viewport. 2D rendering will use an high dynamic range (HDR) format framebuffer matching the bit depth of the 3D framebuffer. When using the Forward+ renderer this will be an [code]RGBA16[/code] framebuffer, while when using the Mobile renderer it will be an [code]RGB10_A2[/code] framebuffer. Additionally, 2D rendering will take place in linear color space and will be converted to sRGB space immediately before blitting to the screen. Practically speaking, this means that the end result of the Viewport will not be clamped into the [code]0-1[/code] range and can be used in 3D rendering without color space adjustments. This allows 2D rendering to take advantage of effects requiring high dynamic range (e.g. 2D glow) as well as substantially improves the appearance of effects requiring highly detailed gradients.
-			[b]Note:[/b] This setting will have no effect when using the GL Compatibility renderer as the GL Compatibility renderer always renders in low dynamic range for performance reasons.
+			[b]Note:[/b] This setting will have no effect when using the Compatibility renderer, which always renders in low dynamic range for performance reasons.
 			[b]Note:[/b] This property is only read when the project starts. To toggle HDR 2D at runtime, set [member Viewport.use_hdr_2d] on the root [Viewport].
 		</member>
 		<member name="rendering/viewport/transparent_background" type="bool" setter="" getter="" default="false">
@@ -2979,6 +3128,12 @@
 		</member>
 		<member name="threading/worker_pool/max_threads" type="int" setter="" getter="" default="-1">
 			Maximum number of threads to be used by [WorkerThreadPool]. Value of [code]-1[/code] means no limit.
+		</member>
+		<member name="xr/openxr/binding_modifiers/analog_threshold" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], enables the analog threshold binding modifier if supported by the XR runtime.
+		</member>
+		<member name="xr/openxr/binding_modifiers/dpad_binding" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], enables the D-pad binding modifier if supported by the XR runtime.
 		</member>
 		<member name="xr/openxr/default_action_map" type="String" setter="" getter="" default="&quot;res://openxr_action_map.tres&quot;">
 			Action map configuration to load by default.

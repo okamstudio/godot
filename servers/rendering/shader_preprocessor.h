@@ -215,6 +215,7 @@ private:
 	void set_error(const String &p_error, int p_line);
 
 	static Define *create_define(const String &p_body);
+	void insert_builtin_define(String p_name, String p_value, State &p_state);
 
 	void clear_state();
 

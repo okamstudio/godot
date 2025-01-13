@@ -134,17 +134,14 @@ bool CameraLinux::_is_video_capture_device(int p_file_descriptor) {
 	struct v4l2_capability capability;
 
 	if (ioctl(p_file_descriptor, VIDIOC_QUERYCAP, &capability) == -1) {
-		print_verbose("Cannot query device");
 		return false;
 	}
 
 	if (!(capability.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-		print_verbose(vformat("%s is no video capture device\n", String((char *)capability.card)));
 		return false;
 	}
 
 	if (!(capability.capabilities & V4L2_CAP_STREAMING)) {
-		print_verbose(vformat("%s does not support streaming", String((char *)capability.card)));
 		return false;
 	}
 

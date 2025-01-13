@@ -12,45 +12,48 @@ thirdparty_obj = []
 
 # Not unbundled so far since not widespread as shared library
 thirdparty_dir = "#thirdparty/basis_universal/"
+
+# Only build the encoder for editor builds
+basisu_encoder = env.editor_build
+
 # Sync list with upstream CMakeLists.txt
-encoder_sources = [
-    "3rdparty/android_astc_decomp.cpp",
-    "basisu_astc_hdr_enc.cpp",
-    "basisu_backend.cpp",
-    "basisu_basis_file.cpp",
-    "basisu_bc7enc.cpp",
-    "basisu_opencl.cpp",
-    "basisu_comp.cpp",
-    "basisu_enc.cpp",
-    "basisu_etc.cpp",
-    "basisu_frontend.cpp",
-    "basisu_gpu_texture.cpp",
-    "basisu_kernels_sse.cpp",
-    "basisu_pvrtc1_4.cpp",
-    "basisu_resampler.cpp",
-    "basisu_resample_filters.cpp",
-    "basisu_ssim.cpp",
-    "basisu_uastc_enc.cpp",
-    "pvpngreader.cpp",
-]
-encoder_sources = [thirdparty_dir + "encoder/" + file for file in encoder_sources]
+if basisu_encoder:
+    encoder_sources = [
+        "3rdparty/android_astc_decomp.cpp",
+        "basisu_astc_hdr_enc.cpp",
+        "basisu_backend.cpp",
+        "basisu_basis_file.cpp",
+        "basisu_bc7enc.cpp",
+        "basisu_opencl.cpp",
+        "basisu_comp.cpp",
+        "basisu_enc.cpp",
+        "basisu_etc.cpp",
+        "basisu_frontend.cpp",
+        "basisu_gpu_texture.cpp",
+        "basisu_kernels_sse.cpp",
+        "basisu_pvrtc1_4.cpp",
+        "basisu_resampler.cpp",
+        "basisu_resample_filters.cpp",
+        "basisu_ssim.cpp",
+        "basisu_uastc_enc.cpp",
+        "pvpngreader.cpp",
+    ]
+    encoder_sources = [thirdparty_dir + "encoder/" + file for file in encoder_sources]
+
 transcoder_sources = [thirdparty_dir + "transcoder/basisu_transcoder.cpp"]
 
 # Treat Basis headers as system headers to avoid raising warnings. Not supported on MSVC.
 if not env.msvc:
-    env_basisu.Append(
-        CPPFLAGS=["-isystem", Dir(thirdparty_dir).path, "-isystem", Dir("#thirdparty/jpeg-compressor").path]
-    )
+    env_basisu.Append(CPPFLAGS=["-isystem", Dir(thirdparty_dir).path])
 else:
-    env_basisu.Prepend(CPPPATH=[thirdparty_dir, "#thirdparty/jpeg-compressor"])
+    env_basisu.Prepend(CPPPATH=[thirdparty_dir])
+
+if basisu_encoder:
+    env_basisu.Prepend(CPPPATH=["#thirdparty/jpeg-compressor"])
+    env_basisu.Prepend(CPPPATH=["#thirdparty/tinyexr"])
 
 if env["builtin_zstd"]:
     env_basisu.Prepend(CPPPATH=["#thirdparty/zstd"])
-
-env_basisu.Prepend(CPPPATH=["#thirdparty/tinyexr"])
-
-if env.dev_build:
-    env_basisu.Append(CPPDEFINES=[("BASISU_DEVEL_MESSAGES", 1), ("BASISD_ENABLE_DEBUG_FLAGS", 1)])
 
 env_thirdparty = env_basisu.Clone()
 env_thirdparty.disable_warnings()
@@ -74,9 +77,9 @@ env_thirdparty.Append(
     ]
 )
 
-if env.editor_build:
-    env_thirdparty.Append(CPPDEFINES=["BASISU_NO_IMG_LOADERS"])
+if basisu_encoder:
     env_thirdparty.add_source_files(thirdparty_obj, encoder_sources)
+
 env_thirdparty.add_source_files(thirdparty_obj, transcoder_sources)
 env.modules_sources += thirdparty_obj
 

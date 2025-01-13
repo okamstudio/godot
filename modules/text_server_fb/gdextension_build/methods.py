@@ -77,17 +77,13 @@ def disable_warnings(self):
     if self["platform"] == "windows" and not self["use_mingw"]:
         # We have to remove existing warning level defines before appending /w,
         # otherwise we get: "warning D9025 : overriding '/W3' with '/w'"
-        warn_flags = ["/Wall", "/W4", "/W3", "/W2", "/W1", "/WX"]
-        self.Append(CCFLAGS=["/w"])
-        self.Append(CFLAGS=["/w"])
-        self.Append(CXXFLAGS=["/w"])
-        self["CCFLAGS"] = [x for x in self["CCFLAGS"] if x not in warn_flags]
-        self["CFLAGS"] = [x for x in self["CFLAGS"] if x not in warn_flags]
-        self["CXXFLAGS"] = [x for x in self["CXXFLAGS"] if x not in warn_flags]
+        WARN_FLAGS = ["/Wall", "/W4", "/W3", "/W2", "/W1", "/W0"]
+        self["CCFLAGS"] = [x for x in self["CCFLAGS"] if x not in WARN_FLAGS]
+        self["CFLAGS"] = [x for x in self["CFLAGS"] if x not in WARN_FLAGS]
+        self["CXXFLAGS"] = [x for x in self["CXXFLAGS"] if x not in WARN_FLAGS]
+        self.AppendUnique(CCFLAGS=["/w"])
     else:
-        self.Append(CCFLAGS=["-w"])
-        self.Append(CFLAGS=["-w"])
-        self.Append(CXXFLAGS=["-w"])
+        self.AppendUnique(CCFLAGS=["-w"])
 
 
 def make_icu_data(target, source, env):

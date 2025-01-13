@@ -164,8 +164,8 @@ void AnimationPlayer::_process_playback_data(PlaybackData &cd, double p_delta, f
 	double delta = p_started ? 0 : p_delta * speed;
 	double next_pos = cd.pos + delta;
 
-	double start = get_section_start_time();
-	double end = get_section_end_time();
+	double start = cd.get_start_time();
+	double end = cd.get_end_time();
 
 	Animation::LoopedFlag looped_flag = Animation::LOOPED_FLAG_NONE;
 
@@ -389,7 +389,7 @@ void AnimationPlayer::play_section_with_markers_backwards(const StringName &p_na
 }
 
 void AnimationPlayer::play_section_backwards(const StringName &p_name, double p_start_time, double p_end_time, double p_custom_blend) {
-	play_section(p_name, p_start_time, p_end_time, -1, true);
+	play_section(p_name, p_start_time, p_end_time, p_custom_blend, -1, true);
 }
 
 void AnimationPlayer::play(const StringName &p_name, double p_custom_blend, float p_custom_scale, bool p_from_end) {
@@ -495,8 +495,8 @@ void AnimationPlayer::play_section(const StringName &p_name, double p_start_time
 	c.current.start_time = p_start_time;
 	c.current.end_time = p_end_time;
 
-	double start = get_section_start_time();
-	double end = get_section_end_time();
+	double start = playback.current.get_start_time();
+	double end = playback.current.get_end_time();
 
 	if (!end_reached) {
 		playback_queue.clear();
@@ -660,8 +660,8 @@ void AnimationPlayer::seek_internal(double p_time, bool p_update, bool p_update_
 		}
 	}
 
-	double start = get_section_start_time();
-	double end = get_section_end_time();
+	double start = playback.current.get_start_time();
+	double end = playback.current.get_end_time();
 
 	// Clamp the seek position.
 	p_time = CLAMP(p_time, start, end);
@@ -725,7 +725,7 @@ void AnimationPlayer::set_section(double p_start_time, double p_end_time) {
 	ERR_FAIL_COND_MSG(Animation::is_greater_or_equal_approx(p_start_time, 0) && Animation::is_greater_or_equal_approx(p_end_time, 0) && Animation::is_greater_or_equal_approx(p_start_time, p_end_time), vformat("Start time %f is greater than end time %f.", p_start_time, p_end_time));
 	playback.current.start_time = p_start_time;
 	playback.current.end_time = p_end_time;
-	playback.current.pos = CLAMP(playback.current.pos, get_section_start_time(), get_section_end_time());
+	playback.current.pos = CLAMP(playback.current.pos, playback.current.get_start_time(), playback.current.get_end_time());
 }
 
 void AnimationPlayer::reset_section() {
@@ -735,18 +735,12 @@ void AnimationPlayer::reset_section() {
 
 double AnimationPlayer::get_section_start_time() const {
 	ERR_FAIL_NULL_V_MSG(playback.current.from, playback.current.start_time, "AnimationPlayer has no current animation.");
-	if (Animation::is_less_approx(playback.current.start_time, 0) || playback.current.start_time > playback.current.from->animation->get_length()) {
-		return 0;
-	}
-	return playback.current.start_time;
+	return playback.current.get_start_time();
 }
 
 double AnimationPlayer::get_section_end_time() const {
 	ERR_FAIL_NULL_V_MSG(playback.current.from, playback.current.end_time, "AnimationPlayer has no current animation.");
-	if (Animation::is_less_approx(playback.current.end_time, 0) || playback.current.end_time > playback.current.from->animation->get_length()) {
-		return playback.current.from->animation->get_length();
-	}
-	return playback.current.end_time;
+	return playback.current.get_end_time();
 }
 
 bool AnimationPlayer::has_section() const {
@@ -777,7 +771,7 @@ void AnimationPlayer::_stop_internal(bool p_reset, bool p_keep_state) {
 	_clear_caches();
 	Playback &c = playback;
 	// c.blend.clear();
-	double start = c.current.from ? get_section_start_time() : 0;
+	double start = c.current.from ? playback.current.get_start_time() : 0;
 	if (p_reset) {
 		c.blend.clear();
 		if (p_keep_state) {

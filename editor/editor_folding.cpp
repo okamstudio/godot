@@ -249,7 +249,7 @@ void EditorFolding::_do_object_unfolds(Object *p_object, HashSet<Ref<Resource>> 
 					}
 				}
 			} else { //path
-				int last = E.name.rfind("/");
+				int last = E.name.rfind_char('/');
 				if (last != -1) {
 					bool can_revert = EditorPropertyRevert::can_property_revert(p_object, E.name);
 					if (can_revert) {

@@ -112,10 +112,19 @@ void GDScriptTextDocument::didSave(const Variant &p_param) {
 		}
 
 		scr->update_exports();
-		ScriptEditor::get_singleton()->reload_scripts(true);
-		ScriptEditor::get_singleton()->update_docs_from_script(scr);
-		ScriptEditor::get_singleton()->trigger_live_script_reload(scr->get_path());
+
+		if (!Thread::is_main_thread()) {
+			callable_mp(this, &GDScriptTextDocument::reload_script).call_deferred(scr);
+		} else {
+			reload_script(scr);
+		}
 	}
+}
+
+void GDScriptTextDocument::reload_script(Ref<GDScript> p_to_reload_script) {
+	ScriptEditor::get_singleton()->reload_scripts(true);
+	ScriptEditor::get_singleton()->update_docs_from_script(p_to_reload_script);
+	ScriptEditor::get_singleton()->trigger_live_script_reload(p_to_reload_script->get_path());
 }
 
 lsp::TextDocumentItem GDScriptTextDocument::load_document_item(const Variant &p_param) {

@@ -1,4 +1,3 @@
-
 layout(push_constant, std430) uniform PushConstant {
 	ivec2 source_size;
 	ivec2 dest_size;

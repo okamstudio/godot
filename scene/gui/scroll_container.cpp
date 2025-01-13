@@ -281,6 +281,12 @@ void ScrollContainer::_gui_focus_changed(Control *p_control) {
 	if (follow_focus && is_ancestor_of(p_control)) {
 		ensure_control_visible(p_control);
 	}
+	if (draw_focus_border) {
+		const bool _should_draw_focus_border = has_focus() || child_has_focus();
+		if (focus_border_is_drawn != _should_draw_focus_border) {
+			queue_redraw();
+		}
+	}
 }
 
 void ScrollContainer::ensure_control_visible(Control *p_control) {
@@ -366,6 +372,15 @@ void ScrollContainer::_notification(int p_what) {
 
 		case NOTIFICATION_DRAW: {
 			draw_style_box(theme_cache.panel_style, Rect2(Vector2(), get_size()));
+			if (draw_focus_border && (has_focus() || child_has_focus())) {
+				RID ci = get_canvas_item();
+				RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, true);
+				draw_style_box(theme_cache.focus_style, Rect2(Point2(), get_size()));
+				RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, false);
+				focus_border_is_drawn = true;
+			} else {
+				focus_border_is_drawn = false;
+			}
 		} break;
 
 		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
@@ -602,10 +617,14 @@ void ScrollContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_v_scroll_bar"), &ScrollContainer::get_v_scroll_bar);
 	ClassDB::bind_method(D_METHOD("ensure_control_visible", "control"), &ScrollContainer::ensure_control_visible);
 
+	ClassDB::bind_method(D_METHOD("set_draw_focus_border", "draw"), &ScrollContainer::set_draw_focus_border);
+	ClassDB::bind_method(D_METHOD("get_draw_focus_border"), &ScrollContainer::get_draw_focus_border);
+
 	ADD_SIGNAL(MethodInfo("scroll_started"));
 	ADD_SIGNAL(MethodInfo("scroll_ended"));
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "follow_focus"), "set_follow_focus", "is_following_focus");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_focus_border"), "set_draw_focus_border", "get_draw_focus_border");
 
 	ADD_GROUP("Scroll", "scroll_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "scroll_horizontal", PROPERTY_HINT_NONE, "suffix:px"), "set_h_scroll", "get_h_scroll");
@@ -623,8 +642,26 @@ void ScrollContainer::_bind_methods() {
 	BIND_ENUM_CONSTANT(SCROLL_MODE_RESERVE);
 
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, ScrollContainer, panel_style, "panel");
+	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, ScrollContainer, focus_style, "focus");
 
 	GLOBAL_DEF("gui/common/default_scroll_deadzone", 0);
+}
+
+void ScrollContainer::set_draw_focus_border(bool p_draw) {
+	if (draw_focus_border == p_draw) {
+		return;
+	}
+	draw_focus_border = p_draw;
+	queue_redraw();
+}
+
+bool ScrollContainer::get_draw_focus_border() {
+	return draw_focus_border;
+}
+
+bool ScrollContainer::child_has_focus() {
+	const Control *focus_owner = get_viewport() ? get_viewport()->gui_get_focus_owner() : nullptr;
+	return focus_owner && is_ancestor_of(focus_owner);
 }
 
 ScrollContainer::ScrollContainer() {

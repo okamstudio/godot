@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RetargetModifier3D" inherits="SkeletonModifier3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A modifier to transfer parent skeleton poses (or global poses) to child skeletons in model space with different rests.
+	</brief_description>
+	<description>
+		Retrieves the pose (or global pose) relative to the parent Skeleton's rest in model space and transfers it to the child Skeleton.
+		This modifier rewrites the pose of the child skeleton directly in the parent skeleton's update process. This means that it overwrites the mapped bone pose set in the normal process on the target skeleton. If you want to set the target skeleton bone pose after retargeting, you will need to add a [SkeletonModifier3D] child to the target skeleton and thereby modify the pose.
+		[b]Note:[/b] When the [member use_global_pose] is enabled, even if it is an unmapped bone, it can cause visual problems because the global pose is applied ignoring the parent bone's pose [b]if it has mapped bone children[/b]. See also [member use_global_pose].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="position_enabled" type="bool" setter="set_position_enabled" getter="is_position_enabled" default="true">
+			If [code]true[/code], allows to retarget the position.
+		</member>
+		<member name="profile" type="SkeletonProfile" setter="set_profile" getter="get_profile">
+			[SkeletonProfile] for retargeting bones with names matching the bone list.
+		</member>
+		<member name="rotation_enabled" type="bool" setter="set_rotation_enabled" getter="is_rotation_enabled" default="true">
+			If [code]true[/code], allows to retarget the rotation.
+		</member>
+		<member name="scale_enabled" type="bool" setter="set_scale_enabled" getter="is_scale_enabled" default="true">
+			If [code]true[/code], allows to retarget the scale.
+		</member>
+		<member name="use_global_pose" type="bool" setter="set_use_global_pose" getter="is_using_global_pose" default="false">
+			If [code]false[/code], in case the target skeleton has fewer bones than the source skeleton, the source bone parent's transform will be ignored.
+			Instead, it is possible to retarget between models with different body shapes, and position, rotation, and scale can be retargeted separately.
+			If [code]true[/code], retargeting is performed taking into account global pose.
+			In case the target skeleton has fewer bones than the source skeleton, the source bone parent's transform is taken into account. However, bone length between skeletons must match exactly, if not, the bones will be forced to expand or shrink.
+			This is useful for using dummy bone with length [code]0[/code] to match postures when retargeting between models with different number of bones.
+		</member>
+	</members>
+</class>

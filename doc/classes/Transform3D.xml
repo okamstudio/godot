@@ -20,7 +20,7 @@
 		<constructor name="Transform3D">
 			<return type="Transform3D" />
 			<description>
-				Constructs a [Transform3D] identical to the [constant IDENTITY].
+				Constructs a [Transform3D] identical to [constant IDENTITY].
 				[b]Note:[/b] In C#, this constructs a [Transform3D] with its [member origin] and the components of its [member basis] set to [constant Vector3.ZERO].
 			</description>
 		</constructor>
@@ -63,7 +63,7 @@
 			<return type="Transform3D" />
 			<description>
 				Returns the inverted version of this transform. Unlike [method inverse], this method works with almost any [member basis], including non-uniform ones, but is slower. See also [method Basis.inverse].
-				[b]Note:[/b] For this method to return correctly, the transform's [member basis] needs to have a determinant that is not exactly [code]0[/code] (see [method Basis.determinant]).
+				[b]Note:[/b] For this method to return correctly, the transform's [member basis] needs to have a determinant that is not exactly [code]0.0[/code] (see [method Basis.determinant]).
 			</description>
 		</method>
 		<method name="interpolate_with" qualifiers="const">
@@ -78,8 +78,8 @@
 		<method name="inverse" qualifiers="const">
 			<return type="Transform3D" />
 			<description>
-				Returns the inverted version of this transform. See also [method Basis.inverse].
-				[b]Note:[/b] For this method to return correctly, the transform's [member basis] needs to be [i]orthonormal[/i] (see [method Basis.orthonormalized]). That means, the basis should only represent a rotation. If it does not, use [method affine_inverse] instead.
+				Returns the [url=https://en.wikipedia.org/wiki/Invertible_matrix]inverted version of this transform[/url]. See also [method Basis.inverse].
+				[b]Note:[/b] For this method to return correctly, the transform's [member basis] needs to be [i]orthonormal[/i] (see [method orthonormalized]). That means the basis should only represent a rotation. If it does not, use [method affine_inverse] instead.
 			</description>
 		</method>
 		<method name="is_equal_approx" qualifiers="const">
@@ -109,7 +109,7 @@
 		<method name="orthonormalized" qualifiers="const">
 			<return type="Transform3D" />
 			<description>
-				Returns a copy of this transform with its [member basis] orthonormalized. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1[/code]), which also means it can only represent rotation. See also [method Basis.orthonormalized].
+				Returns a copy of this transform with its [member basis] orthonormalized. An orthonormal basis is both [i]orthogonal[/i] (the axes are perpendicular to each other) and [i]normalized[/i] (the axes have a length of [code]1.0[/code]), which also means it can only represent a rotation. See also [method Basis.orthonormalized].
 			</description>
 		</method>
 		<method name="rotated" qualifiers="const">
@@ -118,7 +118,7 @@
 			<param index="1" name="angle" type="float" />
 			<description>
 				Returns a copy of this transform rotated around the given [param axis] by the given [param angle] (in radians).
-				The [param axis] must be a normalized vector.
+				The [param axis] must be a normalized vector (see [method Vector3.normalized]). If [param angle] is positive, the basis is rotated counter-clockwise around the axis.
 				This method is an optimized version of multiplying the given transform [code]X[/code] with a corresponding rotation transform [code]R[/code] from the left, i.e., [code]R * X[/code].
 				This can be seen as transforming with respect to the global/parent frame.
 			</description>
@@ -181,8 +181,25 @@
 	</members>
 	<constants>
 		<constant name="IDENTITY" value="Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
-			A transform with no translation, no rotation, and its scale being [code]1[/code]. Its [member basis] is equal to [constant Basis.IDENTITY].
-			When multiplied by another [Variant] such as [AABB] or another [Transform3D], no transformation occurs.
+			The identity [Transform3D]. This is a transform with no translation, no rotation, and a scale of [constant Vector3.ONE]. Its [member basis] is equal to [constant Basis.IDENTITY]. This also means that:
+			- Its [member Basis.x] points right ([constant Vector3.RIGHT]);
+			- Its [member Basis.y] points up ([constant Vector3.UP]);
+			- Its [member Basis.z] points back ([constant Vector3.BACK]).
+			[codeblock]
+			var transform = Transform3D.IDENTITY
+			var basis = transform.basis
+			print("| X | Y | Z | Origin")
+			print("| %.f | %.f | %.f | %.f" % [basis.x.x, basis.y.x, basis.z.x, transform.origin.x])
+			print("| %.f | %.f | %.f | %.f" % [basis.x.y, basis.y.y, basis.z.y, transform.origin.y])
+			print("| %.f | %.f | %.f | %.f" % [basis.x.z, basis.y.z, basis.z.z, transform.origin.z])
+			# Prints:
+			# | X | Y | Z | Origin
+			# | 1 | 0 | 0 | 0
+			# | 0 | 1 | 0 | 0
+			# | 0 | 0 | 1 | 0
+			[/codeblock]
+			If a [Vector3], an [AABB], a [Plane], a [PackedVector3Array], or another [Transform3D] is transformed (multiplied) by this constant, no transformation occurs.
+			[b]Note:[/b] In GDScript, this constant is equivalent to creating a [constructor Transform3D] without any arguments. It can be used to make your code clearer, and for consistency with C#.
 		</constant>
 		<constant name="FLIP_X" value="Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)">
 			[Transform3D] with mirroring applied perpendicular to the YZ plane. Its [member basis] is equal to [constant Basis.FLIP_X].

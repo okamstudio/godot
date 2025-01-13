@@ -101,6 +101,13 @@ Copyright: 2007, Starbreeze Studios
  2007-2014, Juan Linietsky, Ariel Manzur
 License: Expat and Zlib
 
+Files: ./modules/jolt_physics/spaces/jolt_temp_allocator.cpp
+Comment: Jolt Physics
+Copyright: 2021, Jorrit Rouwe
+ 2014-present, Godot Engine contributors
+ 2007-2014, Juan Linietsky, Ariel Manzur
+License: Expat
+
 Files: ./modules/lightmapper_rd/lm_compute.glsl
 Comment: Joint Non-Local Means (JNLM) denoiser
 Copyright: 2020, Manuel Prandini
@@ -186,7 +193,7 @@ License: MPL-2.0
 
 Files: ./thirdparty/clipper2/
 Comment: Clipper2
-Copyright: 2010-2023, Angus Johnson
+Copyright: 2010-2024, Angus Johnson
 License: BSL-1.0
 
 Files: ./thirdparty/cvtt/
@@ -240,6 +247,11 @@ Comment: Noto Sans font
 Copyright: 2012, Google Inc.
 License: OFL-1.1
 
+Files: ./thirdparty/fonts/Vazirmatn*.woff2
+Comment: Vazirmatn font
+Copyright: 2015, The Vazirmatn Project Authors.
+License: OFL-1.1
+
 Files: ./thirdparty/freetype/
 Comment: The FreeType Project
 Copyright: 1996-2023, David Turner, Robert Wilhelm, and Werner Lemberg.
@@ -289,6 +301,11 @@ Comment: International Components for Unicode
 Copyright: 2016-2024, Unicode, Inc.
 License: Unicode
 
+Files: ./thirdparty/jolt_physics/
+Comment: Jolt Physics
+Copyright: 2021, Jorrit Rouwe
+License: Expat
+
 Files: ./thirdparty/jpeg-compressor/
 Comment: jpeg-compressor
 Copyright: 2012, Rich Geldreich
@@ -333,6 +350,11 @@ Files: ./thirdparty/libwebp/
 Comment: WebP codec
 Copyright: 2010, Google Inc.
 License: BSD-3-clause
+
+Files: ./thirdparty/manifold/
+Comment: Manifold
+Copyright: 2020-2024, The Manifold Authors
+License: Apache-2.0
 
 Files: ./thirdparty/mbedtls/
 Comment: Mbed TLS

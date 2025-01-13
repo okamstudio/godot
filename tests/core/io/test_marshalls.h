@@ -90,6 +90,20 @@ TEST_CASE("[Marshalls] Unsigned 64 bit integer decoding") {
 	CHECK(decode_uint64(arr) == 0x0f123456789abcdef);
 }
 
+TEST_CASE("[Marshalls] Floating point half precision encoding") {
+	uint8_t arr[2];
+
+	// Decimal: 0.33325195
+	// IEEE 754 half-precision binary floating-point format:
+	// sign exponent (5 bits)    fraction (10 bits)
+	//  0        01101               0101010101
+	// Hexadecimal: 0x3555
+	unsigned int actual_size = encode_half(0.33325195f, arr);
+	CHECK(actual_size == sizeof(uint16_t));
+	CHECK(arr[0] == 0x55);
+	CHECK(arr[1] == 0x35);
+}
+
 TEST_CASE("[Marshalls] Floating point single precision encoding") {
 	uint8_t arr[4];
 
@@ -124,6 +138,13 @@ TEST_CASE("[Marshalls] Floating point double precision encoding") {
 	CHECK(arr[5] == 0x55);
 	CHECK(arr[6] == 0xd5);
 	CHECK(arr[7] == 0x3f);
+}
+
+TEST_CASE("[Marshalls] Floating point half precision decoding") {
+	uint8_t arr[] = { 0x55, 0x35 };
+
+	// See floating point half precision encoding test case for details behind expected values.
+	CHECK(decode_half(arr) == 0.33325195f);
 }
 
 TEST_CASE("[Marshalls] Floating point single precision decoding") {

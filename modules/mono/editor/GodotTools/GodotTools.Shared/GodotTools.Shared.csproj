@@ -1,8 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <!-- Specify compile items manually to avoid including dangling generated items. -->
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-  </PropertyGroup>
-  <Import Project="GenerateGodotNupkgsVersions.targets" />
+
+    <PropertyGroup>
+      <TargetFramework>net8.0</TargetFramework>
+      <LangVersion>12</LangVersion>
+      <!-- Specify compile items manually to avoid including dangling generated items. -->
+      <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    </PropertyGroup>
+
+    <Import Project="GenerateGodotNupkgsVersions.targets" />
+
 </Project>

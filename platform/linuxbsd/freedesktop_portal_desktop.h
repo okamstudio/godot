@@ -50,14 +50,15 @@ private:
 	bool read_setting(const char *p_namespace, const char *p_key, int p_type, void *r_value);
 
 	static void append_dbus_string(DBusMessageIter *p_iter, const String &p_string);
-	static void append_dbus_dict_options(DBusMessageIter *p_iter, const TypedArray<Dictionary> &p_options);
+	static void append_dbus_dict_options(DBusMessageIter *p_iter, const TypedArray<Dictionary> &p_options, HashMap<String, String> &r_ids);
 	static void append_dbus_dict_filters(DBusMessageIter *p_iter, const Vector<String> &p_filter_names, const Vector<String> &p_filter_exts);
 	static void append_dbus_dict_string(DBusMessageIter *p_iter, const String &p_key, const String &p_value, bool p_as_byte_array = false);
 	static void append_dbus_dict_bool(DBusMessageIter *p_iter, const String &p_key, bool p_value);
-	static bool file_chooser_parse_response(DBusMessageIter *p_iter, const Vector<String> &p_names, bool &r_cancel, Vector<String> &r_urls, int &r_index, Dictionary &r_options);
+	static bool file_chooser_parse_response(DBusMessageIter *p_iter, const Vector<String> &p_names, const HashMap<String, String> &p_ids, bool &r_cancel, Vector<String> &r_urls, int &r_index, Dictionary &r_options);
 
 	struct FileDialogData {
 		Vector<String> filter_names;
+		HashMap<String, String> option_ids;
 		DisplayServer::WindowID prev_focus = DisplayServer::INVALID_WINDOW_ID;
 		Callable callback;
 		String filter;

@@ -124,6 +124,7 @@ public:
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) override {}
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) override {}
+	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) override {}
 	virtual void reflection_probe_set_ambient_mode(RID p_probe, RS::ReflectionProbeAmbientMode p_mode) override {}
 	virtual void reflection_probe_set_ambient_color(RID p_probe, const Color &p_color) override {}
 	virtual void reflection_probe_set_ambient_energy(RID p_probe, float p_energy) override {}
@@ -190,6 +191,10 @@ public:
 	virtual bool lightmap_is_interior(RID p_lightmap) const override { return false; }
 	virtual void lightmap_set_probe_capture_update_speed(float p_speed) override {}
 	virtual float lightmap_get_probe_capture_update_speed() const override { return 0; }
+
+	virtual void lightmap_set_shadowmask_textures(RID p_lightmap, RID p_shadow) override {}
+	virtual RS::ShadowmaskMode lightmap_get_shadowmask_mode(RID p_lightmap) override { return RS::SHADOWMASK_MODE_NONE; }
+	virtual void lightmap_set_shadowmask_mode(RID p_lightmap, RS::ShadowmaskMode p_mode) override {}
 
 	/* LIGHTMAP INSTANCE */
 

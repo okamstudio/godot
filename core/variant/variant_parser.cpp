@@ -1961,7 +1961,7 @@ Error VariantWriter::write(const Variant &p_variant, StoreStringFunc p_store_str
 		case Variant::FLOAT: {
 			String s = rtos_fix(p_variant.operator double());
 			if (s != "inf" && s != "inf_neg" && s != "nan") {
-				if (!s.contains(".") && !s.contains("e")) {
+				if (!s.contains_char('.') && !s.contains_char('e')) {
 					s += ".0";
 				}
 			}

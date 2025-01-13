@@ -48,6 +48,8 @@
 #include "scene/gui/option_button.h"
 #include "scene/gui/panel_container.h"
 #include "scene/gui/scroll_container.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/spin_box.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/tab_bar.h"
 #include "scene/gui/tab_container.h"
@@ -938,6 +940,7 @@ ThemeItemImportTree::ThemeItemImportTree() {
 	import_items_tree->set_column_custom_minimum_width(IMPORT_ITEM_DATA, 80 * EDSCALE);
 	import_items_tree->set_column_clip_content(1, true);
 	import_items_tree->set_column_clip_content(2, true);
+	import_items_tree->set_theme_type_variation("TreeSecondary");
 
 	ScrollContainer *import_bulk_sc = memnew(ScrollContainer);
 	import_bulk_sc->set_custom_minimum_size(Size2(260.0, 0.0) * EDSCALE);
@@ -1937,6 +1940,7 @@ ThemeItemEditorDialog::ThemeItemEditorDialog(ThemeTypeEditor *p_theme_type_edito
 	edit_dialog_side_vb->add_child(edit_type_list);
 	edit_type_list->connect(SceneStringName(item_selected), callable_mp(this, &ThemeItemEditorDialog::_edited_type_selected));
 	edit_type_list->connect("button_clicked", callable_mp(this, &ThemeItemEditorDialog::_edited_type_button_pressed));
+	edit_type_list->set_theme_type_variation("TreeSecondary");
 
 	Label *edit_add_type_label = memnew(Label);
 	edit_add_type_label->set_text(TTR("Add Type:"));
@@ -1946,7 +1950,7 @@ ThemeItemEditorDialog::ThemeItemEditorDialog(ThemeTypeEditor *p_theme_type_edito
 	edit_dialog_side_vb->add_child(edit_add_type_hb);
 	edit_add_type_value = memnew(LineEdit);
 	edit_add_type_value->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	edit_add_type_value->connect("text_submitted", callable_mp(this, &ThemeItemEditorDialog::_add_theme_type));
+	edit_add_type_value->connect(SceneStringName(text_submitted), callable_mp(this, &ThemeItemEditorDialog::_add_theme_type));
 	edit_add_type_hb->add_child(edit_add_type_value);
 	edit_add_type_button = memnew(Button);
 	edit_add_type_hb->add_child(edit_add_type_button);
@@ -2256,7 +2260,7 @@ ThemeTypeDialog::ThemeTypeDialog() {
 	add_type_filter = memnew(LineEdit);
 	add_type_vb->add_child(add_type_filter);
 	add_type_filter->connect(SceneStringName(text_changed), callable_mp(this, &ThemeTypeDialog::_add_type_filter_cbk));
-	add_type_filter->connect("text_submitted", callable_mp(this, &ThemeTypeDialog::_add_type_dialog_entered));
+	add_type_filter->connect(SceneStringName(text_submitted), callable_mp(this, &ThemeTypeDialog::_add_type_dialog_entered));
 	add_type_filter->connect(SceneStringName(gui_input), callable_mp(this, &ThemeTypeDialog::_type_filter_input));
 
 	Label *add_type_options_label = memnew(Label);
@@ -2280,9 +2284,7 @@ ThemeTypeDialog::ThemeTypeDialog() {
 ///////////////////////
 
 Control *ThemeItemLabel::make_custom_tooltip(const String &p_text) const {
-	EditorHelpBit *help_bit = memnew(EditorHelpBit(p_text));
-	EditorHelpBitTooltip::show_tooltip(help_bit, const_cast<ThemeItemLabel *>(this));
-	return memnew(Control); // Make the standard tooltip invisible.
+	return EditorHelpBitTooltip::show_tooltip(const_cast<ThemeItemLabel *>(this), p_text);
 }
 
 VBoxContainer *ThemeTypeEditor::_create_item_list(Theme::DataType p_data_type) {
@@ -2304,7 +2306,7 @@ VBoxContainer *ThemeTypeEditor::_create_item_list(Theme::DataType p_data_type) {
 	LineEdit *item_add_edit = memnew(LineEdit);
 	item_add_edit->set_h_size_flags(SIZE_EXPAND_FILL);
 	item_add_hb->add_child(item_add_edit);
-	item_add_edit->connect("text_submitted", callable_mp(this, &ThemeTypeEditor::_item_add_lineedit_cbk).bind(p_data_type, item_add_edit));
+	item_add_edit->connect(SceneStringName(text_submitted), callable_mp(this, &ThemeTypeEditor::_item_add_lineedit_cbk).bind(p_data_type, item_add_edit));
 	Button *item_add_button = memnew(Button);
 	item_add_button->set_text(TTR("Add"));
 	item_add_button->set_disabled(true);
@@ -2477,7 +2479,7 @@ HBoxContainer *ThemeTypeEditor::_create_property_control(Theme::DataType p_data_
 		item_name_edit->set_h_size_flags(SIZE_EXPAND_FILL);
 		item_name_edit->set_text(p_item_name);
 		item_name_container->add_child(item_name_edit);
-		item_name_edit->connect("text_submitted", callable_mp(this, &ThemeTypeEditor::_item_rename_entered).bind(p_data_type, p_item_name, item_name_container));
+		item_name_edit->connect(SceneStringName(text_submitted), callable_mp(this, &ThemeTypeEditor::_item_rename_entered).bind(p_data_type, p_item_name, item_name_container));
 		item_name_edit->hide();
 
 		Button *item_rename_button = memnew(Button);

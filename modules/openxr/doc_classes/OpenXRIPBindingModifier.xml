@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRIPBindingModifier" inherits="OpenXRBindingModifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Binding modifier that applies directly on an interaction profile.
+	</brief_description>
+	<description>
+		Binding modifier that applies directly on an interaction profile.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

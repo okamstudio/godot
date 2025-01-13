@@ -45,7 +45,7 @@ protected:
 	// The name and pose for our HMD tracker is currently the only hardcoded bit.
 	// If we ever are able to support multiple HMDs we may need to make this settable.
 	StringName tracker_name = "head";
-	StringName pose_name = "default";
+	StringName pose_name = SceneStringName(default_);
 	Ref<XRPositionalTracker> tracker;
 
 	void _bind_tracker();
@@ -77,7 +77,7 @@ class XRNode3D : public Node3D {
 
 private:
 	StringName tracker_name;
-	StringName pose_name = "default";
+	StringName pose_name = SceneStringName(default_);
 	bool has_tracking_data = false;
 	bool show_when_tracked = false;
 

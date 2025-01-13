@@ -40,6 +40,11 @@
 				Emitted when the spinner/slider is ungrabbed.
 			</description>
 		</signal>
+		<signal name="updown_pressed">
+			<description>
+				Emitted when the updown button is pressed.
+			</description>
+		</signal>
 		<signal name="value_focus_entered">
 			<description>
 				Emitted when the value form gains focus.

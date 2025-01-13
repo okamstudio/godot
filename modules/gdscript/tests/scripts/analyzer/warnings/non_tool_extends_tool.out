@@ -1,9 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 1
->> MISSING_TOOL
->> The base class script has the "@tool" annotation, but this script does not have it.
->> WARNING
->> Line: 3
->> MISSING_TOOL
->> The base class script has the "@tool" annotation, but this script does not have it.
+~~ WARNING at line 1: (MISSING_TOOL) The base class script has the "@tool" annotation, but this script does not have it.
+~~ WARNING at line 3: (MISSING_TOOL) The base class script has the "@tool" annotation, but this script does not have it.

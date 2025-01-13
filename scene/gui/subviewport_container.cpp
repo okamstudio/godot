@@ -246,6 +246,14 @@ bool SubViewportContainer::_is_propagated_in_gui_input(const Ref<InputEvent> &p_
 	return false;
 }
 
+void SubViewportContainer::set_mouse_target(bool p_enable) {
+	mouse_target = p_enable;
+}
+
+bool SubViewportContainer::is_mouse_target_enabled() {
+	return mouse_target;
+}
+
 void SubViewportContainer::add_child_notify(Node *p_child) {
 	if (Object::cast_to<SubViewport>(p_child)) {
 		queue_redraw();
@@ -286,8 +294,12 @@ void SubViewportContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_stretch_shrink", "amount"), &SubViewportContainer::set_stretch_shrink);
 	ClassDB::bind_method(D_METHOD("get_stretch_shrink"), &SubViewportContainer::get_stretch_shrink);
 
+	ClassDB::bind_method(D_METHOD("set_mouse_target", "amount"), &SubViewportContainer::set_mouse_target);
+	ClassDB::bind_method(D_METHOD("is_mouse_target_enabled"), &SubViewportContainer::is_mouse_target_enabled);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stretch"), "set_stretch", "is_stretch_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "stretch_shrink", PROPERTY_HINT_RANGE, "1,32,1,or_greater"), "set_stretch_shrink", "get_stretch_shrink");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "mouse_target"), "set_mouse_target", "is_mouse_target_enabled");
 
 	GDVIRTUAL_BIND(_propagate_input_event, "event");
 }

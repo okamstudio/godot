@@ -172,7 +172,7 @@ using Godot.NativeInterop;
             {
                 var parameter = callback.Parameters[i];
 
-                AppendRefKind(source, parameter.RefKind);
+                AppendRefKind(source, parameter.RefKind, parameter.ScopedKind);
                 source.Append(' ');
                 source.Append(parameter.Type.FullQualifiedNameIncludeGlobal());
                 source.Append(' ');
@@ -208,7 +208,7 @@ using Godot.NativeInterop;
                     {
                         // If it's a by-ref param and we can't get the pointer
                         // just pass it by-ref and let it be pinned.
-                        AppendRefKind(methodCallArguments, parameter.RefKind)
+                        AppendRefKind(methodCallArguments, parameter.RefKind, parameter.ScopedKind)
                             .Append(' ')
                             .Append(parameter.Name);
                     }
@@ -346,7 +346,7 @@ using Godot.NativeInterop;
                     {
                         // If it's a by-ref param and we can't get the pointer
                         // just pass it by-ref and let it be pinned.
-                        AppendRefKind(source, parameter.RefKind)
+                        AppendRefKind(source, parameter.RefKind, parameter.ScopedKind)
                             .Append(' ')
                             .Append(parameter.Type.FullQualifiedNameIncludeGlobal());
                     }
@@ -392,14 +392,18 @@ using Godot.NativeInterop;
     private static bool IsByRefParameter(IParameterSymbol parameter) =>
         parameter.RefKind is RefKind.In or RefKind.Out or RefKind.Ref;
 
-    private static StringBuilder AppendRefKind(StringBuilder source, RefKind refKind) =>
-        refKind switch
+    private static StringBuilder AppendRefKind(StringBuilder source, RefKind refKind, ScopedKind scopedKind)
+    {
+        return (refKind, scopedKind) switch
         {
-            RefKind.In => source.Append("in"),
-            RefKind.Out => source.Append("out"),
-            RefKind.Ref => source.Append("ref"),
+            (RefKind.Out, _) => source.Append("out"),
+            (RefKind.In, ScopedKind.ScopedRef) => source.Append("scoped in"),
+            (RefKind.In, _) => source.Append("in"),
+            (RefKind.Ref, ScopedKind.ScopedRef) => source.Append("scoped ref"),
+            (RefKind.Ref, _) => source.Append("ref"),
             _ => source,
         };
+    }
 
     private static void AppendPointerType(StringBuilder source, ITypeSymbol type)
     {

@@ -1,4 +1,4 @@
 func test():
 	var basic := [1]
-	var typed: Array[int] = basic
+	var _typed: Array[int] = basic
 	print('not ok')

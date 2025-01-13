@@ -125,6 +125,12 @@
 				Returns array of core file names that always should be exported regardless of preset config.
 			</description>
 		</method>
+		<method name="get_internal_export_files" qualifiers="static">
+			<return type="Dictionary" />
+			<description>
+				Returns additional files that should always be exported regardless of preset configuration, and are not part of the project source. The returned [Dictionary] contains filename keys ([String]) and their corresponding raw data ([PackedByteArray]).
+			</description>
+		</method>
 		<method name="get_message_category" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="index" type="int" />

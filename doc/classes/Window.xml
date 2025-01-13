@@ -572,7 +572,7 @@
 			Specifies how the content's aspect behaves when the [Window] is resized. The base aspect is determined by [member content_scale_size].
 		</member>
 		<member name="content_scale_factor" type="float" setter="set_content_scale_factor" getter="get_content_scale_factor" default="1.0">
-			Specifies the base scale of [Window]'s content when its [member size] is equal to [member content_scale_size].
+			Specifies the base scale of [Window]'s content when its [member size] is equal to [member content_scale_size]. See also [method Viewport.get_stretch_transform].
 		</member>
 		<member name="content_scale_mode" type="int" setter="set_content_scale_mode" getter="get_content_scale_mode" enum="Window.ContentScaleMode" default="0">
 			Specifies how the content is scaled when the [Window] is resized.
@@ -585,6 +585,9 @@
 		</member>
 		<member name="current_screen" type="int" setter="set_current_screen" getter="get_current_screen">
 			The screen the window is currently on.
+		</member>
+		<member name="exclude_from_capture" type="bool" setter="set_flag" getter="get_flag" default="false">
+			Windows is excluded from screenshots taken by [method DisplayServer.screen_get_image], [method DisplayServer.screen_get_image_rect], and [method DisplayServer.screen_get_pixel].
 		</member>
 		<member name="exclusive" type="bool" setter="set_exclusive" getter="is_exclusive" default="false">
 			If [code]true[/code], the [Window] will be in exclusive mode. Exclusive windows are always on top of their parent and will block all input going to the parent [Window].
@@ -727,7 +730,7 @@
 				Emitted when files are dragged from the OS file manager and dropped in the game window. The argument is a list of file paths.
 				[codeblock]
 				func _ready():
-				    get_viewport().files_dropped.connect(on_files_dropped)
+				    get_window().files_dropped.connect(on_files_dropped)
 
 				func on_files_dropped(files):
 				    print(files)
@@ -805,6 +808,7 @@
 		<constant name="MODE_FULLSCREEN" value="3" enum="Mode">
 			Full screen mode with full multi-window support.
 			Full screen window covers the entire display area of a screen and has no decorations. The display's video mode is not changed.
+			[b]On Android:[/b] This enables immersive mode.
 			[b]On Windows:[/b] Multi-window full-screen mode has a 1px border of the [member ProjectSettings.rendering/environment/defaults/default_clear_color] color.
 			[b]On macOS:[/b] A new desktop is used to display the running project.
 			[b]Note:[/b] Regardless of the platform, enabling full screen will change the window size to match the monitor's size. Therefore, make sure your project supports [url=$DOCS_URL/tutorials/rendering/multiple_resolutions.html]multiple resolutions[/url] when enabling full screen mode.
@@ -812,6 +816,7 @@
 		<constant name="MODE_EXCLUSIVE_FULLSCREEN" value="4" enum="Mode">
 			A single window full screen mode. This mode has less overhead, but only one window can be open on a given screen at a time (opening a child window or application switching will trigger a full screen transition).
 			Full screen window covers the entire display area of a screen and has no border or decorations. The display's video mode is not changed.
+			[b]On Android:[/b] This enables immersive mode.
 			[b]On Windows:[/b] Depending on video driver, full screen transition might cause screens to go black for a moment.
 			[b]On macOS:[/b] A new desktop is used to display the running project. Exclusive full screen mode prevents Dock and Menu from showing up when the mouse pointer is hovering the edge of the screen.
 			[b]On Linux (X11):[/b] Exclusive full screen mode bypasses compositor.
@@ -851,7 +856,12 @@
 			[b]Note:[/b] This flag has no effect in embedded windows.
 			[b]Note:[/b] This flag is implemented only on Windows (11).
 		</constant>
-		<constant name="FLAG_MAX" value="9" enum="Flags">
+		<constant name="FLAG_EXCLUDE_FROM_CAPTURE" value="9" enum="Flags">
+			Windows is excluded from screenshots taken by [method DisplayServer.screen_get_image], [method DisplayServer.screen_get_image_rect], and [method DisplayServer.screen_get_pixel].
+			[b]Note:[/b] This flag is implemented on macOS and Windows.
+			[b]Note:[/b] Setting this flag will [b]NOT[/b] prevent other apps from capturing an image, it should not be used as a security measure.
+		</constant>
+		<constant name="FLAG_MAX" value="10" enum="Flags">
 			Max value of the [enum Flags].
 		</constant>
 		<constant name="CONTENT_SCALE_MODE_DISABLED" value="0" enum="ContentScaleMode">

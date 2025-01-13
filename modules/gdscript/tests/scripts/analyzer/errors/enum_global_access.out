@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 2: Type "Operator" in base "Variant" cannot be used on its own.

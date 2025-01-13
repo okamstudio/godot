@@ -29,6 +29,12 @@
 				If any of the controls added can gain keyboard focus, add it here. This ensures that focus will be restored if the inspector is refreshed.
 			</description>
 		</method>
+		<method name="deselect">
+			<return type="void" />
+			<description>
+				Draw property as not selected. Used by the inspector.
+			</description>
+		</method>
 		<method name="emit_changed">
 			<return type="void" />
 			<param index="0" name="property" type="StringName" />
@@ -51,11 +57,39 @@
 				Gets the edited property. If your editor is for a single property (added via [method EditorInspectorPlugin._parse_property]), then this will return the property.
 			</description>
 		</method>
+		<method name="is_selected" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if property is drawn as selected. Used by the inspector.
+			</description>
+		</method>
+		<method name="select">
+			<return type="void" />
+			<param index="0" name="focusable" type="int" default="-1" />
+			<description>
+				Draw property as selected. Used by the inspector.
+			</description>
+		</method>
 		<method name="set_bottom_editor">
 			<return type="void" />
 			<param index="0" name="editor" type="Control" />
 			<description>
 				Puts the [param editor] control below the property label. The control must be previously added using [method Node.add_child].
+			</description>
+		</method>
+		<method name="set_label_reference">
+			<return type="void" />
+			<param index="0" name="control" type="Control" />
+			<description>
+				Used by the inspector, set to a control that will be used as a reference to calculate the size of the label.
+			</description>
+		</method>
+		<method name="set_object_and_property">
+			<return type="void" />
+			<param index="0" name="object" type="Object" />
+			<param index="1" name="property" type="StringName" />
+			<description>
+				Assigns object and property to edit.
 			</description>
 		</method>
 		<method name="update_property">
@@ -84,8 +118,17 @@
 		<member name="label" type="String" setter="set_label" getter="get_label" default="&quot;&quot;">
 			Set this property to change the label (if you want to show one).
 		</member>
+		<member name="name_split_ratio" type="float" setter="set_name_split_ratio" getter="get_name_split_ratio" default="0.5">
+			Space distribution ratio between the label and the editing field.
+		</member>
 		<member name="read_only" type="bool" setter="set_read_only" getter="is_read_only" default="false" keywords="enabled, disabled, editable">
 			Used by the inspector, set to [code]true[/code] when the property is read-only.
+		</member>
+		<member name="selectable" type="bool" setter="set_selectable" getter="is_selectable" default="true">
+			Used by the inspector, set to [code]true[/code] when the property is selectable.
+		</member>
+		<member name="use_folding" type="bool" setter="set_use_folding" getter="is_using_folding" default="false">
+			Used by the inspector, set to [code]true[/code] when the property is using folding.
 		</member>
 	</members>
 	<signals>

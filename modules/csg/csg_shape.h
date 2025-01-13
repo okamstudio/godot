@@ -155,8 +155,10 @@ public:
 	void set_collision_priority(real_t p_priority);
 	real_t get_collision_priority() const;
 
+#ifndef DISABLE_DEPRECATED
 	void set_snap(float p_snap);
 	float get_snap() const;
+#endif // DISABLE_DEPRECATED
 
 	void set_calculate_tangents(bool p_calculate_tangents);
 	bool is_calculating_tangents() const;

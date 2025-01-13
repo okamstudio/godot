@@ -207,16 +207,6 @@ error:
     return 0.0f;
 }
 
-
-int str2int(const char* str, size_t n)
-{
-    int ret = 0;
-    for(size_t i = 0; i < n; ++i) {
-        ret = ret * 10 + (str[i] - '0');
-    }
-    return ret;
-}
-
 char* strDuplicate(const char *str, size_t n)
 {
     auto len = strlen(str);

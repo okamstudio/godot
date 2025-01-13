@@ -1,0 +1,34 @@
+diff --git a/thirdparty/clipper2/include/clipper2/clipper.core.h b/thirdparty/clipper2/include/clipper2/clipper.core.h
+index 67dd731af6..0f69bf2d9f 100644
+--- a/thirdparty/clipper2/include/clipper2/clipper.core.h
++++ b/thirdparty/clipper2/include/clipper2/clipper.core.h
+@@ -695,11 +695,13 @@ namespace Clipper2Lib
+   // returns true if (and only if) a * b == c * d
+   inline bool ProductsAreEqual(int64_t a, int64_t b, int64_t c, int64_t d)
+   {
+-#if (defined(__clang__) || defined(__GNUC__)) && UINTPTR_MAX >= UINT64_MAX
+-    const auto ab = static_cast<__int128_t>(a) * static_cast<__int128_t>(b);
+-    const auto cd = static_cast<__int128_t>(c) * static_cast<__int128_t>(d);
+-    return ab == cd;
+-#else
++// -- GODOT start --
++// #if (defined(__clang__) || defined(__GNUC__)) && UINTPTR_MAX >= UINT64_MAX
++//     const auto ab = static_cast<__int128_t>(a) * static_cast<__int128_t>(b);
++//     const auto cd = static_cast<__int128_t>(c) * static_cast<__int128_t>(d);
++//     return ab == cd;
++// #else
++// -- GODOT end --
+     // nb: unsigned values needed for calculating overflow carry
+     const auto abs_a = static_cast<uint64_t>(std::abs(a));
+     const auto abs_b = static_cast<uint64_t>(std::abs(b));
+@@ -714,7 +716,9 @@ namespace Clipper2Lib
+     const auto sign_cd = TriSign(c) * TriSign(d);
+ 
+     return abs_ab == abs_cd && sign_ab == sign_cd;
+-#endif
++// -- GODOT start --
++// #endif
++// -- GODOT end --
+   }
+ 
+   template <typename T>

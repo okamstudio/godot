@@ -146,15 +146,15 @@ void VoxelGIEditorPlugin::make_visible(bool p_visible) {
 
 EditorProgress *VoxelGIEditorPlugin::tmp_progress = nullptr;
 
-void VoxelGIEditorPlugin::bake_func_begin(int p_steps) {
+void VoxelGIEditorPlugin::bake_func_begin() {
 	ERR_FAIL_COND(tmp_progress != nullptr);
 
-	tmp_progress = memnew(EditorProgress("bake_gi", TTR("Bake VoxelGI"), p_steps));
+	tmp_progress = memnew(EditorProgress("bake_gi", TTR("Bake VoxelGI"), 1000, true));
 }
 
-void VoxelGIEditorPlugin::bake_func_step(int p_step, const String &p_description) {
-	ERR_FAIL_NULL(tmp_progress);
-	tmp_progress->step(p_description, p_step, false);
+bool VoxelGIEditorPlugin::bake_func_step(int p_progress, const String &p_description) {
+	ERR_FAIL_NULL_V(tmp_progress, false);
+	return tmp_progress->step(p_description, p_progress, false);
 }
 
 void VoxelGIEditorPlugin::bake_func_end() {
@@ -182,7 +182,7 @@ VoxelGIEditorPlugin::VoxelGIEditorPlugin() {
 	bake_hb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	bake_hb->hide();
 	bake = memnew(Button);
-	bake->set_theme_type_variation("FlatButton");
+	bake->set_theme_type_variation(SceneStringName(FlatButton));
 	// TODO: Rework this as a dedicated toolbar control so we can hook into theme changes and update it
 	// when the editor theme updates.
 	bake->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Bake"), EditorStringName(EditorIcons)));

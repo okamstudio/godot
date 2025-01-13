@@ -22,6 +22,7 @@
 			<description>
 				Returns the position in the [AudioStream] of the latest sound, in seconds. Returns [code]0.0[/code] if no sounds are playing.
 				[b]Note:[/b] The position is not always accurate, as the [AudioServer] does not mix audio every processed frame. To get more accurate results, add [method AudioServer.get_time_since_last_mix] to the returned position.
+				[b]Note:[/b] This method always returns [code]0.0[/code] if the [member stream] is an [AudioStreamInteractive], since it can have multiple clips playing at once.
 			</description>
 		</method>
 		<method name="get_stream_playback">

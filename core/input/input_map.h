@@ -43,6 +43,11 @@ class InputMap : public Object {
 	GDCLASS(InputMap, Object);
 
 public:
+	/**
+	 * A special value used to signify that a given Action can be triggered by any device
+	 */
+	static int ALL_DEVICES;
+
 	struct Action {
 		int id;
 		float deadzone;

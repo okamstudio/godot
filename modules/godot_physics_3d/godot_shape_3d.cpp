@@ -69,7 +69,7 @@ void GodotShape3D::configure(const AABB &p_aabb) {
 	aabb = p_aabb;
 	configured = true;
 	for (const KeyValue<GodotShapeOwner3D *, int> &E : owners) {
-		GodotShapeOwner3D *co = const_cast<GodotShapeOwner3D *>(E.key);
+		GodotShapeOwner3D *co = E.key;
 		co->_shape_changed();
 	}
 }

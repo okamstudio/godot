@@ -265,7 +265,7 @@
 			<return type="int" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns the first column containing a non-whitespace character.
+				Returns the first column containing a non-whitespace character on the given line. If there is only whitespace, returns the number of characters.
 			</description>
 		</method>
 		<method name="get_first_visible_line" qualifiers="const">
@@ -311,7 +311,7 @@
 			<return type="int" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns the number of spaces and [code]tab * tab_size[/code] before the first char.
+				Returns the indent level of the given line. This is the number of spaces and tabs at the beginning of the line, with the tabs taking the tab size into account (see [method get_tab_size]).
 			</description>
 		</method>
 		<method name="get_last_full_visible_line" qualifiers="const">
@@ -343,7 +343,7 @@
 			<return type="Color" />
 			<param index="0" name="line" type="int" />
 			<description>
-				Returns the current background color of the line. [code]Color(0, 0, 0, 0)[/code] is returned if no color is set.
+				Returns the custom background color of the given line. If no color is set, returns [code]Color(0, 0, 0, 0)[/code].
 			</description>
 		</method>
 		<method name="get_line_column_at_pos" qualifiers="const">
@@ -428,7 +428,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="column" type="int" />
 			<description>
-				Returns the wrap index of the given line column.
+				Returns the wrap index of the given column on the given line. This ranges from [code]0[/code] to [method get_line_wrap_count].
 			</description>
 		</method>
 		<method name="get_line_wrapped_text" qualifiers="const">
@@ -655,7 +655,7 @@
 		<method name="get_total_visible_line_count" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the number of lines that may be drawn.
+				Returns the total number of lines in the text. This includes wrapped lines and excludes folded lines. If [member wrap_mode] is set to [constant LINE_WRAPPING_NONE] and no lines are folded (see [method CodeEdit.is_line_folded]) then this is equivalent to [method get_line_count]. See [method get_visible_line_count_in_range] for a limited range of lines.
 			</description>
 		</method>
 		<method name="get_v_scroll_bar" qualifiers="const">
@@ -673,7 +673,7 @@
 		<method name="get_visible_line_count" qualifiers="const">
 			<return type="int" />
 			<description>
-				Returns the number of visible lines, including wrapped text.
+				Returns the number of lines that can visually fit, rounded down, based on this control's height.
 			</description>
 		</method>
 		<method name="get_visible_line_count_in_range" qualifiers="const">
@@ -681,7 +681,7 @@
 			<param index="0" name="from_line" type="int" />
 			<param index="1" name="to_line" type="int" />
 			<description>
-				Returns the total number of visible + wrapped lines between the two lines.
+				Returns the total number of lines between [param from_line] and [param to_line] (inclusive) in the text. This includes wrapped lines and excludes folded lines. If the range covers all lines it is equivalent to [method get_total_visible_line_count].
 			</description>
 		</method>
 		<method name="get_word_at_pos" qualifiers="const">
@@ -777,21 +777,21 @@
 			<return type="bool" />
 			<param index="0" name="gutter" type="int" />
 			<description>
-				Returns whether the gutter is clickable.
+				Returns [code]true[/code] if the gutter at the given index is clickable. See [method set_gutter_clickable].
 			</description>
 		</method>
 		<method name="is_gutter_drawn" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="gutter" type="int" />
 			<description>
-				Returns whether the gutter is currently drawn.
+				Returns [code]true[/code] if the gutter at the given index is currently drawn. See [method set_gutter_draw].
 			</description>
 		</method>
 		<method name="is_gutter_overwritable" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="gutter" type="int" />
 			<description>
-				Returns whether the gutter is overwritable.
+				Returns [code]true[/code] if the gutter at the given index is overwritable. See [method set_gutter_overwritable].
 			</description>
 		</method>
 		<method name="is_in_mulitcaret_edit" qualifiers="const">
@@ -805,7 +805,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="gutter" type="int" />
 			<description>
-				Returns whether the gutter on the given line is clickable.
+				Returns [code]true[/code] if the gutter at the given index on the given line is clickable. See [method set_line_gutter_clickable].
 			</description>
 		</method>
 		<method name="is_line_wrapped" qualifiers="const">
@@ -818,7 +818,7 @@
 		<method name="is_menu_visible" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns whether the menu is visible. Use this instead of [code]get_menu().visible[/code] to improve performance (so the creation of the menu is avoided).
+				Returns [code]true[/code] if the menu is visible. Use this instead of [code]get_menu().visible[/code] to improve performance (so the creation of the menu is avoided). See [method get_menu].
 			</description>
 		</method>
 		<method name="is_mouse_over_selection" qualifiers="const">
@@ -826,13 +826,13 @@
 			<param index="0" name="edges" type="bool" />
 			<param index="1" name="caret_index" type="int" default="-1" />
 			<description>
-				Returns whether the mouse is over selection. If [param edges] is [code]true[/code], the edges are considered part of the selection.
+				Returns [code]true[/code] if the mouse is over a selection. If [param edges] is [code]true[/code], the edges are considered part of the selection.
 			</description>
 		</method>
 		<method name="is_overtype_mode_enabled" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns whether the user is in overtype mode.
+				Returns [code]true[/code] if overtype mode is enabled. See [method set_overtype_mode_enabled].
 			</description>
 		</method>
 		<method name="menu_option">
@@ -847,7 +847,7 @@
 			<param index="0" name="from_line" type="int" />
 			<param index="1" name="to_line" type="int" />
 			<description>
-				Merge the gutters from [param from_line] into [param to_line]. Only overwritable gutters will be copied.
+				Merge the gutters from [param from_line] into [param to_line]. Only overwritable gutters will be copied. See [method set_gutter_overwritable].
 			</description>
 		</method>
 		<method name="merge_overlapping_carets">
@@ -898,7 +898,7 @@
 			<return type="void" />
 			<param index="0" name="gutter" type="int" />
 			<description>
-				Removes the gutter from this [TextEdit].
+				Removes the gutter at the given index.
 			</description>
 		</method>
 		<method name="remove_line_at">
@@ -1013,7 +1013,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="clickable" type="bool" />
 			<description>
-				Sets the gutter as clickable. This will change the mouse cursor to a pointing hand when hovering over the gutter.
+				If [code]true[/code], the mouse cursor will change to a pointing hand ([constant Control.CURSOR_POINTING_HAND]) when hovering over the gutter at the given index. See [method is_gutter_clickable] and [method set_line_gutter_clickable].
 			</description>
 		</method>
 		<method name="set_gutter_custom_draw">
@@ -1021,7 +1021,7 @@
 			<param index="0" name="column" type="int" />
 			<param index="1" name="draw_callback" type="Callable" />
 			<description>
-				Set a custom draw method for the gutter. The callback method must take the following args: [code]line: int, gutter: int, Area: Rect2[/code]. This only works when the gutter type is [constant GUTTER_TYPE_CUSTOM] (see [method set_gutter_type]).
+				Set a custom draw callback for the gutter at the given index. [param draw_callback] must take the following arguments: A line index [int], a gutter index [int], and an area [Rect2]. This callback only works when the gutter type is [constant GUTTER_TYPE_CUSTOM] (see [method set_gutter_type]).
 			</description>
 		</method>
 		<method name="set_gutter_draw">
@@ -1029,7 +1029,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="draw" type="bool" />
 			<description>
-				Sets whether the gutter should be drawn.
+				If [code]true[/code], the gutter at the given index is drawn. The gutter type ([method set_gutter_type]) determines how it is drawn. See [method is_gutter_drawn].
 			</description>
 		</method>
 		<method name="set_gutter_name">
@@ -1037,7 +1037,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="name" type="String" />
 			<description>
-				Sets the name of the gutter.
+				Sets the name of the gutter at the given index.
 			</description>
 		</method>
 		<method name="set_gutter_overwritable">
@@ -1045,7 +1045,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="overwritable" type="bool" />
 			<description>
-				Sets the gutter to overwritable. See [method merge_gutters].
+				If [code]true[/code], the line data of the gutter at the given index can be overridden when using [method merge_gutters]. See [method is_gutter_overwritable].
 			</description>
 		</method>
 		<method name="set_gutter_type">
@@ -1053,7 +1053,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="type" type="int" enum="TextEdit.GutterType" />
 			<description>
-				Sets the type of gutter. Gutters can contain icons, text, or custom visuals. See [enum TextEdit.GutterType] for options.
+				Sets the type of gutter at the given index. Gutters can contain icons, text, or custom visuals. See [enum TextEdit.GutterType] for options.
 			</description>
 		</method>
 		<method name="set_gutter_width">
@@ -1061,7 +1061,7 @@
 			<param index="0" name="gutter" type="int" />
 			<param index="1" name="width" type="int" />
 			<description>
-				Set the width of the gutter.
+				Set the width of the gutter at the given index.
 			</description>
 		</method>
 		<method name="set_line">
@@ -1102,7 +1102,7 @@
 			<param index="0" name="line" type="int" />
 			<param index="1" name="color" type="Color" />
 			<description>
-				Sets the current background color of the line. Set to [code]Color(0, 0, 0, 0)[/code] for no color.
+				Sets the custom background color of the given line. If transparent, this color is applied on top of the default background color (See [theme_item background_color]). If set to [code]Color(0, 0, 0, 0)[/code], no additional color is applied.
 			</description>
 		</method>
 		<method name="set_line_gutter_clickable">
@@ -1111,7 +1111,7 @@
 			<param index="1" name="gutter" type="int" />
 			<param index="2" name="clickable" type="bool" />
 			<description>
-				If [param clickable] is [code]true[/code], makes the [param gutter] on [param line] clickable. See [signal gutter_clicked].
+				If [param clickable] is [code]true[/code], makes the [param gutter] on the given [param line] clickable. This is like [method set_gutter_clickable], but for a single line. If [method is_gutter_clickable] is [code]true[/code], this will not have any effect. See [method is_line_gutter_clickable] and [signal gutter_clicked].
 			</description>
 		</method>
 		<method name="set_line_gutter_icon">
@@ -1154,7 +1154,7 @@
 			<return type="void" />
 			<param index="0" name="enabled" type="bool" />
 			<description>
-				If [code]true[/code], sets the user into overtype mode. When the user types in this mode, it will override existing text.
+				If [code]true[/code], enables overtype mode. In this mode, typing overrides existing text instead of inserting text. The [member ProjectSettings.input/ui_text_toggle_insert_mode] action toggles overtype mode. See [method is_overtype_mode_enabled].
 			</description>
 		</method>
 		<method name="set_search_flags">
@@ -1269,7 +1269,7 @@
 			If [code]false[/code], the context menu ignores mouse location.
 		</member>
 		<member name="caret_multiple" type="bool" setter="set_multiple_carets_enabled" getter="is_multiple_carets_enabled" default="true">
-			Sets if multiple carets are allowed.
+			If [code]true[/code], multiple carets are allowed. Left-clicking with [kbd]Alt[/kbd] adds a new caret. See [method add_caret] and [method get_caret_count].
 		</member>
 		<member name="caret_type" type="int" setter="set_caret_type" getter="get_caret_type" enum="TextEdit.CaretType" default="0">
 			Set the type of caret to draw.

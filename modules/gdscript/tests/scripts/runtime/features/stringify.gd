@@ -4,14 +4,17 @@ func test():
 	print(-1.25, 0.25, 1.25)
 	print("hello world")
 
-	print(Vector2(0.25, 0.25))
+	print(Vector2(0.25, 1))
 	print(Vector2i(0, 0))
 
-	print(Rect2(0.25, 0.25, 0.5, 0.5))
+	print(Rect2(0.25, 0.25, 0.5, 1))
 	print(Rect2i(0, 0, 0, 0))
 
-	print(Vector3(0.25, 0.25, 0.25))
+	print(Vector3(0.25, 0.25, 1))
 	print(Vector3i(0, 0, 0))
+
+	print(Vector4(0.25, 0.25, 0.25, 1))
+	print(Vector4i(0, 0, 0, 0))
 
 	print(Transform2D.IDENTITY)
 	print(Plane(1, 2, 3, 4))
@@ -19,6 +22,7 @@ func test():
 	print(AABB(Vector3.ZERO, Vector3.ONE))
 	print(Basis.from_euler(Vector3(0, 0, 0)))
 	print(Transform3D.IDENTITY)
+	print(Projection.IDENTITY)
 
 	print(Color(1, 2, 3, 4))
 	print(StringName("hello"))

@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/typed_array_pass_basic_to_typed.gd
->> 6
->> Invalid type in function 'expect_typed' in base 'RefCounted (typed_array_pass_basic_to_typed.gd)'. The array of argument 1 (Array) does not have the same element type as the expected typed array argument.
+>> SCRIPT ERROR at runtime/errors/typed_array_pass_basic_to_typed.gd:6 on test(): Invalid type in function 'expect_typed' in base 'RefCounted (typed_array_pass_basic_to_typed.gd)'. The array of argument 1 (Array) does not have the same element type as the expected typed array argument.

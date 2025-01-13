@@ -38,7 +38,11 @@
 #include <poll.h>
 #include <errno.h>
 #include <stdarg.h>
+#ifdef __FreeBSD__
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif // __FreeBSD__
 
 #ifndef __GNUC__
 #define __inline__ inline

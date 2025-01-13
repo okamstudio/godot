@@ -64,6 +64,8 @@
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
 #include "editor/window_wrapper.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/texture_rect.h"
 #include "scene/main/node.h"
 #include "scene/main/window.h"
 #include "script_text_editor.h"
@@ -181,7 +183,7 @@ void EditorStandardSyntaxHighlighter::_update_cache() {
 				if (E.usage & PROPERTY_USAGE_CATEGORY || E.usage & PROPERTY_USAGE_GROUP || E.usage & PROPERTY_USAGE_SUBGROUP) {
 					continue;
 				}
-				if (prop_name.contains("/")) {
+				if (prop_name.contains_char('/')) {
 					continue;
 				}
 				highlighter->add_member_keyword_color(prop_name, member_variable_color);
@@ -3651,14 +3653,13 @@ void ScriptEditor::_help_class_goto(const String &p_desc) {
 
 	eh->set_name(cname);
 	tab_container->add_child(eh);
+	_go_to_tab(tab_container->get_tab_count() - 1);
 	eh->go_to_help(p_desc);
 	eh->connect("go_to_help", callable_mp(this, &ScriptEditor::_help_class_goto));
 	_add_recent_script(eh->get_class());
 	_sort_list_on_update = true;
 	_update_script_names();
 	_save_layout();
-
-	callable_mp(this, &ScriptEditor::_help_tab_goto).call_deferred(cname, p_desc);
 }
 
 bool ScriptEditor::_help_tab_goto(const String &p_name, const String &p_desc) {
@@ -4154,6 +4155,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	scripts_vbox->add_child(script_list);
 	script_list->set_custom_minimum_size(Size2(100, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
 	script_list->set_v_size_flags(SIZE_EXPAND_FILL);
+	script_list->set_theme_type_variation("ItemListSecondary");
 	script_split->set_split_offset(200 * EDSCALE);
 	_sort_list_on_update = true;
 	script_list->connect("item_clicked", callable_mp(this, &ScriptEditor::_script_list_clicked), CONNECT_DEFERRED);
@@ -4197,6 +4199,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 
 	members_overview = memnew(ItemList);
 	members_overview->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+	members_overview->set_theme_type_variation("ItemListSecondary");
 	overview_vbox->add_child(members_overview);
 
 	members_overview->set_allow_reselect(true);
@@ -4206,6 +4209,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 
 	help_overview = memnew(ItemList);
 	help_overview->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+	help_overview->set_theme_type_variation("ItemListSecondary");
 	overview_vbox->add_child(help_overview);
 	help_overview->set_allow_reselect(true);
 	help_overview->set_custom_minimum_size(Size2(0, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing

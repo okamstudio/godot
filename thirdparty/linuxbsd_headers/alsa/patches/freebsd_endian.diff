@@ -1,0 +1,16 @@
+diff --git a/thirdparty/linuxbsd_headers/alsa/asoundlib.h b/thirdparty/linuxbsd_headers/alsa/asoundlib.h
+index a546194382..598175403c 100644
+--- a/thirdparty/linuxbsd_headers/alsa/asoundlib.h
++++ b/thirdparty/linuxbsd_headers/alsa/asoundlib.h
+@@ -38,7 +38,11 @@
+ #include <poll.h>
+ #include <errno.h>
+ #include <stdarg.h>
++#ifdef __FreeBSD__
++#include <sys/endian.h>
++#else
+ #include <endian.h>
++#endif // __FreeBSD__
+ 
+ #ifndef __GNUC__
+ #define __inline__ inline

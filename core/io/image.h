@@ -266,6 +266,8 @@ private:
 
 	Error _load_from_buffer(const Vector<uint8_t> &p_array, ImageMemLoadFunc p_loader);
 
+	_FORCE_INLINE_ void _generate_mipmap_from_format(Image::Format p_format, const uint8_t *p_src, uint8_t *p_dst, uint32_t p_width, uint32_t p_height, bool p_renormalize = false);
+
 	static void average_4_uint8(uint8_t &p_out, const uint8_t &p_a, const uint8_t &p_b, const uint8_t &p_c, const uint8_t &p_d);
 	static void average_4_float(float &p_out, const float &p_a, const float &p_b, const float &p_c, const float &p_d);
 	static void average_4_half(uint16_t &p_out, const uint16_t &p_a, const uint16_t &p_b, const uint16_t &p_c, const uint16_t &p_d);
@@ -393,8 +395,6 @@ public:
 	Rect2i get_used_rect() const;
 	Ref<Image> get_region(const Rect2i &p_area) const;
 
-	static void set_compress_bc_func(void (*p_compress_func)(Image *, UsedChannels));
-	static void set_compress_bptc_func(void (*p_compress_func)(Image *, UsedChannels));
 	static String get_format_name(Format p_format);
 
 	Error load_png_from_buffer(const Vector<uint8_t> &p_array);

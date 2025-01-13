@@ -128,7 +128,8 @@ public:
 			return rids[p_filter][p_repeat];
 		}
 
-		Vector<RD::Uniform> get_uniforms(int p_first_index) const;
+		template <typename Collection>
+		void append_uniforms(Collection &p_uniforms, int p_first_index) const;
 		bool is_valid() const;
 		bool is_null() const;
 	};

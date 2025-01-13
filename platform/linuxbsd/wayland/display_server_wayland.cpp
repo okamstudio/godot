@@ -319,6 +319,10 @@ Error DisplayServerWayland::file_dialog_with_options_show(const String &p_title,
 
 #endif
 
+void DisplayServerWayland::beep() const {
+	wayland_thread.beep();
+}
+
 void DisplayServerWayland::mouse_set_mode(MouseMode p_mode) {
 	if (p_mode == mouse_mode) {
 		return;

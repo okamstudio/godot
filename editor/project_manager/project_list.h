@@ -35,6 +35,7 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/scroll_container.h"
 
+class AcceptDialog;
 class Button;
 class Label;
 class ProjectList;
@@ -176,6 +177,20 @@ private:
 
 	VBoxContainer *project_list_vbox = nullptr;
 
+	// Projects scan.
+
+	struct ScanData {
+		Thread *thread = nullptr;
+		PackedStringArray paths_to_scan;
+		List<String> found_projects;
+		SafeFlag scan_in_progress;
+	};
+	ScanData *scan_data = nullptr;
+	AcceptDialog *scan_progress = nullptr;
+
+	static void _scan_thread(void *p_scan_data);
+	void _scan_finished();
+
 	// Initialization & loading.
 
 	void _migrate_config();
@@ -186,7 +201,7 @@ private:
 
 	// Project list updates.
 
-	void _scan_folder_recursive(const String &p_path, List<String> *r_projects);
+	static void _scan_folder_recursive(const String &p_path, List<String> *r_projects, const SafeFlag &p_scan_active);
 
 	// Project list items.
 

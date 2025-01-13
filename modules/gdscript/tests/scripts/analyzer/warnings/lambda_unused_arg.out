@@ -1,5 +1,2 @@
 GDTEST_OK
->> WARNING
->> Line: 2
->> UNUSED_PARAMETER
->> The parameter "unused" is never used in the function "<anonymous lambda>()". If this is intended, prefix it with an underscore: "_unused".
+~~ WARNING at line 2: (UNUSED_PARAMETER) The parameter "unused" is never used in the function "<anonymous lambda>()". If this is intended, prefix it with an underscore: "_unused".

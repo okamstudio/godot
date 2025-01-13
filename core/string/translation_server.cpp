@@ -29,6 +29,7 @@
 /**************************************************************************/
 
 #include "translation_server.h"
+#include "translation_server.compat.inc"
 
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
@@ -218,8 +219,8 @@ TranslationServer::Locale::Locale(const TranslationServer &p_server, const Strin
 	}
 }
 
-String TranslationServer::standardize_locale(const String &p_locale) const {
-	return Locale(*this, p_locale, false).operator String();
+String TranslationServer::standardize_locale(const String &p_locale, bool p_add_defaults) const {
+	return Locale(*this, p_locale, p_add_defaults).operator String();
 }
 
 int TranslationServer::compare_locales(const String &p_locale_a, const String &p_locale_b) const {
@@ -482,6 +483,7 @@ void TranslationServer::setup() {
 	main_domain->set_pseudolocalization_skip_placeholders_enabled(GLOBAL_DEF("internationalization/pseudolocalization/skip_placeholders", true));
 
 #ifdef TOOLS_ENABLED
+	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, "internationalization/locale/test", PROPERTY_HINT_LOCALE_ID, ""));
 	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, "internationalization/locale/fallback", PROPERTY_HINT_LOCALE_ID, ""));
 #endif
 }
@@ -591,7 +593,7 @@ void TranslationServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_tool_locale"), &TranslationServer::get_tool_locale);
 
 	ClassDB::bind_method(D_METHOD("compare_locales", "locale_a", "locale_b"), &TranslationServer::compare_locales);
-	ClassDB::bind_method(D_METHOD("standardize_locale", "locale"), &TranslationServer::standardize_locale);
+	ClassDB::bind_method(D_METHOD("standardize_locale", "locale", "add_defaults"), &TranslationServer::standardize_locale, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("get_all_languages"), &TranslationServer::get_all_languages);
 	ClassDB::bind_method(D_METHOD("get_language_name", "language"), &TranslationServer::get_language_name);

@@ -714,6 +714,9 @@ bool GridMap::_octant_update(const OctantKey &p_key) {
 				RS::get_singleton()->instance_set_transform(instance, get_global_transform());
 			}
 
+			RS::ShadowCastingSetting cast_shadows = (RS::ShadowCastingSetting)mesh_library->get_item_mesh_cast_shadow(E.key);
+			RS::get_singleton()->instance_geometry_set_cast_shadows_setting(instance, cast_shadows);
+
 			mmi.multimesh = mm;
 			mmi.instance = instance;
 

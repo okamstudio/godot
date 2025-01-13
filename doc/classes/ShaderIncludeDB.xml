@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ShaderIncludeDB" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Internal database of built in shader include files.
+	</brief_description>
+	<description>
+		This object contains shader fragments from Godot's internal shaders. These can be used when access to internal uniform buffers and/or internal functions is required for instance when composing compositor effects or compute shaders. Only fragments for the current rendering device are loaded.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_built_in_include_file" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="filename" type="String" />
+			<description>
+				Returns the code for the built-in shader fragment. You can also access this in your shader code through [code]#include "filename"[/code].
+			</description>
+		</method>
+		<method name="has_built_in_include_file" qualifiers="static">
+			<return type="bool" />
+			<param index="0" name="filename" type="String" />
+			<description>
+				Returns [code]true[/code] if an include file with this name exists.
+			</description>
+		</method>
+		<method name="list_built_in_include_files" qualifiers="static">
+			<return type="PackedStringArray" />
+			<description>
+				Returns a list of built-in include files that are currently registered.
+			</description>
+		</method>
+	</methods>
+</class>

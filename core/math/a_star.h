@@ -108,7 +108,7 @@ class AStar3D : public RefCounted {
 		}
 	};
 
-	int64_t last_free_id = 0;
+	mutable int64_t last_free_id = 0;
 	uint64_t pass = 1;
 
 	OAHashMap<int64_t, Point *> points;

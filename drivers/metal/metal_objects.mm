@@ -223,6 +223,26 @@ void MDCommandBuffer::render_bind_uniform_set(RDD::UniformSetID p_uniform_set, R
 	}
 }
 
+void MDCommandBuffer::render_bind_uniform_sets(VectorView<RDD::UniformSetID> p_uniform_sets, RDD::ShaderID p_shader, uint32_t p_first_set_index, uint32_t p_set_count) {
+	DEV_ASSERT(type == MDCommandBufferStateType::Render);
+
+	for (size_t i = 0u; i < p_set_count; ++i) {
+		MDUniformSet *set = (MDUniformSet *)(p_uniform_sets[i].id);
+		if (render.uniform_sets.size() <= set->index) {
+			uint32_t s = render.uniform_sets.size();
+			render.uniform_sets.resize(set->index + 1);
+			// Set intermediate values to null.
+			std::fill(&render.uniform_sets[s], &render.uniform_sets[set->index] + 1, nullptr);
+		}
+
+		if (render.uniform_sets[set->index] != set) {
+			render.dirty.set_flag(RenderState::DIRTY_UNIFORMS);
+			render.uniform_set_mask |= 1ULL << set->index;
+			render.uniform_sets[set->index] = set;
+		}
+	}
+}
+
 void MDCommandBuffer::render_clear_attachments(VectorView<RDD::AttachmentClear> p_attachment_clears, VectorView<Rect2i> p_rects) {
 	DEV_ASSERT(type == MDCommandBufferStateType::Render);
 
@@ -962,6 +982,40 @@ void MDCommandBuffer::compute_bind_uniform_set(RDD::UniformSetID p_uniform_set, 
 	if (offset) {
 		[enc setBuffer:bus.buffer offset:*offset atIndex:p_set_index];
 	}
+}
+
+void MDCommandBuffer::compute_bind_uniform_sets(VectorView<RDD::UniformSetID> p_uniform_sets, RDD::ShaderID p_shader, uint32_t p_first_set_index, uint32_t p_set_count) {
+	DEV_ASSERT(type == MDCommandBufferStateType::Compute);
+
+	id<MTLComputeCommandEncoder> enc = compute.encoder;
+	id<MTLDevice> device = enc.device;
+
+	MDShader *shader = (MDShader *)(p_shader.id);
+
+	thread_local LocalVector<__unsafe_unretained id<MTLBuffer>> buffers;
+	thread_local LocalVector<NSUInteger> offsets;
+
+	buffers.resize(p_set_count);
+	offsets.resize(p_set_count);
+
+	for (size_t i = 0u; i < p_set_count; ++i) {
+		UniformSet const &set_info = shader->sets[p_first_set_index + i];
+
+		MDUniformSet *set = (MDUniformSet *)(p_uniform_sets[i].id);
+		BoundUniformSet &bus = set->boundUniformSetForShader(shader, device);
+		bus.merge_into(compute.resource_usage);
+
+		uint32_t const *offset = set_info.offsets.getptr(RDD::SHADER_STAGE_COMPUTE);
+		if (offset) {
+			buffers[i] = bus.buffer;
+			offsets[i] = *offset;
+		} else {
+			buffers[i] = nullptr;
+			offsets[i] = 0u;
+		}
+	}
+
+	[enc setBuffers:buffers.ptr() offsets:offsets.ptr() withRange:NSMakeRange(p_first_set_index, p_set_count)];
 }
 
 void MDCommandBuffer::compute_dispatch(uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups) {

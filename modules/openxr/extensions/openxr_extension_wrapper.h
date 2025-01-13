@@ -62,6 +62,7 @@ public:
 	virtual void *set_session_create_and_get_next_pointer(void *p_next_pointer) { return p_next_pointer; } // Add additional data structures when we create our OpenXR session.
 	virtual void *set_swapchain_create_info_and_get_next_pointer(void *p_next_pointer) { return p_next_pointer; } // Add additional data structures when creating OpenXR swap chains.
 	virtual void *set_hand_joint_locations_and_get_next_pointer(int p_hand_index, void *p_next_pointer) { return p_next_pointer; }
+	virtual void *set_projection_views_and_get_next_pointer(int p_view_index, void *p_next_pointer) { return p_next_pointer; }
 
 	virtual PackedStringArray get_suggested_tracker_names() { return PackedStringArray(); }
 

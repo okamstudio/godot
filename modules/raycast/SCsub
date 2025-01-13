@@ -66,18 +66,12 @@ if env["builtin_embree"]:
     env_raycast.Append(CPPDEFINES=["EMBREE_TARGET_SSE2", "EMBREE_LOWEST_ISA", "TASKING_INTERNAL"])
     env_raycast.AppendUnique(CPPDEFINES=["NDEBUG"])  # No assert() even in debug builds.
 
-    if not env.msvc:
-        if env["arch"] in ["x86_64", "x86_32"]:
-            env_raycast.Append(CCFLAGS=["-msse2", "-mxsave"])
-
-        if env["platform"] == "windows":
-            env_raycast.Append(CCFLAGS=["-mstackrealign"])
-
     if env["platform"] == "windows":
         if env.msvc:
             env.Append(LINKFLAGS=["psapi.lib"])
         else:
             env.Append(LIBS=["psapi"])
+            env_raycast.Append(CCFLAGS=["-mstackrealign"])
 
     if env.msvc:  # Disable bogus warning about intentional struct padding.
         env_raycast.Append(CCFLAGS=["/wd4324"])

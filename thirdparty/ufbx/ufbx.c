@@ -20,6 +20,21 @@
 //   UFBX_TRACE                Log calls of `ufbxi_check()` for tracing execution
 //   UFBX_LITTLE_ENDIAN=0/1    Explicitly define little/big endian architecture
 //   UFBX_PATH_SEPARATOR=''    Specify default platform path separator
+//   UFBX_NO_SSE               Do not try to include SSE
+
+// Dependencies:
+//   UFBX_NO_MALLOC              Disable default malloc/realloc/free
+//   UFBX_NO_STDIO               Disable stdio FILE API
+//   UFBX_EXTERNAL_MALLOC        Link to external ufbx_malloc() interface
+//   UFBX_EXTERNAL_STDIO         Link to external ufbx_stdio_() interface
+//   UFBX_EXTERNAL_MATH          Link to external <math.h> interface
+//   UFBX_EXTERNAL_STRING        Link to external <string.h> interface
+
+// Freestanding:
+//   UFBX_MATH_PREFIX='ufbx_'    Prefix for external <math.h> functions used
+//   UFBX_STRING_PREFIX='ufbx_'  Prefix for external <string.h> functions used
+//   UFBX_NO_LIBC                Do not include libc (implies UFBX_EXTERNAL_MATH/STRING/MALLOC/STDIO by default)
+//   UFBX_NO_LIBC_TYPES          Do not include any libc headers, you must define all types in <stdint.h/stddef.h/etc>
 
 // Mostly internal for debugging:
 //   UFBX_STATIC_ANALYSIS      Enable static analysis augmentation
@@ -175,28 +190,71 @@
 
 // -- Headers
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <locale.h>
-#include <float.h>
-
-#if !defined(UFBX_NO_MATH_H)
-	#include <math.h>
-	#define UFBX_INFINITY INFINITY
-	#define UFBX_NAN NAN
+// Legacy mapping
+#if !defined(UFBX_EXTERNAL_MATH) && defined(UFBX_NO_MATH_H)
+	#define UFBX_EXTERNAL_MATH
 #endif
 
-#if !defined(UFBX_MATH_PREFIX)
-	#define UFBX_MATH_PREFIX
+#if !defined(UFBX_NO_LIBC_TYPES)
+	#include <stdarg.h>
 #endif
 
-#define ufbxi_math_cat2(a, b) a##b
-#define ufbxi_math_cat(a, b) ufbxi_math_cat2(a, b)
-#define ufbxi_math_fn(name) ufbxi_math_cat(UFBX_MATH_PREFIX, name)
+#if !defined(UFBX_NO_LIBC)
+	#if !defined(UFBX_NO_FLOAT_H)
+		#include <float.h>
+	#endif
+	#if !defined(UFBX_EXTERNAL_MATH)
+		#include <math.h>
+	#endif
+	#if !defined(UFBX_EXTERNAL_STRING)
+		#include <string.h>
+	#endif
+	#if !defined(UFBX_NO_STDIO) && !defined(UFBX_EXTERNAL_STDIO)
+		#include <stdio.h>
+	#endif
+	#if !defined(UFBX_NO_MALLOC) && !defined(UFBX_EXTERNAL_MALLOC)
+		#include <stdlib.h>
+	#endif
+#else
+	#if !defined(UFBX_EXTERNAL_MATH) && !defined(UFBX_NO_EXTERNAL_MATH)
+		#define UFBX_EXTERNAL_MATH
+	#endif
+	#if !defined(UFBX_EXTERNAL_STRING) && !defined(UFBX_NO_EXTERNAL_STRING)
+		#define UFBX_EXTERNAL_STRING
+	#endif
+	#if !defined(UFBX_EXTERNAL_MALLOC) && !defined(UFBX_NO_EXTERNAL_MALLOC) && !defined(UFBX_NO_MALLOC)
+		#define UFBX_EXTERNAL_MALLOC
+	#endif
+	#if !defined(UFBX_EXTERNAL_STDIO) && !defined(UFBX_NO_EXTERNAL_STDIO) && !defined(UFBX_NO_STDIO)
+		#define UFBX_EXTERNAL_STDIO
+	#endif
+#endif
 
-#if !defined(UFBX_NO_MATH_DEFINES)
+#if defined(UFBX_EXTERNAL_STRING) && !defined(UFBX_STRING_PREFIX)
+	#define UFBX_STRING_PREFIX ufbx_
+#endif
+
+#if !defined(UFBX_EXTERNAL_MATH)
+	#if !defined(UFBX_MATH_PREFIX)
+		#define UFBX_MATH_PREFIX
+	#endif
+#endif
+
+#define ufbxi_pre_cat2(a, b) a##b
+#define ufbxi_pre_cat(a, b) ufbxi_pre_cat2(a, b)
+
+// -- External functions
+
+#ifndef ufbx_extern_abi
+	#if defined(UFBX_STATIC)
+		#define ufbx_extern_abi static
+	#else
+		#define ufbx_extern_abi
+	#endif
+#endif
+
+#if defined(UFBX_MATH_PREFIX)
+	#define ufbxi_math_fn(name) ufbxi_pre_cat(UFBX_MATH_PREFIX, name)
 	#define ufbx_sqrt ufbxi_math_fn(sqrt)
 	#define ufbx_fabs ufbxi_math_fn(fabs)
 	#define ufbx_pow ufbxi_math_fn(pow)
@@ -216,31 +274,123 @@
 	#define ufbx_isnan ufbxi_math_fn(isnan)
 #endif
 
-#if defined(UFBX_NO_MATH_H) && !defined(UFBX_NO_MATH_DECLARATIONS)
-	double ufbx_sqrt(double x);
-	double ufbx_sin(double x);
-	double ufbx_cos(double x);
-	double ufbx_tan(double x);
-	double ufbx_asin(double x);
-	double ufbx_acos(double x);
-	double ufbx_atan(double x);
-	double ufbx_atan2(double y, double x);
-	double ufbx_pow(double x, double y);
-	double ufbx_fmin(double a, double b);
-	double ufbx_fmax(double a, double b);
-	double ufbx_fabs(double x);
-	double ufbx_copysign(double x, double y);
-	double ufbx_nextafter(double x, double y);
-	double ufbx_rint(double x);
-	double ufbx_ceil(double x);
-	int ufbx_isnan(double x);
+#if !defined(UFBX_NO_EXTERNAL_DEFINES)
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+#if defined(UFBX_EXTERNAL_MATH)
+	ufbx_extern_abi double ufbx_sqrt(double x);
+	ufbx_extern_abi double ufbx_sin(double x);
+	ufbx_extern_abi double ufbx_cos(double x);
+	ufbx_extern_abi double ufbx_tan(double x);
+	ufbx_extern_abi double ufbx_asin(double x);
+	ufbx_extern_abi double ufbx_acos(double x);
+	ufbx_extern_abi double ufbx_atan(double x);
+	ufbx_extern_abi double ufbx_atan2(double y, double x);
+	ufbx_extern_abi double ufbx_pow(double x, double y);
+	ufbx_extern_abi double ufbx_fmin(double a, double b);
+	ufbx_extern_abi double ufbx_fmax(double a, double b);
+	ufbx_extern_abi double ufbx_fabs(double x);
+	ufbx_extern_abi double ufbx_copysign(double x, double y);
+	ufbx_extern_abi double ufbx_nextafter(double x, double y);
+	ufbx_extern_abi double ufbx_rint(double x);
+	ufbx_extern_abi double ufbx_ceil(double x);
+	ufbx_extern_abi int ufbx_isnan(double x);
+#endif
+
+#if defined(UFBX_EXTERNAL_STRING)
+	ufbx_extern_abi size_t ufbx_strlen(const char *str);
+	ufbx_extern_abi void *ufbx_memcpy(void *dst, const void *src, size_t count);
+	ufbx_extern_abi void *ufbx_memmove(void *dst, const void *src, size_t count);
+	ufbx_extern_abi void *ufbx_memset(void *dst, int ch, size_t count);
+	ufbx_extern_abi const void *ufbx_memchr(const void *ptr, int value, size_t count);
+	ufbx_extern_abi int ufbx_memcmp(const void *a, const void *b, size_t count);
+	ufbx_extern_abi int ufbx_strcmp(const char *a, const char *b);
+	ufbx_extern_abi int ufbx_strncmp(const char *a, const char *b, size_t count);
+#endif
+
+#if defined(UFBX_EXTERNAL_MALLOC)
+	ufbx_extern_abi void *ufbx_malloc(size_t size);
+	ufbx_extern_abi void *ufbx_realloc(void *ptr, size_t old_size, size_t new_size);
+	ufbx_extern_abi void ufbx_free(void *ptr, size_t old_size);
+#endif
+
+#if defined(UFBX_EXTERNAL_STDIO)
+	ufbx_extern_abi void *ufbx_stdio_open(const char *path, size_t path_len);
+	ufbx_extern_abi size_t ufbx_stdio_read(void *file, void *data, size_t size);
+	ufbx_extern_abi bool ufbx_stdio_skip(void *file, size_t size);
+	ufbx_extern_abi uint64_t ufbx_stdio_size(void *file);
+	ufbx_extern_abi void ufbx_stdio_close(void *file);
+#endif
+
+#if defined(__cplusplus)
+}
+#endif
+
 #endif
 
 #if !defined(UFBX_INFINITY)
-	#define UFBX_INFINITY (1e+300 * 1e+300)
+	#if defined(INFINITY)
+		#define UFBX_INFINITY INFINITY
+	#else
+		#define UFBX_INFINITY (1e+300 * 1e+300)
+	#endif
 #endif
 #if !defined(UFBX_NAN)
-	#define UFBX_NAN (UFBX_INFINITY * 0.0f)
+	#if defined(NAN)
+		#define UFBX_NAN NAN
+	#else
+		#define UFBX_NAN (UFBX_INFINITY * 0.0f)
+	#endif
+#endif
+#if !defined(UFBX_FLT_EPSILON)
+	#if defined(FLT_EPSILON)
+		#define UFBX_FLT_EPSILON FLT_EPSILON
+	#else
+		#define UFBX_FLT_EPSILON 1.192092896e-07f
+	#endif
+#endif
+#if !defined(UFBX_FLT_EVAL_METHOD)
+	#if defined(FLT_EVAL_METHOD)
+		#define UFBX_FLT_EVAL_METHOD FLT_EVAL_METHOD
+	#elif defined(__FLT_EVAL_METHOD__)
+		#define UFBX_FLT_EVAL_METHOD __FLT_EVAL_METHOD__
+	#elif defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+		#define UFBX_FLT_EVAL_METHOD 0
+	#else
+		#define UFBX_FLT_EVAL_METHOD -1
+	#endif
+#endif
+
+#if defined(ufbx_malloc) || defined(ufbx_realloc) || defined(ufbx_free)
+	// User provided allocators
+	#if !defined(ufbx_malloc) || !defined(ufbx_realloc) || !defined(ufbx_free)
+		#error Inconsistent custom global allocator
+	#endif
+#elif defined(UFBX_NO_MALLOC)
+	#define ufbx_malloc(size) ((void)(size), (void*)NULL)
+	#define ufbx_realloc(ptr, old_size, new_size) ((void)(ptr), (void)(old_size), (void)(new_size), (void*)NULL)
+	#define ufbx_free(ptr, old_size) ((void)(ptr), (void*)(old_size))
+#elif defined(UFBX_EXTERNAL_MALLOC)
+	// Nop
+#else
+	#define ufbx_malloc(size) malloc((size))
+	#define ufbx_realloc(ptr, old_size, new_size) realloc((ptr), (new_size))
+	#define ufbx_free(ptr, old_size) free((ptr))
+#endif
+
+#if !defined(ufbx_panic_handler)
+	static void ufbxi_panic_handler(const char *message)
+	{
+		(void)message;
+		#if !defined(UFBX_NO_STDIO) && !defined(UFBX_EXTERNAL_STDIO)
+			fprintf(stderr, "ufbx panic: %s\n", message);
+		#endif
+		ufbx_assert(false && "ufbx panic: See stderr for more information");
+	}
+	#define ufbx_panic_handler ufbxi_panic_handler
 #endif
 
 // -- Platform
@@ -414,8 +564,16 @@
 #if defined(UFBX_STATIC_ANALYSIS)
 	bool ufbxi_analysis_opaque;
 	#define ufbxi_maybe_null(ptr) (ufbxi_analysis_opaque ? (ptr) : NULL)
+	#define ufbxi_analysis_assert(cond) ufbx_assert(cond)
 #else
 	#define ufbxi_maybe_null(ptr) (ptr)
+	#define ufbxi_analysis_assert(cond) (void)0
+#endif
+
+#if defined(UFBX_STATIC_ANALYSIS) || defined(UFBX_UBSAN)
+	#define ufbxi_maybe_uninit(cond, value, def) ((cond) ? (value) : (def))
+#else
+	#define ufbxi_maybe_uninit(cond, value, def) (value)
 #endif
 
 #if !defined(ufbxi_trace)
@@ -442,12 +600,114 @@
 	#endif
 #endif
 
-#if !defined(UFBX_STANDARD_C) && (defined(_MSC_VER) && defined(_M_X64)) || ((defined(__GNUC__) || defined(__clang__)) && defined(__x86_64__)) || defined(UFBX_USE_SSE)
+#if !defined(UFBX_STANDARD_C) && !defined(UFBX_NO_SSE) && (defined(_MSC_VER) && defined(_M_X64) && !defined(_M_ARM64EC)) || ((defined(__GNUC__) || defined(__clang__)) && defined(__x86_64__)) || defined(UFBX_USE_SSE)
 	#define UFBXI_HAS_SSE 1
 	#include <xmmintrin.h>
 	#include <emmintrin.h>
 #else
 	#define UFBXI_HAS_SSE 0
+#endif
+
+// -- Atomic counter
+
+#define UFBXI_THREAD_SAFE 1
+
+#if defined(__cplusplus)
+	#define ufbxi_extern_c extern "C"
+#else
+	#define ufbxi_extern_c
+#endif
+
+#if !defined(UFBX_STANDARD_C) && (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER))
+	typedef size_t ufbxi_atomic_counter;
+	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_inc(ptr) __sync_fetch_and_add((ptr), 1)
+	#define ufbxi_atomic_counter_dec(ptr) __sync_fetch_and_sub((ptr), 1)
+	#define ufbxi_atomic_counter_load(ptr) __sync_fetch_and_add((ptr), 0) // TODO: Proper atomic load
+#elif !defined(UFBX_STANDARD_C) && defined(_MSC_VER)
+	#if defined(_M_X64) || defined(_M_ARM64)
+		ufbxi_extern_c __int64 _InterlockedIncrement64(__int64 volatile * lpAddend);
+		ufbxi_extern_c __int64 _InterlockedDecrement64(__int64 volatile * lpAddend);
+		ufbxi_extern_c __int64 _InterlockedExchangeAdd64(__int64 volatile * lpAddend, __int64 Value);
+		typedef volatile __int64 ufbxi_atomic_counter;
+		#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
+		#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
+		#define ufbxi_atomic_counter_inc(ptr) ((size_t)_InterlockedIncrement64(ptr) - 1)
+		#define ufbxi_atomic_counter_dec(ptr) ((size_t)_InterlockedDecrement64(ptr) + 1)
+		#define ufbxi_atomic_counter_load(ptr) ((size_t)_InterlockedExchangeAdd64((ptr), 0))
+	#else
+		ufbxi_extern_c long __cdecl _InterlockedIncrement(long volatile * lpAddend);
+		ufbxi_extern_c long __cdecl _InterlockedDecrement(long volatile * lpAddend);
+		ufbxi_extern_c long __cdecl _InterlockedExchangeAdd(long volatile * lpAddend, long Value);
+		typedef volatile long ufbxi_atomic_counter;
+		#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
+		#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
+		#define ufbxi_atomic_counter_inc(ptr) ((size_t)_InterlockedIncrement(ptr) - 1)
+		#define ufbxi_atomic_counter_dec(ptr) ((size_t)_InterlockedDecrement(ptr) + 1)
+		#define ufbxi_atomic_counter_load(ptr) ((size_t)_InterlockedExchangeAdd((ptr), 0))
+	#endif
+#elif !defined(UFBX_STANDARD_C) && defined(__TINYC__)
+	#if defined(__x86_64__) || defined(_AMD64_)
+		static size_t ufbxi_tcc_atomic_add(volatile size_t *dst, size_t value) {
+			__asm__ __volatile__("lock; xaddq %0, %1;" : "+r" (value), "=m" (*dst) : "m" (dst));
+			return value;
+		}
+	#elif defined(__i386__) || defined(_X86_)
+		static size_t ufbxi_tcc_atomic_add(volatile size_t *dst, size_t value) {
+			__asm__ __volatile__("lock; xaddl %0, %1;" : "+r" (value), "=m" (*dst) : "m" (dst));
+			return value;
+		}
+	#else
+		#error Unexpected TCC architecture
+	#endif
+	typedef volatile size_t ufbxi_atomic_counter;
+	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_inc(ptr) ufbxi_tcc_atomic_add((ptr), 1)
+	#define ufbxi_atomic_counter_dec(ptr) ufbxi_tcc_atomic_add((ptr), SIZE_MAX)
+	#define ufbxi_atomic_counter_load(ptr) ufbxi_tcc_atomic_add((ptr), 0)
+#elif defined(__cplusplus) && (__cplusplus >= 201103L)
+	#include <new>
+	#include <atomic>
+	typedef struct { alignas(std::atomic_size_t) char data[sizeof(std::atomic_size_t)]; } ufbxi_atomic_counter;
+	#define ufbxi_atomic_counter_init(ptr) (new (&(ptr)->data) std::atomic_size_t(0))
+	#define ufbxi_atomic_counter_free(ptr) (((std::atomic_size_t*)(ptr)->data)->~atomic())
+	#define ufbxi_atomic_counter_inc(ptr) ((std::atomic_size_t*)(ptr)->data)->fetch_add(1)
+	#define ufbxi_atomic_counter_dec(ptr) ((std::atomic_size_t*)(ptr)->data)->fetch_sub(1)
+	#define ufbxi_atomic_counter_load(ptr) ((std::atomic_size_t*)(ptr)->data)->load(std::memory_order_acquire)
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
+	#include <stdatomic.h>
+	typedef volatile atomic_size_t ufbxi_atomic_counter;
+	#define ufbxi_atomic_counter_init(ptr) atomic_init(ptr, 0)
+	#define ufbxi_atomic_counter_free(ptr) (void)(ptr)
+	#define ufbxi_atomic_counter_inc(ptr) atomic_fetch_add((ptr), 1)
+	#define ufbxi_atomic_counter_dec(ptr) atomic_fetch_sub((ptr), 1)
+	#define ufbxi_atomic_counter_load(ptr) atomic_load_explicit((ptr), memory_order_acquire)
+#else
+	typedef volatile size_t ufbxi_atomic_counter;
+	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
+	#define ufbxi_atomic_counter_inc(ptr) ((*(ptr))++)
+	#define ufbxi_atomic_counter_dec(ptr) ((*(ptr))--)
+	#define ufbxi_atomic_counter_load(ptr) (*(ptr))
+	#undef UFBXI_THREAD_SAFE
+	#define UFBXI_THREAD_SAFE 0
+#endif
+
+// ^^ No references to <string.h> before this point ^^
+// vv No more includes past this point vv
+
+#if defined(UFBX_STRING_PREFIX)
+	#define ufbxi_string_fn(name) ufbxi_pre_cat(UFBX_STRING_PREFIX, name)
+	#define strlen ufbxi_string_fn(strlen)
+	#define memcpy ufbxi_string_fn(memcpy)
+	#define memmove ufbxi_string_fn(memmove)
+	#define memset ufbxi_string_fn(memset)
+	#define memchr ufbxi_string_fn(memchr)
+	#define memcmp ufbxi_string_fn(memcmp)
+	#define strcmp ufbxi_string_fn(strcmp)
+	#define strncmp ufbxi_string_fn(strncmp)
 #endif
 
 #if !defined(UFBX_LITTLE_ENDIAN)
@@ -570,7 +830,7 @@ ufbx_static_assert(sizeof_f64, sizeof(double) == 8);
 
 // -- Version
 
-#define UFBX_SOURCE_VERSION ufbx_pack_version(0, 14, 3)
+#define UFBX_SOURCE_VERSION ufbx_pack_version(0, 15, 0)
 ufbx_abi_data_def const uint32_t ufbx_source_version = UFBX_SOURCE_VERSION;
 
 ufbx_static_assert(source_header_version, UFBX_SOURCE_VERSION/1000u == UFBX_HEADER_VERSION/1000u);
@@ -607,98 +867,16 @@ ufbx_static_assert(source_header_version, UFBX_SOURCE_VERSION/1000u == UFBX_HEAD
 	#define ufbxi_wrap_shr64(a, b) ((a) >> ((b) & 63))
 #endif
 
-// -- Atomic counter
-
-#define UFBXI_THREAD_SAFE 1
-
-#if defined(__cplusplus)
-	#define ufbxi_extern_c extern "C"
-#else
-	#define ufbxi_extern_c
-#endif
-
-#if !defined(UFBX_STANDARD_C) && (defined(__GNUC__) || defined(__clang__) || defined(__INTEL_COMPILER))
-	typedef size_t ufbxi_atomic_counter;
-	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_inc(ptr) __sync_fetch_and_add((ptr), 1)
-	#define ufbxi_atomic_counter_dec(ptr) __sync_fetch_and_sub((ptr), 1)
-	#define ufbxi_atomic_counter_load(ptr) __sync_fetch_and_add((ptr), 0) // TODO: Proper atomic load
-#elif !defined(UFBX_STANDARD_C) && defined(_MSC_VER)
-	#if defined(_M_X64) || defined(_M_ARM64)
-		ufbxi_extern_c __int64 _InterlockedIncrement64(__int64 volatile * lpAddend);
-		ufbxi_extern_c __int64 _InterlockedDecrement64(__int64 volatile * lpAddend);
-		ufbxi_extern_c __int64 _InterlockedExchangeAdd64(__int64 volatile * lpAddend, __int64 Value);
-		typedef volatile __int64 ufbxi_atomic_counter;
-		#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
-		#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
-		#define ufbxi_atomic_counter_inc(ptr) ((size_t)_InterlockedIncrement64(ptr) - 1)
-		#define ufbxi_atomic_counter_dec(ptr) ((size_t)_InterlockedDecrement64(ptr) + 1)
-		#define ufbxi_atomic_counter_load(ptr) ((size_t)_InterlockedExchangeAdd64((ptr), 0))
-	#else
-		ufbxi_extern_c long __cdecl _InterlockedIncrement(long volatile * lpAddend);
-		ufbxi_extern_c long __cdecl _InterlockedDecrement(long volatile * lpAddend);
-		ufbxi_extern_c long __cdecl _InterlockedExchangeAdd(long volatile * lpAddend, long Value);
-		typedef volatile long ufbxi_atomic_counter;
-		#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
-		#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
-		#define ufbxi_atomic_counter_inc(ptr) ((size_t)_InterlockedIncrement(ptr) - 1)
-		#define ufbxi_atomic_counter_dec(ptr) ((size_t)_InterlockedDecrement(ptr) + 1)
-		#define ufbxi_atomic_counter_load(ptr) ((size_t)_InterlockedExchangeAdd((ptr), 0))
-	#endif
-#elif !defined(UFBX_STANDARD_C) && defined(__TINYC__)
-	#if defined(__x86_64__) || defined(_AMD64_)
-		static size_t ufbxi_tcc_atomic_add(volatile size_t *dst, size_t value) {
-			__asm__ __volatile__("lock; xaddq %0, %1;" : "+r" (value), "=m" (*dst) : "m" (dst));
-			return value;
-		}
-	#elif defined(__i386__) || defined(_X86_)
-		static size_t ufbxi_tcc_atomic_add(volatile size_t *dst, size_t value) {
-			__asm__ __volatile__("lock; xaddl %0, %1;" : "+r" (value), "=m" (*dst) : "m" (dst));
-			return value;
-		}
-	#else
-		#error Unexpected TCC architecture
-	#endif
-	typedef volatile size_t ufbxi_atomic_counter;
-	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_inc(ptr) ufbxi_tcc_atomic_add((ptr), 1)
-	#define ufbxi_atomic_counter_dec(ptr) ufbxi_tcc_atomic_add((ptr), SIZE_MAX)
-	#define ufbxi_atomic_counter_load(ptr) ufbxi_tcc_atomic_add((ptr), 0)
-#elif defined(__cplusplus) && (__cplusplus >= 201103L)
-	#include <new>
-	#include <atomic>
-	typedef struct { alignas(std::atomic_size_t) char data[sizeof(std::atomic_size_t)]; } ufbxi_atomic_counter;
-	#define ufbxi_atomic_counter_init(ptr) (new (&(ptr)->data) std::atomic_size_t(0))
-	#define ufbxi_atomic_counter_free(ptr) (((std::atomic_size_t*)(ptr)->data)->~atomic())
-	#define ufbxi_atomic_counter_inc(ptr) ((std::atomic_size_t*)(ptr)->data)->fetch_add(1)
-	#define ufbxi_atomic_counter_dec(ptr) ((std::atomic_size_t*)(ptr)->data)->fetch_sub(1)
-	#define ufbxi_atomic_counter_load(ptr) ((std::atomic_size_t*)(ptr)->data)->load(std::memory_order_acquire)
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && !defined(__STDC_NO_ATOMICS__)
-	#include <stdatomic.h>
-	typedef volatile atomic_size_t ufbxi_atomic_counter;
-	#define ufbxi_atomic_counter_init(ptr) atomic_init(ptr, 0)
-	#define ufbxi_atomic_counter_free(ptr) (void)(ptr)
-	#define ufbxi_atomic_counter_inc(ptr) atomic_fetch_add((ptr), 1)
-	#define ufbxi_atomic_counter_dec(ptr) atomic_fetch_sub((ptr), 1)
-	#define ufbxi_atomic_counter_load(ptr) atomic_load_explicit((ptr), memory_order_acquire)
-#else
-	typedef volatile size_t ufbxi_atomic_counter;
-	#define ufbxi_atomic_counter_init(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_free(ptr) (*(ptr) = 0)
-	#define ufbxi_atomic_counter_inc(ptr) ((*(ptr))++)
-	#define ufbxi_atomic_counter_dec(ptr) ((*(ptr))--)
-	#define ufbxi_atomic_counter_load(ptr) (*(ptr))
-	#undef UFBXI_THREAD_SAFE
-	#define UFBXI_THREAD_SAFE 0
-#endif
-
 // -- Bit manipulation
 
 #if !defined(UFBX_STANDARD_C) && defined(_MSC_VER) && (defined(_M_X64) || defined(_M_IX86))
 	ufbxi_extern_c unsigned char _BitScanReverse(unsigned long * _Index, unsigned long _Mask);
 	ufbxi_extern_c unsigned char _BitScanReverse64(unsigned long * _Index, unsigned __int64 _Mask);
+	static ufbxi_forceinline ufbxi_unused uint32_t ufbxi_lzcnt32(uint32_t v) {
+		unsigned long index;
+		_BitScanReverse(&index, (unsigned long)v);
+		return 31 - (uint32_t)index;
+	}
 	static ufbxi_forceinline ufbxi_unused uint32_t ufbxi_lzcnt64(uint64_t v) {
 		unsigned long index;
 		#if defined(_M_X64)
@@ -713,14 +891,26 @@ ufbx_static_assert(source_header_version, UFBX_SOURCE_VERSION/1000u == UFBX_HEAD
 		return 63 - (uint32_t)index;
 	}
 #elif !defined(UFBX_STANDARD_C) && (defined(__GNUC__) || defined(__clang__))
+	#define ufbxi_lzcnt32(v) ((uint32_t)__builtin_clz((unsigned)(v)))
 	#define ufbxi_lzcnt64(v) ((uint32_t)__builtin_clzll((unsigned long long)(v)))
 #else
 	// DeBrujin table lookup
-	static const uint8_t ufbxi_lzcnt_table[] = {
+	static const uint8_t ufbxi_lzcnt32_table[] =  {
+		31, 22, 30, 21, 18, 10, 29, 2, 20, 17, 15, 13, 9, 6, 28, 1, 23, 19, 11, 3, 16, 14, 7, 24, 12, 4, 8, 25, 5, 26, 27, 0,
+	};
+	static const uint8_t ufbxi_lzcnt64_table[] = {
 		63, 16, 62, 7, 15, 36, 61, 3, 6, 14, 22, 26, 35, 47, 60, 2, 9, 5, 28, 11, 13, 21, 42,
 		19, 25, 31, 34, 40, 46, 52, 59, 1, 17, 8, 37, 4, 23, 27, 48, 10, 29, 12, 43, 20, 32, 41,
 		53, 18, 38, 24, 49, 30, 44, 33, 54, 39, 50, 45, 55, 51, 56, 57, 58, 0,
 	};
+	static ufbxi_noinline ufbxi_unused uint32_t ufbxi_lzcnt32(uint32_t v) {
+		v |= v >> 1;
+		v |= v >> 2;
+		v |= v >> 4;
+		v |= v >> 8;
+		v |= v >> 16;
+		return ufbxi_lzcnt32_table[(v * 0x07c4acddu) >> 27];
+	}
 	static ufbxi_noinline ufbxi_unused uint32_t ufbxi_lzcnt64(uint64_t v) {
 		v |= v >> 1;
 		v |= v >> 2;
@@ -728,8 +918,18 @@ ufbx_static_assert(source_header_version, UFBX_SOURCE_VERSION/1000u == UFBX_HEAD
 		v |= v >> 8;
 		v |= v >> 16;
 		v |= v >> 32;
-		return ufbxi_lzcnt_table[(v * UINT64_C(0x03f79d71b4cb0a89)) >> 58];
+		return ufbxi_lzcnt64_table[(v * UINT64_C(0x03f79d71b4cb0a89)) >> 58];
 	}
+#endif
+
+// -- Bit conversion
+
+#if defined(__cplusplus)
+	#define ufbxi_bit_cast(m_dst_type, m_dst, m_src_type, m_src) memcpy(&(m_dst), &(m_src), sizeof(m_dst_type))
+#else
+	#define ufbxi_bit_cast(m_dst_type, m_dst, m_src_type, m_src) do { \
+		union { m_dst_type mi_dst; m_src_type mi_src; } mi_union; \
+		mi_union.mi_src = (m_src); (m_dst) = mi_union.mi_dst; } while (0)
 #endif
 
 // -- Debug
@@ -1081,321 +1281,389 @@ static ufbxi_noinline void ufbxi_unstable_sort(void *in_data, size_t size, size_
 }
 
 // -- Float parsing
-//
-// Custom float parsing that handles floats up to (-)ddddddddddddddddddd.ddddddddddddddddddd
-// If larger or scientific notation is used then it defers to `strtod()`.
-// For the algorithm we need 128-bit division that is either provided by hardware on x64 or
-// a custom implementation below.
 
-#if !defined(UFBX_STANDARD_C) && UFBXI_MSC_VER >= 1920 && defined(_M_X64) && !defined(__clang__)
-	ufbxi_extern_c extern unsigned __int64 __cdecl _udiv128(unsigned __int64  highdividend,
-		unsigned __int64 lowdividend, unsigned __int64 divisor, unsigned __int64 *remainder);
-	#define ufbxi_div128(a_hi, a_lo, b, p_rem) (_udiv128((a_hi), (a_lo), (b), (p_rem)))
-#elif !defined(UFBX_STANDARD_C) && (defined(__GNUC__) || defined(__clang__)) && (defined(__x86_64__) || defined(_M_X64))
-	static ufbxi_forceinline uint64_t ufbxi_div128(uint64_t a_hi, uint64_t a_lo, uint64_t b, uint64_t *p_rem) {
-		uint64_t quot, rem;
-		__asm__("divq %[v]" : "=a"(quot), "=d"(rem) : [v] "r"(b), "a"(a_lo), "d"(a_hi));
-		*p_rem = rem;
-		return quot;
-	}
-#else
-	static ufbxi_forceinline uint64_t ufbxi_div128(uint64_t a_hi, uint64_t a_lo, uint64_t b, uint64_t *p_rem) {
-		// Divide `(a_hi << 64 | a_lo)` by `b`, returns quotinent and stores reminder in `p_rem`.
-		// Based on TAOCP 2.4 multi-word division single algorithm digit step.
-		//
-		// Notation:
-		//   b is the base (2^32) in this case
-		//   aN is the Nth digit (base b) of a from the least significant digit
-		//   { x y z } is a multi-digit number b^2*x + b*y + z
-		//   ie. for a 64-bit number a = { a1 a0 } = b*a1 + a0
-		//
-		// We do the division in two steps by dividing three digits in each iteration:
-		//
-		//   q1, r = { a3 a2 a1 } / { b1 b0 }
-		//   q0, r = { r1 r0 a0 } / { b1 b0 }
-		//
-		// In each step we want to compute the expression:
-		//
-		//   q, r = { u2 u1 u0 } / { v1 v0 }
-		//
-		// However we cannot rely on being able to do `u96 / u64` division we estimate
-		// the result by considering only the leading digits:
-		//
-		//   q^ = { u2 u1 } / v1                                       [A]
-		//   r^ = { u2 u1 } % v1 = { u2 u1 } - v1 * q^                 [B]
-		//
-		// As long as `v1 >= b/2` the estimate `q^` is at most two larger than the actual `q`
-		// (proof in TAOCP 2.4) so we can compute the correction amount `c`:
-		//
-		//   q <= q^ <= q + 2
-		//   q = q^ - c                                                [C]
-		//
-		// We can compute the final remainder (that must be non-negative) as follows:
-		//
-		//   r = { u2 u1 u0 } - v*q
-		//   r = { u2 u1 u0 } - v*(q^ - c)
-		//   r = { u2 u1 u0 } - v*q^ + v*c
-		//   r = { u2 u1 u0 } - { v1 v0 } * q^ + v*c
-		//   r = b^2*u2 + b*u1 + u0 - b*v1*q^ - v0*q^ + v*c
-		//   r = b*(b*u2 + u1 - v1*q^) + u0 - v0*q^ + v*c
-		//   r = b*({ u2 u1 } - v1*q^) + u0 - v0*q^ + v*c
-		//   r = b*r^ + u0 - v0*q^ + v*c
-		//   r = { r^ u0 } - v0*q^ + v*c                               [D]
-		//
-		// As we know `0 <= c <= 2` we can first check if `r < 0` requiring `c >= 1`:
-		//
-		//   { r^ u0 } - v0*q^ < 0
-		//   { r^ u0 } < v0*q^                                         [E]
-		//
-		// If we know that `r < 0` we can check if `r < -v` requiring `c = 2`:
-		//
-		//   { r^ u0 } - v0*q^ < -v
-		//   v0*q^ - { r^ u0 } > v                                     [F]
-		//
+#define UFBXI_BIGINT_LIMB_BITS 32
+#define UFBXI_BIGINT_ACCUM_BITS (UFBXI_BIGINT_LIMB_BITS * 2)
+#define UFBXI_BIGINT_LIMB_MAX (ufbxi_bigint_limb)(((ufbxi_bigint_accum)1 << UFBXI_BIGINT_LIMB_BITS) - 1)
+typedef uint32_t ufbxi_bigint_limb;
+typedef uint64_t ufbxi_bigint_accum;
 
-		// First we need to make sure `v1 >= b/2`, we can do this by multiplying the whole
-		// expression by `2^shift` so that the high bit of `v` is set.
-		uint32_t shift = ufbxi_lzcnt64(b);
-		a_hi = (a_hi << shift) | (shift ? a_lo >> (64 - shift) : 0);
-		a_lo <<= shift;
-		b <<= shift;
+typedef struct {
+	ufbxi_bigint_limb *limbs;
+	uint32_t capacity;
+	uint32_t length;
+} ufbxi_bigint;
 
-		uint64_t v = b;
-		uint32_t v1 = (uint32_t)(v >> 32);
-		uint32_t v0 = (uint32_t)(v);
-		uint64_t q1, q0, r;
+static ufbxi_bigint ufbxi_bigint_make(ufbxi_bigint_limb *limbs, size_t capacity)
+{
+	ufbxi_bigint bi = { limbs, (uint32_t)capacity };
+	return bi;
+}
 
-		// q1, r = { a3 a2 a1 } / { b1 b0 }
-		{
-			uint64_t u2_u1 = a_hi;
-			uint32_t u0 = (uint32_t)(a_lo >> 32u);
-
-			uint64_t qh = u2_u1 / v1;            // q^ = { u2 u1 } / v1          [A]
-			uint64_t rh = u2_u1 % v1;            // r^ = { u2 u1 } % v1          [B]
-			uint64_t rh_u0 = rh << 32u | u0;     // { r^ u0 }
-			uint64_t v0qh = v0 * qh;             // v0*q^
-			uint32_t c = rh_u0 < v0qh ? 1 : 0;   // { r^ u0 } < v0*q^            [E]
-			c += c & (v0qh - rh_u0 > v ? 1 : 0); // v0*q^ - { r^ u0 } > v        [F]
-			q1 = qh - c;                         // q1 = q^ - c                  [C]
-			r = rh_u0 - v0qh + v*c;              // r = { r^ u0 } - v0*q^ + v*c  [D]
-		}
-
-		// q0, r = { r1 r0 a0 } / { b1 b0 }
-		{
-			uint64_t u2_u1 = r;
-			uint32_t u0 = (uint32_t)a_lo;
-
-			uint64_t qh = u2_u1 / v1;            // q^ = { u2 u1 } / v1          [A]
-			uint64_t rh = u2_u1 % v1;            // r^ = { u2 u1 } % v1          [B]
-			uint64_t rh_u0 = rh << 32u | u0;     // { r^ u0 }
-			uint64_t v0qh = v0 * qh;             // v0*q^
-			uint32_t c = rh_u0 < v0qh ? 1 : 0;   // { r^ u0 } < v0*q^            [E]
-			c += c & (v0qh - rh_u0 > v ? 1 : 0); // v0*q^ - { r^ u0 } > v        [F]
-			q0 = qh - c;                         // q0 = q^ - c                  [C]
-			r = rh_u0 - v0qh + v*c;              // r = { r^ u0 } - v0*q^ + v*c  [D]
-		}
-
-		// Un-normalize the remainder and return the quotinent
-		*p_rem = r >> shift;
-		return q1 << 32u | q0;
-	}
-#endif
-
-typedef enum {
-	UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH = 0x1,
-	UFBXI_PARSE_DOUBLE_VERIFY_LENGTH = 0x2,
-} ufbxi_parse_double_flag;
+#define ufbxi_bigint_array(arr) ufbxi_bigint_make((arr), sizeof(arr) / sizeof(*(arr)))
 
 static const uint64_t ufbxi_pow5_tab[] = {
-	UINT64_C(0x8000000000000000), // 5^0 * 2^63
-	UINT64_C(0xa000000000000000), // 5^1 * 2^61
-	UINT64_C(0xc800000000000000), // 5^2 * 2^59
-	UINT64_C(0xfa00000000000000), // 5^3 * 2^57
-	UINT64_C(0x9c40000000000000), // 5^4 * 2^54
-	UINT64_C(0xc350000000000000), // 5^5 * 2^52
-	UINT64_C(0xf424000000000000), // 5^6 * 2^50
-	UINT64_C(0x9896800000000000), // 5^7 * 2^47
-	UINT64_C(0xbebc200000000000), // 5^8 * 2^45
-	UINT64_C(0xee6b280000000000), // 5^9 * 2^43
-	UINT64_C(0x9502f90000000000), // 5^10 * 2^40
-	UINT64_C(0xba43b74000000000), // 5^11 * 2^38
-	UINT64_C(0xe8d4a51000000000), // 5^12 * 2^36
-	UINT64_C(0x9184e72a00000000), // 5^13 * 2^33
-	UINT64_C(0xb5e620f480000000), // 5^14 * 2^31
-	UINT64_C(0xe35fa931a0000000), // 5^15 * 2^29
-	UINT64_C(0x8e1bc9bf04000000), // 5^16 * 2^26
-	UINT64_C(0xb1a2bc2ec5000000), // 5^17 * 2^24
-	UINT64_C(0xde0b6b3a76400000), // 5^18 * 2^22
-	UINT64_C(0x8ac7230489e80000), // 5^19 * 2^19
-	UINT64_C(0xad78ebc5ac620000), // 5^20 * 2^17
-	UINT64_C(0xd8d726b7177a8000), // 5^21 * 2^15
-	UINT64_C(0x878678326eac9000), // 5^22 * 2^12
-	UINT64_C(0xa968163f0a57b400), // 5^23 * 2^10
-	UINT64_C(0xd3c21bcecceda100), // 5^24 * 2^8
-	UINT64_C(0x84595161401484a0), // 5^25 * 2^5
-	UINT64_C(0xa56fa5b99019a5c8), // 5^26 * 2^3
-	UINT64_C(0xcecb8f27f4200f3a), // 5^27 * 2^1
+	UINT64_C(0x1), UINT64_C(0x5), UINT64_C(0x19), UINT64_C(0x7d), UINT64_C(0x271), UINT64_C(0xc35), UINT64_C(0x3d09), UINT64_C(0x1312d), UINT64_C(0x5f5e1),
+	UINT64_C(0x1dcd65), UINT64_C(0x9502f9), UINT64_C(0x2e90edd), UINT64_C(0xe8d4a51), UINT64_C(0x48c27395), UINT64_C(0x16bcc41e9), UINT64_C(0x71afd498d),
+	UINT64_C(0x2386f26fc1), UINT64_C(0xb1a2bc2ec5), UINT64_C(0x3782dace9d9), UINT64_C(0x1158e460913d), UINT64_C(0x56bc75e2d631), UINT64_C(0x1b1ae4d6e2ef5),
+	UINT64_C(0x878678326eac9), UINT64_C(0x2a5a058fc295ed), UINT64_C(0xd3c21bcecceda1), UINT64_C(0x422ca8b0a00a425), UINT64_C(0x14adf4b7320334b9), UINT64_C(0x6765c793fa10079d),
 };
-static const int8_t ufbxi_pow2_tab[] = {
-	62, 59, 56, 53, 49, 46, 43, 39, 36, 33, 29, 26, 23, 19, 16, 13, 9, 6, 3, -1, -4, -7, -11, -14, -17, -21, -24, -27,
-};
+
 static const double ufbxi_pow10_tab_f64[] = {
 	1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22,
 };
 
-static ufbxi_noinline uint32_t ufbxi_parse_double_init_flags()
+static ufbxi_noinline void ufbxi_bigint_mad(ufbxi_bigint *bigint, ufbxi_bigint_accum multiplicand, ufbxi_bigint_accum addend)
 {
-	// We require evaluation in double precision, either for doubles (0) or always (1)
-	// and rounding to nearest, which we can check for with `1 + eps == 1 - eps`.
-	#if defined(FLT_EVAL_METHOD)
-		#if FLT_EVAL_METHOD == 0 || FLT_EVAL_METHOD == 1
-			static volatile double ufbxi_volatile_eps = 2.2250738585072014e-308;
-			if (1.0 + ufbxi_volatile_eps == 1.0 - ufbxi_volatile_eps) return UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH;
-		#endif
-	#endif
-
-	return 0;
+	ufbxi_dev_assert((multiplicand | addend) >> (UFBXI_BIGINT_ACCUM_BITS - 1) == 0);
+	ufbxi_bigint b = *bigint;
+	ufbxi_bigint_limb m_lo = (ufbxi_bigint_limb)multiplicand;
+	ufbxi_bigint_limb m_hi = (ufbxi_bigint_limb)(multiplicand >> UFBXI_BIGINT_LIMB_BITS);
+	ufbxi_bigint_accum carry = addend;
+	for (uint32_t i = 0; i < b.length; i++) {
+		ufbxi_bigint_accum limb = (ufbxi_bigint_accum)b.limbs[i];
+		ufbxi_bigint_accum lo = limb * m_lo + (carry & UFBXI_BIGINT_LIMB_MAX);
+		ufbxi_bigint_accum hi = limb * m_hi;
+		b.limbs[i] = (ufbxi_bigint_limb)lo;
+		carry = (carry >> 32u) + (lo >> 32u) + hi;
+	}
+	while (carry) {
+		b.limbs[b.length++] = (ufbxi_bigint_limb)carry;
+		ufbxi_dev_assert(b.length < b.capacity);
+		carry >>= 32u;
+	}
+	bigint->length = b.length;
 }
 
-static ufbxi_noinline double ufbxi_parse_double_slow(const char *str, char **end)
+static ufbxi_noinline bool ufbxi_bigint_div(ufbxi_bigint *q, ufbxi_bigint *u, ufbxi_bigint *v)
 {
-	// TODO: Locales
-	return strtod(str, end);
+	int32_t n = (int32_t)v->length;
+	int32_t m = (int32_t)u->length - n;
+	ufbxi_bigint_limb v_hi = v->limbs[v->length - 1];
+	ufbxi_bigint_limb *un = u->limbs, *vn = v->limbs;
+	ufbxi_dev_assert(n >= 2 && m >= 1 && v_hi >> (UFBXI_BIGINT_LIMB_BITS - 1) != 0 && un[n+m - 1] >> (UFBXI_BIGINT_LIMB_BITS - 1) == 0);
+	un[n + m] = 0;
+	q->length = 0;
+	for (int32_t j = m - 1; j >= 0; j--) {
+		ufbxi_bigint_accum u_hi = ((ufbxi_bigint_accum)un[n+j] << UFBXI_BIGINT_LIMB_BITS) | un[n+j-1];
+		ufbxi_bigint_accum t, qhat = u_hi / v_hi, rhat = u_hi % v_hi;
+		while (qhat >> UFBXI_BIGINT_LIMB_BITS != 0 || qhat*vn[n-2] > ((rhat<<UFBXI_BIGINT_LIMB_BITS)|un[j+n-2])) {
+			qhat -= 1;
+			rhat += v_hi;
+			if (rhat >> UFBXI_BIGINT_LIMB_BITS != 0) break;
+		}
+		ufbxi_bigint_limb carry = 0;
+		for (int32_t i = 0; i < n; i++) {
+			ufbxi_bigint_accum p = qhat * vn[i];
+			t = (ufbxi_bigint_accum)un[i+j] - carry - (ufbxi_bigint_limb)p;
+			un[i+j] = (ufbxi_bigint_limb)t;
+			carry = (ufbxi_bigint_limb)((p >> UFBXI_BIGINT_LIMB_BITS) - (t >> UFBXI_BIGINT_LIMB_BITS));
+		}
+		t = (ufbxi_bigint_accum)un[j+n] - carry;
+		un[j+n] = (ufbxi_bigint_limb)t;
+		if (t >> UFBXI_BIGINT_LIMB_BITS != 0) {
+			qhat -= 1;
+			carry = 0;
+			for (int32_t i = 0; i < n; i++) {
+				t = (ufbxi_bigint_accum)un[i+j] + vn[i] + carry;
+				un[i+j] = (ufbxi_bigint_limb)t;
+				carry = (ufbxi_bigint_limb)(t >> UFBXI_BIGINT_LIMB_BITS);
+			}
+			un[j+n] += carry;
+		}
+		q->limbs[j] = (ufbxi_bigint_limb)qhat;
+		if (qhat && !q->length) {
+			ufbxi_dev_assert(j + 1 < (int32_t)q->capacity);
+			q->length = (uint32_t)(j + 1);
+		}
+	}
+	for (int32_t i = 0; i < n; i++) {
+		if (un[i]) return true;
+	}
+	return false;
 }
+
+static void ufbxi_bigint_mul_pow5(ufbxi_bigint *b, uint32_t power)
+{
+	for (; power > 27; power -= 27) {
+		ufbxi_bigint_mad(b, ufbxi_pow5_tab[27], 0);
+	}
+	ufbxi_bigint_mad(b, ufbxi_pow5_tab[power], 0);
+}
+
+static ufbxi_noinline void ufbxi_bigint_shift_left(ufbxi_bigint *bigint, uint32_t amount)
+{
+	uint32_t words = amount / UFBXI_BIGINT_LIMB_BITS, bits = amount % UFBXI_BIGINT_LIMB_BITS;
+	ufbxi_bigint b = *bigint;
+	ufbxi_dev_assert(b.length + words + 1 < b.capacity && b.capacity >= 4);
+	uint32_t bits_down = UFBXI_BIGINT_LIMB_BITS - bits - 1;
+	bigint->length += words + (b.limbs[b.length - 1] >> 1 >> bits_down != 0 ? 1 : 0);
+	b.limbs[b.length] = 0;
+	if (b.length <= 3 && words <= 3) {
+		ufbxi_bigint_limb l0 = ufbxi_maybe_uninit(b.length >= 0, b.limbs[0], ~0u);
+		ufbxi_bigint_limb l1 = ufbxi_maybe_uninit(b.length >= 1, b.limbs[1], ~0u);
+		ufbxi_bigint_limb l2 = ufbxi_maybe_uninit(b.length >= 2, b.limbs[2], ~0u);
+		b.limbs[0] = 0;
+		b.limbs[1] = 0;
+		b.limbs[2] = 0;
+		b.limbs[words + 0] = l0 << bits;
+		b.limbs[words + 1] = (l1 << bits) | (l0 >> 1 >> bits_down);
+		b.limbs[words + 2] = (l2 << bits) | (l1 >> 1 >> bits_down);
+		b.limbs[words + 3] = (l2 >> 1 >> bits_down);
+	} else {
+		for (uint32_t i = b.length + 1; i-- > 1; ) {
+			b.limbs[i + words] = (b.limbs[i] << bits) | (b.limbs[i - 1] >> 1 >> bits_down);
+		}
+		b.limbs[words] = b.limbs[0] << bits;
+		for (uint32_t i = 0; i < words; i++) {
+			b.limbs[i] = 0;
+		}
+	}
+}
+
+static ufbxi_bigint_limb ufbxi_bigint_top_limb(const ufbxi_bigint b, uint32_t index) {
+	return index < b.length ? b.limbs[b.length - 1 - index] : 0;
+}
+
+static ufbxi_noinline uint64_t ufbxi_bigint_extract_high(const ufbxi_bigint b, int32_t *p_exponent, bool *p_tail)
+{
+	ufbxi_dev_assert(b.length != 0);
+	uint64_t result = 0;
+	const uint32_t limb_count = 64 / UFBXI_BIGINT_LIMB_BITS;
+	for (uint32_t i = 0; i < limb_count; i++) {
+		result = (result << UFBXI_BIGINT_LIMB_BITS) | ufbxi_bigint_top_limb(b, i);
+	}
+	uint32_t shift = ufbxi_lzcnt64(result);
+	result <<= shift;
+	ufbxi_bigint_limb lo = ufbxi_bigint_top_limb(b, limb_count);
+	if (shift > 0) {
+		result |= lo >> (UFBXI_BIGINT_LIMB_BITS - shift);
+	}
+	*p_tail |= (ufbxi_bigint_limb)(lo << shift) != 0;
+	for (uint32_t i = limb_count + 1; i < b.length; i++) {
+		*p_tail |= ufbxi_bigint_top_limb(b, i) != 0;
+	}
+	*p_exponent += (int32_t)(b.length * UFBXI_BIGINT_LIMB_BITS - shift - 1);
+	return result;
+}
+
+static uint64_t ufbxi_shift_right_round(uint64_t value, uint32_t shift, bool tail)
+{
+	if (shift == 0) return value;
+	if (shift > 64) return 0;
+	uint64_t result = value >> (shift - 1);
+	uint64_t tail_mask = (UINT64_C(1) << (shift - 1)) - 1;
+
+	bool r_odd = (result & 0x2) != 0;
+	bool r_round = (result & 0x1) != 0;
+	bool r_tail = tail || (value & tail_mask) != 0;
+	uint64_t round_bit = (r_round && (r_odd || r_tail)) ? 1u : 0u;
+
+	return (result >> 1u) + round_bit;
+}
+
+typedef enum {
+	UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH = 0x1,
+	UFBXI_PARSE_DOUBLE_VERIFY_LENGTH = 0x2,
+	UFBXI_PARSE_DOUBLE_AS_BINARY32 = 0x4,
+} ufbxi_parse_double_flag;
 
 static ufbxi_noinline double ufbxi_parse_double(const char *str, size_t max_length, char **end, uint32_t flags)
 {
-	// TODO: Use this for optimizing digit parsing
-	(void)max_length;
+	const uint32_t max_limbs = 14;
 
-	uint64_t integer = 0;
-	uint32_t n_integer = 0;
-	int32_t n_decimals = 0;
-	uint32_t n_exp = 0;
-	bool negative = false;
+	ufbxi_bigint_limb mantissa_limbs[42], divisor_limbs[42], quotient_limbs[42];
+	ufbxi_bigint big_mantissa = ufbxi_bigint_array(mantissa_limbs);
+	ufbxi_bigint big_quotient = ufbxi_bigint_array(quotient_limbs);
+	int32_t dec_exponent = 0, has_dot = 0;
+	bool negative = false, tail = false, digits_valid = true;
+	uint64_t digits = 0;
+	uint32_t num_digits = 0;
 
-	// Parse /[+-]?[0-9]*(\.[0-9]*)([eE][+-]?[0-9]*)?/ retaining all digits
-	// in `integer` and number of decimals in `n_decimals`, exponent simply
-	// modifies `n_decimals` accordingly.
 	const char *p = str;
-	if (*p == '-') {
-		negative = true;
-		p++;
-	} else if (*p == '+') {
-		p++;
+	if (*p == '+' || *p == '-') {
+		negative = *p++ == '-';
 	}
-	while (((uint32_t)*p - '0') < 10) {
-		integer = integer * 10 + (uint64_t)(*p++ - '0');
-		n_integer++;
-	}
-	if (*p == '.') {
-		p++;
-		while (((uint32_t)*p - '0') < 10) {
-			integer = integer * 10 + (uint64_t)(*p++ - '0');
-			n_integer++;
-			n_decimals++;
+	for (;;) {
+		char c = *p++;
+		if (c >= '0' && c <= '9') {
+			if (big_mantissa.length < max_limbs) {
+				digits = digits * 10 + (uint64_t)(c - '0');
+				num_digits++;
+				if (num_digits >= 18) {
+					ufbxi_bigint_mad(&big_mantissa, ufbxi_pow5_tab[num_digits] << num_digits, digits);
+					digits = 0;
+					num_digits = 0;
+					digits_valid = false;
+				}
+				dec_exponent -= has_dot;
+			} else {
+				dec_exponent += 1 - has_dot;
+			}
+		} else if (c == '.' && !has_dot) {
+			has_dot = true;
+		} else {
+			break;
 		}
 	}
-	if ((*p | 0x20) == 'e') {
+	p--;
+	if (*p == 'e' || *p == 'E') {
 		p++;
+		bool exp_negative = false;
+		if (*p == '+' || *p == '-') {
+			exp_negative = *p == '-';
+			p++;
+		}
 		int32_t exp = 0;
-		int32_t exp_sign = -1;
-		if (*p == '-') {
-			p++;
-			exp_sign = 1;
-		} else if (*p == '+') {
-			p++;
+		for (;;) {
+			char c = *p;
+			if (c >= '0' && c <= '9') {
+				p++;
+				exp = exp * 10 + (c - '0');
+				if (exp >= 10000) break;
+			} else {
+				break;
+			}
 		}
-		while (((uint32_t)*p - '0') < 10) {
-			exp = exp * 10 + (int32_t)(*p++ - '0');
-			n_exp++;
-		}
-		n_decimals += exp * exp_sign;
+		dec_exponent += exp_negative ? -exp : exp;
 	}
-	*end = (char*)p;
 
+	*end = (char*)p;
 	// Check that the number is not potentially truncated.
 	if (ufbxi_to_size(p - str) >= max_length && (flags & UFBXI_PARSE_DOUBLE_VERIFY_LENGTH) != 0) {
 		*end = NULL;
 		return 0.0;
 	}
 
-	// Overflowed either 64-bit `integer` or 31-bit `exp`.
-	if (n_integer > 19 || n_exp > 9 || (integer >> 63) != 0) {
-		return ufbxi_parse_double_slow(str, end);
-	}
-
 	// Both power of 10 and integer are exactly representable as doubles
 	// Powers of 10 are factored as 2*5, and 2^N can be always exactly represented.
-	if ((flags & UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH) != 0 && n_decimals >= -22 && n_decimals <= 22 && (integer >> 53) == 0) {
+	if ((flags & UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH) != 0 && big_mantissa.length == 0 && dec_exponent >= -22 && dec_exponent <= 22 && (digits >> 53) == 0) {
 		double value;
-		if (n_decimals > 0) {
-			value = (double)integer / ufbxi_pow10_tab_f64[n_decimals];
+		if (dec_exponent < 0) {
+			value = (double)digits / ufbxi_pow10_tab_f64[-dec_exponent];
 		} else {
-			value = (double)integer * ufbxi_pow10_tab_f64[-n_decimals];
+			value = (double)digits * ufbxi_pow10_tab_f64[dec_exponent];
 		}
 		return negative ? -value : value;
 	}
 
-	// Cannot handle positive exponents here, fortunately the fast case should
-	// take care of most of them, for negative exponents we can only handle
-	// up to e-27 as `5^28 > 2^64` and cannot be used as a divisor below.
-	if (n_decimals < 0) {
-		return ufbxi_parse_double_slow(str, end);
-	} else if (!n_decimals || !integer) {
-		double value = (double)integer;
-		return negative ? -value : value;
-	} else if (n_decimals > 27) {
-		return ufbxi_parse_double_slow(str, end);
+	if (big_mantissa.length == 0) {
+		big_mantissa.limbs[0] = (ufbxi_bigint_limb)digits;
+		big_mantissa.limbs[1] = (ufbxi_bigint_limb)(digits >> 32u);
+		big_mantissa.length = (digits >> 32u) ? 2 : digits ? 1 : 0;
+		if (big_mantissa.length == 0) return negative ? -0.0 : 0.0;
+	} else {
+		ufbxi_bigint_mad(&big_mantissa, ufbxi_pow5_tab[num_digits] << num_digits, digits);
 	}
 
-	// We want to compute `integer / 10^N` precisely, we can do this
-	// using 128-bit division `2^64 * dividend / divisor`:
-	//   dividend = integer * 2^S  (S set such that highest bit is 62)
-	//   divisor = 10^N * 2^T      (T set such that highest bit is 63)
-	// We have to compensate for the shifts in the exponent:
-	//   (2^64 * integer * 2^S) / (10^N * 2^T)   * 2^(-1 - S + T)
-	// To get larger exponent range split 10^N to 5^N * 2^N and move 2^N to the exponent
-	//   (2^64 * integer * 2^S) / (5^N * 2^T)    * 2^(-1 - S + T - N)
-	uint32_t shift = ufbxi_lzcnt64(integer) - 1;
-	uint64_t dividend = integer << shift;
-	uint64_t divisor = ufbxi_pow5_tab[n_decimals];
-	int32_t exponent = (int32_t)ufbxi_pow2_tab[n_decimals] - (int32_t)shift; // (-1 + T - N) - S
-	uint64_t rem_hi;
-	uint64_t b_hi = ufbxi_div128(dividend, 0, divisor, &rem_hi);
+	uint32_t enc_sign_shift = 63;
+	uint32_t enc_mantissa_bits = 53;
+	int32_t enc_max_exponent = 1023;
+	if (flags & UFBXI_PARSE_DOUBLE_AS_BINARY32) {
+		enc_sign_shift = 31;
+		enc_mantissa_bits = 24;
+		enc_max_exponent = 127;
+	}
 
-	// Align the mantissa so that high bit is set, due to the shifting of the
-	// divisor and dividend the smallest result is `2^62 + N`, so we need to
-	// shift at most by one bit.
-	uint64_t b_bit = 1 - (b_hi >> 63u);
-	uint64_t mantissa = b_hi << b_bit;
-	exponent -= (int32_t)b_bit;
+	int32_t exponent = 0;
+	if (dec_exponent < 0) {
+		if (dec_exponent + (int32_t)big_mantissa.length * 10 <= -325) return negative ? -0.0 : 0.0;
 
-	// Round to 53 bits, accounting for potential remainder.
-	bool nonzero_tail = rem_hi != 0;
-	bool r_odd = mantissa & (1 << 11u);
-	bool r_round = mantissa & (1 << 10u);
-	bool r_tail = (mantissa & ((1 << 10u) - 1)) != 0 || nonzero_tail;
-	uint64_t round = (r_round && (r_odd || r_tail)) ? 1u : 0u;
+		ufbxi_bigint big_divisor = ufbxi_bigint_array(divisor_limbs);
+		uint32_t pow5 = (uint32_t)-dec_exponent;
+		uint32_t initial_pow5 = pow5 <= 27 ? pow5 : 27;
+		uint64_t pow5_value = ufbxi_pow5_tab[initial_pow5];
+		pow5 -= initial_pow5;
+		exponent += dec_exponent;
 
-	// Assemble the IEEE 754 binary64 number.
-	uint64_t bits
-		= (uint64_t)negative << 63u
-		| (uint64_t)(exponent + 1023) << 52u
-		| ((mantissa >> 11u) & ~(UINT64_C(1) << 52u));
-	bits += round;
+		if (pow5 == 0 && digits_valid && digits >> 63 == 0) {
+			uint32_t divisor_zeros = ufbxi_lzcnt64(pow5_value);
+			uint64_t mantissa_zeros = ufbxi_lzcnt64(digits) - 1;
+			uint64_t divisor_bits = pow5_value << divisor_zeros;
+			uint64_t mantissa_bits = digits << mantissa_zeros;
+			big_divisor.limbs[0] = (ufbxi_bigint_limb)divisor_bits;
+			big_divisor.limbs[1] = (ufbxi_bigint_limb)(divisor_bits >> 32u);
+			big_divisor.length = 2;
+			big_mantissa.limbs[0] = 0;
+			big_mantissa.limbs[1] = 0;
+			big_mantissa.limbs[2] = (ufbxi_bigint_limb)mantissa_bits;
+			big_mantissa.limbs[3] = (ufbxi_bigint_limb)(mantissa_bits >> 32u);
+			big_mantissa.length = 4;
+			exponent += (int32_t)divisor_zeros - (int32_t)mantissa_zeros - 64;
+		} else {
+			big_divisor.limbs[0] = (ufbxi_bigint_limb)pow5_value;
+			big_divisor.limbs[1] = (ufbxi_bigint_limb)(pow5_value >> 32u);
+			big_divisor.length = (pow5_value >> 32u) != 0 ? 2 : 1;
+			if (pow5 > 0) {
+				ufbxi_bigint_mul_pow5(&big_divisor, pow5);
+			}
 
-	// Type punning via unions is safe in C but in C++ the only safe way
-	// (pre std::bit_cast) is to use `memcpy()` and hope it gets optimized out.
-#if defined(__cplusplus)
-	double result;
-	memcpy(&result, &bits, 8);
-	return result;
-#else
-	union { uint64_t u; double d; } u_to_d;
-	u_to_d.u = bits;
-	return u_to_d.d;
-#endif
+			uint32_t divisor_zeros = ufbxi_lzcnt32(big_divisor.limbs[big_divisor.length - 1]);
+			if (big_divisor.length == 1) divisor_zeros += UFBXI_BIGINT_LIMB_BITS;
+			ufbxi_bigint_shift_left(&big_divisor, divisor_zeros);
+			uint32_t divisor_bits = big_divisor.length * UFBXI_BIGINT_LIMB_BITS;
+
+			uint32_t mantissa_zeros = ufbxi_lzcnt32(big_mantissa.limbs[big_mantissa.length - 1]);
+			uint32_t mantissa_bits = big_mantissa.length * UFBXI_BIGINT_LIMB_BITS - mantissa_zeros;
+			uint32_t mantissa_min_bits = divisor_bits + enc_mantissa_bits + 2;
+			uint32_t mantissa_shift = mantissa_bits < mantissa_min_bits ? mantissa_min_bits - mantissa_bits : 0;
+			// Align mantissa to never have a high bit, this means we can skip the first digit during division.
+			mantissa_shift += ((mantissa_shift - mantissa_zeros) & (UFBXI_BIGINT_LIMB_BITS - 1)) == 0 ? 1 : 0;
+			if (mantissa_shift > 0) {
+				ufbxi_bigint_shift_left(&big_mantissa, mantissa_shift);
+			}
+			exponent += (int32_t)divisor_zeros - (int32_t)mantissa_shift;
+		}
+
+		tail = ufbxi_bigint_div(&big_quotient, &big_mantissa, &big_divisor);
+		big_mantissa = big_quotient;
+	} else if (dec_exponent > 0) {
+		if (dec_exponent + (int32_t)(big_mantissa.length - 1) * 9 >= 310) return negative ? -UFBX_INFINITY : UFBX_INFINITY;
+
+		exponent += dec_exponent;
+		ufbxi_bigint_mul_pow5(&big_mantissa, (uint32_t)dec_exponent);
+	}
+
+	uint64_t mantissa = ufbxi_bigint_extract_high(big_mantissa, &exponent, &tail);
+	uint64_t sign_bit = (uint64_t)(negative ? 1u : 0u) << enc_sign_shift;
+
+	uint32_t mantissa_shift = 64 - enc_mantissa_bits;
+	if (exponent > enc_max_exponent) {
+		return negative ? -UFBX_INFINITY : UFBX_INFINITY;
+	} else if (exponent <= -enc_max_exponent) {
+		mantissa_shift += (uint32_t)(-enc_max_exponent + 1 - exponent);
+		exponent = -enc_max_exponent + 1;
+	}
+
+	mantissa = ufbxi_shift_right_round(mantissa, mantissa_shift, tail);
+	if (mantissa == 0) return negative ? -0.0 : 0.0;
+
+	uint64_t bits = mantissa;
+	bits += (uint64_t)(exponent + enc_max_exponent - 1) << (enc_mantissa_bits - 1);
+	bits |= sign_bit;
+
+	if (flags & UFBXI_PARSE_DOUBLE_AS_BINARY32) {
+		uint32_t bits_lo = (uint32_t)bits;
+		float result;
+		ufbxi_bit_cast(float, result, uint32_t, bits_lo);
+		return result;
+	} else {
+		double result;
+		ufbxi_bit_cast(double, result, uint64_t, bits);
+		return result;
+	}
+}
+
+static ufbxi_noinline uint32_t ufbxi_parse_double_init_flags()
+{
+	// We require evaluation in double precision, either for doubles (0) or always (1)
+	// and rounding to nearest, which we can check for with `1 + eps == 1 - eps`.
+	#if UFBX_FLT_EVAL_METHOD == 0 || UFBX_FLT_EVAL_METHOD == 1
+		static volatile double ufbxi_volatile_eps = 2.2250738585072014e-308;
+		if (1.0 + ufbxi_volatile_eps == 1.0 - ufbxi_volatile_eps) return UFBXI_PARSE_DOUBLE_ALLOW_FAST_PATH;
+	#endif
+
+	return 0;
 }
 
 static ufbxi_forceinline int64_t ufbxi_parse_int64(const char *str, char **end)
@@ -1419,6 +1687,24 @@ static ufbxi_forceinline int64_t ufbxi_parse_int64(const char *str, char **end)
 	// TODO: Wrap/clamp?
 	*end = (char*)str + len;
 	return negative ? -(int64_t)abs_val : (int64_t)abs_val;
+}
+
+static ufbxi_noinline uint32_t ufbxi_parse_uint32_radix(const char *str, uint32_t radix)
+{
+	uint32_t value = 0;
+	for (const char *p = str; ; p++) {
+		char c = *p;
+		if (c >= '0' && c <= '9') {
+			value = value * radix + (uint32_t)(c - '0');
+		} else if (radix == 16 && (c >= 'a' && c <= 'f')) {
+			value = value * radix + (uint32_t)(c + (10 - 'a'));
+		} else if (radix == 16 && (c >= 'A' && c <= 'F')) {
+			value = value * radix + (uint32_t)(c + (10 - 'A'));
+		} else {
+			break;
+		}
+	}
+	return value;
 }
 
 // -- DEFLATE implementation
@@ -2850,23 +3136,99 @@ ufbxi_extern_c ptrdiff_t ufbx_inflate(void *dst, size_t dst_size, const ufbx_inf
 
 #endif // !defined(ufbx_inflate)
 
+// -- Printf
+
+typedef struct {
+	char *dst;
+	size_t length;
+	size_t pos;
+} ufbxi_print_buffer;
+
+#define UFBXI_PRINT_UNSIGNED 0x1
+#define UFBXI_PRINT_STRING 0x2
+#define UFBXI_PRINT_SIZE_T 0x10
+
+static void ufbxi_print_append(ufbxi_print_buffer *buf, size_t min_width, size_t max_width, const char *str)
+{
+	size_t width = 0;
+	for (width = 0; width < max_width; width++) {
+		if (!str[width]) break;
+	}
+	size_t pad = min_width > width ? min_width - width : 0;
+	for (size_t i = 0; i < pad; i++) {
+		if (buf->pos < buf->length) buf->dst[buf->pos++] = ' ';
+	}
+	for (size_t i = 0; i < width; i++) {
+		if (buf->pos < buf->length) buf->dst[buf->pos++] = str[i];
+	}
+}
+
+static char *ufbxi_print_format_int(char *buffer, uint64_t value)
+{
+	*--buffer = '\0';
+	do {
+		uint32_t digit = (uint32_t)(value % 10);
+		value = value / 10;
+		*--buffer = (char)('0' + digit);
+	} while (value > 0);
+	return buffer;
+}
+
+static void ufbxi_vprint(ufbxi_print_buffer *buf, const char *fmt, va_list args)
+{
+	char buffer[96]; // ufbxi_uninit
+	for (const char *p = fmt; *p;) {
+		if (*p == '%' && *++p != '%') {
+			size_t min_width = 0, max_width = SIZE_MAX;
+			if (*p == '*') {
+				p++;
+				min_width = (size_t)va_arg(args, int);
+			}
+			if (*p == '.') {
+				ufbxi_dev_assert(p[1] == '*');
+				p += 2;
+				max_width = (size_t)va_arg(args, int);
+			}
+			uint32_t flags = 0;
+			switch (*p) {
+			case 'z': p++; flags |= UFBXI_PRINT_SIZE_T; break;
+			default: break;
+			}
+			switch (*p++) {
+			case 'u': flags |= UFBXI_PRINT_UNSIGNED; break;
+			case 's': flags |= UFBXI_PRINT_STRING; break;
+			default: break;
+			}
+			if (flags & UFBXI_PRINT_STRING) {
+				const char *str = va_arg(args, const char*);
+				ufbxi_print_append(buf, min_width, max_width, str);
+			} else if (flags & UFBXI_PRINT_UNSIGNED) {
+				uint64_t value = (flags & UFBXI_PRINT_SIZE_T) != 0 ? (uint64_t)va_arg(args, size_t) : (uint64_t)va_arg(args, uint32_t);
+				char *str = ufbxi_print_format_int(buffer + sizeof(buffer), value);
+				ufbxi_print_append(buf, min_width, max_width, str);
+			} else {
+				ufbxi_unreachable("Bad printf format");
+			}
+		} else {
+			if (buf->pos < buf->length) buf->dst[buf->pos++] = *p;
+			p++;
+		}
+	}
+	if (buf->length && buf->dst) {
+		size_t end = buf->pos <= buf->length - 1 ? buf->pos : buf->length - 1;
+		buf->dst[end] = '\0';
+	}
+}
+
 // -- Errors
 
 static const char ufbxi_empty_char[1] = { '\0' };
 
 static ufbxi_noinline int ufbxi_vsnprintf(char *buf, size_t buf_size, const char *fmt, va_list args)
 {
-	int result = vsnprintf(buf, buf_size, fmt, args);
-
-	if (result < 0) result = 0;
-	if ((size_t)result >= buf_size - 1) result = (int)buf_size - 1;
-
-	// HACK: On some MSYS/MinGW implementations `vsnprintf` is broken and does
-	// not write the null terminator on truncation, it's always safe to do so
-	// let's just do it unconditionally here...
-	buf[result] = '\0';
-
-	return result;
+	ufbxi_print_buffer buffer = { buf, buf_size };
+	ufbxi_vprint(&buffer, fmt, args);
+	return (int)ufbxi_min_sz(buffer.pos, buf_size - 1);
 }
 
 static ufbxi_noinline int ufbxi_snprintf(char *buf, size_t buf_size, const char *fmt, ...)
@@ -2883,21 +3245,19 @@ static ufbxi_noinline void ufbxi_panicf_imp(ufbx_panic *panic, const char *fmt, 
 	if (panic && panic->did_panic) return;
 
 	va_list args; // ufbxi_uninit
-	va_start(args, fmt);
 
 	if (panic) {
+		va_start(args, fmt);
 		panic->did_panic = true;
 		panic->message_length = (size_t)ufbxi_vsnprintf(panic->message, sizeof(panic->message), fmt, args);
+		va_end(args);
 	} else {
-		fprintf(stderr, "ufbx panic: ");
-		vfprintf(stderr, fmt, args);
-		fprintf(stderr, "\n");
-	}
+		va_start(args, fmt);
+		char message[UFBX_PANIC_MESSAGE_LENGTH];
+		ufbxi_vsnprintf(message, sizeof(message), fmt, args);
+		va_end(args);
 
-	va_end(args);
-
-	if (!panic) {
-		ufbx_assert(false && "ufbx panic: See stderr for more information");
+		ufbx_panic_handler(message);
 	}
 }
 
@@ -3046,7 +3406,7 @@ static ufbxi_noinline void ufbxi_clear_error(ufbx_error *err)
 #define ufbxi_fail_err_msg(err, desc, msg) return ufbxi_fail_imp_err(err, ufbxi_error_msg(desc, msg), ufbxi_function, ufbxi_line)
 #define ufbxi_report_err_msg(err, desc, msg) (void)ufbxi_fail_imp_err(err, ufbxi_error_msg(desc, msg), ufbxi_function, ufbxi_line)
 
-static ufbxi_noinline void ufbxi_fix_error_type(ufbx_error *error, const char *default_desc)
+static ufbxi_noinline void ufbxi_fix_error_type(ufbx_error *error, const char *default_desc, ufbx_error *p_error)
 {
 	const char *desc = error->description.data;
 	if (!desc) desc = default_desc;
@@ -3096,6 +3456,9 @@ static ufbxi_noinline void ufbxi_fix_error_type(ufbx_error *error, const char *d
 	}
 	error->description.data = desc;
 	error->description.length = strlen(desc);
+	if (p_error) {
+		memcpy(p_error, error, sizeof(ufbx_error));
+	}
 }
 
 // -- Allocator
@@ -3168,7 +3531,7 @@ static ufbxi_noinline void *ufbxi_alloc_size(ufbxi_allocator *ator, size_t size,
 	} else if (ator->ator.allocator.realloc_fn) {
 		ptr = ator->ator.allocator.realloc_fn(ator->ator.allocator.user, NULL, 0, total);
 	} else {
-		ptr = malloc(total);
+		ptr = ufbx_malloc(total);
 	}
 
 	if (!ptr) {
@@ -3215,7 +3578,7 @@ static ufbxi_noinline void *ufbxi_realloc_size(ufbxi_allocator *ator, size_t siz
 			ator->ator.allocator.free_fn(ator->ator.allocator.user, old_ptr, old_total);
 		}
 	} else {
-		ptr = realloc(old_ptr, total);
+		ptr = ufbx_realloc(old_ptr, old_total, total);
 	}
 
 	ufbxi_check_return_err_msg(ator->error, ptr, NULL, "Out of memory");
@@ -3249,7 +3612,7 @@ static ufbxi_noinline void ufbxi_free_size(ufbxi_allocator *ator, size_t size, v
 			ator->ator.allocator.realloc_fn(ator->ator.allocator.user, ptr, total, 0);
 		}
 	} else {
-		free(ptr);
+		ufbx_free(ptr, total);
 	}
 }
 
@@ -3888,7 +4251,7 @@ static ufbxi_noinline void ufbxi_map_init(ufbxi_map *map, ufbxi_allocator *ator,
 	// allocation counts. We can work around this using a local allocator that doesn't
 	// count the allocations.
 	{
-		ufbxi_allocator *regression_ator = (ufbxi_allocator*)malloc(sizeof(ufbxi_allocator));
+		ufbxi_allocator *regression_ator = (ufbxi_allocator*)ufbx_malloc(sizeof(ufbxi_allocator));
 		ufbx_assert(regression_ator);
 		memset(regression_ator, 0, sizeof(ufbxi_allocator));
 		regression_ator->name = "regression";
@@ -3922,7 +4285,7 @@ static ufbxi_noinline void ufbxi_map_free(ufbxi_map *map)
 #if defined(UFBX_REGRESSION)
 	if (regression_ator) {
 		ufbxi_free_ator(regression_ator);
-		free(regression_ator);
+		ufbx_free(regression_ator, sizeof(ufbxi_allocator));
 	}
 #endif
 }
@@ -5923,10 +6286,8 @@ typedef struct {
 
 	// IO
 	uint64_t data_offset;
-
 	ufbx_read_fn *read_fn;
 	ufbx_skip_fn *skip_fn;
-	ufbx_close_fn *close_fn;
 	void *read_user;
 
 	char *read_buffer;
@@ -6026,6 +6387,10 @@ typedef struct {
 	// Temporary per-element flags
 	uint8_t *tmp_element_flag;
 
+	// IO (cold)
+	ufbx_close_fn *close_fn;
+	ufbx_size_fn *size_fn;
+
 	ufbxi_ascii ascii;
 
 	bool has_geometry_transform_nodes;
@@ -6065,6 +6430,10 @@ typedef struct {
 	ufbxi_warnings warnings;
 
 	bool deferred_failure;
+	bool deferred_load;
+
+	const char *load_filename;
+	size_t load_filename_len;
 
 	bool parse_threaded;
 	ufbxi_thread_pool thread_pool;
@@ -6348,8 +6717,6 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_read_to(ufbxi_context *uc, void 
 	return 1;
 }
 
-// -- File IO
-
 static ufbxi_noinline void ufbxi_init_ator(ufbx_error *error, ufbxi_allocator *ator, const ufbx_allocator_opts *opts, const char *name)
 {
 	ufbx_allocator_opts zero_opts;
@@ -6369,19 +6736,56 @@ static ufbxi_noinline void ufbxi_init_ator(ufbx_error *error, ufbxi_allocator *a
 	ator->name = name;
 }
 
-static ufbxi_noinline FILE *ufbxi_fopen(const char *path, size_t path_len, ufbxi_allocator *tmp_ator)
-{
-#if !defined(UFBX_STANDARD_C) && defined(_WIN32)
-	wchar_t wpath_buf[256];
-	wchar_t *wpath = NULL;
+typedef struct {
+	ufbx_error error;
 
-	if (path_len == SIZE_MAX) {
-		path_len = strlen(path);
+	ufbxi_allocator *parent_ator;
+	ufbxi_allocator ator;
+} ufbxi_file_context;
+
+static ufbxi_noinline void ufbxi_begin_file_context(ufbxi_file_context *fc, ufbx_open_file_context ctx, const ufbx_allocator_opts *ator_opts)
+{
+	memset(fc, 0, sizeof(ufbxi_file_context));
+	if (ctx) {
+		fc->parent_ator = (ufbxi_allocator*)ctx;
+		fc->ator = *fc->parent_ator;
+		fc->ator.error = &fc->error;
+	} else {
+		ufbxi_init_ator(&fc->error, &fc->ator, ator_opts, "file");
 	}
+}
+
+static ufbxi_noinline void ufbxi_end_file_context(ufbxi_file_context *fc, ufbx_error *error, bool ok)
+{
+	if (fc->parent_ator) {
+		fc->ator.error = fc->parent_ator->error;
+		*fc->parent_ator = fc->ator;
+	} else {
+		ufbxi_free_ator(&fc->ator);
+	}
+	if (error) {
+		if (!ok) {
+			ufbxi_fix_error_type(&fc->error, "Failed to open file", error);
+		} else {
+			ufbxi_clear_error(error);
+		}
+	}
+}
+
+// -- File IO
+
+#if !defined(UFBX_NO_STDIO) && !defined(UFBX_EXTERNAL_STDIO)
+
+static ufbxi_noinline FILE *ufbxi_fopen(ufbxi_file_context *fc, const char *path, size_t path_len, bool null_terminated)
+{
+	FILE *file = NULL;
+#if !defined(UFBX_STANDARD_C) && defined(_WIN32)
+	(void)null_terminated;
+	wchar_t wpath_buf[256], *wpath = NULL; // ufbxi_uninit
 	if (path_len < ufbxi_arraycount(wpath_buf) - 1) {
 		wpath = wpath_buf;
 	} else {
-		wpath = ufbxi_alloc(tmp_ator, wchar_t, path_len + 1);
+		wpath = ufbxi_alloc(&fc->ator, wchar_t, path_len + 1);
 		if (!wpath) return NULL;
 	}
 
@@ -6416,45 +6820,38 @@ static ufbxi_noinline FILE *ufbxi_fopen(const char *path, size_t path_len, ufbxi
 	}
 	wpath[wlen] = 0;
 
-	FILE *file = NULL;
-#if UFBXI_MSC_VER >= 1400
-	if (_wfopen_s(&file, wpath, L"rb") != 0) {
-		file = NULL;
-	}
-#else
-	file = _wfopen(wpath, L"rb");
-#endif
-
+	#if UFBXI_MSC_VER >= 1400
+		if (_wfopen_s(&file, wpath, L"rb") != 0) file = NULL;
+	#else
+		file = _wfopen(wpath, L"rb");
+	#endif
 	if (wpath != wpath_buf) {
-		ufbxi_free(tmp_ator, wchar_t, wpath, path_len + 1);
+		ufbxi_free(&fc->ator, wchar_t, wpath, path_len + 1);
 	}
-
-	return file;
 #else
-	if (path_len == SIZE_MAX) {
-		return fopen(path, "rb");
-	}
-
-	char copy_buf[256]; // ufbxi_uninit
-	char *copy = NULL;
-
-	if (path_len < ufbxi_arraycount(copy_buf) - 1) {
-		copy = copy_buf;
+	char copy_buf[256], *copy = NULL; // ufbxi_uninit
+	if (null_terminated) {
+		copy = (char*)path;
 	} else {
-		copy = ufbxi_alloc(tmp_ator, char, path_len + 1);
-		if (!copy) return NULL;
+		if (path_len < ufbxi_arraycount(copy_buf) - 1) {
+			copy = copy_buf;
+		} else {
+			copy = ufbxi_alloc(&fc->ator, char, path_len + 1);
+			if (!copy) return NULL;
+		}
+		memcpy(copy, path, path_len);
+		copy[path_len] = '\0';
 	}
-	memcpy(copy, path, path_len);
-	copy[path_len] = '\0';
-
-	FILE *file = fopen(copy, "rb");
-
-	if (copy != copy_buf) {
-		ufbxi_free(tmp_ator, char, copy, path_len + 1);
+	file = fopen(copy, "rb");
+	if (!null_terminated && copy != copy_buf) {
+		ufbxi_free(&fc->ator, char, copy, path_len + 1);
 	}
-
-	return file;
 #endif
+	if (!file) {
+		ufbxi_set_err_info(&fc->error, path, path_len);
+		ufbxi_report_err_msg(&fc->error, "file", "File not found");
+	}
+	return file;
 }
 
 static uint64_t ufbxi_ftell(FILE *file)
@@ -6466,20 +6863,20 @@ static uint64_t ufbxi_ftell(FILE *file)
 	int64_t result = _ftelli64(file);
 	if (result >= 0) return (uint64_t)result;
 #else
-	long result = ftell(file);
+	int64_t result = ftell(file);
 	if (result >= 0) return (uint64_t)result;
 #endif
 	return UINT64_MAX;
 }
 
-static size_t ufbxi_file_read(void *user, void *data, size_t max_size)
+static size_t ufbxi_stdio_read(void *user, void *data, size_t max_size)
 {
 	FILE *file = (FILE*)user;
 	if (ferror(file)) return SIZE_MAX;
 	return fread(data, 1, max_size, file);
 }
 
-static bool ufbxi_file_skip(void *user, size_t size)
+static bool ufbxi_stdio_skip(void *user, size_t size)
 {
 	FILE *file = (FILE*)user;
 	ufbx_assert(size <= UFBXI_MAX_SKIP_SIZE);
@@ -6488,11 +6885,93 @@ static bool ufbxi_file_skip(void *user, size_t size)
 	return true;
 }
 
-static void ufbxi_file_close(void *user)
+static uint64_t ufbxi_stdio_size(void *user)
+{
+	FILE *file = (FILE*)user;
+	uint64_t result = 0;
+	uint64_t begin = ufbxi_ftell(file);
+	if (begin < UINT64_MAX) {
+		fpos_t pos; // ufbxi_uninit
+		if (fgetpos(file, &pos) == 0) {
+			if (fseek(file, 0, SEEK_END) == 0) {
+				uint64_t end = ufbxi_ftell(file);
+				if (end != UINT64_MAX && begin < end) {
+					result = end - begin;
+				}
+				// Both `rewind()` and `fsetpos()` to reset error and EOF
+				rewind(file);
+				fsetpos(file, &pos);
+			}
+		}
+	}
+	return result;
+}
+
+static void ufbxi_stdio_close(void *user)
 {
 	FILE *file = (FILE*)user;
 	fclose(file);
 }
+
+static ufbxi_noinline void ufbxi_stdio_init(ufbx_stream *stream, void *file, bool close)
+{
+	stream->read_fn = &ufbxi_stdio_read;
+	stream->skip_fn = &ufbxi_stdio_skip;
+	stream->size_fn = &ufbxi_stdio_size;
+	stream->close_fn = close ? &ufbxi_stdio_close : NULL;
+	stream->user = file;
+}
+
+static ufbxi_noinline bool ufbxi_stdio_open(ufbxi_file_context *fc, ufbx_stream *stream, const char *path, size_t path_len, bool null_terminated)
+{
+	FILE *file = ufbxi_fopen(fc, path, path_len, null_terminated);
+	if (!file) return false;
+	ufbxi_stdio_init(stream, file, true);
+	return true;
+}
+
+#elif defined(UFBX_EXTERNAL_STDIO)
+
+static ufbxi_noinline void ufbxi_stdio_init(ufbx_stream *stream, void *file, bool close)
+{
+	stream->read_fn = &ufbx_stdio_read;
+	stream->skip_fn = &ufbx_stdio_skip;
+	stream->size_fn = &ufbx_stdio_size;
+	stream->close_fn = close ? &ufbx_stdio_close : NULL;
+	stream->user = file;
+}
+
+static ufbxi_noinline bool ufbxi_stdio_open(ufbxi_file_context *fc, ufbx_stream *stream, const char *path, size_t path_len, bool null_terminated)
+{
+	char copy_buf[256], *copy = NULL; // ufbxi_uninit
+	if (null_terminated) {
+		copy = (char*)path;
+	} else {
+		if (path_len < ufbxi_arraycount(copy_buf) - 1) {
+			copy = copy_buf;
+		} else {
+			copy = ufbxi_alloc(&fc->ator, char, path_len + 1);
+			if (!copy) return false;
+		}
+		memcpy(copy, path, path_len);
+		copy[path_len] = '\0';
+	}
+	void *file = ufbx_stdio_open(copy, path_len);
+	if (!null_terminated && copy != copy_buf) {
+		ufbxi_free(&fc->ator, char, copy, path_len + 1);
+	}
+	if (!file) {
+		ufbxi_set_err_info(&fc->error, path, path_len);
+		ufbxi_report_err_msg(&fc->error, "file", "File not found");
+		return false;
+	}
+	ufbxi_stdio_init(stream, file, true);
+	return true;
+}
+
+#endif
+
+// -- Memory IO
 
 typedef struct {
 	const void *data;
@@ -6502,7 +6981,8 @@ typedef struct {
 
 	// Own allocation information
 	size_t self_size;
-	ufbxi_allocator ator;
+	ufbxi_allocator *parent_ator;
+	ufbxi_allocator local_ator;
 	ufbx_error error;
 	char data_copy[];
 } ufbxi_memory_stream;
@@ -6524,6 +7004,12 @@ static bool ufbxi_memory_skip(void *user, size_t size)
 	return true;
 }
 
+static uint64_t ufbxi_memory_size(void *user)
+{
+	ufbxi_memory_stream *stream = (ufbxi_memory_stream*)user;
+	return stream->size;
+}
+
 static void ufbxi_memory_close(void *user)
 {
 	ufbxi_memory_stream *stream = (ufbxi_memory_stream*)user;
@@ -6531,9 +7017,13 @@ static void ufbxi_memory_close(void *user)
 		stream->close_cb.fn(stream->close_cb.user, (void*)stream->data, stream->size);
 	}
 
-	ufbxi_allocator ator = stream->ator;
-	ufbxi_free(&ator, char, stream, stream->self_size);
-	ufbxi_free_ator(&ator);
+	if (stream->parent_ator) {
+		ufbxi_free(stream->parent_ator, char, stream, stream->self_size);
+	} else {
+		ufbxi_allocator ator = stream->local_ator;
+		ufbxi_free(&ator, char, stream, stream->self_size);
+		ufbxi_free_ator(&ator);
+	}
 }
 
 // -- XML
@@ -6703,9 +7193,9 @@ static ufbxi_noinline int ufbxi_xml_read_until(ufbxi_xml_context *xc, ufbx_strin
 			if (entity[0] == '#') {
 				unsigned long code = 0;
 				if (entity[1] == 'x') {
-					code = strtoul(entity + 2, NULL, 16);
+					code = ufbxi_parse_uint32_radix(entity + 2, 16);
 				} else {
-					code = strtoul(entity + 1, NULL, 10);
+					code = ufbxi_parse_uint32_radix(entity + 1, 10);
 				}
 
 				char bytes[5] = { 0 };
@@ -9098,11 +9588,9 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_ascii_next_token(ufbxi_context *
 				token->value.i64 = ufbxi_parse_int64(token->str_data, &end);
 				ufbxi_check(end == token->str_data + token->str_len - 1);
 			} else if (token->type == UFBXI_ASCII_FLOAT) {
-				if (ua->parse_as_f32) {
-					token->value.f64 = strtof(token->str_data, &end);
-				} else {
-					token->value.f64 = ufbxi_parse_double(token->str_data, token->str_len, &end, uc->double_parse_flags);
-				}
+				uint32_t flags = uc->double_parse_flags;
+				if (ua->parse_as_f32) flags = UFBXI_PARSE_DOUBLE_AS_BINARY32;
+				token->value.f64 = ufbxi_parse_double(token->str_data, token->str_len, &end, flags);
 				ufbxi_check(end == token->str_data + token->str_len - 1);
 			}
 		}
@@ -9498,8 +9986,6 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_ascii_read_float_array(ufbxi_con
 			ufbxi_check(v);
 			*v = (float)val;
 		}
-
-		// TODO: Collect ASCII numbers to deferred parse integer/string segments
 
 		// Try to parse the next value, we don't commit this until we find a comma after it above.
 		char *num_end = NULL;
@@ -15725,44 +16211,12 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_resolve_relative_filename(ufbxi_
 
 // Open file utility
 
-static void *ufbxi_ator_alloc(void *user, size_t size)
-{
-	ufbxi_allocator *ator = (ufbxi_allocator*)user;
-	return ufbxi_alloc(ator, char, size);
-}
-
-static void *ufbxi_ator_realloc(void *user, void *old_ptr, size_t old_size, size_t new_size)
-{
-	ufbxi_allocator *ator = (ufbxi_allocator*)user;
-	return ufbxi_realloc(ator, char, old_ptr, old_size, new_size);
-}
-
-static void ufbxi_ator_free(void *user, void *ptr, size_t size)
-{
-	ufbxi_allocator *ator = (ufbxi_allocator*)user;
-	ufbxi_free(ator, char, ptr, size);
-}
-
-static ufbxi_noinline void ufbxi_setup_ator_allocator(ufbx_allocator *allocator, ufbxi_allocator *ator)
-{
-	allocator->alloc_fn = &ufbxi_ator_alloc;
-	allocator->realloc_fn = &ufbxi_ator_realloc;
-	allocator->free_fn = &ufbxi_ator_free;
-	allocator->free_allocator_fn = NULL;
-	allocator->user = ator;
-}
-
 static ufbxi_noinline bool ufbxi_open_file(const ufbx_open_file_cb *cb, ufbx_stream *stream, const char *path, size_t path_len, const ufbx_blob *original_filename, ufbxi_allocator *ator, ufbx_open_file_type type)
 {
 	if (!cb || !cb->fn) return false;
 
 	ufbx_open_file_info info; // ufbxi_uninit
-	if (ator) {
-		ufbxi_setup_ator_allocator(&info.temp_allocator, ator);
-	} else {
-		memset(&info.temp_allocator, 0, sizeof(info.temp_allocator));
-	}
-
+	info.context = (uintptr_t)ator;
 	if (original_filename) {
 		info.original_filename = *original_filename;
 	} else {
@@ -17084,6 +17538,7 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_load_mtl(ufbxi_context *uc)
 		if (!has_stream && uc->opts.load_external_files && uc->opts.obj_search_mtl_by_filename && path.length > 4) {
 			ufbx_string ext = { path.data + path.length - 4, 4 };
 			if (ufbxi_match(&ext, "\\c.obj")) {
+				ufbxi_analysis_assert(path.length < SIZE_MAX - 1);
 				char *copy = ufbxi_push_copy(&uc->tmp, char, path.length + 1, path.data);
 				ufbxi_check(copy);
 				copy[path.length - 3] = copy[path.length - 3] == 'O' ? 'M' : 'm';
@@ -23237,9 +23692,9 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_cache_load_xml_imp(ufbxi_cache_c
 		if (tag_fps) {
 			ufbxi_xml_attrib *fps = ufbxi_xml_find_attrib(tag_fps, "TimePerFrame");
 			if (fps) {
-				int value = atoi(fps->value.data);
+				uint32_t value = ufbxi_parse_uint32_radix(fps->value.data, 10);
 				if (value > 0) {
-					cc->xml_ticks_per_frame = (uint32_t)value;
+					cc->xml_ticks_per_frame = value;
 				}
 			}
 		}
@@ -23264,9 +23719,9 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_cache_load_xml_imp(ufbxi_cache_c
 				ufbxi_xml_attrib *start_time = ufbxi_xml_find_attrib(tag, "StartTime");
 				ufbxi_xml_attrib *end_time = ufbxi_xml_find_attrib(tag, "EndTime");
 				if (sampling_rate && start_time && end_time) {
-					channel->sample_rate = (uint32_t)atoi(sampling_rate->value.data);
-					channel->start_time = (uint32_t)atoi(start_time->value.data);
-					channel->end_time = (uint32_t)atoi(end_time->value.data);
+					channel->sample_rate = ufbxi_parse_uint32_radix(sampling_rate->value.data, 10);
+					channel->start_time = ufbxi_parse_uint32_radix(start_time->value.data, 10);
+					channel->end_time = ufbxi_parse_uint32_radix(end_time->value.data, 10);
 					channel->current_time = channel->start_time;
 					channel->try_load = true;
 				}
@@ -23591,7 +24046,7 @@ ufbxi_noinline static ufbx_geometry_cache *ufbxi_cache_load(ufbxi_cache_context 
 	if (ok) {
 		return &cc->imp->cache;
 	} else {
-		ufbxi_fix_error_type(&cc->error, "Failed to load geometry cache");
+		ufbxi_fix_error_type(&cc->error, "Failed to load geometry cache", NULL);
 		if (!cc->owned_by_scene) {
 			ufbxi_buf_free(&cc->string_pool.buf);
 			ufbxi_free_ator(&cc->ator_result);
@@ -24090,6 +24545,50 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_load_imp(ufbxi_context *uc)
 {
 	// Check for deferred failure
 	if (uc->deferred_failure) return 0;
+	if (uc->deferred_load) {
+		ufbx_stream stream = { 0 };
+		ufbx_open_file_opts opts = { 0 };
+		const char *filename = uc->load_filename;
+		size_t filename_len = uc->load_filename_len;
+		bool ok = false;
+		if (filename_len == SIZE_MAX) {
+			opts.filename_null_terminated = true;
+			filename_len = strlen(filename);
+		}
+		if (uc->opts.filename.length == 0 || uc->opts.filename.data == NULL) {
+			uc->opts.filename.data = filename;
+			uc->opts.filename.length = filename_len;
+		}
+		ufbx_error error;
+		error.type = UFBX_ERROR_NONE;
+		if (uc->opts.open_main_file_with_default || uc->opts.open_file_cb.fn == &ufbx_default_open_file) {
+			ufbx_open_file_context ctx = (ufbx_open_file_context)&uc->ator_tmp;
+			ok = ufbx_open_file_ctx(&stream, ctx, filename, filename_len, &opts, &error);
+		} else {
+			ok = ufbxi_open_file(&uc->opts.open_file_cb, &stream, uc->load_filename, filename_len, NULL, &uc->ator_tmp, UFBX_OPEN_FILE_MAIN_MODEL);
+		}
+		if (!ok) {
+			if (error.type != UFBX_ERROR_NONE) {
+				// cppcheck-suppress uninitStructMember
+				uc->error = error;
+			} else {
+				ufbxi_set_err_info(&uc->error, filename, filename_len);
+			}
+			ufbxi_fail_msg("open_file_fn()", "File not found");
+		}
+		uc->read_fn = stream.read_fn;
+		uc->skip_fn = stream.skip_fn;
+		uc->size_fn = stream.size_fn;
+		uc->close_fn = stream.close_fn;
+		uc->read_user = stream.user;
+	}
+
+	if (uc->opts.progress_cb.fn && uc->progress_bytes_total == 0 && uc->size_fn) {
+		uint64_t total = uc->size_fn(uc->read_user);
+		ufbxi_check(total != UINT64_MAX);
+		uc->progress_bytes_total = total;
+	}
+
 	ufbxi_check(uc->opts.path_separator >= 0x20 && uc->opts.path_separator <= 0x7e);
 
 	ufbxi_check(ufbxi_fixup_opts_string(uc, &uc->opts.filename, false));
@@ -24431,11 +24930,11 @@ static ufbxi_noinline ufbx_scene *ufbxi_load(ufbxi_context *uc, const ufbx_load_
 
 	int ok = ufbxi_load_imp(uc);
 
-	ufbxi_free_temp(uc);
-
 	if (uc->close_fn) {
 		uc->close_fn(uc->read_user);
 	}
+
+	ufbxi_free_temp(uc);
 
 	if (ok) {
 		if (p_error) {
@@ -24443,20 +24942,10 @@ static ufbxi_noinline ufbx_scene *ufbxi_load(ufbxi_context *uc, const ufbx_load_
 		}
 		return &uc->scene_imp->scene;
 	} else {
-		ufbxi_fix_error_type(&uc->error, "Failed to load");
-		if (p_error) *p_error = uc->error;
+		ufbxi_fix_error_type(&uc->error, "Failed to load", p_error);
 		ufbxi_free_result(uc);
 		return NULL;
 	}
-}
-
-static ufbxi_noinline ufbx_scene *ufbxi_load_not_found(const char *filename, size_t filename_len, ufbx_error *p_error)
-{
-	ufbxi_context uc = { UFBX_ERROR_NONE };
-	ufbxi_set_err_info(&uc.error, filename, filename_len);
-	ufbxi_report_err_msg(&uc.error, "File not found", "File not found");
-	uc.deferred_failure = true;
-	return ufbxi_load(&uc, NULL, p_error);
 }
 
 // -- Animation evaluation
@@ -25240,8 +25729,7 @@ ufbxi_nodiscard static ufbxi_noinline ufbx_scene *ufbxi_evaluate_scene(ufbxi_eva
 		}
 		return &ec->scene_imp->scene;
 	} else {
-		ufbxi_fix_error_type(&ec->error, "Failed to evaluate");
-		if (p_error) *p_error = ec->error;
+		ufbxi_fix_error_type(&ec->error, "Failed to evaluate", p_error);
 		ufbxi_buf_free(&ec->tmp);
 		ufbxi_buf_free(&ec->result);
 		ufbxi_free_ator(&ec->ator_tmp);
@@ -25310,11 +25798,11 @@ static bool ufbxi_prop_override_less(void *user, const void *va, const void *vb)
 	return strcmp(a->prop_name.data, b->prop_name.data) < 0;
 }
 
-static int ufbxi_cmp_transform_override(const void *va, const void *vb)
+static bool ufbxi_transform_override_less(void *user, const void *va, const void *vb)
 {
+	(void)user;
 	const ufbx_transform_override *a = (const ufbx_transform_override*)va, *b = (const ufbx_transform_override*)vb;
-	if (a->node_id != b->node_id) return a->node_id < b->node_id ? -1 : 1;
-	return 0;
+	return a->node_id < b->node_id;
 }
 
 ufbxi_nodiscard static ufbxi_noinline int ufbxi_create_anim_imp(ufbxi_create_anim_context *ac)
@@ -25419,8 +25907,7 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_create_anim_imp(ufbxi_create_ani
 		anim->transform_overrides.count = ac->opts.transform_overrides.count;
 		anim->transform_overrides.data = ufbxi_push_copy(&ac->result, ufbx_transform_override, anim->transform_overrides.count, ac->opts.transform_overrides.data);
 		ufbxi_check_err(&ac->error, anim->transform_overrides.data);
-
-		qsort(anim->transform_overrides.data, anim->transform_overrides.count, sizeof(ufbx_transform_override), &ufbxi_cmp_transform_override);
+		ufbxi_unstable_sort(anim->transform_overrides.data, anim->transform_overrides.count, sizeof(ufbx_transform_override), &ufbxi_transform_override_less, NULL);
 	}
 
 	ac->imp = ufbxi_push(&ac->result, ufbxi_anim_imp, 1);
@@ -25473,6 +25960,9 @@ typedef struct {
 	ufbx_baked_node **baked_nodes;
 	bool *nodes_to_bake;
 
+	char *tmp_arr;
+	size_t tmp_arr_size;
+
 	const ufbx_scene *scene;
 	const ufbx_anim *anim;
 	ufbx_bake_opts opts;
@@ -25495,14 +25985,15 @@ typedef struct {
 	ufbx_anim_value *anim_value;
 } ufbxi_bake_prop;
 
-static int ufbxi_cmp_bake_prop(const void *va, const void *vb)
+static bool ufbxi_bake_prop_less(void *user, const void *va, const void *vb)
 {
+	(void)user;
 	const ufbxi_bake_prop *a = (const ufbxi_bake_prop*)va;
 	const ufbxi_bake_prop *b = (const ufbxi_bake_prop*)vb;
-	if (a->sort_id != b->sort_id) return a->sort_id < b->sort_id ? -1 : 1;
-	if (a->element_id != b->element_id) return a->element_id < b->element_id ? -1 : 1;
-	if (a->prop_name != b->prop_name) return strcmp(a->prop_name, b->prop_name);
-	return a->anim_value < b->anim_value;
+	if (a->sort_id != b->sort_id) return a->sort_id < b->sort_id;
+	if (a->element_id != b->element_id) return a->element_id < b->element_id;
+	if (a->prop_name != b->prop_name) return strcmp(a->prop_name, b->prop_name) < 0;
+	return false;
 }
 
 ufbx_static_assert(bake_step_left, UFBX_BAKED_KEY_STEP_LEFT == 0x1);
@@ -25516,13 +26007,6 @@ static ufbxi_forceinline int ufbxi_cmp_bake_time(ufbxi_bake_time a, ufbxi_bake_t
 	uint32_t a_step = a.flags & 0x3, b_step = b.flags & 0x3;
 	if (a_step != b_step) return (a_step ^ 0x1) < (b_step ^ 0x1) ? -1 : 1;
 	return 0;
-}
-
-static int ufbxi_cmp_bake_time_fn(const void *va, const void *vb)
-{
-	const ufbxi_bake_time a = *(const ufbxi_bake_time*)va;
-	const ufbxi_bake_time b = *(const ufbxi_bake_time*)vb;
-	return ufbxi_cmp_bake_time(a, b);
 }
 
 ufbxi_nodiscard static ufbxi_forceinline int ufbxi_bake_push_time(ufbxi_bake_context *bc, double time, uint32_t flags)
@@ -25609,6 +26093,13 @@ ufbxi_nodiscard static ufbxi_noinline bool ufbxi_in_list(const char *const *item
 	return false;
 }
 
+ufbxi_nodiscard static ufbxi_noinline int ufbxi_sort_bake_times(ufbxi_bake_context *bc, ufbxi_bake_time *times, size_t count)
+{
+	ufbxi_check_err(&bc->error, ufbxi_grow_array(&bc->ator_tmp, &bc->tmp_arr, &bc->tmp_arr_size, count * sizeof(ufbxi_bake_time)));
+	ufbxi_macro_stable_sort(ufbxi_bake_time, 32, times, bc->tmp_arr, count, ( ufbxi_cmp_bake_time(*a, *b) < 0 ));
+	return 1;
+}
+
 ufbxi_nodiscard static ufbxi_noinline int ufbxi_finalize_bake_times(ufbxi_bake_context *bc, ufbxi_bake_time_list *p_dst)
 {
 	if (bc->layer_weight_times.count > 0) {
@@ -25624,8 +26115,7 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_finalize_bake_times(ufbxi_bake_c
 	ufbxi_bake_time *times = ufbxi_push_pop(&bc->tmp_prop, &bc->tmp_times, ufbxi_bake_time, num_times);
 	ufbxi_check_err(&bc->error, times);
 
-	// TODO: Something better
-	qsort(times, num_times, sizeof(ufbxi_bake_time), &ufbxi_cmp_bake_time_fn);
+	ufbxi_check_err(&bc->error, ufbxi_sort_bake_times(bc, times, num_times));
 
 	// Deduplicate times
 	if (num_times > 0) {
@@ -25736,13 +26226,13 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_finalize_bake_times(ufbxi_bake_c
 #define ufbxi_add_epsilon(a, epsilon) ((a)>0 ? (a)*(epsilon) : (a)/(epsilon))
 #define ufbxi_sub_epsilon(a, epsilon) ((a)>0 ? (a)/(epsilon) : (a)*(epsilon))
 
-static ufbxi_noinline bool ufbxi_postprocess_step(ufbxi_bake_context *bc, double prev_time, double next_time, double *p_time, uint32_t flags)
+static ufbxi_noinline bool ufbxi_postprocess_step(ufbxi_bake_context *bc, double prev_time, double next_time, double *p_time, ufbx_baked_key_flags flags)
 {
 	ufbxi_dev_assert((flags & (UFBX_BAKED_KEY_STEP_LEFT|UFBX_BAKED_KEY_STEP_RIGHT)) != 0);
 	bool left = (flags & UFBX_BAKED_KEY_STEP_LEFT) != 0;
 
 	double step = 0.001;
-	double epsilon = 1.0 + FLT_EPSILON * 4.0f;
+	double epsilon = 1.0 + UFBX_FLT_EPSILON * 4.0f;
 
 	double time = *p_time;
 	switch (bc->opts.step_handling) {
@@ -25982,7 +26472,7 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_push_resampled_times(ufbxi_bake_
 	ufbxi_bake_time *times = ufbxi_push(&bc->tmp_times, ufbxi_bake_time, keys.count);
 	ufbxi_check_err(&bc->error, times);
 	for (size_t i = 0; i < keys.count; i++) {
-		uint32_t flags = keys.data[i].flags;
+		ufbx_baked_key_flags flags = keys.data[i].flags;
 		double time = keys.data[i].time;
 		if ((flags & UFBX_BAKED_KEY_STEP_LEFT) != 0 && i + 1 < keys.count && (keys.data[i + 1].flags & UFBX_BAKED_KEY_STEP_KEY) != 0) {
 			time = keys.data[i + 1].time;
@@ -26402,8 +26892,7 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_bake_anim(ufbxi_bake_context *bc
 	ufbxi_bake_prop *props = ufbxi_push_pop(&bc->tmp, &bc->tmp_bake_props, ufbxi_bake_prop, num_props);
 	ufbxi_check_err(&bc->error, props);
 
-	// TODO: Macro unstable/non allocating sort
-	qsort(props, num_props, sizeof(ufbxi_bake_prop), &ufbxi_cmp_bake_prop);
+	ufbxi_unstable_sort(props, num_props, sizeof(ufbxi_bake_prop), &ufbxi_bake_prop_less, NULL);
 
 	// Pre-bake layer weight times
 	if (!bc->opts.ignore_layer_weight_animation) {
@@ -27453,19 +27942,19 @@ ufbxi_noinline static uint32_t ufbxi_triangulate_ngon(ufbxi_ngon_context *nc, ui
 
 #endif
 
-static int ufbxi_cmp_topo_index_prev_next(const void *va, const void *vb)
+static bool ufbxi_topo_less_index_prev_next(void *user, const void *va, const void *vb)
 {
+	(void)user;
 	const ufbx_topo_edge *a = (const ufbx_topo_edge*)va, *b = (const ufbx_topo_edge*)vb;
-	if ((int32_t)a->prev != (int32_t)b->prev) return (int32_t)a->prev < (int32_t)b->prev ? -1 : +1;
-	if ((int32_t)a->next != (int32_t)b->next) return (int32_t)a->next < (int32_t)b->next ? -1 : +1;
-	return 0;
+	if ((int32_t)a->prev != (int32_t)b->prev) return (int32_t)a->prev < (int32_t)b->prev;
+	return (int32_t)a->next < (int32_t)b->next;
 }
 
-static int ufbxi_cmp_topo_index_index(const void *va, const void *vb)
+static bool ufbxi_topo_less_index_index(void *user, const void *va, const void *vb)
 {
+	(void)user;
 	const ufbx_topo_edge *a = (const ufbx_topo_edge*)va, *b = (const ufbx_topo_edge*)vb;
-	if ((int32_t)a->index != (int32_t)b->index) return (int32_t)a->index < (int32_t)b->index ? -1 : +1;
-	return 0;
+	return (int32_t)a->index < (int32_t)b->index;
 }
 
 ufbxi_noinline static void ufbxi_compute_topology(const ufbx_mesh *mesh, ufbx_topo_edge *topo)
@@ -27494,8 +27983,7 @@ ufbxi_noinline static void ufbxi_compute_topology(const ufbx_mesh *mesh, ufbx_to
 		}
 	}
 
-	// TODO: Macro unstable/non allocating sort
-	qsort(topo, num_indices, sizeof(ufbx_topo_edge), &ufbxi_cmp_topo_index_prev_next);
+	ufbxi_unstable_sort(topo, num_indices, sizeof(ufbx_topo_edge), &ufbxi_topo_less_index_prev_next, NULL);
 
 	if (mesh->edges.data) {
 		for (uint32_t ei = 0; ei < mesh->num_edges; ei++) {
@@ -27535,8 +28023,7 @@ ufbxi_noinline static void ufbxi_compute_topology(const ufbx_mesh *mesh, ufbx_to
 		i0 = i1 + 1;
 	}
 
-	// TODO: Macro unstable/non allocating sort
-	qsort(topo, num_indices, sizeof(ufbx_topo_edge), &ufbxi_cmp_topo_index_index);
+	ufbxi_unstable_sort(topo, num_indices, sizeof(ufbx_topo_edge), &ufbxi_topo_less_index_index, NULL);
 
 	// Fix `prev` and `next` to the actual index values
 	for (uint32_t fi = 0; fi < mesh->num_faces; fi++) {
@@ -27702,12 +28189,13 @@ static int ufbxi_subdivide_sum_vec4(void *user, void *output, const ufbxi_subdiv
 	return 1;
 }
 
-static ufbxi_noinline int ufbxi_cmp_subdivision_weight(const void *va, const void *vb)
+static ufbxi_noinline bool ufbxi_subdivision_weight_less(void *user, const void *va, const void *vb)
 {
+	(void)user;
 	ufbx_subdivision_weight a = *(const ufbx_subdivision_weight*)va, b = *(const ufbx_subdivision_weight*)vb;
 	ufbxi_dev_assert(a.index != b.index);
-	if (a.weight != b.weight) return a.weight > b.weight ? -1 : +1;
-	return a.index < b.index ? -1 : +1;
+	if (a.weight != b.weight) return a.weight > b.weight;
+	return a.index < b.index;
 }
 
 static int ufbxi_subdivide_sum_vertex_weights(void *user, void *output, const ufbxi_subdivide_input *inputs, size_t num_inputs)
@@ -27743,7 +28231,7 @@ static int ufbxi_subdivide_sum_vertex_weights(void *user, void *output, const uf
 		vertex_weights[vx] = 0.0f;
 	}
 
-	qsort(tmp_weights, num_weights, sizeof(ufbx_subdivision_weight), ufbxi_cmp_subdivision_weight);
+	ufbxi_unstable_sort(tmp_weights, num_weights, sizeof(ufbx_subdivision_weight), ufbxi_subdivision_weight_less, NULL);
 
 	if (sc->max_vertex_weights != SIZE_MAX) {
 		num_weights = ufbxi_min_sz(sc->max_vertex_weights, num_weights);
@@ -28823,8 +29311,7 @@ ufbxi_noinline static ufbx_mesh *ufbxi_subdivide_mesh(const ufbx_mesh *mesh, siz
 		ufbxi_mesh_imp *imp = sc.imp;
 		return &imp->mesh;
 	} else {
-		ufbxi_fix_error_type(&sc.error, "Failed to subdivide");
-		if (p_error) *p_error = sc.error;
+		ufbxi_fix_error_type(&sc.error, "Failed to subdivide", p_error);
 		ufbxi_buf_free(&sc.result);
 		ufbxi_free_ator(&sc.ator_tmp);
 		ufbxi_free_ator(&sc.ator_result);
@@ -28976,7 +29463,7 @@ static ufbxi_noinline size_t ufbxi_generate_indices(const ufbx_vertex_stream *us
 
 		ufbxi_clear_error(error);
 	} else {
-		ufbxi_fix_error_type(error, "Failed to generate indices");
+		ufbxi_fix_error_type(error, "Failed to generate indices", NULL);
 	}
 
 	if (streams && streams != local_streams) {
@@ -29169,29 +29656,43 @@ ufbx_abi_data_def const size_t ufbx_element_type_size[UFBX_ELEMENT_TYPE_COUNT] =
 	sizeof(ufbx_metadata_object),
 };
 
-ufbx_abi bool ufbx_open_file(ufbx_stream *stream, const char *path, size_t path_len)
-{
-	ufbxi_allocator tmp_ator = { 0 };
-	ufbx_error tmp_error = { UFBX_ERROR_NONE };
-	ufbxi_init_ator(&tmp_error, &tmp_ator, NULL, "filename");
-	FILE *f = ufbxi_fopen(path, path_len, &tmp_ator);
-	if (!f) return false;
-
-	stream->read_fn = &ufbxi_file_read;
-	stream->skip_fn = &ufbxi_file_skip;
-	stream->close_fn = &ufbxi_file_close;
-	stream->user = f;
-	return true;
-}
-
 ufbx_abi bool ufbx_default_open_file(void *user, ufbx_stream *stream, const char *path, size_t path_len, const ufbx_open_file_info *info)
 {
 	(void)user;
-	(void)info;
-	return ufbx_open_file(stream, path, path_len);
+	return ufbx_open_file_ctx(stream, info->context, path, path_len, NULL, NULL);
+}
+
+ufbx_abi bool ufbx_open_file(ufbx_stream *stream, const char *path, size_t path_len, const ufbx_open_file_opts *opts, ufbx_error *error)
+{
+	return ufbx_open_file_ctx(stream, (ufbx_open_file_context)NULL, path, path_len, opts, error);
+}
+
+ufbx_abi bool ufbx_open_file_ctx(ufbx_stream *stream, ufbx_open_file_context ctx, const char *path, size_t path_len, const ufbx_open_file_opts *opts, ufbx_error *error)
+{
+	bool ok = false;
+	ufbxi_file_context fc; // ufbxi_uninit
+	ufbxi_begin_file_context(&fc, ctx, NULL);
+	if (path_len == SIZE_MAX) path_len = strlen(path);
+#if !defined(UFBX_NO_STDIO)
+	ok = ufbxi_stdio_open(&fc, stream, path, path_len, opts ? opts->filename_null_terminated : false);
+#else
+	(void)stream;
+	(void)path;
+	(void)path_len;
+	(void)opts;
+	ufbxi_fmt_err_info(&fc.error, "UFBX_NO_STDIO");
+	ufbxi_report_err_msg(&fc.error, "UFBX_NO_STDIO", "Feature disabled");
+#endif
+	ufbxi_end_file_context(&fc, error, ok);
+	return ok;
 }
 
 ufbx_abi bool ufbx_open_memory(ufbx_stream *stream, const void *data, size_t data_size, const ufbx_open_memory_opts *opts, ufbx_error *error)
+{
+	return ufbx_open_memory_ctx(stream, (ufbx_open_file_context)NULL, data, data_size, opts, error);
+}
+
+ufbx_abi bool ufbx_open_memory_ctx(ufbx_stream *stream, ufbx_open_file_context ctx, const void *data, size_t data_size, const ufbx_open_memory_opts *opts, ufbx_error *error)
 {
 	ufbx_open_memory_opts local_opts; // ufbxi_uninit
 	if (!opts) {
@@ -29200,22 +29701,17 @@ ufbx_abi bool ufbx_open_memory(ufbx_stream *stream, const void *data, size_t dat
 	}
 	ufbx_assert(opts->_begin_zero == 0 && opts->_end_zero == 0);
 
-	ufbx_error local_error = { UFBX_ERROR_NONE };
-	if (!error) error = &local_error;
-	ufbxi_clear_error(error);
-
-	ufbxi_allocator ator = { 0 };
-	ufbxi_init_ator(error, &ator, &opts->allocator, "memory");
+	ufbxi_file_context fc; // ufbxi_uninit
+	ufbxi_begin_file_context(&fc, ctx, &opts->allocator);
 
 	size_t copy_size = opts->no_copy ? 0 : data_size;
 
 	// Align the allocation size to 8 bytes to make sure the header is aligned.
 	size_t self_size = ufbxi_align_to_mask(sizeof(ufbxi_memory_stream) + copy_size, 7);
 
-	void *memory = ufbxi_alloc(&ator, char, self_size);
+	void *memory = ufbxi_alloc(&fc.ator, char, self_size);
 	if (!memory) {
-		ufbxi_free_ator(&ator);
-		ufbxi_fix_error_type(error, "Failed to open memory");
+		ufbxi_end_file_context(&fc, error, false);
 		return false;
 	}
 
@@ -29234,13 +29730,19 @@ ufbx_abi bool ufbx_open_memory(ufbx_stream *stream, const void *data, size_t dat
 	}
 
 	// Transplant the allocator in the result blob
-	mem->ator = ator;
-	mem->ator.error = &mem->error;
+	if (fc.parent_ator) {
+		mem->parent_ator = fc.parent_ator;
+	} else {
+		fc.parent_ator = &mem->local_ator;
+	}
 
 	stream->read_fn = ufbxi_memory_read;
 	stream->skip_fn = ufbxi_memory_skip;
+	stream->size_fn = ufbxi_memory_size;
 	stream->close_fn = ufbxi_memory_close;
 	stream->user = mem;
+
+	ufbxi_end_file_context(&fc, error, true);
 
 	return true;
 }
@@ -29253,7 +29755,8 @@ ufbx_abi bool ufbx_is_thread_safe(void)
 ufbx_abi ufbx_scene *ufbx_load_memory(const void *data, size_t size, const ufbx_load_opts *opts, ufbx_error *error)
 {
 	ufbxi_check_opts_ptr(ufbx_scene, opts, error);
-	ufbxi_context uc = { UFBX_ERROR_NONE };
+	ufbxi_context uc; // ufbxi_uninit
+	memset(&uc, 0, sizeof(ufbxi_context));
 	uc.data_begin = uc.data = (const char *)data;
 	uc.data_size = size;
 	uc.progress_bytes_total = size;
@@ -29268,42 +29771,12 @@ ufbx_abi ufbx_scene *ufbx_load_file(const char *filename, const ufbx_load_opts *
 ufbx_abi ufbx_scene *ufbx_load_file_len(const char *filename, size_t filename_len, const ufbx_load_opts *opts, ufbx_error *error)
 {
 	ufbxi_check_opts_ptr(ufbx_scene, opts, error);
-	ufbx_load_opts opts_copy;
-	if (opts) {
-		opts_copy = *opts;
-	} else {
-		memset(&opts_copy, 0, sizeof(opts_copy));
-		opts = &opts_copy;
-	}
-	if (opts_copy.filename.length == 0 || opts_copy.filename.data == NULL) {
-		opts_copy.filename.data = filename;
-		opts_copy.filename.length = filename_len;
-	}
-
-	// Defer to `ufbx_load_stream()` if the user so prefers.
-	if (!opts->open_main_file_with_default && opts->open_file_cb.fn) {
-		ufbx_stream stream = { 0 };
-		if (ufbxi_open_file(&opts->open_file_cb, &stream, filename, filename_len, NULL, NULL, UFBX_OPEN_FILE_MAIN_MODEL)) {
-			return ufbx_load_stream_prefix(&stream, NULL, 0, &opts_copy, error);
-		} else {
-			return ufbxi_load_not_found(filename, filename_len, error);
-		}
-	}
-
-	ufbxi_allocator tmp_ator = { 0 };
-	ufbx_error tmp_error = { UFBX_ERROR_NONE };
-	ufbxi_init_ator(&tmp_error, &tmp_ator, opts ? &opts->temp_allocator : NULL, "filename");
-
-	FILE *file = ufbxi_fopen(filename, filename_len, &tmp_ator);
-	if (!file) {
-		return ufbxi_load_not_found(filename, filename_len, error);
-	}
-
-	ufbx_scene *scene = ufbx_load_stdio(file, &opts_copy, error);
-
-	fclose(file);
-
-	return scene;
+	ufbxi_context uc; // ufbxi_uninit
+	memset(&uc, 0, sizeof(ufbxi_context));
+	uc.deferred_load = true;
+	uc.load_filename = filename;
+	uc.load_filename_len = filename_len;
+	return ufbxi_load(&uc, opts, error);
 }
 
 ufbx_abi ufbx_scene *ufbx_load_stdio(void *file_void, const ufbx_load_opts *opts, ufbx_error *error)
@@ -29313,37 +29786,24 @@ ufbx_abi ufbx_scene *ufbx_load_stdio(void *file_void, const ufbx_load_opts *opts
 
 ufbx_abi ufbx_scene *ufbx_load_stdio_prefix(void *file_void, const void *prefix, size_t prefix_size, const ufbx_load_opts *opts, ufbx_error *error)
 {
-	ufbxi_check_opts_ptr(ufbx_scene, opts, error);
-	FILE *file = (FILE*)file_void;
+#if !defined(UFBX_NO_STDIO)
+	if (!file_void) return NULL;
+	ufbx_stream stream = { 0 };
+	ufbxi_stdio_init(&stream, file_void, false);
+	return ufbx_load_stream_prefix(&stream, prefix, prefix_size, opts, error);
+#else
+	(void)file_void;
+	(void)prefix;
+	(void)prefix_size;
+	(void)opts;
 
-	ufbxi_context uc = { UFBX_ERROR_NONE };
-	uc.data_begin = uc.data = (const char *)prefix;
-	uc.data_size = prefix_size;
-	uc.read_fn = &ufbxi_file_read;
-	uc.skip_fn = &ufbxi_file_skip;
-	uc.read_user = file;
-
-	if (opts && opts->progress_cb.fn && opts->file_size_estimate == 0) {
-		uint64_t begin = ufbxi_ftell(file);
-		if (begin < UINT64_MAX) {
-			fpos_t pos; // ufbxi_uninit
-			if (fgetpos(file, &pos) == 0) {
-				if (fseek(file, 0, SEEK_END) == 0) {
-					uint64_t end = ufbxi_ftell(file);
-					if (end != UINT64_MAX && begin < end) {
-						uc.progress_bytes_total = end - begin;
-					}
-
-					// Both `rewind()` and `fsetpos()` to reset error and EOF
-					rewind(file);
-					fsetpos(file, &pos);
-				}
-			}
-		}
-	}
-
-	ufbx_scene *scene = ufbxi_load(&uc, opts, error);
-	return scene;
+	ufbxi_context uc; // ufbxi_uninit
+	memset(&uc, 0, sizeof(ufbxi_context));
+	ufbxi_fmt_err_info(&uc.error, "UFBX_NO_STDIO");
+	ufbxi_report_err_msg(&uc.error, "UFBX_NO_STDIO", "Feature disabled");
+	uc.deferred_failure = true;
+	return ufbxi_load(&uc, NULL, error);
+#endif
 }
 
 ufbx_abi ufbx_scene *ufbx_load_stream(const ufbx_stream *stream, const ufbx_load_opts *opts, ufbx_error *error)
@@ -29354,13 +29814,16 @@ ufbx_abi ufbx_scene *ufbx_load_stream(const ufbx_stream *stream, const ufbx_load
 ufbx_abi ufbx_scene *ufbx_load_stream_prefix(const ufbx_stream *stream, const void *prefix, size_t prefix_size, const ufbx_load_opts *opts, ufbx_error *error)
 {
 	ufbxi_check_opts_ptr(ufbx_scene, opts, error);
-	ufbxi_context uc = { UFBX_ERROR_NONE };
+	ufbxi_context uc; // ufbxi_uninit
+	memset(&uc, 0, sizeof(ufbxi_context));
 	uc.data_begin = uc.data = (const char *)prefix;
 	uc.data_size = prefix_size;
 	uc.read_fn = stream->read_fn;
 	uc.skip_fn = stream->skip_fn;
+	uc.size_fn = stream->size_fn;
 	uc.close_fn = stream->close_fn;
 	uc.read_user = stream->user;
+
 	ufbx_scene *scene = ufbxi_load(&uc, opts, error);
 	return scene;
 }
@@ -29412,9 +29875,10 @@ ufbx_abi ufbxi_noinline size_t ufbx_format_error(char *dst, size_t dst_size, con
 	}
 
 	size_t stack_size = ufbxi_min_sz(error->stack_size, UFBX_ERROR_STACK_MAX_DEPTH);
+	int line_width = 6;
 	for (size_t i = 0; i < stack_size; i++) {
 		const ufbx_error_frame *frame = &error->stack[i];
-		int num = ufbxi_snprintf(dst + offset, dst_size - offset, "%6u:%s: %s\n", frame->source_line, frame->function.data, frame->description.data);
+		int num = ufbxi_snprintf(dst + offset, dst_size - offset, "%*u:%s: %s\n", line_width, frame->source_line, frame->function.data, frame->description.data);
 		if (num > 0) offset = ufbxi_min_sz(offset + (size_t)num, dst_size - 1);
 	}
 
@@ -29958,8 +30422,7 @@ ufbx_abi ufbx_anim *ufbx_create_anim(const ufbx_scene *scene, const ufbx_anim_op
 		ufbxi_anim_imp *imp = ac.imp;
 		return &imp->anim;
 	} else {
-		ufbxi_fix_error_type(&ac.error, "Failed to create anim");
-		if (error) *error = ac.error;
+		ufbxi_fix_error_type(&ac.error, "Failed to create anim", error);
 		ufbxi_buf_free(&ac.result);
 		ufbxi_free_ator(&ac.ator_result);
 		return NULL;
@@ -30014,6 +30477,7 @@ ufbx_abi ufbx_baked_anim *ufbx_bake_anim(const ufbx_scene *scene, const ufbx_ani
 	ufbxi_buf_free(&bc.tmp_elements);
 	ufbxi_buf_free(&bc.tmp_props);
 	ufbxi_buf_free(&bc.tmp_bake_stack);
+	ufbxi_free(&bc.ator_tmp, char, bc.tmp_arr, bc.tmp_arr_size);
 	ufbxi_free_ator(&bc.ator_tmp);
 
 	if (ok) {
@@ -30021,8 +30485,7 @@ ufbx_abi ufbx_baked_anim *ufbx_bake_anim(const ufbx_scene *scene, const ufbx_ani
 		ufbxi_baked_anim_imp *imp = bc.imp;
 		return &imp->bake;
 	} else {
-		ufbxi_fix_error_type(&bc.error, "Failed to bake anim");
-		if (error) *error = bc.error;
+		ufbxi_fix_error_type(&bc.error, "Failed to bake anim", error);
 		ufbxi_buf_free(&bc.result);
 		ufbxi_free_ator(&bc.ator_result);
 		return NULL;
@@ -31046,8 +31509,7 @@ ufbx_abi ufbx_line_curve *ufbx_tessellate_nurbs_curve(const ufbx_nurbs_curve *cu
 		ufbxi_line_curve_imp *imp = tc.imp;
 		return &imp->curve;
 	} else {
-		ufbxi_fix_error_type(&tc.error, "Failed to tessellate");
-		if (error) *error = tc.error;
+		ufbxi_fix_error_type(&tc.error, "Failed to tessellate", error);
 		ufbxi_buf_free(&tc.result);
 		ufbxi_free_ator(&tc.ator_result);
 		return NULL;
@@ -31087,8 +31549,7 @@ ufbx_abi ufbx_mesh *ufbx_tessellate_nurbs_surface(const ufbx_nurbs_surface *surf
 		ufbxi_mesh_imp *imp = tc.imp;
 		return &imp->mesh;
 	} else {
-		ufbxi_fix_error_type(&tc.error, "Failed to tessellate");
-		if (error) *error = tc.error;
+		ufbxi_fix_error_type(&tc.error, "Failed to tessellate", error);
 		ufbxi_buf_free(&tc.result);
 		ufbxi_free_ator(&tc.ator_result);
 		return NULL;
@@ -31230,7 +31691,7 @@ ufbx_abi void ufbx_catch_compute_topology(ufbx_panic *panic, const ufbx_mesh *me
 ufbx_abi uint32_t ufbx_catch_topo_next_vertex_edge(ufbx_panic *panic, const ufbx_topo_edge *topo, size_t num_topo, uint32_t index)
 {
 	if (index == UFBX_NO_INDEX) return UFBX_NO_INDEX;
-	if (ufbxi_panicf(panic, (size_t)index < num_topo, "index (%d) out of bounds (%zu)", index, num_topo)) return UFBX_NO_INDEX;
+	if (ufbxi_panicf(panic, (size_t)index < num_topo, "index (%u) out of bounds (%zu)", index, num_topo)) return UFBX_NO_INDEX;
 	uint32_t twin = topo[index].twin;
 	if (twin == UFBX_NO_INDEX) return UFBX_NO_INDEX;
 	if (ufbxi_panicf(panic, (size_t)twin < num_topo, "Corrupted topology structure")) return UFBX_NO_INDEX;
@@ -31240,7 +31701,7 @@ ufbx_abi uint32_t ufbx_catch_topo_next_vertex_edge(ufbx_panic *panic, const ufbx
 ufbx_abi uint32_t ufbx_catch_topo_prev_vertex_edge(ufbx_panic *panic, const ufbx_topo_edge *topo, size_t num_topo, uint32_t index)
 {
 	if (index == UFBX_NO_INDEX) return UFBX_NO_INDEX;
-	if (ufbxi_panicf(panic, (size_t)index < num_topo, "index (%d) out of bounds (%zu)", index, num_topo)) return UFBX_NO_INDEX;
+	if (ufbxi_panicf(panic, (size_t)index < num_topo, "index (%u) out of bounds (%zu)", index, num_topo)) return UFBX_NO_INDEX;
 	return topo[topo[index].prev].twin;
 }
 
@@ -31340,7 +31801,7 @@ ufbx_abi void ufbx_catch_compute_normals(ufbx_panic *panic, const ufbx_mesh *mes
 		for (size_t ix = 0; ix < face.num_indices; ix++) {
 			uint32_t index = normal_indices[face.index_begin + ix];
 
-			if (ufbxi_panicf(panic, index < num_normals, "Normal index (%d) out of bounds (%zu) at %zu", index, num_normals, ix)) return;
+			if (ufbxi_panicf(panic, index < num_normals, "Normal index (%u) out of bounds (%zu) at %zu", index, num_normals, ix)) return;
 
 			ufbx_vec3 *n = &normals[index];
 			*n = ufbxi_add3(*n, normal);
@@ -31820,10 +32281,61 @@ ufbx_abi ufbx_audio_clip *ufbx_as_audio_clip(const ufbx_element *element) { retu
 ufbx_abi ufbx_pose *ufbx_as_pose(const ufbx_element *element) { return element && element->type == UFBX_ELEMENT_POSE ? (ufbx_pose*)element : NULL; }
 ufbx_abi ufbx_metadata_object *ufbx_as_metadata_object(const ufbx_element *element) { return element && element->type == UFBX_ELEMENT_METADATA_OBJECT ? (ufbx_metadata_object*)element : NULL; }
 
+// -- String API
+
+ufbx_abi ufbx_prop *ufbx_find_prop(const ufbx_props *props, const char *name) { return ufbx_find_prop_len(props, name, strlen(name)); }
+ufbx_abi ufbx_real ufbx_find_real(const ufbx_props *props, const char *name, ufbx_real def) { return ufbx_find_real_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_vec3 ufbx_find_vec3(const ufbx_props *props, const char *name, ufbx_vec3 def) { return ufbx_find_vec3_len(props, name, strlen(name), def); }
+ufbx_abi int64_t ufbx_find_int(const ufbx_props *props, const char *name, int64_t def) { return ufbx_find_int_len(props, name, strlen(name), def); }
+ufbx_abi bool ufbx_find_bool(const ufbx_props *props, const char *name, bool def) { return ufbx_find_bool_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_string ufbx_find_string(const ufbx_props *props, const char *name, ufbx_string def) { return ufbx_find_string_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_blob ufbx_find_blob(const ufbx_props *props, const char *name, ufbx_blob def) { return ufbx_find_blob_len(props, name, strlen(name), def); }
+ufbx_abi ufbx_element *ufbx_find_prop_element(const ufbx_element *element, const char *name, ufbx_element_type type) { return ufbx_find_prop_element_len(element, name, strlen(name), type); }
+ufbx_abi ufbx_element *ufbx_find_element(const ufbx_scene *scene, ufbx_element_type type, const char *name) { return ufbx_find_element_len(scene, type, name, strlen(name)); }
+ufbx_abi ufbx_node *ufbx_find_node(const ufbx_scene *scene, const char *name) { return ufbx_find_node_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_anim_stack *ufbx_find_anim_stack(const ufbx_scene *scene, const char *name) { return ufbx_find_anim_stack_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_material *ufbx_find_material(const ufbx_scene *scene, const char *name) { return ufbx_find_material_len(scene, name, strlen(name)); }
+ufbx_abi ufbx_anim_prop *ufbx_find_anim_prop(const ufbx_anim_layer *layer, const ufbx_element *element, const char *prop) { return ufbx_find_anim_prop_len(layer, element, prop, strlen(prop)); }
+ufbx_abi ufbx_prop ufbx_evaluate_prop(const ufbx_anim *anim, const ufbx_element *element, const char *name, double time) { return ufbx_evaluate_prop_len(anim, element, name, strlen(name), time); }
+ufbx_abi ufbx_texture *ufbx_find_prop_texture(const ufbx_material *material, const char *name) { return ufbx_find_prop_texture_len(material, name, strlen(name)); }
+ufbx_abi ufbx_string ufbx_find_shader_prop(const ufbx_shader *shader, const char *name) { return ufbx_find_shader_prop_len(shader, name, strlen(name)); }
+ufbx_abi ufbx_shader_prop_binding_list ufbx_find_shader_prop_bindings(const ufbx_shader *shader, const char *name) { return ufbx_find_shader_prop_bindings_len(shader, name, strlen(name)); }
+ufbx_abi ufbx_shader_texture_input *ufbx_find_shader_texture_input(const ufbx_shader_texture *shader, const char *name) { return ufbx_find_shader_texture_input_len(shader, name, strlen(name)); }
+ufbx_abi ufbx_dom_node *ufbx_dom_find(const ufbx_dom_node *parent, const char *name) { return ufbx_dom_find_len(parent, name, strlen(name)); }
+
+// -- Catch API
+
+ufbx_abi uint32_t ufbx_triangulate_face(uint32_t *indices, size_t num_indices, const ufbx_mesh *mesh, ufbx_face face) {
+	return ufbx_catch_triangulate_face(NULL, indices, num_indices, mesh, face);
+}
+ufbx_abi void ufbx_compute_topology(const ufbx_mesh *mesh, ufbx_topo_edge *topo, size_t num_topo) {
+	ufbx_catch_compute_topology(NULL, mesh, topo, num_topo);
+}
+ufbx_abi uint32_t ufbx_topo_next_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index) {
+	return ufbx_catch_topo_next_vertex_edge(NULL, topo, num_topo, index);
+}
+ufbx_abi uint32_t ufbx_topo_prev_vertex_edge(const ufbx_topo_edge *topo, size_t num_topo, uint32_t index) {
+	return ufbx_catch_topo_prev_vertex_edge(NULL, topo, num_topo, index);
+}
+ufbx_abi ufbx_vec3 ufbx_get_weighted_face_normal(const ufbx_vertex_vec3 *positions, ufbx_face face) {
+	return ufbx_catch_get_weighted_face_normal(NULL, positions, face);
+}
+
 #ifdef __cplusplus
 }
 #endif
 
+#endif
+
+#if defined(UFBX_STRING_PREFIX)
+	#undef strlen
+	#undef memcpy
+	#undef memmove
+	#undef memset
+	#undef memchr
+	#undef memcmp
+	#undef strcmp
+	#undef strncmp
 #endif
 
 #if defined(_MSC_VER)

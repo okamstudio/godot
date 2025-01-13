@@ -43,7 +43,7 @@ typedef void (*CloseNotificationFunc)(const String &p_file, int p_flags);
 class FileAccessUnix : public FileAccess {
 	FILE *f = nullptr;
 	int flags = 0;
-	void check_errors() const;
+	void check_errors(bool p_write = false) const;
 	mutable Error last_error = OK;
 	String save_path;
 	String path;
@@ -77,7 +77,7 @@ public:
 
 	virtual Error resize(int64_t p_length) override;
 	virtual void flush() override;
-	virtual void store_buffer(const uint8_t *p_src, uint64_t p_length) override; ///< store an array of bytes
+	virtual bool store_buffer(const uint8_t *p_src, uint64_t p_length) override; ///< store an array of bytes
 
 	virtual bool file_exists(const String &p_path) override; ///< return true if a file exists
 

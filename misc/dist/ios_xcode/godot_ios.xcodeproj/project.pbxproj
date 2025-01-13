@@ -339,6 +339,7 @@
 				MARKETING_VERSION = $short_version;
 				CURRENT_PROJECT_VERSION = $version;
 				PROVISIONING_PROFILE = "$provisioning_profile_uuid_debug";
+				PROVISIONING_PROFILE_SPECIFIER = "$provisioning_profile_specifier_debug";
 				TARGETED_DEVICE_FAMILY = "$targeted_device_family";
 				VALID_ARCHS = "arm64 x86_64";
 				WRAPPER_EXTENSION = app;
@@ -374,6 +375,7 @@
 				MARKETING_VERSION = $short_version;
 				CURRENT_PROJECT_VERSION = $version;
 				PROVISIONING_PROFILE = "$provisioning_profile_uuid_release";
+				PROVISIONING_PROFILE_SPECIFIER = "$provisioning_profile_specifier_release";
 				TARGETED_DEVICE_FAMILY = "$targeted_device_family";
 				VALID_ARCHS = "arm64 x86_64";
 				WRAPPER_EXTENSION = app;

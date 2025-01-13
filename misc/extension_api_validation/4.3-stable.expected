@@ -122,3 +122,117 @@ GH-98918
 Validate extension JSON: Error: Field 'classes/FileAccess/methods/open_encrypted/arguments': size changed value in new API, from 3 to 4.
 
 Optional argument added to allow setting initialization vector. Compatibility method registered.
+
+
+GH-98972
+--------
+Validate extension JSON: Error: Field 'classes/TranslationServer/methods/standardize_locale/arguments': size changed value in new API, from 1 to 2.
+
+Optional argument added. Compatibility method registered.
+
+
+GH-99424
+--------
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_BOTTOM
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_FAR
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_LEFT
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_NEAR
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_RIGHT
+Validate extension JSON: API was removed: builtin_classes/Projection/constants/PLANE_TOP
+Validate extension JSON: API was removed: builtin_classes/Vector2/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector2/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector2i/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector2i/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector3/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector3/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector3/constants/AXIS_Z
+Validate extension JSON: API was removed: builtin_classes/Vector3i/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector3i/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector3i/constants/AXIS_Z
+Validate extension JSON: API was removed: builtin_classes/Vector4/constants/AXIS_W
+Validate extension JSON: API was removed: builtin_classes/Vector4/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector4/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector4/constants/AXIS_Z
+Validate extension JSON: API was removed: builtin_classes/Vector4i/constants/AXIS_W
+Validate extension JSON: API was removed: builtin_classes/Vector4i/constants/AXIS_X
+Validate extension JSON: API was removed: builtin_classes/Vector4i/constants/AXIS_Y
+Validate extension JSON: API was removed: builtin_classes/Vector4i/constants/AXIS_Z
+
+These constants have been replaced with corresponding enum constants.
+
+
+GH-98670
+--------
+Validate extension JSON: Error: Field 'classes/RenderSceneBuffersRD/methods/create_texture/arguments': size changed value in new API, from 9 to 10.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments': size changed value in new API, from 10 to 7.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments': size changed value in new API, from 9 to 7.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/1': type changed value in new API, from "enum::RenderingDevice.InitialAction" to "bitfield::RenderingDevice.DrawFlags".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/2': type changed value in new API, from "enum::RenderingDevice.FinalAction" to "PackedColorArray".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/3': type changed value in new API, from "enum::RenderingDevice.InitialAction" to "float".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/4': type changed value in new API, from "enum::RenderingDevice.FinalAction" to "int".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/5': default_value changed value in new API, from "PackedColorArray()" to "Rect2(0, 0, 0, 0)".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/5': type changed value in new API, from "PackedColorArray" to "Rect2".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/6': default_value changed value in new API, from "1.0" to "0".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/6': meta changed value in new API, from "float" to "uint32".
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/draw_list_begin/arguments/6': type changed value in new API, from "float" to "int".
+
+Draw lists no longer require the initial and final action for color and depth attachments to be specified.
+Draw lists can now specify if a particular color, depth, or stencil attachment should be cleared.
+
+
+GH-78289
+--------
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_16': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_32': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_64': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_8': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_buffer': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_csv_line': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_double': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_half': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_float': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_line': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_pascal_string': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_real': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_string': return_value
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/FileAccess/methods/store_var': return_value
+
+Added return values. Compatibility method registered.
+
+
+GH-99481
+--------
+Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/push_meta/arguments': size changed value in new API, from 2 to 3.
+
+Optional argument added to set tooltip. Compatibility method registered.
+
+
+GH-98443
+--------
+Validate extension JSON: Error: Field 'classes/Control/properties/offset_bottom': type changed value in new API, from "int" to "float".
+Validate extension JSON: Error: Field 'classes/Control/properties/offset_left': type changed value in new API, from "int" to "float".
+Validate extension JSON: Error: Field 'classes/Control/properties/offset_right': type changed value in new API, from "int" to "float".
+Validate extension JSON: Error: Field 'classes/Control/properties/offset_top': type changed value in new API, from "int" to "float".
+
+Property type changed to float to match the actual internal API and documentation.
+
+
+GH-100129
+---------
+Validate extension JSON: Error: Field 'classes/NavigationServer2D/methods/query_path': is_const changed value in new API, from true to false.
+Validate extension JSON: Error: Field 'classes/NavigationServer3D/methods/query_path': is_const changed value in new API, from true to false.
+Validate extension JSON: Error: Field 'classes/NavigationServer2D/methods/query_path/arguments': size changed value in new API, from 2 to 3.
+Validate extension JSON: Error: Field 'classes/NavigationServer3D/methods/query_path/arguments': size changed value in new API, from 2 to 3.
+Validate extension JSON: Error: Field 'classes/NavigationServer2D/methods/map_get_path': is_const changed value in new API, from true to false.
+Validate extension JSON: Error: Field 'classes/NavigationServer3D/methods/map_get_path': is_const changed value in new API, from true to false.
+
+`query_path` and `map_get_path` methods changed to be non const due to internal compatibility and server changes.
+Added optional callback parameters to `query_path` functions. Compatibility methods registered.
+
+
+GH-90057
+--------
+Validate extension JSON: Error: Field 'classes/EditorInterface/methods/open_scene_from_path/arguments': size changed value in new API, from 1 to 2.
+
+Added optional argument to open_scene_from_path to create a new inherited scene.
+Compatibility method registered.

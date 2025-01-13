@@ -139,6 +139,7 @@ class SpinBox : public Range {
 protected:
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 	void _value_changed(double p_value) override;
+	void _validate_property(PropertyInfo &p_property) const;
 
 	void _notification(int p_what);
 	static void _bind_methods();

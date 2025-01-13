@@ -63,9 +63,11 @@ public:
 	virtual String get_support_data_filename() const override;
 	virtual String get_support_data_info() const override;
 	virtual bool save_support_data(const String &p_filename) const override;
+	virtual PackedByteArray get_support_data() const override;
 	GDVIRTUAL0RC(String, _get_support_data_filename);
 	GDVIRTUAL0RC(String, _get_support_data_info);
 	GDVIRTUAL1RC(bool, _save_support_data, const String &);
+	GDVIRTUAL0RC(PackedByteArray, _get_support_data);
 
 	virtual bool is_locale_right_to_left(const String &p_locale) const override;
 	GDVIRTUAL1RC(bool, _is_locale_right_to_left, const String &);
@@ -167,6 +169,11 @@ public:
 	virtual SubpixelPositioning font_get_subpixel_positioning(const RID &p_font_rid) const override;
 	GDVIRTUAL2(_font_set_subpixel_positioning, RID, SubpixelPositioning);
 	GDVIRTUAL1RC(SubpixelPositioning, _font_get_subpixel_positioning, RID);
+
+	virtual void font_set_keep_rounding_remainders(const RID &p_font_rid, bool p_keep_rounding_remainders) override;
+	virtual bool font_get_keep_rounding_remainders(const RID &p_font_rid) const override;
+	GDVIRTUAL2(_font_set_keep_rounding_remainders, RID, bool);
+	GDVIRTUAL1RC(bool, _font_get_keep_rounding_remainders, RID);
 
 	virtual void font_set_embolden(const RID &p_font_rid, double p_strength) override;
 	virtual double font_get_embolden(const RID &p_font_rid) const override;

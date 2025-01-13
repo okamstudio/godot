@@ -215,6 +215,7 @@ enum class SvgParserLengthType
 {
     Vertical,
     Horizontal,
+    Diagonal,
     //In case of, for example, radius of radial gradient
     Other
 };

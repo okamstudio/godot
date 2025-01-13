@@ -156,25 +156,25 @@ private:
 	HashSet<SkinReference *> skin_bindings;
 	void _skin_changed();
 
-	LocalVector<Bone> bones;
-	bool process_order_dirty = false;
+	mutable LocalVector<Bone> bones;
+	mutable bool process_order_dirty = false;
 
-	Vector<int> parentless_bones;
+	mutable Vector<int> parentless_bones;
 	AHashMap<String, int> name_to_bone_index;
 
 	mutable StringName concatenated_bone_names;
 	void _update_bone_names() const;
 
 	void _make_dirty();
-	bool dirty = false;
-	bool rest_dirty = false;
+	mutable bool dirty = false;
+	mutable bool rest_dirty = false;
 
 	bool show_rest_only = false;
 	float motion_scale = 1.0;
 
 	uint64_t version = 1;
 
-	void _update_process_order();
+	void _update_process_order() const;
 
 	// To process modifiers.
 	ModifierCallbackModeProcess modifier_callback_mode_process = MODIFIER_CALLBACK_MODE_PROCESS_IDLE;
@@ -184,16 +184,16 @@ private:
 	void _process_modifiers();
 	void _process_changed();
 	void _make_modifiers_dirty();
-	LocalVector<BonePoseBackup> bones_backup;
+	mutable LocalVector<BonePoseBackup> bones_backup;
 
 	// Global bone pose calculation.
-	LocalVector<int> nested_set_offset_to_bone_index; // Map from Bone::nested_set_offset to bone index.
-	LocalVector<bool> bone_global_pose_dirty; // Indexable with Bone::nested_set_offset.
-	void _update_bones_nested_set();
-	int _update_bone_nested_set(int p_bone, int p_offset);
-	void _make_bone_global_poses_dirty();
-	void _make_bone_global_pose_subtree_dirty(int p_bone);
-	void _update_bone_global_pose(int p_bone);
+	mutable LocalVector<int> nested_set_offset_to_bone_index; // Map from Bone::nested_set_offset to bone index.
+	mutable LocalVector<bool> bone_global_pose_dirty; // Indexable with Bone::nested_set_offset.
+	void _update_bones_nested_set() const;
+	int _update_bone_nested_set(int p_bone, int p_offset) const;
+	void _make_bone_global_poses_dirty() const;
+	void _make_bone_global_pose_subtree_dirty(int p_bone) const;
+	void _update_bone_global_pose(int p_bone) const;
 
 #ifndef DISABLE_DEPRECATED
 	void _add_bone_bind_compat_88791(const String &p_name);
@@ -222,6 +222,7 @@ public:
 	// Skeleton creation API
 	uint64_t get_version() const;
 	int add_bone(const String &p_name);
+	void remove_bone(int p_bone);
 	int find_bone(const String &p_name) const;
 	String get_bone_name(int p_bone) const;
 	void set_bone_name(int p_bone, const String &p_name);
@@ -282,8 +283,11 @@ public:
 	Ref<SkinReference> register_skin(const Ref<Skin> &p_skin);
 
 	void force_update_all_dirty_bones();
+	void _force_update_all_dirty_bones() const;
 	void force_update_all_bone_transforms();
+	void _force_update_all_bone_transforms() const;
 	void force_update_bone_children_transforms(int bone_idx);
+	void _force_update_bone_children_transforms(int bone_idx) const;
 	void force_update_deferred();
 
 	void set_modifier_callback_mode_process(ModifierCallbackModeProcess p_mode);

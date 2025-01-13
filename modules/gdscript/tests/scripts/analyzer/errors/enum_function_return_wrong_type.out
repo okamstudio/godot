@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Cannot return a value of type "enum_function_return_wrong_type.gd.MyOtherEnum" as "enum_function_return_wrong_type.gd.MyEnum".
+>> ERROR at line 5: Cannot return a value of type "enum_function_return_wrong_type.gd.MyOtherEnum" as "enum_function_return_wrong_type.gd.MyEnum".
+>> ERROR at line 5: Cannot return value of type "enum_function_return_wrong_type.gd.MyOtherEnum" because the function return type is "enum_function_return_wrong_type.gd.MyEnum".

@@ -107,6 +107,36 @@ namespace Godot.SourceGenerators
                 "Types not derived from Node should not export Node members. Node export is only supported in Node-derived classes.",
                 helpLinkUri: string.Format(_helpLinkFormat, "GD0107"));
 
+        public static readonly DiagnosticDescriptor OnlyToolClassesShouldUseExportToolButtonRule =
+            new DiagnosticDescriptor(id: "GD0108",
+                title: "The exported tool button is not in a tool class",
+                messageFormat: "The exported tool button '{0}' is not in a tool class",
+                category: "Usage",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                "The exported tool button is not in a tool class. Annotate the class with the '[Tool]' attribute, or remove the '[ExportToolButton]' attribute.",
+                helpLinkUri: string.Format(_helpLinkFormat, "GD0108"));
+
+        public static readonly DiagnosticDescriptor ExportToolButtonShouldNotBeUsedWithExportRule =
+            new DiagnosticDescriptor(id: "GD0109",
+                title: "The '[ExportToolButton]' attribute cannot be used with another '[Export]' attribute",
+                messageFormat: "The '[ExportToolButton]' attribute cannot be used with another '[Export]' attribute on '{0}'",
+                category: "Usage",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                "The '[ExportToolButton]' attribute cannot be used with the '[Export]' attribute. Remove one of the attributes.",
+                helpLinkUri: string.Format(_helpLinkFormat, "GD0109"));
+
+        public static readonly DiagnosticDescriptor ExportToolButtonIsNotCallableRule =
+            new DiagnosticDescriptor(id: "GD0110",
+                title: "The exported tool button is not a Callable",
+                messageFormat: "The exported tool button '{0}' is not a Callable",
+                category: "Usage",
+                DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                "The exported tool button is not a Callable. The '[ExportToolButton]' attribute is only supported on members of type Callable.",
+                helpLinkUri: string.Format(_helpLinkFormat, "GD0110"));
+
         public static readonly DiagnosticDescriptor SignalDelegateMissingSuffixRule =
             new DiagnosticDescriptor(id: "GD0201",
                 title: "The name of the delegate must end with 'EventHandler'",

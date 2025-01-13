@@ -1,2 +1,3 @@
 GDTEST_ANALYZER_ERROR
-Cannot assign a value of type "enum_value_from_parent.gd.<anonymous enum>" as "enum_preload_unnamed_assign_to_named.gd.MyEnum".
+>> ERROR at line 6: Cannot assign a value of type "enum_value_from_parent.gd.<anonymous enum>" as "enum_preload_unnamed_assign_to_named.gd.MyEnum".
+>> ERROR at line 6: Value of type "enum_value_from_parent.gd.<anonymous enum>" cannot be assigned to a variable of type "enum_preload_unnamed_assign_to_named.gd.MyEnum".

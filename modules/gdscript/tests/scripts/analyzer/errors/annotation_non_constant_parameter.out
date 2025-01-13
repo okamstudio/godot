@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Argument 1 of annotation "@export_range" isn't a constant expression.
+>> ERROR at line 3: Argument 1 of annotation "@export_range" isn't a constant expression.

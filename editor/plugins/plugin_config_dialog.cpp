@@ -305,7 +305,7 @@ PluginConfigDialog::PluginConfigDialog() {
 	grid->add_child(script_name_label);
 
 	script_edit = memnew(LineEdit);
-	script_edit->set_tooltip_text(TTR("Optional. The path to the script (relative to the add-on folder). If left empty, will default to \"plugin.gd\"."));
+	script_edit->set_tooltip_text(TTR("Optional. The name of the script file. If left empty, will default to the subfolder name."));
 	script_edit->set_placeholder("\"plugin.gd\" -> res://addons/my_plugin/plugin.gd");
 	script_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	grid->add_child(script_edit);

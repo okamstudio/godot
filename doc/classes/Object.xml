@@ -22,6 +22,7 @@
 		Lastly, every object can also contain metadata (data about data). [method set_meta] can be useful to store information that the object itself does not depend on. To keep your code clean, making excessive use of metadata is discouraged.
 		[b]Note:[/b] Unlike references to a [RefCounted], references to an object stored in a variable can become invalid without being set to [code]null[/code]. To check if an object has been deleted, do [i]not[/i] compare it against [code]null[/code]. Instead, use [method @GlobalScope.is_instance_valid]. It's also recommended to inherit from [RefCounted] for classes storing data instead of [Object].
 		[b]Note:[/b] The [code]script[/code] is not exposed like most properties. To set or get an object's [Script] in code, use [method set_script] and [method get_script], respectively.
+		[b]Note:[/b] In a boolean context, an [Object] will evaluate to [code]false[/code] if it is equal to [code]null[/code] or it has been freed. Otherwise, an [Object] will always evaluate to [code]true[/code]. See also [method @GlobalScope.is_instance_valid].
 	</description>
 	<tutorials>
 		<link title="Object class introduction">$DOCS_URL/contributing/development/core_and_modules/object_class.html</link>
@@ -986,12 +987,12 @@
 				[gdscript]
 				var node = Node2D.new()
 				node.set("global_scale", Vector2(8, 2.5))
-				print(node.global_scale) # Prints (8, 2.5)
+				print(node.global_scale) # Prints (8.0, 2.5)
 				[/gdscript]
 				[csharp]
 				var node = new Node2D();
-				node.Set(Node2D.PropertyName.GlobalScale, new Vector2(8, 2.5));
-				GD.Print(node.GlobalScale); // Prints Vector2(8, 2.5)
+				node.Set(Node2D.PropertyName.GlobalScale, new Vector2(8, 2.5f));
+				GD.Print(node.GlobalScale); // Prints (8, 2.5)
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] In C#, [param property] must be in snake_case when referring to built-in Godot properties. Prefer using the names exposed in the [code]PropertyName[/code] class to avoid allocating a new [StringName] on each call.
@@ -1046,7 +1047,7 @@
 				var node = Node2D.new()
 				node.set_indexed("position", Vector2(42, 0))
 				node.set_indexed("position:y", -10)
-				print(node.position) # Prints (42, -10)
+				print(node.position) # Prints (42.0, -10.0)
 				[/gdscript]
 				[csharp]
 				var node = new Node2D();

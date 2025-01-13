@@ -50,7 +50,7 @@ void GodotStep3D::_populate_island(GodotBody3D *p_body, LocalVector<GodotBody3D 
 	}
 
 	for (const KeyValue<GodotConstraint3D *, int> &E : p_body->get_constraint_map()) {
-		GodotConstraint3D *constraint = const_cast<GodotConstraint3D *>(E.key);
+		GodotConstraint3D *constraint = E.key;
 		if (constraint->get_island_step() == _step) {
 			continue; // Already processed.
 		}
@@ -88,8 +88,8 @@ void GodotStep3D::_populate_island(GodotBody3D *p_body, LocalVector<GodotBody3D 
 void GodotStep3D::_populate_island_soft_body(GodotSoftBody3D *p_soft_body, LocalVector<GodotBody3D *> &p_body_island, LocalVector<GodotConstraint3D *> &p_constraint_island) {
 	p_soft_body->set_island_step(_step);
 
-	for (const GodotConstraint3D *E : p_soft_body->get_constraints()) {
-		GodotConstraint3D *constraint = const_cast<GodotConstraint3D *>(E);
+	for (GodotConstraint3D *E : p_soft_body->get_constraints()) {
+		GodotConstraint3D *constraint = E;
 		if (constraint->get_island_step() == _step) {
 			continue; // Already processed.
 		}

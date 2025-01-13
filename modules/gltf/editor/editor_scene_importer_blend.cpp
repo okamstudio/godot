@@ -80,7 +80,7 @@ static bool _get_blender_version(const String &p_path, int &r_major, int &r_mino
 	}
 	pipe = pipe.substr(bl);
 	pipe = pipe.replace_first("Blender ", "");
-	int pp = pipe.find(".");
+	int pp = pipe.find_char('.');
 	if (pp == -1) {
 		if (r_err) {
 			*r_err = vformat(TTR("Couldn't extract version information from Blender executable at: %s."), p_path);
@@ -96,7 +96,7 @@ static bool _get_blender_version(const String &p_path, int &r_major, int &r_mino
 		return false;
 	}
 
-	int pp2 = pipe.find(".", pp + 1);
+	int pp2 = pipe.find_char('.', pp + 1);
 	r_minor = pp2 > pp ? pipe.substr(pp + 1, pp2 - pp - 1).to_int() : 0;
 
 	return true;
@@ -143,6 +143,10 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	const String sink = ProjectSettings::get_singleton()->get_imported_files_path().path_join(
 			vformat("%s-%s.gltf", blend_basename, p_path.md5_text()));
 	const String sink_global = ProjectSettings::get_singleton()->globalize_path(sink);
+	// If true, unpack the original images to the Godot file system and use them. Allows changing image import settings like VRAM compression.
+	// If false, allow Blender to convert the original images, such as re-packing roughness and metallic into one roughness+metallic texture.
+	// In most cases this is desired, but if the .blend file's images are not in the correct format, this must be disabled for correct behavior.
+	const bool unpack_original_images = p_options.has(SNAME("blender/materials/unpack_enabled")) && p_options[SNAME("blender/materials/unpack_enabled")];
 
 	// Handle configuration options.
 
@@ -150,7 +154,7 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	Dictionary parameters_map;
 
 	parameters_map["filepath"] = sink_global;
-	parameters_map["export_keep_originals"] = true;
+	parameters_map["export_keep_originals"] = unpack_original_images;
 	parameters_map["export_format"] = "GLTF_SEPARATE";
 	parameters_map["export_yup"] = true;
 
@@ -285,12 +289,7 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 		parameters_map["export_apply"] = false;
 	}
 
-	if (p_options.has(SNAME("blender/materials/unpack_enabled")) && p_options[SNAME("blender/materials/unpack_enabled")]) {
-		request_options["unpack_all"] = true;
-	} else {
-		request_options["unpack_all"] = false;
-	}
-
+	request_options["unpack_all"] = unpack_original_images;
 	request_options["path"] = source_global;
 	request_options["gltf_options"] = parameters_map;
 
@@ -311,17 +310,13 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	Ref<GLTFState> state;
 	state.instantiate();
 
-	String base_dir;
-	if (p_options.has(SNAME("blender/materials/unpack_enabled")) && p_options[SNAME("blender/materials/unpack_enabled")]) {
-		base_dir = sink.get_base_dir();
-	}
 	if (p_options.has(SNAME("nodes/import_as_skeleton_bones")) ? (bool)p_options[SNAME("nodes/import_as_skeleton_bones")] : false) {
 		state->set_import_as_skeleton_bones(true);
 	}
 	state->set_scene_name(blend_basename);
 	state->set_extract_path(p_path.get_base_dir());
 	state->set_extract_prefix(blend_basename);
-	err = gltf->append_from_file(sink.get_basename() + ".gltf", state, p_flags, base_dir);
+	err = gltf->append_from_file(sink.get_basename() + ".gltf", state, p_flags, sink.get_base_dir());
 	if (err != OK) {
 		if (r_err) {
 			*r_err = FAILED;

@@ -403,6 +403,7 @@ private:
 	Vector2 _anchor_to_position(const Control *p_control, Vector2 anchor);
 	Vector2 _position_to_anchor(const Control *p_control, Vector2 position);
 
+	void _prepare_view_menu();
 	void _popup_callback(int p_op);
 	bool updating_scroll = false;
 	void _update_scroll(real_t);

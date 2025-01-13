@@ -536,7 +536,7 @@ void TextureProgressBar::_notification(int p_what) {
 							}
 
 							// Draw a reference cross.
-							if (Engine::get_singleton()->is_editor_hint()) {
+							if (is_part_of_edited_scene()) {
 								Point2 p;
 
 								if (nine_patch_stretch) {
@@ -608,11 +608,10 @@ int TextureProgressBar::get_fill_mode() {
 }
 
 void TextureProgressBar::set_radial_initial_angle(float p_angle) {
-	while (p_angle > 360) {
-		p_angle -= 360;
-	}
-	while (p_angle < 0) {
-		p_angle += 360;
+	ERR_FAIL_COND_MSG(!Math::is_finite(p_angle), "Angle is non-finite.");
+
+	if (p_angle < 0.0 || p_angle > 360.0) {
+		p_angle = Math::fposmodp(p_angle, 360.0f);
 	}
 
 	if (rad_init_angle == p_angle) {

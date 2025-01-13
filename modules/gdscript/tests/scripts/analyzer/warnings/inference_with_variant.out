@@ -1,6 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 2
->> INFERENCE_ON_VARIANT
->> The variable type is being inferred from a Variant value, so it will be typed as Variant.
+~~ WARNING at line 2: (INFERENCE_ON_VARIANT) The variable type is being inferred from a Variant value, so it will be typed as Variant.
 warn

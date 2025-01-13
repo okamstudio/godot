@@ -101,7 +101,7 @@ Error HTTPClient::verify_headers(const Vector<String> &p_headers) {
 	for (int i = 0; i < p_headers.size(); i++) {
 		String sanitized = p_headers[i].strip_edges();
 		ERR_FAIL_COND_V_MSG(sanitized.is_empty(), ERR_INVALID_PARAMETER, vformat("Invalid HTTP header at index %d: empty.", i));
-		ERR_FAIL_COND_V_MSG(sanitized.find(":") < 1, ERR_INVALID_PARAMETER,
+		ERR_FAIL_COND_V_MSG(sanitized.find_char(':') < 1, ERR_INVALID_PARAMETER,
 				vformat("Invalid HTTP header at index %d: String must contain header-value pair, delimited by ':', but was: '%s'.", i, p_headers[i]));
 	}
 
@@ -113,7 +113,7 @@ Dictionary HTTPClient::_get_response_headers_as_dictionary() {
 	get_response_headers(&rh);
 	Dictionary ret;
 	for (const String &s : rh) {
-		int sp = s.find(":");
+		int sp = s.find_char(':');
 		if (sp == -1) {
 			continue;
 		}

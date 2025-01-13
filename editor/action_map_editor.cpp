@@ -571,7 +571,7 @@ ActionMapEditor::ActionMapEditor() {
 	add_edit->set_placeholder(TTR("Add New Action"));
 	add_edit->set_clear_button_enabled(true);
 	add_edit->connect(SceneStringName(text_changed), callable_mp(this, &ActionMapEditor::_add_edit_text_changed));
-	add_edit->connect("text_submitted", callable_mp(this, &ActionMapEditor::_add_action));
+	add_edit->connect(SceneStringName(text_submitted), callable_mp(this, &ActionMapEditor::_add_action));
 	add_hbox->add_child(add_edit);
 
 	add_button = memnew(Button);

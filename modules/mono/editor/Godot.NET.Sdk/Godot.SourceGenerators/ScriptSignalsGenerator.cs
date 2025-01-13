@@ -309,7 +309,7 @@ namespace Godot.SourceGenerators
                     // Enums must be converted to the underlying type before they can be implicitly converted to Variant
                     if (paramSymbol.Type.TypeKind == TypeKind.Enum)
                     {
-                        var underlyingType = ((INamedTypeSymbol)paramSymbol.Type).EnumUnderlyingType;
+                        var underlyingType = ((INamedTypeSymbol)paramSymbol.Type).EnumUnderlyingType!;
                         source.Append($", ({underlyingType.FullQualifiedNameIncludeGlobal()})@{paramSymbol.Name}");
                         continue;
                     }

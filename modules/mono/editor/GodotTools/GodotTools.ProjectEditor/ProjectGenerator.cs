@@ -22,13 +22,7 @@ namespace GodotTools.ProjectEditor
             root.Sdk = GodotSdkAttrValue;
 
             var mainGroup = root.AddPropertyGroup();
-            mainGroup.AddProperty("TargetFramework", "net6.0");
-
-            var net7 = mainGroup.AddProperty("TargetFramework", "net7.0");
-            net7.Condition = " '$(GodotTargetPlatform)' == 'android' ";
-
-            var net8 = mainGroup.AddProperty("TargetFramework", "net8.0");
-            net8.Condition = " '$(GodotTargetPlatform)' == 'ios' ";
+            mainGroup.AddProperty("TargetFramework", "net8.0");
 
             mainGroup.AddProperty("EnableDynamicLoading", "true");
 

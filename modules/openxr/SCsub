@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 from misc.utility.scons_hints import *
 
+import sys
+
 Import("env")
 Import("env_modules")
 
@@ -29,7 +31,9 @@ elif env["platform"] == "linuxbsd":
         env_openxr.AppendUnique(CPPDEFINES=["XR_USE_PLATFORM_EGL"])
 
     # FIXME: Review what needs to be set for Android and macOS.
-    env_openxr.AppendUnique(CPPDEFINES=["HAVE_SECURE_GETENV"])
+    # FreeBSD uses non-standard getenv functions.
+    if not sys.platform.startswith("freebsd"):
+        env_openxr.AppendUnique(CPPDEFINES=["HAVE_SECURE_GETENV"])
 elif env["platform"] == "windows":
     env_openxr.AppendUnique(CPPDEFINES=["XR_OS_WINDOWS", "NOMINMAX", "XR_USE_PLATFORM_WIN32"])
 elif env["platform"] == "macos":

@@ -113,7 +113,7 @@ void ResourcePreloaderEditor::_item_edited() {
 			return;
 		}
 
-		if (new_name.is_empty() || new_name.contains("\\") || new_name.contains("/") || preloader->has_resource(new_name)) {
+		if (new_name.is_empty() || new_name.contains_char('\\') || new_name.contains_char('/') || preloader->has_resource(new_name)) {
 			s->set_text(0, old_name);
 			return;
 		}

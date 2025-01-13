@@ -96,7 +96,7 @@
 			The number of enabled input ports for this animation node.
 		</member>
 		<member name="xfade_curve" type="Curve" setter="set_xfade_curve" getter="get_xfade_curve">
-			Determines how cross-fading between animations is eased. If empty, the transition will be linear.
+			Determines how cross-fading between animations is eased. If empty, the transition will be linear. Should be a unit [Curve].
 		</member>
 		<member name="xfade_time" type="float" setter="set_xfade_time" getter="get_xfade_time" default="0.0">
 			Cross-fading time (in seconds) between each animation connected to the inputs.

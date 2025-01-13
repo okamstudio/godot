@@ -20,6 +20,17 @@
  * SOFTWARE.
  */
 
+struct Vertex
+{
+   Point pt;
+   Point uv;
+};
+
+struct Polygon
+{
+   Vertex vertex[3];
+};
+
 struct AALine
 {
    int32_t x[2];
@@ -53,10 +64,12 @@ static bool _arrange(const SwImage* image, const SwBBox* region, int& yStart, in
         regionBottom = image->rle->spans[image->rle->size - 1].y;
     }
 
+    if (yStart >= regionBottom) return false;
+
     if (yStart < regionTop) yStart = regionTop;
     if (yEnd > regionBottom) yEnd = regionBottom;
 
-    return yEnd > yStart;
+    return true;
 }
 
 
@@ -673,7 +686,7 @@ static void _rasterPolygonImage(SwSurface* surface, const SwImage* image, const 
     auto denom = ((x[2] - x[0]) * (y[1] - y[0]) - (x[1] - x[0]) * (y[2] - y[0]));
 
     //Skip poly if it's an infinitely thin line
-    if (mathZero(denom)) return;
+    if (tvg::zero(denom)) return;
 
     denom = 1 / denom;   //Reciprocal for speeding up
     dudx = ((u[2] - u[0]) * (y[1] - y[0]) - (u[1] - u[0]) * (y[2] - y[0])) * denom;
@@ -689,8 +702,8 @@ static void _rasterPolygonImage(SwSurface* surface, const SwImage* image, const 
     //Determine which side of the polygon the longer edge is on
     auto side = (dxdy[1] > dxdy[0]) ? true : false;
 
-    if (mathEqual(y[0], y[1])) side = x[0] > x[1];
-    if (mathEqual(y[1], y[2])) side = x[2] > x[1];
+    if (tvg::equal(y[0], y[1])) side = x[0] > x[1];
+    if (tvg::equal(y[1], y[2])) side = x[2] > x[1];
 
     auto regionTop = region ? region->min.y : image->rle->spans->y;  //Normal Image or Rle Image?
     auto compositing = _compositing(surface);   //Composition required

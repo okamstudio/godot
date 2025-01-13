@@ -39,34 +39,34 @@ void AudioEffectStereoEnhanceInstance::process(const AudioFrame *p_src_frames, A
 	unsigned int delay_frames = (base->time_pullout / 1000.0) * AudioServer::get_singleton()->get_mix_rate();
 
 	for (int i = 0; i < p_frame_count; i++) {
-		float l = p_src_frames[i].left;
-		float r = p_src_frames[i].right;
+		float left = p_src_frames[i].left;
+		float right = p_src_frames[i].right;
 
-		float center = (l + r) / 2.0f;
+		float center = (left + right) / 2.0f;
 
-		l = (center + (l - center) * intensity);
-		r = (center + (r - center) * intensity);
+		left = (center + (left - center) * intensity);
+		right = (center + (right - center) * intensity);
 
 		if (surround_mode) {
-			float val = (l + r) / 2.0;
+			float val = (left + right) / 2.0;
 
 			delay_ringbuff[ringbuff_pos & ringbuff_mask] = val;
 
 			float out = delay_ringbuff[(ringbuff_pos - delay_frames) & ringbuff_mask] * surround_amount;
 
-			l += out;
-			r += -out;
+			left += out;
+			right += -out;
 		} else {
-			float val = r;
+			float val = right;
 
 			delay_ringbuff[ringbuff_pos & ringbuff_mask] = val;
 
-			//r is delayed
-			r = delay_ringbuff[(ringbuff_pos - delay_frames) & ringbuff_mask];
+			// The right channel is delayed.
+			right = delay_ringbuff[(ringbuff_pos - delay_frames) & ringbuff_mask];
 		}
 
-		p_dst_frames[i].left = l;
-		p_dst_frames[i].right = r;
+		p_dst_frames[i].left = left;
+		p_dst_frames[i].right = right;
 		ringbuff_pos++;
 	}
 }

@@ -863,16 +863,19 @@ void add_global_enums(Context &r_context) {
 		}
 	}
 
-	// HARDCODED
-	List<StringName> hardcoded_enums;
-	hardcoded_enums.push_back("Vector2.Axis");
-	hardcoded_enums.push_back("Vector2i.Axis");
-	hardcoded_enums.push_back("Vector3.Axis");
-	hardcoded_enums.push_back("Vector3i.Axis");
-	for (const StringName &E : hardcoded_enums) {
-		// These enums are not generated and must be written manually (e.g.: Vector3.Axis)
-		// Here, we assume core types do not begin with underscore
-		r_context.enum_types.push_back(E);
+	for (int i = 0; i < Variant::VARIANT_MAX; i++) {
+		if (i == Variant::OBJECT) {
+			continue;
+		}
+
+		const Variant::Type type = Variant::Type(i);
+
+		List<StringName> enum_names;
+		Variant::get_enums_for_type(type, &enum_names);
+
+		for (const StringName &enum_name : enum_names) {
+			r_context.enum_types.push_back(Variant::get_type_name(type) + "." + enum_name);
+		}
 	}
 }
 

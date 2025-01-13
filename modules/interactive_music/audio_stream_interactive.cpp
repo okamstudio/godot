@@ -691,9 +691,14 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 				src_fade_wait = beat_sec - remainder;
 			} break;
 			case AudioStreamInteractive::TRANSITION_FROM_TIME_NEXT_BAR: {
-				float bar_sec = beat_sec * from_state.stream->get_bar_beats();
-				float remainder = Math::fmod(current_pos, bar_sec);
-				src_fade_wait = bar_sec - remainder;
+				if (from_state.stream->get_bar_beats() > 0) {
+					float bar_sec = beat_sec * from_state.stream->get_bar_beats();
+					float remainder = Math::fmod(current_pos, bar_sec);
+					src_fade_wait = bar_sec - remainder;
+				} else {
+					// Stream does not have a number of beats per bar - avoid NaN, and play immediately.
+					src_fade_wait = 0;
+				}
 			} break;
 			case AudioStreamInteractive::TRANSITION_FROM_TIME_END: {
 				float end = from_state.stream->get_beat_count() > 0 ? float(from_state.stream->get_beat_count() * beat_sec) : from_state.stream->get_length();
@@ -1013,6 +1018,10 @@ void AudioStreamPlaybackInteractive::switch_to_clip(int p_index) {
 	switch_request = p_index;
 }
 
+int AudioStreamPlaybackInteractive::get_current_clip_index() const {
+	return playback_current;
+}
+
 int AudioStreamPlaybackInteractive::get_loop_count() const {
 	return 0; // Looping not supported
 }
@@ -1028,4 +1037,5 @@ bool AudioStreamPlaybackInteractive::is_playing() const {
 void AudioStreamPlaybackInteractive::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("switch_to_clip_by_name", "clip_name"), &AudioStreamPlaybackInteractive::switch_to_clip_by_name);
 	ClassDB::bind_method(D_METHOD("switch_to_clip", "clip_index"), &AudioStreamPlaybackInteractive::switch_to_clip);
+	ClassDB::bind_method(D_METHOD("get_current_clip_index"), &AudioStreamPlaybackInteractive::get_current_clip_index);
 }

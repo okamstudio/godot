@@ -152,11 +152,24 @@
 				Gets the value of a parameter. Parameters are custom local memory used for your animation nodes, given a resource can be reused in multiple trees.
 			</description>
 		</method>
+		<method name="get_processing_animation_tree_instance_id" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the object id of the [AnimationTree] that owns this node.
+				[b]Note:[/b] This method should only be called from within the [method AnimationNodeExtension._process] method, and will return an invalid id otherwise.
+			</description>
+		</method>
 		<method name="is_path_filtered" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="path" type="NodePath" />
 			<description>
-				Returns whether the given path is filtered.
+				Returns [code]true[/code] if the given path is filtered.
+			</description>
+		</method>
+		<method name="is_process_testing" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if this animation node is being processed in test-only mode.
 			</description>
 		</method>
 		<method name="remove_input">

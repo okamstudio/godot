@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Local constant "E" is not resolved at this point.
+>> ERROR at line 4: Local constant "E" is not resolved at this point.

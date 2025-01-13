@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot infer the type of "inferred" parameter because the value doesn't have a set type.
+>> ERROR at line 1: Cannot infer the type of "inferred" parameter because the value doesn't have a set type.

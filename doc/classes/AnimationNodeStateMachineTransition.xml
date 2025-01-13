@@ -41,7 +41,7 @@
 			The transition type.
 		</member>
 		<member name="xfade_curve" type="Curve" setter="set_xfade_curve" getter="get_xfade_curve">
-			Ease curve for better control over cross-fade between this state and the next.
+			Ease curve for better control over cross-fade between this state and the next. Should be a unit [Curve].
 		</member>
 		<member name="xfade_time" type="float" setter="set_xfade_time" getter="get_xfade_time" default="0.0">
 			The time to cross-fade between this state and the next.

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="LookAtModifier3D" inherits="SkeletonModifier3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		The [SkeletonModifier3D] rotates a bone to look a target.
+		The [LookAtModifier3D] rotates a bone to look at a target.
 	</brief_description>
 	<description>
-		This [SkeletonModifier3D] rotates a bone to look a target. This is helpful for moving character's head to look at the player, rotating a turret to look at a target, or any other case where you want to make a bone rotate towards something quickly and easily.
+		This [SkeletonModifier3D] rotates a bone to look at a target. This is helpful for moving a character's head to look at the player, rotating a turret to look at a target, or any other case where you want to make a bone rotate towards something quickly and easily.
 		When applying multiple [LookAtModifier3D]s, the [LookAtModifier3D] assigned to the parent bone must be put above the [LookAtModifier3D] assigned to the child bone in the list in order for the child bone results to be correct.
 	</description>
 	<tutorials>
@@ -32,8 +32,11 @@
 		</method>
 	</methods>
 	<members>
-		<member name="bone" type="int" setter="set_bone" getter="get_bone" default="0">
-			The bone index of the [Skeleton3D] that the modification will operate on.
+		<member name="bone" type="int" setter="set_bone" getter="get_bone" default="-1">
+			Index of the [member bone_name] in the parent [Skeleton3D].
+		</member>
+		<member name="bone_name" type="String" setter="set_bone_name" getter="get_bone_name" default="&quot;&quot;">
+			The bone name of the [Skeleton3D] that the modification will operate on.
 		</member>
 		<member name="duration" type="float" setter="set_duration" getter="get_duration" default="0.0">
 			The duration of the time-based interpolation. Interpolation is triggered at the following cases:
@@ -48,6 +51,9 @@
 			The forward axis of the bone. This [SkeletonModifier3D] modifies the bone so that this axis points toward the [member target_node].
 		</member>
 		<member name="origin_bone" type="int" setter="set_origin_bone" getter="get_origin_bone">
+			Index of the [member origin_bone_name] in the parent [Skeleton3D].
+		</member>
+		<member name="origin_bone_name" type="String" setter="set_origin_bone_name" getter="get_origin_bone_name">
 			If [member origin_from] is [constant ORIGIN_FROM_SPECIFIC_BONE], the bone global pose position specified for this is used as origin.
 		</member>
 		<member name="origin_external_node" type="NodePath" setter="set_origin_external_node" getter="get_origin_external_node">

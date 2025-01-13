@@ -69,6 +69,11 @@ public:
 		String class_name;
 
 		/**
+		 * Name of the native class this script derives from.
+		 */
+		StringName native_base_name;
+
+		/**
 		 * Path to the icon that will be used for this class by the editor.
 		 */
 		String icon_path;

@@ -572,10 +572,6 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 		} else {
 			update_code_completion = (allow_unicode_handling && k->get_unicode() >= 32);
 		}
-
-		if (!update_code_completion) {
-			cancel_code_completion();
-		}
 	}
 
 	/* MISC */
@@ -3545,13 +3541,13 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 
 		for (int i = 1; *string_to_complete_char_lower && (all_possible_subsequence_matches.size() > 0); i++, string_to_complete_char_lower++) {
 			// find all occurrences of ssq_lower to avoid looking everywhere each time
-			Vector<int> all_ocurence;
+			Vector<int> all_occurrences;
 			if (long_option) {
-				all_ocurence.push_back(target_lower.find_char(*string_to_complete_char_lower));
+				all_occurrences.push_back(target_lower.find_char(*string_to_complete_char_lower));
 			} else {
 				for (int j = i; j < target_lower.length(); j++) {
 					if (target_lower[j] == *string_to_complete_char_lower) {
-						all_ocurence.push_back(j);
+						all_occurrences.push_back(j);
 					}
 				}
 			}
@@ -3569,7 +3565,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 						continue;
 					}
 				}
-				for (int index : all_ocurence) {
+				for (int index : all_occurrences) {
 					if (index > next_index) {
 						Vector<Pair<int, int>> new_match = subsequence_match;
 						new_match.push_back({ index, 1 });

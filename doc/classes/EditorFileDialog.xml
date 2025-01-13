@@ -37,10 +37,22 @@
 				Adds the given [param menu] to the side of the file dialog with the given [param title] text on top. Only one side menu is allowed.
 			</description>
 		</method>
+		<method name="clear_filename_filter">
+			<return type="void" />
+			<description>
+				Clear the filter for file names.
+			</description>
+		</method>
 		<method name="clear_filters">
 			<return type="void" />
 			<description>
-				Removes all filters except for "All Files (*)".
+				Removes all filters except for "All Files (*.*)".
+			</description>
+		</method>
+		<method name="get_filename_filter" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the value of the filter for file names.
 			</description>
 		</method>
 		<method name="get_line_edit">
@@ -94,6 +106,13 @@
 			<return type="void" />
 			<description>
 				Shows the [EditorFileDialog] at the default size and position for file dialogs in the editor, and selects the file name if there is a current file.
+			</description>
+		</method>
+		<method name="set_filename_filter">
+			<return type="void" />
+			<param index="0" name="filter" type="String" />
+			<description>
+				Sets the value of the filter for file names.
 			</description>
 		</method>
 		<method name="set_option_default">
@@ -166,6 +185,12 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Emitted when a file is selected.
+			</description>
+		</signal>
+		<signal name="filename_filter_changed">
+			<param index="0" name="filter" type="String" />
+			<description>
+				Emitted when the filter for file names changes.
 			</description>
 		</signal>
 		<signal name="files_selected">

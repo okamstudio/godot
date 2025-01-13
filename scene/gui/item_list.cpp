@@ -419,7 +419,7 @@ void ItemList::select(int p_idx, bool p_single) {
 void ItemList::deselect(int p_idx) {
 	ERR_FAIL_INDEX(p_idx, items.size());
 
-	if (select_mode != SELECT_MULTI) {
+	if (select_mode == SELECT_SINGLE) {
 		items.write[p_idx].selected = false;
 		current = -1;
 	} else {
@@ -746,12 +746,24 @@ void ItemList::gui_input(const Ref<InputEvent> &p_event) {
 					return;
 				}
 
-				if (items[i].selectable && (!items[i].selected || allow_reselect)) {
+				if (items[i].selectable && (!items[i].selected || allow_reselect) && select_mode != SELECT_TOGGLE) {
 					select(i, select_mode == SELECT_SINGLE || !mb->is_command_or_control_pressed());
 
 					if (select_mode == SELECT_SINGLE) {
 						emit_signal(SceneStringName(item_selected), i);
 					} else {
+						emit_signal(SNAME("multi_selected"), i, true);
+					}
+				}
+
+				if (items[i].selectable && select_mode == SELECT_TOGGLE) {
+					if (items[i].selected) {
+						deselect(i);
+						current = i;
+						emit_signal(SNAME("multi_selected"), i, false);
+					} else {
+						select(i, false);
+						current = i;
 						emit_signal(SNAME("multi_selected"), i, true);
 					}
 				}
@@ -929,7 +941,7 @@ void ItemList::gui_input(const Ref<InputEvent> &p_event) {
 			}
 		} else if (p_event->is_action("ui_cancel", true)) {
 			search_string = "";
-		} else if (p_event->is_action("ui_select", true) && select_mode == SELECT_MULTI) {
+		} else if (p_event->is_action("ui_select", true) && (select_mode == SELECT_MULTI || select_mode == SELECT_TOGGLE)) {
 			if (current >= 0 && current < items.size()) {
 				if (CAN_SELECT(current) && !items[current].selected) {
 					select(current, false);
@@ -1353,7 +1365,7 @@ void ItemList::_notification(int p_what) {
 					}
 				}
 
-				if (select_mode == SELECT_MULTI && i == current) {
+				if (i == current && (select_mode == SELECT_MULTI || select_mode == SELECT_TOGGLE)) {
 					Rect2 r = rcache;
 					r.position += base_ofs;
 
@@ -1913,7 +1925,7 @@ void ItemList::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("force_update_list_size"), &ItemList::force_update_list_size);
 
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Multi"), "set_select_mode", "get_select_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Multi,Toggle"), "set_select_mode", "get_select_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_reselect"), "set_allow_reselect", "get_allow_reselect");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_rmb_select"), "set_allow_rmb_select", "get_allow_rmb_select");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_search"), "set_allow_search", "get_allow_search");
@@ -1936,6 +1948,7 @@ void ItemList::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(SELECT_SINGLE);
 	BIND_ENUM_CONSTANT(SELECT_MULTI);
+	BIND_ENUM_CONSTANT(SELECT_TOGGLE);
 
 	ADD_SIGNAL(MethodInfo("item_selected", PropertyInfo(Variant::INT, "index")));
 	ADD_SIGNAL(MethodInfo("empty_clicked", PropertyInfo(Variant::VECTOR2, "at_position"), PropertyInfo(Variant::INT, "mouse_button_index")));

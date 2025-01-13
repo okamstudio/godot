@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRBindingModifier" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Binding modifier base class.
+	</brief_description>
+	<description>
+		Binding modifier base class. Subclasses implement various modifiers that alter how an OpenXR runtime processes inputs.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="_get_description" qualifiers="virtual const">
+			<return type="String" />
+			<description>
+				Return the description of this class that is used for the title bar of the binding modifier editor.
+			</description>
+		</method>
+		<method name="_get_ip_modification" qualifiers="virtual">
+			<return type="PackedByteArray" />
+			<description>
+				Returns the data that is sent to OpenXR when submitting the suggested interacting bindings this modifier is a part of.
+				[b]Note:[/b] This must be data compatible with a [code]XrBindingModificationBaseHeaderKHR[/code] structure.
+			</description>
+		</method>
+	</methods>
+</class>

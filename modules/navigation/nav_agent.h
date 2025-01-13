@@ -35,6 +35,7 @@
 
 #include "core/object/class_db.h"
 #include "core/templates/local_vector.h"
+#include "core/templates/self_list.h"
 
 #include <Agent2d.h>
 #include <Agent3d.h>
@@ -74,8 +75,11 @@ class NavAgent : public NavRid {
 	uint32_t last_map_iteration_id = 0;
 	bool paused = false;
 
+	SelfList<NavAgent> sync_dirty_request_list_element;
+
 public:
 	NavAgent();
+	~NavAgent();
 
 	void set_avoidance_enabled(bool p_enabled);
 	bool is_avoidance_enabled() { return avoidance_enabled; }
@@ -141,7 +145,10 @@ public:
 	void set_paused(bool p_paused);
 	bool get_paused() const;
 
-	bool check_dirty();
+	bool is_dirty() const;
+	void sync();
+	void request_sync();
+	void cancel_sync_request();
 
 	// Updates this agent with rvo data after the rvo simulation avoidance step.
 	void update();

@@ -130,7 +130,7 @@ NavigationMeshEditor::NavigationMeshEditor() {
 	bake_hbox = memnew(HBoxContainer);
 
 	button_bake = memnew(Button);
-	button_bake->set_theme_type_variation("FlatButton");
+	button_bake->set_theme_type_variation(SceneStringName(FlatButton));
 	bake_hbox->add_child(button_bake);
 	button_bake->set_toggle_mode(true);
 	button_bake->set_text(TTR("Bake NavigationMesh"));
@@ -138,7 +138,7 @@ NavigationMeshEditor::NavigationMeshEditor() {
 	button_bake->connect(SceneStringName(pressed), callable_mp(this, &NavigationMeshEditor::_bake_pressed));
 
 	button_reset = memnew(Button);
-	button_reset->set_theme_type_variation("FlatButton");
+	button_reset->set_theme_type_variation(SceneStringName(FlatButton));
 	bake_hbox->add_child(button_reset);
 	button_reset->set_text(TTR("Clear NavigationMesh"));
 	button_reset->set_tooltip_text(TTR("Clears the internal NavigationMesh vertices and polygons."));

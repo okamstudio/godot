@@ -199,7 +199,7 @@ EditorZoomWidget::EditorZoomWidget() {
 
 	Ref<StyleBoxEmpty> empty_stylebox = memnew(StyleBoxEmpty);
 	zoom_reset->add_theme_style_override(CoreStringName(normal), empty_stylebox);
-	zoom_reset->add_theme_style_override("hover", empty_stylebox);
+	zoom_reset->add_theme_style_override(SceneStringName(hover), empty_stylebox);
 	zoom_reset->add_theme_style_override("focus", empty_stylebox);
 	zoom_reset->add_theme_style_override(SceneStringName(pressed), empty_stylebox);
 	zoom_reset->add_theme_constant_override("outline_size", Math::ceil(2 * EDSCALE));

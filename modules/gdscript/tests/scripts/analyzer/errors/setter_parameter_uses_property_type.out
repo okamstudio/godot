@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot assign a value of type int to variable "x" with specified type String.
+>> ERROR at line 3: Cannot assign a value of type int to variable "x" with specified type String.

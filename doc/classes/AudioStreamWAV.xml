@@ -11,6 +11,38 @@
 		<link title="Runtime file loading and saving">$DOCS_URL/tutorials/io/runtime_file_loading_and_saving.html</link>
 	</tutorials>
 	<methods>
+		<method name="load_from_buffer" qualifiers="static">
+			<return type="AudioStreamWAV" />
+			<param index="0" name="buffer" type="PackedByteArray" />
+			<param index="1" name="options" type="Dictionary" default="{}" />
+			<description>
+				Creates a new [AudioStreamWAV] instance from the given buffer. The keys and values of [param options] match the properties of [ResourceImporterWAV].
+				The usage of [param options] is identical to [method AudioStreamWAV.load_from_file].
+			</description>
+		</method>
+		<method name="load_from_file" qualifiers="static">
+			<return type="AudioStreamWAV" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="options" type="Dictionary" default="{}" />
+			<description>
+				Creates a new [AudioStreamWAV] instance from the given file path. The keys and values of [param options] match the properties of [ResourceImporterWAV].
+				[b]Example:[/b] Load the first file dropped as a WAV and play it:
+				[codeblock]
+				@onready var audio_player = $AudioStreamPlayer
+
+				func _ready():
+				    get_window().files_dropped.connect(_on_files_dropped)
+
+				func _on_files_dropped(files):
+				    if files[0].get_extension() == "wav":
+				        audio_player.stream = AudioStreamWAV.load_from_file(files[0], {
+				                "force/max_rate": true,
+				                "force/max_rate_hz": 11025
+				            })
+				        audio_player.play()
+				[/codeblock]
+			</description>
+		</method>
 		<method name="save_to_wav">
 			<return type="int" enum="Error" />
 			<param index="0" name="path" type="String" />

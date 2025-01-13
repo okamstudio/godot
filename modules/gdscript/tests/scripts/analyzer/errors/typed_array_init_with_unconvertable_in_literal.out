@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Cannot have an element of type "int" in an array of type "Array[Object]".
+>> ERROR at line 3: Cannot have an element of type "int" in an array of type "Array[Object]".

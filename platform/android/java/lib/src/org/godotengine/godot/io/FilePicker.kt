@@ -37,6 +37,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
 import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.annotation.RequiresApi
 import org.godotengine.godot.GodotLib
 import org.godotengine.godot.io.file.MediaStoreData
@@ -145,16 +146,55 @@ internal class FilePicker {
 			if (fileMode != FILE_MODE_OPEN_DIR) {
 				intent.type = "*/*"
 				if (filters.isNotEmpty()) {
-					if (filters.size == 1) {
-						intent.type = filters[0]
+					val resolvedFilters = filters.map { resolveMimeType(it) }.distinct()
+					if (resolvedFilters.size == 1) {
+						intent.type = resolvedFilters[0]
 					} else {
-						intent.putExtra(Intent.EXTRA_MIME_TYPES, filters)
+						intent.putExtra(Intent.EXTRA_MIME_TYPES, resolvedFilters.toTypedArray())
 					}
 				}
 				intent.addCategory(Intent.CATEGORY_OPENABLE)
 			}
 			intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
 			activity?.startActivityForResult(intent, FILE_PICKER_REQUEST)
+		}
+
+		/**
+		 * Retrieves the MIME type for a given file extension.
+		 *
+		 * @param ext the extension whose MIME type is to be determined.
+		 * @return the MIME type as a string, or "application/octet-stream" if the type is unknown.
+		 */
+		private fun resolveMimeType(ext: String): String {
+			val mimeTypeMap = MimeTypeMap.getSingleton()
+			var input = ext
+
+			// Fix for extensions like "*.txt" or ".txt".
+			if (ext.contains(".")) {
+				input = ext.substring(ext.indexOf(".") + 1);
+			}
+
+			// Check if the input is already a valid MIME type.
+			if (mimeTypeMap.hasMimeType(input)) {
+				return input
+			}
+
+			val resolvedMimeType = mimeTypeMap.getMimeTypeFromExtension(input)
+			if (resolvedMimeType != null) {
+				return resolvedMimeType
+			}
+			// Check for wildcard MIME types like "image/*".
+			if (input.contains("/*")) {
+				val category = input.substringBefore("/*")
+				return when (category) {
+					"image" -> "image/*"
+					"video" -> "video/*"
+					"audio" -> "audio/*"
+					else -> "application/octet-stream"
+				}
+			}
+			// Fallback to a generic MIME type if the input is neither a valid extension nor MIME type.
+			return "application/octet-stream"
 		}
 	}
 }

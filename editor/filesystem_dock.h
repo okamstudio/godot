@@ -133,6 +133,7 @@ private:
 		CONVERT_BASE_ID = 1000,
 	};
 
+	HashMap<String, TreeItem *> folder_map;
 	HashMap<String, Color> folder_colors;
 	Dictionary assigned_folder_colors;
 
@@ -262,7 +263,7 @@ private:
 	void _set_file_display(bool p_active);
 	void _fs_changed();
 
-	void _select_file(const String &p_path, bool p_select_in_favorites = false);
+	void _select_file(const String &p_path, bool p_select_in_favorites = false, bool p_navigate = true);
 	void _tree_activate_file();
 	void _file_list_activate_file(int p_idx);
 	void _file_multi_selected(int p_index, bool p_selected);
@@ -380,6 +381,7 @@ public:
 
 	String get_current_path() const;
 	String get_current_directory() const;
+	String get_folder_path_at_mouse_position() const;
 
 	void navigate_to_path(const String &p_path);
 	void focus_on_path();

@@ -475,6 +475,7 @@ public:
 	virtual Color multimesh_instance_get_custom_data(RID p_multimesh, int p_index) const = 0;
 
 	virtual void multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_buffer) = 0;
+	virtual RID multimesh_get_buffer_rd_rid(RID p_multimesh) const = 0;
 	virtual Vector<float> multimesh_get_buffer(RID p_multimesh) const = 0;
 
 	// Interpolation.
@@ -621,6 +622,7 @@ public:
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, ReflectionProbeUpdateMode p_mode) = 0;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) = 0;
+	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) = 0;
 
 	enum ReflectionProbeAmbientMode {
 		REFLECTION_PROBE_AMBIENT_DISABLED,
@@ -708,6 +710,13 @@ public:
 
 	/* LIGHTMAP */
 
+	enum ShadowmaskMode {
+		SHADOWMASK_MODE_NONE,
+		SHADOWMASK_MODE_REPLACE,
+		SHADOWMASK_MODE_OVERLAY,
+		SHADOWMASK_MODE_ONLY,
+	};
+
 	virtual RID lightmap_create() = 0;
 
 	virtual void lightmap_set_textures(RID p_lightmap, RID p_light, bool p_uses_spherical_haromics) = 0;
@@ -721,8 +730,11 @@ public:
 	virtual PackedInt32Array lightmap_get_probe_capture_bsp_tree(RID p_lightmap) const = 0;
 
 	virtual void lightmap_set_probe_capture_update_speed(float p_speed) = 0;
-
 	virtual void lightmaps_set_bicubic_filter(bool p_enable) = 0;
+
+	virtual void lightmap_set_shadowmask_textures(RID p_lightmap, RID p_shadow) = 0;
+	virtual ShadowmaskMode lightmap_get_shadowmask_mode(RID p_lightmap) = 0;
+	virtual void lightmap_set_shadowmask_mode(RID p_lightmap, ShadowmaskMode p_mode) = 0;
 
 	/* PARTICLES API */
 
@@ -1013,6 +1025,8 @@ public:
 	virtual void viewport_set_use_taa(RID p_viewport, bool p_use_taa) = 0;
 
 	virtual void viewport_set_use_debanding(RID p_viewport, bool p_use_debanding) = 0;
+
+	virtual void viewport_set_force_motion_vectors(RID p_viewport, bool p_force_motion_vectors) = 0;
 
 	virtual void viewport_set_mesh_lod_threshold(RID p_viewport, float p_pixels) = 0;
 

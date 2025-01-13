@@ -64,6 +64,7 @@ void CurveEdit::set_curve(Ref<Curve> p_curve) {
 	if (curve.is_valid()) {
 		curve->disconnect_changed(callable_mp(this, &CurveEdit::_curve_changed));
 		curve->disconnect(Curve::SIGNAL_RANGE_CHANGED, callable_mp(this, &CurveEdit::_curve_changed));
+		curve->disconnect(Curve::SIGNAL_DOMAIN_CHANGED, callable_mp(this, &CurveEdit::_curve_changed));
 	}
 
 	curve = p_curve;
@@ -71,6 +72,7 @@ void CurveEdit::set_curve(Ref<Curve> p_curve) {
 	if (curve.is_valid()) {
 		curve->connect_changed(callable_mp(this, &CurveEdit::_curve_changed));
 		curve->connect(Curve::SIGNAL_RANGE_CHANGED, callable_mp(this, &CurveEdit::_curve_changed));
+		curve->connect(Curve::SIGNAL_DOMAIN_CHANGED, callable_mp(this, &CurveEdit::_curve_changed));
 	}
 
 	// Note: if you edit a curve, then set another, and try to undo,
@@ -226,10 +228,10 @@ void CurveEdit::gui_input(const Ref<InputEvent> &p_event) {
 				}
 			} else if (grabbing == GRAB_NONE) {
 				// Adding a new point. Insert a temporary point for the user to adjust, so it's not in the undo/redo.
-				Vector2 new_pos = get_world_pos(mpos).clamp(Vector2(0.0, curve->get_min_value()), Vector2(1.0, curve->get_max_value()));
+				Vector2 new_pos = get_world_pos(mpos).clamp(Vector2(curve->get_min_domain(), curve->get_min_value()), Vector2(curve->get_max_domain(), curve->get_max_value()));
 				if (snap_enabled || mb->is_command_or_control_pressed()) {
-					new_pos.x = Math::snapped(new_pos.x, 1.0 / snap_count);
-					new_pos.y = Math::snapped(new_pos.y - curve->get_min_value(), curve->get_range() / snap_count) + curve->get_min_value();
+					new_pos.x = Math::snapped(new_pos.x - curve->get_min_domain(), curve->get_domain_range() / snap_count) + curve->get_min_domain();
+					new_pos.y = Math::snapped(new_pos.y - curve->get_min_value(), curve->get_value_range() / snap_count) + curve->get_min_value();
 				}
 
 				new_pos.x = get_offset_without_collision(selected_index, new_pos.x, mpos.x >= get_view_pos(new_pos).x);
@@ -276,11 +278,11 @@ void CurveEdit::gui_input(const Ref<InputEvent> &p_event) {
 			if (selected_index != -1) {
 				if (selected_tangent_index == TANGENT_NONE) {
 					// Drag point.
-					Vector2 new_pos = get_world_pos(mpos).clamp(Vector2(0.0, curve->get_min_value()), Vector2(1.0, curve->get_max_value()));
+					Vector2 new_pos = get_world_pos(mpos).clamp(Vector2(curve->get_min_domain(), curve->get_min_value()), Vector2(curve->get_max_domain(), curve->get_max_value()));
 
 					if (snap_enabled || mm->is_command_or_control_pressed()) {
-						new_pos.x = Math::snapped(new_pos.x, 1.0 / snap_count);
-						new_pos.y = Math::snapped(new_pos.y - curve->get_min_value(), curve->get_range() / snap_count) + curve->get_min_value();
+						new_pos.x = Math::snapped(new_pos.x - curve->get_min_domain(), curve->get_domain_range() / snap_count) + curve->get_min_domain();
+						new_pos.y = Math::snapped(new_pos.y - curve->get_min_value(), curve->get_value_range() / snap_count) + curve->get_min_value();
 					}
 
 					// Allow to snap to axes with Shift.
@@ -295,8 +297,8 @@ void CurveEdit::gui_input(const Ref<InputEvent> &p_event) {
 
 					// Allow to constraint the point between the adjacent two with Alt.
 					if (mm->is_alt_pressed()) {
-						float prev_point_offset = (selected_index > 0) ? (curve->get_point_position(selected_index - 1).x + 0.00001) : 0.0;
-						float next_point_offset = (selected_index < curve->get_point_count() - 1) ? (curve->get_point_position(selected_index + 1).x - 0.00001) : 1.0;
+						float prev_point_offset = (selected_index > 0) ? (curve->get_point_position(selected_index - 1).x + 0.00001) : curve->get_min_domain();
+						float next_point_offset = (selected_index < curve->get_point_count() - 1) ? (curve->get_point_position(selected_index + 1).x - 0.00001) : curve->get_max_domain();
 						new_pos.x = CLAMP(new_pos.x, prev_point_offset, next_point_offset);
 					}
 
@@ -357,37 +359,39 @@ void CurveEdit::use_preset(int p_preset_id) {
 	Array previous_data = curve->get_data();
 	curve->clear_points();
 
-	float min_value = curve->get_min_value();
-	float max_value = curve->get_max_value();
+	const float min_y = curve->get_min_value();
+	const float max_y = curve->get_max_value();
+	const float min_x = curve->get_min_domain();
+	const float max_x = curve->get_max_domain();
 
 	switch (p_preset_id) {
 		case PRESET_CONSTANT:
-			curve->add_point(Vector2(0, (min_value + max_value) / 2.0));
-			curve->add_point(Vector2(1, (min_value + max_value) / 2.0));
+			curve->add_point(Vector2(min_x, (min_y + max_y) / 2.0));
+			curve->add_point(Vector2(max_x, (min_y + max_y) / 2.0));
 			curve->set_point_right_mode(0, Curve::TANGENT_LINEAR);
 			curve->set_point_left_mode(1, Curve::TANGENT_LINEAR);
 			break;
 
 		case PRESET_LINEAR:
-			curve->add_point(Vector2(0, min_value));
-			curve->add_point(Vector2(1, max_value));
+			curve->add_point(Vector2(min_x, min_y));
+			curve->add_point(Vector2(max_x, max_y));
 			curve->set_point_right_mode(0, Curve::TANGENT_LINEAR);
 			curve->set_point_left_mode(1, Curve::TANGENT_LINEAR);
 			break;
 
 		case PRESET_EASE_IN:
-			curve->add_point(Vector2(0, min_value));
-			curve->add_point(Vector2(1, max_value), curve->get_range() * 1.4, 0);
+			curve->add_point(Vector2(min_x, min_y));
+			curve->add_point(Vector2(max_x, max_y), curve->get_value_range() / curve->get_domain_range() * 1.4, 0);
 			break;
 
 		case PRESET_EASE_OUT:
-			curve->add_point(Vector2(0, min_value), 0, curve->get_range() * 1.4);
-			curve->add_point(Vector2(1, max_value));
+			curve->add_point(Vector2(min_x, min_y), 0, curve->get_value_range() / curve->get_domain_range() * 1.4);
+			curve->add_point(Vector2(max_x, max_y));
 			break;
 
 		case PRESET_SMOOTHSTEP:
-			curve->add_point(Vector2(0, min_value));
-			curve->add_point(Vector2(1, max_value));
+			curve->add_point(Vector2(min_x, min_y));
+			curve->add_point(Vector2(max_x, max_y));
 			break;
 
 		default:
@@ -411,7 +415,7 @@ void CurveEdit::_curve_changed() {
 	}
 }
 
-int CurveEdit::get_point_at(Vector2 p_pos) const {
+int CurveEdit::get_point_at(const Vector2 &p_pos) const {
 	if (curve.is_null()) {
 		return -1;
 	}
@@ -432,7 +436,7 @@ int CurveEdit::get_point_at(Vector2 p_pos) const {
 	return closest_idx;
 }
 
-CurveEdit::TangentIndex CurveEdit::get_tangent_at(Vector2 p_pos) const {
+CurveEdit::TangentIndex CurveEdit::get_tangent_at(const Vector2 &p_pos) const {
 	if (curve.is_null() || selected_index < 0) {
 		return TANGENT_NONE;
 	}
@@ -491,7 +495,7 @@ float CurveEdit::get_offset_without_collision(int p_current_index, float p_offse
 	return safe_offset;
 }
 
-void CurveEdit::add_point(Vector2 p_pos) {
+void CurveEdit::add_point(const Vector2 &p_pos) {
 	ERR_FAIL_COND(curve.is_null());
 
 	// Add a point to get its index, then remove it immediately. Trick to feed the UndoRedo.
@@ -531,7 +535,7 @@ void CurveEdit::remove_point(int p_index) {
 	undo_redo->commit_action();
 }
 
-void CurveEdit::set_point_position(int p_index, Vector2 p_pos) {
+void CurveEdit::set_point_position(int p_index, const Vector2 &p_pos) {
 	ERR_FAIL_COND(curve.is_null());
 	ERR_FAIL_INDEX_MSG(p_index, curve->get_point_count(), "Curve point is out of bounds.");
 
@@ -657,10 +661,12 @@ void CurveEdit::update_view_transform() {
 
 	const real_t margin = font->get_height(font_size) + 2 * EDSCALE;
 
+	float min_x = curve.is_valid() ? curve->get_min_domain() : 0.0;
+	float max_x = curve.is_valid() ? curve->get_max_domain() : 1.0;
 	float min_y = curve.is_valid() ? curve->get_min_value() : 0.0;
 	float max_y = curve.is_valid() ? curve->get_max_value() : 1.0;
 
-	const Rect2 world_rect = Rect2(Curve::MIN_X, min_y, Curve::MAX_X, max_y - min_y);
+	const Rect2 world_rect = Rect2(min_x, min_y, max_x - min_x, max_y - min_y);
 	const Size2 view_margin(margin, margin);
 	const Size2 view_size = get_size() - view_margin * 2;
 	const Vector2 scale = view_size / world_rect.size;
@@ -707,70 +713,56 @@ Vector2 CurveEdit::get_tangent_view_pos(int p_index, TangentIndex p_tangent) con
 	return tangent_view_pos;
 }
 
-Vector2 CurveEdit::get_view_pos(Vector2 p_world_pos) const {
+Vector2 CurveEdit::get_view_pos(const Vector2 &p_world_pos) const {
 	return _world_to_view.xform(p_world_pos);
 }
 
-Vector2 CurveEdit::get_world_pos(Vector2 p_view_pos) const {
+Vector2 CurveEdit::get_world_pos(const Vector2 &p_view_pos) const {
 	return _world_to_view.affine_inverse().xform(p_view_pos);
 }
 
 // Uses non-baked points, but takes advantage of ordered iteration to be faster.
-template <typename T>
-static void plot_curve_accurate(const Curve &curve, float step, Vector2 scaling, T plot_func) {
-	if (curve.get_point_count() <= 1) {
-		// Not enough points to make a curve, so it's just a straight line.
-		// The added tiny vectors make the drawn line stay exactly within the bounds in practice.
-		float y = curve.sample(0);
-		plot_func(Vector2(0, y) * scaling + Vector2(0.5, 0), Vector2(1.f, y) * scaling - Vector2(1.5, 0), true);
+void CurveEdit::plot_curve_accurate(float p_step, const Color &p_line_color, const Color &p_edge_line_color) {
+	const real_t min_x = curve->get_min_domain();
+	const real_t max_x = curve->get_max_domain();
+	if (curve->get_point_count() <= 1) { // Draw single line through entire plot.
+		real_t y = curve->sample(0);
+		draw_line(get_view_pos(Vector2(min_x, y)) + Vector2(0.5, 0), get_view_pos(Vector2(max_x, y)) - Vector2(1.5, 0), p_line_color, LINE_WIDTH, true);
+		return;
+	}
 
-	} else {
-		Vector2 first_point = curve.get_point_position(0);
-		Vector2 last_point = curve.get_point_position(curve.get_point_count() - 1);
+	Vector2 first_point = curve->get_point_position(0);
+	Vector2 last_point = curve->get_point_position(curve->get_point_count() - 1);
 
-		// Edge lines
-		plot_func(Vector2(0, first_point.y) * scaling + Vector2(0.5, 0), first_point * scaling, false);
-		plot_func(Vector2(Curve::MAX_X, last_point.y) * scaling - Vector2(1.5, 0), last_point * scaling, false);
+	// Transform pixels-per-step into curve domain. Only works for non-rotated transforms.
+	const float world_step_size = p_step / _world_to_view.get_scale().x;
 
-		// Draw section by section, so that we get maximum precision near points.
-		// It's an accurate representation, but slower than using the baked one.
-		for (int i = 1; i < curve.get_point_count(); ++i) {
-			Vector2 a = curve.get_point_position(i - 1);
-			Vector2 b = curve.get_point_position(i);
+	// Edge lines.
+	draw_line(get_view_pos(Vector2(min_x, first_point.y)) + Vector2(0.5, 0), get_view_pos(first_point), p_edge_line_color, LINE_WIDTH, true);
+	draw_line(get_view_pos(last_point), get_view_pos(Vector2(max_x, last_point.y)) - Vector2(1.5, 0), p_edge_line_color, LINE_WIDTH, true);
 
-			Vector2 pos = a;
-			Vector2 prev_pos = a;
+	// Draw section by section, so that we get maximum precision near points.
+	// It's an accurate representation, but slower than using the baked one.
+	for (int i = 1; i < curve->get_point_count(); ++i) {
+		Vector2 a = curve->get_point_position(i - 1);
+		Vector2 b = curve->get_point_position(i);
 
-			float scaled_step = step / scaling.x;
-			float samples = (b.x - a.x) / scaled_step;
+		Vector2 pos = a;
+		Vector2 prev_pos = a;
 
-			for (int j = 1; j < samples; j++) {
-				float x = j * scaled_step;
-				pos.x = a.x + x;
-				pos.y = curve.sample_local_nocheck(i - 1, x);
-				plot_func(prev_pos * scaling, pos * scaling, true);
-				prev_pos = pos;
-			}
+		float samples = (b.x - a.x) / world_step_size;
 
-			plot_func(prev_pos * scaling, b * scaling, true);
+		for (int j = 1; j < samples; j++) {
+			float x = j * world_step_size;
+			pos.x = a.x + x;
+			pos.y = curve->sample_local_nocheck(i - 1, x);
+			draw_line(get_view_pos(prev_pos), get_view_pos(pos), p_line_color, LINE_WIDTH, true);
+			prev_pos = pos;
 		}
+
+		draw_line(get_view_pos(prev_pos), get_view_pos(b), p_line_color, LINE_WIDTH, true);
 	}
 }
-
-struct CanvasItemPlotCurve {
-	CanvasItem &ci;
-	Color color1;
-	Color color2;
-
-	CanvasItemPlotCurve(CanvasItem &p_ci, Color p_color1, Color p_color2) :
-			ci(p_ci),
-			color1(p_color1),
-			color2(p_color2) {}
-
-	void operator()(Vector2 pos0, Vector2 pos1, bool in_definition) {
-		ci.draw_line(pos0, pos1, in_definition ? color1 : color2, 0.5, true);
-	}
-};
 
 void CurveEdit::_redraw() {
 	if (curve.is_null()) {
@@ -784,7 +776,7 @@ void CurveEdit::_redraw() {
 	Vector2 view_size = get_rect().size;
 	draw_style_box(get_theme_stylebox(SceneStringName(panel), SNAME("Tree")), Rect2(Point2(), view_size));
 
-	// Draw snapping grid, then primary grid.
+	// Draw primary grid.
 	draw_set_transform_matrix(_world_to_view);
 
 	Vector2 min_edge = get_world_pos(Vector2(0, view_size.y));
@@ -794,15 +786,15 @@ void CurveEdit::_redraw() {
 	const Color grid_color = get_theme_color(SNAME("mono_color"), EditorStringName(Editor)) * Color(1, 1, 1, 0.1);
 
 	const Vector2i grid_steps = Vector2i(4, 2);
-	const Vector2 step_size = Vector2(1, curve->get_range()) / grid_steps;
+	const Vector2 step_size = Vector2(curve->get_domain_range(), curve->get_value_range()) / grid_steps;
 
 	draw_line(Vector2(min_edge.x, curve->get_min_value()), Vector2(max_edge.x, curve->get_min_value()), grid_color_primary);
 	draw_line(Vector2(max_edge.x, curve->get_max_value()), Vector2(min_edge.x, curve->get_max_value()), grid_color_primary);
-	draw_line(Vector2(0, min_edge.y), Vector2(0, max_edge.y), grid_color_primary);
-	draw_line(Vector2(1, max_edge.y), Vector2(1, min_edge.y), grid_color_primary);
+	draw_line(Vector2(curve->get_min_domain(), min_edge.y), Vector2(curve->get_min_domain(), max_edge.y), grid_color_primary);
+	draw_line(Vector2(curve->get_max_domain(), max_edge.y), Vector2(curve->get_max_domain(), min_edge.y), grid_color_primary);
 
 	for (int i = 1; i < grid_steps.x; i++) {
-		real_t x = i * step_size.x;
+		real_t x = curve->get_min_domain() + i * step_size.x;
 		draw_line(Vector2(x, min_edge.y), Vector2(x, max_edge.y), grid_color);
 	}
 
@@ -819,30 +811,26 @@ void CurveEdit::_redraw() {
 	float font_height = font->get_height(font_size);
 	Color text_color = get_theme_color(SceneStringName(font_color), EditorStringName(Editor));
 
+	int pad = Math::round(2 * EDSCALE);
+
 	for (int i = 0; i <= grid_steps.x; ++i) {
-		real_t x = i * step_size.x;
-		draw_string(font, get_view_pos(Vector2(x - step_size.x / 2, curve->get_min_value())) + Vector2(0, font_height - Math::round(2 * EDSCALE)), String::num(x, 2), HORIZONTAL_ALIGNMENT_CENTER, get_view_pos(Vector2(step_size.x, 0)).x, font_size, text_color);
+		real_t x = curve->get_min_domain() + i * step_size.x;
+		draw_string(font, get_view_pos(Vector2(x, curve->get_min_value())) + Vector2(pad, font_height - pad), String::num(x, 2), HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, text_color);
 	}
 
 	for (int i = 0; i <= grid_steps.y; ++i) {
 		real_t y = curve->get_min_value() + i * step_size.y;
-		draw_string(font, get_view_pos(Vector2(0, y)) + Vector2(2, -2), String::num(y, 2), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color);
+		draw_string(font, get_view_pos(Vector2(curve->get_min_domain(), y)) + Vector2(pad, -pad), String::num(y, 2), HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, text_color);
 	}
 
-	// Draw curve.
-
-	// An unusual transform so we can offset the curve before scaling it up, allowing the curve to be antialiased.
-	// The scaling up ensures that the curve rendering doesn't break when we use a quad line to draw it.
-	draw_set_transform_matrix(Transform2D(0, get_view_pos(Vector2(0, 0))));
+	// Draw curve in view coordinates. Curve world-to-view point conversion happens in plot_curve_accurate().
 
 	const Color line_color = get_theme_color(SceneStringName(font_color), EditorStringName(Editor));
 	const Color edge_line_color = get_theme_color(SceneStringName(font_color), EditorStringName(Editor)) * Color(1, 1, 1, 0.75);
 
-	CanvasItemPlotCurve plot_func(*this, line_color, edge_line_color);
-	plot_curve_accurate(**curve, 2.f, (get_view_pos(Vector2(1, curve->get_max_value())) - get_view_pos(Vector2(0, curve->get_min_value()))) / Vector2(1, curve->get_range()), plot_func);
+	plot_curve_accurate(STEP_SIZE, line_color, edge_line_color);
 
 	// Draw points, except for the selected one.
-	draw_set_transform_matrix(Transform2D());
 
 	bool shift_pressed = Input::get_singleton()->is_key_pressed(Key::SHIFT);
 
@@ -934,8 +922,8 @@ void CurveEdit::_redraw() {
 	draw_set_transform_matrix(_world_to_view);
 
 	if (Input::get_singleton()->is_key_pressed(Key::ALT) && grabbing != GRAB_NONE && selected_tangent_index == TANGENT_NONE) {
-		float prev_point_offset = (selected_index > 0) ? curve->get_point_position(selected_index - 1).x : 0.0;
-		float next_point_offset = (selected_index < curve->get_point_count() - 1) ? curve->get_point_position(selected_index + 1).x : 1.0;
+		float prev_point_offset = (selected_index > 0) ? curve->get_point_position(selected_index - 1).x : curve->get_min_domain();
+		float next_point_offset = (selected_index < curve->get_point_count() - 1) ? curve->get_point_position(selected_index + 1).x : curve->get_max_domain();
 
 		draw_line(Vector2(prev_point_offset, curve->get_min_value()), Vector2(prev_point_offset, curve->get_max_value()), Color(point_color, 0.6));
 		draw_line(Vector2(next_point_offset, curve->get_min_value()), Vector2(next_point_offset, curve->get_max_value()), Color(point_color, 0.6));
@@ -943,7 +931,7 @@ void CurveEdit::_redraw() {
 
 	if (shift_pressed && grabbing != GRAB_NONE && selected_tangent_index == TANGENT_NONE) {
 		draw_line(Vector2(initial_grab_pos.x, curve->get_min_value()), Vector2(initial_grab_pos.x, curve->get_max_value()), get_theme_color(SNAME("axis_x_color"), EditorStringName(Editor)).darkened(0.4));
-		draw_line(Vector2(0, initial_grab_pos.y), Vector2(1, initial_grab_pos.y), get_theme_color(SNAME("axis_y_color"), EditorStringName(Editor)).darkened(0.4));
+		draw_line(Vector2(curve->get_min_domain(), initial_grab_pos.y), Vector2(curve->get_max_domain(), initial_grab_pos.y), get_theme_color(SNAME("axis_y_color"), EditorStringName(Editor)).darkened(0.4));
 	}
 }
 
@@ -1079,15 +1067,15 @@ Ref<Texture2D> CurvePreviewGenerator::generate(const Ref<Resource> &p_from, cons
 	Color line_color = EditorInterface::get_singleton()->get_editor_theme()->get_color(SceneStringName(font_color), EditorStringName(Editor));
 
 	// Set the first pixel of the thumbnail.
-	float v = (curve->sample_baked(0) - curve->get_min_value()) / curve->get_range();
+	float v = (curve->sample_baked(curve->get_min_domain()) - curve->get_min_value()) / curve->get_value_range();
 	int y = CLAMP(im.get_height() - v * im.get_height(), 0, im.get_height() - 1);
 	im.set_pixel(0, y, line_color);
 
 	// Plot a line towards the next point.
 	int prev_y = y;
 	for (int x = 1; x < im.get_width(); ++x) {
-		float t = static_cast<float>(x) / im.get_width();
-		v = (curve->sample_baked(t) - curve->get_min_value()) / curve->get_range();
+		float t = static_cast<float>(x) / im.get_width() * curve->get_domain_range() + curve->get_min_domain();
+		v = (curve->sample_baked(t) - curve->get_min_value()) / curve->get_value_range();
 		y = CLAMP(im.get_height() - v * im.get_height(), 0, im.get_height() - 1);
 
 		Vector<Point2i> points = Geometry2D::bresenham_line(Point2i(x - 1, prev_y), Point2i(x, y));

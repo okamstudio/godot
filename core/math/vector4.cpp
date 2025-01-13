@@ -213,7 +213,7 @@ Vector4 Vector4::clampf(real_t p_min, real_t p_max) const {
 }
 
 Vector4::operator String() const {
-	return "(" + String::num_real(x, false) + ", " + String::num_real(y, false) + ", " + String::num_real(z, false) + ", " + String::num_real(w, false) + ")";
+	return "(" + String::num_real(x, true) + ", " + String::num_real(y, true) + ", " + String::num_real(z, true) + ", " + String::num_real(w, true) + ")";
 }
 
 static_assert(sizeof(Vector4) == 4 * sizeof(real_t));

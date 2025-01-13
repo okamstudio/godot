@@ -1075,7 +1075,7 @@
 			<return type="RenderingDevice" />
 			<description>
 				Creates a RenderingDevice that can be used to do draw and compute operations on a separate thread. Cannot draw to the screen nor share data with the global RenderingDevice.
-				[b]Note:[/b] When using the OpenGL backend or when running in headless mode, this function always returns [code]null[/code].
+				[b]Note:[/b] When using the OpenGL rendering driver or when running in headless mode, this function always returns [code]null[/code].
 			</description>
 		</method>
 		<method name="debug_canvas_item_get_rect">
@@ -1578,7 +1578,7 @@
 			<return type="RenderingDevice" />
 			<description>
 				Returns the global RenderingDevice.
-				[b]Note:[/b] When using the OpenGL backend or when running in headless mode, this function always returns [code]null[/code].
+				[b]Note:[/b] When using the OpenGL rendering driver or when running in headless mode, this function always returns [code]null[/code].
 			</description>
 		</method>
 		<method name="get_rendering_info">
@@ -1641,7 +1641,7 @@
 			<return type="int" enum="RenderingDevice.DeviceType" />
 			<description>
 				Returns the type of the video adapter. Since dedicated graphics cards from a given generation will [i]usually[/i] be significantly faster than integrated graphics made in the same generation, the device type can be used as a basis for automatic graphics settings adjustment. However, this is not always true, so make sure to provide users with a way to manually override graphics settings.
-				[b]Note:[/b] When using the OpenGL backend or when running in headless mode, this function always returns [constant RenderingDevice.DEVICE_TYPE_OTHER].
+				[b]Note:[/b] When using the OpenGL rendering driver or when running in headless mode, this function always returns [constant RenderingDevice.DEVICE_TYPE_OTHER].
 			</description>
 		</method>
 		<method name="get_video_adapter_vendor" qualifiers="const">
@@ -2545,6 +2545,13 @@
 				[b]Note:[/b] If the buffer is in the engine's internal cache, it will have to be fetched from GPU memory and possibly decompressed. This means [method multimesh_get_buffer] is potentially a slow operation and should be avoided whenever possible.
 			</description>
 		</method>
+		<method name="multimesh_get_buffer_rd_rid" qualifiers="const">
+			<return type="RID" />
+			<param index="0" name="multimesh" type="RID" />
+			<description>
+				Returns the [RenderingDevice] [RID] handle of the [MultiMesh], which can be used as any other buffer on the Rendering Device.
+			</description>
+		</method>
 		<method name="multimesh_get_custom_aabb" qualifiers="const">
 			<return type="AABB" />
 			<param index="0" name="multimesh" type="RID" />
@@ -3156,6 +3163,14 @@
 				If [code]true[/code], reflections will ignore sky contribution. Equivalent to [member ReflectionProbe.interior].
 			</description>
 		</method>
+		<method name="reflection_probe_set_blend_distance">
+			<return type="void" />
+			<param index="0" name="probe" type="RID" />
+			<param index="1" name="blend_distance" type="float" />
+			<description>
+				Sets the distance in meters over which a probe blends into the scene.
+			</description>
+		</method>
 		<method name="reflection_probe_set_cull_mask">
 			<return type="void" />
 			<param index="0" name="probe" type="RID" />
@@ -3314,7 +3329,8 @@
 			<return type="void" />
 			<param index="0" name="generate" type="bool" />
 			<description>
-				This method is currently unimplemented and does nothing if called with [param generate] set to [code]true[/code].
+				If [param generate] is [code]true[/code], generates debug wireframes for all meshes that are loaded when using the Compatibility renderer. By default, the engine does not generate debug wireframes at runtime, since they slow down loading of assets and take up VRAM.
+				[b]Note:[/b] You must call this method before loading any meshes when using the Compatibility renderer, otherwise wireframes will not be used.
 			</description>
 		</method>
 		<method name="set_default_clear_color">
@@ -4113,7 +4129,7 @@
 			<param index="1" name="enabled" type="bool" />
 			<description>
 				If [code]true[/code], 2D rendering will use a high dynamic range (HDR) format framebuffer matching the bit depth of the 3D framebuffer. When using the Forward+ renderer this will be an [code]RGBA16[/code] framebuffer, while when using the Mobile renderer it will be an [code]RGB10_A2[/code] framebuffer. Additionally, 2D rendering will take place in linear color space and will be converted to sRGB space immediately before blitting to the screen (if the Viewport is attached to the screen). Practically speaking, this means that the end result of the Viewport will not be clamped into the [code]0-1[/code] range and can be used in 3D rendering without color space adjustments. This allows 2D rendering to take advantage of effects requiring high dynamic range (e.g. 2D glow) as well as substantially improves the appearance of effects requiring highly detailed gradients. This setting has the same effect as [member Viewport.use_hdr_2d].
-				[b]Note:[/b] This setting will have no effect when using the GL Compatibility renderer as the GL Compatibility renderer always renders in low dynamic range for performance reasons.
+				[b]Note:[/b] This setting will have no effect when using the Compatibility renderer, which always renders in low dynamic range for performance reasons.
 			</description>
 		</method>
 		<method name="viewport_set_use_occlusion_culling">
@@ -5047,6 +5063,7 @@
 		</constant>
 		<constant name="VIEWPORT_DEBUG_DRAW_WIREFRAME" value="4" enum="ViewportDebugDraw">
 			Debug draw draws objects in wireframe.
+			[b]Note:[/b] [method set_debug_generate_wireframes] must be called before loading any meshes for wireframes to be visible when using the Compatibility renderer.
 		</constant>
 		<constant name="VIEWPORT_DEBUG_DRAW_NORMAL_BUFFER" value="5" enum="ViewportDebugDraw">
 			Normal buffer is drawn instead of regular scene so you can see the per-pixel normals that will be used by post-processing effects.
@@ -5715,7 +5732,7 @@
 			Buffer memory used (in bytes). This includes vertex data, uniform buffers, and many miscellaneous buffer types used internally.
 		</constant>
 		<constant name="RENDERING_INFO_VIDEO_MEM_USED" value="5" enum="RenderingInfo">
-			Video memory used (in bytes). When using the Forward+ or mobile rendering backends, this is always greater than the sum of [constant RENDERING_INFO_TEXTURE_MEM_USED] and [constant RENDERING_INFO_BUFFER_MEM_USED], since there is miscellaneous data not accounted for by those two metrics. When using the GL Compatibility backend, this is equal to the sum of [constant RENDERING_INFO_TEXTURE_MEM_USED] and [constant RENDERING_INFO_BUFFER_MEM_USED].
+			Video memory used (in bytes). When using the Forward+ or Mobile renderers, this is always greater than the sum of [constant RENDERING_INFO_TEXTURE_MEM_USED] and [constant RENDERING_INFO_BUFFER_MEM_USED], since there is miscellaneous data not accounted for by those two metrics. When using the Compatibility renderer, this is equal to the sum of [constant RENDERING_INFO_TEXTURE_MEM_USED] and [constant RENDERING_INFO_BUFFER_MEM_USED].
 		</constant>
 		<constant name="RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS" value="6" enum="RenderingInfo">
 			Number of pipeline compilations that were triggered by the 2D canvas renderer.

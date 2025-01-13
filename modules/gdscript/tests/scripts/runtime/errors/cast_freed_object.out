@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/cast_freed_object.gd
->> 4
->> Trying to cast a freed object.
+>> SCRIPT ERROR at runtime/errors/cast_freed_object.gd:4 on test(): Trying to cast a freed object.

@@ -613,6 +613,7 @@ int Skeleton2D::get_bone_count() const {
 	ERR_FAIL_COND_V(!is_inside_tree(), 0);
 
 	if (bone_setup_dirty) {
+		// TODO: Is this necessary? It doesn't seem to change bones.size()
 		const_cast<Skeleton2D *>(this)->_update_bone_setup();
 	}
 

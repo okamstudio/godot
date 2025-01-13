@@ -529,9 +529,12 @@ Vector3 Camera3D::project_position(const Point2 &p_point, real_t p_z_depth) cons
 	}
 	Size2 viewport_size = get_viewport()->get_visible_rect().size;
 
-	Projection cm = _get_camera_projection(p_z_depth);
+	Projection cm = _get_camera_projection(_near);
 
-	Vector2 vp_he = cm.get_viewport_half_extents();
+	Plane z_slice(Vector3(0, 0, 1), -p_z_depth);
+	Vector3 res;
+	z_slice.intersect_3(cm.get_projection_plane(Projection::Planes::PLANE_RIGHT), cm.get_projection_plane(Projection::Planes::PLANE_TOP), &res);
+	Vector2 vp_he(res.x, res.y);
 
 	Vector2 point;
 	point.x = (p_point.x / viewport_size.x) * 2.0 - 1.0;

@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Invalid argument for "floor()" function: Argument "x" must be "int", "float", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", or "Vector4i".
+>> ERROR at line 2: Invalid argument for "floor()" function: Argument "x" must be "int", "float", "Vector2", "Vector2i", "Vector3", "Vector3i", "Vector4", or "Vector4i".

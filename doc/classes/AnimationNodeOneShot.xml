@@ -70,14 +70,14 @@
 			If [code]true[/code], breaks the loop at the end of the loop cycle for transition, even if the animation is looping.
 		</member>
 		<member name="fadein_curve" type="Curve" setter="set_fadein_curve" getter="get_fadein_curve">
-			Determines how cross-fading between animations is eased. If empty, the transition will be linear.
+			Determines how cross-fading between animations is eased. If empty, the transition will be linear. Should be a unit [Curve].
 		</member>
 		<member name="fadein_time" type="float" setter="set_fadein_time" getter="get_fadein_time" default="0.0">
 			The fade-in duration. For example, setting this to [code]1.0[/code] for a 5 second length animation will produce a cross-fade that starts at 0 second and ends at 1 second during the animation.
 			[b]Note:[/b] [AnimationNodeOneShot] transitions the current state after the end of the fading. When [AnimationNodeOutput] is considered as the most upstream, so the [member fadein_time] is scaled depending on the downstream delta. For example, if this value is set to [code]1.0[/code] and a [AnimationNodeTimeScale] with a value of [code]2.0[/code] is chained downstream, the actual processing time will be 0.5 second.
 		</member>
 		<member name="fadeout_curve" type="Curve" setter="set_fadeout_curve" getter="get_fadeout_curve">
-			Determines how cross-fading between animations is eased. If empty, the transition will be linear.
+			Determines how cross-fading between animations is eased. If empty, the transition will be linear. Should be a unit [Curve].
 		</member>
 		<member name="fadeout_time" type="float" setter="set_fadeout_time" getter="get_fadeout_time" default="0.0">
 			The fade-out duration. For example, setting this to [code]1.0[/code] for a 5 second length animation will produce a cross-fade that starts at 4 second and ends at 5 second during the animation.

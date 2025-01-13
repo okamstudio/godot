@@ -45,6 +45,7 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/line_edit.h"
+#include "scene/theme/theme_db.h"
 
 static String _get_parent_class_of_script(const String &p_path) {
 	if (!ResourceLoader::exists(p_path, "Script")) {
@@ -128,8 +129,23 @@ void ScriptCreateDialog::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
+			const int icon_size = get_theme_constant(SNAME("class_icon_size"), EditorStringName(Editor));
+
+			EditorData &ed = EditorNode::get_editor_data();
+
 			for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-				Ref<Texture2D> language_icon = get_editor_theme_icon(ScriptServer::get_language(i)->get_type());
+				// Check if the extension has an icon first.
+				String script_type = ScriptServer::get_language(i)->get_type();
+				Ref<Texture2D> language_icon = get_editor_theme_icon(script_type);
+				if (language_icon.is_null() || language_icon == ThemeDB::get_singleton()->get_fallback_icon()) {
+					// The theme doesn't have an icon for this language, ask the extensions.
+					Ref<Texture2D> extension_language_icon = ed.extension_class_get_icon(script_type);
+					if (extension_language_icon.is_valid()) {
+						language_menu->get_popup()->set_item_icon_max_width(i, icon_size);
+						language_icon = extension_language_icon;
+					}
+				}
+
 				if (language_icon.is_valid()) {
 					language_menu->set_item_icon(i, language_icon);
 				}
@@ -144,7 +160,7 @@ void ScriptCreateDialog::_notification(int p_what) {
 
 void ScriptCreateDialog::_path_hbox_sorted() {
 	if (is_visible()) {
-		int filename_start_pos = file_path->get_text().rfind("/") + 1;
+		int filename_start_pos = file_path->get_text().rfind_char('/') + 1;
 		int filename_end_pos = file_path->get_text().get_basename().length();
 
 		if (!is_built_in) {
@@ -728,7 +744,7 @@ ScriptLanguage::ScriptTemplate ScriptCreateDialog::_parse_template(const ScriptL
 	List<String> comment_delimiters;
 	p_language->get_comment_delimiters(&comment_delimiters);
 	for (const String &script_delimiter : comment_delimiters) {
-		if (!script_delimiter.contains(" ")) {
+		if (!script_delimiter.contains_char(' ')) {
 			meta_delimiter = script_delimiter;
 			break;
 		}
@@ -851,6 +867,7 @@ ScriptCreateDialog::ScriptCreateDialog() {
 
 	language_menu = memnew(OptionButton);
 	language_menu->set_custom_minimum_size(Size2(350, 0) * EDSCALE);
+	language_menu->set_expand_icon(true);
 	language_menu->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	gc->add_child(memnew(Label(TTR("Language:"))));
 	gc->add_child(language_menu);

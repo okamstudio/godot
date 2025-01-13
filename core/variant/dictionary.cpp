@@ -595,6 +595,10 @@ Dictionary Dictionary::recursive_duplicate(bool p_deep, int recursion_count) con
 	return n;
 }
 
+void Dictionary::set_typed(const ContainerType &p_key_type, const ContainerType &p_value_type) {
+	set_typed(p_key_type.builtin_type, p_key_type.class_name, p_key_type.script, p_value_type.builtin_type, p_value_type.class_name, p_key_type.script);
+}
+
 void Dictionary::set_typed(uint32_t p_key_type, const StringName &p_key_class_name, const Variant &p_key_script, uint32_t p_value_type, const StringName &p_value_class_name, const Variant &p_value_script) {
 	ERR_FAIL_COND_MSG(_p->read_only, "Dictionary is in read-only state.");
 	ERR_FAIL_COND_MSG(_p->variant_map.size() > 0, "Type can only be set when dictionary is empty.");
@@ -639,6 +643,22 @@ bool Dictionary::is_same_typed_key(const Dictionary &p_other) const {
 
 bool Dictionary::is_same_typed_value(const Dictionary &p_other) const {
 	return _p->typed_value == p_other._p->typed_value;
+}
+
+ContainerType Dictionary::get_key_type() const {
+	ContainerType type;
+	type.builtin_type = _p->typed_key.type;
+	type.class_name = _p->typed_key.class_name;
+	type.script = _p->typed_key.script;
+	return type;
+}
+
+ContainerType Dictionary::get_value_type() const {
+	ContainerType type;
+	type.builtin_type = _p->typed_value.type;
+	type.class_name = _p->typed_value.class_name;
+	type.script = _p->typed_value.script;
+	return type;
 }
 
 uint32_t Dictionary::get_typed_key_builtin() const {
@@ -691,6 +711,15 @@ Dictionary::Dictionary(const Dictionary &p_from) {
 Dictionary::Dictionary() {
 	_p = memnew(DictionaryPrivate);
 	_p->refcount.init();
+}
+
+Dictionary::Dictionary(std::initializer_list<KeyValue<Variant, Variant>> p_init) {
+	_p = memnew(DictionaryPrivate);
+	_p->refcount.init();
+
+	for (const KeyValue<Variant, Variant> &E : p_init) {
+		operator[](E.key) = E.value;
+	}
 }
 
 Dictionary::~Dictionary() {

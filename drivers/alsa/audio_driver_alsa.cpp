@@ -80,7 +80,7 @@ Error AudioDriverALSA::init_output_device() {
 		status = snd_pcm_open(&pcm_handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK);
 	} else {
 		String device = output_device_name;
-		int pos = device.find(";");
+		int pos = device.find_char(';');
 		if (pos != -1) {
 			device = device.substr(0, pos);
 		}

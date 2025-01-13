@@ -56,6 +56,7 @@ func test_func_hard_int() -> int: return 1
 func test_func_args_1(_a: int, _b: Array[int], _c: Dictionary[int, int], _d: int = 1, _e = 2): pass
 func test_func_args_2(_a = 1, _b = _a, _c = [2], _d = 3): pass
 
+@warning_ignore_start("unused_signal")
 signal test_signal_1()
 signal test_signal_2(a: Variant, b)
 signal test_signal_3(a: int, b: Array[int], c: Dictionary[int, int])
@@ -64,16 +65,7 @@ signal test_signal_5(a: MyEnum, b: Array[MyEnum], c: Dictionary[MyEnum, MyEnum])
 signal test_signal_6(a: Resource, b: Array[Resource], c: Dictionary[Resource, Resource])
 signal test_signal_7(a: TestMemberInfo, b: Array[TestMemberInfo], c: Dictionary[TestMemberInfo, TestMemberInfo])
 signal test_signal_8(a: MyClass, b: Array[MyClass], c: Dictionary[MyClass, MyClass])
-
-func no_exec():
-	test_signal_1.emit()
-	test_signal_2.emit()
-	test_signal_3.emit()
-	test_signal_4.emit()
-	test_signal_5.emit()
-	test_signal_6.emit()
-	test_signal_7.emit()
-	test_signal_8.emit()
+@warning_ignore_restore("unused_signal")
 
 func test():
 	var script: Script = get_script()

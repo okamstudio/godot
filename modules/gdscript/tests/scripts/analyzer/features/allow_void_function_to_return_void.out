@@ -1,8 +1,5 @@
 GDTEST_OK
->> WARNING
->> Line: 20
->> UNSAFE_VOID_RETURN
->> The method "return_side_effect()" returns "void" but it's trying to return a call to "side_effect()" that can't be ensured to also be "void".
+~~ WARNING at line 20: (UNSAFE_VOID_RETURN) The method "return_side_effect()" returns "void" but it's trying to return a call to "side_effect()" that can't be ensured to also be "void".
 hello
 effect
 effect

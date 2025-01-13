@@ -46,6 +46,7 @@ private:
 	RBMap<uint32_t, RID> hash_map;
 	LocalVector<Pair<uint32_t, RID>> compiled_queue;
 	Mutex compiled_queue_mutex;
+	RBSet<uint32_t> compilation_set;
 	HashMap<uint32_t, WorkerThreadPool::TaskID> compilation_tasks;
 	Mutex local_mutex;
 
@@ -76,7 +77,7 @@ private:
 		return !hashes_added.is_empty();
 	}
 
-	void _wait_for_compilation() {
+	void _wait_for_all_pipelines() {
 		MutexLock local_lock(local_mutex);
 		for (KeyValue<uint32_t, WorkerThreadPool::TaskID> key_value : compilation_tasks) {
 			WorkerThreadPool::get_singleton()->wait_for_task_completion(key_value.value);
@@ -91,22 +92,17 @@ public:
 	}
 
 	// Start compilation of a pipeline ahead of time in the background. Returns true if the compilation was started, false if it wasn't required. Source is only used for collecting statistics.
-	bool compile_pipeline(const Key &p_key, uint32_t p_key_hash, RS::PipelineSource p_source) {
+	void compile_pipeline(const Key &p_key, uint32_t p_key_hash, RS::PipelineSource p_source) {
 		DEV_ASSERT((creation_object != nullptr) && (creation_function != nullptr) && "Creation object and function was not set before attempting to compile a pipeline.");
 
-		// Check if the pipeline was already compiled.
-		compiled_queue_mutex.lock();
-		bool already_exists = hash_map.has(p_key_hash);
-		compiled_queue_mutex.unlock();
-		if (already_exists) {
-			return false;
+		MutexLock local_lock(local_mutex);
+		if (compilation_set.has(p_key_hash)) {
+			// Check if the pipeline was already submitted.
+			return;
 		}
 
-		// Check if the pipeline is currently being compiled.
-		MutexLock local_lock(local_mutex);
-		if (compilation_tasks.has(p_key_hash)) {
-			return false;
-		}
+		// Record the pipeline as submitted, a task can't be started for it again.
+		compilation_set.insert(p_key_hash);
 
 		if (compilations_mutex != nullptr) {
 			MutexLock compilations_lock(*compilations_mutex);
@@ -139,8 +135,21 @@ public:
 		// Queue a background compilation task.
 		WorkerThreadPool::TaskID task_id = WorkerThreadPool::get_singleton()->add_template_task(creation_object, creation_function, p_key, false, "PipelineCompilation");
 		compilation_tasks.insert(p_key_hash, task_id);
+	}
 
-		return true;
+	void wait_for_pipeline(uint32_t p_key_hash) {
+		MutexLock local_lock(local_mutex);
+		if (!compilation_set.has(p_key_hash)) {
+			// The pipeline was never submitted, we can't wait for it.
+			return;
+		}
+
+		HashMap<uint32_t, WorkerThreadPool::TaskID>::Iterator task_it = compilation_tasks.find(p_key_hash);
+		if (task_it != compilation_tasks.end()) {
+			// Wait for and remove the compilation task if it exists.
+			WorkerThreadPool::get_singleton()->wait_for_task_completion(task_it->value);
+			compilation_tasks.remove(task_it);
+		}
 	}
 
 	// Retrieve a pipeline. It'll return an empty pipeline if it's not available yet, but it'll be guaranteed to succeed if 'wait for compilation' is true and stall as necessary. Source is just an optional number to aid debugging.
@@ -155,18 +164,11 @@ public:
 		}
 
 		if (e == nullptr) {
-			// Lock access to the compilation maps.
-			MutexLock local_lock(local_mutex);
-
 			// Request compilation. The method will ignore the request if it's already being compiled.
 			compile_pipeline(p_key, p_key_hash, p_source);
 
 			if (p_wait_for_compilation) {
-				if (compilation_tasks.has(p_key_hash)) {
-					// If a background compilation task was used, wait for it.
-					WorkerThreadPool::get_singleton()->wait_for_task_completion(compilation_tasks[p_key_hash]);
-				}
-
+				wait_for_pipeline(p_key_hash);
 				_add_new_pipelines_to_map();
 
 				e = hash_map.find(p_key_hash);
@@ -187,7 +189,7 @@ public:
 
 	// Delete all cached pipelines. Can stall if background compilation is in progress.
 	void clear_pipelines() {
-		_wait_for_compilation();
+		_wait_for_all_pipelines();
 		_add_new_pipelines_to_map();
 
 		for (KeyValue<uint32_t, RID> entry : hash_map) {
@@ -195,6 +197,7 @@ public:
 		}
 
 		hash_map.clear();
+		compilation_set.clear();
 	}
 
 	// Set the external pipeline compilations array to increase the counters on every time a pipeline is compiled.

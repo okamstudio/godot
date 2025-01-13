@@ -1158,7 +1158,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 
 	refresh_button = memnew(Button);
 	refresh_button->set_tooltip_text(TTR("Detect new changes"));
-	refresh_button->set_theme_type_variation("FlatButton");
+	refresh_button->set_theme_type_variation(SceneStringName(FlatButton));
 	refresh_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Reload"), EditorStringName(EditorIcons)));
 	refresh_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_refresh_stage_area));
 	refresh_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_refresh_commit_list));
@@ -1181,11 +1181,11 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	discard_all_button->set_tooltip_text(TTR("Discard all changes"));
 	discard_all_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Close"), EditorStringName(EditorIcons)));
 	discard_all_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_confirm_discard_all));
-	discard_all_button->set_theme_type_variation("FlatButton");
+	discard_all_button->set_theme_type_variation(SceneStringName(FlatButton));
 	unstage_title->add_child(discard_all_button);
 
 	stage_all_button = memnew(Button);
-	stage_all_button->set_theme_type_variation("FlatButton");
+	stage_all_button->set_theme_type_variation(SceneStringName(FlatButton));
 	stage_all_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("MoveDown"), EditorStringName(EditorIcons)));
 	stage_all_button->set_tooltip_text(TTR("Stage all changes"));
 	unstage_title->add_child(stage_all_button);
@@ -1215,7 +1215,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	stage_title->add_child(stage_label);
 
 	unstage_all_button = memnew(Button);
-	unstage_all_button->set_theme_type_variation("FlatButton");
+	unstage_all_button->set_theme_type_variation(SceneStringName(FlatButton));
 	unstage_all_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("MoveUp"), EditorStringName(EditorIcons)));
 	unstage_all_button->set_tooltip_text(TTR("Unstage all changes"));
 	stage_title->add_child(unstage_all_button);
@@ -1294,6 +1294,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	commit_list->set_columns(2); // Commit msg, author
 	commit_list->set_column_custom_minimum_width(0, 40);
 	commit_list->set_column_custom_minimum_width(1, 20);
+	commit_list->set_theme_type_variation("TreeSecondary");
 	commit_list->connect(SceneStringName(item_selected), callable_mp(this, &VersionControlEditorPlugin::_load_diff).bind(commit_list));
 	version_commit_dock->add_child(commit_list);
 
@@ -1409,21 +1410,21 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	remote_create_hbc->add_child(remote_create_url_input);
 
 	fetch_button = memnew(Button);
-	fetch_button->set_theme_type_variation("FlatButton");
+	fetch_button->set_theme_type_variation(SceneStringName(FlatButton));
 	fetch_button->set_tooltip_text(TTR("Fetch"));
 	fetch_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("Reload"), EditorStringName(EditorIcons)));
 	fetch_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_fetch));
 	menu_bar->add_child(fetch_button);
 
 	pull_button = memnew(Button);
-	pull_button->set_theme_type_variation("FlatButton");
+	pull_button->set_theme_type_variation(SceneStringName(FlatButton));
 	pull_button->set_tooltip_text(TTR("Pull"));
 	pull_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("MoveDown"), EditorStringName(EditorIcons)));
 	pull_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_pull));
 	menu_bar->add_child(pull_button);
 
 	push_button = memnew(Button);
-	push_button->set_theme_type_variation("FlatButton");
+	push_button->set_theme_type_variation(SceneStringName(FlatButton));
 	push_button->set_tooltip_text(TTR("Push"));
 	push_button->set_button_icon(EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("MoveUp"), EditorStringName(EditorIcons)));
 	push_button->connect(SceneStringName(pressed), callable_mp(this, &VersionControlEditorPlugin::_push));

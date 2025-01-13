@@ -35,6 +35,7 @@
 		</member>
 		<member name="radial_center_offset" type="Vector2" setter="set_radial_center_offset" getter="get_radial_center_offset" default="Vector2(0, 0)">
 			Offsets [member texture_progress] if [member fill_mode] is [constant FILL_CLOCKWISE], [constant FILL_COUNTER_CLOCKWISE], or [constant FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE].
+			[b]Note:[/b] The effective radial center always stays within the [member texture_progress] bounds. If you need to move it outside the texture's bounds, modify the [member texture_progress] to contain additional empty space where needed.
 		</member>
 		<member name="radial_fill_degrees" type="float" setter="set_fill_degrees" getter="get_fill_degrees" default="360.0">
 			Upper limit for the fill of [member texture_progress] if [member fill_mode] is [constant FILL_CLOCKWISE], [constant FILL_COUNTER_CLOCKWISE], or [constant FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE]. When the node's [code]value[/code] is equal to its [code]max_value[/code], the texture fills up to this angle.
@@ -42,6 +43,7 @@
 		</member>
 		<member name="radial_initial_angle" type="float" setter="set_radial_initial_angle" getter="get_radial_initial_angle" default="0.0">
 			Starting angle for the fill of [member texture_progress] if [member fill_mode] is [constant FILL_CLOCKWISE], [constant FILL_COUNTER_CLOCKWISE], or [constant FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE]. When the node's [code]value[/code] is equal to its [code]min_value[/code], the texture doesn't show up at all. When the [code]value[/code] increases, the texture fills and tends towards [member radial_fill_degrees].
+			[b]Note:[/b] [member radial_initial_angle] is wrapped between [code]0[/code] and [code]360[/code] degrees (inclusive).
 		</member>
 		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="1" />
 		<member name="step" type="float" setter="set_step" getter="get_step" overrides="Range" default="1.0" />

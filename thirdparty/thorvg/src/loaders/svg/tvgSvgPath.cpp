@@ -126,7 +126,7 @@ void _pathAppendArcTo(Array<PathCommand>* cmds, Array<Point>* pts, Point* cur, P
     rx = fabsf(rx);
     ry = fabsf(ry);
 
-    angle = mathDeg2Rad(angle);
+    angle = deg2rad(angle);
     cosPhi = cosf(angle);
     sinPhi = sinf(angle);
     dx2 = (sx - x) / 2.0f;
@@ -190,14 +190,14 @@ void _pathAppendArcTo(Array<PathCommand>* cmds, Array<Point>* pts, Point* cur, P
     cx += (sx + x) / 2.0f;
     cy += (sy + y) / 2.0f;
 
-    //Sstep 4 (F6.5.4)
+    //Step 4 (F6.5.4)
     //We dont' use arccos (as per w3c doc), see
     //http://www.euclideanspace.com/maths/algebra/vectors/angleBetween/index.htm
     //Note: atan2 (0.0, 1.0) == 0.0
-    at = mathAtan2(((y1p - cyp) / ry), ((x1p - cxp) / rx));
+    at = tvg::atan2(((y1p - cyp) / ry), ((x1p - cxp) / rx));
     theta1 = (at < 0.0f) ? 2.0f * MATH_PI + at : at;
 
-    nat = mathAtan2(((-y1p - cyp) / ry), ((-x1p - cxp) / rx));
+    nat = tvg::atan2(((-y1p - cyp) / ry), ((-x1p - cxp) / rx));
     deltaTheta = (nat < at) ? 2.0f * MATH_PI - at + nat : nat - at;
 
     if (sweep) {
@@ -469,12 +469,12 @@ static bool _processCommand(Array<PathCommand>* cmds, Array<Point>* pts, char cm
         }
         case 'a':
         case 'A': {
-            if (mathZero(arr[0]) || mathZero(arr[1])) {
+            if (tvg::zero(arr[0]) || tvg::zero(arr[1])) {
                 Point p = {arr[5], arr[6]};
                 cmds->push(PathCommand::LineTo);
                 pts->push(p);
                 *cur = {arr[5], arr[6]};
-            } else if (!mathEqual(cur->x, arr[5]) || !mathEqual(cur->y, arr[6])) {
+            } else if (!tvg::equal(cur->x, arr[5]) || !tvg::equal(cur->y, arr[6])) {
                 _pathAppendArcTo(cmds, pts, cur, curCtl, arr[5], arr[6], fabsf(arr[0]), fabsf(arr[1]), arr[2], arr[3], arr[4]);
                 *cur = *curCtl = {arr[5], arr[6]};
                 *isQuadratic = false;

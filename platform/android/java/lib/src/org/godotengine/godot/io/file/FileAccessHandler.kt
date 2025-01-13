@@ -191,12 +191,12 @@ class FileAccessHandler(val context: Context) {
 		return files[fileId].read(byteBuffer)
 	}
 
-	fun fileWrite(fileId: Int, byteBuffer: ByteBuffer?) {
+	fun fileWrite(fileId: Int, byteBuffer: ByteBuffer?): Boolean {
 		if (!hasFileId(fileId) || byteBuffer == null) {
-			return
+			return false
 		}
 
-		files[fileId].write(byteBuffer)
+		return files[fileId].write(byteBuffer)
 	}
 
 	fun fileFlush(fileId: Int) {

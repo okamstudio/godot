@@ -169,7 +169,7 @@ void GodotPhysicsServer3D::space_set_active(RID p_space, bool p_active) {
 }
 
 bool GodotPhysicsServer3D::space_is_active(RID p_space) const {
-	const GodotSpace3D *space = space_owner.get_or_null(p_space);
+	GodotSpace3D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL_V(space, false);
 
 	return active_spaces.has(space);
@@ -1638,8 +1638,8 @@ void GodotPhysicsServer3D::step(real_t p_step) {
 	island_count = 0;
 	active_objects = 0;
 	collision_pairs = 0;
-	for (const GodotSpace3D *E : active_spaces) {
-		stepper->step(const_cast<GodotSpace3D *>(E), p_step);
+	for (GodotSpace3D *E : active_spaces) {
+		stepper->step(E, p_step);
 		island_count += E->get_island_count();
 		active_objects += E->get_active_objects();
 		collision_pairs += E->get_collision_pairs();
@@ -1659,8 +1659,8 @@ void GodotPhysicsServer3D::flush_queries() {
 
 	uint64_t time_beg = OS::get_singleton()->get_ticks_usec();
 
-	for (const GodotSpace3D *E : active_spaces) {
-		GodotSpace3D *space = const_cast<GodotSpace3D *>(E);
+	for (GodotSpace3D *E : active_spaces) {
+		GodotSpace3D *space = E;
 		space->call_queries();
 	}
 

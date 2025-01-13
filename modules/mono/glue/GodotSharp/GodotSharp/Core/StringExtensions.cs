@@ -1581,7 +1581,7 @@ namespace Godot
                 if (end < 0)
                     end = len;
                 if (allowEmpty || end > from)
-                    ret.Add(float.Parse(instance.Substring(from), CultureInfo.InvariantCulture));
+                    ret.Add(float.Parse(instance.AsSpan(from), CultureInfo.InvariantCulture));
                 if (end == len)
                     break;
 

@@ -494,6 +494,8 @@ void DynamicFontImportSettingsDialog::_main_prop_changed(const String &p_edited_
 			font_preview->set_hinting((TextServer::Hinting)import_settings_data->get("hinting").operator int());
 		} else if (p_edited_property == "subpixel_positioning") {
 			font_preview->set_subpixel_positioning((TextServer::SubpixelPositioning)import_settings_data->get("subpixel_positioning").operator int());
+		} else if (p_edited_property == "keep_rounding_remainders") {
+			font_preview->set_keep_rounding_remainders(import_settings_data->get("keep_rounding_remainders"));
 		} else if (p_edited_property == "oversampling") {
 			font_preview->set_oversampling(import_settings_data->get("oversampling"));
 		}
@@ -960,6 +962,7 @@ void DynamicFontImportSettingsDialog::_re_import() {
 	main_settings["force_autohinter"] = import_settings_data->get("force_autohinter");
 	main_settings["hinting"] = import_settings_data->get("hinting");
 	main_settings["subpixel_positioning"] = import_settings_data->get("subpixel_positioning");
+	main_settings["keep_rounding_remainders"] = import_settings_data->get("keep_rounding_remainders");
 	main_settings["oversampling"] = import_settings_data->get("oversampling");
 	main_settings["fallbacks"] = import_settings_data->get("fallbacks");
 	main_settings["compress"] = import_settings_data->get("compress");
@@ -1236,6 +1239,7 @@ void DynamicFontImportSettingsDialog::open_settings(const String &p_path) {
 		font_preview->set_force_autohinter(import_settings_data->get("force_autohinter"));
 		font_preview->set_hinting((TextServer::Hinting)import_settings_data->get("hinting").operator int());
 		font_preview->set_subpixel_positioning((TextServer::SubpixelPositioning)import_settings_data->get("subpixel_positioning").operator int());
+		font_preview->set_keep_rounding_remainders(import_settings_data->get("keep_rounding_remainders"));
 		font_preview->set_oversampling(import_settings_data->get("oversampling"));
 	}
 	font_preview_label->add_theme_font_override(SceneStringName(font), font_preview);
@@ -1268,6 +1272,7 @@ DynamicFontImportSettingsDialog::DynamicFontImportSettingsDialog() {
 	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "force_autohinter"), false));
 	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::INT, "hinting", PROPERTY_HINT_ENUM, "None,Light,Normal"), 1));
 	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::INT, "subpixel_positioning", PROPERTY_HINT_ENUM, "Disabled,Auto,One Half of a Pixel,One Quarter of a Pixel"), 1));
+	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::BOOL, "keep_rounding_remainders"), true));
 	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::FLOAT, "oversampling", PROPERTY_HINT_RANGE, "0,10,0.1"), 0.0));
 
 	options_general.push_back(ResourceImporter::ImportOption(PropertyInfo(Variant::NIL, "Metadata Overrides", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_GROUP), Variant()));

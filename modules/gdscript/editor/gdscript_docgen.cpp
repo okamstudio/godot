@@ -139,10 +139,11 @@ void GDScriptDocGen::_doctype_from_gdtype(const GDType &p_gdtype, String &r_type
 			r_type = "int";
 			r_enum = String(p_gdtype.native_type).replace("::", ".");
 			if (r_enum.begins_with("res://")) {
-				r_enum = r_enum.trim_prefix("res://");
-				int dot_pos = r_enum.rfind(".");
+				int dot_pos = r_enum.rfind_char('.');
 				if (dot_pos >= 0) {
-					r_enum = r_enum.left(dot_pos).quote() + r_enum.substr(dot_pos);
+					r_enum = _get_script_name(r_enum.left(dot_pos)) + r_enum.substr(dot_pos);
+				} else {
+					r_enum = _get_script_name(r_enum);
 				}
 			}
 			return;
@@ -407,7 +408,9 @@ void GDScriptDocGen::_generate_docs(GDScript *p_script, const GDP::ClassNode *p_
 				method_doc.experimental_message = m_func->doc_data.experimental_message;
 				method_doc.qualifiers = m_func->is_static ? "static" : "";
 
-				if (m_func->return_type) {
+				if (func_name == "_init") {
+					method_doc.return_type = "void";
+				} else if (m_func->return_type) {
 					// `m_func->return_type->get_datatype()` is a metatype.
 					_doctype_from_gdtype(m_func->get_datatype(), method_doc.return_type, method_doc.return_enum, true);
 				} else if (!m_func->body->has_return) {

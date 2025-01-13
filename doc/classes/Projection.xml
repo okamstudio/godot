@@ -278,22 +278,22 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="PLANE_NEAR" value="0">
+		<constant name="PLANE_NEAR" value="0" enum="Planes">
 			The index value of the projection's near clipping plane.
 		</constant>
-		<constant name="PLANE_FAR" value="1">
+		<constant name="PLANE_FAR" value="1" enum="Planes">
 			The index value of the projection's far clipping plane.
 		</constant>
-		<constant name="PLANE_LEFT" value="2">
+		<constant name="PLANE_LEFT" value="2" enum="Planes">
 			The index value of the projection's left clipping plane.
 		</constant>
-		<constant name="PLANE_TOP" value="3">
+		<constant name="PLANE_TOP" value="3" enum="Planes">
 			The index value of the projection's top clipping plane.
 		</constant>
-		<constant name="PLANE_RIGHT" value="4">
+		<constant name="PLANE_RIGHT" value="4" enum="Planes">
 			The index value of the projection's right clipping plane.
 		</constant>
-		<constant name="PLANE_BOTTOM" value="5">
+		<constant name="PLANE_BOTTOM" value="5" enum="Planes">
 			The index value of the projection bottom clipping plane.
 		</constant>
 		<constant name="IDENTITY" value="Projection(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)">

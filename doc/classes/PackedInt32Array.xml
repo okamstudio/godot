@@ -186,7 +186,7 @@
 		<method name="to_byte_array" qualifiers="const">
 			<return type="PackedByteArray" />
 			<description>
-				Returns a copy of the data converted to a [PackedByteArray], where each element have been encoded as 4 bytes.
+				Returns a copy of the data converted to a [PackedByteArray], where each element has been encoded as 4 bytes.
 				The size of the new array will be [code]int32_array.size() * 4[/code].
 			</description>
 		</method>

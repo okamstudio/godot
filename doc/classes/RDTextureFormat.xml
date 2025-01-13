@@ -37,6 +37,13 @@
 		<member name="height" type="int" setter="set_height" getter="get_height" default="1">
 			The texture's height (in pixels).
 		</member>
+		<member name="is_discardable" type="bool" setter="set_is_discardable" getter="get_is_discardable" default="false">
+			If a texture is discardable, its contents do not need to be preserved between frames. This flag is only relevant when the texture is used as target in a draw list.
+			This information is used by [RenderingDevice] to figure out if a texture's contents can be discarded, eliminating unnecessary writes to memory and boosting performance.
+		</member>
+		<member name="is_resolve_buffer" type="bool" setter="set_is_resolve_buffer" getter="get_is_resolve_buffer" default="false">
+			The texture will be used as the destination of a resolve operation.
+		</member>
 		<member name="mipmaps" type="int" setter="set_mipmaps" getter="get_mipmaps" default="1">
 			The number of mipmaps available in the texture.
 		</member>

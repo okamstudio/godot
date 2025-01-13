@@ -1,2 +1,5 @@
 GDTEST_ANALYZER_ERROR
-Native class "InstancePlaceholder" cannot be constructed as it is abstract.
+>> ERROR at line 9: Native class "InstancePlaceholder" cannot be constructed as it is abstract.
+>> ERROR at line 9: Name "new" is a Callable. You can call it with "new.call()" instead.
+>> ERROR at line 10: Class "abstract_class_instantiate.gd::B" cannot be constructed as it is based on abstract native class "InstancePlaceholder".
+>> ERROR at line 10: Name "new" is a Callable. You can call it with "new.call()" instead.

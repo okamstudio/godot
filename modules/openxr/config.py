@@ -27,6 +27,16 @@ def get_doc_classes():
         "OpenXRCompositionLayerQuad",
         "OpenXRCompositionLayerCylinder",
         "OpenXRCompositionLayerEquirect",
+        "OpenXRBindingModifier",
+        "OpenXRIPBindingModifier",
+        "OpenXRActionBindingModifier",
+        "OpenXRAnalogThresholdModifier",
+        "OpenXRDpadBindingModifier",
+        "OpenXRInteractionProfileEditorBase",
+        "OpenXRInteractionProfileEditor",
+        "OpenXRBindingModifierEditor",
+        "OpenXRHapticBase",
+        "OpenXRHapticVibration",
     ]
 
 

@@ -32,8 +32,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/file_access.h"
-#include "core/os/memory.h"
 #include "core/os/os.h"
+#include "core/os/time.h"
 #include "core/templates/local_vector.h"
 
 thread_local Error DirAccess::last_dir_open_error = OK;
@@ -155,9 +155,9 @@ Error DirAccess::make_dir_recursive(const String &p_dir) {
 	} else if (full_dir.begins_with("user://")) {
 		base = "user://";
 	} else if (full_dir.is_network_share_path()) {
-		int pos = full_dir.find("/", 2);
+		int pos = full_dir.find_char('/', 2);
 		ERR_FAIL_COND_V(pos < 0, ERR_INVALID_PARAMETER);
-		pos = full_dir.find("/", pos + 1);
+		pos = full_dir.find_char('/', pos + 1);
 		ERR_FAIL_COND_V(pos < 0, ERR_INVALID_PARAMETER);
 		base = full_dir.substr(0, pos + 1);
 	} else if (full_dir.begins_with("/")) {
@@ -321,6 +321,80 @@ Ref<DirAccess> DirAccess::create(AccessType p_access) {
 	}
 
 	return da;
+}
+
+Ref<DirAccess> DirAccess::create_temp(const String &p_prefix, bool p_keep, Error *r_error) {
+	const String ERROR_COMMON_PREFIX = "Error while creating temporary directory";
+
+	if (!p_prefix.is_valid_filename()) {
+		*r_error = ERR_FILE_BAD_PATH;
+		ERR_FAIL_V_MSG(Ref<FileAccess>(), vformat(R"(%s: "%s" is not a valid prefix.)", ERROR_COMMON_PREFIX, p_prefix));
+	}
+
+	Ref<DirAccess> dir_access = DirAccess::open(OS::get_singleton()->get_temp_path());
+
+	uint32_t suffix_i = 0;
+	String path;
+	while (true) {
+		String datetime = Time::get_singleton()->get_datetime_string_from_system().replace("-", "").replace("T", "").replace(":", "");
+		datetime += itos(Time::get_singleton()->get_ticks_usec());
+		String suffix = datetime + (suffix_i > 0 ? itos(suffix_i) : "");
+		path = (p_prefix.is_empty() ? "" : p_prefix + "-") + suffix;
+		if (!path.is_valid_filename()) {
+			*r_error = ERR_FILE_BAD_PATH;
+			return Ref<DirAccess>();
+		}
+		if (!DirAccess::exists(path)) {
+			break;
+		}
+		suffix_i += 1;
+	}
+
+	Error err = dir_access->make_dir(path);
+	if (err != OK) {
+		*r_error = err;
+		ERR_FAIL_V_MSG(Ref<FileAccess>(), vformat(R"(%s: "%s" couldn't create directory "%s".)", ERROR_COMMON_PREFIX, path));
+	}
+	err = dir_access->change_dir(path);
+	if (err != OK) {
+		*r_error = err;
+		return Ref<DirAccess>();
+	}
+
+	dir_access->_is_temp = true;
+	dir_access->_temp_keep_after_free = p_keep;
+	dir_access->_temp_path = dir_access->get_current_dir();
+
+	*r_error = OK;
+	return dir_access;
+}
+
+Ref<DirAccess> DirAccess::_create_temp(const String &p_prefix, bool p_keep) {
+	return create_temp(p_prefix, p_keep, &last_dir_open_error);
+}
+
+void DirAccess::_delete_temp() {
+	if (!_is_temp || _temp_keep_after_free) {
+		return;
+	}
+
+	if (!DirAccess::exists(_temp_path)) {
+		return;
+	}
+
+	Error err;
+	{
+		Ref<DirAccess> dir_access = DirAccess::open(_temp_path, &err);
+		if (err != OK) {
+			return;
+		}
+		err = dir_access->erase_contents_recursive();
+		if (err != OK) {
+			return;
+		}
+	}
+
+	DirAccess::remove_absolute(_temp_path);
 }
 
 Error DirAccess::get_open_error() {
@@ -555,6 +629,7 @@ bool DirAccess::is_case_sensitive(const String &p_path) const {
 void DirAccess::_bind_methods() {
 	ClassDB::bind_static_method("DirAccess", D_METHOD("open", "path"), &DirAccess::_open);
 	ClassDB::bind_static_method("DirAccess", D_METHOD("get_open_error"), &DirAccess::get_open_error);
+	ClassDB::bind_static_method("DirAccess", D_METHOD("create_temp", "prefix", "keep"), &DirAccess::_create_temp, DEFVAL(""), DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("list_dir_begin"), &DirAccess::list_dir_begin, DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_next"), &DirAccess::_get_next);
@@ -588,6 +663,8 @@ void DirAccess::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("read_link", "path"), &DirAccess::read_link);
 	ClassDB::bind_method(D_METHOD("create_link", "source", "target"), &DirAccess::create_link);
 
+	ClassDB::bind_method(D_METHOD("is_bundle", "path"), &DirAccess::is_bundle);
+
 	ClassDB::bind_method(D_METHOD("set_include_navigational", "enable"), &DirAccess::set_include_navigational);
 	ClassDB::bind_method(D_METHOD("get_include_navigational"), &DirAccess::get_include_navigational);
 	ClassDB::bind_method(D_METHOD("set_include_hidden", "enable"), &DirAccess::set_include_hidden);
@@ -597,4 +674,8 @@ void DirAccess::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "include_navigational"), "set_include_navigational", "get_include_navigational");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "include_hidden"), "set_include_hidden", "get_include_hidden");
+}
+
+DirAccess::~DirAccess() {
+	_delete_temp();
 }

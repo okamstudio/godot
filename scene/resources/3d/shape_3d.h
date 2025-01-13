@@ -34,6 +34,7 @@
 #include "core/io/resource.h"
 
 class ArrayMesh;
+class Material;
 
 class Shape3D : public Resource {
 	GDCLASS(Shape3D, Resource);
@@ -44,12 +45,18 @@ class Shape3D : public Resource {
 	real_t margin = 0.04;
 
 	Ref<ArrayMesh> debug_mesh_cache;
+	Ref<Material> collision_material;
+
+	Color debug_color = Color(0.0, 0.0, 0.0, 0.0);
+	bool debug_fill = true;
 
 protected:
 	static void _bind_methods();
 
 	_FORCE_INLINE_ RID get_shape() const { return shape; }
 	Shape3D(RID p_shape);
+
+	Ref<Material> get_debug_collision_material();
 
 	virtual void _update_shape();
 
@@ -58,6 +65,7 @@ public:
 
 	Ref<ArrayMesh> get_debug_mesh();
 	virtual Vector<Vector3> get_debug_mesh_lines() const = 0; // { return Vector<Vector3>(); }
+	virtual Ref<ArrayMesh> get_debug_arraymesh_faces(const Color &p_modulate) const = 0;
 	/// Returns the radius of a sphere that fully enclose this shape
 	virtual real_t get_enclosing_radius() const = 0;
 
@@ -68,6 +76,14 @@ public:
 
 	real_t get_margin() const;
 	void set_margin(real_t p_margin);
+
+#ifdef DEBUG_ENABLED
+	void set_debug_color(const Color &p_color);
+	Color get_debug_color() const;
+
+	void set_debug_fill(bool p_fill);
+	bool get_debug_fill() const;
+#endif // DEBUG_ENABLED
 
 	Shape3D();
 	~Shape3D();

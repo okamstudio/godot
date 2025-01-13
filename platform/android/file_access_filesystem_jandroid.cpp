@@ -234,19 +234,23 @@ uint64_t FileAccessFilesystemJAndroid::get_buffer(uint8_t *p_dst, uint64_t p_len
 	}
 }
 
-void FileAccessFilesystemJAndroid::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+bool FileAccessFilesystemJAndroid::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 	if (_file_write) {
-		ERR_FAIL_COND_MSG(!is_open(), "File must be opened before use.");
+		ERR_FAIL_COND_V_MSG(!is_open(), false, "File must be opened before use.");
+		ERR_FAIL_COND_V(!p_src && p_length > 0, false);
 		if (p_length == 0) {
-			return;
+			return true;
 		}
 
 		JNIEnv *env = get_jni_env();
-		ERR_FAIL_NULL(env);
+		ERR_FAIL_NULL_V(env, false);
 
 		jobject j_buffer = env->NewDirectByteBuffer((void *)p_src, p_length);
-		env->CallVoidMethod(file_access_handler, _file_write, id, j_buffer);
+		bool ok = env->CallBooleanMethod(file_access_handler, _file_write, id, j_buffer);
 		env->DeleteLocalRef(j_buffer);
+		return ok;
+	} else {
+		return false;
 	}
 }
 
@@ -324,7 +328,7 @@ void FileAccessFilesystemJAndroid::setup(jobject p_file_access_handler) {
 	_file_seek_end = env->GetMethodID(cls, "fileSeekFromEnd", "(IJ)V");
 	_file_read = env->GetMethodID(cls, "fileRead", "(ILjava/nio/ByteBuffer;)I");
 	_file_close = env->GetMethodID(cls, "fileClose", "(I)V");
-	_file_write = env->GetMethodID(cls, "fileWrite", "(ILjava/nio/ByteBuffer;)V");
+	_file_write = env->GetMethodID(cls, "fileWrite", "(ILjava/nio/ByteBuffer;)Z");
 	_file_flush = env->GetMethodID(cls, "fileFlush", "(I)V");
 	_file_exists = env->GetMethodID(cls, "fileExists", "(Ljava/lang/String;)Z");
 	_file_last_modified = env->GetMethodID(cls, "fileLastModified", "(Ljava/lang/String;)J");

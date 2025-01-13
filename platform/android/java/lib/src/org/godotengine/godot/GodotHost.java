@@ -92,7 +92,7 @@ public interface GodotHost {
 	 * @return the id of the new instance. See {@code onGodotForceQuit}
 	 */
 	default int onNewGodotInstanceRequested(String[] args) {
-		return 0;
+		return -1;
 	}
 
 	/**

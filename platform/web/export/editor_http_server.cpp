@@ -86,7 +86,7 @@ void EditorHTTPServer::_send_response() {
 
 	const String req_file = path.get_file();
 	const String req_ext = path.get_extension();
-	const String cache_path = EditorPaths::get_singleton()->get_cache_dir().path_join("web");
+	const String cache_path = EditorPaths::get_singleton()->get_temp_dir().path_join("web");
 	const String filepath = cache_path.path_join(req_file);
 
 	if (!mimes.has(req_ext) || !FileAccess::exists(filepath)) {

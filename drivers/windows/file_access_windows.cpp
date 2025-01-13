@@ -52,10 +52,18 @@
 #define S_ISREG(m) ((m) & _S_IFREG)
 #endif
 
-void FileAccessWindows::check_errors() const {
+void FileAccessWindows::check_errors(bool p_write) const {
 	ERR_FAIL_NULL(f);
 
-	if (feof(f)) {
+	last_error = OK;
+	if (ferror(f)) {
+		if (p_write) {
+			last_error = ERR_FILE_CANT_WRITE;
+		} else {
+			last_error = ERR_FILE_CANT_READ;
+		}
+	}
+	if (!p_write && feof(f)) {
 		last_error = ERR_FILE_EOF;
 	}
 }
@@ -64,7 +72,7 @@ bool FileAccessWindows::is_path_invalid(const String &p_path) {
 	// Check for invalid operating system file.
 	String fname = p_path.get_file().to_lower();
 
-	int dot = fname.find(".");
+	int dot = fname.find_char('.');
 	if (dot != -1) {
 		fname = fname.substr(0, dot);
 	}
@@ -284,7 +292,6 @@ bool FileAccessWindows::is_open() const {
 void FileAccessWindows::seek(uint64_t p_position) {
 	ERR_FAIL_NULL(f);
 
-	last_error = OK;
 	if (_fseeki64(f, p_position, SEEK_SET)) {
 		check_errors();
 	}
@@ -320,8 +327,7 @@ uint64_t FileAccessWindows::get_length() const {
 }
 
 bool FileAccessWindows::eof_reached() const {
-	check_errors();
-	return last_error == ERR_FILE_EOF;
+	return feof(f);
 }
 
 uint64_t FileAccessWindows::get_buffer(uint8_t *p_dst, uint64_t p_length) const {
@@ -372,9 +378,9 @@ void FileAccessWindows::flush() {
 	}
 }
 
-void FileAccessWindows::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	ERR_FAIL_NULL(f);
-	ERR_FAIL_COND(!p_src && p_length > 0);
+bool FileAccessWindows::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+	ERR_FAIL_NULL_V(f, false);
+	ERR_FAIL_COND_V(!p_src && p_length > 0, false);
 
 	if (flags == READ_WRITE || flags == WRITE_READ) {
 		if (prev_op == READ) {
@@ -385,7 +391,9 @@ void FileAccessWindows::store_buffer(const uint8_t *p_src, uint64_t p_length) {
 		prev_op = WRITE;
 	}
 
-	ERR_FAIL_COND(fwrite(p_src, 1, p_length, f) != (size_t)p_length);
+	bool res = fwrite(p_src, 1, p_length, f) == (size_t)p_length;
+	check_errors(true);
+	return res;
 }
 
 bool FileAccessWindows::file_exists(const String &p_name) {
@@ -525,6 +533,9 @@ void FileAccessWindows::initialize() {
 		invalid_files.insert(reserved_files[reserved_file_index]);
 		reserved_file_index++;
 	}
+
+	_setmaxstdio(8192);
+	print_verbose(vformat("Maximum number of file handles: %d", _getmaxstdio()));
 }
 
 void FileAccessWindows::finalize() {

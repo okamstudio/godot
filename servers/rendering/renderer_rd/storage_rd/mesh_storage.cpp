@@ -851,6 +851,7 @@ void MeshStorage::mesh_clear(RID p_mesh) {
 	mesh->surface_count = 0;
 	mesh->material_cache.clear();
 	mesh->has_bone_weights = false;
+	mesh->aabb = AABB();
 	mesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_MESH);
 
 	for (Mesh *E : mesh->shadow_owners) {
@@ -1995,6 +1996,12 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 			multimesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
 		}
 	}
+}
+
+RID MeshStorage::_multimesh_get_buffer_rd_rid(RID p_multimesh) const {
+	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
+	ERR_FAIL_NULL_V(multimesh, RID());
+	return multimesh->buffer;
 }
 
 Vector<float> MeshStorage::_multimesh_get_buffer(RID p_multimesh) const {

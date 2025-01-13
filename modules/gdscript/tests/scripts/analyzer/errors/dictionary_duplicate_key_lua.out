@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-Key "a" was already used in this dictionary (at line 3).
+>> ERROR at line 5: Key "a" was already used in this dictionary (at line 3).

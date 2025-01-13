@@ -13,7 +13,7 @@
 		func test():
 		    var callable = Callable(self, "print_args")
 		    callable.call("hello", "world")  # Prints "hello world ".
-		    callable.call(Vector2.UP, 42, callable)  # Prints "(0, -1) 42 Node(node.gd)::print_args".
+		    callable.call(Vector2.UP, 42, callable)  # Prints "(0.0, -1.0) 42 Node(node.gd)::print_args".
 		    callable.call("invalid")  # Invalid call, should have at least 2 arguments.
 		[/gdscript]
 		[csharp]

@@ -217,6 +217,14 @@
 				Adds additional data structures when the OpenXR instance is created.
 			</description>
 		</method>
+		<method name="_set_projection_views_and_get_next_pointer" qualifiers="virtual">
+			<return type="int" />
+			<param index="0" name="view_index" type="int" />
+			<param index="1" name="next_pointer" type="void*" />
+			<description>
+				Adds additional data structures to the projection view of the given [param view_index].
+			</description>
+		</method>
 		<method name="_set_session_create_and_get_next_pointer" qualifiers="virtual">
 			<return type="int" />
 			<param index="0" name="next_pointer" type="void*" />

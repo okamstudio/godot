@@ -1,37 +1,10 @@
 GDTEST_OK
->> WARNING
->> Line: 26
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 28
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 32
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 38
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 44
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 45
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 46
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 51
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
->> WARNING
->> Line: 53
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 26: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 28: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 32: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 38: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 44: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 45: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 46: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 51: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 53: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.

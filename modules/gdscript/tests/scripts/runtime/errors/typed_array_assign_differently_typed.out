@@ -1,6 +1,2 @@
 GDTEST_RUNTIME_ERROR
->> SCRIPT ERROR
->> on function: test()
->> runtime/errors/typed_array_assign_differently_typed.gd
->> 3
->> Trying to assign an array of type "Array[float]" to a variable of type "Array[int]".
+>> SCRIPT ERROR at runtime/errors/typed_array_assign_differently_typed.gd:3 on test(): Trying to assign an array of type "Array[float]" to a variable of type "Array[int]".

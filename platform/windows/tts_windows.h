@@ -55,9 +55,9 @@ class TTS_Windows {
 		int id;
 	};
 	HashMap<uint32_t, UTData> ids;
+	bool update_requested = false;
 
 	static void __stdcall speech_event_callback(WPARAM wParam, LPARAM lParam);
-	void _update_tts();
 
 	static TTS_Windows *singleton;
 
@@ -72,6 +72,8 @@ public:
 	void pause();
 	void resume();
 	void stop();
+
+	void process_events();
 
 	TTS_Windows();
 	~TTS_Windows();

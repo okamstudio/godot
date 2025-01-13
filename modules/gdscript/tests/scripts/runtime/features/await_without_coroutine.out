@@ -1,6 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 4
->> REDUNDANT_AWAIT
->> "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
+~~ WARNING at line 4: (REDUNDANT_AWAIT) "await" keyword not needed in this case, because the expression isn't a coroutine nor a signal.
 awaited

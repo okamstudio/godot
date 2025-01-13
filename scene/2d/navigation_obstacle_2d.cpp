@@ -89,7 +89,7 @@ void NavigationObstacle2D::_notification(int p_what) {
 			previous_transform = get_global_transform();
 			// need to trigger map controlled agent assignment somehow for the fake_agent since obstacles use no callback like regular agents
 			NavigationServer2D::get_singleton()->obstacle_set_avoidance_enabled(obstacle, avoidance_enabled);
-			_update_position(get_global_position());
+			_update_transform();
 			set_physics_process_internal(true);
 #ifdef DEBUG_ENABLED
 			RS::get_singleton()->canvas_item_set_parent(debug_canvas_item, get_world_2d()->get_canvas());
@@ -142,7 +142,7 @@ void NavigationObstacle2D::_notification(int p_what) {
 
 		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
 			if (is_inside_tree()) {
-				_update_position(get_global_position());
+				_update_transform();
 
 				if (velocity_submitted) {
 					velocity_submitted = false;
@@ -206,7 +206,8 @@ NavigationObstacle2D::~NavigationObstacle2D() {
 
 void NavigationObstacle2D::set_vertices(const Vector<Vector2> &p_vertices) {
 	vertices = p_vertices;
-	NavigationServer2D::get_singleton()->obstacle_set_vertices(obstacle, vertices);
+	const Transform2D node_transform = is_inside_tree() ? get_global_transform() : Transform2D();
+	NavigationServer2D::get_singleton()->obstacle_set_vertices(obstacle, node_transform.xform(vertices));
 #ifdef DEBUG_ENABLED
 	queue_redraw();
 #endif // DEBUG_ENABLED
@@ -237,7 +238,8 @@ void NavigationObstacle2D::set_radius(real_t p_radius) {
 
 	radius = p_radius;
 
-	NavigationServer2D::get_singleton()->obstacle_set_radius(obstacle, radius);
+	const Vector2 safe_scale = (is_inside_tree() ? get_global_scale() : get_scale()).abs().maxf(0.001);
+	NavigationServer2D::get_singleton()->obstacle_set_radius(obstacle, safe_scale[safe_scale.max_axis_index()] * radius);
 #ifdef DEBUG_ENABLED
 	queue_redraw();
 #endif // DEBUG_ENABLED
@@ -341,6 +343,18 @@ void NavigationObstacle2D::_update_position(const Vector2 p_position) {
 #endif // DEBUG_ENABLED
 }
 
+void NavigationObstacle2D::_update_transform() {
+	_update_position(get_global_position());
+	// Prevent non-positive or non-uniform scaling of dynamic obstacle radius.
+	const Vector2 safe_scale = get_global_scale().abs().maxf(0.001);
+	const float scaling_max_value = safe_scale[safe_scale.max_axis_index()];
+	NavigationServer2D::get_singleton()->obstacle_set_radius(obstacle, scaling_max_value * radius);
+	NavigationServer2D::get_singleton()->obstacle_set_vertices(obstacle, get_global_transform().translated(-get_global_position()).xform(vertices));
+#ifdef DEBUG_ENABLED
+	queue_redraw();
+#endif // DEBUG_ENABLED
+}
+
 #ifdef DEBUG_ENABLED
 void NavigationObstacle2D::_update_fake_agent_radius_debug() {
 	if (radius > 0.0 && NavigationServer2D::get_singleton()->get_debug_navigation_avoidance_enable_obstacles_radius()) {
@@ -373,7 +387,7 @@ void NavigationObstacle2D::_update_static_obstacle_debug() {
 		debug_obstacle_polygon_colors.resize(debug_obstacle_polygon_vertices.size());
 		debug_obstacle_polygon_colors.fill(debug_static_obstacle_face_color);
 
-		RS::get_singleton()->canvas_item_add_polygon(debug_canvas_item, debug_obstacle_polygon_vertices, debug_obstacle_polygon_colors);
+		RS::get_singleton()->canvas_item_add_polygon(debug_canvas_item, get_global_transform().xform(debug_obstacle_polygon_vertices), debug_obstacle_polygon_colors);
 
 		Color debug_static_obstacle_edge_color;
 

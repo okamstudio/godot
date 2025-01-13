@@ -40,18 +40,6 @@ void FileAccessCompressed::configure(const String &p_magic, Compression::Mode p_
 	block_size = p_block_size;
 }
 
-#define WRITE_FIT(m_bytes)                                  \
-	{                                                       \
-		if (write_pos + (m_bytes) > write_max) {            \
-			write_max = write_pos + (m_bytes);              \
-		}                                                   \
-		if (write_max > write_buffer_size) {                \
-			write_buffer_size = next_power_of_2(write_max); \
-			buffer.resize(write_buffer_size);               \
-			write_ptr = buffer.ptrw();                      \
-		}                                                   \
-	}
-
 Error FileAccessCompressed::open_after_magic(Ref<FileAccess> p_base) {
 	f = p_base;
 	cmode = (Compression::Mode)f->get_32();
@@ -309,13 +297,23 @@ void FileAccessCompressed::flush() {
 	// compressed files keep data in memory till close()
 }
 
-void FileAccessCompressed::store_buffer(const uint8_t *p_src, uint64_t p_length) {
-	ERR_FAIL_COND_MSG(f.is_null(), "File must be opened before use.");
-	ERR_FAIL_COND_MSG(!writing, "File has not been opened in write mode.");
+bool FileAccessCompressed::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+	ERR_FAIL_COND_V_MSG(f.is_null(), false, "File must be opened before use.");
+	ERR_FAIL_COND_V_MSG(!writing, false, "File has not been opened in write mode.");
 
-	WRITE_FIT(p_length);
+	if (write_pos + (p_length) > write_max) {
+		write_max = write_pos + (p_length);
+	}
+	if (write_max > write_buffer_size) {
+		write_buffer_size = next_power_of_2(write_max);
+		ERR_FAIL_COND_V(buffer.resize(write_buffer_size) != OK, false);
+		write_ptr = buffer.ptrw();
+	}
+
 	memcpy(write_ptr + write_pos, p_src, p_length);
+
 	write_pos += p_length;
+	return true;
 }
 
 bool FileAccessCompressed::file_exists(const String &p_name) {

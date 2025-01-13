@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-The function signature doesn't match the parent. Parent signature is "f(Object) -> Variant".
+>> ERROR at line 6: The function signature doesn't match the parent. Parent signature is "f(Object) -> Variant".

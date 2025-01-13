@@ -96,6 +96,9 @@ RenderingContextDriverD3D12::~RenderingContextDriverD3D12() {
 	if (lib_dxgi) {
 		FreeLibrary(lib_dxgi);
 	}
+	if (lib_dcomp) {
+		FreeLibrary(lib_dcomp);
+	}
 }
 
 Error RenderingContextDriverD3D12::_init_device_factory() {
@@ -107,6 +110,9 @@ Error RenderingContextDriverD3D12::_init_device_factory() {
 
 	lib_dxgi = LoadLibraryW(L"DXGI.dll");
 	ERR_FAIL_NULL_V(lib_dxgi, ERR_CANT_CREATE);
+
+	lib_dcomp = LoadLibraryW(L"Dcomp.dll");
+	ERR_FAIL_NULL_V(lib_dcomp, ERR_CANT_CREATE);
 
 	// Note: symbol is not available in MinGW import library.
 	PFN_D3D12_GET_INTERFACE d3d_D3D12GetInterface = (PFN_D3D12_GET_INTERFACE)(void *)GetProcAddress(lib_d3d12, "D3D12GetInterface");
@@ -178,7 +184,7 @@ Error RenderingContextDriverD3D12::_initialize_devices() {
 
 		Device &device = driver_devices[i];
 		device.name = desc.Description;
-		device.vendor = Vendor(desc.VendorId);
+		device.vendor = desc.VendorId;
 		device.workarounds = Workarounds();
 
 		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {

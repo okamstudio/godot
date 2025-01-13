@@ -329,6 +329,14 @@
 				Returns the font hinting mode. Used by dynamic fonts only.
 			</description>
 		</method>
+		<method name="_font_get_keep_rounding_remainders" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="font_rid" type="RID" />
+			<description>
+				[b]Optional.[/b]
+				Returns glyph position rounding behavior. If set to [code]true[/code], when aligning glyphs to the pixel boundaries rounding remainders are accumulated to ensure more uniform glyph distribution. This setting has no effect if subpixel positioning is enabled.
+			</description>
+		</method>
 		<method name="_font_get_kerning" qualifiers="virtual const">
 			<return type="Vector2" />
 			<param index="0" name="font_rid" type="RID" />
@@ -904,6 +912,15 @@
 				Sets font hinting mode. Used by dynamic fonts only.
 			</description>
 		</method>
+		<method name="_font_set_keep_rounding_remainders" qualifiers="virtual">
+			<return type="void" />
+			<param index="0" name="font_rid" type="RID" />
+			<param index="1" name="keep_rounding_remainders" type="bool" />
+			<description>
+				[b]Optional.[/b]
+				Sets glyph position rounding behavior. If set to [code]true[/code], when aligning glyphs to the pixel boundaries rounding remainders are accumulated to ensure more uniform glyph distribution. This setting has no effect if subpixel positioning is enabled.
+			</description>
+		</method>
 		<method name="_font_set_kerning" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="font_rid" type="RID" />
@@ -1168,6 +1185,13 @@
 			<description>
 				[b]Required.[/b]
 				Returns the name of the server interface.
+			</description>
+		</method>
+		<method name="_get_support_data" qualifiers="virtual const">
+			<return type="PackedByteArray" />
+			<description>
+				[b]Optional.[/b]
+				Returns default TextServer database (e.g. ICU break iterators and dictionaries).
 			</description>
 		</method>
 		<method name="_get_support_data_filename" qualifiers="virtual const">

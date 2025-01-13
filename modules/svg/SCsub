@@ -14,7 +14,6 @@ thirdparty_dir = "#thirdparty/thorvg/"
 thirdparty_sources = [
     # common
     "src/common/tvgCompressor.cpp",
-    "src/common/tvgLines.cpp",
     "src/common/tvgMath.cpp",
     "src/common/tvgStr.cpp",
     # SVG parser
@@ -52,6 +51,7 @@ thirdparty_sources = [
     "src/renderer/sw_engine/tvgSwImage.cpp",
     "src/renderer/sw_engine/tvgSwMath.cpp",
     "src/renderer/sw_engine/tvgSwMemPool.cpp",
+    "src/renderer/sw_engine/tvgSwPostEffect.cpp",
     "src/renderer/sw_engine/tvgSwRaster.cpp",
     "src/renderer/sw_engine/tvgSwRenderer.cpp",
     "src/renderer/sw_engine/tvgSwRle.cpp",

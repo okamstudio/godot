@@ -65,6 +65,9 @@ void MeshInstance2D::set_mesh(const Ref<Mesh> &p_mesh) {
 	mesh = p_mesh;
 
 	if (mesh.is_valid()) {
+		// If mesh is a PrimitiveMesh, calling get_rid on it can trigger a changed callback
+		// so do this before connecting to the change signal.
+		mesh->get_rid();
 		mesh->connect_changed(callable_mp((CanvasItem *)this, &CanvasItem::queue_redraw));
 	}
 

@@ -1,9 +1,3 @@
 GDTEST_OK
->> WARNING
->> Line: 6
->> RETURN_VALUE_DISCARDED
->> The function "i_return_int()" returns a value that will be discarded if not used.
->> WARNING
->> Line: 7
->> RETURN_VALUE_DISCARDED
->> The function "preload()" returns a value that will be discarded if not used.
+~~ WARNING at line 6: (RETURN_VALUE_DISCARDED) The function "i_return_int()" returns a value that will be discarded if not used.
+~~ WARNING at line 7: (RETURN_VALUE_DISCARDED) The function "preload()" returns a value that will be discarded if not used.

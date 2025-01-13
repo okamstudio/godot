@@ -46,10 +46,10 @@ VoxelGIGizmoPlugin::VoxelGIGizmoPlugin() {
 	create_material("voxel_gi_material", gizmo_color);
 
 	// This gizmo draws a lot of lines. Use a low opacity to make it not too intrusive.
-	gizmo_color.a = 0.1;
+	gizmo_color.a = 0.03;
 	create_material("voxel_gi_internal_material", gizmo_color);
 
-	gizmo_color.a = 0.05;
+	gizmo_color.a = 0.025;
 	create_material("voxel_gi_solid_material", gizmo_color);
 
 	create_icon_material("voxel_gi_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoVoxelGI"), EditorStringName(EditorIcons)));

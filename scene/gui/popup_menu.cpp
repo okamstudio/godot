@@ -232,7 +232,7 @@ Size2 PopupMenu::_get_contents_minimum_size() const {
 
 	for (int i = 0; i < items.size(); i++) {
 		Size2 item_size;
-		const_cast<PopupMenu *>(this)->_shape_item(i);
+		_shape_item(i);
 
 		Size2 icon_size = _get_item_icon_size(i);
 		item_size.height = _get_item_height(i);
@@ -946,7 +946,7 @@ void PopupMenu::_close_pressed() {
 	}
 }
 
-void PopupMenu::_shape_item(int p_idx) {
+void PopupMenu::_shape_item(int p_idx) const {
 	if (items.write[p_idx].dirty) {
 		items.write[p_idx].text_buf->clear();
 

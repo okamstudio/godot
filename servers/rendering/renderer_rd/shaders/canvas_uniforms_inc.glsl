@@ -1,36 +1,22 @@
-
 #define MAX_LIGHTS_PER_ITEM 16
 
 #define M_PI 3.14159265359
 
 #define SDF_MAX_LENGTH 16384.0
 
-//1 means enabled, 2+ means trails in use
-#define FLAGS_INSTANCING_MASK 0x7F
-#define FLAGS_INSTANCING_HAS_COLORS_SHIFT 7
-#define FLAGS_INSTANCING_HAS_COLORS (1 << FLAGS_INSTANCING_HAS_COLORS_SHIFT)
-#define FLAGS_INSTANCING_HAS_CUSTOM_DATA_SHIFT 8
-#define FLAGS_INSTANCING_HAS_CUSTOM_DATA (1 << FLAGS_INSTANCING_HAS_CUSTOM_DATA_SHIFT)
+#define INSTANCE_FLAGS_LIGHT_COUNT_SHIFT 0 // 4 bits.
 
-#define FLAGS_CLIP_RECT_UV (1 << 9)
-#define FLAGS_TRANSPOSE_RECT (1 << 10)
-#define FLAGS_CONVERT_ATTRIBUTES_TO_LINEAR (1 << 11)
-#define FLAGS_NINEPACH_DRAW_CENTER_SHIFT 12
-#define FLAGS_NINEPACH_DRAW_CENTER (1 << FLAGS_NINEPACH_DRAW_CENTER_SHIFT)
+#define INSTANCE_FLAGS_CLIP_RECT_UV (1 << 4)
+#define INSTANCE_FLAGS_TRANSPOSE_RECT (1 << 5)
+#define INSTANCE_FLAGS_USE_MSDF (1 << 6)
+#define INSTANCE_FLAGS_USE_LCD (1 << 7)
 
-#define FLAGS_NINEPATCH_H_MODE_SHIFT 16
-#define FLAGS_NINEPATCH_V_MODE_SHIFT 18
+#define INSTANCE_FLAGS_NINEPATCH_DRAW_CENTER_SHIFT 8
+#define INSTANCE_FLAGS_NINEPATCH_H_MODE_SHIFT 9
+#define INSTANCE_FLAGS_NINEPATCH_V_MODE_SHIFT 11
 
-#define FLAGS_LIGHT_COUNT_SHIFT 20
-
-#define FLAGS_DEFAULT_NORMAL_MAP_USED (1 << 24)
-#define FLAGS_DEFAULT_SPECULAR_MAP_USED (1 << 25)
-
-#define FLAGS_USE_MSDF (1 << 26)
-#define FLAGS_USE_LCD (1 << 27)
-
-#define FLAGS_FLIP_H (1 << 28)
-#define FLAGS_FLIP_V (1 << 29)
+#define INSTANCE_FLAGS_SHADOW_MASKED_SHIFT 13 // 16 bits.
+#define INSTANCE_FLAGS_SHADOW_MASKED (1 << INSTANCE_FLAGS_SHADOW_MASKED_SHIFT)
 
 struct InstanceData {
 	vec2 world_x;
@@ -51,14 +37,24 @@ struct InstanceData {
 
 #endif
 	vec2 color_texture_pixel_size;
-	uint lights[4];
+	uvec4 lights;
 };
+
+//1 means enabled, 2+ means trails in use
+#define BATCH_FLAGS_INSTANCING_MASK 0x7F
+#define BATCH_FLAGS_INSTANCING_HAS_COLORS_SHIFT 7
+#define BATCH_FLAGS_INSTANCING_HAS_COLORS (1 << BATCH_FLAGS_INSTANCING_HAS_COLORS_SHIFT)
+#define BATCH_FLAGS_INSTANCING_HAS_CUSTOM_DATA_SHIFT 8
+#define BATCH_FLAGS_INSTANCING_HAS_CUSTOM_DATA (1 << BATCH_FLAGS_INSTANCING_HAS_CUSTOM_DATA_SHIFT)
+
+#define BATCH_FLAGS_DEFAULT_NORMAL_MAP_USED (1 << 9)
+#define BATCH_FLAGS_DEFAULT_SPECULAR_MAP_USED (1 << 10)
 
 layout(push_constant, std430) uniform Params {
 	uint base_instance_index; // base index to instance data
 	uint sc_packed_0;
 	uint specular_shininess;
-	uint pad;
+	uint batch_flags;
 }
 params;
 
@@ -94,6 +90,8 @@ bool sc_use_lighting() {
 
 /* SET0: Globals */
 
+#define CANVAS_FLAGS_CONVERT_ATTRIBUTES_TO_LINEAR (1 << 0)
+
 // The values passed per draw primitives are cached within it
 
 layout(set = 0, binding = 1, std140) uniform CanvasData {
@@ -111,7 +109,7 @@ layout(set = 0, binding = 1, std140) uniform CanvasData {
 
 	uint directional_light_count;
 	float tex_to_sdf;
-	uint pad1;
+	uint flags;
 	uint pad2;
 }
 canvas_data;

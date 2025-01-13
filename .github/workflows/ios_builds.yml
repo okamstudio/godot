@@ -37,6 +37,7 @@ jobs:
           platform: ios
           target: template_release
           tests: false
+          scons-cache-limit: 1
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

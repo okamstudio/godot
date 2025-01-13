@@ -104,6 +104,36 @@ TEST_CASE("[TranslationServer] Locale operations") {
 	res = ts->standardize_locale(loc);
 
 	CHECK(res == "de_DE");
+
+	// No added defaults.
+	loc = "es_ES";
+	res = ts->standardize_locale(loc, true);
+
+	CHECK(res == "es_ES");
+
+	// Add default script.
+	loc = "az_AZ";
+	res = ts->standardize_locale(loc, true);
+
+	CHECK(res == "az_Latn_AZ");
+
+	// Add default country.
+	loc = "pa_Arab";
+	res = ts->standardize_locale(loc, true);
+
+	CHECK(res == "pa_Arab_PK");
+
+	// Add default script and country.
+	loc = "zh";
+	res = ts->standardize_locale(loc, true);
+
+	CHECK(res == "zh_Hans_CN");
+
+	// Explicitly don't add defaults.
+	loc = "zh";
+	res = ts->standardize_locale(loc, false);
+
+	CHECK(res == "zh");
 }
 
 TEST_CASE("[TranslationServer] Comparing locales") {

@@ -101,7 +101,7 @@ void TTS_Linux::speech_event_callback(size_t p_msg_id, size_t p_client_id, SPDNo
 	}
 }
 
-void TTS_Linux::_load_voices() {
+void TTS_Linux::_load_voices() const {
 	if (!voices_loaded) {
 		SPDVoice **spd_voices = spd_list_synthesis_voices(synth);
 		if (spd_voices != nullptr) {
@@ -193,7 +193,7 @@ Array TTS_Linux::get_voices() const {
 	_THREAD_SAFE_METHOD_
 
 	ERR_FAIL_NULL_V(synth, Array());
-	const_cast<TTS_Linux *>(this)->_load_voices();
+	_load_voices();
 
 	Array list;
 	for (const KeyValue<String, VoiceInfo> &E : voices) {

@@ -177,6 +177,7 @@ static float _toFloat(const SvgParser* svgParse, const char* str, SvgParserLengt
     else if (strstr(str, "%")) {
         if (type == SvgParserLengthType::Vertical) parsedValue = (parsedValue / 100.0f) * svgParse->global.h;
         else if (type == SvgParserLengthType::Horizontal) parsedValue = (parsedValue / 100.0f) * svgParse->global.w;
+        else if (type == SvgParserLengthType::Diagonal) parsedValue = (sqrtf(powf(svgParse->global.w, 2) + powf(svgParse->global.h, 2)) / sqrtf(2.0f)) * (parsedValue / 100.0f);
         else //if other than it's radius
         {
             float max = svgParse->global.w;
@@ -593,15 +594,15 @@ static bool _hslToRgb(float hue, float saturation, float brightness, uint8_t* re
     saturation = saturation > 0 ? std::min(saturation, 1.0f) : 0.0f;
     brightness = brightness > 0 ? std::min(brightness, 1.0f) : 0.0f;
 
-    if (mathZero(saturation))  _red = _green = _blue = brightness;
+    if (tvg::zero(saturation))  _red = _green = _blue = brightness;
     else {
-        if (mathEqual(hue, 360.0)) hue = 0.0f;
+        if (tvg::equal(hue, 360.0)) hue = 0.0f;
         hue /= 60.0f;
 
         v = (brightness <= 0.5f) ? (brightness * (1.0f + saturation)) : (brightness + saturation - (brightness * saturation));
         p = brightness + brightness - v;
 
-        if (!mathZero(v)) sv = (v - p) / v;
+        if (!tvg::zero(v)) sv = (v - p) / v;
         else sv = 0;
 
         i = static_cast<uint8_t>(hue);
@@ -858,8 +859,8 @@ static Matrix* _parseTransformationMatrix(const char* value)
             //Transform to signed.
             points[0] = fmodf(points[0], 360.0f);
             if (points[0] < 0) points[0] += 360.0f;
-            auto c = cosf(mathDeg2Rad(points[0]));
-            auto s = sinf(mathDeg2Rad(points[0]));
+            auto c = cosf(deg2rad(points[0]));
+            auto s = sinf(deg2rad(points[0]));
             if (ptCount == 1) {
                 Matrix tmp = { c, -s, 0, s, c, 0, 0, 0, 1 };
                 *matrix *= tmp;
@@ -882,12 +883,12 @@ static Matrix* _parseTransformationMatrix(const char* value)
             *matrix *= tmp;
         } else if (state == MatrixState::SkewX) {
             if (ptCount != 1) goto error;
-            auto deg = tanf(mathDeg2Rad(points[0]));
+            auto deg = tanf(deg2rad(points[0]));
             Matrix tmp = { 1, deg, 0, 0, 1, 0, 0, 0, 1 };
             *matrix *= tmp;
         } else if (state == MatrixState::SkewY) {
             if (ptCount != 1) goto error;
-            auto deg = tanf(mathDeg2Rad(points[0]));
+            auto deg = tanf(deg2rad(points[0]));
             Matrix tmp = { 1, 0, 0, deg, 1, 0, 0, 0, 1 };
             *matrix *= tmp;
         }
@@ -1066,7 +1067,7 @@ static void _handleStrokeDashOffsetAttr(SvgLoaderData* loader, SvgNode* node, co
 static void _handleStrokeWidthAttr(SvgLoaderData* loader, SvgNode* node, const char* value)
 {
     node->style->stroke.flags = (node->style->stroke.flags | SvgStrokeFlags::Width);
-    node->style->stroke.width = _toFloat(loader->svgParse, value, SvgParserLengthType::Horizontal);
+    node->style->stroke.width = _toFloat(loader->svgParse, value, SvgParserLengthType::Diagonal);
 }
 
 
@@ -1614,7 +1615,7 @@ static constexpr struct
 } circleTags[] = {
     {"cx", SvgParserLengthType::Horizontal, sizeof("cx"), offsetof(SvgCircleNode, cx)},
     {"cy", SvgParserLengthType::Vertical, sizeof("cy"), offsetof(SvgCircleNode, cy)},
-    {"r", SvgParserLengthType::Other, sizeof("r"), offsetof(SvgCircleNode, r)}
+    {"r", SvgParserLengthType::Diagonal, sizeof("r"), offsetof(SvgCircleNode, r)}
 };
 
 
@@ -2554,6 +2555,18 @@ static SvgStyleGradient* _createRadialGradient(SvgLoaderData* loader, const char
 }
 
 
+static SvgColor* _findLatestColor(const SvgLoaderData* loader)
+{
+    auto parent = loader->stack.count > 0 ? loader->stack.last() : loader->doc;
+
+    while (parent != nullptr) {
+        if (parent->style->curColorSet) return &parent->style->color;
+        parent = parent->parent;
+    }
+    return nullptr;
+}
+
+
 static bool _attrParseStopsStyle(void* data, const char* key, const char* value)
 {
     SvgLoaderData* loader = (SvgLoaderData*)data;
@@ -2563,7 +2576,13 @@ static bool _attrParseStopsStyle(void* data, const char* key, const char* value)
         stop->a = _toOpacity(value);
         loader->svgParse->flags = (loader->svgParse->flags | SvgStopStyleFlags::StopOpacity);
     } else if (!strcmp(key, "stop-color")) {
-        if (_toColor(value, &stop->r, &stop->g, &stop->b, nullptr)) {
+        if (!strcmp(value, "currentColor")) {
+            if (auto latestColor = _findLatestColor(loader)) {
+                stop->r = latestColor->r;
+                stop->g = latestColor->g;
+                stop->b = latestColor->b;
+            }
+        } else if (_toColor(value, &stop->r, &stop->g, &stop->b, nullptr)) {
             loader->svgParse->flags = (loader->svgParse->flags | SvgStopStyleFlags::StopColor);
         }
     } else {
@@ -2586,7 +2605,13 @@ static bool _attrParseStops(void* data, const char* key, const char* value)
             stop->a = _toOpacity(value);
         }
     } else if (!strcmp(key, "stop-color")) {
-        if (!(loader->svgParse->flags & SvgStopStyleFlags::StopColor)) {
+        if (!strcmp(value, "currentColor")) {
+            if (auto latestColor = _findLatestColor(loader)) {
+                stop->r = latestColor->r;
+                stop->g = latestColor->g;
+                stop->b = latestColor->b;
+            }
+        } else if (!(loader->svgParse->flags & SvgStopStyleFlags::StopColor)) {
             _toColor(value, &stop->r, &stop->g, &stop->b, nullptr);
         }
     } else if (!strcmp(key, "style")) {
@@ -3341,7 +3366,7 @@ static void _svgLoaderParserXmlOpen(SvgLoaderData* loader, const char* content, 
             else parent = loader->doc;
             if (!strcmp(tagName, "style")) {
                 // TODO: For now only the first style node is saved. After the css id selector
-                // is introduced this if condition shouldin't be necessary any more
+                // is introduced this if condition shouldn't be necessary any more
                 if (!loader->cssStyle) {
                     node = method(loader, nullptr, attrs, attrsLength, simpleXmlParseAttributes);
                     loader->cssStyle = node;

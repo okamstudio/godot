@@ -57,8 +57,6 @@ using namespace godot;
 
 #include "thorvg_svg_in_ot.h"
 
-#include "thorvg_bounds_iterator.h"
-
 #include <freetype/otsvg.h>
 #include <ft2build.h>
 
@@ -92,13 +90,14 @@ FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Poin
 		parser.instantiate();
 		parser->_open_buffer((const uint8_t *)document->svg_document, document->svg_document_length);
 
-		float aspect = 1.0f;
 		String xml_body;
+		double embox_x = document->units_per_EM;
+		double embox_y = document->units_per_EM;
 		while (parser->read() == OK) {
 			if (parser->has_attribute("id")) {
 				const String &gl_name = parser->get_named_attribute_value("id");
 				if (gl_name.begins_with("glyph")) {
-					int dot_pos = gl_name.find(".");
+					int dot_pos = gl_name.find_char('.');
 					int64_t gl_idx = gl_name.substr(5, (dot_pos > 0) ? dot_pos - 5 : -1).to_int();
 					if (p_slot->glyph_index != gl_idx) {
 						parser->skip_section();
@@ -111,15 +110,26 @@ FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Poin
 					PackedStringArray vb = parser->get_named_attribute_value("viewBox").split(" ");
 
 					if (vb.size() == 4) {
-						aspect = vb[2].to_float() / vb[3].to_float();
+						embox_x = vb[2].to_float();
+						embox_y = vb[3].to_float();
 					}
 				}
-				continue;
+				if (parser->has_attribute("width")) {
+					embox_x = parser->get_named_attribute_value("width").to_float();
+				}
+				if (parser->has_attribute("height")) {
+					embox_y = parser->get_named_attribute_value("height").to_float();
+				}
 			}
 			if (parser->get_node_type() == XMLParser::NODE_ELEMENT) {
 				xml_body += vformat("<%s", parser->get_node_name());
+				bool is_svg_tag = parser->get_node_name() == "svg";
 				for (int i = 0; i < parser->get_attribute_count(); i++) {
-					xml_body += vformat(" %s=\"%s\"", parser->get_attribute_name(i), parser->get_attribute_value(i));
+					String aname = parser->get_attribute_name(i);
+					if (is_svg_tag && (aname == "viewBox" || aname == "width" || aname == "height")) {
+						continue;
+					}
+					xml_body += vformat(" %s=\"%s\"", aname, parser->get_attribute_value(i));
 				}
 
 				if (parser->is_empty()) {
@@ -133,91 +143,78 @@ FT_Error tvg_svg_in_ot_preset_slot(FT_GlyphSlot p_slot, FT_Bool p_cache, FT_Poin
 				xml_body += vformat("</%s>", parser->get_node_name());
 			}
 		}
-		String temp_xml_str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1 1\">" + xml_body;
-		CharString temp_xml = temp_xml_str.utf8();
 
 		std::unique_ptr<tvg::Picture> picture = tvg::Picture::gen();
-		tvg::Result result = picture->load(temp_xml.get_data(), temp_xml.length(), "svg+xml", false);
-		if (result != tvg::Result::Success) {
-			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to load SVG document (bounds detection).");
-		}
+		gl_state.xml_code = xml_body.utf8();
 
-		float min_x = INFINITY, min_y = INFINITY, max_x = -INFINITY, max_y = -INFINITY;
-		tvg_get_bounds(picture.get(), min_x, min_y, max_x, max_y);
-
-		float new_h = (max_y - min_y);
-		float new_w = (max_x - min_x);
-
-		if (new_h * aspect >= new_w) {
-			new_w = (new_h * aspect);
-		} else {
-			new_h = (new_w / aspect);
-		}
-
-		String xml_code_str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"" + rtos(min_x) + " " + rtos(min_y) + " " + rtos(new_w) + " " + rtos(new_h) + "\">" + xml_body;
-		gl_state.xml_code = xml_code_str.utf8();
-
-		picture = tvg::Picture::gen();
-		result = picture->load(gl_state.xml_code.get_data(), gl_state.xml_code.length(), "svg+xml", false);
+		tvg::Result result = picture->load(gl_state.xml_code.get_data(), gl_state.xml_code.length(), "svg+xml", false);
 		if (result != tvg::Result::Success) {
 			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to load SVG document (glyph metrics).");
 		}
 
-		float x_svg_to_out, y_svg_to_out;
-		x_svg_to_out = (float)metrics.x_ppem / new_w;
-		y_svg_to_out = (float)metrics.y_ppem / new_h;
+		float svg_width, svg_height;
+		picture->size(&svg_width, &svg_height);
+		double aspect = svg_width / svg_height;
 
-		gl_state.m.e11 = (double)document->transform.xx / (1 << 16) * x_svg_to_out;
-		gl_state.m.e12 = -(double)document->transform.xy / (1 << 16) * x_svg_to_out;
-		gl_state.m.e21 = -(double)document->transform.yx / (1 << 16) * y_svg_to_out;
-		gl_state.m.e22 = (double)document->transform.yy / (1 << 16) * y_svg_to_out;
-		gl_state.m.e13 = (double)document->delta.x / 64 * new_w / metrics.x_ppem;
-		gl_state.m.e23 = -(double)document->delta.y / 64 * new_h / metrics.y_ppem;
+		result = picture->size(embox_x * aspect, embox_y);
+		if (result != tvg::Result::Success) {
+			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to resize SVG document.");
+		}
+
+		double x_svg_to_out = (double)metrics.x_ppem / embox_x;
+		double y_svg_to_out = (double)metrics.y_ppem / embox_y;
+
+		gl_state.m.e11 = (double)document->transform.xx / (1 << 16);
+		gl_state.m.e12 = -(double)document->transform.xy / (1 << 16);
+		gl_state.m.e21 = -(double)document->transform.yx / (1 << 16);
+		gl_state.m.e22 = (double)document->transform.yy / (1 << 16);
+		gl_state.m.e13 = (double)document->delta.x / 64 * embox_x / metrics.x_ppem;
+		gl_state.m.e23 = -(double)document->delta.y / 64 * embox_y / metrics.y_ppem;
 		gl_state.m.e31 = 0;
 		gl_state.m.e32 = 0;
 		gl_state.m.e33 = 1;
+
+		result = picture->size(embox_x * aspect * x_svg_to_out, embox_y * y_svg_to_out);
+		if (result != tvg::Result::Success) {
+			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to resize SVG document.");
+		}
 
 		result = picture->transform(gl_state.m);
 		if (result != tvg::Result::Success) {
 			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to apply transform to SVG document.");
 		}
 
-		result = picture->bounds(&gl_state.x, &gl_state.y, &gl_state.w, &gl_state.h, true);
-		if (result != tvg::Result::Success) {
-			ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to get SVG bounds.");
-		}
-
-		gl_state.bmp_y = gl_state.h + metrics.descender / 64.f;
-		gl_state.bmp_x = 0;
+		picture->size(&gl_state.w, &gl_state.h);
+		gl_state.x = (gl_state.h - gl_state.w) / 2.0;
+		gl_state.y = -gl_state.h;
 
 		gl_state.ready = true;
 	}
 
-	p_slot->bitmap_left = (FT_Int)gl_state.bmp_x;
-	p_slot->bitmap_top = (FT_Int)gl_state.bmp_y;
+	p_slot->bitmap_left = (FT_Int)gl_state.x;
+	p_slot->bitmap_top = (FT_Int)-gl_state.y;
 
-	float tmp = ceil(gl_state.h);
-	p_slot->bitmap.rows = (unsigned int)tmp;
-	tmp = ceil(gl_state.w);
-	p_slot->bitmap.width = (unsigned int)tmp;
+	double tmpd = Math::ceil(gl_state.h);
+	p_slot->bitmap.rows = (unsigned int)tmpd;
+	tmpd = Math::ceil(gl_state.w);
+	p_slot->bitmap.width = (unsigned int)tmpd;
 	p_slot->bitmap.pitch = (int)p_slot->bitmap.width * 4;
+
 	p_slot->bitmap.pixel_mode = FT_PIXEL_MODE_BGRA;
 
-	float metrics_width, metrics_height;
-	float horiBearingX, horiBearingY;
-	float vertBearingX, vertBearingY;
+	float metrics_width = (float)gl_state.w;
+	float metrics_height = (float)gl_state.h;
 
-	metrics_width = (float)gl_state.w;
-	metrics_height = (float)gl_state.h;
-	horiBearingX = (float)gl_state.x;
-	horiBearingY = (float)-gl_state.y;
-	vertBearingX = p_slot->metrics.horiBearingX / 64.0f - p_slot->metrics.horiAdvance / 64.0f / 2;
-	vertBearingY = (p_slot->metrics.vertAdvance / 64.0f - p_slot->metrics.height / 64.0f) / 2;
+	float horiBearingX = (float)gl_state.x;
+	float horiBearingY = (float)-gl_state.y;
 
-	tmp = roundf(metrics_width * 64);
-	p_slot->metrics.width = (FT_Pos)tmp;
-	tmp = roundf(metrics_height * 64);
-	p_slot->metrics.height = (FT_Pos)tmp;
+	float vertBearingX = p_slot->metrics.horiBearingX / 64.0f - p_slot->metrics.horiAdvance / 64.0f / 2;
+	float vertBearingY = (p_slot->metrics.vertAdvance / 64.0f - p_slot->metrics.height / 64.0f) / 2;
+
+	float tmpf = Math::round(metrics_width * 64);
+	p_slot->metrics.width = (FT_Pos)tmpf;
+	tmpf = Math::round(metrics_height * 64);
+	p_slot->metrics.height = (FT_Pos)tmpf;
 
 	p_slot->metrics.horiBearingX = (FT_Pos)(horiBearingX * 64);
 	p_slot->metrics.horiBearingY = (FT_Pos)(horiBearingY * 64);
@@ -249,6 +246,10 @@ FT_Error tvg_svg_in_ot_render(FT_GlyphSlot p_slot, FT_Pointer *p_state) {
 	tvg::Result res = picture->load(gl_state.xml_code.get_data(), gl_state.xml_code.length(), "svg+xml", false);
 	if (res != tvg::Result::Success) {
 		ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to load SVG document (glyph rendering).");
+	}
+	res = picture->size(gl_state.w, gl_state.h);
+	if (res != tvg::Result::Success) {
+		ERR_FAIL_V_MSG(FT_Err_Invalid_SVG_Document, "Failed to resize SVG document.");
 	}
 	res = picture->transform(gl_state.m);
 	if (res != tvg::Result::Success) {

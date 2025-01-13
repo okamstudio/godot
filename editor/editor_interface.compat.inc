@@ -40,9 +40,14 @@ void EditorInterface::_popup_property_selector_bind_compat_94323(Object *p_objec
 	popup_property_selector(p_object, p_callback, p_type_filter, String());
 }
 
+void EditorInterface::_open_scene_from_path_bind_compat_90057(const String &scene_path) {
+	return open_scene_from_path(scene_path, false);
+}
+
 void EditorInterface::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("popup_node_selector", "callback", "valid_types"), &EditorInterface::_popup_node_selector_bind_compat_94323, DEFVAL(TypedArray<StringName>()));
 	ClassDB::bind_compatibility_method(D_METHOD("popup_property_selector", "object", "callback", "type_filter"), &EditorInterface::_popup_property_selector_bind_compat_94323, DEFVAL(PackedInt32Array()));
+	ClassDB::bind_compatibility_method(D_METHOD("open_scene_from_path", "scene_path"), &EditorInterface::_open_scene_from_path_bind_compat_90057);
 }
 
 #endif

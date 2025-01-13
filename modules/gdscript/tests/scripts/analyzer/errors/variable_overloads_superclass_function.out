@@ -1,2 +1,2 @@
 GDTEST_ANALYZER_ERROR
-The member "overload_me" already exists in parent class A.
+>> ERROR at line 9: The member "overload_me" already exists in parent class A.

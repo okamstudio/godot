@@ -62,9 +62,12 @@ void XRServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_reference_frame"), &XRServer::clear_reference_frame);
 	ClassDB::bind_method(D_METHOD("center_on_hmd", "rotation_mode", "keep_height"), &XRServer::center_on_hmd);
 	ClassDB::bind_method(D_METHOD("get_hmd_transform"), &XRServer::get_hmd_transform);
+	ClassDB::bind_method(D_METHOD("set_camera_locked_to_origin", "enabled"), &XRServer::set_camera_locked_to_origin);
+	ClassDB::bind_method(D_METHOD("is_camera_locked_to_origin"), &XRServer::is_camera_locked_to_origin);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "world_scale"), "set_world_scale", "get_world_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "world_origin"), "set_world_origin", "get_world_origin");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "camera_locked_to_origin"), "set_camera_locked_to_origin", "is_camera_locked_to_origin");
 
 	ClassDB::bind_method(D_METHOD("add_interface", "interface"), &XRServer::add_interface);
 	ClassDB::bind_method(D_METHOD("get_interface_count"), &XRServer::get_interface_count);
@@ -239,6 +242,10 @@ Transform3D XRServer::get_hmd_transform() {
 		hmd_transform = primary_interface->get_camera_transform();
 	}
 	return hmd_transform;
+}
+
+void XRServer::set_camera_locked_to_origin(bool p_enable) {
+	camera_locked_to_origin = p_enable;
 }
 
 void XRServer::add_interface(const Ref<XRInterface> &p_interface) {

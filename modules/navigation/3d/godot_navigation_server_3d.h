@@ -40,6 +40,8 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/rid.h"
 #include "core/templates/rid_owner.h"
+#include "servers/navigation/navigation_path_query_parameters_3d.h"
+#include "servers/navigation/navigation_path_query_result_3d.h"
 #include "servers/navigation_server_3d.h"
 
 /// The commands are functions executed during the `sync` phase.
@@ -130,7 +132,7 @@ public:
 	COMMAND_2(map_set_link_connection_radius, RID, p_map, real_t, p_connection_radius);
 	virtual real_t map_get_link_connection_radius(RID p_map) const override;
 
-	virtual Vector<Vector3> map_get_path(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers = 1) const override;
+	virtual Vector<Vector3> map_get_path(RID p_map, Vector3 p_origin, Vector3 p_destination, bool p_optimize, uint32_t p_navigation_layers = 1) override;
 
 	virtual Vector3 map_get_closest_point_to_segment(RID p_map, const Vector3 &p_from, const Vector3 &p_to, const bool p_use_collision = false) const override;
 	virtual Vector3 map_get_closest_point(RID p_map, const Vector3 &p_point) const override;
@@ -273,10 +275,6 @@ public:
 
 	virtual Vector<Vector3> simplify_path(const Vector<Vector3> &p_path, real_t p_epsilon) override;
 
-private:
-	static void simplify_path_segment(int p_start_inx, int p_end_inx, const Vector<Vector3> &p_points, real_t p_epsilon, LocalVector<bool> &r_valid_points);
-	static LocalVector<uint32_t> get_simplified_path_indices(const Vector<Vector3> &p_path, real_t p_epsilon);
-
 public:
 	COMMAND_1(free, RID, p_object);
 
@@ -288,7 +286,7 @@ public:
 	virtual void sync() override;
 	virtual void finish() override;
 
-	virtual NavigationUtilities::PathQueryResult _query_path(const NavigationUtilities::PathQueryParameters &p_parameters) const override;
+	virtual void query_path(const Ref<NavigationPathQueryParameters3D> &p_query_parameters, Ref<NavigationPathQueryResult3D> p_query_result, const Callable &p_callback = Callable()) override;
 
 	int get_process_info(ProcessInfo p_info) const override;
 

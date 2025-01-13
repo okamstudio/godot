@@ -56,6 +56,9 @@ OpenXREditorPlugin::OpenXREditorPlugin() {
 	action_map_editor = memnew(OpenXRActionMapEditor);
 	EditorNode::get_bottom_panel()->add_item(TTR("OpenXR Action Map"), action_map_editor, ED_SHORTCUT_AND_COMMAND("bottom_panels/toggle_openxr_action_map_bottom_panel", TTR("Toggle OpenXR Action Map Bottom Panel")));
 
+	binding_modifier_inspector_plugin = Ref<EditorInspectorPluginBindingModifier>(memnew(EditorInspectorPluginBindingModifier));
+	EditorInspector::add_inspector_plugin(binding_modifier_inspector_plugin);
+
 #ifndef ANDROID_ENABLED
 	select_runtime = memnew(OpenXRSelectRuntime);
 	add_control_to_container(CONTAINER_TOOLBAR, select_runtime);

@@ -479,6 +479,8 @@ void AudioDriverWorklet::_capture_callback(int p_pos, int p_samples) {
 	driver->_audio_driver_capture(p_pos, p_samples);
 }
 
+#endif // THREADS_ENABLED
+
 /// ScriptProcessorNode implementation
 AudioDriverScriptProcessor *AudioDriverScriptProcessor::singleton = nullptr;
 
@@ -497,5 +499,3 @@ Error AudioDriverScriptProcessor::create(int &p_buffer_samples, int p_channels) 
 void AudioDriverScriptProcessor::start(float *p_out_buf, int p_out_buf_size, float *p_in_buf, int p_in_buf_size) {
 	godot_audio_script_start(p_in_buf, p_in_buf_size, p_out_buf, p_out_buf_size, &_process_callback);
 }
-
-#endif // THREADS_ENABLED

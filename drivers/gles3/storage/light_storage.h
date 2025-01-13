@@ -118,6 +118,7 @@ struct ReflectionProbe {
 	RS::ReflectionProbeUpdateMode update_mode = RS::REFLECTION_PROBE_UPDATE_ONCE;
 	int resolution = 256;
 	float intensity = 1.0;
+	float blend_distance = 1.0;
 	RS::ReflectionProbeAmbientMode ambient_mode = RS::REFLECTION_PROBE_AMBIENT_ENVIRONMENT;
 	Color ambient_color;
 	float ambient_color_energy = 1.0;
@@ -177,12 +178,14 @@ struct ReflectionProbeInstance {
 
 struct Lightmap {
 	RID light_texture;
+	RID shadow_texture;
 	bool uses_spherical_harmonics = false;
 	bool interior = false;
 	AABB bounds = AABB(Vector3(), Vector3(1, 1, 1));
 	float baked_exposure = 1.0;
 	Vector2i light_texture_size;
 	int32_t array_index = -1; //unassigned
+	RS::ShadowmaskMode shadowmask_mode = RS::SHADOWMASK_MODE_NONE;
 	PackedVector3Array points;
 	PackedColorArray point_sh;
 	PackedInt32Array tetrahedra;
@@ -231,8 +234,6 @@ private:
 	mutable RID_Owner<ReflectionProbeInstance> reflection_probe_instance_owner;
 
 	/* LIGHTMAP */
-
-	Vector<RID> lightmap_textures;
 	float lightmap_probe_capture_update_speed = 4;
 
 	mutable RID_Owner<Lightmap, true> lightmap_owner;
@@ -642,6 +643,7 @@ public:
 
 	virtual void reflection_probe_set_update_mode(RID p_probe, RS::ReflectionProbeUpdateMode p_mode) override;
 	virtual void reflection_probe_set_intensity(RID p_probe, float p_intensity) override;
+	virtual void reflection_probe_set_blend_distance(RID p_probe, float p_blend_distance) override;
 	virtual void reflection_probe_set_ambient_mode(RID p_probe, RS::ReflectionProbeAmbientMode p_mode) override;
 	virtual void reflection_probe_set_ambient_color(RID p_probe, const Color &p_color) override;
 	virtual void reflection_probe_set_ambient_energy(RID p_probe, float p_energy) override;
@@ -736,6 +738,10 @@ public:
 	virtual bool lightmap_is_interior(RID p_lightmap) const override;
 	virtual void lightmap_set_probe_capture_update_speed(float p_speed) override;
 	virtual float lightmap_get_probe_capture_update_speed() const override;
+
+	virtual void lightmap_set_shadowmask_textures(RID p_lightmap, RID p_shadow) override;
+	virtual RS::ShadowmaskMode lightmap_get_shadowmask_mode(RID p_lightmap) override;
+	virtual void lightmap_set_shadowmask_mode(RID p_lightmap, RS::ShadowmaskMode p_mode) override;
 
 	/* LIGHTMAP INSTANCE */
 

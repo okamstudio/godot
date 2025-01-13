@@ -113,7 +113,7 @@ struct SwSpan
     uint8_t coverage;
 };
 
-struct SwRleData
+struct SwRle
 {
     SwSpan *spans;
     uint32_t alloc;
@@ -211,8 +211,8 @@ struct SwShape
     SwOutline*   outline = nullptr;
     SwStroke*    stroke = nullptr;
     SwFill*      fill = nullptr;
-    SwRleData*   rle = nullptr;
-    SwRleData*   strokeRle = nullptr;
+    SwRle*   rle = nullptr;
+    SwRle*   strokeRle = nullptr;
     SwBBox       bbox;           //Keep it boundary without stroke region. Using for optimal filling.
 
     bool         fastTrack = false;   //Fast Track: axis-aligned rectangle without any clips?
@@ -221,7 +221,7 @@ struct SwShape
 struct SwImage
 {
     SwOutline*   outline = nullptr;
-    SwRleData*   rle = nullptr;
+    SwRle*   rle = nullptr;
     union {
         pixel_t*  data;      //system based data pointer
         uint32_t* buf32;     //for explicit 32bits channels
@@ -244,13 +244,13 @@ typedef uint8_t(*SwAlpha)(uint8_t*);                                        //bl
 
 struct SwCompositor;
 
-struct SwSurface : Surface
+struct SwSurface : RenderSurface
 {
     SwJoin  join;
     SwAlpha alphas[4];                    //Alpha:2, InvAlpha:3, Luma:4, InvLuma:5
     SwBlender blender = nullptr;          //blender (optional)
     SwCompositor* compositor = nullptr;   //compositor (optional)
-    BlendMethod blendMethod;              //blending method (uint8_t)
+    BlendMethod blendMethod = BlendMethod::Normal;
 
     SwAlpha alpha(CompositeMethod method)
     {
@@ -262,7 +262,7 @@ struct SwSurface : Surface
     {
     }
 
-    SwSurface(const SwSurface* rhs) : Surface(rhs)
+    SwSurface(const SwSurface* rhs) : RenderSurface(rhs)
     {
         join = rhs->join;
         memcpy(alphas, rhs->alphas, sizeof(alphas));
@@ -272,7 +272,7 @@ struct SwSurface : Surface
      }
 };
 
-struct SwCompositor : Compositor
+struct SwCompositor : RenderCompositor
 {
     SwSurface* recoverSfc;                  //Recover surface when composition is started
     SwCompositor* recoverCmp;               //Recover compositor when composition is done
@@ -488,13 +488,14 @@ SwFixed mathAtan(const SwPoint& pt);
 SwFixed mathCos(SwFixed angle);
 SwFixed mathSin(SwFixed angle);
 void mathSplitCubic(SwPoint* base);
+void mathSplitLine(SwPoint* base);
 SwFixed mathDiff(SwFixed angle1, SwFixed angle2);
 SwFixed mathLength(const SwPoint& pt);
-bool mathSmallCubic(const SwPoint* base, SwFixed& angleIn, SwFixed& angleMid, SwFixed& angleOut);
+int mathCubicAngle(const SwPoint* base, SwFixed& angleIn, SwFixed& angleMid, SwFixed& angleOut);
 SwFixed mathMean(SwFixed angle1, SwFixed angle2);
 SwPoint mathTransform(const Point* to, const Matrix& transform);
 bool mathUpdateOutlineBBox(const SwOutline* outline, const SwBBox& clipRegion, SwBBox& renderRegion, bool fastTrack);
-bool mathClipBBox(const SwBBox& clipper, SwBBox& clipee);
+bool mathClipBBox(const SwBBox& clipper, SwBBox& clippee);
 
 void shapeReset(SwShape* shape);
 bool shapePrepare(SwShape* shape, const RenderShape* rshape, const Matrix& transform, const SwBBox& clipRegion, SwBBox& renderRegion, SwMpool* mpool, unsigned tid, bool hasComposite);
@@ -541,13 +542,13 @@ void fillRadial(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, uint3
 void fillRadial(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, uint32_t len, SwBlender op, SwBlender op2, uint8_t a);                          //blending + BlendingMethod(op2) ver.
 void fillRadial(const SwFill* fill, uint32_t* dst, uint32_t y, uint32_t x, uint32_t len, uint8_t* cmp, SwAlpha alpha, uint8_t csize, uint8_t opacity);     //matting ver.
 
-SwRleData* rleRender(SwRleData* rle, const SwOutline* outline, const SwBBox& renderRegion, bool antiAlias);
-SwRleData* rleRender(const SwBBox* bbox);
-void rleFree(SwRleData* rle);
-void rleReset(SwRleData* rle);
-void rleMerge(SwRleData* rle, SwRleData* clip1, SwRleData* clip2);
-void rleClipPath(SwRleData* rle, const SwRleData* clip);
-void rleClipRect(SwRleData* rle, const SwBBox* clip);
+SwRle* rleRender(SwRle* rle, const SwOutline* outline, const SwBBox& renderRegion, bool antiAlias);
+SwRle* rleRender(const SwBBox* bbox);
+void rleFree(SwRle* rle);
+void rleReset(SwRle* rle);
+void rleMerge(SwRle* rle, SwRle* clip1, SwRle* clip2);
+void rleClip(SwRle* rle, const SwRle* clip);
+void rleClip(SwRle* rle, const SwBBox* clip);
 
 SwMpool* mpoolInit(uint32_t threads);
 bool mpoolTerm(SwMpool* mpool);
@@ -567,9 +568,17 @@ bool rasterStroke(SwSurface* surface, SwShape* shape, uint8_t r, uint8_t g, uint
 bool rasterGradientStroke(SwSurface* surface, SwShape* shape, const Fill* fdata, uint8_t opacity);
 bool rasterClear(SwSurface* surface, uint32_t x, uint32_t y, uint32_t w, uint32_t h, pixel_t val = 0);
 void rasterPixel32(uint32_t *dst, uint32_t val, uint32_t offset, int32_t len);
+void rasterTranslucentPixel32(uint32_t* dst, uint32_t* src, uint32_t len, uint8_t opacity);
+void rasterPixel32(uint32_t* dst, uint32_t* src, uint32_t len, uint8_t opacity);
 void rasterGrayscale8(uint8_t *dst, uint8_t val, uint32_t offset, int32_t len);
-void rasterUnpremultiply(Surface* surface);
-void rasterPremultiply(Surface* surface);
-bool rasterConvertCS(Surface* surface, ColorSpace to);
+void rasterXYFlip(uint32_t* src, uint32_t* dst, int32_t stride, int32_t w, int32_t h, const SwBBox& bbox, bool flipped);
+void rasterUnpremultiply(RenderSurface* surface);
+void rasterPremultiply(RenderSurface* surface);
+bool rasterConvertCS(RenderSurface* surface, ColorSpace to);
+
+bool effectGaussianBlur(SwCompositor* cmp, SwSurface* surface, const RenderEffectGaussianBlur* params);
+bool effectGaussianBlurPrepare(RenderEffectGaussianBlur* effect);
+bool effectDropShadow(SwCompositor* cmp, SwSurface* surfaces[2], const RenderEffectDropShadow* params, uint8_t opacity, bool direct);
+bool effectDropShadowPrepare(RenderEffectDropShadow* effect);
 
 #endif /* _TVG_SW_COMMON_H_ */

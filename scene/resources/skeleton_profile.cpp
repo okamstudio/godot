@@ -269,6 +269,14 @@ int SkeletonProfile::find_bone(const StringName &p_bone_name) const {
 	return -1;
 }
 
+PackedStringArray SkeletonProfile::get_bone_names() {
+	PackedStringArray s;
+	for (const SkeletonProfileBone &bone : bones) {
+		s.push_back(bone.bone_name);
+	}
+	return s;
+}
+
 StringName SkeletonProfile::get_bone_name(int p_bone_idx) const {
 	ERR_FAIL_INDEX_V(p_bone_idx, bones.size(), StringName());
 	return bones[p_bone_idx].bone_name;

@@ -96,7 +96,7 @@ class SectionedInspectorFilter : public Object {
 		List<PropertyInfo> pinfo;
 		edited->get_property_list(&pinfo);
 		for (PropertyInfo &pi : pinfo) {
-			int sp = pi.name.find("/");
+			int sp = pi.name.find_char('/');
 
 			if (pi.name == "resource_path" || pi.name == "resource_name" || pi.name == "resource_local_to_scene" || pi.name.begins_with("script/") || pi.name.begins_with("_global_script")) { //skip resource stuff
 				continue;
@@ -108,7 +108,7 @@ class SectionedInspectorFilter : public Object {
 
 			if (pi.name.begins_with(section + "/")) {
 				pi.name = pi.name.replace_first(section + "/", "");
-				if (!allow_sub && pi.name.contains("/")) {
+				if (!allow_sub && pi.name.contains_char('/')) {
 					continue;
 				}
 				p_list->push_back(pi);
@@ -247,7 +247,7 @@ void SectionedInspector::update_category_list() {
 			continue;
 		}
 
-		if (pi.name.contains(":") || pi.name == "script" || pi.name == "resource_name" || pi.name == "resource_path" || pi.name == "resource_local_to_scene" || pi.name.begins_with("_global_script")) {
+		if (pi.name.contains_char(':') || pi.name == "script" || pi.name == "resource_name" || pi.name == "resource_path" || pi.name == "resource_local_to_scene" || pi.name.begins_with("_global_script")) {
 			continue;
 		}
 
@@ -255,7 +255,7 @@ void SectionedInspector::update_category_list() {
 			continue;
 		}
 
-		int sp = pi.name.find("/");
+		int sp = pi.name.find_char('/');
 		if (sp == -1) {
 			pi.name = "global/" + pi.name;
 		}
@@ -353,6 +353,7 @@ SectionedInspector::SectionedInspector() :
 	sections->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	sections->set_v_size_flags(SIZE_EXPAND_FILL);
 	sections->set_hide_root(true);
+	sections->set_theme_type_variation("TreeSecondary");
 
 	left_vb->add_child(sections, true);
 

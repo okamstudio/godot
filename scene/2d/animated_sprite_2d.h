@@ -41,7 +41,7 @@ class AnimatedSprite2D : public Node2D {
 	String autoplay;
 
 	bool playing = false;
-	StringName animation = "default";
+	StringName animation = SceneStringName(default_);
 	int frame = 0;
 	float speed_scale = 1.0;
 	float custom_speed_scale = 1.0;

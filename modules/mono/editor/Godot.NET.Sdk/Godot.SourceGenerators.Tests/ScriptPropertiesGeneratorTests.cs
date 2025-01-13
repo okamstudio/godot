@@ -66,4 +66,13 @@ public class ScriptPropertiesGeneratorTests
             "AbstractGenericNode(Of T)_ScriptProperties.generated.cs"
         );
     }
+
+    [Fact]
+    public async void ExportedButtons()
+    {
+        await CSharpSourceGeneratorVerifier<ScriptPropertiesGenerator>.Verify(
+            "ExportedToolButtons.cs",
+            "ExportedToolButtons_ScriptProperties.generated.cs"
+        );
+    }
 }

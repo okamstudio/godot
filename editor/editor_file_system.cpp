@@ -384,7 +384,7 @@ void EditorFileSystem::_scan_filesystem() {
 
 					FileCache fc;
 					fc.type = split[1];
-					if (fc.type.contains("/")) {
+					if (fc.type.contains_char('/')) {
 						fc.type = split[1].get_slice("/", 0);
 						fc.resource_script_class = split[1].get_slice("/", 1);
 					}
@@ -3556,5 +3556,9 @@ EditorFileSystem::EditorFileSystem() {
 }
 
 EditorFileSystem::~EditorFileSystem() {
+	if (filesystem) {
+		memdelete(filesystem);
+	}
+	filesystem = nullptr;
 	ResourceSaver::set_get_resource_id_for_path(nullptr);
 }

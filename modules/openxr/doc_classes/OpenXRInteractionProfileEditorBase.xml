@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRInteractionProfileEditorBase" inherits="HBoxContainer" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Base class for editing interaction profiles.
+	</brief_description>
+	<description>
+		This is a base class for interaction profile editors used by the OpenXR action map editor. It can be used to create bespoke editors for specific interaction profiles.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="setup">
+			<return type="void" />
+			<param index="0" name="action_map" type="OpenXRActionMap" />
+			<param index="1" name="interaction_profile" type="OpenXRInteractionProfile" />
+			<description>
+				Setup this editor for the provided [param action_map] and [param interaction_profile].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="size_flags_horizontal" type="int" setter="set_h_size_flags" getter="get_h_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+		<member name="size_flags_vertical" type="int" setter="set_v_size_flags" getter="get_v_size_flags" overrides="Control" enum="Control.SizeFlags" is_bitfield="true" default="3" />
+	</members>
+</class>

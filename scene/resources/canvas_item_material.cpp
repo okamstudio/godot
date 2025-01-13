@@ -157,9 +157,13 @@ void CanvasItemMaterial::flush_changes() {
 }
 
 void CanvasItemMaterial::_queue_shader_change() {
+	if (!_is_initialized()) {
+		return;
+	}
+
 	MutexLock lock(material_mutex);
 
-	if (_is_initialized() && !element.in_list()) {
+	if (!element.in_list()) {
 		dirty_materials.add(&element);
 	}
 }
