@@ -393,7 +393,7 @@ void TranslationServer::clear() {
 	main_domain->clear();
 }
 
-StringName TranslationServer::translate(const StringName &p_message, const StringName &p_context) const {
+String TranslationServer::translate(const StringName &p_message, const StringName &p_context) const {
 	if (!enabled) {
 		return p_message;
 	}
@@ -401,7 +401,7 @@ StringName TranslationServer::translate(const StringName &p_message, const Strin
 	return main_domain->translate(p_message, p_context);
 }
 
-StringName TranslationServer::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
+String TranslationServer::translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
 	if (!enabled) {
 		if (p_n == 1) {
 			return p_message;
@@ -509,23 +509,23 @@ String TranslationServer::get_tool_locale() {
 	}
 }
 
-StringName TranslationServer::tool_translate(const StringName &p_message, const StringName &p_context) const {
+String TranslationServer::tool_translate(const StringName &p_message, const StringName &p_context) const {
 	return editor_domain->translate(p_message, p_context);
 }
 
-StringName TranslationServer::tool_translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
+String TranslationServer::tool_translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
 	return editor_domain->translate_plural(p_message, p_message_plural, p_n, p_context);
 }
 
-StringName TranslationServer::property_translate(const StringName &p_message, const StringName &p_context) const {
+String TranslationServer::property_translate(const StringName &p_message, const StringName &p_context) const {
 	return property_domain->translate(p_message, p_context);
 }
 
-StringName TranslationServer::doc_translate(const StringName &p_message, const StringName &p_context) const {
+String TranslationServer::doc_translate(const StringName &p_message, const StringName &p_context) const {
 	return doc_domain->translate(p_message, p_context);
 }
 
-StringName TranslationServer::doc_translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
+String TranslationServer::doc_translate_plural(const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const {
 	return doc_domain->translate_plural(p_message, p_message_plural, p_n, p_context);
 }
 
@@ -560,7 +560,7 @@ void TranslationServer::reload_pseudolocalization() {
 	}
 }
 
-StringName TranslationServer::pseudolocalize(const StringName &p_message) const {
+String TranslationServer::pseudolocalize(const StringName &p_message) const {
 	return main_domain->pseudolocalize(p_message);
 }
 

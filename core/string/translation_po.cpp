@@ -70,10 +70,10 @@ Dictionary TranslationPO::_get_messages() const {
 
 	Dictionary d;
 
-	for (const KeyValue<StringName, HashMap<StringName, Vector<StringName>>> &E : translation_map) {
+	for (const KeyValue<StringName, HashMap<StringName, Vector<String>>> &E : translation_map) {
 		Dictionary d2;
 
-		for (const KeyValue<StringName, Vector<StringName>> &E2 : E.value) {
+		for (const KeyValue<StringName, Vector<String>> &E2 : E.value) {
 			d2[E2.key] = E2.value;
 		}
 
@@ -91,7 +91,7 @@ void TranslationPO::_set_messages(const Dictionary &p_messages) {
 	for (const Variant &ctx : context_l) {
 		const Dictionary &id_str_map = p_messages[ctx];
 
-		HashMap<StringName, Vector<StringName>> temp_map;
+		HashMap<StringName, Vector<String>> temp_map;
 		List<Variant> id_l;
 		id_str_map.get_key_list(&id_l);
 		for (List<Variant>::Element *E2 = id_l.front(); E2; E2 = E2->next()) {
@@ -105,13 +105,13 @@ void TranslationPO::_set_messages(const Dictionary &p_messages) {
 
 Vector<String> TranslationPO::get_translated_message_list() const {
 	Vector<String> msgs;
-	for (const KeyValue<StringName, HashMap<StringName, Vector<StringName>>> &E : translation_map) {
+	for (const KeyValue<StringName, HashMap<StringName, Vector<String>>> &E : translation_map) {
 		if (E.key != StringName()) {
 			continue;
 		}
 
-		for (const KeyValue<StringName, Vector<StringName>> &E2 : E.value) {
-			for (const StringName &E3 : E2.value) {
+		for (const KeyValue<StringName, Vector<String>> &E2 : E.value) {
+			for (const String &E3 : E2.value) {
 				msgs.push_back(E3);
 			}
 		}
@@ -242,8 +242,8 @@ void TranslationPO::set_plural_rule(const String &p_plural_rule) {
 	input_name.push_back("n");
 }
 
-void TranslationPO::add_message(const StringName &p_src_text, const StringName &p_xlated_text, const StringName &p_context) {
-	HashMap<StringName, Vector<StringName>> &map_id_str = translation_map[p_context];
+void TranslationPO::add_message(const StringName &p_src_text, const String &p_xlated_text, const StringName &p_context) {
+	HashMap<StringName, Vector<String>> &map_id_str = translation_map[p_context];
 
 	if (map_id_str.has(p_src_text)) {
 		WARN_PRINT(vformat("Double translations for \"%s\" under the same context \"%s\" for locale \"%s\".\nThere should only be one unique translation for a given string under the same context.", String(p_src_text), String(p_context), get_locale()));
@@ -256,7 +256,7 @@ void TranslationPO::add_message(const StringName &p_src_text, const StringName &
 void TranslationPO::add_plural_message(const StringName &p_src_text, const Vector<String> &p_plural_xlated_texts, const StringName &p_context) {
 	ERR_FAIL_COND_MSG(p_plural_xlated_texts.size() != plural_forms, vformat("Trying to add plural texts that don't match the required number of plural forms for locale \"%s\".", get_locale()));
 
-	HashMap<StringName, Vector<StringName>> &map_id_str = translation_map[p_context];
+	HashMap<StringName, Vector<String>> &map_id_str = translation_map[p_context];
 
 	if (map_id_str.has(p_src_text)) {
 		WARN_PRINT(vformat("Double translations for \"%s\" under the same context \"%s\" for locale %s.\nThere should only be one unique translation for a given string under the same context.", p_src_text, p_context, get_locale()));
@@ -276,17 +276,17 @@ String TranslationPO::get_plural_rule() const {
 	return plural_rule;
 }
 
-StringName TranslationPO::get_message(const StringName &p_src_text, const StringName &p_context) const {
+String TranslationPO::get_message(const StringName &p_src_text, const StringName &p_context) const {
 	if (!translation_map.has(p_context) || !translation_map[p_context].has(p_src_text)) {
-		return StringName();
+		return String();
 	}
-	ERR_FAIL_COND_V_MSG(translation_map[p_context][p_src_text].is_empty(), StringName(), vformat("Source text \"%s\" is registered but doesn't have a translation. Please report this bug.", String(p_src_text)));
+	ERR_FAIL_COND_V_MSG(translation_map[p_context][p_src_text].is_empty(), String(), vformat("Source text \"%s\" is registered but doesn't have a translation. Please report this bug.", String(p_src_text)));
 
 	return translation_map[p_context][p_src_text][0];
 }
 
-StringName TranslationPO::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
-	ERR_FAIL_COND_V_MSG(p_n < 0, StringName(), "N passed into translation to get a plural message should not be negative. For negative numbers, use singular translation please. Search \"gettext PO Plural Forms\" online for the documentation on translating negative numbers.");
+String TranslationPO::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
+	ERR_FAIL_COND_V_MSG(p_n < 0, String(), "N passed into translation to get a plural message should not be negative. For negative numbers, use singular translation please. Search \"gettext PO Plural Forms\" online for the documentation on translating negative numbers.");
 
 	// If the query is the same as last time, return the cached result.
 	if (p_n == last_plural_n && p_context == last_plural_context && p_src_text == last_plural_key) {
@@ -294,12 +294,12 @@ StringName TranslationPO::get_plural_message(const StringName &p_src_text, const
 	}
 
 	if (!translation_map.has(p_context) || !translation_map[p_context].has(p_src_text)) {
-		return StringName();
+		return String();
 	}
-	ERR_FAIL_COND_V_MSG(translation_map[p_context][p_src_text].is_empty(), StringName(), vformat("Source text \"%s\" is registered but doesn't have a translation. Please report this bug.", String(p_src_text)));
+	ERR_FAIL_COND_V_MSG(translation_map[p_context][p_src_text].is_empty(), String(), vformat("Source text \"%s\" is registered but doesn't have a translation. Please report this bug.", String(p_src_text)));
 
 	int plural_index = _get_plural_index(p_n);
-	ERR_FAIL_COND_V_MSG(plural_index < 0 || translation_map[p_context][p_src_text].size() < plural_index + 1, StringName(), "Plural index returned or number of plural translations is not valid. Please report this bug.");
+	ERR_FAIL_COND_V_MSG(plural_index < 0 || translation_map[p_context][p_src_text].size() < plural_index + 1, String(), "Plural index returned or number of plural translations is not valid. Please report this bug.");
 
 	// Cache result so that if the next entry is the same, we can return directly.
 	// _get_plural_index(p_n) can get very costly, especially when evaluating long plural-rule (Arabic)
@@ -323,12 +323,12 @@ void TranslationPO::get_message_list(List<StringName> *r_messages) const {
 	// OptimizedTranslation uses this function to get the list of msgid.
 	// Return all the keys of translation_map under "" context.
 
-	for (const KeyValue<StringName, HashMap<StringName, Vector<StringName>>> &E : translation_map) {
+	for (const KeyValue<StringName, HashMap<StringName, Vector<String>>> &E : translation_map) {
 		if (E.key != StringName()) {
 			continue;
 		}
 
-		for (const KeyValue<StringName, Vector<StringName>> &E2 : E.value) {
+		for (const KeyValue<StringName, Vector<String>> &E2 : E.value) {
 			r_messages->push_back(E2.key);
 		}
 	}
@@ -337,7 +337,7 @@ void TranslationPO::get_message_list(List<StringName> *r_messages) const {
 int TranslationPO::get_message_count() const {
 	int count = 0;
 
-	for (const KeyValue<StringName, HashMap<StringName, Vector<StringName>>> &E : translation_map) {
+	for (const KeyValue<StringName, HashMap<StringName, Vector<String>>> &E : translation_map) {
 		count += E.value.size();
 	}
 

@@ -36,7 +36,7 @@
 
 Dictionary Translation::_get_messages() const {
 	Dictionary d;
-	for (const KeyValue<StringName, StringName> &E : translation_map) {
+	for (const KeyValue<StringName, String> &E : translation_map) {
 		d[E.key] = E.value;
 	}
 	return d;
@@ -46,7 +46,7 @@ Vector<String> Translation::_get_message_list() const {
 	Vector<String> msgs;
 	msgs.resize(translation_map.size());
 	int idx = 0;
-	for (const KeyValue<StringName, StringName> &E : translation_map) {
+	for (const KeyValue<StringName, String> &E : translation_map) {
 		msgs.set(idx, E.key);
 		idx += 1;
 	}
@@ -58,7 +58,7 @@ Vector<String> Translation::get_translated_message_list() const {
 	Vector<String> msgs;
 	msgs.resize(translation_map.size());
 	int idx = 0;
-	for (const KeyValue<StringName, StringName> &E : translation_map) {
+	for (const KeyValue<StringName, String> &E : translation_map) {
 		msgs.set(idx, E.value);
 		idx += 1;
 	}
@@ -93,7 +93,7 @@ void Translation::_notify_translation_changed_if_applies() {
 	}
 }
 
-void Translation::add_message(const StringName &p_src_text, const StringName &p_xlated_text, const StringName &p_context) {
+void Translation::add_message(const StringName &p_src_text, const String &p_xlated_text, const StringName &p_context) {
 	translation_map[p_src_text] = p_xlated_text;
 }
 
@@ -103,8 +103,8 @@ void Translation::add_plural_message(const StringName &p_src_text, const Vector<
 	translation_map[p_src_text] = p_plural_xlated_texts[0];
 }
 
-StringName Translation::get_message(const StringName &p_src_text, const StringName &p_context) const {
-	StringName ret;
+String Translation::get_message(const StringName &p_src_text, const StringName &p_context) const {
+	StringName ret; // TODO API Mismatch; the GDVirtual function still has to return StringName.
 	if (GDVIRTUAL_CALL(_get_message, p_src_text, p_context, ret)) {
 		return ret;
 	}
@@ -113,15 +113,15 @@ StringName Translation::get_message(const StringName &p_src_text, const StringNa
 		WARN_PRINT("Translation class doesn't handle context. Using context in get_message() on a Translation instance is probably a mistake. \nUse a derived Translation class that handles context, such as TranslationPO class");
 	}
 
-	HashMap<StringName, StringName>::ConstIterator E = translation_map.find(p_src_text);
+	HashMap<StringName, String>::ConstIterator E = translation_map.find(p_src_text);
 	if (!E) {
-		return StringName();
+		return String();
 	}
 
 	return E->value;
 }
 
-StringName Translation::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
+String Translation::get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context) const {
 	StringName ret;
 	if (GDVIRTUAL_CALL(_get_plural_message, p_src_text, p_plural_text, p_n, p_context, ret)) {
 		return ret;
@@ -140,7 +140,7 @@ void Translation::erase_message(const StringName &p_src_text, const StringName &
 }
 
 void Translation::get_message_list(List<StringName> *r_messages) const {
-	for (const KeyValue<StringName, StringName> &E : translation_map) {
+	for (const KeyValue<StringName, String> &E : translation_map) {
 		r_messages->push_back(E.key);
 	}
 }

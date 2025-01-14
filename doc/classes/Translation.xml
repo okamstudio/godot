@@ -32,7 +32,7 @@
 		<method name="add_message">
 			<return type="void" />
 			<param index="0" name="src_message" type="StringName" />
-			<param index="1" name="xlated_message" type="StringName" />
+			<param index="1" name="xlated_message" type="String" />
 			<param index="2" name="context" type="StringName" default="&amp;&quot;&quot;" />
 			<description>
 				Adds a message if nonexistent, followed by its translation.
@@ -58,7 +58,7 @@
 			</description>
 		</method>
 		<method name="get_message" qualifiers="const">
-			<return type="StringName" />
+			<return type="String" />
 			<param index="0" name="src_message" type="StringName" />
 			<param index="1" name="context" type="StringName" default="&amp;&quot;&quot;" />
 			<description>
@@ -78,7 +78,7 @@
 			</description>
 		</method>
 		<method name="get_plural_message" qualifiers="const">
-			<return type="StringName" />
+			<return type="String" />
 			<param index="0" name="src_message" type="StringName" />
 			<param index="1" name="src_plural_message" type="StringName" />
 			<param index="2" name="n" type="int" />
