@@ -1921,6 +1921,34 @@ CharString String::ascii(bool p_allow_extended) const {
 	return cs;
 }
 
+Error String::parse_ascii(const StrRange<char> &p_range) {
+	if (p_range.len == 0) {
+		resize(0);
+		return OK;
+	}
+
+	resize(p_range.len + 1); // Include \0
+
+	const char *src = p_range.c_str;
+	const char *end = src + p_range.len;
+	char32_t *dst = ptrw();
+	bool decode_failed = false;
+
+	for (; src < end; ++src, ++dst) {
+		// If char is int8_t, a set sign bit will be reinterpreted as 256 - val implicitly.
+		const uint8_t chr = *src;
+		if (chr > 127) {
+			print_unicode_error(vformat("Invalid ASCII codepoint (%x)", (uint32_t)chr), true);
+			decode_failed = true;
+			*dst = _replacement_char;
+		} else {
+			*dst = chr;
+		}
+	}
+	*dst = _null;
+	return decode_failed ? ERR_INVALID_DATA : OK;
+}
+
 String String::utf8(const char *p_utf8, int p_len) {
 	String ret;
 	ret.parse_utf8(p_utf8, p_len);

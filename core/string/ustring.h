@@ -204,8 +204,7 @@ public:
 	Char16String &operator+=(char16_t p_char);
 	int length() const { return size() ? size() - 1 : 0; }
 	const char16_t *get_data() const;
-	operator const char16_t *() const { return get_data(); }
-	explicit operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
+	operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char16_t *p_cstr);
@@ -250,8 +249,7 @@ public:
 	CharString &operator+=(char p_char);
 	int length() const { return size() ? size() - 1 : 0; }
 	const char *get_data() const;
-	operator const char *() const { return get_data(); }
-	explicit operator StrRange<char>() const { return StrRange(get_data(), length()); }
+	operator StrRange<char>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char *p_cstr);
@@ -521,13 +519,30 @@ public:
 	char32_t unicode_at(int p_idx) const;
 
 	CharString ascii(bool p_allow_extended = false) const;
+	// Parse an ascii string.
+	// If any character is > 127, an error will be logged, and 0xfffd will be inserted.
+	Error parse_ascii(const StrRange<char> &p_range);
+	static String ascii(const StrRange<char> &p_range) {
+		String s;
+		s.parse_ascii(p_range);
+		return s;
+	}
+
 	CharString utf8() const;
 	Error parse_utf8(const char *p_utf8, int p_len = -1, bool p_skip_cr = false);
+	Error parse_utf8(const StrRange<char> p_range, bool p_skip_cr = false) {
+		return parse_utf8(p_range.c_str, p_range.len, p_skip_cr);
+	}
 	static String utf8(const char *p_utf8, int p_len = -1);
+	static String utf8(const StrRange<char> &p_range) { return utf8(p_range.c_str, p_range.len); }
 
 	Char16String utf16() const;
 	Error parse_utf16(const char16_t *p_utf16, int p_len = -1, bool p_default_little_endian = true);
+	Error parse_utf16(const StrRange<char16_t> p_range, bool p_skip_cr = false) {
+		return parse_utf16(p_range.c_str, p_range.len, p_skip_cr);
+	}
 	static String utf16(const char16_t *p_utf16, int p_len = -1);
+	static String utf16(const StrRange<char16_t> &p_range) { return utf16(p_range.c_str, p_range.len); }
 
 	static uint32_t hash(const char32_t *p_cstr, int p_len); /* hash the string */
 	static uint32_t hash(const char32_t *p_cstr); /* hash the string */
@@ -642,7 +657,7 @@ public:
 		parse_utf32(p_cstr);
 	}
 
-	explicit operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }
+	operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }
 };
 
 bool operator==(const char *p_chr, const String &p_str);

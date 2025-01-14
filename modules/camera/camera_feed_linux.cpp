@@ -52,7 +52,7 @@ void CameraFeedLinux::_update_buffer() {
 }
 
 void CameraFeedLinux::_query_device(const String &p_device_name) {
-	file_descriptor = open(p_device_name.ascii(), O_RDWR | O_NONBLOCK, 0);
+	file_descriptor = open(p_device_name.ascii().get_data(), O_RDWR | O_NONBLOCK, 0);
 	ERR_FAIL_COND_MSG(file_descriptor == -1, vformat("Cannot open file descriptor for %s. Error: %d.", p_device_name, errno));
 
 	struct v4l2_capability capability;
@@ -235,7 +235,7 @@ String CameraFeedLinux::get_device_name() const {
 
 bool CameraFeedLinux::activate_feed() {
 	ERR_FAIL_COND_V_MSG(selected_format == -1, false, "CameraFeed format needs to be set before activating.");
-	file_descriptor = open(device_name.ascii(), O_RDWR | O_NONBLOCK, 0);
+	file_descriptor = open(device_name.ascii().get_data(), O_RDWR | O_NONBLOCK, 0);
 	if (_request_buffers() && _start_capturing()) {
 		buffer_decoder = _create_buffer_decoder();
 		_start_thread();
@@ -315,7 +315,7 @@ bool CameraFeedLinux::set_format(int p_index, const Dictionary &p_parameters) {
 
 	FeedFormat feed_format = formats[p_index];
 
-	file_descriptor = open(device_name.ascii(), O_RDWR | O_NONBLOCK, 0);
+	file_descriptor = open(device_name.ascii().get_data(), O_RDWR | O_NONBLOCK, 0);
 
 	struct v4l2_format format;
 	memset(&format, 0, sizeof(format));
