@@ -90,7 +90,6 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 							// Clamp x frame coordinate by number of max columns( `frame` % `columns`).
 							// Set y frame coordinate to the whole number of times a complete
 							// row of columns can be made( `frame` / `column` ).
-							// Assigning to an int effectively floors() the calculation.
 							// These two steps combined convert a 1D index(`frame`) into a
 							// 2D coordinate(`frame_coords`).
 							frame_coords = new_tile_rect_in_atlas.position + (size_in_atlas + anim_separation) * Vector2i(frame % columns, frame / columns);
@@ -98,9 +97,11 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 							// Godot lays frames out horizontally(`Vector2i(frame,0)`) if columns are set to 0.
 							frame_coords = new_tile_rect_in_atlas.position + (size_in_atlas + anim_separation) * Vector2i(frame, 0);
 						}
+						// Enlarge the atlas offset if new frame_coords fall outside its current dimensions.
+						atlas_size.x = MAX(frame_coords.x + 1, atlas_size.x);
+						atlas_size.y = MAX(frame_coords.y + 1, atlas_size.y);
 
 						new_position = frame_coords * new_texture_region_size;
-						atlas_size.x = MAX(frame + 1, atlas_size.x);
 					}
 					Rect2 dst_rect_wide = Rect2i(new_position, new_tile_rect_in_atlas.size * new_texture_region_size);
 					// Enlarge image if the destination boundary falls outside its current dimensions.
