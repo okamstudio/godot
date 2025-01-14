@@ -189,9 +189,9 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 						// DO NOT try to copy "script" properties that are null
 						// as this causes a crash - see issue #101132.
 						// I believe this *should* be covered by the default
-						// check at is done above but the call to
+						// check that is done above but the call to
 						// Variant::evaluate(Variant::OP_EQUAL, <null>, <null>) returns false.
-						// I do not know if this is is intended behavior or a bug.
+						// I do not know if this is intended behavior or a bug.
 						if (property.name == "script" && value.is_null()) {
 							continue;
 						}
