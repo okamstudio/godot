@@ -417,10 +417,14 @@ public:
 	bool begins_with(const char *p_string) const;
 	bool ends_with(const String &p_string) const;
 	bool ends_with(const char *p_string) const;
-	bool is_enclosed_in(const String &p_string) const;
+	bool is_enclosed_in(char32_t p_char) const {
+		return length() >= 2 && ptr()[0] == p_char && ptr()[length() - 1] == p_char;
+	}
+	bool is_quoted() const {
+		return is_enclosed_in('"') || is_enclosed_in('\'');
+	}
 	bool is_subsequence_of(const String &p_string) const;
 	bool is_subsequence_ofn(const String &p_string) const;
-	bool is_quoted() const;
 	bool is_lowercase() const;
 	Vector<String> bigrams() const;
 	float similarity(const String &p_string) const;

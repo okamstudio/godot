@@ -3612,20 +3612,12 @@ bool String::begins_with(const char *p_string) const {
 	return *p_string == 0;
 }
 
-bool String::is_enclosed_in(const String &p_string) const {
-	return begins_with(p_string) && ends_with(p_string);
-}
-
 bool String::is_subsequence_of(const String &p_string) const {
 	return _base_is_subsequence_of(p_string, false);
 }
 
 bool String::is_subsequence_ofn(const String &p_string) const {
 	return _base_is_subsequence_of(p_string, true);
-}
-
-bool String::is_quoted() const {
-	return is_enclosed_in("\"") || is_enclosed_in("'");
 }
 
 bool String::is_lowercase() const {
