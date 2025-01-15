@@ -141,7 +141,7 @@ void TreeSortAndFilterBar::_apply_sort() {
 		}
 
 		int idx = 0;
-		for (TreeItemColumn item : items) {
+		for (const TreeItemColumn &item : items) {
 			item.item->move_before(to_sort->get_child(idx));
 			items_to_sort.push_back(item.item);
 			idx++;
