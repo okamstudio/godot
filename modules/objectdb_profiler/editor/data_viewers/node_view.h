@@ -32,9 +32,10 @@
 #define NODE_VIEW_H
 
 #include "../snapshot_data.h"
-#include "scene/gui/tree.h"
 #include "shared_controls.h"
 #include "snapshot_view.h"
+
+class Tree;
 
 // When diffing in split view, we have two trees/filters
 // so this struct is used to group their properties together.

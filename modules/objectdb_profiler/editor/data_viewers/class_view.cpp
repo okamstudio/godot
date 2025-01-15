@@ -185,7 +185,7 @@ Tree *SnapshotClassView::_make_object_list_tree(const String &p_column_name) {
 	list->set_column_titles_visible(true);
 	list->set_column_title(0, p_column_name);
 	list->set_column_expand(0, true);
-	list->connect("item_selected", callable_mp(this, &SnapshotClassView::_object_selected).bind(list));
+	list->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotClassView::_object_selected).bind(list));
 	list->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	list->set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	return list;
@@ -230,7 +230,7 @@ void SnapshotClassView::_object_selected(Tree *p_tree) {
 		}
 	}
 	ObjectID object_id = p_tree->get_selected()->get_metadata(0);
-	EditorNode::get_singleton()->push_item((Object *)(snapshot->objects[object_id]));
+	EditorNode::get_singleton()->push_item((Object *)snapshot->objects[object_id]);
 }
 
 void SnapshotClassView::_class_selected() {

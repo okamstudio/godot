@@ -64,7 +64,7 @@ String SnapshotDataObject::get_node_path() {
 	return path;
 }
 
-String SnapshotDataObject::_get_script_name(Script *p_script) {
+String SnapshotDataObject::_get_script_name(Ref<Script> p_script) {
 #if defined(MODULE_GDSCRIPT_ENABLED) && defined(DEBUG_ENABLED)
 	// GDScripts have more specific names than base scripts, so use those names if possible.
 	return GDScript::debug_get_script_name(p_script);
@@ -82,7 +82,7 @@ String SnapshotDataObject::get_name() {
 		Object *maybe_script_obj = get_script().get_validated_object();
 
 		if (maybe_script_obj->is_class(Script::get_class_static())) {
-			Script *script_obj = (Script *)maybe_script_obj;
+			Ref<Script> script_obj = Ref<Script>((Script *)maybe_script_obj);
 
 			String full_name;
 			while (script_obj != nullptr) {
@@ -135,10 +135,10 @@ HashSet<ObjectID> SnapshotDataObject::get_unique_inbound_references() {
 }
 
 void GameStateSnapshot::_get_outbound_references(Variant &p_var, HashMap<String, ObjectID> &r_ret_val, const String &p_current_path) {
-	String path_divider = p_current_path.size() > 0 ? "/" : ""; // make sure we don't start with a /
+	String path_divider = p_current_path.size() > 0 ? "/" : ""; // Make sure we don't start with a /.
 	switch (p_var.get_type()) {
 		case Variant::Type::INT:
-		case Variant::Type::OBJECT: { // means ObjectID
+		case Variant::Type::OBJECT: { // Means ObjectID.
 			ObjectID as_id = ObjectID((uint64_t)p_var);
 			if (!objects.has(as_id)) {
 				return;
@@ -245,29 +245,25 @@ void GameStateSnapshot::recompute_references() {
 
 Ref<GameStateSnapshotRef> GameStateSnapshot::create_ref(const String &p_snapshot_name, const Vector<uint8_t> &p_snapshot_buffer) {
 	// A ref to a refcounted object which is a wrapper of a non-refcounted object.
-	Ref<GameStateSnapshotRef> sn = Ref<GameStateSnapshotRef>(memnew(GameStateSnapshotRef(memnew(GameStateSnapshot))));
-	sn->ptr()->name = p_snapshot_name;
+	Ref<GameStateSnapshotRef> sn;
+	sn.instantiate(memnew(GameStateSnapshot));
+	GameStateSnapshot *snapshot = sn->get_snapshot();
+	snapshot->name = p_snapshot_name;
 
 	// Snapshots may have been created by an older version of the editor. Handle parsing old snapshot versions here based on the version number.
 
 	Vector<uint8_t> snapshot_buffer_decompressed;
 	int success = Compression::decompress_dynamic(&snapshot_buffer_decompressed, -1, p_snapshot_buffer.ptr(), p_snapshot_buffer.size(), Compression::MODE_DEFLATE);
-	if (success != Z_OK) {
-		ERR_PRINT("ObjectDB Snapshot could not be parsed. Failed to decompress snapshot.");
-		return nullptr;
-	}
+	ERR_FAIL_COND_V_MSG(success != Z_OK, nullptr, "ObjectDB Snapshot could not be parsed. Failed to decompress snapshot.");
 	core_bind::Marshalls *m = core_bind::Marshalls::get_singleton();
 	Array snapshot_data = m->base64_to_variant(m->raw_to_base64(snapshot_buffer_decompressed));
-	if (snapshot_data.size() == 0) {
-		ERR_PRINT("ObjectDB Snapshot could not be parsed. Variant array is empty.");
-		return nullptr;
-	}
+	ERR_FAIL_COND_V_MSG(snapshot_data.is_empty(), nullptr, "ObjectDB Snapshot could not be parsed. Variant array is empty.");
 	const Variant &first_item = snapshot_data.get(0);
 	if (first_item.get_type() != Variant::DICTIONARY) {
 		ERR_PRINT("ObjectDB Snapshot could not be parsed. First item is not a Dictionary.");
 		return nullptr;
 	}
-	sn->ptr()->snapshot_context = first_item;
+	snapshot->snapshot_context = first_item;
 
 	for (int i = 1; i < snapshot_data.size(); i += 4) {
 		Array sliced = snapshot_data.slice(i);
@@ -282,12 +278,12 @@ Ref<GameStateSnapshotRef> GameStateSnapshot::create_ref(const String &p_snapshot
 			continue;
 		}
 
-		sn->ptr()->objects[obj.id] = memnew(SnapshotDataObject(obj, sn.ptr()->ptr()));
-		sn->ptr()->objects[obj.id]->extra_debug_data = (Dictionary)sliced[3];
-		sn->ptr()->objects[obj.id]->set_read_only(true);
+		snapshot->objects[obj.id] = memnew(SnapshotDataObject(obj, snapshot));
+		snapshot->objects[obj.id]->extra_debug_data = (Dictionary)sliced[3];
+		snapshot->objects[obj.id]->set_read_only(true);
 	}
 
-	sn->ptr()->recompute_references();
+	snapshot->recompute_references();
 	return sn;
 }
 
@@ -303,4 +299,8 @@ bool GameStateSnapshotRef::unreference() {
 		memdelete(gamestate_snapshot);
 	}
 	return die;
+}
+
+GameStateSnapshot *GameStateSnapshotRef::get_snapshot() {
+	return gamestate_snapshot;
 }

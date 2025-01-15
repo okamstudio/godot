@@ -34,10 +34,12 @@
 #include "editor/editor_string_names.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/label.h"
+#include "scene/gui/menu_button.h"
 #include "scene/resources/style_box_flat.h"
 
 SpanningHeader::SpanningHeader(const String &p_text) {
-	StyleBoxFlat *title_sbf = memnew(StyleBoxFlat);
+	Ref<StyleBoxFlat> title_sbf;
+	title_sbf.instantiate();
 	title_sbf->set_bg_color(EditorNode::get_singleton()->get_editor_theme()->get_color("dark_color_3", "Editor"));
 	add_theme_style_override(SceneStringName(panel), title_sbf);
 	set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
@@ -50,7 +52,8 @@ SpanningHeader::SpanningHeader(const String &p_text) {
 DarkPanelContainer::DarkPanelContainer() {
 	set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
-	StyleBoxFlat *content_wrapper_sbf = memnew(StyleBoxFlat);
+	Ref<StyleBoxFlat> content_wrapper_sbf;
+	content_wrapper_sbf.instantiate();
 	content_wrapper_sbf->set_bg_color(EditorNode::get_singleton()->get_editor_theme()->get_color("dark_color_2", "Editor"));
 	add_theme_style_override("panel", content_wrapper_sbf);
 }
@@ -114,7 +117,7 @@ void TreeSortAndFilterBar::_apply_sort() {
 	items_to_sort.push_back(managed_tree->get_root());
 
 	while (items_to_sort.size() > 0) {
-		TreeItem *to_sort = items_to_sort.get(0);
+		TreeItem *to_sort = items_to_sort.front()->get();
 		items_to_sort.pop_front();
 
 		List<TreeItemColumn> items;
@@ -137,9 +140,11 @@ void TreeSortAndFilterBar::_apply_sort() {
 			items.reverse();
 		}
 
-		for (int i = 0; i < items.size(); i++) {
-			items.get(i).item->move_before(to_sort->get_child(i));
-			items_to_sort.push_back(items.get(i).item);
+		int idx = 0;
+		for (TreeItemColumn item : items) {
+			item.item->move_before(to_sort->get_child(idx));
+			items_to_sort.push_back(item.item);
+			idx++;
 		}
 	}
 }
@@ -192,7 +197,7 @@ void TreeSortAndFilterBar::_notification(int p_what) {
 
 TreeSortAndFilterBar::SortOptionIndexes TreeSortAndFilterBar::add_sort_option(const String &p_new_option, SortType p_sort_type, int p_sort_column, bool p_is_default) {
 	sort_button->set_visible(true);
-	bool is_first_item = sort_items.size() == 0;
+	bool is_first_item = sort_items.is_empty();
 	SortItem item_ascending(sort_items.size(), TTR("Sort By ") + p_new_option + TTR(" (Ascending)"), p_sort_type, true, p_sort_column);
 	sort_items[item_ascending.id] = item_ascending;
 	sort_button->get_popup()->add_radio_check_item(item_ascending.label, item_ascending.id);

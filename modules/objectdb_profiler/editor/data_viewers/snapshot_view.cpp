@@ -58,7 +58,7 @@ List<TreeItem *> SnapshotView::_get_children_recursive(Tree *p_tree) {
 		items_to_check.push_back(p_tree->get_root());
 	}
 	while (items_to_check.size() > 0) {
-		TreeItem *to_check = items_to_check.get(0);
+		TreeItem *to_check = items_to_check.front()->get();
 		items_to_check.pop_front();
 		found_items.push_back(to_check);
 		for (int i = 0; i < to_check->get_child_count(); i++) {

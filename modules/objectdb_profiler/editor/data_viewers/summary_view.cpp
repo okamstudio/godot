@@ -32,8 +32,10 @@
 
 #include "core/os/time.h"
 #include "editor/editor_node.h"
+#include "scene/gui/center_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/panel_container.h"
+#include "scene/gui/rich_text_label.h"
 #include "scene/resources/style_box_flat.h"
 
 SnapshotSummaryView::SnapshotSummaryView() {
@@ -50,7 +52,8 @@ SnapshotSummaryView::SnapshotSummaryView() {
 	mc->set_anchors_preset(LayoutPreset::PRESET_FULL_RECT);
 	PanelContainer *content_wrapper = memnew(PanelContainer);
 	content_wrapper->set_anchors_preset(LayoutPreset::PRESET_FULL_RECT);
-	StyleBoxFlat *content_wrapper_sbf = memnew(StyleBoxFlat);
+	Ref<StyleBoxFlat> content_wrapper_sbf;
+	content_wrapper_sbf.instantiate();
 	content_wrapper_sbf->set_bg_color(EditorNode::get_singleton()->get_editor_theme()->get_color("dark_color_2", "Editor"));
 	content_wrapper->add_theme_style_override(SceneStringName(panel), content_wrapper_sbf);
 	content_wrapper->add_child(mc);
@@ -61,7 +64,8 @@ SnapshotSummaryView::SnapshotSummaryView() {
 	content->set_anchors_preset(LayoutPreset::PRESET_FULL_RECT);
 
 	PanelContainer *pc = memnew(PanelContainer);
-	StyleBoxFlat *sbf = memnew(StyleBoxFlat);
+	Ref<StyleBoxFlat> sbf;
+	sbf.instantiate();
 	sbf->set_bg_color(EditorNode::get_singleton()->get_editor_theme()->get_color("dark_color_3", "Editor"));
 	pc->add_theme_style_override("panel", sbf);
 	content->add_child(pc);
@@ -235,7 +239,7 @@ void SnapshotSummaryView::_push_refcounted_blurb(const String &p_title, GameStat
 		}
 	}
 
-	if (rcs.size() == 0) {
+	if (rcs.is_empty()) {
 		return;
 	}
 
@@ -252,7 +256,7 @@ void SnapshotSummaryView::_push_refcounted_blurb(const String &p_title, GameStat
 void SnapshotSummaryView::_push_object_blurb(const String &p_title, GameStateSnapshot *p_snapshot) {
 	List<String> objects;
 	for (const KeyValue<ObjectID, SnapshotDataObject *> &pair : p_snapshot->objects) {
-		if (pair.value->inbound_references.size() == 0 && pair.value->outbound_references.size() == 0) {
+		if (pair.value->inbound_references.is_empty() && pair.value->outbound_references.is_empty()) {
 			if (!pair.value->get_script().is_null()) {
 				// This blurb will have a lot of false positives, but we can at least suppress false positives
 				// from unreferenced nodes that are part of the scene tree.
@@ -263,7 +267,7 @@ void SnapshotSummaryView::_push_object_blurb(const String &p_title, GameStateSna
 		}
 	}
 
-	if (objects.size() == 0) {
+	if (objects.is_empty()) {
 		return;
 	}
 

@@ -32,12 +32,14 @@
 #define CLASS_VIEW_H
 
 #include "../snapshot_data.h"
-#include "scene/gui/tree.h"
 #include "snapshot_view.h"
+
+class Tree;
+class TreeItem;
 
 struct ClassData {
 	ClassData() {}
-	ClassData(String p_name, String p_parent) :
+	ClassData(const String &p_name, const String &p_parent) :
 			class_name(p_name), parent_class_name(p_parent) {}
 	String class_name;
 	String parent_class_name;

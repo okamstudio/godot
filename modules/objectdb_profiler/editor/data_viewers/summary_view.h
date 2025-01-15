@@ -32,10 +32,11 @@
 #define SUMMARY_VIEW_H
 
 #include "../snapshot_data.h"
-#include "scene/gui/center_container.h"
 #include "scene/gui/margin_container.h"
-#include "scene/gui/rich_text_label.h"
 #include "snapshot_view.h"
+
+class CenterContainer;
+class RichTextLabel;
 
 class SummaryBlurb : public MarginContainer {
 	GDCLASS(SummaryBlurb, MarginContainer);

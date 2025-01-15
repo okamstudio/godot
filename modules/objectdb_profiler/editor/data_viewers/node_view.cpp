@@ -103,7 +103,7 @@ NodeTreeElements SnapshotNodeView::_make_node_tree(const String &p_tree_name, Ga
 	elements.tree->set_column_expand(0, true);
 	elements.tree->set_column_clip_content(0, false);
 	elements.tree->set_column_custom_minimum_width(0, 150 * EDSCALE);
-	elements.tree->connect("item_selected", callable_mp(this, &SnapshotNodeView::_node_selected).bind(elements.tree));
+	elements.tree->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotNodeView::_node_selected).bind(elements.tree));
 	elements.tree->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	elements.tree->set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	elements.tree->set_anchors_preset(LayoutPreset::PRESET_FULL_RECT);
@@ -126,7 +126,7 @@ void SnapshotNodeView::_node_selected(Tree *p_tree_selected_from) {
 	}
 
 	List<SnapshotDataObject *> &objects = tree_item_owners[p_tree_selected_from->get_selected()];
-	if (objects.size() == 0) {
+	if (objects.is_empty()) {
 		return;
 	}
 	if (objects.size() == 1) {
@@ -247,7 +247,7 @@ void SnapshotNodeView::clear_snapshot() {
 
 void SnapshotNodeView::_choose_object_pressed(int p_object_idx, bool p_confirm_override) {
 	List<SnapshotDataObject *> &objects = tree_item_owners[active_tree->get_selected()];
-	EditorNode::get_singleton()->push_item((Object *)(objects.get(p_object_idx)));
+	EditorNode::get_singleton()->push_item((Object *)objects.get(p_object_idx));
 }
 
 void SnapshotNodeView::_show_choose_object_menu() {

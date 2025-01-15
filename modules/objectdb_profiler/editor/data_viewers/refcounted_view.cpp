@@ -33,6 +33,7 @@
 #include "editor/editor_node.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/rich_text_label.h"
+#include "scene/gui/split_container.h"
 
 SnapshotRefCountedView::SnapshotRefCountedView() {
 	set_name(TTR("RefCounted"));
@@ -247,7 +248,7 @@ void SnapshotRefCountedView::_refcounted_selected() {
 		inbound_tree->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 		inbound_tree->set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 		inbound_tree->set_v_scroll_enabled(false);
-		inbound_tree->connect("item_selected", callable_mp(this, &SnapshotRefCountedView::_ref_selected).bind(inbound_tree));
+		inbound_tree->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotRefCountedView::_ref_selected).bind(inbound_tree));
 
 		// The same reference can exist as multiple properties of an object (for example, gdscript `@export` properties exist twice).
 		// We flag for the user if a property is exposed multiple times so it's clearer why there are more references in the list

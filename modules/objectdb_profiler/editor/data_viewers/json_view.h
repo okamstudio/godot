@@ -35,8 +35,6 @@
 #include "editor/editor_json_visualizer.h"
 #include "snapshot_view.h"
 
-#include "scene/gui/code_edit.h"
-
 class SnapshotJsonView : public SnapshotView {
 	GDCLASS(SnapshotJsonView, SnapshotView);
 

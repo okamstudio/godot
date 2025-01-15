@@ -108,7 +108,7 @@ int EditorDebuggerRemoteObject::update_props(SceneDebuggerObject &p_obj, HashSet
 				// resource (var) is loaded. We must declare dependency outside of the if statement to ensure this.
 				Ref<Resource> dependency;
 				if (path.contains("::")) {
-					// built-in resource
+					// Built-in resource.
 					String base_path = path.get_slice("::", 0);
 					dependency = ResourceLoader::load(base_path);
 					if (dependency.is_valid() && p_remote_dependencies) {
@@ -132,7 +132,7 @@ int EditorDebuggerRemoteObject::update_props(SceneDebuggerObject &p_obj, HashSet
 			}
 		}
 
-		//always add the property, since props may have been added or removed
+		// Always add the property, since props may have been added or removed.
 		prop_list.push_back(pinfo);
 
 		if (!prop_values.has(pinfo.name)) {

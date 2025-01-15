@@ -33,9 +33,10 @@
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/line_edit.h"
-#include "scene/gui/menu_button.h"
 #include "scene/gui/panel_container.h"
 #include "scene/gui/tree.h"
+
+class MenuButton;
 
 class SpanningHeader : public PanelContainer {
 	GDCLASS(SpanningHeader, PanelContainer);
@@ -94,13 +95,13 @@ protected:
 	};
 
 	struct TreeItemAlphaComparator {
-		bool operator()(const TreeItemColumn p_a, const TreeItemColumn p_b) const {
+		bool operator()(const TreeItemColumn &p_a, const TreeItemColumn &p_b) const {
 			return NoCaseComparator()(p_a.item->get_text(p_a.column), p_b.item->get_text(p_b.column));
 		}
 	};
 
 	struct TreeItemNumericComparator {
-		bool operator()(const TreeItemColumn p_a, const TreeItemColumn p_b) const {
+		bool operator()(const TreeItemColumn &p_a, const TreeItemColumn &p_b) const {
 			return p_a.item->get_text(p_a.column).to_int() < p_b.item->get_text(p_b.column).to_int();
 		}
 	};

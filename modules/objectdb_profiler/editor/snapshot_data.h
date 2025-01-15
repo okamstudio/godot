@@ -40,7 +40,7 @@ class SnapshotDataObject : public EditorDebuggerRemoteObject {
 	GDCLASS(SnapshotDataObject, EditorDebuggerRemoteObject);
 
 	HashSet<ObjectID> _unique_references(const HashMap<String, ObjectID> &p_refs);
-	String _get_script_name(Script *p_script);
+	String _get_script_name(Ref<Script> p_script);
 
 public:
 	GameStateSnapshot *snapshot = nullptr;
@@ -91,10 +91,7 @@ public:
 			gamestate_snapshot(p_gss) {}
 
 	bool unreference();
-
-	_FORCE_INLINE_ GameStateSnapshot *operator*() const { return gamestate_snapshot; }
-	_FORCE_INLINE_ GameStateSnapshot *operator->() const { return gamestate_snapshot; }
-	_FORCE_INLINE_ GameStateSnapshot *ptr() const { return gamestate_snapshot; }
+	GameStateSnapshot *get_snapshot();
 };
 
 #endif // SNAPSHOT_DATA_H

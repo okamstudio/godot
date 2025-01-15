@@ -31,7 +31,7 @@
 #ifndef EDITOR_NATIVE_SHADER_SOURCE_VISUALIZER_H
 #define EDITOR_NATIVE_SHADER_SOURCE_VISUALIZER_H
 
-#include "editor_json_visualizer.h"
+#include "editor/editor_json_visualizer.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/tab_container.h"
 

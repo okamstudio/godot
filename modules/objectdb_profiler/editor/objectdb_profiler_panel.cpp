@@ -68,7 +68,7 @@ void ObjectDBProfilerPanel::_request_object_snapshot() {
 	}
 }
 
-void ObjectDBProfilerPanel::_on_debug_breaked(const bool &p_reallydid, const bool &p_can_debug, const String &p_reason, const bool &p_has_stackdump) {
+void ObjectDBProfilerPanel::_on_debug_breaked(bool p_reallydid, bool p_can_debug, const String &p_reason, bool p_has_stackdump) {
 	if (p_reallydid && awaiting_debug_break) {
 		awaiting_debug_break = false;
 		_begin_object_snapshot();
@@ -152,18 +152,12 @@ void ObjectDBProfilerPanel::receive_snapshot(int request_id) {
 Ref<DirAccess> ObjectDBProfilerPanel::_get_and_create_snapshot_storage_dir() {
 	String profiles_dir = "user://";
 	Ref<DirAccess> da = DirAccess::open(profiles_dir);
-	if (da.is_null()) {
-		ERR_PRINT("Could not open user:// directory: " + profiles_dir);
-		return nullptr;
-	}
+	ERR_FAIL_COND_V_MSG(da.is_null(), nullptr, vformat("Could not open 'user://' directory: '%s'.", profiles_dir));
 	Error err = da->change_dir("objectdb_snapshots");
 	if (err != OK) {
 		Error err_mk = da->make_dir("objectdb_snapshots");
 		Error err_ch = da->change_dir("objectdb_snapshots");
-		if (err_mk != OK || err_ch != OK) {
-			ERR_PRINT("Could not create ObjectDB Snapshots directory: " + da->get_current_dir());
-			return nullptr;
-		}
+		ERR_FAIL_COND_V_MSG(err_mk != OK || err_ch != OK, nullptr, "Could not create ObjectDB Snapshots directory: " + da->get_current_dir());
 	}
 	return da;
 }
@@ -180,7 +174,7 @@ TreeItem *ObjectDBProfilerPanel::_add_snapshot_button(const String &p_snapshot_f
 void ObjectDBProfilerPanel::_show_selected_snapshot() {
 	if (snapshot_list->get_selected()->get_text(0) == diff_options[diff_button->get_selected_id()]) {
 		for (int i = 0; i < diff_button->get_item_count(); i++) {
-			if (diff_button->get_item_text(i) == current_snapshot->ptr()->name) {
+			if (diff_button->get_item_text(i) == current_snapshot->get_snapshot()->name) {
 				diff_button->select(i);
 				break;
 			}
@@ -195,29 +189,20 @@ Ref<GameStateSnapshotRef> ObjectDBProfilerPanel::get_snapshot(const String &p_sn
 		return snapshot_cache.get(p_snapshot_file_name);
 	} else {
 		Ref<DirAccess> snapshot_dir = _get_and_create_snapshot_storage_dir();
-		if (snapshot_dir.is_null()) {
-			ERR_PRINT("Could not access ObjectDB Snapshot directory");
-			return nullptr;
-		}
+		ERR_FAIL_COND_V_MSG(snapshot_dir.is_null(), nullptr, "Could not access ObjectDB Snapshot directory");
 
 		String full_file_path = snapshot_dir->get_current_dir().path_join(p_snapshot_file_name) + ".odb_snapshot";
 
 		Error err;
 		Ref<FileAccess> snapshot_file = FileAccess::open(full_file_path, FileAccess::READ, &err);
-		if (err != OK) {
-			ERR_PRINT("Could not open ObjectDB Snapshot file: " + full_file_path);
-			return nullptr;
-		}
+		ERR_FAIL_COND_V_MSG(err != OK, nullptr, "Could not open ObjectDB Snapshot file: " + full_file_path);
 
 		Vector<uint8_t> content = snapshot_file->get_buffer(snapshot_file->get_length()); // We want to split on newlines, so normalize them.
-		if (content.is_empty()) {
-			ERR_PRINT("ObjectDB Snapshot file is empty: " + full_file_path);
-			return nullptr;
-		}
+		ERR_FAIL_COND_V_MSG(content.is_empty(), nullptr, "ObjectDB Snapshot file is empty: " + full_file_path);
 
 		Ref<GameStateSnapshotRef> snapshot = GameStateSnapshot::create_ref(p_snapshot_file_name, content);
 		if (snapshot.is_valid()) {
-			// don't cache a null snapshot
+			// Don't cache a null snapshot.
 			snapshot_cache.insert(p_snapshot_file_name, snapshot);
 		}
 		return snapshot;
@@ -241,8 +226,8 @@ void ObjectDBProfilerPanel::_view_tab_changed(int p_tab_idx) {
 	// Populating tabs only on tab changed because we're handling a lot of data,
 	// and the editor freezes for while if we try to populate every tab at once.
 	SnapshotView *view = cast_to<SnapshotView>(view_tabs->get_current_tab_control());
-	GameStateSnapshot *snapshot = current_snapshot.is_null() ? nullptr : current_snapshot->ptr();
-	GameStateSnapshot *diff = diff_snapshot.is_null() ? nullptr : diff_snapshot->ptr();
+	GameStateSnapshot *snapshot = current_snapshot.is_null() ? nullptr : current_snapshot->get_snapshot();
+	GameStateSnapshot *diff = diff_snapshot.is_null() ? nullptr : diff_snapshot->get_snapshot();
 	if (snapshot != nullptr && !view->is_showing_snapshot(snapshot, diff)) {
 		view->show_snapshot(snapshot, diff);
 	}
@@ -323,7 +308,7 @@ void ObjectDBProfilerPanel::_edit_snapshot_name() {
 		}
 	}
 
-	if (name_taken || new_snapshot_name.contains(":") || new_snapshot_name.contains("\\") || new_snapshot_name.contains("/") || new_snapshot_name.begins_with(".") || new_snapshot_name.length() == 0) {
+	if (name_taken || new_snapshot_name.contains(":") || new_snapshot_name.contains("\\") || new_snapshot_name.contains("/") || new_snapshot_name.begins_with(".") || new_snapshot_name.is_empty()) {
 		EditorNode::get_singleton()->show_warning(TTR("Invalid snapshot name."));
 		snapshot_list->get_selected()->set_text(0, old_snapshot_name);
 		return;
@@ -374,7 +359,7 @@ ObjectDBProfilerPanel::ObjectDBProfilerPanel() {
 	snapshot_list->set_column_title(0, "Snapshots");
 	snapshot_list->set_column_expand(0, true);
 	snapshot_list->set_column_clip_content(0, true);
-	snapshot_list->connect("item_selected", callable_mp(this, &ObjectDBProfilerPanel::_show_selected_snapshot));
+	snapshot_list->connect(SceneStringName(item_selected), callable_mp(this, &ObjectDBProfilerPanel::_show_selected_snapshot));
 	snapshot_list->connect("item_edited", callable_mp(this, &ObjectDBProfilerPanel::_edit_snapshot_name));
 	snapshot_list->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	snapshot_list->set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
@@ -395,7 +380,7 @@ ObjectDBProfilerPanel::ObjectDBProfilerPanel() {
 
 	diff_button = memnew(OptionButton);
 	diff_button->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
-	diff_button->connect("item_selected", callable_mp(this, &ObjectDBProfilerPanel::_apply_diff));
+	diff_button->connect(SceneStringName(item_selected), callable_mp(this, &ObjectDBProfilerPanel::_apply_diff));
 	diff_button_and_label->add_child(diff_button);
 
 	// Tabs of various views right for each snapshot.
@@ -417,7 +402,7 @@ ObjectDBProfilerPanel::ObjectDBProfilerPanel() {
 	// Load all the snapshot names from disk.
 	Ref<DirAccess> snapshot_dir = _get_and_create_snapshot_storage_dir();
 	TreeItem *last_snapshot_button = nullptr;
-	if (!snapshot_dir.is_null()) {
+	if (snapshot_dir.is_valid()) {
 		for (const String &file_name : snapshot_dir->get_files()) {
 			Vector<String> name_parts = file_name.split(".");
 			if (name_parts.size() != 2 || name_parts[1] != "odb_snapshot") {
@@ -463,6 +448,6 @@ void ObjectDBProfilerPanel::_apply_diff(int p_item_idx) {
 	_show_selected_snapshot();
 }
 
-String ObjectDBProfilerPanel::_to_mb(int x) {
-	return String::num((double)x / (double)(1 << 20), 2);
+String ObjectDBProfilerPanel::_to_mb(int p_x) {
+	return String::num((double)p_x / (double)(1 << 20), 2);
 }

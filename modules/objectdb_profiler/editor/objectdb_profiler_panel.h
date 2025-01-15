@@ -34,9 +34,10 @@
 #include "core/io/dir_access.h"
 #include "core/templates/lru.h"
 #include "data_viewers/snapshot_view.h"
-#include "scene/gui/tab_container.h"
-#include "scene/gui/tree.h"
 #include "snapshot_data.h"
+
+class TabContainer;
+class Tree;
 
 const int SNAPSHOT_CACHE_MAX_SIZE = 10;
 
@@ -75,7 +76,7 @@ protected:
 
 	void _request_object_snapshot();
 	void _begin_object_snapshot();
-	void _on_debug_breaked(const bool &p_reallydid, const bool &p_can_debug, const String &p_reason, const bool &p_has_stackdump);
+	void _on_debug_breaked(bool p_reallydid, bool p_can_debug, const String &p_reason, bool p_has_stackdump);
 	void _show_selected_snapshot();
 	Ref<DirAccess> _get_and_create_snapshot_storage_dir();
 	TreeItem *_add_snapshot_button(const String &p_snapshot_file_name, const String &p_full_file_path);

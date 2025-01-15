@@ -31,10 +31,6 @@
 #ifndef SNAPSHOT_COLLECTOR_H
 #define SNAPSHOT_COLLECTOR_H
 
-#include "core/templates/hash_map.h"
-#include "core/templates/vector.h"
-#include "core/variant/array.h"
-#include "core/variant/dictionary.h"
 #include "scene/debugger/scene_debugger.h"
 
 struct SnapshotDataTransportObject : public SceneDebuggerObject {

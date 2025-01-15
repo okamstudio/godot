@@ -33,6 +33,7 @@
 #include "editor/editor_node.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/rich_text_label.h"
+#include "scene/gui/split_container.h"
 
 SnapshotObjectView::SnapshotObjectView() {
 	set_name(TTR("Objects"));
@@ -103,7 +104,7 @@ void SnapshotObjectView::show_snapshot(GameStateSnapshot *p_data, GameStateSnaps
 	object_list->set_column_clip_content(offset + 3, false);
 	object_list->set_column_title_tooltip_text(offset + 3, TTR("Number of outbound references"));
 	object_list->set_column_custom_minimum_width(offset + 2, 30 * EDSCALE);
-	object_list->connect("item_selected", callable_mp(this, &SnapshotObjectView::_object_selected));
+	object_list->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotObjectView::_object_selected));
 	object_list->set_h_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 	object_list->set_v_size_flags(SizeFlags::SIZE_EXPAND_FILL);
 
@@ -177,7 +178,7 @@ void SnapshotObjectView::_object_selected() {
 	properties_container->add_theme_constant_override("separation", 8);
 
 	inbound_tree = _make_references_list(properties_container, TTR("Inbound References"), TTR("Source"), TTR("Other object referencing this object"), TTR("Property"), TTR("Property of other object referencing this object"));
-	inbound_tree->connect("item_selected", callable_mp(this, &SnapshotObjectView::_reference_selected).bind(inbound_tree));
+	inbound_tree->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotObjectView::_reference_selected).bind(inbound_tree));
 	TreeItem *ib_root = inbound_tree->create_item();
 	for (const KeyValue<String, ObjectID> &ob : d->inbound_references) {
 		TreeItem *i = inbound_tree->create_item(ib_root);
@@ -188,7 +189,7 @@ void SnapshotObjectView::_object_selected() {
 	}
 
 	outbound_tree = _make_references_list(properties_container, TTR("Outbound References"), TTR("Property"), TTR("Property of this object referencing other object"), TTR("Target"), TTR("Other object being referenced"));
-	outbound_tree->connect("item_selected", callable_mp(this, &SnapshotObjectView::_reference_selected).bind(outbound_tree));
+	outbound_tree->connect(SceneStringName(item_selected), callable_mp(this, &SnapshotObjectView::_reference_selected).bind(outbound_tree));
 	TreeItem *ob_root = outbound_tree->create_item();
 	for (const KeyValue<String, ObjectID> &ob : d->outbound_references) {
 		TreeItem *i = outbound_tree->create_item(ob_root);

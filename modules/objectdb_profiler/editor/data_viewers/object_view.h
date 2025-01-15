@@ -32,10 +32,11 @@
 #define OBJECT_VIEW_H
 
 #include "../snapshot_data.h"
-#include "scene/gui/split_container.h"
-#include "scene/gui/tree.h"
 #include "shared_controls.h"
 #include "snapshot_view.h"
+
+class Tree;
+class HSplitContainer;
 
 class SnapshotObjectView : public SnapshotView {
 	GDCLASS(SnapshotObjectView, SnapshotView);
