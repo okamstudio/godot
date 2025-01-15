@@ -50,22 +50,32 @@ void SnapshotCollector::deinitialize() {
 
 void SnapshotCollector::snapshot_objects(Array *p_arr, Dictionary &p_snapshot_context) {
 	print_verbose("Starting to snapshot");
-	List<SnapshotDataTransportObject> debugger_objects;
 	p_arr->clear();
+
+	// Gather all ObjectIDs first. The ObjectDB will be locked in debug_objects, so we can't serialize until it exits.
+	List<ObjectID> debugger_object_ids;
 	ObjectDB::debug_objects([](Object *p_obj, void *p_user_data) {
-		List<SnapshotDataTransportObject> *debugger_objects_ptr = (List<SnapshotDataTransportObject> *)p_user_data;
+		List<ObjectID> *debugger_object_ids_ptr = (List<ObjectID> *)p_user_data;
+		debugger_object_ids_ptr->push_back(p_obj->get_instance_id());
+	},
+			(void *)&debugger_object_ids);
+
+	// Get SnapshotDataTransportObject from ObjectID list now that DB is unlocked.
+	List<SnapshotDataTransportObject> debugger_objects;
+	for (ObjectID oid : debugger_object_ids) {
+		Object *obj = ObjectDB::get_instance(oid);
 		// This is the same way objects in the remote scene tree are seialized,
 		// but here we add a few extra properties via the extra_debug_data dictionary.
-		SnapshotDataTransportObject debug_data(p_obj);
+		SnapshotDataTransportObject debug_data(obj);
 
 		// If we're RefCounted, send over our RefCount too. Could add code here to add a few other interesting properties.
-		if (ClassDB::is_parent_class(p_obj->get_class_name(), RefCounted::get_class_static())) {
-			RefCounted *ref = (RefCounted *)p_obj;
+		if (ClassDB::is_parent_class(obj->get_class_name(), RefCounted::get_class_static())) {
+			RefCounted *ref = (RefCounted *)obj;
 			debug_data.extra_debug_data["ref_count"] = ref->get_reference_count();
 		}
 
-		if (ClassDB::is_parent_class(p_obj->get_class_name(), Node::get_class_static())) {
-			Node *node = (Node *)p_obj;
+		if (ClassDB::is_parent_class(obj->get_class_name(), Node::get_class_static())) {
+			Node *node = (Node *)obj;
 			debug_data.extra_debug_data["node_name"] = node->get_name();
 			if (node->get_parent() != nullptr) {
 				debug_data.extra_debug_data["node_parent"] = node->get_parent()->get_instance_id();
@@ -80,9 +90,8 @@ void SnapshotCollector::snapshot_objects(Array *p_arr, Dictionary &p_snapshot_co
 			debug_data.extra_debug_data["node_children"] = children;
 		}
 
-		debugger_objects_ptr->push_back(debug_data);
-	},
-			(void *)&debugger_objects);
+		debugger_objects.push_back(debug_data);
+	}
 
 	// Add a header to the snapshot with general data about the state of the game, not tied to any particular object.
 	p_snapshot_context["mem_available"] = Memory::get_mem_available();

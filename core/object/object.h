@@ -1023,7 +1023,6 @@ class ObjectDB {
 	};
 
 	static SpinLock spin_lock;
-	static SpinLock write_lock;
 	static uint32_t slot_count;
 	static uint32_t slot_max;
 	static ObjectSlot *object_slots;
