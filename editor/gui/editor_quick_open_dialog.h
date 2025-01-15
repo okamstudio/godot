@@ -33,6 +33,7 @@
 
 #include "core/templates/oa_hash_map.h"
 #include "scene/gui/dialogs.h"
+#include "scene/gui/margin_container.h"
 
 class Button;
 class CenterContainer;
@@ -176,8 +177,8 @@ private:
 	static void _bind_methods();
 };
 
-class QuickOpenResultGridItem : public VBoxContainer {
-	GDCLASS(QuickOpenResultGridItem, VBoxContainer)
+class QuickOpenResultGridItem : public MarginContainer {
+	GDCLASS(QuickOpenResultGridItem, MarginContainer)
 
 public:
 	QuickOpenResultGridItem();
@@ -188,12 +189,13 @@ public:
 	void remove_highlight();
 
 private:
+	VBoxContainer *vbc = nullptr;
 	TextureRect *thumbnail = nullptr;
 	HighlightedLabel *name = nullptr;
 };
 
-class QuickOpenResultListItem : public HBoxContainer {
-	GDCLASS(QuickOpenResultListItem, HBoxContainer)
+class QuickOpenResultListItem : public MarginContainer {
+	GDCLASS(QuickOpenResultListItem, MarginContainer)
 
 public:
 	QuickOpenResultListItem();
@@ -207,9 +209,7 @@ protected:
 	void _notification(int p_what);
 
 private:
-	static const int CONTAINER_MARGIN = 8;
-
-	MarginContainer *image_container = nullptr;
+	HBoxContainer *hbc = nullptr;
 	VBoxContainer *text_container = nullptr;
 
 	TextureRect *thumbnail = nullptr;

@@ -220,14 +220,15 @@ QuickOpenResultContainer::QuickOpenResultContainer() {
 
 			list = memnew(VBoxContainer);
 			list->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+			list->add_theme_constant_override("separation", 0);
 			list->hide();
 			scroll_container->add_child(list);
 
 			grid = memnew(HFlowContainer);
 			grid->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 			grid->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-			grid->add_theme_constant_override("v_separation", 18);
-			grid->add_theme_constant_override("h_separation", 4);
+			grid->add_theme_constant_override("v_separation", 0);
+			grid->add_theme_constant_override("h_separation", 0);
 			grid->hide();
 			scroll_container->add_child(grid);
 
@@ -899,7 +900,7 @@ void QuickOpenResultItem::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_THEME_CHANGED: {
 			selected_stylebox = get_theme_stylebox("selected", "Tree");
-			hovering_stylebox = get_theme_stylebox(SceneStringName(hover), "Tree");
+			hovering_stylebox = get_theme_stylebox("hovered", "Tree");
 			highlighted_font_color = get_theme_color("font_focus_color", EditorStringName(Editor));
 		} break;
 		case NOTIFICATION_DRAW: {
@@ -932,43 +933,40 @@ static Vector2i _get_name_interval(const Vector2i &p_interval, int p_dir_index) 
 
 QuickOpenResultListItem::QuickOpenResultListItem() {
 	set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	add_theme_constant_override("separation", 4 * EDSCALE);
+	add_theme_constant_override("margin_left", 6 * EDSCALE);
+	add_theme_constant_override("margin_right", 6 * EDSCALE);
 
-	{
-		image_container = memnew(MarginContainer);
-		image_container->add_theme_constant_override("margin_top", 2 * EDSCALE);
-		image_container->add_theme_constant_override("margin_bottom", 2 * EDSCALE);
-		image_container->add_theme_constant_override("margin_left", CONTAINER_MARGIN * EDSCALE);
-		image_container->add_theme_constant_override("margin_right", 0);
-		add_child(image_container);
+	hbc = memnew(HBoxContainer);
+	hbc->add_theme_constant_override("separation", 4 * EDSCALE);
+	add_child(hbc);
 
-		thumbnail = memnew(TextureRect);
-		thumbnail->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
-		thumbnail->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-		thumbnail->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
-		thumbnail->set_stretch_mode(TextureRect::StretchMode::STRETCH_SCALE);
-		image_container->add_child(thumbnail);
-	}
+	const int max_size = 36 * EDSCALE;
 
-	{
-		text_container = memnew(VBoxContainer);
-		text_container->add_theme_constant_override("separation", -6 * EDSCALE);
-		text_container->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-		text_container->set_v_size_flags(Control::SIZE_FILL);
-		add_child(text_container);
+	thumbnail = memnew(TextureRect);
+	thumbnail->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
+	thumbnail->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
+	thumbnail->set_expand_mode(TextureRect::EXPAND_IGNORE_SIZE);
+	thumbnail->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+	thumbnail->set_custom_minimum_size(Size2i(max_size, max_size));
+	hbc->add_child(thumbnail);
 
-		name = memnew(HighlightedLabel);
-		name->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-		name->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
-		name->set_horizontal_alignment(HorizontalAlignment::HORIZONTAL_ALIGNMENT_LEFT);
-		text_container->add_child(name);
+	text_container = memnew(VBoxContainer);
+	text_container->add_theme_constant_override("separation", -7 * EDSCALE);
+	text_container->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	text_container->set_v_size_flags(Control::SIZE_FILL);
+	hbc->add_child(text_container);
 
-		path = memnew(HighlightedLabel);
-		path->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-		path->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
-		path->add_theme_font_size_override(SceneStringName(font_size), 12 * EDSCALE);
-		text_container->add_child(path);
-	}
+	name = memnew(HighlightedLabel);
+	name->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	name->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+	name->set_horizontal_alignment(HorizontalAlignment::HORIZONTAL_ALIGNMENT_LEFT);
+	text_container->add_child(name);
+
+	path = memnew(HighlightedLabel);
+	path->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	path->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+	path->add_theme_font_size_override(SceneStringName(font_size), 12 * EDSCALE);
+	text_container->add_child(path);
 }
 
 void QuickOpenResultListItem::set_content(const QuickOpenResultCandidate &p_candidate, bool p_highlight) {
@@ -985,21 +983,6 @@ void QuickOpenResultListItem::set_content(const QuickOpenResultCandidate &p_cand
 				name->add_highlight(_get_name_interval(interval, p_candidate.result->dir_index));
 			}
 		}
-	}
-
-	const int max_size = 32 * EDSCALE;
-	bool uses_icon = p_candidate.thumbnail->get_width() < max_size;
-
-	if (uses_icon) {
-		thumbnail->set_custom_minimum_size(p_candidate.thumbnail->get_size());
-
-		int margin_needed = (max_size - p_candidate.thumbnail->get_width()) / 2;
-		image_container->add_theme_constant_override("margin_left", CONTAINER_MARGIN + margin_needed);
-		image_container->add_theme_constant_override("margin_right", margin_needed);
-	} else {
-		thumbnail->set_custom_minimum_size(Size2i(max_size, max_size));
-		image_container->add_theme_constant_override("margin_left", CONTAINER_MARGIN);
-		image_container->add_theme_constant_override("margin_right", 0);
 	}
 }
 
@@ -1030,22 +1013,31 @@ void QuickOpenResultListItem::_notification(int p_what) {
 //--------------- Grid Item
 
 QuickOpenResultGridItem::QuickOpenResultGridItem() {
-	set_h_size_flags(Control::SIZE_FILL);
-	set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	add_theme_constant_override("separation", -2 * EDSCALE);
+	set_custom_minimum_size(Size2i(120 * EDSCALE, 0));
+	add_theme_constant_override("margin_top", 6 * EDSCALE);
+	add_theme_constant_override("margin_left", 2 * EDSCALE);
+	add_theme_constant_override("margin_right", 2 * EDSCALE);
+
+	vbc = memnew(VBoxContainer);
+	vbc->set_h_size_flags(Control::SIZE_FILL);
+	vbc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	vbc->add_theme_constant_override("separation", 0);
+	add_child(vbc);
+
+	const int max_size = 64 * EDSCALE;
 
 	thumbnail = memnew(TextureRect);
 	thumbnail->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
 	thumbnail->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-	thumbnail->set_custom_minimum_size(Size2i(120 * EDSCALE, 64 * EDSCALE));
-	add_child(thumbnail);
+	thumbnail->set_custom_minimum_size(Size2i(max_size, max_size));
+	vbc->add_child(thumbnail);
 
 	name = memnew(HighlightedLabel);
 	name->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	name->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
 	name->set_horizontal_alignment(HorizontalAlignment::HORIZONTAL_ALIGNMENT_CENTER);
 	name->add_theme_font_size_override(SceneStringName(font_size), 13 * EDSCALE);
-	add_child(name);
+	vbc->add_child(name);
 }
 
 void QuickOpenResultGridItem::set_content(const QuickOpenResultCandidate &p_candidate, bool p_highlight) {
