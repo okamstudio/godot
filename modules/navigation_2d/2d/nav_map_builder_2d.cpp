@@ -303,7 +303,6 @@ void NavMapBuilder2D::_build_step_navlink_connections(NavMapIterationBuild2D &r_
 			}
 
 			for (Polygon &polyon : region.navmesh_polygons) {
-				//for (Polygon &polyon : polygons) {
 				for (uint32_t point_id = 2; point_id < polyon.points.size(); point_id += 1) {
 					const Triangle2 triangle(polyon.points[0].pos, polyon.points[point_id - 1].pos, polyon.points[point_id].pos);
 

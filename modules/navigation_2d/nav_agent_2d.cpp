@@ -45,11 +45,9 @@ void NavAgent2D::_update_rvo_agent_properties() {
 	rvo_agent.radius_ = radius;
 	rvo_agent.maxSpeed_ = max_speed;
 	rvo_agent.position_ = RVO2D::Vector2(position.x, position.y);
-	rvo_agent.elevation_ = 0.0; // TODO: Remove?
 	// Replacing the internal velocity directly causes major jitter / bugs due to unpredictable velocity jumps, left line here for testing.
 	//rvo_agent.velocity_ = RVO2D::Vector2(velocity.x, velocity.y);
 	rvo_agent.prefVelocity_ = RVO2D::Vector2(velocity.x, velocity.y);
-	rvo_agent.height_ = 1.0; // TODO: Remove?
 	rvo_agent.avoidance_layers_ = avoidance_layers;
 	rvo_agent.avoidance_mask_ = avoidance_mask;
 	rvo_agent.avoidance_priority_ = avoidance_priority;
@@ -178,7 +176,6 @@ void NavAgent2D::set_max_speed(real_t p_max_speed) {
 void NavAgent2D::set_position(const Vector2 &p_position) {
 	position = p_position;
 	if (avoidance_enabled) {
-		rvo_agent.elevation_ = 0.0; // TODO: Remove?
 		rvo_agent.position_ = RVO2D::Vector2(p_position.x, p_position.y);
 	}
 	agent_dirty = true;
@@ -264,15 +261,13 @@ const Dictionary NavAgent2D::get_avoidance_data() const {
 	_avoidance_data["max_neighbors"] = int(rvo_agent.maxNeighbors_);
 	_avoidance_data["max_speed"] = float(rvo_agent.maxSpeed_);
 	_avoidance_data["neighbor_distance"] = float(rvo_agent.neighborDist_);
-	// TODO: Change type?
-	_avoidance_data["new_velocity"] = Vector3(rvo_agent.newVelocity_.x(), 0.0, rvo_agent.newVelocity_.y());
-	_avoidance_data["velocity"] = Vector3(rvo_agent.velocity_.x(), 0.0, rvo_agent.velocity_.y());
-	_avoidance_data["position"] = Vector3(rvo_agent.position_.x(), 0.0, rvo_agent.position_.y());
-	_avoidance_data["preferred_velocity"] = Vector3(rvo_agent.prefVelocity_.x(), 0.0, rvo_agent.prefVelocity_.y());
+	_avoidance_data["new_velocity"] = Vector2(rvo_agent.newVelocity_.x(), rvo_agent.newVelocity_.y());
+	_avoidance_data["velocity"] = Vector2(rvo_agent.velocity_.x(), rvo_agent.velocity_.y());
+	_avoidance_data["position"] = Vector2(rvo_agent.position_.x(), rvo_agent.position_.y());
+	_avoidance_data["preferred_velocity"] = Vector2(rvo_agent.prefVelocity_.x(), rvo_agent.prefVelocity_.y());
 	_avoidance_data["radius"] = float(rvo_agent.radius_);
 	_avoidance_data["time_horizon_agents"] = float(rvo_agent.timeHorizon_);
 	_avoidance_data["time_horizon_obstacles"] = float(rvo_agent.timeHorizonObst_);
-	_avoidance_data["height"] = float(rvo_agent.height_); // TODO: Remove?
 	_avoidance_data["avoidance_layers"] = int(rvo_agent.avoidance_layers_);
 	_avoidance_data["avoidance_mask"] = int(rvo_agent.avoidance_mask_);
 	_avoidance_data["avoidance_priority"] = float(rvo_agent.avoidance_priority_);
