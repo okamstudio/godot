@@ -85,7 +85,7 @@ String SnapshotDataObject::get_name() {
 			Ref<Script> script_obj = Ref<Script>((Script *)maybe_script_obj);
 
 			String full_name;
-			while (script_obj != nullptr) {
+			while (script_obj.is_valid()) {
 				String global_name = _get_script_name(script_obj);
 				if (global_name != "") {
 					if (full_name != "") {
