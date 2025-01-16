@@ -40,8 +40,12 @@
 class Main;
 
 struct StaticCString {
-	const char *ptr;
-	static StaticCString create(const char *p_ptr);
+	const StrRange<char> str_range;
+
+	// Argument must be a static, null-terminated C string.
+	static StaticCString create(const char *p_ptr) {
+		return StaticCString{ StrRange<char>::from_c_str(p_ptr) };
+	}
 };
 
 class StringName {
@@ -54,12 +58,13 @@ class StringName {
 	struct _Data {
 		SafeRefCount refcount;
 		SafeNumeric<uint32_t> static_count;
-		const char *cname = nullptr;
+		StrRange<char> cname = StrRange<char>(nullptr);
 		String name;
 #ifdef DEBUG_ENABLED
 		uint32_t debug_references = 0;
 #endif
-		String get_name() const { return cname ? String(cname) : name; }
+		// FIXME Should be utf8, see https://github.com/godotengine/godot/issues/100641.
+		String get_name() const { return cname.c_str ? String::latin1(cname) : name; }
 		bool operator==(const String &p_name) const;
 		bool operator!=(const String &p_name) const;
 		bool operator==(const char *p_name) const;
@@ -98,7 +103,7 @@ class StringName {
 	StringName(_Data *p_data) { _data = p_data; }
 
 public:
-	operator const void *() const { return (_data && (_data->cname || !_data->name.is_empty())) ? (void *)1 : nullptr; }
+	operator const void *() const { return (_data && (_data->cname.c_str || !_data->name.is_empty())) ? (void *)1 : nullptr; }
 
 	bool operator==(const String &p_name) const;
 	bool operator==(const char *p_name) const;
@@ -113,8 +118,8 @@ public:
 		if (!_data) {
 			return false;
 		}
-		if (_data->cname != nullptr) {
-			return (char32_t)_data->cname[0] == (char32_t)UNIQUE_NODE_PREFIX[0];
+		if (_data->cname.c_str != nullptr) {
+			return (char32_t)_data->cname.c_str[0] == (char32_t)UNIQUE_NODE_PREFIX[0];
 		} else {
 			return (char32_t)_data->name[0] == (char32_t)UNIQUE_NODE_PREFIX[0];
 		}
@@ -151,15 +156,7 @@ public:
 	}
 
 	_FORCE_INLINE_ operator String() const {
-		if (_data) {
-			if (_data->cname) {
-				return String(_data->cname);
-			} else {
-				return _data->name;
-			}
-		}
-
-		return String();
+		return _data ? _data->get_name() : String();
 	}
 
 	static StringName search(const char *p_name);
@@ -168,8 +165,8 @@ public:
 
 	struct AlphCompare {
 		_FORCE_INLINE_ bool operator()(const StringName &l, const StringName &r) const {
-			const char *l_cname = l._data ? l._data->cname : "";
-			const char *r_cname = r._data ? r._data->cname : "";
+			const char *l_cname = l._data ? l._data->cname.c_str : "";
+			const char *r_cname = r._data ? r._data->cname.c_str : "";
 
 			if (l_cname) {
 				if (r_cname) {

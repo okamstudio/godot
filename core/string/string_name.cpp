@@ -33,15 +33,9 @@
 #include "core/os/os.h"
 #include "core/string/print_string.h"
 
-StaticCString StaticCString::create(const char *p_ptr) {
-	StaticCString scs;
-	scs.ptr = p_ptr;
-	return scs;
-}
-
 bool StringName::_Data::operator==(const String &p_name) const {
-	if (cname) {
-		return p_name == cname;
+	if (cname.c_str) {
+		return p_name == cname.c_str;
 	} else {
 		return name == p_name;
 	}
@@ -52,8 +46,8 @@ bool StringName::_Data::operator!=(const String &p_name) const {
 }
 
 bool StringName::_Data::operator==(const char *p_name) const {
-	if (cname) {
-		return strcmp(cname, p_name) == 0;
+	if (cname.c_str) {
+		return strcmp(cname.c_str, p_name) == 0;
 	} else {
 		return name == p_name;
 	}
@@ -115,7 +109,8 @@ void StringName::cleanup() {
 				lost_strings++;
 
 				if (OS::get_singleton()->is_stdout_verbose()) {
-					String dname = String(d->cname ? d->cname : d->name);
+					// FIXME Should be utf8, see https://github.com/godotengine/godot/issues/100641.
+					String dname = d->cname.c_str ? String::latin1(d->cname) : d->name;
 
 					print_line(vformat("Orphan StringName: %s (static: %d, total: %d)", dname, d->static_count.get(), d->refcount.get()));
 				}
@@ -138,8 +133,8 @@ void StringName::unref() {
 		MutexLock lock(mutex);
 
 		if (CoreGlobals::leak_reporting_enabled && _data->static_count.get() > 0) {
-			if (_data->cname) {
-				ERR_PRINT("BUG: Unreferenced static string to 0: " + String(_data->cname));
+			if (_data->cname.c_str) {
+				ERR_PRINT("BUG: Unreferenced static string to 0: " + String(_data->cname.c_str));
 			} else {
 				ERR_PRINT("BUG: Unreferenced static string to 0: " + String(_data->name));
 			}
@@ -193,9 +188,9 @@ bool StringName::operator!=(const char *p_name) const {
 
 char32_t StringName::operator[](int p_index) const {
 	if (_data) {
-		if (_data->cname) {
-			CRASH_BAD_INDEX(p_index, static_cast<long>(strlen(_data->cname)));
-			return _data->cname[p_index];
+		if (_data->cname.c_str) {
+			CRASH_BAD_INDEX(p_index, static_cast<long>(_data->cname.len));
+			return _data->cname.c_str[p_index];
 		} else {
 			return _data->name[p_index];
 		}
@@ -207,8 +202,8 @@ char32_t StringName::operator[](int p_index) const {
 
 int StringName::length() const {
 	if (_data) {
-		if (_data->cname) {
-			return strlen(_data->cname);
+		if (_data->cname.c_str) {
+			return _data->cname.len;
 		} else {
 			return _data->name.length();
 		}
@@ -219,8 +214,8 @@ int StringName::length() const {
 
 bool StringName::is_empty() const {
 	if (_data) {
-		if (_data->cname) {
-			return _data->cname[0] == 0;
+		if (_data->cname.c_str) {
+			return _data->cname.len == 0;
 		} else {
 			return _data->name.is_empty();
 		}
@@ -304,7 +299,7 @@ StringName::StringName(const char *p_name, bool p_static) {
 	_data->static_count.set(p_static ? 1 : 0);
 	_data->hash = hash;
 	_data->idx = idx;
-	_data->cname = nullptr;
+	_data->cname = StrRange<char>(nullptr);
 	_data->next = _table[idx];
 	_data->prev = nullptr;
 
@@ -326,11 +321,11 @@ StringName::StringName(const StaticCString &p_static_string, bool p_static) {
 
 	ERR_FAIL_COND(!configured);
 
-	ERR_FAIL_COND(!p_static_string.ptr || !p_static_string.ptr[0]);
+	ERR_FAIL_COND(!p_static_string.str_range.c_str || p_static_string.str_range.c_str[p_static_string.str_range.len] != 0);
 
 	MutexLock lock(mutex);
 
-	uint32_t hash = String::hash(p_static_string.ptr);
+	uint32_t hash = String::hash(p_static_string.str_range.c_str, p_static_string.str_range.len);
 
 	uint32_t idx = hash & STRING_TABLE_MASK;
 
@@ -338,7 +333,7 @@ StringName::StringName(const StaticCString &p_static_string, bool p_static) {
 
 	while (_data) {
 		// compare hash first
-		if (_data->hash == hash && _data->operator==(p_static_string.ptr)) {
+		if (_data->hash == hash && _data->operator==(p_static_string.str_range.c_str)) {
 			break;
 		}
 		_data = _data->next;
@@ -363,7 +358,7 @@ StringName::StringName(const StaticCString &p_static_string, bool p_static) {
 	_data->static_count.set(p_static ? 1 : 0);
 	_data->hash = hash;
 	_data->idx = idx;
-	_data->cname = p_static_string.ptr;
+	_data->cname = p_static_string.str_range;
 	_data->next = _table[idx];
 	_data->prev = nullptr;
 #ifdef DEBUG_ENABLED
@@ -421,7 +416,7 @@ StringName::StringName(const String &p_name, bool p_static) {
 	_data->static_count.set(p_static ? 1 : 0);
 	_data->hash = hash;
 	_data->idx = idx;
-	_data->cname = nullptr;
+	_data->cname = StrRange<char>(nullptr);
 	_data->next = _table[idx];
 	_data->prev = nullptr;
 #ifdef DEBUG_ENABLED

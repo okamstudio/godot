@@ -528,6 +528,11 @@ public:
 	Char16String utf16() const;
 	Error parse_utf16(const char16_t *p_utf16, int p_len = -1, bool p_default_little_endian = true);
 	static String utf16(const char16_t *p_utf16, int p_len = -1);
+	static String latin1(const StrRange<char> &p_range) {
+		String string;
+		string.parse_latin1(p_range);
+		return string;
+	}
 
 	static uint32_t hash(const char32_t *p_cstr, int p_len); /* hash the string */
 	static uint32_t hash(const char32_t *p_cstr); /* hash the string */
