@@ -89,6 +89,11 @@ public:
 	virtual bool _get_read_only_attribute(const String &p_file) override;
 	virtual Error _set_read_only_attribute(const String &p_file, bool p_ro) override;
 
+	virtual PackedByteArray _get_extended_attribute(const String &p_file, const String &p_attribute_name) override;
+	virtual Error _set_extended_attribute(const String &p_file, const String &p_attribute_name, const PackedByteArray &p_data) override;
+	virtual Error _remove_extended_attribute(const String &p_file, const String &p_attribute_name) override;
+	virtual PackedStringArray _get_extended_attributes_list(const String &p_file) override;
+
 	virtual void close() override;
 
 	FileAccessUnix() {}

@@ -165,6 +165,41 @@
 				Returns the last error that happened when trying to perform operations. Compare with the [code]ERR_FILE_*[/code] constants from [enum Error].
 			</description>
 		</method>
+		<method name="get_extended_attribute" qualifiers="static">
+			<return type="PackedByteArray" />
+			<param index="0" name="file" type="String" />
+			<param index="1" name="attribute_name" type="String" />
+			<description>
+				Reads file extended attribute with name [param attribute_name] as byte array.
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
+			</description>
+		</method>
+		<method name="get_extended_attribute_string" qualifiers="static">
+			<return type="String" />
+			<param index="0" name="file" type="String" />
+			<param index="1" name="attribute_name" type="String" />
+			<description>
+				Reads file extended attribute with name [param attribute_name] as UTF-8 encoded string.
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
+			</description>
+		</method>
+		<method name="get_extended_attributes_list" qualifiers="static">
+			<return type="PackedStringArray" />
+			<param index="0" name="file" type="String" />
+			<description>
+				Returns list of file extended attributes.
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
+			</description>
+		</method>
 		<method name="get_file_as_bytes" qualifiers="static">
 			<return type="PackedByteArray" />
 			<param index="0" name="path" type="String" />
@@ -345,6 +380,18 @@
 				Returns [code]null[/code] if opening the file failed. You can use [method get_open_error] to check the error that occurred.
 			</description>
 		</method>
+		<method name="remove_extended_attribute" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="file" type="String" />
+			<param index="1" name="attribute_name" type="String" />
+			<description>
+				Removes file extended attribute with name [param attribute_name].
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
+			</description>
+		</method>
 		<method name="resize">
 			<return type="int" enum="Error" />
 			<param index="0" name="length" type="int" />
@@ -365,6 +412,32 @@
 			<description>
 				Changes the file reading/writing cursor to the specified position (in bytes from the end of the file).
 				[b]Note:[/b] This is an offset, so you should use negative numbers or the cursor will be at the end of the file.
+			</description>
+		</method>
+		<method name="set_extended_attribute" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="file" type="String" />
+			<param index="1" name="attribute_name" type="String" />
+			<param index="2" name="data" type="PackedByteArray" />
+			<description>
+				Writes file extended attribute with name [param attribute_name] as byte array.
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
+			</description>
+		</method>
+		<method name="set_extended_attribute_string" qualifiers="static">
+			<return type="int" enum="Error" />
+			<param index="0" name="file" type="String" />
+			<param index="1" name="attribute_name" type="String" />
+			<param index="2" name="_data" type="String" />
+			<description>
+				Writes file extended attribute with name [param attribute_name] as UTF-8 encoded string.
+				[b]Note:[/b] This method is implemented on Linux, macOS, and Windows.
+				[b]Note:[/b] Extended attributes support depends on file system. Attributes will be lost when the file is moved between incompatible file systems.
+				[b]Note:[/b] On Linux, only "user" namespace attributes are accessible, namespace prefix should not be included.
+				[b]Note:[/b] On Windows, alternate data streams are used to store extended attributes.
 			</description>
 		</method>
 		<method name="set_hidden_attribute" qualifiers="static">
