@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#ifndef _2D_DISABLED
+
 #include "physics_server_2d.h"
 
 #include "core/config/project_settings.h"
@@ -1002,3 +1004,5 @@ PhysicsServer2DManager::PhysicsServer2DManager() {
 PhysicsServer2DManager::~PhysicsServer2DManager() {
 	singleton = nullptr;
 }
+
+#endif // _2D_DISABLED

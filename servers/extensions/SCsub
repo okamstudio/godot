@@ -5,7 +5,8 @@ Import("env")
 
 env_object = env.Clone()
 
-env_object.add_source_files(env.servers_sources, "physics_server_2d_extension.cpp")
+if not env["disable_2d"]:
+    env_object.add_source_files(env.servers_sources, "physics_server_2d_extension.cpp")
 
 if not env["disable_3d"]:
     env_object.add_source_files(env.servers_sources, "physics_server_3d_extension.cpp")

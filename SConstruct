@@ -233,6 +233,7 @@ opts.Add("object_prefix", "Custom prefix added to the base filename of all gener
 opts.Add(BoolVariable("vsproj", "Generate a Visual Studio solution", False))
 opts.Add("vsproj_name", "Name of the Visual Studio solution", "godot")
 opts.Add("import_env_vars", "A comma-separated list of environment variables to copy from the outer environment.", "")
+opts.Add(BoolVariable("disable_2d", "Disable 2D nodes for a smaller executable", False))
 opts.Add(BoolVariable("disable_3d", "Disable 3D nodes for a smaller executable", False))
 opts.Add(BoolVariable("disable_advanced_gui", "Disable advanced GUI nodes and behaviors", False))
 opts.Add("build_profile", "Path to a file containing a feature build profile", "")
@@ -994,6 +995,12 @@ env["SHLIBSUFFIX"] = suffix + env["SHLIBSUFFIX"]
 env["OBJPREFIX"] = env["object_prefix"]
 env["SHOBJPREFIX"] = env["object_prefix"]
 
+if env["disable_2d"]:
+    if env.editor_build:
+        print("Build option 'disable_2d=yes' cannot be used for editor builds, but only for export templates.")
+        Exit(255)
+    else:
+        env.Append(CPPDEFINES=["_2D_DISABLED"])
 if env["disable_3d"]:
     if env.editor_build:
         print_error("Build option `disable_3d=yes` cannot be used for editor builds, only for export template builds.")

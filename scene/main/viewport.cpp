@@ -34,9 +34,11 @@
 #include "core/debugger/engine_debugger.h"
 #include "core/templates/pair.h"
 #include "core/templates/sort_array.h"
+#ifndef _2D_DISABLED
 #include "scene/2d/audio_listener_2d.h"
 #include "scene/2d/camera_2d.h"
 #include "scene/2d/physics/collision_object_2d.h"
+#endif // _2D_DISABLED
 #ifndef _3D_DISABLED
 #include "scene/3d/audio_listener_3d.h"
 #include "scene/3d/camera_3d.h"
@@ -535,7 +537,9 @@ void Viewport::_notification(int p_what) {
 
 			add_to_group("_viewports");
 			if (get_tree()->is_debugging_collisions_hint()) {
+#ifndef _2D_DISABLED
 				PhysicsServer2D::get_singleton()->space_set_debug_contacts(find_world_2d()->get_space(), get_tree()->get_collision_debug_contact_count());
+#endif // _2D_DISABLED
 				contact_2d_debug = RenderingServer::get_singleton()->canvas_item_create();
 				RenderingServer::get_singleton()->canvas_item_set_parent(contact_2d_debug, current_canvas);
 #ifndef _3D_DISABLED
@@ -621,6 +625,7 @@ void Viewport::_notification(int p_what) {
 				RenderingServer::get_singleton()->canvas_item_clear(contact_2d_debug);
 				RenderingServer::get_singleton()->canvas_item_set_draw_index(contact_2d_debug, 0xFFFFF); //very high index
 
+#ifndef _2D_DISABLED
 				Vector<Vector2> points = PhysicsServer2D::get_singleton()->space_get_contacts(find_world_2d()->get_space());
 				int point_count = PhysicsServer2D::get_singleton()->space_get_contact_count(find_world_2d()->get_space());
 				Color ccol = get_tree()->get_debug_collision_contact_color();
@@ -628,6 +633,7 @@ void Viewport::_notification(int p_what) {
 				for (int i = 0; i < point_count; i++) {
 					RenderingServer::get_singleton()->canvas_item_add_rect(contact_2d_debug, Rect2(points[i] - Vector2(2, 2), Vector2(5, 5)), ccol);
 				}
+#endif // _2D_DISABLED
 			}
 #ifndef _3D_DISABLED
 			if (get_tree()->is_debugging_collisions_hint() && contact_3d_debug_multimesh.is_valid()) {
@@ -714,7 +720,9 @@ void Viewport::_process_picking() {
 	PhysicsDirectSpaceState3D::RayResult result;
 #endif // _3D_DISABLED
 
+#ifndef _2D_DISABLED
 	PhysicsDirectSpaceState2D *ss2d = PhysicsServer2D::get_singleton()->space_get_direct_state(find_world_2d()->get_space());
+#endif // _2D_DISABLED
 
 	SubViewportContainer *parent_svc = Object::cast_to<SubViewportContainer>(get_parent());
 	bool parent_ignore_mouse = (parent_svc && parent_svc->get_mouse_filter() == Control::MOUSE_FILTER_IGNORE);
@@ -794,6 +802,9 @@ void Viewport::_process_picking() {
 			pos = st->get_position();
 		}
 
+		// Avoid unused variable warning if 2D and 3D are both disabled.
+		(void)is_mouse;
+#ifndef _2D_DISABLED
 		if (ss2d) {
 			// Send to 2D.
 
@@ -886,6 +897,7 @@ void Viewport::_process_picking() {
 				_cleanup_mouseover_colliders(false, false, frame);
 			}
 		}
+#endif // _2D_DISABLED
 
 #ifndef _3D_DISABLED
 		if (physics_object_picking_first_only && is_input_handled()) {
@@ -2541,7 +2553,9 @@ void Viewport::_drop_mouse_focus() {
 }
 
 void Viewport::_drop_physics_mouseover(bool p_paused_only) {
+#ifndef _2D_DISABLED
 	_cleanup_mouseover_colliders(true, p_paused_only);
+#endif // _2D_DISABLED
 
 #ifndef _3D_DISABLED
 	if (physics_object_over.is_valid()) {
@@ -3995,6 +4009,7 @@ void Viewport::_update_audio_listener_2d() {
 	}
 }
 
+#ifndef _2D_DISABLED
 void Viewport::_audio_listener_2d_set(AudioListener2D *p_audio_listener) {
 	if (audio_listener_2d == p_audio_listener) {
 		return;
@@ -4132,6 +4147,7 @@ void Viewport::assign_next_enabled_camera_2d(const StringName &p_camera_group) {
 		set_canvas_transform(Transform2D());
 	}
 }
+#endif // _2D_DISABLED
 
 #ifndef _3D_DISABLED
 AudioListener3D *Viewport::get_audio_listener_3d() const {
@@ -4860,10 +4876,12 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_process_picking"), &Viewport::_process_picking);
 
+#ifndef _2D_DISABLED
 	ClassDB::bind_method(D_METHOD("set_as_audio_listener_2d", "enable"), &Viewport::set_as_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("is_audio_listener_2d"), &Viewport::is_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("get_audio_listener_2d"), &Viewport::get_audio_listener_2d);
 	ClassDB::bind_method(D_METHOD("get_camera_2d"), &Viewport::get_camera_2d);
+#endif // _2D_DISABLED
 
 #ifndef _3D_DISABLED
 	ClassDB::bind_method(D_METHOD("set_world_3d", "world_3d"), &Viewport::set_world_3d);
@@ -4945,7 +4963,9 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "canvas_item_default_texture_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Linear Mipmap,Nearest Mipmap"), "set_default_canvas_item_texture_filter", "get_default_canvas_item_texture_filter");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "canvas_item_default_texture_repeat", PROPERTY_HINT_ENUM, "Disabled,Enabled,Mirror"), "set_default_canvas_item_texture_repeat", "get_default_canvas_item_texture_repeat");
 	ADD_GROUP("Audio Listener", "audio_listener_");
+#ifndef _2D_DISABLED
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "audio_listener_enable_2d"), "set_as_audio_listener_2d", "is_audio_listener_2d");
+#endif // _2D_DISABLED
 #ifndef _3D_DISABLED
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "audio_listener_enable_3d"), "set_as_audio_listener_3d", "is_audio_listener_3d");
 #endif // _3D_DISABLED

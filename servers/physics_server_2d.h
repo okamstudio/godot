@@ -31,6 +31,8 @@
 #ifndef PHYSICS_SERVER_2D_H
 #define PHYSICS_SERVER_2D_H
 
+#ifndef _2D_DISABLED
+
 #include "core/io/resource.h"
 #include "core/object/class_db.h"
 #include "core/object/ref_counted.h"
@@ -845,5 +847,7 @@ VARIANT_ENUM_CAST(PhysicsServer2D::PinJointFlag);
 VARIANT_ENUM_CAST(PhysicsServer2D::DampedSpringParam);
 VARIANT_ENUM_CAST(PhysicsServer2D::AreaBodyStatus);
 VARIANT_ENUM_CAST(PhysicsServer2D::ProcessInfo);
+
+#endif // _2D_DISABLED
 
 #endif // PHYSICS_SERVER_2D_H

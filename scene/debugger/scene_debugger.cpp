@@ -35,21 +35,25 @@
 #include "core/io/marshalls.h"
 #include "core/object/script_language.h"
 #include "core/templates/local_vector.h"
-#include "scene/2d/physics/collision_object_2d.h"
-#include "scene/2d/physics/collision_polygon_2d.h"
-#include "scene/2d/physics/collision_shape_2d.h"
-#ifndef _3D_DISABLED
-#include "scene/3d/physics/collision_object_3d.h"
-#include "scene/3d/physics/collision_shape_3d.h"
-#include "scene/3d/visual_instance_3d.h"
-#include "scene/resources/surface_tool.h"
-#endif // _3D_DISABLED
 #include "scene/gui/popup_menu.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/scene_tree.h"
 #include "scene/main/window.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/theme/theme_db.h"
+
+#ifndef _2D_DISABLED
+#include "scene/2d/physics/collision_object_2d.h"
+#include "scene/2d/physics/collision_polygon_2d.h"
+#include "scene/2d/physics/collision_shape_2d.h"
+#endif // _2D_DISABLED
+
+#ifndef _3D_DISABLED
+#include "scene/3d/physics/collision_object_3d.h"
+#include "scene/3d/physics/collision_shape_3d.h"
+#include "scene/3d/visual_instance_3d.h"
+#include "scene/resources/surface_tool.h"
+#endif // _3D_DISABLED
 
 SceneDebugger::SceneDebugger() {
 	singleton = this;
@@ -1606,6 +1610,7 @@ void RuntimeNodeSelect::_update_selection() {
 		if (ci->_edit_use_rect()) {
 			rect = ci->_edit_get_rect();
 		} else {
+#ifndef _2D_DISABLED
 			CollisionShape2D *collision_shape = Object::cast_to<CollisionShape2D>(ci);
 			if (collision_shape) {
 				Ref<Shape2D> shape = collision_shape->get_shape();
@@ -1613,6 +1618,7 @@ void RuntimeNodeSelect::_update_selection() {
 					rect = shape->get_rect();
 				}
 			}
+#endif // _2D_DISABLED
 		}
 
 		RS::get_singleton()->canvas_item_set_visible(sbox_2d_ci, selection_visible);
@@ -1799,6 +1805,7 @@ void RuntimeNodeSelect::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_n
 			res.order = ci->get_effective_z_index() + ci->get_canvas_layer();
 			r_items.push_back(res);
 
+#ifndef _2D_DISABLED
 			// If it's a shape, get the collision object it's from.
 			// FIXME: If the collision object has multiple shapes, only the topmost will be above it in the list.
 			if (Object::cast_to<CollisionShape2D>(ci) || Object::cast_to<CollisionPolygon2D>(ci)) {
@@ -1810,6 +1817,7 @@ void RuntimeNodeSelect::_find_canvas_items_at_pos(const Point2 &p_pos, Node *p_n
 					r_items.push_back(res_col);
 				}
 			}
+#endif // _2D_DISABLED
 		}
 	}
 }

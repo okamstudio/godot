@@ -11,9 +11,10 @@ env.add_source_files(env.scene_sources, "*.cpp")
 # Chain load SCsubs
 SConscript("main/SCsub")
 SConscript("gui/SCsub")
+if not env["disable_2d"]:
+    SConscript("2d/SCsub")
 if not env["disable_3d"]:
     SConscript("3d/SCsub")
-SConscript("2d/SCsub")
 SConscript("animation/SCsub")
 SConscript("audio/SCsub")
 SConscript("resources/SCsub")

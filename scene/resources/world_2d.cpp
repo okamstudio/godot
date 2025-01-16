@@ -40,6 +40,7 @@ RID World2D::get_canvas() const {
 	return canvas;
 }
 
+#ifndef _2D_DISABLED
 RID World2D::get_space() const {
 	if (space.is_null()) {
 		space = PhysicsServer2D::get_singleton()->space_create();
@@ -67,18 +68,21 @@ RID World2D::get_navigation_map() const {
 PhysicsDirectSpaceState2D *World2D::get_direct_space_state() {
 	return PhysicsServer2D::get_singleton()->space_get_direct_state(get_space());
 }
+#endif // _2D_DISABLED
 
 void World2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_canvas"), &World2D::get_canvas);
+	ADD_PROPERTY(PropertyInfo(Variant::RID, "canvas", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "", "get_canvas");
+
+#ifndef _2D_DISABLED
 	ClassDB::bind_method(D_METHOD("get_space"), &World2D::get_space);
 	ClassDB::bind_method(D_METHOD("get_navigation_map"), &World2D::get_navigation_map);
-
 	ClassDB::bind_method(D_METHOD("get_direct_space_state"), &World2D::get_direct_space_state);
 
-	ADD_PROPERTY(PropertyInfo(Variant::RID, "canvas", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "", "get_canvas");
 	ADD_PROPERTY(PropertyInfo(Variant::RID, "space", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "", "get_space");
 	ADD_PROPERTY(PropertyInfo(Variant::RID, "navigation_map", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "", "get_navigation_map");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "direct_space_state", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsDirectSpaceState2D", PROPERTY_USAGE_NONE), "", "get_direct_space_state");
+#endif // _2D_DISABLED
 }
 
 void World2D::register_viewport(Viewport *p_viewport) {
@@ -95,13 +99,15 @@ World2D::World2D() {
 
 World2D::~World2D() {
 	ERR_FAIL_NULL(RenderingServer::get_singleton());
+	RenderingServer::get_singleton()->free(canvas);
+#ifndef _2D_DISABLED
 	ERR_FAIL_NULL(PhysicsServer2D::get_singleton());
 	ERR_FAIL_NULL(NavigationServer2D::get_singleton());
-	RenderingServer::get_singleton()->free(canvas);
 	if (space.is_valid()) {
 		PhysicsServer2D::get_singleton()->free(space);
 	}
 	if (navigation_map.is_valid()) {
 		NavigationServer2D::get_singleton()->free(navigation_map);
 	}
+#endif // _2D_DISABLED
 }

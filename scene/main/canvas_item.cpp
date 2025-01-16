@@ -31,7 +31,9 @@
 #include "canvas_item.h"
 #include "canvas_item.compat.inc"
 
+#ifndef _2D_DISABLED
 #include "scene/2d/canvas_group.h"
+#endif // _2D_DISABLED
 #include "scene/main/canvas_layer.h"
 #include "scene/main/window.h"
 #include "scene/resources/atlas_texture.h"
@@ -1614,13 +1616,16 @@ void CanvasItem::set_clip_children_mode(ClipChildrenMode p_clip_mode) {
 	}
 	clip_children_mode = p_clip_mode;
 
+#ifndef _2D_DISABLED
 	if (Object::cast_to<CanvasGroup>(this) != nullptr) {
 		//avoid accidental bugs, make this not work on CanvasGroup
 		return;
 	}
+#endif // _2D_DISABLED
 
 	RS::get_singleton()->canvas_item_set_canvas_group_mode(get_canvas_item(), RS::CanvasGroupMode(clip_children_mode));
 }
+
 CanvasItem::ClipChildrenMode CanvasItem::get_clip_children_mode() const {
 	ERR_READ_THREAD_GUARD_V(CLIP_CHILDREN_DISABLED);
 	return clip_children_mode;

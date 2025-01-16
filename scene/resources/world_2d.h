@@ -32,18 +32,23 @@
 #define WORLD_2D_H
 
 #include "core/io/resource.h"
+#ifndef _2D_DISABLED
 #include "servers/physics_server_2d.h"
+#endif // _2D_DISABLED
 
 class VisibleOnScreenNotifier2D;
 class Viewport;
 struct SpatialIndexer2D;
 
+// World2D is needed for Viewport for CanvasItem rendering even when 2D is disabled.
 class World2D : public Resource {
 	GDCLASS(World2D, Resource);
 
 	RID canvas;
+#ifndef _2D_DISABLED
 	mutable RID space;
 	mutable RID navigation_map;
+#endif // _2D_DISABLED
 
 	HashSet<Viewport *> viewports;
 
@@ -53,10 +58,12 @@ protected:
 
 public:
 	RID get_canvas() const;
+#ifndef _2D_DISABLED
 	RID get_space() const;
 	RID get_navigation_map() const;
 
 	PhysicsDirectSpaceState2D *get_direct_space_state();
+#endif // _2D_DISABLED
 
 	void register_viewport(Viewport *p_viewport);
 	void remove_viewport(Viewport *p_viewport);
