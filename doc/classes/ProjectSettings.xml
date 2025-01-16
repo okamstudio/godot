@@ -340,6 +340,10 @@
 			Forces a [i]constant[/i] delay between frames in the main loop (in milliseconds). In most situations, [member application/run/max_fps] should be preferred as an FPS limiter as it's more precise.
 			This setting can be overridden using the [code]--frame-delay &lt;ms;&gt;[/code] command line argument.
 		</member>
+		<member name="application/run/load_shell_environment" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], loads the default shell and copies environment variables set by the shell startup scripts to the app environment.
+			[b]Note:[/b] This setting is implemented on macOS for non-sandboxed applications only.
+		</member>
 		<member name="application/run/low_processor_mode" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables low-processor usage mode. When enabled, the engine takes longer to redraw, but only redraws the screen if necessary. This may lower power consumption, and is intended for editors or mobile applications. For most games, because the screen needs to be redrawn every frame, it is recommended to keep this setting disabled.
 		</member>

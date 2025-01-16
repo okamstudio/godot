@@ -204,6 +204,7 @@ public:
 	virtual String get_environment(const String &p_var) const = 0;
 	virtual void set_environment(const String &p_var, const String &p_value) const = 0;
 	virtual void unset_environment(const String &p_var) const = 0;
+	virtual void load_shell_environment() const {}
 
 	virtual String get_name() const = 0;
 	virtual String get_identifier() const;

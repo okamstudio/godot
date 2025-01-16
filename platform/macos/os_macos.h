@@ -79,6 +79,8 @@ public:
 	virtual void set_cmdline_platform_args(const List<String> &p_args);
 	virtual List<String> get_cmdline_platform_args() const override;
 
+	virtual void load_shell_environment() const override;
+
 	virtual String get_name() const override;
 	virtual String get_distribution_name() const override;
 	virtual String get_version() const override;
