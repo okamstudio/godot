@@ -66,6 +66,7 @@ class StringName {
 		bool operator!=(const char *p_name) const;
 
 		int idx = 0;
+		uint32_t hash_mixed = 0;
 		uint32_t hash = 0;
 		_Data *prev = nullptr;
 		_Data *next = nullptr;
@@ -146,6 +147,16 @@ public:
 			return get_empty_hash();
 		}
 	}
+
+	// Used by HashMapHasherDefault. Don`t use it as seed to create other hash.
+	_FORCE_INLINE_ uint32_t hash_mixed() const {
+		if (unlikely(_data == nullptr)) {
+			return get_empty_hash();
+		}
+
+		return _data->hash_mixed;
+	}
+
 	_FORCE_INLINE_ const void *data_unique_pointer() const {
 		return (void *)_data;
 	}

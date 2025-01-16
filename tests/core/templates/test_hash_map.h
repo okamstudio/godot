@@ -31,6 +31,7 @@
 #ifndef TEST_HASH_MAP_H
 #define TEST_HASH_MAP_H
 
+#include "core/string/ustring.h"
 #include "core/templates/hash_map.h"
 
 #include "tests/test_macros.h"
@@ -146,6 +147,140 @@ TEST_CASE("[HashMap] Const iteration") {
 		++idx;
 	}
 }
+
+TEST_CASE("[HashMap] Replace key") {
+	HashMap<int, int> map;
+	map.insert(42, 84);
+	map.insert(0, 12934);
+	CHECK(map.replace_key(0, 1));
+	CHECK(map.has(1));
+	CHECK(map[1] == 12934);
+}
+
+TEST_CASE("[HashMap] Clear") {
+	HashMap<int, int> map;
+	map.insert(42, 84);
+	map.insert(123, 12385);
+	map.insert(0, 12934);
+
+	map.clear();
+	CHECK(!map.has(42));
+	CHECK(map.size() == 0);
+	CHECK(map.is_empty());
+}
+
+TEST_CASE("[HashMap] Get") {
+	HashMap<int, int> map;
+	map.insert(42, 84);
+	map.insert(123, 12385);
+	map.insert(0, 12934);
+
+	CHECK(map.get(123) == 12385);
+	map.get(123) = 10;
+	CHECK(map.get(123) == 10);
+
+	CHECK(*map.getptr(0) == 12934);
+	*map.getptr(0) = 1;
+	CHECK(*map.getptr(0) == 1);
+
+	CHECK(map.get(42) == 84);
+	CHECK(map.getptr(-10) == nullptr);
+}
+
+TEST_CASE("[HashMap] Insert, iterate and remove many elements") {
+	const int elem_max = 1234;
+	HashMap<int, int> map;
+	for (int i = 0; i < elem_max; i++) {
+		map.insert(i, i);
+	}
+
+	//insert order should have been kept
+	int idx = 0;
+	for (auto &K : map) {
+		CHECK(idx == K.key);
+		CHECK(idx == K.value);
+		CHECK(map.has(idx));
+		idx++;
+	}
+
+	Vector<int> elems_still_valid;
+
+	for (int i = 0; i < elem_max; i++) {
+		if ((i % 5) == 0) {
+			map.erase(i);
+		} else {
+			elems_still_valid.push_back(i);
+		}
+	}
+
+	CHECK(elems_still_valid.size() == map.size());
+
+	for (int i = 0; i < elems_still_valid.size(); i++) {
+		CHECK(map.has(elems_still_valid[i]));
+	}
+}
+
+TEST_CASE("[HashMap] Insert, iterate and remove many strings") {
+	const int elem_max = 432;
+	HashMap<String, String> map;
+	for (int i = 0; i < elem_max; i++) {
+		map.insert(itos(i), itos(i));
+	}
+
+	//insert order should have been kept
+	int idx = 0;
+	for (auto &K : map) {
+		CHECK(itos(idx) == K.key);
+		CHECK(itos(idx) == K.value);
+		CHECK(map.has(itos(idx)));
+		idx++;
+	}
+
+	Vector<String> elems_still_valid;
+
+	for (int i = 0; i < elem_max; i++) {
+		if ((i % 5) == 0) {
+			map.erase(itos(i));
+		} else {
+			elems_still_valid.push_back(itos(i));
+		}
+	}
+
+	CHECK(elems_still_valid.size() == map.size());
+
+	for (int i = 0; i < elems_still_valid.size(); i++) {
+		CHECK(map.has(elems_still_valid[i]));
+	}
+
+	elems_still_valid.clear();
+}
+
+TEST_CASE("[HashMap] Copy constructor") {
+	HashMap<int, int> map0;
+	const uint32_t count = 5;
+	for (uint32_t i = 0; i < count; i++) {
+		map0.insert(i, i);
+	}
+	HashMap<int, int> map1(map0);
+	CHECK(map0.size() == map1.size());
+	CHECK(map0.get_capacity() == map1.get_capacity());
+	CHECK(*map0.getptr(0) == *map1.getptr(0));
+}
+
+TEST_CASE("[HashMap] Operator =") {
+	HashMap<int, int> map0;
+	HashMap<int, int> map1;
+	const uint32_t count = 5;
+	map1.insert(1234, 1234);
+	for (uint32_t i = 0; i < count; i++) {
+		map0.insert(i, i);
+	}
+	map1 = map0;
+	CHECK(map0.size() == map1.size());
+	CHECK(map0.get_capacity() == map1.get_capacity());
+	CHECK(*map0.getptr(0) == *map1.getptr(0));
+}
+
 } // namespace TestHashMap
 
 #endif // TEST_HASH_MAP_H

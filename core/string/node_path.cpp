@@ -30,23 +30,30 @@
 
 #include "node_path.h"
 
+#include "core/templates/hashfuncs.h"
 #include "core/variant/variant.h"
 
 void NodePath::_update_hash_cache() const {
 	uint32_t h = data->absolute ? 1 : 0;
 	int pc = data->path.size();
 	const StringName *sn = data->path.ptr();
+	uint32_t hash_mixed = h;
 	for (int i = 0; i < pc; i++) {
-		h = h ^ sn[i].hash();
+		uint32_t string_hash = sn[i].hash();
+		h = h ^ string_hash;
+		hash_mixed = hash_djb2_one_32(string_hash, hash_mixed); // Don't change to murmur3 because StringName uses djb2!
 	}
 	int spc = data->subpath.size();
 	const StringName *ssn = data->subpath.ptr();
 	for (int i = 0; i < spc; i++) {
-		h = h ^ ssn[i].hash();
+		uint32_t string_hash = ssn[i].hash();
+		h = h ^ string_hash;
+		hash_mixed = hash_djb2_one_32(string_hash, hash_mixed);
 	}
 
 	data->hash_cache_valid = true;
 	data->hash_cache = h;
+	data->hash_mixed_cache = hash_fmix32(hash_mixed);
 }
 
 void NodePath::prepend_period() {
