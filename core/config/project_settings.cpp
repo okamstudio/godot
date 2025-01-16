@@ -534,6 +534,36 @@ void ProjectSettings::_convert_to_last_version(int p_from_version) {
 #endif // DISABLE_DEPRECATED
 }
 
+bool ProjectSettings::_attempt_load_from_separate_pack(const String &p_exec_path) {
+	String exec_dir = p_exec_path.get_base_dir();
+	String exec_filename = p_exec_path.get_file();
+	while (true) {
+#ifdef MACOS_ENABLED
+		// Attempt to load PCK from macOS .app bundle resources.
+		if (_load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_filename + ".pck"))) {
+			return true;
+		}
+#endif
+		// Attempt to load data pack at the location of the executable.
+		if (_load_resource_pack(exec_dir.path_join(exec_filename + ".pck"))) {
+			return true;
+		}
+		// Lastly, attempt to load the PCK from the current working directory.
+		if (_load_resource_pack(exec_filename + ".pck")) {
+			return true;
+		}
+		if (exec_filename.contains(".")) {
+			// If we still haven't found the PCK, and there is an
+			// extension to strip, we strip and try again.
+			exec_filename = exec_filename.get_basename();
+		} else {
+			// If we still haven't found the PCK, and there are no
+			// more extensions to strip, we give up.
+			return false;
+		}
+	}
+}
+
 /*
  * This method is responsible for loading a project.godot file and/or data file
  * using the following merit order:
@@ -593,34 +623,9 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 		// Attempt with PCK bundled into executable.
 		bool found = _load_resource_pack(exec_path);
 
-		// Attempt with exec_name.pck.
-		// (This is the usual case when distributing a Godot game.)
-		String exec_dir = exec_path.get_base_dir();
-		String exec_filename = exec_path.get_file();
-		String exec_basename = exec_filename.get_basename();
-
-		// Based on the OS, it can be the exec path + '.pck' (Linux w/o extension, macOS in .app bundle)
-		// or the exec path's basename + '.pck' (Windows).
-		// We need to test both possibilities as extensions for Linux binaries are optional
-		// (so both 'mygame.bin' and 'mygame' should be able to find 'mygame.pck').
-
-#ifdef MACOS_ENABLED
+		// Attempt to load from a separate PCK (the more usual case).
 		if (!found) {
-			// Attempt to load PCK from macOS .app bundle resources.
-			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_basename + ".pck")) || _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_filename + ".pck"));
-		}
-#endif
-
-		if (!found) {
-			// Try to load data pack at the location of the executable.
-			// As mentioned above, we have two potential names to attempt.
-			found = _load_resource_pack(exec_dir.path_join(exec_basename + ".pck")) || _load_resource_pack(exec_dir.path_join(exec_filename + ".pck"));
-		}
-
-		if (!found) {
-			// If we couldn't find them next to the executable, we attempt
-			// the current working directory. Same story, two tests.
-			found = _load_resource_pack(exec_basename + ".pck") || _load_resource_pack(exec_filename + ".pck");
+			found = _attempt_load_from_separate_pack(exec_path);
 		}
 
 		// If we opened our package, try and load our project.

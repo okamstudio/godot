@@ -139,6 +139,7 @@ protected:
 
 	void _add_property_info_bind(const Dictionary &p_info);
 
+	bool _attempt_load_from_separate_pack(const String &p_exec_path);
 	Error _setup(const String &p_path, const String &p_main_pack, bool p_upwards = false, bool p_ignore_override = false);
 
 	void _add_builtin_input_map();
