@@ -202,7 +202,8 @@ Error EditorExportPlatform::_load_patches(const Vector<String> &p_patches) {
 	Error err = OK;
 	if (!p_patches.is_empty()) {
 		for (const String &path : p_patches) {
-			err = PackedData::get_singleton()->add_pack(path, true, 0);
+			PackedByteArray empty;
+			err = PackedData::get_singleton()->add_pack(path, true, 0, empty);
 			if (err != OK) {
 				add_message(EXPORT_MESSAGE_ERROR, TTR("Patch Creation"), vformat(TTR("Could not load patch pack with path \"%s\"."), path));
 				return err;

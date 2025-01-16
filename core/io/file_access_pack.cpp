@@ -35,9 +35,9 @@
 #include "core/os/os.h"
 #include "core/version.h"
 
-Error PackedData::add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) {
+Error PackedData::add_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const PackedByteArray &key) {
 	for (int i = 0; i < sources.size(); i++) {
-		if (sources[i]->try_open_pack(p_path, p_replace_files, p_offset)) {
+		if (sources[i]->try_open_pack(p_path, p_replace_files, p_offset, &key)) {
 			return OK;
 		}
 	}
@@ -187,7 +187,7 @@ PackedData::~PackedData() {
 
 //////////////////////////////////////////////////////////////////
 
-bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) {
+bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset, const PackedByteArray *key) {
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
 	if (f.is_null()) {
 		return false;
@@ -288,13 +288,16 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files, 
 		fae.instantiate();
 		ERR_FAIL_COND_V_MSG(fae.is_null(), false, "Can't open encrypted pack directory.");
 
-		Vector<uint8_t> key;
-		key.resize(32);
-		for (int i = 0; i < key.size(); i++) {
-			key.write[i] = script_encryption_key[i];
+		Vector<uint8_t> ikey;
+		if (!key || key->is_empty()) {
+			ikey.resize(32);
+			for (int i = 0; i < ikey.size(); i++) {
+				ikey.write[i] = script_encryption_key[i];
+			}
+			key = &ikey;
 		}
 
-		Error err = fae->open_and_parse(f, key, FileAccessEncrypted::MODE_READ, false);
+		Error err = fae->open_and_parse(f, *key, FileAccessEncrypted::MODE_READ, false);
 		ERR_FAIL_COND_V_MSG(err, false, "Can't open encrypted pack directory.");
 		f = fae;
 	}

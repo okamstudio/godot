@@ -136,6 +136,7 @@ protected:
 	void _convert_to_last_version(int p_from_version);
 
 	bool _load_resource_pack(const String &p_pack, bool p_replace_files = true, int p_offset = 0);
+	bool _load_resource_pack_encrypted(const String &p_pack, const PackedByteArray &p_key, bool p_replace_files = true, int p_offset = 0);
 
 	void _add_property_info_bind(const Dictionary &p_info);
 

@@ -473,11 +473,15 @@ void ProjectSettings::_emit_changed() {
 }
 
 bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset) {
+	return _load_resource_pack_encrypted(p_pack, PackedByteArray(), p_replace_files, p_offset);
+}
+
+bool ProjectSettings::_load_resource_pack_encrypted(const String &p_pack, const PackedByteArray &p_key, bool p_replace_files, int p_offset) {
 	if (PackedData::get_singleton()->is_disabled()) {
 		return false;
 	}
 
-	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset) == OK;
+	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset, p_key) == OK;
 
 	if (!ok) {
 		return false;
@@ -1419,6 +1423,7 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("globalize_path", "path"), &ProjectSettings::globalize_path);
 	ClassDB::bind_method(D_METHOD("save"), &ProjectSettings::save);
 	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::_load_resource_pack, DEFVAL(true), DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("load_resource_pack_encrypted", "pack", "key", "replace_files", "offset"), &ProjectSettings::_load_resource_pack_encrypted, DEFVAL(true), DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("save_custom", "file"), &ProjectSettings::_save_custom_bnd);
 
