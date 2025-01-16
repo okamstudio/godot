@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  sort_effects.h                                                        */
+/*  test_span.h                                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,41 +28,36 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SORT_EFFECTS_RD_H
-#define SORT_EFFECTS_RD_H
+#ifndef TEST_SPAN_H
+#define TEST_SPAN_H
 
-#include "servers/rendering/renderer_rd/shader_rd.h"
-#include "servers/rendering/renderer_rd/shaders/effects/sort.glsl.gen.h"
+#include "core/templates/span.h"
 
-namespace RendererRD {
+#include "tests/test_macros.h"
 
-class SortEffects {
-private:
-	enum SortMode {
-		SORT_MODE_BLOCK,
-		SORT_MODE_STEP,
-		SORT_MODE_INNER,
-		SORT_MODE_MAX
-	};
+namespace TestSpan {
 
-	struct PushConstant {
-		uint32_t total_elements;
-		uint32_t pad[3];
-		int32_t job_params[4];
-	};
+TEST_CASE("[Span] Constexpr Validators") {
+	constexpr Span<uint16_t> span_empty;
+	static_assert(span_empty.ptr() == nullptr);
+	static_assert(span_empty.size() == 0);
+	static_assert(span_empty.is_empty());
 
-	SortShaderRD shader;
-	RID shader_version;
-	RID pipelines[SORT_MODE_MAX];
+	constexpr static uint16_t value = 5;
+	constexpr Span<uint16_t> span_value(&value, 1);
+	static_assert(span_value.ptr() == &value);
+	static_assert(span_value.size() == 1);
+	static_assert(!span_value.is_empty());
 
-protected:
-public:
-	SortEffects();
-	~SortEffects();
+	constexpr static char32_t array[] = U"122345";
+	constexpr Span<char32_t> span_array(array, strlen(array));
+	static_assert(span_array.ptr() == &array[0]);
+	static_assert(span_array.size() == 6);
+	static_assert(!span_array.is_empty());
+	static_assert(span_array[0] == U'1');
+	static_assert(span_array[span_array.size() - 1] == U'5');
+}
 
-	void sort_buffer(RID p_uniform_set, int p_size);
-};
+} // namespace TestSpan
 
-} // namespace RendererRD
-
-#endif // SORT_EFFECTS_RD_H
+#endif // TEST_SPAN_H

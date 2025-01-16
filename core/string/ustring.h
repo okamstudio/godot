@@ -99,30 +99,6 @@ constexpr size_t _strlen_clipped(const char32_t *p_str, int p_clip_to_len) {
 }
 
 /*************************************************************************/
-/*  StrRange                                                             */
-/*************************************************************************/
-
-template <typename Element>
-struct StrRange {
-	const Element *c_str;
-	size_t len;
-
-	explicit StrRange(const std::nullptr_t p_cstring) :
-			c_str(nullptr), len(0) {}
-
-	explicit StrRange(const Element *p_cstring, const size_t p_len) :
-			c_str(p_cstring), len(p_len) {}
-
-	template <size_t len>
-	explicit StrRange(const Element (&p_cstring)[len]) :
-			c_str(p_cstring), len(strlen(p_cstring)) {}
-
-	static StrRange from_c_str(const Element *p_cstring) {
-		return StrRange(p_cstring, p_cstring ? strlen(p_cstring) : 0);
-	}
-};
-
-/*************************************************************************/
 /*  CharProxy                                                            */
 /*************************************************************************/
 
@@ -178,6 +154,10 @@ public:
 	_FORCE_INLINE_ char16_t *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char16_t *ptr() const { return _cowdata.ptr(); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
+
+	_FORCE_INLINE_ operator Span<char16_t>() const { return Span(ptr(), length()); }
+	_FORCE_INLINE_ Span<char16_t> span() const { return Span(ptr(), length()); }
+
 	Error resize(int p_size) { return _cowdata.resize(p_size); }
 
 	_FORCE_INLINE_ char16_t get(int p_index) const { return _cowdata.get(p_index); }
@@ -205,7 +185,6 @@ public:
 	int length() const { return size() ? size() - 1 : 0; }
 	const char16_t *get_data() const;
 	operator const char16_t *() const { return get_data(); }
-	explicit operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char16_t *p_cstr);
@@ -223,6 +202,10 @@ public:
 	_FORCE_INLINE_ char *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char *ptr() const { return _cowdata.ptr(); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
+
+	_FORCE_INLINE_ operator Span<char>() const { return Span(ptr(), length()); }
+	_FORCE_INLINE_ Span<char> span() const { return Span(ptr(), length()); }
+
 	Error resize(int p_size) { return _cowdata.resize(p_size); }
 
 	_FORCE_INLINE_ char get(int p_index) const { return _cowdata.get(p_index); }
@@ -251,7 +234,6 @@ public:
 	int length() const { return size() ? size() - 1 : 0; }
 	const char *get_data() const;
 	operator const char *() const { return get_data(); }
-	explicit operator StrRange<char>() const { return StrRange(get_data(), length()); }
 
 protected:
 	void copy_from(const char *p_cstr);
@@ -267,33 +249,33 @@ class String {
 	static const char32_t _replacement_char;
 
 	// Known-length copy.
-	void parse_latin1(const StrRange<char> &p_cstr);
-	void parse_utf32(const StrRange<char32_t> &p_cstr);
+	void parse_latin1(const Span<char> &p_cstr);
+	void parse_utf32(const Span<char32_t> &p_cstr);
 	void parse_utf32(const char32_t &p_char);
 	void copy_from_unchecked(const char32_t *p_char, int p_length);
 
 	// NULL-terminated c string copy - automatically parse the string to find the length.
 	void parse_latin1(const char *p_cstr) {
-		parse_latin1(StrRange<char>::from_c_str(p_cstr));
+		parse_latin1(Span(p_cstr, p_cstr ? strlen(p_cstr) : 0));
 	}
 	void parse_latin1(const char *p_cstr, int p_clip_to) {
-		parse_latin1(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+		parse_latin1(Span(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
 	}
 	void parse_utf32(const char32_t *p_cstr) {
-		parse_utf32(StrRange<char32_t>::from_c_str(p_cstr));
+		parse_utf32(Span(p_cstr, p_cstr ? strlen(p_cstr) : 0));
 	}
 	void parse_utf32(const char32_t *p_cstr, int p_clip_to) {
-		parse_utf32(StrRange(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
+		parse_utf32(Span(p_cstr, p_cstr ? _strlen_clipped(p_cstr, p_clip_to) : 0));
 	}
 
 	// wchar_t copy_from depends on the platform.
-	void parse_wstring(const StrRange<wchar_t> &p_cstr) {
+	void parse_wstring(const Span<wchar_t> &p_cstr) {
 #ifdef WINDOWS_ENABLED
 		// wchar_t is 16-bit, parse as UTF-16
-		parse_utf16((const char16_t *)p_cstr.c_str, p_cstr.len);
+		parse_utf16((const char16_t *)p_cstr.ptr(), p_cstr.size());
 #else
 		// wchar_t is 32-bit, copy directly
-		parse_utf32((StrRange<char32_t> &)p_cstr);
+		parse_utf32((Span<char32_t> &)p_cstr);
 #endif
 	}
 	void parse_wstring(const wchar_t *p_cstr) {
@@ -327,6 +309,10 @@ public:
 
 	_FORCE_INLINE_ char32_t *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char32_t *ptr() const { return _cowdata.ptr(); }
+	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
+
+	_FORCE_INLINE_ operator Span<char32_t>() const { return Span(ptr(), length()); }
+	_FORCE_INLINE_ Span<char32_t> span() const { return Span(ptr(), length()); }
 
 	void remove_at(int p_index) { _cowdata.remove_at(p_index); }
 
@@ -334,7 +320,6 @@ public:
 
 	_FORCE_INLINE_ char32_t get(int p_index) const { return _cowdata.get(p_index); }
 	_FORCE_INLINE_ void set(int p_index, const char32_t &p_elem) { _cowdata.set(p_index, p_elem); }
-	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
 	Error resize(int p_size) { return _cowdata.resize(p_size); }
 
 	_FORCE_INLINE_ const char32_t &operator[](int p_index) const {
@@ -362,7 +347,7 @@ public:
 	bool operator==(const char *p_str) const;
 	bool operator==(const wchar_t *p_str) const;
 	bool operator==(const char32_t *p_str) const;
-	bool operator==(const StrRange<char32_t> &p_str_range) const;
+	bool operator==(const Span<char32_t> &p_str_range) const;
 
 	bool operator!=(const char *p_str) const;
 	bool operator!=(const wchar_t *p_str) const;
@@ -641,8 +626,6 @@ public:
 	void operator=(const char32_t *p_cstr) {
 		parse_utf32(p_cstr);
 	}
-
-	explicit operator StrRange<char32_t>() const { return StrRange(get_data(), length()); }
 };
 
 bool operator==(const char *p_chr, const String &p_str);

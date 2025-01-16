@@ -299,16 +299,16 @@ Error String::parse_url(String &r_scheme, String &r_host, int &r_port, String &r
 	return OK;
 }
 
-void String::parse_latin1(const StrRange<char> &p_cstr) {
-	if (p_cstr.len == 0) {
+void String::parse_latin1(const Span<char> &p_cstr) {
+	if (p_cstr.size() == 0) {
 		resize(0);
 		return;
 	}
 
-	resize(p_cstr.len + 1); // include 0
+	resize(p_cstr.size() + 1); // include 0
 
-	const char *src = p_cstr.c_str;
-	const char *end = src + p_cstr.len;
+	const char *src = p_cstr.ptr();
+	const char *end = src + p_cstr.size();
 	char32_t *dst = ptrw();
 
 	for (; src < end; ++src, ++dst) {
@@ -318,13 +318,13 @@ void String::parse_latin1(const StrRange<char> &p_cstr) {
 	*dst = 0;
 }
 
-void String::parse_utf32(const StrRange<char32_t> &p_cstr) {
-	if (p_cstr.len == 0) {
+void String::parse_utf32(const Span<char32_t> &p_cstr) {
+	if (p_cstr.size() == 0) {
 		resize(0);
 		return;
 	}
 
-	copy_from_unchecked(p_cstr.c_str, p_cstr.len);
+	copy_from_unchecked(p_cstr.ptr(), p_cstr.size());
 }
 
 void String::parse_utf32(const char32_t &p_char) {
@@ -564,8 +564,8 @@ bool String::operator==(const String &p_str) const {
 	return memcmp(ptr(), p_str.ptr(), length() * sizeof(char32_t)) == 0;
 }
 
-bool String::operator==(const StrRange<char32_t> &p_str_range) const {
-	const int len = p_str_range.len;
+bool String::operator==(const Span<char32_t> &p_str_range) const {
+	const int len = p_str_range.size();
 
 	if (length() != len) {
 		return false;
@@ -574,7 +574,7 @@ bool String::operator==(const StrRange<char32_t> &p_str_range) const {
 		return true;
 	}
 
-	return memcmp(ptr(), p_str_range.c_str, len * sizeof(char32_t)) == 0;
+	return memcmp(ptr(), p_str_range.ptr(), len * sizeof(char32_t)) == 0;
 }
 
 bool operator==(const char *p_chr, const String &p_str) {
