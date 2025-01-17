@@ -1484,10 +1484,14 @@ void EditorNode::save_resource_as(const Ref<Resource> &p_resource, const String 
 
 void EditorNode::ensure_uid_file(const String &p_new_resource_path) {
 	if (ResourceLoader::exists(p_new_resource_path) && !ResourceLoader::has_custom_uid_support(p_new_resource_path) && !FileAccess::exists(p_new_resource_path + ".uid")) {
-		Ref<FileAccess> f = FileAccess::open(p_new_resource_path + ".uid", FileAccess::WRITE);
-		if (f.is_valid()) {
-			const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
-			f->store_line(ResourceUID::get_singleton()->id_to_text(id));
+		bool generate_uid_files = GLOBAL_GET("editor/resource/generate_uid_files");
+		bool generate_uid_files_for_addons = GLOBAL_GET("editor/resource/generate_uid_files_for_addons");
+		if (generate_uid_files && (generate_uid_files_for_addons || !p_new_resource_path.begins_with("res://addons/"))) {
+			Ref<FileAccess> f = FileAccess::open(p_new_resource_path + ".uid", FileAccess::WRITE);
+			if (f.is_valid()) {
+				const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
+				f->store_line(ResourceUID::get_singleton()->id_to_text(id));
+			}
 		}
 	}
 }

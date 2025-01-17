@@ -300,6 +300,9 @@ void register_editor_types() {
 	EditorHelp::init_gdext_pointers();
 
 	OS::get_singleton()->benchmark_end_measure("Editor", "Register Types");
+
+	GLOBAL_DEF("editor/resource/generate_uid_files", true);
+	GLOBAL_DEF("editor/resource/generate_uid_files_for_addons", false);
 }
 
 void unregister_editor_types() {

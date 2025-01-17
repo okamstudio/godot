@@ -1009,6 +1009,12 @@
 		<member name="editor/naming/script_name_casing" type="int" setter="" getter="" default="0">
 			When generating script file names from the selected node, set the type of casing to use in this project. This is mostly an editor setting.
 		</member>
+		<member name="editor/resource/generate_uid_files" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], editor will generate ".uid" files for resources which have not custom uid support.
+		</member>
+		<member name="editor/resource/generate_uid_files_for_addons" type="bool" setter="" getter="" default="false">
+			If [code]false[/code], editor will not generate ".uid" files for resources which local in "res://addons".
+		</member>
 		<member name="editor/run/main_run_args" type="String" setter="" getter="" default="&quot;&quot;">
 			The command-line arguments to append to Godot's own command line when running the project. This doesn't affect the editor itself.
 			It is possible to make another executable run Godot by using the [code]%command%[/code] placeholder. The placeholder will be replaced with Godot's own command line. Program-specific arguments should be placed [i]before[/i] the placeholder, whereas Godot-specific arguments should be placed [i]after[/i] the placeholder.
