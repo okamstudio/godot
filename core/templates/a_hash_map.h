@@ -118,14 +118,14 @@ private:
 	}
 
 	bool _lookup_pos(const TKey &p_key, uint32_t &r_pos, uint32_t &r_hash_pos) const {
-		if (unlikely(elements == nullptr)) {
+		if (unlikely(hashes.ptr == nullptr)) {
 			return false; // Failed lookups, no elements.
 		}
 		return _lookup_pos_with_hash(p_key, r_pos, r_hash_pos, _hash(p_key));
 	}
 
 	bool _lookup_pos_with_hash(const TKey &p_key, uint32_t &r_pos, uint32_t &r_hash_pos, uint32_t p_hash) const {
-		if (unlikely(elements == nullptr)) {
+		if (unlikely(hashes.ptr == nullptr)) {
 			return false; // Failed lookups, no elements.
 		}
 		bool found = hashes.lookup_pos_with_hash(this, p_key, p_hash, capacity, r_hash_pos);
@@ -231,7 +231,7 @@ public:
 	}
 
 	void clear() {
-		if (elements == nullptr || num_elements == 0) {
+		if (hashes.ptr == nullptr || num_elements == 0) {
 			return;
 		}
 
@@ -338,15 +338,21 @@ public:
 	}
 
 	// Reserves space for a number of elements, useful to avoid many resizes and rehashes.
-	// If adding a known (possibly large) number of elements at once, must be larger than old capacity.
+	// If adding a known (possibly large) number of elements at once.
 	void reserve(uint32_t p_new_capacity) {
-		ERR_FAIL_COND_MSG(p_new_capacity < get_capacity(), "It is impossible to reserve less capacity than is currently available.");
-		if (elements == nullptr) {
-			capacity = MAX(4u, p_new_capacity);
-			capacity = next_power_of_2(capacity) - 1;
-			return; // Unallocated yet.
+		if (elements_capacity < p_new_capacity) {
+			elements_capacity = p_new_capacity;
+			elements = reinterpret_cast<MapKeyValue *>(Memory::realloc_static(elements, sizeof(MapKeyValue) * elements_capacity));
 		}
-		_resize_and_rehash(p_new_capacity);
+
+		if (get_capacity() < p_new_capacity) {
+			if (hashes.ptr == nullptr) {
+				capacity = MAX(4u, p_new_capacity);
+				capacity = next_power_of_2(capacity) - 1;
+				return; // Unallocated yet.
+			}
+			_resize_and_rehash(p_new_capacity);
+		}
 	}
 
 	/** Iterator API **/
