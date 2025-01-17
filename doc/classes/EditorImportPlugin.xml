@@ -230,14 +230,12 @@
 			</description>
 		</method>
 		<method name="_import" qualifiers="virtual const">
-			<return type="int" enum="Error" />
+			<return type="Dictionary" />
 			<param index="0" name="source_file" type="String" />
 			<param index="1" name="save_path" type="String" />
 			<param index="2" name="options" type="Dictionary" />
-			<param index="3" name="platform_variants" type="String[]" />
-			<param index="4" name="gen_files" type="String[]" />
 			<description>
-				Imports [param source_file] into [param save_path] with the import [param options] specified. The [param platform_variants] and [param gen_files] arrays will be modified by this function.
+				Imports [param source_file] into [param save_path] with the import [param options] specified.
 				This method must be overridden to do the actual importing work. See this class' description for an example of overriding this method.
 			</description>
 		</method>

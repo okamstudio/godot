@@ -309,3 +309,15 @@ Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/meth
 
 This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
 So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.
+
+
+GH-92175
+--------
+Validate extension JSON: Error: Field 'classes/EditorImportPlugin/methods/_import/arguments': size changed value in new API, from 5 to 3.
+Validate extension JSON: Error: Field 'classes/EditorImportPlugin/methods/_import/return_value': type changed value in new API, from "enum::Error" to "Dictionary".
+Validate extension JSON: Error: Field 'classes/EditorResourcePreviewGenerator/methods/_generate/arguments': size changed value in new API, from 3 to 2.
+Validate extension JSON: Error: Field 'classes/EditorResourcePreviewGenerator/methods/_generate/return_value': type changed value in new API, from "Texture2D" to "Dictionary".
+Validate extension JSON: Error: Field 'classes/EditorResourcePreviewGenerator/methods/_generate_from_path/arguments': size changed value in new API, from 3 to 2.
+Validate extension JSON: Error: Field 'classes/EditorResourcePreviewGenerator/methods/_generate_from_path/return_value': type changed value in new API, from "Texture2D" to "Dictionary".
+
+Return values were passed in constant reference arguments. Changed to using a return Dictionary. Compatibility methods registered.
