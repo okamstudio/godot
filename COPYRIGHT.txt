@@ -55,6 +55,11 @@ Comment: Godot Engine logo
 Copyright: 2017, Andrea Calabró
 License: CC-BY-4.0
 
+Files: ./editor/icons/DefaultProjectIcon.svg
+Comment: Default Project Icon
+Copyright: 2017, Andrea Calabró
+License: public-domain or CC0-1.0 or CC-BY-4.0
+
 Files: ./core/math/convex_hull.cpp
  ./core/math/convex_hull.h
 Comment: Bullet Continuous Collision Detection and Physics Library
