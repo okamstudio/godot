@@ -38,7 +38,7 @@ void PackedSceneEditorTranslationParserPlugin::get_recognized_extensions(List<St
 	ResourceLoader::get_recognized_extensions_for_type("PackedScene", r_extensions);
 }
 
-Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path, Vector<String> *r_ids, Vector<Vector<String>> *r_ids_ctx_plural) {
+Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path, Vector<String> *r_ids, Vector<String> *r_ctxts, Vector<String> *r_ids_plural, Vector<String> *r_comments) {
 	// Parse specific scene Node's properties (see in constructor) that are auto-translated by the engine when set. E.g Label's text property.
 	// These properties are translated with the tr() function in the C++ code when being set or updated.
 
@@ -53,8 +53,12 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 	Ref<SceneState> state = packed_scene->get_state();
 
 	Vector<String> parsed_strings;
+	Vector<String> parsed_contexts;
+	Vector<String> parsed_plural_strings;
+	Vector<String> parsed_comments;
 	Vector<Pair<NodePath, bool>> atr_owners;
 	Vector<String> tabcontainer_paths;
+
 	for (int i = 0; i < state->get_node_count(); i++) {
 		String node_type = state->get_node_type(i);
 		String parent_path = state->get_node_path(i, true);
@@ -151,11 +155,25 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 
 				String extension = s->get_language()->get_extension();
 				if (EditorTranslationParser::get_singleton()->can_parse(extension)) {
-					Vector<String> temp;
-					Vector<Vector<String>> ids_context_plural;
-					EditorTranslationParser::get_singleton()->get_parser(extension)->parse_file(s->get_path(), &temp, &ids_context_plural);
-					parsed_strings.append_array(temp);
-					r_ids_ctx_plural->append_array(ids_context_plural);
+					Vector<String> tmp_strings;
+					Vector<String> tmp_contexts;
+					Vector<String> tmp_plural_strings;
+					Vector<String> tmp_comments;
+					EditorTranslationParser::get_singleton()->get_parser(extension)->parse_file(s->get_path(), &tmp_strings, &tmp_contexts, &tmp_plural_strings, &tmp_comments);
+					// If we have any other info, expand their data to fit.
+					if (tmp_contexts.size()) {
+						parsed_contexts.resize(parsed_strings.size());
+						parsed_contexts.append_array(tmp_contexts);
+					}
+					if (tmp_plural_strings.size()) {
+						parsed_plural_strings.resize(parsed_strings.size());
+						parsed_plural_strings.append_array(tmp_plural_strings);
+					}
+					if (tmp_comments.size()) {
+						parsed_comments.resize(parsed_strings.size());
+						parsed_comments.append_array(tmp_comments);
+					}
+					parsed_strings.append_array(tmp_strings);
 				}
 			} else if (node_type == "FileDialog" && property_name == "filters") {
 				// Extract FileDialog's filters property with values in format "*.png ; PNG Images","*.gd ; GDScript Files".
@@ -177,6 +195,9 @@ Error PackedSceneEditorTranslationParserPlugin::parse_file(const String &p_path,
 	}
 
 	r_ids->append_array(parsed_strings);
+	r_ctxts->append_array(parsed_contexts);
+	r_ids_plural->append_array(parsed_plural_strings);
+	r_comments->append_array(parsed_comments);
 
 	return OK;
 }
