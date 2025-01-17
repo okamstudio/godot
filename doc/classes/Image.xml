@@ -376,6 +376,13 @@
 				Loads an image from the binary contents of a PNG file.
 			</description>
 		</method>
+		<method name="load_qoi_from_buffer">
+			<return type="int" enum="Error" />
+			<param index="0" name="buffer" type="PackedByteArray" />
+			<description>
+				Loads an image from the binary contents of a [url=https://qoiformat.org/]QOI[/url] file.
+			</description>
+		</method>
 		<method name="load_svg_from_buffer">
 			<return type="int" enum="Error" />
 			<param index="0" name="buffer" type="PackedByteArray" />
@@ -503,6 +510,19 @@
 			<return type="PackedByteArray" />
 			<description>
 				Saves the image as a PNG file to a byte array.
+			</description>
+		</method>
+		<method name="save_qoi" qualifiers="const">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Saves the image as a [url=https://qoiformat.org/]QOI[/url] file to the file at [param path].
+			</description>
+		</method>
+		<method name="save_qoi_to_buffer" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Saves the image as a [url=https://qoiformat.org/]QOI[/url] file to a byte array.
 			</description>
 		</method>
 		<method name="save_webp" qualifiers="const">

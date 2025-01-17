@@ -45,10 +45,12 @@ class Image;
 // Function pointer prototypes.
 
 typedef Error (*SavePNGFunc)(const String &p_path, const Ref<Image> &p_img);
+typedef Error (*SaveQOIFunc)(const String &p_path, const Ref<Image> &p_img);
 typedef Vector<uint8_t> (*SavePNGBufferFunc)(const Ref<Image> &p_img);
 
 typedef Error (*SaveJPGFunc)(const String &p_path, const Ref<Image> &p_img, float p_quality);
 typedef Vector<uint8_t> (*SaveJPGBufferFunc)(const Ref<Image> &p_img, float p_quality);
+typedef Vector<uint8_t> (*SaveQOIBufferFunc)(const Ref<Image> &p_img);
 
 typedef Ref<Image> (*ImageMemLoadFunc)(const uint8_t *p_png, int p_size);
 typedef Ref<Image> (*ScalableImageMemLoadFunc)(const uint8_t *p_data, int p_size, float p_scale);
@@ -186,10 +188,13 @@ public:
 	static SaveJPGFunc save_jpg_func;
 	static SaveEXRFunc save_exr_func;
 	static SaveWebPFunc save_webp_func;
+	static SaveQOIFunc save_qoi_func;
+
 	static SavePNGBufferFunc save_png_buffer_func;
 	static SaveEXRBufferFunc save_exr_buffer_func;
 	static SaveJPGBufferFunc save_jpg_buffer_func;
 	static SaveWebPBufferFunc save_webp_buffer_func;
+	static SaveQOIBufferFunc save_qoi_buffer_func;
 
 	// External loader function pointers.
 
@@ -199,6 +204,7 @@ public:
 	static ImageMemLoadFunc _webp_mem_loader_func;
 	static ImageMemLoadFunc _tga_mem_loader_func;
 	static ImageMemLoadFunc _bmp_mem_loader_func;
+	static ImageMemLoadFunc _qoi_mem_loader_func;
 	static ScalableImageMemLoadFunc _svg_scalable_mem_loader_func;
 	static ImageMemLoadFunc _ktx_mem_loader_func;
 
@@ -333,8 +339,10 @@ public:
 	Error load(const String &p_path);
 	static Ref<Image> load_from_file(const String &p_path);
 	Error save_png(const String &p_path) const;
+	Error save_qoi(const String &p_path) const;
 	Error save_jpg(const String &p_path, float p_quality = 0.75) const;
 	Vector<uint8_t> save_png_to_buffer() const;
+	Vector<uint8_t> save_qoi_to_buffer() const;
 	Vector<uint8_t> save_jpg_to_buffer(float p_quality = 0.75) const;
 	Vector<uint8_t> save_exr_to_buffer(bool p_grayscale = false) const;
 	Error save_exr(const String &p_path, bool p_grayscale = false) const;
@@ -403,6 +411,7 @@ public:
 	Error load_tga_from_buffer(const Vector<uint8_t> &p_array);
 	Error load_bmp_from_buffer(const Vector<uint8_t> &p_array);
 	Error load_ktx_from_buffer(const Vector<uint8_t> &p_array);
+	Error load_qoi_from_buffer(const Vector<uint8_t> &p_array);
 
 	Error load_svg_from_buffer(const Vector<uint8_t> &p_array, float scale = 1.0);
 	Error load_svg_from_string(const String &p_svg_str, float scale = 1.0);

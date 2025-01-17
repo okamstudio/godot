@@ -41,10 +41,12 @@ AudioServer::SpeakerMode MovieWriterPNGWAV::get_audio_speaker_mode() const {
 
 void MovieWriterPNGWAV::get_supported_extensions(List<String> *r_extensions) const {
 	r_extensions->push_back("png");
+	r_extensions->push_back("qoi");
 }
 
 bool MovieWriterPNGWAV::handles_file(const String &p_path) const {
-	return p_path.get_extension().to_lower() == "png";
+	const String ext = p_path.get_extension().to_lower();
+	return ext == "png" || ext == "qoi";
 }
 
 String MovieWriterPNGWAV::zeros_str(uint32_t p_index) {
@@ -58,6 +60,10 @@ String MovieWriterPNGWAV::zeros_str(uint32_t p_index) {
 	return zeros;
 }
 
+String MovieWriterPNGWAV::file_suffix() {
+	return image_format == PNG ? "png" : "qoi";
+}
+
 Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps, const String &p_base_path) {
 	// Quick & Dirty PNGWAV Code based on - https://docs.microsoft.com/en-us/windows/win32/directshow/avi-riff-file-reference
 
@@ -66,6 +72,7 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 		base_path = "res://" + base_path;
 	}
 
+	image_format = p_base_path.get_extension() == "qoi" ? QOI : PNG;
 	{
 		//Remove existing files before writing anew
 		uint32_t idx = 0;
@@ -73,8 +80,9 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 		ERR_FAIL_COND_V(d.is_null(), FAILED);
 
 		String file = base_path.get_file();
+
 		while (true) {
-			String path = file + zeros_str(idx) + ".png";
+			String path = file + zeros_str(idx) + "." + file_suffix();
 			if (d->remove(path) != OK) {
 				break;
 			}
@@ -142,9 +150,9 @@ Error MovieWriterPNGWAV::write_begin(const Size2i &p_movie_size, uint32_t p_fps,
 Error MovieWriterPNGWAV::write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) {
 	ERR_FAIL_COND_V(f_wav.is_null(), ERR_UNCONFIGURED);
 
-	Vector<uint8_t> png_buffer = p_image->save_png_to_buffer();
+	Vector<uint8_t> png_buffer = image_format == PNG ? p_image->save_png_to_buffer() : p_image->save_qoi_to_buffer();
 
-	Ref<FileAccess> fi = FileAccess::open(base_path + zeros_str(frame_count) + ".png", FileAccess::WRITE);
+	Ref<FileAccess> fi = FileAccess::open(base_path + zeros_str(frame_count) + "." + file_suffix(), FileAccess::WRITE);
 	fi->store_buffer(png_buffer.ptr(), png_buffer.size());
 	f_wav->store_buffer((const uint8_t *)p_audio_data, audio_block_size);
 

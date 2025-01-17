@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  movie_writer_pngwav.h                                                 */
+/*  resource_saver_qoi.h                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,51 +28,22 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MOVIE_WRITER_PNGWAV_H
-#define MOVIE_WRITER_PNGWAV_H
+#ifndef RESOURCE_SAVER_QOI_H
+#define RESOURCE_SAVER_QOI_H
 
-#include "servers/movie_writer/movie_writer.h"
+#include "core/io/image.h"
+#include "core/io/resource_saver.h"
 
-class MovieWriterPNGWAV : public MovieWriter {
-	GDCLASS(MovieWriterPNGWAV, MovieWriter)
-
-	enum {
-		MAX_TRAILING_ZEROS = 8 // more than 10 days at 60fps, no hard drive can put up with this anyway :)
-	};
-
-	enum ImageFormat {
-		PNG = 0,
-		QOI = 1,
-	};
-
-	uint32_t mix_rate = 48000;
-	AudioServer::SpeakerMode speaker_mode = AudioServer::SPEAKER_MODE_STEREO;
-	String base_path;
-	uint32_t frame_count = 0;
-	uint32_t fps = 0;
-
-	uint32_t audio_block_size = 0;
-
-	Ref<FileAccess> f_wav;
-	uint32_t wav_data_size_pos = 0;
-	ImageFormat image_format = PNG;
-
-	String zeros_str(uint32_t p_index);
-	String file_suffix();
-
-protected:
-	virtual uint32_t get_audio_mix_rate() const override;
-	virtual AudioServer::SpeakerMode get_audio_speaker_mode() const override;
-	virtual void get_supported_extensions(List<String> *r_extensions) const override;
-
-	virtual Error write_begin(const Size2i &p_movie_size, uint32_t p_fps, const String &p_base_path) override;
-	virtual Error write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) override;
-	virtual void write_end() override;
-
-	virtual bool handles_file(const String &p_path) const override;
-
+class ResourceSaverQOI : public ResourceFormatSaver {
 public:
-	MovieWriterPNGWAV();
+	static Vector<uint8_t> save_image_to_buffer(const Ref<Image> &p_img);
+	static Error save_image(const String &p_path, const Ref<Image> &p_img);
+
+	virtual Error save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags = 0) override;
+	virtual bool recognize(const Ref<Resource> &p_resource) const override;
+	virtual void get_recognized_extensions(const Ref<Resource> &p_resource, List<String> *p_extensions) const override;
+
+	ResourceSaverQOI();
 };
 
-#endif // MOVIE_WRITER_PNGWAV_H
+#endif // RESOURCE_SAVER_QOI_H
