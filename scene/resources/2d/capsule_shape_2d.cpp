@@ -38,7 +38,7 @@ Vector<Vector2> CapsuleShape2D::_get_points() const {
 	Vector<Vector2> points;
 	const real_t turn_step = Math_TAU / 24.0;
 	for (int i = 0; i < 24; i++) {
-		Vector2 ofs = Vector2(0, (i > 6 && i <= 18) ? -height * 0.5 + radius : height * 0.5 - radius);
+		Vector2 ofs = Vector2(0, (i > 6 && i <= 18) ? -height * 0.5f + radius : height * 0.5f - radius);
 
 		points.push_back(Vector2(Math::sin(i * turn_step), Math::cos(i * turn_step)) * radius + ofs);
 		if (i == 6 || i == 18) {
@@ -59,10 +59,10 @@ void CapsuleShape2D::_update_shape() {
 }
 
 void CapsuleShape2D::set_radius(real_t p_radius) {
-	ERR_FAIL_COND_MSG(p_radius < 0, "CapsuleShape2D radius cannot be negative.");
+	ERR_FAIL_COND_MSG(p_radius < 0.0f, "CapsuleShape2D radius cannot be negative.");
 	radius = p_radius;
-	if (radius > height * 0.5) {
-		height = radius * 2.0;
+	if (height < radius * 2.0f) {
+		height = radius * 2.0f;
 	}
 	_update_shape();
 }
@@ -72,16 +72,26 @@ real_t CapsuleShape2D::get_radius() const {
 }
 
 void CapsuleShape2D::set_height(real_t p_height) {
-	ERR_FAIL_COND_MSG(p_height < 0, "CapsuleShape2D height cannot be negative.");
+	ERR_FAIL_COND_MSG(p_height < 0.0f, "CapsuleShape2D height cannot be negative.");
 	height = p_height;
-	if (radius > height * 0.5) {
-		radius = height * 0.5;
+	if (radius > height * 0.5f) {
+		radius = height * 0.5f;
 	}
 	_update_shape();
 }
 
 real_t CapsuleShape2D::get_height() const {
 	return height;
+}
+
+void CapsuleShape2D::set_mid_height(real_t p_mid_height) {
+	ERR_FAIL_COND_MSG(p_mid_height < 0.0f, "CapsuleShape2D mid-height cannot be negative.");
+	height = p_mid_height + radius * 2.0f;
+	_update_shape();
+}
+
+real_t CapsuleShape2D::get_mid_height() const {
+	return height - radius * 2.0f;
 }
 
 void CapsuleShape2D::draw(const RID &p_to_rid, const Color &p_color) {
@@ -91,18 +101,18 @@ void CapsuleShape2D::draw(const RID &p_to_rid, const Color &p_color) {
 
 	if (is_collision_outline_enabled()) {
 		points.push_back(points[0]);
-		col = { Color(p_color, 1.0) };
+		col = { Color(p_color, 1.0f) };
 		RenderingServer::get_singleton()->canvas_item_add_polyline(p_to_rid, points, col);
 	}
 }
 
 Rect2 CapsuleShape2D::get_rect() const {
-	const Vector2 half_size = Vector2(radius, height * 0.5);
-	return Rect2(-half_size, half_size * 2.0);
+	const Vector2 half_size = Vector2(radius, height * 0.5f);
+	return Rect2(-half_size, half_size * 2.0f);
 }
 
 real_t CapsuleShape2D::get_enclosing_radius() const {
-	return height * 0.5;
+	return height * 0.5f;
 }
 
 void CapsuleShape2D::_bind_methods() {
@@ -112,8 +122,12 @@ void CapsuleShape2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_height", "height"), &CapsuleShape2D::set_height);
 	ClassDB::bind_method(D_METHOD("get_height"), &CapsuleShape2D::get_height);
 
+	ClassDB::bind_method(D_METHOD("set_mid_height", "mid_height"), &CapsuleShape2D::set_mid_height);
+	ClassDB::bind_method(D_METHOD("get_mid_height"), &CapsuleShape2D::get_mid_height);
+
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "radius", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:px"), "set_radius", "get_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "height", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:px"), "set_height", "get_height");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "mid_height", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:px", PROPERTY_USAGE_NONE), "set_mid_height", "get_mid_height");
 	ADD_LINKED_PROPERTY("radius", "height");
 	ADD_LINKED_PROPERTY("height", "radius");
 }

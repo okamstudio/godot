@@ -12,7 +12,10 @@
 	</tutorials>
 	<members>
 		<member name="height" type="float" setter="set_height" getter="get_height" default="2.0">
-			The capsule's height.
+			The capsule's full height, including the hemispheres.
+		</member>
+		<member name="mid_height" type="float" setter="set_mid_height" getter="get_mid_height">
+			The capsule's height, excluding the hemispheres. This is the height of the central cylindrical part in the middle of the capsule, and is the distance between the centers of the two hemispheres. This is a wrapper for [member height].
 		</member>
 		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.5">
 			The capsule's radius.

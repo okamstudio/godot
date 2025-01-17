@@ -39,7 +39,7 @@ Vector<Vector3> CapsuleShape3D::get_debug_mesh_lines() const {
 
 	Vector<Vector3> points;
 
-	Vector3 d(0, c_height * 0.5 - c_radius, 0);
+	Vector3 d(0, c_height * 0.5f - c_radius, 0);
 	for (int i = 0; i < 360; i++) {
 		float ra = Math::deg_to_rad((float)i);
 		float rb = Math::deg_to_rad((float)i + 1);
@@ -87,7 +87,7 @@ Ref<ArrayMesh> CapsuleShape3D::get_debug_arraymesh_faces(const Color &p_modulate
 }
 
 real_t CapsuleShape3D::get_enclosing_radius() const {
-	return height * 0.5;
+	return height * 0.5f;
 }
 
 void CapsuleShape3D::_update_shape() {
@@ -99,10 +99,10 @@ void CapsuleShape3D::_update_shape() {
 }
 
 void CapsuleShape3D::set_radius(float p_radius) {
-	ERR_FAIL_COND_MSG(p_radius < 0, "CapsuleShape3D radius cannot be negative.");
+	ERR_FAIL_COND_MSG(p_radius < 0.0f, "CapsuleShape3D radius cannot be negative.");
 	radius = p_radius;
-	if (radius > height * 0.5) {
-		height = radius * 2.0;
+	if (height < radius * 2.0f) {
+		height = radius * 2.0f;
 	}
 	_update_shape();
 	emit_changed();
@@ -113,10 +113,10 @@ float CapsuleShape3D::get_radius() const {
 }
 
 void CapsuleShape3D::set_height(float p_height) {
-	ERR_FAIL_COND_MSG(p_height < 0, "CapsuleShape3D height cannot be negative.");
+	ERR_FAIL_COND_MSG(p_height < 0.0f, "CapsuleShape3D height cannot be negative.");
 	height = p_height;
-	if (radius > height * 0.5) {
-		radius = height * 0.5;
+	if (radius > height * 0.5f) {
+		radius = height * 0.5f;
 	}
 	_update_shape();
 	emit_changed();
@@ -126,14 +126,28 @@ float CapsuleShape3D::get_height() const {
 	return height;
 }
 
+void CapsuleShape3D::set_mid_height(real_t p_mid_height) {
+	ERR_FAIL_COND_MSG(p_mid_height < 0.0f, "CapsuleShape3D mid-height cannot be negative.");
+	height = p_mid_height + radius * 2.0f;
+	_update_shape();
+	emit_changed();
+}
+
+real_t CapsuleShape3D::get_mid_height() const {
+	return height - radius * 2.0f;
+}
+
 void CapsuleShape3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_radius", "radius"), &CapsuleShape3D::set_radius);
 	ClassDB::bind_method(D_METHOD("get_radius"), &CapsuleShape3D::get_radius);
 	ClassDB::bind_method(D_METHOD("set_height", "height"), &CapsuleShape3D::set_height);
 	ClassDB::bind_method(D_METHOD("get_height"), &CapsuleShape3D::get_height);
+	ClassDB::bind_method(D_METHOD("set_mid_height", "mid_height"), &CapsuleShape3D::set_mid_height);
+	ClassDB::bind_method(D_METHOD("get_mid_height"), &CapsuleShape3D::get_mid_height);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "radius", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater,suffix:m"), "set_radius", "get_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "height", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater,suffix:m"), "set_height", "get_height");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "mid_height", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater,suffix:m", PROPERTY_USAGE_NONE), "set_mid_height", "get_mid_height");
 	ADD_LINKED_PROPERTY("radius", "height");
 	ADD_LINKED_PROPERTY("height", "radius");
 }
