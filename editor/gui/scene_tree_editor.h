@@ -89,6 +89,7 @@ class SceneTreeEditor : public Control {
 		NodeCache(SceneTreeEditor *p_editor) :
 				editor(p_editor) {}
 
+		HashMap<Node *, CachedNode>::Iterator add(Node *p_node);
 		HashMap<Node *, CachedNode>::Iterator add(Node *p_node, TreeItem *p_item);
 		HashMap<Node *, CachedNode>::Iterator get(Node *p_node, bool p_deleted_ok = true);
 		void remove(Node *p_node, bool p_recursive = false);

@@ -295,7 +295,9 @@ void SceneTreeEditor::_update_node_path(Node *p_node, bool p_recursive) {
 		return;
 	}
 
-	I->value.item->set_metadata(0, p_node->get_path());
+	if (I->value.item) {
+		I->value.item->set_metadata(0, p_node->get_path());
+	}
 
 	if (!p_recursive) {
 		return;
@@ -321,15 +323,15 @@ void SceneTreeEditor::_update_node_subtree(Node *p_node, TreeItem *p_parent, boo
 	if (!display_foreign && p_node->get_owner() != get_scene_node() && p_node != get_scene_node()) {
 		if ((show_enabled_subscene || can_open_instance) && p_node->get_owner() && (get_scene_node()->is_editable_instance(p_node->get_owner()) || (p_node->has_meta(META_EXPOSED_IN_INSTANCE) && p_node->has_meta(META_EXPOSED_IN_OWNER)))) {
 			part_of_subscene = true;
-			//allow
+			// Allow.
 		} else if (p_node->has_exposed_nodes()) {
+			node_cache.add(p_node);
 			for (int i = 0; i < p_node->get_child_count(); i++) {
 				if (!get_scene_node()->is_editable_instance(p_node->get_child(i)->get_owner()) || p_node->get_child(i)->has_meta(META_EXPOSED_IN_INSTANCE)) {
 					_update_node_subtree(p_node->get_child(i), p_parent);
 				}
 			}
 			return;
-			// Allow.
 		} else {
 			// Stale node, remove recursively.
 			node_cache.remove(p_node, true);
@@ -372,13 +374,8 @@ void SceneTreeEditor::_update_node_subtree(Node *p_node, TreeItem *p_parent, boo
 			}
 		} else {
 			index = p_node->get_index(false);
-			// Shift the exposed nodes based on how many siblings already exist to maintain exposed node order.
-			if (!p_node->get_owner()->is_editable_instance(p_node) && p_node->has_meta(META_EXPOSED_IN_OWNER)) {
-				index = p_parent->get_child_count() + index;
-			}
 			item = tree->create_item(p_parent, index);
 		}
-
 		I = node_cache.add(p_node, item);
 		I->value.index = index;
 		is_new = true;
@@ -504,9 +501,7 @@ void SceneTreeEditor::_update_node(Node *p_node, TreeItem *p_item, bool p_part_o
 			_set_item_custom_color(p_item, accent);
 		}
 	} else if (p_part_of_subscene) {
-		if (valid_types.size() == 0) {
-			_set_item_custom_color(p_item, get_theme_color(SNAME("warning_color"), EditorStringName(Editor)));
-		}
+		_set_item_custom_color(p_item, get_theme_color(SNAME("warning_color"), EditorStringName(Editor)));
 	} else if (marked.has(p_node)) {
 		String node_name = p_node->get_name();
 		if (connecting_signal) {
@@ -844,16 +839,17 @@ void SceneTreeEditor::_move_node_item(TreeItem *p_parent, HashMap<Node *, Cached
 	int current_node_index = node->get_index(false);
 	int current_item_index = -1;
 	TreeItem *item = p_I->value.item;
-
-	if (item->get_parent() != p_parent) {
-		TreeItem *p = item->get_parent();
-		if (p) {
-			item->get_parent()->remove_child(item);
+	if (p_I->value.item) {
+		if (item->get_parent() != p_parent) {
+			TreeItem *p = item->get_parent();
+			if (p) {
+				item->get_parent()->remove_child(item);
+			}
+			p_parent->add_child(item);
+			p_I->value.removed = false;
+			current_item_index = p_parent->get_child_count() - 1;
+			p_I->value.index = current_item_index;
 		}
-		p_parent->add_child(item);
-		p_I->value.removed = false;
-		current_item_index = p_parent->get_child_count() - 1;
-		p_I->value.index = current_item_index;
 	}
 
 	if (p_I->value.index != current_node_index) {
@@ -867,15 +863,16 @@ void SceneTreeEditor::_move_node_item(TreeItem *p_parent, HashMap<Node *, Cached
 			p_I->value.index = current_node_index;
 			return;
 		}
-
-		// Are we the first node?
-		if (current_node_index == 0) {
-			// There has to be at least 1 other node, otherwise we would not have gotten here.
-			TreeItem *neighbor_item = p_parent->get_child(0);
-			item->move_before(neighbor_item);
-		} else {
-			TreeItem *neighbor_item = p_parent->get_child(CLAMP(current_node_index - 1, 0, p_parent->get_child_count() - 1));
-			item->move_after(neighbor_item);
+		if (item) {
+			// Are we the first node?
+			if (current_node_index == 0) {
+				// There has to be at least 1 other node, otherwise we would not have gotten here.
+				TreeItem *neighbor_item = p_parent->get_child(0);
+				item->move_before(neighbor_item);
+			} else {
+				TreeItem *neighbor_item = p_parent->get_child(CLAMP(current_node_index - 1, 0, p_parent->get_child_count() - 1));
+				item->move_after(neighbor_item);
+			}
 		}
 
 		p_I->value.index = current_node_index;
@@ -1447,7 +1444,7 @@ void SceneTreeEditor::set_selected(Node *p_node, bool p_emit_selected) {
 	}
 
 	if (tree_dirty) {
-		_update_tree();
+		_update_tree(); //
 	}
 
 	if (selected == p_node) {
@@ -2415,7 +2412,13 @@ SceneTreeDialog::~SceneTreeDialog() {
 }
 
 /******** CACHE *********/
+HashMap<Node *, SceneTreeEditor::CachedNode>::Iterator SceneTreeEditor::NodeCache::add(Node *p_node) {
+	if (!p_node) {
+		return HashMap<Node *, CachedNode>::Iterator();
+	}
 
+	return cache.insert(p_node, CachedNode(p_node, nullptr));
+}
 HashMap<Node *, SceneTreeEditor::CachedNode>::Iterator SceneTreeEditor::NodeCache::add(Node *p_node, TreeItem *p_item) {
 	if (!p_node) {
 		return HashMap<Node *, CachedNode>::Iterator();
