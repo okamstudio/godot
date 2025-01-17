@@ -266,6 +266,7 @@ opts.Add(BoolVariable("builtin_harfbuzz", "Use the built-in HarfBuzz library", T
 opts.Add(BoolVariable("builtin_icu4c", "Use the built-in ICU library", True))
 opts.Add(BoolVariable("builtin_libogg", "Use the built-in libogg library", True))
 opts.Add(BoolVariable("builtin_libpng", "Use the built-in libpng library", True))
+opts.Add(BoolVariable("builtin_libsamplerate", "Use the built-in libsamplerate library", True))
 opts.Add(BoolVariable("builtin_libtheora", "Use the built-in libtheora library", True))
 opts.Add(BoolVariable("builtin_libvorbis", "Use the built-in libvorbis library", True))
 opts.Add(BoolVariable("builtin_libwebp", "Use the built-in libwebp library", True))

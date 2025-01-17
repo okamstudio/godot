@@ -33,6 +33,10 @@
 #include "core/io/file_access_memory.h"
 #include "core/io/marshalls.h"
 
+#ifdef TOOLS_ENABLED
+#include <samplerate.h>
+#endif
+
 const float TRIM_DB_LIMIT = -50;
 const int TRIM_FADE_OUT_FRAMES = 500;
 
@@ -955,23 +959,26 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	print_line("\tloop end: " + itos(loop_end));
 	*/
 
-	//apply frequency limit
+	// Apply sample rate conversion
 
 	bool limit_rate = p_options["force/max_rate"];
 	int limit_rate_hz = p_options["force/max_rate_hz"];
 	if (limit_rate && rate > limit_rate_hz && rate > 0 && frames > 0) {
-		// resample!
-		int new_data_frames = (int)(frames * (float)limit_rate_hz / (float)rate);
+		double ratio = (double)limit_rate_hz / rate;
+		int new_data_frames = (int)(ratio * frames);
 
 		Vector<float> new_data;
 		new_data.resize(new_data_frames * format_channels);
+
+#ifdef TOOLS_ENABLED // libsamplerate's Sinc resampler, medium quality.
+		SRC_DATA src_data = { data.ptr(), new_data.ptrw(), frames, new_data_frames, 0, 0, 1, ratio };
+		src_simple(&src_data, SRC_SINC_MEDIUM_QUALITY, format_channels);
+#else // Cubic hermite spline interpolation.
 		for (int c = 0; c < format_channels; c++) {
 			float frac = 0.0;
 			int ipos = 0;
 
 			for (int i = 0; i < new_data_frames; i++) {
-				// Cubic interpolation should be enough.
-
 				float y0 = data[MAX(0, ipos - 1) * format_channels + c];
 				float y1 = data[ipos * format_channels + c];
 				float y2 = data[MIN(frames - 1, ipos + 1) * format_channels + c];
@@ -988,6 +995,7 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 				frac -= tpos;
 			}
 		}
+#endif
 
 		if (loop_mode) {
 			loop_begin = (int)(loop_begin * (float)new_data_frames / (float)frames);

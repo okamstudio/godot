@@ -254,6 +254,9 @@ def configure(env: "SConsEnvironment"):
     # Sound and video libraries
     # Keep the order as it triggers chained dependencies (ogg needed by others, etc.)
 
+    if not env["builtin_libsamplerate"]:
+        env.ParseConfig("pkg-config samplerate --cflags --libs")
+
     if not env["builtin_libtheora"]:
         env["builtin_libogg"] = False  # Needed to link against system libtheora
         env["builtin_libvorbis"] = False  # Needed to link against system libtheora

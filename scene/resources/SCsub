@@ -15,6 +15,38 @@ thirdparty_sources = [
 
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
+if env.editor_build:
+    if env["builtin_libsamplerate"]:
+        thirdparty_libsamplerate_dir = "#thirdparty/libsamplerate/"
+        thirdparty_libsamplerate_src = thirdparty_libsamplerate_dir + "src/"
+        thirdparty_libsamplerate_sources = [
+            "samplerate.c",
+            "src_linear.c",
+            "src_sinc.c",
+            "src_zoh.c",
+        ]
+
+        thirdparty_libsamplerate_sources = [
+            thirdparty_libsamplerate_src + file
+            for file in thirdparty_libsamplerate_sources
+        ]
+
+        env.Prepend(CPPPATH=[thirdparty_libsamplerate_dir + "include/"])
+
+        env_libsamplerate = env.Clone()
+        env_libsamplerate.Prepend(
+            CPPDEFINES=[
+                "ENABLE_SINC_MEDIUM_CONVERTER",
+                "HAVE_STDBOOL_H",
+                # These last two are irrelevant for the engine, but required for compiling.
+                ("PACKAGE", f'\\"\\"'),
+                ("VERSION", f'\\"\\"'),
+            ]
+        )
+        env_libsamplerate.add_source_files(
+            thirdparty_obj, thirdparty_libsamplerate_sources
+        )
+
 env_thirdparty = env.Clone()
 env_thirdparty.disable_warnings()
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)

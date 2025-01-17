@@ -524,6 +524,20 @@ Files extracted from upstream source:
 - `LICENSE`
 
 
+## libsamplerate
+
+- Upstream: https://libsndfile.github.io/libsamplerate/
+- Version: 0.2.2 (c96f5e3de9c4488f4e6c97f59f5245f22fda22f7, 2024)
+- License: BSD-2-Clause
+
+Files extracted from upstream source:
+
+- `include/`
+- `src/*.c`
+- `src/common.h` and `src/mid_qual_coeffs.h`
+- `COPYING`
+
+
 ## libtheora
 
 - Upstream: https://www.theora.org

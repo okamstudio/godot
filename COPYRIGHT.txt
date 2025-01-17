@@ -341,6 +341,11 @@ Copyright: 1995-2025, The PNG Reference Library Authors.
  1995-1996, Guy Eric Schalnat, Group 42, Inc.
 License: Zlib
 
+Files: ./thirdparty/libsamplerate/
+Comment: libsamplerate
+Copyright: 2012-2016, Erik de Castro Lopo.
+License: BSD-2-clause
+
 Files: ./thirdparty/libtheora/
 Comment: OggTheora
 Copyright: 2002-2009, Xiph.org Foundation
