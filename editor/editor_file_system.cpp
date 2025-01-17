@@ -1275,7 +1275,7 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 				}
 			}
 
-			if (ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
+			if (ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid") && !path.begins_with("res://addons/")) {
 				// Create a UID file and new UID, if it's invalid.
 				Ref<FileAccess> f = FileAccess::open(path + ".uid", FileAccess::WRITE);
 				if (f.is_valid()) {
