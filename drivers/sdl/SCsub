@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+Import("env")
+
+if "sdl" in env and env["sdl"]:
+    if env["use_sowrap"]:
+        env.add_source_files(env.drivers_sources, "SDL2-so_wrap.c")
+
+env.add_source_files(env.drivers_sources, "*.cpp")

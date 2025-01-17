@@ -48,7 +48,7 @@
 #include <fontconfig/fontconfig.h>
 #endif
 #endif
-
+class JoypadSDL;
 class OS_LinuxBSD : public OS_Unix {
 	virtual void delete_main_loop() override;
 
@@ -63,6 +63,10 @@ class OS_LinuxBSD : public OS_Unix {
 
 #ifdef JOYDEV_ENABLED
 	JoypadLinux *joypad = nullptr;
+#endif
+
+#ifdef SDL_ENABLED
+	JoypadSDL *joypad_sdl = nullptr;
 #endif
 
 #ifdef ALSA_ENABLED

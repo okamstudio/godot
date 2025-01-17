@@ -508,6 +508,11 @@ Comment: RVO2
 Copyright: 2016, University of North Carolina at Chapel Hill
 License: Apache-2.0
 
+Files: ./thirdparty/sdl_headers/
+Comment: SDL
+Copyright: 1997-2024 Sam Lantinga
+License: Zlib
+
 Files: ./thirdparty/spirv-cross/
 Comment: SPIRV-Cross
 Copyright: 2015-2021, Arm Limited

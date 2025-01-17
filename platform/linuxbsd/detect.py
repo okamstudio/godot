@@ -42,6 +42,7 @@ def get_opts():
         BoolVariable("use_sowrap", "Dynamically load system libraries", True),
         BoolVariable("alsa", "Use ALSA", True),
         BoolVariable("pulseaudio", "Use PulseAudio", True),
+        BoolVariable("sdl", "Use SDL for input handling", True),
         BoolVariable("dbus", "Use D-Bus to handle screensaver and portal desktop settings", True),
         BoolVariable("speechd", "Use Speech Dispatcher for Text-to-Speech support", True),
         BoolVariable("fontconfig", "Use fontconfig for system fonts support", True),
@@ -335,6 +336,17 @@ def configure(env: "SConsEnvironment"):
                 env["pulseaudio"] = False
         else:
             env.Append(CPPDEFINES=["PULSEAUDIO_ENABLED", "_REENTRANT"])
+
+    if env["sdl"]:
+        if not env["use_sowrap"]:
+            if os.system("pkg-config --exists sdl2") == 0:  # 0 means found
+                env.ParseConfig("pkg-config sdl2 --cflags --libs")
+                env.Append(CPPDEFINES=["SDL_ENABLED"])
+            else:
+                print("Warning: SDL development libraries not found. Disabling the SDL input driver.")
+                env["sdl"] = False
+        else:
+            env.Append(CPPDEFINES=["SDL_ENABLED", "_REENTRANT"])
 
     if env["dbus"]:
         if not env["use_sowrap"]:

@@ -32,6 +32,7 @@
 
 #include "core/io/certs_compressed.gen.h"
 #include "core/io/dir_access.h"
+#include "drivers/sdl/joypad_sdl.h"
 #include "main/main.h"
 #include "servers/display_server.h"
 #include "servers/rendering_server.h"
@@ -141,6 +142,15 @@ void OS_LinuxBSD::initialize() {
 }
 
 void OS_LinuxBSD::initialize_joypads() {
+#ifdef SDL_ENABLED
+	joypad_sdl = memnew(JoypadSDL(Input::get_singleton()));
+	if (joypad_sdl->initialize() == OK) {
+		return;
+	}
+	// SDL init failed, fallback to the native driver
+	memdelete(joypad_sdl);
+	joypad_sdl = nullptr;
+#endif
 #ifdef JOYDEV_ENABLED
 	joypad = memnew(JoypadLinux(Input::get_singleton()));
 #endif
@@ -227,6 +237,12 @@ void OS_LinuxBSD::finalize() {
 #ifdef JOYDEV_ENABLED
 	if (joypad) {
 		memdelete(joypad);
+	}
+#endif
+
+#ifdef SDL_ENABLED
+	if (joypad_sdl) {
+		memdelete(joypad_sdl);
 	}
 #endif
 }
@@ -956,8 +972,15 @@ void OS_LinuxBSD::run() {
 
 	while (true) {
 		DisplayServer::get_singleton()->process_events(); // get rid of pending events
+#ifdef SDL_ENABLED
+		if (joypad_sdl) {
+			joypad_sdl->process_events();
+		}
+#endif
 #ifdef JOYDEV_ENABLED
-		joypad->process_joypads();
+		if (joypad) {
+			joypad->process_joypads();
+		}
 #endif
 		if (Main::iteration()) {
 			break;

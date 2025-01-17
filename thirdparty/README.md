@@ -881,6 +881,55 @@ and solve conflicts and also enrich the feature set originally
 proposed by these libraries and better integrate them with Godot.
 
 
+## sdl_headers
+- Upstream: https://github.com/libsdl-org/SDL
+- Version: 2.31.0 (8ce6fb25131912c7e83267bff03a5d1797545d5c, 2024)
+- License: Zlib
+
+Files extracted from upstream source:
+
+- `LICENSE.txt`
+- All `.h` files in the `include/` folder except:
+    - `SDL_config_android.h`
+    - `SDL_syswm.h`
+    - `SDL_opengles2.h`
+    - `SDL_config_ngage.h`
+    - `SDL_test_fuzzer.h`
+    - `SDL_test_compare.h`
+    - `SDL_config_emscripten.h`
+    - `SDL_config_macosx.h`
+    - `SDL_test_random.h`
+    - `SDL_config_windows.h`
+    - `SDL_test_log.h`
+    - `SDL_config_xbox.h`
+    - `SDL_test_md5.h`
+    - `SDL_test.h`
+    - `SDL_test_memory.h`
+    - `SDL_revision.h`
+    - `SDL_opengles.h`
+    - `SDL_egl.h`
+    - `SDL_test_common.h`
+    - `SDL_test_assert.h`
+    - `SDL_opengles2_gl2.h`
+    - `SDL_copying.h`
+    - `SDL_config_winrt.h`
+    - `SDL_name.h`
+    - `SDL_config_iphoneos.h`
+    - `SDL_types.h`
+    - `SDL_config_wingdk.h`
+    - `SDL_opengles2_khrplatform.h`
+    - `SDL_test_crc32.h`
+    - `SDL_opengles2_gl2platform.h`
+    - `SDL_test_font.h`
+    - `SDL_opengl.h`
+    - `SDL_opengl_glext.h`
+    - `SDL_opengles2_gl2ext.h`
+    - `SDL_config_pandora.h`
+    - `SDL_test_images.h`
+    - `SDL_config_os2.h`
+    - `SDL_vulkan.h`
+
+
 ## spirv-cross
 
 - Upstream: https://github.com/KhronosGroup/SPIRV-Cross
