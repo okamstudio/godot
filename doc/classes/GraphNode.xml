@@ -276,6 +276,11 @@
 		</member>
 	</members>
 	<signals>
+		<signal name="slot_sizes_changed">
+			<description>
+				Emitted when any slot's size might have changed.
+			</description>
+		</signal>
 		<signal name="slot_updated">
 			<param index="0" name="slot_index" type="int" />
 			<description>

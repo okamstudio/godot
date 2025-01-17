@@ -287,6 +287,7 @@ void GraphNode::_resort() {
 
 	queue_redraw();
 	port_pos_dirty = true;
+	emit_signal(SNAME("slot_sizes_changed"));
 }
 
 void GraphNode::draw_port(int p_slot_index, Point2i p_pos, bool p_left, const Color &p_color) {
@@ -657,7 +658,7 @@ void GraphNode::_port_pos_update() {
 	int slot_index = 0;
 
 	for (int i = 0; i < get_child_count(false); i++) {
-		Control *child = as_sortable_control(get_child(i, false), SortableVisbilityMode::IGNORE);
+		Control *child = as_sortable_control(get_child(i, false), SortableVisbilityMode::VISIBLE_IN_TREE);
 		if (!child) {
 			continue;
 		}
@@ -887,6 +888,7 @@ void GraphNode::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ignore_invalid_connection_type"), "set_ignore_invalid_connection_type", "is_ignoring_valid_connection_type");
 
 	ADD_SIGNAL(MethodInfo("slot_updated", PropertyInfo(Variant::INT, "slot_index")));
+	ADD_SIGNAL(MethodInfo("slot_sizes_changed"));
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, GraphNode, panel);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, GraphNode, panel_selected);
