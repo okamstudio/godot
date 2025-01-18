@@ -6,6 +6,7 @@
 	<description>
 		A 2D capsule shape, intended for use in physics. Usually used to provide a shape for a [CollisionShape2D].
 		[b]Performance:[/b] [CapsuleShape2D] is fast to check collisions against, but it is slower than [RectangleShape2D] and [CircleShape2D].
+		[b]Note:[/b] The [member radius] of a [CapsuleShape2D] cannot exceed half of its [member height]; otherwise, the capsule becomes a circle. If the [member radius] exceeds half of the [member height], the properties adjust to a valid value.
 	</description>
 	<tutorials>
 	</tutorials>

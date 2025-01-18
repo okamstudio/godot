@@ -5,6 +5,7 @@
 	</brief_description>
 	<description>
 		Class representing a capsule-shaped [PrimitiveMesh].
+		[b]Note:[/b] The [member radius] of a [CapsuleMesh] cannot exceed half of its [member height]; otherwise, the capsule becomes a circle. If the [member radius] exceeds half of the [member height], the properties adjust to a valid value.
 	</description>
 	<tutorials>
 	</tutorials>
