@@ -4672,9 +4672,19 @@ bool GDScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_ta
 				variable->export_info.hint = PROPERTY_HINT_NONE;
 				variable->export_info.hint_string = String();
 				break;
+			case GDScriptParser::DataType::TRAIT: {
+				const StringName class_name = _find_narrowest_native_or_global_class(export_type);
+				if (ClassDB::is_parent_class(export_type.native_type, SNAME("Node"))) {
+					variable->export_info.type = Variant::OBJECT;
+					variable->export_info.hint = PROPERTY_HINT_NODE_TYPE;
+					variable->export_info.hint_string = class_name;
+				} else {
+					push_error(R"(Export type if is Trait must inherit from node.)", p_annotation);
+					return false;
+				}
+			} break;
 			case GDScriptParser::DataType::NATIVE:
 			case GDScriptParser::DataType::SCRIPT:
-			case GDScriptParser::DataType::TRAIT:
 			case GDScriptParser::DataType::CLASS: {
 				const StringName class_name = _find_narrowest_native_or_global_class(export_type);
 				if (ClassDB::is_parent_class(export_type.native_type, SNAME("Resource"))) {
@@ -4744,6 +4754,17 @@ bool GDScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_ta
 					variable->export_info.hint = PROPERTY_HINT_NONE;
 					variable->export_info.hint_string = String();
 					break;
+				case GDScriptParser::DataType::TRAIT: {
+					const StringName class_name = _find_narrowest_native_or_global_class(export_type);
+					if (ClassDB::is_parent_class(export_type.native_type, SNAME("Node"))) {
+						variable->export_info.type = Variant::OBJECT;
+						variable->export_info.hint = PROPERTY_HINT_NODE_TYPE;
+						variable->export_info.hint_string = class_name;
+					} else {
+						push_error(R"(Export type if is Trait must inherit from node.)", p_annotation);
+						return false;
+					}
+				} break;
 				case GDScriptParser::DataType::NATIVE:
 				case GDScriptParser::DataType::SCRIPT:
 				case GDScriptParser::DataType::CLASS: {

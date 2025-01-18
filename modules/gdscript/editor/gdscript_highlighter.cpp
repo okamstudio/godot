@@ -685,7 +685,6 @@ String GDScriptSyntaxHighlighter::_get_name() const {
 PackedStringArray GDScriptSyntaxHighlighter::_get_supported_languages() const {
 	PackedStringArray languages;
 	languages.push_back("GDScript");
-	languages.push_back("GDTrait");
 	return languages;
 }
 

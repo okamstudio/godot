@@ -49,6 +49,11 @@
 		</method>
 		<method name="_create_script" qualifiers="virtual const">
 			<return type="Object" />
+			<description>
+			</description>
+		</method>
+		<method name="_create_script_from_extension" qualifiers="virtual const">
+			<return type="Object" />
 			<param index="0" name="extension" type="String" />
 			<description>
 				Creates a new script object based on extension supported by this language.
@@ -161,6 +166,11 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_extension" qualifiers="virtual const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
 		<method name="_get_extensions" qualifiers="virtual const">
 			<return type="PackedStringArray" />
 			<description>
@@ -209,6 +219,11 @@
 			</description>
 		</method>
 		<method name="_get_type" qualifiers="virtual const">
+			<return type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="_get_type_from_extension" qualifiers="virtual const">
 			<return type="String" />
 			<param index="0" name="extension" type="String" />
 			<description>
@@ -270,6 +285,14 @@
 			</description>
 		</method>
 		<method name="_make_template" qualifiers="virtual const">
+			<return type="Script" />
+			<param index="0" name="template" type="String" />
+			<param index="1" name="class_name" type="String" />
+			<param index="2" name="base_class_name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="_make_template_using_extension" qualifiers="virtual const">
 			<return type="Script" />
 			<param index="0" name="template" type="String" />
 			<param index="1" name="class_name" type="String" />

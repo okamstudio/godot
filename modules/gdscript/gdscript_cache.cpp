@@ -321,7 +321,7 @@ Ref<GDScript> GDScriptCache::get_shallow_script(const String &p_path, Error &r_e
 	Ref<GDScript> script;
 	if (p_path.get_extension().to_lower() == "gdt") {
 		// Affects Icon appearing on script editor tab.
-		Ref<GDTrait> trait_script;
+		Ref<GDScriptTrait> trait_script;
 		trait_script.instantiate();
 		trait_script->set_path_cache(p_path);
 		script = trait_script;
@@ -341,7 +341,7 @@ Ref<GDScript> GDScriptCache::get_shallow_script(const String &p_path, Error &r_e
 
 	if (r_error) {
 		if (p_path.get_extension().to_lower() == "gdt") {
-			return Ref<GDTrait>();
+			return Ref<GDScriptTrait>();
 		}
 		return Ref<GDScript>(); // Returns null and does not cache when the script fails to load.
 	}

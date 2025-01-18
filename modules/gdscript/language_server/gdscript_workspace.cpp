@@ -57,7 +57,7 @@ void GDScriptWorkspace::_bind_methods() {
 void GDScriptWorkspace::apply_new_signal(Object *obj, String function, PackedStringArray args) {
 	Ref<Script> scr = obj->get_script();
 
-	if (!(scr->get_language()->get_name() == "GDScript" || scr->get_language()->get_name() == "GDTrait")) {
+	if (scr->get_language()->get_name() != "GDScript") {
 		return;
 	}
 

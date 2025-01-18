@@ -247,7 +247,7 @@ Error ScriptServer::register_language(ScriptLanguage *p_language) {
 				}
 				shared_extensions += ext;
 			}
-			if (other_language->get_type(ext) == p_language->get_type(ext)) {
+			if (other_language->get_type_from_extension(ext) == p_language->get_type_from_extension(ext)) {
 				if (!shared_types.is_empty()) {
 					shared_types += ", ";
 				}

@@ -359,6 +359,12 @@ void SceneTreeEditor::_update_node_subtree(Node *p_node, TreeItem *p_parent, boo
 					}
 					node_script = node_script->get_base_script();
 				}
+
+				node_script = p_node->get_script();
+				if (node_script.is_valid() && !valid) {
+					valid = node_script->has_script_type(E);
+				}
+
 				if (valid) {
 					break;
 				}
@@ -992,6 +998,12 @@ bool SceneTreeEditor::_update_filter(TreeItem *p_parent, bool p_scroll_to_select
 						}
 						node_script = node_script->get_base_script();
 					}
+
+					node_script = n->get_script();
+					if (node_script.is_valid() && !selectable) {
+						selectable = node_script->has_script_type(E);
+					}
+
 					if (selectable) {
 						break;
 					}

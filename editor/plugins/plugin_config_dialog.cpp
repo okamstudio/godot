@@ -93,7 +93,7 @@ void PluginConfigDialog::_create_script_for_plugin(const String &p_plugin_path, 
 		if (!templates.is_empty()) {
 			template_content = templates[0].content;
 		}
-		Ref<Script> scr = language->make_template(template_content, class_name, "EditorPlugin", script_path.get_extension());
+		Ref<Script> scr = language->make_template_using_extension(template_content, class_name, "EditorPlugin", script_path.get_extension());
 		scr->set_path(script_path, true);
 		ResourceSaver::save(scr);
 		p_config_file->save(p_plugin_path.path_join("plugin.cfg"));

@@ -878,7 +878,7 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 						}
 					}
 				}
-			} else if (ResourceLoader::get_resource_type(autoload.path) == "GDScript" || ResourceLoader::get_resource_type(autoload.path) == "GDTrait") {
+			} else if (ResourceLoader::get_resource_type(autoload.path) == "GDScript" || ResourceLoader::get_resource_type(autoload.path) == "GDScriptTrait") {
 				script_path = autoload.path;
 			}
 			if (script_path.is_empty()) {
@@ -4988,7 +4988,7 @@ void GDScriptAnalyzer::reduce_identifier(GDScriptParser::IdentifierNode *p_ident
 			result.kind = GDScriptParser::DataType::NATIVE;
 			result.builtin_type = Variant::OBJECT;
 			result.native_type = SNAME("Node");
-			if (ResourceLoader::get_resource_type(autoload.path) == "GDScript" || ResourceLoader::get_resource_type(autoload.path) == "GDTrait") {
+			if (ResourceLoader::get_resource_type(autoload.path) == "GDScript" || ResourceLoader::get_resource_type(autoload.path) == "GDScriptTrait") {
 				Ref<GDScriptParserRef> single_parser = parser->get_depended_parser_for(autoload.path);
 				if (single_parser.is_valid()) {
 					Error err = single_parser->raise_status(GDScriptParserRef::USES_SOLVED);
@@ -5154,7 +5154,7 @@ void GDScriptAnalyzer::reduce_preload(GDScriptParser::PreloadNode *p_preload) {
 			// Must load GDScript separately to permit cyclic references
 			// as ResourceLoader::load() detects and rejects those.
 			const String &res_type = ResourceLoader::get_resource_type(p_preload->resolved_path);
-			if (res_type == "GDScript" || res_type == "GDTrait") {
+			if (res_type == "GDScript" || res_type == "GDScriptTrait") {
 				Error err = OK;
 				Ref<GDScript> res = get_depended_shallow_script(p_preload->resolved_path, err);
 				p_preload->resource = res;
@@ -7106,6 +7106,10 @@ void GDScriptAnalyzer::extend_class(GDScriptParser::ClassNode *p_class, const GD
 				case GDScriptParser::ClassNode::Member::SIGNAL:
 					// Copied over trait signal.
 					p_class->add_member(trait_member.signal);
+					break;
+				case GDScriptParser::ClassNode::Member::GROUP:
+					// Copied over trait annotation.
+					p_class->add_member_group(trait_member.annotation);
 					break;
 				default:
 					continue;

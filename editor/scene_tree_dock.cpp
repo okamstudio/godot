@@ -4097,7 +4097,7 @@ void SceneTreeDock::attach_script_to_selected(bool p_extend) {
 			ScriptLanguage *l = ScriptServer::get_language(i);
 			bool found = false;
 			for (const String &extension : l->get_extensions()) {
-				if (l->get_type(extension) == existing->get_class()) {
+				if (l->get_type_from_extension(extension) == existing->get_class()) {
 					String name = l->get_global_class_name(existing->get_path());
 					if (ScriptServer::is_global_class(name) && EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
 						inherits = name;

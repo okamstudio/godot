@@ -1215,7 +1215,11 @@ bool GDScript::inherits_script(const Ref<Script> &p_script) const {
 	}
 
 	// Check if script uses script as trait
-	if (traits_fqtn.has(gd->fully_qualified_name)) {
+	return has_script_type(gd->fully_qualified_name);
+}
+
+bool GDScript::has_script_type(const String &p_type) const {
+	if (traits_fqtn.has(p_type)) {
 		return true;
 	}
 	return false;
@@ -2334,9 +2338,9 @@ void GDScriptLanguage::_extension_unloading(const Ref<GDExtension> &p_extension)
 }
 #endif
 
-String GDScriptLanguage::get_type(const String &p_extension) const {
+String GDScriptLanguage::get_type_from_extension(const String &p_extension) const {
 	if (p_extension == "gdt") {
-		return "GDTrait";
+		return "GDScriptTrait";
 	}
 	return "GDScript";
 }
@@ -2856,7 +2860,7 @@ bool GDScriptLanguage::is_control_flow_keyword(const String &p_keyword) const {
 }
 
 bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
-	return p_type == "GDScript" || p_type == "GDTrait";
+	return p_type == "GDScript" || p_type == "GDScriptTrait";
 }
 
 String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
@@ -2966,10 +2970,8 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 thread_local GDScriptLanguage::CallStack GDScriptLanguage::_call_stack;
 
 GDScriptLanguage::GDScriptLanguage() {
-	if (singleton == nullptr) {
-		// Allow GDTraitLanguage to share same singleton.
-		singleton = this;
-	}
+	ERR_FAIL_COND(singleton);
+	singleton = this;
 
 	strings._init = StaticCString::create("_init");
 	strings._static_init = StaticCString::create("_static_init");
@@ -3082,14 +3084,14 @@ void ResourceFormatLoaderGDScript::get_recognized_extensions(List<String> *p_ext
 }
 
 bool ResourceFormatLoaderGDScript::handles_type(const String &p_type) const {
-	return (p_type == "Script" || p_type == "GDScript" || p_type == "GDTrait");
+	return (p_type == "Script" || p_type == "GDScript" || p_type == "GDScriptTrait");
 }
 
 String ResourceFormatLoaderGDScript::get_resource_type(const String &p_path) const {
 	String el = p_path.get_extension().to_lower();
 
 	if (el == "gdt" || p_path.ends_with(".t.gdc")) {
-		return "GDTrait";
+		return "GDScriptTrait";
 	}
 	if (el == "gd" || el == "gdc") {
 		return "GDScript";

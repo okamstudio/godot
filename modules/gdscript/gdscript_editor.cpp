@@ -72,10 +72,10 @@ bool GDScriptLanguage::is_using_templates() {
 	return true;
 }
 
-Ref<Script> GDScriptLanguage::make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const {
+Ref<Script> GDScriptLanguage::make_template_using_extension(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const {
 	Ref<GDScript> scr;
 	if (p_extension == "gdt") {
-		Ref<GDTrait> trait_script;
+		Ref<GDScriptTrait> trait_script;
 		trait_script.instantiate();
 		scr = trait_script;
 	} else {
@@ -255,9 +255,9 @@ bool GDScriptLanguage::is_script_attachable(const String &p_extension) const {
 	return true;
 }
 
-Script *GDScriptLanguage::create_script(const String &p_extension) const {
+Script *GDScriptLanguage::create_script_from_extension(const String &p_extension) const {
 	if (p_extension == "gdt") {
-		return memnew(GDTrait);
+		return memnew(GDScriptTrait);
 	}
 	return memnew(GDScript);
 }

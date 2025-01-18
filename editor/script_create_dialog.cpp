@@ -223,7 +223,7 @@ void ScriptCreateDialog::set_languages_list(const bool p_only_attachable) {
 		}
 
 		language_menu->add_item(lang->get_name());
-		String script_type = lang->get_type(lang->get_extensions()[0]);
+		String script_type = lang->get_type_from_extension(lang->get_extensions()[0]);
 		Ref<Texture2D> language_icon = get_editor_theme_icon(script_type);
 		if (language_icon.is_null() || language_icon == ThemeDB::get_singleton()->get_fallback_icon()) {
 			// The theme doesn't have an icon for this language, ask the extensions.
@@ -429,7 +429,7 @@ void ScriptCreateDialog::_create_new() {
 	}
 
 	String class_name = file_path->get_text().get_file().get_basename();
-	scr = language->make_template(sinfo.content, class_name, parent_class, file_path->get_text().get_extension());
+	scr = language->make_template_using_extension(sinfo.content, class_name, parent_class, file_path->get_text().get_extension());
 
 	if (is_built_in) {
 		scr->set_name(built_in_name->get_text());
@@ -482,7 +482,7 @@ void ScriptCreateDialog::_language_changed(int l) {
 			continue;
 		}
 
-		String script_type = language->get_type(script_extension);
+		String script_type = language->get_type_from_extension(script_extension);
 		script_menu->add_item(script_type);
 		Ref<Texture2D> script_icon = get_editor_theme_icon(script_type);
 		if (script_icon.is_null() || script_icon == ThemeDB::get_singleton()->get_fallback_icon()) {
@@ -541,7 +541,7 @@ void ScriptCreateDialog::set_script_menu() {
 			continue;
 		}
 
-		String script_type = language->get_type(script_extension);
+		String script_type = language->get_type_from_extension(script_extension);
 		script_menu->add_item(script_type);
 		Ref<Texture2D> script_icon = get_editor_theme_icon(script_type);
 		if (script_icon.is_null() || script_icon == ThemeDB::get_singleton()->get_fallback_icon()) {

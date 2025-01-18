@@ -292,6 +292,7 @@ public:
 
 	virtual Ref<Script> get_base_script() const override;
 	virtual StringName get_global_name() const override;
+	virtual bool has_script_type(const String &p_type) const override;
 
 	virtual StringName get_instance_base_type() const override; // this may not work in all scripts, will return empty if so
 	virtual ScriptInstance *instance_create(Object *p_this) override;
@@ -358,8 +359,8 @@ public:
 	~GDScript();
 };
 
-class GDTrait : public GDScript {
-	GDCLASS(GDTrait, GDScript);
+class GDScriptTrait : public GDScript {
+	GDCLASS(GDScriptTrait, GDScript);
 
 public:
 	virtual bool is_attachable() const override { return false; }
@@ -603,8 +604,10 @@ public:
 
 	/* LANGUAGE FUNCTIONS */
 	virtual void init() override;
-	virtual String get_type(const String &p_extension) const override;
+	virtual String get_type_from_extension(const String &p_extension) const override;
+	virtual String get_type() const override { return get_type_from_extension(""); }
 	virtual Vector<String> get_extensions() const override;
+	virtual String get_extension() const override { return get_extensions()[0]; }
 	virtual void finish() override;
 
 	/* EDITOR FUNCTIONS */
@@ -614,11 +617,12 @@ public:
 	virtual void get_doc_comment_delimiters(List<String> *p_delimiters) const override;
 	virtual void get_string_delimiters(List<String> *p_delimiters) const override;
 	virtual bool is_using_templates() override;
-	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const override;
+	virtual Ref<Script> make_template_using_extension(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const override;
 	virtual Vector<ScriptTemplate> get_built_in_templates(const StringName &p_object) override;
 	virtual bool validate(const String &p_script, const String &p_path = "", List<String> *r_functions = nullptr, List<ScriptLanguage::ScriptError> *r_errors = nullptr, List<ScriptLanguage::Warning> *r_warnings = nullptr, HashSet<int> *r_safe_lines = nullptr) const override;
 	virtual bool is_script_attachable(const String &p_extension) const override;
-	virtual Script *create_script(const String &p_extension) const override;
+	virtual Script *create_script_from_extension(const String &p_extension) const override;
+	virtual Script *create_script() const override { return create_script_from_extension(""); }
 #ifndef DISABLE_DEPRECATED
 	virtual bool has_named_classes() const override { return false; }
 #endif

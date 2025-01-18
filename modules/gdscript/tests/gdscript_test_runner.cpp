@@ -279,7 +279,7 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 			if (next.ends_with(".notest.gd") || next.ends_with(".gdt")) {
 				next = dir->get_next();
 				continue;
-			} else if (binary_tokens && (next.ends_with(".textonly.gd"))) {
+			} else if (binary_tokens && next.ends_with(".textonly.gd")) {
 				next = dir->get_next();
 				continue;
 			} else if (next.get_extension().to_lower() == "gd") {

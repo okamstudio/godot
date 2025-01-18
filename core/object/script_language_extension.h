@@ -55,6 +55,7 @@ public:
 	EXBIND0RC(Ref<Script>, get_base_script)
 	EXBIND0RC(StringName, get_global_name)
 	EXBIND1RC(bool, inherits_script, const Ref<Script> &)
+	EXBIND1RC(bool, has_script_type, const String &)
 	EXBIND0RC(StringName, get_instance_base_type)
 
 	GDVIRTUAL1RC_REQUIRED(GDExtensionPtr<void>, _instance_create, Object *)
@@ -234,7 +235,9 @@ public:
 	EXBIND0RC(String, get_name)
 
 	EXBIND0(init)
-	EXBIND1RC(String, get_type, const String &)
+	EXBIND0RC(String, get_type)
+	EXBIND1RC(String, get_type_from_extension, const String &)
+	EXBIND0RC(String, get_extension)
 	EXBIND0RC(Vector<String>, get_extensions)
 	EXBIND0(finish)
 
@@ -281,7 +284,8 @@ public:
 		}
 	}
 
-	EXBIND4RC(Ref<Script>, make_template, const String &, const String &, const String &, const String &)
+	EXBIND3RC(Ref<Script>, make_template, const String &, const String &, const String &)
+	EXBIND4RC(Ref<Script>, make_template_using_extension, const String &, const String &, const String &, const String &)
 
 	GDVIRTUAL1RC_REQUIRED(TypedArray<Dictionary>, _get_built_in_templates, StringName)
 
@@ -379,12 +383,14 @@ public:
 
 	EXBIND1RC(String, validate_path, const String &)
 	EXBIND1RC(bool, is_script_attachable, const String &)
-	GDVIRTUAL1RC_REQUIRED(Object *, _create_script, const String &)
-	Script *create_script(const String &p_extension) const override {
+	GDVIRTUAL0RC_REQUIRED(Object *, _create_script)
+	Script *create_script() const override {
 		Object *ret = nullptr;
-		GDVIRTUAL_CALL(_create_script, p_extension, ret);
+		GDVIRTUAL_CALL(_create_script, ret);
 		return Object::cast_to<Script>(ret);
 	}
+	GDVIRTUAL1RC_REQUIRED(Object *, _create_script_from_extension, const String &)
+	Script *create_script_from_extension(const String &p_extension) const override { return create_script(); }
 #ifndef DISABLE_DEPRECATED
 	EXBIND0RC(bool, has_named_classes)
 #endif

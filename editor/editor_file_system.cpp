@@ -2123,7 +2123,7 @@ void EditorFileSystem::_update_script_documentation() {
 
 		for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 			ScriptLanguage *lang = ScriptServer::get_language(i);
-			if (lang->supports_documentation() && efd->files[index]->type == lang->get_type(path.get_extension())) {
+			if (lang->supports_documentation() && efd->files[index]->type == lang->get_type_from_extension(path.get_extension())) {
 				bool should_reload_script = _should_reload_script(path);
 				Ref<Script> scr = ResourceLoader::load(path);
 				if (scr.is_null()) {
