@@ -1152,7 +1152,7 @@
 			Deferred connections trigger their [Callable]s on idle time (at the end of the frame), rather than instantly.
 		</constant>
 		<constant name="CONNECT_PERSIST" value="2" enum="ConnectFlags">
-			Persisting connections are stored when the object is serialized (such as when using [method PackedScene.pack]). In the editor, connections created through the Node dock are always persisting.
+			Persisting connections are stored when the object is serialized (such as when using [method PackedScene.pack]). In the editor, connections created through the Signals dock are always persisting.
 		</constant>
 		<constant name="CONNECT_ONE_SHOT" value="4" enum="ConnectFlags">
 			One-shot connections disconnect themselves after emission.

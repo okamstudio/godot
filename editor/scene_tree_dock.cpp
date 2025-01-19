@@ -45,11 +45,11 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/filesystem_dock.h"
+#include "editor/groups_dock.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/gui/editor_quick_open_dialog.h"
 #include "editor/inspector_dock.h"
 #include "editor/multi_node_edit.h"
-#include "editor/node_dock.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
@@ -58,6 +58,7 @@
 #include "editor/rename_dialog.h"
 #include "editor/reparent_dialog.h"
 #include "editor/shader_create_dialog.h"
+#include "editor/signals_dock.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/2d/node_2d.h"
 #include "scene/animation/animation_tree.h"
@@ -1329,7 +1330,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					undo_redo->add_undo_method(node, "set_scene_file_path", node->get_scene_file_path());
 					_node_replace_owner(node, node, root);
 					_node_strip_signal_inheritance(node);
-					NodeDock::get_singleton()->set_node(node); // Refresh.
+					SignalsDock::get_singleton()->set_node(node); // Refresh.
 					undo_redo->add_do_method(scene_tree, "update_tree");
 					undo_redo->add_undo_method(scene_tree, "update_tree");
 					undo_redo->commit_action();
@@ -2817,7 +2818,8 @@ void SceneTreeDock::_delete_confirm(bool p_cut) {
 	editor_history->cleanup_history();
 	InspectorDock::get_singleton()->call("_prepare_history");
 	InspectorDock::get_singleton()->update(nullptr);
-	NodeDock::get_singleton()->set_node(nullptr);
+	SignalsDock::get_singleton()->set_node(nullptr);
+	GroupsDock::get_singleton()->set_node(nullptr);
 }
 
 void SceneTreeDock::_update_script_button() {

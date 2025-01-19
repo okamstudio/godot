@@ -1262,7 +1262,7 @@
 			If [code]true[/code], the caret will be moved when right-clicking somewhere in the script editor (like when left-clicking or middle-clicking). If [code]false[/code], the caret will only be moved when left-clicking or middle-clicking somewhere.
 		</member>
 		<member name="text_editor/behavior/navigation/open_script_when_connecting_signal_to_existing_method" type="bool" setter="" getter="">
-			If [code]true[/code], opens the script editor when connecting a signal to an existing script method from the Node dock.
+			If [code]true[/code], opens the script editor when connecting a signal to an existing script method from the Signals dock.
 		</member>
 		<member name="text_editor/behavior/navigation/scroll_past_end_of_file" type="bool" setter="" getter="">
 			If [code]true[/code], allows scrolling past the end of the file.
