@@ -205,6 +205,9 @@ void ViewportNavigationControl::gui_input(const Ref<InputEvent> &p_event) {
 	const Ref<InputEventMouseButton> mouse_button = p_event;
 	if (mouse_button.is_valid() && mouse_button->get_button_index() == MouseButton::LEFT) {
 		_process_click(100, mouse_button->get_position(), mouse_button->is_pressed());
+		if (mouse_button->is_pressed()) {
+			grab_focus();
+		}
 	}
 
 	const Ref<InputEventMouseMotion> mouse_motion = p_event;
@@ -221,6 +224,10 @@ void ViewportNavigationControl::gui_input(const Ref<InputEvent> &p_event) {
 	const Ref<InputEventScreenDrag> screen_drag = p_event;
 	if (screen_drag.is_valid()) {
 		_process_drag(screen_drag->get_index(), screen_drag->get_position(), screen_drag->get_relative());
+	}
+
+	if (Input::get_singleton()->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
+		accept_event();
 	}
 }
 
@@ -486,6 +493,10 @@ void ViewportRotationControl::gui_input(const Ref<InputEvent> &p_event) {
 	const Ref<InputEventScreenDrag> screen_drag = p_event;
 	if (screen_drag.is_valid()) {
 		_process_drag(screen_drag, screen_drag->get_index(), screen_drag->get_position(), screen_drag->get_relative());
+	}
+
+	if (Input::get_singleton()->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
+		accept_event();
 	}
 }
 
@@ -3339,7 +3350,7 @@ void Node3DEditorViewport::_draw() {
 		force_over_plugin_list->forward_3d_force_draw_over_viewport(surface);
 	}
 
-	if (surface->has_focus() || rotation_control->has_focus()) {
+	if (surface->has_focus() || position_control->has_focus() || look_control->has_focus() || rotation_control->has_focus()) {
 		Size2 size = surface->get_size();
 		Rect2 r = Rect2(Point2(), size);
 		get_theme_stylebox(SNAME("FocusViewport"), EditorStringName(EditorStyles))->draw(surface->get_canvas_item(), r);
@@ -5775,6 +5786,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	position_control->set_anchor_and_offset(SIDE_RIGHT, ANCHOR_BEGIN, navigation_control_size * EDSCALE);
 	position_control->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, 0);
 	position_control->set_viewport(this);
+	position_control->set_focus_mode(FOCUS_CLICK);
 	surface->add_child(position_control);
 
 	look_control = memnew(ViewportNavigationControl);
@@ -5786,6 +5798,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	look_control->set_anchor_and_offset(SIDE_RIGHT, ANCHOR_END, 0);
 	look_control->set_anchor_and_offset(SIDE_BOTTOM, ANCHOR_END, 0);
 	look_control->set_viewport(this);
+	look_control->set_focus_mode(FOCUS_CLICK);
 	surface->add_child(look_control);
 
 	rotation_control = memnew(ViewportRotationControl);
