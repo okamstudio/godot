@@ -670,11 +670,17 @@ AnimationNode::NodeTimeInfo AnimationNodeOneShot::_process(const AnimationMixer:
 
 	NodeTimeInfo os_nti = blend_input(1, pi, FILTER_PASS, true, p_test_only); // Blend values must be more than CMP_EPSILON to process discrete keys in edge.
 
-	if (Animation::is_less_or_equal_approx(cur_fade_in_remaining, 0) && !do_start && !is_fading_out && Animation::is_less_or_equal_approx(os_nti.get_remain(break_loop_at_end), fade_out)) {
-		is_fading_out = true;
-		cur_fade_out_remaining = os_nti.get_remain(break_loop_at_end);
-		cur_fade_in_remaining = 0;
-		set_parameter(internal_active, false);
+	if (Animation::is_less_or_equal_approx(cur_fade_in_remaining, 0) && !do_start && !is_fading_out) {
+		// Predict time scale by difference of delta times to estimate input animation's remain time in self time scale.
+		double abs_os_delta = Math::abs(os_nti.delta);
+		double tscl = Math::is_zero_approx(abs_delta) || Math::is_zero_approx(abs_os_delta) || Math::is_equal_approx(abs_delta, abs_os_delta) ? 1.0 : (abs_delta / abs_os_delta);
+		double os_rem = os_nti.get_remain(break_loop_at_end) * tscl;
+		if (Animation::is_less_or_equal_approx(os_rem, fade_out)) {
+			is_fading_out = true;
+			cur_fade_out_remaining = os_rem;
+			cur_fade_in_remaining = 0;
+			set_parameter(internal_active, false);
+		}
 	}
 
 	if (!p_seek) {
@@ -686,11 +692,10 @@ AnimationNode::NodeTimeInfo AnimationNodeOneShot::_process(const AnimationMixer:
 				set_parameter(time_to_restart, restart_sec);
 			}
 		}
-		double d = Math::abs(os_nti.delta);
 		if (!do_start) {
-			cur_fade_in_remaining = MAX(0, cur_fade_in_remaining - d); // Don't consider seeked delta by restart.
+			cur_fade_in_remaining = MAX(0, cur_fade_in_remaining - abs_delta); // Don't consider seeked delta by restart.
 		}
-		cur_fade_out_remaining = MAX(0, cur_fade_out_remaining - d);
+		cur_fade_out_remaining = MAX(0, cur_fade_out_remaining - abs_delta);
 	}
 
 	set_parameter(fade_in_remaining, cur_fade_in_remaining);
