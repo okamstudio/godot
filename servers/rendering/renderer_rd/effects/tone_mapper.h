@@ -126,6 +126,7 @@ public:
 		RS::EnvironmentToneMapper tonemap_mode = RS::ENV_TONE_MAPPER_LINEAR;
 		float exposure = 1.0;
 		float white = 1.0;
+		RID tony_mc_mapface_lut;
 
 		bool use_auto_exposure = false;
 		float auto_exposure_scale = 0.5;

@@ -2794,6 +2794,19 @@ void RasterizerSceneGLES3::_render_post_processing(const RenderDataGLES3 *p_rend
 				glTexParameteri(texture_target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			}
 		}
+
+		if (environment_get_tone_mapper(p_render_data->environment) == RS::EnvironmentToneMapper::ENV_TONE_MAPPER_TONY_MC_MAPFACE) {
+			RID tony_mc_mapface_lut = environment_get_tony_mc_mapface_lut(p_render_data->environment);
+			if (tony_mc_mapface_lut.is_valid()) {
+				glActiveTexture(GL_TEXTURE3);
+				glBindTexture(GL_TEXTURE_3D, texture_storage->texture_get_texid(tony_mc_mapface_lut));
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			}
+		}
 	}
 
 	if (view_count == 1) {
