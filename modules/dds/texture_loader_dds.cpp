@@ -758,7 +758,10 @@ Ref<Resource> ResourceFormatDDS::load(const String &p_path, const String &p_orig
 	images.resize(layer_count);
 
 	for (uint32_t i = 0; i < layer_count; i++) {
-		images.write[i] = _dds_load_layer(f, dds_format, width, height, mipmaps, pitch, flags, src_data);
+		Ref<Image> layer = _dds_load_layer(f, dds_format, width, height, mipmaps, pitch, flags, src_data);
+		ERR_FAIL_COND_V(layer.is_null(), Ref<Resource>());
+
+		images.write[i] = layer;
 	}
 
 	if ((dds_type & DDST_TYPE_MASK) == DDST_2D) {
