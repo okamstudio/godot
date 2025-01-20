@@ -28,10 +28,18 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "audio_stream_wav.h"
-
-#include "core/io/file_access_memory.h"
 #include "core/io/marshalls.h"
+
+#define DRWAV_IMPLEMENTATION
+#define DR_WAV_NO_STDIO
+#define DR_WAV_LIBSNDFILE_COMPAT
+#define DRWAV_MALLOC(sz) memalloc(sz)
+#define DRWAV_REALLOC(p, sz) memrealloc(p, sz)
+#define DRWAV_FREE(p) \
+	if (p)            \
+	memfree(p)
+
+#include "audio_stream_wav.h"
 
 const float TRIM_DB_LIMIT = -50;
 const int TRIM_FADE_OUT_FRAMES = 500;
@@ -724,220 +732,77 @@ Ref<AudioSample> AudioStreamWAV::generate_sample() const {
 }
 
 Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_stream_data, const Dictionary &p_options) {
-	// /* STEP 1, READ WAVE FILE */
+	drwav wav;
 
-	Ref<FileAccessMemory> file;
-	file.instantiate();
-	Error err = file->open_custom(p_stream_data.ptr(), p_stream_data.size());
-	ERR_FAIL_COND_V_MSG(err != OK, Ref<AudioStreamWAV>(), "Cannot create memfile for WAV file buffer.");
-
-	/* CHECK RIFF */
-	char riff[5];
-	riff[4] = 0;
-	file->get_buffer((uint8_t *)&riff, 4); //RIFF
-
-	if (riff[0] != 'R' || riff[1] != 'I' || riff[2] != 'F' || riff[3] != 'F') {
-		ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), vformat("Not a WAV file. File should start with 'RIFF', but found '%s', in file of size %d bytes", riff, file->get_length()));
+	if (!drwav_init_memory_with_metadata(&wav, p_stream_data.ptr(), p_stream_data.size(), DRWAV_WITH_METADATA, nullptr)) {
+		ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Audio data is invalid, corrupted, or an unsupported format.");
 	}
 
-	/* GET FILESIZE */
+	return load_from_dr_wav(wav, p_options);
+}
 
-	// The file size in header is 8 bytes less than the actual size.
-	// See https://docs.fileformat.com/audio/wav/
-	const int FILE_SIZE_HEADER_OFFSET = 8;
-	uint32_t file_size_header = file->get_32() + FILE_SIZE_HEADER_OFFSET;
-	uint64_t file_size = file->get_length();
-	if (file_size != file_size_header) {
-		WARN_PRINT(vformat("File size %d is %s than the expected size %d.", file_size, file_size > file_size_header ? "larger" : "smaller", file_size_header));
+Ref<AudioStreamWAV> AudioStreamWAV::load_from_file(const String &p_path, const Dictionary &p_options) {
+	Error err;
+
+	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::READ, &err);
+	ERR_FAIL_COND_V_MSG(err != OK, Ref<AudioStreamWAV>(), vformat("Cannot open file '%s'.", p_path));
+
+	drwav_read_proc read_fa = [](void *p_user_data, void *p_out, size_t to_read) -> size_t {
+		Ref<FileAccess> lfile = *(Ref<FileAccess> *)p_user_data;
+		return lfile->get_buffer((uint8_t *)p_out, to_read);
+	};
+
+	drwav_seek_proc seek_fa = [](void *p_user_data, int p_offset, drwav_seek_origin origin) -> drwav_bool32 {
+		Ref<FileAccess> lfile = *(Ref<FileAccess> *)p_user_data;
+		uint64_t new_offset = p_offset + (origin == drwav_seek_origin_current ? lfile->get_position() : 0);
+
+		if (new_offset > lfile->get_length() || (p_offset < 0 && (size_t)-p_offset > lfile->get_position())) {
+			return DRWAV_FALSE;
+		}
+
+		lfile->seek(new_offset);
+		return DRWAV_TRUE;
+	};
+
+	drwav wav;
+
+	if (!drwav_init_with_metadata(&wav, read_fa, seek_fa, &file, DRWAV_WITH_METADATA, nullptr)) {
+		ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Cannot read data from file '" + p_path + "'. Data is invalid, corrupted, or an unsupported format.");
 	}
 
-	/* CHECK WAVE */
+	return load_from_dr_wav(wav, p_options);
+}
 
-	char wave[5];
-	wave[4] = 0;
-	file->get_buffer((uint8_t *)&wave, 4); //WAVE
+Ref<AudioStreamWAV> AudioStreamWAV::load_from_dr_wav(drwav &p_wav, const Dictionary &p_options) {
+	// STEP 1, READ DATA
 
-	if (wave[0] != 'W' || wave[1] != 'A' || wave[2] != 'V' || wave[3] != 'E') {
-		ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), vformat("Not a WAV file. Header should contain 'WAVE', but found '%s', in file of size %d bytes", wave, file->get_length()));
-	}
+	int format_bits = p_wav.bitsPerSample;
+	int format_channels = p_wav.channels;
+	int format_freq = p_wav.sampleRate;
+	int frames = p_wav.totalPCMFrameCount;
 
-	// Let users override potential loop points from the WAV.
-	// We parse the WAV loop points only with "Detect From WAV" (0).
 	int import_loop_mode = p_options["edit/loop_mode"];
 
-	int format_bits = 0;
-	int format_channels = 0;
-
-	AudioStreamWAV::LoopMode loop_mode = AudioStreamWAV::LOOP_DISABLED;
-	uint16_t compression_code = 1;
-	bool format_found = false;
-	bool data_found = false;
-	int format_freq = 0;
 	int loop_begin = 0;
 	int loop_end = 0;
-	int frames = 0;
-
-	Vector<float> data;
-
-	while (!file->eof_reached()) {
-		/* chunk */
-		char chunk_id[4];
-		file->get_buffer((uint8_t *)&chunk_id, 4); //RIFF
-
-		/* chunk size */
-		uint32_t chunksize = file->get_32();
-		uint32_t file_pos = file->get_position(); //save file pos, so we can skip to next chunk safely
-
-		if (file->eof_reached()) {
-			//ERR_PRINT("EOF REACH");
-			break;
-		}
-
-		if (chunk_id[0] == 'f' && chunk_id[1] == 'm' && chunk_id[2] == 't' && chunk_id[3] == ' ' && !format_found) {
-			/* IS FORMAT CHUNK */
-
-			//Issue: #7755 : Not a bug - usage of other formats (format codes) are unsupported in current importer version.
-			//Consider revision for engine version 3.0
-			compression_code = file->get_16();
-			if (compression_code != 1 && compression_code != 3) {
-				ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Format not supported for WAVE file (not PCM). Save WAVE files as uncompressed PCM or IEEE float instead.");
-			}
-
-			format_channels = file->get_16();
-			if (format_channels != 1 && format_channels != 2) {
-				ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Format not supported for WAVE file (not stereo or mono).");
-			}
-
-			format_freq = file->get_32(); //sampling rate
-
-			file->get_32(); // average bits/second (unused)
-			file->get_16(); // block align (unused)
-			format_bits = file->get_16(); // bits per sample
-
-			if (format_bits % 8 || format_bits == 0) {
-				ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Invalid amount of bits in the sample (should be one of 8, 16, 24 or 32).");
-			}
-
-			if (compression_code == 3 && format_bits % 32) {
-				ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Invalid amount of bits in the IEEE float sample (should be 32 or 64).");
-			}
-
-			/* Don't need anything else, continue */
-			format_found = true;
-		}
-
-		if (chunk_id[0] == 'd' && chunk_id[1] == 'a' && chunk_id[2] == 't' && chunk_id[3] == 'a' && !data_found) {
-			/* IS DATA CHUNK */
-			data_found = true;
-
-			if (!format_found) {
-				ERR_PRINT("'data' chunk before 'format' chunk found.");
+	LoopMode loop_mode = LOOP_DISABLED;
+	if (import_loop_mode == 0) {
+		for (uint32_t meta = 0; meta < p_wav.metadataCount; ++meta) {
+			drwav_metadata md = p_wav.pMetadata[meta];
+			if (md.type == drwav_metadata_type_smpl && md.data.smpl.sampleLoopCount > 0) {
+				drwav_smpl_loop loop = md.data.smpl.pLoops[0];
+				loop_mode = (LoopMode)(loop.type + 1);
+				loop_begin = loop.firstSampleByteOffset;
+				loop_end = loop.lastSampleByteOffset;
 				break;
 			}
-
-			uint64_t remaining_bytes = file_size - file_pos;
-			frames = chunksize;
-			if (remaining_bytes < chunksize) {
-				WARN_PRINT("Data chunk size is smaller than expected. Proceeding with actual data size.");
-				frames = remaining_bytes;
-			}
-
-			ERR_FAIL_COND_V(format_channels == 0, Ref<AudioStreamWAV>());
-			frames /= format_channels;
-			frames /= (format_bits >> 3);
-
-			/*print_line("chunksize: "+itos(chunksize));
-			print_line("channels: "+itos(format_channels));
-			print_line("bits: "+itos(format_bits));
-			*/
-
-			data.resize(frames * format_channels);
-
-			if (compression_code == 1) {
-				if (format_bits == 8) {
-					for (int i = 0; i < frames * format_channels; i++) {
-						// 8 bit samples are UNSIGNED
-
-						data.write[i] = int8_t(file->get_8() - 128) / 128.f;
-					}
-				} else if (format_bits == 16) {
-					for (int i = 0; i < frames * format_channels; i++) {
-						//16 bit SIGNED
-
-						data.write[i] = int16_t(file->get_16()) / 32768.f;
-					}
-				} else {
-					for (int i = 0; i < frames * format_channels; i++) {
-						//16+ bits samples are SIGNED
-						// if sample is > 16 bits, just read extra bytes
-
-						uint32_t s = 0;
-						for (int b = 0; b < (format_bits >> 3); b++) {
-							s |= ((uint32_t)file->get_8()) << (b * 8);
-						}
-						s <<= (32 - format_bits);
-
-						data.write[i] = (int32_t(s) >> 16) / 32768.f;
-					}
-				}
-			} else if (compression_code == 3) {
-				if (format_bits == 32) {
-					for (int i = 0; i < frames * format_channels; i++) {
-						//32 bit IEEE Float
-
-						data.write[i] = file->get_float();
-					}
-				} else if (format_bits == 64) {
-					for (int i = 0; i < frames * format_channels; i++) {
-						//64 bit IEEE Float
-
-						data.write[i] = file->get_double();
-					}
-				}
-			}
-
-			// This is commented out due to some weird edge case seemingly in FileAccessMemory, doesn't seem to have any side effects though.
-			// if (file->eof_reached()) {
-			// 	ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Premature end of file.");
-			// }
 		}
-
-		if (import_loop_mode == 0 && chunk_id[0] == 's' && chunk_id[1] == 'm' && chunk_id[2] == 'p' && chunk_id[3] == 'l') {
-			// Loop point info!
-
-			/**
-			 *	Consider exploring next document:
-			 *		http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Docs/RIFFNEW.pdf
-			 *	Especially on page:
-			 *		16 - 17
-			 *	Timestamp:
-			 *		22:38 06.07.2017 GMT
-			 **/
-
-			for (int i = 0; i < 10; i++) {
-				file->get_32(); // i wish to know why should i do this... no doc!
-			}
-
-			// only read 0x00 (loop forward), 0x01 (loop ping-pong) and 0x02 (loop backward)
-			// Skip anything else because it's not supported, reserved for future uses or sampler specific
-			// from https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl (loop type values table)
-			int loop_type = file->get_32();
-			if (loop_type == 0x00 || loop_type == 0x01 || loop_type == 0x02) {
-				if (loop_type == 0x00) {
-					loop_mode = AudioStreamWAV::LOOP_FORWARD;
-				} else if (loop_type == 0x01) {
-					loop_mode = AudioStreamWAV::LOOP_PINGPONG;
-				} else if (loop_type == 0x02) {
-					loop_mode = AudioStreamWAV::LOOP_BACKWARD;
-				}
-				loop_begin = file->get_32();
-				loop_end = file->get_32();
-			}
-		}
-		// Move to the start of the next chunk. Note that RIFF requires a padding byte for odd
-		// chunk sizes.
-		file->seek(file_pos + chunksize + (chunksize & 1));
 	}
+
+	Vector<float> data;
+	data.resize(frames * format_channels);
+	drwav_read_pcm_frames_f32(&p_wav, frames, data.ptrw());
+	drwav_uninit(&p_wav);
 
 	// STEP 2, APPLY CONVERSIONS
 
@@ -1174,12 +1039,6 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	sample->set_loop_end(loop_end);
 	sample->set_stereo(format_channels == 2);
 	return sample;
-}
-
-Ref<AudioStreamWAV> AudioStreamWAV::load_from_file(const String &p_path, const Dictionary &p_options) {
-	const Vector<uint8_t> stream_data = FileAccess::get_file_as_bytes(p_path);
-	ERR_FAIL_COND_V_MSG(stream_data.is_empty(), Ref<AudioStreamWAV>(), vformat("Cannot open file '%s'.", p_path));
-	return load_from_buffer(stream_data, p_options);
 }
 
 void AudioStreamWAV::_bind_methods() {

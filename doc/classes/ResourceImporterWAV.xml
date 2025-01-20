@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="ResourceImporterWAV" inherits="ResourceImporter" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		Imports a WAV audio file for playback.
+		Imports WAV and AIFF audio files for playback.
 	</brief_description>
 	<description>
-		WAV is an uncompressed format, which can provide higher quality compared to Ogg Vorbis and MP3. It also has the lowest CPU cost to decode. This means high numbers of WAV sounds can be played at the same time, even on low-end devices.
-		By default, Godot imports WAV files using the lossy Quite OK Audio compression. You may change this by setting the [member compress/mode] property.
+		WAV and AIFF are uncompressed formats, which can provide higher quality compared to Ogg Vorbis and MP3. It also has the lowest CPU cost to decode. This means high numbers of WAV and AIFF sounds can be played at the same time, even on low-end devices.
+		By default, Godot imports WAV and AIFF files using the lossy Quite OK Audio compression. You may change this by setting the [member compress/mode] property.
 	</description>
 	<tutorials>
 		<link title="Importing audio samples">$DOCS_URL/tutorials/assets_pipeline/importing_audio_samples.html</link>
@@ -25,7 +25,7 @@
 		</member>
 		<member name="edit/loop_mode" type="int" setter="" getter="" default="0">
 			Controls how audio should loop.
-			- [b]Detect From WAV:[/b] Uses loop information from the WAV metadata.
+			- [b]Detect From WAV:[/b] Uses loop information from the WAV metadata (AIFF does not support this).
 			- [b]Disabled:[/b] Don't loop audio, even if the metadata indicates the file playback should loop.
 			- [b]Forward:[/b] Standard audio looping. Plays the audio forward from the beginning to [member edit/loop_end], then returns to [member edit/loop_begin] and repeats.
 			- [b]Ping-Pong:[/b] Plays the audio forward until [member edit/loop_end], then backwards to [member edit/loop_begin], repeating this cycle.
