@@ -157,6 +157,7 @@ private:
 			int line_count = 0;
 			int height = 0;
 			int width = 0;
+			float indent_ofs = -1.0;
 
 			Line() {
 				data_buf.instantiate();
@@ -230,6 +231,7 @@ private:
 
 		Vector<Vector2i> get_line_wrap_ranges(int p_line) const;
 		const Ref<TextParagraph> get_line_data(int p_line) const;
+		float get_indent_offset(int p_line, bool p_rtl) const;
 
 		void set(int p_line, const String &p_text, const Array &p_bidi_override);
 		void set_hidden(int p_line, bool p_hidden);
