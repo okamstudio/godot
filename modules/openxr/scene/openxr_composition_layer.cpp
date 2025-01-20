@@ -52,6 +52,7 @@ static const char *HOLE_PUNCH_SHADER_CODE =
 OpenXRCompositionLayer::OpenXRCompositionLayer(XrCompositionLayerBaseHeader *p_composition_layer) {
 	composition_layer_base_header = p_composition_layer;
 	openxr_layer_provider = memnew(OpenXRViewportCompositionLayerProvider(composition_layer_base_header));
+	swapchain_state = openxr_layer_provider->get_swapchain_state();
 
 	openxr_api = OpenXRAPI::get_singleton();
 	composition_layer_extension = OpenXRCompositionLayerExtension::get_singleton();
@@ -113,6 +114,39 @@ void OpenXRCompositionLayer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_android_surface"), &OpenXRCompositionLayer::get_android_surface);
 	ClassDB::bind_method(D_METHOD("is_natively_supported"), &OpenXRCompositionLayer::is_natively_supported);
 
+	ClassDB::bind_method(D_METHOD("set_min_filter", "mode"), &OpenXRCompositionLayer::set_min_filter);
+	ClassDB::bind_method(D_METHOD("get_min_filter"), &OpenXRCompositionLayer::get_min_filter);
+
+	ClassDB::bind_method(D_METHOD("set_mag_filter", "mode"), &OpenXRCompositionLayer::set_mag_filter);
+	ClassDB::bind_method(D_METHOD("get_mag_filter"), &OpenXRCompositionLayer::get_mag_filter);
+
+	ClassDB::bind_method(D_METHOD("set_mipmap_mode", "mode"), &OpenXRCompositionLayer::set_mipmap_mode);
+	ClassDB::bind_method(D_METHOD("get_mipmap_mode"), &OpenXRCompositionLayer::get_mipmap_mode);
+
+	ClassDB::bind_method(D_METHOD("set_horizontal_wrap", "mode"), &OpenXRCompositionLayer::set_horizontal_wrap);
+	ClassDB::bind_method(D_METHOD("get_horizontal_wrap"), &OpenXRCompositionLayer::get_horizontal_wrap);
+
+	ClassDB::bind_method(D_METHOD("set_vertical_wrap", "mode"), &OpenXRCompositionLayer::set_vertical_wrap);
+	ClassDB::bind_method(D_METHOD("get_vertical_wrap"), &OpenXRCompositionLayer::get_vertical_wrap);
+
+	ClassDB::bind_method(D_METHOD("set_red_swizzle", "mode"), &OpenXRCompositionLayer::set_red_swizzle);
+	ClassDB::bind_method(D_METHOD("get_red_swizzle"), &OpenXRCompositionLayer::get_red_swizzle);
+
+	ClassDB::bind_method(D_METHOD("set_green_swizzle", "mode"), &OpenXRCompositionLayer::set_green_swizzle);
+	ClassDB::bind_method(D_METHOD("get_green_swizzle"), &OpenXRCompositionLayer::get_green_swizzle);
+
+	ClassDB::bind_method(D_METHOD("set_blue_swizzle", "mode"), &OpenXRCompositionLayer::set_blue_swizzle);
+	ClassDB::bind_method(D_METHOD("get_blue_swizzle"), &OpenXRCompositionLayer::get_blue_swizzle);
+
+	ClassDB::bind_method(D_METHOD("set_alpha_swizzle", "mode"), &OpenXRCompositionLayer::set_alpha_swizzle);
+	ClassDB::bind_method(D_METHOD("get_alpha_swizzle"), &OpenXRCompositionLayer::get_alpha_swizzle);
+
+	ClassDB::bind_method(D_METHOD("set_max_anisotropy", "value"), &OpenXRCompositionLayer::set_max_anisotropy);
+	ClassDB::bind_method(D_METHOD("get_max_anisotropy"), &OpenXRCompositionLayer::get_max_anisotropy);
+
+	ClassDB::bind_method(D_METHOD("set_border_color", "color"), &OpenXRCompositionLayer::set_border_color);
+	ClassDB::bind_method(D_METHOD("get_border_color"), &OpenXRCompositionLayer::get_border_color);
+
 	ClassDB::bind_method(D_METHOD("intersects_ray", "origin", "direction"), &OpenXRCompositionLayer::intersects_ray);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "layer_viewport", PROPERTY_HINT_NODE_TYPE, "SubViewport"), "set_layer_viewport", "get_layer_viewport");
@@ -121,6 +155,41 @@ void OpenXRCompositionLayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "sort_order", PROPERTY_HINT_NONE, ""), "set_sort_order", "get_sort_order");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "alpha_blend", PROPERTY_HINT_NONE, ""), "set_alpha_blend", "get_alpha_blend");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enable_hole_punch", PROPERTY_HINT_NONE, ""), "set_enable_hole_punch", "get_enable_hole_punch");
+
+	ADD_GROUP("Swapchain State", "swapchain_state_");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_min_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Cubic"), "set_min_filter", "get_min_filter");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_mag_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Cubic"), "set_mag_filter", "get_mag_filter");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_mipmap_mode", PROPERTY_HINT_ENUM, "Disabled,Nearest,Linear"), "set_mipmap_mode", "get_mipmap_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_horizontal_wrap", PROPERTY_HINT_ENUM, "Clamp to Border,Clamp to Edge,Repeat,Mirrored Repeat,Mirror Clamp to Edge"), "set_horizontal_wrap", "get_horizontal_wrap");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_vertical_wrap", PROPERTY_HINT_ENUM, "Clamp to Border,Clamp to Edge,Repeat,Mirrored Repeat,Mirror Clamp to Edge"), "set_vertical_wrap", "get_vertical_wrap");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_red_swizzle", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Zero,One"), "set_red_swizzle", "get_red_swizzle");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_green_swizzle", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Zero,One"), "set_green_swizzle", "get_green_swizzle");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_blue_swizzle", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Zero,One"), "set_blue_swizzle", "get_blue_swizzle");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "swapchain_state_alpha_swizzle", PROPERTY_HINT_ENUM, "Red,Green,Blue,Alpha,Zero,One"), "set_alpha_swizzle", "get_alpha_swizzle");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "swapchain_state_max_anisotropy", PROPERTY_HINT_RANGE, "1.0,16.0,0.001"), "set_max_anisotropy", "get_max_anisotropy");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "swapchain_state_border_color"), "set_border_color", "get_border_color");
+	ADD_GROUP("", "");
+
+	BIND_ENUM_CONSTANT(FILTER_NEAREST);
+	BIND_ENUM_CONSTANT(FILTER_LINEAR);
+	BIND_ENUM_CONSTANT(FILTER_CUBIC);
+
+	BIND_ENUM_CONSTANT(MIPMAP_MODE_DISABLED);
+	BIND_ENUM_CONSTANT(MIPMAP_MODE_NEAREST);
+	BIND_ENUM_CONSTANT(MIPMAP_MODE_LINEAR);
+
+	BIND_ENUM_CONSTANT(WRAP_CLAMP_TO_BORDER);
+	BIND_ENUM_CONSTANT(WRAP_CLAMP_TO_EDGE);
+	BIND_ENUM_CONSTANT(WRAP_REPEAT);
+	BIND_ENUM_CONSTANT(WRAP_MIRRORED_REPEAT);
+	BIND_ENUM_CONSTANT(WRAP_MIRROR_CLAMP_TO_EDGE);
+
+	BIND_ENUM_CONSTANT(SWIZZLE_RED);
+	BIND_ENUM_CONSTANT(SWIZZLE_GREEN);
+	BIND_ENUM_CONSTANT(SWIZZLE_BLUE);
+	BIND_ENUM_CONSTANT(SWIZZLE_ALPHA);
+	BIND_ENUM_CONSTANT(SWIZZLE_ZERO);
+	BIND_ENUM_CONSTANT(SWIZZLE_ONE);
 }
 
 bool OpenXRCompositionLayer::_should_use_fallback_node() {
@@ -335,6 +404,149 @@ bool OpenXRCompositionLayer::is_natively_supported() const {
 		return composition_layer_extension->is_available(openxr_layer_provider->get_openxr_type());
 	}
 	return false;
+}
+
+void OpenXRCompositionLayer::set_min_filter(Filter p_mode) {
+	if (swapchain_state->min_filter == (OpenXRViewportCompositionLayerProvider::Filter)p_mode) {
+		return;
+	}
+
+	swapchain_state->min_filter = (OpenXRViewportCompositionLayerProvider::Filter)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Filter OpenXRCompositionLayer::get_min_filter() {
+	return (OpenXRCompositionLayer::Filter)swapchain_state->min_filter;
+}
+
+void OpenXRCompositionLayer::set_mag_filter(Filter p_mode) {
+	if (swapchain_state->mag_filter == (OpenXRViewportCompositionLayerProvider::Filter)p_mode) {
+		return;
+	}
+
+	swapchain_state->mag_filter = (OpenXRViewportCompositionLayerProvider::Filter)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Filter OpenXRCompositionLayer::get_mag_filter() {
+	return (OpenXRCompositionLayer::Filter)swapchain_state->mag_filter;
+}
+
+void OpenXRCompositionLayer::set_mipmap_mode(MipmapMode p_mode) {
+	if (swapchain_state->mipmap_mode == (OpenXRViewportCompositionLayerProvider::MipmapMode)p_mode) {
+		return;
+	}
+
+	swapchain_state->mipmap_mode = (OpenXRViewportCompositionLayerProvider::MipmapMode)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::MipmapMode OpenXRCompositionLayer::get_mipmap_mode() {
+	return (OpenXRCompositionLayer::MipmapMode)swapchain_state->mipmap_mode;
+}
+
+void OpenXRCompositionLayer::set_horizontal_wrap(Wrap p_mode) {
+	if (swapchain_state->horizontal_wrap == (OpenXRViewportCompositionLayerProvider::Wrap)p_mode) {
+		return;
+	}
+
+	swapchain_state->horizontal_wrap = (OpenXRViewportCompositionLayerProvider::Wrap)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Wrap OpenXRCompositionLayer::get_horizontal_wrap() {
+	return (OpenXRCompositionLayer::Wrap)swapchain_state->horizontal_wrap;
+}
+
+void OpenXRCompositionLayer::set_vertical_wrap(Wrap p_mode) {
+	if (swapchain_state->vertical_wrap == (OpenXRViewportCompositionLayerProvider::Wrap)p_mode) {
+		return;
+	}
+
+	swapchain_state->vertical_wrap = (OpenXRViewportCompositionLayerProvider::Wrap)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Wrap OpenXRCompositionLayer::get_vertical_wrap() {
+	return (OpenXRCompositionLayer::Wrap)swapchain_state->vertical_wrap;
+}
+
+void OpenXRCompositionLayer::set_red_swizzle(Swizzle p_mode) {
+	if (swapchain_state->red_swizzle == (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode) {
+		return;
+	}
+
+	swapchain_state->red_swizzle = (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Swizzle OpenXRCompositionLayer::get_red_swizzle() {
+	return (OpenXRCompositionLayer::Swizzle)swapchain_state->red_swizzle;
+}
+
+void OpenXRCompositionLayer::set_green_swizzle(Swizzle p_mode) {
+	if (swapchain_state->green_swizzle == (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode) {
+		return;
+	}
+
+	swapchain_state->green_swizzle = (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Swizzle OpenXRCompositionLayer::get_green_swizzle() {
+	return (OpenXRCompositionLayer::Swizzle)swapchain_state->green_swizzle;
+}
+
+void OpenXRCompositionLayer::set_blue_swizzle(Swizzle p_mode) {
+	if (swapchain_state->blue_swizzle == (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode) {
+		return;
+	}
+
+	swapchain_state->blue_swizzle = (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Swizzle OpenXRCompositionLayer::get_blue_swizzle() {
+	return (OpenXRCompositionLayer::Swizzle)swapchain_state->blue_swizzle;
+}
+
+void OpenXRCompositionLayer::set_alpha_swizzle(Swizzle p_mode) {
+	if (swapchain_state->alpha_swizzle == (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode) {
+		return;
+	}
+
+	swapchain_state->alpha_swizzle = (OpenXRViewportCompositionLayerProvider::Swizzle)p_mode;
+	swapchain_state->dirty = true;
+}
+
+OpenXRCompositionLayer::Swizzle OpenXRCompositionLayer::get_alpha_swizzle() {
+	return (OpenXRCompositionLayer::Swizzle)swapchain_state->alpha_swizzle;
+}
+
+void OpenXRCompositionLayer::set_max_anisotropy(float p_value) {
+	if (swapchain_state->max_anisotropy == p_value) {
+		return;
+	}
+
+	swapchain_state->max_anisotropy = p_value;
+	swapchain_state->dirty = true;
+}
+
+float OpenXRCompositionLayer::get_max_anisotropy() {
+	return swapchain_state->max_anisotropy;
+}
+
+void OpenXRCompositionLayer::set_border_color(Color p_color) {
+	if (swapchain_state->border_color == p_color) {
+		return;
+	}
+
+	swapchain_state->border_color = p_color;
+	swapchain_state->dirty = true;
+}
+
+Color OpenXRCompositionLayer::get_border_color() {
+	return swapchain_state->border_color;
 }
 
 Ref<JavaObject> OpenXRCompositionLayer::get_android_surface() {
