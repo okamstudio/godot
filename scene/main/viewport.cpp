@@ -717,7 +717,7 @@ void Viewport::_process_picking() {
 	PhysicsDirectSpaceState2D *ss2d = PhysicsServer2D::get_singleton()->space_get_direct_state(find_world_2d()->get_space());
 
 	SubViewportContainer *parent_svc = Object::cast_to<SubViewportContainer>(get_parent());
-	bool parent_ignore_mouse = (parent_svc && parent_svc->get_mouse_filter() == Control::MOUSE_FILTER_IGNORE);
+	bool parent_ignore_mouse = (parent_svc && parent_svc->get_mouse_filter_with_recursive() == Control::MOUSE_FILTER_IGNORE);
 	bool create_passive_hover_event = true;
 	if (gui.mouse_over || parent_ignore_mouse) {
 		// When the mouse is over a Control node, passive hovering would cause input events for Colliders, that are behind Control nodes.
@@ -1825,7 +1825,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				while (ci) {
 					Control *control = Object::cast_to<Control>(ci);
 					if (control) {
-						if (control->get_focus_mode() != Control::FOCUS_NONE) {
+						if (control->get_focus_mode_with_recursive() != Control::FOCUS_NONE) {
 							// Grabbing unhovered focus can cause issues when mouse is dragged
 							// with another button held down.
 							if (control != gui.key_focus && gui.mouse_over_hierarchy.has(control)) {
@@ -2403,7 +2403,7 @@ void Viewport::_gui_update_mouse_over() {
 			int found = gui.mouse_over_hierarchy.find(ancestor_control);
 			if (found >= 0) {
 				// Remove the node if the propagation chain has been broken or it is now MOUSE_FILTER_IGNORE.
-				if (removing || ancestor_control->get_mouse_filter() == Control::MOUSE_FILTER_IGNORE) {
+				if (removing || ancestor_control->get_mouse_filter_with_recursive() == Control::MOUSE_FILTER_IGNORE) {
 					needs_exit.push_back(found);
 				}
 			}
@@ -2414,14 +2414,14 @@ void Viewport::_gui_update_mouse_over() {
 				}
 				reached_top = true;
 			}
-			if (!removing && ancestor_control->get_mouse_filter() != Control::MOUSE_FILTER_IGNORE) {
+			if (!removing && ancestor_control->get_mouse_filter_with_recursive() != Control::MOUSE_FILTER_IGNORE) {
 				new_mouse_over_hierarchy.push_back(ancestor_control);
 				// Add the node if it was not found and it is now not MOUSE_FILTER_IGNORE.
 				if (found < 0) {
 					needs_enter.push_back(ancestor_control);
 				}
 			}
-			if (ancestor_control->get_mouse_filter() == Control::MOUSE_FILTER_STOP) {
+			if (ancestor_control->get_mouse_filter_with_recursive() == Control::MOUSE_FILTER_STOP) {
 				// MOUSE_FILTER_STOP breaks the propagation chain.
 				if (reached_top) {
 					break;
@@ -3080,7 +3080,7 @@ void Viewport::_update_mouse_over(Vector2 p_pos) {
 			while (ancestor) {
 				Control *ancestor_control = Object::cast_to<Control>(ancestor);
 				if (ancestor_control) {
-					if (ancestor_control->get_mouse_filter() != Control::MOUSE_FILTER_IGNORE) {
+					if (ancestor_control->get_mouse_filter_with_recursive() != Control::MOUSE_FILTER_IGNORE) {
 						int found = gui.mouse_over_hierarchy.find(ancestor_control);
 						if (found >= 0) {
 							common_ancestor = gui.mouse_over_hierarchy[found];
@@ -3088,7 +3088,7 @@ void Viewport::_update_mouse_over(Vector2 p_pos) {
 						}
 						over_ancestors.push_back(ancestor_control);
 					}
-					if (ancestor_control->get_mouse_filter() == Control::MOUSE_FILTER_STOP) {
+					if (ancestor_control->get_mouse_filter_with_recursive() == Control::MOUSE_FILTER_STOP) {
 						// MOUSE_FILTER_STOP breaks the propagation chain.
 						break;
 					}

@@ -394,6 +394,12 @@
 				Returns [member offset_right] and [member offset_bottom].
 			</description>
 		</method>
+		<method name="get_focus_mode_with_recursive" qualifiers="const">
+			<return type="int" enum="Control.FocusMode" />
+			<description>
+				Similar to the getter of [member focus_mode], but takes parent's [member focus_recursive_behavior] into account.
+			</description>
+		</method>
 		<method name="get_focus_neighbor" qualifiers="const">
 			<return type="NodePath" />
 			<param index="0" name="side" type="int" enum="Side" />
@@ -414,6 +420,12 @@
 			<return type="Vector2" />
 			<description>
 				Returns the minimum size for this control. See [member custom_minimum_size].
+			</description>
+		</method>
+		<method name="get_mouse_filter_with_recursive" qualifiers="const">
+			<return type="int" enum="Control.MouseFilter" />
+			<description>
+				Similar to the getter of [member mouse_filter], but takes parent's [member mouse_recursive_behavior] into account.
 			</description>
 		</method>
 		<method name="get_offset" qualifiers="const">
@@ -973,6 +985,9 @@
 			Tells Godot which node it should give focus to if the user presses [kbd]Shift + Tab[/kbd] on a keyboard by default. You can change the key by editing the [member ProjectSettings.input/ui_focus_prev] input action.
 			If this property is not set, Godot will select a "best guess" based on surrounding nodes in the scene tree.
 		</member>
+		<member name="focus_recursive_behavior" type="int" setter="set_focus_recursive_behavior" getter="get_focus_recursive_behavior" enum="Control.RecursiveBehavior" default="0">
+			Controls whether the recursive child nodes should have their [member focus_mode] overridden to [constant FOCUS_NONE] when evaluating input.
+		</member>
 		<member name="global_position" type="Vector2" setter="_set_global_position" getter="get_global_position">
 			The node's global position, relative to the world (usually to the [CanvasLayer]).
 		</member>
@@ -1000,6 +1015,9 @@
 			When enabled, scroll wheel events processed by [method _gui_input] will be passed to the parent control even if [member mouse_filter] is set to [constant MOUSE_FILTER_STOP].
 			You should disable it on the root of your UI if you do not want scroll events to go to the [method Node._unhandled_input] processing.
 			[b]Note:[/b] Because this property defaults to [code]true[/code], this allows nested scrollable containers to work out of the box.
+		</member>
+		<member name="mouse_recursive_behavior" type="int" setter="set_mouse_recursive_behavior" getter="get_mouse_recursive_behavior" enum="Control.RecursiveBehavior" default="0">
+			Controls whether the recursive child nodes should have their [member mouse_filter] overridden to [constant MOUSE_FILTER_IGNORE] when evaluating input.
 		</member>
 		<member name="offset_bottom" type="float" setter="set_offset" getter="get_offset" default="0.0">
 			Distance between the node's bottom edge and its parent control, based on [member anchor_bottom].
@@ -1155,6 +1173,15 @@
 		</constant>
 		<constant name="FOCUS_ALL" value="2" enum="FocusMode">
 			The node can grab focus on mouse click, using the arrows and the Tab keys on the keyboard, or using the D-pad buttons on a gamepad. Use with [member focus_mode].
+		</constant>
+		<constant name="RECURSIVE_BEHAVIOR_INHERITED" value="0" enum="RecursiveBehavior">
+			Inherits the associated behavior from the control's parent. This is the default for any newly created control.
+		</constant>
+		<constant name="RECURSIVE_BEHAVIOR_DISABLED" value="1" enum="RecursiveBehavior">
+			The current control and all its recursive child controls have their associated behavior disabled, regardless of the parent control's configuration.
+		</constant>
+		<constant name="RECURSIVE_BEHAVIOR_ENABLED" value="2" enum="RecursiveBehavior">
+			The current control and all its recursive child controls have their associated behavior enabled, regardless of the parent control's configuration.
 		</constant>
 		<constant name="NOTIFICATION_RESIZED" value="40">
 			Sent when the node changes size. Use [member size] to get the new size.
