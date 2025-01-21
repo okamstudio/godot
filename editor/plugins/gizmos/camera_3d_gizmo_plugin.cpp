@@ -180,7 +180,7 @@ void Camera3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 			const float hsize = Math::sin(Math::deg_to_rad(fov));
 			const float depth = -Math::cos(Math::deg_to_rad(fov));
-			Vector3 side = Vector3(hsize * size_factor.x, 0, depth);
+			Vector3 side = Vector3(hsize * size_factor.x, 0, depth * size_factor.y);
 			Vector3 nside = Vector3(-side.x, side.y, side.z);
 			Vector3 up = Vector3(0, hsize * size_factor.y, 0);
 
