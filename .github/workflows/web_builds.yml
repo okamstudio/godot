@@ -6,7 +6,11 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: master
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no use_closure_compiler=yes strict_checks=yes
+  SCONSFLAGS: >-
+    dev_mode=yes
+    tests=no
+    debug_symbols=no
+    use_closure_compiler=yes
   EM_VERSION: 3.1.64
 
 jobs:
@@ -22,14 +26,12 @@ jobs:
             cache-name: web-template
             target: template_release
             sconsflags: threads=yes
-            tests: false
             artifact: true
 
           - name: Template w/o threads (target=template_release, threads=no)
             cache-name: web-nothreads-template
             target: template_release
             sconsflags: threads=no
-            tests: false
             artifact: true
 
     steps:
@@ -63,7 +65,6 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
           platform: web
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
           scons-cache-limit: 0.5
 
       - name: Save Godot build cache

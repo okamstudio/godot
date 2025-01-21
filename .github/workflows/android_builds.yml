@@ -6,7 +6,11 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: master
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no module_text_server_fb_enabled=yes strict_checks=yes
+  SCONSFLAGS: >-
+    dev_mode=yes
+    module_text_server_fb_enabled=yes
+    tests=no
+    swappy=yes
 
 jobs:
   build-android:
@@ -20,23 +24,19 @@ jobs:
           - name: Editor (target=editor)
             cache-name: android-editor
             target: editor
-            tests: false
-            sconsflags: arch=arm64 production=yes swappy=yes
-            cache-limit: 1
+            sconsflags: >-
+              arch=arm64
+              production=yes
 
           - name: Template arm32 (target=template_release, arch=arm32)
             cache-name: android-template-arm32
             target: template_release
-            tests: false
-            sconsflags: arch=arm32 swappy=yes
-            cache-limit: 1
+            sconsflags: arch=arm32
 
           - name: Template arm64 (target=template_release, arch=arm64)
             cache-name: android-template-arm64
             target: template_release
-            tests: false
-            sconsflags: arch=arm64 swappy=yes
-            cache-limit: 1
+            sconsflags: arch=arm64
 
     steps:
       - name: Checkout
@@ -76,8 +76,7 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }} ${{ matrix.sconsflags }}
           platform: android
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
-          scons-cache-limit: ${{ matrix.cache-limit }}
+          scons-cache-limit: 1
 
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save

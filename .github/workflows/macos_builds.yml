@@ -6,7 +6,9 @@ on:
 env:
   # Used for the cache key. Add version suffix to force clean build.
   GODOT_BASE_BRANCH: master
-  SCONSFLAGS: verbose=yes warnings=extra werror=yes module_text_server_fb_enabled=yes strict_checks=yes
+  SCONSFLAGS: >-
+    dev_mode=yes
+    module_text_server_fb_enabled=yes
 
 jobs:
   build-macos:
@@ -17,17 +19,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Editor (target=editor, tests=yes)
+          - name: Editor (target=editor)
             cache-name: macos-editor
             target: editor
-            tests: true
             bin: ./bin/godot.macos.editor.universal
             cache-limit: 1
 
-          - name: Template (target=template_release, tests=yes)
+          - name: Template (target=template_release)
             cache-name: macos-template
             target: template_release
-            tests: true
             sconsflags: debug_symbols=no
             bin: ./bin/godot.macos.template_release.universal
             cache-limit: 1
@@ -57,7 +57,6 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }} arch=x86_64
           platform: macos
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
           scons-cache-limit: 0 # Only cap on second run to avoid purging unnecessarily
 
       - name: Compilation (arm64)
@@ -66,7 +65,6 @@ jobs:
           sconsflags: ${{ env.SCONSFLAGS }} arch=arm64
           platform: macos
           target: ${{ matrix.target }}
-          tests: ${{ matrix.tests }}
           scons-cache-limit: ${{ matrix.cache-limit }}
 
       - name: Save Godot build cache
@@ -88,7 +86,6 @@ jobs:
           name: ${{ matrix.cache-name }}
 
       - name: Unit tests
-        if: matrix.tests
         run: |
           ${{ matrix.bin }} --version
           ${{ matrix.bin }} --help
