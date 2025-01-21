@@ -38,7 +38,6 @@
 #include "core/templates/vector.h"
 #include "core/variant/callable.h"
 #include "core/variant/dictionary.h"
-#include "core/variant/variant.h"
 
 struct ArrayPrivate {
 	SafeRefCount refcount;
@@ -497,10 +496,14 @@ const Variant &Array::get(int p_idx) const {
 }
 
 Array Array::duplicate(bool p_deep) const {
-	return recursive_duplicate(p_deep, 0);
+	return recursive_duplicate(p_deep, RESOURCE_DEEP_DUPLICATE_NONE, 0);
 }
 
-Array Array::recursive_duplicate(bool p_deep, int recursion_count) const {
+Array Array::duplicate_deep(ResourceDeepDuplicateMode p_deep_subresources_mode) const {
+	return recursive_duplicate(true, p_deep_subresources_mode, 0);
+}
+
+Array Array::recursive_duplicate(bool p_deep, ResourceDeepDuplicateMode p_deep_subresources_mode, int recursion_count) const {
 	Array new_arr;
 	new_arr._p->typed = _p->typed;
 
@@ -510,11 +513,18 @@ Array Array::recursive_duplicate(bool p_deep, int recursion_count) const {
 	}
 
 	if (p_deep) {
+		bool is_call_chain_end = recursion_count == 0;
+
 		recursion_count++;
 		int element_count = size();
 		new_arr.resize(element_count);
 		for (int i = 0; i < element_count; i++) {
-			new_arr[i] = get(i).recursive_duplicate(true, recursion_count);
+			new_arr[i] = get(i).recursive_duplicate(true, p_deep_subresources_mode, recursion_count);
+		}
+
+		// Variant::recursive_duplicate() may have created a remap cache by now.
+		if (is_call_chain_end) {
+			Resource::_teardown_duplicate_from_variant();
 		}
 	} else {
 		new_arr._p->array = _p->array;

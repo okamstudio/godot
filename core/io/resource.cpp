@@ -266,15 +266,20 @@ Variant Resource::_duplicate_recursive(const Variant &p_variant, const Duplicate
 						case RESOURCE_DEEP_DUPLICATE_ALL: {
 							should_duplicate = p_params.deep;
 						} break;
+						default: {
+							DEV_ASSERT(false);
+						}
 					}
 				}
 			}
 			if (should_duplicate) {
-				if (p_params.remap_cache->has(sr)) {
-					return p_params.remap_cache->get(sr);
+				if (thread_duplicate_remap_cache->has(sr)) {
+					return thread_duplicate_remap_cache->get(sr);
 				} else {
-					const Ref<Resource> &dupe = sr->_duplicate(p_params);
-					p_params.remap_cache->insert(sr, dupe);
+					const Ref<Resource> &dupe = p_params.local_scene
+							? sr->duplicate_for_local_scene(p_params.local_scene, *thread_duplicate_remap_cache)
+							: sr->_duplicate(p_params);
+					thread_duplicate_remap_cache->insert(sr, dupe);
 					return dupe;
 				}
 			} else {
@@ -324,13 +329,22 @@ Variant Resource::_duplicate_recursive(const Variant &p_variant, const Duplicate
 Ref<Resource> Resource::_duplicate(const DuplicateParams &p_params) const {
 	ERR_FAIL_COND_V_MSG(p_params.local_scene && p_params.subres_mode != RESOURCE_DEEP_DUPLICATE_MAX, Ref<Resource>(), "Duplication for local-to-scene can't specify a deep duplicate mode.");
 
+	DuplicateRemapCacheT *remap_cache_backup = thread_duplicate_remap_cache;
+
+// These are for avoiding potential duplicates that can happen in custom code
+// from participating in the same duplication session (remap cache).
+#define BEFORE_USER_CODE thread_duplicate_remap_cache = nullptr;
+#define AFTER_USER_CODE thread_duplicate_remap_cache = remap_cache_backup;
+
 	List<PropertyInfo> plist;
 	get_property_list(&plist);
 
+	BEFORE_USER_CODE
 	Ref<Resource> r = Object::cast_to<Resource>(ClassDB::instantiate(get_class()));
+	AFTER_USER_CODE
 	ERR_FAIL_COND_V(r.is_null(), Ref<Resource>());
 
-	p_params.remap_cache->insert(Ref<Resource>(this), r);
+	thread_duplicate_remap_cache->insert(Ref<Resource>(this), r);
 
 	if (p_params.local_scene) {
 		r->local_scene = p_params.local_scene;
@@ -341,20 +355,49 @@ Ref<Resource> Resource::_duplicate(const DuplicateParams &p_params) const {
 			continue;
 		}
 
+		BEFORE_USER_CODE
 		Variant p = get(E.name);
+		AFTER_USER_CODE
+
 		p = _duplicate_recursive(p, p_params, E.usage);
+
+		BEFORE_USER_CODE
 		r->set(E.name, p);
+		AFTER_USER_CODE
 	}
 
 	return r;
+
+#undef BEFORE_USER_CODE
+#undef AFTER_USER_CODE
 }
 
-Ref<Resource> Resource::duplicate_for_local_scene(Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache) const {
+Ref<Resource> Resource::duplicate_for_local_scene(Node *p_for_scene, DuplicateRemapCacheT &p_remap_cache) const {
+#ifdef DEBUG_ENABLED
+	// The only possibilities for the remap cache passed being valid are these:
+	// a) It's the same already used as the one of the thread. That happens when this function
+	//    is called within some recursion level within a duplication.
+	// b) There's no current thread remap cache, which means this function is acting as an entry point.
+	// This check failing means that this function is being called as an entry point during an ongoing
+	// duplication, likely due to custom instantiation or setter code. It would be an engine bug because
+	// code starting or joining a duplicate session must ensure to exit it temporarily when making calls
+	// that may in turn invoke such custom code.
+	if (thread_duplicate_remap_cache && &p_remap_cache != thread_duplicate_remap_cache) {
+		ERR_PRINT("Resource::duplicate_for_local_scene() called during an ongoing duplication session. This is an engine bug.");
+	}
+#endif
+
+	DuplicateRemapCacheT *remap_cache_backup = thread_duplicate_remap_cache;
+	thread_duplicate_remap_cache = &p_remap_cache;
+
 	DuplicateParams params;
 	params.deep = true;
 	params.local_scene = p_for_scene;
-	params.remap_cache = &p_remap_cache;
-	return _duplicate(params);
+	const Ref<Resource> &dupe = _duplicate(params);
+
+	thread_duplicate_remap_cache = remap_cache_backup;
+
+	return dupe;
 }
 
 void Resource::_find_sub_resources(const Variant &p_variant, HashSet<Ref<Resource>> &p_resources_found) {
@@ -385,7 +428,7 @@ void Resource::_find_sub_resources(const Variant &p_variant, HashSet<Ref<Resourc
 	}
 }
 
-void Resource::configure_for_local_scene(Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache) {
+void Resource::configure_for_local_scene(Node *p_for_scene, DuplicateRemapCacheT &p_remap_cache) {
 	List<PropertyInfo> plist;
 	get_property_list(&plist);
 
@@ -413,23 +456,89 @@ void Resource::configure_for_local_scene(Node *p_for_scene, HashMap<Ref<Resource
 }
 
 Ref<Resource> Resource::duplicate(bool p_deep) const {
-	HashMap<Ref<Resource>, Ref<Resource>> remap_cache;
+	DuplicateRemapCacheT remap_cache;
+	bool started_session = false;
+	if (!thread_duplicate_remap_cache) {
+		thread_duplicate_remap_cache = &remap_cache;
+		started_session = true;
+	}
+
 	DuplicateParams params;
 	params.deep = p_deep;
 	params.subres_mode = RESOURCE_DEEP_DUPLICATE_INTERNAL;
-	params.remap_cache = &remap_cache;
-	return _duplicate(params);
+	const Ref<Resource> &dupe = _duplicate(params);
+
+	if (started_session) {
+		thread_duplicate_remap_cache = nullptr;
+	}
+
+	return dupe;
 }
 
 Ref<Resource> Resource::duplicate_deep(ResourceDeepDuplicateMode p_deep_subresources_mode) const {
 	ERR_FAIL_INDEX_V(p_deep_subresources_mode, RESOURCE_DEEP_DUPLICATE_MAX, Ref<Resource>());
 
-	HashMap<Ref<Resource>, Ref<Resource>> remap_cache;
+	DuplicateRemapCacheT remap_cache;
+	bool started_session = false;
+	if (!thread_duplicate_remap_cache) {
+		thread_duplicate_remap_cache = &remap_cache;
+		started_session = true;
+	}
+
 	DuplicateParams params;
 	params.deep = true;
 	params.subres_mode = p_deep_subresources_mode;
-	params.remap_cache = &remap_cache;
-	return _duplicate(params);
+	const Ref<Resource> &dupe = _duplicate(params);
+
+	if (started_session) {
+		thread_duplicate_remap_cache = nullptr;
+	}
+
+	return dupe;
+}
+
+Ref<Resource> Resource::_duplicate_from_variant(bool p_deep, ResourceDeepDuplicateMode p_deep_subresources_mode, int p_recursion_count) const {
+	// A call without deep duplication would have been early-rejected at Variant::duplicate() unless it's the root call.
+	DEV_ASSERT(!(p_recursion_count > 0 && p_deep_subresources_mode == RESOURCE_DEEP_DUPLICATE_NONE));
+
+	// When duplicating from Variant, this function may be called multiple times from
+	// different parts of the data structure being copied. Therefore, we need to create
+	// a remap cache instance in a way that can be shared among all of the calls.
+	// Whatever Variant, Array or Dictionary that initiated the call chain will eventually
+	// claim it, when the stack unwinds up to the root call.
+	// One exception is that this is the root call.
+
+	if (p_recursion_count == 0) {
+		if (p_deep) {
+			return duplicate_deep(p_deep_subresources_mode);
+		} else {
+			return duplicate(false);
+		}
+	}
+
+	if (thread_duplicate_remap_cache) {
+		Resource::DuplicateRemapCacheT::Iterator E = thread_duplicate_remap_cache->find(Ref<Resource>(this));
+		if (E) {
+			return E->value;
+		}
+	} else {
+		thread_duplicate_remap_cache = memnew(DuplicateRemapCacheT);
+	}
+
+	DuplicateParams params;
+	params.deep = p_deep;
+	params.subres_mode = p_deep_subresources_mode;
+
+	const Ref<Resource> dupe = _duplicate(params);
+
+	return dupe;
+}
+
+void Resource::_teardown_duplicate_from_variant() {
+	if (thread_duplicate_remap_cache) {
+		memdelete(thread_duplicate_remap_cache);
+		thread_duplicate_remap_cache = nullptr;
+	}
 }
 
 void Resource::_set_path(const String &p_path) {
@@ -579,9 +688,10 @@ void Resource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("duplicate", "deep"), &Resource::duplicate, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("duplicate_deep", "deep_subresources_mode"), &Resource::duplicate_deep, DEFVAL(RESOURCE_DEEP_DUPLICATE_INTERNAL));
 
-	BIND_ENUM_CONSTANT(RESOURCE_DEEP_DUPLICATE_NONE);
-	BIND_ENUM_CONSTANT(RESOURCE_DEEP_DUPLICATE_INTERNAL);
-	BIND_ENUM_CONSTANT(RESOURCE_DEEP_DUPLICATE_ALL);
+	// For the bindings, it's much more natural to expose this enum from the Variant realm via Resource.
+	ClassDB::bind_integer_constant(get_class_static(), StringName("ResourceDeepDuplicateMode"), "RESOURCE_DEEP_DUPLICATE_NONE", RESOURCE_DEEP_DUPLICATE_NONE);
+	ClassDB::bind_integer_constant(get_class_static(), StringName("ResourceDeepDuplicateMode"), "RESOURCE_DEEP_DUPLICATE_INTERNAL", RESOURCE_DEEP_DUPLICATE_INTERNAL);
+	ClassDB::bind_integer_constant(get_class_static(), StringName("ResourceDeepDuplicateMode"), "RESOURCE_DEEP_DUPLICATE_ALL", RESOURCE_DEEP_DUPLICATE_ALL);
 
 	ADD_SIGNAL(MethodInfo("changed"));
 	ADD_SIGNAL(MethodInfo("setup_local_to_scene_requested"));

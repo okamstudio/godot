@@ -60,6 +60,7 @@
 #include "core/variant/array.h"
 #include "core/variant/callable.h"
 #include "core/variant/dictionary.h"
+#include "core/variant/variant_deep_duplicate.h"
 
 class Object;
 class RefCounted;
@@ -579,7 +580,8 @@ public:
 
 	void zero();
 	Variant duplicate(bool p_deep = false) const;
-	Variant recursive_duplicate(bool p_deep, int recursion_count) const;
+	Variant duplicate_deep(ResourceDeepDuplicateMode p_deep_subresources_mode = RESOURCE_DEEP_DUPLICATE_INTERNAL) const;
+	Variant recursive_duplicate(bool p_deep, ResourceDeepDuplicateMode p_deep_subresources_mode, int recursion_count) const;
 
 	/* Built-In Methods */
 

@@ -332,7 +332,16 @@
 			<param index="0" name="deep" type="bool" default="false" />
 			<description>
 				Returns a new copy of the array.
-				By default, a [b]shallow[/b] copy is returned: all nested [Array] and [Dictionary] elements are shared with the original array. Modifying them in one array will also affect them in the other.[br]If [param deep] is [code]true[/code], a [b]deep[/b] copy is returned: all nested arrays and dictionaries are also duplicated (recursively).
+				By default, a [b]shallow[/b] copy is returned: all nested [Array], [Dictionary], and [Resource] elements are shared with the original array. Modifying them in one array will also affect them in the other.
+				If [param deep] is [code]true[/code], a [b]deep[/b] copy is returned: all nested arrays and dictionaries are also duplicated (recursively). Any [Resource] is still shared with the original array, though.
+			</description>
+		</method>
+		<method name="duplicate_deep" qualifiers="const">
+			<return type="Array" />
+			<param index="0" name="deep_subresources_mode" type="int" default="0" />
+			<description>
+				Duplicates this array, deeply, like [method duplicate][code](true)[/code], with extra control over how subresources are handled.
+				[param deep_subresources_mode] must be one of the values from [enum Resource.ResourceDeepDuplicateMode]. By default, only internal resources will be duplicated (recursively).
 			</description>
 		</method>
 		<method name="erase">

@@ -187,7 +187,17 @@
 			<return type="Dictionary" />
 			<param index="0" name="deep" type="bool" default="false" />
 			<description>
-				Creates and returns a new copy of the dictionary. If [param deep] is [code]true[/code], inner [Dictionary] and [Array] keys and values are also copied, recursively.
+				Returns a new copy of the dictionary.
+				By default, a [b]shallow[/b] copy is returned: all nested [Array], [Dictionary], and [Resource] keys and values are shared with the original dictionary. Modifying them in one dictionary will also affect them in the other.
+				If [param deep] is [code]true[/code], a [b]deep[/b] copy is returned: all nested arrays and dictionaries are also duplicated (recursively). Any [Resource] is still shared with the original dictionary, though.
+			</description>
+		</method>
+		<method name="duplicate_deep" qualifiers="const">
+			<return type="Dictionary" />
+			<param index="0" name="deep_subresources_mode" type="int" default="1" />
+			<description>
+				Duplicates this dictionary, deeply, like [method duplicate][code](true)[/code], with extra control over how subresources are handled.
+				[param deep_subresources_mode] must be one of the values from [enum Resource.ResourceDeepDuplicateMode]. By default, only internal resources will be duplicated (recursively).
 			</description>
 		</method>
 		<method name="erase">

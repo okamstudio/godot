@@ -55,13 +55,6 @@ class Resource : public RefCounted {
 	GDCLASS(Resource, RefCounted);
 
 public:
-	enum ResourceDeepDuplicateMode {
-		RESOURCE_DEEP_DUPLICATE_NONE,
-		RESOURCE_DEEP_DUPLICATE_INTERNAL,
-		RESOURCE_DEEP_DUPLICATE_ALL,
-		RESOURCE_DEEP_DUPLICATE_MAX
-	};
-
 	static void register_custom_data_to_otdb() { ClassDB::add_resource_base_extension("res", get_class_static()); }
 	virtual String get_base_extension() const { return "res"; }
 
@@ -70,7 +63,6 @@ protected:
 		bool deep = false;
 		ResourceDeepDuplicateMode subres_mode = RESOURCE_DEEP_DUPLICATE_MAX;
 		Node *local_scene = nullptr;
-		HashMap<Ref<Resource>, Ref<Resource>> *remap_cache = nullptr;
 	};
 
 private:
@@ -92,6 +84,9 @@ private:
 	Node *local_scene = nullptr;
 
 	SelfList<Resource> remapped_list;
+
+	using DuplicateRemapCacheT = HashMap<Ref<Resource>, Ref<Resource>>;
+	static thread_local inline DuplicateRemapCacheT *thread_duplicate_remap_cache = nullptr;
 
 	Variant _duplicate_recursive(const Variant &p_variant, const DuplicateParams &p_params, uint32_t p_usage = 0) const;
 	void _find_sub_resources(const Variant &p_variant, HashSet<Ref<Resource>> &p_resources_found);
@@ -142,6 +137,8 @@ public:
 
 	Ref<Resource> duplicate(bool p_deep = false) const;
 	Ref<Resource> duplicate_deep(ResourceDeepDuplicateMode p_deep_subresources_mode = RESOURCE_DEEP_DUPLICATE_INTERNAL) const;
+	Ref<Resource> _duplicate_from_variant(bool p_deep, ResourceDeepDuplicateMode p_deep_subresources_mode, int p_recursion_count) const;
+	static void _teardown_duplicate_from_variant();
 	Ref<Resource> duplicate_for_local_scene(Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache) const;
 	void configure_for_local_scene(Node *p_for_scene, HashMap<Ref<Resource>, Ref<Resource>> &p_remap_cache);
 
@@ -178,7 +175,7 @@ public:
 	~Resource();
 };
 
-VARIANT_ENUM_CAST(Resource::ResourceDeepDuplicateMode);
+VARIANT_ENUM_CAST(ResourceDeepDuplicateMode);
 
 class ResourceCache {
 	friend class Resource;

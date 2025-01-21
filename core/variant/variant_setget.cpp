@@ -32,6 +32,8 @@
 
 #include "variant_callable.h"
 
+#include "core/io/resource.h"
+
 struct VariantSetterGetterInfo {
 	void (*setter)(Variant *base, const Variant *value, bool &valid);
 	void (*getter)(const Variant *base, Variant *value);
@@ -1964,26 +1966,33 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 }
 
 Variant Variant::duplicate(bool p_deep) const {
-	return recursive_duplicate(p_deep, 0);
+	return recursive_duplicate(p_deep, RESOURCE_DEEP_DUPLICATE_NONE, 0);
 }
 
-Variant Variant::recursive_duplicate(bool p_deep, int recursion_count) const {
+Variant Variant::duplicate_deep(ResourceDeepDuplicateMode p_deep_subresources_mode) const {
+	ERR_FAIL_INDEX_V(p_deep_subresources_mode, RESOURCE_DEEP_DUPLICATE_MAX, Variant());
+	return recursive_duplicate(true, p_deep_subresources_mode, 0);
+}
+
+Variant Variant::recursive_duplicate(bool p_deep, ResourceDeepDuplicateMode p_deep_subresources_mode, int recursion_count) const {
 	switch (type) {
 		case OBJECT: {
-			/*  breaks stuff :(
-			if (p_deep && !_get_obj().ref.is_null()) {
-				Ref<Resource> resource = _get_obj().ref;
-				if (resource.is_valid()) {
-					return resource->duplicate(true);
-				}
+			// If the root target of duplicate() is a Resource, we can't early-reject because that
+			// resource itself must be duplicated, much as if Resource::duplicate() had been called.
+			if (p_deep_subresources_mode == RESOURCE_DEEP_DUPLICATE_NONE && recursion_count > 0) {
+				return *this;
 			}
-			*/
-			return *this;
+			Resource *res = Object::cast_to<Resource>(_get_obj().obj);
+			if (res) {
+				return res->_duplicate_from_variant(p_deep, p_deep_subresources_mode, recursion_count);
+			} else {
+				return *this;
+			}
 		} break;
 		case DICTIONARY:
-			return operator Dictionary().recursive_duplicate(p_deep, recursion_count);
+			return operator Dictionary().recursive_duplicate(p_deep, p_deep_subresources_mode, recursion_count);
 		case ARRAY:
-			return operator Array().recursive_duplicate(p_deep, recursion_count);
+			return operator Array().recursive_duplicate(p_deep, p_deep_subresources_mode, recursion_count);
 		case PACKED_BYTE_ARRAY:
 			return operator Vector<uint8_t>().duplicate();
 		case PACKED_INT32_ARRAY:
