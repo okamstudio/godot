@@ -138,17 +138,24 @@ Error EditorRun::run(const String &p_scene, const String &p_write_movie, const V
 		}
 
 		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_HIDPI)) {
-			bool hidpi_proj = GLOBAL_GET("display/window/dpi/allow_hidpi");
+			OS::HidpiAwareness hidpi_proj = OS::HidpiAwareness(int(GLOBAL_GET("display/window/dpi/hidpi_awareness")));
+			OS::HidpiAwareness hidpi_editor = OS::get_singleton()->get_hidpi_awareness();
 			int display_scale = 1;
+			// There are some problems
+			// - display_scale is int, but in one case it's assigned a float value.
+			// - Is it necessary to somehow handle the situation when the project uses OS::HidpiAwareness::PER_MONITOR_AWARENESS ?
+			//   Looks like project is more aware of that 'dpi' than editor and should be able handle it on it's own.
+			//
+			// Should we assume that the editor always runs in SYSTEM_WIDE_AWARENESS mode?
 
-			if (OS::get_singleton()->is_hidpi_allowed()) {
-				if (hidpi_proj) {
+			if (hidpi_editor == OS::HidpiAwareness::NO_AWARENESS) {
+				if (hidpi_proj == OS::HidpiAwareness::NO_AWARENESS) {
 					display_scale = 1; // Both editor and project runs in hiDPI mode, do not scale.
 				} else {
 					display_scale = DisplayServer::get_singleton()->screen_get_max_scale(); // Editor is in hiDPI mode, project is not, scale down.
 				}
 			} else {
-				if (hidpi_proj) {
+				if (hidpi_proj == OS::HidpiAwareness::NO_AWARENESS) {
 					display_scale = (1.f / DisplayServer::get_singleton()->screen_get_max_scale()); // Editor is not in hiDPI mode, project is, scale up.
 				} else {
 					display_scale = 1; // Both editor and project runs in lowDPI mode, do not scale.

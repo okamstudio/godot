@@ -91,7 +91,7 @@ void GLManagerLegacy_MacOS::window_resize(DisplayServer::WindowID p_window_id, i
 	dim[1] = p_height;
 	CGLSetParameter((CGLContextObj)[win.context CGLContextObj], kCGLCPSurfaceBackingSize, &dim[0]);
 	CGLEnable((CGLContextObj)[win.context CGLContextObj], kCGLCESurfaceBackingSize);
-	if (OS::get_singleton()->is_hidpi_allowed()) {
+	if (OS::get_singleton()->get_hidpi_awareness() != OS::HidpiAwareness::NO_AWARENESS) {
 		[win.window_view setWantsBestResolutionOpenGLSurface:YES];
 	} else {
 		[win.window_view setWantsBestResolutionOpenGLSurface:NO];
