@@ -857,7 +857,7 @@ void VehicleBody3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
 		if (wheel.m_raycastInfo.m_isInContact) {
 			const Transform3D &chassisWorldTransform = p_state->get_transform();
 
-			// Get forward vector
+			// Get forward vector.
 			Vector3 fwd(
 					chassisWorldTransform.basis[0][Vector3::AXIS_Z],
 					chassisWorldTransform.basis[1][Vector3::AXIS_Z],
