@@ -865,7 +865,7 @@ void VehicleBody3D::_body_state_changed(PhysicsDirectBodyState3D *p_state) {
 
 			// Apply steering rotation to forward vector for steerable wheels.
 			if (wheel.steers) {
-				Basis steeringMat(Vector3(0, 1, 0), wheel.m_steering);
+				Basis steering_mat(Vector3(0, 1, 0), wheel.m_steering);
 				fwd = steeringMat.xform(fwd);
 			}
 
