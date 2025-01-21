@@ -513,42 +513,36 @@ public:
 	EXBIND1RC(String, debug_get_stack_level_source, int)
 
 	GDVIRTUAL3R_REQUIRED(Dictionary, _debug_get_stack_level_locals, int, int, int)
-	virtual void debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override {
+	virtual void debug_get_stack_level_locals(int p_level, LocalVector<Pair<String, Variant>> &p_locals, int p_max_subitems = -1, int p_max_depth = -1) override {
 		Dictionary ret;
 		GDVIRTUAL_CALL(_debug_get_stack_level_locals, p_level, p_max_subitems, p_max_depth, ret);
 		if (ret.size() == 0) {
 			return;
 		}
-		if (p_locals != nullptr && ret.has("locals")) {
+		if (ret.has("locals") && ret.has("values")) {
 			PackedStringArray strings = ret["locals"];
-			for (int i = 0; i < strings.size(); i++) {
-				p_locals->push_back(strings[i]);
-			}
-		}
-		if (p_values != nullptr && ret.has("values")) {
 			Array values = ret["values"];
-			for (const Variant &value : values) {
-				p_values->push_back(value);
+			ERR_FAIL_COND(strings.size() != values.size());
+			p_locals.reserve(strings.size());
+			for (int i = 0; i < strings.size(); i++) {
+				p_locals.push_back(Pair(strings[i], values[i]));
 			}
 		}
 	}
 	GDVIRTUAL3R_REQUIRED(Dictionary, _debug_get_stack_level_members, int, int, int)
-	virtual void debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override {
+	virtual void debug_get_stack_level_members(int p_level, LocalVector<Pair<String, Variant>> &p_members, int p_max_subitems = -1, int p_max_depth = -1) override {
 		Dictionary ret;
 		GDVIRTUAL_CALL(_debug_get_stack_level_members, p_level, p_max_subitems, p_max_depth, ret);
 		if (ret.size() == 0) {
 			return;
 		}
-		if (p_members != nullptr && ret.has("members")) {
+		if (ret.has("members") && ret.has("values")) {
 			PackedStringArray strings = ret["members"];
-			for (int i = 0; i < strings.size(); i++) {
-				p_members->push_back(strings[i]);
-			}
-		}
-		if (p_values != nullptr && ret.has("values")) {
 			Array values = ret["values"];
-			for (const Variant &value : values) {
-				p_values->push_back(value);
+			ERR_FAIL_COND(strings.size() != values.size());
+			p_members.reserve(strings.size());
+			for (int i = 0; i < strings.size(); i++) {
+				p_members.push_back(Pair<String, Variant>(strings[i], values[i]));
 			}
 		}
 	}
@@ -560,22 +554,19 @@ public:
 		return reinterpret_cast<ScriptInstance *>(ret.operator void *());
 	}
 	GDVIRTUAL2R_REQUIRED(Dictionary, _debug_get_globals, int, int)
-	virtual void debug_get_globals(List<String> *p_globals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override {
+	virtual void debug_get_globals(LocalVector<Pair<String, Variant>> &p_globals, int p_max_subitems = -1, int p_max_depth = -1) override {
 		Dictionary ret;
 		GDVIRTUAL_CALL(_debug_get_globals, p_max_subitems, p_max_depth, ret);
 		if (ret.size() == 0) {
 			return;
 		}
-		if (p_globals != nullptr && ret.has("globals")) {
+		if (ret.has("globals") && ret.has("values")) {
 			PackedStringArray strings = ret["globals"];
-			for (int i = 0; i < strings.size(); i++) {
-				p_globals->push_back(strings[i]);
-			}
-		}
-		if (p_values != nullptr && ret.has("values")) {
 			Array values = ret["values"];
-			for (const Variant &value : values) {
-				p_values->push_back(value);
+			ERR_FAIL_COND(strings.size() != values.size());
+			p_globals.reserve(strings.size());
+			for (int i = 0; i < strings.size(); i++) {
+				p_globals.push_back(Pair(strings[i], values[i]));
 			}
 		}
 	}

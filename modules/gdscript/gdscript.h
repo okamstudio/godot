@@ -607,10 +607,10 @@ public:
 	virtual int debug_get_stack_level_line(int p_level) const override;
 	virtual String debug_get_stack_level_function(int p_level) const override;
 	virtual String debug_get_stack_level_source(int p_level) const override;
-	virtual void debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
-	virtual void debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
+	virtual void debug_get_stack_level_locals(int p_level, LocalVector<Pair<String, Variant>> &p_locals, int p_max_subitems = -1, int p_max_depth = -1) override;
+	virtual void debug_get_stack_level_members(int p_level, LocalVector<Pair<String, Variant>> &p_members, int p_max_subitems = -1, int p_max_depth = -1) override;
 	virtual ScriptInstance *debug_get_stack_level_instance(int p_level) override;
-	virtual void debug_get_globals(List<String> *p_globals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
+	virtual void debug_get_globals(LocalVector<Pair<String, Variant>> &p_globals, int p_max_subitems = -1, int p_max_depth = -1) override;
 	virtual String debug_parse_stack_level_expression(int p_level, const String &p_expression, int p_max_subitems = -1, int p_max_depth = -1) override;
 
 	virtual void reload_all_scripts() override;

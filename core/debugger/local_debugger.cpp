@@ -190,22 +190,19 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 			}
 
 		} else if (line == "lv" || line == "locals") {
-			List<String> locals;
-			List<Variant> values;
-			script_lang->debug_get_stack_level_locals(current_frame, &locals, &values);
-			print_variables(locals, values, variable_prefix);
+			LocalVector<Pair<String, Variant>> locals;
+			script_lang->debug_get_stack_level_locals(current_frame, locals);
+			print_variables(locals, variable_prefix);
 
 		} else if (line == "gv" || line == "globals") {
-			List<String> globals;
-			List<Variant> values;
-			script_lang->debug_get_globals(&globals, &values);
-			print_variables(globals, values, variable_prefix);
+			LocalVector<Pair<String, Variant>> globals;
+			script_lang->debug_get_globals(globals);
+			print_variables(globals, variable_prefix);
 
 		} else if (line == "mv" || line == "members") {
-			List<String> members;
-			List<Variant> values;
-			script_lang->debug_get_stack_level_members(current_frame, &members, &values);
-			print_variables(members, values, variable_prefix);
+			LocalVector<Pair<String, Variant>> members;
+			script_lang->debug_get_stack_level_members(current_frame, members);
+			print_variables(members, variable_prefix);
 
 		} else if (line.begins_with("p") || line.begins_with("print")) {
 			if (line.find_char(' ') < 0) {
@@ -319,24 +316,21 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 	}
 }
 
-void LocalDebugger::print_variables(const List<String> &names, const List<Variant> &values, const String &variable_prefix) {
+void LocalDebugger::print_variables(const LocalVector<Pair<String, Variant>> &variables, const String &variable_prefix) {
 	String value;
 	Vector<String> value_lines;
-	const List<Variant>::Element *V = values.front();
-	for (const String &E : names) {
-		value = String(V->get());
+	for (const Pair<String, Variant> &E : variables) {
+		value = String(E.second);
 
 		if (variable_prefix.is_empty()) {
-			print_line(E + ": " + String(V->get()));
+			print_line(E.first + ": " + value);
 		} else {
-			print_line(E + ":");
+			print_line(E.first + ":");
 			value_lines = value.split("\n");
 			for (int i = 0; i < value_lines.size(); ++i) {
 				print_line(variable_prefix + value_lines[i]);
 			}
 		}
-
-		V = V->next();
 	}
 }
 
