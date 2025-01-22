@@ -859,7 +859,11 @@ void MaterialData::update_textures(const HashMap<StringName, Variant> &p_paramet
 						E->value = global_textures_pass;
 					}
 
-					textures.push_back(v->override.get_type() != Variant::NIL ? v->override : v->value);
+					if (v->override.get_type() == Variant::RID && ((RID)v->override).is_valid()) {
+						textures.push_back(v->override);
+					} else if (v->value.get_type() == Variant::RID && ((RID)v->value).is_valid()) {
+						textures.push_back(v->value);
+					}
 				}
 
 			} else {
