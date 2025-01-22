@@ -36,11 +36,7 @@
 #include "scene/3d/cpu_particles_3d.h"
 
 CPUParticles3DGizmoPlugin::CPUParticles3DGizmoPlugin() {
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particles");
-	create_material("particles_material", gizmo_color);
-	gizmo_color.a = MAX((gizmo_color.a - 0.2) * 0.02, 0.0);
-	create_material("particles_solid_material", gizmo_color);
-	create_icon_material("particles_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoCPUParticles3D"), EditorStringName(EditorIcons)));
+	CPUParticles3DGizmoPlugin::update_materials();
 }
 
 bool CPUParticles3DGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -104,4 +100,12 @@ void CPUParticles3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	Ref<Material> icon = get_material("particles_icon", p_gizmo);
 	p_gizmo->add_unscaled_billboard(icon, 0.05);
+}
+
+void CPUParticles3DGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particles");
+	create_material("particles_material", gizmo_color);
+	gizmo_color.a = MAX((gizmo_color.a - 0.2) * 0.02, 0.0);
+	create_material("particles_solid_material", gizmo_color);
+	create_icon_material("particles_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoCPUParticles3D"), EditorStringName(EditorIcons)));
 }

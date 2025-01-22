@@ -41,6 +41,7 @@ public:
 	String get_gizmo_name() const override;
 	int get_priority() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	void update_materials() override;
 
 	LightmapGIGizmoPlugin();
 };

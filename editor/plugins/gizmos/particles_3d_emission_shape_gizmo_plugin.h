@@ -45,6 +45,7 @@ public:
 	int get_priority() const override;
 	bool is_selectable_when_hidden() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	void update_materials() override;
 
 	String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;
 	Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;

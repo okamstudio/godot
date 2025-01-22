@@ -42,11 +42,7 @@
 
 Particles3DEmissionShapeGizmoPlugin::Particles3DEmissionShapeGizmoPlugin() {
 	helper.instantiate();
-
-	Color gizmo_color = EDITOR_DEF_RST("editors/3d_gizmos/gizmo_colors/particles_emission_shape", Color(0.5, 0.7, 1));
-	create_material("particles_emission_shape_material", gizmo_color);
-
-	create_handle_material("handles");
+	Particles3DEmissionShapeGizmoPlugin::update_materials();
 }
 
 bool Particles3DEmissionShapeGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -336,4 +332,11 @@ void Particles3DEmissionShapeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 			}
 		}
 	}
+}
+
+void Particles3DEmissionShapeGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_DEF_RST("editors/3d_gizmos/gizmo_colors/particles_emission_shape", Color(0.5, 0.7, 1));
+	create_material("particles_emission_shape_material", gizmo_color);
+
+	create_handle_material("handles");
 }

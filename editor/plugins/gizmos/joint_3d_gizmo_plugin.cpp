@@ -278,9 +278,7 @@ void JointGizmosDrawer::draw_cone(const Transform3D &p_offset, const Basis &p_ba
 ////
 
 Joint3DGizmoPlugin::Joint3DGizmoPlugin() {
-	create_material("joint_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint"));
-	create_material("joint_body_a_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint_body_a"));
-	create_material("joint_body_b_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint_body_b"));
+	Joint3DGizmoPlugin::update_materials();
 
 	update_timer = memnew(Timer);
 	update_timer->set_name("JointGizmoUpdateTimer");
@@ -720,4 +718,10 @@ void Joint3DGizmoPlugin::CreateGeneric6DOFJointGizmo(
 	}
 
 #undef ADD_VTX
+}
+
+void Joint3DGizmoPlugin::update_materials() {
+	create_material("joint_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint"));
+	create_material("joint_body_a_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint_body_a"));
+	create_material("joint_body_b_material", EDITOR_GET("editors/3d_gizmos/gizmo_colors/joint_body_b"));
 }

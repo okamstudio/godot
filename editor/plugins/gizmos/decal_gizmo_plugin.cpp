@@ -38,13 +38,7 @@
 
 DecalGizmoPlugin::DecalGizmoPlugin() {
 	helper.instantiate();
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/decal");
-
-	create_icon_material("decal_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoDecal"), EditorStringName(EditorIcons)));
-
-	create_material("decal_material", gizmo_color);
-
-	create_handle_material("handles");
+	DecalGizmoPlugin::update_materials();
 }
 
 DecalGizmoPlugin::~DecalGizmoPlugin() {
@@ -131,4 +125,14 @@ void DecalGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	p_gizmo->add_lines(lines, material);
 	p_gizmo->add_unscaled_billboard(icon, 0.05);
 	p_gizmo->add_handles(handles, get_material("handles"));
+}
+
+void DecalGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/decal");
+
+	create_icon_material("decal_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoDecal"), EditorStringName(EditorIcons)));
+
+	create_material("decal_material", gizmo_color);
+
+	create_handle_material("handles");
 }

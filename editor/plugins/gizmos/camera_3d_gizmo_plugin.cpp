@@ -38,11 +38,7 @@
 #include "scene/3d/camera_3d.h"
 
 Camera3DGizmoPlugin::Camera3DGizmoPlugin() {
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/camera");
-
-	create_material("camera_material", gizmo_color);
-	create_icon_material("camera_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoCamera3D"), EditorStringName(EditorIcons)));
-	create_handle_material("handles");
+	Camera3DGizmoPlugin::update_materials();
 }
 
 bool Camera3DGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -284,4 +280,12 @@ float Camera3DGizmoPlugin::_find_closest_angle_to_half_pi_arc(const Vector3 &p_f
 	//min_p = p_arc_xform.affine_inverse().xform(min_p);
 	float a = (Math_PI * 0.5) - Vector2(min_p.x, -min_p.z).angle();
 	return Math::rad_to_deg(a);
+}
+
+void Camera3DGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/camera");
+
+	create_material("camera_material", gizmo_color);
+	create_icon_material("camera_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoCamera3D"), EditorStringName(EditorIcons)));
+	create_handle_material("handles");
 }
