@@ -123,6 +123,7 @@ protected:
 	virtual real_t _estimate_cost(int64_t p_from_id, int64_t p_end_id);
 	virtual real_t _compute_cost(int64_t p_from_id, int64_t p_to_id);
 
+	GDVIRTUAL2RC(bool, _filter_neighbor, int64_t, int64_t)
 	GDVIRTUAL2RC(real_t, _estimate_cost, int64_t, int64_t)
 	GDVIRTUAL2RC(real_t, _compute_cost, int64_t, int64_t)
 
@@ -179,6 +180,7 @@ protected:
 	virtual real_t _estimate_cost(int64_t p_from_id, int64_t p_end_id);
 	virtual real_t _compute_cost(int64_t p_from_id, int64_t p_to_id);
 
+	GDVIRTUAL2RC(bool, _filter_neighbor, int64_t, int64_t)
 	GDVIRTUAL2RC(real_t, _estimate_cost, int64_t, int64_t)
 	GDVIRTUAL2RC(real_t, _compute_cost, int64_t, int64_t)
 
