@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRExtensionWrapper" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Abstract wrapper class for OpenXR extension classes.
+	</brief_description>
+	<description>
+		This abstract wrapper class is used for all wrapper classes that implement the various OpenXR extensions.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

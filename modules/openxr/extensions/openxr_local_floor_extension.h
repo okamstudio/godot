@@ -34,6 +34,11 @@
 #include "openxr_extension_wrapper.h"
 
 class OpenXRLocalFloorExtension : public OpenXRExtensionWrapper {
+	GDCLASS(OpenXRLocalFloorExtension, OpenXRExtensionWrapper);
+
+protected:
+	static void _bind_methods() {}
+
 public:
 	static OpenXRLocalFloorExtension *get_singleton();
 

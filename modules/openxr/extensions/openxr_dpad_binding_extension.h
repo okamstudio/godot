@@ -38,6 +38,11 @@
 #include "openxr_extension_wrapper.h"
 
 class OpenXRDPadBindingExtension : public OpenXRExtensionWrapper {
+	GDCLASS(OpenXRDPadBindingExtension, OpenXRExtensionWrapper);
+
+protected:
+	static void _bind_methods() {}
+
 public:
 	static OpenXRDPadBindingExtension *get_singleton();
 

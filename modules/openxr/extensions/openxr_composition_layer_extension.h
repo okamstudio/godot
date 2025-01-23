@@ -51,6 +51,11 @@ class OpenXRViewportCompositionLayerProvider;
 
 // OpenXRCompositionLayerExtension enables the extensions related to this functionality
 class OpenXRCompositionLayerExtension : public OpenXRExtensionWrapper, public OpenXRCompositionLayerProvider {
+	GDCLASS(OpenXRCompositionLayerExtension, OpenXRExtensionWrapper);
+
+protected:
+	static void _bind_methods() {}
+
 public:
 	static OpenXRCompositionLayerExtension *get_singleton();
 

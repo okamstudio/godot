@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="OpenXRFutureExtension" inherits="OpenXRExtensionWrapper" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		The OpenXR Future extension allows for asynchronous APIs to be used.
+	</brief_description>
+	<description>
+		This is a support extension in OpenXR that allows other OpenXR extensions to start asynchronous functions and get a callback after this function finishes. It is not intended for consumption within GDScript but can be accessed from GDExtension.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="cancel_future">
+			<return type="void" />
+			<param index="0" name="future" type="int" />
+			<description>
+				Cancel an in-progress future. [param future] must be a [code]XrFutureEXT[/code] value previously returned by an API that started an asynchronous function.
+			</description>
+		</method>
+		<method name="get_active" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if futures are available in the OpenXR runtime used. This function will only return a usable result after OpenXR has been initialized.
+			</description>
+		</method>
+		<method name="get_singleton" qualifiers="static">
+			<return type="OpenXRFutureExtension" />
+			<description>
+				Returns our singleton instance of this class.
+			</description>
+		</method>
+		<method name="register_future">
+			<return type="void" />
+			<param index="0" name="future" type="int" />
+			<param index="1" name="callable" type="Callable" />
+			<description>
+				Register the [param callable] to invoke after a future completes processing. [param future] must be a [code]XrFutureEXT[/code] value previously returned by an API that started an asynchronous function.
+			</description>
+		</method>
+	</methods>
+</class>

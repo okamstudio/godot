@@ -47,6 +47,11 @@
 #include "openxr_fb_update_swapchain_extension.h"
 
 class OpenXRFBFoveationExtension : public OpenXRExtensionWrapper {
+	GDCLASS(OpenXRFBFoveationExtension, OpenXRExtensionWrapper);
+
+protected:
+	static void _bind_methods() {}
+
 public:
 	static OpenXRFBFoveationExtension *get_singleton();
 
