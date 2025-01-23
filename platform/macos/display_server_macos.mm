@@ -3829,7 +3829,6 @@ DisplayServerMacOS::DisplayServerMacOS(const String &p_rendering_driver, WindowM
 			window_set_flag(WindowFlags(i), true, main_window);
 		}
 	}
-	show_window(MAIN_WINDOW_ID);
 	force_process_and_drop_events();
 
 #if defined(GLES3_ENABLED)
