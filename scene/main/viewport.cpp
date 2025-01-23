@@ -126,10 +126,7 @@ int ViewportTexture::get_width() const {
 		_err_print_viewport_not_set();
 		return 0;
 	}
-	if (vp->is_sub_viewport()) {
-		return vp->size.width;
-	}
-	return vp->size.width * vp->get_stretch_transform().get_scale().width;
+	return vp->texture_size.width;
 }
 
 int ViewportTexture::get_height() const {
@@ -137,10 +134,7 @@ int ViewportTexture::get_height() const {
 		_err_print_viewport_not_set();
 		return 0;
 	}
-	if (vp->is_sub_viewport()) {
-		return vp->size.height;
-	}
-	return vp->size.height * vp->get_stretch_transform().get_scale().height;
+	return vp->texture_size.height;
 }
 
 Size2 ViewportTexture::get_size() const {
@@ -148,11 +142,7 @@ Size2 ViewportTexture::get_size() const {
 		_err_print_viewport_not_set();
 		return Size2();
 	}
-	if (vp->is_sub_viewport()) {
-		return vp->size;
-	}
-	Size2 scale = vp->get_stretch_transform().get_scale();
-	return Size2(vp->size.width * scale.width, vp->size.height * scale.height).ceil();
+	return vp->texture_size;
 }
 
 RID ViewportTexture::get_rid() const {
@@ -1015,6 +1005,7 @@ bool Viewport::_set_size(const Size2i &p_size, const Size2i &p_size_2d_override,
 	}
 
 	size = new_size;
+	texture_size = new_size;
 	size_allocated = p_allocated;
 	size_2d_override = p_size_2d_override;
 	stretch_transform = stretch_transform_new;

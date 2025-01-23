@@ -1279,9 +1279,9 @@ void Window::_update_viewport_size() {
 
 	if (embedder) {
 		float scale = MIN(embedder->stretch_transform.get_scale().width, embedder->stretch_transform.get_scale().height);
-		Size2 s = Size2(final_size.width * scale, final_size.height * scale).ceil();
+		texture_size = Size2(size.width * scale, size.height * scale).ceil();
 		RS::get_singleton()->viewport_set_global_canvas_transform(get_viewport_rid(), global_canvas_transform * scale * content_scale_factor);
-		RS::get_singleton()->viewport_set_size(get_viewport_rid(), s.width, s.height);
+		RS::get_singleton()->viewport_set_size(get_viewport_rid(), texture_size.width, texture_size.height);
 		embedder->_sub_window_update(this);
 	}
 }
