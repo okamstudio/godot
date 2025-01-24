@@ -59,6 +59,9 @@ typedef Vector<uint8_t> (*SaveWebPBufferFunc)(const Ref<Image> &p_img, const boo
 typedef Error (*SaveEXRFunc)(const String &p_path, const Ref<Image> &p_img, bool p_grayscale);
 typedef Vector<uint8_t> (*SaveEXRBufferFunc)(const Ref<Image> &p_img, bool p_grayscale);
 
+typedef Error (*SaveDDSFunc)(const String &p_path, const Ref<Image> &p_img);
+typedef Vector<uint8_t> (*SaveDDSBufferFunc)(const Ref<Image> &p_img);
+
 class Image : public Resource {
 	GDCLASS(Image, Resource);
 
@@ -186,10 +189,12 @@ public:
 	static SaveJPGFunc save_jpg_func;
 	static SaveEXRFunc save_exr_func;
 	static SaveWebPFunc save_webp_func;
+	static SaveDDSFunc save_dds_func;
 	static SavePNGBufferFunc save_png_buffer_func;
 	static SaveEXRBufferFunc save_exr_buffer_func;
 	static SaveJPGBufferFunc save_jpg_buffer_func;
 	static SaveWebPBufferFunc save_webp_buffer_func;
+	static SaveDDSBufferFunc save_dds_buffer_func;
 
 	// External loader function pointers.
 
@@ -201,6 +206,7 @@ public:
 	static ImageMemLoadFunc _bmp_mem_loader_func;
 	static ScalableImageMemLoadFunc _svg_scalable_mem_loader_func;
 	static ImageMemLoadFunc _ktx_mem_loader_func;
+	static ImageMemLoadFunc _dds_mem_loader_func;
 
 	// External VRAM compression function pointers.
 
@@ -334,9 +340,11 @@ public:
 	static Ref<Image> load_from_file(const String &p_path);
 	Error save_png(const String &p_path) const;
 	Error save_jpg(const String &p_path, float p_quality = 0.75) const;
+	Error save_dds(const String &p_path) const;
 	Vector<uint8_t> save_png_to_buffer() const;
 	Vector<uint8_t> save_jpg_to_buffer(float p_quality = 0.75) const;
 	Vector<uint8_t> save_exr_to_buffer(bool p_grayscale = false) const;
+	Vector<uint8_t> save_dds_to_buffer() const;
 	Error save_exr(const String &p_path, bool p_grayscale = false) const;
 	Error save_webp(const String &p_path, const bool p_lossy = false, const float p_quality = 0.75f) const;
 	Vector<uint8_t> save_webp_to_buffer(const bool p_lossy = false, const float p_quality = 0.75f) const;
@@ -403,6 +411,7 @@ public:
 	Error load_tga_from_buffer(const Vector<uint8_t> &p_array);
 	Error load_bmp_from_buffer(const Vector<uint8_t> &p_array);
 	Error load_ktx_from_buffer(const Vector<uint8_t> &p_array);
+	Error load_dds_from_buffer(const Vector<uint8_t> &p_array);
 
 	Error load_svg_from_buffer(const Vector<uint8_t> &p_array, float scale = 1.0);
 	Error load_svg_from_string(const String &p_svg_str, float scale = 1.0);

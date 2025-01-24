@@ -35,6 +35,7 @@
 #ifdef TOOLS_ENABLED
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
+#include "tests/scene/test_dds_saver.h"
 #endif // TOOLS_ENABLED
 
 #include "tests/core/config/test_project_settings.h"

@@ -346,6 +346,14 @@
 				[b]Note:[/b] This method is only available in engine builds with the BMP module enabled. By default, the BMP module is enabled, but it can be disabled at build-time using the [code]module_bmp_enabled=no[/code] SCons option.
 			</description>
 		</method>
+		<method name="load_dds_from_buffer">
+			<return type="int" enum="Error" />
+			<param index="0" name="buffer" type="PackedByteArray" />
+			<description>
+				Loads an image from the binary contents of a DDS file.
+				[b]Note:[/b] This method is only available in engine builds with the DDS module enabled. By default, the DDS module is enabled, but it can be disabled at build-time using the [code]module_dds_enabled=no[/code] SCons option.
+			</description>
+		</method>
 		<method name="load_from_file" qualifiers="static">
 			<return type="Image" />
 			<param index="0" name="path" type="String" />
@@ -456,6 +464,21 @@
 			<return type="void" />
 			<description>
 				Rotates the image by [code]180[/code] degrees. The width and height of the image must be greater than [code]1[/code].
+			</description>
+		</method>
+		<method name="save_dds" qualifiers="const">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Saves the image as a DDS (DirectDraw Surface) file to [param path]. DDS is a container format that can store textures in various compression formats, such as DXT1, DXT5, or BC7. This function will return [constant ERR_UNAVAILABLE] if Godot was compiled without the DDS module.
+				[b]Note:[/b] The DDS module may be disabled in certain builds, which means [method save_dds] will return [constant ERR_UNAVAILABLE] when it is called from an exported project.
+			</description>
+		</method>
+		<method name="save_dds_to_buffer" qualifiers="const">
+			<return type="PackedByteArray" />
+			<description>
+				Saves the image as a DDS (DirectDraw Surface) file to a byte array. DDS is a container format that can store textures in various compression formats, such as DXT1, DXT5, or BC7. This function will return an empty byte array if Godot was compiled without the DDS module.
+				[b]Note:[/b] The DDS module may be disabled in certain builds, which means [method save_dds_to_buffer] will return an empty byte array when it is called from an exported project.
 			</description>
 		</method>
 		<method name="save_exr" qualifiers="const">

@@ -30,6 +30,7 @@
 
 #include "register_types.h"
 
+#include "image_saver_dds.h"
 #include "texture_loader_dds.h"
 
 static Ref<ResourceFormatDDS> resource_loader_dds;
@@ -38,6 +39,9 @@ void initialize_dds_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
+
+	Image::save_dds_func = save_dds;
+	Image::save_dds_buffer_func = save_dds_buffer;
 
 	resource_loader_dds.instantiate();
 	ResourceLoader::add_resource_format_loader(resource_loader_dds);
@@ -50,4 +54,6 @@ void uninitialize_dds_module(ModuleInitializationLevel p_level) {
 
 	ResourceLoader::remove_resource_format_loader(resource_loader_dds);
 	resource_loader_dds.unref();
+	Image::save_dds_func = nullptr;
+	Image::save_dds_buffer_func = nullptr;
 }
