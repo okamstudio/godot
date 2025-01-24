@@ -68,6 +68,12 @@ GodotIOJavaWrapper::GodotIOJavaWrapper(JNIEnv *p_env, jobject p_godot_io_instanc
 		_set_screen_orientation = p_env->GetMethodID(cls, "setScreenOrientation", "(I)V");
 		_get_screen_orientation = p_env->GetMethodID(cls, "getScreenOrientation", "()I");
 		_get_system_dir = p_env->GetMethodID(cls, "getSystemDir", "(IZ)Ljava/lang/String;");
+
+		_is_hdr_supported = p_env->GetMethodID(cls, "isHdrSupported", "()Z");
+		_get_hdr_min_luminance = p_env->GetMethodID(cls, "getHdrMinLuminance", "()F");
+		_get_hdr_max_luminance = p_env->GetMethodID(cls, "getHdrMaxLuminance", "()F");
+		_get_hdr_max_average_luminance = p_env->GetMethodID(cls, "getHdrMaxAverageLuminance", "()F");
+		_get_sdr_white_level = p_env->GetMethodID(cls, "getSdrWhiteLevel", "()F");
 	}
 }
 
@@ -287,6 +293,56 @@ String GodotIOJavaWrapper::get_system_dir(int p_dir, bool p_shared_storage) {
 		return jstring_to_string(s, env);
 	} else {
 		return String(".");
+	}
+}
+
+bool GodotIOJavaWrapper::is_hdr_supported() {
+	if (_is_hdr_supported) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, false);
+		return env->CallBooleanMethod(godot_io_instance, _is_hdr_supported);
+	} else {
+		return false;
+	}
+}
+
+float GodotIOJavaWrapper::get_hdr_min_luminance() {
+	if (_get_hdr_min_luminance) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, 0.0f);
+		return env->CallFloatMethod(godot_io_instance, _get_hdr_min_luminance);
+	} else {
+		return 0.0f;
+	}
+}
+
+float GodotIOJavaWrapper::get_hdr_max_luminance() {
+	if (_get_hdr_max_luminance) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, 0.0f);
+		return env->CallFloatMethod(godot_io_instance, _get_hdr_max_luminance);
+	} else {
+		return 0.0f;
+	}
+}
+
+float GodotIOJavaWrapper::get_hdr_max_average_luminance() {
+	if (_get_hdr_max_average_luminance) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, 0.0f);
+		return env->CallFloatMethod(godot_io_instance, _get_hdr_max_average_luminance);
+	} else {
+		return 0.0f;
+	}
+}
+
+float GodotIOJavaWrapper::get_sdr_white_level() {
+	if (_get_sdr_white_level) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, 0.0f);
+		return env->CallFloatMethod(godot_io_instance, _get_sdr_white_level);
+	} else {
+		return 0.0f;
 	}
 }
 

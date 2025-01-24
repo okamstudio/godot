@@ -64,6 +64,12 @@ private:
 	jmethodID _get_screen_orientation = 0;
 	jmethodID _get_system_dir = 0;
 
+	jmethodID _is_hdr_supported = 0;
+	jmethodID _get_hdr_min_luminance = 0;
+	jmethodID _get_hdr_max_luminance = 0;
+	jmethodID _get_hdr_max_average_luminance = 0;
+	jmethodID _get_sdr_white_level = 0;
+
 public:
 	GodotIOJavaWrapper(JNIEnv *p_env, jobject p_godot_io_instance);
 	~GodotIOJavaWrapper();
@@ -91,6 +97,12 @@ public:
 	void set_screen_orientation(int p_orient);
 	int get_screen_orientation();
 	String get_system_dir(int p_dir, bool p_shared_storage);
+
+	bool is_hdr_supported();
+	float get_hdr_min_luminance();
+	float get_hdr_max_luminance();
+	float get_hdr_max_average_luminance();
+	float get_sdr_white_level();
 };
 
 #endif // JAVA_GODOT_IO_WRAPPER_H
