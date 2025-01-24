@@ -1090,7 +1090,7 @@ if "check_c_headers" in env:
             env.AppendUnique(CPPDEFINES=[headers[header]])
 
 
-methods.show_progress(env)
+#methods.show_progress(env)
 # TODO: replace this with `env.Dump(format="json")`
 # once we start requiring SCons 4.0 as min version.
 methods.dump(env)
