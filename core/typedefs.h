@@ -68,10 +68,23 @@ static_assert(__cplusplus >= 201703L);
 
 // Should always inline, except in dev builds because it makes debugging harder.
 #ifndef _FORCE_INLINE_
-#ifdef DEV_ENABLED
+#if defined(DEV_ENABLED)
+#define _FORCE_INLINE_ inline
+#elif defined(SIZE_EXTRA)
 #define _FORCE_INLINE_ inline
 #else
 #define _FORCE_INLINE_ _ALWAYS_INLINE_
+#endif
+#endif
+
+// Should never inline.
+#ifndef _NO_INLINE_
+#if defined(__GNUC__)
+#define _NO_INLINE_ __attribute__((noinline))
+#elif defined(_MSC_VER)
+#define _NO_INLINE_ __declspec(noinline)
+#else
+#define _NO_INLINE_
 #endif
 #endif
 
