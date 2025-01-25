@@ -181,7 +181,7 @@ opts.Add(
         "optimize",
         "Optimization level (by default inferred from 'target' and 'dev_build')",
         "auto",
-        ("auto", "none", "custom", "debug", "speed", "speed_trace", "size"),
+        ("auto", "none", "custom", "debug", "speed", "speed_trace", "size", "size_extra"),
     )
 )
 opts.Add(BoolVariable("debug_symbols", "Build with debugging symbols", False))
@@ -722,9 +722,11 @@ if env.msvc:
         env.Append(LINKFLAGS=["/OPT:REF"])
         if env["optimize"] == "speed_trace":
             env.Append(LINKFLAGS=["/OPT:NOICF"])
-    elif env["optimize"] == "size":
+    elif env["optimize"].startswith("size"):
         env.Append(CCFLAGS=["/O1"])
         env.Append(LINKFLAGS=["/OPT:REF"])
+        if env["optimize"] == "size_extra":
+            env.Append(CPPDEFINES=["SIZE_EXTRA"])
     elif env["optimize"] == "debug" or env["optimize"] == "none":
         env.Append(CCFLAGS=["/Od"])
 else:
@@ -769,9 +771,11 @@ else:
     elif env["optimize"] == "speed_trace":
         env.Append(CCFLAGS=["-O2"])
         env.Append(LINKFLAGS=["-O2"])
-    elif env["optimize"] == "size":
+    elif env["optimize"].startswith("size"):
         env.Append(CCFLAGS=["-Os"])
         env.Append(LINKFLAGS=["-Os"])
+        if env["optimize"] == "size_extra":
+            env.Append(CPPDEFINES=["SIZE_EXTRA"])
     elif env["optimize"] == "debug":
         env.Append(CCFLAGS=["-Og"])
         env.Append(LINKFLAGS=["-Og"])
