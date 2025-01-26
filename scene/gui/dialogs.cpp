@@ -197,16 +197,12 @@ bool AcceptDialog::has_autowrap() {
 }
 
 void AcceptDialog::set_ok_button_text(String p_ok_button_text) {
-	ok_button->set_text(p_ok_button_text);
-
-	child_controls_changed();
-	if (is_visible()) {
-		_update_child_rects();
-	}
+	ok_text = p_ok_button_text;
+	_update_ok_text();
 }
 
 String AcceptDialog::get_ok_button_text() const {
-	return ok_button->get_text();
+	return ok_text;
 }
 
 void AcceptDialog::register_text_enter(LineEdit *p_line_edit) {
@@ -257,6 +253,25 @@ void AcceptDialog::_update_child_rects() {
 	}
 }
 
+void AcceptDialog::_update_ok_text() {
+	String prev_text = ok_button->get_text();
+	String new_text = internal_ok_text;
+
+	if (!ok_text.is_empty()) {
+		new_text = ok_text;
+	}
+
+	if (new_text == prev_text) {
+		return;
+	}
+	ok_button->set_text(new_text);
+
+	child_controls_changed();
+	if (is_visible()) {
+		_update_child_rects();
+	}
+}
+
 Size2 AcceptDialog::_get_contents_minimum_size() const {
 	// First, we then iterate over the label and any other custom controls
 	// to try and find the size that encompasses all content.
@@ -292,6 +307,11 @@ Size2 AcceptDialog::_get_contents_minimum_size() const {
 	}
 
 	return content_minsize;
+}
+
+void AcceptDialog::set_internal_ok_text(const String &p_text) {
+	internal_ok_text = p_text;
+	_update_ok_text();
 }
 
 void AcceptDialog::_custom_action(const String &p_action) {
@@ -442,7 +462,7 @@ AcceptDialog::AcceptDialog() {
 
 	buttons_hbox->add_spacer();
 	ok_button = memnew(Button);
-	ok_button->set_text(ETR("OK"));
+	set_internal_ok_text(ETR("OK"));
 	buttons_hbox->add_child(ok_button);
 	buttons_hbox->add_spacer();
 

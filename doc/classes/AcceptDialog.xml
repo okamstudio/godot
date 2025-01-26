@@ -73,8 +73,8 @@
 		</member>
 		<member name="exclusive" type="bool" setter="set_exclusive" getter="is_exclusive" overrides="Window" default="true" />
 		<member name="keep_title_visible" type="bool" setter="set_keep_title_visible" getter="get_keep_title_visible" overrides="Window" default="true" />
-		<member name="ok_button_text" type="String" setter="set_ok_button_text" getter="get_ok_button_text" default="&quot;OK&quot;">
-			The text displayed by the OK button (see [method get_ok_button]).
+		<member name="ok_button_text" type="String" setter="set_ok_button_text" getter="get_ok_button_text" default="&quot;&quot;">
+			The text displayed by the OK button (see [method get_ok_button]). If empty, a default text will be used.
 		</member>
 		<member name="title" type="String" setter="set_title" getter="get_title" overrides="Window" default="&quot;Alert!&quot;" />
 		<member name="transient" type="bool" setter="set_transient" getter="is_transient" overrides="Window" default="true" />
