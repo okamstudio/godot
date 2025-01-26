@@ -110,6 +110,14 @@
 				Virtual method to override the setting of a [param material] at the given [param index] for a custom class extending [Mesh].
 			</description>
 		</method>
+		<method name="convex_decompose" qualifiers="const">
+			<return type="ConvexPolygonShape3D[]" />
+			<param index="0" name="settings" type="MeshConvexDecompositionSettings" default="null" />
+			<description>
+				Calculates a set of convex collision shapes derived from the mesh geometry using convex decomposition.
+				The convex decomposition operation can be controlled with parameters from the optional [param settings].
+			</description>
+		</method>
 		<method name="create_convex_shape" qualifiers="const">
 			<return type="ConvexPolygonShape3D" />
 			<param index="0" name="clean" type="bool" default="true" />

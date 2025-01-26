@@ -901,6 +901,24 @@ void Mesh::clear_cache() const {
 }
 
 #ifndef _3D_DISABLED
+
+TypedArray<ConvexPolygonShape3D> Mesh::convex_decompose_script(const Ref<MeshConvexDecompositionSettings> &p_settings) const {
+	Ref<MeshConvexDecompositionSettings> settings;
+	if (p_settings.is_valid()) {
+		settings = p_settings;
+	} else {
+		settings.instantiate();
+	}
+
+	Vector<Ref<Shape3D>> decomposed = convex_decompose(settings);
+	TypedArray<ConvexPolygonShape3D> ret;
+	ret.resize(decomposed.size());
+	for (int i = 0; i < decomposed.size(); i++) {
+		ret.set(i, decomposed[i]);
+	}
+	return ret;
+}
+
 Vector<Ref<Shape3D>> Mesh::convex_decompose(const Ref<MeshConvexDecompositionSettings> &p_settings) const {
 	ERR_FAIL_NULL_V(convex_decomposition_function, Vector<Ref<Shape3D>>());
 
@@ -2285,6 +2303,7 @@ void ArrayMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("surface_set_name", "surf_idx", "name"), &ArrayMesh::surface_set_name);
 	ClassDB::bind_method(D_METHOD("surface_get_name", "surf_idx"), &ArrayMesh::surface_get_name);
 #ifndef _3D_DISABLED
+	ClassDB::bind_method(D_METHOD("convex_decompose", "settings"), &ArrayMesh::convex_decompose_script, DEFVAL(Ref<MeshConvexDecompositionSettings>()));
 	ClassDB::bind_method(D_METHOD("create_trimesh_shape"), &ArrayMesh::create_trimesh_shape);
 	ClassDB::bind_method(D_METHOD("create_convex_shape", "clean", "simplify"), &ArrayMesh::create_convex_shape, DEFVAL(true), DEFVAL(false));
 #endif // _3D_DISABLED

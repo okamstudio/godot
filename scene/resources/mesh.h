@@ -197,6 +197,7 @@ public:
 	static ConvexDecompositionFunc convex_decomposition_function;
 
 #ifndef _3D_DISABLED
+	TypedArray<ConvexPolygonShape3D> convex_decompose_script(const Ref<MeshConvexDecompositionSettings> &p_settings = Ref<MeshConvexDecompositionSettings>()) const;
 	Vector<Ref<Shape3D>> convex_decompose(const Ref<MeshConvexDecompositionSettings> &p_settings) const;
 	Ref<ConvexPolygonShape3D> create_convex_shape(bool p_clean = true, bool p_simplify = false) const;
 	Ref<ConcavePolygonShape3D> create_trimesh_shape() const;
