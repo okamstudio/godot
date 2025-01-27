@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_base.h                                                            */
+/*  nav_base_3d.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,17 +28,17 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_BASE_H
-#define NAV_BASE_H
+#ifndef NAV_BASE_3D_H
+#define NAV_BASE_3D_H
 
-#include "nav_rid.h"
-#include "nav_utils.h"
+#include "nav_rid_3d.h"
+#include "nav_utils_3d.h"
 
 #include "servers/navigation/navigation_utilities.h"
 
-class NavMap;
+class NavMap3D;
 
-class NavBase : public NavRid {
+class NavBase3D : public NavRid3D {
 protected:
 	uint32_t navigation_layers = 1;
 	real_t enter_cost = 0.0;
@@ -64,7 +64,7 @@ public:
 	void set_owner_id(ObjectID p_owner_id) { owner_id = p_owner_id; }
 	ObjectID get_owner_id() const { return owner_id; }
 
-	virtual ~NavBase() {}
+	virtual ~NavBase3D() {}
 };
 
-#endif // NAV_BASE_H
+#endif // NAV_BASE_3D_H

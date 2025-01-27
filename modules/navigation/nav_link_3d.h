@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_obstacle.h                                                        */
+/*  nav_link_3d.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,84 +28,70 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_OBSTACLE_H
-#define NAV_OBSTACLE_H
+#ifndef NAV_LINK_3D_H
+#define NAV_LINK_3D_H
 
-#include "nav_rid.h"
+#include "3d/nav_base_iteration_3d.h"
+#include "nav_base_3d.h"
+#include "nav_utils_3d.h"
 
-#include "core/object/class_db.h"
+struct NavLinkIteration3D : NavBaseIteration3D {
+	bool bidirectional = true;
+	Vector3 start_position;
+	Vector3 end_position;
+	LocalVector<nav_3d::Polygon> navmesh_polygons;
+
+	Vector3 get_start_position() const { return start_position; }
+	Vector3 get_end_position() const { return end_position; }
+	bool is_bidirectional() const { return bidirectional; }
+};
+
 #include "core/templates/self_list.h"
 
-class NavAgent;
-class NavMap;
+class NavLink3D : public NavBase3D {
+	NavMap3D *map = nullptr;
+	bool bidirectional = true;
+	Vector3 start_position;
+	Vector3 end_position;
+	bool enabled = true;
 
-class NavObstacle : public NavRid {
-	NavAgent *agent = nullptr;
-	NavMap *map = nullptr;
-	Vector3 velocity;
-	Vector3 position;
-	Vector<Vector3> vertices;
+	bool link_dirty = true;
 
-	real_t radius = 0.0;
-	real_t height = 0.0;
-
-	bool avoidance_enabled = false;
-	bool use_3d_avoidance = false;
-	uint32_t avoidance_layers = 1;
-
-	bool obstacle_dirty = true;
-
-	uint32_t last_map_iteration_id = 0;
-	bool paused = false;
-
-	SelfList<NavObstacle> sync_dirty_request_list_element;
+	SelfList<NavLink3D> sync_dirty_request_list_element;
 
 public:
-	NavObstacle();
-	~NavObstacle();
+	NavLink3D();
+	~NavLink3D();
 
-	void set_avoidance_enabled(bool p_enabled);
-	bool is_avoidance_enabled() { return avoidance_enabled; }
+	void set_map(NavMap3D *p_map);
+	NavMap3D *get_map() const {
+		return map;
+	}
 
-	void set_use_3d_avoidance(bool p_enabled);
-	bool get_use_3d_avoidance() { return use_3d_avoidance; }
+	void set_enabled(bool p_enabled);
+	bool get_enabled() const { return enabled; }
 
-	void set_map(NavMap *p_map);
-	NavMap *get_map() { return map; }
+	void set_bidirectional(bool p_bidirectional);
+	bool is_bidirectional() const {
+		return bidirectional;
+	}
 
-	void set_agent(NavAgent *p_agent);
-	NavAgent *get_agent() { return agent; }
+	void set_start_position(Vector3 p_position);
+	Vector3 get_start_position() const {
+		return start_position;
+	}
 
-	void set_position(const Vector3 p_position);
-	const Vector3 &get_position() const { return position; }
-
-	void set_radius(real_t p_radius);
-	real_t get_radius() const { return radius; }
-
-	void set_height(const real_t p_height);
-	real_t get_height() const { return height; }
-
-	void set_velocity(const Vector3 p_velocity);
-	const Vector3 &get_velocity() const { return velocity; }
-
-	void set_vertices(const Vector<Vector3> &p_vertices);
-	const Vector<Vector3> &get_vertices() const { return vertices; }
-
-	bool is_map_changed();
-
-	void set_avoidance_layers(uint32_t p_layers);
-	uint32_t get_avoidance_layers() const { return avoidance_layers; }
-
-	void set_paused(bool p_paused);
-	bool get_paused() const;
+	void set_end_position(Vector3 p_position);
+	Vector3 get_end_position() const {
+		return end_position;
+	}
 
 	bool is_dirty() const;
 	void sync();
 	void request_sync();
 	void cancel_sync_request();
 
-private:
-	void internal_update_agent();
+	void get_iteration_update(NavLinkIteration3D &r_iteration);
 };
 
-#endif // NAV_OBSTACLE_H
+#endif // NAV_LINK_3D_H

@@ -4,4 +4,4 @@
 deadlock:tests/core/templates/test_command_queue.h
 deadlock:modules/text_server_adv/text_server_adv.cpp
 deadlock:modules/text_server_fb/text_server_fb.cpp
-race:modules/navigation/nav_map.cpp
+race:modules/navigation/nav_map_3d.cpp

@@ -31,11 +31,11 @@
 #ifndef GODOT_NAVIGATION_SERVER_2D_H
 #define GODOT_NAVIGATION_SERVER_2D_H
 
-#include "../nav_agent.h"
-#include "../nav_link.h"
-#include "../nav_map.h"
-#include "../nav_obstacle.h"
-#include "../nav_region.h"
+#include "../nav_agent_3d.h"
+#include "../nav_link_3d.h"
+#include "../nav_map_3d.h"
+#include "../nav_obstacle_3d.h"
+#include "../nav_region_3d.h"
 
 #include "servers/navigation_server_2d.h"
 

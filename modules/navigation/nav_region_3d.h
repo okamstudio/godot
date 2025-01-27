@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  nav_region.h                                                          */
+/*  nav_region_3d.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,21 +28,21 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_REGION_H
-#define NAV_REGION_H
+#ifndef NAV_REGION_3D_H
+#define NAV_REGION_3D_H
 
-#include "nav_base.h"
-#include "nav_utils.h"
+#include "nav_base_3d.h"
+#include "nav_utils_3d.h"
 
 #include "core/os/rw_lock.h"
 #include "scene/resources/navigation_mesh.h"
 
-struct NavRegionIteration;
+struct NavRegionIteration3D;
 
-class NavRegion : public NavBase {
+class NavRegion3D : public NavBase3D {
 	RWLock region_rwlock;
 
-	NavMap *map = nullptr;
+	NavMap3D *map = nullptr;
 	Transform3D transform;
 	bool enabled = true;
 
@@ -50,7 +50,7 @@ class NavRegion : public NavBase {
 
 	bool polygons_dirty = true;
 
-	LocalVector<gd::Polygon> navmesh_polygons;
+	LocalVector<nav_3d::Polygon> navmesh_polygons;
 
 	real_t surface_area = 0.0;
 	AABB bounds;
@@ -59,11 +59,11 @@ class NavRegion : public NavBase {
 	Vector<Vector3> pending_navmesh_vertices;
 	Vector<Vector<int>> pending_navmesh_polygons;
 
-	SelfList<NavRegion> sync_dirty_request_list_element;
+	SelfList<NavRegion3D> sync_dirty_request_list_element;
 
 public:
-	NavRegion();
-	~NavRegion();
+	NavRegion3D();
+	~NavRegion3D();
 
 	void scratch_polygons() {
 		polygons_dirty = true;
@@ -72,8 +72,8 @@ public:
 	void set_enabled(bool p_enabled);
 	bool get_enabled() const { return enabled; }
 
-	void set_map(NavMap *p_map);
-	NavMap *get_map() const {
+	void set_map(NavMap3D *p_map);
+	NavMap3D *get_map() const {
 		return map;
 	}
 
@@ -89,12 +89,12 @@ public:
 
 	void set_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh);
 
-	LocalVector<gd::Polygon> const &get_polygons() const {
+	LocalVector<nav_3d::Polygon> const &get_polygons() const {
 		return navmesh_polygons;
 	}
 
 	Vector3 get_closest_point_to_segment(const Vector3 &p_from, const Vector3 &p_to, bool p_use_collision) const;
-	gd::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
+	nav_3d::ClosestPointQueryResult get_closest_point_info(const Vector3 &p_point) const;
 	Vector3 get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const;
 
 	real_t get_surface_area() const { return surface_area; }
@@ -104,10 +104,10 @@ public:
 	void request_sync();
 	void cancel_sync_request();
 
-	void get_iteration_update(NavRegionIteration &r_iteration);
+	void get_iteration_update(NavRegionIteration3D &r_iteration);
 
 private:
 	void update_polygons();
 };
 
-#endif // NAV_REGION_H
+#endif // NAV_REGION_3D_H
