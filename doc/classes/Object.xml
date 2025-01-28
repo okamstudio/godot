@@ -190,7 +190,7 @@
 			<return type="void" />
 			<description>
 				Called when the object's script is instantiated, oftentimes after the object is initialized in memory (through [code]Object.new()[/code] in GDScript, or [code]new GodotObject[/code] in C#). It can be also defined to take in parameters. This method is similar to a constructor in most programming languages.
-				[b]Note:[/b] If [method _init] is defined with [i]required[/i] parameters, the Object with script may only be created directly. If any other means (such as [method PackedScene.instantiate] or [method Node.duplicate]) are used, the script's initialization will fail.
+				[b]Note:[/b] If [method _init] is defined with [i]required[/i] parameters, the Object with script may only be created directly. If any other means (such as [method PackedScene.instantiate], [method Node.duplicate], or using such an Object as a parameter of an [annotation @GDScript.@rpc] function) are used, the script's initialization will fail.
 			</description>
 		</method>
 		<method name="_iter_get" qualifiers="virtual">
