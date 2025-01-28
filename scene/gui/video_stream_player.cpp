@@ -435,7 +435,9 @@ double VideoStreamPlayer::get_stream_position() const {
 
 void VideoStreamPlayer::set_stream_position(double p_position) {
 	if (playback.is_valid()) {
+		resampler.flush();
 		playback->seek(p_position);
+		last_audio_time = 0;
 	}
 }
 

@@ -54,6 +54,12 @@ class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 
 	int buffer_data();
 	int queue_page(ogg_page *page);
+	int read_page(ogg_page *page);
+	int feed_pages();
+	double get_page_time(ogg_page *page);
+	int64_t seek_page(int64_t &video_granulepos, int64_t &audio_granulepos);
+	void find_streams(th_setup_info *&ts);
+	void read_headers(th_setup_info *&ts);
 	void video_write(th_ycbcr_buffer yuv);
 	double get_time() const;
 
@@ -61,7 +67,6 @@ class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 	bool vorbis_eos = false;
 
 	ogg_sync_state oy;
-	ogg_page og;
 	ogg_stream_state vo;
 	ogg_stream_state to;
 	th_info ti;
@@ -73,18 +78,20 @@ class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 	vorbis_comment vc;
 	th_pixel_fmt px_fmt;
 	double frame_duration;
+	double stream_length;
+	int64_t stream_data_offset;
+	int64_t stream_data_size;
 
-	int theora_p = 0;
-	int vorbis_p = 0;
 	int pp_level_max = 0;
 	int pp_level = 0;
 	int pp_inc = 0;
 
 	bool playing = false;
-	bool buffering = false;
 	bool paused = false;
 
 	bool dup_frame = false;
+	bool has_video = false;
+	bool has_audio = false;
 	bool video_ready = false;
 	bool video_done = false;
 	bool audio_done = false;

@@ -16,7 +16,6 @@
 			<return type="float" />
 			<description>
 				The length of the current stream, in seconds.
-				[b]Note:[/b] For [VideoStreamTheora] streams (the built-in format supported by Godot), this value will always be zero, as getting the stream length is not implemented yet. The feature may be supported by video formats implemented by a GDExtension add-on.
 			</description>
 		</method>
 		<method name="get_stream_name" qualifiers="const">
@@ -79,7 +78,6 @@
 		</member>
 		<member name="stream_position" type="float" setter="set_stream_position" getter="get_stream_position">
 			The current position of the stream, in seconds.
-			[b]Note:[/b] Changing this value won't have any effect as seeking is not implemented yet, except in video formats implemented by a GDExtension add-on.
 		</member>
 		<member name="volume" type="float" setter="set_volume" getter="get_volume">
 			Audio volume as a linear value.
