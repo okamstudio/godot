@@ -723,7 +723,7 @@
 			<return type="void" />
 			<param index="0" name="event" type="InputEventMIDI" />
 			<description>
-				Send the MiDi [param event] to the device specieid in the events device_id.
+				Send the MIDI [param event] to the device specieid in the events device_id.
 				[b]Note:[/b] This method is implemented on Linux, macOS and Windows.
 			</description>
 		</method>
