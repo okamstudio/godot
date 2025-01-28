@@ -11,16 +11,26 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="get_directional_light_buffer" qualifiers="const">
+		<method name="directional_shadow_get_texture">
+			<return type="RID" />
+			<description>
+			</description>
+		</method>
+		<method name="get_directional_light_buffer">
 			<return type="RID" />
 			<description>
 				Return the [RID] of the uniform buffer containing the directional light data as a UBO.
 			</description>
 		</method>
-		<method name="get_omni_light_buffer" qualifiers="const">
+		<method name="get_omni_light_buffer">
 			<return type="RID" />
 			<description>
 				Return the [RID] of the storage buffer containing the omni light data as a Storage Buffer.
+			</description>
+		</method>
+		<method name="get_spot_light_buffer">
+			<return type="RID" />
+			<description>
 			</description>
 		</method>
 	</methods>
