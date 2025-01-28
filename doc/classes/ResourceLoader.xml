@@ -47,9 +47,9 @@
 				Returns the dependencies for the resource at the given [param path].
 				[b]Note:[/b] The dependencies are returned with slices separated by [code]::[/code]. You can use [method String.get_slice] to get their components.
 				[codeblock]
-				for dep in ResourceLoader.get_dependencies(path):
-				    print(dep.get_slice("::", 0)) # Prints UID.
-				    print(dep.get_slice("::", 2)) # Prints path.
+				for dependency in ResourceLoader.get_dependencies(path):
+				    print(dependency.get_slice("::", 0)) # Prints the UID.
+				    print(dependency.get_slice("::", 2)) # Prints the path.
 				[/codeblock]
 			</description>
 		</method>

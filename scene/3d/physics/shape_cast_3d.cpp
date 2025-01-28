@@ -30,7 +30,6 @@
 
 #include "shape_cast_3d.h"
 
-#include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/physics/collision_object_3d.h"
 #include "scene/resources/3d/concave_polygon_shape_3d.h"
 
@@ -499,7 +498,7 @@ void ShapeCast3D::_update_debug_shape_vertices() {
 	debug_shape_vertices.clear();
 	debug_line_vertices.clear();
 
-	if (!shape.is_null()) {
+	if (shape.is_valid()) {
 		debug_shape_vertices.append_array(shape->get_debug_mesh_lines());
 		for (int i = 0; i < debug_shape_vertices.size(); i++) {
 			debug_shape_vertices.set(i, debug_shape_vertices[i] + Vector3(target_position * get_closest_collision_safe_fraction()));
@@ -551,7 +550,7 @@ void ShapeCast3D::_create_debug_shape() {
 }
 
 void ShapeCast3D::_update_debug_shape_material(bool p_check_collision) {
-	if (!debug_material.is_valid()) {
+	if (debug_material.is_null()) {
 		Ref<StandardMaterial3D> material = memnew(StandardMaterial3D);
 		debug_material = material;
 

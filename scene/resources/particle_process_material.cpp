@@ -132,6 +132,7 @@ void ParticleProcessMaterial::init_shaders() {
 	shader_names->sub_emitter_frequency = "sub_emitter_frequency";
 	shader_names->sub_emitter_amount_at_end = "sub_emitter_amount_at_end";
 	shader_names->sub_emitter_amount_at_collision = "sub_emitter_amount_at_collision";
+	shader_names->sub_emitter_amount_at_start = "sub_emitter_amount_at_start";
 	shader_names->sub_emitter_keep_velocity = "sub_emitter_keep_velocity";
 
 	shader_names->collision_friction = "collision_friction";
@@ -286,6 +287,9 @@ void ParticleProcessMaterial::_update_shader() {
 		}
 		if (sub_emitter_mode == SUB_EMITTER_AT_COLLISION) {
 			code += "uniform int sub_emitter_amount_at_collision;\n";
+		}
+		if (sub_emitter_mode == SUB_EMITTER_AT_START) {
+			code += "uniform int sub_emitter_amount_at_start;\n";
 		}
 		code += "uniform bool sub_emitter_keep_velocity;\n";
 	}
@@ -523,6 +527,7 @@ void ParticleProcessMaterial::_update_shader() {
 	code += "	float animation_offset;\n";
 	code += "	float lifetime;\n";
 	code += "	vec4 color;\n";
+	code += "	float emission_texture_position;\n";
 	code += "};\n\n";
 
 	code += "struct DynamicsParameters {\n";
@@ -579,11 +584,15 @@ void ParticleProcessMaterial::_update_shader() {
 	if (color_initial_ramp.is_valid()) {
 		code += "	params.color *= texture(color_initial_ramp, vec2(rand_from_seed(alt_seed)));\n";
 	}
-	if (emission_color_texture.is_valid() && (emission_shape == EMISSION_SHAPE_POINTS || emission_shape == EMISSION_SHAPE_DIRECTED_POINTS)) {
-		code += "	int point = min(emission_texture_point_count - 1, int(rand_from_seed(alt_seed) * float(emission_texture_point_count)));\n";
-		code += "	ivec2 emission_tex_size = textureSize(emission_texture_points, 0);\n";
-		code += "	ivec2 emission_tex_ofs = ivec2(point % emission_tex_size.x, point / emission_tex_size.x);\n";
-		code += "	params.color *= texelFetch(emission_texture_color, emission_tex_ofs, 0);\n";
+	if (emission_shape == EMISSION_SHAPE_POINTS || emission_shape == EMISSION_SHAPE_DIRECTED_POINTS) {
+		code += "	params.emission_texture_position = rand_from_seed(alt_seed);\n";
+
+		if (emission_color_texture.is_valid()) {
+			code += "	int point = min(emission_texture_point_count - 1, int(params.emission_texture_position * float(emission_texture_point_count)));\n";
+			code += "	ivec2 emission_tex_size = textureSize(emission_texture_points, 0);\n";
+			code += "	ivec2 emission_tex_ofs = ivec2(point % emission_tex_size.x, point / emission_tex_size.x);\n";
+			code += "	params.color *= texelFetch(emission_texture_color, emission_tex_ofs, 0);\n";
+		}
 	}
 	code += "}\n\n";
 
@@ -614,7 +623,7 @@ void ParticleProcessMaterial::_update_shader() {
 	}
 	code += "}\n\n";
 
-	code += "vec3 calculate_initial_position(inout uint alt_seed) {\n";
+	code += "vec3 calculate_initial_position(inout DisplayParameters params, inout uint alt_seed) {\n";
 	code += "	float pi = 3.14159;\n";
 	code += "	vec3 pos = vec3(0.0);\n";
 	code += "	{ // Emission shape.\n";
@@ -639,7 +648,7 @@ void ParticleProcessMaterial::_update_shader() {
 		code += "		pos = vec3(rand_from_seed(alt_seed) * 2.0 - 1.0, rand_from_seed(alt_seed) * 2.0 - 1.0, rand_from_seed(alt_seed) * 2.0 - 1.0) * emission_box_extents;\n";
 	}
 	if (emission_shape == EMISSION_SHAPE_POINTS || emission_shape == EMISSION_SHAPE_DIRECTED_POINTS) {
-		code += "		int point = min(emission_texture_point_count - 1, int(rand_from_seed(alt_seed) * float(emission_texture_point_count)));\n";
+		code += "		int point = min(emission_texture_point_count - 1, int(params.emission_texture_position * float(emission_texture_point_count)));\n";
 		code += "		ivec2 emission_tex_size = textureSize(emission_texture_points, 0);\n";
 		code += "		ivec2 emission_tex_ofs = ivec2(point % emission_tex_size.x, point / emission_tex_size.x);\n";
 		code += "		pos = texelFetch(emission_texture_points, emission_tex_ofs, 0).xyz;\n";
@@ -860,7 +869,7 @@ void ParticleProcessMaterial::_update_shader() {
 	code += "		TRANSFORM[2].xyz = vec3(0.0, 0.0, 1.0);\n";
 	code += "	}\n";
 	code += "	if (RESTART_POSITION) {\n";
-	code += "		TRANSFORM[3].xyz = calculate_initial_position(alt_seed);\n";
+	code += "		TRANSFORM[3].xyz = calculate_initial_position(params, alt_seed);\n";
 	if (turbulence_enabled) {
 		code += "		float initial_turbulence_displacement = mix(turbulence_initial_displacement_min, turbulence_initial_displacement_max, rand_from_seed(alt_seed));\n";
 		code += "		vec3 noise_direction = get_noise_direction(TRANSFORM[3].xyz);\n";
@@ -871,7 +880,7 @@ void ParticleProcessMaterial::_update_shader() {
 	code += "	if (RESTART_VELOCITY) {\n";
 	code += "		VELOCITY = get_random_direction_from_spread(alt_seed, spread) * dynamic_params.initial_velocity_multiplier;\n";
 	if (emission_shape == EMISSION_SHAPE_DIRECTED_POINTS) {
-		code += "		int point = min(emission_texture_point_count - 1, int(rand_from_seed(alt_seed) * float(emission_texture_point_count)));\n";
+		code += "		int point = min(emission_texture_point_count - 1, int(params.emission_texture_position * float(emission_texture_point_count)));\n";
 		code += "		ivec2 emission_tex_size = textureSize(emission_texture_points, 0);\n";
 		code += "		ivec2 emission_tex_ofs = ivec2(point % emission_tex_size.x, point / emission_tex_size.x);\n";
 		if (particle_flags[PARTICLE_FLAG_DISABLE_Z]) {
@@ -917,6 +926,10 @@ void ParticleProcessMaterial::_update_shader() {
 
 	code += "	float pi = 3.14159;\n";
 	code += "	float degree_to_rad = pi / 180.0;\n\n";
+
+	if (sub_emitter_mode == SUB_EMITTER_AT_START && !RenderingServer::get_singleton()->is_low_end()) {
+		code += "	bool just_spawned = CUSTOM.y == 0.0;\n";
+	}
 
 	code += "	CUSTOM.y += DELTA / LIFETIME;\n";
 	code += "	CUSTOM.y = mix(CUSTOM.y, 1.0, INTERPOLATE_TO_END);\n";
@@ -1132,6 +1145,11 @@ void ParticleProcessMaterial::_update_shader() {
 			case SUB_EMITTER_AT_END: {
 				code += "	if ((CUSTOM.y / CUSTOM.w * LIFETIME) > (LIFETIME - DELTA)) {\n";
 				code += "		emit_count = sub_emitter_amount_at_end;\n";
+				code += "	}\n";
+			} break;
+			case SUB_EMITTER_AT_START: {
+				code += "	if (just_spawned) {\n";
+				code += "		emit_count = sub_emitter_amount_at_start;\n";
 				code += "	}\n";
 			} break;
 			default: {
@@ -1571,16 +1589,25 @@ void ParticleProcessMaterial::set_emission_shape(EmissionShape p_shape) {
 	emission_shape = p_shape;
 	notify_property_list_changed();
 	_queue_shader_change();
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_sphere_radius(real_t p_radius) {
 	emission_sphere_radius = p_radius;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_sphere_radius, p_radius);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_box_extents(Vector3 p_extents) {
 	emission_box_extents = p_extents;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_box_extents, p_extents);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_point_texture(const Ref<Texture2D> &p_points) {
@@ -1610,26 +1637,41 @@ void ParticleProcessMaterial::set_emission_point_count(int p_count) {
 void ParticleProcessMaterial::set_emission_ring_axis(Vector3 p_axis) {
 	emission_ring_axis = p_axis;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_ring_axis, p_axis);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_ring_height(real_t p_height) {
 	emission_ring_height = p_height;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_ring_height, p_height);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_ring_radius(real_t p_radius) {
 	emission_ring_radius = p_radius;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_ring_radius, p_radius);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_ring_inner_radius(real_t p_radius) {
 	emission_ring_inner_radius = p_radius;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_ring_inner_radius, p_radius);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_emission_ring_cone_angle(real_t p_angle) {
 	emission_ring_cone_angle = p_angle;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_ring_cone_angle, p_angle);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 void ParticleProcessMaterial::set_inherit_velocity_ratio(double p_ratio) {
@@ -1688,6 +1730,9 @@ real_t ParticleProcessMaterial::get_emission_ring_cone_angle() const {
 void ParticleProcessMaterial::set_emission_shape_offset(const Vector3 &p_emission_shape_offset) {
 	emission_shape_offset = p_emission_shape_offset;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_shape_offset, p_emission_shape_offset);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 Vector3 ParticleProcessMaterial::get_emission_shape_offset() const {
@@ -1697,6 +1742,9 @@ Vector3 ParticleProcessMaterial::get_emission_shape_offset() const {
 void ParticleProcessMaterial::set_emission_shape_scale(const Vector3 &p_emission_shape_scale) {
 	emission_shape_scale = p_emission_shape_scale;
 	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->emission_shape_scale, p_emission_shape_scale);
+#ifdef TOOLS_ENABLED
+	emit_signal("emission_shape_changed");
+#endif
 }
 
 Vector3 ParticleProcessMaterial::get_emission_shape_scale() const {
@@ -1823,6 +1871,10 @@ void ParticleProcessMaterial::_validate_property(PropertyInfo &p_property) const
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
 
+	if (p_property.name == "sub_emitter_amount_at_start" && sub_emitter_mode != SUB_EMITTER_AT_START) {
+		p_property.usage = PROPERTY_USAGE_NONE;
+	}
+
 	if (!turbulence_enabled) {
 		if (p_property.name == "turbulence_noise_strength" ||
 				p_property.name == "turbulence_noise_scale" ||
@@ -1895,6 +1947,15 @@ void ParticleProcessMaterial::set_sub_emitter_amount_at_collision(int p_amount) 
 
 int ParticleProcessMaterial::get_sub_emitter_amount_at_collision() const {
 	return sub_emitter_amount_at_collision;
+}
+
+void ParticleProcessMaterial::set_sub_emitter_amount_at_start(int p_amount) {
+	sub_emitter_amount_at_start = p_amount;
+	RenderingServer::get_singleton()->material_set_param(_get_material(), shader_names->sub_emitter_amount_at_start, p_amount);
+}
+
+int ParticleProcessMaterial::get_sub_emitter_amount_at_start() const {
+	return sub_emitter_amount_at_start;
 }
 
 void ParticleProcessMaterial::set_sub_emitter_keep_velocity(bool p_enable) {
@@ -2078,6 +2139,9 @@ void ParticleProcessMaterial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_sub_emitter_amount_at_collision"), &ParticleProcessMaterial::get_sub_emitter_amount_at_collision);
 	ClassDB::bind_method(D_METHOD("set_sub_emitter_amount_at_collision", "amount"), &ParticleProcessMaterial::set_sub_emitter_amount_at_collision);
 
+	ClassDB::bind_method(D_METHOD("get_sub_emitter_amount_at_start"), &ParticleProcessMaterial::get_sub_emitter_amount_at_start);
+	ClassDB::bind_method(D_METHOD("set_sub_emitter_amount_at_start", "amount"), &ParticleProcessMaterial::set_sub_emitter_amount_at_start);
+
 	ClassDB::bind_method(D_METHOD("get_sub_emitter_keep_velocity"), &ParticleProcessMaterial::get_sub_emitter_keep_velocity);
 	ClassDB::bind_method(D_METHOD("set_sub_emitter_keep_velocity", "enable"), &ParticleProcessMaterial::set_sub_emitter_keep_velocity);
 
@@ -2207,11 +2271,14 @@ void ParticleProcessMaterial::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "collision_bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_collision_bounce", "get_collision_bounce");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collision_use_scale"), "set_collision_use_scale", "is_collision_using_scale");
 	ADD_GROUP("Sub Emitter", "sub_emitter_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_emitter_mode", PROPERTY_HINT_ENUM, "Disabled,Constant,At End,At Collision"), "set_sub_emitter_mode", "get_sub_emitter_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_emitter_mode", PROPERTY_HINT_ENUM, "Disabled:0,Constant:1,At Start:4,At End:2,At Collision:3"), "set_sub_emitter_mode", "get_sub_emitter_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "sub_emitter_frequency", PROPERTY_HINT_RANGE, "0.01,100,0.01,suffix:Hz"), "set_sub_emitter_frequency", "get_sub_emitter_frequency");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_emitter_amount_at_end", PROPERTY_HINT_RANGE, "1,32,1"), "set_sub_emitter_amount_at_end", "get_sub_emitter_amount_at_end");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_emitter_amount_at_collision", PROPERTY_HINT_RANGE, "1,32,1"), "set_sub_emitter_amount_at_collision", "get_sub_emitter_amount_at_collision");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "sub_emitter_amount_at_start", PROPERTY_HINT_RANGE, "1,32,1"), "set_sub_emitter_amount_at_start", "get_sub_emitter_amount_at_start");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sub_emitter_keep_velocity"), "set_sub_emitter_keep_velocity", "get_sub_emitter_keep_velocity");
+
+	ADD_SIGNAL(MethodInfo("emission_shape_changed"));
 
 	BIND_ENUM_CONSTANT(PARAM_INITIAL_LINEAR_VELOCITY);
 	BIND_ENUM_CONSTANT(PARAM_ANGULAR_VELOCITY);
@@ -2253,6 +2320,7 @@ void ParticleProcessMaterial::_bind_methods() {
 	BIND_ENUM_CONSTANT(SUB_EMITTER_CONSTANT);
 	BIND_ENUM_CONSTANT(SUB_EMITTER_AT_END);
 	BIND_ENUM_CONSTANT(SUB_EMITTER_AT_COLLISION);
+	BIND_ENUM_CONSTANT(SUB_EMITTER_AT_START);
 	BIND_ENUM_CONSTANT(SUB_EMITTER_MAX);
 
 	BIND_ENUM_CONSTANT(COLLISION_DISABLED);
@@ -2324,6 +2392,7 @@ ParticleProcessMaterial::ParticleProcessMaterial() :
 	set_sub_emitter_frequency(4);
 	set_sub_emitter_amount_at_end(1);
 	set_sub_emitter_amount_at_collision(1);
+	set_sub_emitter_amount_at_start(1);
 	set_sub_emitter_keep_velocity(false);
 
 	set_attractor_interaction_enabled(true);

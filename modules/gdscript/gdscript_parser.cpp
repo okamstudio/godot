@@ -34,13 +34,11 @@
 #include "gdscript_tokenizer_buffer.h"
 
 #include "core/config/project_settings.h"
-#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
 #include "scene/main/multiplayer_api.h"
 
 #ifdef DEBUG_ENABLED
-#include "core/os/os.h"
 #include "core/string/string_builder.h"
 #include "servers/text_server.h"
 #endif
@@ -198,7 +196,7 @@ void GDScriptParser::push_warning(const Node *p_source, GDScriptWarning::Code p_
 	if (is_ignoring_warnings) {
 		return;
 	}
-	if (GLOBAL_GET("debug/gdscript/warnings/exclude_addons").booleanize() && script_path.begins_with("res://addons/")) {
+	if (GLOBAL_GET("debug/gdscript/warnings/exclude_addons") && script_path.begins_with("res://addons/")) {
 		return;
 	}
 	GDScriptWarning::WarnLevel warn_level = (GDScriptWarning::WarnLevel)(int)GLOBAL_GET(GDScriptWarning::get_settings_path_from_code(p_code));

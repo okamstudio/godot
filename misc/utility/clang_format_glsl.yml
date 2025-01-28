@@ -1,0 +1,44 @@
+# GLSL-specific rules.
+# The rules should be the same as .clang-format, except those explicitly mentioned.
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignOperands: DontAlign
+AlignTrailingComments:
+  Kind: Never
+  OverEmptyLines: 0
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: Inline
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 0
+ConstructorInitializerIndentWidth: 8
+ContinuationIndentWidth: 8
+Cpp11BracedListStyle: false
+IncludeCategories:
+  - Regex: ^".*"$
+    Priority: 1
+  - Regex: ^<.*\.h>$
+    Priority: 2
+  - Regex: ^<.*>$
+    Priority: 3
+IndentCaseLabels: true
+IndentWidth: 4
+InsertBraces: true
+JavaImportGroups:
+  - org.godotengine
+  - android
+  - androidx
+  - com.android
+  - com.google
+  - java
+  - javax
+KeepEmptyLinesAtTheStartOfBlocks: false
+ObjCBlockIndentWidth: 4
+PackConstructorInitializers: NextLine
+RemoveSemicolon: false # Differs from base .clang-format
+SpacesInLineCommentPrefix:
+  Minimum: 0
+  Maximum: -1
+Standard: c++20
+TabWidth: 4
+UseTab: Always

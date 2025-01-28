@@ -30,14 +30,12 @@
 
 #include "particle_process_material_editor_plugin.h"
 
-#include "editor/editor_property_name_processor.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/themes/editor_theme_manager.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
-#include "scene/gui/label.h"
 #include "scene/resources/particle_process_material.h"
 
 void ParticleProcessMaterialMinMaxPropertyEditor::_update_sizing() {

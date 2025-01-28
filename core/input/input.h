@@ -184,7 +184,7 @@ private:
 
 	HashSet<uint32_t> ignored_device_ids;
 
-	int fallback_mapping = -1;
+	int fallback_mapping = -1; // Index of the guid in map_db.
 
 	CursorShape default_shape = CURSOR_ARROW;
 

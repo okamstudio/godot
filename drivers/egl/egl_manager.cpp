@@ -30,6 +30,8 @@
 
 #include "egl_manager.h"
 
+#include "core/crypto/crypto_core.h"
+#include "core/io/dir_access.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 
 #ifdef EGL_ENABLED

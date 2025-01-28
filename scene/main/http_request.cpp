@@ -29,7 +29,7 @@
 /**************************************************************************/
 
 #include "http_request.h"
-#include "core/io/compression.h"
+
 #include "scene/main/timer.h"
 
 Error HTTPRequest::_request() {

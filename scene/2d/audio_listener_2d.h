@@ -32,7 +32,6 @@
 #define AUDIO_LISTENER_2D_H
 
 #include "scene/2d/node_2d.h"
-#include "scene/main/window.h"
 
 class AudioListener2D : public Node2D {
 	GDCLASS(AudioListener2D, Node2D);

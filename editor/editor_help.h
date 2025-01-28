@@ -32,15 +32,12 @@
 #define EDITOR_HELP_H
 
 #include "core/os/thread.h"
-#include "editor/code_editor.h"
 #include "editor/doc_tools.h"
 #include "editor/plugins/editor_plugin.h"
-#include "scene/gui/menu_button.h"
-#include "scene/gui/panel_container.h"
+#include "scene/gui/dialogs.h"
 #include "scene/gui/popup.h"
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/split_container.h"
-#include "scene/gui/tab_container.h"
 #include "scene/gui/text_edit.h"
 #include "scene/main/timer.h"
 
@@ -280,6 +277,7 @@ class EditorHelpBit : public VBoxContainer {
 		String value;
 		Vector<ArgumentData> arguments;
 		String qualifiers;
+		String resource_path;
 	};
 
 	inline static HashMap<StringName, HelpData> doc_class_cache;

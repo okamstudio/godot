@@ -30,7 +30,6 @@
 
 #include "menu_bar.h"
 
-#include "core/os/keyboard.h"
 #include "scene/main/window.h"
 #include "scene/theme/theme_db.h"
 

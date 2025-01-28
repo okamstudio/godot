@@ -51,6 +51,7 @@
 #import "metal_device_properties.h"
 
 #import <Metal/Metal.h>
+#import <MetalFX/MetalFX.h>
 #import <spirv_cross.hpp>
 #import <spirv_msl.hpp>
 
@@ -58,11 +59,11 @@
 #define KIBI (1024)
 #define MEBI (KIBI * KIBI)
 
-#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED < 140000) || (TARGET_OS_IOS && __IPHONE_OS_VERSION_MAX_ALLOWED < 170000)
+#if (TARGET_OS_OSX && __MAC_OS_X_VERSION_MAX_ALLOWED < 140000) || (TARGET_OS_IPHONE && __IPHONE_OS_VERSION_MAX_ALLOWED < 170000)
 #define MTLGPUFamilyApple9 (MTLGPUFamily)1009
 #endif
 
-API_AVAILABLE(macos(11.0), ios(14.0))
+API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0))
 MTLGPUFamily &operator--(MTLGPUFamily &p_family) {
 	p_family = static_cast<MTLGPUFamily>(static_cast<int>(p_family) - 1);
 	if (p_family < MTLGPUFamilyApple1) {
@@ -83,6 +84,21 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 		}
 	}
 
+	if (@available(macOS 11, iOS 16.4, tvOS 16.4, *)) {
+		features.supportsBCTextureCompression = p_device.supportsBCTextureCompression;
+	} else {
+		features.supportsBCTextureCompression = false;
+	}
+
+#if TARGET_OS_OSX
+	features.supportsDepth24Stencil8 = p_device.isDepth24Stencil8PixelFormatSupported;
+#endif
+
+	if (@available(macOS 11.0, iOS 14.0, tvOS 14.0, *)) {
+		features.supports32BitFloatFiltering = p_device.supports32BitFloatFiltering;
+		features.supports32BitMSAA = p_device.supports32BitMSAA;
+	}
+
 	features.hostMemoryPageSize = sysconf(_SC_PAGESIZE);
 
 	for (SampleCount sc = SampleCount1; sc <= SampleCount64; sc <<= 1) {
@@ -100,6 +116,15 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 	features.simdReduction = [p_device supportsFamily:MTLGPUFamilyApple7];
 	features.argument_buffers_tier = p_device.argumentBuffersSupport;
 
+	if (@available(macOS 13.0, iOS 16.0, tvOS 16.0, *)) {
+		features.needs_arg_encoders = !([p_device supportsFamily:MTLGPUFamilyMetal3] && features.argument_buffers_tier == MTLArgumentBuffersTier2);
+	}
+
+	if (@available(macOS 13.0, iOS 16.0, tvOS 16.0, *)) {
+		features.metal_fx_spatial = [MTLFXSpatialScalerDescriptor supportsDevice:p_device];
+		features.metal_fx_temporal = [MTLFXTemporalScalerDescriptor supportsDevice:p_device];
+	}
+
 	MTLCompileOptions *opts = [MTLCompileOptions new];
 	features.mslVersionEnum = opts.languageVersion; // By default, Metal uses the most recent language version.
 
@@ -107,12 +132,12 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 	features.mslVersion = SPIRV_CROSS_NAMESPACE::CompilerMSL::Options::make_msl_version(m_maj, m_min)
 
 	switch (features.mslVersionEnum) {
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 180000
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 180000 || __TV_OS_VERSION_MAX_ALLOWED >= 180000
 		case MTLLanguageVersion3_2:
 			setMSLVersion(3, 2);
 			break;
 #endif
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 170000
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 170000 || __TV_OS_VERSION_MAX_ALLOWED >= 170000
 		case MTLLanguageVersion3_1:
 			setMSLVersion(3, 1);
 			break;
@@ -285,6 +310,15 @@ void MetalDeviceProperties::init_limits(id<MTLDevice> p_device) {
 #endif
 
 	limits.maxDrawIndexedIndexValue = std::numeric_limits<uint32_t>::max() - 1;
+
+	if (@available(macOS 14.0, iOS 17.0, tvOS 17.0, *)) {
+		limits.temporalScalerInputContentMinScale = (double)[MTLFXTemporalScalerDescriptor supportedInputContentMinScaleForDevice:p_device];
+		limits.temporalScalerInputContentMaxScale = (double)[MTLFXTemporalScalerDescriptor supportedInputContentMaxScaleForDevice:p_device];
+	} else {
+		// Defaults taken from macOS 14+
+		limits.temporalScalerInputContentMinScale = 1.0;
+		limits.temporalScalerInputContentMaxScale = 3.0;
+	}
 }
 
 MetalDeviceProperties::MetalDeviceProperties(id<MTLDevice> p_device) {

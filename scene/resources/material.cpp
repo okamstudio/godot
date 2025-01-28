@@ -239,7 +239,7 @@ bool ShaderMaterial::_get(const StringName &p_name, Variant &r_ret) const {
 }
 
 void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
-	if (!shader.is_null()) {
+	if (shader.is_valid()) {
 		List<PropertyInfo> list;
 		shader->get_shader_uniform_list(&list, true);
 
@@ -932,12 +932,10 @@ uniform float msdf_outline_size : hint_range(0.0, 250.0, 1.0);
 	// If alpha antialiasing isn't off, add in the edge variable.
 	if (alpha_antialiasing_mode != ALPHA_ANTIALIASING_OFF &&
 			(transparency == TRANSPARENCY_ALPHA_SCISSOR || transparency == TRANSPARENCY_ALPHA_HASH)) {
-		code += R"(
-uniform float alpha_antialiasing_edge : hint_range(0.0, 1.0, 0.01);
-uniform ivec2 albedo_texture_size;
-)";
+		code += "uniform float alpha_antialiasing_edge : hint_range(0.0, 1.0, 0.01);\n";
 	}
 
+	code += "uniform ivec2 albedo_texture_size;\n";
 	code += "uniform float point_size : hint_range(0.1, 128.0, 0.1);\n";
 
 	if (!orm) {
@@ -1515,7 +1513,7 @@ void fragment() {)";
 				vec3(1.0 + 0.055) * pow(albedo_tex.rgb, vec3(1.0 / 2.4)) - vec3(0.055),
 				vec3(12.92) * albedo_tex.rgb,
 				lessThan(albedo_tex.rgb, vec3(0.0031308)));
-		vec2 msdf_size = vec2(msdf_pixel_range) / vec2(albedo_texture_size));
+		vec2 msdf_size = vec2(msdf_pixel_range) / vec2(albedo_texture_size);
 )";
 		if (flags[FLAG_USE_POINT_SIZE]) {
 			code += "		vec2 dest_size = vec2(1.0) / fwidth(POINT_COORD);\n";

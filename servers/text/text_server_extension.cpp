@@ -268,6 +268,7 @@ void TextServerExtension::_bind_methods() {
 
 	GDVIRTUAL_BIND(_shaped_get_span_count, "shaped");
 	GDVIRTUAL_BIND(_shaped_get_span_meta, "shaped", "index");
+	GDVIRTUAL_BIND(_shaped_get_span_embedded_object, "shaped", "index");
 	GDVIRTUAL_BIND(_shaped_set_span_update_font, "shaped", "index", "fonts", "size", "opentype_features");
 
 	GDVIRTUAL_BIND(_shaped_text_substr, "shaped", "start", "length");
@@ -1187,8 +1188,14 @@ int64_t TextServerExtension::shaped_get_span_count(const RID &p_shaped) const {
 }
 
 Variant TextServerExtension::shaped_get_span_meta(const RID &p_shaped, int64_t p_index) const {
-	Variant ret = false;
+	Variant ret;
 	GDVIRTUAL_CALL(_shaped_get_span_meta, p_shaped, p_index, ret);
+	return ret;
+}
+
+Variant TextServerExtension::shaped_get_span_embedded_object(const RID &p_shaped, int64_t p_index) const {
+	Variant ret;
+	GDVIRTUAL_CALL(_shaped_get_span_embedded_object, p_shaped, p_index, ret);
 	return ret;
 }
 

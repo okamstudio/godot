@@ -319,6 +319,13 @@
 				Returns if there is a coodinates-level proxy for the given identifiers.
 			</description>
 		</method>
+		<method name="has_custom_data_layer_by_name" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_name" type="String" />
+			<description>
+				Returns if there is a custom data layer named [param layer_name].
+			</description>
+		</method>
 		<method name="has_source" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="source_id" type="int" />

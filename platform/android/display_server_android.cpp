@@ -70,10 +70,11 @@ bool DisplayServerAndroid::has_feature(Feature p_feature) const {
 		//case FEATURE_IME:
 		case FEATURE_MOUSE:
 		//case FEATURE_MOUSE_WARP:
-		//case FEATURE_NATIVE_DIALOG:
+		case FEATURE_NATIVE_DIALOG:
 		case FEATURE_NATIVE_DIALOG_INPUT:
 		case FEATURE_NATIVE_DIALOG_FILE:
 		//case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		//case FEATURE_NATIVE_ICON:
 		//case FEATURE_WINDOW_TRANSPARENCY:
 		case FEATURE_CLIPBOARD:
@@ -174,6 +175,19 @@ bool DisplayServerAndroid::clipboard_has() const {
 		return godot_java->has_clipboard();
 	} else {
 		return DisplayServer::clipboard_has();
+	}
+}
+
+Error DisplayServerAndroid::dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback) {
+	GodotJavaWrapper *godot_java = OS_Android::get_singleton()->get_godot_java();
+	ERR_FAIL_NULL_V(godot_java, FAILED);
+	dialog_callback = p_callback;
+	return godot_java->show_dialog(p_title, p_description, p_buttons);
+}
+
+void DisplayServerAndroid::emit_dialog_callback(int p_button_index) {
+	if (dialog_callback.is_valid()) {
+		dialog_callback.call_deferred(p_button_index);
 	}
 }
 

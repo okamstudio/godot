@@ -10,14 +10,14 @@ from typing import Dict, List, Set
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
 
-from methods import COLOR_SUPPORTED, Ansi, toggle_color
+from misc.utility.color import STDOUT_COLOR, Ansi, toggle_color
 
 ################################################################################
 #                                    Config                                    #
 ################################################################################
 
 flags = {
-    "c": COLOR_SUPPORTED,
+    "c": STDOUT_COLOR,
     "b": False,
     "g": False,
     "s": False,
@@ -330,7 +330,8 @@ if flags["u"]:
     table_column_names.append("Docs URL")
     table_columns.append("url")
 
-toggle_color(flags["c"])
+if flags["c"]:
+    toggle_color(True)
 
 ################################################################################
 #                                     Help                                     #

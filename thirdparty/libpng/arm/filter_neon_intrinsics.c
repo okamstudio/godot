@@ -1,4 +1,3 @@
-
 /* filter_neon_intrinsics.c - NEON optimised filter functions
  *
  * Copyright (c) 2018 Cosmin Truta

@@ -105,6 +105,12 @@ class DisplayServerWayland : public DisplayServer {
 		Point2i hotspot;
 	};
 
+	enum class SuspendState {
+		NONE, // Unsuspended.
+		TIMEOUT, // Legacy fallback.
+		CAPABILITY, // New "suspended" wm_capability flag.
+	};
+
 	CursorShape cursor_shape = CURSOR_ARROW;
 	DisplayServer::MouseMode mouse_mode = DisplayServer::MOUSE_MODE_VISIBLE;
 
@@ -118,7 +124,7 @@ class DisplayServerWayland : public DisplayServer {
 	String ime_text;
 	Vector2i ime_selection;
 
-	bool suspended = false;
+	SuspendState suspend_state = SuspendState::NONE;
 	bool emulate_vsync = false;
 
 	String rendering_driver;
@@ -273,6 +279,7 @@ public:
 	virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_window_id) const override;
 
 	virtual void window_start_drag(WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual void window_start_resize(WindowResizeEdge p_edge, WindowID p_window) override;
 
 	virtual void cursor_set_shape(CursorShape p_shape) override;
 	virtual CursorShape cursor_get_shape() const override;

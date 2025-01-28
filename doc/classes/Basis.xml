@@ -145,7 +145,7 @@
 			<return type="Quaternion" />
 			<description>
 				Returns this basis's rotation as a [Quaternion].
-				[b]Note:[/b] Quatenions are much more suitable for 3D math but are less intuitive. For user interfaces, consider using the [method get_euler] method, which returns Euler angles.
+				[b]Note:[/b] Quaternions are much more suitable for 3D math but are less intuitive. For user interfaces, consider using the [method get_euler] method, which returns Euler angles.
 			</description>
 		</method>
 		<method name="get_scale" qualifiers="const">
@@ -214,7 +214,8 @@
 			<description>
 				Creates a new [Basis] with a rotation such that the forward axis (-Z) points towards the [param target] position.
 				By default, the -Z axis (camera forward) is treated as forward (implies +X is right). If [param use_model_front] is [code]true[/code], the +Z axis (asset front) is treated as forward (implies +X is left) and points toward the [param target] position.
-				The up axis (+Y) points as close to the [param up] vector as possible while staying perpendicular to the forward axis. The returned basis is orthonormalized (see [method orthonormalized]). The [param target] and [param up] vectors cannot be [constant Vector3.ZERO], and cannot be parallel to each other.
+				The up axis (+Y) points as close to the [param up] vector as possible while staying perpendicular to the forward axis. The returned basis is orthonormalized (see [method orthonormalized]).
+				The [param target] and the [param up] cannot be [constant Vector3.ZERO], and shouldn't be colinear to avoid unintended rotation around local Z axis.
 			</description>
 		</method>
 		<method name="orthonormalized" qualifiers="const">

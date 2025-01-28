@@ -30,8 +30,6 @@
 
 #include "image_loader_png.h"
 
-#include "core/os/os.h"
-#include "core/string/print_string.h"
 #include "drivers/png/png_driver_common.h"
 
 #include <string.h>

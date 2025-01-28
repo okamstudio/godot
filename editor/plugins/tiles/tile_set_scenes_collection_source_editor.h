@@ -85,7 +85,7 @@ private:
 		static void _bind_methods();
 
 	public:
-		// Update the proxyed object.
+		// Update the proxied object.
 		void edit(TileSetScenesCollectionSource *p_tile_set_atlas_source, int p_scene_id);
 
 		SceneTileProxyObject(TileSetScenesCollectionSourceEditor *p_tiles_set_scenes_collection_source_editor) {

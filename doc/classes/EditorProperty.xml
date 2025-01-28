@@ -109,6 +109,12 @@
 		<member name="deletable" type="bool" setter="set_deletable" getter="is_deletable" default="false">
 			Used by the inspector, set to [code]true[/code] when the property can be deleted by the user.
 		</member>
+		<member name="draw_background" type="bool" setter="set_draw_background" getter="is_draw_background" default="true">
+			Used by the inspector, set to [code]true[/code] when the property label is drawn.
+		</member>
+		<member name="draw_label" type="bool" setter="set_draw_label" getter="is_draw_label" default="true">
+			Used by the inspector, set to [code]true[/code] when the property background is drawn.
+		</member>
 		<member name="draw_warning" type="bool" setter="set_draw_warning" getter="is_draw_warning" default="false">
 			Used by the inspector, set to [code]true[/code] when the property is drawn with the editor theme's warning color. This is used for editable children's properties.
 		</member>

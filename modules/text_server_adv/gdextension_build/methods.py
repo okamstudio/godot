@@ -1,41 +1,3 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../"))
-
-from methods import Ansi
-
-
-def no_verbose(env):
-    colors = [Ansi.BLUE, Ansi.BOLD, Ansi.REGULAR, Ansi.RESET]
-
-    # There is a space before "..." to ensure that source file names can be
-    # Ctrl + clicked in the VS Code terminal.
-    compile_source_message = "{}Compiling {}$SOURCE{} ...{}".format(*colors)
-    java_compile_source_message = "{}Compiling {}$SOURCE{} ...{}".format(*colors)
-    compile_shared_source_message = "{}Compiling shared {}$SOURCE{} ...{}".format(*colors)
-    link_program_message = "{}Linking Program {}$TARGET{} ...{}".format(*colors)
-    link_library_message = "{}Linking Static Library {}$TARGET{} ...{}".format(*colors)
-    ranlib_library_message = "{}Ranlib Library {}$TARGET{} ...{}".format(*colors)
-    link_shared_library_message = "{}Linking Shared Library {}$TARGET{} ...{}".format(*colors)
-    java_library_message = "{}Creating Java Archive {}$TARGET{} ...{}".format(*colors)
-    compiled_resource_message = "{}Creating Compiled Resource {}$TARGET{} ...{}".format(*colors)
-    generated_file_message = "{}Generating {}$TARGET{} ...{}".format(*colors)
-
-    env["CXXCOMSTR"] = compile_source_message
-    env["CCCOMSTR"] = compile_source_message
-    env["SHCCCOMSTR"] = compile_shared_source_message
-    env["SHCXXCOMSTR"] = compile_shared_source_message
-    env["ARCOMSTR"] = link_library_message
-    env["RANLIBCOMSTR"] = ranlib_library_message
-    env["SHLINKCOMSTR"] = link_shared_library_message
-    env["LINKCOMSTR"] = link_program_message
-    env["JARCOMSTR"] = java_library_message
-    env["JAVACCOMSTR"] = java_compile_source_message
-    env["RCCOMSTR"] = compiled_resource_message
-    env["GENCOMSTR"] = generated_file_message
-
-
 def disable_warnings(self):
     # 'self' is the environment
     if self["platform"] == "windows" and not self["use_mingw"]:
@@ -48,6 +10,19 @@ def disable_warnings(self):
         self.AppendUnique(CCFLAGS=["/w"])
     else:
         self.AppendUnique(CCFLAGS=["-w"])
+
+
+def prepare_timer():
+    import atexit
+    import time
+
+    def print_elapsed_time(time_at_start: float):
+        time_elapsed = time.time() - time_at_start
+        time_formatted = time.strftime("%H:%M:%S", time.gmtime(time_elapsed))
+        time_centiseconds = round((time_elapsed % 1) * 100)
+        print(f"[Time elapsed: {time_formatted}.{time_centiseconds}]")
+
+    atexit.register(print_elapsed_time, time.time())
 
 
 def make_icu_data(target, source, env):
@@ -75,6 +50,8 @@ def make_icu_data(target, source, env):
 
 
 def write_macos_plist(target, binary_name, identifier, name):
+    import os
+
     os.makedirs(f"{target}/Resource/", exist_ok=True)
     with open(f"{target}/Resource/Info.plist", "w", encoding="utf-8", newline="\n") as f:
         f.write(f"""\

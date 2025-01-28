@@ -40,7 +40,6 @@
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/physics/collision_shape_3d.h"
-#include "scene/3d/physics/static_body_3d.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/menu_button.h"
 

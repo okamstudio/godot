@@ -32,7 +32,8 @@
 #include "tile_map.compat.inc"
 
 #include "core/io/marshalls.h"
-#include "scene/gui/control.h"
+#include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
+#include "servers/navigation_server_2d.h"
 
 #define TILEMAP_CALL_FOR_LAYER(layer, function, ...) \
 	if (layer < 0) {                                 \
@@ -47,6 +48,9 @@
 	};                                                            \
 	ERR_FAIL_INDEX_V(layer, (int)layers.size(), err_value);       \
 	return layers[layer]->function(__VA_ARGS__);
+
+Callable TileMap::_navmesh_source_geometry_parsing_callback;
+RID TileMap::_navmesh_source_geometry_parser;
 
 void TileMap::_tile_set_changed() {
 	update_configuration_warnings();
@@ -550,7 +554,7 @@ Ref<TileMapPattern> TileMap::get_pattern(int p_layer, TypedArray<Vector2i> p_coo
 }
 
 Vector2i TileMap::map_pattern(const Vector2i &p_position_in_tilemap, const Vector2i &p_coords_in_pattern, Ref<TileMapPattern> p_pattern) {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2i());
+	ERR_FAIL_COND_V(tile_set.is_null(), Vector2i());
 	return tile_set->map_pattern(p_position_in_tilemap, p_coords_in_pattern, p_pattern);
 }
 
@@ -739,22 +743,22 @@ void TileMap::_get_property_list(List<PropertyInfo> *p_list) const {
 }
 
 Vector2 TileMap::map_to_local(const Vector2i &p_pos) const {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2());
+	ERR_FAIL_COND_V(tile_set.is_null(), Vector2());
 	return tile_set->map_to_local(p_pos);
 }
 
 Vector2i TileMap::local_to_map(const Vector2 &p_pos) const {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2i());
+	ERR_FAIL_COND_V(tile_set.is_null(), Vector2i());
 	return tile_set->local_to_map(p_pos);
 }
 
 bool TileMap::is_existing_neighbor(TileSet::CellNeighbor p_cell_neighbor) const {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), false);
+	ERR_FAIL_COND_V(tile_set.is_null(), false);
 	return tile_set->is_existing_neighbor(p_cell_neighbor);
 }
 
 Vector2i TileMap::get_neighbor_cell(const Vector2i &p_coords, TileSet::CellNeighbor p_cell_neighbor) const {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2i());
+	ERR_FAIL_COND_V(tile_set.is_null(), Vector2i());
 	return tile_set->get_neighbor_cell(p_coords, p_cell_neighbor);
 }
 
@@ -820,7 +824,7 @@ void TileMap::set_texture_repeat(CanvasItem::TextureRepeat p_texture_repeat) {
 }
 
 TypedArray<Vector2i> TileMap::get_surrounding_cells(const Vector2i &p_coords) {
-	if (!tile_set.is_valid()) {
+	if (tile_set.is_null()) {
 		return TypedArray<Vector2i>();
 	}
 
@@ -1021,6 +1025,34 @@ TileMap::TileMap() {
 	}
 
 	property_helper.setup_for_instance(base_property_helper, this);
+}
+
+void TileMap::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer2D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&TileMap::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer2D::get_singleton()->source_geometry_parser_create();
+		NavigationServer2D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void TileMap::navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
+	TileMap *nb_tilemap = Object::cast_to<TileMap>(p_node);
+
+	if (nb_tilemap == nullptr) {
+		return;
+	}
+
+	// Special case for TileMap, so that internal layer get parsed even if p_recurse_children is false.
+	bool recurse_children = p_navigation_mesh->get_source_geometry_mode() != NavigationPolygon::SOURCE_GEOMETRY_GROUPS_EXPLICIT;
+	if (!recurse_children) {
+		for (int i = 0; i < p_node->get_child_count(); i++) {
+			TileMapLayer *tile_map_layer = Object::cast_to<TileMapLayer>(p_node->get_child(i));
+			if (tile_map_layer && tile_map_layer->get_index_in_tile_map() >= 0) {
+				tile_map_layer->navmesh_parse_source_geometry(p_navigation_mesh, p_source_geometry_data, tile_map_layer);
+			}
+		}
+	}
 }
 
 #undef TILEMAP_CALL_FOR_LAYER

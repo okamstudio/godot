@@ -56,9 +56,13 @@
 
 #import <os/signpost.h>
 
+// We have to undefine these macros because they are defined in NSObjCRuntime.h.
+#undef MIN
+#undef MAX
+
 void MDCommandBuffer::begin() {
 	DEV_ASSERT(commandBuffer == nil);
-	commandBuffer = queue.commandBufferWithUnretainedReferences;
+	commandBuffer = queue.commandBuffer;
 }
 
 void MDCommandBuffer::end() {
@@ -764,6 +768,7 @@ void MDCommandBuffer::render_bind_vertex_buffers(uint32_t p_binding_count, const
 		[render.encoder setVertexBuffers:render.vertex_buffers.ptr()
 								 offsets:render.vertex_offsets.ptr()
 							   withRange:NSMakeRange(first, p_binding_count)];
+		render.dirty.clear_flag(RenderState::DIRTY_VERTEX);
 	} else {
 		render.dirty.set_flag(RenderState::DIRTY_VERTEX);
 	}
@@ -1082,7 +1087,7 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Ren
 
 	UniformSet const &set = p_shader->sets[index];
 
-	for (uint32_t i = 0; i < uniforms.size(); i++) {
+	for (uint32_t i = 0; i < MIN(uniforms.size(), set.uniforms.size()); i++) {
 		RDD::BoundUniform const &uniform = uniforms[i];
 		UniformInfo ui = set.uniforms[i];
 

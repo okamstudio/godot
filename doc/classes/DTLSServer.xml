@@ -19,7 +19,7 @@
 		    server.listen(4242)
 		    var key = load("key.key") # Your private key.
 		    var cert = load("cert.crt") # Your X509 certificate.
-		    dtls.setup(key, cert)
+		    dtls.setup(TlsOptions.server(key, cert))
 
 		func _process(delta):
 		    while server.is_connection_available():
@@ -45,19 +45,19 @@
 		{
 		    private DtlsServer _dtls = new DtlsServer();
 		    private UdpServer _server = new UdpServer();
-		    private Godot.Collections.Array&lt;PacketPeerDtls&gt; _peers = new Godot.Collections.Array&lt;PacketPeerDtls&gt;();
+		    private Godot.Collections.Array&lt;PacketPeerDtls&gt; _peers = [];
 
 		    public override void _Ready()
 		    {
 		        _server.Listen(4242);
 		        var key = GD.Load&lt;CryptoKey&gt;("key.key"); // Your private key.
 		        var cert = GD.Load&lt;X509Certificate&gt;("cert.crt"); // Your X509 certificate.
-		        _dtls.Setup(key, cert);
+		        _dtls.Setup(TlsOptions.Server(key, cert));
 		    }
 
 		    public override void _Process(double delta)
 		    {
-		        while (Server.IsConnectionAvailable())
+		        while (_server.IsConnectionAvailable())
 		        {
 		            PacketPeerUdp peer = _server.TakeConnection();
 		            PacketPeerDtls dtlsPeer = _dtls.TakeConnection(peer);

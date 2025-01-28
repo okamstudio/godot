@@ -28,6 +28,11 @@ def can_build():
     return WhereIs("emcc") is not None
 
 
+def get_tools(env: "SConsEnvironment"):
+    # Use generic POSIX build toolchain for Emscripten.
+    return ["cc", "c++", "ar", "link", "textfile", "zip"]
+
+
 def get_opts():
     from SCons.Variables import BoolVariable
 
@@ -117,8 +122,8 @@ def configure(env: "SConsEnvironment"):
 
     # LTO
 
-    if env["lto"] == "auto":  # Full LTO for production.
-        env["lto"] = "full"
+    if env["lto"] == "auto":  # Enable LTO for production.
+        env["lto"] = "thin"
 
     if env["lto"] != "none":
         if env["lto"] == "thin":

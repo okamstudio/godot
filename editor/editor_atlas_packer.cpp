@@ -33,6 +33,7 @@
 #include "core/math/geometry_2d.h"
 #include "core/math/vector2.h"
 #include "core/math/vector2i.h"
+#include "scene/resources/bit_map.h"
 
 void EditorAtlasPacker::chart_pack(Vector<Chart> &charts, int &r_width, int &r_height, int p_atlas_max_size, int p_cell_resolution) {
 	int divide_by = MIN(64, p_cell_resolution);

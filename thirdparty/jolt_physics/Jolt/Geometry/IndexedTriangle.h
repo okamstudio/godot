@@ -65,6 +65,13 @@ public:
 		return (Vec3(inVertices[mIdx[0]]) + Vec3(inVertices[mIdx[1]]) + Vec3(inVertices[mIdx[2]])) / 3.0f;
 	}
 
+	/// Get the hash value of this structure
+	uint64			GetHash() const
+	{
+		static_assert(sizeof(IndexedTriangleNoMaterial) == 3 * sizeof(uint32), "Class should have no padding");
+		return HashBytes(this, sizeof(IndexedTriangleNoMaterial));
+	}
+
 	uint32			mIdx[3];
 };
 
@@ -102,6 +109,13 @@ public:
 		}
 	}
 
+	/// Get the hash value of this structure
+	uint64			GetHash() const
+	{
+		static_assert(sizeof(IndexedTriangle) == 5 * sizeof(uint32), "Class should have no padding");
+		return HashBytes(this, sizeof(IndexedTriangle));
+	}
+
 	uint32			mMaterialIndex = 0;
 	uint32			mUserData = 0;				///< User data that can be used for anything by the application, e.g. for tracking the original index of the triangle
 };
@@ -111,6 +125,6 @@ using IndexedTriangleList = Array<IndexedTriangle>;
 
 JPH_NAMESPACE_END
 
-// Create a std::hash/JPH::Hash for IndexedTriangleNoMaterial and IndexedTriangle
-JPH_MAKE_HASHABLE(JPH::IndexedTriangleNoMaterial, t.mIdx[0], t.mIdx[1], t.mIdx[2])
-JPH_MAKE_HASHABLE(JPH::IndexedTriangle, t.mIdx[0], t.mIdx[1], t.mIdx[2], t.mMaterialIndex, t.mUserData)
+// Create a std::hash for IndexedTriangleNoMaterial and IndexedTriangle
+JPH_MAKE_STD_HASH(JPH::IndexedTriangleNoMaterial)
+JPH_MAKE_STD_HASH(JPH::IndexedTriangle)

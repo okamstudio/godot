@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SpringBoneCollisionPlane3D" inherits="SpringBoneCollision3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A infinite plane collision that interacts with [SpringBoneSimulator3D].
+	</brief_description>
+	<description>
+		A infinite plane collision that interacts with [SpringBoneSimulator3D]. It is an infinite size XZ plane, and the +Y direction is treated as normal.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

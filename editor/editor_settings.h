@@ -35,7 +35,6 @@
 #include "core/io/config_file.h"
 #include "core/io/resource.h"
 #include "core/os/thread_safe.h"
-#include "core/templates/rb_set.h"
 
 class EditorPlugin;
 

@@ -527,6 +527,7 @@ public:
 	virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_vsync_mode) const override;
 
 	virtual void window_start_drag(WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual void window_start_resize(WindowResizeEdge p_edge, WindowID p_window) override;
 
 	virtual Error embed_process(WindowID p_window, OS::ProcessID p_pid, const Rect2i &p_rect, bool p_visible, bool p_grab_focus) override;
 	virtual Error remove_embedded_process(OS::ProcessID p_pid) override;

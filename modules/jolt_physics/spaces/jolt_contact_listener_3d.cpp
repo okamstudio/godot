@@ -86,10 +86,6 @@ void JoltContactListener3D::OnSoftBodyContactAdded(const JPH::Body &p_soft_body,
 
 #endif
 
-bool JoltContactListener3D::_is_listening_for(const JPH::Body &p_body) const {
-	return listening_for.has(p_body.GetID());
-}
-
 bool JoltContactListener3D::_try_override_collision_response(const JPH::Body &p_jolt_body1, const JPH::Body &p_jolt_body2, JPH::ContactSettings &p_settings) {
 	if (p_jolt_body1.IsSensor() || p_jolt_body2.IsSensor()) {
 		return false;
@@ -178,16 +174,19 @@ bool JoltContactListener3D::_try_apply_surface_velocities(const JPH::Body &p_jol
 	return true;
 }
 
-bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_body1, const JPH::Body &p_body2, const JPH::ContactManifold &p_manifold, JPH::ContactSettings &p_settings) {
-	if (p_body1.IsSensor() || p_body2.IsSensor()) {
+bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_jolt_body1, const JPH::Body &p_jolt_body2, const JPH::ContactManifold &p_manifold, JPH::ContactSettings &p_settings) {
+	if (p_jolt_body1.IsSensor() || p_jolt_body2.IsSensor()) {
 		return false;
 	}
 
-	if (!_is_listening_for(p_body1) && !_is_listening_for(p_body2)) {
+	const JoltBody3D *body1 = reinterpret_cast<JoltBody3D *>(p_jolt_body1.GetUserData());
+	const JoltBody3D *body2 = reinterpret_cast<JoltBody3D *>(p_jolt_body2.GetUserData());
+
+	if (!body1->reports_contacts() && !body2->reports_contacts()) {
 		return false;
 	}
 
-	const JPH::SubShapeIDPair shape_pair(p_body1.GetID(), p_manifold.mSubShapeID1, p_body2.GetID(), p_manifold.mSubShapeID2);
+	const JPH::SubShapeIDPair shape_pair(p_jolt_body1.GetID(), p_manifold.mSubShapeID1, p_jolt_body2.GetID(), p_manifold.mSubShapeID2);
 
 	Manifold &manifold = [&]() -> Manifold & {
 		const MutexLock write_lock(write_mutex);
@@ -201,8 +200,7 @@ bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_body1, const JP
 	manifold.depth = p_manifold.mPenetrationDepth;
 
 	JPH::CollisionEstimationResult collision;
-
-	JPH::EstimateCollisionResponse(p_body1, p_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::get_bounce_velocity_threshold(), 5);
+	JPH::EstimateCollisionResponse(p_jolt_body1, p_jolt_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::get_bounce_velocity_threshold(), 5);
 
 	for (JPH::uint i = 0; i < contact_count; ++i) {
 		const JPH::RVec3 relative_point1 = JPH::RVec3(p_manifold.mRelativeContactPointsOn1[i]);
@@ -211,8 +209,8 @@ bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_body1, const JP
 		const JPH::RVec3 world_point1 = p_manifold.mBaseOffset + relative_point1;
 		const JPH::RVec3 world_point2 = p_manifold.mBaseOffset + relative_point2;
 
-		const JPH::Vec3 velocity1 = p_body1.GetPointVelocity(world_point1);
-		const JPH::Vec3 velocity2 = p_body2.GetPointVelocity(world_point2);
+		const JPH::Vec3 velocity1 = p_jolt_body1.GetPointVelocity(world_point1);
+		const JPH::Vec3 velocity2 = p_jolt_body2.GetPointVelocity(world_point2);
 
 		const JPH::CollisionEstimationResult::Impulse &impulse = collision.mImpulses[i];
 
@@ -407,28 +405,24 @@ void JoltContactListener3D::_flush_contacts() {
 		const JPH::SubShapeIDPair &shape_pair = E.key;
 		Manifold &manifold = E.value;
 
-		const JoltReadableBody3D jolt_body1 = space->read_body(shape_pair.GetBody1ID());
-		const JoltReadableBody3D jolt_body2 = space->read_body(shape_pair.GetBody2ID());
+		const JPH::BodyID body_ids[2] = { shape_pair.GetBody1ID(), shape_pair.GetBody2ID() };
+		const JoltReadableBodies3D jolt_bodies = space->read_bodies(body_ids, 2);
 
-		JoltBody3D *body1 = jolt_body1.as_body();
+		JoltBody3D *body1 = jolt_bodies[0].as_body();
 		ERR_FAIL_NULL(body1);
 
-		JoltBody3D *body2 = jolt_body2.as_body();
+		JoltBody3D *body2 = jolt_bodies[1].as_body();
 		ERR_FAIL_NULL(body2);
 
 		const int shape_index1 = body1->find_shape_index(shape_pair.GetSubShapeID1());
 		const int shape_index2 = body2->find_shape_index(shape_pair.GetSubShapeID2());
 
-		if (jolt_body1->IsActive()) {
-			for (const Contact &contact : manifold.contacts1) {
-				body1->add_contact(body2, manifold.depth, shape_index1, shape_index2, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
-			}
+		for (const Contact &contact : manifold.contacts1) {
+			body1->add_contact(body2, manifold.depth, shape_index1, shape_index2, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
 		}
 
-		if (jolt_body2->IsActive()) {
-			for (const Contact &contact : manifold.contacts2) {
-				body2->add_contact(body1, manifold.depth, shape_index2, shape_index1, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
-			}
+		for (const Contact &contact : manifold.contacts2) {
+			body2->add_contact(body1, manifold.depth, shape_index2, shape_index1, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
 		}
 
 		manifold.contacts1.clear();
@@ -532,13 +526,7 @@ void JoltContactListener3D::_flush_area_exits() {
 	area_exits.clear();
 }
 
-void JoltContactListener3D::listen_for(JoltShapedObject3D *p_object) {
-	listening_for.insert(p_object->get_jolt_id());
-}
-
 void JoltContactListener3D::pre_step() {
-	listening_for.clear();
-
 #ifdef DEBUG_ENABLED
 	debug_contact_count = 0;
 #endif

@@ -213,7 +213,7 @@ static bool _appendClipUseNode(SvgLoaderData& loaderData, SvgNode* node, Shape* 
         Matrix m = {1, 0, node->node.use.x, 0, 1, node->node.use.y, 0, 0, 1};
         finalTransform *= m;
     }
-    if (child->transform) finalTransform = *child->transform * finalTransform;
+    if (child->transform) finalTransform *= *child->transform;
 
     return _appendClipShape(loaderData, child, shape, vBox, svgPath, identity((const Matrix*)(&finalTransform)) ? nullptr : &finalTransform);
 }

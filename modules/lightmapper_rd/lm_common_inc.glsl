@@ -18,7 +18,7 @@ layout(set = 0, binding = 0) uniform BakeParameters {
 	float bounce_indirect_energy;
 	int shadowmask_light_idx;
 	uint transparency_rays;
-	uint pad0;
+	float supersampling_factor;
 }
 bake_params;
 

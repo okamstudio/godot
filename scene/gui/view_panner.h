@@ -64,14 +64,13 @@ private:
 	bool enable_rmb = false;
 	bool simple_panning_enabled = false;
 
-	Viewport *viewport = nullptr;
-
 	Ref<Shortcut> pan_view_shortcut;
 
 	Callable pan_callback;
 	Callable zoom_callback;
 
 	ControlScheme control_scheme = SCROLL_ZOOMS;
+	Viewport *warped_panning_viewport = nullptr;
 
 public:
 	void set_callbacks(Callable p_pan_callback, Callable p_zoom_callback);
@@ -84,7 +83,7 @@ public:
 	void set_pan_axis(PanAxis p_pan_axis);
 
 	void setup(ControlScheme p_scheme, Ref<Shortcut> p_shortcut, bool p_simple_panning);
-	void set_viewport(Viewport *p_viewport);
+	void setup_warped_panning(Viewport *p_viewport, bool p_allowed);
 
 	bool is_panning() const;
 	void set_force_drag(bool p_force);

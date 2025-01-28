@@ -32,6 +32,7 @@
 
 #include "godot_area_3d.h"
 #include "godot_body_direct_state_3d.h"
+#include "godot_constraint_3d.h"
 #include "godot_space_3d.h"
 
 void GodotBody3D::_mass_properties_changed() {

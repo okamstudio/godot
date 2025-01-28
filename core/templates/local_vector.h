@@ -57,6 +57,7 @@ public:
 		return data;
 	}
 
+	// Must take a copy instead of a reference (see GH-31736).
 	_FORCE_INLINE_ void push_back(T p_elem) {
 		if (unlikely(count == capacity)) {
 			capacity = tight ? (capacity + 1) : MAX((U)1, capacity << 1);
@@ -295,10 +296,16 @@ public:
 
 	operator Vector<T>() const {
 		Vector<T> ret;
-		ret.resize(size());
+		ret.resize(count);
 		T *w = ret.ptrw();
 		if (w) {
-			memcpy(w, data, sizeof(T) * count);
+			if constexpr (std::is_trivially_copyable_v<T>) {
+				memcpy(w, data, sizeof(T) * count);
+			} else {
+				for (U i = 0; i < count; i++) {
+					w[i] = data[i];
+				}
+			}
 		}
 		return ret;
 	}

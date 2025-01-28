@@ -148,7 +148,7 @@ public:
 	void popup_property_selector(Object *p_object, const Callable &p_callback, const PackedInt32Array &p_type_filter = PackedInt32Array(), const String &p_current_value = String());
 	void popup_method_selector(Object *p_object, const Callable &p_callback, const String &p_current_value = String());
 	void popup_quick_open(const Callable &p_callback, const TypedArray<StringName> &p_base_types = TypedArray<StringName>());
-	void popup_create_dialog(const Callable &p_callback, const StringName &p_base_type = "", const String &p_current_type = "", const String &p_dialog_title = "", const TypedArray<StringName> &p_custom_type_blocklist = TypedArray<String>(), const Dictionary &p_custom_suffix = Dictionary());
+	void popup_create_dialog(const Callable &p_callback, const StringName &p_base_type = "", const String &p_current_type = "", const String &p_dialog_title = "", const TypedArray<StringName> &p_custom_type_blocklist = TypedArray<StringName>());
 
 	// Editor docks.
 

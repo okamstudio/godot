@@ -367,6 +367,13 @@ void ParticlesStorage::particles_set_pre_process_time(RID p_particles, double p_
 	ERR_FAIL_NULL(particles);
 	particles->pre_process_time = p_time;
 }
+
+void ParticlesStorage::particles_request_process_time(RID p_particles, real_t p_request_process_time) {
+	Particles *particles = particles_owner.get_or_null(p_particles);
+	ERR_FAIL_NULL(particles);
+	particles->request_process_time = p_request_process_time;
+}
+
 void ParticlesStorage::particles_set_explosiveness_ratio(RID p_particles, real_t p_ratio) {
 	Particles *particles = particles_owner.get_or_null(p_particles);
 	ERR_FAIL_NULL(particles);
@@ -522,6 +529,12 @@ void ParticlesStorage::particles_restart(RID p_particles) {
 	particles->restart_request = true;
 }
 
+void ParticlesStorage::particles_set_seed(RID p_particles, uint32_t p_seed) {
+	Particles *particles = particles_owner.get_or_null(p_particles);
+	ERR_FAIL_NULL(particles);
+	particles->random_seed = p_seed;
+}
+
 void ParticlesStorage::_particles_allocate_emission_buffer(Particles *particles) {
 	ERR_FAIL_COND(particles->emission_buffer != nullptr);
 
@@ -541,13 +554,15 @@ void ParticlesStorage::_particles_allocate_emission_buffer(Particles *particles)
 
 void ParticlesStorage::_particles_ensure_unused_emission_buffer(Particles *particles) {
 	if (particles->unused_emission_storage_buffer.is_null()) {
-		particles->unused_emission_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(uint32_t) * 4);
+		// For rendering devices that do not support empty arrays (like C++),
+		// we need to size the buffer with at least 1 element.
+		particles->unused_emission_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(ParticleEmissionBuffer));
 	}
 }
 
 void ParticlesStorage::_particles_ensure_unused_trail_buffer(Particles *particles) {
 	if (particles->unused_trail_storage_buffer.is_null()) {
-		particles->unused_trail_storage_buffer = RD::get_singleton()->storage_buffer_create(sizeof(uint32_t) * 4);
+		particles->unused_trail_storage_buffer = RD::get_singleton()->storage_buffer_create(16 * sizeof(float)); // Size of mat4.
 	}
 }
 
@@ -810,7 +825,6 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 
 	if (p_particles->clear) {
 		p_particles->cycle_number = 0;
-		p_particles->random_seed = Math::rand();
 	} else if (new_phase < p_particles->phase) {
 		if (p_particles->one_shot) {
 			p_particles->emitting = false;
@@ -1515,8 +1529,12 @@ void ParticlesStorage::update_particles() {
 		}
 
 		bool zero_time_scale = Engine::get_singleton()->get_time_scale() <= 0.0;
+		double todo = particles->request_process_time;
+		if (particles->clear) {
+			todo += particles->pre_process_time;
+		}
 
-		if (particles->clear && particles->pre_process_time > 0.0) {
+		if (todo > 0.0) {
 			double frame_time;
 			if (fixed_fps > 0) {
 				frame_time = 1.0 / fixed_fps;
@@ -1524,12 +1542,15 @@ void ParticlesStorage::update_particles() {
 				frame_time = 1.0 / 30.0;
 			}
 
-			double todo = particles->pre_process_time;
-
+			float tmp_scale = particles->speed_scale;
+			// We need this otherwise the speed scale of the particle system influences the TODO.
+			particles->speed_scale = 1.0;
 			while (todo >= 0) {
 				_particles_process(particles, frame_time);
 				todo -= frame_time;
 			}
+			particles->request_process_time = 0.0;
+			particles->speed_scale = tmp_scale;
 		}
 
 		if (fixed_fps > 0) {
@@ -1548,7 +1569,7 @@ void ParticlesStorage::update_particles() {
 			} else if (delta <= 0.0) { //unlikely but..
 				delta = 0.001;
 			}
-			double todo = particles->frame_remainder + delta;
+			todo = particles->frame_remainder + delta;
 
 			while (todo >= frame_time || particles->clear) {
 				_particles_process(particles, frame_time);

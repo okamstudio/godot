@@ -33,7 +33,6 @@
 #include "core/config/project_settings.h"
 #include "core/io/file_access.h"
 #include "core/io/resource_saver.h"
-#include "core/string/string_builder.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -375,7 +374,6 @@ void ScriptCreateDialog::_create_new() {
 			alert->popup_centered();
 			return;
 		}
-		EditorNode::get_singleton()->ensure_uid_file(lpath);
 	}
 
 	emit_signal(SNAME("script_created"), scr);

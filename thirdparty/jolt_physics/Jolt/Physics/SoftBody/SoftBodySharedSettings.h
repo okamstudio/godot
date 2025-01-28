@@ -204,7 +204,7 @@ public:
 		/// Return the lowest vertex index of this constraint
 		uint32			GetMinVertexIndex() const					{ return min(min(mVertex[0], mVertex[1]), min(mVertex[2], mVertex[3])); }
 
-		uint32			mVertex[4];									///< Indices of the vertices that form the tetrhedron
+		uint32			mVertex[4];									///< Indices of the vertices that form the tetrahedron
 		float			mSixRestVolume = 1.0f;						///< 6 times the rest volume of the tetrahedron (calculated by CalculateVolumeConstraintVolumes())
 		float			mCompliance = 0.0f;							///< Inverse of the stiffness of the constraint
 	};

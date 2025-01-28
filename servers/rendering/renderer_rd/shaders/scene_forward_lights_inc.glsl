@@ -313,11 +313,11 @@ float sample_omni_pcf_shadow(texture2D shadow, float blur_scale, vec2 coord, vec
 		vec2 offset = offset_scale * (disk_rotation * scene_data_block.data.soft_shadow_kernel[i].xy);
 		vec2 sample_coord = coord + offset;
 
-		float sample_coord_length_sqaured = dot(sample_coord, sample_coord);
-		bool do_flip = sample_coord_length_sqaured > 1.0;
+		float sample_coord_length_squared = dot(sample_coord, sample_coord);
+		bool do_flip = sample_coord_length_squared > 1.0;
 
 		if (do_flip) {
-			float len = sqrt(sample_coord_length_sqaured);
+			float len = sqrt(sample_coord_length_squared);
 			sample_coord = sample_coord * (2.0 / len - 1.0);
 		}
 
@@ -885,7 +885,7 @@ void reflection_process(uint ref_index, vec3 vertex, vec3 ref_vec, vec3 normal, 
 		blend = pow(blend_axes.x * blend_axes.y * blend_axes.z, 2.0);
 	}
 
-	if (reflections.data[ref_index].intensity > 0.0) { // compute reflection
+	if (reflections.data[ref_index].intensity > 0.0 && reflection_accum.a < 1.0) { // compute reflection
 
 		vec3 local_ref_vec = (reflections.data[ref_index].local_matrix * vec4(ref_vec, 0.0)).xyz;
 
@@ -903,18 +903,20 @@ void reflection_process(uint ref_index, vec3 vertex, vec3 ref_vec, vec3 normal, 
 		}
 
 		vec4 reflection;
+		float reflection_blend = max(0.0, blend - reflection_accum.a);
 
 		reflection.rgb = textureLod(samplerCubeArray(reflection_atlas, DEFAULT_SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP), vec4(local_ref_vec, reflections.data[ref_index].index), sqrt(roughness) * MAX_ROUGHNESS_LOD).rgb * sc_luminance_multiplier();
 		reflection.rgb *= reflections.data[ref_index].exposure_normalization;
-		if (reflections.data[ref_index].exterior) {
-			reflection.rgb = mix(specular_light, reflection.rgb, blend);
-		}
+		reflection.a = reflection_blend;
 
-		reflection.rgb *= reflections.data[ref_index].intensity; //intensity
-		reflection.a = blend;
+		reflection.rgb *= reflections.data[ref_index].intensity;
 		reflection.rgb *= reflection.a;
 
 		reflection_accum += reflection;
+	}
+
+	if (ambient_accum.a >= 1.0) {
+		return;
 	}
 
 	switch (reflections.data[ref_index].ambient_mode) {
@@ -922,28 +924,22 @@ void reflection_process(uint ref_index, vec3 vertex, vec3 ref_vec, vec3 normal, 
 			//do nothing
 		} break;
 		case REFLECTION_AMBIENT_ENVIRONMENT: {
-			//do nothing
 			vec3 local_amb_vec = (reflections.data[ref_index].local_matrix * vec4(normal, 0.0)).xyz;
-
 			vec4 ambient_out;
+			float ambient_blend = max(0.0, blend - ambient_accum.a);
 
 			ambient_out.rgb = textureLod(samplerCubeArray(reflection_atlas, DEFAULT_SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP), vec4(local_amb_vec, reflections.data[ref_index].index), MAX_ROUGHNESS_LOD).rgb;
 			ambient_out.rgb *= reflections.data[ref_index].exposure_normalization;
-			ambient_out.a = blend;
-			if (reflections.data[ref_index].exterior) {
-				ambient_out.rgb = mix(ambient_light, ambient_out.rgb, blend);
-			}
-
+			ambient_out.a = ambient_blend;
 			ambient_out.rgb *= ambient_out.a;
 			ambient_accum += ambient_out;
 		} break;
 		case REFLECTION_AMBIENT_COLOR: {
 			vec4 ambient_out;
-			ambient_out.a = blend;
+			float ambient_blend = max(0.0, blend - ambient_accum.a);
+
 			ambient_out.rgb = reflections.data[ref_index].ambient;
-			if (reflections.data[ref_index].exterior) {
-				ambient_out.rgb = mix(ambient_light, ambient_out.rgb, blend);
-			}
+			ambient_out.a = ambient_blend;
 			ambient_out.rgb *= ambient_out.a;
 			ambient_accum += ambient_out;
 		} break;

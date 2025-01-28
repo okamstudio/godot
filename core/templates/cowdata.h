@@ -162,6 +162,8 @@ private:
 		return *out;
 	}
 
+	// Decrements the reference count. Deallocates the backing buffer if needed.
+	// After this function, _ptr is guaranteed to be NULL.
 	void _unref();
 	void _ref(const CowData *p_from);
 	void _ref(const CowData &p_from);
@@ -252,7 +254,7 @@ public:
 	Size count(const T &p_val) const;
 
 	_FORCE_INLINE_ CowData() {}
-	_FORCE_INLINE_ ~CowData();
+	_FORCE_INLINE_ ~CowData() { _unref(); }
 	_FORCE_INLINE_ CowData(std::initializer_list<T> p_init);
 	_FORCE_INLINE_ CowData(const CowData<T> &p_from) { _ref(p_from); }
 	_FORCE_INLINE_ CowData(CowData<T> &&p_from) {
@@ -269,22 +271,30 @@ void CowData<T>::_unref() {
 
 	SafeNumeric<USize> *refc = _get_refcount();
 	if (refc->decrement() > 0) {
-		return; // still in use
+		// Data is still in use elsewhere.
+		_ptr = nullptr;
+		return;
 	}
-	// clean up
+	// Clean up.
+	// First, invalidate our own reference.
+	// NOTE: It is required to do so immediately because it must not be observable outside of this
+	//       function after refcount has already been reduced to 0.
+	// WARNING: It must be done before calling the destructors, because one of them may otherwise
+	//          observe it through a reference to us. In this case, it may try to access the buffer,
+	//          which is illegal after some of the elements in it have already been destructed, and
+	//          may lead to a segmentation fault.
+	USize current_size = *_get_size();
+	T *prev_ptr = _ptr;
+	_ptr = nullptr;
 
 	if constexpr (!std::is_trivially_destructible_v<T>) {
-		USize current_size = *_get_size();
-
 		for (USize i = 0; i < current_size; ++i) {
-			// call destructors
-			T *t = &_ptr[i];
-			t->~T();
+			prev_ptr[i].~T();
 		}
 	}
 
 	// free mem
-	Memory::free_static(((uint8_t *)_ptr) - DATA_OFFSET, false);
+	Memory::free_static((uint8_t *)prev_ptr - DATA_OFFSET, false);
 }
 
 template <typename T>
@@ -339,9 +349,8 @@ Error CowData<T>::resize(Size p_size) {
 	}
 
 	if (p_size == 0) {
-		// wants to clean up
-		_unref();
-		_ptr = nullptr;
+		// Wants to clean up.
+		_unref(); // Resets _ptr to nullptr.
 		return OK;
 	}
 
@@ -484,8 +493,7 @@ void CowData<T>::_ref(const CowData &p_from) {
 		return; // self assign, do nothing.
 	}
 
-	_unref();
-	_ptr = nullptr;
+	_unref(); // Resets _ptr to nullptr.
 
 	if (!p_from._ptr) {
 		return; //nothing to do
@@ -494,11 +502,6 @@ void CowData<T>::_ref(const CowData &p_from) {
 	if (p_from._get_refcount()->conditional_increment() > 0) { // could reference
 		_ptr = p_from._ptr;
 	}
-}
-
-template <typename T>
-CowData<T>::~CowData() {
-	_unref();
 }
 
 template <typename T>

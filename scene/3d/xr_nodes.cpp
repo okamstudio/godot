@@ -612,7 +612,7 @@ Vector2 XRController3D::get_vector2(const StringName &p_name) const {
 
 XRPositionalTracker::TrackerHand XRController3D::get_tracker_hand() const {
 	// get our XRServer
-	if (!tracker.is_valid()) {
+	if (tracker.is_null()) {
 		return XRPositionalTracker::TRACKER_HAND_UNKNOWN;
 	}
 

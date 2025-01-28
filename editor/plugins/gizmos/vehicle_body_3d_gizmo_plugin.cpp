@@ -30,8 +30,6 @@
 
 #include "vehicle_body_3d_gizmo_plugin.h"
 
-#include "editor/editor_settings.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/physics/vehicle_body_3d.h"
 
 VehicleWheel3DGizmoPlugin::VehicleWheel3DGizmoPlugin() {

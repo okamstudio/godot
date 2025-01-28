@@ -198,10 +198,6 @@ struct Manifold::Impl {
     }
 
     CalculateBBox();
-    if (!IsFinite()) {
-      MarkFailure(Error::NonFiniteVertex);
-      return;
-    }
     SetEpsilon(-1, std::is_same<Precision, float>::value);
 
     SplitPinchedVerts();
@@ -215,7 +211,13 @@ struct Manifold::Impl {
     CreateFaces();
 
     SimplifyTopology();
+    RemoveUnreferencedVerts();
     Finish();
+
+    if (!IsFinite()) {
+      MarkFailure(Error::NonFiniteVertex);
+      return;
+    }
 
     // A Manifold created from an input mesh is never an original - the input is
     // the original.
@@ -271,7 +273,7 @@ struct Manifold::Impl {
                           : meshRelation_.properties.size() / NumProp();
   }
 
-  // properties.cu
+  // properties.cpp
   enum class Property { Volume, SurfaceArea };
   double GetProperty(Property prop) const;
   void CalculateCurvature(int gaussianIdx, int meanIdx);
@@ -281,11 +283,12 @@ struct Manifold::Impl {
   void SetEpsilon(double minEpsilon = -1, bool useSingle = false);
   bool IsManifold() const;
   bool Is2Manifold() const;
+  bool IsSelfIntersecting() const;
   bool MatchesTriNormals() const;
   int NumDegenerateTris() const;
   double MinGap(const Impl& other, double searchLength) const;
 
-  // sort.cu
+  // sort.cpp
   void Finish();
   void SortVerts();
   void ReindexVerts(const Vec<int>& vertNew2Old, size_t numOldVert);
@@ -295,7 +298,7 @@ struct Manifold::Impl {
   void GatherFaces(const Vec<int>& faceNew2Old);
   void GatherFaces(const Impl& old, const Vec<int>& faceNew2Old);
 
-  // face_op.cu
+  // face_op.cpp
   void Face2Tri(const Vec<int>& faceEdge, const Vec<TriRef>& halfedgeRef);
   PolygonsIdx Face2Polygons(VecView<Halfedge>::IterC start,
                             VecView<Halfedge>::IterC end,
@@ -303,7 +306,7 @@ struct Manifold::Impl {
   Polygons Slice(double height) const;
   Polygons Project() const;
 
-  // edge_op.cu
+  // edge_op.cpp
   void CleanupTopology();
   void SimplifyTopology();
   void DedupeEdge(int edge);
@@ -349,4 +352,9 @@ struct Manifold::Impl {
   // quickhull.cpp
   void Hull(VecView<vec3> vertPos);
 };
+
+#ifdef MANIFOLD_DEBUG
+extern std::mutex dump_lock;
+std::ostream& operator<<(std::ostream& stream, const Manifold::Impl& impl);
+#endif
 }  // namespace manifold

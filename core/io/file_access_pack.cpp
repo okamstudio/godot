@@ -331,6 +331,44 @@ Ref<FileAccess> PackedSourcePCK::get_file(const String &p_path, PackedData::Pack
 
 //////////////////////////////////////////////////////////////////
 
+bool PackedSourceDirectory::try_open_pack(const String &p_path, bool p_replace_files, uint64_t p_offset) {
+	// Load with offset feature only supported for PCK files.
+	ERR_FAIL_COND_V_MSG(p_offset != 0, false, "Invalid PCK data. Note that loading files with a non-zero offset isn't supported with directories.");
+
+	if (p_path != "res://") {
+		return false;
+	}
+	add_directory(p_path, p_replace_files);
+	return true;
+}
+
+Ref<FileAccess> PackedSourceDirectory::get_file(const String &p_path, PackedData::PackedFile *p_file) {
+	Ref<FileAccess> ret = FileAccess::create_for_path(p_path);
+	ret->reopen(p_path, FileAccess::READ);
+	return ret;
+}
+
+void PackedSourceDirectory::add_directory(const String &p_path, bool p_replace_files) {
+	Ref<DirAccess> da = DirAccess::open(p_path);
+	if (da.is_null()) {
+		return;
+	}
+	da->set_include_hidden(true);
+
+	for (const String &file_name : da->get_files()) {
+		String file_path = p_path.path_join(file_name);
+		uint8_t md5[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+		PackedData::get_singleton()->add_path(p_path, file_path, 0, 0, md5, this, p_replace_files, false);
+	}
+
+	for (const String &sub_dir_name : da->get_directories()) {
+		String sub_dir_path = p_path.path_join(sub_dir_name);
+		add_directory(sub_dir_path, p_replace_files);
+	}
+}
+
+//////////////////////////////////////////////////////////////////
+
 Error FileAccessPack::open_internal(const String &p_path, int p_mode_flags) {
 	ERR_PRINT("Can't open pack-referenced file.");
 	return ERR_UNAVAILABLE;

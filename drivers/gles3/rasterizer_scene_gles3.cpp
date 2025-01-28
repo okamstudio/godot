@@ -2254,7 +2254,12 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 	RenderDataGLES3 render_data;
 	{
 		render_data.render_buffers = rb;
-		render_data.transparent_bg = rt ? rt->is_transparent : false;
+
+		if (rt) {
+			render_data.transparent_bg = rt->is_transparent;
+			render_data.render_region = rt->render_region;
+		}
+
 		// Our first camera is used by default
 		render_data.cam_transform = p_camera_data->main_transform;
 		render_data.inv_cam_transform = render_data.cam_transform.affine_inverse();
@@ -2384,6 +2389,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 	bool draw_sky = false;
 	bool draw_sky_fog_only = false;
 	bool keep_color = false;
+	bool draw_canvas = false;
 	bool draw_feed = false;
 	float sky_energy_multiplier = 1.0;
 	int camera_feed_id = -1;
@@ -2425,7 +2431,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 				draw_sky = !render_data.transparent_bg;
 			} break;
 			case RS::ENV_BG_CANVAS: {
-				keep_color = true;
+				draw_canvas = true;
 			} break;
 			case RS::ENV_BG_KEEP: {
 				keep_color = true;
@@ -2433,6 +2439,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 			case RS::ENV_BG_CAMERA_FEED: {
 				camera_feed_id = environment_get_camera_feed_id(render_data.environment);
 				draw_feed = true;
+				keep_color = true;
 			} break;
 			default: {
 			}
@@ -2491,6 +2498,10 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 		RENDER_TIMESTAMP("Depth Prepass");
 		//pre z pass
 
+		if (render_data.render_region != Rect2i()) {
+			glViewport(render_data.render_region.position.x, render_data.render_region.position.y, render_data.render_region.size.width, render_data.render_region.size.height);
+		}
+
 		scene_state.enable_gl_depth_test(true);
 		scene_state.enable_gl_depth_draw(true);
 		scene_state.enable_gl_blend(false);
@@ -2544,10 +2555,14 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
-	if (!keep_color && !draw_feed) {
+	// Need to clear framebuffer unless:
+	// a) We explicitly request not to (i.e. ENV_BG_KEEP).
+	// b) We are rendering to a non-intermediate framebuffer with ENV_BG_CANVAS (shared between 2D and 3D).
+	if (!keep_color && (!draw_canvas || fbo != rt->fbo)) {
 		clear_color.a = render_data.transparent_bg ? 0.0f : 1.0f;
 		glClearBufferfv(GL_COLOR, 0, clear_color.components);
-	} else if (fbo != rt->fbo) {
+	}
+	if ((keep_color || draw_canvas) && fbo != rt->fbo) {
 		// Need to copy our current contents to our intermediate/MSAA buffer
 		GLES3::CopyEffects *copy_effects = GLES3::CopyEffects::get_singleton();
 
@@ -2565,6 +2580,10 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 
 	RENDER_TIMESTAMP("Render Opaque Pass");
 	uint64_t spec_constant_base_flags = 0;
+
+	if (render_data.render_region != Rect2i()) {
+		glViewport(render_data.render_region.position.x, render_data.render_region.position.y, render_data.render_region.size.width, render_data.render_region.size.height);
+	}
 
 	{
 		// Specialization Constants that apply for entire rendering pass.
@@ -3972,7 +3991,7 @@ TypedArray<Image> RasterizerSceneGLES3::bake_render_uv2(RID p_base, const TypedA
 	// Consider rendering to RGBA8 encoded as RGBE, then manually convert to RGBAH on CPU.
 	glBindTexture(GL_TEXTURE_2D, emission_tex);
 	if (config->float_texture_supported) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_image_size.width, p_image_size.height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, p_image_size.width, p_image_size.height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		GLES3::Utilities::get_singleton()->texture_allocated_data(emission_tex, p_image_size.width * p_image_size.height * 16, "Lightmap emission texture");
 	} else {
 		// Fallback to RGBA8 on devices that don't support rendering to floating point textures. This will look bad, but we have no choice.
@@ -4075,9 +4094,9 @@ TypedArray<Image> RasterizerSceneGLES3::bake_render_uv2(RID p_base, const TypedA
 	{
 		tex->tex_id = emission_tex;
 		if (config->float_texture_supported) {
-			tex->format = Image::FORMAT_RGBAF;
+			tex->format = Image::FORMAT_RGBAH;
 			tex->real_format = Image::FORMAT_RGBAH;
-			tex->gl_type_cache = GL_FLOAT;
+			tex->gl_type_cache = GL_HALF_FLOAT;
 		}
 		Ref<Image> img = GLES3::TextureStorage::get_singleton()->texture_2d_get(tex_rid);
 		GLES3::Utilities::get_singleton()->texture_free_data(emission_tex);

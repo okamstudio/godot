@@ -46,10 +46,20 @@
 				Returns the enabled state of the given particle flag (see [enum ParticleFlags] for options).
 			</description>
 		</method>
+		<method name="request_particles_process">
+			<return type="void" />
+			<param index="0" name="process_time" type="float" />
+			<description>
+				Requests the particles to process for extra process time during a single frame.
+				Useful for particle playback, if used in combination with [member use_fixed_seed] or by calling [method restart] with parameter [code]keep_seed[/code] set to [code]true[/code].
+			</description>
+		</method>
 		<method name="restart">
 			<return type="void" />
+			<param index="0" name="keep_seed" type="bool" default="false" />
 			<description>
 				Restarts the particle emitter.
+				If [param keep_seed] is [code]true[/code], the current random seed will be preserved. Useful for seeking and playback.
 			</description>
 		</method>
 		<method name="set_param_curve">
@@ -130,10 +140,10 @@
 			Each particle's initial color. If [member texture] is defined, it will be multiplied by this color.
 		</member>
 		<member name="color_initial_ramp" type="Gradient" setter="set_color_initial_ramp" getter="get_color_initial_ramp">
-			Each particle's initial color will vary along this [GradientTexture1D] (multiplied with [member color]).
+			Each particle's initial color will vary along this [Gradient] (multiplied with [member color]).
 		</member>
 		<member name="color_ramp" type="Gradient" setter="set_color_ramp" getter="get_color_ramp">
-			Each particle's color will vary along this [Gradient] (multiplied with [member color]).
+			Each particle's color will vary along this [Gradient] over its lifetime (multiplied with [member color]).
 		</member>
 		<member name="damping_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
 			Damping will vary along this [Curve]. Should be a unit [Curve].
@@ -231,6 +241,7 @@
 		<member name="particle_flag_align_y" type="bool" setter="set_particle_flag" getter="get_particle_flag" default="false">
 			Align Y axis of particle with the direction of its velocity.
 		</member>
+		<member name="physics_interpolation_mode" type="int" setter="set_physics_interpolation_mode" getter="get_physics_interpolation_mode" overrides="Node" enum="Node.PhysicsInterpolationMode" default="2" />
 		<member name="preprocess" type="float" setter="set_pre_process_time" getter="get_pre_process_time" default="0.0">
 			Particle system starts as if it had already run for this many seconds.
 		</member>
@@ -263,6 +274,9 @@
 			Each particle's vertical scale will vary along this [Curve]. Should be a unit [Curve].
 			[member split_scale] must be enabled.
 		</member>
+		<member name="seed" type="int" setter="set_seed" getter="get_seed" default="0">
+			Sets the random seed used by the particle system. Only effective if [member use_fixed_seed] is [code]true[/code].
+		</member>
 		<member name="speed_scale" type="float" setter="set_speed_scale" getter="get_speed_scale" default="1.0">
 			Particle system's running speed scaling ratio. A value of [code]0[/code] can be used to pause the particles.
 		</member>
@@ -283,6 +297,9 @@
 		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			Particle texture. If [code]null[/code], particles will be squares.
+		</member>
+		<member name="use_fixed_seed" type="bool" setter="set_use_fixed_seed" getter="get_use_fixed_seed" default="false">
+			If [code]true[/code], particles will use the same seed for every simulation using the seed defined in [member seed]. This is useful for situations where the visual outcome should be consistent across replays, for example when using Movie Maker mode.
 		</member>
 	</members>
 	<signals>

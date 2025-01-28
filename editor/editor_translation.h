@@ -32,7 +32,6 @@
 #define EDITOR_TRANSLATION_H
 
 #include "core/string/ustring.h"
-#include "core/templates/list.h"
 #include "core/templates/vector.h"
 
 Vector<String> get_editor_locales();

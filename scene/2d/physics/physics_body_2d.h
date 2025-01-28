@@ -31,7 +31,6 @@
 #ifndef PHYSICS_BODY_2D_H
 #define PHYSICS_BODY_2D_H
 
-#include "core/templates/vset.h"
 #include "scene/2d/physics/collision_object_2d.h"
 #include "scene/2d/physics/kinematic_collision_2d.h"
 #include "scene/resources/physics_material.h"

@@ -38,7 +38,6 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/label.h"
-#include "scene/gui/margin_container.h"
 #include "scene/gui/option_button.h"
 #include "scene/gui/panel_container.h"
 
@@ -98,6 +97,7 @@ void QuickSettingsDialog::_update_current_values() {
 			if (current_theme == theme_value) {
 				theme_option_button->set_text(current_theme);
 				theme_option_button->select(i);
+				theme_option_button->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 
 				custom_theme_label->set_visible(current_theme == "Custom");
 			}

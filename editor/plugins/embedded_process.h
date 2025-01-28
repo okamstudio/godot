@@ -59,7 +59,6 @@ class EmbeddedProcess : public Control {
 	Rect2i last_global_rect;
 
 	void _try_embed_process();
-	void _queue_update_embedded_process();
 	void _update_embedded_process();
 	void _timer_embedding_timeout();
 	void _draw();
@@ -78,10 +77,14 @@ public:
 
 	void set_window_size(const Size2i p_window_size);
 	void set_keep_aspect(bool p_keep_aspect);
+	void queue_update_embedded_process();
 
 	Rect2i get_screen_embedded_window_rect();
+	int get_margin_size(Side p_side) const;
+	Size2 get_margins_size();
 	bool is_embedding_in_progress();
 	bool is_embedding_completed();
+	int get_embedded_pid() const;
 
 	EmbeddedProcess();
 	~EmbeddedProcess();

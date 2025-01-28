@@ -103,7 +103,7 @@ public:
 	static String _gen_unique_name_static(HashSet<String> &r_unique_names, const String &p_name);
 
 private:
-	void _build_parent_hierachy(Ref<GLTFState> p_state);
+	void _build_parent_hierarchy(Ref<GLTFState> p_state);
 	double _filter_number(double p_float);
 	void _round_min_max_components(Vector<double> &r_type_min, Vector<double> &r_type_max);
 	String _get_component_type_name(const GLTFAccessor::GLTFComponentType p_component_type);
@@ -190,7 +190,7 @@ private:
 	Error _serialize_images(Ref<GLTFState> p_state);
 	Error _serialize_lights(Ref<GLTFState> p_state);
 	Ref<Image> _parse_image_bytes_into_image(Ref<GLTFState> p_state, const Vector<uint8_t> &p_bytes, const String &p_mime_type, int p_index, String &r_file_extension);
-	void _parse_image_save_image(Ref<GLTFState> p_state, const Vector<uint8_t> &p_bytes, const String &p_file_extension, int p_index, Ref<Image> p_image);
+	void _parse_image_save_image(Ref<GLTFState> p_state, const Vector<uint8_t> &p_bytes, const String &p_resource_uri, const String &p_file_extension, int p_index, Ref<Image> p_image);
 	Error _parse_images(Ref<GLTFState> p_state, const String &p_base_path);
 	Error _parse_textures(Ref<GLTFState> p_state);
 	Error _parse_texture_samplers(Ref<GLTFState> p_state);

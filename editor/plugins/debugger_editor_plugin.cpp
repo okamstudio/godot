@@ -40,8 +40,6 @@
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/run_instances_dialog.h"
-#include "editor/themes/editor_scale.h"
-#include "scene/gui/menu_button.h"
 
 DebuggerEditorPlugin::DebuggerEditorPlugin(PopupMenu *p_debug_menu) {
 	EditorDebuggerServer::initialize();

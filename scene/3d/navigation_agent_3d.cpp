@@ -1116,7 +1116,7 @@ void NavigationAgent3D::_update_debug_path() {
 
 	Ref<StandardMaterial3D> debug_agent_path_line_material = NavigationServer3D::get_singleton()->get_debug_navigation_agent_path_line_material();
 	if (debug_use_custom) {
-		if (!debug_agent_path_line_custom_material.is_valid()) {
+		if (debug_agent_path_line_custom_material.is_null()) {
 			debug_agent_path_line_custom_material = debug_agent_path_line_material->duplicate();
 		}
 		debug_agent_path_line_custom_material->set_albedo(debug_path_custom_color);
@@ -1140,7 +1140,7 @@ void NavigationAgent3D::_update_debug_path() {
 
 		Ref<StandardMaterial3D> debug_agent_path_point_material = NavigationServer3D::get_singleton()->get_debug_navigation_agent_path_point_material();
 		if (debug_use_custom) {
-			if (!debug_agent_path_point_custom_material.is_valid()) {
+			if (debug_agent_path_point_custom_material.is_null()) {
 				debug_agent_path_point_custom_material = debug_agent_path_point_material->duplicate();
 			}
 			debug_agent_path_point_custom_material->set_albedo(debug_path_custom_color);

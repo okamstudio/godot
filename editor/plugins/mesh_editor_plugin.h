@@ -38,7 +38,6 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/subviewport_container.h"
 #include "scene/resources/camera_attributes.h"
-#include "scene/resources/material.h"
 
 class SubViewport;
 class Button;

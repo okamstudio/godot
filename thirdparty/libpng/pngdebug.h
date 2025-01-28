@@ -1,4 +1,3 @@
-
 /* pngdebug.h - Debugging macros for libpng, also used in pngtest.c
  *
  * Copyright (c) 2018 Cosmin Truta

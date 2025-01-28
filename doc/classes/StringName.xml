@@ -255,10 +255,10 @@
 				See also the [url=$DOCS_URL/tutorials/scripting/gdscript/gdscript_format_string.html]GDScript format string[/url] tutorial.
 				[b]Note:[/b] Each replacement is done sequentially for each element of [param values], [b]not[/b] all at once. This means that if any element is inserted and it contains another placeholder, it may be changed by the next replacement. While this can be very useful, it often causes unexpected results. If not necessary, make sure [param values]'s elements do not contain placeholders.
 				[codeblock]
-				print("{0} {1}".format(["{1}", "x"]))           # Prints "x x".
-				print("{0} {1}".format(["x", "{0}"]))           # Prints "x {0}".
-				print("{a} {b}".format({"a": "{b}", "b": "c"})) # Prints "c c".
-				print("{a} {b}".format({"b": "c", "a": "{b}"})) # Prints "{b} c".
+				print("{0} {1}".format(["{1}", "x"]))           # Prints "x x"
+				print("{0} {1}".format(["x", "{0}"]))           # Prints "x {0}"
+				print("{a} {b}".format({"a": "{b}", "b": "c"})) # Prints "c c"
+				print("{a} {b}".format({"b": "c", "a": "{b}"})) # Prints "{b} c"
 				[/codeblock]
 				[b]Note:[/b] In C#, it's recommended to [url=https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/interpolated]interpolate strings with "$"[/url], instead.
 			</description>
@@ -546,7 +546,7 @@
 				print("---".join(fruits)) # Prints "Apple---Orange---Pear---Kiwi"
 				[/gdscript]
 				[csharp]
-				var fruits = new string[] {"Apple", "Orange", "Pear", "Kiwi"};
+				string[] fruits = ["Apple", "Orange", "Pear", "Kiwi"];
 
 				// In C#, this method is static.
 				GD.Print(string.Join(", ", fruits));  // Prints "Apple, Orange, Pear, Kiwi"

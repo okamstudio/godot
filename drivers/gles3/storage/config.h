@@ -36,7 +36,6 @@
 #include "core/config/project_settings.h"
 #include "core/string/ustring.h"
 #include "core/templates/hash_set.h"
-#include "core/templates/vector.h"
 
 #include "platform_gl.h"
 
@@ -73,6 +72,7 @@ public:
 	HashSet<String> extensions;
 
 	bool float_texture_supported = false;
+	bool float_texture_linear_supported = false;
 	bool s3tc_supported = false;
 	bool rgtc_supported = false;
 	bool bptc_supported = false;

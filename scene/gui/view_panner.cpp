@@ -110,8 +110,8 @@ bool ViewPanner::gui_input(const Ref<InputEvent> &p_event, Rect2 p_canvas_rect) 
 	Ref<InputEventMouseMotion> mm = p_event;
 	if (mm.is_valid()) {
 		if (is_dragging) {
-			if (viewport && p_canvas_rect != Rect2()) {
-				pan_callback.call(viewport->wrap_mouse_in_rect(mm->get_relative(), p_canvas_rect), p_event);
+			if (warped_panning_viewport && p_canvas_rect.has_area()) {
+				pan_callback.call(warped_panning_viewport->wrap_mouse_in_rect(mm->get_relative(), p_canvas_rect), p_event);
 			} else {
 				pan_callback.call(mm->get_relative(), p_event);
 			}
@@ -213,8 +213,8 @@ void ViewPanner::setup(ControlScheme p_scheme, Ref<Shortcut> p_shortcut, bool p_
 	set_simple_panning_enabled(p_simple_panning);
 }
 
-void ViewPanner::set_viewport(Viewport *p_viewport) {
-	viewport = p_viewport;
+void ViewPanner::setup_warped_panning(Viewport *p_viewport, bool p_allowed) {
+	warped_panning_viewport = p_allowed ? p_viewport : nullptr;
 }
 
 bool ViewPanner::is_panning() const {

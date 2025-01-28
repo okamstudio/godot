@@ -31,10 +31,11 @@
 #ifndef TEST_NAVIGATION_SERVER_3D_H
 #define TEST_NAVIGATION_SERVER_3D_H
 
-#include "modules/navigation/nav_utils.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/resources/3d/primitive_meshes.h"
 #include "servers/navigation_server_3d.h"
+
+#include "modules/navigation/nav_utils.h"
 
 namespace TestNavigationServer3D {
 
@@ -572,6 +573,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		Ref<NavigationMesh> navigation_mesh = memnew(NavigationMesh);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->map_set_active(map, true);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
@@ -632,7 +634,7 @@ TEST_SUITE("[Navigation]") {
 			CHECK_EQ(source_geometry->get_indices().size(), 6);
 		}
 
-		SUBCASE("Parsed geometry should be extendible with other geometry") {
+		SUBCASE("Parsed geometry should be extendable with other geometry") {
 			source_geometry->merge(source_geometry); // Merging with itself.
 			const Vector<float> vertices = source_geometry->get_vertices();
 			const Vector<int> indices = source_geometry->get_indices();
@@ -667,6 +669,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		Ref<NavigationMesh> navigation_mesh = memnew(NavigationMesh);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->map_set_active(map, true);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
@@ -716,6 +719,7 @@ TEST_SUITE("[Navigation]") {
 		RID map = navigation_server->map_create();
 		RID region = navigation_server->region_create();
 		navigation_server->map_set_active(map, true);
+		navigation_server->map_set_use_async_iterations(map, false);
 		navigation_server->region_set_map(region, map);
 		navigation_server->region_set_navigation_mesh(region, navigation_mesh);
 		navigation_server->process(0.0); // Give server some cycles to commit.

@@ -4,8 +4,10 @@ default_language_version:
 exclude: |
   (?x)^(
     .*thirdparty/.*|
-    .*-so_wrap\.(h|c)$
-  )
+    .*-so_wrap\.(h|c)|
+    platform/android/java/editor/src/main/java/com/android/.*|
+    platform/android/java/lib/src/com/google/.*
+  )$
 
 repos:
   - repo: https://github.com/pre-commit/mirrors-clang-format
@@ -14,23 +16,13 @@ repos:
       - id: clang-format
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx|m|mm|inc|java)$
         types_or: [text]
-        exclude: |
-          (?x)^(
-            tests/python_build/.*|
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/.*
-          )
+        exclude: ^tests/python_build/.*
       - id: clang-format
         name: clang-format-glsl
         files: \.glsl$
         types_or: [text]
-        exclude: |
-          (?x)^(
-            tests/python_build/.*|
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/.*
-          )
-        args: ['-style=file:misc/utility/.clang-format-glsl']
+        exclude: ^tests/python_build/.*
+        args: [-style=file:misc/utility/clang_format_glsl.yml]
 
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
@@ -39,22 +31,21 @@ repos:
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx|m|mm|inc|java|glsl)$
         args: [--fix, --quiet, --use-color]
         types_or: [text]
-        exclude: |
-          (?x)^(
-            tests/python_build/.*|
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/.*
-          )
+        exclude: ^tests/python_build/.*
         additional_dependencies: [clang-tidy==19.1.0]
         require_serial: true
         stages: [manual] # Not automatically triggered, invoked via `pre-commit run --hook-stage manual clang-tidy`
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.3
+    rev: v0.8.4
     hooks:
       - id: ruff
         args: [--fix]
+        files: (\.py|SConstruct|SCsub)$
+        types_or: [text]
       - id: ruff-format
+        files: (\.py|SConstruct|SCsub)$
+        types_or: [text]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
@@ -67,11 +58,6 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        exclude: |
-          (?x)^(
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/.*
-          )
         additional_dependencies: [tomli]
 
   ### Requires Docker; look into alternative implementation.
@@ -114,10 +100,10 @@ repos:
           - --config
           - platform/web/eslint.config.cjs
         additional_dependencies:
-          - '@eslint/js@^9.3.0'
-          - '@html-eslint/eslint-plugin@^0.24.1'
-          - '@html-eslint/parser@^0.24.1'
-          - '@stylistic/eslint-plugin@^2.1.0'
+          - "@eslint/js@^9.3.0"
+          - "@html-eslint/eslint-plugin@^0.24.1"
+          - "@html-eslint/parser@^0.24.1"
+          - "@stylistic/eslint-plugin@^2.1.0"
           - eslint@^9.3.0
           - eslint-plugin-html@^8.1.1
           - globals@^15.3.0
@@ -135,7 +121,7 @@ repos:
           - platform/web/js/engine/config.js
           - platform/web/js/engine/features.js
           - --destination
-          - ''
+          - ""
           - -d
           - dry-run
         pass_filenames: false
@@ -156,21 +142,19 @@ repos:
         files: \.(c|h|cpp|hpp|cc|hh|cxx|hxx|m|mm|inc|java)$
         exclude: |
           (?x)^(
-            core/math/bvh_.*\.inc$|
+            core/math/bvh_.*\.inc|
             platform/(?!android|ios|linuxbsd|macos|web|windows)\w+/.*|
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/.*|
-            platform/android/java/lib/src/org/godotengine/godot/gl/GLSurfaceView\.java$|
-            platform/android/java/lib/src/org/godotengine/godot/gl/EGLLogWrapper\.java$|
-            platform/android/java/lib/src/org/godotengine/godot/utils/ProcessPhoenix\.java$
-          )
+            platform/android/java/lib/src/org/godotengine/godot/gl/GLSurfaceView\.java|
+            platform/android/java/lib/src/org/godotengine/godot/gl/EGLLogWrapper\.java|
+            platform/android/java/lib/src/org/godotengine/godot/utils/ProcessPhoenix\.java
+          )$
 
       - id: header-guards
         name: header-guards
         language: python
         entry: python misc/scripts/header_guards.py
         files: \.(h|hpp|hh|hxx)$
-        exclude: ^.*/(thread|platform_config|platform_gl)\.h$
+        exclude: ^.*/(dummy|thread|platform_config|platform_gl)\.h$
 
       - id: file-format
         name: file-format
@@ -179,17 +163,15 @@ repos:
         types_or: [text]
         exclude: |
           (?x)^(
-            .*\.test\.txt$|
-            .*\.svg$|
-            .*\.patch$|
-            .*\.out$|
-            modules/gdscript/tests/scripts/parser/features/mixed_indentation_on_blank_lines\.gd$|
-            modules/gdscript/tests/scripts/parser/warnings/empty_file_newline_comment\.norun\.gd$|
-            modules/gdscript/tests/scripts/parser/warnings/empty_file_newline\.norun\.gd$|
-            platform/android/java/editor/src/main/java/com/android/.*|
-            platform/android/java/lib/src/com/google/.*|
-            tests/data/.*\.bin$
-          )
+            .*\.test\.txt|
+            .*\.svg|
+            .*\.patch|
+            .*\.out|
+            modules/gdscript/tests/scripts/parser/features/mixed_indentation_on_blank_lines\.gd|
+            modules/gdscript/tests/scripts/parser/warnings/empty_file_newline_comment\.norun\.gd|
+            modules/gdscript/tests/scripts/parser/warnings/empty_file_newline\.norun\.gd|
+            tests/data/.*\.bin
+          )$
 
       - id: dotnet-format
         name: dotnet-format

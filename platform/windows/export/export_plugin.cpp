@@ -41,10 +41,7 @@
 #include "editor/export/editor_export.h"
 #include "editor/themes/editor_scale.h"
 
-#include "modules/modules_enabled.gen.h" // For svg.
-#ifdef MODULE_SVG_ENABLED
 #include "modules/svg/image_loader_svg.h"
-#endif
 
 Error EditorExportPlatformWindows::_process_icon(const Ref<EditorExportPreset> &p_preset, const String &p_src_path, const String &p_dst_path) {
 	static const uint8_t icon_size[] = { 16, 32, 48, 64, 128, 0 /*256*/ };
@@ -195,54 +192,6 @@ Error EditorExportPlatformWindows::export_project(const Ref<EditorExportPreset> 
 		}
 	}
 
-	int export_angle = p_preset->get("application/export_angle");
-	bool include_angle_libs = false;
-	if (export_angle == 0) {
-		include_angle_libs = (String(GLOBAL_GET("rendering/gl_compatibility/driver.windows")) == "opengl3_angle") && (String(GLOBAL_GET("rendering/renderer/rendering_method")) == "gl_compatibility");
-	} else if (export_angle == 1) {
-		include_angle_libs = true;
-	}
-	if (include_angle_libs) {
-		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
-		if (da->file_exists(template_path.get_base_dir().path_join("libEGL." + arch + ".dll"))) {
-			da->copy(template_path.get_base_dir().path_join("libEGL." + arch + ".dll"), p_path.get_base_dir().path_join("libEGL.dll"), get_chmod_flags());
-		}
-		if (da->file_exists(template_path.get_base_dir().path_join("libGLESv2." + arch + ".dll"))) {
-			da->copy(template_path.get_base_dir().path_join("libGLESv2." + arch + ".dll"), p_path.get_base_dir().path_join("libGLESv2.dll"), get_chmod_flags());
-		}
-	}
-
-	int export_d3d12 = p_preset->get("application/export_d3d12");
-	bool agility_sdk_multiarch = p_preset->get("application/d3d12_agility_sdk_multiarch");
-	bool include_d3d12_extra_libs = false;
-	if (export_d3d12 == 0) {
-		include_d3d12_extra_libs = (String(GLOBAL_GET("rendering/rendering_device/driver.windows")) == "d3d12") && (String(GLOBAL_GET("rendering/renderer/rendering_method")) != "gl_compatibility");
-	} else if (export_d3d12 == 1) {
-		include_d3d12_extra_libs = true;
-	}
-	if (include_d3d12_extra_libs) {
-		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
-		if (da->file_exists(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"))) {
-			if (agility_sdk_multiarch) {
-				da->make_dir_recursive(p_path.get_base_dir().path_join(arch));
-				da->copy(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"), p_path.get_base_dir().path_join(arch).path_join("D3D12Core.dll"), get_chmod_flags());
-			} else {
-				da->copy(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"), p_path.get_base_dir().path_join("D3D12Core.dll"), get_chmod_flags());
-			}
-		}
-		if (da->file_exists(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"))) {
-			if (agility_sdk_multiarch) {
-				da->make_dir_recursive(p_path.get_base_dir().path_join(arch));
-				da->copy(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"), p_path.get_base_dir().path_join(arch).path_join("d3d12SDKLayers.dll"), get_chmod_flags());
-			} else {
-				da->copy(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"), p_path.get_base_dir().path_join("d3d12SDKLayers.dll"), get_chmod_flags());
-			}
-		}
-		if (da->file_exists(template_path.get_base_dir().path_join("WinPixEventRuntime." + arch + ".dll"))) {
-			da->copy(template_path.get_base_dir().path_join("WinPixEventRuntime." + arch + ".dll"), p_path.get_base_dir().path_join("WinPixEventRuntime.dll"), get_chmod_flags());
-		}
-	}
-
 	bool export_as_zip = p_path.ends_with("zip");
 	bool embedded = p_preset->get("binary_format/embed_pck");
 
@@ -271,6 +220,54 @@ Error EditorExportPlatformWindows::export_project(const Ref<EditorExportPreset> 
 		}
 		tmp_app_dir->make_dir_recursive(tmp_dir_path);
 		path = tmp_dir_path.path_join(p_path.get_file().get_basename() + ".exe");
+	}
+
+	int export_angle = p_preset->get("application/export_angle");
+	bool include_angle_libs = false;
+	if (export_angle == 0) {
+		include_angle_libs = (String(GLOBAL_GET("rendering/gl_compatibility/driver.windows")) == "opengl3_angle") && (String(GLOBAL_GET("rendering/renderer/rendering_method")) == "gl_compatibility");
+	} else if (export_angle == 1) {
+		include_angle_libs = true;
+	}
+	if (include_angle_libs) {
+		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+		if (da->file_exists(template_path.get_base_dir().path_join("libEGL." + arch + ".dll"))) {
+			da->copy(template_path.get_base_dir().path_join("libEGL." + arch + ".dll"), path.get_base_dir().path_join("libEGL.dll"), get_chmod_flags());
+		}
+		if (da->file_exists(template_path.get_base_dir().path_join("libGLESv2." + arch + ".dll"))) {
+			da->copy(template_path.get_base_dir().path_join("libGLESv2." + arch + ".dll"), path.get_base_dir().path_join("libGLESv2.dll"), get_chmod_flags());
+		}
+	}
+
+	int export_d3d12 = p_preset->get("application/export_d3d12");
+	bool agility_sdk_multiarch = p_preset->get("application/d3d12_agility_sdk_multiarch");
+	bool include_d3d12_extra_libs = false;
+	if (export_d3d12 == 0) {
+		include_d3d12_extra_libs = (String(GLOBAL_GET("rendering/rendering_device/driver.windows")) == "d3d12") && (String(GLOBAL_GET("rendering/renderer/rendering_method")) != "gl_compatibility");
+	} else if (export_d3d12 == 1) {
+		include_d3d12_extra_libs = true;
+	}
+	if (include_d3d12_extra_libs) {
+		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
+		if (da->file_exists(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"))) {
+			if (agility_sdk_multiarch) {
+				da->make_dir_recursive(path.get_base_dir().path_join(arch));
+				da->copy(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"), path.get_base_dir().path_join(arch).path_join("D3D12Core.dll"), get_chmod_flags());
+			} else {
+				da->copy(template_path.get_base_dir().path_join("D3D12Core." + arch + ".dll"), path.get_base_dir().path_join("D3D12Core.dll"), get_chmod_flags());
+			}
+		}
+		if (da->file_exists(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"))) {
+			if (agility_sdk_multiarch) {
+				da->make_dir_recursive(path.get_base_dir().path_join(arch));
+				da->copy(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"), path.get_base_dir().path_join(arch).path_join("d3d12SDKLayers.dll"), get_chmod_flags());
+			} else {
+				da->copy(template_path.get_base_dir().path_join("d3d12SDKLayers." + arch + ".dll"), path.get_base_dir().path_join("d3d12SDKLayers.dll"), get_chmod_flags());
+			}
+		}
+		if (da->file_exists(template_path.get_base_dir().path_join("WinPixEventRuntime." + arch + ".dll"))) {
+			da->copy(template_path.get_base_dir().path_join("WinPixEventRuntime." + arch + ".dll"), path.get_base_dir().path_join("WinPixEventRuntime.dll"), get_chmod_flags());
+		}
 	}
 
 	// Export project.
@@ -443,7 +440,7 @@ void EditorExportPlatformWindows::get_export_options(List<ExportOption> *r_optio
 	String run_script = "Expand-Archive -LiteralPath '{temp_dir}\\{archive_name}' -DestinationPath '{temp_dir}'\n"
 						"$action = New-ScheduledTaskAction -Execute '{temp_dir}\\{exe_name}' -Argument '{cmd_args}'\n"
 						"$trigger = New-ScheduledTaskTrigger -Once -At 00:00\n"
-						"$settings = New-ScheduledTaskSettingsSet\n"
+						"$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries\n"
 						"$task = New-ScheduledTask -Action $action -Trigger $trigger -Settings $settings\n"
 						"Register-ScheduledTask godot_remote_debug -InputObject $task -Force:$true\n"
 						"Start-ScheduledTask -TaskName godot_remote_debug\n"
@@ -515,7 +512,7 @@ Error EditorExportPlatformWindows::_rcedit_add_data(const Ref<EditorExportPreset
 		}
 	}
 
-	String file_verion = p_preset->get_version("application/file_version", true);
+	String file_version = p_preset->get_version("application/file_version", true);
 	String product_version = p_preset->get_version("application/product_version", true);
 	String company_name = p_preset->get("application/company_name");
 	String product_name = p_preset->get("application/product_name");
@@ -530,9 +527,9 @@ Error EditorExportPlatformWindows::_rcedit_add_data(const Ref<EditorExportPreset
 		args.push_back("--set-icon");
 		args.push_back(tmp_icon_path);
 	}
-	if (!file_verion.is_empty()) {
+	if (!file_version.is_empty()) {
 		args.push_back("--set-file-version");
-		args.push_back(file_verion);
+		args.push_back(file_version);
 	}
 	if (!product_version.is_empty()) {
 		args.push_back("--set-product-version");
@@ -1150,7 +1147,6 @@ Error EditorExportPlatformWindows::run(const Ref<EditorExportPreset> &p_preset, 
 
 EditorExportPlatformWindows::EditorExportPlatformWindows() {
 	if (EditorNode::get_singleton()) {
-#ifdef MODULE_SVG_ENABLED
 		Ref<Image> img = memnew(Image);
 		const bool upsample = !Math::is_equal_approx(Math::round(EDSCALE), EDSCALE);
 
@@ -1159,7 +1155,6 @@ EditorExportPlatformWindows::EditorExportPlatformWindows() {
 
 		ImageLoaderSVG::create_image_from_string(img, _windows_run_icon_svg, EDSCALE, upsample, false);
 		run_icon = ImageTexture::create_from_image(img);
-#endif
 
 		Ref<Theme> theme = EditorNode::get_singleton()->get_editor_theme();
 		if (theme.is_valid()) {

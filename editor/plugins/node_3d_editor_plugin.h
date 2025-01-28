@@ -85,6 +85,7 @@ class ViewportRotationControl : public Control {
 	Vector2i orbiting_mouse_start;
 	int orbiting_index = -1;
 	int focused_axis = -2;
+	bool gizmo_activated = false;
 
 	const float AXIS_CIRCLE_RADIUS = 8.0f * EDSCALE;
 
@@ -95,7 +96,6 @@ protected:
 	void _draw_axis(const Axis2D &p_axis);
 	void _get_sorted_axis(Vector<Axis2D> &r_axis);
 	void _update_focus();
-	void _on_mouse_exited();
 	void _process_click(int p_index, Vector2 p_position, bool p_pressed);
 	void _process_drag(Ref<InputEventWithModifiers> p_event, int p_index, Vector2 p_position, Vector2 p_relative_position);
 
@@ -413,6 +413,7 @@ private:
 	// so one cursor is the real cursor, while the other can be an interpolated version.
 	Cursor cursor; // Immediate cursor
 	Cursor camera_cursor; // That one may be interpolated (don't modify this one except for smoothing purposes)
+	Cursor previous_cursor; // Storing previous cursor state for canceling purposes
 
 	void scale_fov(real_t p_fov_offset);
 	void reset_fov();
@@ -1045,8 +1046,6 @@ protected:
 	void _notification(int p_what);
 	virtual void gui_input(const Ref<InputEvent> &p_event) override;
 	void _draw();
-	void _on_mouse_entered();
-	void _on_mouse_exited();
 	void _process_click(int p_index, Vector2 p_position, bool p_pressed);
 	void _process_drag(int p_index, Vector2 p_position, Vector2 p_relative_position);
 	void _update_navigation();

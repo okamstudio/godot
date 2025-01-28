@@ -702,7 +702,7 @@ void QuadTree::WidenAndMarkNodeAndParentsChanged(uint32 inNodeIndex, const AABox
 
 bool QuadTree::TryInsertLeaf(TrackingVector &ioTracking, int inNodeIndex, NodeID inLeafID, const AABox &inLeafBounds, int inLeafNumBodies)
 {
-	// Tentively assign the node as parent
+	// Tentatively assign the node as parent
 	bool leaf_is_node = inLeafID.IsNode();
 	if (leaf_is_node)
 	{

@@ -30,7 +30,6 @@
 
 #include "navigation_link_3d.h"
 
-#include "mesh_instance_3d.h"
 #include "servers/navigation_server_3d.h"
 
 #ifdef DEBUG_ENABLED
@@ -121,6 +120,34 @@ void NavigationLink3D::_update_debug_mesh() {
 				lines.append(end_position + Vector3(b.x, b.y, 0));
 				break;
 		}
+	}
+
+	const Vector3 link_segment = end_position - start_position;
+	const Vector3 up = Vector3(0.0, 1.0, 0.0);
+	const float arror_len = 0.5;
+
+	{
+		Vector3 anchor = start_position + (link_segment * 0.75);
+		Vector3 direction = start_position.direction_to(end_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+
+		arrow_dir = -direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+	}
+
+	if (is_bidirectional()) {
+		Vector3 anchor = start_position + (link_segment * 0.25);
+		Vector3 direction = end_position.direction_to(start_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
+
+		arrow_dir = -direction.cross(up);
+		lines.push_back(anchor);
+		lines.push_back(anchor + (arrow_dir - direction) * arror_len);
 	}
 
 	Array mesh_array;
@@ -322,6 +349,12 @@ void NavigationLink3D::set_bidirectional(bool p_bidirectional) {
 	bidirectional = p_bidirectional;
 
 	NavigationServer3D::get_singleton()->link_set_bidirectional(link, bidirectional);
+
+#ifdef DEBUG_ENABLED
+	_update_debug_mesh();
+#endif // DEBUG_ENABLED
+
+	update_gizmos();
 }
 
 void NavigationLink3D::set_navigation_layers(uint32_t p_navigation_layers) {

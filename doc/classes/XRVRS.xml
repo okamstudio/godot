@@ -23,6 +23,9 @@
 		<member name="vrs_min_radius" type="float" setter="set_vrs_min_radius" getter="get_vrs_min_radius" default="20.0">
 			The minimum radius around the focal point where full quality is guaranteed if VRS is used as a percentage of screen size.
 		</member>
+		<member name="vrs_render_region" type="Rect2i" setter="set_vrs_render_region" getter="get_vrs_render_region" default="Rect2i(0, 0, 0, 0)">
+			The render region that the VRS texture will be scaled to when generated.
+		</member>
 		<member name="vrs_strength" type="float" setter="set_vrs_strength" getter="get_vrs_strength" default="1.0">
 			The strength used to calculate the VRS density map. The greater this value, the more noticeable VRS is.
 		</member>

@@ -70,7 +70,7 @@
 			<description>
 				Multiplies each component of the [Color], including the alpha, by the given [float].
 				[codeblock]
-				print(1.5 * Color(0.5, 0.5, 0.5)) # Prints "(0.75, 0.75, 0.75, 1.5)"
+				print(1.5 * Color(0.5, 0.5, 0.5)) # Prints (0.75, 0.75, 0.75, 1.5)
 				[/codeblock]
 			</description>
 		</operator>
@@ -87,7 +87,7 @@
 			<description>
 				Multiplies each component of the [Vector2] by the given [float].
 				[codeblock]
-				print(2.5 * Vector2(1, 3)) # Prints "(2.5, 7.5)"
+				print(2.5 * Vector2(1, 3)) # Prints (2.5, 7.5)
 				[/codeblock]
 			</description>
 		</operator>

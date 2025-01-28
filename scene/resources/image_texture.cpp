@@ -174,7 +174,7 @@ void ImageTexture::draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, cons
 }
 
 bool ImageTexture::is_pixel_opaque(int p_x, int p_y) const {
-	if (!alpha_cache.is_valid()) {
+	if (alpha_cache.is_null()) {
 		Ref<Image> img = get_image();
 		if (img.is_valid()) {
 			if (img->is_compressed()) { //must decompress, if compressed

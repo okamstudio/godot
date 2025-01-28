@@ -657,7 +657,7 @@ void GDScriptWorkspace::completion(const lsp::CompletionParams &p_params, List<S
 			}
 
 			Ref<GDScript> scr = current->get_script();
-			if (!scr.is_valid() || !GDScript::is_canonically_equal_paths(scr->get_path(), path)) {
+			if (scr.is_null() || !GDScript::is_canonically_equal_paths(scr->get_path(), path)) {
 				current = owner_scene_node;
 			}
 		}

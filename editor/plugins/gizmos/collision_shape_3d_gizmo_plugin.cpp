@@ -32,7 +32,6 @@
 
 #include "core/math/convex_hull.h"
 #include "core/math/geometry_3d.h"
-#include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/plugins/gizmos/gizmo_3d_helper.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
@@ -351,7 +350,7 @@ void CollisionShape3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	if (cs->get_debug_fill_enabled()) {
 		Ref<ArrayMesh> array_mesh = s->get_debug_arraymesh_faces(collision_color);
-		if (array_mesh.is_valid()) {
+		if (array_mesh.is_valid() && array_mesh->get_surface_count() > 0) {
 			p_gizmo->add_mesh(array_mesh, material_arraymesh);
 		}
 	}

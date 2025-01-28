@@ -463,6 +463,9 @@ public:
 	void edit(const Ref<Theme> &p_theme);
 	Ref<Theme> get_edited_theme();
 
+	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
+	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
+
 	ThemeEditor();
 };
 

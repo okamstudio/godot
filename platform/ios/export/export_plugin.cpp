@@ -46,10 +46,8 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
 
-#include "modules/modules_enabled.gen.h" // For mono and svg.
-#ifdef MODULE_SVG_ENABLED
+#include "modules/modules_enabled.gen.h" // For mono.
 #include "modules/svg/image_loader_svg.h"
-#endif
 
 void EditorExportPlatformIOS::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const {
 	// Vulkan and OpenGL ES 3.0 both mandate ETC2 support.
@@ -3165,7 +3163,7 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 	if (p_debug_flags.has_flag(DEBUG_FLAG_REMOTE_DEBUG)) {
 		cmd_args_list.push_back("--remote-debug");
 
-		cmd_args_list.push_back(get_debug_protocol() + host + ":" + String::num(remote_port));
+		cmd_args_list.push_back(get_debug_protocol() + host + ":" + String::num_int64(remote_port));
 
 		List<String> breakpoints;
 		ScriptEditor::get_singleton()->get_breakpoints(&breakpoints);
@@ -3349,7 +3347,6 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 
 EditorExportPlatformIOS::EditorExportPlatformIOS() {
 	if (EditorNode::get_singleton()) {
-#ifdef MODULE_SVG_ENABLED
 		Ref<Image> img = memnew(Image);
 		const bool upsample = !Math::is_equal_approx(Math::round(EDSCALE), EDSCALE);
 
@@ -3358,7 +3355,6 @@ EditorExportPlatformIOS::EditorExportPlatformIOS() {
 
 		ImageLoaderSVG::create_image_from_string(img, _ios_run_icon_svg, EDSCALE, upsample, false);
 		run_icon = ImageTexture::create_from_image(img);
-#endif
 
 		plugins_changed.set();
 		devices_changed.set();

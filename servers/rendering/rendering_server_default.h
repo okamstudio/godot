@@ -382,7 +382,7 @@ public:
 
 	FUNCRIDSPLIT(multimesh)
 
-	FUNC5(multimesh_allocate_data, RID, int, MultimeshTransformFormat, bool, bool)
+	FUNC6(multimesh_allocate_data, RID, int, MultimeshTransformFormat, bool, bool, bool)
 	FUNC1RC(int, multimesh_get_instance_count, RID)
 
 	FUNC2(multimesh_set_mesh, RID, RID)
@@ -403,6 +403,7 @@ public:
 	FUNC2RC(Color, multimesh_instance_get_custom_data, RID, int)
 
 	FUNC2(multimesh_set_buffer, RID, const Vector<float> &)
+	FUNC1RC(RID, multimesh_get_command_buffer_rd_rid, RID)
 	FUNC1RC(RID, multimesh_get_buffer_rd_rid, RID)
 	FUNC1RC(Vector<float>, multimesh_get_buffer, RID)
 
@@ -571,8 +572,10 @@ public:
 	FUNC2(particles_set_lifetime, RID, double)
 	FUNC2(particles_set_one_shot, RID, bool)
 	FUNC2(particles_set_pre_process_time, RID, double)
+	FUNC2(particles_request_process_time, RID, real_t)
 	FUNC2(particles_set_explosiveness_ratio, RID, float)
 	FUNC2(particles_set_randomness_ratio, RID, float)
+	FUNC2(particles_set_seed, RID, uint32_t)
 	FUNC2(particles_set_custom_aabb, RID, const AABB &)
 	FUNC2(particles_set_speed_scale, RID, double)
 	FUNC2(particles_set_use_local_coordinates, RID, bool)
@@ -959,6 +962,7 @@ public:
 	FUNC2(canvas_item_set_self_modulate, RID, const Color &)
 
 	FUNC2(canvas_item_set_draw_behind_parent, RID, bool)
+	FUNC2(canvas_item_set_use_identity_transform, RID, bool)
 
 	FUNC6(canvas_item_add_line, RID, const Point2 &, const Point2 &, const Color &, float, bool)
 	FUNC5(canvas_item_add_polyline, RID, const Vector<Point2> &, const Vector<Color> &, float, bool)

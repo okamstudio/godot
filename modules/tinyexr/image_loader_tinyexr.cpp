@@ -30,9 +30,6 @@
 
 #include "image_loader_tinyexr.h"
 
-#include "core/os/os.h"
-#include "core/string/print_string.h"
-
 #include <zlib.h> // Should come before including tinyexr.
 
 #include "thirdparty/tinyexr/tinyexr.h"

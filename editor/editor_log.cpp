@@ -38,7 +38,6 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/gui/center_container.h"
 #include "scene/gui/separator.h"
 #include "scene/resources/font.h"
 

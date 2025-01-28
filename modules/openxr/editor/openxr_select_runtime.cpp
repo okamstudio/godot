@@ -33,7 +33,6 @@
 #include "core/io/dir_access.h"
 #include "core/os/os.h"
 #include "editor/editor_settings.h"
-#include "editor/editor_string_names.h"
 
 void OpenXRSelectRuntime::_update_items() {
 	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);

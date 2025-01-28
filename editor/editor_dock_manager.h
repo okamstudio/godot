@@ -143,7 +143,7 @@ public:
 	PopupMenu *get_docks_menu();
 
 	void save_docks_to_config(Ref<ConfigFile> p_layout, const String &p_section) const;
-	void load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section);
+	void load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section, bool p_first_load = false);
 
 	void set_dock_enabled(Control *p_dock, bool p_enabled);
 	void close_dock(Control *p_dock);

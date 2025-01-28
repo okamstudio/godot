@@ -36,6 +36,7 @@ using RenderData = void*;
 using pixel_t = uint32_t;
 
 enum RenderUpdateFlag : uint8_t {None = 0, Path = 1, Color = 2, Gradient = 4, Stroke = 8, Transform = 16, Image = 32, GradientStroke = 64, Blend = 128, All = 255};
+enum CompositionFlag : uint8_t {Invalid = 0, Opacity = 1, Blending = 2, Masking = 4, PostProcessing = 8};  //Composition Purpose
 
 //TODO: Move this in public header unifying with SwCanvas::Colorspace
 enum ColorSpace : uint8_t
@@ -137,6 +138,7 @@ struct RenderStroke
             dashPattern = nullptr;
         }
         dashCnt = rhs.dashCnt;
+        dashOffset = rhs.dashOffset;
         miterlimit = rhs.miterlimit;
         cap = rhs.cap;
         join = rhs.join;
@@ -268,7 +270,7 @@ struct RenderEffect
     RenderData rd = nullptr;
     RenderRegion extend = {0, 0, 0, 0};
     SceneEffect type;
-    bool invalid = false;
+    bool valid = false;
 
     virtual ~RenderEffect()
     {
@@ -309,12 +311,72 @@ struct RenderEffectDropShadow : RenderEffect
         inst->color[0] = va_arg(args, int);
         inst->color[1] = va_arg(args, int);
         inst->color[2] = va_arg(args, int);
-        inst->color[3] = std::min(va_arg(args, int), 255);
+        inst->color[3] = va_arg(args, int);
         inst->angle = (float) va_arg(args, double);
         inst->distance = (float) va_arg(args, double);
         inst->sigma = std::max((float) va_arg(args, double), 0.0f);
         inst->quality = std::min(va_arg(args, int), 100);
         inst->type = SceneEffect::DropShadow;
+        return inst;
+    }
+};
+
+struct RenderEffectFill : RenderEffect
+{
+    uint8_t color[4];  //rgba
+
+    static RenderEffectFill* gen(va_list& args)
+    {
+        auto inst = new RenderEffectFill;
+        inst->color[0] = va_arg(args, int);
+        inst->color[1] = va_arg(args, int);
+        inst->color[2] = va_arg(args, int);
+        inst->color[3] = va_arg(args, int);
+        inst->type = SceneEffect::Fill;
+        return inst;
+    }
+};
+
+struct RenderEffectTint : RenderEffect
+{
+    uint8_t black[3];  //rgb
+    uint8_t white[3];  //rgb
+    uint8_t intensity; //0 - 255
+
+    static RenderEffectTint* gen(va_list& args)
+    {
+        auto inst = new RenderEffectTint;
+        inst->black[0] = va_arg(args, int);
+        inst->black[1] = va_arg(args, int);
+        inst->black[2] = va_arg(args, int);
+        inst->white[0] = va_arg(args, int);
+        inst->white[1] = va_arg(args, int);
+        inst->white[2] = va_arg(args, int);
+        inst->intensity = (uint8_t)(va_arg(args, double) * 2.55f);
+        inst->type = SceneEffect::Tint;
+        return inst;
+    }
+};
+
+struct RenderEffectTritone : RenderEffect
+{
+    uint8_t shadow[3];       //rgb
+    uint8_t midtone[3];      //rgb
+    uint8_t highlight[3];    //rgb
+
+    static RenderEffectTritone* gen(va_list& args)
+    {
+        auto inst = new RenderEffectTritone;
+        inst->shadow[0] = va_arg(args, int);
+        inst->shadow[1] = va_arg(args, int);
+        inst->shadow[2] = va_arg(args, int);
+        inst->midtone[0] = va_arg(args, int);
+        inst->midtone[1] = va_arg(args, int);
+        inst->midtone[2] = va_arg(args, int);
+        inst->highlight[0] = va_arg(args, int);
+        inst->highlight[1] = va_arg(args, int);
+        inst->highlight[2] = va_arg(args, int);
+        inst->type = SceneEffect::Tritone;
         return inst;
     }
 };
@@ -347,12 +409,12 @@ public:
     virtual bool clear() = 0;
     virtual bool sync() = 0;
 
-    virtual RenderCompositor* target(const RenderRegion& region, ColorSpace cs) = 0;
+    virtual RenderCompositor* target(const RenderRegion& region, ColorSpace cs, CompositionFlag flags) = 0;
     virtual bool beginComposite(RenderCompositor* cmp, CompositeMethod method, uint8_t opacity) = 0;
     virtual bool endComposite(RenderCompositor* cmp) = 0;
 
     virtual bool prepare(RenderEffect* effect) = 0;
-    virtual bool effect(RenderCompositor* cmp, const RenderEffect* effect, uint8_t opacity, bool direct) = 0;
+    virtual bool effect(RenderCompositor* cmp, const RenderEffect* effect, bool direct) = 0;
 };
 
 static inline bool MASK_REGION_MERGING(CompositeMethod method)

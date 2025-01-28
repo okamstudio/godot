@@ -32,7 +32,6 @@
 
 #ifdef GLES3_ENABLED
 
-#include "core/io/compression.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 

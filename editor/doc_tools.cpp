@@ -35,12 +35,11 @@
 #include "core/core_constants.h"
 #include "core/io/compression.h"
 #include "core/io/dir_access.h"
-#include "core/io/marshalls.h"
 #include "core/io/resource_importer.h"
 #include "core/object/script_language.h"
 #include "core/string/translation_server.h"
 #include "editor/editor_settings.h"
-#include "editor/export/editor_export.h"
+#include "editor/export/editor_export_platform.h"
 #include "scene/resources/theme.h"
 #include "scene/theme/theme_db.h"
 
@@ -76,7 +75,7 @@ static String _translate_doc_string(const String &p_text) {
 	return translated.indent(indent);
 }
 
-// Comparator for constructors, based on `MetodDoc` operator.
+// Comparator for constructors, based on `MethodDoc` operator.
 struct ConstructorCompare {
 	_FORCE_INLINE_ bool operator()(const DocData::MethodDoc &p_lhs, const DocData::MethodDoc &p_rhs) const {
 		// Must be a constructor (i.e. assume named for the class)

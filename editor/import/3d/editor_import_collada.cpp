@@ -30,20 +30,17 @@
 
 #include "editor_import_collada.h"
 
-#include "core/os/os.h"
-#include "editor/editor_node.h"
+#include "core/config/project_settings.h"
 #include "editor/import/3d/collada.h"
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
 #include "scene/3d/light_3d.h"
-#include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/node_3d.h"
 #include "scene/3d/path_3d.h"
 #include "scene/3d/skeleton_3d.h"
 #include "scene/animation/animation_player.h"
 #include "scene/resources/3d/importer_mesh.h"
 #include "scene/resources/animation.h"
-#include "scene/resources/packed_scene.h"
 #include "scene/resources/surface_tool.h"
 
 struct ColladaImport {
@@ -1290,7 +1287,7 @@ Error ColladaImport::_create_resources(Collada::Node *p_node, bool p_use_compres
 				}
 			}
 
-			if (!mesh.is_null()) {
+			if (mesh.is_valid()) {
 				mi->set_mesh(mesh);
 				if (!use_mesh_builtin_materials) {
 					const Collada::MeshData &meshdata = collada.state.mesh_data_map[meshid];
@@ -1798,10 +1795,6 @@ void ColladaImport::create_animation(int p_clip, bool p_import_value_tracks) {
 /*********************************************************************************/
 /*************************************** SCENE ***********************************/
 /*********************************************************************************/
-
-uint32_t EditorSceneFormatImporterCollada::get_import_flags() const {
-	return IMPORT_SCENE | IMPORT_ANIMATION;
-}
 
 void EditorSceneFormatImporterCollada::get_extensions(List<String> *r_extensions) const {
 	r_extensions->push_back("dae");

@@ -39,9 +39,7 @@
 #include "editor/multi_node_edit.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/2d/camera_2d.h"
 #include "scene/2d/tile_map_layer.h"
-#include "scene/gui/center_container.h"
 #include "scene/gui/split_container.h"
 
 #include "core/input/input.h"
@@ -223,7 +221,7 @@ void TileMapLayerEditorTilesPlugin::_update_tile_set_sources_list() {
 		if (item_text.is_empty()) {
 			item_text = vformat(TTR("Unknown Type Source (ID: %d)"), source_id);
 		}
-		if (!texture.is_valid()) {
+		if (texture.is_null()) {
 			texture = missing_atlas_texture_icon;
 		}
 
@@ -802,6 +800,7 @@ void TileMapLayerEditorTilesPlugin::forward_canvas_draw_over_viewport(Control *p
 	Transform2D xform = CanvasItemEditor::get_singleton()->get_canvas_transform() * edited_layer->get_global_transform_with_canvas();
 	Vector2 mpos = edited_layer->get_local_mouse_position();
 	Vector2i tile_shape_size = tile_set->get_tile_size();
+	bool drawing_rect = false;
 
 	// Draw the selection.
 	if ((tiles_bottom_panel->is_visible_in_tree() || patterns_bottom_panel->is_visible_in_tree()) && tool_buttons_group->get_pressed_button() == select_tool_button) {
@@ -895,6 +894,7 @@ void TileMapLayerEditorTilesPlugin::forward_canvas_draw_over_viewport(Control *p
 			} else if (drag_type == DRAG_TYPE_RECT) {
 				// Preview for a rect pattern.
 				preview = _draw_rect(tile_set->local_to_map(drag_start_mouse_pos), tile_set->local_to_map(mpos), drag_erasing);
+				drawing_rect = !preview.is_empty();
 				expand_grid = true;
 			} else if (tool_buttons_group->get_pressed_button() == bucket_tool_button && drag_type == DRAG_TYPE_NONE) {
 				// Preview for a fill pattern.
@@ -1005,7 +1005,7 @@ void TileMapLayerEditorTilesPlugin::forward_canvas_draw_over_viewport(Control *p
 		Point2 msgpos = Point2(20 * EDSCALE, p_overlay->get_size().y - 20 * EDSCALE);
 
 		String text = tile_set->local_to_map(edited_layer->get_local_mouse_position());
-		if (drag_type == DRAG_TYPE_RECT) {
+		if (drawing_rect) {
 			Vector2i size = tile_set->local_to_map(edited_layer->get_local_mouse_position()) - tile_set->local_to_map(drag_start_mouse_pos);
 			text += vformat(" %s (%dx%d)", TTR("Drawing Rect:"), ABS(size.x) + 1, ABS(size.y) + 1);
 		}
@@ -3347,7 +3347,9 @@ void TileMapLayerEditorTerrainsPlugin::_update_terrains_tree() {
 	terrains_tree->create_item();
 
 	const TileMapLayer *edited_layer = _get_edited_layer();
-	ERR_FAIL_NULL(edited_layer);
+	if (!edited_layer) {
+		return;
+	}
 
 	Ref<TileSet> tile_set = edited_layer->get_tile_set();
 	if (tile_set.is_null()) {
@@ -3680,6 +3682,11 @@ void TileMapLayerEditor::_node_change(Node *p_node) {
 
 void TileMapLayerEditor::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_READY: {
+			toggle_grid_button->set_pressed_no_signal(EDITOR_GET("editors/tiles_editor/display_grid"));
+			toggle_highlight_selected_layer_button->set_pressed_no_signal(EDITOR_GET("editors/tiles_editor/highlight_selected_layer"));
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			get_tree()->connect("node_added", callable_mp(this, &TileMapLayerEditor::_node_change));
 			get_tree()->connect("node_removed", callable_mp(this, &TileMapLayerEditor::_node_change));
@@ -4489,7 +4496,6 @@ TileMapLayerEditor::TileMapLayerEditor() {
 	toggle_highlight_selected_layer_button = memnew(Button);
 	toggle_highlight_selected_layer_button->set_theme_type_variation(SceneStringName(FlatButton));
 	toggle_highlight_selected_layer_button->set_toggle_mode(true);
-	toggle_highlight_selected_layer_button->set_pressed(true);
 	toggle_highlight_selected_layer_button->connect(SceneStringName(toggled), callable_mp(this, &TileMapLayerEditor::_highlight_selected_layer_button_toggled));
 	toggle_highlight_selected_layer_button->set_tooltip_text(TTR("Highlight Selected TileMap Layer"));
 	tile_map_toolbar->add_child(toggle_highlight_selected_layer_button);

@@ -401,7 +401,7 @@ void OpenXRCompositionLayer::_notification(int p_what) {
 			}
 		} break;
 		case NOTIFICATION_VISIBILITY_CHANGED: {
-			if (!fallback && openxr_session_running && is_inside_tree()) {
+			if (is_natively_supported() && openxr_session_running && is_inside_tree()) {
 				if (is_visible()) {
 					_setup_composition_layer_provider();
 				} else {

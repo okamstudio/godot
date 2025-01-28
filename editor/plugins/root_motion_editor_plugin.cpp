@@ -37,7 +37,6 @@
 #include "scene/gui/button.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/tree.h"
-#include "scene/main/window.h"
 
 void EditorPropertyRootMotion::_confirmed() {
 	TreeItem *ti = filters->get_selected();

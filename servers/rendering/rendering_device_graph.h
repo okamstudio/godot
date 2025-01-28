@@ -99,6 +99,7 @@ public:
 			TYPE_TEXTURE_RESOLVE,
 			TYPE_TEXTURE_UPDATE,
 			TYPE_CAPTURE_TIMESTAMP,
+			TYPE_DRIVER_CALLBACK,
 			TYPE_MAX
 		};
 
@@ -147,7 +148,8 @@ public:
 		RESOURCE_USAGE_STORAGE_IMAGE_READ,
 		RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE,
 		RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE,
-		RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE
+		RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE,
+		RESOURCE_USAGE_MAX
 	};
 
 	struct ResourceTracker {
@@ -334,6 +336,11 @@ private:
 		_FORCE_INLINE_ const RecordedBufferCopy *buffer_copies() const {
 			return reinterpret_cast<const RecordedBufferCopy *>(&this[1]);
 		}
+	};
+
+	struct RecordedDriverCallbackCommand : RecordedCommand {
+		RDD::DriverCallback callback;
+		void *userdata = nullptr;
 	};
 
 	struct RecordedComputeListCommand : RecordedCommand {
@@ -766,6 +773,7 @@ public:
 	void add_buffer_copy(RDD::BufferID p_src, ResourceTracker *p_src_tracker, RDD::BufferID p_dst, ResourceTracker *p_dst_tracker, RDD::BufferCopyRegion p_region);
 	void add_buffer_get_data(RDD::BufferID p_src, ResourceTracker *p_src_tracker, RDD::BufferID p_dst, RDD::BufferCopyRegion p_region);
 	void add_buffer_update(RDD::BufferID p_dst, ResourceTracker *p_dst_tracker, VectorView<RecordedBufferCopy> p_buffer_copies);
+	void add_driver_callback(RDD::DriverCallback p_callback, void *p_userdata, VectorView<ResourceTracker *> p_trackers, VectorView<ResourceUsage> p_usages);
 	void add_compute_list_begin(RDD::BreadcrumbMarker p_phase = RDD::BreadcrumbMarker::NONE, uint32_t p_breadcrumb_data = 0);
 	void add_compute_list_bind_pipeline(RDD::PipelineID p_pipeline);
 	void add_compute_list_bind_uniform_set(RDD::ShaderID p_shader, RDD::UniformSetID p_uniform_set, uint32_t set_index);

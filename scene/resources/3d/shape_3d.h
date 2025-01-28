@@ -81,13 +81,13 @@ public:
 	real_t get_margin() const;
 	void set_margin(real_t p_margin);
 
-#ifdef DEBUG_ENABLED
 	void set_debug_color(const Color &p_color);
 	Color get_debug_color() const;
 
 	void set_debug_fill(bool p_fill);
 	bool get_debug_fill() const;
 
+#ifdef DEBUG_ENABLED
 	_FORCE_INLINE_ bool are_debug_properties_edited() const { return debug_properties_edited; }
 #endif // DEBUG_ENABLED
 

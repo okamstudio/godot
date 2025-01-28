@@ -30,7 +30,6 @@
 
 #include "register_driver_types.h"
 
-#include "core/extension/gdextension_manager.h"
 #include "drivers/png/image_loader_png.h"
 #include "drivers/png/resource_saver_png.h"
 

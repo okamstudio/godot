@@ -32,15 +32,11 @@
 #define GODOT_SPACE_3D_H
 
 #include "godot_area_3d.h"
-#include "godot_area_pair_3d.h"
 #include "godot_body_3d.h"
-#include "godot_body_pair_3d.h"
 #include "godot_broad_phase_3d.h"
 #include "godot_collision_object_3d.h"
 #include "godot_soft_body_3d.h"
 
-#include "core/config/project_settings.h"
-#include "core/templates/hash_map.h"
 #include "core/typedefs.h"
 
 class GodotPhysicsDirectSpaceState3D : public PhysicsDirectSpaceState3D {

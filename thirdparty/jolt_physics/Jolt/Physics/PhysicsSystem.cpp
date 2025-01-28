@@ -1443,7 +1443,7 @@ void PhysicsSystem::JobSolveVelocityConstraints(PhysicsUpdateContext *ioContext,
 		}
 		else if (check_split_islands)
 		{
-			// If there are split islands, but we did't do any work, give up a time slice
+			// If there are split islands, but we didn't do any work, give up a time slice
 			std::this_thread::yield();
 		}
 		else
@@ -2462,7 +2462,7 @@ void PhysicsSystem::JobSolvePositionConstraints(PhysicsUpdateContext *ioContext,
 		}
 		else if (check_split_islands)
 		{
-			// If there are split islands, but we did't do any work, give up a time slice
+			// If there are split islands, but we didn't do any work, give up a time slice
 			std::this_thread::yield();
 		}
 		else

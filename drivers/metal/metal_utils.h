@@ -53,11 +53,15 @@ void clear(Tv &p_value, Tm p_mask) {
 
 /*! Returns whether the specified value has any of the bits specified in mask set to 1. */
 template <typename Tv, typename Tm>
-static constexpr bool any(Tv p_value, const Tm p_mask) { return ((p_value & p_mask) != 0); }
+static constexpr bool any(Tv p_value, const Tm p_mask) {
+	return ((p_value & p_mask) != 0);
+}
 
 /*! Returns whether the specified value has all of the bits specified in mask set to 1. */
 template <typename Tv, typename Tm>
-static constexpr bool all(Tv p_value, const Tm p_mask) { return ((p_value & p_mask) == p_mask); }
+static constexpr bool all(Tv p_value, const Tm p_mask) {
+	return ((p_value & p_mask) == p_mask);
+}
 
 } //namespace flags
 

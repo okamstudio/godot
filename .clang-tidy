@@ -7,7 +7,7 @@ Checks:
   - modernize-use-nullptr
   - readability-braces-around-statements
   - readability-redundant-member-init
-HeaderFileExtensions: ['', h, hh, hpp, hxx, inc, glsl]
+HeaderFileExtensions: ["", h, hh, hpp, hxx, inc, glsl]
 ImplementationFileExtensions: [c, cc, cpp, cxx, m, mm, java]
 HeaderFilterRegex: (core|doc|drivers|editor|main|modules|platform|scene|servers|tests)/
 FormatStyle: file

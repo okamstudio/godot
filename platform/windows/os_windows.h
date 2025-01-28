@@ -231,7 +231,7 @@ public:
 	virtual String get_godot_dir_name() const override;
 
 	virtual String get_system_dir(SystemDir p_dir, bool p_shared_storage = true) const override;
-	virtual String get_user_data_dir() const override;
+	virtual String get_user_data_dir(const String &p_user_dir) const override;
 
 	virtual String get_unique_id() const override;
 

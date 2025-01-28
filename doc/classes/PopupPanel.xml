@@ -8,6 +8,10 @@
 	</description>
 	<tutorials>
 	</tutorials>
+	<members>
+		<member name="transparent" type="bool" setter="set_flag" getter="get_flag" overrides="Window" default="true" />
+		<member name="transparent_bg" type="bool" setter="set_transparent_background" getter="has_transparent_background" overrides="Viewport" default="true" />
+	</members>
 	<theme_items>
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			[StyleBox] for the background panel.

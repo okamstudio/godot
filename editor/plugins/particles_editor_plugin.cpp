@@ -44,7 +44,6 @@
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/menu_button.h"
-#include "scene/gui/separator.h"
 #include "scene/gui/spin_box.h"
 #include "scene/resources/image_texture.h"
 #include "scene/resources/particle_process_material.h"

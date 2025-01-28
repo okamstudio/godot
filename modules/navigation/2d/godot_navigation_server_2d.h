@@ -78,6 +78,8 @@ public:
 	virtual void map_force_update(RID p_map) override;
 	virtual Vector2 map_get_random_point(RID p_map, uint32_t p_navigation_layers, bool p_uniformly) const override;
 	virtual uint32_t map_get_iteration_id(RID p_map) const override;
+	virtual void map_set_use_async_iterations(RID p_map, bool p_enabled) override;
+	virtual bool map_get_use_async_iterations(RID p_map) const override;
 
 	virtual RID region_create() override;
 	virtual void region_set_enabled(RID p_region, bool p_enabled) override;
@@ -103,6 +105,7 @@ public:
 	virtual Vector2 region_get_connection_pathway_end(RID p_region, int p_connection_id) const override;
 	virtual Vector2 region_get_closest_point(RID p_region, const Vector2 &p_point) const override;
 	virtual Vector2 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const override;
+	virtual Rect2 region_get_bounds(RID p_region) const override;
 
 	virtual RID link_create() override;
 

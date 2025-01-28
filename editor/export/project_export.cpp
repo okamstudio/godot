@@ -41,7 +41,6 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/import/resource_importer_texture_settings.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/gui/check_box.h"
 #include "scene/gui/check_button.h"
 #include "scene/gui/item_list.h"
 #include "scene/gui/link_button.h"
@@ -139,7 +138,7 @@ void ProjectExportDialog::popup_export() {
 
 void ProjectExportDialog::_add_preset(int p_platform) {
 	Ref<EditorExportPreset> preset = EditorExport::get_singleton()->get_export_platform(p_platform)->create_preset();
-	ERR_FAIL_COND(!preset.is_valid());
+	ERR_FAIL_COND(preset.is_null());
 
 	String preset_name = EditorExport::get_singleton()->get_export_platform(p_platform)->get_name();
 	bool make_runnable = true;
@@ -669,7 +668,7 @@ void ProjectExportDialog::_duplicate_preset() {
 	}
 
 	Ref<EditorExportPreset> preset = current->get_platform()->create_preset();
-	ERR_FAIL_COND(!preset.is_valid());
+	ERR_FAIL_COND(preset.is_null());
 
 	String preset_name = current->get_name() + " (copy)";
 	bool make_runnable = true;

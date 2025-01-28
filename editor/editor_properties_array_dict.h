@@ -33,7 +33,6 @@
 
 #include "editor/editor_inspector.h"
 #include "editor/editor_locale_dialog.h"
-#include "editor/filesystem_dock.h"
 
 class Button;
 class EditorSpinSlider;
@@ -89,6 +88,7 @@ public:
 
 	String get_label_for_index(int p_index);
 	String get_property_name_for_index(int p_index);
+	String get_key_name_for_index(int p_index);
 
 	EditorPropertyDictionaryObject();
 };
@@ -115,6 +115,7 @@ class EditorPropertyArray : public EditorProperty {
 
 	PopupMenu *change_type = nullptr;
 
+	bool preview_value = false;
 	int page_length = 20;
 	int page_index = 0;
 	int changing_type_index = EditorPropertyArrayObject::NOT_CHANGING_TYPE;
@@ -169,6 +170,7 @@ protected:
 
 public:
 	void setup(Variant::Type p_array_type, const String &p_hint_string = "");
+	void set_preview_value(bool p_preview_value);
 	virtual void update_property() override;
 	virtual bool is_colored(ColorationMode p_mode) override;
 	EditorPropertyArray();
@@ -182,13 +184,18 @@ class EditorPropertyDictionary : public EditorProperty {
 		HBoxContainer *container = nullptr;
 		int index = -1;
 		Variant::Type type = Variant::VARIANT_MAX;
+		Variant::Type key_type = Variant::VARIANT_MAX;
 		bool as_id = false;
+		bool key_as_id = false;
 		EditorProperty *prop = nullptr;
+		EditorProperty *prop_key = nullptr;
 		String prop_name;
+		String key_name;
 
 		void set_index(int p_idx) {
 			index = p_idx;
 			prop_name = object->get_property_name_for_index(p_idx);
+			key_name = object->get_key_name_for_index(p_idx);
 			update_prop_or_index();
 		}
 
@@ -199,15 +206,29 @@ class EditorPropertyDictionary : public EditorProperty {
 			update_prop_or_index();
 		}
 
+		void set_key_prop(EditorProperty *p_prop) {
+			if (prop_key) {
+				prop_key->add_sibling(p_prop);
+				prop_key->queue_free();
+				prop_key = p_prop;
+				update_prop_or_index();
+			}
+		}
+
 		void update_prop_or_index() {
 			prop->set_object_and_property(object.ptr(), prop_name);
-			prop->set_label(object->get_label_for_index(index));
+			if (prop_key) {
+				prop_key->set_object_and_property(object.ptr(), key_name);
+			} else {
+				prop->set_label(object->get_label_for_index(index));
+			}
 		}
 	};
 
 	PopupMenu *change_type = nullptr;
 	bool updating = false;
 
+	bool preview_value = false;
 	Ref<EditorPropertyDictionaryObject> object;
 	int page_length = 20;
 	int page_index = 0;
@@ -245,6 +266,7 @@ protected:
 
 public:
 	void setup(PropertyHint p_hint, const String &p_hint_string = "");
+	void set_preview_value(bool p_preview_value);
 	virtual void update_property() override;
 	virtual bool is_colored(ColorationMode p_mode) override;
 	EditorPropertyDictionary();

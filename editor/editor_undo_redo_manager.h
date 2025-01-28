@@ -31,7 +31,6 @@
 #ifndef EDITOR_UNDO_REDO_MANAGER_H
 #define EDITOR_UNDO_REDO_MANAGER_H
 
-#include "core/object/class_db.h"
 #include "core/object/object.h"
 #include "core/object/undo_redo.h"
 

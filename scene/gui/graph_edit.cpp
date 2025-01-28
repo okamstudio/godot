@@ -793,7 +793,7 @@ void GraphEdit::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
-			panner->set_viewport(get_viewport());
+			update_warped_panning();
 		} break;
 	}
 }
@@ -1737,7 +1737,7 @@ void GraphEdit::gui_input(const Ref<InputEvent> &p_ev) {
 	ERR_FAIL_NULL_MSG(connections_layer, "connections_layer is missing.");
 
 	ERR_FAIL_COND(p_ev.is_null());
-	if (panner->gui_input(p_ev, warped_panning ? get_global_rect() : Rect2())) {
+	if (panner->gui_input(p_ev, get_global_rect())) {
 		return;
 	}
 
@@ -2669,6 +2669,11 @@ Ref<ViewPanner> GraphEdit::get_panner() {
 
 void GraphEdit::set_warped_panning(bool p_warped) {
 	warped_panning = p_warped;
+	update_warped_panning();
+}
+
+void GraphEdit::update_warped_panning() {
+	panner->setup_warped_panning(get_viewport(), warped_panning);
 }
 
 void GraphEdit::arrange_nodes() {

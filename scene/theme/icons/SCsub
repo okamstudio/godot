@@ -5,16 +5,8 @@ Import("env")
 
 import default_theme_icons_builders
 
-env["BUILDERS"]["MakeDefaultThemeIconsBuilder"] = Builder(
-    action=env.Run(default_theme_icons_builders.make_default_theme_icons_action),
-    suffix=".h",
-    src_suffix=".svg",
-)
-
-# Default theme icons
-icon_sources = Glob("*.svg")
-
-env.Alias(
-    "default_theme_icons",
-    [env.MakeDefaultThemeIconsBuilder("#scene/theme/default_theme_icons.gen.h", icon_sources)],
+env.CommandNoCache(
+    "#scene/theme/default_theme_icons.gen.h",
+    Glob("*.svg"),
+    env.Run(default_theme_icons_builders.make_default_theme_icons_action),
 )

@@ -36,6 +36,7 @@
 #include "core/config/project_settings.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_theme_manager.h"
+#include "scene/gui/text_edit.h"
 
 Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_line) {
 	Dictionary color_map;
@@ -560,12 +561,17 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting_impl(int p_l
 			}
 		}
 
-		// Keep symbol color for binary '&&'. In the case of '&&&' use StringName color for the last ampersand.
+		// Set color of StringName, keeping symbol color for binary '&&' and '&'.
 		if (!in_string_name && in_region == -1 && str[j] == '&' && !is_binary_op) {
-			if (j >= 2 && str[j - 1] == '&' && str[j - 2] != '&' && prev_is_binary_op) {
-				is_binary_op = true;
-			} else if (j == 0 || (j > 0 && str[j - 1] != '&') || prev_is_binary_op) {
+			if (j + 1 <= line_length - 1 && (str[j + 1] == '\'' || str[j + 1] == '"')) {
 				in_string_name = true;
+				// Cover edge cases of i.e. '+&""' and '&&&""', so the StringName is properly colored.
+				if (prev_is_binary_op && j >= 2 && str[j - 1] == '&' && str[j - 2] != '&') {
+					in_string_name = false;
+					is_binary_op = true;
+				}
+			} else {
+				is_binary_op = true;
 			}
 		} else if (in_region != -1 || is_a_symbol) {
 			in_string_name = false;

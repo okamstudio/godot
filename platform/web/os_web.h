@@ -56,6 +56,7 @@ class OS_Web : public OS_Unix {
 	WASM_EXPORT static void main_loop_callback();
 
 	WASM_EXPORT static void file_access_close_callback(const String &p_file, int p_flags);
+	WASM_EXPORT static void dir_access_remove_callback(const String &p_file);
 	WASM_EXPORT static void fs_sync_callback();
 	WASM_EXPORT static void update_pwa_state_callback();
 
@@ -106,7 +107,7 @@ public:
 	String get_cache_path() const override;
 	String get_config_path() const override;
 	String get_data_path() const override;
-	String get_user_data_dir() const override;
+	String get_user_data_dir(const String &p_user_dir) const override;
 
 	bool is_userfs_persistent() const override;
 

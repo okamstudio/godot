@@ -31,7 +31,6 @@
 #include "godot_body_direct_state_2d.h"
 
 #include "godot_body_2d.h"
-#include "godot_physics_server_2d.h"
 #include "godot_space_2d.h"
 
 Vector2 GodotPhysicsDirectBodyState2D::get_total_gravity() const {

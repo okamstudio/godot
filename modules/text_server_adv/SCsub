@@ -64,7 +64,8 @@ if env["builtin_harfbuzz"]:
         # "src/hb-cairo-utils.cc",
         # "src/hb-cairo.cc",
         "src/hb-common.cc",
-        # "src/hb-coretext.cc",
+        # "src/hb-coretext-font.cc",
+        # "src/hb-coretext-shape.cc",
         # "src/hb-directwrite.cc",
         "src/hb-draw.cc",
         "src/hb-face-builder.cc",
@@ -477,11 +478,10 @@ if env["builtin_icu4c"]:
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    icu_data_name = "icudt76l.dat"
-
     if env.editor_build:
-        env_icu.Depends("#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/" + icu_data_name)
-        env_icu.Command("#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/" + icu_data_name, make_icu_data)
+        env_icu.CommandNoCache(
+            "#thirdparty/icu4c/icudata.gen.h", "#thirdparty/icu4c/icudt_godot.dat", env.Run(make_icu_data)
+        )
         env_text_server_adv.Prepend(CPPPATH=["#thirdparty/icu4c/"])
     else:
         thirdparty_sources += ["icu_data/icudata_stub.cpp"]
@@ -503,7 +503,6 @@ if env["builtin_icu4c"]:
             "-DU_ENABLE_DYLOAD=0",
             "-DU_HAVE_LIB_SUFFIX=1",
             "-DU_LIB_SUFFIX_C_NAME=_godot",
-            "-DICU_DATA_NAME=" + icu_data_name,
         ]
     )
     env_text_server_adv.Append(
@@ -511,7 +510,6 @@ if env["builtin_icu4c"]:
             "-DU_STATIC_IMPLEMENTATION",
             "-DU_HAVE_LIB_SUFFIX=1",
             "-DU_LIB_SUFFIX_C_NAME=_godot",
-            "-DICU_DATA_NAME=" + icu_data_name,
         ]
     )
     if env.editor_build:

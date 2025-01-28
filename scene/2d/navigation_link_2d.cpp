@@ -33,7 +33,6 @@
 #include "core/math/geometry_2d.h"
 #include "scene/resources/world_2d.h"
 #include "servers/navigation_server_2d.h"
-#include "servers/navigation_server_3d.h"
 
 void NavigationLink2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_rid"), &NavigationLink2D::get_rid);
@@ -199,6 +198,10 @@ void NavigationLink2D::set_bidirectional(bool p_bidirectional) {
 	bidirectional = p_bidirectional;
 
 	NavigationServer2D::get_singleton()->link_set_bidirectional(link, bidirectional);
+
+#ifdef DEBUG_ENABLED
+	queue_redraw();
+#endif // DEBUG_ENABLED
 }
 
 void NavigationLink2D::set_navigation_layers(uint32_t p_navigation_layers) {
@@ -397,6 +400,29 @@ void NavigationLink2D::_update_debug_mesh() {
 	draw_line(get_start_position(), get_end_position(), color);
 	draw_arc(get_start_position(), radius, 0, Math_TAU, 10, color);
 	draw_arc(get_end_position(), radius, 0, Math_TAU, 10, color);
+
+	const Vector2 link_segment = end_position - start_position;
+	const float arror_len = 5.0;
+
+	{
+		Vector2 anchor = start_position + (link_segment * 0.75);
+		Vector2 direction = start_position.direction_to(end_position);
+		Vector2 arrow_dir = -direction.orthogonal();
+		draw_line(anchor, anchor + (arrow_dir - direction) * arror_len, color);
+
+		arrow_dir = direction.orthogonal();
+		draw_line(anchor, anchor + (arrow_dir - direction) * arror_len, color);
+	}
+
+	if (is_bidirectional()) {
+		Vector2 anchor = start_position + (link_segment * 0.25);
+		Vector2 direction = end_position.direction_to(start_position);
+		Vector2 arrow_dir = -direction.orthogonal();
+		draw_line(anchor, anchor + (arrow_dir - direction) * arror_len, color);
+
+		arrow_dir = direction.orthogonal();
+		draw_line(anchor, anchor + (arrow_dir - direction) * arror_len, color);
+	}
 }
 #endif // DEBUG_ENABLED
 

@@ -37,7 +37,6 @@
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/scene_tree_editor.h"
-#include "editor/inspector_dock.h"
 #include "editor/property_selector.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
@@ -491,7 +490,7 @@ void ReplicationEditor::_update_config() {
 	tree->clear();
 	tree->create_item();
 	drop_label->set_visible(true);
-	if (!config.is_valid()) {
+	if (config.is_null()) {
 		return;
 	}
 	TypedArray<NodePath> props = config->get_properties();

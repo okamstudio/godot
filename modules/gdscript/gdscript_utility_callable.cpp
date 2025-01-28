@@ -30,8 +30,6 @@
 
 #include "gdscript_utility_callable.h"
 
-#include "core/templates/hashfuncs.h"
-
 bool GDScriptUtilityCallable::compare_equal(const CallableCustom *p_a, const CallableCustom *p_b) {
 	return p_a->hash() == p_b->hash();
 }

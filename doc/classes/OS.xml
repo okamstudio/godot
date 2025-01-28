@@ -59,7 +59,7 @@
 				var pid = OS.create_process(OS.get_executable_path(), [])
 				[/gdscript]
 				[csharp]
-				var pid = OS.CreateProcess(OS.GetExecutablePath(), new string[] {});
+				var pid = OS.CreateProcess(OS.GetExecutablePath(), []);
 				[/csharp]
 				[/codeblocks]
 				See [method execute] if you wish to run an external command and retrieve the results.
@@ -105,8 +105,8 @@
 				var exit_code = OS.execute("ls", ["-l", "/tmp"], output)
 				[/gdscript]
 				[csharp]
-				var output = new Godot.Collections.Array();
-				int exitCode = OS.Execute("ls", new string[] {"-l", "/tmp"}, output);
+				Godot.Collections.Array output = [];
+				int exitCode = OS.Execute("ls", ["-l", "/tmp"], output);
 				[/csharp]
 				[/codeblocks]
 				If you wish to access a shell built-in or execute a composite command, a platform-specific shell can be invoked. For example:
@@ -116,8 +116,8 @@
 				OS.execute("CMD.exe", ["/C", "cd %TEMP% &amp;&amp; dir"], output)
 				[/gdscript]
 				[csharp]
-				var output = new Godot.Collections.Array();
-				OS.Execute("CMD.exe", new string[] {"/C", "cd %TEMP% &amp;&amp; dir"}, output);
+				Godot.Collections.Array output = [];
+				OS.Execute("CMD.exe", ["/C", "cd %TEMP% &amp;&amp; dir"], output);
 				[/csharp]
 				[/codeblocks]
 				[b]Note:[/b] This method is implemented on Android, Linux, macOS, and Windows.
@@ -747,14 +747,19 @@
 			<return type="bool" />
 			<param index="0" name="name" type="String" />
 			<description>
-				Requests permission from the OS for the given [param name]. Returns [code]true[/code] if the permission has been successfully granted.
-				[b]Note:[/b] This method is currently only implemented on Android, to specifically request permission for [code]"RECORD_AUDIO"[/code] by [code]AudioDriverOpenSL[/code].
+				Requests permission from the OS for the given [param name]. Returns [code]true[/code] if the permission has already been granted. See also [signal MainLoop.on_request_permissions_result].
+				The [param name] must be the full permission name. For example:
+				- [code]OS.request_permission("android.permission.READ_EXTERNAL_STORAGE")[/code]
+				- [code]OS.request_permission("android.permission.POST_NOTIFICATIONS")[/code]
+				[b]Note:[/b] Permission must be checked during export.
+				[b]Note:[/b] This method is only implemented on Android.
 			</description>
 		</method>
 		<method name="request_permissions">
 			<return type="bool" />
 			<description>
-				Requests [i]dangerous[/i] permissions from the OS. Returns [code]true[/code] if permissions have been successfully granted.
+				Requests [i]dangerous[/i] permissions from the OS. Returns [code]true[/code] if permissions have already been granted. See also [signal MainLoop.on_request_permissions_result].
+				[b]Note:[/b] Permissions must be checked during export.
 				[b]Note:[/b] This method is only implemented on Android. Normal permissions are automatically granted at install time in Android applications.
 			</description>
 		</method>
@@ -804,7 +809,8 @@
 			<param index="0" name="uri" type="String" />
 			<description>
 				Requests the OS to open a resource identified by [param uri] with the most appropriate program. For example:
-				- [code]OS.shell_open("C:\\Users\name\Downloads")[/code] on Windows opens the file explorer at the user's Downloads folder.
+				- [code]OS.shell_open("C:\\Users\\name\\Downloads")[/code] on Windows opens the file explorer at the user's Downloads folder.
+				- [code]OS.shell_open("C:/Users/name/Downloads")[/code] also works on Windows and opens the file explorer at the user's Downloads folder.
 				- [code]OS.shell_open("https://godotengine.org")[/code] opens the default web browser on the official Godot website.
 				- [code]OS.shell_open("mailto:example@example.com")[/code] opens the default email client with the "To" field set to [code]example@example.com[/code]. See [url=https://datatracker.ietf.org/doc/html/rfc2368]RFC 2368 - The [code]mailto[/code] URL scheme[/url] for a list of fields that can be added.
 				Use [method ProjectSettings.globalize_path] to convert a [code]res://[/code] or [code]user://[/code] project path into a system path for use with this method.

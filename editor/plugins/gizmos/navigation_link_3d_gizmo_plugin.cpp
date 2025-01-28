@@ -70,68 +70,137 @@ void NavigationLink3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	p_gizmo->clear();
 
-	// Draw line between the points.
+	// Number of points in an octant. So there ill be 8 * points_in_octant points in total.
+	// Correspond to the smoothness of the circle.
+	const uint32_t points_in_octant = 4;
+	real_t inc = (Math_PI / (4 * points_in_octant));
+
 	Vector<Vector3> lines;
-	lines.append(start_position);
-	lines.append(end_position);
+	// points_in_octant * 8 * 2 per circle * 2 circles. 2 for the start-end. 4 for the arrow, and another 4 if bidirectionnal.
+	lines.resize(points_in_octant * 8 * 2 * 2 + 2 + 4 + (link->is_bidirectional() ? 4 : 0));
+	uint32_t index = 0;
+	Vector3 *lines_ptrw = lines.ptrw();
+	// Draw line between the points.
+	lines_ptrw[index++] = start_position;
+	lines_ptrw[index++] = end_position;
+	real_t search_radius_squared = search_radius * search_radius;
 
-	// Draw start position search radius
-	for (int i = 0; i < 30; i++) {
-		// Create a circle
-		const float ra = Math::deg_to_rad((float)(i * 12));
-		const float rb = Math::deg_to_rad((float)((i + 1) * 12));
-		const Point2 a = Vector2(Math::sin(ra), Math::cos(ra)) * search_radius;
-		const Point2 b = Vector2(Math::sin(rb), Math::cos(rb)) * search_radius;
+	// Draw circles at start and end positions in one go.
+	real_t r = 0;
+	Vector2 a = Vector2(search_radius, 0);
+	for (uint32_t i = 0; i < points_in_octant; i++) {
+		r += inc;
+		real_t x = Math::cos(r) * search_radius;
+		real_t y = Math::sqrt(search_radius_squared - (x * x));
 
-		// Draw axis-aligned circle
+		// Draw axis-aligned circle.
 		switch (up_axis) {
 			case Vector3::AXIS_X:
-				lines.append(start_position + Vector3(0, a.x, a.y));
-				lines.append(start_position + Vector3(0, b.x, b.y));
+#define PUSH_OCTANT(_position, a, b)                          \
+	lines_ptrw[index++] = _position + Vector3(0, a.x, a.y);   \
+	lines_ptrw[index++] = _position + Vector3(0, x, y);       \
+	lines_ptrw[index++] = _position + Vector3(0, -a.x, a.y);  \
+	lines_ptrw[index++] = _position + Vector3(0, x, y);       \
+	lines_ptrw[index++] = _position + Vector3(0, a.x, -a.y);  \
+	lines_ptrw[index++] = _position + Vector3(0, x, -y);      \
+	lines_ptrw[index++] = _position + Vector3(0, -a.x, -a.y); \
+	lines_ptrw[index++] = _position + Vector3(0, x, y);       \
+	lines_ptrw[index++] = _position + Vector3(0, a.y, a.x);   \
+	lines_ptrw[index++] = _position + Vector3(0, y, x);       \
+	lines_ptrw[index++] = _position + Vector3(0, -a.y, a.x);  \
+	lines_ptrw[index++] = _position + Vector3(0, -y, x);      \
+	lines_ptrw[index++] = _position + Vector3(0, a.y, -a.x);  \
+	lines_ptrw[index++] = _position + Vector3(0, y, -x);      \
+	lines_ptrw[index++] = _position + Vector3(0, -a.y, -a.x); \
+	lines_ptrw[index++] = _position + Vector3(0, -y, -x);
+
+				PUSH_OCTANT(start_position, a, b)
+				PUSH_OCTANT(end_position, a, b)
+#undef PUSH_OCTANT
 				break;
 			case Vector3::AXIS_Y:
-				lines.append(start_position + Vector3(a.x, 0, a.y));
-				lines.append(start_position + Vector3(b.x, 0, b.y));
+#define PUSH_OCTANT(_position, a, b)                          \
+	lines_ptrw[index++] = _position + Vector3(a.x, 0, a.y);   \
+	lines_ptrw[index++] = _position + Vector3(x, 0, y);       \
+	lines_ptrw[index++] = _position + Vector3(-a.x, 0, a.y);  \
+	lines_ptrw[index++] = _position + Vector3(-x, 0, y);      \
+	lines_ptrw[index++] = _position + Vector3(a.x, 0, -a.y);  \
+	lines_ptrw[index++] = _position + Vector3(x, 0, -y);      \
+	lines_ptrw[index++] = _position + Vector3(-a.x, 0, -a.y); \
+	lines_ptrw[index++] = _position + Vector3(-x, 0, -y);     \
+	lines_ptrw[index++] = _position + Vector3(a.y, 0, a.x);   \
+	lines_ptrw[index++] = _position + Vector3(y, 0, x);       \
+	lines_ptrw[index++] = _position + Vector3(-a.y, 0, a.x);  \
+	lines_ptrw[index++] = _position + Vector3(-y, 0, x);      \
+	lines_ptrw[index++] = _position + Vector3(a.y, 0, -a.x);  \
+	lines_ptrw[index++] = _position + Vector3(y, 0, -x);      \
+	lines_ptrw[index++] = _position + Vector3(-a.y, 0, -a.x); \
+	lines_ptrw[index++] = _position + Vector3(-y, 0, -x);
+
+				PUSH_OCTANT(start_position, a, b)
+				PUSH_OCTANT(end_position, a, b)
+#undef PUSH_OCTANT
 				break;
 			case Vector3::AXIS_Z:
-				lines.append(start_position + Vector3(a.x, a.y, 0));
-				lines.append(start_position + Vector3(b.x, b.y, 0));
+#define PUSH_OCTANT(_position, a, b)                          \
+	lines_ptrw[index++] = _position + Vector3(a.x, a.y, 0);   \
+	lines_ptrw[index++] = _position + Vector3(x, y, 0);       \
+	lines_ptrw[index++] = _position + Vector3(-a.x, a.y, 0);  \
+	lines_ptrw[index++] = _position + Vector3(-x, y, 0);      \
+	lines_ptrw[index++] = _position + Vector3(a.x, -a.y, 0);  \
+	lines_ptrw[index++] = _position + Vector3(x, -y, 0);      \
+	lines_ptrw[index++] = _position + Vector3(-a.x, -a.y, 0); \
+	lines_ptrw[index++] = _position + Vector3(-x, -y, 0);     \
+	lines_ptrw[index++] = _position + Vector3(a.y, a.x, 0);   \
+	lines_ptrw[index++] = _position + Vector3(y, x, 0);       \
+	lines_ptrw[index++] = _position + Vector3(-a.y, a.x, 0);  \
+	lines_ptrw[index++] = _position + Vector3(-y, x, 0);      \
+	lines_ptrw[index++] = _position + Vector3(a.y, -a.x, 0);  \
+	lines_ptrw[index++] = _position + Vector3(y, -x, 0);      \
+	lines_ptrw[index++] = _position + Vector3(-a.y, -a.x, 0); \
+	lines_ptrw[index++] = _position + Vector3(-y, -x, 0);
+
+				PUSH_OCTANT(start_position, a, b)
+				PUSH_OCTANT(end_position, a, b)
+#undef PUSH_OCTANT
 				break;
 		}
+		a.x = x;
+		a.y = y;
 	}
 
-	// Draw end position search radius
-	for (int i = 0; i < 30; i++) {
-		// Create a circle
-		const float ra = Math::deg_to_rad((float)(i * 12));
-		const float rb = Math::deg_to_rad((float)((i + 1) * 12));
-		const Point2 a = Vector2(Math::sin(ra), Math::cos(ra)) * search_radius;
-		const Point2 b = Vector2(Math::sin(rb), Math::cos(rb)) * search_radius;
+	const Vector3 link_segment = end_position - start_position;
+	const Vector3 up = Vector3(0.0, 1.0, 0.0);
+	const float arror_len = 0.5;
 
-		// Draw axis-aligned circle
-		switch (up_axis) {
-			case Vector3::AXIS_X:
-				lines.append(end_position + Vector3(0, a.x, a.y));
-				lines.append(end_position + Vector3(0, b.x, b.y));
-				break;
-			case Vector3::AXIS_Y:
-				lines.append(end_position + Vector3(a.x, 0, a.y));
-				lines.append(end_position + Vector3(b.x, 0, b.y));
-				break;
-			case Vector3::AXIS_Z:
-				lines.append(end_position + Vector3(a.x, a.y, 0));
-				lines.append(end_position + Vector3(b.x, b.y, 0));
-				break;
-		}
+	{
+		Vector3 anchor = start_position + (link_segment * 0.75);
+		Vector3 direction = start_position.direction_to(end_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines_ptrw[index++] = anchor;
+		lines_ptrw[index++] = anchor + (arrow_dir - direction) * arror_len;
+
+		arrow_dir = -direction.cross(up);
+		lines_ptrw[index++] = anchor;
+		lines_ptrw[index++] = anchor + (arrow_dir - direction) * arror_len;
+	}
+
+	if (link->is_bidirectional()) {
+		Vector3 anchor = start_position + (link_segment * 0.25);
+		Vector3 direction = end_position.direction_to(start_position);
+		Vector3 arrow_dir = direction.cross(up);
+		lines_ptrw[index++] = anchor;
+		lines_ptrw[index++] = anchor + (arrow_dir - direction) * arror_len;
+
+		arrow_dir = -direction.cross(up);
+		lines_ptrw[index++] = anchor;
+		lines_ptrw[index++] = anchor + (arrow_dir - direction) * arror_len;
 	}
 
 	p_gizmo->add_lines(lines, link->is_enabled() ? link_material : link_material_disabled);
 	p_gizmo->add_collision_segments(lines);
 
-	Vector<Vector3> handles;
-	handles.append(start_position);
-	handles.append(end_position);
-	p_gizmo->add_handles(handles, handles_material);
+	p_gizmo->add_handles(Vector({ start_position, end_position }), handles_material);
 }
 
 String NavigationLink3DGizmoPlugin::get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const {

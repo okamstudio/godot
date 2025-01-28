@@ -72,6 +72,8 @@ class GDExtension : public Resource {
 		GDExtensionClassFreePropertyList free_property_list_func = nullptr;
 		GDExtensionClassCreateInstance create_instance_func = nullptr;
 		GDExtensionClassGetRID get_rid_func = nullptr;
+		GDExtensionClassGetVirtual get_virtual_func = nullptr;
+		GDExtensionClassGetVirtualCallData get_virtual_call_data_func = nullptr;
 #endif // DISABLE_DEPRECATED
 	};
 

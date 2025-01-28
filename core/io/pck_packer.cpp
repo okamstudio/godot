@@ -198,11 +198,12 @@ Error PCKPacker::flush(bool p_verbose) {
 	}
 
 	for (int i = 0; i < files.size(); i++) {
-		int string_len = files[i].path.utf8().length();
+		CharString utf8_string = files[i].path.utf8();
+		int string_len = utf8_string.length();
 		int pad = _get_pad(4, string_len);
 
 		fhead->store_32(uint32_t(string_len + pad));
-		fhead->store_buffer((const uint8_t *)files[i].path.utf8().get_data(), string_len);
+		fhead->store_buffer((const uint8_t *)utf8_string.get_data(), string_len);
 		for (int j = 0; j < pad; j++) {
 			fhead->store_8(0);
 		}

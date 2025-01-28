@@ -374,8 +374,12 @@ static void _lineTo(SwStroke& stroke, const SwPoint& to)
 {
     auto delta = to - stroke.center;
 
-    //a zero-length lineto is a no-op; avoid creating a spurious corner
-    if (delta.zero()) return;
+    //a zero-length lineto is a no-op
+    if (delta.zero()) {
+        //round and square caps are expected to be drawn as a dot even for zero-length lines
+        if (stroke.firstPt && stroke.cap != StrokeCap::Butt) _firstSubPath(stroke, 0, 0); 
+        return; 
+    }
 
     /* The lineLength is used to determine the intersection of strokes outlines.
        The scale needs to be reverted since the stroke width has not been scaled.
@@ -454,6 +458,9 @@ static void _cubicTo(SwStroke& stroke, const SwPoint& ctrl1, const SwPoint& ctrl
         //ignoreable size
         if (valid < 0 && arc == bezStack) {
             stroke.center = to;
+
+            //round and square caps are expected to be drawn as a dot even for zero-length lines
+            if (stroke.firstPt && stroke.cap != StrokeCap::Butt) _firstSubPath(stroke, 0, 0);
             return;
         }
 

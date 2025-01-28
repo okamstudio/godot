@@ -36,7 +36,6 @@
 
 #include "core/object/object.h"
 #include "core/object/ref_counted.h"
-#include "core/templates/hash_set.h"
 
 class GDScriptAnalyzer {
 	GDScriptParser *parser = nullptr;

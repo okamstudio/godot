@@ -69,6 +69,14 @@
 #define _NET_WM_STATE_REMOVE 0L // remove/unset property
 #define _NET_WM_STATE_ADD 1L // add/set property
 
+#define _NET_WM_MOVERESIZE_SIZE_TOPLEFT 0L
+#define _NET_WM_MOVERESIZE_SIZE_TOP 1L
+#define _NET_WM_MOVERESIZE_SIZE_TOPRIGHT 2L
+#define _NET_WM_MOVERESIZE_SIZE_RIGHT 3L
+#define _NET_WM_MOVERESIZE_SIZE_BOTTOMRIGHT 4L
+#define _NET_WM_MOVERESIZE_SIZE_BOTTOM 5L
+#define _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT 6L
+#define _NET_WM_MOVERESIZE_SIZE_LEFT 7L
 #define _NET_WM_MOVERESIZE_MOVE 8L
 
 // 2.2 is the first release with multitouch
@@ -132,6 +140,7 @@ bool DisplayServerX11::has_feature(Feature p_feature) const {
 #ifdef DBUS_ENABLED
 		case FEATURE_NATIVE_DIALOG_FILE:
 		case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME:
 #endif
 		//case FEATURE_NATIVE_DIALOG:
 		//case FEATURE_NATIVE_DIALOG_INPUT:
@@ -143,6 +152,7 @@ bool DisplayServerX11::has_feature(Feature p_feature) const {
 		case FEATURE_CLIPBOARD_PRIMARY:
 		case FEATURE_TEXT_TO_SPEECH:
 		case FEATURE_WINDOW_EMBEDDING:
+		case FEATURE_WINDOW_DRAG:
 			return true;
 		case FEATURE_SCREEN_CAPTURE:
 			return !xwayland;
@@ -1974,7 +1984,8 @@ void DisplayServerX11::window_set_title(const String &p_title, WindowID p_window
 	Atom _net_wm_name = XInternAtom(x11_display, "_NET_WM_NAME", false);
 	Atom utf8_string = XInternAtom(x11_display, "UTF8_STRING", false);
 	if (_net_wm_name != None && utf8_string != None) {
-		XChangeProperty(x11_display, wd.x11_window, _net_wm_name, utf8_string, 8, PropModeReplace, (unsigned char *)p_title.utf8().get_data(), p_title.utf8().length());
+		CharString utf8_title = p_title.utf8();
+		XChangeProperty(x11_display, wd.x11_window, _net_wm_name, utf8_string, 8, PropModeReplace, (unsigned char *)utf8_title.get_data(), utf8_title.length());
 	}
 }
 
@@ -5486,6 +5497,10 @@ void DisplayServerX11::window_start_drag(WindowID p_window) {
 	ERR_FAIL_COND(!windows.has(p_window));
 	WindowData &wd = windows[p_window];
 
+	if (wd.embed_parent) {
+		return; // Embedded window.
+	}
+
 	XClientMessageEvent m;
 	memset(&m, 0, sizeof(m));
 
@@ -5507,6 +5522,74 @@ void DisplayServerX11::window_start_drag(WindowID p_window) {
 		m.data.l[3] = Button1;
 	}
 	m.data.l[2] = _NET_WM_MOVERESIZE_MOVE;
+	m.data.l[4] = 1; // Source - normal application.
+
+	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent *)&m);
+
+	XSync(x11_display, 0);
+}
+
+void DisplayServerX11::window_start_resize(WindowResizeEdge p_edge, WindowID p_window) {
+	_THREAD_SAFE_METHOD_
+
+	ERR_FAIL_INDEX(int(p_edge), WINDOW_EDGE_MAX);
+
+	ERR_FAIL_COND(!windows.has(p_window));
+	WindowData &wd = windows[p_window];
+
+	if (wd.embed_parent) {
+		return; // Embedded window.
+	}
+
+	XClientMessageEvent m;
+	memset(&m, 0, sizeof(m));
+
+	XUngrabPointer(x11_display, CurrentTime);
+
+	Window root_return, child_return;
+	int root_x, root_y, win_x, win_y;
+	unsigned int mask_return;
+
+	Bool xquerypointer_result = XQueryPointer(x11_display, wd.x11_window, &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return);
+
+	m.type = ClientMessage;
+	m.window = wd.x11_window;
+	m.message_type = XInternAtom(x11_display, "_NET_WM_MOVERESIZE", True);
+	m.format = 32;
+	if (xquerypointer_result) {
+		m.data.l[0] = root_x;
+		m.data.l[1] = root_y;
+		m.data.l[3] = Button1;
+	}
+
+	switch (p_edge) {
+		case DisplayServer::WINDOW_EDGE_TOP_LEFT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_TOPLEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_TOP: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_TOP;
+		} break;
+		case DisplayServer::WINDOW_EDGE_TOP_RIGHT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_TOPRIGHT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_LEFT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_LEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_RIGHT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_RIGHT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM_LEFT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_BOTTOMLEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_BOTTOM;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM_RIGHT: {
+			m.data.l[2] = _NET_WM_MOVERESIZE_SIZE_BOTTOMRIGHT;
+		} break;
+		default:
+			break;
+	}
 	m.data.l[4] = 1; // Source - normal application.
 
 	XSendEvent(x11_display, DefaultRootWindow(x11_display), False, SubstructureRedirectMask | SubstructureNotifyMask, (XEvent *)&m);
@@ -5718,7 +5801,7 @@ Error DisplayServerX11::embed_process(WindowID p_window, OS::ProcessID p_pid, co
 			}
 		}
 
-		if (desired_rect.size.x < 100 || desired_rect.size.y < 100) {
+		if (desired_rect.size.x <= 100 || desired_rect.size.y <= 100) {
 			p_visible = false;
 		}
 
@@ -5766,6 +5849,28 @@ Error DisplayServerX11::remove_embedded_process(OS::ProcessID p_pid) {
 	}
 
 	EmbeddedProcessData *ep = embedded_processes.get(p_pid);
+
+	// Handle bad window errors silently because just in case the embedded window was closed.
+	int (*oldHandler)(Display *, XErrorEvent *) = XSetErrorHandler(&bad_window_error_handler);
+
+	// Check if the window is still valid.
+	XWindowAttributes attr;
+	if (XGetWindowAttributes(x11_display, ep->process_window, &attr)) {
+		// Send the message to gracefully close the window.
+		XEvent ev;
+		memset(&ev, 0, sizeof(ev));
+		ev.xclient.type = ClientMessage;
+		ev.xclient.window = ep->process_window;
+		ev.xclient.message_type = XInternAtom(x11_display, "WM_PROTOCOLS", True);
+		ev.xclient.format = 32;
+		ev.xclient.data.l[0] = XInternAtom(x11_display, "WM_DELETE_WINDOW", False);
+		ev.xclient.data.l[1] = CurrentTime;
+		XSendEvent(x11_display, ep->process_window, False, NoEventMask, &ev);
+	}
+
+	// Restore default error handler.
+	XSetErrorHandler(oldHandler);
+
 	embedded_processes.erase(p_pid);
 	memdelete(ep);
 

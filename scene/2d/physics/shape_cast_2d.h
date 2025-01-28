@@ -33,7 +33,7 @@
 
 #include "scene/2d/node_2d.h"
 #include "scene/resources/2d/shape_2d.h"
-#include "scene/resources/world_2d.h"
+#include "servers/physics_server_2d.h"
 
 class CollisionObject2D;
 

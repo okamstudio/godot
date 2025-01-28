@@ -67,6 +67,8 @@ public:
 	TypedArray<RID> map_get_obstacles(RID p_map) const override { return TypedArray<RID>(); }
 	void map_force_update(RID p_map) override {}
 	uint32_t map_get_iteration_id(RID p_map) const override { return 0; }
+	void map_set_use_async_iterations(RID p_map, bool p_enabled) override {}
+	bool map_get_use_async_iterations(RID p_map) const override { return false; }
 
 	RID region_create() override { return RID(); }
 	void region_set_enabled(RID p_region, bool p_enabled) override {}
@@ -97,6 +99,7 @@ public:
 	Vector3 region_get_closest_point(RID p_region, const Vector3 &p_point) const override { return Vector3(); }
 	Vector3 region_get_closest_point_normal(RID p_region, const Vector3 &p_point) const override { return Vector3(); }
 	Vector3 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const override { return Vector3(); }
+	AABB region_get_bounds(RID p_region) const override { return AABB(); }
 
 	RID link_create() override { return RID(); }
 	void link_set_map(RID p_link, RID p_map) override {}

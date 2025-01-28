@@ -723,58 +723,12 @@ Ref<AudioSample> AudioStreamWAV::generate_sample() const {
 	return sample;
 }
 
-void AudioStreamWAV::_bind_methods() {
-	ClassDB::bind_static_method("AudioStreamWAV", D_METHOD("load_from_file", "path", "options"), &AudioStreamWAV::load_from_file, DEFVAL(Dictionary()));
-	ClassDB::bind_static_method("AudioStreamWAV", D_METHOD("load_from_buffer", "buffer", "options"), &AudioStreamWAV::load_from_buffer, DEFVAL(Dictionary()));
-
-	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamWAV::set_data);
-	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamWAV::get_data);
-
-	ClassDB::bind_method(D_METHOD("set_format", "format"), &AudioStreamWAV::set_format);
-	ClassDB::bind_method(D_METHOD("get_format"), &AudioStreamWAV::get_format);
-
-	ClassDB::bind_method(D_METHOD("set_loop_mode", "loop_mode"), &AudioStreamWAV::set_loop_mode);
-	ClassDB::bind_method(D_METHOD("get_loop_mode"), &AudioStreamWAV::get_loop_mode);
-
-	ClassDB::bind_method(D_METHOD("set_loop_begin", "loop_begin"), &AudioStreamWAV::set_loop_begin);
-	ClassDB::bind_method(D_METHOD("get_loop_begin"), &AudioStreamWAV::get_loop_begin);
-
-	ClassDB::bind_method(D_METHOD("set_loop_end", "loop_end"), &AudioStreamWAV::set_loop_end);
-	ClassDB::bind_method(D_METHOD("get_loop_end"), &AudioStreamWAV::get_loop_end);
-
-	ClassDB::bind_method(D_METHOD("set_mix_rate", "mix_rate"), &AudioStreamWAV::set_mix_rate);
-	ClassDB::bind_method(D_METHOD("get_mix_rate"), &AudioStreamWAV::get_mix_rate);
-
-	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamWAV::set_stereo);
-	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamWAV::is_stereo);
-
-	ClassDB::bind_method(D_METHOD("save_to_wav", "path"), &AudioStreamWAV::save_to_wav);
-
-	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "format", PROPERTY_HINT_ENUM, "8-Bit,16-Bit,IMA ADPCM,Quite OK Audio"), "set_format", "get_format");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_mode", PROPERTY_HINT_ENUM, "Disabled,Forward,Ping-Pong,Backward"), "set_loop_mode", "get_loop_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_begin"), "set_loop_begin", "get_loop_begin");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_end"), "set_loop_end", "get_loop_end");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "mix_rate"), "set_mix_rate", "get_mix_rate");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stereo"), "set_stereo", "is_stereo");
-
-	BIND_ENUM_CONSTANT(FORMAT_8_BITS);
-	BIND_ENUM_CONSTANT(FORMAT_16_BITS);
-	BIND_ENUM_CONSTANT(FORMAT_IMA_ADPCM);
-	BIND_ENUM_CONSTANT(FORMAT_QOA);
-
-	BIND_ENUM_CONSTANT(LOOP_DISABLED);
-	BIND_ENUM_CONSTANT(LOOP_FORWARD);
-	BIND_ENUM_CONSTANT(LOOP_PINGPONG);
-	BIND_ENUM_CONSTANT(LOOP_BACKWARD);
-}
-
-Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_file_data, const Dictionary &p_options) {
+Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_stream_data, const Dictionary &p_options) {
 	// /* STEP 1, READ WAVE FILE */
 
 	Ref<FileAccessMemory> file;
 	file.instantiate();
-	Error err = file->open_custom(p_file_data.ptr(), p_file_data.size());
+	Error err = file->open_custom(p_stream_data.ptr(), p_stream_data.size());
 	ERR_FAIL_COND_V_MSG(err != OK, Ref<AudioStreamWAV>(), "Cannot create memfile for WAV file buffer.");
 
 	/* CHECK RIFF */
@@ -1223,9 +1177,55 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_fi
 }
 
 Ref<AudioStreamWAV> AudioStreamWAV::load_from_file(const String &p_path, const Dictionary &p_options) {
-	Vector<uint8_t> file_data = FileAccess::get_file_as_bytes(p_path);
-	ERR_FAIL_COND_V_MSG(file_data.is_empty(), Ref<AudioStreamWAV>(), vformat("Cannot open file '%s'.", p_path));
-	return load_from_buffer(file_data, p_options);
+	const Vector<uint8_t> stream_data = FileAccess::get_file_as_bytes(p_path);
+	ERR_FAIL_COND_V_MSG(stream_data.is_empty(), Ref<AudioStreamWAV>(), vformat("Cannot open file '%s'.", p_path));
+	return load_from_buffer(stream_data, p_options);
+}
+
+void AudioStreamWAV::_bind_methods() {
+	ClassDB::bind_static_method("AudioStreamWAV", D_METHOD("load_from_buffer", "stream_data", "options"), &AudioStreamWAV::load_from_buffer, DEFVAL(Dictionary()));
+	ClassDB::bind_static_method("AudioStreamWAV", D_METHOD("load_from_file", "path", "options"), &AudioStreamWAV::load_from_file, DEFVAL(Dictionary()));
+
+	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamWAV::set_data);
+	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamWAV::get_data);
+
+	ClassDB::bind_method(D_METHOD("set_format", "format"), &AudioStreamWAV::set_format);
+	ClassDB::bind_method(D_METHOD("get_format"), &AudioStreamWAV::get_format);
+
+	ClassDB::bind_method(D_METHOD("set_loop_mode", "loop_mode"), &AudioStreamWAV::set_loop_mode);
+	ClassDB::bind_method(D_METHOD("get_loop_mode"), &AudioStreamWAV::get_loop_mode);
+
+	ClassDB::bind_method(D_METHOD("set_loop_begin", "loop_begin"), &AudioStreamWAV::set_loop_begin);
+	ClassDB::bind_method(D_METHOD("get_loop_begin"), &AudioStreamWAV::get_loop_begin);
+
+	ClassDB::bind_method(D_METHOD("set_loop_end", "loop_end"), &AudioStreamWAV::set_loop_end);
+	ClassDB::bind_method(D_METHOD("get_loop_end"), &AudioStreamWAV::get_loop_end);
+
+	ClassDB::bind_method(D_METHOD("set_mix_rate", "mix_rate"), &AudioStreamWAV::set_mix_rate);
+	ClassDB::bind_method(D_METHOD("get_mix_rate"), &AudioStreamWAV::get_mix_rate);
+
+	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamWAV::set_stereo);
+	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamWAV::is_stereo);
+
+	ClassDB::bind_method(D_METHOD("save_to_wav", "path"), &AudioStreamWAV::save_to_wav);
+
+	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "format", PROPERTY_HINT_ENUM, "8-Bit,16-Bit,IMA ADPCM,Quite OK Audio"), "set_format", "get_format");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_mode", PROPERTY_HINT_ENUM, "Disabled,Forward,Ping-Pong,Backward"), "set_loop_mode", "get_loop_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_begin"), "set_loop_begin", "get_loop_begin");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "loop_end"), "set_loop_end", "get_loop_end");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "mix_rate"), "set_mix_rate", "get_mix_rate");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stereo"), "set_stereo", "is_stereo");
+
+	BIND_ENUM_CONSTANT(FORMAT_8_BITS);
+	BIND_ENUM_CONSTANT(FORMAT_16_BITS);
+	BIND_ENUM_CONSTANT(FORMAT_IMA_ADPCM);
+	BIND_ENUM_CONSTANT(FORMAT_QOA);
+
+	BIND_ENUM_CONSTANT(LOOP_DISABLED);
+	BIND_ENUM_CONSTANT(LOOP_FORWARD);
+	BIND_ENUM_CONSTANT(LOOP_PINGPONG);
+	BIND_ENUM_CONSTANT(LOOP_BACKWARD);
 }
 
 AudioStreamWAV::AudioStreamWAV() {}

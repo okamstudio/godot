@@ -45,6 +45,7 @@
 #include "structures/gltf_texture_sampler.h"
 
 #include "scene/3d/importer_mesh_instance_3d.h"
+#include "scene/animation/animation_player.h"
 
 class GLTFState : public Resource {
 	GDCLASS(GLTFState, Resource);

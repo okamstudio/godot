@@ -130,6 +130,7 @@ struct [[nodiscard]] Vector3 {
 	_FORCE_INLINE_ Vector3 cross(const Vector3 &p_with) const;
 	_FORCE_INLINE_ real_t dot(const Vector3 &p_with) const;
 	Basis outer(const Vector3 &p_with) const;
+	_FORCE_INLINE_ Vector3 get_any_perpendicular() const;
 
 	_FORCE_INLINE_ Vector3 abs() const;
 	_FORCE_INLINE_ Vector3 floor() const;
@@ -324,6 +325,16 @@ Vector3 Vector3::direction_to(const Vector3 &p_to) const {
 	Vector3 ret(p_to.x - x, p_to.y - y, p_to.z - z);
 	ret.normalize();
 	return ret;
+}
+
+Vector3 Vector3::get_any_perpendicular() const {
+	// Return the any perpendicular vector by cross product with the Vector3.RIGHT or Vector3.UP,
+	// whichever has the greater angle to the current vector with the sign of each element positive.
+	// The only essence is "to avoid being parallel to the current vector", and there is no mathematical basis for using Vector3.RIGHT and Vector3.UP,
+	// since it could be a different vector depending on the prior branching code Math::abs(x) <= Math::abs(y) && Math::abs(x) <= Math::abs(z).
+	// However, it would be reasonable to use any of the axes of the basis, as it is simpler to calculate.
+	ERR_FAIL_COND_V_MSG(is_zero_approx(), Vector3(0, 0, 0), "The Vector3 must not be zero.");
+	return cross((Math::abs(x) <= Math::abs(y) && Math::abs(x) <= Math::abs(z)) ? Vector3(1, 0, 0) : Vector3(0, 1, 0)).normalized();
 }
 
 /* Operators */

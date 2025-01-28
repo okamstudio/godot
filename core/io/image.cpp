@@ -1135,7 +1135,7 @@ static void _overlay(const uint8_t *__restrict p_src, uint8_t *__restrict p_dst,
 }
 
 bool Image::is_size_po2() const {
-	return uint32_t(width) == next_power_of_2(width) && uint32_t(height) == next_power_of_2(height);
+	return is_power_of_2(width) && is_power_of_2(height);
 }
 
 void Image::resize_to_po2(bool p_square, Interpolation p_interpolation) {
@@ -3953,6 +3953,97 @@ String Image::get_format_name(Format p_format) {
 	return format_names[p_format];
 }
 
+uint32_t Image::get_format_component_mask(Format p_format) {
+	const uint32_t r = 1;
+	const uint32_t rg = 3;
+	const uint32_t rgb = 7;
+	const uint32_t rgba = 15;
+
+	switch (p_format) {
+		case FORMAT_L8:
+			return rgb;
+		case FORMAT_LA8:
+			return rgba;
+		case FORMAT_R8:
+			return r;
+		case FORMAT_RG8:
+			return rg;
+		case FORMAT_RGB8:
+			return rgb;
+		case FORMAT_RGBA8:
+			return rgba;
+		case FORMAT_RGBA4444:
+			return rgba;
+		case FORMAT_RGB565:
+			return rgb;
+		case FORMAT_RF:
+			return r;
+		case FORMAT_RGF:
+			return rg;
+		case FORMAT_RGBF:
+			return rgb;
+		case FORMAT_RGBAF:
+			return rgba;
+		case FORMAT_RH:
+			return r;
+		case FORMAT_RGH:
+			return rg;
+		case FORMAT_RGBH:
+			return rgb;
+		case FORMAT_RGBAH:
+			return rgba;
+		case FORMAT_RGBE9995:
+			return rgb;
+		case FORMAT_DXT1:
+			return rgb;
+		case FORMAT_DXT3:
+			return rgba;
+		case FORMAT_DXT5:
+			return rgba;
+		case FORMAT_RGTC_R:
+			return r;
+		case FORMAT_RGTC_RG:
+			return rg;
+		case FORMAT_BPTC_RGBA:
+			return rgba;
+		case FORMAT_BPTC_RGBF:
+			return rgb;
+		case FORMAT_BPTC_RGBFU:
+			return rgb;
+		case FORMAT_ETC:
+			return rgb;
+		case FORMAT_ETC2_R11:
+			return r;
+		case FORMAT_ETC2_R11S:
+			return r;
+		case FORMAT_ETC2_RG11:
+			return rg;
+		case FORMAT_ETC2_RG11S:
+			return rg;
+		case FORMAT_ETC2_RGB8:
+			return rgb;
+		case FORMAT_ETC2_RGBA8:
+			return rgba;
+		case FORMAT_ETC2_RGB8A1:
+			return rgba;
+		case FORMAT_ETC2_RA_AS_RG:
+			return rg;
+		case FORMAT_DXT5_RA_AS_RG:
+			return rg;
+		case FORMAT_ASTC_4x4:
+			return rgba;
+		case FORMAT_ASTC_4x4_HDR:
+			return rgba;
+		case FORMAT_ASTC_8x8:
+			return rgba;
+		case FORMAT_ASTC_8x8_HDR:
+			return rgba;
+		default:
+			ERR_PRINT("Unhandled format.");
+			return rgba;
+	}
+}
+
 Error Image::load_png_from_buffer(const Vector<uint8_t> &p_array) {
 	return _load_from_buffer(p_array, _png_mem_loader_func);
 }
@@ -3992,7 +4083,7 @@ Error Image::load_svg_from_buffer(const Vector<uint8_t> &p_array, float scale) {
 	ERR_FAIL_COND_V(buffer_size == 0, ERR_INVALID_PARAMETER);
 
 	Ref<Image> image = _svg_scalable_mem_loader_func(p_array.ptr(), buffer_size, scale);
-	ERR_FAIL_COND_V(!image.is_valid(), ERR_PARSE_ERROR);
+	ERR_FAIL_COND_V(image.is_null(), ERR_PARSE_ERROR);
 
 	copy_internals_from(image);
 
@@ -4059,7 +4150,7 @@ Error Image::_load_from_buffer(const Vector<uint8_t> &p_array, ImageMemLoadFunc 
 	const uint8_t *r = p_array.ptr();
 
 	Ref<Image> image = p_loader(r, buffer_size);
-	ERR_FAIL_COND_V(!image.is_valid(), ERR_PARSE_ERROR);
+	ERR_FAIL_COND_V(image.is_null(), ERR_PARSE_ERROR);
 
 	copy_internals_from(image);
 

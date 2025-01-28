@@ -31,10 +31,6 @@
 #include "skeleton_modification_2d_lookat.h"
 #include "scene/2d/skeleton_2d.h"
 
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif // TOOLS_ENABLED
-
 bool SkeletonModification2DLookAt::_set(const StringName &p_path, const Variant &p_value) {
 	String path = p_path;
 

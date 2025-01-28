@@ -71,7 +71,7 @@ public:
 	bool is_paused() const;
 
 	void set_ignore_time_scale(bool p_ignore);
-	bool get_ignore_time_scale();
+	bool is_ignoring_time_scale();
 
 	bool is_stopped() const;
 

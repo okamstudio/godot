@@ -227,7 +227,7 @@ void EditorNode3DGizmo::Instance::create_instance(Node3D *p_base, bool p_hidden)
 
 void EditorNode3DGizmo::add_mesh(const Ref<Mesh> &p_mesh, const Ref<Material> &p_material, const Transform3D &p_xform, const Ref<SkinReference> &p_skin_reference) {
 	ERR_FAIL_NULL(spatial_node);
-	ERR_FAIL_COND_MSG(!p_mesh.is_valid(), "EditorNode3DGizmo.add_mesh() requires a valid Mesh resource.");
+	ERR_FAIL_COND_MSG(p_mesh.is_null(), "EditorNode3DGizmo.add_mesh() requires a valid Mesh resource.");
 
 	Instance ins;
 

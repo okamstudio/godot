@@ -131,13 +131,18 @@ bool DisplayServerWindows::has_feature(Feature p_feature) const {
 		case FEATURE_NATIVE_DIALOG_INPUT:
 		case FEATURE_NATIVE_DIALOG_FILE:
 		case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		//case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		case FEATURE_SWAP_BUFFERS:
 		case FEATURE_KEEP_SCREEN_ON:
 		case FEATURE_TEXT_TO_SPEECH:
 		case FEATURE_SCREEN_CAPTURE:
 		case FEATURE_STATUS_INDICATOR:
 		case FEATURE_WINDOW_EMBEDDING:
+		case FEATURE_WINDOW_DRAG:
+		case FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE:
 			return true;
+		case FEATURE_EMOJI_AND_SYMBOL_PICKER:
+			return (os_ver.dwBuildNumber >= 17134); // Windows 10 Redstone 4 (1803)+ only.
 		default:
 			return false;
 	}
@@ -555,7 +560,7 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 			flags |= FOS_FORCESHOWHIDDEN;
 		}
 		pfd->SetOptions(flags | FOS_FORCEFILESYSTEM);
-		pfd->SetTitle((LPCWSTR)fd->title.utf16().ptr());
+		pfd->SetTitle((LPCWSTR)fd->title.utf16().get_data());
 
 		String dir = ProjectSettings::get_singleton()->globalize_path(fd->current_directory);
 		if (dir == ".") {
@@ -582,7 +587,7 @@ void DisplayServerWindows::_thread_fd_monitor(void *p_ud) {
 			pfd->SetFolder(shellitem);
 		}
 
-		pfd->SetFileName((LPCWSTR)fd->filename.utf16().ptr());
+		pfd->SetFileName((LPCWSTR)fd->filename.utf16().get_data());
 		pfd->SetFileTypes(filters.size(), filters.ptr());
 		pfd->SetFileTypeIndex(0);
 
@@ -2876,10 +2881,7 @@ static BOOL CALLBACK _enum_proc_find_window_from_process_id_callback(HWND hWnd, 
 	GetWindowThreadProcessId(hWnd, &process_id);
 	if (ed.process_id == process_id) {
 		if (GetParent(hWnd) != ed.parent_hWnd) {
-			const DWORD style = GetWindowLongPtr(hWnd, GWL_STYLE);
-			if ((style & WS_VISIBLE) != WS_VISIBLE) {
-				return TRUE;
-			}
+			return TRUE;
 		}
 
 		// Found it.
@@ -2935,24 +2937,9 @@ Error DisplayServerWindows::embed_process(WindowID p_window, OS::ProcessID p_pid
 		ep->is_visible = (style & WS_VISIBLE) == WS_VISIBLE;
 
 		embedded_processes.insert(p_pid, ep);
-
-		HWND old_parent = GetParent(ep->window_handle);
-		if (old_parent != wd.hWnd) {
-			// It's important that the window does not have the WS_CHILD flag
-			// to prevent the current process from interfering with the embedded process.
-			// I observed lags and issues with mouse capture when WS_CHILD is set.
-			// Additionally, WS_POPUP must be set to ensure that the coordinates of the embedded
-			// window remain screen coordinates and not local coordinates of the parent window.
-			if ((style & WS_CHILD) == WS_CHILD || (style & WS_POPUP) != WS_POPUP) {
-				const DWORD new_style = (style & ~WS_CHILD) | WS_POPUP;
-				SetWindowLong(ep->window_handle, GWL_STYLE, new_style);
-			}
-			// Set the parent to current window.
-			SetParent(ep->window_handle, wd.hWnd);
-		}
 	}
 
-	if (p_rect.size.x < 100 || p_rect.size.y < 100) {
+	if (p_rect.size.x <= 100 || p_rect.size.y <= 100) {
 		p_visible = false;
 	}
 
@@ -2961,7 +2948,7 @@ Error DisplayServerWindows::embed_process(WindowID p_window, OS::ProcessID p_pid
 	// (e.g., a screen to the left of the main screen).
 	const Rect2i adjusted_rect = Rect2i(p_rect.position + _get_screens_origin(), p_rect.size);
 
-	SetWindowPos(ep->window_handle, HWND_BOTTOM, adjusted_rect.position.x, adjusted_rect.position.y, adjusted_rect.size.x, adjusted_rect.size.y, SWP_NOZORDER | SWP_NOACTIVATE);
+	SetWindowPos(ep->window_handle, nullptr, adjusted_rect.position.x, adjusted_rect.position.y, adjusted_rect.size.x, adjusted_rect.size.y, SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
 
 	if (ep->is_visible != p_visible) {
 		if (p_visible) {
@@ -2987,6 +2974,9 @@ Error DisplayServerWindows::remove_embedded_process(OS::ProcessID p_pid) {
 	}
 
 	EmbeddedProcessData *ep = embedded_processes.get(p_pid);
+
+	// Send a close message to gracefully close the process.
+	PostMessage(ep->window_handle, WM_CLOSE, 0, 0);
 
 	// This is a workaround to ensure the parent window correctly regains focus after the
 	// embedded window is closed. When the embedded window is closed while it has focus,
@@ -3064,8 +3054,14 @@ Error DisplayServerWindows::dialog_show(String p_title, String p_description, Ve
 		buttons.push_back(s.utf16());
 	}
 
+	WindowID window_id = _get_focused_window_or_popup();
+	if (!windows.has(window_id)) {
+		window_id = MAIN_WINDOW_ID;
+	}
+
 	config.pszWindowTitle = (LPCWSTR)(title.get_data());
 	config.pszContent = (LPCWSTR)(message.get_data());
+	config.hwndParent = windows[window_id].hWnd;
 
 	const int button_count = buttons.size();
 	config.cButtons = button_count;
@@ -3074,7 +3070,7 @@ Error DisplayServerWindows::dialog_show(String p_title, String p_description, Ve
 	TASKDIALOG_BUTTON *tbuttons = button_count != 0 ? (TASKDIALOG_BUTTON *)alloca(sizeof(TASKDIALOG_BUTTON) * button_count) : nullptr;
 	if (tbuttons) {
 		for (int i = 0; i < button_count; i++) {
-			tbuttons[i].nButtonID = i;
+			tbuttons[i].nButtonID = i + 100;
 			tbuttons[i].pszButtonText = (LPCWSTR)(buttons[i].get_data());
 		}
 	}
@@ -3091,7 +3087,7 @@ Error DisplayServerWindows::dialog_show(String p_title, String p_description, Ve
 
 		if (task_dialog_indirect && SUCCEEDED(task_dialog_indirect(&config, &button_pressed, nullptr, nullptr))) {
 			if (p_callback.is_valid()) {
-				Variant button = button_pressed;
+				Variant button = button_pressed - 100;
 				const Variant *args[1] = { &button };
 				Variant ret;
 				Callable::CallError ce;
@@ -3241,7 +3237,7 @@ Error DisplayServerWindows::dialog_input_text(String p_title, String p_descripti
 		WCHAR font[13]; // must be "MS Shell Dlg"
 	} template_base = {
 		1, 0xFFFF, 0, 0,
-		DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU,
+		DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION,
 		3, 0, 0, 20, 20, L"", L"#32770", L"", 8, FW_NORMAL, 0, DEFAULT_CHARSET, L"MS Shell Dlg"
 	};
 
@@ -3447,6 +3443,27 @@ Key DisplayServerWindows::keyboard_get_label_from_physical(Key p_keycode) const 
 		}
 	}
 	return p_keycode;
+}
+
+void DisplayServerWindows::show_emoji_and_symbol_picker() const {
+	// Send Win + Period shortcut, there's no non-WinRT public API.
+
+	INPUT input[4] = {};
+	input[0].type = INPUT_KEYBOARD; // Win down.
+	input[0].ki.wVk = VK_LWIN;
+
+	input[1].type = INPUT_KEYBOARD; // Period down.
+	input[1].ki.wVk = VK_OEM_PERIOD;
+
+	input[2].type = INPUT_KEYBOARD; // Win up.
+	input[2].ki.wVk = VK_LWIN;
+	input[2].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	input[3].type = INPUT_KEYBOARD; // Period up.
+	input[3].ki.wVk = VK_OEM_PERIOD;
+	input[3].ki.dwFlags = KEYEVENTF_KEYUP;
+
+	SendInput(4, input, sizeof(INPUT));
 }
 
 String DisplayServerWindows::_get_keyboard_layout_display_name(const String &p_klid) const {
@@ -3825,7 +3842,7 @@ DisplayServer::IndicatorID DisplayServerWindows::create_status_indicator(const R
 	ndat.uFlags = NIF_ICON | NIF_TIP | NIF_MESSAGE;
 	ndat.uCallbackMessage = WM_INDICATOR_CALLBACK_MESSAGE;
 	ndat.hIcon = hicon;
-	memcpy(ndat.szTip, p_tooltip.utf16().ptr(), MIN(p_tooltip.utf16().length(), 127) * sizeof(WCHAR));
+	memcpy(ndat.szTip, p_tooltip.utf16().get_data(), MIN(p_tooltip.utf16().length(), 127) * sizeof(WCHAR));
 	ndat.uVersion = NOTIFYICON_VERSION;
 
 	Shell_NotifyIconW(NIM_ADD, &ndat);
@@ -3908,7 +3925,7 @@ void DisplayServerWindows::status_indicator_set_tooltip(IndicatorID p_id, const 
 	ndat.hWnd = windows[MAIN_WINDOW_ID].hWnd;
 	ndat.uID = p_id;
 	ndat.uFlags = NIF_TIP;
-	memcpy(ndat.szTip, p_tooltip.utf16().ptr(), MIN(p_tooltip.utf16().length(), 127) * sizeof(WCHAR));
+	memcpy(ndat.szTip, p_tooltip.utf16().get_data(), MIN(p_tooltip.utf16().length(), 127) * sizeof(WCHAR));
 	ndat.uVersion = NOTIFYICON_VERSION;
 
 	Shell_NotifyIconW(NIM_MODIFY, &ndat);
@@ -4007,6 +4024,10 @@ void DisplayServerWindows::window_start_drag(WindowID p_window) {
 	ERR_FAIL_COND(!windows.has(p_window));
 	WindowData &wd = windows[p_window];
 
+	if (wd.parent_hwnd) {
+		return; // Embedded window.
+	}
+
 	ReleaseCapture();
 
 	POINT coords;
@@ -4014,6 +4035,56 @@ void DisplayServerWindows::window_start_drag(WindowID p_window) {
 	ScreenToClient(wd.hWnd, &coords);
 
 	SendMessage(wd.hWnd, WM_SYSCOMMAND, SC_MOVE | HTCAPTION, MAKELPARAM(coords.x, coords.y));
+}
+
+void DisplayServerWindows::window_start_resize(WindowResizeEdge p_edge, WindowID p_window) {
+	_THREAD_SAFE_METHOD_
+
+	ERR_FAIL_INDEX(int(p_edge), WINDOW_EDGE_MAX);
+	ERR_FAIL_COND(!windows.has(p_window));
+	WindowData &wd = windows[p_window];
+
+	if (wd.parent_hwnd) {
+		return; // Embedded window.
+	}
+
+	ReleaseCapture();
+
+	POINT coords;
+	GetCursorPos(&coords);
+	ScreenToClient(wd.hWnd, &coords);
+
+	DWORD op = 0;
+	switch (p_edge) {
+		case DisplayServer::WINDOW_EDGE_TOP_LEFT: {
+			op = WMSZ_TOPLEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_TOP: {
+			op = WMSZ_TOP;
+		} break;
+		case DisplayServer::WINDOW_EDGE_TOP_RIGHT: {
+			op = WMSZ_TOPRIGHT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_LEFT: {
+			op = WMSZ_LEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_RIGHT: {
+			op = WMSZ_RIGHT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM_LEFT: {
+			op = WMSZ_BOTTOMLEFT;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM: {
+			op = WMSZ_BOTTOM;
+		} break;
+		case DisplayServer::WINDOW_EDGE_BOTTOM_RIGHT: {
+			op = WMSZ_BOTTOMRIGHT;
+		} break;
+		default:
+			break;
+	}
+
+	SendMessage(wd.hWnd, WM_SYSCOMMAND, SC_SIZE | op, MAKELPARAM(coords.x, coords.y));
 }
 
 void DisplayServerWindows::set_context(Context p_context) {
@@ -4622,7 +4693,9 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					// If multiple Shifts are held down at the same time,
 					// Windows natively only sends a KEYUP for the last one to be released.
 					if (raw->data.keyboard.Flags & RI_KEY_BREAK) {
-						if (!mods.has_flag(WinKeyModifierMask::SHIFT)) {
+						// Make sure to check the latest key state since
+						// we're in the middle of the message queue.
+						if (GetAsyncKeyState(VK_SHIFT) < 0) {
 							// A Shift is released, but another Shift is still held
 							ERR_BREAK(key_event_pos >= KEY_EVENT_BUFFER_SIZE);
 
@@ -5787,7 +5860,12 @@ void DisplayServerWindows::_process_key_events() {
 					if (!(ke.lParam & (1 << 24)) && ToUnicodeEx(extended_code, (ke.lParam >> 16) & 0xFF, keyboard_state, chars, 255, 4, GetKeyboardLayout(0)) > 0) {
 						String keysym = String::utf16((char16_t *)chars, 255);
 						if (!keysym.is_empty()) {
-							key_label = fix_key_label(keysym[0], keycode);
+							char32_t unicode_value = keysym[0];
+							// For printable ASCII characters (0x20-0x7E), override the original keycode with the character value.
+							if (Key::SPACE <= (Key)unicode_value && (Key)unicode_value <= Key::ASCIITILDE) {
+								keycode = fix_keycode(unicode_value, (Key)unicode_value);
+							}
+							key_label = fix_key_label(unicode_value, keycode);
 						}
 					}
 
@@ -5843,7 +5921,12 @@ void DisplayServerWindows::_process_key_events() {
 				if (!(ke.lParam & (1 << 24)) && ToUnicodeEx(extended_code, (ke.lParam >> 16) & 0xFF, keyboard_state, chars, 255, 4, GetKeyboardLayout(0)) > 0) {
 					String keysym = String::utf16((char16_t *)chars, 255);
 					if (!keysym.is_empty()) {
-						key_label = fix_key_label(keysym[0], keycode);
+						char32_t unicode_value = keysym[0];
+						// For printable ASCII characters (0x20-0x7E), override the original keycode with the character value.
+						if (Key::SPACE <= (Key)unicode_value && (Key)unicode_value <= Key::ASCIITILDE) {
+							keycode = fix_keycode(unicode_value, (Key)unicode_value);
+						}
+						key_label = fix_key_label(unicode_value, keycode);
 					}
 				}
 

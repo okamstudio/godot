@@ -12,6 +12,7 @@ thirdparty_obj = []
 
 thirdparty_dir = "#thirdparty/etcpak/"
 thirdparty_sources = [
+    "DecodeRGB.cpp",
     "Dither.cpp",
     "ProcessDxtc.cpp",
     "ProcessRGB.cpp",

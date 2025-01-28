@@ -195,7 +195,7 @@ void NavigationMeshSourceGeometryData3D::_add_faces(const PackedVector3Array &p_
 }
 
 void NavigationMeshSourceGeometryData3D::add_mesh(const Ref<Mesh> &p_mesh, const Transform3D &p_xform) {
-	ERR_FAIL_COND(!p_mesh.is_valid());
+	ERR_FAIL_COND(p_mesh.is_null());
 
 #ifdef DEBUG_ENABLED
 	if (!Engine::get_singleton()->is_editor_hint()) {

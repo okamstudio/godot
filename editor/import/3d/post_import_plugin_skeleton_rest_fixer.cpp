@@ -30,7 +30,6 @@
 
 #include "post_import_plugin_skeleton_rest_fixer.h"
 
-#include "editor/import/3d/scene_import_settings.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
 #include "scene/3d/retarget_modifier_3d.h"
@@ -93,7 +92,7 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 		}
 		BoneMap *bone_map = Object::cast_to<BoneMap>(map);
 		Ref<SkeletonProfile> profile = bone_map->get_profile();
-		if (!profile.is_valid()) {
+		if (profile.is_null()) {
 			return;
 		}
 		Skeleton3D *src_skeleton = Object::cast_to<Skeleton3D>(p_node);
@@ -646,13 +645,13 @@ void PostImportPluginSkeletonRestFixer::internal_process(InternalImportCategory 
 						// Scan descendants for mapped bones.
 						bool found_mapped = false;
 
-						Vector<int> decendants_to_process = src_skeleton->get_bone_children(src_idx);
-						while (decendants_to_process.size() > 0) {
-							int desc_idx = decendants_to_process[0];
-							decendants_to_process.erase(desc_idx);
+						Vector<int> descendants_to_process = src_skeleton->get_bone_children(src_idx);
+						while (descendants_to_process.size() > 0) {
+							int desc_idx = descendants_to_process[0];
+							descendants_to_process.erase(desc_idx);
 							Vector<int> desc_children = src_skeleton->get_bone_children(desc_idx);
 							for (const int &desc_child : desc_children) {
-								decendants_to_process.push_back(desc_child);
+								descendants_to_process.push_back(desc_child);
 							}
 
 							StringName desc_bone_name = is_renamed ? StringName(src_skeleton->get_bone_name(desc_idx)) : bone_map->find_profile_bone_name(src_skeleton->get_bone_name(desc_idx));

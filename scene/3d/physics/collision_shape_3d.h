@@ -43,11 +43,12 @@ class CollisionShape3D : public Node3D {
 	uint32_t owner_id = 0;
 	CollisionObject3D *collision_object = nullptr;
 
-#ifdef DEBUG_ENABLED
 	Color debug_color;
 	bool debug_fill = true;
 
 	Color _get_default_debug_color() const;
+
+#ifdef DEBUG_ENABLED
 	void _shape_changed();
 #endif // DEBUG_ENABLED
 
@@ -78,13 +79,11 @@ public:
 	void set_disabled(bool p_disabled);
 	bool is_disabled() const;
 
-#ifdef DEBUG_ENABLED
 	void set_debug_color(const Color &p_color);
 	Color get_debug_color() const;
 
 	void set_debug_fill_enabled(bool p_enable);
 	bool get_debug_fill_enabled() const;
-#endif // DEBUG_ENABLED
 
 	PackedStringArray get_configuration_warnings() const override;
 

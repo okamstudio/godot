@@ -87,7 +87,9 @@ class DisplayServerAndroid : public DisplayServer {
 
 	Callable system_theme_changed;
 
+	Callable dialog_callback;
 	Callable input_dialog_callback;
+
 	Callable file_picker_callback;
 
 	void _window_callback(const Callable &p_callable, const Variant &p_arg, bool p_deferred = false) const;
@@ -118,6 +120,9 @@ public:
 	virtual void clipboard_set(const String &p_text) override;
 	virtual String clipboard_get() const override;
 	virtual bool clipboard_has() const override;
+
+	virtual Error dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback) override;
+	void emit_dialog_callback(int p_button_index);
 
 	virtual Error dialog_input_text(String p_title, String p_description, String p_partial, const Callable &p_callback) override;
 	void emit_input_dialog_callback(String p_text);

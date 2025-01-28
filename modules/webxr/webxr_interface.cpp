@@ -31,8 +31,6 @@
 #include "webxr_interface.h"
 #include "webxr_interface.compat.inc"
 
-#include <stdlib.h>
-
 void WebXRInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_session_supported", "session_mode"), &WebXRInterface::is_session_supported);
 	ClassDB::bind_method(D_METHOD("set_session_mode", "session_mode"), &WebXRInterface::set_session_mode);

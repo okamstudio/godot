@@ -64,9 +64,7 @@ Vec3::Vec3(const Float3 &inV)
 	mF32[0] = inV[0];
 	mF32[1] = inV[1];
 	mF32[2] = inV[2];
-	#ifdef JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-		mF32[3] = inV[2];
-	#endif
+	mF32[3] = inV[2]; // Not strictly needed when JPH_FLOATING_POINT_EXCEPTIONS_ENABLED is off but prevents warnings about uninitialized variables
 #endif
 }
 
@@ -82,9 +80,7 @@ Vec3::Vec3(float inX, float inY, float inZ)
 	mF32[0] = inX;
 	mF32[1] = inY;
 	mF32[2] = inZ;
-	#ifdef JPH_FLOATING_POINT_EXCEPTIONS_ENABLED
-		mF32[3] = inZ;
-	#endif
+	mF32[3] = inZ; // Not strictly needed when JPH_FLOATING_POINT_EXCEPTIONS_ENABLED is off but prevents warnings about uninitialized variables
 #endif
 }
 

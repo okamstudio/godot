@@ -30,7 +30,6 @@
 
 #include "camera_3d_gizmo_plugin.h"
 
-#include "core/config/project_settings.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"

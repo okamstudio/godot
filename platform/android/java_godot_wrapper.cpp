@@ -69,6 +69,7 @@ GodotJavaWrapper::GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_
 	_get_clipboard = p_env->GetMethodID(godot_class, "getClipboard", "()Ljava/lang/String;");
 	_set_clipboard = p_env->GetMethodID(godot_class, "setClipboard", "(Ljava/lang/String;)V");
 	_has_clipboard = p_env->GetMethodID(godot_class, "hasClipboard", "()Z");
+	_show_dialog = p_env->GetMethodID(godot_class, "showDialog", "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
 	_show_input_dialog = p_env->GetMethodID(godot_class, "showInputDialog", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 	_show_file_picker = p_env->GetMethodID(godot_class, "showFilePicker", "(Ljava/lang/String;Ljava/lang/String;I[Ljava/lang/String;)V");
 	_request_permission = p_env->GetMethodID(godot_class, "requestPermission", "(Ljava/lang/String;)Z");
@@ -303,6 +304,28 @@ bool GodotJavaWrapper::has_clipboard() {
 	}
 }
 
+Error GodotJavaWrapper::show_dialog(const String &p_title, const String &p_description, const Vector<String> &p_buttons) {
+	if (_show_input_dialog) {
+		JNIEnv *env = get_jni_env();
+		ERR_FAIL_NULL_V(env, ERR_UNCONFIGURED);
+		jstring j_title = env->NewStringUTF(p_title.utf8().get_data());
+		jstring j_description = env->NewStringUTF(p_description.utf8().get_data());
+		jobjectArray j_buttons = env->NewObjectArray(p_buttons.size(), env->FindClass("java/lang/String"), nullptr);
+		for (int i = 0; i < p_buttons.size(); ++i) {
+			jstring j_button = env->NewStringUTF(p_buttons[i].utf8().get_data());
+			env->SetObjectArrayElement(j_buttons, i, j_button);
+			env->DeleteLocalRef(j_button);
+		}
+		env->CallVoidMethod(godot_instance, _show_dialog, j_title, j_description, j_buttons);
+		env->DeleteLocalRef(j_title);
+		env->DeleteLocalRef(j_description);
+		env->DeleteLocalRef(j_buttons);
+		return OK;
+	} else {
+		return ERR_UNCONFIGURED;
+	}
+}
+
 Error GodotJavaWrapper::show_input_dialog(const String &p_title, const String &p_message, const String &p_existing_text) {
 	if (_show_input_dialog) {
 		JNIEnv *env = get_jni_env();
@@ -327,9 +350,14 @@ Error GodotJavaWrapper::show_file_picker(const String &p_current_directory, cons
 		jstring j_current_directory = env->NewStringUTF(p_current_directory.utf8().get_data());
 		jstring j_filename = env->NewStringUTF(p_filename.utf8().get_data());
 		jint j_mode = p_mode;
-		jobjectArray j_filters = env->NewObjectArray(p_filters.size(), env->FindClass("java/lang/String"), nullptr);
-		for (int i = 0; i < p_filters.size(); ++i) {
-			jstring j_filter = env->NewStringUTF(p_filters[i].get_slice(";", 0).utf8().get_data());
+		Vector<String> filters;
+		for (const String &E : p_filters) {
+			filters.append_array(E.get_slicec(';', 0).split(",")); // Add extensions.
+			filters.append_array(E.get_slicec(';', 2).split(",")); // Add MIME types.
+		}
+		jobjectArray j_filters = env->NewObjectArray(filters.size(), env->FindClass("java/lang/String"), nullptr);
+		for (int i = 0; i < filters.size(); ++i) {
+			jstring j_filter = env->NewStringUTF(filters[i].utf8().get_data());
 			env->SetObjectArrayElement(j_filters, i, j_filter);
 			env->DeleteLocalRef(j_filter);
 		}

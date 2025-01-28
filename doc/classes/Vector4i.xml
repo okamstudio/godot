@@ -208,7 +208,7 @@
 			<description>
 				Gets the remainder of each component of the [Vector4i] with the components of the given [Vector4i]. This operation uses truncated division, which is often not desired as it does not work well with negative numbers. Consider using [method @GlobalScope.posmod] instead if you want to handle negative numbers.
 				[codeblock]
-				print(Vector4i(10, -20, 30, -40) % Vector4i(7, 8, 9, 10))  # Prints (3, -4, 3, 0)
+				print(Vector4i(10, -20, 30, -40) % Vector4i(7, 8, 9, 10)) # Prints (3, -4, 3, 0)
 				[/codeblock]
 			</description>
 		</operator>
@@ -218,7 +218,7 @@
 			<description>
 				Gets the remainder of each component of the [Vector4i] with the given [int]. This operation uses truncated division, which is often not desired as it does not work well with negative numbers. Consider using [method @GlobalScope.posmod] instead if you want to handle negative numbers.
 				[codeblock]
-				print(Vector4i(10, -20, 30, -40) % 7)  # Prints (3, -6, 2, -5)
+				print(Vector4i(10, -20, 30, -40) % 7) # Prints (3, -6, 2, -5)
 				[/codeblock]
 			</description>
 		</operator>
@@ -287,7 +287,7 @@
 				Divides each component of the [Vector4i] by the given [float].
 				Returns a Vector4 value due to floating-point operations.
 				[codeblock]
-				print(Vector4i(10, 20, 30, 40) / 2 # Prints (5.0, 10.0, 15.0, 20.0)
+				print(Vector4i(10, 20, 30, 40) / 2) # Prints (5.0, 10.0, 15.0, 20.0)
 				[/codeblock]
 			</description>
 		</operator>

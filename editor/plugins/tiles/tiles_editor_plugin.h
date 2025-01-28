@@ -32,9 +32,7 @@
 #define TILES_EDITOR_PLUGIN_H
 
 #include "editor/plugins/editor_plugin.h"
-#include "scene/gui/box_container.h"
 
-#include "tile_atlas_view.h"
 #include "tile_map_layer_editor.h"
 #include "tile_set_editor.h"
 

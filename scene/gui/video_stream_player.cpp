@@ -81,10 +81,10 @@ void VideoStreamPlayer::_mix_audios(void *p_self) {
 
 // Called from audio thread
 void VideoStreamPlayer::_mix_audio() {
-	if (!stream.is_valid()) {
+	if (stream.is_null()) {
 		return;
 	}
-	if (!playback.is_valid() || !playback->is_playing() || playback->is_paused()) {
+	if (playback.is_null() || !playback->is_playing() || playback->is_paused()) {
 		return;
 	}
 
@@ -211,7 +211,7 @@ void VideoStreamPlayer::_notification(int p_notification) {
 }
 
 Size2 VideoStreamPlayer::get_minimum_size() const {
-	if (!expand && !texture.is_null()) {
+	if (!expand && texture.is_valid()) {
 		return texture->get_size();
 	} else {
 		return Size2();
@@ -264,7 +264,7 @@ void VideoStreamPlayer::set_stream(const Ref<VideoStream> &p_stream) {
 		stream->connect_changed(callable_mp(this, &VideoStreamPlayer::set_stream).bind(stream));
 	}
 
-	if (!playback.is_null()) {
+	if (playback.is_valid()) {
 		playback->set_paused(paused);
 		texture = playback->get_texture();
 

@@ -152,6 +152,7 @@ String Performance::get_monitor_name(Monitor p_monitor) const {
 		PNAME("pipeline/compilations_draw"),
 		PNAME("pipeline/compilations_specialization"),
 	};
+	static_assert((sizeof(names) / sizeof(const char *)) == MONITOR_MAX);
 
 	return names[p_monitor];
 }
@@ -292,8 +293,14 @@ Performance::MonitorType Performance::get_monitor_type(Monitor p_monitor) const 
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
 		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
+		MONITOR_TYPE_QUANTITY,
 
 	};
+	static_assert((sizeof(types) / sizeof(MonitorType)) == MONITOR_MAX);
 
 	return types[p_monitor];
 }

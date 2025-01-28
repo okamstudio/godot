@@ -110,6 +110,7 @@ public:
 		MENU_INSERT_ZWNJ,
 		MENU_INSERT_WJ,
 		MENU_INSERT_SHY,
+		MENU_EMOJI_AND_SYMBOL,
 		MENU_MAX
 
 	};
@@ -190,9 +191,6 @@ private:
 		int gutter_count = 0;
 		bool indent_wrapped_lines = false;
 
-		void _calculate_line_height() const;
-		void _calculate_max_line_width() const;
-
 	public:
 		void set_tab_size(int p_tab_size);
 		int get_tab_size() const;
@@ -215,7 +213,6 @@ private:
 		void set_use_custom_word_separators(bool p_enabled);
 		bool is_custom_word_separators_enabled() const;
 
-		void set_word_separators(const String &p_separators);
 		void set_custom_word_separators(const String &p_separators);
 		String get_enabled_word_separators() const;
 		String get_custom_word_separators() const;
@@ -290,7 +287,7 @@ private:
 	int placeholder_line_height = -1;
 	int placeholder_max_width = -1;
 
-	Vector<String> placeholder_wraped_rows;
+	Vector<String> placeholder_wrapped_rows;
 
 	void _update_placeholder();
 	bool _using_placeholder() const;
@@ -316,6 +313,7 @@ private:
 	// User control.
 	bool overtype_mode = false;
 	bool context_menu_enabled = true;
+	bool emoji_menu_enabled = true;
 	bool shortcut_keys_enabled = true;
 	bool virtual_keyboard_enabled = true;
 	bool middle_mouse_paste_enabled = true;
@@ -536,6 +534,8 @@ private:
 	void _scroll_lines_up();
 	void _scroll_lines_down();
 
+	void _adjust_viewport_to_caret_horizontally(int p_caret = 0);
+
 	// Minimap.
 	bool draw_minimap = false;
 
@@ -563,6 +563,7 @@ private:
 	Vector2i hovered_gutter = Vector2i(-1, -1); // X = gutter index, Y = row.
 
 	void _update_gutter_width();
+	Vector2i _get_hovered_gutter(const Point2 &p_mouse_pos) const;
 
 	/* Syntax highlighting. */
 	Ref<SyntaxHighlighter> syntax_highlighter;
@@ -761,6 +762,11 @@ public:
 
 	void set_context_menu_enabled(bool p_enabled);
 	bool is_context_menu_enabled() const;
+
+	void show_emoji_and_symbol_picker();
+
+	void set_emoji_menu_enabled(bool p_enabled);
+	bool is_emoji_menu_enabled() const;
 
 	void set_shortcut_keys_enabled(bool p_enabled);
 	bool is_shortcut_keys_enabled() const;

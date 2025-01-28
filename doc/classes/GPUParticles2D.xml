@@ -41,11 +41,21 @@
 				[b]Note:[/b] [method emit_particle] is only supported on the Forward+ and Mobile rendering methods, not Compatibility.
 			</description>
 		</method>
+		<method name="request_particles_process">
+			<return type="void" />
+			<param index="0" name="process_time" type="float" />
+			<description>
+				Requests the particles to process for extra process time during a single frame.
+				Useful for particle playback, if used in combination with [member use_fixed_seed] or by calling [method restart] with parameter [code]keep_seed[/code] set to [code]true[/code].
+			</description>
+		</method>
 		<method name="restart">
 			<return type="void" />
+			<param index="0" name="keep_seed" type="bool" default="false" />
 			<description>
 				Restarts the particle emission cycle, clearing existing particles. To avoid particles vanishing from the viewport, wait for the [signal finished] signal before calling.
 				[b]Note:[/b] The [signal finished] signal is only emitted by [member one_shot] emitters.
+				If [param keep_seed] is [code]true[/code], the current random seed will be preserved. Useful for seeking and playback.
 			</description>
 		</method>
 	</methods>
@@ -105,6 +115,9 @@
 		<member name="randomness" type="float" setter="set_randomness_ratio" getter="get_randomness_ratio" default="0.0">
 			Emission lifetime randomness ratio.
 		</member>
+		<member name="seed" type="int" setter="set_seed" getter="get_seed" default="0">
+			Sets the random seed used by the particle system. Only effective if [member use_fixed_seed] is [code]true[/code].
+		</member>
 		<member name="speed_scale" type="float" setter="set_speed_scale" getter="get_speed_scale" default="1.0">
 			Particle system's running speed scaling ratio. A value of [code]0[/code] can be used to pause the particles.
 		</member>
@@ -128,6 +141,9 @@
 		</member>
 		<member name="trail_sections" type="int" setter="set_trail_sections" getter="get_trail_sections" default="8">
 			The number of sections to use for the particle trail rendering. Higher values can result in smoother trail curves, at the cost of performance due to increased mesh complexity. See also [member trail_section_subdivisions]. Only effective if [member trail_enabled] is [code]true[/code].
+		</member>
+		<member name="use_fixed_seed" type="bool" setter="set_use_fixed_seed" getter="get_use_fixed_seed" default="false">
+			If [code]true[/code], particles will use the same seed for every simulation using the seed defined in [member seed]. This is useful for situations where the visual outcome should be consistent across replays, for example when using Movie Maker mode.
 		</member>
 		<member name="visibility_rect" type="Rect2" setter="set_visibility_rect" getter="get_visibility_rect" default="Rect2(-100, -100, 200, 200)">
 			The [Rect2] that determines the node's region which needs to be visible on screen for the particle system to be active.

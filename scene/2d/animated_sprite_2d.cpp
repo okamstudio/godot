@@ -113,7 +113,7 @@ Rect2 AnimatedSprite2D::_get_rect() const {
 }
 
 void AnimatedSprite2D::_validate_property(PropertyInfo &p_property) const {
-	if (!frames.is_valid()) {
+	if (frames.is_null()) {
 		return;
 	}
 
@@ -168,7 +168,7 @@ void AnimatedSprite2D::_validate_property(PropertyInfo &p_property) const {
 void AnimatedSprite2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
-			if (!Engine::get_singleton()->is_editor_hint() && !frames.is_null() && frames->has_animation(autoplay)) {
+			if (!Engine::get_singleton()->is_editor_hint() && frames.is_valid() && frames->has_animation(autoplay)) {
 				play(autoplay);
 			}
 		} break;

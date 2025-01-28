@@ -102,10 +102,6 @@ static bool _get_blender_version(const String &p_path, int &r_major, int &r_mino
 	return true;
 }
 
-uint32_t EditorSceneFormatImporterBlend::get_import_flags() const {
-	return ImportFlags::IMPORT_SCENE | ImportFlags::IMPORT_ANIMATION;
-}
-
 void EditorSceneFormatImporterBlend::get_extensions(List<String> *r_extensions) const {
 	r_extensions->push_back("blend");
 }

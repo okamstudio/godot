@@ -36,7 +36,7 @@ JPH_INLINE float RayAABox(Vec3Arg inOrigin, const RayInvDirection &inInvDirectio
 	Vec3 flt_min = Vec3::sReplicate(-FLT_MAX);
 	Vec3 flt_max = Vec3::sReplicate(FLT_MAX);
 
-	// Test against all three axii simultaneously.
+	// Test against all three axes simultaneously.
 	Vec3 t1 = (inBoundsMin - inOrigin) * inInvDirection.mInvDirection;
 	Vec3 t2 = (inBoundsMax - inOrigin) * inInvDirection.mInvDirection;
 
@@ -90,7 +90,7 @@ JPH_INLINE Vec4 RayAABox4(Vec3Arg inOrigin, const RayInvDirection &inInvDirectio
 	Vec4 invdiry = inInvDirection.mInvDirection.SplatY();
 	Vec4 invdirz = inInvDirection.mInvDirection.SplatZ();
 
-	// Test against all three axii simultaneously.
+	// Test against all three axes simultaneously.
 	Vec4 t1x = (inBoundsMinX - originx) * invdirx;
 	Vec4 t1y = (inBoundsMinY - originy) * invdiry;
 	Vec4 t1z = (inBoundsMinZ - originz) * invdirz;
@@ -139,7 +139,7 @@ JPH_INLINE void RayAABox(Vec3Arg inOrigin, const RayInvDirection &inInvDirection
 	Vec3 flt_min = Vec3::sReplicate(-FLT_MAX);
 	Vec3 flt_max = Vec3::sReplicate(FLT_MAX);
 
-	// Test against all three axii simultaneously.
+	// Test against all three axes simultaneously.
 	Vec3 t1 = (inBoundsMin - inOrigin) * inInvDirection.mInvDirection;
 	Vec3 t2 = (inBoundsMax - inOrigin) * inInvDirection.mInvDirection;
 
@@ -178,7 +178,7 @@ JPH_INLINE bool RayAABoxHits(Vec3Arg inOrigin, const RayInvDirection &inInvDirec
 	Vec3 flt_min = Vec3::sReplicate(-FLT_MAX);
 	Vec3 flt_max = Vec3::sReplicate(FLT_MAX);
 
-	// Test against all three axii simultaneously.
+	// Test against all three axes simultaneously.
 	Vec3 t1 = (inBoundsMin - inOrigin) * inInvDirection.mInvDirection;
 	Vec3 t2 = (inBoundsMax - inOrigin) * inInvDirection.mInvDirection;
 

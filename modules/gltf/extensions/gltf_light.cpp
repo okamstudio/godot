@@ -221,21 +221,27 @@ Ref<GLTFLight> GLTFLight::from_dictionary(const Dictionary p_dictionary) {
 
 Dictionary GLTFLight::to_dictionary() const {
 	Dictionary d;
-	Array color_array;
-	color_array.resize(3);
-	color_array[0] = color.r;
-	color_array[1] = color.g;
-	color_array[2] = color.b;
-	d["color"] = color_array;
-	d["type"] = light_type;
+	if (color != Color(1.0f, 1.0f, 1.0f)) {
+		Array color_array;
+		color_array.resize(3);
+		color_array[0] = color.r;
+		color_array[1] = color.g;
+		color_array[2] = color.b;
+		d["color"] = color_array;
+	}
+	if (intensity != 1.0f) {
+		d["intensity"] = intensity;
+	}
+	if (light_type != "directional" && range != INFINITY) {
+		d["range"] = range;
+	}
 	if (light_type == "spot") {
 		Dictionary spot_dict;
 		spot_dict["innerConeAngle"] = inner_cone_angle;
 		spot_dict["outerConeAngle"] = outer_cone_angle;
 		d["spot"] = spot_dict;
 	}
-	d["intensity"] = intensity;
-	d["range"] = range;
+	d["type"] = light_type;
 	return d;
 }
 

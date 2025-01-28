@@ -36,6 +36,7 @@
 #include "../spaces/jolt_space_3d.h"
 
 #include "Jolt/Physics/Collision/Shape/EmptyShape.h"
+#include "Jolt/Physics/Collision/Shape/MutableCompoundShape.h"
 #include "Jolt/Physics/Collision/Shape/StaticCompoundShape.h"
 
 bool JoltShapedObject3D::_is_big() const {
@@ -43,7 +44,7 @@ bool JoltShapedObject3D::_is_big() const {
 	return get_aabb().get_longest_axis_size() >= 1000.0f;
 }
 
-JPH::ShapeRefC JoltShapedObject3D::_try_build_shape() {
+JPH::ShapeRefC JoltShapedObject3D::_try_build_shape(bool p_optimize_compound) {
 	int built_shapes = 0;
 
 	for (JoltShapeInstance3D &shape : shapes) {
@@ -56,7 +57,7 @@ JPH::ShapeRefC JoltShapedObject3D::_try_build_shape() {
 		return nullptr;
 	}
 
-	JPH::ShapeRefC result = built_shapes == 1 ? _try_build_single_shape() : _try_build_compound_shape();
+	JPH::ShapeRefC result = built_shapes == 1 ? _try_build_single_shape() : _try_build_compound_shape(p_optimize_compound);
 	if (unlikely(result == nullptr)) {
 		return nullptr;
 	}
@@ -106,8 +107,12 @@ JPH::ShapeRefC JoltShapedObject3D::_try_build_single_shape() {
 	return nullptr;
 }
 
-JPH::ShapeRefC JoltShapedObject3D::_try_build_compound_shape() {
-	JPH::StaticCompoundShapeSettings compound_shape_settings;
+JPH::ShapeRefC JoltShapedObject3D::_try_build_compound_shape(bool p_optimize) {
+	JPH::StaticCompoundShapeSettings static_compound_shape_settings;
+	JPH::MutableCompoundShapeSettings mutable_compound_shape_settings;
+	JPH::CompoundShapeSettings *compound_shape_settings = p_optimize ? static_cast<JPH::CompoundShapeSettings *>(&static_compound_shape_settings) : static_cast<JPH::CompoundShapeSettings *>(&mutable_compound_shape_settings);
+
+	compound_shape_settings->mSubShapes.reserve((size_t)shapes.size());
 
 	for (int shape_index = 0; shape_index < (int)shapes.size(); ++shape_index) {
 		const JoltShapeInstance3D &sub_shape = shapes[shape_index];
@@ -122,26 +127,55 @@ JPH::ShapeRefC JoltShapedObject3D::_try_build_compound_shape() {
 		const Transform3D sub_shape_transform = sub_shape.get_transform_unscaled();
 
 		if (sub_shape_scale != Vector3(1, 1, 1)) {
-			JOLT_ENSURE_SCALE_VALID(jolt_sub_shape, sub_shape_scale, vformat("Failed to correctly scale shape at index %d in body '%s'.", shape_index, to_string()));
+			JOLT_ENSURE_SCALE_VALID(jolt_sub_shape, sub_shape_scale, vformat("Failed to correctly scale shape at index %d for body '%s'.", shape_index, to_string()));
 			jolt_sub_shape = JoltShape3D::with_scale(jolt_sub_shape, sub_shape_scale);
 		}
 
-		compound_shape_settings.AddShape(to_jolt(sub_shape_transform.origin), to_jolt(sub_shape_transform.basis), jolt_sub_shape);
+		compound_shape_settings->AddShape(to_jolt(sub_shape_transform.origin), to_jolt(sub_shape_transform.basis), jolt_sub_shape);
 	}
 
-	const JPH::ShapeSettings::ShapeResult shape_result = compound_shape_settings.Create();
-	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to create compound shape with sub-shape count '%d'. It returned the following error: '%s'.", (int)compound_shape_settings.mSubShapes.size(), to_godot(shape_result.GetError())));
+	const JPH::ShapeSettings::ShapeResult shape_result = p_optimize ? static_compound_shape_settings.Create(space->get_temp_allocator()) : mutable_compound_shape_settings.Create();
+	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to create compound shape for body '%s'. It returned the following error: '%s'.", to_string(), to_godot(shape_result.GetError())));
 
 	return shape_result.Get();
 }
 
+void JoltShapedObject3D::_enqueue_shapes_changed() {
+	if (space != nullptr) {
+		space->enqueue_shapes_changed(&shapes_changed_element);
+	}
+}
+
+void JoltShapedObject3D::_dequeue_shapes_changed() {
+	if (space != nullptr) {
+		space->dequeue_shapes_changed(&shapes_changed_element);
+	}
+}
+
+void JoltShapedObject3D::_enqueue_needs_optimization() {
+	if (space != nullptr) {
+		space->enqueue_needs_optimization(&needs_optimization_element);
+	}
+}
+
+void JoltShapedObject3D::_dequeue_needs_optimization() {
+	if (space != nullptr) {
+		space->dequeue_needs_optimization(&needs_optimization_element);
+	}
+}
+
 void JoltShapedObject3D::_shapes_changed() {
-	_update_shape();
+	commit_shapes(false);
 	_update_object_layer();
 }
 
 void JoltShapedObject3D::_space_changing() {
 	JoltObject3D::_space_changing();
+
+	_dequeue_shapes_changed();
+	_dequeue_needs_optimization();
+
+	previous_jolt_shape = nullptr;
 
 	if (space != nullptr) {
 		const JoltWritableBody3D body = space->write_body(jolt_id);
@@ -151,29 +185,10 @@ void JoltShapedObject3D::_space_changing() {
 	}
 }
 
-void JoltShapedObject3D::_update_shape() {
-	if (!in_space()) {
-		_shapes_built();
-		return;
-	}
-
-	const JoltWritableBody3D body = space->write_body(jolt_id);
-	ERR_FAIL_COND(body.is_invalid());
-
-	previous_jolt_shape = jolt_shape;
-	jolt_shape = build_shape();
-
-	if (jolt_shape == previous_jolt_shape) {
-		return;
-	}
-
-	space->get_body_iface().SetShape(jolt_id, jolt_shape, false, JPH::EActivation::DontActivate);
-
-	_shapes_built();
-}
-
 JoltShapedObject3D::JoltShapedObject3D(ObjectType p_object_type) :
-		JoltObject3D(p_object_type) {
+		JoltObject3D(p_object_type),
+		shapes_changed_element(this),
+		needs_optimization_element(this) {
 	jolt_settings->mAllowSleeping = true;
 	jolt_settings->mFriction = 1.0f;
 	jolt_settings->mRestitution = 0.0f;
@@ -285,8 +300,8 @@ AABB JoltShapedObject3D::get_aabb() const {
 	return get_transform_scaled().xform(result);
 }
 
-JPH::ShapeRefC JoltShapedObject3D::build_shape() {
-	JPH::ShapeRefC new_shape = _try_build_shape();
+JPH::ShapeRefC JoltShapedObject3D::build_shapes(bool p_optimize_compound) {
+	JPH::ShapeRefC new_shape = _try_build_shape(p_optimize_compound);
 
 	if (new_shape == nullptr) {
 		if (has_custom_center_of_mass()) {
@@ -297,6 +312,36 @@ JPH::ShapeRefC JoltShapedObject3D::build_shape() {
 	}
 
 	return new_shape;
+}
+
+void JoltShapedObject3D::commit_shapes(bool p_optimize_compound) {
+	if (!in_space()) {
+		_shapes_committed();
+		return;
+	}
+
+	const JoltWritableBody3D body = space->write_body(jolt_id);
+	ERR_FAIL_COND(body.is_invalid());
+
+	JPH::ShapeRefC new_shape = build_shapes(p_optimize_compound);
+	if (new_shape == jolt_shape) {
+		return;
+	}
+
+	previous_jolt_shape = jolt_shape;
+	jolt_shape = new_shape;
+
+	space->get_body_iface().SetShape(jolt_id, jolt_shape, false, JPH::EActivation::DontActivate);
+
+	_enqueue_shapes_changed();
+
+	if (!p_optimize_compound && jolt_shape->GetType() == JPH::EShapeType::Compound) {
+		_enqueue_needs_optimization();
+	} else {
+		_dequeue_needs_optimization();
+	}
+
+	_shapes_committed();
 }
 
 void JoltShapedObject3D::add_shape(JoltShape3D *p_shape, Transform3D p_transform, bool p_disabled) {
@@ -340,6 +385,10 @@ void JoltShapedObject3D::clear_shapes() {
 	shapes.clear();
 
 	_shapes_changed();
+}
+
+void JoltShapedObject3D::clear_previous_shape() {
+	previous_jolt_shape = nullptr;
 }
 
 int JoltShapedObject3D::find_shape_index(uint32_t p_shape_instance_id) const {
@@ -422,10 +471,4 @@ void JoltShapedObject3D::set_shape_disabled(int p_index, bool p_disabled) {
 	}
 
 	_shapes_changed();
-}
-
-void JoltShapedObject3D::post_step(float p_step, JPH::Body &p_jolt_body) {
-	JoltObject3D::post_step(p_step, p_jolt_body);
-
-	previous_jolt_shape = nullptr;
 }

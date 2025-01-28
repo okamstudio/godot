@@ -177,6 +177,7 @@ protected:
 	void _notification(int p_what);
 
 private:
+	void _on_button_clicked(TreeItem *p_item, int p_column, int p_id, int p_mouse_button_index);
 	void _on_result_found(const String &fpath, int line_number, int begin, int end, String text);
 	void _on_finished();
 	void _on_refresh_button_clicked();
@@ -196,6 +197,7 @@ private:
 
 	void apply_replaces_in_file(const String &fpath, const Vector<Result> &locations, const String &new_text);
 	void update_replace_buttons();
+	void update_matches_text();
 	String get_replace_text();
 
 	void draw_result_text(Object *item_obj, Rect2 rect);

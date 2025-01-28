@@ -30,6 +30,8 @@
 
 #include "physical_bone_simulator_3d.h"
 
+#include "scene/3d/physics/physical_bone_3d.h"
+
 void PhysicalBoneSimulator3D::_skeleton_changed(Skeleton3D *p_old, Skeleton3D *p_new) {
 	if (p_old) {
 		if (p_old->is_connected(SNAME("bone_list_changed"), callable_mp(this, &PhysicalBoneSimulator3D::_bone_list_changed))) {

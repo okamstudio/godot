@@ -487,6 +487,7 @@ void fillRadial(const SwFill* fill, uint8_t* dst, uint32_t y, uint32_t x, uint32
             auto src = MULTIPLY(A(_pixel(fill, sqrtf(det))), a);
             auto tmp = maskOp(src, *cmp, 0);
             *dst = tmp + MULTIPLY(*dst, ~tmp);
+            det += deltaDet;
             deltaDet += deltaDeltaDet;
             b += deltaB;
         }

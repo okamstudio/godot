@@ -39,7 +39,7 @@
 
 #ifdef DEBUG_ENABLED
 Rect2 Path2D::_edit_get_rect() const {
-	if (!curve.is_valid() || curve->get_point_count() == 0) {
+	if (curve.is_null() || curve->get_point_count() == 0) {
 		return Rect2(0, 0, 0, 0);
 	}
 
@@ -90,7 +90,7 @@ void Path2D::_notification(int p_what) {
 	switch (p_what) {
 		// Draw the curve if path debugging is enabled.
 		case NOTIFICATION_DRAW: {
-			if (!curve.is_valid()) {
+			if (curve.is_null()) {
 				break;
 			}
 
@@ -138,13 +138,14 @@ void Path2D::_notification(int p_what) {
 					draw_polyline(v2p, get_tree()->get_debug_paths_color(), line_width, false);
 				}
 
-				// Draw fish bones
+				// Draw fish bone every 4 points to reduce visual noise and performance impact
+				// (compared to drawing it for every point).
 				{
 					PackedVector2Array v2p;
 					v2p.resize(3);
 					Vector2 *w = v2p.ptrw();
 
-					for (int i = 0; i < sample_count; i++) {
+					for (int i = 0; i < sample_count; i += 4) {
 						const Vector2 p = r[i].get_origin();
 						const Vector2 side = r[i].columns[1];
 						const Vector2 forward = r[i].columns[0];
@@ -220,7 +221,7 @@ void PathFollow2D::_update_transform() {
 	}
 
 	Ref<Curve2D> c = path->get_curve();
-	if (!c.is_valid()) {
+	if (c.is_null()) {
 		return;
 	}
 

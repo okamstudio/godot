@@ -41,6 +41,7 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
 #include "scene/animation/animation_player.h"
+#include "scene/gui/subviewport_container.h"
 #include "scene/resources/3d/importer_mesh.h"
 #include "scene/resources/surface_tool.h"
 
@@ -1221,6 +1222,20 @@ void SceneImportSettingsDialog::_viewport_input(const Ref<InputEvent> &p_input) 
 		(*zoom) /= 1.1;
 		if ((*zoom) < 0.1) {
 			(*zoom) = 0.1;
+		}
+		_update_camera();
+	}
+	Ref<InputEventMagnifyGesture> mg = p_input;
+	if (mg.is_valid()) {
+		real_t mg_factor = mg->get_factor();
+		if (mg_factor == 0.0) {
+			mg_factor = 1.0;
+		}
+		(*zoom) /= mg_factor;
+		if ((*zoom) < 0.1) {
+			(*zoom) = 0.1;
+		} else if ((*zoom) > 10.0) {
+			(*zoom) = 10.0;
 		}
 		_update_camera();
 	}

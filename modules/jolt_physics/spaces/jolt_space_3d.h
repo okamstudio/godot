@@ -48,14 +48,19 @@
 #include <stdint.h>
 
 class JoltArea3D;
+class JoltBody3D;
 class JoltContactListener3D;
 class JoltJoint3D;
 class JoltLayers;
 class JoltObject3D;
 class JoltPhysicsDirectSpaceState3D;
+class JoltShapedObject3D;
 
 class JoltSpace3D {
-	JoltBodyWriter3D body_accessor;
+	SelfList<JoltBody3D>::List body_call_queries_list;
+	SelfList<JoltArea3D>::List area_call_queries_list;
+	SelfList<JoltShapedObject3D>::List shapes_changed_list;
+	SelfList<JoltShapedObject3D>::List needs_optimization_list;
 
 	RID rid;
 
@@ -73,7 +78,6 @@ class JoltSpace3D {
 
 	bool active = false;
 	bool stepping = false;
-	bool has_stepped = false;
 
 	void _pre_step(float p_step);
 	void _post_step(float p_step);
@@ -98,6 +102,8 @@ public:
 	void set_param(PhysicsServer3D::SpaceParameter p_param, double p_value);
 
 	JPH::PhysicsSystem &get_physics_system() const { return *physics_system; }
+
+	JPH::TempAllocator &get_temp_allocator() const { return *temp_allocator; }
 
 	JPH::BodyInterface &get_body_iface();
 	const JPH::BodyInterface &get_body_iface() const;
@@ -131,6 +137,17 @@ public:
 	void remove_body(const JPH::BodyID &p_body_id);
 
 	void try_optimize();
+
+	void enqueue_call_queries(SelfList<JoltBody3D> *p_body);
+	void enqueue_call_queries(SelfList<JoltArea3D> *p_area);
+	void dequeue_call_queries(SelfList<JoltBody3D> *p_body);
+	void dequeue_call_queries(SelfList<JoltArea3D> *p_area);
+
+	void enqueue_shapes_changed(SelfList<JoltShapedObject3D> *p_object);
+	void dequeue_shapes_changed(SelfList<JoltShapedObject3D> *p_object);
+
+	void enqueue_needs_optimization(SelfList<JoltShapedObject3D> *p_object);
+	void dequeue_needs_optimization(SelfList<JoltShapedObject3D> *p_object);
 
 	void add_joint(JPH::Constraint *p_jolt_ref);
 	void add_joint(JoltJoint3D *p_joint);

@@ -72,7 +72,7 @@ JPH_INLINE constexpr T Sign(T inV)
 template <typename T>
 constexpr bool IsPowerOf2(T inV)
 {
-	return (inV & (inV - 1)) == 0;
+	return inV > 0 && (inV & (inV - 1)) == 0;
 }
 
 /// Align inV up to the next inAlignment bytes
@@ -120,8 +120,8 @@ inline uint CountTrailingZeros(uint32 inValue)
 			return 32;
 		return __builtin_ctz(inValue);
 	#endif
-#elif defined(JPH_CPU_E2K)
-		return inValue ? __builtin_ctz(inValue) : 32;
+#elif defined(JPH_CPU_E2K) || defined(JPH_CPU_RISCV) || defined(JPH_CPU_PPC) || defined(JPH_CPU_LOONGARCH)
+	return inValue ? __builtin_ctz(inValue) : 32;
 #else
 	#error Undefined
 #endif
@@ -150,8 +150,8 @@ inline uint CountLeadingZeros(uint32 inValue)
 	#else
 		return __builtin_clz(inValue);
 	#endif
-#elif defined(JPH_CPU_E2K)
-		return inValue ? __builtin_clz(inValue) : 32;
+#elif defined(JPH_CPU_E2K) || defined(JPH_CPU_RISCV) || defined(JPH_CPU_PPC) || defined(JPH_CPU_LOONGARCH)
+	return inValue ? __builtin_clz(inValue) : 32;
 #else
 	#error Undefined
 #endif

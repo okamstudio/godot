@@ -31,10 +31,7 @@
 #ifndef MULTIPLAYER_SPAWNER_H
 #define MULTIPLAYER_SPAWNER_H
 
-#include "scene_replication_config.h"
-
 #include "core/templates/local_vector.h"
-#include "core/variant/typed_array.h"
 #include "scene/main/node.h"
 #include "scene/resources/packed_scene.h"
 

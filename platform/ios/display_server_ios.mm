@@ -371,6 +371,7 @@ bool DisplayServerIOS::has_feature(Feature p_feature) const {
 		// case FEATURE_NATIVE_DIALOG_INPUT:
 		// case FEATURE_NATIVE_DIALOG_FILE:
 		// case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		// case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		// case FEATURE_NATIVE_ICON:
 		// case FEATURE_WINDOW_TRANSPARENCY:
 		case FEATURE_CLIPBOARD:

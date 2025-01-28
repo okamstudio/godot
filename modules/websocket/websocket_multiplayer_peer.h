@@ -34,7 +34,6 @@
 #include "websocket_peer.h"
 
 #include "core/error/error_list.h"
-#include "core/io/stream_peer_tls.h"
 #include "core/io/tcp_server.h"
 #include "core/templates/list.h"
 #include "scene/main/multiplayer_peer.h"

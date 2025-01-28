@@ -191,7 +191,7 @@ Error MovieWriterMJPEG::write_begin(const Size2i &p_movie_size, uint32_t p_fps, 
 }
 
 Error MovieWriterMJPEG::write_frame(const Ref<Image> &p_image, const int32_t *p_audio_data) {
-	ERR_FAIL_COND_V(!f.is_valid(), ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(f.is_null(), ERR_UNCONFIGURED);
 
 	Vector<uint8_t> jpg_buffer = p_image->save_jpg_to_buffer(quality);
 	uint32_t s = jpg_buffer.size();

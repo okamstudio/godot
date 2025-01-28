@@ -468,6 +468,7 @@ public:
 
 	virtual int64_t shaped_get_span_count(const RID &p_shaped) const = 0;
 	virtual Variant shaped_get_span_meta(const RID &p_shaped, int64_t p_index) const = 0;
+	virtual Variant shaped_get_span_embedded_object(const RID &p_shaped, int64_t p_index) const = 0;
 	virtual void shaped_set_span_update_font(const RID &p_shaped, int64_t p_index, const TypedArray<RID> &p_fonts, int64_t p_size, const Dictionary &p_opentype_features = Dictionary()) = 0;
 
 	virtual RID shaped_text_substr(const RID &p_shaped, int64_t p_start, int64_t p_length) const = 0; // Copy shaped substring (e.g. line break) without reshaping, but correctly reordered, preservers range.
@@ -534,7 +535,7 @@ public:
 	virtual int64_t shaped_text_prev_character_pos(const RID &p_shaped, int64_t p_pos) const;
 	virtual int64_t shaped_text_closest_character_pos(const RID &p_shaped, int64_t p_pos) const;
 
-	// The pen position is always placed on the baseline and moveing left to right.
+	// The pen position is always placed on the baseline and moving left to right.
 	virtual void shaped_text_draw(const RID &p_shaped, const RID &p_canvas, const Vector2 &p_pos, double p_clip_l = -1.0, double p_clip_r = -1.0, const Color &p_color = Color(1, 1, 1)) const;
 	virtual void shaped_text_draw_outline(const RID &p_shaped, const RID &p_canvas, const Vector2 &p_pos, double p_clip_l = -1.0, double p_clip_r = -1.0, int64_t p_outline_size = 1, const Color &p_color = Color(1, 1, 1)) const;
 
@@ -587,8 +588,10 @@ struct Glyph {
 	float advance = 0.f; // Advance to the next glyph along baseline(x for horizontal layout, y for vertical).
 
 	RID font_rid; // Font resource.
-	int font_size = 0; // Font size;
+	int font_size = 0; // Font size.
 	int32_t index = 0; // Glyph index (font specific) or UTF-32 codepoint (for the invalid glyphs).
+
+	int span_index = -1;
 
 	bool operator==(const Glyph &p_a) const;
 	bool operator!=(const Glyph &p_a) const;

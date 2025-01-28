@@ -70,11 +70,11 @@ TEST_CASE("[Gradient] Default gradient") {
 TEST_CASE("[Gradient] Custom gradient (points specified in order)") {
 	// Red-yellow-green gradient (with overbright green).
 	Ref<Gradient> gradient = memnew(Gradient);
-	Vector<Gradient::Point> points;
-	points.push_back({ 0.0, Color(1, 0, 0) });
-	points.push_back({ 0.5, Color(1, 1, 0) });
-	points.push_back({ 1.0, Color(0, 2, 0) });
-	gradient->set_points(points);
+	Vector<float> offsets = { 0.0, 0.5, 1.0 };
+	Vector<Color> colors = { Color(1, 0, 0), Color(1, 1, 0), Color(0, 2, 0) };
+
+	gradient->set_offsets(offsets);
+	gradient->set_colors(colors);
 
 	CHECK_MESSAGE(
 			gradient->get_point_count() == 3,
@@ -109,14 +109,12 @@ TEST_CASE("[Gradient] Custom gradient (points specified out-of-order)") {
 	// HSL rainbow with points specified out of order.
 	// These should be sorted automatically when adding points.
 	Ref<Gradient> gradient = memnew(Gradient);
-	Vector<Gradient::Point> points;
-	points.push_back({ 0.2, Color(1, 0, 0) });
-	points.push_back({ 0.0, Color(1, 1, 0) });
-	points.push_back({ 0.8, Color(0, 1, 0) });
-	points.push_back({ 0.4, Color(0, 1, 1) });
-	points.push_back({ 1.0, Color(0, 0, 1) });
-	points.push_back({ 0.6, Color(1, 0, 1) });
-	gradient->set_points(points);
+	LocalVector<Gradient::Point> points;
+	Vector<float> offsets = { 0.2, 0.0, 0.8, 0.4, 1.0, 0.6 };
+	Vector<Color> colors = { Color(1, 0, 0), Color(1, 1, 0), Color(0, 1, 0), Color(0, 1, 1), Color(0, 0, 1), Color(1, 0, 1) };
+
+	gradient->set_offsets(offsets);
+	gradient->set_colors(colors);
 
 	CHECK_MESSAGE(
 			gradient->get_point_count() == 6,

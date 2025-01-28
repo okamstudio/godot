@@ -2214,22 +2214,8 @@ String OS_Windows::get_system_dir(SystemDir p_dir, bool p_shared_storage) const 
 	return path;
 }
 
-String OS_Windows::get_user_data_dir() const {
-	String appname = get_safe_dir_name(GLOBAL_GET("application/config/name"));
-	if (!appname.is_empty()) {
-		bool use_custom_dir = GLOBAL_GET("application/config/use_custom_user_dir");
-		if (use_custom_dir) {
-			String custom_dir = get_safe_dir_name(GLOBAL_GET("application/config/custom_user_dir_name"), true);
-			if (custom_dir.is_empty()) {
-				custom_dir = appname;
-			}
-			return get_data_path().path_join(custom_dir).replace("\\", "/");
-		} else {
-			return get_data_path().path_join(get_godot_dir_name()).path_join("app_userdata").path_join(appname).replace("\\", "/");
-		}
-	}
-
-	return get_data_path().path_join(get_godot_dir_name()).path_join("app_userdata").path_join("[unnamed project]");
+String OS_Windows::get_user_data_dir(const String &p_user_dir) const {
+	return get_data_path().path_join(p_user_dir).replace("\\", "/");
 }
 
 String OS_Windows::get_unique_id() const {

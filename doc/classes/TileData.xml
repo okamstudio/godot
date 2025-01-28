@@ -64,7 +64,7 @@
 			<return type="Variant" />
 			<param index="0" name="layer_name" type="String" />
 			<description>
-				Returns the custom data value for custom data layer named [param layer_name].
+				Returns the custom data value for custom data layer named [param layer_name]. To check if a custom data layer exists, use [method has_custom_data].
 			</description>
 		</method>
 		<method name="get_custom_data_by_layer_id" qualifiers="const">
@@ -120,6 +120,13 @@
 			<param index="0" name="peering_bit" type="int" enum="TileSet.CellNeighbor" />
 			<description>
 				Returns the tile's terrain bit for the given [param peering_bit] direction. To check that a direction is valid, use [method is_valid_terrain_peering_bit].
+			</description>
+		</method>
+		<method name="has_custom_data" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="layer_name" type="String" />
+			<description>
+				Returns whether there exists a custom data layer named [param layer_name].
 			</description>
 		</method>
 		<method name="is_collision_polygon_one_way" qualifiers="const">

@@ -13,17 +13,16 @@
 		<method name="_get_extensions" qualifiers="virtual const">
 			<return type="PackedStringArray" />
 			<description>
-			</description>
-		</method>
-		<method name="_get_import_flags" qualifiers="virtual const">
-			<return type="int" />
-			<description>
+				Return supported file extensions for this scene importer.
 			</description>
 		</method>
 		<method name="_get_import_options" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="path" type="String" />
 			<description>
+				Override to add general import options. These will appear in the main import dock on the editor. Add options via [method add_import_option] and [method add_import_option_advanced].
+				[b]Note:[/b] All [EditorSceneFormatImporter] and [EditorScenePostImportPlugin] instances will add options for all files. It is good practice to check the file extension when [param path] is non-empty.
+				When the user is editing project settings, [param path] will be empty. It is recommended to add all options when [param path] is empty to allow the user to customize Import Defaults.
 			</description>
 		</method>
 		<method name="_get_option_visibility" qualifiers="virtual const">
@@ -32,6 +31,7 @@
 			<param index="1" name="for_animation" type="bool" />
 			<param index="2" name="option" type="String" />
 			<description>
+				Should return [code]true[/code] to show the given option, [code]false[/code] to hide the given option, or [code]null[/code] to ignore.
 			</description>
 		</method>
 		<method name="_import_scene" qualifiers="virtual">
@@ -40,6 +40,27 @@
 			<param index="1" name="flags" type="int" />
 			<param index="2" name="options" type="Dictionary" />
 			<description>
+				Perform the bulk of the scene import logic here, for example using [GLTFDocument] or [FBXDocument].
+			</description>
+		</method>
+		<method name="add_import_option">
+			<return type="void" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="value" type="Variant" />
+			<description>
+				Add a specific import option (name and default value only). This function can only be called from [method _get_import_options].
+			</description>
+		</method>
+		<method name="add_import_option_advanced">
+			<return type="void" />
+			<param index="0" name="type" type="int" enum="Variant.Type" />
+			<param index="1" name="name" type="String" />
+			<param index="2" name="default_value" type="Variant" />
+			<param index="3" name="hint" type="int" enum="PropertyHint" default="0" />
+			<param index="4" name="hint_string" type="String" default="&quot;&quot;" />
+			<param index="5" name="usage_flags" type="int" default="6" />
+			<description>
+				Add a specific import option. This function can only be called from [method _get_import_options].
 			</description>
 		</method>
 	</methods>

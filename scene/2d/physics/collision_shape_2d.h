@@ -52,9 +52,7 @@ class CollisionShape2D : public Node2D {
 	// Not wrapped in `#ifdef DEBUG_ENABLED` as it is used for rendering.
 	Color debug_color = Color(0.0, 0.0, 0.0, 0.0);
 
-#ifdef DEBUG_ENABLED
 	Color _get_default_debug_color() const;
-#endif // DEBUG_ENABLED
 
 protected:
 	void _notification(int p_what);
@@ -86,10 +84,8 @@ public:
 	void set_one_way_collision_margin(real_t p_margin);
 	real_t get_one_way_collision_margin() const;
 
-#ifdef DEBUG_ENABLED
 	void set_debug_color(const Color &p_color);
 	Color get_debug_color() const;
-#endif // DEBUG_ENABLED
 
 	PackedStringArray get_configuration_warnings() const override;
 

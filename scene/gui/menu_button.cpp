@@ -30,7 +30,6 @@
 
 #include "menu_button.h"
 
-#include "core/os/keyboard.h"
 #include "scene/main/window.h"
 
 void MenuButton::shortcut_input(const Ref<InputEvent> &p_event) {
@@ -204,6 +203,14 @@ void MenuButton::_bind_methods() {
 void MenuButton::set_disable_shortcuts(bool p_disabled) {
 	disable_shortcuts = p_disabled;
 }
+
+#ifdef TOOLS_ENABLED
+PackedStringArray MenuButton::get_configuration_warnings() const {
+	PackedStringArray warnings = Button::get_configuration_warnings();
+	warnings.append_array(popup->get_configuration_warnings());
+	return warnings;
+}
+#endif
 
 MenuButton::MenuButton(const String &p_text) :
 		Button(p_text) {

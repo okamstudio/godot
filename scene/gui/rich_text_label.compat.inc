@@ -30,6 +30,18 @@
 
 #ifndef DISABLE_DEPRECATED
 
+void RichTextLabel::_push_font_bind_compat_79053(const Ref<Font> &p_font, int p_size) {
+	push_font(p_font, p_size);
+}
+
+void RichTextLabel::_set_table_column_expand_bind_compat_79053(int p_column, bool p_expand, int p_ratio) {
+	set_table_column_expand(p_column, p_expand, p_ratio, true);
+}
+
+void RichTextLabel::_set_table_column_expand_bind_compat_101482(int p_column, bool p_expand, int p_ratio) {
+	set_table_column_expand(p_column, p_expand, p_ratio, true);
+}
+
 void RichTextLabel::_push_meta_bind_compat_99481(const Variant &p_meta, MetaUnderline p_underline_mode) {
 	push_meta(p_meta, p_underline_mode, String());
 }
@@ -47,6 +59,9 @@ bool RichTextLabel::_remove_paragraph_bind_compat_91098(int p_paragraph) {
 }
 
 void RichTextLabel::_bind_compatibility_methods() {
+	ClassDB::bind_compatibility_method(D_METHOD("push_font", "font", "font_size"), &RichTextLabel::_push_font_bind_compat_79053);
+	ClassDB::bind_compatibility_method(D_METHOD("set_table_column_expand", "column", "expand", "ratio"), &RichTextLabel::_set_table_column_expand_bind_compat_79053);
+	ClassDB::bind_compatibility_method(D_METHOD("set_table_column_expand", "column", "expand", "ratio"), &RichTextLabel::_set_table_column_expand_bind_compat_101482, DEFVAL(1));
 	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data", "underline_mode"), &RichTextLabel::_push_meta_bind_compat_99481, DEFVAL(META_UNDERLINE_ALWAYS));
 	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data"), &RichTextLabel::_push_meta_bind_compat_89024);
 	ClassDB::bind_compatibility_method(D_METHOD("add_image", "image", "width", "height", "color", "inline_align", "region"), &RichTextLabel::_add_image_bind_compat_80410, DEFVAL(0), DEFVAL(0), DEFVAL(Color(1.0, 1.0, 1.0)), DEFVAL(INLINE_ALIGNMENT_CENTER), DEFVAL(Rect2()));

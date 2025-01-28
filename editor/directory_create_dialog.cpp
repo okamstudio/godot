@@ -31,7 +31,6 @@
 #include "directory_create_dialog.h"
 
 #include "core/io/dir_access.h"
-#include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
 #include "editor/gui/editor_validation_panel.h"
 #include "editor/themes/editor_scale.h"

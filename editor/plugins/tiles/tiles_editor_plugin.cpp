@@ -45,10 +45,8 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/2d/tile_map.h"
 #include "scene/2d/tile_map_layer.h"
-#include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/control.h"
-#include "scene/gui/separator.h"
 #include "scene/resources/2d/tile_set.h"
 #include "scene/resources/image_texture.h"
 
@@ -147,8 +145,8 @@ void TilesEditorUtils::_thread() {
 }
 
 void TilesEditorUtils::queue_pattern_preview(Ref<TileSet> p_tile_set, Ref<TileMapPattern> p_pattern, Callable p_callback) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
-	ERR_FAIL_COND(!p_pattern.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
+	ERR_FAIL_COND(p_pattern.is_null());
 	{
 		MutexLock lock(pattern_preview_mutex);
 		pattern_preview_queue.push_back({ p_tile_set, p_pattern, p_callback });

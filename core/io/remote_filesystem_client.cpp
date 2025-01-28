@@ -44,7 +44,7 @@
 
 Vector<RemoteFilesystemClient::FileCache> RemoteFilesystemClient::_load_cache_file() {
 	Ref<FileAccess> fa = FileAccess::open(cache_path.path_join(FILES_CACHE_FILE), FileAccess::READ);
-	if (!fa.is_valid()) {
+	if (fa.is_null()) {
 		return Vector<FileCache>(); // No cache, return empty
 	}
 

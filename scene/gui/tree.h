@@ -498,7 +498,7 @@ private:
 
 	VBoxContainer *popup_editor_vb = nullptr;
 
-	bool popup_edit_commited = true;
+	bool popup_edit_committed = true;
 	Popup *popup_editor = nullptr;
 	LineEdit *line_editor = nullptr;
 	TextEdit *text_editor = nullptr;
@@ -716,6 +716,7 @@ private:
 
 	Rect2 _get_scrollbar_layout_rect() const;
 	Rect2 _get_content_rect() const; // Considering the background stylebox and scrollbars.
+	Rect2 _get_item_focus_rect(const TreeItem *p_item) const;
 
 protected:
 	virtual void _update_theme_item_cache() override;

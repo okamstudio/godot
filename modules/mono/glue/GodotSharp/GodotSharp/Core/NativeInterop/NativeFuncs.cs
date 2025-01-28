@@ -167,6 +167,12 @@ namespace Godot.NativeInterop
 
         internal static partial Color godotsharp_color_from_ok_hsl(float p_h, float p_s, float p_l, float p_alpha);
 
+        internal static partial float godotsharp_color_get_ok_hsl_h(in Color p_self);
+
+        internal static partial float godotsharp_color_get_ok_hsl_s(in Color p_self);
+
+        internal static partial float godotsharp_color_get_ok_hsl_l(in Color p_self);
+
         // GDNative functions
 
         // gdnative.h

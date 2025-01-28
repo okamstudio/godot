@@ -25,7 +25,7 @@ public:
 	virtual void				RestoreBinaryState(StreamIn &inStream) override;
 
 	float						mLongitudinalFriction = 4.0f;				///< Friction in forward direction of tire
-	float						mLateralFriction = 2.0f;					///< Friction in sideway direction of tire
+	float						mLateralFriction = 2.0f;					///< Friction in sideways direction of tire
 };
 
 /// Wheel object specifically for TrackedVehicleController

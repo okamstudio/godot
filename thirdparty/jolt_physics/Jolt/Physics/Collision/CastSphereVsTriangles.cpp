@@ -104,7 +104,7 @@ float CastSphereVsTriangles::RayCylinder(Vec3Arg inRayDirection, Vec3Arg inCylin
 	float c = axis_len_sq * (start.LengthSq() - Square(inRadius)) - Square(start_dot_axis);
 	float det = Square(b) - a * c; // normally 4 * a * c but since both a and c need to be divided by 2 we lose the 4
 	if (det < 0.0f)
-		return FLT_MAX; // No solution to quadractic equation
+		return FLT_MAX; // No solution to quadratic equation
 
 	// Solve fraction t where the ray hits the cylinder
 	float t = -(b + sqrt(det)) / a; // normally divided by 2 * a but since a should be divided by 2 we lose the 2

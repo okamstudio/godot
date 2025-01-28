@@ -31,7 +31,6 @@
 #include "polygon_3d_editor_plugin.h"
 
 #include "core/input/input.h"
-#include "core/io/file_access.h"
 #include "core/math/geometry_2d.h"
 #include "core/os/keyboard.h"
 #include "editor/editor_node.h"
@@ -41,7 +40,6 @@
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/camera_3d.h"
-#include "scene/gui/separator.h"
 
 void Polygon3DEditor::_notification(int p_what) {
 	switch (p_what) {

@@ -44,7 +44,6 @@
 #include "editor/editor_debugger_server_websocket.h"
 #endif
 
-#include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/error/error_macros.h"
 

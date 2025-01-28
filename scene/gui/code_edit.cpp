@@ -275,7 +275,6 @@ void CodeEdit::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_MOUSE_EXIT: {
-			queue_redraw();
 			symbol_tooltip_timer->stop();
 		} break;
 	}
@@ -486,10 +485,10 @@ void CodeEdit::gui_input(const Ref<InputEvent> &p_gui_input) {
 	}
 
 	bool update_code_completion = false;
-	if (!k.is_valid()) {
+	if (k.is_null()) {
 		// MouseMotion events should not be handled by TextEdit logic if we're
 		// currently clicking and dragging from the code completion panel.
-		if (!mm.is_valid() || !is_code_completion_drag_started) {
+		if (mm.is_null() || !is_code_completion_drag_started) {
 			TextEdit::gui_input(p_gui_input);
 		}
 		return;

@@ -595,6 +595,9 @@ class VisualShaderEditor : public ShaderEditor {
 	void _member_cancel();
 
 	void _varying_create();
+	void _varying_validate();
+	void _varying_type_changed(int p_index);
+	void _varying_mode_changed(int p_index);
 	void _varying_name_changed(const String &p_name);
 	void _varying_deleted();
 	void _varying_selected();

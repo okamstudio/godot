@@ -30,12 +30,8 @@
 
 #include "openxr_composition_layer_quad.h"
 
-#include "../extensions/openxr_composition_layer_extension.h"
-#include "../openxr_api.h"
 #include "../openxr_interface.h"
 
-#include "scene/3d/mesh_instance_3d.h"
-#include "scene/main/viewport.h"
 #include "scene/resources/3d/primitive_meshes.h"
 
 OpenXRCompositionLayerQuad::OpenXRCompositionLayerQuad() :

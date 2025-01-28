@@ -64,7 +64,7 @@ void TileDataEditor::_tile_set_changed_deferred_update() {
 }
 
 TileData *TileDataEditor::_get_tile_data(TileMapCell p_cell) {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), nullptr);
+	ERR_FAIL_COND_V(tile_set.is_null(), nullptr);
 	ERR_FAIL_COND_V(!tile_set->has_source(p_cell.source_id), nullptr);
 
 	TileData *td = nullptr;
@@ -129,7 +129,7 @@ void DummyObject::clear_dummy_properties() {
 }
 
 void GenericTilePolygonEditor::_base_control_draw() {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	real_t grab_threshold = EDITOR_GET("editors/polygon_editor/point_grab_radius");
 
@@ -452,7 +452,7 @@ void GenericTilePolygonEditor::_grab_polygon_segment_point(Vector2 p_pos, const 
 }
 
 void GenericTilePolygonEditor::_snap_to_tile_shape(Point2 &r_point, float &r_current_snapped_dist, float p_snap_dist) {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	Vector<Point2> polygon = tile_set->get_tile_shape_polygon();
 	for (int i = 0; i < polygon.size(); i++) {
@@ -751,7 +751,7 @@ void GenericTilePolygonEditor::set_use_undo_redo(bool p_use_undo_redo) {
 }
 
 void GenericTilePolygonEditor::set_tile_set(Ref<TileSet> p_tile_set) {
-	ERR_FAIL_COND(!p_tile_set.is_valid());
+	ERR_FAIL_COND(p_tile_set.is_null());
 	if (tile_set == p_tile_set) {
 		return;
 	}
@@ -1852,7 +1852,7 @@ void TileDataCollisionEditor::draw_over_tile(CanvasItem *p_canvas_item, Transfor
 }
 
 void TileDataTerrainsEditor::_update_terrain_selector() {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	// Update the terrain set selector.
 	Vector<String> options;
@@ -1905,7 +1905,7 @@ void TileDataTerrainsEditor::_property_value_changed(const StringName &p_propert
 }
 
 void TileDataTerrainsEditor::_tile_set_changed() {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	// Fix if wrong values are selected.
 	int terrain_set = int(dummy_object->get("terrain_set"));
@@ -1923,7 +1923,7 @@ void TileDataTerrainsEditor::_tile_set_changed() {
 }
 
 void TileDataTerrainsEditor::forward_draw_over_atlas(TileAtlasView *p_tile_atlas_view, TileSetAtlasSource *p_tile_set_atlas_source, CanvasItem *p_canvas_item, Transform2D p_transform) {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	// Draw the hovered terrain bit, or the whole tile if it has the wrong terrain set.
 	Vector2i hovered_coords = TileSetSource::INVALID_ATLAS_COORDS;
@@ -2110,7 +2110,7 @@ void TileDataTerrainsEditor::forward_draw_over_atlas(TileAtlasView *p_tile_atlas
 }
 
 void TileDataTerrainsEditor::forward_draw_over_alternatives(TileAtlasView *p_tile_atlas_view, TileSetAtlasSource *p_tile_set_atlas_source, CanvasItem *p_canvas_item, Transform2D p_transform) {
-	ERR_FAIL_COND(!tile_set.is_valid());
+	ERR_FAIL_COND(tile_set.is_null());
 
 	// Draw the hovered terrain bit, or the whole tile if it has the wrong terrain set.
 	Vector2i hovered_coords = TileSetSource::INVALID_ATLAS_COORDS;

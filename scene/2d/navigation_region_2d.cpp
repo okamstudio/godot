@@ -30,7 +30,6 @@
 
 #include "navigation_region_2d.h"
 
-#include "core/math/geometry_2d.h"
 #include "scene/resources/world_2d.h"
 #include "servers/navigation_server_2d.h"
 
@@ -164,14 +163,14 @@ void NavigationRegion2D::_notification(int p_what) {
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(is_visible_in_tree());
+			_set_debug_visible(is_visible_in_tree());
 #endif // DEBUG_ENABLED
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
 			_region_exit_navigation_map();
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(false);
+			_set_debug_visible(false);
 #endif // DEBUG_ENABLED
 		} break;
 
@@ -201,6 +200,9 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 #ifdef DEBUG_ENABLED
 	debug_mesh_dirty = true;
 #endif // DEBUG_ENABLED
+
+	_update_bounds();
+
 	NavigationServer2D::get_singleton()->region_set_navigation_polygon(region, p_navigation_polygon);
 
 	if (navigation_polygon.is_valid()) {
@@ -209,7 +211,7 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 
 #ifdef DEBUG_ENABLED
 	if (navigation_polygon.is_null()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 	}
 #endif // DEBUG_ENABLED
 
@@ -243,7 +245,7 @@ RID NavigationRegion2D::get_navigation_map() const {
 
 void NavigationRegion2D::bake_navigation_polygon(bool p_on_thread) {
 	ERR_FAIL_COND_MSG(!Thread::is_main_thread(), "The SceneTree can only be parsed on the main thread. Call this function from the main thread or use call_deferred().");
-	ERR_FAIL_COND_MSG(!navigation_polygon.is_valid(), "Baking the navigation polygon requires a valid `NavigationPolygon` resource.");
+	ERR_FAIL_COND_MSG(navigation_polygon.is_null(), "Baking the navigation polygon requires a valid `NavigationPolygon` resource.");
 
 	Ref<NavigationMeshSourceGeometryData2D> source_geometry_data;
 	source_geometry_data.instantiate();
@@ -300,7 +302,7 @@ PackedStringArray NavigationRegion2D::get_configuration_warnings() const {
 	PackedStringArray warnings = Node2D::get_configuration_warnings();
 
 	if (is_visible_in_tree() && is_inside_tree()) {
-		if (!navigation_polygon.is_valid()) {
+		if (navigation_polygon.is_null()) {
 			warnings.push_back(RTR("A NavigationMesh resource must be set or created for this node to work. Please set a property or draw a polygon."));
 		}
 	}
@@ -341,6 +343,8 @@ void NavigationRegion2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_baking"), &NavigationRegion2D::is_baking);
 
 	ClassDB::bind_method(D_METHOD("_navigation_polygon_changed"), &NavigationRegion2D::_navigation_polygon_changed);
+
+	ClassDB::bind_method(D_METHOD("get_bounds"), &NavigationRegion2D::get_bounds);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "navigation_polygon", PROPERTY_HINT_RESOURCE_TYPE, "NavigationPolygon"), "set_navigation_polygon", "get_navigation_polygon");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "is_enabled");
@@ -446,7 +450,7 @@ void NavigationRegion2D::_region_update_transform() {
 #ifdef DEBUG_ENABLED
 void NavigationRegion2D::_update_debug_mesh() {
 	if (!is_inside_tree()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 		return;
 	}
 
@@ -641,7 +645,7 @@ void NavigationRegion2D::_update_debug_baking_rect() {
 #endif // DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
-void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
+void NavigationRegion2D::_set_debug_visible(bool p_visible) {
 	RenderingServer *rs = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rs);
 	if (debug_instance_rid.is_valid()) {
@@ -649,3 +653,26 @@ void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
 	}
 }
 #endif // DEBUG_ENABLED
+
+void NavigationRegion2D::_update_bounds() {
+	if (navigation_polygon.is_null()) {
+		bounds = Rect2();
+		return;
+	}
+
+	const Vector<Vector2> &vertices = navigation_polygon->get_vertices();
+	if (vertices.is_empty()) {
+		bounds = Rect2();
+		return;
+	}
+
+	const Transform2D gt = is_inside_tree() ? get_global_transform() : get_transform();
+
+	Rect2 new_bounds;
+	new_bounds.position = gt.xform(vertices[0]);
+
+	for (const Vector2 &vertex : vertices) {
+		new_bounds.expand_to(gt.xform(vertex));
+	}
+	bounds = new_bounds;
+}

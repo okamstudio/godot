@@ -54,13 +54,12 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
+#import "inflection_map.h"
+#import "metal_device_properties.h"
+
 #import "servers/rendering/rendering_device.h"
 
 #import <Metal/Metal.h>
-
-static const uint32_t _mtlPixelFormatCount = 256;
-static const uint32_t _mtlPixelFormatCoreCount = MTLPixelFormatX32_Stencil8 + 2; // The actual last enum value is not available on iOS.
-static const uint32_t _mtlVertexFormatCount = MTLVertexFormatHalf + 1;
 
 #pragma mark -
 #pragma mark Metal format capabilities
@@ -182,13 +181,20 @@ enum class MTLFormatType {
 	Compressed, /**< A block-compressed color. */
 };
 
-typedef struct Extent2D {
+struct Extent2D {
 	uint32_t width;
 	uint32_t height;
-} Extent2D;
+};
+
+struct ComponentMapping {
+	RD::TextureSwizzle r = RD::TEXTURE_SWIZZLE_IDENTITY;
+	RD::TextureSwizzle g = RD::TEXTURE_SWIZZLE_IDENTITY;
+	RD::TextureSwizzle b = RD::TEXTURE_SWIZZLE_IDENTITY;
+	RD::TextureSwizzle a = RD::TEXTURE_SWIZZLE_IDENTITY;
+};
 
 /** Describes the properties of a DataFormat, including the corresponding Metal pixel and vertex format. */
-typedef struct DataFormatDesc {
+struct DataFormatDesc {
 	RD::DataFormat dataFormat;
 	MTLPixelFormat mtlPixelFormat;
 	MTLPixelFormat mtlPixelFormatSubstitute;
@@ -199,6 +205,7 @@ typedef struct DataFormatDesc {
 	Extent2D blockTexelSize;
 	uint32_t bytesPerBlock;
 	MTLFormatType formatType;
+	ComponentMapping componentMapping;
 	const char *name;
 	bool hasReportedSubstitution;
 
@@ -209,24 +216,31 @@ typedef struct DataFormatDesc {
 
 	inline bool vertexIsSupported() const { return (mtlVertexFormat != MTLVertexFormatInvalid); }
 	inline bool vertexIsSupportedOrSubstitutable() const { return vertexIsSupported() || (mtlVertexFormatSubstitute != MTLVertexFormatInvalid); }
-} DataFormatDesc;
+
+	bool needsSwizzle() const {
+		return (componentMapping.r != RD::TEXTURE_SWIZZLE_IDENTITY ||
+				componentMapping.g != RD::TEXTURE_SWIZZLE_IDENTITY ||
+				componentMapping.b != RD::TEXTURE_SWIZZLE_IDENTITY ||
+				componentMapping.a != RD::TEXTURE_SWIZZLE_IDENTITY);
+	}
+};
 
 /** Describes the properties of a MTLPixelFormat or MTLVertexFormat. */
-typedef struct MTLFormatDesc {
+struct MTLFormatDesc {
 	union {
 		MTLPixelFormat mtlPixelFormat;
 		MTLVertexFormat mtlVertexFormat;
 	};
-	RD::DataFormat dataFormat;
+	RD::DataFormat dataFormat = RD::DATA_FORMAT_MAX;
 	MTLFmtCaps mtlFmtCaps;
 	MTLViewClass mtlViewClass;
 	MTLPixelFormat mtlPixelFormatLinear;
 	const char *name = nullptr;
 
 	inline bool isSupported() const { return (mtlPixelFormat != MTLPixelFormatInvalid) && (mtlFmtCaps != kMTLFmtCapsNone); }
-} MTLFormatDesc;
+};
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) PixelFormats {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) PixelFormats {
 	using DataFormat = RD::DataFormat;
 
 public:
@@ -274,7 +288,7 @@ public:
 	MTLFormatType getFormatType(DataFormat p_format);
 
 	/** Returns the format type corresponding to the specified Metal MTLPixelFormat, */
-	MTLFormatType getFormatType(MTLPixelFormat p_formt);
+	MTLFormatType getFormatType(MTLPixelFormat p_format);
 
 	/**
 	 * Returns the Metal MTLPixelFormat corresponding to the specified Godot pixel
@@ -353,6 +367,9 @@ public:
 	 */
 	size_t getBytesPerLayer(MTLPixelFormat p_format, size_t p_bytes_per_row, uint32_t p_texel_rows_per_layer);
 
+	/** Returns whether or not the specified Godot format requires swizzling to use with Metal. */
+	bool needsSwizzle(DataFormat p_format);
+
 	/** Returns the Metal format capabilities supported by the specified Godot format, without substitution. */
 	MTLFmtCaps getCapabilities(DataFormat p_format, bool p_extended = false);
 
@@ -367,48 +384,28 @@ public:
 
 #pragma mark Construction
 
-	explicit PixelFormats(id<MTLDevice> p_device);
+	explicit PixelFormats(id<MTLDevice> p_device, const MetalFeatures &p_feat);
 
 protected:
-	id<MTLDevice> device;
-
 	DataFormatDesc &getDataFormatDesc(DataFormat p_format);
 	DataFormatDesc &getDataFormatDesc(MTLPixelFormat p_format);
 	MTLFormatDesc &getMTLPixelFormatDesc(MTLPixelFormat p_format);
+	MTLFmtCaps &getMTLPixelFormatCapsIf(MTLPixelFormat mtlPixFmt, bool cond);
 	MTLFormatDesc &getMTLVertexFormatDesc(MTLVertexFormat p_format);
+
 	void initDataFormatCapabilities();
 	void initMTLPixelFormatCapabilities();
-	void initMTLVertexFormatCapabilities();
-	void buildMTLFormatMaps();
+	void initMTLVertexFormatCapabilities(const MetalFeatures &p_feat);
+	void modifyMTLFormatCapabilities(const MetalFeatures &p_feat);
 	void buildDFFormatMaps();
-	void modifyMTLFormatCapabilities();
-	void modifyMTLFormatCapabilities(id<MTLDevice> p_device);
-	void addMTLPixelFormatCapabilities(id<MTLDevice> p_device,
-			MTLFeatureSet p_feature_set,
-			MTLPixelFormat p_format,
-			MTLFmtCaps p_caps);
-	void addMTLPixelFormatCapabilities(id<MTLDevice> p_device,
-			MTLGPUFamily p_family,
-			MTLPixelFormat p_format,
-			MTLFmtCaps p_caps);
-	void disableMTLPixelFormatCapabilities(MTLPixelFormat p_format,
-			MTLFmtCaps p_caps);
-	void disableAllMTLPixelFormatCapabilities(MTLPixelFormat p_format);
-	void addMTLVertexFormatCapabilities(id<MTLDevice> p_device,
-			MTLFeatureSet p_feature_set,
-			MTLVertexFormat p_format,
-			MTLFmtCaps p_caps);
+	void addMTLPixelFormatDescImpl(MTLPixelFormat p_pix_fmt, MTLPixelFormat p_pix_fmt_linear,
+			MTLViewClass p_view_class, MTLFmtCaps p_fmt_caps, const char *p_name);
+	void addMTLVertexFormatDescImpl(MTLVertexFormat p_vert_fmt, MTLFmtCaps p_vert_caps, const char *name);
 
-	DataFormatDesc _dataFormatDescriptions[RD::DATA_FORMAT_MAX];
-	MTLFormatDesc _mtlPixelFormatDescriptions[_mtlPixelFormatCount];
-	MTLFormatDesc _mtlVertexFormatDescriptions[_mtlVertexFormatCount];
-
-	// Most Metal formats have small values and are mapped by simple lookup array.
-	// Outliers are mapped by a map.
-	uint16_t _mtlFormatDescIndicesByMTLPixelFormatsCore[_mtlPixelFormatCoreCount];
-	HashMap<uint32_t, uint32_t> _mtlFormatDescIndicesByMTLPixelFormatsExt;
-
-	uint16_t _mtlFormatDescIndicesByMTLVertexFormats[_mtlVertexFormatCount];
+	id<MTLDevice> device;
+	InflectionMap<DataFormat, DataFormatDesc, RD::DATA_FORMAT_MAX> _data_format_descs;
+	InflectionMap<uint16_t, MTLFormatDesc, MTLPixelFormatX32_Stencil8 + 2> _mtl_pixel_format_descs; // The actual last enum value is not available on iOS.
+	TightLocalVector<MTLFormatDesc> _mtl_vertex_format_descs;
 };
 
 #pragma clang diagnostic pop

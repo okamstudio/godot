@@ -42,7 +42,7 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/main/window.h"
 #include "scene/resources/image_texture.h"
-#include "servers/rendering/rendering_server_default.h"
+#include "servers/rendering/rendering_server_globals.h"
 
 bool EditorResourcePreviewGenerator::handles(const String &p_type) const {
 	bool success = false;
@@ -67,7 +67,7 @@ Ref<Texture2D> EditorResourcePreviewGenerator::generate_from_path(const String &
 	}
 
 	Ref<Resource> res = ResourceLoader::load(p_path);
-	if (!res.is_valid()) {
+	if (res.is_null()) {
 		return res;
 	}
 	return generate(res, p_size, p_metadata);
@@ -217,7 +217,7 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 			r_small_texture = generated_small;
 		}
 
-		if (!r_small_texture.is_valid() && r_texture.is_valid() && preview_generators[i]->generate_small_preview_automatically()) {
+		if (r_small_texture.is_null() && r_texture.is_valid() && preview_generators[i]->generate_small_preview_automatically()) {
 			Ref<Image> small_image = r_texture->get_image();
 			small_image = small_image->duplicate();
 			small_image->resize(small_thumbnail_size, small_thumbnail_size, Image::INTERPOLATE_CUBIC);
@@ -230,7 +230,7 @@ void EditorResourcePreview::_generate_preview(Ref<ImageTexture> &r_texture, Ref<
 		}
 	}
 
-	if (!p_item.resource.is_valid()) {
+	if (p_item.resource.is_null()) {
 		// Cache the preview in case it's a resource on disk.
 		if (r_texture.is_valid()) {
 			// Wow it generated a preview... save cache.
@@ -450,7 +450,7 @@ EditorResourcePreview::PreviewItem EditorResourcePreview::get_resource_preview_i
 
 void EditorResourcePreview::queue_edited_resource_preview(const Ref<Resource> &p_res, Object *p_receiver, const StringName &p_receiver_func, const Variant &p_userdata) {
 	ERR_FAIL_NULL(p_receiver);
-	ERR_FAIL_COND(!p_res.is_valid());
+	ERR_FAIL_COND(p_res.is_null());
 	_update_thumbnail_sizes();
 
 	{
@@ -520,6 +520,14 @@ void EditorResourcePreview::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("check_for_invalidation", "path"), &EditorResourcePreview::check_for_invalidation);
 
 	ADD_SIGNAL(MethodInfo("preview_invalidated", PropertyInfo(Variant::STRING, "path")));
+}
+
+void EditorResourcePreview::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_EXIT_TREE: {
+			stop();
+		} break;
+	}
 }
 
 void EditorResourcePreview::check_for_invalidation(const String &p_path) {

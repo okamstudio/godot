@@ -35,11 +35,6 @@
 #include "editor/editor_properties.h"
 #include "editor/plugins/editor_plugin.h"
 
-#include "modules/modules_enabled.gen.h" // For regex.
-#ifdef MODULE_REGEX_ENABLED
-#include "modules/regex/regex.h"
-#endif
-
 #include "scene/3d/skeleton_3d.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/color_rect.h"
@@ -170,7 +165,6 @@ class BoneMapper : public VBoxContainer {
 	void _apply_picker_selection();
 	void _clear_mapping_current_group();
 
-#ifdef MODULE_REGEX_ENABLED
 	/* For auto mapping */
 	enum BoneSegregation {
 		BONE_SEGREGATION_NONE,
@@ -182,7 +176,6 @@ class BoneMapper : public VBoxContainer {
 	BoneSegregation guess_bone_segregation(const String &p_bone_name);
 	void auto_mapping_process(Ref<BoneMap> &p_bone_map);
 	void _run_auto_mapping();
-#endif // MODULE_REGEX_ENABLED
 
 protected:
 	void _notification(int p_what);

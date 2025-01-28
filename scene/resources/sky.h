@@ -31,7 +31,7 @@
 #ifndef SKY_H
 #define SKY_H
 
-#include "core/os/thread.h"
+#include "core/io/resource.h"
 #include "scene/resources/material.h"
 
 class Sky : public Resource {

@@ -14,7 +14,7 @@ JPH_NAMESPACE_BEGIN
 /// Set A to the matrix to invert, set B to identity and let GaussianElimination solve
 /// the equation, on return B will be the inverse of A. And A is destroyed.
 ///
-/// Taken and adapted from Numerical Recipies in C paragraph 2.1
+/// Taken and adapted from Numerical Recipes in C paragraph 2.1
 template <class MatrixA, class MatrixB>
 bool GaussianElimination(MatrixA &ioA, MatrixB &ioB, float inTolerance = 1.0e-16f)
 {

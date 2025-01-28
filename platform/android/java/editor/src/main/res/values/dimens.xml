@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<dimen name="editor_default_window_height">640dp</dimen>
+	<dimen name="editor_default_window_height">720dp</dimen>
 	<dimen name="editor_default_window_width">1024dp</dimen>
 </resources>

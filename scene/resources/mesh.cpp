@@ -905,7 +905,7 @@ Vector<Ref<Shape3D>> Mesh::convex_decompose(const Ref<MeshConvexDecompositionSet
 	ERR_FAIL_NULL_V(convex_decomposition_function, Vector<Ref<Shape3D>>());
 
 	Ref<TriangleMesh> tm = generate_triangle_mesh();
-	ERR_FAIL_COND_V(!tm.is_valid(), Vector<Ref<Shape3D>>());
+	ERR_FAIL_COND_V(tm.is_null(), Vector<Ref<Shape3D>>());
 
 	const Vector<TriangleMesh::Triangle> &triangles = tm->get_triangles();
 	int triangle_count = triangles.size();

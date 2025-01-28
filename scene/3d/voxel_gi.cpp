@@ -361,7 +361,7 @@ void VoxelGI::_find_meshes(Node *p_at_node, List<PlotMesh> &plot_meshes) {
 			for (int i = 0; i < meshes.size(); i += 2) {
 				Transform3D mxf = meshes[i];
 				Ref<Mesh> mesh = meshes[i + 1];
-				if (!mesh.is_valid()) {
+				if (mesh.is_null()) {
 					continue;
 				}
 

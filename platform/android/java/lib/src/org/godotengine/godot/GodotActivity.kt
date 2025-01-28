@@ -31,6 +31,7 @@
 package org.godotengine.godot
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -53,17 +54,31 @@ abstract class GodotActivity : FragmentActivity(), GodotHost {
 		private val TAG = GodotActivity::class.java.simpleName
 
 		@JvmStatic
+		protected val EXTRA_COMMAND_LINE_PARAMS = "command_line_params"
+
+		@JvmStatic
 		protected val EXTRA_NEW_LAUNCH = "new_launch_requested"
+
+		// This window must not match those in BaseGodotEditor.RUN_GAME_INFO etc
+		@JvmStatic
+		private final val DEFAULT_WINDOW_ID = 664;
 	}
 
+	private val commandLineParams = ArrayList<String>()
 	/**
 	 * Interaction with the [Godot] object is delegated to the [GodotFragment] class.
 	 */
 	protected var godotFragment: GodotFragment? = null
 		private set
 
+	@CallSuper
 	override fun onCreate(savedInstanceState: Bundle?) {
+		val params = intent.getStringArrayExtra(EXTRA_COMMAND_LINE_PARAMS)
+		Log.d(TAG, "Starting intent $intent with parameters ${params.contentToString()}")
+		updateCommandLineParams(params ?: emptyArray())
+
 		super.onCreate(savedInstanceState)
+
 		setContentView(getGodotAppLayout())
 
 		handleStartIntent(intent, true)
@@ -76,6 +91,29 @@ abstract class GodotActivity : FragmentActivity(), GodotHost {
 			Log.v(TAG, "Creating new Godot fragment instance.")
 			godotFragment = initGodotInstance()
 			supportFragmentManager.beginTransaction().replace(R.id.godot_fragment_container, godotFragment!!).setPrimaryNavigationFragment(godotFragment).commitNowAllowingStateLoss()
+		}
+	}
+
+	override fun onNewGodotInstanceRequested(args: Array<String>): Int {
+		Log.d(TAG, "Restarting with parameters ${args.contentToString()}")
+		val intent = Intent()
+			.setComponent(ComponentName(this, javaClass.name))
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+			.putExtra(EXTRA_COMMAND_LINE_PARAMS, args)
+		triggerRebirth(null, intent)
+		// fake 'process' id returned by create_instance() etc
+		return DEFAULT_WINDOW_ID;
+	}
+
+	protected fun triggerRebirth(bundle: Bundle?, intent: Intent) {
+		// Launch a new activity
+		val godot = godot
+		if (godot != null) {
+			godot.destroyAndKillProcess {
+				ProcessPhoenix.triggerRebirth(this, bundle, intent)
+			}
+		} else {
+			ProcessPhoenix.triggerRebirth(this, bundle, intent)
 		}
 	}
 
@@ -176,4 +214,15 @@ abstract class GodotActivity : FragmentActivity(), GodotHost {
 	protected open fun initGodotInstance(): GodotFragment {
 		return GodotFragment()
 	}
+
+	@CallSuper
+	protected open fun updateCommandLineParams(args: Array<String>) {
+		// Update the list of command line params with the new args
+		commandLineParams.clear()
+		if (args.isNotEmpty()) {
+			commandLineParams.addAll(args)
+		}
+	}
+
+	final override fun getCommandLine() = commandLineParams
 }

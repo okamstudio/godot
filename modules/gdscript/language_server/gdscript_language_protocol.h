@@ -33,9 +33,7 @@
 
 #include "gdscript_text_document.h"
 #include "gdscript_workspace.h"
-#include "godot_lsp.h"
 
-#include "core/io/stream_peer.h"
 #include "core/io/stream_peer_tcp.h"
 #include "core/io/tcp_server.h"
 

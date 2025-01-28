@@ -202,6 +202,8 @@ public:
 	void set_ignore_occlusion_culling(bool p_enabled);
 	bool is_ignoring_occlusion_culling();
 
+	virtual Ref<TriangleMesh> generate_triangle_mesh() const;
+
 	PackedStringArray get_configuration_warnings() const override;
 	GeometryInstance3D();
 	virtual ~GeometryInstance3D();

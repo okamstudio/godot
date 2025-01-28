@@ -89,7 +89,7 @@ void StreamPeerTCP::accept_socket(Ref<NetSocket> p_sock, IPAddress p_host, uint1
 }
 
 Error StreamPeerTCP::bind(int p_port, const IPAddress &p_host) {
-	ERR_FAIL_COND_V(!_sock.is_valid(), ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
 	ERR_FAIL_COND_V(_sock->is_open(), ERR_ALREADY_IN_USE);
 	ERR_FAIL_COND_V_MSG(p_port < 0 || p_port > 65535, ERR_INVALID_PARAMETER, "The local port number must be between 0 and 65535 (inclusive).");
 
@@ -106,7 +106,7 @@ Error StreamPeerTCP::bind(int p_port, const IPAddress &p_host) {
 }
 
 Error StreamPeerTCP::connect_to_host(const IPAddress &p_host, int p_port) {
-	ERR_FAIL_COND_V(!_sock.is_valid(), ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
 	ERR_FAIL_COND_V(status != STATUS_NONE, ERR_ALREADY_IN_USE);
 	ERR_FAIL_COND_V(!p_host.is_valid(), ERR_INVALID_PARAMETER);
 	ERR_FAIL_COND_V_MSG(p_port < 1 || p_port > 65535, ERR_INVALID_PARAMETER, "The remote port number must be between 1 and 65535 (inclusive).");
@@ -140,7 +140,7 @@ Error StreamPeerTCP::connect_to_host(const IPAddress &p_host, int p_port) {
 }
 
 Error StreamPeerTCP::write(const uint8_t *p_data, int p_bytes, int &r_sent, bool p_block) {
-	ERR_FAIL_COND_V(!_sock.is_valid(), ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
 
 	if (status != STATUS_CONNECTED) {
 		return FAILED;
@@ -238,7 +238,7 @@ Error StreamPeerTCP::read(uint8_t *p_buffer, int p_bytes, int &r_received, bool 
 }
 
 void StreamPeerTCP::set_no_delay(bool p_enabled) {
-	ERR_FAIL_COND(!_sock.is_valid() || !_sock->is_open());
+	ERR_FAIL_COND(_sock.is_null() || !_sock->is_open());
 	_sock->set_tcp_no_delay_enabled(p_enabled);
 }
 
@@ -281,7 +281,7 @@ Error StreamPeerTCP::get_partial_data(uint8_t *p_buffer, int p_bytes, int &r_rec
 }
 
 int StreamPeerTCP::get_available_bytes() const {
-	ERR_FAIL_COND_V(!_sock.is_valid(), -1);
+	ERR_FAIL_COND_V(_sock.is_null(), -1);
 	return _sock->get_available_bytes();
 }
 

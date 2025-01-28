@@ -33,7 +33,6 @@
 
 #include "editor/plugins/editor_plugin.h"
 #include "editor/plugins/texture_editor_plugin.h"
-#include "scene/main/viewport.h"
 
 class EditorInspectorPluginSubViewportPreview : public EditorInspectorPluginTexture {
 	GDCLASS(EditorInspectorPluginSubViewportPreview, EditorInspectorPluginTexture);

@@ -50,6 +50,7 @@
 #include "scene/gui/panel_container.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/texture_rect.h"
+#include "scene/gui/tree.h"
 
 void EditorSettingsDialog::ok_pressed() {
 	if (!EditorSettings::get_singleton()) {
@@ -331,6 +332,10 @@ void EditorSettingsDialog::_event_config_confirmed() {
 
 void EditorSettingsDialog::_update_builtin_action(const String &p_name, const Array &p_events) {
 	Array old_input_array = EditorSettings::get_singleton()->get_builtin_action_overrides(p_name);
+	if (old_input_array.is_empty()) {
+		List<Ref<InputEvent>> defaults = InputMap::get_singleton()->get_builtins_with_feature_overrides_applied()[current_edited_identifier];
+		old_input_array = _event_list_to_array_helper(defaults);
+	}
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(vformat(TTR("Edit Built-in Action: %s"), p_name));
@@ -338,11 +343,11 @@ void EditorSettingsDialog::_update_builtin_action(const String &p_name, const Ar
 	undo_redo->add_undo_method(EditorSettings::get_singleton(), "mark_setting_changed", "builtin_action_overrides");
 	undo_redo->add_do_method(EditorSettings::get_singleton(), "set_builtin_action_override", p_name, p_events);
 	undo_redo->add_undo_method(EditorSettings::get_singleton(), "set_builtin_action_override", p_name, old_input_array);
+	undo_redo->add_do_method(this, "_update_shortcuts");
+	undo_redo->add_undo_method(this, "_update_shortcuts");
 	undo_redo->add_do_method(this, "_settings_changed");
 	undo_redo->add_undo_method(this, "_settings_changed");
 	undo_redo->commit_action();
-
-	_update_shortcuts();
 }
 
 void EditorSettingsDialog::_update_shortcut_events(const String &p_path, const Array &p_events) {
@@ -434,6 +439,7 @@ TreeItem *EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, co
 
 		TreeItem *event_item = shortcuts->create_item(shortcut_item);
 
+		// TRANSLATORS: This is the label for the main input event of a shortcut.
 		event_item->set_text(0, shortcut_item->get_child_count() == 1 ? TTRC("Primary") : "");
 		event_item->set_text(1, ie->as_text());
 		event_item->set_auto_translate_mode(1, AUTO_TRANSLATE_MODE_DISABLED);

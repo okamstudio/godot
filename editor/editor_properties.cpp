@@ -47,7 +47,6 @@
 #include "editor/property_selector.h"
 #include "editor/scene_tree_dock.h"
 #include "editor/themes/editor_scale.h"
-#include "editor/themes/editor_theme_manager.h"
 #include "scene/2d/gpu_particles_2d.h"
 #include "scene/3d/fog_volume.h"
 #include "scene/3d/gpu_particles_3d.h"
@@ -56,7 +55,6 @@
 #include "scene/main/window.h"
 #include "scene/resources/font.h"
 #include "scene/resources/mesh.h"
-#include "scene/resources/packed_scene.h"
 #include "scene/resources/visual_shader_nodes.h"
 
 ///////////////////// Nil /////////////////////////
@@ -2601,16 +2599,22 @@ void EditorPropertyColor::_color_changed(const Color &p_color) {
 	get_edited_object()->set(get_edited_property(), p_color);
 }
 
+void EditorPropertyColor::_picker_created() {
+	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_popup_opening));
+	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed), CONNECT_DEFERRED);
+}
+
+void EditorPropertyColor::_popup_opening() {
+	EditorNode::get_singleton()->setup_color_picker(picker->get_picker());
+	last_color = picker->get_pick_color();
+	was_checked = !is_checkable() || is_checked();
+}
+
 void EditorPropertyColor::_popup_closed() {
 	get_edited_object()->set(get_edited_property(), was_checked ? Variant(last_color) : Variant());
 	if (!picker->get_pick_color().is_equal_approx(last_color)) {
 		emit_changed(get_edited_property(), picker->get_pick_color(), "", false);
 	}
-}
-
-void EditorPropertyColor::_picker_opening() {
-	last_color = picker->get_pick_color();
-	was_checked = !is_checkable() || is_checked();
 }
 
 void EditorPropertyColor::_notification(int p_what) {
@@ -2656,9 +2660,7 @@ EditorPropertyColor::EditorPropertyColor() {
 	add_child(picker);
 	picker->set_flat(true);
 	picker->connect("color_changed", callable_mp(this, &EditorPropertyColor::_color_changed));
-	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed), CONNECT_DEFERRED);
-	picker->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(picker->get_picker()));
-	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_picker_opening));
+	picker->connect("picker_created", callable_mp(this, &EditorPropertyColor::_picker_created), CONNECT_ONE_SHOT);
 }
 
 ////////////// NODE PATH //////////////////////
@@ -3294,6 +3296,9 @@ void EditorPropertyResource::update_property() {
 
 				sub_inspector->set_draw_focus_border(false);
 
+				sub_inspector->set_use_filter(use_filter);
+				sub_inspector->register_text_enter(parent_inspector->search_box);
+
 				sub_inspector->set_mouse_filter(MOUSE_FILTER_STOP);
 				add_child(sub_inspector);
 				set_bottom_editor(sub_inspector);
@@ -3320,16 +3325,14 @@ void EditorPropertyResource::update_property() {
 				_update_property_bg();
 			}
 
-		} else {
-			if (sub_inspector) {
-				set_bottom_editor(nullptr);
-				memdelete(sub_inspector);
-				sub_inspector = nullptr;
+		} else if (sub_inspector) {
+			set_bottom_editor(nullptr);
+			memdelete(sub_inspector);
+			sub_inspector = nullptr;
 
-				if (opened_editor) {
-					EditorNode::get_singleton()->hide_unused_editors();
-					opened_editor = false;
-				}
+			if (opened_editor) {
+				EditorNode::get_singleton()->hide_unused_editors();
+				opened_editor = false;
 			}
 		}
 	}
@@ -3357,6 +3360,13 @@ void EditorPropertyResource::expand_revertable() {
 
 void EditorPropertyResource::set_use_sub_inspector(bool p_enable) {
 	use_sub_inspector = p_enable;
+}
+
+void EditorPropertyResource::set_use_filter(bool p_use) {
+	use_filter = p_use;
+	if (sub_inspector) {
+		update_property();
+	}
 }
 
 void EditorPropertyResource::fold_resource() {

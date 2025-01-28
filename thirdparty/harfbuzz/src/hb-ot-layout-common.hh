@@ -3714,11 +3714,11 @@ struct DeltaSetIndexMap
 
 struct ItemVarStoreInstancer
 {
-  ItemVarStoreInstancer (const ItemVariationStore *varStore,
+  ItemVarStoreInstancer (const ItemVariationStore *varStore_,
 			 const DeltaSetIndexMap *varIdxMap,
 			 hb_array_t<const int> coords,
 			 VarRegionList::cache_t *cache = nullptr) :
-    varStore (varStore), varIdxMap (varIdxMap), coords (coords), cache (cache)
+    varStore (varStore_), varIdxMap (varIdxMap), coords (coords), cache (cache)
   {
     if (!varStore)
       varStore = &Null(ItemVariationStore);

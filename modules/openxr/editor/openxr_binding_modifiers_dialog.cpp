@@ -30,7 +30,6 @@
 
 #include "openxr_binding_modifiers_dialog.h"
 #include "../action_map/openxr_interaction_profile_metadata.h"
-#include "editor/editor_string_names.h"
 #include "openxr_action_map_editor.h"
 
 void OpenXRBindingModifiersDialog::_bind_methods() {

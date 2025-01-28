@@ -47,9 +47,6 @@ ReflectionProbeGizmoPlugin::ReflectionProbeGizmoPlugin() {
 	gizmo_color.a = 0.5;
 	create_material("reflection_internal_material", gizmo_color);
 
-	gizmo_color.a = 0.025;
-	create_material("reflection_probe_solid_material", gizmo_color);
-
 	create_icon_material("reflection_probe_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoReflectionProbe"), EditorStringName(EditorIcons)));
 	create_handle_material("handles");
 }
@@ -209,11 +206,6 @@ void ReflectionProbeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 		p_gizmo->add_lines(lines, material);
 		p_gizmo->add_lines(internal_lines, material_internal);
-
-		if (p_gizmo->is_selected()) {
-			Ref<Material> solid_material = get_material("reflection_probe_solid_material", p_gizmo);
-			p_gizmo->add_solid_box(solid_material, probe->get_size());
-		}
 
 		p_gizmo->add_handles(handles, get_material("handles"));
 	}

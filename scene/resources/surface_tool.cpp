@@ -30,6 +30,8 @@
 
 #include "surface_tool.h"
 
+#include "core/templates/a_hash_map.h"
+
 #define EQ_VERTEX_DIST 0.00001
 
 SurfaceTool::OptimizeVertexCacheFunc SurfaceTool::optimize_vertex_cache_func = nullptr;
@@ -51,7 +53,7 @@ void SurfaceTool::strip_mesh_arrays(PackedVector3Array &r_vertices, PackedInt32A
 	r_vertices.resize(new_vertex_count);
 	remap_index_func((unsigned int *)r_indices.ptrw(), (unsigned int *)r_indices.ptr(), r_indices.size(), remap.ptr());
 
-	HashMap<const int *, bool, TriangleHasher, TriangleHasher> found_triangles;
+	AHashMap<const int *, bool, TriangleHasher, TriangleHasher> found_triangles;
 	int *idx_ptr = r_indices.ptrw();
 
 	int filtered_indices_count = 0;
@@ -70,7 +72,7 @@ void SurfaceTool::strip_mesh_arrays(PackedVector3Array &r_vertices, PackedInt32A
 			memcpy(idx_ptr + (filtered_indices_count * 3), tri, sizeof(int) * 3);
 		}
 
-		found_triangles[tri] = true;
+		found_triangles.insert_new(tri, true);
 		filtered_indices_count++;
 	}
 	r_indices.resize(filtered_indices_count * 3);
@@ -135,18 +137,12 @@ bool SurfaceTool::Vertex::operator==(const Vertex &p_vertex) const {
 }
 
 uint32_t SurfaceTool::VertexHasher::hash(const Vertex &p_vtx) {
-	uint32_t h = hash_djb2_buffer((const uint8_t *)&p_vtx.vertex, sizeof(real_t) * 3);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.normal, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.binormal, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.tangent, sizeof(real_t) * 3, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv, sizeof(real_t) * 2, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.uv2, sizeof(real_t) * 2, h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.color, sizeof(real_t) * 4, h);
-	h = hash_djb2_buffer((const uint8_t *)p_vtx.bones.ptr(), p_vtx.bones.size() * sizeof(int), h);
+	uint32_t h = hash_djb2_buffer((const uint8_t *)p_vtx.bones.ptr(), p_vtx.bones.size() * sizeof(int));
 	h = hash_djb2_buffer((const uint8_t *)p_vtx.weights.ptr(), p_vtx.weights.size() * sizeof(float), h);
-	h = hash_djb2_buffer((const uint8_t *)&p_vtx.custom[0], sizeof(Color) * RS::ARRAY_CUSTOM_COUNT, h);
-	h = hash_murmur3_one_32(p_vtx.smooth_group, h);
-	h = hash_fmix32(h);
+
+	const int64_t length = (int64_t)&p_vtx.vertex - (int64_t)&p_vtx.smooth_group + sizeof(p_vtx.vertex);
+	const void *key = &p_vtx.smooth_group;
+	h = hash_murmur3_buffer(key, length, h);
 	return h;
 }
 
@@ -163,7 +159,7 @@ bool SurfaceTool::SmoothGroupVertex::operator==(const SmoothGroupVertex &p_verte
 }
 
 uint32_t SurfaceTool::SmoothGroupVertexHasher::hash(const SmoothGroupVertex &p_vtx) {
-	uint32_t h = hash_djb2_buffer((const uint8_t *)&p_vtx.vertex, sizeof(real_t) * 3);
+	uint32_t h = HashMapHasherDefault::hash(p_vtx.vertex);
 	h = hash_murmur3_one_32(p_vtx.smooth_group, h);
 	h = hash_fmix32(h);
 	return h;
@@ -755,17 +751,17 @@ void SurfaceTool::index() {
 		return; //already indexed
 	}
 
-	HashMap<Vertex, int, VertexHasher> indices;
-	LocalVector<Vertex> old_vertex_array = vertex_array;
-	vertex_array.clear();
+	AHashMap<Vertex &, int, VertexHasher> indices = vertex_array.size();
 
-	for (const Vertex &vertex : old_vertex_array) {
+	uint32_t new_size = 0;
+	for (Vertex &vertex : vertex_array) {
 		int *idxptr = indices.getptr(vertex);
 		int idx;
 		if (!idxptr) {
 			idx = indices.size();
-			vertex_array.push_back(vertex);
-			indices[vertex] = idx;
+			vertex_array[new_size] = vertex;
+			indices.insert_new(vertex_array[new_size], idx);
+			new_size++;
 		} else {
 			idx = *idxptr;
 		}
@@ -773,6 +769,7 @@ void SurfaceTool::index() {
 		index_array.push_back(idx);
 	}
 
+	vertex_array.resize(new_size);
 	format |= Mesh::ARRAY_FORMAT_INDEX;
 }
 
@@ -1197,7 +1194,7 @@ void SurfaceTool::generate_normals(bool p_flip) {
 
 	ERR_FAIL_COND((vertex_array.size() % 3) != 0);
 
-	HashMap<SmoothGroupVertex, Vector3, SmoothGroupVertexHasher> smooth_hash;
+	AHashMap<SmoothGroupVertex, Vector3, SmoothGroupVertexHasher> smooth_hash = vertex_array.size();
 
 	for (uint32_t vi = 0; vi < vertex_array.size(); vi += 3) {
 		Vertex *v = &vertex_array[vi];
@@ -1214,7 +1211,7 @@ void SurfaceTool::generate_normals(bool p_flip) {
 			if (v[i].smooth_group != UINT32_MAX) {
 				Vector3 *lv = smooth_hash.getptr(v[i]);
 				if (!lv) {
-					smooth_hash.insert(v[i], normal);
+					smooth_hash.insert_new(v[i], normal);
 				} else {
 					(*lv) += normal;
 				}

@@ -69,6 +69,47 @@ void NavigationPathQueryResult3D::reset() {
 	path_owner_ids.clear();
 }
 
+void NavigationPathQueryResult3D::set_data(const LocalVector<Vector3> &p_path, const LocalVector<int32_t> &p_path_types, const LocalVector<RID> &p_path_rids, const LocalVector<int64_t> &p_path_owner_ids) {
+	path.clear();
+	path_types.clear();
+	path_rids.clear();
+	path_owner_ids.clear();
+
+	{
+		path.resize(p_path.size());
+		Vector3 *w = path.ptrw();
+		const Vector3 *r = p_path.ptr();
+		for (uint32_t i = 0; i < p_path.size(); i++) {
+			w[i] = r[i];
+		}
+	}
+
+	{
+		path_types.resize(p_path_types.size());
+		int32_t *w = path_types.ptrw();
+		const int32_t *r = p_path_types.ptr();
+		for (uint32_t i = 0; i < p_path_types.size(); i++) {
+			w[i] = r[i];
+		}
+	}
+
+	{
+		path_rids.resize(p_path_rids.size());
+		for (uint32_t i = 0; i < p_path_rids.size(); i++) {
+			path_rids[i] = p_path_rids[i];
+		}
+	}
+
+	{
+		path_owner_ids.resize(p_path_owner_ids.size());
+		int64_t *w = path_owner_ids.ptrw();
+		const int64_t *r = p_path_owner_ids.ptr();
+		for (uint32_t i = 0; i < p_path_owner_ids.size(); i++) {
+			w[i] = r[i];
+		}
+	}
+}
+
 void NavigationPathQueryResult3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_path", "path"), &NavigationPathQueryResult3D::set_path);
 	ClassDB::bind_method(D_METHOD("get_path"), &NavigationPathQueryResult3D::get_path);

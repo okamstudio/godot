@@ -40,7 +40,7 @@ void TCPServer::_bind_methods() {
 }
 
 Error TCPServer::listen(uint16_t p_port, const IPAddress &p_bind_address) {
-	ERR_FAIL_COND_V(!_sock.is_valid(), ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(_sock.is_null(), ERR_UNAVAILABLE);
 	ERR_FAIL_COND_V(_sock->is_open(), ERR_ALREADY_IN_USE);
 	ERR_FAIL_COND_V(!p_bind_address.is_valid() && !p_bind_address.is_wildcard(), ERR_INVALID_PARAMETER);
 
@@ -82,13 +82,13 @@ int TCPServer::get_local_port() const {
 }
 
 bool TCPServer::is_listening() const {
-	ERR_FAIL_COND_V(!_sock.is_valid(), false);
+	ERR_FAIL_COND_V(_sock.is_null(), false);
 
 	return _sock->is_open();
 }
 
 bool TCPServer::is_connection_available() const {
-	ERR_FAIL_COND_V(!_sock.is_valid(), false);
+	ERR_FAIL_COND_V(_sock.is_null(), false);
 
 	if (!_sock->is_open()) {
 		return false;
@@ -108,7 +108,7 @@ Ref<StreamPeerTCP> TCPServer::take_connection() {
 	IPAddress ip;
 	uint16_t port = 0;
 	ns = _sock->accept(ip, port);
-	if (!ns.is_valid()) {
+	if (ns.is_null()) {
 		return conn;
 	}
 

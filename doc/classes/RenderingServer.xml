@@ -1280,7 +1280,7 @@
 			<param index="1" name="color" type="Color" />
 			<param index="2" name="ambient" type="int" enum="RenderingServer.EnvironmentAmbientSource" default="0" />
 			<param index="3" name="energy" type="float" default="1.0" />
-			<param index="4" name="sky_contibution" type="float" default="0.0" />
+			<param index="4" name="sky_contribution" type="float" default="0.0" />
 			<param index="5" name="reflection_source" type="int" enum="RenderingServer.EnvironmentReflectionSource" default="0" />
 			<description>
 				Sets the values to be used for ambient light rendering. See [Environment] for more details.
@@ -2559,6 +2559,7 @@
 			<param index="2" name="transform_format" type="int" enum="RenderingServer.MultimeshTransformFormat" />
 			<param index="3" name="color_format" type="bool" default="false" />
 			<param index="4" name="custom_data_format" type="bool" default="false" />
+			<param index="5" name="use_indirect" type="bool" default="false" />
 			<description>
 			</description>
 		</method>
@@ -2591,6 +2592,29 @@
 			<param index="0" name="multimesh" type="RID" />
 			<description>
 				Returns the [RenderingDevice] [RID] handle of the [MultiMesh], which can be used as any other buffer on the Rendering Device.
+			</description>
+		</method>
+		<method name="multimesh_get_command_buffer_rd_rid" qualifiers="const">
+			<return type="RID" />
+			<param index="0" name="multimesh" type="RID" />
+			<description>
+				Returns the [RenderingDevice] [RID] handle of the [MultiMesh] command buffer. This [RID] is only valid if [code]use_indirect[/code] is set to [code]true[/code] when allocating data through [method multimesh_allocate_data]. It can be used to directly modify the instance count via buffer.
+				The data structure is dependent on both how many surfaces the mesh contains and whether it is indexed or not, the buffer has 5 integers in it, with the last unused if the mesh is not indexed.
+				Each of the values in the buffer correspond to these options:
+				[codeblock lang=text]
+				Indexed:
+				  0 - indexCount;
+				  1 - instanceCount;
+				  2 - firstIndex;
+				  3 - vertexOffset;
+				  4 - firstInstance;
+				Non Indexed:
+				  0 - vertexCount;
+				  1 - instanceCount;
+				  2 - firstVertex;
+				  3 - firstInstance;
+				  4 - unused;
+				[/codeblock]
 			</description>
 		</method>
 		<method name="multimesh_get_custom_aabb" qualifiers="const">
@@ -2933,6 +2957,14 @@
 			<param index="0" name="particles" type="RID" />
 			<description>
 				Add particle system to list of particle systems that need to be updated. Update will take place on the next frame, or on the next call to [method instances_cull_aabb], [method instances_cull_convex], or [method instances_cull_ray].
+			</description>
+		</method>
+		<method name="particles_request_process_time">
+			<return type="void" />
+			<param index="0" name="particles" type="RID" />
+			<param index="1" name="time" type="float" />
+			<description>
+				Requests particles to process for extra process time during a single frame.
 			</description>
 		</method>
 		<method name="particles_restart">
@@ -3795,12 +3827,11 @@
 			<description>
 				Copies the viewport to a region of the screen specified by [param rect]. If [method viewport_set_render_direct_to_screen] is [code]true[/code], then the viewport does not use a framebuffer and the contents of the viewport are rendered directly to screen. However, note that the root viewport is drawn last, therefore it will draw over the screen. Accordingly, you must set the root viewport to an area that does not cover the area that you have attached this viewport to.
 				For example, you can set the root viewport to not render at all with the following code:
-				FIXME: The method seems to be non-existent.
 				[codeblocks]
 				[gdscript]
 				func _ready():
-				    get_viewport().set_attach_to_screen_rect(Rect2())
-				    $Viewport.set_attach_to_screen_rect(Rect2(0, 0, 600, 600))
+				    RenderingServer.viewport_attach_to_screen(get_viewport().get_viewport_rid(), Rect2())
+				    RenderingServer.viewport_attach_to_screen($Viewport.get_viewport_rid(), Rect2(0, 0, 600, 600))
 				[/gdscript]
 				[/codeblocks]
 				Using this can result in significant optimization, especially on lower-end devices. However, it comes at the cost of having to manage your viewports manually. For further optimization, see [method viewport_set_render_direct_to_screen].
@@ -4238,7 +4269,7 @@
 			<description>
 				Creates a new 3D visibility notifier object and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]visibility_notifier_*[/code] RenderingServer functions.
 				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] method.
-				To place in a scene, attach this mesh to an instance using [method instance_set_base] using the returned RID.
+				To place in a scene, attach this notifier to an instance using [method instance_set_base] using the returned RID.
 				[b]Note:[/b] The equivalent node is [VisibleOnScreenNotifier3D].
 			</description>
 		</method>
@@ -4599,27 +4630,37 @@
 			Flag used to mark an index array.
 		</constant>
 		<constant name="ARRAY_FORMAT_BLEND_SHAPE_MASK" value="7" enum="ArrayFormat" is_bitfield="true">
+			Mask of mesh channels permitted in blend shapes.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM_BASE" value="13" enum="ArrayFormat" is_bitfield="true">
+			Shift of first custom channel.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM_BITS" value="3" enum="ArrayFormat" is_bitfield="true">
+			Number of format bits per custom channel. See [enum ArrayCustomFormat].
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM0_SHIFT" value="13" enum="ArrayFormat" is_bitfield="true">
+			Amount to shift [enum ArrayCustomFormat] for custom channel index 0.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM1_SHIFT" value="16" enum="ArrayFormat" is_bitfield="true">
+			Amount to shift [enum ArrayCustomFormat] for custom channel index 1.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM2_SHIFT" value="19" enum="ArrayFormat" is_bitfield="true">
+			Amount to shift [enum ArrayCustomFormat] for custom channel index 2.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM3_SHIFT" value="22" enum="ArrayFormat" is_bitfield="true">
+			Amount to shift [enum ArrayCustomFormat] for custom channel index 3.
 		</constant>
 		<constant name="ARRAY_FORMAT_CUSTOM_MASK" value="7" enum="ArrayFormat" is_bitfield="true">
+			Mask of custom format bits per custom channel. Must be shifted by one of the SHIFT constants. See [enum ArrayCustomFormat].
 		</constant>
 		<constant name="ARRAY_COMPRESS_FLAGS_BASE" value="25" enum="ArrayFormat" is_bitfield="true">
+			Shift of first compress flag. Compress flags should be passed to [method ArrayMesh.add_surface_from_arrays] and [method SurfaceTool.commit].
 		</constant>
 		<constant name="ARRAY_FLAG_USE_2D_VERTICES" value="33554432" enum="ArrayFormat" is_bitfield="true">
 			Flag used to mark that the array contains 2D vertices.
 		</constant>
 		<constant name="ARRAY_FLAG_USE_DYNAMIC_UPDATE" value="67108864" enum="ArrayFormat" is_bitfield="true">
+			Flag indices that the mesh data will use [code]GL_DYNAMIC_DRAW[/code] on GLES. Unused on Vulkan.
 		</constant>
 		<constant name="ARRAY_FLAG_USE_8_BONE_WEIGHTS" value="134217728" enum="ArrayFormat" is_bitfield="true">
 			Flag used to mark that the array uses 8 bone weights instead of 4.
@@ -4977,7 +5018,15 @@
 		<constant name="VIEWPORT_SCALING_3D_MODE_FSR2" value="2" enum="ViewportScaling3DMode">
 			Use AMD FidelityFX Super Resolution 2.2 upscaling for the viewport's 3D buffer. The amount of scaling can be set using [member Viewport.scaling_3d_scale]. Values less than [code]1.0[/code] will be result in the viewport being upscaled using FSR2. Values greater than [code]1.0[/code] are not supported and bilinear downsampling will be used instead. A value of [code]1.0[/code] will use FSR2 at native resolution as a TAA solution.
 		</constant>
-		<constant name="VIEWPORT_SCALING_3D_MODE_MAX" value="3" enum="ViewportScaling3DMode">
+		<constant name="VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL" value="3" enum="ViewportScaling3DMode">
+			Use MetalFX spatial upscaling for the viewport's 3D buffer. The amount of scaling can be set using [member Viewport.scaling_3d_scale]. Values less than [code]1.0[/code] will be result in the viewport being upscaled using MetalFX. Values greater than [code]1.0[/code] are not supported and bilinear downsampling will be used instead. A value of [code]1.0[/code] disables scaling.
+			[b]Note:[/b] Only supported when the Metal rendering driver is in use, which limits this scaling mode to macOS and iOS.
+		</constant>
+		<constant name="VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL" value="4" enum="ViewportScaling3DMode">
+			Use MetalFX temporal upscaling for the viewport's 3D buffer. The amount of scaling can be set using [member Viewport.scaling_3d_scale]. Values less than [code]1.0[/code] will be result in the viewport being upscaled using MetalFX. Values greater than [code]1.0[/code] are not supported and bilinear downsampling will be used instead. A value of [code]1.0[/code] will use MetalFX at native resolution as a TAA solution.
+			[b]Note:[/b] Only supported when the Metal rendering driver is in use, which limits this scaling mode to macOS and iOS.
+		</constant>
+		<constant name="VIEWPORT_SCALING_3D_MODE_MAX" value="5" enum="ViewportScaling3DMode">
 			Represents the size of the [enum ViewportScaling3DMode] enum.
 		</constant>
 		<constant name="VIEWPORT_UPDATE_DISABLED" value="0" enum="ViewportUpdateMode">
@@ -5347,6 +5396,9 @@
 		<constant name="ENV_TONE_MAPPER_ACES" value="3" enum="EnvironmentToneMapper">
 			Use the Academy Color Encoding System tonemapper. ACES is slightly more expensive than other options, but it handles bright lighting in a more realistic fashion by desaturating it as it becomes brighter. ACES typically has a more contrasted output compared to [constant ENV_TONE_MAPPER_REINHARD] and [constant ENV_TONE_MAPPER_FILMIC].
 			[b]Note:[/b] This tonemapping operator is called "ACES Fitted" in Godot 3.x.
+		</constant>
+		<constant name="ENV_TONE_MAPPER_AGX" value="4" enum="EnvironmentToneMapper">
+			Use the AgX tonemapper. AgX is slightly more expensive than other options, but it handles bright lighting in a more realistic fashion by desaturating it as it becomes brighter. AgX is less likely to darken parts of the scene compared to [constant ENV_TONE_MAPPER_ACES], and can match [constant ENV_TONE_MAPPER_FILMIC] more closely.
 		</constant>
 		<constant name="ENV_SSR_ROUGHNESS_QUALITY_DISABLED" value="0" enum="EnvironmentSSRRoughnessQuality">
 			Lowest quality of roughness filter for screen-space reflections. Rough materials will not have blurrier screen-space reflections compared to smooth (non-rough) materials. This is the fastest option.

@@ -34,7 +34,6 @@
 #include "gdscript_extend_parser.h"
 #include "gdscript_language_protocol.h"
 
-#include "core/os/os.h"
 #include "editor/editor_settings.h"
 #include "editor/plugins/script_text_editor.h"
 #include "servers/display_server.h"
@@ -308,7 +307,7 @@ Dictionary GDScriptTextDocument::resolve(const Dictionary &p_params) {
 	} else if (data.is_string()) {
 		String query = data;
 
-		Vector<String> param_symbols = query.split(SYMBOL_SEPERATOR, false);
+		Vector<String> param_symbols = query.split(SYMBOL_SEPARATOR, false);
 
 		if (param_symbols.size() >= 2) {
 			StringName class_name = param_symbols[0];

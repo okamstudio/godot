@@ -30,6 +30,13 @@
 
 #include "multimesh_instance_3d.h"
 
+#include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
+#include "scene/resources/navigation_mesh.h"
+#include "servers/navigation_server_3d.h"
+
+Callable MultiMeshInstance3D::_navmesh_source_geometry_parsing_callback;
+RID MultiMeshInstance3D::_navmesh_source_geometry_parser;
+
 void MultiMeshInstance3D::_refresh_interpolated() {
 	if (is_inside_tree() && multimesh.is_valid()) {
 		bool interpolated = is_physics_interpolated_and_enabled();
@@ -93,6 +100,41 @@ AABB MultiMeshInstance3D::get_aabb() const {
 		return AABB();
 	} else {
 		return multimesh->get_aabb();
+	}
+}
+
+void MultiMeshInstance3D::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer3D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&MultiMeshInstance3D::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer3D::get_singleton()->source_geometry_parser_create();
+		NavigationServer3D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void MultiMeshInstance3D::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
+	MultiMeshInstance3D *multimesh_instance = Object::cast_to<MultiMeshInstance3D>(p_node);
+
+	if (multimesh_instance == nullptr) {
+		return;
+	}
+
+	NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
+
+	if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
+		Ref<MultiMesh> multimesh = multimesh_instance->get_multimesh();
+		if (multimesh.is_valid()) {
+			Ref<Mesh> mesh = multimesh->get_mesh();
+			if (mesh.is_valid()) {
+				int n = multimesh->get_visible_instance_count();
+				if (n == -1) {
+					n = multimesh->get_instance_count();
+				}
+				for (int i = 0; i < n; i++) {
+					p_source_geometry_data->add_mesh(mesh, multimesh_instance->get_global_transform() * multimesh->get_instance_transform(i));
+				}
+			}
+		}
 	}
 }
 

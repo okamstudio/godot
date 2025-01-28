@@ -197,7 +197,7 @@ String _android_xml_escape(const String &p_string) {
 Error _create_project_name_strings_files(const Ref<EditorExportPreset> &p_preset, const String &project_name, const String &p_gradle_build_dir) {
 	print_verbose("Creating strings resources for supported locales for project " + project_name);
 	// Stores the string into the default values directory.
-	String processed_default_xml_string = vformat(godot_project_name_xml_string, _android_xml_escape(project_name));
+	String processed_default_xml_string = vformat(GODOT_PROJECT_NAME_XML_STRING, _android_xml_escape(project_name));
 	store_string_at_path(p_gradle_build_dir.path_join("res/values/godot_project_name_string.xml"), processed_default_xml_string);
 
 	// Searches the Gradle project res/ directory to find all supported locales
@@ -223,7 +223,7 @@ Error _create_project_name_strings_files(const Ref<EditorExportPreset> &p_preset
 		String locale_directory = p_gradle_build_dir.path_join("res/" + file + "/godot_project_name_string.xml");
 		if (appnames.has(locale)) {
 			String locale_project_name = appnames[locale];
-			String processed_xml_string = vformat(godot_project_name_xml_string, _android_xml_escape(locale_project_name));
+			String processed_xml_string = vformat(GODOT_PROJECT_NAME_XML_STRING, _android_xml_escape(locale_project_name));
 			print_verbose("Storing project name for locale " + locale + " under " + locale_directory);
 			store_string_at_path(locale_directory, processed_xml_string);
 		} else {
@@ -260,7 +260,7 @@ String _get_screen_sizes_tag(const Ref<EditorExportPreset> &p_preset) {
 String _get_activity_tag(const Ref<EditorExportPlatform> &p_export_platform, const Ref<EditorExportPreset> &p_preset, bool p_debug) {
 	String orientation = _get_android_orientation_label(DisplayServer::ScreenOrientation(int(GLOBAL_GET("display/window/handheld/orientation"))));
 	String manifest_activity_text = vformat(
-			"        <activity android:name=\"com.godot.game.GodotApp\" "
+			"        <activity android:name=\".GodotApp\" "
 			"tools:replace=\"android:screenOrientation,android:excludeFromRecents,android:resizeableActivity\" "
 			"tools:node=\"mergeOnlyAttributes\" "
 			"android:excludeFromRecents=\"%s\" "

@@ -30,8 +30,6 @@
 
 #include "texture_progress_bar.h"
 
-#include "core/config/engine.h"
-
 void TextureProgressBar::set_under_texture(const Ref<Texture2D> &p_texture) {
 	_set_texture(&under, p_texture);
 }
@@ -83,15 +81,19 @@ bool TextureProgressBar::get_nine_patch_stretch() const {
 Size2 TextureProgressBar::get_minimum_size() const {
 	if (nine_patch_stretch) {
 		return Size2(stretch_margin[SIDE_LEFT] + stretch_margin[SIDE_RIGHT], stretch_margin[SIDE_TOP] + stretch_margin[SIDE_BOTTOM]);
-	} else if (under.is_valid()) {
-		return under->get_size();
-	} else if (over.is_valid()) {
-		return over->get_size();
-	} else if (progress.is_valid()) {
-		return progress->get_size();
 	}
 
-	return Size2(1, 1);
+	Size2 size = Size2(1, 1);
+	if (under.is_valid()) {
+		size = size.max(under->get_size());
+	}
+	if (progress.is_valid()) {
+		size = size.max(progress->get_size());
+	}
+	if (over.is_valid()) {
+		size = size.max(over->get_size());
+	}
+	return size;
 }
 
 void TextureProgressBar::set_progress_texture(const Ref<Texture2D> &p_texture) {
@@ -428,36 +430,20 @@ void TextureProgressBar::draw_nine_patch_stretched(const Ref<Texture2D> &p_textu
 void TextureProgressBar::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_DRAW: {
-			if (nine_patch_stretch && (mode == FILL_LEFT_TO_RIGHT || mode == FILL_RIGHT_TO_LEFT || mode == FILL_TOP_TO_BOTTOM || mode == FILL_BOTTOM_TO_TOP || mode == FILL_BILINEAR_LEFT_AND_RIGHT || mode == FILL_BILINEAR_TOP_AND_BOTTOM)) {
-				if (under.is_valid()) {
+			if (under.is_valid()) {
+				if (nine_patch_stretch) {
 					draw_nine_patch_stretched(under, mode, 1.0, tint_under);
+				} else {
+					draw_texture(under, Point2(), tint_under);
 				}
-				if (progress.is_valid()) {
+			}
+
+			if (progress.is_valid()) {
+				const bool is_radial_mode = (mode == FILL_CLOCKWISE || mode == FILL_COUNTER_CLOCKWISE || mode == FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE);
+
+				if (nine_patch_stretch && !is_radial_mode) {
 					draw_nine_patch_stretched(progress, mode, get_as_ratio(), tint_progress);
-				}
-				if (over.is_valid()) {
-					draw_nine_patch_stretched(over, mode, 1.0, tint_over);
-				}
-			} else {
-				if (under.is_valid()) {
-					switch (mode) {
-						case FILL_CLOCKWISE:
-						case FILL_COUNTER_CLOCKWISE:
-						case FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE: {
-							if (nine_patch_stretch) {
-								Rect2 region = Rect2(Point2(), get_size());
-								draw_texture_rect(under, region, false, tint_under);
-							} else {
-								draw_texture(under, Point2(), tint_under);
-							}
-						} break;
-						case FILL_MODE_MAX:
-							break;
-						default:
-							draw_texture(under, Point2(), tint_under);
-					}
-				}
-				if (progress.is_valid()) {
+				} else {
 					Size2 s = progress->get_size();
 					switch (mode) {
 						case FILL_LEFT_TO_RIGHT: {
@@ -534,23 +520,6 @@ void TextureProgressBar::_notification(int p_what) {
 									draw_polygon(points, colors, uvs, progress);
 								}
 							}
-
-							// Draw a reference cross.
-							if (is_part_of_edited_scene()) {
-								Point2 p;
-
-								if (nine_patch_stretch) {
-									p = get_size();
-								} else {
-									p = progress->get_size();
-								}
-
-								p *= get_relative_center();
-								p += progress_offset;
-								p = p.floor();
-								draw_line(p - Point2(8, 0), p + Point2(8, 0), Color(0.9, 0.5, 0.5), 2);
-								draw_line(p - Point2(0, 8), p + Point2(0, 8), Color(0.9, 0.5, 0.5), 2);
-							}
 						} break;
 						case FILL_BILINEAR_LEFT_AND_RIGHT: {
 							Rect2 region = Rect2(progress_offset + Point2(s.x / 2 - s.x * get_as_ratio() / 2, 0), Size2(s.x * get_as_ratio(), s.y));
@@ -564,27 +533,32 @@ void TextureProgressBar::_notification(int p_what) {
 						} break;
 						case FILL_MODE_MAX:
 							break;
-						default:
-							draw_texture_rect_region(progress, Rect2(progress_offset, Size2(s.x * get_as_ratio(), s.y)), Rect2(Point2(), Size2(s.x * get_as_ratio(), s.y)), tint_progress);
 					}
 				}
-				if (over.is_valid()) {
-					switch (mode) {
-						case FILL_CLOCKWISE:
-						case FILL_COUNTER_CLOCKWISE:
-						case FILL_CLOCKWISE_AND_COUNTER_CLOCKWISE: {
-							if (nine_patch_stretch) {
-								Rect2 region = Rect2(Point2(), get_size());
-								draw_texture_rect(over, region, false, tint_over);
-							} else {
-								draw_texture(over, Point2(), tint_over);
-							}
-						} break;
-						case FILL_MODE_MAX:
-							break;
-						default:
-							draw_texture(over, Point2(), tint_over);
+#ifdef TOOLS_ENABLED
+				// Draw a reference cross for radial modes.
+				if (is_radial_mode && is_part_of_edited_scene()) {
+					Point2 p;
+
+					if (nine_patch_stretch) {
+						p = get_size();
+					} else {
+						p = progress->get_size();
 					}
+
+					p *= get_relative_center();
+					p += progress_offset;
+					draw_line(p - Point2(8, 0), p + Point2(8, 0), Color(0.9, 0.5, 0.5), 2);
+					draw_line(p - Point2(0, 8), p + Point2(0, 8), Color(0.9, 0.5, 0.5), 2);
+				}
+#endif
+			}
+
+			if (over.is_valid()) {
+				if (nine_patch_stretch) {
+					draw_nine_patch_stretched(over, mode, 1.0, tint_over);
+				} else {
+					draw_texture(over, Point2(), tint_over);
 				}
 			}
 		} break;

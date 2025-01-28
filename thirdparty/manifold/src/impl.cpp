@@ -17,11 +17,18 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
+#include <optional>
 
 #include "./hashtable.h"
 #include "./mesh_fixes.h"
 #include "./parallel.h"
 #include "./svd.h"
+
+#ifdef MANIFOLD_EXPORT
+#include <string.h>
+
+#include <iostream>
+#endif
 
 namespace {
 using namespace manifold;
@@ -269,38 +276,21 @@ Manifold::Impl::Impl(Shape shape, const mat3x4 m) {
 
 void Manifold::Impl::RemoveUnreferencedVerts() {
   ZoneScoped;
-  Vec<int> vertOld2New(NumVert(), 0);
-  auto policy = autoPolicy(NumVert(), 1e5);
-  for_each(policy, halfedge_.cbegin(), halfedge_.cend(),
-           [&vertOld2New](Halfedge h) {
-             reinterpret_cast<std::atomic<int>*>(&vertOld2New[h.startVert])
-                 ->store(1, std::memory_order_relaxed);
-           });
-
-  const Vec<vec3> oldVertPos = vertPos_;
-
-  Vec<size_t> tmpBuffer(oldVertPos.size());
-  auto vertIdIter = TransformIterator(countAt(0_uz), [&vertOld2New](size_t i) {
-    if (vertOld2New[i] > 0) return i;
-    return std::numeric_limits<size_t>::max();
+  const int numVert = NumVert();
+  Vec<int> keep(numVert, 0);
+  auto policy = autoPolicy(numVert, 1e5);
+  for_each(policy, halfedge_.cbegin(), halfedge_.cend(), [&keep](Halfedge h) {
+    if (h.startVert >= 0) {
+      reinterpret_cast<std::atomic<int>*>(&keep[h.startVert])
+          ->store(1, std::memory_order_relaxed);
+    }
   });
 
-  auto next =
-      copy_if(vertIdIter, vertIdIter + tmpBuffer.size(), tmpBuffer.begin(),
-              [](size_t v) { return v != std::numeric_limits<size_t>::max(); });
-  if (next == tmpBuffer.end()) return;
-
-  gather(tmpBuffer.begin(), next, oldVertPos.begin(), vertPos_.begin());
-
-  vertPos_.resize(std::distance(tmpBuffer.begin(), next));
-
-  exclusive_scan(vertOld2New.begin(), vertOld2New.end(), vertOld2New.begin());
-
-  for_each(policy, halfedge_.begin(), halfedge_.end(),
-           [&vertOld2New](Halfedge& h) {
-             h.startVert = vertOld2New[h.startVert];
-             h.endVert = vertOld2New[h.endVert];
-           });
+  for_each_n(policy, countAt(0), numVert, [&keep, this](int v) {
+    if (keep[v] == 0) {
+      vertPos_[v] = vec3(NAN);
+    }
+  });
 }
 
 void Manifold::Impl::InitializeOriginal(bool keepFaceID) {
@@ -429,7 +419,8 @@ void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
     return edge[a] < edge[b];
   });
 
-  // Mark opposed triangles for removal
+  // Mark opposed triangles for removal - this may strand unreferenced verts
+  // which are removed later by RemoveUnreferencedVerts() and Finish().
   const int numEdge = numHalfedge / 2;
   for (int i = 0; i < numEdge; ++i) {
     const int pair0 = ids[i];
@@ -441,6 +432,8 @@ void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
       if (h0.startVert != h1.endVert || h0.endVert != h1.startVert) break;
       if (halfedge_[NextHalfedge(pair0)].endVert ==
           halfedge_[NextHalfedge(pair1)].endVert) {
+        h0 = {-1, -1, -1};
+        h1 = {-1, -1, -1};
         // Reorder so that remaining edges pair up
         if (k != i + numEdge) std::swap(ids[i + numEdge], ids[k]);
         break;
@@ -456,12 +449,11 @@ void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
   for_each_n(policy, countAt(0), numEdge, [this, &ids, numEdge](int i) {
     const int pair0 = ids[i];
     const int pair1 = ids[i + numEdge];
-    halfedge_[pair0].pairedHalfedge = pair1;
-    halfedge_[pair1].pairedHalfedge = pair0;
+    if (halfedge_[pair0].startVert >= 0) {
+      halfedge_[pair0].pairedHalfedge = pair1;
+      halfedge_[pair1].pairedHalfedge = pair0;
+    }
   });
-
-  // When opposed triangles are removed, they may strand unreferenced verts.
-  RemoveUnreferencedVerts();
 }
 
 /**
@@ -685,5 +677,91 @@ SparseIndices Manifold::Impl::VertexCollisionsZ(VecView<const vec3> vertsIn,
   else
     return collider_.Collisions<false, false>(vertsIn);
 }
+
+#ifdef MANIFOLD_DEBUG
+std::ostream& operator<<(std::ostream& stream, const Manifold::Impl& impl) {
+  stream << std::setprecision(17);  // for double precision
+  stream << "# ======= begin mesh ======" << std::endl;
+  stream << "# tolerance = " << impl.tolerance_ << std::endl;
+  stream << "# epsilon = " << impl.epsilon_ << std::endl;
+  // TODO: Mesh relation, vertex normal and face normal
+  for (const vec3& v : impl.vertPos_)
+    stream << "v " << v.x << " " << v.y << " " << v.z << std::endl;
+  std::vector<ivec3> triangles;
+  triangles.reserve(impl.halfedge_.size() / 3);
+  for (size_t i = 0; i < impl.halfedge_.size(); i += 3)
+    triangles.emplace_back(impl.halfedge_[i].startVert + 1,
+                           impl.halfedge_[i + 1].startVert + 1,
+                           impl.halfedge_[i + 2].startVert + 1);
+  sort(triangles.begin(), triangles.end());
+  for (const auto& tri : triangles)
+    stream << "f " << tri.x << " " << tri.y << " " << tri.z << std::endl;
+  stream << "# ======== end mesh =======" << std::endl;
+  return stream;
+}
+#endif
+
+#ifdef MANIFOLD_EXPORT
+Manifold Manifold::ImportMeshGL64(std::istream& stream) {
+  MeshGL64 mesh;
+  std::optional<double> epsilon;
+  stream.precision(17);
+  while (true) {
+    char c = stream.get();
+    if (stream.eof()) break;
+    switch (c) {
+      case '#': {
+        char c = stream.get();
+        if (c == ' ') {
+          constexpr int SIZE = 10;
+          std::array<char, SIZE> tmp;
+          stream.get(tmp.data(), SIZE, '\n');
+          if (strncmp(tmp.data(), "tolerance", SIZE) == 0) {
+            // skip 3 letters
+            for (int i : {0, 1, 2}) stream.get();
+            stream >> mesh.tolerance;
+          } else if (strncmp(tmp.data(), "epsilon =", SIZE) == 0) {
+            double tmp;
+            stream >> tmp;
+            epsilon = {tmp};
+          } else {
+            // add it back because it is not what we want
+            int end = 0;
+            while (tmp[end] != 0 && end < SIZE) end++;
+            while (--end > -1) stream.putback(tmp[end]);
+          }
+          c = stream.get();
+        }
+        // just skip the remaining comment
+        while (c != '\n' && !stream.eof()) {
+          c = stream.get();
+        }
+        break;
+      }
+      case 'v':
+        for (int i : {0, 1, 2}) {
+          double x;
+          stream >> x;
+          mesh.vertProperties.push_back(x);
+        }
+        break;
+      case 'f':
+        for (int i : {0, 1, 2}) {
+          uint64_t x;
+          stream >> x;
+          mesh.triVerts.push_back(x - 1);
+        }
+        break;
+      case '\n':
+        break;
+      default:
+        DEBUG_ASSERT(false, userErr, "unexpected character in MeshGL64 import");
+    }
+  }
+  auto m = std::make_shared<Manifold::Impl>(mesh);
+  if (epsilon) m->SetEpsilon(*epsilon);
+  return Manifold(m);
+}
+#endif
 
 }  // namespace manifold

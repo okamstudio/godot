@@ -520,7 +520,7 @@ void VisualShaderNodeParticleMeshEmitter::_update_texture(const Vector<Color> &p
 }
 
 void VisualShaderNodeParticleMeshEmitter::_update_textures() {
-	if (!mesh.is_valid()) {
+	if (mesh.is_null()) {
 		return;
 	}
 

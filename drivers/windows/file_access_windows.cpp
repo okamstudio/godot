@@ -402,13 +402,8 @@ bool FileAccessWindows::file_exists(const String &p_name) {
 	}
 
 	String filename = fix_path(p_name);
-	FILE *g = _wfsopen((LPCWSTR)(filename.utf16().get_data()), L"rb", _SH_DENYNO);
-	if (g == nullptr) {
-		return false;
-	} else {
-		fclose(g);
-		return true;
-	}
+	DWORD file_attr = GetFileAttributesW((LPCWSTR)(filename.utf16().get_data()));
+	return (file_attr != INVALID_FILE_ATTRIBUTES) && !(file_attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 uint64_t FileAccessWindows::_get_modified_time(const String &p_file) {

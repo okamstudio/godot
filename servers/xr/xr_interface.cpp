@@ -194,6 +194,10 @@ Size2i XRInterface::get_velocity_target_size() {
 	return Size2i();
 }
 
+Rect2i XRInterface::get_render_region() {
+	return Rect2i();
+}
+
 PackedStringArray XRInterface::get_suggested_tracker_names() const {
 	PackedStringArray arr;
 

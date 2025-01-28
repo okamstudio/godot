@@ -30,9 +30,7 @@
 
 #include "multiplayer_spawner.h"
 
-#include "core/io/marshalls.h"
 #include "scene/main/multiplayer_api.h"
-#include "scene/main/window.h"
 
 #ifdef TOOLS_ENABLED
 /* This is editor only */

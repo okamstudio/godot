@@ -34,7 +34,6 @@
 
 #include "../remote_debugger_peer_websocket.h"
 
-#include "core/config/project_settings.h"
 #include "editor/editor_log.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"

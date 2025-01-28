@@ -45,7 +45,7 @@
 
 		    public override string[] _GetRecognizedExtensions()
 		    {
-		        return new string[] { "csv" };
+		        return ["csv"];
 		    }
 		}
 		[/csharp]
@@ -62,11 +62,11 @@
 		[/gdscript]
 		[csharp]
 		// This will add a message with msgid "Test 1", msgctxt "context", and msgid_plural "test 1 plurals".
-		msgidsContextPlural.Add(new Godot.Collections.Array{"Test 1", "context", "test 1 Plurals"});
+		msgidsContextPlural.Add(["Test 1", "context", "test 1 Plurals"]);
 		// This will add a message with msgid "A test without context" and msgid_plural "plurals".
-		msgidsContextPlural.Add(new Godot.Collections.Array{"A test without context", "", "plurals"});
+		msgidsContextPlural.Add(["A test without context", "", "plurals"]);
 		// This will add a message with msgid "Only with context" and msgctxt "a friendly context".
-		msgidsContextPlural.Add(new Godot.Collections.Array{"Only with context", "a friendly context", ""});
+		msgidsContextPlural.Add(["Only with context", "a friendly context", ""]);
 		[/csharp]
 		[/codeblocks]
 		[b]Note:[/b] If you override parsing logic for standard script types (GDScript, C#, etc.), it would be better to load the [code]path[/code] argument using [method ResourceLoader.load]. This is because built-in scripts are loaded as [Resource] type, not [FileAccess] type. For example:
@@ -90,7 +90,7 @@
 
 		public override string[] _GetRecognizedExtensions()
 		{
-		    return new string[] { "gd" };
+		    return ["gd"];
 		}
 		[/csharp]
 		[/codeblocks]

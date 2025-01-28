@@ -697,7 +697,7 @@ Error ResourceLoaderBinary::load() {
 
 		external_resources.write[i].path = path; //remap happens here, not on load because on load it can actually be used for filesystem dock resource remap
 		external_resources.write[i].load_token = ResourceLoader::_load_start(path, external_resources[i].type, use_sub_threads ? ResourceLoader::LOAD_THREAD_DISTRIBUTE : ResourceLoader::LOAD_THREAD_FROM_CURRENT, cache_mode_for_external);
-		if (!external_resources[i].load_token.is_valid()) {
+		if (external_resources[i].load_token.is_null()) {
 			if (!ResourceLoader::get_abort_on_missing_resources()) {
 				ResourceLoader::notify_dependency_error(local_path, path, external_resources[i].type);
 			} else {
@@ -1387,7 +1387,7 @@ Error ResourceFormatLoaderBinary::rename_dependencies(const String &p_path, cons
 
 		ERR_FAIL_COND_V(err != ERR_FILE_EOF, ERR_FILE_CORRUPT);
 		Ref<Resource> res = loader.get_resource();
-		ERR_FAIL_COND_V(!res.is_valid(), ERR_FILE_CORRUPT);
+		ERR_FAIL_COND_V(res.is_null(), ERR_FILE_CORRUPT);
 
 		return ResourceFormatSaverBinary::singleton->save(res, p_path);
 	}

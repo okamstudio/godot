@@ -175,7 +175,7 @@ private:
 		uint index = 0;
 		for (const uint8 *control = mControl, *control_end = mControl + mMaxSize; control != control_end; ++control, ++index)
 			if (*control & cBucketUsed)
-				::new (mData + index) KeyValue(inRHS.mData[index]);
+				new (mData + index) KeyValue(inRHS.mData[index]);
 		mSize = inRHS.mSize;
 	}
 
@@ -216,7 +216,7 @@ private:
 					KeyValue *element = old_data + i;
 					JPH_IF_ENABLE_ASSERTS(bool inserted =) InsertKey</* InsertAfterGrow= */ true>(HashTableDetail::sGetKey(*element), index);
 					JPH_ASSERT(inserted);
-					::new (mData + index) KeyValue(std::move(*element));
+					new (mData + index) KeyValue(std::move(*element));
 					element->~KeyValue();
 				}
 
@@ -601,7 +601,7 @@ public:
 		size_type index;
 		bool inserted = InsertKey(HashTableDetail::sGetKey(inValue), index);
 		if (inserted)
-			::new (mData + index) KeyValue(inValue);
+			new (mData + index) KeyValue(inValue);
 		return std::make_pair(iterator(this, index), inserted);
 	}
 
@@ -800,7 +800,7 @@ public:
 						// There's an empty bucket, move us there
 						SetControlValue(dst, src_control);
 						SetControlValue(src, cBucketEmpty);
-						::new (mData + dst) KeyValue(std::move(mData[src]));
+						new (mData + dst) KeyValue(std::move(mData[src]));
 						mData[src].~KeyValue();
 						break;
 					}

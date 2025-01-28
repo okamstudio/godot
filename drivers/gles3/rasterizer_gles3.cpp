@@ -470,9 +470,9 @@ void RasterizerGLES3::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 	glBindFramebuffer(GL_FRAMEBUFFER, GLES3::TextureStorage::system_fbo);
 	glViewport(0, 0, win_size.width, win_size.height);
 	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	glDepthMask(GL_FALSE);
-	glClearColor(p_color.r, p_color.g, p_color.b, 1.0);
+	glClearColor(p_color.r, p_color.g, p_color.b, OS::get_singleton()->is_layered_allowed() ? p_color.a : 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	RID texture = texture_storage->texture_allocate();

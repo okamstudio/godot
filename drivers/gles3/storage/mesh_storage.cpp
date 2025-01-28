@@ -32,7 +32,6 @@
 
 #include "mesh_storage.h"
 #include "config.h"
-#include "material_storage.h"
 #include "texture_storage.h"
 #include "utilities.h"
 
@@ -1519,7 +1518,7 @@ void MeshStorage::_multimesh_free(RID p_rid) {
 	multimesh_owner.free(p_rid);
 }
 
-void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS::MultimeshTransformFormat p_transform_format, bool p_use_colors, bool p_use_custom_data) {
+void MeshStorage::_multimesh_allocate_data(RID p_multimesh, int p_instances, RS::MultimeshTransformFormat p_transform_format, bool p_use_colors, bool p_use_custom_data, bool p_use_indirect) {
 	MultiMesh *multimesh = multimesh_owner.get_or_null(p_multimesh);
 	ERR_FAIL_NULL(multimesh);
 
@@ -2040,6 +2039,10 @@ void MeshStorage::_multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_
 			multimesh->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_AABB);
 		}
 	}
+}
+
+RID MeshStorage::_multimesh_get_command_buffer_rd_rid(RID p_multimesh) const {
+	ERR_FAIL_V_MSG(RID(), "GLES3 does not implement indirect multimeshes.");
 }
 
 RID MeshStorage::_multimesh_get_buffer_rd_rid(RID p_multimesh) const {

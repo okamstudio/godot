@@ -36,10 +36,6 @@
 // These must come first to avoid windows.h mess.
 #include "platform_gl.h"
 
-#include "core/config/project_settings.h"
-#include "core/crypto/crypto_core.h"
-#include "core/io/dir_access.h"
-#include "core/io/file_access.h"
 #include "core/templates/local_vector.h"
 #include "servers/display_server.h"
 

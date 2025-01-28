@@ -7,20 +7,18 @@ import os
 
 import editor_icons_builders
 
-env["BUILDERS"]["MakeEditorIconsBuilder"] = Builder(
-    action=env.Run(editor_icons_builders.make_editor_icons_action),
-    suffix=".h",
-    src_suffix=".svg",
-)
-
 # Editor's own icons
 icon_sources = Glob("*.svg")
 
 # Module icons
 for path in env.module_icons_paths:
     if not os.path.isabs(path):
-        icon_sources += Glob("#" + path + "/*.svg")  # Built-in.
+        icon_sources += Glob(f"#{path}/*.svg")  # Built-in.
     else:
-        icon_sources += Glob(path + "/*.svg")  # Custom.
+        icon_sources += Glob(f"{path}/*.svg")  # Custom.
 
-env.Alias("editor_icons", [env.MakeEditorIconsBuilder("#editor/themes/editor_icons.gen.h", icon_sources)])
+env.CommandNoCache(
+    "#editor/themes/editor_icons.gen.h",
+    icon_sources,
+    env.Run(editor_icons_builders.make_editor_icons_action),
+)

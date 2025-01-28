@@ -30,9 +30,11 @@
 
 #include "popup.h"
 
-#include "core/config/engine.h"
-#include "core/os/keyboard.h"
+#ifdef TOOLS_ENABLED
+#include "core/config/project_settings.h"
+#endif
 #include "scene/gui/panel.h"
+#include "scene/resources/style_box_flat.h"
 #include "scene/theme/theme_db.h"
 
 void Popup::_input_from_window(const Ref<InputEvent> &p_event) {
@@ -222,6 +224,39 @@ Popup::Popup() {
 Popup::~Popup() {
 }
 
+#ifdef TOOLS_ENABLED
+PackedStringArray PopupPanel::get_configuration_warnings() const {
+	PackedStringArray warnings = Popup::get_configuration_warnings();
+
+	if (!DisplayServer::get_singleton()->is_window_transparency_available() && !GLOBAL_GET("display/window/subwindows/embed_subwindows")) {
+		Ref<StyleBoxFlat> sb = theme_cache.panel_style;
+		if (sb.is_valid() && (sb->get_shadow_size() > 0 || sb->get_corner_radius(CORNER_TOP_LEFT) > 0 || sb->get_corner_radius(CORNER_TOP_RIGHT) > 0 || sb->get_corner_radius(CORNER_BOTTOM_LEFT) > 0 || sb->get_corner_radius(CORNER_BOTTOM_RIGHT) > 0)) {
+			warnings.push_back(RTR("The current theme style has shadows and/or rounded corners for popups, but those won't display correctly if \"display/window/per_pixel_transparency/allowed\" isn't enabled in the Project Settings, nor if it isn't supported."));
+		}
+	}
+
+	return warnings;
+}
+#endif
+
+void PopupPanel::_input_from_window(const Ref<InputEvent> &p_event) {
+	if (p_event.is_valid()) {
+		if (!get_flag(FLAG_POPUP)) {
+			return;
+		}
+
+		Ref<InputEventMouseButton> b = p_event;
+		// Hide it if the shadows have been clicked.
+		if (b.is_valid() && b->is_pressed() && b->get_button_index() == MouseButton::LEFT && !panel->get_global_rect().has_point(b->get_position())) {
+			_close_pressed();
+		}
+	} else {
+		WARN_PRINT_ONCE("PopupPanel has received an invalid InputEvent. Consider filtering out invalid events.");
+	}
+
+	Popup::_input_from_window(p_event);
+}
+
 Size2 PopupPanel::_get_contents_minimum_size() const {
 	Size2 ms;
 
@@ -239,17 +274,77 @@ Size2 PopupPanel::_get_contents_minimum_size() const {
 		ms = cms.max(ms);
 	}
 
+	// Take shadows into account.
+	ms.width += panel->get_offset(SIDE_LEFT) - panel->get_offset(SIDE_RIGHT);
+	ms.height += panel->get_offset(SIDE_TOP) - panel->get_offset(SIDE_BOTTOM);
+
 	return ms + theme_cache.panel_style->get_minimum_size();
 }
 
-void PopupPanel::_update_child_rects() {
+Rect2i PopupPanel::_popup_adjust_rect() const {
+	Rect2i current = Popup::_popup_adjust_rect();
+	if (current == Rect2i()) {
+		return current;
+	}
+
+	pre_popup_rect = current;
+
+	_update_shadow_offsets();
+	_update_child_rects();
+
+	if (is_layout_rtl()) {
+		current.position -= Vector2(ABS(panel->get_offset(SIDE_RIGHT)), panel->get_offset(SIDE_TOP)) * get_content_scale_factor();
+	} else {
+		current.position -= Vector2(panel->get_offset(SIDE_LEFT), panel->get_offset(SIDE_TOP)) * get_content_scale_factor();
+	}
+	current.size += Vector2(panel->get_offset(SIDE_LEFT) - panel->get_offset(SIDE_RIGHT), panel->get_offset(SIDE_TOP) - panel->get_offset(SIDE_BOTTOM)) * get_content_scale_factor();
+
+	return current;
+}
+
+void PopupPanel::_update_shadow_offsets() const {
+	if (!DisplayServer::get_singleton()->is_window_transparency_available() && !is_embedded()) {
+		panel->set_offsets_preset(Control::PRESET_FULL_RECT, Control::PRESET_MODE_MINSIZE, 0);
+		return;
+	}
+
+	const Ref<StyleBoxFlat> sb = theme_cache.panel_style;
+	if (sb.is_null()) {
+		panel->set_offsets_preset(Control::PRESET_FULL_RECT, Control::PRESET_MODE_MINSIZE, 0);
+		return;
+	}
+
+	const int shadow_size = sb->get_shadow_size();
+	if (shadow_size == 0) {
+		panel->set_offsets_preset(Control::PRESET_FULL_RECT, Control::PRESET_MODE_MINSIZE, 0);
+		return;
+	}
+
+	// Offset the background panel so it leaves space inside the window for the shadows to be drawn.
+	const Point2 shadow_offset = sb->get_shadow_offset();
+	if (is_layout_rtl()) {
+		panel->set_offset(SIDE_LEFT, shadow_size + shadow_offset.x);
+		panel->set_offset(SIDE_RIGHT, -shadow_size + shadow_offset.x);
+	} else {
+		panel->set_offset(SIDE_LEFT, shadow_size - shadow_offset.x);
+		panel->set_offset(SIDE_RIGHT, -shadow_size - shadow_offset.x);
+	}
+	panel->set_offset(SIDE_TOP, shadow_size - shadow_offset.y);
+	panel->set_offset(SIDE_BOTTOM, -shadow_size - shadow_offset.y);
+}
+
+void PopupPanel::_update_child_rects() const {
 	Vector2 cpos(theme_cache.panel_style->get_offset());
-	Vector2 panel_size = Vector2(get_size()) / get_content_scale_factor();
-	Vector2 csize = panel_size - theme_cache.panel_style->get_minimum_size();
+	cpos += Vector2(is_layout_rtl() ? -panel->get_offset(SIDE_RIGHT) : panel->get_offset(SIDE_LEFT), panel->get_offset(SIDE_TOP));
+
+	Vector2 csize = Vector2(get_size()) / get_content_scale_factor() - theme_cache.panel_style->get_minimum_size();
+	// Trim shadows.
+	csize.width -= panel->get_offset(SIDE_LEFT) - panel->get_offset(SIDE_RIGHT);
+	csize.height -= panel->get_offset(SIDE_TOP) - panel->get_offset(SIDE_BOTTOM);
 
 	for (int i = 0; i < get_child_count(); i++) {
 		Control *c = Object::cast_to<Control>(get_child(i));
-		if (!c) {
+		if (!c || c == panel) {
 			continue;
 		}
 
@@ -257,26 +352,63 @@ void PopupPanel::_update_child_rects() {
 			continue;
 		}
 
-		if (c == panel) {
-			c->set_position(Vector2());
-			c->set_size(panel_size);
-		} else {
-			c->set_position(cpos);
-			c->set_size(csize);
-		}
+		c->set_position(cpos);
+		c->set_size(csize);
 	}
 }
 
 void PopupPanel::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_READY:
 		case NOTIFICATION_THEME_CHANGED: {
 			panel->add_theme_style_override(SceneStringName(panel), theme_cache.panel_style);
+
+			if (is_visible()) {
+				_update_shadow_offsets();
+			}
+
 			_update_child_rects();
+
+#ifdef TOOLS_ENABLED
+			update_configuration_warnings();
+#endif
+		} break;
+
+		case Control::NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
+			if (is_visible()) {
+				_update_shadow_offsets();
+			}
+		} break;
+
+		case NOTIFICATION_VISIBILITY_CHANGED: {
+			if (!is_visible()) {
+				// Remove the extra space used by the shadows, so they can be ignored when the popup is hidden.
+				panel->set_offsets_preset(Control::PRESET_FULL_RECT, Control::PRESET_MODE_MINSIZE, 0);
+				_update_child_rects();
+
+				if (pre_popup_rect != Rect2i()) {
+					set_position(pre_popup_rect.position);
+					set_size(pre_popup_rect.size);
+
+					pre_popup_rect = Rect2i();
+				}
+			} else if (pre_popup_rect == Rect2i()) {
+				// The popup was made visible directly (without `popup_*()`), so just update the offsets without touching the rect.
+				_update_shadow_offsets();
+				_update_child_rects();
+			}
 		} break;
 
 		case NOTIFICATION_WM_SIZE_CHANGED: {
 			_update_child_rects();
+
+			if (is_visible()) {
+				const Vector2i offsets = Vector2i(panel->get_offset(SIDE_LEFT) - panel->get_offset(SIDE_RIGHT), panel->get_offset(SIDE_TOP) - panel->get_offset(SIDE_BOTTOM));
+				// Check if the size actually changed.
+				if (pre_popup_rect.size + offsets != get_size()) {
+					// Play safe, and stick with the new size.
+					pre_popup_rect = Rect2i();
+				}
+			}
 		} break;
 	}
 }
@@ -286,6 +418,13 @@ void PopupPanel::_bind_methods() {
 }
 
 PopupPanel::PopupPanel() {
+	set_flag(FLAG_TRANSPARENT, true);
+
 	panel = memnew(Panel);
+	panel->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 	add_child(panel, false, INTERNAL_MODE_FRONT);
+
+#ifdef TOOLS_ENABLED
+	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp((Node *)this, &Node::update_configuration_warnings));
+#endif
 }

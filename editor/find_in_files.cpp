@@ -626,6 +626,7 @@ FindInFilesPanel::FindInFilesPanel() {
 	_results_display->set_v_size_flags(SIZE_EXPAND_FILL);
 	_results_display->connect(SceneStringName(item_selected), callable_mp(this, &FindInFilesPanel::_on_result_selected));
 	_results_display->connect("item_edited", callable_mp(this, &FindInFilesPanel::_on_item_edited));
+	_results_display->connect("button_clicked", callable_mp(this, &FindInFilesPanel::_on_button_clicked));
 	_results_display->set_hide_root(true);
 	_results_display->set_select_mode(Tree::SELECT_ROW);
 	_results_display->set_allow_rmb_select(true);
@@ -733,12 +734,14 @@ void FindInFilesPanel::_notification(int p_what) {
 
 void FindInFilesPanel::_on_result_found(const String &fpath, int line_number, int begin, int end, String text) {
 	TreeItem *file_item;
-	HashMap<String, TreeItem *>::Iterator E = _file_items.find(fpath);
+	Ref<Texture2D> remove_texture = get_editor_theme_icon(SNAME("Close"));
 
+	HashMap<String, TreeItem *>::Iterator E = _file_items.find(fpath);
 	if (!E) {
 		file_item = _results_display->create_item();
 		file_item->set_text(0, fpath);
 		file_item->set_metadata(0, fpath);
+		file_item->add_button(0, remove_texture, -1, false, TTR("Remove result"));
 
 		// The width of this column is restrained to checkboxes,
 		// but that doesn't make sense for the parent items,
@@ -781,6 +784,9 @@ void FindInFilesPanel::_on_result_found(const String &fpath, int line_number, in
 		item->set_cell_mode(0, TreeItem::CELL_MODE_CHECK);
 		item->set_checked(0, true);
 		item->set_editable(0, true);
+		item->add_button(1, remove_texture, -1, false, TTR("Remove result"));
+	} else {
+		item->add_button(0, remove_texture, -1, false, TTR("Remove result"));
 	}
 }
 
@@ -823,19 +829,7 @@ void FindInFilesPanel::_on_item_edited() {
 }
 
 void FindInFilesPanel::_on_finished() {
-	String results_text;
-	int result_count = _result_items.size();
-	int file_count = _file_items.size();
-
-	if (result_count == 1 && file_count == 1) {
-		results_text = vformat(TTR("%d match in %d file"), result_count, file_count);
-	} else if (result_count != 1 && file_count == 1) {
-		results_text = vformat(TTR("%d matches in %d file"), result_count, file_count);
-	} else {
-		results_text = vformat(TTR("%d matches in %d files"), result_count, file_count);
-	}
-
-	_status_label->set_text(results_text);
+	update_matches_text();
 	update_replace_buttons();
 	set_progress_visible(false);
 	_refresh_button->show();
@@ -904,6 +898,32 @@ void FindInFilesPanel::_on_replace_all_clicked() {
 	_replace_container->hide();
 
 	emit_signal(SNAME(SIGNAL_FILES_MODIFIED), modified_files);
+}
+
+void FindInFilesPanel::_on_button_clicked(TreeItem *p_item, int p_column, int p_id, int p_mouse_button_index) {
+	const String file_path = p_item->get_text(0);
+
+	_result_items.erase(p_item);
+	if (_file_items.find(file_path)) {
+		TreeItem *file_result = _file_items.get(file_path);
+		int match_count = file_result->get_child_count();
+
+		for (int i = 0; i < match_count; i++) {
+			TreeItem *child_item = file_result->get_child(i);
+			_result_items.erase(child_item);
+		}
+
+		file_result->clear_children();
+		_file_items.erase(file_path);
+	}
+
+	TreeItem *item_parent = p_item->get_parent();
+	if (item_parent && item_parent->get_child_count() < 2) {
+		_file_items.erase(item_parent->get_text(0));
+		get_tree()->queue_delete(item_parent);
+	}
+	get_tree()->queue_delete(p_item);
+	update_matches_text();
 }
 
 // Same as get_line, but preserves line ending characters.
@@ -1004,6 +1024,22 @@ void FindInFilesPanel::update_replace_buttons() {
 	bool disabled = _finder->is_searching();
 
 	_replace_all_button->set_disabled(disabled);
+}
+
+void FindInFilesPanel::update_matches_text() {
+	String results_text;
+	int result_count = _result_items.size();
+	int file_count = _file_items.size();
+
+	if (result_count == 1 && file_count == 1) {
+		results_text = vformat(TTR("%d match in %d file"), result_count, file_count);
+	} else if (result_count != 1 && file_count == 1) {
+		results_text = vformat(TTR("%d matches in %d file"), result_count, file_count);
+	} else {
+		results_text = vformat(TTR("%d matches in %d files"), result_count, file_count);
+	}
+
+	_status_label->set_text(results_text);
 }
 
 void FindInFilesPanel::set_progress_visible(bool p_visible) {

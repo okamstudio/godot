@@ -31,14 +31,12 @@
 #ifndef SKELETON_MODIFICATION_2D_H
 #define SKELETON_MODIFICATION_2D_H
 
-#include "scene/2d/skeleton_2d.h"
 #include "scene/resources/2d/skeleton/skeleton_modification_stack_2d.h"
 
 ///////////////////////////////////////
 // SkeletonModification2D
 ///////////////////////////////////////
 
-class SkeletonModificationStack2D;
 class Bone2D;
 
 class SkeletonModification2D : public Resource {

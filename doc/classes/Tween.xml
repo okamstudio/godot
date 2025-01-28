@@ -228,6 +228,13 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="set_ignore_time_scale">
+			<return type="Tween" />
+			<param index="0" name="ignore" type="bool" default="true" />
+			<description>
+				If [param ignore] is [code]true[/code], the tween will ignore [member Engine.time_scale] and update with the real, elapsed time. This affects all [Tweener]s and their delays. Default value is [code]false[/code].
+			</description>
+		</method>
 		<method name="set_loops">
 			<return type="Tween" />
 			<param index="0" name="loops" type="int" default="0" />
@@ -464,6 +471,27 @@
 				tween.TweenProperty(GetNode("Sprite"), "position", Vector2.Right * 300.0f, 1.0f).AsRelative().FromCurrent().SetTrans(Tween.TransitionType.Expo);
 				[/csharp]
 				[/codeblocks]
+			</description>
+		</method>
+		<method name="tween_subtween">
+			<return type="SubtweenTweener" />
+			<param index="0" name="subtween" type="Tween" />
+			<description>
+				Creates and appends a [SubtweenTweener]. This method can be used to nest [param subtween] within this [Tween], allowing for the creation of more complex and composable sequences.
+				[codeblock]
+				# Subtween will rotate the object.
+				var subtween = create_tween()
+				subtween.tween_property(self, "rotation_degrees", 45.0, 1.0)
+				subtween.tween_property(self, "rotation_degrees", 0.0, 1.0)
+
+				# Parent tween will execute the subtween as one of its steps.
+				var tween = create_tween()
+				tween.tween_property(self, "position:x", 500, 3.0)
+				tween.tween_subtween(subtween)
+				tween.tween_property(self, "position:x", 300, 2.0)
+				[/codeblock]
+				[b]Note:[/b] The methods [method pause], [method stop], and [method set_loops] can cause the parent [Tween] to get stuck on the subtween step; see the documentation for those methods for more information.
+				[b]Note:[/b] The pause and process modes set by [method set_pause_mode] and [method set_process_mode] on [param subtween] will be overridden by the parent [Tween]'s settings.
 			</description>
 		</method>
 	</methods>

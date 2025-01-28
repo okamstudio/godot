@@ -1,4 +1,3 @@
-
 /* pngget.c - retrieval of values from info struct
  *
  * Copyright (c) 2018-2024 Cosmin Truta
@@ -782,6 +781,31 @@ png_get_sPLT(png_const_structrp png_ptr, png_inforp info_ptr,
    }
 
    return 0;
+}
+#endif
+
+#ifdef PNG_cICP_SUPPORTED
+png_uint_32 PNGAPI
+png_get_cICP(png_const_structrp png_ptr,
+             png_inforp info_ptr, png_bytep colour_primaries,
+             png_bytep transfer_function, png_bytep matrix_coefficients,
+             png_bytep video_full_range_flag)
+{
+    png_debug1(1, "in %s retrieval function", "cICP");
+
+    if (png_ptr != NULL && info_ptr != NULL &&
+        (info_ptr->valid & PNG_INFO_cICP) != 0 &&
+        colour_primaries != NULL && transfer_function != NULL &&
+        matrix_coefficients != NULL && video_full_range_flag != NULL)
+    {
+        *colour_primaries = info_ptr->cicp_colour_primaries;
+        *transfer_function = info_ptr->cicp_transfer_function;
+        *matrix_coefficients = info_ptr->cicp_matrix_coefficients;
+        *video_full_range_flag = info_ptr->cicp_video_full_range_flag;
+        return (PNG_INFO_cICP);
+    }
+
+    return (0);
 }
 #endif
 

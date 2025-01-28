@@ -37,6 +37,9 @@
 #include "editor/gui/editor_version_button.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/item_list.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/split_container.h"
+#include "scene/gui/tab_container.h"
 #include "scene/resources/style_box.h"
 
 void EditorAbout::_notification(int p_what) {

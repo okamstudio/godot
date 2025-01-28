@@ -330,8 +330,8 @@ double AnimationNodeAnimation::get_timeline_length() const {
 	return timeline_length;
 }
 
-void AnimationNodeAnimation::set_stretch_time_scale(bool p_strech_time_scale) {
-	stretch_time_scale = p_strech_time_scale;
+void AnimationNodeAnimation::set_stretch_time_scale(bool p_stretch_time_scale) {
+	stretch_time_scale = p_stretch_time_scale;
 	notify_property_list_changed();
 }
 
@@ -1199,7 +1199,7 @@ bool AnimationNodeTransition::set_input_name(int p_input, const String &p_name) 
 
 void AnimationNodeTransition::set_input_as_auto_advance(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].auto_advance = p_enable;
+	input_data[p_input].auto_advance = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_set_as_auto_advance(int p_input) const {
@@ -1209,7 +1209,7 @@ bool AnimationNodeTransition::is_input_set_as_auto_advance(int p_input) const {
 
 void AnimationNodeTransition::set_input_break_loop_at_end(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].break_loop_at_end = p_enable;
+	input_data[p_input].break_loop_at_end = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_loop_broken_at_end(int p_input) const {
@@ -1219,7 +1219,7 @@ bool AnimationNodeTransition::is_input_loop_broken_at_end(int p_input) const {
 
 void AnimationNodeTransition::set_input_reset(int p_input, bool p_enable) {
 	ERR_FAIL_INDEX(p_input, get_input_count());
-	input_data.write[p_input].reset = p_enable;
+	input_data[p_input].reset = p_enable;
 }
 
 bool AnimationNodeTransition::is_input_reset(int p_input) const {

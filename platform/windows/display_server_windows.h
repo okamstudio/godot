@@ -819,6 +819,7 @@ public:
 	virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_vsync_mode) const override;
 
 	virtual void window_start_drag(WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual void window_start_resize(WindowResizeEdge p_edge, WindowID p_window = MAIN_WINDOW_ID) override;
 
 	virtual void cursor_set_shape(CursorShape p_shape) override;
 	virtual CursorShape cursor_get_shape() const override;
@@ -841,6 +842,7 @@ public:
 	virtual String keyboard_get_layout_name(int p_index) const override;
 	virtual Key keyboard_get_keycode_from_physical(Key p_keycode) const override;
 	virtual Key keyboard_get_label_from_physical(Key p_keycode) const override;
+	virtual void show_emoji_and_symbol_picker() const override;
 
 	virtual int tablet_get_driver_count() const override;
 	virtual String tablet_get_driver_name(int p_driver) const override;

@@ -1314,6 +1314,15 @@
 				Returns number of text spans added using [method _shaped_text_add_string] or [method _shaped_text_add_object].
 			</description>
 		</method>
+		<method name="_shaped_get_span_embedded_object" qualifiers="virtual const">
+			<return type="Variant" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				[b]Required.[/b]
+				Returns text embedded object key.
+			</description>
+		</method>
 		<method name="_shaped_get_span_meta" qualifiers="virtual const">
 			<return type="Variant" />
 			<param index="0" name="shaped" type="RID" />

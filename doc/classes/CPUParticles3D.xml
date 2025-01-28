@@ -52,10 +52,20 @@
 				Returns the enabled state of the given particle flag (see [enum ParticleFlags] for options).
 			</description>
 		</method>
+		<method name="request_particles_process">
+			<return type="void" />
+			<param index="0" name="process_time" type="float" />
+			<description>
+				Requests the particles to process for extra process time during a single frame.
+				Useful for particle playback, if used in combination with [member use_fixed_seed] or by calling [method restart] with parameter [code]keep_seed[/code] set to [code]true[/code].
+			</description>
+		</method>
 		<method name="restart">
 			<return type="void" />
+			<param index="0" name="keep_seed" type="bool" default="false" />
 			<description>
 				Restarts the particle emitter.
+				If [param keep_seed] is [code]true[/code], the current random seed will be preserved. Useful for seeking and playback.
 			</description>
 		</method>
 		<method name="set_param_curve">
@@ -136,11 +146,11 @@
 			[b]Note:[/b] [member color] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color] will have no visible effect.
 		</member>
 		<member name="color_initial_ramp" type="Gradient" setter="set_color_initial_ramp" getter="get_color_initial_ramp">
-			Each particle's initial color will vary along this [GradientTexture1D] (multiplied with [member color]).
+			Each particle's initial color will vary along this [Gradient] (multiplied with [member color]).
 			[b]Note:[/b] [member color_initial_ramp] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color_initial_ramp] will have no visible effect.
 		</member>
 		<member name="color_ramp" type="Gradient" setter="set_color_ramp" getter="get_color_ramp">
-			Each particle's color will vary along this [GradientTexture1D] over its lifetime (multiplied with [member color]).
+			Each particle's color will vary along this [Gradient] over its lifetime (multiplied with [member color]).
 			[b]Note:[/b] [member color_ramp] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color_ramp] will have no visible effect.
 		</member>
 		<member name="damping_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">
@@ -301,6 +311,9 @@
 		<member name="scale_curve_z" type="Curve" setter="set_scale_curve_z" getter="get_scale_curve_z">
 			Curve for the scale over life, along the z axis.
 		</member>
+		<member name="seed" type="int" setter="set_seed" getter="get_seed" default="0">
+			Sets the random seed used by the particle system. Only effective if [member use_fixed_seed] is [code]true[/code].
+		</member>
 		<member name="speed_scale" type="float" setter="set_speed_scale" getter="get_speed_scale" default="1.0">
 			Particle system's running speed scaling ratio. A value of [code]0[/code] can be used to pause the particles.
 		</member>
@@ -318,6 +331,9 @@
 		</member>
 		<member name="tangential_accel_min" type="float" setter="set_param_min" getter="get_param_min" default="0.0">
 			Minimum tangent acceleration.
+		</member>
+		<member name="use_fixed_seed" type="bool" setter="set_use_fixed_seed" getter="get_use_fixed_seed" default="false">
+			If [code]true[/code], particles will use the same seed for every simulation using the seed defined in [member seed]. This is useful for situations where the visual outcome should be consistent across replays, for example when using Movie Maker mode.
 		</member>
 		<member name="visibility_aabb" type="AABB" setter="set_visibility_aabb" getter="get_visibility_aabb" default="AABB(0, 0, 0, 0, 0, 0)">
 			The [AABB] that determines the node's region which needs to be visible on screen for the particle system to be active.

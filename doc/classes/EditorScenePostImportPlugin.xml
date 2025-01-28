@@ -71,6 +71,7 @@
 			<param index="0" name="scene" type="Node" />
 			<description>
 				Pre Process the scene. This function is called right after the scene format loader loaded the scene and no changes have been made.
+				Pre process may be used to adjust internal import options in the [code]"nodes"[/code], [code]"meshes"[/code], [code]"animations"[/code] or [code]"materials"[/code] keys inside [code]get_option_value("_subresources")[/code].
 			</description>
 		</method>
 		<method name="add_import_option">

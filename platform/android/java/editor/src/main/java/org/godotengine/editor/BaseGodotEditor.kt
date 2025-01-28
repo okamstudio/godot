@@ -47,12 +47,12 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.window.layout.WindowMetricsCalculator
 import org.godotengine.editor.utils.signApk
 import org.godotengine.editor.utils.verifyApk
+import org.godotengine.godot.BuildConfig
 import org.godotengine.godot.GodotActivity
 import org.godotengine.godot.GodotLib
 import org.godotengine.godot.error.Error
 import org.godotengine.godot.utils.PermissionsUtil
 import org.godotengine.godot.utils.ProcessPhoenix
-import org.godotengine.godot.utils.isHorizonOSDevice
 import org.godotengine.godot.utils.isNativeXRDevice
 import java.util.*
 import kotlin.math.min
@@ -72,8 +72,6 @@ abstract class BaseGodotEditor : GodotActivity() {
 		private const val WAIT_FOR_DEBUGGER = false
 
 		@JvmStatic
-		protected val EXTRA_COMMAND_LINE_PARAMS = "command_line_params"
-		@JvmStatic
 		protected val EXTRA_PIP_AVAILABLE = "pip_available"
 		@JvmStatic
 		protected val EXTRA_LAUNCH_IN_PIP = "launch_in_pip_requested"
@@ -92,6 +90,20 @@ abstract class BaseGodotEditor : GodotActivity() {
 		// Info for the various classes used by the editor
 		internal val EDITOR_MAIN_INFO = EditorWindowInfo(GodotEditor::class.java, 777, "")
 		internal val RUN_GAME_INFO = EditorWindowInfo(GodotGame::class.java, 667, ":GodotGame", LaunchPolicy.AUTO, true)
+		internal val XR_RUN_GAME_INFO = EditorWindowInfo(GodotXRGame::class.java, 1667, ":GodotXRGame")
+
+		/** Default behavior, means we check project settings **/
+		private const val XR_MODE_DEFAULT = "default"
+
+		/**
+		 * Ignore project settings, OpenXR is disabled
+		 */
+		private const val XR_MODE_OFF = "off"
+
+		/**
+		 * Ignore project settings, OpenXR is enabled
+		 */
+		private const val XR_MODE_ON = "on"
 
 		/**
 		 * Sets of constants to specify the window to use to run the project.
@@ -116,7 +128,6 @@ abstract class BaseGodotEditor : GodotActivity() {
 	}
 
 	private val editorMessageDispatcher = EditorMessageDispatcher(this)
-	private val commandLineParams = ArrayList<String>()
 	private val editorLoadingIndicator: View? by lazy { findViewById(R.id.editor_loading_indicator) }
 
 	override fun getGodotAppLayout() = R.layout.godot_editor_layout
@@ -128,13 +139,33 @@ abstract class BaseGodotEditor : GodotActivity() {
 	 *
 	 * The permissions in this set will be requested on demand based on use cases.
 	 */
-	@CallSuper
-	protected open fun getExcludedPermissions(): MutableSet<String> {
-		return mutableSetOf(
+	private fun getExcludedPermissions(): MutableSet<String> {
+		val excludedPermissions = mutableSetOf(
 			// The RECORD_AUDIO permission is requested when the "audio/driver/enable_input" project
 			// setting is enabled.
-			Manifest.permission.RECORD_AUDIO
+			Manifest.permission.RECORD_AUDIO,
 		)
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			excludedPermissions.add(
+				// The REQUEST_INSTALL_PACKAGES permission is requested the first time we attempt to
+				// open an apk file.
+				Manifest.permission.REQUEST_INSTALL_PACKAGES,
+			)
+		}
+
+		// XR runtime permissions should only be requested when the "xr/openxr/enabled" project setting
+		// is enabled.
+		excludedPermissions.addAll(getXRRuntimePermissions())
+		return excludedPermissions
+	}
+
+	/**
+	 * Set of permissions to request when the "xr/openxr/enabled" project setting is enabled.
+	 */
+	@CallSuper
+	protected open fun getXRRuntimePermissions(): MutableSet<String> {
+		return mutableSetOf()
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -148,10 +179,6 @@ abstract class BaseGodotEditor : GodotActivity() {
 		// We exclude certain permissions from the set we request at startup, as they'll be
 		// requested on demand based on use cases.
 		PermissionsUtil.requestManifestPermissions(this, getExcludedPermissions())
-
-		val params = intent.getStringArrayExtra(EXTRA_COMMAND_LINE_PARAMS)
-		Log.d(TAG, "Starting intent $intent with parameters ${params.contentToString()}")
-		updateCommandLineParams(params?.asList() ?: emptyList())
 
 		editorMessageDispatcher.parseStartIntent(packageManager, intent)
 
@@ -185,40 +212,47 @@ abstract class BaseGodotEditor : GodotActivity() {
 	}
 
 	@CallSuper
-	protected open fun updateCommandLineParams(args: List<String>) {
-		// Update the list of command line params with the new args
-		commandLineParams.clear()
-		if (args.isNotEmpty()) {
-			commandLineParams.addAll(args)
+	protected override fun updateCommandLineParams(args: Array<String>) {
+		val args = if (BuildConfig.BUILD_TYPE == "dev") {
+			args + "--benchmark"
+		} else {
+			args
 		}
-		if (BuildConfig.BUILD_TYPE == "dev") {
-			commandLineParams.add("--benchmark")
-		}
+		super.updateCommandLineParams(args);
 	}
-
-	final override fun getCommandLine() = commandLineParams
 
 	protected open fun retrieveEditorWindowInfo(args: Array<String>): EditorWindowInfo {
 		var hasEditor = false
+		var xrMode = XR_MODE_DEFAULT
 
 		var i = 0
 		while (i < args.size) {
 			when (args[i++]) {
 				EDITOR_ARG, EDITOR_ARG_SHORT, EDITOR_PROJECT_MANAGER_ARG, EDITOR_PROJECT_MANAGER_ARG_SHORT -> hasEditor = true
+				XR_MODE_ARG -> {
+					xrMode = args[i++]
+				}
 			}
 		}
 
 		return if (hasEditor) {
 			EDITOR_MAIN_INFO
 		} else {
-			RUN_GAME_INFO
+			val openxrEnabled = xrMode == XR_MODE_ON ||
+				(xrMode == XR_MODE_DEFAULT && GodotLib.getGlobal("xr/openxr/enabled").toBoolean())
+			if (openxrEnabled && isNativeXRDevice(applicationContext)) {
+				XR_RUN_GAME_INFO
+			} else {
+				RUN_GAME_INFO
+			}
 		}
 	}
 
-	protected open fun getEditorWindowInfoForInstanceId(instanceId: Int): EditorWindowInfo? {
+	private fun getEditorWindowInfoForInstanceId(instanceId: Int): EditorWindowInfo? {
 		return when (instanceId) {
 			RUN_GAME_INFO.windowId -> RUN_GAME_INFO
 			EDITOR_MAIN_INFO.windowId -> EDITOR_MAIN_INFO
+			XR_RUN_GAME_INFO.windowId -> XR_RUN_GAME_INFO
 			else -> null
 		}
 	}
@@ -290,14 +324,7 @@ abstract class BaseGodotEditor : GodotActivity() {
 		val newInstance = getNewGodotInstanceIntent(editorWindowInfo, args)
 		if (editorWindowInfo.windowClassName == javaClass.name) {
 			Log.d(TAG, "Restarting ${editorWindowInfo.windowClassName} with parameters ${args.contentToString()}")
-			val godot = godot
-			if (godot != null) {
-				godot.destroyAndKillProcess {
-					ProcessPhoenix.triggerRebirth(this, activityOptions?.toBundle(), newInstance)
-				}
-			} else {
-				ProcessPhoenix.triggerRebirth(this, activityOptions?.toBundle(), newInstance)
-			}
+			triggerRebirth(activityOptions?.toBundle(), newInstance)
 		} else {
 			Log.d(TAG, "Starting ${editorWindowInfo.windowClassName} with parameters ${args.contentToString()}")
 			newInstance.putExtra(EXTRA_NEW_LAUNCH, true)
@@ -407,8 +434,8 @@ abstract class BaseGodotEditor : GodotActivity() {
 
 		return when (policy) {
 			LaunchPolicy.AUTO -> {
-				if (isHorizonOSDevice()) {
-					// Horizon OS UX is more desktop-like and has support for launching adjacent
+				if (isNativeXRDevice(applicationContext)) {
+					// Native XR devices are more desktop-like and have support for launching adjacent
 					// windows. So we always want to launch in adjacent mode when auto is selected.
 					LaunchPolicy.ADJACENT
 				} else {
@@ -440,12 +467,6 @@ abstract class BaseGodotEditor : GodotActivity() {
 	 * Returns true the if the device supports picture-in-picture (PiP)
 	 */
 	protected open fun hasPiPSystemFeature(): Boolean {
-		if (isNativeXRDevice()) {
-			// Known native XR devices do not support PiP.
-			// Will need to revisit as they update their OS.
-			return false
-		}
-
 		return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
 			packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 	}
@@ -524,11 +545,15 @@ abstract class BaseGodotEditor : GodotActivity() {
 
 	override fun supportsFeature(featureTag: String): Boolean {
 		if (featureTag == "xr_editor") {
-			return isNativeXRDevice()
+			return isNativeXRDevice(applicationContext)
 		}
 
 		if (featureTag == "horizonos") {
-			return isHorizonOSDevice()
+			return BuildConfig.FLAVOR == "horizonos"
+		}
+
+		if (featureTag == "picoos") {
+			return BuildConfig.FLAVOR == "picoos"
 		}
 
         return false

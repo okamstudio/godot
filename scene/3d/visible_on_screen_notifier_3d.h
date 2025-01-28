@@ -33,8 +33,6 @@
 
 #include "scene/3d/visual_instance_3d.h"
 
-class World3D;
-class Camera3D;
 class VisibleOnScreenNotifier3D : public VisualInstance3D {
 	GDCLASS(VisibleOnScreenNotifier3D, VisualInstance3D);
 

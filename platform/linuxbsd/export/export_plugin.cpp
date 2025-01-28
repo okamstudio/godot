@@ -40,10 +40,7 @@
 #include "editor/export/editor_export.h"
 #include "editor/themes/editor_scale.h"
 
-#include "modules/modules_enabled.gen.h" // For svg.
-#ifdef MODULE_SVG_ENABLED
 #include "modules/svg/image_loader_svg.h"
-#endif
 
 Error EditorExportPlatformLinuxBSD::_export_debug_script(const Ref<EditorExportPreset> &p_preset, const String &p_app_name, const String &p_pkg_name, const String &p_path) {
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::WRITE);
@@ -610,7 +607,6 @@ Error EditorExportPlatformLinuxBSD::run(const Ref<EditorExportPreset> &p_preset,
 
 EditorExportPlatformLinuxBSD::EditorExportPlatformLinuxBSD() {
 	if (EditorNode::get_singleton()) {
-#ifdef MODULE_SVG_ENABLED
 		Ref<Image> img = memnew(Image);
 		const bool upsample = !Math::is_equal_approx(Math::round(EDSCALE), EDSCALE);
 
@@ -619,7 +615,6 @@ EditorExportPlatformLinuxBSD::EditorExportPlatformLinuxBSD() {
 
 		ImageLoaderSVG::create_image_from_string(img, _linuxbsd_run_icon_svg, EDSCALE, upsample, false);
 		run_icon = ImageTexture::create_from_image(img);
-#endif
 
 		Ref<Theme> theme = EditorNode::get_singleton()->get_editor_theme();
 		if (theme.is_valid()) {

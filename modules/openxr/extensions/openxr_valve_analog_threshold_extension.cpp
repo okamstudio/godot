@@ -152,11 +152,11 @@ PackedByteArray OpenXRAnalogThresholdModifier::get_ip_modification() {
 	ERR_FAIL_NULL_V(ip_binding, ret);
 
 	Ref<OpenXRAction> action = ip_binding->get_action();
-	ERR_FAIL_COND_V(!action.is_valid(), ret);
+	ERR_FAIL_COND_V(action.is_null(), ret);
 
 	// Get our action set
 	Ref<OpenXRActionSet> action_set = action->get_action_set();
-	ERR_FAIL_COND_V(!action_set.is_valid(), ret);
+	ERR_FAIL_COND_V(action_set.is_null(), ret);
 	RID action_set_rid = openxr_api->find_action_set(action_set->get_name());
 	ERR_FAIL_COND_V(!action_set_rid.is_valid(), ret);
 

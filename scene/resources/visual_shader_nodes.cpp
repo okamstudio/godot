@@ -31,8 +31,6 @@
 #include "visual_shader_nodes.h"
 #include "visual_shader_nodes.compat.inc"
 
-#include "scene/resources/image_texture.h"
-
 ////////////// Vector Base
 
 VisualShaderNodeVectorBase::PortType VisualShaderNodeVectorBase::get_input_port_type(int p_port) const {
@@ -582,9 +580,17 @@ Quaternion VisualShaderNodeVec4Constant::get_constant() const {
 	return constant;
 }
 
+void VisualShaderNodeVec4Constant::_set_constant_v4(const Vector4 &p_constant) {
+	set_constant(Quaternion(p_constant.x, p_constant.y, p_constant.z, p_constant.w));
+}
+
+Vector4 VisualShaderNodeVec4Constant::_get_constant_v4() const {
+	return Vector4(constant.x, constant.y, constant.z, constant.w);
+}
+
 Vector<StringName> VisualShaderNodeVec4Constant::get_editable_properties() const {
 	Vector<StringName> props;
-	props.push_back("constant");
+	props.push_back("constant_v4");
 	return props;
 }
 
@@ -592,7 +598,11 @@ void VisualShaderNodeVec4Constant::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_constant", "constant"), &VisualShaderNodeVec4Constant::set_constant);
 	ClassDB::bind_method(D_METHOD("get_constant"), &VisualShaderNodeVec4Constant::get_constant);
 
+	ClassDB::bind_method(D_METHOD("_set_constant_v4", "constant"), &VisualShaderNodeVec4Constant::_set_constant_v4);
+	ClassDB::bind_method(D_METHOD("_get_constant_v4"), &VisualShaderNodeVec4Constant::_get_constant_v4);
+
 	ADD_PROPERTY(PropertyInfo(Variant::QUATERNION, "constant"), "set_constant", "get_constant");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR4, "constant_v4", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_INTERNAL), "_set_constant_v4", "_get_constant_v4");
 }
 
 VisualShaderNodeVec4Constant::VisualShaderNodeVec4Constant() {
@@ -1747,12 +1757,13 @@ String VisualShaderNodeWorldPositionFromDepth::generate_code(Shader::Mode p_mode
 
 	code += "		float __log_depth = textureLod(" + make_unique_id(p_type, p_id, "depth_tex") + ", " + uv + ", 0.0).x;\n";
 	if (!RenderingServer::get_singleton()->is_low_end()) {
-		code += "	vec4 __depth_view = INV_PROJECTION_MATRIX * vec4(" + uv + " * 2.0 - 1.0, __log_depth, 1.0);\n";
+		code += "		vec4 __ndc = vec4(" + uv + " * 2.0 - 1.0, __log_depth, 1.0);\n";
 	} else {
-		code += "	vec4 __depth_view = INV_PROJECTION_MATRIX * vec4(vec3(" + uv + ", __log_depth) * 2.0 - 1.0, 1.0);\n";
+		code += "		vec4 __ndc = vec4(vec3(" + uv + ", __log_depth) * 2.0 - 1.0, 1.0);\n";
 	}
-	code += "		__depth_view.xyz /= __depth_view.w;\n";
-	code += vformat("		%s = (INV_VIEW_MATRIX * __depth_view).xyz;\n", p_output_vars[0]);
+	code += "		vec4 __position_world = INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * __ndc;\n";
+	code += "		__position_world.xyz /= __position_world.w;\n";
+	code += vformat("		%s = __position_world.xyz;\n", p_output_vars[0]);
 
 	code += "	}\n";
 	return code;
@@ -7251,7 +7262,7 @@ String VisualShaderNodeFresnel::generate_code(Shader::Mode p_mode, VisualShader:
 		normal = p_input_vars[0];
 	}
 	if (p_input_vars[1].is_empty()) {
-		if (p_mode == Shader::MODE_SPATIAL) {
+		if (p_mode == Shader::MODE_SPATIAL && !p_for_preview) {
 			view = "VIEW";
 		} else {
 			view = "vec3(0.0)";

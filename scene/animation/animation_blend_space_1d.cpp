@@ -379,7 +379,7 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace1D::_process(const AnimationM
 				// For ping-pong loop.
 				Ref<AnimationNodeAnimation> na_c = static_cast<Ref<AnimationNodeAnimation>>(blend_points[cur_closest].node);
 				Ref<AnimationNodeAnimation> na_n = static_cast<Ref<AnimationNodeAnimation>>(blend_points[new_closest].node);
-				if (!na_c.is_null() && !na_n.is_null()) {
+				if (na_c.is_valid() && na_n.is_valid()) {
 					na_n->set_backward(na_c->is_backward());
 				}
 				// See how much animation remains.

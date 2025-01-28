@@ -30,7 +30,6 @@
 
 #include "navigation_region_3d_gizmo_plugin.h"
 
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/navigation_region_3d.h"
 #include "servers/navigation_server_3d.h"
 

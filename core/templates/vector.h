@@ -71,6 +71,7 @@ private:
 	CowData<T> _cowdata;
 
 public:
+	// Must take a copy instead of a reference (see GH-31736).
 	bool push_back(T p_elem);
 	_FORCE_INLINE_ bool append(const T &p_elem) { return push_back(p_elem); } //alias
 	void fill(T p_elem);
@@ -99,12 +100,14 @@ public:
 	Error resize(Size p_size) { return _cowdata.resize(p_size); }
 	Error resize_zeroed(Size p_size) { return _cowdata.template resize<true>(p_size); }
 	_FORCE_INLINE_ const T &operator[](Size p_index) const { return _cowdata.get(p_index); }
+	// Must take a copy instead of a reference (see GH-31736).
 	Error insert(Size p_pos, T p_val) { return _cowdata.insert(p_pos, p_val); }
 	Size find(const T &p_val, Size p_from = 0) const { return _cowdata.find(p_val, p_from); }
 	Size rfind(const T &p_val, Size p_from = -1) const { return _cowdata.rfind(p_val, p_from); }
 	Size count(const T &p_val) const { return _cowdata.count(p_val); }
 
-	void append_array(const Vector<T> &p_other);
+	// Must take a copy instead of a reference (see GH-31736).
+	void append_array(Vector<T> p_other);
 
 	_FORCE_INLINE_ bool has(const T &p_val) const { return find(p_val) != -1; }
 
@@ -301,7 +304,7 @@ void Vector<T>::reverse() {
 }
 
 template <typename T>
-void Vector<T>::append_array(const Vector<T> &p_other) {
+void Vector<T>::append_array(Vector<T> p_other) {
 	const Size ds = p_other.size();
 	if (ds == 0) {
 		return;

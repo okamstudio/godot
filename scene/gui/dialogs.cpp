@@ -31,9 +31,6 @@
 #include "dialogs.h"
 #include "dialogs.compat.inc"
 
-#include "core/os/keyboard.h"
-#include "core/string/print_string.h"
-#include "core/string/translation.h"
 #include "scene/gui/line_edit.h"
 #include "scene/theme/theme_db.h"
 

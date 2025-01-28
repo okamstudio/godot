@@ -964,9 +964,11 @@ static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_a
 		}
 	} else if (p_annotation->name == SNAME("@warning_ignore") || p_annotation->name == SNAME("@warning_ignore_start") || p_annotation->name == SNAME("@warning_ignore_restore")) {
 		for (int warning_code = 0; warning_code < GDScriptWarning::WARNING_MAX; warning_code++) {
-			if (warning_code == GDScriptWarning::RENAMED_IN_GODOT_4_HINT) {
-				continue;
+#ifndef DISABLE_DEPRECATED
+			if (warning_code >= GDScriptWarning::FIRST_DEPRECATED_WARNING) {
+				break; // Don't suggest deprecated warnings as they are never produced.
 			}
+#endif
 			ScriptLanguage::CodeCompletionOption warning(GDScriptWarning::get_name_from_code((GDScriptWarning::Code)warning_code).to_lower(), ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
 			warning.insert_text = warning.display.quote(p_quote_style);
 			r_result.insert(warning.display, warning);
@@ -1923,7 +1925,7 @@ static bool _guess_expression_type(GDScriptParser::CompletionContext &p_context,
 						}
 					}
 
-					if (!found && base.value.get_type() != Variant::NIL) {
+					if (!found) {
 						found = _guess_method_return_type_from_base(c, base, call->function_name, r_type);
 					}
 				}
@@ -2249,7 +2251,7 @@ static bool _guess_identifier_type(GDScriptParser::CompletionContext &p_context,
 			// Operator `is` used, check if identifier is in there! this helps resolve in blocks that are (if (identifier is value)): which are very common..
 			// Super dirty hack, but very useful.
 			// Credit: Zylann.
-			// TODO: this could be hacked to detect ANDed conditions too...
+			// TODO: this could be hacked to detect AND-ed conditions too...
 			const GDScriptParser::TypeTestNode *type_test = static_cast<const GDScriptParser::TypeTestNode *>(suite->parent_if->condition);
 			if (type_test->operand && type_test->test_type && type_test->operand->type == GDScriptParser::Node::IDENTIFIER && static_cast<const GDScriptParser::IdentifierNode *>(type_test->operand)->name == p_identifier->name && static_cast<const GDScriptParser::IdentifierNode *>(type_test->operand)->source == p_identifier->source) {
 				// Bingo.
@@ -2858,7 +2860,15 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 				if (p_argidx == 1 && p_context.node && p_context.node->type == GDScriptParser::Node::CALL && ClassDB::is_parent_class(class_name, SNAME("Tween")) && p_method == SNAME("tween_property")) {
 					// Get tweened objects properties.
+					if (static_cast<GDScriptParser::CallNode *>(p_context.node)->arguments.is_empty()) {
+						base_type.kind = GDScriptParser::DataType::UNRESOLVED;
+						break;
+					}
 					GDScriptParser::ExpressionNode *tweened_object = static_cast<GDScriptParser::CallNode *>(p_context.node)->arguments[0];
+					if (!tweened_object) {
+						base_type.kind = GDScriptParser::DataType::UNRESOLVED;
+						break;
+					}
 					StringName native_type = tweened_object->datatype.native_type;
 					switch (tweened_object->datatype.kind) {
 						case GDScriptParser::DataType::SCRIPT: {

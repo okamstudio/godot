@@ -30,7 +30,6 @@
 
 #include "post_import_plugin_skeleton_renamer.h"
 
-#include "editor/import/3d/scene_import_settings.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/3d/importer_mesh_instance_3d.h"
 #include "scene/3d/skeleton_3d.h"

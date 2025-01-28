@@ -30,14 +30,6 @@
 
 #include "csg.h"
 
-#include "core/math/geometry_2d.h"
-#include "core/math/math_funcs.h"
-#include "core/templates/sort_array.h"
-#include "scene/resources/mesh_data_tool.h"
-#include "scene/resources/surface_tool.h"
-
-#include "thirdparty/manifold/include/manifold/manifold.h"
-
 // CSGBrush
 
 void CSGBrush::build_from_faces(const Vector<Vector3> &p_vertices, const Vector<Vector2> &p_uvs, const Vector<bool> &p_smooth, const Vector<Ref<Material>> &p_materials, const Vector<bool> &p_flip_faces) {

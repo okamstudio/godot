@@ -33,8 +33,9 @@
 #include "godot_collision_solver_2d.h"
 #include "godot_physics_server_2d.h"
 
-#include "core/os/os.h"
-#include "core/templates/pair.h"
+#include "core/config/project_settings.h"
+#include "godot_area_pair_2d.h"
+#include "godot_body_pair_2d.h"
 
 #define TEST_MOTION_MARGIN_MIN_VALUE 0.0001
 #define TEST_MOTION_MIN_CONTACT_DEPTH_FACTOR 0.05

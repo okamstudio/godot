@@ -31,14 +31,10 @@
 #ifndef SHADER_FILE_EDITOR_PLUGIN_H
 #define SHADER_FILE_EDITOR_PLUGIN_H
 
-#include "editor/code_editor.h"
 #include "editor/plugins/editor_plugin.h"
-#include "scene/gui/menu_button.h"
+#include "scene/gui/box_container.h"
 #include "scene/gui/panel_container.h"
 #include "scene/gui/rich_text_label.h"
-#include "scene/gui/tab_container.h"
-#include "scene/gui/text_edit.h"
-#include "scene/main/timer.h"
 #include "servers/rendering/rendering_device_binds.h"
 
 class ItemList;

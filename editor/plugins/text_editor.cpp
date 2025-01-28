@@ -31,7 +31,6 @@
 #include "text_editor.h"
 
 #include "core/io/json.h"
-#include "core/os/keyboard.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "scene/gui/menu_button.h"
@@ -230,7 +229,7 @@ void TextEditor::_update_bookmark_list() {
 			line = line.substr(0, 50);
 		}
 
-		bookmarks_menu->add_item(String::num((int)bookmark_list[i] + 1) + " - \"" + line + "\"");
+		bookmarks_menu->add_item(String::num_int64(bookmark_list[i] + 1) + " - \"" + line + "\"");
 		bookmarks_menu->set_item_metadata(-1, bookmark_list[i]);
 	}
 }
@@ -303,6 +302,7 @@ void TextEditor::convert_indent() {
 
 void TextEditor::tag_saved_version() {
 	code_editor->get_text_editor()->tag_saved_version();
+	edited_file_data.last_modified_time = FileAccess::get_modified_time(edited_file_data.path);
 }
 
 void TextEditor::goto_line(int p_line, int p_column) {
@@ -468,7 +468,7 @@ void TextEditor::_edit_option(int p_op) {
 			emit_signal(SNAME("replace_in_files_requested"), selected_text);
 		} break;
 		case SEARCH_GOTO_LINE: {
-			goto_line_dialog->popup_find_line(tx);
+			goto_line_popup->popup_find_line(code_editor);
 		} break;
 		case BOOKMARK_TOGGLE: {
 			code_editor->toggle_bookmark();
@@ -481,6 +481,9 @@ void TextEditor::_edit_option(int p_op) {
 		} break;
 		case BOOKMARK_REMOVE_ALL: {
 			code_editor->remove_all_bookmarks();
+		} break;
+		case EDIT_EMOJI_AND_SYMBOL: {
+			code_editor->get_text_editor()->show_emoji_and_symbol_picker();
 		} break;
 	}
 }
@@ -561,6 +564,10 @@ void TextEditor::_prepare_edit_menu() {
 
 void TextEditor::_make_context_menu(bool p_selection, bool p_can_fold, bool p_is_folded, Vector2 p_position) {
 	context_menu->clear();
+	if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_EMOJI_AND_SYMBOL_PICKER)) {
+		context_menu->add_item(TTR("Emoji & Symbols"), EDIT_EMOJI_AND_SYMBOL);
+		context_menu->add_separator();
+	}
 	if (p_selection) {
 		context_menu->add_shortcut(ED_GET_SHORTCUT("ui_cut"), EDIT_CUT);
 		context_menu->add_shortcut(ED_GET_SHORTCUT("ui_copy"), EDIT_COPY);
@@ -706,8 +713,8 @@ TextEditor::TextEditor() {
 	bookmarks_menu->connect("about_to_popup", callable_mp(this, &TextEditor::_update_bookmark_list));
 	bookmarks_menu->connect("index_pressed", callable_mp(this, &TextEditor::_bookmark_item_pressed));
 
-	goto_line_dialog = memnew(GotoLineDialog);
-	add_child(goto_line_dialog);
+	goto_line_popup = memnew(GotoLinePopup);
+	add_child(goto_line_popup);
 }
 
 TextEditor::~TextEditor() {

@@ -41,6 +41,13 @@ env_astcenc.Prepend(CPPPATH=[thirdparty_dir])
 
 env_thirdparty = env_astcenc.Clone()
 env_thirdparty.disable_warnings()
+
+# Build the encoder only for editor builds
+astc_encoder = env.editor_build
+
+if not astc_encoder:
+    env_thirdparty.Append(CPPDEFINES=[("ASTCENC_DECOMPRESS_ONLY")])
+
 env_thirdparty.add_source_files(thirdparty_obj, thirdparty_sources)
 env.modules_sources += thirdparty_obj
 

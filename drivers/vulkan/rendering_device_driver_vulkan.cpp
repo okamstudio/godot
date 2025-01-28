@@ -513,6 +513,7 @@ Error RenderingDeviceDriverVulkan::_initialize_device_extensions() {
 	_register_requested_device_extension(VK_EXT_PIPELINE_CREATION_CACHE_CONTROL_EXTENSION_NAME, false);
 	_register_requested_device_extension(VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, false);
 	_register_requested_device_extension(VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME, false);
+	_register_requested_device_extension(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME, false);
 
 	if (Engine::get_singleton()->is_generate_spirv_debug_info_enabled()) {
 		_register_requested_device_extension(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME, true);
@@ -730,6 +731,7 @@ Error RenderingDeviceDriverVulkan::_check_device_capabilities() {
 		void *next_features = nullptr;
 		VkPhysicalDeviceVulkan12Features device_features_vk_1_2 = {};
 		VkPhysicalDeviceShaderFloat16Int8FeaturesKHR shader_features = {};
+		VkPhysicalDeviceBufferDeviceAddressFeaturesKHR buffer_device_address_features = {};
 		VkPhysicalDeviceFragmentShadingRateFeaturesKHR vrs_features = {};
 		VkPhysicalDevice16BitStorageFeaturesKHR storage_feature = {};
 		VkPhysicalDeviceMultiviewFeatures multiview_features = {};
@@ -740,10 +742,17 @@ Error RenderingDeviceDriverVulkan::_check_device_capabilities() {
 			device_features_vk_1_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
 			device_features_vk_1_2.pNext = next_features;
 			next_features = &device_features_vk_1_2;
-		} else if (enabled_device_extension_names.has(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME)) {
-			shader_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES_KHR;
-			shader_features.pNext = next_features;
-			next_features = &shader_features;
+		} else {
+			if (enabled_device_extension_names.has(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME)) {
+				shader_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FLOAT16_INT8_FEATURES_KHR;
+				shader_features.pNext = next_features;
+				next_features = &shader_features;
+			}
+			if (enabled_device_extension_names.has(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)) {
+				buffer_device_address_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_KHR;
+				buffer_device_address_features.pNext = next_features;
+				next_features = &buffer_device_address_features;
+			}
 		}
 
 		if (enabled_device_extension_names.has(VK_KHR_FRAGMENT_SHADING_RATE_EXTENSION_NAME)) {
@@ -783,10 +792,16 @@ Error RenderingDeviceDriverVulkan::_check_device_capabilities() {
 				shader_capabilities.shader_float16_is_supported = device_features_vk_1_2.shaderFloat16;
 				shader_capabilities.shader_int8_is_supported = device_features_vk_1_2.shaderInt8;
 			}
+			if (enabled_device_extension_names.has(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)) {
+				buffer_device_address_support = device_features_vk_1_2.bufferDeviceAddress;
+			}
 		} else {
 			if (enabled_device_extension_names.has(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME)) {
 				shader_capabilities.shader_float16_is_supported = shader_features.shaderFloat16;
 				shader_capabilities.shader_int8_is_supported = shader_features.shaderInt8;
+			}
+			if (enabled_device_extension_names.has(VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME)) {
+				buffer_device_address_support = buffer_device_address_features.bufferDeviceAddress;
 			}
 		}
 
@@ -971,6 +986,14 @@ Error RenderingDeviceDriverVulkan::_initialize_device(const LocalVector<VkDevice
 	shader_features.shaderInt8 = shader_capabilities.shader_int8_is_supported;
 	create_info_next = &shader_features;
 
+	VkPhysicalDeviceBufferDeviceAddressFeaturesKHR buffer_device_address_features = {};
+	if (buffer_device_address_support) {
+		buffer_device_address_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_KHR;
+		buffer_device_address_features.pNext = create_info_next;
+		buffer_device_address_features.bufferDeviceAddress = buffer_device_address_support;
+		create_info_next = &buffer_device_address_features;
+	}
+
 	VkPhysicalDeviceFragmentShadingRateFeaturesKHR vrs_features = {};
 	if (vrs_capabilities.pipeline_vrs_supported || vrs_capabilities.primitive_vrs_supported || vrs_capabilities.attachment_vrs_supported) {
 		vrs_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADING_RATE_FEATURES_KHR;
@@ -1111,6 +1134,9 @@ Error RenderingDeviceDriverVulkan::_initialize_allocator() {
 	const bool use_1_3_features = physical_device_properties.apiVersion >= VK_API_VERSION_1_3;
 	if (use_1_3_features) {
 		allocator_info.flags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+	}
+	if (buffer_device_address_support) {
+		allocator_info.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 	}
 	VkResult err = vmaCreateAllocator(&allocator_info, &allocator);
 	ERR_FAIL_COND_V_MSG(err, ERR_CANT_CREATE, "vmaCreateAllocator failed with error " + itos(err) + ".");
@@ -1487,6 +1513,7 @@ static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_STORAGE_BIT, VK_BUFFER_USAGE_
 static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_INDEX_BIT, VK_BUFFER_USAGE_INDEX_BUFFER_BIT));
 static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_VERTEX_BIT, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT));
 static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_INDIRECT_BIT, VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT));
+static_assert(ENUM_MEMBERS_EQUAL(RDD::BUFFER_USAGE_DEVICE_ADDRESS_BIT, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT));
 
 RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitField<BufferUsageBits> p_usage, MemoryAllocationType p_allocation_type) {
 	VkBufferCreateInfo create_info = {};
@@ -1503,10 +1530,12 @@ RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitFie
 			if (is_src && !is_dst) {
 				// Looks like a staging buffer: CPU maps, writes sequentially, then GPU copies to VRAM.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 			}
 			if (is_dst && !is_src) {
 				// Looks like a readback buffer: GPU copies from VRAM, then CPU maps and reads.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 			}
 			alloc_create_info.requiredFlags = (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 		} break;
@@ -1586,6 +1615,15 @@ uint8_t *RenderingDeviceDriverVulkan::buffer_map(BufferID p_buffer) {
 void RenderingDeviceDriverVulkan::buffer_unmap(BufferID p_buffer) {
 	const BufferInfo *buf_info = (const BufferInfo *)p_buffer.id;
 	vmaUnmapMemory(allocator, buf_info->allocation.handle);
+}
+
+uint64_t RenderingDeviceDriverVulkan::buffer_get_device_address(BufferID p_buffer) {
+	const BufferInfo *buf_info = (const BufferInfo *)p_buffer.id;
+	VkBufferDeviceAddressInfo address_info = {};
+	address_info.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+	address_info.pNext = nullptr;
+	address_info.buffer = buf_info->vk_buffer;
+	return vkGetBufferDeviceAddress(vk_device, &address_info);
 }
 
 /*****************/
@@ -5874,6 +5912,8 @@ bool RenderingDeviceDriverVulkan::has_feature(Features p_feature) {
 			return vrs_capabilities.attachment_vrs_supported && physical_device_features.shaderStorageImageExtendedFormats;
 		case SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS:
 			return true;
+		case SUPPORTS_BUFFER_DEVICE_ADDRESS:
+			return buffer_device_address_support;
 		default:
 			return false;
 	}

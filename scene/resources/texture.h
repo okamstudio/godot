@@ -31,13 +31,8 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "core/io/file_access.h"
 #include "core/io/resource.h"
-#include "core/io/resource_loader.h"
 #include "core/math/rect2.h"
-#include "core/os/mutex.h"
-#include "core/os/rw_lock.h"
-#include "core/os/thread_safe.h"
 #include "scene/resources/curve.h"
 #include "scene/resources/gradient.h"
 #include "servers/camera_server.h"

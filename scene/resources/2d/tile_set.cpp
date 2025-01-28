@@ -471,7 +471,7 @@ void TileSet::_compute_next_source_id() {
 
 // Sources management
 int TileSet::add_source(Ref<TileSetSource> p_tile_set_source, int p_atlas_source_id_override) {
-	ERR_FAIL_COND_V(!p_tile_set_source.is_valid(), TileSet::INVALID_SOURCE);
+	ERR_FAIL_COND_V(p_tile_set_source.is_null(), TileSet::INVALID_SOURCE);
 	ERR_FAIL_COND_V_MSG(p_atlas_source_id_override >= 0 && (sources.has(p_atlas_source_id_override)), TileSet::INVALID_SOURCE, vformat("Cannot create TileSet atlas source. Another atlas source exists with id %d.", p_atlas_source_id_override));
 	ERR_FAIL_COND_V_MSG(p_atlas_source_id_override < 0 && p_atlas_source_id_override != TileSet::INVALID_SOURCE, TileSet::INVALID_SOURCE, vformat("Provided source ID %d is not valid. Negative source IDs are not allowed.", p_atlas_source_id_override));
 
@@ -1122,6 +1122,10 @@ void TileSet::set_custom_data_layer_name(int p_layer_id, String p_value) {
 	emit_changed();
 }
 
+bool TileSet::has_custom_data_layer_by_name(const String &p_value) const {
+	return custom_data_layers_by_name.has(p_value);
+}
+
 String TileSet::get_custom_data_layer_name(int p_layer_id) const {
 	ERR_FAIL_INDEX_V(p_layer_id, custom_data_layers.size(), "");
 	return custom_data_layers[p_layer_id].name;
@@ -1392,7 +1396,7 @@ void TileSet::clear_tile_proxies() {
 }
 
 int TileSet::add_pattern(Ref<TileMapPattern> p_pattern, int p_index) {
-	ERR_FAIL_COND_V(!p_pattern.is_valid(), -1);
+	ERR_FAIL_COND_V(p_pattern.is_null(), -1);
 	ERR_FAIL_COND_V_MSG(p_pattern->is_empty(), -1, "Cannot add an empty pattern to the TileSet.");
 	for (const Ref<TileMapPattern> &pattern : patterns) {
 		ERR_FAIL_COND_V_MSG(pattern == p_pattern, -1, "TileSet has already this pattern.");
@@ -4206,7 +4210,7 @@ void TileSet::_get_property_list(List<PropertyInfo> *p_list) const {
 
 		// physics_layer_%d/physics_material
 		property_info = PropertyInfo(Variant::OBJECT, vformat("physics_layer_%d/physics_material", i), PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial");
-		if (!physics_layers[i].physics_material.is_valid()) {
+		if (physics_layers[i].physics_material.is_null()) {
 			property_info.usage ^= PROPERTY_USAGE_STORAGE;
 		}
 		p_list->push_back(property_info);
@@ -4354,6 +4358,7 @@ void TileSet::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_custom_data_layer", "layer_index"), &TileSet::remove_custom_data_layer);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_by_name", "layer_name"), &TileSet::get_custom_data_layer_by_name);
 	ClassDB::bind_method(D_METHOD("set_custom_data_layer_name", "layer_index", "layer_name"), &TileSet::set_custom_data_layer_name);
+	ClassDB::bind_method(D_METHOD("has_custom_data_layer_by_name", "layer_name"), &TileSet::has_custom_data_layer_by_name);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_name", "layer_index"), &TileSet::get_custom_data_layer_name);
 	ClassDB::bind_method(D_METHOD("set_custom_data_layer_type", "layer_index", "layer_type"), &TileSet::set_custom_data_layer_type);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_type", "layer_index"), &TileSet::get_custom_data_layer_type);
@@ -4742,7 +4747,7 @@ bool TileSetAtlasSource::get_use_texture_padding() const {
 
 Vector2i TileSetAtlasSource::get_atlas_grid_size() const {
 	Ref<Texture2D> txt = get_texture();
-	if (!txt.is_valid()) {
+	if (txt.is_null()) {
 		return Vector2i();
 	}
 
@@ -6636,6 +6641,11 @@ Variant TileData::get_custom_data(String p_layer_name) const {
 	return get_custom_data_by_layer_id(p_layer_id);
 }
 
+bool TileData::has_custom_data(const String &p_layer_name) const {
+	ERR_FAIL_NULL_V(tile_set, false);
+	return tile_set->has_custom_data_layer_by_name(p_layer_name);
+}
+
 void TileData::set_custom_data_by_layer_id(int p_layer_id, Variant p_value) {
 	ERR_FAIL_INDEX(p_layer_id, custom_data.size());
 	custom_data.write[p_layer_id] = p_value;
@@ -7116,6 +7126,7 @@ void TileData::_bind_methods() {
 	// Custom data.
 	ClassDB::bind_method(D_METHOD("set_custom_data", "layer_name", "value"), &TileData::set_custom_data);
 	ClassDB::bind_method(D_METHOD("get_custom_data", "layer_name"), &TileData::get_custom_data);
+	ClassDB::bind_method(D_METHOD("has_custom_data", "layer_name"), &TileData::has_custom_data);
 	ClassDB::bind_method(D_METHOD("set_custom_data_by_layer_id", "layer_id", "value"), &TileData::set_custom_data_by_layer_id);
 	ClassDB::bind_method(D_METHOD("get_custom_data_by_layer_id", "layer_id"), &TileData::get_custom_data_by_layer_id);
 

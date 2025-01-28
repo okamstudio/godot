@@ -32,12 +32,12 @@
 
 #include "atlas_import_failed.xpm"
 #include "core/config/project_settings.h"
-#include "core/io/file_access.h"
 #include "core/io/image_loader.h"
 #include "core/io/resource_saver.h"
 #include "core/math/geometry_2d.h"
 #include "editor/editor_atlas_packer.h"
 #include "scene/resources/atlas_texture.h"
+#include "scene/resources/bit_map.h"
 #include "scene/resources/image_texture.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/mesh_texture.h"
@@ -314,7 +314,7 @@ Error ResourceImporterTextureAtlas::import_group_file(const String &p_group_file
 	//update cache if existing, else create
 	Ref<Texture2D> cache;
 	cache = ResourceCache::get_ref(p_group_file);
-	if (!cache.is_valid()) {
+	if (cache.is_null()) {
 		Ref<ImageTexture> res_cache = ImageTexture::create_from_image(new_atlas);
 		res_cache->set_path(p_group_file);
 		cache = res_cache;

@@ -34,7 +34,6 @@
 #include "scene/gui/control.h"
 #include "scene/resources/video_stream.h"
 #include "servers/audio/audio_rb_resampler.h"
-#include "servers/audio_server.h"
 
 class VideoStreamPlayer : public Control {
 	GDCLASS(VideoStreamPlayer, Control);

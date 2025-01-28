@@ -1272,7 +1272,7 @@ void TreeItem::clear_buttons() {
 
 void TreeItem::add_button(int p_column, const Ref<Texture2D> &p_button, int p_id, bool p_disabled, const String &p_tooltip) {
 	ERR_FAIL_INDEX(p_column, cells.size());
-	ERR_FAIL_COND(!p_button.is_valid());
+	ERR_FAIL_COND(p_button.is_null());
 	TreeItem::Cell::Button button;
 	button.texture = p_button;
 	if (p_id < 0) {
@@ -1947,7 +1947,7 @@ void Tree::draw_item_rect(TreeItem::Cell &p_cell, const Rect2i &p_rect, const Co
 
 	int w = 0;
 	Size2i bmsize;
-	if (!p_cell.icon.is_null()) {
+	if (p_cell.icon.is_valid()) {
 		bmsize = _get_cell_icon_size(p_cell);
 		w += bmsize.width + theme_cache.h_separation;
 		if (rect.size.width > 0 && (w + ts.width) > rect.size.width) {
@@ -1986,7 +1986,7 @@ void Tree::draw_item_rect(TreeItem::Cell &p_cell, const Rect2i &p_rect, const Co
 		rect.size.x -= ts.width + theme_cache.h_separation;
 	}
 
-	if (!p_cell.icon.is_null()) {
+	if (p_cell.icon.is_valid()) {
 		p_cell.draw_icon(ci, rect.position + Size2i(0, Math::floor((real_t)(rect.size.y - bmsize.y) / 2)), bmsize, p_icon_color);
 		rect.position.x += bmsize.x + theme_cache.h_separation;
 		rect.size.x -= bmsize.x + theme_cache.h_separation;
@@ -3244,7 +3244,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, int 
 }
 
 void Tree::_text_editor_popup_modal_close() {
-	if (popup_edit_commited) {
+	if (popup_edit_committed) {
 		return; // Already processed by LineEdit/TextEdit commit.
 	}
 
@@ -3268,7 +3268,7 @@ void Tree::_text_editor_popup_modal_close() {
 }
 
 void Tree::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
-	if (popup_edit_commited) {
+	if (popup_edit_committed) {
 		return; // Already processed by _text_editor_popup_modal_close
 	}
 
@@ -3279,7 +3279,7 @@ void Tree::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
 	if (p_event->is_action_pressed("ui_text_newline_blank", true)) {
 		accept_event();
 	} else if (p_event->is_action_pressed("ui_text_newline")) {
-		popup_edit_commited = true; // End edit popup processing.
+		popup_edit_committed = true; // End edit popup processing.
 		popup_editor->hide();
 		_apply_multiline_edit();
 		accept_event();
@@ -3310,7 +3310,7 @@ void Tree::_apply_multiline_edit() {
 }
 
 void Tree::_line_editor_submit(String p_text) {
-	if (popup_edit_commited) {
+	if (popup_edit_committed) {
 		return; // Already processed by _text_editor_popup_modal_close
 	}
 
@@ -3318,7 +3318,7 @@ void Tree::_line_editor_submit(String p_text) {
 		return; // ESC pressed, app focus lost, or forced close from code.
 	}
 
-	popup_edit_commited = true; // End edit popup processing.
+	popup_edit_committed = true; // End edit popup processing.
 	popup_editor->hide();
 
 	if (!popup_edited_item) {
@@ -3451,7 +3451,8 @@ void Tree::_go_up() {
 			return;
 		}
 
-		select_single_item(prev, get_root(), col);
+		selected_item = prev;
+		emit_signal(SNAME("cell_selected"));
 		queue_redraw();
 	} else {
 		while (prev && !prev->cells[col].selectable) {
@@ -3484,7 +3485,8 @@ void Tree::_go_down() {
 			return;
 		}
 
-		select_single_item(next, get_root(), col);
+		selected_item = next;
+		emit_signal(SNAME("cell_selected"));
 		queue_redraw();
 	} else {
 		while (next && !next->cells[col].selectable) {
@@ -3680,15 +3682,6 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 			prev->select(selected_col);
 		}
 		ensure_cursor_is_visible();
-	} else if (p_event->is_action("ui_accept") && p_event->is_pressed()) {
-		if (selected_item) {
-			//bring up editor if possible
-			if (!edit_selected()) {
-				emit_signal(SNAME("item_activated"));
-				incr_search.clear();
-			}
-		}
-		accept_event();
 	} else if (p_event->is_action("ui_select") && p_event->is_pressed()) {
 		if (select_mode == SELECT_MULTI) {
 			if (!selected_item) {
@@ -3700,6 +3693,15 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 			} else if (selected_item->is_selectable(selected_col)) {
 				selected_item->select(selected_col);
 				emit_signal(SNAME("multi_selected"), selected_item, selected_col, true);
+			}
+		}
+		accept_event();
+	} else if (p_event->is_action("ui_accept") && p_event->is_pressed()) {
+		if (selected_item) {
+			//bring up editor if possible
+			if (!edit_selected()) {
+				emit_signal(SNAME("item_activated"));
+				incr_search.clear();
 			}
 		}
 		accept_event();
@@ -3820,12 +3822,7 @@ void Tree::gui_input(const Ref<InputEvent> &p_event) {
 						Input::get_singleton()->set_mouse_mode(Input::MOUSE_MODE_VISIBLE);
 						warp_mouse(range_drag_capture_pos);
 					} else {
-						Rect2 rect;
-						if (select_mode == SELECT_ROW) {
-							rect = get_selected()->get_meta("__focus_col_" + itos(selected_col));
-						} else {
-							rect = get_selected()->get_meta("__focus_rect");
-						}
+						Rect2 rect = _get_item_focus_rect(get_selected());
 						Point2 mpos = mb->get_position();
 						int icon_size_x = 0;
 						Ref<Texture2D> icon = get_selected()->get_icon(selected_col);
@@ -4203,12 +4200,7 @@ bool Tree::edit_selected(bool p_force_edit) {
 	}
 
 	float popup_scale = popup_editor->is_embedded() ? 1.0 : popup_editor->get_parent_visible_window()->get_content_scale_factor();
-	Rect2 rect;
-	if (select_mode == SELECT_ROW) {
-		rect = s->get_meta("__focus_col_" + itos(selected_col));
-	} else {
-		rect = s->get_meta("__focus_rect");
-	}
+	Rect2 rect = _get_item_focus_rect(s);
 	rect.position *= popup_scale;
 	popup_edited_item = s;
 	popup_edited_item_col = col;
@@ -4283,7 +4275,7 @@ bool Tree::edit_selected(bool p_force_edit) {
 		if (!popup_editor->is_embedded()) {
 			popup_editor->set_content_scale_factor(popup_scale);
 		}
-		popup_edit_commited = false; // Start edit popup processing.
+		popup_edit_committed = false; // Start edit popup processing.
 		popup_editor->popup();
 		popup_editor->child_controls_changed();
 
@@ -4303,7 +4295,7 @@ bool Tree::edit_selected(bool p_force_edit) {
 		if (!popup_editor->is_embedded()) {
 			popup_editor->set_content_scale_factor(popup_scale);
 		}
-		popup_edit_commited = false; // Start edit popup processing.
+		popup_edit_committed = false; // Start edit popup processing.
 		popup_editor->popup();
 		popup_editor->child_controls_changed();
 
@@ -4313,6 +4305,16 @@ bool Tree::edit_selected(bool p_force_edit) {
 	}
 
 	return false;
+}
+
+Rect2 Tree::_get_item_focus_rect(const TreeItem *p_item) const {
+	Rect2 rect;
+	if (select_mode == SELECT_ROW) {
+		rect = p_item->get_meta("__focus_col_" + itos(selected_col));
+	} else {
+		rect = p_item->get_meta("__focus_rect");
+	}
+	return rect;
 }
 
 bool Tree::is_editing() {
@@ -4597,7 +4599,7 @@ void Tree::_notification(int p_what) {
 		case NOTIFICATION_RESIZED:
 		case NOTIFICATION_TRANSFORM_CHANGED: {
 			if (popup_edited_item != nullptr) {
-				Rect2 rect = popup_edited_item->get_meta("__focus_rect");
+				Rect2 rect = _get_item_focus_rect(popup_edited_item);
 
 				popup_editor->set_position(get_global_position() + rect.position);
 				popup_editor->set_size(rect.size);

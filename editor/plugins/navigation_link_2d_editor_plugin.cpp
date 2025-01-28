@@ -35,7 +35,6 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "scene/main/viewport.h"
-#include "servers/navigation_server_3d.h"
 
 void NavigationLink2DEditor::_notification(int p_what) {
 	switch (p_what) {

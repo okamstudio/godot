@@ -125,7 +125,7 @@ public:
 	/// This function allows you to update the soft body immediately without going through the PhysicsSystem.
 	/// This is useful if the soft body is teleported and needs to 'settle' or it can be used if a the soft body
 	/// is not added to the PhysicsSystem and needs to be updated manually. One reason for not adding it to the
-	/// PhyicsSystem is that you might want to update a soft body immediately after updating an animated object
+	/// PhysicsSystem is that you might want to update a soft body immediately after updating an animated object
 	/// that has the soft body attached to it. If the soft body is added to the PhysicsSystem it will be updated
 	/// by it, so calling this function will effectively update it twice. Note that when you use this function,
 	/// only the current thread will be used, whereas if you update through the PhysicsSystem, multiple threads may

@@ -70,12 +70,14 @@
 // These types can be used in Vector and other containers that use
 // pointer operations not supported by ARC.
 namespace MTL {
-#define MTL_CLASS(name)                                  \
-	class name {                                         \
-	public:                                              \
-		name(id<MTL##name> obj = nil) : m_obj(obj) {}    \
-		operator id<MTL##name>() const { return m_obj; } \
-		id<MTL##name> m_obj;                             \
+#define MTL_CLASS(name)                               \
+	class name {                                      \
+	public:                                           \
+		name(id<MTL##name> obj = nil) : m_obj(obj) {} \
+		operator id<MTL##name>() const {              \
+			return m_obj;                             \
+		}                                             \
+		id<MTL##name> m_obj;                          \
 	};
 
 MTL_CLASS(Texture)
@@ -178,7 +180,7 @@ struct ClearAttKey {
 	}
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDResourceFactory {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDResourceFactory {
 private:
 	RenderingDeviceDriverMetal *device_driver;
 
@@ -196,7 +198,7 @@ public:
 	~MDResourceFactory() = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDResourceCache {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDResourceCache {
 private:
 	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>, HashableHasher<ClearAttKey>> HashMap;
 	std::unique_ptr<MDResourceFactory> resource_factory;
@@ -245,7 +247,7 @@ struct MDSubpass {
 	MTLFmtCaps getRequiredFmtCapsForAttachmentAt(uint32_t p_index) const;
 };
 
-struct API_AVAILABLE(macos(11.0), ios(14.0)) MDAttachment {
+struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDAttachment {
 private:
 	uint32_t index = 0;
 	uint32_t firstUseSubpassIndex = 0;
@@ -297,7 +299,7 @@ public:
 	bool shouldClear(MDSubpass const &p_subpass, bool p_is_stencil) const;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDRenderPass {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDRenderPass {
 public:
 	Vector<MDAttachment> attachments;
 	Vector<MDSubpass> subpasses;
@@ -309,7 +311,7 @@ public:
 	MDRenderPass(Vector<MDAttachment> &p_attachments, Vector<MDSubpass> &p_subpasses);
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDCommandBuffer {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDCommandBuffer {
 private:
 	RenderingDeviceDriverMetal *device_driver = nullptr;
 	id<MTLCommandQueue> queue = nil;
@@ -555,7 +557,7 @@ public:
 #define MTLBindingAccessWriteOnly MTLArgumentAccessWriteOnly
 #endif
 
-struct API_AVAILABLE(macos(11.0), ios(14.0)) BindingInfo {
+struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) BindingInfo {
 	MTLDataType dataType = MTLDataTypeNone;
 	uint32_t index = 0;
 	MTLBindingAccess access = MTLBindingAccessReadOnly;
@@ -606,16 +608,16 @@ struct API_AVAILABLE(macos(11.0), ios(14.0)) BindingInfo {
 
 using RDC = RenderingDeviceCommons;
 
-typedef API_AVAILABLE(macos(11.0), ios(14.0)) HashMap<RDC::ShaderStage, BindingInfo> BindingInfoMap;
+typedef API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) HashMap<RDC::ShaderStage, BindingInfo> BindingInfoMap;
 
-struct API_AVAILABLE(macos(11.0), ios(14.0)) UniformInfo {
+struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) UniformInfo {
 	uint32_t binding;
 	ShaderStageUsage active_stages = None;
 	BindingInfoMap bindings;
 	BindingInfoMap bindings_secondary;
 };
 
-struct API_AVAILABLE(macos(11.0), ios(14.0)) UniformSet {
+struct API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) UniformSet {
 	LocalVector<UniformInfo> uniforms;
 	uint32_t buffer_size = 0;
 	HashMap<RDC::ShaderStage, uint32_t> offsets;
@@ -692,7 +694,7 @@ struct ShaderCacheEntry {
 	~ShaderCacheEntry() = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDShader {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDShader {
 public:
 	CharString name;
 	Vector<UniformSet> sets;
@@ -705,7 +707,7 @@ public:
 	virtual ~MDShader() = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDComputeShader final : public MDShader {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDComputeShader final : public MDShader {
 public:
 	struct {
 		uint32_t binding = -1;
@@ -723,7 +725,7 @@ public:
 	MDComputeShader(CharString p_name, Vector<UniformSet> p_sets, bool p_uses_argument_buffers, MDLibrary *p_kernel);
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDRenderShader final : public MDShader {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDRenderShader final : public MDShader {
 public:
 	struct {
 		struct {
@@ -784,7 +786,7 @@ struct BoundUniformSet {
 	void merge_into(ResourceUsageMap &p_dst) const;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDUniformSet {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDUniformSet {
 private:
 	void bind_uniforms_argument_buffers(MDShader *p_shader, MDCommandBuffer::RenderState &p_state);
 	void bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::RenderState &p_state);
@@ -802,7 +804,7 @@ public:
 	BoundUniformSet &bound_uniform_set(MDShader *p_shader, id<MTLDevice> p_device, ResourceUsageMap &p_resource_usage);
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDPipeline {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDPipeline {
 public:
 	MDPipelineType type;
 
@@ -811,7 +813,7 @@ public:
 	virtual ~MDPipeline() = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDRenderPipeline final : public MDPipeline {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDRenderPipeline final : public MDPipeline {
 public:
 	id<MTLRenderPipelineState> state = nil;
 	id<MTLDepthStencilState> depth_stencil = nil;
@@ -848,8 +850,9 @@ public:
 			uint32_t front_reference = 0;
 			uint32_t back_reference = 0;
 			_FORCE_INLINE_ void apply(id<MTLRenderCommandEncoder> __unsafe_unretained p_enc) const {
-				if (!enabled)
+				if (!enabled) {
 					return;
+				}
 				[p_enc setStencilFrontReferenceValue:front_reference backReferenceValue:back_reference];
 			}
 		} stencil;
@@ -887,7 +890,7 @@ public:
 	~MDRenderPipeline() final = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDComputePipeline final : public MDPipeline {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDComputePipeline final : public MDPipeline {
 public:
 	id<MTLComputePipelineState> state = nil;
 	struct {
@@ -901,7 +904,7 @@ public:
 	~MDComputePipeline() final = default;
 };
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) MDFrameBuffer {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDFrameBuffer {
 	Vector<MTL::Texture> textures;
 
 public:
@@ -949,8 +952,10 @@ void *owned(id p_id) {
 	return (__bridge_retained void *)p_id;
 }
 
-#define MAKE_ID(FROM, TO) \
-	_FORCE_INLINE_ TO make(FROM p_obj) { return TO(owned(p_obj)); }
+#define MAKE_ID(FROM, TO)                \
+	_FORCE_INLINE_ TO make(FROM p_obj) { \
+		return TO(owned(p_obj));         \
+	}
 
 MAKE_ID(id<MTLTexture>, RDD::TextureID)
 MAKE_ID(id<MTLBuffer>, RDD::BufferID)

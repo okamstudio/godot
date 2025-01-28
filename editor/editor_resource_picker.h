@@ -35,7 +35,6 @@
 
 class Button;
 class ConfirmationDialog;
-class EditorFileDialog;
 class PopupMenu;
 class TextureRect;
 class Tree;
@@ -56,8 +55,8 @@ class EditorResourcePicker : public HBoxContainer {
 
 	Button *assign_button = nullptr;
 	TextureRect *preview_rect = nullptr;
+	Button *load_button = nullptr;
 	Button *edit_button = nullptr;
-	EditorFileDialog *file_dialog = nullptr;
 
 	ConfirmationDialog *duplicate_resources_dialog = nullptr;
 	Tree *duplicate_resources_tree = nullptr;
@@ -65,8 +64,6 @@ class EditorResourcePicker : public HBoxContainer {
 	Size2i assign_button_min_size = Size2i(1, 1);
 
 	enum MenuOption {
-		OBJ_MENU_LOAD,
-		OBJ_MENU_QUICKLOAD,
 		OBJ_MENU_INSPECT,
 		OBJ_MENU_CLEAR,
 		OBJ_MENU_MAKE_UNIQUE,
@@ -93,6 +90,7 @@ class EditorResourcePicker : public HBoxContainer {
 
 	void _resource_saved(Object *p_resource);
 
+	void _load_button_pressed();
 	void _update_menu();
 	void _update_menu_items();
 	void _edit_menu_cbk(int p_which);

@@ -32,7 +32,6 @@
 #define STYLE_BOX_H
 
 #include "core/io/resource.h"
-#include "core/object/class_db.h"
 #include "core/object/gdvirtual.gen.inc"
 
 class CanvasItem;

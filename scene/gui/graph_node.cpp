@@ -30,7 +30,6 @@
 
 #include "graph_node.h"
 
-#include "core/string/translation.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/label.h"
 #include "scene/theme/theme_db.h"
@@ -130,7 +129,7 @@ bool GraphNode::_get(const StringName &p_name, Variant &r_ret) const {
 void GraphNode::_get_property_list(List<PropertyInfo> *p_list) const {
 	int idx = 0;
 	for (int i = 0; i < get_child_count(false); i++) {
-		Control *child = as_sortable_control(get_child(i, false), SortableVisbilityMode::IGNORE);
+		Control *child = as_sortable_control(get_child(i, false), SortableVisibilityMode::IGNORE);
 		if (!child) {
 			continue;
 		}
@@ -299,7 +298,7 @@ void GraphNode::draw_port(int p_slot_index, Point2i p_pos, bool p_left, const Co
 	Ref<Texture2D> port_icon = p_left ? slot.custom_port_icon_left : slot.custom_port_icon_right;
 
 	Point2 icon_offset;
-	if (!port_icon.is_valid()) {
+	if (port_icon.is_null()) {
 		port_icon = theme_cache.port;
 	}
 
@@ -385,7 +384,7 @@ void GraphNode::set_slot(int p_slot_index, bool p_enable_left, int p_type_left, 
 
 	if (!p_enable_left && p_type_left == 0 && p_color_left == Color(1, 1, 1, 1) &&
 			!p_enable_right && p_type_right == 0 && p_color_right == Color(1, 1, 1, 1) &&
-			!p_custom_left.is_valid() && !p_custom_right.is_valid()) {
+			p_custom_left.is_null() && p_custom_right.is_null()) {
 		slot_table.erase(p_slot_index);
 		return;
 	}
@@ -658,7 +657,7 @@ void GraphNode::_port_pos_update() {
 	int slot_index = 0;
 
 	for (int i = 0; i < get_child_count(false); i++) {
-		Control *child = as_sortable_control(get_child(i, false), SortableVisbilityMode::IGNORE);
+		Control *child = as_sortable_control(get_child(i, false), SortableVisibilityMode::IGNORE);
 		if (!child) {
 			continue;
 		}

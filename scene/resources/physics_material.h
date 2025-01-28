@@ -32,7 +32,6 @@
 #define PHYSICS_MATERIAL_H
 
 #include "core/io/resource.h"
-#include "servers/physics_server_3d.h"
 
 class PhysicsMaterial : public Resource {
 	GDCLASS(PhysicsMaterial, Resource);

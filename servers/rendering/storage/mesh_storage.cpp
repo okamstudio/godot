@@ -48,7 +48,7 @@ void RendererMeshStorage::multimesh_free(RID p_rid) {
 	_multimesh_free(p_rid);
 }
 
-void RendererMeshStorage::multimesh_allocate_data(RID p_multimesh, int p_instances, RS::MultimeshTransformFormat p_transform_format, bool p_use_colors, bool p_use_custom_data) {
+void RendererMeshStorage::multimesh_allocate_data(RID p_multimesh, int p_instances, RS::MultimeshTransformFormat p_transform_format, bool p_use_colors, bool p_use_custom_data, bool p_use_indirect) {
 	MultiMeshInterpolator *mmi = _multimesh_get_interpolator(p_multimesh);
 	if (mmi) {
 		mmi->_transform_format = p_transform_format;
@@ -68,7 +68,7 @@ void RendererMeshStorage::multimesh_allocate_data(RID p_multimesh, int p_instanc
 		mmi->_data_interpolated.resize_zeroed(size_in_floats);
 	}
 
-	_multimesh_allocate_data(p_multimesh, p_instances, p_transform_format, p_use_colors, p_use_custom_data);
+	_multimesh_allocate_data(p_multimesh, p_instances, p_transform_format, p_use_colors, p_use_custom_data, p_use_indirect);
 }
 
 int RendererMeshStorage::multimesh_get_instance_count(RID p_multimesh) const {
@@ -221,6 +221,10 @@ void RendererMeshStorage::multimesh_set_buffer(RID p_multimesh, const Vector<flo
 	}
 
 	_multimesh_set_buffer(p_multimesh, p_buffer);
+}
+
+RID RendererMeshStorage::multimesh_get_command_buffer_rd_rid(RID p_multimesh) const {
+	return _multimesh_get_command_buffer_rd_rid(p_multimesh);
 }
 
 RID RendererMeshStorage::multimesh_get_buffer_rd_rid(RID p_multimesh) const {

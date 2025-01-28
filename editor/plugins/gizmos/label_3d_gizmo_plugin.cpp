@@ -30,7 +30,6 @@
 
 #include "label_3d_gizmo_plugin.h"
 
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/label_3d.h"
 
 Label3DGizmoPlugin::Label3DGizmoPlugin() {

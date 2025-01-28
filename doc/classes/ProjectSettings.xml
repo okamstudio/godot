@@ -151,6 +151,7 @@
 				Loads the contents of the .pck or .zip file specified by [param pack] into the resource filesystem ([code]res://[/code]). Returns [code]true[/code] on success.
 				[b]Note:[/b] If a file from [param pack] shares the same path as a file already in the resource filesystem, any attempts to load that file will use the file from [param pack] unless [param replace_files] is set to [code]false[/code].
 				[b]Note:[/b] The optional [param offset] parameter can be used to specify the offset in bytes to the start of the resource pack. This is only supported for .pck files.
+				[b]Note:[/b] [DirAccess] will not show changes made to the contents of [code]res://[/code] after calling this function.
 			</description>
 		</method>
 		<method name="localize_path" qualifiers="const">
@@ -551,7 +552,7 @@
 		<member name="debug/gdscript/warnings/redundant_static_unload" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when the [code]@static_unload[/code] annotation is used in a script without any static variables.
 		</member>
-		<member name="debug/gdscript/warnings/renamed_in_godot_4_hint" type="bool" setter="" getter="" default="1">
+		<member name="debug/gdscript/warnings/renamed_in_godot_4_hint" type="bool" setter="" getter="" default="true">
 			When enabled, using a property, enum, or function that was renamed since Godot 3 will produce a hint if an error occurs.
 		</member>
 		<member name="debug/gdscript/warnings/return_value_discarded" type="int" setter="" getter="" default="0">
@@ -2165,6 +2166,9 @@
 		<member name="navigation/pathfinding/max_threads" type="int" setter="" getter="" default="4">
 			Maximum number of threads that can run pathfinding queries simultaneously on the same pathfinding graph, for example the same navigation map. Additional threads increase memory consumption and synchronization time due to the need for extra data copies prepared for each thread. A value of [code]-1[/code] means unlimited and the maximum available OS processor count is used. Defaults to [code]1[/code] when the OS does not support threads.
 		</member>
+		<member name="navigation/world/map_use_async_iterations" type="bool" setter="" getter="" default="true">
+			If enabled, navigation map synchronization uses an async process that runs on a background thread. This avoids stalling the main thread but adds an additional delay to any navigation map change.
+		</member>
 		<member name="network/limits/debugger/max_chars_per_second" type="int" setter="" getter="" default="32768">
 			Maximum number of characters allowed to send as output from the debugger. Over this value, content is dropped. This helps not to stall the debugger connection.
 		</member>
@@ -2234,8 +2238,10 @@
 		</member>
 		<member name="physics/2d/physics_engine" type="String" setter="" getter="" default="&quot;DEFAULT&quot;">
 			Sets which physics engine to use for 2D physics.
-			"DEFAULT" and "GodotPhysics2D" are the same, as there is currently no alternative 2D physics server implemented.
-			"Dummy" is a 2D physics server that does nothing and returns only dummy values, effectively disabling all 2D physics functionality.
+			[b]DEFAULT[/b] is currently equivalent to [b]GodotPhysics2D[/b], but may change in future releases. Select an explicit implementation if you want to ensure that your project stays on the same engine.
+			[b]GodotPhysics2D[/b] is Godot's internal 2D physics engine.
+			[b]Dummy[/b] is a 2D physics server that does nothing and returns only dummy values, effectively disabling all 2D physics functionality.
+			Third-party extensions and modules can add other physics engines to select with this setting.
 		</member>
 		<member name="physics/2d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 2D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 2D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.
@@ -2313,8 +2319,11 @@
 		</member>
 		<member name="physics/3d/physics_engine" type="String" setter="" getter="" default="&quot;DEFAULT&quot;">
 			Sets which physics engine to use for 3D physics.
-			"DEFAULT" and "GodotPhysics3D" are the same, as there is currently no alternative 3D physics server implemented.
-			"Dummy" is a 3D physics server that does nothing and returns only dummy values, effectively disabling all 3D physics functionality.
+			[b]DEFAULT[/b] is currently equivalent to [b]GodotPhysics3D[/b], but may change in future releases. Select an explicit implementation if you want to ensure that your project stays on the same engine.
+			[b]GodotPhysics3D[/b] is Godot's internal 3D physics engine.
+			[b]Jolt Physics[/b] is an alternative physics engine that is generally faster and more reliable than [b]GodotPhysics3D[/b]. As it was recently implemented, it is currently considered experimental and its behavior may change in future releases.
+			[b]Dummy[/b] is a 3D physics server that does nothing and returns only dummy values, effectively disabling all 3D physics functionality.
+			Third-party extensions and modules can add other physics engines to select with this setting.
 		</member>
 		<member name="physics/3d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 3D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 3D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.
@@ -2461,6 +2470,7 @@
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/bounce_velocity_threshold" type="float" setter="" getter="" default="1.0">
 			The minimum velocity needed before a collision can be bouncy, in meters per second.
+			[b]Note:[/b] This setting will only be read once during the lifetime of the application.
 		</member>
 		<member name="physics/jolt_physics_3d/simulation/continuous_cd_max_penetration" type="float" setter="" getter="" default="0.25">
 			Fraction of a body's inner radius that may penetrate another body while using continuous collision detection.
@@ -2963,7 +2973,7 @@
 			[b]Note:[/b] This setting is implemented only on Windows.
 		</member>
 		<member name="rendering/rendering_device/fallback_to_opengl3" type="bool" setter="" getter="" default="true">
-			If [code]true[/code], the forward renderer will fall back to OpenGL 3 if both Direct3D 12, Metal and Vulkan are not supported.
+			If [code]true[/code], the forward renderer will fall back to OpenGL 3 if Direct3D 12, Metal, and Vulkan are not supported.
 			[b]Note:[/b] This setting is implemented only on Windows, Android, macOS, iOS, and Linux/X11.
 		</member>
 		<member name="rendering/rendering_device/fallback_to_vulkan" type="bool" setter="" getter="" default="true">
@@ -3020,6 +3030,12 @@
 		<member name="rendering/scaling_3d/mode" type="int" setter="" getter="" default="0">
 			Sets the scaling 3D mode. Bilinear scaling renders at different resolution to either undersample or supersample the viewport. FidelityFX Super Resolution 1.0, abbreviated to FSR, is an upscaling technology that produces high quality images at fast framerates by using a spatially-aware upscaling algorithm. FSR is slightly more expensive than bilinear, but it produces significantly higher image quality. On particularly low-end GPUs, the added cost of FSR may not be worth it (compared to using bilinear scaling with a slightly higher resolution scale to match performance).
 			[b]Note:[/b] FSR is only effective when using the Forward+ rendering method, not Mobile or Compatibility. If using an incompatible rendering method, FSR will fall back to bilinear scaling.
+		</member>
+		<member name="rendering/scaling_3d/mode.ios" type="int" setter="" getter="">
+			iOS override for [member rendering/scaling_3d/mode]. This allows selecting the MetalFX spatial and MetalFX temporal scaling modes, which are exclusive to platforms where the Metal rendering driver is used.
+		</member>
+		<member name="rendering/scaling_3d/mode.macos" type="int" setter="" getter="">
+			macOS override for [member rendering/scaling_3d/mode]. This allows selecting the MetalFX spatial and MetalFX temporal scaling modes, which are exclusive to platforms where the Metal rendering driver is used.
 		</member>
 		<member name="rendering/scaling_3d/scale" type="float" setter="" getter="" default="1.0">
 			Scales the 3D render buffer based on the viewport size uses an image filter specified in [member rendering/scaling_3d/mode] to scale the output image to the full viewport size. Values lower than [code]1.0[/code] can be used to speed up 3D rendering at the cost of quality (undersampling). Values greater than [code]1.0[/code] are only valid for bilinear mode and can be used to improve 3D rendering quality at a high performance cost (supersampling). See also [member rendering/anti_aliasing/quality/msaa_3d] for multi-sample antialiasing, which is significantly cheaper but only smooths the edges of polygons.

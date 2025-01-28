@@ -30,16 +30,10 @@
 
 #include "crypto_mbedtls.h"
 
-#include "core/config/engine.h"
-#include "core/config/project_settings.h"
 #include "core/io/certs_compressed.gen.h"
 #include "core/io/compression.h"
 #include "core/io/file_access.h"
 #include "core/os/os.h"
-
-#ifdef TOOLS_ENABLED
-#include "editor/editor_settings.h"
-#endif
 
 #include <mbedtls/debug.h>
 #include <mbedtls/md.h>
@@ -105,10 +99,11 @@ Error CryptoKeyMbedTLS::save(const String &p_path, bool p_public_only) {
 
 Error CryptoKeyMbedTLS::load_from_string(const String &p_string_key, bool p_public_only) {
 	int ret = 0;
+	const CharString string_key_utf8 = p_string_key.utf8();
 	if (p_public_only) {
-		ret = mbedtls_pk_parse_public_key(&pkey, (unsigned char *)p_string_key.utf8().get_data(), p_string_key.utf8().size());
+		ret = mbedtls_pk_parse_public_key(&pkey, (const unsigned char *)string_key_utf8.get_data(), string_key_utf8.size());
 	} else {
-		ret = _parse_key((unsigned char *)p_string_key.utf8().get_data(), p_string_key.utf8().size());
+		ret = _parse_key((const unsigned char *)string_key_utf8.get_data(), string_key_utf8.size());
 	}
 	ERR_FAIL_COND_V_MSG(ret, FAILED, "Error parsing key '" + itos(ret) + "'.");
 
@@ -480,7 +475,7 @@ Vector<uint8_t> CryptoMbedTLS::sign(HashingContext::HashType p_hash_type, const 
 	ERR_FAIL_COND_V_MSG(type == MBEDTLS_MD_NONE, Vector<uint8_t>(), "Invalid hash type.");
 	ERR_FAIL_COND_V_MSG(p_hash.size() != size, Vector<uint8_t>(), "Invalid hash provided. Size must be " + itos(size));
 	Ref<CryptoKeyMbedTLS> key = static_cast<Ref<CryptoKeyMbedTLS>>(p_key);
-	ERR_FAIL_COND_V_MSG(!key.is_valid(), Vector<uint8_t>(), "Invalid key provided.");
+	ERR_FAIL_COND_V_MSG(key.is_null(), Vector<uint8_t>(), "Invalid key provided.");
 	ERR_FAIL_COND_V_MSG(key->is_public_only(), Vector<uint8_t>(), "Invalid key provided. Cannot sign with public_only keys.");
 	size_t sig_size = 0;
 #if MBEDTLS_VERSION_MAJOR >= 3
@@ -506,13 +501,13 @@ bool CryptoMbedTLS::verify(HashingContext::HashType p_hash_type, const Vector<ui
 	ERR_FAIL_COND_V_MSG(type == MBEDTLS_MD_NONE, false, "Invalid hash type.");
 	ERR_FAIL_COND_V_MSG(p_hash.size() != size, false, "Invalid hash provided. Size must be " + itos(size));
 	Ref<CryptoKeyMbedTLS> key = static_cast<Ref<CryptoKeyMbedTLS>>(p_key);
-	ERR_FAIL_COND_V_MSG(!key.is_valid(), false, "Invalid key provided.");
+	ERR_FAIL_COND_V_MSG(key.is_null(), false, "Invalid key provided.");
 	return mbedtls_pk_verify(&(key->pkey), type, p_hash.ptr(), size, p_signature.ptr(), p_signature.size()) == 0;
 }
 
 Vector<uint8_t> CryptoMbedTLS::encrypt(Ref<CryptoKey> p_key, const Vector<uint8_t> &p_plaintext) {
 	Ref<CryptoKeyMbedTLS> key = static_cast<Ref<CryptoKeyMbedTLS>>(p_key);
-	ERR_FAIL_COND_V_MSG(!key.is_valid(), Vector<uint8_t>(), "Invalid key provided.");
+	ERR_FAIL_COND_V_MSG(key.is_null(), Vector<uint8_t>(), "Invalid key provided.");
 	uint8_t buf[1024];
 	size_t size;
 	Vector<uint8_t> out;
@@ -525,7 +520,7 @@ Vector<uint8_t> CryptoMbedTLS::encrypt(Ref<CryptoKey> p_key, const Vector<uint8_
 
 Vector<uint8_t> CryptoMbedTLS::decrypt(Ref<CryptoKey> p_key, const Vector<uint8_t> &p_ciphertext) {
 	Ref<CryptoKeyMbedTLS> key = static_cast<Ref<CryptoKeyMbedTLS>>(p_key);
-	ERR_FAIL_COND_V_MSG(!key.is_valid(), Vector<uint8_t>(), "Invalid key provided.");
+	ERR_FAIL_COND_V_MSG(key.is_null(), Vector<uint8_t>(), "Invalid key provided.");
 	ERR_FAIL_COND_V_MSG(key->is_public_only(), Vector<uint8_t>(), "Invalid key provided. Cannot decrypt using a public_only key.");
 	uint8_t buf[2048];
 	size_t size;

@@ -217,6 +217,8 @@ private:
 	RendererCanvasRender::Item **z_list;
 	RendererCanvasRender::Item **z_last_list;
 
+	Transform2D _current_camera_transform;
+
 public:
 	void render_canvas(RID p_render_target, Canvas *p_canvas, const Transform2D &p_transform, RendererCanvasRender::Light *p_lights, RendererCanvasRender::Light *p_directional_lights, const Rect2 &p_clip_rect, RS::CanvasItemTextureFilter p_default_filter, RS::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_transforms_to_pixel, bool p_snap_2d_vertices_to_pixel, uint32_t p_canvas_cull_mask, RenderingMethod::RenderInfo *r_render_info = nullptr);
 
@@ -250,6 +252,7 @@ public:
 	void canvas_item_set_self_modulate(RID p_item, const Color &p_color);
 
 	void canvas_item_set_draw_behind_parent(RID p_item, bool p_enable);
+	void canvas_item_set_use_identity_transform(RID p_item, bool p_enable);
 
 	void canvas_item_set_update_when_visible(RID p_item, bool p_update);
 

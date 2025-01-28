@@ -70,6 +70,7 @@ JpgLoader::~JpgLoader()
 
 bool JpgLoader::open(const string& path)
 {
+#ifdef THORVG_FILE_IO_SUPPORT
     int width, height;
     decoder = jpgdHeader(path.c_str(), &width, &height);
     if (!decoder) return false;
@@ -78,6 +79,9 @@ bool JpgLoader::open(const string& path)
     h = static_cast<float>(height);
 
     return true;
+#else
+    return false;
+#endif
 }
 
 

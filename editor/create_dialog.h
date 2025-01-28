@@ -67,7 +67,6 @@ class CreateDialog : public ConfirmationDialog {
 	List<StringName> type_list;
 	HashSet<StringName> type_blacklist;
 	HashSet<StringName> custom_type_blocklist;
-	HashMap<StringName, String> custom_type_suffixes;
 
 	void _update_search();
 	bool _should_hide_type(const StringName &p_type) const;
@@ -75,6 +74,7 @@ class CreateDialog : public ConfirmationDialog {
 	void _configure_search_option_item(TreeItem *r_item, const StringName &p_type, TypeCategory p_type_category);
 	float _score_type(const String &p_type, const String &p_search) const;
 	bool _is_type_preferred(const String &p_type) const;
+	void _script_button_clicked(TreeItem *p_item, int p_column, int p_button_id, MouseButton p_mouse_button_index);
 
 	void _fill_type_list();
 	void _cleanup();
@@ -118,8 +118,6 @@ public:
 	void select_base();
 
 	void set_type_blocklist(const HashSet<StringName> &p_blocklist) { custom_type_blocklist = p_blocklist; }
-	void set_type_suffixes(const HashMap<StringName, String> &p_suffixes) { custom_type_suffixes = p_suffixes; }
-
 	void set_preferred_search_result_type(const String &p_preferred_type) { preferred_search_result_type = p_preferred_type; }
 
 	void popup_create(bool p_dont_clear, bool p_replace_mode = false, const String &p_current_type = "", const String &p_current_name = "");

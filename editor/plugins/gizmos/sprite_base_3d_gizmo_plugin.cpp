@@ -30,7 +30,6 @@
 
 #include "sprite_base_3d_gizmo_plugin.h"
 
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/sprite_3d.h"
 
 SpriteBase3DGizmoPlugin::SpriteBase3DGizmoPlugin() {

@@ -32,13 +32,10 @@
 #define CSG_H
 
 #include "core/math/aabb.h"
-#include "core/math/plane.h"
 #include "core/math/transform_3d.h"
 #include "core/math/vector2.h"
 #include "core/math/vector3.h"
 #include "core/object/ref_counted.h"
-#include "core/templates/list.h"
-#include "core/templates/oa_hash_map.h"
 #include "core/templates/vector.h"
 #include "scene/resources/material.h"
 

@@ -209,6 +209,7 @@ bool DisplayServerWayland::has_feature(Feature p_feature) const {
 		case FEATURE_SWAP_BUFFERS:
 		case FEATURE_KEEP_SCREEN_ON:
 		case FEATURE_IME:
+		case FEATURE_WINDOW_DRAG:
 		case FEATURE_CLIPBOARD_PRIMARY: {
 			return true;
 		} break;
@@ -217,7 +218,8 @@ bool DisplayServerWayland::has_feature(Feature p_feature) const {
 		//case FEATURE_NATIVE_DIALOG_INPUT:
 #ifdef DBUS_ENABLED
 		case FEATURE_NATIVE_DIALOG_FILE:
-		case FEATURE_NATIVE_DIALOG_FILE_EXTRA: {
+		case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME: {
 			return true;
 		} break;
 #endif
@@ -905,11 +907,11 @@ bool DisplayServerWayland::window_is_focused(WindowID p_window_id) const {
 }
 
 bool DisplayServerWayland::window_can_draw(DisplayServer::WindowID p_window_id) const {
-	return !suspended;
+	return suspend_state == SuspendState::NONE;
 }
 
 bool DisplayServerWayland::can_any_window_draw() const {
-	return !suspended;
+	return suspend_state == SuspendState::NONE;
 }
 
 void DisplayServerWayland::window_set_ime_active(const bool p_active, DisplayServer::WindowID p_window_id) {
@@ -990,6 +992,13 @@ void DisplayServerWayland::window_start_drag(WindowID p_window) {
 	MutexLock mutex_lock(wayland_thread.mutex);
 
 	wayland_thread.window_start_drag(p_window);
+}
+
+void DisplayServerWayland::window_start_resize(WindowResizeEdge p_edge, WindowID p_window) {
+	MutexLock mutex_lock(wayland_thread.mutex);
+
+	ERR_FAIL_INDEX(int(p_edge), WINDOW_EDGE_MAX);
+	wayland_thread.window_start_resize(p_edge, p_window);
 }
 
 void DisplayServerWayland::cursor_set_shape(CursorShape p_shape) {
@@ -1124,16 +1133,21 @@ void DisplayServerWayland::try_suspend() {
 	if (emulate_vsync) {
 		bool frame = wayland_thread.wait_frame_suspend_ms(1000);
 		if (!frame) {
-			suspended = true;
-		}
-	} else {
-		if (wayland_thread.is_suspended()) {
-			suspended = true;
+			suspend_state = SuspendState::TIMEOUT;
 		}
 	}
 
-	if (suspended) {
-		DEBUG_LOG_WAYLAND("Window suspended.");
+	// If we suspended by capability, we'll know with this check. We must do this
+	// after `wait_frame_suspend_ms` as it progressively dispatches the event queue
+	// during the "timeout".
+	if (wayland_thread.is_suspended()) {
+		suspend_state = SuspendState::CAPABILITY;
+	}
+
+	if (suspend_state == SuspendState::TIMEOUT) {
+		DEBUG_LOG_WAYLAND("Suspending. Reason: timeout.");
+	} else if (suspend_state == SuspendState::CAPABILITY) {
+		DEBUG_LOG_WAYLAND("Suspending. Reason: capability.");
 	}
 }
 
@@ -1160,6 +1174,7 @@ void DisplayServerWayland::process_events() {
 				if (OS::get_singleton()->get_main_loop()) {
 					OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_OUT);
 				}
+				Input::get_singleton()->release_pressed_events();
 			}
 		}
 
@@ -1209,16 +1224,18 @@ void DisplayServerWayland::process_events() {
 
 		Ref<WaylandThread::IMEUpdateEventMessage> ime_update_msg = msg;
 		if (ime_update_msg.is_valid()) {
-			ime_text = ime_update_msg->text;
-			ime_selection = ime_update_msg->selection;
+			if (ime_text != ime_update_msg->text || ime_selection != ime_update_msg->selection) {
+				ime_text = ime_update_msg->text;
+				ime_selection = ime_update_msg->selection;
 
-			OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_OS_IME_UPDATE);
+				OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_OS_IME_UPDATE);
+			}
 		}
 	}
 
 	wayland_thread.keyboard_echo_keys();
 
-	if (!suspended) {
+	if (suspend_state == SuspendState::NONE) {
 		// Due to the way legacy suspension works, we have to treat low processor
 		// usage mode very differently than the regular one.
 		if (OS::get_singleton()->is_in_low_processor_usage_mode()) {
@@ -1242,9 +1259,23 @@ void DisplayServerWayland::process_events() {
 		} else {
 			try_suspend();
 		}
-	} else if (!wayland_thread.is_suspended() || wayland_thread.get_reset_frame()) {
-		// At last, a sign of life! We're no longer suspended.
-		suspended = false;
+	} else {
+		if (suspend_state == SuspendState::CAPABILITY) {
+			// If we suspended by capability we can assume that it will be reset when
+			// the compositor wants us to repaint.
+			if (!wayland_thread.is_suspended()) {
+				suspend_state = SuspendState::NONE;
+				DEBUG_LOG_WAYLAND("Unsuspending from capability.");
+			}
+		} else if (suspend_state == SuspendState::TIMEOUT) {
+			// Certain compositors might not report the "suspended" wm_capability flag.
+			// Because of this we'll wake up at the next frame event, indicating the
+			// desire for the compositor to let us repaint.
+			if (wayland_thread.get_reset_frame()) {
+				suspend_state = SuspendState::NONE;
+				DEBUG_LOG_WAYLAND("Unsuspending from timeout.");
+			}
+		}
 	}
 
 #ifdef DBUS_ENABLED

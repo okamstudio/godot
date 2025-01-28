@@ -31,11 +31,9 @@
 #include "editor_preview_plugins.h"
 
 #include "core/config/project_settings.h"
-#include "core/io/file_access_memory.h"
 #include "core/io/image.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
-#include "core/os/os.h"
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_scale.h"
@@ -93,12 +91,12 @@ Ref<Texture2D> EditorTexturePreviewPlugin::generate(const Ref<Resource> &p_from,
 
 	if (tex_atlas.is_valid()) {
 		Ref<Texture2D> tex = tex_atlas->get_atlas();
-		if (!tex.is_valid()) {
+		if (tex.is_null()) {
 			return Ref<Texture2D>();
 		}
 
 		Ref<Image> atlas = tex->get_image();
-		if (!atlas.is_valid()) {
+		if (atlas.is_null()) {
 			return Ref<Texture2D>();
 		}
 
@@ -349,7 +347,7 @@ Ref<Texture2D> EditorMaterialPreviewPlugin::generate(const Ref<Resource> &p_from
 		Ref<Image> img = RS::get_singleton()->texture_2d_get(viewport_texture);
 		RS::get_singleton()->mesh_surface_set_material(sphere, 0, RID());
 
-		ERR_FAIL_COND_V(!img.is_valid(), Ref<ImageTexture>());
+		ERR_FAIL_COND_V(img.is_null(), Ref<ImageTexture>());
 
 		img->convert(Image::FORMAT_RGBA8);
 		int thumbnail_size = MAX(p_size.x, p_size.y);

@@ -17,6 +17,13 @@
 		<link title="XrPosef documentation">https://registry.khronos.org/OpenXR/specs/1.0/man/html/XrPosef.html</link>
 	</tutorials>
 	<methods>
+		<method name="action_get_handle">
+			<return type="int" />
+			<param index="0" name="action" type="RID" />
+			<description>
+				Returns the corresponding [code]XrAction[/code] OpenXR handle for the given action RID.
+			</description>
+		</method>
 		<method name="begin_debug_label_region">
 			<return type="void" />
 			<param index="0" name="label_name" type="String" />
@@ -34,6 +41,14 @@
 			<return type="void" />
 			<description>
 				Marks the end of a debug label region. Removes the latest debug label region added by calling [method begin_debug_label_region].
+			</description>
+		</method>
+		<method name="find_action">
+			<return type="RID" />
+			<param index="0" name="name" type="String" />
+			<param index="1" name="action_set" type="RID" />
+			<description>
+				Returns the [RID] corresponding to an [code]Action[/code] of a matching name, optionally limited to a specified action set.
 			</description>
 		</method>
 		<method name="get_error_string">
@@ -80,6 +95,13 @@
 			<return type="int" />
 			<description>
 				Returns the predicted display timing for the current frame.
+			</description>
+		</method>
+		<method name="get_projection_layer">
+			<return type="int" />
+			<description>
+				Returns a pointer to the render state's [code]XrCompositionLayerProjection[/code] struct.
+				[b]Note:[/b] This method should only be called from the rendering thread.
 			</description>
 		</method>
 		<method name="get_render_state_z_far">
@@ -229,6 +251,13 @@
 			<param index="2" name="object_name" type="String" />
 			<description>
 				Set the object name of an OpenXR object, used for debug output. [param object_type] must be a valid OpenXR [code]XrObjectType[/code] enum and [param object_handle] must be a valid OpenXR object handle.
+			</description>
+		</method>
+		<method name="set_render_region">
+			<return type="void" />
+			<param index="0" name="render_region" type="Rect2i" />
+			<description>
+				Sets the render region to [param render_region], overriding the normal render target's rect.
 			</description>
 		</method>
 		<method name="set_velocity_depth_texture">

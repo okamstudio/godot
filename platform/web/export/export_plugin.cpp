@@ -41,10 +41,8 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/resources/image_texture.h"
 
-#include "modules/modules_enabled.gen.h" // For mono and svg.
-#ifdef MODULE_SVG_ENABLED
+#include "modules/modules_enabled.gen.h" // For mono.
 #include "modules/svg/image_loader_svg.h"
-#endif
 
 Error EditorExportPlatformWeb::_extract_template(const String &p_template, const String &p_dir, const String &p_name, bool pwa) {
 	Ref<FileAccess> io_fa;
@@ -170,6 +168,12 @@ void EditorExportPlatformWeb::_fix_html(Vector<uint8_t> &p_html, const Ref<Edito
 	replaces["$GODOT_HEAD_INCLUDE"] = head_include + custom_head_include;
 	replaces["$GODOT_CONFIG"] = str_config;
 	replaces["$GODOT_SPLASH_COLOR"] = "#" + Color(GLOBAL_GET("application/boot_splash/bg_color")).to_html(false);
+
+	LocalVector<String> godot_splash_classes;
+	godot_splash_classes.push_back("show-image--" + String(GLOBAL_GET("application/boot_splash/show_image")));
+	godot_splash_classes.push_back("fullsize--" + String(GLOBAL_GET("application/boot_splash/fullsize")));
+	godot_splash_classes.push_back("use-filter--" + String(GLOBAL_GET("application/boot_splash/use_filter")));
+	replaces["$GODOT_SPLASH_CLASSES"] = String(" ").join(godot_splash_classes);
 	replaces["$GODOT_SPLASH"] = p_name + ".png";
 
 	if (p_preset->get("variant/thread_support")) {
@@ -334,9 +338,11 @@ Error EditorExportPlatformWeb::_build_pwa(const Ref<EditorExportPreset> &p_prese
 void EditorExportPlatformWeb::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const {
 	if (p_preset->get("vram_texture_compression/for_desktop")) {
 		r_features->push_back("s3tc");
+		r_features->push_back("bptc");
 	}
 	if (p_preset->get("vram_texture_compression/for_mobile")) {
 		r_features->push_back("etc2");
+		r_features->push_back("astc");
 	}
 	if (p_preset->get("variant/thread_support").operator bool()) {
 		r_features->push_back("threads");
@@ -898,7 +904,6 @@ EditorExportPlatformWeb::EditorExportPlatformWeb() {
 	if (EditorNode::get_singleton()) {
 		server.instantiate();
 
-#ifdef MODULE_SVG_ENABLED
 		Ref<Image> img = memnew(Image);
 		const bool upsample = !Math::is_equal_approx(Math::round(EDSCALE), EDSCALE);
 
@@ -907,7 +912,6 @@ EditorExportPlatformWeb::EditorExportPlatformWeb() {
 
 		ImageLoaderSVG::create_image_from_string(img, _web_run_icon_svg, EDSCALE, upsample, false);
 		run_icon = ImageTexture::create_from_image(img);
-#endif
 
 		Ref<Theme> theme = EditorNode::get_singleton()->get_editor_theme();
 		if (theme.is_valid()) {

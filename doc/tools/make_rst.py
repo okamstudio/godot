@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, TextIO, Tuple, Union
 sys.path.insert(0, root_directory := os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../"))
 
 import version
-from methods import Ansi, toggle_color
+from misc.utility.color import Ansi, toggle_color
 
 # $DOCS_URL/path/to/page.html(#fragment-tag)
 GODOT_DOCS_PATTERN = re.compile(r"^\$DOCS_URL/(.*)\.html(#.*)?$")
@@ -697,7 +697,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    toggle_color(args.color)
+    if args.color:
+        toggle_color(True)
 
     # Retrieve heading translations for the given language.
     if not args.dry_run and args.lang != "en":

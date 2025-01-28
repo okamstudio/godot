@@ -33,7 +33,6 @@
 #include "config.h"
 
 #include "../rasterizer_gles3.h"
-#include "texture_storage.h"
 
 #ifdef WEB_ENABLED
 #include <emscripten/html5_webgl.h>
@@ -80,17 +79,19 @@ Config::Config() {
 
 	bptc_supported = extensions.has("GL_ARB_texture_compression_bptc") || extensions.has("EXT_texture_compression_bptc");
 	astc_supported = extensions.has("GL_KHR_texture_compression_astc") || extensions.has("GL_OES_texture_compression_astc") || extensions.has("GL_KHR_texture_compression_astc_ldr") || extensions.has("GL_KHR_texture_compression_astc_hdr");
-	astc_hdr_supported = extensions.has("GL_KHR_texture_compression_astc_ldr");
+	astc_hdr_supported = extensions.has("GL_KHR_texture_compression_astc_hdr");
 	astc_layered_supported = extensions.has("GL_KHR_texture_compression_astc_sliced_3d");
 
 	if (RasterizerGLES3::is_gles_over_gl()) {
 		float_texture_supported = true;
+		float_texture_linear_supported = true;
 		etc2_supported = false;
 		s3tc_supported = true;
 		rgtc_supported = true; //RGTC - core since OpenGL version 3.0
 		srgb_framebuffer_supported = true;
 	} else {
 		float_texture_supported = extensions.has("GL_EXT_color_buffer_float");
+		float_texture_linear_supported = extensions.has("GL_OES_texture_float_linear");
 		etc2_supported = true;
 #if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
 		// Some Android devices report support for S3TC but we don't expect that and don't export the textures.

@@ -8,14 +8,11 @@ env:
   GODOT_BASE_BRANCH: master
   SCONSFLAGS: verbose=yes warnings=extra werror=yes debug_symbols=no module_text_server_fb_enabled=yes strict_checks=yes
 
-concurrency:
-  group: ci-${{ github.actor }}-${{ github.head_ref || github.run_number }}-${{ github.ref }}-android
-  cancel-in-progress: true
-
 jobs:
   build-android:
     runs-on: ubuntu-24.04
     name: ${{ matrix.name }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -102,6 +99,7 @@ jobs:
           cd platform/android/java
           ./gradlew generateGodotEditor
           ./gradlew generateGodotHorizonOSEditor
+          ./gradlew generateGodotPicoOSEditor
           cd ../../..
           ls -l bin/android_editor_builds/
 

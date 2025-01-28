@@ -235,7 +235,7 @@ its functionality to IPv4 only.
 ## etcpak
 
 - Upstream: https://github.com/wolfpld/etcpak
-- Version: git (5380688660a3801aec4b25483366027fe0442d7b, 2024)
+- Version: 2.0 (a43d6925bee49277945cf3e311e4a022ae0c2073, 2024)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -245,6 +245,7 @@ Files extracted from upstream source:
   Dither.{cpp,hpp} ForceInline.hpp Math.hpp ProcessCommon.hpp ProcessRGB.{cpp,hpp}
   ProcessDxtc.{cpp,hpp} Tables.{cpp,hpp} Vector.hpp
   ```
+- The files `DecodeRGB.{cpp.hpp}` are based on the code from the original repository.
 - `AUTHORS.txt` and `LICENSE.txt`
 
 ## fonts
@@ -394,7 +395,7 @@ Files extracted from upstream source:
 ## harfbuzz
 
 - Upstream: https://github.com/harfbuzz/harfbuzz
-- Version: 10.0.1 (a1d9bfe62818ef0fa9cf63b6e6d51436b1c93cbc, 2024)
+- Version: 10.1.0 (9ef44a2d67ac870c1f7f671f6dc98d08a2579865, 2024)
 - License: MIT
 
 Files extracted from upstream source:
@@ -402,7 +403,7 @@ Files extracted from upstream source:
 - `AUTHORS`, `COPYING`, `THANKS`
 - From the `src` folder, recursively:
   - All the `.cc`, `.h`, `.hh` files
-  - Except `main.cc`, `harfbuzz*.cc`, `failing-alloc.c`, `test*.cc`, `hb-wasm*.*`
+  - Except `main.cc`, `harfbuzz*.cc`, `failing-alloc.c`, `test*.cc`, `hb-wasm*.*`, `wasm/*`
 
 
 ## icu4c
@@ -420,7 +421,7 @@ Files extracted from upstream source:
 
 Files generated from upstream source:
 
-- The `icudt76l.dat` built with the provided `godot_data.json` config file (see
+- The `icudt_godot.dat` built with the provided `godot_data.json` config file (see
   https://github.com/unicode-org/icu/blob/master/docs/userguide/icu_data/buildtool.md
   for instructions).
 
@@ -430,13 +431,13 @@ Files generated from upstream source:
 3. Reconfigure ICU with custom data config:
    `ICU_DATA_FILTER_FILE={GODOT_SOURCE}/thirdparty/icu4c/godot_data.json ./runConfigureICU {PLATFORM} --with-data-packaging=common`
 4. Delete `data/out` folder and rebuild data: `cd data && rm -rf ./out && make`
-5. Copy `source/data/out/icudt76l.dat` to the `{GODOT_SOURCE}/thirdparty/icu4c/icudt76l.dat`
+5. Copy `source/data/out/icudt{ICU_VERSION}l.dat` to the `{GODOT_SOURCE}/thirdparty/icu4c/icudt_godot.dat`
 
 
 ## jolt_physics
 
 - Upstream: https://github.com/jrouwe/JoltPhysics
-- Version: 5.2.1 (e3d3cdf644389b621914bb6e73d52ee3137591a7, 2024)
+- Version: 5.2.1 (f094082aa2bbfcbebc725dbe8b8f65c7d5152886, 2024)
 - License: MIT
 
 Files extracted from upstream source:
@@ -511,14 +512,14 @@ Files extracted from upstream source:
 ## libpng
 
 - Upstream: http://libpng.org/pub/png/libpng.html
-- Version: 1.6.43 (ed217e3e601d8e462f7fd1e04bed43ac42212429, 2024)
+- Version: 1.6.45 (51f5bd68b9b806d2c92b4318164d28b49357da31, 2024)
 - License: libpng/zlib
 
 Files extracted from upstream source:
 
 - All `.c` and `.h` files of the main directory, apart from `example.c` and
   `pngtest.c`
-- `arm/`, `intel/` and `powerpc/` folders
+- `arm/` (minus `filter_neon.S`), `intel/`, `loongarch/`, and `powerpc/` (minus `.editorconfig`) folders
 - `scripts/pnglibconf.h.prebuilt` as `pnglibconf.h`
 - `LICENSE`
 
@@ -567,12 +568,12 @@ in the MSVC debugger.
 ## manifold
 
 - Upstream: https://github.com/elalish/manifold
-- Version: master (36035428bc32302a9d7c9ee1ecc833fb8394a2a3, 2024)
+- Version: 3.0.1 (98b8142519d35c13e0e25cfa9fd6e3a271403be6, 2024)
 - License: Apache 2.0
 
 File extracted from upstream source:
 
-- `src/`
+- `src/` and `include/`, except from `CMakeLists.txt`, `cross_section.cpp` and `meshIO.{cpp,h}`
 - `AUTHORS`, `LICENSE`
 
 
@@ -763,7 +764,7 @@ Collection of single-file libraries used in Godot components.
 ## msdfgen
 
 - Upstream: https://github.com/Chlumsky/msdfgen
-- Version: 1.11 (f12d7ca00091a632a289865b85c3f2e0bfc6542d, 2023)
+- Version: 1.12 (85e8b3d47b3d1a42e4a5ebda0a24fb1cc2e669e0, 2024)
 - License: MIT
 
 Files extracted from the upstream source:
@@ -920,7 +921,7 @@ folder, in order.
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
-- Version: 1.0.8 (6c8742cc8145c8f629698cd8248900990946d6b1, 2024)
+- Version: 1.0.9 (5fcb4dcb6e3abf96214b67e5c54db1ceec6a455c, 2024)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -934,7 +935,7 @@ instead of `miniz.h` as an external dependency.
 ## thorvg
 
 - Upstream: https://github.com/thorvg/thorvg
-- Version: 0.15.5 (89ab573acb253567975b2494069c7ee9abc9267c, 2024)
+- Version: 0.15.8 (bd8c2fca7663a22fba7a339937cb60f2f6247a2e, 2025)
 - License: MIT
 
 Files extracted from upstream source:

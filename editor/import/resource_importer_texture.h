@@ -34,7 +34,6 @@
 #include "core/io/file_access.h"
 #include "core/io/image.h"
 #include "core/io/resource_importer.h"
-#include "scene/resources/texture.h"
 #include "servers/rendering_server.h"
 
 class CompressedTexture2D;

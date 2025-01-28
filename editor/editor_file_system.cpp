@@ -843,11 +843,26 @@ bool EditorFileSystem::_update_scan_actions() {
 
 				fs_changed = true;
 
+				const String new_file_path = ia.dir->get_file_path(idx);
+				const ResourceUID::ID existing_id = ResourceLoader::get_resource_uid(new_file_path);
+				if (existing_id != ResourceUID::INVALID_ID) {
+					const String old_path = ResourceUID::get_singleton()->get_id_path(existing_id);
+					if (old_path != new_file_path && FileAccess::exists(old_path)) {
+						const ResourceUID::ID new_id = ResourceUID::get_singleton()->create_id();
+						ResourceUID::get_singleton()->add_id(new_id, new_file_path);
+						ResourceSaver::set_uid(new_file_path, new_id);
+						WARN_PRINT(vformat("Duplicate UID detected for Resource at \"%s\".\nOld Resource path: \"%s\". The new file UID was changed automatically.", new_file_path, old_path));
+					} else {
+						// Re-assign the UID to file, just in case it was pulled from cache.
+						ResourceSaver::set_uid(new_file_path, existing_id);
+					}
+				}
+
 				if (ClassDB::is_parent_class(ia.new_file->type, SNAME("Script"))) {
-					_queue_update_script_class(ia.dir->get_file_path(idx), ia.new_file->type, ia.new_file->script_class_name, ia.new_file->script_class_extends, ia.new_file->script_class_icon_path);
+					_queue_update_script_class(new_file_path, ia.new_file->type, ia.new_file->script_class_name, ia.new_file->script_class_extends, ia.new_file->script_class_icon_path);
 				}
 				if (ia.new_file->type == SNAME("PackedScene")) {
-					_queue_update_scene_groups(ia.dir->get_file_path(idx));
+					_queue_update_scene_groups(new_file_path);
 				}
 
 			} break;
@@ -1260,11 +1275,15 @@ void EditorFileSystem::_process_file_system(const ScannedDirectory *p_scan_dir, 
 				}
 			}
 
-			if (fi->uid == ResourceUID::INVALID_ID && ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
-				// Create a UID.
+			if (ResourceLoader::exists(path) && !ResourceLoader::has_custom_uid_support(path) && !FileAccess::exists(path + ".uid")) {
+				// Create a UID file and new UID, if it's invalid.
 				Ref<FileAccess> f = FileAccess::open(path + ".uid", FileAccess::WRITE);
 				if (f.is_valid()) {
-					fi->uid = ResourceUID::get_singleton()->create_id();
+					if (fi->uid == ResourceUID::INVALID_ID) {
+						fi->uid = ResourceUID::get_singleton()->create_id();
+					} else {
+						WARN_PRINT(vformat("Missing .uid file for path \"%s\". The file was re-created from cache.", path));
+					}
 					f->store_line(ResourceUID::get_singleton()->id_to_text(fi->uid));
 				}
 			}
@@ -1728,7 +1747,7 @@ void EditorFileSystem::_save_filesystem_cache(EditorFileSystemDirectory *p_dir, 
 	if (!p_dir) {
 		return; //none
 	}
-	p_file->store_line("::" + p_dir->get_path() + "::" + String::num(p_dir->modified_time));
+	p_file->store_line("::" + p_dir->get_path() + "::" + String::num_int64(p_dir->modified_time));
 
 	for (int i = 0; i < p_dir->files.size(); i++) {
 		const EditorFileSystemDirectory::FileInfo *file_info = p_dir->files[i];
@@ -2329,16 +2348,17 @@ void EditorFileSystem::update_files(const Vector<String> &p_script_paths) {
 				_save_late_updated_files(); //files need to be updated in the re-scan
 			}
 
-			const String old_script_class_icon_path = fs->files[cpos]->script_class_icon_path;
-			const String old_class_name = fs->files[cpos]->script_class_name;
-			fs->files[cpos]->type = type;
-			fs->files[cpos]->resource_script_class = script_class;
-			fs->files[cpos]->uid = uid;
-			fs->files[cpos]->script_class_name = _get_global_script_class(type, file, &fs->files[cpos]->script_class_extends, &fs->files[cpos]->script_class_icon_path);
-			fs->files[cpos]->import_group_file = ResourceLoader::get_import_group_file(file);
-			fs->files[cpos]->modified_time = FileAccess::get_modified_time(file);
-			fs->files[cpos]->deps = _get_dependencies(file);
-			fs->files[cpos]->import_valid = (type == "TextFile" || type == "OtherFile") ? true : ResourceLoader::is_import_valid(file);
+			EditorFileSystemDirectory::FileInfo *fi = fs->files[cpos];
+			const String old_script_class_icon_path = fi->script_class_icon_path;
+			const String old_class_name = fi->script_class_name;
+			fi->type = type;
+			fi->resource_script_class = script_class;
+			fi->uid = uid;
+			fi->script_class_name = _get_global_script_class(type, file, &fi->script_class_extends, &fi->script_class_icon_path);
+			fi->import_group_file = ResourceLoader::get_import_group_file(file);
+			fi->modified_time = FileAccess::get_modified_time(file);
+			fi->deps = _get_dependencies(file);
+			fi->import_valid = type == "TextFile" || type == "OtherFile" || ResourceLoader::is_import_valid(file);
 
 			if (uid != ResourceUID::INVALID_ID) {
 				if (ResourceUID::get_singleton()->has_id(uid)) {
@@ -2348,25 +2368,36 @@ void EditorFileSystem::update_files(const Vector<String> &p_script_paths) {
 				}
 
 				ResourceUID::get_singleton()->update_cache();
+			} else {
+				if (ResourceLoader::exists(file) && !ResourceLoader::has_custom_uid_support(file) && !FileAccess::exists(file + ".uid")) {
+					Ref<FileAccess> f = FileAccess::open(file + ".uid", FileAccess::WRITE);
+					if (f.is_valid()) {
+						const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
+						ResourceUID::get_singleton()->add_id(id, file);
+						f->store_line(ResourceUID::get_singleton()->id_to_text(id));
+						fi->uid = id;
+					}
+				}
 			}
+
 			// Update preview
 			EditorResourcePreview::get_singleton()->check_for_invalidation(file);
 
-			if (ClassDB::is_parent_class(fs->files[cpos]->type, SNAME("Script"))) {
-				_queue_update_script_class(file, fs->files[cpos]->type, fs->files[cpos]->script_class_name, fs->files[cpos]->script_class_extends, fs->files[cpos]->script_class_icon_path);
+			if (ClassDB::is_parent_class(fi->type, SNAME("Script"))) {
+				_queue_update_script_class(file, fi->type, fi->script_class_name, fi->script_class_extends, fi->script_class_icon_path);
 			}
-			if (fs->files[cpos]->type == SNAME("PackedScene")) {
+			if (fi->type == SNAME("PackedScene")) {
 				_queue_update_scene_groups(file);
 			}
 
-			if (ClassDB::is_parent_class(fs->files[cpos]->type, SNAME("Resource"))) {
-				files_to_update_icon_path.push_back(fs->files[cpos]);
-			} else if (old_script_class_icon_path != fs->files[cpos]->script_class_icon_path) {
+			if (ClassDB::is_parent_class(fi->type, SNAME("Resource"))) {
+				files_to_update_icon_path.push_back(fi);
+			} else if (old_script_class_icon_path != fi->script_class_icon_path) {
 				update_files_icon_cache = true;
 			}
 
 			// Restore another script as the global class name if multiple scripts had the same old class name.
-			if (!old_class_name.is_empty() && fs->files[cpos]->script_class_name != old_class_name && ClassDB::is_parent_class(type, SNAME("Script"))) {
+			if (!old_class_name.is_empty() && fi->script_class_name != old_class_name && ClassDB::is_parent_class(type, SNAME("Script"))) {
 				EditorFileSystemDirectory::FileInfo *old_fi = nullptr;
 				String old_file = _get_file_by_class_name(filesystem, old_class_name, old_fi);
 				if (!old_file.is_empty() && old_fi) {
@@ -2475,7 +2506,7 @@ Error EditorFileSystem::_reimport_group(const String &p_group_file, const Vector
 		}
 
 		Ref<ResourceImporter> importer = ResourceFormatImporter::get_singleton()->get_importer_by_name(importer_name);
-		ERR_FAIL_COND_V(!importer.is_valid(), ERR_FILE_CORRUPT);
+		ERR_FAIL_COND_V(importer.is_null(), ERR_FILE_CORRUPT);
 		List<ResourceImporter::ImportOption> options;
 		importer->get_import_options(p_files[i], &options);
 		//set default values
@@ -2993,7 +3024,7 @@ bool EditorFileSystem::_copy_directory(const String &p_from, const String &p_to,
 	for (String F = old_dir->_get_next(); !F.is_empty(); F = old_dir->_get_next()) {
 		if (old_dir->current_is_dir()) {
 			success = _copy_directory(p_from.path_join(F), p_to.path_join(F), p_files) && success;
-		} else if (F.get_extension() != "import") {
+		} else if (F.get_extension() != "import" && F.get_extension() != "uid") {
 			CopiedFile copy;
 			copy.from = p_from.path_join(F);
 			copy.to = p_to.path_join(F);
@@ -3212,7 +3243,6 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 }
 
 Error EditorFileSystem::reimport_append(const String &p_file, const HashMap<StringName, Variant> &p_custom_options, const String &p_custom_importer, Variant p_generator_parameters) {
-	ERR_FAIL_COND_V_MSG(!importing, ERR_INVALID_PARAMETER, "Can only append files to import during a current reimport process.");
 	Vector<String> reloads;
 	reloads.append(p_file);
 

@@ -43,17 +43,23 @@ class SurfaceTool : public RefCounted {
 
 public:
 	struct Vertex {
-		Vector3 vertex;
+		// Trivial data for which the hash is computed using hash_buffer.
+		// ----------------------------------------------------------------
+		uint32_t smooth_group = 0; // Must be first.
+
 		Color color;
-		Vector3 normal; // normal, binormal, tangent
+		Vector3 normal; // normal, binormal, tangent.
 		Vector3 binormal;
 		Vector3 tangent;
 		Vector2 uv;
 		Vector2 uv2;
+		Color custom[RS::ARRAY_CUSTOM_COUNT];
+
+		Vector3 vertex; // Must be last.
+		// ----------------------------------------------------------------
+
 		Vector<int> bones;
 		Vector<float> weights;
-		Color custom[RS::ARRAY_CUSTOM_COUNT];
-		uint32_t smooth_group = 0;
 
 		bool operator==(const Vertex &p_vertex) const;
 

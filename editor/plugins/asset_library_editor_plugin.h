@@ -33,9 +33,7 @@
 
 #include "editor/editor_asset_installer.h"
 #include "editor/plugins/editor_plugin.h"
-#include "editor/plugins/editor_plugin_settings.h"
 #include "scene/gui/box_container.h"
-#include "scene/gui/check_box.h"
 #include "scene/gui/grid_container.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/link_button.h"
@@ -45,9 +43,8 @@
 #include "scene/gui/progress_bar.h"
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/scroll_container.h"
-#include "scene/gui/separator.h"
-#include "scene/gui/tab_container.h"
 #include "scene/gui/texture_button.h"
+#include "scene/gui/texture_rect.h"
 #include "scene/main/http_request.h"
 
 class EditorFileDialog;

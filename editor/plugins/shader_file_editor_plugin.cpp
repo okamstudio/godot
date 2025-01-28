@@ -30,10 +30,6 @@
 
 #include "shader_file_editor_plugin.h"
 
-#include "core/io/resource_loader.h"
-#include "core/io/resource_saver.h"
-#include "core/os/keyboard.h"
-#include "core/os/os.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
@@ -42,7 +38,6 @@
 #include "scene/gui/item_list.h"
 #include "scene/gui/split_container.h"
 #include "servers/display_server.h"
-#include "servers/rendering/shader_types.h"
 
 /*** SHADER SCRIPT EDITOR ****/
 

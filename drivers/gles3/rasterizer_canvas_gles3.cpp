@@ -32,7 +32,6 @@
 
 #ifdef GLES3_ENABLED
 
-#include "core/os/os.h"
 #include "rasterizer_gles3.h"
 #include "rasterizer_scene_gles3.h"
 
@@ -569,6 +568,8 @@ void RasterizerCanvasGLES3::canvas_render_items(RID p_to_render_target, Item *p_
 
 	// Clear out state used in 2D pass
 	reset_canvas();
+	state.current_batch_index = 0;
+	state.canvas_instance_batches.clear();
 	state.current_data_buffer_index = (state.current_data_buffer_index + 1) % state.canvas_instance_data_buffers.size();
 	state.current_instance_buffer_index = 0;
 }
@@ -663,8 +664,6 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 
 	if (index == 0) {
 		// Nothing to render, just return.
-		state.current_batch_index = 0;
-		state.canvas_instance_batches.clear();
 		return;
 	}
 
@@ -808,8 +807,6 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 	}
 
 	glDisable(GL_SCISSOR_TEST);
-	state.current_batch_index = 0;
-	state.canvas_instance_batches.clear();
 	state.last_item_index += index;
 }
 
@@ -857,7 +854,7 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 		Light *light = p_lights;
 
 		while (light) {
-			if (light->render_index_cache >= 0 && p_item->light_mask & light->item_mask && p_item->z_final >= light->z_min && p_item->z_final <= light->z_max && p_item->global_rect_cache.intersects_transformed(light->xform_cache, light->rect_cache)) {
+			if (light->render_index_cache >= 0 && p_item->light_mask & light->item_mask && p_item->z_final >= light->z_min && p_item->z_final <= light->z_max && p_item->global_rect_cache.intersects(light->rect_cache)) {
 				uint32_t light_index = light->render_index_cache;
 				lights[light_count >> 2] |= light_index << ((light_count & 3) * 8);
 
@@ -915,8 +912,6 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 
 		state.instance_data_array[r_index].flags = base_flags;
 		state.instance_data_array[r_index].instance_uniforms_ofs = p_item->instance_allocated_shader_uniforms_offset;
-
-		state.instance_data_array[r_index].flags = base_flags | (state.instance_data_array[r_index == 0 ? 0 : r_index - 1].flags & (BATCH_FLAGS_DEFAULT_NORMAL_MAP_USED | BATCH_FLAGS_DEFAULT_SPECULAR_MAP_USED)); // Reset on each command for safety, keep canvastexture binding config.
 
 		Color blend_color = base_color;
 		GLES3::CanvasShaderData::BlendMode blend_mode = p_blend_mode;

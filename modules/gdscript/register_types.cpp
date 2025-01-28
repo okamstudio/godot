@@ -31,9 +31,8 @@
 #include "register_types.h"
 
 #include "gdscript.h"
-#include "gdscript_analyzer.h"
 #include "gdscript_cache.h"
-#include "gdscript_tokenizer.h"
+#include "gdscript_parser.h"
 #include "gdscript_tokenizer_buffer.h"
 #include "gdscript_utility_functions.h"
 
@@ -50,14 +49,11 @@
 #include "tests/test_gdscript.h"
 #endif
 
-#include "core/io/dir_access.h"
 #include "core/io/file_access.h"
-#include "core/io/file_access_encrypted.h"
 #include "core/io/resource_loader.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_node.h"
-#include "editor/editor_settings.h"
 #include "editor/editor_translation_parser.h"
 #include "editor/export/editor_export.h"
 

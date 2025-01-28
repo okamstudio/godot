@@ -211,7 +211,7 @@ void MultiMesh::set_buffer_interpolated(const Vector<float> &p_buffer_curr, cons
 
 void MultiMesh::set_mesh(const Ref<Mesh> &p_mesh) {
 	mesh = p_mesh;
-	if (!mesh.is_null()) {
+	if (mesh.is_valid()) {
 		RenderingServer::get_singleton()->multimesh_set_mesh(multimesh, mesh->get_rid());
 	} else {
 		RenderingServer::get_singleton()->multimesh_set_mesh(multimesh, RID());

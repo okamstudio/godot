@@ -199,6 +199,12 @@
 				Returns the current selection first character index if a selection is active, [code]-1[/code] otherwise. Does not include BBCodes.
 			</description>
 		</method>
+		<method name="get_selection_line_offset" qualifiers="const">
+			<return type="float" />
+			<description>
+				Returns the current selection vertical line offset if a selection is active, [code]-1.0[/code] otherwise.
+			</description>
+		</method>
 		<method name="get_selection_to" qualifiers="const">
 			<return type="int" />
 			<description>
@@ -591,6 +597,7 @@
 			<param index="0" name="column" type="int" />
 			<param index="1" name="expand" type="bool" />
 			<param index="2" name="ratio" type="int" default="1" />
+			<param index="3" name="shrink" type="bool" default="true" />
 			<description>
 				Edits the selected column's expansion options. If [param expand] is [code]true[/code], the column expands in proportion to its expansion ratio versus the other columns' ratios.
 				For example, 2 columns with ratios 3 and 4 plus 70 pixels in available width would expand 30 and 40 pixels, respectively.
@@ -712,6 +719,7 @@
 		<signal name="finished">
 			<description>
 				Triggered when the document is fully loaded.
+				[b]Note:[/b] This can happen before the text is processed for drawing. Scrolling values may not be valid until the document is drawn for the first time after this signal.
 			</description>
 		</signal>
 		<signal name="meta_clicked">

@@ -774,6 +774,7 @@ bool DisplayServerMacOS::has_feature(Feature p_feature) const {
 		case FEATURE_NATIVE_DIALOG_INPUT:
 		case FEATURE_NATIVE_DIALOG_FILE:
 		case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		case FEATURE_IME:
 		case FEATURE_WINDOW_TRANSPARENCY:
 		case FEATURE_HIDPI:
@@ -787,6 +788,8 @@ bool DisplayServerMacOS::has_feature(Feature p_feature) const {
 		case FEATURE_STATUS_INDICATOR:
 		case FEATURE_NATIVE_HELP:
 		case FEATURE_WINDOW_DRAG:
+		case FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE:
+		case FEATURE_EMOJI_AND_SYMBOL_PICKER:
 			return true;
 		default: {
 		}
@@ -2439,6 +2442,16 @@ void DisplayServerMacOS::window_start_drag(WindowID p_window) {
 	[wd.window_object performWindowDragWithEvent:event];
 }
 
+void DisplayServerMacOS::window_start_resize(WindowResizeEdge p_edge, WindowID p_window) {
+	_THREAD_SAFE_METHOD_
+
+	ERR_FAIL_INDEX(int(p_edge), WINDOW_EDGE_MAX);
+	ERR_FAIL_COND(!windows.has(p_window));
+	WindowData &wd = windows[p_window];
+
+	wd.edge = p_edge;
+}
+
 void DisplayServerMacOS::window_set_window_buttons_offset(const Vector2i &p_offset, WindowID p_window) {
 	_THREAD_SAFE_METHOD_
 
@@ -3120,6 +3133,10 @@ Key DisplayServerMacOS::keyboard_get_label_from_physical(Key p_keycode) const {
 	Key keycode_no_mod = p_keycode & KeyModifierMask::CODE_MASK;
 	unsigned int macos_keycode = KeyMappingMacOS::unmap_key(keycode_no_mod);
 	return (Key)(KeyMappingMacOS::remap_key(macos_keycode, 0, true) | modifiers);
+}
+
+void DisplayServerMacOS::show_emoji_and_symbol_picker() const {
+	[[NSApplication sharedApplication] orderFrontCharacterPalette:nil];
 }
 
 void DisplayServerMacOS::process_events() {

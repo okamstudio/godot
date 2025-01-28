@@ -208,18 +208,19 @@ void main() {
 	// no crash or freeze on all Adreno 3xx	with 'if / else if' and slightly faster!
 	int vertex_id = gl_VertexID % 6;
 	vec2 vertex_base;
-	if (vertex_id == 0)
+	if (vertex_id == 0) {
 		vertex_base = vec2(0.0, 0.0);
-	else if (vertex_id == 1)
+	} else if (vertex_id == 1) {
 		vertex_base = vec2(0.0, 1.0);
-	else if (vertex_id == 2)
+	} else if (vertex_id == 2) {
 		vertex_base = vec2(1.0, 1.0);
-	else if (vertex_id == 3)
+	} else if (vertex_id == 3) {
 		vertex_base = vec2(1.0, 0.0);
-	else if (vertex_id == 4)
+	} else if (vertex_id == 4) {
 		vertex_base = vec2(0.0, 0.0);
-	else if (vertex_id == 5)
+	} else if (vertex_id == 5) {
 		vertex_base = vec2(1.0, 1.0);
+	}
 
 	vec2 uv = read_draw_data_src_rect.xy + abs(read_draw_data_src_rect.zw) * ((read_draw_data_flags & INSTANCE_FLAGS_TRANSPOSE_RECT) != uint(0) ? vertex_base.yx : vertex_base.xy);
 	vec4 color = read_draw_data_modulation;

@@ -96,6 +96,7 @@ public:
 		SUB_EMITTER_CONSTANT,
 		SUB_EMITTER_AT_END,
 		SUB_EMITTER_AT_COLLISION,
+		SUB_EMITTER_AT_START,
 		SUB_EMITTER_MAX
 	};
 
@@ -117,7 +118,7 @@ private:
 		uint64_t emission_shape : 3;
 		uint64_t invalid_key : 1;
 		uint64_t has_emission_color : 1;
-		uint64_t sub_emitter : 2;
+		uint64_t sub_emitter : 3;
 		uint64_t attractor_enabled : 1;
 		uint64_t collision_mode : 2;
 		uint64_t collision_scale : 1;
@@ -282,6 +283,7 @@ private:
 		StringName sub_emitter_frequency;
 		StringName sub_emitter_amount_at_end;
 		StringName sub_emitter_amount_at_collision;
+		StringName sub_emitter_amount_at_start;
 		StringName sub_emitter_keep_velocity;
 
 		StringName collision_friction;
@@ -349,6 +351,7 @@ private:
 	double sub_emitter_frequency = 0.0;
 	int sub_emitter_amount_at_end = 0;
 	int sub_emitter_amount_at_collision = 0;
+	int sub_emitter_amount_at_start = 0;
 	bool sub_emitter_keep_velocity = false;
 	//do not save emission points here
 
@@ -486,6 +489,9 @@ public:
 
 	void set_sub_emitter_amount_at_collision(int p_amount);
 	int get_sub_emitter_amount_at_collision() const;
+
+	void set_sub_emitter_amount_at_start(int p_amount);
+	int get_sub_emitter_amount_at_start() const;
 
 	void set_sub_emitter_keep_velocity(bool p_enable);
 	bool get_sub_emitter_keep_velocity() const;

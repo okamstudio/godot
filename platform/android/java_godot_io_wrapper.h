@@ -73,7 +73,7 @@ public:
 	Error open_uri(const String &p_uri);
 	String get_cache_dir();
 	String get_temp_dir();
-	String get_user_data_dir();
+	String get_user_data_dir(const String &p_user_dir);
 	String get_locale();
 	String get_model();
 	int get_screen_dpi();

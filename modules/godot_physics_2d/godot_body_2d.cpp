@@ -32,6 +32,7 @@
 
 #include "godot_area_2d.h"
 #include "godot_body_direct_state_2d.h"
+#include "godot_constraint_2d.h"
 #include "godot_space_2d.h"
 
 void GodotBody2D::_mass_properties_changed() {

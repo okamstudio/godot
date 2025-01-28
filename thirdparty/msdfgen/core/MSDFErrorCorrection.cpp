@@ -74,7 +74,7 @@ public:
                 // Compute the evaluated distance (interpolated median) before and after error correction, as well as the exact shape distance.
                 float oldPSD = median(oldMSD[0], oldMSD[1], oldMSD[2]);
                 float newPSD = median(newMSD[0], newMSD[1], newMSD[2]);
-                float refPSD = float(parent->invRange*parent->distanceFinder.distance(parent->shapeCoord+tVector*parent->texelSize)+.5);
+                float refPSD = float(parent->distanceMapping(parent->distanceFinder.distance(parent->shapeCoord+tVector*parent->texelSize)));
                 // Compare the differences of the exact distance and the before and after distances.
                 return parent->minImproveRatio*fabsf(newPSD-refPSD) < double(fabsf(oldPSD-refPSD));
             }
@@ -87,24 +87,23 @@ public:
     Point2 shapeCoord, sdfCoord;
     const float *msd;
     bool protectedFlag;
-    inline ShapeDistanceChecker(const BitmapConstRef<float, N> &sdf, const Shape &shape, const Projection &projection, double invRange, double minImproveRatio) : distanceFinder(shape), sdf(sdf), invRange(invRange), minImproveRatio(minImproveRatio) {
+    inline ShapeDistanceChecker(const BitmapConstRef<float, N> &sdf, const Shape &shape, const Projection &projection, DistanceMapping distanceMapping, double minImproveRatio) : distanceFinder(shape), sdf(sdf), distanceMapping(distanceMapping), minImproveRatio(minImproveRatio) {
         texelSize = projection.unprojectVector(Vector2(1));
     }
     inline ArtifactClassifier classifier(const Vector2 &direction, double span) {
         return ArtifactClassifier(this, direction, span);
     }
 private:
-    ShapeDistanceFinder<ContourCombiner<PseudoDistanceSelector> > distanceFinder;
+    ShapeDistanceFinder<ContourCombiner<PerpendicularDistanceSelector> > distanceFinder;
     BitmapConstRef<float, N> sdf;
-    double invRange;
+    DistanceMapping distanceMapping;
     Vector2 texelSize;
     double minImproveRatio;
 };
 
 MSDFErrorCorrection::MSDFErrorCorrection() { }
 
-MSDFErrorCorrection::MSDFErrorCorrection(const BitmapRef<byte, 1> &stencil, const Projection &projection, double range) : stencil(stencil), projection(projection) {
-    invRange = 1/range;
+MSDFErrorCorrection::MSDFErrorCorrection(const BitmapRef<byte, 1> &stencil, const SDFTransformation &transformation) : stencil(stencil), transformation(transformation) {
     minDeviationRatio = ErrorCorrectionConfig::defaultMinDeviationRatio;
     minImproveRatio = ErrorCorrectionConfig::defaultMinImproveRatio;
     memset(stencil.pixels, 0, sizeof(byte)*stencil.width*stencil.height);
@@ -127,7 +126,7 @@ void MSDFErrorCorrection::protectCorners(const Shape &shape) {
                 // If the color changes from prevEdge to edge, this is a corner.
                 if (!(commonColor&(commonColor-1))) {
                     // Find the four texels that envelop the corner and mark them as protected.
-                    Point2 p = projection.project((*edge)->point(0));
+                    Point2 p = transformation.project((*edge)->point(0));
                     if (shape.inverseYAxis)
                         p.y = stencil.height-p.y;
                     int l = (int) floor(p.x-.5);
@@ -191,7 +190,7 @@ template <int N>
 void MSDFErrorCorrection::protectEdges(const BitmapConstRef<float, N> &sdf) {
     float radius;
     // Horizontal texel pairs
-    radius = float(PROTECTION_RADIUS_TOLERANCE*projection.unprojectVector(Vector2(invRange, 0)).length());
+    radius = float(PROTECTION_RADIUS_TOLERANCE*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)), 0)).length());
     for (int y = 0; y < sdf.height; ++y) {
         const float *left = sdf(0, y);
         const float *right = sdf(1, y);
@@ -207,7 +206,7 @@ void MSDFErrorCorrection::protectEdges(const BitmapConstRef<float, N> &sdf) {
         }
     }
     // Vertical texel pairs
-    radius = float(PROTECTION_RADIUS_TOLERANCE*projection.unprojectVector(Vector2(0, invRange)).length());
+    radius = float(PROTECTION_RADIUS_TOLERANCE*transformation.unprojectVector(Vector2(0, transformation.distanceMapping(DistanceMapping::Delta(1)))).length());
     for (int y = 0; y < sdf.height-1; ++y) {
         const float *bottom = sdf(0, y);
         const float *top = sdf(0, y+1);
@@ -223,7 +222,7 @@ void MSDFErrorCorrection::protectEdges(const BitmapConstRef<float, N> &sdf) {
         }
     }
     // Diagonal texel pairs
-    radius = float(PROTECTION_RADIUS_TOLERANCE*projection.unprojectVector(Vector2(invRange)).length());
+    radius = float(PROTECTION_RADIUS_TOLERANCE*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)))).length());
     for (int y = 0; y < sdf.height-1; ++y) {
         const float *lb = sdf(0, y);
         const float *rb = sdf(1, y);
@@ -391,9 +390,9 @@ static bool hasDiagonalArtifact(const ArtifactClassifier &artifactClassifier, fl
 template <int N>
 void MSDFErrorCorrection::findErrors(const BitmapConstRef<float, N> &sdf) {
     // Compute the expected deltas between values of horizontally, vertically, and diagonally adjacent texels.
-    double hSpan = minDeviationRatio*projection.unprojectVector(Vector2(invRange, 0)).length();
-    double vSpan = minDeviationRatio*projection.unprojectVector(Vector2(0, invRange)).length();
-    double dSpan = minDeviationRatio*projection.unprojectVector(Vector2(invRange)).length();
+    double hSpan = minDeviationRatio*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)), 0)).length();
+    double vSpan = minDeviationRatio*transformation.unprojectVector(Vector2(0, transformation.distanceMapping(DistanceMapping::Delta(1)))).length();
+    double dSpan = minDeviationRatio*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)))).length();
     // Inspect all texels.
     for (int y = 0; y < sdf.height; ++y) {
         for (int x = 0; x < sdf.width; ++x) {
@@ -419,14 +418,14 @@ void MSDFErrorCorrection::findErrors(const BitmapConstRef<float, N> &sdf) {
 template <template <typename> class ContourCombiner, int N>
 void MSDFErrorCorrection::findErrors(const BitmapConstRef<float, N> &sdf, const Shape &shape) {
     // Compute the expected deltas between values of horizontally, vertically, and diagonally adjacent texels.
-    double hSpan = minDeviationRatio*projection.unprojectVector(Vector2(invRange, 0)).length();
-    double vSpan = minDeviationRatio*projection.unprojectVector(Vector2(0, invRange)).length();
-    double dSpan = minDeviationRatio*projection.unprojectVector(Vector2(invRange)).length();
+    double hSpan = minDeviationRatio*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)), 0)).length();
+    double vSpan = minDeviationRatio*transformation.unprojectVector(Vector2(0, transformation.distanceMapping(DistanceMapping::Delta(1)))).length();
+    double dSpan = minDeviationRatio*transformation.unprojectVector(Vector2(transformation.distanceMapping(DistanceMapping::Delta(1)))).length();
 #ifdef MSDFGEN_USE_OPENMP
     #pragma omp parallel
 #endif
     {
-        ShapeDistanceChecker<ContourCombiner, N> shapeDistanceChecker(sdf, shape, projection, invRange, minImproveRatio);
+        ShapeDistanceChecker<ContourCombiner, N> shapeDistanceChecker(sdf, shape, transformation, transformation.distanceMapping, minImproveRatio);
         bool rightToLeft = false;
         // Inspect all texels.
 #ifdef MSDFGEN_USE_OPENMP
@@ -439,7 +438,7 @@ void MSDFErrorCorrection::findErrors(const BitmapConstRef<float, N> &sdf, const 
                 if ((*stencil(x, row)&ERROR))
                     continue;
                 const float *c = sdf(x, row);
-                shapeDistanceChecker.shapeCoord = projection.unproject(Point2(x+.5, y+.5));
+                shapeDistanceChecker.shapeCoord = transformation.unproject(Point2(x+.5, y+.5));
                 shapeDistanceChecker.sdfCoord = Point2(x+.5, row+.5);
                 shapeDistanceChecker.msd = c;
                 shapeDistanceChecker.protectedFlag = (*stencil(x, row)&PROTECTED) != 0;

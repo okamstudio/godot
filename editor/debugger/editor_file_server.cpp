@@ -31,7 +31,6 @@
 #include "editor_file_server.h"
 
 #include "../editor_settings.h"
-#include "core/io/marshalls.h"
 #include "editor/editor_node.h"
 #include "editor/export/editor_export_platform.h"
 

@@ -41,7 +41,7 @@ void ResourcePreloader::_set_resources(const Array &p_data) {
 
 	for (int i = 0; i < resdata.size(); i++) {
 		Ref<Resource> resource = resdata[i];
-		ERR_CONTINUE(!resource.is_valid());
+		ERR_CONTINUE(resource.is_null());
 		resources[names[i]] = resource;
 
 		//add_resource(names[i],resource);

@@ -30,11 +30,9 @@
 
 #include "gradient_texture_2d_editor_plugin.h"
 
-#include "editor/editor_node.h"
 #include "editor/editor_undo_redo_manager.h"
 #include "editor/gui/editor_spin_slider.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/flow_container.h"
 #include "scene/gui/separator.h"

@@ -5,6 +5,7 @@
 	</brief_description>
 	<description>
 		[EditorFileDialog] is an enhanced version of [FileDialog] available only to editor plugins. Additional features include list of favorited/recent files and the ability to see files as thumbnails grid instead of list.
+		Unlike [FileDialog], [EditorFileDialog] does not have a property for using native dialogs. Instead, native dialogs can be enabled globally via the [member EditorSettings.interface/editor/use_native_file_dialogs] editor setting. They are also enabled automatically when running in sandbox (e.g. on macOS).
 	</description>
 	<tutorials>
 	</tutorials>

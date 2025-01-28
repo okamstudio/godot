@@ -31,7 +31,7 @@
 #include "camera_2d.h"
 
 #include "core/config/project_settings.h"
-#include "scene/main/window.h"
+#include "scene/main/viewport.h"
 
 bool Camera2D::_is_editing_in_editor() const {
 #ifdef TOOLS_ENABLED
@@ -315,7 +315,9 @@ void Camera2D::_notification(int p_what) {
 			}
 			if (is_physics_interpolated_and_enabled()) {
 				_ensure_update_interpolation_data();
-				_interpolation_data.xform_curr = get_camera_transform();
+				if (Engine::get_singleton()->is_in_physics_frame()) {
+					_interpolation_data.xform_curr = get_camera_transform();
+				}
 			}
 		} break;
 

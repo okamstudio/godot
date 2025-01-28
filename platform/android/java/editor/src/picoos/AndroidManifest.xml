@@ -1,0 +1,76 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="true"
+        android:version="1"/>
+
+    <uses-permission
+        android:name="com.pvr.tobactivate.permission.AUTH_CHECK" />
+
+    <uses-permission
+        android:name="com.picovr.permission.HAND_TRACKING" />
+
+    <application>
+
+        <activity
+            android:name=".GodotEditor"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            tools:node="merge"
+            tools:replace="android:screenOrientation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".GodotXRGame"
+            android:exported="false"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" />
+            </intent-filter>
+        </activity>
+
+        <!--
+        We remove this meta-data originating from the vendors plugin as we only need the loader for
+        now since the project being edited provides its own version of the vendors plugin.
+
+        This needs to be removed once we start implementing the immersive version of the project
+        manager and editor windows.
+         -->
+        <meta-data
+            android:name="org.godotengine.plugin.v2.GodotOpenXRPico"
+            android:value="org.godotengine.openxr.vendors.pico.GodotOpenXRPico"
+            tools:node="remove"/>
+
+        <!-- Enable system splash screen. Passthrough splash screen is not supported yet-->
+        <meta-data
+            android:name="pvr.app.splash"
+            android:value="0" />
+
+        <!-- Enable passthrough-->
+        <meta-data
+            android:name="enable_vst"
+            android:value="1" />
+
+        <!-- PICO hand tracking -->
+        <meta-data
+            android:name="handtracking"
+            android:value="1" />
+
+        <!-- Run as a 2D window app.-->
+        <meta-data
+            android:name="pvr.app.type"
+            android:value="2d"
+            tools:replace="android:value"/>
+
+    </application>
+
+</manifest>

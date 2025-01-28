@@ -38,9 +38,7 @@
 
 #include "core/crypto/crypto_core.h"
 #include "core/error/error_list.h"
-#include "core/io/packet_peer.h"
 #include "core/io/stream_peer_tcp.h"
-#include "core/templates/ring_buffer.h"
 
 #include <wslay/wslay.h>
 
@@ -55,7 +53,6 @@ private:
 	static ssize_t _wsl_recv_callback(wslay_event_context_ptr ctx, uint8_t *data, size_t len, int flags, void *user_data);
 	static void _wsl_recv_start_callback(wslay_event_context_ptr ctx, const struct wslay_event_on_frame_recv_start_arg *arg, void *user_data);
 	static void _wsl_frame_recv_chunk_callback(wslay_event_context_ptr ctx, const struct wslay_event_on_frame_recv_chunk_arg *arg, void *user_data);
-	static void _wsl_frame_recv_end_callback(wslay_event_context_ptr ctx, void *user_data);
 
 	static ssize_t _wsl_send_callback(wslay_event_context_ptr ctx, const uint8_t *data, size_t len, int flags, void *user_data);
 	static int _wsl_genmask_callback(wslay_event_context_ptr ctx, uint8_t *buf, size_t len, void *user_data);

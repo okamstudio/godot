@@ -63,6 +63,13 @@
 				Forces an update to the list size based on its items. This happens automatically whenever size of the items, or other relevant settings like [member auto_height], change. The method can be used to trigger the update ahead of next drawing pass.
 			</description>
 		</method>
+		<method name="get_h_scroll_bar">
+			<return type="HScrollBar" />
+			<description>
+				Returns the horizontal scrollbar.
+				[b]Warning:[/b] This is a required internal node, removing and freeing it may cause a crash. If you wish to hide it or any of its children, use their [member CanvasItem.visible] property.
+			</description>
+		</method>
 		<method name="get_item_at_position" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="position" type="Vector2" />
@@ -419,6 +426,10 @@
 		</member>
 		<member name="text_overrun_behavior" type="int" setter="set_text_overrun_behavior" getter="get_text_overrun_behavior" enum="TextServer.OverrunBehavior" default="3">
 			Sets the clipping behavior when the text exceeds an item's bounding rectangle. See [enum TextServer.OverrunBehavior] for a description of all modes.
+		</member>
+		<member name="wraparound_items" type="bool" setter="set_wraparound_items" getter="has_wraparound_items" default="true">
+			If [code]true[/code], the control will automatically move items into a new row to fit its content. See also [HFlowContainer] for this behavior.
+			If [code]false[/code], the control will add a horizontal scrollbar to make all items visible.
 		</member>
 	</members>
 	<signals>

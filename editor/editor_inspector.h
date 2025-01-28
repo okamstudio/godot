@@ -89,6 +89,8 @@ private:
 
 	int property_usage;
 
+	bool draw_label = true;
+	bool draw_background = true;
 	bool read_only = false;
 	bool checkable = false;
 	bool checked = false;
@@ -169,6 +171,12 @@ public:
 
 	void set_read_only(bool p_read_only);
 	bool is_read_only() const;
+
+	void set_draw_label(bool p_draw_label);
+	bool is_draw_label() const;
+
+	void set_draw_background(bool p_draw_background);
+	bool is_draw_background() const;
 
 	Object *get_edited_object();
 	StringName get_edited_property() const;
@@ -391,6 +399,7 @@ class EditorInspectorArray : public EditorInspectorSection {
 
 	bool read_only = false;
 	bool movable = true;
+	bool is_const = false;
 	bool numbered = false;
 
 	enum MenuOptions {
@@ -457,8 +466,8 @@ protected:
 	static void _bind_methods();
 
 public:
-	void setup_with_move_element_function(Object *p_object, const String &p_label, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable = true, bool p_numbered = false, int p_page_length = 5, const String &p_add_item_text = "");
-	void setup_with_count_property(Object *p_object, const String &p_label, const StringName &p_count_property, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable = true, bool p_numbered = false, int p_page_length = 5, const String &p_add_item_text = "", const String &p_swap_method = "");
+	void setup_with_move_element_function(Object *p_object, const String &p_label, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable = true, bool p_is_const = false, bool p_numbered = false, int p_page_length = 5, const String &p_add_item_text = "");
+	void setup_with_count_property(Object *p_object, const String &p_label, const StringName &p_count_property, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable = true, bool p_is_const = false, bool p_numbered = false, int p_page_length = 5, const String &p_add_item_text = "", const String &p_swap_method = "");
 	VBoxContainer *get_vbox(int p_index);
 
 	EditorInspectorArray(bool p_read_only);
@@ -496,6 +505,7 @@ class EditorInspector : public ScrollContainer {
 	GDCLASS(EditorInspector, ScrollContainer);
 
 	friend class EditorInspectorCategory;
+	friend class EditorPropertyResource;
 
 	enum {
 		MAX_PLUGINS = 1024
@@ -585,6 +595,7 @@ class EditorInspector : public ScrollContainer {
 	void _property_checked(const String &p_path, bool p_checked);
 	void _property_pinned(const String &p_path, bool p_pinned);
 	bool _property_path_matches(const String &p_property_path, const String &p_filter, EditorPropertyNameProcessor::Style p_style);
+	bool _resource_properties_matches(const Ref<Resource> &p_resource, const String &p_filter);
 
 	void _resource_selected(const String &p_path, Ref<Resource> p_resource);
 	void _property_selected(const String &p_path, int p_focusable);
@@ -604,7 +615,6 @@ class EditorInspector : public ScrollContainer {
 
 	void _keying_changed();
 
-	void _filter_changed(const String &p_text);
 	void _parse_added_editors(VBoxContainer *current_vbox, EditorInspectorSection *p_section, Ref<EditorInspectorPlugin> ped);
 
 	void _vscroll_changed(double);

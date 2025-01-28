@@ -32,7 +32,6 @@
 #define NODE_H
 
 #include "core/string/node_path.h"
-#include "core/templates/rb_map.h"
 #include "core/variant/typed_array.h"
 #include "scene/main/scene_tree.h"
 #include "scene/scene_string_names.h"

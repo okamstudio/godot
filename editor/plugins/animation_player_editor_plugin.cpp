@@ -32,8 +32,6 @@
 
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
-#include "core/io/resource_loader.h"
-#include "core/io/resource_saver.h"
 #include "core/os/keyboard.h"
 #include "editor/editor_command_palette.h"
 #include "editor/editor_node.h"
@@ -99,7 +97,7 @@ void AnimationPlayerEditor::_notification(int p_what) {
 
 					if (player->has_animation(animname)) {
 						Ref<Animation> anim = player->get_animation(animname);
-						if (!anim.is_null()) {
+						if (anim.is_valid()) {
 							frame->set_max((double)anim->get_length());
 						}
 					}
@@ -1316,7 +1314,7 @@ void AnimationPlayerEditor::_animation_duplicate() {
 
 	String current = animation->get_item_text(animation->get_selected());
 	Ref<Animation> anim = player->get_animation(current);
-	if (!anim.is_valid()) {
+	if (anim.is_null()) {
 		return;
 	}
 
@@ -1715,7 +1713,7 @@ void AnimationPlayerEditor::_prepare_onion_layers_1() {
 
 void AnimationPlayerEditor::_prepare_onion_layers_2_prolog() {
 	Ref<Animation> anim = player->get_animation(player->get_assigned_animation());
-	if (!anim.is_valid()) {
+	if (anim.is_null()) {
 		return;
 	}
 
@@ -1933,7 +1931,7 @@ Node *AnimationPlayerEditor::get_cached_root_node() const {
 
 bool AnimationPlayerEditor::_validate_tracks(const Ref<Animation> p_anim) {
 	bool is_valid = true;
-	if (!p_anim.is_valid()) {
+	if (p_anim.is_null()) {
 		return true; // There is a problem outside of the animation track.
 	}
 	int len = p_anim->get_track_count();

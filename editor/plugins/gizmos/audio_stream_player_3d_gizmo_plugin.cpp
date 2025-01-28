@@ -34,7 +34,6 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
-#include "editor/plugins/node_3d_editor_plugin.h"
 #include "scene/3d/audio_stream_player_3d.h"
 
 AudioStreamPlayer3DGizmoPlugin::AudioStreamPlayer3DGizmoPlugin() {

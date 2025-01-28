@@ -39,7 +39,6 @@ struct AudioFrame;
 class AudioStream;
 class AudioStreamPlayback;
 class AudioStreamPlayerInternal;
-class Camera3D;
 class VelocityTracker3D;
 
 class AudioStreamPlayer3D : public Node3D {
