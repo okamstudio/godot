@@ -30,53 +30,9 @@
 
 package org.godotengine.editor
 
-import org.godotengine.godot.GodotLib
-import org.godotengine.godot.utils.isNativeXRDevice
-
 /**
  * Primary window of the Godot Editor.
  *
  * This is the implementation of the editor used when running on PicoOS devices.
  */
-open class GodotEditor : BaseGodotEditor() {
-
-	companion object {
-		private val TAG = GodotEditor::class.java.simpleName
-
-		internal val XR_RUN_GAME_INFO = EditorWindowInfo(GodotXRGame::class.java, 1667, ":GodotXRGame")
-	}
-
-	override fun retrieveEditorWindowInfo(args: Array<String>): EditorWindowInfo {
-		var hasEditor = false
-		var xrModeOn = false
-
-		var i = 0
-		while (i < args.size) {
-			when (args[i++]) {
-				EDITOR_ARG, EDITOR_ARG_SHORT, EDITOR_PROJECT_MANAGER_ARG, EDITOR_PROJECT_MANAGER_ARG_SHORT -> hasEditor = true
-				XR_MODE_ARG -> {
-					val argValue = args[i++]
-					xrModeOn = xrModeOn || ("on" == argValue)
-				}
-			}
-		}
-
-		return if (hasEditor) {
-			EDITOR_MAIN_INFO
-		} else {
-			val openxrEnabled = GodotLib.getGlobal("xr/openxr/enabled").toBoolean()
-			if (openxrEnabled && isNativeXRDevice()) {
-				XR_RUN_GAME_INFO
-			} else {
-				RUN_GAME_INFO
-			}
-		}
-	}
-
-	override fun getEditorWindowInfoForInstanceId(instanceId: Int): EditorWindowInfo? {
-		return when (instanceId) {
-			XR_RUN_GAME_INFO.windowId -> XR_RUN_GAME_INFO
-			else -> super.getEditorWindowInfoForInstanceId(instanceId)
-		}
-	}
-}
+open class GodotEditor : BaseGodotEditor()

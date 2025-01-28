@@ -151,6 +151,7 @@
 				Loads the contents of the .pck or .zip file specified by [param pack] into the resource filesystem ([code]res://[/code]). Returns [code]true[/code] on success.
 				[b]Note:[/b] If a file from [param pack] shares the same path as a file already in the resource filesystem, any attempts to load that file will use the file from [param pack] unless [param replace_files] is set to [code]false[/code].
 				[b]Note:[/b] The optional [param offset] parameter can be used to specify the offset in bytes to the start of the resource pack. This is only supported for .pck files.
+				[b]Note:[/b] [DirAccess] will not show changes made to the contents of [code]res://[/code] after calling this function.
 			</description>
 		</method>
 		<method name="localize_path" qualifiers="const">
@@ -2237,8 +2238,10 @@
 		</member>
 		<member name="physics/2d/physics_engine" type="String" setter="" getter="" default="&quot;DEFAULT&quot;">
 			Sets which physics engine to use for 2D physics.
-			"DEFAULT" and "GodotPhysics2D" are the same, as there is currently no alternative 2D physics server implemented.
-			"Dummy" is a 2D physics server that does nothing and returns only dummy values, effectively disabling all 2D physics functionality.
+			[b]DEFAULT[/b] is currently equivalent to [b]GodotPhysics2D[/b], but may change in future releases. Select an explicit implementation if you want to ensure that your project stays on the same engine.
+			[b]GodotPhysics2D[/b] is Godot's internal 2D physics engine.
+			[b]Dummy[/b] is a 2D physics server that does nothing and returns only dummy values, effectively disabling all 2D physics functionality.
+			Third-party extensions and modules can add other physics engines to select with this setting.
 		</member>
 		<member name="physics/2d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 2D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 2D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.
@@ -2316,8 +2319,11 @@
 		</member>
 		<member name="physics/3d/physics_engine" type="String" setter="" getter="" default="&quot;DEFAULT&quot;">
 			Sets which physics engine to use for 3D physics.
-			"DEFAULT" and "GodotPhysics3D" are the same, as there is currently no alternative 3D physics server implemented.
-			"Dummy" is a 3D physics server that does nothing and returns only dummy values, effectively disabling all 3D physics functionality.
+			[b]DEFAULT[/b] is currently equivalent to [b]GodotPhysics3D[/b], but may change in future releases. Select an explicit implementation if you want to ensure that your project stays on the same engine.
+			[b]GodotPhysics3D[/b] is Godot's internal 3D physics engine.
+			[b]Jolt Physics[/b] is an alternative physics engine that is generally faster and more reliable than [b]GodotPhysics3D[/b]. As it was recently implemented, it is currently considered experimental and its behavior may change in future releases.
+			[b]Dummy[/b] is a 3D physics server that does nothing and returns only dummy values, effectively disabling all 3D physics functionality.
+			Third-party extensions and modules can add other physics engines to select with this setting.
 		</member>
 		<member name="physics/3d/run_on_separate_thread" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the 3D physics server runs on a separate thread, making better use of multi-core CPUs. If [code]false[/code], the 3D physics server runs on the main thread. Running the physics server on a separate thread can increase performance, but restricts API access to only physics process.

@@ -31,6 +31,7 @@
 #include "cpu_particles_3d.h"
 #include "cpu_particles_3d.compat.inc"
 
+#include "core/math/random_number_generator.h"
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/gpu_particles_3d.h"
 #include "scene/main/viewport.h"
@@ -818,27 +819,27 @@ void CPUParticles3D::_particles_process(double p_delta) {
 				tex_anim_offset = curve_parameters[PARAM_ANGLE]->sample(tv);
 			}
 
-			p.seed = seed;
-			uint32_t _seed = seed + uint32_t(1) + i + cycle;
-			p.angle_rand = rand_from_seed(_seed);
-			p.scale_rand = rand_from_seed(_seed);
-			p.hue_rot_rand = rand_from_seed(_seed);
-			p.anim_offset_rand = rand_from_seed(_seed);
+			p.seed = seed + uint32_t(1) + i + cycle;
+			rng->set_seed(p.seed);
+			p.angle_rand = rng->randf();
+			p.scale_rand = rng->randf();
+			p.hue_rot_rand = rng->randf();
+			p.anim_offset_rand = rng->randf();
 
 			if (color_initial_ramp.is_valid()) {
-				p.start_color_rand = color_initial_ramp->get_color_at_offset(rand_from_seed(_seed));
+				p.start_color_rand = color_initial_ramp->get_color_at_offset(rng->randf());
 			} else {
 				p.start_color_rand = Color(1, 1, 1, 1);
 			}
 
 			if (particle_flags[PARTICLE_FLAG_DISABLE_Z]) {
-				real_t angle1_rad = Math::atan2(direction.y, direction.x) + Math::deg_to_rad((rand_from_seed(_seed) * 2.0 - 1.0) * spread);
+				real_t angle1_rad = Math::atan2(direction.y, direction.x) + Math::deg_to_rad((rng->randf() * 2.0 - 1.0) * spread);
 				Vector3 rot = Vector3(Math::cos(angle1_rad), Math::sin(angle1_rad), 0.0);
-				p.velocity = rot * Math::lerp(parameters_min[PARAM_INITIAL_LINEAR_VELOCITY], parameters_max[PARAM_INITIAL_LINEAR_VELOCITY], rand_from_seed(_seed));
+				p.velocity = rot * Math::lerp(parameters_min[PARAM_INITIAL_LINEAR_VELOCITY], parameters_max[PARAM_INITIAL_LINEAR_VELOCITY], rng->randf());
 			} else {
 				//initiate velocity spread in 3D
-				real_t angle1_rad = Math::deg_to_rad((rand_from_seed(_seed) * (real_t)2.0 - (real_t)1.0) * spread);
-				real_t angle2_rad = Math::deg_to_rad((rand_from_seed(_seed) * (real_t)2.0 - (real_t)1.0) * ((real_t)1.0 - flatness) * spread);
+				real_t angle1_rad = Math::deg_to_rad((rng->randf() * (real_t)2.0 - (real_t)1.0) * spread);
+				real_t angle2_rad = Math::deg_to_rad((rng->randf() * (real_t)2.0 - (real_t)1.0) * ((real_t)1.0 - flatness) * spread);
 
 				Vector3 direction_xz = Vector3(Math::sin(angle1_rad), 0, Math::cos(angle1_rad));
 				Vector3 direction_yz = Vector3(0, Math::sin(angle2_rad), Math::cos(angle2_rad));
@@ -858,14 +859,14 @@ void CPUParticles3D::_particles_process(double p_delta) {
 				binormal.normalize();
 				Vector3 normal = binormal.cross(direction_nrm);
 				spread_direction = binormal * spread_direction.x + normal * spread_direction.y + direction_nrm * spread_direction.z;
-				p.velocity = spread_direction * Math::lerp(parameters_min[PARAM_INITIAL_LINEAR_VELOCITY], parameters_max[PARAM_INITIAL_LINEAR_VELOCITY], rand_from_seed(_seed));
+				p.velocity = spread_direction * Math::lerp(parameters_min[PARAM_INITIAL_LINEAR_VELOCITY], parameters_max[PARAM_INITIAL_LINEAR_VELOCITY], rng->randf());
 			}
 
 			real_t base_angle = tex_angle * Math::lerp(parameters_min[PARAM_ANGLE], parameters_max[PARAM_ANGLE], p.angle_rand);
 			p.custom[0] = Math::deg_to_rad(base_angle); //angle
 			p.custom[1] = 0.0; //phase
 			p.custom[2] = tex_anim_offset * Math::lerp(parameters_min[PARAM_ANIM_OFFSET], parameters_max[PARAM_ANIM_OFFSET], p.anim_offset_rand); //animation offset (0-1)
-			p.custom[3] = (1.0 - rand_from_seed(_seed) * lifetime_randomness);
+			p.custom[3] = (1.0 - rng->randf() * lifetime_randomness);
 			p.transform = Transform3D();
 			p.time = 0;
 			p.lifetime = lifetime * p.custom[3];
@@ -876,20 +877,20 @@ void CPUParticles3D::_particles_process(double p_delta) {
 					//do none
 				} break;
 				case EMISSION_SHAPE_SPHERE: {
-					real_t s = 2.0 * rand_from_seed(_seed) - 1.0;
-					real_t t = Math_TAU * rand_from_seed(_seed);
-					real_t x = rand_from_seed(_seed);
+					real_t s = 2.0 * rng->randf() - 1.0;
+					real_t t = Math_TAU * rng->randf();
+					real_t x = rng->randf();
 					real_t radius = emission_sphere_radius * Math::sqrt(1.0 - s * s);
 					p.transform.origin = Vector3(0, 0, 0).lerp(Vector3(radius * Math::cos(t), radius * Math::sin(t), emission_sphere_radius * s), x);
 				} break;
 				case EMISSION_SHAPE_SPHERE_SURFACE: {
-					real_t s = 2.0 * rand_from_seed(_seed) - 1.0;
-					real_t t = Math_TAU * rand_from_seed(_seed);
+					real_t s = 2.0 * rng->randf() - 1.0;
+					real_t t = Math_TAU * rng->randf();
 					real_t radius = emission_sphere_radius * Math::sqrt(1.0 - s * s);
 					p.transform.origin = Vector3(radius * Math::cos(t), radius * Math::sin(t), emission_sphere_radius * s);
 				} break;
 				case EMISSION_SHAPE_BOX: {
-					p.transform.origin = Vector3(rand_from_seed(_seed) * 2.0 - 1.0, rand_from_seed(_seed) * 2.0 - 1.0, rand_from_seed(_seed) * 2.0 - 1.0) * emission_box_extents;
+					p.transform.origin = Vector3(rng->randf() * 2.0 - 1.0, rng->randf() * 2.0 - 1.0, rng->randf() * 2.0 - 1.0) * emission_box_extents;
 				} break;
 				case EMISSION_SHAPE_POINTS:
 				case EMISSION_SHAPE_DIRECTED_POINTS: {
@@ -933,11 +934,11 @@ void CPUParticles3D::_particles_process(double p_delta) {
 				case EMISSION_SHAPE_RING: {
 					real_t radius_clamped = MAX(0.001, emission_ring_radius);
 					real_t top_radius = MAX(radius_clamped - Math::tan(Math::deg_to_rad(90.0 - emission_ring_cone_angle)) * emission_ring_height, 0.0);
-					real_t y_pos = rand_from_seed(_seed);
+					real_t y_pos = rng->randf();
 					real_t skew = MAX(MIN(radius_clamped, top_radius) / MAX(radius_clamped, top_radius), 0.5);
 					y_pos = radius_clamped < top_radius ? Math::pow(y_pos, skew) : 1.0 - Math::pow(y_pos, skew);
-					real_t ring_random_angle = rand_from_seed(_seed) * Math_TAU;
-					real_t ring_random_radius = Math::sqrt(rand_from_seed(_seed) * (radius_clamped * radius_clamped - emission_ring_inner_radius * emission_ring_inner_radius) + emission_ring_inner_radius * emission_ring_inner_radius);
+					real_t ring_random_angle = rng->randf() * Math_TAU;
+					real_t ring_random_radius = Math::sqrt(rng->randf() * (radius_clamped * radius_clamped - emission_ring_inner_radius * emission_ring_inner_radius) + emission_ring_inner_radius * emission_ring_inner_radius);
 					ring_random_radius = Math::lerp(ring_random_radius, ring_random_radius * (top_radius / radius_clamped), y_pos);
 					Vector3 axis = emission_ring_axis == Vector3(0.0, 0.0, 0.0) ? Vector3(0.0, 0.0, 1.0) : emission_ring_axis.normalized();
 					Vector3 ortho_axis;
@@ -1763,6 +1764,8 @@ CPUParticles3D::CPUParticles3D() {
 
 	set_emitting(true);
 	set_amount(8);
+
+	rng.instantiate();
 
 	set_param_min(PARAM_INITIAL_LINEAR_VELOCITY, 0);
 	set_param_min(PARAM_ANGULAR_VELOCITY, 0);

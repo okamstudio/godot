@@ -70,6 +70,8 @@ void CollisionPolygon3D::_build_polygon() {
 
 		convex->set_points(cp);
 		convex->set_margin(margin);
+		convex->set_debug_color(debug_color);
+		convex->set_debug_fill(debug_fill);
 		collision_object->shape_owner_add_shape(owner_id, convex);
 		collision_object->shape_owner_set_disabled(owner_id, disabled);
 	}
@@ -157,6 +159,68 @@ bool CollisionPolygon3D::is_disabled() const {
 	return disabled;
 }
 
+Color CollisionPolygon3D::_get_default_debug_color() const {
+	const SceneTree *st = SceneTree::get_singleton();
+	return st ? st->get_debug_collisions_color() : Color(0.0, 0.0, 0.0, 0.0);
+}
+
+void CollisionPolygon3D::set_debug_color(const Color &p_color) {
+	if (debug_color == p_color) {
+		return;
+	}
+
+	debug_color = p_color;
+
+	update_gizmos();
+}
+
+Color CollisionPolygon3D::get_debug_color() const {
+	return debug_color;
+}
+
+void CollisionPolygon3D::set_debug_fill_enabled(bool p_enable) {
+	if (debug_fill == p_enable) {
+		return;
+	}
+
+	debug_fill = p_enable;
+
+	update_gizmos();
+}
+
+bool CollisionPolygon3D::get_debug_fill_enabled() const {
+	return debug_fill;
+}
+
+#ifdef DEBUG_ENABLED
+
+bool CollisionPolygon3D::_property_can_revert(const StringName &p_name) const {
+	if (p_name == "debug_color") {
+		return true;
+	}
+	return false;
+}
+
+bool CollisionPolygon3D::_property_get_revert(const StringName &p_name, Variant &r_property) const {
+	if (p_name == "debug_color") {
+		r_property = _get_default_debug_color();
+		return true;
+	}
+	return false;
+}
+
+void CollisionPolygon3D::_validate_property(PropertyInfo &p_property) const {
+	if (p_property.name == "debug_color") {
+		if (debug_color == _get_default_debug_color()) {
+			p_property.usage = PROPERTY_USAGE_DEFAULT & ~PROPERTY_USAGE_STORAGE;
+		} else {
+			p_property.usage = PROPERTY_USAGE_DEFAULT;
+		}
+	}
+}
+
+#endif // DEBUG_ENABLED
+
 real_t CollisionPolygon3D::get_margin() const {
 	return margin;
 }
@@ -201,6 +265,12 @@ void CollisionPolygon3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_disabled", "disabled"), &CollisionPolygon3D::set_disabled);
 	ClassDB::bind_method(D_METHOD("is_disabled"), &CollisionPolygon3D::is_disabled);
 
+	ClassDB::bind_method(D_METHOD("set_debug_color", "color"), &CollisionPolygon3D::set_debug_color);
+	ClassDB::bind_method(D_METHOD("get_debug_color"), &CollisionPolygon3D::get_debug_color);
+
+	ClassDB::bind_method(D_METHOD("set_enable_debug_fill", "enable"), &CollisionPolygon3D::set_debug_fill_enabled);
+	ClassDB::bind_method(D_METHOD("get_enable_debug_fill"), &CollisionPolygon3D::get_debug_fill_enabled);
+
 	ClassDB::bind_method(D_METHOD("set_margin", "margin"), &CollisionPolygon3D::set_margin);
 	ClassDB::bind_method(D_METHOD("get_margin"), &CollisionPolygon3D::get_margin);
 
@@ -210,8 +280,15 @@ void CollisionPolygon3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "disabled"), "set_disabled", "is_disabled");
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_VECTOR2_ARRAY, "polygon"), "set_polygon", "get_polygon");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "margin", PROPERTY_HINT_RANGE, "0.001,10,0.001,suffix:m"), "set_margin", "get_margin");
+
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "debug_color"), "set_debug_color", "get_debug_color");
+	// Default value depends on a project setting, override for doc generation purposes.
+	ADD_PROPERTY_DEFAULT("debug_color", Color(0.0, 0.0, 0.0, 0.0));
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "debug_fill"), "set_enable_debug_fill", "get_enable_debug_fill");
 }
 
 CollisionPolygon3D::CollisionPolygon3D() {
 	set_notify_local_transform(true);
+	debug_color = _get_default_debug_color();
 }

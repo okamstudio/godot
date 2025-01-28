@@ -298,7 +298,7 @@ void NavMeshQueries3D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 				if ((p_navigation_layers & owner->get_navigation_layers()) != 0) {
 					Vector3 pathway[2] = { connection.pathway_start, connection.pathway_end };
 					const Vector3 new_entry = Geometry3D::get_closest_point_to_segment(least_cost_poly.entry, pathway);
-					const real_t new_traveled_distance = least_cost_poly.entry.distance_squared_to(new_entry) * poly_travel_cost + poly_enter_cost + least_cost_poly.traveled_distance;
+					const real_t new_traveled_distance = least_cost_poly.entry.distance_to(new_entry) * poly_travel_cost + poly_enter_cost + least_cost_poly.traveled_distance;
 
 					// Check if the neighbor polygon has already been processed.
 					gd::NavigationPoly &neighbor_poly = navigation_polys[connection.polygon->id];
@@ -310,7 +310,7 @@ void NavMeshQueries3D::_query_task_build_path_corridor(NavMeshPathQueryTask3D &p
 						neighbor_poly.back_navigation_edge_pathway_end = connection.pathway_end;
 						neighbor_poly.traveled_distance = new_traveled_distance;
 						neighbor_poly.distance_to_destination =
-								new_entry.distance_squared_to(end_point) *
+								new_entry.distance_to(end_point) *
 								owner->get_travel_cost();
 						neighbor_poly.entry = new_entry;
 

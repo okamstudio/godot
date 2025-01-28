@@ -3163,7 +3163,7 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 	if (p_debug_flags.has_flag(DEBUG_FLAG_REMOTE_DEBUG)) {
 		cmd_args_list.push_back("--remote-debug");
 
-		cmd_args_list.push_back(get_debug_protocol() + host + ":" + String::num(remote_port));
+		cmd_args_list.push_back(get_debug_protocol() + host + ":" + String::num_int64(remote_port));
 
 		List<String> breakpoints;
 		ScriptEditor::get_singleton()->get_breakpoints(&breakpoints);

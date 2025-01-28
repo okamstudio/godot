@@ -188,6 +188,20 @@ Transform2D CanvasItem::get_global_transform() const {
 	return global_transform;
 }
 
+// Same as get_global_transform() but no reset for `global_invalid`.
+Transform2D CanvasItem::get_global_transform_const() const {
+	if (_is_global_invalid()) {
+		const CanvasItem *pi = get_parent_item();
+		if (pi) {
+			global_transform = pi->get_global_transform_const() * get_transform();
+		} else {
+			global_transform = get_transform();
+		}
+	}
+
+	return global_transform;
+}
+
 void CanvasItem::_set_global_invalid(bool p_invalid) const {
 	if (is_group_processing()) {
 		if (p_invalid) {
@@ -1037,6 +1051,24 @@ void CanvasItem::_notify_transform(CanvasItem *p_node) {
 
 void CanvasItem::_physics_interpolated_changed() {
 	RenderingServer::get_singleton()->canvas_item_set_interpolated(canvas_item, is_physics_interpolated());
+}
+
+void CanvasItem::set_canvas_item_use_identity_transform(bool p_enable) {
+	// Prevent sending item transforms to RenderingServer when using global coords.
+	_set_use_identity_transform(p_enable);
+
+	// Let RenderingServer know not to concatenate the parent transform during the render.
+	RenderingServer::get_singleton()->canvas_item_set_use_identity_transform(get_canvas_item(), p_enable);
+
+	if (is_inside_tree()) {
+		if (p_enable) {
+			// Make sure item is using identity transform in server.
+			RenderingServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), Transform2D());
+		} else {
+			// Make sure item transform is up to date in server if switching identity transform off.
+			RenderingServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), get_transform());
+		}
+	}
 }
 
 Rect2 CanvasItem::get_viewport_rect() const {

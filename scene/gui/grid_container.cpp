@@ -279,7 +279,7 @@ Size2 GridContainer::get_minimum_size() const {
 
 	int valid_controls_index = 0;
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = as_sortable_control(get_child(i), SortableVisbilityMode::VISIBLE);
+		Control *c = as_sortable_control(get_child(i), SortableVisibilityMode::VISIBLE);
 		if (!c) {
 			continue;
 		}

@@ -34,8 +34,13 @@
 #include "core/config/project_settings.h"
 #include "scene/main/node.h"
 #include "servers/navigation/navigation_globals.h"
+#include "servers/navigation_server_3d_dummy.h"
 
 NavigationServer3D *NavigationServer3D::singleton = nullptr;
+
+RWLock NavigationServer3D::geometry_parser_rwlock;
+RID_Owner<NavMeshGeometryParser3D> NavigationServer3D::geometry_parser_owner;
+LocalVector<NavMeshGeometryParser3D *> NavigationServer3D::generator_parsers;
 
 void NavigationServer3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_maps"), &NavigationServer3D::get_maps);
@@ -303,6 +308,47 @@ NavigationServer3D::NavigationServer3D() {
 
 NavigationServer3D::~NavigationServer3D() {
 	singleton = nullptr;
+
+	RWLockWrite write_lock(geometry_parser_rwlock);
+	for (NavMeshGeometryParser3D *parser : generator_parsers) {
+		geometry_parser_owner.free(parser->self);
+	}
+	generator_parsers.clear();
+}
+
+RID NavigationServer3D::source_geometry_parser_create() {
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	RID rid = geometry_parser_owner.make_rid();
+
+	NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(rid);
+	parser->self = rid;
+
+	generator_parsers.push_back(parser);
+
+	return rid;
+}
+
+void NavigationServer3D::free(RID p_object) {
+	if (!geometry_parser_owner.owns(p_object)) {
+		return;
+	}
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(p_object);
+	ERR_FAIL_NULL(parser);
+
+	generator_parsers.erase(parser);
+	geometry_parser_owner.free(parser->self);
+}
+
+void NavigationServer3D::source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) {
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(p_parser);
+	ERR_FAIL_NULL(parser);
+
+	parser->callback = p_callback;
 }
 
 void NavigationServer3D::set_debug_enabled(bool p_enabled) {
@@ -945,6 +991,8 @@ bool NavigationServer3D::get_debug_avoidance_enabled() const {
 
 ///////////////////////////////////////////////////////
 
+static NavigationServer3D *navigation_server_3d = nullptr;
+
 NavigationServer3DCallback NavigationServer3DManager::create_callback = nullptr;
 
 void NavigationServer3DManager::set_default_server(NavigationServer3DCallback p_callback) {
@@ -957,4 +1005,28 @@ NavigationServer3D *NavigationServer3DManager::new_default_server() {
 	}
 
 	return create_callback();
+}
+
+void NavigationServer3DManager::initialize_server() {
+	ERR_FAIL_COND(navigation_server_3d != nullptr);
+
+	// Init 3D Navigation Server
+	navigation_server_3d = NavigationServer3DManager::new_default_server();
+
+	// Fall back to dummy if no default server has been registered.
+	if (!navigation_server_3d) {
+		WARN_VERBOSE("Failed to initialize NavigationServer3D. Fall back to dummy server.");
+		navigation_server_3d = memnew(NavigationServer3DDummy);
+	}
+
+	// Should be impossible, but make sure it's not null.
+	ERR_FAIL_NULL_MSG(navigation_server_3d, "Failed to initialize NavigationServer3D.");
+	navigation_server_3d->init();
+}
+
+void NavigationServer3DManager::finalize_server() {
+	ERR_FAIL_NULL(navigation_server_3d);
+	navigation_server_3d->finish();
+	memdelete(navigation_server_3d);
+	navigation_server_3d = nullptr;
 }

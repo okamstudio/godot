@@ -816,64 +816,40 @@ def get_size(start_path: str = ".") -> int:
     return total_size
 
 
-def clean_cache(cache_path: str, cache_limit: int, verbose: bool):
+def clean_cache(cache_path: str, cache_limit: int, verbose: bool) -> None:
+    if not cache_limit:
+        return
+
     files = glob.glob(os.path.join(cache_path, "*", "*"))
     if not files:
         return
 
-    # Remove all text files, store binary files in list of (filename, size, atime).
-    purge = []
-    texts = []
+    # Store files in list of (filename, size, atime).
     stats = []
     for file in files:
         try:
-            # Save file stats to rewrite after modifying.
-            tmp_stat = os.stat(file)
-            # Failing a utf-8 decode is the easiest way to determine if a file is binary.
-            try:
-                with open(file, encoding="utf-8") as out:
-                    out.read(1024)
-            except UnicodeDecodeError:
-                stats.append((file, *tmp_stat[6:8]))
-                # Restore file stats after reading.
-                os.utime(file, (tmp_stat[7], tmp_stat[8]))
-            else:
-                texts.append(file)
+            stats.append((file, *os.stat(file)[6:8]))
         except OSError:
             print_error(f'Failed to access cache file "{file}"; skipping.')
 
-    if texts:
-        count = len(texts)
-        for file in texts:
-            try:
-                os.remove(file)
-            except OSError:
-                print_error(f'Failed to remove cache file "{file}"; skipping.')
-                count -= 1
-        if verbose:
-            print("Purging %d text %s from cache..." % (count, "files" if count > 1 else "file"))
-
-    if cache_limit:
-        # Sort by most recent access (most sensible to keep) first. Search for the first entry where
-        # the cache limit is reached.
-        stats.sort(key=lambda x: x[2], reverse=True)
-        sum = 0
-        for index, stat in enumerate(stats):
-            sum += stat[1]
-            if sum > cache_limit:
-                purge.extend([x[0] for x in stats[index:]])
-                break
-
-    if purge:
-        count = len(purge)
-        for file in purge:
-            try:
-                os.remove(file)
-            except OSError:
-                print_error(f'Failed to remove cache file "{file}"; skipping.')
-                count -= 1
-        if verbose:
-            print("Purging %d %s from cache..." % (count, "files" if count > 1 else "file"))
+    # Sort by most recent access (most sensible to keep) first. Search for the first entry where
+    # the cache limit is reached.
+    stats.sort(key=lambda x: x[2], reverse=True)
+    sum = 0
+    for index, stat in enumerate(stats):
+        sum += stat[1]
+        if sum > cache_limit:
+            purge = [x[0] for x in stats[index:]]
+            count = len(purge)
+            for file in purge:
+                try:
+                    os.remove(file)
+                except OSError:
+                    print_error(f'Failed to remove cache file "{file}"; skipping.')
+                    count -= 1
+            if verbose and count:
+                print_info(f"Purged {count} file{'s' if count else ''} from cache.")
+            break
 
 
 def prepare_cache(env) -> None:

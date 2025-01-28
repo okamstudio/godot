@@ -85,8 +85,8 @@ void Particles3DEmissionShapeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	if (Object::cast_to<GPUParticles3D>(p_gizmo->get_node_3d())) {
 		const GPUParticles3D *particles = Object::cast_to<GPUParticles3D>(p_gizmo->get_node_3d());
 
-		if (particles->get_process_material().is_valid()) {
-			const Ref<ParticleProcessMaterial> mat = particles->get_process_material();
+		const Ref<ParticleProcessMaterial> mat = particles->get_process_material();
+		if (mat.is_valid()) {
 			const ParticleProcessMaterial::EmissionShape shape = mat->get_emission_shape();
 
 			const Ref<Material> material = get_material("particles_emission_shape_material", p_gizmo);

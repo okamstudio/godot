@@ -38,6 +38,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/editor_undo_redo_manager.h"
+#include "editor/filesystem_dock.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/scene_tree_dock.h"
@@ -1309,7 +1310,36 @@ void SpriteFramesEditor::_frame_list_gui_input(const Ref<InputEvent> &p_event) {
 			_zoom_out();
 			// Don't scroll down after zooming out.
 			accept_event();
+		} else if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MouseButton::RIGHT) {
+			Point2 pos = mb->get_position();
+			right_clicked_frame = frame_list->get_item_at_position(pos, true);
+			if (right_clicked_frame != -1) {
+				if (!menu) {
+					menu = memnew(PopupMenu);
+					add_child(menu);
+					menu->connect(SceneStringName(id_pressed), callable_mp(this, &SpriteFramesEditor::_menu_selected));
+					menu->add_icon_item(get_editor_theme_icon(SNAME("ShowInFileSystem")), TTRC("Show in FileSystem"));
+				}
+
+				menu->set_position(get_screen_position() + get_local_mouse_position());
+				menu->popup();
+			}
 		}
+	}
+}
+
+void SpriteFramesEditor::_menu_selected(int p_index) {
+	switch (p_index) {
+		case MENU_SHOW_IN_FILESYSTEM: {
+			String path = frames->get_frame_texture(edited_anim, right_clicked_frame)->get_path();
+			// Check if the file is an atlas resource, if it is find the source texture.
+			Ref<AtlasTexture> at = frames->get_frame_texture(edited_anim, right_clicked_frame);
+			while (at.is_valid() && at->get_atlas().is_valid()) {
+				path = at->get_atlas()->get_path();
+				at = at->get_atlas();
+			}
+			FileSystemDock::get_singleton()->navigate_to_path(path);
+		} break;
 	}
 }
 

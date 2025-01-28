@@ -70,6 +70,11 @@ void RendererCanvasCull::_dependency_deleted(const RID &p_dependency, Dependency
 void RendererCanvasCull::_render_canvas_item_tree(RID p_to_render_target, Canvas::ChildItem *p_child_items, int p_child_item_count, const Transform2D &p_transform, const Rect2 &p_clip_rect, const Color &p_modulate, RendererCanvasRender::Light *p_lights, RendererCanvasRender::Light *p_directional_lights, RenderingServer::CanvasItemTextureFilter p_default_filter, RenderingServer::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_vertices_to_pixel, uint32_t p_canvas_cull_mask, RenderingMethod::RenderInfo *r_render_info) {
 	RENDER_TIMESTAMP("Cull CanvasItem Tree");
 
+	// This is used to avoid passing the camera transform down the rendering
+	// function calls, as it won't be used in 99% of cases, because the camera
+	// transform is normally concatenated with the item global transform.
+	_current_camera_transform = p_transform;
+
 	memset(z_list, 0, z_range * sizeof(RendererCanvasRender::Item *));
 	memset(z_last_list, 0, z_range * sizeof(RendererCanvasRender::Item *));
 
@@ -242,14 +247,14 @@ void RendererCanvasCull::_attach_canvas_item_for_draw(RendererCanvasCull::Item *
 	}
 
 	if (((ci->commands != nullptr || ci->visibility_notifier) && p_clip_rect.intersects(p_global_rect, true)) || ci->vp_render || ci->copy_back_buffer) {
-		//something to draw?
+		// Something to draw?
 
 		if (ci->update_when_visible) {
 			RenderingServerDefault::redraw_request();
 		}
 
 		if (ci->commands != nullptr || ci->copy_back_buffer) {
-			ci->final_transform = p_transform;
+			ci->final_transform = !ci->use_identity_transform ? p_transform : _current_camera_transform;
 			ci->final_modulate = p_modulate * ci->self_modulate;
 			ci->global_rect_cache = p_global_rect;
 			ci->global_rect_cache.position -= p_clip_rect.position;
@@ -322,6 +327,10 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 		}
 	}
 
+	// Always calculate final transform as if not using identity xform.
+	// This is so the expected transform is passed to children.
+	// However, if use_identity_xform is set,
+	// we can override the transform for rendering purposes for this item only.
 	Transform2D self_xform;
 	Transform2D final_xform;
 	if (p_is_already_y_sorted) {
@@ -360,7 +369,12 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 		ci->repeat_source_item = repeat_source_item;
 	}
 
-	Rect2 global_rect = final_xform.xform(rect);
+	Rect2 global_rect;
+	if (!p_canvas_item->use_identity_transform) {
+		global_rect = final_xform.xform(rect);
+	} else {
+		global_rect = _current_camera_transform.xform(rect);
+	}
 	if (repeat_source_item && (repeat_size.x || repeat_size.y)) {
 		// Top-left repeated rect.
 		Rect2 corner_rect = global_rect;
@@ -684,6 +698,13 @@ void RendererCanvasCull::canvas_item_set_draw_behind_parent(RID p_item, bool p_e
 	ERR_FAIL_NULL(canvas_item);
 
 	canvas_item->behind = p_enable;
+}
+
+void RendererCanvasCull::canvas_item_set_use_identity_transform(RID p_item, bool p_enable) {
+	Item *canvas_item = canvas_item_owner.get_or_null(p_item);
+	ERR_FAIL_NULL(canvas_item);
+
+	canvas_item->use_identity_transform = p_enable;
 }
 
 void RendererCanvasCull::canvas_item_set_update_when_visible(RID p_item, bool p_update) {

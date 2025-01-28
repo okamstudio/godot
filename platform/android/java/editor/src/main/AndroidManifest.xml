@@ -71,6 +71,18 @@
                 android:defaultWidth="@dimen/editor_default_window_width"
                 android:defaultHeight="@dimen/editor_default_window_height" />
         </activity>
+        <activity
+            android:name=".GodotXRGame"
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|density|keyboard|navigation|screenLayout|uiMode"
+            android:process=":GodotXRGame"
+            android:launchMode="singleTask"
+            android:icon="@mipmap/ic_play_window"
+            android:label="@string/godot_game_activity_name"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:resizeableActivity="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        </activity>
     </application>
 
 </manifest>

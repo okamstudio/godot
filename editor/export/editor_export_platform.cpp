@@ -35,6 +35,7 @@
 #include "core/extension/gdextension.h"
 #include "core/io/file_access_encrypted.h"
 #include "core/io/file_access_pack.h" // PACK_HEADER_MAGIC, PACK_FORMAT_VERSION
+#include "core/io/resource_uid.h"
 #include "core/io/zip_io.h"
 #include "core/version.h"
 #include "editor/editor_file_system.h"
@@ -955,8 +956,8 @@ Vector<String> EditorExportPlatform::get_forced_export_files() {
 
 	files.push_back(ProjectSettings::get_singleton()->get_global_class_list_path());
 
-	String icon = GLOBAL_GET("application/config/icon");
-	String splash = GLOBAL_GET("application/boot_splash/image");
+	String icon = ResourceUID::ensure_path(GLOBAL_GET("application/config/icon"));
+	String splash = ResourceUID::ensure_path(GLOBAL_GET("application/boot_splash/image"));
 	if (!icon.is_empty() && FileAccess::exists(icon)) {
 		files.push_back(icon);
 	}
@@ -2209,7 +2210,7 @@ Vector<String> EditorExportPlatform::gen_export_flags(BitField<EditorExportPlatf
 	if (p_flags.has_flag(DEBUG_FLAG_REMOTE_DEBUG)) {
 		ret.push_back("--remote-debug");
 
-		ret.push_back(get_debug_protocol() + host + ":" + String::num(remote_port));
+		ret.push_back(get_debug_protocol() + host + ":" + String::num_int64(remote_port));
 
 		List<String> breakpoints;
 		ScriptEditor::get_singleton()->get_breakpoints(&breakpoints);

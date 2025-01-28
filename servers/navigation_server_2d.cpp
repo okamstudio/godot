@@ -31,9 +31,14 @@
 #include "navigation_server_2d.h"
 #include "navigation_server_2d.compat.inc"
 
+#include "servers/navigation_server_2d_dummy.h"
 #include "servers/navigation_server_3d.h"
 
 NavigationServer2D *NavigationServer2D::singleton = nullptr;
+
+RWLock NavigationServer2D::geometry_parser_rwlock;
+RID_Owner<NavMeshGeometryParser2D> NavigationServer2D::geometry_parser_owner;
+LocalVector<NavMeshGeometryParser2D *> NavigationServer2D::generator_parsers;
 
 void NavigationServer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_maps"), &NavigationServer2D::get_maps);
@@ -208,6 +213,47 @@ void NavigationServer2D::_emit_navigation_debug_changed_signal() {
 
 NavigationServer2D::~NavigationServer2D() {
 	singleton = nullptr;
+
+	RWLockWrite write_lock(geometry_parser_rwlock);
+	for (NavMeshGeometryParser2D *parser : generator_parsers) {
+		geometry_parser_owner.free(parser->self);
+	}
+	generator_parsers.clear();
+}
+
+RID NavigationServer2D::source_geometry_parser_create() {
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	RID rid = geometry_parser_owner.make_rid();
+
+	NavMeshGeometryParser2D *parser = geometry_parser_owner.get_or_null(rid);
+	parser->self = rid;
+
+	generator_parsers.push_back(parser);
+
+	return rid;
+}
+
+void NavigationServer2D::free(RID p_object) {
+	if (!geometry_parser_owner.owns(p_object)) {
+		return;
+	}
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	NavMeshGeometryParser2D *parser = geometry_parser_owner.get_or_null(p_object);
+	ERR_FAIL_NULL(parser);
+
+	generator_parsers.erase(parser);
+	geometry_parser_owner.free(parser->self);
+}
+
+void NavigationServer2D::source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) {
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	NavMeshGeometryParser2D *parser = geometry_parser_owner.get_or_null(p_parser);
+	ERR_FAIL_NULL(parser);
+
+	parser->callback = p_callback;
 }
 
 void NavigationServer2D::_emit_map_changed(RID p_map) {
@@ -418,6 +464,8 @@ bool NavigationServer2D::get_debug_navigation_avoidance_enable_obstacles_static(
 
 ///////////////////////////////////////////////////////
 
+static NavigationServer2D *navigation_server_2d = nullptr;
+
 NavigationServer2DCallback NavigationServer2DManager::create_callback = nullptr;
 
 void NavigationServer2DManager::set_default_server(NavigationServer2DCallback p_callback) {
@@ -430,4 +478,27 @@ NavigationServer2D *NavigationServer2DManager::new_default_server() {
 	}
 
 	return create_callback();
+}
+
+void NavigationServer2DManager::initialize_server() {
+	// NavigationServer3D must be initialized before NavigationServer2D.
+	ERR_FAIL_NULL(NavigationServer3D::get_singleton());
+	ERR_FAIL_COND(navigation_server_2d != nullptr);
+
+	// Init 2D Navigation Server
+	navigation_server_2d = NavigationServer2DManager::new_default_server();
+	if (!navigation_server_2d) {
+		WARN_VERBOSE("Failed to initialize NavigationServer2D. Fall back to dummy server.");
+		navigation_server_2d = memnew(NavigationServer2DDummy);
+	}
+
+	ERR_FAIL_NULL_MSG(navigation_server_2d, "Failed to initialize NavigationServer2D.");
+	navigation_server_2d->init();
+}
+
+void NavigationServer2DManager::finalize_server() {
+	ERR_FAIL_NULL(navigation_server_2d);
+	navigation_server_2d->finish();
+	memdelete(navigation_server_2d);
+	navigation_server_2d = nullptr;
 }

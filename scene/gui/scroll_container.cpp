@@ -40,7 +40,7 @@ Size2 ScrollContainer::get_minimum_size() const {
 	largest_child_min_size = Size2();
 
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = as_sortable_control(get_child(i), SortableVisbilityMode::VISIBLE);
+		Control *c = as_sortable_control(get_child(i), SortableVisibilityMode::VISIBLE);
 		if (!c) {
 			continue;
 		}
@@ -292,16 +292,20 @@ void ScrollContainer::_gui_focus_changed(Control *p_control) {
 void ScrollContainer::ensure_control_visible(Control *p_control) {
 	ERR_FAIL_COND_MSG(!is_ancestor_of(p_control), "Must be an ancestor of the control.");
 
-	Rect2 global_rect = get_global_rect();
-	Rect2 other_rect = p_control->get_global_rect();
+	// Just eliminate the rotation of this ScrollContainer.
+	Transform2D other_in_this = get_global_transform().affine_inverse() * p_control->get_global_transform();
+
+	Size2 size = get_size();
+	Rect2 other_rect = other_in_this.xform(Rect2(Point2(), p_control->get_size()));
+
 	float side_margin = v_scroll->is_visible() ? v_scroll->get_size().x : 0.0f;
 	float bottom_margin = h_scroll->is_visible() ? h_scroll->get_size().y : 0.0f;
 
-	Vector2 diff = Vector2(MAX(MIN(other_rect.position.x - (is_layout_rtl() ? side_margin : 0.0f), global_rect.position.x), other_rect.position.x + other_rect.size.x - global_rect.size.x + (!is_layout_rtl() ? side_margin : 0.0f)),
-			MAX(MIN(other_rect.position.y, global_rect.position.y), other_rect.position.y + other_rect.size.y - global_rect.size.y + bottom_margin));
+	Vector2 diff = Vector2(MAX(MIN(other_rect.position.x - (is_layout_rtl() ? side_margin : 0.0f), 0.0f), other_rect.position.x + other_rect.size.x - size.x + (!is_layout_rtl() ? side_margin : 0.0f)),
+			MAX(MIN(other_rect.position.y, 0.0f), other_rect.position.y + other_rect.size.y - size.y + bottom_margin));
 
-	set_h_scroll(get_h_scroll() + (diff.x - global_rect.position.x));
-	set_v_scroll(get_v_scroll() + (diff.y - global_rect.position.y));
+	set_h_scroll(get_h_scroll() + diff.x);
+	set_v_scroll(get_v_scroll() + diff.y);
 }
 
 void ScrollContainer::_reposition_children() {
@@ -562,7 +566,7 @@ PackedStringArray ScrollContainer::get_configuration_warnings() const {
 	int found = 0;
 
 	for (int i = 0; i < get_child_count(); i++) {
-		Control *c = as_sortable_control(get_child(i), SortableVisbilityMode::VISIBLE);
+		Control *c = as_sortable_control(get_child(i), SortableVisibilityMode::VISIBLE);
 		if (!c) {
 			continue;
 		}

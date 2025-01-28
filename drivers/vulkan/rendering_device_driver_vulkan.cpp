@@ -1530,10 +1530,12 @@ RDD::BufferID RenderingDeviceDriverVulkan::buffer_create(uint64_t p_size, BitFie
 			if (is_src && !is_dst) {
 				// Looks like a staging buffer: CPU maps, writes sequentially, then GPU copies to VRAM.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 			}
 			if (is_dst && !is_src) {
 				// Looks like a readback buffer: GPU copies from VRAM, then CPU maps and reads.
 				alloc_create_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+				alloc_create_info.preferredFlags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
 			}
 			alloc_create_info.requiredFlags = (VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 		} break;

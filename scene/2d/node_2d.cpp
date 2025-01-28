@@ -374,7 +374,9 @@ void Node2D::set_transform(const Transform2D &p_transform) {
 	transform = p_transform;
 	_set_xform_dirty(true);
 
-	RenderingServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), transform);
+	if (!_is_using_identity_transform()) {
+		RenderingServer::get_singleton()->canvas_item_set_transform(get_canvas_item(), transform);
+	}
 
 	_notify_transform();
 }

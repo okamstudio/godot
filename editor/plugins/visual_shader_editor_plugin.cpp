@@ -75,18 +75,18 @@
 struct FloatConstantDef {
 	String name;
 	float value = 0;
-	String desc;
+	const char *desc_key;
 };
 
 static FloatConstantDef float_constant_defs[] = {
-	{ "E", Math_E, TTR("E constant (2.718282). Represents the base of the natural logarithm.") },
-	{ "Epsilon", CMP_EPSILON, TTR("Epsilon constant (0.00001). Smallest possible scalar number.") },
-	{ "Phi", 1.618034f, TTR("Phi constant (1.618034). Golden ratio.") },
-	{ "Pi/4", Math_PI / 4, TTR("Pi/4 constant (0.785398) or 45 degrees.") },
-	{ "Pi/2", Math_PI / 2, TTR("Pi/2 constant (1.570796) or 90 degrees.") },
-	{ "Pi", Math_PI, TTR("Pi constant (3.141593) or 180 degrees.") },
-	{ "Tau", Math_TAU, TTR("Tau constant (6.283185) or 360 degrees.") },
-	{ "Sqrt2", Math_SQRT2, TTR("Sqrt2 constant (1.414214). Square root of 2.") }
+	{ "E", Math_E, TTRC("E constant (2.718282). Represents the base of the natural logarithm.") },
+	{ "Epsilon", CMP_EPSILON, TTRC("Epsilon constant (0.00001). Smallest possible scalar number.") },
+	{ "Phi", 1.618034f, TTRC("Phi constant (1.618034). Golden ratio.") },
+	{ "Pi/4", Math_PI / 4, TTRC("Pi/4 constant (0.785398) or 45 degrees.") },
+	{ "Pi/2", Math_PI / 2, TTRC("Pi/2 constant (1.570796) or 90 degrees.") },
+	{ "Pi", Math_PI, TTRC("Pi constant (3.141593) or 180 degrees.") },
+	{ "Tau", Math_TAU, TTRC("Tau constant (6.283185) or 360 degrees.") },
+	{ "Sqrt2", Math_SQRT2, TTRC("Sqrt2 constant (1.414214). Square root of 2.") }
 };
 
 const int MAX_FLOAT_CONST_DEFS = sizeof(float_constant_defs) / sizeof(FloatConstantDef);
@@ -7198,7 +7198,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	// CONSTANTS
 
 	for (int i = 0; i < MAX_FLOAT_CONST_DEFS; i++) {
-		add_options.push_back(AddOption(float_constant_defs[i].name, "Scalar/Constants", "VisualShaderNodeFloatConstant", float_constant_defs[i].desc, { float_constant_defs[i].value }, VisualShaderNode::PORT_TYPE_SCALAR));
+		add_options.push_back(AddOption(float_constant_defs[i].name, "Scalar/Constants", "VisualShaderNodeFloatConstant", TTRGET(float_constant_defs[i].desc_key), { float_constant_defs[i].value }, VisualShaderNode::PORT_TYPE_SCALAR));
 	}
 	// FUNCTIONS
 

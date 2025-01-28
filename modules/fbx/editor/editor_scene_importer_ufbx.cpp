@@ -37,10 +37,6 @@
 
 #include "core/config/project_settings.h"
 
-uint32_t EditorSceneFormatImporterUFBX::get_import_flags() const {
-	return ImportFlags::IMPORT_SCENE | ImportFlags::IMPORT_ANIMATION;
-}
-
 void EditorSceneFormatImporterUFBX::get_extensions(List<String> *r_extensions) const {
 	r_extensions->push_back("fbx");
 }

@@ -92,7 +92,7 @@ private:
 	void _compute_split_offset(bool p_clamp);
 	int _get_separation() const;
 	void _resort();
-	Control *_get_sortable_child(int p_idx, SortableVisbilityMode p_visibility_mode = SortableVisbilityMode::VISIBLE_IN_TREE) const;
+	Control *_get_sortable_child(int p_idx, SortableVisibilityMode p_visibility_mode = SortableVisibilityMode::VISIBLE_IN_TREE) const;
 
 protected:
 	bool is_fixed = false;

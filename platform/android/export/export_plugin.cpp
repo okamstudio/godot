@@ -2840,6 +2840,13 @@ void EditorExportPlatformAndroid::get_command_line_flags(const Ref<EditorExportP
 		command_line_strings.push_back("--xr_mode_openxr");
 	} else { // XRMode.REGULAR is the default.
 		command_line_strings.push_back("--xr_mode_regular");
+
+		// Also override the 'xr/openxr/enabled' project setting.
+		// This is useful for multi-platforms projects supporting both XR and non-XR devices. The project would need
+		// to enable openxr for development, and would create multiple XR and non-XR export presets.
+		// These command line args ensure that the non-XR export presets will have openxr disabled.
+		command_line_strings.push_back("--xr-mode");
+		command_line_strings.push_back("off");
 	}
 
 	bool immersive = p_preset->get("screen/immersive_mode");
@@ -3522,7 +3529,7 @@ Error EditorExportPlatformAndroid::export_project_helper(const Ref<EditorExportP
 			src_apk = find_export_template("android_release.apk");
 		}
 		if (src_apk.is_empty()) {
-			add_message(EXPORT_MESSAGE_ERROR, TTR("Export"), vformat(TTR("%s export template not found: \"%s\"."), (p_debug ? "Debug" : "Release"), src_apk));
+			add_message(EXPORT_MESSAGE_ERROR, TTR("Export"), vformat(p_debug ? TTR("Debug export template not found: \"%s\".") : TTR("Release export template not found: \"%s\"."), src_apk));
 			return ERR_FILE_NOT_FOUND;
 		}
 	}

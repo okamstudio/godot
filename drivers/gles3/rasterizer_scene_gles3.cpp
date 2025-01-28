@@ -3991,7 +3991,7 @@ TypedArray<Image> RasterizerSceneGLES3::bake_render_uv2(RID p_base, const TypedA
 	// Consider rendering to RGBA8 encoded as RGBE, then manually convert to RGBAH on CPU.
 	glBindTexture(GL_TEXTURE_2D, emission_tex);
 	if (config->float_texture_supported) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, p_image_size.width, p_image_size.height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, p_image_size.width, p_image_size.height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		GLES3::Utilities::get_singleton()->texture_allocated_data(emission_tex, p_image_size.width * p_image_size.height * 16, "Lightmap emission texture");
 	} else {
 		// Fallback to RGBA8 on devices that don't support rendering to floating point textures. This will look bad, but we have no choice.
@@ -4094,9 +4094,9 @@ TypedArray<Image> RasterizerSceneGLES3::bake_render_uv2(RID p_base, const TypedA
 	{
 		tex->tex_id = emission_tex;
 		if (config->float_texture_supported) {
-			tex->format = Image::FORMAT_RGBAF;
+			tex->format = Image::FORMAT_RGBAH;
 			tex->real_format = Image::FORMAT_RGBAH;
-			tex->gl_type_cache = GL_FLOAT;
+			tex->gl_type_cache = GL_HALF_FLOAT;
 		}
 		Ref<Image> img = GLES3::TextureStorage::get_singleton()->texture_2d_get(tex_rid);
 		GLES3::Utilities::get_singleton()->texture_free_data(emission_tex);

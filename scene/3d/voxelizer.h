@@ -72,13 +72,13 @@ private:
 
 	struct CellSort {
 		union {
+			uint64_t key = 0;
 			struct {
 				uint64_t z : 16;
 				uint64_t y : 16;
 				uint64_t x : 16;
 				uint64_t level : 16;
 			};
-			uint64_t key = 0;
 		};
 
 		int32_t index = 0;

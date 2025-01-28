@@ -188,7 +188,6 @@
 *    http://www.freetype.org
 */
 
-#include <setjmp.h>
 #include <limits.h>
 #include <memory.h>
 #include "tvgSwCommon.h"
@@ -242,8 +241,6 @@ struct RleWorker
 
     int bandSize;
     int bandShoot;
-
-    jmp_buf jmpBuf;
 
     void* buffer;
     long bufferSize;
@@ -359,7 +356,7 @@ static void _horizLine(RleWorker& rw, SwCoord x, SwCoord y, SwCoord area, SwCoor
             rle->spans = static_cast<SwSpan*>(realloc(rle->spans, rle->alloc * sizeof(SwSpan)));
         }
     }
-        
+
     //Clip x range
     SwCoord xOver = 0;
     if (x + aCount >= rw.cellMax.x) xOver -= (x + aCount - rw.cellMax.x);
@@ -418,7 +415,7 @@ static Cell* _findCell(RleWorker& rw)
         pcell = &cell->next;
     }
 
-    if (rw.cellsCnt >= rw.maxCells) longjmp(rw.jmpBuf, 1);
+    if (rw.cellsCnt >= rw.maxCells) return nullptr;
 
     auto cell = rw.cells + rw.cellsCnt++;
     cell->x = x;
@@ -431,17 +428,22 @@ static Cell* _findCell(RleWorker& rw)
 }
 
 
-static void _recordCell(RleWorker& rw)
+static bool _recordCell(RleWorker& rw)
 {
     if (rw.area | rw.cover) {
         auto cell = _findCell(rw);
+
+        if (cell == nullptr) return false;
+
         cell->area += rw.area;
         cell->cover += rw.cover;
     }
+
+    return true;
 }
 
 
-static void _setCell(RleWorker& rw, SwPoint pos)
+static bool _setCell(RleWorker& rw, SwPoint pos)
 {
     /* Move the cell pointer to a new position.  We set the `invalid'      */
     /* flag to indicate that the cell isn't part of those we're interested */
@@ -458,22 +460,26 @@ static void _setCell(RleWorker& rw, SwPoint pos)
     pos.x -= rw.cellMin.x;
     pos.y -= rw.cellMin.y;
 
-    if (pos.x > rw.cellMax.x) pos.x = rw.cellMax.x;
+    //exceptions
+    if (pos.x < 0) pos.x = -1;
+    else if (pos.x > rw.cellMax.x) pos.x = rw.cellMax.x;
 
     //Are we moving to a different cell?
     if (pos != rw.cellPos) {
         //Record the current one if it is valid
-        if (!rw.invalid) _recordCell(rw);
+        if (!rw.invalid) {
+            if (!_recordCell(rw)) return false;
+        }
+        rw.area = rw.cover = 0;
+        rw.cellPos = pos;
     }
-
-    rw.area = 0;
-    rw.cover = 0;
-    rw.cellPos = pos;
     rw.invalid = ((unsigned)pos.y >= (unsigned)rw.cellYCnt || pos.x >= rw.cellXCnt);
+
+    return true;
 }
 
 
-static void _startCell(RleWorker& rw, SwPoint pos)
+static bool _startCell(RleWorker& rw, SwPoint pos)
 {
     if (pos.x > rw.cellMax.x) pos.x = rw.cellMax.x;
     if (pos.x < rw.cellMin.x) pos.x = rw.cellMin.x;
@@ -483,23 +489,27 @@ static void _startCell(RleWorker& rw, SwPoint pos)
     rw.cellPos = pos - rw.cellMin;
     rw.invalid = false;
 
-    _setCell(rw, pos);
+    return _setCell(rw, pos);
 }
 
 
-static void _moveTo(RleWorker& rw, const SwPoint& to)
+static bool _moveTo(RleWorker& rw, const SwPoint& to)
 {
     //record current cell, if any */
-    if (!rw.invalid) _recordCell(rw);
+    if (!rw.invalid) {
+        if (!_recordCell(rw)) return false;
+    }
 
     //start to a new position
-    _startCell(rw, TRUNC(to));
+    if (!_startCell(rw, TRUNC(to))) return false;
 
     rw.pos = to;
+
+    return true;
 }
 
 
-static void _lineTo(RleWorker& rw, const SwPoint& to)
+static bool _lineTo(RleWorker& rw, const SwPoint& to)
 {
 #define SW_UDIV(a, b) \
     static_cast<SwCoord>(((unsigned long)(a) * (unsigned long)(b)) >> \
@@ -511,7 +521,7 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
     //vertical clipping
     if ((e1.y >= rw.cellMax.y && e2.y >= rw.cellMax.y) || (e1.y < rw.cellMin.y && e2.y < rw.cellMin.y)) {
         rw.pos = to;
-        return;
+        return true;
     }
 
     auto line = rw.lineStack;
@@ -539,7 +549,7 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
         //any horizontal line
         } else if (diff.y == 0) {
             e1.x = e2.x;
-            _setCell(rw, e1);
+            if (!_setCell(rw, e1)) return false;
         } else if (diff.x == 0) {
             //vertical line up
             if (diff.y > 0) {
@@ -549,7 +559,7 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
                     rw.area += (f2.y - f1.y) * f1.x * 2;
                     f1.y = 0;
                     ++e1.y;
-                    _setCell(rw, e1);
+                    if (!_setCell(rw, e1)) return false;
                 } while(e1.y != e2.y);
             //vertical line down
             } else {
@@ -559,7 +569,7 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
                     rw.area += (f2.y - f1.y) * f1.x * 2;
                     f1.y = ONE_PIXEL;
                     --e1.y;
-                    _setCell(rw, e1);
+                    if (!_setCell(rw, e1)) return false;
                 } while(e1.y != e2.y);
             }
         //any other line
@@ -612,7 +622,7 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
                     --e1.y;
                 }
 
-                _setCell(rw, e1);
+                if (!_setCell(rw, e1)) return false;
 
             } while(e1 != e2);
         }
@@ -622,12 +632,12 @@ static void _lineTo(RleWorker& rw, const SwPoint& to)
         rw.area += (f2.y - f1.y) * (f1.x + f2.x);
         rw.pos = line[0];
 
-        if (line-- == rw.lineStack) return;
+        if (line-- == rw.lineStack) return true;
     }
 }
 
 
-static void _cubicTo(RleWorker& rw, const SwPoint& ctrl1, const SwPoint& ctrl2, const SwPoint& to)
+static bool _cubicTo(RleWorker& rw, const SwPoint& ctrl1, const SwPoint& ctrl2, const SwPoint& to)
 {
     auto arc = rw.bezStack;
     arc[0] = to;
@@ -691,14 +701,14 @@ static void _cubicTo(RleWorker& rw, const SwPoint& ctrl1, const SwPoint& ctrl2, 
         continue;
 
     draw:
-        _lineTo(rw, arc[0]);
-        if (arc == rw.bezStack) return;
+        if (!_lineTo(rw, arc[0])) return false;
+        if (arc == rw.bezStack) return true;
         arc -= 3;
     }
 }
 
 
-static void _decomposeOutline(RleWorker& rw)
+static bool _decomposeOutline(RleWorker& rw)
 {
     auto outline = rw.outline;
     auto first = 0;  //index of first point in contour
@@ -711,38 +721,43 @@ static void _decomposeOutline(RleWorker& rw)
         auto types = outline->types.data + first;
         ++types;
 
-        _moveTo(rw, UPSCALE(outline->pts[first]));
+        if (!_moveTo(rw, UPSCALE(outline->pts[first]))) return false;
 
         while (pt < limit) {
             //emit a single line_to
             if (types[0] == SW_CURVE_TYPE_POINT) {
                 ++pt;
                 ++types;
-                _lineTo(rw, UPSCALE(*pt));
+                if (!_lineTo(rw, UPSCALE(*pt))) return false;
             //types cubic
             } else {
                 pt += 3;
                 types += 3;
-                if (pt <= limit) _cubicTo(rw, UPSCALE(pt[-2]), UPSCALE(pt[-1]), UPSCALE(pt[0]));
-                else if (pt - 1 == limit) _cubicTo(rw, UPSCALE(pt[-2]), UPSCALE(pt[-1]), start);
+                if (pt <= limit) {
+                    if (!_cubicTo(rw, UPSCALE(pt[-2]), UPSCALE(pt[-1]), UPSCALE(pt[0]))) return false;
+                }
+                else if (pt - 1 == limit) {
+                    if (!_cubicTo(rw, UPSCALE(pt[-2]), UPSCALE(pt[-1]), start)) return false;
+                }
                 else goto close;
             }
         }
     close:
-        _lineTo(rw, start);
+        if (!_lineTo(rw, start)) return false;
        first = last + 1;
     }
+
+    return true;
 }
 
 
 static int _genRle(RleWorker& rw)
 {
-    if (setjmp(rw.jmpBuf) == 0) {
-        _decomposeOutline(rw);
-        if (!rw.invalid) _recordCell(rw);
-        return 0;
+    if (!_decomposeOutline(rw)) return -1;
+    if (!rw.invalid) {
+        if (!_recordCell(rw)) return -1;
     }
-    return -1;              //lack of cell memory
+    return 0;
 }
 
 
@@ -1005,9 +1020,9 @@ void rleFree(SwRle* rle)
 }
 
 
-void rleClip(SwRle *rle, const SwRle *clip)
+bool rleClip(SwRle *rle, const SwRle *clip)
 {
-    if (rle->size == 0 || clip->size == 0) return;
+    if (rle->size == 0 || clip->size == 0) return false;
     auto spanCnt = rle->size > clip->size ? rle->size : clip->size;
     auto spans = static_cast<SwSpan*>(malloc(sizeof(SwSpan) * (spanCnt)));
     auto spansEnd = _intersectSpansRegion(clip, rle, spans, spanCnt);
@@ -1015,16 +1030,21 @@ void rleClip(SwRle *rle, const SwRle *clip)
     _replaceClipSpan(rle, spans, spansEnd - spans);
 
     TVGLOG("SW_ENGINE", "Using Path Clipping!");
+
+    return true;
 }
 
 
-void rleClip(SwRle *rle, const SwBBox* clip)
+bool rleClip(SwRle *rle, const SwBBox* clip)
 {
-    if (rle->size == 0) return;
+    if (rle->size == 0) return false;
     auto spans = static_cast<SwSpan*>(malloc(sizeof(SwSpan) * (rle->size)));
     auto spansEnd = _intersectSpansRect(clip, rle, spans, rle->size);
 
     _replaceClipSpan(rle, spans, spansEnd - spans);
 
     TVGLOG("SW_ENGINE", "Using Box Clipping!");
+
+    return true;
 }
+

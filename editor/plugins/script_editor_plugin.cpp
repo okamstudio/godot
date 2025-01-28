@@ -1170,11 +1170,10 @@ void ScriptEditor::_live_auto_reload_running_scripts() {
 bool ScriptEditor::_test_script_times_on_disk(Ref<Resource> p_for_script) {
 	disk_changed_list->clear();
 	TreeItem *r = disk_changed_list->create_item();
-	disk_changed_list->set_hide_root(true);
 
 	bool need_ask = false;
 	bool need_reload = false;
-	bool use_autoreload = bool(EDITOR_GET("text_editor/behavior/files/auto_reload_scripts_on_external_change"));
+	bool use_autoreload = EDITOR_GET("text_editor/behavior/files/auto_reload_scripts_on_external_change");
 
 	for (int i = 0; i < tab_container->get_tab_count(); i++) {
 		ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
@@ -1188,12 +1187,12 @@ bool ScriptEditor::_test_script_times_on_disk(Ref<Resource> p_for_script) {
 				continue; //internal script, who cares
 			}
 
-			uint64_t last_date = edited_res->get_last_modified_time();
-			uint64_t date = FileAccess::get_modified_time(edited_res->get_path());
+			uint64_t last_date = se->edited_file_data.last_modified_time;
+			uint64_t date = FileAccess::get_modified_time(se->edited_file_data.path);
 
 			if (last_date != date) {
 				TreeItem *ti = disk_changed_list->create_item(r);
-				ti->set_text(0, edited_res->get_path().get_file());
+				ti->set_text(0, se->edited_file_data.path.get_file());
 
 				if (!use_autoreload || se->is_unsaved()) {
 					need_ask = true;
@@ -2231,11 +2230,6 @@ void ScriptEditor::_update_script_names() {
 			Ref<Texture2D> icon = se->get_theme_icon();
 			String path = se->get_edited_resource()->get_path();
 			bool saved = !path.is_empty();
-			if (saved) {
-				// The script might be deleted, moved, or renamed, so make sure
-				// to update original path to previously edited resource.
-				se->set_meta("_edit_res_path", path);
-			}
 			String name = se->get_name();
 			Ref<Script> scr = se->get_edited_resource();
 
@@ -2633,7 +2627,8 @@ bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, 
 
 	// If we delete a script within the filesystem, the original resource path
 	// is lost, so keep it as metadata to figure out the exact tab to delete.
-	se->set_meta("_edit_res_path", p_resource->get_path());
+	se->edited_file_data.path = p_resource->get_path();
+	se->edited_file_data.last_modified_time = FileAccess::get_modified_time(p_resource->get_path());
 	if (se->get_edit_menu()) {
 		se->get_edit_menu()->hide();
 		menu_hb->add_child(se->get_edit_menu());
@@ -3042,6 +3037,15 @@ void ScriptEditor::_files_moved(const String &p_old_file, const String &p_new_fi
 	if (!script_editor_cache->has_section(p_old_file)) {
 		return;
 	}
+
+	for (int i = 0; i < tab_container->get_tab_count(); i++) {
+		ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
+		if (se && se->edited_file_data.path == p_old_file) {
+			se->edited_file_data.path = p_new_file;
+			break;
+		}
+	}
+
 	Variant state = script_editor_cache->get_value(p_old_file, "state");
 	script_editor_cache->erase_section(p_old_file);
 	script_editor_cache->set_value(p_new_file, "state", state);
@@ -3064,7 +3068,7 @@ void ScriptEditor::_file_removed(const String &p_removed_file) {
 		if (!se) {
 			continue;
 		}
-		if (se->get_meta("_edit_res_path") == p_removed_file) {
+		if (se->edited_file_data.path == p_removed_file) {
 			// The script is deleted with no undo, so just close the tab.
 			_close_tab(i, false, false);
 		}
@@ -4414,9 +4418,10 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 		vbc->add_child(files_are_newer_label);
 
 		disk_changed_list = memnew(Tree);
-		vbc->add_child(disk_changed_list);
+		disk_changed_list->set_hide_root(true);
 		disk_changed_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 		disk_changed_list->set_v_size_flags(SIZE_EXPAND_FILL);
+		vbc->add_child(disk_changed_list);
 
 		Label *what_action_label = memnew(Label);
 		what_action_label->set_text(TTR("What action should be taken?"));

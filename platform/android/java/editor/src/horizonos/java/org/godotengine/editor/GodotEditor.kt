@@ -30,9 +30,6 @@
 
 package org.godotengine.editor
 
-import org.godotengine.godot.GodotLib
-import org.godotengine.godot.utils.isNativeXRDevice
-
 /**
  * Primary window of the Godot Editor.
  *
@@ -40,66 +37,10 @@ import org.godotengine.godot.utils.isNativeXRDevice
  */
 open class GodotEditor : BaseGodotEditor() {
 
-	companion object {
-		private val TAG = GodotEditor::class.java.simpleName
-
-		/** Default behavior, means we check project settings **/
-		private const val XR_MODE_DEFAULT = "default"
-
-		/**
-		 * Ignore project settings, OpenXR is disabled
-		 */
-		private const val XR_MODE_OFF = "off"
-
-		/**
-		 * Ignore project settings, OpenXR is enabled
-		 */
-		private const val XR_MODE_ON = "on"
-
-		internal val XR_RUN_GAME_INFO = EditorWindowInfo(GodotXRGame::class.java, 1667, ":GodotXRGame")
-
-		internal val USE_SCENE_PERMISSIONS = listOf("com.oculus.permission.USE_SCENE", "horizonos.permission.USE_SCENE")
-	}
-
-	override fun getExcludedPermissions(): MutableSet<String> {
-		val excludedPermissions = super.getExcludedPermissions()
-		// The USE_SCENE permission is requested when the "xr/openxr/enabled" project setting
-		// is enabled.
-		excludedPermissions.addAll(USE_SCENE_PERMISSIONS)
-		return excludedPermissions
-	}
-
-	override fun retrieveEditorWindowInfo(args: Array<String>): EditorWindowInfo {
-		var hasEditor = false
-		var xrMode = XR_MODE_DEFAULT
-
-		var i = 0
-		while (i < args.size) {
-			when (args[i++]) {
-				EDITOR_ARG, EDITOR_ARG_SHORT, EDITOR_PROJECT_MANAGER_ARG, EDITOR_PROJECT_MANAGER_ARG_SHORT -> hasEditor = true
-				XR_MODE_ARG -> {
-					xrMode = args[i++]
-				}
-			}
-		}
-
-		return if (hasEditor) {
-			EDITOR_MAIN_INFO
-		} else {
-			val openxrEnabled = xrMode == XR_MODE_ON ||
-				(xrMode == XR_MODE_DEFAULT && GodotLib.getGlobal("xr/openxr/enabled").toBoolean())
-			if (openxrEnabled && isNativeXRDevice()) {
-				XR_RUN_GAME_INFO
-			} else {
-				RUN_GAME_INFO
-			}
-		}
-	}
-
-	override fun getEditorWindowInfoForInstanceId(instanceId: Int): EditorWindowInfo? {
-		return when (instanceId) {
-			XR_RUN_GAME_INFO.windowId -> XR_RUN_GAME_INFO
-			else -> super.getEditorWindowInfoForInstanceId(instanceId)
-		}
+	override fun getXRRuntimePermissions(): MutableSet<String> {
+		val xrRuntimePermissions = super.getXRRuntimePermissions()
+		xrRuntimePermissions.add("com.oculus.permission.USE_SCENE")
+		xrRuntimePermissions.add("horizonos.permission.USE_SCENE")
+		return xrRuntimePermissions
 	}
 }

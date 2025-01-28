@@ -58,7 +58,6 @@ protected:
 	Node *import_scene_wrapper(const String &p_path, uint32_t p_flags, const Dictionary &p_options);
 	Ref<Animation> import_animation_wrapper(const String &p_path, uint32_t p_flags, const Dictionary &p_options);
 
-	GDVIRTUAL0RC(uint32_t, _get_import_flags)
 	GDVIRTUAL0RC(Vector<String>, _get_extensions)
 	GDVIRTUAL3R(Object *, _import_scene, String, uint32_t, Dictionary)
 	GDVIRTUAL1(_get_import_options, String)
@@ -77,7 +76,6 @@ public:
 
 	void add_import_option(const String &p_name, const Variant &p_default_value);
 	void add_import_option_advanced(Variant::Type p_type, const String &p_name, const Variant &p_default_value, PropertyHint p_hint = PROPERTY_HINT_NONE, const String &p_hint_string = String(), int p_usage_flags = PROPERTY_USAGE_DEFAULT);
-	virtual uint32_t get_import_flags() const;
 	virtual void get_extensions(List<String> *r_extensions) const;
 	virtual Node *import_scene(const String &p_path, uint32_t p_flags, const HashMap<StringName, Variant> &p_options, List<String> *r_missing_deps, Error *r_err = nullptr);
 	virtual void get_import_options(const String &p_path, List<ResourceImporter::ImportOption> *r_options);
@@ -322,7 +320,6 @@ class EditorSceneFormatImporterESCN : public EditorSceneFormatImporter {
 	GDCLASS(EditorSceneFormatImporterESCN, EditorSceneFormatImporter);
 
 public:
-	virtual uint32_t get_import_flags() const override;
 	virtual void get_extensions(List<String> *r_extensions) const override;
 	virtual Node *import_scene(const String &p_path, uint32_t p_flags, const HashMap<StringName, Variant> &p_options, List<String> *r_missing_deps, Error *r_err = nullptr) override;
 };

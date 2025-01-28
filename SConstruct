@@ -107,22 +107,11 @@ for x in sorted(glob.glob("platform/*")):
     sys.path.remove(tmppath)
     sys.modules.pop("detect")
 
-custom_tools = ["default"]
-
-platform_arg = ARGUMENTS.get("platform", ARGUMENTS.get("p", False))
-
-if platform_arg == "android":
-    custom_tools = ["clang", "clang++", "as", "ar", "link"]
-elif platform_arg == "web":
-    # Use generic POSIX build toolchain for Emscripten.
-    custom_tools = ["cc", "c++", "ar", "link", "textfile", "zip"]
-elif os.name == "nt" and methods.get_cmdline_bool("use_mingw", False):
-    custom_tools = ["mingw"]
-
 # We let SCons build its default ENV as it includes OS-specific things which we don't
-# want to have to pull in manually.
+# want to have to pull in manually. However we enforce no "tools", which we register
+# further down after parsing our platform-specific configuration.
 # Then we prepend PATH to make it take precedence, while preserving SCons' own entries.
-env = Environment(tools=custom_tools)
+env = Environment(tools=[])
 env.PrependENVPath("PATH", os.getenv("PATH"))
 env.PrependENVPath("PKG_CONFIG_PATH", os.getenv("PKG_CONFIG_PATH"))
 if "TERM" in os.environ:  # Used for colored output.
@@ -168,11 +157,7 @@ if profile:
 opts = Variables(customs, ARGUMENTS)
 
 # Target build options
-if env.scons_version >= (4, 3):
-    opts.Add(["platform", "p"], "Target platform (%s)" % "|".join(platform_list), "")
-else:
-    opts.Add("platform", "Target platform (%s)" % "|".join(platform_list), "")
-    opts.Add("p", "Alias for 'platform'", "")
+opts.Add((["platform", "p"], "Target platform (%s)" % "|".join(platform_list), ""))
 opts.Add(EnumVariable("target", "Compilation target", "editor", ("editor", "template_release", "template_debug")))
 opts.Add(EnumVariable("arch", "CPU architecture", "auto", ["auto"] + architectures, architecture_aliases))
 opts.Add(BoolVariable("dev_build", "Developer build with dev-only debugging code (DEV_ENABLED)", False))
@@ -312,10 +297,7 @@ if env["import_env_vars"]:
 
 # Platform selection: validate input, and add options.
 
-if env.scons_version < (4, 3) and not env["platform"]:
-    env["platform"] = env["p"]
-
-if env["platform"] == "":
+if not env["platform"]:
     # Missing `platform` argument, try to detect platform automatically
     if (
         sys.platform.startswith("linux")
@@ -330,7 +312,7 @@ if env["platform"] == "":
     elif sys.platform == "win32":
         env["platform"] = "windows"
 
-    if env["platform"] != "":
+    if env["platform"]:
         print(f'Automatically detected platform: {env["platform"]}')
 
 # Deprecated aliases kept for compatibility.
@@ -352,7 +334,7 @@ if env["platform"] not in platform_list:
 
     if env["platform"] == "list":
         print(text)
-    elif env["platform"] == "":
+    elif not env["platform"]:
         print_error("Could not detect platform automatically.\n" + text)
     else:
         print_error(f'Invalid target platform "{env["platform"]}".\n' + text)
@@ -433,6 +415,23 @@ env.modules_detected = modules_detected
 # Update the environment again after all the module options are added.
 opts.Update(env, {**ARGUMENTS, **env.Dictionary()})
 Help(opts.GenerateHelpText(env))
+
+
+# FIXME: Tool assignment happening at this stage is a direct consequence of getting the platform logic AFTER the SCons
+# environment was already been constructed. Fixing this would require a broader refactor where all options are setup
+# ahead of time with native validator/converter functions.
+tmppath = "./platform/" + env["platform"]
+sys.path.insert(0, tmppath)
+import detect
+
+custom_tools = ["default"]
+try:  # Platform custom tools are optional
+    custom_tools = detect.get_tools(env)
+except AttributeError:
+    pass
+for tool in custom_tools:
+    env.Tool(tool)
+
 
 # add default include paths
 
@@ -515,10 +514,6 @@ if not env["deprecated"]:
 if env["precision"] == "double":
     env.Append(CPPDEFINES=["REAL_T_IS_DOUBLE"])
 
-tmppath = "./platform/" + env["platform"]
-sys.path.insert(0, tmppath)
-import detect
-
 # Default num_jobs to local cpu count if not user specified.
 # SCons has a peculiarity where user-specified options won't be overridden
 # by SetOption, so we can rely on this to know if we should use our default.
@@ -587,7 +582,7 @@ if env["dev_mode"]:
 if env["production"]:
     env["use_static_cpp"] = methods.get_cmdline_bool("use_static_cpp", True)
     env["debug_symbols"] = methods.get_cmdline_bool("debug_symbols", False)
-    if platform_arg == "android":
+    if env["platform"] == "android":
         env["swappy"] = methods.get_cmdline_bool("swappy", True)
     # LTO "auto" means we handle the preferred option in each platform detect.py.
     env["lto"] = ARGUMENTS.get("lto", "auto")
@@ -1039,6 +1034,9 @@ env.Append(BUILDERS=GLSL_BUILDERS)
 if env["compiledb"]:
     env.Tool("compilation_db")
     env.Alias("compiledb", env.CompilationDatabase())
+    env.NoCache(env.CompilationDatabase())
+    if not env["verbose"]:
+        env["COMPILATIONDB_COMSTR"] = "$GENCOMSTR"
 
 if env["ninja"]:
     if env.scons_version < (4, 2, 0):

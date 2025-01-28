@@ -1757,12 +1757,13 @@ String VisualShaderNodeWorldPositionFromDepth::generate_code(Shader::Mode p_mode
 
 	code += "		float __log_depth = textureLod(" + make_unique_id(p_type, p_id, "depth_tex") + ", " + uv + ", 0.0).x;\n";
 	if (!RenderingServer::get_singleton()->is_low_end()) {
-		code += "	vec4 __depth_view = INV_PROJECTION_MATRIX * vec4(" + uv + " * 2.0 - 1.0, __log_depth, 1.0);\n";
+		code += "		vec4 __ndc = vec4(" + uv + " * 2.0 - 1.0, __log_depth, 1.0);\n";
 	} else {
-		code += "	vec4 __depth_view = INV_PROJECTION_MATRIX * vec4(vec3(" + uv + ", __log_depth) * 2.0 - 1.0, 1.0);\n";
+		code += "		vec4 __ndc = vec4(vec3(" + uv + ", __log_depth) * 2.0 - 1.0, 1.0);\n";
 	}
-	code += "		__depth_view.xyz /= __depth_view.w;\n";
-	code += vformat("		%s = (INV_VIEW_MATRIX * __depth_view).xyz;\n", p_output_vars[0]);
+	code += "		vec4 __position_world = INV_VIEW_MATRIX * INV_PROJECTION_MATRIX * __ndc;\n";
+	code += "		__position_world.xyz /= __position_world.w;\n";
+	code += vformat("		%s = __position_world.xyz;\n", p_output_vars[0]);
 
 	code += "	}\n";
 	return code;
@@ -7261,7 +7262,7 @@ String VisualShaderNodeFresnel::generate_code(Shader::Mode p_mode, VisualShader:
 		normal = p_input_vars[0];
 	}
 	if (p_input_vars[1].is_empty()) {
-		if (p_mode == Shader::MODE_SPATIAL) {
+		if (p_mode == Shader::MODE_SPATIAL && !p_for_preview) {
 			view = "VIEW";
 		} else {
 			view = "vec3(0.0)";

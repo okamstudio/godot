@@ -1545,6 +1545,7 @@ public:
 	virtual void canvas_item_set_visibility_layer(RID p_item, uint32_t p_visibility_layer) = 0;
 
 	virtual void canvas_item_set_draw_behind_parent(RID p_item, bool p_enable) = 0;
+	virtual void canvas_item_set_use_identity_transform(RID p_item, bool p_enabled) = 0;
 
 	enum NinePatchAxisMode {
 		NINE_PATCH_STRETCH,

@@ -16,11 +16,6 @@
 				Return supported file extensions for this scene importer.
 			</description>
 		</method>
-		<method name="_get_import_flags" qualifiers="virtual const" deprecated="Unused by the engine, and will be removed in a future version. Implementing this has no effect.">
-			<return type="int" />
-			<description>
-			</description>
-		</method>
 		<method name="_get_import_options" qualifiers="virtual">
 			<return type="void" />
 			<param index="0" name="path" type="String" />

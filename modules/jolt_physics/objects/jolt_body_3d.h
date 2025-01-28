@@ -110,15 +110,13 @@ private:
 
 	virtual void _add_to_space() override;
 
+	bool _should_call_queries() const { return state_sync_callback.is_valid() || custom_integration_callback.is_valid(); }
 	void _enqueue_call_queries();
 	void _dequeue_call_queries();
 
 	void _integrate_forces(float p_step, JPH::Body &p_jolt_body);
 
 	void _move_kinematic(float p_step, JPH::Body &p_jolt_body);
-
-	void _pre_step_rigid(float p_step, JPH::Body &p_jolt_body);
-	void _pre_step_kinematic(float p_step, JPH::Body &p_jolt_body);
 
 	JPH::EAllowedDOFs _calculate_allowed_dofs() const;
 

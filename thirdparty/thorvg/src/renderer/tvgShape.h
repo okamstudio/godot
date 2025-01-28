@@ -33,10 +33,9 @@ struct Shape::Impl
     RenderShape rs;                     //shape data
     RenderData rd = nullptr;            //engine data
     Shape* shape;
-    uint8_t flag = RenderUpdateFlag::None;
-
+    uint8_t rFlag = RenderUpdateFlag::None;
+    uint8_t cFlag = CompositionFlag::Invalid;
     uint8_t opacity;                    //for composition
-    bool needComp = false;              //composite or not
 
     Impl(Shape* s) : shape(s)
     {
@@ -57,8 +56,8 @@ struct Shape::Impl
 
         renderer->blend(PP(shape)->blendMethod);
 
-        if (needComp) {
-            cmp = renderer->target(bounds(renderer), renderer->colorSpace());
+        if (cFlag) {
+            cmp = renderer->target(bounds(renderer), renderer->colorSpace(), static_cast<CompositionFlag>(cFlag));
             renderer->beginComposite(cmp, CompositeMethod::None, opacity);
         }
 
@@ -69,6 +68,8 @@ struct Shape::Impl
 
     bool needComposition(uint8_t opacity)
     {
+        cFlag = CompositionFlag::Invalid;
+
         if (opacity == 0) return false;
 
         //Shape composition is only necessary when stroking & fill are valid.
@@ -76,7 +77,10 @@ struct Shape::Impl
         if (!rs.fill && rs.color[3] == 0) return false;
 
         //translucent fill & stroke
-        if (opacity < 255) return true;
+        if (opacity < 255) {
+            cFlag = CompositionFlag::Opacity;
+            return true;
+        }
 
         //Composition test
         const Paint* target;
@@ -97,22 +101,23 @@ struct Shape::Impl
             }
         }
 
+        cFlag = CompositionFlag::Masking;
         return true;
     }
 
     RenderData update(RenderMethod* renderer, const Matrix& transform, Array<RenderData>& clips, uint8_t opacity, RenderUpdateFlag pFlag, bool clipper)
     {
-        if (static_cast<RenderUpdateFlag>(pFlag | flag) == RenderUpdateFlag::None) return rd;
+        if (static_cast<RenderUpdateFlag>(pFlag | rFlag) == RenderUpdateFlag::None) return rd;
 
-        if ((needComp = needComposition(opacity))) {
+        if (needComposition(opacity)) {
             /* Overriding opacity value. If this scene is half-translucent,
                It must do intermediate composition with that opacity value. */ 
             this->opacity = opacity;
             opacity = 255;
         }
 
-        rd = renderer->prepare(rs, rd, transform, clips, opacity, static_cast<RenderUpdateFlag>(pFlag | flag), clipper);
-        flag = RenderUpdateFlag::None;
+        rd = renderer->prepare(rs, rd, transform, clips, opacity, static_cast<RenderUpdateFlag>(pFlag | rFlag), clipper);
+        rFlag = RenderUpdateFlag::None;
         return rd;
     }
 
@@ -209,7 +214,7 @@ struct Shape::Impl
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();
         rs.stroke->width = width;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     void strokeTrim(float begin, float end, bool simultaneous)
@@ -225,7 +230,7 @@ struct Shape::Impl
         rs.stroke->trim.begin = begin;
         rs.stroke->trim.end = end;
         rs.stroke->trim.simultaneous = simultaneous;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     bool strokeTrim(float* begin, float* end)
@@ -245,21 +250,21 @@ struct Shape::Impl
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();
         rs.stroke->cap = cap;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     void strokeJoin(StrokeJoin join)
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();
         rs.stroke->join = join;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     void strokeMiterlimit(float miterlimit)
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();
         rs.stroke->miterlimit = miterlimit;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     void strokeColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
@@ -268,7 +273,7 @@ struct Shape::Impl
         if (rs.stroke->fill) {
             delete(rs.stroke->fill);
             rs.stroke->fill = nullptr;
-            flag |= RenderUpdateFlag::GradientStroke;
+            rFlag |= RenderUpdateFlag::GradientStroke;
         }
 
         rs.stroke->color[0] = r;
@@ -276,7 +281,7 @@ struct Shape::Impl
         rs.stroke->color[2] = b;
         rs.stroke->color[3] = a;
 
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     Result strokeFill(unique_ptr<Fill> f)
@@ -289,8 +294,8 @@ struct Shape::Impl
         rs.stroke->fill = p;
         rs.stroke->color[3] = 0;
 
-        flag |= RenderUpdateFlag::Stroke;
-        flag |= RenderUpdateFlag::GradientStroke;
+        rFlag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::GradientStroke;
 
         return Result::Success;
     }
@@ -325,7 +330,7 @@ struct Shape::Impl
         }
         rs.stroke->dashCnt = cnt;
         rs.stroke->dashOffset = offset;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
 
         return Result::Success;
     }
@@ -340,12 +345,12 @@ struct Shape::Impl
     {
         if (!rs.stroke) rs.stroke = new RenderStroke();
         rs.stroke->strokeFirst = strokeFirst;
-        flag |= RenderUpdateFlag::Stroke;
+        rFlag |= RenderUpdateFlag::Stroke;
     }
 
     void update(RenderUpdateFlag flag)
     {
-        this->flag |= flag;
+        rFlag |= flag;
     }
 
     Paint* duplicate(Paint* ret)
@@ -358,7 +363,7 @@ struct Shape::Impl
         delete(dup->rs.fill);
 
         //Default Properties
-        dup->flag = RenderUpdateFlag::All;
+        dup->rFlag = RenderUpdateFlag::All;
         dup->rs.rule = rs.rule;
 
         //Color

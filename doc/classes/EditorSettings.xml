@@ -1136,6 +1136,9 @@
 			- [b]Launch in PiP mode[/b] will launch the Play window directly in picture-in-picture (PiP) mode if PiP mode is supported and enabled. When maximized, the Play window will occupy the same window as the Editor.
 			[b]Note:[/b] Only available in the Android editor.
 		</member>
+		<member name="run/window_placement/game_embed_mode" type="int" setter="" getter="">
+			Overrides game embedding setting for all newly opened projects. If enabled, game embedding settings are not saved.
+		</member>
 		<member name="run/window_placement/play_window_pip_mode" type="int" setter="" getter="">
 			Specifies the picture-in-picture (PiP) mode for the Play window.
 			- [b]Disabled:[/b] PiP is disabled for the Play window.

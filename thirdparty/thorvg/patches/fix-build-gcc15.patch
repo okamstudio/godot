@@ -1,0 +1,12 @@
+diff --git a/thirdparty/thorvg/inc/thorvg.h b/thirdparty/thorvg/inc/thorvg.h
+index 8e3ab4e6ce..f515a03136 100644
+--- a/thirdparty/thorvg/inc/thorvg.h
++++ b/thirdparty/thorvg/inc/thorvg.h
+@@ -1,6 +1,7 @@
+ #ifndef _THORVG_H_
+ #define _THORVG_H_
+ 
++#include <cstdint>
+ #include <functional>
+ #include <memory>
+ #include <string>

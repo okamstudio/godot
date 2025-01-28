@@ -39,6 +39,7 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
+#include "scene/gui/scroll_container.h"
 #include "scene/gui/split_container.h"
 
 void EditorBottomPanel::_notification(int p_what) {
@@ -46,6 +47,19 @@ void EditorBottomPanel::_notification(int p_what) {
 		case NOTIFICATION_THEME_CHANGED: {
 			pin_button->set_button_icon(get_editor_theme_icon(SNAME("Pin")));
 			expand_button->set_button_icon(get_editor_theme_icon(SNAME("ExpandBottomDock")));
+			left_button->set_button_icon(get_editor_theme_icon(SNAME("Back")));
+			right_button->set_button_icon(get_editor_theme_icon(SNAME("Forward")));
+		} break;
+
+		case NOTIFICATION_TRANSLATION_CHANGED:
+		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED: {
+			if (is_layout_rtl()) {
+				bottom_hbox->move_child(left_button, button_scroll->get_index() + 1);
+				bottom_hbox->move_child(right_button, 0);
+			} else {
+				bottom_hbox->move_child(right_button, button_scroll->get_index() + 1);
+				bottom_hbox->move_child(left_button, 0);
+			}
 		} break;
 	}
 }
@@ -57,6 +71,33 @@ void EditorBottomPanel::_switch_by_control(bool p_visible, Control *p_control, b
 			return;
 		}
 	}
+}
+
+void EditorBottomPanel::_scroll(bool p_right) {
+	HScrollBar *h_scroll = button_scroll->get_h_scroll_bar();
+	if (Input::get_singleton()->is_key_pressed(Key::CTRL)) {
+		h_scroll->set_value(p_right ? h_scroll->get_max() : 0);
+	} else if (Input::get_singleton()->is_key_pressed(Key::SHIFT)) {
+		h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * (p_right ? 1 : -1));
+	} else {
+		h_scroll->set_value(h_scroll->get_value() + (h_scroll->get_page() * 0.5) * (p_right ? 1 : -1));
+	}
+}
+
+void EditorBottomPanel::_update_scroll_buttons() {
+	bool show_arrows = button_hbox->get_size().width > button_scroll->get_size().width;
+	left_button->set_visible(show_arrows);
+	right_button->set_visible(show_arrows);
+
+	if (show_arrows) {
+		_update_disabled_buttons();
+	}
+}
+
+void EditorBottomPanel::_update_disabled_buttons() {
+	HScrollBar *h_scroll = button_scroll->get_h_scroll_bar();
+	left_button->set_disabled(h_scroll->get_value() == 0);
+	right_button->set_disabled(h_scroll->get_value() + h_scroll->get_page() == h_scroll->get_max());
 }
 
 void EditorBottomPanel::_switch_to_item(bool p_visible, int p_idx, bool p_ignore_lock) {
@@ -93,6 +134,7 @@ void EditorBottomPanel::_switch_to_item(bool p_visible, int p_idx, bool p_ignore
 		if (expand_button->is_pressed()) {
 			EditorNode::get_top_split()->hide();
 		}
+		callable_mp(button_scroll, &ScrollContainer::ensure_control_visible).call_deferred(items[p_idx].button);
 	} else {
 		add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("BottomPanel"), EditorStringName(EditorStyles)));
 		items[p_idx].button->set_pressed_no_signal(false);
@@ -259,9 +301,35 @@ EditorBottomPanel::EditorBottomPanel() {
 	bottom_hbox->set_custom_minimum_size(Size2(0, 24 * EDSCALE)); // Adjust for the height of the "Expand Bottom Dock" icon.
 	item_vbox->add_child(bottom_hbox);
 
+	left_button = memnew(Button);
+	left_button->set_tooltip_text(TTR("Scroll Left\nHold Ctrl to scroll to the begin.\nHold Shift to scroll one page."));
+	left_button->set_theme_type_variation("BottomPanelButton");
+	left_button->set_focus_mode(Control::FOCUS_NONE);
+	left_button->connect(SceneStringName(pressed), callable_mp(this, &EditorBottomPanel::_scroll).bind(false));
+	bottom_hbox->add_child(left_button);
+	left_button->hide();
+
+	button_scroll = memnew(ScrollContainer);
+	button_scroll->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	button_scroll->set_horizontal_scroll_mode(ScrollContainer::SCROLL_MODE_SHOW_NEVER);
+	button_scroll->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
+	button_scroll->get_h_scroll_bar()->connect(CoreStringName(changed), callable_mp(this, &EditorBottomPanel::_update_scroll_buttons), CONNECT_DEFERRED);
+	button_scroll->get_h_scroll_bar()->connect(SceneStringName(value_changed), callable_mp(this, &EditorBottomPanel::_update_disabled_buttons).unbind(1), CONNECT_DEFERRED);
+	bottom_hbox->add_child(button_scroll);
+
+	right_button = memnew(Button);
+	right_button->set_tooltip_text(TTR("Scroll Right\nHold Ctrl to scroll to the end.\nHold Shift to scroll one page."));
+	right_button->set_theme_type_variation("BottomPanelButton");
+	right_button->set_focus_mode(Control::FOCUS_NONE);
+	right_button->connect(SceneStringName(pressed), callable_mp(this, &EditorBottomPanel::_scroll).bind(true));
+	bottom_hbox->add_child(right_button);
+	right_button->hide();
+
+	callable_mp(this, &EditorBottomPanel::_update_scroll_buttons).call_deferred();
+
 	button_hbox = memnew(HBoxContainer);
-	button_hbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
-	bottom_hbox->add_child(button_hbox);
+	button_hbox->set_h_size_flags(Control::SIZE_EXPAND | Control::SIZE_SHRINK_BEGIN);
+	button_scroll->add_child(button_hbox);
 
 	editor_toaster = memnew(EditorToaster);
 	bottom_hbox->add_child(editor_toaster);

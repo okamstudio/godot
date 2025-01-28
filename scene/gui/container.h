@@ -41,14 +41,14 @@ class Container : public Control {
 	void _child_minsize_changed();
 
 protected:
-	enum class SortableVisbilityMode {
+	enum class SortableVisibilityMode {
 		VISIBLE,
 		VISIBLE_IN_TREE,
 		IGNORE,
 	};
 
 	void queue_sort();
-	Control *as_sortable_control(Node *p_node, SortableVisbilityMode p_visibility_mode = SortableVisbilityMode::VISIBLE_IN_TREE) const;
+	Control *as_sortable_control(Node *p_node, SortableVisibilityMode p_visibility_mode = SortableVisibilityMode::VISIBLE_IN_TREE) const;
 
 	virtual void add_child_notify(Node *p_child) override;
 	virtual void move_child_notify(Node *p_child) override;

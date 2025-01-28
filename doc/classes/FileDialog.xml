@@ -151,6 +151,7 @@
 		<member name="mode_overrides_title" type="bool" setter="set_mode_overrides_title" getter="is_mode_overriding_title" default="true">
 			If [code]true[/code], changing the [member file_mode] property will set the window title accordingly (e.g. setting [member file_mode] to [constant FILE_MODE_OPEN_FILE] will change the window title to "Open a File").
 		</member>
+		<member name="ok_button_text" type="String" setter="set_ok_button_text" getter="get_ok_button_text" overrides="AcceptDialog" default="&quot;Save&quot;" />
 		<member name="option_count" type="int" setter="set_option_count" getter="get_option_count" default="0">
 			The number of additional [OptionButton]s and [CheckBox]es in the dialog.
 		</member>

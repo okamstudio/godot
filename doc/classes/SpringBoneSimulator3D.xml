@@ -10,6 +10,7 @@
 		Several properties can be applied to each joint, such as [method set_joint_stiffness], [method set_joint_drag], and [method set_joint_gravity].
 		For simplicity, you can set values to all joints at the same time by using a [Curve]. If you want to specify detailed values individually, set [method set_individual_config] to [code]true[/code].
 		For physical simulation, [SpringBoneSimulator3D] can have children as self-standing collisions that are not related to [PhysicsServer3D], see also [SpringBoneCollision3D].
+		[b]Warning:[/b] A scaled [SpringBoneSimulator3D] will likely not behave as expected. Make sure that the parent [Skeleton3D] and its bones are not scaled.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -446,7 +447,7 @@
 			<param index="0" name="index" type="int" />
 			<param index="1" name="gravity" type="float" />
 			<description>
-				Sets the gravity amount of the bone chain.
+				Sets the gravity amount of the bone chain. This value is not an acceleration, but a constant velocity of movement in [method set_gravity_direction].
 				If [param gravity] is not [code]0[/code], the modified pose will not return to the original pose since it is always affected by gravity.
 				The value is scaled by [method set_gravity_damping_curve] and cached in each joint setting in the joint list.
 			</description>
@@ -464,7 +465,7 @@
 			<param index="0" name="index" type="int" />
 			<param index="1" name="gravity_direction" type="Vector3" />
 			<description>
-				Sets the gravity direction of the bone chain.
+				Sets the gravity direction of the bone chain. This value is internally normalized and then multiplied by [method set_gravity].
 				The value is cached in each joint setting in the joint list.
 			</description>
 		</method>
@@ -570,6 +571,7 @@
 			<description>
 				Sets the rotation axis of the bone chain. If sets a specific axis, it acts like a hinge joint.
 				The value is cached in each joint setting in the joint list.
+				[b]Note:[/b] The rotation axis and the forward vector shouldn't be colinear to avoid unintended rotation since [SpringBoneSimulator3D] does not factor in twisting forces.
 			</description>
 		</method>
 		<method name="set_stiffness">

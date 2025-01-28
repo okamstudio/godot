@@ -33,46 +33,23 @@
 #include "nav_mesh_generator_3d.h"
 
 #include "core/config/project_settings.h"
-#include "core/math/convex_hull.h"
 #include "core/os/thread.h"
-#include "scene/3d/mesh_instance_3d.h"
-#include "scene/3d/multimesh_instance_3d.h"
-#include "scene/3d/navigation_obstacle_3d.h"
-#include "scene/3d/physics/static_body_3d.h"
-#include "scene/resources/3d/box_shape_3d.h"
-#include "scene/resources/3d/capsule_shape_3d.h"
-#include "scene/resources/3d/concave_polygon_shape_3d.h"
-#include "scene/resources/3d/convex_polygon_shape_3d.h"
-#include "scene/resources/3d/cylinder_shape_3d.h"
-#include "scene/resources/3d/height_map_shape_3d.h"
+#include "scene/3d/node_3d.h"
 #include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
-#include "scene/resources/3d/primitive_meshes.h"
-#include "scene/resources/3d/shape_3d.h"
-#include "scene/resources/3d/sphere_shape_3d.h"
 #include "scene/resources/navigation_mesh.h"
-
-#include "modules/modules_enabled.gen.h" // For csg, gridmap.
-
-#ifdef MODULE_CSG_ENABLED
-#include "modules/csg/csg_shape.h"
-#endif
-#ifdef MODULE_GRIDMAP_ENABLED
-#include "modules/gridmap/grid_map.h"
-#endif
 
 #include <Recast.h>
 
 NavMeshGenerator3D *NavMeshGenerator3D::singleton = nullptr;
 Mutex NavMeshGenerator3D::baking_navmesh_mutex;
 Mutex NavMeshGenerator3D::generator_task_mutex;
-RWLock NavMeshGenerator3D::generator_rid_rwlock;
+RWLock NavMeshGenerator3D::generator_parsers_rwlock;
 bool NavMeshGenerator3D::use_threads = true;
 bool NavMeshGenerator3D::baking_use_multiple_threads = true;
 bool NavMeshGenerator3D::baking_use_high_priority_threads = true;
 HashSet<Ref<NavigationMesh>> NavMeshGenerator3D::baking_navmeshes;
 HashMap<WorkerThreadPool::TaskID, NavMeshGenerator3D::NavMeshGeneratorTask3D *> NavMeshGenerator3D::generator_tasks;
-RID_Owner<NavMeshGenerator3D::NavMeshGeometryParser3D> NavMeshGenerator3D::generator_parser_owner;
-LocalVector<NavMeshGenerator3D::NavMeshGeometryParser3D *> NavMeshGenerator3D::generator_parsers;
+LocalVector<NavMeshGeometryParser3D *> NavMeshGenerator3D::generator_parsers;
 
 NavMeshGenerator3D *NavMeshGenerator3D::get_singleton() {
 	return singleton;
@@ -141,12 +118,9 @@ void NavMeshGenerator3D::cleanup() {
 		}
 		generator_tasks.clear();
 
-		generator_rid_rwlock.write_lock();
-		for (NavMeshGeometryParser3D *parser : generator_parsers) {
-			generator_parser_owner.free(parser->self);
-		}
+		generator_parsers_rwlock.write_lock();
 		generator_parsers.clear();
-		generator_rid_rwlock.write_unlock();
+		generator_parsers_rwlock.write_unlock();
 	}
 }
 
@@ -247,25 +221,14 @@ void NavMeshGenerator3D::generator_thread_bake(void *p_arg) {
 }
 
 void NavMeshGenerator3D::generator_parse_geometry_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node, bool p_recurse_children) {
-	generator_parse_meshinstance3d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_multimeshinstance3d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_staticbody3d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-#ifdef MODULE_CSG_ENABLED
-	generator_parse_csgshape3d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-#endif
-#ifdef MODULE_GRIDMAP_ENABLED
-	generator_parse_gridmap_node(p_navigation_mesh, p_source_geometry_data, p_node);
-#endif
-	generator_parse_navigationobstacle_node(p_navigation_mesh, p_source_geometry_data, p_node);
-
-	generator_rid_rwlock.read_lock();
+	generator_parsers_rwlock.read_lock();
 	for (const NavMeshGeometryParser3D *parser : generator_parsers) {
 		if (!parser->callback.is_valid()) {
 			continue;
 		}
 		parser->callback.call(p_navigation_mesh, p_source_geometry_data, p_node);
 	}
-	generator_rid_rwlock.read_unlock();
+	generator_parsers_rwlock.read_unlock();
 
 	if (p_recurse_children) {
 		for (int i = 0; i < p_node->get_child_count(); i++) {
@@ -274,376 +237,9 @@ void NavMeshGenerator3D::generator_parse_geometry_node(const Ref<NavigationMesh>
 	}
 }
 
-void NavMeshGenerator3D::generator_parse_meshinstance3d_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	MeshInstance3D *mesh_instance = Object::cast_to<MeshInstance3D>(p_node);
-
-	if (mesh_instance) {
-		NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-
-		if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
-			Ref<Mesh> mesh = mesh_instance->get_mesh();
-			if (mesh.is_valid()) {
-				p_source_geometry_data->add_mesh(mesh, mesh_instance->get_global_transform());
-			}
-		}
-	}
-}
-
-void NavMeshGenerator3D::generator_parse_multimeshinstance3d_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	MultiMeshInstance3D *multimesh_instance = Object::cast_to<MultiMeshInstance3D>(p_node);
-
-	if (multimesh_instance) {
-		NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-
-		if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
-			Ref<MultiMesh> multimesh = multimesh_instance->get_multimesh();
-			if (multimesh.is_valid()) {
-				Ref<Mesh> mesh = multimesh->get_mesh();
-				if (mesh.is_valid()) {
-					int n = multimesh->get_visible_instance_count();
-					if (n == -1) {
-						n = multimesh->get_instance_count();
-					}
-					for (int i = 0; i < n; i++) {
-						p_source_geometry_data->add_mesh(mesh, multimesh_instance->get_global_transform() * multimesh->get_instance_transform(i));
-					}
-				}
-			}
-		}
-	}
-}
-
-void NavMeshGenerator3D::generator_parse_staticbody3d_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	StaticBody3D *static_body = Object::cast_to<StaticBody3D>(p_node);
-
-	if (static_body) {
-		NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-		uint32_t parsed_collision_mask = p_navigation_mesh->get_collision_mask();
-
-		if ((parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) && (static_body->get_collision_layer() & parsed_collision_mask)) {
-			List<uint32_t> shape_owners;
-			static_body->get_shape_owners(&shape_owners);
-			for (uint32_t shape_owner : shape_owners) {
-				if (static_body->is_shape_owner_disabled(shape_owner)) {
-					continue;
-				}
-				const int shape_count = static_body->shape_owner_get_shape_count(shape_owner);
-				for (int shape_index = 0; shape_index < shape_count; shape_index++) {
-					Ref<Shape3D> s = static_body->shape_owner_get_shape(shape_owner, shape_index);
-					if (s.is_null()) {
-						continue;
-					}
-
-					const Transform3D transform = static_body->get_global_transform() * static_body->shape_owner_get_transform(shape_owner);
-
-					BoxShape3D *box = Object::cast_to<BoxShape3D>(*s);
-					if (box) {
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						BoxMesh::create_mesh_array(arr, box->get_size());
-						p_source_geometry_data->add_mesh_array(arr, transform);
-					}
-
-					CapsuleShape3D *capsule = Object::cast_to<CapsuleShape3D>(*s);
-					if (capsule) {
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						CapsuleMesh::create_mesh_array(arr, capsule->get_radius(), capsule->get_height());
-						p_source_geometry_data->add_mesh_array(arr, transform);
-					}
-
-					CylinderShape3D *cylinder = Object::cast_to<CylinderShape3D>(*s);
-					if (cylinder) {
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						CylinderMesh::create_mesh_array(arr, cylinder->get_radius(), cylinder->get_radius(), cylinder->get_height());
-						p_source_geometry_data->add_mesh_array(arr, transform);
-					}
-
-					SphereShape3D *sphere = Object::cast_to<SphereShape3D>(*s);
-					if (sphere) {
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						SphereMesh::create_mesh_array(arr, sphere->get_radius(), sphere->get_radius() * 2.0);
-						p_source_geometry_data->add_mesh_array(arr, transform);
-					}
-
-					ConcavePolygonShape3D *concave_polygon = Object::cast_to<ConcavePolygonShape3D>(*s);
-					if (concave_polygon) {
-						p_source_geometry_data->add_faces(concave_polygon->get_faces(), transform);
-					}
-
-					ConvexPolygonShape3D *convex_polygon = Object::cast_to<ConvexPolygonShape3D>(*s);
-					if (convex_polygon) {
-						Vector<Vector3> varr = Variant(convex_polygon->get_points());
-						Geometry3D::MeshData md;
-
-						Error err = ConvexHullComputer::convex_hull(varr, md);
-
-						if (err == OK) {
-							PackedVector3Array faces;
-
-							for (const Geometry3D::MeshData::Face &face : md.faces) {
-								for (uint32_t k = 2; k < face.indices.size(); ++k) {
-									faces.push_back(md.vertices[face.indices[0]]);
-									faces.push_back(md.vertices[face.indices[k - 1]]);
-									faces.push_back(md.vertices[face.indices[k]]);
-								}
-							}
-
-							p_source_geometry_data->add_faces(faces, transform);
-						}
-					}
-
-					HeightMapShape3D *heightmap_shape = Object::cast_to<HeightMapShape3D>(*s);
-					if (heightmap_shape) {
-						int heightmap_depth = heightmap_shape->get_map_depth();
-						int heightmap_width = heightmap_shape->get_map_width();
-
-						if (heightmap_depth >= 2 && heightmap_width >= 2) {
-							const Vector<real_t> &map_data = heightmap_shape->get_map_data();
-
-							Vector2 heightmap_gridsize(heightmap_width - 1, heightmap_depth - 1);
-							Vector3 start = Vector3(heightmap_gridsize.x, 0, heightmap_gridsize.y) * -0.5;
-
-							Vector<Vector3> vertex_array;
-							vertex_array.resize((heightmap_depth - 1) * (heightmap_width - 1) * 6);
-							Vector3 *vertex_array_ptrw = vertex_array.ptrw();
-							const real_t *map_data_ptr = map_data.ptr();
-							int vertex_index = 0;
-
-							for (int d = 0; d < heightmap_depth - 1; d++) {
-								for (int w = 0; w < heightmap_width - 1; w++) {
-									vertex_array_ptrw[vertex_index] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + w], d);
-									vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-									vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-									vertex_array_ptrw[vertex_index + 3] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-									vertex_array_ptrw[vertex_index + 4] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1], d + 1);
-									vertex_array_ptrw[vertex_index + 5] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-									vertex_index += 6;
-								}
-							}
-							if (vertex_array.size() > 0) {
-								p_source_geometry_data->add_faces(vertex_array, transform);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-#ifdef MODULE_CSG_ENABLED
-void NavMeshGenerator3D::generator_parse_csgshape3d_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	CSGShape3D *csgshape3d = Object::cast_to<CSGShape3D>(p_node);
-
-	if (csgshape3d) {
-		NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-		uint32_t parsed_collision_mask = p_navigation_mesh->get_collision_mask();
-
-		if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_STATIC_COLLIDERS && csgshape3d->is_using_collision() && (csgshape3d->get_collision_layer() & parsed_collision_mask)) || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
-			CSGShape3D *csg_shape = Object::cast_to<CSGShape3D>(p_node);
-			Array meshes = csg_shape->get_meshes();
-			if (!meshes.is_empty()) {
-				Ref<Mesh> mesh = meshes[1];
-				if (mesh.is_valid()) {
-					p_source_geometry_data->add_mesh(mesh, csg_shape->get_global_transform());
-				}
-			}
-		}
-	}
-}
-#endif // MODULE_CSG_ENABLED
-
-#ifdef MODULE_GRIDMAP_ENABLED
-void NavMeshGenerator3D::generator_parse_gridmap_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	GridMap *gridmap = Object::cast_to<GridMap>(p_node);
-
-	if (gridmap) {
-		NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-		uint32_t parsed_collision_mask = p_navigation_mesh->get_collision_mask();
-
-		if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
-			Array meshes = gridmap->get_meshes();
-			Transform3D xform = gridmap->get_global_transform();
-			for (int i = 0; i < meshes.size(); i += 2) {
-				Ref<Mesh> mesh = meshes[i + 1];
-				if (mesh.is_valid()) {
-					p_source_geometry_data->add_mesh(mesh, xform * (Transform3D)meshes[i]);
-				}
-			}
-		}
-
-		else if ((parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) && (gridmap->get_collision_layer() & parsed_collision_mask)) {
-			Array shapes = gridmap->get_collision_shapes();
-			for (int i = 0; i < shapes.size(); i += 2) {
-				RID shape = shapes[i + 1];
-				PhysicsServer3D::ShapeType type = PhysicsServer3D::get_singleton()->shape_get_type(shape);
-				Variant data = PhysicsServer3D::get_singleton()->shape_get_data(shape);
-
-				switch (type) {
-					case PhysicsServer3D::SHAPE_SPHERE: {
-						real_t radius = data;
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						SphereMesh::create_mesh_array(arr, radius, radius * 2.0);
-						p_source_geometry_data->add_mesh_array(arr, shapes[i]);
-					} break;
-					case PhysicsServer3D::SHAPE_BOX: {
-						Vector3 extents = data;
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						BoxMesh::create_mesh_array(arr, extents * 2.0);
-						p_source_geometry_data->add_mesh_array(arr, shapes[i]);
-					} break;
-					case PhysicsServer3D::SHAPE_CAPSULE: {
-						Dictionary dict = data;
-						real_t radius = dict["radius"];
-						real_t height = dict["height"];
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						CapsuleMesh::create_mesh_array(arr, radius, height);
-						p_source_geometry_data->add_mesh_array(arr, shapes[i]);
-					} break;
-					case PhysicsServer3D::SHAPE_CYLINDER: {
-						Dictionary dict = data;
-						real_t radius = dict["radius"];
-						real_t height = dict["height"];
-						Array arr;
-						arr.resize(RS::ARRAY_MAX);
-						CylinderMesh::create_mesh_array(arr, radius, radius, height);
-						p_source_geometry_data->add_mesh_array(arr, shapes[i]);
-					} break;
-					case PhysicsServer3D::SHAPE_CONVEX_POLYGON: {
-						PackedVector3Array vertices = data;
-						Geometry3D::MeshData md;
-
-						Error err = ConvexHullComputer::convex_hull(vertices, md);
-
-						if (err == OK) {
-							PackedVector3Array faces;
-
-							for (const Geometry3D::MeshData::Face &face : md.faces) {
-								for (uint32_t k = 2; k < face.indices.size(); ++k) {
-									faces.push_back(md.vertices[face.indices[0]]);
-									faces.push_back(md.vertices[face.indices[k - 1]]);
-									faces.push_back(md.vertices[face.indices[k]]);
-								}
-							}
-
-							p_source_geometry_data->add_faces(faces, shapes[i]);
-						}
-					} break;
-					case PhysicsServer3D::SHAPE_CONCAVE_POLYGON: {
-						Dictionary dict = data;
-						PackedVector3Array faces = Variant(dict["faces"]);
-						p_source_geometry_data->add_faces(faces, shapes[i]);
-					} break;
-					case PhysicsServer3D::SHAPE_HEIGHTMAP: {
-						Dictionary dict = data;
-						///< dict( int:"width", int:"depth",float:"cell_size", float_array:"heights"
-						int heightmap_depth = dict["depth"];
-						int heightmap_width = dict["width"];
-
-						if (heightmap_depth >= 2 && heightmap_width >= 2) {
-							const Vector<real_t> &map_data = dict["heights"];
-
-							Vector2 heightmap_gridsize(heightmap_width - 1, heightmap_depth - 1);
-							Vector3 start = Vector3(heightmap_gridsize.x, 0, heightmap_gridsize.y) * -0.5;
-
-							Vector<Vector3> vertex_array;
-							vertex_array.resize((heightmap_depth - 1) * (heightmap_width - 1) * 6);
-							Vector3 *vertex_array_ptrw = vertex_array.ptrw();
-							const real_t *map_data_ptr = map_data.ptr();
-							int vertex_index = 0;
-
-							for (int d = 0; d < heightmap_depth - 1; d++) {
-								for (int w = 0; w < heightmap_width - 1; w++) {
-									vertex_array_ptrw[vertex_index] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + w], d);
-									vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-									vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-									vertex_array_ptrw[vertex_index + 3] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
-									vertex_array_ptrw[vertex_index + 4] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1], d + 1);
-									vertex_array_ptrw[vertex_index + 5] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
-									vertex_index += 6;
-								}
-							}
-							if (vertex_array.size() > 0) {
-								p_source_geometry_data->add_faces(vertex_array, shapes[i]);
-							}
-						}
-					} break;
-					default: {
-						WARN_PRINT("Unsupported collision shape type.");
-					} break;
-				}
-			}
-		}
-	}
-}
-#endif // MODULE_GRIDMAP_ENABLED
-
-void NavMeshGenerator3D::generator_parse_navigationobstacle_node(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
-	NavigationObstacle3D *obstacle = Object::cast_to<NavigationObstacle3D>(p_node);
-	if (obstacle == nullptr) {
-		return;
-	}
-
-	if (!obstacle->get_affect_navigation_mesh()) {
-		return;
-	}
-
-	const float elevation = obstacle->get_global_position().y + p_source_geometry_data->root_node_transform.origin.y;
-	// Prevent non-positive scaling.
-	const Vector3 safe_scale = obstacle->get_global_basis().get_scale().abs().maxf(0.001);
-	const float obstacle_radius = obstacle->get_radius();
-
-	if (obstacle_radius > 0.0) {
-		// Radius defined obstacle should be uniformly scaled from obstacle basis max scale axis.
-		const float scaling_max_value = safe_scale[safe_scale.max_axis_index()];
-		const Vector3 uniform_max_scale = Vector3(scaling_max_value, scaling_max_value, scaling_max_value);
-		const Transform3D obstacle_circle_transform = p_source_geometry_data->root_node_transform * Transform3D(Basis().scaled(uniform_max_scale), obstacle->get_global_position());
-
-		Vector<Vector3> obstruction_circle_vertices;
-
-		// The point of this is that the moving obstacle can make a simple hole in the navigation mesh and affect the pathfinding.
-		// Without, navigation paths can go directly through the middle of the obstacle and conflict with the avoidance to get agents stuck.
-		// No place for excessive "round" detail here. Every additional edge adds a high cost for something that needs to be quick, not pretty.
-		static const int circle_points = 12;
-
-		obstruction_circle_vertices.resize(circle_points);
-		Vector3 *circle_vertices_ptrw = obstruction_circle_vertices.ptrw();
-		const real_t circle_point_step = Math_TAU / circle_points;
-
-		for (int i = 0; i < circle_points; i++) {
-			const float angle = i * circle_point_step;
-			circle_vertices_ptrw[i] = obstacle_circle_transform.xform(Vector3(Math::cos(angle) * obstacle_radius, 0.0, Math::sin(angle) * obstacle_radius));
-		}
-
-		p_source_geometry_data->add_projected_obstruction(obstruction_circle_vertices, elevation - obstacle_radius, scaling_max_value * obstacle_radius, obstacle->get_carve_navigation_mesh());
-	}
-
-	// Obstacles are projected to the xz-plane, so only rotation around the y-axis can be taken into account.
-	const Transform3D node_xform = p_source_geometry_data->root_node_transform * Transform3D(Basis().scaled(safe_scale).rotated(Vector3(0.0, 1.0, 0.0), obstacle->get_global_rotation().y), obstacle->get_global_position());
-
-	const Vector<Vector3> &obstacle_vertices = obstacle->get_vertices();
-
-	if (obstacle_vertices.is_empty()) {
-		return;
-	}
-
-	Vector<Vector3> obstruction_shape_vertices;
-	obstruction_shape_vertices.resize(obstacle_vertices.size());
-
-	const Vector3 *obstacle_vertices_ptr = obstacle_vertices.ptr();
-	Vector3 *obstruction_shape_vertices_ptrw = obstruction_shape_vertices.ptrw();
-
-	for (int i = 0; i < obstacle_vertices.size(); i++) {
-		obstruction_shape_vertices_ptrw[i] = node_xform.xform(obstacle_vertices_ptr[i]);
-		obstruction_shape_vertices_ptrw[i].y = 0.0;
-	}
-	p_source_geometry_data->add_projected_obstruction(obstruction_shape_vertices, elevation, safe_scale.y * obstacle->get_height(), obstacle->get_carve_navigation_mesh());
+void NavMeshGenerator3D::set_generator_parsers(LocalVector<NavMeshGeometryParser3D *> p_parsers) {
+	RWLockWrite write_lock(generator_parsers_rwlock);
+	generator_parsers = p_parsers;
 }
 
 void NavMeshGenerator3D::generator_parse_source_geometry_data(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_root_node) {
@@ -963,47 +559,6 @@ bool NavMeshGenerator3D::generator_emit_callback(const Callable &p_callback) {
 	p_callback.callp(nullptr, 0, result, ce);
 
 	return ce.error == Callable::CallError::CALL_OK;
-}
-
-RID NavMeshGenerator3D::source_geometry_parser_create() {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	RID rid = generator_parser_owner.make_rid();
-
-	NavMeshGeometryParser3D *parser = generator_parser_owner.get_or_null(rid);
-	parser->self = rid;
-
-	generator_parsers.push_back(parser);
-
-	return rid;
-}
-
-void NavMeshGenerator3D::source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	NavMeshGeometryParser3D *parser = generator_parser_owner.get_or_null(p_parser);
-	ERR_FAIL_NULL(parser);
-
-	parser->callback = p_callback;
-}
-
-bool NavMeshGenerator3D::owns(RID p_object) {
-	RWLockRead read_lock(generator_rid_rwlock);
-	return generator_parser_owner.owns(p_object);
-}
-
-void NavMeshGenerator3D::free(RID p_object) {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	if (generator_parser_owner.owns(p_object)) {
-		NavMeshGeometryParser3D *parser = generator_parser_owner.get_or_null(p_object);
-
-		generator_parsers.erase(parser);
-
-		generator_parser_owner.free(p_object);
-	} else {
-		ERR_PRINT("Attempted to free a NavMeshGenerator3D RID that did not exist (or was already freed).");
-	}
 }
 
 #endif // _3D_DISABLED

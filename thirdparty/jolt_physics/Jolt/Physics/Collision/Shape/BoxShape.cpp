@@ -59,7 +59,7 @@ BoxShape::BoxShape(const BoxShapeSettings &inSettings, ShapeResult &outResult) :
 {
 	// Check convex radius
 	if (inSettings.mConvexRadius < 0.0f
-		|| inSettings.mHalfExtent.ReduceMin() <= inSettings.mConvexRadius)
+		|| inSettings.mHalfExtent.ReduceMin() < inSettings.mConvexRadius)
 	{
 		outResult.SetError("Invalid convex radius");
 		return;
@@ -278,7 +278,7 @@ void BoxShape::CollideSoftBodyVertices(Mat44Arg inCenterOfMassTransform, Vec3Arg
 
 void BoxShape::GetTrianglesStart(GetTrianglesContext &ioContext, const AABox &inBox, Vec3Arg inPositionCOM, QuatArg inRotation, Vec3Arg inScale) const
 {
-	new (&ioContext) GetTrianglesContextVertexList(inPositionCOM, inRotation, inScale, Mat44::sScale(mHalfExtent), sUnitBoxTriangles, sizeof(sUnitBoxTriangles) / sizeof(Vec3), GetMaterial());
+	new (&ioContext) GetTrianglesContextVertexList(inPositionCOM, inRotation, inScale, Mat44::sScale(mHalfExtent), sUnitBoxTriangles, std::size(sUnitBoxTriangles), GetMaterial());
 }
 
 int BoxShape::GetTrianglesNext(GetTrianglesContext &ioContext, int inMaxTrianglesRequested, Float3 *outTriangleVertices, const PhysicsMaterial **outMaterials) const

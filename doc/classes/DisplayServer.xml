@@ -214,6 +214,7 @@
 			<return type="Rect2i" />
 			<description>
 				Returns the unobscured area of the display where interactive controls should be rendered. See also [method get_display_cutouts].
+				[b]Note:[/b] Currently only implemented on Android and iOS. On other platforms, [code]screen_get_usable_rect(SCREEN_OF_MAIN_WINDOW)[/code] will be returned as a fallback. See also [method screen_get_usable_rect].
 			</description>
 		</method>
 		<method name="get_keyboard_focus_screen" qualifiers="const">
@@ -1937,7 +1938,7 @@
 			The display server supports all features of [constant FEATURE_NATIVE_DIALOG_FILE], with the added functionality of Options and native dialog file access to [code]res://[/code] and [code]user://[/code] paths. See [method file_dialog_show] and [method file_dialog_with_options_show]. [b]Windows, macOS, Linux (X11/Wayland)[/b]
 		</constant>
 		<constant name="FEATURE_WINDOW_DRAG" value="27" enum="Feature">
-			The display server supports initiating window drag operation on demand. See [method window_start_drag].
+			The display server supports initiating window drag and resize operations on demand. See [method window_start_drag] and [method window_start_resize].
 		</constant>
 		<constant name="FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE" value="28" enum="Feature">
 			Display server supports [constant WINDOW_FLAG_EXCLUDE_FROM_CAPTURE] window flag.

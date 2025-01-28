@@ -398,6 +398,10 @@ protected:
 
 		union {
 			struct {
+				uint64_t sort_key1;
+				uint64_t sort_key2;
+			};
+			struct {
 				// !BAS! CHECK BITS!!!
 
 				uint64_t surface_index : 10;
@@ -412,10 +416,6 @@ protected:
 
 				// uint64_t lod_index : 8; // no need to sort on LOD
 				// uint64_t uses_forward_gi : 1; // no GI here, remove
-			};
-			struct {
-				uint64_t sort_key1;
-				uint64_t sort_key2;
 			};
 		} sort;
 
@@ -575,6 +575,8 @@ public:
 
 	struct GlobalPipelineData {
 		union {
+			uint32_t key;
+
 			struct {
 				uint32_t texture_samples : 3;
 				uint32_t target_samples : 3;
@@ -586,8 +588,6 @@ public:
 				uint32_t use_shadow_cubemaps : 1;
 				uint32_t use_shadow_dual_paraboloid : 1;
 			};
-
-			uint32_t key;
 		};
 	};
 

@@ -303,6 +303,7 @@ void FileSystemDock::_create_tree(TreeItem *p_parent, EditorFileSystemDirectory 
 			file_item->set_icon(0, _get_tree_item_icon(!file_info.import_broken, file_info.type, file_info.icon_path));
 			if (da->is_link(file_metadata)) {
 				file_item->set_icon_overlay(0, get_editor_theme_icon(SNAME("LinkOverlay")));
+				// TRANSLATORS: This is a tooltip for a file that is a symbolic link to another file.
 				file_item->set_tooltip_text(0, vformat(TTR("Link to: %s"), da->read_link(file_metadata)));
 			}
 			file_item->set_icon_max_width(0, icon_size);
@@ -1485,6 +1486,11 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 						EditorNode::get_singleton()->save_editor_layout_delayed();
 						break;
 					}
+				}
+			} else {
+				Ref<Resource> res = ResourceCache::get_ref(old_path);
+				if (res.is_valid()) {
+					res->set_path_cache(new_path);
 				}
 			}
 		}

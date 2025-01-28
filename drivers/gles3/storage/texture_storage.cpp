@@ -1509,8 +1509,17 @@ void TextureStorage::_texture_set_data(RID p_texture, const Ref<Image> &p_image,
 	GLenum internal_format;
 	bool compressed = false;
 
+	bool needs_decompress = texture->resize_to_po2;
+
+	// Support for RGTC-compressed Texture Arrays isn't mandated by GLES3/WebGL.
+	if (!RasterizerGLES3::is_gles_over_gl() && texture->target == GL_TEXTURE_2D_ARRAY) {
+		if (p_image->get_format() == Image::FORMAT_RGTC_R || p_image->get_format() == Image::FORMAT_RGTC_RG) {
+			needs_decompress = true;
+		}
+	}
+
 	Image::Format real_format;
-	Ref<Image> img = _get_gl_image_and_format(p_image, p_image->get_format(), real_format, format, internal_format, type, compressed, texture->resize_to_po2);
+	Ref<Image> img = _get_gl_image_and_format(p_image, p_image->get_format(), real_format, format, internal_format, type, compressed, needs_decompress);
 	ERR_FAIL_COND(img.is_null());
 	if (texture->resize_to_po2) {
 		if (p_image->is_compressed()) {

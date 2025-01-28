@@ -374,7 +374,6 @@ void ScriptCreateDialog::_create_new() {
 			alert->popup_centered();
 			return;
 		}
-		EditorNode::get_singleton()->ensure_uid_file(lpath);
 	}
 
 	emit_signal(SNAME("script_created"), scr);

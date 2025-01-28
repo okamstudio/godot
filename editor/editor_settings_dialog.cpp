@@ -439,6 +439,7 @@ TreeItem *EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, co
 
 		TreeItem *event_item = shortcuts->create_item(shortcut_item);
 
+		// TRANSLATORS: This is the label for the main input event of a shortcut.
 		event_item->set_text(0, shortcut_item->get_child_count() == 1 ? TTRC("Primary") : "");
 		event_item->set_text(1, ie->as_text());
 		event_item->set_auto_translate_mode(1, AUTO_TRANSLATE_MODE_DISABLED);

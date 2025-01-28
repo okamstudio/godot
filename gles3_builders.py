@@ -585,5 +585,6 @@ def build_gles3_header(
 
 
 def build_gles3_headers(target, source, env):
+    env.NoCache(target)
     for x in source:
         build_gles3_header(str(x), include="drivers/gles3/shader_gles3.h", class_suffix="GLES3")

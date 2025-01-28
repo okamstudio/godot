@@ -458,13 +458,13 @@ bool TextServerAdvanced::_load_support_data(const String &p_filename) {
 			}
 
 			err = U_ZERO_ERROR;
+			icu_data_loaded = true;
 		}
 
 		u_init(&err);
 		if (U_FAILURE(err)) {
 			ERR_FAIL_V_MSG(false, u_errorName(err));
 		}
-		icu_data_loaded = true;
 	}
 #endif
 	return true;
@@ -4773,17 +4773,24 @@ bool TextServerAdvanced::_shape_substr(ShapedTextDataAdvanced *p_new_sd, const S
 			}
 		}
 
+		Vector<Vector3i> bidi_ranges;
+		if (p_sd->bidi_override.is_empty()) {
+			bidi_ranges.push_back(Vector3i(p_sd->start, p_sd->end, DIRECTION_INHERITED));
+		} else {
+			bidi_ranges = p_sd->bidi_override;
+		}
+
 		int sd_size = p_sd->glyphs.size();
 		const Glyph *sd_glyphs = p_sd->glyphs.ptr();
-		for (int ov = 0; ov < p_sd->bidi_override.size(); ov++) {
+		for (int ov = 0; ov < bidi_ranges.size(); ov++) {
 			UErrorCode err = U_ZERO_ERROR;
 
-			if (p_sd->bidi_override[ov].x >= p_start + p_length || p_sd->bidi_override[ov].y <= p_start) {
+			if (bidi_ranges[ov].x >= p_start + p_length || bidi_ranges[ov].y <= p_start) {
 				continue;
 			}
-			int ov_start = _convert_pos_inv(p_sd, p_sd->bidi_override[ov].x);
+			int ov_start = _convert_pos_inv(p_sd, bidi_ranges[ov].x);
 			int start = MAX(0, _convert_pos_inv(p_sd, p_start) - ov_start);
-			int end = MIN(_convert_pos_inv(p_sd, p_start + p_length), _convert_pos_inv(p_sd, p_sd->bidi_override[ov].y)) - ov_start;
+			int end = MIN(_convert_pos_inv(p_sd, p_start + p_length), _convert_pos_inv(p_sd, bidi_ranges[ov].y)) - ov_start;
 
 			ERR_FAIL_COND_V_MSG((start < 0 || end - start > p_new_sd->utf16.length()), false, "Invalid BiDi override range.");
 
@@ -4797,7 +4804,7 @@ bool TextServerAdvanced::_shape_substr(ShapedTextDataAdvanced *p_new_sd, const S
 						// Line BiDi failed (string contains incompatible control characters), try full paragraph BiDi instead.
 						err = U_ZERO_ERROR;
 						const UChar *data = p_sd->utf16.get_data();
-						switch (static_cast<TextServer::Direction>(p_sd->bidi_override[ov].z)) {
+						switch (static_cast<TextServer::Direction>(bidi_ranges[ov].z)) {
 							case DIRECTION_LTR: {
 								ubidi_setPara(bidi_iter, data + start, end - start, UBIDI_LTR, nullptr, &err);
 							} break;
@@ -4860,8 +4867,8 @@ bool TextServerAdvanced::_shape_substr(ShapedTextDataAdvanced *p_new_sd, const S
 							gl.index = index;
 							gl.advance = w;
 						}
-						if ((gl.flags & GRAPHEME_IS_EMBEDDED_OBJECT) == GRAPHEME_IS_EMBEDDED_OBJECT && gl.span_index >= 0 && gl.span_index < span_size) {
-							Variant key = p_sd->spans[gl.span_index].embedded_key;
+						if ((gl.flags & GRAPHEME_IS_EMBEDDED_OBJECT) == GRAPHEME_IS_EMBEDDED_OBJECT && gl.span_index + p_new_sd->first_span >= 0 && gl.span_index + p_new_sd->first_span < span_size) {
+							Variant key = p_sd->spans[gl.span_index + p_new_sd->first_span].embedded_key;
 							if (key != Variant()) {
 								ShapedTextDataAdvanced::EmbeddedObject obj = p_sd->objects[key];
 								if (p_new_sd->orientation == ORIENTATION_HORIZONTAL) {
@@ -6490,14 +6497,17 @@ bool TextServerAdvanced::_shaped_text_shape(const RID &p_shaped) {
 		} break;
 	}
 
+	Vector<Vector3i> bidi_ranges;
 	if (sd->bidi_override.is_empty()) {
-		sd->bidi_override.push_back(Vector3i(sd->start, sd->end, DIRECTION_INHERITED));
+		bidi_ranges.push_back(Vector3i(sd->start, sd->end, DIRECTION_INHERITED));
+	} else {
+		bidi_ranges = sd->bidi_override;
 	}
 
-	for (int ov = 0; ov < sd->bidi_override.size(); ov++) {
+	for (int ov = 0; ov < bidi_ranges.size(); ov++) {
 		// Create BiDi iterator.
-		int start = _convert_pos_inv(sd, sd->bidi_override[ov].x - sd->start);
-		int end = _convert_pos_inv(sd, sd->bidi_override[ov].y - sd->start);
+		int start = _convert_pos_inv(sd, bidi_ranges[ov].x - sd->start);
+		int end = _convert_pos_inv(sd, bidi_ranges[ov].y - sd->start);
 
 		if (start < 0 || end - start > sd->utf16.length()) {
 			continue;
@@ -6506,7 +6516,7 @@ bool TextServerAdvanced::_shaped_text_shape(const RID &p_shaped) {
 		UErrorCode err = U_ZERO_ERROR;
 		UBiDi *bidi_iter = ubidi_openSized(end - start, 0, &err);
 		if (U_SUCCESS(err)) {
-			switch (static_cast<TextServer::Direction>(sd->bidi_override[ov].z)) {
+			switch (static_cast<TextServer::Direction>(bidi_ranges[ov].z)) {
 				case DIRECTION_LTR: {
 					ubidi_setPara(bidi_iter, data + start, end - start, UBIDI_LTR, nullptr, &err);
 				} break;

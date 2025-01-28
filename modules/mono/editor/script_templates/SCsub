@@ -5,13 +5,4 @@ Import("env")
 
 import editor.template_builders as build_template_cs
 
-env["BUILDERS"]["MakeCSharpTemplateBuilder"] = Builder(
-    action=env.Run(build_template_cs.make_templates),
-    suffix=".h",
-    src_suffix=".cs",
-)
-
-# Template files
-templates_sources = Glob("*/*.cs")
-
-env.Alias("editor_template_cs", [env.MakeCSharpTemplateBuilder("templates.gen.h", templates_sources)])
+env.CommandNoCache("templates.gen.h", Glob("*/*.cs"), env.Run(build_template_cs.make_templates))

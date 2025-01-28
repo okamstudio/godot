@@ -3216,13 +3216,12 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 			p_output.append(" class.\n");
 			p_output.append(INDENT1 "/// </summary>");
 
+			// Generate delegate
 			if (p_isignal.is_deprecated) {
 				p_output.append(MEMBER_BEGIN "[Obsolete(\"");
 				p_output.append(bbcode_to_text(p_isignal.deprecation_message, &p_itype));
 				p_output.append("\")]");
 			}
-
-			// Generate delegate
 			p_output.append(MEMBER_BEGIN "public delegate void ");
 			p_output.append(delegate_name);
 			p_output.append("(");
@@ -3230,6 +3229,11 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 			p_output.append(");\n");
 
 			// Generate Callable trampoline for the delegate
+			if (p_isignal.is_deprecated) {
+				p_output.append(MEMBER_BEGIN "[Obsolete(\"");
+				p_output.append(bbcode_to_text(p_isignal.deprecation_message, &p_itype));
+				p_output.append("\")]");
+			}
 			p_output << MEMBER_BEGIN "private static void " << p_isignal.proxy_name << "Trampoline"
 					 << "(object delegateObj, NativeVariantPtrArgs args, out godot_variant ret)\n"
 					 << INDENT1 "{\n"
@@ -3279,17 +3283,16 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 			}
 		}
 
-		if (p_isignal.is_deprecated) {
-			p_output.append(MEMBER_BEGIN "[Obsolete(\"");
-			p_output.append(bbcode_to_text(p_isignal.deprecation_message, &p_itype));
-			p_output.append("\")]");
-		}
-
 		// TODO:
 		// Could we assume the StringName instance of signal name will never be freed (it's stored in ClassDB) before the managed world is unloaded?
 		// If so, we could store the pointer we get from `data_unique_pointer()` instead of allocating StringName here.
 
 		// Generate event
+		if (p_isignal.is_deprecated) {
+			p_output.append(MEMBER_BEGIN "[Obsolete(\"");
+			p_output.append(bbcode_to_text(p_isignal.deprecation_message, &p_itype));
+			p_output.append("\")]");
+		}
 		p_output.append(MEMBER_BEGIN "public ");
 
 		if (p_itype.is_singleton) {
@@ -3339,6 +3342,11 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 
 		// Generate EmitSignal{EventName} method to raise the event.
 		if (!p_itype.is_singleton) {
+			if (p_isignal.is_deprecated) {
+				p_output.append(MEMBER_BEGIN "[Obsolete(\"");
+				p_output.append(bbcode_to_text(p_isignal.deprecation_message, &p_itype));
+				p_output.append("\")]");
+			}
 			p_output.append(MEMBER_BEGIN "protected void ");
 			p_output << "EmitSignal" << p_isignal.proxy_name;
 			if (is_parameterless) {

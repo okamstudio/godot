@@ -57,15 +57,6 @@
 #include "scene/resources/packed_scene.h"
 #include "scene/resources/resource_format_text.h"
 
-uint32_t EditorSceneFormatImporter::get_import_flags() const {
-	uint32_t ret;
-	if (GDVIRTUAL_CALL(_get_import_flags, ret)) {
-		return ret;
-	}
-
-	ERR_FAIL_V(0);
-}
-
 void EditorSceneFormatImporter::get_extensions(List<String> *r_extensions) const {
 	Vector<String> arr;
 	if (GDVIRTUAL_CALL(_get_extensions, arr)) {
@@ -118,7 +109,6 @@ void EditorSceneFormatImporter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_import_option", "name", "value"), &EditorSceneFormatImporter::add_import_option);
 	ClassDB::bind_method(D_METHOD("add_import_option_advanced", "type", "name", "default_value", "hint", "hint_string", "usage_flags"), &EditorSceneFormatImporter::add_import_option_advanced, DEFVAL(PROPERTY_HINT_NONE), DEFVAL(""), DEFVAL(PROPERTY_USAGE_DEFAULT));
 
-	GDVIRTUAL_BIND(_get_import_flags);
 	GDVIRTUAL_BIND(_get_extensions);
 	GDVIRTUAL_BIND(_import_scene, "path", "flags", "options");
 	GDVIRTUAL_BIND(_get_import_options, "path");
@@ -3280,10 +3270,6 @@ void ResourceImporterScene::get_scene_importer_extensions(List<String> *p_extens
 }
 
 ///////////////////////////////////////
-
-uint32_t EditorSceneFormatImporterESCN::get_import_flags() const {
-	return IMPORT_SCENE;
-}
 
 void EditorSceneFormatImporterESCN::get_extensions(List<String> *r_extensions) const {
 	r_extensions->push_back("escn");

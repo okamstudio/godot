@@ -13,6 +13,7 @@ jobs:
   web-template:
     runs-on: ubuntu-24.04
     name: ${{ matrix.name }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:

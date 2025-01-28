@@ -472,13 +472,30 @@ void ProjectSettings::_emit_changed() {
 	emit_signal("settings_changed");
 }
 
-bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset) {
+bool ProjectSettings::load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset) {
+	return ProjectSettings::_load_resource_pack(p_pack, p_replace_files, p_offset, false);
+}
+
+bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset, bool p_main_pack) {
 	if (PackedData::get_singleton()->is_disabled()) {
 		return false;
 	}
 
-	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset) == OK;
+	if (p_pack == "res://") {
+		// Loading the resource directory as a pack source is reserved for internal use only.
+		return false;
+	}
 
+	if (!p_main_pack && !using_datapack && !OS::get_singleton()->get_resource_dir().is_empty()) {
+		// Add the project's resource file system to PackedData so directory access keeps working when
+		// the game is running without a main pack, like in the editor or on Android.
+		PackedData::get_singleton()->add_pack_source(memnew(PackedSourceDirectory));
+		PackedData::get_singleton()->add_pack("res://", false, 0);
+		DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
+		using_datapack = true;
+	}
+
+	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files, p_offset) == OK;
 	if (!ok) {
 		return false;
 	}
@@ -491,9 +508,11 @@ bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_f
 		ResourceUID::get_singleton()->load_from_cache(false);
 	}
 
-	//if data.pck is found, all directory access will be from here
-	DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
-	using_datapack = true;
+	// If the data pack was found, all directory access will be from here.
+	if (!using_datapack) {
+		DirAccess::make_default<DirAccessPack>(DirAccess::ACCESS_RESOURCES);
+		using_datapack = true;
+	}
 
 	return true;
 }
@@ -572,7 +591,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	// Attempt with a user-defined main pack first
 
 	if (!p_main_pack.is_empty()) {
-		bool ok = _load_resource_pack(p_main_pack);
+		bool ok = _load_resource_pack(p_main_pack, false, 0, true);
 		ERR_FAIL_COND_V_MSG(!ok, ERR_CANT_OPEN, vformat("Cannot open resource pack '%s'.", p_main_pack));
 
 		Error err = _load_settings_text_or_binary("res://project.godot", "res://project.binary");
@@ -591,7 +610,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 		// and if so, we attempt loading it at the end.
 
 		// Attempt with PCK bundled into executable.
-		bool found = _load_resource_pack(exec_path);
+		bool found = _load_resource_pack(exec_path, false, 0, true);
 
 		// Attempt with exec_name.pck.
 		// (This is the usual case when distributing a Godot game.)
@@ -607,20 +626,20 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 #ifdef MACOS_ENABLED
 		if (!found) {
 			// Attempt to load PCK from macOS .app bundle resources.
-			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_basename + ".pck")) || _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_filename + ".pck"));
+			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_basename + ".pck"), false, 0, true) || _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().path_join(exec_filename + ".pck"), false, 0, true);
 		}
 #endif
 
 		if (!found) {
 			// Try to load data pack at the location of the executable.
 			// As mentioned above, we have two potential names to attempt.
-			found = _load_resource_pack(exec_dir.path_join(exec_basename + ".pck")) || _load_resource_pack(exec_dir.path_join(exec_filename + ".pck"));
+			found = _load_resource_pack(exec_dir.path_join(exec_basename + ".pck"), false, 0, true) || _load_resource_pack(exec_dir.path_join(exec_filename + ".pck"), false, 0, true);
 		}
 
 		if (!found) {
 			// If we couldn't find them next to the executable, we attempt
 			// the current working directory. Same story, two tests.
-			found = _load_resource_pack(exec_basename + ".pck") || _load_resource_pack(exec_filename + ".pck");
+			found = _load_resource_pack(exec_basename + ".pck", false, 0, true) || _load_resource_pack(exec_filename + ".pck", false, 0, true);
 		}
 
 		// If we opened our package, try and load our project.
@@ -1418,7 +1437,7 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("localize_path", "path"), &ProjectSettings::localize_path);
 	ClassDB::bind_method(D_METHOD("globalize_path", "path"), &ProjectSettings::globalize_path);
 	ClassDB::bind_method(D_METHOD("save"), &ProjectSettings::save);
-	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::_load_resource_pack, DEFVAL(true), DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::load_resource_pack, DEFVAL(true), DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("save_custom", "file"), &ProjectSettings::_save_custom_bnd);
 

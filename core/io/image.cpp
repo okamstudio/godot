@@ -3993,11 +3993,11 @@ uint32_t Image::get_format_component_mask(Format p_format) {
 		case FORMAT_RGBAH:
 			return rgba;
 		case FORMAT_RGBE9995:
-			return rgba;
+			return rgb;
 		case FORMAT_DXT1:
 			return rgb;
 		case FORMAT_DXT3:
-			return rgb;
+			return rgba;
 		case FORMAT_DXT5:
 			return rgba;
 		case FORMAT_RGTC_R:
@@ -4027,9 +4027,9 @@ uint32_t Image::get_format_component_mask(Format p_format) {
 		case FORMAT_ETC2_RGB8A1:
 			return rgba;
 		case FORMAT_ETC2_RA_AS_RG:
-			return rgba;
+			return rg;
 		case FORMAT_DXT5_RA_AS_RG:
-			return rgba;
+			return rg;
 		case FORMAT_ASTC_4x4:
 			return rgba;
 		case FORMAT_ASTC_4x4_HDR:

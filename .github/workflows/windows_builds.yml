@@ -15,6 +15,7 @@ jobs:
     # Windows 10 with latest image
     runs-on: windows-latest
     name: ${{ matrix.name }}
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:

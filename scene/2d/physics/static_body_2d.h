@@ -33,6 +33,9 @@
 
 #include "scene/2d/physics/physics_body_2d.h"
 
+class NavigationPolygon;
+class NavigationMeshSourceGeometryData2D;
+
 class StaticBody2D : public PhysicsBody2D {
 	GDCLASS(StaticBody2D, PhysicsBody2D);
 
@@ -56,6 +59,14 @@ public:
 	real_t get_constant_angular_velocity() const;
 
 	StaticBody2D(PhysicsServer2D::BodyMode p_mode = PhysicsServer2D::BODY_MODE_STATIC);
+
+private:
+	static Callable _navmesh_source_geometry_parsing_callback;
+	static RID _navmesh_source_geometry_parser;
+
+public:
+	static void navmesh_parse_init();
+	static void navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node);
 
 private:
 	void _reload_physics_characteristics();

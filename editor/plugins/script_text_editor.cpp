@@ -456,6 +456,7 @@ void ScriptTextEditor::convert_indent() {
 
 void ScriptTextEditor::tag_saved_version() {
 	code_editor->get_text_editor()->tag_saved_version();
+	edited_file_data.last_modified_time = FileAccess::get_modified_time(edited_file_data.path);
 }
 
 void ScriptTextEditor::goto_line(int p_line, int p_column) {
@@ -757,7 +758,7 @@ void ScriptTextEditor::_update_bookmark_list() {
 			line = line.substr(0, 50);
 		}
 
-		bookmarks_menu->add_item(String::num((int)bookmark_list[i] + 1) + " - `" + line + "`");
+		bookmarks_menu->add_item(String::num_int64(bookmark_list[i] + 1) + " - `" + line + "`");
 		bookmarks_menu->set_item_metadata(-1, bookmark_list[i]);
 	}
 }
@@ -912,7 +913,7 @@ void ScriptTextEditor::_update_breakpoint_list() {
 			line = line.substr(0, 50);
 		}
 
-		breakpoints_menu->add_item(String::num((int)breakpoint_list[i] + 1) + " - `" + line + "`");
+		breakpoints_menu->add_item(String::num_int64(breakpoint_list[i] + 1) + " - `" + line + "`");
 		breakpoints_menu->set_item_metadata(-1, breakpoint_list[i]);
 	}
 }
@@ -1102,6 +1103,11 @@ void ScriptTextEditor::_validate_symbol(const String &p_symbol) {
 }
 
 void ScriptTextEditor::_show_symbol_tooltip(const String &p_symbol, int p_row, int p_column) {
+	if (p_symbol.begins_with("res://") || p_symbol.begins_with("uid://")) {
+		EditorHelpBitTooltip::show_tooltip(code_editor->get_text_editor(), "resource||" + p_symbol);
+		return;
+	}
+
 	Node *base = get_tree()->get_edited_scene_root();
 	if (base) {
 		base = _find_node_for_script(base, base, script);
@@ -2332,7 +2338,7 @@ void ScriptTextEditor::_make_context_menu(bool p_selection, bool p_color, bool p
 	if (p_color || p_open_docs || p_goto_definition) {
 		context_menu->add_separator();
 		if (p_open_docs) {
-			context_menu->add_item(TTR("Lookup Symbol"), LOOKUP_SYMBOL);
+			context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_symbol"), LOOKUP_SYMBOL);
 		}
 		if (p_color) {
 			context_menu->add_item(TTR("Pick Color"), EDIT_PICK_COLOR);
@@ -2486,6 +2492,7 @@ void ScriptTextEditor::_enable_code_editor() {
 	edit_hb->add_child(goto_menu);
 	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_function"), SEARCH_LOCATE_FUNCTION);
 	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_line"), SEARCH_GOTO_LINE);
+	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_symbol"), LOOKUP_SYMBOL);
 	goto_menu->get_popup()->add_separator();
 
 	goto_menu->get_popup()->add_submenu_node_item(TTR("Bookmarks"), bookmarks_menu);
@@ -2670,6 +2677,7 @@ void ScriptTextEditor::register_editor() {
 	ED_SHORTCUT_OVERRIDE("script_text_editor/goto_function", "macos", KeyModifierMask::CTRL | KeyModifierMask::META | Key::J);
 
 	ED_SHORTCUT("script_text_editor/goto_line", TTRC("Go to Line..."), KeyModifierMask::CMD_OR_CTRL | Key::L);
+	ED_SHORTCUT("script_text_editor/goto_symbol", TTRC("Lookup Symbol"));
 
 	ED_SHORTCUT("script_text_editor/toggle_breakpoint", TTRC("Toggle Breakpoint"), Key::F9);
 	ED_SHORTCUT_OVERRIDE("script_text_editor/toggle_breakpoint", "macos", KeyModifierMask::META | KeyModifierMask::SHIFT | Key::B);

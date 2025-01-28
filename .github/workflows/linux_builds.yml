@@ -17,6 +17,7 @@ jobs:
     # Stay one LTS before latest to increase portability of Linux artifacts.
     runs-on: ubuntu-22.04
     name: ${{ matrix.name }}
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +33,9 @@ jobs:
             proj-conv: true
             api-compat: true
             artifact: true
-            cache-limit: 1
+            # Validate godot-cpp compatibility on one arbitrary editor build.
+            godot-cpp: true
+            cache-limit: 2
 
           - name: Editor with doubles and GCC sanitizers (target=editor, tests=yes, dev_build=yes, scu_build=yes, precision=double, use_asan=yes, use_ubsan=yes, linker=gold)
             cache-name: linux-editor-double-sanitizers
@@ -43,8 +46,6 @@ jobs:
             build-mono: false
             tests: true
             proj-test: true
-            # Generate an API dump for godot-cpp tests.
-            api-dump: true
             # Skip 2GiB artifact speeding up action.
             artifact: false
             cache-limit: 7
@@ -157,6 +158,13 @@ jobs:
           tests: ${{ matrix.tests }}
           scons-cache-limit: ${{ matrix.cache-limit }}
 
+      - name: Compilation (godot-cpp)
+        uses: ./.github/actions/godot-cpp-build
+        if: matrix.godot-cpp
+        with:
+          bin: ${{ matrix.bin }}
+          scons-flags: target=template_debug dev_build=yes verbose=yes
+
       - name: Save Godot build cache
         uses: ./.github/actions/godot-cache-save
         with:
@@ -185,12 +193,6 @@ jobs:
         if: matrix.artifact
         with:
           name: ${{ matrix.cache-name }}
-
-      - name: Dump Godot API
-        uses: ./.github/actions/godot-api-dump
-        if: matrix.api-dump
-        with:
-          bin: ${{ matrix.bin }}
 
       - name: Unit tests
         if: matrix.tests

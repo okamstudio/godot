@@ -104,99 +104,16 @@ Error EditorRun::run(const String &p_scene, const String &p_write_movie, const V
 		}
 	}
 
-	int screen = EDITOR_GET("run/window_placement/screen");
-	if (screen == -5) {
-		// Same as editor
-		screen = DisplayServer::get_singleton()->window_get_current_screen();
-	} else if (screen == -4) {
-		// Previous monitor (wrap to the other end if needed)
-		screen = Math::wrapi(
-				DisplayServer::get_singleton()->window_get_current_screen() - 1,
-				0,
-				DisplayServer::get_singleton()->get_screen_count());
-	} else if (screen == -3) {
-		// Next monitor (wrap to the other end if needed)
-		screen = Math::wrapi(
-				DisplayServer::get_singleton()->window_get_current_screen() + 1,
-				0,
-				DisplayServer::get_singleton()->get_screen_count());
+	WindowPlacement window_placement = get_window_placement();
+	if (window_placement.position != Point2i(INT_MAX, INT_MAX)) {
+		args.push_back("--position");
+		args.push_back(itos(window_placement.position.x) + "," + itos(window_placement.position.y));
 	}
 
-	Rect2 screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(screen);
-
-	int window_placement = EDITOR_GET("run/window_placement/rect");
-	if (screen_rect != Rect2()) {
-		Size2 window_size;
-		window_size.x = GLOBAL_GET("display/window/size/viewport_width");
-		window_size.y = GLOBAL_GET("display/window/size/viewport_height");
-
-		Size2 desired_size;
-		desired_size.x = GLOBAL_GET("display/window/size/window_width_override");
-		desired_size.y = GLOBAL_GET("display/window/size/window_height_override");
-		if (desired_size.x > 0 && desired_size.y > 0) {
-			window_size = desired_size;
-		}
-
-		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_HIDPI)) {
-			bool hidpi_proj = GLOBAL_GET("display/window/dpi/allow_hidpi");
-			int display_scale = 1;
-
-			if (OS::get_singleton()->is_hidpi_allowed()) {
-				if (hidpi_proj) {
-					display_scale = 1; // Both editor and project runs in hiDPI mode, do not scale.
-				} else {
-					display_scale = DisplayServer::get_singleton()->screen_get_max_scale(); // Editor is in hiDPI mode, project is not, scale down.
-				}
-			} else {
-				if (hidpi_proj) {
-					display_scale = (1.f / DisplayServer::get_singleton()->screen_get_max_scale()); // Editor is not in hiDPI mode, project is, scale up.
-				} else {
-					display_scale = 1; // Both editor and project runs in lowDPI mode, do not scale.
-				}
-			}
-			screen_rect.position /= display_scale;
-			screen_rect.size /= display_scale;
-		}
-
-		switch (window_placement) {
-			case 0: { // top left
-				args.push_back("--position");
-				args.push_back(itos(screen_rect.position.x) + "," + itos(screen_rect.position.y));
-			} break;
-			case 1: { // centered
-				Vector2 pos = (screen_rect.position) + ((screen_rect.size - window_size) / 2).floor();
-				args.push_back("--position");
-				args.push_back(itos(pos.x) + "," + itos(pos.y));
-			} break;
-			case 2: { // custom pos
-				Vector2 pos = EDITOR_GET("run/window_placement/rect_custom_position");
-				pos += screen_rect.position;
-				args.push_back("--position");
-				args.push_back(itos(pos.x) + "," + itos(pos.y));
-			} break;
-			case 3: { // force maximized
-				Vector2 pos = screen_rect.position + screen_rect.size / 2;
-				args.push_back("--position");
-				args.push_back(itos(pos.x) + "," + itos(pos.y));
-				args.push_back("--maximized");
-			} break;
-			case 4: { // force fullscreen
-				Vector2 pos = screen_rect.position + screen_rect.size / 2;
-				args.push_back("--position");
-				args.push_back(itos(pos.x) + "," + itos(pos.y));
-				args.push_back("--fullscreen");
-			} break;
-		}
-	} else {
-		// Unable to get screen info, skip setting position.
-		switch (window_placement) {
-			case 3: { // force maximized
-				args.push_back("--maximized");
-			} break;
-			case 4: { // force fullscreen
-				args.push_back("--fullscreen");
-			} break;
-		}
+	if (window_placement.force_maximized) {
+		args.push_back("--maximized");
+	} else if (window_placement.force_fullscreen) {
+		args.push_back("--fullscreen");
 	}
 
 	List<String> breakpoints;
@@ -295,6 +212,98 @@ OS::ProcessID EditorRun::get_current_process() const {
 		return 0;
 	}
 	return pids.front()->get();
+}
+
+EditorRun::WindowPlacement EditorRun::get_window_placement() {
+	WindowPlacement placement = WindowPlacement();
+	placement.screen = EDITOR_GET("run/window_placement/screen");
+	if (placement.screen == -5) {
+		// Same as editor
+		placement.screen = DisplayServer::get_singleton()->window_get_current_screen();
+	} else if (placement.screen == -4) {
+		// Previous monitor (wrap to the other end if needed)
+		placement.screen = Math::wrapi(
+				DisplayServer::get_singleton()->window_get_current_screen() - 1,
+				0,
+				DisplayServer::get_singleton()->get_screen_count());
+	} else if (placement.screen == -3) {
+		// Next monitor (wrap to the other end if needed)
+		placement.screen = Math::wrapi(
+				DisplayServer::get_singleton()->window_get_current_screen() + 1,
+				0,
+				DisplayServer::get_singleton()->get_screen_count());
+	} else if (placement.screen == -2) {
+		// Primary screen
+		placement.screen = DisplayServer::get_singleton()->get_primary_screen();
+	}
+
+	placement.size.x = GLOBAL_GET("display/window/size/viewport_width");
+	placement.size.y = GLOBAL_GET("display/window/size/viewport_height");
+
+	Size2 desired_size;
+	desired_size.x = GLOBAL_GET("display/window/size/window_width_override");
+	desired_size.y = GLOBAL_GET("display/window/size/window_height_override");
+	if (desired_size.x > 0 && desired_size.y > 0) {
+		placement.size = desired_size;
+	}
+
+	Rect2 screen_rect = DisplayServer::get_singleton()->screen_get_usable_rect(placement.screen);
+
+	int window_placement = EDITOR_GET("run/window_placement/rect");
+	if (screen_rect != Rect2()) {
+		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_HIDPI)) {
+			bool hidpi_proj = GLOBAL_GET("display/window/dpi/allow_hidpi");
+			int display_scale = 1;
+
+			if (OS::get_singleton()->is_hidpi_allowed()) {
+				if (hidpi_proj) {
+					display_scale = 1; // Both editor and project runs in hiDPI mode, do not scale.
+				} else {
+					display_scale = DisplayServer::get_singleton()->screen_get_max_scale(); // Editor is in hiDPI mode, project is not, scale down.
+				}
+			} else {
+				if (hidpi_proj) {
+					display_scale = (1.f / DisplayServer::get_singleton()->screen_get_max_scale()); // Editor is not in hiDPI mode, project is, scale up.
+				} else {
+					display_scale = 1; // Both editor and project runs in lowDPI mode, do not scale.
+				}
+			}
+			screen_rect.position /= display_scale;
+			screen_rect.size /= display_scale;
+		}
+
+		switch (window_placement) {
+			case 0: { // top left
+				placement.position = screen_rect.position;
+			} break;
+			case 1: { // centered
+				placement.position = (screen_rect.position) + ((screen_rect.size - placement.size) / 2).floor();
+			} break;
+			case 2: { // custom pos
+				Vector2 pos = EDITOR_GET("run/window_placement/rect_custom_position");
+				pos += screen_rect.position;
+				placement.position = pos;
+			} break;
+			case 3: { // force maximized
+				placement.force_maximized = true;
+			} break;
+			case 4: { // force fullscreen
+				placement.force_fullscreen = true;
+			} break;
+		}
+	} else {
+		// Unable to get screen info, skip setting position.
+		switch (window_placement) {
+			case 3: { // force maximized
+				placement.force_maximized = true;
+			} break;
+			case 4: { // force fullscreen
+				placement.force_fullscreen = true;
+			} break;
+		}
+	}
+
+	return placement;
 }
 
 EditorRun::EditorRun() {

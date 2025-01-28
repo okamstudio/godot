@@ -38,10 +38,6 @@
 #include "scene/resources/mesh.h"
 #include "scene/resources/surface_tool.h"
 
-uint32_t EditorOBJImporter::get_import_flags() const {
-	return IMPORT_SCENE;
-}
-
 static Error _parse_material_library(const String &p_path, HashMap<String, Ref<StandardMaterial3D>> &material_map, List<String> *r_missing_deps) {
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
 	ERR_FAIL_COND_V_MSG(f.is_null(), ERR_CANT_OPEN, vformat("Couldn't open MTL file '%s', it may not exist or not be readable.", p_path));

@@ -713,7 +713,9 @@ void Label::_notification(int p_what) {
 						int asc = TS->shaped_text_get_ascent(line_rid);
 						int dsc = TS->shaped_text_get_descent(line_rid);
 						if (asc + dsc < font_h) {
-							dsc = font_h - asc;
+							int diff = font_h - (asc + dsc);
+							asc += diff / 2;
+							dsc += diff - (diff / 2);
 						}
 
 						const Glyph *glyphs = TS->shaped_text_get_glyphs(line_rid);

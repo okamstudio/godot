@@ -93,7 +93,7 @@ Error EMWSPeer::connect_to_url(const String &p_url, Ref<TLSOptions> p_tls_option
 	requested_url = scheme + host;
 
 	if (port && ((scheme == "ws://" && port != 80) || (scheme == "wss://" && port != 443))) {
-		requested_url += ":" + String::num(port);
+		requested_url += ":" + String::num_int64(port);
 	}
 
 	if (!path.is_empty()) {

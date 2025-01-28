@@ -251,6 +251,10 @@ private:
 
 		union {
 			struct {
+				uint64_t sort_key1;
+				uint64_t sort_key2;
+			};
+			struct {
 				uint64_t lod_index : 8;
 				uint64_t surface_index : 8;
 				uint64_t geometry_id : 32;
@@ -264,10 +268,6 @@ private:
 				uint64_t uses_lightmap : 1;
 				uint64_t depth_layer : 4;
 				uint64_t priority : 8;
-			};
-			struct {
-				uint64_t sort_key1;
-				uint64_t sort_key2;
 			};
 		} sort;
 

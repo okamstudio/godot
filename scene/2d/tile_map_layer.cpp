@@ -33,8 +33,12 @@
 #include "core/io/marshalls.h"
 #include "scene/2d/tile_map.h"
 #include "scene/gui/control.h"
+#include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
 #include "scene/resources/world_2d.h"
 #include "servers/navigation_server_2d.h"
+
+Callable TileMapLayer::_navmesh_source_geometry_parsing_callback;
+RID TileMapLayer::_navmesh_source_geometry_parser;
 
 #ifdef DEBUG_ENABLED
 /////////////////////////////// Debug //////////////////////////////////////////
@@ -3063,6 +3067,114 @@ void TileMapLayer::set_navigation_visibility_mode(TileMapLayer::DebugVisibilityM
 
 TileMapLayer::DebugVisibilityMode TileMapLayer::get_navigation_visibility_mode() const {
 	return navigation_visibility_mode;
+}
+
+void TileMapLayer::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer2D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&TileMapLayer::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer2D::get_singleton()->source_geometry_parser_create();
+		NavigationServer2D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void TileMapLayer::navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
+	TileMapLayer *tile_map_layer = Object::cast_to<TileMapLayer>(p_node);
+
+	if (tile_map_layer == nullptr) {
+		return;
+	}
+
+	Ref<TileSet> tile_set = tile_map_layer->get_tile_set();
+	if (tile_set.is_null()) {
+		return;
+	}
+
+	int physics_layers_count = tile_set->get_physics_layers_count();
+	int navigation_layers_count = tile_set->get_navigation_layers_count();
+	if (physics_layers_count <= 0 && navigation_layers_count <= 0) {
+		return;
+	}
+
+	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
+	uint32_t parsed_collision_mask = p_navigation_mesh->get_parsed_collision_mask();
+
+	const Transform2D tilemap_xform = p_source_geometry_data->root_node_transform * tile_map_layer->get_global_transform();
+
+	TypedArray<Vector2i> used_cells = tile_map_layer->get_used_cells();
+	for (int used_cell_index = 0; used_cell_index < used_cells.size(); used_cell_index++) {
+		const Vector2i &cell = used_cells[used_cell_index];
+
+		const TileData *tile_data = tile_map_layer->get_cell_tile_data(cell);
+		if (tile_data == nullptr) {
+			continue;
+		}
+
+		// Transform flags.
+		const int alternative_id = tile_map_layer->get_cell_alternative_tile(cell);
+		bool flip_h = (alternative_id & TileSetAtlasSource::TRANSFORM_FLIP_H);
+		bool flip_v = (alternative_id & TileSetAtlasSource::TRANSFORM_FLIP_V);
+		bool transpose = (alternative_id & TileSetAtlasSource::TRANSFORM_TRANSPOSE);
+
+		Transform2D tile_transform;
+		tile_transform.set_origin(tile_map_layer->map_to_local(cell));
+
+		const Transform2D tile_transform_offset = tilemap_xform * tile_transform;
+
+		// Parse traversable polygons.
+		for (int navigation_layer = 0; navigation_layer < navigation_layers_count; navigation_layer++) {
+			Ref<NavigationPolygon> navigation_polygon = tile_data->get_navigation_polygon(navigation_layer, flip_h, flip_v, transpose);
+			if (navigation_polygon.is_valid()) {
+				for (int outline_index = 0; outline_index < navigation_polygon->get_outline_count(); outline_index++) {
+					const Vector<Vector2> &navigation_polygon_outline = navigation_polygon->get_outline(outline_index);
+					if (navigation_polygon_outline.is_empty()) {
+						continue;
+					}
+
+					Vector<Vector2> traversable_outline;
+					traversable_outline.resize(navigation_polygon_outline.size());
+
+					const Vector2 *navigation_polygon_outline_ptr = navigation_polygon_outline.ptr();
+					Vector2 *traversable_outline_ptrw = traversable_outline.ptrw();
+
+					for (int traversable_outline_index = 0; traversable_outline_index < traversable_outline.size(); traversable_outline_index++) {
+						traversable_outline_ptrw[traversable_outline_index] = tile_transform_offset.xform(navigation_polygon_outline_ptr[traversable_outline_index]);
+					}
+
+					p_source_geometry_data->_add_traversable_outline(traversable_outline);
+				}
+			}
+		}
+
+		// Parse obstacles.
+		for (int physics_layer = 0; physics_layer < physics_layers_count; physics_layer++) {
+			if ((parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH) &&
+					(tile_set->get_physics_layer_collision_layer(physics_layer) & parsed_collision_mask)) {
+				for (int collision_polygon_index = 0; collision_polygon_index < tile_data->get_collision_polygons_count(physics_layer); collision_polygon_index++) {
+					PackedVector2Array collision_polygon_points = tile_data->get_collision_polygon_points(physics_layer, collision_polygon_index);
+					if (collision_polygon_points.is_empty()) {
+						continue;
+					}
+
+					if (flip_h || flip_v || transpose) {
+						collision_polygon_points = TileData::get_transformed_vertices(collision_polygon_points, flip_h, flip_v, transpose);
+					}
+
+					Vector<Vector2> obstruction_outline;
+					obstruction_outline.resize(collision_polygon_points.size());
+
+					const Vector2 *collision_polygon_points_ptr = collision_polygon_points.ptr();
+					Vector2 *obstruction_outline_ptrw = obstruction_outline.ptrw();
+
+					for (int obstruction_outline_index = 0; obstruction_outline_index < obstruction_outline.size(); obstruction_outline_index++) {
+						obstruction_outline_ptrw[obstruction_outline_index] = tile_transform_offset.xform(collision_polygon_points_ptr[obstruction_outline_index]);
+					}
+
+					p_source_geometry_data->_add_obstruction_outline(obstruction_outline);
+				}
+			}
+		}
+	}
 }
 
 TileMapLayer::TileMapLayer() {

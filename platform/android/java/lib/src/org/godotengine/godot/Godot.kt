@@ -823,9 +823,26 @@ class Godot(private val context: Context) {
 	 * Returns true if `Vulkan` is used for rendering.
 	 */
 	private fun usesVulkan(): Boolean {
-		val renderer = GodotLib.getGlobal("rendering/renderer/rendering_method")
-		val renderingDevice = GodotLib.getGlobal("rendering/rendering_device/driver")
-		return ("forward_plus" == renderer || "mobile" == renderer) && "vulkan" == renderingDevice
+		var rendererSource = "ProjectSettings"
+		var renderer = GodotLib.getGlobal("rendering/renderer/rendering_method")
+		var renderingDeviceSource = "ProjectSettings"
+		var renderingDevice = GodotLib.getGlobal("rendering/rendering_device/driver")
+		val cmdline = getCommandLine()
+		var index = cmdline.indexOf("--rendering-method")
+		if (index > -1 && cmdline.size > index + 1) {
+			rendererSource = "CommandLine"
+			renderer = cmdline.get(index + 1)
+		}
+		index = cmdline.indexOf("--rendering-driver")
+		if (index > -1 && cmdline.size > index + 1) {
+			renderingDeviceSource = "CommandLine"
+			renderingDevice = cmdline.get(index + 1)
+		}
+		val result = ("forward_plus" == renderer || "mobile" == renderer) && "vulkan" == renderingDevice
+		Log.d(TAG, """usesVulkan(): ${result}
+			renderingDevice: ${renderingDevice} (${renderingDeviceSource})
+			renderer: ${renderer} (${rendererSource})""")
+		return result
 	}
 
 	/**

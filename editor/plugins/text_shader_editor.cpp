@@ -1075,7 +1075,7 @@ void TextShaderEditor::_update_bookmark_list() {
 			line = line.substr(0, 50);
 		}
 
-		bookmarks_menu->add_item(String::num((int)bookmark_list[i] + 1) + " - \"" + line + "\"");
+		bookmarks_menu->add_item(String::num_int64(bookmark_list[i] + 1) + " - \"" + line + "\"");
 		bookmarks_menu->set_item_metadata(-1, bookmark_list[i]);
 	}
 }

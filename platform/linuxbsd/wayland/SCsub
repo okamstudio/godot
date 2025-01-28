@@ -11,16 +11,16 @@ if env["use_sowrap"]:
 
     WAYLAND_BUILDERS_SOWRAP = {
         "WAYLAND_API_HEADER": Builder(
-            action=Action(
-                r"wayland-scanner -c client-header < ${SOURCE} | sed 's:wayland-client-core\.h:../dynwrappers/wayland-client-core-so_wrap\.h:' > ${TARGET}",
-                'Generating Wayland client header: "${TARGET}"',
+            action=env.Run(
+                r"wayland-scanner -c client-header < ${SOURCE} | "
+                r"sed 's:wayland-client-core\.h:../dynwrappers/wayland-client-core-so_wrap\.h:' > ${TARGET}",
             ),
             single_source=True,
         ),
         "WAYLAND_API_CODE": Builder(
-            action=Action(
-                r"wayland-scanner -c private-code < ${SOURCE} | sed 's:wayland-util\.h:../dynwrappers/wayland-client-core-so_wrap\.h:' > ${TARGET}",
-                'Generating Wayland protocol marshaling code: "${TARGET}"',
+            action=env.Run(
+                r"wayland-scanner -c private-code < ${SOURCE} | "
+                r"sed 's:wayland-util\.h:../dynwrappers/wayland-client-core-so_wrap\.h:' > ${TARGET}",
             ),
             single_source=True,
         ),
@@ -29,168 +29,131 @@ if env["use_sowrap"]:
 else:
     WAYLAND_BUILDERS = {
         "WAYLAND_API_HEADER": Builder(
-            action=Action(
-                r"wayland-scanner -c client-header < ${SOURCE} > ${TARGET}",
-                'Generating Wayland client header: "${TARGET}"',
-            ),
+            action=env.Run(r"wayland-scanner -c client-header < ${SOURCE} > ${TARGET}"),
             single_source=True,
         ),
         "WAYLAND_API_CODE": Builder(
-            action=Action(
-                r"wayland-scanner -c private-code < ${SOURCE} > ${TARGET}",
-                'Generating Wayland protocol marshaling code: "${TARGET}"',
-            ),
+            action=env.Run(r"wayland-scanner -c private-code < ${SOURCE} > ${TARGET}"),
             single_source=True,
         ),
     }
     env.Append(BUILDERS=WAYLAND_BUILDERS)
 
-env.WAYLAND_API_HEADER(target="protocol/wayland.gen.h", source="#thirdparty/wayland/protocol/wayland.xml")
-env.WAYLAND_API_CODE(target="protocol/wayland.gen.c", source="#thirdparty/wayland/protocol/wayland.xml")
-
-env.WAYLAND_API_HEADER(
-    target="protocol/viewporter.gen.h", source="#thirdparty/wayland-protocols/stable/viewporter/viewporter.xml"
-)
-env.WAYLAND_API_CODE(
-    target="protocol/viewporter.gen.c", source="#thirdparty/wayland-protocols/stable/viewporter/viewporter.xml"
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/fractional_scale.gen.h",
-    source="#thirdparty/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml",
-)
-env.WAYLAND_API_CODE(
-    target="protocol/fractional_scale.gen.c",
-    source="#thirdparty/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_shell.gen.h", source="#thirdparty/wayland-protocols/stable/xdg-shell/xdg-shell.xml"
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_shell.gen.c", source="#thirdparty/wayland-protocols/stable/xdg-shell/xdg-shell.xml"
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_decoration.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_decoration.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_activation.gen.h",
-    source="#thirdparty/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_activation.gen.c",
-    source="#thirdparty/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/relative_pointer.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/relative_pointer.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/pointer_constraints.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/pointer_constraints.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/pointer_gestures.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/pointer_gestures.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/primary_selection.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/primary_selection.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/idle_inhibit.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/idle_inhibit.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/tablet.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/tablet/tablet-unstable-v2.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/tablet.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/tablet/tablet-unstable-v2.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/text_input.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/text-input/text-input-unstable-v3.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/text_input.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/text-input/text-input-unstable-v3.xml",
+env.NoCache(
+    env.WAYLAND_API_HEADER("protocol/wayland.gen.h", "#thirdparty/wayland/protocol/wayland.xml"),
+    env.WAYLAND_API_CODE("protocol/wayland.gen.c", "#thirdparty/wayland/protocol/wayland.xml"),
+    env.WAYLAND_API_HEADER(
+        "protocol/viewporter.gen.h", "#thirdparty/wayland-protocols/stable/viewporter/viewporter.xml"
+    ),
+    env.WAYLAND_API_CODE("protocol/viewporter.gen.c", "#thirdparty/wayland-protocols/stable/viewporter/viewporter.xml"),
+    env.WAYLAND_API_HEADER(
+        "protocol/fractional_scale.gen.h",
+        "#thirdparty/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/fractional_scale.gen.c",
+        "#thirdparty/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER("protocol/xdg_shell.gen.h", "#thirdparty/wayland-protocols/stable/xdg-shell/xdg-shell.xml"),
+    env.WAYLAND_API_CODE("protocol/xdg_shell.gen.c", "#thirdparty/wayland-protocols/stable/xdg-shell/xdg-shell.xml"),
+    env.WAYLAND_API_HEADER(
+        "protocol/xdg_decoration.gen.h",
+        "#thirdparty/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/xdg_decoration.gen.c",
+        "#thirdparty/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/xdg_activation.gen.h",
+        "#thirdparty/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/xdg_activation.gen.c",
+        "#thirdparty/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/relative_pointer.gen.h",
+        "#thirdparty/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/relative_pointer.gen.c",
+        "#thirdparty/wayland-protocols/unstable/relative-pointer/relative-pointer-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/pointer_constraints.gen.h",
+        "#thirdparty/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/pointer_constraints.gen.c",
+        "#thirdparty/wayland-protocols/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/pointer_gestures.gen.h",
+        "#thirdparty/wayland-protocols/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/pointer_gestures.gen.c",
+        "#thirdparty/wayland-protocols/unstable/pointer-gestures/pointer-gestures-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/primary_selection.gen.h",
+        "#thirdparty/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/primary_selection.gen.c",
+        "#thirdparty/wayland-protocols/unstable/primary-selection/primary-selection-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/idle_inhibit.gen.h",
+        "#thirdparty/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/idle_inhibit.gen.c",
+        "#thirdparty/wayland-protocols/unstable/idle-inhibit/idle-inhibit-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/tablet.gen.h",
+        "#thirdparty/wayland-protocols/unstable/tablet/tablet-unstable-v2.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/tablet.gen.c",
+        "#thirdparty/wayland-protocols/unstable/tablet/tablet-unstable-v2.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/text_input.gen.h",
+        "#thirdparty/wayland-protocols/unstable/text-input/text-input-unstable-v3.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/text_input.gen.c",
+        "#thirdparty/wayland-protocols/unstable/text-input/text-input-unstable-v3.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/xdg_foreign_v1.gen.h",
+        "#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/xdg_foreign_v1.gen.c",
+        "#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v1.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/xdg_foreign_v2.gen.h",
+        "#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/xdg_foreign_v2.gen.c",
+        "#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml",
+    ),
+    env.WAYLAND_API_HEADER(
+        "protocol/xdg_system_bell.gen.h",
+        "#thirdparty/wayland-protocols/staging/xdg-system-bell/xdg-system-bell-v1.xml",
+    ),
+    env.WAYLAND_API_CODE(
+        "protocol/xdg_system_bell.gen.c",
+        "#thirdparty/wayland-protocols/staging/xdg-system-bell/xdg-system-bell-v1.xml",
+    ),
 )
 
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_foreign_v1.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_foreign_v1.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v1.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_foreign_v2.gen.h",
-    source="#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_foreign_v2.gen.c",
-    source="#thirdparty/wayland-protocols/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml",
-)
-
-env.WAYLAND_API_HEADER(
-    target="protocol/xdg_system_bell.gen.h",
-    source="#thirdparty/wayland-protocols/staging/xdg-system-bell/xdg-system-bell-v1.xml",
-)
-
-env.WAYLAND_API_CODE(
-    target="protocol/xdg_system_bell.gen.c",
-    source="#thirdparty/wayland-protocols/staging/xdg-system-bell/xdg-system-bell-v1.xml",
-)
 
 source_files = [
     "protocol/wayland.gen.c",

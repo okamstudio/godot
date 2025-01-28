@@ -277,6 +277,7 @@ class EditorHelpBit : public VBoxContainer {
 		String value;
 		Vector<ArgumentData> arguments;
 		String qualifiers;
+		String resource_path;
 	};
 
 	inline static HashMap<StringName, HelpData> doc_class_cache;

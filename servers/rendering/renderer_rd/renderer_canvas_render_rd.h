@@ -485,9 +485,14 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 
 	static void _before_evict(RendererCanvasRenderRD::RIDSetKey &p_key, RID &p_rid);
 	static void _uniform_set_invalidation_callback(void *p_userdata);
+	static void _canvas_texture_invalidation_callback(bool p_deleted, void *p_userdata);
 
 	typedef LRUCache<RIDSetKey, RID, HashableHasher<RIDSetKey>, HashMapComparatorDefault<RIDSetKey>, _before_evict> RIDCache;
 	RIDCache rid_set_to_uniform_set;
+	/// Maps a CanvasTexture to its associated uniform sets, which must
+	/// be invalidated when the CanvasTexture is updated, such as changing the
+	/// diffuse texture.
+	HashMap<RID, TightLocalVector<RID>> canvas_texture_to_uniform_set;
 
 	struct Batch {
 		// Position in the UBO measured in bytes

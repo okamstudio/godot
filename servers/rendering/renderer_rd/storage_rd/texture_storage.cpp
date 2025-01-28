@@ -43,9 +43,15 @@ using namespace RendererRD;
 void TextureStorage::CanvasTexture::clear_cache() {
 	info_cache[0] = CanvasTextureCache();
 	info_cache[1] = CanvasTextureCache();
+	if (invalidated_callback != nullptr) {
+		invalidated_callback(false, invalidated_callback_userdata);
+	}
 }
 
 TextureStorage::CanvasTexture::~CanvasTexture() {
+	if (invalidated_callback != nullptr) {
+		invalidated_callback(true, invalidated_callback_userdata);
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -733,6 +739,16 @@ TextureStorage::CanvasTextureInfo TextureStorage::canvas_texture_get_info(RID p_
 	res.use_specular = ct->use_specular_cache;
 
 	return res;
+}
+
+void TextureStorage::canvas_texture_set_invalidation_callback(RID p_canvas_texture, InvalidationCallback p_callback, void *p_userdata) {
+	CanvasTexture *ct = canvas_texture_owner.get_or_null(p_canvas_texture);
+	if (!ct) {
+		return;
+	}
+
+	ct->invalidated_callback = p_callback;
+	ct->invalidated_callback_userdata = p_userdata;
 }
 
 /* Texture API */

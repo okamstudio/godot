@@ -101,12 +101,6 @@ void WindowWrapper::_set_window_enabled_with_rect(bool p_visible, const Rect2 p_
 
 	Node *parent = _get_wrapped_control_parent();
 
-	// In the GameView plugin, we need to the the signal before the window is actually closed
-	// to prevent the embedded game to be seen the parent window for a fraction of a second.
-	if (!p_visible) {
-		emit_signal("window_before_closing");
-	}
-
 	if (wrapped_control->get_parent() != parent) {
 		// Move the control to the window.
 		wrapped_control->reparent(parent, false);
@@ -120,7 +114,7 @@ void WindowWrapper::_set_window_enabled_with_rect(bool p_visible, const Rect2 p_
 	}
 
 	window->set_visible(p_visible);
-	if (!p_visible) {
+	if (!p_visible && !override_close_request) {
 		emit_signal("window_close_requested");
 	}
 	emit_signal("window_visibility_changed", p_visible);
@@ -141,10 +135,17 @@ void WindowWrapper::_window_size_changed() {
 	emit_signal(SNAME("window_size_changed"));
 }
 
+void WindowWrapper::_window_close_request() {
+	if (override_close_request) {
+		emit_signal("window_close_requested");
+	} else {
+		set_window_enabled(false);
+	}
+}
+
 void WindowWrapper::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("window_visibility_changed", PropertyInfo(Variant::BOOL, "visible")));
 	ADD_SIGNAL(MethodInfo("window_close_requested"));
-	ADD_SIGNAL(MethodInfo("window_before_closing"));
 	ADD_SIGNAL(MethodInfo("window_size_changed"));
 }
 
@@ -324,10 +325,22 @@ void WindowWrapper::set_margins_enabled(bool p_enabled) {
 	}
 }
 
+Size2 WindowWrapper::get_margins_size() {
+	if (!margins) {
+		return Size2();
+	}
+
+	return Size2(margins->get_margin_size(SIDE_LEFT) + margins->get_margin_size(SIDE_RIGHT), margins->get_margin_size(SIDE_TOP) + margins->get_margin_size(SIDE_RIGHT));
+}
+
 void WindowWrapper::grab_window_focus() {
 	if (get_window_enabled() && is_visible()) {
 		window->grab_focus();
 	}
+}
+
+void WindowWrapper::set_override_close_request(bool p_enabled) {
+	override_close_request = p_enabled;
 }
 
 WindowWrapper::WindowWrapper() {
@@ -342,7 +355,7 @@ WindowWrapper::WindowWrapper() {
 	add_child(window);
 	window->hide();
 
-	window->connect("close_requested", callable_mp(this, &WindowWrapper::set_window_enabled).bind(false));
+	window->connect("close_requested", callable_mp(this, &WindowWrapper::_window_close_request));
 	window->connect("size_changed", callable_mp(this, &WindowWrapper::_window_size_changed));
 
 	ShortcutBin *capturer = memnew(ShortcutBin);

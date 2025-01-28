@@ -2599,16 +2599,22 @@ void EditorPropertyColor::_color_changed(const Color &p_color) {
 	get_edited_object()->set(get_edited_property(), p_color);
 }
 
+void EditorPropertyColor::_picker_created() {
+	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_popup_opening));
+	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed), CONNECT_DEFERRED);
+}
+
+void EditorPropertyColor::_popup_opening() {
+	EditorNode::get_singleton()->setup_color_picker(picker->get_picker());
+	last_color = picker->get_pick_color();
+	was_checked = !is_checkable() || is_checked();
+}
+
 void EditorPropertyColor::_popup_closed() {
 	get_edited_object()->set(get_edited_property(), was_checked ? Variant(last_color) : Variant());
 	if (!picker->get_pick_color().is_equal_approx(last_color)) {
 		emit_changed(get_edited_property(), picker->get_pick_color(), "", false);
 	}
-}
-
-void EditorPropertyColor::_picker_opening() {
-	last_color = picker->get_pick_color();
-	was_checked = !is_checkable() || is_checked();
 }
 
 void EditorPropertyColor::_notification(int p_what) {
@@ -2654,9 +2660,7 @@ EditorPropertyColor::EditorPropertyColor() {
 	add_child(picker);
 	picker->set_flat(true);
 	picker->connect("color_changed", callable_mp(this, &EditorPropertyColor::_color_changed));
-	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed), CONNECT_DEFERRED);
-	picker->get_popup()->connect("about_to_popup", callable_mp(EditorNode::get_singleton(), &EditorNode::setup_color_picker).bind(picker->get_picker()));
-	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_picker_opening));
+	picker->connect("picker_created", callable_mp(this, &EditorPropertyColor::_picker_created), CONNECT_ONE_SHOT);
 }
 
 ////////////// NODE PATH //////////////////////

@@ -33,6 +33,9 @@
 
 #include "scene/2d/node_2d.h"
 
+class NavigationPolygon;
+class NavigationMeshSourceGeometryData2D;
+
 class NavigationObstacle2D : public Node2D {
 	GDCLASS(NavigationObstacle2D, Node2D);
 
@@ -114,6 +117,14 @@ public:
 	bool get_carve_navigation_mesh() const;
 
 	PackedStringArray get_configuration_warnings() const override;
+
+private:
+	static Callable _navmesh_source_geometry_parsing_callback;
+	static RID _navmesh_source_geometry_parser;
+
+public:
+	static void navmesh_parse_init();
+	static void navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node);
 
 private:
 	void _update_map(RID p_map);

@@ -81,15 +81,19 @@ bool TextureProgressBar::get_nine_patch_stretch() const {
 Size2 TextureProgressBar::get_minimum_size() const {
 	if (nine_patch_stretch) {
 		return Size2(stretch_margin[SIDE_LEFT] + stretch_margin[SIDE_RIGHT], stretch_margin[SIDE_TOP] + stretch_margin[SIDE_BOTTOM]);
-	} else if (under.is_valid()) {
-		return under->get_size();
-	} else if (over.is_valid()) {
-		return over->get_size();
-	} else if (progress.is_valid()) {
-		return progress->get_size();
 	}
 
-	return Size2(1, 1);
+	Size2 size = Size2(1, 1);
+	if (under.is_valid()) {
+		size = size.max(under->get_size());
+	}
+	if (progress.is_valid()) {
+		size = size.max(progress->get_size());
+	}
+	if (over.is_valid()) {
+		size = size.max(over->get_size());
+	}
+	return size;
 }
 
 void TextureProgressBar::set_progress_texture(const Ref<Texture2D> &p_texture) {

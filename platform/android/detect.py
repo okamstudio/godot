@@ -19,6 +19,10 @@ def can_build():
     return os.path.exists(get_env_android_sdk_root())
 
 
+def get_tools(env: "SConsEnvironment"):
+    return ["clang", "clang++", "as", "ar", "link"]
+
+
 def get_opts():
     from SCons.Variables import BoolVariable
 

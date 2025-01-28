@@ -34,8 +34,44 @@
 #include "core/io/json.h"
 #endif // DEV_ENABLED
 #include "core/math/geometry_2d.h"
+#include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
+#include "scene/resources/navigation_mesh.h"
+#include "servers/navigation_server_3d.h"
 
 #include <manifold/manifold.h>
+
+Callable CSGShape3D::_navmesh_source_geometry_parsing_callback;
+RID CSGShape3D::_navmesh_source_geometry_parser;
+
+void CSGShape3D::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer3D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&CSGShape3D::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer3D::get_singleton()->source_geometry_parser_create();
+		NavigationServer3D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void CSGShape3D::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
+	CSGShape3D *csgshape3d = Object::cast_to<CSGShape3D>(p_node);
+
+	if (csgshape3d == nullptr) {
+		return;
+	}
+
+	NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
+	uint32_t parsed_collision_mask = p_navigation_mesh->get_collision_mask();
+
+	if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_STATIC_COLLIDERS && csgshape3d->is_using_collision() && (csgshape3d->get_collision_layer() & parsed_collision_mask)) || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
+		Array meshes = csgshape3d->get_meshes();
+		if (!meshes.is_empty()) {
+			Ref<Mesh> mesh = meshes[1];
+			if (mesh.is_valid()) {
+				p_source_geometry_data->add_mesh(mesh, csgshape3d->get_global_transform());
+			}
+		}
+	}
+}
 
 void CSGShape3D::set_use_collision(bool p_enable) {
 	if (use_collision == p_enable) {
@@ -2198,24 +2234,35 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 				base_xform = path->get_global_transform();
 			}
 
-			Vector3 current_point = curve->sample_baked(0);
-			Vector3 next_point = curve->sample_baked(extrusion_step);
+			Vector3 current_point;
 			Vector3 current_up = Vector3(0, 1, 0);
-			Vector3 direction = next_point - current_point;
-
-			if (path_joined) {
-				Vector3 last_point = curve->sample_baked(curve->get_baked_length());
-				direction = next_point - last_point;
-			}
+			Vector3 direction;
 
 			switch (path_rotation) {
 				case PATH_ROTATION_POLYGON:
+					current_point = curve->sample_baked(0);
 					direction = Vector3(0, 0, -1);
 					break;
 				case PATH_ROTATION_PATH:
-					break;
 				case PATH_ROTATION_PATH_FOLLOW:
-					current_up = curve->sample_baked_up_vector(0, true);
+					if (!path_rotation_accurate) {
+						current_point = curve->sample_baked(0);
+						Vector3 next_point = curve->sample_baked(extrusion_step);
+						direction = next_point - current_point;
+
+						if (path_joined) {
+							Vector3 last_point = curve->sample_baked(curve->get_baked_length());
+							direction = next_point - last_point;
+						}
+					} else {
+						Transform3D current_sample_xform = curve->sample_baked_with_rotation(0);
+						current_point = current_sample_xform.get_origin();
+						direction = current_sample_xform.get_basis().xform(Vector3(0, 0, -1));
+					}
+
+					if (path_rotation == PATH_ROTATION_PATH_FOLLOW) {
+						current_up = curve->sample_baked_up_vector(0, true);
+					}
 					break;
 			}
 
@@ -2271,32 +2318,26 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 				case MODE_PATH: {
 					double previous_offset = x0 * extrusion_step;
 					double current_offset = (x0 + 1) * extrusion_step;
-					double next_offset = (x0 + 2) * extrusion_step;
-					if (x0 == extrusions - 1) {
-						if (path_joined) {
-							current_offset = 0;
-							next_offset = extrusion_step;
-						} else {
-							next_offset = current_offset;
-						}
+					if (path_joined && x0 == extrusions - 1) {
+						current_offset = 0;
 					}
 
 					Vector3 previous_point = curve->sample_baked(previous_offset);
-					Vector3 current_point = curve->sample_baked(current_offset);
-					Vector3 next_point = curve->sample_baked(next_offset);
+					Transform3D current_sample_xform = curve->sample_baked_with_rotation(current_offset);
+					Vector3 current_point = current_sample_xform.get_origin();
 					Vector3 current_up = Vector3(0, 1, 0);
-					Vector3 direction = next_point - previous_point;
-					Vector3 current_dir = (current_point - previous_point).normalized();
+					Vector3 current_extrusion_dir = (current_point - previous_point).normalized();
+					Vector3 direction;
 
 					// If the angles are similar, remove the previous face and replace it with this one.
-					if (path_simplify_angle > 0.0 && x0 > 0 && previous_simplify_dir.dot(current_dir) > angle_simplify_dot) {
+					if (path_simplify_angle > 0.0 && x0 > 0 && previous_simplify_dir.dot(current_extrusion_dir) > angle_simplify_dot) {
 						faces_combined += 1;
 						previous_xform = previous_previous_xform;
 						face -= extrusion_face_count;
 						faces_removed += extrusion_face_count;
 					} else {
 						faces_combined = 0;
-						previous_simplify_dir = current_dir;
+						previous_simplify_dir = current_extrusion_dir;
 					}
 
 					switch (path_rotation) {
@@ -2304,9 +2345,21 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 							direction = Vector3(0, 0, -1);
 							break;
 						case PATH_ROTATION_PATH:
-							break;
 						case PATH_ROTATION_PATH_FOLLOW:
-							current_up = curve->sample_baked_up_vector(current_offset, true);
+							if (!path_rotation_accurate) {
+								double next_offset = (x0 + 2) * extrusion_step;
+								if (x0 == extrusions - 1) {
+									next_offset = path_joined ? extrusion_step : current_offset;
+								}
+								Vector3 next_point = curve->sample_baked(next_offset);
+								direction = next_point - previous_point;
+							} else {
+								direction = current_sample_xform.get_basis().xform(Vector3(0, 0, -1));
+							}
+
+							if (path_rotation == PATH_ROTATION_PATH_FOLLOW) {
+								current_up = curve->sample_baked_up_vector(current_offset, true);
+							}
 							break;
 					}
 
@@ -2476,6 +2529,9 @@ void CSGPolygon3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_path_rotation", "path_rotation"), &CSGPolygon3D::set_path_rotation);
 	ClassDB::bind_method(D_METHOD("get_path_rotation"), &CSGPolygon3D::get_path_rotation);
 
+	ClassDB::bind_method(D_METHOD("set_path_rotation_accurate", "enable"), &CSGPolygon3D::set_path_rotation_accurate);
+	ClassDB::bind_method(D_METHOD("get_path_rotation_accurate"), &CSGPolygon3D::get_path_rotation_accurate);
+
 	ClassDB::bind_method(D_METHOD("set_path_local", "enable"), &CSGPolygon3D::set_path_local);
 	ClassDB::bind_method(D_METHOD("is_path_local"), &CSGPolygon3D::is_path_local);
 
@@ -2507,6 +2563,7 @@ void CSGPolygon3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "path_interval", PROPERTY_HINT_RANGE, "0.01,1.0,0.01,exp,or_greater"), "set_path_interval", "get_path_interval");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "path_simplify_angle", PROPERTY_HINT_RANGE, "0.0,180.0,0.1"), "set_path_simplify_angle", "get_path_simplify_angle");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "path_rotation", PROPERTY_HINT_ENUM, "Polygon,Path,PathFollow"), "set_path_rotation", "get_path_rotation");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "path_rotation_accurate"), "set_path_rotation_accurate", "get_path_rotation_accurate");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "path_local"), "set_path_local", "is_path_local");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "path_continuous_u"), "set_path_continuous_u", "is_path_continuous_u");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "path_u_distance", PROPERTY_HINT_RANGE, "0.0,10.0,0.01,or_greater,suffix:m"), "set_path_u_distance", "get_path_u_distance");
@@ -2649,6 +2706,16 @@ CSGPolygon3D::PathRotation CSGPolygon3D::get_path_rotation() const {
 	return path_rotation;
 }
 
+void CSGPolygon3D::set_path_rotation_accurate(bool p_enabled) {
+	path_rotation_accurate = p_enabled;
+	_make_dirty();
+	update_gizmos();
+}
+
+bool CSGPolygon3D::get_path_rotation_accurate() const {
+	return path_rotation_accurate;
+}
+
 void CSGPolygon3D::set_path_local(bool p_enable) {
 	path_local = p_enable;
 	_make_dirty();
@@ -2710,6 +2777,7 @@ CSGPolygon3D::CSGPolygon3D() {
 	path_interval = 1.0;
 	path_simplify_angle = 0.0;
 	path_rotation = PATH_ROTATION_PATH_FOLLOW;
+	path_rotation_accurate = false;
 	path_local = false;
 	path_continuous_u = true;
 	path_u_distance = 1.0;

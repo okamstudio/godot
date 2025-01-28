@@ -216,7 +216,7 @@ bool Paint::Impl::render(RenderMethod* renderer)
 
         if (MASK_REGION_MERGING(compData->method)) region.add(P(compData->target)->bounds(renderer));
         if (region.w == 0 || region.h == 0) return true;
-        cmp = renderer->target(region, COMPOSITE_TO_COLORSPACE(renderer, compData->method));
+        cmp = renderer->target(region, COMPOSITE_TO_COLORSPACE(renderer, compData->method), CompositionFlag::Masking);
         if (renderer->beginComposite(cmp, CompositeMethod::None, 255)) {
             compData->target->pImpl->render(renderer);
         }
@@ -374,7 +374,7 @@ void Paint::Impl::reset()
 
     blendMethod = BlendMethod::Normal;
     renderFlag = RenderUpdateFlag::None;
-    ctxFlag = ContextFlag::Invalid;
+    ctxFlag = ContextFlag::Default;
     opacity = 255;
     paint->id = 0;
 }

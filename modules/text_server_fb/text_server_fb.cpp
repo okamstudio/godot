@@ -3633,8 +3633,8 @@ RID TextServerFallback::_shaped_text_substr(const RID &p_shaped, int64_t p_start
 					gl.index = 0x00ad;
 					gl.advance = font_get_glyph_advance(gl.font_rid, gl.font_size, 0x00ad).x;
 				}
-				if ((gl.flags & GRAPHEME_IS_EMBEDDED_OBJECT) == GRAPHEME_IS_EMBEDDED_OBJECT && gl.span_index >= 0 && gl.span_index < span_size) {
-					Variant key = sd->spans[gl.span_index].embedded_key;
+				if ((gl.flags & GRAPHEME_IS_EMBEDDED_OBJECT) == GRAPHEME_IS_EMBEDDED_OBJECT && gl.span_index + new_sd->first_span >= 0 && gl.span_index + new_sd->first_span < span_size) {
+					Variant key = sd->spans[gl.span_index + new_sd->first_span].embedded_key;
 					if (key != Variant()) {
 						ShapedTextDataFallback::EmbeddedObject obj = sd->objects[key];
 						if (new_sd->orientation == ORIENTATION_HORIZONTAL) {

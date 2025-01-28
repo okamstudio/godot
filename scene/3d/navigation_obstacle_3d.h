@@ -33,6 +33,9 @@
 
 #include "scene/3d/node_3d.h"
 
+class NavigationMesh;
+class NavigationMeshSourceGeometryData3D;
+
 class NavigationObstacle3D : public Node3D {
 	GDCLASS(NavigationObstacle3D, Node3D);
 
@@ -71,6 +74,7 @@ private:
 	void _update_debug();
 	void _update_fake_agent_radius_debug();
 	void _update_static_obstacle_debug();
+	void _clear_debug();
 #endif // DEBUG_ENABLED
 
 protected:
@@ -122,6 +126,14 @@ public:
 	bool get_carve_navigation_mesh() const;
 
 	PackedStringArray get_configuration_warnings() const override;
+
+private:
+	static Callable _navmesh_source_geometry_parsing_callback;
+	static RID _navmesh_source_geometry_parser;
+
+public:
+	static void navmesh_parse_init();
+	static void navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node);
 
 private:
 	void _update_map(RID p_map);

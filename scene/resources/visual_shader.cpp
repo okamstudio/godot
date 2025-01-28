@@ -2796,7 +2796,7 @@ void VisualShader::_update_shader() const {
 
 		if (varying_setters.has(i)) {
 			for (int &E : varying_setters[i]) {
-				err = _write_node(Type(i), &global_code, nullptr, nullptr, func_code, default_tex_params, input_connections, output_connections, E, processed, false, classes);
+				err = _write_node(Type(i), &global_code, &global_code_per_node, nullptr, func_code, default_tex_params, input_connections, output_connections, E, processed, false, classes);
 				ERR_FAIL_COND(err != OK);
 			}
 		}

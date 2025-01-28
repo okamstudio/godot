@@ -860,10 +860,12 @@ void WSLPeer::close(int p_code, String p_reason) {
 		}
 	}
 
-	heartbeat_waiting = false;
-	in_buffer.clear();
-	packet_buffer.resize(0);
-	pending_message.clear();
+	if (ready_state == STATE_CLOSED) {
+		heartbeat_waiting = false;
+		in_buffer.clear();
+		packet_buffer.resize(0);
+		pending_message.clear();
+	}
 }
 
 IPAddress WSLPeer::get_connected_host() const {

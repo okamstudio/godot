@@ -36,6 +36,13 @@
 #include "scene/resources/3d/concave_polygon_shape_3d.h"
 #include "scene/resources/3d/convex_polygon_shape_3d.h"
 
+#include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
+#include "scene/resources/navigation_mesh.h"
+#include "servers/navigation_server_3d.h"
+
+Callable MeshInstance3D::_navmesh_source_geometry_parsing_callback;
+RID MeshInstance3D::_navmesh_source_geometry_parser;
+
 bool MeshInstance3D::_set(const StringName &p_name, const Variant &p_value) {
 	//this is not _too_ bad performance wise, really. it only arrives here if the property was not set anywhere else.
 	//add to it that it's probably found on first call to _set anyway.
@@ -840,6 +847,32 @@ Ref<TriangleMesh> MeshInstance3D::generate_triangle_mesh() const {
 		return mesh->generate_triangle_mesh();
 	}
 	return Ref<TriangleMesh>();
+}
+
+void MeshInstance3D::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer3D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&MeshInstance3D::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer3D::get_singleton()->source_geometry_parser_create();
+		NavigationServer3D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void MeshInstance3D::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
+	MeshInstance3D *mesh_instance = Object::cast_to<MeshInstance3D>(p_node);
+
+	if (mesh_instance == nullptr) {
+		return;
+	}
+
+	NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
+
+	if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
+		Ref<Mesh> mesh = mesh_instance->get_mesh();
+		if (mesh.is_valid()) {
+			p_source_geometry_data->add_mesh(mesh, mesh_instance->get_global_transform());
+		}
+	}
 }
 
 void MeshInstance3D::_bind_methods() {

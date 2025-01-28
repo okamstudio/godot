@@ -92,7 +92,7 @@ void GPUParticles3D::set_one_shot(bool p_one_shot) {
 
 	if (is_emitting()) {
 		if (!one_shot) {
-			restart();
+			RenderingServer::get_singleton()->particles_restart(particles);
 		}
 	}
 }
@@ -145,11 +145,23 @@ void GPUParticles3D::set_use_local_coordinates(bool p_enable) {
 }
 
 void GPUParticles3D::set_process_material(const Ref<Material> &p_material) {
+#ifdef TOOLS_ENABLED
+	if (process_material.is_valid()) {
+		if (Ref<ParticleProcessMaterial>(process_material).is_valid()) {
+			process_material->disconnect("emission_shape_changed", callable_mp((Node3D *)this, &GPUParticles3D::update_gizmos));
+		}
+	}
+#endif
+
 	process_material = p_material;
 	RID material_rid;
 	if (process_material.is_valid()) {
 		material_rid = process_material->get_rid();
-		process_material->connect("emission_shape_changed", callable_mp((Node3D *)this, &GPUParticles3D::update_gizmos));
+#ifdef TOOLS_ENABLED
+		if (Ref<ParticleProcessMaterial>(process_material).is_valid()) {
+			process_material->connect("emission_shape_changed", callable_mp((Node3D *)this, &GPUParticles3D::update_gizmos));
+		}
+#endif
 	}
 	RS::get_singleton()->particles_set_process_material(particles, material_rid);
 
@@ -554,10 +566,6 @@ void GPUParticles3D::_notification(int p_what) {
 
 		case NOTIFICATION_EXIT_TREE: {
 			RS::get_singleton()->particles_set_subemitter(particles, RID());
-
-			Ref<ParticleProcessMaterial> material = get_process_material();
-			ERR_FAIL_COND(material.is_null());
-			material->disconnect("emission_shape_changed", callable_mp((Node3D *)this, &GPUParticles3D::update_gizmos));
 		} break;
 
 		case NOTIFICATION_SUSPENDED:

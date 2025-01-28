@@ -1270,10 +1270,17 @@ COMMAND_1(free, RID, p_object) {
 	} else if (obstacle_owner.owns(p_object)) {
 		internal_free_obstacle(p_object);
 
+	} else if (geometry_parser_owner.owns(p_object)) {
+		RWLockWrite write_lock(geometry_parser_rwlock);
+
+		NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(p_object);
+		ERR_FAIL_NULL(parser);
+
+		generator_parsers.erase(parser);
 #ifndef _3D_DISABLED
-	} else if (navmesh_generator_3d && navmesh_generator_3d->owns(p_object)) {
-		navmesh_generator_3d->free(p_object);
-#endif // _3D_DISABLED
+		NavMeshGenerator3D::get_singleton()->set_generator_parsers(generator_parsers);
+#endif
+		geometry_parser_owner.free(parser->self);
 
 	} else {
 		ERR_PRINT("Attempted to free a NavigationServer RID that did not exist (or was already freed).");
@@ -1408,6 +1415,8 @@ void GodotNavigationServer3D::process(real_t p_delta_time) {
 void GodotNavigationServer3D::init() {
 #ifndef _3D_DISABLED
 	navmesh_generator_3d = memnew(NavMeshGenerator3D);
+	RWLockRead read_lock(geometry_parser_rwlock);
+	navmesh_generator_3d->set_generator_parsers(generator_parsers);
 #endif // _3D_DISABLED
 }
 
@@ -1433,20 +1442,27 @@ void GodotNavigationServer3D::query_path(const Ref<NavigationPathQueryParameters
 }
 
 RID GodotNavigationServer3D::source_geometry_parser_create() {
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	RID rid = geometry_parser_owner.make_rid();
+
+	NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(rid);
+	parser->self = rid;
+
+	generator_parsers.push_back(parser);
 #ifndef _3D_DISABLED
-	if (navmesh_generator_3d) {
-		return navmesh_generator_3d->source_geometry_parser_create();
-	}
-#endif // _3D_DISABLED
-	return RID();
+	NavMeshGenerator3D::get_singleton()->set_generator_parsers(generator_parsers);
+#endif
+	return rid;
 }
 
 void GodotNavigationServer3D::source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) {
-#ifndef _3D_DISABLED
-	if (navmesh_generator_3d) {
-		navmesh_generator_3d->source_geometry_parser_set_callback(p_parser, p_callback);
-	}
-#endif // _3D_DISABLED
+	RWLockWrite write_lock(geometry_parser_rwlock);
+
+	NavMeshGeometryParser3D *parser = geometry_parser_owner.get_or_null(p_parser);
+	ERR_FAIL_NULL(parser);
+
+	parser->callback = p_callback;
 }
 
 Vector<Vector3> GodotNavigationServer3D::simplify_path(const Vector<Vector3> &p_path, real_t p_epsilon) {

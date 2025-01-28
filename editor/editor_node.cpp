@@ -1482,16 +1482,6 @@ void EditorNode::save_resource_as(const Ref<Resource> &p_resource, const String 
 	file->popup_file_dialog();
 }
 
-void EditorNode::ensure_uid_file(const String &p_new_resource_path) {
-	if (ResourceLoader::exists(p_new_resource_path) && !ResourceLoader::has_custom_uid_support(p_new_resource_path) && !FileAccess::exists(p_new_resource_path + ".uid")) {
-		Ref<FileAccess> f = FileAccess::open(p_new_resource_path + ".uid", FileAccess::WRITE);
-		if (f.is_valid()) {
-			const ResourceUID::ID id = ResourceUID::get_singleton()->create_id();
-			f->store_line(ResourceUID::get_singleton()->id_to_text(id));
-		}
-	}
-}
-
 void EditorNode::_menu_option(int p_option) {
 	_menu_option_confirm(p_option, false);
 }
@@ -2232,11 +2222,6 @@ void EditorNode::_dialog_action(String p_file) {
 		case RESOURCE_SAVE_AS: {
 			ERR_FAIL_COND(saving_resource.is_null());
 			save_resource_in_path(saving_resource, p_file);
-
-			if (current_menu_option == RESOURCE_SAVE_AS) {
-				// Create .uid file when making new Resource.
-				ensure_uid_file(p_file);
-			}
 
 			saving_resource = Ref<Resource>();
 			ObjectID current_id = editor_history.get_current();
@@ -6574,7 +6559,7 @@ Vector<Ref<EditorResourceConversionPlugin>> EditorNode::find_resource_conversion
 Vector<Ref<EditorResourceConversionPlugin>> EditorNode::find_resource_conversion_plugin_for_type_name(const String &p_type) {
 	Vector<Ref<EditorResourceConversionPlugin>> ret;
 
-	if (ClassDB::can_instantiate(p_type)) {
+	if (ClassDB::class_exists(p_type) && ClassDB::can_instantiate(p_type)) {
 		Ref<Resource> temp = Object::cast_to<Resource>(ClassDB::instantiate(p_type));
 		if (temp.is_valid()) {
 			for (Ref<EditorResourceConversionPlugin> resource_conversion_plugin : resource_conversion_plugins) {

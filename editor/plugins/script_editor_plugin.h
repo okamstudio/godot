@@ -173,6 +173,11 @@ protected:
 	static void _bind_methods();
 
 public:
+	struct EditedFileData {
+		String path;
+		uint64_t last_modified_time = -1;
+	} edited_file_data;
+
 	virtual void add_syntax_highlighter(Ref<EditorSyntaxHighlighter> p_highlighter) = 0;
 	virtual void set_syntax_highlighter(Ref<EditorSyntaxHighlighter> p_highlighter) = 0;
 

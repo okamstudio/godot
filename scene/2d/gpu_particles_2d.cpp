@@ -912,6 +912,8 @@ GPUParticles2D::GPUParticles2D() {
 	one_shot = false; // Needed so that set_emitting doesn't access uninitialized values
 	set_emitting(true);
 	set_one_shot(false);
+	set_use_fixed_seed(false);
+	set_seed(0);
 	set_amount(8);
 	set_amount_ratio(1.0);
 	set_lifetime(1);

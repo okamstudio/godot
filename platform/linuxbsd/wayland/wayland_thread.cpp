@@ -193,11 +193,19 @@ Vector<uint8_t> WaylandThread::_wp_primary_selection_offer_read(struct wl_displa
 
 // Sets up an `InputEventKey` and returns whether it has any meaningful value.
 bool WaylandThread::_seat_state_configure_key_event(SeatState &p_ss, Ref<InputEventKey> p_event, xkb_keycode_t p_keycode, bool p_pressed) {
-	// TODO: Handle keys that release multiple symbols?
-	Key keycode = KeyMappingXKB::get_keycode(xkb_state_key_get_one_sym(p_ss.xkb_state, p_keycode));
+	// NOTE: xkbcommon's API really encourages to apply the modifier state but we
+	// only want a "plain" symbol so that we can convert it into a godot keycode.
+	const xkb_keysym_t *syms = nullptr;
+	int num_sys = xkb_keymap_key_get_syms_by_level(p_ss.xkb_keymap, p_keycode, p_ss.current_layout_index, 0, &syms);
+
 	Key physical_keycode = KeyMappingXKB::get_scancode(p_keycode);
 	KeyLocation key_location = KeyMappingXKB::get_location(p_keycode);
 	uint32_t unicode = xkb_state_key_get_utf32(p_ss.xkb_state, p_keycode);
+
+	Key keycode = Key::NONE;
+	if (num_sys > 0 && syms) {
+		keycode = KeyMappingXKB::get_keycode(syms[0]);
+	}
 
 	if (keycode == Key::NONE) {
 		keycode = physical_keycode;
@@ -3492,7 +3500,8 @@ bool WaylandThread::window_can_set_mode(DisplayServer::WindowID p_window_id, Dis
 			return ws.can_maximize;
 		};
 
-		case DisplayServer::WINDOW_MODE_FULLSCREEN: {
+		case DisplayServer::WINDOW_MODE_FULLSCREEN:
+		case DisplayServer::WINDOW_MODE_EXCLUSIVE_FULLSCREEN: {
 #ifdef LIBDECOR_ENABLED
 			if (ws.libdecor_frame) {
 				return libdecor_frame_has_capability(ws.libdecor_frame, LIBDECOR_ACTION_FULLSCREEN);
@@ -3500,13 +3509,6 @@ bool WaylandThread::window_can_set_mode(DisplayServer::WindowID p_window_id, Dis
 #endif // LIBDECOR_ENABLED
 
 			return ws.can_fullscreen;
-		};
-
-		case DisplayServer::WINDOW_MODE_EXCLUSIVE_FULLSCREEN: {
-			// I'm not really sure but from what I can find Wayland doesn't really have
-			// the concept of exclusive fullscreen.
-			// TODO: Discuss whether to fallback to regular fullscreen or not.
-			return false;
 		};
 	}
 
@@ -4117,6 +4119,7 @@ void WaylandThread::selection_set_text(const String &p_text) {
 
 	if (registry.wl_data_device_manager == nullptr) {
 		DEBUG_LOG_WAYLAND_THREAD("Couldn't set selection, wl_data_device_manager global not available.");
+		return;
 	}
 
 	if (ss == nullptr) {
@@ -4244,6 +4247,11 @@ void WaylandThread::primary_set_text(const String &p_text) {
 		return;
 	}
 
+	if (ss->wp_primary_selection_device == nullptr) {
+		DEBUG_LOG_WAYLAND_THREAD("Couldn't set primary selection, seat doesn't have wp_primary_selection_device.");
+		return;
+	}
+
 	ss->primary_data = p_text.to_utf8_buffer();
 
 	if (ss->wp_primary_selection_source == nullptr) {
@@ -4251,10 +4259,10 @@ void WaylandThread::primary_set_text(const String &p_text) {
 		zwp_primary_selection_source_v1_add_listener(ss->wp_primary_selection_source, &wp_primary_selection_source_listener, ss);
 		zwp_primary_selection_source_v1_offer(ss->wp_primary_selection_source, "text/plain;charset=utf-8");
 		zwp_primary_selection_source_v1_offer(ss->wp_primary_selection_source, "text/plain");
-	}
 
-	// TODO: Implement a good way of getting the latest serial from the user.
-	zwp_primary_selection_device_v1_set_selection(ss->wp_primary_selection_device, ss->wp_primary_selection_source, MAX(ss->pointer_data.button_serial, ss->last_key_pressed_serial));
+		// TODO: Implement a good way of getting the latest serial from the user.
+		zwp_primary_selection_device_v1_set_selection(ss->wp_primary_selection_device, ss->wp_primary_selection_source, MAX(ss->pointer_data.button_serial, ss->last_key_pressed_serial));
+	}
 
 	// Wait for the message to get to the server before continuing, otherwise the
 	// clipboard update might come with a delay.

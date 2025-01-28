@@ -12,6 +12,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     name: ${{ matrix.name }}
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:

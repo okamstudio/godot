@@ -275,7 +275,6 @@ void CodeEdit::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_MOUSE_EXIT: {
-			queue_redraw();
 			symbol_tooltip_timer->stop();
 		} break;
 	}

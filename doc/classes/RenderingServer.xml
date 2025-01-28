@@ -4269,7 +4269,7 @@
 			<description>
 				Creates a new 3D visibility notifier object and adds it to the RenderingServer. It can be accessed with the RID that is returned. This RID will be used in all [code]visibility_notifier_*[/code] RenderingServer functions.
 				Once finished with your RID, you will want to free the RID using the RenderingServer's [method free_rid] method.
-				To place in a scene, attach this mesh to an instance using [method instance_set_base] using the returned RID.
+				To place in a scene, attach this notifier to an instance using [method instance_set_base] using the returned RID.
 				[b]Note:[/b] The equivalent node is [VisibleOnScreenNotifier3D].
 			</description>
 		</method>

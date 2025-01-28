@@ -33,6 +33,8 @@
 
 #include "scene/2d/node_2d.h"
 
+class RandomNumberGenerator;
+
 class CPUParticles2D : public Node2D {
 private:
 	GDCLASS(CPUParticles2D, Node2D);
@@ -179,11 +181,22 @@ private:
 
 	Vector2 gravity = Vector2(0, 980);
 
+	Ref<RandomNumberGenerator> rng;
+
 	void _update_internal();
 	void _particles_process(double p_delta);
 	void _update_particle_data_buffer();
 
 	Mutex update_mutex;
+
+	struct InterpolationData {
+		// Whether this particle is non-interpolated, but following an interpolated parent.
+		bool interpolated_follow = false;
+
+		// If doing interpolated follow, we need to keep these updated per tick.
+		Transform2D global_xform_curr;
+		Transform2D global_xform_prev;
+	} _interpolation_data;
 
 	void _update_render_thread();
 
@@ -192,6 +205,8 @@ private:
 	void _set_do_redraw(bool p_do_redraw);
 
 	void _texture_changed();
+
+	void _refresh_interpolation_state();
 
 protected:
 	static void _bind_methods();

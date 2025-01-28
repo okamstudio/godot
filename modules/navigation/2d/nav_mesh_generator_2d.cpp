@@ -33,19 +33,8 @@
 #include "nav_mesh_generator_2d.h"
 
 #include "core/config/project_settings.h"
-#include "scene/2d/mesh_instance_2d.h"
-#include "scene/2d/multimesh_instance_2d.h"
-#include "scene/2d/navigation_obstacle_2d.h"
-#include "scene/2d/physics/static_body_2d.h"
-#include "scene/2d/polygon_2d.h"
-#include "scene/2d/tile_map.h"
-#include "scene/resources/2d/capsule_shape_2d.h"
-#include "scene/resources/2d/circle_shape_2d.h"
-#include "scene/resources/2d/concave_polygon_shape_2d.h"
-#include "scene/resources/2d/convex_polygon_shape_2d.h"
 #include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
 #include "scene/resources/2d/navigation_polygon.h"
-#include "scene/resources/2d/rectangle_shape_2d.h"
 
 #include "thirdparty/clipper2/include/clipper2/clipper.h"
 #include "thirdparty/misc/polypartition.h"
@@ -53,14 +42,13 @@
 NavMeshGenerator2D *NavMeshGenerator2D::singleton = nullptr;
 Mutex NavMeshGenerator2D::baking_navmesh_mutex;
 Mutex NavMeshGenerator2D::generator_task_mutex;
-RWLock NavMeshGenerator2D::generator_rid_rwlock;
+RWLock NavMeshGenerator2D::generator_parsers_rwlock;
 bool NavMeshGenerator2D::use_threads = true;
 bool NavMeshGenerator2D::baking_use_multiple_threads = true;
 bool NavMeshGenerator2D::baking_use_high_priority_threads = true;
 HashSet<Ref<NavigationPolygon>> NavMeshGenerator2D::baking_navmeshes;
 HashMap<WorkerThreadPool::TaskID, NavMeshGenerator2D::NavMeshGeneratorTask2D *> NavMeshGenerator2D::generator_tasks;
-RID_Owner<NavMeshGenerator2D::NavMeshGeometryParser2D> NavMeshGenerator2D::generator_parser_owner;
-LocalVector<NavMeshGenerator2D::NavMeshGeometryParser2D *> NavMeshGenerator2D::generator_parsers;
+LocalVector<NavMeshGeometryParser2D *> NavMeshGenerator2D::generator_parsers;
 
 NavMeshGenerator2D *NavMeshGenerator2D::get_singleton() {
 	return singleton;
@@ -129,12 +117,9 @@ void NavMeshGenerator2D::cleanup() {
 		}
 		generator_tasks.clear();
 
-		generator_rid_rwlock.write_lock();
-		for (NavMeshGeometryParser2D *parser : generator_parsers) {
-			generator_parser_owner.free(parser->self);
-		}
+		generator_parsers_rwlock.write_lock();
 		generator_parsers.clear();
-		generator_rid_rwlock.write_unlock();
+		generator_parsers_rwlock.write_unlock();
 	}
 }
 
@@ -234,510 +219,25 @@ void NavMeshGenerator2D::generator_thread_bake(void *p_arg) {
 }
 
 void NavMeshGenerator2D::generator_parse_geometry_node(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node, bool p_recurse_children) {
-	generator_parse_meshinstance2d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_multimeshinstance2d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_polygon2d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_staticbody2d_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_tile_map_layer_node(p_navigation_mesh, p_source_geometry_data, p_node);
-	generator_parse_navigationobstacle_node(p_navigation_mesh, p_source_geometry_data, p_node);
-
-	generator_rid_rwlock.read_lock();
+	generator_parsers_rwlock.read_lock();
 	for (const NavMeshGeometryParser2D *parser : generator_parsers) {
 		if (!parser->callback.is_valid()) {
 			continue;
 		}
 		parser->callback.call(p_navigation_mesh, p_source_geometry_data, p_node);
 	}
-	generator_rid_rwlock.read_unlock();
+	generator_parsers_rwlock.read_unlock();
 
 	if (p_recurse_children) {
 		for (int i = 0; i < p_node->get_child_count(); i++) {
 			generator_parse_geometry_node(p_navigation_mesh, p_source_geometry_data, p_node->get_child(i), p_recurse_children);
 		}
-	} else if (Object::cast_to<TileMap>(p_node)) {
-		// Special case for TileMap, so that internal layer get parsed even if p_recurse_children is false.
-		for (int i = 0; i < p_node->get_child_count(); i++) {
-			TileMapLayer *tile_map_layer = Object::cast_to<TileMapLayer>(p_node->get_child(i));
-			if (tile_map_layer && tile_map_layer->get_index_in_tile_map() >= 0) {
-				generator_parse_tile_map_layer_node(p_navigation_mesh, p_source_geometry_data, tile_map_layer);
-			}
-		}
 	}
 }
 
-void NavMeshGenerator2D::generator_parse_meshinstance2d_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	MeshInstance2D *mesh_instance = Object::cast_to<MeshInstance2D>(p_node);
-
-	if (mesh_instance == nullptr) {
-		return;
-	}
-
-	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-
-	if (!(parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH)) {
-		return;
-	}
-
-	Ref<Mesh> mesh = mesh_instance->get_mesh();
-	if (mesh.is_null()) {
-		return;
-	}
-
-	const Transform2D mesh_instance_xform = p_source_geometry_data->root_node_transform * mesh_instance->get_global_transform();
-
-	using namespace Clipper2Lib;
-
-	PathsD subject_paths, dummy_clip_paths;
-
-	for (int i = 0; i < mesh->get_surface_count(); i++) {
-		if (mesh->surface_get_primitive_type(i) != Mesh::PRIMITIVE_TRIANGLES) {
-			continue;
-		}
-
-		if (!(mesh->surface_get_format(i) & Mesh::ARRAY_FLAG_USE_2D_VERTICES)) {
-			continue;
-		}
-
-		PathD subject_path;
-
-		int index_count = 0;
-		if (mesh->surface_get_format(i) & Mesh::ARRAY_FORMAT_INDEX) {
-			index_count = mesh->surface_get_array_index_len(i);
-		} else {
-			index_count = mesh->surface_get_array_len(i);
-		}
-
-		ERR_CONTINUE((index_count == 0 || (index_count % 3) != 0));
-
-		Array a = mesh->surface_get_arrays(i);
-
-		Vector<Vector2> mesh_vertices = a[Mesh::ARRAY_VERTEX];
-
-		if (mesh->surface_get_format(i) & Mesh::ARRAY_FORMAT_INDEX) {
-			Vector<int> mesh_indices = a[Mesh::ARRAY_INDEX];
-			for (int vertex_index : mesh_indices) {
-				const Vector2 &vertex = mesh_vertices[vertex_index];
-				const PointD &point = PointD(vertex.x, vertex.y);
-				subject_path.push_back(point);
-			}
-		} else {
-			for (const Vector2 &vertex : mesh_vertices) {
-				const PointD &point = PointD(vertex.x, vertex.y);
-				subject_path.push_back(point);
-			}
-		}
-		subject_paths.push_back(subject_path);
-	}
-
-	PathsD path_solution;
-
-	path_solution = Union(subject_paths, dummy_clip_paths, FillRule::NonZero);
-
-	//path_solution = RamerDouglasPeucker(path_solution, 0.025);
-
-	Vector<Vector<Vector2>> polypaths;
-
-	for (const PathD &scaled_path : path_solution) {
-		Vector<Vector2> shape_outline;
-		for (const PointD &scaled_point : scaled_path) {
-			shape_outline.push_back(Point2(static_cast<real_t>(scaled_point.x), static_cast<real_t>(scaled_point.y)));
-		}
-
-		for (int i = 0; i < shape_outline.size(); i++) {
-			shape_outline.write[i] = mesh_instance_xform.xform(shape_outline[i]);
-		}
-
-		p_source_geometry_data->add_obstruction_outline(shape_outline);
-	}
-}
-
-void NavMeshGenerator2D::generator_parse_multimeshinstance2d_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	MultiMeshInstance2D *multimesh_instance = Object::cast_to<MultiMeshInstance2D>(p_node);
-
-	if (multimesh_instance == nullptr) {
-		return;
-	}
-
-	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-	if (!(parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH)) {
-		return;
-	}
-
-	Ref<MultiMesh> multimesh = multimesh_instance->get_multimesh();
-	if (!(multimesh.is_valid() && multimesh->get_transform_format() == MultiMesh::TRANSFORM_2D)) {
-		return;
-	}
-
-	Ref<Mesh> mesh = multimesh->get_mesh();
-	if (mesh.is_null()) {
-		return;
-	}
-
-	using namespace Clipper2Lib;
-
-	PathsD mesh_subject_paths, dummy_clip_paths;
-
-	for (int i = 0; i < mesh->get_surface_count(); i++) {
-		if (mesh->surface_get_primitive_type(i) != Mesh::PRIMITIVE_TRIANGLES) {
-			continue;
-		}
-
-		if (!(mesh->surface_get_format(i) & Mesh::ARRAY_FLAG_USE_2D_VERTICES)) {
-			continue;
-		}
-
-		PathD subject_path;
-
-		int index_count = 0;
-		if (mesh->surface_get_format(i) & Mesh::ARRAY_FORMAT_INDEX) {
-			index_count = mesh->surface_get_array_index_len(i);
-		} else {
-			index_count = mesh->surface_get_array_len(i);
-		}
-
-		ERR_CONTINUE((index_count == 0 || (index_count % 3) != 0));
-
-		Array a = mesh->surface_get_arrays(i);
-
-		Vector<Vector2> mesh_vertices = a[Mesh::ARRAY_VERTEX];
-
-		if (mesh->surface_get_format(i) & Mesh::ARRAY_FORMAT_INDEX) {
-			Vector<int> mesh_indices = a[Mesh::ARRAY_INDEX];
-			for (int vertex_index : mesh_indices) {
-				const Vector2 &vertex = mesh_vertices[vertex_index];
-				const PointD &point = PointD(vertex.x, vertex.y);
-				subject_path.push_back(point);
-			}
-		} else {
-			for (const Vector2 &vertex : mesh_vertices) {
-				const PointD &point = PointD(vertex.x, vertex.y);
-				subject_path.push_back(point);
-			}
-		}
-		mesh_subject_paths.push_back(subject_path);
-	}
-
-	PathsD mesh_path_solution = Union(mesh_subject_paths, dummy_clip_paths, FillRule::NonZero);
-
-	//path_solution = RamerDouglasPeucker(path_solution, 0.025);
-
-	int multimesh_instance_count = multimesh->get_visible_instance_count();
-	if (multimesh_instance_count == -1) {
-		multimesh_instance_count = multimesh->get_instance_count();
-	}
-
-	const Transform2D multimesh_instance_xform = p_source_geometry_data->root_node_transform * multimesh_instance->get_global_transform();
-
-	for (int i = 0; i < multimesh_instance_count; i++) {
-		const Transform2D multimesh_instance_mesh_instance_xform = multimesh_instance_xform * multimesh->get_instance_transform_2d(i);
-
-		for (const PathD &mesh_path : mesh_path_solution) {
-			Vector<Vector2> shape_outline;
-
-			for (const PointD &mesh_path_point : mesh_path) {
-				shape_outline.push_back(Point2(static_cast<real_t>(mesh_path_point.x), static_cast<real_t>(mesh_path_point.y)));
-			}
-
-			for (int j = 0; j < shape_outline.size(); j++) {
-				shape_outline.write[j] = multimesh_instance_mesh_instance_xform.xform(shape_outline[j]);
-			}
-			p_source_geometry_data->add_obstruction_outline(shape_outline);
-		}
-	}
-}
-
-void NavMeshGenerator2D::generator_parse_polygon2d_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	Polygon2D *polygon_2d = Object::cast_to<Polygon2D>(p_node);
-
-	if (polygon_2d == nullptr) {
-		return;
-	}
-
-	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-
-	if (parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH) {
-		const Transform2D polygon_2d_xform = p_source_geometry_data->root_node_transform * polygon_2d->get_global_transform();
-
-		Vector<Vector2> shape_outline = polygon_2d->get_polygon();
-		for (int i = 0; i < shape_outline.size(); i++) {
-			shape_outline.write[i] = polygon_2d_xform.xform(shape_outline[i]);
-		}
-
-		p_source_geometry_data->add_obstruction_outline(shape_outline);
-	}
-}
-
-void NavMeshGenerator2D::generator_parse_staticbody2d_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	StaticBody2D *static_body = Object::cast_to<StaticBody2D>(p_node);
-
-	if (static_body == nullptr) {
-		return;
-	}
-
-	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-	if (!(parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH)) {
-		return;
-	}
-
-	uint32_t parsed_collision_mask = p_navigation_mesh->get_parsed_collision_mask();
-	if (!(static_body->get_collision_layer() & parsed_collision_mask)) {
-		return;
-	}
-
-	List<uint32_t> shape_owners;
-	static_body->get_shape_owners(&shape_owners);
-
-	for (uint32_t shape_owner : shape_owners) {
-		if (static_body->is_shape_owner_disabled(shape_owner)) {
-			continue;
-		}
-
-		const int shape_count = static_body->shape_owner_get_shape_count(shape_owner);
-
-		for (int shape_index = 0; shape_index < shape_count; shape_index++) {
-			Ref<Shape2D> s = static_body->shape_owner_get_shape(shape_owner, shape_index);
-
-			if (s.is_null()) {
-				continue;
-			}
-
-			const Transform2D static_body_xform = p_source_geometry_data->root_node_transform * static_body->get_global_transform() * static_body->shape_owner_get_transform(shape_owner);
-
-			RectangleShape2D *rectangle_shape = Object::cast_to<RectangleShape2D>(*s);
-			if (rectangle_shape) {
-				Vector<Vector2> shape_outline;
-
-				const Vector2 &rectangle_size = rectangle_shape->get_size();
-
-				shape_outline.resize(5);
-				shape_outline.write[0] = static_body_xform.xform(-rectangle_size * 0.5);
-				shape_outline.write[1] = static_body_xform.xform(Vector2(rectangle_size.x, -rectangle_size.y) * 0.5);
-				shape_outline.write[2] = static_body_xform.xform(rectangle_size * 0.5);
-				shape_outline.write[3] = static_body_xform.xform(Vector2(-rectangle_size.x, rectangle_size.y) * 0.5);
-				shape_outline.write[4] = static_body_xform.xform(-rectangle_size * 0.5);
-
-				p_source_geometry_data->add_obstruction_outline(shape_outline);
-			}
-
-			CapsuleShape2D *capsule_shape = Object::cast_to<CapsuleShape2D>(*s);
-			if (capsule_shape) {
-				const real_t capsule_height = capsule_shape->get_height();
-				const real_t capsule_radius = capsule_shape->get_radius();
-
-				Vector<Vector2> shape_outline;
-				const real_t turn_step = Math_TAU / 12.0;
-				shape_outline.resize(14);
-				int shape_outline_inx = 0;
-				for (int i = 0; i < 12; i++) {
-					Vector2 ofs = Vector2(0, (i > 3 && i <= 9) ? -capsule_height * 0.5 + capsule_radius : capsule_height * 0.5 - capsule_radius);
-
-					shape_outline.write[shape_outline_inx] = static_body_xform.xform(Vector2(Math::sin(i * turn_step), Math::cos(i * turn_step)) * capsule_radius + ofs);
-					shape_outline_inx += 1;
-					if (i == 3 || i == 9) {
-						shape_outline.write[shape_outline_inx] = static_body_xform.xform(Vector2(Math::sin(i * turn_step), Math::cos(i * turn_step)) * capsule_radius - ofs);
-						shape_outline_inx += 1;
-					}
-				}
-
-				p_source_geometry_data->add_obstruction_outline(shape_outline);
-			}
-
-			CircleShape2D *circle_shape = Object::cast_to<CircleShape2D>(*s);
-			if (circle_shape) {
-				const real_t circle_radius = circle_shape->get_radius();
-
-				Vector<Vector2> shape_outline;
-				int circle_edge_count = 12;
-				shape_outline.resize(circle_edge_count);
-
-				const real_t turn_step = Math_TAU / real_t(circle_edge_count);
-				for (int i = 0; i < circle_edge_count; i++) {
-					shape_outline.write[i] = static_body_xform.xform(Vector2(Math::cos(i * turn_step), Math::sin(i * turn_step)) * circle_radius);
-				}
-
-				p_source_geometry_data->add_obstruction_outline(shape_outline);
-			}
-
-			ConcavePolygonShape2D *concave_polygon_shape = Object::cast_to<ConcavePolygonShape2D>(*s);
-			if (concave_polygon_shape) {
-				Vector<Vector2> shape_outline = concave_polygon_shape->get_segments();
-
-				for (int i = 0; i < shape_outline.size(); i++) {
-					shape_outline.write[i] = static_body_xform.xform(shape_outline[i]);
-				}
-
-				p_source_geometry_data->add_obstruction_outline(shape_outline);
-			}
-
-			ConvexPolygonShape2D *convex_polygon_shape = Object::cast_to<ConvexPolygonShape2D>(*s);
-			if (convex_polygon_shape) {
-				Vector<Vector2> shape_outline = convex_polygon_shape->get_points();
-
-				for (int i = 0; i < shape_outline.size(); i++) {
-					shape_outline.write[i] = static_body_xform.xform(shape_outline[i]);
-				}
-
-				p_source_geometry_data->add_obstruction_outline(shape_outline);
-			}
-		}
-	}
-}
-
-void NavMeshGenerator2D::generator_parse_tile_map_layer_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	TileMapLayer *tile_map_layer = Object::cast_to<TileMapLayer>(p_node);
-	if (tile_map_layer == nullptr) {
-		return;
-	}
-
-	Ref<TileSet> tile_set = tile_map_layer->get_tile_set();
-	if (tile_set.is_null()) {
-		return;
-	}
-
-	int physics_layers_count = tile_set->get_physics_layers_count();
-	int navigation_layers_count = tile_set->get_navigation_layers_count();
-	if (physics_layers_count <= 0 && navigation_layers_count <= 0) {
-		return;
-	}
-
-	NavigationPolygon::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
-	uint32_t parsed_collision_mask = p_navigation_mesh->get_parsed_collision_mask();
-
-	const Transform2D tilemap_xform = p_source_geometry_data->root_node_transform * tile_map_layer->get_global_transform();
-
-	TypedArray<Vector2i> used_cells = tile_map_layer->get_used_cells();
-	for (int used_cell_index = 0; used_cell_index < used_cells.size(); used_cell_index++) {
-		const Vector2i &cell = used_cells[used_cell_index];
-
-		const TileData *tile_data = tile_map_layer->get_cell_tile_data(cell);
-		if (tile_data == nullptr) {
-			continue;
-		}
-
-		// Transform flags.
-		const int alternative_id = tile_map_layer->get_cell_alternative_tile(cell);
-		bool flip_h = (alternative_id & TileSetAtlasSource::TRANSFORM_FLIP_H);
-		bool flip_v = (alternative_id & TileSetAtlasSource::TRANSFORM_FLIP_V);
-		bool transpose = (alternative_id & TileSetAtlasSource::TRANSFORM_TRANSPOSE);
-
-		Transform2D tile_transform;
-		tile_transform.set_origin(tile_map_layer->map_to_local(cell));
-
-		const Transform2D tile_transform_offset = tilemap_xform * tile_transform;
-
-		// Parse traversable polygons.
-		for (int navigation_layer = 0; navigation_layer < navigation_layers_count; navigation_layer++) {
-			Ref<NavigationPolygon> navigation_polygon = tile_data->get_navigation_polygon(navigation_layer, flip_h, flip_v, transpose);
-			if (navigation_polygon.is_valid()) {
-				for (int outline_index = 0; outline_index < navigation_polygon->get_outline_count(); outline_index++) {
-					const Vector<Vector2> &navigation_polygon_outline = navigation_polygon->get_outline(outline_index);
-					if (navigation_polygon_outline.is_empty()) {
-						continue;
-					}
-
-					Vector<Vector2> traversable_outline;
-					traversable_outline.resize(navigation_polygon_outline.size());
-
-					const Vector2 *navigation_polygon_outline_ptr = navigation_polygon_outline.ptr();
-					Vector2 *traversable_outline_ptrw = traversable_outline.ptrw();
-
-					for (int traversable_outline_index = 0; traversable_outline_index < traversable_outline.size(); traversable_outline_index++) {
-						traversable_outline_ptrw[traversable_outline_index] = tile_transform_offset.xform(navigation_polygon_outline_ptr[traversable_outline_index]);
-					}
-
-					p_source_geometry_data->_add_traversable_outline(traversable_outline);
-				}
-			}
-		}
-
-		// Parse obstacles.
-		for (int physics_layer = 0; physics_layer < physics_layers_count; physics_layer++) {
-			if ((parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationPolygon::PARSED_GEOMETRY_BOTH) &&
-					(tile_set->get_physics_layer_collision_layer(physics_layer) & parsed_collision_mask)) {
-				for (int collision_polygon_index = 0; collision_polygon_index < tile_data->get_collision_polygons_count(physics_layer); collision_polygon_index++) {
-					PackedVector2Array collision_polygon_points = tile_data->get_collision_polygon_points(physics_layer, collision_polygon_index);
-					if (collision_polygon_points.is_empty()) {
-						continue;
-					}
-
-					if (flip_h || flip_v || transpose) {
-						collision_polygon_points = TileData::get_transformed_vertices(collision_polygon_points, flip_h, flip_v, transpose);
-					}
-
-					Vector<Vector2> obstruction_outline;
-					obstruction_outline.resize(collision_polygon_points.size());
-
-					const Vector2 *collision_polygon_points_ptr = collision_polygon_points.ptr();
-					Vector2 *obstruction_outline_ptrw = obstruction_outline.ptrw();
-
-					for (int obstruction_outline_index = 0; obstruction_outline_index < obstruction_outline.size(); obstruction_outline_index++) {
-						obstruction_outline_ptrw[obstruction_outline_index] = tile_transform_offset.xform(collision_polygon_points_ptr[obstruction_outline_index]);
-					}
-
-					p_source_geometry_data->_add_obstruction_outline(obstruction_outline);
-				}
-			}
-		}
-	}
-}
-
-void NavMeshGenerator2D::generator_parse_navigationobstacle_node(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
-	NavigationObstacle2D *obstacle = Object::cast_to<NavigationObstacle2D>(p_node);
-	if (obstacle == nullptr) {
-		return;
-	}
-
-	if (!obstacle->get_affect_navigation_mesh()) {
-		return;
-	}
-
-	const Vector2 safe_scale = obstacle->get_global_scale().abs().maxf(0.001);
-	const float obstacle_radius = obstacle->get_radius();
-
-	if (obstacle_radius > 0.0) {
-		// Radius defined obstacle should be uniformly scaled from obstacle basis max scale axis.
-		const float scaling_max_value = safe_scale[safe_scale.max_axis_index()];
-		const Vector2 uniform_max_scale = Vector2(scaling_max_value, scaling_max_value);
-		const Transform2D obstacle_circle_transform = p_source_geometry_data->root_node_transform * Transform2D(obstacle->get_global_rotation(), uniform_max_scale, 0.0, obstacle->get_global_position());
-
-		Vector<Vector2> obstruction_circle_vertices;
-
-		// The point of this is that the moving obstacle can make a simple hole in the navigation mesh and affect the pathfinding.
-		// Without, navigation paths can go directly through the middle of the obstacle and conflict with the avoidance to get agents stuck.
-		// No place for excessive "round" detail here. Every additional edge adds a high cost for something that needs to be quick, not pretty.
-		static const int circle_points = 12;
-
-		obstruction_circle_vertices.resize(circle_points);
-		Vector2 *circle_vertices_ptrw = obstruction_circle_vertices.ptrw();
-		const real_t circle_point_step = Math_TAU / circle_points;
-
-		for (int i = 0; i < circle_points; i++) {
-			const float angle = i * circle_point_step;
-			circle_vertices_ptrw[i] = obstacle_circle_transform.xform(Vector2(Math::cos(angle) * obstacle_radius, Math::sin(angle) * obstacle_radius));
-		}
-
-		p_source_geometry_data->add_projected_obstruction(obstruction_circle_vertices, obstacle->get_carve_navigation_mesh());
-	}
-
-	// Obstacles are projected to the xz-plane, so only rotation around the y-axis can be taken into account.
-	const Transform2D node_xform = p_source_geometry_data->root_node_transform * obstacle->get_global_transform();
-
-	const Vector<Vector2> &obstacle_vertices = obstacle->get_vertices();
-
-	if (obstacle_vertices.is_empty()) {
-		return;
-	}
-
-	Vector<Vector2> obstruction_shape_vertices;
-	obstruction_shape_vertices.resize(obstacle_vertices.size());
-
-	const Vector2 *obstacle_vertices_ptr = obstacle_vertices.ptr();
-	Vector2 *obstruction_shape_vertices_ptrw = obstruction_shape_vertices.ptrw();
-
-	for (int i = 0; i < obstacle_vertices.size(); i++) {
-		obstruction_shape_vertices_ptrw[i] = node_xform.xform(obstacle_vertices_ptr[i]);
-	}
-	p_source_geometry_data->add_projected_obstruction(obstruction_shape_vertices, obstacle->get_carve_navigation_mesh());
+void NavMeshGenerator2D::set_generator_parsers(LocalVector<NavMeshGeometryParser2D *> p_parsers) {
+	RWLockWrite write_lock(generator_parsers_rwlock);
+	generator_parsers = p_parsers;
 }
 
 void NavMeshGenerator2D::generator_parse_source_geometry_data(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_root_node) {
@@ -799,47 +299,6 @@ bool NavMeshGenerator2D::generator_emit_callback(const Callable &p_callback) {
 	p_callback.callp(nullptr, 0, result, ce);
 
 	return ce.error == Callable::CallError::CALL_OK;
-}
-
-RID NavMeshGenerator2D::source_geometry_parser_create() {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	RID rid = generator_parser_owner.make_rid();
-
-	NavMeshGeometryParser2D *parser = generator_parser_owner.get_or_null(rid);
-	parser->self = rid;
-
-	generator_parsers.push_back(parser);
-
-	return rid;
-}
-
-void NavMeshGenerator2D::source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	NavMeshGeometryParser2D *parser = generator_parser_owner.get_or_null(p_parser);
-	ERR_FAIL_NULL(parser);
-
-	parser->callback = p_callback;
-}
-
-bool NavMeshGenerator2D::owns(RID p_object) {
-	RWLockRead read_lock(generator_rid_rwlock);
-	return generator_parser_owner.owns(p_object);
-}
-
-void NavMeshGenerator2D::free(RID p_object) {
-	RWLockWrite write_lock(generator_rid_rwlock);
-
-	if (generator_parser_owner.owns(p_object)) {
-		NavMeshGeometryParser2D *parser = generator_parser_owner.get_or_null(p_object);
-
-		generator_parsers.erase(parser);
-
-		generator_parser_owner.free(p_object);
-	} else {
-		ERR_PRINT("Attempted to free a NavMeshGenerator2D RID that did not exist (or was already freed).");
-	}
 }
 
 void NavMeshGenerator2D::generator_bake_from_source_geometry_data(Ref<NavigationPolygon> p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data) {

@@ -3386,7 +3386,7 @@ void SceneTreeDock::_new_scene_from(const String &p_file) {
 				copy_3d->set_rotation(Vector3(0, 0, 0));
 			}
 			if (reset_scale) {
-				copy_3d->set_scale(Vector3(0, 0, 0));
+				copy_3d->set_scale(Vector3(1, 1, 1));
 			}
 		}
 

@@ -31,11 +31,25 @@
 #include "grid_map.h"
 
 #include "core/io/marshalls.h"
+#include "core/math/convex_hull.h"
+#include "scene/resources/3d/box_shape_3d.h"
+#include "scene/resources/3d/capsule_shape_3d.h"
+#include "scene/resources/3d/concave_polygon_shape_3d.h"
+#include "scene/resources/3d/convex_polygon_shape_3d.h"
+#include "scene/resources/3d/cylinder_shape_3d.h"
+#include "scene/resources/3d/height_map_shape_3d.h"
 #include "scene/resources/3d/mesh_library.h"
+#include "scene/resources/3d/navigation_mesh_source_geometry_data_3d.h"
+#include "scene/resources/3d/primitive_meshes.h"
+#include "scene/resources/3d/shape_3d.h"
+#include "scene/resources/3d/sphere_shape_3d.h"
 #include "scene/resources/physics_material.h"
 #include "scene/resources/surface_tool.h"
 #include "servers/navigation_server_3d.h"
 #include "servers/rendering_server.h"
+
+Callable GridMap::_navmesh_source_geometry_parsing_callback;
+RID GridMap::_navmesh_source_geometry_parser;
 
 bool GridMap::_set(const StringName &p_name, const Variant &p_value) {
 	String name = p_name;
@@ -1334,6 +1348,143 @@ GridMap::GridMap() {
 	NavigationServer3D::get_singleton()->connect("map_changed", callable_mp(this, &GridMap::_navigation_map_changed));
 	NavigationServer3D::get_singleton()->connect("navigation_debug_changed", callable_mp(this, &GridMap::_update_navigation_debug_edge_connections));
 #endif // DEBUG_ENABLED
+}
+
+void GridMap::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer3D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&GridMap::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer3D::get_singleton()->source_geometry_parser_create();
+		NavigationServer3D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void GridMap::navmesh_parse_source_geometry(const Ref<NavigationMesh> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData3D> p_source_geometry_data, Node *p_node) {
+	GridMap *gridmap = Object::cast_to<GridMap>(p_node);
+
+	if (gridmap == nullptr) {
+		return;
+	}
+
+	NavigationMesh::ParsedGeometryType parsed_geometry_type = p_navigation_mesh->get_parsed_geometry_type();
+	uint32_t parsed_collision_mask = p_navigation_mesh->get_collision_mask();
+
+	if (parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_MESH_INSTANCES || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) {
+		Array meshes = gridmap->get_meshes();
+		Transform3D xform = gridmap->get_global_transform();
+		for (int i = 0; i < meshes.size(); i += 2) {
+			Ref<Mesh> mesh = meshes[i + 1];
+			if (mesh.is_valid()) {
+				p_source_geometry_data->add_mesh(mesh, xform * (Transform3D)meshes[i]);
+			}
+		}
+	}
+
+	else if ((parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_STATIC_COLLIDERS || parsed_geometry_type == NavigationMesh::PARSED_GEOMETRY_BOTH) && (gridmap->get_collision_layer() & parsed_collision_mask)) {
+		Array shapes = gridmap->get_collision_shapes();
+		for (int i = 0; i < shapes.size(); i += 2) {
+			RID shape = shapes[i + 1];
+			PhysicsServer3D::ShapeType type = PhysicsServer3D::get_singleton()->shape_get_type(shape);
+			Variant data = PhysicsServer3D::get_singleton()->shape_get_data(shape);
+
+			switch (type) {
+				case PhysicsServer3D::SHAPE_SPHERE: {
+					real_t radius = data;
+					Array arr;
+					arr.resize(RS::ARRAY_MAX);
+					SphereMesh::create_mesh_array(arr, radius, radius * 2.0);
+					p_source_geometry_data->add_mesh_array(arr, shapes[i]);
+				} break;
+				case PhysicsServer3D::SHAPE_BOX: {
+					Vector3 extents = data;
+					Array arr;
+					arr.resize(RS::ARRAY_MAX);
+					BoxMesh::create_mesh_array(arr, extents * 2.0);
+					p_source_geometry_data->add_mesh_array(arr, shapes[i]);
+				} break;
+				case PhysicsServer3D::SHAPE_CAPSULE: {
+					Dictionary dict = data;
+					real_t radius = dict["radius"];
+					real_t height = dict["height"];
+					Array arr;
+					arr.resize(RS::ARRAY_MAX);
+					CapsuleMesh::create_mesh_array(arr, radius, height);
+					p_source_geometry_data->add_mesh_array(arr, shapes[i]);
+				} break;
+				case PhysicsServer3D::SHAPE_CYLINDER: {
+					Dictionary dict = data;
+					real_t radius = dict["radius"];
+					real_t height = dict["height"];
+					Array arr;
+					arr.resize(RS::ARRAY_MAX);
+					CylinderMesh::create_mesh_array(arr, radius, radius, height);
+					p_source_geometry_data->add_mesh_array(arr, shapes[i]);
+				} break;
+				case PhysicsServer3D::SHAPE_CONVEX_POLYGON: {
+					PackedVector3Array vertices = data;
+					Geometry3D::MeshData md;
+
+					Error err = ConvexHullComputer::convex_hull(vertices, md);
+
+					if (err == OK) {
+						PackedVector3Array faces;
+
+						for (const Geometry3D::MeshData::Face &face : md.faces) {
+							for (uint32_t k = 2; k < face.indices.size(); ++k) {
+								faces.push_back(md.vertices[face.indices[0]]);
+								faces.push_back(md.vertices[face.indices[k - 1]]);
+								faces.push_back(md.vertices[face.indices[k]]);
+							}
+						}
+
+						p_source_geometry_data->add_faces(faces, shapes[i]);
+					}
+				} break;
+				case PhysicsServer3D::SHAPE_CONCAVE_POLYGON: {
+					Dictionary dict = data;
+					PackedVector3Array faces = Variant(dict["faces"]);
+					p_source_geometry_data->add_faces(faces, shapes[i]);
+				} break;
+				case PhysicsServer3D::SHAPE_HEIGHTMAP: {
+					Dictionary dict = data;
+					///< dict( int:"width", int:"depth",float:"cell_size", float_array:"heights"
+					int heightmap_depth = dict["depth"];
+					int heightmap_width = dict["width"];
+
+					if (heightmap_depth >= 2 && heightmap_width >= 2) {
+						const Vector<real_t> &map_data = dict["heights"];
+
+						Vector2 heightmap_gridsize(heightmap_width - 1, heightmap_depth - 1);
+						Vector3 start = Vector3(heightmap_gridsize.x, 0, heightmap_gridsize.y) * -0.5;
+
+						Vector<Vector3> vertex_array;
+						vertex_array.resize((heightmap_depth - 1) * (heightmap_width - 1) * 6);
+						Vector3 *vertex_array_ptrw = vertex_array.ptrw();
+						const real_t *map_data_ptr = map_data.ptr();
+						int vertex_index = 0;
+
+						for (int d = 0; d < heightmap_depth - 1; d++) {
+							for (int w = 0; w < heightmap_width - 1; w++) {
+								vertex_array_ptrw[vertex_index] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + w], d);
+								vertex_array_ptrw[vertex_index + 1] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
+								vertex_array_ptrw[vertex_index + 2] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
+								vertex_array_ptrw[vertex_index + 3] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + w + 1], d);
+								vertex_array_ptrw[vertex_index + 4] = start + Vector3(w + 1, map_data_ptr[(heightmap_width * d) + heightmap_width + w + 1], d + 1);
+								vertex_array_ptrw[vertex_index + 5] = start + Vector3(w, map_data_ptr[(heightmap_width * d) + heightmap_width + w], d + 1);
+								vertex_index += 6;
+							}
+						}
+						if (vertex_array.size() > 0) {
+							p_source_geometry_data->add_faces(vertex_array, shapes[i]);
+						}
+					}
+				} break;
+				default: {
+					WARN_PRINT("Unsupported collision shape type.");
+				} break;
+			}
+		}
+	}
 }
 
 #ifdef DEBUG_ENABLED

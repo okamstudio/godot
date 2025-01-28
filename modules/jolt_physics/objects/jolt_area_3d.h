@@ -117,8 +117,6 @@ private:
 
 	virtual JPH::EMotionType _get_motion_type() const override { return JPH::EMotionType::Kinematic; }
 
-	bool _has_pending_events() const;
-
 	virtual void _add_to_space() override;
 
 	void _enqueue_call_queries();
@@ -145,6 +143,7 @@ private:
 
 	virtual void _space_changing() override;
 	virtual void _space_changed() override;
+	void _events_changed();
 	void _body_monitoring_changed();
 	void _area_monitoring_changed();
 	void _monitorable_changed();
@@ -228,8 +227,6 @@ public:
 
 	virtual bool has_custom_center_of_mass() const override { return false; }
 	virtual Vector3 get_center_of_mass_custom() const override { return Vector3(); }
-
-	virtual void post_step(float p_step, JPH::Body &p_jolt_body) override;
 };
 
 #endif // JOLT_AREA_3D_H

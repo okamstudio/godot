@@ -113,7 +113,7 @@ struct Text::Impl
 
         //transform the gradient coordinates based on the final scaled font.
         auto fill = P(shape)->rs.fill;
-        if (fill && P(shape)->flag & RenderUpdateFlag::Gradient) {
+        if (fill && P(shape)->rFlag & RenderUpdateFlag::Gradient) {
             auto scale = 1.0f / loader->scale;
             if (fill->type() == Type::LinearGradient) {
                 P(static_cast<LinearGradient*>(fill))->x1 *= scale;

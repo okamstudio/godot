@@ -746,7 +746,6 @@ public:
 	void save_resource_in_path(const Ref<Resource> &p_resource, const String &p_path);
 	void save_resource(const Ref<Resource> &p_resource);
 	void save_resource_as(const Ref<Resource> &p_resource, const String &p_at_path = String());
-	void ensure_uid_file(const String &p_new_resource_path);
 
 	void show_about() { _menu_option_confirm(HELP_ABOUT, false); }
 

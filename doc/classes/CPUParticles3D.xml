@@ -146,11 +146,11 @@
 			[b]Note:[/b] [member color] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color] will have no visible effect.
 		</member>
 		<member name="color_initial_ramp" type="Gradient" setter="set_color_initial_ramp" getter="get_color_initial_ramp">
-			Each particle's initial color will vary along this [GradientTexture1D] (multiplied with [member color]).
+			Each particle's initial color will vary along this [Gradient] (multiplied with [member color]).
 			[b]Note:[/b] [member color_initial_ramp] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color_initial_ramp] will have no visible effect.
 		</member>
 		<member name="color_ramp" type="Gradient" setter="set_color_ramp" getter="get_color_ramp">
-			Each particle's color will vary along this [GradientTexture1D] over its lifetime (multiplied with [member color]).
+			Each particle's color will vary along this [Gradient] over its lifetime (multiplied with [member color]).
 			[b]Note:[/b] [member color_ramp] multiplies the particle mesh's vertex colors. To have a visible effect on a [BaseMaterial3D], [member BaseMaterial3D.vertex_color_use_as_albedo] [i]must[/i] be [code]true[/code]. For a [ShaderMaterial], [code]ALBEDO *= COLOR.rgb;[/code] must be inserted in the shader's [code]fragment()[/code] function. Otherwise, [member color_ramp] will have no visible effect.
 		</member>
 		<member name="damping_curve" type="Curve" setter="set_param_curve" getter="get_param_curve">

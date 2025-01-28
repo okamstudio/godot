@@ -31,6 +31,7 @@
 #include "window.h"
 
 #include "core/config/project_settings.h"
+#include "core/debugger/engine_debugger.h"
 #include "core/input/shortcut.h"
 #include "core/string/translation_server.h"
 #include "scene/gui/control.h"
@@ -306,6 +307,14 @@ void Window::set_title(const String &p_title) {
 		}
 	}
 	emit_signal("title_changed");
+
+#ifdef DEBUG_ENABLED
+	if (EngineDebugger::get_singleton() && window_id == DisplayServer::MAIN_WINDOW_ID && !Engine::get_singleton()->is_project_manager_hint()) {
+		Array arr;
+		arr.push_back(tr_title);
+		EngineDebugger::get_singleton()->send_message("window:title", arr);
+	}
+#endif
 }
 
 String Window::get_title() const {

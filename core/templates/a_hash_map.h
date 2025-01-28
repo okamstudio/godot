@@ -35,12 +35,12 @@
 
 struct HashMapData {
 	union {
+		uint64_t data;
 		struct
 		{
 			uint32_t hash;
 			uint32_t hash_to_key;
 		};
-		uint64_t data;
 	};
 };
 

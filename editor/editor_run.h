@@ -45,6 +45,14 @@ public:
 
 	List<OS::ProcessID> pids;
 
+	struct WindowPlacement {
+		int screen = 0;
+		Point2i position = Point2i(INT_MAX, INT_MAX);
+		Size2i size;
+		bool force_maximized = false;
+		bool force_fullscreen = false;
+	};
+
 private:
 	Status status;
 	String running_scene;
@@ -63,6 +71,8 @@ public:
 	bool has_child_process(OS::ProcessID p_pid) const;
 	int get_child_process_count() const { return pids.size(); }
 	OS::ProcessID get_current_process() const;
+
+	static WindowPlacement get_window_placement();
 
 	EditorRun();
 };

@@ -85,16 +85,10 @@ void JoltSpace3D::_pre_step(float p_step) {
 void JoltSpace3D::_post_step(float p_step) {
 	contact_listener->post_step();
 
-	// WARNING: The list of active bodies may have changed between `pre_step` and `post_step`.
-
-	const JPH::BodyLockInterface &lock_iface = get_lock_iface();
-	const JPH::BodyID *active_rigid_bodies = physics_system->GetActiveBodiesUnsafe(JPH::EBodyType::RigidBody);
-	const JPH::uint32 active_rigid_body_count = physics_system->GetNumActiveBodies(JPH::EBodyType::RigidBody);
-
-	for (JPH::uint32 i = 0; i < active_rigid_body_count; i++) {
-		JPH::Body *jolt_body = lock_iface.TryGetBody(active_rigid_bodies[i]);
-		JoltObject3D *object = reinterpret_cast<JoltObject3D *>(jolt_body->GetUserData());
-		object->post_step(p_step, *jolt_body);
+	while (shapes_changed_list.first()) {
+		JoltShapedObject3D *object = shapes_changed_list.first()->self();
+		shapes_changed_list.remove(shapes_changed_list.first());
+		object->clear_previous_shape();
 	}
 }
 
@@ -430,6 +424,18 @@ void JoltSpace3D::dequeue_call_queries(SelfList<JoltBody3D> *p_body) {
 void JoltSpace3D::dequeue_call_queries(SelfList<JoltArea3D> *p_area) {
 	if (p_area->in_list()) {
 		area_call_queries_list.remove(p_area);
+	}
+}
+
+void JoltSpace3D::enqueue_shapes_changed(SelfList<JoltShapedObject3D> *p_object) {
+	if (!p_object->in_list()) {
+		shapes_changed_list.add(p_object);
+	}
+}
+
+void JoltSpace3D::dequeue_shapes_changed(SelfList<JoltShapedObject3D> *p_object) {
+	if (p_object->in_list()) {
+		shapes_changed_list.remove(p_object);
 	}
 }
 

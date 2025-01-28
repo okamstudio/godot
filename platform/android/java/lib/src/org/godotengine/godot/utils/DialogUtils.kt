@@ -151,6 +151,7 @@ internal class DialogUtils {
 				builder.setView(parentLayout)
 				val dialog = builder.create()
 				dismissDialog = {dialog.dismiss()}
+				dialog.setCancelable(false)
 				dialog.show()
 			}
 		}
@@ -178,6 +179,7 @@ internal class DialogUtils {
 					dialog.dismiss()
 				}
 				val dialog = builder.create()
+				dialog.setCancelable(false)
 				dialog.show()
 			}
 		}

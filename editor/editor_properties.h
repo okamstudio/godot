@@ -593,8 +593,9 @@ class EditorPropertyColor : public EditorProperty {
 	GDCLASS(EditorPropertyColor, EditorProperty);
 	ColorPickerButton *picker = nullptr;
 	void _color_changed(const Color &p_color);
+	void _picker_created();
+	void _popup_opening();
 	void _popup_closed();
-	void _picker_opening();
 
 	Color last_color;
 	bool live_changes_enabled = true;

@@ -132,9 +132,12 @@ Ref<ArrayMesh> Shape3D::get_debug_mesh() {
 		debug_mesh_cache->surface_set_material(0, material);
 
 		if (debug_fill) {
-			Array solid_array = get_debug_arraymesh_faces(debug_color * Color(1.0, 1.0, 1.0, 0.0625))->surface_get_arrays(0);
-			debug_mesh_cache->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, solid_array);
-			debug_mesh_cache->surface_set_material(1, material);
+			Ref<ArrayMesh> array_mesh = get_debug_arraymesh_faces(debug_color * Color(1.0, 1.0, 1.0, 0.0625));
+			if (array_mesh.is_valid() && array_mesh->get_surface_count() > 0) {
+				Array solid_array = array_mesh->surface_get_arrays(0);
+				debug_mesh_cache->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, solid_array);
+				debug_mesh_cache->surface_set_material(1, material);
+			}
 		}
 	}
 

@@ -311,7 +311,8 @@
 			<return type="void" />
 			<param index="0" name="guid" type="String" />
 			<description>
-				Removes all mappings from the internal database that match the given GUID.
+				Removes all mappings from the internal database that match the given GUID. All currently connected joypads that use this GUID will become unmapped.
+				On Android, Godot will map to an internal fallback mapping.
 			</description>
 		</method>
 		<method name="set_accelerometer">

@@ -200,8 +200,8 @@ def make_license_header(target, source, env):
             tag, content = reader.next_tag()
             if tag in ("Files", "Copyright", "License"):
                 part[tag] = content[:]
-            elif tag == "Comment":
-                # attach part to named project
+            elif tag == "Comment" and part:
+                # attach non-empty part to named project
                 projects[content[0]] = projects.get(content[0], []) + [part]
 
             if not tag or not reader.current:

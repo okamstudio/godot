@@ -229,7 +229,7 @@ void TextEditor::_update_bookmark_list() {
 			line = line.substr(0, 50);
 		}
 
-		bookmarks_menu->add_item(String::num((int)bookmark_list[i] + 1) + " - \"" + line + "\"");
+		bookmarks_menu->add_item(String::num_int64(bookmark_list[i] + 1) + " - \"" + line + "\"");
 		bookmarks_menu->set_item_metadata(-1, bookmark_list[i]);
 	}
 }
@@ -302,6 +302,7 @@ void TextEditor::convert_indent() {
 
 void TextEditor::tag_saved_version() {
 	code_editor->get_text_editor()->tag_saved_version();
+	edited_file_data.last_modified_time = FileAccess::get_modified_time(edited_file_data.path);
 }
 
 void TextEditor::goto_line(int p_line, int p_column) {

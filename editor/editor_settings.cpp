@@ -940,6 +940,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	String android_window_hints = "Auto (based on screen size):0,Same as Editor:1,Side-by-side with Editor:2,Launch in PiP mode:3";
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/android_window", 0, android_window_hints)
 
+	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/game_embed_mode", 0, "Use Per-Project Configuration:0,Embed Game:1,Make Game Workspace Floating:2,Disabled:3");
+
 	int default_play_window_pip_mode = 0;
 #ifdef ANDROID_ENABLED
 	default_play_window_pip_mode = 2;

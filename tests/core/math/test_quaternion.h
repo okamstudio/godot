@@ -263,6 +263,9 @@ TEST_CASE("[Quaternion] Construct Shortest Arc For 180 Degree Arc") {
 
 	// For the consistency of the rotation direction, they should be symmetrical to the plane.
 	CHECK(left_to_right.is_equal_approx(right_to_left.inverse()));
+
+	// If vectors are same, no rotation.
+	CHECK(Quaternion(diagonal_up, diagonal_up).is_equal_approx(Quaternion()));
 }
 
 TEST_CASE("[Quaternion] Get Euler Orders") {
