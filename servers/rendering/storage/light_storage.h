@@ -34,9 +34,7 @@
 #include "render_scene_buffers.h"
 #include "servers/rendering_server.h"
 
-#include "core/object/class_db.h"
 #include "core/object/gdvirtual.gen.inc"
-#include "core/object/object.h"
 
 class RendererLightStorage : public Object {
 	GDCLASS(RendererLightStorage, Object);
