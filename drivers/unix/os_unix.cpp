@@ -885,9 +885,12 @@ Error OS_Unix::open_dynamic_library(const String &p_path, void *&p_library_handl
 		path = get_executable_path().get_base_dir().path_join(p_path.get_file());
 	}
 
+	// This code exists so GDExtension can load .so files from the standard unix locations.
 	if (!FileAccess::exists(path)) {
-		// This code exists so GDExtension can load .so files from a standard unix location.
 		path = get_executable_path().get_base_dir().path_join("../lib").path_join(p_path.get_file());
+	}
+	if (!FileAccess::exists(path)) {
+		path = get_executable_path().get_base_dir().path_join("../lib64").path_join(p_path.get_file());
 	}
 
 	ERR_FAIL_COND_V(!FileAccess::exists(path), ERR_FILE_NOT_FOUND);
