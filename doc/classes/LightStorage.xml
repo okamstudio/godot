@@ -14,6 +14,7 @@
 		<method name="directional_shadow_get_texture">
 			<return type="RID" />
 			<description>
+				Returns the [RID] of the directional shadow atlas texture. [b]Note:[/b] Requires at least one directional light source in the scene that casts shadow.
 			</description>
 		</method>
 		<method name="get_directional_light_buffer">
@@ -25,12 +26,13 @@
 		<method name="get_omni_light_buffer">
 			<return type="RID" />
 			<description>
-				Return the [RID] of the storage buffer containing the omni light data as a Storage Buffer.
+				Return the [RID] of the buffer containing the omni light data as a Storage Buffer. [b]Note:[/b] defined in light_data_inc.glsl
 			</description>
 		</method>
 		<method name="get_spot_light_buffer">
 			<return type="RID" />
 			<description>
+				Return the [RID] of the buffer containing the spot light data as a Storage Buffer. [b]Note:[/b] defined in light_data_inc.glsl
 			</description>
 		</method>
 	</methods>
