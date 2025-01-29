@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <class name="RendererTextureStorage" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
+		Abstract render texture storage object, holds scene texture data.
 	</brief_description>
 	<description>
+		Abstract render texture storage object.
+		[b]Note:[/b] This is an internal rendering server object, do not instantiate this from script.
 	</description>
 	<tutorials>
 	</tutorials>

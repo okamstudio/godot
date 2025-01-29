@@ -24,6 +24,7 @@
 		<method name="_get_light_storage" qualifiers="virtual const">
 			<return type="RendererLightStorage" />
 			<description>
+				Implement this in GDExtension to return the implementation's [RendererLightStorage] object.
 			</description>
 		</method>
 		<method name="_get_render_scene_buffers" qualifiers="virtual const">
@@ -41,6 +42,7 @@
 		<method name="_get_texture_storage" qualifiers="virtual const">
 			<return type="RendererTextureStorage" />
 			<description>
+				Implement this in GDExtension to return the implementation's [RendererTextureStorage] object.
 			</description>
 		</method>
 	</methods>
