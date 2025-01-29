@@ -298,14 +298,14 @@ void GPUParticles2DEditorPlugin::_selection_changed() {
 	}
 
 	for (GPUParticles2D *particles : selected_particles) {
-		particles->set_show_visibility_rect(false);
+		particles->set_show_gizmos(false);
 	}
 	selected_particles.clear();
 
 	for (Node *node : selected_nodes) {
 		GPUParticles2D *selected_particle = Object::cast_to<GPUParticles2D>(node);
 		if (selected_particle) {
-			selected_particle->set_show_visibility_rect(true);
+			selected_particle->set_show_gizmos(true);
 			selected_particles.push_back(selected_particle);
 		}
 	}
@@ -585,6 +585,34 @@ void CPUParticles2DEditorPlugin::_generate_emission_mask() {
 CPUParticles2DEditorPlugin::CPUParticles2DEditorPlugin() {
 	handled_type = TTRC("CPUParticles2D");
 	conversion_option_name = TTR("Convert to GPUParticles2D");
+}
+
+void CPUParticles2DEditorPlugin::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_ENTER_TREE: {
+			EditorNode::get_singleton()->get_editor_selection()->connect("selection_changed", callable_mp(this, &CPUParticles2DEditorPlugin::_selection_changed));
+		} break;
+	}
+}
+
+void CPUParticles2DEditorPlugin::_selection_changed() {
+	List<Node *> selected_nodes = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
+	if (selected_particles.is_empty() && selected_nodes.is_empty()) {
+		return;
+	}
+
+	for (CPUParticles2D *particles : selected_particles) {
+		particles->set_show_gizmos(false);
+	}
+	selected_particles.clear();
+
+	for (Node *node : selected_nodes) {
+		CPUParticles2D *selected_particle = Object::cast_to<CPUParticles2D>(node);
+		if (selected_particle) {
+			selected_particle->set_show_gizmos(true);
+			selected_particles.push_back(selected_particle);
+		}
+	}
 }
 
 // 3D /////////////////////////////////////////////

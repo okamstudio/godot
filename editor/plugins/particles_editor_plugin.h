@@ -37,6 +37,7 @@ class CheckBox;
 class ConfirmationDialog;
 class EditorFileDialog;
 class GPUParticles2D;
+class CPUParticles2D;
 class HBoxContainer;
 class MenuButton;
 class OptionButton;
@@ -143,7 +144,13 @@ public:
 class CPUParticles2DEditorPlugin : public Particles2DEditorPlugin {
 	GDCLASS(CPUParticles2DEditorPlugin, Particles2DEditorPlugin);
 
+	List<CPUParticles2D *> selected_particles;
+
+	void _selection_changed();
+
 protected:
+	void _notification(int p_what);
+
 	Node *_convert_particles() override;
 
 	void _generate_emission_mask() override;
