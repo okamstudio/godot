@@ -35,7 +35,7 @@
 			<return type="RID" />
 			<description>
 				Returns the [RID] of the buffer containing the spot light data as a Storage Buffer.
-				[b]Note:[/b] defined in [code]light_data_inc.glsl[/code]
+				[b]Note:[/b] Defined in [code]light_data_inc.glsl[/code]
 			</description>
 		</method>
 	</methods>
