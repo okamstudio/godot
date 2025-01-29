@@ -14,7 +14,8 @@
 		<method name="directional_shadow_get_texture">
 			<return type="RID" />
 			<description>
-				Returns the [RID] of the directional shadow atlas texture. [b]Note:[/b] Requires at least one directional light source in the scene that casts shadow.
+				Returns the [RID] of the directional shadow atlas texture.
+				[b]Note:[/b] Requires at least one directional light source in the scene that casts shadow.
 			</description>
 		</method>
 		<method name="get_directional_light_buffer">
