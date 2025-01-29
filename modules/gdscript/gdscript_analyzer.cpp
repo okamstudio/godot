@@ -77,6 +77,7 @@ static MethodInfo info_from_utility_func(const StringName &p_function) {
 			pi.type = Variant::get_utility_function_argument_type(p_function, i);
 			info.arguments.push_back(pi);
 		}
+		info.default_arguments = Variant::get_utility_function_default_arguments(p_function);
 	}
 
 	return info;

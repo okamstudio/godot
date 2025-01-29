@@ -562,7 +562,7 @@ public:
 	static uint32_t rand();
 	static _ALWAYS_INLINE_ double randd() { return (double)rand() / (double)Math::RANDOM_32BIT_MAX; }
 	static _ALWAYS_INLINE_ float randf() { return (float)rand() / (float)Math::RANDOM_32BIT_MAX; }
-	static double randfn(double mean, double deviation);
+	static double randfn(double mean = 0.0, double deviation = 1.0);
 
 	static double random(double from, double to);
 	static float random(float from, float to);

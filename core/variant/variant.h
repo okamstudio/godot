@@ -808,6 +808,8 @@ public:
 	static int get_utility_function_argument_count(const StringName &p_name);
 	static Variant::Type get_utility_function_argument_type(const StringName &p_name, int p_arg);
 	static String get_utility_function_argument_name(const StringName &p_name, int p_arg);
+	static Vector<Variant> get_utility_function_default_arguments(const StringName &p_name);
+	static int get_utility_function_default_argument_index(const StringName &p_name, int p_arg);
 	static bool has_utility_function_return_value(const StringName &p_name);
 	static Variant::Type get_utility_function_return_type(const StringName &p_name);
 	static bool is_utility_function_vararg(const StringName &p_name);
