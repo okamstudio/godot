@@ -26,7 +26,8 @@
 		<method name="get_omni_light_buffer">
 			<return type="RID" />
 			<description>
-				Return the [RID] of the buffer containing the omni light data as a Storage Buffer. [b]Note:[/b] defined in light_data_inc.glsl
+				Returns the [RID] of the buffer containing the omni light data as a Storage Buffer.
+				[b]Note:[/b] Defined in [code]light_data_inc.glsl[/code]
 			</description>
 		</method>
 		<method name="get_spot_light_buffer">
