@@ -40,7 +40,7 @@ Size2 SpinBox::get_minimum_size() const {
 	return ms;
 }
 
-void SpinBox::_update_text(bool p_keep_line_edit) {
+void SpinBox::_update_text(bool p_only_update_if_value_changed) {
 	double step = get_step();
 	if (use_custom_arrow_step && custom_arrow_step != 0.0) {
 		step = custom_arrow_step;
@@ -50,6 +50,11 @@ void SpinBox::_update_text(bool p_keep_line_edit) {
 		value = TS->format_number(value);
 	}
 
+	if (p_only_update_if_value_changed && value == last_text_value) {
+		return;
+	}
+	last_text_value = value;
+
 	if (!line_edit->is_editing()) {
 		if (!prefix.is_empty()) {
 			value = prefix + " " + value;
@@ -58,17 +63,12 @@ void SpinBox::_update_text(bool p_keep_line_edit) {
 			value += " " + suffix;
 		}
 	}
-
-	if (p_keep_line_edit && value == last_updated_text && value != line_edit->get_text()) {
-		return;
-	}
-
 	line_edit->set_text_with_selection(value);
-	last_updated_text = value;
 }
 
 void SpinBox::_text_submitted(const String &p_string) {
 	if (p_string.is_empty()) {
+		_update_text();
 		return;
 	}
 
@@ -120,6 +120,9 @@ LineEdit *SpinBox::get_line_edit() {
 }
 
 void SpinBox::_line_edit_input(const Ref<InputEvent> &p_event) {
+	if (drag.enabled) {
+		line_edit->accept_event();
+	}
 }
 
 void SpinBox::_range_click_timeout() {
@@ -288,14 +291,12 @@ void SpinBox::_line_edit_editing_toggled(bool p_toggled_on) {
 			line_edit->select_all();
 		}
 	} else {
-		// Discontinue because the focus_exit was caused by canceling or the text is empty.
 		if (Input::get_singleton()->is_action_pressed("ui_cancel") || line_edit->get_text().is_empty()) {
-			_update_text();
-			return;
+			_update_text(); // Revert text if editing was canceled.
+		} else {
+			_update_text(true); // Update text in case value was changed this frame (e.g. on `focus_exited`).
+			_text_submitted(line_edit->get_text());
 		}
-
-		line_edit->deselect();
-		_text_submitted(line_edit->get_text());
 	}
 }
 
@@ -622,6 +623,7 @@ void SpinBox::_bind_methods() {
 
 SpinBox::SpinBox() {
 	line_edit = memnew(LineEdit);
+	line_edit->set_emoji_menu_enabled(false);
 	add_child(line_edit, false, INTERNAL_MODE_FRONT);
 
 	line_edit->set_theme_type_variation("SpinBoxInnerLineEdit");

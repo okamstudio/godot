@@ -457,7 +457,12 @@ public:
 		MULTIMESH_INTERP_QUALITY_HIGH,
 	};
 
-	virtual void multimesh_allocate_data(RID p_multimesh, int p_instances, MultimeshTransformFormat p_transform_format, bool p_use_colors = false, bool p_use_custom_data = false) = 0;
+protected:
+#ifndef DISABLE_DEPRECATED
+	void _multimesh_allocate_data_bind_compat_99455(RID p_multimesh, int p_instances, MultimeshTransformFormat p_transform_format, bool p_use_colors, bool p_use_custom_data);
+#endif
+public:
+	virtual void multimesh_allocate_data(RID p_multimesh, int p_instances, MultimeshTransformFormat p_transform_format, bool p_use_colors = false, bool p_use_custom_data = false, bool p_use_indirect = false) = 0;
 	virtual int multimesh_get_instance_count(RID p_multimesh) const = 0;
 
 	virtual void multimesh_set_mesh(RID p_multimesh, RID p_mesh) = 0;
@@ -478,6 +483,7 @@ public:
 	virtual Color multimesh_instance_get_custom_data(RID p_multimesh, int p_index) const = 0;
 
 	virtual void multimesh_set_buffer(RID p_multimesh, const Vector<float> &p_buffer) = 0;
+	virtual RID multimesh_get_command_buffer_rd_rid(RID p_multimesh) const = 0;
 	virtual RID multimesh_get_buffer_rd_rid(RID p_multimesh) const = 0;
 	virtual Vector<float> multimesh_get_buffer(RID p_multimesh) const = 0;
 
@@ -756,6 +762,7 @@ public:
 	virtual void particles_set_lifetime(RID p_particles, double p_lifetime) = 0;
 	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot) = 0;
 	virtual void particles_set_pre_process_time(RID p_particles, double p_time) = 0;
+	virtual void particles_request_process_time(RID p_particles, real_t p_request_process_time) = 0;
 	virtual void particles_set_explosiveness_ratio(RID p_particles, float p_ratio) = 0;
 	virtual void particles_set_randomness_ratio(RID p_particles, float p_ratio) = 0;
 	virtual void particles_set_custom_aabb(RID p_particles, const AABB &p_aabb) = 0;
@@ -766,6 +773,7 @@ public:
 	virtual void particles_set_interpolate(RID p_particles, bool p_enable) = 0;
 	virtual void particles_set_fractional_delta(RID p_particles, bool p_enable) = 0;
 	virtual void particles_set_collision_base_size(RID p_particles, float p_size) = 0;
+	virtual void particles_set_seed(RID p_particles, uint32_t p_seed) = 0;
 
 	enum ParticlesTransformAlign {
 		PARTICLES_TRANSFORM_ALIGN_DISABLED,
@@ -918,6 +926,8 @@ public:
 		VIEWPORT_SCALING_3D_MODE_BILINEAR,
 		VIEWPORT_SCALING_3D_MODE_FSR,
 		VIEWPORT_SCALING_3D_MODE_FSR2,
+		VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL,
+		VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL,
 		VIEWPORT_SCALING_3D_MODE_MAX,
 		VIEWPORT_SCALING_3D_MODE_OFF = 255, // for internal use only
 	};
@@ -930,6 +940,22 @@ public:
 		VIEWPORT_ANISOTROPY_16X,
 		VIEWPORT_ANISOTROPY_MAX
 	};
+
+	enum ViewportScaling3DType {
+		VIEWPORT_SCALING_3D_TYPE_NONE,
+		VIEWPORT_SCALING_3D_TYPE_TEMPORAL,
+		VIEWPORT_SCALING_3D_TYPE_SPATIAL,
+		VIEWPORT_SCALING_3D_TYPE_MAX,
+	};
+
+	_ALWAYS_INLINE_ static ViewportScaling3DType scaling_3d_mode_type(ViewportScaling3DMode p_mode) {
+		if (p_mode == VIEWPORT_SCALING_3D_MODE_BILINEAR || p_mode == VIEWPORT_SCALING_3D_MODE_FSR || p_mode == VIEWPORT_SCALING_3D_MODE_METALFX_SPATIAL) {
+			return VIEWPORT_SCALING_3D_TYPE_SPATIAL;
+		} else if (p_mode == VIEWPORT_SCALING_3D_MODE_FSR2 || p_mode == VIEWPORT_SCALING_3D_MODE_METALFX_TEMPORAL) {
+			return VIEWPORT_SCALING_3D_TYPE_TEMPORAL;
+		}
+		return VIEWPORT_SCALING_3D_TYPE_NONE;
+	}
 
 	virtual void viewport_set_use_xr(RID p_viewport, bool p_use_xr) = 0;
 	virtual void viewport_set_size(RID p_viewport, int p_width, int p_height) = 0;
@@ -1225,7 +1251,8 @@ public:
 		ENV_TONE_MAPPER_LINEAR,
 		ENV_TONE_MAPPER_REINHARD,
 		ENV_TONE_MAPPER_FILMIC,
-		ENV_TONE_MAPPER_ACES
+		ENV_TONE_MAPPER_ACES,
+		ENV_TONE_MAPPER_AGX,
 	};
 
 	virtual void environment_set_tonemap(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white) = 0;
@@ -1384,7 +1411,7 @@ public:
 		INSTANCE_VOXEL_GI,
 		INSTANCE_LIGHTMAP,
 		INSTANCE_OCCLUDER,
-		INSTANCE_VISIBLITY_NOTIFIER,
+		INSTANCE_VISIBLITY_NOTIFIER, // TODO: Fix typo in "VISIBILITY" (in 5.0).
 		INSTANCE_FOG_VOLUME,
 		INSTANCE_MAX,
 
@@ -1518,6 +1545,7 @@ public:
 	virtual void canvas_item_set_visibility_layer(RID p_item, uint32_t p_visibility_layer) = 0;
 
 	virtual void canvas_item_set_draw_behind_parent(RID p_item, bool p_enable) = 0;
+	virtual void canvas_item_set_use_identity_transform(RID p_item, bool p_enabled) = 0;
 
 	enum NinePatchAxisMode {
 		NINE_PATCH_STRETCH,

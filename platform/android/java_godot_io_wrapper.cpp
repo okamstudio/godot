@@ -118,7 +118,7 @@ String GodotIOJavaWrapper::get_temp_dir() {
 	}
 }
 
-String GodotIOJavaWrapper::get_user_data_dir() {
+String GodotIOJavaWrapper::get_user_data_dir(const String &p_user_dir) {
 	if (_get_data_dir) {
 		JNIEnv *env = get_jni_env();
 		ERR_FAIL_NULL_V(env, String());

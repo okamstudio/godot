@@ -166,7 +166,7 @@ void NavMap::query_path(NavMeshQueries3D::NavMeshPathQueryTask3D &p_query_task) 
 
 	p_query_task.map_up = map_iteration.map_up;
 
-	NavMeshQueries3D::query_task_polygons_get_path(p_query_task, map_iteration.navmesh_polygons);
+	NavMeshQueries3D::query_task_map_iteration_get_path(p_query_task, map_iteration);
 
 	map_iteration.path_query_slots_mutex.lock();
 	uint32_t used_slot_index = p_query_task.path_query_slot->slot_index;
@@ -185,7 +185,7 @@ Vector3 NavMap::get_closest_point_to_segment(const Vector3 &p_from, const Vector
 
 	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point_to_segment(map_iteration.navmesh_polygons, p_from, p_to, p_use_collision);
+	return NavMeshQueries3D::map_iteration_get_closest_point_to_segment(map_iteration, p_from, p_to, p_use_collision);
 }
 
 Vector3 NavMap::get_closest_point(const Vector3 &p_point) const {
@@ -196,7 +196,7 @@ Vector3 NavMap::get_closest_point(const Vector3 &p_point) const {
 
 	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point(map_iteration.navmesh_polygons, p_point);
+	return NavMeshQueries3D::map_iteration_get_closest_point(map_iteration, p_point);
 }
 
 Vector3 NavMap::get_closest_point_normal(const Vector3 &p_point) const {
@@ -207,7 +207,7 @@ Vector3 NavMap::get_closest_point_normal(const Vector3 &p_point) const {
 
 	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point_normal(map_iteration.navmesh_polygons, p_point);
+	return NavMeshQueries3D::map_iteration_get_closest_point_normal(map_iteration, p_point);
 }
 
 RID NavMap::get_closest_point_owner(const Vector3 &p_point) const {
@@ -218,13 +218,13 @@ RID NavMap::get_closest_point_owner(const Vector3 &p_point) const {
 
 	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point_owner(map_iteration.navmesh_polygons, p_point);
+	return NavMeshQueries3D::map_iteration_get_closest_point_owner(map_iteration, p_point);
 }
 
 gd::ClosestPointQueryResult NavMap::get_closest_point_info(const Vector3 &p_point) const {
 	GET_MAP_ITERATION_CONST();
 
-	return NavMeshQueries3D::polygons_get_closest_point_info(map_iteration.navmesh_polygons, p_point);
+	return NavMeshQueries3D::map_iteration_get_closest_point_info(map_iteration, p_point);
 }
 
 void NavMap::add_region(NavRegion *p_region) {
@@ -336,65 +336,7 @@ void NavMap::remove_agent_as_controlled(NavAgent *agent) {
 Vector3 NavMap::get_random_point(uint32_t p_navigation_layers, bool p_uniformly) const {
 	GET_MAP_ITERATION_CONST();
 
-	if (map_iteration.region_iterations.is_empty()) {
-		return Vector3();
-	}
-
-	LocalVector<uint32_t> accessible_regions;
-	accessible_regions.reserve(map_iteration.region_iterations.size());
-
-	for (uint32_t i = 0; i < map_iteration.region_iterations.size(); i++) {
-		const NavRegionIteration &region = map_iteration.region_iterations[i];
-		if (!region.enabled || (p_navigation_layers & region.navigation_layers) == 0) {
-			continue;
-		}
-		accessible_regions.push_back(i);
-	}
-
-	if (accessible_regions.is_empty()) {
-		// All existing region polygons are disabled.
-		return Vector3();
-	}
-
-	if (p_uniformly) {
-		real_t accumulated_region_surface_area = 0;
-		RBMap<real_t, uint32_t> accessible_regions_area_map;
-
-		for (uint32_t accessible_region_index = 0; accessible_region_index < accessible_regions.size(); accessible_region_index++) {
-			const NavRegionIteration &region = map_iteration.region_iterations[accessible_regions[accessible_region_index]];
-
-			real_t region_surface_area = region.surface_area;
-
-			if (region_surface_area == 0.0f) {
-				continue;
-			}
-
-			accessible_regions_area_map[accumulated_region_surface_area] = accessible_region_index;
-			accumulated_region_surface_area += region_surface_area;
-		}
-		if (accessible_regions_area_map.is_empty() || accumulated_region_surface_area == 0) {
-			// All faces have no real surface / no area.
-			return Vector3();
-		}
-
-		real_t random_accessible_regions_area_map = Math::random(real_t(0), accumulated_region_surface_area);
-
-		RBMap<real_t, uint32_t>::Iterator E = accessible_regions_area_map.find_closest(random_accessible_regions_area_map);
-		ERR_FAIL_COND_V(!E, Vector3());
-		uint32_t random_region_index = E->value;
-		ERR_FAIL_UNSIGNED_INDEX_V(random_region_index, accessible_regions.size(), Vector3());
-
-		const NavRegionIteration &random_region = map_iteration.region_iterations[accessible_regions[random_region_index]];
-
-		return NavMeshQueries3D::polygons_get_random_point(random_region.navmesh_polygons, p_navigation_layers, p_uniformly);
-
-	} else {
-		uint32_t random_region_index = Math::random(int(0), accessible_regions.size() - 1);
-
-		const NavRegionIteration &random_region = map_iteration.region_iterations[accessible_regions[random_region_index]];
-
-		return NavMeshQueries3D::polygons_get_random_point(random_region.navmesh_polygons, p_navigation_layers, p_uniformly);
-	}
+	return NavMeshQueries3D::map_iteration_get_random_point(map_iteration, p_navigation_layers, p_uniformly);
 }
 
 void NavMap::_build_iteration() {

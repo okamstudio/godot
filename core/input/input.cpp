@@ -77,6 +77,10 @@ Input *Input::singleton = nullptr;
 
 void (*Input::set_mouse_mode_func)(Input::MouseMode) = nullptr;
 Input::MouseMode (*Input::get_mouse_mode_func)() = nullptr;
+void (*Input::set_mouse_mode_override_func)(Input::MouseMode) = nullptr;
+Input::MouseMode (*Input::get_mouse_mode_override_func)() = nullptr;
+void (*Input::set_mouse_mode_override_enabled_func)(bool) = nullptr;
+bool (*Input::is_mouse_mode_override_enabled_func)() = nullptr;
 void (*Input::warp_mouse_func)(const Vector2 &p_position) = nullptr;
 Input::CursorShape (*Input::get_current_cursor_shape_func)() = nullptr;
 void (*Input::set_custom_mouse_cursor_func)(const Ref<Resource> &, Input::CursorShape, const Vector2 &) = nullptr;
@@ -86,51 +90,29 @@ Input *Input::get_singleton() {
 }
 
 void Input::set_mouse_mode(MouseMode p_mode) {
-	ERR_FAIL_INDEX((int)p_mode, 5);
-
-	if (p_mode == mouse_mode) {
-		return;
-	}
-
-	// Allow to be set even if overridden, to see if the platform allows the mode.
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
 	set_mouse_mode_func(p_mode);
-	mouse_mode = get_mouse_mode_func();
-
-	if (mouse_mode_override_enabled) {
-		set_mouse_mode_func(mouse_mode_override);
-	}
 }
 
 Input::MouseMode Input::get_mouse_mode() const {
-	return mouse_mode;
-}
-
-void Input::set_mouse_mode_override_enabled(bool p_enabled) {
-	if (p_enabled == mouse_mode_override_enabled) {
-		return;
-	}
-
-	mouse_mode_override_enabled = p_enabled;
-
-	if (p_enabled) {
-		set_mouse_mode_func(mouse_mode_override);
-		mouse_mode_override = get_mouse_mode_func();
-	} else {
-		set_mouse_mode_func(mouse_mode);
-	}
+	return get_mouse_mode_func();
 }
 
 void Input::set_mouse_mode_override(MouseMode p_mode) {
-	ERR_FAIL_INDEX((int)p_mode, 5);
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
+	set_mouse_mode_override_func(p_mode);
+}
 
-	if (p_mode == mouse_mode_override) {
-		return;
-	}
+Input::MouseMode Input::get_mouse_mode_override() const {
+	return get_mouse_mode_override_func();
+}
 
-	if (mouse_mode_override_enabled) {
-		set_mouse_mode_func(p_mode);
-		mouse_mode_override = get_mouse_mode_func();
-	}
+void Input::set_mouse_mode_override_enabled(bool p_override_enabled) {
+	set_mouse_mode_override_enabled_func(p_override_enabled);
+}
+
+bool Input::is_mouse_mode_override_enabled() {
+	return is_mouse_mode_override_enabled_func();
 }
 
 void Input::_bind_methods() {
@@ -199,6 +181,7 @@ void Input::_bind_methods() {
 	BIND_ENUM_CONSTANT(MOUSE_MODE_CAPTURED);
 	BIND_ENUM_CONSTANT(MOUSE_MODE_CONFINED);
 	BIND_ENUM_CONSTANT(MOUSE_MODE_CONFINED_HIDDEN);
+	BIND_ENUM_CONSTANT(MOUSE_MODE_MAX);
 
 	BIND_ENUM_CONSTANT(CURSOR_ARROW);
 	BIND_ENUM_CONSTANT(CURSOR_IBEAM);
@@ -1602,9 +1585,6 @@ void Input::parse_mapping(const String &p_mapping) {
 		return;
 	}
 
-	CharString uid;
-	uid.resize(17);
-
 	mapping.uid = entry[0];
 	mapping.name = entry[1];
 
@@ -1712,15 +1692,72 @@ void Input::add_joy_mapping(const String &p_mapping, bool p_update_existing) {
 }
 
 void Input::remove_joy_mapping(const String &p_guid) {
+	// One GUID can exist multiple times in `map_db`, and
+	// `add_joy_mapping` can choose not to update the existing mapping,
+	// so the indices can be all over the place. Therefore we need to remember them.
+	Vector<int> removed_idx;
+	int min_removed_idx = -1;
+	int max_removed_idx = -1;
+	int fallback_mapping_offset = 0;
+
 	for (int i = map_db.size() - 1; i >= 0; i--) {
 		if (p_guid == map_db[i].uid) {
 			map_db.remove_at(i);
+
+			if (max_removed_idx == -1) {
+				max_removed_idx = i;
+			}
+			min_removed_idx = i;
+			removed_idx.push_back(i);
+
+			if (i < fallback_mapping) {
+				fallback_mapping_offset++;
+			} else if (i == fallback_mapping) {
+				fallback_mapping = -1;
+				WARN_PRINT_ONCE(vformat("Removed fallback joypad input mapping \"%s\". This could lead to joypads not working as intended.", p_guid));
+			}
 		}
 	}
+
+	if (min_removed_idx == -1) {
+		return; // Nothing removed.
+	}
+
+	if (fallback_mapping > 0) {
+		// Fix the shifted index.
+		fallback_mapping -= fallback_mapping_offset;
+	}
+
+	int removed_idx_size = removed_idx.size();
+
+	// Update joypad mapping references: some
+	// * should use the fallback_mapping (if set; if not, they get unmapped), or
+	// * need their mapping reference fixed, because the deletion(s) offset them.
 	for (KeyValue<int, Joypad> &E : joy_names) {
 		Joypad &joy = E.value;
-		if (joy.uid == p_guid) {
-			_set_joypad_mapping(joy, -1);
+		if (joy.mapping < min_removed_idx) {
+			continue; // Not affected.
+		}
+
+		if (joy.mapping > max_removed_idx) {
+			_set_joypad_mapping(joy, joy.mapping - removed_idx_size);
+			continue; // Simple offset fix.
+		}
+
+		// removed_idx is in reverse order (ie. high to low), because the first loop is in reverse order.
+		for (int i = 0; i < removed_idx.size(); i++) {
+			if (removed_idx[i] == joy.mapping) {
+				// Set to fallback_mapping, if defined, else unmap the joypad.
+				// Currently, the fallback_mapping is only set internally, and only for Android.
+				_set_joypad_mapping(joy, fallback_mapping);
+				break;
+			}
+			if (removed_idx[i] < joy.mapping) {
+				// Complex offset fix:
+				// This mapping was shifted by `(removed_idx_size - i)` deletions.
+				_set_joypad_mapping(joy, joy.mapping - (removed_idx_size - i));
+				break;
+			}
 		}
 	}
 }

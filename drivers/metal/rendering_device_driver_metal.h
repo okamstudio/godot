@@ -36,7 +36,6 @@
 #import "servers/rendering/rendering_device_driver.h"
 
 #import <Metal/Metal.h>
-#import <spirv.hpp>
 #import <variant>
 
 #ifdef DEBUG_ENABLED
@@ -47,7 +46,7 @@
 
 class RenderingContextDriverMetal;
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) RenderingDeviceDriverMetal : public RenderingDeviceDriver {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) RenderingDeviceDriverMetal : public RenderingDeviceDriver {
 	friend struct ShaderCacheEntry;
 
 	template <typename T>
@@ -106,6 +105,7 @@ public:
 	virtual uint64_t buffer_get_allocation_size(BufferID p_buffer) override final;
 	virtual uint8_t *buffer_map(BufferID p_buffer) override final;
 	virtual void buffer_unmap(BufferID p_buffer) override final;
+	virtual uint64_t buffer_get_device_address(BufferID p_buffer) override final;
 
 #pragma mark - Texture
 

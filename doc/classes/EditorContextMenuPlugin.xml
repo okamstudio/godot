@@ -85,11 +85,30 @@
 		<constant name="CONTEXT_SLOT_FILESYSTEM" value="1" enum="ContextMenuSlot">
 			Context menu of FileSystem dock. [method _popup_menu] and option callback will be called with list of paths of the currently selected files.
 		</constant>
+		<constant name="CONTEXT_SLOT_SCRIPT_EDITOR" value="2" enum="ContextMenuSlot">
+			Context menu of Script editor's script tabs. [method _popup_menu] will be called with the path to the currently edited script, while option callback will receive reference to that script.
+		</constant>
 		<constant name="CONTEXT_SLOT_FILESYSTEM_CREATE" value="3" enum="ContextMenuSlot">
 			The "Create..." submenu of FileSystem dock's context menu. [method _popup_menu] and option callback will be called with list of paths of the currently selected files.
 		</constant>
-		<constant name="CONTEXT_SLOT_SCRIPT_EDITOR" value="2" enum="ContextMenuSlot">
-			Context menu of Scene dock. [method _popup_menu] will be called with the path to the currently edited script, while option callback will receive reference to that script.
+		<constant name="CONTEXT_SLOT_SCRIPT_EDITOR_CODE" value="4" enum="ContextMenuSlot">
+			Context menu of Script editor's code editor. [method _popup_menu] will be called with the path to the [CodeEdit] node. You can fetch it using this code:
+			[codeblock]
+			func _popup_menu(paths):
+			    var code_edit = Engine.get_main_loop().root.get_node(paths[0]);
+			[/codeblock]
+			The option callback will receive reference to that node. You can use [CodeEdit] methods to perform symbol lookups etc.
+		</constant>
+		<constant name="CONTEXT_SLOT_SCENE_TABS" value="5" enum="ContextMenuSlot">
+			Context menu of scene tabs. [method _popup_menu] will be called with the path of the clicked scene, or empty [PackedStringArray] if the menu was opened on empty space. The option callback will receive the path of the clicked scene, or empty [String] if none was clicked.
+		</constant>
+		<constant name="CONTEXT_SLOT_2D_EDITOR" value="6" enum="ContextMenuSlot">
+			Context menu of 2D editor's basic right-click menu. [method _popup_menu] will be called with paths to all [CanvasItem] nodes under the cursor. You can fetch them using this code:
+			[codeblock]
+			func _popup_menu(paths):
+			    var canvas_item = Engine.get_main_loop().root.get_node(paths[0]); # Replace 0 with the desired index.
+			[/codeblock]
+			The paths array is empty if there weren't any nodes under cursor. The option callback will receive a typed array of [CanvasItem] nodes.
 		</constant>
 	</constants>
 </class>

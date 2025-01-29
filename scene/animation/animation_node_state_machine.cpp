@@ -498,7 +498,7 @@ bool AnimationNodeStateMachinePlayback::_travel(AnimationTree *p_tree, Animation
 
 String AnimationNodeStateMachinePlayback::_validate_path(AnimationNodeStateMachine *p_state_machine, const String &p_path) {
 	if (p_state_machine->get_state_machine_type() == AnimationNodeStateMachine::STATE_MACHINE_TYPE_GROUPED) {
-		return p_path; // Grouped state machine doesn't allow validat-able request.
+		return p_path; // Grouped state machine doesn't allow validate-able request.
 	}
 	String target = p_path;
 	Ref<AnimationNodeStateMachine> anodesm = p_state_machine->find_node_by_path(target);
@@ -799,7 +799,7 @@ AnimationNode::NodeTimeInfo AnimationNodeStateMachinePlayback::_process(const St
 		pi.is_external_seeking = false;
 		pi.weight = 0;
 		current_nti = p_state_machine->blend_node(p_state_machine->states[current].node, current, pi, AnimationNode::FILTER_IGNORE, true, true);
-		// Don't process first node if not necessary, insteads process next node.
+		// Don't process first node if not necessary, instead process next node.
 		_transition_to_next_recursive(tree, p_state_machine, p_delta, p_test_only);
 	}
 

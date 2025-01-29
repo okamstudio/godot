@@ -522,6 +522,14 @@ void EditorResourcePreview::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("preview_invalidated", PropertyInfo(Variant::STRING, "path")));
 }
 
+void EditorResourcePreview::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_EXIT_TREE: {
+			stop();
+		} break;
+	}
+}
+
 void EditorResourcePreview::check_for_invalidation(const String &p_path) {
 	bool call_invalidated = false;
 	{

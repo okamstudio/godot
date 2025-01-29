@@ -222,6 +222,48 @@ public:
 	Error buffer_clear(RID p_buffer, uint32_t p_offset, uint32_t p_size);
 	Vector<uint8_t> buffer_get_data(RID p_buffer, uint32_t p_offset = 0, uint32_t p_size = 0); // This causes stall, only use to retrieve large buffers for saving.
 	Error buffer_get_data_async(RID p_buffer, const Callable &p_callback, uint32_t p_offset = 0, uint32_t p_size = 0);
+	uint64_t buffer_get_device_address(RID p_buffer);
+
+private:
+	/******************/
+	/**** CALLBACK ****/
+	/******************/
+
+public:
+	enum CallbackResourceType {
+		CALLBACK_RESOURCE_TYPE_TEXTURE,
+		CALLBACK_RESOURCE_TYPE_BUFFER,
+	};
+
+	enum CallbackResourceUsage {
+		CALLBACK_RESOURCE_USAGE_NONE,
+		CALLBACK_RESOURCE_USAGE_COPY_FROM,
+		CALLBACK_RESOURCE_USAGE_COPY_TO,
+		CALLBACK_RESOURCE_USAGE_RESOLVE_FROM,
+		CALLBACK_RESOURCE_USAGE_RESOLVE_TO,
+		CALLBACK_RESOURCE_USAGE_UNIFORM_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_INDIRECT_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_BUFFER_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_STORAGE_BUFFER_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_VERTEX_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_INDEX_BUFFER_READ,
+		CALLBACK_RESOURCE_USAGE_TEXTURE_SAMPLE,
+		CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ,
+		CALLBACK_RESOURCE_USAGE_STORAGE_IMAGE_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_ATTACHMENT_COLOR_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_ATTACHMENT_DEPTH_STENCIL_READ_WRITE,
+		CALLBACK_RESOURCE_USAGE_MAX
+	};
+
+	struct CallbackResource {
+		RID rid;
+		CallbackResourceType type = CALLBACK_RESOURCE_TYPE_TEXTURE;
+		CallbackResourceUsage usage = CALLBACK_RESOURCE_USAGE_NONE;
+	};
+
+	Error driver_callback_add(RDD::DriverCallback p_callback, void *p_userdata, VectorView<CallbackResource> p_resources);
 
 	/*****************/
 	/**** TEXTURE ****/
@@ -712,13 +754,13 @@ private:
 	RID_Owner<IndexArray, true> index_array_owner;
 
 public:
-	RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_as_storage = false);
+	RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_as_storage = false, bool p_enable_device_address = false);
 
 	// This ID is warranted to be unique for the same formats, does not need to be freed
 	VertexFormatID vertex_format_create(const Vector<VertexAttribute> &p_vertex_descriptions);
 	RID vertex_array_create(uint32_t p_vertex_count, VertexFormatID p_vertex_format, const Vector<RID> &p_src_buffers, const Vector<uint64_t> &p_offsets = Vector<uint64_t>());
 
-	RID index_buffer_create(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_restart_indices = false);
+	RID index_buffer_create(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_restart_indices = false, bool p_enable_device_address = false);
 	RID index_array_create(RID p_index_buffer, uint32_t p_index_offset, uint32_t p_index_count);
 
 	/****************/
@@ -852,9 +894,14 @@ private:
 	DrawListID _draw_list_begin_bind_compat_90993(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region);
 
 	DrawListID _draw_list_begin_bind_compat_98670(RID p_framebuffer, InitialAction p_initial_color_action, FinalAction p_final_color_action, InitialAction p_initial_depth_action, FinalAction p_final_depth_action, const Vector<Color> &p_clear_color_values, float p_clear_depth, uint32_t p_clear_stencil, const Rect2 &p_region, uint32_t p_breadcrumb);
+
+	RID _uniform_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data);
+	RID _vertex_buffer_create_bind_compat_100062(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage);
+	RID _index_buffer_create_bind_compat_100062(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data, bool p_use_restart_indices);
 #endif
 
 public:
+	RenderingDeviceDriver *get_device_driver() const { return driver; }
 	RenderingContextDriver *get_context_driver() const { return context; }
 
 	const RDD::Capabilities &get_device_capabilities() const { return driver->get_capabilities(); }
@@ -884,14 +931,15 @@ public:
 	String get_perf_report() const;
 
 	enum StorageBufferUsage {
-		STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT = 1,
+		STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT = (1 << 0),
+		STORAGE_BUFFER_USAGE_DEVICE_ADDRESS = (1 << 1),
 	};
 
 	/*****************/
 	/**** BUFFERS ****/
 	/*****************/
 
-	RID uniform_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>());
+	RID uniform_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_enable_device_address = false);
 	RID storage_buffer_create(uint32_t p_size, const Vector<uint8_t> &p_data = Vector<uint8_t>(), BitField<StorageBufferUsage> p_usage = 0);
 
 	RID texture_buffer_create(uint32_t p_size_elements, DataFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>());

@@ -72,6 +72,7 @@ public:
 	HashSet<String> extensions;
 
 	bool float_texture_supported = false;
+	bool float_texture_linear_supported = false;
 	bool s3tc_supported = false;
 	bool rgtc_supported = false;
 	bool bptc_supported = false;

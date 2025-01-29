@@ -37,6 +37,9 @@
 #include "editor/editor_node.h"
 #include "editor/editor_string_names.h"
 #include "editor/themes/editor_scale.h"
+#include "scene/gui/margin_container.h"
+#include "scene/gui/separator.h"
+#include "scene/gui/texture_rect.h"
 #include "scene/gui/tree.h"
 
 void EditorPluginSettings::_notification(int p_what) {
@@ -48,6 +51,12 @@ void EditorPluginSettings::_notification(int p_what) {
 		case Node::NOTIFICATION_READY: {
 			plugin_config_dialog->connect("plugin_ready", callable_mp(EditorNode::get_singleton(), &EditorNode::_on_plugin_ready));
 			plugin_list->connect("button_clicked", callable_mp(this, &EditorPluginSettings::_cell_button_pressed));
+		} break;
+
+		case NOTIFICATION_THEME_CHANGED: {
+			if (Engine::get_singleton()->is_recovery_mode_hint()) {
+				recovery_mode_icon->set_texture(get_editor_theme_icon(SNAME("NodeWarning")));
+			}
 		} break;
 	}
 }
@@ -203,6 +212,23 @@ EditorPluginSettings::EditorPluginSettings() {
 	plugin_config_dialog = memnew(PluginConfigDialog);
 	plugin_config_dialog->config("");
 	add_child(plugin_config_dialog);
+
+	if (Engine::get_singleton()->is_recovery_mode_hint()) {
+		HBoxContainer *c = memnew(HBoxContainer);
+		add_child(c);
+
+		recovery_mode_icon = memnew(TextureRect);
+		recovery_mode_icon->set_stretch_mode(TextureRect::STRETCH_KEEP_ASPECT_CENTERED);
+		c->add_child(recovery_mode_icon);
+
+		Label *recovery_mode_label = memnew(Label(TTR("Recovery mode is enabled. Enabled plugins will not run while this mode is active.")));
+		recovery_mode_label->set_theme_type_variation("HeaderSmall");
+		recovery_mode_label->set_h_size_flags(SIZE_EXPAND_FILL);
+		c->add_child(recovery_mode_label);
+
+		HSeparator *sep = memnew(HSeparator);
+		add_child(sep);
+	}
 
 	HBoxContainer *title_hb = memnew(HBoxContainer);
 	Label *label = memnew(Label(TTR("Installed Plugins:")));

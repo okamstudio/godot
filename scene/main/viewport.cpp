@@ -126,7 +126,10 @@ int ViewportTexture::get_width() const {
 		_err_print_viewport_not_set();
 		return 0;
 	}
-	return get_size().width;
+	if (vp->is_sub_viewport()) {
+		return vp->size.width;
+	}
+	return vp->size.width * vp->get_stretch_transform().get_scale().width;
 }
 
 int ViewportTexture::get_height() const {
@@ -134,7 +137,10 @@ int ViewportTexture::get_height() const {
 		_err_print_viewport_not_set();
 		return 0;
 	}
-	return get_size().height;
+	if (vp->is_sub_viewport()) {
+		return vp->size.height;
+	}
+	return vp->size.height * vp->get_stretch_transform().get_scale().height;
 }
 
 Size2 ViewportTexture::get_size() const {
@@ -142,8 +148,11 @@ Size2 ViewportTexture::get_size() const {
 		_err_print_viewport_not_set();
 		return Size2();
 	}
-	float scale = MIN(vp->get_screen_transform().get_scale().width, vp->get_screen_transform().get_scale().height);
-	return Size2(vp->size.width * scale, vp->size.height * scale).ceil();
+	if (vp->is_sub_viewport()) {
+		return vp->size;
+	}
+	Size2 scale = vp->get_stretch_transform().get_scale();
+	return Size2(vp->size.width * scale.width, vp->size.height * scale.height).ceil();
 }
 
 RID ViewportTexture::get_rid() const {
@@ -1521,9 +1530,6 @@ void Viewport::_gui_show_tooltip() {
 	PopupPanel *panel = memnew(PopupPanel);
 	panel->set_theme_type_variation(SNAME("TooltipPanel"));
 
-	// Ensure no opaque background behind the panel as its StyleBox can be partially transparent (e.g. corners).
-	panel->set_transparent_background(true);
-
 	// If no custom tooltip is given, use a default implementation.
 	if (!base_tooltip) {
 		gui.tooltip_label = memnew(Label);
@@ -1536,12 +1542,9 @@ void Viewport::_gui_show_tooltip() {
 
 	base_tooltip->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
 
-	panel->set_transient(true);
 	panel->set_flag(Window::FLAG_NO_FOCUS, true);
 	panel->set_flag(Window::FLAG_POPUP, false);
 	panel->set_flag(Window::FLAG_MOUSE_PASSTHROUGH, true);
-	// A non-embedded tooltip window will only be transparent if per_pixel_transparency is allowed in the main Viewport.
-	panel->set_flag(Window::FLAG_TRANSPARENT, true);
 	panel->set_wrap_controls(true);
 	panel->add_child(base_tooltip);
 	panel->gui_parent = this;
@@ -1593,12 +1596,9 @@ void Viewport::_gui_show_tooltip() {
 		r.position.y = vr.position.y;
 	}
 
-	gui.tooltip_popup->set_position(r.position);
-	gui.tooltip_popup->set_size(r.size);
-
 	DisplayServer::WindowID active_popup = DisplayServer::get_singleton()->window_get_active_popup();
 	if (active_popup == DisplayServer::INVALID_WINDOW_ID || active_popup == window->get_window_id()) {
-		gui.tooltip_popup->show();
+		gui.tooltip_popup->popup(r);
 	}
 	gui.tooltip_popup->child_controls_changed();
 }
@@ -2954,6 +2954,47 @@ bool Viewport::_sub_windows_forward_input(const Ref<InputEvent> &p_event) {
 	gui.subwindow_focused->_window_input(ev);
 
 	return true;
+}
+
+void Viewport::_window_start_drag(Window *p_window) {
+	int index = _sub_window_find(p_window);
+	ERR_FAIL_COND(index == -1);
+
+	SubWindow sw = gui.sub_windows.write[index];
+
+	if (gui.subwindow_focused != sw.window) {
+		// Refocus.
+		_sub_window_grab_focus(sw.window);
+	}
+
+	gui.subwindow_drag = SUB_WINDOW_DRAG_MOVE;
+	gui.subwindow_drag_from = get_mouse_position();
+	gui.subwindow_drag_pos = sw.window->get_position();
+	gui.currently_dragged_subwindow = sw.window;
+
+	_sub_window_update(sw.window);
+}
+
+void Viewport::_window_start_resize(SubWindowResize p_edge, Window *p_window) {
+	int index = _sub_window_find(p_window);
+	ERR_FAIL_COND(index == -1);
+
+	SubWindow sw = gui.sub_windows.write[index];
+	Rect2i r = Rect2i(sw.window->get_position(), sw.window->get_size());
+
+	if (gui.subwindow_focused != sw.window) {
+		// Refocus.
+		_sub_window_grab_focus(sw.window);
+	}
+
+	gui.subwindow_drag = SUB_WINDOW_DRAG_RESIZE;
+	gui.subwindow_resize_mode = p_edge;
+	gui.subwindow_resize_from_rect = r;
+	gui.subwindow_drag_from = get_mouse_position();
+	gui.subwindow_drag_pos = sw.window->get_position();
+	gui.currently_dragged_subwindow = sw.window;
+
+	_sub_window_update(sw.window);
 }
 
 void Viewport::_update_mouse_over() {
@@ -4899,7 +4940,7 @@ void Viewport::_bind_methods() {
 
 #ifndef _3D_DISABLED
 	ADD_GROUP("Scaling 3D", "");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "scaling_3d_mode", PROPERTY_HINT_ENUM, "Bilinear (Fastest),FSR 1.0 (Fast),FSR 2.2 (Slow)"), "set_scaling_3d_mode", "get_scaling_3d_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "scaling_3d_mode", PROPERTY_HINT_ENUM, "Bilinear (Fastest),FSR 1.0 (Fast),FSR 2.2 (Slow),MetalFX (Spatial),MetalFX (Temporal)"), "set_scaling_3d_mode", "get_scaling_3d_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "scaling_3d_scale", PROPERTY_HINT_RANGE, "0.25,2.0,0.01"), "set_scaling_3d_scale", "get_scaling_3d_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "texture_mipmap_bias", PROPERTY_HINT_RANGE, "-2,2,0.001"), "set_texture_mipmap_bias", "get_texture_mipmap_bias");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "anisotropic_filtering_level", PROPERTY_HINT_ENUM, String::utf8("Disabled (Fastest),2× (Faster),4× (Fast),8× (Average),16x (Slow)")), "set_anisotropic_filtering_level", "get_anisotropic_filtering_level");
@@ -4954,6 +4995,8 @@ void Viewport::_bind_methods() {
 	BIND_ENUM_CONSTANT(SCALING_3D_MODE_BILINEAR);
 	BIND_ENUM_CONSTANT(SCALING_3D_MODE_FSR);
 	BIND_ENUM_CONSTANT(SCALING_3D_MODE_FSR2);
+	BIND_ENUM_CONSTANT(SCALING_3D_MODE_METALFX_SPATIAL);
+	BIND_ENUM_CONSTANT(SCALING_3D_MODE_METALFX_TEMPORAL);
 	BIND_ENUM_CONSTANT(SCALING_3D_MODE_MAX);
 
 	BIND_ENUM_CONSTANT(MSAA_DISABLED);

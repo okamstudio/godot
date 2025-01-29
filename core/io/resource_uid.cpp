@@ -47,7 +47,7 @@ String ResourceUID::get_cache_file() {
 
 static constexpr uint8_t uuid_characters[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', '0', '1', '2', '3', '4', '5', '6', '7', '8' };
 static constexpr uint32_t uuid_characters_element_count = (sizeof(uuid_characters) / sizeof(*uuid_characters));
-static constexpr uint8_t max_uuid_number_length = 19; // Max 0x7FFFFFFFFFFFFFFF size is 19 digits.
+static constexpr uint8_t max_uuid_number_length = 13; // Max 0x7FFFFFFFFFFFFFFF (uid://d4n4ub6itg400) size is 13 characters.
 
 String ResourceUID::id_to_text(ID p_id) const {
 	if (p_id < 0) {
@@ -56,12 +56,12 @@ String ResourceUID::id_to_text(ID p_id) const {
 
 	char32_t tmp[max_uuid_number_length];
 	uint32_t tmp_size = 0;
-	while (p_id) {
+	do {
 		uint32_t c = p_id % uuid_characters_element_count;
 		tmp[tmp_size] = uuid_characters[c];
 		p_id /= uuid_characters_element_count;
 		++tmp_size;
-	}
+	} while (p_id);
 
 	// tmp_size + uid:// (6) + 1 for null.
 	String txt;
@@ -151,11 +151,14 @@ void ResourceUID::set_id(ID p_id, const String &p_path) {
 }
 
 String ResourceUID::get_id_path(ID p_id) const {
+	ERR_FAIL_COND_V_MSG(p_id == INVALID_ID, String(), "Invalid UID.");
 	MutexLock l(mutex);
-	ERR_FAIL_COND_V(!unique_ids.has(p_id), String());
-	const CharString &cs = unique_ids[p_id].cs;
+	const ResourceUID::Cache *cache = unique_ids.getptr(p_id);
+	ERR_FAIL_COND_V_MSG(!cache, String(), vformat("Unrecognized UID: \"%s\".", id_to_text(p_id)));
+	const CharString &cs = cache->cs;
 	return String::utf8(cs.ptr());
 }
+
 void ResourceUID::remove_id(ID p_id) {
 	MutexLock l(mutex);
 	ERR_FAIL_COND(!unique_ids.has(p_id));
@@ -229,7 +232,7 @@ Error ResourceUID::load_from_cache(bool p_reset) {
 		int32_t len = f->get_32();
 		Cache c;
 		c.cs.resize(len + 1);
-		ERR_FAIL_COND_V(c.cs.size() != len + 1, ERR_FILE_CORRUPT); // out of memory
+		ERR_FAIL_COND_V(c.cs.size() != len + 1, ERR_FILE_CORRUPT); // Out of memory.
 		c.cs[len] = 0;
 		int32_t rl = f->get_buffer((uint8_t *)c.cs.ptrw(), len);
 		ERR_FAIL_COND_V(rl != len, ERR_FILE_CORRUPT);
@@ -257,7 +260,7 @@ Error ResourceUID::update_cache() {
 	for (KeyValue<ID, Cache> &E : unique_ids) {
 		if (!E.value.saved_to_cache) {
 			if (f.is_null()) {
-				f = FileAccess::open(get_cache_file(), FileAccess::READ_WRITE); //append
+				f = FileAccess::open(get_cache_file(), FileAccess::READ_WRITE); // Append.
 				if (f.is_null()) {
 					return ERR_CANT_OPEN;
 				}
@@ -280,6 +283,25 @@ Error ResourceUID::update_cache() {
 	changed = false;
 
 	return OK;
+}
+
+String ResourceUID::get_path_from_cache(Ref<FileAccess> &p_cache_file, const String &p_uid_string) {
+	const uint32_t entry_count = p_cache_file->get_32();
+	CharString cs;
+	for (uint32_t i = 0; i < entry_count; i++) {
+		int64_t id = p_cache_file->get_64();
+		int32_t len = p_cache_file->get_32();
+		cs.resize(len + 1);
+		ERR_FAIL_COND_V(cs.size() != len + 1, String());
+		cs[len] = 0;
+		int32_t rl = p_cache_file->get_buffer((uint8_t *)cs.ptrw(), len);
+		ERR_FAIL_COND_V(rl != len, String());
+
+		if (singleton->id_to_text(id) == p_uid_string) {
+			return String(cs);
+		}
+	}
+	return String();
 }
 
 void ResourceUID::clear() {

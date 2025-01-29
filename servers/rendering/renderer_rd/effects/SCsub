@@ -29,6 +29,8 @@ env.servers_sources += thirdparty_obj
 module_obj = []
 
 env_effects.add_source_files(module_obj, "*.cpp")
+if env["metal"]:
+    env_effects.add_source_files(module_obj, "metal_fx.mm")
 env.servers_sources += module_obj
 
 # Needed to force rebuilding the module files when the thirdparty library is updated.

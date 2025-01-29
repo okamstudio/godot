@@ -43,7 +43,7 @@ class TileProxiesManagerDialog : public ConfirmationDialog {
 	GDCLASS(TileProxiesManagerDialog, ConfirmationDialog);
 
 private:
-	int commited_actions_count = 0;
+	int committed_actions_count = 0;
 	Ref<TileSet> tile_set;
 
 	TileMapCell from;

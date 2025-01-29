@@ -33,12 +33,15 @@
 #include "core/config/project_settings.h"
 #include "core/io/config_file.h"
 #include "core/math/delaunay_3d.h"
-#include "lightmap_probe.h"
+#include "core/object/object.h"
+#include "scene/3d/lightmap_probe.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/resources/camera_attributes.h"
 #include "scene/resources/environment.h"
 #include "scene/resources/image_texture.h"
 #include "scene/resources/sky.h"
+
+#include "modules/modules_enabled.gen.h" // For lightmapper_rd.
 
 void LightmapGIData::add_user(const NodePath &p_path, const Rect2 &p_uv_scale, int p_slice_index, int32_t p_sub_instance) {
 	User user;
@@ -855,6 +858,10 @@ LightmapGI::BakeError LightmapGI::_save_and_reimport_atlas_textures(const Ref<Li
 
 		config->save(config_path);
 
+		if (supersampling_enabled) {
+			texture_image->resize(texture_image->get_width() / supersampling_factor, texture_image->get_height() / supersampling_factor, Image::INTERPOLATE_TRILINEAR);
+		}
+
 		// Save the file.
 		Error save_err;
 		if (p_is_shadowmask) {
@@ -930,7 +937,8 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 				// For now set to basic size to avoid crash.
 				mesh_lightmap_size = Size2i(64, 64);
 			}
-			Size2i lightmap_size = Size2i(Size2(mesh_lightmap_size) * mf.lightmap_scale * texel_scale);
+			// Double lightmap texel density if downsampling is enabled, as the final texture size will be halved before saving lightmaps.
+			Size2i lightmap_size = Size2i(Size2(mesh_lightmap_size) * mf.lightmap_scale * texel_scale) * (supersampling_enabled ? supersampling_factor : 1.0);
 			ERR_FAIL_COND_V(lightmap_size.x == 0 || lightmap_size.y == 0, BAKE_ERROR_LIGHTMAP_TOO_SMALL);
 
 			TypedArray<RID> overrides;
@@ -1260,7 +1268,7 @@ LightmapGI::BakeError LightmapGI::bake(Node *p_from_node, String p_image_data_pa
 
 	Lightmapper::BakeError bake_err = lightmapper->bake(Lightmapper::BakeQuality(bake_quality), use_denoiser, denoiser_strength, denoiser_range, bounces,
 			bounce_indirect_energy, bias, max_texture_size, directional, shadowmask_mode != LightmapGIData::SHADOWMASK_MODE_NONE, use_texture_for_bounces,
-			Lightmapper::GenerateProbes(gen_probes), environment_image, environment_transform, _lightmap_bake_step_function, &bsud, exposure_normalization);
+			Lightmapper::GenerateProbes(gen_probes), environment_image, environment_transform, _lightmap_bake_step_function, &bsud, exposure_normalization, (supersampling_enabled ? supersampling_factor : 1));
 
 	if (bake_err == Lightmapper::BAKE_ERROR_TEXTURE_EXCEEDS_MAX_SIZE) {
 		return BAKE_ERROR_TEXTURE_SIZE_TOO_SMALL;
@@ -1709,6 +1717,26 @@ int LightmapGI::get_max_texture_size() const {
 	return max_texture_size;
 }
 
+void LightmapGI::set_supersampling_enabled(bool p_enable) {
+	supersampling_enabled = p_enable;
+
+	notify_property_list_changed();
+}
+
+bool LightmapGI::is_supersampling_enabled() const {
+	return supersampling_enabled;
+}
+
+void LightmapGI::set_supersampling_factor(float p_factor) {
+	ERR_FAIL_COND(p_factor < 1);
+
+	supersampling_factor = p_factor;
+}
+
+float LightmapGI::get_supersampling_factor() const {
+	return supersampling_factor;
+}
+
 void LightmapGI::set_generate_probes(GenerateProbes p_generate_probes) {
 	gen_probes = p_generate_probes;
 }
@@ -1748,20 +1776,23 @@ PackedStringArray LightmapGI::get_configuration_warnings() const {
 }
 
 void LightmapGI::_validate_property(PropertyInfo &p_property) const {
+	if (p_property.name == "supersampling_factor" && !supersampling_enabled) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
 	if (p_property.name == "environment_custom_sky" && environment_mode != ENVIRONMENT_MODE_CUSTOM_SKY) {
-		p_property.usage = PROPERTY_USAGE_NONE;
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 	if (p_property.name == "environment_custom_color" && environment_mode != ENVIRONMENT_MODE_CUSTOM_COLOR) {
-		p_property.usage = PROPERTY_USAGE_NONE;
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 	if (p_property.name == "environment_custom_energy" && environment_mode != ENVIRONMENT_MODE_CUSTOM_COLOR && environment_mode != ENVIRONMENT_MODE_CUSTOM_SKY) {
-		p_property.usage = PROPERTY_USAGE_NONE;
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 	if (p_property.name == "denoiser_strength" && !use_denoiser) {
-		p_property.usage = PROPERTY_USAGE_NONE;
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 	if (p_property.name == "denoiser_range" && !use_denoiser) {
-		p_property.usage = PROPERTY_USAGE_NONE;
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
 }
 
@@ -1802,6 +1833,12 @@ void LightmapGI::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_max_texture_size", "max_texture_size"), &LightmapGI::set_max_texture_size);
 	ClassDB::bind_method(D_METHOD("get_max_texture_size"), &LightmapGI::get_max_texture_size);
 
+	ClassDB::bind_method(D_METHOD("set_supersampling_enabled", "enable"), &LightmapGI::set_supersampling_enabled);
+	ClassDB::bind_method(D_METHOD("is_supersampling_enabled"), &LightmapGI::is_supersampling_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_supersampling_factor", "factor"), &LightmapGI::set_supersampling_factor);
+	ClassDB::bind_method(D_METHOD("get_supersampling_factor"), &LightmapGI::get_supersampling_factor);
+
 	ClassDB::bind_method(D_METHOD("set_use_denoiser", "use_denoiser"), &LightmapGI::set_use_denoiser);
 	ClassDB::bind_method(D_METHOD("is_using_denoiser"), &LightmapGI::is_using_denoiser);
 
@@ -1830,6 +1867,8 @@ void LightmapGI::_bind_methods() {
 
 	ADD_GROUP("Tweaks", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "quality", PROPERTY_HINT_ENUM, "Low,Medium,High,Ultra"), "set_bake_quality", "get_bake_quality");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "supersampling"), "set_supersampling_enabled", "is_supersampling_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "supersampling_factor", PROPERTY_HINT_RANGE, "1,8,1"), "set_supersampling_factor", "get_supersampling_factor");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bounces", PROPERTY_HINT_RANGE, "0,6,1,or_greater"), "set_bounces", "get_bounces");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bounce_indirect_energy", PROPERTY_HINT_RANGE, "0,2,0.01"), "set_bounce_indirect_energy", "get_bounce_indirect_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "directional"), "set_directional", "is_directional");

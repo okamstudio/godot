@@ -1251,6 +1251,13 @@ void GridMapEditor::_notification(int p_what) {
 				forward_spatial_input_event(nullptr, release);
 			}
 		} break;
+
+		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
+			indicator_mat->set_albedo(EDITOR_GET("editors/3d_gizmos/gizmo_colors/gridmap_grid"));
+
+			// Take Preview Size changes into account.
+			update_palette();
+		} break;
 	}
 }
 
@@ -1286,6 +1293,10 @@ void GridMapEditor::_update_cursor_instance() {
 		cursor_outer_mat->set_albedo(Color(pick_color, 0.8));
 		cursor_instance = RenderingServer::get_singleton()->instance_create2(cursor_mesh, get_tree()->get_root()->get_world_3d()->get_scenario());
 	}
+
+	// Make the cursor translucent so that it can be distinguished from already-placed tiles.
+	RenderingServer::get_singleton()->instance_geometry_set_transparency(cursor_instance, 0.5);
+
 	_update_cursor_transform();
 }
 
@@ -1713,7 +1724,7 @@ GridMapEditor::GridMapEditor() {
 	indicator_mat->set_flag(StandardMaterial3D::FLAG_SRGB_VERTEX_COLOR, true);
 	indicator_mat->set_flag(StandardMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
 	indicator_mat->set_flag(StandardMaterial3D::FLAG_DISABLE_FOG, true);
-	indicator_mat->set_albedo(Color(0.8, 0.5, 0.1));
+	indicator_mat->set_albedo(EDITOR_GET("editors/3d_gizmos/gizmo_colors/gridmap_grid"));
 }
 
 GridMapEditor::~GridMapEditor() {

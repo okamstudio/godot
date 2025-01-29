@@ -56,18 +56,20 @@ RenderUpdateFlag Picture::Impl::load()
 }
 
 
-bool Picture::Impl::needComposition(uint8_t opacity)
+void Picture::Impl::queryComposition(uint8_t opacity)
 {
+    cFlag = CompositionFlag::Invalid;
+
     //In this case, paint(scene) would try composition itself.
-    if (opacity < 255) return false;
+    if (opacity < 255) return;
 
     //Composition test
     const Paint* target;
     auto method = picture->composite(&target);
-    if (!target || method == tvg::CompositeMethod::ClipPath) return false;
-    if (target->pImpl->opacity == 255 || target->pImpl->opacity == 0) return false;
+    if (!target || method == tvg::CompositeMethod::ClipPath) return;
+    if (target->pImpl->opacity == 255 || target->pImpl->opacity == 0) return;
 
-    return true;
+    cFlag = CompositionFlag::Opacity;
 }
 
 
@@ -79,8 +81,8 @@ bool Picture::Impl::render(RenderMethod* renderer)
     if (surface) return renderer->renderImage(rd);
     else if (paint) {
         RenderCompositor* cmp = nullptr;
-        if (needComp) {
-            cmp = renderer->target(bounds(renderer), renderer->colorSpace());
+        if (cFlag) {
+            cmp = renderer->target(bounds(renderer), renderer->colorSpace(), static_cast<CompositionFlag>(cFlag));
             renderer->beginComposite(cmp, CompositeMethod::None, 255);
         }
         ret = paint->pImpl->render(renderer);
@@ -164,9 +166,14 @@ Type Picture::type() const noexcept
 
 Result Picture::load(const std::string& path) noexcept
 {
+#ifdef THORVG_FILE_IO_SUPPORT
     if (path.empty()) return Result::InvalidArguments;
 
     return pImpl->load(path);
+#else
+    TVGLOG("RENDERER", "FILE IO is disabled!");
+    return Result::NonSupport;
+#endif
 }
 
 

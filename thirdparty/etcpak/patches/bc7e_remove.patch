@@ -1,0 +1,52 @@
+diff --git a/thirdparty/etcpak/ProcessDxtc.cpp b/thirdparty/etcpak/ProcessDxtc.cpp
+index 5373b75cdc..e1bc6a5cb6 100644
+--- a/thirdparty/etcpak/ProcessDxtc.cpp
++++ b/thirdparty/etcpak/ProcessDxtc.cpp
+@@ -1,4 +1,3 @@
+-#include "bc7enc.h"
+ #include "Dither.hpp"
+ #include "ForceInline.hpp"
+ #include "ProcessDxtc.hpp"
+@@ -1085,29 +1084,3 @@ void CompressBc5( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t wi
+ #endif
+     } while( --blocks );
+ }
+-
+-void CompressBc7( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t width, const bc7enc_compress_block_params* params )
+-{
+-    int i = 0;
+-    auto ptr = dst;
+-    do
+-    {
+-        uint32_t rgba[4*4];
+-
+-        auto tmp = (char*)rgba;
+-        memcpy( tmp,        src + width * 0, 4*4 );
+-        memcpy( tmp + 4*4,  src + width * 1, 4*4 );
+-        memcpy( tmp + 8*4,  src + width * 2, 4*4 );
+-        memcpy( tmp + 12*4, src + width * 3, 4*4 );
+-        src += 4;
+-        if( ++i == width/4 )
+-        {
+-            src += width * 3;
+-            i = 0;
+-        }
+-
+-        bc7enc_compress_block( ptr, rgba, params );
+-        ptr += 2;
+-    }
+-    while( --blocks );
+-}
+diff --git a/thirdparty/etcpak/ProcessDxtc.hpp b/thirdparty/etcpak/ProcessDxtc.hpp
+index 7655bb33be..8145493872 100644
+--- a/thirdparty/etcpak/ProcessDxtc.hpp
++++ b/thirdparty/etcpak/ProcessDxtc.hpp
+@@ -11,8 +11,4 @@ void CompressBc3( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t wi
+ void CompressBc4( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t width );
+ void CompressBc5( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t width );
+ 
+-struct bc7enc_compress_block_params;
+-
+-void CompressBc7( const uint32_t* src, uint64_t* dst, uint32_t blocks, size_t width, const bc7enc_compress_block_params* params );
+-
+ #endif

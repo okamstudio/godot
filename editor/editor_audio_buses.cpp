@@ -1265,41 +1265,11 @@ void EditorAudioBuses::_load_layout() {
 }
 
 void EditorAudioBuses::_load_default_layout() {
-	String layout_path = GLOBAL_GET("audio/buses/default_bus_layout");
-
-	Ref<AudioBusLayout> state;
-	if (ResourceLoader::exists(layout_path)) {
-		state = ResourceLoader::load(layout_path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
-	}
-	if (state.is_null()) {
-		EditorNode::get_singleton()->show_warning(vformat(TTR("There is no '%s' file."), layout_path));
-		return;
-	}
-
-	edited_path = layout_path;
-	file->set_text(String(TTR("Layout:")) + " " + layout_path.get_file());
-	AudioServer::get_singleton()->set_bus_layout(state);
-	_rebuild_buses();
-	EditorUndoRedoManager::get_singleton()->clear_history(EditorUndoRedoManager::GLOBAL_HISTORY);
-	callable_mp(this, &EditorAudioBuses::_select_layout).call_deferred();
+	open_layout(GLOBAL_GET("audio/buses/default_bus_layout"));
 }
 
 void EditorAudioBuses::_file_dialog_callback(const String &p_string) {
-	if (file_dialog->get_file_mode() == EditorFileDialog::FILE_MODE_OPEN_FILE) {
-		Ref<AudioBusLayout> state = ResourceLoader::load(p_string, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
-		if (state.is_null()) {
-			EditorNode::get_singleton()->show_warning(TTR("Invalid file, not an audio bus layout."));
-			return;
-		}
-
-		edited_path = p_string;
-		file->set_text(String(TTR("Layout:")) + " " + p_string.get_file());
-		AudioServer::get_singleton()->set_bus_layout(state);
-		_rebuild_buses();
-		EditorUndoRedoManager::get_singleton()->clear_history(EditorUndoRedoManager::GLOBAL_HISTORY);
-		callable_mp(this, &EditorAudioBuses::_select_layout).call_deferred();
-
-	} else if (file_dialog->get_file_mode() == EditorFileDialog::FILE_MODE_SAVE_FILE) {
+	if (file_dialog->get_file_mode() == EditorFileDialog::FILE_MODE_SAVE_FILE) {
 		if (new_layout) {
 			Ref<AudioBusLayout> empty_state;
 			empty_state.instantiate();
@@ -1307,18 +1277,12 @@ void EditorAudioBuses::_file_dialog_callback(const String &p_string) {
 		}
 
 		Error err = ResourceSaver::save(AudioServer::get_singleton()->generate_bus_layout(), p_string);
-
 		if (err != OK) {
 			EditorNode::get_singleton()->show_warning(vformat(TTR("Error saving file: %s"), p_string));
 			return;
 		}
-
-		edited_path = p_string;
-		file->set_text(String(TTR("Layout:")) + " " + p_string.get_file());
-		_rebuild_buses();
-		EditorUndoRedoManager::get_singleton()->clear_history(EditorUndoRedoManager::GLOBAL_HISTORY);
-		callable_mp(this, &EditorAudioBuses::_select_layout).call_deferred();
 	}
+	open_layout(p_string);
 }
 
 void EditorAudioBuses::_bind_methods() {
@@ -1330,9 +1294,10 @@ EditorAudioBuses::EditorAudioBuses() {
 	top_hb = memnew(HBoxContainer);
 	add_child(top_hb);
 
+	edited_path = ResourceUID::ensure_path(GLOBAL_GET("audio/buses/default_bus_layout"));
+
 	file = memnew(Label);
-	String layout_path = GLOBAL_GET("audio/buses/default_bus_layout");
-	file->set_text(String(TTR("Layout:")) + " " + layout_path.get_file());
+	file->set_text(vformat("%s %s", TTR("Layout:"), edited_path.get_file()));
 	file->set_clip_text(true);
 	file->set_h_size_flags(SIZE_EXPAND_FILL);
 	top_hb->add_child(file);
@@ -1386,8 +1351,6 @@ EditorAudioBuses::EditorAudioBuses() {
 
 	set_v_size_flags(SIZE_EXPAND_FILL);
 
-	edited_path = GLOBAL_GET("audio/buses/default_bus_layout");
-
 	file_dialog = memnew(EditorFileDialog);
 	List<String> ext;
 	ResourceLoader::get_recognized_extensions_for_type("AudioBusLayout", &ext);
@@ -1405,14 +1368,21 @@ EditorAudioBuses::EditorAudioBuses() {
 void EditorAudioBuses::open_layout(const String &p_path) {
 	EditorNode::get_bottom_panel()->make_item_visible(this);
 
-	Ref<AudioBusLayout> state = ResourceLoader::load(p_path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
-	if (state.is_null()) {
-		EditorNode::get_singleton()->show_warning(TTR("Invalid file, not an audio bus layout."));
+	const String path = ResourceUID::ensure_path(p_path);
+
+	if (!ResourceLoader::exists(path)) {
+		EditorNode::get_singleton()->show_warning(vformat(TTR(R"(Can't open audio bus layout: "%s" doesn't exist.)"), path));
 		return;
 	}
 
-	edited_path = p_path;
-	file->set_text(p_path.get_file());
+	Ref<AudioBusLayout> state = ResourceLoader::load(path, "", ResourceFormatLoader::CACHE_MODE_IGNORE);
+	if (state.is_null()) {
+		EditorNode::get_singleton()->show_warning(vformat(TTR(R"(Can't open audio bus layout: "%s" is not a valid audio bus layout.)"), path));
+		return;
+	}
+
+	edited_path = path;
+	file->set_text(vformat("%s %s", TTR("Layout:"), path.get_file()));
 	AudioServer::get_singleton()->set_bus_layout(state);
 	_rebuild_buses();
 	EditorUndoRedoManager::get_singleton()->clear_history(EditorUndoRedoManager::GLOBAL_HISTORY);

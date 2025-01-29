@@ -31,8 +31,13 @@
 #include "navigation_obstacle_2d.h"
 
 #include "core/math/geometry_2d.h"
+#include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
+#include "scene/resources/2d/navigation_polygon.h"
 #include "scene/resources/world_2d.h"
 #include "servers/navigation_server_2d.h"
+
+Callable NavigationObstacle2D::_navmesh_source_geometry_parsing_callback;
+RID NavigationObstacle2D::_navmesh_source_geometry_parser;
 
 void NavigationObstacle2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_rid"), &NavigationObstacle2D::get_rid);
@@ -337,6 +342,75 @@ PackedStringArray NavigationObstacle2D::get_configuration_warnings() const {
 	}
 
 	return warnings;
+}
+
+void NavigationObstacle2D::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer2D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&NavigationObstacle2D::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer2D::get_singleton()->source_geometry_parser_create();
+		NavigationServer2D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void NavigationObstacle2D::navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
+	NavigationObstacle2D *obstacle = Object::cast_to<NavigationObstacle2D>(p_node);
+
+	if (obstacle == nullptr) {
+		return;
+	}
+
+	if (!obstacle->get_affect_navigation_mesh()) {
+		return;
+	}
+
+	const Vector2 safe_scale = obstacle->get_global_scale().abs().maxf(0.001);
+	const float obstacle_radius = obstacle->get_radius();
+
+	if (obstacle_radius > 0.0) {
+		// Radius defined obstacle should be uniformly scaled from obstacle basis max scale axis.
+		const float scaling_max_value = safe_scale[safe_scale.max_axis_index()];
+		const Vector2 uniform_max_scale = Vector2(scaling_max_value, scaling_max_value);
+		const Transform2D obstacle_circle_transform = p_source_geometry_data->root_node_transform * Transform2D(obstacle->get_global_rotation(), uniform_max_scale, 0.0, obstacle->get_global_position());
+
+		Vector<Vector2> obstruction_circle_vertices;
+
+		// The point of this is that the moving obstacle can make a simple hole in the navigation mesh and affect the pathfinding.
+		// Without, navigation paths can go directly through the middle of the obstacle and conflict with the avoidance to get agents stuck.
+		// No place for excessive "round" detail here. Every additional edge adds a high cost for something that needs to be quick, not pretty.
+		static const int circle_points = 12;
+
+		obstruction_circle_vertices.resize(circle_points);
+		Vector2 *circle_vertices_ptrw = obstruction_circle_vertices.ptrw();
+		const real_t circle_point_step = Math_TAU / circle_points;
+
+		for (int i = 0; i < circle_points; i++) {
+			const float angle = i * circle_point_step;
+			circle_vertices_ptrw[i] = obstacle_circle_transform.xform(Vector2(Math::cos(angle) * obstacle_radius, Math::sin(angle) * obstacle_radius));
+		}
+
+		p_source_geometry_data->add_projected_obstruction(obstruction_circle_vertices, obstacle->get_carve_navigation_mesh());
+	}
+
+	// Obstacles are projected to the xz-plane, so only rotation around the y-axis can be taken into account.
+	const Transform2D node_xform = p_source_geometry_data->root_node_transform * obstacle->get_global_transform();
+
+	const Vector<Vector2> &obstacle_vertices = obstacle->get_vertices();
+
+	if (obstacle_vertices.is_empty()) {
+		return;
+	}
+
+	Vector<Vector2> obstruction_shape_vertices;
+	obstruction_shape_vertices.resize(obstacle_vertices.size());
+
+	const Vector2 *obstacle_vertices_ptr = obstacle_vertices.ptr();
+	Vector2 *obstruction_shape_vertices_ptrw = obstruction_shape_vertices.ptrw();
+
+	for (int i = 0; i < obstacle_vertices.size(); i++) {
+		obstruction_shape_vertices_ptrw[i] = node_xform.xform(obstacle_vertices_ptr[i]);
+	}
+	p_source_geometry_data->add_projected_obstruction(obstruction_shape_vertices, obstacle->get_carve_navigation_mesh());
 }
 
 void NavigationObstacle2D::_update_map(RID p_map) {

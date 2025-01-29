@@ -224,6 +224,8 @@ struct GDScriptUtilityFunctionsDefinitions {
 		*r_ret = ResourceLoader::load(*p_args[0]);
 	}
 
+#ifndef DISABLE_DEPRECATED
+
 	static inline void inst_to_dict(Variant *r_ret, const Variant **p_args, int p_arg_count, Callable::CallError &r_error) {
 		DEBUG_VALIDATE_ARG_COUNT(1, 1);
 		DEBUG_VALIDATE_ARG_TYPE(0, Variant::OBJECT);
@@ -321,15 +323,16 @@ struct GDScriptUtilityFunctionsDefinitions {
 		DEBUG_VALIDATE_ARG_TYPE(1, Variant::INT);
 		DEBUG_VALIDATE_ARG_TYPE(2, Variant::INT);
 
-		Color color((int64_t)*p_args[0] / 255.0f, (int64_t)*p_args[1] / 255.0f, (int64_t)*p_args[2] / 255.0f);
-
+		int64_t alpha = 255;
 		if (p_arg_count == 4) {
 			DEBUG_VALIDATE_ARG_TYPE(3, Variant::INT);
-			color.a = (int64_t)*p_args[3] / 255.0f;
+			alpha = *p_args[3];
 		}
 
-		*r_ret = color;
+		*r_ret = Color::from_rgba8(*p_args[0], *p_args[1], *p_args[2], alpha);
 	}
+
+#endif // DISABLE_DEPRECATED
 
 	static inline void print_debug(Variant *r_ret, const Variant **p_args, int p_arg_count, Callable::CallError &r_error) {
 		String s;
@@ -575,10 +578,12 @@ void GDScriptUtilityFunctions::register_functions() {
 	REGISTER_FUNC( _char,          true,  RET(STRING),        ARGS( ARG("char", INT)                ), false, varray(     ));
 	REGISTER_FUNC( range,          false, RET(ARRAY),         NOARGS,                                  true,  varray(     ));
 	REGISTER_FUNC( load,           false, RETCLS("Resource"), ARGS( ARG("path", STRING)             ), false, varray(     ));
+#ifndef DISABLE_DEPRECATED
 	REGISTER_FUNC( inst_to_dict,   false, RET(DICTIONARY),    ARGS( ARG("instance", OBJECT)         ), false, varray(     ));
 	REGISTER_FUNC( dict_to_inst,   false, RET(OBJECT),        ARGS( ARG("dictionary", DICTIONARY)   ), false, varray(     ));
 	REGISTER_FUNC( Color8,         true,  RET(COLOR),         ARGS( ARG("r8", INT), ARG("g8", INT),
 																	ARG("b8", INT), ARG("a8", INT)  ), false, varray( 255 ));
+#endif // DISABLE_DEPRECATED
 	REGISTER_FUNC( print_debug,    false, RET(NIL),           NOARGS,                                  true,  varray(     ));
 	REGISTER_FUNC( print_stack,    false, RET(NIL),           NOARGS,                                  false, varray(     ));
 	REGISTER_FUNC( get_stack,      false, RET(ARRAY),         NOARGS,                                  false, varray(     ));

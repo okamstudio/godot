@@ -76,6 +76,9 @@ public:
 	int64_t get_next_frame_time();
 	bool can_render();
 
+	RID find_action(const String &p_name, const RID &p_action_set = RID());
+	uint64_t action_get_handle(RID p_action);
+
 	uint64_t get_hand_tracker(int p_hand_index);
 
 	void register_composition_layer_provider(OpenXRExtensionWrapperExtension *p_extension);
@@ -99,6 +102,10 @@ public:
 	void openxr_swapchain_acquire(uint64_t p_swapchain_info);
 	RID openxr_swapchain_get_image(uint64_t p_swapchain_info);
 	void openxr_swapchain_release(uint64_t p_swapchain_info);
+
+	uint64_t get_projection_layer();
+
+	void set_render_region(const Rect2i &p_render_region);
 
 	enum OpenXRAlphaBlendModeSupport {
 		OPENXR_ALPHA_BLEND_MODE_SUPPORT_NONE = 0,

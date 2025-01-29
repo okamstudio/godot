@@ -278,7 +278,6 @@
 			<param index="2" name="current_type" type="String" default="&quot;&quot;" />
 			<param index="3" name="dialog_title" type="String" default="&quot;&quot;" />
 			<param index="4" name="type_blocklist" type="StringName[]" default="[]" />
-			<param index="5" name="type_suffixes" type="Dictionary" default="{}" />
 			<description>
 				Pops up an editor dialog for creating an object.
 				The [param callback] must take a single argument of type [StringName] which will contain the type name of the selected object or be empty if no item is selected.
@@ -286,17 +285,6 @@
 				The [param current_type] will be passed in the search box of the create dialog, and the specified type can be immediately selected when the dialog pops up. If the [param current_type] is not derived from [param base_type], there will be no result of the type in the dialog.
 				The [param dialog_title] allows you to define a custom title for the dialog. This is useful if you want to accurately hint the usage of the dialog. If the [param dialog_title] is an empty string, the dialog will use "Create New 'Base Type'" as the default title.
 				The [param type_blocklist] contains a list of type names, and the types in the blocklist will be hidden from the create dialog.
-				The [param type_suffixes] is a dictionary, with keys being [StringName]s and values being [String]s. Custom suffixes override the default suffixes which are file names of their scripts. For example, if you set a custom suffix as "Custom Suffix" for a global script type,
-				[codeblock lang=text]
-				Node
-				|- MyCustomNode (my_custom_node.gd)
-				[/codeblock]
-				will be
-				[codeblock lang=text]
-				Node
-				|- MyCustomNode (Custom Suffix)
-				[/codeblock]
-				Bear in mind that when a built-in type does not have any custom suffix, its suffix will be removed. The suffix of a type created from a script will fall back to its script file name. For global types by scripts, if you customize their suffixes to an empty string, their suffixes will be removed.
 				[b]Note:[/b] Trying to list the base type in the [param type_blocklist] will hide all types derived from the base type from the create dialog.
 			</description>
 		</method>

@@ -513,6 +513,10 @@ bool Theme::has_font(const StringName &p_name, const StringName &p_theme_type) c
 	return ((font_map.has(p_theme_type) && font_map[p_theme_type].has(p_name) && font_map[p_theme_type][p_name].is_valid()) || has_default_font());
 }
 
+bool Theme::has_font_no_default(const StringName &p_name, const StringName &p_theme_type) const {
+	return (font_map.has(p_theme_type) && font_map[p_theme_type].has(p_name) && font_map[p_theme_type][p_name].is_valid());
+}
+
 bool Theme::has_font_nocheck(const StringName &p_name, const StringName &p_theme_type) const {
 	return (font_map.has(p_theme_type) && font_map[p_theme_type].has(p_name));
 }
@@ -614,6 +618,10 @@ int Theme::get_font_size(const StringName &p_name, const StringName &p_theme_typ
 
 bool Theme::has_font_size(const StringName &p_name, const StringName &p_theme_type) const {
 	return ((font_size_map.has(p_theme_type) && font_size_map[p_theme_type].has(p_name) && (font_size_map[p_theme_type][p_name] > 0)) || has_default_font_size());
+}
+
+bool Theme::has_font_size_no_default(const StringName &p_name, const StringName &p_theme_type) const {
+	return (font_size_map.has(p_theme_type) && font_size_map[p_theme_type].has(p_name) && (font_size_map[p_theme_type][p_name] > 0));
 }
 
 bool Theme::has_font_size_nocheck(const StringName &p_name, const StringName &p_theme_type) const {
@@ -923,9 +931,17 @@ bool Theme::has_theme_item(DataType p_data_type, const StringName &p_name, const
 		case DATA_TYPE_CONSTANT:
 			return has_constant(p_name, p_theme_type);
 		case DATA_TYPE_FONT:
-			return has_font(p_name, p_theme_type);
+			if (!variation_map.has(p_theme_type)) {
+				return has_font(p_name, p_theme_type);
+			} else {
+				return has_font_no_default(p_name, p_theme_type);
+			}
 		case DATA_TYPE_FONT_SIZE:
-			return has_font_size(p_name, p_theme_type);
+			if (!variation_map.has(p_theme_type)) {
+				return has_font_size(p_name, p_theme_type);
+			} else {
+				return has_font_size_no_default(p_name, p_theme_type);
+			}
 		case DATA_TYPE_ICON:
 			return has_icon(p_name, p_theme_type);
 		case DATA_TYPE_STYLEBOX:
@@ -1112,8 +1128,8 @@ void Theme::get_theme_item_type_list(DataType p_data_type, List<StringName> *p_l
 void Theme::set_type_variation(const StringName &p_theme_type, const StringName &p_base_type) {
 	ERR_FAIL_COND_MSG(!is_valid_type_name(p_theme_type), vformat("Invalid type name: '%s'", p_theme_type));
 	ERR_FAIL_COND_MSG(!is_valid_type_name(p_base_type), vformat("Invalid type name: '%s'", p_base_type));
-	ERR_FAIL_COND_MSG(p_theme_type == StringName(), "An empty theme type cannot be marked as a variation of another type.");
-	ERR_FAIL_COND_MSG(ClassDB::class_exists(p_theme_type), "A type associated with a built-in class cannot be marked as a variation of another type.");
+	ERR_FAIL_COND_MSG(p_theme_type == StringName(), vformat("An empty theme type cannot be marked as a variation of another type (\"%s\").", p_base_type));
+	ERR_FAIL_COND_MSG(ClassDB::class_exists(p_theme_type), vformat("A type associated with a built-in class cannot be marked as a variation of another type (variation: \"%s\", base: \"%s\").", p_theme_type, p_base_type));
 	ERR_FAIL_COND_MSG(p_base_type == StringName(), "An empty theme type cannot be the base type of a variation. Use clear_type_variation() instead if you want to unmark '" + String(p_theme_type) + "' as a variation.");
 
 	if (variation_map.has(p_theme_type)) {

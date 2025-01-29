@@ -491,6 +491,7 @@ public:
 	void remove_custom_data_layer(int p_index);
 	int get_custom_data_layer_by_name(String p_value) const;
 	void set_custom_data_layer_name(int p_layer_id, String p_value);
+	bool has_custom_data_layer_by_name(const String &p_value) const;
 	String get_custom_data_layer_name(int p_layer_id) const;
 	void set_custom_data_layer_type(int p_layer_id, Variant::Type p_value);
 	Variant::Type get_custom_data_layer_type(int p_layer_id) const;
@@ -999,6 +1000,7 @@ public:
 	// Custom data.
 	void set_custom_data(String p_layer_name, Variant p_value);
 	Variant get_custom_data(String p_layer_name) const;
+	bool has_custom_data(const String &p_layer_name) const;
 	void set_custom_data_by_layer_id(int p_layer_id, Variant p_value);
 	Variant get_custom_data_by_layer_id(int p_layer_id) const;
 

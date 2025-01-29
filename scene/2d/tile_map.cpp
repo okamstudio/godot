@@ -32,6 +32,8 @@
 #include "tile_map.compat.inc"
 
 #include "core/io/marshalls.h"
+#include "scene/resources/2d/navigation_mesh_source_geometry_data_2d.h"
+#include "servers/navigation_server_2d.h"
 
 #define TILEMAP_CALL_FOR_LAYER(layer, function, ...) \
 	if (layer < 0) {                                 \
@@ -46,6 +48,9 @@
 	};                                                            \
 	ERR_FAIL_INDEX_V(layer, (int)layers.size(), err_value);       \
 	return layers[layer]->function(__VA_ARGS__);
+
+Callable TileMap::_navmesh_source_geometry_parsing_callback;
+RID TileMap::_navmesh_source_geometry_parser;
 
 void TileMap::_tile_set_changed() {
 	update_configuration_warnings();
@@ -1020,6 +1025,34 @@ TileMap::TileMap() {
 	}
 
 	property_helper.setup_for_instance(base_property_helper, this);
+}
+
+void TileMap::navmesh_parse_init() {
+	ERR_FAIL_NULL(NavigationServer2D::get_singleton());
+	if (!_navmesh_source_geometry_parser.is_valid()) {
+		_navmesh_source_geometry_parsing_callback = callable_mp_static(&TileMap::navmesh_parse_source_geometry);
+		_navmesh_source_geometry_parser = NavigationServer2D::get_singleton()->source_geometry_parser_create();
+		NavigationServer2D::get_singleton()->source_geometry_parser_set_callback(_navmesh_source_geometry_parser, _navmesh_source_geometry_parsing_callback);
+	}
+}
+
+void TileMap::navmesh_parse_source_geometry(const Ref<NavigationPolygon> &p_navigation_mesh, Ref<NavigationMeshSourceGeometryData2D> p_source_geometry_data, Node *p_node) {
+	TileMap *nb_tilemap = Object::cast_to<TileMap>(p_node);
+
+	if (nb_tilemap == nullptr) {
+		return;
+	}
+
+	// Special case for TileMap, so that internal layer get parsed even if p_recurse_children is false.
+	bool recurse_children = p_navigation_mesh->get_source_geometry_mode() != NavigationPolygon::SOURCE_GEOMETRY_GROUPS_EXPLICIT;
+	if (!recurse_children) {
+		for (int i = 0; i < p_node->get_child_count(); i++) {
+			TileMapLayer *tile_map_layer = Object::cast_to<TileMapLayer>(p_node->get_child(i));
+			if (tile_map_layer && tile_map_layer->get_index_in_tile_map() >= 0) {
+				tile_map_layer->navmesh_parse_source_geometry(p_navigation_mesh, p_source_geometry_data, tile_map_layer);
+			}
+		}
+	}
 }
 
 #undef TILEMAP_CALL_FOR_LAYER

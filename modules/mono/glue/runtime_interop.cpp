@@ -559,6 +559,18 @@ godot_color godotsharp_color_from_ok_hsl(float p_h, float p_s, float p_l, float 
 	return ret;
 }
 
+float godotsharp_color_get_ok_hsl_h(const Color *p_self) {
+	return p_self->get_ok_hsl_h();
+}
+
+float godotsharp_color_get_ok_hsl_s(const Color *p_self) {
+	return p_self->get_ok_hsl_s();
+}
+
+float godotsharp_color_get_ok_hsl_l(const Color *p_self) {
+	return p_self->get_ok_hsl_l();
+}
+
 // GDNative functions
 
 // gdnative.h
@@ -1551,6 +1563,9 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_callable_call,
 	(void *)godotsharp_callable_call_deferred,
 	(void *)godotsharp_color_from_ok_hsl,
+	(void *)godotsharp_color_get_ok_hsl_h,
+	(void *)godotsharp_color_get_ok_hsl_s,
+	(void *)godotsharp_color_get_ok_hsl_l,
 	(void *)godotsharp_method_bind_ptrcall,
 	(void *)godotsharp_method_bind_call,
 	(void *)godotsharp_variant_new_string_name,

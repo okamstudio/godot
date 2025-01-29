@@ -105,6 +105,7 @@ public:
 	virtual Vector2 region_get_connection_pathway_end(RID p_region, int p_connection_id) const override;
 	virtual Vector2 region_get_closest_point(RID p_region, const Vector2 &p_point) const override;
 	virtual Vector2 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const override;
+	virtual Rect2 region_get_bounds(RID p_region) const override;
 
 	virtual RID link_create() override;
 

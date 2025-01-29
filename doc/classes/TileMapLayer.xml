@@ -9,6 +9,14 @@
 		To force an update earlier on, call [method update_internals].
 	</description>
 	<tutorials>
+		<link title="Using Tilemaps">$DOCS_URL/tutorials/2d/using_tilemaps.html</link>
+		<link title="2D Platformer Demo">https://godotengine.org/asset-library/asset/2727</link>
+		<link title="2D Isometric Demo">https://godotengine.org/asset-library/asset/2718</link>
+		<link title="2D Hexagonal Demo">https://godotengine.org/asset-library/asset/2717</link>
+		<link title="2D Grid-based Navigation with AStarGrid2D Demo">https://godotengine.org/asset-library/asset/2723</link>
+		<link title="2D Role Playing Game (RPG) Demo">https://godotengine.org/asset-library/asset/2729</link>
+		<link title="2D Kinematic Character Demo">https://godotengine.org/asset-library/asset/2719</link>
+		<link title="2D Dynamic TileMap Layers Demo">https://godotengine.org/asset-library/asset/2713</link>
 	</tutorials>
 	<methods>
 		<method name="_tile_data_runtime_update" qualifiers="virtual">

@@ -31,17 +31,23 @@
 #ifndef FSR_RD_H
 #define FSR_RD_H
 
+#include "spatial_upscaler.h"
+
 #include "../storage_rd/render_scene_buffers_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/fsr_upscale.glsl.gen.h"
 
 namespace RendererRD {
 
-class FSR {
+class FSR : public SpatialUpscaler {
+	String name = "FSR 1.0 Upscale";
+
 public:
 	FSR();
 	~FSR();
 
-	void fsr_upscale(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_source_rd_texture, RID p_destination_texture);
+	virtual String get_label() const final { return name; }
+	virtual void ensure_context(Ref<RenderSceneBuffersRD> p_render_buffers) final {}
+	virtual void process(Ref<RenderSceneBuffersRD> p_render_buffers, RID p_source_rd_texture, RID p_destination_texture) final;
 
 private:
 	enum FSRUpscalePass {

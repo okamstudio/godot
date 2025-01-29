@@ -128,6 +128,18 @@ Result Scene::push(SceneEffect effect, ...) noexcept
             re = RenderEffectDropShadow::gen(args);
             break;
         }
+        case SceneEffect::Fill: {
+            re = RenderEffectFill::gen(args);
+            break;
+        }
+        case SceneEffect::Tint: {
+            re = RenderEffectTint::gen(args);
+            break;
+        }
+        case SceneEffect::Tritone: {
+            re = RenderEffectTritone::gen(args);
+            break;
+        }
         default: break;
     }
 

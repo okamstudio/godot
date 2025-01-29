@@ -217,6 +217,13 @@ Validate extension JSON: Error: Field 'classes/Control/properties/offset_top': t
 Property type changed to float to match the actual internal API and documentation.
 
 
+GH-99455
+--------
+Validate extension JSON: Error: Field 'classes/RenderingServer/methods/multimesh_allocate_data/arguments': size changed value in new API, from 5 to 6.
+
+Optional argument added to allow setting indirect draw mode on Multimesh. Compatibility method registered.
+
+
 GH-100129
 ---------
 Validate extension JSON: Error: Field 'classes/NavigationServer2D/methods/query_path': is_const changed value in new API, from true to false.
@@ -268,3 +275,37 @@ GH-98441
 Validate extension JSON: Error: Field 'global_enums/KeyModifierMask/values/KEY_MODIFIER_MASK': value changed value in new API, from 5.32677e+08 to 2130706432.
 
 Key modifier mask value corrected. API change documented for compatibility.
+
+
+GH-92089
+--------
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/CPUParticles2D/methods/restart': arguments
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/CPUParticles3D/methods/restart': arguments
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/GPUParticles2D/methods/restart': arguments
+Validate extension JSON: JSON file: Field was added in a way that breaks compatibility 'classes/GPUParticles3D/methods/restart': arguments
+
+Added an optional keep_seed parameter to restart particles, to avoid modifying the seed to do particle seeking.
+
+
+GH-101482
+---------
+Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/set_table_column_expand/arguments': size changed value in new API, from 3 to 4.
+
+Added optional "shrink" argument. Compatibility method registered.
+
+
+GH-100062
+--------
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/index_buffer_create/arguments': size changed value in new API, from 4 to 5.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/uniform_buffer_create/arguments': size changed value in new API, from 2 to 3.
+Validate extension JSON: Error: Field 'classes/RenderingDevice/methods/vertex_buffer_create/arguments': size changed value in new API, from 3 to 4.
+
+Optional argument added. Compatibility methods registered.
+
+
+GH-101531
+---------
+Validate extension JSON: API was removed: classes/EditorSceneFormatImporter/methods/_get_import_flags
+
+This virtual method, and the internal public `get_import_flags`, were never used by the engine, since it was open sourced.
+So we're removing it despite the compat breakage as there's no way for users to rely on this affecting engine behavior.

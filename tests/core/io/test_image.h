@@ -35,9 +35,10 @@
 #include "core/os/os.h"
 
 #include "tests/test_utils.h"
-#include "thirdparty/doctest/doctest.h"
 
 #include "modules/modules_enabled.gen.h"
+
+#include "thirdparty/doctest/doctest.h"
 
 namespace TestImage {
 

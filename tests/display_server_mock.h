@@ -101,7 +101,7 @@ public:
 	String get_name() const override { return "mock"; }
 
 	// You can simulate DisplayServer-events by calling this function.
-	// The events will be deliverd to Godot's Input-system.
+	// The events will be delivered to Godot's Input-system.
 	// Mouse-events (Button & Motion) will additionally update the DisplayServer's mouse position.
 	// For Mouse motion events, the `relative`-property is set based on the distance to the previous mouse position.
 	void simulate_event(Ref<InputEvent> p_event) {

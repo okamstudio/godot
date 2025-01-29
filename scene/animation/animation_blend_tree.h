@@ -86,7 +86,7 @@ public:
 	void set_timeline_length(double p_length);
 	double get_timeline_length() const;
 
-	void set_stretch_time_scale(bool p_strech_time_scale);
+	void set_stretch_time_scale(bool p_stretch_time_scale);
 	bool is_stretching_time_scale() const;
 
 	void set_start_offset(double p_offset);

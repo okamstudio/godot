@@ -2,21 +2,14 @@
 end_of_line = crlf
 charset = utf-8-bom
 
-[*.sln]
-indent_style = tab
-
 [*.{csproj,props,targets,nuspec,resx}]
 indent_style = space
 indent_size = 2
 
 [*.cs]
 indent_style = space
-indent_size = 4
-insert_final_newline = true
-trim_trailing_whitespace = true
-max_line_length = 120
-csharp_indent_case_contents_when_block = false
 
+csharp_indent_case_contents_when_block = false
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true

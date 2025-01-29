@@ -316,7 +316,7 @@ void AnimationNodeBlendSpace2D::_set_triangles(const Vector<int> &p_triangles) {
 
 Vector<int> AnimationNodeBlendSpace2D::_get_triangles() const {
 	Vector<int> t;
-	if (auto_triangles && trianges_dirty) {
+	if (auto_triangles && triangles_dirty) {
 		return t;
 	}
 
@@ -330,20 +330,20 @@ Vector<int> AnimationNodeBlendSpace2D::_get_triangles() const {
 }
 
 void AnimationNodeBlendSpace2D::_queue_auto_triangles() {
-	if (!auto_triangles || trianges_dirty) {
+	if (!auto_triangles || triangles_dirty) {
 		return;
 	}
 
-	trianges_dirty = true;
+	triangles_dirty = true;
 	callable_mp(this, &AnimationNodeBlendSpace2D::_update_triangles).call_deferred();
 }
 
 void AnimationNodeBlendSpace2D::_update_triangles() {
-	if (!auto_triangles || !trianges_dirty) {
+	if (!auto_triangles || !triangles_dirty) {
 		return;
 	}
 
-	trianges_dirty = false;
+	triangles_dirty = false;
 	triangles.clear();
 	if (blend_points_used < 3) {
 		emit_signal(SNAME("triangles_updated"));

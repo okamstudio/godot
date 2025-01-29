@@ -321,13 +321,33 @@ Ref<Resource> ResourceLoader::_load(const String &p_path, const String &p_origin
 		print_verbose(vformat("Failed loading resource: %s", p_path));
 	}
 
+#ifdef TOOLS_ENABLED
+	if (Engine::get_singleton()->is_editor_hint()) {
+		if (ResourceFormatImporter::get_singleton()->get_importer_by_extension(p_path.get_extension()).is_valid()) {
+			// The format is known to the editor, but the file hasn't been imported
+			// (otherwise, ResourceFormatImporter would have been found as a suitable loader).
+			found = true;
+			if (r_error) {
+				*r_error = ERR_FILE_NOT_FOUND;
+			}
+		}
+	}
+#endif
 	ERR_FAIL_COND_V_MSG(found, Ref<Resource>(),
 			vformat("Failed loading resource: %s. Make sure resources have been imported by opening the project in the editor at least once.", p_path));
 
 #ifdef TOOLS_ENABLED
-	ERR_FAIL_COND_V_MSG(!FileSystem::get_singleton()->file_exists(p_path), Ref<Resource>(), vformat("Resource file not found: %s (expected type: %s)", p_path, p_type_hint));
+	if (!FileSystem::get_singleton()->file_exists(p_path)) {
+		if (r_error) {
+			*r_error = ERR_FILE_NOT_FOUND;
+		}
+		ERR_FAIL_V_MSG(Ref<Resource>(), vformat("Resource file not found: %s (expected type: %s)", p_path, p_type_hint));
+	}
 #endif
 
+	if (r_error) {
+		*r_error = ERR_FILE_UNRECOGNIZED;
+	}
 	ERR_FAIL_V_MSG(Ref<Resource>(), vformat("No loader found for resource: %s (expected type: %s)", p_path, p_type_hint));
 }
 
@@ -475,7 +495,7 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 	curr_load_task = curr_load_task_backup;
 }
 
-static String _validate_local_path(const String &p_path) {
+String ResourceLoader::_validate_local_path(const String &p_path) {
 	ResourceUID::ID uid = ResourceUID::get_singleton()->text_to_id(p_path);
 	if (uid != ResourceUID::INVALID_ID) {
 		return ResourceUID::get_singleton()->get_id_path(uid);
@@ -1226,6 +1246,7 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 	} else {
 		// Try file remap.
 		// Usually, there's no remap file and FileAccess::exists() is faster than FileAccess::open().
+		new_path = ResourceUID::ensure_path(new_path);
 		if (FileAccess::exists(new_path + ".remap")) {
 			Error err;
 			Ref<FileAccess> f = FileAccess::open(new_path + ".remap", FileAccess::READ, &err);

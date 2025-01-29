@@ -124,7 +124,7 @@ void SplitContainerDragger::_notification(int p_what) {
 	}
 }
 
-Control *SplitContainer::_get_sortable_child(int p_idx, SortableVisbilityMode p_visibility_mode) const {
+Control *SplitContainer::_get_sortable_child(int p_idx, SortableVisibilityMode p_visibility_mode) const {
 	int idx = 0;
 	for (int i = 0; i < get_child_count(false); i++) {
 		Control *c = as_sortable_control(get_child(i, false), p_visibility_mode);
@@ -257,7 +257,7 @@ Size2 SplitContainer::get_minimum_size() const {
 	int sep = _get_separation();
 
 	for (int i = 0; i < 2; i++) {
-		Control *child = _get_sortable_child(i, SortableVisbilityMode::VISIBLE);
+		Control *child = _get_sortable_child(i, SortableVisibilityMode::VISIBLE);
 		if (!child) {
 			break;
 		}

@@ -132,6 +132,86 @@ public:
 		ACTION_ON_STOP_CLOSE_BUTTOM_PANEL,
 	};
 
+	enum MenuOptions {
+		// Scene menu.
+		FILE_NEW_SCENE,
+		FILE_NEW_INHERITED_SCENE,
+		FILE_OPEN_SCENE,
+		FILE_OPEN_PREV,
+		FILE_OPEN_RECENT,
+		FILE_SAVE_SCENE,
+		FILE_SAVE_AS_SCENE,
+		FILE_SAVE_ALL_SCENES,
+		FILE_QUICK_OPEN,
+		FILE_QUICK_OPEN_SCENE,
+		FILE_QUICK_OPEN_SCRIPT,
+		FILE_UNDO,
+		FILE_REDO,
+		FILE_RELOAD_SAVED_SCENE,
+		FILE_CLOSE,
+		FILE_QUIT,
+
+		FILE_EXPORT_MESH_LIBRARY,
+
+		// Project menu.
+		PROJECT_OPEN_SETTINGS,
+		PROJECT_VERSION_CONTROL,
+		PROJECT_EXPORT,
+		PROJECT_PACK_AS_ZIP,
+		PROJECT_INSTALL_ANDROID_SOURCE,
+		PROJECT_OPEN_USER_DATA_FOLDER,
+		PROJECT_RELOAD_CURRENT_PROJECT,
+		PROJECT_QUIT_TO_PROJECT_MANAGER,
+
+		TOOLS_ORPHAN_RESOURCES,
+		TOOLS_BUILD_PROFILE_MANAGER,
+		TOOLS_SURFACE_UPGRADE,
+		TOOLS_CUSTOM,
+
+		VCS_METADATA,
+		VCS_SETTINGS,
+
+		// Editor menu.
+		EDITOR_OPEN_SETTINGS,
+		EDITOR_COMMAND_PALETTE,
+		EDITOR_TAKE_SCREENSHOT,
+		EDITOR_TOGGLE_FULLSCREEN,
+		EDITOR_OPEN_DATA_FOLDER,
+		EDITOR_OPEN_CONFIG_FOLDER,
+		EDITOR_MANAGE_FEATURE_PROFILES,
+		EDITOR_MANAGE_EXPORT_TEMPLATES,
+		EDITOR_CONFIGURE_FBX_IMPORTER,
+
+		LAYOUT_SAVE,
+		LAYOUT_DELETE,
+		LAYOUT_DEFAULT,
+
+		// Help menu.
+		HELP_SEARCH,
+		HELP_DOCS,
+		HELP_FORUM,
+		HELP_COMMUNITY,
+		HELP_COPY_SYSTEM_INFO,
+		HELP_REPORT_A_BUG,
+		HELP_SUGGEST_A_FEATURE,
+		HELP_SEND_DOCS_FEEDBACK,
+		HELP_ABOUT,
+		HELP_SUPPORT_GODOT_DEVELOPMENT,
+
+		// Update spinner menu.
+		SPINNER_UPDATE_CONTINUOUSLY,
+		SPINNER_UPDATE_WHEN_CHANGED,
+		SPINNER_UPDATE_SPINNER_HIDE,
+
+		// Non-menu options.
+		SCENE_TAB_CLOSE,
+		FILE_SAVE_AND_RUN,
+		FILE_SAVE_AND_RUN_MAIN_SCENE,
+		RESOURCE_SAVE,
+		RESOURCE_SAVE_AS,
+		SETTINGS_PICK_MAIN_SCENE,
+	};
+
 	struct ExecuteThreadArgs {
 		String path;
 		List<String> args;
@@ -146,98 +226,9 @@ private:
 	friend class EditorSceneTabs;
 	friend class SurfaceUpgradeTool;
 
-	enum MenuOptions {
-		FILE_NEW_SCENE,
-		FILE_NEW_INHERITED_SCENE,
-		FILE_OPEN_SCENE,
-		FILE_SAVE_SCENE,
-		FILE_SAVE_SCENE_SILENTLY,
-		FILE_SAVE_AS_SCENE,
-		FILE_SAVE_ALL_SCENES,
-		FILE_SAVE_AND_RUN,
-		FILE_SAVE_AND_RUN_MAIN_SCENE,
-		FILE_RUN_SCENE,
-		FILE_SHOW_IN_FILESYSTEM,
-		FILE_EXPORT_PROJECT,
-		FILE_EXPORT_MESH_LIBRARY,
-		FILE_INSTALL_ANDROID_SOURCE,
-		FILE_EXPLORE_ANDROID_BUILD_TEMPLATES,
-		FILE_SAVE_OPTIMIZED,
-		FILE_OPEN_RECENT,
-		FILE_OPEN_OLD_SCENE,
-		FILE_QUICK_OPEN,
-		FILE_QUICK_OPEN_SCENE,
-		FILE_QUICK_OPEN_SCRIPT,
-		FILE_OPEN_PREV,
-		FILE_CLOSE,
-		FILE_CLOSE_OTHERS,
-		FILE_CLOSE_RIGHT,
-		FILE_CLOSE_ALL,
-		FILE_QUIT,
-		FILE_EXTERNAL_OPEN_SCENE,
-		EDIT_UNDO,
-		EDIT_REDO,
-		EDIT_RELOAD_SAVED_SCENE,
-		TOOLS_ORPHAN_RESOURCES,
-		TOOLS_BUILD_PROFILE_MANAGER,
-		TOOLS_SURFACE_UPGRADE,
-		TOOLS_CUSTOM,
-		RESOURCE_SAVE,
-		RESOURCE_SAVE_AS,
-
-		RUN_SETTINGS,
-		RUN_USER_DATA_FOLDER,
-		RELOAD_CURRENT_PROJECT,
-		RUN_PROJECT_MANAGER,
-		VCS_MENU,
-		RUN_VCS_METADATA,
-		RUN_VCS_SETTINGS,
-		SETTINGS_UPDATE_CONTINUOUSLY,
-		SETTINGS_UPDATE_WHEN_CHANGED,
-		SETTINGS_UPDATE_ALWAYS,
-		SETTINGS_UPDATE_CHANGES,
-		SETTINGS_UPDATE_SPINNER_HIDE,
-		SETTINGS_PREFERENCES,
-		SETTINGS_LAYOUT_SAVE,
-		SETTINGS_LAYOUT_DELETE,
-		SETTINGS_LAYOUT_DEFAULT,
-		SETTINGS_EDITOR_DATA_FOLDER,
-		SETTINGS_EDITOR_CONFIG_FOLDER,
-		SETTINGS_MANAGE_EXPORT_TEMPLATES,
-		SETTINGS_MANAGE_FBX_IMPORTER,
-		SETTINGS_MANAGE_FEATURE_PROFILES,
-		SETTINGS_INSTALL_ANDROID_BUILD_TEMPLATE,
-		SETTINGS_PICK_MAIN_SCENE,
-		SETTINGS_TOGGLE_FULLSCREEN,
-		SETTINGS_HELP,
-
-		SCENE_TAB_CLOSE,
-
-		EDITOR_SCREENSHOT,
-		EDITOR_OPEN_SCREENSHOT,
-
-		HELP_SEARCH,
-		HELP_COMMAND_PALETTE,
-		HELP_DOCS,
-		HELP_FORUM,
-		HELP_REPORT_A_BUG,
-		HELP_COPY_SYSTEM_INFO,
-		HELP_SUGGEST_A_FEATURE,
-		HELP_SEND_DOCS_FEEDBACK,
-		HELP_COMMUNITY,
-		HELP_ABOUT,
-		HELP_SUPPORT_GODOT_DEVELOPMENT,
-
-		SET_RENDERER_NAME_SAVE_AND_RESTART,
-
-		IMPORT_PLUGIN_BASE = 100,
-
-		TOOL_MENU_BASE = 1000
-	};
-
 	enum {
 		MAX_INIT_CALLBACKS = 128,
-		MAX_BUILD_CALLBACKS = 128
+		MAX_BUILD_CALLBACKS = 128,
 	};
 
 	struct ExportDefer {
@@ -448,9 +439,6 @@ private:
 	uint64_t update_spinner_step_frame = 0;
 	int update_spinner_step = 0;
 
-	String _tmp_import_path;
-	String external_file;
-	String open_navigate;
 	String saving_scene;
 	EditorProgress *save_scene_progress = nullptr;
 
@@ -527,6 +515,8 @@ private:
 
 	void _android_build_source_selected(const String &p_file);
 	void _android_export_preset_selected(int p_index);
+	void _android_install_build_template();
+	void _android_explore_build_templates();
 
 	void _request_screenshot();
 	void _screenshot(bool p_use_utc = false);
@@ -548,6 +538,7 @@ private:
 	void _resources_reimporting(const Vector<String> &p_resources);
 	void _resources_reimported(const Vector<String> &p_resources);
 	void _sources_changed(bool p_exist);
+	void _remove_lock_file();
 
 	void _node_renamed();
 	void _save_editor_states(const String &p_file, int p_idx = -1);
@@ -563,6 +554,7 @@ private:
 	void _update_undo_redo_allowed();
 
 	int _save_external_resources(bool p_also_save_external_data = false);
+	void _save_scene_silently();
 
 	void _set_current_scene(int p_idx);
 	void _set_current_scene_nocheck(int p_idx);
@@ -596,9 +588,11 @@ private:
 	void _renderer_selected(int);
 	void _update_renderer_color();
 	void _add_renderer_entry(const String &p_renderer_name, bool p_mark_overridden);
+	void _set_renderer_name_save_and_restart();
 
 	void _exit_editor(int p_exit_code);
 
+	virtual void input(const Ref<InputEvent> &p_event) override;
 	virtual void shortcut_input(const Ref<InputEvent> &p_event) override;
 
 	bool has_main_screen() const { return true; }
@@ -752,7 +746,6 @@ public:
 	void save_resource_in_path(const Ref<Resource> &p_resource, const String &p_path);
 	void save_resource(const Ref<Resource> &p_resource);
 	void save_resource_as(const Ref<Resource> &p_resource, const String &p_at_path = String());
-	void ensure_uid_file(const String &p_new_resource_path);
 
 	void show_about() { _menu_option_confirm(HELP_ABOUT, false); }
 
@@ -831,8 +824,8 @@ public:
 	};
 
 	struct SceneEditorDataEntry {
-		bool is_editable;
-		bool is_display_folded;
+		bool is_editable = false;
+		bool is_display_folded = false;
 	};
 
 	HashMap<int, SceneModificationsEntry> scenes_modification_table;

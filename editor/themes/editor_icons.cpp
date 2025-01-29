@@ -36,28 +36,20 @@
 #include "editor/themes/editor_scale.h"
 #include "scene/resources/image_texture.h"
 
-#include "modules/modules_enabled.gen.h" // For svg.
-#ifdef MODULE_SVG_ENABLED
 #include "modules/svg/image_loader_svg.h"
-#endif
 
 void editor_configure_icons(bool p_dark_theme) {
-#ifdef MODULE_SVG_ENABLED
 	if (p_dark_theme) {
 		ImageLoaderSVG::set_forced_color_map(HashMap<Color, Color>());
 	} else {
 		ImageLoaderSVG::set_forced_color_map(EditorColorMap::get_color_conversion_map());
 	}
-#else
-	WARN_PRINT("SVG support disabled, editor icons won't be rendered.");
-#endif
 }
 
 // See also `generate_icon()` in `scene/theme/default_theme.cpp`.
 Ref<ImageTexture> editor_generate_icon(int p_index, float p_scale, float p_saturation, const HashMap<Color, Color> &p_convert_colors = HashMap<Color, Color>()) {
 	Ref<Image> img = memnew(Image);
 
-#ifdef MODULE_SVG_ENABLED
 	// Upsample icon generation only if the editor scale isn't an integer multiplier.
 	// Generating upsampled icons is slower, and the benefit is hardly visible
 	// with integer editor scales.
@@ -67,11 +59,6 @@ Ref<ImageTexture> editor_generate_icon(int p_index, float p_scale, float p_satur
 	if (p_saturation != 1.0) {
 		img->adjust_bcs(1.0, 1.0, p_saturation);
 	}
-#else
-	// If the SVG module is disabled, we can't really display the UI well, but at least we won't crash.
-	// 16 pixels is used as it's the most common base size for Godot icons.
-	img = Image::create_empty(16 * p_scale, 16 * p_scale, false, Image::FORMAT_RGBA8);
-#endif
 
 	return ImageTexture::create_from_image(img);
 }

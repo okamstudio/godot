@@ -196,7 +196,7 @@ Error RegEx::compile(const String &p_pattern, bool p_show_error) {
 		if (p_show_error) {
 			PCRE2_UCHAR32 buf[256];
 			pcre2_get_error_message_32(err, buf, 256);
-			String message = String::num(offset) + ": " + String((const char32_t *)buf);
+			String message = String::num_int64(offset) + ": " + String((const char32_t *)buf);
 			ERR_PRINT(message.utf8());
 		}
 		return FAILED;

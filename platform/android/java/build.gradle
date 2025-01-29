@@ -25,7 +25,7 @@ allprojects {
 ext {
     supportedAbis = ["arm32", "arm64", "x86_32", "x86_64"]
     supportedFlavors = ["editor", "template"]
-    supportedAndroidDistributions = ["android", "horizonos"]
+    supportedAndroidDistributions = ["android", "horizonos", "picoos"]
     supportedFlavorsBuildTypes = [
         "editor": ["dev", "debug", "release"],
         "template": ["dev", "debug", "release"]
@@ -96,7 +96,7 @@ def templateExcludedBuildTask() {
  * Generates the build tasks for the given flavor
  * @param flavor Must be one of the supported flavors ('template' / 'editor')
  * @param edition Must be one of the supported editions ('standard' / 'mono')
- * @param androidDistro Must be one of the supported Android distributions ('android' / 'horizonos')
+ * @param androidDistro Must be one of the supported Android distributions ('android' / 'horizonos' / 'picoos')
  */
 def generateBuildTasks(String flavor = "template", String edition = "standard", String androidDistro = "android") {
     if (!supportedFlavors.contains(flavor)) {
@@ -235,6 +235,18 @@ task generateGodotEditor {
 task generateGodotHorizonOSEditor {
     gradle.startParameter.excludedTaskNames += templateExcludedBuildTask()
     dependsOn = generateBuildTasks("editor", "standard", "horizonos")
+}
+
+/**
+ * Generate the Godot Editor binaries for PicoOS devices.
+ *
+ * Note: Unless the 'generateNativeLibs` argument is specified, the Godot 'tools' shared libraries
+ * must have been generated (via scons) prior to running this gradle task.
+ * The task will only build the binaries for which the shared libraries is available.
+ */
+task generateGodotPicoOSEditor {
+    gradle.startParameter.excludedTaskNames += templateExcludedBuildTask()
+    dependsOn = generateBuildTasks("editor", "standard", "picoos")
 }
 
 /**

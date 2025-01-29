@@ -35,29 +35,15 @@
 #include "method_bind.h"
 
 uint32_t MethodBind::get_hash() const {
-	uint32_t hash = hash_murmur3_one_32(has_return() ? 1 : 0);
-	hash = hash_murmur3_one_32(get_argument_count(), hash);
-
-	for (int i = (has_return() ? -1 : 0); i < get_argument_count(); i++) {
-		PropertyInfo pi = i == -1 ? get_return_info() : get_argument_info(i);
-		hash = hash_murmur3_one_32(get_argument_type(i), hash);
-		if (pi.class_name != StringName()) {
-			hash = hash_murmur3_one_32(pi.class_name.operator String().hash(), hash);
-		}
-	}
-
-	hash = hash_murmur3_one_32(get_default_argument_count(), hash);
+	MethodInfo mi;
+	mi.return_val = get_return_info();
+	mi.flags = get_hint_flags();
 	for (int i = 0; i < get_argument_count(); i++) {
-		if (has_default_argument(i)) {
-			Variant v = get_default_argument(i);
-			hash = hash_murmur3_one_32(v.hash(), hash);
-		}
+		mi.arguments.push_back(get_argument_info(i));
 	}
+	mi.default_arguments = default_arguments;
 
-	hash = hash_murmur3_one_32(is_const(), hash);
-	hash = hash_murmur3_one_32(is_vararg(), hash);
-
-	return hash_fmix32(hash);
+	return mi.get_compatibility_hash();
 }
 
 PropertyInfo MethodBind::get_argument_info(int p_argument) const {

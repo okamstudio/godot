@@ -109,7 +109,7 @@ void LookAtModifier3D::set_forward_axis(BoneAxis p_axis) {
 	update_configuration_warnings();
 }
 
-LookAtModifier3D::BoneAxis LookAtModifier3D::get_forward_axis() const {
+SkeletonModifier3D::BoneAxis LookAtModifier3D::get_forward_axis() const {
 	return forward_axis;
 }
 
@@ -482,13 +482,6 @@ void LookAtModifier3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "secondary_negative_limit_angle", PROPERTY_HINT_RANGE, "0,180,0.01,radians_as_degrees"), "set_secondary_negative_limit_angle", "get_secondary_negative_limit_angle");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "secondary_negative_damp_threshold", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_secondary_negative_damp_threshold", "get_secondary_negative_damp_threshold");
 
-	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_X);
-	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_X);
-	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_Y);
-	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_Y);
-	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_Z);
-	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_Z);
-
 	BIND_ENUM_CONSTANT(ORIGIN_FROM_SELF);
 	BIND_ENUM_CONSTANT(ORIGIN_FROM_SPECIFIC_BONE);
 	BIND_ENUM_CONSTANT(ORIGIN_FROM_EXTERNAL_NODE);
@@ -508,9 +501,11 @@ void LookAtModifier3D::_process_modification() {
 	Transform3D bone_rest_space;
 	int parent_bone = skeleton->get_bone_parent(bone);
 	if (parent_bone < 0) {
-		bone_rest_space = skeleton->get_global_transform() * skeleton->get_bone_rest(bone);
+		bone_rest_space = skeleton->get_global_transform();
+		bone_rest_space.origin += skeleton->get_bone_rest(bone).origin;
 	} else {
-		bone_rest_space = skeleton->get_global_transform() * skeleton->get_bone_global_pose(parent_bone) * skeleton->get_bone_rest(bone);
+		bone_rest_space = skeleton->get_global_transform() * skeleton->get_bone_global_pose(parent_bone);
+		bone_rest_space.origin += skeleton->get_bone_rest(bone).origin;
 	}
 
 	// Calculate forward_vector and destination.
@@ -610,7 +605,7 @@ bool LookAtModifier3D::is_intersecting_axis(const Vector3 &p_prev, const Vector3
 	return signbit(p_prev[p_flipping_axis]) != signbit(p_current[p_flipping_axis]);
 }
 
-Vector3 LookAtModifier3D::get_basis_vector_from_bone_axis(const Basis &p_basis, LookAtModifier3D::BoneAxis p_axis) const {
+Vector3 LookAtModifier3D::get_basis_vector_from_bone_axis(const Basis &p_basis, BoneAxis p_axis) {
 	Vector3 ret;
 	switch (p_axis) {
 		case BONE_AXIS_PLUS_X: {
@@ -635,67 +630,12 @@ Vector3 LookAtModifier3D::get_basis_vector_from_bone_axis(const Basis &p_basis, 
 	return ret;
 }
 
-Vector3 LookAtModifier3D::get_vector_from_bone_axis(const LookAtModifier3D::BoneAxis &p_axis) const {
-	Vector3 ret;
-	switch (p_axis) {
-		case BONE_AXIS_PLUS_X: {
-			ret = Vector3(1, 0, 0);
-		} break;
-		case BONE_AXIS_MINUS_X: {
-			ret = Vector3(-1, 0, 0);
-		} break;
-		case BONE_AXIS_PLUS_Y: {
-			ret = Vector3(0, 1, 0);
-		} break;
-		case BONE_AXIS_MINUS_Y: {
-			ret = Vector3(0, -1, 0);
-		} break;
-		case BONE_AXIS_PLUS_Z: {
-			ret = Vector3(0, 0, 1);
-		} break;
-		case BONE_AXIS_MINUS_Z: {
-			ret = Vector3(0, 0, -1);
-		} break;
-	}
-	return ret;
+Vector3::Axis LookAtModifier3D::get_secondary_rotation_axis(BoneAxis p_forward_axis, Vector3::Axis p_primary_rotation_axis) {
+	Vector3 secondary_plane = get_vector_from_bone_axis(p_forward_axis) + get_vector_from_axis(p_primary_rotation_axis);
+	return Math::is_zero_approx(secondary_plane.x) ? Vector3::AXIS_X : (Math::is_zero_approx(secondary_plane.y) ? Vector3::AXIS_Y : Vector3::AXIS_Z);
 }
 
-Vector3 LookAtModifier3D::get_vector_from_axis(const Vector3::Axis &p_axis) const {
-	Vector3 ret;
-	switch (p_axis) {
-		case Vector3::AXIS_X: {
-			ret = Vector3(1, 0, 0);
-		} break;
-		case Vector3::AXIS_Y: {
-			ret = Vector3(0, 1, 0);
-		} break;
-		case Vector3::AXIS_Z: {
-			ret = Vector3(0, 0, 1);
-		} break;
-	}
-	return ret;
-}
-
-Vector3::Axis LookAtModifier3D::get_axis_from_bone_axis(BoneAxis p_axis) const {
-	Vector3::Axis ret = Vector3::AXIS_X;
-	switch (p_axis) {
-		case BONE_AXIS_PLUS_X:
-		case BONE_AXIS_MINUS_X: {
-			ret = Vector3::AXIS_X;
-		} break;
-		case BONE_AXIS_PLUS_Y:
-		case BONE_AXIS_MINUS_Y: {
-			ret = Vector3::AXIS_Y;
-		} break;
-		case BONE_AXIS_PLUS_Z:
-		case BONE_AXIS_MINUS_Z: {
-			ret = Vector3::AXIS_Z;
-		} break;
-	}
-	return ret;
-}
-
-Vector2 LookAtModifier3D::get_projection_vector(const Vector3 &p_vector, Vector3::Axis p_axis) const {
+Vector2 LookAtModifier3D::get_projection_vector(const Vector3 &p_vector, Vector3::Axis p_axis) {
 	// NOTE: axis is swapped between 2D and 3D.
 	Vector2 ret;
 	switch (p_axis) {
@@ -789,8 +729,7 @@ Transform3D LookAtModifier3D::look_at_with_axes(const Transform3D &p_rest) {
 	}
 
 	// Needs for detecting flipping even if use_secondary_rotation is false.
-	Vector3 secondary_plane = get_vector_from_bone_axis(forward_axis) + get_vector_from_axis(primary_rotation_axis);
-	secondary_rotation_axis = Math::is_zero_approx(secondary_plane.x) ? Vector3::AXIS_X : (Math::is_zero_approx(secondary_plane.y) ? Vector3::AXIS_Y : Vector3::AXIS_Z);
+	secondary_rotation_axis = get_secondary_rotation_axis(forward_axis, primary_rotation_axis);
 
 	if (!use_secondary_rotation) {
 		return current_result;

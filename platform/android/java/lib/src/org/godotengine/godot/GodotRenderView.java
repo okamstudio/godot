@@ -68,7 +68,7 @@ public interface GodotRenderView {
 	 * @return true if pointer capture is supported.
 	 */
 	default boolean canCapturePointer() {
-		// Pointer capture is not supported on Horizon OS
-		return !DeviceUtils.isHorizonOSDevice() && getInputHandler().canCapturePointer();
+		// Pointer capture is not supported on native XR devices.
+		return !DeviceUtils.isNativeXRDevice(getView().getContext()) && getInputHandler().canCapturePointer();
 	}
 }

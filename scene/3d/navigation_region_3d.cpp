@@ -193,6 +193,8 @@ void NavigationRegion3D::set_navigation_mesh(const Ref<NavigationMesh> &p_naviga
 		navigation_mesh->connect_changed(callable_mp(this, &NavigationRegion3D::_navigation_mesh_changed));
 	}
 
+	_update_bounds();
+
 	NavigationServer3D::get_singleton()->region_set_navigation_mesh(region, p_navigation_mesh);
 
 #ifdef DEBUG_ENABLED
@@ -313,6 +315,8 @@ void NavigationRegion3D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("bake_navigation_mesh", "on_thread"), &NavigationRegion3D::bake_navigation_mesh, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("is_baking"), &NavigationRegion3D::is_baking);
+
+	ClassDB::bind_method(D_METHOD("get_bounds"), &NavigationRegion3D::get_bounds);
 
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "navigation_mesh", PROPERTY_HINT_RESOURCE_TYPE, "NavigationMesh"), "set_navigation_mesh", "get_navigation_mesh");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "is_enabled");
@@ -740,3 +744,26 @@ void NavigationRegion3D::_update_debug_edge_connections_mesh() {
 	}
 }
 #endif // DEBUG_ENABLED
+
+void NavigationRegion3D::_update_bounds() {
+	if (navigation_mesh.is_null()) {
+		bounds = AABB();
+		return;
+	}
+
+	const Vector<Vector3> &vertices = navigation_mesh->get_vertices();
+	if (vertices.is_empty()) {
+		bounds = AABB();
+		return;
+	}
+
+	const Transform3D gt = is_inside_tree() ? get_global_transform() : get_transform();
+
+	AABB new_bounds;
+	new_bounds.position = gt.xform(vertices[0]);
+
+	for (const Vector3 &vertex : vertices) {
+		new_bounds.expand_to(gt.xform(vertex));
+	}
+	bounds = new_bounds;
+}

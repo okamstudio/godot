@@ -31,6 +31,7 @@
 #include "theme_editor_plugin.h"
 
 #include "editor/editor_command_palette.h"
+#include "editor/editor_file_system.h"
 #include "editor/editor_help.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_picker.h"
@@ -53,6 +54,7 @@
 #include "scene/gui/tab_bar.h"
 #include "scene/gui/tab_container.h"
 #include "scene/gui/texture_rect.h"
+#include "scene/resources/packed_scene.h"
 #include "scene/theme/theme_db.h"
 
 void ThemeItemImportTree::_update_items_tree() {
@@ -3611,6 +3613,7 @@ void ThemeEditor::_add_preview_button_cbk() {
 void ThemeEditor::_preview_scene_dialog_cbk(const String &p_path) {
 	SceneThemeEditorPreview *preview_tab = memnew(SceneThemeEditorPreview);
 	if (!preview_tab->set_preview_scene(p_path)) {
+		memdelete(preview_tab);
 		return;
 	}
 
@@ -3683,6 +3686,50 @@ void ThemeEditor::_update_preview_tab(Node *p_tab_control) {
 
 void ThemeEditor::_preview_control_picked(String p_class_name) {
 	theme_type_editor->select_type(p_class_name);
+}
+
+bool ThemeEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
+	const Dictionary d = p_data;
+	if (!d.has("type")) {
+		return false;
+	}
+
+	if (String(d["type"]) == "files") {
+		const Vector<String> files = d["files"];
+
+		if (files.size() != 1) {
+			return false;
+		}
+
+		const String ftype = EditorFileSystem::get_singleton()->get_file_type(files[0]);
+		return ftype == "PackedScene";
+	}
+	return false;
+}
+
+void ThemeEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) {
+	Dictionary d = p_data;
+	Vector<String> files = d["files"];
+	const String &path = files[0];
+
+	SceneThemeEditorPreview *preview_tab = memnew(SceneThemeEditorPreview);
+	if (!preview_tab->set_preview_scene(path)) {
+		memdelete(preview_tab);
+		return;
+	}
+
+	Ref<Texture2D> icon = get_editor_theme_icon(SNAME("PackedScene"));
+
+	preview_tab->set_preview_theme(theme);
+
+	preview_tabs->add_tab(path.get_file(), icon);
+	preview_tabs_content->add_child(preview_tab);
+	preview_tabs->set_tab_button_icon(preview_tabs->get_tab_count() - 1, EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("close"), SNAME("TabBar")));
+	preview_tab->connect("control_picked", callable_mp(this, &ThemeEditor::_preview_control_picked));
+
+	preview_tabs->set_current_tab(preview_tabs->get_tab_count() - 1);
+	preview_tab->connect("scene_invalidated", callable_mp(this, &ThemeEditor::_remove_preview_tab_invalid).bind(preview_tab));
+	preview_tab->connect("scene_reloaded", callable_mp(this, &ThemeEditor::_update_preview_tab).bind(preview_tab));
 }
 
 void ThemeEditor::_notification(int p_what) {
@@ -3792,6 +3839,9 @@ ThemeEditor::ThemeEditor() {
 
 	main_hs->add_child(theme_type_editor);
 	theme_type_editor->set_custom_minimum_size(Size2(280, 0) * EDSCALE);
+
+	SET_DRAG_FORWARDING_CD(top_menu, ThemeEditor);
+	SET_DRAG_FORWARDING_CD(preview_tabs, ThemeEditor);
 }
 
 ///////////////////////

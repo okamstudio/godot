@@ -123,7 +123,7 @@
 			<param index="3" name="callback" type="Callable" />
 			<description>
 				Shows a text dialog which uses the operating system's native look-and-feel. [param callback] should accept a single [int] parameter which corresponds to the index of the pressed button.
-				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG] feature. Supported platforms include macOS and Windows.
+				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG] feature. Supported platforms include macOS, Windows, and Android.
 			</description>
 		</method>
 		<method name="enable_for_stealing_focus">
@@ -145,11 +145,11 @@
 			<param index="6" name="callback" type="Callable" />
 			<description>
 				Displays OS native dialog for selecting files or directories in the file system.
-				Each filter string in the [param filters] array should be formatted like this: [code]*.txt,*.doc;Text Files[/code]. The description text of the filter is optional and can be omitted. See also [member FileDialog.filters].
+				Each filter string in the [param filters] array should be formatted like this: [code]*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg[/code]. The description text of the filter is optional and can be omitted. It is recommended to set both file extension and MIME type. See also [member FileDialog.filters].
 				Callbacks have the following arguments: [code]status: bool, selected_paths: PackedStringArray, selected_filter_index: int[/code]. [b]On Android,[/b] callback argument [code]selected_filter_index[/code] is always zero.
 				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG_FILE] feature. Supported platforms include Linux (X11/Wayland), Windows, macOS, and Android.
 				[b]Note:[/b] [param current_directory] might be ignored.
-				[b]Note:[/b] On Android, the filter strings in the [param filters] array should be specified using MIME types, for example:[code]image/png, image/jpeg"[/code]. Additionally, the [param mode] [constant FILE_DIALOG_MODE_OPEN_ANY] is not supported on Android.
+				[b]Note:[/b] Embedded file dialog and Windows file dialog support only file extensions, while Android, Linux, and macOS file dialogs also support MIME types.
 				[b]Note:[/b] On Android and Linux, [param show_hidden] is ignored.
 				[b]Note:[/b] On Android and macOS, native file dialogs have no title.
 				[b]Note:[/b] On macOS, sandboxed apps will save security-scoped bookmarks to retain access to the opened folders across multiple sessions. Use [method OS.get_granted_permissions] to get a list of saved bookmarks.
@@ -168,7 +168,7 @@
 			<param index="8" name="callback" type="Callable" />
 			<description>
 				Displays OS native dialog for selecting files or directories in the file system with additional user selectable options.
-				Each filter string in the [param filters] array should be formatted like this: [code]*.txt,*.doc;Text Files[/code]. The description text of the filter is optional and can be omitted. See also [member FileDialog.filters].
+				Each filter string in the [param filters] array should be formatted like this: [code]*.png,*.jpg,*.jpeg;Image Files;image/png,image/jpeg[/code]. The description text of the filter is optional and can be omitted. It is recommended to set both file extension and MIME type. See also [member FileDialog.filters].
 				[param options] is array of [Dictionary]s with the following keys:
 				- [code]"name"[/code] - option's name [String].
 				- [code]"values"[/code] - [PackedStringArray] of values. If empty, boolean option (check box) is used.
@@ -176,6 +176,7 @@
 				Callbacks have the following arguments: [code]status: bool, selected_paths: PackedStringArray, selected_filter_index: int, selected_option: Dictionary[/code].
 				[b]Note:[/b] This method is implemented if the display server has the [constant FEATURE_NATIVE_DIALOG_FILE_EXTRA] feature. Supported platforms include Linux (X11/Wayland), Windows, and macOS.
 				[b]Note:[/b] [param current_directory] might be ignored.
+				[b]Note:[/b] Embedded file dialog and Windows file dialog support only file extensions, while Android, Linux, and macOS file dialogs also support MIME types.
 				[b]Note:[/b] On Linux (X11), [param show_hidden] is ignored.
 				[b]Note:[/b] On macOS, native file dialogs have no title.
 				[b]Note:[/b] On macOS, sandboxed apps will save security-scoped bookmarks to retain access to the opened folders across multiple sessions. Use [method OS.get_granted_permissions] to get a list of saved bookmarks.
@@ -213,6 +214,7 @@
 			<return type="Rect2i" />
 			<description>
 				Returns the unobscured area of the display where interactive controls should be rendered. See also [method get_display_cutouts].
+				[b]Note:[/b] Currently only implemented on Android and iOS. On other platforms, [code]screen_get_usable_rect(SCREEN_OF_MAIN_WINDOW)[/code] will be returned as a fallback. See also [method screen_get_usable_rect].
 			</description>
 		</method>
 		<method name="get_keyboard_focus_screen" qualifiers="const">
@@ -1214,6 +1216,13 @@
 				[b]Note:[/b] This method is implemented on Android, iOS, macOS, Windows, and Linux (X11/Wayland).
 			</description>
 		</method>
+		<method name="show_emoji_and_symbol_picker" qualifiers="const">
+			<return type="void" />
+			<description>
+				Opens system emoji and symbol picker.
+				[b]Note:[/b] This method is implemented on macOS and Windows.
+			</description>
+		</method>
 		<method name="status_indicator_get_rect" qualifiers="const">
 			<return type="Rect2" />
 			<param index="0" name="id" type="int" />
@@ -1835,8 +1844,17 @@
 			<return type="void" />
 			<param index="0" name="window_id" type="int" default="0" />
 			<description>
-				Starts a drag operation on the window with the given [param window_id], using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
-				[b]Note:[/b] This method is implemented on Linux(X11/Wayland), macOS, and Windows.
+				Starts an interactive drag operation on the window with the given [param window_id], using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
+				[b]Note:[/b] This method is implemented on Linux (X11/Wayland), macOS, and Windows.
+			</description>
+		</method>
+		<method name="window_start_resize">
+			<return type="void" />
+			<param index="0" name="edge" type="int" enum="DisplayServer.WindowResizeEdge" />
+			<param index="1" name="window_id" type="int" default="0" />
+			<description>
+				Starts an interactive resize operation on the window with the given [param window_id], using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's edge.
+				[b]Note:[/b] This method is implemented on Linux (X11/Wayland), macOS, and Windows.
 			</description>
 		</method>
 	</methods>
@@ -1920,13 +1938,19 @@
 			The display server supports all features of [constant FEATURE_NATIVE_DIALOG_FILE], with the added functionality of Options and native dialog file access to [code]res://[/code] and [code]user://[/code] paths. See [method file_dialog_show] and [method file_dialog_with_options_show]. [b]Windows, macOS, Linux (X11/Wayland)[/b]
 		</constant>
 		<constant name="FEATURE_WINDOW_DRAG" value="27" enum="Feature">
-			The display server supports initiating window drag operation on demand. See [method window_start_drag].
+			The display server supports initiating window drag and resize operations on demand. See [method window_start_drag] and [method window_start_resize].
 		</constant>
 		<constant name="FEATURE_SCREEN_EXCLUDE_FROM_CAPTURE" value="28" enum="Feature">
 			Display server supports [constant WINDOW_FLAG_EXCLUDE_FROM_CAPTURE] window flag.
 		</constant>
 		<constant name="FEATURE_WINDOW_EMBEDDING" value="29" enum="Feature">
 			Display server supports embedding a window from another process. [b]Windows, Linux (X11)[/b]
+		</constant>
+		<constant name="FEATURE_NATIVE_DIALOG_FILE_MIME" value="30" enum="Feature">
+			Native file selection dialog supports MIME types as filters.
+		</constant>
+		<constant name="FEATURE_EMOJI_AND_SYMBOL_PICKER" value="31" enum="Feature">
+			Display server supports system emoji and symbol picker. [b]Windows, macOS[/b]
 		</constant>
 		<constant name="MOUSE_MODE_VISIBLE" value="0" enum="MouseMode">
 			Makes the mouse cursor visible if it is hidden.
@@ -1943,6 +1967,9 @@
 		</constant>
 		<constant name="MOUSE_MODE_CONFINED_HIDDEN" value="4" enum="MouseMode">
 			Confines the mouse cursor to the game window, and make it hidden.
+		</constant>
+		<constant name="MOUSE_MODE_MAX" value="5" enum="MouseMode">
+			Max value of the [enum MouseMode].
 		</constant>
 		<constant name="SCREEN_WITH_MOUSE_FOCUS" value="-4">
 			Represents the screen containing the mouse pointer.
@@ -2108,6 +2135,7 @@
 			[b]On Windows:[/b] Depending on video driver, full screen transition might cause screens to go black for a moment.
 			[b]On macOS:[/b] A new desktop is used to display the running project. Exclusive full screen mode prevents Dock and Menu from showing up when the mouse pointer is hovering the edge of the screen.
 			[b]On Linux (X11):[/b] Exclusive full screen mode bypasses compositor.
+			[b]On Linux (Wayland):[/b] Equivalent to [constant WINDOW_MODE_FULLSCREEN].
 			[b]Note:[/b] Regardless of the platform, enabling full screen will change the window size to match the monitor's size. Therefore, make sure your project supports [url=$DOCS_URL/tutorials/rendering/multiple_resolutions.html]multiple resolutions[/url] when enabling full screen mode.
 		</constant>
 		<constant name="WINDOW_FLAG_RESIZE_DISABLED" value="0" enum="WindowFlags">
@@ -2177,6 +2205,33 @@
 		<constant name="WINDOW_EVENT_TITLEBAR_CHANGE" value="7" enum="WindowEvent">
 			Sent when the window title bar decoration is changed (e.g. [constant WINDOW_FLAG_EXTEND_TO_TITLE] is set or window entered/exited full screen mode).
 			[b]Note:[/b] This flag is implemented only on macOS.
+		</constant>
+		<constant name="WINDOW_EDGE_TOP_LEFT" value="0" enum="WindowResizeEdge">
+			Top-left edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_TOP" value="1" enum="WindowResizeEdge">
+			Top edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_TOP_RIGHT" value="2" enum="WindowResizeEdge">
+			Top-right edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_LEFT" value="3" enum="WindowResizeEdge">
+			Left edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_RIGHT" value="4" enum="WindowResizeEdge">
+			Right edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_BOTTOM_LEFT" value="5" enum="WindowResizeEdge">
+			Bottom-left edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_BOTTOM" value="6" enum="WindowResizeEdge">
+			Bottom edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_BOTTOM_RIGHT" value="7" enum="WindowResizeEdge">
+			Bottom-right edge of a window.
+		</constant>
+		<constant name="WINDOW_EDGE_MAX" value="8" enum="WindowResizeEdge">
+			Represents the size of the [enum WindowResizeEdge] enum.
 		</constant>
 		<constant name="VSYNC_DISABLED" value="0" enum="VSyncMode">
 			No vertical synchronization, which means the engine will display frames as fast as possible (tearing may be visible). Framerate is unlimited (regardless of [member Engine.max_fps]).

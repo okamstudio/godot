@@ -36,8 +36,6 @@
 #include "scene/resources/font.h"
 #include "servers/text_server.h"
 
-#include "modules/modules_enabled.gen.h" // For freetype.
-
 String ResourceImporterDynamicFont::get_importer_name() const {
 	return "font_data_dynamic";
 }
@@ -48,7 +46,6 @@ String ResourceImporterDynamicFont::get_visible_name() const {
 
 void ResourceImporterDynamicFont::get_recognized_extensions(List<String> *p_extensions) const {
 	if (p_extensions) {
-#ifdef MODULE_FREETYPE_ENABLED
 		p_extensions->push_back("ttf");
 		p_extensions->push_back("ttc");
 		p_extensions->push_back("otf");
@@ -57,7 +54,6 @@ void ResourceImporterDynamicFont::get_recognized_extensions(List<String> *p_exte
 		p_extensions->push_back("woff2");
 		p_extensions->push_back("pfb");
 		p_extensions->push_back("pfm");
-#endif
 	}
 }
 

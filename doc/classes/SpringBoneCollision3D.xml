@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SpringBoneCollision3D" inherits="Node3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A base class of the collision that interacts with [SpringBoneSimulator3D].
+	</brief_description>
+	<description>
+		A collision can be a child of [SpringBoneSimulator3D]. If it is not a child of [SpringBoneSimulator3D], it has no effect.
+		The colliding and sliding are done in the [SpringBoneSimulator3D]'s modification process in order of its collision list which is set by [method SpringBoneSimulator3D.set_collision_path]. If [method SpringBoneSimulator3D.are_all_child_collisions_enabled] is [code]true[/code], the order matches [SceneTree].
+		If [member bone] is set, it synchronizes with the bone pose of the ancestor [Skeleton3D], which is done in before the [SpringBoneSimulator3D]'s modification process as the pre-process.
+		[b]Warning:[/b] A scaled [SpringBoneCollision3D] will likely not behave as expected. Make sure that the parent [Skeleton3D] and its bones are not scaled.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_skeleton" qualifiers="const">
+			<return type="Skeleton3D" />
+			<description>
+				Get parent [Skeleton3D] node of the parent [SpringBoneSimulator3D] if found.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="bone" type="int" setter="set_bone" getter="get_bone" default="-1">
+			The index of the attached bone.
+		</member>
+		<member name="bone_name" type="String" setter="set_bone_name" getter="get_bone_name" default="&quot;&quot;">
+			The name of the attached bone.
+		</member>
+		<member name="position_offset" type="Vector3" setter="set_position_offset" getter="get_position_offset">
+			The offset of the position from [Skeleton3D]'s [member bone] pose position.
+		</member>
+		<member name="rotation_offset" type="Quaternion" setter="set_rotation_offset" getter="get_rotation_offset">
+			The offset of the rotation from [Skeleton3D]'s [member bone] pose rotation.
+		</member>
+	</members>
+</class>

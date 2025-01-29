@@ -23,6 +23,7 @@ IncludeCategories:
     Priority: 3
 IndentCaseLabels: true
 IndentWidth: 4
+InsertBraces: true
 JavaImportGroups:
   - org.godotengine
   - android

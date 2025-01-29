@@ -125,20 +125,28 @@ public:
 				id(p_id) {}
 	};
 
-#define DEFINE_ID(m_name)                                                                             \
-	struct m_name##ID : public ID {                                                                   \
-		_ALWAYS_INLINE_ explicit operator bool() const { return id != 0; }                            \
-		_ALWAYS_INLINE_ m_name##ID &operator=(m_name##ID p_other) {                                   \
-			id = p_other.id;                                                                          \
-			return *this;                                                                             \
-		}                                                                                             \
-		_ALWAYS_INLINE_ bool operator<(const m_name##ID &p_other) const { return id < p_other.id; }   \
-		_ALWAYS_INLINE_ bool operator==(const m_name##ID &p_other) const { return id == p_other.id; } \
-		_ALWAYS_INLINE_ bool operator!=(const m_name##ID &p_other) const { return id != p_other.id; } \
-		_ALWAYS_INLINE_ m_name##ID(const m_name##ID &p_other) : ID(p_other.id) {}                     \
-		_ALWAYS_INLINE_ explicit m_name##ID(uint64_t p_int) : ID(p_int) {}                            \
-		_ALWAYS_INLINE_ explicit m_name##ID(void *p_ptr) : ID((uint64_t)p_ptr) {}                     \
-		_ALWAYS_INLINE_ m_name##ID() = default;                                                       \
+#define DEFINE_ID(m_name)                                                         \
+	struct m_name##ID : public ID {                                               \
+		_ALWAYS_INLINE_ explicit operator bool() const {                          \
+			return id != 0;                                                       \
+		}                                                                         \
+		_ALWAYS_INLINE_ m_name##ID &operator=(m_name##ID p_other) {               \
+			id = p_other.id;                                                      \
+			return *this;                                                         \
+		}                                                                         \
+		_ALWAYS_INLINE_ bool operator<(const m_name##ID &p_other) const {         \
+			return id < p_other.id;                                               \
+		}                                                                         \
+		_ALWAYS_INLINE_ bool operator==(const m_name##ID &p_other) const {        \
+			return id == p_other.id;                                              \
+		}                                                                         \
+		_ALWAYS_INLINE_ bool operator!=(const m_name##ID &p_other) const {        \
+			return id != p_other.id;                                              \
+		}                                                                         \
+		_ALWAYS_INLINE_ m_name##ID(const m_name##ID &p_other) : ID(p_other.id) {} \
+		_ALWAYS_INLINE_ explicit m_name##ID(uint64_t p_int) : ID(p_int) {}        \
+		_ALWAYS_INLINE_ explicit m_name##ID(void *p_ptr) : ID((uint64_t)p_ptr) {} \
+		_ALWAYS_INLINE_ m_name##ID() = default;                                   \
 	};
 
 	// Id types declared before anything else to prevent cyclic dependencies between the different concerns.
@@ -189,6 +197,7 @@ public:
 		BUFFER_USAGE_INDEX_BIT = (1 << 6),
 		BUFFER_USAGE_VERTEX_BIT = (1 << 7),
 		BUFFER_USAGE_INDIRECT_BIT = (1 << 8),
+		BUFFER_USAGE_DEVICE_ADDRESS_BIT = (1 << 17),
 	};
 
 	enum {
@@ -202,6 +211,8 @@ public:
 	virtual uint64_t buffer_get_allocation_size(BufferID p_buffer) = 0;
 	virtual uint8_t *buffer_map(BufferID p_buffer) = 0;
 	virtual void buffer_unmap(BufferID p_buffer) = 0;
+	// Only for a buffer with BUFFER_USAGE_DEVICE_ADDRESS_BIT.
+	virtual uint64_t buffer_get_device_address(BufferID p_buffer) = 0;
 
 	/*****************/
 	/**** TEXTURE ****/
@@ -713,6 +724,12 @@ public:
 	// ----- PIPELINE -----
 
 	virtual PipelineID compute_pipeline_create(ShaderID p_shader, VectorView<PipelineSpecializationConstant> p_specialization_constants) = 0;
+
+	/******************/
+	/**** CALLBACK ****/
+	/******************/
+
+	typedef void (*DriverCallback)(RenderingDeviceDriver *p_driver, CommandBufferID p_command_buffer, void *p_userdata);
 
 	/*****************/
 	/**** QUERIES ****/

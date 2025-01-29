@@ -837,8 +837,9 @@ void main() {
 #endif
 #ifdef MODE_DUAL_PARABOLOID
 
-	if (dp_clip > 0.0)
+	if (dp_clip > 0.0) {
 		discard;
+	}
 #endif
 
 	//lay out everything, whatever is unused is optimized away anyway
@@ -1396,16 +1397,29 @@ void main() {
 		uvec2 reflection_indices = instances.data[draw_call.instance_index].reflection_probes;
 		for (uint i = 0; i < sc_reflection_probes(); i++) {
 			uint reflection_index = (i > 3) ? ((reflection_indices.y >> ((i - 4) * 8)) & 0xFF) : ((reflection_indices.x >> (i * 8)) & 0xFF);
-			reflection_process(reflection_index, vertex, ref_vec, bent_normal, roughness, ambient_light, specular_light, ambient_accum, reflection_accum);
+
+			if (reflection_accum.a >= 1.0 && ambient_accum.a >= 1.0) {
+				break;
+			}
+
+			reflection_process(reflection_index, vertex, ref_vec, normal, roughness, ambient_light, specular_light, ambient_accum, reflection_accum);
+		}
+
+		if (ambient_accum.a < 1.0) {
+			ambient_accum.rgb = mix(ambient_light, ambient_accum.rgb, ambient_accum.a);
+		}
+
+		if (reflection_accum.a < 1.0) {
+			reflection_accum.rgb = mix(specular_light, reflection_accum.rgb, reflection_accum.a);
 		}
 
 		if (reflection_accum.a > 0.0) {
-			specular_light = reflection_accum.rgb / reflection_accum.a;
+			specular_light = reflection_accum.rgb;
 		}
 
 #if !defined(USE_LIGHTMAP)
 		if (ambient_accum.a > 0.0) {
-			ambient_light = ambient_accum.rgb / ambient_accum.a;
+			ambient_light = ambient_accum.rgb;
 		}
 #endif
 	} //Reflection probes

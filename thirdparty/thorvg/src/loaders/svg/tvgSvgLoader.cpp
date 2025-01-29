@@ -3973,6 +3973,7 @@ bool SvgLoader::open(const char* data, uint32_t size, bool copy)
 
 bool SvgLoader::open(const string& path)
 {
+#ifdef THORVG_FILE_IO_SUPPORT
     clear();
 
     ifstream f;
@@ -3990,6 +3991,9 @@ bool SvgLoader::open(const string& path)
     size = filePath.size();
 
     return header();
+#else
+    return false;
+#endif
 }
 
 

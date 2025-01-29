@@ -66,6 +66,10 @@ class DisplayServerAndroid : public DisplayServer {
 	};
 	const int CURSOR_TYPE_NULL = 0;
 	MouseMode mouse_mode = MouseMode::MOUSE_MODE_VISIBLE;
+	MouseMode mouse_mode_base = MouseMode::MOUSE_MODE_VISIBLE;
+	MouseMode mouse_mode_override = MouseMode::MOUSE_MODE_VISIBLE;
+	bool mouse_mode_override_enabled = false;
+	void _mouse_update_mode();
 
 	bool keep_screen_on;
 	bool swap_buffers_flag;
@@ -87,7 +91,9 @@ class DisplayServerAndroid : public DisplayServer {
 
 	Callable system_theme_changed;
 
+	Callable dialog_callback;
 	Callable input_dialog_callback;
+
 	Callable file_picker_callback;
 
 	void _window_callback(const Callable &p_callable, const Variant &p_arg, bool p_deferred = false) const;
@@ -118,6 +124,9 @@ public:
 	virtual void clipboard_set(const String &p_text) override;
 	virtual String clipboard_get() const override;
 	virtual bool clipboard_has() const override;
+
+	virtual Error dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback) override;
+	void emit_dialog_callback(int p_button_index);
 
 	virtual Error dialog_input_text(String p_title, String p_description, String p_partial, const Callable &p_callback) override;
 	void emit_input_dialog_callback(String p_text);
@@ -223,6 +232,10 @@ public:
 
 	virtual void mouse_set_mode(MouseMode p_mode) override;
 	virtual MouseMode mouse_get_mode() const override;
+	virtual void mouse_set_mode_override(MouseMode p_mode) override;
+	virtual MouseMode mouse_get_mode_override() const override;
+	virtual void mouse_set_mode_override_enabled(bool p_override_enabled) override;
+	virtual bool mouse_is_mode_override_enabled() const override;
 
 	static DisplayServer *create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error);
 	static Vector<String> get_rendering_drivers_func();

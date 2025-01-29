@@ -157,6 +157,7 @@ class ScriptTextEditor : public ScriptEditorBase {
 		DEBUG_GOTO_PREV_BREAKPOINT,
 		HELP_CONTEXTUAL,
 		LOOKUP_SYMBOL,
+		EDIT_EMOJI_AND_SYMBOL,
 	};
 
 	void _enable_code_editor();

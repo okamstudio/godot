@@ -84,12 +84,14 @@ Config::Config() {
 
 	if (RasterizerGLES3::is_gles_over_gl()) {
 		float_texture_supported = true;
+		float_texture_linear_supported = true;
 		etc2_supported = false;
 		s3tc_supported = true;
 		rgtc_supported = true; //RGTC - core since OpenGL version 3.0
 		srgb_framebuffer_supported = true;
 	} else {
 		float_texture_supported = extensions.has("GL_EXT_color_buffer_float");
+		float_texture_linear_supported = extensions.has("GL_OES_texture_float_linear");
 		etc2_supported = true;
 #if defined(ANDROID_ENABLED) || defined(IOS_ENABLED)
 		// Some Android devices report support for S3TC but we don't expect that and don't export the textures.

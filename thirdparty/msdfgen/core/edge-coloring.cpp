@@ -11,6 +11,15 @@
 
 namespace msdfgen {
 
+/**
+ * For each position < n, this function will return -1, 0, or 1,
+ * depending on whether the position is closer to the beginning, middle, or end, respectively.
+ * It is guaranteed that the output will be balanced in that the total for positions 0 through n-1 will be zero.
+ */
+static int symmetricalTrichotomy(int position, int n) {
+    return int(3+2.875*position/(n-1)-1.4375+.5)-3;
+}
+
 static bool isCorner(const Vector2 &aDir, const Vector2 &bDir, double crossThreshold) {
     return dotProduct(aDir, bDir) <= 0 || fabs(crossProduct(aDir, bDir)) > crossThreshold;
 }
@@ -26,30 +35,45 @@ static double estimateEdgeLength(const EdgeSegment *edge) {
     return len;
 }
 
-static void switchColor(EdgeColor &color, unsigned long long &seed, EdgeColor banned = BLACK) {
-    EdgeColor combined = EdgeColor(color&banned);
-    if (combined == RED || combined == GREEN || combined == BLUE) {
-        color = EdgeColor(combined^WHITE);
-        return;
-    }
-    if (color == BLACK || color == WHITE) {
-        static const EdgeColor start[3] = { CYAN, MAGENTA, YELLOW };
-        color = start[seed%3];
-        seed /= 3;
-        return;
-    }
-    int shifted = color<<(1+(seed&1));
-    color = EdgeColor((shifted|shifted>>3)&WHITE);
+static int seedExtract2(unsigned long long &seed) {
+    int v = int(seed)&1;
     seed >>= 1;
+    return v;
+}
+
+static int seedExtract3(unsigned long long &seed) {
+    int v = int(seed%3);
+    seed /= 3;
+    return v;
+}
+
+static EdgeColor initColor(unsigned long long &seed) {
+    static const EdgeColor colors[3] = { CYAN, MAGENTA, YELLOW };
+    return colors[seedExtract3(seed)];
+}
+
+static void switchColor(EdgeColor &color, unsigned long long &seed) {
+    int shifted = color<<(1+seedExtract2(seed));
+    color = EdgeColor((shifted|shifted>>3)&WHITE);
+}
+
+static void switchColor(EdgeColor &color, unsigned long long &seed, EdgeColor banned) {
+    EdgeColor combined = EdgeColor(color&banned);
+    if (combined == RED || combined == GREEN || combined == BLUE)
+        color = EdgeColor(combined^WHITE);
+    else
+        switchColor(color, seed);
 }
 
 void edgeColoringSimple(Shape &shape, double angleThreshold, unsigned long long seed) {
     double crossThreshold = sin(angleThreshold);
+    EdgeColor color = initColor(seed);
     std::vector<int> corners;
     for (std::vector<Contour>::iterator contour = shape.contours.begin(); contour != shape.contours.end(); ++contour) {
-        // Identify corners
-        corners.clear();
-        if (!contour->edges.empty()) {
+        if (contour->edges.empty())
+            continue;
+        { // Identify corners
+            corners.clear();
             Vector2 prevDirection = contour->edges.back()->direction(1);
             int index = 0;
             for (std::vector<EdgeHolder>::const_iterator edge = contour->edges.begin(); edge != contour->edges.end(); ++edge, ++index) {
@@ -60,19 +84,24 @@ void edgeColoringSimple(Shape &shape, double angleThreshold, unsigned long long 
         }
 
         // Smooth contour
-        if (corners.empty())
+        if (corners.empty()) {
+            switchColor(color, seed);
             for (std::vector<EdgeHolder>::iterator edge = contour->edges.begin(); edge != contour->edges.end(); ++edge)
-                (*edge)->color = WHITE;
+                (*edge)->color = color;
+        }
         // "Teardrop" case
         else if (corners.size() == 1) {
-            EdgeColor colors[3] = { WHITE, WHITE };
-            switchColor(colors[0], seed);
-            switchColor(colors[2] = colors[0], seed);
+            EdgeColor colors[3];
+            switchColor(color, seed);
+            colors[0] = color;
+            colors[1] = WHITE;
+            switchColor(color, seed);
+            colors[2] = color;
             int corner = corners[0];
             if (contour->edges.size() >= 3) {
                 int m = (int) contour->edges.size();
                 for (int i = 0; i < m; ++i)
-                    contour->edges[(corner+i)%m]->color = (colors+1)[int(3+2.875*i/(m-1)-1.4375+.5)-3];
+                    contour->edges[(corner+i)%m]->color = colors[1+symmetricalTrichotomy(i, m)];
             } else if (contour->edges.size() >= 1) {
                 // Less than three edge segments for three colors => edges must be split
                 EdgeSegment *parts[7] = { };
@@ -98,7 +127,6 @@ void edgeColoringSimple(Shape &shape, double angleThreshold, unsigned long long 
             int spline = 0;
             int start = corners[0];
             int m = (int) contour->edges.size();
-            EdgeColor color = WHITE;
             switchColor(color, seed);
             EdgeColor initialColor = color;
             for (int i = 0; i < m; ++i) {
@@ -123,12 +151,14 @@ struct EdgeColoringInkTrapCorner {
 void edgeColoringInkTrap(Shape &shape, double angleThreshold, unsigned long long seed) {
     typedef EdgeColoringInkTrapCorner Corner;
     double crossThreshold = sin(angleThreshold);
+    EdgeColor color = initColor(seed);
     std::vector<Corner> corners;
     for (std::vector<Contour>::iterator contour = shape.contours.begin(); contour != shape.contours.end(); ++contour) {
-        // Identify corners
+        if (contour->edges.empty())
+            continue;
         double splineLength = 0;
-        corners.clear();
-        if (!contour->edges.empty()) {
+        { // Identify corners
+            corners.clear();
             Vector2 prevDirection = contour->edges.back()->direction(1);
             int index = 0;
             for (std::vector<EdgeHolder>::const_iterator edge = contour->edges.begin(); edge != contour->edges.end(); ++edge, ++index) {
@@ -143,19 +173,24 @@ void edgeColoringInkTrap(Shape &shape, double angleThreshold, unsigned long long
         }
 
         // Smooth contour
-        if (corners.empty())
+        if (corners.empty()) {
+            switchColor(color, seed);
             for (std::vector<EdgeHolder>::iterator edge = contour->edges.begin(); edge != contour->edges.end(); ++edge)
-                (*edge)->color = WHITE;
+                (*edge)->color = color;
+        }
         // "Teardrop" case
         else if (corners.size() == 1) {
-            EdgeColor colors[3] = { WHITE, WHITE };
-            switchColor(colors[0], seed);
-            switchColor(colors[2] = colors[0], seed);
+            EdgeColor colors[3];
+            switchColor(color, seed);
+            colors[0] = color;
+            colors[1] = WHITE;
+            switchColor(color, seed);
+            colors[2] = color;
             int corner = corners[0].index;
             if (contour->edges.size() >= 3) {
                 int m = (int) contour->edges.size();
                 for (int i = 0; i < m; ++i)
-                    contour->edges[(corner+i)%m]->color = (colors+1)[int(3+2.875*i/(m-1)-1.4375+.5)-3];
+                    contour->edges[(corner+i)%m]->color = colors[1+symmetricalTrichotomy(i, m)];
             } else if (contour->edges.size() >= 1) {
                 // Less than three edge segments for three colors => edges must be split
                 EdgeSegment *parts[7] = { };
@@ -191,7 +226,6 @@ void edgeColoringInkTrap(Shape &shape, double angleThreshold, unsigned long long
                     }
                 }
             }
-            EdgeColor color = WHITE;
             EdgeColor initialColor = BLACK;
             for (int i = 0; i < cornerCount; ++i) {
                 if (!corners[i].minor) {
@@ -271,23 +305,19 @@ static void colorSecondDegreeGraph(int *coloring, const int *const *edgeMatrix, 
                 color = 1;
                 break;
             case 3:
-                color = (int) seed&1;
-                seed >>= 1;
+                color = seedExtract2(seed); // 0 or 1
                 break;
             case 4:
                 color = 2;
                 break;
             case 5:
-                color = ((int) seed+1&1)<<1;
-                seed >>= 1;
+                color = (int) !seedExtract2(seed)<<1; // 2 or 0
                 break;
             case 6:
-                color = ((int) seed&1)+1;
-                seed >>= 1;
+                color = seedExtract2(seed)+1; // 1 or 2
                 break;
             case 7:
-                color = int((seed+i)%3);
-                seed /= 3;
+                color = (seedExtract3(seed)+i)%3; // 0 or 1 or 2
                 break;
         }
         coloring[i] = color;
@@ -394,7 +424,7 @@ void edgeColoringByDistance(Shape &shape, double angleThreshold, unsigned long l
                     for (int i = 0; i < m; ++i) {
                         if (i == m/2)
                             splineStarts.push_back((int) edgeSegments.size());
-                        if (int(3+2.875*i/(m-1)-1.4375+.5)-3)
+                        if (symmetricalTrichotomy(i, m))
                             edgeSegments.push_back(&*contour->edges[(corner+i)%m]);
                         else
                             contour->edges[(corner+i)%m]->color = WHITE;

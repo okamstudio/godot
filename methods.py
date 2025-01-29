@@ -7,124 +7,15 @@ import re
 import subprocess
 import sys
 from collections import OrderedDict
-from enum import Enum
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import Final, Generator, List, Optional, Union, cast
+from typing import Generator, List, Optional, Union, cast
+
+from misc.utility.color import print_error, print_info, print_warning
 
 # Get the "Godot" folder name ahead of time
 base_folder_path = str(os.path.abspath(Path(__file__).parent)) + "/"
 base_folder_only = os.path.basename(os.path.normpath(base_folder_path))
-
-################################################################################
-# COLORIZE
-################################################################################
-
-IS_CI: Final[bool] = bool(os.environ.get("CI"))
-IS_TTY: Final[bool] = bool(sys.stdout.isatty())
-
-
-def _color_supported() -> bool:
-    """
-    Enables ANSI escape code support on Windows 10 and later (for colored console output).
-    See here: https://github.com/python/cpython/issues/73245
-    """
-    if sys.platform == "win32" and IS_TTY:
-        try:
-            from ctypes import WinError, byref, windll  # type: ignore
-            from ctypes.wintypes import DWORD  # type: ignore
-
-            stdout_handle = windll.kernel32.GetStdHandle(DWORD(-11))
-            mode = DWORD(0)
-            if not windll.kernel32.GetConsoleMode(stdout_handle, byref(mode)):
-                raise WinError()
-            mode = DWORD(mode.value | 4)
-            if not windll.kernel32.SetConsoleMode(stdout_handle, mode):
-                raise WinError()
-        except (TypeError, OSError) as e:
-            print(f"Failed to enable ANSI escape code support, disabling color output.\n{e}", file=sys.stderr)
-            return False
-
-    return IS_TTY or IS_CI
-
-
-# Colors are disabled in non-TTY environments such as pipes. This means
-# that if output is redirected to a file, it won't contain color codes.
-# Colors are always enabled on continuous integration.
-COLOR_SUPPORTED: Final[bool] = _color_supported()
-_can_color: bool = COLOR_SUPPORTED
-
-
-def toggle_color(value: Optional[bool] = None) -> None:
-    """
-    Explicitly toggle color codes, regardless of support.
-
-    - `value`: An optional boolean to explicitly set the color
-    state instead of toggling.
-    """
-    global _can_color
-    _can_color = value if value is not None else not _can_color
-
-
-class Ansi(Enum):
-    """
-    Enum class for adding ansi colorcodes directly into strings.
-    Automatically converts values to strings representing their
-    internal value, or an empty string in a non-colorized scope.
-    """
-
-    RESET = "\x1b[0m"
-
-    BOLD = "\x1b[1m"
-    DIM = "\x1b[2m"
-    ITALIC = "\x1b[3m"
-    UNDERLINE = "\x1b[4m"
-    STRIKETHROUGH = "\x1b[9m"
-    REGULAR = "\x1b[22;23;24;29m"
-
-    BLACK = "\x1b[30m"
-    RED = "\x1b[31m"
-    GREEN = "\x1b[32m"
-    YELLOW = "\x1b[33m"
-    BLUE = "\x1b[34m"
-    MAGENTA = "\x1b[35m"
-    CYAN = "\x1b[36m"
-    WHITE = "\x1b[37m"
-
-    LIGHT_BLACK = "\x1b[90m"
-    LIGHT_RED = "\x1b[91m"
-    LIGHT_GREEN = "\x1b[92m"
-    LIGHT_YELLOW = "\x1b[93m"
-    LIGHT_BLUE = "\x1b[94m"
-    LIGHT_MAGENTA = "\x1b[95m"
-    LIGHT_CYAN = "\x1b[96m"
-    LIGHT_WHITE = "\x1b[97m"
-
-    GRAY = LIGHT_BLACK if IS_CI else BLACK
-    """
-    Special case. GitHub Actions doesn't convert `BLACK` to gray as expected, but does convert `LIGHT_BLACK`.
-    By implementing `GRAY`, we handle both cases dynamically, while still allowing for explicit values if desired.
-    """
-
-    def __str__(self) -> str:
-        global _can_color
-        return str(self.value) if _can_color else ""
-
-
-def print_info(*values: object) -> None:
-    """Prints a informational message with formatting."""
-    print(f"{Ansi.GRAY}{Ansi.BOLD}INFO:{Ansi.REGULAR}", *values, Ansi.RESET)
-
-
-def print_warning(*values: object) -> None:
-    """Prints a warning message with formatting."""
-    print(f"{Ansi.YELLOW}{Ansi.BOLD}WARNING:{Ansi.REGULAR}", *values, Ansi.RESET, file=sys.stderr)
-
-
-def print_error(*values: object) -> None:
-    """Prints an error message with formatting."""
-    print(f"{Ansi.RED}{Ansi.BOLD}ERROR:{Ansi.REGULAR}", *values, Ansi.RESET, file=sys.stderr)
-
 
 # Listing all the folders we have converted
 # for SCU in scu_builders.py
@@ -505,6 +396,8 @@ def use_windows_spawn_fix(self, platform=None):
 
 
 def no_verbose(env):
+    from misc.utility.color import Ansi
+
     colors = [Ansi.BLUE, Ansi.BOLD, Ansi.REGULAR, Ansi.RESET]
 
     # There is a space before "..." to ensure that source file names can be
@@ -872,12 +765,12 @@ def show_progress(env):
                     self.max = int(f.readline())
             except OSError:
                 pass
-            if self.max == 0:
-                print("NOTE: Performing initial build, progress percentage unavailable!")
 
             # Progress reporting is not available in non-TTY environments since it
             # messes with the output (for example, when writing to a file).
-            self.display = cast(bool, self.max and env["progress"] and IS_TTY)
+            self.display = cast(bool, self.max and env["progress"] and sys.stdout.isatty())
+            if self.display and not self.max:
+                print_info("Performing initial build, progress percentage unavailable!")
 
         def __call__(self, node, *args, **kw):
             self.count += 1
@@ -893,7 +786,7 @@ def show_progress(env):
     Progress(progressor)
 
     def progress_finish():
-        if len(GetBuildFailures()):
+        if GetBuildFailures() or not progressor.count:
             return
         try:
             with open(NODE_COUNT_FILENAME, "w", encoding="utf-8", newline="\n") as f:
@@ -923,64 +816,40 @@ def get_size(start_path: str = ".") -> int:
     return total_size
 
 
-def clean_cache(cache_path: str, cache_limit: int, verbose: bool):
+def clean_cache(cache_path: str, cache_limit: int, verbose: bool) -> None:
+    if not cache_limit:
+        return
+
     files = glob.glob(os.path.join(cache_path, "*", "*"))
     if not files:
         return
 
-    # Remove all text files, store binary files in list of (filename, size, atime).
-    purge = []
-    texts = []
+    # Store files in list of (filename, size, atime).
     stats = []
     for file in files:
         try:
-            # Save file stats to rewrite after modifying.
-            tmp_stat = os.stat(file)
-            # Failing a utf-8 decode is the easiest way to determine if a file is binary.
-            try:
-                with open(file, encoding="utf-8") as out:
-                    out.read(1024)
-            except UnicodeDecodeError:
-                stats.append((file, *tmp_stat[6:8]))
-                # Restore file stats after reading.
-                os.utime(file, (tmp_stat[7], tmp_stat[8]))
-            else:
-                texts.append(file)
+            stats.append((file, *os.stat(file)[6:8]))
         except OSError:
             print_error(f'Failed to access cache file "{file}"; skipping.')
 
-    if texts:
-        count = len(texts)
-        for file in texts:
-            try:
-                os.remove(file)
-            except OSError:
-                print_error(f'Failed to remove cache file "{file}"; skipping.')
-                count -= 1
-        if verbose:
-            print("Purging %d text %s from cache..." % (count, "files" if count > 1 else "file"))
-
-    if cache_limit:
-        # Sort by most recent access (most sensible to keep) first. Search for the first entry where
-        # the cache limit is reached.
-        stats.sort(key=lambda x: x[2], reverse=True)
-        sum = 0
-        for index, stat in enumerate(stats):
-            sum += stat[1]
-            if sum > cache_limit:
-                purge.extend([x[0] for x in stats[index:]])
-                break
-
-    if purge:
-        count = len(purge)
-        for file in purge:
-            try:
-                os.remove(file)
-            except OSError:
-                print_error(f'Failed to remove cache file "{file}"; skipping.')
-                count -= 1
-        if verbose:
-            print("Purging %d %s from cache..." % (count, "files" if count > 1 else "file"))
+    # Sort by most recent access (most sensible to keep) first. Search for the first entry where
+    # the cache limit is reached.
+    stats.sort(key=lambda x: x[2], reverse=True)
+    sum = 0
+    for index, stat in enumerate(stats):
+        sum += stat[1]
+        if sum > cache_limit:
+            purge = [x[0] for x in stats[index:]]
+            count = len(purge)
+            for file in purge:
+                try:
+                    os.remove(file)
+                except OSError:
+                    print_error(f'Failed to remove cache file "{file}"; skipping.')
+                    count -= 1
+            if verbose and count:
+                print_info(f"Purged {count} file{'s' if count else ''} from cache.")
+            break
 
 
 def prepare_cache(env) -> None:
@@ -1017,6 +886,31 @@ def prepare_cache(env) -> None:
         )
 
     atexit.register(clean_cache, cache_path, cache_limit, env["verbose"])
+
+
+def prepare_purge(env):
+    from SCons.Script.Main import GetBuildFailures
+
+    def purge_flaky_files():
+        paths_to_keep = [env["ninja_file"]]
+        for build_failure in GetBuildFailures():
+            path = build_failure.node.path
+            if os.path.isfile(path) and path not in paths_to_keep:
+                os.remove(path)
+
+    atexit.register(purge_flaky_files)
+
+
+def prepare_timer():
+    import time
+
+    def print_elapsed_time(time_at_start: float):
+        time_elapsed = time.time() - time_at_start
+        time_formatted = time.strftime("%H:%M:%S", time.gmtime(time_elapsed))
+        time_centiseconds = round((time_elapsed % 1) * 100)
+        print_info(f"Time elapsed: {time_formatted}.{time_centiseconds}")
+
+    atexit.register(print_elapsed_time, time.time())
 
 
 def dump(env):

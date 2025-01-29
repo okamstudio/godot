@@ -71,6 +71,10 @@ public:
 	void set_item_count(int p_count);
 	int get_item_count() const;
 
+#ifdef TOOLS_ENABLED
+	PackedStringArray get_configuration_warnings() const override;
+#endif
+
 	MenuButton(const String &p_text = String());
 	~MenuButton();
 };

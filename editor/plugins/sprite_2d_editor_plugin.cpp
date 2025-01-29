@@ -139,7 +139,7 @@ void Sprite2DEditor::_menu_option(int p_option) {
 
 void Sprite2DEditor::_popup_debug_uv_dialog() {
 	String error_message;
-	if (node->get_owner() != get_tree()->get_edited_scene_root()) {
+	if (node->get_owner() != get_tree()->get_edited_scene_root() && node != get_tree()->get_edited_scene_root()) {
 		error_message = TTR("Can't convert a sprite from a foreign scene.");
 	}
 	Ref<Texture2D> texture = node->get_texture();

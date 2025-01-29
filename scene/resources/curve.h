@@ -156,7 +156,7 @@ private:
 			TangentMode right_mode = TANGENT_FREE);
 	void _remove_point(int p_index);
 
-	Vector<Point> _points;
+	LocalVector<Point> _points;
 	mutable bool _baked_cache_dirty = false;
 	mutable Vector<real_t> _baked_cache;
 	int _bake_resolution = 100;
@@ -177,7 +177,7 @@ class Curve2D : public Resource {
 		Vector2 position;
 	};
 
-	Vector<Point> points;
+	LocalVector<Point> points;
 
 	struct BakedPoint {
 		real_t ofs = 0.0;
@@ -265,7 +265,7 @@ class Curve3D : public Resource {
 		real_t tilt = 0.0;
 	};
 
-	Vector<Point> points;
+	LocalVector<Point> points;
 #ifdef TOOLS_ENABLED
 	// For Path3DGizmo.
 	mutable Vector<size_t> points_in_cache;

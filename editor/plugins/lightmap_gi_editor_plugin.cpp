@@ -34,6 +34,8 @@
 #include "editor/editor_string_names.h"
 #include "editor/gui/editor_file_dialog.h"
 
+#include "modules/modules_enabled.gen.h" // For lightmapper_rd.
+
 void LightmapGIEditorPlugin::_bake_select_file(const String &p_file) {
 	if (lightmap) {
 		LightmapGI::BakeError err = LightmapGI::BAKE_ERROR_OK;

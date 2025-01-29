@@ -165,6 +165,37 @@ MethodInfo MethodInfo::from_dict(const Dictionary &p_dict) {
 	return mi;
 }
 
+uint32_t MethodInfo::get_compatibility_hash() const {
+	bool has_return = (return_val.type != Variant::NIL) || (return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
+
+	uint32_t hash = hash_murmur3_one_32(has_return);
+	hash = hash_murmur3_one_32(arguments.size(), hash);
+
+	if (has_return) {
+		hash = hash_murmur3_one_32(return_val.type, hash);
+		if (return_val.class_name != StringName()) {
+			hash = hash_murmur3_one_32(return_val.class_name.hash(), hash);
+		}
+	}
+
+	for (const PropertyInfo &arg : arguments) {
+		hash = hash_murmur3_one_32(arg.type, hash);
+		if (arg.class_name != StringName()) {
+			hash = hash_murmur3_one_32(arg.class_name.hash(), hash);
+		}
+	}
+
+	hash = hash_murmur3_one_32(default_arguments.size(), hash);
+	for (const Variant &v : default_arguments) {
+		hash = hash_murmur3_one_32(v.hash(), hash);
+	}
+
+	hash = hash_murmur3_one_32(flags & METHOD_FLAG_CONST ? 1 : 0, hash);
+	hash = hash_murmur3_one_32(flags & METHOD_FLAG_VARARG ? 1 : 0, hash);
+
+	return hash_fmix32(hash);
+}
+
 Object::Connection::operator Variant() const {
 	Dictionary d;
 	d["signal"] = signal;
@@ -520,7 +551,13 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 		PropertyInfo pi = PropertyInfo(K.value.get_type(), "metadata/" + K.key.operator String());
 		if (K.value.get_type() == Variant::OBJECT) {
 			pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
-			pi.hint_string = "Resource";
+			Object *obj = K.value;
+			if (Object::cast_to<Script>(obj)) {
+				pi.hint_string = "Script";
+				pi.usage |= PROPERTY_USAGE_NEVER_DUPLICATE;
+			} else {
+				pi.hint_string = "Resource";
+			}
 		}
 		p_list->push_back(pi);
 	}

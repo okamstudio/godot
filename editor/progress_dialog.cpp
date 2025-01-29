@@ -35,6 +35,8 @@
 #include "editor/editor_node.h"
 #include "editor/themes/editor_scale.h"
 #include "main/main.h"
+#include "scene/gui/panel_container.h"
+#include "scene/main/window.h"
 #include "servers/display_server.h"
 
 void BackgroundProgress::_add_task(const String &p_task, const String &p_label, int p_steps) {
@@ -126,6 +128,21 @@ void BackgroundProgress::end_task(const String &p_task) {
 
 ProgressDialog *ProgressDialog::singleton = nullptr;
 
+void ProgressDialog::_notification(int p_what) {
+	switch (p_what) {
+		case NOTIFICATION_THEME_CHANGED: {
+			Ref<StyleBox> style = main->get_theme_stylebox(SceneStringName(panel), SNAME("PopupMenu"));
+			main_border_size = style->get_minimum_size();
+			main->set_offset(SIDE_LEFT, style->get_margin(SIDE_LEFT));
+			main->set_offset(SIDE_RIGHT, -style->get_margin(SIDE_RIGHT));
+			main->set_offset(SIDE_TOP, style->get_margin(SIDE_TOP));
+			main->set_offset(SIDE_BOTTOM, -style->get_margin(SIDE_BOTTOM));
+
+			center_panel->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SceneStringName(panel), "PopupPanel"));
+		} break;
+	}
+}
+
 void ProgressDialog::_update_ui() {
 	// Run main loop for two frames.
 	if (is_inside_tree()) {
@@ -135,33 +152,29 @@ void ProgressDialog::_update_ui() {
 }
 
 void ProgressDialog::_popup() {
+	// Activate processing of all inputs in EditorNode, and the EditorNode::input method
+	// will discard every key input.
+	EditorNode::get_singleton()->set_process_input(true);
+	// Disable all other windows to prevent interaction with them.
+	for (Window *w : host_windows) {
+		w->set_process_mode(PROCESS_MODE_DISABLED);
+	}
+
 	Size2 ms = main->get_combined_minimum_size();
 	ms.width = MAX(500 * EDSCALE, ms.width);
+	ms += main_border_size;
 
-	Ref<StyleBox> style = main->get_theme_stylebox(SceneStringName(panel), SNAME("PopupMenu"));
-	ms += style->get_minimum_size();
+	center_panel->set_custom_minimum_size(ms);
 
-	main->set_offset(SIDE_LEFT, style->get_margin(SIDE_LEFT));
-	main->set_offset(SIDE_RIGHT, -style->get_margin(SIDE_RIGHT));
-	main->set_offset(SIDE_TOP, style->get_margin(SIDE_TOP));
-	main->set_offset(SIDE_BOTTOM, -style->get_margin(SIDE_BOTTOM));
+	Window *current_window = get_last_exclusive_window();
+	reparent(current_window);
 
-	if (is_inside_tree()) {
-		Rect2i adjust = _popup_adjust_rect();
-		if (adjust != Rect2i()) {
-			set_position(adjust.position);
-			set_size(adjust.size);
-		}
-	} else {
-		for (Window *window : host_windows) {
-			if (window->has_focus()) {
-				popup_exclusive_centered(window, ms);
-				return;
-			}
-		}
-		// No host window found, use main window.
-		EditorInterface::get_singleton()->popup_dialog_centered(this, ms);
-	}
+	// Ensures that events are properly released before the dialog blocks input.
+	bool window_is_input_disabled = current_window->is_input_disabled();
+	current_window->set_disable_input(!window_is_input_disabled);
+	current_window->set_disable_input(window_is_input_disabled);
+
+	show();
 }
 
 void ProgressDialog::add_task(const String &p_task, const String &p_label, int p_steps, bool p_can_cancel) {
@@ -231,6 +244,10 @@ void ProgressDialog::end_task(const String &p_task) {
 
 	if (tasks.is_empty()) {
 		hide();
+		EditorNode::get_singleton()->set_process_input(false);
+		for (Window *w : host_windows) {
+			w->set_process_mode(PROCESS_MODE_INHERIT);
+		}
 	} else {
 		_popup();
 	}
@@ -241,17 +258,31 @@ void ProgressDialog::add_host_window(Window *p_window) {
 	host_windows.push_back(p_window);
 }
 
+void ProgressDialog::remove_host_window(Window *p_window) {
+	ERR_FAIL_NULL(p_window);
+	host_windows.erase(p_window);
+}
+
 void ProgressDialog::_cancel_pressed() {
 	canceled = true;
 }
 
 ProgressDialog::ProgressDialog() {
-	main = memnew(VBoxContainer);
-	add_child(main);
-	main->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
-	set_exclusive(true);
-	set_flag(Window::FLAG_POPUP, false);
+	// We want to cover the entire screen to prevent the user from interacting with the Editor.
+	set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT);
+	// Be sure it's the top most component.
+	set_z_index(RS::CANVAS_ITEM_Z_MAX);
 	singleton = this;
+	hide();
+
+	center_panel = memnew(PanelContainer);
+	add_child(center_panel);
+	center_panel->set_h_size_flags(SIZE_SHRINK_BEGIN);
+	center_panel->set_v_size_flags(SIZE_SHRINK_BEGIN);
+
+	main = memnew(VBoxContainer);
+	center_panel->add_child(main);
+
 	cancel_hb = memnew(HBoxContainer);
 	main->add_child(cancel_hb);
 	cancel_hb->hide();

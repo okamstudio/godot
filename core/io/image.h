@@ -395,6 +395,7 @@ public:
 	Ref<Image> get_region(const Rect2i &p_area) const;
 
 	static String get_format_name(Format p_format);
+	static uint32_t get_format_component_mask(Format p_format);
 
 	Error load_png_from_buffer(const Vector<uint8_t> &p_array);
 	Error load_jpg_from_buffer(const Vector<uint8_t> &p_array);

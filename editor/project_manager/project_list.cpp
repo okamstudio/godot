@@ -468,14 +468,16 @@ ProjectList::Item ProjectList::load_project_data(const String &p_path, bool p_fa
 	String conf = p_path.path_join("project.godot");
 	bool grayed = false;
 	bool missing = false;
+	bool recovery_mode = false;
 
 	Ref<ConfigFile> cf = memnew(ConfigFile);
 	Error cf_err = cf->load(conf);
 
 	int config_version = 0;
+	String cf_project_name;
 	String project_name = TTR("Unnamed Project");
 	if (cf_err == OK) {
-		String cf_project_name = cf->get_value("application", "config/name", "");
+		cf_project_name = cf->get_value("application", "config/name", "");
 		if (!cf_project_name.is_empty()) {
 			project_name = cf_project_name.xml_unescape();
 		}
@@ -489,8 +491,19 @@ ProjectList::Item ProjectList::load_project_data(const String &p_path, bool p_fa
 
 	const String description = cf->get_value("application", "config/description", "");
 	const PackedStringArray tags = cf->get_value("application", "config/tags", PackedStringArray());
-	const String icon = cf->get_value("application", "config/icon", "");
 	const String main_scene = cf->get_value("application", "run/main_scene", "");
+
+	String icon = cf->get_value("application", "config/icon", "");
+	if (icon.begins_with("uid://")) {
+		Error err;
+		Ref<FileAccess> file = FileAccess::open(p_path.path_join(".godot/uid_cache.bin"), FileAccess::READ, &err);
+		if (err == OK) {
+			icon = ResourceUID::get_path_from_cache(file, icon);
+			if (icon.is_empty()) {
+				WARN_PRINT(vformat("Could not load icon from UID for project at path \"%s\". Make sure UID cache exists.", p_path));
+			}
+		}
+	}
 
 	PackedStringArray project_features = cf->get_value("application", "config/features", PackedStringArray());
 	PackedStringArray unsupported_features = ProjectSettings::get_unsupported_features(project_features);
@@ -537,7 +550,29 @@ ProjectList::Item ProjectList::load_project_data(const String &p_path, bool p_fa
 		ProjectManager::get_singleton()->add_new_tag(tag);
 	}
 
-	return Item(project_name, description, project_version, tags, p_path, icon, main_scene, unsupported_features, last_edited, p_favorite, grayed, missing, config_version);
+	// We can't use OS::get_user_dir() because it attempts to load paths from the current loaded project through ProjectSettings,
+	// while here we're parsing project files externally. Therefore, we have to replicate its behavior.
+	String user_dir;
+	if (!cf_project_name.is_empty()) {
+		String appname = OS::get_singleton()->get_safe_dir_name(cf_project_name);
+		bool use_custom_dir = cf->get_value("application", "config/use_custom_user_dir", false);
+		if (use_custom_dir) {
+			String custom_dir = OS::get_singleton()->get_safe_dir_name(cf->get_value("application", "config/custom_user_dir_name", ""), true);
+			if (custom_dir.is_empty()) {
+				custom_dir = appname;
+			}
+			user_dir = custom_dir;
+		} else {
+			user_dir = OS::get_singleton()->get_godot_dir_name().path_join("app_userdata").path_join(appname);
+		}
+	} else {
+		user_dir = OS::get_singleton()->get_godot_dir_name().path_join("app_userdata").path_join("[unnamed project]");
+	}
+
+	String recovery_mode_lock_file = OS::get_singleton()->get_user_data_dir(user_dir).path_join(".recovery_mode_lock");
+	recovery_mode = FileAccess::exists(recovery_mode_lock_file);
+
+	return Item(project_name, description, project_version, tags, p_path, icon, main_scene, unsupported_features, last_edited, p_favorite, grayed, missing, recovery_mode, config_version);
 }
 
 void ProjectList::_update_icons_async() {

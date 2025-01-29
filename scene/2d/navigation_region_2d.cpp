@@ -163,14 +163,14 @@ void NavigationRegion2D::_notification(int p_what) {
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(is_visible_in_tree());
+			_set_debug_visible(is_visible_in_tree());
 #endif // DEBUG_ENABLED
 		} break;
 
 		case NOTIFICATION_EXIT_TREE: {
 			_region_exit_navigation_map();
 #ifdef DEBUG_ENABLED
-			_set_debug_visibile(false);
+			_set_debug_visible(false);
 #endif // DEBUG_ENABLED
 		} break;
 
@@ -200,6 +200,9 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 #ifdef DEBUG_ENABLED
 	debug_mesh_dirty = true;
 #endif // DEBUG_ENABLED
+
+	_update_bounds();
+
 	NavigationServer2D::get_singleton()->region_set_navigation_polygon(region, p_navigation_polygon);
 
 	if (navigation_polygon.is_valid()) {
@@ -208,7 +211,7 @@ void NavigationRegion2D::set_navigation_polygon(const Ref<NavigationPolygon> &p_
 
 #ifdef DEBUG_ENABLED
 	if (navigation_polygon.is_null()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 	}
 #endif // DEBUG_ENABLED
 
@@ -341,6 +344,8 @@ void NavigationRegion2D::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_navigation_polygon_changed"), &NavigationRegion2D::_navigation_polygon_changed);
 
+	ClassDB::bind_method(D_METHOD("get_bounds"), &NavigationRegion2D::get_bounds);
+
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "navigation_polygon", PROPERTY_HINT_RESOURCE_TYPE, "NavigationPolygon"), "set_navigation_polygon", "get_navigation_polygon");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "is_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_edge_connections"), "set_use_edge_connections", "get_use_edge_connections");
@@ -445,7 +450,7 @@ void NavigationRegion2D::_region_update_transform() {
 #ifdef DEBUG_ENABLED
 void NavigationRegion2D::_update_debug_mesh() {
 	if (!is_inside_tree()) {
-		_set_debug_visibile(false);
+		_set_debug_visible(false);
 		return;
 	}
 
@@ -640,7 +645,7 @@ void NavigationRegion2D::_update_debug_baking_rect() {
 #endif // DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
-void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
+void NavigationRegion2D::_set_debug_visible(bool p_visible) {
 	RenderingServer *rs = RenderingServer::get_singleton();
 	ERR_FAIL_NULL(rs);
 	if (debug_instance_rid.is_valid()) {
@@ -648,3 +653,26 @@ void NavigationRegion2D::_set_debug_visibile(bool p_visible) {
 	}
 }
 #endif // DEBUG_ENABLED
+
+void NavigationRegion2D::_update_bounds() {
+	if (navigation_polygon.is_null()) {
+		bounds = Rect2();
+		return;
+	}
+
+	const Vector<Vector2> &vertices = navigation_polygon->get_vertices();
+	if (vertices.is_empty()) {
+		bounds = Rect2();
+		return;
+	}
+
+	const Transform2D gt = is_inside_tree() ? get_global_transform() : get_transform();
+
+	Rect2 new_bounds;
+	new_bounds.position = gt.xform(vertices[0]);
+
+	for (const Vector2 &vertex : vertices) {
+		new_bounds.expand_to(gt.xform(vertex));
+	}
+	bounds = new_bounds;
+}

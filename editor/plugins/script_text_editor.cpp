@@ -41,6 +41,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
 #include "editor/gui/editor_toaster.h"
+#include "editor/plugins/editor_context_menu_plugin.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/rich_text_label.h"
@@ -455,6 +456,7 @@ void ScriptTextEditor::convert_indent() {
 
 void ScriptTextEditor::tag_saved_version() {
 	code_editor->get_text_editor()->tag_saved_version();
+	edited_file_data.last_modified_time = FileAccess::get_modified_time(edited_file_data.path);
 }
 
 void ScriptTextEditor::goto_line(int p_line, int p_column) {
@@ -578,7 +580,7 @@ void ScriptTextEditor::_update_warnings() {
 
 	bool has_connections_table = false;
 	// Add missing connections.
-	if (GLOBAL_GET("debug/gdscript/warnings/enable").booleanize()) {
+	if (GLOBAL_GET("debug/gdscript/warnings/enable")) {
 		Node *base = get_tree()->get_edited_scene_root();
 		if (base && missing_connections.size() > 0) {
 			has_connections_table = true;
@@ -756,7 +758,7 @@ void ScriptTextEditor::_update_bookmark_list() {
 			line = line.substr(0, 50);
 		}
 
-		bookmarks_menu->add_item(String::num((int)bookmark_list[i] + 1) + " - `" + line + "`");
+		bookmarks_menu->add_item(String::num_int64(bookmark_list[i] + 1) + " - `" + line + "`");
 		bookmarks_menu->set_item_metadata(-1, bookmark_list[i]);
 	}
 }
@@ -911,7 +913,7 @@ void ScriptTextEditor::_update_breakpoint_list() {
 			line = line.substr(0, 50);
 		}
 
-		breakpoints_menu->add_item(String::num((int)breakpoint_list[i] + 1) + " - `" + line + "`");
+		breakpoints_menu->add_item(String::num_int64(breakpoint_list[i] + 1) + " - `" + line + "`");
 		breakpoints_menu->set_item_metadata(-1, breakpoint_list[i]);
 	}
 }
@@ -1101,105 +1103,123 @@ void ScriptTextEditor::_validate_symbol(const String &p_symbol) {
 }
 
 void ScriptTextEditor::_show_symbol_tooltip(const String &p_symbol, int p_row, int p_column) {
+	if (p_symbol.begins_with("res://") || p_symbol.begins_with("uid://")) {
+		EditorHelpBitTooltip::show_tooltip(code_editor->get_text_editor(), "resource||" + p_symbol);
+		return;
+	}
+
 	Node *base = get_tree()->get_edited_scene_root();
 	if (base) {
 		base = _find_node_for_script(base, base, script);
 	}
 
 	ScriptLanguage::LookupResult result;
+	String doc_symbol;
 	const String code_text = code_editor->get_text_editor()->get_text_with_cursor_char(p_row, p_column);
 	const Error lc_error = script->get_language()->lookup_code(code_text, p_symbol, script->get_path(), base, result);
-	if (lc_error != OK) {
-		return;
+	if (lc_error == OK) {
+		switch (result.type) {
+			case ScriptLanguage::LOOKUP_RESULT_CLASS: {
+				doc_symbol = "class|" + result.class_name + "|";
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_CONSTANT: {
+				StringName cname = result.class_name;
+				while (ClassDB::class_exists(cname)) {
+					if (ClassDB::has_integer_constant(cname, result.class_member, true)) {
+						result.class_name = cname;
+						break;
+					}
+					cname = ClassDB::get_parent_class(cname);
+				}
+				doc_symbol = "constant|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_PROPERTY: {
+				StringName cname = result.class_name;
+				while (ClassDB::class_exists(cname)) {
+					if (ClassDB::has_property(cname, result.class_member, true)) {
+						result.class_name = cname;
+						break;
+					}
+					cname = ClassDB::get_parent_class(cname);
+				}
+				doc_symbol = "property|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD: {
+				StringName cname = result.class_name;
+				while (ClassDB::class_exists(cname)) {
+					if (ClassDB::has_method(cname, result.class_member, true)) {
+						result.class_name = cname;
+						break;
+					}
+					cname = ClassDB::get_parent_class(cname);
+				}
+				doc_symbol = "method|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_SIGNAL: {
+				StringName cname = result.class_name;
+				while (ClassDB::class_exists(cname)) {
+					if (ClassDB::has_signal(cname, result.class_member, true)) {
+						result.class_name = cname;
+						break;
+					}
+					cname = ClassDB::get_parent_class(cname);
+				}
+				doc_symbol = "signal|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_ENUM: {
+				StringName cname = result.class_name;
+				while (ClassDB::class_exists(cname)) {
+					if (ClassDB::has_enum(cname, result.class_member, true)) {
+						result.class_name = cname;
+						break;
+					}
+					cname = ClassDB::get_parent_class(cname);
+				}
+				doc_symbol = "enum|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION: {
+				doc_symbol = "annotation|" + result.class_name + "|" + result.class_member;
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT:
+			case ScriptLanguage::LOOKUP_RESULT_LOCAL_VARIABLE: {
+				const String item_type = (result.type == ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT) ? "local_constant" : "local_variable";
+				Dictionary item_data;
+				item_data["description"] = result.description;
+				item_data["is_deprecated"] = result.is_deprecated;
+				item_data["deprecated_message"] = result.deprecated_message;
+				item_data["is_experimental"] = result.is_experimental;
+				item_data["experimental_message"] = result.experimental_message;
+				item_data["doc_type"] = result.doc_type;
+				item_data["enumeration"] = result.enumeration;
+				item_data["is_bitfield"] = result.is_bitfield;
+				item_data["value"] = result.value;
+				doc_symbol = item_type + "||" + p_symbol + "|" + JSON::stringify(item_data);
+			} break;
+			case ScriptLanguage::LOOKUP_RESULT_SCRIPT_LOCATION:
+			case ScriptLanguage::LOOKUP_RESULT_CLASS_TBD_GLOBALSCOPE: // Deprecated.
+			case ScriptLanguage::LOOKUP_RESULT_MAX: {
+				// Nothing to do.
+			} break;
+		}
 	}
 
-	String doc_symbol;
-	switch (result.type) {
-		case ScriptLanguage::LOOKUP_RESULT_CLASS: {
-			doc_symbol = "class|" + result.class_name + "|";
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_CONSTANT: {
-			StringName cname = result.class_name;
-			while (ClassDB::class_exists(cname)) {
-				if (ClassDB::has_integer_constant(cname, result.class_member, true)) {
-					result.class_name = cname;
-					break;
-				}
-				cname = ClassDB::get_parent_class(cname);
-			}
-			doc_symbol = "constant|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_PROPERTY: {
-			StringName cname = result.class_name;
-			while (ClassDB::class_exists(cname)) {
-				if (ClassDB::has_property(cname, result.class_member, true)) {
-					result.class_name = cname;
-					break;
-				}
-				cname = ClassDB::get_parent_class(cname);
-			}
-			doc_symbol = "property|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_METHOD: {
-			StringName cname = result.class_name;
-			while (ClassDB::class_exists(cname)) {
-				if (ClassDB::has_method(cname, result.class_member, true)) {
-					result.class_name = cname;
-					break;
-				}
-				cname = ClassDB::get_parent_class(cname);
-			}
-			doc_symbol = "method|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_SIGNAL: {
-			StringName cname = result.class_name;
-			while (ClassDB::class_exists(cname)) {
-				if (ClassDB::has_signal(cname, result.class_member, true)) {
-					result.class_name = cname;
-					break;
-				}
-				cname = ClassDB::get_parent_class(cname);
-			}
-			doc_symbol = "signal|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_ENUM: {
-			StringName cname = result.class_name;
-			while (ClassDB::class_exists(cname)) {
-				if (ClassDB::has_enum(cname, result.class_member, true)) {
-					result.class_name = cname;
-					break;
-				}
-				cname = ClassDB::get_parent_class(cname);
-			}
-			doc_symbol = "enum|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_ANNOTATION: {
-			doc_symbol = "annotation|" + result.class_name + "|" + result.class_member;
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT:
-		case ScriptLanguage::LOOKUP_RESULT_LOCAL_VARIABLE: {
-			const String item_type = (result.type == ScriptLanguage::LOOKUP_RESULT_LOCAL_CONSTANT) ? "local_constant" : "local_variable";
-			Dictionary item_data;
-			item_data["description"] = result.description;
-			item_data["is_deprecated"] = result.is_deprecated;
-			item_data["deprecated_message"] = result.deprecated_message;
-			item_data["is_experimental"] = result.is_experimental;
-			item_data["experimental_message"] = result.experimental_message;
-			item_data["doc_type"] = result.doc_type;
-			item_data["enumeration"] = result.enumeration;
-			item_data["is_bitfield"] = result.is_bitfield;
-			item_data["value"] = result.value;
-			doc_symbol = item_type + "||" + p_symbol + "|" + JSON::stringify(item_data);
-		} break;
-		case ScriptLanguage::LOOKUP_RESULT_SCRIPT_LOCATION:
-		case ScriptLanguage::LOOKUP_RESULT_CLASS_TBD_GLOBALSCOPE: // Deprecated.
-		case ScriptLanguage::LOOKUP_RESULT_MAX: {
-			// Nothing to do.
-		} break;
+	String debug_value = EditorDebuggerNode::get_singleton()->get_var_value(p_symbol);
+	if (!debug_value.is_empty()) {
+		constexpr int DISPLAY_LIMIT = 1024;
+		if (debug_value.size() > DISPLAY_LIMIT) {
+			debug_value = debug_value.left(DISPLAY_LIMIT) + "... " + TTR("(truncated)");
+		}
+		debug_value = debug_value.replace("[", "[lb]");
+
+		if (doc_symbol.is_empty()) {
+			debug_value = p_symbol + ": " + debug_value;
+		} else {
+			debug_value = TTR("Current value: ") + debug_value;
+		}
 	}
 
-	if (!doc_symbol.is_empty()) {
-		EditorHelpBitTooltip::show_tooltip(code_editor->get_text_editor(), doc_symbol, String(), true);
+	if (!doc_symbol.is_empty() || !debug_value.is_empty()) {
+		EditorHelpBitTooltip::show_tooltip(code_editor->get_text_editor(), doc_symbol, debug_value, true);
 	}
 }
 
@@ -1724,6 +1744,14 @@ void ScriptTextEditor::_edit_option(int p_op) {
 				_lookup_symbol(text, tx->get_caret_line(0), tx->get_caret_column(0));
 			}
 		} break;
+		case EDIT_EMOJI_AND_SYMBOL: {
+			code_editor->get_text_editor()->show_emoji_and_symbol_picker();
+		} break;
+		default: {
+			if (p_op >= EditorContextMenuPlugin::BASE_ID) {
+				EditorContextMenuPluginManager::get_singleton()->activate_custom_option(EditorContextMenuPlugin::CONTEXT_SLOT_SCRIPT_EDITOR_CODE, p_op, tx);
+			}
+		}
 	}
 }
 
@@ -2275,6 +2303,10 @@ void ScriptTextEditor::_prepare_edit_menu() {
 
 void ScriptTextEditor::_make_context_menu(bool p_selection, bool p_color, bool p_foldable, bool p_open_docs, bool p_goto_definition, Vector2 p_pos) {
 	context_menu->clear();
+	if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_EMOJI_AND_SYMBOL_PICKER)) {
+		context_menu->add_item(TTR("Emoji & Symbols"), EDIT_EMOJI_AND_SYMBOL);
+		context_menu->add_separator();
+	}
 	context_menu->add_shortcut(ED_GET_SHORTCUT("ui_undo"), EDIT_UNDO);
 	context_menu->add_shortcut(ED_GET_SHORTCUT("ui_redo"), EDIT_REDO);
 
@@ -2306,12 +2338,15 @@ void ScriptTextEditor::_make_context_menu(bool p_selection, bool p_color, bool p
 	if (p_color || p_open_docs || p_goto_definition) {
 		context_menu->add_separator();
 		if (p_open_docs) {
-			context_menu->add_item(TTR("Lookup Symbol"), LOOKUP_SYMBOL);
+			context_menu->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_symbol"), LOOKUP_SYMBOL);
 		}
 		if (p_color) {
 			context_menu->add_item(TTR("Pick Color"), EDIT_PICK_COLOR);
 		}
 	}
+
+	const PackedStringArray paths = { code_editor->get_text_editor()->get_path() };
+	EditorContextMenuPluginManager::get_singleton()->add_options_from_plugins(context_menu, EditorContextMenuPlugin::CONTEXT_SLOT_SCRIPT_EDITOR_CODE, paths);
 
 	const CodeEdit *tx = code_editor->get_text_editor();
 	context_menu->set_item_disabled(context_menu->get_item_index(EDIT_UNDO), !tx->has_undo());
@@ -2457,6 +2492,7 @@ void ScriptTextEditor::_enable_code_editor() {
 	edit_hb->add_child(goto_menu);
 	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_function"), SEARCH_LOCATE_FUNCTION);
 	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_line"), SEARCH_GOTO_LINE);
+	goto_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_symbol"), LOOKUP_SYMBOL);
 	goto_menu->get_popup()->add_separator();
 
 	goto_menu->get_popup()->add_submenu_node_item(TTR("Bookmarks"), bookmarks_menu);
@@ -2641,6 +2677,7 @@ void ScriptTextEditor::register_editor() {
 	ED_SHORTCUT_OVERRIDE("script_text_editor/goto_function", "macos", KeyModifierMask::CTRL | KeyModifierMask::META | Key::J);
 
 	ED_SHORTCUT("script_text_editor/goto_line", TTRC("Go to Line..."), KeyModifierMask::CMD_OR_CTRL | Key::L);
+	ED_SHORTCUT("script_text_editor/goto_symbol", TTRC("Lookup Symbol"));
 
 	ED_SHORTCUT("script_text_editor/toggle_breakpoint", TTRC("Toggle Breakpoint"), Key::F9);
 	ED_SHORTCUT_OVERRIDE("script_text_editor/toggle_breakpoint", "macos", KeyModifierMask::META | KeyModifierMask::SHIFT | Key::B);

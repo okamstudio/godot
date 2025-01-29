@@ -31,6 +31,7 @@
 #include "texture_3d_editor_plugin.h"
 
 #include "editor/editor_string_names.h"
+#include "editor/plugins/color_channel_selector.h"
 #include "editor/themes/editor_scale.h"
 #include "scene/gui/label.h"
 
@@ -44,8 +45,29 @@ constexpr const char *texture_3d_shader = R"(
 	uniform sampler3D tex;
 	uniform float layer;
 
+	uniform vec4 u_channel_factors = vec4(1.0);
+
+	vec4 filter_preview_colors(vec4 input_color, vec4 factors) {
+		// Filter RGB.
+		vec4 output_color = input_color * vec4(factors.rgb, input_color.a);
+
+		// Remove transparency when alpha is not enabled.
+		output_color.a = mix(1.0, output_color.a, factors.a);
+
+		// Switch to opaque grayscale when visualizing only one channel.
+		float csum = factors.r + factors.g + factors.b + factors.a;
+		float single = clamp(2.0 - csum, 0.0, 1.0);
+		for (int i = 0; i < 4; i++) {
+			float c = input_color[i];
+			output_color = mix(output_color, vec4(c, c, c, 1.0), factors[i] * single);
+		}
+
+		return output_color;
+	}
+
 	void fragment() {
 		COLOR = textureLod(tex, vec3(UV, layer), 0.0);
+		COLOR = filter_preview_colors(COLOR, u_channel_factors);
 	}
 )";
 
@@ -94,6 +116,8 @@ void Texture3DEditor::_update_material(bool p_texture_changed) {
 	if (p_texture_changed) {
 		material->set_shader_parameter("tex", texture->get_rid());
 	}
+
+	material->set_shader_parameter("u_channel_factors", channel_selector->get_selected_channel_factors());
 }
 
 void Texture3DEditor::_make_shaders() {
@@ -138,30 +162,44 @@ void Texture3DEditor::_update_gui() {
 
 	layer->set_max(texture->get_depth() - 1);
 
-	const String format = Image::get_format_name(texture->get_format());
+	const Image::Format format = texture->get_format();
+	const String format_name = Image::get_format_name(format);
 
 	if (texture->has_mipmaps()) {
-		const int mip_count = Image::get_image_required_mipmaps(texture->get_width(), texture->get_height(), texture->get_format());
-		const int memory = Image::get_image_data_size(texture->get_width(), texture->get_height(), texture->get_format(), true) * texture->get_depth();
+		const int mip_count = Image::get_image_required_mipmaps(texture->get_width(), texture->get_height(), format);
+		const int memory = Image::get_image_data_size(texture->get_width(), texture->get_height(), format, true) * texture->get_depth();
 
 		info->set_text(vformat(String::utf8("%d×%d×%d %s\n") + TTR("%s Mipmaps") + "\n" + TTR("Memory: %s"),
 				texture->get_width(),
 				texture->get_height(),
 				texture->get_depth(),
-				format,
+				format_name,
 				mip_count,
 				String::humanize_size(memory)));
 
 	} else {
-		const int memory = Image::get_image_data_size(texture->get_width(), texture->get_height(), texture->get_format(), false) * texture->get_depth();
+		const int memory = Image::get_image_data_size(texture->get_width(), texture->get_height(), format, false) * texture->get_depth();
 
 		info->set_text(vformat(String::utf8("%d×%d×%d %s\n") + TTR("No Mipmaps") + "\n" + TTR("Memory: %s"),
 				texture->get_width(),
 				texture->get_height(),
 				texture->get_depth(),
-				format,
+				format_name,
 				String::humanize_size(memory)));
 	}
+
+	const uint32_t components_mask = Image::get_format_component_mask(format);
+	if (is_power_of_2(components_mask)) {
+		// Only one channel available, no point in showing a channel selector.
+		channel_selector->hide();
+	} else {
+		channel_selector->show();
+		channel_selector->set_available_channels_mask(components_mask);
+	}
+}
+
+void Texture3DEditor::on_selected_channels_changed() {
+	_update_material(false);
 }
 
 void Texture3DEditor::edit(Ref<Texture3D> p_texture) {
@@ -214,6 +252,11 @@ Texture3DEditor::Texture3DEditor() {
 	layer->connect(SceneStringName(value_changed), callable_mp(this, &Texture3DEditor::_layer_changed));
 
 	add_child(layer);
+
+	channel_selector = memnew(ColorChannelSelector);
+	channel_selector->connect("selected_channels_changed", callable_mp(this, &Texture3DEditor::on_selected_channels_changed));
+	channel_selector->set_anchors_preset(Control::PRESET_TOP_LEFT);
+	add_child(channel_selector);
 
 	info = memnew(Label);
 	info->add_theme_color_override(SceneStringName(font_color), Color(1, 1, 1));

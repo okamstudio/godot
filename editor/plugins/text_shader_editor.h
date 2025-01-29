@@ -134,6 +134,7 @@ class TextShaderEditor : public ShaderEditor {
 		BOOKMARK_GOTO_PREV,
 		BOOKMARK_REMOVE_ALL,
 		HELP_DOCS,
+		EDIT_EMOJI_AND_SYMBOL,
 	};
 
 	MenuButton *edit_menu = nullptr;

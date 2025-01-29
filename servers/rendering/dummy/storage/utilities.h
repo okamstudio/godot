@@ -77,6 +77,9 @@ public:
 		} else if (RendererDummy::MaterialStorage::get_singleton()->owns_shader(p_rid)) {
 			RendererDummy::MaterialStorage::get_singleton()->shader_free(p_rid);
 			return true;
+		} else if (RendererDummy::MaterialStorage::get_singleton()->owns_material(p_rid)) {
+			RendererDummy::MaterialStorage::get_singleton()->material_free(p_rid);
+			return true;
 		}
 		return false;
 	}

@@ -372,7 +372,7 @@ void Label::_update_visible() const {
 inline void draw_glyph(const Glyph &p_gl, const RID &p_canvas, const Color &p_font_color, const Vector2 &p_ofs) {
 	if (p_gl.font_rid != RID()) {
 		TS->font_draw_glyph(p_gl.font_rid, p_canvas, p_gl.font_size, p_ofs + Vector2(p_gl.x_off, p_gl.y_off), p_gl.index, p_font_color);
-	} else {
+	} else if (((p_gl.flags & TextServer::GRAPHEME_IS_VIRTUAL) != TextServer::GRAPHEME_IS_VIRTUAL) && ((p_gl.flags & TextServer::GRAPHEME_IS_EMBEDDED_OBJECT) != TextServer::GRAPHEME_IS_EMBEDDED_OBJECT)) {
 		TS->draw_hex_code_box(p_canvas, p_gl.font_size, p_ofs + Vector2(p_gl.x_off, p_gl.y_off), p_gl.index, p_font_color);
 	}
 }
@@ -713,7 +713,9 @@ void Label::_notification(int p_what) {
 						int asc = TS->shaped_text_get_ascent(line_rid);
 						int dsc = TS->shaped_text_get_descent(line_rid);
 						if (asc + dsc < font_h) {
-							dsc = font_h - asc;
+							int diff = font_h - (asc + dsc);
+							asc += diff / 2;
+							dsc += diff - (diff / 2);
 						}
 
 						const Glyph *glyphs = TS->shaped_text_get_glyphs(line_rid);

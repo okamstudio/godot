@@ -1122,6 +1122,10 @@ void TileSet::set_custom_data_layer_name(int p_layer_id, String p_value) {
 	emit_changed();
 }
 
+bool TileSet::has_custom_data_layer_by_name(const String &p_value) const {
+	return custom_data_layers_by_name.has(p_value);
+}
+
 String TileSet::get_custom_data_layer_name(int p_layer_id) const {
 	ERR_FAIL_INDEX_V(p_layer_id, custom_data_layers.size(), "");
 	return custom_data_layers[p_layer_id].name;
@@ -4354,6 +4358,7 @@ void TileSet::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_custom_data_layer", "layer_index"), &TileSet::remove_custom_data_layer);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_by_name", "layer_name"), &TileSet::get_custom_data_layer_by_name);
 	ClassDB::bind_method(D_METHOD("set_custom_data_layer_name", "layer_index", "layer_name"), &TileSet::set_custom_data_layer_name);
+	ClassDB::bind_method(D_METHOD("has_custom_data_layer_by_name", "layer_name"), &TileSet::has_custom_data_layer_by_name);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_name", "layer_index"), &TileSet::get_custom_data_layer_name);
 	ClassDB::bind_method(D_METHOD("set_custom_data_layer_type", "layer_index", "layer_type"), &TileSet::set_custom_data_layer_type);
 	ClassDB::bind_method(D_METHOD("get_custom_data_layer_type", "layer_index"), &TileSet::get_custom_data_layer_type);
@@ -6636,6 +6641,11 @@ Variant TileData::get_custom_data(String p_layer_name) const {
 	return get_custom_data_by_layer_id(p_layer_id);
 }
 
+bool TileData::has_custom_data(const String &p_layer_name) const {
+	ERR_FAIL_NULL_V(tile_set, false);
+	return tile_set->has_custom_data_layer_by_name(p_layer_name);
+}
+
 void TileData::set_custom_data_by_layer_id(int p_layer_id, Variant p_value) {
 	ERR_FAIL_INDEX(p_layer_id, custom_data.size());
 	custom_data.write[p_layer_id] = p_value;
@@ -7116,6 +7126,7 @@ void TileData::_bind_methods() {
 	// Custom data.
 	ClassDB::bind_method(D_METHOD("set_custom_data", "layer_name", "value"), &TileData::set_custom_data);
 	ClassDB::bind_method(D_METHOD("get_custom_data", "layer_name"), &TileData::get_custom_data);
+	ClassDB::bind_method(D_METHOD("has_custom_data", "layer_name"), &TileData::has_custom_data);
 	ClassDB::bind_method(D_METHOD("set_custom_data_by_layer_id", "layer_id", "value"), &TileData::set_custom_data_by_layer_id);
 	ClassDB::bind_method(D_METHOD("get_custom_data_by_layer_id", "layer_id"), &TileData::get_custom_data_by_layer_id);
 

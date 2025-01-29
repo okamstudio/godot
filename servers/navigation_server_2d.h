@@ -43,6 +43,11 @@
 class NavMeshGenerator2D;
 #endif // CLIPPER2_ENABLED
 
+struct NavMeshGeometryParser2D {
+	RID self;
+	Callable callback;
+};
+
 // This server exposes the `NavigationServer3D` features in the 2D world.
 class NavigationServer2D : public Object {
 	GDCLASS(NavigationServer2D, Object);
@@ -154,6 +159,7 @@ public:
 
 	virtual Vector2 region_get_closest_point(RID p_region, const Vector2 &p_point) const = 0;
 	virtual Vector2 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const = 0;
+	virtual Rect2 region_get_bounds(RID p_region) const = 0;
 
 	/// Creates a new link between positions in the nav map.
 	virtual RID link_create() = 0;
@@ -310,6 +316,12 @@ public:
 	virtual void bake_from_source_geometry_data_async(const Ref<NavigationPolygon> &p_navigation_mesh, const Ref<NavigationMeshSourceGeometryData2D> &p_source_geometry_data, const Callable &p_callback = Callable()) = 0;
 	virtual bool is_baking_navigation_polygon(Ref<NavigationPolygon> p_navigation_polygon) const = 0;
 
+protected:
+	static RWLock geometry_parser_rwlock;
+	static RID_Owner<NavMeshGeometryParser2D> geometry_parser_owner;
+	static LocalVector<NavMeshGeometryParser2D *> generator_parsers;
+
+public:
 	virtual RID source_geometry_parser_create() = 0;
 	virtual void source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) = 0;
 
@@ -418,6 +430,9 @@ class NavigationServer2DManager {
 public:
 	static void set_default_server(NavigationServer2DCallback p_callback);
 	static NavigationServer2D *new_default_server();
+
+	static void initialize_server();
+	static void finalize_server();
 };
 
 #endif // NAVIGATION_SERVER_2D_H

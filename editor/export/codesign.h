@@ -44,10 +44,6 @@
 #include "core/io/file_access.h"
 #include "core/object/ref_counted.h"
 
-#include "modules/modules_enabled.gen.h" // For regex.
-
-#ifdef MODULE_REGEX_ENABLED
-
 /*************************************************************************/
 /* CodeSignCodeResources                                                 */
 /*************************************************************************/
@@ -279,7 +275,7 @@ private:
 		uint32_t spare3; // Not used.
 		uint64_t code_limit_64; // Set to 0 and ignore.
 		// Version 0x20400
-		uint64_t exec_seg_base; // Start of the signed code segmet.
+		uint64_t exec_seg_base; // Start of the signed code segment.
 		uint64_t exec_seg_limit; // Code segment (__TEXT) vmsize.
 		uint64_t exec_seg_flags; // Executable segment flags.
 		// Version 0x20500
@@ -355,7 +351,5 @@ class CodeSign {
 public:
 	static Error codesign(bool p_use_hardened_runtime, bool p_force, const String &p_path, const String &p_ent_path, String &r_error_msg);
 };
-
-#endif // MODULE_REGEX_ENABLED
 
 #endif // CODESIGN_H

@@ -56,7 +56,6 @@
 
 #ifdef HB_LEAN
 #define HB_DISABLE_DEPRECATED
-#define HB_NDEBUG
 #define HB_NO_ATEXIT
 #define HB_NO_BUFFER_MESSAGE
 #define HB_NO_BUFFER_SERIALIZE

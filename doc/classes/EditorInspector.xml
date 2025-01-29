@@ -51,7 +51,6 @@
 	<members>
 		<member name="draw_focus_border" type="bool" setter="set_draw_focus_border" getter="get_draw_focus_border" overrides="ScrollContainer" default="true" />
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
-		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="is_following_focus" overrides="ScrollContainer" default="true" />
 		<member name="horizontal_scroll_mode" type="int" setter="set_horizontal_scroll_mode" getter="get_horizontal_scroll_mode" overrides="ScrollContainer" enum="ScrollContainer.ScrollMode" default="0" />
 	</members>
 	<signals>

@@ -740,8 +740,8 @@ double CrossSection::Area() const { return C2::Area(GetPaths()->paths_); }
 /**
  * Return the number of vertices in the CrossSection.
  */
-int CrossSection::NumVert() const {
-  int n = 0;
+size_t CrossSection::NumVert() const {
+  size_t n = 0;
   auto paths = GetPaths()->paths_;
   for (auto p : paths) {
     n += p.size();
@@ -753,7 +753,7 @@ int CrossSection::NumVert() const {
  * Return the number of contours (both outer and inner paths) in the
  * CrossSection.
  */
-int CrossSection::NumContour() const { return GetPaths()->paths_.size(); }
+size_t CrossSection::NumContour() const { return GetPaths()->paths_.size(); }
 
 /**
  * Does the CrossSection contain any contours?

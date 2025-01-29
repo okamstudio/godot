@@ -86,7 +86,7 @@ android {
 
         missingDimensionStrategy 'products', 'editor'
         manifestPlaceholders += [
-            editorAppName: "Godot Editor 4",
+            editorAppName: "Godot Engine 4",
             editorBuildSuffix: ""
         ]
     }
@@ -163,6 +163,18 @@ android {
             minSdkVersion 23
             targetSdkVersion 32
         }
+        picoos {
+            dimension "android_distribution"
+            missingDimensionStrategy 'products', 'editor'
+            ndk {
+                //noinspection ChromeOsAbiSupport
+                abiFilters "arm64-v8a"
+            }
+            applicationIdSuffix ".pico"
+            versionNameSuffix "-pico"
+            minSdkVersion 29
+            targetSdkVersion 32
+        }
     }
 }
 
@@ -177,4 +189,6 @@ dependencies {
 
     // Meta dependencies
     horizonosImplementation "org.godotengine:godot-openxr-vendors-meta:3.0.0-stable"
+    // Pico dependencies
+    picoosImplementation "org.godotengine:godot-openxr-vendors-pico:3.0.1-stable"
 }

@@ -41,6 +41,8 @@
 #include "scene/gui/separator.h"
 #include "scene/gui/texture_rect.h"
 
+#include "modules/regex/regex.h"
+
 void BoneMapperButton::fetch_textures() {
 	if (selected) {
 		set_texture_normal(get_editor_theme_icon(SNAME("BoneMapperHandleSelected")));
@@ -531,7 +533,6 @@ void BoneMapper::_clear_mapping_current_group() {
 	}
 }
 
-#ifdef MODULE_REGEX_ENABLED
 bool BoneMapper::is_match_with_bone_name(const String &p_bone_name, const String &p_word) {
 	RegEx re = RegEx(p_word);
 	return re.search(p_bone_name.to_lower()).is_valid();
@@ -1352,7 +1353,6 @@ void BoneMapper::auto_mapping_process(Ref<BoneMap> &p_bone_map) {
 
 	WARN_PRINT("Finish auto mapping.");
 }
-#endif // MODULE_REGEX_ENABLED
 
 void BoneMapper::_value_changed(const String &p_property, const Variant &p_value, const String &p_name, bool p_changing) {
 	set(p_property, p_value);
@@ -1367,9 +1367,7 @@ void BoneMapper::_profile_changed(const String &p_property, const Variant &p_val
 	if (profile.is_valid()) {
 		SkeletonProfileHumanoid *hmn = Object::cast_to<SkeletonProfileHumanoid>(profile.ptr());
 		if (hmn) {
-#ifdef MODULE_REGEX_ENABLED
 			_run_auto_mapping();
-#endif // MODULE_REGEX_ENABLED
 		}
 	}
 }

@@ -39,10 +39,10 @@
 			If [code]true[/code], bakes lightmaps to contain directional information as spherical harmonics. This results in more realistic lighting appearance, especially with normal mapped materials and for lights that have their direct light baked ([member Light3D.light_bake_mode] set to [constant Light3D.BAKE_STATIC] and with [member Light3D.editor_only] set to [code]false[/code]). The directional information is also used to provide rough reflections for static and dynamic objects. This has a small run-time performance cost as the shader has to perform more work to interpret the direction information from the lightmap. Directional lightmaps also take longer to bake and result in larger file sizes.
 			[b]Note:[/b] The property's name has no relationship with [DirectionalLight3D]. [member directional] works with all light types.
 		</member>
-		<member name="environment_custom_color" type="Color" setter="set_environment_custom_color" getter="get_environment_custom_color">
+		<member name="environment_custom_color" type="Color" setter="set_environment_custom_color" getter="get_environment_custom_color" default="Color(1, 1, 1, 1)">
 			The color to use for environment lighting. Only effective if [member environment_mode] is [constant ENVIRONMENT_MODE_CUSTOM_COLOR].
 		</member>
-		<member name="environment_custom_energy" type="float" setter="set_environment_custom_energy" getter="get_environment_custom_energy">
+		<member name="environment_custom_energy" type="float" setter="set_environment_custom_energy" getter="get_environment_custom_energy" default="1.0">
 			The color multiplier to use for environment lighting. Only effective if [member environment_mode] is [constant ENVIRONMENT_MODE_CUSTOM_COLOR].
 		</member>
 		<member name="environment_custom_sky" type="Sky" setter="set_environment_custom_sky" getter="get_environment_custom_sky">
@@ -67,12 +67,22 @@
 		</member>
 		<member name="quality" type="int" setter="set_bake_quality" getter="get_bake_quality" enum="LightmapGI.BakeQuality" default="1">
 			The quality preset to use when baking lightmaps. This affects bake times, but output file sizes remain mostly identical across quality levels.
-			To further speed up bake times, decrease [member bounces], disable [member use_denoiser] and increase the lightmap texel size on 3D scenes in the Import dock.
+			To further speed up bake times, decrease [member bounces], disable [member use_denoiser] and/or decrease [member texel_scale].
+			To further increase quality, enable [member supersampling] and/or increase [member texel_scale].
 		</member>
 		<member name="shadowmask_mode" type="int" setter="set_shadowmask_mode" getter="get_shadowmask_mode" enum="LightmapGIData.ShadowmaskMode" default="0" experimental="">
 			The shadowmasking policy to use for directional shadows on static objects that are baked with this [LightmapGI] instance.
 			Shadowmasking allows [DirectionalLight3D] nodes to cast shadows even outside the range defined by their [member DirectionalLight3D.directional_shadow_max_distance] property. This is done by baking a texture that contains a shadowmap for the directional light, then using this texture according to the current shadowmask mode.
 			[b]Note:[/b] The shadowmask texture is only created if [member shadowmask_mode] is not [constant LightmapGIData.SHADOWMASK_MODE_NONE]. To see a difference, you need to bake lightmaps again after switching from [constant LightmapGIData.SHADOWMASK_MODE_NONE] to any other mode.
+		</member>
+		<member name="supersampling" type="bool" setter="set_supersampling_enabled" getter="is_supersampling_enabled" default="false">
+			If [code]true[/code], lightmaps are baked with the texel scale multiplied with [member supersampling_factor] and downsampled before saving the lightmap (so the effective texel density is identical to having supersampling disabled).
+			Supersampling provides increased lightmap quality with less noise, smoother shadows and better shadowing of small-scale features in objects. However, it may result in significantly increased bake times and memory usage while baking lightmaps. Padding is automatically adjusted to avoid increasing light leaking.
+		</member>
+		<member name="supersampling_factor" type="float" setter="set_supersampling_factor" getter="get_supersampling_factor" default="2.0">
+			The factor by which the texel density is multiplied for supersampling. For best results, use an integer value. While fractional values are allowed, they can result in increased light leaking and a blurry lightmap.
+			Higher values may result in better quality, but also increase bake times and memory usage while baking.
+			See [member supersampling] for more information.
 		</member>
 		<member name="texel_scale" type="float" setter="set_texel_scale" getter="get_texel_scale" default="1.0">
 			Scales the lightmap texel density of all meshes for the current bake. This is a multiplier that builds upon the existing lightmap texel size defined in each imported 3D scene, along with the per-mesh density multiplier (which is designed to be used when the same mesh is used at different scales). Lower values will result in faster bake times.

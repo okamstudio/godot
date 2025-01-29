@@ -1486,147 +1486,35 @@ void Variant::_clear_internal() {
 }
 
 Variant::operator int64_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return int64_t(_data._int);
-		case FLOAT:
-			return int64_t(_data._float);
-		case STRING:
-			return int64_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<int64_t>();
 }
 
 Variant::operator int32_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return int32_t(_data._int);
-		case FLOAT:
-			return int32_t(_data._float);
-		case STRING:
-			return int32_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<int32_t>();
 }
 
 Variant::operator int16_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return int16_t(_data._int);
-		case FLOAT:
-			return int16_t(_data._float);
-		case STRING:
-			return int16_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<int16_t>();
 }
 
 Variant::operator int8_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return int8_t(_data._int);
-		case FLOAT:
-			return int8_t(_data._float);
-		case STRING:
-			return int8_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<int8_t>();
 }
 
 Variant::operator uint64_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return uint64_t(_data._int);
-		case FLOAT:
-			return uint64_t(_data._float);
-		case STRING:
-			return uint64_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<uint64_t>();
 }
 
 Variant::operator uint32_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return uint32_t(_data._int);
-		case FLOAT:
-			return uint32_t(_data._float);
-		case STRING:
-			return uint32_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<uint32_t>();
 }
 
 Variant::operator uint16_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return uint16_t(_data._int);
-		case FLOAT:
-			return uint16_t(_data._float);
-		case STRING:
-			return uint16_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<uint16_t>();
 }
 
 Variant::operator uint8_t() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1 : 0;
-		case INT:
-			return uint8_t(_data._int);
-		case FLOAT:
-			return uint8_t(_data._float);
-		case STRING:
-			return uint8_t(operator String().to_int());
-		default: {
-			return 0;
-		}
-	}
+	return _to_int<uint8_t>();
 }
 
 Variant::operator ObjectID() const {
@@ -1644,39 +1532,11 @@ Variant::operator char32_t() const {
 }
 
 Variant::operator float() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1.0 : 0.0;
-		case INT:
-			return (float)_data._int;
-		case FLOAT:
-			return _data._float;
-		case STRING:
-			return operator String().to_float();
-		default: {
-			return 0;
-		}
-	}
+	return _to_float<float>();
 }
 
 Variant::operator double() const {
-	switch (type) {
-		case NIL:
-			return 0;
-		case BOOL:
-			return _data._bool ? 1.0 : 0.0;
-		case INT:
-			return (double)_data._int;
-		case FLOAT:
-			return _data._float;
-		case STRING:
-			return operator String().to_float();
-		default: {
-			return 0;
-		}
-	}
+	return _to_float<double>();
 }
 
 Variant::operator StringName() const {
@@ -2518,66 +2378,79 @@ Variant::Variant(const ObjectID &p_id) :
 Variant::Variant(const StringName &p_string) :
 		type(STRING_NAME) {
 	memnew_placement(_data._mem, StringName(p_string));
+	static_assert(sizeof(StringName) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const String &p_string) :
 		type(STRING) {
 	memnew_placement(_data._mem, String(p_string));
+	static_assert(sizeof(String) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const char *const p_cstring) :
 		type(STRING) {
 	memnew_placement(_data._mem, String((const char *)p_cstring));
+	static_assert(sizeof(String) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const char32_t *p_wstring) :
 		type(STRING) {
 	memnew_placement(_data._mem, String(p_wstring));
+	static_assert(sizeof(String) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector3 &p_vector3) :
 		type(VECTOR3) {
 	memnew_placement(_data._mem, Vector3(p_vector3));
+	static_assert(sizeof(Vector3) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector3i &p_vector3i) :
 		type(VECTOR3I) {
 	memnew_placement(_data._mem, Vector3i(p_vector3i));
+	static_assert(sizeof(Vector3i) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector4 &p_vector4) :
 		type(VECTOR4) {
 	memnew_placement(_data._mem, Vector4(p_vector4));
+	static_assert(sizeof(Vector4) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector4i &p_vector4i) :
 		type(VECTOR4I) {
 	memnew_placement(_data._mem, Vector4i(p_vector4i));
+	static_assert(sizeof(Vector4i) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector2 &p_vector2) :
 		type(VECTOR2) {
 	memnew_placement(_data._mem, Vector2(p_vector2));
+	static_assert(sizeof(Vector2) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Vector2i &p_vector2i) :
 		type(VECTOR2I) {
 	memnew_placement(_data._mem, Vector2i(p_vector2i));
+	static_assert(sizeof(Vector2i) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Rect2 &p_rect2) :
 		type(RECT2) {
 	memnew_placement(_data._mem, Rect2(p_rect2));
+	static_assert(sizeof(Rect2) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Rect2i &p_rect2i) :
 		type(RECT2I) {
 	memnew_placement(_data._mem, Rect2i(p_rect2i));
+	static_assert(sizeof(Rect2i) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Plane &p_plane) :
 		type(PLANE) {
 	memnew_placement(_data._mem, Plane(p_plane));
+	static_assert(sizeof(Plane) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const ::AABB &p_aabb) :
@@ -2595,6 +2468,7 @@ Variant::Variant(const Basis &p_matrix) :
 Variant::Variant(const Quaternion &p_quaternion) :
 		type(QUATERNION) {
 	memnew_placement(_data._mem, Quaternion(p_quaternion));
+	static_assert(sizeof(Quaternion) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Transform3D &p_transform) :
@@ -2618,16 +2492,19 @@ Variant::Variant(const Transform2D &p_transform) :
 Variant::Variant(const Color &p_color) :
 		type(COLOR) {
 	memnew_placement(_data._mem, Color(p_color));
+	static_assert(sizeof(Color) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const NodePath &p_node_path) :
 		type(NODE_PATH) {
 	memnew_placement(_data._mem, NodePath(p_node_path));
+	static_assert(sizeof(NodePath) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const ::RID &p_rid) :
 		type(RID) {
 	memnew_placement(_data._mem, ::RID(p_rid));
+	static_assert(sizeof(::RID) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Object *p_object) :
@@ -2639,21 +2516,25 @@ Variant::Variant(const Object *p_object) :
 Variant::Variant(const Callable &p_callable) :
 		type(CALLABLE) {
 	memnew_placement(_data._mem, Callable(p_callable));
+	static_assert(sizeof(Callable) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Signal &p_callable) :
 		type(SIGNAL) {
 	memnew_placement(_data._mem, Signal(p_callable));
+	static_assert(sizeof(Signal) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Dictionary &p_dictionary) :
 		type(DICTIONARY) {
 	memnew_placement(_data._mem, Dictionary(p_dictionary));
+	static_assert(sizeof(Dictionary) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const Array &p_array) :
 		type(ARRAY) {
 	memnew_placement(_data._mem, Array(p_array));
+	static_assert(sizeof(Array) <= sizeof(_data._mem));
 }
 
 Variant::Variant(const PackedByteArray &p_byte_array) :

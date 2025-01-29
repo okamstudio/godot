@@ -136,12 +136,6 @@ bool JoltObject3D::can_interact_with(const JoltObject3D &p_other) const {
 	}
 }
 
-void JoltObject3D::pre_step(float p_step, JPH::Body &p_jolt_body) {
-}
-
-void JoltObject3D::post_step(float p_step, JPH::Body &p_jolt_body) {
-}
-
 String JoltObject3D::to_string() const {
 	Object *instance = get_instance();
 	return instance != nullptr ? instance->to_string() : "<unknown>";

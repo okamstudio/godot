@@ -40,8 +40,12 @@ void XRVRS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_vrs_strength"), &XRVRS::get_vrs_strength);
 	ClassDB::bind_method(D_METHOD("set_vrs_strength", "strength"), &XRVRS::set_vrs_strength);
 
+	ClassDB::bind_method(D_METHOD("get_vrs_render_region"), &XRVRS::get_vrs_render_region);
+	ClassDB::bind_method(D_METHOD("set_vrs_render_region", "render_region"), &XRVRS::set_vrs_render_region);
+
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "vrs_min_radius", PROPERTY_HINT_RANGE, "1.0,100.0,1.0"), "set_vrs_min_radius", "get_vrs_min_radius");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "vrs_strength", PROPERTY_HINT_RANGE, "0.1,10.0,0.1"), "set_vrs_strength", "get_vrs_strength");
+	ADD_PROPERTY(PropertyInfo(Variant::RECT2I, "vrs_render_region"), "set_vrs_render_region", "get_vrs_render_region");
 
 	ClassDB::bind_method(D_METHOD("make_vrs_texture", "target_size", "eye_foci"), &XRVRS::make_vrs_texture);
 }
@@ -88,6 +92,15 @@ void XRVRS::set_vrs_strength(float p_vrs_strength) {
 	}
 }
 
+Rect2i XRVRS::get_vrs_render_region() const {
+	return vrs_render_region;
+}
+
+void XRVRS::set_vrs_render_region(const Rect2i &p_vrs_render_region) {
+	vrs_render_region = p_vrs_render_region;
+	vrs_dirty = true;
+}
+
 RID XRVRS::make_vrs_texture(const Size2 &p_target_size, const PackedVector2Array &p_eye_foci) {
 	ERR_FAIL_COND_V(p_eye_foci.is_empty(), RID());
 
@@ -123,19 +136,26 @@ RID XRVRS::make_vrs_texture(const Size2 &p_target_size, const PackedVector2Array
 		target_size = vrs_sizei;
 		eye_foci = p_eye_foci;
 
+		Size2 region_ratio = Size2(1.0, 1.0);
+		Point2i region_offset;
+		if (vrs_render_region != Rect2i()) {
+			region_ratio = (Size2)vrs_render_region.size / p_target_size;
+			region_offset = (Point2)vrs_render_region.position / p_target_size * vrs_sizei;
+		}
+
 		for (int i = 0; i < eye_foci.size() && i < RendererSceneRender::MAX_RENDER_VIEWS; i++) {
 			PackedByteArray data;
 			data.resize(vrs_sizei.x * vrs_sizei.y * 2);
 			uint8_t *data_ptr = data.ptrw();
 
 			Vector2i view_center;
-			view_center.x = int(vrs_size.x * (eye_foci[i].x + 1.0) * 0.5);
-			view_center.y = int(vrs_size.y * (eye_foci[i].y + 1.0) * 0.5);
+			view_center.x = int(vrs_size.x * (eye_foci[i].x + 1.0) * region_ratio.x * 0.5) + region_offset.x;
+			view_center.y = int(vrs_size.y * (eye_foci[i].y + 1.0) * region_ratio.y * 0.5) + region_offset.y;
 
 			int d = 0;
 			for (int y = 0; y < vrs_sizei.y; y++) {
 				for (int x = 0; x < vrs_sizei.x; x++) {
-					Vector2 offset = Vector2(x - view_center.x, y - view_center.y);
+					Vector2 offset = Vector2(x - view_center.x, y - view_center.y) / region_ratio;
 					real_t density = 255.0 * MAX(0.0, (Math::abs(offset.x) - min_radius) / outer_radius);
 					data_ptr[d++] = MIN(255, density);
 					density = 255.0 * MAX(0.0, (Math::abs(offset.y) - min_radius) / outer_radius);

@@ -55,13 +55,13 @@ public:
     bool target(pixel_t* data, uint32_t stride, uint32_t w, uint32_t h, ColorSpace cs);
     bool mempool(bool shared);
 
-    RenderCompositor* target(const RenderRegion& region, ColorSpace cs) override;
+    RenderCompositor* target(const RenderRegion& region, ColorSpace cs, CompositionFlag flags) override;
     bool beginComposite(RenderCompositor* cmp, CompositeMethod method, uint8_t opacity) override;
     bool endComposite(RenderCompositor* cmp) override;
     void clearCompositors();
 
     bool prepare(RenderEffect* effect) override;
-    bool effect(RenderCompositor* cmp, const RenderEffect* effect, uint8_t opacity, bool direct) override;
+    bool effect(RenderCompositor* cmp, const RenderEffect* effect, bool direct) override;
 
     static SwRenderer* gen();
     static bool init(uint32_t threads);
@@ -79,7 +79,7 @@ private:
     SwRenderer();
     ~SwRenderer();
 
-    SwSurface* request(int channelSize);
+    SwSurface* request(int channelSize, bool square);
     RenderData prepareCommon(SwTask* task, const Matrix& transform, const Array<RenderData>& clips, uint8_t opacity, RenderUpdateFlag flags);
 };
 

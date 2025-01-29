@@ -12,11 +12,11 @@ public:
     /// Swaps the edges held by a and b.
     static void swap(EdgeHolder &a, EdgeHolder &b);
 
-    EdgeHolder();
-    EdgeHolder(EdgeSegment *segment);
-    EdgeHolder(Point2 p0, Point2 p1, EdgeColor edgeColor = WHITE);
-    EdgeHolder(Point2 p0, Point2 p1, Point2 p2, EdgeColor edgeColor = WHITE);
-    EdgeHolder(Point2 p0, Point2 p1, Point2 p2, Point2 p3, EdgeColor edgeColor = WHITE);
+    inline EdgeHolder() : edgeSegment() { }
+    inline EdgeHolder(EdgeSegment *segment) : edgeSegment(segment) { }
+    inline EdgeHolder(Point2 p0, Point2 p1, EdgeColor edgeColor = WHITE) : edgeSegment(EdgeSegment::create(p0, p1, edgeColor)) { }
+    inline EdgeHolder(Point2 p0, Point2 p1, Point2 p2, EdgeColor edgeColor = WHITE) : edgeSegment(EdgeSegment::create(p0, p1, p2, edgeColor)) { }
+    inline EdgeHolder(Point2 p0, Point2 p1, Point2 p2, Point2 p3, EdgeColor edgeColor = WHITE) : edgeSegment(EdgeSegment::create(p0, p1, p2, p3, edgeColor)) { }
     EdgeHolder(const EdgeHolder &orig);
 #ifdef MSDFGEN_USE_CPP11
     EdgeHolder(EdgeHolder &&orig);

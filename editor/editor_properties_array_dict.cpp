@@ -145,10 +145,27 @@ bool EditorPropertyDictionaryObject::get_by_property_name(const String &p_name, 
 		return true;
 	}
 
+	if (name == "new_item_key_name") {
+		r_ret = TTR("New Key:");
+		return true;
+	}
+
+	if (name == "new_item_value_name") {
+		r_ret = TTR("New Value:");
+		return true;
+	}
+
 	if (name.begins_with("indices")) {
 		int index = name.get_slicec('/', 1).to_int();
 		Variant key = dict.get_key_at_index(index);
 		r_ret = dict[key];
+		return true;
+	}
+
+	if (name.begins_with("keys")) {
+		int index = name.get_slicec('/', 1).to_int();
+		Variant key = dict.get_key_at_index(index);
+		r_ret = key;
 		return true;
 	}
 
@@ -187,6 +204,17 @@ String EditorPropertyDictionaryObject::get_property_name_for_index(int p_index) 
 			return "new_item_value";
 		default:
 			return "indices/" + itos(p_index);
+	}
+}
+
+String EditorPropertyDictionaryObject::get_key_name_for_index(int p_index) {
+	switch (p_index) {
+		case NEW_KEY_INDEX:
+			return "new_item_key_name";
+		case NEW_VALUE_INDEX:
+			return "new_item_value_name";
+		default:
+			return "keys/" + itos(p_index);
 	}
 }
 
@@ -319,10 +347,15 @@ void EditorPropertyArray::_create_new_property_slot() {
 	slots.push_back(slot);
 }
 
+void EditorPropertyArray::set_preview_value(bool p_preview_value) {
+	preview_value = p_preview_value;
+}
+
 void EditorPropertyArray::update_property() {
 	Variant array = get_edited_property_value();
 
 	String array_type_name = Variant::get_type_name(array_type);
+	String array_sub_type_name;
 	if (array_type == Variant::ARRAY && subtype != Variant::NIL) {
 		String type_name;
 		if (subtype == Variant::OBJECT && (subtype_hint == PROPERTY_HINT_RESOURCE_TYPE || subtype_hint == PROPERTY_HINT_NODE_TYPE)) {
@@ -331,11 +364,23 @@ void EditorPropertyArray::update_property() {
 			type_name = Variant::get_type_name(subtype);
 		}
 
-		array_type_name = vformat("%s[%s]", array_type_name, type_name);
+		if (preview_value) {
+			array_sub_type_name = vformat("[%s] ", type_name);
+		} else {
+			array_type_name = vformat("%s[%s]", array_type_name, type_name);
+		}
 	}
 
 	if (!array.is_array()) {
-		edit->set_text(vformat(TTR("(Nil) %s"), array_type_name));
+		if (preview_value) {
+			edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+			edit->set_button_icon(get_editor_theme_icon(SNAME("Nil")));
+			edit->set_text(array_type_name);
+		} else {
+			edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+			edit->set_button_icon(Ref<Texture2D>());
+			edit->set_text(vformat(TTR("(Nil) %s"), array_type_name));
+		}
 		edit->set_pressed(false);
 		if (container) {
 			set_bottom_editor(nullptr);
@@ -355,7 +400,25 @@ void EditorPropertyArray::update_property() {
 		_page_changed(max_page);
 	}
 
-	edit->set_text(vformat(TTR("%s (size %s)"), array_type_name, itos(size)));
+	if (preview_value) {
+		String ctr_str = array.get_construct_string().trim_prefix(array_type_name + "(").trim_suffix(")").replace("\n", "");
+		if (array_type == Variant::ARRAY && subtype != Variant::NIL) {
+			int type_end = ctr_str.find("](");
+			if (type_end > 0) {
+				ctr_str = ctr_str.substr(type_end + 2);
+			}
+		}
+
+		edit->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+		edit->set_button_icon(get_editor_theme_icon(array_type_name));
+		edit->set_text(vformat("%s%s", array_sub_type_name, ctr_str));
+		edit->set_tooltip_text(vformat(TTR("%s%s (size %d)"), array_type_name, array_sub_type_name, size));
+	} else {
+		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+		edit->set_button_icon(Ref<Texture2D>());
+		edit->set_text(vformat(TTR("%s (size %d)"), array_type_name, size));
+	}
 
 	bool unfolded = get_edited_object()->editor_is_section_unfolded(get_edited_property());
 	if (edit->is_pressed() != unfolded) {
@@ -818,6 +881,7 @@ void EditorPropertyArray::_reorder_button_up() {
 		array.call("remove_at", reorder_slot.index);
 		array.call("insert", reorder_to_index, value_to_move);
 
+		slots[reorder_to_index % page_length].reorder_button->grab_focus();
 		emit_changed(get_edited_property(), array);
 	}
 
@@ -888,7 +952,11 @@ void EditorPropertyDictionary::_property_changed(const String &p_property, Varia
 	}
 
 	object->set(p_property, p_value);
-	emit_changed(get_edited_property(), object->get_dict(), p_name, p_changing);
+	bool new_item_or_key = !p_property.begins_with("indices");
+	emit_changed(get_edited_property(), object->get_dict(), p_name, p_changing || new_item_or_key);
+	if (new_item_or_key) {
+		update_property();
+	}
 }
 
 void EditorPropertyDictionary::_change_type(Object *p_button, int p_slot_index) {
@@ -930,7 +998,18 @@ void EditorPropertyDictionary::_add_key_value() {
 
 void EditorPropertyDictionary::_create_new_property_slot(int p_idx) {
 	HBoxContainer *hbox = memnew(HBoxContainer);
+
+	EditorProperty *prop_key = nullptr;
+	if (p_idx != EditorPropertyDictionaryObject::NEW_KEY_INDEX && p_idx != EditorPropertyDictionaryObject::NEW_VALUE_INDEX) {
+		prop_key = memnew(EditorPropertyNil);
+		hbox->add_child(prop_key);
+	}
+
 	EditorProperty *prop = memnew(EditorPropertyNil);
+	prop->set_h_size_flags(SIZE_EXPAND_FILL);
+	if (p_idx != EditorPropertyDictionaryObject::NEW_KEY_INDEX && p_idx != EditorPropertyDictionaryObject::NEW_VALUE_INDEX) {
+		prop->set_draw_label(false);
+	}
 	hbox->add_child(prop);
 
 	bool use_key = p_idx == EditorPropertyDictionaryObject::NEW_KEY_INDEX;
@@ -958,6 +1037,7 @@ void EditorPropertyDictionary::_create_new_property_slot(int p_idx) {
 
 	Slot slot;
 	slot.prop = prop;
+	slot.prop_key = prop_key;
 	slot.object = object;
 	slot.container = hbox;
 	int index = p_idx + (p_idx >= 0 ? page_index * page_length : 0);
@@ -1043,10 +1123,15 @@ void EditorPropertyDictionary::setup(PropertyHint p_hint, const String &p_hint_s
 	}
 }
 
+void EditorPropertyDictionary::set_preview_value(bool p_preview_value) {
+	preview_value = p_preview_value;
+}
+
 void EditorPropertyDictionary::update_property() {
 	Variant updated_val = get_edited_property_value();
 
 	String dict_type_name = "Dictionary";
+	String dict_sub_type_name;
 	if (key_subtype != Variant::NIL || value_subtype != Variant::NIL) {
 		String key_subtype_name = "Variant";
 		if (key_subtype == Variant::OBJECT && (key_subtype_hint == PROPERTY_HINT_RESOURCE_TYPE || key_subtype_hint == PROPERTY_HINT_NODE_TYPE)) {
@@ -1060,11 +1145,23 @@ void EditorPropertyDictionary::update_property() {
 		} else if (value_subtype != Variant::NIL) {
 			value_subtype_name = Variant::get_type_name(value_subtype);
 		}
-		dict_type_name += vformat("[%s, %s]", key_subtype_name, value_subtype_name);
+		if (preview_value) {
+			dict_sub_type_name = vformat("[%s, %s] ", key_subtype_name, value_subtype_name);
+		} else {
+			dict_type_name += vformat("[%s, %s]", key_subtype_name, value_subtype_name);
+		}
 	}
 
 	if (updated_val.get_type() != Variant::DICTIONARY) {
-		edit->set_text(vformat(TTR("(Nil) %s"), dict_type_name)); // This provides symmetry with the array property.
+		if (preview_value) {
+			edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+			edit->set_button_icon(get_editor_theme_icon(SNAME("Nil")));
+			edit->set_text(dict_type_name);
+		} else {
+			edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+			edit->set_button_icon(Ref<Texture2D>());
+			edit->set_text(vformat(TTR("(Nil) %s"), dict_type_name));
+		}
 		edit->set_pressed(false);
 		if (container) {
 			set_bottom_editor(nullptr);
@@ -1080,7 +1177,25 @@ void EditorPropertyDictionary::update_property() {
 	Dictionary dict = updated_val;
 	object->set_dict(updated_val);
 
-	edit->set_text(vformat(TTR("%s (size %d)"), dict_type_name, dict.size()));
+	if (preview_value) {
+		String ctr_str = updated_val.get_construct_string().replace("\n", "");
+		if (key_subtype != Variant::NIL || value_subtype != Variant::NIL) {
+			int type_end = ctr_str.find("](");
+			if (type_end > 0) {
+				ctr_str = ctr_str.substr(type_end + 2).trim_suffix(")");
+			}
+		}
+
+		edit->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
+		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_LEFT);
+		edit->set_button_icon(get_editor_theme_icon(dict_type_name));
+		edit->set_text(vformat("%s%s", dict_sub_type_name, ctr_str));
+		edit->set_tooltip_text(vformat(TTR("%s%s (size %d)"), dict_type_name, dict_sub_type_name, dict.size()));
+	} else {
+		edit->set_text_alignment(HORIZONTAL_ALIGNMENT_CENTER);
+		edit->set_button_icon(Ref<Texture2D>());
+		edit->set_text(vformat(TTR("%s (size %d)"), dict_type_name, dict.size()));
+	}
 
 	bool unfolded = get_edited_object()->editor_is_section_unfolded(get_edited_property());
 	if (edit->is_pressed() != unfolded) {
@@ -1146,6 +1261,44 @@ void EditorPropertyDictionary::update_property() {
 			if (!slot_visible) {
 				continue;
 			}
+
+			// Check if the editor property key needs to be updated.
+			if (slot.prop_key) {
+				Variant key;
+				object->get_by_property_name(slot.key_name, key);
+				Variant::Type key_type = key.get_type();
+
+				bool key_as_id = Object::cast_to<EncodedObjectAsID>(key);
+				if (key_type != slot.key_type || (key_type == Variant::OBJECT && key_as_id != slot.key_as_id)) {
+					slot.key_as_id = key_as_id;
+					slot.key_type = key_type;
+					EditorProperty *new_prop = nullptr;
+					if (key_type == Variant::OBJECT && key_as_id) {
+						EditorPropertyObjectID *editor = memnew(EditorPropertyObjectID);
+						editor->setup("Object");
+						new_prop = editor;
+					} else {
+						new_prop = EditorInspector::instantiate_property_editor(this, key_type, "", key_subtype_hint, key_subtype_hint_string, PROPERTY_USAGE_NONE);
+					}
+					new_prop->set_read_only(true);
+					new_prop->set_selectable(false);
+					new_prop->set_focus_mode(Control::FOCUS_NONE);
+					new_prop->set_draw_background(false);
+					new_prop->set_use_folding(is_using_folding());
+					new_prop->set_h_size_flags(SIZE_EXPAND_FILL);
+					new_prop->set_draw_label(false);
+					EditorPropertyArray *arr_prop = Object::cast_to<EditorPropertyArray>(new_prop);
+					if (arr_prop) {
+						arr_prop->set_preview_value(true);
+					}
+					EditorPropertyDictionary *dict_prop = Object::cast_to<EditorPropertyDictionary>(new_prop);
+					if (dict_prop) {
+						dict_prop->set_preview_value(true);
+					}
+					slot.set_key_prop(new_prop);
+				}
+			}
+
 			Variant value;
 			object->get_by_property_name(slot.prop_name, value);
 			Variant::Type value_type = value.get_type();
@@ -1170,12 +1323,14 @@ void EditorPropertyDictionary::update_property() {
 				new_prop->connect(SNAME("property_changed"), callable_mp(this, &EditorPropertyDictionary::_property_changed));
 				new_prop->connect(SNAME("object_id_selected"), callable_mp(this, &EditorPropertyDictionary::_object_id_selected));
 				new_prop->set_h_size_flags(SIZE_EXPAND_FILL);
+				if (slot.index != EditorPropertyDictionaryObject::NEW_KEY_INDEX && slot.index != EditorPropertyDictionaryObject::NEW_VALUE_INDEX) {
+					new_prop->set_draw_label(false);
+				}
 				new_prop->set_read_only(is_read_only());
 				slot.set_prop(new_prop);
 			} else if (slot.index != EditorPropertyDictionaryObject::NEW_KEY_INDEX && slot.index != EditorPropertyDictionaryObject::NEW_VALUE_INDEX) {
 				Variant key = dict.get_key_at_index(slot.index);
 				String cs = key.get_construct_string();
-				slot.prop->set_label(cs);
 				slot.prop->set_tooltip_text(cs);
 			}
 
@@ -1187,6 +1342,9 @@ void EditorPropertyDictionary::update_property() {
 			}
 
 			slot.prop->update_property();
+			if (slot.prop_key) {
+				slot.prop_key->update_property();
+			}
 		}
 		updating = false;
 
@@ -1287,7 +1445,7 @@ EditorPropertyDictionary::EditorPropertyDictionary() {
 	change_type = memnew(PopupMenu);
 	add_child(change_type);
 	change_type->connect(SceneStringName(id_pressed), callable_mp(this, &EditorPropertyDictionary::_change_type_menu));
-	changing_type_index = -1;
+	changing_type_index = EditorPropertyDictionaryObject::NOT_CHANGING_TYPE;
 	has_borders = true;
 
 	key_subtype = Variant::NIL;

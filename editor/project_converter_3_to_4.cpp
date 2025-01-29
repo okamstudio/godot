@@ -32,10 +32,6 @@
 
 #ifndef DISABLE_DEPRECATED
 
-#include "modules/modules_enabled.gen.h" // For regex.
-
-#ifdef MODULE_REGEX_ENABLED
-
 #include "core/error/error_macros.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
@@ -43,6 +39,7 @@
 #include "core/os/time.h"
 #include "core/templates/list.h"
 #include "editor/renames_map_3_to_4.h"
+
 #include "modules/regex/regex.h"
 
 // Find "OS.set_property(x)", capturing x into $1.
@@ -2956,7 +2953,5 @@ String ProjectConverter3To4::collect_string_from_vector(Vector<SourceLine> &vect
 	}
 	return string;
 }
-
-#endif // MODULE_REGEX_ENABLED
 
 #endif // DISABLE_DEPRECATED

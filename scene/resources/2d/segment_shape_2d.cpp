@@ -49,6 +49,9 @@ void SegmentShape2D::_update_shape() {
 }
 
 void SegmentShape2D::set_a(const Vector2 &p_a) {
+	if (a == p_a) {
+		return;
+	}
 	a = p_a;
 	_update_shape();
 }
@@ -58,6 +61,9 @@ Vector2 SegmentShape2D::get_a() const {
 }
 
 void SegmentShape2D::set_b(const Vector2 &p_b) {
+	if (b == p_b) {
+		return;
+	}
 	b = p_b;
 	_update_shape();
 }

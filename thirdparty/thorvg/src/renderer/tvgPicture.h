@@ -64,10 +64,10 @@ struct Picture::Impl
     RenderData rd = nullptr;          //engine data
     float w = 0, h = 0;
     Picture* picture = nullptr;
+    uint8_t cFlag = CompositionFlag::Invalid;
     bool resizing = false;
-    bool needComp = false;            //need composition
 
-    bool needComposition(uint8_t opacity);
+    void queryComposition(uint8_t opacity);
     bool render(RenderMethod* renderer);
     bool size(float w, float h);
     RenderRegion bounds(RenderMethod* renderer);
@@ -107,7 +107,7 @@ struct Picture::Impl
                 loader->resize(paint, w, h);
                 resizing = false;
             }
-            needComp = needComposition(opacity) ? true : false;
+            queryComposition(opacity);
             rd = paint->pImpl->update(renderer, transform, clips, opacity, flag, false);
         }
         return rd;

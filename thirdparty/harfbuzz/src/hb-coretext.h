@@ -44,9 +44,9 @@ HB_BEGIN_DECLS
  * HB_CORETEXT_TAG_MORT:
  *
  * The #hb_tag_t tag for the `mort` (glyph metamorphosis) table,
- * which holds AAT features. 
+ * which holds AAT features.
  *
- * For more information, see 
+ * For more information, see
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6mort.html
  *
  **/
@@ -56,7 +56,7 @@ HB_BEGIN_DECLS
  * HB_CORETEXT_TAG_MORX:
  *
  * The #hb_tag_t tag for the `morx` (extended glyph metamorphosis)
- * table, which holds AAT features. 
+ * table, which holds AAT features.
  *
  * For more information, see
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6morx.html
@@ -68,9 +68,9 @@ HB_BEGIN_DECLS
  * HB_CORETEXT_TAG_KERX:
  *
  * The #hb_tag_t tag for the `kerx` (extended kerning) table, which
- * holds AAT kerning information. 
+ * holds AAT kerning information.
  *
- * For more information, see 
+ * For more information, see
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kerx.html
  *
  **/
@@ -79,6 +79,10 @@ HB_BEGIN_DECLS
 
 HB_EXTERN hb_face_t *
 hb_coretext_face_create (CGFontRef cg_font);
+
+HB_EXTERN hb_face_t *
+hb_coretext_face_create_from_file_or_fail (const char   *file_name,
+					   unsigned int  index);
 
 HB_EXTERN hb_font_t *
 hb_coretext_font_create (CTFontRef ct_font);
@@ -89,6 +93,9 @@ hb_coretext_face_get_cg_font (hb_face_t *face);
 
 HB_EXTERN CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font);
+
+HB_EXTERN void
+hb_coretext_font_set_funcs (hb_font_t *font);
 
 
 HB_END_DECLS

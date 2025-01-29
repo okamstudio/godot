@@ -56,7 +56,7 @@ class MDCommandBuffer;
 class PixelFormats;
 class MDResourceCache;
 
-class API_AVAILABLE(macos(11.0), ios(14.0)) RenderingContextDriverMetal : public RenderingContextDriver {
+class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) RenderingContextDriverMetal : public RenderingContextDriver {
 protected:
 #ifdef __OBJC__
 	id<MTLDevice> metal_device = nullptr;
@@ -94,7 +94,7 @@ public:
 #endif
 	};
 
-	class API_AVAILABLE(macos(11.0), ios(14.0)) Surface {
+	class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) Surface {
 	protected:
 #ifdef __OBJC__
 		id<MTLDevice> device;

@@ -675,8 +675,6 @@ void FindReplaceBar::_search_text_submitted(const String &p_text) {
 	} else {
 		search_next();
 	}
-
-	callable_mp(search_text, &LineEdit::edit).call_deferred();
 }
 
 void FindReplaceBar::_replace_text_submitted(const String &p_text) {
@@ -784,6 +782,7 @@ FindReplaceBar::FindReplaceBar() {
 
 	// Search toolbar
 	search_text = memnew(LineEdit);
+	search_text->set_keep_editing_on_text_submit(true);
 	vbc_lineedit->add_child(search_text);
 	search_text->set_placeholder(TTR("Find"));
 	search_text->set_tooltip_text(TTR("Find"));
@@ -934,12 +933,14 @@ void CodeTextEditor::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
 		}
 	}
 
+#ifndef ANDROID_ENABLED
 	Ref<InputEventMagnifyGesture> magnify_gesture = p_event;
 	if (magnify_gesture.is_valid()) {
 		_zoom_to(zoom_factor * powf(magnify_gesture->get_factor(), 0.25f));
 		accept_event();
 		return;
 	}
+#endif
 
 	Ref<InputEventKey> k = p_event;
 
@@ -1068,7 +1069,7 @@ Ref<Texture2D> CodeTextEditor::_get_completion_icon(const ScriptLanguage::CodeCo
 			tex = get_editor_theme_icon(SNAME("NodePath"));
 			break;
 		case ScriptLanguage::CODE_COMPLETION_KIND_VARIABLE:
-			tex = get_editor_theme_icon(SNAME("Variant"));
+			tex = get_editor_theme_icon(SNAME("LocalVariable"));
 			break;
 		case ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT:
 			tex = get_editor_theme_icon(SNAME("MemberConstant"));
@@ -1910,7 +1911,9 @@ CodeTextEditor::CodeTextEditor() {
 	zoom_button->set_flat(true);
 	zoom_button->set_v_size_flags(SIZE_EXPAND | SIZE_SHRINK_CENTER);
 	zoom_button->set_tooltip_text(
-			TTR("Zoom factor") + "\n" + vformat(TTR("%sMouse wheel, %s/%s: Finetune\n%s: Reset"), keycode_get_string((Key)KeyModifierMask::CMD_OR_CTRL), ED_GET_SHORTCUT("script_editor/zoom_in")->get_as_text(), ED_GET_SHORTCUT("script_editor/zoom_out")->get_as_text(), ED_GET_SHORTCUT("script_editor/reset_zoom")->get_as_text()));
+			TTR("Zoom factor") + "\n" +
+			// TRANSLATORS: The placeholders are keyboard shortcuts. The first one is in the form of "Ctrl+"/"Cmd+".
+			vformat(TTR("%sMouse wheel, %s/%s: Finetune\n%s: Reset"), keycode_get_string((Key)KeyModifierMask::CMD_OR_CTRL), ED_GET_SHORTCUT("script_editor/zoom_in")->get_as_text(), ED_GET_SHORTCUT("script_editor/zoom_out")->get_as_text(), ED_GET_SHORTCUT("script_editor/reset_zoom")->get_as_text()));
 	zoom_button->set_text("100 %");
 
 	PopupMenu *zoom_menu = zoom_button->get_popup();

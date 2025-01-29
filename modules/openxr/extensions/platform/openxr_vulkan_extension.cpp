@@ -239,7 +239,7 @@ void OpenXRVulkanExtension::get_usable_depth_formats(Vector<int64_t> &p_usable_s
 }
 
 bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, int64_t p_swapchain_format, uint32_t p_width, uint32_t p_height, uint32_t p_sample_count, uint32_t p_array_size, void **r_swapchain_graphics_data) {
-	XrSwapchainImageVulkanKHR *images = nullptr;
+	LocalVector<XrSwapchainImageVulkanKHR> images;
 
 	RenderingServer *rendering_server = RenderingServer::get_singleton();
 	ERR_FAIL_NULL_V(rendering_server, false);
@@ -253,27 +253,23 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 		return false;
 	}
 
-	images = (XrSwapchainImageVulkanKHR *)memalloc(sizeof(XrSwapchainImageVulkanKHR) * swapchain_length);
-	ERR_FAIL_NULL_V_MSG(images, false, "OpenXR Couldn't allocate memory for swap chain image");
+	images.resize(swapchain_length);
 
-	for (uint64_t i = 0; i < swapchain_length; i++) {
-		images[i].type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
-		images[i].next = nullptr;
-		images[i].image = VK_NULL_HANDLE;
+	for (XrSwapchainImageVulkanKHR &image : images) {
+		image.type = XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR;
+		image.next = nullptr;
+		image.image = VK_NULL_HANDLE;
 	}
 
-	result = xrEnumerateSwapchainImages(p_swapchain, swapchain_length, &swapchain_length, (XrSwapchainImageBaseHeader *)images);
+	result = xrEnumerateSwapchainImages(p_swapchain, swapchain_length, &swapchain_length, (XrSwapchainImageBaseHeader *)images.ptr());
 	if (XR_FAILED(result)) {
 		print_line("OpenXR: Failed to get swapchaim images [", OpenXRAPI::get_singleton()->get_error_string(result), "]");
-		memfree(images);
 		return false;
 	}
 
-	// SwapchainGraphicsData *data = (SwapchainGraphicsData *)memalloc(sizeof(SwapchainGraphicsData));
 	SwapchainGraphicsData *data = memnew(SwapchainGraphicsData);
 	if (data == nullptr) {
 		print_line("OpenXR: Failed to allocate memory for swapchain data");
-		memfree(images);
 		return false;
 	}
 	*r_swapchain_graphics_data = data;
@@ -357,13 +353,13 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 	Vector<RID> texture_rids;
 
 	// create Godot texture objects for each entry in our swapchain
-	for (uint64_t i = 0; i < swapchain_length; i++) {
+	for (const XrSwapchainImageVulkanKHR &swapchain_image : images) {
 		RID image_rid = rendering_device->texture_create_from_extension(
 				p_array_size == 1 ? RenderingDevice::TEXTURE_TYPE_2D : RenderingDevice::TEXTURE_TYPE_2D_ARRAY,
 				format,
 				samples,
 				usage_flags,
-				(uint64_t)images[i].image,
+				(uint64_t)swapchain_image.image,
 				p_width,
 				p_height,
 				1,
@@ -373,8 +369,6 @@ bool OpenXRVulkanExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 	}
 
 	data->texture_rids = texture_rids;
-
-	memfree(images);
 
 	return true;
 }

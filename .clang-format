@@ -124,7 +124,7 @@ IndentCaseLabels: true
 # IndentRequiresClause: true
 IndentWidth: 4
 # IndentWrappedFunctionNames: false
-# InsertBraces: false
+InsertBraces: true
 # InsertNewlineAtEOF: false
 # InsertTrailingCommas: None
 # IntegerLiteralSeparator:

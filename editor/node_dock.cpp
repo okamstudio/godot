@@ -30,6 +30,7 @@
 
 #include "node_dock.h"
 
+#include "core/io/config_file.h"
 #include "editor/connections_dialog.h"
 #include "editor/themes/editor_scale.h"
 
@@ -47,9 +48,21 @@ void NodeDock::show_connections() {
 	connections->show();
 }
 
+void NodeDock::_save_layout_to_config(Ref<ConfigFile> p_layout, const String &p_section) const {
+	p_layout->set_value(p_section, "dock_node_current_tab", int(groups_button->is_pressed()));
+}
+
+void NodeDock::_load_layout_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
+	const int current_tab = p_layout->get_value(p_section, "dock_node_current_tab", 0);
+	if (current_tab == 0) {
+		show_connections();
+	} else if (current_tab == 1) {
+		show_groups();
+	}
+}
+
 void NodeDock::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED: {
 			connections_button->set_button_icon(get_editor_theme_icon(SNAME("Signals")));
 			groups_button->set_button_icon(get_editor_theme_icon(SNAME("Groups")));
@@ -57,7 +70,10 @@ void NodeDock::_notification(int p_what) {
 	}
 }
 
-NodeDock *NodeDock::singleton = nullptr;
+void NodeDock::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("_save_layout_to_config"), &NodeDock::_save_layout_to_config);
+	ClassDB::bind_method(D_METHOD("_load_layout_from_config"), &NodeDock::_load_layout_from_config);
+}
 
 void NodeDock::update_lists() {
 	connections->update_tree();

@@ -557,6 +557,19 @@
 				Makes the [Window] appear. This enables interactions with the [Window] and doesn't change any of its property other than visibility (unlike e.g. [method popup]).
 			</description>
 		</method>
+		<method name="start_drag">
+			<return type="void" />
+			<description>
+				Starts an interactive drag operation on the window, using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's title bar. Using this method allows the window to participate in space switching, tiling, and other system features.
+			</description>
+		</method>
+		<method name="start_resize">
+			<return type="void" />
+			<param index="0" name="edge" type="int" enum="DisplayServer.WindowResizeEdge" />
+			<description>
+				Starts an interactive resize operation on the window, using the current mouse position. Call this method when handling a mouse button being pressed to simulate a pressed event on the window's edge.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="always_on_top" type="bool" setter="set_flag" getter="get_flag" default="false">

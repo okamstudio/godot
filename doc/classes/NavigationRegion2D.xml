@@ -23,6 +23,12 @@
 				Bakes the [NavigationPolygon]. If [param on_thread] is set to [code]true[/code] (default), the baking is done on a separate thread.
 			</description>
 		</method>
+		<method name="get_bounds" qualifiers="const">
+			<return type="Rect2" />
+			<description>
+				Returns the axis-aligned rectangle for the region's transformed navigation mesh.
+			</description>
+		</method>
 		<method name="get_navigation_layer_value" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="layer_number" type="int" />

@@ -75,7 +75,7 @@ static String _translate_doc_string(const String &p_text) {
 	return translated.indent(indent);
 }
 
-// Comparator for constructors, based on `MetodDoc` operator.
+// Comparator for constructors, based on `MethodDoc` operator.
 struct ConstructorCompare {
 	_FORCE_INLINE_ bool operator()(const DocData::MethodDoc &p_lhs, const DocData::MethodDoc &p_rhs) const {
 		// Must be a constructor (i.e. assume named for the class)

@@ -40,6 +40,16 @@ class SkeletonModifier3D : public Node3D {
 
 	void rebind();
 
+public:
+	enum BoneAxis {
+		BONE_AXIS_PLUS_X,
+		BONE_AXIS_MINUS_X,
+		BONE_AXIS_PLUS_Y,
+		BONE_AXIS_MINUS_Y,
+		BONE_AXIS_PLUS_Z,
+		BONE_AXIS_MINUS_Z,
+	};
+
 protected:
 	bool active = true;
 	real_t influence = 1.0;
@@ -76,7 +86,14 @@ public:
 
 	void process_modification();
 
+	// Utility APIs.
+	static Vector3 get_vector_from_bone_axis(BoneAxis p_axis);
+	static Vector3 get_vector_from_axis(Vector3::Axis p_axis);
+	static Vector3::Axis get_axis_from_bone_axis(BoneAxis p_axis);
+
 	SkeletonModifier3D();
 };
+
+VARIANT_ENUM_CAST(SkeletonModifier3D::BoneAxis);
 
 #endif // SKELETON_MODIFIER_3D_H

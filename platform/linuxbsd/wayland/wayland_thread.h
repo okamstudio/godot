@@ -955,6 +955,8 @@ public:
 
 	struct wl_surface *window_get_wl_surface(DisplayServer::WindowID p_window_id) const;
 
+	void window_start_resize(DisplayServer::WindowResizeEdge p_edge, DisplayServer::WindowID p_window);
+
 	void window_set_max_size(DisplayServer::WindowID p_window_id, const Size2i &p_size);
 	void window_set_min_size(DisplayServer::WindowID p_window_id, const Size2i &p_size);
 

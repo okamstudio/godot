@@ -40,14 +40,10 @@ class CheckBox;
 class EditorData;
 class EditorSelection;
 class MenuButton;
+class RenameDialog;
 class ReparentDialog;
 class ShaderCreateDialog;
 class TextureRect;
-
-#include "modules/modules_enabled.gen.h" // For regex.
-#ifdef MODULE_REGEX_ENABLED
-class RenameDialog;
-#endif // MODULE_REGEX_ENABLED
 
 class SceneTreeDock : public VBoxContainer {
 	GDCLASS(SceneTreeDock, VBoxContainer);
@@ -61,9 +57,7 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_PASTE,
 		TOOL_PASTE_AS_SIBLING,
 		TOOL_RENAME,
-#ifdef MODULE_REGEX_ENABLED
 		TOOL_BATCH_RENAME,
-#endif // MODULE_REGEX_ENABLED
 		TOOL_REPLACE,
 		TOOL_EXTEND_SCRIPT,
 		TOOL_ATTACH_SCRIPT,
@@ -94,7 +88,7 @@ class SceneTreeDock : public VBoxContainer {
 		TOOL_CREATE_USER_INTERFACE,
 		TOOL_CREATE_FAVORITE,
 		TOOL_CENTER_PARENT,
-
+		TOOL_HIDE_FILTERED_OUT_PARENTS,
 	};
 
 	enum {
@@ -107,9 +101,7 @@ class SceneTreeDock : public VBoxContainer {
 
 	int current_option = 0;
 	CreateDialog *create_dialog = nullptr;
-#ifdef MODULE_REGEX_ENABLED
 	RenameDialog *rename_dialog = nullptr;
-#endif // MODULE_REGEX_ENABLED
 
 	Button *button_add = nullptr;
 	Button *button_instance = nullptr;

@@ -70,10 +70,11 @@ bool DisplayServerAndroid::has_feature(Feature p_feature) const {
 		//case FEATURE_IME:
 		case FEATURE_MOUSE:
 		//case FEATURE_MOUSE_WARP:
-		//case FEATURE_NATIVE_DIALOG:
+		case FEATURE_NATIVE_DIALOG:
 		case FEATURE_NATIVE_DIALOG_INPUT:
 		case FEATURE_NATIVE_DIALOG_FILE:
 		//case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		//case FEATURE_NATIVE_ICON:
 		//case FEATURE_WINDOW_TRANSPARENCY:
 		case FEATURE_CLIPBOARD:
@@ -174,6 +175,19 @@ bool DisplayServerAndroid::clipboard_has() const {
 		return godot_java->has_clipboard();
 	} else {
 		return DisplayServer::clipboard_has();
+	}
+}
+
+Error DisplayServerAndroid::dialog_show(String p_title, String p_description, Vector<String> p_buttons, const Callable &p_callback) {
+	GodotJavaWrapper *godot_java = OS_Android::get_singleton()->get_godot_java();
+	ERR_FAIL_NULL_V(godot_java, FAILED);
+	dialog_callback = p_callback;
+	return godot_java->show_dialog(p_title, p_description, p_buttons);
+}
+
+void DisplayServerAndroid::emit_dialog_callback(int p_button_index) {
+	if (dialog_callback.is_valid()) {
+		dialog_callback.call_deferred(p_button_index);
 	}
 }
 
@@ -757,31 +771,66 @@ void DisplayServerAndroid::process_gyroscope(const Vector3 &p_gyroscope) {
 	Input::get_singleton()->set_gyroscope(p_gyroscope);
 }
 
-void DisplayServerAndroid::mouse_set_mode(MouseMode p_mode) {
+void DisplayServerAndroid::_mouse_update_mode() {
+	MouseMode wanted_mouse_mode = mouse_mode_override_enabled
+			? mouse_mode_override
+			: mouse_mode_base;
+
 	if (!OS_Android::get_singleton()->get_godot_java()->get_godot_view()->can_update_pointer_icon() || !OS_Android::get_singleton()->get_godot_java()->get_godot_view()->can_capture_pointer()) {
 		return;
 	}
-	if (mouse_mode == p_mode) {
+	if (mouse_mode == wanted_mouse_mode) {
 		return;
 	}
 
-	if (p_mode == MouseMode::MOUSE_MODE_HIDDEN) {
+	if (wanted_mouse_mode == MouseMode::MOUSE_MODE_HIDDEN) {
 		OS_Android::get_singleton()->get_godot_java()->get_godot_view()->set_pointer_icon(CURSOR_TYPE_NULL);
 	} else {
 		cursor_set_shape(cursor_shape);
 	}
 
-	if (p_mode == MouseMode::MOUSE_MODE_CAPTURED) {
+	if (wanted_mouse_mode == MouseMode::MOUSE_MODE_CAPTURED) {
 		OS_Android::get_singleton()->get_godot_java()->get_godot_view()->request_pointer_capture();
 	} else {
 		OS_Android::get_singleton()->get_godot_java()->get_godot_view()->release_pointer_capture();
 	}
 
-	mouse_mode = p_mode;
+	mouse_mode = wanted_mouse_mode;
+}
+
+void DisplayServerAndroid::mouse_set_mode(MouseMode p_mode) {
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
+	if (p_mode == mouse_mode_base) {
+		return;
+	}
+	mouse_mode_base = p_mode;
+	_mouse_update_mode();
 }
 
 DisplayServer::MouseMode DisplayServerAndroid::mouse_get_mode() const {
 	return mouse_mode;
+}
+
+void DisplayServerAndroid::mouse_set_mode_override(MouseMode p_mode) {
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
+	if (p_mode == mouse_mode_override) {
+		return;
+	}
+	mouse_mode_override = p_mode;
+	_mouse_update_mode();
+}
+
+DisplayServer::MouseMode DisplayServerAndroid::mouse_get_mode_override() const {
+	return mouse_mode_override;
+}
+
+void DisplayServerAndroid::mouse_set_mode_override_enabled(bool p_override_enabled) {
+	mouse_mode_override_enabled = p_override_enabled;
+	_mouse_update_mode();
+}
+
+bool DisplayServerAndroid::mouse_is_mode_override_enabled() const {
+	return mouse_mode_override_enabled;
 }
 
 Point2i DisplayServerAndroid::mouse_get_position() const {

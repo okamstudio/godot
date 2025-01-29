@@ -32,8 +32,9 @@
 #define AUDIO_STREAM_OGG_VORBIS_H
 
 #include "core/variant/variant.h"
-#include "modules/ogg/ogg_packet_sequence.h"
 #include "servers/audio/audio_stream.h"
+
+#include "modules/ogg/ogg_packet_sequence.h"
 
 #include <vorbis/codec.h>
 
@@ -139,7 +140,8 @@ protected:
 
 public:
 	static Ref<AudioStreamOggVorbis> load_from_file(const String &p_path);
-	static Ref<AudioStreamOggVorbis> load_from_buffer(const Vector<uint8_t> &file_data);
+	static Ref<AudioStreamOggVorbis> load_from_buffer(const Vector<uint8_t> &p_stream_data);
+
 	void set_loop(bool p_enable);
 	virtual bool has_loop() const override;
 

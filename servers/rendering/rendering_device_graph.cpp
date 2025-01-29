@@ -994,6 +994,10 @@ void RenderingDeviceGraph::_run_render_commands(int32_t p_level, const RecordedC
 					driver->command_copy_buffer(r_command_buffer, command_buffer_copies[j].source, buffer_update_command->destination, command_buffer_copies[j].region);
 				}
 			} break;
+			case RecordedCommand::TYPE_DRIVER_CALLBACK: {
+				const RecordedDriverCallbackCommand *driver_callback_command = reinterpret_cast<const RecordedDriverCallbackCommand *>(command);
+				driver_callback_command->callback(driver, r_command_buffer, driver_callback_command->userdata);
+			} break;
 			case RecordedCommand::TYPE_COMPUTE_LIST: {
 				if (device.workarounds.avoid_compute_after_draw && workarounds_state.draw_list_found) {
 					// Avoid compute after draw workaround. Refer to the comment that enables this in the Vulkan driver for more information.
@@ -1132,6 +1136,7 @@ void RenderingDeviceGraph::_run_label_command_change(RDD::CommandBufferID p_comm
 			bool copy_commands = false;
 			bool compute_commands = false;
 			bool draw_commands = false;
+			bool custom_commands = false;
 			for (uint32_t i = 0; i < p_sorted_commands_count; i++) {
 				const uint32_t command_index = p_sorted_commands[i].index;
 				const uint32_t command_data_offset = command_data_offsets[command_index];
@@ -1158,27 +1163,33 @@ void RenderingDeviceGraph::_run_label_command_change(RDD::CommandBufferID p_comm
 					case RecordedCommand::TYPE_DRAW_LIST: {
 						draw_commands = true;
 					} break;
+					case RecordedCommand::TYPE_DRIVER_CALLBACK: {
+						custom_commands = true;
+					} break;
 					default: {
 						// Ignore command.
 					} break;
 				}
 
-				if (copy_commands && compute_commands && draw_commands) {
+				if (copy_commands && compute_commands && draw_commands && custom_commands) {
 					// There's no more command types to find.
 					break;
 				}
 			}
 
-			if (copy_commands || compute_commands || draw_commands) {
+			if (copy_commands || compute_commands || draw_commands || custom_commands) {
 				// Add the operations to the name.
-				bool plus_after_copy = copy_commands && (compute_commands || draw_commands);
-				bool plus_after_compute = compute_commands && draw_commands;
+				bool plus_after_copy = copy_commands && (compute_commands || draw_commands || custom_commands);
+				bool plus_after_compute = compute_commands && (draw_commands || custom_commands);
+				bool plus_after_draw = draw_commands && custom_commands;
 				label_name += " (";
 				label_name += copy_commands ? "Copy" : "";
 				label_name += plus_after_copy ? "+" : "";
 				label_name += compute_commands ? "Compute" : "";
 				label_name += plus_after_compute ? "+" : "";
 				label_name += draw_commands ? "Draw" : "";
+				label_name += plus_after_draw ? "+" : "";
+				label_name += custom_commands ? "Custom" : "";
 				label_name += ")";
 			}
 		}
@@ -1327,6 +1338,9 @@ void RenderingDeviceGraph::_print_render_commands(const RecordedCommandSort *p_s
 			case RecordedCommand::TYPE_BUFFER_UPDATE: {
 				const RecordedBufferUpdateCommand *buffer_update_command = reinterpret_cast<const RecordedBufferUpdateCommand *>(command);
 				print_line(command_index, "LEVEL", command_level, "BUFFER UPDATE DESTINATION", itos(buffer_update_command->destination.id), "COPIES", buffer_update_command->buffer_copies_count);
+			} break;
+			case RecordedCommand::TYPE_DRIVER_CALLBACK: {
+				print_line(command_index, "LEVEL", command_level, "DRIVER CALLBACK");
 			} break;
 			case RecordedCommand::TYPE_COMPUTE_LIST: {
 				const RecordedComputeListCommand *compute_list_command = reinterpret_cast<const RecordedComputeListCommand *>(command);
@@ -1656,6 +1670,17 @@ void RenderingDeviceGraph::add_buffer_update(RDD::BufferID p_dst, ResourceTracke
 
 	ResourceUsage buffer_usage = RESOURCE_USAGE_COPY_TO;
 	_add_command_to_graph(&p_dst_tracker, &buffer_usage, 1, command_index, command);
+}
+
+void RenderingDeviceGraph::add_driver_callback(RDD::DriverCallback p_callback, void *p_userdata, VectorView<ResourceTracker *> p_trackers, VectorView<RenderingDeviceGraph::ResourceUsage> p_usages) {
+	DEV_ASSERT(p_trackers.size() == p_usages.size());
+
+	int32_t command_index;
+	RecordedDriverCallbackCommand *command = static_cast<RecordedDriverCallbackCommand *>(_allocate_command(sizeof(RecordedDriverCallbackCommand), command_index));
+	command->type = RecordedCommand::TYPE_DRIVER_CALLBACK;
+	command->callback = p_callback;
+	command->userdata = p_userdata;
+	_add_command_to_graph((ResourceTracker **)p_trackers.ptr(), (ResourceUsage *)p_usages.ptr(), p_trackers.size(), command_index, command);
 }
 
 void RenderingDeviceGraph::add_compute_list_begin(RDD::BreadcrumbMarker p_phase, uint32_t p_breadcrumb_data) {
@@ -2271,7 +2296,8 @@ void RenderingDeviceGraph::end(bool p_reorder_commands, bool p_full_barriers, RD
 			2, // TYPE_TEXTURE_GET_DATA
 			2, // TYPE_TEXTURE_RESOLVE
 			2, // TYPE_TEXTURE_UPDATE
-			2, // TYPE_INSERT_BREADCRUMB
+			2, // TYPE_CAPTURE_TIMESTAMP
+			5, // TYPE_DRIVER_CALLBACK
 		};
 
 		commands_sorted.clear();

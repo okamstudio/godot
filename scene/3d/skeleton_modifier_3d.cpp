@@ -152,6 +152,73 @@ void SkeletonModifier3D::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("modification_processed"));
 	GDVIRTUAL_BIND(_process_modification);
+
+	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_X);
+	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_X);
+	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_Y);
+	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_Y);
+	BIND_ENUM_CONSTANT(BONE_AXIS_PLUS_Z);
+	BIND_ENUM_CONSTANT(BONE_AXIS_MINUS_Z);
+}
+
+Vector3 SkeletonModifier3D::get_vector_from_bone_axis(BoneAxis p_axis) {
+	Vector3 ret;
+	switch (p_axis) {
+		case BONE_AXIS_PLUS_X: {
+			ret = Vector3(1, 0, 0);
+		} break;
+		case BONE_AXIS_MINUS_X: {
+			ret = Vector3(-1, 0, 0);
+		} break;
+		case BONE_AXIS_PLUS_Y: {
+			ret = Vector3(0, 1, 0);
+		} break;
+		case BONE_AXIS_MINUS_Y: {
+			ret = Vector3(0, -1, 0);
+		} break;
+		case BONE_AXIS_PLUS_Z: {
+			ret = Vector3(0, 0, 1);
+		} break;
+		case BONE_AXIS_MINUS_Z: {
+			ret = Vector3(0, 0, -1);
+		} break;
+	}
+	return ret;
+}
+
+Vector3 SkeletonModifier3D::get_vector_from_axis(Vector3::Axis p_axis) {
+	Vector3 ret;
+	switch (p_axis) {
+		case Vector3::AXIS_X: {
+			ret = Vector3(1, 0, 0);
+		} break;
+		case Vector3::AXIS_Y: {
+			ret = Vector3(0, 1, 0);
+		} break;
+		case Vector3::AXIS_Z: {
+			ret = Vector3(0, 0, 1);
+		} break;
+	}
+	return ret;
+}
+
+Vector3::Axis SkeletonModifier3D::get_axis_from_bone_axis(BoneAxis p_axis) {
+	Vector3::Axis ret = Vector3::AXIS_X;
+	switch (p_axis) {
+		case BONE_AXIS_PLUS_X:
+		case BONE_AXIS_MINUS_X: {
+			ret = Vector3::AXIS_X;
+		} break;
+		case BONE_AXIS_PLUS_Y:
+		case BONE_AXIS_MINUS_Y: {
+			ret = Vector3::AXIS_Y;
+		} break;
+		case BONE_AXIS_PLUS_Z:
+		case BONE_AXIS_MINUS_Z: {
+			ret = Vector3::AXIS_Z;
+		} break;
+	}
+	return ret;
 }
 
 SkeletonModifier3D::SkeletonModifier3D() {

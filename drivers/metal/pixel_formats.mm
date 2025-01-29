@@ -97,17 +97,6 @@
 #define MTLVertexFormatFloatRGB9E5 MTLVertexFormatInvalid
 #endif
 
-/** Selects and returns one of the values, based on the platform OS. */
-_FORCE_INLINE_ constexpr MTLFmtCaps select_platform_caps(MTLFmtCaps p_macOS_val, MTLFmtCaps p_iOS_val) {
-#if (TARGET_OS_IOS || TARGET_OS_TV) && !TARGET_OS_MACCATALYST
-	return p_iOS_val;
-#elif TARGET_OS_OSX
-	return p_macOS_val;
-#else
-#error "unsupported platform"
-#endif
-}
-
 template <typename T>
 void clear(T *p_val, size_t p_count = 1) {
 	memset(p_val, 0, sizeof(T) * p_count);
@@ -144,8 +133,8 @@ MTLFormatType PixelFormats::getFormatType(DataFormat p_format) {
 	return getDataFormatDesc(p_format).formatType;
 }
 
-MTLFormatType PixelFormats::getFormatType(MTLPixelFormat p_formt) {
-	return getDataFormatDesc(p_formt).formatType;
+MTLFormatType PixelFormats::getFormatType(MTLPixelFormat p_format) {
+	return getDataFormatDesc(p_format).formatType;
 }
 
 MTLPixelFormat PixelFormats::getMTLPixelFormat(DataFormat p_format) {
@@ -207,6 +196,10 @@ size_t PixelFormats::getBytesPerLayer(MTLPixelFormat p_format, size_t p_bytes_pe
 	return Math::division_round_up(p_texel_rows_per_layer, getDataFormatDesc(p_format).blockTexelSize.height) * p_bytes_per_row;
 }
 
+bool PixelFormats::needsSwizzle(DataFormat p_format) {
+	return getDataFormatDesc(p_format).needsSwizzle();
+}
+
 MTLFmtCaps PixelFormats::getCapabilities(DataFormat p_format, bool p_extended) {
 	return getCapabilities(getDataFormatDesc(p_format).mtlPixelFormat, p_extended);
 }
@@ -218,7 +211,7 @@ MTLFmtCaps PixelFormats::getCapabilities(MTLPixelFormat p_format, bool p_extende
 		return caps;
 	}
 	// Now get caps of all formats in the view class.
-	for (MTLFormatDesc &otherDesc : _mtlPixelFormatDescriptions) {
+	for (MTLFormatDesc &otherDesc : _mtl_vertex_format_descs) {
 		if (otherDesc.mtlViewClass == mtlDesc.mtlViewClass) {
 			caps |= otherDesc.mtlFmtCaps;
 		}
@@ -251,8 +244,7 @@ MTLVertexFormat PixelFormats::getMTLVertexFormat(DataFormat p_format) {
 }
 
 DataFormatDesc &PixelFormats::getDataFormatDesc(DataFormat p_format) {
-	CRASH_BAD_INDEX_MSG(p_format, RD::DATA_FORMAT_MAX, "Attempting to describe an invalid DataFormat");
-	return _dataFormatDescriptions[p_format];
+	return _data_format_descs[p_format];
 }
 
 DataFormatDesc &PixelFormats::getDataFormatDesc(MTLPixelFormat p_format) {
@@ -261,51 +253,53 @@ DataFormatDesc &PixelFormats::getDataFormatDesc(MTLPixelFormat p_format) {
 
 // Return a reference to the Metal format descriptor corresponding to the MTLPixelFormat.
 MTLFormatDesc &PixelFormats::getMTLPixelFormatDesc(MTLPixelFormat p_format) {
-	uint16_t fmtIdx = ((p_format < _mtlPixelFormatCoreCount)
-					? _mtlFormatDescIndicesByMTLPixelFormatsCore[p_format]
-					: _mtlFormatDescIndicesByMTLPixelFormatsExt[p_format]);
-	return _mtlPixelFormatDescriptions[fmtIdx];
+	return _mtl_pixel_format_descs[p_format];
 }
 
 // Return a reference to the Metal format descriptor corresponding to the MTLVertexFormat.
 MTLFormatDesc &PixelFormats::getMTLVertexFormatDesc(MTLVertexFormat p_format) {
-	uint16_t fmtIdx = (p_format < _mtlVertexFormatCount) ? _mtlFormatDescIndicesByMTLVertexFormats[p_format] : 0;
-	return _mtlVertexFormatDescriptions[fmtIdx];
+	return _mtl_vertex_format_descs[p_format];
 }
 
-PixelFormats::PixelFormats(id<MTLDevice> p_device) :
+PixelFormats::PixelFormats(id<MTLDevice> p_device, const MetalFeatures &p_feat) :
 		device(p_device) {
 	initMTLPixelFormatCapabilities();
-	initMTLVertexFormatCapabilities();
-	buildMTLFormatMaps();
-	modifyMTLFormatCapabilities();
+	initMTLVertexFormatCapabilities(p_feat);
+	modifyMTLFormatCapabilities(p_feat);
 
 	initDataFormatCapabilities();
 	buildDFFormatMaps();
 }
 
-#define addDfFormatDescFull(DATA_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, CSPC, CSCB, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE)                                                               \
-	CRASH_BAD_INDEX_MSG(RD::DATA_FORMAT_##DATA_FMT, RD::DATA_FORMAT_MAX, "Attempting to describe too many DataFormats");                                                                                      \
-	_dataFormatDescriptions[RD::DATA_FORMAT_##DATA_FMT] = { RD::DATA_FORMAT_##DATA_FMT, MTLPixelFormat##MTL_FMT, MTLPixelFormat##MTL_FMT_ALT, MTLVertexFormat##MTL_VTX_FMT, MTLVertexFormat##MTL_VTX_FMT_ALT, \
-		CSPC, CSCB, { BLK_W, BLK_H }, BLK_BYTE_CNT, MTLFormatType::MVK_FMT_TYPE, "DATA_FORMAT_" #DATA_FMT, false }
+#define addDataFormatDescFull(DATA_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, CSPC, CSCB, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE, SWIZ_R, SWIZ_G, SWIZ_B, SWIZ_A) \
+	dfFmt = RD::DATA_FORMAT_##DATA_FMT;                                                                                                                                           \
+	_data_format_descs[dfFmt] = { dfFmt, MTLPixelFormat##MTL_FMT, MTLPixelFormat##MTL_FMT_ALT, MTLVertexFormat##MTL_VTX_FMT, MTLVertexFormat##MTL_VTX_FMT_ALT,                    \
+		CSPC, CSCB, { BLK_W, BLK_H }, BLK_BYTE_CNT, MTLFormatType::MVK_FMT_TYPE,                                                                                                  \
+		{ RD::TEXTURE_SWIZZLE_##SWIZ_R, RD::TEXTURE_SWIZZLE_##SWIZ_G, RD::TEXTURE_SWIZZLE_##SWIZ_B, RD::TEXTURE_SWIZZLE_##SWIZ_A },                                               \
+		"DATA_FORMAT_" #DATA_FMT, false }
 
-#define addDataFormatDesc(DATA_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE) \
-	addDfFormatDescFull(DATA_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, 0, 0, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE)
+#define addDataFormatDesc(VK_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE) \
+	addDataFormatDescFull(VK_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, 0, 0, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE, IDENTITY, IDENTITY, IDENTITY, IDENTITY)
+
+#define addDataFormatDescSwizzled(VK_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE, SWIZ_R, SWIZ_G, SWIZ_B, SWIZ_A) \
+	addDataFormatDescFull(VK_FMT, MTL_FMT, MTL_FMT_ALT, MTL_VTX_FMT, MTL_VTX_FMT_ALT, 0, 0, BLK_W, BLK_H, BLK_BYTE_CNT, MVK_FMT_TYPE, SWIZ_R, SWIZ_G, SWIZ_B, SWIZ_A)
 
 #define addDfFormatDescChromaSubsampling(DATA_FMT, MTL_FMT, CSPC, CSCB, BLK_W, BLK_H, BLK_BYTE_CNT) \
-	addDfFormatDescFull(DATA_FMT, MTL_FMT, Invalid, Invalid, Invalid, CSPC, CSCB, BLK_W, BLK_H, BLK_BYTE_CNT, ColorFloat)
+	addDataFormatDescFull(DATA_FMT, MTL_FMT, Invalid, Invalid, Invalid, CSPC, CSCB, BLK_W, BLK_H, BLK_BYTE_CNT, ColorFloat, IDENTITY, IDENTITY, IDENTITY, IDENTITY)
 
 void PixelFormats::initDataFormatCapabilities() {
-	clear(_dataFormatDescriptions, RD::DATA_FORMAT_MAX);
+	_data_format_descs.reserve(RD::DATA_FORMAT_MAX + 1); // reserve enough space to avoid reallocs
+	DataFormat dfFmt;
 
 	addDataFormatDesc(R4G4_UNORM_PACK8, Invalid, Invalid, Invalid, Invalid, 1, 1, 1, ColorFloat);
+	addDataFormatDesc(R4G4_UNORM_PACK8, Invalid, Invalid, Invalid, Invalid, 1, 1, 1, ColorFloat);
 	addDataFormatDesc(R4G4B4A4_UNORM_PACK16, ABGR4Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
-	addDataFormatDesc(B4G4R4A4_UNORM_PACK16, Invalid, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
+	addDataFormatDescSwizzled(B4G4R4A4_UNORM_PACK16, Invalid, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat, B, G, R, A);
 
 	addDataFormatDesc(R5G6B5_UNORM_PACK16, B5G6R5Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
-	addDataFormatDesc(B5G6R5_UNORM_PACK16, Invalid, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
+	addDataFormatDescSwizzled(B5G6R5_UNORM_PACK16, B5G6R5Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat, B, G, R, A);
 	addDataFormatDesc(R5G5B5A1_UNORM_PACK16, A1BGR5Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
-	addDataFormatDesc(B5G5R5A1_UNORM_PACK16, Invalid, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
+	addDataFormatDescSwizzled(B5G5R5A1_UNORM_PACK16, A1BGR5Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat, B, G, R, A);
 	addDataFormatDesc(A1R5G5B5_UNORM_PACK16, BGR5A1Unorm, Invalid, Invalid, Invalid, 1, 1, 2, ColorFloat);
 
 	addDataFormatDesc(R8_UNORM, R8Unorm, Invalid, UCharNormalized, UChar2Normalized, 1, 1, 1, ColorFloat);
@@ -349,11 +343,11 @@ void PixelFormats::initDataFormatCapabilities() {
 	addDataFormatDesc(R8G8B8A8_SRGB, RGBA8Unorm_sRGB, Invalid, UChar4Normalized, Invalid, 1, 1, 4, ColorFloat);
 
 	addDataFormatDesc(B8G8R8A8_UNORM, BGRA8Unorm, Invalid, UChar4Normalized_BGRA, Invalid, 1, 1, 4, ColorFloat);
-	addDataFormatDesc(B8G8R8A8_SNORM, Invalid, Invalid, Invalid, Invalid, 1, 1, 4, ColorFloat);
+	addDataFormatDescSwizzled(B8G8R8A8_SNORM, RGBA8Snorm, Invalid, Invalid, Invalid, 1, 1, 4, ColorFloat, B, G, R, A);
 	addDataFormatDesc(B8G8R8A8_USCALED, Invalid, Invalid, Invalid, Invalid, 1, 1, 4, ColorFloat);
 	addDataFormatDesc(B8G8R8A8_SSCALED, Invalid, Invalid, Invalid, Invalid, 1, 1, 4, ColorFloat);
-	addDataFormatDesc(B8G8R8A8_UINT, Invalid, Invalid, Invalid, Invalid, 1, 1, 4, ColorUInt8);
-	addDataFormatDesc(B8G8R8A8_SINT, Invalid, Invalid, Invalid, Invalid, 1, 1, 4, ColorInt8);
+	addDataFormatDescSwizzled(B8G8R8A8_UINT, RGBA8Uint, Invalid, Invalid, Invalid, 1, 1, 4, ColorUInt8, B, G, R, A);
+	addDataFormatDescSwizzled(B8G8R8A8_SINT, RGBA8Sint, Invalid, Invalid, Invalid, 1, 1, 4, ColorInt8, B, G, R, A);
 	addDataFormatDesc(B8G8R8A8_SRGB, BGRA8Unorm_sRGB, Invalid, Invalid, Invalid, 1, 1, 4, ColorFloat);
 
 	addDataFormatDesc(A8B8G8R8_UNORM_PACK32, RGBA8Unorm, Invalid, UChar4Normalized, Invalid, 1, 1, 4, ColorFloat);
@@ -563,735 +557,470 @@ void PixelFormats::initDataFormatCapabilities() {
 	addDfFormatDescChromaSubsampling(G16_B16_R16_3PLANE_444_UNORM, Invalid, 3, 16, 1, 1, 6);
 }
 
-#define addMTLPixelFormatDescFull(MTL_FMT, VIEW_CLASS, IOS_CAPS, MACOS_CAPS, MTL_FMT_LINEAR) \
-	CRASH_BAD_INDEX_MSG(fmtIdx, _mtlPixelFormatCount, "Adding too many pixel formats");      \
-	_mtlPixelFormatDescriptions[fmtIdx++] = { .mtlPixelFormat = MTLPixelFormat##MTL_FMT, RD::DATA_FORMAT_MAX, select_platform_caps(kMTLFmtCaps##MACOS_CAPS, kMTLFmtCaps##IOS_CAPS), MTLViewClass::VIEW_CLASS, MTLPixelFormat##MTL_FMT_LINEAR, "MTLPixelFormat" #MTL_FMT }
+void PixelFormats::addMTLPixelFormatDescImpl(MTLPixelFormat p_pix_fmt, MTLPixelFormat p_pix_fmt_linear,
+		MTLViewClass p_view_class, MTLFmtCaps p_fmt_caps, const char *p_name) {
+	_mtl_pixel_format_descs[p_pix_fmt] = { .mtlPixelFormat = p_pix_fmt, DataFormat::DATA_FORMAT_MAX, p_fmt_caps, p_view_class, p_pix_fmt_linear, p_name };
+}
 
-#define addMTLPixelFormatDesc(MTL_FMT, VIEW_CLASS, IOS_CAPS, MACOS_CAPS) \
-	addMTLPixelFormatDescFull(MTL_FMT, VIEW_CLASS, IOS_CAPS, MACOS_CAPS, MTL_FMT)
+#define addMTLPixelFormatDescFull(mtlFmt, mtlFmtLinear, viewClass, appleGPUCaps)                             \
+	addMTLPixelFormatDescImpl(MTLPixelFormat##mtlFmt, MTLPixelFormat##mtlFmtLinear, MTLViewClass::viewClass, \
+			appleGPUCaps, "MTLPixelFormat" #mtlFmt)
 
-#define addMTLPixelFormatDescSRGB(MTL_FMT, VIEW_CLASS, IOS_CAPS, MACOS_CAPS, MTL_FMT_LINEAR) \
-	addMTLPixelFormatDescFull(MTL_FMT, VIEW_CLASS, IOS_CAPS, MACOS_CAPS, MTL_FMT_LINEAR)
+#define addMTLPixelFormatDesc(mtlFmt, viewClass, appleGPUCaps) \
+	addMTLPixelFormatDescFull(mtlFmt, mtlFmt, viewClass, kMTLFmtCaps##appleGPUCaps)
+
+#define addMTLPixelFormatDescSRGB(mtlFmt, viewClass, appleGPUCaps, mtlFmtLinear)               \
+	/* Cannot write to sRGB textures in the simulator */                                       \
+	if (TARGET_OS_SIMULATOR) {                                                                 \
+		MTLFmtCaps appleFmtCaps = kMTLFmtCaps##appleGPUCaps;                                   \
+		flags::clear(appleFmtCaps, kMTLFmtCapsWrite);                                          \
+		addMTLPixelFormatDescFull(mtlFmt, mtlFmtLinear, viewClass, appleFmtCaps);              \
+	} else {                                                                                   \
+		addMTLPixelFormatDescFull(mtlFmt, mtlFmtLinear, viewClass, kMTLFmtCaps##appleGPUCaps); \
+	}
 
 void PixelFormats::initMTLPixelFormatCapabilities() {
-	clear(_mtlPixelFormatDescriptions, _mtlPixelFormatCount);
+	_mtl_pixel_format_descs.reserve(1024);
 
-	uint32_t fmtIdx = 0;
-
-	// When adding to this list, be sure to ensure _mtlPixelFormatCount is large enough for the format count.
-
-	// MTLPixelFormatInvalid must come first.
-	addMTLPixelFormatDesc(Invalid, None, None, None);
+	// MTLPixelFormatInvalid must come first. Use addMTLPixelFormatDescImpl to avoid guard code.
+	addMTLPixelFormatDescImpl(MTLPixelFormatInvalid, MTLPixelFormatInvalid, MTLViewClass::None, kMTLFmtCapsNone, "MTLPixelFormatInvalid");
 
 	// Ordinary 8-bit pixel formats.
-	addMTLPixelFormatDesc(A8Unorm, Color8, RF, RF);
-	addMTLPixelFormatDesc(R8Unorm, Color8, All, All);
-	addMTLPixelFormatDescSRGB(R8Unorm_sRGB, Color8, RFCMRB, None, R8Unorm);
-	addMTLPixelFormatDesc(R8Snorm, Color8, RFWCMB, All);
-	addMTLPixelFormatDesc(R8Uint, Color8, RWCM, RWCM);
-	addMTLPixelFormatDesc(R8Sint, Color8, RWCM, RWCM);
+	addMTLPixelFormatDesc(A8Unorm, Color8, All);
+	addMTLPixelFormatDesc(R8Unorm, Color8, All);
+	addMTLPixelFormatDescSRGB(R8Unorm_sRGB, Color8, All, R8Unorm);
+	addMTLPixelFormatDesc(R8Snorm, Color8, All);
+	addMTLPixelFormatDesc(R8Uint, Color8, RWCM);
+	addMTLPixelFormatDesc(R8Sint, Color8, RWCM);
 
-	// Ordinary 16-bit pixel formats.
-	addMTLPixelFormatDesc(R16Unorm, Color16, RFWCMB, All);
-	addMTLPixelFormatDesc(R16Snorm, Color16, RFWCMB, All);
-	addMTLPixelFormatDesc(R16Uint, Color16, RWCM, RWCM);
-	addMTLPixelFormatDesc(R16Sint, Color16, RWCM, RWCM);
-	addMTLPixelFormatDesc(R16Float, Color16, All, All);
+	// Ordinary 16-bit pixel formats
+	addMTLPixelFormatDesc(R16Unorm, Color16, RFWCMB);
+	addMTLPixelFormatDesc(R16Snorm, Color16, RFWCMB);
+	addMTLPixelFormatDesc(R16Uint, Color16, RWCM);
+	addMTLPixelFormatDesc(R16Sint, Color16, RWCM);
+	addMTLPixelFormatDesc(R16Float, Color16, All);
 
-	addMTLPixelFormatDesc(RG8Unorm, Color16, All, All);
-	addMTLPixelFormatDescSRGB(RG8Unorm_sRGB, Color16, RFCMRB, None, RG8Unorm);
-	addMTLPixelFormatDesc(RG8Snorm, Color16, RFWCMB, All);
-	addMTLPixelFormatDesc(RG8Uint, Color16, RWCM, RWCM);
-	addMTLPixelFormatDesc(RG8Sint, Color16, RWCM, RWCM);
+	addMTLPixelFormatDesc(RG8Unorm, Color16, All);
+	addMTLPixelFormatDescSRGB(RG8Unorm_sRGB, Color16, All, RG8Unorm);
+	addMTLPixelFormatDesc(RG8Snorm, Color16, All);
+	addMTLPixelFormatDesc(RG8Uint, Color16, RWCM);
+	addMTLPixelFormatDesc(RG8Sint, Color16, RWCM);
 
-	// Packed 16-bit pixel formats.
-	addMTLPixelFormatDesc(B5G6R5Unorm, Color16, RFCMRB, None);
-	addMTLPixelFormatDesc(A1BGR5Unorm, Color16, RFCMRB, None);
-	addMTLPixelFormatDesc(ABGR4Unorm, Color16, RFCMRB, None);
-	addMTLPixelFormatDesc(BGR5A1Unorm, Color16, RFCMRB, None);
+	// Packed 16-bit pixel formats
+	addMTLPixelFormatDesc(B5G6R5Unorm, Color16, RFCMRB);
+	addMTLPixelFormatDesc(A1BGR5Unorm, Color16, RFCMRB);
+	addMTLPixelFormatDesc(ABGR4Unorm, Color16, RFCMRB);
+	addMTLPixelFormatDesc(BGR5A1Unorm, Color16, RFCMRB);
 
-	// Ordinary 32-bit pixel formats.
-	addMTLPixelFormatDesc(R32Uint, Color32, RC, RWCM);
-	addMTLPixelFormatDesc(R32Sint, Color32, RC, RWCM);
-	addMTLPixelFormatDesc(R32Float, Color32, RCMB, All);
+	// Ordinary 32-bit pixel formats
+	addMTLPixelFormatDesc(R32Uint, Color32, RWC);
+	addMTLPixelFormatDesc(R32Sint, Color32, RWC);
+	addMTLPixelFormatDesc(R32Float, Color32, All);
 
-	addMTLPixelFormatDesc(RG16Unorm, Color32, RFWCMB, All);
-	addMTLPixelFormatDesc(RG16Snorm, Color32, RFWCMB, All);
-	addMTLPixelFormatDesc(RG16Uint, Color32, RWCM, RWCM);
-	addMTLPixelFormatDesc(RG16Sint, Color32, RWCM, RWCM);
-	addMTLPixelFormatDesc(RG16Float, Color32, All, All);
+	addMTLPixelFormatDesc(RG16Unorm, Color32, RFWCMB);
+	addMTLPixelFormatDesc(RG16Snorm, Color32, RFWCMB);
+	addMTLPixelFormatDesc(RG16Uint, Color32, RWCM);
+	addMTLPixelFormatDesc(RG16Sint, Color32, RWCM);
+	addMTLPixelFormatDesc(RG16Float, Color32, All);
 
-	addMTLPixelFormatDesc(RGBA8Unorm, Color32, All, All);
-	addMTLPixelFormatDescSRGB(RGBA8Unorm_sRGB, Color32, RFCMRB, RFCMRB, RGBA8Unorm);
-	addMTLPixelFormatDesc(RGBA8Snorm, Color32, RFWCMB, All);
-	addMTLPixelFormatDesc(RGBA8Uint, Color32, RWCM, RWCM);
-	addMTLPixelFormatDesc(RGBA8Sint, Color32, RWCM, RWCM);
+	addMTLPixelFormatDesc(RGBA8Unorm, Color32, All);
+	addMTLPixelFormatDescSRGB(RGBA8Unorm_sRGB, Color32, All, RGBA8Unorm);
+	addMTLPixelFormatDesc(RGBA8Snorm, Color32, All);
+	addMTLPixelFormatDesc(RGBA8Uint, Color32, RWCM);
+	addMTLPixelFormatDesc(RGBA8Sint, Color32, RWCM);
 
-	addMTLPixelFormatDesc(BGRA8Unorm, Color32, All, All);
-	addMTLPixelFormatDescSRGB(BGRA8Unorm_sRGB, Color32, RFCMRB, RFCMRB, BGRA8Unorm);
+	addMTLPixelFormatDesc(BGRA8Unorm, Color32, All);
+	addMTLPixelFormatDescSRGB(BGRA8Unorm_sRGB, Color32, All, BGRA8Unorm);
 
-	// Packed 32-bit pixel formats.
-	addMTLPixelFormatDesc(RGB10A2Unorm, Color32, RFCMRB, All);
-	addMTLPixelFormatDesc(RGB10A2Uint, Color32, RCM, RWCM);
-	addMTLPixelFormatDesc(RG11B10Float, Color32, RFCMRB, All);
-	addMTLPixelFormatDesc(RGB9E5Float, Color32, RFCMRB, RF);
+	// Packed 32-bit pixel formats
+	addMTLPixelFormatDesc(RGB10A2Unorm, Color32, All);
+	addMTLPixelFormatDesc(BGR10A2Unorm, Color32, All);
+	addMTLPixelFormatDesc(RGB10A2Uint, Color32, RWCM);
+	addMTLPixelFormatDesc(RG11B10Float, Color32, All);
+	addMTLPixelFormatDesc(RGB9E5Float, Color32, All);
 
-	// Ordinary 64-bit pixel formats.
-	addMTLPixelFormatDesc(RG32Uint, Color64, RC, RWCM);
-	addMTLPixelFormatDesc(RG32Sint, Color64, RC, RWCM);
-	addMTLPixelFormatDesc(RG32Float, Color64, RCB, All);
+	// Ordinary 64-bit pixel formats
+	addMTLPixelFormatDesc(RG32Uint, Color64, RWCM);
+	addMTLPixelFormatDesc(RG32Sint, Color64, RWCM);
+	addMTLPixelFormatDesc(RG32Float, Color64, All);
 
-	addMTLPixelFormatDesc(RGBA16Unorm, Color64, RFWCMB, All);
-	addMTLPixelFormatDesc(RGBA16Snorm, Color64, RFWCMB, All);
-	addMTLPixelFormatDesc(RGBA16Uint, Color64, RWCM, RWCM);
-	addMTLPixelFormatDesc(RGBA16Sint, Color64, RWCM, RWCM);
-	addMTLPixelFormatDesc(RGBA16Float, Color64, All, All);
+	addMTLPixelFormatDesc(RGBA16Unorm, Color64, RFWCMB);
+	addMTLPixelFormatDesc(RGBA16Snorm, Color64, RFWCMB);
+	addMTLPixelFormatDesc(RGBA16Uint, Color64, RWCM);
+	addMTLPixelFormatDesc(RGBA16Sint, Color64, RWCM);
+	addMTLPixelFormatDesc(RGBA16Float, Color64, All);
 
-	// Ordinary 128-bit pixel formats.
-	addMTLPixelFormatDesc(RGBA32Uint, Color128, RC, RWCM);
-	addMTLPixelFormatDesc(RGBA32Sint, Color128, RC, RWCM);
-	addMTLPixelFormatDesc(RGBA32Float, Color128, RC, All);
+	// Ordinary 128-bit pixel formats
+	addMTLPixelFormatDesc(RGBA32Uint, Color128, RWC);
+	addMTLPixelFormatDesc(RGBA32Sint, Color128, RWC);
+	addMTLPixelFormatDesc(RGBA32Float, Color128, All);
 
-	// Compressed pixel formats.
-	addMTLPixelFormatDesc(PVRTC_RGBA_2BPP, PVRTC_RGBA_2BPP, RF, None);
-	addMTLPixelFormatDescSRGB(PVRTC_RGBA_2BPP_sRGB, PVRTC_RGBA_2BPP, RF, None, PVRTC_RGBA_2BPP);
-	addMTLPixelFormatDesc(PVRTC_RGBA_4BPP, PVRTC_RGBA_4BPP, RF, None);
-	addMTLPixelFormatDescSRGB(PVRTC_RGBA_4BPP_sRGB, PVRTC_RGBA_4BPP, RF, None, PVRTC_RGBA_4BPP);
+	// Compressed pixel formats
+	addMTLPixelFormatDesc(PVRTC_RGBA_2BPP, PVRTC_RGBA_2BPP, RF);
+	addMTLPixelFormatDescSRGB(PVRTC_RGBA_2BPP_sRGB, PVRTC_RGBA_2BPP, RF, PVRTC_RGBA_2BPP);
+	addMTLPixelFormatDesc(PVRTC_RGBA_4BPP, PVRTC_RGBA_4BPP, RF);
+	addMTLPixelFormatDescSRGB(PVRTC_RGBA_4BPP_sRGB, PVRTC_RGBA_4BPP, RF, PVRTC_RGBA_4BPP);
 
-	addMTLPixelFormatDesc(ETC2_RGB8, ETC2_RGB8, RF, None);
-	addMTLPixelFormatDescSRGB(ETC2_RGB8_sRGB, ETC2_RGB8, RF, None, ETC2_RGB8);
-	addMTLPixelFormatDesc(ETC2_RGB8A1, ETC2_RGB8A1, RF, None);
-	addMTLPixelFormatDescSRGB(ETC2_RGB8A1_sRGB, ETC2_RGB8A1, RF, None, ETC2_RGB8A1);
-	addMTLPixelFormatDesc(EAC_RGBA8, EAC_RGBA8, RF, None);
-	addMTLPixelFormatDescSRGB(EAC_RGBA8_sRGB, EAC_RGBA8, RF, None, EAC_RGBA8);
-	addMTLPixelFormatDesc(EAC_R11Unorm, EAC_R11, RF, None);
-	addMTLPixelFormatDesc(EAC_R11Snorm, EAC_R11, RF, None);
-	addMTLPixelFormatDesc(EAC_RG11Unorm, EAC_RG11, RF, None);
-	addMTLPixelFormatDesc(EAC_RG11Snorm, EAC_RG11, RF, None);
+	addMTLPixelFormatDesc(ETC2_RGB8, ETC2_RGB8, RF);
+	addMTLPixelFormatDescSRGB(ETC2_RGB8_sRGB, ETC2_RGB8, RF, ETC2_RGB8);
+	addMTLPixelFormatDesc(ETC2_RGB8A1, ETC2_RGB8A1, RF);
+	addMTLPixelFormatDescSRGB(ETC2_RGB8A1_sRGB, ETC2_RGB8A1, RF, ETC2_RGB8A1);
+	addMTLPixelFormatDesc(EAC_RGBA8, EAC_RGBA8, RF);
+	addMTLPixelFormatDescSRGB(EAC_RGBA8_sRGB, EAC_RGBA8, RF, EAC_RGBA8);
+	addMTLPixelFormatDesc(EAC_R11Unorm, EAC_R11, RF);
+	addMTLPixelFormatDesc(EAC_R11Snorm, EAC_R11, RF);
+	addMTLPixelFormatDesc(EAC_RG11Unorm, EAC_RG11, RF);
+	addMTLPixelFormatDesc(EAC_RG11Snorm, EAC_RG11, RF);
 
-	addMTLPixelFormatDesc(ASTC_4x4_LDR, ASTC_4x4, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_4x4_sRGB, ASTC_4x4, None, None, ASTC_4x4_LDR);
-	addMTLPixelFormatDesc(ASTC_4x4_HDR, ASTC_4x4, None, None);
-	addMTLPixelFormatDesc(ASTC_5x4_LDR, ASTC_5x4, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_5x4_sRGB, ASTC_5x4, None, None, ASTC_5x4_LDR);
-	addMTLPixelFormatDesc(ASTC_5x4_HDR, ASTC_5x4, None, None);
-	addMTLPixelFormatDesc(ASTC_5x5_LDR, ASTC_5x5, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_5x5_sRGB, ASTC_5x5, None, None, ASTC_5x5_LDR);
-	addMTLPixelFormatDesc(ASTC_5x5_HDR, ASTC_5x5, None, None);
-	addMTLPixelFormatDesc(ASTC_6x5_LDR, ASTC_6x5, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_6x5_sRGB, ASTC_6x5, None, None, ASTC_6x5_LDR);
-	addMTLPixelFormatDesc(ASTC_6x5_HDR, ASTC_6x5, None, None);
-	addMTLPixelFormatDesc(ASTC_6x6_LDR, ASTC_6x6, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_6x6_sRGB, ASTC_6x6, None, None, ASTC_6x6_LDR);
-	addMTLPixelFormatDesc(ASTC_6x6_HDR, ASTC_6x6, None, None);
-	addMTLPixelFormatDesc(ASTC_8x5_LDR, ASTC_8x5, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_8x5_sRGB, ASTC_8x5, None, None, ASTC_8x5_LDR);
-	addMTLPixelFormatDesc(ASTC_8x5_HDR, ASTC_8x5, None, None);
-	addMTLPixelFormatDesc(ASTC_8x6_LDR, ASTC_8x6, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_8x6_sRGB, ASTC_8x6, None, None, ASTC_8x6_LDR);
-	addMTLPixelFormatDesc(ASTC_8x6_HDR, ASTC_8x6, None, None);
-	addMTLPixelFormatDesc(ASTC_8x8_LDR, ASTC_8x8, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_8x8_sRGB, ASTC_8x8, None, None, ASTC_8x8_LDR);
-	addMTLPixelFormatDesc(ASTC_8x8_HDR, ASTC_8x8, None, None);
-	addMTLPixelFormatDesc(ASTC_10x5_LDR, ASTC_10x5, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_10x5_sRGB, ASTC_10x5, None, None, ASTC_10x5_LDR);
-	addMTLPixelFormatDesc(ASTC_10x5_HDR, ASTC_10x5, None, None);
-	addMTLPixelFormatDesc(ASTC_10x6_LDR, ASTC_10x6, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_10x6_sRGB, ASTC_10x6, None, None, ASTC_10x6_LDR);
-	addMTLPixelFormatDesc(ASTC_10x6_HDR, ASTC_10x6, None, None);
-	addMTLPixelFormatDesc(ASTC_10x8_LDR, ASTC_10x8, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_10x8_sRGB, ASTC_10x8, None, None, ASTC_10x8_LDR);
-	addMTLPixelFormatDesc(ASTC_10x8_HDR, ASTC_10x8, None, None);
-	addMTLPixelFormatDesc(ASTC_10x10_LDR, ASTC_10x10, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_10x10_sRGB, ASTC_10x10, None, None, ASTC_10x10_LDR);
-	addMTLPixelFormatDesc(ASTC_10x10_HDR, ASTC_10x10, None, None);
-	addMTLPixelFormatDesc(ASTC_12x10_LDR, ASTC_12x10, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_12x10_sRGB, ASTC_12x10, None, None, ASTC_12x10_LDR);
-	addMTLPixelFormatDesc(ASTC_12x10_HDR, ASTC_12x10, None, None);
-	addMTLPixelFormatDesc(ASTC_12x12_LDR, ASTC_12x12, None, None);
-	addMTLPixelFormatDescSRGB(ASTC_12x12_sRGB, ASTC_12x12, None, None, ASTC_12x12_LDR);
-	addMTLPixelFormatDesc(ASTC_12x12_HDR, ASTC_12x12, None, None);
+	addMTLPixelFormatDesc(ASTC_4x4_LDR, ASTC_4x4, RF);
+	addMTLPixelFormatDescSRGB(ASTC_4x4_sRGB, ASTC_4x4, RF, ASTC_4x4_LDR);
+	addMTLPixelFormatDesc(ASTC_4x4_HDR, ASTC_4x4, RF);
+	addMTLPixelFormatDesc(ASTC_5x4_LDR, ASTC_5x4, RF);
+	addMTLPixelFormatDescSRGB(ASTC_5x4_sRGB, ASTC_5x4, RF, ASTC_5x4_LDR);
+	addMTLPixelFormatDesc(ASTC_5x4_HDR, ASTC_5x4, RF);
+	addMTLPixelFormatDesc(ASTC_5x5_LDR, ASTC_5x5, RF);
+	addMTLPixelFormatDescSRGB(ASTC_5x5_sRGB, ASTC_5x5, RF, ASTC_5x5_LDR);
+	addMTLPixelFormatDesc(ASTC_5x5_HDR, ASTC_5x5, RF);
+	addMTLPixelFormatDesc(ASTC_6x5_LDR, ASTC_6x5, RF);
+	addMTLPixelFormatDescSRGB(ASTC_6x5_sRGB, ASTC_6x5, RF, ASTC_6x5_LDR);
+	addMTLPixelFormatDesc(ASTC_6x5_HDR, ASTC_6x5, RF);
+	addMTLPixelFormatDesc(ASTC_6x6_LDR, ASTC_6x6, RF);
+	addMTLPixelFormatDescSRGB(ASTC_6x6_sRGB, ASTC_6x6, RF, ASTC_6x6_LDR);
+	addMTLPixelFormatDesc(ASTC_6x6_HDR, ASTC_6x6, RF);
+	addMTLPixelFormatDesc(ASTC_8x5_LDR, ASTC_8x5, RF);
+	addMTLPixelFormatDescSRGB(ASTC_8x5_sRGB, ASTC_8x5, RF, ASTC_8x5_LDR);
+	addMTLPixelFormatDesc(ASTC_8x5_HDR, ASTC_8x5, RF);
+	addMTLPixelFormatDesc(ASTC_8x6_LDR, ASTC_8x6, RF);
+	addMTLPixelFormatDescSRGB(ASTC_8x6_sRGB, ASTC_8x6, RF, ASTC_8x6_LDR);
+	addMTLPixelFormatDesc(ASTC_8x6_HDR, ASTC_8x6, RF);
+	addMTLPixelFormatDesc(ASTC_8x8_LDR, ASTC_8x8, RF);
+	addMTLPixelFormatDescSRGB(ASTC_8x8_sRGB, ASTC_8x8, RF, ASTC_8x8_LDR);
+	addMTLPixelFormatDesc(ASTC_8x8_HDR, ASTC_8x8, RF);
+	addMTLPixelFormatDesc(ASTC_10x5_LDR, ASTC_10x5, RF);
+	addMTLPixelFormatDescSRGB(ASTC_10x5_sRGB, ASTC_10x5, RF, ASTC_10x5_LDR);
+	addMTLPixelFormatDesc(ASTC_10x5_HDR, ASTC_10x5, RF);
+	addMTLPixelFormatDesc(ASTC_10x6_LDR, ASTC_10x6, RF);
+	addMTLPixelFormatDescSRGB(ASTC_10x6_sRGB, ASTC_10x6, RF, ASTC_10x6_LDR);
+	addMTLPixelFormatDesc(ASTC_10x6_HDR, ASTC_10x6, RF);
+	addMTLPixelFormatDesc(ASTC_10x8_LDR, ASTC_10x8, RF);
+	addMTLPixelFormatDescSRGB(ASTC_10x8_sRGB, ASTC_10x8, RF, ASTC_10x8_LDR);
+	addMTLPixelFormatDesc(ASTC_10x8_HDR, ASTC_10x8, RF);
+	addMTLPixelFormatDesc(ASTC_10x10_LDR, ASTC_10x10, RF);
+	addMTLPixelFormatDescSRGB(ASTC_10x10_sRGB, ASTC_10x10, RF, ASTC_10x10_LDR);
+	addMTLPixelFormatDesc(ASTC_10x10_HDR, ASTC_10x10, RF);
+	addMTLPixelFormatDesc(ASTC_12x10_LDR, ASTC_12x10, RF);
+	addMTLPixelFormatDescSRGB(ASTC_12x10_sRGB, ASTC_12x10, RF, ASTC_12x10_LDR);
+	addMTLPixelFormatDesc(ASTC_12x10_HDR, ASTC_12x10, RF);
+	addMTLPixelFormatDesc(ASTC_12x12_LDR, ASTC_12x12, RF);
+	addMTLPixelFormatDescSRGB(ASTC_12x12_sRGB, ASTC_12x12, RF, ASTC_12x12_LDR);
+	addMTLPixelFormatDesc(ASTC_12x12_HDR, ASTC_12x12, RF);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability"
 
-	addMTLPixelFormatDesc(BC1_RGBA, BC1_RGBA, RF, RF);
-	addMTLPixelFormatDescSRGB(BC1_RGBA_sRGB, BC1_RGBA, RF, RF, BC1_RGBA);
-	addMTLPixelFormatDesc(BC2_RGBA, BC2_RGBA, RF, RF);
-	addMTLPixelFormatDescSRGB(BC2_RGBA_sRGB, BC2_RGBA, RF, RF, BC2_RGBA);
-	addMTLPixelFormatDesc(BC3_RGBA, BC3_RGBA, RF, RF);
-	addMTLPixelFormatDescSRGB(BC3_RGBA_sRGB, BC3_RGBA, RF, RF, BC3_RGBA);
-	addMTLPixelFormatDesc(BC4_RUnorm, BC4_R, RF, RF);
-	addMTLPixelFormatDesc(BC4_RSnorm, BC4_R, RF, RF);
-	addMTLPixelFormatDesc(BC5_RGUnorm, BC5_RG, RF, RF);
-	addMTLPixelFormatDesc(BC5_RGSnorm, BC5_RG, RF, RF);
-	addMTLPixelFormatDesc(BC6H_RGBUfloat, BC6H_RGB, RF, RF);
-	addMTLPixelFormatDesc(BC6H_RGBFloat, BC6H_RGB, RF, RF);
-	addMTLPixelFormatDesc(BC7_RGBAUnorm, BC7_RGBA, RF, RF);
-	addMTLPixelFormatDescSRGB(BC7_RGBAUnorm_sRGB, BC7_RGBA, RF, RF, BC7_RGBAUnorm);
+	addMTLPixelFormatDesc(BC1_RGBA, BC1_RGBA, RF);
+	addMTLPixelFormatDescSRGB(BC1_RGBA_sRGB, BC1_RGBA, RF, BC1_RGBA);
+	addMTLPixelFormatDesc(BC2_RGBA, BC2_RGBA, RF);
+	addMTLPixelFormatDescSRGB(BC2_RGBA_sRGB, BC2_RGBA, RF, BC2_RGBA);
+	addMTLPixelFormatDesc(BC3_RGBA, BC3_RGBA, RF);
+	addMTLPixelFormatDescSRGB(BC3_RGBA_sRGB, BC3_RGBA, RF, BC3_RGBA);
+	addMTLPixelFormatDesc(BC4_RUnorm, BC4_R, RF);
+	addMTLPixelFormatDesc(BC4_RSnorm, BC4_R, RF);
+	addMTLPixelFormatDesc(BC5_RGUnorm, BC5_RG, RF);
+	addMTLPixelFormatDesc(BC5_RGSnorm, BC5_RG, RF);
+	addMTLPixelFormatDesc(BC6H_RGBUfloat, BC6H_RGB, RF);
+	addMTLPixelFormatDesc(BC6H_RGBFloat, BC6H_RGB, RF);
+	addMTLPixelFormatDesc(BC7_RGBAUnorm, BC7_RGBA, RF);
+	addMTLPixelFormatDescSRGB(BC7_RGBAUnorm_sRGB, BC7_RGBA, RF, BC7_RGBAUnorm);
 
 #pragma clang diagnostic pop
 
-	// YUV pixel formats.
-	addMTLPixelFormatDesc(GBGR422, None, RF, RF);
-	addMTLPixelFormatDesc(BGRG422, None, RF, RF);
+	// YUV pixel formats
+	addMTLPixelFormatDesc(GBGR422, None, RF);
+	addMTLPixelFormatDesc(BGRG422, None, RF);
 
-	// Extended range and wide color pixel formats.
-	addMTLPixelFormatDesc(BGRA10_XR, BGRA10_XR, None, None);
-	addMTLPixelFormatDescSRGB(BGRA10_XR_sRGB, BGRA10_XR, None, None, BGRA10_XR);
-	addMTLPixelFormatDesc(BGR10_XR, BGR10_XR, None, None);
-	addMTLPixelFormatDescSRGB(BGR10_XR_sRGB, BGR10_XR, None, None, BGR10_XR);
-	addMTLPixelFormatDesc(BGR10A2Unorm, Color32, None, None);
+	// Extended range and wide color pixel formats
+	addMTLPixelFormatDesc(BGRA10_XR, BGRA10_XR, All);
+	addMTLPixelFormatDescSRGB(BGRA10_XR_sRGB, BGRA10_XR, All, BGRA10_XR);
+	addMTLPixelFormatDesc(BGR10_XR, BGR10_XR, All);
+	addMTLPixelFormatDescSRGB(BGR10_XR_sRGB, BGR10_XR, All, BGR10_XR);
 
-	// Depth and stencil pixel formats.
-	addMTLPixelFormatDesc(Depth16Unorm, None, None, None);
-	addMTLPixelFormatDesc(Depth32Float, None, DRM, DRFMR);
-	addMTLPixelFormatDesc(Stencil8, None, DRM, DRMR);
-	addMTLPixelFormatDesc(Depth24Unorm_Stencil8, Depth24_Stencil8, None, None);
-	addMTLPixelFormatDesc(Depth32Float_Stencil8, Depth32_Stencil8, DRM, DRFMR);
-	addMTLPixelFormatDesc(X24_Stencil8, Depth24_Stencil8, None, DRMR);
-	addMTLPixelFormatDesc(X32_Stencil8, Depth32_Stencil8, DRM, DRMR);
-
-	// When adding to this list, be sure to ensure _mtlPixelFormatCount is large enough for the format count.
+	// Depth and stencil pixel formats
+	addMTLPixelFormatDesc(Depth16Unorm, None, DRFMR);
+	addMTLPixelFormatDesc(Depth32Float, None, DRMR);
+	addMTLPixelFormatDesc(Stencil8, None, DRM);
+	addMTLPixelFormatDesc(Depth24Unorm_Stencil8, Depth24_Stencil8, None);
+	addMTLPixelFormatDesc(Depth32Float_Stencil8, Depth32_Stencil8, DRMR);
+	addMTLPixelFormatDesc(X24_Stencil8, Depth24_Stencil8, None);
+	addMTLPixelFormatDesc(X32_Stencil8, Depth32_Stencil8, DRM);
 }
 
-#define addMTLVertexFormatDesc(MTL_VTX_FMT, IOS_CAPS, MACOS_CAPS)                                           \
-	CRASH_BAD_INDEX_MSG(fmtIdx, _mtlVertexFormatCount, "Attempting to describe too many MTLVertexFormats"); \
-	_mtlVertexFormatDescriptions[fmtIdx++] = { .mtlVertexFormat = MTLVertexFormat##MTL_VTX_FMT, RD::DATA_FORMAT_MAX, select_platform_caps(kMTLFmtCaps##MACOS_CAPS, kMTLFmtCaps##IOS_CAPS), MTLViewClass::None, MTLPixelFormatInvalid, "MTLVertexFormat" #MTL_VTX_FMT }
-
-void PixelFormats::initMTLVertexFormatCapabilities() {
-	clear(_mtlVertexFormatDescriptions, _mtlVertexFormatCount);
-
-	uint32_t fmtIdx = 0;
-
-	// When adding to this list, be sure to ensure _mtlVertexFormatCount is large enough for the format count.
-
-	// MTLVertexFormatInvalid must come first.
-	addMTLVertexFormatDesc(Invalid, None, None);
-
-	addMTLVertexFormatDesc(UChar2Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char2Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UChar2, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char2, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UChar3Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char3Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UChar3, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char3, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UChar4Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char4Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UChar4, Vertex, Vertex);
-	addMTLVertexFormatDesc(Char4, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UInt1010102Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Int1010102Normalized, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UShort2Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short2Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UShort2, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short2, Vertex, Vertex);
-	addMTLVertexFormatDesc(Half2, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UShort3Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short3Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UShort3, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short3, Vertex, Vertex);
-	addMTLVertexFormatDesc(Half3, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UShort4Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short4Normalized, Vertex, Vertex);
-	addMTLVertexFormatDesc(UShort4, Vertex, Vertex);
-	addMTLVertexFormatDesc(Short4, Vertex, Vertex);
-	addMTLVertexFormatDesc(Half4, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UInt, Vertex, Vertex);
-	addMTLVertexFormatDesc(Int, Vertex, Vertex);
-	addMTLVertexFormatDesc(Float, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UInt2, Vertex, Vertex);
-	addMTLVertexFormatDesc(Int2, Vertex, Vertex);
-	addMTLVertexFormatDesc(Float2, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UInt3, Vertex, Vertex);
-	addMTLVertexFormatDesc(Int3, Vertex, Vertex);
-	addMTLVertexFormatDesc(Float3, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UInt4, Vertex, Vertex);
-	addMTLVertexFormatDesc(Int4, Vertex, Vertex);
-	addMTLVertexFormatDesc(Float4, Vertex, Vertex);
-
-	addMTLVertexFormatDesc(UCharNormalized, None, None);
-	addMTLVertexFormatDesc(CharNormalized, None, None);
-	addMTLVertexFormatDesc(UChar, None, None);
-	addMTLVertexFormatDesc(Char, None, None);
-
-	addMTLVertexFormatDesc(UShortNormalized, None, None);
-	addMTLVertexFormatDesc(ShortNormalized, None, None);
-	addMTLVertexFormatDesc(UShort, None, None);
-	addMTLVertexFormatDesc(Short, None, None);
-	addMTLVertexFormatDesc(Half, None, None);
-
-	addMTLVertexFormatDesc(UChar4Normalized_BGRA, None, None);
-
-	// When adding to this list, be sure to ensure _mtlVertexFormatCount is large enough for the format count.
+// If necessary, resize vector with empty elements.
+void PixelFormats::addMTLVertexFormatDescImpl(MTLVertexFormat mtlVtxFmt, MTLFmtCaps vtxCap, const char *name) {
+	if (mtlVtxFmt >= _mtl_vertex_format_descs.size()) {
+		_mtl_vertex_format_descs.resize(mtlVtxFmt + 1);
+	}
+	_mtl_vertex_format_descs[mtlVtxFmt] = { .mtlVertexFormat = mtlVtxFmt, RD::DATA_FORMAT_MAX, vtxCap, MTLViewClass::None, MTLPixelFormatInvalid, name };
 }
 
-void PixelFormats::buildMTLFormatMaps() {
-	// Set all MTLPixelFormats and MTLVertexFormats to undefined/invalid.
-	clear(_mtlFormatDescIndicesByMTLPixelFormatsCore, _mtlPixelFormatCoreCount);
-	clear(_mtlFormatDescIndicesByMTLVertexFormats, _mtlVertexFormatCount);
-
-	// Build lookup table for MTLPixelFormat specs.
-	// For most Metal format values, which are small and consecutive, use a simple lookup array.
-	// For outlier format values, which can be large, use a map.
-	for (uint32_t fmtIdx = 0; fmtIdx < _mtlPixelFormatCount; fmtIdx++) {
-		MTLPixelFormat fmt = _mtlPixelFormatDescriptions[fmtIdx].mtlPixelFormat;
-		if (fmt) {
-			if (fmt < _mtlPixelFormatCoreCount) {
-				_mtlFormatDescIndicesByMTLPixelFormatsCore[fmt] = fmtIdx;
-			} else {
-				_mtlFormatDescIndicesByMTLPixelFormatsExt[fmt] = fmtIdx;
-			}
-		}
+// Check mtlVtx exists on platform, to avoid overwriting the MTLVertexFormatInvalid entry.
+#define addMTLVertexFormatDesc(mtlVtx)                                                                     \
+	if (MTLVertexFormat##mtlVtx) {                                                                         \
+		addMTLVertexFormatDescImpl(MTLVertexFormat##mtlVtx, kMTLFmtCapsVertex, "MTLVertexFormat" #mtlVtx); \
 	}
 
-	// Build lookup table for MTLVertexFormat specs.
-	for (uint32_t fmtIdx = 0; fmtIdx < _mtlVertexFormatCount; fmtIdx++) {
-		MTLVertexFormat fmt = _mtlVertexFormatDescriptions[fmtIdx].mtlVertexFormat;
-		if (fmt) {
-			_mtlFormatDescIndicesByMTLVertexFormats[fmt] = fmtIdx;
+void PixelFormats::initMTLVertexFormatCapabilities(const MetalFeatures &p_feat) {
+	_mtl_vertex_format_descs.resize(MTLVertexFormatHalf + 3);
+	// MTLVertexFormatInvalid must come first. Use addMTLVertexFormatDescImpl to avoid guard code.
+	addMTLVertexFormatDescImpl(MTLVertexFormatInvalid, kMTLFmtCapsNone, "MTLVertexFormatInvalid");
+
+	addMTLVertexFormatDesc(UChar2Normalized);
+	addMTLVertexFormatDesc(Char2Normalized);
+	addMTLVertexFormatDesc(UChar2);
+	addMTLVertexFormatDesc(Char2);
+
+	addMTLVertexFormatDesc(UChar3Normalized);
+	addMTLVertexFormatDesc(Char3Normalized);
+	addMTLVertexFormatDesc(UChar3);
+	addMTLVertexFormatDesc(Char3);
+
+	addMTLVertexFormatDesc(UChar4Normalized);
+	addMTLVertexFormatDesc(Char4Normalized);
+	addMTLVertexFormatDesc(UChar4);
+	addMTLVertexFormatDesc(Char4);
+
+	addMTLVertexFormatDesc(UInt1010102Normalized);
+	addMTLVertexFormatDesc(Int1010102Normalized);
+
+	addMTLVertexFormatDesc(UShort2Normalized);
+	addMTLVertexFormatDesc(Short2Normalized);
+	addMTLVertexFormatDesc(UShort2);
+	addMTLVertexFormatDesc(Short2);
+	addMTLVertexFormatDesc(Half2);
+
+	addMTLVertexFormatDesc(UShort3Normalized);
+	addMTLVertexFormatDesc(Short3Normalized);
+	addMTLVertexFormatDesc(UShort3);
+	addMTLVertexFormatDesc(Short3);
+	addMTLVertexFormatDesc(Half3);
+
+	addMTLVertexFormatDesc(UShort4Normalized);
+	addMTLVertexFormatDesc(Short4Normalized);
+	addMTLVertexFormatDesc(UShort4);
+	addMTLVertexFormatDesc(Short4);
+	addMTLVertexFormatDesc(Half4);
+
+	addMTLVertexFormatDesc(UInt);
+	addMTLVertexFormatDesc(Int);
+	addMTLVertexFormatDesc(Float);
+
+	addMTLVertexFormatDesc(UInt2);
+	addMTLVertexFormatDesc(Int2);
+	addMTLVertexFormatDesc(Float2);
+
+	addMTLVertexFormatDesc(UInt3);
+	addMTLVertexFormatDesc(Int3);
+	addMTLVertexFormatDesc(Float3);
+
+	addMTLVertexFormatDesc(UInt4);
+	addMTLVertexFormatDesc(Int4);
+	addMTLVertexFormatDesc(Float4);
+
+	addMTLVertexFormatDesc(UCharNormalized);
+	addMTLVertexFormatDesc(CharNormalized);
+	addMTLVertexFormatDesc(UChar);
+	addMTLVertexFormatDesc(Char);
+
+	addMTLVertexFormatDesc(UShortNormalized);
+	addMTLVertexFormatDesc(ShortNormalized);
+	addMTLVertexFormatDesc(UShort);
+	addMTLVertexFormatDesc(Short);
+	addMTLVertexFormatDesc(Half);
+
+	addMTLVertexFormatDesc(UChar4Normalized_BGRA);
+
+	if (@available(macos 14.0, ios 17.0, tvos 17.0, *)) {
+		if (p_feat.highestFamily >= MTLGPUFamilyApple5) {
+			addMTLVertexFormatDesc(FloatRG11B10);
+			addMTLVertexFormatDesc(FloatRGB9E5);
 		}
 	}
 }
 
-// If the device supports the feature set, add additional capabilities to a MTLPixelFormat.
-void PixelFormats::addMTLPixelFormatCapabilities(id<MTLDevice> p_device,
-		MTLFeatureSet p_feature_set,
-		MTLPixelFormat p_format,
-		MTLFmtCaps p_caps) {
-	if ([p_device supportsFeatureSet:p_feature_set]) {
-		flags::set(getMTLPixelFormatDesc(p_format).mtlFmtCaps, p_caps);
+// Return a reference to the format capabilities, so the caller can manipulate them.
+// Check mtlPixFmt exists on platform, to avoid overwriting the MTLPixelFormatInvalid entry.
+// When returning the dummy, reset it on each access because it can be written to by caller.
+MTLFmtCaps &PixelFormats::getMTLPixelFormatCapsIf(MTLPixelFormat mtlPixFmt, bool cond) {
+	static MTLFmtCaps dummyFmtCaps;
+	if (mtlPixFmt && cond) {
+		return getMTLPixelFormatDesc(mtlPixFmt).mtlFmtCaps;
+	} else {
+		dummyFmtCaps = kMTLFmtCapsNone;
+		return dummyFmtCaps;
 	}
 }
 
-// If the device supports the GPU family, add additional capabilities to a MTLPixelFormat.
-void PixelFormats::addMTLPixelFormatCapabilities(id<MTLDevice> p_device,
-		MTLGPUFamily p_family,
-		MTLPixelFormat p_format,
-		MTLFmtCaps p_caps) {
-	if ([p_device supportsFamily:p_family]) {
-		flags::set(getMTLPixelFormatDesc(p_format).mtlFmtCaps, p_caps);
-	}
-}
+#define setMTLPixFmtCapsIf(cond, mtlFmt, caps) getMTLPixelFormatCapsIf(MTLPixelFormat##mtlFmt, cond) = kMTLFmtCaps##caps;
+#define setMTLPixFmtCapsIfGPU(gpuFam, mtlFmt, caps) setMTLPixFmtCapsIf(gpuCaps.supports##gpuFam, mtlFmt, caps)
 
-// Disable capability flags in the Metal pixel format.
-void PixelFormats::disableMTLPixelFormatCapabilities(MTLPixelFormat p_format,
-		MTLFmtCaps p_caps) {
-	flags::clear(getMTLPixelFormatDesc(p_format).mtlFmtCaps, p_caps);
-}
+#define enableMTLPixFmtCapsIf(cond, mtlFmt, caps) flags::set(getMTLPixelFormatCapsIf(MTLPixelFormat##mtlFmt, cond), kMTLFmtCaps##caps);
+#define enableMTLPixFmtCapsIfGPU(gpuFam, mtlFmt, caps) enableMTLPixFmtCapsIf(p_feat.highestFamily >= MTLGPUFamily##gpuFam, mtlFmt, caps)
 
-void PixelFormats::disableAllMTLPixelFormatCapabilities(MTLPixelFormat p_format) {
-	getMTLPixelFormatDesc(p_format).mtlFmtCaps = kMTLFmtCapsNone;
-}
+#define disableMTLPixFmtCapsIf(cond, mtlFmt, caps) flags::clear(getMTLPixelFormatCapsIf(MTLPixelFormat##mtlFmt, cond), kMTLFmtCaps##caps);
 
-// If the device supports the feature set, add additional capabilities to a MTLVertexFormat.
-void PixelFormats::addMTLVertexFormatCapabilities(id<MTLDevice> p_device,
-		MTLFeatureSet p_feature_set,
-		MTLVertexFormat p_format,
-		MTLFmtCaps p_caps) {
-	if ([p_device supportsFeatureSet:p_feature_set]) {
-		flags::set(getMTLVertexFormatDesc(p_format).mtlFmtCaps, p_caps);
-	}
-}
+// Modifies the format capability tables based on the capabilities of the specific MTLDevice.
+void PixelFormats::modifyMTLFormatCapabilities(const MetalFeatures &p_feat) {
+	bool noVulkanSupport = false; // Indicated supported in Metal but not Vulkan or SPIR-V.
+	bool notMac = !p_feat.supportsMac;
+	bool iosOnly1 = notMac && p_feat.highestFamily < MTLGPUFamilyApple2;
+	bool iosOnly2 = notMac && p_feat.highestFamily < MTLGPUFamilyApple3;
+	bool iosOnly6 = notMac && p_feat.highestFamily < MTLGPUFamilyApple7;
+	bool iosOnly8 = notMac && p_feat.highestFamily < MTLGPUFamilyApple9;
 
-void PixelFormats::modifyMTLFormatCapabilities() {
-	modifyMTLFormatCapabilities(device);
-}
+	setMTLPixFmtCapsIf(iosOnly2, A8Unorm, RF);
+	setMTLPixFmtCapsIf(iosOnly1, R8Unorm_sRGB, RFCMRB);
+	setMTLPixFmtCapsIf(iosOnly1, R8Snorm, RFWCMB);
 
-// If the supportsBCTextureCompression query is available, use it.
-bool supports_bc_texture_compression(id<MTLDevice> p_device) {
-#if (TARGET_OS_OSX || TARGET_OS_IOS && __IPHONE_OS_VERSION_MAX_ALLOWED >= 160400)
-	if (@available(macOS 11.0, iOS 16.4, *)) {
-		return p_device.supportsBCTextureCompression;
-	}
-#endif
-	return false;
-}
+	setMTLPixFmtCapsIf(iosOnly1, RG8Unorm_sRGB, RFCMRB);
+	setMTLPixFmtCapsIf(iosOnly1, RG8Snorm, RFWCMB);
 
-#define addFeatSetMTLPixFmtCaps(FEAT_SET, MTL_FMT, CAPS) \
-	addMTLPixelFormatCapabilities(p_device, MTLFeatureSet_##FEAT_SET, MTLPixelFormat##MTL_FMT, kMTLFmtCaps##CAPS)
+	enableMTLPixFmtCapsIfGPU(Apple6, R32Uint, Atomic);
+	enableMTLPixFmtCapsIfGPU(Apple6, R32Sint, Atomic);
 
-#define addFeatSetMTLVtxFmtCaps(FEAT_SET, MTL_FMT, CAPS) \
-	addMTLVertexFormatCapabilities(p_device, MTLFeatureSet_##FEAT_SET, MTLVertexFormat##MTL_FMT, kMTLFmtCaps##CAPS)
+	setMTLPixFmtCapsIf(iosOnly8, R32Float, RWCMB);
 
-#define addGPUMTLPixFmtCaps(GPU_FAM, MTL_FMT, CAPS) \
-	addMTLPixelFormatCapabilities(p_device, MTLGPUFamily##GPU_FAM, MTLPixelFormat##MTL_FMT, kMTLFmtCaps##CAPS)
+	setMTLPixFmtCapsIf(iosOnly1, RGBA8Unorm_sRGB, RFCMRB);
+	setMTLPixFmtCapsIf(iosOnly1, RGBA8Snorm, RFWCMB);
+	setMTLPixFmtCapsIf(iosOnly1, BGRA8Unorm_sRGB, RFCMRB);
 
-#define disableAllMTLPixFmtCaps(MTL_FMT) \
-	disableAllMTLPixelFormatCapabilities(MTLPixelFormat##MTL_FMT)
+	setMTLPixFmtCapsIf(iosOnly2, RGB10A2Unorm, RFCMRB);
+	setMTLPixFmtCapsIf(iosOnly2, RGB10A2Uint, RCM);
+	setMTLPixFmtCapsIf(iosOnly2, RG11B10Float, RFCMRB);
+	setMTLPixFmtCapsIf(iosOnly2, RGB9E5Float, RFCMRB);
 
-#define disableMTLPixFmtCaps(MTL_FMT, CAPS) \
-	disableMTLPixelFormatCapabilities(MTLPixelFormat##MTL_FMT, kMTLFmtCaps##CAPS)
+	// Blending is actually supported for RGB9E5Float, but format channels cannot
+	// be individually write-enabled during blending on macOS. Disabling blending
+	// on macOS is the least-intrusive way to handle this in a Vulkan-friendly way.
+	disableMTLPixFmtCapsIf(p_feat.supportsMac, RGB9E5Float, Blend);
 
-void PixelFormats::modifyMTLFormatCapabilities(id<MTLDevice> p_device) {
-	if (!supports_bc_texture_compression(p_device)) {
+	// RGB9E5Float cannot be used as a render target on the simulator.
+	disableMTLPixFmtCapsIf(TARGET_OS_SIMULATOR, RGB9E5Float, ColorAtt);
+
+	setMTLPixFmtCapsIf(iosOnly6, RG32Uint, RWC);
+	setMTLPixFmtCapsIf(iosOnly6, RG32Sint, RWC);
+
+	// Metal supports reading both R&G into as one 64-bit atomic operation, but Vulkan and SPIR-V do not.
+	// Including this here so we remember to update this if support is added to Vulkan in the future.
+	bool atomic64 = noVulkanSupport && (p_feat.highestFamily >= MTLGPUFamilyApple9 || (p_feat.highestFamily >= MTLGPUFamilyApple8 && p_feat.supportsMac));
+	enableMTLPixFmtCapsIf(atomic64, RG32Uint, Atomic);
+	enableMTLPixFmtCapsIf(atomic64, RG32Sint, Atomic);
+
+	setMTLPixFmtCapsIf(iosOnly8, RG32Float, RWCMB);
+	setMTLPixFmtCapsIf(iosOnly6, RG32Float, RWCB);
+
+	setMTLPixFmtCapsIf(iosOnly8, RGBA32Float, RWCM);
+	setMTLPixFmtCapsIf(iosOnly6, RGBA32Float, RWC);
+
+	bool msaa32 = p_feat.supports32BitMSAA;
+	enableMTLPixFmtCapsIf(msaa32, R32Uint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, R32Sint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, R32Float, Resolve);
+	enableMTLPixFmtCapsIf(msaa32, RG32Uint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, RG32Sint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, RG32Float, Resolve);
+	enableMTLPixFmtCapsIf(msaa32, RGBA32Uint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, RGBA32Sint, MSAA);
+	enableMTLPixFmtCapsIf(msaa32, RGBA32Float, Resolve);
+
+	bool floatFB = p_feat.supports32BitFloatFiltering;
+	enableMTLPixFmtCapsIf(floatFB, R32Float, Filter);
+	enableMTLPixFmtCapsIf(floatFB, RG32Float, Filter);
+	enableMTLPixFmtCapsIf(floatFB, RGBA32Float, Filter);
+	enableMTLPixFmtCapsIf(floatFB, RGBA32Float, Blend); // Undocumented by confirmed through testing.
+
+	bool noHDR_ASTC = p_feat.highestFamily < MTLGPUFamilyApple6;
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_4x4_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_5x4_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_5x5_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_6x5_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_6x6_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_8x5_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_8x6_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_8x8_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_10x5_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_10x6_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_10x8_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_10x10_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_12x10_HDR, None);
+	setMTLPixFmtCapsIf(noHDR_ASTC, ASTC_12x12_HDR, None);
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability"
 
-		disableAllMTLPixFmtCaps(BC1_RGBA);
-		disableAllMTLPixFmtCaps(BC1_RGBA_sRGB);
-		disableAllMTLPixFmtCaps(BC2_RGBA);
-		disableAllMTLPixFmtCaps(BC2_RGBA_sRGB);
-		disableAllMTLPixFmtCaps(BC3_RGBA);
-		disableAllMTLPixFmtCaps(BC3_RGBA_sRGB);
-		disableAllMTLPixFmtCaps(BC4_RUnorm);
-		disableAllMTLPixFmtCaps(BC4_RSnorm);
-		disableAllMTLPixFmtCaps(BC5_RGUnorm);
-		disableAllMTLPixFmtCaps(BC5_RGSnorm);
-		disableAllMTLPixFmtCaps(BC6H_RGBUfloat);
-		disableAllMTLPixFmtCaps(BC6H_RGBFloat);
-		disableAllMTLPixFmtCaps(BC7_RGBAUnorm);
-		disableAllMTLPixFmtCaps(BC7_RGBAUnorm_sRGB);
+	bool noBC = !p_feat.supportsBCTextureCompression;
+	setMTLPixFmtCapsIf(noBC, BC1_RGBA, None);
+	setMTLPixFmtCapsIf(noBC, BC1_RGBA_sRGB, None);
+	setMTLPixFmtCapsIf(noBC, BC2_RGBA, None);
+	setMTLPixFmtCapsIf(noBC, BC2_RGBA_sRGB, None);
+	setMTLPixFmtCapsIf(noBC, BC3_RGBA, None);
+	setMTLPixFmtCapsIf(noBC, BC3_RGBA_sRGB, None);
+	setMTLPixFmtCapsIf(noBC, BC4_RUnorm, None);
+	setMTLPixFmtCapsIf(noBC, BC4_RSnorm, None);
+	setMTLPixFmtCapsIf(noBC, BC5_RGUnorm, None);
+	setMTLPixFmtCapsIf(noBC, BC5_RGSnorm, None);
+	setMTLPixFmtCapsIf(noBC, BC6H_RGBUfloat, None);
+	setMTLPixFmtCapsIf(noBC, BC6H_RGBFloat, None);
+	setMTLPixFmtCapsIf(noBC, BC7_RGBAUnorm, None);
+	setMTLPixFmtCapsIf(noBC, BC7_RGBAUnorm_sRGB, None);
 
 #pragma clang diagnostic pop
-	}
 
-	if (!p_device.supports32BitMSAA) {
-		disableMTLPixFmtCaps(R32Uint, MSAA);
-		disableMTLPixFmtCaps(R32Uint, Resolve);
-		disableMTLPixFmtCaps(R32Sint, MSAA);
-		disableMTLPixFmtCaps(R32Sint, Resolve);
-		disableMTLPixFmtCaps(R32Float, MSAA);
-		disableMTLPixFmtCaps(R32Float, Resolve);
-		disableMTLPixFmtCaps(RG32Uint, MSAA);
-		disableMTLPixFmtCaps(RG32Uint, Resolve);
-		disableMTLPixFmtCaps(RG32Sint, MSAA);
-		disableMTLPixFmtCaps(RG32Sint, Resolve);
-		disableMTLPixFmtCaps(RG32Float, MSAA);
-		disableMTLPixFmtCaps(RG32Float, Resolve);
-		disableMTLPixFmtCaps(RGBA32Uint, MSAA);
-		disableMTLPixFmtCaps(RGBA32Uint, Resolve);
-		disableMTLPixFmtCaps(RGBA32Sint, MSAA);
-		disableMTLPixFmtCaps(RGBA32Sint, Resolve);
-		disableMTLPixFmtCaps(RGBA32Float, MSAA);
-		disableMTLPixFmtCaps(RGBA32Float, Resolve);
-	}
+	setMTLPixFmtCapsIf(iosOnly2, BGRA10_XR, None);
+	setMTLPixFmtCapsIf(iosOnly2, BGRA10_XR_sRGB, None);
+	setMTLPixFmtCapsIf(iosOnly2, BGR10_XR, None);
+	setMTLPixFmtCapsIf(iosOnly2, BGR10_XR_sRGB, None);
 
-	if (!p_device.supports32BitFloatFiltering) {
-		disableMTLPixFmtCaps(R32Float, Filter);
-		disableMTLPixFmtCaps(RG32Float, Filter);
-		disableMTLPixFmtCaps(RGBA32Float, Filter);
-	}
+	setMTLPixFmtCapsIf(iosOnly2, Depth16Unorm, DRFM);
+	setMTLPixFmtCapsIf(iosOnly2, Depth32Float, DRM);
 
-#if TARGET_OS_OSX
-	addGPUMTLPixFmtCaps(Apple1, R32Uint, Atomic);
-	addGPUMTLPixFmtCaps(Apple1, R32Sint, Atomic);
-
-	if (p_device.isDepth24Stencil8PixelFormatSupported) {
-		addGPUMTLPixFmtCaps(Apple1, Depth24Unorm_Stencil8, DRFMR);
-	}
-
-	addFeatSetMTLPixFmtCaps(macOS_GPUFamily1_v2, Depth16Unorm, DRFMR);
-
-	addFeatSetMTLPixFmtCaps(macOS_GPUFamily1_v3, BGR10A2Unorm, RFCMRB);
-
-	addGPUMTLPixFmtCaps(Apple5, R8Unorm_sRGB, All);
-
-	addGPUMTLPixFmtCaps(Apple5, RG8Unorm_sRGB, All);
-
-	addGPUMTLPixFmtCaps(Apple5, B5G6R5Unorm, RFCMRB);
-	addGPUMTLPixFmtCaps(Apple5, A1BGR5Unorm, RFCMRB);
-	addGPUMTLPixFmtCaps(Apple5, ABGR4Unorm, RFCMRB);
-	addGPUMTLPixFmtCaps(Apple5, BGR5A1Unorm, RFCMRB);
-
-	addGPUMTLPixFmtCaps(Apple5, RGBA8Unorm_sRGB, All);
-	addGPUMTLPixFmtCaps(Apple5, BGRA8Unorm_sRGB, All);
-
-	// Blending is actually supported for this format, but format channels cannot be individually write-enabled during blending.
-	// Disabling blending is the least-intrusive way to handle this in a Godot-friendly way.
-	addGPUMTLPixFmtCaps(Apple5, RGB9E5Float, All);
-	disableMTLPixFmtCaps(RGB9E5Float, Blend);
-
-	addGPUMTLPixFmtCaps(Apple5, PVRTC_RGBA_2BPP, RF);
-	addGPUMTLPixFmtCaps(Apple5, PVRTC_RGBA_2BPP_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple5, PVRTC_RGBA_4BPP, RF);
-	addGPUMTLPixFmtCaps(Apple5, PVRTC_RGBA_4BPP_sRGB, RF);
-
-	addGPUMTLPixFmtCaps(Apple5, ETC2_RGB8, RF);
-	addGPUMTLPixFmtCaps(Apple5, ETC2_RGB8_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple5, ETC2_RGB8A1, RF);
-	addGPUMTLPixFmtCaps(Apple5, ETC2_RGB8A1_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_RGBA8, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_RGBA8_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_R11Unorm, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_R11Snorm, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_RG11Unorm, RF);
-	addGPUMTLPixFmtCaps(Apple5, EAC_RG11Snorm, RF);
-
-	addGPUMTLPixFmtCaps(Apple5, ASTC_4x4_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_4x4_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_4x4_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_5x4_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_5x4_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_5x4_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_5x5_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_5x5_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_5x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_6x5_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_6x5_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_6x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_6x6_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_6x6_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_6x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x5_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x5_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x6_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x6_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x8_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_8x8_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x8_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x5_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x5_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x6_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x6_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x8_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x8_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x8_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x10_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_10x10_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x10_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_12x10_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_12x10_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_12x10_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_12x12_LDR, RF);
-	addGPUMTLPixFmtCaps(Apple5, ASTC_12x12_sRGB, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_12x12_HDR, RF);
-
-	addGPUMTLPixFmtCaps(Apple5, BGRA10_XR, All);
-	addGPUMTLPixFmtCaps(Apple5, BGRA10_XR_sRGB, All);
-	addGPUMTLPixFmtCaps(Apple5, BGR10_XR, All);
-	addGPUMTLPixFmtCaps(Apple5, BGR10_XR_sRGB, All);
-
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, UCharNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, CharNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, UChar, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, Char, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, UShortNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, ShortNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, UShort, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, Short, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, Half, Vertex);
-	addFeatSetMTLVtxFmtCaps(macOS_GPUFamily1_v3, UChar4Normalized_BGRA, Vertex);
-#endif
-
-#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v3, R8Unorm_sRGB, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, R8Unorm_sRGB, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, R8Snorm, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v3, RG8Unorm_sRGB, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RG8Unorm_sRGB, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, RG8Snorm, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, R32Uint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, R32Uint, Atomic);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, R32Sint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, R32Sint, Atomic);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, R32Float, RWCMB);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v3, RGBA8Unorm_sRGB, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RGBA8Unorm_sRGB, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, RGBA8Snorm, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v3, BGRA8Unorm_sRGB, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, BGRA8Unorm_sRGB, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RGB10A2Unorm, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RGB10A2Uint, RWCM);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RG11B10Float, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, RGB9E5Float, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RG32Uint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RG32Sint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RG32Float, RWCB);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RGBA32Uint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RGBA32Sint, RWC);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v2, RGBA32Float, RWC);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_4x4_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_4x4_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_5x4_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_5x4_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_5x5_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_5x5_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_6x5_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_6x5_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_6x6_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_6x6_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x5_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x5_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x6_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x6_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x8_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_8x8_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x5_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x5_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x6_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x6_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x8_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x8_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x10_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_10x10_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_12x10_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_12x10_sRGB, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_12x12_LDR, RF);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily2_v1, ASTC_12x12_sRGB, RF);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, Depth32Float, DRMR);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, Depth32Float_Stencil8, DRMR);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v1, Stencil8, DRMR);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v2, BGRA10_XR, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v2, BGRA10_XR_sRGB, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v2, BGR10_XR, All);
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily3_v2, BGR10_XR_sRGB, All);
-
-	addFeatSetMTLPixFmtCaps(iOS_GPUFamily1_v4, BGR10A2Unorm, All);
-
-	addGPUMTLPixFmtCaps(Apple6, ASTC_4x4_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_5x4_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_5x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_6x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_6x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_8x8_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x5_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x6_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x8_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_10x10_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_12x10_HDR, RF);
-	addGPUMTLPixFmtCaps(Apple6, ASTC_12x12_HDR, RF);
-
-	addGPUMTLPixFmtCaps(Apple1, Depth16Unorm, DRFM);
-	addGPUMTLPixFmtCaps(Apple3, Depth16Unorm, DRFMR);
-
-	// Vertex formats.
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, UCharNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, CharNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, UChar, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, Char, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, UShortNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, ShortNormalized, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, UShort, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, Short, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, Half, Vertex);
-	addFeatSetMTLVtxFmtCaps(iOS_GPUFamily1_v4, UChar4Normalized_BGRA, Vertex);
-
-// Disable for iOS simulator last.
-#if TARGET_OS_SIMULATOR
-	if (![p_device supportsFamily:MTLGPUFamilyApple5]) {
-		disableAllMTLPixFmtCaps(R8Unorm_sRGB);
-		disableAllMTLPixFmtCaps(RG8Unorm_sRGB);
-		disableAllMTLPixFmtCaps(B5G6R5Unorm);
-		disableAllMTLPixFmtCaps(A1BGR5Unorm);
-		disableAllMTLPixFmtCaps(ABGR4Unorm);
-		disableAllMTLPixFmtCaps(BGR5A1Unorm);
-
-		disableAllMTLPixFmtCaps(BGRA10_XR);
-		disableAllMTLPixFmtCaps(BGRA10_XR_sRGB);
-		disableAllMTLPixFmtCaps(BGR10_XR);
-		disableAllMTLPixFmtCaps(BGR10_XR_sRGB);
-
-		disableAllMTLPixFmtCaps(GBGR422);
-		disableAllMTLPixFmtCaps(BGRG422);
-
-		disableMTLPixFmtCaps(RGB9E5Float, ColorAtt);
-
-		disableMTLPixFmtCaps(R8Unorm_sRGB, Write);
-		disableMTLPixFmtCaps(RG8Unorm_sRGB, Write);
-		disableMTLPixFmtCaps(RGBA8Unorm_sRGB, Write);
-		disableMTLPixFmtCaps(BGRA8Unorm_sRGB, Write);
-		disableMTLPixFmtCaps(PVRTC_RGBA_2BPP_sRGB, Write);
-		disableMTLPixFmtCaps(PVRTC_RGBA_4BPP_sRGB, Write);
-		disableMTLPixFmtCaps(ETC2_RGB8_sRGB, Write);
-		disableMTLPixFmtCaps(ETC2_RGB8A1_sRGB, Write);
-		disableMTLPixFmtCaps(EAC_RGBA8_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_4x4_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_5x4_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_5x5_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_6x5_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_6x6_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_8x5_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_8x6_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_8x8_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_10x5_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_10x6_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_10x8_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_10x10_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_12x10_sRGB, Write);
-		disableMTLPixFmtCaps(ASTC_12x12_sRGB, Write);
-	}
-#endif
-#endif
+	setMTLPixFmtCapsIf(!p_feat.supportsDepth24Stencil8, Depth24Unorm_Stencil8, None);
+	setMTLPixFmtCapsIf(iosOnly2, Depth32Float_Stencil8, DRM);
 }
-
-#undef addFeatSetMTLPixFmtCaps
-#undef addGPUOSMTLPixFmtCaps
-#undef disableMTLPixFmtCaps
-#undef disableAllMTLPixFmtCaps
-#undef addFeatSetMTLVtxFmtCaps
 
 // Populates the DataFormat lookup maps and connects Godot and Metal pixel formats to one-another.
 void PixelFormats::buildDFFormatMaps() {
-	// Iterate through the DataFormat descriptions, populate the lookup maps and back pointers,
-	// and validate the Metal formats for the platform and OS.
-	for (uint32_t fmtIdx = 0; fmtIdx < RD::DATA_FORMAT_MAX; fmtIdx++) {
-		DataFormatDesc &dfDesc = _dataFormatDescriptions[fmtIdx];
-		DataFormat dfFmt = dfDesc.dataFormat;
-		if (dfFmt != RD::DATA_FORMAT_MAX) {
-			// Populate the back reference from the Metal formats to the Godot format.
-			// Validate the corresponding Metal formats for the platform, and clear them
-			// in the Godot format if not supported.
-			if (dfDesc.mtlPixelFormat) {
-				MTLFormatDesc &mtlDesc = getMTLPixelFormatDesc(dfDesc.mtlPixelFormat);
-				if (mtlDesc.dataFormat == RD::DATA_FORMAT_MAX) {
-					mtlDesc.dataFormat = dfFmt;
-				}
-				if (!mtlDesc.isSupported()) {
-					dfDesc.mtlPixelFormat = MTLPixelFormatInvalid;
-				}
+	for (DataFormatDesc &dfDesc : _data_format_descs) {
+		// Populate the back reference from the Metal formats to the Godot format.
+		// Validate the corresponding Metal formats for the platform, and clear them
+		// in the Godot format if not supported.
+		if (dfDesc.mtlPixelFormat) {
+			MTLFormatDesc &mtlDesc = getMTLPixelFormatDesc(dfDesc.mtlPixelFormat);
+			if (mtlDesc.dataFormat == RD::DATA_FORMAT_MAX) {
+				mtlDesc.dataFormat = dfDesc.dataFormat;
 			}
-			if (dfDesc.mtlPixelFormatSubstitute) {
-				MTLFormatDesc &mtlDesc = getMTLPixelFormatDesc(dfDesc.mtlPixelFormatSubstitute);
-				if (!mtlDesc.isSupported()) {
-					dfDesc.mtlPixelFormatSubstitute = MTLPixelFormatInvalid;
-				}
+			if (!mtlDesc.isSupported()) {
+				dfDesc.mtlPixelFormat = MTLPixelFormatInvalid;
 			}
-			if (dfDesc.mtlVertexFormat) {
-				MTLFormatDesc &mtlDesc = getMTLVertexFormatDesc(dfDesc.mtlVertexFormat);
-				if (mtlDesc.dataFormat == RD::DATA_FORMAT_MAX) {
-					mtlDesc.dataFormat = dfFmt;
-				}
-				if (!mtlDesc.isSupported()) {
-					dfDesc.mtlVertexFormat = MTLVertexFormatInvalid;
-				}
+		}
+		if (dfDesc.mtlPixelFormatSubstitute) {
+			MTLFormatDesc &mtlDesc = getMTLPixelFormatDesc(dfDesc.mtlPixelFormatSubstitute);
+			if (!mtlDesc.isSupported()) {
+				dfDesc.mtlPixelFormatSubstitute = MTLPixelFormatInvalid;
 			}
-			if (dfDesc.mtlVertexFormatSubstitute) {
-				MTLFormatDesc &mtlDesc = getMTLVertexFormatDesc(dfDesc.mtlVertexFormatSubstitute);
-				if (!mtlDesc.isSupported()) {
-					dfDesc.mtlVertexFormatSubstitute = MTLVertexFormatInvalid;
-				}
+		}
+		if (dfDesc.mtlVertexFormat) {
+			MTLFormatDesc &mtlDesc = getMTLVertexFormatDesc(dfDesc.mtlVertexFormat);
+			if (mtlDesc.dataFormat == RD::DATA_FORMAT_MAX) {
+				mtlDesc.dataFormat = dfDesc.dataFormat;
+			}
+			if (!mtlDesc.isSupported()) {
+				dfDesc.mtlVertexFormat = MTLVertexFormatInvalid;
+			}
+		}
+		if (dfDesc.mtlVertexFormatSubstitute) {
+			MTLFormatDesc &mtlDesc = getMTLVertexFormatDesc(dfDesc.mtlVertexFormatSubstitute);
+			if (!mtlDesc.isSupported()) {
+				dfDesc.mtlVertexFormatSubstitute = MTLVertexFormatInvalid;
 			}
 		}
 	}

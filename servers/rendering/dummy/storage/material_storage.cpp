@@ -30,6 +30,8 @@
 
 #include "material_storage.h"
 
+#include "core/config/project_settings.h"
+
 using namespace RendererDummy;
 
 MaterialStorage *MaterialStorage::singleton = nullptr;
@@ -42,6 +44,103 @@ MaterialStorage::MaterialStorage() {
 
 MaterialStorage::~MaterialStorage() {
 	singleton = nullptr;
+	global_shader_variables.clear();
+}
+
+void MaterialStorage::global_shader_parameter_add(const StringName &p_name, RS::GlobalShaderParameterType p_type, const Variant &p_value) {
+	ERR_FAIL_COND(global_shader_variables.has(p_name));
+
+	global_shader_variables[p_name] = p_type;
+}
+
+void MaterialStorage::global_shader_parameter_remove(const StringName &p_name) {
+	if (!global_shader_variables.has(p_name)) {
+		return;
+	}
+
+	global_shader_variables.erase(p_name);
+}
+
+Vector<StringName> MaterialStorage::global_shader_parameter_get_list() const {
+	Vector<StringName> names;
+	for (const KeyValue<StringName, RS::GlobalShaderParameterType> &E : global_shader_variables) {
+		names.push_back(E.key);
+	}
+	names.sort_custom<StringName::AlphCompare>();
+	return names;
+}
+
+RS::GlobalShaderParameterType MaterialStorage::global_shader_parameter_get_type(const StringName &p_name) const {
+	if (!global_shader_variables.has(p_name)) {
+		print_line("don't have name, sorry");
+		return RS::GLOBAL_VAR_TYPE_MAX;
+	}
+
+	return global_shader_variables[p_name];
+}
+
+void MaterialStorage::global_shader_parameters_load_settings(bool p_load_textures) {
+	List<PropertyInfo> settings;
+	ProjectSettings::get_singleton()->get_property_list(&settings);
+
+	for (const PropertyInfo &E : settings) {
+		if (E.name.begins_with("shader_globals/")) {
+			StringName name = E.name.get_slice("/", 1);
+			Dictionary d = GLOBAL_GET(E.name);
+
+			ERR_CONTINUE(!d.has("type"));
+			ERR_CONTINUE(!d.has("value"));
+
+			String type = d["type"];
+
+			static const char *global_var_type_names[RS::GLOBAL_VAR_TYPE_MAX] = {
+				"bool",
+				"bvec2",
+				"bvec3",
+				"bvec4",
+				"int",
+				"ivec2",
+				"ivec3",
+				"ivec4",
+				"rect2i",
+				"uint",
+				"uvec2",
+				"uvec3",
+				"uvec4",
+				"float",
+				"vec2",
+				"vec3",
+				"vec4",
+				"color",
+				"rect2",
+				"mat2",
+				"mat3",
+				"mat4",
+				"transform_2d",
+				"transform",
+				"sampler2D",
+				"sampler2DArray",
+				"sampler3D",
+				"samplerCube",
+				"samplerExternalOES"
+			};
+
+			RS::GlobalShaderParameterType gvtype = RS::GLOBAL_VAR_TYPE_MAX;
+
+			for (int i = 0; i < RS::GLOBAL_VAR_TYPE_MAX; i++) {
+				if (global_var_type_names[i] == type) {
+					gvtype = RS::GlobalShaderParameterType(i);
+					break;
+				}
+			}
+
+			ERR_CONTINUE(gvtype == RS::GLOBAL_VAR_TYPE_MAX); //type invalid
+
+			if (!global_shader_variables.has(name)) {
+				global_shader_parameter_add(name, gvtype, Variant());
+			}
+		}
+	}
 }
 
 RID MaterialStorage::shader_allocate() {
@@ -129,5 +228,58 @@ void MaterialStorage::get_shader_parameter_list(RID p_shader, List<PropertyInfo>
 		PropertyInfo pi = ShaderLanguage::uniform_to_property_info(uniform);
 		pi.name = uniform_name;
 		p_param_list->push_back(pi);
+	}
+}
+
+RID MaterialStorage::material_allocate() {
+	return material_owner.allocate_rid();
+}
+
+void MaterialStorage::material_initialize(RID p_rid) {
+	material_owner.initialize_rid(p_rid, DummyMaterial());
+}
+
+void MaterialStorage::material_free(RID p_rid) {
+	DummyMaterial *material = material_owner.get_or_null(p_rid);
+	ERR_FAIL_NULL(material);
+
+	material_owner.free(p_rid);
+}
+
+void MaterialStorage::material_set_shader(RID p_material, RID p_shader) {
+	DummyMaterial *material = material_owner.get_or_null(p_material);
+	ERR_FAIL_NULL(material);
+
+	material->shader = p_shader;
+}
+
+void MaterialStorage::material_set_next_pass(RID p_material, RID p_next_material) {
+	DummyMaterial *material = material_owner.get_or_null(p_material);
+	ERR_FAIL_NULL(material);
+
+	material->next_pass = p_next_material;
+}
+
+void MaterialStorage::material_get_instance_shader_parameters(RID p_material, List<InstanceShaderParam> *r_parameters) {
+	DummyMaterial *material = material_owner.get_or_null(p_material);
+	ERR_FAIL_NULL(material);
+	DummyShader *shader = shader_owner.get_or_null(material->shader);
+
+	if (shader) {
+		for (const KeyValue<StringName, ShaderLanguage::ShaderNode::Uniform> &E : shader->uniforms) {
+			if (E.value.scope != ShaderLanguage::ShaderNode::Uniform::SCOPE_INSTANCE) {
+				continue;
+			}
+
+			RendererMaterialStorage::InstanceShaderParam p;
+			p.info = ShaderLanguage::uniform_to_property_info(E.value);
+			p.info.name = E.key; //supply name
+			p.index = E.value.instance_index;
+			p.default_value = ShaderLanguage::constant_value_to_variant(E.value.default_value, E.value.type, E.value.array_size, E.value.hint);
+			r_parameters->push_back(p);
+		}
+	}
+	if (material->next_pass.is_valid()) {
+		material_get_instance_shader_parameters(material->next_pass, r_parameters);
 	}
 }

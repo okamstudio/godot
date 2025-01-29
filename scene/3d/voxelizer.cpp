@@ -871,7 +871,7 @@ Voxelizer::BakeResult Voxelizer::get_sdf_3d_image(Vector<uint8_t> &r_image, Bake
 		uint32_t cell_count = bake_cells.size();
 
 		for (uint32_t i = 0; i < cell_count; i++) {
-			if (cells[i].level < (cell_subdiv - 1)) {
+			if (cells[i].level < cell_subdiv) {
 				continue; //do not care about this level
 			}
 

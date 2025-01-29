@@ -81,6 +81,14 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="buffer_get_device_address">
+			<return type="int" />
+			<param index="0" name="buffer" type="RID" />
+			<description>
+				Returns the address of the given [param buffer] which can be passed to shaders in any way to access underlying data. Buffer must have been created with this feature enabled.
+				[b]Note:[/b] You must check that the GPU supports this functionality by calling [method has_feature] with [constant SUPPORTS_BUFFER_DEVICE_ADDRESS] as a parameter.
+			</description>
+		</method>
 		<method name="buffer_update">
 			<return type="int" enum="Error" />
 			<param index="0" name="buffer" type="RID" />
@@ -672,6 +680,13 @@
 				This is only used by Vulkan in debug builds. Godot must also be started with the [code]--extra-gpu-memory-tracking[/code] [url=$DOCS_URL/tutorials/editor/command_line_tutorial.html]command line argument[/url].
 			</description>
 		</method>
+		<method name="has_feature" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="feature" type="int" enum="RenderingDevice.Features" />
+			<description>
+				Returns [code]true[/code] if the [param feature] is supported by the GPU.
+			</description>
+		</method>
 		<method name="index_array_create">
 			<return type="RID" />
 			<param index="0" name="index_buffer" type="RID" />
@@ -688,9 +703,11 @@
 			<param index="1" name="format" type="int" enum="RenderingDevice.IndexBufferFormat" />
 			<param index="2" name="data" type="PackedByteArray" default="PackedByteArray()" />
 			<param index="3" name="use_restart_indices" type="bool" default="false" />
+			<param index="4" name="enable_device_address" type="bool" default="false" />
 			<description>
 				Creates a new index buffer. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="limit_get" qualifiers="const">
@@ -1056,9 +1073,11 @@
 			<return type="RID" />
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
+			<param index="2" name="enable_device_address" type="bool" default="false" />
 			<description>
 				Creates a new uniform buffer. It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="uniform_set_create">
@@ -1093,9 +1112,11 @@
 			<param index="0" name="size_bytes" type="int" />
 			<param index="1" name="data" type="PackedByteArray" default="PackedByteArray()" />
 			<param index="2" name="use_as_storage" type="bool" default="false" />
+			<param index="3" name="enable_device_address" type="bool" default="false" />
 			<description>
 				It can be accessed with the RID that is returned.
 				Once finished with your RID, you will want to free the RID using the RenderingDevice's [method free_rid] method.
+				Optionally, set [param enable_device_address] if you wish to use [method buffer_get_device_address] functionality and the GPU supports it.
 			</description>
 		</method>
 		<method name="vertex_format_create">
@@ -2047,6 +2068,9 @@
 		</constant>
 		<constant name="STORAGE_BUFFER_USAGE_DISPATCH_INDIRECT" value="1" enum="StorageBufferUsage" is_bitfield="true">
 		</constant>
+		<constant name="STORAGE_BUFFER_USAGE_DEVICE_ADDRESS" value="2" enum="StorageBufferUsage" is_bitfield="true">
+			Allows usage of [method buffer_get_device_address] on supported GPUs.
+		</constant>
 		<constant name="UNIFORM_TYPE_SAMPLER" value="0" enum="UniformType">
 			Sampler uniform.
 		</constant>
@@ -2418,6 +2442,9 @@
 		<constant name="PIPELINE_SPECIALIZATION_CONSTANT_TYPE_FLOAT" value="2" enum="PipelineSpecializationConstantType">
 			Floating-point specialization constant.
 		</constant>
+		<constant name="SUPPORTS_BUFFER_DEVICE_ADDRESS" value="6" enum="Features">
+			Features support for buffer device address extension.
+		</constant>
 		<constant name="LIMIT_MAX_BOUND_UNIFORM_SETS" value="0" enum="Limit">
 			Maximum number of uniform sets that can be bound at a given time.
 		</constant>
@@ -2528,6 +2555,14 @@
 		</constant>
 		<constant name="LIMIT_MAX_VIEWPORT_DIMENSIONS_Y" value="36" enum="Limit">
 			Maximum viewport height (in pixels).
+		</constant>
+		<constant name="LIMIT_METALFX_TEMPORAL_SCALER_MIN_SCALE" value="46" enum="Limit">
+			Returns the smallest value for [member ProjectSettings.rendering/scaling_3d/scale] when using the MetalFX temporal upscaler.
+			[b]Note:[/b] The returned value is multiplied by a factor of [code]1000000[/code] to preserve 6 digits of precision. It must be divided by [code]1000000.0[/code] to convert the value to a floating point number.
+		</constant>
+		<constant name="LIMIT_METALFX_TEMPORAL_SCALER_MAX_SCALE" value="47" enum="Limit">
+			Returns the largest value for [member ProjectSettings.rendering/scaling_3d/scale] when using the MetalFX temporal upscaler.
+			[b]Note:[/b] The returned value is multiplied by a factor of [code]1000000[/code] to preserve 6 digits of precision. It must be divided by [code]1000000.0[/code] to convert the value to a floating point number.
 		</constant>
 		<constant name="MEMORY_TEXTURES" value="0" enum="MemoryType">
 			Memory taken by textures.

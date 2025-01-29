@@ -255,7 +255,8 @@ void GDExtensionSpecialCompatHashes::initialize() {
 #endif
 	});
 	mappings.insert("DirAccess", {
-		{ "list_dir_begin", 2018049411, 2610976713 },
+		{ "list_dir_begin", 2018049411, 166280745 },
+		{ "list_dir_begin", 2610976713, 166280745 },
 		{ "copy", 198434953, 1063198817 },
 		{ "copy_absolute", 198434953, 1063198817 },
 	});
@@ -277,7 +278,8 @@ void GDExtensionSpecialCompatHashes::initialize() {
 		{ "global_menu_add_multistate_item", 3431222859, 3297554655 },
 		{ "global_menu_add_separator", 1041533178, 3214812433 },
 		{ "tts_speak", 3741216677, 903992738 },
-		{ "is_touchscreen_available", 4162880507, 3323674545 },
+		{ "is_touchscreen_available", 4162880507, 36873697 },
+		{ "is_touchscreen_available", 3323674545, 36873697 },
 		{ "screen_set_orientation", 2629526904, 2211511631 },
 		{ "window_get_native_handle", 2709193271, 1096425680 },
 		{ "window_set_title", 3043792800, 441246282 },
@@ -548,6 +550,9 @@ void GDExtensionSpecialCompatHashes::initialize() {
 		{ "tr", 2475554935, 1195764410 },
 		{ "tr_n", 4021311862, 162698058 },
 	});
+	mappings.insert("OpenXRAPIExtension", {
+		{ "transform_from_pose", 3255299855, 2963875352 },
+	});
 	mappings.insert("OptionButton", {
 		{ "add_item", 3043792800, 2697778442 },
 		{ "add_icon_item", 3944051090, 3781678508 },
@@ -771,7 +776,7 @@ void GDExtensionSpecialCompatHashes::initialize() {
 		{ "push_paragraph", 3218895358, 3089306873 },
 		{ "push_list", 4036303897, 3017143144 },
 		{ "push_table", 1125058220, 2623499273 },
-		{ "set_table_column_expand", 4132157579, 2185176273 },
+		{ "set_table_column_expand", 4258957458, 2185176273 },
 #ifdef REAL_T_IS_DOUBLE
 		{ "add_image", 3346058748, 1507062345 },
 		{ "push_dropcap", 981432822, 763534173 },
@@ -911,6 +916,9 @@ void GDExtensionSpecialCompatHashes::initialize() {
 		{ "set_cells_terrain_connect", 3072115677, 3578627656 },
 		{ "set_cells_terrain_path", 3072115677, 3578627656 },
 		{ "get_used_cells_by_id", 4152068407, 2931012785 },
+	});
+	mappings.insert("TileMapLayer", {
+		{ "notify_runtime_tile_data_update", 2275361663, 3218959716 },
 	});
 	mappings.insert("TileMapPattern", {
 		{ "set_cell", 634000503, 2224802556 },

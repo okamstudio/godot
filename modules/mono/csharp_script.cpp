@@ -2328,7 +2328,7 @@ void CSharpScript::update_script_class_info(Ref<CSharpScript> p_script) {
 
 bool CSharpScript::can_instantiate() const {
 #ifdef TOOLS_ENABLED
-	bool extra_cond = type_info.is_tool || ScriptServer::is_scripting_enabled();
+	bool extra_cond = (type_info.is_tool || ScriptServer::is_scripting_enabled()) && !Engine::get_singleton()->is_recovery_mode_hint();
 #else
 	bool extra_cond = true;
 #endif

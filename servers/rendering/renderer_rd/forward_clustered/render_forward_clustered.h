@@ -34,6 +34,10 @@
 #include "core/templates/paged_allocator.h"
 #include "servers/rendering/renderer_rd/cluster_builder_rd.h"
 #include "servers/rendering/renderer_rd/effects/fsr2.h"
+#ifdef METAL_ENABLED
+#include "servers/rendering/renderer_rd/effects/metal_fx.h"
+#endif
+#include "servers/rendering/renderer_rd/effects/motion_vectors_store.h"
 #include "servers/rendering/renderer_rd/effects/resolve.h"
 #include "servers/rendering/renderer_rd/effects/ss_effects.h"
 #include "servers/rendering/renderer_rd/effects/taa.h"
@@ -91,6 +95,9 @@ public:
 	private:
 		RenderSceneBuffersRD *render_buffers = nullptr;
 		RendererRD::FSR2Context *fsr2_context = nullptr;
+#ifdef METAL_ENABLED
+		RendererRD::MFXTemporalContext *mfx_temporal_context = nullptr;
+#endif
 
 	public:
 		ClusterBuilderRD *cluster_builder = nullptr;
@@ -133,6 +140,11 @@ public:
 
 		void ensure_fsr2(RendererRD::FSR2Effect *p_effect);
 		RendererRD::FSR2Context *get_fsr2_context() const { return fsr2_context; }
+
+#ifdef METAL_ENABLED
+		bool ensure_mfx_temporal(RendererRD::MFXTemporalEffect *p_effect);
+		RendererRD::MFXTemporalContext *get_mfx_temporal_context() const { return mfx_temporal_context; }
+#endif
 
 		RID get_color_only_fb();
 		RID get_color_pass_fb(uint32_t p_color_pass_flags);
@@ -243,6 +255,7 @@ private:
 
 	// When changing any of these enums, remember to change the corresponding enums in the shader files as well.
 	enum {
+		INSTANCE_DATA_FLAG_MULTIMESH_INDIRECT = 1 << 2,
 		INSTANCE_DATA_FLAGS_DYNAMIC = 1 << 3,
 		INSTANCE_DATA_FLAGS_NON_UNIFORM_SCALE = 1 << 4,
 		INSTANCE_DATA_FLAG_USE_GI_BUFFERS = 1 << 5,
@@ -416,6 +429,10 @@ private:
 
 		union {
 			struct {
+				uint64_t sort_key1;
+				uint64_t sort_key2;
+			};
+			struct {
 				uint64_t lod_index : 8;
 				uint64_t surface_index : 8;
 				uint64_t geometry_id : 32;
@@ -429,10 +446,6 @@ private:
 				uint64_t uses_lightmap : 1;
 				uint64_t depth_layer : 4;
 				uint64_t priority : 8;
-			};
-			struct {
-				uint64_t sort_key1;
-				uint64_t sort_key2;
 			};
 		} sort;
 
@@ -528,6 +541,8 @@ private:
 
 	struct GlobalPipelineData {
 		union {
+			uint32_t key;
+
 			struct {
 				uint32_t texture_samples : 3;
 				uint32_t use_reflection_probes : 1;
@@ -543,8 +558,6 @@ private:
 				uint32_t use_shadow_cubemaps : 1;
 				uint32_t use_shadow_dual_paraboloid : 1;
 			};
-
-			uint32_t key;
 		};
 	};
 
@@ -633,6 +646,11 @@ private:
 	RendererRD::TAA *taa = nullptr;
 	RendererRD::FSR2Effect *fsr2_effect = nullptr;
 	RendererRD::SSEffects *ss_effects = nullptr;
+
+#ifdef METAL_ENABLED
+	RendererRD::MFXTemporalEffect *mfx_temporal_effect = nullptr;
+#endif
+	RendererRD::MotionVectorsStore *motion_vectors_store = nullptr;
 
 	/* Cluster builder */
 

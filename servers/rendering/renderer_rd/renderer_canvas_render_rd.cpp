@@ -103,7 +103,7 @@ void RendererCanvasRenderRD::_update_transform_to_mat4(const Transform3D &p_tran
 RendererCanvasRender::PolygonID RendererCanvasRenderRD::request_polygon(const Vector<int> &p_indices, const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, const Vector<int> &p_bones, const Vector<float> &p_weights) {
 	// Care must be taken to generate array formats
 	// in ways where they could be reused, so we will
-	// put single-occuring elements first, and repeated
+	// put single-occurring elements first, and repeated
 	// elements later. This way the generated formats are
 	// the same no matter the length of the arrays.
 	// This dramatically reduces the amount of pipeline objects
@@ -913,6 +913,9 @@ void RendererCanvasRenderRD::canvas_render_items(RID p_to_render_target, Item *p
 		RenderingServerDefault::redraw_request();
 	}
 
+	texture_info_map.clear();
+	state.current_batch_index = 0;
+	state.canvas_instance_batches.clear();
 	state.current_data_buffer_index = (state.current_data_buffer_index + 1) % BATCH_DATA_BUFFER_COUNT;
 	state.current_instance_buffer_index = 0;
 }
@@ -2286,9 +2289,6 @@ void RendererCanvasRenderRD::_render_batch_items(RenderTarget p_to_render_target
 
 	RD::get_singleton()->draw_list_end();
 
-	texture_info_map.clear();
-	state.current_batch_index = 0;
-	state.canvas_instance_batches.clear();
 	state.last_instance_index += instance_index;
 }
 
@@ -2971,8 +2971,23 @@ void RendererCanvasRenderRD::_uniform_set_invalidation_callback(void *p_userdata
 	static_cast<RendererCanvasRenderRD *>(singleton)->rid_set_to_uniform_set.erase(*key);
 }
 
+void RendererCanvasRenderRD::_canvas_texture_invalidation_callback(bool p_deleted, void *p_userdata) {
+	KeyValue<RID, TightLocalVector<RID>> *kv = static_cast<KeyValue<RID, TightLocalVector<RID>> *>(p_userdata);
+	RD *rd = RD::get_singleton();
+	for (RID rid : kv->value) {
+		// The invalidation callback will also take care of clearing rid_set_to_uniform_set cache.
+		rd->free(rid);
+	}
+	kv->value.clear();
+	if (p_deleted) {
+		static_cast<RendererCanvasRenderRD *>(singleton)->canvas_texture_to_uniform_set.erase(kv->key);
+	}
+}
+
 void RendererCanvasRenderRD::_render_batch(RD::DrawListID p_draw_list, CanvasShaderData *p_shader_data, RenderingDevice::FramebufferFormatID p_framebuffer_format, Light *p_lights, Batch const *p_batch, RenderingMethod::RenderInfo *r_render_info) {
 	{
+		RendererRD::TextureStorage *ts = RendererRD::TextureStorage::get_singleton();
+
 		RIDSetKey key(
 				p_batch->tex_info->state,
 				state.canvas_instance_data_buffers[state.current_data_buffer_index].instance_buffers[p_batch->instance_buffer_index]);
@@ -2992,6 +3007,19 @@ void RendererCanvasRenderRD::_render_batch(RD::DrawListID p_draw_list, CanvasSha
 			const RIDCache::Pair *iter = rid_set_to_uniform_set.insert(key, rid);
 			uniform_set = &iter->data;
 			RD::get_singleton()->uniform_set_set_invalidation_callback(rid, RendererCanvasRenderRD::_uniform_set_invalidation_callback, (void *)&iter->key);
+
+			// If this is a CanvasTexture, it must be tracked so that any changes to the diffuse, normal,
+			// or specular channels invalidate all associated uniform sets.
+			if (ts->owns_canvas_texture(p_batch->tex_info->state.texture)) {
+				KeyValue<RID, TightLocalVector<RID>> *kv = nullptr;
+				if (HashMap<RID, TightLocalVector<RID>>::Iterator i = canvas_texture_to_uniform_set.find(p_batch->tex_info->state.texture); i == canvas_texture_to_uniform_set.end()) {
+					kv = &*canvas_texture_to_uniform_set.insert(p_batch->tex_info->state.texture, { *uniform_set });
+				} else {
+					i->value.push_back(rid);
+					kv = &*i;
+				}
+				ts->canvas_texture_set_invalidation_callback(p_batch->tex_info->state.texture, RendererCanvasRenderRD::_canvas_texture_invalidation_callback, kv);
+			}
 		}
 
 		if (state.current_batch_uniform_set != *uniform_set) {

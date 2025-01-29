@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SpringBoneCollisionCapsule3D" inherits="SpringBoneCollision3D" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A capsule shape collision that interacts with [SpringBoneSimulator3D].
+	</brief_description>
+	<description>
+		A capsule shape collision that interacts with [SpringBoneSimulator3D].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="height" type="float" setter="set_height" getter="get_height" default="0.5">
+			The capsule's height.
+		</member>
+		<member name="inside" type="bool" setter="set_inside" getter="is_inside" default="false">
+			If [code]true[/code], the collision acts to trap the joint within the collision.
+		</member>
+		<member name="radius" type="float" setter="set_radius" getter="get_radius" default="0.1">
+			The capsule's radius.
+		</member>
+	</members>
+</class>

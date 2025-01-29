@@ -784,6 +784,13 @@
 				Creates a new region.
 			</description>
 		</method>
+		<method name="region_get_bounds" qualifiers="const">
+			<return type="Rect2" />
+			<param index="0" name="region" type="RID" />
+			<description>
+				Returns the axis-aligned rectangle for the [param region]'s transformed navigation mesh.
+			</description>
+		</method>
 		<method name="region_get_closest_point" qualifiers="const">
 			<return type="Vector2" />
 			<param index="0" name="region" type="RID" />

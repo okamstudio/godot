@@ -550,24 +550,37 @@ void DisplayServerWeb::cursor_set_custom_image(const Ref<Resource> &p_cursor, Cu
 }
 
 // Mouse mode
-void DisplayServerWeb::mouse_set_mode(MouseMode p_mode) {
-	ERR_FAIL_COND_MSG(p_mode == MOUSE_MODE_CONFINED || p_mode == MOUSE_MODE_CONFINED_HIDDEN, "MOUSE_MODE_CONFINED is not supported for the Web platform.");
-	if (p_mode == mouse_get_mode()) {
+void DisplayServerWeb::_mouse_update_mode() {
+	MouseMode wanted_mouse_mode = mouse_mode_override_enabled
+			? mouse_mode_override
+			: mouse_mode_base;
+
+	ERR_FAIL_COND_MSG(wanted_mouse_mode == MOUSE_MODE_CONFINED || wanted_mouse_mode == MOUSE_MODE_CONFINED_HIDDEN, "MOUSE_MODE_CONFINED is not supported for the Web platform.");
+	if (wanted_mouse_mode == mouse_get_mode()) {
 		return;
 	}
 
-	if (p_mode == MOUSE_MODE_VISIBLE) {
+	if (wanted_mouse_mode == MOUSE_MODE_VISIBLE) {
 		godot_js_display_cursor_set_visible(1);
 		godot_js_display_cursor_lock_set(0);
 
-	} else if (p_mode == MOUSE_MODE_HIDDEN) {
+	} else if (wanted_mouse_mode == MOUSE_MODE_HIDDEN) {
 		godot_js_display_cursor_set_visible(0);
 		godot_js_display_cursor_lock_set(0);
 
-	} else if (p_mode == MOUSE_MODE_CAPTURED) {
+	} else if (wanted_mouse_mode == MOUSE_MODE_CAPTURED) {
 		godot_js_display_cursor_set_visible(1);
 		godot_js_display_cursor_lock_set(1);
 	}
+}
+
+void DisplayServerWeb::mouse_set_mode(MouseMode p_mode) {
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
+	if (p_mode == mouse_mode_base) {
+		return;
+	}
+	mouse_mode_base = p_mode;
+	_mouse_update_mode();
 }
 
 DisplayServer::MouseMode DisplayServerWeb::mouse_get_mode() const {
@@ -579,6 +592,31 @@ DisplayServer::MouseMode DisplayServerWeb::mouse_get_mode() const {
 		return MOUSE_MODE_CAPTURED;
 	}
 	return MOUSE_MODE_VISIBLE;
+}
+
+void DisplayServerWeb::mouse_set_mode_override(MouseMode p_mode) {
+	ERR_FAIL_INDEX(p_mode, MouseMode::MOUSE_MODE_MAX);
+	if (p_mode == mouse_mode_override) {
+		return;
+	}
+	mouse_mode_override = p_mode;
+	_mouse_update_mode();
+}
+
+DisplayServer::MouseMode DisplayServerWeb::mouse_get_mode_override() const {
+	return mouse_mode_override;
+}
+
+void DisplayServerWeb::mouse_set_mode_override_enabled(bool p_override_enabled) {
+	if (p_override_enabled == mouse_mode_override_enabled) {
+		return;
+	}
+	mouse_mode_override_enabled = p_override_enabled;
+	_mouse_update_mode();
+}
+
+bool DisplayServerWeb::mouse_is_mode_override_enabled() const {
+	return mouse_mode_override_enabled;
 }
 
 Point2i DisplayServerWeb::mouse_get_position() const {
@@ -1134,6 +1172,7 @@ bool DisplayServerWeb::has_feature(Feature p_feature) const {
 		//case FEATURE_NATIVE_DIALOG_INPUT:
 		//case FEATURE_NATIVE_DIALOG_FILE:
 		//case FEATURE_NATIVE_DIALOG_FILE_EXTRA:
+		//case FEATURE_NATIVE_DIALOG_FILE_MIME:
 		//case FEATURE_NATIVE_ICON:
 		//case FEATURE_WINDOW_TRANSPARENCY:
 		//case FEATURE_KEEP_SCREEN_ON:

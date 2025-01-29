@@ -340,16 +340,19 @@ void Path3DGizmo::redraw() {
 			// Path3D as a ribbon.
 			ribbon_ptr[i] = p1;
 
-			// Fish Bone.
-			const Vector3 p_left = p1 + (side + forward - up * 0.3) * 0.06;
-			const Vector3 p_right = p1 + (-side + forward - up * 0.3) * 0.06;
+			if (i % 4 == 0) {
+				// Draw fish bone every 4 points to reduce visual noise and performance impact
+				// (compared to drawing it for every point).
+				const Vector3 p_left = p1 + (side + forward - up * 0.3) * 0.06;
+				const Vector3 p_right = p1 + (-side + forward - up * 0.3) * 0.06;
 
-			const int bone_idx = i * 4;
+				const int bone_idx = i * 4;
 
-			bones_ptr[bone_idx] = p1;
-			bones_ptr[bone_idx + 1] = p_left;
-			bones_ptr[bone_idx + 2] = p1;
-			bones_ptr[bone_idx + 3] = p_right;
+				bones_ptr[bone_idx] = p1;
+				bones_ptr[bone_idx + 1] = p_left;
+				bones_ptr[bone_idx + 2] = p1;
+				bones_ptr[bone_idx + 3] = p_right;
+			}
 		}
 
 		add_collision_segments(_collision_segments);

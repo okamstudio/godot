@@ -223,6 +223,19 @@ void ParticlesStorage::particles_set_pre_process_time(RID p_particles, double p_
 	ERR_FAIL_NULL(particles);
 	particles->pre_process_time = p_time;
 }
+
+void ParticlesStorage::particles_request_process_time(RID p_particles, real_t p_request_process_time) {
+	Particles *particles = particles_owner.get_or_null(p_particles);
+	ERR_FAIL_NULL(particles);
+	particles->request_process_time = p_request_process_time;
+}
+
+void ParticlesStorage::particles_set_seed(RID p_particles, uint32_t p_seed) {
+	Particles *particles = particles_owner.get_or_null(p_particles);
+	ERR_FAIL_NULL(particles);
+	particles->random_seed = p_seed;
+}
+
 void ParticlesStorage::particles_set_explosiveness_ratio(RID p_particles, real_t p_ratio) {
 	Particles *particles = particles_owner.get_or_null(p_particles);
 	ERR_FAIL_NULL(particles);
@@ -507,7 +520,6 @@ void ParticlesStorage::_particles_process(Particles *p_particles, double p_delta
 
 	if (p_particles->clear) {
 		p_particles->cycle_number = 0;
-		p_particles->random_seed = Math::rand();
 	} else if (new_phase < p_particles->phase) {
 		if (p_particles->one_shot) {
 			p_particles->emitting = false;
@@ -1134,6 +1146,24 @@ void ParticlesStorage::update_particles() {
 			} else {
 				_particles_process(particles, RSG::rasterizer->get_frame_delta_time());
 			}
+		}
+
+		if (particles->request_process_time > 0.0) {
+			double frame_time;
+			if (fixed_fps > 0) {
+				frame_time = 1.0 / fixed_fps;
+			} else {
+				frame_time = 1.0 / 30.0;
+			}
+			float tmp_scale = particles->speed_scale;
+			particles->speed_scale = 1.0;
+			double todo = particles->request_process_time;
+			while (todo >= 0) {
+				_particles_process(particles, frame_time);
+				todo -= frame_time;
+			}
+			particles->speed_scale = tmp_scale;
+			particles->request_process_time = 0.0;
 		}
 
 		// Copy particles to instance buffer and pack Color/Custom.

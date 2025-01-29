@@ -103,7 +103,7 @@
 			<return type="bool" />
 			<param index="0" name="capture" type="String" />
 			<description>
-				Override this method to enable receiving messages from the debugger. If [param capture] is "my_message" then messages starting with "my_message:" will be passes to the [method _capture] method.
+				Override this method to enable receiving messages from the debugger. If [param capture] is "my_message" then messages starting with "my_message:" will be passed to the [method _capture] method.
 			</description>
 		</method>
 		<method name="_setup_session" qualifiers="virtual">

@@ -184,6 +184,9 @@ public:
 	virtual RID render_target_get_override_velocity(RID p_render_target) const = 0;
 	virtual RID render_target_get_override_velocity_depth(RID p_render_target) const = 0;
 
+	virtual void render_target_set_render_region(RID p_render_target, const Rect2i &p_render_region) = 0;
+	virtual Rect2i render_target_get_render_region(RID p_render_target) const = 0;
+
 	// get textures
 	virtual RID render_target_get_texture(RID p_render_target) = 0;
 

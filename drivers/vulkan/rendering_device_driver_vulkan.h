@@ -138,6 +138,7 @@ class RenderingDeviceDriverVulkan : public RenderingDeviceDriver {
 	VRSCapabilities vrs_capabilities;
 	ShaderCapabilities shader_capabilities;
 	StorageBufferCapabilities storage_buffer_capabilities;
+	bool buffer_device_address_support = false;
 	bool pipeline_cache_control_support = false;
 	bool device_fault_support = false;
 #if defined(VK_TRACK_DEVICE_MEMORY)
@@ -204,6 +205,7 @@ public:
 	virtual uint64_t buffer_get_allocation_size(BufferID p_buffer) override final;
 	virtual uint8_t *buffer_map(BufferID p_buffer) override final;
 	virtual void buffer_unmap(BufferID p_buffer) override final;
+	virtual uint64_t buffer_get_device_address(BufferID p_buffer) override final;
 
 	/*****************/
 	/**** TEXTURE ****/

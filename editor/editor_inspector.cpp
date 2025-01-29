@@ -37,6 +37,7 @@
 #include "editor/editor_feature_profile.h"
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
+#include "editor/editor_properties.h"
 #include "editor/editor_property_name_processor.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
@@ -67,6 +68,126 @@ bool EditorInspector::_property_path_matches(const String &p_property_path, cons
 			return true;
 		}
 	}
+	return false;
+}
+
+bool EditorInspector::_resource_properties_matches(const Ref<Resource> &p_resource, const String &p_filter) {
+	String group;
+	String group_base;
+	String subgroup;
+	String subgroup_base;
+
+	List<PropertyInfo> plist;
+	p_resource->get_property_list(&plist, true);
+
+	// Employ a lighter version of the update_tree() property listing to find a match.
+	for (PropertyInfo &p : plist) {
+		if (p.usage & PROPERTY_USAGE_SUBGROUP) {
+			subgroup = p.name;
+			subgroup_base = p.hint_string.get_slicec(',', 0);
+
+			continue;
+
+		} else if (p.usage & PROPERTY_USAGE_GROUP) {
+			group = p.name;
+			group_base = p.hint_string.get_slicec(',', 0);
+			subgroup = "";
+			subgroup_base = "";
+
+			continue;
+
+		} else if (p.usage & PROPERTY_USAGE_CATEGORY) {
+			group = "";
+			group_base = "";
+			subgroup = "";
+			subgroup_base = "";
+
+			continue;
+
+		} else if (p.name.begins_with("metadata/_") || !(p.usage & PROPERTY_USAGE_EDITOR) || _is_property_disabled_by_feature_profile(p.name) ||
+				(p_filter.is_empty() && restrict_to_basic && !(p.usage & PROPERTY_USAGE_EDITOR_BASIC_SETTING))) {
+			// Ignore properties that are not supposed to be in the inspector.
+			continue;
+		}
+
+		if (p.usage & PROPERTY_USAGE_HIGH_END_GFX && RS::get_singleton()->is_low_end()) {
+			// Do not show this property in low end gfx.
+			continue;
+		}
+
+		if (p.name == "script") {
+			// The script is always hidden in sub inspectors.
+			continue;
+		}
+
+		if (p.name.begins_with("metadata/") && bool(object->call(SNAME("_hide_metadata_from_inspector")))) {
+			// Hide metadata from inspector if required.
+			continue;
+		}
+
+		String path = p.name;
+
+		// Check if we exit or not a subgroup. If there is a prefix, remove it from the property label string.
+		if (!subgroup.is_empty() && !subgroup_base.is_empty()) {
+			if (path.begins_with(subgroup_base)) {
+				path = path.trim_prefix(subgroup_base);
+			} else if (subgroup_base.begins_with(path)) {
+				// Keep it, this is used pretty often.
+			} else {
+				subgroup = ""; // The prefix changed, we are no longer in the subgroup.
+			}
+		}
+
+		// Check if we exit or not a group. If there is a prefix, remove it from the property label string.
+		if (!group.is_empty() && !group_base.is_empty() && subgroup.is_empty()) {
+			if (path.begins_with(group_base)) {
+				path = path.trim_prefix(group_base);
+			} else if (group_base.begins_with(path)) {
+				// Keep it, this is used pretty often.
+			} else {
+				group = ""; // The prefix changed, we are no longer in the group.
+				subgroup = "";
+			}
+		}
+
+		// Add the group and subgroup to the path.
+		if (!subgroup.is_empty()) {
+			path = subgroup + "/" + path;
+		}
+		if (!group.is_empty()) {
+			path = group + "/" + path;
+		}
+
+		// Get the property label's string.
+		String name_override = (path.contains_char('/')) ? path.substr(path.rfind_char('/') + 1) : path;
+		const int dot = name_override.find_char('.');
+		if (dot != -1) {
+			name_override = name_override.substr(0, dot);
+		}
+
+		// Remove the property from the path.
+		int idx = path.rfind_char('/');
+		if (idx > -1) {
+			path = path.left(idx);
+		} else {
+			path = "";
+		}
+
+		// Check if the property matches the filter.
+		const String property_path = (path.is_empty() ? "" : path + "/") + name_override;
+		if (_property_path_matches(property_path, p_filter, property_name_style)) {
+			return true;
+		}
+
+		// Check if the sub-resource has any properties that match the filter.
+		if (p.hint && p.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+			Ref<Resource> res = p_resource->get(p.name);
+			if (res.is_valid() && _resource_properties_matches(res, p_filter)) {
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 
@@ -165,6 +286,9 @@ void EditorProperty::_notification(int p_what) {
 				if (no_children) {
 					text_size = size.width;
 					rect = Rect2(size.width - 1, 0, 1, height);
+				} else if (!draw_label) {
+					text_size = 0;
+					rect = Rect2(1, 0, size.width - 1, height);
 				} else {
 					text_size = MAX(0, size.width - (child_room + 4 * EDSCALE));
 					if (is_layout_rtl()) {
@@ -269,10 +393,10 @@ void EditorProperty::_notification(int p_what) {
 			}
 
 			Ref<StyleBox> bg_stylebox = get_theme_stylebox(SNAME("child_bg"));
-			if (draw_top_bg && right_child_rect != Rect2()) {
+			if (draw_top_bg && right_child_rect != Rect2() && draw_background) {
 				draw_style_box(bg_stylebox, right_child_rect);
 			}
-			if (bottom_child_rect != Rect2()) {
+			if (bottom_child_rect != Rect2() && draw_background) {
 				draw_style_box(bg_stylebox, bottom_child_rect);
 			}
 
@@ -604,6 +728,25 @@ bool EditorProperty::use_keying_next() const {
 	}
 
 	return false;
+}
+
+void EditorProperty::set_draw_label(bool p_draw_label) {
+	draw_label = p_draw_label;
+	queue_redraw();
+	queue_sort();
+}
+
+bool EditorProperty::is_draw_label() const {
+	return draw_label;
+}
+
+void EditorProperty::set_draw_background(bool p_draw_background) {
+	draw_background = p_draw_background;
+	queue_redraw();
+}
+
+bool EditorProperty::is_draw_background() const {
+	return draw_background;
 }
 
 void EditorProperty::set_checkable(bool p_checkable) {
@@ -1071,6 +1214,12 @@ void EditorProperty::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_read_only", "read_only"), &EditorProperty::set_read_only);
 	ClassDB::bind_method(D_METHOD("is_read_only"), &EditorProperty::is_read_only);
 
+	ClassDB::bind_method(D_METHOD("set_draw_label", "draw_label"), &EditorProperty::set_draw_label);
+	ClassDB::bind_method(D_METHOD("is_draw_label"), &EditorProperty::is_draw_label);
+
+	ClassDB::bind_method(D_METHOD("set_draw_background", "draw_background"), &EditorProperty::set_draw_background);
+	ClassDB::bind_method(D_METHOD("is_draw_background"), &EditorProperty::is_draw_background);
+
 	ClassDB::bind_method(D_METHOD("set_checkable", "checkable"), &EditorProperty::set_checkable);
 	ClassDB::bind_method(D_METHOD("is_checkable"), &EditorProperty::is_checkable);
 
@@ -1113,6 +1262,8 @@ void EditorProperty::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "label"), "set_label", "get_label");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "read_only"), "set_read_only", "is_read_only");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_label"), "set_draw_label", "is_draw_label");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_background"), "set_draw_background", "is_draw_background");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "checkable"), "set_checkable", "is_checkable");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "checked"), "set_checked", "is_checked");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_warning"), "set_draw_warning", "is_draw_warning");
@@ -2244,6 +2395,7 @@ void EditorInspectorArray::_setup() {
 
 	Ref<Font> numbers_font;
 	int numbers_min_w = 0;
+	bool unresizable = is_const || read_only;
 
 	if (numbered) {
 		numbers_font = get_theme_font(SNAME("bold"), EditorStringName(EditorFonts));
@@ -2340,15 +2492,17 @@ void EditorInspectorArray::_setup() {
 		ae.vbox->set_v_size_flags(SIZE_EXPAND_FILL);
 		ae.hbox->add_child(ae.vbox);
 
-		ae.erase = memnew(Button);
-		ae.erase->set_button_icon(get_editor_theme_icon(SNAME("Remove")));
-		ae.erase->set_v_size_flags(SIZE_SHRINK_CENTER);
-		ae.erase->connect(SceneStringName(pressed), callable_mp(this, &EditorInspectorArray::_remove_item).bind(element_position));
-		ae.hbox->add_child(ae.erase);
+		if (!unresizable) {
+			ae.erase = memnew(Button);
+			ae.erase->set_button_icon(get_editor_theme_icon(SNAME("Remove")));
+			ae.erase->set_v_size_flags(SIZE_SHRINK_CENTER);
+			ae.erase->connect(SceneStringName(pressed), callable_mp(this, &EditorInspectorArray::_remove_item).bind(element_position));
+			ae.hbox->add_child(ae.erase);
+		}
 	}
 
 	// Hide/show the add button.
-	add_button->set_visible(page == max_page);
+	add_button->set_visible(page == max_page && !unresizable);
 
 	// Add paginator if there's more than 1 page.
 	if (max_page > 0) {
@@ -2466,12 +2620,13 @@ void EditorInspectorArray::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("page_change_request"));
 }
 
-void EditorInspectorArray::setup_with_move_element_function(Object *p_object, const String &p_label, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable, bool p_numbered, int p_page_length, const String &p_add_item_text) {
+void EditorInspectorArray::setup_with_move_element_function(Object *p_object, const String &p_label, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable, bool p_is_const, bool p_numbered, int p_page_length, const String &p_add_item_text) {
 	count_property = "";
 	mode = MODE_USE_MOVE_ARRAY_ELEMENT_FUNCTION;
 	array_element_prefix = p_array_element_prefix;
 	page = p_page;
 	movable = p_movable;
+	is_const = p_is_const;
 	page_length = p_page_length;
 	numbered = p_numbered;
 
@@ -2480,12 +2635,13 @@ void EditorInspectorArray::setup_with_move_element_function(Object *p_object, co
 	_setup();
 }
 
-void EditorInspectorArray::setup_with_count_property(Object *p_object, const String &p_label, const StringName &p_count_property, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable, bool p_numbered, int p_page_length, const String &p_add_item_text, const String &p_swap_method) {
+void EditorInspectorArray::setup_with_count_property(Object *p_object, const String &p_label, const StringName &p_count_property, const StringName &p_array_element_prefix, int p_page, const Color &p_bg_color, bool p_foldable, bool p_movable, bool p_is_const, bool p_numbered, int p_page_length, const String &p_add_item_text, const String &p_swap_method) {
 	count_property = p_count_property;
 	mode = MODE_USE_COUNT_PROPERTY;
 	array_element_prefix = p_array_element_prefix;
 	page = p_page;
 	movable = p_movable;
+	is_const = p_is_const;
 	page_length = p_page_length;
 	numbered = p_numbered;
 	swap_method = p_swap_method;
@@ -2840,6 +2996,7 @@ void EditorInspector::update_tree() {
 	int current_focusable = -1;
 
 	// Temporarily disable focus following on the root inspector to avoid jumping while the inspector is updating.
+	bool was_following = get_root_inspector()->is_following_focus();
 	get_root_inspector()->set_follow_focus(false);
 
 	if (property_focusable != -1) {
@@ -2868,7 +3025,7 @@ void EditorInspector::update_tree() {
 	_clear(!object);
 
 	if (!object) {
-		get_root_inspector()->set_follow_focus(true);
+		get_root_inspector()->set_follow_focus(was_following);
 		return;
 	}
 
@@ -2923,6 +3080,7 @@ void EditorInspector::update_tree() {
 	HashMap<String, HashMap<String, LocalVector<EditorProperty *>>> favorites_to_add;
 
 	Color sscolor = get_theme_color(SNAME("prop_subsection"), EditorStringName(Editor));
+	bool sub_inspectors_enabled = EDITOR_GET("interface/inspector/open_resources_in_current_inspector");
 
 	// Get the lists of editors to add the beginning.
 	for (Ref<EditorInspectorPlugin> &ped : valid_plugins) {
@@ -3100,7 +3258,7 @@ void EditorInspector::update_tree() {
 			continue;
 		}
 
-		if (p.name.begins_with("metadata/") && bool(object->call("_hide_metadata_from_inspector"))) {
+		if (p.name.begins_with("metadata/") && bool(object->call(SNAME("_hide_metadata_from_inspector")))) {
 			// Hide metadata from inspector if required.
 			continue;
 		}
@@ -3207,10 +3365,25 @@ void EditorInspector::update_tree() {
 		}
 
 		// Ignore properties that do not fit the filter.
+		bool sub_inspector_use_filter = false;
 		if (use_filter && !filter.is_empty()) {
 			const String property_path = property_prefix + (path.is_empty() ? "" : path + "/") + name_override;
 			if (!_property_path_matches(property_path, filter, property_name_style)) {
-				continue;
+				if (!sub_inspectors_enabled || p.hint != PROPERTY_HINT_RESOURCE_TYPE) {
+					continue;
+				}
+
+				Ref<Resource> res = object->get(p.name);
+				if (res.is_null()) {
+					continue;
+				}
+
+				// Check if the sub-resource has any properties that match the filter.
+				if (!_resource_properties_matches(res, filter)) {
+					continue;
+				}
+
+				sub_inspector_use_filter = true;
 			}
 		}
 
@@ -3305,6 +3478,7 @@ void EditorInspector::update_tree() {
 
 			int page_size = 5;
 			bool movable = true;
+			bool is_const = false;
 			bool numbered = false;
 			bool foldable = use_folding;
 			String add_button_text = TTR("Add Element");
@@ -3316,6 +3490,8 @@ void EditorInspector::update_tree() {
 					add_button_text = class_name_components[i].get_slice("=", 1).strip_edges();
 				} else if (class_name_components[i] == "static") {
 					movable = false;
+				} else if (class_name_components[i] == "const") {
+					is_const = true;
 				} else if (class_name_components[i] == "numbered") {
 					numbered = true;
 				} else if (class_name_components[i] == "unfoldable") {
@@ -3342,7 +3518,7 @@ void EditorInspector::update_tree() {
 					editor_inspector_array = memnew(EditorInspectorArray(all_read_only));
 					int page = per_array_page.has(array_element_prefix) ? per_array_page[array_element_prefix] : 0;
 
-					editor_inspector_array->setup_with_count_property(object, class_name_components[0], p.name, array_element_prefix, page, c, foldable, movable, numbered, page_size, add_button_text, swap_method);
+					editor_inspector_array->setup_with_count_property(object, class_name_components[0], p.name, array_element_prefix, page, c, foldable, movable, is_const, numbered, page_size, add_button_text, swap_method);
 					editor_inspector_array->connect("page_change_request", callable_mp(this, &EditorInspector::_page_change_request).bind(array_element_prefix));
 				}
 			}
@@ -3520,6 +3696,13 @@ void EditorInspector::update_tree() {
 							editor_property_map[prop] = List<EditorProperty *>();
 						}
 						editor_property_map[prop].push_back(ep);
+					}
+				}
+
+				if (sub_inspector_use_filter) {
+					EditorPropertyResource *epr = Object::cast_to<EditorPropertyResource>(ep);
+					if (epr) {
+						epr->set_use_filter(true);
 					}
 				}
 
@@ -3708,7 +3891,7 @@ void EditorInspector::update_tree() {
 		EditorNode::get_singleton()->hide_unused_editors();
 	}
 
-	get_root_inspector()->set_follow_focus(true);
+	get_root_inspector()->set_follow_focus(was_following);
 }
 
 void EditorInspector::update_property(const String &p_prop) {
@@ -3877,12 +4060,8 @@ void EditorInspector::set_use_filter(bool p_use) {
 void EditorInspector::register_text_enter(Node *p_line_edit) {
 	search_box = Object::cast_to<LineEdit>(p_line_edit);
 	if (search_box) {
-		search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorInspector::_filter_changed));
+		search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorInspector::update_tree).unbind(1));
 	}
-}
-
-void EditorInspector::_filter_changed(const String &p_text) {
-	update_tree();
 }
 
 void EditorInspector::set_use_folding(bool p_use_folding, bool p_update_tree) {
@@ -4564,6 +4743,15 @@ void EditorInspector::_notification(int p_what) {
 				update_tree();
 			}
 		} break;
+
+		case NOTIFICATION_FOCUS_ENTER: {
+			set_follow_focus(true);
+		} break;
+
+		case NOTIFICATION_FOCUS_EXIT: {
+			// Don't follow focus when the inspector is not focused. Prevents potential jumping when gaining focus.
+			set_follow_focus(false);
+		} break;
 	}
 }
 
@@ -4720,7 +4908,6 @@ EditorInspector::EditorInspector() {
 	base_vbox->add_child(main_vbox);
 
 	set_horizontal_scroll_mode(SCROLL_MODE_DISABLED);
-	set_follow_focus(true);
 
 	changing = 0;
 	search_box = nullptr;

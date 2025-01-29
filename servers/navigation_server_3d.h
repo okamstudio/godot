@@ -39,6 +39,11 @@
 #include "servers/navigation/navigation_path_query_parameters_3d.h"
 #include "servers/navigation/navigation_path_query_result_3d.h"
 
+struct NavMeshGeometryParser3D {
+	RID self;
+	Callable callback;
+};
+
 /// This server uses the concept of internal mutability.
 /// All the constant functions can be called in multithread because internally
 /// the server takes care to schedule the functions access.
@@ -175,6 +180,8 @@ public:
 	virtual Vector3 region_get_closest_point(RID p_region, const Vector3 &p_point) const = 0;
 	virtual Vector3 region_get_closest_point_normal(RID p_region, const Vector3 &p_point) const = 0;
 	virtual Vector3 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const = 0;
+
+	virtual AABB region_get_bounds(RID p_region) const = 0;
 
 	/// Creates a new link between positions in the nav map.
 	virtual RID link_create() = 0;
@@ -355,6 +362,12 @@ public:
 	virtual bool is_baking_navigation_mesh(Ref<NavigationMesh> p_navigation_mesh) const = 0;
 #endif // _3D_DISABLED
 
+protected:
+	static RWLock geometry_parser_rwlock;
+	static RID_Owner<NavMeshGeometryParser3D> geometry_parser_owner;
+	static LocalVector<NavMeshGeometryParser3D *> generator_parsers;
+
+public:
 	virtual RID source_geometry_parser_create() = 0;
 	virtual void source_geometry_parser_set_callback(RID p_parser, const Callable &p_callback) = 0;
 
@@ -571,6 +584,9 @@ class NavigationServer3DManager {
 public:
 	static void set_default_server(NavigationServer3DCallback p_callback);
 	static NavigationServer3D *new_default_server();
+
+	static void initialize_server();
+	static void finalize_server();
 };
 
 VARIANT_ENUM_CAST(NavigationServer3D::ProcessInfo);

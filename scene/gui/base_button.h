@@ -61,7 +61,7 @@ private:
 		bool hovering = false;
 		bool press_attempt = false;
 		bool pressing_inside = false;
-
+		bool pressed_down_with_focus = false;
 		bool disabled = false;
 
 	} status;

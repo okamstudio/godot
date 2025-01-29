@@ -40,6 +40,18 @@ class EditorDebuggerTree : public Tree {
 	GDCLASS(EditorDebuggerTree, Tree);
 
 private:
+	struct ParentItem {
+		TreeItem *tree_item;
+		int child_count;
+		bool matches_filter;
+
+		ParentItem(TreeItem *p_tree_item = nullptr, int p_child_count = 0, bool p_matches_filter = false) {
+			tree_item = p_tree_item;
+			child_count = p_child_count;
+			matches_filter = p_matches_filter;
+		}
+	};
+
 	enum ItemMenu {
 		ITEM_MENU_SAVE_REMOTE_NODE,
 		ITEM_MENU_COPY_NODE_PATH,
@@ -56,7 +68,6 @@ private:
 	EditorFileDialog *file_dialog = nullptr;
 	String last_filter;
 
-	String _get_path(TreeItem *p_item);
 	void _scene_tree_folded(Object *p_obj);
 	void _scene_tree_selected();
 	void _scene_tree_rmb_selected(const Vector2 &p_position, MouseButton p_button);

@@ -122,6 +122,11 @@ Variant JSONRPC::process_action(const Variant &p_action, bool p_process_arr_elem
 		Variant id;
 		if (dict.has("id")) {
 			id = dict["id"];
+
+			// Account for implementations that discern between int and float on the json serialization level, by using an int if there is a .0 fraction. See #100914
+			if (id.get_type() == Variant::FLOAT && id.operator float() == (float)(id.operator int())) {
+				id = id.operator int();
+			}
 		}
 
 		if (object == nullptr || !object->has_method(method)) {

@@ -228,33 +228,32 @@ bool OpenXROpenGLExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 	}
 
 #ifdef ANDROID_ENABLED
-	XrSwapchainImageOpenGLESKHR *images = (XrSwapchainImageOpenGLESKHR *)memalloc(sizeof(XrSwapchainImageOpenGLESKHR) * swapchain_length);
+	LocalVector<XrSwapchainImageOpenGLESKHR> images;
 #else
-	XrSwapchainImageOpenGLKHR *images = (XrSwapchainImageOpenGLKHR *)memalloc(sizeof(XrSwapchainImageOpenGLKHR) * swapchain_length);
+	LocalVector<XrSwapchainImageOpenGLKHR> images;
 #endif
-	ERR_FAIL_NULL_V_MSG(images, false, "OpenXR Couldn't allocate memory for swap chain image");
+	images.resize(swapchain_length);
 
-	for (uint64_t i = 0; i < swapchain_length; i++) {
 #ifdef ANDROID_ENABLED
-		images[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
+	for (XrSwapchainImageOpenGLESKHR &image : images) {
+		image.type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
 #else
-		images[i].type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR;
+	for (XrSwapchainImageOpenGLKHR &image : images) {
+		image.type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR;
 #endif
-		images[i].next = nullptr;
-		images[i].image = 0;
+		image.next = nullptr;
+		image.image = 0;
 	}
 
-	result = xrEnumerateSwapchainImages(p_swapchain, swapchain_length, &swapchain_length, (XrSwapchainImageBaseHeader *)images);
+	result = xrEnumerateSwapchainImages(p_swapchain, swapchain_length, &swapchain_length, (XrSwapchainImageBaseHeader *)images.ptr());
 	if (XR_FAILED(result)) {
 		print_line("OpenXR: Failed to get swapchaim images [", OpenXRAPI::get_singleton()->get_error_string(result), "]");
-		memfree(images);
 		return false;
 	}
 
 	SwapchainGraphicsData *data = memnew(SwapchainGraphicsData);
 	if (data == nullptr) {
 		print_line("OpenXR: Failed to allocate memory for swapchain data");
-		memfree(images);
 		return false;
 	}
 	*r_swapchain_graphics_data = data;
@@ -278,8 +277,6 @@ bool OpenXROpenGLExtension::get_swapchain_image_data(XrSwapchain p_swapchain, in
 	}
 
 	data->texture_rids = texture_rids;
-
-	memfree(images);
 
 	return true;
 }

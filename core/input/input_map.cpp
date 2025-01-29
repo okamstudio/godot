@@ -254,8 +254,8 @@ bool InputMap::event_is_action(const Ref<InputEvent> &p_event, const StringName 
 
 int InputMap::event_get_index(const Ref<InputEvent> &p_event, const StringName &p_action, bool p_exact_match) const {
 	int index = -1;
-	event_get_action_status(p_event, p_action, p_exact_match, nullptr, nullptr, nullptr, &index);
-	return index;
+	bool valid = event_get_action_status(p_event, p_action, p_exact_match, nullptr, nullptr, nullptr, &index);
+	return valid ? index : -1;
 }
 
 bool InputMap::event_get_action_status(const Ref<InputEvent> &p_event, const StringName &p_action, bool p_exact_match, bool *r_pressed, float *r_strength, float *r_raw_strength, int *r_event_index) const {

@@ -482,6 +482,10 @@ Color Color::from_rgbe9995(uint32_t p_rgbe) {
 	return Color(rd, gd, bd, 1.0f);
 }
 
+Color Color::from_rgba8(int64_t p_r8, int64_t p_g8, int64_t p_b8, int64_t p_a8) {
+	return Color(p_r8 / 255.0f, p_g8 / 255.0f, p_b8 / 255.0f, p_a8 / 255.0f);
+}
+
 Color::operator String() const {
 	return "(" + String::num(r, 4) + ", " + String::num(g, 4) + ", " + String::num(b, 4) + ", " + String::num(a, 4) + ")";
 }

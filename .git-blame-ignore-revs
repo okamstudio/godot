@@ -63,3 +63,6 @@ b37fc1014abf7adda70dc30b0822d775b3a4433f
 
 # Style: Apply clang-tidy fixes (superficial)
 bb5f390fb9b466be35a5df7651323d7e66afca31
+
+# Style: Enforce `AllowShortFunctionsOnASingleLine`
+e06d83860d798b6766b23d6eae48557387a7db85

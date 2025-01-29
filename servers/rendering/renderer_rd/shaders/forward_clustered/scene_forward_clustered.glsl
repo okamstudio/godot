@@ -1928,17 +1928,29 @@ void fragment_shader(in SceneData scene_data) {
 					continue; //not masked
 				}
 
+				if (reflection_accum.a >= 1.0 && ambient_accum.a >= 1.0) {
+					break;
+				}
+
 				reflection_process(reflection_index, vertex, ref_vec, normal, roughness, ambient_light, specular_light, ambient_accum, reflection_accum);
 			}
 		}
 
+		if (ambient_accum.a < 1.0) {
+			ambient_accum.rgb = mix(ambient_light, ambient_accum.rgb, ambient_accum.a);
+		}
+
+		if (reflection_accum.a < 1.0) {
+			reflection_accum.rgb = mix(specular_light, reflection_accum.rgb, reflection_accum.a);
+		}
+
 		if (reflection_accum.a > 0.0) {
-			specular_light = reflection_accum.rgb / reflection_accum.a;
+			specular_light = reflection_accum.rgb;
 		}
 
 #if !defined(USE_LIGHTMAP)
 		if (ambient_accum.a > 0.0) {
-			ambient_light = ambient_accum.rgb / ambient_accum.a;
+			ambient_light = ambient_accum.rgb;
 		}
 #endif
 	}
@@ -2591,7 +2603,7 @@ void fragment_shader(in SceneData scene_data) {
 				vec3(0, -1, 0),
 				vec3(0, 0, -1));
 
-		vec3 cam_normal = mat3(scene_data.inv_view_matrix) * geo_normal;
+		vec3 cam_normal = mat3(scene_data.inv_view_matrix) * normalize(normal_interp);
 
 		float closest_dist = -1e20;
 
@@ -2793,8 +2805,9 @@ void main() {
 #endif
 #ifdef MODE_DUAL_PARABOLOID
 
-	if (dp_clip > 0.0)
+	if (dp_clip > 0.0) {
 		discard;
+	}
 #endif
 
 	fragment_shader(scene_data_block.data);

@@ -97,6 +97,7 @@ void QuickSettingsDialog::_update_current_values() {
 			if (current_theme == theme_value) {
 				theme_option_button->set_text(current_theme);
 				theme_option_button->select(i);
+				theme_option_button->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 
 				custom_theme_label->set_visible(current_theme == "Custom");
 			}

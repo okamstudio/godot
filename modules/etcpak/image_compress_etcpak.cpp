@@ -30,6 +30,8 @@
 
 #include "image_compress_etcpak.h"
 
+#ifdef TOOLS_ENABLED
+
 #include "core/os/os.h"
 #include "core/string/print_string.h"
 
@@ -276,12 +278,12 @@ void _compress_etcpak(EtcpakType p_compress_type, Image *r_img) {
 				break;
 
 			case EtcpakType::ETCPAK_TYPE_DXT1:
-				CompressDxt1Dither(src_mip_read, dest_mip_write, blocks, dest_mip_w);
+				CompressBc1Dither(src_mip_read, dest_mip_write, blocks, dest_mip_w);
 				break;
 
 			case EtcpakType::ETCPAK_TYPE_DXT5:
 			case EtcpakType::ETCPAK_TYPE_DXT5_RA_AS_RG:
-				CompressDxt5(src_mip_read, dest_mip_write, blocks, dest_mip_w);
+				CompressBc3(src_mip_read, dest_mip_write, blocks, dest_mip_w);
 				break;
 
 			case EtcpakType::ETCPAK_TYPE_RGTC_R:
@@ -303,3 +305,4 @@ void _compress_etcpak(EtcpakType p_compress_type, Image *r_img) {
 
 	print_verbose(vformat("etcpak: Encoding took %d ms.", OS::get_singleton()->get_ticks_msec() - start_time));
 }
+#endif // TOOLS_ENABLED

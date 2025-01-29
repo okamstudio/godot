@@ -99,10 +99,11 @@ Error CryptoKeyMbedTLS::save(const String &p_path, bool p_public_only) {
 
 Error CryptoKeyMbedTLS::load_from_string(const String &p_string_key, bool p_public_only) {
 	int ret = 0;
+	const CharString string_key_utf8 = p_string_key.utf8();
 	if (p_public_only) {
-		ret = mbedtls_pk_parse_public_key(&pkey, (unsigned char *)p_string_key.utf8().get_data(), p_string_key.utf8().size());
+		ret = mbedtls_pk_parse_public_key(&pkey, (const unsigned char *)string_key_utf8.get_data(), string_key_utf8.size());
 	} else {
-		ret = _parse_key((unsigned char *)p_string_key.utf8().get_data(), p_string_key.utf8().size());
+		ret = _parse_key((const unsigned char *)string_key_utf8.get_data(), string_key_utf8.size());
 	}
 	ERR_FAIL_COND_V_MSG(ret, FAILED, "Error parsing key '" + itos(ret) + "'.");
 

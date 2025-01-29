@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Projection.h"
+#include "SDFTransformation.h"
 #include "Shape.h"
 #include "BitmapRef.hpp"
 
@@ -20,7 +20,7 @@ public:
     };
 
     MSDFErrorCorrection();
-    explicit MSDFErrorCorrection(const BitmapRef<byte, 1> &stencil, const Projection &projection, double range);
+    explicit MSDFErrorCorrection(const BitmapRef<byte, 1> &stencil, const SDFTransformation &transformation);
     /// Sets the minimum ratio between the actual and maximum expected distance delta to be considered an error.
     void setMinDeviationRatio(double minDeviationRatio);
     /// Sets the minimum ratio between the pre-correction distance error and the post-correction distance error.
@@ -46,8 +46,7 @@ public:
 
 private:
     BitmapRef<byte, 1> stencil;
-    Projection projection;
-    double invRange;
+    SDFTransformation transformation;
     double minDeviationRatio;
     double minImproveRatio;
 

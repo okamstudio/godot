@@ -184,8 +184,8 @@ def configure(env: "SConsEnvironment"):
 
     # LTO
 
-    if env["lto"] == "auto":  # Full LTO for production.
-        env["lto"] = "full"
+    if env["lto"] == "auto":  # Enable LTO for production.
+        env["lto"] = "thin" if env["use_llvm"] else "full"
 
     if env["lto"] != "none":
         if env["lto"] == "thin":
@@ -222,23 +222,6 @@ def configure(env: "SConsEnvironment"):
 
     # FIXME: Check for existence of the libs before parsing their flags with pkg-config
 
-    # freetype depends on libpng and zlib, so bundling one of them while keeping others
-    # as shared libraries leads to weird issues. And graphite and harfbuzz need freetype.
-    ft_linked_deps = [
-        env["builtin_freetype"],
-        env["builtin_libpng"],
-        env["builtin_zlib"],
-        env["builtin_graphite"],
-        env["builtin_harfbuzz"],
-    ]
-    if (not all(ft_linked_deps)) and any(ft_linked_deps):  # All or nothing.
-        print_error(
-            "These libraries should be either all builtin, or all system provided:\n"
-            "freetype, libpng, zlib, graphite, harfbuzz.\n"
-            "Please specify `builtin_<name>=no` for all of them, or none."
-        )
-        sys.exit(255)
-
     if not env["builtin_freetype"]:
         env.ParseConfig("pkg-config freetype2 --cflags --libs")
 
@@ -250,6 +233,11 @@ def configure(env: "SConsEnvironment"):
 
     if not env["builtin_harfbuzz"]:
         env.ParseConfig("pkg-config harfbuzz harfbuzz-icu --cflags --libs")
+
+    if not env["builtin_icu4c"] or not env["builtin_harfbuzz"]:
+        print_warning(
+            "System-provided icu4c or harfbuzz cause known issues for GDExtension (see GH-91401 and GH-100301)."
+        )
 
     if not env["builtin_libpng"]:
         env.ParseConfig("pkg-config libpng16 --cflags --libs")

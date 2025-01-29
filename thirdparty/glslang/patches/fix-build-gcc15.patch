@@ -1,0 +1,12 @@
+diff --git a/thirdparty/glslang/SPIRV/SpvBuilder.h b/thirdparty/glslang/SPIRV/SpvBuilder.h
+index a65a98e337..1499592c4f 100644
+--- a/thirdparty/glslang/SPIRV/SpvBuilder.h
++++ b/thirdparty/glslang/SPIRV/SpvBuilder.h
+@@ -56,6 +56,7 @@ namespace spv {
+ }
+ 
+ #include <algorithm>
++#include <cstdint>
+ #include <map>
+ #include <memory>
+ #include <set>

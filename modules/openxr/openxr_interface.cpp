@@ -1055,6 +1055,14 @@ Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_as
 	return cm;
 }
 
+Rect2i OpenXRInterface::get_render_region() {
+	if (openxr_api) {
+		return openxr_api->get_render_region();
+	} else {
+		return Rect2i();
+	}
+}
+
 RID OpenXRInterface::get_color_texture() {
 	if (openxr_api) {
 		return openxr_api->get_color_texture();
@@ -1266,15 +1274,10 @@ Array OpenXRInterface::get_supported_environment_blend_modes() {
 		return modes;
 	}
 
-	uint32_t count = 0;
-	const XrEnvironmentBlendMode *env_blend_modes = openxr_api->get_supported_environment_blend_modes(count);
+	const Vector<XrEnvironmentBlendMode> env_blend_modes = openxr_api->get_supported_environment_blend_modes();
 
-	if (!env_blend_modes) {
-		return modes;
-	}
-
-	for (uint32_t i = 0; i < count; i++) {
-		switch (env_blend_modes[i]) {
+	for (const XrEnvironmentBlendMode &env_blend_mode : env_blend_modes) {
+		switch (env_blend_mode) {
 			case XR_ENVIRONMENT_BLEND_MODE_OPAQUE:
 				modes.push_back(XR_ENV_BLEND_MODE_OPAQUE);
 				break;
@@ -1285,7 +1288,7 @@ Array OpenXRInterface::get_supported_environment_blend_modes() {
 				modes.push_back(XR_ENV_BLEND_MODE_ALPHA_BLEND);
 				break;
 			default:
-				WARN_PRINT("Unsupported blend mode found: " + String::num_int64(int64_t(env_blend_modes[i])));
+				WARN_PRINT(vformat("Unsupported blend mode found: %s.", String::num_int64(int64_t(env_blend_mode))));
 		}
 	}
 
@@ -1527,6 +1530,8 @@ RID OpenXRInterface::get_vrs_texture() {
 	for (uint32_t v = 0; v < view_count; v++) {
 		eye_foci.push_back(openxr_api->get_eye_focus(v, aspect_ratio));
 	}
+
+	xr_vrs.set_vrs_render_region(get_render_region());
 
 	return xr_vrs.make_vrs_texture(target_size, eye_foci);
 }

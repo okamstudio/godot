@@ -40,7 +40,6 @@
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/editor_string_names.h"
-#include "editor/filesystem_dock.h"
 #include "editor/gui/editor_bottom_panel.h"
 #include "editor/themes/editor_scale.h"
 #include "editor/window_wrapper.h"
@@ -480,6 +479,8 @@ void EditorDockManager::save_docks_to_config(Ref<ConfigFile> p_layout, const Str
 	Array bottom_docks_dump;
 	Array closed_docks_dump;
 	for (const KeyValue<Control *, DockInfo> &d : all_docks) {
+		d.key->call(SNAME("_save_layout_to_config"), p_layout, p_section);
+
 		if (!d.value.at_bottom && d.value.open && (!d.value.previous_at_bottom || !d.value.dock_window)) {
 			continue;
 		}
@@ -516,8 +517,6 @@ void EditorDockManager::save_docks_to_config(Ref<ConfigFile> p_layout, const Str
 	for (int i = 0; i < hsplits.size(); i++) {
 		p_layout->set_value(p_section, "dock_hsplit_" + itos(i + 1), int(hsplits[i]->get_split_offset() / EDSCALE));
 	}
-
-	FileSystemDock::get_singleton()->save_layout_to_config(p_layout, p_section);
 }
 
 void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section, bool p_first_load) {
@@ -548,6 +547,7 @@ void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const S
 				continue;
 			}
 			Control *dock = dock_map[name];
+			dock->call(SNAME("_load_layout_from_config"), p_layout, p_section);
 
 			if (!all_docks[dock].enabled) {
 				// Don't open disabled docks.
@@ -612,9 +612,6 @@ void EditorDockManager::load_docks_from_config(Ref<ConfigFile> p_layout, const S
 		int ofs = p_layout->get_value(p_section, "dock_hsplit_" + itos(i + 1));
 		hsplits[i]->set_split_offset(ofs * EDSCALE);
 	}
-
-	FileSystemDock::get_singleton()->load_layout_from_config(p_layout, p_section);
-
 	_update_docks_menu();
 }
 

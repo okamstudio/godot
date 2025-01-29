@@ -439,10 +439,10 @@ void TileSetAtlasSourceEditor::AtlasTileProxyObject::_get_property_list(List<Pro
 
 	// Get the list of properties common to all tiles (similar to what's done in MultiNodeEdit).
 	struct PropertyId {
-		int occurence_id = 0;
+		int occurrence_id = 0;
 		String property;
 		bool operator<(const PropertyId &p_other) const {
-			return occurence_id == p_other.occurence_id ? property < p_other.property : occurence_id < p_other.occurence_id;
+			return occurrence_id == p_other.occurrence_id ? property < p_other.property : occurrence_id < p_other.occurrence_id;
 		}
 	};
 	struct PLData {

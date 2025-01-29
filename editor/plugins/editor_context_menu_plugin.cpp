@@ -86,8 +86,11 @@ void EditorContextMenuPlugin::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCENE_TREE);
 	BIND_ENUM_CONSTANT(CONTEXT_SLOT_FILESYSTEM);
-	BIND_ENUM_CONSTANT(CONTEXT_SLOT_FILESYSTEM_CREATE);
 	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCRIPT_EDITOR);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_FILESYSTEM_CREATE);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCRIPT_EDITOR_CODE);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCENE_TABS);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_2D_EDITOR);
 }
 
 void EditorContextMenuPluginManager::add_plugin(EditorContextMenuPlugin::ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin) {
@@ -103,6 +106,15 @@ void EditorContextMenuPluginManager::remove_plugin(const Ref<EditorContextMenuPl
 	ERR_FAIL_COND(!plugin_list.has(p_plugin));
 
 	plugin_list.erase(p_plugin);
+}
+
+bool EditorContextMenuPluginManager::has_plugins_for_slot(ContextMenuSlot p_slot) {
+	for (Ref<EditorContextMenuPlugin> &plugin : plugin_list) {
+		if (plugin->slot == p_slot) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void EditorContextMenuPluginManager::add_options_from_plugins(PopupMenu *p_popup, ContextMenuSlot p_slot, const Vector<String> &p_paths) {

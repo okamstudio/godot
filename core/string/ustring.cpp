@@ -551,18 +551,7 @@ bool String::operator==(const char32_t *p_str) const {
 		return true;
 	}
 
-	int l = length();
-
-	const char32_t *dst = get_data();
-
-	/* Compare char by char */
-	for (int i = 0; i < l; i++) {
-		if (p_str[i] != dst[i]) {
-			return false;
-		}
-	}
-
-	return true;
+	return memcmp(ptr(), p_str, len * sizeof(char32_t)) == 0;
 }
 
 bool String::operator==(const String &p_str) const {
@@ -573,23 +562,11 @@ bool String::operator==(const String &p_str) const {
 		return true;
 	}
 
-	int l = length();
-
-	const char32_t *src = get_data();
-	const char32_t *dst = p_str.get_data();
-
-	/* Compare char by char */
-	for (int i = 0; i < l; i++) {
-		if (src[i] != dst[i]) {
-			return false;
-		}
-	}
-
-	return true;
+	return memcmp(ptr(), p_str.ptr(), length() * sizeof(char32_t)) == 0;
 }
 
 bool String::operator==(const StrRange<char32_t> &p_str_range) const {
-	int len = p_str_range.len;
+	const int len = p_str_range.len;
 
 	if (length() != len) {
 		return false;
@@ -598,17 +575,7 @@ bool String::operator==(const StrRange<char32_t> &p_str_range) const {
 		return true;
 	}
 
-	const char32_t *c_str = p_str_range.c_str;
-	const char32_t *dst = &operator[](0);
-
-	/* Compare char by char */
-	for (int i = 0; i < len; i++) {
-		if (c_str[i] != dst[i]) {
-			return false;
-		}
-	}
-
-	return true;
+	return memcmp(ptr(), p_str_range.c_str, len * sizeof(char32_t)) == 0;
 }
 
 bool operator==(const char *p_chr, const String &p_str) {
@@ -3574,25 +3541,15 @@ int String::rfindn(const char *p_str, int p_from) const {
 }
 
 bool String::ends_with(const String &p_string) const {
-	int l = p_string.length();
+	const int l = p_string.length();
 	if (l > length()) {
 		return false;
 	}
-
 	if (l == 0) {
 		return true;
 	}
 
-	const char32_t *p = &p_string[0];
-	const char32_t *s = &operator[](length() - l);
-
-	for (int i = 0; i < l; i++) {
-		if (p[i] != s[i]) {
-			return false;
-		}
-	}
-
-	return true;
+	return memcmp(ptr() + (length() - l), p_string.ptr(), l * sizeof(char32_t)) == 0;
 }
 
 bool String::ends_with(const char *p_string) const {
@@ -3621,25 +3578,15 @@ bool String::ends_with(const char *p_string) const {
 }
 
 bool String::begins_with(const String &p_string) const {
-	int l = p_string.length();
+	const int l = p_string.length();
 	if (l > length()) {
 		return false;
 	}
-
 	if (l == 0) {
 		return true;
 	}
 
-	const char32_t *p = &p_string[0];
-	const char32_t *s = &operator[](0);
-
-	for (int i = 0; i < l; i++) {
-		if (p[i] != s[i]) {
-			return false;
-		}
-	}
-
-	return true;
+	return memcmp(ptr(), p_string.ptr(), l * sizeof(char32_t)) == 0;
 }
 
 bool String::begins_with(const char *p_string) const {
@@ -3708,8 +3655,7 @@ int String::_count(const String &p_string, int p_from, int p_to, bool p_case_ins
 			return 0;
 		}
 		if (p_from == 0 && p_to == len) {
-			str = String();
-			str.copy_from_unchecked(&get_data()[0], len);
+			str = *this;
 		} else {
 			str = substr(p_from, p_to - p_from);
 		}
@@ -3745,8 +3691,7 @@ int String::_count(const char *p_string, int p_from, int p_to, bool p_case_insen
 			return 0;
 		}
 		if (p_from == 0 && search_limit == source_length) {
-			str = String();
-			str.copy_from_unchecked(&get_data()[0], source_length);
+			str = *this;
 		} else {
 			str = substr(p_from, search_limit - p_from);
 		}

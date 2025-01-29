@@ -46,11 +46,21 @@
 				Returns the [Mesh] that is drawn at index [param pass].
 			</description>
 		</method>
+		<method name="request_particles_process">
+			<return type="void" />
+			<param index="0" name="process_time" type="float" />
+			<description>
+				Requests the particles to process for extra process time during a single frame.
+				Useful for particle playback, if used in combination with [member use_fixed_seed] or by calling [method restart] with parameter [code]keep_seed[/code] set to [code]true[/code].
+			</description>
+		</method>
 		<method name="restart">
 			<return type="void" />
+			<param index="0" name="keep_seed" type="bool" default="false" />
 			<description>
 				Restarts the particle emission cycle, clearing existing particles. To avoid particles vanishing from the viewport, wait for the [signal finished] signal before calling.
 				[b]Note:[/b] The [signal finished] signal is only emitted by [member one_shot] emitters.
+				If [param keep_seed] is [code]true[/code], the current random seed will be preserved. Useful for seeking and playback.
 			</description>
 		</method>
 		<method name="set_draw_pass_mesh">
@@ -136,6 +146,9 @@
 		<member name="randomness" type="float" setter="set_randomness_ratio" getter="get_randomness_ratio" default="0.0">
 			Emission randomness ratio.
 		</member>
+		<member name="seed" type="int" setter="set_seed" getter="get_seed" default="0">
+			Sets the random seed used by the particle system. Only effective if [member use_fixed_seed] is [code]true[/code].
+		</member>
 		<member name="speed_scale" type="float" setter="set_speed_scale" getter="get_speed_scale" default="1.0">
 			Speed scaling ratio. A value of [code]0[/code] can be used to pause the particles.
 		</member>
@@ -152,6 +165,9 @@
 			The amount of time the particle's trail should represent (in seconds). Only effective if [member trail_enabled] is [code]true[/code].
 		</member>
 		<member name="transform_align" type="int" setter="set_transform_align" getter="get_transform_align" enum="GPUParticles3D.TransformAlign" default="0">
+		</member>
+		<member name="use_fixed_seed" type="bool" setter="set_use_fixed_seed" getter="get_use_fixed_seed" default="false">
+			If [code]true[/code], particles will use the same seed for every simulation using the seed defined in [member seed]. This is useful for situations where the visual outcome should be consistent across replays, for example when using Movie Maker mode.
 		</member>
 		<member name="visibility_aabb" type="AABB" setter="set_visibility_aabb" getter="get_visibility_aabb" default="AABB(-4, -4, -4, 8, 8, 8)">
 			The [AABB] that determines the node's region which needs to be visible on screen for the particle system to be active. [member GeometryInstance3D.extra_cull_margin] is added on each of the AABB's axes. Particle collisions and attraction will only occur within this area.

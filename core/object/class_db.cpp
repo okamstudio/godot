@@ -219,7 +219,7 @@ public:
 		memdelete(instance);
 	}
 
-	static GDExtensionClassCallVirtual placeholder_class_get_virtual(void *p_class_userdata, GDExtensionConstStringNamePtr p_name) {
+	static GDExtensionClassCallVirtual placeholder_class_get_virtual(void *p_class_userdata, GDExtensionConstStringNamePtr p_name, uint32_t p_hash) {
 		return nullptr;
 	}
 };
@@ -713,8 +713,12 @@ ObjectGDExtension *ClassDB::get_placeholder_extension(const StringName &p_class)
 #endif // DISABLE_DEPRECATED
 	placeholder_extension->create_instance2 = &PlaceholderExtensionInstance::placeholder_class_create_instance;
 	placeholder_extension->free_instance = &PlaceholderExtensionInstance::placeholder_class_free_instance;
-	placeholder_extension->get_virtual = &PlaceholderExtensionInstance::placeholder_class_get_virtual;
+#ifndef DISABLE_DEPRECATED
+	placeholder_extension->get_virtual = nullptr;
 	placeholder_extension->get_virtual_call_data = nullptr;
+#endif // DISABLE_DEPRECATED
+	placeholder_extension->get_virtual2 = &PlaceholderExtensionInstance::placeholder_class_get_virtual;
+	placeholder_extension->get_virtual_call_data2 = nullptr;
 	placeholder_extension->call_virtual_with_data = nullptr;
 	placeholder_extension->recreate_instance = &PlaceholderExtensionInstance::placeholder_class_recreate_instance;
 
@@ -938,7 +942,7 @@ void ClassDB::get_method_list_with_compatibility(const StringName &p_class, List
 
 #ifdef DEBUG_METHODS_ENABLED
 		for (const MethodInfo &E : type->virtual_methods) {
-			Pair<MethodInfo, uint32_t> pair(E, 0);
+			Pair<MethodInfo, uint32_t> pair(E, E.get_compatibility_hash());
 			p_methods->push_back(pair);
 		}
 
@@ -1955,6 +1959,11 @@ MethodBind *ClassDB::bind_methodfi(uint32_t p_flags, MethodBind *p_bind, bool p_
 		ERR_FAIL_V_MSG(nullptr, vformat("Method definition provides more arguments than the method actually has '%s::%s'.", instance_type, mdname));
 	}
 
+	if (p_defcount > p_bind->get_argument_count()) {
+		memdelete(p_bind);
+		ERR_FAIL_V_MSG(nullptr, vformat("Method definition for '%s::%s' provides more default arguments than the method has arguments.", instance_type, mdname));
+	}
+
 	p_bind->set_argument_names(method_name.args);
 
 	if (!p_compatibility) {
@@ -2015,6 +2024,22 @@ void ClassDB::add_virtual_method(const StringName &p_class, const MethodInfo &p_
 #endif
 }
 
+void ClassDB::add_virtual_compatibility_method(const StringName &p_class, const MethodInfo &p_method, bool p_virtual, const Vector<String> &p_arg_names, bool p_object_core) {
+	ERR_FAIL_COND_MSG(!classes.has(p_class), vformat("Request for nonexistent class '%s'.", p_class));
+
+	OBJTYPE_WLOCK;
+
+	HashMap<StringName, Vector<uint32_t>> &virtual_methods_compat = classes[p_class].virtual_methods_compat;
+
+	Vector<uint32_t> *compat_hashes = virtual_methods_compat.getptr(p_method.name);
+	if (!compat_hashes) {
+		virtual_methods_compat[p_method.name] = Vector<uint32_t>();
+		compat_hashes = &virtual_methods_compat[p_method.name];
+	}
+
+	compat_hashes->push_back(p_method.get_compatibility_hash());
+}
+
 void ClassDB::get_virtual_methods(const StringName &p_class, List<MethodInfo> *p_methods, bool p_no_inheritance) {
 	ERR_FAIL_COND_MSG(!classes.has(p_class), vformat("Request for nonexistent class '%s'.", p_class));
 
@@ -2034,6 +2059,25 @@ void ClassDB::get_virtual_methods(const StringName &p_class, List<MethodInfo> *p
 	}
 
 #endif
+}
+
+Vector<uint32_t> ClassDB::get_virtual_method_compatibility_hashes(const StringName &p_class, const StringName &p_name) {
+	OBJTYPE_RLOCK;
+
+	ClassInfo *type = classes.getptr(p_class);
+
+	while (type) {
+		if (type->virtual_methods_compat.has(p_name)) {
+			Vector<uint32_t> *compat_hashes = type->virtual_methods_compat.getptr(p_name);
+			if (compat_hashes) {
+				return *compat_hashes;
+			}
+			break;
+		}
+		type = type->inherits_ptr;
+	}
+
+	return Vector<uint32_t>();
 }
 
 void ClassDB::add_extension_class_virtual_method(const StringName &p_class, const GDExtensionClassVirtualMethodInfo *p_method_info) {

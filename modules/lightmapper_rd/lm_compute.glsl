@@ -473,6 +473,7 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 	}
 
 	float penumbra = 0.0;
+	vec3 penumbra_color = vec3(0.0);
 	if (p_soft_shadowing) {
 		const bool use_soft_shadows = (light_data.size > 0.0);
 		const uint ray_count = AA_SAMPLES;
@@ -492,7 +493,6 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 		vec3 light_to_point_tan = normalize(cross(light_to_point, light_aux));
 		vec3 light_to_point_bitan = normalize(cross(light_to_point, light_to_point_tan));
 
-		uint hits = 0;
 		float aa_power = 0.0;
 		for (uint i = 0; i < ray_count; i++) {
 			// Create a random sample within the texel.
@@ -503,6 +503,7 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 			vec3 light_dir = normalize(light_pos - origin);
 
 			float power = 0.0;
+			vec3 light_color = vec3(0.0);
 			uint power_accm = 0;
 			vec3 prev_pos = origin;
 			if (use_soft_shadows) {
@@ -529,6 +530,7 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 					vec2 light_disk_sample = get_vogel_disk(vogel_index, a, shadowing_ray_count_sqrt) * soft_shadowing_disk_size * light_data.shadow_blur;
 					vec3 light_disk_to_point = normalize(light_to_point + light_disk_sample.x * light_to_point_tan + light_disk_sample.y * light_to_point_bitan);
 					float sample_penumbra = 0.0;
+					vec3 sample_penumbra_color = light_data.color.rgb;
 					bool sample_did_hit = false;
 
 					for (uint iter = 0; iter < bake_params.transparency_rays; iter++) {
@@ -552,7 +554,8 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 							soft_shadow_hits += 1;
 
 							if (contribute) {
-								sample_penumbra = max(sample_penumbra - hit_albedo.a - EPSILON, 0.0);
+								sample_penumbra_color = mix(sample_penumbra_color, sample_penumbra_color * hit_albedo.rgb, hit_albedo.a);
+								sample_penumbra *= 1.0 - hit_albedo.a;
 							}
 							origin = hit_position + r_light_dir * bake_params.bias;
 
@@ -563,12 +566,13 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 					}
 
 					power += sample_penumbra;
+					light_color += sample_penumbra_color;
 					power_accm++;
 				}
 
-				hits += soft_shadow_hits;
-			} else { // No soft shadows.
+			} else { // No soft shadows (size == 0).
 				float sample_penumbra = 0.0;
+				vec3 sample_penumbra_color = light_data.color.rgb;
 				bool sample_did_hit = false;
 				for (uint iter = 0; iter < bake_params.transparency_rays; iter++) {
 					vec4 hit_albedo = vec4(1.0);
@@ -579,7 +583,6 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 						if (!sample_did_hit) {
 							sample_penumbra = 1.0;
 						}
-						hits++;
 						break;
 					} else if (ret == RAY_FRONT || ret == RAY_BACK) {
 						bool contribute = ret == RAY_FRONT || !sample_did_hit;
@@ -588,10 +591,9 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 							sample_did_hit = true;
 						}
 
-						hits++;
-
 						if (contribute) {
-							sample_penumbra = max(sample_penumbra - hit_albedo.a - EPSILON, 0.0);
+							sample_penumbra_color = mix(sample_penumbra_color, sample_penumbra_color * hit_albedo.rgb, hit_albedo.a);
+							sample_penumbra *= 1.0 - hit_albedo.a;
 						}
 						origin = hit_position + r_light_dir * bake_params.bias;
 
@@ -600,15 +602,19 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 						}
 					}
 				}
-				power += sample_penumbra;
+				power = sample_penumbra;
+				light_color = sample_penumbra_color;
 				power_accm = 1;
 			}
-			aa_power = power / float(power_accm);
+			aa_power += power / float(power_accm);
+			penumbra_color += light_color / float(power_accm);
 		}
-		penumbra = aa_power;
-	} else { // No soft shadows.
+		penumbra = aa_power / ray_count;
+		penumbra_color /= ray_count;
+	} else { // No soft shadows and anti-aliasing (disabled via parameter).
 		bool did_hit = false;
 		penumbra = 0.0;
+		penumbra_color = light_data.color.rgb;
 		for (uint iter = 0; iter < bake_params.transparency_rays; iter++) {
 			vec4 hit_albedo = vec4(1.0);
 			vec3 hit_position;
@@ -626,7 +632,8 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 				}
 
 				if (contribute) {
-					penumbra = max(penumbra - hit_albedo.a - EPSILON, 0.0);
+					penumbra_color = mix(penumbra_color, penumbra_color * hit_albedo.rgb, hit_albedo.a);
+					penumbra *= 1.0 - hit_albedo.a;
 				}
 
 				p_position = hit_position + r_light_dir * bake_params.bias;
@@ -641,7 +648,7 @@ void trace_direct_light(vec3 p_position, vec3 p_normal, uint p_light_index, bool
 	}
 
 	r_shadow = penumbra;
-	r_light = light_data.color * light_data.energy * attenuation * penumbra;
+	r_light = light_data.color * light_data.energy * attenuation * penumbra * penumbra_color;
 }
 
 #endif
@@ -825,7 +832,7 @@ void main() {
 		// Empty texel, try again.
 		neighbor_position.xyz = texelFetch(sampler2DArray(source_position, linear_sampler), ivec3(atlas_pos + ivec2(-1, 0), params.atlas_slice), 0).xyz;
 	}
-	float texel_size_world_space = distance(position, neighbor_position.xyz);
+	float texel_size_world_space = distance(position, neighbor_position.xyz) * bake_params.supersampling_factor;
 
 	vec3 light_for_texture = vec3(0.0);
 	vec3 light_for_bounces = vec3(0.0);
@@ -1064,43 +1071,35 @@ void main() {
 
 #endif
 
-#if defined(MODE_DILATE)
+#ifdef MODE_DILATE
 
-	vec4 c = texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos, params.atlas_slice), 0);
-	//sides first, as they are closer
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-1, 0), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(0, 1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(1, 0), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(0, -1), params.atlas_slice), 0);
-	//endpoints second
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-1, -1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-1, 1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(1, -1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(1, 1), params.atlas_slice), 0);
+	const int max_radius = int(4.0 * bake_params.supersampling_factor);
+	const ivec2 directions[8] = ivec2[8](ivec2(-1, 0), ivec2(0, 1), ivec2(1, 0), ivec2(0, -1), ivec2(-1, -1), ivec2(-1, 1), ivec2(1, -1), ivec2(1, 1));
 
-	//far sides third
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-2, 0), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(0, 2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(2, 0), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(0, -2), params.atlas_slice), 0);
+	vec4 texel_color = texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos, params.atlas_slice), 0);
 
-	//far-mid endpoints
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-2, -1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-2, 1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(2, -1), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(2, 1), params.atlas_slice), 0);
+	for (int radius = 1; radius <= max_radius; radius++) {
+		for (uint i = 0; i < 8; i++) {
+			const ivec2 sample_pos = atlas_pos + directions[i] * radius;
+			// Texture bounds check for robustness.
+			if (any(lessThan(sample_pos, ivec2(0))) ||
+					any(greaterThanEqual(sample_pos, textureSize(source_light, 0).xy))) {
+				continue;
+			}
 
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-1, -2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-1, 2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(1, -2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(1, 2), params.atlas_slice), 0);
-	//far endpoints
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-2, -2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(-2, 2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(2, -2), params.atlas_slice), 0);
-	c = c.a > 0.5 ? c : texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(atlas_pos + ivec2(2, 2), params.atlas_slice), 0);
+			vec4 neighbor_color = texelFetch(sampler2DArray(source_light, linear_sampler), ivec3(sample_pos, params.atlas_slice), 0);
+			if (neighbor_color.a > 0.5) {
+				texel_color = neighbor_color;
+				break;
+			}
+		}
 
-	imageStore(dest_light, ivec3(atlas_pos, params.atlas_slice), c);
+		if (texel_color.a > 0.5) {
+			break;
+		}
+	}
+
+	imageStore(dest_light, ivec3(atlas_pos, params.atlas_slice), texel_color);
 
 #endif
 

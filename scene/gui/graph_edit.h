@@ -150,11 +150,11 @@ public:
 private:
 	struct ConnectionType {
 		union {
+			uint64_t key = 0;
 			struct {
 				uint32_t type_a;
 				uint32_t type_b;
 			};
-			uint64_t key = 0;
 		};
 
 		static uint32_t hash(const ConnectionType &p_conn) {

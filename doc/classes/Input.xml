@@ -311,7 +311,8 @@
 			<return type="void" />
 			<param index="0" name="guid" type="String" />
 			<description>
-				Removes all mappings from the internal database that match the given GUID.
+				Removes all mappings from the internal database that match the given GUID. All currently connected joypads that use this GUID will become unmapped.
+				On Android, Godot will map to an internal fallback mapping.
 			</description>
 		</method>
 		<method name="set_accelerometer">
@@ -462,6 +463,9 @@
 		</constant>
 		<constant name="MOUSE_MODE_CONFINED_HIDDEN" value="4" enum="MouseMode">
 			Confines the mouse cursor to the game window, and make it hidden.
+		</constant>
+		<constant name="MOUSE_MODE_MAX" value="5" enum="MouseMode">
+			Max value of the [enum MouseMode].
 		</constant>
 		<constant name="CURSOR_ARROW" value="0" enum="CursorShape">
 			Arrow cursor. Standard, default pointing cursor.

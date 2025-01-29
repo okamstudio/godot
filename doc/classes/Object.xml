@@ -759,7 +759,7 @@
 		<method name="get_meta_list" qualifiers="const">
 			<return type="StringName[]" />
 			<description>
-				Returns the object's metadata entry names as a [PackedStringArray].
+				Returns the object's metadata entry names as an [Array] of [StringName]s.
 			</description>
 		</method>
 		<method name="get_method_argument_count" qualifiers="const">

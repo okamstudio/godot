@@ -497,19 +497,6 @@ ScriptEditor *ScriptEditor::script_editor = nullptr;
 
 /*** SCRIPT EDITOR ******/
 
-String ScriptEditor::_get_debug_tooltip(const String &p_text, Node *_se) {
-	String val = EditorDebuggerNode::get_singleton()->get_var_value(p_text);
-	const int display_limit = 300;
-	if (!val.is_empty()) {
-		if (val.size() > display_limit) {
-			val = val.left(display_limit) + " [...] truncated!";
-		}
-		return p_text + ": " + val;
-	} else {
-		return String();
-	}
-}
-
 void ScriptEditor::_breaked(bool p_breaked, bool p_can_debug) {
 	if (external_editor_active) {
 		return;
@@ -999,6 +986,15 @@ void ScriptEditor::_copy_script_path() {
 	}
 }
 
+void ScriptEditor::_copy_script_uid() {
+	ScriptEditorBase *se = _get_current_editor();
+	if (se) {
+		Ref<Resource> scr = se->get_edited_resource();
+		ResourceUID::ID uid = ResourceLoader::get_resource_uid(scr->get_path());
+		DisplayServer::get_singleton()->clipboard_set(ResourceUID::get_singleton()->id_to_text(uid));
+	}
+}
+
 void ScriptEditor::_close_other_tabs() {
 	int current_idx = tab_container->get_current_tab();
 	for (int i = tab_container->get_tab_count() - 1; i >= 0; i--) {
@@ -1174,11 +1170,10 @@ void ScriptEditor::_live_auto_reload_running_scripts() {
 bool ScriptEditor::_test_script_times_on_disk(Ref<Resource> p_for_script) {
 	disk_changed_list->clear();
 	TreeItem *r = disk_changed_list->create_item();
-	disk_changed_list->set_hide_root(true);
 
 	bool need_ask = false;
 	bool need_reload = false;
-	bool use_autoreload = bool(EDITOR_GET("text_editor/behavior/files/auto_reload_scripts_on_external_change"));
+	bool use_autoreload = EDITOR_GET("text_editor/behavior/files/auto_reload_scripts_on_external_change");
 
 	for (int i = 0; i < tab_container->get_tab_count(); i++) {
 		ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
@@ -1192,12 +1187,12 @@ bool ScriptEditor::_test_script_times_on_disk(Ref<Resource> p_for_script) {
 				continue; //internal script, who cares
 			}
 
-			uint64_t last_date = edited_res->get_last_modified_time();
-			uint64_t date = FileAccess::get_modified_time(edited_res->get_path());
+			uint64_t last_date = se->edited_file_data.last_modified_time;
+			uint64_t date = FileAccess::get_modified_time(se->edited_file_data.path);
 
 			if (last_date != date) {
 				TreeItem *ti = disk_changed_list->create_item(r);
-				ti->set_text(0, edited_res->get_path().get_file());
+				ti->set_text(0, se->edited_file_data.path.get_file());
 
 				if (!use_autoreload || se->is_unsaved()) {
 					need_ask = true;
@@ -1290,8 +1285,8 @@ Ref<Script> ScriptEditor::_get_current_script() {
 TypedArray<Script> ScriptEditor::_get_open_scripts() const {
 	TypedArray<Script> ret;
 	Vector<Ref<Script>> scripts = get_open_scripts();
-	int scrits_amount = scripts.size();
-	for (int idx_script = 0; idx_script < scrits_amount; idx_script++) {
+	int scripts_amount = scripts.size();
+	for (int idx_script = 0; idx_script < scripts_amount; idx_script++) {
 		ret.push_back(scripts[idx_script]);
 	}
 	return ret;
@@ -1574,6 +1569,9 @@ void ScriptEditor::_menu_option(int p_option) {
 			case FILE_COPY_PATH: {
 				_copy_script_path();
 			} break;
+			case FILE_COPY_UID: {
+				_copy_script_uid();
+			} break;
 			case SHOW_IN_FILE_SYSTEM: {
 				const Ref<Resource> scr = current->get_edited_resource();
 				String path = scr->get_path();
@@ -1719,17 +1717,19 @@ bool ScriptEditor::_has_script_tab() const {
 
 void ScriptEditor::_prepare_file_menu() {
 	PopupMenu *menu = file_menu->get_popup();
-	const bool current_is_doc = _get_current_editor() == nullptr;
+	ScriptEditorBase *editor = _get_current_editor();
+	const Ref<Resource> res = editor ? editor->get_edited_resource() : Ref<Resource>();
 
 	menu->set_item_disabled(menu->get_item_index(FILE_REOPEN_CLOSED), previous_scripts.is_empty());
 
-	menu->set_item_disabled(menu->get_item_index(FILE_SAVE), current_is_doc);
-	menu->set_item_disabled(menu->get_item_index(FILE_SAVE_AS), current_is_doc);
+	menu->set_item_disabled(menu->get_item_index(FILE_SAVE), res.is_null());
+	menu->set_item_disabled(menu->get_item_index(FILE_SAVE_AS), res.is_null());
 	menu->set_item_disabled(menu->get_item_index(FILE_SAVE_ALL), !_has_script_tab());
 
-	menu->set_item_disabled(menu->get_item_index(FILE_TOOL_RELOAD_SOFT), current_is_doc);
-	menu->set_item_disabled(menu->get_item_index(FILE_COPY_PATH), current_is_doc);
-	menu->set_item_disabled(menu->get_item_index(SHOW_IN_FILE_SYSTEM), current_is_doc);
+	menu->set_item_disabled(menu->get_item_index(FILE_TOOL_RELOAD_SOFT), res.is_null());
+	menu->set_item_disabled(menu->get_item_index(FILE_COPY_PATH), res.is_null() || res->get_path().is_empty());
+	menu->set_item_disabled(menu->get_item_index(FILE_COPY_UID), res.is_null() || ResourceLoader::get_resource_uid(res->get_path()) == ResourceUID::INVALID_ID);
+	menu->set_item_disabled(menu->get_item_index(SHOW_IN_FILE_SYSTEM), res.is_null());
 
 	menu->set_item_disabled(menu->get_item_index(WINDOW_PREV), history_pos <= 0);
 	menu->set_item_disabled(menu->get_item_index(WINDOW_NEXT), history_pos >= history.size() - 1);
@@ -1739,7 +1739,7 @@ void ScriptEditor::_prepare_file_menu() {
 	menu->set_item_disabled(menu->get_item_index(CLOSE_OTHER_TABS), tab_container->get_tab_count() <= 1);
 	menu->set_item_disabled(menu->get_item_index(CLOSE_DOCS), !_has_docs_tab());
 
-	menu->set_item_disabled(menu->get_item_index(FILE_RUN), current_is_doc);
+	menu->set_item_disabled(menu->get_item_index(FILE_RUN), res.is_null());
 }
 
 void ScriptEditor::_file_menu_closed() {
@@ -2230,11 +2230,6 @@ void ScriptEditor::_update_script_names() {
 			Ref<Texture2D> icon = se->get_theme_icon();
 			String path = se->get_edited_resource()->get_path();
 			bool saved = !path.is_empty();
-			if (saved) {
-				// The script might be deleted, moved, or renamed, so make sure
-				// to update original path to previously edited resource.
-				se->set_meta("_edit_res_path", path);
-			}
 			String name = se->get_name();
 			Ref<Script> scr = se->get_edited_resource();
 
@@ -2632,8 +2627,8 @@ bool ScriptEditor::edit(const Ref<Resource> &p_resource, int p_line, int p_col, 
 
 	// If we delete a script within the filesystem, the original resource path
 	// is lost, so keep it as metadata to figure out the exact tab to delete.
-	se->set_meta("_edit_res_path", p_resource->get_path());
-	se->set_tooltip_request_func(callable_mp(this, &ScriptEditor::_get_debug_tooltip));
+	se->edited_file_data.path = p_resource->get_path();
+	se->edited_file_data.last_modified_time = FileAccess::get_modified_time(p_resource->get_path());
 	if (se->get_edit_menu()) {
 		se->get_edit_menu()->hide();
 		menu_hb->add_child(se->get_edit_menu());
@@ -3042,6 +3037,15 @@ void ScriptEditor::_files_moved(const String &p_old_file, const String &p_new_fi
 	if (!script_editor_cache->has_section(p_old_file)) {
 		return;
 	}
+
+	for (int i = 0; i < tab_container->get_tab_count(); i++) {
+		ScriptEditorBase *se = Object::cast_to<ScriptEditorBase>(tab_container->get_tab_control(i));
+		if (se && se->edited_file_data.path == p_old_file) {
+			se->edited_file_data.path = p_new_file;
+			break;
+		}
+	}
+
 	Variant state = script_editor_cache->get_value(p_old_file, "state");
 	script_editor_cache->erase_section(p_old_file);
 	script_editor_cache->set_value(p_new_file, "state", state);
@@ -3064,7 +3068,7 @@ void ScriptEditor::_file_removed(const String &p_removed_file) {
 		if (!se) {
 			continue;
 		}
-		if (se->get_meta("_edit_res_path") == p_removed_file) {
+		if (se->edited_file_data.path == p_removed_file) {
 			// The script is deleted with no undo, so just close the tab.
 			_close_tab(i, false, false);
 		}
@@ -3418,6 +3422,9 @@ void ScriptEditor::_make_script_list_context_menu() {
 			context_menu->add_separator();
 		}
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_path"), FILE_COPY_PATH);
+		context_menu->set_item_disabled(-1, se->get_edited_resource()->get_path().is_empty());
+		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/copy_uid"), FILE_COPY_UID);
+		context_menu->set_item_disabled(-1, ResourceLoader::get_resource_uid(se->get_edited_resource()->get_path()) == ResourceUID::INVALID_ID);
 		context_menu->add_shortcut(ED_GET_SHORTCUT("script_editor/show_in_file_system"), SHOW_IN_FILE_SYSTEM);
 		context_menu->add_separator();
 	}
@@ -4262,6 +4269,7 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 	file_menu->get_popup()->add_separator();
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/reload_script_soft", TTRC("Soft Reload Tool Script"), KeyModifierMask::CMD_OR_CTRL | KeyModifierMask::ALT | Key::R), FILE_TOOL_RELOAD_SOFT);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_path", TTRC("Copy Script Path")), FILE_COPY_PATH);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_uid", TTRC("Copy Script UID")), FILE_COPY_UID);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/show_in_file_system", TTRC("Show in FileSystem")), SHOW_IN_FILE_SYSTEM);
 	file_menu->get_popup()->add_separator();
 
@@ -4410,9 +4418,10 @@ ScriptEditor::ScriptEditor(WindowWrapper *p_wrapper) {
 		vbc->add_child(files_are_newer_label);
 
 		disk_changed_list = memnew(Tree);
-		vbc->add_child(disk_changed_list);
+		disk_changed_list->set_hide_root(true);
 		disk_changed_list->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 		disk_changed_list->set_v_size_flags(SIZE_EXPAND_FILL);
+		vbc->add_child(disk_changed_list);
 
 		Label *what_action_label = memnew(Label);
 		what_action_label->set_text(TTR("What action should be taken?"));

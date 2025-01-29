@@ -1,4 +1,3 @@
-
 /* pngmem.c - stub functions for memory allocation
  *
  * Copyright (c) 2018 Cosmin Truta

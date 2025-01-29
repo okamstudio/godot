@@ -64,17 +64,17 @@ TVG_DEPRECATED unique_ptr<Picture> Accessor::set(unique_ptr<Picture> picture, fu
 }
 
 
-Result Accessor::set(const Picture* picture, function<bool(const Paint* paint, void* data)> func, void* data) noexcept
+Result Accessor::set(Paint* paint, function<bool(const Paint* paint, void* data)> func, void* data) noexcept
 {
-    if (!picture || !func) return Result::InvalidArguments;
+    if (!paint || !func) return Result::InvalidArguments;
 
-    //Use the Preorder Tree-Search
+    //Use the Preorder Tree-Searc
 
     //Root
-    if (!func(picture, data)) return Result::Success;
+    if (!func(paint, data)) return Result::Success;
 
     //Children
-    if (auto it = IteratorAccessor::iterator(picture)) {
+    if (auto it = IteratorAccessor::iterator(paint)) {
         accessChildren(it, func, data);
         delete(it);
     }

@@ -60,7 +60,7 @@ JPH::ObjectLayer JoltArea3D::_get_object_layer() const {
 }
 
 void JoltArea3D::_add_to_space() {
-	jolt_shape = build_shape();
+	jolt_shape = build_shapes(true);
 
 	JPH::CollisionGroup::GroupID group_id = 0;
 	JPH::CollisionGroup::SubGroupID sub_group_id = 0;
@@ -72,12 +72,15 @@ void JoltArea3D::_add_to_space() {
 	jolt_settings->mMotionType = _get_motion_type();
 	jolt_settings->mIsSensor = true;
 	jolt_settings->mUseManifoldReduction = false;
+	jolt_settings->mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
+	jolt_settings->mMassPropertiesOverride.mMass = 1.0f;
+	jolt_settings->mMassPropertiesOverride.mInertia = JPH::Mat44::sIdentity();
 
 	if (JoltProjectSettings::areas_detect_static_bodies()) {
 		jolt_settings->mCollideKinematicVsNonDynamic = true;
 	}
 
-	jolt_settings->SetShape(build_shape());
+	jolt_settings->SetShape(jolt_shape);
 
 	const JPH::BodyID new_jolt_id = space->add_rigid_body(*this, *jolt_settings);
 	if (new_jolt_id.IsInvalid()) {
@@ -88,6 +91,18 @@ void JoltArea3D::_add_to_space() {
 
 	delete jolt_settings;
 	jolt_settings = nullptr;
+}
+
+void JoltArea3D::_enqueue_call_queries() {
+	if (space != nullptr) {
+		space->enqueue_call_queries(&call_queries_element);
+	}
+}
+
+void JoltArea3D::_dequeue_call_queries() {
+	if (space != nullptr) {
+		space->dequeue_call_queries(&call_queries_element);
+	}
 }
 
 void JoltArea3D::_add_shape_pair(Overlap &p_overlap, const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id) {
@@ -104,6 +119,8 @@ void JoltArea3D::_add_shape_pair(Overlap &p_overlap, const JPH::BodyID &p_body_i
 	shape_indices.self = find_shape_index(p_self_shape_id);
 
 	p_overlap.pending_added.push_back(shape_indices);
+
+	_events_changed();
 }
 
 bool JoltArea3D::_remove_shape_pair(Overlap &p_overlap, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id) {
@@ -115,6 +132,8 @@ bool JoltArea3D::_remove_shape_pair(Overlap &p_overlap, const JPH::SubShapeID &p
 
 	p_overlap.pending_removed.push_back(shape_pair->value);
 	p_overlap.shape_pairs.remove(shape_pair);
+
+	_events_changed();
 
 	return true;
 }
@@ -192,10 +211,16 @@ void JoltArea3D::_force_bodies_entered() {
 	for (KeyValue<JPH::BodyID, Overlap> &E : bodies_by_id) {
 		Overlap &body = E.value;
 
+		if (unlikely(body.shape_pairs.is_empty())) {
+			continue;
+		}
+
 		for (const KeyValue<ShapeIDPair, ShapeIndexPair> &P : body.shape_pairs) {
 			body.pending_removed.erase(P.value);
 			body.pending_added.push_back(P.value);
 		}
+
+		_events_changed();
 	}
 }
 
@@ -204,10 +229,16 @@ void JoltArea3D::_force_bodies_exited(bool p_remove) {
 		const JPH::BodyID &id = E.key;
 		Overlap &body = E.value;
 
+		if (unlikely(body.shape_pairs.is_empty())) {
+			continue;
+		}
+
 		for (const KeyValue<ShapeIDPair, ShapeIndexPair> &P : body.shape_pairs) {
 			body.pending_added.erase(P.value);
 			body.pending_removed.push_back(P.value);
 		}
+
+		_events_changed();
 
 		if (p_remove) {
 			body.shape_pairs.clear();
@@ -220,10 +251,16 @@ void JoltArea3D::_force_areas_entered() {
 	for (KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
 		Overlap &area = E.value;
 
+		if (unlikely(area.shape_pairs.is_empty())) {
+			continue;
+		}
+
 		for (const KeyValue<ShapeIDPair, ShapeIndexPair> &P : area.shape_pairs) {
 			area.pending_removed.erase(P.value);
 			area.pending_added.push_back(P.value);
 		}
+
+		_events_changed();
 	}
 }
 
@@ -231,10 +268,16 @@ void JoltArea3D::_force_areas_exited(bool p_remove) {
 	for (KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
 		Overlap &area = E.value;
 
+		if (unlikely(area.shape_pairs.is_empty())) {
+			continue;
+		}
+
 		for (const KeyValue<ShapeIDPair, ShapeIndexPair> &P : area.shape_pairs) {
 			area.pending_added.erase(P.value);
 			area.pending_removed.push_back(P.value);
 		}
+
+		_events_changed();
 
 		if (p_remove) {
 			area.shape_pairs.clear();
@@ -270,6 +313,8 @@ void JoltArea3D::_space_changing() {
 		_force_bodies_exited(true);
 		_force_areas_exited(true);
 	}
+
+	_dequeue_call_queries();
 }
 
 void JoltArea3D::_space_changed() {
@@ -277,6 +322,10 @@ void JoltArea3D::_space_changed() {
 
 	_update_group_filter();
 	_update_default_gravity();
+}
+
+void JoltArea3D::_events_changed() {
+	_enqueue_call_queries();
 }
 
 void JoltArea3D::_body_monitoring_changed() {
@@ -304,7 +353,8 @@ void JoltArea3D::_gravity_changed() {
 }
 
 JoltArea3D::JoltArea3D() :
-		JoltShapedObject3D(OBJECT_TYPE_AREA) {
+		JoltShapedObject3D(OBJECT_TYPE_AREA),
+		call_queries_element(this) {
 }
 
 bool JoltArea3D::is_default_area() const {
@@ -629,10 +679,12 @@ void JoltArea3D::body_exited(const JPH::BodyID &p_body_id, bool p_notify) {
 		return;
 	}
 
-	for (KeyValue<ShapeIDPair, ShapeIndexPair> &E : overlap->shape_pairs) {
+	for (const KeyValue<ShapeIDPair, ShapeIndexPair> &E : overlap->shape_pairs) {
 		overlap->pending_added.erase(E.value);
 		overlap->pending_removed.push_back(E.value);
 	}
+
+	_events_changed();
 
 	overlap->shape_pairs.clear();
 
@@ -656,10 +708,12 @@ void JoltArea3D::area_exited(const JPH::BodyID &p_body_id) {
 		overlap->pending_removed.push_back(E.value);
 	}
 
+	_events_changed();
+
 	overlap->shape_pairs.clear();
 }
 
-void JoltArea3D::call_queries(JPH::Body &p_jolt_body) {
+void JoltArea3D::call_queries() {
 	_flush_events(bodies_by_id, body_monitor_callback);
 	_flush_events(areas_by_id, area_monitor_callback);
 }

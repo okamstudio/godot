@@ -99,6 +99,7 @@ public:
 	Vector3 region_get_closest_point(RID p_region, const Vector3 &p_point) const override { return Vector3(); }
 	Vector3 region_get_closest_point_normal(RID p_region, const Vector3 &p_point) const override { return Vector3(); }
 	Vector3 region_get_random_point(RID p_region, uint32_t p_navigation_layers, bool p_uniformly) const override { return Vector3(); }
+	AABB region_get_bounds(RID p_region) const override { return AABB(); }
 
 	RID link_create() override { return RID(); }
 	void link_set_map(RID p_link, RID p_map) override {}

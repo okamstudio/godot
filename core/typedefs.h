@@ -135,6 +135,12 @@ constexpr auto CLAMP(const T m_a, const T2 m_min, const T3 m_max) {
 
 /* Functions to handle powers of 2 and shifting. */
 
+// Returns `true` if a positive integer is a power of 2, `false` otherwise.
+template <typename T>
+inline bool is_power_of_2(const T x) {
+	return x && ((x & (x - 1)) == 0);
+}
+
 // Function to find the next power of 2 to an integer.
 static _FORCE_INLINE_ unsigned int next_power_of_2(unsigned int x) {
 	if (x == 0) {

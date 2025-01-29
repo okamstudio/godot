@@ -88,12 +88,10 @@ private:
 	OpenXRInterface *xr_interface = nullptr;
 
 	// layers
-	uint32_t num_layer_properties = 0;
-	XrApiLayerProperties *layer_properties = nullptr;
+	LocalVector<XrApiLayerProperties> layer_properties;
 
 	// extensions
-	uint32_t num_supported_extensions = 0;
-	XrExtensionProperties *supported_extensions = nullptr;
+	LocalVector<XrExtensionProperties> supported_extensions;
 	Vector<CharString> enabled_extensions;
 
 	// composition layer providers
@@ -103,16 +101,13 @@ private:
 	Vector<OpenXRExtensionWrapper *> projection_views_extensions;
 
 	// view configuration
-	uint32_t num_view_configuration_types = 0;
-	XrViewConfigurationType *supported_view_configuration_types = nullptr;
+	LocalVector<XrViewConfigurationType> supported_view_configuration_types;
 
 	// reference spaces
-	uint32_t num_reference_spaces = 0;
-	XrReferenceSpaceType *supported_reference_spaces = nullptr;
+	LocalVector<XrReferenceSpaceType> supported_reference_spaces;
 
 	// swapchains (note these are platform dependent)
-	uint32_t num_swapchain_formats = 0;
-	int64_t *supported_swapchain_formats = nullptr;
+	PackedInt64Array supported_swapchain_formats;
 
 	// system info
 	String runtime_name;
@@ -128,8 +123,7 @@ private:
 	// blend mode
 	XrEnvironmentBlendMode environment_blend_mode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
 	XrEnvironmentBlendMode requested_environment_blend_mode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-	uint32_t num_supported_environment_blend_modes = 0;
-	XrEnvironmentBlendMode *supported_environment_blend_modes = nullptr;
+	Vector<XrEnvironmentBlendMode> supported_environment_blend_modes;
 	bool emulate_environment_blend_mode_alpha_blend = false;
 
 	// state
@@ -143,12 +137,12 @@ private:
 	bool running = false;
 	XrFrameState frame_state = { XR_TYPE_FRAME_STATE, nullptr, 0, 0, false };
 	double render_target_size_multiplier = 1.0;
+	Rect2i render_region;
 
 	OpenXRGraphicsExtensionWrapper *graphics_extension = nullptr;
 	XrSystemGraphicsProperties graphics_properties;
 
-	uint32_t view_count = 0;
-	XrViewConfigurationView *view_configuration_views = nullptr;
+	LocalVector<XrViewConfigurationView> view_configuration_views;
 
 	enum OpenXRSwapChainTypes {
 		OPENXR_SWAPCHAIN_COLOR,
@@ -341,16 +335,25 @@ private:
 		XrSpace play_space = XR_NULL_HANDLE;
 		double render_target_size_multiplier = 1.0;
 		uint64_t frame = 0;
+		Rect2i render_region;
 
-		uint32_t view_count = 0;
-		XrView *views = nullptr;
-		XrCompositionLayerProjectionView *projection_views = nullptr;
-		XrCompositionLayerDepthInfoKHR *depth_views = nullptr; // Only used by Composition Layer Depth Extension if available
+		LocalVector<XrView> views;
+		LocalVector<XrCompositionLayerProjectionView> projection_views;
+		LocalVector<XrCompositionLayerDepthInfoKHR> depth_views; // Only used by Composition Layer Depth Extension if available
 		bool submit_depth_buffer = false; // if set to true we submit depth buffers to OpenXR if a suitable extension is enabled.
 		bool view_pose_valid = false;
 
 		double z_near = 0.0;
 		double z_far = 0.0;
+
+		XrCompositionLayerProjection projection_layer = {
+			XR_TYPE_COMPOSITION_LAYER_PROJECTION, // type
+			nullptr, // next
+			0, // layerFlags
+			XR_NULL_HANDLE, // space
+			0, // viewCount
+			nullptr // views
+		};
 
 		Size2i main_swapchain_size;
 		OpenXRSwapChainInfo main_swapchains[OPENXR_SWAPCHAIN_MAX];
@@ -361,6 +364,7 @@ private:
 	static void _set_render_display_info(XrTime p_predicted_display_time, bool p_should_render);
 	static void _set_render_play_space(uint64_t p_play_space);
 	static void _set_render_state_multiplier(double p_render_target_size_multiplier);
+	static void _set_render_state_render_region(const Rect2i &p_render_region);
 
 	_FORCE_INLINE_ void allocate_view_buffers(uint32_t p_view_count, bool p_submit_depth_buffer) {
 		// If we're rendering on a separate thread, we may still be processing the last frame, don't communicate this till we're ready...
@@ -400,6 +404,13 @@ private:
 		ERR_FAIL_NULL(rendering_server);
 
 		rendering_server->call_on_render_thread(callable_mp_static(&OpenXRAPI::_set_render_state_multiplier).bind(p_render_target_size_multiplier));
+	}
+
+	_FORCE_INLINE_ void set_render_state_render_region(const Rect2i &p_render_region) {
+		RenderingServer *rendering_server = RenderingServer::get_singleton();
+		ERR_FAIL_NULL(rendering_server);
+
+		rendering_server->call_on_render_thread(callable_mp_static(&OpenXRAPI::_set_render_state_render_region).bind(p_render_region));
 	}
 
 public:
@@ -491,6 +502,7 @@ public:
 	RID get_velocity_depth_texture();
 	void set_velocity_target_size(const Size2i &p_target_size);
 	Size2i get_velocity_target_size();
+	const XrCompositionLayerProjection *get_projection_layer() const;
 	void post_draw_viewport(RID p_render_target);
 	void end_frame();
 
@@ -502,6 +514,9 @@ public:
 	// Render Target size multiplier
 	double get_render_target_size_multiplier() const;
 	void set_render_target_size_multiplier(double multiplier);
+
+	Rect2i get_render_region() const;
+	void set_render_region(const Rect2i &p_render_region);
 
 	// Foveation settings
 	bool is_foveation_supported() const;
@@ -567,7 +582,7 @@ public:
 	void register_projection_views_extension(OpenXRExtensionWrapper *p_extension);
 	void unregister_projection_views_extension(OpenXRExtensionWrapper *p_extension);
 
-	const XrEnvironmentBlendMode *get_supported_environment_blend_modes(uint32_t &count);
+	const Vector<XrEnvironmentBlendMode> get_supported_environment_blend_modes();
 	bool is_environment_blend_mode_supported(XrEnvironmentBlendMode p_blend_mode) const;
 	bool set_environment_blend_mode(XrEnvironmentBlendMode p_blend_mode);
 	XrEnvironmentBlendMode get_environment_blend_mode() const { return requested_environment_blend_mode; }

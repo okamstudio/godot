@@ -6,7 +6,7 @@
 	<description>
 		[LineEdit] provides an input field for editing a single line of text.
 		- When the [LineEdit] control is focused using the keyboard arrow keys, it will only gain focus and not enter edit mode.
-		- To enter edit mode, click on the control with the mouse or press the [code]ui_text_submit[/code] action (by default [kbd]Enter[/kbd] or [kbd]Kp Enter[/kbd]).
+		- To enter edit mode, click on the control with the mouse, see also [member keep_editing_on_text_submit].
 		- To exit edit mode, press [code]ui_text_submit[/code] or [code]ui_cancel[/code] (by default [kbd]Escape[/kbd]) actions.
 		- Check [method edit], [method unedit], [method is_editing], and [signal editing_toggled] for more information.
 		[b]Important:[/b]
@@ -80,7 +80,7 @@
 			<return type="void" />
 			<description>
 				Allows entering edit mode whether the [LineEdit] is focused or not.
-				Use [method Callable.call_deferred] if you want to enter edit mode on [signal text_submitted].
+				See also [member keep_editing_on_text_submit].
 			</description>
 		</method>
 		<method name="get_menu" qualifiers="const">
@@ -276,6 +276,9 @@
 		<member name="editable" type="bool" setter="set_editable" getter="is_editable" default="true" keywords="readonly, disabled, enabled">
 			If [code]false[/code], existing text cannot be modified and new text cannot be added.
 		</member>
+		<member name="emoji_menu_enabled" type="bool" setter="set_emoji_menu_enabled" getter="is_emoji_menu_enabled" default="true">
+			If [code]true[/code], "Emoji and Symbols" menu is enabled.
+		</member>
 		<member name="expand_to_text_length" type="bool" setter="set_expand_to_text_length_enabled" getter="is_expand_to_text_length_enabled" default="false">
 			If [code]true[/code], the [LineEdit] width will increase to stay longer than the [member text]. It will [b]not[/b] compress if the [member text] is shortened.
 		</member>
@@ -283,6 +286,9 @@
 			If [code]true[/code], the [LineEdit] doesn't display decoration.
 		</member>
 		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
+		<member name="keep_editing_on_text_submit" type="bool" setter="set_keep_editing_on_text_submit" getter="is_editing_kept_on_text_submit" default="false">
+			If [code]true[/code], the [LineEdit] will not exit edit mode when text is submitted by pressing [code]ui_text_submit[/code] action (by default: [kbd]Enter[/kbd] or [kbd]Kp Enter[/kbd]).
+		</member>
 		<member name="language" type="String" setter="set_language" getter="get_language" default="&quot;&quot;">
 			Language code used for line-breaking and text shaping algorithms. If left empty, current locale is used instead.
 		</member>
@@ -475,7 +481,10 @@
 		<constant name="MENU_INSERT_SHY" value="29" enum="MenuItems">
 			Inserts soft hyphen (SHY) character.
 		</constant>
-		<constant name="MENU_MAX" value="30" enum="MenuItems">
+		<constant name="MENU_EMOJI_AND_SYMBOL" value="30" enum="MenuItems">
+			Opens system emoji and symbol picker.
+		</constant>
+		<constant name="MENU_MAX" value="31" enum="MenuItems">
 			Represents the size of the [enum MenuItems] enum.
 		</constant>
 		<constant name="KEYBOARD_TYPE_DEFAULT" value="0" enum="VirtualKeyboardType">

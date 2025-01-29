@@ -1,0 +1,39 @@
+name: Build godot-cpp
+description: Build godot-cpp with the provided options.
+
+env:
+  GODOT_CPP_BRANCH: 4.3
+
+inputs:
+  bin:
+    description: Path to the Godot binary.
+    required: true
+    type: string
+  scons-flags:
+    description: Additional SCons flags.
+    type: string
+  scons-cache:
+    description: The SCons cache path.
+    default: ${{ github.workspace }}/.scons_cache/
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        repository: godotengine/godot-cpp
+        ref: ${{ env.GODOT_CPP_BRANCH }}
+        path: godot-cpp
+
+    - name: Extract API
+      shell: sh
+      run: ${{ inputs.bin }} --headless --dump-gdextension-interface --dump-extension-api
+
+    - name: SCons Build
+      shell: sh
+      env:
+        SCONS_CACHE: ${{ inputs.scons-cache }}
+      run: scons --directory=./godot-cpp/test "gdextension_dir=${{ github.workspace }}" ${{ inputs.scons-flags }}

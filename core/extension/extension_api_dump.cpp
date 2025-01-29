@@ -1020,7 +1020,19 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 						d2["is_required"] = (F.flags & METHOD_FLAG_VIRTUAL_REQUIRED) ? true : false;
 						d2["is_vararg"] = false;
 						d2["is_virtual"] = true;
-						// virtual functions have no hash since no MethodBind is involved
+						d2["hash"] = mi.get_compatibility_hash();
+
+						Vector<uint32_t> compat_hashes = ClassDB::get_virtual_method_compatibility_hashes(class_name, method_name);
+						Array compatibility;
+						if (compat_hashes.size()) {
+							for (int i = 0; i < compat_hashes.size(); i++) {
+								compatibility.push_back(compat_hashes[i]);
+							}
+						}
+						if (compatibility.size() > 0) {
+							d2["hash_compatibility"] = compatibility;
+						}
+
 						bool has_return = mi.return_val.type != Variant::NIL || (mi.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
 						if (has_return) {
 							PropertyInfo pinfo = mi.return_val;
@@ -1473,8 +1485,8 @@ static bool compare_dict_array(const Dictionary &p_old_api, const Dictionary &p_
 
 		if (p_compare_hashes) {
 			if (!old_elem.has("hash")) {
-				if (old_elem.has("is_virtual") && bool(old_elem["is_virtual"]) && !new_elem.has("hash")) {
-					continue; // No hash for virtual methods, go on.
+				if (old_elem.has("is_virtual") && bool(old_elem["is_virtual"]) && !old_elem.has("hash")) {
+					continue; // Virtual methods didn't use to have hashes, so skip check if it's missing in the old file.
 				}
 
 				failed = true;

@@ -62,7 +62,7 @@
 
 void MDCommandBuffer::begin() {
 	DEV_ASSERT(commandBuffer == nil);
-	commandBuffer = queue.commandBufferWithUnretainedReferences;
+	commandBuffer = queue.commandBuffer;
 }
 
 void MDCommandBuffer::end() {

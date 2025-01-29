@@ -330,8 +330,8 @@ double AnimationNodeAnimation::get_timeline_length() const {
 	return timeline_length;
 }
 
-void AnimationNodeAnimation::set_stretch_time_scale(bool p_strech_time_scale) {
-	stretch_time_scale = p_strech_time_scale;
+void AnimationNodeAnimation::set_stretch_time_scale(bool p_stretch_time_scale) {
+	stretch_time_scale = p_stretch_time_scale;
 	notify_property_list_changed();
 }
 

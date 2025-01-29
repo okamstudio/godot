@@ -1049,9 +1049,10 @@ Basis Basis::looking_at(const Vector3 &p_target, const Vector3 &p_up, bool p_use
 		v_z = -v_z;
 	}
 	Vector3 v_x = p_up.cross(v_z);
-#ifdef MATH_CHECKS
-	ERR_FAIL_COND_V_MSG(v_x.is_zero_approx(), Basis(), "The target vector and up vector can't be parallel to each other.");
-#endif
+	if (v_x.is_zero_approx()) {
+		WARN_PRINT("Target and up vectors are colinear. This is not advised as it may cause unwanted rotation around local Z axis.");
+		v_x = p_up.get_any_perpendicular(); // Vectors are almost parallel.
+	}
 	v_x.normalize();
 	Vector3 v_y = v_z.cross(v_x);
 

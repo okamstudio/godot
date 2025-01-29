@@ -47,12 +47,14 @@ class Input : public Object {
 	static constexpr uint64_t MAX_EVENT = 32;
 
 public:
+	// Keep synced with "DisplayServer::MouseMode" enum.
 	enum MouseMode {
 		MOUSE_MODE_VISIBLE,
 		MOUSE_MODE_HIDDEN,
 		MOUSE_MODE_CAPTURED,
 		MOUSE_MODE_CONFINED,
 		MOUSE_MODE_CONFINED_HIDDEN,
+		MOUSE_MODE_MAX,
 	};
 
 #undef CursorShape
@@ -104,10 +106,6 @@ private:
 	int64_t mouse_window = 0;
 	bool legacy_just_pressed_behavior = false;
 	bool disable_input = false;
-
-	MouseMode mouse_mode = MOUSE_MODE_VISIBLE;
-	bool mouse_mode_override_enabled = false;
-	MouseMode mouse_mode_override = MOUSE_MODE_VISIBLE;
 
 	struct ActionState {
 		uint64_t pressed_physics_frame = UINT64_MAX;
@@ -184,7 +182,7 @@ private:
 
 	HashSet<uint32_t> ignored_device_ids;
 
-	int fallback_mapping = -1;
+	int fallback_mapping = -1; // Index of the guid in map_db.
 
 	CursorShape default_shape = CURSOR_ARROW;
 
@@ -268,6 +266,10 @@ private:
 
 	static void (*set_mouse_mode_func)(MouseMode);
 	static MouseMode (*get_mouse_mode_func)();
+	static void (*set_mouse_mode_override_func)(MouseMode);
+	static MouseMode (*get_mouse_mode_override_func)();
+	static void (*set_mouse_mode_override_enabled_func)(bool);
+	static bool (*is_mouse_mode_override_enabled_func)();
 	static void (*warp_mouse_func)(const Vector2 &p_position);
 
 	static CursorShape (*get_current_cursor_shape_func)();
@@ -286,8 +288,10 @@ protected:
 public:
 	void set_mouse_mode(MouseMode p_mode);
 	MouseMode get_mouse_mode() const;
-	void set_mouse_mode_override_enabled(bool p_enabled);
 	void set_mouse_mode_override(MouseMode p_mode);
+	MouseMode get_mouse_mode_override() const;
+	void set_mouse_mode_override_enabled(bool p_override_enabled);
+	bool is_mouse_mode_override_enabled();
 
 #ifdef TOOLS_ENABLED
 	void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const override;
