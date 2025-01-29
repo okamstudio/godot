@@ -20,7 +20,7 @@
 		<method name="get_directional_light_buffer">
 			<return type="RID" />
 			<description>
-				Return the [RID] of the uniform buffer containing the directional light data as a UBO.
+				Returns the [RID] of the uniform buffer containing the directional light data as a UBO.
 			</description>
 		</method>
 		<method name="get_omni_light_buffer">
