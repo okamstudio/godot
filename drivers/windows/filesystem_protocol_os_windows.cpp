@@ -92,13 +92,8 @@ bool FileSystemProtocolOSWindows::file_exists_static(const String &p_path) {
 	}
 
 	String filename = fix_path(p_path);
-	FILE *g = _wfsopen((LPCWSTR)(filename.utf16().get_data()), L"rb", _SH_DENYNO);
-	if (g == nullptr) {
-		return false;
-	} else {
-		fclose(g);
-		return true;
-	}
+	DWORD file_attr = GetFileAttributesW((LPCWSTR)(filename.utf16().get_data()));
+	return (file_attr != INVALID_FILE_ATTRIBUTES) && !(file_attr & FILE_ATTRIBUTE_DIRECTORY);
 }
 BitField<FileAccess::UnixPermissionFlags> FileSystemProtocolOSWindows::get_unix_permissions_static(const String &p_path) {
 	return 0;

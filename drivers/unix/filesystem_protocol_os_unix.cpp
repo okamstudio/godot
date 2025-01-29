@@ -46,18 +46,16 @@ String FileSystemProtocolOSUnix::fix_path(const String &p_path) {
 }
 
 bool FileSystemProtocolOSUnix::file_exists_static(const String &p_path) {
-	int err;
 	struct stat st = {};
-	String filename = fix_path(p_path);
+	const CharString filename_utf8 = fix_path(p_path).utf8();
 
 	// Does the name exist at all?
-	err = stat(filename.utf8().get_data(), &st);
-	if (err) {
+	if (stat(filename_utf8.get_data(), &st)) {
 		return false;
 	}
 
 	// See if we have access to the file
-	if (access(filename.utf8().get_data(), F_OK)) {
+	if (access(filename_utf8.get_data(), F_OK)) {
 		return false;
 	}
 
