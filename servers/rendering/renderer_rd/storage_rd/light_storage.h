@@ -431,7 +431,7 @@ private:
 
 	struct DirectionalShadow {
 		RID depth;
-		RID fb; //when rendering direct
+		RID fb; // When rendering direct.
 
 		int light_count = 0;
 		int size = 0;
