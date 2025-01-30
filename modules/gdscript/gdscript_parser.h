@@ -785,6 +785,13 @@ public:
 			members_indices[p_member_node->identifier->name] = members.size();
 			members.push_back(Member(p_member_node));
 		}
+#ifdef TOOLS_ENABLED
+		template <typename T>
+		void add_if_features_potential_candidate(T *p_member_node) {
+			p_member_node->if_features.potential_candidate_index = members.size();
+			members.push_back(Member(p_member_node));
+		}
+#endif
 		void add_member(const EnumNode::Value &p_enum_value) {
 			members_indices[p_enum_value.identifier->name] = members.size();
 			members.push_back(Member(p_enum_value));
@@ -862,6 +869,12 @@ public:
 #ifdef TOOLS_ENABLED
 		MemberDocData doc_data;
 		int min_local_doc_line = 0;
+		struct {
+			bool used = false;
+			bool is_default_impl = false;
+			bool fitting_verified = false;
+			int potential_candidate_index = -1;
+		} if_features;
 #endif // TOOLS_ENABLED
 
 		bool resolved_signature = false;
@@ -1335,6 +1348,11 @@ private:
 	bool _is_tool = false;
 	String script_path;
 	bool for_completion = false;
+#ifdef TOOLS_ENABLED
+	bool for_export = false;
+	HashSet<String> export_features;
+	bool for_edition = false;
+#endif
 	bool parse_body = true;
 	bool panic_mode = false;
 	bool can_break = false;
@@ -1519,6 +1537,7 @@ private:
 	bool warning_ignore_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool warning_ignore_region_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	bool rpc_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
+	bool if_features_annotation(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class);
 	// Statements.
 	Node *parse_statement();
 	VariableNode *parse_variable(bool p_is_static);
@@ -1590,6 +1609,18 @@ public:
 	void get_annotation_list(List<MethodInfo> *r_annotations) const;
 	bool annotation_exists(const String &p_annotation_name) const;
 
+#ifdef TOOLS_ENABLED
+	bool is_for_export() const { return for_export; }
+	void set_export_features(const HashSet<String> &p_features) {
+		for_export = true;
+		export_features = p_features;
+	}
+	void set_for_edition() {
+		for_edition = true;
+	}
+	void collect_unfitting_functions(ClassNode *p_class, LocalVector<Pair<ClassNode *, FunctionNode *>> &r_functions);
+#endif
+
 	const List<ParserError> &get_errors() const { return errors; }
 	const List<String> get_dependencies() const {
 		// TODO: Keep track of deps.
@@ -1636,7 +1667,7 @@ public:
 		void print_expression(ExpressionNode *p_expression);
 		void print_enum(EnumNode *p_enum);
 		void print_for(ForNode *p_for);
-		void print_function(FunctionNode *p_function, const String &p_context = "Function");
+		void print_function(FunctionNode *p_function, const String &p_context = "Function", bool p_signature_only = false);
 		void print_get_node(GetNodeNode *p_get_node);
 		void print_if(IfNode *p_if, bool p_is_elif = false);
 		void print_identifier(IdentifierNode *p_identifier);
@@ -1662,6 +1693,7 @@ public:
 
 	public:
 		void print_tree(const GDScriptParser &p_parser);
+		String strinfigy_function_declaration(FunctionNode *p_function);
 	};
 #endif // DEBUG_ENABLED
 	static void cleanup();

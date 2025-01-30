@@ -348,6 +348,10 @@ struct GodotTestCaseListener : public doctest::IReporter {
 			return;
 		}
 
+		OS::get_singleton()->set_has_server_feature_callback([](const String &p_feature) -> bool {
+			return p_feature == "test_feature_1" || p_feature == "test_feature_2";
+		});
+
 		if (name.contains("[Audio]")) {
 			// The last driver index should always be the dummy driver.
 			int dummy_idx = AudioDriverManager::get_driver_count() - 1;

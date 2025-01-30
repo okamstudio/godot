@@ -36,6 +36,7 @@
 #include "gdscript_utility_functions.h"
 
 #ifdef TOOLS_ENABLED
+#include "editor/export/editor_export.h"
 #include "editor/gdscript_docgen.h"
 #include "editor/script_templates/templates.gen.h"
 #endif
@@ -133,6 +134,9 @@ bool GDScriptLanguage::validate(const String &p_script, const String &p_path, Li
 	GDScriptParser parser;
 	GDScriptAnalyzer analyzer(&parser);
 
+#ifdef TOOLS_ENABLED
+	parser.set_for_edition();
+#endif
 	Error err = parser.parse(p_script, p_path, false);
 	if (err == OK) {
 		err = analyzer.analyze();
@@ -982,6 +986,26 @@ static void _find_annotation_arguments(const GDScriptParser::AnnotationNode *p_a
 				r_result.insert(option.display, option);
 			}
 		}
+	} else if (p_annotation->name == SNAME("@if_features")) {
+#ifdef TOOLS_ENABLED
+		HashSet<String> features;
+		for (int i = 0; i < EditorExport::get_singleton()->get_export_preset_count(); i++) {
+			const Ref<EditorExportPreset> &preset = EditorExport::get_singleton()->get_export_preset(i);
+			for (const String &feature : preset->get_custom_features().split(",", false)) {
+				features.insert(feature.strip_edges());
+			}
+			List<String> platform_features;
+			preset->get_platform()->get_platform_features(&platform_features);
+			for (const String &feature : platform_features) {
+				features.insert(feature.strip_edges());
+			}
+		}
+		for (const String &feature : features) {
+			ScriptLanguage::CodeCompletionOption option(feature, ScriptLanguage::CODE_COMPLETION_KIND_PLAIN_TEXT);
+			option.insert_text = option.display.quote(p_quote_style);
+			r_result.insert(option.display, option);
+		}
+#endif
 	}
 }
 
@@ -3207,6 +3231,9 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 	GDScriptParser parser;
 	GDScriptAnalyzer analyzer(&parser);
 
+#ifdef TOOLS_ENABLED
+	parser.set_for_edition();
+#endif
 	parser.parse(p_code, p_path, true);
 	analyzer.analyze();
 
@@ -4023,6 +4050,9 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 	}
 
 	GDScriptParser parser;
+#ifdef TOOLS_ENABLED
+	parser.set_for_edition();
+#endif
 	parser.parse(p_code, p_path, true);
 
 	GDScriptParser::CompletionContext context = parser.get_completion_context();

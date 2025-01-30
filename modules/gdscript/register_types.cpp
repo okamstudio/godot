@@ -31,6 +31,7 @@
 #include "register_types.h"
 
 #include "gdscript.h"
+#include "gdscript_analyzer.h"
 #include "gdscript_cache.h"
 #include "gdscript_parser.h"
 #include "gdscript_tokenizer_buffer.h"
@@ -78,6 +79,9 @@ Ref<GDScriptEditorTranslationParserPlugin> gdscript_translation_parser_plugin;
 class EditorExportGDScript : public EditorExportPlugin {
 	GDCLASS(EditorExportGDScript, EditorExportPlugin);
 
+	uint32_t customization_hash = 0;
+	HashSet<String> features;
+
 	static constexpr int DEFAULT_SCRIPT_MODE = EditorExportPreset::MODE_SCRIPT_BINARY_TOKENS_COMPRESSED;
 	int script_mode = DEFAULT_SCRIPT_MODE;
 
@@ -89,27 +93,88 @@ protected:
 		if (preset.is_valid()) {
 			script_mode = preset->get_script_export_mode();
 		}
+
+		// If features change, the scripts must be reanalyzed.
+		for (const String &feature : p_features) {
+			customization_hash = hash_murmur3_one_64(feature.hash64(), customization_hash);
+		}
+		features = p_features;
+	}
+
+	virtual uint64_t _get_customization_configuration_hash() const override {
+		return customization_hash;
 	}
 
 	virtual void _export_file(const String &p_path, const String &p_type, const HashSet<String> &p_features) override {
-		if (p_path.get_extension() != "gd" || script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
+		if (p_path.get_extension() != "gd") {
 			return;
 		}
 
-		Vector<uint8_t> file = FileAccess::get_file_as_bytes(p_path);
-		if (file.is_empty()) {
+		PackedByteArray source_bytes = FileAccess::get_file_as_bytes(p_path);
+		if (source_bytes.is_empty()) {
 			return;
 		}
 
 		String source;
-		source.parse_utf8(reinterpret_cast<const char *>(file.ptr()), file.size());
-		GDScriptTokenizerBuffer::CompressMode compress_mode = script_mode == EditorExportPreset::MODE_SCRIPT_BINARY_TOKENS_COMPRESSED ? GDScriptTokenizerBuffer::COMPRESS_ZSTD : GDScriptTokenizerBuffer::COMPRESS_NONE;
-		file = GDScriptTokenizerBuffer::parse_code_string(source, compress_mode);
-		if (file.is_empty()) {
-			return;
+		source.parse_utf8(reinterpret_cast<const char *>(source_bytes.ptr()), source_bytes.size());
+
+		// Avoid parsing if the script doesn't look like it actually uses @if_features.
+		bool source_changed = false;
+		if (source.contains("@if_features")) {
+			// 1. Parse and analyze script, as little as needed to have annotations processed.
+			GDScriptParserRef parser;
+			{
+				parser.set_path(ResourceLoader::path_remap(p_path));
+				Error err = parser.get_parser()->parse(source, p_path, false);
+				ERR_FAIL_COND(err);
+				parser.get_parser()->set_export_features(p_features); // Needed for the analyzer step. If done early, parser's clear would remove this info.
+				err = parser.get_analyzer()->resolve_interface(); // Enough for annotations to be applied.
+				ERR_FAIL_COND(err);
+			}
+
+			// 2. Strip functions unfitting @if_features.
+			{
+				LocalVector<Pair<GDScriptParser::ClassNode *, GDScriptParser::FunctionNode *>> unfitting_functions;
+				parser.get_parser()->collect_unfitting_functions(parser.get_parser()->get_tree(), unfitting_functions);
+				if (unfitting_functions.size()) {
+					Vector<String> lines = source.split("\n");
+					for (const Pair<GDScriptParser::ClassNode *, GDScriptParser::FunctionNode *> &class_and_func : unfitting_functions) {
+						GDScriptParser::FunctionNode *function = class_and_func.second;
+						const String &class_part = class_and_func.first->identifier ? String(class_and_func.first->identifier->name) + ":" : String();
+
+						// Strip annotations as well (not covered by function's start_line).
+						int start_line = function->start_line;
+						if (function->annotations.size()) {
+							start_line = function->annotations.front()->get()->start_line;
+						}
+
+						print_verbose(vformat("Stripping function %s%s:%s (%d-%d)", p_path, class_part, function->identifier->name, start_line, function->end_line));
+						for (int i = start_line - 1; i <= function->end_line - 1; i++) {
+							lines.write[i] = "";
+						}
+					}
+					source = String("\n").join(lines);
+					source_changed = true;
+				}
+			}
 		}
 
-		add_file(p_path.get_basename() + ".gdc", file, true);
+		PackedByteArray res;
+		if (script_mode == EditorExportPreset::MODE_SCRIPT_TEXT) {
+			if (source_changed) {
+				skip();
+				source_bytes = source.to_utf8_buffer();
+				add_file(p_path, source_bytes, false);
+			}
+		} else {
+			GDScriptTokenizerBuffer::CompressMode compress_mode = script_mode == EditorExportPreset::MODE_SCRIPT_BINARY_TOKENS_COMPRESSED ? GDScriptTokenizerBuffer::COMPRESS_ZSTD : GDScriptTokenizerBuffer::COMPRESS_NONE;
+			source_bytes = GDScriptTokenizerBuffer::parse_code_string(source, compress_mode);
+			if (source_bytes.is_empty()) {
+				return;
+			}
+
+			add_file(p_path.get_basename() + ".gdc", source_bytes, true);
+		}
 	}
 
 public:

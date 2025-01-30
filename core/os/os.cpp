@@ -441,12 +441,15 @@ bool OS::has_feature(const String &p_feature) {
 	}
 	if (p_feature == "editor_hint") {
 		return _in_editor;
-	} else if (p_feature == "editor_runtime") {
+	} else if (p_feature == "editor_runtime" || p_feature == "runtime") {
 		return !_in_editor;
 	} else if (p_feature == "embedded_in_editor") {
 		return _embedded_in_editor;
 	}
 #else
+	if (p_feature == "runtime") {
+		return true;
+	}
 	if (p_feature == "template") {
 		return true;
 	}

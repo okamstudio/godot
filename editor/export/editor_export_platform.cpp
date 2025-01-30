@@ -531,6 +531,7 @@ HashSet<String> EditorExportPlatform::get_features(const Ref<EditorExportPreset>
 		result.insert(E);
 	}
 
+	result.insert("runtime");
 	result.insert("template");
 	if (p_debug) {
 		result.insert("debug");
