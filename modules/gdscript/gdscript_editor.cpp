@@ -997,6 +997,15 @@ static void _find_built_in_variants(HashMap<String, ScriptLanguage::CodeCompleti
 	}
 }
 
+static void _find_global_enums(HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result) {
+	List<StringName> global_enums;
+	CoreConstants::get_global_enums(&global_enums);
+	for (const StringName &enum_name : global_enums) {
+		ScriptLanguage::CodeCompletionOption option(enum_name, ScriptLanguage::CODE_COMPLETION_KIND_ENUM, ScriptLanguage::LOCATION_OTHER);
+		r_result.insert(option.display, option);
+	}
+}
+
 static void _list_available_types(bool p_inherit_only, GDScriptParser::CompletionContext &p_context, HashMap<String, ScriptLanguage::CodeCompletionOption> &r_result) {
 	// Built-in Variant Types
 	_find_built_in_variants(r_result, true);
@@ -1056,6 +1065,11 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 	for (const StringName &E : global_classes) {
 		ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CLASS, ScriptLanguage::LOCATION_OTHER_USER_CODE);
 		r_result.insert(option.display, option);
+	}
+
+	// Global enums
+	if (!p_inherit_only) {
+		_find_global_enums(r_result);
 	}
 
 	// Autoload singletons
@@ -1350,15 +1364,29 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 			} break;
 			case GDScriptParser::DataType::ENUM: {
 				String type_str = base_type.native_type;
-				StringName type = type_str.get_slicec('.', 0);
-				StringName type_enum = base_type.enum_type;
 
-				List<StringName> enum_values;
-				ClassDB::get_enum_constants(type, type_enum, &enum_values);
-				for (const StringName &E : enum_values) {
-					int location = p_recursion_depth + _get_enum_constant_location(type, E);
-					ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
-					r_result.insert(option.display, option);
+				if (type_str.contains_char('.')) {
+					StringName type = type_str.get_slicec('.', 0);
+					StringName type_enum = base_type.enum_type;
+
+					List<StringName> enum_values;
+
+					ClassDB::get_enum_constants(type, type_enum, &enum_values);
+
+					for (const StringName &E : enum_values) {
+						int location = p_recursion_depth + _get_enum_constant_location(type, E);
+						ScriptLanguage::CodeCompletionOption option(E, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
+						r_result.insert(option.display, option);
+					}
+				} else if (CoreConstants::is_global_enum(base_type.enum_type)) {
+					HashMap<StringName, int64_t> enum_values;
+					CoreConstants::get_enum_values(base_type.enum_type, &enum_values);
+
+					for (const KeyValue<StringName, int64_t> &enum_value : enum_values) {
+						int location = p_recursion_depth + ScriptLanguage::LOCATION_OTHER;
+						ScriptLanguage::CodeCompletionOption option(enum_value.key, ScriptLanguage::CODE_COMPLETION_KIND_CONSTANT, location);
+						r_result.insert(option.display, option);
+					}
 				}
 			}
 				[[fallthrough]];
@@ -1530,6 +1558,9 @@ static void _find_identifiers(const GDScriptParser::CompletionContext &p_context
 		}
 		r_result.insert(option.display, option);
 	}
+
+	// Global enums
+	_find_global_enums(r_result);
 
 	// Global classes
 	List<StringName> global_classes;
