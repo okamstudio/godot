@@ -5854,7 +5854,12 @@ void GDScriptParser::TreePrinter::print_function(FunctionNode *p_function, const
 		}
 		print_parameter(p_function->parameters[i]);
 	}
-	push_line(" ) :");
+	push_text(" ) ");
+	if (p_function->return_type) {
+		push_text("-> ");
+		print_type(p_function->return_type);
+	}
+	push_line(" :");
 	increase_indent();
 	print_suite(p_function->body);
 	decrease_indent();
