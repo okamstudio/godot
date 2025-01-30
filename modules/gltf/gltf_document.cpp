@@ -30,6 +30,7 @@
 
 #include "gltf_document.h"
 
+#include "extensions/gltf_document_extension_convert_importer_mesh.h"
 #include "extensions/gltf_spec_gloss.h"
 
 #include "core/config/project_settings.h"
@@ -7487,6 +7488,11 @@ Node *GLTFDocument::generate_scene(Ref<GLTFState> p_state, float p_bake_fps, boo
 			err = ext->import_node(p_state, gltf_node, node_json, E.value);
 			ERR_CONTINUE(err != OK);
 		}
+	}
+	ImporterMeshInstance3D *root_importer_mesh = Object::cast_to<ImporterMeshInstance3D>(root);
+	if (unlikely(root_importer_mesh)) {
+		root = GLTFDocumentExtensionConvertImporterMesh::convert_importer_mesh_instance_3d(root_importer_mesh);
+		memdelete(root_importer_mesh);
 	}
 	for (Ref<GLTFDocumentExtension> ext : document_extensions) {
 		ERR_CONTINUE(ext.is_null());
