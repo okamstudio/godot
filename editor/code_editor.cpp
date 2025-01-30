@@ -944,9 +944,11 @@ void CodeTextEditor::update_editor_settings() {
 
 void CodeTextEditor::trim_trailing_whitespace() {
 	bool trimed_whitespace = false;
-	for (int i = 0; i < text_editor->get_line_count(); i++) {
+	String spaces_below = "";
+	for (int i = text_editor->get_line_count() - 1; i >= 0; i--) {
 		String line = text_editor->get_line(i);
-		if (line.ends_with(" ") || line.ends_with("\t")) {
+		bool empty_line = false;
+		if (line.ends_with(" ") || line.ends_with("\t") || line == "") {
 			if (!trimed_whitespace) {
 				text_editor->begin_complex_operation();
 				trimed_whitespace = true;
@@ -959,7 +961,24 @@ void CodeTextEditor::trim_trailing_whitespace() {
 					break;
 				}
 			}
-			text_editor->set_line(i, line.substr(0, end));
+			// Lines without content should get same spaces as the line below.
+			if (end == 0) {
+				text_editor->set_line(i, spaces_below);
+				empty_line = true;
+			}
+			else {
+				text_editor->set_line(i, line.substr(0, end));
+			}
+		}
+
+		// If the string is not empty, it will come in handy for restoring the spaces of the lines above.
+		if (!empty_line) {
+			for (int k = 0; k < line.length(); k++) {
+				if (line[k] != ' ' && line[k] != '\t') {
+					spaces_below = line.substr(0, k);
+					break;
+				}
+			}
 		}
 	}
 
