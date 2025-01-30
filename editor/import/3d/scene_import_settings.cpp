@@ -1604,6 +1604,7 @@ void SceneImportSettingsDialog::_save_dir_confirm() {
 
 				md.settings["use_external/enabled"] = true;
 				md.settings["use_external/path"] = path;
+				md.settings["use_external/uid"] = ResourceUID::get_singleton()->id_to_text(ResourceLoader::get_resource_uid(path));
 
 			} break;
 			case ACTION_CHOOSE_MESH_SAVE_PATHS: {

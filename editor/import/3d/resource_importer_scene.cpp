@@ -1506,6 +1506,7 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 		ImporterMeshInstance3D *mi = Object::cast_to<ImporterMeshInstance3D>(p_node);
 
 		Ref<ImporterMesh> m = mi->get_mesh();
+		ResourceUID *resource_uid = ResourceUID::get_singleton();
 
 		if (m.is_valid()) {
 			if (!r_scanned_meshes.has(m)) {
@@ -1533,8 +1534,26 @@ Node *ResourceImporterScene::_post_fix_node(Node *p_node, Node *p_root, HashMap<
 
 							if (matdata.has("use_external/enabled") && bool(matdata["use_external/enabled"]) && matdata.has("use_external/path")) {
 								String path = matdata["use_external/path"];
+								ResourceUID::ID uid = ResourceUID::INVALID_ID;
+								if (matdata.has("use_external/uid")) {
+									String uid_str = matdata["use_external/uid"];
+									uid = resource_uid->text_to_id(uid_str);
+								}
+								if (uid != ResourceUID::INVALID_ID && resource_uid->has_id(uid)) {
+									String uid_path = resource_uid->get_id_path(uid);
+									if (uid_path != path) {
+										path = uid_path;
+										matdata["use_external/path"] = uid_path;
+									}
+								}
 								Ref<Material> external_mat = ResourceLoader::load(path);
 								if (external_mat.is_valid()) {
+									if (!resource_uid->has_id(uid)) {
+										ResourceUID::ID loaded_uid = ResourceLoader::get_resource_uid(path);
+										if (loaded_uid != ResourceUID::INVALID_ID && loaded_uid != uid) {
+											matdata["use_external/uid"] = resource_uid->id_to_text(uid);
+										}
+									}
 									m->set_surface_material(i, external_mat);
 								}
 							}
@@ -2044,6 +2063,7 @@ void ResourceImporterScene::get_internal_import_options(InternalImportCategory p
 		case INTERNAL_IMPORT_CATEGORY_MESH: {
 			r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "save_to_file/enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), false));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "save_to_file/path", PROPERTY_HINT_SAVE_FILE, "*.res,*.tres"), ""));
+			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "save_to_file/uid"), ""));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "generate/shadow_meshes", PROPERTY_HINT_ENUM, "Default,Enable,Disable"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "generate/lightmap_uv", PROPERTY_HINT_ENUM, "Default,Enable,Disable"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "generate/lods", PROPERTY_HINT_ENUM, "Default,Enable,Disable"), 0));
@@ -2052,11 +2072,13 @@ void ResourceImporterScene::get_internal_import_options(InternalImportCategory p
 		case INTERNAL_IMPORT_CATEGORY_MATERIAL: {
 			r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "use_external/enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), false));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "use_external/path", PROPERTY_HINT_FILE, "*.material,*.res,*.tres"), ""));
+			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "use_external/uid"), ""));
 		} break;
 		case INTERNAL_IMPORT_CATEGORY_ANIMATION: {
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "settings/loop_mode", PROPERTY_HINT_ENUM, "None,Linear,Pingpong"), 0));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "save_to_file/enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), false));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "save_to_file/path", PROPERTY_HINT_SAVE_FILE, "*.res,*.tres"), ""));
+			r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "save_to_file/uid"), ""));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "save_to_file/keep_custom_tracks"), ""));
 			r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "slices/amount", PROPERTY_HINT_RANGE, "0,256,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), 0));
 
@@ -2873,13 +2895,34 @@ Node *ResourceImporterScene::pre_import(const String &p_source_file, const HashM
 
 Error ResourceImporterScene::_check_resource_save_paths(const Dictionary &p_data) {
 	Array keys = p_data.keys();
+	ResourceUID *resource_uid = ResourceUID::get_singleton();
 	for (int i = 0; i < keys.size(); i++) {
-		const Dictionary &settings = p_data[keys[i]];
+		Dictionary settings = p_data[keys[i]];
 
 		if (bool(settings.get("save_to_file/enabled", false)) && settings.has("save_to_file/path")) {
 			const String &save_path = settings["save_to_file/path"];
-
-			ERR_FAIL_COND_V(!save_path.is_empty() && !DirAccess::exists(save_path.get_base_dir()), ERR_FILE_BAD_PATH);
+			if (!save_path.is_empty()) {
+				if (settings.has("save_to_file/uid")) {
+					const String &save_uid = settings["save_to_file/uid"];
+					ResourceUID::ID uid = resource_uid->text_to_id(save_uid);
+					if (resource_uid->has_id(uid)) {
+						const String &uid_save_path = resource_uid->get_id_path(uid);
+						if (uid_save_path != save_path) {
+							// update the path in the .import file to match the new UID location.
+							settings["save_to_file/path"] = uid_save_path;
+						}
+						ERR_FAIL_COND_V(!DirAccess::exists(uid_save_path.get_base_dir()), ERR_FILE_BAD_PATH);
+						continue; // Found file!
+					}
+				}
+				ERR_FAIL_COND_V(!DirAccess::exists(save_path.get_base_dir()), ERR_FILE_BAD_PATH);
+				ResourceUID::ID uid = ResourceLoader::get_resource_uid(save_path);
+				if (uid == ResourceUID::INVALID_ID) {
+					uid = resource_uid->create_id();
+					resource_uid->add_id(uid, save_path);
+					settings["save_to_file/uid"] = resource_uid->id_to_text(uid);
+				}
+			}
 		}
 	}
 
