@@ -146,7 +146,7 @@ private:
 
 	HashMap<StringName, String> _script_class_icon_paths;
 	HashMap<String, StringName> _script_class_file_to_path;
-	HashMap<Ref<Script>, Ref<Texture>> _script_icon_cache;
+	HashMap<String, Ref<Texture>> _script_icon_cache;
 
 	Ref<Texture2D> _load_script_icon(const String &p_path) const;
 
@@ -240,7 +240,6 @@ public:
 	void notify_scene_saved(const String &p_path);
 
 	bool script_class_is_parent(const String &p_class, const String &p_inherits);
-	StringName script_class_get_base(const String &p_class) const;
 	Variant script_class_instance(const String &p_class);
 
 	Ref<Script> script_class_load_script(const String &p_class) const;
@@ -248,7 +247,7 @@ public:
 	StringName script_class_get_name(const String &p_path) const;
 	void script_class_set_name(const String &p_path, const StringName &p_class);
 
-	String script_class_get_icon_path(const String &p_class) const;
+	String script_class_get_icon_path(const String &p_class, bool *r_valid = nullptr) const;
 	void script_class_set_icon_path(const String &p_class, const String &p_icon_path);
 	void script_class_clear_icon_paths() { _script_class_icon_paths.clear(); }
 	void script_class_save_icon_paths();
@@ -256,7 +255,7 @@ public:
 
 	Ref<Texture2D> extension_class_get_icon(const String &p_class) const;
 
-	Ref<Texture2D> get_script_icon(const Ref<Script> &p_script);
+	Ref<Texture2D> get_script_icon(const String &p_script_path);
 	void clear_script_icon_cache();
 
 	EditorData();

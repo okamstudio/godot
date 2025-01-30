@@ -1435,7 +1435,7 @@ void ConnectionsDock::update_tree() {
 				doc_class_name = String();
 			}
 
-			class_icon = editor_data.get_script_icon(script_base);
+			class_icon = editor_data.get_script_icon(script_base->get_path());
 			if (class_icon.is_null() && has_theme_icon(native_base, EditorStringName(EditorIcons))) {
 				class_icon = get_editor_theme_icon(native_base);
 			}

@@ -441,9 +441,9 @@ bool CSharpLanguage::handles_global_class_type(const String &p_type) const {
 	return p_type == get_type();
 }
 
-String CSharpLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
+String CSharpLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path, bool *r_is_abstract) const {
 	String class_name;
-	GDMonoCache::managed_callbacks.ScriptManagerBridge_GetGlobalClassName(&p_path, r_base_type, r_icon_path, &class_name);
+	GDMonoCache::managed_callbacks.ScriptManagerBridge_GetGlobalClassName(&p_path, r_base_type, r_icon_path, r_is_abstract, &class_name);
 	return class_name;
 }
 

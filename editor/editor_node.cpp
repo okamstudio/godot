@@ -4823,13 +4823,13 @@ void EditorNode::_pick_main_scene_custom_action(const String &p_custom_action_na
 	}
 }
 
-Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, const Ref<Script> &p_script, const String &p_fallback, bool p_fallback_script_to_theme) {
+Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, const String &p_script_path, const String &p_fallback, bool p_fallback_script_to_theme) {
 	ERR_FAIL_COND_V_MSG(p_class.is_empty(), nullptr, "Class name cannot be empty.");
 	EditorData &ed = EditorNode::get_editor_data();
 
 	// Check for a script icon first.
-	if (p_script.is_valid()) {
-		Ref<Texture2D> script_icon = ed.get_script_icon(p_script);
+	if (!p_script_path.is_empty()) {
+		Ref<Texture2D> script_icon = ed.get_script_icon(p_script_path);
 		if (script_icon.is_valid()) {
 			return script_icon;
 		}
@@ -4837,8 +4837,7 @@ Ref<Texture2D> EditorNode::_get_class_or_script_icon(const String &p_class, cons
 		if (p_fallback_script_to_theme) {
 			// Look for the native base type in the editor theme. This is relevant for
 			// scripts extending other scripts and for built-in classes.
-			String script_class_name = p_script->get_language()->get_global_class_name(p_script->get_path());
-			String base_type = ScriptServer::get_global_class_native_base(script_class_name);
+			String base_type = ScriptServer::get_global_class_native_base(p_class);
 			if (theme.is_valid() && theme->has_icon(base_type, EditorStringName(EditorIcons))) {
 				return theme->get_icon(base_type, EditorStringName(EditorIcons));
 			}
@@ -4894,18 +4893,18 @@ Ref<Texture2D> EditorNode::get_object_icon(const Object *p_object, const String 
 		scr = p_object;
 	}
 
-	return _get_class_or_script_icon(p_object->get_class(), scr, p_fallback);
+	return _get_class_or_script_icon(p_object->get_class(), scr.is_valid() ? scr->get_path() : String(), p_fallback);
 }
 
 Ref<Texture2D> EditorNode::get_class_icon(const String &p_class, const String &p_fallback) {
 	ERR_FAIL_COND_V_MSG(p_class.is_empty(), nullptr, "Class name cannot be empty.");
 
-	Ref<Script> scr;
+	String script_path;
 	if (ScriptServer::is_global_class(p_class)) {
-		scr = EditorNode::get_editor_data().script_class_load_script(p_class);
+		script_path = ScriptServer::get_global_class_path(p_class);
 	}
 
-	return _get_class_or_script_icon(p_class, scr, p_fallback, true);
+	return _get_class_or_script_icon(p_class, script_path, p_fallback, true);
 }
 
 bool EditorNode::is_object_of_custom_type(const Object *p_object, const StringName &p_class) {

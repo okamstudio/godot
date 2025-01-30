@@ -656,7 +656,7 @@ public:
 
 	GDVIRTUAL1RC(Dictionary, _get_global_class_name, const String &)
 
-	virtual String get_global_class_name(const String &p_path, String *r_base_type = nullptr, String *r_icon_path = nullptr) const override {
+	virtual String get_global_class_name(const String &p_path, String *r_base_type = nullptr, String *r_icon_path = nullptr, bool *r_is_abstract = nullptr) const override {
 		Dictionary ret;
 		GDVIRTUAL_REQUIRED_CALL(_get_global_class_name, p_path, ret);
 		if (!ret.has("name")) {
@@ -667,6 +667,9 @@ public:
 		}
 		if (r_icon_path != nullptr && ret.has("icon_path")) {
 			*r_icon_path = ret["icon_path"];
+		}
+		if (r_is_abstract != nullptr && ret.has("is_abstract")) {
+			*r_is_abstract = ret["is_abstract"];
 		}
 		return ret["name"];
 	}

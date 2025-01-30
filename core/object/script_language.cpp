@@ -258,10 +258,10 @@ void ScriptServer::init_languages() {
 
 			for (const Variant &script_class : script_classes) {
 				Dictionary c = script_class;
-				if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base")) {
+				if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base") || !c.has("is_abstract")) {
 					continue;
 				}
-				add_global_class(c["class"], c["base"], c["language"], c["path"]);
+				add_global_class(c["class"], c["base"], c["language"], c["path"], c["is_abstract"]);
 			}
 			ProjectSettings::get_singleton()->clear("_global_script_classes");
 		}
@@ -270,10 +270,10 @@ void ScriptServer::init_languages() {
 		Array script_classes = ProjectSettings::get_singleton()->get_global_class_list();
 		for (const Variant &script_class : script_classes) {
 			Dictionary c = script_class;
-			if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base")) {
+			if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base") || !c.has("is_abstract")) {
 				continue;
 			}
-			add_global_class(c["class"], c["base"], c["language"], c["path"]);
+			add_global_class(c["class"], c["base"], c["language"], c["path"], c["is_abstract"]);
 		}
 	}
 
@@ -363,7 +363,7 @@ void ScriptServer::global_classes_clear() {
 	inheriters_cache.clear();
 }
 
-void ScriptServer::add_global_class(const StringName &p_class, const StringName &p_base, const StringName &p_language, const String &p_path) {
+void ScriptServer::add_global_class(const StringName &p_class, const StringName &p_base, const StringName &p_language, const String &p_path, bool p_is_abstract) {
 	ERR_FAIL_COND_MSG(p_class == p_base || (global_classes.has(p_base) && get_global_class_native_base(p_base) == p_class), "Cyclic inheritance in script class.");
 	GlobalScriptClass *existing = global_classes.getptr(p_class);
 	if (existing) {
@@ -372,6 +372,7 @@ void ScriptServer::add_global_class(const StringName &p_class, const StringName 
 			existing->base = p_base;
 			existing->path = p_path;
 			existing->language = p_language;
+			existing->is_abstract = p_is_abstract;
 			inheriters_cache_dirty = true;
 		}
 	} else {
@@ -380,6 +381,7 @@ void ScriptServer::add_global_class(const StringName &p_class, const StringName 
 		g.language = p_language;
 		g.path = p_path;
 		g.base = p_base;
+		g.is_abstract = p_is_abstract;
 		global_classes[p_class] = g;
 		inheriters_cache_dirty = true;
 	}
@@ -453,6 +455,11 @@ StringName ScriptServer::get_global_class_native_base(const String &p_class) {
 	return base;
 }
 
+bool ScriptServer::is_global_class_abstract(const String &p_class) {
+	ERR_FAIL_COND_V(!global_classes.has(p_class), false);
+	return global_classes[p_class].is_abstract;
+}
+
 void ScriptServer::get_global_class_list(List<StringName> *r_global_classes) {
 	List<StringName> classes;
 	for (const KeyValue<StringName, GlobalScriptClass> &E : global_classes) {
@@ -480,12 +487,14 @@ void ScriptServer::save_global_classes() {
 	get_global_class_list(&gc);
 	Array gcarr;
 	for (const StringName &E : gc) {
+		const GlobalScriptClass &global_class = global_classes[E];
 		Dictionary d;
 		d["class"] = E;
-		d["language"] = global_classes[E].language;
-		d["path"] = global_classes[E].path;
-		d["base"] = global_classes[E].base;
+		d["language"] = global_class.language;
+		d["path"] = global_class.path;
+		d["base"] = global_class.base;
 		d["icon"] = class_icons.get(E, "");
+		d["is_abstract"] = global_class.is_abstract;
 		gcarr.push_back(d);
 	}
 	ProjectSettings::get_singleton()->store_global_class_list(gcarr);

@@ -1204,10 +1204,10 @@ void ProjectSettings::refresh_global_class_list() {
 	Array script_classes = get_global_class_list();
 	for (int i = 0; i < script_classes.size(); i++) {
 		Dictionary c = script_classes[i];
-		if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base")) {
+		if (!c.has("class") || !c.has("language") || !c.has("path") || !c.has("base") || !c.has("is_abstract")) {
 			continue;
 		}
-		ScriptServer::add_global_class(c["class"], c["base"], c["language"], c["path"]);
+		ScriptServer::add_global_class(c["class"], c["base"], c["language"], c["path"], c["is_abstract"]);
 	}
 }
 

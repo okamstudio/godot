@@ -223,7 +223,7 @@ namespace Godot.Bridge
         }
 
         [UnmanagedCallersOnly]
-        internal static unsafe void GetGlobalClassName(godot_string* scriptPath, godot_string* outBaseType, godot_string* outIconPath, godot_string* outClassName)
+        internal static unsafe void GetGlobalClassName(godot_string* scriptPath, godot_string* outBaseType, godot_string* outIconPath, godot_bool* outIsAbstract, godot_string* outClassName)
         {
             // This method must always return the outBaseType for every script, even if the script is
             // not a global class. But if the script is not a global class it must return an empty
@@ -276,6 +276,11 @@ namespace Godot.Bridge
                 {
                     *outBaseType = Marshaling.ConvertStringToNative(native.Name);
                 }
+            }
+
+            if (outIsAbstract != null)
+            {
+                *outIsAbstract = scriptType.IsAbstract.ToGodotBool();
             }
 
             if (!IsGlobalClass(scriptType))

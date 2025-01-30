@@ -2734,7 +2734,7 @@ bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
 	return p_type == "GDScript";
 }
 
-String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
+String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path, bool *r_is_abstract) const {
 	Error err;
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ, &err);
 	if (err) {
@@ -2834,6 +2834,9 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 	}
 	if (r_icon_path) {
 		*r_icon_path = c->simplified_icon_path;
+	}
+	if (r_is_abstract) {
+		*r_is_abstract = false;
 	}
 	return c->identifier != nullptr ? String(c->identifier->name) : String();
 }
