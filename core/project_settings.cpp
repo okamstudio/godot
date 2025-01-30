@@ -1,4 +1,3 @@
-/**************************************************************************/
 /*  project_settings.cpp                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
@@ -1064,6 +1063,12 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("application/config/name", "");
 	GLOBAL_DEF("application/config/description", "");
 	custom_prop_info["application/config/description"] = PropertyInfo(Variant::STRING, "application/config/description", PROPERTY_HINT_MULTILINE_TEXT);
+	
+	GLOBAL_DEF("application/config/user", "");
+	GLOBAL_DEF("application/config/company_name", "");
+	GLOBAL_DEF("application/config/project_name", "");
+	GLOBAL_DEF("application/config/version", "");
+	
 	GLOBAL_DEF("application/run/main_scene", "");
 	custom_prop_info["application/run/main_scene"] = PropertyInfo(Variant::STRING, "application/run/main_scene", PROPERTY_HINT_FILE, "*.tscn,*.scn,*.res");
 	GLOBAL_DEF("application/run/disable_stdout", false);
