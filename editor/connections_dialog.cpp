@@ -977,13 +977,6 @@ void ConnectionsDock::_make_or_edit_connection() {
 		}
 	}
 
-	if (connect_dialog->is_editing()) {
-		_disconnect(connect_dialog->get_source_connection_data());
-		_connect(cd);
-	} else {
-		_connect(cd);
-	}
-
 	if (add_script_function_request) {
 		PackedStringArray script_function_args = connect_dialog->get_signal_args();
 		script_function_args.resize(script_function_args.size() - cd.unbinds);
@@ -992,6 +985,13 @@ void ConnectionsDock::_make_or_edit_connection() {
 		}
 
 		EditorNode::get_singleton()->emit_signal(SNAME("script_add_function_request"), target, cd.method, script_function_args);
+	}
+
+	if (connect_dialog->is_editing()) {
+		_disconnect(connect_dialog->get_source_connection_data());
+		_connect(cd);
+	} else {
+		_connect(cd);
 	}
 
 	update_tree();
