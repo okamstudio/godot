@@ -2054,38 +2054,7 @@ void EditorNode::try_autosave() {
 }
 
 void EditorNode::restart_editor(bool p_goto_project_manager) {
-	exiting = true;
-
-	if (project_run_bar->is_playing()) {
-		project_run_bar->stop_playing();
-	}
-
-	String to_reopen;
-	if (!p_goto_project_manager && get_tree()->get_edited_scene_root()) {
-		to_reopen = get_tree()->get_edited_scene_root()->get_scene_file_path();
-	}
-
-	_exit_editor(EXIT_SUCCESS);
-
-	List<String> args;
-	for (const String &a : Main::get_forwardable_cli_arguments(Main::CLI_SCOPE_TOOL)) {
-		args.push_back(a);
-	}
-
-	if (p_goto_project_manager) {
-		args.push_back("--project-manager");
-	} else {
-		args.push_back("--path");
-		args.push_back(ProjectSettings::get_singleton()->get_resource_path());
-
-		args.push_back("-e");
-	}
-
-	if (!to_reopen.is_empty()) {
-		args.push_back(to_reopen);
-	}
-
-	OS::get_singleton()->set_restart_on_exit(true, args);
+	_menu_option_confirm(p_goto_project_manager ? PROJECT_QUIT_TO_PROJECT_MANAGER : PROJECT_RELOAD_CURRENT_PROJECT, false);
 }
 
 void EditorNode::_save_all_scenes() {
@@ -3470,10 +3439,10 @@ void EditorNode::_discard_changes(const String &p_str) {
 
 		} break;
 		case PROJECT_QUIT_TO_PROJECT_MANAGER: {
-			restart_editor(true);
+			_restart_editor(true);
 		} break;
 		case PROJECT_RELOAD_CURRENT_PROJECT: {
-			restart_editor();
+			_restart_editor();
 		} break;
 	}
 }
@@ -5495,11 +5464,11 @@ bool EditorNode::has_scenes_in_session() {
 }
 
 void EditorNode::undo() {
-	trigger_menu_option(FILE_UNDO, true);
+	_menu_option_confirm(FILE_UNDO, true);
 }
 
 void EditorNode::redo() {
-	trigger_menu_option(FILE_REDO, true);
+	_menu_option_confirm(FILE_REDO, true);
 }
 
 bool EditorNode::ensure_main_scene(bool p_from_native) {
@@ -5665,6 +5634,41 @@ void EditorNode::_proceed_closing_scene_tabs() {
 
 bool EditorNode::_is_closing_editor() const {
 	return tab_closing_menu_option == FILE_QUIT || tab_closing_menu_option == PROJECT_QUIT_TO_PROJECT_MANAGER || tab_closing_menu_option == PROJECT_RELOAD_CURRENT_PROJECT;
+}
+
+void EditorNode::_restart_editor(bool p_goto_project_manager) {
+	exiting = true;
+
+	if (project_run_bar->is_playing()) {
+		project_run_bar->stop_playing();
+	}
+
+	String to_reopen;
+	if (!p_goto_project_manager && get_tree()->get_edited_scene_root()) {
+		to_reopen = get_tree()->get_edited_scene_root()->get_scene_file_path();
+	}
+
+	_exit_editor(EXIT_SUCCESS);
+
+	List<String> args;
+	for (const String &a : Main::get_forwardable_cli_arguments(Main::CLI_SCOPE_TOOL)) {
+		args.push_back(a);
+	}
+
+	if (p_goto_project_manager) {
+		args.push_back("--project-manager");
+	} else {
+		args.push_back("--path");
+		args.push_back(ProjectSettings::get_singleton()->get_resource_path());
+
+		args.push_back("-e");
+	}
+
+	if (!to_reopen.is_empty()) {
+		args.push_back(to_reopen);
+	}
+
+	OS::get_singleton()->set_restart_on_exit(true, args);
 }
 
 void EditorNode::_scene_tab_closed(int p_tab) {

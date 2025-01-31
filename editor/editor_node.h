@@ -624,6 +624,7 @@ private:
 
 	void _proceed_closing_scene_tabs();
 	bool _is_closing_editor() const;
+	void _restart_editor(bool p_goto_project_manager = false);
 
 	Dictionary _get_main_scene_state();
 	void _set_main_scene_state(Dictionary p_state, Node *p_for_scene);
