@@ -32,6 +32,9 @@
 		<member name="application/delete_old_export_files_unconditionally" type="bool" setter="" getter="">
 			If [code]true[/code], existing "project name" and "project name.xcodeproj" in the export destination directory will be unconditionally deleted during export.
 		</member>
+		<member name="application/enable_cocoapods" type="bool" setter="" getter="">
+			If [code]true[/code], the project will be exported with CocoaPods enabled.
+		</member>
 		<member name="application/export_method_debug" type="int" setter="" getter="">
 			Application distribution target (debug export).
 		</member>

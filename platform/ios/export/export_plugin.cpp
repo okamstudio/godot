@@ -302,6 +302,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/icon_interpolation", PROPERTY_HINT_ENUM, "Nearest neighbor,Bilinear,Cubic,Trilinear,Lanczos"), 4));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/export_project_only"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/enable_cocoapods"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/delete_old_export_files_unconditionally"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/generate_simulator_library_if_missing"), true));
 
@@ -1624,6 +1625,8 @@ void EditorExportPlatformIOS::_add_assets_to_project(const String &p_out_dir, co
 		String framework_id = "";
 
 		const IOSExportAsset &asset = p_additional_assets[i];
+		if (asset.is_pod)
+			continue;
 
 		String type;
 		if (asset.exported_path.ends_with(".framework")) {
@@ -1867,6 +1870,26 @@ Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportP
 	return OK;
 }
 
+Error EditorExportPlatformIOS::_export_cocoapods(const Ref<EditorExportPreset> &p_preset, const Vector<String> &p_dependencies, Vector<IOSExportAsset> &r_exported_assets) {
+	if (p_dependencies.size() <= 0) {
+		return OK;
+	}
+
+	if (!p_preset->get("application/enable_cocoapods").operator bool()) {
+		add_message(EXPORT_MESSAGE_ERROR, TTR("Export"), vformat(TTR("Cocoapods must be enabled in the export settings")));
+		return FAILED;
+	}
+
+	for (int i = 0; i < p_dependencies.size(); i++) {
+		const String &dependency = p_dependencies[i];
+
+		IOSExportAsset export_asset = { dependency, false, false, true };
+		r_exported_assets.push_back(export_asset);
+	}
+
+	return OK;
+}
+
 Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets) {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
@@ -1918,6 +1941,7 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 	String plugin_deinitialization_cpp_code;
 
 	Vector<String> plugin_linked_dependencies;
+	Vector<String> plugin_pods_dependencies;
 	Vector<String> plugin_embedded_dependencies;
 	Vector<String> plugin_files;
 
@@ -1954,6 +1978,16 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 
 			added_linked_dependenciy_names.push_back(name);
 			plugin_linked_dependencies.push_back(dependency);
+		}
+
+		for (int j = 0; j < plugin.pods_dependencies.size(); j++) {
+			String dependency = plugin.pods_dependencies[j];
+
+			if (plugin_pods_dependencies.has(dependency)) {
+				continue;
+			}
+
+			plugin_pods_dependencies.push_back(dependency);
 		}
 
 		for (int j = 0; j < plugin.system_dependencies.size(); j++) {
@@ -2073,6 +2107,10 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 
 		// Export plugin files
 		err = _export_additional_assets(p_preset, dest_dir, plugin_files, false, false, r_exported_assets);
+		ERR_FAIL_COND_V(err != OK, err);
+
+		// Export CocoaPods dependency
+		err = _export_cocoapods(p_preset, plugin_pods_dependencies, r_exported_assets);
 		ERR_FAIL_COND_V(err != OK, err);
 	}
 
@@ -2634,10 +2672,58 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		return ERR_SKIP;
 	}
 
+	if (p_preset->get("application/enable_cocoapods").operator bool()) {
+		// Gather CocoaPods dependencies
+		Dictionary dependencies;
+		for (int i = 0; i < assets.size(); ++i) {
+			const IOSExportAsset &asset = assets[i];
+			if (!asset.is_pod)
+				continue;
+
+			Vector<String> parts = asset.exported_path.split(":");
+			String name = parts[0];
+			String version = parts[1];
+
+			if (dependencies.has(name) && dependencies[name] != version) {
+				add_message(EXPORT_MESSAGE_ERROR, TTR("CocoaPods Setup"), vformat(TTR("Ambiguous CocoaPod dependency, %s wants version %s and %s"), name, version, dependencies[name]));
+				return err;
+			}
+
+			dependencies[name] = version;
+			print_line("Added " + name + " : " + version + " to cocoapods dependencies");
+		}
+
+		// Generate the podfile
+		err = _generate_podfile("ios", p_preset->get("application/min_ios_version").operator String(), binary_name, dependencies, dest_dir);
+		if (err != OK) {
+			add_message(EXPORT_MESSAGE_ERROR, TTR("CocoaPods Setup"), vformat(TTR("Failed to generate Podfile with code %d"), err));
+			return err;
+		}
+
+		// Install the pods
+		List<String> pod_args;
+		pod_args.push_back("install");
+		pod_args.push_back("--project-directory=" + dest_dir);
+
+		String pod_str;
+		OS::get_singleton()->set_environment("LANG", "en_US.UTF-8"); // Required for Cocoapods to function
+		err = OS::get_singleton()->execute("/usr/local/bin/pod", pod_args, &pod_str, nullptr, true);
+		OS::get_singleton()->unset_environment("LANG");
+		if (err != OK) {
+			add_message(EXPORT_MESSAGE_ERROR, TTR("CocoaPods Setup"), vformat(TTR("Failed to run pod with code %d"), err));
+			return err;
+		}
+	}
+
 	String archive_path = p_path.get_basename() + ".xcarchive";
 	List<String> archive_args;
-	archive_args.push_back("-project");
-	archive_args.push_back(binary_dir + ".xcodeproj");
+	if (p_preset->get("application/enable_cocoapods").operator bool()) {
+		archive_args.push_back("-workspace");
+		archive_args.push_back(binary_dir + ".xcworkspace");
+	} else {
+		archive_args.push_back("-project");
+		archive_args.push_back(binary_dir + ".xcodeproj");
+	}
 	archive_args.push_back("-scheme");
 	archive_args.push_back(binary_name);
 	archive_args.push_back("-sdk");
@@ -2666,7 +2752,12 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		return err;
 	}
 
-	print_line("xcodebuild (.xcarchive):\n" + archive_str);
+	if (p_preset->get("application/enable_cocoapods").operator bool()) {
+		print_line("xcodebuild (.xcworkspace):\n" + archive_str);
+	} else {
+		print_line("xcodebuild (.xcodeproj):\n" + archive_str);
+	}
+
 	if (!archive_str.contains("** ARCHIVE SUCCEEDED **")) {
 		add_message(EXPORT_MESSAGE_ERROR, TTR("Xcode Build"), TTR("Xcode project build failed, see editor log for details."));
 		return FAILED;
@@ -2704,6 +2795,32 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 	add_message(EXPORT_MESSAGE_WARNING, TTR("Xcode Build"), TTR(".ipa can only be built on macOS. Leaving Xcode project without building the package."));
 #endif
 
+	return OK;
+}
+
+Error EditorExportPlatformIOS::_generate_podfile(const String &platform, const String &platform_version, const String &target_name, const Dictionary &dependencies, const String dest_dir) {
+	Ref<FileAccess> file = FileAccess::open(dest_dir + "Podfile", FileAccess::WRITE);
+
+	if (file.is_null()) {
+		print_error("Failed to open Podfile for writing.");
+		return FAILED;
+	}
+
+	file->store_string("platform :" + platform + ", '" + platform_version + "'\n\n");
+
+	file->store_string("target '" + target_name + "' do\n");
+	file->store_string("\tuse_frameworks!\n\n");
+
+	for (int i = 0; i < dependencies.size(); i++) {
+		String dependency = dependencies.get_key_at_index(i);
+		String version = dependencies.get_value_at_index(i);
+		file->store_string("\tpod '" + dependency + "','" + version + "'\n");
+	}
+
+	file->store_string("end\n");
+	file->close();
+
+	print_line("Podfile generated successfully!");
 	return OK;
 }
 

@@ -125,6 +125,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 		String exported_path;
 		bool is_framework = false; // framework is anything linked to the binary, otherwise it's a resource
 		bool should_embed = false;
+		bool is_pod = false; // Cocoa Pods
 	};
 
 	String _get_additional_plist_content();
@@ -144,9 +145,12 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 
 	void _add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets);
 	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
+	Error _export_cocoapods(const Ref<EditorExportPreset> &p_preset, const Vector<String> &p_dependencies, Vector<IOSExportAsset> &r_exported_assets);
 	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
 	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets);
 	Error _export_ios_plugins(const Ref<EditorExportPreset> &p_preset, IOSConfigData &p_config_data, const String &dest_dir, Vector<IOSExportAsset> &r_exported_assets, bool p_debug);
+
+	Error _generate_podfile(const String &platform, const String &platform_version, const String &target_name, const Dictionary &dependencies, const String dest_dir);
 
 	Error _export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_simulator, bool p_oneclick);
 
