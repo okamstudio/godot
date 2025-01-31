@@ -3920,6 +3920,18 @@ void EditorInspector::_clear(bool p_hide_plugins) {
 		memdelete(favorites_groups_vbox->get_child(0));
 	}
 
+	if (p_hide_plugins) {
+		for (KeyValue<StringName, List<EditorProperty *>> &F : editor_property_map) {
+			for (EditorProperty *property : F.value) {
+				// Circumvent special case that makes the Resource property not folding.
+				EditorPropertyResource *ep = Object::cast_to<EditorPropertyResource>(property);
+				if (ep) {
+					ep->fold_resource();
+				}
+			}
+		}
+	}
+
 	while (main_vbox->get_child_count()) {
 		memdelete(main_vbox->get_child(0));
 	}
