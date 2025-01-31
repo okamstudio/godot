@@ -982,7 +982,7 @@ EditorAudioBus::EditorAudioBus(EditorAudioBuses *p_buses, bool p_is_master) {
 			continue;
 		}
 
-		String name = E.operator String().replace("AudioEffect", "");
+		String name = E.operator String().remove_string("AudioEffect");
 		effect_options->add_item(name);
 		effect_options->set_item_metadata(-1, E);
 	}

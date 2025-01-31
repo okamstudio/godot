@@ -220,7 +220,7 @@ void RemoteDebuggerPeerTCP::_poll() {
 RemoteDebuggerPeer *RemoteDebuggerPeerTCP::create(const String &p_uri) {
 	ERR_FAIL_COND_V(!p_uri.begins_with("tcp://"), nullptr);
 
-	String debug_host = p_uri.replace("tcp://", "");
+	String debug_host = p_uri.remove_string("tcp://");
 	uint16_t debug_port = 6007;
 
 	if (debug_host.contains_char(':')) {

@@ -438,7 +438,7 @@ static String _fixstr(const String &p_what, const String &p_str) {
 	String end = p_what.substr(what.length(), p_what.length() - what.length());
 
 	if (what.containsn("$" + p_str)) { // Blender and other stuff.
-		return what.replace("$" + p_str, "") + end;
+		return what.remove_string("$" + p_str) + end;
 	}
 	if (what.to_lower().ends_with("-" + p_str)) { //collada only supports "_" and "-" besides letters
 		return what.substr(0, what.length() - (p_str.length() + 1)) + end;

@@ -1990,7 +1990,7 @@ void ProjectConverter3To4::process_gdscript_line(String &line, const RegExContai
 			Vector<String> parts = parse_arguments(line.substr(start, end));
 			if (parts.size() == 2) {
 				if (builtin) {
-					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].replace("\\\"", "").replace("\\'", "").replace(" ", "") + line.substr(end + start);
+					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].remove_string("\\\"").remove_string("\\'").replace(" ", "") + line.substr(end + start);
 				} else {
 					line = line.substr(0, start) + "await " + parts[0] + "." + parts[1].replace("\"", "").replace("\'", "").replace(" ", "") + line.substr(end + start);
 				}

@@ -78,7 +78,7 @@ void ShaderRD::_add_stage(const char *p_code, StageType p_stage_type) {
 			push_chunk = true;
 			chunk.code = l.replace_first("#CODE", String()).replace(":", "").strip_edges().to_upper();
 		} else if (l.begins_with("#include ")) {
-			String include_file = l.replace("#include ", "").strip_edges();
+			String include_file = l.remove_string("#include ").strip_edges();
 			if (include_file[0] == '"') {
 				int end_pos = include_file.find_char('"', 1);
 				if (end_pos >= 0) {

@@ -80,21 +80,21 @@ Ref<Script> GDScriptLanguage::make_template(const String &p_template, const Stri
 	type_hints = EDITOR_GET("text_editor/completion/add_type_hints");
 #endif
 	if (!type_hints) {
-		processed_template = processed_template.replace(": int", "")
-									 .replace(": Shader.Mode", "")
-									 .replace(": VisualShader.Type", "")
-									 .replace(": float", "")
-									 .replace(": String", "")
-									 .replace(": Array[String]", "")
-									 .replace(": Node", "")
-									 .replace(": CharFXTransform", "")
+		processed_template = processed_template.remove_string(": int")
+									 .remove_string(": Shader.Mode")
+									 .remove_string(": VisualShader.Type")
+									 .remove_string(": float")
+									 .remove_string(": String")
+									 .remove_string(": Array[String]")
+									 .remove_string(": Node")
+									 .remove_string(": CharFXTransform")
 									 .replace(":=", "=")
-									 .replace(" -> void", "")
-									 .replace(" -> bool", "")
-									 .replace(" -> int", "")
-									 .replace(" -> PortType", "")
-									 .replace(" -> String", "")
-									 .replace(" -> Object", "");
+									 .remove_string(" -> void")
+									 .remove_string(" -> bool")
+									 .remove_string(" -> int")
+									 .remove_string(" -> PortType")
+									 .remove_string(" -> String")
+									 .remove_string(" -> Object");
 	}
 
 	processed_template = processed_template.replace("_BASE_", p_base_class_name)

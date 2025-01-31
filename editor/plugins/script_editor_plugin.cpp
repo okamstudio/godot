@@ -801,7 +801,7 @@ void ScriptEditor::_update_recent_scripts() {
 	String path;
 	for (int i = 0; i < rc.size(); i++) {
 		path = rc[i];
-		recent_scripts->add_item(path.replace("res://", ""));
+		recent_scripts->add_item(path.remove_string("res://"));
 	}
 
 	recent_scripts->add_separator();
@@ -2282,7 +2282,7 @@ void ScriptEditor::_update_script_names() {
 		Vector<String> disambiguated_script_names;
 		Vector<String> full_script_paths;
 		for (int j = 0; j < sedata.size(); j++) {
-			String name = sedata[j].name.replace("(*)", "");
+			String name = sedata[j].name.remove_string("(*)");
 			ScriptListName script_display = (ScriptListName)(int)EDITOR_GET("text_editor/script_list/list_script_names_as");
 			switch (script_display) {
 				case DISPLAY_NAME: {

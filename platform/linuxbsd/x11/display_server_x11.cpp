@@ -5190,7 +5190,7 @@ void DisplayServerX11::process_events() {
 					Vector<String> files = String((char *)p.data).split("\r\n", false);
 					XFree(p.data);
 					for (int i = 0; i < files.size(); i++) {
-						files.write[i] = files[i].replace("file://", "").uri_decode();
+						files.write[i] = files[i].remove_string("file://").uri_decode();
 					}
 
 					if (windows[window_id].drop_files_callback.is_valid()) {

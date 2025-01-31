@@ -256,7 +256,7 @@ bool CodeSignCodeResources::add_nested_file(const String &p_root, const String &
 			Vector<String> rqs = rq.parse_requirements();
 			for (int j = 0; j < rqs.size(); j++) {
 				if (rqs[j].begins_with("designated => ")) {
-					req_string = rqs[j].replace("designated => ", "");
+					req_string = rqs[j].remove_string("designated => ");
 				}
 			}
 		}

@@ -455,7 +455,7 @@ String RenameDialog::_substitute(const String &subject, const Node *node, int co
 		if (parent_node) {
 			if (node == root_node) {
 				// Can not substitute parent of root.
-				result = result.replace("${PARENT}", "");
+				result = result.remove_string("${PARENT}");
 			} else {
 				result = result.replace("${PARENT}", parent_node->get_name());
 			}

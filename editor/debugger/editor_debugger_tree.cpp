@@ -424,7 +424,7 @@ void EditorDebuggerTree::_item_menu_id_pressed(int p_option) {
 			} else if (text == "/root") {
 				text = ".";
 			} else {
-				text = text.replace("/root/", "");
+				text = text.remove_string("/root/");
 				int slash = text.find_char('/');
 				if (slash < 0) {
 					text = ".";
