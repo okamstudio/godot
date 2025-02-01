@@ -14,8 +14,7 @@ def run(target, source, env):
 
         g.write(
             """/* THIS FILE IS GENERATED DO NOT EDIT */
-#ifndef GDEXTENSION_INTERFACE_DUMP_H
-#define GDEXTENSION_INTERFACE_DUMP_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -49,7 +48,5 @@ class GDExtensionInterfaceDump {
 };
 
 #endif // TOOLS_ENABLED
-
-#endif // GDEXTENSION_INTERFACE_DUMP_H
 """
         )

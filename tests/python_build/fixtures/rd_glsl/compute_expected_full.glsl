@@ -1,6 +1,5 @@
 /* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef COMPUTE_GLSL_GEN_H_RD
-#define COMPUTE_GLSL_GEN_H_RD
+#pragma once
 
 #include "servers/rendering/renderer_rd/shader_rd.h"
 
@@ -28,5 +27,3 @@ void main() {
 		setup(nullptr, nullptr, _compute_code, "ComputeShaderRD");
 	}
 };
-
-#endif

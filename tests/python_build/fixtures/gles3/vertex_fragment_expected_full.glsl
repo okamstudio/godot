@@ -1,6 +1,5 @@
 /* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef VERTEX_FRAGMENT_GLSL_GEN_HGLES3_GLES3
-#define VERTEX_FRAGMENT_GLSL_GEN_HGLES3_GLES3
+#pragma once
 
 
 #include "drivers/gles3/shader_gles3.h"
@@ -70,5 +69,3 @@ void main() {
 	}
 
 };
-
-#endif

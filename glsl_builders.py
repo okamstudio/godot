@@ -106,7 +106,6 @@ def build_rd_header(
     out_file_base = out_file
     out_file_base = out_file_base[out_file_base.rfind("/") + 1 :]
     out_file_base = out_file_base[out_file_base.rfind("\\") + 1 :]
-    out_file_ifdef = out_file_base.replace(".", "_").upper()
     out_file_class = out_file_base.replace(".glsl.gen.h", "").title().replace("_", "").replace(".", "") + "ShaderRD"
 
     if header_data.compute_lines:
@@ -125,8 +124,7 @@ def build_rd_header(
 
     # Intended curly brackets are doubled so f-string doesn't eat them up.
     shader_template = f"""/* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef {out_file_ifdef}_RD
-#define {out_file_ifdef}_RD
+#pragma once
 
 #include "servers/rendering/renderer_rd/shader_rd.h"
 
@@ -139,8 +137,6 @@ public:
 		{body_content}
 	}}
 }};
-
-#endif
 """
 
     with open(out_file, "w", encoding="utf-8", newline="\n") as fd:
@@ -189,16 +185,13 @@ def build_raw_header(
     out_file_base = out_file.replace(".glsl.gen.h", "_shader_glsl")
     out_file_base = out_file_base[out_file_base.rfind("/") + 1 :]
     out_file_base = out_file_base[out_file_base.rfind("\\") + 1 :]
-    out_file_ifdef = out_file_base.replace(".", "_").upper()
 
     shader_template = f"""/* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef {out_file_ifdef}_RAW_H
-#define {out_file_ifdef}_RAW_H
+#pragma once
 
 static const char {out_file_base}[] = {{
 {to_raw_cstring(header_data.code)}
 }};
-#endif
 """
 
     with open(out_file, "w", encoding="utf-8", newline="\n") as f:

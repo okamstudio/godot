@@ -1451,8 +1451,6 @@ def generate_copyright_header(filename: str) -> str:
 def generated_wrapper(
     path,  # FIXME: type with `Union[str, Node, List[Node]]` when pytest conflicts are resolved
     guard: Optional[bool] = None,
-    prefix: str = "",
-    suffix: str = "",
 ) -> Generator[TextIOBase, None, None]:
     """
     Wrapper class to automatically handle copyright headers and header guards
@@ -1462,12 +1460,8 @@ def generated_wrapper(
     - `path`: The path of the file to be created. Can be passed a raw string, an
     isolated SCons target, or a full SCons target list. If a target list contains
     multiple entries, produces a warning & only creates the first entry.
-    - `guard`: Optional bool to determine if a header guard should be added. If
-    unassigned, header guards are determined by the file extension.
-    - `prefix`: Custom prefix to prepend to a header guard. Produces a warning if
-    provided a value when `guard` evaluates to `False`.
-    - `suffix`: Custom suffix to append to a header guard. Produces a warning if
-    provided a value when `guard` evaluates to `False`.
+    - `guard`: Optional bool to determine if `#pragma once` should be added. If
+    unassigned, the value is determined by file extension.
     """
 
     # Handle unfiltered SCons target[s] passed as path.
@@ -1484,34 +1478,18 @@ def generated_wrapper(
 
     path = str(path).replace("\\", "/")
     if guard is None:
-        guard = path.endswith((".h", ".hh", ".hpp", ".inc"))
-    if not guard and (prefix or suffix):
-        print_warning(f'Trying to assign header guard prefix/suffix while `guard` is disabled: "{path}".')
-
-    header_guard = ""
-    if guard:
-        if prefix:
-            prefix += "_"
-        if suffix:
-            suffix = f"_{suffix}"
-        split = path.split("/")[-1].split(".")
-        header_guard = (f"{prefix}{split[0]}{suffix}.{'.'.join(split[1:])}".upper()
-                .replace(".", "_").replace("-", "_").replace(" ", "_").replace("__", "_"))  # fmt: skip
+        guard = path.endswith((".h", ".hh", ".hpp", ".hxx", ".inc"))
 
     with open(path, "wt", encoding="utf-8", newline="\n") as file:
         file.write(generate_copyright_header(path))
         file.write("\n/* THIS FILE IS GENERATED. EDITS WILL BE LOST. */\n\n")
 
         if guard:
-            file.write(f"#ifndef {header_guard}\n")
-            file.write(f"#define {header_guard}\n\n")
+            file.write("#pragma once\n\n")
 
         with StringIO(newline="\n") as str_io:
             yield str_io
             file.write(str_io.getvalue().strip() or "/* NO CONTENT */")
-
-        if guard:
-            file.write(f"\n\n#endif // {header_guard}")
 
         file.write("\n")
 

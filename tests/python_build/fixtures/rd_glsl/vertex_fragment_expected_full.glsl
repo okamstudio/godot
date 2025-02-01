@@ -1,6 +1,5 @@
 /* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */
-#ifndef VERTEX_FRAGMENT_GLSL_GEN_H_RD
-#define VERTEX_FRAGMENT_GLSL_GEN_H_RD
+#pragma once
 
 #include "servers/rendering/renderer_rd/shader_rd.h"
 
@@ -42,5 +41,3 @@ void main() {
 		setup(_vertex_code, _fragment_code, nullptr, "VertexFragmentShaderRD");
 	}
 };
-
-#endif

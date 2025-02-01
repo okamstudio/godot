@@ -80,6 +80,12 @@ for file in sys.argv[1:]:
         and lines[HEADER_BEGIN_OFFSET] == HEADER_BEGIN
         and lines[HEADER_END_OFFSET] == HEADER_END
     ):
+        lines[HEADER_CHECK_OFFSET] = "#pragma once"
+        lines[HEADER_BEGIN_OFFSET] = "\n"
+        lines.pop()
+        with open(file, "wt", encoding="utf-8", newline="\n") as f:
+            f.writelines(lines)
+        changed.append(file)
         continue
 
     # Guards might exist but with the wrong names.
@@ -88,9 +94,9 @@ for file in sys.argv[1:]:
         and lines[HEADER_BEGIN_OFFSET].startswith("#define")
         and lines[HEADER_END_OFFSET].startswith("#endif")
     ):
-        lines[HEADER_CHECK_OFFSET] = HEADER_CHECK
-        lines[HEADER_BEGIN_OFFSET] = HEADER_BEGIN
-        lines[HEADER_END_OFFSET] = HEADER_END
+        lines[HEADER_CHECK_OFFSET] = "#pragma once"
+        lines[HEADER_BEGIN_OFFSET] = "\n"
+        lines.pop()
         with open(file, "wt", encoding="utf-8", newline="\n") as f:
             f.writelines(lines)
         changed.append(file)
@@ -99,69 +105,31 @@ for file in sys.argv[1:]:
     header_check = -1
     header_begin = -1
     header_end = -1
-    pragma_once = -1
-    objc = False
+    skip = False
 
     for idx, line in enumerate(lines):
-        if line.startswith("// #import"):  # Some dummy obj-c files only have commented out import lines.
-            objc = True
-            break
         if not line.startswith("#"):
             continue
+        elif line.startswith(("#import", "#pragma once")):
+            skip = True
+            break
         elif line.startswith("#ifndef") and header_check == -1:
             header_check = idx
         elif line.startswith("#define") and header_begin == -1:
             header_begin = idx
         elif line.startswith("#endif") and header_end == -1:
             header_end = idx
-        elif line.startswith("#pragma once"):
-            pragma_once = idx
-            break
-        elif line.startswith("#import"):
-            objc = True
-            break
 
-    if objc:
-        continue
-
-    if pragma_once != -1:
-        lines.pop(pragma_once)
-        lines.insert(HEADER_CHECK_OFFSET, HEADER_CHECK)
-        lines.insert(HEADER_BEGIN_OFFSET, HEADER_BEGIN)
-        lines.append("\n")
-        lines.append(HEADER_END)
-        with open(file, "wt", encoding="utf-8", newline="\n") as f:
-            f.writelines(lines)
-        changed.append(file)
+    if skip:
         continue
 
     if header_check == -1 and header_begin == -1 and header_end == -1:
         # Guards simply didn't exist
-        lines.insert(HEADER_CHECK_OFFSET, HEADER_CHECK)
-        lines.insert(HEADER_BEGIN_OFFSET, HEADER_BEGIN)
-        lines.append("\n")
-        lines.append(HEADER_END)
+        lines.insert(HEADER_CHECK_OFFSET, "#pragma once\n\n")
         with open(file, "wt", encoding="utf-8", newline="\n") as f:
             f.writelines(lines)
         changed.append(file)
         continue
-
-    if header_check != -1 and header_begin != -1 and header_end != -1:
-        # All prepends "found", see if we can salvage this.
-        if header_check == header_begin - 1 and header_begin < header_end:
-            lines.pop(header_check)
-            lines.pop(header_begin - 1)
-            lines.pop(header_end - 2)
-            if lines[header_end - 3] == "\n":
-                lines.pop(header_end - 3)
-            lines.insert(HEADER_CHECK_OFFSET, HEADER_CHECK)
-            lines.insert(HEADER_BEGIN_OFFSET, HEADER_BEGIN)
-            lines.append("\n")
-            lines.append(HEADER_END)
-            with open(file, "wt", encoding="utf-8", newline="\n") as f:
-                f.writelines(lines)
-            changed.append(file)
-            continue
 
     invalid.append(file)
 
