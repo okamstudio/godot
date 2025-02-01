@@ -1381,7 +1381,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 		} break;
 		case TOOL_TOGGLE_SCENE_UNIQUE_NAME: {
 			// Enabling/disabling based on the same node based on which the checkbox in the menu is checked/unchecked.
-			List<Node *>::Element *first_selected = editor_selection->get_selected_node_list().front();
+			const List<Node *>::Element *first_selected = editor_selection->get_selected_node_list().front();
 			if (first_selected == nullptr) {
 				return;
 			}
