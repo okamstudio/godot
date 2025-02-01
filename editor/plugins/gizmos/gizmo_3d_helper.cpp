@@ -156,7 +156,10 @@ String Gizmo3DHelper::cylinder_get_handle_name(int p_id) const {
 	}
 }
 
-void Gizmo3DHelper::cylinder_set_handle(const Vector3 p_segment[2], int p_id, real_t &r_height, real_t &r_radius, Vector3 &r_cylinder_position) {
+void Gizmo3DHelper::cylinder_or_capsule_set_handle(const Vector3 p_segment[2], int p_id, real_t &r_height, real_t &r_radius, Vector3 &r_cylinder_position, bool p_is_capsule) {
+	real_t initial_radius = initial_value.operator Vector2().x;
+	real_t initial_height = initial_value.operator Vector2().y;
+
 	int sign = p_id == 2 ? -1 : 1;
 	int axis = p_id == 0 ? 0 : 1;
 
@@ -178,9 +181,13 @@ void Gizmo3DHelper::cylinder_set_handle(const Vector3 p_segment[2], int p_id, re
 		}
 		r_radius = d;
 		r_cylinder_position = initial_transform.get_origin();
-	} else if (p_id == 1 || p_id == 2) {
-		real_t initial_height = initial_value;
 
+		if (p_is_capsule) {
+			r_height = MAX(initial_height, r_radius * 2.0);
+		} else {
+			r_height = initial_height;
+		}
+	} else if (p_id == 1 || p_id == 2) {
 		// Adjust height.
 		if (Input::get_singleton()->is_key_pressed(Key::ALT)) {
 			r_height = d * 2.0;
@@ -200,6 +207,12 @@ void Gizmo3DHelper::cylinder_set_handle(const Vector3 p_segment[2], int p_id, re
 			offset[axis] = (r_height - initial_height) * 0.5 * sign;
 			r_cylinder_position = initial_transform.xform(offset);
 		}
+
+		if (p_is_capsule) {
+			r_radius = MIN(initial_radius, r_height / 2.0);
+		} else {
+			r_radius = initial_radius;
+		}
 	}
 }
 
@@ -212,25 +225,19 @@ void Gizmo3DHelper::cylinder_commit_handle(int p_id, const String &p_radius_acti
 	}
 
 	if (p_cancel) {
-		if (p_id == 0) {
-			p_radius_object->set(p_radius_property, initial_value);
-		} else {
-			p_height_object->set(p_height_property, initial_value);
-		}
+		p_radius_object->set(p_radius_property, initial_value.operator Vector2().x);
+		p_height_object->set(p_height_property, initial_value.operator Vector2().y);
 		p_position_object->set(p_position_property, initial_transform.get_origin());
 		return;
 	}
 
 	EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
 	ur->create_action(p_id == 0 ? p_radius_action_name : p_height_action_name);
-	if (p_id == 0) {
-		ur->add_do_property(p_radius_object, p_radius_property, p_radius_object->get(p_radius_property));
-		ur->add_undo_property(p_radius_object, p_radius_property, initial_value);
-	} else {
-		ur->add_do_property(p_height_object, p_height_property, p_height_object->get(p_height_property));
-		ur->add_do_property(p_position_object, p_position_property, p_position_object->get(p_position_property));
-		ur->add_undo_property(p_height_object, p_height_property, initial_value);
-		ur->add_undo_property(p_position_object, p_position_property, initial_transform.get_origin());
-	}
+	ur->add_do_property(p_radius_object, p_radius_property, p_radius_object->get(p_radius_property));
+	ur->add_undo_property(p_radius_object, p_radius_property, initial_value.operator Vector2().x);
+	ur->add_do_property(p_height_object, p_height_property, p_height_object->get(p_height_property));
+	ur->add_undo_property(p_height_object, p_height_property, initial_value.operator Vector2().y);
+	ur->add_do_property(p_position_object, p_position_property, p_position_object->get(p_position_property));
+	ur->add_undo_property(p_position_object, p_position_property, initial_transform.get_origin());
 	ur->commit_action();
 }

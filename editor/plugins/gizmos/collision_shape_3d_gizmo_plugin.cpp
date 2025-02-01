@@ -118,7 +118,7 @@ String CollisionShape3DGizmoPlugin::get_handle_name(const EditorNode3DGizmo *p_g
 	}
 
 	if (Object::cast_to<CapsuleShape3D>(*s)) {
-		return p_id == 0 ? "Radius" : "Height";
+		return helper->capsule_get_handle_name(p_id);
 	}
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
@@ -157,7 +157,7 @@ Variant CollisionShape3DGizmoPlugin::get_handle_value(const EditorNode3DGizmo *p
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
 		Ref<CylinderShape3D> cs2 = s;
-		return p_id == 0 ? cs2->get_radius() : cs2->get_height();
+		return Vector2(cs2->get_radius(), cs2->get_height());
 	}
 
 	if (Object::cast_to<SeparationRayShape3D>(*s)) {
@@ -225,26 +225,15 @@ void CollisionShape3DGizmoPlugin::set_handle(const EditorNode3DGizmo *p_gizmo, i
 	}
 
 	if (Object::cast_to<CapsuleShape3D>(*s)) {
-		Vector3 axis;
-		axis[p_id == 0 ? 0 : 1] = 1.0;
 		Ref<CapsuleShape3D> cs2 = s;
-		Vector3 ra, rb;
-		Geometry3D::get_closest_points_between_segments(Vector3(), axis * 4096, sg[0], sg[1], ra, rb);
-		float d = axis.dot(ra);
 
-		if (Node3DEditor::get_singleton()->is_snap_enabled()) {
-			d = Math::snapped(d, Node3DEditor::get_singleton()->get_translate_snap());
-		}
-
-		if (d < 0.001) {
-			d = 0.001;
-		}
-
-		if (p_id == 0) {
-			cs2->set_radius(d);
-		} else if (p_id == 1) {
-			cs2->set_height(d * 2.0);
-		}
+		real_t height = cs2->get_height();
+		real_t radius = cs2->get_radius();
+		Vector3 position;
+		helper->capsule_set_handle(sg, p_id, height, radius, position);
+		cs2->set_height(height);
+		cs2->set_radius(radius);
+		cs->set_global_position(position);
 	}
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
@@ -288,26 +277,7 @@ void CollisionShape3DGizmoPlugin::commit_handle(const EditorNode3DGizmo *p_gizmo
 
 	if (Object::cast_to<CapsuleShape3D>(*s)) {
 		Ref<CapsuleShape3D> ss = s;
-		Vector2 values = p_restore;
-
-		if (p_cancel) {
-			ss->set_radius(values[0]);
-			ss->set_height(values[1]);
-			return;
-		}
-
-		EditorUndoRedoManager *ur = EditorUndoRedoManager::get_singleton();
-		if (p_id == 0) {
-			ur->create_action(TTR("Change Capsule Shape Radius"));
-			ur->add_do_method(ss.ptr(), "set_radius", ss->get_radius());
-		} else {
-			ur->create_action(TTR("Change Capsule Shape Height"));
-			ur->add_do_method(ss.ptr(), "set_height", ss->get_height());
-		}
-		ur->add_undo_method(ss.ptr(), "set_radius", values[0]);
-		ur->add_undo_method(ss.ptr(), "set_height", values[1]);
-
-		ur->commit_action();
+		helper->cylinder_commit_handle(p_id, TTR("Change Capsule Shape Radius"), TTR("Change Capsule Shape Height"), p_cancel, cs, *ss, *ss);
 	}
 
 	if (Object::cast_to<CylinderShape3D>(*s)) {
@@ -483,10 +453,7 @@ void CollisionShape3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 		p_gizmo->add_collision_segments(collision_segments);
 
-		Vector<Vector3> handles = {
-			Vector3(cs2->get_radius(), 0, 0),
-			Vector3(0, cs2->get_height() * 0.5, 0)
-		};
+		Vector<Vector3> handles = helper->capsule_get_handles(cs2->get_height(), cs2->get_radius());
 		p_gizmo->add_handles(handles, handles_material);
 	}
 
