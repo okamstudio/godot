@@ -91,6 +91,7 @@ class AHashMap {
 public:
 	// Must be a power of two.
 	static constexpr uint32_t INITIAL_CAPACITY = 16;
+	static constexpr uint32_t END_OFFSET = 16;
 
 	// Used by Hashes when lookup.
 	_FORCE_INLINE_ bool _compare_function(uint32_t p_pos, const TKey &p_key) const {
@@ -149,14 +150,17 @@ private:
 		capacity = real_capacity - 1;
 
 		uint8_t *old_hashes = hashes.ptr;
-		hashes_to_key.initialize(real_capacity, _get_resize_count(capacity) + 1);
-		hashes.ptr = reinterpret_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE));
+		hashes_to_key.initialize(real_capacity + END_OFFSET, _get_resize_count(capacity) + 1);
+		hashes.ptr = reinterpret_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET)));
 		if (old_hashes != nullptr) {
 			Memory::free_static(old_hashes);
 		}
 
-		memset(hashes.ptr, Hashes::EMPTY_HASH, real_capacity * sizeof(uint8_t));
-		memset(hashes.ptr + real_capacity, Hashes::END_HASH, HashGroup::GROUP_SIZE * sizeof(uint8_t));
+		memset(hashes.ptr, Hashes::EMPTY_HASH, sizeof(uint8_t) * (real_capacity + END_OFFSET));
+
+		if constexpr ((long)HashGroup::GROUP_SIZE - (long)END_OFFSET > 0) {
+			memset(hashes.ptr + real_capacity + END_OFFSET, Hashes::END_HASH, sizeof(uint8_t) * (HashGroup::GROUP_SIZE - END_OFFSET));
+		}
 
 		for (uint32_t i = 0; i < num_elements; i++) {
 			uint32_t hash = _hash(elements[i].key);
@@ -204,7 +208,7 @@ private:
 		}
 
 		hashes_to_key = p_other.hashes_to_key;
-		hashes.ptr = reinterpret_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE));
+		hashes.ptr = reinterpret_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET)));
 		elements = reinterpret_cast<MapKeyValue *>(Memory::alloc_static(sizeof(MapKeyValue) * (elements_capacity)));
 
 		if constexpr (std::is_trivially_copyable_v<TKey> && std::is_trivially_copyable_v<TValue>) {
@@ -217,7 +221,7 @@ private:
 			}
 		}
 
-		memcpy(hashes.ptr, p_other.hashes.ptr, sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE);
+		memcpy(hashes.ptr, p_other.hashes.ptr, sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET));
 	}
 
 public:
@@ -235,7 +239,7 @@ public:
 			return;
 		}
 
-		memset(hashes.ptr, Hashes::EMPTY_HASH, (capacity + 1) * sizeof(uint8_t));
+		memset(hashes.ptr, Hashes::EMPTY_HASH, (capacity + 1 + END_OFFSET) * sizeof(uint8_t));
 		if constexpr (!(std::is_trivially_destructible_v<TKey> && std::is_trivially_destructible_v<TValue>)) {
 			for (uint32_t i = 0; i < num_elements; i++) {
 				elements[i].key.~TKey();
