@@ -52,16 +52,29 @@ static ShaderLanguage::BuiltInInfo constt(ShaderLanguage::DataType p_type) {
 	return ShaderLanguage::BuiltInInfo(p_type, true);
 }
 
+static ShaderLanguage::BuiltInInfo consttv(ShaderLanguage::DataType p_type, const Vector<ShaderLanguage::Scalar> &p_values) {
+	return ShaderLanguage::BuiltInInfo(p_type, true, p_values);
+}
+
 ShaderTypes::ShaderTypes() {
 	singleton = this;
 
 	/*************** SPATIAL ***********************/
 
+	ShaderLanguage::Scalar pi_scalar;
+	pi_scalar.real = Math_PI;
+
+	ShaderLanguage::Scalar tau_scalar;
+	tau_scalar.real = Math_TAU;
+
+	ShaderLanguage::Scalar e_scalar;
+	e_scalar.real = Math_E;
+
 	shader_modes[RS::SHADER_SPATIAL].functions["global"].built_ins["TIME"] = constt(ShaderLanguage::TYPE_FLOAT);
 	shader_modes[RS::SHADER_SPATIAL].functions["global"].built_ins["EXPOSURE"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["PI"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["TAU"] = constt(ShaderLanguage::TYPE_FLOAT);
-	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["E"] = constt(ShaderLanguage::TYPE_FLOAT);
+	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["PI"] = consttv(ShaderLanguage::TYPE_FLOAT, { pi_scalar });
+	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["TAU"] = consttv(ShaderLanguage::TYPE_FLOAT, { tau_scalar });
+	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["E"] = consttv(ShaderLanguage::TYPE_FLOAT, { e_scalar });
 	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["OUTPUT_IS_SRGB"] = constt(ShaderLanguage::TYPE_BOOL);
 	shader_modes[RS::SHADER_SPATIAL].functions["constants"].built_ins["CLIP_SPACE_FAR"] = constt(ShaderLanguage::TYPE_FLOAT);
 

@@ -1393,6 +1393,9 @@ bool ShaderLanguage::_find_identifier(const BlockNode *p_block, bool p_allow_rea
 			if (r_is_const) {
 				*r_is_const = p_function_info.built_ins[p_identifier].constant;
 			}
+			if (r_constant_values) {
+				*r_constant_values = p_function_info.built_ins[p_identifier].values;
+			}
 			if (r_type) {
 				*r_type = IDENTIFIER_BUILTIN_VAR;
 			}
@@ -1545,7 +1548,7 @@ bool ShaderLanguage::_find_identifier(const BlockNode *p_block, bool p_allow_rea
 	return false;
 }
 
-bool ShaderLanguage::_validate_operator(const BlockNode *p_block, OperatorNode *p_op, DataType *r_ret_type, int *r_ret_size) {
+bool ShaderLanguage::_validate_operator(const BlockNode *p_block, const FunctionInfo &p_function_info, OperatorNode *p_op, DataType *r_ret_type, int *r_ret_size) {
 	bool valid = false;
 	DataType ret_type = TYPE_VOID;
 	int ret_size = 0;
@@ -2011,18 +2014,18 @@ bool ShaderLanguage::_validate_operator(const BlockNode *p_block, OperatorNode *
 
 	if (valid && (!p_block || p_block->use_op_eval)) {
 		// Need to be placed here and not in the `_reduce_expression` because otherwise expressions like `1 + 2 / 2` will not work correctly.
-		valid = _eval_operator(p_block, p_op);
+		valid = _eval_operator(p_block, p_function_info, p_op);
 	}
 
 	return valid;
 }
 
-Vector<ShaderLanguage::Scalar> ShaderLanguage::_get_node_values(const BlockNode *p_block, Node *p_node) {
+Vector<ShaderLanguage::Scalar> ShaderLanguage::_get_node_values(const BlockNode *p_block, const FunctionInfo &p_function_info, Node *p_node) {
 	Vector<Scalar> result;
 
 	switch (p_node->type) {
 		case Node::NODE_TYPE_VARIABLE: {
-			_find_identifier(p_block, false, FunctionInfo(), static_cast<VariableNode *>(p_node)->name, nullptr, nullptr, nullptr, nullptr, nullptr, &result);
+			_find_identifier(p_block, false, p_function_info, static_cast<VariableNode *>(p_node)->name, nullptr, nullptr, nullptr, nullptr, nullptr, &result);
 		} break;
 		default: {
 			result = p_node->get_values();
@@ -2032,7 +2035,7 @@ Vector<ShaderLanguage::Scalar> ShaderLanguage::_get_node_values(const BlockNode 
 	return result;
 }
 
-bool ShaderLanguage::_eval_operator(const BlockNode *p_block, OperatorNode *p_op) {
+bool ShaderLanguage::_eval_operator(const BlockNode *p_block, const FunctionInfo &p_function_info, OperatorNode *p_op) {
 	bool is_valid = true;
 
 	switch (p_op->op) {
@@ -2074,8 +2077,8 @@ bool ShaderLanguage::_eval_operator(const BlockNode *p_block, OperatorNode *p_op
 				}
 			}
 
-			Vector<Scalar> va = _get_node_values(p_block, p_op->arguments[0]);
-			Vector<Scalar> vb = _get_node_values(p_block, p_op->arguments[1]);
+			Vector<Scalar> va = _get_node_values(p_block, p_function_info, p_op->arguments[0]);
+			Vector<Scalar> vb = _get_node_values(p_block, p_function_info, p_op->arguments[1]);
 
 			if (is_op_vec_transform) {
 				p_op->values = _eval_vector_transform(va, vb, a, b, p_op->get_datatype());
@@ -2086,7 +2089,7 @@ bool ShaderLanguage::_eval_operator(const BlockNode *p_block, OperatorNode *p_op
 		case OP_NOT:
 		case OP_NEGATE:
 		case OP_BIT_INVERT: {
-			p_op->values = _eval_unary_vector(_get_node_values(p_block, p_op->arguments[0]), p_op->get_datatype(), p_op->op);
+			p_op->values = _eval_unary_vector(_get_node_values(p_block, p_function_info, p_op->arguments[0]), p_op->get_datatype(), p_op->op);
 		} break;
 		default: {
 		} break;
@@ -3655,7 +3658,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const FunctionI
 								int max = builtin_func_const_args[constarg_idx].max;
 
 								bool error = false;
-								Vector<Scalar> values = _get_node_values(p_block, p_func->arguments[arg]);
+								Vector<Scalar> values = _get_node_values(p_block, p_function_info, p_func->arguments[arg]);
 								if (p_func->arguments[arg]->get_datatype() == TYPE_INT && !values.is_empty()) {
 									if (values[0].sint < min || values[0].sint > max) {
 										error = true;
@@ -5652,7 +5655,7 @@ Error ShaderLanguage::_parse_array_size(BlockNode *p_block, const FunctionInfo &
 		Node *expr = _parse_and_reduce_expression(p_block, p_function_info);
 
 		if (expr) {
-			Vector<Scalar> values = _get_node_values(p_block, expr);
+			Vector<Scalar> values = _get_node_values(p_block, p_function_info, expr);
 
 			if (!values.is_empty()) {
 				switch (expr->get_datatype()) {
@@ -7270,7 +7273,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				op->op = tk.type == TK_OP_DECREMENT ? OP_POST_DECREMENT : OP_POST_INCREMENT;
 				op->arguments.push_back(expr);
 
-				if (!_validate_operator(p_block, op, &op->return_cache, &op->return_array_size)) {
+				if (!_validate_operator(p_block, p_function_info, op, &op->return_cache, &op->return_array_size)) {
 					_set_error(RTR("Invalid base type for increment/decrement operator."));
 					return nullptr;
 				}
@@ -7619,7 +7622,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				expression.write[i].is_op = false;
 				expression.write[i].node = op;
 
-				if (!_validate_operator(p_block, op, &op->return_cache, &op->return_array_size)) {
+				if (!_validate_operator(p_block, p_function_info, op, &op->return_cache, &op->return_array_size)) {
 					if (error_set) {
 						return nullptr;
 					}
@@ -7661,7 +7664,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 
 			expression.write[next_op - 1].is_op = false;
 			expression.write[next_op - 1].node = op;
-			if (!_validate_operator(p_block, op, &op->return_cache, &op->return_array_size)) {
+			if (!_validate_operator(p_block, p_function_info, op, &op->return_cache, &op->return_array_size)) {
 				if (error_set) {
 					return nullptr;
 				}
@@ -7728,7 +7731,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 
 			//replace all 3 nodes by this operator and make it an expression
 
-			if (!_validate_operator(p_block, op, &op->return_cache, &op->return_array_size)) {
+			if (!_validate_operator(p_block, p_function_info, op, &op->return_cache, &op->return_array_size)) {
 				if (error_set) {
 					return nullptr;
 				}
@@ -9061,6 +9064,49 @@ Error ShaderLanguage::_validate_precision(DataType p_type, DataPrecision p_preci
 	return OK;
 }
 
+bool ShaderLanguage::_parse_hint_range_constant(const FunctionInfo &p_constants, float &r_constant) {
+	ShaderLanguage::Node *expr = _parse_and_reduce_expression(nullptr, p_constants);
+	if (expr == nullptr || (expr->type != Node::NODE_TYPE_CONSTANT && expr->type != Node::NODE_TYPE_OPERATOR && expr->type != Node::NODE_TYPE_VARIABLE)) {
+		return false;
+	}
+
+	Vector<Scalar> values;
+	if (expr->type == Node::NODE_TYPE_VARIABLE) {
+		VariableNode *vnode = static_cast<VariableNode *>(expr);
+
+		bool is_const = false;
+		int array_size = 0;
+
+		_find_identifier(nullptr, false, p_constants, vnode->name, nullptr, nullptr, &is_const, &array_size, nullptr, &values);
+
+		if (!is_const || array_size > 0) {
+			return false;
+		}
+	} else {
+		values = expr->get_values();
+	}
+
+	if (values.is_empty()) {
+		return false; // To prevent possible crashes.
+	}
+
+	switch (expr->get_datatype()) {
+		case TYPE_FLOAT:
+			r_constant = values[0].real;
+			break;
+		case TYPE_INT:
+			r_constant = static_cast<float>(values[0].sint);
+			break;
+		case TYPE_UINT:
+			r_constant = static_cast<float>(values[0].uint);
+			break;
+		default:
+			return false;
+	}
+
+	return true;
+}
+
 Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_functions, const Vector<ModeInfo> &p_render_modes, const HashSet<String> &p_shader_types) {
 	Token tk;
 	TkPos prev_pos;
@@ -9798,58 +9844,30 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 										return ERR_PARSE_ERROR;
 									}
 
-									tk = _get_token();
-
-									float sign = 1.0;
-
-									if (tk.type == TK_OP_SUB) {
-										sign = -1.0;
-										tk = _get_token();
-									}
-
-									if (tk.type != TK_FLOAT_CONSTANT && !tk.is_integer_constant()) {
-										_set_error(RTR("Expected an integer constant."));
+									if (!_parse_hint_range_constant(constants, uniform.hint_range[0])) {
+										_set_error(RTR("Expected a valid numeric expression after ','."));
 										return ERR_PARSE_ERROR;
 									}
-
-									uniform.hint_range[0] = tk.constant;
-									uniform.hint_range[0] *= sign;
 
 									tk = _get_token();
 
 									if (tk.type != TK_COMMA) {
-										_set_error(RTR("Expected ',' after integer constant."));
+										_set_error(RTR("Expected ',' after expression."));
 										return ERR_PARSE_ERROR;
 									}
 
-									tk = _get_token();
-
-									sign = 1.0;
-
-									if (tk.type == TK_OP_SUB) {
-										sign = -1.0;
-										tk = _get_token();
-									}
-
-									if (tk.type != TK_FLOAT_CONSTANT && !tk.is_integer_constant()) {
-										_set_error(RTR("Expected an integer constant after ','."));
+									if (!_parse_hint_range_constant(constants, uniform.hint_range[1])) {
+										_set_error(RTR("Expected a valid numeric expression after ','."));
 										return ERR_PARSE_ERROR;
 									}
-
-									uniform.hint_range[1] = tk.constant;
-									uniform.hint_range[1] *= sign;
 
 									tk = _get_token();
 
 									if (tk.type == TK_COMMA) {
-										tk = _get_token();
-
-										if (tk.type != TK_FLOAT_CONSTANT && !tk.is_integer_constant()) {
-											_set_error(RTR("Expected an integer constant after ','."));
+										if (!_parse_hint_range_constant(constants, uniform.hint_range[2])) {
+											_set_error(RTR("Expected a valid numeric expression after ','."));
 											return ERR_PARSE_ERROR;
 										}
-
-										uniform.hint_range[2] = tk.constant;
 										tk = _get_token();
 									} else {
 										if (type == TYPE_INT) {
