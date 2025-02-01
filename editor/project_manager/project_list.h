@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECT_LIST_H
-#define PROJECT_LIST_H
+#pragma once
 
 #include "core/io/config_file.h"
 #include "scene/gui/box_container.h"
@@ -286,5 +285,3 @@ public:
 
 	ProjectList();
 };
-
-#endif // PROJECT_LIST_H

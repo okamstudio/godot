@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_NODE_H
-#define GLTF_NODE_H
+#pragma once
 
 #include "../gltf_defines.h"
 
@@ -108,5 +107,3 @@ public:
 
 	NodePath get_scene_node_path(Ref<GLTFState> p_state, bool p_handle_skeletons = true);
 };
-
-#endif // GLTF_NODE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_GEOMETRY_INSTANCE_H
-#define RENDERER_GEOMETRY_INSTANCE_H
+#pragma once
 
 #include "core/math/rect2.h"
 #include "core/math/transform_3d.h"
@@ -149,5 +148,3 @@ public:
 	virtual Transform3D get_transform() override;
 	virtual AABB get_aabb() override;
 };
-
-#endif // RENDERER_GEOMETRY_INSTANCE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_CALLABLE_H
-#define TEST_CALLABLE_H
+#pragma once
 
 #include "core/object/class_db.h"
 #include "core/object/object.h"
@@ -200,5 +199,3 @@ TEST_CASE("[Callable] Bound and unbound argument count") {
 }
 
 } // namespace TestCallable
-
-#endif // TEST_CALLABLE_H

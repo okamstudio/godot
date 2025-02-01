@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MESH_H
-#define MESH_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/math/face3.h"
@@ -439,5 +438,3 @@ public:
 	PlaceholderMesh();
 	~PlaceholderMesh();
 };
-
-#endif // MESH_H

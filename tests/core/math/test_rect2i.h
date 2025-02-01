@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_RECT2I_H
-#define TEST_RECT2I_H
+#pragma once
 
 #include "core/math/rect2.h"
 #include "core/math/rect2i.h"
@@ -307,5 +306,3 @@ TEST_CASE("[Rect2i] Merging") {
 			"merge() with non-enclosed Rect2i should return the expected result.");
 }
 } // namespace TestRect2i
-
-#endif // TEST_RECT2I_H

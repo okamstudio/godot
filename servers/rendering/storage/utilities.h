@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_UTILITIES_H
-#define RENDERER_UTILITIES_H
+#pragma once
 
 #include "servers/rendering_server.h"
 
@@ -185,5 +184,3 @@ public:
 
 	virtual Size2i get_maximum_viewport_size() const = 0;
 };
-
-#endif // RENDERER_UTILITIES_H

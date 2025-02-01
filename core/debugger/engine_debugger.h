@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ENGINE_DEBUGGER_H
-#define ENGINE_DEBUGGER_H
+#pragma once
 
 #include "core/string/string_name.h"
 #include "core/string/ustring.h"
@@ -140,5 +139,3 @@ public:
 
 	virtual ~EngineDebugger();
 };
-
-#endif // ENGINE_DEBUGGER_H

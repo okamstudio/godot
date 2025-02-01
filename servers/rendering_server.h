@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_SERVER_H
-#define RENDERING_SERVER_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/math/geometry_3d.h"
@@ -1978,5 +1977,3 @@ VARIANT_ENUM_CAST(RenderingServer::Features);
 
 // Alias to make it easier to use.
 #define RS RenderingServer
-
-#endif // RENDERING_SERVER_H

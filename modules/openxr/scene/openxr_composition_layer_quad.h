@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_COMPOSITION_LAYER_QUAD_H
-#define OPENXR_COMPOSITION_LAYER_QUAD_H
+#pragma once
 
 #include <openxr/openxr.h>
 
@@ -69,5 +68,3 @@ public:
 	OpenXRCompositionLayerQuad();
 	~OpenXRCompositionLayerQuad();
 };
-
-#endif // OPENXR_COMPOSITION_LAYER_QUAD_H

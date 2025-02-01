@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RB_SET_H
-#define RB_SET_H
+#pragma once
 
 #include "core/os/memory.h"
 #include "core/typedefs.h"
@@ -715,5 +714,3 @@ public:
 		clear();
 	}
 };
-
-#endif // RB_SET_H

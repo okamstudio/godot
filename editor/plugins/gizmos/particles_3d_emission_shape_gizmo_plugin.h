@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PARTICLES_3D_EMISSION_SHAPE_GIZMO_PLUGIN_H
-#define PARTICLES_3D_EMISSION_SHAPE_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/gizmos/gizmo_3d_helper.h"
 #include "editor/plugins/node_3d_editor_gizmos.h"
@@ -53,5 +52,3 @@ public:
 
 	Particles3DEmissionShapeGizmoPlugin();
 };
-
-#endif // PARTICLES_3D_EMISSION_SHAPE_GIZMO_PLUGIN_H

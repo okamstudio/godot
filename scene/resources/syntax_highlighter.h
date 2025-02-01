@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SYNTAX_HIGHLIGHTER_H
-#define SYNTAX_HIGHLIGHTER_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/object/gdvirtual.gen.inc"
@@ -144,5 +143,3 @@ public:
 
 	void set_uint_suffix_enabled(bool p_enabled);
 };
-
-#endif // SYNTAX_HIGHLIGHTER_H

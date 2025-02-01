@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_VECTOR4_H
-#define TEST_VECTOR4_H
+#pragma once
 
 #include "core/math/vector4.h"
 #include "tests/test_macros.h"
@@ -401,5 +400,3 @@ TEST_CASE("[Vector4] Finite number checks") {
 }
 
 } // namespace TestVector4
-
-#endif // TEST_VECTOR4_H

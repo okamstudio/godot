@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_BROAD_PHASE_LAYER_H
-#define JOLT_BROAD_PHASE_LAYER_H
+#pragma once
 
 #include "Jolt/Jolt.h"
 
@@ -48,5 +47,3 @@ constexpr JPH::BroadPhaseLayer AREA_UNDETECTABLE(4);
 constexpr uint32_t COUNT = 5;
 
 } // namespace JoltBroadPhaseLayer
-
-#endif // JOLT_BROAD_PHASE_LAYER_H

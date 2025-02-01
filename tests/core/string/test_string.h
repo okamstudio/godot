@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_STRING_H
-#define TEST_STRING_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -2100,5 +2099,3 @@ TEST_CASE("[Stress][String] Empty via `is_empty()`") {
 	}
 }
 } // namespace TestString
-
-#endif // TEST_STRING_H

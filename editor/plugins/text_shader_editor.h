@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_SHADER_EDITOR_H
-#define TEXT_SHADER_EDITOR_H
+#pragma once
 
 #include "editor/code_editor.h"
 #include "editor/plugins/shader/shader_editor.h"
@@ -211,5 +210,3 @@ public:
 
 	TextShaderEditor();
 };
-
-#endif // TEXT_SHADER_EDITOR_H

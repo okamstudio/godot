@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#pragma once
 
 #include "core/extension/gdextension_interface.h"
 #include "core/object/message_queue.h"
@@ -1065,5 +1064,3 @@ public:
 	static void debug_objects(DebugFunc p_func);
 	static int get_object_count();
 };
-
-#endif // OBJECT_H

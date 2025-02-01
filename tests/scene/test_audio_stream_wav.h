@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_AUDIO_STREAM_WAV_H
-#define TEST_AUDIO_STREAM_WAV_H
+#pragma once
 
 #include "core/math/math_defs.h"
 #include "core/math/math_funcs.h"
@@ -218,5 +217,3 @@ TEST_CASE("[Audio][AudioStreamWAV] Saving IMA ADPCM is not supported") {
 }
 
 } // namespace TestAudioStreamWAV
-
-#endif // TEST_AUDIO_STREAM_WAV_H

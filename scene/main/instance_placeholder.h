@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef INSTANCE_PLACEHOLDER_H
-#define INSTANCE_PLACEHOLDER_H
+#pragma once
 
 #include "scene/main/node.h"
 
@@ -67,5 +66,3 @@ public:
 
 	InstancePlaceholder();
 };
-
-#endif // INSTANCE_PLACEHOLDER_H

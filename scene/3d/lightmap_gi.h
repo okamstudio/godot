@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHTMAP_GI_H
-#define LIGHTMAP_GI_H
+#pragma once
 
 #include "core/templates/local_vector.h"
 #include "scene/3d/light_3d.h"
@@ -360,5 +359,3 @@ VARIANT_ENUM_CAST(LightmapGI::BakeQuality);
 VARIANT_ENUM_CAST(LightmapGI::GenerateProbes);
 VARIANT_ENUM_CAST(LightmapGI::BakeError);
 VARIANT_ENUM_CAST(LightmapGI::EnvironmentMode);
-
-#endif // LIGHTMAP_GI_H

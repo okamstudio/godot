@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_WMR_CONTROLLER_EXTENSION_H
-#define OPENXR_WMR_CONTROLLER_EXTENSION_H
+#pragma once
 
 #include "openxr_extension_wrapper.h"
 
@@ -51,5 +50,3 @@ public:
 private:
 	bool available[WMR_MAX_CONTROLLERS] = { false, false };
 };
-
-#endif // OPENXR_WMR_CONTROLLER_EXTENSION_H

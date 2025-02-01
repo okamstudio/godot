@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LINUXBSD_EXPORT_H
-#define LINUXBSD_EXPORT_H
+#pragma once
 
 void register_linuxbsd_exporter_types();
 void register_linuxbsd_exporter();
-
-#endif // LINUXBSD_EXPORT_H

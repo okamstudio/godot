@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WINDOW_WRAPPER_H
-#define WINDOW_WRAPPER_H
+#pragma once
 
 #include "core/math/rect2.h"
 #include "scene/gui/margin_container.h"
@@ -115,5 +114,3 @@ protected:
 public:
 	ScreenSelect();
 };
-
-#endif // WINDOW_WRAPPER_H

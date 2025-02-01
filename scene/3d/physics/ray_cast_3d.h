@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RAY_CAST_3D_H
-#define RAY_CAST_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 
@@ -135,5 +134,3 @@ public:
 
 	RayCast3D();
 };
-
-#endif // RAY_CAST_3D_H

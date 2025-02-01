@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_ACTION_SET_H
-#define OPENXR_ACTION_SET_H
+#pragma once
 
 #include "openxr_action.h"
 
@@ -71,5 +70,3 @@ public:
 
 	~OpenXRActionSet();
 };
-
-#endif // OPENXR_ACTION_SET_H

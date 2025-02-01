@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_LSP_H
-#define TEST_LSP_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -508,5 +507,3 @@ func f():
 } // namespace GDScriptTests
 
 #endif // TOOLS_ENABLED
-
-#endif // TEST_LSP_H

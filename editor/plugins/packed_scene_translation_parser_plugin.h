@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PACKED_SCENE_TRANSLATION_PARSER_PLUGIN_H
-#define PACKED_SCENE_TRANSLATION_PARSER_PLUGIN_H
+#pragma once
 
 #include "editor/editor_translation_parser.h"
 
@@ -48,5 +47,3 @@ public:
 
 	PackedSceneEditorTranslationParserPlugin();
 };
-
-#endif // PACKED_SCENE_TRANSLATION_PARSER_PLUGIN_H

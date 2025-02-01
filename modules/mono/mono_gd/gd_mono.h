@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GD_MONO_H
-#define GD_MONO_H
+#pragma once
 
 #include "../godotsharp_defs.h"
 
@@ -180,5 +179,3 @@ public:
 };
 
 } // namespace mono_bind
-
-#endif // GD_MONO_H

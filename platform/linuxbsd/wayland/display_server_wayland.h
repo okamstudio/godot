@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_WAYLAND_H
-#define DISPLAY_SERVER_WAYLAND_H
+#pragma once
 
 #ifdef WAYLAND_ENABLED
 
@@ -319,5 +318,3 @@ public:
 };
 
 #endif // WAYLAND_ENABLED
-
-#endif // DISPLAY_SERVER_WAYLAND_H

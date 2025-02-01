@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MATERIAL_STORAGE_RD_H
-#define MATERIAL_STORAGE_RD_H
+#pragma once
 
 #include "texture_storage.h"
 
@@ -469,5 +468,3 @@ public:
 };
 
 } // namespace RendererRD
-
-#endif // MATERIAL_STORAGE_RD_H

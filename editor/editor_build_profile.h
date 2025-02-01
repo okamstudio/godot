@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_BUILD_PROFILE_H
-#define EDITOR_BUILD_PROFILE_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 #include "editor/editor_help.h"
@@ -185,5 +184,3 @@ public:
 	static EditorBuildProfileManager *get_singleton() { return singleton; }
 	EditorBuildProfileManager();
 };
-
-#endif // EDITOR_BUILD_PROFILE_H

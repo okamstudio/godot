@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SHAPE_3D_H
-#define SHAPE_3D_H
+#pragma once
 
 #include "core/io/resource.h"
 
@@ -94,5 +93,3 @@ public:
 	Shape3D();
 	~Shape3D();
 };
-
-#endif // SHAPE_3D_H

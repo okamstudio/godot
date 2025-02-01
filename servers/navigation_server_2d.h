@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_SERVER_2D_H
-#define NAVIGATION_SERVER_2D_H
+#pragma once
 
 #include "core/object/class_db.h"
 #include "core/templates/rid.h"
@@ -434,5 +433,3 @@ public:
 	static void initialize_server();
 	static void finalize_server();
 };
-
-#endif // NAVIGATION_SERVER_2D_H

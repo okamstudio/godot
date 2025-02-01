@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_EYE_GAZE_INTERACTION_H
-#define OPENXR_EYE_GAZE_INTERACTION_H
+#pragma once
 
 #include "openxr_extension_wrapper.h"
 
@@ -62,5 +61,3 @@ private:
 	RID eye_tracker;
 	RID eye_action;
 };
-
-#endif // OPENXR_EYE_GAZE_INTERACTION_H

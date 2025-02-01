@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_DEVICE_GRAPH_H
-#define RENDERING_DEVICE_GRAPH_H
+#pragma once
 
 #include "core/object/worker_thread_pool.h"
 #include "rendering_device_commons.h"
@@ -825,5 +824,3 @@ public:
 };
 
 using RDG = RenderingDeviceGraph;
-
-#endif // RENDERING_DEVICE_GRAPH_H

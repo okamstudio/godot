@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_LOADER_H
-#define RESOURCE_LOADER_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/object/gdvirtual.gen.inc"
@@ -315,5 +314,3 @@ public:
 	static void initialize();
 	static void finalize();
 };
-
-#endif // RESOURCE_LOADER_H

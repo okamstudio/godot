@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VERSION_H
-#define VERSION_H
+#pragma once
 
 #include "core/version_generated.gen.h"
 
@@ -82,5 +81,3 @@ extern const char *const VERSION_HASH;
 // Git commit date UNIX timestamp (in seconds), generated at build time in `core/version_hash.gen.cpp`.
 // Set to 0 if unknown.
 extern const uint64_t VERSION_TIMESTAMP;
-
-#endif // VERSION_H

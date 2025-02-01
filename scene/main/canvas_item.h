@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CANVAS_ITEM_H
-#define CANVAS_ITEM_H
+#pragma once
 
 #include "scene/main/node.h"
 #include "scene/resources/font.h"
@@ -460,5 +459,3 @@ public:
 	CanvasTexture();
 	~CanvasTexture();
 };
-
-#endif // CANVAS_ITEM_H

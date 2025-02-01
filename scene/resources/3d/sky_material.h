@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SKY_MATERIAL_H
-#define SKY_MATERIAL_H
+#pragma once
 
 #include "core/templates/rid.h"
 #include "scene/resources/material.h"
@@ -231,5 +230,3 @@ public:
 	PhysicalSkyMaterial();
 	~PhysicalSkyMaterial();
 };
-
-#endif // SKY_MATERIAL_H

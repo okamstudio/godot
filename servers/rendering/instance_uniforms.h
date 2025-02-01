@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef INSTANCE_UNIFORMS_H
-#define INSTANCE_UNIFORMS_H
+#pragma once
 
 #include "core/variant/variant.h"
 #include "servers/rendering/storage/material_storage.h"
@@ -69,5 +68,3 @@ private:
 	void _init_param(Item &r_item, const RendererMaterialStorage::InstanceShaderParam &p_param) const;
 	void _invalidate_items();
 };
-
-#endif // INSTANCE_UNIFORMS_H

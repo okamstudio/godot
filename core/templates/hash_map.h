@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef HASH_MAP_H
-#define HASH_MAP_H
+#pragma once
 
 #include "core/os/memory.h"
 #include "core/templates/hashfuncs.h"
@@ -671,5 +670,3 @@ public:
 		}
 	}
 };
-
-#endif // HASH_MAP_H

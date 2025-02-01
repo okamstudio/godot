@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_OBSTACLE_2D_EDITOR_PLUGIN_H
-#define NAVIGATION_OBSTACLE_2D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/abstract_polygon_2d_editor.h"
 #include "scene/2d/navigation_obstacle_2d.h"
@@ -60,5 +59,3 @@ class NavigationObstacle2DEditorPlugin : public AbstractPolygon2DEditorPlugin {
 public:
 	NavigationObstacle2DEditorPlugin();
 };
-
-#endif // NAVIGATION_OBSTACLE_2D_EDITOR_PLUGIN_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SURFACE_UPGRADE_TOOL_H
-#define SURFACE_UPGRADE_TOOL_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -78,5 +77,3 @@ public:
 
 	SurfaceUpgradeDialog();
 };
-
-#endif // SURFACE_UPGRADE_TOOL_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RAY_CAST_2D_H
-#define RAY_CAST_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -105,5 +104,3 @@ public:
 
 	RayCast2D();
 };
-
-#endif // RAY_CAST_2D_H

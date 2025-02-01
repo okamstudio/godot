@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_VECTOR3I_H
-#define TEST_VECTOR3I_H
+#pragma once
 
 #include "core/math/vector3i.h"
 #include "tests/test_macros.h"
@@ -166,5 +165,3 @@ TEST_CASE("[Vector3i] Abs and sign methods") {
 			"Vector3i sign should work as expected.");
 }
 } // namespace TestVector3i
-
-#endif // TEST_VECTOR3I_H

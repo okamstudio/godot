@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLLISION_POLYGON_3D_H
-#define COLLISION_POLYGON_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 
@@ -94,5 +93,3 @@ public:
 
 	CollisionPolygon3D();
 };
-
-#endif // COLLISION_POLYGON_3D_H

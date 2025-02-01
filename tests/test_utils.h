@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_UTILS_H
-#define TEST_UTILS_H
+#pragma once
 
 class String;
 
@@ -39,5 +38,3 @@ String get_data_path(const String &p_file);
 String get_executable_dir();
 String get_temp_path(const String &p_suffix);
 } // namespace TestUtils
-
-#endif // TEST_UTILS_H

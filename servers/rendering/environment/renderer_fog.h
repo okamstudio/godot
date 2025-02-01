@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_FOG_H
-#define RENDERER_FOG_H
+#pragma once
 
 #include "servers/rendering_server.h"
 
@@ -49,5 +48,3 @@ public:
 	virtual AABB fog_volume_get_aabb(RID p_fog_volume) const = 0;
 	virtual RS::FogVolumeShape fog_volume_get_shape(RID p_fog_volume) const = 0;
 };
-
-#endif // RENDERER_FOG_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DISPLAY_SERVER_X11_H
-#define DISPLAY_SERVER_X11_H
+#pragma once
 
 #ifdef X11_ENABLED
 
@@ -576,5 +575,3 @@ public:
 };
 
 #endif // X11_ENABLED
-
-#endif // DISPLAY_SERVER_X11_H

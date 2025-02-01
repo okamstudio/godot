@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCENE_REPLICATION_CONFIG_H
-#define SCENE_REPLICATION_CONFIG_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/variant/typed_array.h"
@@ -108,5 +107,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(SceneReplicationConfig::ReplicationMode);
-
-#endif // SCENE_REPLICATION_CONFIG_H

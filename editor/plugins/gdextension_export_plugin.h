@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDEXTENSION_EXPORT_PLUGIN_H
-#define GDEXTENSION_EXPORT_PLUGIN_H
+#pragma once
 
 #include "core/extension/gdextension_library_loader.h"
 #include "editor/export/editor_export.h"
@@ -169,5 +168,3 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 		}
 	}
 }
-
-#endif // GDEXTENSION_EXPORT_PLUGIN_H

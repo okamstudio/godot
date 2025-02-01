@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_CONTROLLER_TRACKER_H
-#define XR_CONTROLLER_TRACKER_H
+#pragma once
 
 #include "core/os/thread_safe.h"
 #include "servers/xr/xr_positional_tracker.h"
@@ -48,5 +47,3 @@ protected:
 public:
 	XRControllerTracker();
 };
-
-#endif // XR_CONTROLLER_TRACKER_H

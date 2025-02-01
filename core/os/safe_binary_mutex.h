@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SAFE_BINARY_MUTEX_H
-#define SAFE_BINARY_MUTEX_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/os/mutex.h"
@@ -149,5 +148,3 @@ public:
 };
 
 #endif // THREADS_ENABLED
-
-#endif // SAFE_BINARY_MUTEX_H

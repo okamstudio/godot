@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef A_STAR_H
-#define A_STAR_H
+#pragma once
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/ref_counted.h"
@@ -222,5 +221,3 @@ public:
 	AStar2D() {}
 	~AStar2D() {}
 };
-
-#endif // A_STAR_H

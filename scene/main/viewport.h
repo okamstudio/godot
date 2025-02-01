@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VIEWPORT_H
-#define VIEWPORT_H
+#pragma once
 
 #include "scene/main/node.h"
 #include "scene/resources/texture.h"
@@ -895,5 +894,3 @@ VARIANT_ENUM_CAST(Viewport::RenderInfo);
 VARIANT_ENUM_CAST(Viewport::RenderInfoType);
 VARIANT_ENUM_CAST(Viewport::DefaultCanvasItemTextureFilter);
 VARIANT_ENUM_CAST(Viewport::DefaultCanvasItemTextureRepeat);
-
-#endif // VIEWPORT_H

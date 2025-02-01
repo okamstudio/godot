@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_NAVIGATION_SERVER_2D_H
-#define TEST_NAVIGATION_SERVER_2D_H
+#pragma once
 
 #include "servers/navigation_server_2d.h"
 
@@ -43,5 +42,3 @@ TEST_SUITE("[Navigation]") {
 	}
 }
 } //namespace TestNavigationServer2D
-
-#endif // TEST_NAVIGATION_SERVER_2D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ENET_CONNECTION_H
-#define ENET_CONNECTION_H
+#pragma once
 
 #include "enet_packet_peer.h"
 
@@ -140,5 +139,3 @@ public:
 VARIANT_ENUM_CAST(ENetConnection::CompressionMode);
 VARIANT_ENUM_CAST(ENetConnection::EventType);
 VARIANT_ENUM_CAST(ENetConnection::HostStatistic);
-
-#endif // ENET_CONNECTION_H

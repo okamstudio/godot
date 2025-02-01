@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_BODY_3D_H
-#define JOLT_BODY_3D_H
+#pragma once
 
 #include "jolt_physics_direct_body_state_3d.h"
 #include "jolt_shaped_object_3d.h"
@@ -305,5 +304,3 @@ public:
 	virtual bool can_interact_with(const JoltSoftBody3D &p_other) const override;
 	virtual bool can_interact_with(const JoltArea3D &p_other) const override;
 };
-
-#endif // JOLT_BODY_3D_H

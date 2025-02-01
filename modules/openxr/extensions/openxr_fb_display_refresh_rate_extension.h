@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_FB_DISPLAY_REFRESH_RATE_EXTENSION_H
-#define OPENXR_FB_DISPLAY_REFRESH_RATE_EXTENSION_H
+#pragma once
 
 // This extension gives us access to the possible display refresh rates
 // supported by the HMD.
@@ -68,5 +67,3 @@ private:
 	EXT_PROTO_XRRESULT_FUNC2(xrGetDisplayRefreshRateFB, (XrSession), session, (float *), display_refresh_rate);
 	EXT_PROTO_XRRESULT_FUNC2(xrRequestDisplayRefreshRateFB, (XrSession), session, (float), display_refresh_rate);
 };
-
-#endif // OPENXR_FB_DISPLAY_REFRESH_RATE_EXTENSION_H

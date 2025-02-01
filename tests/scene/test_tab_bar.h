@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TAB_BAR_H
-#define TEST_TAB_BAR_H
+#pragma once
 
 #include "scene/gui/tab_bar.h"
 #include "scene/main/window.h"
@@ -860,5 +859,3 @@ TEST_CASE("[SceneTree][TabBar] layout and offset") {
 // FIXME: Add tests for mouse click, keyboard navigation, and drag and drop.
 
 } // namespace TestTabBar
-
-#endif // TEST_TAB_BAR_H

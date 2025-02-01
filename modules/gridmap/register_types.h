@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GRIDMAP_REGISTER_TYPES_H
-#define GRIDMAP_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_gridmap_module(ModuleInitializationLevel p_level);
 void uninitialize_gridmap_module(ModuleInitializationLevel p_level);
-
-#endif // GRIDMAP_REGISTER_TYPES_H

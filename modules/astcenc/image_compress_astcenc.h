@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMAGE_COMPRESS_ASTCENC_H
-#define IMAGE_COMPRESS_ASTCENC_H
+#pragma once
 
 #include "core/io/image.h"
 
@@ -38,5 +37,3 @@ void _compress_astc(Image *r_img, Image::ASTCFormat p_format);
 #endif
 
 void _decompress_astc(Image *r_img);
-
-#endif // IMAGE_COMPRESS_ASTCENC_H

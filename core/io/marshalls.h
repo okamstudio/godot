@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MARSHALLS_H
-#define MARSHALLS_H
+#pragma once
 
 #include "core/math/math_defs.h"
 #include "core/object/ref_counted.h"
@@ -226,5 +225,3 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bool p_full_objects = false, int p_depth = 0);
 
 Vector<float> vector3_to_float32_array(const Vector3 *vecs, size_t count);
-
-#endif // MARSHALLS_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EMBEDDED_PROCESS_H
-#define EMBEDDED_PROCESS_H
+#pragma once
 
 #include "scene/gui/control.h"
 
@@ -91,5 +90,3 @@ public:
 	EmbeddedProcess();
 	~EmbeddedProcess();
 };
-
-#endif // EMBEDDED_PROCESS_H

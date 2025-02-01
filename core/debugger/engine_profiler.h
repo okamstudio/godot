@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ENGINE_PROFILER_H
-#define ENGINE_PROFILER_H
+#pragma once
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/ref_counted.h"
@@ -59,5 +58,3 @@ public:
 	EngineProfiler() {}
 	virtual ~EngineProfiler();
 };
-
-#endif // ENGINE_PROFILER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GAME_VIEW_PLUGIN_H
-#define GAME_VIEW_PLUGIN_H
+#pragma once
 
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/plugins/editor_debugger_plugin.h"
@@ -240,5 +239,3 @@ public:
 	GameViewPlugin();
 	~GameViewPlugin();
 };
-
-#endif // GAME_VIEW_PLUGIN_H

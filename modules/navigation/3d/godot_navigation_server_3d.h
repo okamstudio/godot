@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_NAVIGATION_SERVER_3D_H
-#define GODOT_NAVIGATION_SERVER_3D_H
+#pragma once
 
 #include "../nav_agent.h"
 #include "../nav_link.h"
@@ -301,5 +300,3 @@ private:
 
 #undef COMMAND_1
 #undef COMMAND_2
-
-#endif // GODOT_NAVIGATION_SERVER_3D_H

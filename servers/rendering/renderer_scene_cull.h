@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_SCENE_CULL_H
-#define RENDERER_SCENE_CULL_H
+#pragma once
 
 #include "core/math/dynamic_bvh.h"
 #include "core/math/transform_interpolator.h"
@@ -1444,5 +1443,3 @@ public:
 	RendererSceneCull();
 	virtual ~RendererSceneCull();
 };
-
-#endif // RENDERER_SCENE_CULL_H

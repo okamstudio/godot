@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CAMERA_3D_GIZMO_PLUGIN_H
-#define CAMERA_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -52,5 +51,3 @@ public:
 
 	Camera3DGizmoPlugin();
 };
-
-#endif // CAMERA_3D_GIZMO_PLUGIN_H

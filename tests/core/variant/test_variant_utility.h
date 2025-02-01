@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_VARIANT_UTILITY_H
-#define TEST_VARIANT_UTILITY_H
+#pragma once
 
 #include "core/variant/variant_utility.h"
 
@@ -137,5 +136,3 @@ TEST_CASE("[VariantUtility] Type conversion") {
 }
 
 } // namespace TestVariantUtility
-
-#endif // TEST_VARIANT_UTILITY_H

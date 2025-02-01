@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PLATFORM_GL_H
-#define PLATFORM_GL_H
+#pragma once
 
 #ifndef GL_API_ENABLED
 #define GL_API_ENABLED // Allow using desktop GL.
@@ -49,5 +48,3 @@
 #endif
 
 #include "thirdparty/glad/glad/gl.h"
-
-#endif // PLATFORM_GL_H

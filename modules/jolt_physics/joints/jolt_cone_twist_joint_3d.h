@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_CONE_TWIST_JOINT_3D_H
-#define JOLT_CONE_TWIST_JOINT_3D_H
+#pragma once
 
 #include "../jolt_physics_server_3d.h"
 #include "jolt_joint_3d.h"
@@ -93,5 +92,3 @@ public:
 
 	virtual void rebuild() override;
 };
-
-#endif // JOLT_CONE_TWIST_JOINT_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RUN_INSTANCES_DIALOG_H
-#define RUN_INSTANCES_DIALOG_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -104,5 +103,3 @@ public:
 	static RunInstancesDialog *get_singleton() { return singleton; }
 	RunInstancesDialog();
 };
-
-#endif // RUN_INSTANCES_DIALOG_H

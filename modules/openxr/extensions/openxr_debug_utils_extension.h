@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_DEBUG_UTILS_EXTENSION_H
-#define OPENXR_DEBUG_UTILS_EXTENSION_H
+#pragma once
 
 #include "../util.h"
 #include "openxr_extension_wrapper.h"
@@ -72,5 +71,3 @@ private:
 	EXT_PROTO_XRRESULT_FUNC1(xrSessionEndDebugUtilsLabelRegionEXT, (XrSession), p_session)
 	EXT_PROTO_XRRESULT_FUNC2(xrSessionInsertDebugUtilsLabelEXT, (XrSession), p_session, (const XrDebugUtilsLabelEXT *), p_label_info)
 };
-
-#endif // OPENXR_DEBUG_UTILS_EXTENSION_H

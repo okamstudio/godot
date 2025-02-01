@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MESH_LIBRARY_H
-#define MESH_LIBRARY_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "core/templates/rb_map.h"
@@ -106,5 +105,3 @@ public:
 	MeshLibrary();
 	~MeshLibrary();
 };
-
-#endif // MESH_LIBRARY_H

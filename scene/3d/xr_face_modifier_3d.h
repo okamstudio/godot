@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef XR_FACE_MODIFIER_3D_H
-#define XR_FACE_MODIFIER_3D_H
+#pragma once
 
 #include "mesh_instance_3d.h"
 #include "scene/3d/node_3d.h"
@@ -69,5 +68,3 @@ public:
 
 	void _notification(int p_what);
 };
-
-#endif // XR_FACE_MODIFIER_3D_H

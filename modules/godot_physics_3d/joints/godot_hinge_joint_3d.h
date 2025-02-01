@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_HINGE_JOINT_3D_H
-#define GODOT_HINGE_JOINT_3D_H
+#pragma once
 
 /*
 Adapted to Godot from the Bullet library.
@@ -112,5 +111,3 @@ public:
 	GodotHingeJoint3D(GodotBody3D *rbA, GodotBody3D *rbB, const Transform3D &frameA, const Transform3D &frameB);
 	GodotHingeJoint3D(GodotBody3D *rbA, GodotBody3D *rbB, const Vector3 &pivotInA, const Vector3 &pivotInB, const Vector3 &axisInA, const Vector3 &axisInB);
 };
-
-#endif // GODOT_HINGE_JOINT_3D_H

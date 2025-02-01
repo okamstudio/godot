@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VARIANT_DESTRUCT_H
-#define VARIANT_DESTRUCT_H
+#pragma once
 
 #include "core/variant/variant.h"
 
@@ -68,5 +67,3 @@ MAKE_PTRDESTRUCT(PackedColorArray);
 MAKE_PTRDESTRUCT(PackedVector4Array);
 
 #undef MAKE_PTRDESTRUCT
-
-#endif // VARIANT_DESTRUCT_H

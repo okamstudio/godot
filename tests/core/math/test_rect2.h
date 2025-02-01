@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_RECT2_H
-#define TEST_RECT2_H
+#pragma once
 
 #include "core/math/rect2.h"
 #include "core/math/rect2i.h"
@@ -344,5 +343,3 @@ TEST_CASE("[Rect2] Finite number checks") {
 }
 
 } // namespace TestRect2
-
-#endif // TEST_RECT2_H

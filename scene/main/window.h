@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WINDOW_H
-#define WINDOW_H
+#pragma once
 
 #include "scene/main/viewport.h"
 #include "scene/resources/theme.h"
@@ -501,5 +500,3 @@ VARIANT_ENUM_CAST(Window::ContentScaleAspect);
 VARIANT_ENUM_CAST(Window::ContentScaleStretch);
 VARIANT_ENUM_CAST(Window::LayoutDirection);
 VARIANT_ENUM_CAST(Window::WindowInitialPosition);
-
-#endif // WINDOW_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_NODE_H
-#define EDITOR_NODE_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
@@ -1004,5 +1003,3 @@ struct EditorProgressBG {
 	}
 	~EditorProgressBG() { EditorNode::progress_end_task_bg(task); }
 };
-
-#endif // EDITOR_NODE_H

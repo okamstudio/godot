@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCRIPT_EDITOR_PLUGIN_H
-#define SCRIPT_EDITOR_PLUGIN_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "editor/plugins/editor_plugin.h"
@@ -643,5 +642,3 @@ public:
 	ScriptEditorPlugin();
 	~ScriptEditorPlugin();
 };
-
-#endif // SCRIPT_EDITOR_PLUGIN_H

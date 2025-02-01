@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_LOCAL_VECTOR_H
-#define TEST_LOCAL_VECTOR_H
+#pragma once
 
 #include "core/templates/local_vector.h"
 
@@ -245,5 +244,3 @@ TEST_CASE("[LocalVector] Size / Resize / Reserve.") {
 	CHECK(vector.get_capacity() >= 4);
 }
 } // namespace TestLocalVector
-
-#endif // TEST_LOCAL_VECTOR_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef THEME_EDITOR_PLUGIN_H
-#define THEME_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "editor/plugins/theme_editor_preview.h"
@@ -485,5 +484,3 @@ public:
 
 	ThemeEditorPlugin();
 };
-
-#endif // THEME_EDITOR_PLUGIN_H

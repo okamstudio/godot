@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REGEX_H
-#define REGEX_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 #include "core/string/ustring.h"
@@ -108,5 +107,3 @@ public:
 	RegEx(const String &p_pattern);
 	~RegEx();
 };
-
-#endif // REGEX_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DEPENDENCY_EDITOR_H
-#define DEPENDENCY_EDITOR_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/dialogs.h"
@@ -179,5 +178,3 @@ public:
 	void show();
 	OrphanResourcesDialog();
 };
-
-#endif // DEPENDENCY_EDITOR_H

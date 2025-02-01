@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SCENE_TREE_H
-#define SCENE_TREE_H
+#pragma once
 
 #include "core/os/main_loop.h"
 #include "core/os/thread_safe.h"
@@ -448,5 +447,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(SceneTree::GroupCallFlags);
-
-#endif // SCENE_TREE_H

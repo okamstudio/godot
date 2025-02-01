@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAVIGATION_SERVER_3D_DUMMY_H
-#define NAVIGATION_SERVER_3D_DUMMY_H
+#pragma once
 
 #include "servers/navigation_server_3d.h"
 
@@ -207,5 +206,3 @@ public:
 	void set_debug_enabled(bool p_enabled) {}
 	bool get_debug_enabled() const { return false; }
 };
-
-#endif // NAVIGATION_SERVER_3D_DUMMY_H

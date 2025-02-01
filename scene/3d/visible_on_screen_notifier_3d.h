@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VISIBLE_ON_SCREEN_NOTIFIER_3D_H
-#define VISIBLE_ON_SCREEN_NOTIFIER_3D_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 
@@ -93,5 +92,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(VisibleOnScreenEnabler3D::EnableMode);
-
-#endif // VISIBLE_ON_SCREEN_NOTIFIER_3D_H

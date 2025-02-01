@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CHAR_UTILS_H
-#define CHAR_UTILS_H
+#pragma once
 
 #include "core/typedefs.h"
 
@@ -131,5 +130,3 @@ constexpr bool is_punct(char32_t p_char) {
 constexpr bool is_underscore(char32_t p_char) {
 	return (p_char == '_');
 }
-
-#endif // CHAR_UTILS_H

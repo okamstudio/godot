@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_PROFILER_H
-#define EDITOR_PROFILER_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
@@ -186,5 +185,3 @@ public:
 
 	EditorProfiler();
 };
-
-#endif // EDITOR_PROFILER_H

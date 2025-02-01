@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VEHICLE_BODY_3D_H
-#define VEHICLE_BODY_3D_H
+#pragma once
 
 #include "scene/3d/physics/physics_body_3d.h"
 #include "scene/3d/physics/rigid_body_3d.h"
@@ -214,5 +213,3 @@ public:
 
 	VehicleBody3D();
 };
-
-#endif // VEHICLE_BODY_3D_H

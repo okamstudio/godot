@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_UID_H
-#define RESOURCE_UID_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 #include "core/string/string_name.h"
@@ -89,5 +88,3 @@ public:
 	ResourceUID();
 	~ResourceUID();
 };
-
-#endif // RESOURCE_UID_H

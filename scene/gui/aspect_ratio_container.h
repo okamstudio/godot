@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ASPECT_RATIO_CONTAINER_H
-#define ASPECT_RATIO_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -79,5 +78,3 @@ public:
 
 VARIANT_ENUM_CAST(AspectRatioContainer::StretchMode);
 VARIANT_ENUM_CAST(AspectRatioContainer::AlignmentMode);
-
-#endif // ASPECT_RATIO_CONTAINER_H

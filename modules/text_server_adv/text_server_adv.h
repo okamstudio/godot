@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_SERVER_ADV_H
-#define TEXT_SERVER_ADV_H
+#pragma once
 
 /*************************************************************************/
 /* ICU/HarfBuzz/Graphite backed Text Server implementation with BiDi,    */
@@ -1024,5 +1023,3 @@ public:
 	TextServerAdvanced();
 	~TextServerAdvanced();
 };
-
-#endif // TEXT_SERVER_ADV_H

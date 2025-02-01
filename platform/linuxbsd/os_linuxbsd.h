@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OS_LINUXBSD_H
-#define OS_LINUXBSD_H
+#pragma once
 
 #include "crash_handler_linuxbsd.h"
 #include "joypad_linux.h"
@@ -141,5 +140,3 @@ public:
 	OS_LinuxBSD();
 	~OS_LinuxBSD();
 };
-
-#endif // OS_LINUXBSD_H

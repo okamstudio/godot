@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_STATE_H
-#define GLTF_STATE_H
+#pragma once
 
 #include "extensions/gltf_light.h"
 #include "structures/gltf_accessor.h"
@@ -252,5 +251,3 @@ public:
 	Variant get_additional_data(const StringName &p_extension_name);
 	void set_additional_data(const StringName &p_extension_name, Variant p_additional_data);
 };
-
-#endif // GLTF_STATE_H

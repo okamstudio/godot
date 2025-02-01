@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#pragma once
 
 #include "core/typedefs.h"
 
@@ -207,5 +206,3 @@ public:
 	Array();
 	~Array();
 };
-
-#endif // ARRAY_H

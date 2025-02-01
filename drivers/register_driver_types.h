@@ -28,13 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REGISTER_DRIVER_TYPES_H
-#define REGISTER_DRIVER_TYPES_H
+#pragma once
 
 void register_core_driver_types();
 void unregister_core_driver_types();
 
 void register_driver_types();
 void unregister_driver_types();
-
-#endif // REGISTER_DRIVER_TYPES_H

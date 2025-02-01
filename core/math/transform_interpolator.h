@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TRANSFORM_INTERPOLATOR_H
-#define TRANSFORM_INTERPOLATOR_H
+#pragma once
 
 #include "core/math/math_defs.h"
 #include "core/math/vector3.h"
@@ -91,5 +90,3 @@ public:
 
 	static Method find_method(const Basis &p_a, const Basis &p_b);
 };
-
-#endif // TRANSFORM_INTERPOLATOR_H

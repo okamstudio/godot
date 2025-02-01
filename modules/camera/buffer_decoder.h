@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BUFFER_DECODER_H
-#define BUFFER_DECODER_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/templates/vector.h"
@@ -112,5 +111,3 @@ public:
 	JpegBufferDecoder(CameraFeed *p_camera_feed);
 	virtual void decode(StreamingBuffer p_buffer) override;
 };
-
-#endif // BUFFER_DECODER_H

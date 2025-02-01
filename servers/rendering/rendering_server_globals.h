@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERING_SERVER_GLOBALS_H
-#define RENDERING_SERVER_GLOBALS_H
+#pragma once
 
 #include "servers/rendering/environment/renderer_fog.h"
 #include "servers/rendering/environment/renderer_gi.h"
@@ -70,5 +69,3 @@ public:
 };
 
 #define RSG RenderingServerGlobals
-
-#endif // RENDERING_SERVER_GLOBALS_H

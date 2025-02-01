@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TWEEN_H
-#define TWEEN_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -325,5 +324,3 @@ protected:
 private:
 	double delay = 0;
 };
-
-#endif // TWEEN_H

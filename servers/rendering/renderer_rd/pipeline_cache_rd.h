@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PIPELINE_CACHE_RD_H
-#define PIPELINE_CACHE_RD_H
+#pragma once
 
 #include "core/os/spin_lock.h"
 #include "servers/rendering/rendering_device.h"
@@ -98,5 +97,3 @@ public:
 	PipelineCacheRD();
 	~PipelineCacheRD();
 };
-
-#endif // PIPELINE_CACHE_RD_H

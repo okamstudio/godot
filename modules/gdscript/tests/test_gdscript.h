@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GDSCRIPT_H
-#define TEST_GDSCRIPT_H
+#pragma once
 
 #include "gdscript_test_runner.h"
 
@@ -48,5 +47,3 @@ enum TestType {
 void test(TestType p_type);
 
 } // namespace GDScriptTests
-
-#endif // TEST_GDSCRIPT_H

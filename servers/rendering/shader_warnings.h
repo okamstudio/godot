@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SHADER_WARNINGS_H
-#define SHADER_WARNINGS_H
+#pragma once
 
 #ifdef DEBUG_ENABLED
 
@@ -89,5 +88,3 @@ public:
 };
 
 #endif // DEBUG_ENABLED
-
-#endif // SHADER_WARNINGS_H

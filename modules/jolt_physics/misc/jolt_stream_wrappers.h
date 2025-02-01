@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_STREAM_WRAPPERS_H
-#define JOLT_STREAM_WRAPPERS_H
+#pragma once
 
 #ifdef DEBUG_ENABLED
 
@@ -77,5 +76,3 @@ public:
 };
 
 #endif
-
-#endif // JOLT_STREAM_WRAPPERS_H

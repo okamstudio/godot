@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_UTIL_H
-#define OPENXR_UTIL_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -66,5 +65,3 @@ public:
 	static void XrMatrix4x4f_CreateProjectionFov(XrMatrix4x4f *result, GraphicsAPI graphicsApi, const XrFovf fov,
 			const float nearZ, const float farZ);
 };
-
-#endif // OPENXR_UTIL_H

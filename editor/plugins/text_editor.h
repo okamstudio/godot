@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_EDITOR_H
-#define TEXT_EDITOR_H
+#pragma once
 
 #include "script_editor_plugin.h"
 
@@ -162,5 +161,3 @@ public:
 	TextEditor();
 	~TextEditor();
 };
-
-#endif // TEXT_EDITOR_H

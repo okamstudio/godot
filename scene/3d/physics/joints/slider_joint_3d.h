@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SLIDER_JOINT_3D_H
-#define SLIDER_JOINT_3D_H
+#pragma once
 
 #include "scene/3d/physics/joints/joint_3d.h"
 
@@ -78,5 +77,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(SliderJoint3D::Param);
-
-#endif // SLIDER_JOINT_3D_H

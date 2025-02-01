@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SPRING_ARM_3D_H
-#define SPRING_ARM_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 
@@ -67,5 +66,3 @@ public:
 private:
 	void process_spring();
 };
-
-#endif // SPRING_ARM_3D_H

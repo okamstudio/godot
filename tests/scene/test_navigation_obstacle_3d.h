@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_NAVIGATION_OBSTACLE_3D_H
-#define TEST_NAVIGATION_OBSTACLE_3D_H
+#pragma once
 
 #include "scene/3d/navigation_obstacle_3d.h"
 #include "scene/main/window.h"
@@ -65,5 +64,3 @@ TEST_SUITE("[Navigation]") {
 }
 
 } //namespace TestNavigationObstacle3D
-
-#endif // TEST_NAVIGATION_OBSTACLE_3D_H

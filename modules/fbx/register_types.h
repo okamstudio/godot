@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FBX_REGISTER_TYPES_H
-#define FBX_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_fbx_module(ModuleInitializationLevel p_level);
 void uninitialize_fbx_module(ModuleInitializationLevel p_level);
-
-#endif // FBX_REGISTER_TYPES_H

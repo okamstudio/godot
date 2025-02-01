@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LABEL_3D_H
-#define LABEL_3D_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 #include "scene/resources/font.h"
@@ -261,5 +260,3 @@ public:
 
 VARIANT_ENUM_CAST(Label3D::DrawFlags);
 VARIANT_ENUM_CAST(Label3D::AlphaCutMode);
-
-#endif // LABEL_3D_H

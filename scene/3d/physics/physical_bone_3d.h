@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICAL_BONE_3D_H
-#define PHYSICAL_BONE_3D_H
+#pragma once
 
 #include "scene/3d/physics/physics_body_3d.h"
 #include "scene/3d/skeleton_3d.h"
@@ -307,5 +306,3 @@ private:
 
 VARIANT_ENUM_CAST(PhysicalBone3D::JointType);
 VARIANT_ENUM_CAST(PhysicalBone3D::DampMode);
-
-#endif // PHYSICAL_BONE_3D_H

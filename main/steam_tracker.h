@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STEAM_TRACKER_H
-#define STEAM_TRACKER_H
+#pragma once
 
 #if defined(STEAMAPI_ENABLED)
 
@@ -70,5 +69,3 @@ public:
 };
 
 #endif // STEAMAPI_ENABLED
-
-#endif // STEAM_TRACKER_H

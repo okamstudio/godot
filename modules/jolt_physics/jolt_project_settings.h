@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_PROJECT_SETTINGS_H
-#define JOLT_PROJECT_SETTINGS_H
+#pragma once
 
 #include <stdint.h>
 
@@ -77,5 +76,3 @@ public:
 	static int get_max_pairs();
 	static int get_max_contact_constraints();
 };
-
-#endif // JOLT_PROJECT_SETTINGS_H

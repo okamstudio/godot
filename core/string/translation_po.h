@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TRANSLATION_PO_H
-#define TRANSLATION_PO_H
+#pragma once
 
 //#define DEBUG_TRANSLATION_PO
 
@@ -99,5 +98,3 @@ public:
 
 	TranslationPO() {}
 };
-
-#endif // TRANSLATION_PO_H

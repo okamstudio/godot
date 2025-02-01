@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATED_SPRITE_2D_H
-#define ANIMATED_SPRITE_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 #include "scene/resources/sprite_frames.h"
@@ -136,5 +135,3 @@ public:
 
 	AnimatedSprite2D();
 };
-
-#endif // ANIMATED_SPRITE_2D_H

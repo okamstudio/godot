@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SKELETON_MODIFICATION_2D_CCDIK_H
-#define SKELETON_MODIFICATION_2D_CCDIK_H
+#pragma once
 
 #include "scene/2d/skeleton_2d.h"
 #include "scene/resources/2d/skeleton/skeleton_modification_2d.h"
@@ -112,5 +111,3 @@ public:
 	SkeletonModification2DCCDIK();
 	~SkeletonModification2DCCDIK();
 };
-
-#endif // SKELETON_MODIFICATION_2D_CCDIK_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LINE_BUILDER_H
-#define LINE_BUILDER_H
+#pragma once
 
 #include "line_2d.h"
 
@@ -82,5 +81,3 @@ private:
 	bool _interpolate_color = false;
 	int _last_index[2] = {}; // Index of last up and down vertices of the strip
 };
-
-#endif // LINE_BUILDER_H

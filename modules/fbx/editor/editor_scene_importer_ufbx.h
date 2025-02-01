@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_SCENE_IMPORTER_UFBX_H
-#define EDITOR_SCENE_IMPORTER_UFBX_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -57,5 +56,3 @@ public:
 	virtual void handle_compatibility_options(HashMap<StringName, Variant> &p_import_params) const override;
 };
 #endif // TOOLS_ENABLED
-
-#endif // EDITOR_SCENE_IMPORTER_UFBX_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_FUZZY_SEARCH_H
-#define TEST_FUZZY_SEARCH_H
+#pragma once
 
 #include "core/string/fuzzy_search.h"
 #include "tests/test_macros.h"
@@ -79,5 +78,3 @@ TEST_CASE("[FuzzySearch] Test fuzzy search results") {
 }
 
 } //namespace TestFuzzySearch
-
-#endif // TEST_FUZZY_SEARCH_H

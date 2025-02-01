@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef HASHFUNCS_H
-#define HASHFUNCS_H
+#pragma once
 
 #include "core/math/aabb.h"
 #include "core/math/basis.h"
@@ -634,5 +633,3 @@ static _FORCE_INLINE_ uint32_t fastmod(const uint32_t n, const uint64_t c, const
 #endif // __SIZEOF_INT128__
 #endif // _MSC_VER
 }
-
-#endif // HASHFUNCS_H

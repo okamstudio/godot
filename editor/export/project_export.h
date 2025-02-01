@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PROJECT_EXPORT_H
-#define PROJECT_EXPORT_H
+#pragma once
 
 #include "editor/export/editor_export_preset.h"
 #include "scene/gui/dialogs.h"
@@ -224,5 +223,3 @@ public:
 	ProjectExportDialog();
 	~ProjectExportDialog();
 };
-
-#endif // PROJECT_EXPORT_H

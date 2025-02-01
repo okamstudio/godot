@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_RESOURCE_TOOLTIP_PLUGINS_H
-#define EDITOR_RESOURCE_TOOLTIP_PLUGINS_H
+#pragma once
 
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/ref_counted.h"
@@ -73,5 +72,3 @@ public:
 	virtual bool handles(const String &p_resource_type) const override;
 	virtual Control *make_tooltip_for_path(const String &p_resource_path, const Dictionary &p_metadata, Control *p_base) const override;
 };
-
-#endif // EDITOR_RESOURCE_TOOLTIP_PLUGINS_H

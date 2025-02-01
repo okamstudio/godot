@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_AREA_PAIR_2D_H
-#define GODOT_AREA_PAIR_2D_H
+#pragma once
 
 #include "godot_area_2d.h"
 #include "godot_body_2d.h"
@@ -74,5 +73,3 @@ public:
 	GodotArea2Pair2D(GodotArea2D *p_area_a, int p_shape_a, GodotArea2D *p_area_b, int p_shape_b);
 	~GodotArea2Pair2D();
 };
-
-#endif // GODOT_AREA_PAIR_2D_H

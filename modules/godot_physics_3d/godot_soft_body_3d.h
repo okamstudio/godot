@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_SOFT_BODY_3D_H
-#define GODOT_SOFT_BODY_3D_H
+#pragma once
 
 #include "godot_area_3d.h"
 #include "godot_collision_object_3d.h"
@@ -272,5 +271,3 @@ public:
 	GodotSoftBodyShape3D(GodotSoftBody3D *p_soft_body);
 	~GodotSoftBodyShape3D() {}
 };
-
-#endif // GODOT_SOFT_BODY_3D_H

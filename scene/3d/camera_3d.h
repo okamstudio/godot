@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CAMERA_3D_H
-#define CAMERA_3D_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 #include "scene/3d/velocity_tracker_3d.h"
@@ -227,5 +226,3 @@ public:
 VARIANT_ENUM_CAST(Camera3D::ProjectionType);
 VARIANT_ENUM_CAST(Camera3D::KeepAspect);
 VARIANT_ENUM_CAST(Camera3D::DopplerTracking);
-
-#endif // CAMERA_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_LISTENER_2D_H
-#define AUDIO_LISTENER_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -56,5 +55,3 @@ public:
 
 	AudioListener2D();
 };
-
-#endif // AUDIO_LISTENER_2D_H

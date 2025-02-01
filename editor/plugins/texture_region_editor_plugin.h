@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXTURE_REGION_EDITOR_PLUGIN_H
-#define TEXTURE_REGION_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "editor/plugins/editor_plugin.h"
@@ -180,5 +179,3 @@ public:
 
 	TextureRegionEditorPlugin();
 };
-
-#endif // TEXTURE_REGION_EDITOR_PLUGIN_H

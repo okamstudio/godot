@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_MEMORY_H
-#define FILE_ACCESS_MEMORY_H
+#pragma once
 
 #include "core/io/file_access.h"
 
@@ -78,5 +77,3 @@ public:
 
 	FileAccessMemory() {}
 };
-
-#endif // FILE_ACCESS_MEMORY_H

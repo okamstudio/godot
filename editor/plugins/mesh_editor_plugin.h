@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MESH_EDITOR_PLUGIN_H
-#define MESH_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "editor/plugins/editor_plugin.h"
@@ -96,5 +95,3 @@ public:
 
 	MeshEditorPlugin();
 };
-
-#endif // MESH_EDITOR_PLUGIN_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_H
-#define RESOURCE_IMPORTER_H
+#pragma once
 
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
@@ -166,5 +165,3 @@ class ResourceFormatImporterSaver : public ResourceFormatSaver {
 public:
 	virtual Error set_uid(const String &p_path, ResourceUID::ID p_uid) override;
 };
-
-#endif // RESOURCE_IMPORTER_H

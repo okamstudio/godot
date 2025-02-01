@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_AREA_3D_H
-#define JOLT_AREA_3D_H
+#pragma once
 
 #include "jolt_shaped_object_3d.h"
 
@@ -228,5 +227,3 @@ public:
 	virtual bool has_custom_center_of_mass() const override { return false; }
 	virtual Vector3 get_center_of_mass_custom() const override { return Vector3(); }
 };
-
-#endif // JOLT_AREA_3D_H

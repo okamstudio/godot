@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_PARALLAX_2D_H
-#define TEST_PARALLAX_2D_H
+#pragma once
 
 #include "scene/2d/parallax_2d.h"
 #include "tests/test_macros.h"
@@ -127,5 +126,3 @@ TEST_CASE("[SceneTree][Parallax2D] Ignore Camera Scroll") {
 }
 
 } // namespace TestParallax2D
-
-#endif // TEST_PARALLAX_2D_H

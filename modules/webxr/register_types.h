@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEBXR_REGISTER_TYPES_H
-#define WEBXR_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_webxr_module(ModuleInitializationLevel p_level);
 void uninitialize_webxr_module(ModuleInitializationLevel p_level);
-
-#endif // WEBXR_REGISTER_TYPES_H

@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ZIP_REGISTER_TYPES_H
-#define ZIP_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_zip_module(ModuleInitializationLevel p_level);
 void uninitialize_zip_module(ModuleInitializationLevel p_level);
-
-#endif // ZIP_REGISTER_TYPES_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_EDITOR_PLUGIN_H
-#define OPENXR_EDITOR_PLUGIN_H
+#pragma once
 
 #include "openxr_action_map_editor.h"
 #include "openxr_binding_modifier_editor.h"
@@ -56,5 +55,3 @@ public:
 	OpenXREditorPlugin();
 	~OpenXREditorPlugin();
 };
-
-#endif // OPENXR_EDITOR_PLUGIN_H

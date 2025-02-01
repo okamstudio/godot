@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATION_BLEND_TREE_EDITOR_PLUGIN_H
-#define ANIMATION_BLEND_TREE_EDITOR_PLUGIN_H
+#pragma once
 
 #include "core/object/script_language.h"
 #include "editor/editor_inspector.h"
@@ -212,5 +211,3 @@ public:
 protected:
 	void _notification(int p_what);
 };
-
-#endif // ANIMATION_BLEND_TREE_EDITOR_PLUGIN_H

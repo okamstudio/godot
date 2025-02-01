@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICAL_BONE_SIMULATOR_3D_H
-#define PHYSICAL_BONE_SIMULATOR_3D_H
+#pragma once
 
 #include "scene/3d/skeleton_modifier_3d.h"
 
@@ -104,5 +103,3 @@ public:
 
 	PhysicalBoneSimulator3D();
 };
-
-#endif // PHYSICAL_BONE_SIMULATOR_3D_H

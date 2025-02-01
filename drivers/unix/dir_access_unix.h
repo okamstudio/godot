@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DIR_ACCESS_UNIX_H
-#define DIR_ACCESS_UNIX_H
+#pragma once
 
 #if defined(UNIX_ENABLED)
 
@@ -96,5 +95,3 @@ public:
 };
 
 #endif // UNIX_ENABLED
-
-#endif // DIR_ACCESS_UNIX_H

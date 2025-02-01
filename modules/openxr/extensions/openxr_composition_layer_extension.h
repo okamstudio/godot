@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_COMPOSITION_LAYER_EXTENSION_H
-#define OPENXR_COMPOSITION_LAYER_EXTENSION_H
+#pragma once
 
 #include "openxr_composition_layer_provider.h"
 #include "openxr_extension_wrapper.h"
@@ -159,5 +158,3 @@ public:
 	OpenXRViewportCompositionLayerProvider(XrCompositionLayerBaseHeader *p_composition_layer);
 	~OpenXRViewportCompositionLayerProvider();
 };
-
-#endif // OPENXR_COMPOSITION_LAYER_EXTENSION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RICH_TEXT_LABEL_H
-#define RICH_TEXT_LABEL_H
+#pragma once
 
 #include "core/object/worker_thread_pool.h"
 #include "core/templates/rid_owner.h"
@@ -892,5 +891,3 @@ VARIANT_ENUM_CAST(RichTextLabel::ListType);
 VARIANT_ENUM_CAST(RichTextLabel::MenuItems);
 VARIANT_ENUM_CAST(RichTextLabel::MetaUnderline);
 VARIANT_BITFIELD_CAST(RichTextLabel::ImageUpdateMask);
-
-#endif // RICH_TEXT_LABEL_H

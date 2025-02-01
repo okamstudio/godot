@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DIRECTORY_CREATE_DIALOG_H
-#define DIRECTORY_CREATE_DIALOG_H
+#pragma once
 
 #include "scene/gui/dialogs.h"
 
@@ -68,5 +67,3 @@ public:
 
 	DirectoryCreateDialog();
 };
-
-#endif // DIRECTORY_CREATE_DIALOG_H

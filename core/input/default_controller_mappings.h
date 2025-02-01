@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DEFAULT_CONTROLLER_MAPPINGS_H
-#define DEFAULT_CONTROLLER_MAPPINGS_H
+#pragma once
 
 class DefaultControllerMappings {
 public:
 	static const char *mappings[];
 };
-
-#endif // DEFAULT_CONTROLLER_MAPPINGS_H

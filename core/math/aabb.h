@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AABB_H
-#define AABB_H
+#pragma once
 
 #include "core/math/plane.h"
 #include "core/math/vector3.h"
@@ -495,5 +494,3 @@ AABB AABB::quantized(real_t p_unit) const {
 	ret.quantize(p_unit);
 	return ret;
 }
-
-#endif // AABB_H

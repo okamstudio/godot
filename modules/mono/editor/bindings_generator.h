@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BINDINGS_GENERATOR_H
-#define BINDINGS_GENERATOR_H
+#pragma once
 
 #include "core/typedefs.h" // DEBUG_METHODS_ENABLED
 
@@ -875,5 +874,3 @@ public:
 };
 
 #endif
-
-#endif // BINDINGS_GENERATOR_H

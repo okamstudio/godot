@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_PHYSICS_SERVER_3D_H
-#define JOLT_PHYSICS_SERVER_3D_H
+#pragma once
 
 #include "core/templates/rid_owner.h"
 #include "servers/physics_server_3d.h"
@@ -498,5 +497,3 @@ VARIANT_ENUM_CAST(JoltPhysicsServer3D::ConeTwistJointParamJolt)
 VARIANT_ENUM_CAST(JoltPhysicsServer3D::ConeTwistJointFlagJolt)
 VARIANT_ENUM_CAST(JoltPhysicsServer3D::G6DOFJointAxisParamJolt)
 VARIANT_ENUM_CAST(JoltPhysicsServer3D::G6DOFJointAxisFlagJolt)
-
-#endif // JOLT_PHYSICS_SERVER_3D_H

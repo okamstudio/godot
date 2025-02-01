@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_STEP_2D_H
-#define GODOT_STEP_2D_H
+#pragma once
 
 #include "godot_space_2d.h"
 
@@ -56,5 +55,3 @@ public:
 	GodotStep2D();
 	~GodotStep2D();
 };
-
-#endif // GODOT_STEP_2D_H

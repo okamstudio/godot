@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CRYPTO_MBEDTLS_H
-#define CRYPTO_MBEDTLS_H
+#pragma once
 
 #include "core/crypto/crypto.h"
 
@@ -150,5 +149,3 @@ public:
 	CryptoMbedTLS();
 	~CryptoMbedTLS();
 };
-
-#endif // CRYPTO_MBEDTLS_H

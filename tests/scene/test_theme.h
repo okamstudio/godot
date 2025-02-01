@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_THEME_H
-#define TEST_THEME_H
+#pragma once
 
 #include "scene/resources/image_texture.h"
 #include "scene/resources/style_box_flat.h"
@@ -269,5 +268,3 @@ TEST_CASE_FIXTURE(Fixture, "[Theme] Bad theme item names") {
 }
 
 } // namespace TestTheme
-
-#endif // TEST_THEME_H

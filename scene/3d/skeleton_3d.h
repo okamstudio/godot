@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SKELETON_3D_H
-#define SKELETON_3D_H
+#pragma once
 
 #include "core/templates/a_hash_map.h"
 #include "scene/3d/node_3d.h"
@@ -316,5 +315,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(Skeleton3D::ModifierCallbackModeProcess);
-
-#endif // SKELETON_3D_H

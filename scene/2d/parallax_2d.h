@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PARALLAX_2D_H
-#define PARALLAX_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -96,5 +95,3 @@ public:
 
 	Parallax2D();
 };
-
-#endif // PARALLAX_2D_H

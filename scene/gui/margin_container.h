@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MARGIN_CONTAINER_H
-#define MARGIN_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -57,5 +56,3 @@ public:
 
 	MarginContainer();
 };
-
-#endif // MARGIN_CONTAINER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_DRIVER_ALSA_H
-#define AUDIO_DRIVER_ALSA_H
+#pragma once
 
 #ifdef ALSA_ENABLED
 
@@ -95,5 +94,3 @@ public:
 };
 
 #endif // ALSA_ENABLED
-
-#endif // AUDIO_DRIVER_ALSA_H

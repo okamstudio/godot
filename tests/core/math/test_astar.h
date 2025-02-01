@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_ASTAR_H
-#define TEST_ASTAR_H
+#pragma once
 
 #include "core/math/a_star.h"
 
@@ -358,5 +357,3 @@ TEST_CASE("[Stress][AStar3D] Find paths") {
 	}
 }
 } // namespace TestAStar
-
-#endif // TEST_ASTAR_H

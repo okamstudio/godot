@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDER_FORWARD_CLUSTERED_H
-#define RENDER_FORWARD_CLUSTERED_H
+#pragma once
 
 #include "core/templates/paged_allocator.h"
 #include "servers/rendering/renderer_rd/cluster_builder_rd.h"
@@ -748,5 +747,3 @@ public:
 	~RenderForwardClustered();
 };
 } // namespace RendererSceneRenderImplementation
-
-#endif // RENDER_FORWARD_CLUSTERED_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_INSPECTOR_H
-#define EDITOR_INSPECTOR_H
+#pragma once
 
 #include "editor/add_metadata_dialog.h"
 #include "editor_property_name_processor.h"
@@ -705,5 +704,3 @@ public:
 
 	EditorInspector();
 };
-
-#endif // EDITOR_INSPECTOR_H

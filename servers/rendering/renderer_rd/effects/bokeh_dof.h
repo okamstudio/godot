@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BOKEH_DOF_RD_H
-#define BOKEH_DOF_RD_H
+#pragma once
 
 #include "servers/rendering/renderer_rd/pipeline_cache_rd.h"
 #include "servers/rendering/renderer_rd/shaders/effects/bokeh_dof.glsl.gen.h"
@@ -118,5 +117,3 @@ public:
 };
 
 } // namespace RendererRD
-
-#endif // BOKEH_DOF_RD_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_COMPLETION_H
-#define TEST_COMPLETION_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -232,5 +231,3 @@ TEST_SUITE("[Modules][GDScript][Completion]") {
 } // namespace GDScriptTests
 
 #endif
-
-#endif // TEST_COMPLETION_H

@@ -28,13 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_INTERNAL_CALLS_H
-#define EDITOR_INTERNAL_CALLS_H
+#pragma once
 
 #include "core/typedefs.h"
 
 namespace godotsharp {
 const void **get_editor_interop_funcs(int32_t &r_size);
 }
-
-#endif // EDITOR_INTERNAL_CALLS_H

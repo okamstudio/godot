@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ADD_METADATA_DIALOG_H
-#define ADD_METADATA_DIALOG_H
+#pragma once
 
 #include "editor/gui/editor_validation_panel.h"
 #include "scene/gui/dialogs.h"
@@ -56,4 +55,3 @@ private:
 	OptionButton *add_meta_type = nullptr;
 	EditorValidationPanel *validation_panel = nullptr;
 };
-#endif // ADD_METADATA_DIALOG_H

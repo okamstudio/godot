@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANDROID_KEYS_UTILS_H
-#define ANDROID_KEYS_UTILS_H
+#pragma once
 
 #include "core/os/keyboard.h"
 
@@ -196,5 +195,3 @@ static AndroidGodotLocationPair android_godot_location_pairs[] = {
 };
 
 KeyLocation godot_location_from_android_code(unsigned int p_code);
-
-#endif // ANDROID_KEYS_UTILS_H

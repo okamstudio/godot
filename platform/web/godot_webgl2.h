@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_WEBGL2_H
-#define GODOT_WEBGL2_H
+#pragma once
 
 #include <GLES3/gl3.h>
 #include <webgl/webgl2.h>
@@ -53,5 +52,3 @@ void godot_webgl2_glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // GODOT_WEBGL2_H

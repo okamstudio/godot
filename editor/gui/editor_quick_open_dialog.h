@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_QUICK_OPEN_DIALOG_H
-#define EDITOR_QUICK_OPEN_DIALOG_H
+#pragma once
 
 #include "core/templates/oa_hash_map.h"
 #include "scene/gui/dialogs.h"
@@ -268,5 +267,3 @@ private:
 
 	void _search_box_text_changed(const String &p_query);
 };
-
-#endif // EDITOR_QUICK_OPEN_DIALOG_H

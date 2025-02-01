@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PACKET_PEER_DTLS_H
-#define PACKET_PEER_DTLS_H
+#pragma once
 
 #include "core/crypto/crypto.h"
 #include "core/io/packet_peer_udp.h"
@@ -64,5 +63,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(PacketPeerDTLS::Status);
-
-#endif // PACKET_PEER_DTLS_H

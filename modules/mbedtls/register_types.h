@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MBEDTLS_REGISTER_TYPES_H
-#define MBEDTLS_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_mbedtls_module(ModuleInitializationLevel p_level);
 void uninitialize_mbedtls_module(ModuleInitializationLevel p_level);
-
-#endif // MBEDTLS_REGISTER_TYPES_H

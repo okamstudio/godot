@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOINT_3D_GIZMO_PLUGIN_H
-#define JOINT_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -95,5 +94,3 @@ public:
 	static void draw_circle(Vector3::Axis p_axis, real_t p_radius, const Transform3D &p_offset, const Basis &p_base, real_t p_limit_lower, real_t p_limit_upper, Vector<Vector3> &r_points, bool p_inverse = false);
 	static void draw_cone(const Transform3D &p_offset, const Basis &p_base, real_t p_swing, real_t p_twist, Vector<Vector3> &r_points);
 };
-
-#endif // JOINT_3D_GIZMO_PLUGIN_H

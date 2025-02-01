@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PLATFORM_GL_H
-#define PLATFORM_GL_H
+#pragma once
 
 #ifndef GLES_API_ENABLED
 #define GLES_API_ENABLED // Allow using GLES.
@@ -39,5 +38,3 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
-
-#endif // PLATFORM_GL_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_UNDO_REDO_MANAGER_H
-#define EDITOR_UNDO_REDO_MANAGER_H
+#pragma once
 
 #include "core/object/object.h"
 #include "core/object/undo_redo.h"
@@ -144,5 +143,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(EditorUndoRedoManager::SpecialHistory);
-
-#endif // EDITOR_UNDO_REDO_MANAGER_H

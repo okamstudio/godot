@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TIME_H
-#define TIME_H
+#pragma once
 
 #include "core/object/class_db.h"
 #include "time_enums.h"
@@ -83,5 +82,3 @@ public:
 
 VARIANT_ENUM_CAST(Month);
 VARIANT_ENUM_CAST(Weekday);
-
-#endif // TIME_H

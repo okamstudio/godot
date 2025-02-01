@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef THORVG_SVG_IN_OT_H
-#define THORVG_SVG_IN_OT_H
+#pragma once
 
 #ifdef GDEXTENSION
 // Headers for building as GDExtension plug-in.
@@ -95,5 +94,3 @@ SVG_RendererHooks *get_tvg_svg_in_ot_hooks();
 
 #endif // MODULE_FREETYPE_ENABLED
 #endif // MODULE_SVG_ENABLED
-
-#endif // THORVG_SVG_IN_OT_H

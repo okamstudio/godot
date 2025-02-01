@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_DOCUMENT_EXTENSION_PHYSICS_H
-#define GLTF_DOCUMENT_EXTENSION_PHYSICS_H
+#pragma once
 
 #include "../gltf_document_extension.h"
 #include "gltf_physics_body.h"
@@ -51,5 +50,3 @@ public:
 	Ref<GLTFObjectModelProperty> export_object_model_property(Ref<GLTFState> p_state, const NodePath &p_node_path, const Node *p_godot_node, GLTFNodeIndex p_gltf_node_index, const Object *p_target_object, int p_target_depth) override;
 	Error export_node(Ref<GLTFState> p_state, Ref<GLTFNode> p_gltf_node, Dictionary &r_node_json, Node *p_scene_node) override;
 };
-
-#endif // GLTF_DOCUMENT_EXTENSION_PHYSICS_H

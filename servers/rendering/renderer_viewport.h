@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDERER_VIEWPORT_H
-#define RENDERER_VIEWPORT_H
+#pragma once
 
 #include "core/templates/rid_owner.h"
 #include "servers/rendering/renderer_scene_render.h"
@@ -322,5 +321,3 @@ public:
 	RendererViewport();
 	virtual ~RendererViewport() {}
 };
-
-#endif // RENDERER_VIEWPORT_H

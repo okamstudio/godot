@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_JOINTS_2D_H
-#define GODOT_JOINTS_2D_H
+#pragma once
 
 #include "godot_body_2d.h"
 #include "godot_constraint_2d.h"
@@ -188,5 +187,3 @@ public:
 
 	GodotDampedSpringJoint2D(const Vector2 &p_anchor_a, const Vector2 &p_anchor_b, GodotBody2D *p_body_a, GodotBody2D *p_body_b);
 };
-
-#endif // GODOT_JOINTS_2D_H

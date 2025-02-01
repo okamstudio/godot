@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_FB_FOVEATION_EXTENSION_H
-#define OPENXR_FB_FOVEATION_EXTENSION_H
+#pragma once
 
 // This extension implements the FB Foveation extension.
 // This is an extension Meta added due to VRS being unavailable on Android.
@@ -100,5 +99,3 @@ private:
 	EXT_PROTO_XRRESULT_FUNC3(xrCreateFoveationProfileFB, (XrSession), session, (const XrFoveationProfileCreateInfoFB *), create_info, (XrFoveationProfileFB *), profile);
 	EXT_PROTO_XRRESULT_FUNC1(xrDestroyFoveationProfileFB, (XrFoveationProfileFB), profile);
 };
-
-#endif // OPENXR_FB_FOVEATION_EXTENSION_H

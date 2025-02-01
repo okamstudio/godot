@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VARIANT_CONSTRUCT_H
-#define VARIANT_CONSTRUCT_H
+#pragma once
 
 #include "variant.h"
 
@@ -813,5 +812,3 @@ public:
 		return Variant::OBJECT;
 	}
 };
-
-#endif // VARIANT_CONSTRUCT_H

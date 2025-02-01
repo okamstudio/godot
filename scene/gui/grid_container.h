@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GRID_CONTAINER_H
-#define GRID_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -56,5 +55,3 @@ public:
 
 	GridContainer();
 };
-
-#endif // GRID_CONTAINER_H

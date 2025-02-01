@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TRANSFORM_3D_H
-#define TRANSFORM_3D_H
+#pragma once
 
 #include "core/math/aabb.h"
 #include "core/math/basis.h"
@@ -269,5 +268,3 @@ _FORCE_INLINE_ Plane Transform3D::xform_inv_fast(const Plane &p_plane, const Tra
 	real_t d = normal.dot(point);
 	return Plane(normal, d);
 }
-
-#endif // TRANSFORM_3D_H

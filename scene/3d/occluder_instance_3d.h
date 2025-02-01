@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OCCLUDER_INSTANCE_3D_H
-#define OCCLUDER_INSTANCE_3D_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 
@@ -209,5 +208,3 @@ public:
 	OccluderInstance3D();
 	~OccluderInstance3D();
 };
-
-#endif // OCCLUDER_INSTANCE_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SPRING_BONE_3D_GIZMO_PLUGIN_H
-#define SPRING_BONE_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
@@ -85,5 +84,3 @@ public:
 	SpringBoneCollision3DGizmoPlugin();
 	~SpringBoneCollision3DGizmoPlugin();
 };
-
-#endif // SPRING_BONE_3D_GIZMO_PLUGIN_H

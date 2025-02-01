@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REMOTE_DEBUGGER_PEER_H
-#define REMOTE_DEBUGGER_PEER_H
+#pragma once
 
 #include "core/io/stream_peer_tcp.h"
 #include "core/object/ref_counted.h"
@@ -92,5 +91,3 @@ public:
 	RemoteDebuggerPeerTCP(Ref<StreamPeerTCP> p_stream = Ref<StreamPeerTCP>());
 	~RemoteDebuggerPeerTCP();
 };
-
-#endif // REMOTE_DEBUGGER_PEER_H

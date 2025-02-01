@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BACK_BUFFER_COPY_H
-#define BACK_BUFFER_COPY_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -71,5 +70,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(BackBufferCopy::CopyMode);
-
-#endif // BACK_BUFFER_COPY_H

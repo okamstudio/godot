@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENAMES_MAP_3_TO_4_H
-#define RENAMES_MAP_3_TO_4_H
+#pragma once
 
 #ifndef DISABLE_DEPRECATED
 
@@ -52,5 +51,3 @@ struct RenamesMap3To4 {
 };
 
 #endif // DISABLE_DEPRECATED
-
-#endif // RENAMES_MAP_3_TO_4_H

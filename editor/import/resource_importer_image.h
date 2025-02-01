@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_IMAGE_H
-#define RESOURCE_IMPORTER_IMAGE_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/io/resource_importer.h"
@@ -56,5 +55,3 @@ public:
 
 	ResourceImporterImage();
 };
-
-#endif // RESOURCE_IMPORTER_IMAGE_H

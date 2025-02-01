@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SHADER_TYPES_H
-#define SHADER_TYPES_H
+#pragma once
 
 #include "servers/rendering_server.h"
 #include "shader_language.h"
@@ -57,5 +56,3 @@ public:
 
 	ShaderTypes();
 };
-
-#endif // SHADER_TYPES_H

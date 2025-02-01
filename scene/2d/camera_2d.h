@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CAMERA_2D_H
-#define CAMERA_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -202,5 +201,3 @@ public:
 
 VARIANT_ENUM_CAST(Camera2D::AnchorMode);
 VARIANT_ENUM_CAST(Camera2D::Camera2DProcessCallback);
-
-#endif // CAMERA_2D_H

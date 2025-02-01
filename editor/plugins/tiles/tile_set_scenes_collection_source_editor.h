@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TILE_SET_SCENES_COLLECTION_SOURCE_EDITOR_H
-#define TILE_SET_SCENES_COLLECTION_SOURCE_EDITOR_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "scene/gui/box_container.h"
@@ -144,5 +143,3 @@ public:
 	TileSetScenesCollectionSourceEditor();
 	~TileSetScenesCollectionSourceEditor();
 };
-
-#endif // TILE_SET_SCENES_COLLECTION_SOURCE_EDITOR_H

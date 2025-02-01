@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DOCK_MANAGER_H
-#define EDITOR_DOCK_MANAGER_H
+#pragma once
 
 #include "scene/gui/popup.h"
 #include "scene/gui/split_container.h"
@@ -207,5 +206,3 @@ public:
 
 	DockContextPopup();
 };
-
-#endif // EDITOR_DOCK_MANAGER_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef PHYSICAL_BONE_2D_H
-#define PHYSICAL_BONE_2D_H
+#pragma once
 
 #include "scene/2d/physics/rigid_body_2d.h"
 #include "scene/2d/skeleton_2d.h"
@@ -84,5 +83,3 @@ public:
 	PhysicalBone2D();
 	~PhysicalBone2D();
 };
-
-#endif // PHYSICAL_BONE_2D_H

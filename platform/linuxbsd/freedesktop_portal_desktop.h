@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FREEDESKTOP_PORTAL_DESKTOP_H
-#define FREEDESKTOP_PORTAL_DESKTOP_H
+#pragma once
 
 #ifdef DBUS_ENABLED
 
@@ -115,5 +114,3 @@ public:
 };
 
 #endif // DBUS_ENABLED
-
-#endif // FREEDESKTOP_PORTAL_DESKTOP_H

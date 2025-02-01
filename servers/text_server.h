@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_SERVER_H
-#define TEXT_SERVER_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/object/ref_counted.h"
@@ -668,5 +667,3 @@ VARIANT_ENUM_CAST(TextServer::FixedSizeScaleMode);
 
 GDVIRTUAL_NATIVE_PTR(Glyph);
 GDVIRTUAL_NATIVE_PTR(CaretInfo);
-
-#endif // TEXT_SERVER_H

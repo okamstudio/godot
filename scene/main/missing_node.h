@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MISSING_NODE_H
-#define MISSING_NODE_H
+#pragma once
 
 #include "scene/main/node.h"
 
@@ -62,5 +61,3 @@ public:
 
 	MissingNode();
 };
-
-#endif // MISSING_NODE_H

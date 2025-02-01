@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JNI_SINGLETON_H
-#define JNI_SINGLETON_H
+#pragma once
 
 #include "java_class_wrapper.h"
 
@@ -103,5 +102,3 @@ public:
 		wrapped_object.unref();
 	}
 };
-
-#endif // JNI_SINGLETON_H

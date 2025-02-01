@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CODE_COMPLETION_H
-#define CODE_COMPLETION_H
+#pragma once
 
 #include "core/string/ustring.h"
 #include "core/variant/variant.h"
@@ -52,5 +51,3 @@ enum class CompletionKind {
 
 PackedStringArray get_code_completion(CompletionKind p_kind, const String &p_script_file);
 } // namespace gdmono
-
-#endif // CODE_COMPLETION_H

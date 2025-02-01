@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_MESH_QUERIES_3D_H
-#define NAV_MESH_QUERIES_3D_H
+#pragma once
 
 #ifndef _3D_DISABLED
 
@@ -144,5 +143,3 @@ public:
 };
 
 #endif // _3D_DISABLED
-
-#endif // NAV_MESH_QUERIES_3D_H

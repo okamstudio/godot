@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GLTF_IMAGES_H
-#define TEST_GLTF_IMAGES_H
+#pragma once
 
 #include "test_gltf.h"
 
@@ -165,5 +164,3 @@ TEST_CASE("[SceneTree][Node][Editor] Import GLTF with embedded texture, check ho
 } //namespace TestGltf
 
 #endif // TOOLS_ENABLED
-
-#endif // TEST_GLTF_IMAGES_H

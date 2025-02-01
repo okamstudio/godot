@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_LANGUAGE_PROTOCOL_H
-#define GDSCRIPT_LANGUAGE_PROTOCOL_H
+#pragma once
 
 #include "gdscript_text_document.h"
 #include "gdscript_workspace.h"
@@ -115,5 +114,3 @@ public:
 
 	GDScriptLanguageProtocol();
 };
-
-#endif // GDSCRIPT_LANGUAGE_PROTOCOL_H

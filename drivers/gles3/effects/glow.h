@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLOW_GLES3_H
-#define GLOW_GLES3_H
+#pragma once
 
 #ifdef GLES3_ENABLED
 
@@ -85,5 +84,3 @@ public:
 } //namespace GLES3
 
 #endif // GLES3_ENABLED
-
-#endif // GLOW_GLES3_H

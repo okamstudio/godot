@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_PERFORMANCE_PROFILER_H
-#define EDITOR_PERFORMANCE_PROFILER_H
+#pragma once
 
 #include "core/templates/hash_map.h"
 #include "main/performance.h"
@@ -88,5 +87,3 @@ public:
 	List<float> *get_monitor_data(const StringName &p_name);
 	EditorPerformanceProfiler();
 };
-
-#endif // EDITOR_PERFORMANCE_PROFILER_H

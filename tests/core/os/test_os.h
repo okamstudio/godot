@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_OS_H
-#define TEST_OS_H
+#pragma once
 
 #include "core/os/os.h"
 
@@ -202,5 +201,3 @@ TEST_CASE("[OS] Execute") {
 }
 
 } // namespace TestOS
-
-#endif // TEST_OS_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLOR_MODE_H
-#define COLOR_MODE_H
+#pragma once
 
 #include "scene/gui/color_picker.h"
 
@@ -152,5 +151,3 @@ public:
 
 	~ColorModeOKHSL() {}
 };
-
-#endif // COLOR_MODE_H

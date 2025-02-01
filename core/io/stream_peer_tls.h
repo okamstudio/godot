@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef STREAM_PEER_TLS_H
-#define STREAM_PEER_TLS_H
+#pragma once
 
 #include "core/crypto/crypto.h"
 #include "core/io/stream_peer.h"
@@ -66,5 +65,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(StreamPeerTLS::Status);
-
-#endif // STREAM_PEER_TLS_H

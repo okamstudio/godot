@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_CUSTOM_SHAPE_TYPE_H
-#define JOLT_CUSTOM_SHAPE_TYPE_H
+#pragma once
 
 #include "Jolt/Jolt.h"
 
@@ -43,5 +42,3 @@ constexpr JPH::EShapeSubType RAY = JPH::EShapeSubType::UserConvex1;
 constexpr JPH::EShapeSubType MOTION = JPH::EShapeSubType::UserConvex2;
 
 } // namespace JoltCustomShapeSubType
-
-#endif // JOLT_CUSTOM_SHAPE_TYPE_H

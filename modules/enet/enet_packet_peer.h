@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ENET_PACKET_PEER_H
-#define ENET_PACKET_PEER_H
+#pragma once
 
 #include "core/io/packet_peer.h"
 
@@ -128,5 +127,3 @@ public:
 
 VARIANT_ENUM_CAST(ENetPacketPeer::PeerState);
 VARIANT_ENUM_CAST(ENetPacketPeer::PeerStatistic);
-
-#endif // ENET_PACKET_PEER_H

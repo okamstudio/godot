@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ANIMATION_NODE_EXTENSION_H
-#define ANIMATION_NODE_EXTENSION_H
+#pragma once
 
 #include "scene/animation/animation_tree.h"
 
@@ -51,5 +50,3 @@ private:
 	static AnimationNode::NodeTimeInfo _array_to_node_time_info(const PackedFloat32Array &p_array);
 	static PackedFloat64Array _playback_info_to_array(const AnimationMixer::PlaybackInfo &p_playback_info);
 };
-
-#endif // ANIMATION_NODE_EXTENSION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLOR_PICKER_H
-#define COLOR_PICKER_H
+#pragma once
 
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
@@ -459,5 +458,3 @@ public:
 
 VARIANT_ENUM_CAST(ColorPicker::PickerShapeType);
 VARIANT_ENUM_CAST(ColorPicker::ColorModeType);
-
-#endif // COLOR_PICKER_H

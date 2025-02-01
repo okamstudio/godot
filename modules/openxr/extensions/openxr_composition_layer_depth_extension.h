@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_COMPOSITION_LAYER_DEPTH_EXTENSION_H
-#define OPENXR_COMPOSITION_LAYER_DEPTH_EXTENSION_H
+#pragma once
 
 #include "openxr_composition_layer_provider.h"
 #include "openxr_extension_wrapper.h"
@@ -52,5 +51,3 @@ private:
 
 	bool available = false;
 };
-
-#endif // OPENXR_COMPOSITION_LAYER_DEPTH_EXTENSION_H

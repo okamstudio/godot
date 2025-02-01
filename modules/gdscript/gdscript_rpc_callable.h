@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GDSCRIPT_RPC_CALLABLE_H
-#define GDSCRIPT_RPC_CALLABLE_H
+#pragma once
 
 #include "core/variant/callable.h"
 #include "core/variant/variant.h"
@@ -59,5 +58,3 @@ public:
 	GDScriptRPCCallable(Object *p_object, const StringName &p_method);
 	virtual ~GDScriptRPCCallable() = default;
 };
-
-#endif // GDSCRIPT_RPC_CALLABLE_H

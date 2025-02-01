@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GL_MANAGER_X11_EGL_H
-#define GL_MANAGER_X11_EGL_H
+#pragma once
 
 #if defined(X11_ENABLED) && defined(GLES3_ENABLED)
 
@@ -57,5 +56,3 @@ public:
 };
 
 #endif // X11_ENABLED && GLES3_ENABLED
-
-#endif // GL_MANAGER_X11_EGL_H

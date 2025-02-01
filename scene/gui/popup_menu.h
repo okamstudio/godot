@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef POPUP_MENU_H
-#define POPUP_MENU_H
+#pragma once
 
 #include "core/input/shortcut.h"
 #include "scene/gui/popup.h"
@@ -385,5 +384,3 @@ public:
 	PopupMenu();
 	~PopupMenu();
 };
-
-#endif // POPUP_MENU_H

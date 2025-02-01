@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMPORT_DOCK_H
-#define IMPORT_DOCK_H
+#pragma once
 
 #include "core/io/config_file.h"
 #include "core/io/resource_importer.h"
@@ -108,5 +107,3 @@ public:
 	ImportDock();
 	~ImportDock();
 };
-
-#endif // IMPORT_DOCK_H

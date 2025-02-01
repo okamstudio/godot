@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_CRYPTO_H
-#define TEST_CRYPTO_H
+#pragma once
 
 #include "core/crypto/crypto.h"
 #include "tests/test_macros.h"
@@ -69,5 +68,3 @@ TEST_CASE("[Crypto] PackedByteArray constant time compare") {
 	CHECK(!equal);
 }
 } // namespace TestCrypto
-
-#endif // TEST_CRYPTO_H

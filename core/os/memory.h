@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MEMORY_H
-#define MEMORY_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/templates/safe_refcount.h"
@@ -244,5 +243,3 @@ public:
 	_FORCE_INLINE_ T *new_allocation(const Args &&...p_args) { return memnew(T(p_args...)); }
 	_FORCE_INLINE_ void delete_allocation(T *p_allocation) { memdelete(p_allocation); }
 };
-
-#endif // MEMORY_H

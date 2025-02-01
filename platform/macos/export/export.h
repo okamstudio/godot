@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MACOS_EXPORT_H
-#define MACOS_EXPORT_H
+#pragma once
 
 void register_macos_exporter_types();
 void register_macos_exporter();
-
-#endif // MACOS_EXPORT_H

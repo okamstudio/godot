@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef NAV_BASE_H
-#define NAV_BASE_H
+#pragma once
 
 #include "nav_rid.h"
 #include "nav_utils.h"
@@ -66,5 +65,3 @@ public:
 
 	virtual ~NavBase() {}
 };
-
-#endif // NAV_BASE_H

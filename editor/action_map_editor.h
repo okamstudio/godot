@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ACTION_MAP_EDITOR_H
-#define ACTION_MAP_EDITOR_H
+#pragma once
 
 #include "scene/gui/control.h"
 
@@ -132,5 +131,3 @@ public:
 
 	ActionMapEditor();
 };
-
-#endif // ACTION_MAP_EDITOR_H

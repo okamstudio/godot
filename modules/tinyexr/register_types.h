@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TINYEXR_REGISTER_TYPES_H
-#define TINYEXR_REGISTER_TYPES_H
+#pragma once
 
 #include "modules/register_module_types.h"
 
 void initialize_tinyexr_module(ModuleInitializationLevel p_level);
 void uninitialize_tinyexr_module(ModuleInitializationLevel p_level);
-
-#endif // TINYEXR_REGISTER_TYPES_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MACHO_H
-#define MACHO_H
+#pragma once
 
 // Mach-O binary object file format parser and editor.
 
@@ -222,5 +221,3 @@ public:
 	uint64_t get_signature_size();
 	bool set_signature_size(uint64_t p_size);
 };
-
-#endif // MACHO_H

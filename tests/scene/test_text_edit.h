@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TEXT_EDIT_H
-#define TEST_TEXT_EDIT_H
+#pragma once
 
 #include "scene/gui/text_edit.h"
 
@@ -8245,5 +8244,3 @@ TEST_CASE("[SceneTree][TextEdit] gutters") {
 }
 
 } // namespace TestTextEdit
-
-#endif // TEST_TEXT_EDIT_H

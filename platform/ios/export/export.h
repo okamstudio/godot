@@ -28,10 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IOS_EXPORT_H
-#define IOS_EXPORT_H
+#pragma once
 
 void register_ios_exporter_types();
 void register_ios_exporter();
-
-#endif // IOS_EXPORT_H

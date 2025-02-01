@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_EFFECT_DISTORTION_H
-#define AUDIO_EFFECT_DISTORTION_H
+#pragma once
 
 #include "servers/audio/audio_effect.h"
 
@@ -89,5 +88,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(AudioEffectDistortion::Mode)
-
-#endif // AUDIO_EFFECT_DISTORTION_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_SCALE_H
-#define EDITOR_SCALE_H
+#pragma once
 
 class EditorScale {
 	static float _scale;
@@ -40,5 +39,3 @@ public:
 };
 
 #define EDSCALE (EditorScale::get_scale())
-
-#endif // EDITOR_SCALE_H

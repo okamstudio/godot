@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef INTEROP_TYPES_H
-#define INTEROP_TYPES_H
+#pragma once
 
 #include "core/math/math_defs.h"
 
@@ -204,5 +203,3 @@ typedef struct {
 #ifdef __cplusplus
 }
 #endif
-
-#endif // INTEROP_TYPES_H

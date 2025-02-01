@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CORE_GLOBALS_H
-#define CORE_GLOBALS_H
+#pragma once
 
 // Home for state needed from global functions
 // that cannot be stored in Engine or OS due to e.g. circular includes
@@ -40,5 +39,3 @@ public:
 	static bool print_line_enabled;
 	static bool print_error_enabled;
 };
-
-#endif // CORE_GLOBALS_H

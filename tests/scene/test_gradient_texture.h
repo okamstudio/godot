@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_GRADIENT_TEXTURE_H
-#define TEST_GRADIENT_TEXTURE_H
+#pragma once
 
 #include "scene/resources/gradient_texture.h"
 
@@ -83,5 +82,3 @@ TEST_CASE("[SceneTree][GradientTexture2D] Create GradientTexture2D") {
 }
 
 } //namespace TestGradientTexture
-
-#endif // TEST_GRADIENT_TEXTURE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SKELETON_3D_EDITOR_PLUGIN_H
-#define SKELETON_3D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/add_metadata_dialog.h"
 #include "editor/editor_properties.h"
@@ -295,5 +294,3 @@ public:
 	Skeleton3DGizmoPlugin();
 	~Skeleton3DGizmoPlugin();
 };
-
-#endif // SKELETON_3D_EDITOR_PLUGIN_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RIGID_BODY_2D_H
-#define RIGID_BODY_2D_H
+#pragma once
 
 #include "core/templates/vset.h"
 #include "scene/2d/physics/physics_body_2d.h"
@@ -246,5 +245,3 @@ VARIANT_ENUM_CAST(RigidBody2D::FreezeMode);
 VARIANT_ENUM_CAST(RigidBody2D::CenterOfMassMode);
 VARIANT_ENUM_CAST(RigidBody2D::DampMode);
 VARIANT_ENUM_CAST(RigidBody2D::CCDMode);
-
-#endif // RIGID_BODY_2D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_VARIANT_H
-#define TEST_VARIANT_H
+#pragma once
 
 #include "core/variant/variant.h"
 #include "core/variant/variant_parser.h"
@@ -2217,5 +2216,3 @@ TEST_CASE("[Variant] Operator NOT") {
 }
 
 } // namespace TestVariant
-
-#endif // TEST_VARIANT_H

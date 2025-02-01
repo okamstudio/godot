@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FLOW_CONTAINER_H
-#define FLOW_CONTAINER_H
+#pragma once
 
 #include "scene/gui/container.h"
 
@@ -116,5 +115,3 @@ public:
 
 VARIANT_ENUM_CAST(FlowContainer::AlignmentMode);
 VARIANT_ENUM_CAST(FlowContainer::LastWrapAlignmentMode);
-
-#endif // FLOW_CONTAINER_H

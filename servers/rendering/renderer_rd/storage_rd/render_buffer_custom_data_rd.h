@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDER_BUFFER_CUSTOM_DATA_RD_H
-#define RENDER_BUFFER_CUSTOM_DATA_RD_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -44,5 +43,3 @@ public:
 
 private:
 };
-
-#endif // RENDER_BUFFER_CUSTOM_DATA_RD_H

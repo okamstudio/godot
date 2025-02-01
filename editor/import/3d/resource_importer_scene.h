@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RESOURCE_IMPORTER_SCENE_H
-#define RESOURCE_IMPORTER_SCENE_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/io/resource_importer.h"
@@ -523,5 +522,3 @@ Transform3D ResourceImporterScene::get_collision_shapes_transform(const M &p_opt
 	}
 	return transform;
 }
-
-#endif // RESOURCE_IMPORTER_SCENE_H

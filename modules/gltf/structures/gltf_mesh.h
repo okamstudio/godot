@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GLTF_MESH_H
-#define GLTF_MESH_H
+#pragma once
 
 #include "../gltf_defines.h"
 
@@ -60,5 +59,3 @@ public:
 	Variant get_additional_data(const StringName &p_extension_name);
 	void set_additional_data(const StringName &p_extension_name, Variant p_additional_data);
 };
-
-#endif // GLTF_MESH_H

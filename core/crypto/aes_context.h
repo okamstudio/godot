@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AES_CONTEXT_H
-#define AES_CONTEXT_H
+#pragma once
 
 #include "core/crypto/crypto_core.h"
 #include "core/object/ref_counted.h"
@@ -64,5 +63,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(AESContext::Mode);
-
-#endif // AES_CONTEXT_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef IMPORTER_MESH_H
-#define IMPORTER_MESH_H
+#pragma once
 
 #include "core/io/resource.h"
 #include "scene/resources/3d/concave_polygon_shape_3d.h"
@@ -133,5 +132,3 @@ public:
 	Ref<ArrayMesh> get_mesh(const Ref<ArrayMesh> &p_base = Ref<ArrayMesh>());
 	void clear();
 };
-
-#endif // IMPORTER_MESH_H

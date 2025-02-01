@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef MAIN_TIMER_SYNC_H
-#define MAIN_TIMER_SYNC_H
+#pragma once
 
 #include "core/config/engine.h"
 
@@ -161,5 +160,3 @@ public:
 	// advance one frame, return timesteps to take
 	MainFrameTime advance(double p_physics_step, int p_physics_ticks_per_second);
 };
-
-#endif // MAIN_TIMER_SYNC_H

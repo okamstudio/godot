@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DICTIONARY_H
-#define DICTIONARY_H
+#pragma once
 
 #include "core/string/ustring.h"
 #include "core/templates/list.h"
@@ -123,5 +122,3 @@ public:
 	Dictionary();
 	~Dictionary();
 };
-
-#endif // DICTIONARY_H

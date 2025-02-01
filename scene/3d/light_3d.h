@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHT_3D_H
-#define LIGHT_3D_H
+#pragma once
 
 #include "scene/3d/visual_instance_3d.h"
 
@@ -239,5 +238,3 @@ public:
 
 	SpotLight3D();
 };
-
-#endif // LIGHT_3D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef COLLISION_POLYGON_3D_GIZMO_PLUGIN_H
-#define COLLISION_POLYGON_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -45,5 +44,3 @@ public:
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
 	CollisionPolygon3DGizmoPlugin();
 };
-
-#endif // COLLISION_POLYGON_3D_GIZMO_PLUGIN_H

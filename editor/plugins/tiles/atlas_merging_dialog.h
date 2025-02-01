@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef ATLAS_MERGING_DIALOG_H
-#define ATLAS_MERGING_DIALOG_H
+#pragma once
 
 #include "editor/editor_properties.h"
 #include "scene/gui/dialogs.h"
@@ -83,5 +82,3 @@ public:
 
 	AtlasMergingDialog();
 };
-
-#endif // ATLAS_MERGING_DIALOG_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TUPLE_H
-#define TUPLE_H
+#pragma once
 
 // Simple recursive Tuple type that has no runtime overhead.
 //
@@ -117,5 +116,3 @@ template <size_t I, typename... Types>
 _FORCE_INLINE_ const auto &tuple_get(const Tuple<Types...> &t) {
 	return TupleGet<I, Tuple<Types...>>::tuple_get(t);
 }
-
-#endif // TUPLE_H

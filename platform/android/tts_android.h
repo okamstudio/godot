@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TTS_ANDROID_H
-#define TTS_ANDROID_H
+#pragma once
 
 #include "core/config/project_settings.h"
 #include "core/string/ustring.h"
@@ -68,5 +67,3 @@ public:
 	static void resume();
 	static void stop();
 };
-
-#endif // TTS_ANDROID_H

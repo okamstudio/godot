@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef POLYGON_3D_EDITOR_PLUGIN_H
-#define POLYGON_3D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "scene/3d/mesh_instance_3d.h"
@@ -113,5 +112,3 @@ public:
 	Polygon3DEditorPlugin();
 	~Polygon3DEditorPlugin();
 };
-
-#endif // POLYGON_3D_EDITOR_PLUGIN_H

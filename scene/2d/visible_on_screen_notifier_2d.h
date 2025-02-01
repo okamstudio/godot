@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VISIBLE_ON_SCREEN_NOTIFIER_2D_H
-#define VISIBLE_ON_SCREEN_NOTIFIER_2D_H
+#pragma once
 
 #include "scene/2d/node_2d.h"
 
@@ -101,5 +100,3 @@ public:
 };
 
 VARIANT_ENUM_CAST(VisibleOnScreenEnabler2D::EnableMode);
-
-#endif // VISIBLE_ON_SCREEN_NOTIFIER_2D_H

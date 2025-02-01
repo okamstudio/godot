@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_STRING_NAMES_H
-#define EDITOR_STRING_NAMES_H
+#pragma once
 
 #include "core/string/string_name.h"
 
@@ -52,5 +51,3 @@ public:
 };
 
 #define EditorStringName(m_name) EditorStringNames::get_singleton()->m_name
-
-#endif // EDITOR_STRING_NAMES_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RECT2I_H
-#define RECT2I_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/math/vector2i.h"
@@ -237,5 +236,3 @@ struct [[nodiscard]] Rect2i {
 			size(p_size) {
 	}
 };
-
-#endif // RECT2I_H

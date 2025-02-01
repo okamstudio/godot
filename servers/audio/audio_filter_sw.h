@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_FILTER_SW_H
-#define AUDIO_FILTER_SW_H
+#pragma once
 
 #include "core/typedefs.h"
 
@@ -122,5 +121,3 @@ void AudioFilterSW::Processor::process_one_interp(float &p_sample) {
 	coeffs.a1 += incr_coeffs.a1;
 	coeffs.a2 += incr_coeffs.a2;
 }
-
-#endif // AUDIO_FILTER_SW_H

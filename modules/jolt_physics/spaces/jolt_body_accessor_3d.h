@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_BODY_ACCESSOR_3D_H
-#define JOLT_BODY_ACCESSOR_3D_H
+#pragma once
 
 #include "../objects/jolt_object_3d.h"
 
@@ -210,5 +209,3 @@ typedef JoltAccessibleBody3D<JoltScopedBodyWriter3D, JPH::Body> JoltWritableBody
 
 typedef JoltAccessibleBodies3D<JoltScopedBodyReader3D, const JPH::Body> JoltReadableBodies3D;
 typedef JoltAccessibleBodies3D<JoltScopedBodyWriter3D, JPH::Body> JoltWritableBodies3D;
-
-#endif // JOLT_BODY_ACCESSOR_3D_H

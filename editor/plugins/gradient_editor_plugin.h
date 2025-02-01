@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GRADIENT_EDITOR_PLUGIN_H
-#define GRADIENT_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 #include "editor/plugins/editor_plugin.h"
@@ -142,5 +141,3 @@ public:
 
 	GradientEditorPlugin();
 };
-
-#endif // GRADIENT_EDITOR_PLUGIN_H

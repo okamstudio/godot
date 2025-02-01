@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_PLUGIN_SETTINGS_H
-#define EDITOR_PLUGIN_SETTINGS_H
+#pragma once
 
 #include "editor/plugins/plugin_config_dialog.h"
 
@@ -73,5 +72,3 @@ public:
 
 	EditorPluginSettings();
 };
-
-#endif // EDITOR_PLUGIN_SETTINGS_H

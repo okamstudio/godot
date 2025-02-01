@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef FILE_ACCESS_H
-#define FILE_ACCESS_H
+#pragma once
 
 #include "core/io/compression.h"
 #include "core/math/math_defs.h"
@@ -273,5 +272,3 @@ public:
 VARIANT_ENUM_CAST(FileAccess::CompressionMode);
 VARIANT_ENUM_CAST(FileAccess::ModeFlags);
 VARIANT_BITFIELD_CAST(FileAccess::UnixPermissionFlags);
-
-#endif // FILE_ACCESS_H

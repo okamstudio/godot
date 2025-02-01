@@ -28,13 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DETECT_PRIME_X11_H
-#define DETECT_PRIME_X11_H
+#pragma once
 
 #if defined(X11_ENABLED) && defined(GLES3_ENABLED)
 
 int detect_prime();
 
 #endif // X11_ENABLED && GLES3_ENABLED
-
-#endif // DETECT_PRIME_X11_H

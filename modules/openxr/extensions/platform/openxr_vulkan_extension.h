@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_VULKAN_EXTENSION_H
-#define OPENXR_VULKAN_EXTENSION_H
+#pragma once
 
 #include "../../openxr_api.h"
 #include "../../util.h"
@@ -87,5 +86,3 @@ private:
 	EXT_PROTO_XRRESULT_FUNC4(xrCreateVulkanDeviceKHR, (XrInstance), p_instance, (const XrVulkanDeviceCreateInfoKHR *), p_create_info, (VkDevice *), r_device, (VkResult *), r_result)
 	EXT_PROTO_XRRESULT_FUNC4(xrEnumerateSwapchainImages, (XrSwapchain), p_swapchain, (uint32_t), p_image_capacity_input, (uint32_t *), p_image_count_output, (XrSwapchainImageBaseHeader *), p_images)
 };
-
-#endif // OPENXR_VULKAN_EXTENSION_H

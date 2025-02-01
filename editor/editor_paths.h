@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_PATHS_H
-#define EDITOR_PATHS_H
+#pragma once
 
 #include "core/object/class_db.h"
 #include "core/object/object.h"
@@ -84,5 +83,3 @@ public:
 
 	EditorPaths();
 };
-
-#endif // EDITOR_PATHS_H

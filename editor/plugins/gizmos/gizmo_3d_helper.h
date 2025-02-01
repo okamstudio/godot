@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GIZMO_3D_HELPER_H
-#define GIZMO_3D_HELPER_H
+#pragma once
 
 #include "core/object/ref_counted.h"
 
@@ -56,5 +55,3 @@ public:
 	void cylinder_set_handle(const Vector3 p_segment[2], int p_id, real_t &r_height, real_t &r_radius, Vector3 &r_cylinder_position);
 	void cylinder_commit_handle(int p_id, const String &p_radius_action_name, const String &p_height_action_name, bool p_cancel, Object *p_position_object, Object *p_height_object = nullptr, Object *p_radius_object = nullptr, const StringName &p_position_property = "global_position", const StringName &p_height_property = "height", const StringName &p_radius_property = "radius");
 };
-
-#endif // GIZMO_3D_HELPER_H

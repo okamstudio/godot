@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_TRANSFORM_3D_H
-#define TEST_TRANSFORM_3D_H
+#pragma once
 
 #include "core/math/transform_3d.h"
 
@@ -137,5 +136,3 @@ TEST_CASE("[Transform3D] Rotate in-place (local rotation)") {
 	CHECK_MESSAGE(rotated_transform.is_equal_approx(expected), "The rotated transform should have a new orientation but still be based on the same origin.");
 }
 } // namespace TestTransform3D
-
-#endif // TEST_TRANSFORM_3D_H

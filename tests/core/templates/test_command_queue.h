@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_COMMAND_QUEUE_H
-#define TEST_COMMAND_QUEUE_H
+#pragma once
 
 #include "core/config/project_settings.h"
 #include "core/math/random_number_generator.h"
@@ -562,5 +561,3 @@ TEST_CASE("[CommandQueue] Test Parameter Passing Semantics") {
 	sts.destroy_threads();
 }
 } // namespace TestCommandQueue
-
-#endif // TEST_COMMAND_QUEUE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VARIANT_PARSER_H
-#define VARIANT_PARSER_H
+#pragma once
 
 #include "core/io/file_access.h"
 #include "core/io/resource.h"
@@ -164,5 +163,3 @@ public:
 	static Error write(const Variant &p_variant, StoreStringFunc p_store_string_func, void *p_store_string_ud, EncodeResourceFunc p_encode_res_func, void *p_encode_res_ud, int p_recursion_count = 0, bool p_compat = true);
 	static Error write_to_string(const Variant &p_variant, String &r_string, EncodeResourceFunc p_encode_res_func = nullptr, void *p_encode_res_ud = nullptr, bool p_compat = true);
 };
-
-#endif // VARIANT_PARSER_H

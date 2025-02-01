@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_BODY_3D_H
-#define GODOT_BODY_3D_H
+#pragma once
 
 #include "godot_area_3d.h"
 #include "godot_collision_object_3d.h"
@@ -392,5 +391,3 @@ void GodotBody3D::add_contact(const Vector3 &p_local_pos, const Vector3 &p_local
 	c[idx].collider_velocity_at_pos = p_collider_velocity_at_pos;
 	c[idx].impulse = p_impulse;
 }
-
-#endif // GODOT_BODY_3D_H

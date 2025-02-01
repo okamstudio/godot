@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CSG_SHAPE_H
-#define CSG_SHAPE_H
+#pragma once
 
 #include "csg.h"
 
@@ -480,5 +479,3 @@ public:
 VARIANT_ENUM_CAST(CSGPolygon3D::Mode)
 VARIANT_ENUM_CAST(CSGPolygon3D::PathRotation)
 VARIANT_ENUM_CAST(CSGPolygon3D::PathIntervalType)
-
-#endif // CSG_SHAPE_H

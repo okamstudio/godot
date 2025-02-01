@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_DEBUGGER_INSPECTOR_H
-#define EDITOR_DEBUGGER_INSPECTOR_H
+#pragma once
 
 #include "editor/editor_inspector.h"
 
@@ -93,5 +92,3 @@ public:
 	void add_stack_variable(const Array &p_arr, int p_offset = -1);
 	void clear_stack_variables();
 };
-
-#endif // EDITOR_DEBUGGER_INSPECTOR_H

@@ -28,12 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef DXIL_HASH_H
-#define DXIL_HASH_H
+#pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 void compute_dxil_hash(const BYTE *pData, UINT byteCount, BYTE *pOutHash);
-
-#endif // DXIL_HASH_H

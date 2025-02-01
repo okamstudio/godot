@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_IMAGE_TEXTURE_3D_H
-#define TEST_IMAGE_TEXTURE_3D_H
+#pragma once
 
 #include "core/io/image.h"
 #include "scene/resources/image_texture.h"
@@ -97,5 +96,3 @@ TEST_CASE("[SceneTree][ImageTexture3D] set_path") {
 }
 
 } //namespace TestImageTexture3D
-
-#endif // TEST_IMAGE_TEXTURE_3D_H

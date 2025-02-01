@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef HOSTFXR_RESOLVER_H
-#define HOSTFXR_RESOLVER_H
+#pragma once
 
 #include "core/string/ustring.h"
 
@@ -41,5 +40,3 @@ bool try_get_path(String &r_out_dotnet_root, String &r_out_fxr_path);
 
 } //namespace hostfxr_resolver
 } //namespace godotsharp
-
-#endif // HOSTFXR_RESOLVER_H

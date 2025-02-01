@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GRID_MAP_EDITOR_PLUGIN_H
-#define GRID_MAP_EDITOR_PLUGIN_H
+#pragma once
 
 #ifdef TOOLS_ENABLED
 
@@ -301,5 +300,3 @@ public:
 };
 
 #endif // TOOLS_ENABLED
-
-#endif // GRID_MAP_EDITOR_PLUGIN_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_HELP_SEARCH_H
-#define EDITOR_HELP_SEARCH_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "scene/gui/dialogs.h"
@@ -212,5 +211,3 @@ public:
 
 	Runner(Control *p_icon_service, Tree *p_results_tree, TreeCache *p_tree_cache, const String &p_term, int p_search_flags);
 };
-
-#endif // EDITOR_HELP_SEARCH_H

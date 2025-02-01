@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef SPRING_ARM_3D_GIZMO_PLUGIN_H
-#define SPRING_ARM_3D_GIZMO_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -44,5 +43,3 @@ public:
 
 	SpringArm3DGizmoPlugin();
 };
-
-#endif // SPRING_ARM_3D_GIZMO_PLUGIN_H

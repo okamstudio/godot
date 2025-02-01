@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef BONE_MAP_EDITOR_PLUGIN_H
-#define BONE_MAP_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/editor_node.h"
 #include "editor/editor_properties.h"
@@ -227,5 +226,3 @@ public:
 	virtual String get_plugin_name() const override { return "BoneMap"; }
 	BoneMapEditorPlugin();
 };
-
-#endif // BONE_MAP_EDITOR_PLUGIN_H

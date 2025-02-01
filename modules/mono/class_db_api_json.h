@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CLASS_DB_API_JSON_H
-#define CLASS_DB_API_JSON_H
+#pragma once
 
 // 'core/object/method_bind.h' defines DEBUG_METHODS_ENABLED, but it looks like we
 // cannot include it here. That's why we include it through 'core/object/class_db.h'.
@@ -42,5 +41,3 @@
 void class_db_api_to_json(const String &p_output_file, ClassDB::APIType p_api);
 
 #endif // DEBUG_METHODS_ENABLED
-
-#endif // CLASS_DB_API_JSON_H

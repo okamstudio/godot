@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef WEBRTC_PEER_CONNECTION_JS_H
-#define WEBRTC_PEER_CONNECTION_JS_H
+#pragma once
 
 #ifdef WEB_ENABLED
 
@@ -89,5 +88,3 @@ public:
 };
 
 #endif
-
-#endif // WEBRTC_PEER_CONNECTION_JS_H

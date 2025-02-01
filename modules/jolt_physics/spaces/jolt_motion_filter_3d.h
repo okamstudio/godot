@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef JOLT_MOTION_FILTER_3D_H
-#define JOLT_MOTION_FILTER_3D_H
+#pragma once
 
 #include "core/object/object_id.h"
 #include "core/templates/hash_set.h"
@@ -68,5 +67,3 @@ public:
 	virtual bool ShouldCollide(const JPH::Shape *p_jolt_shape, const JPH::SubShapeID &p_jolt_shape_id) const override;
 	virtual bool ShouldCollide(const JPH::Shape *p_jolt_shape_self, const JPH::SubShapeID &p_jolt_shape_id_self, const JPH::Shape *p_jolt_shape_other, const JPH::SubShapeID &p_jolt_shape_id_other) const override;
 };
-
-#endif // JOLT_MOTION_FILTER_3D_H

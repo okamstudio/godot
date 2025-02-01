@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OPENXR_HAND_H
-#define OPENXR_HAND_H
+#pragma once
 
 #include "scene/3d/node_3d.h"
 #include "scene/3d/skeleton_3d.h"
@@ -118,5 +117,3 @@ VARIANT_ENUM_CAST(OpenXRHand::Hands)
 VARIANT_ENUM_CAST(OpenXRHand::MotionRange)
 VARIANT_ENUM_CAST(OpenXRHand::SkeletonRig)
 VARIANT_ENUM_CAST(OpenXRHand::BoneUpdate)
-
-#endif // OPENXR_HAND_H

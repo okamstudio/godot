@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXT_LINE_H
-#define TEXT_LINE_H
+#pragma once
 
 #include "scene/resources/font.h"
 #include "servers/text_server.h"
@@ -117,5 +116,3 @@ public:
 	TextLine();
 	~TextLine();
 };
-
-#endif // TEXT_LINE_H

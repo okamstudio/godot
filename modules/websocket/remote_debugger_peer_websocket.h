@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef REMOTE_DEBUGGER_PEER_WEBSOCKET_H
-#define REMOTE_DEBUGGER_PEER_WEBSOCKET_H
+#pragma once
 
 #include "websocket_peer.h"
 
@@ -58,5 +57,3 @@ public:
 
 	RemoteDebuggerPeerWebSocket(Ref<WebSocketPeer> p_peer = Ref<WebSocketPeer>());
 };
-
-#endif // REMOTE_DEBUGGER_PEER_WEBSOCKET_H

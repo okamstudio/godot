@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_IMAGE_H
-#define TEST_IMAGE_H
+#pragma once
 
 #include "core/io/image.h"
 #include "core/os/os.h"
@@ -444,5 +443,3 @@ TEST_CASE("[Image] Convert image") {
 }
 
 } // namespace TestImage
-
-#endif // TEST_IMAGE_H

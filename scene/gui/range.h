@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RANGE_H
-#define RANGE_H
+#pragma once
 
 #include "scene/gui/control.h"
 
@@ -108,5 +107,3 @@ public:
 	Range();
 	~Range();
 };
-
-#endif // RANGE_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHT_STORAGE_DUMMY_H
-#define LIGHT_STORAGE_DUMMY_H
+#pragma once
 
 #include "servers/rendering/storage/light_storage.h"
 
@@ -219,5 +218,3 @@ public:
 };
 
 } // namespace RendererDummy
-
-#endif // LIGHT_STORAGE_DUMMY_H

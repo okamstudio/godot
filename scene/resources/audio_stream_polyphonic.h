@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef AUDIO_STREAM_POLYPHONIC_H
-#define AUDIO_STREAM_POLYPHONIC_H
+#pragma once
 
 #include "core/templates/local_vector.h"
 #include "scene/scene_string_names.h"
@@ -134,5 +133,3 @@ private:
 public:
 	AudioStreamPlaybackPolyphonic();
 };
-
-#endif // AUDIO_STREAM_POLYPHONIC_H

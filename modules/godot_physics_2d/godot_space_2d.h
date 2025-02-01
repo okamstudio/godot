@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef GODOT_SPACE_2D_H
-#define GODOT_SPACE_2D_H
+#pragma once
 
 #include "godot_area_2d.h"
 #include "godot_body_2d.h"
@@ -206,5 +205,3 @@ public:
 	GodotSpace2D();
 	~GodotSpace2D();
 };
-
-#endif // GODOT_SPACE_2D_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef RENDER_DATA_RD_H
-#define RENDER_DATA_RD_H
+#pragma once
 
 #include "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h"
 #include "servers/rendering/renderer_rd/storage_rd/render_scene_data_rd.h"
@@ -96,5 +95,3 @@ public:
 
 	uint32_t voxel_gi_count = 0;
 };
-
-#endif // RENDER_DATA_RD_H

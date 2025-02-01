@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef EDITOR_FOLDING_H
-#define EDITOR_FOLDING_H
+#pragma once
 
 #include "scene/main/node.h"
 
@@ -55,5 +54,3 @@ public:
 
 	EditorFolding();
 };
-
-#endif // EDITOR_FOLDING_H

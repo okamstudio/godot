@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef LIGHT_STORAGE_H
-#define LIGHT_STORAGE_H
+#pragma once
 
 #include "render_scene_buffers.h"
 #include "servers/rendering_server.h"
@@ -201,5 +200,3 @@ public:
 	virtual int get_directional_light_shadow_size(RID p_light_instance) = 0;
 	virtual void set_directional_shadow_count(int p_count) = 0;
 };
-
-#endif // LIGHT_STORAGE_H

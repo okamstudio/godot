@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef OCCLUDER_INSTANCE_3D_EDITOR_PLUGIN_H
-#define OCCLUDER_INSTANCE_3D_EDITOR_PLUGIN_H
+#pragma once
 
 #include "editor/plugins/editor_plugin.h"
 #include "scene/3d/occluder_instance_3d.h"
@@ -62,5 +61,3 @@ public:
 	OccluderInstance3DEditorPlugin();
 	~OccluderInstance3DEditorPlugin();
 };
-
-#endif // OCCLUDER_INSTANCE_3D_EDITOR_PLUGIN_H

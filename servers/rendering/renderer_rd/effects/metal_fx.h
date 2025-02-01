@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef METAL_FX_RD_H
-#define METAL_FX_RD_H
+#pragma once
 
 #ifdef METAL_ENABLED
 
@@ -178,5 +177,3 @@ public:
 } //namespace RendererRD
 
 #endif // METAL_ENABLED
-
-#endif // METAL_FX_RD_H

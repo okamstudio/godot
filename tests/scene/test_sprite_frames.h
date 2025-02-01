@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEST_SPRITE_FRAMES_H
-#define TEST_SPRITE_FRAMES_H
+#pragma once
 
 #include "scene/resources/sprite_frames.h"
 
@@ -244,5 +243,3 @@ TEST_CASE("[SpriteFrames] Frame addition, removal, and retrieval") {
 			"Clears frames.");
 }
 } // namespace TestSpriteFrames
-
-#endif // TEST_SPRITE_FRAMES_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef CORE_BIND_H
-#define CORE_BIND_H
+#pragma once
 
 #include "core/debugger/engine_profiler.h"
 #include "core/io/resource_loader.h"
@@ -670,5 +669,3 @@ VARIANT_ENUM_CAST(core_bind::Geometry2D::PolyEndType);
 VARIANT_ENUM_CAST(core_bind::Thread::Priority);
 
 VARIANT_ENUM_CAST(core_bind::special::ClassDB::APIType);
-
-#endif // CORE_BIND_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef VECTOR2_H
-#define VECTOR2_H
+#pragma once
 
 #include "core/error/error_macros.h"
 #include "core/math/math_funcs.h"
@@ -326,5 +325,3 @@ _FORCE_INLINE_ Vector2 operator*(int64_t p_scalar, const Vector2 &p_vec) {
 
 typedef Vector2 Size2;
 typedef Vector2 Point2;
-
-#endif // VECTOR2_H

@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef INPUT_ENUMS_H
-#define INPUT_ENUMS_H
+#pragma once
 
 #include "core/error/error_macros.h"
 
@@ -137,5 +136,3 @@ inline MouseButtonMask mouse_button_to_mask(MouseButton button) {
 
 	return MouseButtonMask(1 << ((int)button - 1));
 }
-
-#endif // INPUT_ENUMS_H

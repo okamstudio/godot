@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#ifndef TEXTURE_STORAGE_DUMMY_H
-#define TEXTURE_STORAGE_DUMMY_H
+#pragma once
 
 #include "servers/rendering/storage/texture_storage.h"
 
@@ -215,5 +214,3 @@ public:
 };
 
 } // namespace RendererDummy
-
-#endif // TEXTURE_STORAGE_DUMMY_H
