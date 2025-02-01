@@ -69,8 +69,6 @@ public:
 	}
 
 private:
-	static constexpr uint32_t END_OFFSET = 1;
-
 	OAHashMapElement<TKey, TValue> *elements = nullptr;
 	Hashes hashes;
 
@@ -132,14 +130,11 @@ private:
 		OAHashMapElement<TKey, TValue> *old_elements = elements;
 		uint8_t *old_hashes = hashes.ptr;
 
-		hashes.ptr = static_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET)));
-		elements = static_cast<OAHashMapElement<TKey, TValue> *>(Memory::alloc_static(sizeof(OAHashMapElement<TKey, TValue>) * (real_capacity + END_OFFSET)));
+		hashes.ptr = static_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE));
+		elements = static_cast<OAHashMapElement<TKey, TValue> *>(Memory::alloc_static(sizeof(OAHashMapElement<TKey, TValue>) * real_capacity));
 
-		memset(hashes.ptr, Hashes::EMPTY_HASH, sizeof(uint8_t) * (real_capacity + END_OFFSET));
-
-		if constexpr ((long)HashGroup::GROUP_SIZE - (long)END_OFFSET > 0) {
-			memset(hashes.ptr + real_capacity + END_OFFSET, Hashes::END_HASH, sizeof(uint8_t) * (HashGroup::GROUP_SIZE - END_OFFSET));
-		}
+		memset(hashes.ptr, Hashes::EMPTY_HASH, sizeof(uint8_t) * real_capacity);
+		memset(hashes.ptr + real_capacity, Hashes::END_HASH, sizeof(uint8_t) * HashGroup::GROUP_SIZE);
 
 		if (old_elements == nullptr) {
 			// Nothing to do.
@@ -149,7 +144,7 @@ private:
 		if (num_elements != 0) {
 			num_elements = 0;
 
-			for (uint32_t i = 0; i < old_real_capacity + END_OFFSET; i++) {
+			for (uint32_t i = 0; i < old_real_capacity; i++) {
 				if (old_hashes[i] <= Hashes::DELETED_HASH) {
 					continue;
 				}
@@ -174,7 +169,7 @@ private:
 
 	void _clear_elements() {
 		uint32_t real_capacity = capacity + 1;
-		for (uint32_t i = 0; i < real_capacity + END_OFFSET; i++) {
+		for (uint32_t i = 0; i < real_capacity; i++) {
 			if (hashes[i] <= Hashes::DELETED_HASH) {
 				continue;
 			}
@@ -206,7 +201,7 @@ public:
 
 	void clear() {
 		_clear_elements();
-		memset(hashes.ptr, Hashes::EMPTY_HASH, (capacity + 1 + END_OFFSET) * sizeof(uint8_t));
+		memset(hashes.ptr, Hashes::EMPTY_HASH, (capacity + 1) * sizeof(uint8_t));
 		num_elements = 0;
 	}
 
@@ -338,7 +333,7 @@ public:
 		it.key = nullptr;
 		it.value = nullptr;
 		uint32_t real_capacity = capacity + 1;
-		for (uint32_t i = it.pos; i < real_capacity + END_OFFSET; i++) {
+		for (uint32_t i = it.pos; i < real_capacity; i++) {
 			it.pos = i + 1;
 
 			if (hashes[i] <= Hashes::DELETED_HASH) {
@@ -376,15 +371,15 @@ public:
 		capacity = p_other.capacity;
 		num_elements = p_other.num_elements;
 		uint32_t real_capacity = capacity + 1;
-		hashes.ptr = static_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET)));
-		elements = static_cast<OAHashMapElement<TKey, TValue> *>(Memory::alloc_static(sizeof(OAHashMapElement<TKey, TValue>) * (real_capacity + END_OFFSET)));
+		hashes.ptr = static_cast<uint8_t *>(Memory::alloc_static(sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE));
+		elements = static_cast<OAHashMapElement<TKey, TValue> *>(Memory::alloc_static(sizeof(OAHashMapElement<TKey, TValue>) * real_capacity));
 
-		memcpy(hashes.ptr, p_other.hashes.ptr, sizeof(uint8_t) * real_capacity + MAX(HashGroup::GROUP_SIZE, END_OFFSET));
+		memcpy(hashes.ptr, p_other.hashes.ptr, sizeof(uint8_t) * real_capacity + HashGroup::GROUP_SIZE);
 
 		if constexpr (std::is_trivially_copyable_v<TKey> && std::is_trivially_copyable_v<TValue>) {
-			memcpy(elements, p_other.elements, sizeof(OAHashMapElement<TKey, TValue>) * (real_capacity + END_OFFSET));
+			memcpy(elements, p_other.elements, sizeof(OAHashMapElement<TKey, TValue>) * num_elements);
 		} else {
-			for (uint32_t i = 0; i < real_capacity + END_OFFSET; i++) {
+			for (uint32_t i = 0; i < real_capacity; i++) {
 				if (hashes[i] <= Hashes::DELETED_HASH) {
 					continue;
 				}
