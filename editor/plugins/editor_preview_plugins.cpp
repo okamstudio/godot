@@ -302,7 +302,7 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate(const Ref<Resource> &p_f
 Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &p_path, const Size2 &p_size, Dictionary &p_metadata) const {
 	// Safe checks, since this function interacts with EditorNode to render previews
 	ERR_FAIL_COND_V_MSG(!Engine::get_singleton()->is_editor_hint(), Ref<Texture2D>(), "This function can only be called from the editor.");
-	ERR_FAIL_COND_V_MSG(EditorNode::get_singleton() == nullptr, Ref<Texture2D>(),"EditorNode doesn't exist.");
+	ERR_FAIL_COND_V_MSG(EditorNode::get_singleton() == nullptr, Ref<Texture2D>(), "EditorNode doesn't exist.");
 
 	// Try load cached thumbnail
 	String temp_path = EditorPaths::get_singleton()->get_cache_dir();
@@ -323,11 +323,17 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 	Error load_error;
 	Ref<PackedScene> pack = ResourceLoader::load(p_path, "PackedScene", ResourceFormatLoader::CACHE_MODE_IGNORE, &load_error); // no more cache issues?
 	if (load_error != OK) {
-		print_error(vformat("Failed to generate scene thumbnail for %s : Loaded with error code %i", p_path, load_error));
+		print_error(vformat("Failed to generate scene thumbnail for %s : Loaded with error code %d", p_path, int(load_error)));
 		return Ref<Texture2D>();
 	}
 	if (!pack.is_valid()) {
 		print_error(vformat("Failed to generate scene thumbnail for %s : Invalid scene file", p_path));
+		return Ref<Texture2D>();
+	}
+
+	bool rm_script_success = _remove_scripts_from_packed_scene(pack); // We don't want tool scripts to fire off when generating previews
+	if (!rm_script_success) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : error in removing scripts from preview scene, thus not safe to create thumbnail image", p_path));
 		return Ref<Texture2D>();
 	}
 
@@ -449,6 +455,54 @@ void EditorPackedScenePreviewPlugin::_calculate_scene_aabb(Node *p_node, AABB &a
 	for (int i = 0; i < p_node->get_child_count(); i++) {
 		_calculate_scene_aabb(p_node->get_child(i), aabb);
 	}
+}
+
+bool EditorPackedScenePreviewPlugin::_remove_scripts_from_packed_scene(Ref<PackedScene> pack) const {
+	// Refer to SceneState in packed_scene.cpp to see how PackedScene is managed underhood.
+
+	// Sanitize
+	Dictionary bundle = pack->get_state()->get_bundled_scene();
+	ERR_FAIL_COND_V(!bundle.has("names"), false);
+	ERR_FAIL_COND_V(!bundle.has("variants"), false);
+	ERR_FAIL_COND_V(!bundle.has("node_count"), false);
+	ERR_FAIL_COND_V(!bundle.has("nodes"), false);
+	ERR_FAIL_COND_V(!bundle.has("conn_count"), false);
+	ERR_FAIL_COND_V(!bundle.has("conns"), false);
+
+	const uint8_t supported_version = 3;
+	uint8_t current_version = 1;
+	if (bundle.has("version")) {
+		current_version = bundle["version"];
+	}
+
+	if (current_version > supported_version) {
+		WARN_PRINT_ONCE(vformat("Scene thumbnail creation was built upon PackedScene with version %d, but the version has changed to %d now.", supported_version, current_version));
+		// And assume it's safe to continue, there should have no reason to change the main structure of PackedScene
+	}
+
+	if (sizeof(bundle["variants"]) == 0) {
+		return true; // Scene has no resources at all
+	}
+
+	// Find and remove all scripts in scene
+	Ref<Script> const dummy = 0;
+	Array edited_variants = bundle["variants"];
+	for (int i = 0; i < edited_variants.size(); i++) {
+		if (edited_variants[i].get_type() != Variant::OBJECT) {
+			continue;
+		}
+		if (Object::cast_to<Script>(edited_variants[i])) {
+			edited_variants[i] = dummy; // Clear the script
+		}
+	}
+
+	// Create a new scene state
+	bundle["variants"] = edited_variants;
+	Ref<SceneState> new_state = memnew(SceneState);
+	new_state->set_bundled_scene(bundle);
+	new_state->instantiate(SceneState::GEN_EDIT_STATE_DISABLED);
+	pack->replace_state(new_state);
+	return true;
 }
 
 EditorPackedScenePreviewPlugin::EditorPackedScenePreviewPlugin() {
