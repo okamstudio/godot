@@ -333,6 +333,27 @@ void RendererViewport::_draw_viewport(Viewport *p_viewport) {
 				// The scene renderer will still copy over the last frame, so we need to clear the render target.
 				force_clear_render_target = true;
 			}
+
+			// Check if the viewport is tonemapping to the screen.
+			if (p_viewport->tonemap_to_screen) {
+				DisplayServer::WindowID parent_window = _get_containing_window(p_viewport);
+				if (parent_window != DisplayServer::INVALID_WINDOW_ID) {
+					RenderingContextDriver *context_driver = RD::get_singleton()->get_context_driver();
+
+					if (context_driver->window_get_hdr_output_enabled(parent_window)) {
+						float min_luminance = context_driver->window_get_hdr_output_min_luminance(parent_window);
+						float max_luminance = context_driver->window_get_hdr_output_max_luminance(parent_window);
+						float reference_luminance = context_driver->window_get_hdr_output_reference_luminance(parent_window);
+
+						float min_value = MAX(min_luminance / MAX(reference_luminance, 1.0f), 0.0f);
+						float max_value = MAX(max_luminance / MAX(reference_luminance, 1.0f), 1.0f);
+
+						RSG::scene->environment_set_tonemap_range(environment, min_value, max_value);
+					} else {
+						RSG::scene->environment_set_tonemap_range(environment, 0.0f, 1.0f);
+					}
+				}
+			}
 		}
 	}
 
@@ -708,6 +729,21 @@ void RendererViewport::_draw_viewport(Viewport *p_viewport) {
 		RSG::utilities->capture_timestamp(rt_id);
 		timestamp_vp_map[rt_id] = p_viewport->self;
 	}
+}
+
+DisplayServer::WindowID RendererViewport::_get_containing_window(Viewport *p_viewport) {
+	if (p_viewport->viewport_to_screen != DisplayServer::INVALID_WINDOW_ID) {
+		return p_viewport->viewport_to_screen;
+	}
+
+	if (p_viewport->parent.is_valid()) {
+		Viewport *parent = viewport_owner.get_or_null(p_viewport->parent);
+		if (parent) {
+			return _get_containing_window(parent);
+		}
+	}
+
+	return DisplayServer::INVALID_WINDOW_ID;
 }
 
 void RendererViewport::draw_viewports(bool p_swap_buffers) {
@@ -1122,6 +1158,13 @@ void RendererViewport::viewport_set_render_direct_to_screen(RID p_viewport, bool
 		RSG::texture_storage->render_target_set_size(viewport->render_target, viewport->viewport_to_screen_rect.size.x, viewport->viewport_to_screen_rect.size.y, viewport->view_count);
 		RSG::texture_storage->render_target_set_position(viewport->render_target, viewport->viewport_to_screen_rect.position.x, viewport->viewport_to_screen_rect.position.y);
 	}
+}
+
+void RendererViewport::viewport_set_tonemap_to_screen(RID p_viewport, bool p_enable) {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL(viewport);
+
+	viewport->tonemap_to_screen = p_enable;
 }
 
 void RendererViewport::viewport_set_update_mode(RID p_viewport, RS::ViewportUpdateMode p_mode) {

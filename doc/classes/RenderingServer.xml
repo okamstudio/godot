@@ -1493,6 +1493,16 @@
 				Sets the variables to be used with the "tonemap" post-process effect. See [Environment] for more details.
 			</description>
 		</method>
+		<method name="environment_set_tonemap_range">
+			<return type="void" />
+			<param index="0" name="env" type="RID" />
+			<param index="1" name="min_value" type="float" />
+			<param index="2" name="max_value" type="float" />
+			<description>
+				Sets the range of the tonemapper, defining the minimum and maximum values after tonemapping.
+				[b]Note:[/b] This is ignored when using [constant ENV_TONE_MAPPER_LINEAR].
+			</description>
+		</method>
 		<method name="environment_set_volumetric_fog">
 			<return type="void" />
 			<param index="0" name="env" type="RID" />
@@ -4188,6 +4198,14 @@
 			<description>
 				Affects the final texture sharpness by reading from a lower or higher mipmap (also called "texture LOD bias"). Negative values make mipmapped textures sharper but grainier when viewed at a distance, while positive values make mipmapped textures blurrier (even when up close). To get sharper textures at a distance without introducing too much graininess, set this between [code]-0.75[/code] and [code]0.0[/code]. Enabling temporal antialiasing ([member ProjectSettings.rendering/anti_aliasing/quality/use_taa]) can help reduce the graininess visible when using negative mipmap bias.
 				[b]Note:[/b] When the 3D scaling mode is set to FSR 1.0, this value is used to adjust the automatic mipmap bias which is calculated internally based on the scale factor. The formula for this is [code]-log2(1.0 / scale) + mipmap_bias[/code].
+			</description>
+		</method>
+		<method name="viewport_set_tonemap_to_screen">
+			<return type="void" />
+			<param index="0" name="viewport" type="RID" />
+			<param index="1" name="enabled" type="bool" />
+			<description>
+				If [code]true[/code], the viewport will tonemap its content to the window's HDR output luminance range, if HDR output is enabled.
 			</description>
 		</method>
 		<method name="viewport_set_transparent_background">

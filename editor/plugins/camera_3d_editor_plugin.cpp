@@ -87,6 +87,7 @@ Camera3DPreview::Camera3DPreview(Camera3D *p_camera) :
 		TexturePreview(nullptr, false), camera(p_camera), sub_viewport(memnew(SubViewport)) {
 	RenderingServer::get_singleton()->viewport_attach_camera(sub_viewport->get_viewport_rid(), camera->get_camera());
 	add_child(sub_viewport);
+	sub_viewport->set_tonemap_to_window(true);
 
 	TextureRect *display = get_texture_display();
 	display->set_texture(sub_viewport->get_texture());

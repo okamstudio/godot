@@ -273,6 +273,13 @@ public:
 		DATA_FORMAT_MAX,
 	};
 
+	enum ColorSpace {
+		COLOR_SPACE_SRGB_LINEAR,
+		COLOR_SPACE_SRGB_NONLINEAR,
+		COLOR_SPACE_HDR10_ST2084,
+		COLOR_SPACE_MAX,
+	};
+
 	// Breadcrumb markers are useful for debugging GPU crashes (i.e. DEVICE_LOST). Internally
 	// they're just an uint32_t to "tag" a GPU command. These are only used for debugging and do not
 	// (or at least shouldn't) alter the execution behavior in any way.
@@ -886,6 +893,7 @@ public:
 		// If not supported, a fragment shader with only side effects (i.e., writes  to buffers, but doesn't output to attachments), may be optimized down to no-op by the GPU driver.
 		SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS,
 		SUPPORTS_BUFFER_DEVICE_ADDRESS,
+		SUPPORTS_HDR_OUTPUT,
 	};
 
 	enum SubgroupOperations {

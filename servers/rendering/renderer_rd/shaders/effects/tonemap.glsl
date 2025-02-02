@@ -97,6 +97,11 @@ layout(push_constant, std430) uniform Params {
 	float white;
 	float auto_exposure_scale;
 	float luminance_multiplier;
+
+	float source_min_value;
+	float source_max_value;
+	float dest_min_value;
+	float dest_max_value;
 }
 params;
 
@@ -344,6 +349,14 @@ vec3 linear_to_srgb(vec3 color) {
 	return mix((vec3(1.0f) + a) * pow(color.rgb, vec3(1.0f / 2.4f)) - a, 12.92f * color.rgb, lessThan(color.rgb, vec3(0.0031308f)));
 }
 
+vec3 normalize(vec3 value, vec3 min, vec3 max) {
+	return (value - min) / (max - min);
+}
+
+vec3 denormalize(vec3 value, vec3 min, vec3 max) {
+	return value * (max - min) + min;
+}
+
 #define TONEMAPPER_LINEAR 0
 #define TONEMAPPER_REINHARD 1
 #define TONEMAPPER_FILMIC 2
@@ -353,17 +366,26 @@ vec3 linear_to_srgb(vec3 color) {
 vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 	// Ensure color values passed to tonemappers are positive.
 	// They can be negative in the case of negative lights, which leads to undesired behavior.
+	// Linear is special: it always passes through with no adjustments.
+
 	if (params.tonemapper == TONEMAPPER_LINEAR) {
 		return color;
 	} else if (params.tonemapper == TONEMAPPER_REINHARD) {
-		return tonemap_reinhard(max(vec3(0.0f), color), white);
+		color = tonemap_reinhard(max(vec3(0.0f), color), white);
 	} else if (params.tonemapper == TONEMAPPER_FILMIC) {
-		return tonemap_filmic(max(vec3(0.0f), color), white);
+		color = tonemap_filmic(max(vec3(0.0f), color), white);
 	} else if (params.tonemapper == TONEMAPPER_ACES) {
-		return tonemap_aces(max(vec3(0.0f), color), white);
+		color = tonemap_aces(max(vec3(0.0f), color), white);
 	} else { // TONEMAPPER_AGX
-		return tonemap_agx(color);
+		color = tonemap_agx(color);
 	}
+
+	// Expand color to the target output range for HDR render targets.
+	if (!bool(params.flags & FLAG_CONVERT_TO_SRGB)) {
+		color = denormalize(color, vec3(params.dest_min_value), vec3(params.dest_max_value));
+	}
+
+	return color;
 }
 
 #ifdef USE_MULTIVIEW
@@ -410,14 +432,33 @@ vec3 gather_glow(sampler2D tex, vec2 uv) { // sample all selected glow levels
 #define GLOW_MODE_REPLACE 3
 #define GLOW_MODE_MIX 4
 
-vec3 apply_glow(vec3 color, vec3 glow) { // apply glow using the selected blending mode
+vec3 apply_glow(vec3 color, vec3 glow, bool hdrInput) { // apply glow using the selected blending mode
 	if (params.glow_mode == GLOW_MODE_ADD) {
 		return color + glow;
 	} else if (params.glow_mode == GLOW_MODE_SCREEN) {
+		if (hdrInput) {
+			// Compress the color and glow from scene intensity to [0, 1] to avoid artifacts due to the color clamping.
+			color = normalize(color, vec3(params.source_min_value), vec3(params.source_max_value));
+			glow = normalize(glow, vec3(params.source_min_value), vec3(params.source_max_value));
+		}
+
 		// Needs color clamping.
 		glow.rgb = clamp(glow.rgb, vec3(0.0f), vec3(1.0f));
-		return max((color + glow) - (color * glow), vec3(0.0));
+		color = max((color + glow) - (color * glow), vec3(0.0));
+
+		if (hdrInput) {
+			// Expand the color back to the original intensity range.
+			color = denormalize(color, vec3(params.source_min_value), vec3(params.source_max_value));
+		}
+
+		return color;
 	} else if (params.glow_mode == GLOW_MODE_SOFTLIGHT) {
+		if (hdrInput) {
+			// Compress the color and glow from scene intensity to [0, 1] to avoid artifacts due to the color clamping.
+			color = normalize(color, vec3(params.source_min_value), vec3(params.source_max_value));
+			glow = normalize(glow, vec3(params.source_min_value), vec3(params.source_max_value));
+		}
+
 		// Needs color clamping.
 		glow.rgb = clamp(glow.rgb, vec3(0.0f), vec3(1.0f));
 		glow = glow * vec3(0.5f) + vec3(0.5f);
@@ -425,6 +466,12 @@ vec3 apply_glow(vec3 color, vec3 glow) { // apply glow using the selected blendi
 		color.r = (glow.r <= 0.5f) ? (color.r - (1.0f - 2.0f * glow.r) * color.r * (1.0f - color.r)) : (((glow.r > 0.5f) && (color.r <= 0.25f)) ? (color.r + (2.0f * glow.r - 1.0f) * (4.0f * color.r * (4.0f * color.r + 1.0f) * (color.r - 1.0f) + 7.0f * color.r)) : (color.r + (2.0f * glow.r - 1.0f) * (sqrt(color.r) - color.r)));
 		color.g = (glow.g <= 0.5f) ? (color.g - (1.0f - 2.0f * glow.g) * color.g * (1.0f - color.g)) : (((glow.g > 0.5f) && (color.g <= 0.25f)) ? (color.g + (2.0f * glow.g - 1.0f) * (4.0f * color.g * (4.0f * color.g + 1.0f) * (color.g - 1.0f) + 7.0f * color.g)) : (color.g + (2.0f * glow.g - 1.0f) * (sqrt(color.g) - color.g)));
 		color.b = (glow.b <= 0.5f) ? (color.b - (1.0f - 2.0f * glow.b) * color.b * (1.0f - color.b)) : (((glow.b > 0.5f) && (color.b <= 0.25f)) ? (color.b + (2.0f * glow.b - 1.0f) * (4.0f * color.b * (4.0f * color.b + 1.0f) * (color.b - 1.0f) + 7.0f * color.b)) : (color.b + (2.0f * glow.b - 1.0f) * (sqrt(color.b) - color.b)));
+
+		if (hdrInput) {
+			// Expand the color back to the original intensity range.
+			color = denormalize(color, vec3(params.source_min_value), vec3(params.source_max_value));
+		}
+
 		return color;
 	} else { //replace
 		return glow;
@@ -579,7 +626,7 @@ void main() {
 			glow = linear_to_srgb(glow);
 		}
 
-		color.rgb = apply_glow(color.rgb, glow);
+		color.rgb = apply_glow(color.rgb, glow, !bool(params.flags & FLAG_CONVERT_TO_SRGB));
 	}
 #endif
 

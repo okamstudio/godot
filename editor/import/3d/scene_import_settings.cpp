@@ -1704,6 +1704,7 @@ SceneImportSettingsDialog::SceneImportSettingsDialog() {
 
 	base_viewport = memnew(SubViewport);
 	vp_container->add_child(base_viewport);
+	base_viewport->set_tonemap_to_window(true);
 
 	animation_preview = memnew(PanelContainer);
 	animation_preview->set_h_size_flags(Control::SIZE_EXPAND_FILL);

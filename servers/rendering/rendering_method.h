@@ -186,10 +186,13 @@ public:
 
 	// Tonemap
 	virtual void environment_set_tonemap(RID p_env, RS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white) = 0;
+	virtual void environment_set_tonemap_range(RID p_env, float p_min_value, float p_max_value) = 0;
 
 	virtual RS::EnvironmentToneMapper environment_get_tone_mapper(RID p_env) const = 0;
 	virtual float environment_get_exposure(RID p_env) const = 0;
 	virtual float environment_get_white(RID p_env) const = 0;
+	virtual float environment_get_min_value(RID p_env) const = 0;
+	virtual float environment_get_max_value(RID p_env) const = 0;
 
 	// Fog
 	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density, float p_aerial_perspective, float p_sky_affect, RS::EnvironmentFogMode p_mode = RS::EnvironmentFogMode::ENV_FOG_MODE_EXPONENTIAL) = 0;

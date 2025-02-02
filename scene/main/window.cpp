@@ -578,6 +578,102 @@ bool Window::get_flag(Flags p_flag) const {
 	return flags[p_flag];
 }
 
+void Window::set_hdr_output_enabled(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_enabled = p_enabled;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_enabled(hdr_output_enabled, window_id);
+	}
+}
+
+bool Window::is_hdr_output_enabled() const {
+	ERR_READ_THREAD_GUARD_V(false);
+
+	return hdr_output_enabled;
+}
+
+void Window::set_hdr_output_prefer_high_precision(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_prefer_high_precision = p_enabled;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_prefer_high_precision(hdr_output_prefer_high_precision, window_id);
+	}
+}
+
+bool Window::is_hdr_output_preferring_high_precision() const {
+	ERR_READ_THREAD_GUARD_V(false);
+
+	return hdr_output_prefer_high_precision;
+}
+
+void Window::set_hdr_output_use_screen_luminance(bool p_enabled) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_use_screen_luminance = p_enabled;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_use_screen_luminance(hdr_output_use_screen_luminance, window_id);
+	}
+}
+
+bool Window::is_hdr_output_using_screen_luminance() const {
+	ERR_READ_THREAD_GUARD_V(false);
+
+	return hdr_output_use_screen_luminance;
+}
+
+void Window::set_hdr_output_reference_luminance(float p_reference_luminance) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_reference_luminance = p_reference_luminance;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_reference_luminance(hdr_output_reference_luminance, window_id);
+	}
+}
+
+float Window::get_hdr_output_reference_luminance() const {
+	ERR_READ_THREAD_GUARD_V(0.0f);
+
+	return hdr_output_reference_luminance;
+}
+
+void Window::set_hdr_output_min_luminance(float p_min_luminance) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_min_luminance = p_min_luminance;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_min_luminance(hdr_output_min_luminance, window_id);
+	}
+}
+
+float Window::get_hdr_output_min_luminance() const {
+	ERR_READ_THREAD_GUARD_V(0.0f);
+
+	return hdr_output_min_luminance;
+}
+
+void Window::set_hdr_output_max_luminance(float p_max_luminance) {
+	ERR_MAIN_THREAD_GUARD;
+
+	hdr_output_max_luminance = p_max_luminance;
+
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		DisplayServer::get_singleton()->window_set_hdr_output_max_luminance(hdr_output_max_luminance, window_id);
+	}
+}
+
+float Window::get_hdr_output_max_luminance() const {
+	ERR_READ_THREAD_GUARD_V(0.0f);
+
+	return hdr_output_max_luminance;
+}
+
 bool Window::is_maximize_allowed() const {
 	ERR_READ_THREAD_GUARD_V(false);
 	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
@@ -677,6 +773,14 @@ void Window::_make_window() {
 	DisplayServer::get_singleton()->window_set_mouse_passthrough(mpath, window_id);
 	DisplayServer::get_singleton()->window_set_title(tr_title, window_id);
 	DisplayServer::get_singleton()->window_attach_instance_id(get_instance_id(), window_id);
+
+	// Set HDR output settings.
+	DisplayServer::get_singleton()->window_set_hdr_output_enabled(hdr_output_enabled, window_id);
+	DisplayServer::get_singleton()->window_set_hdr_output_prefer_high_precision(hdr_output_prefer_high_precision, window_id);
+	DisplayServer::get_singleton()->window_set_hdr_output_use_screen_luminance(hdr_output_use_screen_luminance, window_id);
+	DisplayServer::get_singleton()->window_set_hdr_output_reference_luminance(hdr_output_reference_luminance, window_id);
+	DisplayServer::get_singleton()->window_set_hdr_output_min_luminance(hdr_output_min_luminance, window_id);
+	DisplayServer::get_singleton()->window_set_hdr_output_max_luminance(hdr_output_max_luminance, window_id);
 
 	_update_window_size();
 
@@ -1394,6 +1498,15 @@ void Window::_notification(int p_what) {
 						position = DisplayServer::get_singleton()->window_get_position(window_id);
 						size = DisplayServer::get_singleton()->window_get_size(window_id);
 						focused = DisplayServer::get_singleton()->window_is_focused(window_id);
+					}
+					// Update HDR settings to reflect the current state of the main window.
+					{
+						hdr_output_enabled = DisplayServer::get_singleton()->window_is_hdr_output_enabled(window_id);
+						hdr_output_prefer_high_precision = DisplayServer::get_singleton()->window_is_hdr_output_preferring_high_precision(window_id);
+						hdr_output_use_screen_luminance = DisplayServer::get_singleton()->window_is_hdr_output_using_screen_luminance(window_id);
+						hdr_output_reference_luminance = DisplayServer::get_singleton()->window_get_hdr_output_reference_luminance(window_id);
+						hdr_output_min_luminance = DisplayServer::get_singleton()->window_get_hdr_output_min_luminance(window_id);
+						hdr_output_max_luminance = DisplayServer::get_singleton()->window_get_hdr_output_max_luminance(window_id);
 					}
 					_update_window_size(); // Inform DisplayServer of minimum and maximum size.
 					_update_viewport_size(); // Then feed back to the viewport.
@@ -2916,6 +3029,24 @@ void Window::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_flag", "flag", "enabled"), &Window::set_flag);
 	ClassDB::bind_method(D_METHOD("get_flag", "flag"), &Window::get_flag);
 
+	ClassDB::bind_method(D_METHOD("set_hdr_output_enabled", "enabled"), &Window::set_hdr_output_enabled);
+	ClassDB::bind_method(D_METHOD("is_hdr_output_enabled"), &Window::is_hdr_output_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_hdr_output_prefer_high_precision", "enabled"), &Window::set_hdr_output_prefer_high_precision);
+	ClassDB::bind_method(D_METHOD("is_hdr_output_preferring_high_precision"), &Window::is_hdr_output_preferring_high_precision);
+
+	ClassDB::bind_method(D_METHOD("set_hdr_output_use_screen_luminance", "enabled"), &Window::set_hdr_output_use_screen_luminance);
+	ClassDB::bind_method(D_METHOD("is_hdr_output_using_screen_luminance"), &Window::is_hdr_output_using_screen_luminance);
+
+	ClassDB::bind_method(D_METHOD("set_hdr_output_reference_luminance", "reference_luminance"), &Window::set_hdr_output_reference_luminance);
+	ClassDB::bind_method(D_METHOD("get_hdr_output_reference_luminance"), &Window::get_hdr_output_reference_luminance);
+
+	ClassDB::bind_method(D_METHOD("set_hdr_output_min_luminance", "min_luminance"), &Window::set_hdr_output_min_luminance);
+	ClassDB::bind_method(D_METHOD("get_hdr_output_min_luminance"), &Window::get_hdr_output_min_luminance);
+
+	ClassDB::bind_method(D_METHOD("set_hdr_output_max_luminance", "max_luminance"), &Window::set_hdr_output_max_luminance);
+	ClassDB::bind_method(D_METHOD("get_hdr_output_max_luminance"), &Window::get_hdr_output_max_luminance);
+
 	ClassDB::bind_method(D_METHOD("is_maximize_allowed"), &Window::is_maximize_allowed);
 
 	ClassDB::bind_method(D_METHOD("request_attention"), &Window::request_attention);
@@ -3098,6 +3229,14 @@ void Window::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "content_scale_stretch", PROPERTY_HINT_ENUM, "Fractional,Integer"), "set_content_scale_stretch", "get_content_scale_stretch");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "content_scale_factor", PROPERTY_HINT_RANGE, "0.5,8.0,0.01"), "set_content_scale_factor", "get_content_scale_factor");
 
+	ADD_GROUP("HDR Output", "hdr_output_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hdr_output_enabled"), "set_hdr_output_enabled", "is_hdr_output_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hdr_output_prefer_high_precision"), "set_hdr_output_prefer_high_precision", "is_hdr_output_preferring_high_precision");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "hdr_output_use_screen_luminance"), "set_hdr_output_use_screen_luminance", "is_hdr_output_using_screen_luminance");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "hdr_output_reference_luminance", PROPERTY_HINT_RANGE, "0,2000,1,or_greater"), "set_hdr_output_reference_luminance", "get_hdr_output_reference_luminance");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "hdr_output_min_luminance", PROPERTY_HINT_RANGE, "0,2000,1,or_greater"), "set_hdr_output_min_luminance", "get_hdr_output_min_luminance");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "hdr_output_max_luminance", PROPERTY_HINT_RANGE, "0,2000,1,or_greater"), "set_hdr_output_max_luminance", "get_hdr_output_max_luminance");
+
 #ifndef DISABLE_DEPRECATED
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "auto_translate", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_auto_translate", "is_auto_translating");
 #endif
@@ -3201,6 +3340,10 @@ Window::Window() {
 
 	theme_owner = memnew(ThemeOwner(this));
 	RS::get_singleton()->viewport_set_update_mode(get_viewport_rid(), RS::VIEWPORT_UPDATE_DISABLED);
+
+	// Tonemap the root viewport of this window by default.
+	tonemap_to_window = true;
+	RS::get_singleton()->viewport_set_tonemap_to_screen(get_viewport_rid(), tonemap_to_window);
 }
 
 Window::~Window() {
