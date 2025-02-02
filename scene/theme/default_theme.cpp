@@ -1234,6 +1234,40 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("connection_valid_target_tint_color", "GraphEdit", Color(1, 1, 1, 0.4));
 	theme->set_color("connection_rim_color", "GraphEdit", style_normal_color);
 
+	Ref<StyleBoxFlat> foldable_container_title = make_flat_stylebox(style_pressed_color);
+	foldable_container_title->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+	foldable_container_title->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+	theme->set_stylebox("title_panel", "FoldableContainer", foldable_container_title);
+	Ref<StyleBoxFlat> foldable_container_hover = make_flat_stylebox(style_hover_color);
+	foldable_container_hover->set_corner_radius(CORNER_BOTTOM_LEFT, 0);
+	foldable_container_hover->set_corner_radius(CORNER_BOTTOM_RIGHT, 0);
+	theme->set_stylebox("title_hover_panel", "FoldableContainer", foldable_container_hover);
+	theme->set_stylebox("title_collapsed_panel", "FoldableContainer", make_flat_stylebox(style_pressed_color));
+	theme->set_stylebox("title_collapsed_hover_panel", "FoldableContainer", make_flat_stylebox(style_hover_color));
+	Ref<StyleBoxFlat> foldable_container_panel = make_flat_stylebox(style_normal_color);
+	foldable_container_panel->set_content_margin_all(default_margin);
+	foldable_container_panel->set_corner_radius(CORNER_TOP_LEFT, 0);
+	foldable_container_panel->set_corner_radius(CORNER_TOP_RIGHT, 0);
+	theme->set_stylebox(SceneStringName(panel), "FoldableContainer", foldable_container_panel);
+	Ref<StyleBoxFlat> foldable_focus_style = make_flat_stylebox(style_focus_color, default_margin, default_margin, default_margin, default_margin, default_corner_radius, false, 2);
+	theme->set_stylebox("focus", "FoldableContainer", foldable_focus_style);
+
+	theme->set_font(SceneStringName(font), "FoldableContainer", Ref<Font>());
+	theme->set_font_size(SceneStringName(font_size), "FoldableContainer", default_font_size);
+
+	theme->set_color(SceneStringName(font_color), "FoldableContainer", control_font_color);
+	theme->set_color("hover_font_color", "FoldableContainer", control_font_hover_color);
+	theme->set_color("collapsed_font_color", "FoldableContainer", control_font_pressed_color);
+	theme->set_color("font_outline_color", "FoldableContainer", Color(1, 1, 1));
+
+	theme->set_icon("expanded_arrow", "FoldableContainer", icons["arrow_down"]);
+	theme->set_icon("expanded_arrow_mirrored", "FoldableContainer", icons["arrow_up"]);
+	theme->set_icon("folded_arrow", "FoldableContainer", icons["arrow_right"]);
+	theme->set_icon("folded_arrow_mirrored", "FoldableContainer", icons["arrow_left"]);
+
+	theme->set_constant("outline_size", "FoldableContainer", 0);
+	theme->set_constant("h_separation", "FoldableContainer", Math::round(2 * scale));
+
 	// Visual Node Ports
 
 	theme->set_constant("port_hotzone_inner_extent", "GraphEdit", 22 * scale);

@@ -57,6 +57,7 @@
 #include "scene/gui/dialogs.h"
 #include "scene/gui/file_dialog.h"
 #include "scene/gui/flow_container.h"
+#include "scene/gui/foldable_container.h"
 #include "scene/gui/graph_edit.h"
 #include "scene/gui/graph_frame.h"
 #include "scene/gui/graph_node.h"
@@ -488,6 +489,9 @@ void register_scene_types() {
 	GDREGISTER_CLASS(GraphNode);
 	GDREGISTER_CLASS(GraphFrame);
 	GDREGISTER_CLASS(GraphEdit);
+
+	GDREGISTER_CLASS(FoldableGroup);
+	GDREGISTER_CLASS(FoldableContainer);
 
 	OS::get_singleton()->yield(); // may take time to init
 

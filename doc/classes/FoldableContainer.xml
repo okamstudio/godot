@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="FoldableContainer" inherits="Container" keywords="expandable, collapsible, collapse" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A container that can be expanded/collapsed.
+	</brief_description>
+	<description>
+		A container that can be expanded/collapsed, with a title that can be filled with controls, such as buttons.
+		The title can be positioned at the top or bottom of the container.
+		The container can be expanded or collapsed by clicking the title or by pressing [code]ui_accept[/code] when focused.
+		Child control nodes are hidden when the container is collapsed. Ignores non-control children.
+		Can allow grouping with other FoldableContainers, check [member foldable_group] and [FoldableGroup].
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="add_title_bar_control">
+			<return type="void" />
+			<param index="0" name="control" type="Control" />
+			<description>
+				Adds a [Control] that will be placed next to the container's title, obscuring the clickable area. Prime usage is adding [Button] nodes, but it can be any [Control].
+				The control will be added as a child of this container and removed from previous parent if necessary. The controls will be placed aligned to the right, with the first added control being the leftmost one.
+			</description>
+		</method>
+		<method name="expand">
+			<return type="void" />
+			<description>
+				Expands the container and emits [signal folding_changed].
+			</description>
+		</method>
+		<method name="fold">
+			<return type="void" />
+			<description>
+				Folds the container and emits [signal folding_changed].
+			</description>
+		</method>
+		<method name="remove_title_bar_control">
+			<return type="void" />
+			<param index="0" name="control" type="Control" />
+			<description>
+				Removes a [Control] added with [method add_title_bar_control]. The node is not freed automatically, you need to use [method Node.queue_free].
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="2" />
+		<member name="foldable_group" type="FoldableGroup" setter="set_foldable_group" getter="get_foldable_group">
+			The [FoldableGroup] associated with the container.
+		</member>
+		<member name="folded" type="bool" setter="set_folded" getter="is_folded" default="false">
+			If [code]true[/code], the container will becomes folded and will hide all it's children.
+		</member>
+		<member name="language" type="String" setter="set_language" getter="get_language" default="&quot;&quot;">
+			Language code used for text shaping algorithms. If left empty, current locale is used instead.
+		</member>
+		<member name="mouse_filter" type="int" setter="set_mouse_filter" getter="get_mouse_filter" overrides="Control" enum="Control.MouseFilter" default="0" />
+		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
+			The Container's title text.
+		</member>
+		<member name="text_direction" type="int" setter="set_text_direction" getter="get_text_direction" enum="Control.TextDirection" default="0">
+			Base text writing direction.
+		</member>
+		<member name="text_overrun_behavior" type="int" setter="set_text_overrun_behavior" getter="get_text_overrun_behavior" enum="TextServer.OverrunBehavior" default="0">
+			Defines the behavior of the [FoldableContainer] when the text is longer than the available space.
+		</member>
+		<member name="title_alignment" type="int" setter="set_title_alignment" getter="get_title_alignment" enum="HorizontalAlignment" default="0">
+			Title's horizontal text alignment as defined in the [enum HorizontalAlignment] enum.
+		</member>
+		<member name="title_position" type="int" setter="set_title_position" getter="get_title_position" enum="FoldableContainer.TitlePosition" default="0">
+			Title's position as defined in the [enum TitlePosition] enum.
+		</member>
+	</members>
+	<signals>
+		<signal name="folding_changed">
+			<param index="0" name="is_folded" type="bool" />
+			<description>
+				Emitted when the container is folded/expanded.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="POSITION_TOP" value="0" enum="TitlePosition">
+			Make the title appear at the top of the container.
+		</constant>
+		<constant name="POSITION_BOTTOM" value="1" enum="TitlePosition">
+			Make the title appear at the bottom of the container.
+		</constant>
+	</constants>
+	<theme_items>
+		<theme_item name="collapsed_font_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			The title's font color when collapsed.
+		</theme_item>
+		<theme_item name="font_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
+			The title's font color when expanded.
+		</theme_item>
+		<theme_item name="font_outline_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			The title's font outline color.
+		</theme_item>
+		<theme_item name="hover_font_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
+			The title's font hover color.
+		</theme_item>
+		<theme_item name="h_separation" data_type="constant" type="int" default="2">
+			The horizontal separation between the title's icon and text, and between title bar controls.
+		</theme_item>
+		<theme_item name="outline_size" data_type="constant" type="int" default="0">
+			The title's font outline size.
+		</theme_item>
+		<theme_item name="font" data_type="font" type="Font">
+			The title's font.
+		</theme_item>
+		<theme_item name="font_size" data_type="font_size" type="int">
+			The title's font size.
+		</theme_item>
+		<theme_item name="expanded_arrow" data_type="icon" type="Texture2D">
+			The title's icon used when expanded.
+		</theme_item>
+		<theme_item name="expanded_arrow_mirrored" data_type="icon" type="Texture2D">
+			The title's icon used when expanded (for bottom title).
+		</theme_item>
+		<theme_item name="folded_arrow" data_type="icon" type="Texture2D">
+			The title's icon used when folded (for left-to-right layouts).
+		</theme_item>
+		<theme_item name="folded_arrow_mirrored" data_type="icon" type="Texture2D">
+			The title's icon used when collapsed (for right-to-left layouts).
+		</theme_item>
+		<theme_item name="focus" data_type="style" type="StyleBox">
+			Background used when [FoldableContainer] has GUI focus. The [theme_item focus] [StyleBox] is displayed [i]over[/i] the base [StyleBox], so a partially transparent [StyleBox] should be used to ensure the base [StyleBox] remains visible. A [StyleBox] that represents an outline or an underline works well for this purpose. To disable the focus visual effect, assign a [StyleBoxEmpty] resource. Note that disabling the focus visual effect will harm keyboard/controller navigation usability, so this is not recommended for accessibility reasons.
+		</theme_item>
+		<theme_item name="panel" data_type="style" type="StyleBox">
+			Default background for the [FoldableContainer].
+		</theme_item>
+		<theme_item name="title_collapsed_hover_panel" data_type="style" type="StyleBox">
+			Background used when the mouse cursor enters the title's area when collapsed.
+		</theme_item>
+		<theme_item name="title_collapsed_panel" data_type="style" type="StyleBox">
+			Default background for the [FoldableContainer]'s title when collapsed.
+		</theme_item>
+		<theme_item name="title_hover_panel" data_type="style" type="StyleBox">
+			Background used when the mouse cursor enters the title's area when expanded.
+		</theme_item>
+		<theme_item name="title_panel" data_type="style" type="StyleBox">
+			Default background for the [FoldableContainer]'s title when expanded.
+		</theme_item>
+	</theme_items>
+</class>
