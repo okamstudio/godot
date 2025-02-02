@@ -584,6 +584,10 @@ String OS::get_temp_dir() const {
 	return ::OS::get_singleton()->get_temp_path();
 }
 
+Ref<Image> OS::get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation) const {
+	return ::OS::get_singleton()->get_file_icon(p_path, p_size, p_interpolation);
+}
+
 bool OS::is_debug_build() const {
 #ifdef DEBUG_ENABLED
 	return true;
@@ -715,6 +719,8 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_cache_dir"), &OS::get_cache_dir);
 	ClassDB::bind_method(D_METHOD("get_temp_dir"), &OS::get_temp_dir);
 	ClassDB::bind_method(D_METHOD("get_unique_id"), &OS::get_unique_id);
+
+	ClassDB::bind_method(D_METHOD("get_file_icon", "path", "size", "interpolation"), &OS::get_file_icon, DEFVAL(Image::INTERPOLATE_LANCZOS));
 
 	ClassDB::bind_method(D_METHOD("get_keycode_string", "code"), &OS::get_keycode_string);
 	ClassDB::bind_method(D_METHOD("is_keycode_unicode", "code"), &OS::is_keycode_unicode);

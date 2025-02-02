@@ -51,8 +51,12 @@
 #include "servers/rendering/rendering_server_default.h"
 #include "servers/text_server.h"
 
+#include <initguid.h> // Note: should be included before "commctrl/commoncontrols".
+
 #include <avrt.h>
 #include <bcrypt.h>
+#include <commctrl.h>
+#include <commoncontrols.h>
 #include <direct.h>
 #include <knownfolders.h>
 #include <process.h>
@@ -2216,6 +2220,76 @@ String OS_Windows::get_system_dir(SystemDir p_dir, bool p_shared_storage) const 
 
 String OS_Windows::get_user_data_dir(const String &p_user_dir) const {
 	return get_data_path().path_join(p_user_dir).replace("\\", "/");
+}
+
+Ref<Image> OS_Windows::get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation) const {
+	String path = fix_path(p_path);
+	SHFILEINFOW info;
+	UINT flags = SHGFI_SYSICONINDEX | SHGFI_USEFILEATTRIBUTES;
+
+	UINT file_flags = FILE_ATTRIBUTE_NORMAL;
+	if (DirAccess::dir_exists_absolute(p_path)) {
+		file_flags = FILE_ATTRIBUTE_DIRECTORY;
+	}
+
+	UINT sz_flags = SHIL_SMALL;
+	if (p_size.x >= 256) {
+		sz_flags = SHIL_JUMBO;
+	} else if (p_size.x >= 48) {
+		sz_flags = SHIL_EXTRALARGE;
+	} else if (p_size.x >= 32) {
+		sz_flags = SHIL_LARGE;
+	}
+
+	if (SHGetFileInfoW((LPCWSTR)p_path.utf16().get_data(), file_flags, &info, sizeof(info), flags) == 0) {
+		return Ref<Image>();
+	}
+
+	HIMAGELIST hil = nullptr;
+	if (SHGetImageList(sz_flags, IID_IImageList, (void **)&hil) != S_OK) {
+		return Ref<Image>();
+	}
+
+	int x = p_size.x;
+	int y = p_size.y;
+	ImageList_GetIconSize(hil, &x, &y);
+
+	Ref<Image> image;
+	HDC dc = GetDC(nullptr);
+	if (dc) {
+		HDC hdc = CreateCompatibleDC(dc);
+		if (hdc) {
+			HBITMAP hbm = CreateCompatibleBitmap(dc, x, y);
+			if (hbm) {
+				SelectObject(hdc, hbm);
+				ImageList_DrawEx(hil, info.iIcon, hdc, 0, 0, 0, 0, CLR_NONE, CLR_NONE, ILD_NORMAL);
+
+				BITMAPINFO bmp_info = {};
+				bmp_info.bmiHeader.biSize = sizeof(bmp_info.bmiHeader);
+				bmp_info.bmiHeader.biWidth = x;
+				bmp_info.bmiHeader.biHeight = -y;
+				bmp_info.bmiHeader.biPlanes = 1;
+				bmp_info.bmiHeader.biBitCount = 32;
+				bmp_info.bmiHeader.biCompression = BI_RGB;
+
+				Vector<uint8_t> img_data;
+				img_data.resize(x * y * 4);
+				GetDIBits(hdc, hbm, 0, x, img_data.ptrw(), &bmp_info, DIB_RGB_COLORS);
+
+				uint8_t *wr = (uint8_t *)img_data.ptrw();
+				for (int i = 0; i < x * y; i++) {
+					SWAP(wr[i * 4 + 0], wr[i * 4 + 2]); // Swap B and R.
+				}
+				image = Image::create_from_data(x, y, false, Image::Format::FORMAT_RGBA8, img_data);
+				image->resize(p_size.x, p_size.y, p_interpolation);
+
+				DeleteObject(hbm);
+			}
+			DeleteDC(hdc);
+		}
+		ReleaseDC(nullptr, dc);
+	}
+	return image;
 }
 
 String OS_Windows::get_unique_id() const {

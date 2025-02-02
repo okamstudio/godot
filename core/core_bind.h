@@ -263,6 +263,8 @@ public:
 	String get_cache_dir() const;
 	String get_temp_dir() const;
 
+	Ref<Image> get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation = Image::INTERPOLATE_LANCZOS) const;
+
 	Error set_thread_name(const String &p_name);
 	::Thread::ID get_thread_caller_id() const;
 	::Thread::ID get_main_thread_id() const;

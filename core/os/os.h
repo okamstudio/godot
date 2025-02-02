@@ -32,6 +32,7 @@
 #define OS_H
 
 #include "core/config/engine.h"
+#include "core/io/image.h"
 #include "core/io/logger.h"
 #include "core/io/remote_filesystem_client.h"
 #include "core/os/time_enums.h"
@@ -288,6 +289,8 @@ public:
 	virtual String get_user_data_dir(const String &p_user_dir) const;
 	virtual String get_user_data_dir() const;
 	virtual String get_resource_dir() const;
+
+	virtual Ref<Image> get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation = Image::INTERPOLATE_LANCZOS) const { return Ref<Image>(); }
 
 	enum SystemDir {
 		SYSTEM_DIR_DESKTOP,

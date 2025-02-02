@@ -100,6 +100,8 @@ public:
 
 	virtual String get_system_dir(SystemDir p_dir, bool p_shared_storage = true) const override;
 
+	virtual Ref<Image> get_file_icon(const String &p_path, const Size2i &p_size, Image::Interpolation p_interpolation = Image::INTERPOLATE_LANCZOS) const override;
+
 	virtual Error shell_open(const String &p_uri) override;
 	virtual Error shell_show_in_file_manager(String p_path, bool p_open_folder) override;
 
