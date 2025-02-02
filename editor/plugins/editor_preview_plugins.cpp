@@ -30,19 +30,18 @@
 
 #include "editor_preview_plugins.h"
 
-#include "core/config/project_settings.h"
 #include "core/config/engine.h"
+#include "core/config/project_settings.h"
 #include "core/io/image.h"
 #include "core/io/resource_loader.h"
 #include "core/object/script_language.h"
+#include "editor/editor_node.h"
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
-#include "editor/editor_node.h"
 #include "editor/themes/editor_scale.h"
-#include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/light_3d.h"
+#include "scene/3d/mesh_instance_3d.h"
 #include "scene/main/viewport.h"
-#include "scene/resources/packed_scene.h"
 #include "scene/resources/atlas_texture.h"
 #include "scene/resources/bit_map.h"
 #include "scene/resources/font.h"
@@ -50,6 +49,7 @@
 #include "scene/resources/image_texture.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
+#include "scene/resources/packed_scene.h"
 #include "servers/audio/audio_stream.h"
 
 void post_process_preview(Ref<Image> p_image) {
@@ -321,10 +321,10 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 	if (load_error != OK) {
 		return Ref<Texture2D>();
 	}
-	if (!pack.is_valid()){
+	if (!pack.is_valid()) {
 		return Ref<Texture2D>();
 	}
-	
+
 	/* Stop safe checks for now */
 	//ERR_FAIL_NULL_MSG(p_scene, "The provided scene is null.");
 	//ERR_FAIL_COND_MSG(p_scene->is_inside_tree(), "The scene must not be inside the tree.");
@@ -332,13 +332,13 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 	//ERR_FAIL_NULL_MSG(EditorNode::get_singleton(), "EditorNode doesn't exist.");
 
 	Node *p_scene = pack->instantiate();
-	
+
 	int count_2d = 0;
 	int count_3d = 0;
 	int count_light_3d = 0;
 	_count_node_types(p_scene, count_2d, count_3d, count_light_3d);
 
-	if (count_3d > 0){ // Is 3d scene
+	if (count_3d > 0) { // Is 3d scene
 		SubViewport *sub_viewport = memnew(SubViewport);
 		sub_viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
 		sub_viewport->set_size(Vector2i(Math::round(p_size.x), Math::round(p_size.y)));
@@ -367,7 +367,7 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 		camera->set_perspective(30.0f, 0.05f, 10000.0f);
 		preview_root->add_child(camera);
 		camera->set_current(true);
-		
+
 		// Preview light
 		if (count_light_3d == 0) {
 			DirectionalLight3D *light = memnew(DirectionalLight3D);
@@ -380,7 +380,7 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 			light->set_basis(Basis().rotated(Vector3(0, 1, 0), -Math_PI / 6));
 			light2->set_basis(Basis().rotated(Vector3(1, 0, 0), -Math_PI / 6));
 		}
-		
+
 		// Attach subviewport deferred (thread safe)
 		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport);
 		uint64_t pause_frame = Engine::get_singleton()->get_process_frames();
@@ -392,13 +392,13 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 		AABB scene_aabb;
 		_calculate_scene_aabb(p_scene, scene_aabb);
 		float bound_sphere_radius = scene_aabb.get_longest_axis_size() / 2.0f;
-		if (bound_sphere_radius <= 0.0f){
+		if (bound_sphere_radius <= 0.0f) {
 			// The scene has zero volume, so just it give a literal
 			bound_sphere_radius = 1.0f;
 		}
 
 		float fov = camera->get_fov();
-		float cam_distance = (bound_sphere_radius * 2.0f) / Math::tan( Math::deg_to_rad(fov) / 2.0f);
+		float cam_distance = (bound_sphere_radius * 2.0f) / Math::tan(Math::deg_to_rad(fov) / 2.0f);
 		Transform3D thumbnail_cam_trans_3d;
 		thumbnail_cam_trans_3d.set_origin(scene_aabb.get_center() + Vector3(1.0f, 0.25f, 1.0f).normalized() * cam_distance);
 		thumbnail_cam_trans_3d.set_look_at(thumbnail_cam_trans_3d.origin, scene_aabb.get_center());
@@ -409,15 +409,15 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 		while (Engine::get_singleton()->get_process_frames() - pause_frame < 2) { // Wait for one frame ( == 2 delta frames)
 			continue;
 		}
-		
-		// Retreive thumbnail image
+
+		// Retrieve thumbnail image
 		Ref<ImageTexture> thumbnail = ImageTexture::create_from_image(sub_viewport->get_texture()->get_image());
 		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport);
 		sub_viewport->call_deferred("queue_free");
 		return thumbnail;
-	} 
-	
-	if (count_2d > 0){ // Is 2d scene - WIP
+	}
+
+	if (count_2d > 0) { // Is 2d scene - WIP
 		return Ref<Texture2D>();
 	}
 

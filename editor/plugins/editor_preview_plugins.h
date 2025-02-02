@@ -72,6 +72,7 @@ public:
 
 class EditorPackedScenePreviewPlugin : public EditorResourcePreviewGenerator {
 	GDCLASS(EditorPackedScenePreviewPlugin, EditorResourcePreviewGenerator);
+
 protected:
 	void _count_node_types(Node *p_node, int &c2d, int &c3d, int &clight3d) const;
 	void _calculate_scene_aabb(Node *p_node, AABB &aabb) const;
