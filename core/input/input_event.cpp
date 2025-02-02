@@ -30,6 +30,7 @@
 
 #include "input_event.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input_map.h"
 #include "core/input/shortcut.h"
 #include "core/os/keyboard.h"
@@ -47,29 +48,65 @@ int InputEvent::get_device() const {
 	return device;
 }
 
+void InputEvent::set_player(uint8_t p_player) {
+	player = p_player;
+	emit_changed();
+}
+
+uint8_t InputEvent::get_player() const {
+	// TODO: This logic needs to be moved out of this function,
+	// and be called in other parts of the code where there is device manipulation.
+	// There you want to check if the device is mapped to a specific player.
+	// Here we have basic usage, where a developer can set manually
+	// the player value to inject input events (e.g. player 2 on another part of the keyboard).
+	// ProjectSettings *ps = ProjectSettings::get_singleton();
+	// HashMap<int, uint32_t> device_player_map = ps->get_device_player_map();
+	// ERR_FAIL_COND_V(!device_player_map.has(device), 1U << 0);
+	// uint32_t player = device_player_map[device];
+	// TODO: Some sort of check for player mask, that should only reference one layer.
+
+	return player;
+}
+
+bool InputEvent::check_player_mask(uint8_t p_player_mask) const {
+	return player & p_player_mask;
+}
+
 bool InputEvent::is_action(const StringName &p_action, bool p_exact_match) const {
 	return InputMap::get_singleton()->event_is_action(Ref<InputEvent>(const_cast<InputEvent *>(this)), p_action, p_exact_match);
 }
 
-bool InputEvent::is_action_pressed(const StringName &p_action, bool p_allow_echo, bool p_exact_match) const {
+bool InputEvent::is_action_pressed(const StringName &p_action, bool p_allow_echo, bool p_exact_match, uint8_t p_player_mask) const {
+	if (!check_player_mask(p_player_mask)) {
+		return false;
+	}
 	bool pressed_state;
 	bool valid = InputMap::get_singleton()->event_get_action_status(Ref<InputEvent>(const_cast<InputEvent *>(this)), p_action, p_exact_match, &pressed_state, nullptr, nullptr);
 	return valid && pressed_state && (p_allow_echo || !is_echo());
 }
 
-bool InputEvent::is_action_released(const StringName &p_action, bool p_exact_match) const {
+bool InputEvent::is_action_released(const StringName &p_action, bool p_exact_match, uint8_t p_player_mask) const {
+	if (!check_player_mask(p_player_mask)) {
+		return false;
+	}
 	bool pressed_state;
 	bool valid = InputMap::get_singleton()->event_get_action_status(Ref<InputEvent>(const_cast<InputEvent *>(this)), p_action, p_exact_match, &pressed_state, nullptr, nullptr);
 	return valid && !pressed_state;
 }
 
-float InputEvent::get_action_strength(const StringName &p_action, bool p_exact_match) const {
+float InputEvent::get_action_strength(const StringName &p_action, bool p_exact_match, uint8_t p_player_mask) const {
+	if (!check_player_mask(p_player_mask)) {
+		return 0.0f;
+	}
 	float strength;
 	bool valid = InputMap::get_singleton()->event_get_action_status(Ref<InputEvent>(const_cast<InputEvent *>(this)), p_action, p_exact_match, nullptr, &strength, nullptr);
 	return valid ? strength : 0.0f;
 }
 
-float InputEvent::get_action_raw_strength(const StringName &p_action, bool p_exact_match) const {
+float InputEvent::get_action_raw_strength(const StringName &p_action, bool p_exact_match, uint8_t p_player_mask) const {
+	if (!check_player_mask(p_player_mask)) {
+		return 0.0f;
+	}
 	float raw_strength;
 	bool valid = InputMap::get_singleton()->event_get_action_status(Ref<InputEvent>(const_cast<InputEvent *>(this)), p_action, p_exact_match, nullptr, nullptr, &raw_strength);
 	return valid ? raw_strength : 0.0f;
@@ -111,10 +148,13 @@ void InputEvent::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_device", "device"), &InputEvent::set_device);
 	ClassDB::bind_method(D_METHOD("get_device"), &InputEvent::get_device);
 
+	ClassDB::bind_method(D_METHOD("set_player", "player"), &InputEvent::set_player);
+	ClassDB::bind_method(D_METHOD("get_player"), &InputEvent::get_player);
+
 	ClassDB::bind_method(D_METHOD("is_action", "action", "exact_match"), &InputEvent::is_action, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("is_action_pressed", "action", "allow_echo", "exact_match"), &InputEvent::is_action_pressed, DEFVAL(false), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("is_action_released", "action", "exact_match"), &InputEvent::is_action_released, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("get_action_strength", "action", "exact_match"), &InputEvent::get_action_strength, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("is_action_pressed", "action", "allow_echo", "exact_match", "player_mask"), &InputEvent::is_action_pressed, DEFVAL(false), DEFVAL(false), DEFVAL(UINT8_MAX));
+	ClassDB::bind_method(D_METHOD("is_action_released", "action", "exact_match", "player_mask"), &InputEvent::is_action_released, DEFVAL(false), DEFVAL(UINT8_MAX));
+	ClassDB::bind_method(D_METHOD("get_action_strength", "action", "exact_match", "player_mask"), &InputEvent::get_action_strength, DEFVAL(false), DEFVAL(UINT8_MAX));
 
 	ClassDB::bind_method(D_METHOD("is_canceled"), &InputEvent::is_canceled);
 	ClassDB::bind_method(D_METHOD("is_pressed"), &InputEvent::is_pressed);
@@ -132,6 +172,7 @@ void InputEvent::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("xformed_by", "xform", "local_ofs"), &InputEvent::xformed_by, DEFVAL(Vector2()));
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "device"), "set_device", "get_device");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "player", PROPERTY_HINT_LAYERS_PLAYER_MASK), "set_player", "get_player");
 
 	BIND_CONSTANT(DEVICE_ID_EMULATION);
 }

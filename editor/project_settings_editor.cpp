@@ -722,6 +722,10 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	restart_close_button->connect(SceneStringName(pressed), callable_mp(this, &ProjectSettingsEditor::_editor_restart_close));
 	restart_hb->add_child(restart_close_button);
 
+	device_map_editor = memnew(DeviceMapEditor);
+	device_map_editor->set_name(TTR("Device Map"));
+	tab_container->add_child(device_map_editor);
+
 	action_map_editor = memnew(ActionMapEditor);
 	action_map_editor->set_name(TTR("Input Map"));
 	action_map_editor->connect("action_added", callable_mp(this, &ProjectSettingsEditor::_action_added));

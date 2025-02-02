@@ -93,6 +93,7 @@ protected:
 	HashMap<StringName, PropertyInfo> custom_prop_info;
 	bool using_datapack = false;
 	bool project_loaded = false;
+	HashMap<int, uint8_t> device_player_map;
 	List<String> input_presets;
 
 	HashSet<String> custom_features;
@@ -191,6 +192,7 @@ public:
 	const HashMap<StringName, PropertyInfo> &get_custom_property_info() const;
 	uint64_t get_last_saved_time() { return last_save_time; }
 
+	HashMap<int, uint8_t> get_device_player_map() const { return device_player_map; }
 	List<String> get_input_presets() const { return input_presets; }
 
 	Variant get_setting_with_override(const StringName &p_name) const;

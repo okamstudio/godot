@@ -759,6 +759,12 @@ Error ProjectSettings::setup(const String &p_path, const String &p_main_pack, bo
 
 	load_scene_groups_cache();
 
+	// FIXME: Temp device_player_map population.
+	device_player_map[0] = 1U << 0;
+	device_player_map[1] = 1U << 1;
+	device_player_map[2] = 1U << 2;
+	device_player_map[3] = 1U << 3;
+
 	project_loaded = err == OK;
 	return err;
 }

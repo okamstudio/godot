@@ -1837,7 +1837,8 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 						if (control->get_focus_mode() != Control::FOCUS_NONE) {
 							// Grabbing unhovered focus can cause issues when mouse is dragged
 							// with another button held down.
-							if (control != gui.key_focus && gui.mouse_over_hierarchy.has(control)) {
+							// Index 0 is used as mouse actions are assumed by player 1.
+							if (control != gui.key_focus[0] && gui.mouse_over_hierarchy.has(control)) {
 								control->grab_focus();
 							}
 							break;
@@ -2163,13 +2164,14 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 		}
 
-		if (gui.key_focus && !gui.key_focus->is_visible_in_tree()) {
-			gui.key_focus->release_focus();
+		// Mouse actions are assumed by player 1.
+		if (gui.key_focus[0] && !gui.key_focus[0]->is_visible_in_tree()) {
+			gui.key_focus[0]->release_focus();
 		}
 
-		if (gui.key_focus) {
-			if (gui.key_focus->can_process()) {
-				gui.key_focus->_call_gui_input(p_event);
+		if (gui.key_focus[0]) {
+			if (gui.key_focus[0]->can_process()) {
+				gui.key_focus[0]->_call_gui_input(p_event);
 			}
 
 			if (is_input_handled()) {
@@ -2177,7 +2179,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 		}
 
-		Control *from = gui.key_focus ? gui.key_focus : nullptr;
+		Control *from = gui.key_focus[0] ? gui.key_focus[0] : nullptr;
 
 		if (from && p_event->is_pressed()) {
 			Control *next = nullptr;
@@ -2338,8 +2340,8 @@ void Viewport::_gui_remove_root_control(List<Control *>::Element *RI) {
 }
 
 void Viewport::_gui_unfocus_control(Control *p_control) {
-	if (gui.key_focus == p_control) {
-		gui.key_focus->release_focus();
+	if (gui.key_focus[0] == p_control) {
+		gui.key_focus[0]->release_focus();
 	}
 }
 
@@ -2348,7 +2350,7 @@ void Viewport::_gui_hide_control(Control *p_control) {
 		_drop_mouse_focus();
 	}
 
-	if (gui.key_focus == p_control) {
+	if (gui.key_focus[0] == p_control) {
 		gui_release_focus();
 	}
 	if (gui.mouse_over == p_control || gui.mouse_over_hierarchy.has(p_control)) {
@@ -2367,8 +2369,8 @@ void Viewport::_gui_remove_control(Control *p_control) {
 		gui.mouse_focus = nullptr;
 		gui.mouse_focus_mask.clear();
 	}
-	if (gui.key_focus == p_control) {
-		gui.key_focus = nullptr;
+	if (gui.key_focus[0] == p_control) {
+		gui.key_focus[0] = nullptr;
 	}
 	if (gui.mouse_over == p_control || gui.mouse_over_hierarchy.has(p_control)) {
 		_drop_mouse_over(p_control->get_parent_control());
@@ -2502,17 +2504,17 @@ void Viewport::_gui_remove_focus_for_window(Node *p_window) {
 }
 
 bool Viewport::_gui_control_has_focus(const Control *p_control) {
-	return gui.key_focus == p_control;
+	return gui.key_focus[0] == p_control;
 }
 
 void Viewport::_gui_control_grab_focus(Control *p_control) {
-	if (gui.key_focus && gui.key_focus == p_control) {
+	if (gui.key_focus[0] && gui.key_focus[0] == p_control) {
 		// No need for change.
 		return;
 	}
 	get_tree()->call_group("_viewports", "_gui_remove_focus_for_window", get_base_window());
 	if (p_control->is_inside_tree() && p_control->get_viewport() == this) {
-		gui.key_focus = p_control;
+		gui.key_focus[0] = p_control;
 		emit_signal(SNAME("gui_focus_changed"), p_control);
 		p_control->notification(Control::NOTIFICATION_FOCUS_ENTER);
 		p_control->queue_redraw();
@@ -2634,8 +2636,8 @@ void Viewport::push_text_input(const String &p_text) {
 		return;
 	}
 
-	if (gui.key_focus) {
-		gui.key_focus->call("set_text", p_text);
+	if (gui.key_focus[0]) {
+		gui.key_focus[0]->call("set_text", p_text);
 	}
 }
 
@@ -3457,9 +3459,9 @@ int Viewport::gui_get_canvas_sort_index() {
 
 void Viewport::gui_release_focus() {
 	ERR_MAIN_THREAD_GUARD;
-	if (gui.key_focus) {
-		Control *f = gui.key_focus;
-		gui.key_focus = nullptr;
+	if (gui.key_focus[0]) {
+		Control *f = gui.key_focus[0];
+		gui.key_focus[0] = nullptr;
 		f->notification(Control::NOTIFICATION_FOCUS_EXIT, true);
 		f->queue_redraw();
 	}
@@ -3467,7 +3469,7 @@ void Viewport::gui_release_focus() {
 
 Control *Viewport::gui_get_focus_owner() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
-	return gui.key_focus;
+	return gui.key_focus[0];
 }
 
 Control *Viewport::gui_get_hovered_control() const {
