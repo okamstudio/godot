@@ -300,6 +300,10 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate(const Ref<Resource> &p_f
 }
 
 Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &p_path, const Size2 &p_size, Dictionary &p_metadata) const {
+	// Safe checks, since this function interacts with EditorNode to render previews
+	ERR_FAIL_COND_V_MSG(!Engine::get_singleton()->is_editor_hint(), Ref<Texture2D>(), "This function can only be called from the editor.");
+	ERR_FAIL_COND_V_MSG(EditorNode::get_singleton() == nullptr, Ref<Texture2D>(),"EditorNode doesn't exist.");
+
 	// Try load cached thumbnail
 	String temp_path = EditorPaths::get_singleton()->get_cache_dir();
 	String cache_base = ProjectSettings::get_singleton()->globalize_path(p_path).md5_text();
@@ -319,19 +323,15 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 	Error load_error;
 	Ref<PackedScene> pack = ResourceLoader::load(p_path, "PackedScene", ResourceFormatLoader::CACHE_MODE_IGNORE, &load_error); // no more cache issues?
 	if (load_error != OK) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : Loaded with error code %i", p_path, load_error));
 		return Ref<Texture2D>();
 	}
 	if (!pack.is_valid()) {
+		print_error(vformat("Failed to generate scene thumbnail for %s : Invalid scene file", p_path));
 		return Ref<Texture2D>();
 	}
 
-	/* Stop safe checks for now */
-	//ERR_FAIL_NULL_MSG(p_scene, "The provided scene is null.");
-	//ERR_FAIL_COND_MSG(p_scene->is_inside_tree(), "The scene must not be inside the tree.");
-	//ERR_FAIL_COND_MSG(!Engine::get_singleton()->is_editor_hint(), "This function can only be called from the editor.");
-	//ERR_FAIL_NULL_MSG(EditorNode::get_singleton(), "EditorNode doesn't exist.");
-
-	Node *p_scene = pack->instantiate();
+	Node *p_scene = pack->instantiate(); // The instantiated preview scene
 
 	int count_2d = 0;
 	int count_3d = 0;
