@@ -305,7 +305,7 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 	String cache_base = ProjectSettings::get_singleton()->globalize_path(p_path).md5_text();
 	cache_base = temp_path.path_join("resthumb-" + cache_base);
 	String path = cache_base + ".png";
-	if (FileAccess::exists(path) && false) {
+	if (FileAccess::exists(path) && false) { // temporary, remember to rewrite this
 		Ref<Image> thumbnail;
 		thumbnail.instantiate();
 		Error err = thumbnail->load(path);
