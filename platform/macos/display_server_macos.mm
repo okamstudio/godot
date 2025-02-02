@@ -3797,18 +3797,33 @@ DisplayServerMacOS::DisplayServerMacOS(const String &p_rendering_driver, WindowM
 
 	if (rendering_context) {
 		if (rendering_context->initialize() != OK) {
-			memdelete(rendering_context);
-			rendering_context = nullptr;
+			bool failed = true;
+#if defined(VULKAN_ENABLED)
+			bool fallback_to_vulkan = GLOBAL_GET("rendering/rendering_device/fallback_to_vulkan");
+			if (failed && fallback_to_vulkan && rendering_driver != "vulkan") {
+				rendering_context = memnew(RenderingContextDriverVulkanMacOS);
+				if (rendering_context->initialize() == OK) {
+					WARN_PRINT("Your video card drivers seem not to support Metal, switching to MoltenVK.");
+					rendering_driver = "vulkan";
+					failed = false;
+				}
+			}
+#endif
 #if defined(GLES3_ENABLED)
 			bool fallback_to_opengl3 = GLOBAL_GET("rendering/rendering_device/fallback_to_opengl3");
-			if (fallback_to_opengl3 && rendering_driver != "opengl3") {
+			if (failed && fallback_to_opengl3 && rendering_driver != "opengl3") {
+				failed = false;
+				memdelete(rendering_context);
+				rendering_context = nullptr;
 				WARN_PRINT("Your device seem not to support MoltenVK or Metal, switching to OpenGL 3.");
 				rendering_driver = "opengl3";
 				OS::get_singleton()->set_current_rendering_method("gl_compatibility");
 				OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
-			} else
+			}
 #endif
-			{
+			if (failed) {
+				memdelete(rendering_context);
+				rendering_context = nullptr;
 				r_error = ERR_CANT_CREATE;
 				ERR_FAIL_MSG("Could not initialize " + rendering_driver);
 			}
