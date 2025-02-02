@@ -1125,6 +1125,10 @@ bool EditorNode3DGizmoPlugin::is_selectable_when_hidden() const {
 	return ret;
 }
 
+bool EditorNode3DGizmoPlugin::can_commit_handle_on_click() const {
+	return false;
+}
+
 void EditorNode3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	GDVIRTUAL_CALL(_redraw, p_gizmo);
 }

@@ -41,6 +41,7 @@ public:
 	String get_gizmo_name() const override;
 	int get_priority() const override;
 	bool is_selectable_when_hidden() const override;
+	bool can_commit_handle_on_click() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
 
 	String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;

@@ -1984,7 +1984,11 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 					}
 
 					if (_edit.gizmo.is_valid()) {
-						_edit.gizmo->commit_handle(_edit.gizmo_handle, _edit.gizmo_handle_secondary, _edit.gizmo_initial_value, false);
+						//Certain gizmo plugins should be able to commit handles without dragging them.
+						if (_edit.original_mouse_pos != _edit.mouse_pos || _edit.gizmo->get_plugin()->can_commit_handle_on_click()) {
+							_edit.gizmo->commit_handle(_edit.gizmo_handle, _edit.gizmo_handle_secondary, _edit.gizmo_initial_value, false);
+						}
+
 						spatial_editor->get_single_selected_node()->update_gizmos();
 						_edit.gizmo = Ref<EditorNode3DGizmo>();
 						break;

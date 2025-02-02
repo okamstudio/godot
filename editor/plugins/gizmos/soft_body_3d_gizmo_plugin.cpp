@@ -54,6 +54,10 @@ bool SoftBody3DGizmoPlugin::is_selectable_when_hidden() const {
 	return true;
 }
 
+bool SoftBody3DGizmoPlugin::can_commit_handle_on_click() const {
+	return true;
+}
+
 void SoftBody3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	SoftBody3D *soft_body = Object::cast_to<SoftBody3D>(p_gizmo->get_node_3d());
 
