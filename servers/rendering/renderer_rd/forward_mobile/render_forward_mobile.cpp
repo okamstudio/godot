@@ -878,7 +878,7 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 		if (rb->get_scaling_3d_mode() != RS::VIEWPORT_SCALING_3D_MODE_OFF) {
 			// can't do blit subpass because we're scaling
 			using_subpass_post_process = false;
-		} else if (p_render_data->environment.is_valid() && (environment_get_glow_enabled(p_render_data->environment) || RSG::camera_attributes->camera_attributes_uses_auto_exposure(p_render_data->camera_attributes) || RSG::camera_attributes->camera_attributes_uses_dof(p_render_data->camera_attributes) || environment_get_background(p_render_data->environment) == RS::ENV_BG_CANVAS)) {
+		} else if (p_render_data->environment.is_valid() && (environment_get_glow_enabled(p_render_data->environment) || RSG::camera_attributes->camera_attributes_uses_auto_exposure(p_render_data->camera_attributes) || RSG::camera_attributes->camera_attributes_uses_dof(p_render_data->camera_attributes) || environment_get_background(p_render_data->environment) == RS::ENV_BG_CANVAS || rb->get_screen_space_aa() == RS::VIEWPORT_SCREEN_SPACE_AA_SMAA)) {
 			// can't do blit subpass because we're using post processes
 			using_subpass_post_process = false;
 		}
