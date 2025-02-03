@@ -1998,7 +1998,7 @@ Object::~Object() {
 	if (!ScriptServer::are_languages_finished()) {
 		for (int i = 0; i < MAX_SCRIPT_INSTANCE_BINDINGS; i++) {
 			if (_script_instance_bindings[i]) {
-				ScriptServer::get_language(i)->free_instance_binding_data(_script_instance_bindings[i]);
+				ScriptServer::get_language(i)->free_instance_binding_data(this, _script_instance_bindings[i]);
 			}
 		}
 	}

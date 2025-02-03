@@ -1305,7 +1305,7 @@ Map<Object *, CSharpScriptBinding>::Element *CSharpLanguage::insert_script_bindi
 	return script_bindings.insert(p_object, p_script_binding);
 }
 
-void CSharpLanguage::free_instance_binding_data(void *p_data) {
+void CSharpLanguage::free_instance_binding_data(Object *p_object, void *p_data) {
 	if (GDMono::get_singleton() == NULL) {
 #ifdef DEBUG_ENABLED
 		CRASH_COND(!script_bindings.empty());

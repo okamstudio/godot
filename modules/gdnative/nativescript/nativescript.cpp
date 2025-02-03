@@ -30,6 +30,8 @@
 
 #include "nativescript.h"
 
+#include "core/os/mutex.h"
+#include "core/os/rw_lock.h"
 #include "gdnative/gdnative.h"
 
 #include "core/core_string_names.h"
@@ -1300,8 +1302,10 @@ int NativeScriptLanguage::register_binding_functions(godot_instance_binding_func
 void NativeScriptLanguage::unregister_binding_functions(int p_idx) {
 	ERR_FAIL_INDEX(p_idx, binding_functions.size());
 
-	for (Set<Vector<void *> *>::Element *E = binding_instances.front(); E; E = E->next()) {
-		Vector<void *> &binding_data = *E->get();
+	// This should only be entered by the main thread after all objectts have been collected, so I assume
+	// this doesn't need to be thread safe
+	for (Map<void *, Pair<RWLock, Vector<void *>> *>::Element *E = binding_instances.front(); E; E = E->next()) {
+		Vector<void *> &binding_data = E->get()->second;
 
 		if (p_idx < binding_data.size() && binding_data[p_idx] && binding_functions[p_idx].second.free_instance_binding_data) {
 			binding_functions[p_idx].second.free_instance_binding_data(binding_functions[p_idx].second.data, binding_data[p_idx]);
@@ -1320,65 +1324,108 @@ void *NativeScriptLanguage::get_instance_binding_data(int p_idx, Object *p_objec
 
 	ERR_FAIL_COND_V_MSG(!binding_functions[p_idx].first, nullptr, "Tried to get binding data for a nativescript binding that does not exist.");
 
-	Vector<void *> *binding_data = (Vector<void *> *)p_object->get_script_instance_binding(lang_idx);
+	Pair<RWLock, Vector<void *>> *binding_data = (Pair<RWLock, Vector<void *>> *)p_object->get_script_instance_binding(lang_idx);
 
 	if (!binding_data) {
 		return nullptr; // should never happen.
 	}
 
-	if (binding_data->size() <= p_idx) {
-		// okay, add new elements here.
-		int old_size = binding_data->size();
-
-		binding_data->resize(p_idx + 1);
-
-		for (int i = old_size; i <= p_idx; i++) {
-			(*binding_data).write[i] = NULL;
+	// We can get here on muliple threads at the same time.
+	// Check lucky scenario first with shared access.
+	{
+		RWLockRead rlock(binding_data->first);
+		if (binding_data->second.size() > p_idx && binding_data->second[p_idx]) {
+			return binding_data->second[p_idx];
 		}
 	}
 
-	if (!(*binding_data)[p_idx]) {
-		const void *global_type_tag = get_global_type_tag(p_idx, p_object->get_class_name());
+	// Gotta work to do with exclusive access.
+	{
+		RWLockWrite wlock(binding_data->first);
 
-		// no binding data yet, soooooo alloc new one \o/
-		(*binding_data).write[p_idx] = binding_functions[p_idx].second.alloc_instance_binding_data(binding_functions[p_idx].second.data, global_type_tag, (godot_object *)p_object);
+		// Need to check again, this might have already been allocated
+		if (binding_data->second.size() > p_idx && binding_data->second[p_idx]) {
+			return binding_data->second[p_idx];
+		}
+
+		if (binding_data->second.size() <= p_idx) {
+			// okay, add new elements here.
+			int old_size = binding_data->second.size();
+
+			binding_data->second.resize(p_idx + 1);
+
+			for (int i = old_size; i <= p_idx; i++) {
+				binding_data->second.write[i] = NULL;
+			}
+		}
+
+		if (!binding_data->second[p_idx]) {
+			const void *global_type_tag = get_global_type_tag(p_idx, p_object->get_class_name());
+
+			// no binding data yet, soooooo alloc new one \o/
+			binding_data->second.write[p_idx] = binding_functions[p_idx].second.alloc_instance_binding_data(binding_functions[p_idx].second.data, global_type_tag, (godot_object *)p_object);
+		}
+
+		return binding_data->second[p_idx];
 	}
-
-	return (*binding_data)[p_idx];
 }
 
 void *NativeScriptLanguage::alloc_instance_binding_data(Object *p_object) {
-	Vector<void *> *binding_data = new Vector<void *>;
+	{
+		// Look at the binding instances with shared access.
+		// If data is there return it
+		RWLockRead rlock(binding_instances_lock);
 
-	binding_data->resize(binding_functions.size());
-
-	for (int i = 0; i < binding_functions.size(); i++) {
-		(*binding_data).write[i] = NULL;
+		if (binding_instances.has(p_object)) {
+			return binding_instances[p_object];
+		}
 	}
 
-	binding_instances.insert(binding_data);
+	{
+		// The data was not there, lock with exclusive access.
+		RWLockWrite wlock(binding_instances_lock);
 
-	return (void *)binding_data;
+		// We need to check again as that might have changed from the shared access check.
+		if (binding_instances.has(p_object)) {
+			return binding_instances[p_object];
+		}
+
+		// Data is not there, create it.
+		Pair<RWLock, Vector<void *>> *binding_data = new Pair<RWLock, Vector<void *>>;
+
+		binding_data->second.resize(binding_functions.size());
+
+		for (int i = 0; i < binding_functions.size(); i++) {
+			binding_data->second.write[i] = NULL;
+		}
+
+		binding_instances.insert(p_object, binding_data);
+
+		return (void *)binding_data;
+	}
 }
 
-void NativeScriptLanguage::free_instance_binding_data(void *p_data) {
+void NativeScriptLanguage::free_instance_binding_data(Object *p_object, void *p_data) {
 	if (!p_data) {
 		return;
 	}
 
-	Vector<void *> &binding_data = *(Vector<void *> *)p_data;
+	Pair<RWLock, Vector<void *>> &binding_data = (*(Pair<RWLock, Vector<void *>> *)p_data);
 
-	for (int i = 0; i < binding_data.size(); i++) {
-		if (!binding_data[i]) {
+	for (int i = 0; i < binding_data.second.size(); i++) {
+		if (!binding_data.second[i]) {
 			continue;
 		}
 
 		if (binding_functions[i].first && binding_functions[i].second.free_instance_binding_data) {
-			binding_functions[i].second.free_instance_binding_data(binding_functions[i].second.data, binding_data[i]);
+			binding_functions[i].second.free_instance_binding_data(binding_functions[i].second.data, binding_data.second[i]);
 		}
 	}
 
-	binding_instances.erase(&binding_data);
+	{
+		RWLockWrite wlock(binding_instances_lock);
+		binding_instances.erase(p_object);
+	}
 
 	delete &binding_data;
 }
@@ -1390,7 +1437,7 @@ void NativeScriptLanguage::refcount_incremented_instance_binding(Object *p_objec
 		return;
 	}
 
-	Vector<void *> &binding_data = *(Vector<void *> *)data;
+	Vector<void *> &binding_data = (*(Pair<RWLock, Vector<void *>> *)data).second;
 
 	for (int i = 0; i < binding_data.size(); i++) {
 		if (!binding_data[i]) {
@@ -1414,7 +1461,7 @@ bool NativeScriptLanguage::refcount_decremented_instance_binding(Object *p_objec
 		return true;
 	}
 
-	Vector<void *> &binding_data = *(Vector<void *> *)data;
+	Vector<void *> &binding_data = (*(Pair<RWLock, Vector<void *>> *)data).second;
 
 	bool can_die = true;
 

@@ -359,7 +359,7 @@ public:
 	virtual int profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) = 0;
 
 	virtual void *alloc_instance_binding_data(Object *p_object) { return nullptr; } //optional, not used by all languages
-	virtual void free_instance_binding_data(void *p_data) {} //optional, not used by all languages
+	virtual void free_instance_binding_data(Object *p_object, void *p_data) {} //optional, not used by all languages
 	virtual void refcount_incremented_instance_binding(Object *p_object) {} //optional, not used by all languages
 	virtual bool refcount_decremented_instance_binding(Object *p_object) { return true; } //return true if it can die //optional, not used by all languages
 

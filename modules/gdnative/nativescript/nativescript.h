@@ -251,7 +251,9 @@ private:
 	void call_libraries_cb(const StringName &name);
 
 	Vector<Pair<bool, godot_instance_binding_functions>> binding_functions;
-	Set<Vector<void *> *> binding_instances;
+
+	RWLock binding_instances_lock;
+	Map<void *, Pair<RWLock, Vector<void *>> *> binding_instances;
 
 	Map<int, HashMap<StringName, const void *>> global_type_tags;
 
@@ -347,7 +349,7 @@ public:
 	void *get_instance_binding_data(int p_idx, Object *p_object);
 
 	virtual void *alloc_instance_binding_data(Object *p_object);
-	virtual void free_instance_binding_data(void *p_data);
+	virtual void free_instance_binding_data(Object *p_object, void *p_data);
 	virtual void refcount_incremented_instance_binding(Object *p_object);
 	virtual bool refcount_decremented_instance_binding(Object *p_object);
 
