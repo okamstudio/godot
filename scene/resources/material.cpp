@@ -494,7 +494,9 @@ void Material3D::_update_shader() {
 	if (flags[FLAG_ENSURE_CORRECT_NORMALS]) {
 		code += ",ensure_correct_normals";
 	}
-	if (flags[FLAG_USE_SHADOW_TO_OPACITY]) {
+	if (!flags[FLAG_UNSHADED] && flags[FLAG_USE_SHADOW_TO_OPACITY]) {
+		// Unshaded flag does not behave correctly with the Use Shadow To Opacity flag
+		// (it lowers the entire object's opacity in an uniform manner).
 		code += ",shadow_to_opacity";
 	}
 	code += ";\n";
@@ -558,7 +560,7 @@ void Material3D::_update_shader() {
 		code += "uniform float emission_energy;\n";
 	}
 
-	if (features[FEATURE_REFRACTION]) {
+	if (!flags[FLAG_UNSHADED] && features[FEATURE_REFRACTION]) {
 		code += "uniform sampler2D texture_refraction;\n";
 		code += "uniform float refraction : hint_range(-16,16);\n";
 		code += "uniform vec4 refraction_texture_channel;\n";
@@ -942,7 +944,7 @@ void Material3D::_update_shader() {
 		}
 	}
 
-	if (features[FEATURE_REFRACTION]) {
+	if (!flags[FLAG_UNSHADED] && features[FEATURE_REFRACTION]) {
 		if (features[FEATURE_NORMAL_MAPPING]) {
 			code += "\tvec3 unpacked_normal = NORMALMAP;\n";
 			code += "\tunpacked_normal.xy = unpacked_normal.xy * 2.0 - 1.0;\n";
@@ -1501,6 +1503,11 @@ void Material3D::_validate_property(PropertyInfo &property) const {
 	}
 
 	if (flags[FLAG_UNSHADED]) {
+		// Hide properties that have no effect when the Unshaded flag is enabled.
+		if (property.name == "flags_vertex_lighting" || property.name == "diffuse_mode" || property.name == "specular_mode" || property.name == "flags_disable_ambient_light" || property.name == "flags_do_not_receive_shadows" || property.name == "flags_use_shadow_to_opacity") {
+			property.usage = 0;
+		}
+
 		if (property.name.begins_with("anisotropy")) {
 			property.usage = 0;
 		}
@@ -1538,6 +1545,10 @@ void Material3D::_validate_property(PropertyInfo &property) const {
 		}
 
 		if (property.name.begins_with("transmission")) {
+			property.usage = 0;
+		}
+
+		if (property.name.begins_with("refraction")) {
 			property.usage = 0;
 		}
 	}
