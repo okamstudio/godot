@@ -536,7 +536,7 @@ public:
 	BIND2(environment_set_canvas_max_layer, RID, int)
 	BIND4(environment_set_ambient_light, RID, const Color &, float, float)
 	BIND2(environment_set_camera_feed_id, RID, int)
-	BIND7(environment_set_ssr, RID, bool, int, float, float, float, bool)
+	BIND8(environment_set_ssr, RID, bool, int, float, float, float, bool, float)
 	BIND13(environment_set_ssao, RID, bool, float, float, float, float, float, float, float, const Color &, EnvironmentSSAOQuality, EnvironmentSSAOBlur, float)
 
 	BIND6(environment_set_dof_blur_near, RID, bool, float, float, float, EnvironmentDOFBlurQuality)

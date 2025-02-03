@@ -40,6 +40,7 @@ uniform int num_steps;
 uniform float depth_tolerance;
 uniform float distance_fade;
 uniform float curve_fade_in;
+uniform float max_roughness;
 
 layout(location = 0) out vec4 frag_color;
 
@@ -61,6 +62,13 @@ void main() {
 	normal = normal_roughness.xyz * 2.0 - 1.0;
 
 	float roughness = normal_roughness.w;
+
+	if (roughness > 0.7) {
+		// Do not compute SSR for rough materials to improve performance at the cost of
+		// subtle artifacting.
+		frag_color = vec4(0.0);
+		return;
+	}
 
 	float depth_tex = texture(source_depth, uv_interp).r;
 
@@ -193,6 +201,9 @@ void main() {
 		float grad = (steps_taken + 1.0) / float(num_steps);
 		float initial_fade = curve_fade_in == 0.0 ? 1.0 : pow(clamp(grad, 0.0, 1.0), curve_fade_in);
 		float fade = pow(clamp(1.0 - grad, 0.0, 1.0), distance_fade) * initial_fade;
+		// This is an ad-hoc term to fade out the SSR as roughness increases. Values used
+		// are meant to match the visual appearance of a ReflectionProbe.
+		float roughness_fade = smoothstep(0.4, 0.7, 1.0 - normal_roughness.w);
 		final_pos = pos;
 
 #ifdef REFLECT_ROUGHNESS
@@ -273,10 +284,10 @@ void main() {
 			final_color = textureLod(source_diffuse, final_pos * pixel_size, 0.0);
 		}
 
-		frag_color = vec4(final_color.rgb, fade * margin_blend);
+		frag_color = vec4(final_color.rgb, fade * margin_blend * roughness_fade);
 
 #else
-		frag_color = vec4(textureLod(source_diffuse, final_pos * pixel_size, 0.0).rgb, fade * margin_blend);
+		frag_color = vec4(textureLod(source_diffuse, final_pos * pixel_size, 0.0).rgb, fade * margin_blend * roughness_fade);
 #endif
 
 	} else {

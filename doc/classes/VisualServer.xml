@@ -1021,6 +1021,7 @@
 			<argument index="4" name="fade_out" type="float" />
 			<argument index="5" name="depth_tolerance" type="float" />
 			<argument index="6" name="roughness" type="bool" />
+			<argument index="7" name="max_roughness" type="float" default="0.75" />
 			<description>
 				Sets the variables to be used with the "screen space reflections" post-process effect. See [Environment] for more details.
 			</description>

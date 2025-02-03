@@ -257,6 +257,9 @@
 		<member name="ss_reflections_fade_out" type="float" setter="set_ssr_fade_out" getter="get_ssr_fade_out" default="2.0">
 			The fade-out distance for screen-space reflections. Affects the area from the screen-space reflection to the "global" reflection.
 		</member>
+		<member name="ss_reflections_max_roughness" type="float" setter="set_ssr_max_roughness" getter="get_ssr_max_roughness" default="0.75">
+			The roughness cutoff value for screen-space reflections. Screen pixels with roughness greater than [member ss_reflections_max_roughness] will not compute screen-space reflections. Higher values result in more visible screen-space reflections and less artifacting, at the cost of GPU performance. The default value is tuned to keep nearly all visible reflections while improving performance compared to not using a roughness cutoff ([member ss_reflections_max_roughness] = [code]1.0[/code]).
+		</member>
 		<member name="ss_reflections_max_steps" type="int" setter="set_ssr_max_steps" getter="get_ssr_max_steps" default="64">
 			The maximum number of steps for screen-space reflections. Higher values are slower.
 		</member>
