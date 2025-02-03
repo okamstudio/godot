@@ -166,9 +166,122 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 	Ref<Image> image = p_image;
 	r_srgb = false;
 
-	bool need_decompress = false;
+	// whether we want to choose the sRGB format, if applicable (e.g. a byte format)
+	bool choose_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
 
-	switch (p_format) {
+	// vram compression fallbacks
+	switch (r_real_format) {
+		case Image::FORMAT_DXT1:
+		case Image::FORMAT_DXT3:
+		case Image::FORMAT_DXT5: {
+			if (!config.s3tc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBA8;
+			}
+		} break;
+		case Image::FORMAT_RGTC_R: {
+			if (choose_srgb) {
+				WARN_PRINT_ONCE("VRAM compression: sRGB flag is set, but the format does not support srgb!");
+			}
+			if (!config.rgtc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_R8;
+			}
+		} break;
+		case Image::FORMAT_RGTC_RG: {
+			if (choose_srgb) {
+				WARN_PRINT_ONCE("VRAM compression: sRGB flag is set, but the format does not support srgb!");
+			}
+			if (!config.rgtc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RG8;
+			}
+		} break;
+		case Image::FORMAT_BPTC_RGBA: {
+			if (choose_srgb) {
+				WARN_PRINT_ONCE("VRAM compression: sRGB flag is set, but the format does not support srgb!");
+			}
+			if (!config.bptc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBA8;
+			}
+		} break;
+		case Image::FORMAT_BPTC_RGBF:
+		case Image::FORMAT_BPTC_RGBFU: {
+			if (!config.bptc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBH;
+			}
+		} break;
+		case Image::FORMAT_PVRTC2:
+		case Image::FORMAT_PVRTC2A:
+		case Image::FORMAT_PVRTC4:
+		case Image::FORMAT_PVRTC4A: {
+			if (!config.pvrtc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBA8;
+			}
+		} break;
+		case Image::FORMAT_ETC: {
+			if (!config.etc_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBA8;
+			}
+		} break;
+		case Image::FORMAT_ETC2_R11:
+		case Image::FORMAT_ETC2_R11S: {
+			// FORMAT_ETC2_R11S is signed, but we don't have a proper fallback for it
+			if (choose_srgb) {
+				WARN_PRINT_ONCE("VRAM compression: sRGB flag is set, but the format does not support srgb!");
+			}
+			if (!config.etc2_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_R8;
+			}
+		} break;
+		case Image::FORMAT_ETC2_RG11:
+		case Image::FORMAT_ETC2_RG11S: {
+			// FORMAT_ETC2_RG11S is signed, but we don't have a proper fallback for it
+			if (choose_srgb) {
+				WARN_PRINT_ONCE("VRAM compression: sRGB flag is set, but the format does not support srgb!");
+			}
+			if (!config.etc2_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RG8;
+			}
+		} break;
+		case Image::FORMAT_ETC2_RGB8: {
+			if (!config.etc2_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGB8;
+			}
+		} break;
+		case Image::FORMAT_ETC2_RGBA8:
+		case Image::FORMAT_ETC2_RGB8A1: {
+			if (!config.etc2_supported || p_force_decompress) {
+				r_real_format = Image::FORMAT_RGBA8;
+			}
+		} break;
+		default: {
+			if (r_real_format > Image::FORMAT_RGBE9995) {
+				WARN_PRINT_ONCE("VRAM fallback unimplemented. format: " + Image::get_format_name(r_real_format));
+			}
+		} break;
+	}
+
+	// sRGB fallbacks. Only RGB and RGBA support sRGB decoding.
+	if (choose_srgb) {
+		switch (r_real_format) {
+			case Image::FORMAT_L8:
+			case Image::FORMAT_R8:
+			case Image::FORMAT_RG8:
+			case Image::FORMAT_RGB8: {
+				r_real_format = Image::FORMAT_RGB8;
+			} break;
+			case Image::FORMAT_LA8:
+			case Image::FORMAT_RGBA8:
+			case Image::FORMAT_RGBA4444:
+			case Image::FORMAT_RGBA5551: {
+				r_real_format = Image::FORMAT_RGBA8;
+			} break;
+			default: {
+				// nothing
+			} break;
+		}
+	}
+
+	// GL format
+	switch (r_real_format) {
 		case Image::FORMAT_L8: {
 #ifdef GLES_OVER_GL
 			r_gl_internal_format = GL_R8;
@@ -195,63 +308,53 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 			r_gl_internal_format = GL_R8;
 			r_gl_format = GL_RED;
 			r_gl_type = GL_UNSIGNED_BYTE;
-
 		} break;
 		case Image::FORMAT_RG8: {
 			r_gl_internal_format = GL_RG8;
 			r_gl_format = GL_RG;
 			r_gl_type = GL_UNSIGNED_BYTE;
-
 		} break;
 		case Image::FORMAT_RGB8: {
-			r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8 : GL_RGB8;
+			r_gl_internal_format = choose_srgb ? GL_SRGB8 : GL_RGB8;
 			r_gl_format = GL_RGB;
 			r_gl_type = GL_UNSIGNED_BYTE;
-			r_srgb = true;
-
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_RGBA8: {
 			r_gl_format = GL_RGBA;
-			r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+			r_gl_internal_format = choose_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 			r_gl_type = GL_UNSIGNED_BYTE;
-			r_srgb = true;
-
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_RGBA4444: {
 			r_gl_internal_format = GL_RGBA4;
 			r_gl_format = GL_RGBA;
 			r_gl_type = GL_UNSIGNED_SHORT_4_4_4_4;
-
 		} break;
 		case Image::FORMAT_RGBA5551: {
 			r_gl_internal_format = GL_RGB5_A1;
 			r_gl_format = GL_RGBA;
 			r_gl_type = GL_UNSIGNED_SHORT_5_5_5_1;
-
 		} break;
 		case Image::FORMAT_RF: {
 			r_gl_internal_format = GL_R32F;
 			r_gl_format = GL_RED;
 			r_gl_type = GL_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGF: {
 			r_gl_internal_format = GL_RG32F;
 			r_gl_format = GL_RG;
 			r_gl_type = GL_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGBF: {
 			r_gl_internal_format = GL_RGB32F;
 			r_gl_format = GL_RGB;
 			r_gl_type = GL_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGBAF: {
 			r_gl_internal_format = GL_RGBA32F;
 			r_gl_format = GL_RGBA;
 			r_gl_type = GL_FLOAT;
-
 		} break;
 		case Image::FORMAT_RH: {
 			r_gl_internal_format = GL_R16F;
@@ -262,284 +365,187 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 			r_gl_internal_format = GL_RG16F;
 			r_gl_format = GL_RG;
 			r_gl_type = GL_HALF_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGBH: {
 			r_gl_internal_format = GL_RGB16F;
 			r_gl_format = GL_RGB;
 			r_gl_type = GL_HALF_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGBAH: {
 			r_gl_internal_format = GL_RGBA16F;
 			r_gl_format = GL_RGBA;
 			r_gl_type = GL_HALF_FLOAT;
-
 		} break;
 		case Image::FORMAT_RGBE9995: {
 			r_gl_internal_format = GL_RGB9_E5;
 			r_gl_format = GL_RGB;
 			r_gl_type = GL_UNSIGNED_INT_5_9_9_9_REV;
-
 		} break;
 		case Image::FORMAT_DXT1: {
-			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.s3tc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_DXT3: {
-			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.s3tc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_DXT5: {
-			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.s3tc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_RGTC_R: {
-			if (config.rgtc_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_RED_RGTC1_EXT;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.rgtc_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_RED_RGTC1_EXT;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_RGTC_RG: {
-			if (config.rgtc_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_RED_GREEN_RGTC2_EXT;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.rgtc_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_RED_GREEN_RGTC2_EXT;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_BPTC_RGBA: {
-			if (config.bptc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_BPTC_UNORM : _EXT_COMPRESSED_RGBA_BPTC_UNORM;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.bptc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_BPTC_UNORM : _EXT_COMPRESSED_RGBA_BPTC_UNORM;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_BPTC_RGBF: {
-			if (config.bptc_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
-				r_gl_format = GL_RGB;
-				r_gl_type = GL_FLOAT;
-				r_compressed = true;
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.bptc_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
+			r_gl_format = GL_RGB;
+			r_gl_type = GL_FLOAT;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_BPTC_RGBFU: {
-			if (config.bptc_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
-				r_gl_format = GL_RGB;
-				r_gl_type = GL_FLOAT;
-				r_compressed = true;
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.bptc_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT;
+			r_gl_format = GL_RGB;
+			r_gl_type = GL_FLOAT;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_PVRTC2: {
-			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.pvrtc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_PVRTC2A: {
-			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.pvrtc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_PVRTC4: {
-			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.pvrtc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_PVRTC4A: {
-			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.pvrtc_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_ETC: {
-			if (config.etc_supported) {
-				r_gl_internal_format = _EXT_ETC1_RGB8_OES;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
-
+			ERR_FAIL_COND_V(!config.etc_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_ETC1_RGB8_OES;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_ETC2_R11: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_R11_EAC;
-				r_gl_format = GL_RED;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_R11_EAC;
+			r_gl_format = GL_RED;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_ETC2_R11S: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_SIGNED_R11_EAC;
-				r_gl_format = GL_RED;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_SIGNED_R11_EAC;
+			r_gl_format = GL_RED;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_ETC2_RG11: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_RG11_EAC;
-				r_gl_format = GL_RG;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_RG11_EAC;
+			r_gl_format = GL_RG;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_ETC2_RG11S: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = _EXT_COMPRESSED_SIGNED_RG11_EAC;
-				r_gl_format = GL_RG;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = _EXT_COMPRESSED_SIGNED_RG11_EAC;
+			r_gl_format = GL_RG;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
 		} break;
 		case Image::FORMAT_ETC2_RGB8: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_ETC2 : _EXT_COMPRESSED_RGB8_ETC2;
-				r_gl_format = GL_RGB;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB8_ETC2 : _EXT_COMPRESSED_RGB8_ETC2;
+			r_gl_format = GL_RGB;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_ETC2_RGBA8: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC : _EXT_COMPRESSED_RGBA8_ETC2_EAC;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC : _EXT_COMPRESSED_RGBA8_ETC2_EAC;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		case Image::FORMAT_ETC2_RGB8A1: {
-			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 : _EXT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
-				r_gl_format = GL_RGBA;
-				r_gl_type = GL_UNSIGNED_BYTE;
-				r_compressed = true;
-				r_srgb = true;
-
-			} else {
-				need_decompress = true;
-			}
+			ERR_FAIL_COND_V(!config.etc2_supported, Ref<Image>());
+			r_gl_internal_format = choose_srgb ? _EXT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 : _EXT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+			r_gl_format = GL_RGBA;
+			r_gl_type = GL_UNSIGNED_BYTE;
+			r_compressed = true;
+			r_srgb = choose_srgb;
 		} break;
 		default: {
 			ERR_FAIL_V(Ref<Image>());
 		}
 	}
 
-	if (need_decompress || p_force_decompress) {
-		if (!image.is_null()) {
+	if (!image.is_null()) {
+		if (r_real_format != image->get_format()) {
 			image = image->duplicate();
-			image->decompress();
-			ERR_FAIL_COND_V(image->is_compressed(), image);
-			image->convert(Image::FORMAT_RGBA8);
+			if (image->is_compressed()) {
+				image->decompress();
+				ERR_FAIL_COND_V(image->is_compressed(), Ref<Image>());
+			}
+			image->convert(r_real_format);
 		}
-
-		r_gl_format = GL_RGBA;
-		r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
-		r_gl_type = GL_UNSIGNED_BYTE;
-		r_compressed = false;
-		r_real_format = Image::FORMAT_RGBA8;
-		r_srgb = true;
-
-		return image;
 	}
 
 	return image;
@@ -746,7 +752,7 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 	Image::Format real_format;
 	Ref<Image> img = _get_gl_image_and_format(p_image, p_image->get_format(), texture->flags, real_format, format, internal_format, type, compressed, srgb, texture->is_npot_repeat_mipmap);
 
-	if (config.shrink_textures_x2 && (p_image->has_mipmaps() || !p_image->is_compressed()) && !(texture->flags & VS::TEXTURE_FLAG_USED_FOR_STREAMING)) {
+	if (config.shrink_textures_x2 && (img->has_mipmaps() || !img->is_compressed()) && !(texture->flags & VS::TEXTURE_FLAG_USED_FOR_STREAMING)) {
 		texture->alloc_height = MAX(1, texture->alloc_height / 2);
 		texture->alloc_width = MAX(1, texture->alloc_width / 2);
 
@@ -832,7 +838,7 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 
 //set swizle for older format compatibility
 #ifdef GLES_OVER_GL
-	switch (texture->format) {
+	switch (real_format) {
 		case Image::FORMAT_L8: {
 			glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_R, GL_RED);
 			glTexParameteri(texture->target, GL_TEXTURE_SWIZZLE_G, GL_RED);

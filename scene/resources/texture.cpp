@@ -528,6 +528,16 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &tw_
 
 		uint32_t mipmaps = f->get_32();
 		uint32_t size = f->get_32();
+		Image::Format format = Image::FORMAT_MAX; // the expected format. the format the loader gives us may actually be different, so we convert
+
+		if (df & FORMAT_BIT_HAS_IMAGE_FORMAT_HINT) { // older versions don't have a format hint
+			uint32_t format_u32 = df & FORMAT_MASK_IMAGE_FORMAT;
+			if (format_u32 >= (uint32_t)Image::FORMAT_MAX) {
+				WARN_PRINT(("Invalid image format: " + uitos(format_u32)).utf8().get_data());
+			} else {
+				format = (Image::Format)format_u32;
+			}
+		}
 
 		//print_line("mipmaps: " + itos(mipmaps));
 
@@ -570,8 +580,10 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &tw_
 				ERR_FAIL_COND_V(img.is_null() || img->empty(), ERR_FILE_CORRUPT);
 			}
 
-			if (i != 0) {
-				img->convert(mipmap_images[0]->get_format()); // ensure the same format for all mipmaps
+			if (format != Image::FORMAT_MAX) { // make sure all mipmaps levels have the same format and apply the format hint, if any
+				img->convert(format);
+			} else {
+				format = img->get_format();
 			}
 
 			total_size += img->get_data().size();

@@ -267,6 +267,17 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 					!Image::_webp_mem_loader_func; // WebP module disabled.
 			bool use_webp = !lossless_force_png && p_image->get_width() <= 16383 && p_image->get_height() <= 16383; // WebP has a size limit
 			Ref<Image> image = p_image->duplicate();
+			if (p_texture_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR) {
+				// Only RGB8 and RGBA8 (widely) support sRGB decoding. This is just an optimization, so we don't have to convert inside the driver code.
+				if (image->detect_alpha() == Image::ALPHA_NONE) {
+					image->convert(Image::FORMAT_RGB8);
+				} else {
+					image->convert(Image::FORMAT_RGBA8);
+				}
+			} else {
+				image->optimize_channels();
+			}
+
 			if (p_mipmaps) {
 				image->generate_mipmaps();
 			} else {
@@ -274,6 +285,9 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 			}
 
 			int mmc = image->get_mipmap_count() + 1;
+
+			format |= StreamTexture::FORMAT_BIT_HAS_IMAGE_FORMAT_HINT;
+			format |= image->get_format();
 
 			if (use_webp) {
 				format |= StreamTexture::FORMAT_BIT_WEBP;
@@ -304,6 +318,17 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 		} break;
 		case COMPRESS_LOSSY: {
 			Ref<Image> image = p_image->duplicate();
+			if (p_texture_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR) {
+				// Only RGB8 and RGBA8 (widely) support sRGB decoding. This is just an optimization, so we don't have to convert inside the driver code.
+				if (image->detect_alpha() == Image::ALPHA_NONE) {
+					image->convert(Image::FORMAT_RGB8);
+				} else {
+					image->convert(Image::FORMAT_RGBA8);
+				}
+			} else {
+				image->optimize_channels();
+			}
+
 			if (p_mipmaps) {
 				image->generate_mipmaps();
 			} else {
@@ -311,6 +336,9 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 			}
 
 			int mmc = image->get_mipmap_count() + 1;
+
+			format |= StreamTexture::FORMAT_BIT_HAS_IMAGE_FORMAT_HINT;
+			format |= image->get_format();
 
 			format |= StreamTexture::FORMAT_BIT_WEBP;
 			f->store_32(format);

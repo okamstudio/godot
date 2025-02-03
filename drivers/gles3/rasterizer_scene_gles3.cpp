@@ -1259,25 +1259,17 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 
 		if (t && storage->config.srgb_decode_supported) {
 			//if SRGB decode extension is present, simply switch the texture to whatever is needed
-			bool must_srgb = false;
+			bool needs_srgb = texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_ALBEDO || texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_BLACK_ALBEDO;
 
-			if (t->srgb && (texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_ALBEDO || texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_BLACK_ALBEDO)) {
-				must_srgb = true;
-			}
-
-			if (t->using_srgb != must_srgb) {
-				if (must_srgb) {
-					glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _DECODE_EXT);
 #ifdef TOOLS_ENABLED
-					if (t->detect_srgb) {
-						t->detect_srgb(t->detect_srgb_ud);
-					}
+			if (needs_srgb && t->detect_srgb) {
+				t->detect_srgb(t->detect_srgb_ud);
+			}
 #endif
 
-				} else {
-					glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, _SKIP_DECODE_EXT);
-				}
-				t->using_srgb = must_srgb;
+			if (t->srgb && t->using_srgb != needs_srgb) {
+				glTexParameteri(t->target, _TEXTURE_SRGB_DECODE_EXT, needs_srgb ? _DECODE_EXT : _SKIP_DECODE_EXT);
+				t->using_srgb = needs_srgb;
 			}
 		}
 
