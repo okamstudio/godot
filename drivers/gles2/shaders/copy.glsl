@@ -64,6 +64,25 @@ void main() {
 
 #define M_PI 3.14159265359
 
+// texture2DLodEXT and textureCubeLodEXT are fragment shader specific.
+// Do not copy these defines in the vertex section.
+#ifndef USE_GLES_OVER_GL
+#ifdef GL_EXT_shader_texture_lod
+#extension GL_EXT_shader_texture_lod : enable
+#define texture2DLod(img, coord, lod) texture2DLodEXT(img, coord, lod)
+#define textureCubeLod(img, coord, lod) textureCubeLodEXT(img, coord, lod)
+#endif
+#endif // !USE_GLES_OVER_GL
+
+#ifdef GL_ARB_shader_texture_lod
+#extension GL_ARB_shader_texture_lod : enable
+#endif
+
+#if !defined(GL_EXT_shader_texture_lod) && !defined(GL_ARB_shader_texture_lod)
+#define texture2DLod(img, coord, lod) texture2D(img, coord, lod)
+#define textureCubeLod(img, coord, lod) textureCube(img, coord, lod)
+#endif
+
 #ifdef USE_GLES_OVER_GL
 #define lowp
 #define mediump
@@ -79,7 +98,7 @@ precision mediump int;
 #endif
 
 #if defined(USE_CUBEMAP) || defined(USE_PANORAMA)
-varying vec3 cube_interp;
+varying highp vec3 cube_interp;
 #else
 varying vec2 uv_interp;
 #endif
@@ -114,7 +133,7 @@ uniform float custom_alpha;
 uniform highp mat4 sky_transform;
 
 vec4 texturePanorama(sampler2D pano, vec3 normal) {
-	vec2 st = vec2(
+	highp vec2 st = vec2(
 			atan(normal.x, normal.z),
 			acos(normal.y));
 
@@ -123,7 +142,7 @@ vec4 texturePanorama(sampler2D pano, vec3 normal) {
 
 	st /= vec2(M_PI * 2.0, M_PI);
 
-	return texture2D(pano, st);
+	return texture2DLod(pano, st, 0.0);
 }
 
 #endif
@@ -131,7 +150,7 @@ vec4 texturePanorama(sampler2D pano, vec3 normal) {
 void main() {
 #ifdef USE_PANORAMA
 
-	vec3 cube_normal = normalize(cube_interp);
+	highp vec3 cube_normal = normalize(cube_interp);
 	cube_normal.z = -cube_normal.z;
 	cube_normal = mat3(sky_transform) * cube_normal;
 	cube_normal.z = -cube_normal.z;

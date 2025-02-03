@@ -68,7 +68,7 @@ precision mediump float;
 #endif
 
 #if defined(USE_CUBEMAP) || defined(USE_PANORAMA)
-in vec3 cube_interp;
+in highp vec3 cube_interp;
 #else
 in vec2 uv_interp;
 #endif
@@ -119,7 +119,7 @@ uniform float multiplier;
 uniform highp mat4 sky_transform;
 
 vec4 texturePanorama(vec3 normal, sampler2D pano) {
-	vec2 st = vec2(
+	highp vec2 st = vec2(
 			atan(normal.x, normal.z),
 			acos(normal.y));
 
@@ -156,7 +156,7 @@ void main() {
 
 #ifdef USE_PANORAMA
 
-	vec3 cube_normal = normalize(cube_interp);
+	highp vec3 cube_normal = normalize(cube_interp);
 	cube_normal.z = -cube_normal.z;
 	cube_normal = mat3(sky_transform) * cube_normal;
 	cube_normal.z = -cube_normal.z;
