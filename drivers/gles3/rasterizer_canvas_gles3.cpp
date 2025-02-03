@@ -54,6 +54,10 @@ void RasterizerCanvasGLES3::canvas_begin() {
 	RasterizerCanvasBaseGLES3::canvas_begin();
 }
 
+void RasterizerCanvasGLES3::canvas_adapt() {
+	batch_gl_data.adapt();
+}
+
 void RasterizerCanvasGLES3::canvas_render_items_begin(const Color &p_modulate, Light *p_light, const Transform2D &p_base_transform) {
 	batch_canvas_render_items_begin(p_modulate, p_light, p_base_transform);
 }
@@ -1940,12 +1944,16 @@ void RasterizerCanvasGLES3::canvas_render_items_implementation(Item *p_item_list
 }
 
 void RasterizerCanvasGLES3::_batch_upload_buffers() {
+	batch_gl_data.next();
+
 	// noop?
 	if (!bdata.vertices.size()) {
 		return;
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, bdata.gl_vertex_buffer);
+	const GLuint gl_vertex_buffer = batch_gl_data.current_vertex_buffer();
+
+	glBindBuffer(GL_ARRAY_BUFFER, gl_vertex_buffer);
 
 	// usage flag is a project setting
 	GLenum buffer_usage_flag = GL_DYNAMIC_DRAW;
@@ -1987,7 +1995,7 @@ void RasterizerCanvasGLES3::_batch_render_lines(const Batch &p_batch, Rasterizer
 
 	_bind_canvas_texture(RID(), RID());
 
-	glBindVertexArray(batch_gl_data.batch_vertex_array[0]);
+	glBindVertexArray(batch_gl_data.current_vertex_array()[0]);
 
 	glDisableVertexAttribArray(VS::ARRAY_COLOR);
 	glVertexAttrib4fv(VS::ARRAY_COLOR, (float *)&p_batch.color);
@@ -2031,19 +2039,19 @@ void RasterizerCanvasGLES3::_batch_render_prepare() {
 			return;
 			break;
 		case RasterizerStorageCommon::FVF_REGULAR: // no change
-			glBindVertexArray(batch_gl_data.batch_vertex_array[0]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[0]);
 			break;
 		case RasterizerStorageCommon::FVF_COLOR:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[1]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[1]);
 			break;
 		case RasterizerStorageCommon::FVF_LIGHT_ANGLE:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[2]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[2]);
 			break;
 		case RasterizerStorageCommon::FVF_MODULATED:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[3]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[3]);
 			break;
 		case RasterizerStorageCommon::FVF_LARGE:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[4]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[4]);
 			break;
 	}
 }
@@ -2066,19 +2074,19 @@ void RasterizerCanvasGLES3::_batch_render_generic(const Batch &p_batch, Rasteriz
 			return;
 			break;
 		case RasterizerStorageCommon::FVF_REGULAR: // no change
-			glBindVertexArray(batch_gl_data.batch_vertex_array[0]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[0]);
 			break;
 		case RasterizerStorageCommon::FVF_COLOR:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[1]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[1]);
 			break;
 		case RasterizerStorageCommon::FVF_LIGHT_ANGLE:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[2]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[2]);
 			break;
 		case RasterizerStorageCommon::FVF_MODULATED:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[3]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[3]);
 			break;
 		case RasterizerStorageCommon::FVF_LARGE:
-			glBindVertexArray(batch_gl_data.batch_vertex_array[4]);
+			glBindVertexArray(batch_gl_data.current_vertex_array()[4]);
 			break;
 	}
 
@@ -2158,23 +2166,15 @@ void RasterizerCanvasGLES3::_batch_render_generic(const Batch &p_batch, Rasteriz
 	*/
 }
 
-void RasterizerCanvasGLES3::initialize() {
-	RasterizerGLES3::gl_check_errors();
-	RasterizerCanvasBaseGLES3::initialize();
-
-	batch_initialize();
-
+void RasterizerCanvasGLES3::initialize_buffer(GLuint vertex_buffer, GLuint index_buffer, GLuint vertex_array[5]) {
 	// just reserve some space (may not be needed as we are orphaning, but hey ho)
-	glGenBuffers(1, &bdata.gl_vertex_buffer);
-
 	if (bdata.vertex_buffer_size_bytes) {
-		glBindBuffer(GL_ARRAY_BUFFER, bdata.gl_vertex_buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
 		glBufferData(GL_ARRAY_BUFFER, bdata.vertex_buffer_size_bytes, nullptr, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// pre fill index buffer, the indices never need to change so can be static
-		glGenBuffers(1, &bdata.gl_index_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bdata.gl_index_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 
 		Vector<uint16_t> indices;
 		indices.resize(bdata.index_buffer_size_units);
@@ -2221,10 +2221,9 @@ void RasterizerCanvasGLES3::initialize() {
 				break;
 		}
 
-		glGenVertexArrays(1, &batch_gl_data.batch_vertex_array[vao]);
-		glBindVertexArray(batch_gl_data.batch_vertex_array[vao]);
-		glBindBuffer(GL_ARRAY_BUFFER, bdata.gl_vertex_buffer);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bdata.gl_index_buffer);
+		glBindVertexArray(vertex_array[vao]);
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
 
 		uint64_t pointer = 0;
 		glEnableVertexAttribArray(VS::ARRAY_VERTEX);
@@ -2284,6 +2283,15 @@ void RasterizerCanvasGLES3::initialize() {
 
 		glBindVertexArray(0);
 	} // for vao
+}
+
+void RasterizerCanvasGLES3::initialize() {
+	RasterizerGLES3::gl_check_errors();
+	RasterizerCanvasBaseGLES3::initialize();
+
+	batch_initialize();
+
+	batch_gl_data.resize(1);
 
 	// deal with ninepatch mode option
 	if (bdata.settings_ninepatch_mode == 1) {
@@ -2293,6 +2301,7 @@ void RasterizerCanvasGLES3::initialize() {
 	RasterizerGLES3::gl_check_errors();
 }
 
-RasterizerCanvasGLES3::RasterizerCanvasGLES3() {
+RasterizerCanvasGLES3::RasterizerCanvasGLES3() :
+		batch_gl_data(*this) {
 	batch_constructor();
 }

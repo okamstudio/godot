@@ -284,8 +284,6 @@ public:
 			reset_flush();
 			reset_joined_item();
 
-			gl_vertex_buffer = 0;
-			gl_index_buffer = 0;
 			max_quads = 0;
 			vertex_buffer_size_units = 0;
 			vertex_buffer_size_bytes = 0;
@@ -350,9 +348,6 @@ public:
 			use_large_verts = false;
 			fvf = RasterizerStorageCommon::FVF_REGULAR;
 		}
-
-		unsigned int gl_vertex_buffer;
-		unsigned int gl_index_buffer;
 
 		uint32_t max_quads;
 		uint32_t vertex_buffer_size_units;

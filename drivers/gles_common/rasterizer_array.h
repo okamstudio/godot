@@ -153,6 +153,15 @@ public:
 		return p;
 	}
 
+	T *request_with_grow(int p_num_items) {
+		T *p = request(p_num_items);
+		if (!p) {
+			grow();
+			return request_with_grow(p_num_items);
+		}
+		return p;
+	}
+
 	// none of that inefficient pass by value stuff here, thanks
 	T *request() {
 		if (_size < _max_size) {

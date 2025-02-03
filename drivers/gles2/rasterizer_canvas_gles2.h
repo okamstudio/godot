@@ -46,7 +46,78 @@ public:
 	virtual void canvas_begin();
 	virtual void canvas_end();
 
+	void canvas_adapt();
+
 private:
+	// for batching
+	class BatchGLData {
+	public:
+		BatchGLData(RasterizerCanvasGLES2 &rasterizer) :
+				rasterizer(rasterizer) {}
+
+		inline size_t size() const {
+			return current_size;
+		}
+
+		inline void request(size_t new_size) {
+			resize(new_size);
+		}
+
+		inline void resize(size_t new_size) {
+			if (new_size == 0) {
+				new_size = 1;
+			}
+			int max_size_diff = new_size - vertex_buffers.size();
+			if (max_size_diff > 0) {
+				vertex_buffers.request_with_grow(max_size_diff);
+				index_buffers.request_with_grow(max_size_diff);
+			}
+			int size_diff = new_size - current_size;
+			if (size_diff > 0) {
+				glGenBuffers(size_diff, &vertex_buffers[current_size]);
+				glGenBuffers(size_diff, &index_buffers[current_size]);
+				for (int i = 0; i < size_diff; i++) {
+					rasterizer.initialize_buffer(vertex_buffers[current_size + i], index_buffers[current_size + i]);
+				}
+			} else if (size_diff < 0) {
+				glDeleteBuffers(-size_diff, &vertex_buffers[current_size + size_diff - 1]);
+				glDeleteBuffers(-size_diff, &index_buffers[current_size + size_diff - 1]);
+			}
+			current_size = new_size;
+			current_idx = 0;
+		}
+
+		inline void reset() {
+			resize(1);
+		}
+
+		inline unsigned int current_vertex_buffer() const {
+			return vertex_buffers[current_idx];
+		}
+
+		inline unsigned int current_index_buffer() const {
+			return index_buffers[current_idx];
+		}
+
+		inline void next() {
+			new_size++;
+			current_idx = (current_idx + 1) % current_size;
+		}
+
+		inline void adapt() {
+			request(new_size);
+			new_size = 0;
+		}
+
+	private:
+		size_t current_idx = 0;
+		size_t current_size = 0;
+		size_t new_size = 0;
+		RasterizerArray<unsigned int> vertex_buffers;
+		RasterizerArray<unsigned int> index_buffers;
+		RasterizerCanvasGLES2 &rasterizer;
+	} batch_gl_data;
+
 	// legacy codepath .. to remove after testing
 	void _legacy_canvas_render_item(Item *p_ci, RenderItemState &r_ris);
 
@@ -64,6 +135,8 @@ private:
 	// funcs used from rasterizer_canvas_batcher template
 	void gl_enable_scissor(int p_x, int p_y, int p_width, int p_height) const;
 	void gl_disable_scissor() const;
+
+	void initialize_buffer(GLuint vertex_buffer, GLuint index_buffer);
 
 public:
 	void initialize();
