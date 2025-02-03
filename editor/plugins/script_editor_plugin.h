@@ -148,6 +148,7 @@ class ScriptEditor : public PanelContainer {
 		CLOSE_DOCS,
 		CLOSE_ALL,
 		CLOSE_OTHER_TABS,
+		CLOSE_TABS_BELOW,
 		TOGGLE_SCRIPTS_PANEL,
 		SHOW_IN_FILE_SYSTEM,
 		FILE_COPY_PATH,
@@ -297,6 +298,7 @@ class ScriptEditor : public PanelContainer {
 	void _close_discard_current_tab(const String &p_str);
 	void _close_docs_tab();
 	void _close_other_tabs();
+	void _close_tabs_below();
 	void _close_all_tabs();
 	void _queue_close_tabs();
 
