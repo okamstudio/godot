@@ -73,7 +73,9 @@ class ProgressDialog : public Popup {
 		VBoxContainer *vb;
 		ProgressBar *progress;
 		Label *state;
+		Label *time_info;
 		uint64_t last_progress_tick;
+		uint32_t time_started = 0;
 	};
 	HBoxContainer *cancel_hb;
 	Button *cancel;
@@ -81,10 +83,13 @@ class ProgressDialog : public Popup {
 	Map<String, Task> tasks;
 	VBoxContainer *main;
 
+	Timer *time_info_timer;
 	static ProgressDialog *singleton;
 	void _popup();
 
+	void _time_info_timer_timeout();
 	void _cancel_pressed();
+	String get_time_string(int p_seconds) const;
 	bool cancelled;
 
 protected:

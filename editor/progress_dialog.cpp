@@ -170,9 +170,17 @@ void ProgressDialog::add_task(const String &p_task, const String &p_label, int p
 	t.progress->set_value(p_steps);
 	t.last_progress_tick = 0;
 	vb2->add_child(t.progress);
+
+	t.time_info = memnew(Label);
+	// Make the time spent and ETA less prominent.
+	t.time_info->set_modulate(Color(1, 1, 1, 0.55));
+	t.time_started = OS::get_singleton()->get_ticks_msec();
+	vb2->add_child(t.time_info);
+
 	t.state = memnew(Label);
 	t.state->set_clip_text(true);
 	vb2->add_child(t.state);
+
 	main->add_child(t.vb);
 
 	tasks[p_task] = t;
@@ -189,6 +197,10 @@ void ProgressDialog::add_task(const String &p_task, const String &p_label, int p
 	}
 }
 
+String ProgressDialog::get_time_string(int p_seconds) const {
+	return vformat("%02d:%02d:%02d", p_seconds / 3600, (p_seconds % 3600) / 60, p_seconds % 60);
+}
+
 bool ProgressDialog::task_step(const String &p_task, const String &p_state, int p_step, bool p_force_redraw) {
 	ERR_FAIL_COND_V(!tasks.has(p_task), cancelled);
 
@@ -200,6 +212,12 @@ bool ProgressDialog::task_step(const String &p_task, const String &p_state, int 
 		}
 	}
 
+	if (p_step < int(Math::round(t.progress->get_value()))) {
+		// Going backwards (which means we entered a new subtask).
+		// Reset the wall clock time (which also resets the ETA).
+		t.time_started = OS::get_singleton()->get_ticks_msec();
+	}
+
 	if (p_step < 0) {
 		t.progress->set_value(t.progress->get_value() + 1);
 	} else {
@@ -208,6 +226,7 @@ bool ProgressDialog::task_step(const String &p_task, const String &p_state, int 
 
 	t.state->set_text(p_state);
 	t.last_progress_tick = OS::get_singleton()->get_ticks_usec();
+
 	if (cancel_hb->is_visible()) {
 		OS::get_singleton()->force_process_input();
 	}
@@ -232,12 +251,35 @@ void ProgressDialog::end_task(const String &p_task) {
 	}
 }
 
+void ProgressDialog::_time_info_timer_timeout() {
+	for (Map<String, Task>::Element *E = tasks.front(); E; E = E->next()) {
+		Task task = E->get();
+
+		const uint32_t time_spent = OS::get_singleton()->get_ticks_msec() - task.time_started;
+		// Don't display an ETA if less than 4 seconds have passed.
+		// This is because ETA requires some data to be accurate, and 1-3 seconds of data
+		// is just not accurate enough to give an useful ETA.
+		if (time_spent >= 4000 && !Math::is_zero_approx(task.progress->get_value())) {
+			// Avoid division by zero.
+			const uint32_t eta = time_spent / MAX(0.001, task.progress->get_value() / MAX(0.001, task.progress->get_max())) - time_spent;
+			task.time_info->set_text(vformat("%s (ETA: %s)", get_time_string(time_spent * 0.001), get_time_string(eta * 0.001)));
+		} else if (time_spent >= 1000) {
+			// No ETA since progress hasn't started yet.
+			task.time_info->set_text(vformat("%s", get_time_string(time_spent * 0.001)));
+		} else {
+			// Don't display "00:00:00".
+			task.time_info->set_text("");
+		}
+	}
+}
+
 void ProgressDialog::_cancel_pressed() {
 	cancelled = true;
 }
 
 void ProgressDialog::_bind_methods() {
 	ClassDB::bind_method("_cancel_pressed", &ProgressDialog::_cancel_pressed);
+	ClassDB::bind_method("_time_info_timer_timeout", &ProgressDialog::_time_info_timer_timeout);
 }
 
 ProgressDialog::ProgressDialog() {
@@ -255,4 +297,14 @@ ProgressDialog::ProgressDialog() {
 	cancel->set_text(TTR("Cancel"));
 	cancel_hb->add_spacer();
 	cancel->connect("pressed", this, "_cancel_pressed");
+
+	time_info_timer = memnew(Timer);
+	// Setting the update time to 1 second cause some seconds to be "missed"
+	// due to the heavy load during the progress dialog.
+	// Lower values make the time update in a more predictable way, so use the same
+	// timeout as the progres bar itself.
+	time_info_timer->set_wait_time(0.2);
+	time_info_timer->set_autostart(true);
+	add_child(time_info_timer);
+	time_info_timer->connect("timeout", this, "_time_info_timer_timeout");
 }
