@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ZIPReader" inherits="Reference" category="Core" version="3.2">
+	<brief_description>
+		Class for reading zip archives
+	</brief_description>
+	<description>
+		ZIPReader provides a way to open zip archives and read the files inside.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="open">
+			<return type="int" enum="Error">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Opens a zip file for reading. If a file was already open, it will be closed.
+			</description>
+		</method>
+		<method name="get_files">
+			<return type="PoolStringArray">
+			</return>
+			<description>
+				Returns the list of file paths in the archive. All paths are relative to the root of the archive.
+				For example, if you have an archive containg a folder, "foo", which contains a file, "bar.txt", the list will contain one item: "foo/bar.txt".
+			</description>
+		</method>
+		<method name="read_file">
+			<return type="PoolByteArray">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<argument index="1" name="case_sensitive" type="bool" default="true">
+			</argument>
+			<description>
+				Returns the contents of a file in the archive as a [PoolByteArray]. If you need the contents as a string, use [method PoolByteArray.get_string_from_utf8].
+				If there is a problem reading the file (such as the file doesn't exist), an empty PoolByteArray will be returned and an error will be logged to the console.
+			</description>
+		</method>
+		<method name="close">
+			<return type="int" enum="Error">
+			</return>
+			<description>
+				Closes the file. Subsequent operations other than [method open] will fail after this is called.
+			</description>
+		</method>
+	</methods>
+	<members>
+	</members>
+	<signals>
+	</signals>
+	<constants>
+	</constants>
+</class>

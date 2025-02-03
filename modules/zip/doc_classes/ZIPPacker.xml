@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ZIPPacker" inherits="Reference" category="Core" version="3.2">
+	<brief_description>
+		Class for creating zip archives
+	</brief_description>
+	<description>
+		ZIPPacker provides a way to create zip archives.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="open">
+			<return type="int" enum="Error">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<argument index="1" name="append" type="int" enum="ZIPPacker.ZipAppend" default="0">
+			</argument>
+			<description>
+				Opens a zip file to start writing. What happens if the file already exists is determined by [code]append[/code].
+			</description>
+		</method>
+		<method name="start_file">
+			<return type="int" enum="Error">
+			</return>
+			<argument index="0" name="path" type="String">
+			</argument>
+			<description>
+				Starts a new file in the zip archive. Subsequent calls to [method write_file] will write to this file.
+				If the file at the given path already exists, a duplicate entry will be created.
+			</description>
+		</method>
+		<method name="write_file">
+			<return type="int" enum="Error">
+			</return>
+			<argument index="0" name="data" type="PoolByteArray">
+			</argument>
+			<description>
+				Writes data to a file in the archive. Which file is written to is determined by the latest call to [method start_file].
+				If the file has already been written to, the data will be appended.
+			</description>
+		</method>
+		<method name="close_file">
+			<return type="int" enum="Error">
+			</return>
+			<description>
+				Closes the file that was opened with [method start_file].
+			</description>
+		</method>
+		<method name="close">
+			<return type="int" enum="Error">
+			</return>
+			<description>
+				Closes the zip file and flushes the data to the disk.
+			</description>
+		</method>
+	</methods>
+	<members>
+	</members>
+	<signals>
+	</signals>
+	<constants>
+		<constant name="APPEND_CREATE" value="0" enum="ZipAppend">
+			The file will be created if it does not exist, or overwritten if it does exist.
+		</constant>
+		<constant name="APPEND_CREATEAFTER" value="1" enum="ZipAppend">
+			The zip file will be appended to the data in the file, if the file already exists.
+		</constant>
+		<constant name="APPEND_ADDINZIP" value="2" enum="ZipAppend">
+			Files will be added to the existing zip file.
+			Note: Files in the archive cannot be overwritten in this mode. If you write to a file that already exists in the archive, a duplicate entry will be created instead.
+		</constant>
+	</constants>
+</class>
