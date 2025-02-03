@@ -211,6 +211,8 @@ void FindReplaceBar::_replace() {
 	} else {
 		text_edit->deselect();
 	}
+
+	text_edit->grab_focus();
 }
 
 void FindReplaceBar::_replace_all() {
@@ -300,6 +302,8 @@ void FindReplaceBar::_replace_all() {
 
 	text_edit->call_deferred("connect", "text_changed", this, "_editor_text_changed");
 	results_count = -1;
+
+	text_edit->grab_focus();
 }
 
 void FindReplaceBar::_get_search_from(int &r_line, int &r_col) {
