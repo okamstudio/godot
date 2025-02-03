@@ -1409,6 +1409,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 						break;
 					}
 
+					EditorNode::get_log()->set_scroll_follow(true);
 					EditorNode::get_log()->add_message("--- Debugging process started ---", EditorLog::MSG_TYPE_EDITOR);
 
 					ppeer->set_stream_peer(connection);

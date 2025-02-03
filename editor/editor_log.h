@@ -90,6 +90,7 @@ public:
 	void add_message(const String &p_msg, MessageType p_type = MSG_TYPE_STD);
 	void set_tool_button(ToolButton *p_tool_button);
 	void deinit();
+	void set_scroll_follow(bool p_follow);
 
 	void clear();
 	void copy();
