@@ -106,6 +106,7 @@
 		</member>
 		<member name="depth_deep_parallax" type="bool" setter="set_depth_deep_parallax" getter="is_depth_deep_parallax_enabled">
 			If [code]true[/code], the shader will read depth texture at multiple points along the view ray to determine occlusion and parrallax. This can be very performance demanding, but results in more realistic looking depth mapping.
+			[b]Note:[/b] When using the GLES2 backend on mobile platforms, deep parallax mapping may exhibit visible artifacts unless [ProjectSettings]' [code]rendering/gles2/compatibility/enable_high_float.Android[/code] is [code]true[/code]. However, enabling high-precision floating-point computations has a performance cost and is not compatible with all devices.
 		</member>
 		<member name="depth_enabled" type="bool" setter="set_feature" getter="get_feature" default="false">
 			If [code]true[/code], depth mapping is enabled (also called "parallax mapping" or "height mapping"). See also [member normal_enabled].
@@ -119,9 +120,11 @@
 		</member>
 		<member name="depth_max_layers" type="int" setter="set_depth_deep_parallax_max_layers" getter="get_depth_deep_parallax_max_layers">
 			Number of layers to use when using [member depth_deep_parallax] and the view direction is perpendicular to the surface of the object. A higher number will be more performance demanding while a lower number may not look as crisp.
+			[b]Note:[/b] [member depth_max_layers] is limited to 32 when using the GLES2 backend due to the shader relying on a fixed-count [code]for[/code] loop instead of a dynamic [code]while[/code] loop. This limitation is present due to GLES2 not supporting [code]while[/code] loops on all platforms.
 		</member>
 		<member name="depth_min_layers" type="int" setter="set_depth_deep_parallax_min_layers" getter="get_depth_deep_parallax_min_layers">
 			Number of layers to use when using [member depth_deep_parallax] and the view direction is parallel to the surface of the object. A higher number will be more performance demanding while a lower number may not look as crisp.
+			[b]Note:[/b] [member depth_min_layers] is limited to 32 when using the GLES2 backend due to the shader relying on a fixed-count [code]for[/code] loop instead of a dynamic [code]while[/code] loop. This limitation is present due to GLES2 not supporting [code]while[/code] loops on all platforms.
 		</member>
 		<member name="depth_scale" type="float" setter="set_depth_scale" getter="get_depth_scale">
 			Scales the depth offset effect. A higher number will create a larger depth.

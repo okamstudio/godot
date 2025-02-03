@@ -776,7 +776,7 @@ void Material3D::_update_shader() {
 		}
 	}
 
-	if (!VisualServer::get_singleton()->is_low_end() && features[FEATURE_DEPTH_MAPPING] && !flags[FLAG_UV1_USE_TRIPLANAR]) { //depthmap not supported with triplanar
+	if (features[FEATURE_DEPTH_MAPPING] && !flags[FLAG_UV1_USE_TRIPLANAR]) { //depthmap not supported with triplanar
 		code += "\t{\n";
 		code += "\t\tvec3 view_dir = normalize(normalize(-VERTEX)*mat3(TANGENT*depth_flip.x,-BINORMAL*depth_flip.y,NORMAL));\n"; // binormal is negative due to mikktspace, flip 'unflips' it ;-)
 
@@ -789,11 +789,26 @@ void Material3D::_update_shader() {
 			code += "\t\tvec2 ofs = base_uv;\n";
 			code += "\t\tfloat depth = textureLod(texture_depth, ofs, 0.0).r;\n";
 			code += "\t\tfloat current_depth = 0.0;\n";
-			code += "\t\twhile(current_depth < depth) {\n";
-			code += "\t\t\tofs -= delta;\n";
-			code += "\t\t\tdepth = textureLod(texture_depth, ofs, 0.0).r;\n";
-			code += "\t\t\tcurrent_depth += layer_depth;\n";
-			code += "\t\t}\n";
+			if (VisualServer::get_singleton()->is_low_end()) {
+				// `while` loops are not well supported in GLES2. Do a "large" finite
+				// loop with `for`, but not too large, as it slows down some compilers.
+				// The loop's size is tailored to match the default number of maximum steps (32).
+				code += "\t\tfor (int i = 0; i < 32; i++) {\n";
+				code += "\t\t\tif (current_depth >= depth) {\n";
+				code += "\t\t\t\tbreak;\n";
+				code += "\t\t\t}\n";
+				code += "\t\t\tofs -= delta;\n";
+				code += "\t\t\tdepth = textureLod(texture_depth, ofs, 0.0).r;\n";
+				code += "\t\t\tcurrent_depth += layer_depth;\n";
+				code += "\t\t}\n";
+			} else {
+				// Use `while` loop as it's supported in GLES3.
+				code += "\t\twhile (current_depth < depth) {\n";
+				code += "\t\t\tofs -= delta;\n";
+				code += "\t\t\tdepth = textureLod(texture_depth, ofs, 0.0).r;\n";
+				code += "\t\t\tcurrent_depth += layer_depth;\n";
+				code += "\t\t}\n";
+			}
 			code += "\t\tvec2 prev_ofs = ofs + delta;\n";
 			code += "\t\tfloat after_depth  = depth - current_depth;\n";
 			code += "\t\tfloat before_depth = textureLod(texture_depth, prev_ofs, 0.0).r - current_depth + layer_depth;\n";
@@ -1466,7 +1481,6 @@ void Material3D::_validate_property(PropertyInfo &property) const {
 	_validate_feature("detail", FEATURE_DETAIL, property);
 
 	_validate_high_end("subsurf_scatter", property);
-	_validate_high_end("depth", property);
 
 	if (property.name.begins_with("particles_anim_") && billboard_mode != BILLBOARD_PARTICLES) {
 		property.usage = 0;
@@ -2203,8 +2217,16 @@ void Material3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "depth_enabled"), "set_feature", "get_feature", FEATURE_DEPTH_MAPPING);
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "depth_scale", PROPERTY_HINT_RANGE, "-16,16,0.001"), "set_depth_scale", "get_depth_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "depth_deep_parallax"), "set_depth_deep_parallax", "is_depth_deep_parallax_enabled");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_min_layers", PROPERTY_HINT_RANGE, "1,64,1"), "set_depth_deep_parallax_min_layers", "get_depth_deep_parallax_min_layers");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_max_layers", PROPERTY_HINT_RANGE, "1,64,1"), "set_depth_deep_parallax_max_layers", "get_depth_deep_parallax_max_layers");
+	if (VisualServer::get_singleton()->is_low_end()) {
+		// Allow only as many layers as used in the fixed `for` loop.
+		// Adding more layers would result in visible artifacts.
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_min_layers", PROPERTY_HINT_RANGE, "1,32,1"), "set_depth_deep_parallax_min_layers", "get_depth_deep_parallax_min_layers");
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_max_layers", PROPERTY_HINT_RANGE, "1,32,1"), "set_depth_deep_parallax_max_layers", "get_depth_deep_parallax_max_layers");
+	} else {
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_min_layers", PROPERTY_HINT_RANGE, "1,64,1"), "set_depth_deep_parallax_min_layers", "get_depth_deep_parallax_min_layers");
+		ADD_PROPERTY(PropertyInfo(Variant::INT, "depth_max_layers", PROPERTY_HINT_RANGE, "1,64,1"), "set_depth_deep_parallax_max_layers", "get_depth_deep_parallax_max_layers");
+	}
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "depth_flip_tangent"), "set_depth_deep_parallax_flip_tangent", "get_depth_deep_parallax_flip_tangent");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "depth_flip_binormal"), "set_depth_deep_parallax_flip_binormal", "get_depth_deep_parallax_flip_binormal");
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "depth_texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture"), "set_texture", "get_texture", TEXTURE_DEPTH);
