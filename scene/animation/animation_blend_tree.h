@@ -129,11 +129,12 @@ public:
 
 VARIANT_ENUM_CAST(AnimationNodeOneShot::MixMode)
 
-class AnimationNodeAdd2 : public AnimationNode {
-	GDCLASS(AnimationNodeAdd2, AnimationNode);
+class AnimationNodeSub2 : public AnimationNode {
+	GDCLASS(AnimationNodeSub2, AnimationNode);
 
-	StringName add_amount;
 	bool sync;
+
+	StringName sub_amount;
 
 protected:
 	static void _bind_methods();
@@ -146,6 +147,34 @@ public:
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
+
+	virtual bool has_filter() const;
+	virtual float process(float p_time, bool p_seek);
+
+	AnimationNodeSub2();
+};
+
+class AnimationNodeAdd2 : public AnimationNode {
+	GDCLASS(AnimationNodeAdd2, AnimationNode);
+
+	StringName add_amount;
+	bool sync;
+	bool add_directly;
+
+protected:
+	static void _bind_methods();
+
+public:
+	void get_parameter_list(List<PropertyInfo> *r_list) const;
+	virtual Variant get_parameter_default_value(const StringName &p_parameter) const;
+
+	virtual String get_caption() const;
+
+	void set_use_sync(bool p_sync);
+	bool is_using_sync() const;
+
+	void set_add_directly(bool p_add_directly);
+	bool get_add_directly() const;
 
 	virtual bool has_filter() const;
 	virtual float process(float p_time, bool p_seek);

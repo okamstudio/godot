@@ -37,6 +37,7 @@
 			<argument index="3" name="blend" type="float" />
 			<argument index="4" name="filter" type="int" enum="AnimationNode.FilterAction" default="0" />
 			<argument index="5" name="optimize" type="bool" default="true" />
+			<argument index="6" name="use_blend" type="bool" default="true" />
 			<description>
 				Blend an input. This is only useful for nodes created for an [AnimationNodeBlendTree]. The [code]time[/code] parameter is a relative delta, unless [code]seek[/code] is [code]true[/code], in which case it is absolute. A filter mode may be optionally passed (see [enum FilterAction] for options).
 			</description>
@@ -50,6 +51,7 @@
 			<argument index="4" name="blend" type="float" />
 			<argument index="5" name="filter" type="int" enum="AnimationNode.FilterAction" default="0" />
 			<argument index="6" name="optimize" type="bool" default="true" />
+			<argument index="7" name="use_blend" type="bool" default="true" />
 			<description>
 				Blend another animation node (in case this node contains children animation nodes). This function is only useful if you inherit from [AnimationRootNode] instead, else editors will not display your node for addition.
 			</description>

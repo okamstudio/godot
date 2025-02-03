@@ -419,6 +419,7 @@ void register_scene_types() {
 	ClassDB::register_class<AnimationNodeOutput>();
 	ClassDB::register_class<AnimationNodeOneShot>();
 	ClassDB::register_class<AnimationNodeAnimation>();
+	ClassDB::register_class<AnimationNodeSub2>();
 	ClassDB::register_class<AnimationNodeAdd2>();
 	ClassDB::register_class<AnimationNodeAdd3>();
 	ClassDB::register_class<AnimationNodeBlend2>();

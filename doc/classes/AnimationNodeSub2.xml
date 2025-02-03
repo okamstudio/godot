@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="AnimationNodeSub2" inherits="AnimationNode" version="3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Blends two animations subtractively inside of an [AnimationNodeBlendTree].
+	</brief_description>
+	<description>
+		A resource to add to an [AnimationNodeBlendTree]. Blends two animations subtractively based on an amount value in the [code][0.0, 1.0][/code] range. The direct inverse of the Add2 node.
+	</description>
+	<tutorials>
+		<link>$DOCS_URL/tutorials/animation/animation_tree.html</link>
+	</tutorials>
+	<methods>
+	</methods>
+	<members>
+		<member name="sync" type="bool" setter="set_use_sync" getter="is_using_sync" default="false">
+			If [code]true[/code], sets the [code]optimization[/code] to [code]false[/code] when calling [method AnimationNode.blend_input], forcing the blended animations to update every frame.
+		</member>
+	</members>
+	<constants>
+	</constants>
+</class>
