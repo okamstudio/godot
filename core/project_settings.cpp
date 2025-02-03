@@ -40,6 +40,7 @@
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/variant_parser.h"
+#include "core/version.h"
 
 #include <zlib.h>
 
@@ -628,6 +629,8 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 					memdelete(f);
 					ERR_FAIL_V_MSG(ERR_FILE_CANT_OPEN, vformat("Can't open project at '%s', its `config_version` (%d) is from a more recent and incompatible version of the engine. Expected config version: %d.", p_path, config_version, CONFIG_VERSION));
 				}
+			} else if (section == String() && assign == "editor_version") {
+				// Ignore for now, the same as config_version is not passed to set().
 			} else {
 				if (section == String()) {
 					set(assign, value);
@@ -793,6 +796,8 @@ Error ProjectSettings::_save_settings_text(const String &p_file, const Map<Strin
 	file->store_line("");
 
 	file->store_string("config_version=" + itos(CONFIG_VERSION) + "\n");
+	file->store_string("editor_version=\"" + String(VERSION_NUMBER) + "\"\n");
+
 	if (p_custom_features != String()) {
 		file->store_string("custom_features=\"" + p_custom_features + "\"\n");
 	}
