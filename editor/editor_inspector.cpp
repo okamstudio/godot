@@ -567,6 +567,16 @@ StringName EditorProperty::get_edited_property() const {
 	return property;
 }
 
+Variant EditorProperty::get_edited_property_display_value() const {
+	ERR_FAIL_NULL_V(object, Variant());
+	Control *control = Object::cast_to<Control>(object);
+	if (checkable && !checked && control && String(property).begins_with("theme_override_")) {
+		return control->get_used_theme_item(property);
+	} else {
+		return get_edited_property_value();
+	}
+}
+
 EditorInspector *EditorProperty::get_parent_inspector() const {
 	Node *parent = get_parent();
 	while (parent) {
@@ -4386,13 +4396,26 @@ void EditorInspector::_property_checked(const String &p_path, bool p_checked) {
 			_edit_set(p_path, Variant(), false, "");
 		} else {
 			Variant to_create;
-			List<PropertyInfo> pinfo;
-			object->get_property_list(&pinfo);
-			for (const PropertyInfo &E : pinfo) {
-				if (E.name == p_path) {
-					Callable::CallError ce;
-					Variant::construct(E.type, to_create, nullptr, 0, ce);
-					break;
+			Control *control = Object::cast_to<Control>(object);
+			bool skip = false;
+			if (control && p_path.begins_with("theme_override_")) {
+				to_create = control->get_used_theme_item(p_path);
+				Ref<Resource> resource = to_create;
+				if (resource.is_valid()) {
+					to_create = resource->duplicate();
+				}
+				skip = true;
+			}
+
+			if (!skip) {
+				List<PropertyInfo> pinfo;
+				object->get_property_list(&pinfo);
+				for (const PropertyInfo &E : pinfo) {
+					if (E.name == p_path) {
+						Callable::CallError ce;
+						Variant::construct(E.type, to_create, nullptr, 0, ce);
+						break;
+					}
 				}
 			}
 			_edit_set(p_path, to_create, false, "");
