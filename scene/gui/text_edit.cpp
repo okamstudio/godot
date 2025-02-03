@@ -738,7 +738,7 @@ void TextEdit::_notification(int p_what) {
 			cache.style_normal->draw(ci, Rect2(Point2(), size));
 			if (readonly) {
 				cache.style_readonly->draw(ci, Rect2(Point2(), size));
-				draw_caret = false;
+				draw_caret = is_caret_on_readonly();
 			}
 			if (has_focus()) {
 				cache.style_focus->draw(ci, Rect2(Point2(), size));
@@ -6041,6 +6041,10 @@ void TextEdit::clear_executing_line() {
 	update();
 }
 
+void TextEdit::set_caret_on_readonly(bool p_value) {
+	caret_on_readonly = p_value;
+}
+
 bool TextEdit::is_line_set_as_bookmark(int p_line) const {
 	ERR_FAIL_INDEX_V(p_line, text.size(), false);
 	return text.is_bookmark(p_line);
@@ -6284,6 +6288,10 @@ bool TextEdit::is_line_comment(int p_line) const {
 		}
 	}
 	return false;
+}
+
+bool TextEdit::is_caret_on_readonly() {
+	return caret_on_readonly;
 }
 
 bool TextEdit::can_fold(int p_line) const {
@@ -7540,6 +7548,9 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("redo"), &TextEdit::redo);
 	ClassDB::bind_method(D_METHOD("clear_undo_history"), &TextEdit::clear_undo_history);
 
+	ClassDB::bind_method(D_METHOD("set_caret_on_readonly", "enable"), &TextEdit::set_caret_on_readonly);
+	ClassDB::bind_method(D_METHOD("is_caret_on_readonly"), &TextEdit::is_caret_on_readonly);
+
 	ClassDB::bind_method(D_METHOD("set_show_line_numbers", "enable"), &TextEdit::set_show_line_numbers);
 	ClassDB::bind_method(D_METHOD("is_show_line_numbers_enabled"), &TextEdit::is_show_line_numbers_enabled);
 	ClassDB::bind_method(D_METHOD("set_draw_tabs", "enable"), &TextEdit::set_draw_tabs);
@@ -7640,6 +7651,7 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_blink"), "cursor_set_blink_enabled", "cursor_get_blink_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "caret_blink_speed", PROPERTY_HINT_RANGE, "0.1,10,0.01"), "cursor_set_blink_speed", "cursor_get_blink_speed");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_moving_by_right_click"), "set_right_click_moves_caret", "is_right_click_moving_caret");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "caret_on_readonly"), "set_caret_on_readonly", "is_caret_on_readonly");
 
 	ADD_SIGNAL(MethodInfo("cursor_changed"));
 	ADD_SIGNAL(MethodInfo("text_changed"));
@@ -7666,6 +7678,7 @@ void TextEdit::_bind_methods() {
 TextEdit::TextEdit() {
 	setting_row = false;
 	draw_tabs = false;
+	caret_on_readonly = false;
 	draw_spaces = false;
 	override_selected_font_color = false;
 	draw_caret = true;

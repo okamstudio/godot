@@ -356,6 +356,7 @@ private:
 	Timer *caret_blink_timer;
 	bool caret_blink_enabled;
 	bool draw_caret;
+	bool caret_on_readonly;
 	bool window_has_focus;
 	bool block_caret;
 	bool right_click_moves_caret;
@@ -628,6 +629,9 @@ public:
 	bool is_line_set_as_bookmark(int p_line) const;
 	void get_bookmarks(List<int> *p_bookmarks) const;
 	Array get_bookmarks_array() const;
+
+	bool is_caret_on_readonly();
+	void set_caret_on_readonly(bool p_value);
 
 	void set_line_as_breakpoint(int p_line, bool p_breakpoint);
 	bool is_line_set_as_breakpoint(int p_line) const;
