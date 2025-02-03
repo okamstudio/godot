@@ -30,13 +30,8 @@
 
 #include "control.h"
 
+#include "core/engine.h"
 #include "core/message_queue.h"
-#include "core/os/keyboard.h"
-#include "core/os/os.h"
-#include "core/print_string.h"
-#include "core/project_settings.h"
-#include "scene/gui/label.h"
-#include "scene/gui/panel.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/viewport.h"
 #include "scene/scene_string_names.h"
@@ -2045,8 +2040,7 @@ void Control::release_focus() {
 		return;
 	}
 
-	get_viewport()->_gui_remove_focus();
-	update();
+	get_viewport()->gui_release_focus();
 }
 
 bool Control::is_toplevel_control() const {
@@ -2474,7 +2468,7 @@ bool Control::get_pass_on_modal_close_click() const {
 
 Control *Control::get_focus_owner() const {
 	ERR_FAIL_COND_V(!is_inside_tree(), nullptr);
-	return get_viewport()->_gui_get_focus_owner();
+	return get_viewport()->gui_get_focus_owner();
 }
 
 void Control::warp_mouse(const Point2 &p_to_pos) {

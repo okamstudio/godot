@@ -35,7 +35,6 @@
 #include "scene/main/node.h"
 #include "scene/resources/texture.h"
 #include "scene/resources/world_2d.h"
-#include "servers/visual_server.h"
 
 class Camera;
 class Camera2D;
@@ -388,15 +387,12 @@ private:
 	bool _gui_is_modal_on_top(const Control *p_control);
 	List<Control *>::Element *_gui_show_modal(Control *p_control);
 
-	void _gui_remove_focus();
 	void _gui_unfocus_control(Control *p_control);
 	bool _gui_control_has_focus(const Control *p_control);
 	void _gui_control_grab_focus(Control *p_control);
 	void _gui_grab_click_focus(Control *p_control);
 	void _post_gui_grab_click_focus();
 	void _gui_accept_event();
-
-	Control *_gui_get_focus_owner();
 
 	Vector2 _get_window_offset() const;
 
@@ -571,6 +567,10 @@ public:
 
 	void gui_reset_canvas_sort_index();
 	int gui_get_canvas_sort_index();
+
+	void gui_release_focus();
+	Control *gui_get_focus_owner() const;
+	Control *gui_get_hovered_control() const;
 
 	virtual String get_configuration_warning() const;
 
