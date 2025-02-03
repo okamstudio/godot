@@ -68,10 +68,14 @@ String ResourceImporterCSVTranslation::get_preset_name(int p_idx) const {
 void ResourceImporterCSVTranslation::get_import_options(List<ImportOption> *r_options, int p_preset) const {
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "compress"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "delimiter", PROPERTY_HINT_ENUM, "Comma,Semicolon,Tab"), 0));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "unescape_keys"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "unescape_translations"), true));
 }
 
 Error ResourceImporterCSVTranslation::import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	bool compress = p_options["compress"];
+	const bool compress = p_options["compress"];
+	const bool unescape_keys = p_options.has("unescape_keys") ? bool(p_options["unescape_keys"]) : false;
+	const bool unescape_translations = p_options.has("unescape_translations") ? bool(p_options["unescape_translations"]) : true;
 
 	String delimiter;
 	switch ((int)p_options["delimiter"]) {
@@ -109,10 +113,10 @@ Error ResourceImporterCSVTranslation::import(const String &p_source_file, const 
 	line = f->get_csv_line(delimiter);
 
 	while (line.size() == locales.size() + 1) {
-		String key = line[0];
+		const String key = unescape_keys ? line[0].c_unescape() : line[0];
 		if (key != "") {
 			for (int i = 1; i < line.size(); i++) {
-				translations.write[i - 1]->add_message(key, line[i].c_unescape());
+				translations.write[i - 1]->add_message(key, unescape_translations ? line[i].c_unescape() : line[i]);
 			}
 		}
 
