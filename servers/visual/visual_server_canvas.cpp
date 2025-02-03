@@ -958,6 +958,12 @@ void VisualServerCanvas::canvas_item_set_transform(RID p_item, const Transform2D
 		} else {
 			DEV_ASSERT(_interpolation_data.canvas_item_transform_update_list_curr->size());
 		}
+
+#if defined(DEBUG_ENABLED) && defined(TOOLS_ENABLED)
+		if (!Engine::get_singleton()->is_in_physics_frame()) {
+			PHYSICS_INTERPOLATION_WARNING("Interpolated CanvasItem set_transform called from outside physics process");
+		}
+#endif
 	}
 
 	canvas_item->xform_curr = p_transform;

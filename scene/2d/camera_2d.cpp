@@ -308,6 +308,10 @@ void Camera2D::_notification(int p_what) {
 				_ensure_update_interpolation_data();
 				if (Engine::get_singleton()->is_in_physics_frame()) {
 					_interpolation_data.xform_curr = get_camera_transform();
+				} else {
+#if defined(DEBUG_ENABLED) && defined(TOOLS_ENABLED)
+					PHYSICS_INTERPOLATION_NODE_WARNING(get_instance_id(), "Interpolated Camera2D transformed from outside physics process");
+#endif
 				}
 			}
 

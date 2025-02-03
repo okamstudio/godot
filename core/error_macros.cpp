@@ -125,7 +125,7 @@ void _err_flush_stdout() {
 // Prevent error spam by limiting the warnings to a certain frequency.
 void _physics_interpolation_warning(const char *p_function, const char *p_file, int p_line, ObjectID p_id, const char *p_warn_string) {
 #if defined(DEBUG_ENABLED) && defined(TOOLS_ENABLED)
-	const uint32_t warn_max = 2048;
+	const uint32_t warn_max = 256;
 	const uint32_t warn_timeout_seconds = 15;
 
 	static uint32_t warn_count = warn_max;
@@ -139,10 +139,12 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
 
 	if (!warn_count) {
 		time_now = OS::get_singleton()->get_ticks_msec() / 1000;
-	}
-
-	if ((warn_count == 0) && (time_now >= warn_timeout)) {
 		warn_count = warn_max;
+
+		if (time_now < warn_timeout) {
+			return;
+		}
+
 		warn_timeout = time_now + warn_timeout_seconds;
 
 		if (GLOBAL_GET("debug/settings/physics_interpolation/enable_warnings")) {
@@ -166,5 +168,6 @@ void _physics_interpolation_warning(const char *p_function, const char *p_file, 
 			}
 		}
 	}
+
 #endif
 }
