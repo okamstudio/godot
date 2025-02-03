@@ -230,6 +230,8 @@ public:
 	virtual void material_set_line_width(RID p_material, float p_width) = 0;
 	virtual void material_set_next_pass(RID p_material, RID p_next_material) = 0;
 
+	virtual void material_blit(RID p_material, RID p_source_tex, RID p_output_tex, const Rect2 &p_source_rect = Rect2(), const Rect2 &p_output_rect = Rect2()) = 0;
+
 	/* MESH API */
 
 	enum ArrayType {

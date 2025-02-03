@@ -205,6 +205,7 @@ public:
 	BIND2(shader_add_custom_define, RID, const String &)
 	BIND2C(shader_get_custom_defines, RID, Vector<String> *)
 	BIND2(shader_remove_custom_define, RID, const String &)
+	BIND5(material_blit, RID, RID, RID, const Rect2 &, const Rect2 &)
 
 	BIND1(set_shader_async_hidden_forbidden, bool)
 

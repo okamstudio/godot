@@ -1918,6 +1918,7 @@ void VisualServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("material_set_render_priority", "material", "priority"), &VisualServer::material_set_render_priority);
 	ClassDB::bind_method(D_METHOD("material_set_line_width", "material", "width"), &VisualServer::material_set_line_width);
 	ClassDB::bind_method(D_METHOD("material_set_next_pass", "material", "next_material"), &VisualServer::material_set_next_pass);
+	ClassDB::bind_method(D_METHOD("material_blit", "material", "source_texture", "output_texture", "source_rect", "output_rect"), &VisualServer::material_blit, DEFVAL(Rect2()), DEFVAL(Rect2()));
 
 	ClassDB::bind_method(D_METHOD("mesh_create"), &VisualServer::mesh_create);
 	ClassDB::bind_method(D_METHOD("mesh_surface_get_format_offset", "format", "vertex_len", "index_len", "array_index"), &VisualServer::mesh_surface_get_format_offset);

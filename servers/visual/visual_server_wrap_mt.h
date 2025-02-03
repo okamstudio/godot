@@ -146,6 +146,8 @@ public:
 	FUNC2(material_set_line_width, RID, float)
 	FUNC2(material_set_next_pass, RID, RID)
 
+	FUNC5(material_blit, RID, RID, RID, const Rect2 &, const Rect2 &)
+
 	/* MESH API */
 
 	FUNCRID(mesh)

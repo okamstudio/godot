@@ -1853,6 +1853,18 @@
 				Returns a mesh of a sphere with the given amount of horizontal and vertical subdivisions.
 			</description>
 		</method>
+		<method name="material_blit">
+			<return type="void" />
+			<argument index="0" name="material" type="RID" />
+			<argument index="1" name="source_texture" type="RID" />
+			<argument index="2" name="output_texture" type="RID" />
+			<argument index="3" name="source_rect" type="Rect2" default="Rect2( 0, 0, 0, 0 )" />
+			<argument index="4" name="output_rect" type="Rect2" default="Rect2( 0, 0, 0, 0 )" />
+			<description>
+				Performs a blit operation from a source texture to a output texture, using a material to render the output texture.
+				It's possible to provide a custom source rectangle to customize the area that the source texture is read and the output rectangle to customize the area that the output texture is written.
+			</description>
+		</method>
 		<method name="material_create">
 			<return type="RID" />
 			<description>

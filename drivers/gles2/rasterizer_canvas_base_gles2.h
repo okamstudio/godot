@@ -139,6 +139,8 @@ public:
 	RasterizerStorageGLES2::Texture *_bind_canvas_texture(const RID &p_texture, const RID &p_normal_map);
 	void _set_texture_rect_mode(bool p_texture_rect, bool p_light_angle = false, bool p_modulate = false, bool p_large_vertex = false);
 
+	void material_blit(RasterizerStorageGLES2::Material *p_material, RasterizerStorageGLES2::Texture *p_source_tex, RasterizerStorageGLES2::Texture *p_output_tex, const Rect2i &p_source_rect, const Rect2i &p_output_rect);
+
 	void initialize();
 	void finalize();
 

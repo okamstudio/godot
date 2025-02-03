@@ -1865,6 +1865,73 @@ void RasterizerStorageGLES2::material_set_next_pass(RID p_material, RID p_next_m
 	material->next_pass = p_next_material;
 }
 
+void RasterizerStorageGLES2::material_blit(RID p_material, RID p_source_tex, RID p_output_tex, const Rect2 &p_source_rect, const Rect2 &p_output_rect) {
+	Material *material = material_owner.getornull(p_material);
+	ERR_FAIL_COND(!material);
+
+	Shader *shader_res = material->shader;
+	ERR_FAIL_COND(!shader_res);
+
+	Texture *source_tex = nullptr;
+	if (p_source_tex.is_valid()) {
+		source_tex = texture_owner.getornull(p_source_tex);
+		ERR_FAIL_COND(!source_tex);
+	}
+
+	Texture *output_tex = texture_owner.getornull(p_output_tex);
+	ERR_FAIL_COND(!output_tex);
+
+	if (material->dirty_list.in_list()) {
+		_update_material(material);
+	}
+
+	Size2i src_tex_size;
+
+	if (source_tex) {
+		src_tex_size.x = source_tex->alloc_width;
+		src_tex_size.y = source_tex->alloc_height;
+	} else {
+		src_tex_size.x = output_tex->alloc_width;
+		src_tex_size.y = output_tex->alloc_height;
+	}
+
+	Point2i src_pos(p_source_rect.position);
+	Size2i src_size(p_source_rect.size);
+	Point2i out_pos(p_output_rect.position);
+	Size2i out_size(p_output_rect.size);
+
+	if (src_size.x == 0)
+		src_size.x = src_tex_size.x;
+	if (src_size.y == 0)
+		src_size.y = src_tex_size.y;
+
+	if (out_size.x == 0)
+		out_size.x = output_tex->alloc_width;
+	if (out_size.y == 0)
+		out_size.y = output_tex->alloc_height;
+
+	ERR_FAIL_COND_MSG(src_pos.x < 0 || src_pos.x + src_size.x > src_tex_size.x, "Source rect is out of bounds");
+	ERR_FAIL_COND_MSG(src_pos.y < 0 || src_pos.y + src_size.y > src_tex_size.y, "Source rect is out of bounds");
+	ERR_FAIL_COND_MSG(out_pos.x < 0 || out_pos.x + out_size.x > output_tex->alloc_width, "Output rect is out of bounds");
+	ERR_FAIL_COND_MSG(out_pos.y < 0 || out_pos.y + out_size.y > output_tex->alloc_height, "Output rect is out of bounds");
+
+	Rect2i src_rect(src_pos, src_size);
+	Rect2i out_rect(out_pos, out_size);
+
+	switch (shader_res->mode) {
+		case VS::SHADER_CANVAS_ITEM: {
+			canvas->material_blit(material, source_tex, output_tex, src_rect, out_rect);
+		} break;
+		case VS::SHADER_SPATIAL: {
+			scene->material_blit(material, source_tex, output_tex, src_rect, out_rect);
+		} break;
+		case VS::SHADER_PARTICLES:
+			break;
+		case VS::SHADER_MAX:
+			break;
+	}
+}
+
 bool RasterizerStorageGLES2::material_is_animated(RID p_material) {
 	Material *material = material_owner.get(p_material);
 	ERR_FAIL_COND_V(!material, false);

@@ -182,6 +182,161 @@ void RasterizerCanvasBaseGLES2::_set_texture_rect_mode(bool p_texture_rect, bool
 	}
 }
 
+void RasterizerCanvasBaseGLES2::material_blit(RasterizerStorageGLES2::Material *p_material, RasterizerStorageGLES2::Texture *p_source_tex, RasterizerStorageGLES2::Texture *p_output_tex, const Rect2i &p_source_rect, const Rect2i &p_output_rect) {
+	RasterizerStorageGLES2::Shader *shader = p_material->shader;
+
+	int src_width, src_height;
+	GLint src_filter;
+	if (p_source_tex) {
+		src_width = p_source_tex->alloc_width;
+		src_height = p_source_tex->alloc_height;
+		src_filter = (p_source_tex->flags & VS::TEXTURE_FLAG_FILTER) ? GL_LINEAR : GL_NEAREST;
+	} else {
+		src_width = p_output_tex->alloc_width;
+		src_height = p_output_tex->alloc_height;
+		src_filter = GL_NEAREST;
+	}
+
+	// Create output framebuffer
+	GLuint fbo_output;
+	glGenFramebuffers(1, &fbo_output);
+
+	// Configure output texture
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_output);
+	glBindTexture(GL_TEXTURE_2D, p_output_tex->tex_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, src_filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, src_filter);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_output_tex->tex_id, 0);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_SCISSOR_TEST);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+	glColorMask(1, 1, 1, 1);
+	glActiveTexture(GL_TEXTURE0 + storage->config.max_texture_image_units - 1);
+	if (p_source_tex) {
+		glBindTexture(GL_TEXTURE_2D, p_source_tex->tex_id);
+	} else {
+		glBindTexture(GL_TEXTURE_2D, storage->resources.white_tex);
+	}
+
+	glViewport(p_output_rect.position.x, p_output_rect.position.y, p_output_rect.size.x, p_output_rect.size.y);
+	glScissor(p_output_rect.position.x, p_output_rect.position.y, p_output_rect.size.x, p_output_rect.size.y);
+
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_TEXTURE_RECT, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_LIGHTING, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SHADOWS, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_NEAREST, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_PCF3, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_PCF5, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_PCF7, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_PCF9, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::SHADOW_FILTER_PCF13, false);
+	// state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_DISTANCE_FIELD, false);
+	// state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_NINEPATCH, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_LIGHT_ANGLE, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_MODULATE, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_ATTRIB_LARGE_VERTEX, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::USE_SKELETON, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES2::LINEAR_TO_SRGB, false);
+
+	state.canvas_shader.set_custom_shader(shader->custom_code_id);
+	state.canvas_shader.bind();
+	ERR_FAIL_COND(!ShaderGLES2::get_active());
+
+	int tc = p_material->textures.size();
+	Pair<StringName, RID> *textures = p_material->textures.ptrw();
+
+	ShaderLanguage::ShaderNode::Uniform::Hint *texture_hints = shader->texture_hints.ptrw();
+
+	for (int i = 0; i < tc; i++) {
+		glActiveTexture(GL_TEXTURE0 + i);
+
+		RasterizerStorageGLES2::Texture *t = storage->texture_owner.getornull(textures[i].second);
+
+		if (!t) {
+			switch (texture_hints[i]) {
+				case ShaderLanguage::ShaderNode::Uniform::HINT_BLACK_ALBEDO:
+				case ShaderLanguage::ShaderNode::Uniform::HINT_BLACK: {
+					glBindTexture(GL_TEXTURE_2D, storage->resources.black_tex);
+				} break;
+				case ShaderLanguage::ShaderNode::Uniform::HINT_TRANSPARENT: {
+					glBindTexture(GL_TEXTURE_2D, storage->resources.transparent_tex);
+				} break;
+				case ShaderLanguage::ShaderNode::Uniform::HINT_ANISO: {
+					glBindTexture(GL_TEXTURE_2D, storage->resources.aniso_tex);
+				} break;
+				case ShaderLanguage::ShaderNode::Uniform::HINT_NORMAL: {
+					glBindTexture(GL_TEXTURE_2D, storage->resources.normal_tex);
+				} break;
+				default: {
+					glBindTexture(GL_TEXTURE_2D, storage->resources.white_tex);
+				} break;
+			}
+
+			continue;
+		}
+
+		if (t->redraw_if_visible) {
+			VisualServerRaster::redraw_request(false);
+		}
+
+		t = t->get_ptr();
+
+#ifdef TOOLS_ENABLED
+		if (t->detect_normal && texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_NORMAL) {
+			t->detect_normal(t->detect_normal_ud);
+		}
+#endif
+		if (t->render_target) {
+			t->render_target->used_in_frame = true;
+		}
+
+		glBindTexture(t->target, t->tex_id);
+	}
+
+	Vector2 proj_off(p_source_rect.position);
+	Vector2 proj_scl(p_source_rect.size);
+	proj_off.x = proj_off.x / (float)src_width;
+	proj_off.y = proj_off.y / (float)src_height;
+	proj_scl.x = proj_scl.x / (float)src_width;
+	proj_scl.y = proj_scl.y / (float)src_height;
+	Vector2 proj_inv_scl(1.0 / proj_scl.x, 1.0 / proj_scl.y);
+
+	Transform proj_tr(
+			proj_inv_scl.x, 0.0, 0.0,
+			0.0, proj_inv_scl.y, 0.0,
+			0.0, 0.0, 1.0,
+			-proj_off.x * proj_inv_scl.x * 2.0 + proj_inv_scl.x - 1.0,
+			-proj_off.y * proj_inv_scl.y * 2.0 + proj_inv_scl.y - 1.0,
+			0.0);
+	Transform idt_tr;
+
+	state.canvas_shader.set_uniform(CanvasShaderGLES2::PROJECTION_MATRIX, proj_tr);
+	state.canvas_shader.set_uniform(CanvasShaderGLES2::MODELVIEW_MATRIX, idt_tr);
+	state.canvas_shader.set_uniform(CanvasShaderGLES2::EXTRA_MATRIX, idt_tr);
+	state.canvas_shader.set_uniform(CanvasShaderGLES2::FINAL_MODULATE, Color(1, 1, 1, 1));
+
+	state.canvas_shader.use_material(p_material);
+
+	// Clear the output texture
+	glClearColor(1.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Draw the scene
+	storage->bind_quad_array();
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Unbind and delete
+	glDisable(GL_SCISSOR_TEST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDeleteFramebuffers(1, &fbo_output);
+}
+
 RasterizerStorageGLES2::Texture *RasterizerCanvasBaseGLES2::_bind_canvas_texture(const RID &p_texture, const RID &p_normal_map) {
 	RasterizerStorageGLES2::Texture *tex_return = nullptr;
 

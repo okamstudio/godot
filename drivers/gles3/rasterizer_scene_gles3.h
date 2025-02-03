@@ -571,6 +571,8 @@ public:
 	virtual VS::EnvironmentBG environment_get_background(RID p_env);
 	virtual int environment_get_canvas_max_layer(RID p_env);
 
+	void material_blit(RasterizerStorageGLES3::Material *p_material, RasterizerStorageGLES3::Texture *p_source_tex, RasterizerStorageGLES3::Texture *p_output_tex, const Rect2i &p_source_rect, const Rect2i &p_output_rect);
+
 	/* LIGHT INSTANCE */
 
 	struct LightDataUBO {

@@ -926,6 +926,98 @@ VS::EnvironmentBG RasterizerSceneGLES2::environment_get_background(RID p_env) {
 	return env->bg_mode;
 }
 
+void RasterizerSceneGLES2::material_blit(RasterizerStorageGLES2::Material *p_material, RasterizerStorageGLES2::Texture *p_source_tex, RasterizerStorageGLES2::Texture *p_output_tex, const Rect2i &p_source_rect, const Rect2i &p_output_rect) {
+	int src_width, src_height;
+	if (p_source_tex) {
+		src_width = p_source_tex->alloc_width;
+		src_height = p_source_tex->alloc_height;
+	} else {
+		src_width = p_output_tex->alloc_width;
+		src_height = p_output_tex->alloc_height;
+	}
+
+	// Create output framebuffer
+	GLuint fbo_output;
+	glGenFramebuffers(1, &fbo_output);
+
+	// Configure output texture
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo_output);
+	glBindTexture(GL_TEXTURE_2D, p_output_tex->tex_id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_output_tex->tex_id, 0);
+
+	glDepthMask(GL_FALSE);
+	glEnable(GL_SCISSOR_TEST);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+	glColorMask(1, 1, 1, 1);
+
+	glViewport(p_output_rect.position.x, p_output_rect.position.y, p_output_rect.size.x, p_output_rect.size.y);
+	glScissor(p_output_rect.position.x, p_output_rect.position.y, p_output_rect.size.x, p_output_rect.size.y);
+
+	state.scene_shader.set_conditional(SceneShaderGLES2::SHADELESS, true);
+	// state.scene_shader.set_conditional(SceneShaderGLES3::USE_FORWARD_LIGHTING, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::USE_VERTEX_LIGHTING, false);
+	// state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHT_DIRECTIONAL, false);
+	// state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_DIRECTIONAL_SHADOW, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM4, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM2, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM_BLEND, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::LIGHT_USE_PSSM_BLEND, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_5, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::SHADOW_MODE_PCF_13, false);
+	// state.scene_shader.set_conditional(SceneShaderGLES2::USE_GI_PROBES, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHTMAP_CAPTURE, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHTMAP, false);
+	// state.scene_shader.set_conditional(SceneShaderGLES2::USE_LIGHTMAP_LAYERED, false);
+	state.scene_shader.set_conditional(SceneShaderGLES2::USE_RADIANCE_MAP, false);
+	// state.scene_shader.set_conditional(SceneShaderGLES2::USE_CONTACT_SHADOWS, false);
+
+	Vector2 proj_off(p_source_rect.position);
+	Vector2 proj_scl(p_source_rect.size);
+	proj_off.x = proj_off.x / (float)src_width;
+	proj_off.y = proj_off.y / (float)src_height;
+	proj_scl.x = proj_scl.x / (float)src_width;
+	proj_scl.y = proj_scl.y / (float)src_height;
+	Vector2 proj_inv_scl(1.0 / proj_scl.x, 1.0 / proj_scl.y);
+
+	Transform proj_tr(
+			proj_inv_scl.x, 0.0, 0.0,
+			0.0, proj_inv_scl.y, 0.0,
+			0.0, 0.0, 1.0,
+			-proj_off.x * proj_inv_scl.x * 2.0 + proj_inv_scl.x - 1.0,
+			-proj_off.y * proj_inv_scl.y * 2.0 + proj_inv_scl.y - 1.0,
+			0.0);
+	Transform idt_tr;
+
+	_setup_material(p_material, 0, Size2i());
+	ERR_FAIL_COND(!ShaderGLES2::get_active());
+
+	state.scene_shader.set_uniform(SceneShaderGLES2::PROJECTION_MATRIX, proj_tr);
+	state.scene_shader.set_uniform(SceneShaderGLES2::PROJECTION_INVERSE_MATRIX, proj_tr.affine_inverse());
+	state.scene_shader.set_uniform(SceneShaderGLES2::CAMERA_MATRIX, idt_tr);
+	state.scene_shader.set_uniform(SceneShaderGLES2::CAMERA_INVERSE_MATRIX, idt_tr);
+	state.scene_shader.set_uniform(SceneShaderGLES2::WORLD_TRANSFORM, idt_tr);
+
+	// Clear the output texture
+	glClearColor(1.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	// Draw the scene
+	storage->bind_quad_array();
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	// Unbind and delete
+	glDisable(GL_SCISSOR_TEST);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDeleteFramebuffers(1, &fbo_output);
+}
+
 int RasterizerSceneGLES2::environment_get_canvas_max_layer(RID p_env) {
 	const Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, -1);
