@@ -427,17 +427,38 @@ String keycode_get_string(uint32_t p_code) {
 	return codestr;
 }
 
-int find_keycode(const String &p_code) {
+int find_keycode(const String &p_codestr) {
+	Vector<String> code_parts = p_codestr.split("+");
+	if (code_parts.size() < 1) {
+		return 0;
+	}
+
+	int code = 0;
+	String last_part = code_parts[code_parts.size() - 1];
 	const _KeyCodeText *kct = &_keycodes[0];
 
 	while (kct->text) {
-		if (p_code.nocasecmp_to(kct->text) == 0) {
-			return kct->code;
+		if (last_part.nocasecmp_to(kct->text) == 0) {
+			code = kct->code;
+			break;
 		}
 		kct++;
 	}
 
-	return 0;
+	for (int part = 0; part < code_parts.size() - 1; part++) {
+		String code_part = code_parts[part];
+		if (code_part.nocasecmp_to(find_keycode_name(KEY_SHIFT)) == 0) {
+			code += KEY_MASK_SHIFT;
+		} else if (code_part.nocasecmp_to(find_keycode_name(KEY_ALT)) == 0) {
+			code += KEY_MASK_ALT;
+		} else if (code_part.nocasecmp_to(find_keycode_name(KEY_CONTROL)) == 0) {
+			code += KEY_MASK_CTRL;
+		} else if (code_part.nocasecmp_to(find_keycode_name(KEY_META)) == 0) {
+			code += KEY_MASK_META;
+		}
+	}
+
+	return code;
 }
 
 const char *find_keycode_name(int p_keycode) {
