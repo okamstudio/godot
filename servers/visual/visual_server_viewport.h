@@ -68,6 +68,7 @@ public:
 
 		RID shadow_atlas;
 		int shadow_atlas_size;
+		bool shadow_atlas_16_bits;
 
 		int render_info[VS::VIEWPORT_RENDER_INFO_MAX];
 		VS::ViewportDebugDraw debug_draw;
@@ -114,6 +115,7 @@ public:
 			disable_environment = false;
 			viewport_to_screen = 0;
 			shadow_atlas_size = 0;
+			shadow_atlas_16_bits = true;
 			disable_3d = false;
 			disable_3d_by_usage = false;
 			keep_3d_linear = false;
@@ -182,7 +184,7 @@ public:
 	void viewport_set_global_canvas_transform(RID p_viewport, const Transform2D &p_transform);
 	void viewport_set_canvas_stacking(RID p_viewport, RID p_canvas, int p_layer, int p_sublayer);
 
-	void viewport_set_shadow_atlas_size(RID p_viewport, int p_size);
+	void viewport_set_shadow_atlas_size(RID p_viewport, int p_size, bool p_16_bits = true);
 	void viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv);
 
 	void viewport_set_msaa(RID p_viewport, VS::ViewportMSAA p_msaa);

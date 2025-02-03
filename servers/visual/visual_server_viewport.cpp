@@ -626,13 +626,14 @@ void VisualServerViewport::viewport_set_canvas_stacking(RID p_viewport, RID p_ca
 	viewport->canvas_map[p_canvas].sublayer = p_sublayer;
 }
 
-void VisualServerViewport::viewport_set_shadow_atlas_size(RID p_viewport, int p_size) {
+void VisualServerViewport::viewport_set_shadow_atlas_size(RID p_viewport, int p_size, bool p_16_bits) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);
 
 	viewport->shadow_atlas_size = p_size;
+	viewport->shadow_atlas_16_bits = p_16_bits;
 
-	VSG::scene_render->shadow_atlas_set_size(viewport->shadow_atlas, viewport->shadow_atlas_size);
+	VSG::scene_render->shadow_atlas_set_size(viewport->shadow_atlas, viewport->shadow_atlas_size, viewport->shadow_atlas_16_bits);
 }
 
 void VisualServerViewport::viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv) {

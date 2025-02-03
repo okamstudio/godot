@@ -697,7 +697,7 @@ public:
 	virtual void viewport_set_global_canvas_transform(RID p_viewport, const Transform2D &p_transform) = 0;
 	virtual void viewport_set_canvas_stacking(RID p_viewport, RID p_canvas, int p_layer, int p_sublayer) = 0;
 
-	virtual void viewport_set_shadow_atlas_size(RID p_viewport, int p_size) = 0;
+	virtual void viewport_set_shadow_atlas_size(RID p_viewport, int p_size, bool p_16_bits = true) = 0;
 	virtual void viewport_set_shadow_atlas_quadrant_subdivision(RID p_viewport, int p_quadrant, int p_subdiv) = 0;
 
 	enum ViewportMSAA {

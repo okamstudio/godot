@@ -3242,8 +3242,9 @@
 			<return type="void" />
 			<argument index="0" name="viewport" type="RID" />
 			<argument index="1" name="size" type="int" />
+			<argument index="2" name="use_16_bits" type="bool" default="true" />
 			<description>
-				Sets the size of the shadow atlas's images (used for omni and spot lights). The value will be rounded up to the nearest power of 2.
+				Sets the size of the shadow atlas's images (used for omni and spot lights). The value will be rounded up to the nearest power of 2. If [code]use_16_bits[/code] is [code]true[/code], renders point light shadows on a buffer with 16-bit precision. This results in slightly better performance with usually no noticeable visual difference. If [code]use_16_bits[/code] is [code]false[/code], renders point light shadows on a buffer with 24-bit precision.
 			</description>
 		</method>
 		<method name="viewport_set_sharpen_intensity">

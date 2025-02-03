@@ -1698,6 +1698,9 @@
 		<member name="rendering/quality/depth_prepass/enable" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], performs a previous depth pass before rendering materials. This increases performance in scenes with high overdraw, when complex materials and lighting are used.
 		</member>
+		<member name="rendering/quality/directional_shadow/16_bits" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], renders directional shadows on a buffer with 16-bit precision. This results in slightly better performance with usually no noticeable visual difference. If [code]false[/code], renders directional shadows on a buffer with 24-bit precision.
+		</member>
 		<member name="rendering/quality/directional_shadow/size" type="int" setter="" getter="" default="4096">
 			The directional shadow's size in pixels. Higher values will result in sharper shadows, at the cost of performance. The value will be rounded up to the nearest power of 2. This setting can be changed at run-time; the change will be applied immediately.
 		</member>
@@ -1794,6 +1797,9 @@
 		<member name="rendering/quality/shading/use_physical_light_attenuation" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables new physical light attenuation for [OmniLight]s and [SpotLight]s. This results in more realistic lighting appearance with a very small performance cost. When physical light attenuation is enabled, lights will appear to be darker as a result of the new attenuation formula. This can be compensated by adjusting the lights' energy or attenuation values.
 			Changes to this setting will only be applied upon restarting the application.
+		</member>
+		<member name="rendering/quality/shadow_atlas/16_bits" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], renders point light shadows on a buffer with 16-bit precision. This results in slightly better performance with usually no noticeable visual difference. If [code]false[/code], renders point light shadows on a buffer with 24-bit precision.
 		</member>
 		<member name="rendering/quality/shadow_atlas/cubemap_size" type="int" setter="" getter="" default="512">
 			Size for cubemap into which the shadow is rendered before being copied into the shadow atlas. A higher number can result in higher resolution shadows when used with a higher [member rendering/quality/shadow_atlas/size]. Setting higher than a quarter of the [member rendering/quality/shadow_atlas/size] will not result in a perceptible increase in visual quality.

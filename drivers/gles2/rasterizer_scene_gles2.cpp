@@ -76,6 +76,7 @@ void RasterizerSceneGLES2::directional_shadow_create() {
 
 	directional_shadow.light_count = 0;
 	directional_shadow.size = next_power_of_2(directional_shadow_size);
+	directional_shadow.use_16_bits = directional_shadow_16_bits;
 
 	if (directional_shadow.size > storage->config.max_viewport_dimensions[0] || directional_shadow.size > storage->config.max_viewport_dimensions[1]) {
 		WARN_PRINT("Cannot set directional shadow size larger than maximum hardware supported size of (" + itos(storage->config.max_viewport_dimensions[0]) + ", " + itos(storage->config.max_viewport_dimensions[1]) + "). Setting size to maximum.");
@@ -90,7 +91,7 @@ void RasterizerSceneGLES2::directional_shadow_create() {
 		//maximum compatibility, renderbuffer and RGBA shadow
 		glGenRenderbuffers(1, &directional_shadow.depth);
 		glBindRenderbuffer(GL_RENDERBUFFER, directional_shadow.depth);
-		glRenderbufferStorage(GL_RENDERBUFFER, storage->config.depth_buffer_internalformat, directional_shadow.size, directional_shadow.size);
+		glRenderbufferStorage(GL_RENDERBUFFER, directional_shadow.use_16_bits ? GL_DEPTH_COMPONENT16 : storage->config.depth_buffer_internalformat, directional_shadow.size, directional_shadow.size);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, directional_shadow.depth);
 
 		glGenTextures(1, &directional_shadow.color);
@@ -106,7 +107,7 @@ void RasterizerSceneGLES2::directional_shadow_create() {
 		glGenTextures(1, &directional_shadow.depth);
 		glBindTexture(GL_TEXTURE_2D, directional_shadow.depth);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, storage->config.depth_internalformat, directional_shadow.size, directional_shadow.size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, directional_shadow.use_16_bits ? GL_DEPTH_COMPONENT16 : storage->config.depth_internalformat, directional_shadow.size, directional_shadow.size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -130,6 +131,7 @@ RID RasterizerSceneGLES2::shadow_atlas_create() {
 	shadow_atlas->depth = 0;
 	shadow_atlas->color = 0;
 	shadow_atlas->size = 0;
+	shadow_atlas->use_16_bits = true;
 	shadow_atlas->smallest_subdiv = 0;
 
 	for (int i = 0; i < 4; i++) {
@@ -139,14 +141,14 @@ RID RasterizerSceneGLES2::shadow_atlas_create() {
 	return shadow_atlas_owner.make_rid(shadow_atlas);
 }
 
-void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
+void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size, bool p_16_bits) {
 	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_atlas);
 	ERR_FAIL_COND(!shadow_atlas);
 	ERR_FAIL_COND(p_size < 0);
 
 	p_size = next_power_of_2(p_size);
 
-	if (p_size == shadow_atlas->size) {
+	if (p_size == shadow_atlas->size && p_16_bits == shadow_atlas->use_16_bits) {
 		return;
 	}
 
@@ -177,6 +179,7 @@ void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
 	shadow_atlas->shadow_owners.clear();
 
 	shadow_atlas->size = p_size;
+	shadow_atlas->use_16_bits = p_16_bits;
 
 	if (shadow_atlas->size) {
 		glGenFramebuffers(1, &shadow_atlas->fbo);
@@ -195,7 +198,7 @@ void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
 			//maximum compatibility, renderbuffer and RGBA shadow
 			glGenRenderbuffers(1, &shadow_atlas->depth);
 			glBindRenderbuffer(GL_RENDERBUFFER, shadow_atlas->depth);
-			glRenderbufferStorage(GL_RENDERBUFFER, storage->config.depth_buffer_internalformat, shadow_atlas->size, shadow_atlas->size);
+			glRenderbufferStorage(GL_RENDERBUFFER, shadow_atlas->use_16_bits ? GL_DEPTH_COMPONENT16 : storage->config.depth_buffer_internalformat, shadow_atlas->size, shadow_atlas->size);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, shadow_atlas->depth);
 
 			glGenTextures(1, &shadow_atlas->color);
@@ -210,7 +213,7 @@ void RasterizerSceneGLES2::shadow_atlas_set_size(RID p_atlas, int p_size) {
 			//just depth texture
 			glGenTextures(1, &shadow_atlas->depth);
 			glBindTexture(GL_TEXTURE_2D, shadow_atlas->depth);
-			glTexImage2D(GL_TEXTURE_2D, 0, storage->config.depth_internalformat, shadow_atlas->size, shadow_atlas->size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
+			glTexImage2D(GL_TEXTURE_2D, 0, shadow_atlas->use_16_bits ? GL_DEPTH_COMPONENT16 : storage->config.depth_internalformat, shadow_atlas->size, shadow_atlas->size, 0, GL_DEPTH_COMPONENT, storage->config.depth_type, nullptr);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -4132,8 +4135,10 @@ void RasterizerSceneGLES2::iteration() {
 	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
 
 	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
-	if (directional_shadow_size != directional_shadow_size_new) {
+	const bool directional_shadow_16_bits_new = bool(GLOBAL_GET("rendering/quality/directional_shadow/16_bits"));
+	if (directional_shadow_size != directional_shadow_size_new || directional_shadow_16_bits_new != directional_shadow_16_bits) {
 		directional_shadow_size = directional_shadow_size_new;
+		directional_shadow_16_bits = directional_shadow_16_bits_new;
 		directional_shadow_create();
 	}
 }
@@ -4144,6 +4149,7 @@ void RasterizerSceneGLES2::finalize() {
 RasterizerSceneGLES2::RasterizerSceneGLES2() {
 	_light_counter = 0;
 	directional_shadow_size = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
+	directional_shadow_16_bits = bool(GLOBAL_GET("rendering/quality/directional_shadow/16_bits"));
 }
 
 RasterizerSceneGLES2::~RasterizerSceneGLES2() {

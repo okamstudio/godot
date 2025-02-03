@@ -261,6 +261,7 @@ public:
 		uint32_t smallest_subdiv;
 
 		int size;
+		bool use_16_bits;
 
 		GLuint fbo;
 		GLuint depth;
@@ -280,11 +281,12 @@ public:
 	RID_Owner<ShadowAtlas> shadow_atlas_owner;
 
 	int directional_shadow_size;
+	bool directional_shadow_16_bits;
 
 	void directional_shadow_create();
 
 	RID shadow_atlas_create();
-	void shadow_atlas_set_size(RID p_atlas, int p_size);
+	void shadow_atlas_set_size(RID p_atlas, int p_size, bool p_16_bits = true);
 	void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision);
 	bool _shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_in_quadrants, int p_quadrant_count, int p_current_subdiv, uint64_t p_tick, int &r_quadrant, int &r_shadow);
 	bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version);
@@ -296,6 +298,7 @@ public:
 
 		int light_count = 0;
 		int size = 0;
+		bool use_16_bits = true;
 		int current_light = 0;
 	} directional_shadow;
 

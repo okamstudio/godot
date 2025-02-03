@@ -263,6 +263,9 @@
 		<member name="render_target_v_flip" type="bool" setter="set_vflip" getter="get_vflip" default="false">
 			If [code]true[/code], the result of rendering will be flipped vertically. Since Viewports in Godot 3.x render upside-down, it's recommended to set this to [code]true[/code] in most situations.
 		</member>
+		<member name="shadow_atlas_16_bits" type="bool" setter="set_shadow_atlas_16_bits" getter="is_shadow_atlas_16_bits" default="true">
+			If [code]true[/code], renders point light shadows on a buffer with 16-bit precision. This results in slightly better performance with usually no noticeable visual difference. If [code]false[/code], renders point light shadows on a buffer with 24-bit precision.
+		</member>
 		<member name="shadow_atlas_quad_0" type="int" setter="set_shadow_atlas_quadrant_subdiv" getter="get_shadow_atlas_quadrant_subdiv" enum="Viewport.ShadowAtlasQuadrantSubdiv" default="2">
 			The subdivision amount of the first quadrant on the shadow atlas.
 		</member>

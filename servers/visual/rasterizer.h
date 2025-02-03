@@ -42,7 +42,7 @@ public:
 	/* SHADOW ATLAS API */
 
 	virtual RID shadow_atlas_create() = 0;
-	virtual void shadow_atlas_set_size(RID p_atlas, int p_size) = 0;
+	virtual void shadow_atlas_set_size(RID p_atlas, int p_size, bool p_16_bits = true) = 0;
 	virtual void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision) = 0;
 	virtual bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version) = 0;
 

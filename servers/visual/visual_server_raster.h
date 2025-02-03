@@ -506,7 +506,7 @@ public:
 
 	BIND2(viewport_set_global_canvas_transform, RID, const Transform2D &)
 	BIND4(viewport_set_canvas_stacking, RID, RID, int, int)
-	BIND2(viewport_set_shadow_atlas_size, RID, int)
+	BIND3(viewport_set_shadow_atlas_size, RID, int, bool)
 	BIND3(viewport_set_shadow_atlas_quadrant_subdivision, RID, int, int)
 	BIND2(viewport_set_msaa, RID, ViewportMSAA)
 	BIND2(viewport_set_use_fxaa, RID, bool)

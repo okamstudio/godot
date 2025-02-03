@@ -2123,7 +2123,7 @@ void VisualServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("viewport_set_transparent_background", "viewport", "enabled"), &VisualServer::viewport_set_transparent_background);
 	ClassDB::bind_method(D_METHOD("viewport_set_global_canvas_transform", "viewport", "transform"), &VisualServer::viewport_set_global_canvas_transform);
 	ClassDB::bind_method(D_METHOD("viewport_set_canvas_stacking", "viewport", "canvas", "layer", "sublayer"), &VisualServer::viewport_set_canvas_stacking);
-	ClassDB::bind_method(D_METHOD("viewport_set_shadow_atlas_size", "viewport", "size"), &VisualServer::viewport_set_shadow_atlas_size);
+	ClassDB::bind_method(D_METHOD("viewport_set_shadow_atlas_size", "viewport", "size", "use_16_bits"), &VisualServer::viewport_set_shadow_atlas_size, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("viewport_set_shadow_atlas_quadrant_subdivision", "viewport", "quadrant", "subdivision"), &VisualServer::viewport_set_shadow_atlas_quadrant_subdivision);
 	ClassDB::bind_method(D_METHOD("viewport_set_msaa", "viewport", "msaa"), &VisualServer::viewport_set_msaa);
 	ClassDB::bind_method(D_METHOD("viewport_set_use_fxaa", "viewport", "fxaa"), &VisualServer::viewport_set_use_fxaa);
@@ -2679,11 +2679,13 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF("rendering/quality/directional_shadow/size", 4096);
 	GLOBAL_DEF("rendering/quality/directional_shadow/size.mobile", 2048);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/directional_shadow/size", PropertyInfo(Variant::INT, "rendering/quality/directional_shadow/size", PROPERTY_HINT_RANGE, "256,16384,256"));
+	GLOBAL_DEF("rendering/quality/directional_shadow/16_bits", true);
 	GLOBAL_DEF_RST("rendering/quality/shadow_atlas/size", 4096);
 	GLOBAL_DEF("rendering/quality/shadow_atlas/size.mobile", 2048);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/shadow_atlas/size", PropertyInfo(Variant::INT, "rendering/quality/shadow_atlas/size", PROPERTY_HINT_RANGE, "256,16384,256"));
 	GLOBAL_DEF_RST("rendering/quality/shadow_atlas/cubemap_size", 512);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/shadow_atlas/cubemap_size", PropertyInfo(Variant::INT, "rendering/quality/shadow_atlas/cubemap_size", PROPERTY_HINT_RANGE, "64,16384,64"));
+	GLOBAL_DEF_RST("rendering/quality/shadow_atlas/16_bits", true);
 	GLOBAL_DEF("rendering/quality/shadow_atlas/quadrant_0_subdiv", 1);
 	GLOBAL_DEF("rendering/quality/shadow_atlas/quadrant_1_subdiv", 2);
 	GLOBAL_DEF("rendering/quality/shadow_atlas/quadrant_2_subdiv", 3);
