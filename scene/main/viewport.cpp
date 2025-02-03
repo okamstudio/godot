@@ -1571,10 +1571,10 @@ void Viewport::_gui_show_tooltip() {
 
 	// Get the Control under cursor and the relevant tooltip text, if any.
 	Control *tooltip_owner = nullptr;
-	String tooltip_text = _gui_get_tooltip(
+	String tooltip_text = tr(_gui_get_tooltip(
 			gui.tooltip_control,
 			gui.tooltip_control->get_global_transform().xform_inv(gui.tooltip_pos),
-			&tooltip_owner);
+			&tooltip_owner));
 	tooltip_text = tooltip_text.strip_edges();
 	if (tooltip_text.empty()) {
 		return; // Nothing to show.

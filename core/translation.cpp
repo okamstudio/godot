@@ -573,7 +573,7 @@ StringName TranslationServer::translate(const StringName &p_message) const {
 		return p_message;
 	}
 
-	return res;
+	return res == StringName("<EMPTY STRING>") ? StringName() : res;
 }
 
 TranslationServer *TranslationServer::singleton = nullptr;
