@@ -314,6 +314,7 @@ void VisualServerViewport::draw_viewports() {
 		if (!visible) {
 			continue;
 		}
+		PROFILER_SECTION_START(vformat("VIEWPORT #%d", i));
 
 		VSG::storage->render_target_clear_used(vp->render_target);
 
@@ -378,6 +379,7 @@ void VisualServerViewport::draw_viewports() {
 			vp->update_mode = VS::VIEWPORT_UPDATE_DISABLED;
 		}
 		VSG::scene_render->set_debug_draw_mode(VS::VIEWPORT_DEBUG_DRAW_DISABLED);
+		PROFILER_SECTION_END();
 	}
 }
 

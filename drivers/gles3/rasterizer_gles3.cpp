@@ -33,6 +33,11 @@
 #include "core/os/os.h"
 #include "core/project_settings.h"
 
+#ifdef ANDROID_ENABLED
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#endif
+
 RasterizerStorage *RasterizerGLES3::get_storage() {
 	return storage;
 }
@@ -168,7 +173,60 @@ void RasterizerGLES3::initialize() {
 			print_line("OpenGL debugging not supported!");
 		}
 	}
-#endif // GLAD_ENABLED
+#ifdef DEBUG_ENABLED
+	if (GLAD_GL_KHR_debug) {
+		push_label_func = glPushDebugGroup;
+		pop_label_func = glPopDebugGroup;
+		khr_debug_enabled = true;
+	}
+	if (GLAD_GL_ARB_timer_query) {
+		gen_queries_func = glGenQueries;
+		del_queries_func = glGenQueries;
+		query_counter_func = glQueryCounter;
+		get_query_func = glGetQueryObjectui64v;
+		enable_frame_timings();
+	}
+#endif
+#else // GLAD_ENABLED
+
+// While we use GLAD for the desktop platforms we have to do this manually for mobile.
+#if defined(ANDROID_ENABLED) && defined(DEBUG_ENABLED)
+
+	GLint extension_count = 0;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &extension_count);
+
+	bool found_arb_timer_query = false;
+	bool found_ext_disjoint_timer_query = false; // fallback for android devices
+	for (int i = 0; i < extension_count; ++i) {
+		if (strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), "GL_KHR_debug") == 0) {
+			khr_debug_enabled = true;
+		} else if (strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), "GL_ARB_timer_query") == 0) {
+			found_arb_timer_query = true;
+		} else if (strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), "GL_EXT_disjoint_timer_query") == 0) {
+			found_ext_disjoint_timer_query = true;
+		}
+	}
+	if (khr_debug_enabled) {
+		//These might need a KHR suffix, see https://registry.khronos.org/OpenGL/extensions/KHR/KHR_debug.txt
+		push_label_func = (void (*)(unsigned int, unsigned int, int, const char *))eglGetProcAddress("glPushDebugGroup");
+		pop_label_func = eglGetProcAddress("glPopDebugGroup");
+	}
+	if (found_arb_timer_query) {
+		gen_queries_func = (void (*)(int, unsigned int *))eglGetProcAddress("glGenQueries");
+		del_queries_func = (void (*)(int, unsigned int *))eglGetProcAddress("glDeleteQueries");
+		query_counter_func = (void (*)(unsigned int, unsigned int))eglGetProcAddress("glQueryCounter");
+		get_query_func = (void (*)(unsigned int, unsigned int, uint64_t *))eglGetProcAddress("glGetQueryObjectui64v");
+		enable_frame_timings();
+	} else if (found_ext_disjoint_timer_query) {
+		gen_queries_func = (void (*)(int, unsigned int *))eglGetProcAddress("glGenQueriesEXT");
+		del_queries_func = (void (*)(int, unsigned int *))eglGetProcAddress("glDeleteQueriesEXT");
+		query_counter_func = (void (*)(unsigned int, unsigned int))eglGetProcAddress("glQueryCounterEXT");
+		get_query_func = (void (*)(unsigned int, unsigned int, uint64_t *))eglGetProcAddress("glGetQueryObjectui64vEXT");
+		enable_frame_timings();
+	}
+
+#endif
+#endif // not GLAD_ENABLED
 
 	/* // For debugging
 	if (GLAD_GL_ARB_debug_output) {

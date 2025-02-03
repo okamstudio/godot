@@ -3064,6 +3064,9 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 
 	// directional lights
 	{
+		PROFILER_SECTION_START("DIRECTIONAL SHADOWS");
+		GPU_TIMESTAMP("directional_shadows");
+
 		Instance **lights_with_shadow = (Instance **)alloca(sizeof(Instance *) * scenario->directional_lights.size());
 		int directional_shadow_count = 0;
 
@@ -3092,11 +3095,17 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 		VSG::scene_render->set_directional_shadow_count(directional_shadow_count);
 
 		for (int i = 0; i < directional_shadow_count; i++) {
+			PROFILER_SECTION_START(vformat("Directional Light #%d", i + 1));
 			_light_instance_update_shadow(lights_with_shadow[i], p_cam_transform, p_cam_projection, p_cam_orthogonal, p_shadow_atlas, scenario, p_visible_layers);
+			PROFILER_SECTION_END();
 		}
+
+		PROFILER_SECTION_END();
 	}
 
 	{ //setup shadow maps
+		PROFILER_SECTION_START("NON-DIRECTIONAL SHADOWS");
+		GPU_TIMESTAMP("non_directional_shadows");
 
 		//SortArray<Instance*,_InstanceLightsort> sorter;
 		//sorter.sort(light_cull_result,light_cull_count);
@@ -3122,6 +3131,8 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 
 				switch (VSG::storage->light_get_type(ins->base)) {
 					case VS::LIGHT_OMNI: {
+						PROFILER_SECTION_START("Omni Light");
+
 						float radius = VSG::storage->light_get_param(ins->base, VS::LIGHT_PARAM_RANGE);
 
 						//get two points parallel to near plane
@@ -3145,6 +3156,8 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 						coverage = screen_diameter / (vp_half_extents.x + vp_half_extents.y);
 					} break;
 					case VS::LIGHT_SPOT: {
+						PROFILER_SECTION_START("Spot Light");
+
 						float radius = VSG::storage->light_get_param(ins->base, VS::LIGHT_PARAM_RANGE);
 						float angle = VSG::storage->light_get_param(ins->base, VS::LIGHT_PARAM_SPOT_ANGLE);
 
@@ -3175,6 +3188,7 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 					} break;
 					default: {
 						ERR_PRINT("Invalid Light Type");
+						PROFILER_SECTION_START("Invalid Light Type");
 					}
 				}
 			}
@@ -3215,7 +3229,9 @@ void VisualServerScene::_prepare_scene(const Transform p_cam_transform, const Ca
 					light->make_shadow_dirty();
 				}
 			}
+			PROFILER_SECTION_END();
 		}
+		PROFILER_SECTION_END();
 	}
 
 	// Calculate instance->depth from the camera, after shadow calculation has stopped overwriting instance->depth
@@ -4187,112 +4203,123 @@ bool VisualServerScene::_check_gi_probe(Instance *p_gi_probe) {
 }
 
 void VisualServerScene::render_probes() {
+	PROFILER_SECTION_START("PROBES");
 	/* REFLECTION PROBES */
 
 	SelfList<InstanceReflectionProbeData> *ref_probe = reflection_probe_render_list.first();
 
 	bool busy = false;
+	if (ref_probe) {
+		PROFILER_SECTION_START("Reflection Probes");
+		GPU_TIMESTAMP("reflection_probes");
+		while (ref_probe) {
+			SelfList<InstanceReflectionProbeData> *next = ref_probe->next();
+			RID base = ref_probe->self()->owner->base;
 
-	while (ref_probe) {
-		SelfList<InstanceReflectionProbeData> *next = ref_probe->next();
-		RID base = ref_probe->self()->owner->base;
+			switch (VSG::storage->reflection_probe_get_update_mode(base)) {
+				case VS::REFLECTION_PROBE_UPDATE_ONCE: {
+					if (busy) { //already rendering something
+						break;
+					}
 
-		switch (VSG::storage->reflection_probe_get_update_mode(base)) {
-			case VS::REFLECTION_PROBE_UPDATE_ONCE: {
-				if (busy) { //already rendering something
-					break;
-				}
+					bool done = _render_reflection_probe_step(ref_probe->self()->owner, ref_probe->self()->render_step);
+					if (done) {
+						reflection_probe_render_list.remove(ref_probe);
+					} else {
+						ref_probe->self()->render_step++;
+					}
 
-				bool done = _render_reflection_probe_step(ref_probe->self()->owner, ref_probe->self()->render_step);
-				if (done) {
+					busy = true; //do not render another one of this kind
+				} break;
+				case VS::REFLECTION_PROBE_UPDATE_ALWAYS: {
+					int step = 0;
+					bool done = false;
+					while (!done) {
+						done = _render_reflection_probe_step(ref_probe->self()->owner, step);
+						step++;
+					}
+
 					reflection_probe_render_list.remove(ref_probe);
-				} else {
-					ref_probe->self()->render_step++;
-				}
+				} break;
+			}
 
-				busy = true; //do not render another one of this kind
-			} break;
-			case VS::REFLECTION_PROBE_UPDATE_ALWAYS: {
-				int step = 0;
-				bool done = false;
-				while (!done) {
-					done = _render_reflection_probe_step(ref_probe->self()->owner, step);
-					step++;
-				}
-
-				reflection_probe_render_list.remove(ref_probe);
-			} break;
+			ref_probe = next;
 		}
-
-		ref_probe = next;
+		PROFILER_SECTION_END();
 	}
 
 	/* GI PROBES */
 
 	SelfList<InstanceGIProbeData> *gi_probe = gi_probe_update_list.first();
 
-	while (gi_probe) {
-		SelfList<InstanceGIProbeData> *next = gi_probe->next();
+	if (gi_probe) {
+		PROFILER_SECTION_START("GI Probes");
+		GPU_TIMESTAMP("gi_probes");
+		while (gi_probe) {
+			SelfList<InstanceGIProbeData> *next = gi_probe->next();
 
-		InstanceGIProbeData *probe = gi_probe->self();
-		Instance *instance_probe = probe->owner;
+			InstanceGIProbeData *probe = gi_probe->self();
+			Instance *instance_probe = probe->owner;
 
-		//check if probe must be setup, but don't do if on the lighting thread
+			//check if probe must be setup, but don't do if on the lighting thread
 
-		bool force_lighting = false;
+			bool force_lighting = false;
 
-		if (probe->invalid || (probe->dynamic.updating_stage == GI_UPDATE_STAGE_CHECK && probe->base_version != VSG::storage->gi_probe_get_version(instance_probe->base))) {
-			_setup_gi_probe(instance_probe);
-			force_lighting = true;
-		}
+			if (probe->invalid || (probe->dynamic.updating_stage == GI_UPDATE_STAGE_CHECK && probe->base_version != VSG::storage->gi_probe_get_version(instance_probe->base))) {
+				_setup_gi_probe(instance_probe);
+				force_lighting = true;
+			}
 
-		float propagate = VSG::storage->gi_probe_get_propagation(instance_probe->base);
+			float propagate = VSG::storage->gi_probe_get_propagation(instance_probe->base);
 
-		if (probe->dynamic.propagate != propagate) {
-			probe->dynamic.propagate = propagate;
-			force_lighting = true;
-		}
+			if (probe->dynamic.propagate != propagate) {
+				probe->dynamic.propagate = propagate;
+				force_lighting = true;
+			}
 
-		if (!probe->invalid && probe->dynamic.enabled) {
-			switch (probe->dynamic.updating_stage) {
-				case GI_UPDATE_STAGE_CHECK: {
-					if (_check_gi_probe(instance_probe) || force_lighting) { //send to lighting thread
+			if (!probe->invalid && probe->dynamic.enabled) {
+				switch (probe->dynamic.updating_stage) {
+					case GI_UPDATE_STAGE_CHECK: {
+						if (_check_gi_probe(instance_probe) || force_lighting) { //send to lighting thread
 
 #ifndef NO_THREADS
-						probe_bake_mutex.lock();
-						probe->dynamic.updating_stage = GI_UPDATE_STAGE_LIGHTING;
-						probe_bake_list.push_back(instance_probe);
-						probe_bake_mutex.unlock();
-						probe_bake_sem.post();
+							probe_bake_mutex.lock();
+							probe->dynamic.updating_stage = GI_UPDATE_STAGE_LIGHTING;
+							probe_bake_list.push_back(instance_probe);
+							probe_bake_mutex.unlock();
+							probe_bake_sem.post();
 
 #else
 
-						_bake_gi_probe(instance_probe);
+							_bake_gi_probe(instance_probe);
 #endif
-					}
-				} break;
-				case GI_UPDATE_STAGE_LIGHTING: {
-					//do none, wait til done!
+						}
+					} break;
+					case GI_UPDATE_STAGE_LIGHTING: {
+						//do none, wait til done!
 
-				} break;
-				case GI_UPDATE_STAGE_UPLOADING: {
-					//uint64_t us = OS::get_singleton()->get_ticks_usec();
+					} break;
+					case GI_UPDATE_STAGE_UPLOADING: {
+						//uint64_t us = OS::get_singleton()->get_ticks_usec();
 
-					for (int i = 0; i < (int)probe->dynamic.mipmaps_3d.size(); i++) {
-						PoolVector<uint8_t>::Read r = probe->dynamic.mipmaps_3d[i].read();
-						VSG::storage->gi_probe_dynamic_data_update(probe->dynamic.probe_data, 0, probe->dynamic.grid_size[2] >> i, i, r.ptr());
-					}
+						for (int i = 0; i < (int)probe->dynamic.mipmaps_3d.size(); i++) {
+							PoolVector<uint8_t>::Read r = probe->dynamic.mipmaps_3d[i].read();
+							VSG::storage->gi_probe_dynamic_data_update(probe->dynamic.probe_data, 0, probe->dynamic.grid_size[2] >> i, i, r.ptr());
+						}
 
-					probe->dynamic.updating_stage = GI_UPDATE_STAGE_CHECK;
+						probe->dynamic.updating_stage = GI_UPDATE_STAGE_CHECK;
 
-					//print_line("UPLOAD TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
-				} break;
+						//print_line("UPLOAD TIME: " + rtos((OS::get_singleton()->get_ticks_usec() - us) / 1000000.0));
+					} break;
+				}
 			}
-		}
-		//_update_gi_probe(gi_probe->self()->owner);
+			//_update_gi_probe(gi_probe->self()->owner);
 
-		gi_probe = next;
+			gi_probe = next;
+		}
+		PROFILER_SECTION_END();
 	}
+	PROFILER_SECTION_END();
 }
 
 void VisualServerScene::_update_dirty_instance(Instance *p_instance) {

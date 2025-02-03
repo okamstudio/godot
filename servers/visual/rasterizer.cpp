@@ -39,8 +39,123 @@
 
 Rasterizer *(*Rasterizer::_create_func)() = nullptr;
 
+bool Rasterizer::khr_debug_enabled = false;
+void (*Rasterizer::push_label_func)(unsigned int source, unsigned int id, int length, const char *message) = nullptr;
+void (*Rasterizer::pop_label_func)() = nullptr;
+
+void (*Rasterizer::gen_queries_func)(int n, unsigned int *ids) = nullptr;
+void (*Rasterizer::del_queries_func)(int n, unsigned int *ids) = nullptr;
+void (*Rasterizer::query_counter_func)(unsigned int id, unsigned int target) = nullptr;
+void (*Rasterizer::get_query_func)(unsigned int id, unsigned int pname, uint64_t *params) = nullptr;
+
 Rasterizer *Rasterizer::create() {
 	return _create_func();
+}
+
+void Rasterizer::push_label(String p_label) {
+	if (khr_debug_enabled) {
+		push_label_func(0x824A, 1, p_label.length(), p_label.utf8().get_data());
+	}
+}
+
+void Rasterizer::pop_label() {
+	if (khr_debug_enabled) {
+		pop_label_func();
+	}
+}
+
+bool Rasterizer::frame_timing_enabled = false;
+
+void Rasterizer::enable_frame_timings() {
+	if (!frame_timing_enabled) {
+		// Setup the frame timing querys
+		for (int i = 0; i < FRAME_TIMING_COUNT; i++) {
+			frame_timings[i].query_count = 0;
+			gen_queries_func(MAX_QUERIES, frame_timings[i].queries);
+			frame_timings[i].query_names.resize(MAX_QUERIES);
+			frame_timings[i].query_results.resize(MAX_QUERIES);
+		}
+		frame_timing_enabled = true;
+	}
+}
+
+void Rasterizer::begin_frame_timings() {
+	if (!frame_timing_enabled)
+		return;
+
+	frame = (frame + 1) % FRAME_TIMING_COUNT;
+	if (frame_timings[frame].query_count) {
+		//We have written to this struct before, by now the results should be ready
+		frame_timings[frame].result_count = frame_timings[frame].query_count;
+
+		uint64_t prev_time = 0;
+		uint64_t cur_time = 0;
+		for (uint32_t i = 0; i < frame_timings[frame].query_count; i++) {
+			//get_query_func(frame_timings[frame].queries[i], GL_QUERY_RESULT, &frame_timings[frame].query_results[i]);
+			get_query_func(frame_timings[frame].queries[i], 0x8866, &cur_time);
+			//frame_timings[frame].query_results[i] = result;
+			if (i > 0) {
+				//turn the timestamps into durations
+				frame_timings[frame].query_results[i - 1] = cur_time - prev_time;
+			}
+
+			prev_time = cur_time;
+		}
+
+		//Send the data to the profiler
+#ifdef DEBUG_ENABLED
+		if (ScriptDebugger::get_singleton() && ScriptDebugger::get_singleton()->is_profiling()) {
+			Array values;
+
+			// sum results based on name (since parts of the render pipeline may run more than once due to viewports)
+			for (uint32_t i = 0; i < frame_timings[frame].query_count - 1; i++) {
+				String name = frame_timings[frame].query_names[i];
+				if (name == "END_TIMESTAMP")
+					continue;
+
+				uint64_t time = frame_timings[frame].query_results[i];
+
+				if (time != 0) {
+					for (uint32_t j = i + 1; j < frame_timings[frame].query_count - 1; j++) {
+						if (frame_timings[frame].query_names[j] == name) {
+							time += frame_timings[frame].query_results[j];
+							frame_timings[frame].query_results[j] = 0;
+						}
+					}
+					float time_ms = USEC_TO_SEC(time / 1000);
+					if (time_ms < 200) {
+						values.push_back(name);
+						values.push_back(time_ms);
+					}
+				}
+			}
+
+			ScriptDebugger::get_singleton()->add_profiling_frame_data("rendering", values);
+		}
+#endif
+	}
+	frame_timings[frame].query_count = 0;
+}
+
+void Rasterizer::timestamp(const String &p_name) {
+	if (!frame_timing_enabled)
+		return;
+
+	int query_index = frame_timings[frame].query_count;
+
+	ERR_FAIL_COND_MSG(query_index >= MAX_QUERIES, "Attempting to take too many rendering timestamp: increase MAX_QUERIES");
+
+	query_counter_func(frame_timings[frame].queries[query_index], 0x8E28);
+	frame_timings[frame].query_names[query_index] = p_name;
+	frame_timings[frame].query_count++;
+}
+
+Rasterizer::~Rasterizer() {
+	if (frame_timing_enabled) {
+		for (int i = 0; i < FRAME_TIMING_COUNT; i++) {
+			del_queries_func(MAX_QUERIES, frame_timings[i].queries);
+		}
+	}
 }
 
 RasterizerStorage *RasterizerStorage::base_singleton = nullptr;

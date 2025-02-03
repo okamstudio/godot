@@ -37,6 +37,22 @@
 
 #include "core/self_list.h"
 
+#ifdef DEBUG_ENABLED
+#define PROFILER_SECTION_START(X) VSG::rasterizer->push_label(X)
+#define PROFILER_SECTION_END() VSG::rasterizer->pop_label()
+
+#define GPU_TIMESTAMP_FRAME_START() VSG::rasterizer->begin_frame_timings()
+#define GPU_TIMESTAMP(X) VSG::rasterizer->timestamp(X)
+#define GPU_TIMESTAMP_END() VSG::rasterizer->timestamp("END_TIMESTAMP") // necessary to calculate the time of the previous timestamp
+#else
+#define PROFILER_SECTION_START(X)
+#define PROFILER_SECTION_END()
+
+#define GPU_TIMESTAMP_FRAME_START()
+#define GPU_TIMESTAMP(X)
+#define GPU_TIMESTAMP_END()
+#endif
+
 class RasterizerScene {
 public:
 	/* SHADOW ATLAS API */
@@ -1320,6 +1336,32 @@ public:
 class Rasterizer {
 protected:
 	static Rasterizer *(*_create_func)();
+	static bool khr_debug_enabled;
+
+	//Profiling Information
+	//Labels
+	static void (*push_label_func)(unsigned int source, unsigned int id, int length, const char *message);
+	static void (*pop_label_func)();
+
+	//Timing stuff
+	static const int FRAME_TIMING_COUNT = 3;
+	static const int MAX_QUERIES = 128;
+
+	static bool frame_timing_enabled;
+	struct FrameTimings {
+		unsigned int queries[MAX_QUERIES];
+		uint32_t result_count;
+		uint32_t query_count;
+		LocalVector<uint64_t> query_results;
+		LocalVector<String> query_names;
+	};
+	FrameTimings frame_timings[FRAME_TIMING_COUNT];
+	int frame = 0;
+
+	static void (*gen_queries_func)(int n, unsigned int *ids);
+	static void (*del_queries_func)(int n, unsigned int *ids);
+	static void (*query_counter_func)(unsigned int id, unsigned int target);
+	static void (*get_query_func)(unsigned int id, unsigned int pname, uint64_t *params);
 
 public:
 	static Rasterizer *create();
@@ -1341,9 +1383,16 @@ public:
 	virtual void end_frame(bool p_swap_buffers) = 0;
 	virtual void finalize() = 0;
 
+	virtual void push_label(String p_label);
+	virtual void pop_label();
+
+	void enable_frame_timings();
+	void begin_frame_timings();
+	void timestamp(const String &p_name);
+
 	virtual bool is_low_end() const = 0;
 
-	virtual ~Rasterizer() {}
+	virtual ~Rasterizer();
 };
 
 // Use float rather than real_t as cheaper and no need for 64 bit.
