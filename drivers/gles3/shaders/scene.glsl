@@ -2121,6 +2121,16 @@ FRAGMENT_SHADER_CODE
 		float a004 = min(r.x * r.x, exp2(-9.28 * ndotv)) * r.x + r.y;
 		vec2 env = vec2(-1.04, 1.04) * a004 + r.zw;
 		specular_light *= env.x * F + env.y;
+
+#if defined(ENABLE_AO)
+		// Use a cheap approximation of specular occlusion + horizon specular occlusion
+		// based on ambient occlusion.
+		// See https://google.github.io/filament/Filament.html#lighting/occlusion/specularocclusion.
+		specular_light *= clamp(pow(ndotv + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+		float horizon = min(1.0 + dot(reflect(-view, normal), normal), 1.0);
+		specular_light *= horizon * horizon;
+#endif //ENABLE_AO
+
 #endif
 	}
 
