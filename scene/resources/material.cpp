@@ -976,25 +976,22 @@ void Material3D::_update_shader() {
 		// Use the slightly more expensive circular fade (distance to the object) instead of linear
 		// (Z distance), so that the fade is always the same regardless of the camera angle.
 		if ((distance_fade == DISTANCE_FADE_OBJECT_DITHER || distance_fade == DISTANCE_FADE_PIXEL_DITHER)) {
-			if (!VisualServer::get_singleton()->is_low_end()) {
-				code += "\t{\n";
+			code += "\t{\n";
 
-				if (distance_fade == DISTANCE_FADE_OBJECT_DITHER) {
-					code += "\t\tfloat fade_distance = length((INV_CAMERA_MATRIX * WORLD_MATRIX[3]));\n";
-				} else {
-					code += "\t\tfloat fade_distance = length(VERTEX);\n";
-				}
-				// Use interleaved gradient noise, which is fast but still looks good.
-				code += "\t\tconst vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);";
-				code += "\t\tfloat fade = clamp(smoothstep(distance_fade_min, distance_fade_max, fade_distance), 0.0, 1.0);\n";
-				// Use a hard cap to prevent a few stray pixels from remaining when past the fade-out distance.
-				code += "\t\tif (fade < 0.001 || fade < fract(magic.z * fract(dot(FRAGCOORD.xy, magic.xy)))) {\n";
-				code += "\t\t\tdiscard;\n";
-				code += "\t\t}\n";
-
-				code += "\t}\n\n";
+			if (distance_fade == DISTANCE_FADE_OBJECT_DITHER) {
+				code += "\t\tfloat fade_distance = length((INV_CAMERA_MATRIX * WORLD_MATRIX[3]));\n";
+			} else {
+				code += "\t\tfloat fade_distance = length(VERTEX);\n";
 			}
+			// Use interleaved gradient noise, which is fast but still looks good.
+			code += "\t\tconst vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);";
+			code += "\t\tfloat fade = clamp(smoothstep(distance_fade_min, distance_fade_max, fade_distance), 0.0, 1.0);\n";
+			// Use a hard cap to prevent a few stray pixels from remaining when past the fade-out distance.
+			code += "\t\tif (fade < 0.001 || fade < fract(magic.z * fract(dot(FRAGCOORD.xy, magic.xy)))) {\n";
+			code += "\t\t\tdiscard;\n";
+			code += "\t\t}\n";
 
+			code += "\t}\n\n";
 		} else {
 			code += "\tALPHA *= clamp(smoothstep(distance_fade_min, distance_fade_max, length(VERTEX)), 0.0, 1.0);\n";
 		}
