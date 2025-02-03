@@ -41,8 +41,7 @@ class ScrollContainer : public Container {
 	HScrollBar *h_scroll;
 	VScrollBar *v_scroll;
 
-	Size2 child_max_size;
-	Size2 scroll;
+	mutable Size2 largest_child_min_size; // The largest one among the min sizes of all available child controls.
 
 	void update_scrollbars();
 
@@ -70,7 +69,7 @@ protected:
 
 	void _gui_input(const Ref<InputEvent> &p_gui_input);
 	void _gui_focus_changed(Control *p_control);
-	void _update_dimensions();
+	void _reposition_children();
 	void _notification(int p_what);
 
 	void _scroll_moved(float);

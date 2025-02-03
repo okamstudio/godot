@@ -38,7 +38,10 @@ bool ScrollContainer::clips_input() const {
 
 Size2 ScrollContainer::get_minimum_size() const {
 	Ref<StyleBox> sb = get_stylebox("bg");
-	Size2 min_size;
+
+	// Calculated in this function, as it needs to traverse all child controls once to calculate;
+	// and needs to be calculated before being used by update_scrollbars().
+	largest_child_min_size = Size2();
 
 	for (int i = 0; i < get_child_count(); i++) {
 		Control *c = Object::cast_to<Control>(get_child(i));
@@ -51,23 +54,31 @@ Size2 ScrollContainer::get_minimum_size() const {
 		if (c == h_scroll || c == v_scroll) {
 			continue;
 		}
-		Size2 minsize = c->get_combined_minimum_size();
 
-		if (!scroll_h) {
-			min_size.x = MAX(min_size.x, minsize.x);
-		}
-		if (!scroll_v) {
-			min_size.y = MAX(min_size.y, minsize.y);
-		}
+		Size2 child_min_size = c->get_combined_minimum_size();
+
+		largest_child_min_size.x = MAX(largest_child_min_size.x, child_min_size.x);
+		largest_child_min_size.y = MAX(largest_child_min_size.y, child_min_size.y);
 	}
 
-	if (h_scroll->is_visible_in_tree()) {
+	Size2 min_size;
+
+	if (!scroll_h) {
+		min_size.x = MAX(min_size.x, largest_child_min_size.x);
+	}
+	if (!scroll_v) {
+		min_size.y = MAX(min_size.y, largest_child_min_size.y);
+	}
+
+	if (scroll_h && largest_child_min_size.x > min_size.x) {
 		min_size.y += h_scroll->get_minimum_size().y;
 	}
-	if (v_scroll->is_visible_in_tree()) {
-		min_size.x += v_scroll->get_minimum_size().x;
+	if (scroll_v && largest_child_min_size.y > min_size.y) {
+		min_size.x += h_scroll->get_minimum_size().x;
 	}
+
 	min_size += sb->get_minimum_size();
+
 	return min_size;
 }
 
@@ -253,8 +264,8 @@ void ScrollContainer::ensure_control_visible(Control *p_control) {
 	set_v_scroll(get_v_scroll() + (diff.y - global_rect.position.y));
 }
 
-void ScrollContainer::_update_dimensions() {
-	child_max_size = Size2(0, 0);
+void ScrollContainer::_reposition_children() {
+	update_scrollbars();
 	Size2 size = get_size();
 	Point2 ofs;
 
@@ -282,25 +293,13 @@ void ScrollContainer::_update_dimensions() {
 			continue;
 		}
 		Size2 minsize = c->get_combined_minimum_size();
-		child_max_size.x = MAX(child_max_size.x, minsize.x);
-		child_max_size.y = MAX(child_max_size.y, minsize.y);
 
-		Rect2 r = Rect2(-scroll, minsize);
-		if (!scroll_h || (!h_scroll->is_visible_in_tree() && c->get_h_size_flags() & SIZE_EXPAND)) {
-			r.position.x = 0;
-			if (c->get_h_size_flags() & SIZE_EXPAND) {
-				r.size.width = MAX(size.width, minsize.width);
-			} else {
-				r.size.width = minsize.width;
-			}
+		Rect2 r = Rect2(-Size2(get_h_scroll(), get_v_scroll()), minsize);
+		if (c->get_h_size_flags() & SIZE_EXPAND) {
+			r.size.width = MAX(size.width, minsize.width);
 		}
-		if (!scroll_v || (!v_scroll->is_visible_in_tree() && c->get_v_size_flags() & SIZE_EXPAND)) {
-			r.position.y = 0;
-			if (c->get_v_size_flags() & SIZE_EXPAND) {
-				r.size.height = MAX(size.height, minsize.height);
-			} else {
-				r.size.height = minsize.height;
-			}
+		if (c->get_v_size_flags() & SIZE_EXPAND) {
+			r.size.height = MAX(size.height, minsize.height);
 		}
 		r.position += ofs;
 		fit_child_in_rect(c, r);
@@ -318,18 +317,16 @@ void ScrollContainer::_notification(int p_what) {
 		Viewport *viewport = get_viewport();
 		ERR_FAIL_COND(!viewport);
 		viewport->connect("gui_focus_changed", this, "_gui_focus_changed");
-		_update_dimensions();
+		_reposition_children();
 	}
 
 	if (p_what == NOTIFICATION_SORT_CHILDREN) {
-		_update_dimensions();
+		_reposition_children();
 	};
 
 	if (p_what == NOTIFICATION_DRAW) {
 		Ref<StyleBox> sb = get_stylebox("bg");
 		draw_style_box(sb, Rect2(Vector2(), get_size()));
-
-		update_scrollbars();
 	}
 
 	if (p_what == NOTIFICATION_INTERNAL_PHYSICS_PROCESS) {
@@ -406,63 +403,25 @@ void ScrollContainer::update_scrollbars() {
 	Ref<StyleBox> sb = get_stylebox("bg");
 	size -= sb->get_minimum_size();
 
-	Size2 hmin;
-	Size2 vmin;
-	if (scroll_h) {
-		hmin = h_scroll->get_combined_minimum_size();
-	}
-	if (scroll_v) {
-		vmin = v_scroll->get_combined_minimum_size();
-	}
+	Size2 hmin = h_scroll->get_combined_minimum_size();
+	Size2 vmin = v_scroll->get_combined_minimum_size();
 
-	Size2 min = child_max_size;
+	h_scroll->set_visible(scroll_h && largest_child_min_size.width > size.width);
+	v_scroll->set_visible(scroll_v && largest_child_min_size.height > size.height);
 
-	bool hide_scroll_v = !scroll_v || min.height <= size.height;
-	bool hide_scroll_h = !scroll_h || min.width <= size.width;
+	h_scroll->set_max(largest_child_min_size.width);
+	h_scroll->set_page((v_scroll->is_visible() && v_scroll->get_parent() == this) ? size.width - vmin.width : size.width);
 
-	v_scroll->set_max(min.height);
-	if (hide_scroll_v) {
-		v_scroll->set_page(size.height);
-		v_scroll->hide();
-		scroll.y = 0;
-	} else {
-		v_scroll->show();
-		if (hide_scroll_h) {
-			v_scroll->set_page(size.height);
-		} else {
-			v_scroll->set_page(size.height - hmin.height);
-		}
-
-		scroll.y = v_scroll->get_value();
-	}
-
-	h_scroll->set_max(min.width);
-	if (hide_scroll_h) {
-		h_scroll->set_page(size.width);
-		h_scroll->hide();
-		scroll.x = 0;
-	} else {
-		h_scroll->show();
-		if (hide_scroll_v) {
-			h_scroll->set_page(size.width);
-		} else {
-			h_scroll->set_page(size.width - vmin.width);
-		}
-
-		scroll.x = h_scroll->get_value();
-	}
+	v_scroll->set_max(largest_child_min_size.height);
+	v_scroll->set_page((h_scroll->is_visible() && h_scroll->get_parent() == this) ? size.height - hmin.height : size.height);
 
 	// Avoid scrollbar overlapping.
-	h_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, hide_scroll_v ? 0 : -vmin.width);
-	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, hide_scroll_h ? 0 : -hmin.height);
+	h_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, (v_scroll->is_visible() && v_scroll->get_parent() == this) ? -vmin.width : 0);
+	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, (h_scroll->is_visible() && h_scroll->get_parent() == this) ? -hmin.height : 0);
 }
 
 void ScrollContainer::_scroll_moved(float) {
-	scroll.x = h_scroll->get_value();
-	scroll.y = v_scroll->get_value();
 	queue_sort();
-
-	update();
 };
 
 void ScrollContainer::set_enable_h_scroll(bool p_enable) {
@@ -549,7 +508,7 @@ String ScrollContainer::get_configuration_warning() const {
 		if (warning != String()) {
 			warning += "\n\n";
 		}
-		warning += TTR("ScrollContainer is intended to work with a single child control.\nUse a container as child (VBox, HBox, etc.), or a Control and set the custom minimum size manually.");
+		warning += TTR("ScrollContainer does not sort multiple children in rows or columns, but rather on top of one other.\nIf you don't want this, add a child container (HBox, VBox, etc.) or a control with a custom minimum size.");
 	}
 
 	return warning;
