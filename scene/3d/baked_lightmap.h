@@ -46,6 +46,7 @@ class BakedLightmapData : public Resource {
 	float energy;
 	bool interior;
 	int cell_subdiv;
+	bool preview_bake = false;
 	Transform cell_space_xform;
 
 	struct User {
@@ -85,6 +86,9 @@ public:
 
 	void set_interior(bool p_interior);
 	bool is_interior() const;
+
+	void set_preview_bake(bool p_preview_bake);
+	bool is_preview_bake() const;
 
 	void add_user(const NodePath &p_path, const Ref<Resource> &p_lightmap, int p_lightmap_slice, const Rect2 &p_lightmap_uv_rect, int p_instance);
 	int get_user_count() const;
@@ -277,7 +281,9 @@ public:
 	AABB get_aabb() const;
 	PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
 
-	BakeError bake(Node *p_from_node, String p_data_save_path = "");
+	virtual String get_configuration_warning() const;
+
+	BakeError bake(Node *p_from_node, String p_data_save_path = "", bool p_preview = false);
 	BakedLightmap();
 };
 

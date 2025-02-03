@@ -61,6 +61,10 @@
 		</member>
 		<member name="octree" type="PoolByteArray" setter="set_octree" getter="get_octree" default="PoolByteArray(  )">
 		</member>
+		<member name="preview_bake" type="bool" setter="set_preview_bake" getter="is_preview_bake" default="false">
+			If [code]true[/code], the bake is considered to be a "preview bake". This is set internally to [code]true[/code] by the editor when using the [b]Preview Bake[/b] button at the top of the 3D editor, and [code]false[/code] when using the [b]Bake Lightmaps[/b] button. This property can also be used by plugins.
+			See the [BakedLightmap] class description for more information.
+		</member>
 	</members>
 	<constants>
 	</constants>

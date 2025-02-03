@@ -34,9 +34,9 @@ void BakedLightmapEditorPlugin::_bake_select_file(const String &p_file) {
 	if (lightmap) {
 		BakedLightmap::BakeError err;
 		if (get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root() == lightmap) {
-			err = lightmap->bake(lightmap, p_file);
+			err = lightmap->bake(lightmap, p_file, preview_mode);
 		} else {
-			err = lightmap->bake(lightmap->get_parent(), p_file);
+			err = lightmap->bake(lightmap->get_parent(), p_file, preview_mode);
 		}
 
 		switch (err) {
@@ -76,7 +76,8 @@ void BakedLightmapEditorPlugin::_bake_select_file(const String &p_file) {
 	}
 }
 
-void BakedLightmapEditorPlugin::_bake() {
+void BakedLightmapEditorPlugin::_bake(bool p_preview) {
+	preview_mode = p_preview;
 	_bake_select_file("");
 }
 
@@ -95,8 +96,10 @@ bool BakedLightmapEditorPlugin::handles(Object *p_object) const {
 
 void BakedLightmapEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
+		bake_preview->show();
 		bake->show();
 	} else {
+		bake_preview->hide();
 		bake->hide();
 	}
 }
@@ -152,11 +155,20 @@ void BakedLightmapEditorPlugin::_bind_methods() {
 
 BakedLightmapEditorPlugin::BakedLightmapEditorPlugin(EditorNode *p_node) {
 	editor = p_node;
+
+	bake_preview = memnew(ToolButton);
+	bake_preview->set_icon(editor->get_gui_base()->get_icon("BakePreview", "EditorIcons"));
+	bake_preview->set_tooltip(TTR("Bakes lightmaps with low-quality settings for quick iteration.\nPreview bake quality can be changed in the Project Settings."));
+	bake_preview->set_text(TTR("Preview Bake"));
+	bake_preview->hide();
+	bake_preview->connect("pressed", this, "_bake", varray(true));
+
 	bake = memnew(ToolButton);
 	bake->set_icon(editor->get_gui_base()->get_icon("Bake", "EditorIcons"));
+	bake->set_tooltip(TTR("Bakes lightmaps with quality settings defined in the BakedLightmap node.\nThis will take more time compared to a Preview Bake."));
 	bake->set_text(TTR("Bake Lightmaps"));
 	bake->hide();
-	bake->connect("pressed", this, "_bake");
+	bake->connect("pressed", this, "_bake", varray(false));
 
 	file_dialog = memnew(EditorFileDialog);
 	file_dialog->set_mode(EditorFileDialog::MODE_SAVE_FILE);
@@ -165,6 +177,7 @@ BakedLightmapEditorPlugin::BakedLightmapEditorPlugin(EditorNode *p_node) {
 	file_dialog->connect("file_selected", this, "_bake_select_file");
 	bake->add_child(file_dialog);
 
+	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, bake_preview);
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, bake);
 	lightmap = nullptr;
 

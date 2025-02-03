@@ -1121,6 +1121,18 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("editor/version_control_autoload_on_startup", false);
 	GLOBAL_DEF("editor/version_control_plugin_name", "");
 
+	GLOBAL_DEF("rendering/cpu_lightmapper/preview_bake/quality", 0); // Low quality.
+	custom_prop_info["rendering/cpu_lightmapper/preview_bake/quality"] = PropertyInfo(Variant::INT, "rendering/cpu_lightmapper/preview_bake/quality", PROPERTY_HINT_ENUM, "Low,Medium,High,Ultra");
+
+	GLOBAL_DEF("rendering/cpu_lightmapper/preview_bake/max_bounces", 1);
+	custom_prop_info["rendering/cpu_lightmapper/preview_bake/max_bounces"] = PropertyInfo(Variant::INT, "rendering/cpu_lightmapper/preview_bake/max_bounces", PROPERTY_HINT_RANGE, "0,16,1");
+
+	// Enabled by default so dynamic objects can be lit correctly even in preview mode.
+	GLOBAL_DEF("rendering/cpu_lightmapper/preview_bake/allow_capture", true);
+
+	GLOBAL_DEF("rendering/cpu_lightmapper/preview_bake/capture_quality", 0); // Low quality.
+	custom_prop_info["rendering/cpu_lightmapper/preview_bake/capture_quality"] = PropertyInfo(Variant::INT, "rendering/cpu_lightmapper/preview_bake/capture_quality", PROPERTY_HINT_ENUM, "Low,Medium,High");
+
 	action = Dictionary();
 	action["deadzone"] = Variant(0.5f);
 	events = Array();

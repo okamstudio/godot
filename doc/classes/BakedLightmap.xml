@@ -7,6 +7,7 @@
 		Baked lightmaps are an alternative workflow for adding indirect (or baked) lighting to a scene. Unlike the [GIProbe] approach, baked lightmaps work fine on low-end PCs and mobile devices as they consume almost no resources in run-time.
 		[b]Procedural generation:[/b] Lightmap baking functionality is only available in the editor. This means [BakedLightmap] is not suited to procedurally generated or user-built levels. For procedurally generated or user-built levels, use [GIProbe] instead.
 		[b]Note:[/b] Due to how lightmaps work, most properties only have a visible effect once lightmaps are baked again.
+		[b]Bake modes:[/b] In the editor, after selecting a [BakedLightmap] node, you can choose between performing a [b]Preview Bake[/b] or a "final" bake using the [b]Bake Lightmaps[/b] button. Preview bakes use lower quality settings but are significantly faster to bake (run-time performance is identical). Using preview bakes during development allows you to iterate on your 3D scene's lighting faster. You can change the preview bake quality settings by adjusting the [ProjectSettings]' [code]rendering/cpu_lightmapper/*[/code] properties.
 	</description>
 	<tutorials>
 		<link>$DOCS_URL/tutorials/3d/baked_lightmaps.html</link>
@@ -16,8 +17,11 @@
 			<return type="int" enum="BakedLightmap.BakeError" />
 			<argument index="0" name="from_node" type="Node" default="null" />
 			<argument index="1" name="data_save_path" type="String" default="&quot;&quot;" />
+			<argument index="2" name="preview" type="bool" default="false" />
 			<description>
-				Bakes the lightmap, scanning from the given [code]from_node[/code] root and saves the resulting [BakedLightmapData] in [code]data_save_path[/code]. If no root node is provided, parent of this node will be used as root instead. If no save path is provided it will try to match the path from the current [member light_data].
+				Bakes the lightmap, scanning from the given [code]from_node[/code] root and saves the resulting [BakedLightmapData] in [code]data_save_path[/code]. If no root node is provided, parent of this node will be used as root instead. If no save path is provided, it will try to match the path from the current [member light_data].
+				If [code]preview[/code] is [code]true[/code], performs a preview bake which uses low-quality settings defined in [ProjectSettings] but is faster to bake.
+				[b]Note:[/b] Only effective when called from editor builds, as Godot doesn't support baking lightmaps at run-time.
 			</description>
 		</method>
 	</methods>
@@ -37,13 +41,13 @@
 			[b]Note:[/b] [member bounce_indirect_energy] only has an effect if [member bounces] is set to a value greater than or equal to [code]1[/code].
 		</member>
 		<member name="bounces" type="int" setter="set_bounces" getter="get_bounces" default="3">
-			Number of light bounces that are taken into account during baking. See also [member bounce_indirect_energy].
+			Number of light bounces that are taken into account during baking. See also [member bounce_indirect_energy]. When using Preview Bake, this value will be overridden if [member ProjectSettings.rendering/cpu_lightmapper/preview_bake/max_bounces] is lower than [member bounces].
 		</member>
 		<member name="capture_cell_size" type="float" setter="set_capture_cell_size" getter="get_capture_cell_size" default="0.5">
 			Grid size used for real-time capture information on dynamic objects.
 		</member>
 		<member name="capture_enabled" type="bool" setter="set_capture_enabled" getter="get_capture_enabled" default="true">
-			When enabled, an octree containing the scene's lighting information will be computed. This octree will then be used to light dynamic objects in the scene.
+			If [code]true[/code], an octree containing the scene's lighting information will be computed. This octree will then be used to light dynamic objects in the scene. If [code]true[/code], when using Preview Bake, this value will be overridden by [member ProjectSettings.rendering/cpu_lightmapper/preview_bake/allow_capture].
 		</member>
 		<member name="capture_propagation" type="float" setter="set_capture_propagation" getter="get_capture_propagation" default="1.0">
 			Bias value to reduce the amount of light propagation in the captured octree.
@@ -76,19 +80,19 @@
 			Size of the baked lightmap. Only meshes inside this region will be included in the baked lightmap, also used as the bounds of the captured region for dynamic lighting.
 		</member>
 		<member name="image_path" type="String" setter="set_image_path" getter="get_image_path">
-			Deprecated, in previous versions it determined the location where lightmaps were be saved.
+			[i]Deprecated.[/i] In previous versions, it determined the location where lightmaps were be saved.
 		</member>
 		<member name="light_data" type="BakedLightmapData" setter="set_light_data" getter="get_light_data">
 			The calculated light data.
 		</member>
 		<member name="quality" type="int" setter="set_bake_quality" getter="get_bake_quality" enum="BakedLightmap.BakeQuality" default="1">
-			Determines the amount of samples per texel used in indirect light baking. The amount of samples for each quality level can be configured in the project settings.
+			Determines the amount of samples per texel used in indirect light baking. The amount of samples for each quality level can be configured in the project settings. When using Preview Bake, this value will be overridden by [member ProjectSettings.rendering/cpu_lightmapper/preview_bake/quality].
 		</member>
 		<member name="use_color" type="bool" setter="set_use_color" getter="is_using_color" default="true">
 			Store full color values in the lightmap textures. When disabled, lightmap textures will store a single brightness channel. Can be disabled to reduce disk usage if the scene contains only white lights or you don't mind losing color information in indirect lighting.
 		</member>
 		<member name="use_denoiser" type="bool" setter="set_use_denoiser" getter="is_using_denoiser" default="true">
-			When enabled, a lightmap denoiser will be used to reduce the noise inherent to Monte Carlo based global illumination.
+			When enabled, a lightmap denoiser will be used to reduce the noise inherent to Monte Carlo-based global illumination. This denoising is performed on the CPU after baking lightmaps, and will increase bake times when enabled.
 		</member>
 		<member name="use_hdr" type="bool" setter="set_use_hdr" getter="is_using_hdr" default="true">
 			If [code]true[/code], stores the lightmap textures in a high dynamic range format (EXR). If [code]false[/code], stores the lightmap texture in a low dynamic range PNG image. This can be set to [code]false[/code] to reduce disk usage, but light values over 1.0 will be clamped and you may see banding caused by the reduced precision.
@@ -97,7 +101,7 @@
 	</members>
 	<constants>
 		<constant name="BAKE_QUALITY_LOW" value="0" enum="BakeQuality">
-			The lowest bake quality mode. Fastest to calculate.
+			The lowest bake quality mode (and the default when using Preview Bake). Fastest to calculate.
 		</constant>
 		<constant name="BAKE_QUALITY_MEDIUM" value="1" enum="BakeQuality">
 			The default bake quality mode.
@@ -127,7 +131,7 @@
 			Some mesh contains UV2 values outside the [code][0,1][/code] range.
 		</constant>
 		<constant name="BAKE_ERROR_USER_ABORTED" value="6" enum="BakeError">
-			Returns if user cancels baking.
+			Returned if the user cancels baking.
 		</constant>
 		<constant name="BAKE_ERROR_NO_LIGHTMAPPER" value="7" enum="BakeError">
 			Returns if lightmapper can't be created. Unless you are using a custom lightmapper, please report this as bug.

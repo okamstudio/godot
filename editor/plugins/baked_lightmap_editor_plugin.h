@@ -41,8 +41,12 @@ class BakedLightmapEditorPlugin : public EditorPlugin {
 
 	BakedLightmap *lightmap;
 
+	ToolButton *bake_preview;
 	ToolButton *bake;
 	EditorNode *editor;
+
+	// If `true`, low-quality bake settings will be used for the next bake.
+	bool preview_mode = false;
 
 	EditorFileDialog *file_dialog;
 	static EditorProgress *tmp_progress;
@@ -53,7 +57,7 @@ class BakedLightmapEditorPlugin : public EditorPlugin {
 	static void bake_func_end(uint32_t p_time_started);
 
 	void _bake_select_file(const String &p_file);
-	void _bake();
+	void _bake(bool p_preview = false);
 
 protected:
 	static void _bind_methods();

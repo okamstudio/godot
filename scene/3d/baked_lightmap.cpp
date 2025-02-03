@@ -89,6 +89,14 @@ bool BakedLightmapData::is_interior() const {
 	return interior;
 }
 
+void BakedLightmapData::set_preview_bake(bool p_preview_bake) {
+	preview_bake = p_preview_bake;
+}
+
+bool BakedLightmapData::is_preview_bake() const {
+	return preview_bake;
+}
+
 void BakedLightmapData::add_user(const NodePath &p_path, const Ref<Resource> &p_lightmap, int p_lightmap_slice, const Rect2 &p_lightmap_uv_rect, int p_instance) {
 	ERR_FAIL_COND_MSG(p_lightmap.is_null(), "It's not a reference to a valid Texture object.");
 	ERR_FAIL_COND(p_lightmap_slice == -1 && !Object::cast_to<Texture>(p_lightmap.ptr()));
@@ -226,6 +234,9 @@ void BakedLightmapData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_interior", "interior"), &BakedLightmapData::set_interior);
 	ClassDB::bind_method(D_METHOD("is_interior"), &BakedLightmapData::is_interior);
 
+	ClassDB::bind_method(D_METHOD("set_preview_bake", "preview_bake"), &BakedLightmapData::set_preview_bake);
+	ClassDB::bind_method(D_METHOD("is_preview_bake"), &BakedLightmapData::is_preview_bake);
+
 	ClassDB::bind_method(D_METHOD("add_user", "path", "lightmap", "lightmap_slice", "lightmap_uv_rect", "instance"), &BakedLightmapData::add_user);
 	ClassDB::bind_method(D_METHOD("get_user_count"), &BakedLightmapData::get_user_count);
 	ClassDB::bind_method(D_METHOD("get_user_path", "user_idx"), &BakedLightmapData::get_user_path);
@@ -239,6 +250,8 @@ void BakedLightmapData::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "energy", PROPERTY_HINT_RANGE, "0,16,0.01,or_greater"), "set_energy", "get_energy");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "interior"), "set_interior", "is_interior");
 	ADD_PROPERTY(PropertyInfo(Variant::POOL_BYTE_ARRAY, "octree", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_octree", "get_octree");
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "preview_bake", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_preview_bake", "is_preview_bake");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "user_data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_user_data", "_get_user_data");
 }
 
@@ -571,7 +584,7 @@ bool BakedLightmap::_lightmap_bake_step_function(float p_completion, const Strin
 	return ret;
 }
 
-BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_save_path) {
+BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_save_path, bool p_preview) {
 	if (!p_from_node && !get_parent()) {
 		return BAKE_ERROR_NO_ROOT;
 	}
@@ -850,7 +863,37 @@ BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_sa
 
 	bool gen_atlas = OS::get_singleton()->get_current_video_driver() == OS::VIDEO_DRIVER_GLES2 ? false : generate_atlas;
 
-	Lightmapper::BakeError bake_err = lightmapper->bake(Lightmapper::BakeQuality(bake_quality), use_denoiser, bounces, bounce_indirect_energy, bias, gen_atlas, max_atlas_size, environment_image, environment_xform, _lightmap_bake_step_function, &bsud, bake_substep_function);
+	Lightmapper::BakeError bake_err;
+	if (p_preview) {
+		// Use low-quality settings for quick iteration.
+		bake_err = lightmapper->bake(
+				Lightmapper::BakeQuality(int(GLOBAL_GET("rendering/cpu_lightmapper/preview_bake/quality"))),
+				use_denoiser,
+				MIN(bounces, int(GLOBAL_GET("rendering/cpu_lightmapper/preview_bake/max_bounces"))),
+				bounce_indirect_energy,
+				bias,
+				gen_atlas,
+				max_atlas_size,
+				environment_image,
+				environment_xform,
+				_lightmap_bake_step_function,
+				&bsud,
+				bake_substep_function);
+	} else {
+		bake_err = lightmapper->bake(
+				Lightmapper::BakeQuality(bake_quality),
+				use_denoiser,
+				bounces,
+				bounce_indirect_energy,
+				bias,
+				gen_atlas,
+				max_atlas_size,
+				environment_image,
+				environment_xform,
+				_lightmap_bake_step_function,
+				&bsud,
+				bake_substep_function);
+	}
 
 	if (bake_err != Lightmapper::BAKE_OK) {
 		if (bake_end_function) {
@@ -881,7 +924,7 @@ BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_sa
 		data.instance();
 	}
 
-	if (capture_enabled) {
+	if (capture_enabled && (p_preview || GLOBAL_GET("rendering/cpu_lightmapper/preview_bake/allow_capture"))) {
 		if (bake_step_function) {
 			bool cancelled = bake_step_function(0.85, TTR("Generating capture"), nullptr, true);
 			if (cancelled) {
@@ -925,7 +968,11 @@ BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_sa
 			capt_quality = VoxelLightBaker::BakeQuality::BAKE_QUALITY_MEDIUM;
 		}
 
-		voxel_baker.begin_bake_light(capt_quality, capture_propagation);
+		if (p_preview) {
+			voxel_baker.begin_bake_light(VoxelLightBaker::BakeQuality(int(GLOBAL_GET("rendering/cpu_lightmapper/preview_bake/capture_quality"))), capture_propagation);
+		} else {
+			voxel_baker.begin_bake_light(capt_quality, capture_propagation);
+		}
 
 		for (int i = 0; i < lights_found.size(); i++) {
 			LightsFound &lf = lights_found.write[i];
@@ -1133,6 +1180,9 @@ BakedLightmap::BakeError BakedLightmap::bake(Node *p_from_node, String p_data_sa
 		return BAKE_ERROR_CANT_CREATE_IMAGE;
 	}
 
+	// Only change the preview bake status when everything is completed.
+	// If the user cancels the bake, the preview bake status shouldn't change.
+	data->set_preview_bake(p_preview);
 	set_light_data(data);
 	if (bake_end_function) {
 		bake_end_function(time_started);
@@ -1311,6 +1361,7 @@ void BakedLightmap::set_light_data(const Ref<BakedLightmapData> &p_data) {
 	}
 	light_data = p_data;
 	_change_notify();
+	update_configuration_warning();
 
 	if (light_data.is_valid()) {
 		set_base(light_data->get_rid());
@@ -1503,6 +1554,18 @@ void BakedLightmap::_validate_property(PropertyInfo &property) const {
 	}
 }
 
+String BakedLightmap::get_configuration_warning() const {
+	String warning = VisualInstance::get_configuration_warning();
+	if (get_light_data().is_valid() && get_light_data()->is_preview_bake()) {
+		if (warning != String()) {
+			warning += "\n\n";
+		}
+		warning += TTR("This BakedLightmap's data uses a preview bake which has lower quality than a \"final\" bake.\nRemember to use the Bake Lightmaps button at the top of the 3D editor viewport (instead of Preview Bake) before distributing your project.");
+	}
+
+	return warning;
+}
+
 void BakedLightmap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_light_data", "data"), &BakedLightmap::set_light_data);
 	ClassDB::bind_method(D_METHOD("get_light_data"), &BakedLightmap::get_light_data);
@@ -1573,7 +1636,7 @@ void BakedLightmap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_image_path", "image_path"), &BakedLightmap::set_image_path);
 	ClassDB::bind_method(D_METHOD("get_image_path"), &BakedLightmap::get_image_path);
 #endif
-	ClassDB::bind_method(D_METHOD("bake", "from_node", "data_save_path"), &BakedLightmap::bake, DEFVAL(Variant()), DEFVAL(""));
+	ClassDB::bind_method(D_METHOD("bake", "from_node", "data_save_path", "preview"), &BakedLightmap::bake, DEFVAL(Variant()), DEFVAL(""), DEFVAL(false));
 
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "extents"), "set_extents", "get_extents");
 

@@ -1530,6 +1530,20 @@
 			The amount of UV contraction. This figure is divided by 1000000, and is a proportion of the total texture dimensions, where the width and height are both ranged from 0.0 to 1.0.
 			Use the default unless correcting for a problem on particular hardware.
 		</member>
+		<member name="rendering/cpu_lightmapper/preview_bake/allow_capture" type="bool" setter="" getter="" default="true">
+			Overrides [member BakedLightmap.capture_enabled] when using the [b]Preview Bake[/b] button after selecting a [BakedLightmap] node in the editor.
+			If [member BakedLightmap.capture_enabled] is [code]false[/code], this setting will not forcibly enable dynamic object capture.
+		</member>
+		<member name="rendering/cpu_lightmapper/preview_bake/capture_quality" type="int" setter="" getter="" default="0">
+			Overrides [member BakedLightmap.capture_quality] when using the [b]Preview Bake[/b] button after selecting a [BakedLightmap] node in the editor.
+		</member>
+		<member name="rendering/cpu_lightmapper/preview_bake/max_bounces" type="int" setter="" getter="" default="1">
+			Reduces [member BakedLightmap.bounces] when using the [b]Preview Bake[/b] button after selecting a [BakedLightmap] node in the editor.
+			If the number of bounces defined in the [BakedLightmap] node is lower than this setting, the number of bounces defined in the [BakedLightmap] will be used instead.
+		</member>
+		<member name="rendering/cpu_lightmapper/preview_bake/quality" type="int" setter="" getter="" default="0">
+			Overrides [member BakedLightmap.quality] when using the [b]Preview Bake[/b] button after selecting a [BakedLightmap] node in the editor.
+		</member>
 		<member name="rendering/cpu_lightmapper/quality/high_quality_ray_count" type="int" setter="" getter="" default="512">
 			Amount of light samples taken when using [constant BakedLightmap.BAKE_QUALITY_HIGH].
 		</member>
