@@ -315,6 +315,12 @@ void VisualServerViewport::draw_viewports() {
 			continue;
 		}
 
+		// do once per frame spatial partitioning scene here because the scenario should be valid at this point
+		VisualServerScene::Scenario *scenario = VSG::scene->scenario_owner.getornull(vp->scenario);
+		if (scenario) {
+			scenario->sps->update();
+		}
+
 		VSG::storage->render_target_clear_used(vp->render_target);
 
 		if (vp->use_arvr && arvr_interface.is_valid()) {

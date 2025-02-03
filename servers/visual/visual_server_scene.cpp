@@ -4459,18 +4459,8 @@ void VisualServerScene::_update_dirty_instance(Instance *p_instance) {
 void VisualServerScene::update_dirty_instances() {
 	VSG::storage->update_dirty_resources();
 
-	// this is just to get access to scenario so we can update the spatial partitioning scheme
-	Scenario *scenario = nullptr;
-	if (_instance_update_list.first()) {
-		scenario = _instance_update_list.first()->self()->scenario;
-	}
-
 	while (_instance_update_list.first()) {
 		_update_dirty_instance(_instance_update_list.first()->self());
-	}
-
-	if (scenario) {
-		scenario->sps->update();
 	}
 }
 
