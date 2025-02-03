@@ -641,7 +641,7 @@ TileSetEditor::TileSetEditor(EditorNode *p_editor) {
 
 	ResourceLoader::get_recognized_extensions_for_type("Texture", &extensions);
 	for (List<String>::Element *E = extensions.front(); E; E = E->next()) {
-		texture_dialog->add_filter("*." + E->get() + " ; " + E->get().to_upper());
+		texture_dialog->add_filter("*." + E->get(), E->get().to_upper());
 	}
 	add_child(texture_dialog);
 	texture_dialog->connect("files_selected", this, "_on_textures_added");

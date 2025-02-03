@@ -12,10 +12,11 @@
 		<method name="add_filter">
 			<return type="void" />
 			<argument index="0" name="filter" type="String" />
+			<argument index="1" name="description" type="String" default="&quot;&quot;" />
 			<description>
-				Adds [code]filter[/code] to the list of filters, which restricts what files can be picked.
-				A [code]filter[/code] should be of the form [code]"filename.extension ; Description"[/code], where filename and extension can be [code]*[/code] to match any string. Filters starting with [code].[/code] (i.e. empty filenames) are not allowed.
-				Example filters: [code]"*.png ; PNG Images"[/code], [code]"project.godot ; Godot Project"[/code].
+				Adds a comma-delimited file name [code]filter[/code] option to the [FileDialog] with an optional [code]description[/code], which restricts what files can be picked.
+				A [code]filter[/code] should be of the form [code]"filename.extension"[/code], where filename and extension can be [code]*[/code] to match any string. Filters starting with [code].[/code] (i.e. empty filenames) are not allowed.
+				For example, a [code]filter[/code] of [code]"*.png, *.jpg"[/code] and a [code]description[/code] of [code]"Images"[/code] results in filter text "Images (*.png, *.jpg)".
 			</description>
 		</method>
 		<method name="clear_filters">

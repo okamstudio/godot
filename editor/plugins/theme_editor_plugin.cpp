@@ -1926,7 +1926,7 @@ ThemeItemEditorDialog::ThemeItemEditorDialog() {
 	List<String> ext;
 	ResourceLoader::get_recognized_extensions_for_type("Theme", &ext);
 	for (List<String>::Element *E = ext.front(); E; E = E->next()) {
-		import_another_theme_dialog->add_filter(vformat("*.%s; %s", E->get(), TTR("Theme Resource")));
+		import_another_theme_dialog->add_filter("*." + E->get(), TTR("Theme Resource"));
 	}
 	import_another_file_hb->add_child(import_another_theme_dialog);
 	import_another_theme_dialog->connect("file_selected", this, "_select_another_theme_cbk");
@@ -3326,7 +3326,7 @@ ThemeEditor::ThemeEditor() {
 	List<String> ext;
 	ResourceLoader::get_recognized_extensions_for_type("PackedScene", &ext);
 	for (List<String>::Element *E = ext.front(); E; E = E->next()) {
-		preview_scene_dialog->add_filter(vformat("*.%s; %s", E->get(), TTR("Scene")));
+		preview_scene_dialog->add_filter("*." + E->get(), TTR("Scene"));
 	}
 	main_hs->add_child(preview_scene_dialog);
 	preview_scene_dialog->connect("file_selected", this, "_preview_scene_dialog_cbk");

@@ -232,7 +232,7 @@ ParticlesEditorBase::ParticlesEditorBase() {
 
 	emission_file_dialog->clear_filters();
 	for (int i = 0; i < extensions.size(); i++) {
-		emission_file_dialog->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
+		emission_file_dialog->add_filter("*." + extensions[i], extensions[i].to_upper());
 	}
 
 	emission_file_dialog->set_mode(EditorFileDialog::MODE_OPEN_FILE);

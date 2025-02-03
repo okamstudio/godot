@@ -2260,7 +2260,7 @@ void ScriptEditorDebugger::_item_menu_id_pressed(int p_option) {
 			ResourceSaver::get_recognized_extensions(sd, &extensions);
 			file_dialog->clear_filters();
 			for (int i = 0; i < extensions.size(); i++) {
-				file_dialog->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
+				file_dialog->add_filter("*." + extensions[i], extensions[i].to_upper());
 			}
 
 			TreeItem *ti = inspect_scene_tree->get_selected();

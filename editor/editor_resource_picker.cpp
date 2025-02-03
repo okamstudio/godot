@@ -250,7 +250,7 @@ void EditorResourcePicker::_edit_menu_cbk(int p_which) {
 
 			file_dialog->clear_filters();
 			for (Set<String>::Element *E = valid_extensions.front(); E; E = E->next()) {
-				file_dialog->add_filter("*." + E->get() + " ; " + E->get().to_upper());
+				file_dialog->add_filter("*." + E->get(), E->get().to_upper());
 			}
 
 			file_dialog->popup_centered_ratio();

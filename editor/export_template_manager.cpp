@@ -1000,7 +1000,7 @@ ExportTemplateManager::ExportTemplateManager() {
 	install_file_dialog->set_title(TTR("Select Template File"));
 	install_file_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
 	install_file_dialog->set_mode(FileDialog::MODE_OPEN_FILE);
-	install_file_dialog->add_filter("*.tpz ; " + TTR("Godot Export Templates"));
+	install_file_dialog->add_filter("*.tpz", TTR("Godot Export Templates"));
 	install_file_dialog->connect("file_selected", this, "_install_file_selected", varray(false));
 	add_child(install_file_dialog);
 

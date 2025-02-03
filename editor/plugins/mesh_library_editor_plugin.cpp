@@ -266,7 +266,7 @@ MeshLibraryEditor::MeshLibraryEditor(EditorNode *p_editor) {
 	file->clear_filters();
 	file->set_title(TTR("Import Scene"));
 	for (int i = 0; i < extensions.size(); i++) {
-		file->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
+		file->add_filter("*." + extensions[i], extensions[i].to_upper());
 	}
 	add_child(file);
 	file->connect("file_selected", this, "_import_scene_cbk");

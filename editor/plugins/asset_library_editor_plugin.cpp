@@ -1596,7 +1596,7 @@ EditorAssetLibrary::EditorAssetLibrary(bool p_templates_only) {
 	asset_open = memnew(EditorFileDialog);
 
 	asset_open->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
-	asset_open->add_filter("*.zip ; " + TTR("Assets ZIP File"));
+	asset_open->add_filter("*.zip", TTR("Assets ZIP File"));
 	asset_open->set_mode(EditorFileDialog::MODE_OPEN_FILE);
 	add_child(asset_open);
 	asset_open->connect("file_selected", this, "_asset_file_selected");

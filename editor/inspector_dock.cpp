@@ -162,7 +162,7 @@ void InspectorDock::_load_resource(const String &p_type) {
 
 	load_resource_dialog->clear_filters();
 	for (int i = 0; i < extensions.size(); i++) {
-		load_resource_dialog->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
+		load_resource_dialog->add_filter("*." + extensions[i], extensions[i].to_upper());
 	}
 
 	load_resource_dialog->popup_centered_ratio();

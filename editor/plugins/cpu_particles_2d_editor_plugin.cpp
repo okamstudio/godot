@@ -259,7 +259,7 @@ CPUParticles2DEditorPlugin::CPUParticles2DEditorPlugin(EditorNode *p_node) {
 	List<String> ext;
 	ImageLoader::get_recognized_extensions(&ext);
 	for (List<String>::Element *E = ext.front(); E; E = E->next()) {
-		file->add_filter("*." + E->get() + "; " + E->get().to_upper());
+		file->add_filter("*." + E->get(), E->get().to_upper());
 	}
 	file->set_mode(EditorFileDialog::MODE_OPEN_FILE);
 	toolbar->add_child(file);

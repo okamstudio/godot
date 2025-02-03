@@ -355,7 +355,7 @@ void AnimationPlayerEditor::_animation_load() {
 
 	ResourceLoader::get_recognized_extensions_for_type("Animation", &extensions);
 	for (List<String>::Element *E = extensions.front(); E; E = E->next()) {
-		file->add_filter("*." + E->get() + " ; " + E->get().to_upper());
+		file->add_filter("*." + E->get(), E->get().to_upper());
 	}
 
 	file->popup_centered_ratio();
@@ -396,7 +396,7 @@ void AnimationPlayerEditor::_animation_save_as(const Ref<Resource> &p_resource) 
 	ResourceSaver::get_recognized_extensions(p_resource, &extensions);
 	file->clear_filters();
 	for (int i = 0; i < extensions.size(); i++) {
-		file->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
+		file->add_filter("*." + extensions[i], extensions[i].to_upper());
 	}
 
 	String path;

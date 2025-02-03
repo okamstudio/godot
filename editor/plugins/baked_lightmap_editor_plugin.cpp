@@ -160,7 +160,7 @@ BakedLightmapEditorPlugin::BakedLightmapEditorPlugin(EditorNode *p_node) {
 
 	file_dialog = memnew(EditorFileDialog);
 	file_dialog->set_mode(EditorFileDialog::MODE_SAVE_FILE);
-	file_dialog->add_filter("*.lmbake ; " + TTR("LightMap Bake"));
+	file_dialog->add_filter("*.lmbake", TTR("LightMap Bake"));
 	file_dialog->set_title(TTR("Select lightmap bake file:"));
 	file_dialog->connect("file_selected", this, "_bake_select_file");
 	bake->add_child(file_dialog);

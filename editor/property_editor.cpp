@@ -154,7 +154,7 @@ void CustomPropertyEditor::_menu_option(int p_which) {
 
 					file->clear_filters();
 					for (Set<String>::Element *E = valid_extensions.front(); E; E = E->next()) {
-						file->add_filter("*." + E->get() + " ; " + E->get().to_upper());
+						file->add_filter("*." + E->get(), E->get().to_upper());
 					}
 
 					file->popup_centered_ratio();
@@ -1232,7 +1232,7 @@ void CustomPropertyEditor::_action_pressed(int p_which) {
 								filter = "*." + extensions[i];
 							}
 
-							file->add_filter(filter + " ; " + extensions[i].to_upper());
+							file->add_filter(filter, extensions[i].to_upper());
 						}
 					}
 					file->popup_centered_ratio();
@@ -1314,7 +1314,7 @@ void CustomPropertyEditor::_action_pressed(int p_which) {
 				ResourceLoader::get_recognized_extensions_for_type(type, &extensions);
 				file->clear_filters();
 				for (List<String>::Element *E = extensions.front(); E; E = E->next()) {
-					file->add_filter("*." + E->get() + " ; " + E->get().to_upper());
+					file->add_filter("*." + E->get(), E->get().to_upper());
 				}
 
 				file->popup_centered_ratio();
