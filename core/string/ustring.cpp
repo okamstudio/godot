@@ -115,14 +115,6 @@ void Char16String::operator=(const char16_t *p_cstr) {
 	copy_from(p_cstr);
 }
 
-const char16_t *Char16String::get_data() const {
-	if (size()) {
-		return &operator[](0);
-	} else {
-		return u"";
-	}
-}
-
 void Char16String::copy_from(const char16_t *p_cstr) {
 	if (!p_cstr) {
 		resize(0);
@@ -183,14 +175,6 @@ CharString &CharString::operator+=(char p_char) {
 
 void CharString::operator=(const char *p_cstr) {
 	copy_from(p_cstr);
-}
-
-const char *CharString::get_data() const {
-	if (size()) {
-		return &operator[](0);
-	} else {
-		return "";
-	}
 }
 
 void CharString::copy_from(const char *p_cstr) {
@@ -932,11 +916,6 @@ signed char String::filenocasecmp_to(const String &p_str) const {
 	}
 
 	return naturalnocasecmp_to_base(this_str, that_str);
-}
-
-const char32_t *String::get_data() const {
-	static const char32_t zero = 0;
-	return size() ? &operator[](0) : &zero;
 }
 
 String String::_camelcase_to_underscore() const {

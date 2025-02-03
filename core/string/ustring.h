@@ -203,7 +203,7 @@ public:
 	bool operator<(const Char16String &p_right) const;
 	Char16String &operator+=(char16_t p_char);
 	int length() const { return size() ? size() - 1 : 0; }
-	const char16_t *get_data() const;
+	const char16_t *get_data() const { return ptr() ? ptr() : &_null; }
 	operator const char16_t *() const { return get_data(); }
 	explicit operator StrRange<char16_t>() const { return StrRange(get_data(), length()); }
 
@@ -249,7 +249,7 @@ public:
 	bool operator==(const CharString &p_right) const;
 	CharString &operator+=(char p_char);
 	int length() const { return size() ? size() - 1 : 0; }
-	const char *get_data() const;
+	const char *get_data() const { return ptr() ? ptr() : &_null; }
 	operator const char *() const { return get_data(); }
 	explicit operator StrRange<char>() const { return StrRange(get_data(), length()); }
 
@@ -385,7 +385,7 @@ public:
 	signed char filecasecmp_to(const String &p_str) const;
 	signed char filenocasecmp_to(const String &p_str) const;
 
-	const char32_t *get_data() const;
+	const char32_t *get_data() const { return ptr() ? ptr() : &_null; }
 	/* standard size stuff */
 
 	_FORCE_INLINE_ int length() const {
@@ -544,7 +544,7 @@ public:
 	Vector<uint8_t> sha1_buffer() const;
 	Vector<uint8_t> sha256_buffer() const;
 
-	_FORCE_INLINE_ bool is_empty() const { return length() == 0; }
+	_FORCE_INLINE_ bool is_empty() const { return ptr() == nullptr; }
 	_FORCE_INLINE_ bool contains(const char *p_str) const { return find(p_str) != -1; }
 	_FORCE_INLINE_ bool contains(const String &p_str) const { return find(p_str) != -1; }
 	_FORCE_INLINE_ bool contains_char(char32_t p_chr) const { return find_char(p_chr) != -1; }
