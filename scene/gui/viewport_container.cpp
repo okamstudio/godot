@@ -45,6 +45,9 @@ Size2 ViewportContainer::get_minimum_size() const {
 		}
 
 		Size2 minsize = c->get_size();
+		if (c->is_size_override_enabled()) {
+			minsize = c->get_size_override();
+		}
 		ms.width = MAX(ms.width, minsize.width);
 		ms.height = MAX(ms.height, minsize.height);
 	}
@@ -81,10 +84,23 @@ void ViewportContainer::set_stretch_shrink(int p_shrink) {
 			continue;
 		}
 
-		c->set_size(get_size() / shrink);
+		set_child_viewport_size(c);
 	}
 
 	update();
+}
+
+void ViewportContainer::set_child_viewport_size(Viewport *child_viewport) {
+	Size2 normal_size = get_size() / shrink;
+	if (get_tree()->get_stretch_mode() == SceneTree::STRETCH_MODE_2D) {
+		Viewport *parent_viewport = get_viewport();
+		Size2 screen_stretch = parent_viewport->get_size() / parent_viewport->get_size_override();
+		child_viewport->set_size(normal_size * screen_stretch);
+		child_viewport->set_size_override_stretch(true);
+		child_viewport->set_size_override(true, normal_size);
+	} else {
+		child_viewport->set_size(normal_size);
+	}
 }
 
 int ViewportContainer::get_stretch_shrink() const {
@@ -92,7 +108,7 @@ int ViewportContainer::get_stretch_shrink() const {
 }
 
 void ViewportContainer::_notification(int p_what) {
-	if (p_what == NOTIFICATION_RESIZED) {
+	if (p_what == NOTIFICATION_RESIZED || p_what == NOTIFICATION_READY) {
 		if (!stretch) {
 			return;
 		}
@@ -103,7 +119,7 @@ void ViewportContainer::_notification(int p_what) {
 				continue;
 			}
 
-			c->set_size(get_size() / shrink);
+			set_child_viewport_size(c);
 		}
 	}
 

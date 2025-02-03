@@ -386,6 +386,7 @@ public:
 	bool has_group(const StringName &p_identifier) const;
 
 	void set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, const Size2 &p_minsize, real_t p_scale = 1.0);
+	StretchMode get_stretch_mode();
 
 	void set_use_font_oversampling(bool p_oversampling);
 	bool is_using_font_oversampling() const;

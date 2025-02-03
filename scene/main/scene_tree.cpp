@@ -1457,6 +1457,10 @@ void SceneTree::set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, c
 	_update_root_rect();
 }
 
+SceneTree::StretchMode SceneTree::get_stretch_mode() {
+	return stretch_mode;
+}
+
 void SceneTree::set_edited_scene_root(Node *p_node) {
 #ifdef TOOLS_ENABLED
 	edited_scene_root = p_node;

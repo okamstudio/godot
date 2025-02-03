@@ -38,6 +38,7 @@ class ViewportContainer : public Container {
 
 	bool stretch;
 	int shrink;
+	void set_child_viewport_size(Viewport *child_viewport);
 
 protected:
 	void _notification(int p_what);
