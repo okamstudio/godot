@@ -82,7 +82,7 @@
 #include "editor/progress_dialog.h"
 #include "editor/project_manager.h"
 #include "editor/script_editor_debugger.h"
-#if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
+#ifndef NO_EDITOR_SPLASH
 #include "main/splash_editor.gen.h"
 #endif
 #endif
