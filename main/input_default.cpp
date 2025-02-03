@@ -1004,7 +1004,7 @@ void InputDefault::joy_axis(int p_device, int p_axis, float p_value) {
 
 void InputDefault::joy_hat(int p_device, int p_val) {
 	_THREAD_SAFE_METHOD_;
-	const Joypad &joy = joy_names[p_device];
+	Joypad &joy = joy_names[p_device];
 
 	JoyEvent map[HAT_MAX];
 
@@ -1032,8 +1032,37 @@ void InputDefault::joy_hat(int p_device, int p_val) {
 
 	for (int hat_direction = 0, hat_mask = 1; hat_direction < HAT_MAX; hat_direction++, hat_mask <<= 1) {
 		if ((p_val & hat_mask) != (cur_val & hat_mask)) {
+			// Treat as button.
+			// Translate to button code, to prevent duplicates where
+			// a digital and analog input event is sent for dpad.
 			if (map[hat_direction].type == TYPE_BUTTON) {
-				_button_event(p_device, map[hat_direction].index, p_val & hat_mask);
+				int button = -1;
+				bool pressed = p_val & hat_mask;
+
+				switch (hat_direction) {
+					case HAT_LEFT: {
+						button = JOY_DPAD_LEFT;
+					} break;
+					case HAT_RIGHT: {
+						button = JOY_DPAD_RIGHT;
+					} break;
+					case HAT_UP: {
+						button = JOY_DPAD_UP;
+					} break;
+					case HAT_DOWN: {
+						button = JOY_DPAD_DOWN;
+					} break;
+				}
+
+				// If button recognised.
+				if (button != -1) {
+					if (joy.last_buttons[button] == pressed) {
+						return;
+					}
+					joy.last_buttons[button] = pressed;
+				}
+
+				_button_event(p_device, map[hat_direction].index, pressed);
 			}
 			if (map[hat_direction].type == TYPE_AXIS) {
 				_axis_event(p_device, map[hat_direction].index, (p_val & hat_mask) ? map[hat_direction].value : 0.0);
