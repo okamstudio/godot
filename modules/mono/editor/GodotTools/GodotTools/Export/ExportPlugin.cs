@@ -160,7 +160,7 @@ namespace GodotTools.Export
             string scriptsMetadataPath = BuildManager.GenerateExportedGameScriptMetadata(isDebug);
             AddFile(scriptsMetadataPath, scriptsMetadataPath);
 
-            if (!BuildManager.BuildProjectBlocking(buildConfig, platform: platform))
+            if (!BuildManager.BuildProjectBlocking(buildConfig, platform: platform, features: features))
                 throw new Exception("Failed to build project");
 
             // Add dependency assemblies

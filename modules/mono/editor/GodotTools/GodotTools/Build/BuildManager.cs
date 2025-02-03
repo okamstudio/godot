@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using GodotTools.Ides.Rider;
@@ -160,9 +161,9 @@ namespace GodotTools.Build
             }
         }
 
-        public static bool BuildProjectBlocking(string config, [CanBeNull] string[] targets = null, [CanBeNull] string platform = null)
+        public static bool BuildProjectBlocking(string config, [CanBeNull] string[] targets = null, [CanBeNull] string platform = null, [CanBeNull] string[] features = null)
         {
-            var buildInfo = new BuildInfo(GodotSharpDirs.ProjectSlnPath, targets ?? new[] {"Build"}, config, restore: true);
+            var buildInfo = new BuildInfo(GodotSharpDirs.ProjectSlnPath, targets ?? new[] { "Build" }, config, restore: true);
 
             // If a platform was not specified, try determining the current one. If that fails, let MSBuild auto-detect it.
             if (platform != null || OS.PlatformNameMap.TryGetValue(Godot.OS.GetName(), out platform))
@@ -171,7 +172,30 @@ namespace GodotTools.Build
             if (Internal.GodotIsRealTDouble())
                 buildInfo.CustomProperties.Add("GodotRealTIsDouble=true");
 
+            if (features != null && features.Length > 0)
+                buildInfo.CustomProperties.Add($"GodotFeatures={string.Join("%3B", SanitizeFeatures(features))}");
+
             return BuildProjectBlocking(buildInfo);
+        }
+
+        private static List<string> SanitizeFeatures(string[] features)
+        {
+            var sanitizedFeatures = new List<string>();
+
+            foreach (string feature in features)
+            {
+                if (string.IsNullOrWhiteSpace(feature))
+                    continue;
+
+                string sanitizedFeature = feature.ToUpperInvariant()
+                                                 .Replace("-", "_")
+                                                 .Replace(" ", "_")
+                                                 .Replace(";", "_");
+
+                sanitizedFeatures.Add($"GODOT_FEATURE_{sanitizedFeature}");
+            }
+
+            return sanitizedFeatures;
         }
 
         private static bool BuildProjectBlocking(BuildInfo buildInfo)
