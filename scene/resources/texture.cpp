@@ -2698,7 +2698,7 @@ void TextureLayered::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_get_data"), &TextureLayered::_get_data);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter,Anisotropic Filter"), "set_flags", "get_flags");
-	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_data", "_get_data");
+	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT), "_set_data", "_get_data");
 
 	BIND_ENUM_CONSTANT(FLAGS_DEFAULT_TEXTURE_ARRAY);
 	BIND_ENUM_CONSTANT(FLAGS_DEFAULT_TEXTURE_3D);

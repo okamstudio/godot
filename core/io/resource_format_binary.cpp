@@ -1592,14 +1592,17 @@ void ResourceFormatSaverBinaryInstance::_find_resources(const Variant &p_variant
 				if (E->get().usage & PROPERTY_USAGE_STORAGE) {
 					Variant value = res->get(E->get().name);
 					if (E->get().usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT) {
+						NonPersistentKey npk;
+						npk.base = res;
+						npk.property = E->get().name;
+						non_persistent_map[npk] = value;
+
 						RES sres = value;
 						if (sres.is_valid()) {
-							NonPersistentKey npk;
-							npk.base = res;
-							npk.property = E->get().name;
-							non_persistent_map[npk] = sres;
 							resource_set.insert(sres);
 							saved_resources.push_back(sres);
+						} else {
+							_find_resources(value);
 						}
 					} else {
 						_find_resources(value);
