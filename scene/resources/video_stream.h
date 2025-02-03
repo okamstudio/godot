@@ -54,6 +54,7 @@ protected:
 	GDVIRTUAL0RC(double, _get_playback_position);
 	GDVIRTUAL1(_seek, double);
 	GDVIRTUAL1(_set_audio_track, int);
+	GDVIRTUAL1(_set_pp_level, int);
 	GDVIRTUAL0RC(Ref<Texture2D>, _get_texture);
 	GDVIRTUAL1_REQUIRED(_update, double);
 	GDVIRTUAL0RC(int, _get_channels);
@@ -80,6 +81,8 @@ public:
 
 	virtual void set_audio_track(int p_idx);
 
+	virtual void set_pp_level(int p_pp_level);
+
 	virtual Ref<Texture2D> get_texture() const;
 	virtual void update(double p_delta);
 
@@ -99,12 +102,14 @@ protected:
 
 	String file;
 	int audio_track = 0;
+	int pp_level = 0;
 
 public:
 	void set_file(const String &p_file);
 	String get_file();
 
 	virtual void set_audio_track(int p_track);
+	virtual void set_pp_level(int p_pp_level);
 	virtual Ref<VideoStreamPlayback> instantiate_playback();
 
 	VideoStream();

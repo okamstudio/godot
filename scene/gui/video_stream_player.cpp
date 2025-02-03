@@ -255,6 +255,7 @@ void VideoStreamPlayer::set_stream(const Ref<VideoStream> &p_stream) {
 	stream = p_stream;
 	if (stream.is_valid()) {
 		stream->set_audio_track(audio_track);
+		stream->set_pp_level(pp_level);
 		playback = stream->instantiate_playback();
 	} else {
 		playback = Ref<VideoStreamPlayback>();
@@ -473,6 +474,20 @@ StringName VideoStreamPlayer::get_bus() const {
 	return SceneStringName(Master);
 }
 
+void VideoStreamPlayer::set_pp_level(int p_pp_level) {
+	pp_level = p_pp_level;
+	if (stream.is_valid()) {
+		stream->set_pp_level(pp_level);
+	}
+	if (playback.is_valid()) {
+		playback->set_pp_level(pp_level);
+	}
+}
+
+int VideoStreamPlayer::get_pp_level() const {
+	return pp_level;
+}
+
 void VideoStreamPlayer::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name == "bus") {
 		String options;
@@ -532,6 +547,9 @@ void VideoStreamPlayer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_video_texture"), &VideoStreamPlayer::get_video_texture);
 
+	ClassDB::bind_method(D_METHOD("set_pp_level", "pp_level"), &VideoStreamPlayer::set_pp_level);
+	ClassDB::bind_method(D_METHOD("get_pp_level"), &VideoStreamPlayer::get_pp_level);
+
 	ADD_SIGNAL(MethodInfo("finished"));
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "audio_track", PROPERTY_HINT_RANGE, "0,128,1"), "set_audio_track", "get_audio_track");
@@ -546,6 +564,7 @@ void VideoStreamPlayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "stream_position", PROPERTY_HINT_RANGE, "0,1280000,0.1", PROPERTY_USAGE_NONE), "set_stream_position", "get_stream_position");
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "bus", PROPERTY_HINT_ENUM, ""), "set_bus", "get_bus");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "pp_level", PROPERTY_HINT_RANGE, "0,256,1"), "set_pp_level", "get_pp_level");
 }
 
 VideoStreamPlayer::VideoStreamPlayer() {}

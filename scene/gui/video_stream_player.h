@@ -68,6 +68,7 @@ class VideoStreamPlayer : public Control {
 	int buffering_ms = 500;
 	int audio_track = 0;
 	int bus_index = 0;
+	int pp_level = 0;
 
 	StringName bus;
 
@@ -122,6 +123,9 @@ public:
 
 	void set_bus(const StringName &p_bus);
 	StringName get_bus() const;
+
+	void set_pp_level(int p_pp_level);
+	int get_pp_level() const;
 
 	VideoStreamPlayer();
 	~VideoStreamPlayer();

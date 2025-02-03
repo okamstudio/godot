@@ -518,6 +518,11 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 
 		while (!video_ready && !video_done) {
 			if (ogg_stream_packetout(&to, &op) > 0) {
+				if (pp_inc) {
+					pp_level += pp_inc;
+					th_decode_ctl(td, TH_DECCTL_SET_PPLEVEL, &pp_level, sizeof(pp_level));
+					pp_inc = 0;
+				}
 				if (op.granulepos >= 0) {
 					th_decode_ctl(td, TH_DECCTL_SET_GRANPOS, &op.granulepos, sizeof(op.granulepos));
 				}
@@ -555,9 +560,9 @@ void VideoStreamPlaybackTheora::update(double p_delta) {
 
 		double tdiff = next_frame_time - comp_time;
 		/*If we have lots of extra time, increase the post-processing level.*/
-		if (tdiff > ti.fps_denominator * 0.25 / ti.fps_numerator) {
-			pp_inc = pp_level < pp_level_max ? 1 : 0;
-		} else if (tdiff < ti.fps_denominator * 0.05 / ti.fps_numerator) {
+		if (tdiff > frame_duration * 0.25) {
+			pp_inc = pp_level < pp_level_max && pp_level < pp_level_requested ? 1 : 0;
+		} else if (tdiff < frame_duration * 0.05) {
 			pp_inc = pp_level > 0 ? -1 : 0;
 		}
 	}
@@ -678,6 +683,10 @@ void VideoStreamPlaybackTheora::seek(double p_time) {
 	int64_t granulepos = 1;
 	th_decode_ctl(td, TH_DECCTL_SET_GRANPOS, &granulepos, sizeof(granulepos));
 
+	// Set post-processing to lowest to be faster
+	pp_level = 0;
+	th_decode_ctl(td, TH_DECCTL_SET_PPLEVEL, &pp_level, sizeof(pp_level));
+
 	double last_audio_time = 0;
 	double last_video_time = 0;
 	bool first_frame_decoded = false;
@@ -736,6 +745,10 @@ void VideoStreamPlaybackTheora::seek(double p_time) {
 		th_decode_ycbcr_out(td, yuv);
 		video_write(yuv);
 	}
+
+	pp_level = pp_level_requested;
+	th_decode_ctl(td, TH_DECCTL_SET_PPLEVEL, &pp_level, sizeof(pp_level));
+	pp_inc = 0;
 }
 
 int VideoStreamPlaybackTheora::get_channels() const {
@@ -748,6 +761,10 @@ void VideoStreamPlaybackTheora::set_audio_track(int p_idx) {
 
 int VideoStreamPlaybackTheora::get_mix_rate() const {
 	return vi.rate;
+}
+
+void VideoStreamPlaybackTheora::set_pp_level(int p_pp_level) {
+	pp_level_requested = p_pp_level;
 }
 
 VideoStreamPlaybackTheora::VideoStreamPlaybackTheora() {

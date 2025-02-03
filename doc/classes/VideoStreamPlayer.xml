@@ -73,6 +73,9 @@
 		<member name="paused" type="bool" setter="set_paused" getter="is_paused" default="false">
 			If [code]true[/code], the video is paused.
 		</member>
+		<member name="pp_level" type="int" setter="set_pp_level" getter="get_pp_level" default="0">
+			Maximum post-processing level to use. Zero is disabled, the higher the more CPU is used.
+		</member>
 		<member name="stream" type="VideoStream" setter="set_stream" getter="get_stream">
 			The assigned video stream. See description for supported formats.
 		</member>

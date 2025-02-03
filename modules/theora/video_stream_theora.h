@@ -85,6 +85,7 @@ class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 	int pp_level_max = 0;
 	int pp_level = 0;
 	int pp_inc = 0;
+	int pp_level_requested = 0;
 
 	bool playing = false;
 	bool paused = false;
@@ -130,6 +131,7 @@ public:
 	virtual int get_mix_rate() const override;
 
 	virtual void set_audio_track(int p_idx) override;
+	virtual void set_pp_level(int p_pp_level) override;
 
 	VideoStreamPlaybackTheora();
 	~VideoStreamPlaybackTheora();
@@ -145,13 +147,18 @@ public:
 	Ref<VideoStreamPlayback> instantiate_playback() override {
 		Ref<VideoStreamPlaybackTheora> pb = memnew(VideoStreamPlaybackTheora);
 		pb->set_audio_track(audio_track);
+		pb->set_pp_level(pp_level);
 		pb->set_file(file);
 		return pb;
 	}
 
 	void set_audio_track(int p_track) override { audio_track = p_track; }
+	void set_pp_level(int p_pp_level) override { pp_level = p_pp_level; }
 
-	VideoStreamTheora() { audio_track = 0; }
+	VideoStreamTheora() {
+		audio_track = 0;
+		pp_level = 0;
+	}
 };
 
 class ResourceFormatLoaderTheora : public ResourceFormatLoader {
