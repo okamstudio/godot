@@ -62,7 +62,11 @@ VPXDecoder::VPXDecoder(const WebMDemuxer &demuxer, unsigned threads) :
 	}
 
 	m_ctx = new vpx_codec_ctx_t;
-	if (vpx_codec_dec_init(m_ctx, codecIface, &codecCfg, m_delay > 0 ? VPX_CODEC_USE_FRAME_THREADING : 0))
+	
+	// disable multi thread for decoder to make some vp8 and vp9 video files work properly
+	// refertence url https://github.com/dimiaa/WebM-Video-Player/blob/main/src/WebMVideoDecoder.cpp
+	int codecFlags = 0;
+	if (vpx_codec_dec_init(m_ctx, codecIface, &codecCfg, codecFlags))
 	{
 		delete m_ctx;
 		m_ctx = NULL;

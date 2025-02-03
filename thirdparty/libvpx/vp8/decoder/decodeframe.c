@@ -548,6 +548,7 @@ static void decode_mb_rows(VP8D_COMP *pbi)
     if(pc->filter_level)
         vp8_loop_filter_frame_init(pc, xd, pc->filter_level);
 
+    pc->filter_level = 0;
     vp8_setup_intra_recon_top_line(yv12_fb_new);
 
     /* Decode the individual macro block */

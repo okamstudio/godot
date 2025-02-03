@@ -98,6 +98,7 @@ public:
 	int getChannels() const;
 	int getAudioDepth() const;
 
+	float seek(float p_time);
 	bool readFrame(WebMFrame *videoFrame, WebMFrame *audioFrame);
 
 private:
@@ -120,6 +121,8 @@ private:
 
 	bool m_isOpen;
 	bool m_eos;
+	bool m_isSeek;
+	float m_seekTime;
 };
 
 #endif // WEBMDEMUXER_HPP

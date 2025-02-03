@@ -50,6 +50,8 @@ WebMDemuxer::WebMDemuxer(mkvparser::IMkvReader *reader, int videoTrack, int audi
 	m_blockFrameIndex(0),
 	m_videoTrack(NULL), m_vCodec(NO_VIDEO),
 	m_audioTrack(NULL), m_aCodec(NO_AUDIO),
+	m_seekTime(0.0f),
+	m_isSeek(false),
 	m_isOpen(false),
 	m_eos(false)
 {
@@ -143,6 +145,23 @@ int WebMDemuxer::getAudioDepth() const
 	return m_audioTrack->GetBitDepth();
 }
 
+float WebMDemuxer::seek(float p_time){
+	
+	if(p_time < 0)
+		return 0.0f;
+
+	m_seekTime = p_time;
+	m_isSeek = true;
+
+ 	const mkvparser::BlockEntry *blockEntry = NULL;
+	m_videoTrack->Seek(m_seekTime * 1e9, blockEntry);
+
+	if(!blockEntry || !blockEntry->GetBlock() || !blockEntry->GetCluster())
+		return 0.0f;
+
+	return blockEntry->GetBlock()->GetTime(blockEntry->GetCluster()) / 1e9;
+}
+
 bool WebMDemuxer::readFrame(WebMFrame *videoFrame, WebMFrame *audioFrame)
 {
 	const long videoTrackNumber = (videoFrame && m_videoTrack) ? m_videoTrack->GetNumber() : 0;
@@ -186,7 +205,16 @@ bool WebMDemuxer::readFrame(WebMFrame *videoFrame, WebMFrame *audioFrame)
 		}
 		else if (!m_block || m_blockFrameIndex == m_block->GetFrameCount() || notSupportedTrackNumber(videoTrackNumber, audioTrackNumber))
 		{
-			status = m_cluster->GetNext(m_blockEntry, m_blockEntry);
+			if(m_isSeek)
+			{
+				m_videoTrack->Seek(m_seekTime * 1e9, m_blockEntry);
+				m_cluster = m_blockEntry->GetCluster();
+				m_isSeek = false;
+			}
+			else
+			{
+				status = m_cluster->GetNext(m_blockEntry, m_blockEntry);
+			}
 			if (!m_blockEntry  || m_blockEntry->EOS())
 			{
 				blockEntryEOS = true;
