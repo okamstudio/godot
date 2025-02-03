@@ -2283,6 +2283,15 @@ static void _find_call_arguments(const GDScriptCompletionContext &p_context, con
 							option.insert_text = quote_style + option.display + quote_style;
 							r_result.insert(option.display, option);
 						}
+					} else {
+						List<MethodInfo> methods;
+						gds->get_script_method_list(&methods);
+						for (List<MethodInfo>::Element *E = methods.front(); E; E = E->next()) {
+							if (E->get().name == p_method) {
+								r_arghint = _make_arguments_hint(E->get(), p_argidx);
+								return;
+							}
+						}
 					}
 					Ref<GDScript> base_script = gds->get_base_script();
 					if (base_script.is_valid()) {
