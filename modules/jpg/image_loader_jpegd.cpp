@@ -33,7 +33,8 @@
 #include "core/os/os.h"
 #include "core/print_string.h"
 
-#include <jpgd.h>
+#include "thirdparty/jpeg-compressor/jpgd.h"
+#include "thirdparty/jpeg-compressor/jpge.h"
 #include <string.h>
 
 Error jpeg_load_image_from_buffer(Image *p_image, const uint8_t *p_buffer, int p_buffer_len) {
@@ -134,6 +135,83 @@ static Ref<Image> _jpegd_mem_loader_func(const uint8_t *p_png, int p_size) {
 	return img;
 }
 
+class ImageLoaderJPGOSFile : public jpge::output_stream {
+public:
+	Ref<FileAccess> f;
+
+	virtual bool put_buf(const void *Pbuf, int len) {
+		f->store_buffer((const uint8_t *)Pbuf, len);
+		return true;
+	}
+};
+
+class ImageLoaderJPGOSBuffer : public jpge::output_stream {
+public:
+	PoolVector<uint8_t> *buffer = nullptr;
+	virtual bool put_buf(const void *Pbuf, int len) {
+		uint32_t base = buffer->size();
+		buffer->resize(base + len);
+		PoolVector<uint8_t>::Write writer = buffer->write();
+		memcpy(&writer[base], Pbuf, len);
+		return true;
+	}
+};
+
+static PoolVector<uint8_t> _jpgd_buffer_save_func(const Ref<Image> &p_img, float p_quality) {
+	ERR_FAIL_COND_V(p_img.is_null() || p_img->empty(), PoolVector<uint8_t>());
+
+	Ref<Image> image = p_img->duplicate();
+	if (image->is_compressed()) {
+		image->decompress();
+	}
+	ERR_FAIL_COND_V(image->is_compressed(), PoolVector<uint8_t>());
+
+	if (image->get_format() != Image::FORMAT_RGB8) {
+		image->convert(Image::FORMAT_RGB8);
+	}
+
+	jpge::params p;
+	p.m_quality = CLAMP(p_quality * 100, 1, 100);
+	PoolVector<uint8_t> output;
+	ImageLoaderJPGOSBuffer ob;
+	ob.buffer = &output;
+
+	jpge::jpeg_encoder enc;
+	enc.init(&ob, image->get_width(), image->get_height(), 3, p);
+
+	PoolVector<uint8_t>::Read reader = image->get_data().read();
+	const uint8_t *src_data = reader.ptr();
+	for (int i = 0; i < image->get_height(); i++) {
+		enc.process_scanline(&src_data[i * image->get_width() * 3]);
+	}
+
+	enc.process_scanline(nullptr);
+
+	return output;
+}
+
+static Error _jpgd_save_func(const String &p_path, const Ref<Image> &p_img, float p_quality) {
+	PoolVector<uint8_t> buffer = _jpgd_buffer_save_func(p_img, p_quality);
+	Error err;
+	FileAccess *file = FileAccess::open(p_path, FileAccess::WRITE, &err);
+	ERR_FAIL_COND_V_MSG(err, err, vformat("Can't save JPG at path: '%s'.", p_path));
+
+	PoolVector<uint8_t>::Read reader = buffer.read();
+
+	file->store_buffer(reader.ptr(), buffer.size());
+	if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF) {
+		memdelete(file);
+		return ERR_CANT_CREATE;
+	}
+
+	file->close();
+	memdelete(file);
+
+	return OK;
+}
+
 ImageLoaderJPG::ImageLoaderJPG() {
 	Image::_jpg_mem_loader_func = _jpegd_mem_loader_func;
+	Image::save_jpg_func = _jpgd_save_func;
+	Image::save_jpg_buffer_func = _jpgd_buffer_save_func;
 }

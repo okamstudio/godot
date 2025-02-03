@@ -83,9 +83,11 @@ const char *Image::format_names[Image::FORMAT_MAX] = {
 };
 
 SavePNGFunc Image::save_png_func = nullptr;
+SaveJPGFunc Image::save_jpg_func = nullptr;
 SaveEXRFunc Image::save_exr_func = nullptr;
 
 SavePNGBufferFunc Image::save_png_buffer_func = nullptr;
+SaveJPGBufferFunc Image::save_jpg_buffer_func = nullptr;
 
 void Image::_put_pixelb(int p_x, int p_y, uint32_t p_pixel_size, uint8_t *p_data, const uint8_t *p_pixel) {
 	uint32_t ofs = (p_y * width + p_x) * p_pixel_size;
@@ -2074,12 +2076,28 @@ Error Image::save_png(const String &p_path) const {
 	return save_png_func(p_path, Ref<Image>((Image *)this));
 }
 
+Error Image::save_jpg(const String &p_path, float p_quality) const {
+	if (save_jpg_func == nullptr) {
+		return ERR_UNAVAILABLE;
+	}
+
+	return save_jpg_func(p_path, Ref<Image>((Image *)this), p_quality);
+}
+
 PoolVector<uint8_t> Image::save_png_to_buffer() const {
 	if (save_png_buffer_func == nullptr) {
 		return PoolVector<uint8_t>();
 	}
 
 	return save_png_buffer_func(Ref<Image>((Image *)this));
+}
+
+PoolVector<uint8_t> Image::save_jpg_to_buffer(float p_quality) const {
+	if (save_jpg_buffer_func == nullptr) {
+		return PoolVector<uint8_t>();
+	}
+
+	return save_jpg_buffer_func(Ref<Image>((Image *)this), p_quality);
 }
 
 Error Image::save_exr(const String &p_path, bool p_grayscale) const {
@@ -2934,6 +2952,8 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load", "path"), &Image::load);
 	ClassDB::bind_method(D_METHOD("save_png", "path"), &Image::save_png);
 	ClassDB::bind_method(D_METHOD("save_png_to_buffer"), &Image::save_png_to_buffer);
+	ClassDB::bind_method(D_METHOD("save_jpg", "path", "quality"), &Image::save_jpg, DEFVAL(0.75));
+	ClassDB::bind_method(D_METHOD("save_jpg_to_buffer", "quality"), &Image::save_jpg_to_buffer, DEFVAL(0.75));
 	ClassDB::bind_method(D_METHOD("save_exr", "path", "grayscale"), &Image::save_exr, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("detect_alpha"), &Image::detect_alpha);

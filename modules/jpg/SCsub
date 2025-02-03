@@ -13,6 +13,7 @@ thirdparty_obj = []
 thirdparty_dir = "#thirdparty/jpeg-compressor/"
 thirdparty_sources = [
     "jpgd.cpp",
+    "jpge.cpp",
 ]
 thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 

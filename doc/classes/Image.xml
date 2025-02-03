@@ -358,6 +358,20 @@
 				[b]Note:[/b] The TinyEXR module is disabled in non-editor builds, which means [method save_exr] will return [constant ERR_UNAVAILABLE] when it is called from an exported project.
 			</description>
 		</method>
+		<method name="save_jpg" qualifiers="const">
+			<return type="int" enum="Error" />
+			<argument index="0" name="path" type="String" />
+			<argument index="1" name="quality" type="float" default="0.75" />
+			<description>
+				Saves the image as a JPG file to [code]path[/code]. Compression level (from 0.01 to 1.0 -- highest quality) can be set with [code]quality[/code].
+			</description>
+		</method>
+		<method name="save_jpg_to_buffer" qualifiers="const">
+			<return type="PoolByteArray" />
+			<argument index="0" name="quality" type="float" default="0.75" />
+			<description>
+			</description>
+		</method>
 		<method name="save_png" qualifiers="const">
 			<return type="int" enum="Error" />
 			<argument index="0" name="path" type="String" />
