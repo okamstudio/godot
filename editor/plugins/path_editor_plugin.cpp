@@ -34,6 +34,19 @@
 #include "scene/resources/curve.h"
 #include "spatial_editor_plugin.h"
 
+static bool _is_in_handle(int p_id, int p_num_points) {
+	int t = (p_id + 1) % 2;
+	int idx = (p_id + 1) / 2;
+	// order of points is [out_0, out_1, in_1, out_2, in_2, ... out_n-1, in_n-1, in_n]
+	if (idx == 0) {
+		return false;
+	} else if (idx == (p_num_points - 1)) {
+		return true;
+	} else {
+		return (t == 1);
+	}
+}
+
 String PathSpatialGizmo::get_handle_name(int p_idx) const {
 	Ref<Curve3D> c = path->get_curve();
 	if (c.is_null()) {
@@ -44,12 +57,10 @@ String PathSpatialGizmo::get_handle_name(int p_idx) const {
 		return TTR("Curve Point #") + itos(p_idx);
 	}
 
-	p_idx = p_idx - c->get_point_count() + 1;
-
-	int idx = p_idx / 2;
-	int t = p_idx % 2;
+	p_idx = p_idx - c->get_point_count();
+	int idx = (p_idx + 1) / 2;
 	String n = TTR("Curve Point #") + itos(idx);
-	if (t == 0) {
+	if (_is_in_handle(p_idx, c->get_point_count())) {
 		n += " In";
 	} else {
 		n += " Out";
@@ -68,13 +79,11 @@ Variant PathSpatialGizmo::get_handle_value(int p_idx) {
 		return original;
 	}
 
-	p_idx = p_idx - c->get_point_count() + 1;
-
-	int idx = p_idx / 2;
-	int t = p_idx % 2;
+	p_idx = p_idx - c->get_point_count();
+	int idx = (p_idx + 1) / 2;
 
 	Vector3 ofs;
-	if (t == 0) {
+	if (_is_in_handle(p_idx, c->get_point_count())) {
 		ofs = c->get_point_in(idx);
 	} else {
 		ofs = c->get_point_out(idx);
@@ -114,10 +123,8 @@ void PathSpatialGizmo::set_handle(int p_idx, Camera *p_camera, const Point2 &p_p
 		return;
 	}
 
-	p_idx = p_idx - c->get_point_count() + 1;
-
-	int idx = p_idx / 2;
-	int t = p_idx % 2;
+	p_idx = p_idx - c->get_point_count();
+	int idx = (p_idx + 1) / 2;
 
 	Vector3 base = c->get_point_position(idx);
 
@@ -139,7 +146,7 @@ void PathSpatialGizmo::set_handle(int p_idx, Camera *p_camera, const Point2 &p_p
 			local.snap(Vector3(snap, snap, snap));
 		}
 
-		if (t == 0) {
+		if (_is_in_handle(p_idx, c->get_point_count())) {
 			c->set_point_in(idx, local);
 			if (PathEditorPlugin::singleton->mirror_angle_enabled()) {
 				c->set_point_out(idx, PathEditorPlugin::singleton->mirror_length_enabled() ? -local : (-local.normalized() * orig_out_length));
@@ -174,12 +181,10 @@ void PathSpatialGizmo::commit_handle(int p_idx, const Variant &p_restore, bool p
 		return;
 	}
 
-	p_idx = p_idx - c->get_point_count() + 1;
+	p_idx = p_idx - c->get_point_count();
+	int idx = (p_idx + 1) / 2;
 
-	int idx = p_idx / 2;
-	int t = p_idx % 2;
-
-	if (t == 0) {
+	if (_is_in_handle(p_idx, c->get_point_count())) {
 		if (p_cancel) {
 			c->set_point_in(p_idx, p_restore);
 			return;
@@ -257,16 +262,16 @@ void PathSpatialGizmo::redraw() {
 		for (int i = 0; i < c->get_point_count(); i++) {
 			Vector3 p = c->get_point_position(i);
 			handles.push_back(p);
-			if (i > 0) {
-				v3p.push_back(p);
-				v3p.push_back(p + c->get_point_in(i));
-				sec_handles.push_back(p + c->get_point_in(i));
-			}
-
+			// push Out points first so they get selected if the In and Out points are on top of each other.
 			if (i < c->get_point_count() - 1) {
 				v3p.push_back(p);
 				v3p.push_back(p + c->get_point_out(i));
 				sec_handles.push_back(p + c->get_point_out(i));
+			}
+			if (i > 0) {
+				v3p.push_back(p);
+				v3p.push_back(p + c->get_point_in(i));
+				sec_handles.push_back(p + c->get_point_in(i));
 			}
 		}
 
