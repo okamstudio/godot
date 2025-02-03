@@ -1268,9 +1268,54 @@ LIGHT_SHADER_CODE
 }
 
 float sample_shadow(highp sampler2DShadow shadow, vec2 shadow_pixel_size, vec2 pos, float depth, vec4 clamp_rect) {
-#ifdef SHADOW_MODE_PCF_13 //ubershader-runtime
+	float avg = textureProj(shadow, vec4(pos, depth, 1.0));
+#ifdef SHADOW_MODE_PCF_LOW //ubershader-runtime
+#ifdef SHADOW_MODE_PCF_HIGH //ubershader-runtime
+	// PCF25 (highest quality).
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 3.0, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x * 3.0, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, shadow_pixel_size.y * 3.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, -shadow_pixel_size.y * 3.0), depth, 1.0));
+	// Early bail if distant samples are fully shaded (or none are shaded) to improve performance.
+	if (avg <= 0.000001) {
+		// None shaded at all.
+		return 0.0;
+	} else if (avg >= 4.999999) {
+		// All fully shaded.
+		return 1.0;
+	}
 
-	float avg = textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 2.0, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, -shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, -shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, -shadow_pixel_size.y), depth, 1.0));
+
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 2.0, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x * 2.0, 0.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, shadow_pixel_size.y * 2.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(0.0, -shadow_pixel_size.y * 2.0), depth, 1.0));
+
+	// Outer ring (excluding the points at each end).
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 2.0, -shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x * 2.0, -shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 2.0, shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x * 2.0, shadow_pixel_size.y), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, -shadow_pixel_size.y * 2.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, -shadow_pixel_size.y * 2.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, shadow_pixel_size.y * 2.0), depth, 1.0));
+	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, shadow_pixel_size.y * 2.0), depth, 1.0));
+	return avg * (1.0 / 25.0);
+#endif //ubershader-runtime
+#endif //ubershader-runtime
+
+#ifndef SHADOW_MODE_PCF_LOW //ubershader-runtime
+#ifdef SHADOW_MODE_PCF_HIGH //ubershader-runtime
+	// PCF13 (high quality).
+	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x * 2.0, 0.0), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x * 2.0, 0.0), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(0.0, shadow_pixel_size.y * 2.0), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(0.0, -shadow_pixel_size.y * 2.0), depth, 1.0));
@@ -1278,7 +1323,7 @@ float sample_shadow(highp sampler2DShadow shadow, vec2 shadow_pixel_size, vec2 p
 	if (avg <= 0.000001) {
 		// None shaded at all.
 		return 0.0;
-	} else if (avg >= 3.999999) {
+	} else if (avg >= 4.999999) {
 		// All fully shaded.
 		return 1.0;
 	}
@@ -1294,23 +1339,23 @@ float sample_shadow(highp sampler2DShadow shadow, vec2 shadow_pixel_size, vec2 p
 	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, -shadow_pixel_size.y), depth, 1.0));
 	return avg * (1.0 / 13.0);
 #endif //ubershader-runtime
+#endif //ubershader-runtime
 
-#ifdef SHADOW_MODE_PCF_5 //ubershader-runtime
-
-	float avg = textureProj(shadow, vec4(pos, depth, 1.0));
+#ifdef SHADOW_MODE_PCF_LOW //ubershader-runtime
+#ifndef SHADOW_MODE_PCF_HIGH //ubershader-runtime
+	// PCF5 (low quality).
 	avg += textureProj(shadow, vec4(pos + vec2(shadow_pixel_size.x, 0.0), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(-shadow_pixel_size.x, 0.0), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(0.0, shadow_pixel_size.y), depth, 1.0));
 	avg += textureProj(shadow, vec4(pos + vec2(0.0, -shadow_pixel_size.y), depth, 1.0));
 	return avg * (1.0 / 5.0);
-
+#endif //ubershader-runtime
 #endif //ubershader-runtime
 
-#ifndef SHADOW_MODE_PCF_5 //ubershader-runtime
-#ifndef SHADOW_MODE_PCF_13 //ubershader-runtime
-
-	return textureProj(shadow, vec4(pos, depth, 1.0));
-
+#ifndef SHADOW_MODE_PCF_LOW //ubershader-runtime
+#ifndef SHADOW_MODE_PCF_HIGH //ubershader-runtime
+	// Disabled (lowest quality).
+	return avg;
 #endif //ubershader-runtime
 #endif //ubershader-runtime
 }

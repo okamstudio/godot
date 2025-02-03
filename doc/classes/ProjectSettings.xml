@@ -1822,8 +1822,8 @@
 			[b]Note:[/b] This setting only takes effect when [member rendering/quality/shadows/light_culling] is also [code]true[/code].
 		</member>
 		<member name="rendering/quality/shadows/filter_mode" type="int" setter="" getter="" default="1">
-			Shadow filter mode. Higher-quality settings result in smoother shadows that flicker less when moving. "Disabled" is the fastest option, but also has the lowest quality. "PCF5" is smoother but is also slower. "PCF13" is the smoothest option, but is also the slowest.
-			[b]Note:[/b] When using the GLES2 backend, the "PCF13" option actually uses 16 samples to emulate linear filtering in the shader. This results in a shadow appearance similar to the one produced by the GLES3 backend.
+			Shadow filter mode. Higher-quality settings result in smoother shadows that flicker less when moving. "Disabled" is the fastest option, but also has the lowest quality. "PCF5" and "PCF13" are smoother but are also slower. "PCF25" is the smoothest option, but is also the slowest.
+			[b]Note:[/b] When using the GLES2 backend, the "PCF13" and "PCF25" options act the same. They actually use 16 samples to emulate linear filtering in the shader. This results in a shadow appearance similar to the one produced by the GLES3 backend.
 		</member>
 		<member name="rendering/quality/shadows/filter_mode.mobile" type="int" setter="" getter="" default="0">
 			Lower-end override for [member rendering/quality/shadows/filter_mode] on mobile devices, due to performance concerns or driver support.

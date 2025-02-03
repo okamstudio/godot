@@ -1542,7 +1542,9 @@ float sample_shadow(highp sampler2D shadow, highp vec4 spos) {
 	float depth = spos.z;
 
 #ifdef SHADOW_MODE_PCF_13
-
+	// This codepath is used for both PCF13 and PCF25 options,
+	// as PCF25 is not implemented in GLES2 for performance reasons.
+	//
 	// Soft PCF filter adapted from three.js:
 	// https://github.com/mrdoob/three.js/blob/0c815022849389cbe6de14a93e1c2fc7e4b21c18/src/renderers/shaders/ShaderChunk/shadowmap_pars_fragment.glsl.js#L148-L182
 	// This method actually uses 16 shadow samples. This soft filter isn't needed in GLES3

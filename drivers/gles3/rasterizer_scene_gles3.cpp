@@ -2053,8 +2053,8 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM3, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM2, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM_BLEND, false);
-					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_5, false);
-					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_13, false);
+					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_LOW, false);
+					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_HIGH, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::USE_GI_PROBES, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::USE_LIGHTMAP_CAPTURE, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::USE_LIGHTMAP, false);
@@ -2080,8 +2080,10 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM3, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM2, false);
 					state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM_BLEND, false);
-					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_5, shadow_filter_mode == SHADOW_FILTER_PCF5);
-					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_13, shadow_filter_mode == SHADOW_FILTER_PCF13);
+					// If both "low" and "high" are enabled, PCF25 is used (it's the highest quality option).
+					// This is done to avoid having too many conditionals (more than 32), which breaks the shader compiler.
+					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_LOW, shadow_filter_mode == SHADOW_FILTER_PCF5 || shadow_filter_mode == SHADOW_FILTER_PCF25);
+					state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_HIGH, shadow_filter_mode == SHADOW_FILTER_PCF13 || shadow_filter_mode == SHADOW_FILTER_PCF25);
 					state.scene_shader.set_conditional(SceneShaderGLES3::USE_RADIANCE_MAP, use_radiance_map);
 					state.scene_shader.set_conditional(SceneShaderGLES3::USE_CONTACT_SHADOWS, state.used_contact_shadows);
 
@@ -2246,8 +2248,8 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 	state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM2, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::LIGHT_USE_PSSM_BLEND, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::SHADELESS, false);
-	state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_5, false);
-	state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_13, false);
+	state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_LOW, false);
+	state.scene_shader.set_conditional(SceneShaderGLES3::SHADOW_MODE_PCF_HIGH, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_GI_PROBES, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_LIGHTMAP, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_LIGHTMAP_LAYERED, false);

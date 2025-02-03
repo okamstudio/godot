@@ -52,6 +52,7 @@ public:
 		SHADOW_FILTER_NEAREST,
 		SHADOW_FILTER_PCF5,
 		SHADOW_FILTER_PCF13,
+		SHADOW_FILTER_PCF25,
 	};
 
 	ShadowFilterMode shadow_filter_mode;
