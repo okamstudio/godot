@@ -1772,6 +1772,15 @@ void ProjectManager::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			Engine::get_singleton()->set_editor_hint(false);
+
+			open_btn->set_icon(get_icon("Edit", "EditorIcons"));
+			run_btn->set_icon(get_icon("Play", "EditorIcons"));
+			scan_btn->set_icon(get_icon("Search", "EditorIcons"));
+			create_btn->set_icon(get_icon("Add", "EditorIcons"));
+			import_btn->set_icon(get_icon("Load", "EditorIcons"));
+			rename_btn->set_icon(get_icon("Rename", "EditorIcons"));
+			erase_btn->set_icon(get_icon("Remove", "EditorIcons"));
+			erase_missing_btn->set_icon(get_icon("Clear", "EditorIcons"));
 		} break;
 		case NOTIFICATION_RESIZED: {
 			if (open_templates && open_templates->is_visible()) {
@@ -2532,8 +2541,11 @@ ProjectManager::ProjectManager() {
 	tree_vb->set_custom_minimum_size(Size2(120, 120));
 	local_projects_hb->add_child(tree_vb);
 
+	const int btn_h_separation = int(6 * EDSCALE);
+
 	Button *open = memnew(Button);
 	open->set_text(TTR("Edit"));
+	open->add_constant_override("hseparation", btn_h_separation);
 	open->set_shortcut(ED_SHORTCUT("project_manager/edit_project", TTR("Edit Project"), KEY_MASK_CMD | KEY_E));
 	tree_vb->add_child(open);
 	open->connect("pressed", this, "_open_selected_projects_ask");
@@ -2541,6 +2553,7 @@ ProjectManager::ProjectManager() {
 
 	Button *run = memnew(Button);
 	run->set_text(TTR("Run"));
+	run->add_constant_override("hseparation", btn_h_separation);
 	run->set_shortcut(ED_SHORTCUT("project_manager/run_project", TTR("Run Project"), KEY_MASK_CMD | KEY_R));
 	tree_vb->add_child(run);
 	run->connect("pressed", this, "_run_project");
@@ -2548,11 +2561,12 @@ ProjectManager::ProjectManager() {
 
 	tree_vb->add_child(memnew(HSeparator));
 
-	Button *scan = memnew(Button);
-	scan->set_text(TTR("Scan"));
-	scan->set_shortcut(ED_SHORTCUT("project_manager/scan_projects", TTR("Scan Projects"), KEY_MASK_CMD | KEY_S));
-	tree_vb->add_child(scan);
-	scan->connect("pressed", this, "_scan_projects");
+	scan_btn = memnew(Button);
+	scan_btn->set_text(TTR("Scan"));
+	scan_btn->add_constant_override("hseparation", btn_h_separation);
+	scan_btn->set_shortcut(ED_SHORTCUT("project_manager/scan_projects", TTR("Scan Projects"), KEY_MASK_CMD | KEY_S));
+	tree_vb->add_child(scan_btn);
+	scan_btn->connect("pressed", this, "_scan_projects");
 
 	tree_vb->add_child(memnew(HSeparator));
 
@@ -2564,20 +2578,23 @@ ProjectManager::ProjectManager() {
 	gui_base->add_child(scan_dir);
 	scan_dir->connect("dir_selected", this, "_scan_begin");
 
-	Button *create = memnew(Button);
-	create->set_text(TTR("New Project"));
-	create->set_shortcut(ED_SHORTCUT("project_manager/new_project", TTR("New Project"), KEY_MASK_CMD | KEY_N));
-	tree_vb->add_child(create);
-	create->connect("pressed", this, "_new_project");
+	create_btn = memnew(Button);
+	create_btn->set_text(TTR("New Project"));
+	create_btn->add_constant_override("hseparation", btn_h_separation);
+	create_btn->set_shortcut(ED_SHORTCUT("project_manager/new_project", TTR("New Project"), KEY_MASK_CMD | KEY_N));
+	tree_vb->add_child(create_btn);
+	create_btn->connect("pressed", this, "_new_project");
 
-	Button *import = memnew(Button);
-	import->set_text(TTR("Import"));
-	import->set_shortcut(ED_SHORTCUT("project_manager/import_project", TTR("Import Project"), KEY_MASK_CMD | KEY_I));
-	tree_vb->add_child(import);
-	import->connect("pressed", this, "_import_project");
+	import_btn = memnew(Button);
+	import_btn->set_text(TTR("Import"));
+	import_btn->add_constant_override("hseparation", btn_h_separation);
+	import_btn->set_shortcut(ED_SHORTCUT("project_manager/import_project", TTR("Import Project"), KEY_MASK_CMD | KEY_I));
+	tree_vb->add_child(import_btn);
+	import_btn->connect("pressed", this, "_import_project");
 
 	Button *rename = memnew(Button);
 	rename->set_text(TTR("Rename"));
+	rename->add_constant_override("hseparation", btn_h_separation);
 	// The F2 shortcut isn't overridden with Enter on macOS as Enter is already used to edit a project.
 	rename->set_shortcut(ED_SHORTCUT("project_manager/rename_project", TTR("Rename Project"), KEY_F2));
 	tree_vb->add_child(rename);
@@ -2586,6 +2603,7 @@ ProjectManager::ProjectManager() {
 
 	Button *erase = memnew(Button);
 	erase->set_text(TTR("Remove"));
+	erase->add_constant_override("hseparation", btn_h_separation);
 	erase->set_shortcut(ED_SHORTCUT("project_manager/remove_project", TTR("Remove Project"), KEY_DELETE));
 	tree_vb->add_child(erase);
 	erase->connect("pressed", this, "_erase_project");
@@ -2593,6 +2611,7 @@ ProjectManager::ProjectManager() {
 
 	Button *erase_missing = memnew(Button);
 	erase_missing->set_text(TTR("Remove Missing"));
+	erase_missing->add_constant_override("hseparation", btn_h_separation);
 	tree_vb->add_child(erase_missing);
 	erase_missing->connect("pressed", this, "_erase_missing_projects");
 	erase_missing_btn = erase_missing;

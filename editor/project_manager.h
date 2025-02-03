@@ -46,11 +46,14 @@ class ProjectListFilter;
 class ProjectManager : public Control {
 	GDCLASS(ProjectManager, Control);
 
+	Button *open_btn;
+	Button *run_btn;
+	Button *scan_btn;
+	Button *create_btn;
+	Button *import_btn;
+	Button *rename_btn;
 	Button *erase_btn;
 	Button *erase_missing_btn;
-	Button *open_btn;
-	Button *rename_btn;
-	Button *run_btn;
 	Button *about_btn;
 
 	EditorAssetLibrary *asset_library = nullptr;
