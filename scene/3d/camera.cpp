@@ -224,6 +224,7 @@ void Camera::_notification(int p_what) {
 			if (is_inside_tree()) {
 				_interpolation_data.xform_curr = get_global_transform();
 				_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+				_update_process_mode();
 			}
 		} break;
 		case NOTIFICATION_PAUSED: {

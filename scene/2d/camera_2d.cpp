@@ -294,6 +294,7 @@ void Camera2D::_notification(int p_what) {
 			// Force the limits etc to update.
 			_interpolation_data.xform_curr = get_camera_transform();
 			_interpolation_data.xform_prev = _interpolation_data.xform_curr;
+			_update_process_mode();
 		} break;
 		case NOTIFICATION_PAUSED: {
 			if (is_physics_interpolated_and_enabled()) {

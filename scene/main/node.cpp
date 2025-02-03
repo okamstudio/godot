@@ -894,13 +894,12 @@ void Node::set_physics_interpolation_mode(PhysicsInterpolationMode p_mode) {
 		} break;
 	}
 
-	// if swapping from interpolated to non-interpolated, use this as
-	// an extra means to cause a reset
-	if (is_physics_interpolated() && !interpolate && is_inside_tree()) {
+	_propagate_physics_interpolated(interpolate);
+
+	// Auto-reset on changing interpolation mode.
+	if (is_physics_interpolated() && is_inside_tree()) {
 		propagate_notification(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
 	}
-
-	_propagate_physics_interpolated(interpolate);
 }
 
 void Node::reset_physics_interpolation() {
