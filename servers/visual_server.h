@@ -668,6 +668,7 @@ public:
 	};
 
 	virtual void viewport_set_update_mode(RID p_viewport, ViewportUpdateMode p_mode) = 0;
+	virtual void viewport_set_allow_occlusion_queries(RID p_viewport, bool p_allow) = 0;
 	virtual void viewport_set_vflip(RID p_viewport, bool p_enable) = 0;
 
 	enum ViewportClearMode {

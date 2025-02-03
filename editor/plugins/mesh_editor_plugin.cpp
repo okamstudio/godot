@@ -111,6 +111,7 @@ MeshEditor::MeshEditor() {
 	Ref<World> world;
 	world.instance();
 	viewport->set_world(world); //use own world
+	viewport->set_allow_occlusion_queries(false);
 	add_child(viewport);
 	viewport->set_disable_input(true);
 	viewport->set_msaa(Viewport::MSAA_2X);

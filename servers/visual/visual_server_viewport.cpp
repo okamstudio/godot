@@ -70,6 +70,7 @@ void VisualServerViewport::_draw_3d(Viewport *p_viewport, ARVRInterface::Eyes p_
 		arvr_interface = ARVRServer::get_singleton()->get_primary_interface();
 	}
 
+	current_viewport_id = p_viewport->self;
 	if (p_viewport->use_arvr && arvr_interface.is_valid()) {
 		VSG::scene->render_camera(arvr_interface, p_eye, p_viewport->camera, p_viewport->scenario, p_viewport->size, p_viewport->shadow_atlas);
 	} else {
@@ -503,12 +504,34 @@ void VisualServerViewport::viewport_detach(RID p_viewport) {
 	viewport->viewport_to_screen = 0;
 }
 
+VS::ViewportUpdateMode VisualServerViewport::viewport_get_update_mode(RID p_viewport) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND_V(!viewport, VS::ViewportUpdateMode::VIEWPORT_UPDATE_ONCE);
+
+	return viewport->update_mode;
+}
+
 void VisualServerViewport::viewport_set_update_mode(RID p_viewport, VS::ViewportUpdateMode p_mode) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);
 
 	viewport->update_mode = p_mode;
 }
+
+bool VisualServerViewport::viewport_get_allow_occlusion_queries(RID p_viewport) const {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND_V(!viewport, true);
+
+	return viewport->allow_oq;
+}
+
+void VisualServerViewport::viewport_set_allow_occlusion_queries(RID p_viewport, bool p_allow) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND(!viewport);
+
+	viewport->allow_oq = p_allow;
+}
+
 void VisualServerViewport::viewport_set_vflip(RID p_viewport, bool p_enable) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);

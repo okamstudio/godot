@@ -195,6 +195,9 @@
 		</method>
 	</methods>
 	<members>
+		<member name="allow_occlusion_queries" type="bool" setter="set_allow_occlusion_queries" getter="get_allow_occlusion_queries" default="true">
+			If [code]true[/code], the viewport will be using occlusion queries to cull not visible meshes. Note that occlusion queries also need to be enabled in the Project Settings by setting [member ProjectSettings.rendering/quality/occlusion_queries/enable] to [code]true[/code].
+		</member>
 		<member name="arvr" type="bool" setter="set_use_arvr" getter="use_arvr" default="false">
 			If [code]true[/code], the viewport will be used in AR/VR process.
 		</member>

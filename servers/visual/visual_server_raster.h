@@ -486,6 +486,7 @@ public:
 	BIND1(viewport_detach, RID)
 
 	BIND2(viewport_set_update_mode, RID, ViewportUpdateMode)
+	BIND2(viewport_set_allow_occlusion_queries, RID, bool)
 	BIND2(viewport_set_vflip, RID, bool)
 
 	BIND1RC(RID, viewport_get_texture, RID)

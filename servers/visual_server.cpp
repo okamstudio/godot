@@ -2108,6 +2108,7 @@ void VisualServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("viewport_set_render_direct_to_screen", "viewport", "enabled"), &VisualServer::viewport_set_render_direct_to_screen);
 	ClassDB::bind_method(D_METHOD("viewport_detach", "viewport"), &VisualServer::viewport_detach);
 	ClassDB::bind_method(D_METHOD("viewport_set_update_mode", "viewport", "update_mode"), &VisualServer::viewport_set_update_mode);
+	ClassDB::bind_method(D_METHOD("viewport_set_allow_occlusion_queries", "viewport", "allow"), &VisualServer::viewport_set_allow_occlusion_queries);
 	ClassDB::bind_method(D_METHOD("viewport_set_vflip", "viewport", "enabled"), &VisualServer::viewport_set_vflip);
 	ClassDB::bind_method(D_METHOD("viewport_set_clear_mode", "viewport", "clear_mode"), &VisualServer::viewport_set_clear_mode);
 	ClassDB::bind_method(D_METHOD("viewport_get_texture", "viewport"), &VisualServer::viewport_get_texture);
@@ -2714,6 +2715,9 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF_RST("rendering/misc/mesh_storage/split_stream", false);
 
 	GLOBAL_DEF_RST("rendering/quality/shading/use_physical_light_attenuation", false);
+
+	GLOBAL_DEF("rendering/quality/occlusion_queries/enable", false);
+	GLOBAL_DEF("rendering/quality/occlusion_queries/disable_for_vendors", "PowerVR,Adreno");
 
 	GLOBAL_DEF("rendering/quality/depth_prepass/enable", true);
 	GLOBAL_DEF("rendering/quality/depth_prepass/disable_for_vendors", "PowerVR,Mali,Adreno,Apple");

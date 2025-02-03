@@ -55,6 +55,8 @@ public:
 		RID render_target;
 		RID render_target_texture;
 
+		bool allow_oq;
+
 		int viewport_to_screen;
 		Rect2 viewport_to_screen_rect;
 		bool viewport_render_direct_to_screen;
@@ -108,6 +110,7 @@ public:
 		Map<RID, CanvasData> canvas_map;
 
 		Viewport() {
+			allow_oq = true;
 			update_mode = VS::VIEWPORT_UPDATE_WHEN_VISIBLE;
 			clear_mode = VS::VIEWPORT_CLEAR_ALWAYS;
 			transparent_bg = false;
@@ -141,6 +144,8 @@ public:
 
 	Vector<Viewport *> active_viewports;
 
+	RID current_viewport_id = RID();
+
 private:
 	Color clear_color;
 	void _draw_3d(Viewport *p_viewport, ARVRInterface::Eyes p_eye);
@@ -159,8 +164,12 @@ public:
 
 	void viewport_set_active(RID p_viewport, bool p_active);
 	void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport);
+	VS::ViewportUpdateMode viewport_get_update_mode(RID p_viewport);
 	void viewport_set_update_mode(RID p_viewport, VS::ViewportUpdateMode p_mode);
 	void viewport_set_vflip(RID p_viewport, bool p_enable);
+
+	void viewport_set_allow_occlusion_queries(RID p_viewport, bool p_allow);
+	bool viewport_get_allow_occlusion_queries(RID p_viewport) const;
 
 	void viewport_set_clear_mode(RID p_viewport, VS::ViewportClearMode p_clear_mode);
 

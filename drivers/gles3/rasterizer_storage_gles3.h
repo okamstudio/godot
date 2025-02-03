@@ -61,6 +61,8 @@ void glTexStorage2DCustom(GLenum target, GLsizei levels, GLenum internalformat, 
 
 class RasterizerStorageGLES3 : public RasterizerStorage {
 public:
+	GLuint aabb_index_id;
+
 	RasterizerCanvasGLES3 *canvas;
 	RasterizerSceneGLES3 *scene;
 	static GLuint system_fbo; //on some devices, such as apple, screen is rendered to yet another fbo.
@@ -110,6 +112,9 @@ public:
 		bool keep_original_textures;
 
 		bool use_depth_prepass;
+
+		bool use_occlusion_queries;
+
 		bool force_vertex_shading;
 
 		// in some cases the legacy render didn't orphan. We will mark these
@@ -121,6 +126,20 @@ public:
 		bool async_compilation_enabled;
 		bool shader_cache_enabled;
 	} config;
+
+	enum class OcclusionQueryPrevAction {
+		NoAction,
+		Rendered,
+		Culled
+	};
+
+	struct OcclusionQueryData {
+		OcclusionQueryPrevAction prev_action = OcclusionQueryPrevAction::NoAction;
+		uint64_t prev_frame = 0;
+		GLuint query;
+		uint32_t surface;
+	};
+	Map<uint32_t, Map<uint32_t, OcclusionQueryData>> occlusion_queries_for_viewport;
 
 	mutable struct Shaders {
 		CopyShaderGLES3 copy;
@@ -667,6 +686,9 @@ public:
 		GLuint vertex_id;
 		GLuint index_id;
 
+		GLuint aabb_array_id;
+		GLuint aabb_vertex_id;
+
 		GLuint index_wireframe_id;
 		GLuint array_wireframe_id;
 		GLuint instancing_array_wireframe_id;
@@ -701,6 +723,8 @@ public:
 			mesh->instance_change_notify(false, true);
 			mesh->update_multimeshes();
 		}
+
+		void create_aabb_vbo(GLuint aabb_index_id);
 
 		int total_data_size;
 

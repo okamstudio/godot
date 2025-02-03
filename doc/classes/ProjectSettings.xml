@@ -1749,6 +1749,13 @@
 		<member name="rendering/quality/lightmapping/use_bicubic_sampling.mobile" type="bool" setter="" getter="" default="false">
 			Lower-end override for [member rendering/quality/lightmapping/use_bicubic_sampling] on mobile devices, in order to reduce bandwidth usage.
 		</member>
+		<member name="rendering/quality/occlusion_queries/disable_for_vendors" type="String" setter="" getter="" default="&quot;PowerVR,Adreno&quot;">
+			The performance of occlusion queries can depend a lot on the implementation. Use this setting if your game runs worse with occlusion queries enabled on some devices.
+		</member>
+		<member name="rendering/quality/occlusion_queries/enable" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], use occlusion querries to cull away meshes that were not visible during the previous frame. This might result in meshes being invisible for the first frame they are on screen, but can significantly reduce render times if you have meshes with a lot of vertices in your scenes.
+			[b]Note:[/b] Only supported when using GLES3 rendering backend. This setting has no effect when using GLES2.
+		</member>
 		<member name="rendering/quality/reflections/atlas_size" type="int" setter="" getter="" default="2048">
 			Size of the atlas used by reflection probes. A larger size can result in higher visual quality, while a smaller size will be faster and take up less memory.
 		</member>

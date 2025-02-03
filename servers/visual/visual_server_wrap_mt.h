@@ -397,6 +397,7 @@ public:
 	FUNC1(viewport_detach, RID)
 
 	FUNC2(viewport_set_update_mode, RID, ViewportUpdateMode)
+	FUNC2(viewport_set_allow_occlusion_queries, RID, bool)
 	FUNC2(viewport_set_vflip, RID, bool)
 
 	FUNC1RC(RID, viewport_get_texture, RID)

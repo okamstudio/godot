@@ -3111,6 +3111,14 @@
 				If [code]true[/code], sets the viewport active, else sets it inactive.
 			</description>
 		</method>
+		<method name="viewport_set_allow_occlusion_queries">
+			<return type="void" />
+			<argument index="0" name="viewport" type="RID" />
+			<argument index="1" name="allow" type="bool" />
+			<description>
+				Enable or disable occlusion queries for a given Viewport. Note that occlusion queries also need to be enabled in the Project Settings by setting [member ProjectSettings.rendering/quality/occlusion_queries/enable] to [code]true[/code].
+			</description>
+		</method>
 		<method name="viewport_set_canvas_stacking">
 			<return type="void" />
 			<argument index="0" name="viewport" type="RID" />

@@ -3366,6 +3366,46 @@ void RasterizerStorageGLES3::update_dirty_materials() {
 	}
 }
 
+void RasterizerStorageGLES3::Surface::create_aabb_vbo(GLuint aabb_index_id) {
+	glGenVertexArrays(1, &aabb_array_id);
+	glBindVertexArray(aabb_array_id);
+
+	Vector3 aabb_size = aabb.get_size();
+	Vector3 aabb_center = aabb.get_center();
+
+	float min_x = (-aabb_size.x / 2.0) + aabb_center.x;
+	float max_x = (aabb_size.x / 2.0) + aabb_center.x;
+	float min_y = (-aabb_size.y / 2.0) + aabb_center.y;
+	float max_y = (aabb_size.y / 2.0) + aabb_center.y;
+	float min_z = (-aabb_size.z / 2.0) + aabb_center.z;
+	float max_z = (aabb_size.z / 2.0) + aabb_center.z;
+
+	GLfloat _aabb_vertices[] = {
+		min_x, min_y, max_z, //0
+		max_x, min_y, max_z, //1
+		min_x, max_y, max_z, //2
+		max_x, max_y, max_z, //3
+		min_x, min_y, min_z, //4
+		max_x, min_y, min_z, //5
+		min_x, max_y, min_z, //6
+		max_x, max_y, min_z //7
+	};
+
+	//generate VBO and VAO for AABB
+	glGenBuffers(1, &aabb_vertex_id);
+	glBindBuffer(GL_ARRAY_BUFFER, aabb_vertex_id);
+	glBufferData(GL_ARRAY_BUFFER, 8 * 3 * sizeof(GLfloat), &_aabb_vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, aabb_index_id);
+
+	glBindVertexArray(0); //essential!
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
 /* MESH API */
 
 RID RasterizerStorageGLES3::mesh_create() {
@@ -4110,6 +4150,28 @@ void RasterizerStorageGLES3::mesh_remove_surface(RID p_mesh, int p_surface) {
 
 	glDeleteVertexArrays(1, &surface->array_id);
 	glDeleteVertexArrays(1, &surface->instancing_array_id);
+
+	//delete aabb stuff
+	print_line("mesh_remove_surface");
+	if (surface->aabb_array_id) {
+		glDeleteBuffers(1, &surface->aabb_vertex_id);
+		glDeleteVertexArrays(1, &surface->aabb_array_id);
+
+		//delete all the queries for this surface across all viewports
+		for (Map<uint32_t, Map<uint32_t, OcclusionQueryData>>::Element *maps = occlusion_queries_for_viewport.front(); maps; maps = maps->next()) {
+			Map<uint32_t, OcclusionQueryData> oqs = maps->value();
+
+			Map<uint32_t, OcclusionQueryData>::Element *E = oqs.front();
+			while (E != nullptr) {
+				Map<uint32_t, OcclusionQueryData>::Element *next = E->next();
+				if (E->value().surface == surface->get_id()) {
+					glDeleteQueries(1, &E->value().query);
+					oqs.erase(E);
+				}
+				E = next;
+			}
+		}
+	}
 
 	for (int i = 0; i < surface->blend_shapes.size(); i++) {
 		glDeleteBuffers(1, &surface->blend_shapes[i].vertex_id);
@@ -8499,6 +8561,22 @@ void RasterizerStorageGLES3::initialize() {
 
 	config.use_physical_light_attenuation = GLOBAL_GET("rendering/quality/shading/use_physical_light_attenuation");
 
+	config.use_occlusion_queries = bool(GLOBAL_GET("rendering/quality/occlusion_queries/enable"));
+	if (config.use_occlusion_queries) {
+		String vendors = GLOBAL_GET("rendering/quality/occlusion_queries/disable_for_vendors");
+		Vector<String> vendor_match = vendors.split(",");
+		for (int i = 0; i < vendor_match.size(); i++) {
+			String v = vendor_match[i].strip_edges();
+			if (v == String()) {
+				continue;
+			}
+
+			if (renderer.findn(v) != -1) {
+				config.use_occlusion_queries = false;
+			}
+		}
+	}
+
 	config.use_depth_prepass = bool(GLOBAL_GET("rendering/quality/depth_prepass/enable"));
 	if (config.use_depth_prepass) {
 		String vendors = GLOBAL_GET("rendering/quality/depth_prepass/disable_for_vendors");
@@ -8548,9 +8626,41 @@ void RasterizerStorageGLES3::update_dirty_resources() {
 
 RasterizerStorageGLES3::RasterizerStorageGLES3() {
 	config.should_orphan = true;
+
+	// create the shared ibo used by all AABBs
+	GLushort _indices[] = {
+		//Top
+		2, 6, 7,
+		2, 7, 3,
+		//Bottom
+		0, 5, 4,
+		0, 1, 5,
+		//Left
+		0, 6, 2,
+		0, 4, 6,
+		//Right
+		1, 3, 7,
+		1, 7, 5,
+		//Front
+		0, 2, 3,
+		0, 3, 1,
+		//Back
+		4, 7, 6,
+		4, 5, 7
+	};
+	glGenBuffers(1, &aabb_index_id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, aabb_index_id);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(GLushort), &_indices, GL_STATIC_DRAW);
 }
 
 RasterizerStorageGLES3::~RasterizerStorageGLES3() {
+	glDeleteBuffers(1, &aabb_index_id);
+	for (Map<uint32_t, Map<uint32_t, OcclusionQueryData>>::Element *pair = occlusion_queries_for_viewport.front(); pair; pair = pair->next()) {
+		for (Map<uint32_t, OcclusionQueryData>::Element *E = pair->value().front(); E; E = E->next()) {
+			glDeleteQueries(1, &E->value().query);
+		}
+	}
+
 	if (shaders.cache) {
 		memdelete(shaders.cache);
 	}

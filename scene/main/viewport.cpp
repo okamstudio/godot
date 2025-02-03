@@ -1332,6 +1332,15 @@ Ref<ViewportTexture> Viewport::get_texture() const {
 	return default_texture;
 }
 
+void Viewport::set_allow_occlusion_queries(bool p_allow) {
+	allow_oq = p_allow;
+	VS::get_singleton()->viewport_set_allow_occlusion_queries(viewport, p_allow);
+}
+
+bool Viewport::get_allow_occlusion_queries() const {
+	return allow_oq;
+}
+
 void Viewport::set_vflip(bool p_enable) {
 	vflip = p_enable;
 	VisualServer::get_singleton()->viewport_set_vflip(viewport, p_enable);
@@ -3395,6 +3404,9 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_update_mode", "mode"), &Viewport::set_update_mode);
 	ClassDB::bind_method(D_METHOD("get_update_mode"), &Viewport::get_update_mode);
 
+	ClassDB::bind_method(D_METHOD("set_allow_occlusion_queries", "allow"), &Viewport::set_allow_occlusion_queries);
+	ClassDB::bind_method(D_METHOD("get_allow_occlusion_queries"), &Viewport::get_allow_occlusion_queries);
+
 	ClassDB::bind_method(D_METHOD("set_msaa", "msaa"), &Viewport::set_msaa);
 	ClassDB::bind_method(D_METHOD("get_msaa"), &Viewport::get_msaa);
 
@@ -3511,6 +3523,7 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "usage", PROPERTY_HINT_ENUM, "2D,2D Without Sampling,3D,3D Without Effects"), "set_usage", "get_usage");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_direct_to_screen"), "set_use_render_direct_to_screen", "is_using_render_direct_to_screen");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "debug_draw", PROPERTY_HINT_ENUM, "Disabled,Unshaded,Overdraw,Wireframe"), "set_debug_draw", "get_debug_draw");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "allow_occlusion_queries"), "set_allow_occlusion_queries", "get_allow_occlusion_queries");
 	ADD_GROUP("Render Target", "render_target_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "render_target_v_flip"), "set_vflip", "get_vflip");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "render_target_clear_mode", PROPERTY_HINT_ENUM, "Always,Never,Next Frame"), "set_clear_mode", "get_clear_mode");
@@ -3669,6 +3682,7 @@ Viewport::Viewport() {
 	use_32_bpc_depth = false;
 
 	usage = USAGE_3D;
+	allow_oq = true;
 	debug_draw = DEBUG_DRAW_DISABLED;
 	clear_mode = CLEAR_MODE_ALWAYS;
 

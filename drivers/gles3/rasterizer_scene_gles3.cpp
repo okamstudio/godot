@@ -1953,7 +1953,7 @@ void RasterizerSceneGLES3::_set_cull(bool p_front, bool p_disabled, bool p_rever
 	}
 }
 
-void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const CameraMatrix &p_projection, RasterizerStorageGLES3::Sky *p_sky, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow, bool p_directional_add, bool p_directional_shadows) {
+void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_element_count, const Transform &p_view_transform, const CameraMatrix &p_projection, RasterizerStorageGLES3::Sky *p_sky, bool p_reverse_cull, bool p_alpha_pass, bool p_shadow, bool p_directional_add, bool p_directional_shadows, bool p_occlusion_queries) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, state.scene_ubo); //bind globals ubo
 
 	bool use_radiance_map = false;
@@ -2017,12 +2017,102 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 	bool prev_opaque_prepass = false;
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_OPAQUE_PREPASS, false);
 
+	//Set up occlusion queries
+	int oq_culled_element_count = 0;
+	Map<uint32_t, RasterizerStorageGLES3::OcclusionQueryData> *occlusion_queries = nullptr;
+
+	if (p_occlusion_queries) {
+		render_list_oq_culled.clear();
+
+		occlusion_queries = &storage->occlusion_queries_for_viewport[VSG::viewport->current_viewport_id.get_id()];
+	}
+
 	for (int i = 0; i < p_element_count; i++) {
 		RenderList::Element *e = p_elements[i];
 		RasterizerStorageGLES3::Material *material = e->material;
 		RasterizerStorageGLES3::Skeleton *skeleton = nullptr;
 		if (e->instance->skeleton.is_valid()) {
 			skeleton = storage->skeleton_owner.getornull(e->instance->skeleton);
+		}
+
+		bool started_query = false;
+
+		bool use_oq = false;
+		if (e->instance->base_type == VS::INSTANCE_MESH) {
+			//The overhead makes OQ counterproductive for too simple meshes
+			RasterizerStorageGLES3::Surface *s = static_cast<RasterizerStorageGLES3::Surface *>(e->geometry);
+			use_oq = p_occlusion_queries && s->array_len > 256;
+		}
+		if (use_oq) {
+			if (!occlusion_queries->has(e->instance->get_id())) {
+				// I am honestly unsure about this part. I would prefer to create enough queries in advance, store them in a list and then just get "new" queries from there instead.
+				// However, I found other parts of the codebase that create stuff only just when it is needed.
+				// For now I am gonna leave this here, I will probably need to address this after someone has reviewed this PR. I would also like feedback on whether I should move this to storage (or an inner class of storage)
+				GLuint query = 0;
+				glGenQueries(1, &query);
+
+				occlusion_queries->insert(e->instance->get_id(), RasterizerStorageGLES3::OcclusionQueryData{ RasterizerStorageGLES3::OcclusionQueryPrevAction::NoAction, 0, query, static_cast<RasterizerStorageGLES3::Surface *>(e->geometry)->get_id() });
+			}
+
+			RasterizerStorageGLES3::OcclusionQueryData &data = occlusion_queries->find(e->instance->get_id())->value();
+			uint64_t cur_frame = storage->frame.count;
+			GLuint query_result = 0;
+
+			bool query_already_started = false;
+
+			if (data.prev_action != RasterizerStorageGLES3::OcclusionQueryPrevAction::NoAction) {
+				if (data.prev_frame == cur_frame) {
+					// we already started a OQ for this object in this frame (e.g. in the early depth pass)
+					// just repeat what we did before and don't start a new query
+					if (data.prev_action == RasterizerStorageGLES3::OcclusionQueryPrevAction::Culled) {
+						//since we already have a query there is no reason to draw an AABB
+						continue;
+					}
+
+					//skip starting the query and just render the mesh
+					query_already_started = true;
+				} else {
+					GLuint query_result_available = 0;
+					glGetQueryObjectuiv(data.query, GL_QUERY_RESULT_AVAILABLE, &query_result_available);
+					if (query_result_available == GL_FALSE) {
+						query_result = 1; //let's just assume this is visible
+					} else {
+						glGetQueryObjectuiv(data.query, GL_QUERY_RESULT, &query_result);
+					}
+				}
+			}
+
+			/*Situations:
+				first time we see this object
+				visible last frame
+					draw it
+
+				visible this frame during early depth
+					skip query and just draw
+
+				not visible last frame
+					draw aabb
+			*/
+			if (data.prev_action == RasterizerStorageGLES3::OcclusionQueryPrevAction::NoAction || (data.prev_frame + 1 == cur_frame && query_result)) {
+				//draw it with query
+
+				data.prev_frame = cur_frame;
+				data.prev_action = RasterizerStorageGLES3::OcclusionQueryPrevAction::Rendered;
+
+				//start query
+				glBeginQuery(GL_ANY_SAMPLES_PASSED, data.query);
+
+				//necessary to stop the query later after we are done
+				started_query = true;
+			} else if (!query_already_started) {
+				RenderList::Element *e_oq_culled = render_list_oq_culled.add_element();
+				memcpy(e_oq_culled, e, sizeof(RenderList::Element));
+				oq_culled_element_count++;
+
+				data.prev_frame = cur_frame;
+				data.prev_action = RasterizerStorageGLES3::OcclusionQueryPrevAction::Culled;
+				continue;
+			}
 		}
 
 		bool rebind = first;
@@ -2202,6 +2292,9 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 			}
 		}
 		if (!ShaderGLES3::get_active()) {
+			if (started_query) {
+				glEndQuery(GL_ANY_SAMPLES_PASSED);
+			}
 			continue;
 		}
 
@@ -2220,6 +2313,10 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 
 		_render_geometry(e);
 
+		if (started_query) {
+			glEndQuery(GL_ANY_SAMPLES_PASSED);
+		}
+
 		prev_material = material;
 		prev_base_type = e->instance->base_type;
 		prev_geometry = e->geometry;
@@ -2231,8 +2328,12 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 		prev_opaque_prepass = use_opaque_prepass;
 		first = false;
 	}
-
+	print_line("post draw loop");
 	glBindVertexArray(0);
+
+	RasterizerStorageGLES3::Material *m = storage->material_owner.getptr(default_material);
+	_setup_material(m, false, false);
+	prev_material = m;
 
 	state.scene_shader.set_conditional(SceneShaderGLES3::ENABLE_OCTAHEDRAL_COMPRESSION, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_INSTANCING, false);
@@ -2255,6 +2356,40 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_CONTACT_SHADOWS, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_VERTEX_LIGHTING, false);
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_OPAQUE_PREPASS, false);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); //disable the color mask
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+	for (int i = 0; i < oq_culled_element_count; i++) {
+		RenderList::Element *e = render_list_oq_culled.elements[i];
+
+		state.scene_shader.set_conditional(SceneShaderGLES3::SHADELESS, true);
+
+		state.scene_shader.set_uniform(SceneShaderGLES3::WORLD_TRANSFORM, e->instance->transform);
+
+		RasterizerStorageGLES3::OcclusionQueryData &data = storage->occlusion_queries_for_viewport[VSG::viewport->current_viewport_id.get_id()][e->instance->get_id()];
+		glBeginQuery(GL_ANY_SAMPLES_PASSED, data.query);
+
+		if (prev_geometry != e->geometry) {
+			RasterizerStorageGLES3::Surface *s = static_cast<RasterizerStorageGLES3::Surface *>(e->geometry);
+			if (s->aabb_array_id == 0) {
+				s->create_aabb_vbo(storage->aabb_index_id);
+			}
+
+			glBindVertexArray(s->aabb_array_id);
+		}
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, 0);
+
+		glEndQuery(GL_ANY_SAMPLES_PASSED);
+
+		prev_geometry = e->geometry;
+	}
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glEnable(GL_CULL_FACE);
+	glBindVertexArray(0);
+
+	state.scene_shader.set_conditional(SceneShaderGLES3::SHADELESS, false);
 }
 
 void RasterizerSceneGLES3::_add_geometry(RasterizerStorageGLES3::Geometry *p_geometry, InstanceBase *p_instance, RasterizerStorageGLES3::GeometryOwner *p_owner, int p_material, bool p_depth_pass, bool p_shadow_pass) {
@@ -4218,6 +4353,13 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 	// Do depth prepass if it's explicitly enabled
 	bool use_depth_prepass = storage->config.use_depth_prepass;
 
+	// we don't want to do culling in AR
+	bool use_oq = storage->config.use_occlusion_queries;
+
+	use_oq = use_oq && VSG::viewport->viewport_get_update_mode(VSG::viewport->current_viewport_id) != VisualServer::ViewportUpdateMode::VIEWPORT_UPDATE_ONCE;
+	use_oq = use_oq && VSG::viewport->viewport_get_update_mode(VSG::viewport->current_viewport_id) != VisualServer::ViewportUpdateMode::VIEWPORT_UPDATE_DISABLED;
+	use_oq = use_oq && VSG::viewport->viewport_get_allow_occlusion_queries(VSG::viewport->current_viewport_id);
+
 	// If contact shadows are used then we need to do depth prepass even if it's otherwise disabled
 	use_depth_prepass = use_depth_prepass || state.used_contact_shadows;
 
@@ -4243,9 +4385,13 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 
 		render_list.clear();
 		_fill_render_list(p_cull_result, p_cull_count, true, false);
-		render_list.sort_by_key(false);
+		if (use_oq) {
+			render_list.sort_by_depth(false);
+		} else {
+			render_list.sort_by_key(false);
+		}
 		state.scene_shader.set_conditional(SceneShaderGLES3::RENDER_DEPTH, true);
-		_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, nullptr, false, false, true, false, false);
+		_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, nullptr, false, false, true, false, false, use_oq);
 		state.scene_shader.set_conditional(SceneShaderGLES3::RENDER_DEPTH, false);
 
 		glColorMask(1, 1, 1, 1);
@@ -4520,11 +4666,16 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		glDisable(GL_BLEND);
 	}
 
-	render_list.sort_by_key(false);
+	if (use_oq && !use_depth_prepass) {
+		render_list.sort_by_depth(false);
+	} else {
+		// If we already did the OQ in the prepass we don't need to sort anymore, since we won't start any new queries.
+		render_list.sort_by_key(false);
+	}
 
 	if (state.directional_light_count == 0) {
 		directional_light = nullptr;
-		_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, sky, false, false, false, false, use_shadows);
+		_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, sky, false, false, false, false, use_shadows, use_oq);
 	} else {
 		for (int i = 0; i < state.directional_light_count; i++) {
 			directional_light = directional_lights[i];
@@ -4532,7 +4683,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 				glEnable(GL_BLEND);
 			}
 			_setup_directional_light(i, p_cam_transform.affine_inverse(), use_shadows);
-			_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, sky, false, false, false, i > 0, use_shadows);
+			_render_list(render_list.elements, render_list.element_count, p_cam_transform, p_cam_projection, sky, false, false, false, i > 0, use_shadows, use_oq);
 		}
 	}
 
@@ -5130,6 +5281,7 @@ void RasterizerSceneGLES3::initialize() {
 		glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	}
 	render_list.init();
+	render_list_oq_culled.init();
 	state.cube_to_dp_shader.init();
 
 	shadow_atlas_realloc_tolerance_msec = 500;

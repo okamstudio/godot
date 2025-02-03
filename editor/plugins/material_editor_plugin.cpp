@@ -135,6 +135,7 @@ MaterialEditor::MaterialEditor() {
 	add_child(vc);
 	vc->set_anchors_and_margins_preset(PRESET_WIDE);
 	viewport = memnew(Viewport);
+	viewport->set_allow_occlusion_queries(false);
 	Ref<World> world;
 	world.instance();
 	viewport->set_world(world); //use own world
