@@ -1295,12 +1295,20 @@ void TextEdit::_notification(int p_what) {
 						// Draw execution marker.
 						if (executing_line == line) {
 							if (draw_breakpoint_gutter) {
-								int icon_extra_size = 4;
-								int vertical_gap = (get_row_height() * 40) / 100;
-								int horizontal_gap = (cache.breakpoint_gutter_width * 30) / 100;
-								int marker_height = get_row_height() - (vertical_gap * 2) + icon_extra_size;
-								int marker_width = cache.breakpoint_gutter_width - (horizontal_gap * 2) + icon_extra_size;
-								cache.executing_icon->draw_rect(ci, Rect2(cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - 2 - icon_extra_size / 2, ofs_y + vertical_gap - icon_extra_size / 2, marker_width, marker_height), false, Color(cache.executing_line_color.r, cache.executing_line_color.g, cache.executing_line_color.b));
+								const int vertical_gap = (get_row_height() * 40) / 100;
+								const int horizontal_gap = (cache.breakpoint_gutter_width * 30) / 100;
+								const int marker_width = cache.executing_icon->get_width();
+								const int marker_height = cache.executing_icon->get_height();
+								// Position the execution marker icon origin to visually "contain" the breakpoint icon.
+								cache.executing_icon->draw_rect(
+										ci,
+										Rect2(
+												cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - marker_width * 0.275,
+												ofs_y + vertical_gap - marker_height * 0.375,
+												marker_width,
+												marker_height),
+										false,
+										Color(cache.executing_line_color.r, cache.executing_line_color.g, cache.executing_line_color.b));
 							} else {
 #ifdef TOOLS_ENABLED
 								VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y + get_row_height() - EDSCALE, xmargin_end - xmargin_beg, EDSCALE), cache.executing_line_color);
@@ -5462,7 +5470,7 @@ void TextEdit::_update_caches() {
 	cache.folded_icon = get_icon("folded");
 	cache.can_fold_icon = get_icon("fold");
 	cache.folded_eol_icon = get_icon("GuiEllipsis", "EditorIcons");
-	cache.executing_icon = get_icon("TextEditorPlay", "EditorIcons");
+	cache.executing_icon = get_icon("ExecutionMarker", "EditorIcons");
 	text.set_font(cache.font);
 
 	if (syntax_highlighter) {
