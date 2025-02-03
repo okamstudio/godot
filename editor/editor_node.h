@@ -443,11 +443,14 @@ private:
 	VBoxContainer *bottom_panel_vb;
 	LinkButton *version_btn;
 	ToolButton *bottom_panel_raise;
+	ToolButton *bottom_panel_move;
 
 	Tree *disk_changed_list;
 	ConfirmationDialog *disk_changed;
 
 	void _bottom_panel_raise_toggled(bool);
+	void _bottom_panel_move_pressed();
+	void _init_center_split(bool p_on_right);
 
 	EditorInterface *editor_interface;
 

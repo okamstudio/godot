@@ -72,6 +72,9 @@ public:
 	void set_collapsed(bool p_collapsed);
 	bool is_collapsed() const;
 
+	void set_vertical(bool p_vertical);
+	bool is_vertical() const;
+
 	void set_dragger_visibility(DraggerVisibility p_visibility);
 	DraggerVisibility get_dragger_visibility() const;
 

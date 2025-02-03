@@ -321,6 +321,21 @@ bool SplitContainer::is_collapsed() const {
 	return collapsed;
 }
 
+/**
+ * Hack to make the editor's bottom panel position movable to the right without
+ * having to fiddle with the node structure. This method is intentionally not
+ * exposed for now.
+ */
+void SplitContainer::set_vertical(bool p_vertical) {
+	vertical = p_vertical;
+	queue_sort();
+	update();
+}
+
+bool SplitContainer::is_vertical() const {
+	return vertical;
+}
+
 void SplitContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_gui_input"), &SplitContainer::_gui_input);
 
