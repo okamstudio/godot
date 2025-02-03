@@ -233,6 +233,10 @@ Error ImageTexture::load(const String &p_path) {
 	if (err == OK) {
 		create_from_image(img);
 	}
+	if (get_path() == String()) {
+		//temporarily set path if no path set for resource, helps find errors
+		set_path(p_path, true);
+	}
 	return err;
 }
 #endif
@@ -691,7 +695,7 @@ Error StreamTexture::load(const String &p_path) {
 
 	if (get_path() == String()) {
 		//temporarily set path if no path set for resource, helps find errors
-		VisualServer::get_singleton()->texture_set_path(texture, p_path);
+		set_path(p_path, true);
 	}
 	VS::get_singleton()->texture_allocate(texture, image->get_width(), image->get_height(), 0, image->get_format(), VS::TEXTURE_TYPE_2D, lflags);
 	VS::get_singleton()->texture_set_data(texture, image);

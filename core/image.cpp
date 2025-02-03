@@ -2063,6 +2063,10 @@ Error Image::load(const String &p_path) {
 		WARN_PRINT("Loaded resource as image file, this will not work on export: '" + p_path + "'. Instead, import the image file as an Image resource and load it normally as a resource.");
 	}
 #endif
+	if (get_path() == String()) {
+		//temporarily set path if no path set for resource, helps find errors
+		set_path(p_path, true);
+	}
 	return ImageLoader::load_image(p_path, this);
 }
 
