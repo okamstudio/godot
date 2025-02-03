@@ -3307,6 +3307,12 @@ void RasterizerSceneGLES3::_render_mrts(Environment *env, const CameraMatrix &p_
 	}
 
 	if (env->ssao_enabled) {
+		// Maximum distance for SSAO effect in 3D units.
+		// This clamps the camera Z far distance to avoid visible stairstepping artifacts in the SSAO buffer.
+		// The value chosen allows SSAO to be visible from far away, while preventing SSAO from breaking
+		// at high camera Z far values (10,000 or more).
+		const real_t MAX_SSAO_Z_FAR = 200.0;
+
 		//copy diffuse to front buffer
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
 		glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -3325,7 +3331,7 @@ void RasterizerSceneGLES3::_render_mrts(Environment *env, const CameraMatrix &p_
 			state.ssao_minify_shader.set_conditional(SsaoMinifyShaderGLES3::MINIFY_START, i == 0);
 			state.ssao_minify_shader.set_conditional(SsaoMinifyShaderGLES3::USE_ORTHOGONAL_PROJECTION, p_cam_projection.is_orthogonal());
 			state.ssao_minify_shader.bind();
-			state.ssao_minify_shader.set_uniform(SsaoMinifyShaderGLES3::CAMERA_Z_FAR, p_cam_projection.get_z_far());
+			state.ssao_minify_shader.set_uniform(SsaoMinifyShaderGLES3::CAMERA_Z_FAR, MIN(p_cam_projection.get_z_far(), MAX_SSAO_Z_FAR));
 			state.ssao_minify_shader.set_uniform(SsaoMinifyShaderGLES3::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
 			state.ssao_minify_shader.set_uniform(SsaoMinifyShaderGLES3::SOURCE_MIPMAP, MAX(0, i - 1));
 			glUniform2iv(state.ssao_minify_shader.get_uniform(SsaoMinifyShaderGLES3::FROM_SIZE), 1, ss);
@@ -3357,7 +3363,7 @@ void RasterizerSceneGLES3::_render_mrts(Environment *env, const CameraMatrix &p_
 		state.ssao_shader.set_conditional(SsaoShaderGLES3::SSAO_QUALITY_LOW, env->ssao_quality == VS::ENV_SSAO_QUALITY_LOW);
 		state.ssao_shader.set_conditional(SsaoShaderGLES3::SSAO_QUALITY_HIGH, env->ssao_quality == VS::ENV_SSAO_QUALITY_HIGH);
 		state.ssao_shader.bind();
-		state.ssao_shader.set_uniform(SsaoShaderGLES3::CAMERA_Z_FAR, p_cam_projection.get_z_far());
+		state.ssao_shader.set_uniform(SsaoShaderGLES3::CAMERA_Z_FAR, MIN(p_cam_projection.get_z_far(), MAX_SSAO_Z_FAR));
 		state.ssao_shader.set_uniform(SsaoShaderGLES3::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
 		glUniform2iv(state.ssao_shader.get_uniform(SsaoShaderGLES3::SCREEN_SIZE), 1, ss);
 		float radius = env->ssao_radius;
@@ -3404,7 +3410,7 @@ void RasterizerSceneGLES3::_render_mrts(Environment *env, const CameraMatrix &p_
 
 		if (env->ssao_filter) {
 			for (int i = 0; i < 2; i++) {
-				state.ssao_blur_shader.set_uniform(SsaoBlurShaderGLES3::CAMERA_Z_FAR, p_cam_projection.get_z_far());
+				state.ssao_blur_shader.set_uniform(SsaoBlurShaderGLES3::CAMERA_Z_FAR, MIN(p_cam_projection.get_z_far(), MAX_SSAO_Z_FAR));
 				state.ssao_blur_shader.set_uniform(SsaoBlurShaderGLES3::CAMERA_Z_NEAR, p_cam_projection.get_z_near());
 				state.ssao_blur_shader.set_uniform(SsaoBlurShaderGLES3::EDGE_SHARPNESS, env->ssao_bilateral_sharpness);
 				state.ssao_blur_shader.set_uniform(SsaoBlurShaderGLES3::FILTER_SCALE, int(env->ssao_filter));
