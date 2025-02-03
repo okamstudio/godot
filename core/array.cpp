@@ -117,6 +117,31 @@ bool Array::operator==(const Array &p_array) const {
 	return _p == p_array._p;
 }
 
+bool Array::operator!=(const Array &p_array) const {
+	return !operator==(p_array);
+}
+
+bool Array::operator<(const Array &p_array) const {
+	int a_len = size();
+	int b_len = p_array.size();
+
+	int min_cmp = MIN(a_len, b_len);
+
+	for (int i = 0; i < min_cmp; i++) {
+		if (operator[](i) < p_array[i]) {
+			return true;
+		} else if (p_array[i] < operator[](i)) {
+			return false;
+		}
+	}
+
+	return a_len < b_len;
+}
+
+bool Array::operator>(const Array &p_array) const {
+	return p_array < *this;
+}
+
 uint32_t Array::hash() const {
 	return recursive_hash(0);
 }

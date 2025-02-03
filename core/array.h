@@ -58,6 +58,7 @@ public:
 
 	bool deep_equal(const Array &p_array, int p_recursion_count = 0) const;
 	bool operator==(const Array &p_array) const;
+	bool operator!=(const Array &p_array) const;
 
 	uint32_t hash() const;
 	uint32_t recursive_hash(int p_recursion_count) const;
@@ -99,6 +100,9 @@ public:
 	Array duplicate(bool p_deep = false) const;
 
 	Array slice(int p_begin, int p_end, int p_step = 1, bool p_deep = false) const;
+
+	bool operator<(const Array &p_array) const;
+	bool operator>(const Array &p_array) const;
 
 	Variant min() const;
 	Variant max() const;
