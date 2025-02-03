@@ -32,6 +32,7 @@
 #define TYPEDEFS_H
 
 #include <stddef.h>
+#include <utility>
 
 /**
  * Basic definitions and simple functions to be used everywhere.
@@ -175,15 +176,7 @@ T *_nullptr() {
 
 /** Generic swap template */
 #ifndef SWAP
-
-#define SWAP(m_x, m_y) __swap_tmpl((m_x), (m_y))
-template <class T>
-inline void __swap_tmpl(T &x, T &y) {
-	T aux = x;
-	x = y;
-	y = aux;
-}
-
+#define SWAP(m_x, m_y) std::swap((m_x), (m_y))
 #endif //swap
 
 /* clang-format off */

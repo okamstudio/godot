@@ -33,6 +33,7 @@
 
 #include <string.h>
 #include <type_traits>
+#include <utility>
 
 #include "core/error_macros.h"
 #include "core/os/memory.h"
@@ -159,28 +160,32 @@ public:
 		T *p = ptrw();
 		int len = size();
 		for (int i = p_index; i < len - 1; i++) {
-			p[i] = p[i + 1];
+			p[i] = std::move(p[i + 1]);
 		};
 
 		resize(len - 1);
-	};
+	}
 
 	Error insert(int p_pos, const T &p_val) {
-		ERR_FAIL_INDEX_V(p_pos, size() + 1, ERR_INVALID_PARAMETER);
-		resize(size() + 1);
-		for (int i = (size() - 1); i > p_pos; i--) {
-			set(i, get(i - 1));
+		int new_size = size() + 1;
+		ERR_FAIL_INDEX_V(p_pos, new_size, ERR_INVALID_PARAMETER);
+		Error err = resize(new_size);
+		ERR_FAIL_COND_V(err, err);
+
+		T *p = ptrw();
+		for (int i = new_size - 1; i > p_pos; i--) {
+			p[i] = std::move(p[i - 1]);
 		}
-		set(p_pos, p_val);
+		p[p_pos] = p_val;
 
 		return OK;
-	};
+	}
 
 	int find(const T &p_val, int p_from = 0) const;
 
 	_FORCE_INLINE_ CowData();
 	_FORCE_INLINE_ ~CowData();
-	_FORCE_INLINE_ CowData(CowData<T> &p_from) { _ref(p_from); };
+	_FORCE_INLINE_ CowData(CowData<T> &p_from) { _ref(p_from); }
 };
 
 template <class T>

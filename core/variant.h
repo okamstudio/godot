@@ -159,7 +159,7 @@ private:
 		Basis *_basis;
 		Transform *_transform;
 		void *_ptr; //generic pointer
-		uint8_t _mem[sizeof(ObjData) > (sizeof(real_t) * 4) ? sizeof(ObjData) : (sizeof(real_t) * 4)];
+		uint8_t _mem[sizeof(ObjData) > (sizeof(real_t) * 4) ? sizeof(ObjData) : (sizeof(real_t) * 4)]{ 0 };
 	} _data GCC_ALIGNED_8;
 
 	void reference(const Variant &p_variant);
@@ -432,7 +432,21 @@ public:
 	static void construct_from_string(const String &p_string, Variant &r_value, ObjectConstruct p_obj_construct = nullptr, void *p_construct_ud = nullptr);
 
 	void operator=(const Variant &p_variant); // only this is enough for all the other types
+	void operator=(Variant &&p_variant) {
+		if (unlikely(this == &p_variant)) {
+			return;
+		}
+		clear();
+		type = p_variant.type;
+		_data = p_variant._data;
+		p_variant.type = NIL;
+	}
 	Variant(const Variant &p_variant);
+	Variant(Variant &&p_variant) {
+		type = p_variant.type;
+		_data = p_variant._data;
+		p_variant.type = NIL;
+	}
 	_FORCE_INLINE_ Variant() { type = NIL; }
 	_FORCE_INLINE_ ~Variant() {
 		if (type != Variant::NIL) {

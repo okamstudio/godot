@@ -163,6 +163,23 @@ public:
 	};
 
 	void operator=(const StringName &p_name);
+
+	StringName &operator=(StringName &&p_name) {
+		if (_data == p_name._data) {
+			return *this;
+		}
+
+		unref();
+		_data = p_name._data;
+		p_name._data = nullptr;
+		return *this;
+	}
+
+	StringName(StringName &&p_name) {
+		_data = p_name._data;
+		p_name._data = nullptr;
+	}
+
 	StringName(const char *p_name);
 	StringName(const StringName &p_name);
 	StringName(const String &p_name);
