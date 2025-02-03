@@ -57,9 +57,7 @@ Vector<Vector<Vector2>> Geometry2D::decompose_polygon_in_convex(const Vector<Poi
 
 	decomp.resize(out_poly.size());
 	int idx = 0;
-	for (List<TPPLPoly>::Element *I = out_poly.front(); I; I = I->next()) {
-		TPPLPoly &tp = I->get();
-
+	for (TPPLPoly &tp : out_poly) {
 		decomp.write[idx].resize(tp.GetNumPoints());
 
 		for (int64_t i = 0; i < tp.GetNumPoints(); i++) {

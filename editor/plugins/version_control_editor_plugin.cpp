@@ -222,8 +222,7 @@ void VersionControlEditorPlugin::_refresh_commit_list() {
 
 	List<EditorVCSInterface::Commit> commit_info_list = EditorVCSInterface::get_singleton()->get_previous_commits(commit_list_size_button->get_selected_metadata());
 
-	for (List<EditorVCSInterface::Commit>::Element *e = commit_info_list.front(); e; e = e->next()) {
-		EditorVCSInterface::Commit commit = e->get();
+	for (const EditorVCSInterface::Commit &commit : commit_info_list) {
 		TreeItem *item = commit_list->create_item();
 
 		// Only display the first line of a commit message
@@ -370,8 +369,7 @@ void VersionControlEditorPlugin::_refresh_stage_area() {
 	unstaged_files->get_root()->clear_children();
 
 	List<EditorVCSInterface::StatusFile> status_files = EditorVCSInterface::get_singleton()->get_modified_files_data();
-	for (List<EditorVCSInterface::StatusFile>::Element *E = status_files.front(); E; E = E->next()) {
-		EditorVCSInterface::StatusFile sf = E->get();
+	for (const EditorVCSInterface::StatusFile &sf : status_files) {
 		if (sf.area == EditorVCSInterface::TREE_AREA_STAGED) {
 			_add_new_item(staged_files, sf.file_path, sf.change_type);
 		} else if (sf.area == EditorVCSInterface::TREE_AREA_UNSTAGED) {

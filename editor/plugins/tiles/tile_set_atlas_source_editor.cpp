@@ -463,13 +463,13 @@ void TileSetAtlasSourceEditor::AtlasTileProxyObject::_get_property_list(List<Pro
 		tile_data->get_property_list(&list);
 
 		HashMap<String, int> counts; // Counts the number of time a property appears (useful for groups that may appear more than once)
-		for (List<PropertyInfo>::Element *E_property = list.front(); E_property; E_property = E_property->next()) {
+		for (const PropertyInfo &property : list) {
 			// Don't show category for TileData.
-			if (E_property->get().usage & PROPERTY_USAGE_CATEGORY) {
+			if (property.usage & PROPERTY_USAGE_CATEGORY) {
 				continue;
 			}
 
-			const String &property_string = E_property->get().name;
+			const String &property_string = property.name;
 			if (!tile_data->is_allowing_transform() && (property_string == "flip_h" || property_string == "flip_v" || property_string == "transpose")) {
 				continue;
 			}
@@ -480,7 +480,7 @@ void TileSetAtlasSourceEditor::AtlasTileProxyObject::_get_property_list(List<Pro
 				counts[property_string] += 1;
 			}
 
-			PropertyInfo stored_property_info = E_property->get();
+			PropertyInfo stored_property_info = property;
 			stored_property_info.usage |= PROPERTY_USAGE_STORAGE; // Ignore the storage flag in comparing properties.
 
 			PropertyId id = { counts[property_string], property_string };

@@ -643,14 +643,14 @@ void AnimationNodeStateMachineEditor::_open_menu(const Vector2 &p_position) {
 	ClassDB::get_inheriters_from_class("AnimationRootNode", &classes);
 	classes.sort_custom<StringName::AlphCompare>();
 
-	for (List<StringName>::Element *E = classes.front(); E; E = E->next()) {
-		String name = String(E->get()).replace_first("AnimationNode", "");
+	for (const StringName &E : classes) {
+		String name = String(E).replace_first("AnimationNode", "");
 		if (name == "Animation" || name == "StartState" || name == "EndState") {
 			continue; // nope
 		}
 		int idx = menu->get_item_count();
 		menu->add_item(vformat(TTR("Add %s"), name), idx);
-		menu->set_item_metadata(idx, E->get());
+		menu->set_item_metadata(idx, E);
 	}
 	Ref<AnimationNode> clipb = EditorSettings::get_singleton()->get_resource_clipboard();
 
@@ -2019,16 +2019,16 @@ void EditorAnimationMultiTransitionEdit::_get_property_list(List<PropertyInfo> *
 		prop_transition_path.name = itos(i) + "/" + "transition_path";
 		p_list->push_back(prop_transition_path);
 
-		for (List<PropertyInfo>::Element *F = plist.front(); F; F = F->next()) {
-			if (F->get().name == "script" || F->get().name == "resource_name" || F->get().name == "resource_path" || F->get().name == "resource_local_to_scene") {
+		for (const PropertyInfo &F : plist) {
+			if (F.name == "script" || F.name == "resource_name" || F.name == "resource_path" || F.name == "resource_local_to_scene") {
 				continue;
 			}
 
-			if (F->get().usage != PROPERTY_USAGE_DEFAULT) {
+			if (F.usage != PROPERTY_USAGE_DEFAULT) {
 				continue;
 			}
 
-			PropertyInfo prop = F->get();
+			PropertyInfo prop = F;
 			prop.name = itos(i) + "/" + prop.name;
 
 			p_list->push_back(prop);

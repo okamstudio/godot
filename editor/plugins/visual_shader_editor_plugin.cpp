@@ -4424,8 +4424,8 @@ void VisualShaderEditor::_delete_nodes(int p_type, const List<int> &p_nodes) {
 		for (const VisualShader::Connection &E : conns) {
 			if (E.from_node == F || E.to_node == F) {
 				bool cancel = false;
-				for (List<VisualShader::Connection>::Element *R = used_conns.front(); R; R = R->next()) {
-					if (R->get().from_node == E.from_node && R->get().from_port == E.from_port && R->get().to_node == E.to_node && R->get().to_port == E.to_port) {
+				for (const VisualShader::Connection &R : used_conns) {
+					if (R.from_node == E.from_node && R.from_port == E.from_port && R.to_node == E.to_node && R.to_port == E.to_port) {
 						cancel = true; // to avoid ERR_ALREADY_EXISTS warning
 						break;
 					}

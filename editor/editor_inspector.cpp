@@ -719,9 +719,7 @@ bool EditorProperty::use_keying_next() const {
 	List<PropertyInfo> plist;
 	object->get_property_list(&plist, true);
 
-	for (List<PropertyInfo>::Element *I = plist.front(); I; I = I->next()) {
-		PropertyInfo &p = I->get();
-
+	for (const PropertyInfo &p : plist) {
 		if (p.name == property) {
 			return (p.usage & PROPERTY_USAGE_KEYING_INCREMENTS);
 		}

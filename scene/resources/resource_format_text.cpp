@@ -1908,18 +1908,18 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 
 		List<PropertyInfo> property_list;
 		res->get_property_list(&property_list);
-		for (List<PropertyInfo>::Element *PE = property_list.front(); PE; PE = PE->next()) {
-			if (skip_editor && PE->get().name.begins_with("__editor")) {
+		for (const PropertyInfo &pi : property_list) {
+			if (skip_editor && pi.name.begins_with("__editor")) {
 				continue;
 			}
-			if (PE->get().name == META_PROPERTY_MISSING_RESOURCES) {
+			if (pi.name == META_PROPERTY_MISSING_RESOURCES) {
 				continue;
 			}
 
-			if (PE->get().usage & PROPERTY_USAGE_STORAGE || missing_resource_properties.has(PE->get().name)) {
-				String name = PE->get().name;
+			if (pi.usage & PROPERTY_USAGE_STORAGE || missing_resource_properties.has(pi.name)) {
+				String name = pi.name;
 				Variant value;
-				if (PE->get().usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT) {
+				if (pi.usage & PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT) {
 					NonPersistentKey npk;
 					npk.base = res;
 					npk.property = name;
@@ -1930,11 +1930,11 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 					value = res->get(name);
 				}
 
-				if (PE->get().type == Variant::OBJECT && missing_resource_properties.has(PE->get().name)) {
+				if (pi.type == Variant::OBJECT && missing_resource_properties.has(pi.name)) {
 					// Was this missing resource overridden? If so do not save the old value.
 					Ref<Resource> ures = value;
 					if (ures.is_null()) {
-						value = missing_resource_properties[PE->get().name];
+						value = missing_resource_properties[pi.name];
 					}
 				}
 
@@ -1944,7 +1944,7 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 					continue;
 				}
 
-				if (PE->get().type == Variant::OBJECT && value.is_zero() && !(PE->get().usage & PROPERTY_USAGE_STORE_IF_NULL)) {
+				if (pi.type == Variant::OBJECT && value.is_zero() && !(pi.usage & PROPERTY_USAGE_STORE_IF_NULL)) {
 					continue;
 				}
 

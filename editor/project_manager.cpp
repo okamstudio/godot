@@ -142,8 +142,8 @@ void ProjectManager::_build_icon_type_cache(Ref<Theme> p_theme) {
 	}
 	List<StringName> tl;
 	p_theme->get_icon_list(EditorStringName(EditorIcons), &tl);
-	for (List<StringName>::Element *E = tl.front(); E; E = E->next()) {
-		icon_type_cache[E->get()] = p_theme->get_icon(E->get(), EditorStringName(EditorIcons));
+	for (const StringName &name : tl) {
+		icon_type_cache[name] = p_theme->get_icon(name, EditorStringName(EditorIcons));
 	}
 }
 

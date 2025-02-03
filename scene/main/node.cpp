@@ -2683,11 +2683,11 @@ bool Node::is_part_of_edited_scene() const {
 
 void Node::get_storable_properties(HashSet<StringName> &r_storable_properties) const {
 	ERR_THREAD_GUARD
-	List<PropertyInfo> pi;
-	get_property_list(&pi);
-	for (List<PropertyInfo>::Element *E = pi.front(); E; E = E->next()) {
-		if ((E->get().usage & PROPERTY_USAGE_STORAGE)) {
-			r_storable_properties.insert(E->get().name);
+	List<PropertyInfo> property_list;
+	get_property_list(&property_list);
+	for (const PropertyInfo &pi : property_list) {
+		if ((pi.usage & PROPERTY_USAGE_STORAGE)) {
+			r_storable_properties.insert(pi.name);
 		}
 	}
 }

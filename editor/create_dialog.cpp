@@ -83,8 +83,7 @@ void CreateDialog::_fill_type_list() {
 
 	EditorData &ed = EditorNode::get_editor_data();
 
-	for (List<StringName>::Element *I = complete_type_list.front(); I; I = I->next()) {
-		StringName type = I->get();
+	for (const StringName &type : complete_type_list) {
 		if (!_should_hide_type(type)) {
 			type_list.push_back(type);
 
@@ -216,8 +215,7 @@ void CreateDialog::_update_search() {
 	float highest_score = 0.0f;
 	StringName best_match;
 
-	for (List<StringName>::Element *I = type_list.front(); I; I = I->next()) {
-		StringName candidate = I->get();
+	for (const StringName &candidate : type_list) {
 		if (empty_search || search_text.is_subsequence_ofn(candidate)) {
 			_add_type(candidate, ClassDB::class_exists(candidate) ? TypeCategory::CPP_TYPE : TypeCategory::OTHER_TYPE);
 

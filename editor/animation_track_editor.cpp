@@ -1251,12 +1251,12 @@ void AnimationMultiTrackKeyEdit::_get_property_list(List<PropertyInfo> *p_list) 
 					if (ap) {
 						List<StringName> anims;
 						ap->get_animation_list(&anims);
-						for (List<StringName>::Element *G = anims.front(); G; G = G->next()) {
+						for (const StringName &anim : anims) {
 							if (!animations.is_empty()) {
 								animations += ",";
 							}
 
-							animations += String(G->get());
+							animations += String(anim);
 						}
 					}
 				}

@@ -1659,10 +1659,10 @@ String Variant::stringify(int recursion_count) const {
 
 			Vector<_VariantStrPair> pairs;
 
-			for (List<Variant>::Element *E = keys.front(); E; E = E->next()) {
+			for (const Variant &key : keys) {
 				_VariantStrPair sp;
-				sp.key = stringify_variant_clean(E->get(), recursion_count);
-				sp.value = stringify_variant_clean(d[E->get()], recursion_count);
+				sp.key = stringify_variant_clean(key, recursion_count);
+				sp.value = stringify_variant_clean(d[key], recursion_count);
 
 				pairs.push_back(sp);
 			}

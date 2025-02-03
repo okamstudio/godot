@@ -257,10 +257,10 @@ void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
 		bool is_none_group_undefined = true;
 		bool is_none_group = true;
 
-		for (List<PropertyInfo>::Element *E = list.front(); E; E = E->next()) {
-			if (E->get().usage == PROPERTY_USAGE_GROUP) {
-				if (!E->get().name.is_empty()) {
-					Vector<String> vgroup = E->get().name.split("::");
+		for (const PropertyInfo &pi : list) {
+			if (pi.usage == PROPERTY_USAGE_GROUP) {
+				if (!pi.name.is_empty()) {
+					Vector<String> vgroup = pi.name.split("::");
 					last_group = vgroup[0];
 					if (vgroup.size() > 1) {
 						last_subgroup = vgroup[1];
@@ -322,23 +322,23 @@ void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
 				vgroups.push_back(Pair<String, LocalVector<String>>("<None>", { "<None>" }));
 			}
 
-			const bool is_uniform_cached = param_cache.has(E->get().name);
+			const bool is_uniform_cached = param_cache.has(pi.name);
 			bool is_uniform_type_compatible = true;
 
 			if (is_uniform_cached) {
 				// Check if the uniform Variant type changed, for example vec3 to vec4.
-				const Variant &cached = param_cache.get(E->get().name);
+				const Variant &cached = param_cache.get(pi.name);
 
 				if (cached.is_array()) {
 					// Allow some array conversions for backwards compatibility.
-					is_uniform_type_compatible = Variant::can_convert(E->get().type, cached.get_type());
+					is_uniform_type_compatible = Variant::can_convert(pi.type, cached.get_type());
 				} else {
-					is_uniform_type_compatible = E->get().type == cached.get_type();
+					is_uniform_type_compatible = pi.type == cached.get_type();
 				}
 
 #ifndef DISABLE_DEPRECATED
 				// PackedFloat32Array -> PackedVector4Array conversion.
-				if (!is_uniform_type_compatible && E->get().type == Variant::PACKED_VECTOR4_ARRAY && cached.get_type() == Variant::PACKED_FLOAT32_ARRAY) {
+				if (!is_uniform_type_compatible && pi.type == Variant::PACKED_VECTOR4_ARRAY && cached.get_type() == Variant::PACKED_FLOAT32_ARRAY) {
 					PackedVector4Array varray;
 					PackedFloat32Array array = (PackedFloat32Array)cached;
 
@@ -346,28 +346,28 @@ void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
 						varray.push_back(Vector4(array[i], array[i + 1], array[i + 2], array[i + 3]));
 					}
 
-					param_cache.insert(E->get().name, varray);
+					param_cache.insert(pi.name, varray);
 					is_uniform_type_compatible = true;
 				}
 #endif
 
-				if (is_uniform_type_compatible && E->get().type == Variant::OBJECT && cached.get_type() == Variant::OBJECT) {
+				if (is_uniform_type_compatible && pi.type == Variant::OBJECT && cached.get_type() == Variant::OBJECT) {
 					// Check if the Object class (hint string) changed, for example Texture2D sampler to Texture3D.
 					// Allow inheritance, Texture2D type sampler should also accept CompressedTexture2D.
 					Object *cached_obj = cached;
-					if (!cached_obj->is_class(E->get().hint_string)) {
+					if (!cached_obj->is_class(pi.hint_string)) {
 						is_uniform_type_compatible = false;
 					}
 				}
 			}
 
-			PropertyInfo info = E->get();
+			PropertyInfo info = pi;
 			info.name = "shader_parameter/" + info.name;
 			if (!is_uniform_cached || !is_uniform_type_compatible) {
 				// Property has never been edited or its type changed, retrieve with default value.
-				Variant default_value = RenderingServer::get_singleton()->shader_get_parameter_default(shader->get_rid(), E->get().name);
-				param_cache.insert(E->get().name, default_value);
-				remap_cache.insert(info.name, E->get().name);
+				Variant default_value = RenderingServer::get_singleton()->shader_get_parameter_default(shader->get_rid(), pi.name);
+				param_cache.insert(pi.name, default_value);
+				remap_cache.insert(info.name, pi.name);
 			}
 			groups[last_group][last_subgroup].push_back(info);
 		}
@@ -376,8 +376,8 @@ void ShaderMaterial::_get_property_list(List<PropertyInfo> *p_list) const {
 			String group = group_pair.first;
 			for (const String &subgroup : group_pair.second) {
 				List<PropertyInfo> &prop_infos = groups[group][subgroup];
-				for (List<PropertyInfo>::Element *item = prop_infos.front(); item; item = item->next()) {
-					p_list->push_back(item->get());
+				for (const PropertyInfo &item : prop_infos) {
+					p_list->push_back(item);
 				}
 			}
 		}

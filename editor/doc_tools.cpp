@@ -385,9 +385,9 @@ static Variant get_documentation_default_value(const StringName &p_class_name, c
 		// Cannot get default value of classes that can't be instantiated
 		List<StringName> inheriting_classes;
 		ClassDB::get_direct_inheriters_from_class(p_class_name, &inheriting_classes);
-		for (List<StringName>::Element *E2 = inheriting_classes.front(); E2; E2 = E2->next()) {
-			if (ClassDB::can_instantiate(E2->get())) {
-				default_value = ClassDB::class_get_default_property_value(E2->get(), p_property_name, &r_default_value_valid);
+		for (const StringName &class_name : inheriting_classes) {
+			if (ClassDB::can_instantiate(class_name)) {
+				default_value = ClassDB::class_get_default_property_value(class_name, p_property_name, &r_default_value_valid);
 				if (r_default_value_valid) {
 					break;
 				}
@@ -648,11 +648,10 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 			ClassDB::get_signal_list(name, &signal_list, true);
 
 			if (signal_list.size()) {
-				for (List<MethodInfo>::Element *EV = signal_list.front(); EV; EV = EV->next()) {
+				for (const MethodInfo &EV : signal_list) {
 					DocData::MethodDoc signal;
-					signal.name = EV->get().name;
-					for (List<PropertyInfo>::Element *EA = EV->get().arguments.front(); EA; EA = EA->next()) {
-						const PropertyInfo &arginfo = EA->get();
+					signal.name = EV.name;
+					for (const PropertyInfo &arginfo : EV.arguments) {
 						DocData::ArgumentDoc argument;
 						DocData::argument_doc_from_arginfo(argument, arginfo);
 
