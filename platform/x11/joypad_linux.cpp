@@ -362,16 +362,16 @@ void JoypadLinux::open_joypad(const char *p_path) {
 			return;
 		}
 
-		//check if the device supports basic gamepad events, prevents certain keyboards from
-		//being detected as joypads
-		if (!(test_bit(EV_KEY, evbit) && test_bit(EV_ABS, evbit) &&
-					(test_bit(ABS_X, absbit) || test_bit(ABS_Y, absbit) || test_bit(ABS_HAT0X, absbit) ||
-							test_bit(ABS_GAS, absbit) || test_bit(ABS_RUDDER, absbit)) &&
-					(test_bit(BTN_A, keybit) || test_bit(BTN_THUMBL, keybit) ||
-							test_bit(BTN_TRIGGER, keybit) || test_bit(BTN_1, keybit))) &&
-				!(test_bit(EV_ABS, evbit) &&
-						test_bit(ABS_X, absbit) && test_bit(ABS_Y, absbit) &&
-						test_bit(ABS_RX, absbit) && test_bit(ABS_RY, absbit))) {
+		// Check if the device supports basic gamepad events and not non-joystick events
+		bool has_key = test_bit(EV_KEY, evbit);
+		bool has_abs_left = (test_bit(ABS_X, absbit) && test_bit(ABS_Y, absbit));
+		bool has_abs_right = (test_bit(ABS_RX, absbit) && test_bit(ABS_RY, absbit));
+		bool has_dpad = test_bit(ABS_HAT0X, absbit) || test_bit(BTN_DPAD_DOWN, keybit);
+		bool has_direction_input = has_abs_left || has_abs_right || has_dpad;
+		bool has_pointing_capability = test_bit(BTN_STYLUS, keybit) || test_bit(BTN_TOOL_PEN, keybit)
+			|| test_bit(BTN_TOOL_FINGER, keybit) || test_bit(BTN_LEFT, keybit) || test_bit(BTN_TOUCH, keybit);
+		bool is_gamepad = has_key && has_direction_input && !has_pointing_capability;
+		if (!is_gamepad) {
 			close(fd);
 			return;
 		}
