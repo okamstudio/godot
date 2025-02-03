@@ -3017,15 +3017,27 @@ String String::format(const Variant &values, String placeholder) const {
 	return new_string;
 }
 
-String String::replace(const String &p_key, const String &p_with) const {
+String String::_replace(const String &p_old, const String &p_new, int p_count, bool p_is_case_sensitive) const {
 	String new_string;
 	int search_from = 0;
-	int result = 0;
+	int find_result = 0;
+	const int substring_length = p_old.length();
 
-	while ((result = find(p_key, search_from)) >= 0) {
-		new_string += substr(search_from, result - search_from);
-		new_string += p_with;
-		search_from = result + p_key.length();
+	if (substring_length == 0 || p_count == 0) {
+		return *this; // there's nothing to match or substitute
+	}
+
+	find_result = p_is_case_sensitive ? find(p_old, search_from) : findn(p_old, search_from);
+	int occurrences = 1;
+	while (find_result >= 0) {
+		if (p_count < 0 || occurrences <= p_count) {
+			new_string += substr(search_from, find_result - search_from) + p_new;
+		} else {
+			new_string += substr(search_from, find_result - search_from + substring_length);
+		}
+		search_from = find_result + substring_length;
+		find_result = p_is_case_sensitive ? find(p_old, search_from) : findn(p_old, search_from);
+		++occurrences;
 	}
 
 	if (search_from == 0) {
@@ -3037,19 +3049,38 @@ String String::replace(const String &p_key, const String &p_with) const {
 	return new_string;
 }
 
-String String::replace(const char *p_key, const char *p_with) const {
+String String::replace(const String &p_old, const String &p_new, int p_count) const {
+	return _replace(p_old, p_new, p_count, true);
+}
+
+String String::replacen(const String &p_old, const String &p_new, int p_count) const {
+	return _replace(p_old, p_new, p_count, false);
+}
+
+String String::_replace(const char *p_old, const char *p_new, int p_count, bool p_is_case_sensitive) const {
 	String new_string;
 	int search_from = 0;
-	int result = 0;
+	int find_result = 0;
+	int substring_length = 0;
+	while (p_old[substring_length] != '\0') {
+		++substring_length;
+	}
 
-	while ((result = find(p_key, search_from)) >= 0) {
-		new_string += substr(search_from, result - search_from);
-		new_string += p_with;
-		int k = 0;
-		while (p_key[k] != '\0') {
-			k++;
+	if (substring_length == 0 || p_count == 0) {
+		return *this; // there's nothing to match or substitute
+	}
+
+	find_result = p_is_case_sensitive ? find(p_old, search_from) : findn(p_old, search_from);
+	int occurrences = 1;
+	while (find_result >= 0) {
+		if (p_count < 0 || occurrences <= p_count) {
+			new_string += substr(search_from, find_result - search_from) + p_new;
+		} else {
+			new_string += substr(search_from, find_result - search_from + substring_length);
 		}
-		search_from = result + k;
+		search_from = find_result + substring_length;
+		find_result = p_is_case_sensitive ? find(p_old, search_from) : findn(p_old, search_from);
+		++occurrences;
 	}
 
 	if (search_from == 0) {
@@ -3059,6 +3090,14 @@ String String::replace(const char *p_key, const char *p_with) const {
 	new_string += substr(search_from, length() - search_from);
 
 	return new_string;
+}
+
+String String::replace(const char *p_old, const char *p_new, int p_count) const {
+	return _replace(p_old, p_new, p_count, true);
+}
+
+String String::replacen(const char *p_old, const char *p_new, int p_count) const {
+	return _replace(p_old, p_new, p_count, false);
 }
 
 String String::replace_first(const String &p_key, const String &p_with) const {
@@ -3068,24 +3107,6 @@ String String::replace_first(const String &p_key, const String &p_with) const {
 	}
 
 	return *this;
-}
-String String::replacen(const String &p_key, const String &p_with) const {
-	String new_string;
-	int search_from = 0;
-	int result = 0;
-
-	while ((result = findn(p_key, search_from)) >= 0) {
-		new_string += substr(search_from, result - search_from);
-		new_string += p_with;
-		search_from = result + p_key.length();
-	}
-
-	if (search_from == 0) {
-		return *this;
-	}
-
-	new_string += substr(search_from, length() - search_from);
-	return new_string;
 }
 
 String String::repeat(int p_count) const {

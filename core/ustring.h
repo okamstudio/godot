@@ -137,6 +137,8 @@ class String {
 	void copy_from_unchecked(const CharType *p_char, const int p_length);
 	bool _base_is_subsequence_of(const String &p_string, bool case_insensitive) const;
 	int _count(const String &p_string, int p_from, int p_to, bool p_case_insensitive) const;
+	String _replace(const String &p_old, const String &p_new, int p_count = -1, bool p_is_case_sensitive = true) const;
+	String _replace(const char *p_old, const char *p_new, int p_count = -1, bool p_is_case_sensitive = true) const;
 
 public:
 	enum {
@@ -224,9 +226,10 @@ public:
 	float similarity(const String &p_string) const;
 	String format(const Variant &values, String placeholder = "{_}") const;
 	String replace_first(const String &p_key, const String &p_with) const;
-	String replace(const String &p_key, const String &p_with) const;
-	String replace(const char *p_key, const char *p_with) const;
-	String replacen(const String &p_key, const String &p_with) const;
+	String replace(const String &p_old, const String &p_new, int p_count = -1) const;
+	String replace(const char *p_old, const char *p_new, int p_count = -1) const;
+	String replacen(const String &p_old, const String &p_new, int p_count = -1) const;
+	String replacen(const char *p_old, const char *p_new, int p_count = -1) const;
 	String repeat(int p_count) const;
 	String insert(int p_at_pos, const String &p_string) const;
 	String pad_decimals(int p_digits) const;

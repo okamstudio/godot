@@ -1723,8 +1723,8 @@ void register_variant_methods() {
 	ADDFUNC1R(STRING, REAL, String, similarity, STRING, "text", varray());
 
 	ADDFUNC2R(STRING, STRING, String, format, NIL, "values", STRING, "placeholder", varray("{_}"));
-	ADDFUNC2R(STRING, STRING, String, replace, STRING, "what", STRING, "forwhat", varray());
-	ADDFUNC2R(STRING, STRING, String, replacen, STRING, "what", STRING, "forwhat", varray());
+	ADDFUNC3R(STRING, STRING, String, replace, STRING, "old", STRING, "new", INT, "count", varray(-1));
+	ADDFUNC3R(STRING, STRING, String, replacen, STRING, "old", STRING, "new", INT, "count", varray(-1));
 	ADDFUNC1R(STRING, STRING, String, repeat, INT, "count", varray());
 	ADDFUNC2R(STRING, STRING, String, insert, INT, "position", STRING, "what", varray());
 	ADDFUNC0R(STRING, STRING, String, capitalize, varray());
