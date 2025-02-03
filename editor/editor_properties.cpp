@@ -623,8 +623,9 @@ void EditorPropertyCheck::_checkbox_pressed() {
 }
 
 void EditorPropertyCheck::update_property() {
-	bool c = get_edited_object()->get(get_edited_property());
+	const bool c = get_edited_object()->get(get_edited_property());
 	checkbox->set_pressed(c);
+	checkbox->set_text(c ? TTR("On") : TTR("Off"));
 	checkbox->set_disabled(is_read_only());
 }
 
@@ -634,7 +635,7 @@ void EditorPropertyCheck::_bind_methods() {
 
 EditorPropertyCheck::EditorPropertyCheck() {
 	checkbox = memnew(CheckBox);
-	checkbox->set_text(TTR("On"));
+	checkbox->set_text(TTR("Off"));
 	add_child(checkbox);
 	add_focusable(checkbox);
 	checkbox->connect("pressed", this, "_checkbox_pressed");
