@@ -2110,8 +2110,10 @@ Point2 OS_Windows::get_window_position() const {
 }
 
 void OS_Windows::set_window_position(const Point2 &p_position) {
-	if (video_mode.fullscreen)
-		return;
+	//remember fullscreen setting and turn off fullscreen while window is moved to new position
+	bool wasFullscreen = video_mode.fullscreen;
+	set_window_fullscreen(false);
+
 	RECT r;
 	GetWindowRect(hWnd, &r);
 	MoveWindow(hWnd, p_position.x, p_position.y, r.right - r.left, r.bottom - r.top, TRUE);
@@ -2127,6 +2129,8 @@ void OS_Windows::set_window_position(const Point2 &p_position) {
 
 	last_pos = p_position;
 	update_real_mouse_position();
+	//enable fullscreen back based on saved setting
+	set_window_fullscreen(wasFullscreen);
 }
 
 Size2 OS_Windows::get_window_size() const {
