@@ -1150,10 +1150,13 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 		}
 
 		// Update scene if it is open.
+		int current_tab = editor->get_current_tab();
 		for (int i = 0; i < file_changed_paths.size(); ++i) {
 			String new_item_path = p_item.is_file ? new_path : file_changed_paths[i].replace_first(old_path, new_path);
-			if (ResourceLoader::get_resource_type(new_item_path) == "PackedScene" && editor->is_scene_open(file_changed_paths[i])) {
-				EditorData *ed = &editor->get_editor_data();
+			String resource_type = ResourceLoader::get_resource_type(new_item_path);
+			EditorData *ed = &editor->get_editor_data();
+
+			if (resource_type == "PackedScene" && editor->is_scene_open(file_changed_paths[i])) {
 				for (int j = 0; j < ed->get_edited_scene_count(); j++) {
 					if (ed->get_scene_path(j) == file_changed_paths[i]) {
 						ed->get_edited_scene_root(j)->set_filename(new_item_path);
@@ -1161,6 +1164,8 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 						break;
 					}
 				}
+			} else if (resource_type == "GDScript") {
+				ScriptEditor::get_singleton()->resolve_edited_scene_move(current_tab, old_path, new_path);
 			}
 		}
 

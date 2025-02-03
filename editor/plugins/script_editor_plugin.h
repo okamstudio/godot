@@ -436,6 +436,7 @@ public:
 
 	void save_current_script();
 	void save_all_scripts();
+	void resolve_edited_scene_move(int p_scene_tab, const String &p_old_path, const String &p_new_path);
 
 	void set_window_layout(Ref<ConfigFile> p_layout);
 	void get_window_layout(Ref<ConfigFile> p_layout);
