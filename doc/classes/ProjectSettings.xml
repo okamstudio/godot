@@ -1558,6 +1558,10 @@
 			If [code]true[/code] and available on the target Android device, enables high floating point precision for all shader computations in GLES2.
 			[b]Warning:[/b] High floating point precision can be extremely slow on older devices and is often not available at all. Use with caution.
 		</member>
+		<member name="rendering/gles2/compatibility/use_opengl_3_context" type="bool" setter="" getter="" default="false">
+			If [code]true[/code] and OpenGL 3.3 Compatibility Profile support is available, uses an OpenGL 3.3 Compatibility Profile to run the GLES2 rendering backend. This can be useful to diagnose the GLES2 renderer with OpenGL 3.2+ tools such as [url=https://renderdoc.org/]RenderDoc[/url]. Enabling this option generally does not affect performance, but it may cause unexpected behavior on certain GPU drivers. If in doubt, leave this to [code]false[/code].
+			[b]Note:[/b] Only effective on Linux and when using the GLES2 rendering backend.
+		</member>
 		<member name="rendering/gles3/shaders/log_active_async_compiles_count" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], every time an asynchronous shader compilation or an asynchronous shader reconstruction from cache starts or finishes, a line will be logged telling how many of those are happening.
 			If the platform doesn't support parallel shader compile, but only the compile queue via a secondary GL context, what the message will tell is the number of shader compiles currently queued.

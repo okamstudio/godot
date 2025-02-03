@@ -1168,6 +1168,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	GLOBAL_DEF("rendering/quality/driver/fallback_to_gles2", false);
+	GLOBAL_DEF("rendering/gles2/compatibility/use_opengl_3_context", false);
 
 	// Assigning here, to be sure that it appears in docs
 	GLOBAL_DEF("rendering/2d/options/use_nvidia_rect_flicker_workaround", false);

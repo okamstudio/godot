@@ -359,7 +359,12 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	context_gl = nullptr;
 	while (!context_gl) {
-		context_gl = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, opengl_api_type));
+		context_gl = memnew(ContextGL_X11(
+				x11_display,
+				x11_window,
+				current_videomode,
+				opengl_api_type,
+				GLOBAL_GET("rendering/gles2/compatibility/use_opengl_3_context")));
 
 		if (context_gl->initialize() != OK) {
 			memdelete(context_gl);

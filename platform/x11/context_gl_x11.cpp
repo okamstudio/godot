@@ -180,10 +180,29 @@ Error ContextGL_X11::initialize() {
 			ERR_FAIL_COND_V(!p->glx_context, ERR_UNCONFIGURED);
 		} break;
 		case GLES_2_0_COMPATIBLE: {
-			p->glx_context = glXCreateNewContext(x11_display, fbconfig, GLX_RGBA_TYPE, nullptr, true);
-			ERR_FAIL_COND_V(!p->glx_context, ERR_UNCONFIGURED);
+			if (gles2_use_opengl_3_context) {
+				print_line("Running GLES2 rendering backend over a OpenGL 3.3 Compatibility Profile context.");
+				// Initialize OpenGL 3.3 Compatibility Profile context.
+				// This is useful to use tools that only work with OpenGL 3.x contexts with the GLES2 renderer
+				// (such as RenderDoc). Not all RenderDoc features may work as expected, but basic capture is functional.
+				static int context_attribs[] = {
+					GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+					GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+					GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+					GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB /*|GLX_CONTEXT_DEBUG_BIT_ARB*/,
+					None
+				};
+
+				p->glx_context = glXCreateContextAttribsARB(x11_display, fbconfig, nullptr, true, context_attribs);
+				ERR_FAIL_COND_V(ctxErrorOccurred || !p->glx_context, ERR_UNCONFIGURED);
+				p->glx_context_offscreen = glXCreateContextAttribsARB(x11_display, fbconfig, nullptr, true, context_attribs);
+			} else {
+				p->glx_context = glXCreateNewContext(x11_display, fbconfig, GLX_RGBA_TYPE, nullptr, true);
+				ERR_FAIL_COND_V(!p->glx_context, ERR_UNCONFIGURED);
+			}
 		} break;
 		case GLES_3_0_COMPATIBLE: {
+			// Initialize OpenGL 3.3 Core Profile context.
 			static int context_attribs[] = {
 				GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
 				GLX_CONTEXT_MINOR_VERSION_ARB, 3,
@@ -277,12 +296,13 @@ bool ContextGL_X11::is_using_vsync() const {
 	return use_vsync;
 }
 
-ContextGL_X11::ContextGL_X11(::Display *p_x11_display, ::Window &p_x11_window, const OS::VideoMode &p_default_video_mode, ContextType p_context_type) :
+ContextGL_X11::ContextGL_X11(::Display *p_x11_display, ::Window &p_x11_window, const OS::VideoMode &p_default_video_mode, ContextType p_context_type, bool p_gles2_use_opengl_3_context) :
 		x11_window(p_x11_window) {
 	default_video_mode = p_default_video_mode;
 	x11_display = p_x11_display;
 
 	context_type = p_context_type;
+	gles2_use_opengl_3_context = p_gles2_use_opengl_3_context;
 
 	double_buffer = false;
 	direct_render = false;

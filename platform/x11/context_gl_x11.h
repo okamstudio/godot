@@ -61,6 +61,10 @@ private:
 	bool use_vsync;
 	ContextType context_type;
 
+	// If `true`, uses an OpenGL 3.3 Compatibility Profile context to run the GLES2 rendering backend.
+	// If `false`, an OpenGL 2.1 or OpenGL ES 2.0 context is used instead (depending on the system graphics driver).
+	bool gles2_use_opengl_3_context;
+
 public:
 	void release_current();
 	void make_current();
@@ -78,7 +82,7 @@ public:
 	void set_use_vsync(bool p_use);
 	bool is_using_vsync() const;
 
-	ContextGL_X11(::Display *p_x11_display, ::Window &p_x11_window, const OS::VideoMode &p_default_video_mode, ContextType p_context_type);
+	ContextGL_X11(::Display *p_x11_display, ::Window &p_x11_window, const OS::VideoMode &p_default_video_mode, ContextType p_context_type, bool p_gles2_use_opengl_3_context = false);
 	~ContextGL_X11();
 };
 
