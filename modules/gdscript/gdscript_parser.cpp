@@ -5078,6 +5078,7 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 							}
 							member._export.hint = PROPERTY_HINT_RESOURCE_TYPE;
 							member._export.hint_string = res->get_class();
+							member._export.class_name = res->get_class();
 						}
 					}
 #ifdef TOOLS_ENABLED
