@@ -1085,6 +1085,10 @@ ProjectSettings::ProjectSettings() {
 	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/test_width", PropertyInfo(Variant::INT, "display/window/size/test_width", PROPERTY_HINT_RANGE, "0,7680,1,or_greater")); // 8K resolution
 	GLOBAL_DEF("display/window/size/test_height", 0);
 	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/test_height", PropertyInfo(Variant::INT, "display/window/size/test_height", PROPERTY_HINT_RANGE, "0,4320,1,or_greater")); // 8K resolution
+	GLOBAL_DEF("display/window/size/max_render_width", 0);
+	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/max_render_width", PropertyInfo(Variant::INT, "display/window/size/max_render_width", PROPERTY_HINT_RANGE, "0,7680,1,or_greater")); // 8K resolution
+	GLOBAL_DEF("display/window/size/max_render_height", 0);
+	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/max_render_height", PropertyInfo(Variant::INT, "display/window/size/max_render_height", PROPERTY_HINT_RANGE, "0,4320,1,or_greater")); // 8K resolution
 
 	GLOBAL_DEF("audio/default_bus_layout", "res://default_bus_layout.tres");
 	custom_prop_info["audio/default_bus_layout"] = PropertyInfo(Variant::STRING, "audio/default_bus_layout", PROPERTY_HINT_FILE, "*.tres");

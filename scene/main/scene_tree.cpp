@@ -1429,8 +1429,12 @@ void SceneTree::_update_root_rect() {
 			// Already handled above
 		} break;
 		case STRETCH_MODE_2D: {
-			_update_font_oversampling((screen_size.x / viewport_size.x) * stretch_scale); //screen / viewport ratio drives oversampling
-			root->set_size(screen_size.floor());
+			Size2 render_size = screen_size;
+			if (max_render_size.x > 0 && max_render_size.y > 0 && (screen_size.x > max_render_size.x || screen_size.y > max_render_size.y)) {
+				render_size = max_render_size;
+			}
+			_update_font_oversampling((render_size.x / viewport_size.x) * stretch_scale); //screen / viewport ratio drives oversampling
+			root->set_size(render_size);
 			root->set_attach_to_screen_rect(Rect2(margin, screen_size));
 			root->set_size_override_stretch(true);
 			root->set_size_override(true, (viewport_size / stretch_scale).floor());
@@ -1455,6 +1459,15 @@ void SceneTree::set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, c
 	stretch_min = p_minsize;
 	stretch_scale = p_scale;
 	_update_root_rect();
+}
+
+void SceneTree::set_max_render_size(const Size2 &p_max_render_size) {
+	max_render_size = p_max_render_size;
+	_update_root_rect();
+}
+
+Size2 SceneTree::get_max_render_size() {
+	return max_render_size;
 }
 
 void SceneTree::set_edited_scene_root(Node *p_node) {
@@ -2084,6 +2097,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_frame"), &SceneTree::get_frame);
 	ClassDB::bind_method(D_METHOD("quit", "exit_code"), &SceneTree::quit, DEFVAL(-1));
 
+	ClassDB::bind_method(D_METHOD("set_max_render_size", "max_render_size"), &SceneTree::set_max_render_size);
 	ClassDB::bind_method(D_METHOD("set_screen_stretch", "mode", "aspect", "minsize", "scale"), &SceneTree::set_screen_stretch, DEFVAL(1));
 
 	ClassDB::bind_method(D_METHOD("set_physics_interpolation_enabled", "enabled"), &SceneTree::set_physics_interpolation_enabled);

@@ -219,6 +219,13 @@
 				Marks the most recent [InputEvent] as handled.
 			</description>
 		</method>
+		<method name="set_max_render_size">
+			<return type="void" />
+			<argument index="0" name="max_render_size" type="Vector2" />
+			<description>
+				Sets the maximum size of the game's main viewport, when the stretch mode is [constant STRETCH_MODE_2D]. If set to (0, 0), the render size is the screen size.
+			</description>
+		</method>
 		<method name="set_screen_stretch">
 			<return type="void" />
 			<argument index="0" name="mode" type="int" enum="SceneTree.StretchMode" />

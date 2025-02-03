@@ -532,6 +532,12 @@
 		<member name="display/window/size/height" type="int" setter="" getter="" default="600">
 			Sets the game's main viewport height. On desktop platforms, this is the default window size. Stretch mode settings also use this as a reference when enabled.
 		</member>
+		<member name="display/window/size/max_render_height" type="int" setter="" getter="" default="0">
+			Sets the maximum height of the game's main viewport, when the stretch mode is "2D". If set to 0, the maximum height is the screen height.
+		</member>
+		<member name="display/window/size/max_render_width" type="int" setter="" getter="" default="0">
+			Sets the maximum width of the game's main viewport, when the stretch mode is "2D". If set to 0, the maximum width is the screen width.
+		</member>
 		<member name="display/window/size/resizable" type="bool" setter="" getter="" default="true">
 			Allows the window to be resizable by default.
 			[b]Note:[/b] This setting is ignored on iOS.

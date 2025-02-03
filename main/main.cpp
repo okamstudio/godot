@@ -2064,6 +2064,7 @@ bool Main::start() {
 			String stretch_mode = GLOBAL_DEF("display/window/stretch/mode", "disabled");
 			String stretch_aspect = GLOBAL_DEF("display/window/stretch/aspect", "ignore");
 			Size2i stretch_size = Size2(GLOBAL_DEF("display/window/size/width", 0), GLOBAL_DEF("display/window/size/height", 0));
+			Size2i max_render_size = Size2(GLOBAL_DEF("display/window/size/max_render_width", 0), GLOBAL_DEF("display/window/size/max_render_height", 0));
 			// out of compatibility reasons stretch_scale is called shrink when exposed to the user.
 			real_t stretch_scale = GLOBAL_DEF("display/window/stretch/shrink", 1.0);
 
@@ -2086,6 +2087,7 @@ bool Main::start() {
 			}
 
 			sml->set_screen_stretch(sml_sm, sml_aspect, stretch_size, stretch_scale);
+			sml->set_max_render_size(max_render_size);
 
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
