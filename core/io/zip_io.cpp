@@ -36,11 +36,17 @@ void *zipio_open(void *data, const char *p_fname, int mode) {
 	String fname;
 	fname.parse_utf8(p_fname);
 
+	int file_access_mode = 0;
 	if (mode & ZLIB_FILEFUNC_MODE_WRITE) {
-		f = FileAccess::open(fname, FileAccess::WRITE);
-	} else {
-		f = FileAccess::open(fname, FileAccess::READ);
+		file_access_mode |= FileAccess::WRITE;
 	}
+	if (mode & ZLIB_FILEFUNC_MODE_READ) {
+		file_access_mode |= FileAccess::READ;
+	}
+	if (mode & ZLIB_FILEFUNC_MODE_CREATE) {
+		file_access_mode |= FileAccess::WRITE_READ;
+	}
+	f = FileAccess::open(fname, file_access_mode);
 
 	if (!f) {
 		return nullptr;

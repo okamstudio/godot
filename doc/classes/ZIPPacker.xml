@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ZIPPacker" inherits="RefCounted" version="4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Allows the creation of zip files.
+	</brief_description>
+	<description>
+		This class implements a writer that allows storing the multiple blobs in a zip archive.
+		[codeblock]
+		func write_zip_file():
+		    var writer := ZIPPacker.new()
+		    var err := writer.open("user://archive.zip")
+		    if err != OK:
+		        return err
+		    writer.start_file("hello.txt")
+		    writer.write_file("Hello World".to_utf8_buffer())
+		    writer.close_file()
+
+		    writer.close()
+		    return OK
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="close">
+			<return type="int" enum="Error" />
+			<description>
+				Closes the underlying resources used by this instance.
+			</description>
+		</method>
+		<method name="close_file">
+			<return type="int" enum="Error" />
+			<description>
+				Stops writing to a file within the archive.
+				It will fail if there is no open file.
+			</description>
+		</method>
+		<method name="open">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="append" type="int" enum="ZIPPacker.ZipAppend" default="0" />
+			<description>
+				Opens a zip file for writing at the given path using the specified write mode.
+				This must be called before everything else.
+			</description>
+		</method>
+		<method name="start_file">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Starts writing to a file within the archive. Only one file can be written at the same time.
+				Must be called after [method open].
+			</description>
+		</method>
+		<method name="write_file">
+			<return type="int" enum="Error" />
+			<param index="0" name="data" type="PoolByteArray" />
+			<description>
+				Write the given [param data] to the file.
+				Needs to be called after [method start_file].
+			</description>
+		</method>
+	</methods>
+	<constants>
+		<constant name="APPEND_CREATE" value="0" enum="ZipAppend">
+		</constant>
+		<constant name="APPEND_CREATEAFTER" value="1" enum="ZipAppend">
+		</constant>
+		<constant name="APPEND_ADDINZIP" value="2" enum="ZipAppend">
+		</constant>
+	</constants>
+</class>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ZIPReader" inherits="RefCounted" version="4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Allows reading the content of a zip file.
+	</brief_description>
+	<description>
+		This class implements a reader that can extract the content of individual files inside a zip archive.
+		[codeblock]
+		func read_zip_file():
+		    var reader := ZIPReader.new()
+		    var err := reader.open("user://archive.zip")
+		    if err == OK:
+		        return PoolByteArray()
+		    var res := reader.read_file("hello.txt")
+		    reader.close()
+		    return res
+		[/codeblock]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="close">
+			<return type="int" enum="Error" />
+			<description>
+				Closes the underlying resources used by this instance.
+			</description>
+		</method>
+		<method name="get_files">
+			<return type="PoolStringArray" />
+			<description>
+				Returns the list of names of all files in the loaded archive.
+				Must be called after [method open].
+			</description>
+		</method>
+		<method name="open">
+			<return type="int" enum="Error" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Opens the zip archive at the given [param path] and reads its file index.
+			</description>
+		</method>
+		<method name="read_file">
+			<return type="PoolByteArray" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="case_sensitive" type="bool" default="true" />
+			<description>
+				Loads the whole content of a file in the loaded zip archive into memory and returns it.
+				Must be called after [method open].
+			</description>
+		</method>
+	</methods>
+</class>
