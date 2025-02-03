@@ -93,7 +93,7 @@ protected:
 	Color _get_color_accum();
 	void _notification(int p_what);
 	static void _bind_methods();
-	virtual void _draw() = 0;
+	virtual void _draw(){};
 	void draw_texture_rect(Ref<Texture> p_texture, Rect2 p_dst_rect, Rect2 p_src_rect);
 	_FORCE_INLINE_ void set_aabb(const AABB &p_aabb) { aabb = p_aabb; }
 	_FORCE_INLINE_ RID &get_mesh() { return mesh; }
@@ -142,7 +142,7 @@ public:
 	void set_billboard_mode(Material3D::BillboardMode p_mode);
 	Material3D::BillboardMode get_billboard_mode() const;
 
-	virtual Rect2 get_item_rect() const = 0;
+	virtual Rect2 get_item_rect() const;
 
 	virtual AABB get_aabb() const;
 	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;

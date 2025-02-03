@@ -532,6 +532,13 @@ bool ClassDB::can_instance(const StringName &p_class) {
 #endif
 	return (!ti->disabled && ti->creation_func != nullptr);
 }
+bool ClassDB::is_virtual_node(const StringName &p_class) {
+	OBJTYPE_RLOCK;
+
+	ClassInfo *ti = classes.getptr(p_class);
+	ERR_FAIL_COND_V_MSG(!ti, false, "Cannot get class '" + String(p_class) + "'.");
+	return (ti->virtual_node);
+}
 
 void ClassDB::_add_class2(const StringName &p_class, const StringName &p_inherits) {
 	OBJTYPE_WLOCK;

@@ -34,6 +34,14 @@
 #include "servers/visual_server.h"
 #include "skeleton.h"
 
+AABB VisualInstance::get_aabb() const {
+	return AABB();
+}
+
+PoolVector<Face3> VisualInstance::get_faces(uint32_t p_usage_flags) const {
+	return PoolVector<Face3>();
+}
+
 AABB VisualInstance::get_transformed_aabb() const {
 	return get_global_transform().xform(get_aabb());
 }

@@ -65,8 +65,8 @@ public:
 	};
 
 	RID get_instance() const;
-	virtual AABB get_aabb() const = 0;
-	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const = 0;
+	virtual AABB get_aabb() const;
+	virtual PoolVector<Face3> get_faces(uint32_t p_usage_flags) const;
 
 	virtual AABB get_transformed_aabb() const; // helper
 

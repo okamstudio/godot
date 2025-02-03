@@ -457,6 +457,8 @@ EditorPlugin *EditorData::get_editor_plugin(int p_idx) {
 
 void EditorData::add_custom_type(const String &p_type, const String &p_inherits, const Ref<Script> &p_script, const Ref<Texture> &p_icon) {
 	ERR_FAIL_COND_MSG(p_script.is_null(), "It's not a reference to a valid Script object.");
+	ERR_FAIL_COND_MSG(!ClassDB::class_exists(p_inherits), "class" + p_inherits + " does not exist");
+	ERR_FAIL_COND_MSG(!ClassDB::can_instance(p_inherits), p_inherits + " can not be inherited for custom type");
 	CustomType ct;
 	ct.name = p_type;
 	ct.icon = p_icon;

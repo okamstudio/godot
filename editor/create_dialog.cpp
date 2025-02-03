@@ -179,7 +179,7 @@ void CreateDialog::add_type(const String &p_type, HashMap<String, TreeItem *> &p
 		}
 	}
 
-	bool can_instance = (cpp_type && ClassDB::can_instance(p_type)) || ScriptServer::is_global_class(p_type);
+	bool can_instance = (cpp_type && ClassDB::can_instance(p_type) && !ClassDB::is_virtual_node(p_type)) || ScriptServer::is_global_class(p_type);
 
 	TreeItem *item = search_options->create_item(parent);
 	if (cpp_type) {

@@ -438,6 +438,10 @@ Material3D::BillboardMode SpriteBase3D::get_billboard_mode() const {
 	return billboard_mode;
 }
 
+Rect2 SpriteBase3D::get_item_rect() const {
+	return Rect2();
+}
+
 void SpriteBase3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_centered", "centered"), &SpriteBase3D::set_centered);
 	ClassDB::bind_method(D_METHOD("is_centered"), &SpriteBase3D::is_centered);

@@ -183,6 +183,10 @@ void Joint2D::_notification(int p_what) {
 	}
 }
 
+RID Joint2D::_configure_joint(PhysicsBody2D *body_a, PhysicsBody2D *body_b) {
+	return RID();
+}
+
 void Joint2D::set_bias(real_t p_bias) {
 	bias = p_bias;
 	if (joint.is_valid()) {

@@ -127,6 +127,7 @@ public:
 		StringName name;
 		bool disabled;
 		bool exposed;
+		bool virtual_node;
 		Object *(*creation_func)();
 		ClassInfo();
 		~ClassInfo();
@@ -193,6 +194,20 @@ public:
 	}
 
 	template <class T>
+	static void register_virtual_node() {
+		GLOBAL_LOCK_FUNCTION;
+		T::initialize_class();
+		ClassInfo *t = classes.getptr(T::get_class_static());
+		ERR_FAIL_COND(!t);
+		t->creation_func = &creator<T>;
+		t->exposed = true;
+		t->class_ptr = T::get_class_ptr_static();
+		T::register_custom_data_to_otdb();
+		t->virtual_node = true;
+		//nothing
+	}
+
+	template <class T>
 	static Object *_create_ptr_func() {
 		return T::create();
 	}
@@ -218,6 +233,7 @@ public:
 	static bool class_exists(const StringName &p_class);
 	static bool is_parent_class(const StringName &p_class, const StringName &p_inherits);
 	static bool can_instance(const StringName &p_class);
+	static bool is_virtual_node(const StringName &p_class);
 	static Object *instance(const StringName &p_class);
 	static APIType get_api_type(const StringName &p_class);
 

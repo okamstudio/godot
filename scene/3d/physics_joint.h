@@ -55,7 +55,7 @@ protected:
 
 	void _notification(int p_what);
 
-	virtual RID _configure_joint(PhysicsBody *body_a, PhysicsBody *body_b) = 0;
+	virtual RID _configure_joint(PhysicsBody *body_a, PhysicsBody *body_b);
 
 	static void _bind_methods();
 

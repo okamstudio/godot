@@ -193,6 +193,10 @@ void Joint::_notification(int p_what) {
 	}
 }
 
+RID Joint::_configure_joint(PhysicsBody *body_a, PhysicsBody *body_b) {
+	return RID();
+}
+
 void Joint::set_exclude_nodes_from_collision(bool p_enable) {
 	if (exclude_from_collision == p_enable) {
 		return;

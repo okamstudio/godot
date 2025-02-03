@@ -54,7 +54,7 @@ protected:
 	void _update_joint(bool p_only_free = false);
 
 	void _notification(int p_what);
-	virtual RID _configure_joint(PhysicsBody2D *body_a, PhysicsBody2D *body_b) = 0;
+	virtual RID _configure_joint(PhysicsBody2D *body_a, PhysicsBody2D *body_b);
 
 	static void _bind_methods();
 

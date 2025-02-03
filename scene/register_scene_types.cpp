@@ -297,7 +297,7 @@ void register_scene_types() {
 
 	/* REGISTER GUI */
 	ClassDB::register_class<ButtonGroup>();
-	ClassDB::register_virtual_class<BaseButton>();
+	ClassDB::register_virtual_node<BaseButton>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -305,11 +305,11 @@ void register_scene_types() {
 	ClassDB::register_class<Control>();
 	ClassDB::register_class<Button>();
 	ClassDB::register_class<Label>();
-	ClassDB::register_virtual_class<ScrollBar>();
+	ClassDB::register_virtual_node<ScrollBar>();
 	ClassDB::register_class<HScrollBar>();
 	ClassDB::register_class<VScrollBar>();
 	ClassDB::register_class<ProgressBar>();
-	ClassDB::register_virtual_class<Slider>();
+	ClassDB::register_virtual_node<Slider>();
 	ClassDB::register_class<HSlider>();
 	ClassDB::register_class<VSlider>();
 	ClassDB::register_class<Popup>();
@@ -320,7 +320,7 @@ void register_scene_types() {
 	ClassDB::register_class<ToolButton>();
 	ClassDB::register_class<LinkButton>();
 	ClassDB::register_class<Panel>();
-	ClassDB::register_virtual_class<Range>();
+	ClassDB::register_virtual_node<Range>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
@@ -331,19 +331,19 @@ void register_scene_types() {
 	ClassDB::register_class<AspectRatioContainer>();
 	ClassDB::register_class<TabContainer>();
 	ClassDB::register_class<Tabs>();
-	ClassDB::register_virtual_class<Separator>();
+	ClassDB::register_virtual_node<Separator>();
 	ClassDB::register_class<HSeparator>();
 	ClassDB::register_class<VSeparator>();
 	ClassDB::register_class<TextureButton>();
 	ClassDB::register_class<Container>();
-	ClassDB::register_virtual_class<BoxContainer>();
+	ClassDB::register_virtual_node<BoxContainer>();
 	ClassDB::register_class<HBoxContainer>();
 	ClassDB::register_class<VBoxContainer>();
 	ClassDB::register_class<GridContainer>();
 	ClassDB::register_class<CenterContainer>();
 	ClassDB::register_class<ScrollContainer>();
 	ClassDB::register_class<PanelContainer>();
-	ClassDB::register_virtual_class<FlowContainer>();
+	ClassDB::register_virtual_node<FlowContainer>();
 	ClassDB::register_class<HFlowContainer>();
 	ClassDB::register_class<VFlowContainer>();
 
@@ -378,7 +378,7 @@ void register_scene_types() {
 	ClassDB::register_class<ConfirmationDialog>();
 	ClassDB::register_class<MarginContainer>();
 	ClassDB::register_class<ViewportContainer>();
-	ClassDB::register_virtual_class<SplitContainer>();
+	ClassDB::register_virtual_node<SplitContainer>();
 	ClassDB::register_class<HSplitContainer>();
 	ClassDB::register_class<VSplitContainer>();
 	ClassDB::register_class<GraphNode>();
@@ -430,9 +430,9 @@ void register_scene_types() {
 	OS::get_singleton()->yield(); //may take time to init
 
 #ifndef _3D_DISABLED
-	ClassDB::register_virtual_class<VisualInstance>();
-	ClassDB::register_virtual_class<CullInstance>();
-	ClassDB::register_virtual_class<GeometryInstance>();
+	ClassDB::register_virtual_node<VisualInstance>();
+	ClassDB::register_virtual_node<CullInstance>();
+	ClassDB::register_virtual_node<GeometryInstance>();
 	ClassDB::register_class<Camera>();
 	ClassDB::register_class<ClippedCamera>();
 	ClassDB::register_class<Listener>();
@@ -444,7 +444,7 @@ void register_scene_types() {
 	ClassDB::register_class<MeshInstance>();
 	ClassDB::register_class<LOD>();
 	ClassDB::register_class<ImmediateGeometry>();
-	ClassDB::register_virtual_class<SpriteBase3D>();
+	ClassDB::register_virtual_node<SpriteBase3D>();
 	ClassDB::register_class<Sprite3D>();
 	ClassDB::register_class<AnimatedSprite3D>();
 	ClassDB::register_class<Label3D>();
@@ -507,7 +507,7 @@ void register_scene_types() {
 	ClassDB::register_class<WorldEnvironment>();
 	ClassDB::register_class<RemoteTransform>();
 
-	ClassDB::register_virtual_class<Joint>();
+	ClassDB::register_virtual_node<Joint>();
 	ClassDB::register_class<PinJoint>();
 	ClassDB::register_class<HingeJoint>();
 	ClassDB::register_class<SliderJoint>();
@@ -633,7 +633,7 @@ void register_scene_types() {
 
 	ClassDB::register_class<Camera2D>();
 	ClassDB::register_class<Listener2D>();
-	ClassDB::register_virtual_class<Joint2D>();
+	ClassDB::register_virtual_node<Joint2D>();
 	ClassDB::register_class<PinJoint2D>();
 	ClassDB::register_class<GrooveJoint2D>();
 	ClassDB::register_class<DampedSpringJoint2D>();

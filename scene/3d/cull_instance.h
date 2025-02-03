@@ -60,7 +60,7 @@ public:
 	CullInstance();
 
 protected:
-	virtual void _refresh_portal_mode() = 0;
+	virtual void _refresh_portal_mode(){};
 
 	static void _bind_methods();
 
