@@ -2714,7 +2714,7 @@ bool Tree::edit_selected() {
 		return true;
 
 	} else if (c.mode == TreeItem::CELL_MODE_STRING || c.mode == TreeItem::CELL_MODE_RANGE) {
-		Vector2 ofs(0, (text_editor->get_size().height - rect.size.height) / 2);
+		Vector2 ofs(0, (text_editor->get_size().height - rect.size.height) / 2 - 1); // "-1" centers vertically.
 		Point2i textedpos = get_global_position() + rect.position - ofs;
 		cache.text_editor_position = textedpos;
 		text_editor->set_position(textedpos);
