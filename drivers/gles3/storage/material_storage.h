@@ -160,7 +160,9 @@ struct CanvasShaderData : public ShaderData {
 	String code;
 
 	BlendMode blend_mode;
+	GLenum blend_factors[4] = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA };
 
+	bool uses_blend_factors = false;
 	bool uses_screen_texture;
 	bool uses_screen_texture_mipmaps;
 	bool uses_sdf;
@@ -281,6 +283,7 @@ struct SceneShaderData : public ShaderData {
 	String code;
 
 	BlendMode blend_mode;
+	GLenum blend_factors[4] = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA };
 	AlphaAntiAliasing alpha_antialiasing_mode;
 	DepthDraw depth_draw;
 	DepthTest depth_test;
@@ -290,6 +293,7 @@ struct SceneShaderData : public ShaderData {
 	bool uses_alpha;
 	bool uses_alpha_clip;
 	bool uses_blend_alpha;
+	bool uses_blend_factors;
 	bool uses_depth_prepass_alpha;
 	bool uses_discard;
 	bool uses_roughness;

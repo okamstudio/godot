@@ -1503,7 +1503,7 @@ void RendererCanvasRenderRD::CanvasShaderData::_create_pipeline(PipelineKey p_pi
 		attachment.dst_alpha_blend_factor = RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		dynamic_state_flags = RD::DYNAMIC_STATE_BLEND_CONSTANTS;
 	} else {
-		attachment = RendererRD::MaterialStorage::ShaderData::blend_mode_to_blend_attachment(blend_mode_rd);
+		attachment = RendererRD::MaterialStorage::ShaderData::blend_mode_to_blend_attachment(blend_mode_rd, (uses_blend_factors) ? blend_factors : nullptr);
 	}
 
 	blend_state.attachments.push_back(attachment);
@@ -1534,6 +1534,7 @@ void RendererCanvasRenderRD::CanvasShaderData::set_code(const String &p_code) {
 	code = p_code;
 	ubo_size = 0;
 	uniforms.clear();
+	uses_blend_factors = false;
 	uses_screen_texture = false;
 	uses_screen_texture_mipmaps = false;
 	uses_sdf = false;
@@ -1546,6 +1547,7 @@ void RendererCanvasRenderRD::CanvasShaderData::set_code(const String &p_code) {
 
 	ShaderCompiler::GeneratedCode gen_code;
 
+	Vector<StringName> blend_factor_names;
 	blend_mode = BLEND_MODE_MIX;
 
 	ShaderCompiler::IdentifierActions actions;
@@ -1563,6 +1565,7 @@ void RendererCanvasRenderRD::CanvasShaderData::set_code(const String &p_code) {
 	actions.usage_flag_pointers["texture_sdf"] = &uses_sdf;
 	actions.usage_flag_pointers["TIME"] = &uses_time;
 
+	actions.blend_factors = &blend_factor_names;
 	actions.uniforms = &uniforms;
 
 	RendererCanvasRenderRD *canvas_singleton = static_cast<RendererCanvasRenderRD *>(RendererCanvasRender::singleton);
@@ -1579,6 +1582,14 @@ void RendererCanvasRenderRD::CanvasShaderData::set_code(const String &p_code) {
 
 	uses_screen_texture_mipmaps = gen_code.uses_screen_texture_mipmaps;
 	uses_screen_texture = gen_code.uses_screen_texture;
+
+	if (blend_factor_names.size() == 4) {
+		// fully-specified blend mode inside shader overrides blending factors specified in blend_mode
+		uses_blend_factors = true;
+		for (int i = 0; i < 4; i++) {
+			blend_factors[i] = RD::render_get_blend_factor_by_name(blend_factor_names[i]);
+		}
+	}
 
 	pipeline_hash_map.clear_pipelines();
 

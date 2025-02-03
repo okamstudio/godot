@@ -3839,6 +3839,15 @@ bool RenderingDevice::uniform_sets_have_linear_pools() const {
 /**** PIPELINES ****/
 /*******************/
 
+RenderingDeviceCommons::BlendFactor RenderingDevice::render_get_blend_factor_by_name(const StringName &name) {
+	for (int i = 0; i < BLEND_FACTOR_MAX; i++) {
+		if (name == StringName(BLEND_FACTOR_NAMES[i])) {
+			return BlendFactor(i);
+		}
+	}
+	return BLEND_FACTOR_MAX;
+}
+
 RID RenderingDevice::render_pipeline_create(RID p_shader, FramebufferFormatID p_framebuffer_format, VertexFormatID p_vertex_format, RenderPrimitive p_render_primitive, const PipelineRasterizationState &p_rasterization_state, const PipelineMultisampleState &p_multisample_state, const PipelineDepthStencilState &p_depth_stencil_state, const PipelineColorBlendState &p_blend_state, BitField<PipelineDynamicStateFlags> p_dynamic_state_flags, uint32_t p_for_render_pass, const Vector<PipelineSpecializationConstant> &p_specialization_constants) {
 	// Needs a shader.
 	Shader *shader = shader_owner.get_or_null(p_shader);

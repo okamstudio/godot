@@ -148,6 +148,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	struct CanvasShaderData : public RendererRD::MaterialStorage::ShaderData {
 		Vector<ShaderCompiler::GeneratedCode::Texture> texture_uniforms;
 		int blend_mode = 0;
+		RD::BlendFactor blend_factors[4] = { RD::BLEND_FACTOR_SRC_ALPHA, RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, RD::BLEND_FACTOR_ONE, RD::BLEND_FACTOR_ONE_MINUS_SRC_ALPHA };
 
 		Vector<uint32_t> ubo_offsets;
 		uint32_t ubo_size = 0;
@@ -159,6 +160,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 		static const uint32_t VERTEX_INPUT_MASKS_SIZE = SHADER_VARIANT_MAX * 2;
 		std::atomic<uint64_t> vertex_input_masks[VERTEX_INPUT_MASKS_SIZE] = {};
 
+		bool uses_blend_factors = false;
 		bool uses_screen_texture = false;
 		bool uses_screen_texture_mipmaps = false;
 		bool uses_sdf = false;

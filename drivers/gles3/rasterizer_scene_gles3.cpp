@@ -3072,51 +3072,95 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 
 			if constexpr (p_pass_mode == PASS_MODE_COLOR || p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) {
 				GLES3::SceneShaderData::BlendMode desired_blend_mode;
+				GLenum desired_blend_factors[4] = { scene_state.current_blend_factors[0], scene_state.current_blend_factors[1], scene_state.current_blend_factors[2], scene_state.current_blend_factors[3] };
 				if (pass > 0) {
 					desired_blend_mode = GLES3::SceneShaderData::BLEND_MODE_ADD;
+					desired_blend_factors[0] = (p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) ? GL_SRC_ALPHA : GL_ONE;
+					desired_blend_factors[1] = GL_ONE;
+					desired_blend_factors[2] = (p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) ? GL_SRC_ALPHA : GL_ONE;
+					desired_blend_factors[3] = GL_ONE;
 				} else {
 					desired_blend_mode = shader->blend_mode;
+					if (shader->uses_blend_factors) {
+						desired_blend_factors[0] = shader->blend_factors[0];
+						desired_blend_factors[1] = shader->blend_factors[1];
+						desired_blend_factors[2] = shader->blend_factors[2];
+						desired_blend_factors[3] = shader->blend_factors[3];
+					} else {
+						switch (desired_blend_mode) {
+							case GLES3::SceneShaderData::BLEND_MODE_MIX: {
+								desired_blend_factors[0] = GL_SRC_ALPHA;
+								desired_blend_factors[1] = GL_ONE_MINUS_SRC_ALPHA;
+								desired_blend_factors[2] = (p_render_data->transparent_bg) ? GL_ONE : GL_ZERO;
+								desired_blend_factors[3] = (p_render_data->transparent_bg) ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE;
+							} break;
+							case GLES3::SceneShaderData::BLEND_MODE_ADD: {
+								desired_blend_factors[0] = (p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) ? GL_SRC_ALPHA : GL_ONE;
+								desired_blend_factors[1] = GL_ONE;
+								desired_blend_factors[2] = (p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) ? GL_SRC_ALPHA : GL_ONE;
+								desired_blend_factors[3] = GL_ONE;
+							} break;
+							case GLES3::SceneShaderData::BLEND_MODE_SUB: {
+								desired_blend_factors[0] = GL_SRC_ALPHA;
+								desired_blend_factors[1] = GL_ONE;
+								desired_blend_factors[2] = GL_SRC_ALPHA;
+								desired_blend_factors[3] = GL_ONE;
+							} break;
+							case GLES3::SceneShaderData::BLEND_MODE_MUL: {
+								desired_blend_factors[0] = GL_DST_COLOR;
+								desired_blend_factors[1] = GL_ZERO;
+								desired_blend_factors[2] = (p_render_data->transparent_bg) ? GL_DST_ALPHA : GL_ZERO;
+								desired_blend_factors[3] = (p_render_data->transparent_bg) ? GL_ZERO : GL_ONE;
+							} break;
+							case GLES3::SceneShaderData::BLEND_MODE_PREMULT_ALPHA: {
+								desired_blend_factors[0] = GL_ONE;
+								desired_blend_factors[1] = GL_ONE_MINUS_SRC_ALPHA;
+								desired_blend_factors[2] = GL_ONE;
+								desired_blend_factors[3] = GL_ONE_MINUS_SRC_ALPHA;
+							} break;
+							case GLES3::SceneShaderData::BLEND_MODE_ALPHA_TO_COVERAGE: {
+								// Do nothing for now.
+							} break;
+						}
+					}
 				}
 
-				if (desired_blend_mode != scene_state.current_blend_mode) {
+				bool need_state_switch = (desired_blend_mode != scene_state.current_blend_mode);
+				if (!need_state_switch) {
+					for (int j = 0; j < 4; j++) {
+						if (desired_blend_factors[j] != scene_state.current_blend_factors[j]) {
+							need_state_switch = true;
+							break;
+						}
+					}
+				}
+
+				if (need_state_switch) {
 					switch (desired_blend_mode) {
 						case GLES3::SceneShaderData::BLEND_MODE_MIX: {
 							glBlendEquation(GL_FUNC_ADD);
-							if (p_render_data->transparent_bg) {
-								glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-							} else {
-								glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-							}
-
 						} break;
 						case GLES3::SceneShaderData::BLEND_MODE_ADD: {
 							glBlendEquation(GL_FUNC_ADD);
-							glBlendFunc(p_pass_mode == PASS_MODE_COLOR_TRANSPARENT ? GL_SRC_ALPHA : GL_ONE, GL_ONE);
-
 						} break;
 						case GLES3::SceneShaderData::BLEND_MODE_SUB: {
 							glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-							glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
 						} break;
 						case GLES3::SceneShaderData::BLEND_MODE_MUL: {
 							glBlendEquation(GL_FUNC_ADD);
-							if (p_render_data->transparent_bg) {
-								glBlendFuncSeparate(GL_DST_COLOR, GL_ZERO, GL_DST_ALPHA, GL_ZERO);
-							} else {
-								glBlendFuncSeparate(GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE);
-							}
-
 						} break;
 						case GLES3::SceneShaderData::BLEND_MODE_PREMULT_ALPHA: {
 							glBlendEquation(GL_FUNC_ADD);
-							glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
 						} break;
 						case GLES3::SceneShaderData::BLEND_MODE_ALPHA_TO_COVERAGE: {
 							// Do nothing for now.
 						} break;
 					}
+					glBlendFuncSeparate(desired_blend_factors[0], desired_blend_factors[1], desired_blend_factors[2], desired_blend_factors[3]);
+					scene_state.current_blend_factors[0] = desired_blend_factors[0];
+					scene_state.current_blend_factors[1] = desired_blend_factors[1];
+					scene_state.current_blend_factors[2] = desired_blend_factors[2];
+					scene_state.current_blend_factors[3] = desired_blend_factors[3];
 					scene_state.current_blend_mode = desired_blend_mode;
 				}
 			}

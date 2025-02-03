@@ -54,6 +54,7 @@ void SceneShaderForwardMobile::ShaderData::set_code(const String &p_code) {
 	ShaderCompiler::GeneratedCode gen_code;
 
 	blend_mode = BLEND_MODE_MIX;
+	Vector<StringName> blend_factor_names;
 	depth_testi = DEPTH_TEST_ENABLED;
 	alpha_antialiasing_mode = ALPHA_ANTIALIASING_OFF;
 	cull_mode = RS::CULL_MODE_BACK;
@@ -63,6 +64,7 @@ void SceneShaderForwardMobile::ShaderData::set_code(const String &p_code) {
 	uses_alpha_clip = false;
 	uses_alpha_antialiasing = false;
 	uses_blend_alpha = false;
+	uses_blend_factors = false;
 	uses_depth_prepass_alpha = false;
 	uses_discard = false;
 	uses_roughness = false;
@@ -139,6 +141,7 @@ void SceneShaderForwardMobile::ShaderData::set_code(const String &p_code) {
 	actions.write_flag_pointers["PROJECTION_MATRIX"] = &writes_modelview_or_projection;
 	actions.write_flag_pointers["VERTEX"] = &uses_vertex;
 
+	actions.blend_factors = &blend_factor_names;
 	actions.uniforms = &uniforms;
 
 	MutexLock lock(SceneShaderForwardMobile::singleton_mutex);
@@ -209,6 +212,14 @@ void SceneShaderForwardMobile::ShaderData::set_code(const String &p_code) {
 	}
 
 	uses_blend_alpha = blend_mode_uses_blend_alpha(BlendMode(blend_mode));
+
+	if (blend_factor_names.size() == 4) {
+		// fully-specified blend mode inside shader overrides blending factors specified in blend_mode
+		uses_blend_factors = true;
+		for (int i = 0; i < 4; i++) {
+			blend_factors[i] = RD::render_get_blend_factor_by_name(blend_factor_names[i]);
+		}
+	}
 }
 
 bool SceneShaderForwardMobile::ShaderData::is_animated() const {
@@ -250,7 +261,7 @@ void SceneShaderForwardMobile::ShaderData::_create_pipeline(PipelineKey p_pipeli
 			"WIREFRAME:", p_pipeline_key.wireframe);
 #endif
 
-	RD::PipelineColorBlendState::Attachment blend_attachment = blend_mode_to_blend_attachment(BlendMode(blend_mode));
+	RD::PipelineColorBlendState::Attachment blend_attachment = blend_mode_to_blend_attachment(BlendMode(blend_mode), (uses_blend_factors) ? blend_factors : nullptr);
 	RD::PipelineColorBlendState blend_state_blend;
 	blend_state_blend.attachments.push_back(blend_attachment);
 	RD::PipelineColorBlendState blend_state_opaque = RD::PipelineColorBlendState::create_disabled(1);

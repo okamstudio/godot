@@ -469,6 +469,10 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 				}
 			}
 
+			if (p_actions.blend_factors) {
+				*p_actions.blend_factors = pnode->blend_factors;
+			}
+
 			// structs
 
 			for (int i = 0; i < pnode->vstructs.size(); i++) {
