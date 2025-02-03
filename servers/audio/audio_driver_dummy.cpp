@@ -98,6 +98,7 @@ void AudioDriverDummy::finish() {
 
 	if (samples_in) {
 		memdelete_arr(samples_in);
+		samples_in = nullptr;
 	};
 };
 

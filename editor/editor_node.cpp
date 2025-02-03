@@ -6090,6 +6090,12 @@ EditorNode::EditorNode() {
 	EDITOR_DEF("interface/editor/update_vital_only", false);
 #endif
 	EDITOR_DEF("interface/editor/localize_settings", true);
+
+	AudioServer::get_singleton()->set_enabled(!EDITOR_DEF_RST("interface/audio/muting/mute_driver", false));
+	AudioDriverManager::set_mute_sensitivity(AudioDriverManager::MUTE_FLAG_SILENCE, EDITOR_DEF_RST("interface/audio/muting/mute_on_silence", true));
+	AudioDriverManager::set_mute_sensitivity(AudioDriverManager::MUTE_FLAG_PAUSED, EDITOR_DEF_RST("interface/audio/muting/mute_on_pause", true));
+	AudioDriverManager::set_mute_sensitivity(AudioDriverManager::MUTE_FLAG_FOCUS_LOSS, EDITOR_DEF_RST("interface/audio/muting/mute_on_focus_loss", true));
+
 	EDITOR_DEF_RST("interface/scene_tabs/restore_scenes_on_load", false);
 	EDITOR_DEF_RST("interface/scene_tabs/show_thumbnail_on_hover", true);
 	EDITOR_DEF_RST("interface/inspector/default_property_name_style", EditorPropertyNameProcessor::STYLE_CAPITALIZED);

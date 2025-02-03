@@ -49,6 +49,7 @@
 #include "scene/resources/mesh.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/scene_string_names.h"
+#include "servers/audio_server.h"
 #include "servers/navigation_server.h"
 #include "servers/physics_2d_server.h"
 #include "servers/physics_server.h"
@@ -826,6 +827,8 @@ void SceneTree::_notification(int p_notification) {
 		} break;
 
 		case NOTIFICATION_WM_FOCUS_IN: {
+			AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_FOCUS_LOSS, false);
+
 			InputDefault *id = Object::cast_to<InputDefault>(Input::get_singleton());
 			if (id) {
 				id->ensure_touch_mouse_raised();
@@ -846,16 +849,25 @@ void SceneTree::_notification(int p_notification) {
 			get_root()->propagate_notification(p_notification);
 
 		} break;
+		case NOTIFICATION_WM_FOCUS_OUT: {
+			AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_FOCUS_LOSS, true);
+			get_root()->propagate_notification(p_notification);
+		} break;
+		case NOTIFICATION_APP_PAUSED: {
+			AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_PAUSED, true);
+			get_root()->propagate_notification(p_notification);
+		} break;
+		case NOTIFICATION_APP_RESUMED: {
+			AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_PAUSED, false);
+			get_root()->propagate_notification(p_notification);
+		} break;
 
 		case NOTIFICATION_OS_MEMORY_WARNING:
 		case NOTIFICATION_OS_IME_UPDATE:
 		case NOTIFICATION_WM_MOUSE_ENTER:
 		case NOTIFICATION_WM_MOUSE_EXIT:
-		case NOTIFICATION_WM_FOCUS_OUT:
 		case NOTIFICATION_WM_ABOUT:
-		case NOTIFICATION_CRASH:
-		case NOTIFICATION_APP_RESUMED:
-		case NOTIFICATION_APP_PAUSED: {
+		case NOTIFICATION_CRASH: {
 			get_root()->propagate_notification(p_notification);
 		} break;
 

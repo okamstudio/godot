@@ -39,9 +39,15 @@
 #include "servers/audio/effects/audio_effect_compressor.h"
 
 #ifdef TOOLS_ENABLED
+#include "main/main.h"
 #define MARK_EDITED set_edited(true);
 #else
 #define MARK_EDITED
+#endif
+
+#ifdef DEV_ENABLED
+// Compile with this define to get logging output (via print_verbose).
+// #define GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
 #endif
 
 AudioDriver *AudioDriver::singleton = nullptr;
@@ -173,6 +179,13 @@ AudioDriver *AudioDriverManager::drivers[MAX_DRIVERS] = {
 	&AudioDriverManager::dummy_driver,
 };
 int AudioDriverManager::driver_count = 1;
+int AudioDriverManager::desired_driver_id = -2;
+int AudioDriverManager::actual_driver_id = -2;
+
+// Defaults are for the editor, outside the editor will be overridden.
+uint32_t AudioDriverManager::_mute_state = AudioDriverManager::MuteFlags::MUTE_FLAG_DISABLED;
+uint32_t AudioDriverManager::_mute_state_final = AudioDriverManager::MuteFlags::MUTE_FLAG_DISABLED;
+uint32_t AudioDriverManager::_mute_state_mask = UINT32_MAX;
 
 void AudioDriverManager::add_driver(AudioDriver *p_driver) {
 	ERR_FAIL_COND(driver_count >= MAX_DRIVERS);
@@ -186,12 +199,39 @@ int AudioDriverManager::get_driver_count() {
 	return driver_count;
 }
 
-void AudioDriverManager::initialize(int p_driver) {
-	GLOBAL_DEF_RST("audio/enable_audio_input", false);
-	GLOBAL_DEF_RST("audio/mix_rate", DEFAULT_MIX_RATE);
-	GLOBAL_DEF_RST("audio/mix_rate.web", 0); // Safer default output_latency for web (use browser default).
-	GLOBAL_DEF_RST("audio/output_latency", DEFAULT_OUTPUT_LATENCY);
-	GLOBAL_DEF_RST("audio/output_latency.web", 50); // Safer default output_latency for web.
+void AudioDriverManager::_log(String p_sz, int p_driver_id) {
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+	if ((p_driver_id >= 0) && (p_driver_id < driver_count)) {
+		p_sz += get_driver(p_driver_id)->get_name();
+	}
+	print_verbose(p_sz);
+#endif
+}
+
+void AudioDriverManager::_set_driver(int p_driver) {
+	desired_driver_id = p_driver;
+
+	if (!is_active()) {
+		// last driver is always the dummy
+		p_driver = driver_count - 1;
+	}
+
+	// noop
+	if (actual_driver_id == p_driver) {
+		return;
+	}
+
+	bool needs_start = false;
+
+	// give the previous driver a chance to finish
+	if ((actual_driver_id != -2) && (actual_driver_id < driver_count)) {
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+		_log("finishing audio driver ", actual_driver_id);
+#endif
+		AudioDriverManager::get_driver(actual_driver_id)->finish();
+		actual_driver_id = -2;
+		needs_start = true;
+	}
 
 	int failed_driver = -1;
 
@@ -199,9 +239,22 @@ void AudioDriverManager::initialize(int p_driver) {
 	if (p_driver >= 0 && p_driver < driver_count) {
 		if (drivers[p_driver]->init() == OK) {
 			drivers[p_driver]->set_singleton();
+			actual_driver_id = p_driver;
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+			_log("init success audio driver ", actual_driver_id);
+#endif
+			if (needs_start) {
+				drivers[p_driver]->start();
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+				_log("\tstarting driver ", p_driver);
+#endif
+			}
 			return;
 		} else {
 			failed_driver = p_driver;
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+			_log("init failure audio driver ", p_driver);
+#endif
 		}
 	}
 
@@ -214,18 +267,109 @@ void AudioDriverManager::initialize(int p_driver) {
 
 		if (drivers[i]->init() == OK) {
 			drivers[i]->set_singleton();
+			actual_driver_id = i;
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+			_log("init success (any) audio driver ", actual_driver_id);
+#endif
+			if (needs_start) {
+				drivers[p_driver]->start();
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+				_log("\tstarting driver ", p_driver);
+#endif
+			}
 			break;
 		}
 	}
 
-	if (driver_count > 1 && String(AudioDriver::get_singleton()->get_name()) == "Dummy") {
+	if (is_active() && (driver_count > 1) && (String(AudioDriver::get_singleton()->get_name()) == "Dummy")) {
 		WARN_PRINT("All audio drivers failed, falling back to the dummy driver.");
 	}
+}
+
+void AudioDriverManager::initialize(int p_driver) {
+	bool mute_driver = GLOBAL_DEF("audio/muting/mute_driver", false);
+
+	GLOBAL_DEF_RST("audio/enable_audio_input", false);
+	GLOBAL_DEF_RST("audio/mix_rate", DEFAULT_MIX_RATE);
+	GLOBAL_DEF_RST("audio/mix_rate.web", 0); // Safer default output_latency for web (use browser default).
+	GLOBAL_DEF_RST("audio/output_latency", DEFAULT_OUTPUT_LATENCY);
+	GLOBAL_DEF_RST("audio/output_latency.web", 50); // Safer default output_latency for web.
+
+	// These Project settings are only actually set and used outside the editor.
+	// The Editor uses EditorSettings defined in editor_node.cpp.
+	bool mute_on_pause = GLOBAL_DEF("audio/muting/mute_on_pause", true);
+	bool mute_on_silence = GLOBAL_DEF("audio/muting/mute_on_silence", false);
+	bool mute_on_focus_loss = GLOBAL_DEF("audio/muting/mute_on_focus_loss", false);
+
+	// Defaults for outside the editor
+#ifdef TOOLS_ENABLED
+	if (!(Engine::get_singleton()->is_editor_hint() || Main::is_project_manager())) {
+#else
+	{
+#endif
+		// Note that these can be set differently on different platforms if desired.
+		// e.g. Android may want to ensure mute when app paused etc.
+		_mute_state = mute_driver ? MuteFlags::MUTE_FLAG_DISABLED : 0;
+
+		// Sensitive to all but focus and quiet mode
+		_mute_state_mask = MuteFlags::MUTE_FLAG_DISABLED;
+		if (mute_on_pause) {
+			_mute_state_mask |= MuteFlags::MUTE_FLAG_PAUSED;
+		}
+		if (mute_on_silence) {
+			_mute_state_mask |= MuteFlags::MUTE_FLAG_SILENCE;
+		}
+		if (mute_on_focus_loss) {
+			_mute_state_mask |= MuteFlags::MUTE_FLAG_FOCUS_LOSS;
+		}
+
+		_update_mute_state();
+	}
+
+	_set_driver(p_driver);
 }
 
 AudioDriver *AudioDriverManager::get_driver(int p_driver) {
 	ERR_FAIL_INDEX_V(p_driver, driver_count, nullptr);
 	return drivers[p_driver];
+}
+
+void AudioDriverManager::_update_mute_state() {
+	_mute_state_final = _mute_state & _mute_state_mask;
+}
+
+void AudioDriverManager::set_mute_sensitivity(MuteFlags p_flag, bool p_enabled) {
+	if (p_enabled) {
+		_mute_state_mask |= p_flag;
+	} else {
+		_mute_state_mask &= ~p_flag;
+	}
+	_update_mute_state();
+	_set_driver(desired_driver_id);
+}
+
+void AudioDriverManager::set_mute_flag(MuteFlags p_flag, bool p_enabled) {
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+	_log("set_mute_flag " + itos(p_flag) + " " + String(Variant(p_enabled)) + ", flags was " + itos(_mute_state) + " (final flags " + itos(_mute_state_final) + ")");
+#endif
+	bool enabled = _mute_state & p_flag;
+
+	if (enabled == p_enabled) {
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+		_log("\tno change");
+#endif
+		return;
+	}
+	if (p_enabled) {
+		_mute_state |= p_flag;
+	} else {
+		_mute_state &= ~p_flag;
+	}
+	_update_mute_state();
+#ifdef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED
+	_log("\tflags now " + itos(_mute_state) + " (final flags " + itos(_mute_state_final) + ")");
+#endif
+	_set_driver(desired_driver_id);
 }
 
 //////////////////////////////////////////////
@@ -247,6 +391,9 @@ void AudioServer::_driver_process(int p_frames, int32_t *p_buffer) {
 	}
 
 	ERR_FAIL_COND_MSG(buses.empty() && todo, "AudioServer bus count is less than 1.");
+
+	bool processing_allowed = AudioDriverManager::is_audio_processing_allowed();
+
 	while (todo) {
 		if (to_mix == 0) {
 			_mix_step();
@@ -254,50 +401,53 @@ void AudioServer::_driver_process(int p_frames, int32_t *p_buffer) {
 
 		int to_copy = MIN(to_mix, todo);
 
-		Bus *master = buses[0];
+		if (processing_allowed) {
+			Bus *master = buses[0];
 
-		int from = buffer_size - to_mix;
-		int from_buf = p_frames - todo;
+			int from = buffer_size - to_mix;
+			int from_buf = p_frames - todo;
 
-		//master master, send to output
-		int cs = master->channels.size();
+			//master master, send to output
+			int cs = master->channels.size();
 
-		// take away 1 from the stride as we are manually incrementing one for stereo
-		uintptr_t stride_minus_one = (cs * 2) - 1;
+			// take away 1 from the stride as we are manually incrementing one for stereo
+			uintptr_t stride_minus_one = (cs * 2) - 1;
 
-		for (int k = 0; k < cs; k++) {
-			// destination start for data will be the same in all cases
-			int32_t *dest = &p_buffer[(from_buf * (cs * 2)) + (k * 2)];
+			for (int k = 0; k < cs; k++) {
+				// destination start for data will be the same in all cases
+				int32_t *dest = &p_buffer[(from_buf * (cs * 2)) + (k * 2)];
 
-			if (master->channels[k].active) {
-				const AudioFrame *buf = master->channels[k].buffer.ptr();
+				if (master->channels[k].active) {
+					const AudioFrame *buf = master->channels[k].buffer.ptr();
 
-				for (int j = 0; j < to_copy; j++) {
-					float l = CLAMP(buf[from + j].l, -1.0, 1.0);
-					int32_t vl = l * ((1 << 20) - 1);
-					int32_t vl2 = (vl < 0 ? -1 : 1) * (ABS(vl) << 11);
-					*dest = vl2;
-					dest++;
+					for (int j = 0; j < to_copy; j++) {
+						float l = CLAMP(buf[from + j].l, -1.0, 1.0);
+						int32_t vl = l * ((1 << 20) - 1);
+						int32_t vl2 = (vl < 0 ? -1 : 1) * (ABS(vl) << 11);
+						*dest = vl2;
+						dest++;
 
-					float r = CLAMP(buf[from + j].r, -1.0, 1.0);
-					int32_t vr = r * ((1 << 20) - 1);
-					int32_t vr2 = (vr < 0 ? -1 : 1) * (ABS(vr) << 11);
-					*dest = vr2;
-					dest += stride_minus_one;
-				}
+						float r = CLAMP(buf[from + j].r, -1.0, 1.0);
+						int32_t vr = r * ((1 << 20) - 1);
+						int32_t vr2 = (vr < 0 ? -1 : 1) * (ABS(vr) << 11);
+						*dest = vr2;
+						dest += stride_minus_one;
+					}
 
-			} else {
-				// Bizarrely, profiling indicates that detecting the common case of cs == 1
-				// and k == 0, and using memset is SLOWER than setting individually.
-				// (Perhaps it gets optimized to a faster instruction than memset).
-				for (int j = 0; j < to_copy; j++) {
-					*dest = 0;
-					dest++;
-					*dest = 0;
-					dest += stride_minus_one;
+				} else {
+					// Bizarrely, profiling indicates that detecting the common case of cs == 1
+					// and k == 0, and using memset is SLOWER than setting individually.
+					// (Perhaps it gets optimized to a faster instruction than memset).
+					for (int j = 0; j < to_copy; j++) {
+						*dest = 0;
+						dest++;
+						*dest = 0;
+						dest += stride_minus_one;
+					}
 				}
 			}
-		}
+
+		} // if audio processing allowed
 
 		todo -= to_copy;
 		to_mix -= to_copy;
@@ -310,6 +460,7 @@ void AudioServer::_driver_process(int p_frames, int32_t *p_buffer) {
 
 void AudioServer::_mix_step() {
 	bool solo_mode = false;
+	bool processing_allowed = AudioDriverManager::is_audio_processing_allowed();
 
 	for (int i = 0; i < buses.size(); i++) {
 		Bus *bus = buses[i];
@@ -355,48 +506,51 @@ void AudioServer::_mix_step() {
 		//go bus by bus
 		Bus *bus = buses[i];
 
-		for (int k = 0; k < bus->channels.size(); k++) {
-			if (bus->channels[k].active && !bus->channels[k].used) {
-				//buffer was not used, but it's still active, so it must be cleaned
-				AudioFrame *buf = bus->channels.write[k].buffer.ptrw();
+		if (processing_allowed) {
+			for (int k = 0; k < bus->channels.size(); k++) {
+				if (bus->channels[k].active && !bus->channels[k].used) {
+					//buffer was not used, but it's still active, so it must be cleaned
+					AudioFrame *buf = bus->channels.write[k].buffer.ptrw();
 
-				for (uint32_t j = 0; j < buffer_size; j++) {
-					buf[j] = AudioFrame(0, 0);
+					for (uint32_t j = 0; j < buffer_size; j++) {
+						buf[j] = AudioFrame(0, 0);
+					}
 				}
 			}
-		}
 
-		//process effects
-		if (!bus->bypass) {
-			for (int j = 0; j < bus->effects.size(); j++) {
-				if (!bus->effects[j].enabled) {
-					continue;
-				}
-
-#ifdef DEBUG_ENABLED
-				uint64_t ticks = OS::get_singleton()->get_ticks_usec();
-#endif
-
-				for (int k = 0; k < bus->channels.size(); k++) {
-					if (!(bus->channels[k].active || bus->channels[k].effect_instances[j]->process_silence())) {
+			//process effects
+			if (!bus->bypass) {
+				for (int j = 0; j < bus->effects.size(); j++) {
+					if (!bus->effects[j].enabled) {
 						continue;
 					}
-					bus->channels.write[k].effect_instances.write[j]->process(bus->channels[k].buffer.ptr(), temp_buffer.write[k].ptrw(), buffer_size);
-				}
-
-				//swap buffers, so internal buffer always has the right data
-				for (int k = 0; k < bus->channels.size(); k++) {
-					if (!(buses[i]->channels[k].active || bus->channels[k].effect_instances[j]->process_silence())) {
-						continue;
-					}
-					SWAP(bus->channels.write[k].buffer, temp_buffer.write[k]);
-				}
 
 #ifdef DEBUG_ENABLED
-				bus->effects.write[j].prof_time += OS::get_singleton()->get_ticks_usec() - ticks;
+					uint64_t ticks = OS::get_singleton()->get_ticks_usec();
 #endif
+
+					for (int k = 0; k < bus->channels.size(); k++) {
+						if (!(bus->channels[k].active || bus->channels[k].effect_instances[j]->process_silence())) {
+							continue;
+						}
+						bus->channels.write[k].effect_instances.write[j]->process(bus->channels[k].buffer.ptr(), temp_buffer.write[k].ptrw(), buffer_size);
+					}
+
+					//swap buffers, so internal buffer always has the right data
+					for (int k = 0; k < bus->channels.size(); k++) {
+						if (!(buses[i]->channels[k].active || bus->channels[k].effect_instances[j]->process_silence())) {
+							continue;
+						}
+						SWAP(bus->channels.write[k].buffer, temp_buffer.write[k]);
+					}
+
+#ifdef DEBUG_ENABLED
+					bus->effects.write[j].prof_time += OS::get_singleton()->get_ticks_usec() - ticks;
+#endif
+				}
 			}
-		}
+
+		} // if processing allowed
 
 		//process send
 
@@ -436,17 +590,19 @@ void AudioServer::_mix_step() {
 				}
 			}
 
-			//apply volume and compute peak
-			for (uint32_t j = 0; j < buffer_size; j++) {
-				buf[j] *= volume;
+			if (processing_allowed) {
+				//apply volume and compute peak
+				for (uint32_t j = 0; j < buffer_size; j++) {
+					buf[j] *= volume;
 
-				float l = ABS(buf[j].l);
-				if (l > peak.l) {
-					peak.l = l;
-				}
-				float r = ABS(buf[j].r);
-				if (r > peak.r) {
-					peak.r = r;
+					float l = ABS(buf[j].l);
+					if (l > peak.l) {
+						peak.l = l;
+					}
+					float r = ABS(buf[j].r);
+					if (r > peak.r) {
+						peak.r = r;
+					}
 				}
 			}
 
@@ -463,7 +619,7 @@ void AudioServer::_mix_step() {
 				}
 			}
 
-			if (send) {
+			if (send && processing_allowed) {
 				//if not master bus, send
 				AudioFrame *target_buf = thread_get_channel_mix_buffer(send->index_cache, k);
 
@@ -489,6 +645,8 @@ bool AudioServer::thread_has_channel_mix_buffer(int p_bus, int p_buffer) const {
 }
 
 AudioFrame *AudioServer::thread_get_channel_mix_buffer(int p_bus, int p_buffer) {
+	last_sound_played_ms = OS::get_singleton()->get_ticks_msec();
+
 	ERR_FAIL_INDEX_V(p_bus, buses.size(), nullptr);
 	ERR_FAIL_INDEX_V(p_buffer, buses[p_bus]->channels.size(), nullptr);
 
@@ -1037,6 +1195,23 @@ void AudioServer::update() {
 	prof_time = 0;
 #endif
 
+	// give audio driver option to turn off to throttle CPU
+	if (AudioDriverManager::get_mute_sensitivity(AudioDriverManager::MUTE_FLAG_SILENCE)) {
+		uint32_t time_ms = OS::get_singleton()->get_ticks_msec();
+		if (time_ms >= last_sound_played_ms) {
+			uint32_t diff_ms = time_ms - last_sound_played_ms;
+			if (diff_ms <= 10000) {
+				if (AudioDriverManager::get_mute_flag(AudioDriverManager::MUTE_FLAG_SILENCE)) {
+					AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_SILENCE, false);
+				}
+			} else {
+				if (!AudioDriverManager::get_mute_flag(AudioDriverManager::MUTE_FLAG_SILENCE)) {
+					AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_SILENCE, true);
+				}
+			}
+		}
+	}
+
 	for (Set<CallbackItem>::Element *E = update_callbacks.front(); E; E = E->next()) {
 		E->get().callback(E->get().userdata);
 	}
@@ -1256,6 +1431,14 @@ String AudioServer::get_device() {
 	return AudioDriver::get_singleton()->get_device();
 }
 
+void AudioServer::set_enabled(bool p_enabled) {
+	AudioDriverManager::set_mute_flag(AudioDriverManager::MUTE_FLAG_DISABLED, !p_enabled);
+}
+
+bool AudioServer::is_enabled() const {
+	return !AudioDriverManager::get_mute_flag(AudioDriverManager::MUTE_FLAG_DISABLED);
+}
+
 void AudioServer::set_device(String device) {
 	AudioDriver::get_singleton()->set_device(device);
 }
@@ -1338,6 +1521,9 @@ void AudioServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bus_layout", "bus_layout"), &AudioServer::set_bus_layout);
 	ClassDB::bind_method(D_METHOD("generate_bus_layout"), &AudioServer::generate_bus_layout);
 
+	ClassDB::bind_method(D_METHOD("set_enabled", "enabled"), &AudioServer::set_enabled);
+	ClassDB::bind_method(D_METHOD("is_enabled"), &AudioServer::is_enabled);
+
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bus_count"), "set_bus_count", "get_bus_count");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "device"), "set_device", "get_device");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "capture_device"), "capture_set_device", "capture_get_device");
@@ -1367,6 +1553,7 @@ AudioServer::AudioServer() {
 	mix_time = 0;
 	mix_size = 0;
 	global_rate_scale = 1;
+	last_sound_played_ms = 0;
 }
 
 AudioServer::~AudioServer() {
@@ -1498,3 +1685,5 @@ AudioBusLayout::AudioBusLayout() {
 	buses.resize(1);
 	buses.write[0].name = "Master";
 }
+
+#undef GODOT_AUDIO_DRIVER_MANAGER_LOGGING_ENABLED

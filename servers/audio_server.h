@@ -126,19 +126,58 @@ class AudioDriverManager {
 		MAX_DRIVERS = 10
 	};
 
+public:
+	enum MuteFlags {
+		// User enables or disables audio, e.g. via button in editor
+		MUTE_FLAG_DISABLED = 1 << 0,
+		// Whether app is in focus
+		MUTE_FLAG_FOCUS_LOSS = 1 << 1,
+		// Whether app is paused / resumed
+		MUTE_FLAG_PAUSED = 1 << 2,
+		// When a section of silence is detected, the audio can be muted
+		MUTE_FLAG_SILENCE = 1 << 3,
+	};
+
+private:
 	static const int DEFAULT_MIX_RATE = 44100;
 	static const int DEFAULT_OUTPUT_LATENCY = 15;
 
 	static AudioDriver *drivers[MAX_DRIVERS];
 	static int driver_count;
+	static int desired_driver_id;
+	static int actual_driver_id;
+
+	static uint32_t _mute_state; // raw flags
+	static uint32_t _mute_state_final; // flags after applying mask
+	static uint32_t _mute_state_mask;
 
 	static AudioDriverDummy dummy_driver;
+
+	static void _set_driver(int p_driver);
+	static void _update_mute_state();
+
+	static void _log(String p_sz, int p_driver_id = -1);
 
 public:
 	static void add_driver(AudioDriver *p_driver);
 	static void initialize(int p_driver);
 	static int get_driver_count();
 	static AudioDriver *get_driver(int p_driver);
+
+	// Various modes flags can be used to mute the audio, depending on the sensitivity in the _mute_state_mask.
+	static void set_mute_flag(MuteFlags p_flag, bool p_enabled);
+	static bool get_mute_flag(MuteFlags p_flag) { return _mute_state & p_flag; }
+
+	// Whether audio should play, or whether the audio system should be considered muted.
+	static bool is_active() { return _mute_state_final == 0; }
+
+	// Audio processing can be throttled down EXCEPT for the case of silence mode, where any sound should
+	// wake up the driver.
+	static bool is_audio_processing_allowed() { return (_mute_state_final & (~MUTE_FLAG_SILENCE)) == 0; }
+
+	// Sets the sensitivity mask for different mute flags.
+	static void set_mute_sensitivity(MuteFlags p_flag, bool p_enabled);
+	static bool get_mute_sensitivity(MuteFlags p_flag) { return _mute_state_mask & p_flag; }
 };
 
 class AudioBusLayout;
@@ -235,6 +274,10 @@ private:
 	size_t audio_data_max_mem;
 
 	Mutex audio_data_lock;
+
+	// keep a rough record of when the last sound was output
+	// so we can throttle audio during silence
+	uint32_t last_sound_played_ms;
 
 	void init_channels_and_buffers();
 
@@ -367,6 +410,9 @@ public:
 	Array get_device_list();
 	String get_device();
 	void set_device(String device);
+
+	void set_enabled(bool p_enabled);
+	bool is_enabled() const;
 
 	Array capture_get_device_list();
 	String capture_get_device();

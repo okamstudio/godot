@@ -301,6 +301,19 @@
 		<member name="audio/mix_rate.web" type="int" setter="" getter="" default="0">
 			Safer override for [member audio/mix_rate] in the Web platform. Here [code]0[/code] means "let the browser choose" (since some browsers do not like forcing the mix rate).
 		</member>
+		<member name="audio/muting/mute_driver" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], the current audio driver will be disabled, minimizing CPU usage. This will affect both audio output and input.
+			[b]Note:[/b] The driver can be enabled and disabled at runtime using the [method AudioServer.set_enabled] function.
+		</member>
+		<member name="audio/muting/mute_on_focus_loss" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], the current audio driver will be automatically disabled when the application loses focus, and re-enabled when the application regains focus.
+		</member>
+		<member name="audio/muting/mute_on_pause" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], the current audio driver will be automatically disabled when the application is paused by the OS, and re-enabled when the application is resumed.
+		</member>
+		<member name="audio/muting/mute_on_silence" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], the current audio driver will be automatically disabled after a period of silence is detected, and re-enabled when audio attempts to play.
+		</member>
 		<member name="audio/output_latency" type="int" setter="" getter="" default="15">
 			Specifies the preferred output latency in milliseconds for audio. Lower values will result in lower audio latency at the cost of increased CPU usage. Low values may result in audible cracking on slower hardware.
 			Audio output latency may be constrained by the host operating system and audio hardware drivers. If the host can not provide the specified audio output latency then Godot will attempt to use the nearest latency allowed by the host. As such you should always use [method AudioServer.get_output_latency] to determine the actual audio output latency.

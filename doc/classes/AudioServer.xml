@@ -182,6 +182,12 @@
 				If [code]true[/code], the bus at index [code]bus_idx[/code] is in solo mode.
 			</description>
 		</method>
+		<method name="is_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				If [code]false[/code], the audio server is disabled / muted.
+			</description>
+		</method>
 		<method name="lock">
 			<return type="void" />
 			<description>
@@ -274,6 +280,13 @@
 			<argument index="1" name="volume_db" type="float" />
 			<description>
 				Sets the volume of the bus at index [code]bus_idx[/code] to [code]volume_db[/code].
+			</description>
+		</method>
+		<method name="set_enabled">
+			<return type="void" />
+			<argument index="0" name="enabled" type="bool" />
+			<description>
+				Allows disabling / muting the audio server. As well as muting, this will minimize audio CPU usage.
 			</description>
 		</method>
 		<method name="swap_bus_effects">
