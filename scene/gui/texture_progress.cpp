@@ -510,7 +510,7 @@ void TextureProgress::_notification(int p_what) {
 							}
 
 							// Draw a reference cross.
-							if (Engine::get_singleton()->is_editor_hint()) {
+							if (Engine::get_singleton()->is_editor_hint() && is_inside_tree() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->get_parent()->is_a_parent_of(this)) {
 								Point2 p;
 
 								if (nine_patch_stretch) {
