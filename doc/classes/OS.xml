@@ -722,7 +722,7 @@
 		<method name="is_stdout_verbose" qualifiers="const">
 			<return type="bool" />
 			<description>
-				Returns [code]true[/code] if the engine was executed with [code]-v[/code] (verbose stdout).
+				Returns [code]true[/code] if the engine was executed with the [code]--verbose[/code] or [code]-v[/code] command line argument, or if [member ProjectSettings.debug/settings/stdout/verbose_stdout] is [code]true[/code]. See also [method @GDScript.print_verbose].
 			</description>
 		</method>
 		<method name="is_userfs_persistent" qualifiers="const">

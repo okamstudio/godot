@@ -219,7 +219,10 @@
 		</constant>
 		<constant name="TEXT_ORD" value="67" enum="BuiltinFunc">
 		</constant>
-		<constant name="FUNC_MAX" value="68" enum="BuiltinFunc">
+		<constant name="TEXT_PRINT_VERBOSE" value="68" enum="BuiltinFunc">
+			If verbose mode is enabled ([method OS.is_stdout_verbose] returning [code]true[/code]), converts one or more arguments of any type to string in the best way possible and prints them to the console.
+		</constant>
+		<constant name="FUNC_MAX" value="69" enum="BuiltinFunc">
 			Represents the size of the [enum BuiltinFunc] enum.
 		</constant>
 	</constants>

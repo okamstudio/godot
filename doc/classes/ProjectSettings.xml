@@ -449,7 +449,7 @@
 			Print frames per second to standard output every second.
 		</member>
 		<member name="debug/settings/stdout/verbose_stdout" type="bool" setter="" getter="" default="false">
-			Print more information to standard output when running. It displays information such as memory leaks, which scenes and resources are being loaded, etc.
+			Print more information to standard output when running. It displays information such as memory leaks, which scenes and resources are being loaded, etc. This can also be enabled using the [code]--verbose[/code] or [code]-v[/code] command line argument, even on an exported project. See also [method OS.is_stdout_verbose] and [method @GDScript.print_verbose].
 		</member>
 		<member name="debug/settings/visual_script/max_call_stack" type="int" setter="" getter="" default="1024">
 			Maximum call stack in visual scripting, to avoid infinite recursion.

@@ -324,6 +324,23 @@ namespace Godot
         }
 
         /// <summary>
+        /// If verbose mode is enabled (<see cref="OS.IsStdoutVerbose"/> returning <see langword="true"/>),
+        /// converts one or more arguments of any type to string in the best way possible
+        /// and prints them to the console.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// var a = new int[] { 1, 2, 3 };
+        /// GD.PrintVerbose("a", "b", a); // Prints ab[1, 2, 3] only if verbose output is enabled
+        /// </code>
+        /// </example>
+        /// <param name="what">Arguments that will be printed.</param>
+        public static void PrintVerbose(params object[] what)
+        {
+            godot_icall_GD_print_verbose(GetPrintParams(what));
+        }
+
+        /// <summary>
         /// Prints one or more arguments to the console with a space between each argument.
         /// </summary>
         /// <example>

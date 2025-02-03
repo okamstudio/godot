@@ -98,6 +98,7 @@ const char *VisualScriptBuiltinFunc::func_name[VisualScriptBuiltinFunc::FUNC_MAX
 	"print",
 	"printerr",
 	"printraw",
+	"print_verbose",
 	"var2str",
 	"str2var",
 	"var2bytes",
@@ -135,6 +136,7 @@ bool VisualScriptBuiltinFunc::has_input_sequence_port() const {
 		case TEXT_PRINTERR:
 		case TEXT_PRINTRAW:
 		case MATH_SEED:
+		case TEXT_PRINT_VERBOSE:
 			return true;
 		default:
 			return false;
@@ -185,6 +187,7 @@ int VisualScriptBuiltinFunc::get_func_argument_count(BuiltinFunc p_func) {
 		case VAR_TO_STR:
 		case STR_TO_VAR:
 		case TYPE_EXISTS:
+		case TEXT_PRINT_VERBOSE:
 			return 1;
 		case VAR_TO_BYTES:
 		case BYTES_TO_VAR:
@@ -232,6 +235,7 @@ int VisualScriptBuiltinFunc::get_output_value_port_count() const {
 		case TEXT_PRINTERR:
 		case TEXT_PRINTRAW:
 		case MATH_SEED:
+		case TEXT_PRINT_VERBOSE:
 			return 0;
 		case MATH_RANDSEED:
 			return 2;
@@ -455,7 +459,8 @@ PropertyInfo VisualScriptBuiltinFunc::get_input_value_port_info(int p_idx) const
 		case TEXT_STR:
 		case TEXT_PRINT:
 		case TEXT_PRINTERR:
-		case TEXT_PRINTRAW: {
+		case TEXT_PRINTRAW:
+		case TEXT_PRINT_VERBOSE: {
 			return PropertyInfo(Variant::NIL, "value");
 		} break;
 		case STR_TO_VAR: {
@@ -632,6 +637,8 @@ PropertyInfo VisualScriptBuiltinFunc::get_output_value_port_info(int p_idx) cons
 		} break;
 		case COLORN: {
 			t = Variant::COLOR;
+		} break;
+		case TEXT_PRINT_VERBOSE: {
 		} break;
 		case FUNC_MAX: {
 		}
@@ -1199,6 +1206,11 @@ void VisualScriptBuiltinFunc::exec_func(BuiltinFunc p_func, const Variant **p_in
 			*r_return = String(color);
 
 		} break;
+		case VisualScriptBuiltinFunc::TEXT_PRINT_VERBOSE: {
+			String str = *p_inputs[0];
+			print_verbose(str);
+
+		} break;
 		default: {
 		}
 	}
@@ -1307,6 +1319,7 @@ void VisualScriptBuiltinFunc::_bind_methods() {
 	BIND_ENUM_CONSTANT(MATH_POSMOD);
 	BIND_ENUM_CONSTANT(MATH_LERP_ANGLE);
 	BIND_ENUM_CONSTANT(TEXT_ORD);
+	BIND_ENUM_CONSTANT(TEXT_PRINT_VERBOSE);
 	BIND_ENUM_CONSTANT(FUNC_MAX);
 }
 
@@ -1399,4 +1412,5 @@ void register_visual_script_builtin_func_node() {
 	VisualScriptLanguage::singleton->add_register_func("functions/built_in/var2bytes", create_builtin_func_node<VisualScriptBuiltinFunc::VAR_TO_BYTES>);
 	VisualScriptLanguage::singleton->add_register_func("functions/built_in/bytes2var", create_builtin_func_node<VisualScriptBuiltinFunc::BYTES_TO_VAR>);
 	VisualScriptLanguage::singleton->add_register_func("functions/built_in/color_named", create_builtin_func_node<VisualScriptBuiltinFunc::COLORN>);
+	VisualScriptLanguage::singleton->add_register_func("functions/built_in/print_verbose", create_builtin_func_node<VisualScriptBuiltinFunc::TEXT_PRINT_VERBOSE>);
 }

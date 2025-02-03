@@ -736,6 +736,12 @@
 				[b]Note:[/b] [method print_stack] only works if the running instance is connected to a debugging server (i.e. an editor instance). [method print_stack] will not work in projects exported in release mode, or in projects exported in debug mode if not connected to a debugging server.
 			</description>
 		</method>
+		<method name="print_verbose" qualifiers="vararg">
+			<return type="void" />
+			<description>
+				If verbose mode is enabled ([method OS.is_stdout_verbose] returning [code]true[/code]), converts one or more arguments of any type to string in the best way possible and prints them to the console.
+			</description>
+		</method>
 		<method name="printerr" qualifiers="vararg">
 			<return type="void" />
 			<description>

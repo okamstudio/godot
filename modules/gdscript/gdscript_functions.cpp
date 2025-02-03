@@ -113,6 +113,7 @@ const char *GDScriptFunctions::get_func_name(Function p_func) {
 		"printerr",
 		"printraw",
 		"print_debug",
+		"print_verbose",
 		"push_error",
 		"push_warning",
 		"var2str",
@@ -760,6 +761,16 @@ void GDScriptFunctions::call(Function p_func, const Variant **p_args, int p_arg_
 
 			print_line(str);
 			r_ret = Variant();
+		} break;
+		case TEXT_PRINT_VERBOSE: {
+			String str;
+			for (int i = 0; i < p_arg_count; i++) {
+				str += p_args[i]->operator String();
+			}
+
+			print_verbose(str);
+			r_ret = Variant();
+
 		} break;
 		case PUSH_ERROR: {
 			VALIDATE_ARG_COUNT(1);
@@ -1839,6 +1850,13 @@ MethodInfo GDScriptFunctions::get_info(Function p_func) {
 		} break;
 		case TEXT_PRINT_DEBUG: {
 			MethodInfo mi("print_debug");
+			mi.return_val.type = Variant::NIL;
+			mi.flags |= METHOD_FLAG_VARARG;
+			return mi;
+
+		} break;
+		case TEXT_PRINT_VERBOSE: {
+			MethodInfo mi("print_verbose");
 			mi.return_val.type = Variant::NIL;
 			mi.flags |= METHOD_FLAG_VARARG;
 			return mi;

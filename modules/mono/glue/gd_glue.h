@@ -49,6 +49,8 @@ void godot_icall_GD_printerr(MonoArray *p_what);
 
 void godot_icall_GD_printraw(MonoArray *p_what);
 
+void godot_icall_GD_print_verbose(MonoArray *p_what);
+
 void godot_icall_GD_prints(MonoArray *p_what);
 
 void godot_icall_GD_printt(MonoArray *p_what);
