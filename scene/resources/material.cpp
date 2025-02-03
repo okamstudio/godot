@@ -635,7 +635,12 @@ void Material3D::_update_shader() {
 		code += "\tif (!OUTPUT_IS_SRGB) {\n";
 		code += "\t\tCOLOR.rgb = mix(pow((COLOR.rgb + vec3(0.055)) * (1.0 / (1.0 + 0.055)), vec3(2.4)), COLOR.rgb * (1.0 / 12.92), lessThan(COLOR.rgb, vec3(0.04045)));\n";
 		code += "\t}\n";
+	} else {
+		code += "\tif (OUTPUT_IS_SRGB) {\n";
+		code += "\t\tCOLOR.rgb = mix((vec3(1.055)) * pow(COLOR.rgb, vec3(1.0 / 2.4)) - vec3(0.055), 12.92 * COLOR.rgb, lessThan(COLOR.rgb, vec3(0.0031308)));\n";
+		code += "\t}\n";
 	}
+
 	if (flags[FLAG_USE_POINT_SIZE]) {
 		code += "\tPOINT_SIZE=point_size;\n";
 	}
