@@ -849,6 +849,10 @@ void AnimationTree::_process_graph(float p_delta) {
 					continue; //nothing to blend
 				}
 
+				if (!a->track_is_enabled(i)) {
+					continue; // do nothing if the track is disabled
+				}
+
 				switch (track->type) {
 					case Animation::TYPE_TRANSFORM: {
 						TrackCacheTransform *t = static_cast<TrackCacheTransform *>(track);
