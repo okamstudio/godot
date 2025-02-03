@@ -1,3 +1,0 @@
-{
-  "code": "#[compute]\n\n#version 450\n\n#VERSION_DEFINES\n\n\n#define M_PI 3.14159265359\n\nvoid main() {\n\tvec3 static_light = vec3(0, 1, 0);\n}\n"
-}

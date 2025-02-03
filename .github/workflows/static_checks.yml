@@ -13,14 +13,10 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Install APT dependencies
+      # This needs to happen before Python and npm execution; it must happen before any extra files are written.
+      - name: .gitignore checks (gitignore_check.sh)
         run: |
-          sudo apt install -y libxml2-utils
-
-      - name: Install Python dependencies and general setup
-        run: |
-          pip3 install pytest==7.1.2
-          git config diff.wsErrorHighlight all
+          bash ./misc/scripts/gitignore_check.sh
 
       - name: Get changed files
         env:
@@ -31,27 +27,17 @@ jobs:
           elif [ "${{ github.event_name }}" == "push" -a "${{ github.event.forced }}" == "false" -a "${{ github.event.created }}" == "false" ]; then
             files=$(git diff-tree --no-commit-id --name-only -r ${{ github.event.before }}..${{ github.event.after }} 2> /dev/null || true)
           fi
-          echo "$files" >> changed.txt
-          cat changed.txt
-          files=$(echo "$files" | grep -v 'thirdparty' | xargs -I {} sh -c 'echo "\"./{}\""' | tr '\n' ' ')
+          files=$(echo "$files" | xargs -I {} sh -c 'echo "\"./{}\""' | tr '\n' ' ')
           echo "CHANGED_FILES=$files" >> $GITHUB_ENV
-
-      # This needs to happen before Python and npm execution; it must happen before any extra files are written.
-      - name: .gitignore checks (gitignore_check.sh)
-        run: |
-          bash ./misc/scripts/gitignore_check.sh
 
       - name: Style checks via pre-commit
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ env.CHANGED_FILES }}
 
-      - name: Python builders checks via pytest
-        run: |
-          pytest ./tests/python_build
-
       - name: Class reference schema checks
         run: |
+          sudo apt install -y libxml2-utils
           xmllint --quiet --noout --schema doc/class.xsd doc/classes/*.xml modules/*/doc_classes/*.xml platform/*/doc_classes/*.xml
 
       - name: Run C compiler on `gdextension_interface.h`

@@ -1,9 +1,8 @@
 """Functions used to generate source files during build time"""
 
 import os.path
-from typing import Optional
 
-from methods import print_error, to_raw_cstring
+from methods import generated_wrapper, print_error, to_raw_cstring
 
 
 class GLES3HeaderStruct:
@@ -189,402 +188,334 @@ def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, 
     return header_data
 
 
-def build_gles3_header(
-    filename: str,
-    include: str,
-    class_suffix: str,
-    optional_output_filename: Optional[str] = None,
-    header_data: Optional[GLES3HeaderStruct] = None,
-):
-    header_data = header_data or GLES3HeaderStruct()
-    include_file_in_gles3_header(filename, header_data, 0)
+def build_gles3_header(filename: str) -> None:
+    include_file_in_gles3_header(filename, header_data := GLES3HeaderStruct(), 0)
+    out_file = filename + ".gen.h"
+    out_file_class = (
+        os.path.basename(out_file).replace(".glsl.gen.h", "").title().replace("_", "").replace(".", "") + "ShaderGLES3"
+    )
 
-    if optional_output_filename is None:
-        out_file = filename + ".gen.h"
-    else:
-        out_file = optional_output_filename
-
-    with open(out_file, "w", encoding="utf-8", newline="\n") as fd:
+    with generated_wrapper(out_file, suffix="GLES3") as file:
         defspec = 0
         defvariant = ""
 
-        fd.write("/* WARNING, THIS FILE WAS GENERATED, DO NOT EDIT */\n")
+        file.write(f"""\
+#include "drivers/gles3/shader_gles3.h"
 
-        out_file_base = out_file
-        out_file_base = out_file_base[out_file_base.rfind("/") + 1 :]
-        out_file_base = out_file_base[out_file_base.rfind("\\") + 1 :]
-        out_file_ifdef = out_file_base.replace(".", "_").upper()
-        fd.write("#ifndef " + out_file_ifdef + class_suffix + "_GLES3\n")
-        fd.write("#define " + out_file_ifdef + class_suffix + "_GLES3\n")
-
-        out_file_class = (
-            out_file_base.replace(".glsl.gen.h", "").title().replace("_", "").replace(".", "") + "Shader" + class_suffix
-        )
-        fd.write("\n\n")
-        fd.write('#include "' + include + '"\n\n\n')
-        fd.write("class " + out_file_class + " : public Shader" + class_suffix + " {\n\n")
-
-        fd.write("public:\n\n")
+class {out_file_class} : public ShaderGLES3 {{
+public:
+""")
 
         if header_data.uniforms:
-            fd.write("\tenum Uniforms {\n")
-            for x in header_data.uniforms:
-                fd.write("\t\t" + x.upper() + ",\n")
-            fd.write("\t};\n\n")
+            uniforms = ",\n\t\t".join(uniform.upper() for uniform in header_data.uniforms)
+            file.write(f"""\
+	enum Uniforms {{
+		{uniforms}
+	}};
+
+""")
 
         if header_data.variant_names:
-            fd.write("\tenum ShaderVariant {\n")
-            for x in header_data.variant_names:
-                fd.write("\t\t" + x + ",\n")
-            fd.write("\t};\n\n")
+            variant_names = ",\n\t\t".join(name for name in header_data.variant_names)
         else:
-            fd.write("\tenum ShaderVariant { DEFAULT };\n\n")
-            defvariant = "=DEFAULT"
+            variant_names = "DEFAULT"
+            defvariant = " = DEFAULT"
+        file.write(f"""\
+	enum ShaderVariant {{
+		{variant_names}
+	}};
+
+""")
 
         if header_data.specialization_names:
-            fd.write("\tenum Specializations {\n")
-            counter = 0
-            for x in header_data.specialization_names:
-                fd.write("\t\t" + x.upper() + "=" + str(1 << counter) + ",\n")
-                counter += 1
-            fd.write("\t};\n\n")
+            specialization_names = ",\n\t\t".join(
+                f"{name.upper()} = {1 << index}" for index, name in enumerate(header_data.specialization_names)
+            )
+            file.write(f"""\
+	enum Specializations {{
+		{specialization_names}
+	}};
 
-        for i in range(len(header_data.specialization_names)):
-            defval = header_data.specialization_values[i].strip()
-            if defval.upper() == "TRUE" or defval == "1":
-                defspec |= 1 << i
+""")
+        for index, specialization_value in enumerate(header_data.specialization_values):
+            if specialization_value.strip().upper() in ["TRUE", "1"]:
+                defspec |= 1 << index
 
-        fd.write(
-            "\t_FORCE_INLINE_ bool version_bind_shader(RID p_version,ShaderVariant p_variant"
-            + defvariant
-            + ",uint64_t p_specialization="
-            + str(defspec)
-            + ") { return _version_bind_shader(p_version,p_variant,p_specialization); }\n\n"
-        )
+        file.write(f"""\
+	_FORCE_INLINE_ bool version_bind_shader(RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		return _version_bind_shader(p_version, p_variant, p_specialization);
+	}}
+
+""")
 
         if header_data.uniforms:
-            fd.write(
-                "\t_FORCE_INLINE_ int version_get_uniform(Uniforms p_uniform,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { return _version_get_uniform(p_uniform,p_version,p_variant,p_specialization); }\n\n"
-            )
+            file.write(f"""\
+	_FORCE_INLINE_ int version_get_uniform(Uniforms p_uniform, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		return _version_get_uniform(p_uniform, p_version, p_variant, p_specialization);
+	}}
 
-            fd.write(
-                "\t#define _FU if (version_get_uniform(p_uniform,p_version,p_variant,p_specialization)<0) return; \n\n "
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1f(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, double p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1f(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint8_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1ui(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int8_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1i(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint16_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1ui(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int16_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1i(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint32_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1ui(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int32_t p_value,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform1i(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_value); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Color& p_color,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU GLfloat col[4]={p_color.r,p_color.g,p_color.b,p_color.a}; glUniform4fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,col); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector2& p_vec2,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU GLfloat vec2[2]={float(p_vec2.x),float(p_vec2.y)}; glUniform2fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,vec2); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Size2i& p_vec2,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU GLint vec2[2]={GLint(p_vec2.x),GLint(p_vec2.y)}; glUniform2iv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,vec2); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector3& p_vec3,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU GLfloat vec3[3]={float(p_vec3.x),float(p_vec3.y),float(p_vec3.z)}; glUniform3fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,vec3); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector4& p_vec4,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU GLfloat vec4[4]={float(p_vec4.x),float(p_vec4.y),float(p_vec4.z),float(p_vec4.w)}; glUniform4fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,vec4); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform2f(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_a,p_b); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b, float p_c,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform3f(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_a,p_b,p_c); }\n\n"
-            )
-            fd.write(
-                "\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b, float p_c, float p_d,RID p_version,ShaderVariant p_variant"
-                + defvariant
-                + ",uint64_t p_specialization="
-                + str(defspec)
-                + ") { _FU glUniform4f(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),p_a,p_b,p_c,p_d); }\n\n"
-            )
+	/* clang-format off */
+#define TRY_GET_UNIFORM if (version_get_uniform(p_uniform, p_version, p_variant, p_specialization) < 0) return
+	/* clang-format on */
 
-            fd.write(
-                """\t_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Transform3D& p_transform,RID p_version,ShaderVariant p_variant"""
-                + defvariant
-                + """,uint64_t p_specialization="""
-                + str(defspec)
-                + """) {  _FU
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1f(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-                const Transform3D &tr = p_transform;
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, double p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1f(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-                GLfloat matrix[16]={ /* build a 16x16 matrix */
-                    (GLfloat)tr.basis.rows[0][0],
-                    (GLfloat)tr.basis.rows[1][0],
-                    (GLfloat)tr.basis.rows[2][0],
-                    (GLfloat)0,
-                    (GLfloat)tr.basis.rows[0][1],
-                    (GLfloat)tr.basis.rows[1][1],
-                    (GLfloat)tr.basis.rows[2][1],
-                    (GLfloat)0,
-                    (GLfloat)tr.basis.rows[0][2],
-                    (GLfloat)tr.basis.rows[1][2],
-                    (GLfloat)tr.basis.rows[2][2],
-                    (GLfloat)0,
-                    (GLfloat)tr.origin.x,
-                    (GLfloat)tr.origin.y,
-                    (GLfloat)tr.origin.z,
-                    (GLfloat)1
-                };
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint8_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1ui(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-                        glUniformMatrix4fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,false,matrix);
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int8_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1i(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-            }
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint16_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1ui(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-            """
-            )
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int16_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1i(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-            fd.write(
-                """_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Transform2D& p_transform,RID p_version,ShaderVariant p_variant"""
-                + defvariant
-                + """,uint64_t p_specialization="""
-                + str(defspec)
-                + """) {  _FU
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, uint32_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1ui(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-                const Transform2D &tr = p_transform;
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, int32_t p_value, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform1i(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_value);
+	}}
 
-            GLfloat matrix[16]={ /* build a 16x16 matrix */
-                (GLfloat)tr.columns[0][0],
-                (GLfloat)tr.columns[0][1],
-                (GLfloat)0,
-                (GLfloat)0,
-                (GLfloat)tr.columns[1][0],
-                (GLfloat)tr.columns[1][1],
-                (GLfloat)0,
-                (GLfloat)0,
-                (GLfloat)0,
-                (GLfloat)0,
-                (GLfloat)1,
-                (GLfloat)0,
-                (GLfloat)tr.columns[2][0],
-                (GLfloat)tr.columns[2][1],
-                (GLfloat)0,
-                (GLfloat)1
-            };
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Color &p_color, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLfloat col[4] = {{ p_color.r, p_color.g, p_color.b, p_color.a }};
+		glUniform4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, col);
+	}}
 
-                glUniformMatrix4fv(version_get_uniform(p_uniform,p_version,p_variant,p_specialization),1,false,matrix);
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector2 &p_vec2, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLfloat vec2[2] = {{ float(p_vec2.x), float(p_vec2.y) }};
+		glUniform2fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, vec2);
+	}}
 
-            }
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Size2i &p_vec2, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLint vec2[2] = {{ GLint(p_vec2.x), GLint(p_vec2.y) }};
+		glUniform2iv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, vec2);
+	}}
 
-            """
-            )
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector3 &p_vec3, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLfloat vec3[3] = {{ float(p_vec3.x), float(p_vec3.y), float(p_vec3.z) }};
+		glUniform3fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, vec3);
+	}}
 
-            fd.write(
-                """_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Projection& p_matrix, RID p_version, ShaderVariant p_variant"""
-                + defvariant
-                + """,uint64_t p_specialization="""
-                + str(defspec)
-                + """) {  _FU
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Vector4 &p_vec4, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLfloat vec4[4] = {{ float(p_vec4.x), float(p_vec4.y), float(p_vec4.z), float(p_vec4.w) }};
+		glUniform4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, vec4);
+	}}
 
-                GLfloat matrix[16];
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform2f(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_a, p_b);
+	}}
 
-                for (int i = 0; i < 4; i++) {
-                    for (int j = 0; j < 4; j++) {
-                        matrix[i * 4 + j] = p_matrix.columns[i][j];
-                    }
-                }
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b, float p_c, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform3f(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_a, p_b, p_c);
+	}}
 
-                glUniformMatrix4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, false, matrix);
-        }"""
-            )
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, float p_a, float p_b, float p_c, float p_d, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		glUniform4f(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), p_a, p_b, p_c, p_d);
+	}}
 
-            fd.write("\n\n#undef _FU\n\n\n")
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Transform3D &p_transform, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		const Transform3D &tr = p_transform;
 
-        fd.write("protected:\n\n")
+		GLfloat matrix[16] = {{ /* build a 16x16 matrix */
+			(GLfloat)tr.basis.rows[0][0],
+			(GLfloat)tr.basis.rows[1][0],
+			(GLfloat)tr.basis.rows[2][0],
+			(GLfloat)0,
+			(GLfloat)tr.basis.rows[0][1],
+			(GLfloat)tr.basis.rows[1][1],
+			(GLfloat)tr.basis.rows[2][1],
+			(GLfloat)0,
+			(GLfloat)tr.basis.rows[0][2],
+			(GLfloat)tr.basis.rows[1][2],
+			(GLfloat)tr.basis.rows[2][2],
+			(GLfloat)0,
+			(GLfloat)tr.origin.x,
+			(GLfloat)tr.origin.y,
+			(GLfloat)tr.origin.z,
+			(GLfloat)1
+		}};
 
-        fd.write("\tvirtual void _init() override {\n\n")
+		glUniformMatrix4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, false, matrix);
+	}}
+
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Transform2D &p_transform, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		const Transform2D &tr = p_transform;
+
+		GLfloat matrix[16] = {{ /* build a 16x16 matrix */
+			(GLfloat)tr.columns[0][0],
+			(GLfloat)tr.columns[0][1],
+			(GLfloat)0,
+			(GLfloat)0,
+			(GLfloat)tr.columns[1][0],
+			(GLfloat)tr.columns[1][1],
+			(GLfloat)0,
+			(GLfloat)0,
+			(GLfloat)0,
+			(GLfloat)0,
+			(GLfloat)1,
+			(GLfloat)0,
+			(GLfloat)tr.columns[2][0],
+			(GLfloat)tr.columns[2][1],
+			(GLfloat)0,
+			(GLfloat)1
+		}};
+
+		glUniformMatrix4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, false, matrix);
+	}}
+
+	_FORCE_INLINE_ void version_set_uniform(Uniforms p_uniform, const Projection &p_matrix, RID p_version, ShaderVariant p_variant{defvariant}, uint64_t p_specialization = {defspec}) {{
+		TRY_GET_UNIFORM;
+		GLfloat matrix[16];
+
+		for (int i = 0; i < 4; i++) {{
+			for (int j = 0; j < 4; j++) {{
+				matrix[i * 4 + j] = p_matrix.columns[i][j];
+			}}
+		}}
+
+		glUniformMatrix4fv(version_get_uniform(p_uniform, p_version, p_variant, p_specialization), 1, false, matrix);
+	}}
+
+#undef TRY_GET_UNIFORM
+
+""")
+
+        file.write("""\
+protected:
+	virtual void _init() override {
+""")
 
         if header_data.uniforms:
-            fd.write("\t\tstatic const char* _uniform_strings[]={\n")
-            if header_data.uniforms:
-                for x in header_data.uniforms:
-                    fd.write('\t\t\t"' + x + '",\n')
-            fd.write("\t\t};\n\n")
+            uniforms = ",\n\t\t\t".join(f'"{uniform}"' for uniform in header_data.uniforms)
+            file.write(f"""\
+		static const char* _uniform_strings[] = {{
+			{uniforms}
+		}};
+""")
         else:
-            fd.write("\t\tstatic const char **_uniform_strings=nullptr;\n")
+            file.write("""\
+		static const char** _uniform_strings = nullptr;
+""")
 
-        variant_count = 1
-        if len(header_data.variant_defines) > 0:
-            fd.write("\t\tstatic const char* _variant_defines[]={\n")
-            for x in header_data.variant_defines:
-                fd.write('\t\t\t"' + x + '",\n')
-            fd.write("\t\t};\n\n")
+        if header_data.variant_defines:
             variant_count = len(header_data.variant_defines)
+            variant_defines = ",\n\t\t\t".join(f'"{define}"' for define in header_data.variant_defines)
+            file.write(f"""\
+		static const char* _variant_defines[] = {{
+			{variant_defines}
+		}};
+""")
         else:
-            fd.write("\t\tstatic const char **_variant_defines[]={" "};\n")
+            variant_count = 1
+            file.write("""\
+		static const char** _variant_defines[] = {" "};
+""")
 
         if header_data.texunits:
-            fd.write("\t\tstatic TexUnitPair _texunit_pairs[]={\n")
-            for x in header_data.texunits:
-                fd.write('\t\t\t{"' + x[0] + '",' + x[1] + "},\n")
-            fd.write("\t\t};\n\n")
+            texunits = ",\n\t\t\t".join(f'{{ "{name}", {texunit} }}' for name, texunit in header_data.texunits)
+            file.write(f"""\
+		static TexUnitPair _texunit_pairs[] = {{
+			{texunits}
+		}};
+""")
         else:
-            fd.write("\t\tstatic TexUnitPair *_texunit_pairs=nullptr;\n")
+            file.write("""\
+		static TexUnitPair *_texunit_pairs = nullptr;
+""")
 
         if header_data.ubos:
-            fd.write("\t\tstatic UBOPair _ubo_pairs[]={\n")
-            for x in header_data.ubos:
-                fd.write('\t\t\t{"' + x[0] + '",' + x[1] + "},\n")
-            fd.write("\t\t};\n\n")
+            ubos = ",\n\t\t\t".join(f'{{ "{name}", {ubo} }}' for name, ubo in header_data.ubos)
+            file.write(f"""\
+		static UBOPair _ubo_pairs[] = {{
+			{ubos}
+		}};
+""")
         else:
-            fd.write("\t\tstatic UBOPair *_ubo_pairs=nullptr;\n")
-
-        specializations_found = []
+            file.write("""\
+		static UBOPair *_ubo_pairs = nullptr;
+""")
 
         if header_data.specialization_names:
-            fd.write("\t\tstatic Specialization _spec_pairs[]={\n")
-            for i in range(len(header_data.specialization_names)):
-                defval = header_data.specialization_values[i].strip()
-                if defval.upper() == "TRUE" or defval == "1":
-                    defval = "true"
-                else:
-                    defval = "false"
-
-                fd.write('\t\t\t{"' + header_data.specialization_names[i] + '",' + defval + "},\n")
-                specializations_found.append(header_data.specialization_names[i])
-            fd.write("\t\t};\n\n")
+            specializations = ",\n\t\t\t".join(
+                f'{{ "{name}", {"true" if header_data.specialization_values[index].strip().upper() in ["TRUE", "1"] else "false"} }}'
+                for index, name in enumerate(header_data.specialization_names)
+            )
+            file.write(f"""\
+		static Specialization _spec_pairs[] = {{
+			{specializations}
+		}};
+""")
         else:
-            fd.write("\t\tstatic Specialization *_spec_pairs=nullptr;\n")
-
-        feedback_count = 0
+            file.write("""\
+		static Specialization *_spec_pairs = nullptr;
+""")
 
         if header_data.feedbacks:
-            fd.write("\t\tstatic const Feedback _feedbacks[]={\n")
-            for x in header_data.feedbacks:
-                name = x[0]
-                spec = x[1]
-                if spec in specializations_found:
-                    fd.write('\t\t\t{"' + name + '",' + str(1 << specializations_found.index(spec)) + "},\n")
-                else:
-                    fd.write('\t\t\t{"' + name + '",0},\n')
-
-                feedback_count += 1
-
-            fd.write("\t\t};\n\n")
+            feedbacks = ",\n\t\t\t".join(
+                f'{{ "{name}", {0 if spec not in header_data.specialization_names else (1 << header_data.specialization_names.index(spec))} }}'
+                for name, spec in header_data.feedbacks
+            )
+            file.write(f"""\
+		static const Feedback _feedbacks[] = {{
+			{feedbacks}
+		}};
+""")
         else:
-            fd.write("\t\tstatic const Feedback* _feedbacks=nullptr;\n")
+            file.write("""\
+		static const Feedback *_feedbacks = nullptr;
+""")
 
-        fd.write("\t\tstatic const char _vertex_code[]={\n")
-        fd.write(to_raw_cstring(header_data.vertex_lines))
-        fd.write("\n\t\t};\n\n")
+        file.write(f"""\
+		static const char _vertex_code[] = {{
+{to_raw_cstring(header_data.vertex_lines)}
+		}};
 
-        fd.write("\t\tstatic const char _fragment_code[]={\n")
-        fd.write(to_raw_cstring(header_data.fragment_lines))
-        fd.write("\n\t\t};\n\n")
+		static const char _fragment_code[] = {{
+{to_raw_cstring(header_data.fragment_lines)}
+		}};
 
-        fd.write(
-            '\t\t_setup(_vertex_code,_fragment_code,"'
-            + out_file_class
-            + '",'
-            + str(len(header_data.uniforms))
-            + ",_uniform_strings,"
-            + str(len(header_data.ubos))
-            + ",_ubo_pairs,"
-            + str(feedback_count)
-            + ",_feedbacks,"
-            + str(len(header_data.texunits))
-            + ",_texunit_pairs,"
-            + str(len(header_data.specialization_names))
-            + ",_spec_pairs,"
-            + str(variant_count)
-            + ",_variant_defines);\n"
-        )
-
-        fd.write("\t}\n\n")
-
-        fd.write("};\n\n")
-        fd.write("#endif\n")
+		_setup(_vertex_code, _fragment_code, "{out_file_class}",
+				{len(header_data.uniforms)}, _uniform_strings, {len(header_data.ubos)}, _ubo_pairs,
+				{len(header_data.feedbacks)}, _feedbacks, {len(header_data.texunits)}, _texunit_pairs,
+				{len(header_data.specialization_names)}, _spec_pairs, {variant_count}, _variant_defines);
+	}}
+}};
+""")
 
 
 def build_gles3_headers(target, source, env):
     env.NoCache(target)
     for x in source:
-        build_gles3_header(str(x), include="drivers/gles3/shader_gles3.h", class_suffix="GLES3")
+        build_gles3_header(str(x))
