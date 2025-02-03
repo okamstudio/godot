@@ -396,6 +396,9 @@
 		<constant name="DEBUG_DRAW_WIREFRAME" value="3" enum="DebugDraw">
 			Objects are displayed in wireframe style.
 		</constant>
+		<constant name="DEBUG_DRAW_LIGHTING" value="4" enum="DebugDraw">
+			Objects are displayed with the default material (white albedo, fully rough). This is useful for previewing lighting/GI independently of the actual materials used on meshes. Sometimes called "clay rendering".
+		</constant>
 		<constant name="MSAA_DISABLED" value="0" enum="MSAA">
 			Multisample anti-aliasing mode disabled. This is the default value.
 		</constant>

@@ -3757,6 +3757,9 @@
 		<constant name="VIEWPORT_DEBUG_DRAW_WIREFRAME" value="3" enum="ViewportDebugDraw">
 			Debug draw draws objects in wireframe.
 		</constant>
+		<constant name="VIEWPORT_DEBUG_DRAW_LIGHTING" value="4" enum="ViewportDebugDraw">
+			Displays objects with the default material (white albedo, fully rough). This is useful for previewing lighting/GI independently of the actual materials used on meshes. Sometimes called "clay rendering".
+		</constant>
 		<constant name="SCENARIO_DEBUG_DISABLED" value="0" enum="ScenarioDebugMode">
 			Do not use a debug mode.
 		</constant>
@@ -3767,7 +3770,10 @@
 			Draw all objects in a way that displays how much overdraw is occurring. Overdraw occurs when a section of pixels is drawn and shaded and then another object covers it up. To optimize a scene, you should reduce overdraw.
 		</constant>
 		<constant name="SCENARIO_DEBUG_SHADELESS" value="3" enum="ScenarioDebugMode">
-			Draw all objects without shading. Equivalent to setting all objects shaders to [code]unshaded[/code].
+			Draw all objects without shading. Equivalent to setting all objects' shaders to [code]unshaded[/code].
+		</constant>
+		<constant name="SCENARIO_DEBUG_LIGHTING" value="4" enum="ScenarioDebugMode">
+			Draw all objects with the default material (white albedo, fully rough). This is useful for previewing lighting/GI independently of the actual materials used on meshes. Sometimes called "clay rendering".
 		</constant>
 		<constant name="INSTANCE_NONE" value="0" enum="InstanceType">
 			The instance does not have a type.

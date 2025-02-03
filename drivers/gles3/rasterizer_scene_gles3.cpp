@@ -2263,16 +2263,9 @@ void RasterizerSceneGLES3::_add_geometry(RasterizerStorageGLES3::Geometry *p_geo
 
 	if (state.debug_draw == VS::VIEWPORT_DEBUG_DRAW_OVERDRAW) {
 		m_src = default_overdraw_material;
+	} else if (state.debug_draw == VS::VIEWPORT_DEBUG_DRAW_LIGHTING) {
+		m_src = default_material;
 	}
-
-	/*
-#ifdef DEBUG_ENABLED
-	if (current_debug==VS::SCENARIO_DEBUG_OVERDRAW) {
-		m_src=overdraw_material;
-	}
-
-#endif
-*/
 
 	if (m_src.is_valid()) {
 		m = storage->material_owner.getornull(m_src);
