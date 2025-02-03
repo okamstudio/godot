@@ -958,7 +958,7 @@ void InputDefault::joy_axis(int p_device, int p_axis, float p_value) {
 		// Send axis event for triggers
 		if (map.index == JOY_L2 || map.index == JOY_R2) {
 			// Convert to a value between 0.0f and 1.0f.
-			float value = 0.5f + p_value / 2.0f;
+			float value = 0.5f + map.value / 2.0f;
 			_axis_event(p_device, map.index, value);
 		}
 
@@ -997,7 +997,7 @@ void InputDefault::joy_axis(int p_device, int p_axis, float p_value) {
 	}
 
 	if (map.type == TYPE_AXIS) {
-		_axis_event(p_device, map.index, p_value);
+		_axis_event(p_device, map.index, map.value);
 		return;
 	}
 }
