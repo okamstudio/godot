@@ -17,6 +17,9 @@
 	<methods>
 	</methods>
 	<members>
+		<member name="add_directly" type="bool" setter="set_add_directly" getter="get_add_directly" default="true">
+			If [code]false[/code], adds the blended transformation after the subtraction of the difference. If [code]true[/code], adds the first or third transformation to second it directly.
+		</member>
 		<member name="sync" type="bool" setter="set_use_sync" getter="is_using_sync" default="false">
 			If [code]true[/code], sets the [code]optimization[/code] to [code]false[/code] when calling [method AnimationNode.blend_input], forcing the blended animations to update every frame.
 		</member>

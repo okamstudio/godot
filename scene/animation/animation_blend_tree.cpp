@@ -379,6 +379,14 @@ bool AnimationNodeAdd2::is_using_sync() const {
 	return sync;
 }
 
+void AnimationNodeAdd2::set_add_directly(bool p_add_directly) {
+	add_directly = p_add_directly;
+}
+
+bool AnimationNodeAdd2::get_add_directly() const {
+	return add_directly;
+}
+
 bool AnimationNodeAdd2::has_filter() const {
 	return true;
 }
@@ -386,7 +394,7 @@ bool AnimationNodeAdd2::has_filter() const {
 float AnimationNodeAdd2::process(float p_time, bool p_seek) {
 	float amount = get_parameter(add_amount);
 	float rem0 = blend_input(0, p_time, p_seek, 1.0, FILTER_IGNORE, !sync);
-	blend_input(1, p_time, p_seek, amount, FILTER_PASS, !sync);
+	blend_input(1, p_time, p_seek, amount, FILTER_PASS, !sync, add_directly);
 
 	return rem0;
 }
@@ -395,7 +403,11 @@ void AnimationNodeAdd2::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeAdd2::set_use_sync);
 	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeAdd2::is_using_sync);
 
+	ClassDB::bind_method(D_METHOD("set_add_directly", "enable"), &AnimationNodeAdd2::set_add_directly);
+	ClassDB::bind_method(D_METHOD("get_add_directly"), &AnimationNodeAdd2::get_add_directly);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync"), "set_use_sync", "is_using_sync");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "add_directly"), "set_add_directly", "get_add_directly");
 }
 
 AnimationNodeAdd2::AnimationNodeAdd2() {
@@ -403,6 +415,7 @@ AnimationNodeAdd2::AnimationNodeAdd2() {
 	add_input("in");
 	add_input("add");
 	sync = false;
+	add_directly = true;
 }
 
 ////////////////////////////////////////////////
@@ -425,15 +438,28 @@ bool AnimationNodeAdd3::is_using_sync() const {
 	return sync;
 }
 
+void AnimationNodeAdd3::set_add_directly(bool p_add_directly) {
+	add_directly = p_add_directly;
+}
+
+bool AnimationNodeAdd3::get_add_directly() const {
+	return add_directly;
+}
+
 bool AnimationNodeAdd3::has_filter() const {
 	return true;
 }
 
 float AnimationNodeAdd3::process(float p_time, bool p_seek) {
 	float amount = get_parameter(add_amount);
-	blend_input(0, p_time, p_seek, MAX(0, -amount), FILTER_PASS, !sync);
 	float rem0 = blend_input(1, p_time, p_seek, 1.0, FILTER_IGNORE, !sync);
-	blend_input(2, p_time, p_seek, MAX(0, amount), FILTER_PASS, !sync);
+	if (amount < 0) {
+		blend_input(0, p_time, p_seek, -amount, FILTER_PASS, !sync, add_directly);
+		blend_input(2, p_time, p_seek, 0, FILTER_PASS, !sync);
+	} else {
+		blend_input(2, p_time, p_seek, amount, FILTER_PASS, !sync, add_directly);
+		blend_input(0, p_time, p_seek, 0, FILTER_PASS, !sync);
+	}
 
 	return rem0;
 }
@@ -442,7 +468,11 @@ void AnimationNodeAdd3::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeAdd3::set_use_sync);
 	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeAdd3::is_using_sync);
 
+	ClassDB::bind_method(D_METHOD("set_add_directly", "enable"), &AnimationNodeAdd3::set_add_directly);
+	ClassDB::bind_method(D_METHOD("get_add_directly"), &AnimationNodeAdd3::get_add_directly);
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync"), "set_use_sync", "is_using_sync");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "add_directly"), "set_add_directly", "get_add_directly");
 }
 
 AnimationNodeAdd3::AnimationNodeAdd3() {
@@ -451,6 +481,7 @@ AnimationNodeAdd3::AnimationNodeAdd3() {
 	add_input("in");
 	add_input("+add");
 	sync = false;
+	add_directly = true;
 }
 /////////////////////////////////////////////
 

@@ -225,6 +225,8 @@ float AnimationNodeBlendSpace1D::process(float p_time, bool p_seek) {
 		return 0.0;
 	}
 
+	blend_points[blend_points_used - 1].node->add_directly = add_directly;
+
 	if (blend_points_used == 1) {
 		// only one point available, just play that animation
 		return blend_node(blend_points[0].name, blend_points[0].node, p_time, p_seek, 1.0, FILTER_IGNORE, false);

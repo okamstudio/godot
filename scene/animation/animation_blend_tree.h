@@ -134,6 +134,7 @@ class AnimationNodeAdd2 : public AnimationNode {
 
 	StringName add_amount;
 	bool sync;
+	bool add_directly;
 
 protected:
 	static void _bind_methods();
@@ -146,6 +147,9 @@ public:
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
+
+	void set_add_directly(bool p_add_directly);
+	bool get_add_directly() const;
 
 	virtual bool has_filter() const;
 	virtual float process(float p_time, bool p_seek);
@@ -158,6 +162,7 @@ class AnimationNodeAdd3 : public AnimationNode {
 
 	StringName add_amount;
 	bool sync;
+	bool add_directly;
 
 protected:
 	static void _bind_methods();
@@ -170,6 +175,9 @@ public:
 
 	void set_use_sync(bool p_sync);
 	bool is_using_sync() const;
+
+	void set_add_directly(bool p_add_directly);
+	bool get_add_directly() const;
 
 	virtual bool has_filter() const;
 	virtual float process(float p_time, bool p_seek);

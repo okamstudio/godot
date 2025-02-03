@@ -307,6 +307,7 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 					// can restart, just postpone traveling
 					path.clear();
 					current = p_state_machine->start_node;
+					p_state_machine->states[current].node->add_directly = p_state_machine->add_directly;
 					playing = true;
 					play_start = true;
 				} else {
@@ -320,6 +321,7 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 					// can't travel, then teleport
 					path.clear();
 					current = start_request;
+					p_state_machine->states[current].node->add_directly = p_state_machine->add_directly;
 				}
 				start_request = StringName(); //clear start request
 			}
@@ -328,6 +330,7 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 			if (p_state_machine->states.has(start_request)) {
 				path.clear();
 				current = start_request;
+				p_state_machine->states[current].node->add_directly = p_state_machine->add_directly;
 				playing = true;
 				play_start = true;
 				start_request = StringName(); //clear start request
@@ -343,7 +346,11 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 
 	if (do_start) {
 		if (p_state_machine->start_node != StringName() && p_seek && p_time == 0) {
+			if (current != StringName()) {
+				p_state_machine->states[current].node->add_directly = false;
+			}
 			current = p_state_machine->start_node;
+			p_state_machine->states[current].node->add_directly = p_state_machine->add_directly;
 		}
 
 		len_current = p_state_machine->blend_node(current, p_state_machine->states[current].node, 0, true, 1.0, AnimationNode::FILTER_IGNORE, false);
@@ -457,7 +464,9 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 			if (path.size()) { //if it came from path, remove path
 				path.remove(0);
 			}
+			p_state_machine->states[current].node->add_directly = false;
 			current = next;
+			p_state_machine->states[current].node->add_directly = p_state_machine->add_directly;
 			if (switch_mode == AnimationNodeStateMachineTransition::SWITCH_MODE_SYNC) {
 				len_current = p_state_machine->blend_node(current, p_state_machine->states[current].node, 0, true, 0, AnimationNode::FILTER_IGNORE, false);
 				pos_current = MIN(pos_current, len_current);

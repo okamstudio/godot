@@ -436,6 +436,8 @@ float AnimationNodeBlendSpace2D::process(float p_time, bool p_seek) {
 		int blend_triangle = -1;
 		float blend_weights[3] = { 0, 0, 0 };
 
+		blend_points[blend_points_used - 1].node->add_directly = add_directly;
+
 		for (int i = 0; i < triangles.size(); i++) {
 			Vector2 points[3];
 			for (int j = 0; j < 3; j++) {
@@ -513,6 +515,7 @@ float AnimationNodeBlendSpace2D::process(float p_time, bool p_seek) {
 				new_closest = i;
 				new_closest_dist = d;
 			}
+			blend_points[i].node->add_directly = false;
 		}
 
 		if (new_closest != closest && new_closest != -1) {
@@ -522,12 +525,14 @@ float AnimationNodeBlendSpace2D::process(float p_time, bool p_seek) {
 				from = length_internal - blend_node(blend_points[closest].name, blend_points[closest].node, p_time, false, 0.0, FILTER_IGNORE, false);
 			}
 
+			blend_points[new_closest].node->add_directly = add_directly;
 			mind = blend_node(blend_points[new_closest].name, blend_points[new_closest].node, from, true, 1.0, FILTER_IGNORE, false);
 			length_internal = from + mind;
 
 			closest = new_closest;
 
 		} else {
+			blend_points[closest].node->add_directly = add_directly;
 			mind = blend_node(blend_points[closest].name, blend_points[closest].node, p_time, p_seek, 1.0, FILTER_IGNORE, false);
 		}
 	}
