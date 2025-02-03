@@ -4,7 +4,7 @@
 		The generic 6-degrees-of-freedom joint can implement a variety of joint types by locking certain axes' rotation or translation.
 	</brief_description>
 	<description>
-		The first 3 DOF axes are linear axes, which represent translation of Bodies, and the latter 3 DOF axes represent the angular motion. Each axis can be either locked, or limited.
+		The first 3 DOF axes are linear axes, which represent translation of Bodies, and the latter 3 DOF axes represent the angular motion. Each axis can be either locked, or limited. The joint may also take on spring and motor characteristics, influencing its linear and angular movement.
 	</description>
 	<tutorials>
 	</tutorials>
@@ -13,36 +13,42 @@
 			<return type="bool" />
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<description>
+				Returns the current state of the joint flag, on the X axis, represented by the given [enum Flag].
 			</description>
 		</method>
 		<method name="get_flag_y" qualifiers="const">
 			<return type="bool" />
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<description>
+				Returns the current state of the joint flag, on the Y axis, represented by the given [enum Flag].
 			</description>
 		</method>
 		<method name="get_flag_z" qualifiers="const">
 			<return type="bool" />
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<description>
+				Returns the current state of the joint flag, on the Z axis, represented by the given [enum Flag].
 			</description>
 		</method>
 		<method name="get_param_x" qualifiers="const">
 			<return type="float" />
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<description>
+				Returns the current state of the joint parameter, on the X axis, represented by the given [enum Param].
 			</description>
 		</method>
 		<method name="get_param_y" qualifiers="const">
 			<return type="float" />
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<description>
+				Returns the current state of the joint parameter, on the Y axis, represented by the given [enum Param].
 			</description>
 		</method>
 		<method name="get_param_z" qualifiers="const">
 			<return type="float" />
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<description>
+				Returns the current state of the joint parameter, on the Z axis, represented by the given [enum Param].
 			</description>
 		</method>
 		<method name="set_flag_x">
@@ -50,6 +56,7 @@
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<argument index="1" name="value" type="bool" />
 			<description>
+				Sets the joint flag, on the X axis, represented by the given [enum Flag] with the given [code]value[/code].
 			</description>
 		</method>
 		<method name="set_flag_y">
@@ -57,6 +64,7 @@
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<argument index="1" name="value" type="bool" />
 			<description>
+				Sets the joint flag, on the Y axis, represented by the given [enum Flag] with the given [code]value[/code].
 			</description>
 		</method>
 		<method name="set_flag_z">
@@ -64,6 +72,7 @@
 			<argument index="0" name="flag" type="int" enum="Generic6DOFJoint.Flag" />
 			<argument index="1" name="value" type="bool" />
 			<description>
+				Sets the joint flag, on the Z axis, represented by the given [enum Flag] with the given [code]value[/code].
 			</description>
 		</method>
 		<method name="set_param_x">
@@ -71,6 +80,7 @@
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<argument index="1" name="value" type="float" />
 			<description>
+				Sets the joint parameter, on the X axis, represented by the given [enum Param] with the given [code]value[/code].
 			</description>
 		</method>
 		<method name="set_param_y">
@@ -78,6 +88,7 @@
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<argument index="1" name="value" type="float" />
 			<description>
+				Sets the joint parameter, on the X axis, represented by the given [enum Param] with the given [code]value[/code].
 			</description>
 		</method>
 		<method name="set_param_z">
@@ -85,6 +96,7 @@
 			<argument index="0" name="param" type="int" enum="Generic6DOFJoint.Param" />
 			<argument index="1" name="value" type="float" />
 			<description>
+				Sets the joint parameter, on the X axis, represented by the given [enum Param] with the given [code]value[/code].
 			</description>
 		</method>
 	</methods>
@@ -189,29 +201,59 @@
 		<member name="angular_motor_z/target_velocity" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
 			Target speed for the motor at the Z axis.
 		</member>
+		<member name="angular_spring/quaternion_rotation_equilibrium" type="Quat" setter="set_quaternion_rotation_equilibrium" getter="get_quaternion_rotation_equilibrium">
+			Optionally, the joint's rotation equilibrium maybe driven by using a quaternion instead. This is way faster than using Euler angles to drive joint rotation.
+			Note that this property only works with [member ProjectSettings.physics/3d/physics_engine] set to [code]Bullet[/code].
+		</member>
+		<member name="angular_spring/use_global_rotation" type="bool" setter="set_use_global_rotation" getter="get_use_global_rotation" default="false">
+			If [code]true[/code], the set angular spring [code]equilibrium_point[/code] will be interpreted as [b]global[/b] rotation values. Otherwise, they will be interpreted as local rotation values. This is useful for copying global rotations.
+			[codeblock]
+			var target_global_angles = get_node(puppeteer_node).global_transform.basis.get_rotation_quat().get_euler()
+			self.set_param_x(PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT,target_global_angles.x)
+			self.set_param_y(PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT,target_global_angles.y)
+			self.set_param_z(PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT,target_global_angles.z)
+			[/codeblock]
+			Note that this property only works with [member ProjectSettings.physics/3d/physics_engine] set to [code]Bullet[/code].
+		</member>
+		<member name="angular_spring/use_quaternion_rotation_equilibrium" type="bool" setter="set_use_quaternion_rotation_equilibrium" getter="get_use_quaternion_rotation_equilibrium" default="false">
+			If [code]true[/code], the set [member angular_spring/quaternion_rotation_equilibrium] will be used instead of Euler angles set through angular spring [code]equilibrium_point[/code]s. It is highly recomended to use this in favour of Euler angles as it is faster.
+			Note that this property only works with [member ProjectSettings.physics/3d/physics_engine] set to [code]Bullet[/code].
+		</member>
 		<member name="angular_spring_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The dampening value for the angular spring characteristic around the X axis. This affects how much the angular spring joint oscillates before reaching its equilibrium angle. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="angular_spring_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
+			If [code]true[/code], the angular spring property around the X axis is enabled.
 		</member>
 		<member name="angular_spring_x/equilibrium_point" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The angle in radians the joint will try to maintain around the X axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="angular_spring_x/stiffness" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The stiffness value for the angular spring characteristic around the X axis. This affects how fast the angular spring joint will rotate to reach its set equilibrium angle. The higher the value the more force is applied to maintain the set equilibrium angle. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="angular_spring_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The dampening value for the angular spring characteristic around the Y axis. This affects how much the angular spring joint oscillates before reaching its equilibrium angle. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="angular_spring_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
+			If [code]true[/code], the angular spring property around the Y axis is enabled.
 		</member>
 		<member name="angular_spring_y/equilibrium_point" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The angle in radians the joint will try to maintain around the Y axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="angular_spring_y/stiffness" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The stiffness value for the angular spring characteristic around the Y axis. This affects how fast the angular spring joint will rotate to reach its set equilibrium angle. The higher the value the more force is applied to maintain the set equilibrium angle. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="angular_spring_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The dampening value for the angular spring characteristic around the Z axis. This affects how much the angular spring joint oscillates before reaching its equilibrium angle. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="angular_spring_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
+			If [code]true[/code], the angular spring property around the Z axis is enabled.
 		</member>
 		<member name="angular_spring_z/equilibrium_point" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The angle in radians the joint will try to maintain around the Z axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="angular_spring_z/stiffness" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The stiffness value for the angular spring characteristic around the Z axis. This affects how fast the angular spring joint will rotate to reach its set equilibrium angle. The higher the value the more force is applied to maintain the set equilibrium angle. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_limit_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="1.0">
 			The amount of damping that happens at the X motion.
@@ -295,28 +337,40 @@
 			The speed that the linear motor will attempt to reach on the Z axis.
 		</member>
 		<member name="linear_spring_x/damping" type="float" setter="set_param_x" getter="get_param_x" default="0.01">
+			The dampening value for the linear spring characteristic at the X axis. This affects how much the linear spring joint oscillates before reaching its equilibrium point. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_spring_x/enabled" type="bool" setter="set_flag_x" getter="get_flag_x" default="false">
+			If [code]true[/code], the linear spring property on the X axis is enabled.
 		</member>
 		<member name="linear_spring_x/equilibrium_point" type="float" setter="set_param_x" getter="get_param_x" default="0.0">
+			The position the joint will try to maintain on the X axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="linear_spring_x/stiffness" type="float" setter="set_param_x" getter="get_param_x" default="0.01">
+			The stiffness value for the linear spring characteristic on the X axis. This affects how fast the linear spring joint will move to reach its set equilibrium point. The higher the value the more force is applied to maintain the set equilibrium point. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_spring_y/damping" type="float" setter="set_param_y" getter="get_param_y" default="0.01">
+			The dampening value for the linear spring characteristic at the Y axis. This affects how much the linear spring joint oscillates before reaching its equilibrium point. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_spring_y/enabled" type="bool" setter="set_flag_y" getter="get_flag_y" default="false">
+			If [code]true[/code], the linear spring property on the Y axis is enabled.
 		</member>
 		<member name="linear_spring_y/equilibrium_point" type="float" setter="set_param_y" getter="get_param_y" default="0.0">
+			The position the joint will try to maintain on the Y axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="linear_spring_y/stiffness" type="float" setter="set_param_y" getter="get_param_y" default="0.01">
+			The stiffness value for the linear spring characteristic on the Y axis. This affects how fast the linear spring joint will move to reach its set equilibrium point. The higher the value the more force is applied to maintain the set equilibrium point. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_spring_z/damping" type="float" setter="set_param_z" getter="get_param_z" default="0.01">
+			The dampening value for the linear spring characteristic at the Z axis. This affects how much the linear spring joint oscillates before reaching its equilibrium point. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 		<member name="linear_spring_z/enabled" type="bool" setter="set_flag_z" getter="get_flag_z" default="false">
+			If [code]true[/code], the linear spring property on the Z axis is enabled.
 		</member>
 		<member name="linear_spring_z/equilibrium_point" type="float" setter="set_param_z" getter="get_param_z" default="0.0">
+			The position the joint will try to maintain on the Z axis relative to [member Joint.nodes/node_a].
 		</member>
 		<member name="linear_spring_z/stiffness" type="float" setter="set_param_z" getter="get_param_z" default="0.01">
+			The stiffness value for the linear spring characteristic on the Z axis. This affects how fast the linear spring joint will move to reach its set equilibrium point. The higher the value the more force is applied to maintain the set equilibrium point. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</member>
 	</members>
 	<constants>
@@ -342,10 +396,13 @@
 			The maximum force the linear motor will apply while trying to reach the velocity target.
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_STIFFNESS" value="7" enum="Param">
+			The stiffness value for the linear spring characteristic on the axes. This affects how fast the linear spring joint will move to reach its set equilibrium point. The higher the value the more force is applied to maintain the set equilibrium point. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_DAMPING" value="8" enum="Param">
+			The dampening value for the linear spring characteristic on the axes. This affects how much the linear spring joint oscillates before reaching its equilibrium point. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</constant>
 		<constant name="PARAM_LINEAR_SPRING_EQUILIBRIUM_POINT" value="9" enum="Param">
+			The position the joint will try to maintain on the axes relative to [member Joint.nodes/node_a].
 		</constant>
 		<constant name="PARAM_ANGULAR_LOWER_LIMIT" value="10" enum="Param">
 			The minimum rotation in negative direction to break loose and rotate around the axes.
@@ -375,10 +432,13 @@
 			Maximum acceleration for the motor at the axes.
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_STIFFNESS" value="19" enum="Param">
+			The stiffness value for the angular spring characteristic around the axes. This affects how fast the angular spring joint will rotate to reach its set equilibrium angle. The higher the value the more force is applied to maintain the set equilibrium angle. Please note that high stiffness values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_DAMPING" value="20" enum="Param">
+			The dampening value for the angular spring characteristic around the axes. This affects how much the angular spring joint oscillates before reaching its equilibrium angle. The higher the value the less oscillation. Please note that high damping values may adversely affect the joint arrangement when attached with "light" rigidbodies ([member RigidBody.mass] less than or equal to 1).
 		</constant>
 		<constant name="PARAM_ANGULAR_SPRING_EQUILIBRIUM_POINT" value="21" enum="Param">
+			The angle in radians the joint will try to maintain around the axes relative to [member Joint.nodes/node_a].
 		</constant>
 		<constant name="PARAM_MAX" value="22" enum="Param">
 			Represents the size of the [enum Param] enum.
@@ -390,8 +450,10 @@
 			If enabled, rotational motion is possible within the given limits.
 		</constant>
 		<constant name="FLAG_ENABLE_LINEAR_SPRING" value="3" enum="Flag">
+			If enabled, these axes will take on linear spring characterisitics.
 		</constant>
 		<constant name="FLAG_ENABLE_ANGULAR_SPRING" value="2" enum="Flag">
+			If enabled, these axes will take on angular spring characterisitics.
 		</constant>
 		<constant name="FLAG_ENABLE_MOTOR" value="4" enum="Flag">
 			If enabled, there is a rotational motor across these axes.

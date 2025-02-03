@@ -1479,6 +1479,51 @@ bool BulletPhysicsServer::generic_6dof_joint_get_flag(RID p_joint, Vector3::Axis
 	return generic_6dof_joint->get_flag(p_axis, p_flag);
 }
 
+void BulletPhysicsServer::generic_6dof_joint_set_use_global_rotation(RID p_joint, bool p_enable) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND(!joint);
+	ERR_FAIL_COND(joint->get_type() != JOINT_6DOF);
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	generic_6dof_joint->set_use_global_rotation(p_enable);
+}
+
+bool BulletPhysicsServer::generic_6dof_joint_get_use_global_rotation(RID p_joint) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND_V(!joint, false);
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_6DOF, false);
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	return generic_6dof_joint->get_use_global_rotation();
+}
+
+void BulletPhysicsServer::generic_6dof_joint_set_use_quaternion_rotation_equilibrium(RID p_joint, bool p_enable) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND(!joint);
+	ERR_FAIL_COND(joint->get_type() != JOINT_6DOF);
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	generic_6dof_joint->set_use_quaternion_rotation_equilibrium(p_enable);
+}
+bool BulletPhysicsServer::generic_6dof_joint_get_use_quaternion_rotation_equilibrium(RID p_joint) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND_V(!joint, false);
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_6DOF, false);
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	return generic_6dof_joint->get_use_quaternion_rotation_equilibrium();
+}
+void BulletPhysicsServer::generic_6dof_joint_set_quaternion_rotation_equilibrium(RID p_joint, Quat p_value) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND(!joint);
+	ERR_FAIL_COND(joint->get_type() != JOINT_6DOF);
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	generic_6dof_joint->set_quaternion_rotation_equilibrium(p_value);
+}
+Quat BulletPhysicsServer::generic_6dof_joint_get_quaternion_rotation_equilibrium(RID p_joint) {
+	JointBullet *joint = joint_owner.get(p_joint);
+	ERR_FAIL_COND_V(!joint, Quat());
+	ERR_FAIL_COND_V(joint->get_type() != JOINT_6DOF, Quat());
+	Generic6DOFJointBullet *generic_6dof_joint = static_cast<Generic6DOFJointBullet *>(joint);
+	return generic_6dof_joint->get_quaternion_rotation_equilibrium();
+}
+
 void BulletPhysicsServer::free(RID p_rid) {
 	if (!p_rid.is_valid()) {
 		ERR_FAIL_MSG("PhysicsServer attempted to free a NULL RID.");

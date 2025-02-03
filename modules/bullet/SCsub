@@ -122,6 +122,7 @@ if env["builtin_bullet"]:
         "BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp",
         "BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraint.cpp",
         "BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.cpp",
+        "BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraintQuaternion.cpp",
         "BulletDynamics/ConstraintSolver/btHinge2Constraint.cpp",
         "BulletDynamics/ConstraintSolver/btHingeConstraint.cpp",
         "BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp",

@@ -35,6 +35,9 @@
 #include "rigid_body_bullet.h"
 
 #include <BulletDynamics/ConstraintSolver/btGeneric6DofSpring2Constraint.h>
+#include <BulletDynamics/ConstraintSolver/btGeneric6DofSpringConstraintQuaternion.h>
+
+#include <LinearMath/btQuaternion.h>
 
 /**
 	@author AndreaCatania
@@ -57,9 +60,9 @@ Generic6DOFJointBullet::Generic6DOFJointBullet(RigidBodyBullet *rbA, RigidBodyBu
 		btTransform btFrameB;
 		G_TO_B(scaled_BFrame, btFrameB);
 
-		sixDOFConstraint = bulletnew(btGeneric6DofSpring2Constraint(*rbA->get_bt_rigid_body(), *rbB->get_bt_rigid_body(), btFrameA, btFrameB));
+		sixDOFConstraint = bulletnew(btGeneric6DofSpringConstraintQuaternion(*rbA->get_bt_rigid_body(), *rbB->get_bt_rigid_body(), btFrameA, btFrameB));
 	} else {
-		sixDOFConstraint = bulletnew(btGeneric6DofSpring2Constraint(*rbA->get_bt_rigid_body(), btFrameA));
+		sixDOFConstraint = bulletnew(btGeneric6DofSpringConstraintQuaternion(*rbA->get_bt_rigid_body(), btFrameA));
 	}
 
 	setup(sixDOFConstraint);
@@ -260,4 +263,30 @@ void Generic6DOFJointBullet::set_flag(Vector3::Axis p_axis, PhysicsServer::G6DOF
 bool Generic6DOFJointBullet::get_flag(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisFlag p_flag) const {
 	ERR_FAIL_INDEX_V(p_axis, 3, false);
 	return flags[p_axis][p_flag];
+}
+
+void Generic6DOFJointBullet::set_use_global_rotation(bool p_value) {
+	sixDOFConstraint->set_use_global_rotation(p_value);
+}
+
+bool Generic6DOFJointBullet::get_use_global_rotation() {
+	return sixDOFConstraint->get_use_global_rotation();
+}
+
+void Generic6DOFJointBullet::set_use_quaternion_rotation_equilibrium(bool p_enable) {
+	sixDOFConstraint->set_use_quaternion_rotation_equilibrium(p_enable);
+}
+
+bool Generic6DOFJointBullet::get_use_quaternion_rotation_equilibrium() {
+	return sixDOFConstraint->get_use_quaternion_rotation_equilibrium();
+}
+
+void Generic6DOFJointBullet::set_quaternion_rotation_equilibrium(Quat p_value) {
+	btQuaternion q_value = btQuaternion(p_value.x, p_value.y, p_value.z, p_value.w);
+	sixDOFConstraint->set_quaternion_rotation_equilibrium(q_value);
+}
+
+Quat Generic6DOFJointBullet::get_quaternion_rotation_equilibrium() {
+	btQuaternion q_value = sixDOFConstraint->get_quaternion_rotation_equilibrium();
+	return Quat(q_value.x(), q_value.y(), q_value.z(), q_value.w());
 }

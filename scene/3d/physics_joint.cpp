@@ -714,6 +714,15 @@ float Generic6DOFJoint::_get_angular_lo_limit_z() const {
 	return Math::rad2deg(get_param_z(PARAM_ANGULAR_LOWER_LIMIT));
 }
 
+void Generic6DOFJoint::_validate_property(PropertyInfo &p_property) const {
+	if (p_property.name == "angular_spring/quaternion_rotation_equilibrium") {
+		p_property.usage = PROPERTY_USAGE_DEFAULT;
+		if (!using_quaternion_rotation_equilibrium) {
+			p_property.usage = 0;
+		}
+	}
+}
+
 void Generic6DOFJoint::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_set_angular_hi_limit_x", "angle"), &Generic6DOFJoint::_set_angular_hi_limit_x);
 	ClassDB::bind_method(D_METHOD("_get_angular_hi_limit_x"), &Generic6DOFJoint::_get_angular_hi_limit_x);
@@ -751,6 +760,18 @@ void Generic6DOFJoint::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_flag_z", "flag", "value"), &Generic6DOFJoint::set_flag_z);
 	ClassDB::bind_method(D_METHOD("get_flag_z", "flag"), &Generic6DOFJoint::get_flag_z);
 
+	ClassDB::bind_method(D_METHOD("set_use_global_rotation", "enable"), &Generic6DOFJoint::set_use_global_rotation);
+	ClassDB::bind_method(D_METHOD("get_use_global_rotation"), &Generic6DOFJoint::get_use_global_rotation);
+
+	ClassDB::bind_method(D_METHOD("set_use_quaternion_rotation_equilibrium", "enable"), &Generic6DOFJoint::set_use_quaternion_rotation_equilibrium);
+	ClassDB::bind_method(D_METHOD("get_use_quaternion_rotation_equilibrium"), &Generic6DOFJoint::get_use_quaternion_rotation_equilibrium);
+
+	ClassDB::bind_method(D_METHOD("set_quaternion_rotation_equilibrium", "value"), &Generic6DOFJoint::set_quaternion_rotation_equilibrium);
+	ClassDB::bind_method(D_METHOD("get_quaternion_rotation_equilibrium"), &Generic6DOFJoint::get_quaternion_rotation_equilibrium);
+
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "angular_spring/use_global_rotation"), "set_use_global_rotation", "get_use_global_rotation");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "angular_spring/use_quaternion_rotation_equilibrium"), "set_use_quaternion_rotation_equilibrium", "get_use_quaternion_rotation_equilibrium");
+	ADD_PROPERTY(PropertyInfo(Variant::QUAT, "angular_spring/quaternion_rotation_equilibrium"), "set_quaternion_rotation_equilibrium", "get_quaternion_rotation_equilibrium");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "linear_limit_x/enabled"), "set_flag_x", "get_flag_x", FLAG_ENABLE_LINEAR_LIMIT);
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "linear_limit_x/upper_distance"), "set_param_x", "get_param_x", PARAM_LINEAR_UPPER_LIMIT);
 	ADD_PROPERTYI(PropertyInfo(Variant::REAL, "linear_limit_x/lower_distance"), "set_param_x", "get_param_x", PARAM_LINEAR_LOWER_LIMIT);
@@ -951,6 +972,47 @@ bool Generic6DOFJoint::get_flag_z(Flag p_flag) const {
 	return flags_z[p_flag];
 }
 
+void Generic6DOFJoint::set_use_global_rotation(bool p_enabled) {
+	Generic6DOFJoint::using_global_rotation = p_enabled;
+	if (get_joint().is_valid()) {
+		PhysicsServer::get_singleton()->generic_6dof_joint_set_use_global_rotation(get_joint(), p_enabled);
+	}
+	update_gizmo();
+}
+
+bool Generic6DOFJoint::get_use_global_rotation() const {
+	if (get_joint().is_valid()) {
+		return PhysicsServer::get_singleton()->generic_6dof_joint_get_use_global_rotation(get_joint());
+	}
+	return false;
+}
+
+void Generic6DOFJoint::set_use_quaternion_rotation_equilibrium(bool p_enabled) {
+	Generic6DOFJoint::using_quaternion_rotation_equilibrium = p_enabled;
+	if (get_joint().is_valid()) {
+		PhysicsServer::get_singleton()->generic_6dof_joint_set_use_quaternion_rotation_equilibrium(get_joint(), p_enabled);
+	}
+	update_gizmo();
+	property_list_changed_notify();
+}
+bool Generic6DOFJoint::get_use_quaternion_rotation_equilibrium() const {
+	if (get_joint().is_valid()) {
+		return PhysicsServer::get_singleton()->generic_6dof_joint_get_use_quaternion_rotation_equilibrium(get_joint());
+	}
+	return false;
+}
+
+void Generic6DOFJoint::set_quaternion_rotation_equilibrium(Quat p_value) {
+	Generic6DOFJoint::quaternion_rotation_equilibrium = p_value;
+	if (get_joint().is_valid()) {
+		PhysicsServer::get_singleton()->generic_6dof_joint_set_quaternion_rotation_equilibrium(get_joint(), p_value);
+	}
+	update_gizmo();
+}
+Quat Generic6DOFJoint::get_quaternion_rotation_equilibrium() const {
+	return PhysicsServer::get_singleton()->generic_6dof_joint_get_quaternion_rotation_equilibrium(get_joint());
+}
+
 RID Generic6DOFJoint::_configure_joint(PhysicsBody *body_a, PhysicsBody *body_b) {
 	Transform gt = get_global_transform();
 	//Vector3 cone_twistpos = gt.origin;
@@ -980,7 +1042,9 @@ RID Generic6DOFJoint::_configure_joint(PhysicsBody *body_a, PhysicsBody *body_b)
 		PhysicsServer::get_singleton()->generic_6dof_joint_set_flag(j, Vector3::AXIS_Y, PhysicsServer::G6DOFJointAxisFlag(i), flags_y[i]);
 		PhysicsServer::get_singleton()->generic_6dof_joint_set_flag(j, Vector3::AXIS_Z, PhysicsServer::G6DOFJointAxisFlag(i), flags_z[i]);
 	}
-
+	PhysicsServer::get_singleton()->generic_6dof_joint_set_use_global_rotation(j, Generic6DOFJoint::using_global_rotation);
+	PhysicsServer::get_singleton()->generic_6dof_joint_set_use_quaternion_rotation_equilibrium(j, Generic6DOFJoint::using_quaternion_rotation_equilibrium);
+	PhysicsServer::get_singleton()->generic_6dof_joint_set_quaternion_rotation_equilibrium(j, Generic6DOFJoint::quaternion_rotation_equilibrium);
 	return j;
 }
 
@@ -1074,4 +1138,8 @@ Generic6DOFJoint::Generic6DOFJoint() {
 	set_flag_z(FLAG_ENABLE_LINEAR_SPRING, false);
 	set_flag_z(FLAG_ENABLE_MOTOR, false);
 	set_flag_z(FLAG_ENABLE_LINEAR_MOTOR, false);
+
+	set_use_global_rotation(false);
+	set_use_quaternion_rotation_equilibrium(false);
+	set_quaternion_rotation_equilibrium(Quat());
 }

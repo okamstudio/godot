@@ -34,6 +34,8 @@
 #include "scene/3d/physics_body.h"
 #include "scene/3d/spatial.h"
 
+#include "core/math/quat.h"
+
 class Joint : public Spatial {
 	GDCLASS(Joint, Spatial);
 
@@ -307,6 +309,13 @@ protected:
 	virtual RID _configure_joint(PhysicsBody *body_a, PhysicsBody *body_b);
 	static void _bind_methods();
 
+	virtual void _validate_property(PropertyInfo &p_property) const;
+
+private:
+	bool using_global_rotation;
+	bool using_quaternion_rotation_equilibrium;
+	Quat quaternion_rotation_equilibrium;
+
 public:
 	void set_param_x(Param p_param, float p_value);
 	float get_param_x(Param p_param) const;
@@ -325,6 +334,15 @@ public:
 
 	void set_flag_z(Flag p_flag, bool p_enabled);
 	bool get_flag_z(Flag p_flag) const;
+
+	void set_use_global_rotation(bool p_enabled);
+	bool get_use_global_rotation() const;
+
+	void set_use_quaternion_rotation_equilibrium(bool p_enabled);
+	bool get_use_quaternion_rotation_equilibrium() const;
+
+	void set_quaternion_rotation_equilibrium(Quat p_value);
+	Quat get_quaternion_rotation_equilibrium() const;
 
 	Generic6DOFJoint();
 };

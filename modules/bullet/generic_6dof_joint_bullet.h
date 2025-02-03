@@ -40,7 +40,7 @@
 class RigidBodyBullet;
 
 class Generic6DOFJointBullet : public JointBullet {
-	class btGeneric6DofSpring2Constraint *sixDOFConstraint;
+	class btGeneric6DofSpringConstraintQuaternion *sixDOFConstraint;
 
 	// First is linear second is angular
 	Vector3 limits_lower[2];
@@ -68,6 +68,14 @@ public:
 
 	void set_flag(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisFlag p_flag, bool p_value);
 	bool get_flag(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisFlag p_flag) const;
+
+	void set_use_global_rotation(bool p_value);
+	bool get_use_global_rotation();
+
+	void set_use_quaternion_rotation_equilibrium(bool p_enabled);
+	bool get_use_quaternion_rotation_equilibrium();
+	void set_quaternion_rotation_equilibrium(Quat p_value);
+	Quat get_quaternion_rotation_equilibrium();
 };
 
 #endif // GENERIC_6DOF_JOINT_BULLET_H

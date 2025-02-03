@@ -34,6 +34,8 @@
 #include "core/object.h"
 #include "core/resource.h"
 
+#include "core/math/quat.h"
+
 class PhysicsDirectSpaceState;
 
 class PhysicsDirectBodyState : public Object {
@@ -711,6 +713,14 @@ public:
 
 	virtual void generic_6dof_joint_set_flag(RID p_joint, Vector3::Axis, G6DOFJointAxisFlag p_flag, bool p_enable) = 0;
 	virtual bool generic_6dof_joint_get_flag(RID p_joint, Vector3::Axis, G6DOFJointAxisFlag p_flag) = 0;
+
+	////PHOBOSS:////should not be pure virtual functions, so that other physics servers dont need to implement these
+	virtual void generic_6dof_joint_set_use_global_rotation(RID p_joint, bool p_enable) {}
+	virtual bool generic_6dof_joint_get_use_global_rotation(RID p_joint) { return false; }
+	virtual void generic_6dof_joint_set_use_quaternion_rotation_equilibrium(RID p_joint, bool p_enable) {}
+	virtual bool generic_6dof_joint_get_use_quaternion_rotation_equilibrium(RID p_joint) { return false; }
+	virtual void generic_6dof_joint_set_quaternion_rotation_equilibrium(RID p_joint, Quat p_value) {}
+	virtual Quat generic_6dof_joint_get_quaternion_rotation_equilibrium(RID p_joint) { return Quat(0.0, 0.0, 0.0, 1.0); }
 
 	/* QUERY API */
 
