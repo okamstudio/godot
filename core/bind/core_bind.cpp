@@ -1919,6 +1919,42 @@ Array _Geometry::offset_polyline_2d(const Vector<Vector2> &p_polygon, real_t p_d
 	return ret;
 }
 
+Array _Geometry::minkowski_sum_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path) {
+	Vector<Vector<Point2>> polys = Geometry::minkowski_sum_polygon_2d(p_polygon_pattern, p_polygon_path);
+
+	Array ret;
+	ret.resize(polys.size());
+
+	for (int i = 0; i < polys.size(); ++i) {
+		ret[i] = polys[i];
+	}
+	return ret;
+}
+
+Array _Geometry::minkowski_diff_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path) {
+	Vector<Vector<Point2>> polys = Geometry::minkowski_diff_polygon_2d(p_polygon_pattern, p_polygon_path);
+
+	Array ret;
+	ret.resize(polys.size());
+
+	for (int i = 0; i < polys.size(); ++i) {
+		ret[i] = polys[i];
+	}
+	return ret;
+}
+
+Array _Geometry::minkowski_sum_polyline_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polyline_path) {
+	Vector<Vector<Point2>> polys = Geometry::minkowski_sum_polyline_2d(p_polygon_pattern, p_polyline_path);
+
+	Array ret;
+	ret.resize(polys.size());
+
+	for (int i = 0; i < polys.size(); ++i) {
+		ret[i] = polys[i];
+	}
+	return ret;
+}
+
 Dictionary _Geometry::make_atlas(const Vector<Size2> &p_rects) {
 	Dictionary ret;
 
@@ -1992,6 +2028,10 @@ void _Geometry::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("offset_polygon_2d", "polygon", "delta", "join_type"), &_Geometry::offset_polygon_2d, DEFVAL(JOIN_SQUARE));
 	ClassDB::bind_method(D_METHOD("offset_polyline_2d", "polyline", "delta", "join_type", "end_type"), &_Geometry::offset_polyline_2d, DEFVAL(JOIN_SQUARE), DEFVAL(END_SQUARE));
+
+	ClassDB::bind_method(D_METHOD("minkowski_sum_polygon_2d", "polygon_pattern", "polygon_path"), &_Geometry::minkowski_sum_polygon_2d);
+	ClassDB::bind_method(D_METHOD("minkowski_diff_polygon_2d", "polygon_pattern", "polygon_path"), &_Geometry::minkowski_diff_polygon_2d);
+	ClassDB::bind_method(D_METHOD("minkowski_sum_polyline_2d", "polygon_pattern", "polyline_path"), &_Geometry::minkowski_sum_polyline_2d);
 
 	ClassDB::bind_method(D_METHOD("make_atlas", "sizes"), &_Geometry::make_atlas);
 

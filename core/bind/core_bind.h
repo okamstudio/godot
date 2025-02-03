@@ -527,6 +527,10 @@ public:
 	Array offset_polygon_2d(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE);
 	Array offset_polyline_2d(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE, PolyEndType p_end_type = END_SQUARE);
 
+	Array minkowski_sum_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path);
+	Array minkowski_diff_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path);
+	Array minkowski_sum_polyline_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polyline_path);
+
 	Dictionary make_atlas(const Vector<Size2> &p_rects);
 
 	_Geometry();

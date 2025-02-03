@@ -806,6 +806,18 @@ public:
 		return _polypath_offset(p_polygon, p_delta, p_join_type, p_end_type);
 	}
 
+	static Vector<Vector<Point2>> minkowski_sum_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path) {
+		return _polypath_minkowski(p_polygon_pattern, p_polygon_path, true, true);
+	}
+
+	static Vector<Vector<Point2>> minkowski_diff_polygon_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path) {
+		return _polypath_minkowski(p_polygon_pattern, p_polygon_path, false, true);
+	}
+
+	static Vector<Vector<Point2>> minkowski_sum_polyline_2d(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polyline_path) {
+		return _polypath_minkowski(p_polygon_pattern, p_polyline_path, true, false);
+	}
+
 	static Vector<int> triangulate_delaunay_2d(const Vector<Vector2> &p_points) {
 		Vector<Delaunay2D::Triangle> tr = Delaunay2D::triangulate(p_points);
 		Vector<int> triangles;
@@ -1025,6 +1037,7 @@ public:
 private:
 	static Vector<Vector<Point2>> _polypaths_do_operation(PolyBooleanOperation p_op, const Vector<Point2> &p_polypath_a, const Vector<Point2> &p_polypath_b, bool is_a_open = false);
 	static Vector<Vector<Point2>> _polypath_offset(const Vector<Point2> &p_polypath, real_t p_delta, PolyJoinType p_join_type, PolyEndType p_end_type);
+	static Vector<Vector<Point2>> _polypath_minkowski(const Vector<Point2> &p_polypath_a, const Vector<Point2> &p_polypath_b, bool p_is_sum, bool p_is_closed);
 };
 
 #endif // GEOMETRY_H
