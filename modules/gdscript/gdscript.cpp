@@ -734,6 +734,8 @@ void GDScript::_bind_methods() {
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "new", &GDScript::_new, MethodInfo("new"));
 
 	ClassDB::bind_method(D_METHOD("get_as_byte_code"), &GDScript::get_as_byte_code);
+	ClassDB::bind_method(D_METHOD("is_globals_disabled"), &GDScript::is_globals_disabled);
+	ClassDB::bind_method(D_METHOD("set_globals_disabled", "disabled"), &GDScript::set_globals_disabled);
 }
 
 Vector<uint8_t> GDScript::get_as_byte_code() const {
@@ -925,6 +927,7 @@ GDScript::GDScript() :
 	_base = nullptr;
 	_owner = nullptr;
 	tool = false;
+	globals_disabled = false;
 #ifdef TOOLS_ENABLED
 	source_changed_cache = false;
 	placeholder_fallback_enabled = false;

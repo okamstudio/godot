@@ -6,6 +6,61 @@
 	<description>
 		A script implemented in the GDScript programming language. The script extends the functionality of all objects that instance it.
 		[method new] creates a new instance of the script. [method Object.set_script] extends an existing object, if that object's class matches one of the script's base classes.
+		A GDScript object can also be used as standalone, isolated script to safely run code supplied by players (either as mods or part of the game mechanic) if globals are disabled for that particular script. Disabling globals means all classes, engine singletons, project autoload scripts, and even constants which are not defined in that script (such as [code]PI[/code]) will no longer be accessible, and a script with globals disabled attempting to include those will fail to compile and run. (This is set per script, not per instance.)
+		Since node classes (such as [Node]) can't be accessed if globals are disabled (and therefore inheritance such as [code]extends Node[/code] is not possible), those scripts can only be created and used from other scripts, not directly as nodes in the [SceneTree].
+		Assuming the following [code]res://user_script.gd[/code]:
+		[codeblock]
+		var my_var
+
+		func my_func(arg):
+		    print("Hello %s!" % arg)
+		[/codeblock]
+		A node in the [SceneTree] can safely run this script with globals disabled:
+		[codeblock]
+		var new_script = load("res://user_script.gd")
+		new_script.set_globals_disabled(true)
+		if new_script.reload():
+		    # Script recompiled successfully
+		    var new_script_instance = new_script.new()
+		    # Any method can be called externally,
+		    # and variables can be externally assigned
+		    new_script_instance.my_var = 42
+		    new_script_instance.my_func("world")  # prints "Hello world!"
+		else:
+		    # Pauses with an error if running from the editor,
+		    # fails silently and continues running in standalone build
+		    print("Failed to compile script")
+		[/codeblock]
+		The script doesn't need to be stored as a [code].gd[/code] file. It can be compiled from source code retrieved or generated during gameplay:
+		[codeblock]
+		var my_source_code = "func main():\n    print(\"Hello world!\")\n"
+		var new_script = GDScript.new()
+		new_script.source_code = my_source_code
+		new_script.set_globals_disabled(true)
+		if new_script.reload():
+		    new_script.new().main()
+		else:
+		    print("Failed to compile script")
+		[/codeblock]
+		[b]Note:[/b] although global names won't work in the code, a script with globals disabled [i]can access[/i] anything if given [i]explicit[/i] access through method arguments or variable assignments. As example, assuming the [code]res://test_script.gd[/code] script:
+		[codeblock]
+		var input
+
+		func do_something():
+		    if input.is_action_pressed("ui_accept"):
+		        print("Hello world!")
+		[/codeblock]
+		The [code]input[/code] local variable can be used to give the script access to the [Input] singleton:
+		[codeblock]
+		var new_script = load("res://test_script.gd")
+		new_script.set_globals_disabled(true)
+		if new_script.reload():
+		    var new_script_instance = new_script.new()
+		    new_script_instance.set("input", Input)
+		    new_script_instance.do_something()
+		[/codeblock]
+		Notice the use of [method Object.set] instead of [code]new_script_instance.input = Input[/code]. If the user script did not declare the [code]input[/code] variable, using [method Object.set] fails silently, and therefore declaring and using the variable becomes optional from the user point of view.
+		[b]Warning:[/b] since the scripts with globals disabled can access any properties and methods of objects which are explicitly given to them, critical care must be taken when exposing those objects. As example, if a node in the [SceneTree] is given, methods such as [method Node.get_node] or [method Node.get_tree] would give the script access to a large part or potentially the whole of the project. For cases like game mods (which usually need to expose running game objects and assets), an intermediate interface must be carefully designed to prevent abuse.
 	</description>
 	<tutorials>
 		<link>$DOCS_URL/tutorials/scripting/gdscript/index.html</link>
@@ -15,6 +70,12 @@
 			<return type="PoolByteArray" />
 			<description>
 				Returns byte code for the script source code.
+			</description>
+		</method>
+		<method name="is_globals_disabled">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if globals are disabled for this script.
 			</description>
 		</method>
 		<method name="new" qualifiers="vararg">
@@ -27,6 +88,13 @@
 				var instance = MyClass.new()
 				assert(instance.get_script() == MyClass)
 				[/codeblock]
+			</description>
+		</method>
+		<method name="set_globals_disabled">
+			<return type="void" />
+			<argument index="0" name="disabled" type="bool" />
+			<description>
+				Sets whether access to globals should be disabled for this script, including class names, engine singletons, project autoload scripts, and anything not defined in the script itself or given explicit access externally.
 			</description>
 		</method>
 	</methods>

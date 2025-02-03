@@ -56,6 +56,7 @@ class GDScript : public Script {
 	GDCLASS(GDScript, Script);
 	bool tool;
 	bool valid;
+	bool globals_disabled;
 
 	struct MemberInfo {
 		int index;
@@ -146,6 +147,9 @@ protected:
 	static void _bind_methods();
 
 public:
+	bool is_globals_disabled() { return globals_disabled; }
+	void set_globals_disabled(bool p_disabled) { globals_disabled = p_disabled; }
+
 	virtual bool is_valid() const { return valid; }
 
 	bool inherits_script(const Ref<Script> &p_script) const;
