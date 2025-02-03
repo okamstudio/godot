@@ -222,6 +222,7 @@ public:
 	void goto_line_centered(int p_line);
 	virtual void set_executing_line(int p_line);
 	virtual void clear_executing_line();
+	void lookup_symbol_under_cursor();
 
 	virtual void reload(bool p_soft);
 	virtual void get_breakpoints(List<int> *p_breakpoints);

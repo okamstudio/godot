@@ -1110,7 +1110,15 @@ void ScriptEditor::_menu_option(int p_option) {
 			} else {
 				toggle_scripts_panel();
 			}
-		}
+		} break;
+		case LOOKUP_SYMBOL: {
+			if (current) {
+				ScriptTextEditor *editor = Object::cast_to<ScriptTextEditor>(current);
+				if (editor) {
+					editor->lookup_symbol_under_cursor();
+				}
+			}
+		} break;
 	}
 
 	if (current) {
@@ -3379,6 +3387,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/reload_script_soft", TTR("Soft Reload Script"), KEY_MASK_CMD | KEY_MASK_ALT | KEY_R), FILE_TOOL_RELOAD_SOFT);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/copy_path", TTR("Copy Script Path")), FILE_COPY_PATH);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/show_in_file_system", TTR("Show in FileSystem")), SHOW_IN_FILE_SYSTEM);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/lookup_symbol", TTR("Lookup Symbol"), KEY_MASK_CMD | KEY_D), LOOKUP_SYMBOL);
 	file_menu->get_popup()->add_separator();
 
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/history_previous", TTR("History Previous"), KEY_MASK_ALT | KEY_LEFT), WINDOW_PREV);
