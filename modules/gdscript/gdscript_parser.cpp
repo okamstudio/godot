@@ -6266,7 +6266,12 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 	if (!check_types || for_completion) {
 		return true;
 	}
-	// Can't test if not all have type
+
+	return is_type_assignable_from(p_container, p_expression, p_allow_implicit_conversion);
+}
+
+bool GDScriptParser::is_type_assignable_from(const DataType &p_container, const DataType &p_expression, bool p_allow_implicit_conversion) {
+	// Can't test if any types are empty
 	if (!p_container.has_type || !p_expression.has_type) {
 		return true;
 	}
@@ -6305,106 +6310,110 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 		return true;
 	}
 
-	StringName expr_native;
-	Ref<Script> expr_script;
-	ClassNode *expr_class = nullptr;
+	return is_type_derived_from(p_expression, p_container);
+}
 
-	switch (p_expression.kind) {
+GDScriptParser::DataType GDScriptParser::get_base_data_type(const DataType &p_type) {
+	if (!p_type.has_type) {
+		return DataType();
+	}
+
+	switch (p_type.kind) {
+		case DataType::BUILTIN: {
+			// builtin types don't have inheritance
+		} break;
 		case DataType::NATIVE: {
-			if (p_container.kind != DataType::NATIVE) {
-				// Non-native type can't be a superclass of a native type
-				return false;
-			}
-			if (p_expression.is_meta_type) {
-				expr_native = GDScriptNativeClass::get_class_static();
+			DataType base_type = p_type;
+			if (ClassDB::class_exists(p_type.native_type)) {
+				base_type.native_type = ClassDB::get_parent_class(p_type.native_type);
 			} else {
-				expr_native = p_expression.native_type;
-			}
+				// some classes are prefixed with `_` internally
+				base_type.native_type = ClassDB::get_parent_class(StringName("_" + p_type.native_type));
+			};
+			base_type.has_type = base_type.native_type != StringName();
+			return base_type;
 		} break;
 		case DataType::SCRIPT:
 		case DataType::GDSCRIPT: {
-			if (p_container.kind == DataType::CLASS) {
-				// This cannot be resolved without cyclic dependencies, so just bail out
-				return false;
+			if (!p_type.script_type.is_valid()) {
+				break;
 			}
-			if (p_expression.is_meta_type) {
-				expr_native = p_expression.script_type->get_class_name();
-			} else {
-				expr_script = p_expression.script_type;
-				expr_native = expr_script->get_instance_base_type();
+
+			DataType base_type = p_type;
+			base_type.script_type = p_type.script_type->get_base_script();
+
+			// no base script? then it must inherit a native type
+			if (!base_type.script_type.is_valid()) {
+				base_type.kind = DataType::NATIVE;
+				base_type.native_type = p_type.script_type->get_instance_base_type();
+				base_type.has_type = base_type.native_type != StringName();
 			}
+
+			return base_type;
 		} break;
 		case DataType::CLASS: {
-			if (p_expression.is_meta_type) {
-				expr_native = GDScript::get_class_static();
-			} else {
-				expr_class = p_expression.class_type;
-				ClassNode *base = expr_class;
-				while (base->base_type.kind == DataType::CLASS) {
-					base = base->base_type.class_type;
-				}
-				expr_native = base->base_type.native_type;
-				expr_script = base->base_type.script_type;
-			}
+			return p_type.class_type->base_type;
 		} break;
-		case DataType::BUILTIN: // Already handled above
-		case DataType::UNRESOLVED: // Not allowed, see above
-			break;
+		case DataType::UNRESOLVED: {
+			// unresolved types can't be queried
+		} break;
 	}
 
-	// Some classes are prefixed with `_` internally
-	if (!ClassDB::class_exists(expr_native)) {
-		expr_native = "_" + expr_native;
+	return DataType();
+}
+
+GDScriptParser::DataType GDScriptParser::get_common_type(const DataType &p_type, const DataType &p_other_type) {
+	if (!p_type.has_type || !p_other_type.has_type) {
+		return DataType();
 	}
 
-	switch (p_container.kind) {
-		case DataType::NATIVE: {
-			if (p_container.is_meta_type) {
-				return ClassDB::is_parent_class(expr_native, GDScriptNativeClass::get_class_static());
-			} else {
-				StringName container_native = ClassDB::class_exists(p_container.native_type) ? p_container.native_type : StringName("_" + p_container.native_type);
-				return ClassDB::is_parent_class(expr_native, container_native);
-			}
-		} break;
-		case DataType::SCRIPT:
-		case DataType::GDSCRIPT: {
-			if (p_container.is_meta_type) {
-				return ClassDB::is_parent_class(expr_native, GDScript::get_class_static());
-			}
-			if (expr_class == head && p_container.script_type->get_path() == self_path) {
-				// Special case: container is self script and expression is self
-				return true;
-			}
-			while (expr_script.is_valid()) {
-				if (expr_script == p_container.script_type) {
-					return true;
-				}
-				expr_script = expr_script->get_base_script();
-			}
-			return false;
-		} break;
-		case DataType::CLASS: {
-			if (p_container.is_meta_type) {
-				return ClassDB::is_parent_class(expr_native, GDScript::get_class_static());
-			}
-			if (p_container.class_type == head && expr_script.is_valid() && expr_script->get_path() == self_path) {
-				// Special case: container is self and expression is self script
-				return true;
-			}
-			while (expr_class) {
-				if (expr_class == p_container.class_type) {
-					return true;
-				}
-				expr_class = expr_class->base_type.class_type;
-			}
-			return false;
-		} break;
-		case DataType::BUILTIN: // Already handled above
-		case DataType::UNRESOLVED: // Not allowed, see above
-			break;
+	// NOTE: Climb the left type in order to return `p_type` instead of `p_other_type` when `(p_type == p_other_type)`.
+	DataType common_type = p_type;
+	while (common_type.has_type) {
+		if (is_type_derived_from(p_other_type, common_type)) {
+			return common_type;
+		}
+		common_type = get_base_data_type(common_type);
+	}
+
+	return DataType();
+}
+
+bool GDScriptParser::has_common_type(const DataType &p_type, const DataType &p_other_type) {
+	return get_common_type(p_type, p_other_type).has_type;
+}
+
+bool GDScriptParser::is_type_derived_from(const DataType &p_type, const DataType &p_other_type) {
+	if (!p_type.has_type || !p_other_type.has_type) {
+		return false; // empty types aren't inheritable
+	}
+
+	// NOTE: currently this function can't resolve cyclic dependencies when
+	// `p_type.kind == GDSCRIPT` and `p_other_type.kind == CLASS`
+	// due to the unhandled DataType comparison.
+
+	GDScriptParser::DataType specific_type = p_type;
+	while (specific_type.has_type) {
+		if (specific_type == p_other_type) {
+			return true;
+		}
+		specific_type = get_base_data_type(specific_type); // climb inheritance tree and compare again
 	}
 
 	return false;
+}
+
+// Checks that p_type is more specific (a subclass) of p_other_type.
+// A more specific type allows autocomplete to show the user the most relevant information.
+bool GDScriptParser::is_type_more_specific_than(const DataType &p_type, const DataType &p_other_type) {
+	if (p_type.has_type && !p_other_type.has_type) {
+		return true; // any valid type is always more specific than an empty type
+	}
+	if (p_type == p_other_type) {
+		return false; // the same type can't be more specific than itself!
+	}
+
+	return GDScriptParser::is_type_derived_from(p_type, p_other_type);
 }
 
 GDScriptParser::Node *GDScriptParser::_get_default_value_for_type(const DataType &p_type, int p_line) {
@@ -6512,7 +6521,19 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 						valid = Variant::can_convert(source_type.builtin_type, cn->cast_type.builtin_type);
 					}
 					if (cn->cast_type.kind != DataType::BUILTIN && source_type.kind != DataType::BUILTIN) {
-						valid = _is_type_compatible(cn->cast_type, source_type) || _is_type_compatible(source_type, cn->cast_type);
+						if (cn->cast_type.kind == DataType::NATIVE && !ClassDB::class_exists(cn->cast_type.native_type)) {
+							_set_error("Unable to cast to internal native class type '" + String(cn->cast_type.native_type) + "'.", cn->line);
+							return DataType();
+						}
+
+						if (!_is_type_compatible(cn->cast_type, source_type) && !_is_type_compatible(source_type, cn->cast_type)) {
+#ifdef DEBUG_ENABLED
+							_add_warning(GDScriptWarning::ALWAYS_NULL_AS, cn->line, source_type.to_string(), cn->cast_type.to_string());
+#endif // DEBUG_ENABLED
+						}
+
+						// might not be null at runtime, permit the cast if there is a common type currently visible
+						valid = has_common_type(source_type, cn->cast_type);
 					}
 
 					if (!valid) {
@@ -6572,14 +6593,12 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 							_set_error("Invalid \"is\" test: the right operand isn't a type (neither a native type nor a script).", op->line);
 							return DataType();
 						}
+
 						type_type.is_meta_type = false; // Test the actual type
 						if (!_is_type_compatible(type_type, value_type) && !_is_type_compatible(value_type, type_type)) {
-							if (op->op == OperatorNode::OP_IS) {
-								_set_error("A value of type \"" + value_type.to_string() + "\" will never be an instance of \"" + type_type.to_string() + "\".", op->line);
-							} else {
-								_set_error("A value of type \"" + value_type.to_string() + "\" will never be of type \"" + type_type.to_string() + "\".", op->line);
-							}
-							return DataType();
+#ifdef DEBUG_ENABLED
+							_add_warning(GDScriptWarning::ALWAYS_FALSE_IS, op->line, value_type.to_string(), type_type.to_string());
+#endif // DEBUG_ENABLED
 						}
 					}
 
@@ -6674,11 +6693,10 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 					_reduce_node_type(op->arguments[0]);
 
 					// If types are equal, then the expression is of the same type
-					// If they are compatible, return the broader type
-					if (true_type == false_type || _is_type_compatible(true_type, false_type)) {
-						node_type = true_type;
-					} else if (_is_type_compatible(false_type, true_type)) {
-						node_type = false_type;
+					// If they are compatible, return the common type
+					DataType common_type = get_common_type(true_type, false_type);
+					if (common_type.has_type) {
+						node_type = common_type;
 					} else {
 #ifdef DEBUG_ENABLED
 						_add_warning(GDScriptWarning::INCOMPATIBLE_TERNARY, op->line);

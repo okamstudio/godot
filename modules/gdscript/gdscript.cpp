@@ -2057,6 +2057,11 @@ String GDScriptWarning::get_message() const {
 			CHECK_SYMBOLS(2);
 			return vformat("The type of the default value (%s) doesn't match the type of the export hint (%s). The type won't be coerced.", symbols[0], symbols[1]);
 		}
+		case ALWAYS_FALSE_IS:
+		case ALWAYS_NULL_AS: {
+			CHECK_SYMBOLS(1);
+			return vformat("A value of type '%s' will never be of type '%s'.", symbols[0], symbols[1]);
+		}
 		case WARNING_MAX:
 			break; // Can't happen, but silences warning
 	}
@@ -2101,6 +2106,8 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 		"DEPRECATED_KEYWORD",
 		"STANDALONE_TERNARY",
 		"EXPORT_HINT_TYPE_MISTMATCH",
+		"ALWAYS_FALSE_IS",
+		"ALWAYS_NULL_AS",
 		nullptr
 	};
 

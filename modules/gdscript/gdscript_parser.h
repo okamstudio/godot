@@ -67,6 +67,10 @@ public:
 
 		String to_string() const;
 
+		_FORCE_INLINE_ bool operator!=(const DataType &other) const {
+			return !operator==(other);
+		}
+
 		bool operator==(const DataType &other) const {
 			if (!has_type || !other.has_type) {
 				return true; // Can be considered equal for parsing purpose
@@ -682,6 +686,13 @@ public:
 	int get_completion_identifier_is_function();
 
 	const List<String> &get_dependencies() const { return dependencies; }
+
+	static bool is_type_assignable_from(const DataType &p_container, const DataType &p_expression, bool p_allow_implicit_conversion = false);
+	static DataType get_base_data_type(const DataType &p_type);
+	static DataType get_common_type(const DataType &p_type, const DataType &p_other_type);
+	static bool has_common_type(const DataType &p_type, const DataType &p_other_type);
+	static bool is_type_derived_from(const DataType &p_type, const DataType &p_other_type);
+	static bool is_type_more_specific_than(const DataType &p_type, const DataType &p_other_type);
 
 	void clear();
 	GDScriptParser();

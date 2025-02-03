@@ -330,6 +330,12 @@
 		<member name="debug/gdscript/completion/autocomplete_setters_and_getters" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], displays getters and setters in autocompletion results in the script editor. This setting is meant to be used when porting old projects (Godot 2), as using member variables is the preferred style from Godot 3 onwards.
 		</member>
+		<member name="debug/gdscript/warnings/always_false_is" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables warnings when an [code]is[/code] operator would always return [code]false[/code].
+		</member>
+		<member name="debug/gdscript/warnings/always_null_as" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], enables warnings when an [code]as[/code] operator would always return [code]null[/code].
+		</member>
 		<member name="debug/gdscript/warnings/constant_used_as_function" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], enables warnings when a constant is used as a function.
 		</member>

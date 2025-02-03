@@ -1238,7 +1238,7 @@ static bool _guess_identifier_type(GDScriptCompletionContext &p_context, const S
 		c.line = last_assign_line;
 		r_type.assigned_expression = last_assigned_expression;
 		if (_guess_expression_type(c, last_assigned_expression, r_type)) {
-			if (var_type.has_type) {
+			if (GDScriptParser::is_type_more_specific_than(var_type, r_type.type)) {
 				r_type.type = var_type;
 			}
 			return true;
@@ -1415,26 +1415,32 @@ static bool _guess_identifier_type_from_base(GDScriptCompletionContext &p_contex
 				if (!_static) {
 					for (int i = 0; i < base_type.class_type->variables.size(); i++) {
 						GDScriptParser::ClassNode::Member m = base_type.class_type->variables[i];
-						if (m.identifier == p_identifier) {
-							if (m.expression) {
-								if (p_context.line == m.expression->line) {
-									// Variable used in the same expression
-									return false;
-								}
-								if (_guess_expression_type(p_context, m.expression, r_type)) {
-									return true;
-								}
-								if (m.expression->get_datatype().has_type) {
-									r_type.type = m.expression->get_datatype();
-									return true;
-								}
-							}
-							if (m.data_type.has_type) {
-								r_type.type = m.data_type;
-								return true;
-							}
-							return false;
+						if (m.identifier != p_identifier) {
+							continue; // not what we're looking for...
 						}
+
+						bool found = false;
+
+						if (m.expression) {
+							// check that the variable is not used in the same expression before guessing
+							if (p_context.line != m.expression->line) {
+								found = _guess_expression_type(p_context, m.expression, r_type);
+							}
+							// copy the expression type as parsed instead
+							if (!found && m.expression->get_datatype().has_type) {
+								r_type.type = m.expression->get_datatype();
+								found = true;
+							}
+						}
+
+						// if the variable as typed is more specific than the expression type, use it instead
+						if (!found || GDScriptParser::is_type_more_specific_than(m.data_type, r_type.type)) {
+							r_type.type = m.data_type;
+							found = true;
+						}
+
+						DEV_CHECK(!found || r_type.type.has_type);
+						return found;
 					}
 				}
 				base_type = base_type.class_type->base_type;

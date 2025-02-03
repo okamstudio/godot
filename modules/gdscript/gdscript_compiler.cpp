@@ -499,6 +499,11 @@ int GDScriptCompiler::_parse_expression(CodeGen &codegen, const GDScriptParser::
 					codegen.opcodes.push_back(cast_type.builtin_type);
 				} break;
 				case GDScriptDataType::NATIVE: {
+					if (!ClassDB::class_exists(cast_type.native_type)) {
+						_set_error("Unable to cast to internal native class type '" + String(cast_type.native_type) + "'.", cn);
+						return -1;
+					}
+
 					int class_idx;
 					if (GDScriptLanguage::get_singleton()->get_global_map().has(cast_type.native_type)) {
 						class_idx = GDScriptLanguage::get_singleton()->get_global_map()[cast_type.native_type];

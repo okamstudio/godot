@@ -148,7 +148,7 @@ protected:
 public:
 	virtual bool is_valid() const { return valid; }
 
-	bool inherits_script(const Ref<Script> &p_script) const;
+	virtual bool inherits_script(const Ref<Script> &p_script) const;
 
 	const Map<StringName, Ref<GDScript>> &get_subclasses() const { return subclasses; }
 	const Map<StringName, Variant> &get_constants() const { return constants; }
@@ -305,6 +305,8 @@ struct GDScriptWarning {
 		DEPRECATED_KEYWORD, // The keyword is deprecated and should be replaced
 		STANDALONE_TERNARY, // Return value of ternary expression is discarded
 		EXPORT_HINT_TYPE_MISTMATCH, // The type of the variable's default value doesn't match its export hint
+		ALWAYS_FALSE_IS, // The is operator will never return true here as the checked type is not a valid base
+		ALWAYS_NULL_AS, // The as operator will never return a value here as the checked type is not a valid base
 		WARNING_MAX,
 	} code;
 	Vector<String> symbols;
