@@ -1194,6 +1194,7 @@ public:
 		bool one_shot;
 		int amount;
 		float lifetime;
+		bool lifetime_infinite;
 		float pre_process_time;
 		float explosiveness;
 		float randomness;
@@ -1240,6 +1241,7 @@ public:
 				one_shot(false),
 				amount(0),
 				lifetime(1.0),
+				lifetime_infinite(false),
 				pre_process_time(0.0),
 				explosiveness(0.0),
 				randomness(0.0),
@@ -1285,6 +1287,7 @@ public:
 	virtual bool particles_get_emitting(RID p_particles);
 	virtual void particles_set_amount(RID p_particles, int p_amount);
 	virtual void particles_set_lifetime(RID p_particles, float p_lifetime);
+	virtual void particles_set_lifetime_infinite(RID p_particles, bool p_lifetime_infinite);
 	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot);
 	virtual void particles_set_pre_process_time(RID p_particles, float p_time);
 	virtual void particles_set_explosiveness_ratio(RID p_particles, float p_ratio);

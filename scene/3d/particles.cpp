@@ -81,6 +81,11 @@ void Particles::set_lifetime(float p_lifetime) {
 	lifetime = p_lifetime;
 	VS::get_singleton()->particles_set_lifetime(particles, lifetime);
 }
+void Particles::set_lifetime_infinite(bool p_lifetime_infinite) {
+	lifetime_infinite = p_lifetime_infinite;
+	VS::get_singleton()->particles_set_lifetime_infinite(particles, p_lifetime_infinite);
+	_change_notify();
+}
 
 void Particles::set_one_shot(bool p_one_shot) {
 	one_shot = p_one_shot;
@@ -144,6 +149,9 @@ int Particles::get_amount() const {
 }
 float Particles::get_lifetime() const {
 	return lifetime;
+}
+bool Particles::is_lifetime_infinite() const {
+	return lifetime_infinite;
 }
 bool Particles::get_one_shot() const {
 	return one_shot;
@@ -317,6 +325,12 @@ AABB Particles::capture_aabb() const {
 }
 
 void Particles::_validate_property(PropertyInfo &property) const {
+	if (property.name == "lifetime" && lifetime_infinite) {
+		// The lifetime property is ignored when lifetime is infinite, so hide it.
+		property.usage = 0;
+		return;
+	}
+
 	if (property.name.begins_with("draw_pass_")) {
 		int index = property.name.get_slicec('_', 2).to_int() - 1;
 		if (index >= draw_passes.size()) {
@@ -370,6 +384,7 @@ void Particles::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_emitting", "emitting"), &Particles::set_emitting);
 	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &Particles::set_amount);
 	ClassDB::bind_method(D_METHOD("set_lifetime", "secs"), &Particles::set_lifetime);
+	ClassDB::bind_method(D_METHOD("set_lifetime_infinite", "infinite"), &Particles::set_lifetime_infinite);
 	ClassDB::bind_method(D_METHOD("set_one_shot", "enable"), &Particles::set_one_shot);
 	ClassDB::bind_method(D_METHOD("set_pre_process_time", "secs"), &Particles::set_pre_process_time);
 	ClassDB::bind_method(D_METHOD("set_explosiveness_ratio", "ratio"), &Particles::set_explosiveness_ratio);
@@ -384,6 +399,7 @@ void Particles::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_emitting"), &Particles::is_emitting);
 	ClassDB::bind_method(D_METHOD("get_amount"), &Particles::get_amount);
 	ClassDB::bind_method(D_METHOD("get_lifetime"), &Particles::get_lifetime);
+	ClassDB::bind_method(D_METHOD("is_lifetime_infinite"), &Particles::is_lifetime_infinite);
 	ClassDB::bind_method(D_METHOD("get_one_shot"), &Particles::get_one_shot);
 	ClassDB::bind_method(D_METHOD("get_pre_process_time"), &Particles::get_pre_process_time);
 	ClassDB::bind_method(D_METHOD("get_explosiveness_ratio"), &Particles::get_explosiveness_ratio);
@@ -414,6 +430,7 @@ void Particles::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "amount", PROPERTY_HINT_EXP_RANGE, "1,1000000,1"), "set_amount", "get_amount");
 	ADD_GROUP("Time", "");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lifetime", PROPERTY_HINT_EXP_RANGE, "0.01,600.0,0.01,or_greater"), "set_lifetime", "get_lifetime");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "lifetime_infinite"), "set_lifetime_infinite", "is_lifetime_infinite");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "one_shot"), "set_one_shot", "get_one_shot");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "preprocess", PROPERTY_HINT_EXP_RANGE, "0.00,600.0,0.01"), "set_pre_process_time", "get_pre_process_time");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "speed_scale", PROPERTY_HINT_RANGE, "0,64,0.01"), "set_speed_scale", "get_speed_scale");
@@ -448,6 +465,7 @@ Particles::Particles() {
 	set_one_shot(false);
 	set_amount(8);
 	set_lifetime(1);
+	set_lifetime_infinite(false);
 	set_fixed_fps(0);
 	set_fractional_delta(true);
 	set_pre_process_time(0);

@@ -426,6 +426,7 @@ public:
 	BIND1R(bool, particles_get_emitting, RID)
 	BIND2(particles_set_amount, RID, int)
 	BIND2(particles_set_lifetime, RID, float)
+	BIND2(particles_set_lifetime_infinite, RID, bool)
 	BIND2(particles_set_one_shot, RID, bool)
 	BIND2(particles_set_pre_process_time, RID, float)
 	BIND2(particles_set_explosiveness_ratio, RID, float)

@@ -1147,6 +1147,7 @@ public:
 
 	virtual void particles_set_amount(RID p_particles, int p_amount);
 	virtual void particles_set_lifetime(RID p_particles, float p_lifetime);
+	virtual void particles_set_lifetime_infinite(RID p_particles, bool p_lifetime_infinite);
 	virtual void particles_set_one_shot(RID p_particles, bool p_one_shot);
 	virtual void particles_set_pre_process_time(RID p_particles, float p_time);
 	virtual void particles_set_explosiveness_ratio(RID p_particles, float p_ratio);

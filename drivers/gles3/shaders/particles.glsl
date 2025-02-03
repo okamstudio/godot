@@ -38,6 +38,7 @@ uniform Attractor attractors[MAX_ATTRACTORS];
 uniform bool clear;
 uniform uint cycle;
 uniform float lifetime;
+uniform bool lifetime_infinite;
 uniform mat4 emission_transform;
 uniform uint random_seed;
 
@@ -103,7 +104,9 @@ void main() {
 		if (restart_phase >= prev_system_phase && restart_phase < system_phase) {
 			restart = true;
 #ifdef USE_FRACTIONAL_DELTA //ubershader-runtime
-			local_delta = (system_phase - restart_phase) * lifetime;
+			if (!lifetime_infinite) {
+				local_delta = (system_phase - restart_phase) * lifetime;
+			}
 #endif //ubershader-runtime
 		}
 
@@ -111,12 +114,16 @@ void main() {
 		if (restart_phase >= prev_system_phase) {
 			restart = true;
 #ifdef USE_FRACTIONAL_DELTA //ubershader-runtime
-			local_delta = (1.0 - restart_phase + system_phase) * lifetime;
+			if (!lifetime_infinite) {
+				local_delta = (1.0 - restart_phase + system_phase) * lifetime;
+			}
 #endif //ubershader-runtime
 		} else if (restart_phase < system_phase) {
 			restart = true;
 #ifdef USE_FRACTIONAL_DELTA //ubershader-runtime
-			local_delta = (system_phase - restart_phase) * lifetime;
+			if (!lifetime_infinite) {
+				local_delta = (system_phase - restart_phase) * lifetime;
+			}
 #endif //ubershader-runtime
 		}
 	}
@@ -201,9 +208,7 @@ VERTEX_SHADER_CODE
 
 #if !defined(DISABLE_VELOCITY)
 
-		if (true) {
-			xform[3].xyz += out_velocity_active.xyz * local_delta;
-		}
+		xform[3].xyz += out_velocity_active.xyz * local_delta;
 #endif
 	} else {
 		xform = mat4(0.0);

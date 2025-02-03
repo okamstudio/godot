@@ -346,6 +346,7 @@ public:
 	FUNC1R(bool, particles_get_emitting, RID)
 	FUNC2(particles_set_amount, RID, int)
 	FUNC2(particles_set_lifetime, RID, float)
+	FUNC2(particles_set_lifetime_infinite, RID, bool)
 	FUNC2(particles_set_one_shot, RID, bool)
 	FUNC2(particles_set_pre_process_time, RID, float)
 	FUNC2(particles_set_explosiveness_ratio, RID, float)

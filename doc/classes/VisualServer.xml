@@ -2455,6 +2455,13 @@
 				Sets the lifetime of each particle in the system. Equivalent to [member Particles.lifetime].
 			</description>
 		</method>
+		<method name="particles_set_lifetime_infinite">
+			<return type="void" />
+			<argument index="0" name="particles" type="RID" />
+			<argument index="1" name="lifetime" type="bool" />
+			<description>
+			</description>
+		</method>
 		<method name="particles_set_one_shot">
 			<return type="void" />
 			<argument index="0" name="particles" type="RID" />

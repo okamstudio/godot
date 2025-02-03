@@ -6317,6 +6317,12 @@ void RasterizerStorageGLES3::particles_set_lifetime(RID p_particles, float p_lif
 	particles->lifetime = p_lifetime;
 }
 
+void RasterizerStorageGLES3::particles_set_lifetime_infinite(RID p_particles, bool p_lifetime_infinite) {
+	Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND(!particles);
+	particles->lifetime_infinite = p_lifetime_infinite;
+}
+
 void RasterizerStorageGLES3::particles_set_one_shot(RID p_particles, bool p_one_shot) {
 	Particles *particles = particles_owner.getornull(p_particles);
 	ERR_FAIL_COND(!particles);
@@ -6544,12 +6550,17 @@ RID RasterizerStorageGLES3::particles_get_draw_pass_mesh(RID p_particles, int p_
 }
 
 void RasterizerStorageGLES3::_particles_process(Particles *p_particles, float p_delta) {
-	float new_phase = Math::fmod((float)p_particles->phase + (p_delta / p_particles->lifetime) * p_particles->speed_scale, (float)1.0);
+	float new_phase;
+	if (p_particles->lifetime_infinite) {
+		new_phase = 0.5;
+	} else {
+		new_phase = Math::fmod((float)p_particles->phase + (p_delta / p_particles->lifetime) * p_particles->speed_scale, (float)1.0);
+	}
 
 	if (p_particles->clear) {
 		p_particles->cycle_number = 0;
 		p_particles->random_seed = Math::rand();
-	} else if (new_phase < p_particles->phase) {
+	} else if (!p_particles->lifetime_infinite && new_phase < p_particles->phase) {
 		if (p_particles->one_shot) {
 			p_particles->emitting = false;
 			shaders.particles.set_uniform(ParticlesShaderGLES3::EMITTING, false);
@@ -6561,7 +6572,11 @@ void RasterizerStorageGLES3::_particles_process(Particles *p_particles, float p_
 	shaders.particles.set_uniform(ParticlesShaderGLES3::PREV_SYSTEM_PHASE, p_particles->phase);
 	p_particles->phase = new_phase;
 
-	shaders.particles.set_uniform(ParticlesShaderGLES3::DELTA, p_delta * p_particles->speed_scale);
+	if (p_particles->lifetime_infinite) {
+		shaders.particles.set_uniform(ParticlesShaderGLES3::DELTA, 0.0);
+	} else {
+		shaders.particles.set_uniform(ParticlesShaderGLES3::DELTA, p_delta * p_particles->speed_scale);
+	}
 	shaders.particles.set_uniform(ParticlesShaderGLES3::CLEAR, p_particles->clear);
 	glUniform1ui(shaders.particles.get_uniform_location(ParticlesShaderGLES3::RANDOM_SEED), p_particles->random_seed);
 
@@ -6650,7 +6665,7 @@ void RasterizerStorageGLES3::update_particles() {
 			particles->inactive_time = 0;
 		} else {
 			particles->inactive_time += particles->speed_scale * frame.delta;
-			if (particles->inactive_time > particles->lifetime * 1.2) {
+			if (!particles->lifetime_infinite && particles->inactive_time > particles->lifetime * 1.2) {
 				particles->inactive = true;
 				particle_update_list.remove(particle_update_list.first());
 				continue;
@@ -6719,6 +6734,7 @@ void RasterizerStorageGLES3::update_particles() {
 		shaders.particles.set_uniform(ParticlesShaderGLES3::TIME, frame.time[0]);
 		shaders.particles.set_uniform(ParticlesShaderGLES3::EXPLOSIVENESS, particles->explosiveness);
 		shaders.particles.set_uniform(ParticlesShaderGLES3::LIFETIME, particles->lifetime);
+		shaders.particles.set_uniform(ParticlesShaderGLES3::LIFETIME_INFINITE, particles->lifetime_infinite);
 		shaders.particles.set_uniform(ParticlesShaderGLES3::ATTRACTOR_COUNT, 0);
 		shaders.particles.set_uniform(ParticlesShaderGLES3::EMITTING, particles->emitting);
 		shaders.particles.set_uniform(ParticlesShaderGLES3::RANDOMNESS, particles->randomness);

@@ -59,6 +59,7 @@ private:
 	bool one_shot = false;
 	int amount;
 	float lifetime;
+	bool lifetime_infinite;
 	float pre_process_time;
 	float explosiveness_ratio;
 	float randomness_ratio;
@@ -90,6 +91,7 @@ public:
 	void set_emitting(bool p_emitting);
 	void set_amount(int p_amount);
 	void set_lifetime(float p_lifetime);
+	void set_lifetime_infinite(bool p_lifetime_infinite);
 	void set_one_shot(bool p_one_shot);
 	void set_pre_process_time(float p_time);
 	void set_explosiveness_ratio(float p_ratio);
@@ -102,6 +104,7 @@ public:
 	bool is_emitting() const;
 	int get_amount() const;
 	float get_lifetime() const;
+	bool is_lifetime_infinite() const;
 	bool get_one_shot() const;
 	float get_pre_process_time() const;
 	float get_explosiveness_ratio() const;

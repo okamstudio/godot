@@ -79,7 +79,11 @@
 			If [code]true[/code], results in fractional delta calculation which has a smoother particles display effect.
 		</member>
 		<member name="lifetime" type="float" setter="set_lifetime" getter="get_lifetime" default="1.0">
-			The amount of time each particle will exist (in seconds).
+			The amount of time each particle will exist (in seconds). See also [member lifetime_infinite].
+		</member>
+		<member name="lifetime_infinite" type="bool" setter="set_lifetime_infinite" getter="is_lifetime_infinite" default="false">
+			If [code]true[/code], particles will be emitted once and will never despawn. Particles can still be manually restarted, either by changing [member amount] or calling [method restart].
+			[member lifetime_infinite] is mainly useful for custom particle shaders (such as grass rendering). [member lifetime] is ignored when [member lifetime_infinite] is [code]true[/code].
 		</member>
 		<member name="local_coords" type="bool" setter="set_use_local_coordinates" getter="get_use_local_coordinates" default="true">
 			If [code]true[/code], particles use the parent node's coordinate space. If [code]false[/code], they use global coordinates.
