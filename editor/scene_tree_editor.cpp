@@ -449,7 +449,26 @@ void SceneTreeEditor::_add_nodes(Node *p_node, TreeItem *p_parent, bool p_disabl
 	if (valid_types.size()) {
 		bool valid = false;
 		for (int i = 0; i < valid_types.size(); i++) {
-			if (p_node->is_class(valid_types[i])) {
+			String type = valid_types[i];
+			if (ScriptServer::is_global_class(type)) {
+				ScriptInstance *script_inst = p_node->get_script_instance();
+				if (script_inst != nullptr) {
+					Ref<Script> script = script_inst->get_script();
+					String path = ScriptServer::get_global_class_path(type);
+
+					while (script != nullptr) {
+						if (script->get_path() == path) {
+							valid = true;
+							break;
+						}
+						script = script->get_base_script();
+					}
+					if (valid) {
+						break;
+					}
+				}
+
+			} else if (p_node->is_class(type)) {
 				valid = true;
 				break;
 			}

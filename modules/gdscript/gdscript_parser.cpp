@@ -4679,6 +4679,38 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 									_ADVANCE_AND_CONSUME_NEWLINES;
 
 								} break;
+								case Variant::NODE_PATH: {
+									if (tokenizer->get_token() != GDScriptTokenizer::TK_IDENTIFIER) {
+										current_export = PropertyInfo();
+										_set_error("Hint expects a Node Type. (e.g. Control or Sprite)");
+										return;
+									}
+
+									String identifier = tokenizer->get_token_identifier();
+
+									if (!ClassDB::class_exists(identifier) && !ScriptServer::is_global_class(identifier)) {
+										current_export = PropertyInfo();
+										_set_error(vformat("Node Type \"%s\" doesn't exist", identifier));
+										return;
+									}
+
+									String class_type = identifier;
+									if (ScriptServer::is_global_class(identifier)) {
+										class_type = ScriptServer::get_global_class_native_base(identifier);
+									}
+
+									if (!ClassDB::is_parent_class(class_type, "Node")) {
+										current_export = PropertyInfo();
+										_set_error(vformat("\"%s\" does not inherit from Node", identifier));
+										return;
+									}
+
+									current_export.hint_string = identifier;
+									current_export.hint = PROPERTY_HINT_NODE_PATH_VALID_TYPES;
+
+									_ADVANCE_AND_CONSUME_NEWLINES;
+
+								} break;
 								default: {
 									current_export = PropertyInfo();
 									_set_error("Type \"" + Variant::get_type_name(type) + "\" can't take hints.");
