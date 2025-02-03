@@ -62,24 +62,6 @@ public:
 		ClassDB::bind_method("_dont_undo_redo", &AnimationTrackKeyEdit::_dont_undo_redo);
 	}
 
-	void _fix_node_path(Variant &value) {
-		NodePath np = value;
-
-		if (np == NodePath()) {
-			return;
-		}
-
-		Node *root = EditorNode::get_singleton()->get_tree()->get_root();
-
-		Node *np_node = root->get_node(np);
-		ERR_FAIL_COND(!np_node);
-
-		Node *edited_node = root->get_node(base);
-		ERR_FAIL_COND(!edited_node);
-
-		value = edited_node->get_path_to(np_node);
-	}
-
 	void _update_obj(const Ref<Animation> &p_anim) {
 		if (setting || animation != p_anim) {
 			return;
@@ -183,10 +165,6 @@ public:
 				if (name == "value") {
 					Variant value = p_value;
 
-					if (value.get_type() == Variant::NODE_PATH) {
-						_fix_node_path(value);
-					}
-
 					setting = true;
 					undo_redo->create_action(TTR("Anim Change Keyframe Value"), UndoRedo::MERGE_ENDS);
 					Variant prev = animation->track_get_key_value(track, key);
@@ -237,9 +215,6 @@ public:
 						}
 					} else if (what == "value") {
 						Variant value = p_value;
-						if (value.get_type() == Variant::NODE_PATH) {
-							_fix_node_path(value);
-						}
 
 						args.write[idx] = value;
 						d_new["args"] = args;
@@ -677,24 +652,6 @@ public:
 		ClassDB::bind_method("_dont_undo_redo", &AnimationMultiTrackKeyEdit::_dont_undo_redo);
 	}
 
-	void _fix_node_path(Variant &value, NodePath &base) {
-		NodePath np = value;
-
-		if (np == NodePath()) {
-			return;
-		}
-
-		Node *root = EditorNode::get_singleton()->get_tree()->get_root();
-
-		Node *np_node = root->get_node(np);
-		ERR_FAIL_COND(!np_node);
-
-		Node *edited_node = root->get_node(base);
-		ERR_FAIL_COND(!edited_node);
-
-		value = edited_node->get_path_to(np_node);
-	}
-
 	void _update_obj(const Ref<Animation> &p_anim) {
 		if (setting || animation != p_anim) {
 			return;
@@ -806,10 +763,6 @@ public:
 						if (name == "value") {
 							Variant value = p_value;
 
-							if (value.get_type() == Variant::NODE_PATH) {
-								_fix_node_path(value, base_map[track]);
-							}
-
 							if (!setting) {
 								setting = true;
 								undo_redo->create_action(TTR("Anim Multi Change Keyframe Value"), UndoRedo::MERGE_ENDS);
@@ -856,9 +809,6 @@ public:
 								}
 							} else if (what == "value") {
 								Variant value = p_value;
-								if (value.get_type() == Variant::NODE_PATH) {
-									_fix_node_path(value, base_map[track]);
-								}
 
 								args.write[idx] = value;
 								d_new["args"] = args;
