@@ -507,6 +507,8 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 						return nullptr;
 					} else if (ScriptCodeCompletionCache::get_singleton()) {
 						res = ScriptCodeCompletionCache::get_singleton()->get_cached_resource(path);
+					} else {
+						res = ResourceLoader::load(path);
 					}
 				}
 				if (!res.is_valid()) {
