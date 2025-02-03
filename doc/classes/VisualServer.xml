@@ -468,9 +468,7 @@
 			<argument index="0" name="item" type="RID" />
 			<argument index="1" name="xform" type="Transform2D" />
 			<description>
-				Transforms both the current and previous stored transform for a canvas item.
-				This allows transforming a canvas item without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
+				Transforms both the current and previous stored transform for a canvas item. This allows transforming a canvas item without creating a "glitch" in the interpolation. This is particularly useful for large worlds utilising a shifting origin.
 			</description>
 		</method>
 		<method name="canvas_light_attach_to_canvas">
@@ -556,9 +554,7 @@
 			<argument index="0" name="occluder" type="RID" />
 			<argument index="1" name="xform" type="Transform2D" />
 			<description>
-				Transforms both the current and previous stored transform for an occluder.
-				This allows transforming an occluder without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
+				Transforms both the current and previous stored transform for an occluder. This allows transforming an occluder without creating a "glitch" in the interpolation. This is particularly useful for large worlds utilising a shifting origin.
 			</description>
 		</method>
 		<method name="canvas_light_reset_physics_interpolation">
@@ -736,9 +732,7 @@
 			<argument index="0" name="light" type="RID" />
 			<argument index="1" name="xform" type="Transform2D" />
 			<description>
-				Transforms both the current and previous stored transform for a light.
-				This allows transforming a light without creating a "glitch" in the interpolation.
-				This is particularly useful for large worlds utilising a shifting origin.
+				Transforms both the current and previous stored transform for a light. This allows transforming a light without creating a "glitch" in the interpolation. This is particularly useful for large worlds utilising a shifting origin.
 			</description>
 		</method>
 		<method name="canvas_occluder_polygon_create">
@@ -1595,6 +1589,14 @@
 			<argument index="1" name="visible" type="bool" />
 			<description>
 				Sets whether an instance is drawn or not. Equivalent to [member Spatial.visible].
+			</description>
+		</method>
+		<method name="instance_transform_physics_interpolation">
+			<return type="void" />
+			<argument index="0" name="instance" type="RID" />
+			<argument index="1" name="transform" type="Transform" />
+			<description>
+				Transforms both the current and previous stored transform for an instance. This allows transforming an instance without creating a "glitch" in the interpolation. This is particularly useful for large worlds utilising a shifting origin.
 			</description>
 		</method>
 		<method name="instances_cull_aabb" qualifiers="const">

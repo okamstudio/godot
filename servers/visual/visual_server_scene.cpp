@@ -780,6 +780,19 @@ void VisualServerScene::instance_reset_physics_interpolation(RID p_instance) {
 	}
 }
 
+void VisualServerScene::instance_transform_physics_interpolation(RID p_instance, const Transform &p_transform) {
+	Instance *instance = instance_owner.get(p_instance);
+	ERR_FAIL_COND(!instance);
+
+	if (_interpolation_data.interpolation_enabled && instance->interpolated && instance->scenario) {
+		instance->transform_prev = p_transform * instance->transform_prev;
+		instance->transform_curr = p_transform * instance->transform_curr;
+
+		instance->transform_checksum_prev = TransformInterpolator::checksum_transform(instance->transform_prev);
+		instance->transform_checksum_curr = TransformInterpolator::checksum_transform(instance->transform_curr);
+	}
+}
+
 void VisualServerScene::instance_set_interpolated(RID p_instance, bool p_interpolated) {
 	Instance *instance = instance_owner.get(p_instance);
 	ERR_FAIL_COND(!instance);

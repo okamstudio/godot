@@ -575,6 +575,7 @@ public:
 	BIND2(instance_set_transform, RID, const Transform &)
 	BIND2(instance_set_interpolated, RID, bool)
 	BIND1(instance_reset_physics_interpolation, RID)
+	BIND2(instance_transform_physics_interpolation, RID, const Transform &)
 	BIND2(instance_attach_object_instance_id, RID, ObjectID)
 	BIND3(instance_set_blend_shape_weight, RID, int, float)
 	BIND3(instance_set_surface_material, RID, int, RID)
