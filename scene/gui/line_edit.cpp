@@ -537,6 +537,13 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 					set_cursor_position(text.length());
 					shift_selection_check_post(k->get_shift());
 				} break;
+				case KEY_KP_PERIOD: {
+					if (k->get_unicode() != 0) {
+						handled = false;
+						break;
+					}
+					FALLTHROUGH;
+				}
 				case KEY_DELETE: {
 					if (!editable) {
 						break;

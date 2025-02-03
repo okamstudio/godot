@@ -3023,6 +3023,12 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					// Special keys often used with control, wait.
 					clear = (!k->get_command() || k->get_shift() || k->get_alt());
 					break;
+				case KEY_KP_PERIOD:
+					if (!k->get_shift()) {
+						accept_event();
+						clear = true;
+					}
+					break;
 				case KEY_DELETE:
 					if (!k->get_shift()) {
 						accept_event();
@@ -3594,6 +3600,13 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				_cancel_code_hint();
 
 			} break;
+			case KEY_KP_PERIOD: {
+				if (k->get_unicode() != 0) {
+					scancode_handled = false;
+					break;
+				}
+				FALLTHROUGH;
+			}
 			case KEY_DELETE: {
 				if (readonly) {
 					break;
