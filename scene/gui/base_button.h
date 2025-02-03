@@ -42,6 +42,7 @@ public:
 	enum ActionMode {
 		ACTION_MODE_BUTTON_PRESS,
 		ACTION_MODE_BUTTON_RELEASE,
+		ACTION_MODE_HYBRID,
 	};
 
 private:

@@ -147,8 +147,17 @@ void BaseButton::on_action_event(Ref<InputEvent> p_event) {
 	}
 
 	if (status.press_attempt && status.pressing_inside) {
+		bool activate = p_event->is_pressed() == (action_mode == ACTION_MODE_BUTTON_PRESS);
+		if (action_mode == ACTION_MODE_HYBRID) {
+			Ref<InputEventMouseButton> mouse_button = p_event;
+			if (mouse_button.is_valid()) {
+				activate = !p_event->is_pressed();
+			} else {
+				activate = p_event->is_pressed();
+			}
+		}
 		if (toggle_mode) {
-			if ((p_event->is_pressed() && action_mode == ACTION_MODE_BUTTON_PRESS) || (!p_event->is_pressed() && action_mode == ACTION_MODE_BUTTON_RELEASE)) {
+			if (activate) {
 				if (action_mode == ACTION_MODE_BUTTON_PRESS) {
 					status.press_attempt = false;
 					status.pressing_inside = false;
@@ -162,7 +171,7 @@ void BaseButton::on_action_event(Ref<InputEvent> p_event) {
 				_pressed();
 			}
 		} else {
-			if ((p_event->is_pressed() && action_mode == ACTION_MODE_BUTTON_PRESS) || (!p_event->is_pressed() && action_mode == ACTION_MODE_BUTTON_RELEASE)) {
+			if (activate) {
 				_pressed();
 			}
 		}
@@ -434,7 +443,7 @@ void BaseButton::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "toggle_mode"), "set_toggle_mode", "is_toggle_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "shortcut_in_tooltip"), "set_shortcut_in_tooltip", "is_shortcut_in_tooltip_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "pressed"), "set_pressed", "is_pressed");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "action_mode", PROPERTY_HINT_ENUM, "Button Press,Button Release"), "set_action_mode", "get_action_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "action_mode", PROPERTY_HINT_ENUM, "Button Press, Button Release, Hybrid"), "set_action_mode", "get_action_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "button_mask", PROPERTY_HINT_FLAGS, "Mouse Left, Mouse Right, Mouse Middle"), "set_button_mask", "get_button_mask");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "enabled_focus_mode", PROPERTY_HINT_ENUM, "None,Click,All"), "set_enabled_focus_mode", "get_enabled_focus_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "keep_pressed_outside"), "set_keep_pressed_outside", "is_keep_pressed_outside");
@@ -449,6 +458,7 @@ void BaseButton::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_PRESS);
 	BIND_ENUM_CONSTANT(ACTION_MODE_BUTTON_RELEASE);
+	BIND_ENUM_CONSTANT(ACTION_MODE_HYBRID);
 }
 
 BaseButton::BaseButton() {

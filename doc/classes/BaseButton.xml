@@ -125,5 +125,8 @@
 		<constant name="ACTION_MODE_BUTTON_RELEASE" value="1" enum="ActionMode">
 			Require a press and a subsequent release before considering the button clicked.
 		</constant>
+		<constant name="ACTION_MODE_HYBRID" value="2" enum="ActionMode">
+			Acts like [constant ACTION_MODE_BUTTON_RELEASE] for mouse-based inputs, but like [constant ACTION_MODE_BUTTON_PRESS] for other inputs.
+		</constant>
 	</constants>
 </class>
