@@ -1768,7 +1768,7 @@ void EditorInspector::update_tree() {
 					if (doc_hint != String()) {
 						ep->set_tooltip(property_prefix + p.name + "::" + doc_hint);
 					} else {
-						ep->set_tooltip(property_prefix + p.name);
+						ep->set_tooltip(property_prefix + p.name + "::" + p.tooltip);
 					}
 					ep->update_property();
 					ep->_update_pin_flags();

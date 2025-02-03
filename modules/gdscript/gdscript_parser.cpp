@@ -3728,6 +3728,28 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 			case GDScriptTokenizer::TK_CURSOR: {
 				tokenizer->advance();
 			} break;
+			case GDScriptTokenizer::TK_TOOLTIP: {
+				tokenizer->advance();
+#ifdef TOOLS_ENABLED
+				if (tokenizer->get_token() == GDScriptTokenizer::TK_CONSTANT && tokenizer->get_token_constant().get_type() == Variant::STRING) {
+					Variant constant = tokenizer->get_token_constant();
+					current_export.tooltip = constant;
+				}
+
+				// Handle multiline tooltips.
+				while (tokenizer->get_token(2) == GDScriptTokenizer::TK_TOOLTIP) {
+					tokenizer->advance(3);
+					if (tokenizer->get_token() == GDScriptTokenizer::TK_CONSTANT && tokenizer->get_token_constant().get_type() == Variant::STRING) {
+						Variant constant = tokenizer->get_token_constant();
+						current_export.tooltip += constant.operator String();
+					}
+				}
+#else
+				if (tokenizer->get_token() == GDScriptTokenizer::TK_CONSTANT && tokenizer->get_token_constant().get_type() == Variant::STRING) {
+					tokenizer->advance();
+				}
+#endif
+			} break;
 			case GDScriptTokenizer::TK_EOF:
 				p_class->end_line = tokenizer->get_token_line();
 			case GDScriptTokenizer::TK_ERROR: {
@@ -4925,7 +4947,12 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					member._export = current_export;
 					current_export = PropertyInfo();
 				}
-
+#ifdef TOOLS_ENABLED
+				if (autoexport) {
+					member._export.tooltip = current_export.tooltip;
+					current_export.tooltip = "";
+				}
+#endif
 				bool onready = tokenizer->get_token(-1) == GDScriptTokenizer::TK_PR_ONREADY;
 
 				tokenizer->advance();

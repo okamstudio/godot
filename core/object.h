@@ -150,6 +150,9 @@ struct PropertyInfo {
 	StringName class_name; //for classes
 	PropertyHint hint;
 	String hint_string;
+#ifdef TOOLS_ENABLED
+	String tooltip;
+#endif
 	uint32_t usage;
 
 	_FORCE_INLINE_ PropertyInfo added_usage(int p_fl) const {

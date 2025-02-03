@@ -137,7 +137,8 @@ const char *GDScriptTokenizer::token_names[TK_MAX] = {
 	"NAN",
 	"Error",
 	"EOF",
-	"Cursor"
+	"Cursor",
+	"##", // Tooltip comment for exported variables.
 };
 
 struct _bit {
@@ -350,6 +351,7 @@ bool GDScriptTokenizer::is_token_literal(int p_offset, bool variable_safe) const
 		case TK_PR_REMOTESYNC:
 		case TK_PR_MASTERSYNC:
 		case TK_PR_PUPPETSYNC:
+		case TK_TOOLTIP:
 			return true;
 
 		// Literal for non-variables only:
@@ -593,17 +595,100 @@ void GDScriptTokenizerText::_advance() {
 #ifdef DEBUG_ENABLED
 				String comment;
 #endif // DEBUG_ENABLED
+
+#ifdef TOOLS_ENABLED
+				bool export_var = true;
+
+				if (GETCHAR(1) == '#' || GETCHAR(-1) == '#') {
+					// Check if it's a tooltip comment
+					int tip_code_pos = code_pos + 1;
+					bool multiline = false;
+					do {
+						// Move to the end of the line
+						while (tip_code_pos < len && _code[tip_code_pos] != '\n') {
+							tip_code_pos++;
+						}
+
+						// Skip '\n'
+						tip_code_pos++;
+
+						// Skip whitespaces
+						while (tip_code_pos < len && (_code[tip_code_pos] == ' ' || _code[tip_code_pos] == '\t' || _code[tip_code_pos] == '\r')) {
+							tip_code_pos++;
+						}
+
+						// Check if "##" -> possible multiline tooltip
+						if (tip_code_pos + 2 < len) {
+							if (_code[tip_code_pos] == '#' && _code[tip_code_pos + 1] == '#') {
+								multiline = true;
+								tip_code_pos += 2;
+							} else {
+								multiline = false;
+							}
+						} else {
+							multiline = false;
+						}
+					} while (multiline);
+
+					// "export" - 6 CharType characters
+					const int export_size = 6;
+
+					// Check if there is "export" keyword after "##" comments
+					if (tip_code_pos + export_size < len) {
+						const char *export_str = "export";
+						for (int e = 0; e < export_size; e++) {
+							if (_code[tip_code_pos + e] != export_str[e]) {
+								export_var = false;
+								break;
+							}
+						}
+					} else {
+						export_var = false;
+					}
+				} else {
+					export_var = false;
+				}
+
+				if (export_var) {
+					if (GETCHAR(1) == '#') {
+						_make_token(TK_TOOLTIP);
+						INCPOS(1);
+						return;
+					}
+				}
+
+				String tooltip_text;
+#endif
+
 				while (GETCHAR(0) != '\n') {
 #ifdef DEBUG_ENABLED
 					comment += GETCHAR(0);
 #endif // DEBUG_ENABLED
-					code_pos++;
+
+#ifdef TOOLS_ENABLED
+					if (export_var) {
+						tooltip_text += GETCHAR(0);
+						INCPOS(1);
+					} else
+#endif
+					{
+						code_pos++;
+					}
+
 					if (GETCHAR(0) == 0) { //end of file
 						//_make_error("Unterminated Comment");
 						_make_token(TK_EOF);
 						return;
 					}
 				}
+
+#ifdef TOOLS_ENABLED
+				if (export_var) {
+					_make_constant(tooltip_text.trim_prefix("#").trim_prefix(" "));
+					return;
+				}
+#endif
+
 #ifdef DEBUG_ENABLED
 				String comment_content = comment.trim_prefix("#").trim_prefix(" ");
 				if (comment_content.begins_with("warning-ignore:")) {
