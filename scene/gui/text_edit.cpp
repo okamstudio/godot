@@ -3099,7 +3099,8 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 				// Keep indentation.
 				int space_count = 0;
-				for (int i = 0; i < cursor.column; i++) {
+				int auto_indent_check_column = k->get_command() ? text[cursor.line].length() : cursor.column;
+				for (int i = 0; i < auto_indent_check_column; i++) {
 					if (text[cursor.line][i] == '\t') {
 						if (indent_using_spaces) {
 							ins += space_indent;
@@ -3140,7 +3141,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						char indent_char = ':';
 						char c = text[cursor.line][cursor.column];
 
-						for (int i = 0; i < cursor.column; i++) {
+						for (int i = 0; i < auto_indent_check_column; i++) {
 							c = text[cursor.line][i];
 							switch (c) {
 								case ':':
@@ -3181,6 +3182,8 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				begin_complex_operation();
 				bool first_line = false;
 				if (k->get_command()) {
+					selection.active = false;
+
 					if (k->get_shift()) {
 						if (cursor.line > 0) {
 							cursor_set_line(cursor.line - 1);
