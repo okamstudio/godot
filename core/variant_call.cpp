@@ -518,6 +518,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM0R(Quat, get_euler);
 	VCALL_LOCALMEM1(Quat, set_euler);
 	VCALL_LOCALMEM2(Quat, set_axis_angle);
+	VCALL_LOCALMEM2(Quat, set_shortest_arc);
 
 	VCALL_LOCALMEM0R(Color, to_argb32);
 	VCALL_LOCALMEM0R(Color, to_abgr32);
@@ -1907,6 +1908,7 @@ void register_variant_methods() {
 	ADDFUNC0R(QUAT, VECTOR3, Quat, get_euler, varray());
 	ADDFUNC1(QUAT, NIL, Quat, set_euler, VECTOR3, "euler", varray());
 	ADDFUNC2(QUAT, NIL, Quat, set_axis_angle, VECTOR3, "axis", REAL, "angle", varray());
+	ADDFUNC2(QUAT, NIL, Quat, set_shortest_arc, VECTOR3, "from", VECTOR3, "to", varray());
 
 	ADDFUNC0R(COLOR, INT, Color, to_argb32, varray());
 	ADDFUNC0R(COLOR, INT, Color, to_abgr32, varray());

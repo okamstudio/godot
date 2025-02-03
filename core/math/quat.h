@@ -71,6 +71,26 @@ public:
 		r_axis.z = z * r;
 	}
 
+	void set_shortest_arc(const Vector3 &p_from, const Vector3 &p_to) {
+		Vector3 c = p_from.cross(p_to);
+		real_t d = p_from.dot(p_to);
+
+		if (d < -1 + (real_t)CMP_EPSILON) {
+			x = 0;
+			y = 1;
+			z = 0;
+			w = 0;
+		} else {
+			real_t s = Math::sqrt((1 + d) * 2);
+			real_t rs = 1 / s;
+
+			x = c.x * rs;
+			y = c.y * rs;
+			z = c.z * rs;
+			w = s * 0.5f;
+		}
+	}
+
 	void operator*=(const Quat &p_q);
 	Quat operator*(const Quat &p_q) const;
 
@@ -135,25 +155,8 @@ public:
 		return *this;
 	}
 
-	Quat(const Vector3 &p_v0, const Vector3 &p_v1) // shortest arc
-	{
-		Vector3 c = p_v0.cross(p_v1);
-		real_t d = p_v0.dot(p_v1);
-
-		if (d < -1 + (real_t)CMP_EPSILON) {
-			x = 0;
-			y = 1;
-			z = 0;
-			w = 0;
-		} else {
-			real_t s = Math::sqrt((1 + d) * 2);
-			real_t rs = 1 / s;
-
-			x = c.x * rs;
-			y = c.y * rs;
-			z = c.z * rs;
-			w = s * 0.5f;
-		}
+	Quat(const Vector3 &p_v0, const Vector3 &p_v1) {
+		set_shortest_arc(p_v0, p_v1);
 	}
 
 	inline Quat() :

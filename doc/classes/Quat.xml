@@ -126,6 +126,13 @@
 				Sets the quaternion to a rotation specified by Euler angles (in the YXZ convention: when decomposing, first Z, then X, and Y last), given in the vector format as (X angle, Y angle, Z angle).
 			</description>
 		</method>
+		<method name="set_shortest_arc">
+			<argument index="0" name="from" type="Vector3" />
+			<argument index="1" name="to" type="Vector3" />
+			<description>
+				Makes this quaternion represent the shortest arc between [code]from[/code] and [code]to[/code]. These can be imagined as two points intersecting a sphere's surface, with a radius of [code]1.0[/code].
+			</description>
+		</method>
 		<method name="slerp">
 			<return type="Quat" />
 			<argument index="0" name="to" type="Quat" />
