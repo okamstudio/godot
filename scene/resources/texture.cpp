@@ -238,6 +238,15 @@ Error ImageTexture::load(const String &p_path) {
 #endif
 void ImageTexture::set_data(const Ref<Image> &p_image) {
 	ERR_FAIL_COND_MSG(p_image.is_null(), "Invalid image");
+	ERR_FAIL_COND_MSG(!texture.is_valid(), "Texture is not initialized.");
+	ERR_FAIL_COND_MSG(p_image->get_width() != w || p_image->get_height() != h,
+			"The new image dimensions must match the texture size.");
+	ERR_FAIL_COND_MSG(p_image->get_format() != format,
+			"The new image format must match the texture's image format.");
+	if (image_stored) {
+		ERR_FAIL_COND_MSG(get_data()->has_mipmaps() != p_image->has_mipmaps(),
+				"The new image mipmaps configuration must match the texture's image mipmaps configuration.");
+	}
 
 	VisualServer::get_singleton()->texture_set_data(texture, p_image);
 
