@@ -362,6 +362,7 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 	List<String> to_check;
 
 	String importer_name;
+	String import_md5 = "";
 	String source_file = "";
 	String source_md5 = "";
 	Vector<String> dest_files;
@@ -440,6 +441,8 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 					source_md5 = value;
 				} else if (assign == "dest_md5") {
 					dest_md5 = value;
+				} else if (assign == "import_md5") {
+					import_md5 = value;
 				}
 			}
 		}
@@ -473,6 +476,19 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 			if (md5 != dest_md5) {
 				return true;
 			}
+		}
+	}
+
+	//check import md5 matching
+
+	if (import_md5 == String()) {
+		return true; //migrates .md5 file, to store .import hash
+	}
+
+	if (!p_only_imported_files) {
+		String md5 = FileAccess::get_md5(p_path + ".import");
+		if (md5 != import_md5) {
+			return true; // import configuration changed
 		}
 	}
 
@@ -1850,6 +1866,7 @@ void EditorFileSystem::_reimport_file(const String &p_file) {
 	FileAccess *md5s = FileAccess::open(base_path + ".md5", FileAccess::WRITE);
 	ERR_FAIL_COND_MSG(!md5s, "Cannot open MD5 file '" + base_path + ".md5'.");
 
+	md5s->store_line("import_md5=\"" + FileAccess::get_md5(p_file + ".import") + "\"");
 	md5s->store_line("source_md5=\"" + FileAccess::get_md5(p_file) + "\"");
 	if (dest_paths.size()) {
 		md5s->store_line("dest_md5=\"" + FileAccess::get_multiple_md5(dest_paths) + "\"\n");
