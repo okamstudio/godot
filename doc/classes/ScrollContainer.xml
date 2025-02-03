@@ -40,9 +40,18 @@
 	</methods>
 	<members>
 		<member name="follow_focus" type="bool" setter="set_follow_focus" getter="is_following_focus" default="false">
-			If [code]true[/code], the ScrollContainer will automatically scroll to focused children (including indirect children) to make sure they are fully visible.
+			If [code]true[/code], the ScrollContainer will automatically scroll to focused children (including indirect children) to make sure they are fully visible. Use in combination with [member follow_focus_buffer] to specify how far past the control to scroll.
+		</member>
+		<member name="follow_focus_buffer" type="Vector2" setter="set_follow_focus_buffer" getter="get_follow_focus_buffer" default="Vector2( 0, 0 )">
+			When [member follow_focus] is [code]true[/code], this specifies a buffer around the focused control that should be made visible.
+		</member>
+		<member name="pan_gesture_sensitivity" type="float" setter="set_pan_gesture_sensitivity" getter="get_pan_gesture_sensitivity" default="1.0">
+			The distance that will be scrolled per pan gesture (2 finger drag) input event.
 		</member>
 		<member name="rect_clip_content" type="bool" setter="set_clip_contents" getter="is_clipping_contents" overrides="Control" default="true" />
+		<member name="scroll_damping" type="float" setter="set_scroll_damping" getter="get_scroll_damping" default="1.0">
+			The speed that this scroll container will slow to a stop after being scrolled by a drag on a touch screen.
+		</member>
 		<member name="scroll_deadzone" type="int" setter="set_deadzone" getter="get_deadzone" default="0">
 		</member>
 		<member name="scroll_horizontal" type="int" setter="set_h_scroll" getter="get_h_scroll" default="0">
@@ -66,6 +75,9 @@
 		</member>
 		<member name="scroll_vertical_enabled" type="bool" setter="set_enable_v_scroll" getter="is_v_scroll_enabled" default="true">
 			If [code]true[/code], enables vertical scrolling.
+		</member>
+		<member name="scroll_wheel_sensitivity" type="float" setter="set_scroll_wheel_sensitivity" getter="get_scroll_wheel_sensitivity" default="1.0">
+			The distance that will be scrolled per mouse wheel input event.
 		</member>
 	</members>
 	<signals>

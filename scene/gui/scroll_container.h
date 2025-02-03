@@ -62,7 +62,10 @@ class ScrollContainer : public Container {
 
 	int deadzone;
 	bool follow_focus;
-
+	float sensitivity;
+	float pan_gesture_sensitivity;
+	float damping;
+	Vector2 follow_focus_buffer;
 	void _cancel_drag();
 
 protected:
@@ -96,6 +99,18 @@ public:
 
 	bool is_following_focus() const;
 	void set_follow_focus(bool p_follow);
+
+	float get_scroll_sensitivity() const;
+	void set_scroll_sensitivity(float sensitivity);
+
+	float get_pan_gesture_sensitivity() const;
+	void set_pan_gesture_sensitivity(float sensitivity);
+
+	Vector2 get_follow_focus_buffer() const;
+	void set_follow_focus_buffer(Vector2 buffer);
+
+	float get_scroll_damping() const;
+	void set_scroll_damping(float damp);
 
 	HScrollBar *get_h_scrollbar();
 	VScrollBar *get_v_scrollbar();

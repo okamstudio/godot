@@ -96,33 +96,35 @@ void ScrollContainer::_gui_input(const Ref<InputEvent> &p_gui_input) {
 	Ref<InputEventMouseButton> mb = p_gui_input;
 
 	if (mb.is_valid()) {
+		// original sensitivity was 0.125
+		float scaled_sensitivity = sensitivity * 0.125;
 		if (mb->get_button_index() == BUTTON_WHEEL_UP && mb->is_pressed()) {
 			// only horizontal is enabled, scroll horizontally
 			if (h_scroll->is_visible() && (!v_scroll->is_visible() || mb->get_shift())) {
-				h_scroll->set_value(h_scroll->get_value() - h_scroll->get_page() / 8 * mb->get_factor());
+				h_scroll->set_value(h_scroll->get_value() - h_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			} else if (v_scroll->is_visible_in_tree()) {
-				v_scroll->set_value(v_scroll->get_value() - v_scroll->get_page() / 8 * mb->get_factor());
+				v_scroll->set_value(v_scroll->get_value() - v_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			}
 		}
 
 		if (mb->get_button_index() == BUTTON_WHEEL_DOWN && mb->is_pressed()) {
 			// only horizontal is enabled, scroll horizontally
 			if (h_scroll->is_visible() && (!v_scroll->is_visible() || mb->get_shift())) {
-				h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() / 8 * mb->get_factor());
+				h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			} else if (v_scroll->is_visible()) {
-				v_scroll->set_value(v_scroll->get_value() + v_scroll->get_page() / 8 * mb->get_factor());
+				v_scroll->set_value(v_scroll->get_value() + v_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			}
 		}
 
 		if (mb->get_button_index() == BUTTON_WHEEL_LEFT && mb->is_pressed()) {
 			if (h_scroll->is_visible_in_tree()) {
-				h_scroll->set_value(h_scroll->get_value() - h_scroll->get_page() * mb->get_factor() / 8);
+				h_scroll->set_value(h_scroll->get_value() - h_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			}
 		}
 
 		if (mb->get_button_index() == BUTTON_WHEEL_RIGHT && mb->is_pressed()) {
 			if (h_scroll->is_visible_in_tree()) {
-				h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * mb->get_factor() / 8);
+				h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * mb->get_factor() * scaled_sensitivity);
 			}
 		}
 
@@ -201,11 +203,13 @@ void ScrollContainer::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 	Ref<InputEventPanGesture> pan_gesture = p_gui_input;
 	if (pan_gesture.is_valid()) {
+		// original sensitivity was 0.125
+		float scaled_sensitivity = pan_gesture_sensitivity * 0.125;
 		if (h_scroll->is_visible_in_tree()) {
-			h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * pan_gesture->get_delta().x / 8);
+			h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() * pan_gesture->get_delta().x * scaled_sensitivity);
 		}
 		if (v_scroll->is_visible_in_tree()) {
-			v_scroll->set_value(v_scroll->get_value() + v_scroll->get_page() * pan_gesture->get_delta().y / 8);
+			v_scroll->set_value(v_scroll->get_value() + v_scroll->get_page() * pan_gesture->get_delta().y * scaled_sensitivity);
 		}
 	}
 
@@ -246,8 +250,9 @@ void ScrollContainer::ensure_control_visible(Control *p_control) {
 	float right_margin = v_scroll->is_visible() ? v_scroll->get_size().x : 0.0f;
 	float bottom_margin = h_scroll->is_visible() ? h_scroll->get_size().y : 0.0f;
 
-	Vector2 diff = Vector2(MAX(MIN(other_rect.position.x, global_rect.position.x), other_rect.position.x + other_rect.size.x - global_rect.size.x + right_margin),
-			MAX(MIN(other_rect.position.y, global_rect.position.y), other_rect.position.y + other_rect.size.y - global_rect.size.y + bottom_margin));
+	Vector2 diff = Vector2(
+			MAX(MIN(other_rect.position.x - follow_focus_buffer.x, global_rect.position.x), other_rect.position.x + other_rect.size.x - global_rect.size.x + right_margin + follow_focus_buffer.x),
+			MAX(MIN(other_rect.position.y - follow_focus_buffer.y, global_rect.position.y), other_rect.position.y + other_rect.size.y - global_rect.size.y + bottom_margin + follow_focus_buffer.y));
 
 	set_h_scroll(get_h_scroll() + (diff.x - global_rect.position.x));
 	set_v_scroll(get_v_scroll() + (diff.y - global_rect.position.y));
@@ -368,7 +373,7 @@ void ScrollContainer::_notification(int p_what) {
 
 				float sgn_x = drag_speed.x < 0 ? -1 : 1;
 				float val_x = Math::abs(drag_speed.x);
-				val_x -= 1000 * get_physics_process_delta_time();
+				val_x -= 1000.0 * damping * get_physics_process_delta_time();
 
 				if (val_x < 0) {
 					turnoff_h = true;
@@ -376,7 +381,7 @@ void ScrollContainer::_notification(int p_what) {
 
 				float sgn_y = drag_speed.y < 0 ? -1 : 1;
 				float val_y = Math::abs(drag_speed.y);
-				val_y -= 1000 * get_physics_process_delta_time();
+				val_y -= 1000.0 * damping * get_physics_process_delta_time();
 
 				if (val_y < 0) {
 					turnoff_v = true;
@@ -563,6 +568,41 @@ VScrollBar *ScrollContainer::get_v_scrollbar() {
 	return v_scroll;
 }
 
+float ScrollContainer::get_scroll_sensitivity() const {
+	return sensitivity;
+}
+
+void ScrollContainer::set_scroll_sensitivity(float p_sensitivity) {
+	ERR_FAIL_COND_MSG(p_sensitivity < 0.0, "scroll_wheel_sensitivity cannot be negative");
+	sensitivity = p_sensitivity;
+}
+
+float ScrollContainer::get_pan_gesture_sensitivity() const {
+	return pan_gesture_sensitivity;
+}
+
+void ScrollContainer::set_follow_focus_buffer(Vector2 buffer) {
+	follow_focus_buffer = buffer;
+}
+
+Vector2 ScrollContainer::get_follow_focus_buffer() const {
+	return follow_focus_buffer;
+}
+
+void ScrollContainer::set_pan_gesture_sensitivity(float p_sensitivity) {
+	ERR_FAIL_COND_MSG(p_sensitivity < 0.0, "pan_gesture_sensitivity cannot be negative");
+	pan_gesture_sensitivity = p_sensitivity;
+}
+
+float ScrollContainer::get_scroll_damping() const {
+	return damping;
+}
+
+void ScrollContainer::set_scroll_damping(float p_damping) {
+	ERR_FAIL_COND_MSG(p_damping < 0.0, "scroll_damping cannot be negative");
+	damping = p_damping;
+}
+
 void ScrollContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_scroll_moved"), &ScrollContainer::_scroll_moved);
 	ClassDB::bind_method(D_METHOD("_gui_input"), &ScrollContainer::_gui_input);
@@ -578,8 +618,21 @@ void ScrollContainer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_v_scroll"), &ScrollContainer::get_v_scroll);
 	ClassDB::bind_method(D_METHOD("set_deadzone", "deadzone"), &ScrollContainer::set_deadzone);
 	ClassDB::bind_method(D_METHOD("get_deadzone"), &ScrollContainer::get_deadzone);
+
+	ClassDB::bind_method(D_METHOD("set_scroll_wheel_sensitivity", "sensitivity"), &ScrollContainer::set_scroll_sensitivity);
+	ClassDB::bind_method(D_METHOD("get_scroll_wheel_sensitivity"), &ScrollContainer::get_scroll_sensitivity);
+
+	ClassDB::bind_method(D_METHOD("set_pan_gesture_sensitivity", "sensitivity"), &ScrollContainer::set_pan_gesture_sensitivity);
+	ClassDB::bind_method(D_METHOD("get_pan_gesture_sensitivity"), &ScrollContainer::get_pan_gesture_sensitivity);
+
+	ClassDB::bind_method(D_METHOD("set_scroll_damping", "damping"), &ScrollContainer::set_scroll_damping);
+	ClassDB::bind_method(D_METHOD("get_scroll_damping"), &ScrollContainer::get_scroll_damping);
+
 	ClassDB::bind_method(D_METHOD("set_follow_focus", "enabled"), &ScrollContainer::set_follow_focus);
 	ClassDB::bind_method(D_METHOD("is_following_focus"), &ScrollContainer::is_following_focus);
+
+	ClassDB::bind_method(D_METHOD("set_follow_focus_buffer", "buffer"), &ScrollContainer::set_follow_focus_buffer);
+	ClassDB::bind_method(D_METHOD("get_follow_focus_buffer"), &ScrollContainer::get_follow_focus_buffer);
 
 	ClassDB::bind_method(D_METHOD("get_h_scrollbar"), &ScrollContainer::get_h_scrollbar);
 	ClassDB::bind_method(D_METHOD("get_v_scrollbar"), &ScrollContainer::get_v_scrollbar);
@@ -589,8 +642,14 @@ void ScrollContainer::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("scroll_ended"));
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "follow_focus"), "set_follow_focus", "is_following_focus");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "follow_focus_buffer"), "set_follow_focus_buffer", "get_follow_focus_buffer");
+
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "scroll_wheel_sensitivity", PROPERTY_HINT_RANGE, "0,100,0.1,or_greater"), "set_scroll_wheel_sensitivity", "get_scroll_wheel_sensitivity");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "pan_gesture_sensitivity", PROPERTY_HINT_RANGE, "0,100,0.1,or_greater"), "set_pan_gesture_sensitivity", "get_pan_gesture_sensitivity");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "scroll_damping", PROPERTY_HINT_RANGE, "0,100,0.1,or_greater"), "set_scroll_damping", "get_scroll_damping");
 
 	ADD_GROUP("Scroll", "scroll_");
+
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scroll_horizontal_enabled"), "set_enable_h_scroll", "is_h_scroll_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "scroll_horizontal"), "set_h_scroll", "get_h_scroll");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "scroll_vertical_enabled"), "set_enable_v_scroll", "is_v_scroll_enabled");
@@ -598,6 +657,9 @@ void ScrollContainer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "scroll_deadzone"), "set_deadzone", "get_deadzone");
 
 	GLOBAL_DEF("gui/common/default_scroll_deadzone", 0);
+	GLOBAL_DEF("gui/common/default_scroll_wheel_sensitivity", 1.0);
+	GLOBAL_DEF("gui/common/default_scroll_damping", 1.0);
+	GLOBAL_DEF("gui/common/default_scroll_pan_gesture_sensitivity", 1.0);
 };
 
 ScrollContainer::ScrollContainer() {
@@ -617,9 +679,12 @@ ScrollContainer::ScrollContainer() {
 	beyond_deadzone = false;
 	scroll_h = true;
 	scroll_v = true;
-
+	sensitivity = GLOBAL_GET("gui/common/default_scroll_wheel_sensitivity");
+	pan_gesture_sensitivity = GLOBAL_GET("gui/common/default_scroll_pan_gesture_sensitivity");
+	damping = GLOBAL_GET("gui/common/default_scroll_damping");
 	deadzone = GLOBAL_GET("gui/common/default_scroll_deadzone");
 	follow_focus = false;
+	follow_focus_buffer = Vector2();
 
 	set_clip_contents(true);
 };
