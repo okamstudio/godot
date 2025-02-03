@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GDScriptErrorChecker" inherits="Reference" version="3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Tool to check for errors on GDScript source code.
+	</brief_description>
+	<description>
+		[GDScriptErrorChecker] takes the source code of a GDScript file and runs it through the GDScript parser in order to expose any error it finds.
+
+		The parser only reports the first error it runs into.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_error" qualifiers="const">
+			<return type="String" />
+			<description>
+				Returns the message for the current error.
+			</description>
+		</method>
+		<method name="get_error_column" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the column on the line the error happened.
+			</description>
+		</method>
+		<method name="get_error_line" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the line the error happened.
+			</description>
+		</method>
+		<method name="has_error" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns whether or not the parser found an error.
+			</description>
+		</method>
+		<method name="set_source">
+			<return type="int" enum="Error" />
+			<argument index="0" name="source_code" type="String" />
+			<description>
+				Sets the source code and runs it through the parser. This is necessary for the other functions to run.
+			</description>
+		</method>
+	</methods>
+	<constants>
+	</constants>
+</class>

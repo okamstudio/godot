@@ -35,6 +35,7 @@
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "gdscript.h"
+#include "gdscript_error_checker.h"
 #include "gdscript_tokenizer.h"
 
 GDScriptLanguage *script_language_gd = nullptr;
@@ -151,6 +152,7 @@ static void _editor_init() {
 void register_gdscript_types() {
 	ClassDB::register_class<GDScript>();
 	ClassDB::register_virtual_class<GDScriptFunctionState>();
+	ClassDB::register_class<GDScriptErrorChecker>();
 
 	script_language_gd = memnew(GDScriptLanguage);
 	ScriptServer::register_language(script_language_gd);
