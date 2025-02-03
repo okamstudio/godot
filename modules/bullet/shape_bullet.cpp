@@ -459,6 +459,7 @@ void HeightMapShapeBullet::set_data(const Variant &p_data) {
 
 	real_t l_min_height = 0.0;
 	real_t l_max_height = 0.0;
+	Vector2 l_grid_scale = Vector2(1.0, 1.0);
 
 	// If specified, min and max height will be used as precomputed values
 	if (d.has("min_height")) {
@@ -466,6 +467,10 @@ void HeightMapShapeBullet::set_data(const Variant &p_data) {
 	}
 	if (d.has("max_height")) {
 		l_max_height = d["max_height"];
+	}
+	// If specified, use grid scale value
+	if (d.has("grid_scale")) {
+		l_grid_scale = d["grid_scale"];
 	}
 
 	ERR_FAIL_COND(l_min_height > l_max_height);
@@ -536,7 +541,7 @@ void HeightMapShapeBullet::set_data(const Variant &p_data) {
 		}
 	}
 
-	setup(l_heights, l_width, l_depth, l_min_height, l_max_height);
+	setup(l_heights, l_width, l_depth, l_min_height, l_max_height, l_grid_scale);
 }
 
 Variant HeightMapShapeBullet::get_data() const {
@@ -547,7 +552,7 @@ PhysicsServer::ShapeType HeightMapShapeBullet::get_type() const {
 	return PhysicsServer::SHAPE_HEIGHTMAP;
 }
 
-void HeightMapShapeBullet::setup(PoolVector<real_t> &p_heights, int p_width, int p_depth, real_t p_min_height, real_t p_max_height) {
+void HeightMapShapeBullet::setup(PoolVector<real_t> &p_heights, int p_width, int p_depth, real_t p_min_height, real_t p_max_height, Vector2 p_grid_scale) {
 	// TODO cell size must be tweaked using localScaling, which is a shared property for all Bullet shapes
 
 	// If this array is resized outside of here, it should be preserved due to CoW
@@ -555,6 +560,7 @@ void HeightMapShapeBullet::setup(PoolVector<real_t> &p_heights, int p_width, int
 
 	width = p_width;
 	depth = p_depth;
+	grid_scale = p_grid_scale;
 	min_height = p_min_height;
 	max_height = p_max_height;
 	notifyShapeChanged();
@@ -562,7 +568,8 @@ void HeightMapShapeBullet::setup(PoolVector<real_t> &p_heights, int p_width, int
 
 btCollisionShape *HeightMapShapeBullet::create_bt_shape(const btVector3 &p_implicit_scale, real_t p_extra_edge) {
 	btCollisionShape *cs(ShapeBullet::create_shape_height_field(heights, width, depth, min_height, max_height));
-	cs->setLocalScaling(p_implicit_scale);
+	btVector3 s(grid_scale.x, 1.0, grid_scale.y);
+	cs->setLocalScaling(p_implicit_scale * s);
 	prepare(cs);
 	return cs;
 }

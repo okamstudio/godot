@@ -9,8 +9,19 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="get_grid_point" qualifiers="const">
+			<return type="Vector3" />
+			<argument index="0" name="x" type="int" />
+			<argument index="1" name="y" type="int" />
+			<description>
+				Returns the vertice position in the heightmap, with [code]x[/code] being the x index in the map data and [code]y[/code] being the y index in the map data. The returned [code]y[/code] axis of the vector is the height in the map data, and both [code]x[/code] and [code]z[/code] axes are scaled by [member grid_scale]
+			</description>
+		</method>
 	</methods>
 	<members>
+		<member name="grid_scale" type="Vector2" setter="set_grid_scale" getter="get_grid_scale" default="Vector2( 1, 1 )">
+			The vertices of the height map will be scaled by this scale.
+		</member>
 		<member name="map_data" type="PoolRealArray" setter="set_map_data" getter="get_map_data" default="PoolRealArray( 0, 0, 0, 0 )">
 			Height map data, pool array must be of [member map_width] * [member map_depth] size.
 		</member>

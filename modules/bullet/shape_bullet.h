@@ -224,6 +224,7 @@ public:
 	PoolVector<real_t> heights;
 	int width;
 	int depth;
+	Vector2 grid_scale;
 	real_t min_height;
 	real_t max_height;
 
@@ -235,7 +236,7 @@ public:
 	virtual btCollisionShape *create_bt_shape(const btVector3 &p_implicit_scale, real_t p_extra_edge = 0);
 
 private:
-	void setup(PoolVector<real_t> &p_heights, int p_width, int p_depth, real_t p_min_height, real_t p_max_height);
+	void setup(PoolVector<real_t> &p_heights, int p_width, int p_depth, real_t p_min_height, real_t p_max_height, Vector2 p_grid_scale);
 };
 
 class RayShapeBullet : public ShapeBullet {

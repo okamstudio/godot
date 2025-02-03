@@ -34,6 +34,7 @@
 
 Vector<Vector3> HeightMapShape::get_debug_mesh_lines() {
 	Vector<Vector3> points;
+	Vector3 s(grid_scale.x, 1.0, grid_scale.y);
 
 	if ((map_width != 0) && (map_depth != 0)) {
 		// This will be slow for large maps...
@@ -57,18 +58,18 @@ Vector<Vector3> HeightMapShape::get_debug_mesh_lines() {
 				height.y = r[r_offset++];
 
 				if (w != map_width - 1) {
-					points.write[w_offset++] = height;
-					points.write[w_offset++] = Vector3(height.x + 1.0, r[r_offset], height.z);
+					points.write[w_offset++] = height * s;
+					points.write[w_offset++] = Vector3(height.x + 1.0, r[r_offset], height.z) * s;
 				}
 
 				if (d != map_depth - 1) {
-					points.write[w_offset++] = height;
-					points.write[w_offset++] = Vector3(height.x, r[r_offset + map_width - 1], height.z + 1.0);
+					points.write[w_offset++] = height * s;
+					points.write[w_offset++] = Vector3(height.x, r[r_offset + map_width - 1], height.z + 1.0) * s;
 				}
 
 				if ((w != map_width - 1) && (d != map_depth - 1)) {
-					points.write[w_offset++] = Vector3(height.x + 1.0, r[r_offset], height.z);
-					points.write[w_offset++] = Vector3(height.x, r[r_offset + map_width - 1], height.z + 1.0);
+					points.write[w_offset++] = Vector3(height.x + 1.0, r[r_offset], height.z) * s;
+					points.write[w_offset++] = Vector3(height.x, r[r_offset + map_width - 1], height.z + 1.0) * s;
 				}
 
 				height.x += 1.0;
@@ -82,7 +83,7 @@ Vector<Vector3> HeightMapShape::get_debug_mesh_lines() {
 }
 
 real_t HeightMapShape::get_enclosing_radius() const {
-	return Vector3(real_t(map_width), max_height - min_height, real_t(map_depth)).length();
+	return Vector3(real_t(map_width) * grid_scale.x, max_height - min_height, real_t(map_depth) * grid_scale.y).length();
 }
 
 void HeightMapShape::_update_shape() {
@@ -92,6 +93,7 @@ void HeightMapShape::_update_shape() {
 	d["heights"] = map_data;
 	d["min_height"] = min_height;
 	d["max_height"] = max_height;
+	d["grid_scale"] = grid_scale;
 	PhysicsServer::get_singleton()->shape_set_data(get_shape(), d);
 	Shape::_update_shape();
 }
@@ -184,6 +186,33 @@ PoolRealArray HeightMapShape::get_map_data() const {
 	return map_data;
 }
 
+void HeightMapShape::set_grid_scale(Vector2 p_new) {
+	if (grid_scale != p_new) {
+		grid_scale = p_new;
+
+		_update_shape();
+		notify_change_to_owners();
+		_change_notify("grid_scale");
+	}
+}
+
+Vector2 HeightMapShape::get_grid_scale() const {
+	return grid_scale;
+}
+
+Vector3 HeightMapShape::get_grid_point(int p_ix, int p_iy) const {
+	// Assert invalid point indexes
+	ERR_FAIL_COND_V(p_ix < 0 || p_ix >= map_width, Vector3());
+	ERR_FAIL_COND_V(p_iy < 0 || p_iy >= map_depth, Vector3());
+
+	PoolRealArray::Read r = map_data.read();
+
+	return Vector3(
+			(p_ix - (map_width - 1) * 0.5) * grid_scale.x,
+			r[p_ix + p_iy * map_width],
+			(p_iy - (map_depth - 1) * 0.5) * grid_scale.y);
+}
+
 void HeightMapShape::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_map_width", "width"), &HeightMapShape::set_map_width);
 	ClassDB::bind_method(D_METHOD("get_map_width"), &HeightMapShape::get_map_width);
@@ -191,10 +220,14 @@ void HeightMapShape::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_map_depth"), &HeightMapShape::get_map_depth);
 	ClassDB::bind_method(D_METHOD("set_map_data", "data"), &HeightMapShape::set_map_data);
 	ClassDB::bind_method(D_METHOD("get_map_data"), &HeightMapShape::get_map_data);
+	ClassDB::bind_method(D_METHOD("set_grid_scale", "grid_scale"), &HeightMapShape::set_grid_scale);
+	ClassDB::bind_method(D_METHOD("get_grid_scale"), &HeightMapShape::get_grid_scale);
+	ClassDB::bind_method(D_METHOD("get_grid_point", "x", "y"), &HeightMapShape::get_grid_point);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "map_width", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater"), "set_map_width", "get_map_width");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "map_depth", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater"), "set_map_depth", "get_map_depth");
 	ADD_PROPERTY(PropertyInfo(Variant::POOL_REAL_ARRAY, "map_data"), "set_map_data", "get_map_data");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "grid_scale"), "set_grid_scale", "get_grid_scale");
 }
 
 HeightMapShape::HeightMapShape() :
@@ -207,6 +240,7 @@ HeightMapShape::HeightMapShape() :
 	w[1] = 0.0;
 	w[2] = 0.0;
 	w[3] = 0.0;
+	grid_scale = Vector2(1.0, 1.0);
 	min_height = 0.0;
 	max_height = 0.0;
 
