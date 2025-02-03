@@ -1231,7 +1231,13 @@ void LineEdit::set_cursor_at_pixel_pos(int p_x) {
 		}
 		pixel_ofs += char_w;
 
-		if (pixel_ofs > p_x) { // Found what we look for.
+		if (pixel_ofs > p_x) {
+			// We found what we look for.
+			// If the click was done more than (roughly) halfway through the character, move the cursor to the next character like in TextEdit.
+			if (pixel_ofs - p_x < font->get_char_size(text[ofs]).width * 0.55) {
+				ofs++;
+			}
+
 			break;
 		}
 
