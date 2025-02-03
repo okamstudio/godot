@@ -31,6 +31,7 @@
 #include "input_event.h"
 
 #include "core/input_map.h"
+#include "core/os/input.h"
 #include "core/os/keyboard.h"
 
 const int InputEvent::DEVICE_ID_TOUCH_MOUSE = -1;
@@ -629,11 +630,6 @@ Vector2 InputEventMouseMotion::get_speed() const {
 }
 
 Ref<InputEvent> InputEventMouseMotion::xformed_by(const Transform2D &p_xform, const Vector2 &p_local_ofs) const {
-	Vector2 g = get_global_position();
-	Vector2 l = p_xform.xform(get_position() + p_local_ofs);
-	Vector2 r = p_xform.basis_xform(get_relative());
-	Vector2 s = p_xform.basis_xform(get_speed());
-
 	Ref<InputEventMouseMotion> mm;
 	mm.instance();
 
@@ -641,15 +637,19 @@ Ref<InputEvent> InputEventMouseMotion::xformed_by(const Transform2D &p_xform, co
 
 	mm->set_modifiers_from_event(this);
 
-	mm->set_position(l);
+	mm->set_position(p_xform.xform(get_position() + p_local_ofs));
 	mm->set_pressure(get_pressure());
 	mm->set_pen_inverted(get_pen_inverted());
 	mm->set_tilt(get_tilt());
-	mm->set_global_position(g);
+	mm->set_global_position(get_global_position());
 
 	mm->set_button_mask(get_button_mask());
-	mm->set_relative(r);
-	mm->set_speed(s);
+	if (Input::get_singleton()->get_mouse_mode() == Input::MOUSE_MODE_CAPTURED) {
+		mm->set_relative(get_relative());
+	} else {
+		mm->set_relative(p_xform.basis_xform(get_relative()));
+	}
+	mm->set_speed(p_xform.basis_xform(get_speed()));
 
 	return mm;
 }
