@@ -79,6 +79,7 @@ public:
 	/* EVENT QUEUING */
 	FUNCRID(texture)
 	FUNC7(texture_allocate, RID, int, int, int, Image::Format, TextureType, uint32_t)
+	FUNC4(texture_set_data_raw, RID, const PoolByteArray &, int, int);
 	FUNC3(texture_set_data, RID, const Ref<Image> &, int)
 	FUNC10(texture_set_data_partial, RID, const Ref<Image> &, int, int, int, int, int, int, int, int)
 	FUNC2RC(Ref<Image>, texture_get_data, RID, int)

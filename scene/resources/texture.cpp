@@ -203,6 +203,11 @@ void ImageTexture::create_from_image(const Ref<Image> &p_image, uint32_t p_flags
 	image_stored = true;
 }
 
+void ImageTexture::update_from_data(const PoolByteArray &p_data, int p_offset) {
+	ERR_FAIL_COND(!texture.is_valid());
+	VisualServer::get_singleton()->texture_set_data_raw(texture, p_data, p_offset);
+}
+
 void ImageTexture::set_flags(uint32_t p_flags) {
 	if (flags == p_flags) {
 		return;
@@ -384,6 +389,7 @@ void ImageTexture::_set_data(Dictionary p_data) {
 void ImageTexture::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create", "width", "height", "format", "flags"), &ImageTexture::create, DEFVAL(FLAGS_DEFAULT));
 	ClassDB::bind_method(D_METHOD("create_from_image", "image", "flags"), &ImageTexture::create_from_image, DEFVAL(FLAGS_DEFAULT));
+	ClassDB::bind_method(D_METHOD("update_from_data", "data", "offset"), &ImageTexture::update_from_data, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_format"), &ImageTexture::get_format);
 #ifndef DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("load", "path"), &ImageTexture::load);
@@ -2657,6 +2663,11 @@ void TextureLayered::set_layer_data(const Ref<Image> &p_image, int p_layer) {
 	VS::get_singleton()->texture_set_data(texture, p_image, p_layer);
 }
 
+void TextureLayered::set_layer_data_raw(const PoolByteArray &p_data, int p_offset, int p_layer) {
+	ERR_FAIL_COND(!texture.is_valid());
+	VisualServer::get_singleton()->texture_set_data_raw(texture, p_data, p_offset, p_layer);
+}
+
 Ref<Image> TextureLayered::get_layer_data(int p_layer) const {
 	ERR_FAIL_COND_V(!texture.is_valid(), Ref<Image>());
 	return VS::get_singleton()->texture_get_data(texture, p_layer);
@@ -2691,6 +2702,7 @@ void TextureLayered::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_depth"), &TextureLayered::get_depth);
 
 	ClassDB::bind_method(D_METHOD("set_layer_data", "image", "layer"), &TextureLayered::set_layer_data);
+	ClassDB::bind_method(D_METHOD("set_layer_data_raw", "data", "offset", "layer"), &TextureLayered::set_layer_data_raw);
 	ClassDB::bind_method(D_METHOD("get_layer_data", "layer"), &TextureLayered::get_layer_data);
 	ClassDB::bind_method(D_METHOD("set_data_partial", "image", "x_offset", "y_offset", "layer", "mipmap"), &TextureLayered::set_data_partial, DEFVAL(0));
 

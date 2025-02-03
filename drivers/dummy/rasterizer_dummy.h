@@ -169,6 +169,11 @@ public:
 		t->image = Ref<Image>(memnew(Image));
 		t->image->create(p_width, p_height, false, p_format);
 	}
+
+	void texture_set_data_raw(RID p_texture, const PoolByteArray &p_data, int p_offset = 0, int p_layer = 0) {
+		// TODO: Provide dummy implementation
+	}
+
 	void texture_set_data(RID p_texture, const Ref<Image> &p_image, int p_level) {
 		DummyTexture *t = texture_owner.getornull(p_texture);
 		ERR_FAIL_COND(!t);

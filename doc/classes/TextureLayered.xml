@@ -59,6 +59,16 @@
 				Sets the data for the specified layer. Data takes the form of a 2-dimensional [Image] resource.
 			</description>
 		</method>
+		<method name="set_layer_data_raw">
+			<return type="void" />
+			<argument index="0" name="data" type="PoolByteArray" />
+			<argument index="1" name="offset" type="int" />
+			<argument index="2" name="layer" type="int" />
+			<description>
+				Sets the data for the specified layer from a byte array. The array's contents has to match the image format of the previously created texture.
+				The offset parameter makes it possible to only use a part of the array to update the layer. This is useful if the content of multiple textures is available in a single array.
+			</description>
+		</method>
 	</methods>
 	<members>
 		<member name="data" type="Dictionary" setter="_set_data" getter="_get_data" default="{&quot;depth&quot;: 0,&quot;flags&quot;: 7,&quot;format&quot;: 37,&quot;height&quot;: 0,&quot;layers&quot;: [  ],&quot;width&quot;: 0}">

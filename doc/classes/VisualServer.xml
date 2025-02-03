@@ -2955,6 +2955,18 @@
 				Sets the texture's image data. If it's a CubeMap, it sets the image data at a cube side.
 			</description>
 		</method>
+		<method name="texture_set_data_raw">
+			<return type="void" />
+			<argument index="0" name="texture" type="RID" />
+			<argument index="1" name="data" type="PoolByteArray" />
+			<argument index="2" name="offset" type="int" default="0" />
+			<argument index="3" name="layer" type="int" default="0" />
+			<description>
+				Sets the texture's image data from a byte array. If the texture has multiple layers, it sets the data for the specified layer.
+				The array's contents has to match the image format of the previously created texture.
+				The offset parameter makes it possible to only use a part of the array to update the layer. This is useful if the content of multiple textures is available in a single array.
+			</description>
+		</method>
 		<method name="texture_set_data_partial">
 			<return type="void" />
 			<argument index="0" name="texture" type="RID" />

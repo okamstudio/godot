@@ -638,6 +638,64 @@ void RasterizerStorageGLES2::texture_allocate(RID p_texture, int p_width, int p_
 	texture->active = true;
 }
 
+void RasterizerStorageGLES2::texture_set_data_raw(RID p_texture, const PoolByteArray &p_data, int p_offset, int p_layer) {
+	Texture *texture = texture_owner.get(p_texture);
+
+	ERR_FAIL_COND(!texture);
+	ERR_FAIL_COND(!texture->active);
+
+	int w = texture->width;
+	int h = texture->height;
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(texture->target, texture->tex_id);
+
+	GLenum type;
+	GLenum format;
+
+	switch (texture->format) {
+		case Image::FORMAT_L8: {
+			format = GL_LUMINANCE;
+			type = GL_UNSIGNED_BYTE;
+		} break;
+		case Image::FORMAT_LA8: {
+			format = GL_LUMINANCE_ALPHA;
+			type = GL_UNSIGNED_BYTE;
+		} break;
+		case Image::FORMAT_R8: {
+			format = GL_ALPHA;
+			type = GL_UNSIGNED_BYTE;
+		} break;
+		case Image::FORMAT_RGB8: {
+			format = GL_RGB;
+			type = GL_UNSIGNED_BYTE;
+		} break;
+		case Image::FORMAT_RGBA8: {
+			format = GL_RGBA;
+			type = GL_UNSIGNED_BYTE;
+		} break;
+		case Image::FORMAT_RGBA4444: {
+			format = GL_RGBA;
+			type = GL_UNSIGNED_SHORT_4_4_4_4;
+		} break;
+		case Image::FORMAT_RGBA5551: {
+			format = GL_RGBA;
+			type = GL_UNSIGNED_SHORT_5_5_5_1;
+		} break;
+		default: {
+			ERR_FAIL_MSG("Invalid format");
+		}
+	}
+
+	PoolByteArray::Read read = data.read();
+
+	if (texture->type == VS::TEXTURE_TYPE_2D || texture->type == VS::TEXTURE_TYPE_CUBEMAP) {
+		glTexSubImage2D(texture->target, 0, 0, 0, w, h, format, type, read.ptr() + offset);
+	} else {
+		ERR_FAIL_MSG("Operation not supported for GLES2 backend");
+	}
+}
+
 void RasterizerStorageGLES2::texture_set_data(RID p_texture, const Ref<Image> &p_image, int p_layer) {
 	Texture *texture = texture_owner.getornull(p_texture);
 

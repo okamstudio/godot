@@ -51,6 +51,15 @@
 				Initializes the texture by allocating and setting the data from an [Image] with [code]flags[/code] from [enum Texture.Flags]. An sRGB to linear color space conversion can take place, according to [enum Image.Format].
 			</description>
 		</method>
+		<method name="update_from_data">
+			<return type="void" />
+			<argument index="0" name="data" type="PoolByteArray" />
+			<argument index="1" name="offset" type="int" default="0" />
+			<description>
+				Update the contents of the texture from a byte array without converting it to an Image first.  The array's contents has to match the image format of the previously created texture.
+				The offset parameter makes it possible to only use a part of the array to update the texture. This is useful if the content of multiple textures is available in a single array.
+			</description>
+		</method>
 		<method name="get_format" qualifiers="const">
 			<return type="int" enum="Image.Format" />
 			<description>

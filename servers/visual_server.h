@@ -129,6 +129,8 @@ public:
 			uint32_t p_flags = TEXTURE_FLAGS_DEFAULT) = 0;
 
 	virtual void texture_set_data(RID p_texture, const Ref<Image> &p_image, int p_layer = 0) = 0;
+	virtual void texture_set_data_raw(RID p_texture, const PoolByteArray &p_data, int p_offset = 0, int p_layer = 0) = 0;
+
 	virtual void texture_set_data_partial(RID p_texture,
 			const Ref<Image> &p_image,
 			int src_x, int src_y,
