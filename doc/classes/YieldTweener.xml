@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="YieldTweener" inherits="Tweener" version="3.6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Yields a specified signal.
+	</brief_description>
+	<description>
+		[YieldTweener] is used to wait for a specified signal to be emitted, allowing asynchronous steps in [SceneTreeTween] animation. See [method SceneTreeTween.tween_yield] for more usage information.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="set_timeout">
+			<return type="YieldTweener" />
+			<argument index="0" name="timeout" type="float" />
+			<description>
+				Sets the maximum time a [YieldTweener] can wait for the signal. Can be used as a safeguard for signals that may never be emitted.
+				[code]timeout[/code] should be greater than [code]0[/code]. If not specified, the tweener will wait indefinitely.
+			</description>
+		</method>
+	</methods>
+	<constants>
+	</constants>
+</class>

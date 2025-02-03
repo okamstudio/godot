@@ -56,6 +56,7 @@ class PropertyTweener;
 class IntervalTweener;
 class CallbackTweener;
 class MethodTweener;
+class YieldTweener;
 
 class SceneTreeTween : public Reference {
 	GDCLASS(SceneTreeTween, Reference);
@@ -102,6 +103,7 @@ public:
 	Ref<IntervalTweener> tween_interval(float p_time);
 	Ref<CallbackTweener> tween_callback(Object *p_target, StringName p_method, const Vector<Variant> &p_binds = Vector<Variant>());
 	Ref<MethodTweener> tween_method(Object *p_target, StringName p_method, Variant p_from, Variant p_to, float p_duration, const Vector<Variant> &p_binds = Vector<Variant>());
+	Ref<YieldTweener> tween_yield(Object *p_target, StringName p_signal);
 	void append(Ref<Tweener> p_tweener);
 
 	bool custom_step(float p_delta);
@@ -251,6 +253,31 @@ private:
 	ObjectID target;
 	StringName method;
 	Vector<Variant> binds;
+};
+
+class YieldTweener : public Tweener {
+	GDCLASS(YieldTweener, Tweener);
+
+public:
+	Ref<YieldTweener> set_timeout(float p_timeout);
+
+	virtual void start();
+	virtual bool step(float &r_delta);
+
+	Variant _signal_received(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+
+	YieldTweener(Object *p_target, StringName p_signal);
+	YieldTweener();
+
+protected:
+	static void _bind_methods();
+
+private:
+	bool received = false;
+	float timeout = -1;
+
+	ObjectID target;
+	StringName signal;
 };
 
 #endif // SCENE_TREE_TWEEN_H

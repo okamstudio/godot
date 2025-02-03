@@ -111,6 +111,16 @@ Ref<MethodTweener> SceneTreeTween::tween_method(Object *p_target, StringName p_m
 	return tweener;
 }
 
+Ref<YieldTweener> SceneTreeTween::tween_yield(Object *p_target, StringName p_signal) {
+	ERR_FAIL_NULL_V(p_target, nullptr);
+	ERR_FAIL_COND_V_MSG(!valid, nullptr, "SceneTreeTween invalid. Either finished or created outside scene tree.");
+	ERR_FAIL_COND_V_MSG(started, nullptr, "Can't append to a SceneTreeTween that has started. Use stop() first.");
+
+	Ref<YieldTweener> tweener = memnew(YieldTweener(p_target, p_signal));
+	append(tweener);
+	return tweener;
+}
+
 void SceneTreeTween::append(Ref<Tweener> p_tweener) {
 	p_tweener->set_tween(this);
 
@@ -582,6 +592,7 @@ void SceneTreeTween::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("tween_interval", "time"), &SceneTreeTween::tween_interval);
 	ClassDB::bind_method(D_METHOD("tween_callback", "object", "method", "binds"), &SceneTreeTween::tween_callback, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("tween_method", "object", "method", "from", "to", "duration", "binds"), &SceneTreeTween::tween_method, DEFVAL(Array()));
+	ClassDB::bind_method(D_METHOD("tween_yield", "object", "signal"), &SceneTreeTween::tween_yield);
 
 	ClassDB::bind_method(D_METHOD("custom_step", "delta"), &SceneTreeTween::custom_step);
 	ClassDB::bind_method(D_METHOD("stop"), &SceneTreeTween::stop);
@@ -937,4 +948,58 @@ MethodTweener::MethodTweener(Object *p_target, StringName p_method, Variant p_fr
 
 MethodTweener::MethodTweener() {
 	ERR_FAIL_MSG("Can't create empty MethodTweener. Use get_tree().tween_method() instead.");
+}
+
+Ref<YieldTweener> YieldTweener::set_timeout(float p_timeout) {
+	timeout = p_timeout;
+	return this;
+}
+
+void YieldTweener::start() {
+	Object *target_instance = ObjectDB::get_instance(target);
+	if (!target_instance) {
+		return;
+	}
+
+	target_instance->connect(signal, this, "_signal_received");
+}
+
+bool YieldTweener::step(float &r_delta) {
+	if (received) {
+		return false;
+	}
+
+	if (timeout >= 0) {
+		timeout -= r_delta;
+		if (timeout <= 0) {
+			return false;
+		}
+	}
+
+	Object *target_instance = ObjectDB::get_instance(target);
+	if (!target_instance) {
+		return false;
+	}
+
+	r_delta = 0; // "Consume" all remaining time to prevent infinite loops.
+	return true;
+}
+
+YieldTweener::YieldTweener(Object *p_target, StringName p_signal) {
+	target = p_target->get_instance_id();
+	signal = p_signal;
+}
+
+YieldTweener::YieldTweener() {
+	ERR_FAIL_MSG("Can't create empty YieldTweener. Use get_tree().create_tween().tween_yield() instead.");
+}
+
+Variant YieldTweener::_signal_received(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+	received = true;
+	return Variant();
+}
+
+void YieldTweener::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_timeout", "timeout"), &YieldTweener::set_timeout);
+	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "_signal_received", &YieldTweener::_signal_received, MethodInfo("_signal_received"));
 }

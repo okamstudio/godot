@@ -404,6 +404,7 @@ void register_scene_types() {
 	ClassDB::register_class<IntervalTweener>();
 	ClassDB::register_class<CallbackTweener>();
 	ClassDB::register_class<MethodTweener>();
+	ClassDB::register_class<YieldTweener>();
 
 	ClassDB::register_class<AnimationTreePlayer>();
 	ClassDB::register_class<AnimationTree>();

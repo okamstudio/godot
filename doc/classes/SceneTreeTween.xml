@@ -300,6 +300,37 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="tween_yield">
+			<return type="YieldTweener" />
+			<argument index="0" name="object" type="Object" />
+			<argument index="1" name="signal" type="String" />
+			<description>
+				Creates and appends a [YieldTweener]. This method can be used to wait for a signal to be emitted and create asynchronous animations/cutscenes.
+				The animation will not progress to the next step until the yielded signal is emitted or the connection becomes invalid (e.g. as a result of freeing the target object). If you know that the emission may not happen, use [method YieldTweener.set_timeout].
+				[b]Note:[/b] If you are yielding a signal from a method called in the same [SceneTreeTween], make sure the signal is emitted [i]after[/i] the yield starts. If it can't be reasonably guaranteed, you can yield and emit in the same step:
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_yield(object, "signal_name")
+				tween.parallel().tween_callback(object, "method_that_emits_signal")
+				[/codeblock]
+				[b]Example:[/b] An object launches itself and explodes upon collision or after 4 seconds.
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_callback(self, "launch")
+				tween.tween_yield(self, "collided").set_timeout(4.0)
+				tween.tween_callback(self, "explode")
+				[/codeblock]
+				[b]Example:[/b] A character walks to a specific point, says some lines and walks back when the player closes dialogue.
+				[codeblock]
+				var tween = create_tween()
+				tween.tween_callback(self, "walk_to", [600.0])
+				tween.tween_yield(self, "destination_reached")
+				tween.tween_callback(self, "say_dialogue", ["stuff"])
+				tween.tween_yield(self, "dialogue_closed")
+				tween.tween_callback(self, "walk_to", [0.0])
+				[/codeblock]
+			</description>
+		</method>
 	</methods>
 	<signals>
 		<signal name="finished">
