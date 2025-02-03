@@ -629,8 +629,7 @@ void ResourceInteractiveLoaderText::set_translation_remapped(bool p_remapped) {
 	translation_remapped = p_remapped;
 }
 
-ResourceInteractiveLoaderText::ResourceInteractiveLoaderText() :
-		stream(false) {
+ResourceInteractiveLoaderText::ResourceInteractiveLoaderText() {
 	translation_remapped = false;
 }
 
@@ -684,7 +683,7 @@ void ResourceInteractiveLoaderText::get_dependencies(FileAccess *p_f, List<Strin
 }
 
 Error ResourceInteractiveLoaderText::rename_dependencies(FileAccess *p_f, const String &p_path, const Map<String, String> &p_map) {
-	open(p_f, true);
+	open(p_f, true, false);
 	ERR_FAIL_COND_V(error != OK, error);
 	ignore_resource_parsing = true;
 	//FileAccess
@@ -786,13 +785,13 @@ Error ResourceInteractiveLoaderText::rename_dependencies(FileAccess *p_f, const 
 	return OK;
 }
 
-void ResourceInteractiveLoaderText::open(FileAccess *p_f, bool p_skip_first_tag) {
+void ResourceInteractiveLoaderText::open(FileAccess *p_f, bool p_skip_first_tag, bool p_readahead) {
 	error = OK;
 
 	lines = 1;
 	f = p_f;
 
-	stream.f = f;
+	stream.set_file(f, p_readahead ? VariantParser::Stream::READAHEAD_ENABLED : VariantParser::Stream::READAHEAD_DISABLED);
 	is_scene = false;
 	ignore_resource_parsing = false;
 	resource_current = 0;
@@ -1133,7 +1132,7 @@ String ResourceInteractiveLoaderText::recognize(FileAccess *p_f) {
 	lines = 1;
 	f = p_f;
 
-	stream.f = f;
+	stream.set_file(f, VariantParser::Stream::READAHEAD_ENABLED);
 
 	ignore_resource_parsing = true;
 

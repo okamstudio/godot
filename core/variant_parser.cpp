@@ -35,6 +35,7 @@
 #include "core/os/keyboard.h"
 #include "core/string_buffer.h"
 
+// Keep this function non-virtual, and as optimized as possible for the common case.
 CharType VariantParser::Stream::get_char() {
 	// is within buffer?
 	if (readahead_pointer < readahead_filled) {
@@ -42,31 +43,148 @@ CharType VariantParser::Stream::get_char() {
 	}
 
 	// attempt to readahead
-	readahead_filled = _read_buffer(readahead_buffer, readahead_enabled ? READAHEAD_SIZE : 1);
+	readahead_filled = _read_buffer(readahead_buffer, readahead_size);
 	if (readahead_filled) {
 		readahead_pointer = 0;
 	} else {
 		// EOF
 		readahead_pointer = 1;
-		eof = true;
+		_eof = true;
 		return 0;
 	}
 	return get_char();
 }
 
 bool VariantParser::Stream::is_eof() const {
-	if (readahead_enabled) {
-		return eof;
+	return _eof;
+}
+
+uint32_t VariantParser::Stream::get_readahead_offset() const {
+	DEV_ASSERT(!_eof || ((readahead_filled - readahead_pointer) == 0));
+	// Uncomment the next line if the assert is being hit.
+	// if (_eof) {return 0;}
+	return readahead_filled - readahead_pointer;
+}
+
+void VariantParser::Stream::invalidate_readahead(bool p_eof) {
+	readahead_filled = 0;
+	readahead_pointer = p_eof ? 1 : 0;
+	_eof = p_eof;
+}
+
+Error VariantParser::StreamFile::open_file(const String &p_path) {
+	Error err;
+	FileAccess *f = FileAccess::open(p_path, FileAccess::READ, &err);
+
+	if (!f) {
+		// double check we are not sending an OK in case of failure.
+		if (err == OK) {
+			err = FAILED;
+		}
+		return err;
 	}
-	return _is_eof();
+
+	if (err == OK) {
+		// Always use readahead for owned files.
+		// This is always safe, because the file pointer etc cannot be changed
+		// externally, and the chief reason for having owned files.
+		set_file(f, READAHEAD_ENABLED);
+		_is_owned_file = true;
+	}
+
+	return err;
+}
+
+Error VariantParser::StreamFile::close_file() {
+	if (_is_owned_file) {
+		if (_file) {
+			memdelete(_file);
+			_file = nullptr;
+			_is_owned_file = false;
+			invalidate_readahead();
+			return OK;
+		}
+		// This should probably never occur, but just in case...
+		_is_owned_file = false;
+	}
+
+	return FAILED;
+}
+
+VariantParser::StreamFile::~StreamFile() {
+	// free any owned file
+	close_file();
+}
+
+void VariantParser::StreamFile::set_file(FileAccess *p_file, Readahead p_readahead) {
+	// free any existing owned file
+	close_file();
+
+	bool use_readahead = p_readahead == READAHEAD_ENABLED;
+
+	// noop?
+	if ((p_file == _file) && (use_readahead == readahead_enabled())) {
+		return;
+	}
+
+	_file = p_file;
+
+	// set_file defaults to a non-owned file,
+	// if we are setting an owned file we must set this bool
+	// immediately after set_file().
+	_is_owned_file = false;
+
+	readahead_size = use_readahead ? READAHEAD_SIZE : 1;
+	invalidate_readahead();
+
+	// Files should be opened BEFORE calling set_file.
+	ERR_FAIL_COND(_file && !_file->is_open());
+}
+
+void VariantParser::StreamFile::invalidate_readahead() {
+	bool eof = true;
+	if (_file) {
+		bool open = _file->is_open();
+		eof = open ? _file->eof_reached() : false;
+
+		VariantParser::Stream::invalidate_readahead(eof);
+#ifdef DEV_ENABLED
+		_readahead_start_source_pos = open ? _file->get_position() : 0;
+		_readahead_end_source_pos = _readahead_start_source_pos;
+#endif
+	} else {
+		VariantParser::Stream::invalidate_readahead(true);
+#ifdef DEV_ENABLED
+		_readahead_start_source_pos = 0;
+		_readahead_end_source_pos = 0;
+#endif
+	}
 }
 
 uint32_t VariantParser::StreamFile::_read_buffer(CharType *p_buffer, uint32_t p_num_chars) {
 	// The buffer is assumed to include at least one character (for null terminator)
-	ERR_FAIL_COND_V(!p_num_chars, 0);
+	DEV_ASSERT(p_num_chars);
+	ERR_FAIL_NULL_V_MSG(_file, 0, "Attempting to read from NULL file.");
+
+#ifdef DEV_ENABLED
+	if (readahead_enabled()) {
+		_readahead_start_source_pos = _file->get_position();
+		if (_readahead_start_source_pos != _readahead_end_source_pos) {
+			ERR_PRINT_ONCE("StreamFile out of sync. HIGH PRIORITY bug, please report on github.");
+			return 0;
+		}
+	}
+#endif
 
 	uint8_t *temp = (uint8_t *)alloca(p_num_chars);
-	uint64_t num_read = f->get_buffer(temp, p_num_chars);
+	uint64_t num_read = _file->get_buffer(temp, p_num_chars);
+
+#ifdef DEV_ENABLED
+	if (readahead_enabled()) {
+		_readahead_end_source_pos = _file->get_position();
+	}
+#endif
+
 	ERR_FAIL_COND_V(num_read == UINT64_MAX, 0);
 
 	// translate to wchar
@@ -83,19 +201,32 @@ bool VariantParser::StreamFile::is_utf8() const {
 }
 
 bool VariantParser::StreamFile::_is_eof() const {
-	return f->eof_reached();
+	ERR_FAIL_NULL_V(_file, true);
+	return _file->eof_reached();
+}
+
+uint64_t VariantParser::StreamFile::get_position() const {
+	ERR_FAIL_NULL_V(_file, -1);
+
+	// Note this assumes that get_position() returns get_length() when EOF
+	// is reached. Watch for bugs here.
+	return _file->get_position() - get_readahead_offset();
+}
+
+uint64_t VariantParser::StreamString::get_position() const {
+	return _pos - get_readahead_offset();
 }
 
 uint32_t VariantParser::StreamString::_read_buffer(CharType *p_buffer, uint32_t p_num_chars) {
 	// The buffer is assumed to include at least one character (for null terminator)
-	ERR_FAIL_COND_V(!p_num_chars, 0);
+	DEV_ASSERT(p_num_chars);
 
-	int available = MAX(s.length() - pos, 0);
+	int available = MAX(s.length() - _pos, 0);
 	if (available >= (int)p_num_chars) {
 		const CharType *src = s.ptr();
-		src += pos;
+		src += _pos;
 		memcpy(p_buffer, src, p_num_chars * sizeof(CharType));
-		pos += p_num_chars;
+		_pos += p_num_chars;
 
 		return p_num_chars;
 	}
@@ -103,9 +234,9 @@ uint32_t VariantParser::StreamString::_read_buffer(CharType *p_buffer, uint32_t 
 	// going to reach EOF
 	if (available) {
 		const CharType *src = s.ptr();
-		src += pos;
+		src += _pos;
 		memcpy(p_buffer, src, available * sizeof(CharType));
-		pos += available;
+		_pos += available;
 	}
 
 	// add a zero
@@ -119,7 +250,7 @@ bool VariantParser::StreamString::is_utf8() const {
 }
 
 bool VariantParser::StreamString::_is_eof() const {
-	return pos > s.length();
+	return _pos > s.length();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

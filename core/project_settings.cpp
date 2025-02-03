@@ -581,17 +581,13 @@ Error ProjectSettings::_load_settings_binary(const String &p_path) {
 }
 
 Error ProjectSettings::_load_settings_text(const String &p_path) {
-	Error err;
-	FileAccess *f = FileAccess::open(p_path, FileAccess::READ, &err);
-
-	if (!f) {
+	VariantParser::StreamFile stream;
+	Error err = stream.open_file(p_path);
+	if (err != OK) {
 		// FIXME: Above 'err' error code is ERR_FILE_CANT_OPEN if the file is missing
 		// This needs to be streamlined if we want decent error reporting
 		return ERR_FILE_NOT_FOUND;
 	}
-
-	VariantParser::StreamFile stream;
-	stream.f = f;
 
 	String assign;
 	Variant value;
@@ -609,7 +605,6 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 
 		err = VariantParser::parse_tag_assign_eof(&stream, lines, error_text, next_tag, assign, value, nullptr, true);
 		if (err == ERR_FILE_EOF) {
-			memdelete(f);
 			// If we're loading a project.godot from source code, we can operate some
 			// ProjectSettings conversions if need be.
 			_convert_to_last_version(config_version);
@@ -617,7 +612,6 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 			return OK;
 		} else if (err != OK) {
 			ERR_PRINT("Error parsing " + p_path + " at line " + itos(lines) + ": " + error_text + " File might be corrupted.");
-			memdelete(f);
 			return err;
 		}
 
@@ -625,7 +619,6 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 			if (section == String() && assign == "config_version") {
 				config_version = value;
 				if (config_version > CONFIG_VERSION) {
-					memdelete(f);
 					ERR_FAIL_V_MSG(ERR_FILE_CANT_OPEN, vformat("Can't open project at '%s', its `config_version` (%d) is from a more recent and incompatible version of the engine. Expected config version: %d.", p_path, config_version, CONFIG_VERSION));
 				}
 			} else {

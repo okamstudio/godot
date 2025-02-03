@@ -243,7 +243,7 @@ Error ConfigFile::load_encrypted_pass(const String &p_path, const String &p_pass
 
 Error ConfigFile::_internal_load(const String &p_path, FileAccess *f) {
 	VariantParser::StreamFile stream;
-	stream.f = f;
+	stream.set_file(f, VariantParser::Stream::READAHEAD_ENABLED);
 
 	Error err = _parse(p_path, &stream);
 

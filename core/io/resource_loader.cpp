@@ -768,13 +768,9 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 		new_path = path_remaps[new_path];
 	} else {
 		// Try file remap.
-		Error err;
-		FileAccess *f = FileAccess::open(new_path + ".remap", FileAccess::READ, &err);
-
-		if (f) {
-			VariantParser::StreamFile stream;
-			stream.f = f;
-
+		VariantParser::StreamFile stream;
+		Error err = stream.open_file(new_path + ".remap");
+		if (err == OK) {
 			String assign;
 			Variant value;
 			VariantParser::Tag next_tag;
@@ -801,8 +797,6 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 					break;
 				}
 			}
-
-			memdelete(f);
 		}
 	}
 

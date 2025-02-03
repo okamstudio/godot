@@ -342,15 +342,12 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 		return true;
 	}
 
-	Error err;
-	FileAccess *f = FileAccess::open(p_path + ".import", FileAccess::READ, &err);
-
-	if (!f) { //no import file, do reimport
+	VariantParser::StreamFile stream;
+	Error err = stream.open_file(p_path + ".import");
+	if (err != OK) {
+		// no import file, do reimport
 		return true;
 	}
-
-	VariantParser::StreamFile stream;
-	stream.f = f;
 
 	String assign;
 	Variant value;
@@ -377,7 +374,6 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 			break;
 		} else if (err != OK) {
 			ERR_PRINT("ResourceFormatImporter::load - '" + p_path + ".import:" + itos(lines) + "' error '" + error_text + "'.");
-			memdelete(f);
 			return false; //parse error, try reimport manually (Avoid reimport loop on broken file)
 		}
 
@@ -404,7 +400,7 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 		}
 	}
 
-	memdelete(f);
+	stream.close_file();
 
 	if (importer_name == "keep") {
 		return false; //keep mode, do not reimport
@@ -412,13 +408,12 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 
 	// Read the md5's from a separate file (so the import parameters aren't dependent on the file version
 	String base_path = ResourceFormatImporter::get_singleton()->get_import_base_path(p_path);
-	FileAccess *md5s = FileAccess::open(base_path + ".md5", FileAccess::READ, &err);
-	if (!md5s) { // No md5's stored for this resource
+	VariantParser::StreamFile md5_stream;
+	err = md5_stream.open_file(base_path + ".md5");
+	if (err != OK) {
+		// No md5's stored for this resource
 		return true;
 	}
-
-	VariantParser::StreamFile md5_stream;
-	md5_stream.f = md5s;
 
 	while (true) {
 		assign = Variant();
@@ -431,7 +426,6 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 			break;
 		} else if (err != OK) {
 			ERR_PRINT("ResourceFormatImporter::load - '" + p_path + ".import.md5:" + itos(lines) + "' error '" + error_text + "'.");
-			memdelete(md5s);
 			return false; // parse error
 		}
 		if (assign != String()) {
@@ -444,7 +438,7 @@ bool EditorFileSystem::_test_for_reimport(const String &p_path, bool p_only_impo
 			}
 		}
 	}
-	memdelete(md5s);
+	md5_stream.close_file();
 
 	//imported files are gone, reimport
 	for (List<String>::Element *E = to_check.front(); E; E = E->next()) {
