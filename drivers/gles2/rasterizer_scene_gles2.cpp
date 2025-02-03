@@ -858,7 +858,7 @@ void RasterizerSceneGLES2::environment_set_fog(RID p_env, bool p_enable, float p
 	ERR_FAIL_COND(!env);
 }
 
-void RasterizerSceneGLES2::environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness) {
+void RasterizerSceneGLES2::environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness, VS::EnvironmentSSRResolution p_resolution) {
 	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 }

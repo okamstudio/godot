@@ -382,6 +382,7 @@ public:
 		int canvas_max_layer;
 
 		bool ssr_enabled;
+		VS::EnvironmentSSRResolution ssr_resolution;
 		int ssr_max_steps;
 		float ssr_fade_in;
 		float ssr_fade_out;
@@ -468,6 +469,7 @@ public:
 				ambient_sky_contribution(0.0),
 				canvas_max_layer(0),
 				ssr_enabled(false),
+				ssr_resolution(VS::ENV_SSR_RESOLUTION_HALF),
 				ssr_max_steps(64),
 				ssr_fade_in(0.15),
 				ssr_fade_out(2.0),
@@ -555,7 +557,7 @@ public:
 	virtual void environment_set_glow_map(RID p_env, float p_glow_map_strength, RID p_glow_map);
 	virtual void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture);
 
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness);
+	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_in, float p_fade_out, float p_depth_tolerance, bool p_roughness, VS::EnvironmentSSRResolution p_resolution = VS::ENV_SSR_RESOLUTION_FULL);
 	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_radius2, float p_intensity2, float p_bias, float p_light_affect, float p_ao_channel_affect, const Color &p_color, VS::EnvironmentSSAOQuality p_quality, VS::EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness);
 
 	virtual void environment_set_tonemap(RID p_env, VS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale);

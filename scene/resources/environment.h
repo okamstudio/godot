@@ -73,6 +73,12 @@ public:
 		DOF_BLUR_QUALITY_HIGH,
 	};
 
+	enum SSRResolution {
+		SSR_RESOLUTION_QUARTER,
+		SSR_RESOLUTION_HALF,
+		SSR_RESOLUTION_FULL,
+	};
+
 	enum SSAOBlur {
 		SSAO_BLUR_DISABLED,
 		SSAO_BLUR_1x1,
@@ -117,6 +123,7 @@ private:
 	Ref<Texture> adjustment_color_correction;
 
 	bool ssr_enabled;
+	SSRResolution ssr_resolution;
 	int ssr_max_steps;
 	float ssr_fade_in;
 	float ssr_fade_out;
@@ -257,6 +264,9 @@ public:
 
 	void set_ssr_enabled(bool p_enable);
 	bool is_ssr_enabled() const;
+
+	void set_ssr_resolution(SSRResolution p_resolution);
+	SSRResolution get_ssr_resolution() const;
 
 	void set_ssr_max_steps(int p_steps);
 	int get_ssr_max_steps() const;
@@ -430,6 +440,7 @@ VARIANT_ENUM_CAST(Environment::BGMode)
 VARIANT_ENUM_CAST(Environment::ToneMapper)
 VARIANT_ENUM_CAST(Environment::GlowBlendMode)
 VARIANT_ENUM_CAST(Environment::DOFBlurQuality)
+VARIANT_ENUM_CAST(Environment::SSRResolution)
 VARIANT_ENUM_CAST(Environment::SSAOQuality)
 VARIANT_ENUM_CAST(Environment::SSAOBlur)
 

@@ -1021,6 +1021,7 @@
 			<argument index="4" name="fade_out" type="float" />
 			<argument index="5" name="depth_tolerance" type="float" />
 			<argument index="6" name="roughness" type="bool" />
+			<argument index="7" name="resolution" type="int" enum="VisualServer.EnvironmentSSRResolution" />
 			<description>
 				Sets the variables to be used with the "screen space reflections" post-process effect. See [Environment] for more details.
 			</description>
@@ -4021,6 +4022,15 @@
 		</constant>
 		<constant name="ENV_TONE_MAPPER_ACES_FITTED" value="4" enum="EnvironmentToneMapper">
 			Use the Academy Color Encoding System tonemapper. ACES is slightly more expensive than other options, but it handles bright lighting in a more realistic fashion by desaturating it as it becomes brighter. ACES typically has a more contrasted output compared to [constant ENV_TONE_MAPPER_REINHARD] and [constant ENV_TONE_MAPPER_FILMIC].
+		</constant>
+		<constant name="ENV_SSR_RESOLUTION_QUARTER" value="0" enum="EnvironmentSSRResolution">
+			25% resolution scale for screen-space reflections (fastest). Remember to halve the value of [member Environment.ss_reflections_max_steps] to make the reflection length identical to what it would be when using [constant ENV_SSR_RESOLUTION_HALF].
+		</constant>
+		<constant name="ENV_SSR_RESOLUTION_HALF" value="1" enum="EnvironmentSSRResolution">
+			50% resolution scale for screen-space reflections.
+		</constant>
+		<constant name="ENV_SSR_RESOLUTION_FULL" value="2" enum="EnvironmentSSRResolution">
+			100% resolution scale for screen-space reflections (slowest). Remember to double the value of [member Environment.ss_reflections_max_steps] to make the reflection length identical to what it would be when using [constant ENV_SSR_RESOLUTION_HALF].
 		</constant>
 		<constant name="ENV_SSAO_QUALITY_LOW" value="0" enum="EnvironmentSSAOQuality">
 			Lowest quality of screen space ambient occlusion.

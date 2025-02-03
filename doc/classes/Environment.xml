@@ -260,6 +260,10 @@
 		<member name="ss_reflections_max_steps" type="int" setter="set_ssr_max_steps" getter="get_ssr_max_steps" default="64">
 			The maximum number of steps for screen-space reflections. Higher values are slower.
 		</member>
+		<member name="ss_reflections_resolution" type="int" setter="set_ssr_resolution" getter="get_ssr_resolution" enum="Environment.SSRResolution" default="1">
+			The resolution scale to use for screen-space reflections. Higher resolutions result in better-looking screen-space reflections, but are significantly slower, especially after adjusting the number of steps.
+			[b]Note:[/b] The higher the resolution scale, the shorter the reflection will appear to be (and vice versa). When setting the resolution scale to [constant SSR_RESOLUTION_FULL], double the value of [member ss_reflections_max_steps] to compensate for this. When setting the resolution scale to [constant SSR_RESOLUTION_QUARTER], halve the value of [member ss_reflections_max_steps] to compensate for this.
+		</member>
 		<member name="ss_reflections_roughness" type="bool" setter="set_ssr_rough" getter="is_ssr_rough" default="true">
 			If [code]true[/code], screen-space reflections will take the material roughness into account.
 		</member>
@@ -371,6 +375,15 @@
 		</constant>
 		<constant name="DOF_BLUR_QUALITY_HIGH" value="2" enum="DOFBlurQuality">
 			High depth-of-field blur quality (slowest).
+		</constant>
+		<constant name="SSR_RESOLUTION_QUARTER" value="0" enum="SSRResolution">
+			25% resolution scale for screen-space reflections (fastest). Remember to halve the value of [member ss_reflections_max_steps] to make the reflection length identical to what it would be when using [constant SSR_RESOLUTION_HALF].
+		</constant>
+		<constant name="SSR_RESOLUTION_HALF" value="1" enum="SSRResolution">
+			50% resolution scale for screen-space reflections.
+		</constant>
+		<constant name="SSR_RESOLUTION_FULL" value="2" enum="SSRResolution">
+			100% resolution scale for screen-space reflections (slowest). Remember to double the value of [member ss_reflections_max_steps] to make the reflection length identical to what it would be when using [constant SSR_RESOLUTION_HALF].
 		</constant>
 		<constant name="SSAO_BLUR_DISABLED" value="0" enum="SSAOBlur">
 			No blur for the screen-space ambient occlusion effect (fastest).

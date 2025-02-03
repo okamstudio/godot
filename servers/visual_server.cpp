@@ -2150,7 +2150,7 @@ void VisualServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("environment_set_glow_map", "env", "glow_map_strength", "glow_map"), &VisualServer::environment_set_glow_map);
 	ClassDB::bind_method(D_METHOD("environment_set_tonemap", "env", "tone_mapper", "exposure", "white", "auto_exposure", "min_luminance", "max_luminance", "auto_exp_speed", "auto_exp_grey"), &VisualServer::environment_set_tonemap);
 	ClassDB::bind_method(D_METHOD("environment_set_adjustment", "env", "enable", "brightness", "contrast", "saturation", "ramp"), &VisualServer::environment_set_adjustment);
-	ClassDB::bind_method(D_METHOD("environment_set_ssr", "env", "enable", "max_steps", "fade_in", "fade_out", "depth_tolerance", "roughness"), &VisualServer::environment_set_ssr);
+	ClassDB::bind_method(D_METHOD("environment_set_ssr", "env", "enable", "max_steps", "fade_in", "fade_out", "depth_tolerance", "roughness", "resolution"), &VisualServer::environment_set_ssr);
 	ClassDB::bind_method(D_METHOD("environment_set_ssao", "env", "enable", "radius", "intensity", "radius2", "intensity2", "bias", "light_affect", "ao_channel_affect", "color", "quality", "blur", "bilateral_sharpness"), &VisualServer::environment_set_ssao);
 	ClassDB::bind_method(D_METHOD("environment_set_fog", "env", "enable", "color", "sun_color", "sun_amount"), &VisualServer::environment_set_fog);
 
@@ -2568,6 +2568,10 @@ void VisualServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_FILMIC);
 	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_ACES);
 	BIND_ENUM_CONSTANT(ENV_TONE_MAPPER_ACES_FITTED);
+
+	BIND_ENUM_CONSTANT(ENV_SSR_RESOLUTION_QUARTER);
+	BIND_ENUM_CONSTANT(ENV_SSR_RESOLUTION_HALF);
+	BIND_ENUM_CONSTANT(ENV_SSR_RESOLUTION_FULL);
 
 	BIND_ENUM_CONSTANT(ENV_SSAO_QUALITY_LOW);
 	BIND_ENUM_CONSTANT(ENV_SSAO_QUALITY_MEDIUM);

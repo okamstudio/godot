@@ -346,7 +346,7 @@ void Environment::_validate_property(PropertyInfo &property) const {
 
 void Environment::set_ssr_enabled(bool p_enable) {
 	ssr_enabled = p_enable;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 	_change_notify();
 }
 
@@ -354,9 +354,17 @@ bool Environment::is_ssr_enabled() const {
 	return ssr_enabled;
 }
 
+void Environment::set_ssr_resolution(SSRResolution p_resolution) {
+	ssr_resolution = p_resolution;
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
+}
+Environment::SSRResolution Environment::get_ssr_resolution() const {
+	return ssr_resolution;
+}
+
 void Environment::set_ssr_max_steps(int p_steps) {
 	ssr_max_steps = p_steps;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 }
 int Environment::get_ssr_max_steps() const {
 	return ssr_max_steps;
@@ -364,7 +372,7 @@ int Environment::get_ssr_max_steps() const {
 
 void Environment::set_ssr_fade_in(float p_fade_in) {
 	ssr_fade_in = p_fade_in;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 }
 float Environment::get_ssr_fade_in() const {
 	return ssr_fade_in;
@@ -372,7 +380,7 @@ float Environment::get_ssr_fade_in() const {
 
 void Environment::set_ssr_fade_out(float p_fade_out) {
 	ssr_fade_out = p_fade_out;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 }
 float Environment::get_ssr_fade_out() const {
 	return ssr_fade_out;
@@ -380,7 +388,7 @@ float Environment::get_ssr_fade_out() const {
 
 void Environment::set_ssr_depth_tolerance(float p_depth_tolerance) {
 	ssr_depth_tolerance = p_depth_tolerance;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 }
 float Environment::get_ssr_depth_tolerance() const {
 	return ssr_depth_tolerance;
@@ -388,7 +396,7 @@ float Environment::get_ssr_depth_tolerance() const {
 
 void Environment::set_ssr_rough(bool p_enable) {
 	ssr_roughness = p_enable;
-	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness);
+	VS::get_singleton()->environment_set_ssr(environment, ssr_enabled, ssr_max_steps, ssr_fade_in, ssr_fade_out, ssr_depth_tolerance, ssr_roughness, VS::EnvironmentSSRResolution(ssr_resolution));
 }
 bool Environment::is_ssr_rough() const {
 	return ssr_roughness;
@@ -989,6 +997,9 @@ void Environment::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_ssr_enabled", "enabled"), &Environment::set_ssr_enabled);
 	ClassDB::bind_method(D_METHOD("is_ssr_enabled"), &Environment::is_ssr_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_ssr_resolution", "resolution"), &Environment::set_ssr_resolution);
+	ClassDB::bind_method(D_METHOD("get_ssr_resolution"), &Environment::get_ssr_resolution);
+
 	ClassDB::bind_method(D_METHOD("set_ssr_max_steps", "max_steps"), &Environment::set_ssr_max_steps);
 	ClassDB::bind_method(D_METHOD("get_ssr_max_steps"), &Environment::get_ssr_max_steps);
 
@@ -1006,6 +1017,7 @@ void Environment::_bind_methods() {
 
 	ADD_GROUP("SS Reflections", "ss_reflections_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ss_reflections_enabled"), "set_ssr_enabled", "is_ssr_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "ss_reflections_resolution", PROPERTY_HINT_ENUM, "Quarter (Fast), Half (Average), Full (Slow)"), "set_ssr_resolution", "get_ssr_resolution");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "ss_reflections_max_steps", PROPERTY_HINT_RANGE, "1,512,1"), "set_ssr_max_steps", "get_ssr_max_steps");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ss_reflections_fade_in", PROPERTY_HINT_EXP_EASING), "set_ssr_fade_in", "get_ssr_fade_in");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "ss_reflections_fade_out", PROPERTY_HINT_EXP_EASING), "set_ssr_fade_out", "get_ssr_fade_out");
@@ -1213,6 +1225,10 @@ void Environment::_bind_methods() {
 	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_MEDIUM);
 	BIND_ENUM_CONSTANT(DOF_BLUR_QUALITY_HIGH);
 
+	BIND_ENUM_CONSTANT(SSR_RESOLUTION_QUARTER);
+	BIND_ENUM_CONSTANT(SSR_RESOLUTION_HALF);
+	BIND_ENUM_CONSTANT(SSR_RESOLUTION_FULL);
+
 	BIND_ENUM_CONSTANT(SSAO_BLUR_DISABLED);
 	BIND_ENUM_CONSTANT(SSAO_BLUR_1x1);
 	BIND_ENUM_CONSTANT(SSAO_BLUR_2x2);
@@ -1226,6 +1242,7 @@ void Environment::_bind_methods() {
 Environment::Environment() :
 		bg_mode(BG_CLEAR_COLOR),
 		tone_mapper(TONE_MAPPER_LINEAR),
+		ssr_resolution(SSR_RESOLUTION_HALF),
 		ssao_blur(SSAO_BLUR_3x3),
 		ssao_quality(SSAO_QUALITY_MEDIUM),
 		glow_blend_mode(GLOW_BLEND_MODE_ADDITIVE),
@@ -1262,6 +1279,7 @@ Environment::Environment() :
 	set_adjustment_enable(adjustment_enabled); //update
 
 	ssr_enabled = false;
+	ssr_resolution = SSR_RESOLUTION_HALF;
 	ssr_max_steps = 64;
 	ssr_fade_in = 0.15;
 	ssr_fade_out = 2.0;

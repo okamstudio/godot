@@ -30,6 +30,7 @@ uniform float camera_z_far;
 
 uniform vec2 viewport_size;
 uniform vec2 pixel_size;
+uniform float resolution_multiplier;
 
 uniform float filter_mipmap_levels;
 
@@ -174,8 +175,8 @@ void main() {
 	if (found) {
 		float margin_blend = 1.0;
 
-		vec2 margin = vec2((viewport_size.x + viewport_size.y) * 0.5 * 0.05); // make a uniform margin
-		if (any(bvec4(lessThan(pos, vec2(0.0, 0.0)), greaterThan(pos, viewport_size * 0.5)))) {
+		vec2 margin = vec2((viewport_size.x + viewport_size.y) * resolution_multiplier * 0.05); // make a uniform margin
+		if (any(bvec4(lessThan(pos, vec2(0.0, 0.0)), greaterThan(pos, viewport_size * resolution_multiplier)))) {
 			// clip at the screen edges
 			frag_color = vec4(0.0);
 			return;
@@ -183,8 +184,7 @@ void main() {
 
 		{
 			//blend fading out towards inner margin
-			// 0.25 = midpoint of half-resolution reflection
-			vec2 margin_grad = mix(viewport_size * 0.5 - pos, pos, lessThan(pos, viewport_size * 0.25));
+			vec2 margin_grad = mix(viewport_size * resolution_multiplier - pos, pos, lessThan(pos, viewport_size * resolution_multiplier * 0.5));
 			margin_blend = smoothstep(0.0, margin.x * margin.y, margin_grad.x * margin_grad.y);
 			//margin_blend = 1.0;
 		}
