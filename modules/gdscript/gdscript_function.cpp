@@ -614,9 +614,21 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 
 #ifdef DEBUG_ENABLED
 				if (!valid) {
-					String err_type;
-					err_text = "Invalid set index '" + String(*index) + "' (on base: '" + _get_var_type(dst) + "') with value of type '" + _get_var_type(value) + "'.";
-					OPCODE_BREAK;
+					String _index = String(*index);
+					List<PropertyInfo> property_list;
+					dst->get_property_list(&property_list);
+					bool _has = false;
+					for (List<PropertyInfo>::Element *E = property_list.front(); E; E = E->next()) {
+						if (E->get().name == _index) {
+							_has = true;
+							break;
+						}
+					}
+					if (!_has) {
+						String err_type;
+						err_text = "Invalid set index '" + String(*index) + "' (on base: '" + _get_var_type(dst) + "') with value of type '" + _get_var_type(value) + "'.";
+						OPCODE_BREAK;
+					}
 				}
 #endif
 				ip += 4;
@@ -647,7 +659,19 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 					if (src->has_method(*index)) {
 						err_text = "Invalid get index '" + index->operator String() + "' (on base: '" + _get_var_type(src) + "'). Did you mean '." + index->operator String() + "()' or funcref(obj, \"" + index->operator String() + "\") ?";
 					} else {
-						err_text = "Invalid get index '" + index->operator String() + "' (on base: '" + _get_var_type(src) + "').";
+						String _index = index->operator String();
+						List<PropertyInfo> property_list;
+						src->get_property_list(&property_list);
+						bool has = false;
+						for (List<PropertyInfo>::Element *E = property_list.front(); E; E = E->next()) {
+							if (E->get().name == _index) {
+								has = true;
+								break;
+							}
+						}
+						if (!has) {
+							err_text = "Invalid get index '" + index->operator String() + "' (on base: '" + _get_var_type(src) + "').";
+						}
 					}
 					OPCODE_BREAK;
 				}
