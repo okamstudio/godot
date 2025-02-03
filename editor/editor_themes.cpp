@@ -422,6 +422,8 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	const Color icon_color_normal = Color(1, 1, 1);
 	Color icon_color_hover = icon_color_normal * (dark_theme ? 1.15 : 1.45);
 	icon_color_hover.a = 1.0;
+	Color icon_color_disabled = icon_color_normal;
+	icon_color_disabled.a = 0.4;
 	// Make the pressed icon color overbright because icons are not completely white on a dark theme.
 	// On a light theme, icons are dark, so we need to modulate them with an even brighter color.
 	Color icon_color_pressed = accent_color * (dark_theme ? 1.15 : 3.5);
@@ -675,9 +677,11 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_focus", "Button", font_color_focus);
 	theme->set_color("font_color_pressed", "Button", accent_color);
 	theme->set_color("font_color_disabled", "Button", font_color_disabled);
+
 	theme->set_color("icon_color_normal", "Button", icon_color_normal);
 	theme->set_color("icon_color_hover", "Button", icon_color_hover);
 	theme->set_color("icon_color_pressed", "Button", icon_color_pressed);
+	theme->set_color("icon_color_disabled", "Button", icon_color_disabled);
 
 	// OptionButton
 	theme->set_stylebox("normal", "OptionButton", style_widget);
@@ -691,7 +695,11 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_focus", "OptionButton", font_color_focus);
 	theme->set_color("font_color_pressed", "OptionButton", accent_color);
 	theme->set_color("font_color_disabled", "OptionButton", font_color_disabled);
+
 	theme->set_color("icon_color_hover", "OptionButton", icon_color_hover);
+	theme->set_color("icon_color_pressed", "OptionButton", icon_color_pressed);
+	theme->set_color("icon_color_disabled", "OptionButton", icon_color_disabled);
+
 	theme->set_icon("arrow", "OptionButton", theme->get_icon("GuiOptionArrow", "EditorIcons"));
 	theme->set_constant("arrow_margin", "OptionButton", default_margin_size * EDSCALE);
 	theme->set_constant("modulate_arrow", "OptionButton", true);
@@ -713,7 +721,10 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_focus", "CheckButton", font_color_focus);
 	theme->set_color("font_color_pressed", "CheckButton", accent_color);
 	theme->set_color("font_color_disabled", "CheckButton", font_color_disabled);
+
 	theme->set_color("icon_color_hover", "CheckButton", icon_color_hover);
+	theme->set_color("icon_color_pressed", "CheckButton", icon_color_pressed);
+	theme->set_color("icon_color_disabled", "CheckButton", icon_color_disabled);
 
 	theme->set_constant("hseparation", "CheckButton", 4 * EDSCALE);
 	theme->set_constant("check_vadjust", "CheckButton", 0);
@@ -743,7 +754,10 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("font_color_focus", "CheckBox", font_color_focus);
 	theme->set_color("font_color_pressed", "CheckBox", accent_color);
 	theme->set_color("font_color_disabled", "CheckBox", font_color_disabled);
+
 	theme->set_color("icon_color_hover", "CheckBox", icon_color_hover);
+	theme->set_color("icon_color_pressed", "CheckBox", icon_color_pressed);
+	theme->set_color("icon_color_disabled", "CheckBox", icon_color_disabled);
 
 	theme->set_constant("hseparation", "CheckBox", 4 * EDSCALE);
 	theme->set_constant("check_vadjust", "CheckBox", 0);
