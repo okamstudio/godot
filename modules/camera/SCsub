@@ -8,7 +8,23 @@ env_camera = env_modules.Clone()
 if env["platform"] == "windows":
     env_camera.add_source_files(env.modules_sources, "register_types.cpp")
     env_camera.add_source_files(env.modules_sources, "camera_win.cpp")
-
+    if not env.msvc:
+        # MinGW
+        env.Append(
+            LIBS=[
+                "mf",
+                "mfplat",
+                "mfuuid",
+                "shlwapi",
+                "evr",  # MFGetStrideForBitmapInfoHeader
+            ]
+        )
+    else:
+        # MSVC
+        env.Append(LINKFLAGS=["mfcore.lib"])
+        env.Append(LINKFLAGS=["mfplat.lib"])
+        env.Append(LINKFLAGS=["mfreadwrite.lib"])
+        env.Append(LINKFLAGS=["mfuuid.lib"])
 elif env["platform"] == "osx":
     env_camera.add_source_files(env.modules_sources, "register_types.cpp")
     env_camera.add_source_files(env.modules_sources, "camera_osx.mm")

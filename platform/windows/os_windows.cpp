@@ -1154,6 +1154,10 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 		case WM_DEVICECHANGE: {
 			joypad->probe_joypads();
+			CameraServer *camera_server = CameraServer::get_singleton();
+			if (camera_server) {
+				camera_server->update_feeds();
+			}
 		} break;
 		case WM_SETCURSOR: {
 			if (LOWORD(lParam) == HTCLIENT) {
