@@ -618,6 +618,7 @@ private:
 	void _set_end_statement_error(String p_name);
 
 	void _determine_inheritance(ClassNode *p_class, bool p_recursive = true);
+	bool _determine_inheritance_step(ClassNode *p_class);
 	bool _parse_type(DataType &r_type, bool p_can_be_void = false);
 	DataType _resolve_type(const DataType &p_source, int p_line);
 	DataType _type_from_variant(const Variant &p_value) const;

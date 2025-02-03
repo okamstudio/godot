@@ -824,6 +824,10 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 					bfn = true;
 				}
 
+				if (!bfn && ScriptServer::is_global_class(identifier)) {
+					dependencies.push_back(ScriptServer::get_global_class_path(identifier));
+				}
+
 				if (!dependencies_only) {
 					if (!bfn && ScriptServer::is_global_class(identifier)) {
 						Ref<Script> scr = ResourceLoader::load(ScriptServer::get_global_class_path(identifier));
@@ -3658,13 +3662,6 @@ void GDScriptParser::_parse_extends(ClassNode *p_class) {
 		p_class->extends_file = constant;
 		tokenizer->advance();
 
-		// Add parent script as a dependency
-		String parent = constant;
-		if (parent.is_rel_path()) {
-			parent = base_path.plus_file(parent).simplify_path();
-		}
-		dependencies.push_back(parent);
-
 		if (tokenizer->get_token() != GDScriptTokenizer::TK_PERIOD) {
 			return;
 		} else {
@@ -5475,6 +5472,21 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 }
 
 void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive) {
+	if (!_determine_inheritance_step(p_class)) {
+		return;
+	}
+
+	if (p_recursive) {
+		// Recursively determine subclasses
+		for (int i = 0; i < p_class->subclasses.size(); i++) {
+			_determine_inheritance(p_class->subclasses[i], p_recursive);
+		}
+	}
+}
+
+// Returns true to indicate OK; false to indicate some kind of error.
+// This is a separate function because a lot of this logic needs to return early if we're doing dependencies-only.
+bool GDScriptParser::_determine_inheritance_step(ClassNode *p_class) {
 	if (p_class->base_type.has_type) {
 		// Already determined
 	} else if (p_class->extends_used) {
@@ -5493,18 +5505,25 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 
 				if (base == "" || base.is_rel_path()) {
 					_set_error("Couldn't resolve relative path for the parent class: " + path, p_class->line);
-					return;
+					return false;
 				}
 				path = base.plus_file(path).simplify_path();
 			}
+
+			// add parent script as a dependency
+			dependencies.push_back(path);
+			if (dependencies_only) {
+				return true;
+			}
+
 			script = ResourceLoader::load(path);
 			if (script.is_null()) {
 				_set_error("Couldn't load the base class: " + path, p_class->line);
-				return;
+				return false;
 			}
 			if (!script->is_valid()) {
 				_set_error("Script isn't fully loaded (cyclic preload?): " + path, p_class->line);
-				return;
+				return false;
 			}
 
 			if (p_class->extends_class.size()) {
@@ -5515,7 +5534,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 						script = subclass;
 					} else {
 						_set_error("Couldn't find the subclass: " + sub, p_class->line);
-						return;
+						return false;
 					}
 				}
 			}
@@ -5523,7 +5542,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 		} else {
 			if (p_class->extends_class.size() == 0) {
 				_set_error("Parser bug: undecidable inheritance.", p_class->line);
-				ERR_FAIL();
+				ERR_FAIL_V(false);
 			}
 			//look around for the subclasses
 
@@ -5533,22 +5552,37 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 			Ref<GDScript> base_script;
 
 			if (ScriptServer::is_global_class(base)) {
-				base_script = ResourceLoader::load(ScriptServer::get_global_class_path(base));
+				String class_path = ScriptServer::get_global_class_path(base);
+				dependencies.push_back(class_path);
+				if (dependencies_only) {
+					return true;
+				}
+				base_script = ResourceLoader::load(class_path);
 				if (!base_script.is_valid()) {
 					_set_error("The class \"" + base + "\" couldn't be fully loaded (script error or cyclic dependency).", p_class->line);
-					return;
+					return false;
 				}
 				p = nullptr;
 			} else {
 				String autoload_path = _lookup_autoload_path_for_identifier(base);
 				if (!autoload_path.empty()) {
+					dependencies.push_back(autoload_path);
+					if (dependencies_only) {
+						return true;
+					}
 					base_script = ResourceLoader::load(autoload_path);
 					if (!base_script.is_valid()) {
 						_set_error("Class '" + base + "' could not be fully loaded (script error or cyclic inheritance).", p_class->line);
-						return;
+						return false;
 					}
 					p = nullptr;
 				}
+			}
+
+			// Dependency finding only cares about external file references
+			// We don't need to actually find inheritance errors
+			if (dependencies_only) {
+				return true;
 			}
 
 			while (p) {
@@ -5560,7 +5594,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 						while (test) {
 							if (test == p_class) {
 								_set_error("Cyclic inheritance.", test->line);
-								return;
+								return false;
 							}
 							if (test->base_type.kind == DataType::CLASS) {
 								test = test->base_type.class_type;
@@ -5590,13 +5624,13 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 				if (p->constant_expressions.has(base)) {
 					if (p->constant_expressions[base].expression->type != Node::TYPE_CONSTANT) {
 						_set_error("Couldn't resolve the constant \"" + base + "\".", p_class->line);
-						return;
+						return false;
 					}
 					const ConstantNode *cn = static_cast<const ConstantNode *>(p->constant_expressions[base].expression);
 					base_script = cn->value;
 					if (base_script.is_null()) {
 						_set_error("Constant isn't a class: " + base, p_class->line);
-						return;
+						return false;
 					}
 					break;
 				}
@@ -5619,12 +5653,12 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 						Ref<GDScript> new_base_class = find_subclass->get_constants()[subclass];
 						if (new_base_class.is_null()) {
 							_set_error("Constant isn't a class: " + ident, p_class->line);
-							return;
+							return false;
 						}
 						find_subclass = new_base_class;
 					} else {
 						_set_error("Couldn't find the subclass: " + ident, p_class->line);
-						return;
+						return false;
 					}
 				}
 
@@ -5633,12 +5667,12 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 			} else if (!base_class) {
 				if (p_class->extends_class.size() > 1) {
 					_set_error("Invalid inheritance (unknown class + subclasses).", p_class->line);
-					return;
+					return false;
 				}
 				//if not found, try engine classes
 				if (!GDScriptLanguage::get_singleton()->get_global_map().has(base)) {
 					_set_error("Unknown class: \"" + base + "\"", p_class->line);
-					return;
+					return false;
 				}
 
 				native = base;
@@ -5660,7 +5694,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 			p_class->base_type.native_type = native;
 		} else {
 			_set_error("Couldn't determine inheritance.", p_class->line);
-			return;
+			return false;
 		}
 
 	} else {
@@ -5669,13 +5703,7 @@ void GDScriptParser::_determine_inheritance(ClassNode *p_class, bool p_recursive
 		p_class->base_type.kind = DataType::NATIVE;
 		p_class->base_type.native_type = "Reference";
 	}
-
-	if (p_recursive) {
-		// Recursively determine subclasses
-		for (int i = 0; i < p_class->subclasses.size(); i++) {
-			_determine_inheritance(p_class->subclasses[i], p_recursive);
-		}
-	}
+	return true;
 }
 
 String GDScriptParser::DataType::to_string() const {
@@ -8757,11 +8785,14 @@ Error GDScriptParser::_parse(const String &p_base_path) {
 		return ERR_PARSE_ERROR;
 	}
 
+	_determine_inheritance(main_class);
+
+	// Inheritance must be determined to resolve global classes to dependencies.
+	// If this isn't done, exports can lose base classes.
+	// Unfortunately, this can't be pushed forward much further with the current parser without loading resources, I think...
 	if (dependencies_only) {
 		return OK;
 	}
-
-	_determine_inheritance(main_class);
 
 	if (error_set) {
 		return ERR_PARSE_ERROR;
