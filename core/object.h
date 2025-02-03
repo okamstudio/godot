@@ -794,10 +794,20 @@ class ObjectDB {
 	static void remove_instance(Object *p_object);
 	friend void register_core_types();
 
+	static Object *_get_instance(ObjectID p_instance_id);
+
 public:
 	typedef void (*DebugFunc)(Object *p_obj);
 
-	static Object *get_instance(ObjectID p_instance_id);
+	template <class T>
+	static T *get_instance(ObjectID p_instance_id) {
+		return Object::cast_to<T>(_get_instance(p_instance_id));
+	}
+
+	static Object *get_instance(ObjectID p_instance_id) {
+		return _get_instance(p_instance_id);
+	}
+
 	static void debug_objects(DebugFunc p_func);
 	static int get_object_count();
 

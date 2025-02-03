@@ -2036,7 +2036,8 @@ void ObjectDB::remove_instance(Object *p_object) {
 
 	rw_lock.write_unlock();
 }
-Object *ObjectDB::get_instance(ObjectID p_instance_id) {
+
+Object *ObjectDB::_get_instance(ObjectID p_instance_id) {
 	rw_lock.read_lock();
 	Object **obj = instances.getptr(p_instance_id);
 	rw_lock.read_unlock();
