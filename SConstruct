@@ -382,6 +382,8 @@ if env_base["rids"] == "tracked_handles":
     env_base.Append(CPPDEFINES=["RID_HANDLE_ALLOCATION_TRACKING_ENABLED"])
     print("WARNING: Building with RIDs as tracked handles.")
 
+env_base.Append(CPPDEFINES=["BT_USE_DOUBLE_PRECISION"])  # Enable double precision in bullet physics engine
+
 if selected_platform in platform_list:
     tmppath = "./platform/" + selected_platform
     sys.path.insert(0, tmppath)

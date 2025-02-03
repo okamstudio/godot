@@ -48,6 +48,7 @@
 #include <BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h>
 #include <BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h>
 #include <BulletCollision/NarrowPhaseCollision/btPointCollector.h>
+#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 #include <BulletSoftBody/btSoftBodyRigidBodyCollisionConfiguration.h>
 #include <BulletSoftBody/btSoftRigidDynamicsWorld.h>
 #include <btBulletDynamicsCommon.h>
@@ -97,6 +98,7 @@ bool BulletPhysicsDirectSpaceState::intersect_ray(const Vector3 &p_from, const V
 	btResult.m_collisionFilterGroup = 0;
 	btResult.m_collisionFilterMask = p_collision_mask;
 	btResult.m_pickRay = p_pick_ray;
+	btResult.m_flags |= btTriangleRaycastCallback::kF_UseGjkConvexCastRaytest;
 
 	space->dynamicsWorld->rayTest(btVec_from, btVec_to, btResult);
 	if (btResult.hasHit()) {
