@@ -872,7 +872,7 @@ void RigidBodyBullet::on_enter_area(AreaBullet *p_area) {
 		}
 	}
 	if (PhysicsServer::AREA_SPACE_OVERRIDE_DISABLED != p_area->get_spOv_mode()) {
-		scratch_space_override_modificator();
+		reload_space_override_modificator();
 	}
 
 	if (p_area->is_spOv_gravityPoint()) {
@@ -905,7 +905,7 @@ void RigidBodyBullet::on_exit_area(AreaBullet *p_area) {
 		--areaWhereIamCount;
 		areasWhereIam.write[areaWhereIamCount] = NULL; // Even if this is not required, I clear the last element to be safe
 		if (PhysicsServer::AREA_SPACE_OVERRIDE_DISABLED != p_area->get_spOv_mode()) {
-			scratch_space_override_modificator();
+			reload_space_override_modificator();
 		}
 	}
 }
