@@ -87,15 +87,19 @@ float AnimationNodeAnimation::process(float p_time, bool p_seek) {
 	float time = current_time;
 	float step;
 
+	float anim_size = anim->get_length();
+
 	if (p_seek) {
 		time = p_time;
 		step = 0;
 	} else {
-		time = MAX(0, time + p_time);
+		if (p_time < 0 && Math::abs(p_time) > time) {
+			time = MAX(0, anim_size + time + p_time);
+		} else {
+			time = MAX(0, time + p_time);
+		}
 		step = p_time;
 	}
-
-	float anim_size = anim->get_length();
 
 	if (anim->has_loop()) {
 		if (anim_size) {
@@ -545,7 +549,7 @@ AnimationNodeBlend3::AnimationNodeBlend3() {
 /////////////////////////////////
 
 void AnimationNodeTimeScale::get_parameter_list(List<PropertyInfo> *r_list) const {
-	r_list->push_back(PropertyInfo(Variant::REAL, scale, PROPERTY_HINT_RANGE, "0,32,0.01,or_greater"));
+	r_list->push_back(PropertyInfo(Variant::REAL, scale, PROPERTY_HINT_RANGE, "-32,32,0.01,or_greater"));
 }
 Variant AnimationNodeTimeScale::get_parameter_default_value(const StringName &p_parameter) const {
 	return 1.0; //initial timescale
