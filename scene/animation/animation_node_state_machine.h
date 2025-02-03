@@ -288,6 +288,7 @@ class AnimationNodeStateMachinePlayback : public Resource {
 
 	bool is_grouped = false;
 
+	void _propagate_grouped_child_signal(const StringName p_child_current, String p_child_name, bool p_started);
 	void _travel_main(const StringName &p_state, bool p_reset_on_teleport = true);
 	void _start_main(const StringName &p_state, bool p_reset = true);
 	void _next_main();
