@@ -1635,7 +1635,10 @@
 			Max number of reflection probes renderable in a frame. If more reflection probes than this number are used, they will be ignored. Setting this low will slightly reduce memory usage and may decrease shader compile times, particularly on web. For most uses, the default value is suitable, but consider lowering as much as possible on web export.
 		</member>
 		<member name="rendering/limits/time/time_rollover_secs" type="float" setter="" getter="" default="3600">
-			Shaders have a time variable that constantly increases. At some point, it needs to be rolled back to zero to avoid precision errors on shader animations. This setting specifies when (in seconds).
+			When the [code]TIME[/code] shader built-in variable is incremented, it will roll over to [code]0.0[/code] when the value specified in [member rendering/limits/time/time_rollover_secs] is exceeded (in seconds). Since large floating-point values are less precise than small floating-point values, this should be set as low as possible to maximize the precision of the [code]TIME[/code] built-in variable in shaders. However, if this is set too low, shader animations may appear to restart from the beginning while the project is running.
+		</member>
+		<member name="rendering/limits/time/time_rollover_secs.mobile" type="float" setter="" getter="" default="30">
+			Mobile override for [member rendering/limits/time/time_rollover_secs], as shader precision on mobile platforms is much lower than on desktop platforms. On mobile platforms, 16-bit floats are typically used in shaders instead of 32-bit floats as used on desktop platforms.
 		</member>
 		<member name="rendering/misc/lossless_compression/force_png" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], the texture importer will import lossless textures using the PNG format. Otherwise, it will default to using WebP.

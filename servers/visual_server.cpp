@@ -2674,6 +2674,7 @@ VisualServer::VisualServer() {
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/misc/lossless_compression/webp_compression_level", PropertyInfo(Variant::INT, "rendering/misc/lossless_compression/webp_compression_level", PROPERTY_HINT_RANGE, "0,9,1"));
 
 	GLOBAL_DEF("rendering/limits/time/time_rollover_secs", 3600);
+	GLOBAL_DEF("rendering/limits/time/time_rollover_secs.mobile", 30);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/limits/time/time_rollover_secs", PropertyInfo(Variant::REAL, "rendering/limits/time/time_rollover_secs", PROPERTY_HINT_RANGE, "0,10000,1,or_greater"));
 
 	GLOBAL_DEF("rendering/quality/directional_shadow/size", 4096);
