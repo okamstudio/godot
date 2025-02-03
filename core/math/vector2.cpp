@@ -42,19 +42,12 @@ real_t Vector2::length_squared() const {
 	return x * x + y * y;
 }
 
-void Vector2::normalize() {
-	real_t l = x * x + y * y;
-	if (l != 0) {
-		l = Math::sqrt(l);
-		x /= l;
-		y /= l;
-	}
-}
-
 Vector2 Vector2::normalized() const {
 	Vector2 v = *this;
-	v.normalize();
-	return v;
+	if (v.normalize_and_get_length()) {
+		return v;
+	}
+	return Vector2();
 }
 
 bool Vector2::is_normalized() const {

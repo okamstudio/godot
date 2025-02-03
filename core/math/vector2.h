@@ -80,7 +80,8 @@ struct _NO_DISCARD_CLASS_ Vector2 {
 		return x < y ? 1 : 0;
 	}
 
-	void normalize();
+	bool normalize() { return normalize_and_get_length(); }
+	inline bool normalize_and_get_length(real_t *r_length = nullptr);
 	Vector2 normalized() const;
 	bool is_normalized() const;
 
@@ -242,6 +243,43 @@ Vector2 Vector2::linear_interpolate(const Vector2 &p_to, real_t p_weight) const 
 	res.y += (p_weight * (p_to.y - y));
 
 	return res;
+}
+
+bool Vector2::normalize_and_get_length(real_t *r_length) {
+	real_t lengthsq = length_squared();
+
+	// Long enough to guarantee unit length result.
+	if (lengthsq >= (real_t)CMP_EPSILON2) {
+		real_t length = Math::sqrt(lengthsq);
+		*this /= length;
+		if (r_length) {
+			*r_length = length;
+		}
+		return true;
+	}
+	// Long enough to guarantee direction, but not unit length result.
+	constexpr real_t epsilon = NORMALIZE_DIRECTION_EPSILON;
+	if (lengthsq >= epsilon) {
+		// Boost length prior to normalize
+		// to guarantee unit length.
+		constexpr real_t mult = (1.0 / NORMALIZE_DIRECTION_EPSILON_SQRT);
+		*this *= mult;
+
+		lengthsq = length_squared();
+
+		real_t length = Math::sqrt(lengthsq);
+		*this /= length;
+
+		// The length has been boosted so we need to un-boost to get the original length.
+		if (r_length) {
+			*r_length = length * NORMALIZE_DIRECTION_EPSILON_SQRT;
+		}
+		return true;
+	}
+	// Not long enough to guarantee direction,
+	// failed.
+
+	return false;
 }
 
 Vector2 Vector2::slerp(const Vector2 &p_to, real_t p_weight) const {

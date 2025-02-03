@@ -83,7 +83,8 @@ struct _NO_DISCARD_CLASS_ Vector3 {
 	_FORCE_INLINE_ real_t length() const;
 	_FORCE_INLINE_ real_t length_squared() const;
 
-	_FORCE_INLINE_ void normalize();
+	bool normalize() { return normalize_and_get_length(); }
+	inline bool normalize_and_get_length(real_t *r_length = nullptr);
 	_FORCE_INLINE_ Vector3 normalized() const;
 	_FORCE_INLINE_ bool is_normalized() const;
 	_FORCE_INLINE_ Vector3 inverse() const;
@@ -406,22 +407,49 @@ real_t Vector3::length_squared() const {
 	return x2 + y2 + z2;
 }
 
-void Vector3::normalize() {
+bool Vector3::normalize_and_get_length(real_t *r_length) {
 	real_t lengthsq = length_squared();
-	if (lengthsq == 0) {
-		x = y = z = 0;
-	} else {
+
+	// Long enough to guarantee unit length result.
+	if (lengthsq >= (real_t)CMP_EPSILON2) {
 		real_t length = Math::sqrt(lengthsq);
-		x /= length;
-		y /= length;
-		z /= length;
+		*this /= length;
+		if (r_length) {
+			*r_length = length;
+		}
+		return true;
 	}
+	// Long enough to guarantee direction, but not unit length result.
+	constexpr real_t epsilon = NORMALIZE_DIRECTION_EPSILON;
+	if (lengthsq >= epsilon) {
+		// Boost length prior to normalize
+		// to guarantee unit length.
+		constexpr real_t mult = (1.0 / NORMALIZE_DIRECTION_EPSILON_SQRT);
+		*this *= mult;
+
+		lengthsq = length_squared();
+
+		real_t length = Math::sqrt(lengthsq);
+		*this /= length;
+
+		// The length has been boosted so we need to un-boost to get the original length.
+		if (r_length) {
+			*r_length = length * NORMALIZE_DIRECTION_EPSILON_SQRT;
+		}
+		return true;
+	}
+	// Not long enough to guarantee direction,
+	// failed.
+
+	return false;
 }
 
 Vector3 Vector3::normalized() const {
 	Vector3 v = *this;
-	v.normalize();
-	return v;
+	if (v.normalize_and_get_length()) {
+		return v;
+	}
+	return Vector3();
 }
 
 bool Vector3::is_normalized() const {
