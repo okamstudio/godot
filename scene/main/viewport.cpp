@@ -408,6 +408,7 @@ void Viewport::_notification(int p_what) {
 			gui.mouse_in_window = false;
 			_drop_physics_mouseover();
 			_drop_mouse_over();
+			_gui_cancel_tooltip();
 			// When the mouse exits the window, we want to end mouse_over, but
 			// not mouse_focus, because, for example, we want to continue
 			// dragging a scrollbar even if the mouse has left the window.
