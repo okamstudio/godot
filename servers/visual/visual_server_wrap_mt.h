@@ -131,6 +131,22 @@ public:
 
 	FUNC1(set_shader_async_hidden_forbidden, bool)
 
+	FUNC1R(Error, shader_preload_spatial, const String &)
+	FUNC1R(Error, shader_preload_canvas, const String &)
+	FUNC1R(Error, shader_preload_particle, const String &)
+	FUNC0(shader_preload_start)
+	FUNC0RC(bool, shader_preload_is_running)
+	FUNC0RC(int, shader_preload_get_stage)
+	FUNC0RC(int, shader_preload_get_stage_count)
+
+	//virtual Error shader_preload_spatial(const String &p_file_path);
+	//virtual Error shader_preload_canvas(const String &p_file_path);
+	//virtual Error shader_preload_particle(const String &p_file_path);
+	//virtual void shader_preload_start();
+	//virtual bool shader_preload_is_running() const;
+	//virtual int shader_preload_get_stage() const;
+	//virtual int shader_preload_get_stage_count() const;
+
 	/* COMMON MATERIAL API */
 
 	FUNCRID(material)

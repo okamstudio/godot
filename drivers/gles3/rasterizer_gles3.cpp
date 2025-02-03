@@ -33,6 +33,8 @@
 #include "core/os/os.h"
 #include "core/project_settings.h"
 
+#include "shader_tracker_gles3.h"
+
 RasterizerStorage *RasterizerGLES3::get_storage() {
 	return storage;
 }
@@ -417,6 +419,8 @@ void RasterizerGLES3::end_frame(bool p_swap_buffers) {
 	}
 
 	ShaderGLES3::advance_async_shaders_compilation();
+
+	ShaderPreLoader::compile();
 
 	if (p_swap_buffers) {
 		OS::get_singleton()->swap_buffers();

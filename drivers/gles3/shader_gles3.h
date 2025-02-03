@@ -143,6 +143,9 @@ public:
 
 	static void advance_async_shaders_compilation();
 
+	void set_conditional_version(uint64_t p_version);
+	uint64_t get_conditional_version();
+
 private:
 	union VersionKey {
 		static const uint32_t UBERSHADER_FLAG = ((uint32_t)1) << 31;

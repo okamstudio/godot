@@ -2352,6 +2352,10 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 		_material_make_dirty(E->self());
 	}
 
+	if (shaders.tracker) {
+		shaders.tracker->add_shader(p_shader->mode, p_shader->code, actions, p_shader->shader->get_conditional_version());
+	}
+
 	p_shader->valid = true;
 	p_shader->version++;
 }
@@ -2546,6 +2550,34 @@ void RasterizerStorageGLES3::set_shader_async_hidden_forbidden(bool p_forbidden)
 
 bool RasterizerStorageGLES3::is_shader_async_hidden_forbidden() {
 	return ShaderGLES3::async_hidden_forbidden;
+}
+
+Error RasterizerStorageGLES3::shader_preload_spatial(const String &p_file_path) {
+	return shaders.preLoader->load_spatial(p_file_path);
+}
+
+Error RasterizerStorageGLES3::shader_preload_canvas(const String &p_file_path) {
+	return shaders.preLoader->load_canvas(p_file_path);
+}
+
+Error RasterizerStorageGLES3::shader_preload_particle(const String &p_file_path) {
+	return shaders.preLoader->load_particle(p_file_path);
+}
+
+void RasterizerStorageGLES3::shader_preload_start() {
+	shaders.preLoader->start();
+}
+
+bool RasterizerStorageGLES3::shader_preload_is_running() const {
+	return shaders.preLoader->is_running();
+}
+
+int RasterizerStorageGLES3::shader_preload_get_stage() const {
+	return shaders.preLoader->get_stage();
+}
+
+int RasterizerStorageGLES3::shader_preload_get_stage_count() const {
+	return shaders.preLoader->get_stage_count();
 }
 
 /* COMMON MATERIAL API */
@@ -8274,6 +8306,11 @@ void RasterizerStorageGLES3::initialize() {
 
 	shaders.compile_queue = nullptr;
 	shaders.cache = nullptr;
+	shaders.tracker = nullptr;
+	if (Main::shader_tracke_enabled()) {
+		shaders.tracker = memnew(ShaderTrackerGLES3);
+	}
+	shaders.preLoader = memnew(ShaderPreLoader);
 	shaders.cache_write_queue = nullptr;
 	bool effectively_on = false;
 	if (config.async_compilation_enabled) {
@@ -8553,6 +8590,12 @@ RasterizerStorageGLES3::RasterizerStorageGLES3() {
 RasterizerStorageGLES3::~RasterizerStorageGLES3() {
 	if (shaders.cache) {
 		memdelete(shaders.cache);
+	}
+	if (shaders.tracker) {
+		memdelete(shaders.tracker);
+	}
+	if (shaders.preLoader) {
+		memdelete(shaders.preLoader);
 	}
 	if (shaders.cache_write_queue) {
 		memdelete(shaders.cache_write_queue);

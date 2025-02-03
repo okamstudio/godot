@@ -39,6 +39,7 @@
 #include "shader_cache_gles3.h"
 #include "shader_compiler_gles3.h"
 #include "shader_gles3.h"
+#include "shader_tracker_gles3.h"
 
 #include "shaders/blend_shape.glsl.gen.h"
 #include "shaders/canvas.glsl.gen.h"
@@ -127,6 +128,8 @@ public:
 
 		ShaderCompilerGLES3 compiler;
 		ShaderCacheGLES3 *cache;
+		ShaderTrackerGLES3 *tracker;
+		ShaderPreLoader *preLoader;
 		ThreadedCallableQueue<GLuint> *cache_write_queue;
 		ThreadedCallableQueue<GLuint> *compile_queue;
 
@@ -569,6 +572,14 @@ public:
 	void _update_shader(Shader *p_shader) const;
 
 	void update_dirty_shaders();
+
+	virtual Error shader_preload_spatial(const String &p_file_path);
+	virtual Error shader_preload_canvas(const String &p_file_path);
+	virtual Error shader_preload_particle(const String &p_file_path);
+	virtual void shader_preload_start();
+	virtual bool shader_preload_is_running() const;
+	virtual int shader_preload_get_stage() const;
+	virtual int shader_preload_get_stage_count() const;
 
 	/* COMMON MATERIAL API */
 

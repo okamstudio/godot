@@ -270,6 +270,14 @@ public:
 	void set_shader_async_hidden_forbidden(bool p_forbidden) {}
 	bool is_shader_async_hidden_forbidden() { return false; }
 
+	virtual Error shader_preload_spatial(const String &p_file_path) { return Error::OK; }
+	virtual Error shader_preload_canvas(const String &p_file_path) { return Error::OK; }
+	virtual Error shader_preload_particle(const String &p_file_path) { return Error::OK; }
+	virtual void shader_preload_start() {}
+	virtual bool shader_preload_is_running() const { return false; }
+	virtual int shader_preload_get_stage() const { return 0; }
+	virtual int shader_preload_get_stage_count() const { return 0; }
+
 	/* COMMON MATERIAL API */
 
 	RID material_create() { return RID(); }

@@ -103,6 +103,8 @@ public:
 
 #define BIND0R(m_r, m_name) \
 	m_r m_name() { return BINDBASE->m_name(); }
+#define BIND0RC(m_r, m_name) \
+	m_r m_name() const { return BINDBASE->m_name(); }
 #define BIND1R(m_r, m_name, m_type1) \
 	m_r m_name(m_type1 arg1) { return BINDBASE->m_name(arg1); }
 #define BIND1RC(m_r, m_name, m_type1) \
@@ -207,6 +209,14 @@ public:
 	BIND2(shader_remove_custom_define, RID, const String &)
 
 	BIND1(set_shader_async_hidden_forbidden, bool)
+
+	BIND1R(Error, shader_preload_spatial, const String &)
+	BIND1R(Error, shader_preload_canvas, const String &)
+	BIND1R(Error, shader_preload_particle, const String &)
+	BIND0N(shader_preload_start)
+	BIND0RC(bool, shader_preload_is_running)
+	BIND0RC(int, shader_preload_get_stage)
+	BIND0RC(int, shader_preload_get_stage_count)
 
 	/* COMMON MATERIAL API */
 

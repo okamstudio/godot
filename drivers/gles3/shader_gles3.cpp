@@ -219,6 +219,15 @@ void ShaderGLES3::advance_async_shaders_compilation() {
 	}
 }
 
+void ShaderGLES3::set_conditional_version(uint64_t p_version) {
+	conditional_version = p_version;
+	new_conditional_version = p_version;
+}
+
+uint64_t ShaderGLES3::get_conditional_version() {
+	return conditional_version.key;
+}
+
 void ShaderGLES3::_log_active_compiles() {
 #ifdef DEBUG_ENABLED
 	if (log_active_async_compiles_count) {

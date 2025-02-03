@@ -1909,6 +1909,14 @@ void VisualServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("shader_get_default_texture_param", "shader", "name"), &VisualServer::shader_get_default_texture_param);
 	ClassDB::bind_method(D_METHOD("set_shader_async_hidden_forbidden", "forbidden"), &VisualServer::set_shader_async_hidden_forbidden);
 
+	ClassDB::bind_method(D_METHOD("shader_preload_spatial", "path"), &VisualServer::shader_preload_spatial);
+	ClassDB::bind_method(D_METHOD("shader_preload_canvas", "path"), &VisualServer::shader_preload_canvas);
+	ClassDB::bind_method(D_METHOD("shader_preload_particle", "path"), &VisualServer::shader_preload_particle);
+	ClassDB::bind_method(D_METHOD("shader_preload_start"), &VisualServer::shader_preload_start);
+	ClassDB::bind_method(D_METHOD("shader_preload_is_running"), &VisualServer::shader_preload_is_running);
+	ClassDB::bind_method(D_METHOD("shader_preload_get_stage"), &VisualServer::shader_preload_get_stage);
+	ClassDB::bind_method(D_METHOD("shader_preload_get_stage_count"), &VisualServer::shader_preload_get_stage_count);
+
 	ClassDB::bind_method(D_METHOD("material_create"), &VisualServer::material_create);
 	ClassDB::bind_method(D_METHOD("material_set_shader", "shader_material", "shader"), &VisualServer::material_set_shader);
 	ClassDB::bind_method(D_METHOD("material_get_shader", "shader_material"), &VisualServer::material_get_shader);

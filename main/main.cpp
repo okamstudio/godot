@@ -147,7 +147,7 @@ HashMap<Main::CLIScope, Vector<String>> forwardable_cli_arguments;
 #endif
 
 // Display
-
+bool Main::track_shaders = false;
 static OS::VideoMode video_mode;
 static int init_screen = -1;
 static bool init_fullscreen = false;
@@ -178,6 +178,10 @@ static bool print_fps = false;
 // but not if e.g. we fail to load and project and fallback to the manager.
 bool Main::is_project_manager() {
 	return project_manager;
+}
+
+bool Main::shader_tracke_enabled() {
+	return track_shaders;
 }
 
 #ifdef TOOLS_ENABLED
@@ -340,6 +344,7 @@ void Main::print_help(const char *p_binary) {
 		OS::get_singleton()->print("'%s'", OS::get_singleton()->get_tablet_driver_name(i).utf8().get_data());
 	}
 	OS::get_singleton()->print(") (Windows only).\n");
+	OS::get_singleton()->print("  --track-shaders                  Create lists of all used spatial, canvas and particle shaders.\n");
 	OS::get_singleton()->print("\n");
 #endif
 
@@ -730,6 +735,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing tablet driver argument, aborting.\n");
 				goto error;
 			}
+		} else if (I->get() == "--track-shaders") {
+			track_shaders = true;
 		} else if (I->get() == "--enable-vsync-via-compositor") {
 			video_mode.vsync_via_compositor = true;
 			saw_vsync_via_compositor_override = true;

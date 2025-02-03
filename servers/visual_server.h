@@ -209,6 +209,14 @@ public:
 
 	virtual void set_shader_async_hidden_forbidden(bool p_forbidden) = 0;
 
+	virtual Error shader_preload_spatial(const String &p_file_path) = 0;
+	virtual Error shader_preload_canvas(const String &p_file_path) = 0;
+	virtual Error shader_preload_particle(const String &p_file_path) = 0;
+	virtual void shader_preload_start() = 0;
+	virtual bool shader_preload_is_running() const = 0;
+	virtual int shader_preload_get_stage() const = 0;
+	virtual int shader_preload_get_stage_count() const = 0;
+
 	/* COMMON MATERIAL API */
 
 	enum {

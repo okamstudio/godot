@@ -2736,6 +2736,52 @@
 				Returns the parameters of a shader.
 			</description>
 		</method>
+		<method name="shader_preload_canvas">
+			<return type="int" enum="Error" />
+			<argument index="0" name="path" type="String" />
+			<description>
+				Add the canvas (2D) shaders contained in the file at the given path to the pre compile queue.
+			</description>
+		</method>
+		<method name="shader_preload_get_stage" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the progress of the preloader.
+				You can use this in combination with [code]shader_preload_get_stage_count()[/code] to calculate the progress in percent.
+			</description>
+		</method>
+		<method name="shader_preload_get_stage_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total number of all shaders that have been added to the preloader queue.
+			</description>
+		</method>
+		<method name="shader_preload_is_running" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the preloader is currently processing the queue.
+			</description>
+		</method>
+		<method name="shader_preload_particle">
+			<return type="int" enum="Error" />
+			<argument index="0" name="path" type="String" />
+			<description>
+				Add the particle shaders contained in the file at the given path to the pre compile queue.
+			</description>
+		</method>
+		<method name="shader_preload_spatial">
+			<return type="int" enum="Error" />
+			<argument index="0" name="path" type="String" />
+			<description>
+				Add the spatial (3D) shaders contained in the file at the given path to the pre compile queue.
+			</description>
+		</method>
+		<method name="shader_preload_start">
+			<return type="void" />
+			<description>
+				Tell the preloader to start processing the queue.
+			</description>
+		</method>
 		<method name="shader_set_code">
 			<return type="void" />
 			<argument index="0" name="shader" type="RID" />

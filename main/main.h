@@ -47,9 +47,11 @@ class Main {
 	static bool force_redraw_requested;
 	static int iterating;
 	static bool agile_input_event_flushing;
+	static bool track_shaders;
 
 public:
 	static bool is_project_manager();
+	static bool shader_tracke_enabled();
 #ifdef TOOLS_ENABLED
 	enum CLIScope {
 		CLI_SCOPE_TOOL, // Editor and project manager.
