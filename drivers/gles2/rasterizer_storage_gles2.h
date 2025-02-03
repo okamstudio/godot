@@ -1190,6 +1190,14 @@ public:
 		GLuint color;
 		GLuint depth;
 
+		bool spatial_resolution_scale_mix;
+		unsigned int spatial_resolution_scale_filter;
+		float spatial_resolution_scale_factor;
+
+		GLuint fbo_small;
+		GLuint color_small;
+		GLuint depth_small;
+
 		GLuint multisample_fbo;
 		GLuint multisample_color;
 		GLuint multisample_depth;
@@ -1266,6 +1274,12 @@ public:
 				fbo(0),
 				color(0),
 				depth(0),
+				spatial_resolution_scale_mix(true),
+				spatial_resolution_scale_filter(0),
+				spatial_resolution_scale_factor(1.0),
+				fbo_small(0),
+				color_small(0),
+				depth_small(0),
 				multisample_fbo(0),
 				multisample_color(0),
 				multisample_depth(0),
@@ -1307,6 +1321,10 @@ public:
 	virtual void render_target_set_use_fxaa(RID p_render_target, bool p_fxaa);
 	virtual void render_target_set_use_debanding(RID p_render_target, bool p_debanding);
 	virtual void render_target_set_sharpen_intensity(RID p_render_target, float p_intensity);
+
+	virtual void render_target_set_resolution_scale_mix(RID p_render_target, bool p_mix);
+	virtual void render_target_set_resolution_scale_filter(RID p_render_target, VS::ResolutionScaleFilter p_method);
+	virtual void render_target_set_resolution_scale_factor(RID p_render_target, float p_factor);
 
 	/* CANVAS SHADOW */
 

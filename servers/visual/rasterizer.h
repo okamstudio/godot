@@ -667,6 +667,10 @@ public:
 	virtual void render_target_set_use_debanding(RID p_render_target, bool p_debanding) = 0;
 	virtual void render_target_set_sharpen_intensity(RID p_render_target, float p_intensity) = 0;
 
+	virtual void render_target_set_resolution_scale_mix(RID p_render_target, bool p_mix) = 0;
+	virtual void render_target_set_resolution_scale_filter(RID p_render_target, VS::ResolutionScaleFilter p_method) = 0;
+	virtual void render_target_set_resolution_scale_factor(RID p_render_target, float p_factor) = 0;
+
 	/* CANVAS SHADOW */
 
 	virtual RID canvas_light_shadow_buffer_create(int p_width) = 0;

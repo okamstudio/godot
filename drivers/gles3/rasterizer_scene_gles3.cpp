@@ -3607,30 +3607,6 @@ void RasterizerSceneGLES3::_render_mrts(Environment *env, const CameraMatrix &p_
 }
 
 void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p_cam_projection) {
-	//copy to front buffer
-
-	glDepthMask(GL_FALSE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glDepthFunc(GL_LEQUAL);
-	glColorMask(1, 1, 1, 1);
-
-	//turn off everything used
-
-	//copy specular to front buffer
-	//copy diffuse to effect buffer
-
-	if (storage->frame.current_rt->buffers.active) {
-		//transfer to effect buffer if using buffers, also resolve MSAA
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
-		glBlitFramebuffer(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	}
-
 	if ((!env || storage->frame.current_rt->width < 4 || storage->frame.current_rt->height < 4) && !storage->frame.current_rt->use_fxaa && !storage->frame.current_rt->use_debanding && storage->frame.current_rt->sharpen_intensity < 0.001) { //no post process on small render targets
 		//no environment or transparent render, simply return and convert to SRGB
 		if (storage->frame.current_rt->external.fbo != 0) {
@@ -4146,6 +4122,25 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 	ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
 	ReflectionAtlas *reflection_atlas = reflection_atlas_owner.getornull(p_reflection_atlas);
 
+	bool use_resolution_scale = false;
+	float final_resolution_scale = global_spatial_resolution_factor;
+	GLenum resolution_scale_filter = global_spatial_resolution_filter;
+
+	if (storage->frame.current_rt) {
+		if (storage->frame.current_rt->spatial_resolution_scale_mix) {
+			final_resolution_scale = global_spatial_resolution_factor * storage->frame.current_rt->spatial_resolution_scale_factor;
+		} else {
+			final_resolution_scale = storage->frame.current_rt->spatial_resolution_scale_factor;
+		}
+		if (storage->frame.current_rt->spatial_resolution_scale_filter) {
+			resolution_scale_filter = storage->frame.current_rt->spatial_resolution_scale_filter;
+		}
+
+		if (final_resolution_scale < 0.95 && storage->frame.current_rt->external.fbo == 0 && !p_reflection_probe.is_valid() && storage->frame.current_rt->msaa == VS::VIEWPORT_MSAA_DISABLED) {
+			use_resolution_scale = true;
+		}
+	}
+
 	bool use_shadows = shadow_atlas && shadow_atlas->size;
 
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_SHADOW, use_shadows);
@@ -4185,9 +4180,16 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 	state.ubo_data.shadow_dual_paraboloid_render_zfar = 0;
 	state.ubo_data.opaque_prepass_threshold = 0.99;
 
+	int viewport_width_pixels = 0;
+	int viewport_height_pixels = 0;
+
 	if (storage->frame.current_rt) {
-		int viewport_width_pixels = storage->frame.current_rt->width;
-		int viewport_height_pixels = storage->frame.current_rt->height;
+		viewport_width_pixels = storage->frame.current_rt->width;
+		viewport_height_pixels = storage->frame.current_rt->height;
+		if (use_resolution_scale) {
+			viewport_width_pixels = floor(viewport_width_pixels * final_resolution_scale);
+			viewport_height_pixels = floor(viewport_height_pixels * final_resolution_scale);
+		}
 
 		state.ubo_data.viewport_size[0] = viewport_width_pixels;
 		state.ubo_data.viewport_size[1] = viewport_height_pixels;
@@ -4235,7 +4237,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
 		glDrawBuffers(0, nullptr);
 
-		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+		glViewport(0, 0, viewport_width_pixels, viewport_height_pixels);
 
 		glColorMask(0, 0, 0, 0);
 		glClearDepth(1.0f);
@@ -4312,7 +4314,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		use_mrt = use_mrt && state.debug_draw != VS::VIEWPORT_DEBUG_DRAW_OVERDRAW;
 		use_mrt = use_mrt && (env->bg_mode != VS::ENV_BG_KEEP && env->bg_mode != VS::ENV_BG_CANVAS);
 
-		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+		glViewport(0, 0, viewport_width_pixels, viewport_height_pixels);
 
 		if (use_mrt) {
 			current_fbo = storage->frame.current_rt->buffers.fbo;
@@ -4560,7 +4562,9 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 	//state.scene_shader.set_conditional( SceneShaderGLES3::USE_FOG,false);
 
 	if (use_mrt) {
+		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
 		_render_mrts(env, p_cam_projection);
+		glViewport(0, 0, viewport_width_pixels, viewport_height_pixels);
 	} else {
 		// Here we have to do the blits/resolves that otherwise are done in the MRT rendering, in particular
 		// - prepare screen texture for any geometry that uses a shader with screen texture
@@ -4572,7 +4576,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
 			glReadBuffer(GL_COLOR_ATTACHMENT0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
-			glBlitFramebuffer(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			glBlitFramebuffer(0, 0, viewport_width_pixels, viewport_height_pixels, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, resolution_scale_filter);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 			_blur_effect_buffer();
@@ -4587,7 +4591,7 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		if (framebuffer_dirty) {
 			// Restore framebuffer
 			glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
-			glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+			glViewport(0, 0, viewport_width_pixels, viewport_height_pixels);
 		}
 	}
 
@@ -4659,8 +4663,73 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		return;
 	}
 
-	if (env && (env->dof_blur_far_enabled || env->dof_blur_near_enabled) && storage->frame.current_rt && storage->frame.current_rt->buffers.active) {
-		_prepare_depth_texture();
+	// Move stuff to the buffers where post processing expects them
+
+	if (env && (env->dof_blur_far_enabled || env->dof_blur_near_enabled) && storage->frame.current_rt) {
+		if (storage->frame.current_rt->buffers.active) {
+			if (use_resolution_scale) {
+				// We need custom logic to scale the texture up
+				if (!state.prepared_depth_texture) {
+					//resolve depth buffer
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
+					glReadBuffer(GL_COLOR_ATTACHMENT0);
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->fbo);
+					glBlitFramebuffer(0, 0, viewport_width_pixels, viewport_height_pixels, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_DEPTH_BUFFER_BIT, resolution_scale_filter);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+					state.prepared_depth_texture = true;
+				}
+
+			} else {
+				_prepare_depth_texture();
+			}
+		} else if (use_resolution_scale) {
+			// the depth texture is already were we need it but has the wrong scale
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->fbo);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
+			glBlitFramebuffer(0, 0, viewport_width_pixels, viewport_height_pixels, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_DEPTH_BUFFER_BIT, resolution_scale_filter);
+
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->fbo);
+			glBlitFramebuffer(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+			state.prepared_depth_texture = true;
+		}
+	}
+
+	glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LEQUAL);
+	glColorMask(1, 1, 1, 1);
+	//turn off everything used
+
+	//copy diffuse to effect buffer
+	if (storage->frame.current_rt->buffers.active) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->buffers.fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
+		glBlitFramebuffer(0, 0, viewport_width_pixels, viewport_height_pixels, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT, resolution_scale_filter);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	} else {
+		// all the rendering already happened the the effects buffer, but to scale it we need to blit it to another buffer & back
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		glBlitFramebuffer(0, 0, viewport_width_pixels, viewport_height_pixels, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT, resolution_scale_filter);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->effects.mip_maps[0].sizes[0].fbo);
+		glBlitFramebuffer(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 	_post_process(env, p_cam_projection);
 	// Needed only for debugging
@@ -5051,6 +5120,11 @@ void RasterizerSceneGLES3::set_debug_draw_mode(VS::ViewportDebugDraw p_debug_dra
 	state.debug_draw = p_debug_draw;
 }
 
+void set_spatial_resolution_multiplier(float factor) {
+	factor = CLAMP(factor, 0.1, 1.0);
+	//TODO: continue me
+}
+
 void RasterizerSceneGLES3::initialize() {
 	render_pass = 0;
 
@@ -5376,6 +5450,13 @@ void RasterizerSceneGLES3::initialize() {
 }
 
 void RasterizerSceneGLES3::iteration() {
+	global_spatial_resolution_factor = float(GLOBAL_GET("rendering/quality/3d/resolution_scale"));
+	if (int(GLOBAL_GET("rendering/quality/3d/resolution_scale_filter_method"))) {
+		global_spatial_resolution_filter = GL_LINEAR;
+	} else {
+		global_spatial_resolution_filter = GL_NEAREST;
+	}
+
 	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
 
 	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));

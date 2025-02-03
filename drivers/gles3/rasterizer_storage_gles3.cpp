@@ -7602,6 +7602,38 @@ void RasterizerStorageGLES3::render_target_set_sharpen_intensity(RID p_render_ta
 	rt->sharpen_intensity = p_intensity;
 }
 
+void RasterizerStorageGLES3::render_target_set_resolution_scale_mix(RID p_render_target, bool p_mix) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->spatial_resolution_scale_mix = p_mix;
+}
+
+void RasterizerStorageGLES3::render_target_set_resolution_scale_filter(RID p_render_target, VS::ResolutionScaleFilter p_method) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	switch (p_method) {
+		case VS::ResolutionScaleFilter::NEAREST:
+			rt->spatial_resolution_scale_filter = GL_NEAREST;
+			break;
+		case VS::ResolutionScaleFilter::LINEAR:
+			rt->spatial_resolution_scale_filter = GL_LINEAR;
+			break;
+		case VS::ResolutionScaleFilter::DEFAULT:
+		default:
+			rt->spatial_resolution_scale_filter = 0;
+			break;
+	}
+}
+
+void RasterizerStorageGLES3::render_target_set_resolution_scale_factor(RID p_render_target, float p_factor) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->spatial_resolution_scale_factor = p_factor;
+}
+
 /* CANVAS SHADOW */
 
 RID RasterizerStorageGLES3::canvas_light_shadow_buffer_create(int p_width) {

@@ -2715,6 +2715,12 @@ VisualServer::VisualServer() {
 
 	GLOBAL_DEF_RST("rendering/quality/shading/use_physical_light_attenuation", false);
 
+	GLOBAL_DEF("rendering/quality/3d/resolution_scale", 1.0);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/3d/resolution_scale", PropertyInfo(Variant::REAL, "rendering/quality/3d/resolution_scale", PROPERTY_HINT_RANGE, "0.1,1.0,0.01"));
+
+	GLOBAL_DEF("rendering/quality/3d/resolution_scale_filter_method", 1);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/3d/resolution_scale_filter_method", PropertyInfo(Variant::INT, "rendering/quality/3d/resolution_scale_filter_method", PROPERTY_HINT_ENUM, "Nearest, Linear"));
+
 	GLOBAL_DEF("rendering/quality/depth_prepass/enable", true);
 	GLOBAL_DEF("rendering/quality/depth_prepass/disable_for_vendors", "PowerVR,Mali,Adreno,Apple");
 

@@ -656,6 +656,16 @@ public:
 	virtual void viewport_set_active(RID p_viewport, bool p_active) = 0;
 	virtual void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport) = 0;
 
+	enum ResolutionScaleFilter {
+		DEFAULT,
+		LINEAR,
+		NEAREST
+	};
+
+	virtual void viewport_set_resolution_scale_mix(RID p_viewport, bool p_mix) = 0;
+	virtual void viewport_set_resolution_scale_filter(RID p_viewport, ResolutionScaleFilter p_method) = 0;
+	virtual void viewport_set_resolution_scale_factor(RID p_viewport, float p_factor) = 0;
+
 	virtual void viewport_attach_to_screen(RID p_viewport, const Rect2 &p_rect = Rect2(), int p_screen = 0) = 0;
 	virtual void viewport_set_render_direct_to_screen(RID p_viewport, bool p_enable) = 0;
 	virtual void viewport_detach(RID p_viewport) = 0;

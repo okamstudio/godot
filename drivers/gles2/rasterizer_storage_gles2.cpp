@@ -5205,6 +5205,68 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 		texture_set_flags(rt->texture, texture->flags);
 	}
 
+	{
+		/* Small Front FBO */
+
+		// framebuffer
+		glGenFramebuffers(1, &rt->fbo_small);
+		glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo_small);
+
+		// color
+		glGenTextures(1, &rt->color_small);
+		glBindTexture(GL_TEXTURE_2D, rt->color_small);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, color_internal_format, rt->width, rt->height, 0, color_format, color_type, nullptr);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->color_small, 0);
+
+		// depth
+
+		if (config.support_depth_texture) {
+			glGenTextures(1, &rt->depth_small);
+			glBindTexture(GL_TEXTURE_2D, rt->depth_small);
+			glTexImage2D(GL_TEXTURE_2D, 0, config.depth_internalformat, rt->width, rt->height, 0, GL_DEPTH_COMPONENT, config.depth_type, nullptr);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rt->depth_small, 0);
+		} else {
+			glGenRenderbuffers(1, &rt->depth_small);
+			glBindRenderbuffer(GL_RENDERBUFFER, rt->depth_small);
+
+			glRenderbufferStorage(GL_RENDERBUFFER, config.depth_buffer_internalformat, rt->width, rt->height);
+
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->depth_small);
+		}
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			glDeleteFramebuffers(1, &rt->fbo_small);
+			if (config.support_depth_texture) {
+				glDeleteTextures(1, &rt->depth_small);
+			} else {
+				glDeleteRenderbuffers(1, &rt->depth_small);
+			}
+
+			glDeleteTextures(1, &rt->color_small);
+			rt->fbo_small = 0;
+			rt->color_small = 0;
+			rt->depth_small = 0;
+			WARN_PRINT("Could not create alternative small framebuffer!!");
+			return;
+		}
+	}
+
 	/* BACK FBO */
 	/* For MSAA */
 
@@ -5452,6 +5514,12 @@ void RasterizerStorageGLES2::_render_target_clear(RenderTarget *rt) {
 		rt->fbo = 0;
 	}
 
+	if (rt->fbo_small) {
+		glDeleteFramebuffers(1, &rt->fbo_small);
+		glDeleteTextures(1, &rt->color_small);
+		rt->fbo = 0;
+	}
+
 	Texture *tex = texture_owner.get(rt->texture);
 	tex->alloc_height = 0;
 	tex->alloc_width = 0;
@@ -5479,8 +5547,10 @@ void RasterizerStorageGLES2::_render_target_clear(RenderTarget *rt) {
 	if (rt->depth) {
 		if (config.support_depth_texture) {
 			glDeleteTextures(1, &rt->depth);
+			glDeleteTextures(1, &rt->depth_small);
 		} else {
 			glDeleteRenderbuffers(1, &rt->depth);
+			glDeleteRenderbuffers(1, &rt->depth_small);
 		}
 
 		rt->depth = 0;
@@ -5804,6 +5874,38 @@ void RasterizerStorageGLES2::render_target_set_sharpen_intensity(RID p_render_ta
 	}
 
 	rt->sharpen_intensity = p_intensity;
+}
+
+void RasterizerStorageGLES2::render_target_set_resolution_scale_mix(RID p_render_target, bool p_mix) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->spatial_resolution_scale_mix = p_mix;
+}
+
+void RasterizerStorageGLES2::render_target_set_resolution_scale_filter(RID p_render_target, VS::ResolutionScaleFilter p_method) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	switch (p_method) {
+		case VS::ResolutionScaleFilter::NEAREST:
+			rt->spatial_resolution_scale_filter = GL_NEAREST;
+			break;
+		case VS::ResolutionScaleFilter::LINEAR:
+			rt->spatial_resolution_scale_filter = GL_LINEAR;
+			break;
+		case VS::ResolutionScaleFilter::DEFAULT:
+		default:
+			rt->spatial_resolution_scale_filter = 0;
+			break;
+	}
+}
+
+void RasterizerStorageGLES2::render_target_set_resolution_scale_factor(RID p_render_target, float p_factor) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->spatial_resolution_scale_factor = p_factor;
 }
 
 /* CANVAS SHADOW */

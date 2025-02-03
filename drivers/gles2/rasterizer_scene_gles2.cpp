@@ -3276,9 +3276,19 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	bool probe_interior = false;
 	bool reverse_cull = false;
 
-	if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_VFLIP]) {
-		cam_transform.basis.set_axis(1, -cam_transform.basis.get_axis(1));
-		reverse_cull = true;
+	bool use_resolution_scale = false;
+	float final_resolution_scale = global_spatial_resolution_factor;
+	if (storage->frame.current_rt) {
+		if (storage->frame.current_rt->spatial_resolution_scale_mix) {
+			final_resolution_scale = global_spatial_resolution_factor * storage->frame.current_rt->spatial_resolution_scale_factor;
+		} else {
+			final_resolution_scale = storage->frame.current_rt->spatial_resolution_scale_factor;
+		}
+
+		if (storage->frame.current_rt && storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_VFLIP]) {
+			cam_transform.basis.set_axis(1, -cam_transform.basis.get_axis(1));
+			reverse_cull = true;
+		}
 	}
 
 	if (p_reflection_probe.is_valid()) {
@@ -3303,6 +3313,9 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 			current_fb = storage->frame.current_rt->multisample_fbo;
 		} else if (storage->frame.current_rt->external.fbo != 0) {
 			current_fb = storage->frame.current_rt->external.fbo;
+		} else if (final_resolution_scale < 0.95 && !storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_DIRECT_TO_SCREEN] && storage->frame.current_rt->msaa == VS::VIEWPORT_MSAA_DISABLED) {
+			use_resolution_scale = true;
+			current_fb = storage->frame.current_rt->fbo_small;
 		} else {
 			current_fb = storage->frame.current_rt->fbo;
 		}
@@ -3317,6 +3330,11 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		} else {
 			viewport_y = storage->frame.current_rt->y;
 		}
+	}
+
+	if (use_resolution_scale) {
+		viewport_width = floor(viewport_width * final_resolution_scale);
+		viewport_height = floor(viewport_height * final_resolution_scale);
 	}
 
 	state.used_screen_texture = false;
@@ -3625,6 +3643,41 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	if (p_reflection_probe.is_valid()) {
 		// Rendering to a probe so no need for post_processing
 		return;
+	}
+
+	if (use_resolution_scale) {
+		// copy over to default fbo
+		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		glViewport(0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height);
+#ifdef XXX_GLES_OVER_GL // broken when using anything other than NEAREST
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, storage->frame.current_rt->fbo_small);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, storage->frame.current_rt->fbo);
+		glBlitFramebuffer(0, 0, viewport_width, viewport_height, 0, 0, storage->frame.current_rt->width, storage->frame.current_rt->height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#else
+		glDepthMask(GL_FALSE);
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_BLEND);
+		glDepthFunc(GL_LEQUAL);
+		glColorMask(1, 1, 1, 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, storage->frame.current_rt->color_small);
+
+		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_DISPLAY_TRANSFORM, true);
+		storage->shaders.copy.bind();
+		storage->shaders.copy.set_uniform(CopyShaderGLES2::DISPLAY_TRANSFORM, Transform(final_resolution_scale, 0.0, 0.0, 0.0, final_resolution_scale, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0));
+
+		storage->bind_quad_array();
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		storage->shaders.copy.set_conditional(CopyShaderGLES2::USE_DISPLAY_TRANSFORM, false);
+#endif
 	}
 
 	//post process
@@ -4129,6 +4182,8 @@ void RasterizerSceneGLES2::initialize() {
 }
 
 void RasterizerSceneGLES2::iteration() {
+	global_spatial_resolution_factor = float(GLOBAL_GET("rendering/quality/3d/resolution_scale"));
+
 	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
 
 	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));

@@ -387,6 +387,10 @@ public:
 
 	FUNC3(viewport_set_size, RID, int, int)
 
+	FUNC2(viewport_set_resolution_scale_mix, RID, bool)
+	FUNC2(viewport_set_resolution_scale_filter, RID, VS::ResolutionScaleFilter)
+	FUNC2(viewport_set_resolution_scale_factor, RID, float)
+
 	FUNC2(viewport_set_active, RID, bool)
 	FUNC2(viewport_set_parent_viewport, RID, RID)
 

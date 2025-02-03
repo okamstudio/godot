@@ -476,6 +476,10 @@ public:
 	BIND2(viewport_set_use_arvr, RID, bool)
 	BIND3(viewport_set_size, RID, int, int)
 
+	BIND2(viewport_set_resolution_scale_mix, RID, bool)
+	BIND2(viewport_set_resolution_scale_filter, RID, VS::ResolutionScaleFilter)
+	BIND2(viewport_set_resolution_scale_factor, RID, float)
+
 	BIND2(viewport_set_active, RID, bool)
 	BIND2(viewport_set_parent_viewport, RID, RID)
 

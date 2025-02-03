@@ -1679,6 +1679,13 @@
 			Uses a simplified method of generating PVS (potentially visible set) data. The results may not be accurate where more than one portal join adjacent rooms.
 			[b]Note:[/b] Generally you should only use this option if you encounter bugs when it is set to [code]false[/code], i.e. there are problems with the default method.
 		</member>
+		<member name="rendering/quality/3d/resolution_scale" type="float" setter="" getter="" default="1.0">
+			If set to a value lower than 1.0 the 3D rendering occurs at a lower resolution. 2D is still rendered at full resolution. This setting only applies if MSAA is disabled for the current viewport.
+			[b]Note:[/b] This changes the width and the height of the 3D resolution. So if you set this setting to 0.5 you only render 1/4 the pixels.
+		</member>
+		<member name="rendering/quality/3d/resolution_scale_filter_method" type="int" setter="" getter="" default="1">
+			The fitlering method that is used when upscaling the 3D image.
+		</member>
 		<member name="rendering/quality/depth/hdr" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], allocates the root [Viewport]'s framebuffer with high dynamic range. High dynamic range allows the use of [Color] values greater than 1. This must be set to [code]true[/code] for glow rendering to work if [member Environment.glow_hdr_threshold] is greater than or equal to [code]1.0[/code].
 			[b]Note:[/b] Only available on the GLES3 backend.

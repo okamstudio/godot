@@ -64,6 +64,9 @@ public:
 		SSS_QUALITY_HIGH,
 	};
 
+	float global_spatial_resolution_factor;
+	GLenum global_spatial_resolution_filter;
+
 	SubSurfaceScatterQuality subsurface_scatter_quality;
 	float subsurface_scatter_size;
 	bool subsurface_scatter_follow_surface;

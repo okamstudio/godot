@@ -64,6 +64,8 @@ public:
 		INSTANCE_BONE_BASE = 13,
 	};
 
+	float global_spatial_resolution_factor;
+
 	ShadowFilterMode shadow_filter_mode;
 
 	RID default_material;

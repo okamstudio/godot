@@ -424,6 +424,25 @@ void VisualServerViewport::viewport_set_size(RID p_viewport, int p_width, int p_
 	}
 }
 
+void VisualServerViewport::viewport_set_resolution_scale_mix(RID p_viewport, bool p_mix) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND(!viewport);
+
+	VSG::storage->render_target_set_resolution_scale_mix(viewport->render_target, p_mix);
+}
+void VisualServerViewport::viewport_set_resolution_scale_filter(RID p_viewport, VS::ResolutionScaleFilter p_method) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND(!viewport);
+
+	VSG::storage->render_target_set_resolution_scale_filter(viewport->render_target, p_method);
+}
+void VisualServerViewport::viewport_set_resolution_scale_factor(RID p_viewport, float p_factor) {
+	Viewport *viewport = viewport_owner.getornull(p_viewport);
+	ERR_FAIL_COND(!viewport);
+
+	VSG::storage->render_target_set_resolution_scale_factor(viewport->render_target, p_factor);
+}
+
 void VisualServerViewport::viewport_set_active(RID p_viewport, bool p_active) {
 	Viewport *viewport = viewport_owner.getornull(p_viewport);
 	ERR_FAIL_COND(!viewport);

@@ -152,6 +152,12 @@ public:
 		CLEAR_MODE_ONLY_NEXT_FRAME
 	};
 
+	enum ResolutionScaleFilter {
+		RESOLUTION_SCALE_FILTER_DEFAULT,
+		RESOLUTION_SCALE_FILTER_LINEAR,
+		RESOLUTION_SCALE_FILTER_NEAREST
+	};
+
 private:
 	friend class ViewportTexture;
 
@@ -204,6 +210,10 @@ private:
 	Size2 size;
 	Rect2 to_screen_rect;
 	bool render_direct_to_screen;
+
+	bool resolution_scale_mix;
+	ResolutionScaleFilter resolution_scale_filter;
+	float resolution_scale_factor;
 
 	RID contact_2d_debug;
 	RID contact_3d_debug_multimesh;
@@ -468,6 +478,13 @@ public:
 	Rect2 get_visible_rect() const;
 	RID get_viewport_rid() const;
 
+	void set_resolution_scale_mix(bool p_mix);
+	bool get_resolution_scale_mix();
+	void set_resolution_scale_filter(ResolutionScaleFilter p_method);
+	ResolutionScaleFilter get_resolution_scale_filter();
+	void set_resolution_scale_factor(float p_factor);
+	float get_resolution_scale_factor();
+
 	void set_world(const Ref<World> &p_world);
 	void set_world_2d(const Ref<World2D> &p_world_2d);
 	Ref<World> get_world() const;
@@ -611,5 +628,6 @@ VARIANT_ENUM_CAST(Viewport::Usage);
 VARIANT_ENUM_CAST(Viewport::DebugDraw);
 VARIANT_ENUM_CAST(Viewport::ClearMode);
 VARIANT_ENUM_CAST(Viewport::RenderInfo);
+VARIANT_ENUM_CAST(Viewport::ResolutionScaleFilter);
 
 #endif // VIEWPORT_H

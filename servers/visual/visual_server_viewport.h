@@ -153,6 +153,10 @@ public:
 
 	void viewport_set_size(RID p_viewport, int p_width, int p_height);
 
+	void viewport_set_resolution_scale_mix(RID p_viewport, bool p_mix);
+	void viewport_set_resolution_scale_filter(RID p_viewport, VS::ResolutionScaleFilter p_method);
+	void viewport_set_resolution_scale_factor(RID p_viewport, float p_factor);
+
 	void viewport_attach_to_screen(RID p_viewport, const Rect2 &p_rect = Rect2(), int p_screen = 0);
 	void viewport_set_render_direct_to_screen(RID p_viewport, bool p_enable);
 	void viewport_detach(RID p_viewport);

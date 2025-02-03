@@ -263,6 +263,15 @@
 		<member name="render_target_v_flip" type="bool" setter="set_vflip" getter="get_vflip" default="false">
 			If [code]true[/code], the result of rendering will be flipped vertically. Since Viewports in Godot 3.x render upside-down, it's recommended to set this to [code]true[/code] in most situations.
 		</member>
+		<member name="resolution_scale_factor" type="float" setter="set_resolution_scale_factor" getter="get_resolution_scale_factor" default="1.0">
+			Sets a resolution scale factor for the viewport. This makes it possible to render 3d content at a fraction of the original resolution.
+		</member>
+		<member name="resolution_scale_filter" type="int" setter="set_resolution_scale_filter" getter="get_resolution_scale_filter" enum="Viewport.ResolutionScaleFilter" default="0">
+			This changes how the rendered image is filtered when it is upscaled. This defaults to whatever has been configured in the project settings.
+		</member>
+		<member name="resolution_scale_mix" type="bool" setter="set_resolution_scale_mix" getter="get_resolution_scale_mix" default="true">
+			If this is enabled the viewport specific scale factor is multiplied with the global scale factor that has been set in the project settings. If this is disabled the viewport scale overrides the global one for this viewport.
+		</member>
 		<member name="shadow_atlas_quad_0" type="int" setter="set_shadow_atlas_quadrant_subdiv" getter="get_shadow_atlas_quadrant_subdiv" enum="Viewport.ShadowAtlasQuadrantSubdiv" default="2">
 			The subdivision amount of the first quadrant on the shadow atlas.
 		</member>
@@ -431,6 +440,12 @@
 		</constant>
 		<constant name="CLEAR_MODE_ONLY_NEXT_FRAME" value="2" enum="ClearMode">
 			Clear the render target next frame, then switch to [constant CLEAR_MODE_NEVER].
+		</constant>
+		<constant name="RESOLUTION_SCALE_FILTER_DEFAULT" value="0" enum="ResolutionScaleFilter">
+		</constant>
+		<constant name="RESOLUTION_SCALE_FILTER_LINEAR" value="1" enum="ResolutionScaleFilter">
+		</constant>
+		<constant name="RESOLUTION_SCALE_FILTER_NEAREST" value="2" enum="ResolutionScaleFilter">
 		</constant>
 	</constants>
 </class>

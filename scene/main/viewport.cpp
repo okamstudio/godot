@@ -759,6 +759,29 @@ Size2 Viewport::get_size() const {
 	return size;
 }
 
+void Viewport::set_resolution_scale_mix(bool p_mix) {
+	resolution_scale_mix = p_mix;
+	VS::get_singleton()->viewport_set_resolution_scale_mix(viewport, p_mix);
+}
+
+bool Viewport::get_resolution_scale_mix() {
+	return resolution_scale_mix;
+}
+void Viewport::set_resolution_scale_filter(ResolutionScaleFilter p_method) {
+	resolution_scale_filter = p_method;
+	VS::get_singleton()->viewport_set_resolution_scale_filter(viewport, VS::ResolutionScaleFilter(p_method));
+}
+Viewport::ResolutionScaleFilter Viewport::get_resolution_scale_filter() {
+	return resolution_scale_filter;
+}
+void Viewport::set_resolution_scale_factor(float p_factor) {
+	resolution_scale_factor = p_factor;
+	VS::get_singleton()->viewport_set_resolution_scale_factor(viewport, p_factor);
+}
+float Viewport::get_resolution_scale_factor() {
+	return resolution_scale_factor;
+}
+
 void Viewport::_update_listener() {
 	/*
 	if (is_inside_tree() && audio_listener && (camera || listener) && (!get_parent() || (Object::cast_to<Control>(get_parent()) && Object::cast_to<Control>(get_parent())->is_visible_in_tree())))  {
@@ -3365,6 +3388,13 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_world"), &Viewport::get_world);
 	ClassDB::bind_method(D_METHOD("find_world"), &Viewport::find_world);
 
+	ClassDB::bind_method(D_METHOD("set_resolution_scale_mix", "resolution_scale_mix"), &Viewport::set_resolution_scale_mix);
+	ClassDB::bind_method(D_METHOD("get_resolution_scale_mix"), &Viewport::get_resolution_scale_mix);
+	ClassDB::bind_method(D_METHOD("set_resolution_scale_filter", "resolution_scale_filter"), &Viewport::set_resolution_scale_filter);
+	ClassDB::bind_method(D_METHOD("get_resolution_scale_filter"), &Viewport::get_resolution_scale_filter);
+	ClassDB::bind_method(D_METHOD("set_resolution_scale_factor", "resolution_scale_factor"), &Viewport::set_resolution_scale_factor);
+	ClassDB::bind_method(D_METHOD("get_resolution_scale_factor"), &Viewport::get_resolution_scale_factor);
+
 	ClassDB::bind_method(D_METHOD("set_canvas_transform", "xform"), &Viewport::set_canvas_transform);
 	ClassDB::bind_method(D_METHOD("get_canvas_transform"), &Viewport::get_canvas_transform);
 
@@ -3499,6 +3529,10 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "world_2d", PROPERTY_HINT_RESOURCE_TYPE, "World2D", 0), "set_world_2d", "get_world_2d");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "transparent_bg"), "set_transparent_background", "has_transparent_background");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "handle_input_locally"), "set_handle_input_locally", "is_handling_input_locally");
+	ADD_GROUP("3D Resolution Scale", "resolution_scale_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "resolution_scale_mix"), "set_resolution_scale_mix", "get_resolution_scale_mix");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "resolution_scale_filter", PROPERTY_HINT_ENUM, "Default,Linear,Nearest"), "set_resolution_scale_filter", "get_resolution_scale_filter");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "resolution_scale_factor", PROPERTY_HINT_RANGE, "0.1,1.0,0.01"), "set_resolution_scale_factor", "get_resolution_scale_factor");
 	ADD_GROUP("Rendering", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "msaa", PROPERTY_HINT_ENUM, "Disabled,2x,4x,8x,16x,AndroidVR 2x,AndroidVR 4x"), "set_msaa", "get_msaa");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fxaa"), "set_use_fxaa", "get_use_fxaa");
@@ -3578,6 +3612,10 @@ void Viewport::_bind_methods() {
 	BIND_ENUM_CONSTANT(CLEAR_MODE_ALWAYS);
 	BIND_ENUM_CONSTANT(CLEAR_MODE_NEVER);
 	BIND_ENUM_CONSTANT(CLEAR_MODE_ONLY_NEXT_FRAME);
+
+	BIND_ENUM_CONSTANT(RESOLUTION_SCALE_FILTER_DEFAULT);
+	BIND_ENUM_CONSTANT(RESOLUTION_SCALE_FILTER_LINEAR);
+	BIND_ENUM_CONSTANT(RESOLUTION_SCALE_FILTER_NEAREST);
 }
 
 void Viewport::_subwindow_visibility_changed() {
@@ -3660,6 +3698,10 @@ Viewport::Viewport() {
 	gui.roots_order_dirty = false;
 	gui.mouse_focus = nullptr;
 	gui.last_mouse_focus = nullptr;
+
+	resolution_scale_mix = true;
+	resolution_scale_filter = ResolutionScaleFilter::RESOLUTION_SCALE_FILTER_DEFAULT;
+	resolution_scale_factor = 1.0;
 
 	msaa = MSAA_DISABLED;
 	use_fxaa = false;

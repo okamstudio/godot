@@ -712,6 +712,9 @@ public:
 	RID render_target_create() { return RID(); }
 	void render_target_set_position(RID p_render_target, int p_x, int p_y) {}
 	void render_target_set_size(RID p_render_target, int p_width, int p_height) {}
+	void render_target_set_resolution_scale_mix(RID p_render_target, bool p_mix){};
+	void render_target_set_resolution_scale_filter(RID p_render_target, VS::ResolutionScaleFilter p_method){};
+	void render_target_set_resolution_scale_factor(RID p_render_target, float p_factor){};
 	RID render_target_get_texture(RID p_render_target) const { return RID(); }
 	uint32_t render_target_get_depth_texture_id(RID p_render_target) const { return 0; }
 	void render_target_set_external_texture(RID p_render_target, unsigned int p_texture_id, unsigned int p_depth_id) {}
