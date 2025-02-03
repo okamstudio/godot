@@ -285,11 +285,29 @@
 		<member name="x" type="float" setter="" getter="" default="0.0">
 			The vector's X component. Also accessible by using the index position [code][0][/code].
 		</member>
+		<member name="xy" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's X and Y components.
+		</member>
+		<member name="xz" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's X and Z components.
+		</member>
 		<member name="y" type="float" setter="" getter="" default="0.0">
 			The vector's Y component. Also accessible by using the index position [code][1][/code].
 		</member>
+		<member name="yx" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's Y and X components.
+		</member>
+		<member name="yz" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's Y and Z components.
+		</member>
 		<member name="z" type="float" setter="" getter="" default="0.0">
 			The vector's Z component. Also accessible by using the index position [code][2][/code].
+		</member>
+		<member name="zx" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's Z and X components.
+		</member>
+		<member name="zy" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
+			A [Vector2] that represents the vector's Z and Y components.
 		</member>
 	</members>
 	<constants>

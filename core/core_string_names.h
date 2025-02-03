@@ -71,6 +71,12 @@ public:
 	StringName y;
 	StringName z;
 	StringName w;
+	StringName xy;
+	StringName xz;
+	StringName yx;
+	StringName yz;
+	StringName zx;
+	StringName zy;
 	StringName r;
 	StringName g;
 	StringName b;

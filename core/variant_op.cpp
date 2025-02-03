@@ -408,6 +408,35 @@ bool Variant::booleanize() const {
 		_RETURN(sum);                                                                                      \
 	}
 
+// Stores a set of axis mappings for 2 component vector swizzling.
+// e.g. for `yz`, `x = AXIS_Y` and `y = AXIS_Z`.
+struct SwizzleAxes2 {
+	Vector3::Axis x;
+	Vector3::Axis y;
+	SwizzleAxes2(Vector3::Axis x, Vector3::Axis y) :
+			x(x), y(y) {}
+};
+// Gets the `SwizzleAxes2` for the given `StringName`.
+static SwizzleAxes2 get_swizzle2(const StringName p_swizzle, bool &r_valid) {
+	r_valid = true;
+	if (p_swizzle == CoreStringNames::singleton->xy) {
+		return SwizzleAxes2(Vector3::AXIS_X, Vector3::AXIS_Y);
+	} else if (p_swizzle == CoreStringNames::singleton->xz) {
+		return SwizzleAxes2(Vector3::AXIS_X, Vector3::AXIS_Z);
+	} else if (p_swizzle == CoreStringNames::singleton->yx) {
+		return SwizzleAxes2(Vector3::AXIS_Y, Vector3::AXIS_X);
+	} else if (p_swizzle == CoreStringNames::singleton->yz) {
+		return SwizzleAxes2(Vector3::AXIS_Y, Vector3::AXIS_Z);
+	} else if (p_swizzle == CoreStringNames::singleton->zx) {
+		return SwizzleAxes2(Vector3::AXIS_Z, Vector3::AXIS_X);
+	} else if (p_swizzle == CoreStringNames::singleton->zy) {
+		return SwizzleAxes2(Vector3::AXIS_Z, Vector3::AXIS_Y);
+	} else {
+		r_valid = false;
+		return SwizzleAxes2(Vector3::AXIS_X, Vector3::AXIS_X);
+	}
+}
+
 void Variant::evaluate(const Operator &p_op, const Variant &p_a,
 		const Variant &p_b, Variant &r_ret, bool &r_valid) {
 	CASES(math);
@@ -1332,6 +1361,19 @@ void Variant::set_named(const StringName &p_index, const Variant &p_value, bool 
 					v->z = p_value._data._real;
 					valid = true;
 				}
+			} else if (p_value.type == Variant::VECTOR2) {
+				// 2 component vector swizzling.
+				bool swizzle_valid;
+				SwizzleAxes2 axes = get_swizzle2(p_index, swizzle_valid);
+				if (!swizzle_valid) {
+					break;
+				}
+
+				valid = true;
+				Vector3 *v = reinterpret_cast<Vector3 *>(_data._mem);
+				const Vector2 vec2 = p_value;
+				v->set_axis(axes.x, vec2.x);
+				v->set_axis(axes.y, vec2.y);
 			}
 
 		} break;
@@ -1594,6 +1636,15 @@ Variant Variant::get_named(const StringName &p_index, bool *r_valid) const {
 				return v->y;
 			} else if (p_index == CoreStringNames::singleton->z) {
 				return v->z;
+			} else {
+				// 2 component vector swizzling.
+				bool swizzle_valid;
+				SwizzleAxes2 axes = get_swizzle2(p_index, swizzle_valid);
+				if (!swizzle_valid) {
+					break;
+				}
+
+				return Vector2(v->get_axis(axes.x), v->get_axis(axes.y));
 			}
 
 		} break;
@@ -1915,6 +1966,19 @@ void Variant::set(const Variant &p_index, const Variant &p_value, bool *r_valid)
 				} else if (*str == "z") {
 					valid = true;
 					v->z = p_value;
+					return;
+				} else {
+					// 2 component vector swizzling.
+					bool swizzle_valid;
+					SwizzleAxes2 axes = get_swizzle2(*str, swizzle_valid);
+					if (!swizzle_valid) {
+						break;
+					}
+
+					valid = true;
+					const Vector2 vec2 = p_value;
+					v->set_axis(axes.x, vec2.x);
+					v->set_axis(axes.y, vec2.y);
 					return;
 				}
 			}
@@ -2307,7 +2371,7 @@ Variant Variant::get(const Variant &p_index, bool *r_valid) const {
 					return (*v)[idx];
 				}
 			} else if (p_index.get_type() == Variant::STRING) {
-				//scalar name
+				// Scalar/Vector2 name.
 				const String *str = reinterpret_cast<const String *>(p_index._data._mem);
 				const Vector3 *v = reinterpret_cast<const Vector3 *>(_data._mem);
 				if (*str == "x") {
@@ -2319,6 +2383,16 @@ Variant Variant::get(const Variant &p_index, bool *r_valid) const {
 				} else if (*str == "z") {
 					valid = true;
 					return v->z;
+				} else {
+					// 2 component vector swizzling.
+					bool swizzle_valid;
+					SwizzleAxes2 axes = get_swizzle2(*str, swizzle_valid);
+					if (!swizzle_valid) {
+						break;
+					}
+
+					valid = true;
+					return Vector2(v->get_axis(axes.x), v->get_axis(axes.y));
 				}
 			}
 
@@ -2779,6 +2853,13 @@ void Variant::get_property_list(List<PropertyInfo> *p_list) const {
 			p_list->push_back(PropertyInfo(Variant::REAL, "x"));
 			p_list->push_back(PropertyInfo(Variant::REAL, "y"));
 			p_list->push_back(PropertyInfo(Variant::REAL, "z"));
+			// Swizzling.
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "xy"));
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "xz"));
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "yx"));
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "yz"));
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "zx"));
+			p_list->push_back(PropertyInfo(Variant::VECTOR2, "zy"));
 
 		} break;
 		case TRANSFORM2D: {
