@@ -2,6 +2,7 @@ import os
 import platform
 import sys
 from methods import get_compiler_version, using_gcc
+from platform_methods import detect_arch
 
 # This file is mostly based on platform/x11/detect.py.
 # If editing this file, make sure to apply relevant changes here too.
@@ -85,14 +86,21 @@ def configure(env):
     # Cross-compilation
     # TODO: Support cross-compilation on architectures other than x86.
     host_is_64_bit = sys.maxsize > 2**32
+    is_x86_target = "x86" in env["arch"] if env["arch"] else "x86" in detect_arch()
+
+    if env["arch"] == "" and not is_x86_target:
+        env["arch"] = detect_arch()
+
     if env["bits"] == "default":
         env["bits"] = "64" if host_is_64_bit else "32"
-    if host_is_64_bit and (env["bits"] == "32" or env["arch"] == "x86"):
-        env.Append(CCFLAGS=["-m32"])
-        env.Append(LINKFLAGS=["-m32"])
-    elif not host_is_64_bit and (env["bits"] == "64" or env["arch"] == "x86_64"):
-        env.Append(CCFLAGS=["-m64"])
-        env.Append(LINKFLAGS=["-m64"])
+
+    if is_x86_target:
+        if env["bits"] == "32":
+            env.Append(CCFLAGS=["-m32"])
+            env.Append(LINKFLAGS=["-m32"])
+        elif env["bits"] == "64":
+            env.Append(CCFLAGS=["-m64"])
+            env.Append(LINKFLAGS=["-m64"])
 
     if env["arch"] == "" and platform.machine() == "riscv64":
         env["arch"] = "rv64"
