@@ -411,6 +411,7 @@ class AnimationNodeBlendTree : public AnimationRootNode {
 	};
 
 	RBMap<StringName, Node, StringName::AlphCompare> nodes;
+	RBMap<AnimationNode *, StringName> node_to_name;
 
 	Vector2 graph_offset;
 

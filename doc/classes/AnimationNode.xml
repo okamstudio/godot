@@ -244,5 +244,11 @@
 		<constant name="FILTER_BLEND" value="3" enum="FilterAction">
 			Paths matching the filter will be blended (by the blend value).
 		</constant>
+		<constant name="NOTIFY_STARTED" value="0" enum="NotifyReason">
+			The node has started playback.
+		</constant>
+		<constant name="NOTIFY_FINISHED" value="1" enum="NotifyReason">
+			The node has finished playback.
+		</constant>
 	</constants>
 </class>
