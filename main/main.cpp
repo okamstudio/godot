@@ -1199,7 +1199,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		OS::get_singleton()->_allow_hidpi = GLOBAL_DEF("display/window/dpi/allow_hidpi", false);
 	}
 
-	video_mode.use_vsync = GLOBAL_DEF_RST("display/window/vsync/use_vsync", true);
+	video_mode.use_vsync = GLOBAL_DEF("display/window/vsync/use_vsync", true);
 	OS::get_singleton()->_use_vsync = video_mode.use_vsync;
 
 	if (!saw_vsync_via_compositor_override) {
