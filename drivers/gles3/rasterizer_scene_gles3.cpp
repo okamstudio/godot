@@ -757,7 +757,10 @@ bool RasterizerSceneGLES3::reflection_probe_instance_postprocess_step(RID p_inst
 	storage->shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES3::LOW_QUALITY, rpi->probe_ptr->update_mode == VS::REFLECTION_PROBE_UPDATE_ALWAYS);
 	for (int i = 0; i < 2; i++) {
 		storage->shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::Z_FLIP, i == 0);
-		storage->shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::ROUGHNESS, rpi->render_step / 5.0);
+		// Use minimum roughness to provide antialiasing for reflection probes
+		// on materials with low roughness values. The end result is blurrier,
+		// but it often looks better than sharp aliased reflections in practice.
+		storage->shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::ROUGHNESS, MAX(reflection_probe_min_roughness, rpi->render_step / 5.0));
 
 		uint32_t local_width = width, local_height = height;
 		uint32_t local_x = x, local_y = y;
@@ -5388,6 +5391,7 @@ void RasterizerSceneGLES3::iteration() {
 	subsurface_scatter_weight_samples = GLOBAL_GET("rendering/quality/subsurface_scattering/weight_samples");
 	subsurface_scatter_quality = SubSurfaceScatterQuality(int(GLOBAL_GET("rendering/quality/subsurface_scattering/quality")));
 	subsurface_scatter_size = GLOBAL_GET("rendering/quality/subsurface_scattering/scale");
+	reflection_probe_min_roughness = GLOBAL_GET("rendering/quality/reflections/reflection_probe_min_roughness");
 
 	storage->config.use_lightmap_filter_bicubic = GLOBAL_GET("rendering/quality/lightmapping/use_bicubic_sampling");
 	state.scene_shader.set_conditional(SceneShaderGLES3::USE_LIGHTMAP_FILTER_BICUBIC, storage->config.use_lightmap_filter_bicubic);

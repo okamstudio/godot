@@ -1765,6 +1765,12 @@
 			Limits the size of the irradiance map which is normally determined by [member Sky.radiance_size]. A higher size results in a higher quality irradiance map similarly to [member rendering/quality/reflections/high_quality_ggx]. Use a higher value when using high-frequency HDRI maps, otherwise keep this as low as possible.
 			[b]Note:[/b] Low and mid range hardware do not support complex irradiance maps well and may crash if this is set too high.
 		</member>
+		<member name="rendering/quality/reflections/reflection_probe_min_roughness" type="float" setter="" getter="" default="0.05">
+			When generating [ReflectionProbe] cubemaps, the value specified here will be used as a minimum roughness value. This means materials with a roughness value below this setting will use blurrier reflections than they logically should, which acts as a form of antialiasing. With the default value, reflections on smooth surfaces will appear blurrier than they could, but will exhibit less aliasing.
+			To get the sharpest possible reflections at the cost of aliasing, decrease this setting to [code]0.0[/code]. You can increase this value above the default to get even smoother reflections, but it will make reflections on smooth materials even blurrier.
+			[b]Note:[/b] Only effective when using the GLES3 rendering backend.
+			[b]Note:[/b] This setting can be changed at run-time, but [ReflectionProbe] cubemaps generated before changing this setting will keep their old minimum roughness value. You can update old [ReflectionProbe] cubemaps by moving the node around slightly.
+		</member>
 		<member name="rendering/quality/reflections/texture_array_reflections" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], uses texture arrays instead of mipmaps for reflection probes and panorama backgrounds (sky). This reduces jitter noise on reflections, but costs more performance and memory.
 		</member>

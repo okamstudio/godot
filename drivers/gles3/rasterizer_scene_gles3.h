@@ -69,6 +69,8 @@ public:
 	bool subsurface_scatter_follow_surface;
 	bool subsurface_scatter_weight_samples;
 
+	float reflection_probe_min_roughness;
+
 	uint64_t render_pass;
 	uint64_t scene_pass;
 	uint32_t current_material_index;

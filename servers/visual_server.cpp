@@ -2703,6 +2703,8 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF("rendering/quality/reflections/high_quality_ggx.mobile", false);
 	GLOBAL_DEF("rendering/quality/reflections/irradiance_max_size", 128);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/reflections/irradiance_max_size", PropertyInfo(Variant::INT, "rendering/quality/reflections/irradiance_max_size", PROPERTY_HINT_RANGE, "32,2048"));
+	GLOBAL_DEF("rendering/quality/reflections/reflection_probe_min_roughness", 0.05);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/reflections/reflection_probe_min_roughness", PropertyInfo(Variant::REAL, "rendering/quality/reflections/reflection_probe_min_roughness", PROPERTY_HINT_RANGE, "0.0,1.0,0.001"));
 
 	GLOBAL_DEF("rendering/quality/shading/force_vertex_shading", false);
 	GLOBAL_DEF("rendering/quality/shading/force_vertex_shading.mobile", true);
