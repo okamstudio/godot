@@ -5325,6 +5325,13 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(PREVIEW_CANVAS_SCALE), preview);
 
 		} break;
+		case PREVIEW_3D_SCENE_BACKGROUND: {
+			bool enable_3d = view_menu->get_popup()->is_item_checked(view_menu->get_popup()->get_item_index(PREVIEW_3D_SCENE_BACKGROUND));
+			enable_3d = !enable_3d;
+			VS::get_singleton()->viewport_set_disable_3d(editor->get_scene_root()->get_viewport_rid(), !enable_3d);
+			view_menu->get_popup()->set_item_checked(view_menu->get_popup()->get_item_index(PREVIEW_3D_SCENE_BACKGROUND), enable_3d);
+
+		} break;
 		case SKELETON_MAKE_BONES: {
 			Map<Node *, Object *> &selection = editor_selection->get_selection();
 
@@ -6208,6 +6215,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	p->add_shortcut(ED_SHORTCUT("canvas_item_editor/clear_guides", TTR("Clear Guides")), CLEAR_GUIDES);
 	p->add_separator();
 	p->add_check_shortcut(ED_SHORTCUT("canvas_item_editor/preview_canvas_scale", TTR("Preview Canvas Scale"), KEY_MASK_SHIFT | KEY_MASK_CMD | KEY_P), PREVIEW_CANVAS_SCALE);
+	p->add_check_shortcut(ED_SHORTCUT("canvas_item_editor/preview_3d_scene_background", TTR("Preview 3D Scene Background"), KEY_MASK_SHIFT | KEY_MASK_CMD | KEY_H), PREVIEW_3D_SCENE_BACKGROUND);
 
 	main_menu_hbox->add_child(memnew(VSeparator));
 
@@ -6800,7 +6808,6 @@ void CanvasItemEditorViewport::_notification(int p_what) {
 		case NOTIFICATION_EXIT_TREE: {
 			disconnect("mouse_exited", this, "_on_mouse_exit");
 		} break;
-
 		default:
 			break;
 	}
