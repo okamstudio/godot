@@ -7356,6 +7356,18 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 				valid = true; // There's always an initializer, we can assume this is true
 			}
 
+			if (is_initializer && !original_type.is_meta_type && original_type.kind == DataType::CLASS) {
+				// new() can be considered a static initializer
+				bool tmp_is_static = true;
+				String tmp_callee_name = "_init";
+
+				valid = _get_function_signature(base_type, tmp_callee_name, return_type, arg_types,
+						default_args_count, tmp_is_static, is_vararg);
+
+				is_static = true; // Always treat new() as static
+				valid = true; // There's always an initializer, we can assume this is true
+			}
+
 			if (is_get_script) {
 				// get_script() can be considered a meta-type.
 				return_type.kind = DataType::CLASS;
