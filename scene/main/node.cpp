@@ -1380,6 +1380,46 @@ void Node::remove_child(Node *p_child) {
 	remove_child_notify(p_child);
 	p_child->notification(NOTIFICATION_UNPARENTED);
 
+	// Note that calling _set_tree() could have caused
+	// another node to be deleted from the same parent,
+	// the childlist could be different, and thus
+	// idx by this point is not guaranteed to be correct.
+	// We therefore recalculate idx here, for safety, if it has changed.
+
+	// Child count could have changed.
+	child_count = data.children.size();
+
+	if ((p_child->data.pos != idx) || (idx >= child_count) || (data.children[idx] != p_child)) {
+		idx = -1;
+
+		// Reget the childen, the list may have changed...
+		children = data.children.ptrw();
+
+		// If the new p_child->data.pos is correct...
+		if (p_child->data.pos >= 0 && p_child->data.pos < child_count) {
+			if (children[p_child->data.pos] == p_child) {
+				idx = p_child->data.pos;
+			}
+		}
+
+		// If data.pos is incorrect, it still may be one of the children...
+		if (idx == -1) {
+			for (int i = 0; i < child_count; i++) {
+				if (children[i] == p_child) {
+					idx = i;
+					break;
+				}
+			}
+		}
+
+		// This should not happen unless something has gone horribly wrong,
+		// but just in case prevent a crash.
+		// By this point, the child will have been partially removed,
+		// so normal behaviour cannot be guaranteed
+		// if this ERR FAIL occurs.
+		ERR_FAIL_COND_MSG(idx == -1, vformat("Cannot remove child node '%s' as it is no longer a child of this node.", p_child->get_name()));
+	}
+
 	data.children.remove(idx);
 
 	//update pointer and size
