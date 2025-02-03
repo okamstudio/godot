@@ -204,17 +204,18 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 
 		} break;
 		case Image::FORMAT_RGB8: {
-			r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8 : GL_RGB8;
+			const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+			r_gl_internal_format = is_srgb ? GL_SRGB8 : GL_RGB8;
 			r_gl_format = GL_RGB;
 			r_gl_type = GL_UNSIGNED_BYTE;
-			r_srgb = true;
-
+			r_srgb = is_srgb;
 		} break;
 		case Image::FORMAT_RGBA8: {
+			const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
 			r_gl_format = GL_RGBA;
-			r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+			r_gl_internal_format = is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 			r_gl_type = GL_UNSIGNED_BYTE;
-			r_srgb = true;
+			r_srgb = is_srgb;
 
 		} break;
 		case Image::FORMAT_RGBA4444: {
@@ -284,11 +285,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_DXT1: {
 			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -297,12 +299,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_DXT3: {
 			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
-
+				r_srgb = is_srgb;
 			} else {
 				need_decompress = true;
 			}
@@ -310,12 +312,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_DXT5: {
 			if (config.s3tc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_NV : _EXT_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
-
+				r_srgb = is_srgb;
 			} else {
 				need_decompress = true;
 			}
@@ -346,11 +348,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_BPTC_RGBA: {
 			if (config.bptc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_BPTC_UNORM : _EXT_COMPRESSED_RGBA_BPTC_UNORM;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_BPTC_UNORM : _EXT_COMPRESSED_RGBA_BPTC_UNORM;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -378,11 +381,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_PVRTC2: {
 			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_2BPPV1_IMG;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -390,11 +394,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_PVRTC2A: {
 			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_2BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_2BPPV1_IMG;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -403,12 +408,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_PVRTC4: {
 			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGB_PVRTC_4BPPV1_IMG;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
-
+				r_srgb = is_srgb;
 			} else {
 				need_decompress = true;
 			}
@@ -416,11 +421,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_PVRTC4A: {
 			if (config.pvrtc_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB_ALPHA_PVRTC_4BPPV1_EXT : _EXT_COMPRESSED_RGBA_PVRTC_4BPPV1_IMG;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -485,11 +491,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_ETC2_RGB8: {
 			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_ETC2 : _EXT_COMPRESSED_RGB8_ETC2;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB8_ETC2 : _EXT_COMPRESSED_RGB8_ETC2;
 				r_gl_format = GL_RGB;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -497,11 +504,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_ETC2_RGBA8: {
 			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC : _EXT_COMPRESSED_RGBA8_ETC2_EAC;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC : _EXT_COMPRESSED_RGBA8_ETC2_EAC;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -509,11 +517,12 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_ETC2_RGB8A1: {
 			if (config.etc2_supported) {
-				r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? _EXT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 : _EXT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+				const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
+				r_gl_internal_format = is_srgb ? _EXT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2 : _EXT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
 				r_compressed = true;
-				r_srgb = true;
+				r_srgb = is_srgb;
 
 			} else {
 				need_decompress = true;
@@ -532,12 +541,13 @@ Ref<Image> RasterizerStorageGLES3::_get_gl_image_and_format(const Ref<Image> &p_
 			image->convert(Image::FORMAT_RGBA8);
 		}
 
+		const auto is_srgb = config.srgb_decode_supported && (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR);
 		r_gl_format = GL_RGBA;
-		r_gl_internal_format = (config.srgb_decode_supported || (p_flags & VS::TEXTURE_FLAG_CONVERT_TO_LINEAR)) ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+		r_gl_internal_format = is_srgb ? GL_SRGB8_ALPHA8 : GL_RGBA8;
 		r_gl_type = GL_UNSIGNED_BYTE;
 		r_compressed = false;
 		r_real_format = Image::FORMAT_RGBA8;
-		r_srgb = true;
+		r_srgb = is_srgb;
 
 		return image;
 	}
