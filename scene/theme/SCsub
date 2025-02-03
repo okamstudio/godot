@@ -9,7 +9,6 @@ env.add_source_files(env.scene_sources, "*.cpp")
 
 SConscript("icons/SCsub")
 
-env.Depends("#scene/theme/default_font.gen.h", "#thirdparty/fonts/OpenSans_SemiBold.woff2")
 env.CommandNoCache(
     "#scene/theme/default_font.gen.h",
     "#thirdparty/fonts/OpenSans_SemiBold.woff2",

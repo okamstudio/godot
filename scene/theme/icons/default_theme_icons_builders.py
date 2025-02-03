@@ -1,51 +1,36 @@
 """Functions used to generate source files during build time"""
 
 import os
-from io import StringIO
 
-from methods import to_raw_cstring
+import methods
 
 
 # See also `editor/icons/editor_icons_builders.py`.
 def make_default_theme_icons_action(target, source, env):
-    dst = str(target[0])
-    svg_icons = [str(x) for x in source]
+    icons_names = []
+    icons_raw = []
 
-    with StringIO() as icons_string, StringIO() as s:
-        for svg in svg_icons:
-            with open(svg, "r") as svgf:
-                icons_string.write("\t%s,\n" % to_raw_cstring(svgf.read()))
+    for svg in source:
+        path = str(svg)
+        with open(path, encoding="utf-8", newline="\n") as file:
+            icons_raw.append(methods.to_raw_cstring(file.read()))
 
-        s.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n\n")
-        s.write('#include "modules/modules_enabled.gen.h"\n\n')
-        s.write("#ifndef _DEFAULT_THEME_ICONS_H\n")
-        s.write("#define _DEFAULT_THEME_ICONS_H\n")
-        s.write("static const int default_theme_icons_count = {};\n\n".format(len(svg_icons)))
-        s.write("#ifdef MODULE_SVG_ENABLED\n")
-        s.write("static const char *default_theme_icons_sources[] = {\n")
-        s.write(icons_string.getvalue())
-        s.write("};\n")
-        s.write("#endif // MODULE_SVG_ENABLED\n\n")
-        s.write("static const char *default_theme_icons_names[] = {\n")
+        name = os.path.splitext(os.path.basename(path))[0]
+        icons_names.append(f'"{name}"')
 
-        index = 0
-        for f in svg_icons:
-            fname = str(f)
+    icons_names_str = ",\n\t".join(icons_names)
+    icons_raw_str = ",\n\t".join(icons_raw)
 
-            # Trim the `.svg` extension from the string.
-            icon_name = os.path.basename(fname)[:-4]
+    with methods.generated_wrapper(target[0]) as file:
+        file.write(f"""\
+#include "modules/modules_enabled.gen.h"
 
-            s.write('\t"{0}"'.format(icon_name))
+inline constexpr int default_theme_icons_count = {len(icons_names)};
+inline constexpr const char *default_theme_icons_sources[] = {{
+	{icons_raw_str}
+}};
 
-            if fname != svg_icons[-1]:
-                s.write(",")
-            s.write("\n")
-
-            index += 1
-
-        s.write("};\n")
-
-        s.write("#endif\n")
-
-        with open(dst, "w", encoding="utf-8", newline="\n") as f:
-            f.write(s.getvalue())
+inline constexpr const char *default_theme_icons_names[] = {{
+	{icons_names_str}
+}};
+""")

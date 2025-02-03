@@ -18,10 +18,10 @@ def export_icon_builder(target, source, env):
     platform = src_path.parent.parent.stem
     with open(str(source[0]), "r") as file:
         svg = file.read()
-    with methods.generated_wrapper(target, prefix=platform) as file:
+    with methods.generated_wrapper(target[0], prefix=platform) as file:
         file.write(
             f"""\
-static const char *_{platform}_{src_name}_svg = {methods.to_raw_cstring(svg)};
+inline constexpr const char *_{platform}_{src_name}_svg = {methods.to_raw_cstring(svg)};
 """
         )
 
@@ -37,7 +37,7 @@ def register_platform_apis_builder(target, source, env):
     api_inc = "\n".join([f'#include "{p}/api/api.h"' for p in platforms])
     api_reg = "\n".join([f"\tregister_{p}_api();" for p in platforms])
     api_unreg = "\n".join([f"\tunregister_{p}_api();" for p in platforms])
-    with methods.generated_wrapper(target) as file:
+    with methods.generated_wrapper(target[0]) as file:
         file.write(
             f"""\
 #include "register_platform_apis.h"

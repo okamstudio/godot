@@ -3,17 +3,14 @@ from misc.utility.scons_hints import *
 
 Import("env")
 
-import glob
-
 import editor_theme_builders
 
 # Fonts
-flist = glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.ttf")
-flist.extend(glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.otf"))
-flist.extend(glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.woff"))
-flist.extend(glob.glob(env.Dir("#thirdparty").abspath + "/fonts/*.woff2"))
+flist = Glob("#thirdparty/fonts/*.ttf")
+flist.extend(Glob("#thirdparty/fonts/*.otf"))
+flist.extend(Glob("#thirdparty/fonts/*.woff"))
+flist.extend(Glob("#thirdparty/fonts/*.woff2"))
 flist.sort()
-env.Depends("#editor/themes/builtin_fonts.gen.h", flist)
 env.CommandNoCache(
     "#editor/themes/builtin_fonts.gen.h",
     flist,

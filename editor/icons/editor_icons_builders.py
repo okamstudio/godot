@@ -1,71 +1,47 @@
 """Functions used to generate source files during build time"""
 
 import os
-from io import StringIO
 
-from methods import to_raw_cstring
+import methods
 
 
 # See also `scene/theme/icons/default_theme_icons_builders.py`.
 def make_editor_icons_action(target, source, env):
-    dst = str(target[0])
-    svg_icons = source
+    icons_names = []
+    icons_raw = []
+    icons_med = []
+    icons_big = []
 
-    with StringIO() as icons_string, StringIO() as s:
-        for svg in svg_icons:
-            with open(str(svg), "r") as svgf:
-                icons_string.write("\t%s,\n" % to_raw_cstring(svgf.read()))
+    for idx, svg in enumerate(source):
+        path = str(svg)
+        with open(path, encoding="utf-8", newline="\n") as file:
+            icons_raw.append(methods.to_raw_cstring(file.read()))
 
-        s.write("/* THIS FILE IS GENERATED DO NOT EDIT */\n")
-        s.write("#ifndef _EDITOR_ICONS_H\n")
-        s.write("#define _EDITOR_ICONS_H\n")
-        s.write("static const int editor_icons_count = {};\n".format(len(svg_icons)))
-        s.write("static const char *editor_icons_sources[] = {\n")
-        s.write(icons_string.getvalue())
-        s.write("};\n\n")
-        s.write("static const char *editor_icons_names[] = {\n")
+        name = os.path.splitext(os.path.basename(path))[0]
+        icons_names.append(f'"{name}"')
 
-        # this is used to store the indices of thumbnail icons
-        thumb_medium_indices = []
-        thumb_big_indices = []
-        index = 0
-        for f in svg_icons:
-            fname = str(f)
+        if name.endswith("MediumThumb"):
+            icons_med.append(str(idx))
+        elif name.endswith(("BigThumb", "GodotFile")):
+            icons_big.append(str(idx))
 
-            # Trim the `.svg` extension from the string.
-            icon_name = os.path.basename(fname)[:-4]
-            # some special cases
-            if icon_name.endswith("MediumThumb"):  # don't know a better way to handle this
-                thumb_medium_indices.append(str(index))
-            if icon_name.endswith("BigThumb"):  # don't know a better way to handle this
-                thumb_big_indices.append(str(index))
-            if icon_name.endswith("GodotFile"):  # don't know a better way to handle this
-                thumb_big_indices.append(str(index))
+    icons_names_str = ",\n\t".join(icons_names)
+    icons_raw_str = ",\n\t".join(icons_raw)
 
-            s.write('\t"{0}"'.format(icon_name))
+    with methods.generated_wrapper(target[0]) as file:
+        file.write(f"""\
+inline constexpr int editor_icons_count = {len(icons_names)};
+inline constexpr const char *editor_icons_sources[] = {{
+	{icons_raw_str}
+}};
 
-            if fname != svg_icons[-1]:
-                s.write(",")
-            s.write("\n")
+inline constexpr const char *editor_icons_names[] = {{
+	{icons_names_str}
+}};
 
-            index += 1
+inline constexpr int editor_md_thumbs_count = {len(icons_med)};
+inline constexpr int editor_md_thumbs_indices[] = {{ {", ".join(icons_med)} }};
 
-        s.write("};\n")
-
-        if thumb_medium_indices:
-            s.write("\n\n")
-            s.write("static const int editor_md_thumbs_count = {};\n".format(len(thumb_medium_indices)))
-            s.write("static const int editor_md_thumbs_indices[] = {")
-            s.write(", ".join(thumb_medium_indices))
-            s.write("};\n")
-        if thumb_big_indices:
-            s.write("\n\n")
-            s.write("static const int editor_bg_thumbs_count = {};\n".format(len(thumb_big_indices)))
-            s.write("static const int editor_bg_thumbs_indices[] = {")
-            s.write(", ".join(thumb_big_indices))
-            s.write("};\n")
-
-        s.write("#endif\n")
-
-        with open(dst, "w", encoding="utf-8", newline="\n") as f:
-            f.write(s.getvalue())
+inline constexpr int editor_bg_thumbs_count = {len(icons_big)};
+inline constexpr int editor_bg_thumbs_indices[] = {{ {", ".join(icons_big)} }};
+""")
