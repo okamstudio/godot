@@ -480,7 +480,7 @@ public:
 				ssao_radius2(0.0),
 				ssao_bias(0.01),
 				ssao_light_affect(0),
-				ssao_ao_channel_affect(0),
+				ssao_ao_channel_affect(1.0),
 				ssao_quality(VS::ENV_SSAO_QUALITY_LOW),
 				ssao_bilateral_sharpness(4),
 				ssao_filter(VS::ENV_SSAO_BLUR_3x3),
