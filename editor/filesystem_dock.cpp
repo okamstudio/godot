@@ -1888,6 +1888,11 @@ void FileSystemDock::_file_option(int p_option, const Vector<String> &p_selected
 		case FILE_NEW_RESOURCE: {
 			new_resource_dialog->popup_create(true);
 		} break;
+
+		default:
+			// context menu plugins option selected.
+			EditorContextMenu::options_pressed(EditorContextMenu::CONTEXT_SLOT_FILESYSTEM, p_option, p_selected);
+			break;
 	}
 }
 
@@ -2419,6 +2424,8 @@ void FileSystemDock::_file_and_folders_fill_popup(PopupMenu *p_popup, Vector<Str
 		p_popup->add_icon_item(get_icon("Filesystem", "EditorIcons"), item_text, FILE_SHOW_IN_EXPLORER);
 		path = fpath;
 	}
+
+	EditorContextMenu::handle_plugins(EditorContextMenu::CONTEXT_SLOT_FILESYSTEM, p_paths, p_popup);
 }
 
 void FileSystemDock::_tree_rmb_select(const Vector2 &p_pos) {

@@ -3948,6 +3948,8 @@ void EditorNode::register_editor_types() {
 	ClassDB::register_class<EditorResourcePicker>();
 	ClassDB::register_class<EditorScriptPicker>();
 	ClassDB::register_virtual_class<FileSystemDock>();
+	ClassDB::register_class<EditorContextMenuPlugin>();
+	ClassDB::register_class<EditorContextMenu>();
 
 	// FIXME: Is this stuff obsolete, or should it be ported to new APIs?
 	ClassDB::register_class<EditorScenePostImport>();

@@ -33,6 +33,7 @@
 
 #include "core/io/config_file.h"
 #include "core/undo_redo.h"
+#include "editor/editor_context_menu_plugin.h"
 #include "editor/editor_inspector.h"
 #include "editor/import/editor_import_plugin.h"
 #include "editor/import/resource_importer_scene.h"
@@ -167,6 +168,12 @@ public:
 		DOCK_SLOT_MAX
 	};
 
+	enum ContextMenuSlot {
+		CONTEXT_SLOT_SCENE_TREE,
+		CONTEXT_SLOT_FILESYSTEM,
+		CONTEXT_SLOT_SCRIPT_EDITOR
+	};
+
 	//TODO: send a resource for editing to the editor node?
 
 	void add_control_to_container(CustomControlContainer p_location, Control *p_control);
@@ -250,6 +257,9 @@ public:
 	void add_autoload_singleton(const String &p_name, const String &p_path);
 	void remove_autoload_singleton(const String &p_name);
 
+	void add_context_menu_plugin(ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin);
+	void remove_context_menu_plugin(ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin);
+
 	void enable_plugin();
 	void disable_plugin();
 
@@ -259,6 +269,7 @@ public:
 
 VARIANT_ENUM_CAST(EditorPlugin::CustomControlContainer);
 VARIANT_ENUM_CAST(EditorPlugin::DockSlot);
+VARIANT_ENUM_CAST(EditorPlugin::ContextMenuSlot);
 
 typedef EditorPlugin *(*EditorPluginCreateFunc)(EditorNode *);
 

@@ -1112,7 +1112,15 @@ void ScriptEditor::_menu_option(int p_option) {
 			}
 		}
 	}
-
+	// Context menu options.
+	if (p_option >= EditorContextMenu::CONTEXT_ITEM_ID_BASE) {
+		RES resource;
+		if (current) {
+			resource = current->get_edited_resource();
+		}
+		EditorContextMenu::options_pressed(EditorContextMenu::CONTEXT_SLOT_SCRIPT_EDITOR, p_option, resource);
+		return;
+	}
 	if (current) {
 		switch (p_option) {
 			case FILE_SAVE: {
@@ -2746,6 +2754,17 @@ void ScriptEditor::_make_script_list_context_menu() {
 	context_menu->set_item_disabled(context_menu->get_item_index(WINDOW_MOVE_UP), tab_container->get_current_tab() <= 0);
 	context_menu->set_item_disabled(context_menu->get_item_index(WINDOW_MOVE_DOWN), tab_container->get_current_tab() >= tab_container->get_child_count() - 1);
 	context_menu->set_item_disabled(context_menu->get_item_index(WINDOW_SORT), tab_container->get_child_count() <= 1);
+
+	// Context menu plugin.
+	Vector<String> selected_paths;
+	if (se) {
+		Ref<Script> scr = se->get_edited_resource();
+		if (scr.is_valid()) {
+			String path = scr->get_path();
+			selected_paths.push_back(path);
+		}
+	}
+	EditorContextMenu::handle_plugins(EditorContextMenu::CONTEXT_SLOT_SCRIPT_EDITOR, selected_paths, context_menu);
 
 	context_menu->set_position(get_global_transform().xform(get_local_mouse_position()));
 	context_menu->set_size(Vector2(1, 1));

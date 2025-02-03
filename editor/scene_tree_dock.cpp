@@ -1249,6 +1249,13 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 		} break;
 
 		default: {
+			// Context menu options.
+			if (p_tool >= EditorContextMenu::CONTEXT_ITEM_ID_BASE) {
+				List<Node *> selection = editor_selection->get_selected_node_list();
+				EditorContextMenu::options_pressed(EditorContextMenu::CONTEXT_SLOT_SCENE_TREE, p_tool, selection);
+				break;
+			}
+
 			_filter_option_selected(p_tool);
 
 			if (p_tool >= EDIT_SUBRESOURCE_BASE) {
@@ -2993,6 +3000,15 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 	menu->set_size(Size2(1, 1));
 	menu->set_position(p_menu_pos);
 	menu->popup();
+
+	// Add context menu plugins.
+	Vector<String> paths;
+	Node *root = EditorNode::get_singleton()->get_edited_scene();
+	for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
+		String node_path = root->get_path().rel_path_to(E->get()->get_path());
+		paths.push_back(node_path);
+	}
+	EditorContextMenu::handle_plugins(EditorContextMenu::CONTEXT_SLOT_SCENE_TREE, paths, menu);
 }
 
 void SceneTreeDock::_update_filter_menu() {

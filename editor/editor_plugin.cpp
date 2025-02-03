@@ -763,6 +763,16 @@ int find(const PoolStringArray &a, const String &v) {
 	return -1;
 }
 
+void EditorPlugin::add_context_menu_plugin(ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin) {
+	ERR_FAIL_COND(!p_plugin.is_valid());
+	EditorContextMenu::add_context_menu_plugin(EditorContextMenu::ContextMenuSlot(p_slot), p_plugin);
+}
+
+void EditorPlugin::remove_context_menu_plugin(ContextMenuSlot p_slot, const Ref<EditorContextMenuPlugin> &p_plugin) {
+	ERR_FAIL_COND(!p_plugin.is_valid());
+	EditorContextMenu::remove_context_menu_plugin(EditorContextMenu::ContextMenuSlot(p_slot), p_plugin);
+}
+
 void EditorPlugin::enable_plugin() {
 	// Called when the plugin gets enabled in project settings, after it's added to the tree.
 	// You can implement it to register autoloads.
@@ -856,6 +866,8 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_inspector_plugin", "plugin"), &EditorPlugin::remove_inspector_plugin);
 	ClassDB::bind_method(D_METHOD("set_input_event_forwarding_always_enabled"), &EditorPlugin::set_input_event_forwarding_always_enabled);
 	ClassDB::bind_method(D_METHOD("set_force_draw_over_forwarding_enabled"), &EditorPlugin::set_force_draw_over_forwarding_enabled);
+	ClassDB::bind_method(D_METHOD("add_context_menu_plugin", "slot", "plugin"), &EditorPlugin::add_context_menu_plugin);
+	ClassDB::bind_method(D_METHOD("remove_context_menu_plugin", "slot", "plugin"), &EditorPlugin::remove_context_menu_plugin);
 
 	ClassDB::bind_method(D_METHOD("get_editor_interface"), &EditorPlugin::get_editor_interface);
 	ClassDB::bind_method(D_METHOD("get_script_create_dialog"), &EditorPlugin::get_script_create_dialog);
@@ -912,6 +924,10 @@ void EditorPlugin::_bind_methods() {
 	BIND_ENUM_CONSTANT(DOCK_SLOT_RIGHT_UR);
 	BIND_ENUM_CONSTANT(DOCK_SLOT_RIGHT_BR);
 	BIND_ENUM_CONSTANT(DOCK_SLOT_MAX);
+
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCENE_TREE);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_FILESYSTEM);
+	BIND_ENUM_CONSTANT(CONTEXT_SLOT_SCRIPT_EDITOR);
 }
 
 EditorPlugin::EditorPlugin() :
