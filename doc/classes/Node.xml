@@ -781,6 +781,9 @@
 			Sets this node's name as a unique name in its [member owner]. This allows the node to be accessed as [code]%Name[/code] instead of the full path, from any node within that scene.
 			If another node with the same owner already had that name declared as unique, that other node's name will no longer be set as having a unique name.
 		</member>
+		<member name="editor_description" type="String" setter="set_editor_description" getter="get_editor_description" default="&quot;&quot;">
+			An optional description to the node. It will be displayed as a tooltip when hovering over the node in the editor's Scene dock.
+		</member>
 	</members>
 	<signals>
 		<signal name="child_entered_tree">
@@ -800,6 +803,12 @@
 		<signal name="child_order_changed">
 			<description>
 				Emitted when the list of children is changed. This happens when child nodes are added, moved, or removed.
+			</description>
+		</signal>
+		<signal name="editor_description_changed">
+			<param index="0" name="node" type="Node" />
+			<description>
+				Emitted when the node's editor description field changed.
 			</description>
 		</signal>
 		<signal name="ready">
