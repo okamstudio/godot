@@ -35,6 +35,53 @@
 #include "gdscript.h"
 #include "gdscript_parser.h"
 
+struct GDScriptCodeGenerator {
+	struct Address {
+		enum AddressMode {
+			SELF,
+			CLASS,
+			MEMBER,
+			CLASS_CONSTANT,
+			LOCAL_CONSTANT,
+			STACK,
+			STACK_VARIABLE,
+			GLOBAL,
+			NAMED_GLOBAL,
+			NIL,
+
+			INVALID // this isn't an address; behaves as NIL
+		};
+
+		AddressMode mode = AddressMode::INVALID;
+		uint32_t address = 0;
+
+		Address(AddressMode p_mode = INVALID) {
+			mode = p_mode;
+		}
+
+		Address(AddressMode p_mode, uint32_t p_address) {
+			mode = p_mode;
+			address = p_address;
+		}
+
+		explicit operator bool() const {
+			return mode != INVALID;
+		}
+
+		inline bool operator==(const Address &p_other) const {
+			return mode == p_other.mode && address == p_other.address;
+		}
+
+		inline bool operator!=(const Address &p_other) const {
+			return !operator==(p_other);
+		}
+	};
+
+	static Address StackAddress(uint32_t p_address) {
+		return Address(Address::STACK, p_address);
+	}
+};
+
 class GDScriptCompiler {
 	const GDScriptParser *parser;
 	Set<GDScript *> parsed_classes;
@@ -130,6 +177,64 @@ class GDScriptCompiler {
 			}
 		}
 
+		// if the address is a stack address: allocate it and make it safe to use.
+		void alloc_stack_address(const GDScriptCodeGenerator::Address &p_address) {
+			if (p_address.mode == GDScriptCodeGenerator::Address::STACK) {
+				alloc_stack(p_address.address);
+			}
+		}
+
+		// if the address is a stack address that is above the current stack level then
+		// adjust the stack level to be the next immediate address and return true.
+		// returns false otherwise.
+		bool adjust_stack_level(const GDScriptCodeGenerator::Address &p_address, int &p_slevel) const {
+			if (p_address.mode == GDScriptCodeGenerator::Address::STACK) {
+				int addr_stack_level = p_address.address;
+				if (addr_stack_level >= p_slevel) {
+					// use the next stack address after this one
+					p_slevel = addr_stack_level + 1;
+					return true; // stack level was adjusted
+				}
+			}
+			return false; // stack level was not touched
+		}
+
+		void append(int p_code) {
+			opcodes.push_back(p_code);
+		}
+
+		void append(const GDScriptCodeGenerator::Address &address) {
+			opcodes.push_back(address_of(address));
+		}
+
+		int address_of(const GDScriptCodeGenerator::Address &p_address) {
+			using AddressMode = GDScriptCodeGenerator::Address::AddressMode;
+			switch (p_address.mode) {
+				case AddressMode::SELF:
+					return GDScriptFunction::ADDR_TYPE_SELF << GDScriptFunction::ADDR_BITS;
+				case AddressMode::CLASS:
+					return GDScriptFunction::ADDR_TYPE_CLASS << GDScriptFunction::ADDR_BITS;
+				case AddressMode::MEMBER:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_MEMBER << GDScriptFunction::ADDR_BITS);
+				case AddressMode::CLASS_CONSTANT:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_CLASS_CONSTANT << GDScriptFunction::ADDR_BITS);
+				case AddressMode::LOCAL_CONSTANT:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_LOCAL_CONSTANT << GDScriptFunction::ADDR_BITS);
+				case AddressMode::STACK:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_STACK << GDScriptFunction::ADDR_BITS);
+				case AddressMode::STACK_VARIABLE:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_STACK_VARIABLE << GDScriptFunction::ADDR_BITS);
+				case AddressMode::GLOBAL:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_GLOBAL << GDScriptFunction::ADDR_BITS);
+				case AddressMode::NAMED_GLOBAL:
+					return p_address.address | (GDScriptFunction::ADDR_TYPE_NAMED_GLOBAL << GDScriptFunction::ADDR_BITS);
+				case AddressMode::INVALID:
+				case AddressMode::NIL:
+					return GDScriptFunction::ADDR_TYPE_NIL << GDScriptFunction::ADDR_BITS;
+			}
+			return -1; // unreachable
+		}
+
 		int current_line;
 		int stack_max;
 		int call_max;
@@ -141,12 +246,12 @@ class GDScriptCompiler {
 	void _set_error(const String &p_error, const GDScriptParser::Node *p_node);
 
 	bool _create_unary_operator(CodeGen &codegen, const GDScriptParser::OperatorNode *on, Variant::Operator op, int p_stack_level);
-	bool _create_binary_operator(CodeGen &codegen, const GDScriptParser::OperatorNode *on, Variant::Operator op, int p_stack_level, bool p_initializer = false, int p_index_addr = 0);
+	bool _create_binary_operator(CodeGen &codegen, const GDScriptParser::OperatorNode *on, Variant::Operator op, int p_stack_level, bool p_initializer = false, GDScriptCodeGenerator::Address p_index_addr = GDScriptCodeGenerator::Address::INVALID);
 
 	GDScriptDataType _gdtype_from_datatype(const GDScriptParser::DataType &p_datatype, GDScript *p_owner = nullptr) const;
 
-	int _parse_assign_right_expression(CodeGen &codegen, const GDScriptParser::OperatorNode *p_expression, int p_stack_level, int p_index_addr = 0);
-	int _parse_expression(CodeGen &codegen, const GDScriptParser::Node *p_expression, int p_stack_level, bool p_root = false, bool p_initializer = false, int p_index_addr = 0);
+	GDScriptCodeGenerator::Address _parse_assign_right_expression(CodeGen &codegen, const GDScriptParser::OperatorNode *p_expression, int p_stack_level, GDScriptCodeGenerator::Address p_index_addr = GDScriptCodeGenerator::Address::INVALID);
+	GDScriptCodeGenerator::Address _parse_expression(CodeGen &codegen, const GDScriptParser::Node *p_expression, int p_stack_level, bool p_root = false, bool p_initializer = false, GDScriptCodeGenerator::Address p_index_addr = GDScriptCodeGenerator::Address::INVALID);
 	Error _parse_block(CodeGen &codegen, const GDScriptParser::BlockNode *p_block, int p_stack_level = 0, int p_break_addr = -1, int p_continue_addr = -1);
 	Error _parse_function(GDScript *p_script, const GDScriptParser::ClassNode *p_class, const GDScriptParser::FunctionNode *p_func, bool p_for_ready = false);
 	Error _parse_class_level(GDScript *p_script, const GDScriptParser::ClassNode *p_class, bool p_keep_state);
