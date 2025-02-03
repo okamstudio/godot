@@ -105,6 +105,7 @@ class OS_X11 : public OS_Unix {
 	Window xdnd_source_window;
 	MainLoop *main_loop;
 	::Display *x11_display;
+	int context;
 	char *xmbstring;
 	int xmblen;
 	unsigned long last_timestamp;

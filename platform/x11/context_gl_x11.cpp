@@ -30,6 +30,8 @@
 
 #include "context_gl_x11.h"
 
+#include "core/project_settings.h"
+
 #ifdef X11_ENABLED
 #if defined(OPENGL_ENABLED)
 #include <stdio.h>
@@ -80,20 +82,44 @@ static int ctxErrorHandler(Display *dpy, XErrorEvent *ev) {
 	return 0;
 }
 
-static void set_class_hint(Display *p_display, Window p_window) {
-	XClassHint *classHint;
+static void set_class_hint(Display *p_display, Window p_window, int p_context) {
+	XClassHint *classHint = XAllocClassHint();
 
-	/* set the name and class hints for the window manager to use */
-	classHint = XAllocClassHint();
 	if (classHint) {
-		classHint->res_name = (char *)"Godot_Engine";
-		classHint->res_class = (char *)"Godot";
+		CharString name_str;
+		switch (p_context) {
+			case OS::CONTEXT_EDITOR:
+				name_str = "Godot_Editor";
+				break;
+			case OS::CONTEXT_PROJECTMAN:
+				name_str = "Godot_ProjectList";
+				break;
+			case OS::CONTEXT_ENGINE:
+				name_str = "Godot_Engine";
+				break;
+		}
+
+		CharString class_str;
+		if (p_context == OS::CONTEXT_ENGINE) {
+			String config_name = GLOBAL_GET("application/config/name");
+			if (config_name.length() == 0) {
+				class_str = "Godot_Engine";
+			} else {
+				class_str = config_name.utf8();
+			}
+		} else {
+			class_str = "Godot";
+		}
+
+		classHint->res_class = class_str.ptrw();
+		classHint->res_name = name_str.ptrw();
+
+		XSetClassHint(p_display, p_window, classHint);
+		XFree(classHint);
 	}
-	XSetClassHint(p_display, p_window, classHint);
-	XFree(classHint);
 }
 
-Error ContextGL_X11::initialize() {
+Error ContextGL_X11::initialize(int p_context) {
 	//const char *extensions = glXQueryExtensionsString(x11_display, DefaultScreen(x11_display));
 
 	GLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = (GLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddress((const GLubyte *)"glXCreateContextAttribsARB");
@@ -203,7 +229,7 @@ Error ContextGL_X11::initialize() {
 	XStoreName(x11_display, x11_window, "Godot Engine");
 
 	ERR_FAIL_COND_V(!x11_window, ERR_UNCONFIGURED);
-	set_class_hint(x11_display, x11_window);
+	set_class_hint(x11_display, x11_window, p_context);
 
 	if (!OS::get_singleton()->is_no_window_mode_enabled()) {
 		XMapWindow(x11_display, x11_window);

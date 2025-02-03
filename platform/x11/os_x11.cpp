@@ -361,7 +361,7 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	while (!context_gl) {
 		context_gl = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, opengl_api_type));
 
-		if (context_gl->initialize() != OK) {
+		if (context_gl->initialize(context) != OK) {
 			memdelete(context_gl);
 			context_gl = nullptr;
 
@@ -4077,39 +4077,43 @@ bool OS_X11::is_vsync_enabled() const {
 }
 */
 void OS_X11::set_context(int p_context) {
-	XClassHint *classHint = XAllocClassHint();
+	context = p_context;
 
-	if (classHint) {
-		CharString name_str;
-		switch (p_context) {
-			case CONTEXT_EDITOR:
-				name_str = "Godot_Editor";
-				break;
-			case CONTEXT_PROJECTMAN:
-				name_str = "Godot_ProjectList";
-				break;
-			case CONTEXT_ENGINE:
-				name_str = "Godot_Engine";
-				break;
-		}
+	if (x11_window) {
+		XClassHint *classHint = XAllocClassHint();
 
-		CharString class_str;
-		if (p_context == CONTEXT_ENGINE) {
-			String config_name = GLOBAL_GET("application/config/name");
-			if (config_name.length() == 0) {
-				class_str = "Godot_Engine";
-			} else {
-				class_str = config_name.utf8();
+		if (classHint) {
+			CharString name_str;
+			switch (context) {
+				case CONTEXT_EDITOR:
+					name_str = "Godot_Editor";
+					break;
+				case CONTEXT_PROJECTMAN:
+					name_str = "Godot_ProjectList";
+					break;
+				case CONTEXT_ENGINE:
+					name_str = "Godot_Engine";
+					break;
 			}
-		} else {
-			class_str = "Godot";
+
+			CharString class_str;
+			if (context == CONTEXT_ENGINE) {
+				String config_name = GLOBAL_GET("application/config/name");
+				if (config_name.length() == 0) {
+					class_str = "Godot_Engine";
+				} else {
+					class_str = config_name.utf8();
+				}
+			} else {
+				class_str = "Godot";
+			}
+
+			classHint->res_class = class_str.ptrw();
+			classHint->res_name = name_str.ptrw();
+
+			XSetClassHint(x11_display, x11_window, classHint);
+			XFree(classHint);
 		}
-
-		classHint->res_class = class_str.ptrw();
-		classHint->res_name = name_str.ptrw();
-
-		XSetClassHint(x11_display, x11_window, classHint);
-		XFree(classHint);
 	}
 }
 
@@ -4482,6 +4486,8 @@ OS_X11::OS_X11() {
 	AudioDriverManager::add_driver(&driver_alsa);
 #endif
 
+	x11_window = 0;
+	context = CONTEXT_ENGINE;
 	xi.opcode = 0;
 	xi.last_relative_time = 0;
 	layered_window = false;

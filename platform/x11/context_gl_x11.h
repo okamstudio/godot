@@ -73,7 +73,7 @@ public:
 	void make_offscreen_current();
 	void release_offscreen_current();
 
-	Error initialize();
+	Error initialize(int p_context);
 
 	void set_use_vsync(bool p_use);
 	bool is_using_vsync() const;

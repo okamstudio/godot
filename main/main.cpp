@@ -1452,6 +1452,72 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	}
 #endif
 
+#ifdef TOOLS_ENABLED
+	String game_path;
+	String script;
+	String test;
+	String export_preset;
+	String positional_arg;
+
+	List<String> args = OS::get_singleton()->get_cmdline_args();
+	for (int i = 0; i < args.size(); i++) {
+		if (args[i].length() && args[i][0] != '-' && positional_arg == "") {
+			positional_arg = args[i];
+
+			if (args[i].ends_with(".scn") ||
+					args[i].ends_with(".tscn") ||
+					args[i].ends_with(".escn") ||
+					args[i].ends_with(".res") ||
+					args[i].ends_with(".tres")) {
+				// Only consider the positional argument to be a scene path if it ends with
+				// a file extension associated with Godot scenes. This makes it possible
+				// for projects to parse command-line arguments for custom CLI arguments
+				// or other file extensions without trouble. This can be used to implement
+				// "drag-and-drop onto executable" logic, which can prove helpful
+				// for non-game applications.
+				game_path = args[i];
+			}
+		} else if (i < (args.size() - 1)) {
+			bool parsed_pair = true;
+			if (args[i] == "-s" || args[i] == "--script") {
+				script = args[i + 1];
+			} else if (args[i] == "--test") {
+				test = args[i + 1];
+			} else if (args[i] == "--export") {
+				export_preset = args[i + 1];
+			} else if (args[i] == "--export-debug") {
+				export_preset = args[i + 1];
+			} else if (args[i] == "--export-pack") {
+				export_preset = args[i + 1];
+			} else {
+				// The parameter does not match anything known, don't skip the next argument
+				parsed_pair = false;
+			}
+			if (parsed_pair) {
+				i++;
+			}
+		}
+	}
+#endif
+
+	if (editor) {
+		OS::get_singleton()->set_context(OS::CONTEXT_EDITOR);
+	}
+
+#ifdef TOOLS_ENABLED
+	if (script == "" && game_path == "" && String(GLOBAL_DEF("application/run/main_scene", "")) != "") {
+		game_path = GLOBAL_DEF("application/run/main_scene", "");
+	}
+	if (editor) {
+		if (export_preset != "") {
+			game_path = ""; // Do not load anything.
+		}
+	}
+	if (project_manager || (script == "" && test == "" && game_path == "" && !editor)) {
+		OS::get_singleton()->set_context(OS::CONTEXT_PROJECTMAN);
+	}
+#endif
+
 	Error err = OS::get_singleton()->initialize(video_mode, video_driver_idx, audio_driver_idx);
 	if (err != OK) {
 		return err;
