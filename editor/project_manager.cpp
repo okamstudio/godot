@@ -482,9 +482,20 @@ private:
 						if (!f) {
 							set_message(TTR("Couldn't create project.godot in project path."), MESSAGE_ERROR);
 						} else {
+							// Store default environment file with some custom settings.
+							// This is done to improve the appearance of new projects
+							// (avoiding the notorious blue appearance of shaded areas),
+							// while keeping existing visuals in existing projects.
 							f->store_line("[gd_resource type=\"Environment\" load_steps=2 format=2]");
 							f->store_line("");
 							f->store_line("[sub_resource type=\"ProceduralSky\" id=1]");
+							f->store_line("sky_top_color = Color( 0.385, 0.454, 0.55, 1 )");
+							f->store_line("sky_horizon_color = Color( 0.646, 0.656, 0.67, 1 )");
+							f->store_line("sky_curve = 0.15");
+							f->store_line("ground_bottom_color = Color( 0.2, 0.169, 0.133, 1 )");
+							f->store_line("ground_horizon_color = Color( 0.646, 0.656, 0.67, 1 )");
+							f->store_line("sun_angle_max = 30.0");
+							f->store_line("sun_curve = 0.15");
 							f->store_line("");
 							f->store_line("[resource]");
 							f->store_line("background_mode = 2");

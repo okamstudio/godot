@@ -6,6 +6,7 @@
 	<description>
 		ProceduralSky provides a way to create an effective background quickly by defining procedural parameters for the sun, the sky and the ground. The sky and ground are very similar, they are defined by a color at the horizon, another color, and finally an easing curve to interpolate between these two colors. Similarly, the sun is described by a position in the sky, a color, and an easing curve. However, the sun also defines a minimum and maximum angle, these two values define at what distance the easing curve begins and ends from the sun, and thus end up defining the size of the sun in the sky.
 		The ProceduralSky is updated on the CPU after the parameters change. It is stored in a texture and then displayed as a background in the scene. This makes it relatively unsuitable for real-time updates during gameplay. However, with a small enough texture size, it can still be updated relatively frequently, as it is updated on a background thread when multi-threading is available.
+		[b]Note:[/b] The ProceduralSky appearance in projects created after Godot 3.6 is different from the defaults specified here. This is done to improve the appearance of new projects while preserving compatibility with existing projects. If you create a ProceduralSky resource in the editor or in a script, it will use the defaults specified here.
 	</description>
 	<tutorials>
 	</tutorials>
