@@ -1699,7 +1699,7 @@
 			If [code]true[/code], performs a previous depth pass before rendering materials. This increases performance in scenes with high overdraw, when complex materials and lighting are used.
 		</member>
 		<member name="rendering/quality/directional_shadow/size" type="int" setter="" getter="" default="4096">
-			The directional shadow's size in pixels. Higher values will result in sharper shadows, at the cost of performance. The value will be rounded up to the nearest power of 2. This setting can be changed at run-time; the change will be applied immediately.
+			The directional shadow's size in pixels. Higher values will result in sharper shadows, at the cost of performance. This setting can be changed at run-time; the change will be applied immediately.
 		</member>
 		<member name="rendering/quality/directional_shadow/size.mobile" type="int" setter="" getter="" default="2048">
 			Lower-end override for [member rendering/quality/directional_shadow/size] on mobile devices, due to performance concerns or driver support.

@@ -75,7 +75,7 @@ void RasterizerSceneGLES2::directional_shadow_create() {
 	}
 
 	directional_shadow.light_count = 0;
-	directional_shadow.size = next_power_of_2(directional_shadow_size);
+	directional_shadow.size = directional_shadow_size;
 
 	if (directional_shadow.size > storage->config.max_viewport_dimensions[0] || directional_shadow.size > storage->config.max_viewport_dimensions[1]) {
 		WARN_PRINT("Cannot set directional shadow size larger than maximum hardware supported size of (" + itos(storage->config.max_viewport_dimensions[0]) + ", " + itos(storage->config.max_viewport_dimensions[1]) + "). Setting size to maximum.");
@@ -4131,7 +4131,7 @@ void RasterizerSceneGLES2::initialize() {
 void RasterizerSceneGLES2::iteration() {
 	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
 
-	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
+	const int directional_shadow_size_new = int(GLOBAL_GET("rendering/quality/directional_shadow/size"));
 	if (directional_shadow_size != directional_shadow_size_new) {
 		directional_shadow_size = directional_shadow_size_new;
 		directional_shadow_create();
@@ -4143,7 +4143,7 @@ void RasterizerSceneGLES2::finalize() {
 
 RasterizerSceneGLES2::RasterizerSceneGLES2() {
 	_light_counter = 0;
-	directional_shadow_size = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
+	directional_shadow_size = int(GLOBAL_GET("rendering/quality/directional_shadow/size"));
 }
 
 RasterizerSceneGLES2::~RasterizerSceneGLES2() {

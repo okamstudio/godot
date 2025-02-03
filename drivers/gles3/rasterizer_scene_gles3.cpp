@@ -90,7 +90,7 @@ void RasterizerSceneGLES3::directional_shadow_create() {
 	}
 
 	directional_shadow.light_count = 0;
-	directional_shadow.size = next_power_of_2(directional_shadow_size);
+	directional_shadow.size = directional_shadow_size;
 	glGenFramebuffers(1, &directional_shadow.fbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, directional_shadow.fbo);
 	glGenTextures(1, &directional_shadow.depth);
@@ -5378,7 +5378,7 @@ void RasterizerSceneGLES3::initialize() {
 void RasterizerSceneGLES3::iteration() {
 	shadow_filter_mode = ShadowFilterMode(int(GLOBAL_GET("rendering/quality/shadows/filter_mode")));
 
-	const int directional_shadow_size_new = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
+	const int directional_shadow_size_new = int(GLOBAL_GET("rendering/quality/directional_shadow/size"));
 	if (directional_shadow_size != directional_shadow_size_new) {
 		directional_shadow_size = directional_shadow_size_new;
 		directional_shadow_create();
@@ -5398,7 +5398,7 @@ void RasterizerSceneGLES3::finalize() {
 }
 
 RasterizerSceneGLES3::RasterizerSceneGLES3() {
-	directional_shadow_size = next_power_of_2(int(GLOBAL_GET("rendering/quality/directional_shadow/size")));
+	directional_shadow_size = int(GLOBAL_GET("rendering/quality/directional_shadow/size"));
 }
 
 RasterizerSceneGLES3::~RasterizerSceneGLES3() {
