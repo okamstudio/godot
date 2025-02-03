@@ -219,6 +219,13 @@
 				Marks the most recent [InputEvent] as handled.
 			</description>
 		</method>
+		<method name="set_scale_stretch">
+			<return type="void" />
+			<argument index="0" name="stretch" type="int" enum="SceneTree.ScaleStretch" default="0" />
+			<description>
+				Configures the screen's scale stretching mode according to the given [enum ScaleStretch].
+			</description>
+		</method>
 		<method name="set_screen_stretch">
 			<return type="void" />
 			<argument index="0" name="mode" type="int" enum="SceneTree.StretchMode" />
@@ -407,6 +414,12 @@
 		</constant>
 		<constant name="STRETCH_ASPECT_EXPAND" value="4" enum="StretchAspect">
 			Expand in both directions, retaining the same aspect ratio. This prevents distortion while avoiding black bars.
+		</constant>
+		<constant name="SCALE_STRETCH_FRACTIONAL" value="0" enum="ScaleStretch">
+			The content will be stretched according to a fractional factor, filling all the space available but allowing "pixel wobble" to occur.
+		</constant>
+		<constant name="SCALE_STRETCH_INTEGER" value="1" enum="ScaleStretch">
+			The content will be stretched according to an integer factor, preserving sharp pixels but leaving a black background.
 		</constant>
 	</constants>
 </class>

@@ -1406,23 +1406,34 @@ void SceneTree::_update_root_rect() {
 		}
 	}
 
-	screen_size = screen_size.floor();
-	viewport_size = viewport_size.floor();
+	if (scale_stretch == SCALE_STRETCH_INTEGER) {
+		screen_size = screen_size.floor();
+		viewport_size = viewport_size.floor();
+
+		Size2i screen_scale = (screen_size / viewport_size).floor();
+		int scale_factor = MIN(screen_scale.x, screen_scale.y);
+
+		if (scale_factor < 1) {
+			scale_factor = 1;
+		}
+
+		screen_size = viewport_size * scale_factor;
+	}
 
 	Size2 margin;
 	Size2 offset;
 	//black bars and margin
-	if (stretch_aspect != STRETCH_ASPECT_EXPAND && screen_size.x < video_mode.x) {
+	if (screen_size.x < video_mode.x) {
 		margin.x = Math::round((video_mode.x - screen_size.x) / 2.0);
-		VisualServer::get_singleton()->black_bars_set_margins(margin.x, 0, margin.x, 0);
 		offset.x = Math::round(margin.x * viewport_size.y / screen_size.y);
-	} else if (stretch_aspect != STRETCH_ASPECT_EXPAND && screen_size.y < video_mode.y) {
-		margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
-		VisualServer::get_singleton()->black_bars_set_margins(0, margin.y, 0, margin.y);
-		offset.y = Math::round(margin.y * viewport_size.x / screen_size.x);
-	} else {
-		VisualServer::get_singleton()->black_bars_set_margins(0, 0, 0, 0);
 	}
+
+	if (screen_size.y < video_mode.y) {
+		margin.y = Math::round((video_mode.y - screen_size.y) / 2.0);
+		offset.y = Math::round(margin.y * viewport_size.x / screen_size.x);
+	}
+
+	VisualServer::get_singleton()->black_bars_set_margins(margin.x, margin.y, margin.x, margin.y);
 
 	switch (stretch_mode) {
 		case STRETCH_MODE_DISABLED: {
@@ -1454,6 +1465,11 @@ void SceneTree::set_screen_stretch(StretchMode p_mode, StretchAspect p_aspect, c
 	stretch_aspect = p_aspect;
 	stretch_min = p_minsize;
 	stretch_scale = p_scale;
+	_update_root_rect();
+}
+
+void SceneTree::set_scale_stretch(ScaleStretch p_stretch) {
+	scale_stretch = p_stretch;
 	_update_root_rect();
 }
 
@@ -2085,6 +2101,7 @@ void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("quit", "exit_code"), &SceneTree::quit, DEFVAL(-1));
 
 	ClassDB::bind_method(D_METHOD("set_screen_stretch", "mode", "aspect", "minsize", "scale"), &SceneTree::set_screen_stretch, DEFVAL(1));
+	ClassDB::bind_method(D_METHOD("set_scale_stretch", "stretch"), &SceneTree::set_scale_stretch, DEFVAL(SCALE_STRETCH_FRACTIONAL));
 
 	ClassDB::bind_method(D_METHOD("set_physics_interpolation_enabled", "enabled"), &SceneTree::set_physics_interpolation_enabled);
 	ClassDB::bind_method(D_METHOD("is_physics_interpolation_enabled"), &SceneTree::is_physics_interpolation_enabled);
@@ -2197,6 +2214,9 @@ void SceneTree::_bind_methods() {
 	BIND_ENUM_CONSTANT(STRETCH_ASPECT_KEEP_WIDTH);
 	BIND_ENUM_CONSTANT(STRETCH_ASPECT_KEEP_HEIGHT);
 	BIND_ENUM_CONSTANT(STRETCH_ASPECT_EXPAND);
+
+	BIND_ENUM_CONSTANT(SCALE_STRETCH_FRACTIONAL);
+	BIND_ENUM_CONSTANT(SCALE_STRETCH_INTEGER);
 }
 
 SceneTree *SceneTree::singleton = nullptr;

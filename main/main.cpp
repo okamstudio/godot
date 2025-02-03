@@ -2087,6 +2087,15 @@ bool Main::start() {
 
 			sml->set_screen_stretch(sml_sm, sml_aspect, stretch_size, stretch_scale);
 
+			String scale_stretch = GLOBAL_DEF("display/window/stretch/stretch", "fractional");
+
+			SceneTree::ScaleStretch sml_stretch = SceneTree::SCALE_STRETCH_FRACTIONAL;
+			if (scale_stretch == "integer") {
+				sml_stretch = SceneTree::SCALE_STRETCH_INTEGER;
+			}
+
+			sml->set_scale_stretch(sml_stretch);
+
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
 			String appname = ProjectSettings::get_singleton()->get("application/config/name");
@@ -2131,6 +2140,8 @@ bool Main::start() {
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height,expand"));
 			GLOBAL_DEF("display/window/stretch/shrink", 1.0);
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/shrink", PropertyInfo(Variant::REAL, "display/window/stretch/shrink", PROPERTY_HINT_RANGE, "0.1,8,0.01,or_greater"));
+			GLOBAL_DEF("display/window/stretch/stretch", "fractional");
+			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/stretch", PropertyInfo(Variant::STRING, "display/window/stretch/stretch", PROPERTY_HINT_ENUM, "fractional,integer"));
 			sml->set_auto_accept_quit(GLOBAL_DEF("application/config/auto_accept_quit", true));
 			sml->set_quit_on_go_back(GLOBAL_DEF("application/config/quit_on_go_back", true));
 			GLOBAL_DEF("gui/common/snap_controls_to_pixels", true);
