@@ -37,6 +37,7 @@
 #include "editor/editor_locale_dialog.h"
 #include "editor/editor_plugin_settings.h"
 #include "editor/editor_sectioned_inspector.h"
+#include "editor/group_settings_editor.h"
 #include "editor/import_defaults_editor.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/tab_container.h"
@@ -105,6 +106,8 @@ class ProjectSettingsEditor : public AcceptDialog {
 	EditorAutoloadSettings *autoload_settings;
 
 	EditorPluginSettings *plugin_settings;
+
+	GroupSettingsEditor *group_settings;
 
 	void _item_selected(const String &);
 	void _item_adds(String);
@@ -192,6 +195,8 @@ public:
 	void update_plugins();
 
 	EditorAutoloadSettings *get_autoload_settings() { return autoload_settings; }
+
+	GroupSettingsEditor *get_group_settings() { return group_settings; }
 
 	TabContainer *get_tabs();
 

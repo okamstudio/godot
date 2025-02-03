@@ -182,6 +182,9 @@ public:
 	void add_connection(int p_from, int p_to, int p_signal, int p_method, int p_flags, const Vector<int> &p_binds);
 	void add_editable_instance(const NodePath &p_path);
 
+	bool remove_group_references(const StringName &p_name);
+	bool rename_group_references(const StringName &p_old_name, const StringName &p_new_name);
+
 	virtual void set_last_modified_time(uint64_t p_time) { last_modified_time = p_time; }
 	uint64_t get_last_modified_time() const { return last_modified_time; }
 

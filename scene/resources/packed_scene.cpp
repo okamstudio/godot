@@ -1522,6 +1522,34 @@ void SceneState::add_editable_instance(const NodePath &p_path) {
 	editable_instances.push_back(p_path);
 }
 
+bool SceneState::remove_group_references(const StringName &p_name) {
+	bool edited = false;
+	for (int node_idx = 0; node_idx < get_node_count(); node_idx++) {
+		for (int group_idx = 0; group_idx < nodes[node_idx].groups.size(); group_idx++) {
+			if (names[nodes[node_idx].groups[group_idx]] == p_name) {
+				nodes.write[node_idx].groups.remove(group_idx);
+				edited = true;
+				break;
+			}
+		}
+	}
+	return edited;
+}
+
+bool SceneState::rename_group_references(const StringName &p_old_name, const StringName &p_new_name) {
+	bool edited = false;
+	for (int node_idx = 0; node_idx < get_node_count(); node_idx++) {
+		for (int group_idx = 0; group_idx < nodes[node_idx].groups.size(); group_idx++) {
+			if (names[nodes[node_idx].groups[group_idx]] == p_old_name) {
+				names.set(nodes[node_idx].groups[group_idx], p_new_name);
+				edited = true;
+				break;
+			}
+		}
+	}
+	return edited;
+}
+
 PoolVector<String> SceneState::_get_node_groups(int p_idx) const {
 	Vector<StringName> groups = get_node_groups(p_idx);
 	PoolVector<String> ret;

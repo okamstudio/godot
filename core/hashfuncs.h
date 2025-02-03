@@ -130,6 +130,10 @@ static inline uint64_t make_uint64_t(T p_in) {
 }
 
 struct HashMapHasherDefault {
+	// Generic hash function for any type.
+	template <class T>
+	static _FORCE_INLINE_ uint32_t hash(const T *p_pointer) { return hash_one_uint64((uint64_t)p_pointer); }
+
 	static _FORCE_INLINE_ uint32_t hash(const String &p_string) { return p_string.hash(); }
 	static _FORCE_INLINE_ uint32_t hash(const char *p_cstr) { return hash_djb2(p_cstr); }
 	static _FORCE_INLINE_ uint32_t hash(uint64_t p_int) { return hash_one_uint64(p_int); }

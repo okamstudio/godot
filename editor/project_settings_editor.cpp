@@ -1968,6 +1968,11 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	plugin_settings->set_name(TTR("Plugins"));
 	tab_container->add_child(plugin_settings);
 
+	group_settings = memnew(GroupSettingsEditor);
+	group_settings->set_name(TTR("Global Groups"));
+	group_settings->connect("group_changed", this, "_settings_changed");
+	tab_container->add_child(group_settings);
+
 	import_defaults_editor = memnew(ImportDefaultsEditor);
 	import_defaults_editor->set_name(TTR("Import Defaults"));
 	tab_container->add_child(import_defaults_editor);
