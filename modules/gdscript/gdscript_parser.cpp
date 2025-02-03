@@ -4225,8 +4225,17 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 							return;
 						}
 
-						sig.arguments.push_back(tokenizer->get_token_identifier());
+						Pair<StringName, DataType> parameter{};
+						parameter.first = tokenizer->get_token_identifier();
 						tokenizer->advance();
+
+						if (tokenizer->get_token() == GDScriptTokenizer::TK_COLON) {
+							if (!_parse_type(parameter.second)) {
+								_set_error(String{ "Signal ({0})'s parameter ({1})'s type ({2}) is not a built-in type, currently only support built-in types." }.format(varray(sig.name, parameter.first, tokenizer->get_token_identifier())));
+								return;
+							}
+						}
+						sig.arguments.push_back(parameter);
 
 						while (tokenizer->get_token() == GDScriptTokenizer::TK_NEWLINE) {
 							tokenizer->advance();
@@ -7410,6 +7419,12 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 				for (int i = 0; i < current_class->_signals.size(); i++) {
 					if (current_class->_signals[i].name == emitted) {
 						current_class->_signals.write[i].emissions += 1;
+
+						// Add the parameter types required by the signal (because emit_signal actually only has one parameter)
+						for (int type_index = 0; type_index < current_class->_signals[i].arguments.size(); ++type_index) {
+							arg_types.push_back(current_class->_signals[i].arguments[type_index].second);
+						}
+
 						break;
 					}
 				}

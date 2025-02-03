@@ -210,7 +210,9 @@ void ExtendGDScriptParser::parse_class_symbol(const GDScriptParser::ClassNode *p
 			if (j > 0) {
 				symbol.detail += ", ";
 			}
-			symbol.detail += signal.arguments[j];
+			symbol.detail += signal.arguments[i].first;
+			symbol.detail += ": ";
+			symbol.detail += signal.arguments[i].second.to_string();
 		}
 		symbol.detail += ")";
 
@@ -747,9 +749,9 @@ Dictionary ExtendGDScriptParser::dump_class_api(const GDScriptParser::ClassNode 
 		const GDScriptParser::ClassNode::Signal &signal = p_class->_signals[i];
 		Dictionary api;
 		api["name"] = signal.name;
-		Array args;
+		Dictionary args;
 		for (int j = 0; j < signal.arguments.size(); j++) {
-			args.append(signal.arguments[j]);
+			args[signal.arguments[j].first] = signal.arguments[j].second.to_string();
 		}
 		api["arguments"] = args;
 		if (const lsp::DocumentSymbol *symbol = get_symbol_defined_at_line(LINE_NUMBER_TO_INDEX(signal.line))) {

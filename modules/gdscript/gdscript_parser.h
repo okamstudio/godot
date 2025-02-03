@@ -176,7 +176,7 @@ public:
 
 		struct Signal {
 			StringName name;
-			Vector<StringName> arguments;
+			Vector<Pair<StringName, DataType>> arguments;
 			int emissions;
 			int line;
 		};

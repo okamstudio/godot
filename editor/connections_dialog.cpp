@@ -38,6 +38,8 @@
 #include "scene/gui/label.h"
 #include "scene/gui/popup_menu.h"
 
+#include "modules/visual_script/visual_script.h"
+
 static Node *_find_first_script(Node *p_root, Node *p_node) {
 	if (p_node != p_root && p_node->get_owner() != p_root) {
 		return nullptr;
@@ -568,6 +570,22 @@ void ConnectionsDock::_make_or_edit_connection() {
 	if (add_script_function) {
 		// Pick up args here before "it" is deleted by update_tree.
 		script_function_args = it->get_metadata(0).operator Dictionary()["args"];
+
+		// VisualScript only supports getting the name through Variant::get_type_name to determine the type.
+		// But for the Object type, the return value is only "Object", which is obviously not enough.
+		if (Object::cast_to<VisualScript>(script.ptr())) {
+			const Vector<int> object_index = it->get_metadata(0).operator Dictionary()["object_index"].operator Vector<int>();
+			for (int i = 0; i < object_index.size(); ++i) {
+				const int index = object_index[i];
+				String &current_arg = script_function_args.write()[index];
+				const int pos = current_arg.find_char(':');
+				ERR_FAIL_COND_MSG(pos < 0, String{ "Invalid argument `{0}` found!" }.format(varray(script_function_args[index])));
+
+				// Change the name back to "Object"
+				current_arg = current_arg.replace(current_arg.substr(pos + 1), Variant::get_type_name(Variant::OBJECT));
+			}
+		}
+
 		for (int i = 0; i < cToMake.binds.size(); i++) {
 			script_function_args.append("extra_arg_" + itos(i) + ":" + Variant::get_type_name(cToMake.binds[i].get_type()));
 		}
@@ -947,6 +965,7 @@ void ConnectionsDock::update_tree() {
 			StringName signal_name = mi.name;
 			String signaldesc = "(";
 			PoolStringArray argnames;
+			Vector<int> object_index;
 
 			String filter_text = search_box->get_text();
 			if (!filter_text.is_subsequence_ofi(signal_name)) {
@@ -963,6 +982,7 @@ void ConnectionsDock::update_tree() {
 					String tname = "var";
 					if (pi.type == Variant::OBJECT && pi.class_name != StringName()) {
 						tname = pi.class_name.operator String();
+						object_index.push_back(i);
 					} else if (pi.type != Variant::NIL) {
 						tname = Variant::get_type_name(pi.type);
 					}
@@ -978,6 +998,7 @@ void ConnectionsDock::update_tree() {
 			Dictionary sinfo;
 			sinfo["name"] = signal_name;
 			sinfo["args"] = argnames;
+			sinfo["object_index"] = object_index;
 			signal_item->set_metadata(0, sinfo);
 			signal_item->set_icon(0, get_icon("Signal", "EditorIcons"));
 

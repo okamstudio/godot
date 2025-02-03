@@ -895,12 +895,30 @@ bool GDScript::has_script_signal(const StringName &p_signal) const {
 	return false;
 }
 void GDScript::get_script_signal_list(List<MethodInfo> *r_signals) const {
-	for (const Map<StringName, Vector<StringName>>::Element *E = _signals.front(); E; E = E->next()) {
+	for (const Map<StringName, Vector<Pair<StringName, GDScriptParser::DataType>>>::Element *E = _signals.front(); E; E = E->next()) {
 		MethodInfo mi;
 		mi.name = E->key();
 		for (int i = 0; i < E->get().size(); i++) {
 			PropertyInfo arg;
-			arg.name = E->get()[i];
+			arg.name = E->get()[i].first;
+			arg.type = Variant::NIL;
+
+			const GDScriptParser::DataType &current_type = E->get()[i].second;
+			if (current_type.has_type) {
+				if (current_type.kind == GDScriptParser::DataType::BUILTIN) {
+					arg.type = current_type.builtin_type;
+				} else if (current_type.kind == GDScriptParser::DataType::NATIVE) {
+					arg.type = Variant::OBJECT;
+					arg.class_name = current_type.native_type;
+				} else if (current_type.kind == GDScriptParser::DataType::SCRIPT || current_type.kind == GDScriptParser::DataType::GDSCRIPT) {
+					arg.type = Variant::OBJECT;
+					arg.class_name = current_type.script_type->get_instance_base_type();
+				} else if (current_type.kind == GDScriptParser::DataType::CLASS) {
+					arg.type = Variant::OBJECT;
+					arg.class_name = current_type.class_type->name;
+				}
+			}
+
 			mi.arguments.push_back(arg);
 		}
 		r_signals->push_back(mi);

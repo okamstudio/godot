@@ -35,6 +35,7 @@
 #include "core/io/resource_saver.h"
 #include "core/script_language.h"
 #include "gdscript_function.h"
+#include "gdscript_parser.h"
 
 class GDScriptNativeClass : public Reference {
 	GDCLASS(GDScriptNativeClass, Reference);
@@ -81,7 +82,7 @@ class GDScript : public Script {
 	Map<StringName, GDScriptFunction *> member_functions;
 	Map<StringName, MemberInfo> member_indices; //members are just indices to the instanced script.
 	Map<StringName, Ref<GDScript>> subclasses;
-	Map<StringName, Vector<StringName>> _signals;
+	Map<StringName, Vector<Pair<StringName, GDScriptParser::DataType>>> _signals;
 
 #ifdef TOOLS_ENABLED
 
