@@ -207,6 +207,7 @@ void ResourceImporterTexture::get_import_options(List<ImportOption> *r_options, 
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/fix_alpha_border"), p_preset != PRESET_3D));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/premult_alpha"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/HDR_as_SRGB"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/hdr_clamp_exposure"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/invert_color"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "process/normal_map_invert_y"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "stream"), false));
@@ -384,24 +385,25 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 }
 
 Error ResourceImporterTexture::import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	int compress_mode = p_options["compress/mode"];
-	float lossy = p_options["compress/lossy_quality"];
-	int repeat = p_options["flags/repeat"];
-	bool filter = p_options["flags/filter"];
-	bool mipmaps = p_options["flags/mipmaps"];
-	bool anisotropic = p_options["flags/anisotropic"];
-	int srgb = p_options["flags/srgb"];
-	bool fix_alpha_border = p_options["process/fix_alpha_border"];
-	bool premult_alpha = p_options["process/premult_alpha"];
-	bool invert_color = p_options["process/invert_color"];
-	bool normal_map_invert_y = p_options["process/normal_map_invert_y"];
-	bool stream = p_options["stream"];
-	int size_limit = p_options["size_limit"];
-	bool hdr_as_srgb = p_options["process/HDR_as_SRGB"];
-	int normal = p_options["compress/normal_map"];
-	float scale = p_options["svg/scale"];
-	bool force_rgbe = p_options["compress/hdr_mode"];
-	int bptc_ldr = p_options["compress/bptc_ldr"];
+	const int compress_mode = p_options["compress/mode"];
+	const float lossy = p_options["compress/lossy_quality"];
+	const int repeat = p_options["flags/repeat"];
+	const bool filter = p_options["flags/filter"];
+	const bool mipmaps = p_options["flags/mipmaps"];
+	const bool anisotropic = p_options["flags/anisotropic"];
+	const int srgb = p_options["flags/srgb"];
+	const bool fix_alpha_border = p_options["process/fix_alpha_border"];
+	const bool premult_alpha = p_options["process/premult_alpha"];
+	const bool invert_color = p_options["process/invert_color"];
+	const bool normal_map_invert_y = p_options["process/normal_map_invert_y"];
+	const bool stream = p_options["stream"];
+	const int size_limit = p_options["size_limit"];
+	const bool hdr_as_srgb = p_options["process/HDR_as_SRGB"];
+	const bool hdr_clamp_exposure = p_options["process/hdr_clamp_exposure"];
+	const int normal = p_options["compress/normal_map"];
+	const float scale = p_options["svg/scale"];
+	const bool force_rgbe = p_options["compress/hdr_mode"];
+	const int bptc_ldr = p_options["compress/bptc_ldr"];
 
 	Ref<Image> image;
 	image.instance();
@@ -507,6 +509,37 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 
 	bool detect_3d = p_options["detect_3d"];
 	bool detect_srgb = srgb == 2;
+
+	if (hdr_clamp_exposure) {
+		// Clamp HDR exposure following Filament's tonemapping formula.
+		// This can be used to reduce fireflies in environment maps or reduce the influence
+		// of the sun from an HDRI panorama on environment lighting (when a DirectionalLight3D is used instead).
+		const int height = image->get_height();
+		const int width = image->get_width();
+
+		// These values are chosen arbitrarily and seem to produce good results with 4,096 samples.
+		const float linear = 4096.0;
+		const float compressed = 16384.0;
+
+		image->lock();
+		for (int i = 0; i < width; i++) {
+			for (int j = 0; j < height; j++) {
+				const Color color = image->get_pixel(i, j);
+				const float luma = color.get_luminance();
+
+				Color clamped_color;
+				if (luma <= linear) {
+					clamped_color = color;
+				} else {
+					clamped_color = (color / luma) * ((linear * linear - compressed * luma) / (2 * linear - compressed - luma));
+				}
+
+				image->set_pixel(i, j, clamped_color);
+			}
+		}
+		image->unlock();
+	}
+
 	bool detect_normal = normal == 0;
 	bool force_normal = normal == 1;
 
