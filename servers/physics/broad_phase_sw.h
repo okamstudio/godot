@@ -48,10 +48,10 @@ public:
 	typedef void (*UnpairCallback)(CollisionObjectSW *p_object_A, int p_subindex_A, CollisionObjectSW *p_object_B, int p_subindex_B, void *p_pair_data, void *p_user_data);
 
 	// 0 is an invalid ID
-	virtual ID create(CollisionObjectSW *p_object_, int p_subindex = 0, const AABB &p_aabb = AABB(), bool p_static = false) = 0;
+	virtual ID create(CollisionObjectSW *p_object_, int p_subindex, const AABB &p_aabb, bool p_static, int p_collision_object_type) = 0;
 	virtual void move(ID p_id, const AABB &p_aabb) = 0;
 	virtual void recheck_pairs(ID p_id) = 0;
-	virtual void set_static(ID p_id, bool p_static) = 0;
+	virtual void set_static(ID p_id, bool p_static, int p_collision_object_type) = 0;
 	virtual void remove(ID p_id) = 0;
 
 	virtual CollisionObjectSW *get_object(ID p_id) const = 0;

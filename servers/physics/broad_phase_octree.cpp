@@ -31,7 +31,7 @@
 #include "broad_phase_octree.h"
 #include "collision_object_sw.h"
 
-BroadPhaseSW::ID BroadPhaseOctree::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static) {
+BroadPhaseSW::ID BroadPhaseOctree::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static, int p_collision_object_type) {
 	ID oid = octree.create(p_object, AABB(), p_subindex, false, 1 << p_object->get_type(), 0);
 	return oid;
 }
@@ -45,7 +45,7 @@ void BroadPhaseOctree::recheck_pairs(ID p_id) {
 	octree.move(p_id, aabb);
 }
 
-void BroadPhaseOctree::set_static(ID p_id, bool p_static) {
+void BroadPhaseOctree::set_static(ID p_id, bool p_static, int p_collision_object_type) {
 	CollisionObjectSW *it = octree.get(p_id);
 	octree.set_pairable(p_id, !p_static, 1 << it->get_type(), p_static ? 0 : 0xFFFFF); //pair everything, don't care 1?
 }

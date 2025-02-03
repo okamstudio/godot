@@ -32,11 +32,31 @@
 #include "collision_object_sw.h"
 #include "core/project_settings.h"
 
-BroadPhaseSW::ID BroadPhaseBVH::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static) {
-	uint32_t tree_id = p_static ? TREE_STATIC : TREE_DYNAMIC;
-	uint32_t tree_collision_mask = p_static ? TREE_FLAG_DYNAMIC : (TREE_FLAG_STATIC | TREE_FLAG_DYNAMIC);
+BroadPhaseSW::ID BroadPhaseBVH::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static, int p_collision_object_type) {
+	uint32_t tree_collision_mask = 0;
+	uint32_t tree_id = _find_tree(p_static, p_collision_object_type, tree_collision_mask);
 	ID oid = bvh.create(p_object, true, tree_id, tree_collision_mask, p_aabb, p_subindex); // Pair everything, don't care?
 	return oid + 1;
+}
+
+uint32_t BroadPhaseBVH::_find_tree(bool p_static, int p_collision_object_type, uint32_t &r_tree_collision_mask) const {
+	uint32_t tree_id = p_static ? TREE_STATIC : TREE_DYNAMIC;
+	if ((p_collision_object_type == CollisionObjectSW::Type::TYPE_AREA) && (tree_id == TREE_STATIC)) {
+		tree_id = TREE_AREA;
+	}
+	switch (tree_id) {
+		default: {
+			r_tree_collision_mask = TREE_FLAG_DYNAMIC | TREE_FLAG_AREA | TREE_FLAG_STATIC;
+		} break;
+		case TREE_AREA: {
+			r_tree_collision_mask = TREE_FLAG_DYNAMIC | TREE_FLAG_STATIC;
+		} break;
+		case TREE_STATIC: {
+			r_tree_collision_mask = TREE_FLAG_DYNAMIC | TREE_FLAG_AREA;
+		} break;
+	}
+
+	return tree_id;
 }
 
 void BroadPhaseBVH::move(ID p_id, const AABB &p_aabb) {
@@ -47,9 +67,9 @@ void BroadPhaseBVH::recheck_pairs(ID p_id) {
 	bvh.recheck_pairs(p_id - 1);
 }
 
-void BroadPhaseBVH::set_static(ID p_id, bool p_static) {
-	uint32_t tree_id = p_static ? TREE_STATIC : TREE_DYNAMIC;
-	uint32_t tree_collision_mask = p_static ? TREE_FLAG_DYNAMIC : (TREE_FLAG_STATIC | TREE_FLAG_DYNAMIC);
+void BroadPhaseBVH::set_static(ID p_id, bool p_static, int p_collision_object_type) {
+	uint32_t tree_collision_mask = 0;
+	uint32_t tree_id = _find_tree(p_static, p_collision_object_type, tree_collision_mask);
 	bvh.set_tree(p_id - 1, tree_id, tree_collision_mask, false);
 }
 
@@ -65,7 +85,7 @@ CollisionObjectSW *BroadPhaseBVH::get_object(ID p_id) const {
 
 bool BroadPhaseBVH::is_static(ID p_id) const {
 	uint32_t tree_id = bvh.get_tree_id(p_id - 1);
-	return tree_id == 0;
+	return tree_id != 0;
 }
 
 int BroadPhaseBVH::get_subindex(ID p_id) const {

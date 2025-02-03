@@ -145,7 +145,7 @@ void CollisionObject2DSW::_set_static(bool p_static) {
 	for (int i = 0; i < get_shape_count(); i++) {
 		const Shape &s = shapes[i];
 		if (s.bpid > 0) {
-			space->get_broadphase()->set_static(s.bpid, _static);
+			space->get_broadphase()->set_static(s.bpid, _static, get_type());
 		}
 	}
 }
@@ -179,8 +179,8 @@ void CollisionObject2DSW::_update_shapes() {
 		s.aabb_cache = shape_aabb;
 
 		if (s.bpid == 0) {
-			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static);
-			space->get_broadphase()->set_static(s.bpid, _static);
+			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static, get_type());
+			space->get_broadphase()->set_static(s.bpid, _static, get_type());
 		}
 
 		space->get_broadphase()->move(s.bpid, shape_aabb);
@@ -223,8 +223,8 @@ void CollisionObject2DSW::_update_shapes_with_motion(const Vector2 &p_motion) {
 		s.aabb_cache = shape_aabb;
 
 		if (s.bpid == 0) {
-			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static);
-			space->get_broadphase()->set_static(s.bpid, _static);
+			s.bpid = space->get_broadphase()->create(this, i, shape_aabb, _static, get_type());
+			space->get_broadphase()->set_static(s.bpid, _static, get_type());
 		}
 
 		space->get_broadphase()->move(s.bpid, shape_aabb);

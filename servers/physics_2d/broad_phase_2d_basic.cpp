@@ -30,7 +30,7 @@
 
 #include "broad_phase_2d_basic.h"
 
-BroadPhase2DBasic::ID BroadPhase2DBasic::create(CollisionObject2DSW *p_object_, int p_subindex, const Rect2 &p_aabb, bool p_static) {
+BroadPhase2DBasic::ID BroadPhase2DBasic::create(CollisionObject2DSW *p_object_, int p_subindex, const Rect2 &p_aabb, bool p_static, int p_collision_object_type) {
 	current++;
 
 	Element e;
@@ -52,7 +52,7 @@ void BroadPhase2DBasic::recheck_pairs(ID p_id) {
 	// Not supported.
 }
 
-void BroadPhase2DBasic::set_static(ID p_id, bool p_static) {
+void BroadPhase2DBasic::set_static(ID p_id, bool p_static, int p_collision_object_type) {
 	Map<ID, Element>::Element *E = element_map.find(p_id);
 	ERR_FAIL_COND(!E);
 	E->get()._static = p_static;

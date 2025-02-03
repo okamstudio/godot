@@ -32,7 +32,7 @@
 #include "core/list.h"
 #include "core/print_string.h"
 
-BroadPhaseSW::ID BroadPhaseBasic::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static) {
+BroadPhaseSW::ID BroadPhaseBasic::create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static, int p_collision_object_type) {
 	ERR_FAIL_COND_V(p_object == nullptr, 0);
 
 	current++;
@@ -56,7 +56,7 @@ void BroadPhaseBasic::recheck_pairs(ID p_id) {
 	// Not supported.
 }
 
-void BroadPhaseBasic::set_static(ID p_id, bool p_static) {
+void BroadPhaseBasic::set_static(ID p_id, bool p_static, int p_collision_object_type) {
 	Map<ID, Element>::Element *E = element_map.find(p_id);
 	ERR_FAIL_COND(!E);
 	E->get()._static = p_static;

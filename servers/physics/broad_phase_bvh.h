@@ -53,16 +53,18 @@ class BroadPhaseBVH : public BroadPhaseSW {
 	};
 
 	enum Tree {
-		TREE_STATIC = 0,
-		TREE_DYNAMIC = 1,
+		TREE_DYNAMIC = 0,
+		TREE_AREA = 1,
+		TREE_STATIC = 2,
 	};
 
 	enum TreeFlag {
-		TREE_FLAG_STATIC = 1 << TREE_STATIC,
 		TREE_FLAG_DYNAMIC = 1 << TREE_DYNAMIC,
+		TREE_FLAG_AREA = 1 << TREE_AREA,
+		TREE_FLAG_STATIC = 1 << TREE_STATIC,
 	};
 
-	BVH_Manager<CollisionObjectSW, 2, true, 128, UserPairTestFunction<CollisionObjectSW>, UserCullTestFunction<CollisionObjectSW>> bvh;
+	BVH_Manager<CollisionObjectSW, 3, true, 128, UserPairTestFunction<CollisionObjectSW>, UserCullTestFunction<CollisionObjectSW>> bvh;
 
 	static void *_pair_callback(void *p_self, uint32_t p_id_A, CollisionObjectSW *p_object_A, int p_subindex_A, uint32_t p_id_B, CollisionObjectSW *p_object_B, int p_subindex_B);
 	static void _unpair_callback(void *p_self, uint32_t p_id_A, CollisionObjectSW *p_object_A, int p_subindex_A, uint32_t p_id_B, CollisionObjectSW *p_object_B, int p_subindex_B, void *p_pair_data);
@@ -73,12 +75,14 @@ class BroadPhaseBVH : public BroadPhaseSW {
 	UnpairCallback unpair_callback;
 	void *unpair_userdata;
 
+	uint32_t _find_tree(bool p_static, int p_collision_object_type, uint32_t &r_tree_collision_mask) const;
+
 public:
 	// 0 is an invalid ID
-	virtual ID create(CollisionObjectSW *p_object, int p_subindex = 0, const AABB &p_aabb = AABB(), bool p_static = false);
+	virtual ID create(CollisionObjectSW *p_object, int p_subindex, const AABB &p_aabb, bool p_static, int p_collision_object_type);
 	virtual void move(ID p_id, const AABB &p_aabb);
 	virtual void recheck_pairs(ID p_id);
-	virtual void set_static(ID p_id, bool p_static);
+	virtual void set_static(ID p_id, bool p_static, int p_collision_object_type);
 	virtual void remove(ID p_id);
 
 	virtual CollisionObjectSW *get_object(ID p_id) const;

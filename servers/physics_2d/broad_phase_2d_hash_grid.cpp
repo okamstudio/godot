@@ -286,7 +286,7 @@ void BroadPhase2DHashGrid::_exit_grid(Element *p_elem, const Rect2 &p_rect, bool
 	}
 }
 
-BroadPhase2DHashGrid::ID BroadPhase2DHashGrid::create(CollisionObject2DSW *p_object, int p_subindex, const Rect2 &p_aabb, bool p_static) {
+BroadPhase2DHashGrid::ID BroadPhase2DHashGrid::create(CollisionObject2DSW *p_object, int p_subindex, const Rect2 &p_aabb, bool p_static, int p_collision_object_type) {
 	current++;
 
 	Element e;
@@ -344,7 +344,7 @@ void BroadPhase2DHashGrid::recheck_pairs(ID p_id) {
 	move(p_id, e.aabb);
 }
 
-void BroadPhase2DHashGrid::set_static(ID p_id, bool p_static) {
+void BroadPhase2DHashGrid::set_static(ID p_id, bool p_static, int p_collision_object_type) {
 	Map<ID, Element>::Element *E = element_map.find(p_id);
 	ERR_FAIL_COND(!E);
 
