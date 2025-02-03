@@ -46,6 +46,7 @@ PhysicsServer *_createBulletPhysicsCallback() {
 
 void register_bullet_types() {
 #ifndef _3D_DISABLED
+	ClassDB::register_virtual_class<BulletPhysicsDirectSpaceState>();
 	PhysicsServerManager::register_server("Bullet", &_createBulletPhysicsCallback);
 	PhysicsServerManager::set_default_server("Bullet", 1);
 
