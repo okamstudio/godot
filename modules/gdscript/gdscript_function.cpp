@@ -1811,7 +1811,14 @@ Variant GDScriptFunctionState::resume(const Variant &p_arg) {
 
 	state.result = p_arg;
 	Variant::CallError err;
+
+	// Keep at least one reference to the function state to prevent
+	// it from being freed and preserve the local variables
+	reference();
 	Variant ret = function->call(nullptr, nullptr, 0, err, &state);
+	if (unreference()) {
+		memdelete(this);
+	}
 
 	bool completed = true;
 
