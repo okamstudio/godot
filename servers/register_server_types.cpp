@@ -51,6 +51,7 @@
 #include "audio/effects/audio_effect_pitch_shift.h"
 #include "audio/effects/audio_effect_record.h"
 #include "audio/effects/audio_effect_reverb.h"
+#include "audio/effects/audio_effect_sample_rate.h"
 #include "audio/effects/audio_effect_spectrum_analyzer.h"
 #include "audio/effects/audio_effect_stereo_enhance.h"
 #include "audio/effects/audio_stream_generator.h"
@@ -157,6 +158,8 @@ void register_server_types() {
 		ClassDB::register_class<AudioEffectEQ21>();
 
 		ClassDB::register_class<AudioEffectDistortion>();
+
+		ClassDB::register_class<AudioEffectSampleRate>();
 
 		ClassDB::register_class<AudioEffectStereoEnhance>();
 
