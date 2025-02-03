@@ -159,6 +159,7 @@ public:
 	static void reload_externals();
 	static bool has(const String &p_path);
 	static Resource *get(const String &p_path);
+	static void forget(const String &p_path); // Removes a resource from cache
 	static void dump(const char *p_file = nullptr, bool p_short = false);
 	static void get_cached_resources(List<Ref<Resource>> *p_resources);
 	static int get_cached_resource_count();

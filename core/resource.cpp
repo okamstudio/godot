@@ -450,6 +450,16 @@ Resource *ResourceCache::get(const String &p_path) {
 
 	return *res;
 }
+void ResourceCache::forget(const String &p_path) {
+	lock.write_lock();
+	if (!resources.has(p_path)) {
+		lock.write_unlock();
+		ERR_FAIL_MSG("Cannot forget a cached resource " + p_path + " as it was not present in the cache!");
+		return;
+	}
+	resources.erase(p_path);
+	lock.write_unlock();
+}
 
 void ResourceCache::get_cached_resources(List<Ref<Resource>> *p_resources) {
 	lock.read_lock();

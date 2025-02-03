@@ -373,6 +373,8 @@ RES ResourceLoader::load(const String &p_path, const String &p_type_hint, bool p
 			}
 		}
 		ResourceCache::lock.read_unlock();
+	} else if (ResourceCache::has(local_path)) {
+		ResourceCache::forget(local_path);
 	}
 
 	bool xl_remapped = false;
