@@ -31,8 +31,12 @@
 #include "scroll_container.h"
 #include "core/os/os.h"
 #include "scene/main/viewport.h"
+#include "scene/scene_string_names.h"
 
 bool ScrollContainer::clips_input() const {
+	if (get_script_instance()) {
+		return get_script_instance()->call(SceneStringNames::get_singleton()->_clips_input);
+	}
 	return true;
 }
 

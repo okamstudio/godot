@@ -34,6 +34,7 @@
 #include "core/os/input.h"
 #include "core/os/keyboard.h"
 #include "scene/gui/box_container.h"
+#include "scene/scene_string_names.h"
 
 #ifdef TOOLS_ENABLED
 #include "editor/editor_scale.h"
@@ -237,6 +238,9 @@ void GraphEdit::disconnect_node(const StringName &p_from, int p_from_port, const
 }
 
 bool GraphEdit::clips_input() const {
+	if (get_script_instance()) {
+		return get_script_instance()->call(SceneStringNames::get_singleton()->_clips_input);
+	}
 	return true;
 }
 
