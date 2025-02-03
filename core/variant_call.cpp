@@ -264,6 +264,8 @@ struct _VariantCall {
 	VCALL_LOCALMEM2R(String, format);
 	VCALL_LOCALMEM2R(String, replace);
 	VCALL_LOCALMEM2R(String, replacen);
+	VCALL_LOCALMEM2R(String, rreplace);
+	VCALL_LOCALMEM2R(String, rreplacen);
 	VCALL_LOCALMEM1R(String, repeat);
 	VCALL_LOCALMEM2R(String, insert);
 	VCALL_LOCALMEM0R(String, capitalize);
@@ -1723,8 +1725,10 @@ void register_variant_methods() {
 	ADDFUNC1R(STRING, REAL, String, similarity, STRING, "text", varray());
 
 	ADDFUNC2R(STRING, STRING, String, format, NIL, "values", STRING, "placeholder", varray("{_}"));
-	ADDFUNC2R(STRING, STRING, String, replace, STRING, "what", STRING, "forwhat", varray());
-	ADDFUNC2R(STRING, STRING, String, replacen, STRING, "what", STRING, "forwhat", varray());
+	ADDFUNC3R(STRING, STRING, String, replace, STRING, "old", STRING, "new", INT, "count", varray(-1));
+	ADDFUNC3R(STRING, STRING, String, replacen, STRING, "old", STRING, "new", INT, "count", varray(-1));
+	ADDFUNC3R(STRING, STRING, String, rreplace, STRING, "old", STRING, "new", INT, "count", varray(-1));
+	ADDFUNC3R(STRING, STRING, String, rreplacen, STRING, "old", STRING, "new", INT, "count", varray(-1));
 	ADDFUNC1R(STRING, STRING, String, repeat, INT, "count", varray());
 	ADDFUNC2R(STRING, STRING, String, insert, INT, "position", STRING, "what", varray());
 	ADDFUNC0R(STRING, STRING, String, capitalize, varray());

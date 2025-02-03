@@ -651,16 +651,18 @@
 		</method>
 		<method name="replace">
 			<return type="String" />
-			<argument index="0" name="what" type="String" />
-			<argument index="1" name="forwhat" type="String" />
+			<argument index="0" name="old" type="String" />
+			<argument index="1" name="new" type="String" />
+			<argument index="2" name="count" type="int" default="-1" />
 			<description>
 				Replaces occurrences of a case-sensitive substring with the given one inside the string.
 			</description>
 		</method>
 		<method name="replacen">
 			<return type="String" />
-			<argument index="0" name="what" type="String" />
-			<argument index="1" name="forwhat" type="String" />
+			<argument index="0" name="old" type="String" />
+			<argument index="1" name="new" type="String" />
+			<argument index="2" name="count" type="int" default="-1" />
 			<description>
 				Replaces occurrences of a case-insensitive substring with the given one inside the string.
 			</description>
@@ -686,6 +688,24 @@
 			<argument index="0" name="position" type="int" />
 			<description>
 				Returns the right side of the string from a given position.
+			</description>
+		</method>
+		<method name="rreplace">
+			<return type="String" />
+			<argument index="0" name="old" type="String" />
+			<argument index="1" name="new" type="String" />
+			<argument index="2" name="count" type="int" default="-1" />
+			<description>
+				Returns a copy of the string where occurrences of a case-sensitive [code]old[/code] substring have been replaced with a [code]new[/code] string. If a [code]count[/code] is given, only that number of occurrences will be replaced in reverse.
+			</description>
+		</method>
+		<method name="rreplacen">
+			<return type="String" />
+			<argument index="0" name="old" type="String" />
+			<argument index="1" name="new" type="String" />
+			<argument index="2" name="count" type="int" default="-1" />
+			<description>
+				Returns a copy of the string where occurrences of a case-insensitive [code]old[/code] substring have been replaced with a [code]new[/code] string. If a [code]count[/code] is given, only that number of occurrences will be replaced in reverse.
 			</description>
 		</method>
 		<method name="rsplit">
