@@ -194,6 +194,15 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="bin_to_int">
+			<return type="int" />
+			<description>
+				Converts a string containing a binary number into an integer. Binary strings are expected to be prefixed with "[code]0b[/code]" otherwise [code]0[/code] is returned.
+				[codeblock]
+				print("0b11111111".bin_to_int()) # Prints "255"
+				[/codeblock]
+			</description>
+		</method>
 		<method name="c_escape">
 			<return type="String" />
 			<description>

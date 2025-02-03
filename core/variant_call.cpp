@@ -320,6 +320,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM0RI(String, to_int, to_int64);
 	VCALL_LOCALMEM0R(String, to_float);
 	VCALL_LOCALMEM0RI(String, hex_to_int, hex_to_int64);
+	VCALL_LOCALMEM0RI(String, bin_to_int, bin_to_int64);
 	VCALL_LOCALMEM1R(String, pad_decimals);
 	VCALL_LOCALMEM1R(String, pad_zeros);
 	VCALL_LOCALMEM1R(String, trim_prefix);
@@ -1783,6 +1784,7 @@ void register_variant_methods() {
 	ADDFUNC0R(STRING, INT, String, to_int, varray());
 	ADDFUNC0R(STRING, REAL, String, to_float, varray());
 	ADDFUNC0R(STRING, INT, String, hex_to_int, varray());
+	ADDFUNC0R(STRING, INT, String, bin_to_int, varray());
 	ADDFUNC1R(STRING, STRING, String, pad_decimals, INT, "digits", varray());
 	ADDFUNC1R(STRING, STRING, String, pad_zeros, INT, "digits", varray());
 	ADDFUNC1R(STRING, STRING, String, trim_prefix, STRING, "prefix", varray());
