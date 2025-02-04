@@ -209,7 +209,7 @@ void LightStorage::light_set_cull_mask(RID p_light, uint32_t p_mask) {
 	light->cull_mask = p_mask;
 
 	light->version++;
-	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
+	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_CULL_MASK);
 }
 
 void LightStorage::light_set_shadow_caster_mask(RID p_light, uint32_t p_caster_mask) {
