@@ -111,39 +111,16 @@ DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode 
 		if (rendering_context->initialize() != OK) {
 			memdelete(rendering_context);
 			rendering_context = nullptr;
-			bool failed = true;
-#if defined(VULKAN_ENABLED)
-			bool fallback_to_vulkan = GLOBAL_GET("rendering/rendering_device/fallback_to_vulkan");
-			if (failed && fallback_to_vulkan && rendering_driver != "vulkan") {
-				layer = [AppDelegate.viewController.godotView initializeRenderingForDriver:@"vulkan"];
-				if (!layer) {
-					ERR_FAIL_MSG("Failed to create iOS Vulkan rendering layer.");
-				}
-				wpd.vulkan.layer_ptr = (CAMetalLayer *const *)&layer;
-				rendering_context = memnew(RenderingContextDriverVulkanIOS);
-				if (rendering_context->initialize() == OK) {
-					WARN_PRINT("Your device seem not to support Metal, switching to MoltenVK.");
-					rendering_driver = "vulkan";
-					OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
-					failed = false;
-				}
-			}
-#endif
 #if defined(GLES3_ENABLED)
 			bool fallback_to_opengl3 = GLOBAL_GET("rendering/rendering_device/fallback_to_opengl3");
-			if (failed && fallback_to_opengl3 && rendering_driver != "opengl3") {
-				failed = false;
-				memdelete(rendering_context);
-				rendering_context = nullptr;
+			if (fallback_to_opengl3 && rendering_driver != "opengl3") {
 				WARN_PRINT("Your device seem not to support MoltenVK or Metal, switching to OpenGL 3.");
 				rendering_driver = "opengl3";
 				OS::get_singleton()->set_current_rendering_method("gl_compatibility");
 				OS::get_singleton()->set_current_rendering_driver_name(rendering_driver);
-			}
+			} else
 #endif
-			if (failed) {
-				memdelete(rendering_context);
-				rendering_context = nullptr;
+			{
 				ERR_PRINT(vformat("Failed to initialize %s context", rendering_driver));
 				r_error = ERR_UNAVAILABLE;
 				return;

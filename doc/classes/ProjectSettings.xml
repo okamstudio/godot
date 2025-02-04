@@ -2979,7 +2979,7 @@
 		</member>
 		<member name="rendering/rendering_device/fallback_to_vulkan" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], the forward renderer will fall back to Vulkan / MoltenVK if Direct3D 12 and Metal are not supported.
-			[b]Note:[/b] This setting is implemented only on Windows, macOS, and iOS.
+			[b]Note:[/b] This setting is implemented only on Windows and macOS.
 		</member>
 		<member name="rendering/rendering_device/pipeline_cache/enable" type="bool" setter="" getter="" default="true">
 			Enable the pipeline cache that is saved to disk if the graphics API supports it.
