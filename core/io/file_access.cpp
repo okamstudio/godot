@@ -429,7 +429,7 @@ class CharBuffer {
 public:
 	_FORCE_INLINE_ CharBuffer() :
 			buffer(stack_buffer),
-			capacity(sizeof(stack_buffer) / sizeof(char)) {
+			capacity(std::size(stack_buffer)) {
 	}
 
 	_FORCE_INLINE_ void push_back(char c) {

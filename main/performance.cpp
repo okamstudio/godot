@@ -152,7 +152,7 @@ String Performance::get_monitor_name(Monitor p_monitor) const {
 		PNAME("pipeline/compilations_draw"),
 		PNAME("pipeline/compilations_specialization"),
 	};
-	static_assert((sizeof(names) / sizeof(const char *)) == MONITOR_MAX);
+	static_assert(std::size(names) == MONITOR_MAX);
 
 	return names[p_monitor];
 }

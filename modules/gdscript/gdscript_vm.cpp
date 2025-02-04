@@ -387,7 +387,7 @@ void (*type_init_function_table[])(Variant *) = {
 		&&OPCODE_LINE,                                   \
 		&&OPCODE_END                                     \
 	};                                                   \
-	static_assert((sizeof(switch_table_ops) / sizeof(switch_table_ops[0]) == (OPCODE_END + 1)), "Opcodes in jump table aren't the same as opcodes in enum.");
+	static_assert(std::size(switch_table_ops) == (OPCODE_END + 1), "Opcodes in jump table aren't the same as opcodes in enum.");
 
 #define OPCODE(m_op) \
 	m_op:

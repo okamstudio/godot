@@ -86,7 +86,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+#define ARRAY_SIZE(a) std::size(a)
 
 class RenderingContextDriverD3D12 : public RenderingContextDriver {
 	ComPtr<ID3D12DeviceFactory> device_factory;

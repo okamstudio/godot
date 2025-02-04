@@ -60,8 +60,8 @@ PackedByteArray raw_to_pba(const uint8_t *arr, size_t len) {
 TEST_CASE("[Crypto] PackedByteArray constant time compare") {
 	const uint8_t hm1[] = { 144, 140, 176, 38, 88, 113, 101, 45, 71, 105, 10, 91, 248, 16, 117, 244, 189, 30, 238, 29, 219, 134, 82, 130, 212, 114, 161, 166, 188, 169, 200, 106 };
 	const uint8_t hm2[] = { 80, 30, 144, 228, 108, 38, 188, 125, 150, 64, 165, 127, 221, 118, 144, 232, 45, 100, 15, 248, 193, 244, 245, 34, 116, 147, 132, 200, 110, 27, 38, 75 };
-	PackedByteArray p1 = raw_to_pba(hm1, sizeof(hm1) / sizeof(hm1[0]));
-	PackedByteArray p2 = raw_to_pba(hm2, sizeof(hm2) / sizeof(hm2[0]));
+	PackedByteArray p1 = raw_to_pba(hm1, std::size(hm1));
+	PackedByteArray p2 = raw_to_pba(hm2, std::size(hm2));
 	_MockCrypto crypto;
 	bool equal = crypto.constant_time_compare(p1, p1);
 	CHECK(equal);

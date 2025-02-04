@@ -182,7 +182,7 @@ const char32_t *TranslationDomain::_get_accented_version(char32_t p_character) c
 		return nullptr;
 	}
 
-	for (unsigned int i = 0; i < sizeof(_character_to_accented) / sizeof(_character_to_accented[0]); i++) {
+	for (unsigned int i = 0; i < std::size(_character_to_accented); i++) {
 		if (_character_to_accented[i].character == p_character) {
 			return _character_to_accented[i].accented_character;
 		}
