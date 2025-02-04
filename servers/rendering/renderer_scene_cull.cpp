@@ -178,6 +178,11 @@ void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
 		InstanceLightData *light = static_cast<InstanceLightData *>(B->base_data);
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
 
+		if (!(light->cull_mask & A->layer_mask)) {
+			// Early return if the object's layer mask doesn't match the light's cull mask.
+			return;
+		}
+
 		geom->lights.insert(B);
 		light->geometries.insert(A);
 
@@ -221,6 +226,11 @@ void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
 	} else if (self->geometry_instance_pair_mask & (1 << RS::INSTANCE_DECAL) && B->base_type == RS::INSTANCE_DECAL && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
 		InstanceDecalData *decal = static_cast<InstanceDecalData *>(B->base_data);
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
+
+		if (!(decal->cull_mask & A->layer_mask)) {
+			// Early return if the object's layer mask doesn't match the decal's cull mask.
+			return;
+		}
 
 		geom->decals.insert(B);
 		decal->geometries.insert(A);
@@ -267,7 +277,10 @@ void RendererSceneCull::_instance_pair(Instance *p_A, Instance *p_B) {
 		voxel_gi->lights.insert(A);
 	} else if (B->base_type == RS::INSTANCE_PARTICLES_COLLISION && A->base_type == RS::INSTANCE_PARTICLES) {
 		InstanceParticlesCollisionData *collision = static_cast<InstanceParticlesCollisionData *>(B->base_data);
-		RSG::particles_storage->particles_add_collision(A->base, collision->instance);
+
+		if ((collision->cull_mask & A->layer_mask)) {
+			RSG::particles_storage->particles_add_collision(A->base, collision->instance);
+		}
 	}
 }
 
@@ -284,6 +297,11 @@ void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
 	if (B->base_type == RS::INSTANCE_LIGHT && ((1 << A->base_type) & RS::INSTANCE_GEOMETRY_MASK)) {
 		InstanceLightData *light = static_cast<InstanceLightData *>(B->base_data);
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
+
+		if (!(light->cull_mask & A->layer_mask)) {
+			// Early return if the object's layer mask doesn't match the light's cull mask.
+			return;
+		}
 
 		geom->lights.erase(B);
 		light->geometries.erase(A);
@@ -339,6 +357,11 @@ void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
 		InstanceDecalData *decal = static_cast<InstanceDecalData *>(B->base_data);
 		InstanceGeometryData *geom = static_cast<InstanceGeometryData *>(A->base_data);
 
+		if (!(decal->cull_mask & A->layer_mask)) {
+			// Early return if the object's layer mask doesn't match the decal's cull mask.
+			return;
+		}
+
 		geom->decals.erase(B);
 		decal->geometries.erase(A);
 
@@ -383,7 +406,10 @@ void RendererSceneCull::_instance_unpair(Instance *p_A, Instance *p_B) {
 		voxel_gi->lights.erase(A);
 	} else if (B->base_type == RS::INSTANCE_PARTICLES_COLLISION && A->base_type == RS::INSTANCE_PARTICLES) {
 		InstanceParticlesCollisionData *collision = static_cast<InstanceParticlesCollisionData *>(B->base_data);
-		RSG::particles_storage->particles_remove_collision(A->base, collision->instance);
+
+		if ((collision->cull_mask & A->layer_mask)) {
+			RSG::particles_storage->particles_remove_collision(A->base, collision->instance);
+		}
 	}
 }
 
@@ -886,6 +912,14 @@ void RendererSceneCull::instance_set_layer_mask(RID p_instance, uint32_t p_mask)
 
 	if (instance->layer_mask == p_mask) {
 		return;
+	}
+
+	// Particles always need to be unpaired. Geometry may need to be unpaired, but only if lights or decals use pairing.
+	// Needs to happen before layer mask changes so we can avoid attempting to unpair something that was never paired.
+	if (instance->base_type == RS::INSTANCE_PARTICLES ||
+			(((geometry_instance_pair_mask & (1 << RS::INSTANCE_LIGHT)) || (geometry_instance_pair_mask & (1 << RS::INSTANCE_DECAL))) && ((1 << instance->base_type) & RS::INSTANCE_GEOMETRY_MASK))) {
+		_unpair_instance(instance);
+		singleton->_instance_queue_update(instance, false, false);
 	}
 
 	instance->layer_mask = p_mask;
@@ -1705,6 +1739,7 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 		if (light->max_sdfgi_cascade != max_sdfgi_cascade) {
 			light->max_sdfgi_cascade = max_sdfgi_cascade; //should most likely make sdfgi dirty in scenario
 		}
+		light->cull_mask = RSG::light_storage->light_get_cull_mask(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_REFLECTION_PROBE) {
 		InstanceReflectionProbeData *reflection_probe = static_cast<InstanceReflectionProbeData *>(p_instance->base_data);
 
@@ -1718,6 +1753,7 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 		InstanceDecalData *decal = static_cast<InstanceDecalData *>(p_instance->base_data);
 
 		RSG::texture_storage->decal_instance_set_transform(decal->instance, *instance_xform);
+		decal->cull_mask = RSG::texture_storage->decal_get_cull_mask(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_LIGHTMAP) {
 		InstanceLightmapData *lightmap = static_cast<InstanceLightmapData *>(p_instance->base_data);
 
@@ -1736,6 +1772,7 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 			heightfield_particle_colliders_update_list.insert(p_instance);
 		}
 		RSG::particles_storage->particles_collision_instance_set_transform(collision->instance, *instance_xform);
+		collision->cull_mask = RSG::particles_storage->particles_collision_get_cull_mask(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_FOG_VOLUME) {
 		InstanceFogVolumeData *volume = static_cast<InstanceFogVolumeData *>(p_instance->base_data);
 		scene_render->fog_volume_instance_set_transform(volume->instance, *instance_xform);
@@ -1927,7 +1964,6 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 	pair.pair_allocator = &pair_allocator;
 	pair.pair_pass = pair_pass;
 	pair.pair_mask = 0;
-	pair.cull_mask = 0xFFFFFFFF;
 
 	if ((1 << p_instance->base_type) & RS::INSTANCE_GEOMETRY_MASK) {
 		pair.pair_mask |= 1 << RS::INSTANCE_LIGHT;
@@ -1949,7 +1985,6 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 			pair.pair_mask |= (1 << RS::INSTANCE_VOXEL_GI);
 			pair.bvh2 = &p_instance->scenario->indexers[Scenario::INDEXER_VOLUMES];
 		}
-		pair.cull_mask = RSG::light_storage->light_get_cull_mask(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_LIGHTMAP) {
 		pair.pair_mask = RS::INSTANCE_GEOMETRY_MASK;
 		pair.bvh = &p_instance->scenario->indexers[Scenario::INDEXER_GEOMETRY];
@@ -1959,7 +1994,6 @@ void RendererSceneCull::_update_instance(Instance *p_instance) const {
 	} else if (geometry_instance_pair_mask & (1 << RS::INSTANCE_DECAL) && (p_instance->base_type == RS::INSTANCE_DECAL)) {
 		pair.pair_mask = RS::INSTANCE_GEOMETRY_MASK;
 		pair.bvh = &p_instance->scenario->indexers[Scenario::INDEXER_GEOMETRY];
-		pair.cull_mask = RSG::texture_storage->decal_get_cull_mask(p_instance->base);
 	} else if (p_instance->base_type == RS::INSTANCE_PARTICLES_COLLISION) {
 		pair.pair_mask = (1 << RS::INSTANCE_PARTICLES);
 		pair.bvh = &p_instance->scenario->indexers[Scenario::INDEXER_GEOMETRY];

@@ -530,7 +530,8 @@ public:
 				case Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE: {
 					singleton->_instance_queue_update(instance, true, true);
 				} break;
-				case Dependency::DEPENDENCY_CHANGED_LIGHT_SOFT_SHADOW_AND_PROJECTOR: {
+				case Dependency::DEPENDENCY_CHANGED_LIGHT_SOFT_SHADOW_AND_PROJECTOR:
+				case Dependency::DEPENDENCY_CHANGED_CULL_MASK: {
 					//requires repairing
 					if (instance->indexer_id.is_valid()) {
 						singleton->_unpair_instance(instance);
@@ -684,6 +685,7 @@ public:
 	struct InstanceDecalData : public InstanceBaseData {
 		Instance *owner = nullptr;
 		RID instance;
+		uint32_t cull_mask = 0xFFFFFFFF;
 
 		HashSet<Instance *> geometries;
 
@@ -695,6 +697,7 @@ public:
 
 	struct InstanceParticlesCollisionData : public InstanceBaseData {
 		RID instance;
+		uint32_t cull_mask = 0xFFFFFFFF;
 	};
 
 	struct InstanceFogVolumeData : public InstanceBaseData {
@@ -728,6 +731,7 @@ public:
 
 		RS::LightBakeMode bake_mode;
 		uint32_t max_sdfgi_cascade = 2;
+		uint32_t cull_mask = 0xFFFFFFFF;
 
 	private:
 		// Instead of a single dirty flag, we maintain a count
@@ -846,12 +850,11 @@ public:
 		DynamicBVH *bvh2 = nullptr; //some may need to cull in two
 		uint32_t pair_mask;
 		uint64_t pair_pass;
-		uint32_t cull_mask = 0xFFFFFFFF; // Needed for decals and lights in the mobile and compatibility renderers.
 
 		_FORCE_INLINE_ bool operator()(void *p_data) {
 			Instance *p_instance = (Instance *)p_data;
 
-			if (instance != p_instance && instance->transformed_aabb.intersects(p_instance->transformed_aabb) && (pair_mask & (1 << p_instance->base_type)) && (cull_mask & p_instance->layer_mask)) {
+			if (instance != p_instance && instance->transformed_aabb.intersects(p_instance->transformed_aabb) && (pair_mask & (1 << p_instance->base_type))) {
 				//test is more coarse in indexer
 				p_instance->pair_check = pair_pass;
 				InstancePair *pair = pair_allocator->alloc();

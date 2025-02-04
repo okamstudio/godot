@@ -268,7 +268,7 @@ void LightStorage::light_set_cull_mask(RID p_light, uint32_t p_mask) {
 	light->cull_mask = p_mask;
 
 	light->version++;
-	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_LIGHT);
+	light->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_CULL_MASK);
 }
 
 void LightStorage::light_set_distance_fade(RID p_light, bool p_enabled, float p_begin, float p_shadow, float p_length) {

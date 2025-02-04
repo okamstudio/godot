@@ -581,6 +581,7 @@ public:
 	Vector3 particles_collision_get_extents(RID p_particles_collision) const;
 	virtual bool particles_collision_is_heightfield(RID p_particles_collision) const override;
 	RID particles_collision_get_heightfield_framebuffer(RID p_particles_collision) const;
+	virtual uint32_t particles_collision_get_cull_mask(RID p_particles_collision) const override;
 
 	Dependency *particles_collision_get_dependency(RID p_particles) const;
 

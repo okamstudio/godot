@@ -1113,9 +1113,6 @@ void main() {
 	uvec2 decal_indices = instances.data[draw_call.instance_index].decals;
 	for (uint i = 0; i < sc_decals(); i++) {
 		uint decal_index = (i > 3) ? ((decal_indices.y >> ((i - 4) * 8)) & 0xFF) : ((decal_indices.x >> (i * 8)) & 0xFF);
-		if (!bool(decals.data[decal_index].mask & instances.data[draw_call.instance_index].layer_mask)) {
-			continue; //not masked
-		}
 
 		vec3 uv_local = (decals.data[decal_index].xform * vec4(vertex, 1.0)).xyz;
 		if (any(lessThan(uv_local, vec3(0.0, -1.0, 0.0))) || any(greaterThan(uv_local, vec3(1.0)))) {
