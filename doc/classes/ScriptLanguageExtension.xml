@@ -52,6 +52,14 @@
 			<description>
 			</description>
 		</method>
+		<method name="_create_script_from_extension" qualifiers="virtual const">
+			<return type="Object" />
+			<param index="0" name="extension" type="String" />
+			<description>
+				Creates a new script object based on extension supported by this language.
+				Also look at [method ScriptLanguageExtension._get_extensions].
+			</description>
+		</method>
 		<method name="_debug_get_current_stack_info" qualifiers="virtual">
 			<return type="Dictionary[]" />
 			<description>
@@ -163,6 +171,12 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_extensions" qualifiers="virtual const">
+			<return type="PackedStringArray" />
+			<description>
+				Returns file extensions of scripts supported by this language.
+			</description>
+		</method>
 		<method name="_get_global_class_name" qualifiers="virtual const">
 			<return type="Dictionary" />
 			<param index="0" name="path" type="String" />
@@ -209,6 +223,14 @@
 			<description>
 			</description>
 		</method>
+		<method name="_get_type_from_extension" qualifiers="virtual const">
+			<return type="String" />
+			<param index="0" name="extension" type="String" />
+			<description>
+				Returns the script type of the given file extension.
+				Also look at [method ScriptLanguageExtension._get_extensions].
+			</description>
+		</method>
 		<method name="_handles_global_class_type" qualifiers="virtual const">
 			<return type="bool" />
 			<param index="0" name="type" type="String" />
@@ -229,6 +251,15 @@
 			<return type="bool" />
 			<param index="0" name="keyword" type="String" />
 			<description>
+			</description>
+		</method>
+		<method name="_is_script_attachable" qualifiers="virtual const">
+			<return type="bool" />
+			<param index="0" name="extension" type="String" />
+			<description>
+				Determines if a script can be attached to objects based on the given file extension.
+				Returns true if the script with the specified extension can be attached, false otherwise.
+				Also look at [method ScriptLanguageExtension._get_extensions].
 			</description>
 		</method>
 		<method name="_is_using_templates" qualifiers="virtual">
@@ -258,6 +289,15 @@
 			<param index="0" name="template" type="String" />
 			<param index="1" name="class_name" type="String" />
 			<param index="2" name="base_class_name" type="String" />
+			<description>
+			</description>
+		</method>
+		<method name="_make_template_using_extension" qualifiers="virtual const">
+			<return type="Script" />
+			<param index="0" name="template" type="String" />
+			<param index="1" name="class_name" type="String" />
+			<param index="2" name="base_class_name" type="String" />
+			<param index="3" name="extension" type="String" />
 			<description>
 			</description>
 		</method>

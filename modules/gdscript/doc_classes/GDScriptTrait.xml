@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="GDScriptTrait" inherits="GDScript" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		Script resource to store traits for GDScript.
+	</brief_description>
+	<description>
+		See [GDScript] or [@GDScript] instead.
+		Script resource to store traits for GDScript created with the [code].gdt[/code] file extension, allows defining and requiring common methods across multiple classes, along with anything that you would see inside of a GDScript class (signals, classes, etc.).
+		[b]Note:[/b] Unlike [GDScript], this resource cannot create instances (see [method GDScript.new]) due to its abstract nature.
+	</description>
+	<tutorials>
+		<link title="GDScript documentation index">$DOCS_URL/tutorials/scripting/gdscript/index.html</link>
+	</tutorials>
+</class>

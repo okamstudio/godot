@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 1: Could not inheritance from trait, "TraitA".

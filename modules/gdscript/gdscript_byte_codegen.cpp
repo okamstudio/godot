@@ -676,6 +676,12 @@ void GDScriptByteCodeGenerator::write_type_test(const Address &p_target, const A
 			append(p_source);
 			append(p_type.native_type);
 		} break;
+		case GDScriptDataType::GDTRAIT: {
+			append_opcode(GDScriptFunction::OPCODE_TYPE_TEST_TRAIT);
+			append(p_target);
+			append(p_source);
+			append(p_type.trait_type);
+		} break;
 		case GDScriptDataType::SCRIPT:
 		case GDScriptDataType::GDSCRIPT: {
 			const Variant &script = p_type.script_type;
@@ -946,6 +952,12 @@ void GDScriptByteCodeGenerator::write_assign_with_conversion(const Address &p_ta
 			append(p_source);
 			append(class_idx);
 		} break;
+		case GDScriptDataType::GDTRAIT: {
+			append_opcode(GDScriptFunction::OPCODE_ASSIGN_TYPED_TRAIT);
+			append(p_target);
+			append(p_source);
+			append(p_target.type.trait_type);
+		} break;
 		case GDScriptDataType::SCRIPT:
 		case GDScriptDataType::GDSCRIPT: {
 			Variant script = p_target.type.script_type;
@@ -1050,6 +1062,13 @@ void GDScriptByteCodeGenerator::write_cast(const Address &p_target, const Addres
 			Variant nc = GDScriptLanguage::get_singleton()->get_global_array()[class_idx];
 			append_opcode(GDScriptFunction::OPCODE_CAST_TO_NATIVE);
 			index = get_constant_pos(nc) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
+		} break;
+		case GDScriptDataType::GDTRAIT: {
+			append_opcode(GDScriptFunction::OPCODE_CAST_TO_TRAIT);
+			append(p_source);
+			append(p_target);
+			append(p_target.type.trait_type);
+			return;
 		} break;
 		case GDScriptDataType::SCRIPT:
 		case GDScriptDataType::GDSCRIPT: {
@@ -1761,9 +1780,11 @@ void GDScriptByteCodeGenerator::write_breakpoint() {
 	append_opcode(GDScriptFunction::OPCODE_BREAKPOINT);
 }
 
-void GDScriptByteCodeGenerator::write_newline(int p_line) {
+void GDScriptByteCodeGenerator::write_newline(int p_line, const StringName &p_external_source, int p_uses_line) {
 	append_opcode(GDScriptFunction::OPCODE_LINE);
 	append(p_line);
+	append(p_external_source);
+	append(p_uses_line);
 	current_line = p_line;
 }
 
@@ -1842,6 +1863,11 @@ void GDScriptByteCodeGenerator::write_return(const Address &p_return_value) {
 				Variant nc = GDScriptLanguage::get_singleton()->get_global_array()[class_idx];
 				class_idx = get_constant_pos(nc) | (GDScriptFunction::ADDR_TYPE_CONSTANT << GDScriptFunction::ADDR_BITS);
 				append(class_idx);
+			} break;
+			case GDScriptDataType::GDTRAIT: {
+				append_opcode(GDScriptFunction::OPCODE_RETURN_TYPED_TRAIT);
+				append(p_return_value);
+				append(function->return_type.trait_type);
 			} break;
 			case GDScriptDataType::GDSCRIPT:
 			case GDScriptDataType::SCRIPT: {

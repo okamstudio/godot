@@ -147,6 +147,10 @@ class GDScriptCompiler {
 	bool _is_class_member_property(GDScript *owner, const StringName &p_name);
 	bool _is_local_or_parameter(CodeGen &codegen, const StringName &p_name);
 
+	HashMap<String, int> uses_lines;
+	void _set_uses_lines(const GDScriptParser::ClassNode *p_class);
+	int _get_uses_line(const GDScriptParser::Node *p_node);
+
 	void _set_error(const String &p_error, const GDScriptParser::Node *p_node);
 
 	GDScriptDataType _gdtype_from_datatype(const GDScriptParser::DataType &p_datatype, GDScript *p_owner, bool p_handle_metatype = true);

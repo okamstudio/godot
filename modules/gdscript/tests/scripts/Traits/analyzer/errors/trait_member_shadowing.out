@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 3: "some_abstract_function" variable shadows function in trait "TraitA".

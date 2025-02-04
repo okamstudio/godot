@@ -4258,6 +4258,7 @@ FileSystemDock::FileSystemDock() {
 	make_scene_dialog->connect(SceneStringName(confirmed), callable_mp(this, &FileSystemDock::_make_scene_confirm));
 
 	make_script_dialog = memnew(ScriptCreateDialog);
+	make_script_dialog->set_languages_list(false);
 	make_script_dialog->set_title(TTR("Create Script"));
 	add_child(make_script_dialog);
 

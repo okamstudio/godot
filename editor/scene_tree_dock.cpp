@@ -4095,13 +4095,20 @@ void SceneTreeDock::attach_script_to_selected(bool p_extend) {
 	if (p_extend && existing.is_valid()) {
 		for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 			ScriptLanguage *l = ScriptServer::get_language(i);
-			if (l->get_type() == existing->get_class()) {
-				String name = l->get_global_class_name(existing->get_path());
-				if (ScriptServer::is_global_class(name) && EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
-					inherits = name;
-				} else if (l->can_inherit_from_file()) {
-					inherits = "\"" + existing->get_path() + "\"";
+			bool found = false;
+			for (const String &extension : l->get_extensions()) {
+				if (l->get_type_from_extension(extension) == existing->get_class()) {
+					String name = l->get_global_class_name(existing->get_path());
+					if (ScriptServer::is_global_class(name) && EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
+						inherits = name;
+					} else if (l->can_inherit_from_file()) {
+						inherits = "\"" + existing->get_path() + "\"";
+					}
+					found = true;
+					break;
 				}
+			}
+			if (found) {
 				break;
 			}
 		}

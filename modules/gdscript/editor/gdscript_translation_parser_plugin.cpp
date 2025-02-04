@@ -155,6 +155,7 @@ void GDScriptEditorTranslationParserPlugin::_traverse_class(const GDScriptParser
 		const GDScriptParser::ClassNode::Member &m = p_class->members[i];
 		// Other member types can't contain translatable strings.
 		switch (m.type) {
+			case GDScriptParser::ClassNode::Member::TRAIT:
 			case GDScriptParser::ClassNode::Member::CLASS:
 				_traverse_class(m.m_class);
 				break;

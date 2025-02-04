@@ -293,7 +293,7 @@ void EditorFileSystem::_first_scan_process_scripts(const ScannedDirectory *p_sca
 		const String ext = scan_file.get_extension().to_lower();
 		bool is_script = false;
 		for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-			if (ScriptServer::get_language(i)->get_extension() == ext) {
+			if (ScriptServer::get_language(i)->get_extensions().has(ext)) {
 				is_script = true;
 				break;
 			}
@@ -2103,7 +2103,7 @@ void EditorFileSystem::_update_script_documentation() {
 
 		for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 			ScriptLanguage *lang = ScriptServer::get_language(i);
-			if (lang->supports_documentation() && efd->files[index]->type == lang->get_type()) {
+			if (lang->supports_documentation() && efd->files[index]->type == lang->get_type_from_extension(path.get_extension())) {
 				bool should_reload_script = _should_reload_script(path);
 				Ref<Script> scr = ResourceLoader::load(path);
 				if (scr.is_null()) {

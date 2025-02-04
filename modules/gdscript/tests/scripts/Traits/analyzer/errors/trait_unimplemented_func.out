@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 1: Implement function "some_abstract_function() -> void" since class uses "TraitA" trait.

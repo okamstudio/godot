@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 8: Cannot have a key of type "OtherClass" in a dictionary of type "Dictionary[SomeTrait, String]".

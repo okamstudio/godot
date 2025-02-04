@@ -610,6 +610,9 @@
 		<member name="debug/gdscript/warnings/unused_local_constant" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a local constant is never used.
 		</member>
+		<member name="debug/gdscript/warnings/unused_onready_overriding_trait" type="int" setter="" getter="" default="1">
+			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when the [code]@onready[/code] is not used overridden variable from traits and  trait variable uses [code]@onready[/code].
+		</member>
 		<member name="debug/gdscript/warnings/unused_parameter" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a function parameter is never used.
 		</member>
@@ -618,6 +621,9 @@
 		</member>
 		<member name="debug/gdscript/warnings/unused_signal" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a signal is declared but never explicitly used in the class.
+		</member>
+		<member name="debug/gdscript/warnings/unused_static_overriding_trait" type="int" setter="" getter="" default="1">
+			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when the [code]static[/code] is not used overridden variable or function from traits and  trait variable or function uses [code]static[/code].
 		</member>
 		<member name="debug/gdscript/warnings/unused_variable" type="int" setter="" getter="" default="1">
 			When set to [code]warn[/code] or [code]error[/code], produces a warning or an error respectively when a local variable is unused.

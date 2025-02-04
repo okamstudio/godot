@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+>> ERROR at line 5: "SomeTrait" trait extends "Node" does not match class inheritance.

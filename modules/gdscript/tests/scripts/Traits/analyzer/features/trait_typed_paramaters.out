@@ -1,0 +1,6 @@
+GDTEST_OK
+~~ WARNING at line 13: (RETURN_VALUE_DISCARDED) The function "connect()" returns a value that will be discarded if not used.
+~~ WARNING at line 15: (UNSAFE_CALL_ARGUMENT) The argument 1 of the function "receive_trait_type()" requires the subtype "SomeTrait" but the supertype "SomeClass" was provided.
+true
+true
+ok

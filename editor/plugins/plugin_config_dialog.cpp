@@ -79,10 +79,9 @@ void PluginConfigDialog::_on_confirmed() {
 void PluginConfigDialog::_create_script_for_plugin(const String &p_plugin_path, Ref<ConfigFile> p_config_file, int p_script_lang_index) {
 	ScriptLanguage *language = ScriptServer::get_language(p_script_lang_index);
 	ERR_FAIL_COND(language == nullptr);
-	String ext = language->get_extension();
 	String script_name = script_edit->get_text().is_empty() ? _get_subfolder() : script_edit->get_text();
-	if (script_name.get_extension() != ext) {
-		script_name += "." + ext;
+	if (!language->get_extensions().has(script_name.get_extension())) {
+		script_name += "." + language->get_extensions()[0];
 	}
 	String script_path = p_plugin_path.path_join(script_name);
 	p_config_file->set_value("plugin", "script", script_name);
@@ -94,7 +93,7 @@ void PluginConfigDialog::_create_script_for_plugin(const String &p_plugin_path, 
 		if (!templates.is_empty()) {
 			template_content = templates[0].content;
 		}
-		Ref<Script> scr = language->make_template(template_content, class_name, "EditorPlugin");
+		Ref<Script> scr = language->make_template_using_extension(template_content, class_name, "EditorPlugin", script_path.get_extension());
 		scr->set_path(script_path, true);
 		ResourceSaver::save(scr);
 		p_config_file->save(p_plugin_path.path_join("plugin.cfg"));
@@ -128,9 +127,15 @@ void PluginConfigDialog::_on_required_text_changed() {
 	if (language == nullptr) {
 		return;
 	}
-	String ext = language->get_extension();
-	if ((!script_edit->get_text().get_extension().is_empty() && script_edit->get_text().get_extension() != ext) || script_edit->get_text().ends_with(".")) {
-		validation_panel->set_message(MSG_ID_SCRIPT, vformat(TTR("Script extension must match chosen language extension (.%s)."), ext), EditorValidationPanel::MSG_ERROR);
+	if ((!script_edit->get_text().get_extension().is_empty() && !language->get_extensions().has(script_edit->get_text().get_extension())) || script_edit->get_text().ends_with(".")) {
+		String extensions;
+		for (String ext : language->get_extensions()) {
+			if (!extensions.is_empty()) {
+				extensions += ", ";
+			}
+			extensions += ext;
+		}
+		validation_panel->set_message(MSG_ID_SCRIPT, vformat(TTR("Script extension must match chosen language extension (.%s)."), extensions), EditorValidationPanel::MSG_ERROR);
 	}
 	if (active_edit->is_visible()) {
 		if (language->get_name() == "C#") {

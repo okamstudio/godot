@@ -1,0 +1,38 @@
+trait_name TraitA extends Object
+
+signal some_signal()
+const some_constant = 0
+var some_variable := "hello"
+enum Values {
+	Value1,
+	Value2,
+}
+func some_func_with_implementation() -> void:
+	print("hello")
+
+func some_abstract_function() -> void
+
+trait InnerTrait:
+	signal some_Inner_Trait_signal()
+	const some_Inner_Trait_constant = 0
+	var some_Inner_Trait_variable := "hello"
+	enum Inner_Trait_Values {
+		Value1,
+		Value2,
+	}
+	func some_Inner_Trait_func_with_implementation() -> void:
+		print("hello")
+
+	func some_Inner_Trait_abstract_function() -> void
+
+class InnerClass:
+	signal some_Inner_class_signal()
+	const some_Inner_class_constant = 0
+	var some_Inner_class_variable := "hello"
+	enum Inner_class_Values {
+		Value1,
+		Value2,
+	}
+	func some_Inner_class_func() -> void:
+		some_Inner_class_signal.emit()
+		print("hello")

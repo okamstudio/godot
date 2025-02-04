@@ -141,6 +141,7 @@ public:
 	virtual Ref<Script> get_base_script() const = 0; //for script inheritance
 	virtual StringName get_global_name() const = 0;
 	virtual bool inherits_script(const Ref<Script> &p_script) const = 0;
+	virtual bool has_script_type(const String &p_type) const { return false; } // For script with possible multiple script types, for instance interfaces or traits(in GDScript).
 
 	virtual StringName get_instance_base_type() const = 0; // this may not work in all scripts, will return empty if so
 	virtual ScriptInstance *instance_create(Object *p_this) = 0;
@@ -170,6 +171,7 @@ public:
 	virtual bool is_tool() const = 0;
 	virtual bool is_valid() const = 0;
 	virtual bool is_abstract() const = 0;
+	virtual bool is_attachable() const { return true; }
 
 	virtual ScriptLanguage *get_language() const = 0;
 
@@ -219,6 +221,13 @@ public:
 	virtual String get_type() const = 0;
 	virtual String get_extension() const = 0;
 	virtual void finish() = 0;
+
+	/* MULTI SCRIPT SUPPORT */
+	// TODO: In the next compat breakage the following methods should be merged by removing there similar method.
+	virtual String get_type_from_extension(const String &p_extension) const { return get_type(); }
+	virtual Vector<String> get_extensions() const { return Vector<String>({ get_extension() }); }
+	virtual Script *create_script_from_extension(const String &p_extension) const { return create_script(); }
+	virtual Ref<Script> make_template_using_extension(const String &p_template, const String &p_class_name, const String &p_base_class_name, const String &p_extension) const { return make_template(p_template, p_class_name, p_base_class_name); }
 
 	/* EDITOR FUNCTIONS */
 	struct Warning {
@@ -273,6 +282,7 @@ public:
 	virtual bool is_using_templates() { return false; }
 	virtual bool validate(const String &p_script, const String &p_path = "", List<String> *r_functions = nullptr, List<ScriptError> *r_errors = nullptr, List<Warning> *r_warnings = nullptr, HashSet<int> *r_safe_lines = nullptr) const = 0;
 	virtual String validate_path(const String &p_path) const { return ""; }
+	virtual bool is_script_attachable(const String &p_extension) const { return true; }
 	virtual Script *create_script() const = 0;
 #ifndef DISABLE_DEPRECATED
 	virtual bool has_named_classes() const = 0;

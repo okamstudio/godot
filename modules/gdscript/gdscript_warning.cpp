@@ -162,6 +162,10 @@ String GDScriptWarning::get_message() const {
 			return vformat(R"*(The default value is using "%s" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.)*", symbols[0]);
 		case ONREADY_WITH_EXPORT:
 			return R"("@onready" will set the default value after "@export" takes effect and will override it.)";
+		case UNUSED_STATIC_OVERRIDING_TRAIT:
+			return R"(Overridden static without using "static" keyword.)";
+		case UNUSED_ONREADY_OVERRIDING_TRAIT:
+			return R"(Overridden onready variable without using "@onready" keyword.)";
 #ifndef DISABLE_DEPRECATED
 		// Never produced. These warnings migrated from 3.x by mistake.
 		case PROPERTY_USED_AS_FUNCTION: // There is already an error.
@@ -238,6 +242,8 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 		"NATIVE_METHOD_OVERRIDE",
 		"GET_NODE_DEFAULT_WITHOUT_ONREADY",
 		"ONREADY_WITH_EXPORT",
+		"UNUSED_STATIC_OVERRIDING_TRAIT",
+		"UNUSED_ONREADY_OVERRIDING_TRAIT",
 #ifndef DISABLE_DEPRECATED
 		"PROPERTY_USED_AS_FUNCTION",
 		"CONSTANT_USED_AS_FUNCTION",

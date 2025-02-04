@@ -1,0 +1,2 @@
+trait_name GlobalTraitB extends Node
+uses GlobalTraitC

@@ -275,8 +275,8 @@ bool GDScriptTestRunner::make_tests_for_dir(const String &p_dir) {
 				return false;
 			}
 		} else {
-			// `*.notest.gd` files are skipped.
-			if (next.ends_with(".notest.gd")) {
+			// `*.notest.gd` and `*.gdt` files are skipped.
+			if (next.ends_with(".notest.gd") || next.ends_with(".gdt")) {
 				next = dir->get_next();
 				continue;
 			} else if (binary_tokens && next.ends_with(".textonly.gd")) {
@@ -362,7 +362,7 @@ static bool generate_class_index_recursive(const String &p_dir) {
 				return false;
 			}
 		} else {
-			if (!next.ends_with(".gd")) {
+			if (!next.ends_with(".gd") && !next.ends_with(".gdt")) {
 				next = dir->get_next();
 				continue;
 			}
@@ -619,9 +619,9 @@ GDScriptTest::TestResult GDScriptTest::execute_test_code(bool p_is_generating) {
 		}
 		return result;
 	}
-
 	// `*.norun.gd` files are allowed to not contain a `test()` function (no runtime testing).
-	if (source_file.ends_with(".norun.gd")) {
+	// `*.gdt` files do not have a runtime since they hold traits.
+	if (source_file.match("*.norun.gd") || source_file.match("*.gdt")) {
 		enable_stdout();
 		result.status = GDTEST_OK;
 		result.output = get_text_for_status(result.status) + "\n" + result.output;
