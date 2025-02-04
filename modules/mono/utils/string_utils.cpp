@@ -110,7 +110,7 @@ String sformat(const String &p_text, const String &p1, const String &p2,
 		search_from = result + 2;
 	}
 
-	new_string += p_text.substr(search_from, p_text.length() - search_from);
+	new_string += p_text.substr(search_from);
 
 	return new_string;
 }

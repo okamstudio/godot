@@ -148,7 +148,7 @@ void IPAddress::_parse_ipv6(const String &p_string) {
 void IPAddress::_parse_ipv4(const String &p_string, int p_start, uint8_t *p_ret) {
 	String ip;
 	if (p_start != 0) {
-		ip = p_string.substr(p_start, p_string.length() - p_start);
+		ip = p_string.substr(p_start);
 	} else {
 		ip = p_string;
 	}

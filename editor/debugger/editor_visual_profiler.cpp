@@ -362,7 +362,7 @@ void EditorVisualProfiler::_update_frame(bool p_focus_selected) {
 			stack.push_back(category);
 			categories.push_back(category);
 
-			name = name.substr(1, name.length());
+			name = name.substr(1);
 
 			category->set_text(0, name);
 			category->set_metadata(1, cpu_time);

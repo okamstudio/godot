@@ -520,7 +520,7 @@ String RenameDialog::_postprocess(const String &subject) {
 				buffer += result.substr(start, 1).to_upper();
 				end = start + 1;
 			}
-			buffer += result.substr(end, result.size() - (end + 1));
+			buffer += result.substr(end);
 			result = buffer.to_pascal_case();
 		}
 	}

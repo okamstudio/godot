@@ -4204,7 +4204,7 @@ int Main::start() {
 							Ref<DirAccess> da = DirAccess::open(local_game_path.substr(0, sep));
 							if (da.is_valid()) {
 								local_game_path = da->get_current_dir().path_join(
-										local_game_path.substr(sep + 1, local_game_path.length()));
+										local_game_path.substr(sep + 1));
 							}
 						}
 					}

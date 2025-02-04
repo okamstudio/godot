@@ -66,7 +66,7 @@ void Collada::Vertex::fix_unit_scale(const Collada &p_state) {
 
 static String _uri_to_id(const String &p_uri) {
 	if (p_uri.begins_with("#")) {
-		return p_uri.substr(1, p_uri.size() - 1);
+		return p_uri.substr(1);
 	} else {
 		return p_uri;
 	}

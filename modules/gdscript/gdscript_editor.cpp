@@ -3627,7 +3627,7 @@ void GDScriptLanguage::auto_indent_code(String &p_code, int p_from_line, int p_t
 			}
 		}
 
-		String st = l.substr(tc, l.length()).strip_edges();
+		String st = l.substr(tc).strip_edges();
 		if (st.is_empty() || st.begins_with("#")) {
 			continue; //ignore!
 		}

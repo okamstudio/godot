@@ -208,7 +208,7 @@ String ProjectSettings::localize_path(const String &p_path) const {
 		if (plocal[plocal.length() - 1] == '/') {
 			sep += 1;
 		}
-		return plocal + path.substr(sep, path.size() - sep);
+		return plocal + path.substr(sep);
 	}
 }
 
@@ -1147,7 +1147,7 @@ Error ProjectSettings::save_custom(const String &p_path, const CustomMap &p_cust
 			category = "";
 		} else {
 			category = category.substr(0, div);
-			name = name.substr(div + 1, name.size());
+			name = name.substr(div + 1);
 		}
 		save_props[category].push_back(name);
 	}

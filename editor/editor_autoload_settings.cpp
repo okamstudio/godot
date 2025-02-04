@@ -242,7 +242,7 @@ void EditorAutoloadSettings::_autoload_edited() {
 		String scr_path = GLOBAL_GET(base);
 
 		if (scr_path.begins_with("*")) {
-			scr_path = scr_path.substr(1, scr_path.length());
+			scr_path = scr_path.substr(1);
 		}
 
 		// Singleton autoloads are represented with a leading "*" in their path.
@@ -494,7 +494,7 @@ void EditorAutoloadSettings::update_autoload() {
 		info.is_singleton = scr_path.begins_with("*");
 
 		if (info.is_singleton) {
-			scr_path = scr_path.substr(1, scr_path.length());
+			scr_path = scr_path.substr(1);
 		}
 
 		info.name = name;
@@ -873,7 +873,7 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 		info.is_singleton = scr_path.begins_with("*");
 
 		if (info.is_singleton) {
-			scr_path = scr_path.substr(1, scr_path.length());
+			scr_path = scr_path.substr(1);
 		}
 
 		info.name = name;

@@ -220,7 +220,7 @@ String DirAccessWindows::get_current_dir(bool p_include_drive) const {
 	if (!base.is_empty()) {
 		String bd = cdir.replace_first(base, "");
 		if (bd.begins_with("/")) {
-			return _get_root_string() + bd.substr(1, bd.length());
+			return _get_root_string() + bd.substr(1);
 		} else {
 			return _get_root_string() + bd;
 		}

@@ -106,7 +106,7 @@ void InputMap::get_argument_options(const StringName &p_function, int p_idx, Lis
 				continue;
 			}
 
-			String name = pi.name.substr(pi.name.find_char('/') + 1, pi.name.length());
+			String name = pi.name.substr(pi.name.find_char('/') + 1);
 			r_options->push_back(name.quote());
 		}
 	}
@@ -304,7 +304,7 @@ void InputMap::load_from_project_settings() {
 			continue;
 		}
 
-		String name = pi.name.substr(pi.name.find_char('/') + 1, pi.name.length());
+		String name = pi.name.substr(pi.name.find_char('/') + 1);
 
 		Dictionary action = GLOBAL_GET(pi.name);
 		float deadzone = action.has("deadzone") ? (float)action["deadzone"] : DEFAULT_DEADZONE;

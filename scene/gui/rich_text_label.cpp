@@ -4440,7 +4440,7 @@ void RichTextLabel::append_text(const String &p_bbcode) {
 		}
 
 		if (tag.begins_with("/") && tag_stack.size()) {
-			bool tag_ok = tag_stack.size() && tag_stack.front()->get() == tag.substr(1, tag.length());
+			bool tag_ok = tag_stack.size() && tag_stack.front()->get() == tag.substr(1);
 
 			if (tag_stack.front()->get() == "b") {
 				in_bold = false;
@@ -5920,7 +5920,7 @@ String RichTextLabel::_get_line_text(ItemFrame *p_frame, int p_line, Selection p
 		txt = txt.substr(0, p_selection.to_char);
 	}
 	if ((l.from != nullptr) && (p_frame == p_selection.from_frame) && (p_selection.from_item != nullptr) && (p_selection.from_item->index >= l.from->index) && (p_selection.from_item->index < end_idx)) {
-		txt = txt.substr(p_selection.from_char, -1);
+		txt = txt.substr(p_selection.from_char);
 	}
 	return txt;
 }
@@ -6940,7 +6940,7 @@ Dictionary RichTextLabel::parse_expressions_for_values(Vector<String> p_expressi
 				a.append(Color::html(values[j]));
 			} else if (nodepath.search(values[j]).is_valid()) {
 				if (values[j].begins_with("$")) {
-					String v = values[j].substr(1, values[j].length());
+					String v = values[j].substr(1);
 					a.append(NodePath(v));
 				}
 			} else if (boolean.search(values[j]).is_valid()) {

@@ -118,7 +118,7 @@ Dictionary HTTPClient::_get_response_headers_as_dictionary() {
 			continue;
 		}
 		String key = s.substr(0, sp).strip_edges();
-		String value = s.substr(sp + 1, s.length()).strip_edges();
+		String value = s.substr(sp + 1).strip_edges();
 		ret[key] = value;
 	}
 
