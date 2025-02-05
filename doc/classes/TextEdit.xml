@@ -416,6 +416,13 @@
 				Returns the width in pixels of the [param wrap_index] on [param line].
 			</description>
 		</method>
+		<method name="get_line_with_ime" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="line" type="int" />
+			<description>
+				Returns line text as it is currently displayed, including IME composition string.
+			</description>
+		</method>
 		<method name="get_line_wrap_count" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="line" type="int" />
