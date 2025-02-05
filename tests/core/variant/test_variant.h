@@ -103,8 +103,8 @@ TEST_CASE("[Variant] Writer and parser Variant::FLOAT") {
 	VariantWriter::write_to_string(a64, a64_str);
 
 	CHECK_MESSAGE(a64_str == "1.79769e+308", "Writes in scientific notation.");
-	CHECK_MESSAGE(a64_str != "inf", "Should not overflow.");
-	CHECK_MESSAGE(a64_str != "nan", "The result should be defined.");
+	CHECK_MESSAGE(a64_str != "INF", "Should not overflow.");
+	CHECK_MESSAGE(a64_str != "NAN", "The result should be defined.");
 
 	String errs;
 	int line;

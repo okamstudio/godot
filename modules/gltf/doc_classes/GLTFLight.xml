@@ -69,7 +69,7 @@
 			The outer angle of the cone in a spotlight. Must be greater than or equal to the inner angle.
 			At this angle, the light drops off to zero brightness. Between the inner and outer cone angles, there is a transition from full brightness to zero brightness. If this angle is a half turn, then the spotlight emits in all directions. When creating a Godot [SpotLight3D], the outer cone angle is used as the angle of the spotlight.
 		</member>
-		<member name="range" type="float" setter="set_range" getter="get_range" default="inf">
+		<member name="range" type="float" setter="set_range" getter="get_range" default="INF">
 			The range of the light, beyond which the light has no effect. glTF lights with no range defined behave like physical lights (which have infinite range). When creating a Godot light, the range is clamped to 4096.
 		</member>
 	</members>
