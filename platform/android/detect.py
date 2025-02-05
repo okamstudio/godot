@@ -174,11 +174,12 @@ def configure(env: "SConsEnvironment"):
     toolchain_path = ndk_root + "/toolchains/llvm/prebuilt/" + host_subpath
     compiler_path = toolchain_path + "/bin"
 
-    env["CC"] = compiler_path + "/clang"
-    env["CXX"] = compiler_path + "/clang++"
-    env["AR"] = compiler_path + "/llvm-ar"
-    env["RANLIB"] = compiler_path + "/llvm-ranlib"
-    env["AS"] = compiler_path + "/clang"
+    if env["platform_tools"]:
+        env["CC"] = compiler_path + "/clang"
+        env["CXX"] = compiler_path + "/clang++"
+        env["AR"] = compiler_path + "/llvm-ar"
+        env["RANLIB"] = compiler_path + "/llvm-ranlib"
+        env["AS"] = compiler_path + "/clang"
 
     env.Append(
         CCFLAGS=(["-fpic", "-ffunction-sections", "-funwind-tables", "-fstack-protector-strong", "-fvisibility=hidden"])
