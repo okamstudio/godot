@@ -43,10 +43,11 @@
 namespace TestShortcut {
 
 TEST_CASE("[Shortcut] Empty shortcut should have no valid events and text equal to None") {
-	Shortcut s;
+	Ref<Shortcut> s;
+	s.instantiate();
 
-	CHECK(s.get_as_text() == "None");
-	CHECK(s.has_valid_event() == false);
+	CHECK(s->get_as_text() == "None");
+	CHECK(s->has_valid_event() == false);
 }
 
 TEST_CASE("[Shortcut] Setting and getting an event should result in the same event as the input") {
@@ -66,11 +67,12 @@ TEST_CASE("[Shortcut] Setting and getting an event should result in the same eve
 	input_array.append(e1);
 	input_array.append(e2);
 
-	Shortcut s;
-	s.set_events(input_array);
+	Ref<Shortcut> s;
+	s.instantiate();
+	s->set_events(input_array);
 
 	// Get result, read it out, check whether it equals the input.
-	Array result_array = s.get_events();
+	Array result_array = s->get_events();
 	Ref<InputEventKey> result1 = result_array.front();
 	Ref<InputEventKey> result2 = result_array.back();
 
@@ -95,11 +97,12 @@ TEST_CASE("[Shortcut] 'set_events_list' should result in the same events as the 
 	list.push_back(e1);
 	list.push_back(e2);
 
-	Shortcut s;
-	s.set_events_list(&list);
+	Ref<Shortcut> s;
+	s.instantiate();
+	s->set_events_list(&list);
 
 	// Get result, read it out, check whether it equals the input.
-	Array result_array = s.get_events();
+	Array result_array = s->get_events();
 	Ref<InputEventKey> result1 = result_array.front();
 	Ref<InputEventKey> result2 = result_array.back();
 
@@ -134,13 +137,14 @@ TEST_CASE("[Shortcut] 'matches_event' should correctly match the same event") {
 
 	Array a;
 	a.append(e_original);
-	Shortcut s;
-	s.set_events(a);
+	Ref<Shortcut> s;
+	s.instantiate();
+	s->set_events(a);
 
-	CHECK(s.matches_event(e_similar_but_not_equal) == false);
-	CHECK(s.matches_event(e_different) == false);
+	CHECK(s->matches_event(e_similar_but_not_equal) == false);
+	CHECK(s->matches_event(e_different) == false);
 
-	CHECK(s.matches_event(e_copy) == true);
+	CHECK(s->matches_event(e_copy) == true);
 }
 
 TEST_CASE("[Shortcut] 'get_as_text' text representation should be correct") {
@@ -158,11 +162,12 @@ TEST_CASE("[Shortcut] 'get_as_text' text representation should be correct") {
 
 	Array a;
 	a.append(key_event1);
-	Shortcut s;
-	s.set_events(a);
+	Ref<Shortcut> s;
+	s.instantiate();
+	s->set_events(a);
 
-	CHECK(s.get_as_text() == same->as_text());
-	CHECK(s.get_as_text() != different->as_text());
+	CHECK(s->get_as_text() == same->as_text());
+	CHECK(s->get_as_text() != different->as_text());
 }
 
 TEST_CASE("[Shortcut] Event validity should be correctly checked.") {
@@ -180,10 +185,11 @@ TEST_CASE("[Shortcut] Event validity should be correctly checked.") {
 	a.append(invalid_event);
 	a.append(valid_event);
 
-	Shortcut s;
-	s.set_events(a);
+	Ref<Shortcut> s;
+	s.instantiate();
+	s->set_events(a);
 
-	CHECK(s.has_valid_event() == true);
+	CHECK(s->has_valid_event() == true);
 
 	Array b;
 	b.append(invalid_event);
@@ -223,12 +229,13 @@ TEST_CASE("[Shortcut] Equal arrays should be recognized as such.") {
 
 	Array different3;
 
-	Shortcut s;
+	Ref<Shortcut> s;
+	s.instantiate();
 
-	CHECK(s.is_event_array_equal(same, same_as_same) == true);
-	CHECK(s.is_event_array_equal(same, different1) == false);
-	CHECK(s.is_event_array_equal(same, different2) == false);
-	CHECK(s.is_event_array_equal(same, different3) == false);
+	CHECK(s->is_event_array_equal(same, same_as_same) == true);
+	CHECK(s->is_event_array_equal(same, different1) == false);
+	CHECK(s->is_event_array_equal(same, different2) == false);
+	CHECK(s->is_event_array_equal(same, different3) == false);
 }
 } // namespace TestShortcut
 

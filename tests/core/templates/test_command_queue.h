@@ -449,15 +449,16 @@ TEST_CASE("[Stress][CommandQueue] Stress test command queue") {
 	SharedThreadState sts;
 	sts.init_threads();
 
-	RandomNumberGenerator rng;
+	Ref<RandomNumberGenerator> rng;
+	rng.instantiate();
 
-	rng.set_seed(1837267);
+	rng->set_seed(1837267);
 
 	int msgs_to_add = 2048;
 
 	for (int i = 0; i < msgs_to_add; i++) {
 		// randi_range is inclusive, so allow any enum value except MAX.
-		sts.add_msg_to_write((SharedThreadState::TestMsgType)rng.randi_range(0, SharedThreadState::TEST_MSG_MAX - 1));
+		sts.add_msg_to_write((SharedThreadState::TestMsgType)rng->randi_range(0, SharedThreadState::TEST_MSG_MAX - 1));
 	}
 	sts.writer_threadwork.main_start_work();
 
@@ -465,7 +466,7 @@ TEST_CASE("[Stress][CommandQueue] Stress test command queue") {
 	int loop_iters = 0;
 	while (sts.func1_count < msgs_to_add && loop_iters < max_loop_iters) {
 		int remaining = (msgs_to_add - sts.func1_count);
-		sts.message_count_to_read = rng.randi_range(1, remaining < 128 ? remaining : 128);
+		sts.message_count_to_read = rng->randi_range(1, remaining < 128 ? remaining : 128);
 		if (loop_iters % 3 == 0) {
 			sts.message_count_to_read = -1;
 		}

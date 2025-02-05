@@ -39,9 +39,10 @@
 namespace TestConfigFile {
 
 TEST_CASE("[ConfigFile] Parsing well-formatted files") {
-	ConfigFile config_file;
+	Ref<ConfigFile> config_file;
+	config_file.instantiate();
 	// Formatting is intentionally hand-edited to see how human-friendly the parser is.
-	const Error error = config_file.parse(R"(
+	const Error error = config_file->parse(R"(
 [player]
 
 name = "Unnamed Player"
@@ -65,34 +66,35 @@ antiAliasing = false
 
 	CHECK_MESSAGE(error == OK, "The configuration file should parse successfully.");
 	CHECK_MESSAGE(
-			String(config_file.get_value("player", "name")) == "Unnamed Player",
+			String(config_file->get_value("player", "name")) == "Unnamed Player",
 			"Reading `player/name` should return the expected value.");
 	CHECK_MESSAGE(
-			String(config_file.get_value("player", "tagline")) == "Waiting\nfor\nGodot",
+			String(config_file->get_value("player", "tagline")) == "Waiting\nfor\nGodot",
 			"Reading `player/tagline` should return the expected value.");
 	CHECK_MESSAGE(
-			Color(config_file.get_value("player", "color")).is_equal_approx(Color(0, 0.5, 1)),
+			Color(config_file->get_value("player", "color")).is_equal_approx(Color(0, 0.5, 1)),
 			"Reading `player/color` should return the expected value.");
 	CHECK_MESSAGE(
-			Vector2(config_file.get_value("player", "position")).is_equal_approx(Vector2(3, 4)),
+			Vector2(config_file->get_value("player", "position")).is_equal_approx(Vector2(3, 4)),
 			"Reading `player/position` should return the expected value.");
 	CHECK_MESSAGE(
-			bool(config_file.get_value("graphics", "antialiasing")),
+			bool(config_file->get_value("graphics", "antialiasing")),
 			"Reading `graphics/antialiasing` should return `true`.");
 	CHECK_MESSAGE(
-			bool(config_file.get_value("graphics", "antiAliasing")) == false,
+			bool(config_file->get_value("graphics", "antiAliasing")) == false,
 			"Reading `graphics/antiAliasing` should return `false`.");
 
 	// An empty ConfigFile is valid.
-	const Error error_empty = config_file.parse("");
+	const Error error_empty = config_file->parse("");
 	CHECK_MESSAGE(error_empty == OK,
 			"An empty configuration file should parse successfully.");
 }
 
 TEST_CASE("[ConfigFile] Parsing malformatted file") {
-	ConfigFile config_file;
+	Ref<ConfigFile> config_file;
+	config_file.instantiate();
 	ERR_PRINT_OFF;
-	const Error error = config_file.parse(R"(
+	const Error error = config_file->parse(R"(
 [player]
 
 name = "Unnamed Player"" ; Extraneous closing quote.
@@ -116,15 +118,17 @@ antialiasing = false ; Duplicate key.
 }
 
 TEST_CASE("[ConfigFile] Saving file") {
-	ConfigFile config_file;
-	config_file.set_value("player", "name", "Unnamed Player");
-	config_file.set_value("player", "tagline", "Waiting\nfor\nGodot");
-	config_file.set_value("player", "color", Color(0, 0.5, 1));
-	config_file.set_value("player", "position", Vector2(3, 4));
-	config_file.set_value("graphics", "antialiasing", true);
-	config_file.set_value("graphics", "antiAliasing", false);
-	config_file.set_value("quoted", String::utf8("静音"), 42);
-	config_file.set_value("quoted", "a=b", 7);
+	Ref<ConfigFile> config_file;
+	config_file.instantiate();
+
+	config_file->set_value("player", "name", "Unnamed Player");
+	config_file->set_value("player", "tagline", "Waiting\nfor\nGodot");
+	config_file->set_value("player", "color", Color(0, 0.5, 1));
+	config_file->set_value("player", "position", Vector2(3, 4));
+	config_file->set_value("graphics", "antialiasing", true);
+	config_file->set_value("graphics", "antiAliasing", false);
+	config_file->set_value("quoted", String::utf8("静音"), 42);
+	config_file->set_value("quoted", "a=b", 7);
 
 #ifdef WINDOWS_ENABLED
 	const String config_path = OS::get_singleton()->get_environment("TEMP").path_join("config.ini");
@@ -132,7 +136,7 @@ TEST_CASE("[ConfigFile] Saving file") {
 	const String config_path = "/tmp/config.ini";
 #endif
 
-	config_file.save(config_path);
+	config_file->save(config_path);
 
 	// Expected contents of the saved ConfigFile.
 	const String contents = String::utf8(R"([player]

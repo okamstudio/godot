@@ -41,23 +41,27 @@ namespace TestJSONRPC {
 void check_invalid(const Dictionary &p_dict);
 
 TEST_CASE("[JSONRPC] process_action invalid") {
-	JSONRPC json_rpc = JSONRPC();
+	JSONRPC *json_rpc = memnew(JSONRPC);
 
-	check_invalid(json_rpc.process_action("String is invalid"));
-	check_invalid(json_rpc.process_action(1234));
-	check_invalid(json_rpc.process_action(false));
-	check_invalid(json_rpc.process_action(3.14159));
+	check_invalid(json_rpc->process_action("String is invalid"));
+	check_invalid(json_rpc->process_action(1234));
+	check_invalid(json_rpc->process_action(false));
+	check_invalid(json_rpc->process_action(3.14159));
+
+	memdelete(json_rpc);
 }
 
 void check_invalid_string(const String &p_str);
 
 TEST_CASE("[JSONRPC] process_string invalid") {
-	JSONRPC json_rpc = JSONRPC();
+	JSONRPC *json_rpc = memnew(JSONRPC);
 
-	check_invalid_string(json_rpc.process_string("\"String is invalid\""));
-	check_invalid_string(json_rpc.process_string("1234"));
-	check_invalid_string(json_rpc.process_string("false"));
-	check_invalid_string(json_rpc.process_string("3.14159"));
+	check_invalid_string(json_rpc->process_string("\"String is invalid\""));
+	check_invalid_string(json_rpc->process_string("1234"));
+	check_invalid_string(json_rpc->process_string("false"));
+	check_invalid_string(json_rpc->process_string("3.14159"));
+
+	memdelete(json_rpc);
 }
 
 class TestClassJSONRPC : public JSONRPC {
