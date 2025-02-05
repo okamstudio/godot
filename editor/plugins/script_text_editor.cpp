@@ -184,16 +184,22 @@ void ScriptTextEditor::enable_editor(Control *p_shortcut_context) {
 void ScriptTextEditor::_load_theme_settings() {
 	CodeEdit *text_edit = code_editor->get_text_editor();
 
+	Color updated_warning_line_color = EDITOR_GET("text_editor/theme/highlighting/warning_color");
 	Color updated_marked_line_color = EDITOR_GET("text_editor/theme/highlighting/mark_color");
 	Color updated_safe_line_number_color = EDITOR_GET("text_editor/theme/highlighting/safe_line_number_color");
 	Color updated_folded_code_region_color = EDITOR_GET("text_editor/theme/highlighting/folded_code_region_color");
 
-	bool safe_line_number_color_updated = updated_safe_line_number_color != safe_line_number_color;
+	bool warning_line_color_updated = updated_warning_line_color != warning_line_color;
 	bool marked_line_color_updated = updated_marked_line_color != marked_line_color;
+	bool safe_line_number_color_updated = updated_safe_line_number_color != safe_line_number_color;
 	bool folded_code_region_color_updated = updated_folded_code_region_color != folded_code_region_color;
-	if (safe_line_number_color_updated || marked_line_color_updated || folded_code_region_color_updated) {
+	if (safe_line_number_color_updated || warning_line_color_updated || marked_line_color_updated || folded_code_region_color_updated) {
 		safe_line_number_color = updated_safe_line_number_color;
 		for (int i = 0; i < text_edit->get_line_count(); i++) {
+			if (warning_line_color_updated && text_edit->get_line_background_color(i) == warning_line_color) {
+				text_edit->set_line_background_color(i, updated_warning_line_color);
+			}
+
 			if (marked_line_color_updated && text_edit->get_line_background_color(i) == marked_line_color) {
 				text_edit->set_line_background_color(i, updated_marked_line_color);
 			}
@@ -206,6 +212,7 @@ void ScriptTextEditor::_load_theme_settings() {
 				text_edit->set_line_background_color(i, updated_folded_code_region_color);
 			}
 		}
+		warning_line_color = updated_warning_line_color;
 		marked_line_color = updated_marked_line_color;
 		folded_code_region_color = updated_folded_code_region_color;
 	}
@@ -567,8 +574,8 @@ void ScriptTextEditor::_validate_script() {
 		script_is_valid = true;
 	}
 	_update_connected_methods();
-	_update_warnings();
 	_update_errors();
+	_update_warnings();
 
 	emit_signal(SNAME("name_changed"));
 	emit_signal(SNAME("edited_script_changed"));
@@ -637,6 +644,17 @@ void ScriptTextEditor::_update_warnings() {
 		warnings_panel->pop(); // Cell.
 	}
 	warnings_panel->pop(); // Table.
+
+	CodeEdit *te = code_editor->get_text_editor();
+	for (int i = 0; i < te->get_line_count(); i++) {
+		for (const ScriptLanguage::Warning &W : warnings) {
+			// maybe this should also include W.end_line
+			if (i == W.start_line - 1) {
+				te->set_line_background_color(i, warning_line_color);
+				break;
+			}
+		}
+	}
 }
 
 void ScriptTextEditor::_update_errors() {
@@ -1807,8 +1825,8 @@ void ScriptTextEditor::_notification(int p_what) {
 				break;
 			}
 			if (is_visible_in_tree()) {
-				_update_warnings();
 				_update_errors();
+				_update_warnings();
 			}
 			[[fallthrough]];
 		case NOTIFICATION_ENTER_TREE: {

@@ -1075,6 +1075,7 @@ void EditorSettings::_load_godot2_text_editor_theme() {
 	_initial_set("text_editor/theme/highlighting/function_color", Color(0.4, 0.64, 0.81), true);
 	_initial_set("text_editor/theme/highlighting/member_variable_color", Color(0.9, 0.31, 0.35), true);
 	_initial_set("text_editor/theme/highlighting/mark_color", Color(1.0, 0.4, 0.4, 0.4), true);
+	_initial_set("text_editor/theme/highlighting/warning_color", Color(1.0, 0.8, 0.4, 0.2), true);
 	_initial_set("text_editor/theme/highlighting/bookmark_color", Color(0.08, 0.49, 0.98));
 	_initial_set("text_editor/theme/highlighting/breakpoint_color", Color(0.9, 0.29, 0.3));
 	_initial_set("text_editor/theme/highlighting/executing_line_color", Color(0.98, 0.89, 0.27));
