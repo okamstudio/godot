@@ -562,7 +562,7 @@ void EditorPackedScenePreviewPlugin::_calculate_scene_rect(Node *p_node, Rect2 &
 
 void EditorPackedScenePreviewPlugin::_hide_node_2d_in_scene(Node *p_node) const {
 	// NOTE: Irreversible (cannot unhide nodes after this)
-	// We cannot simple hide() since it will affect all its childrens (may contain Control nodes)
+	// We cannot simple hide() since it will affect all its children (may contain Control nodes)
 
 	if (p_node->is_class("Node2D")) {
 		Node2D *n2d = Object::cast_to<Node2D>(p_node);
@@ -576,7 +576,7 @@ void EditorPackedScenePreviewPlugin::_hide_node_2d_in_scene(Node *p_node) const 
 
 void EditorPackedScenePreviewPlugin::_hide_gui_in_scene(Node *p_node) const {
 	// NOTE: Irreversible (cannot unhide nodes after this)
-	// We cannot simply hide() since it will affect all its childrens (may contain Node2D nodes)
+	// We cannot simply hide() since it will affect all its children (may contain Node2D nodes)
 
 	if (p_node->is_class("Control")) {
 		Control *ctrl = Object::cast_to<Control>(p_node);
