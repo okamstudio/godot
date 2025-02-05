@@ -75,8 +75,12 @@ class EditorPackedScenePreviewPlugin : public EditorResourcePreviewGenerator {
 
 protected:
 	void _count_node_types(Node *p_node, int &c2d, int &c3d, int &clight3d) const;
+	void _calculate_scene_rect(Node *p_node, Rect2 &rect) const;
 	void _calculate_scene_aabb(Node *p_node, AABB &aabb) const;
+	void _hide_node_2d_in_scene(Node *p_node) const;
+	void _hide_gui_in_scene(Node *p_node) const;
 	bool _remove_scripts_from_packed_scene(Ref<PackedScene> pack) const;
+	void _wait_frames(const uint64_t &n) const;
 
 public:
 	virtual bool handles(const String &p_type) const override;

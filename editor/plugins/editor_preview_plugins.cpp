@@ -39,8 +39,11 @@
 #include "editor/editor_paths.h"
 #include "editor/editor_settings.h"
 #include "editor/themes/editor_scale.h"
+#include "scene/2d/camera_2d.h"
+#include "scene/2d/sprite_2d.h"
 #include "scene/3d/light_3d.h"
 #include "scene/3d/mesh_instance_3d.h"
+#include "scene/gui/control.h"
 #include "scene/main/viewport.h"
 #include "scene/resources/atlas_texture.h"
 #include "scene/resources/bit_map.h"
@@ -50,6 +53,7 @@
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/packed_scene.h"
+#include "scene/resources/world_2d.h"
 #include "servers/audio/audio_stream.h"
 
 void post_process_preview(Ref<Image> p_image) {
@@ -423,8 +427,90 @@ Ref<Texture2D> EditorPackedScenePreviewPlugin::generate_from_path(const String &
 		return thumbnail;
 	}
 
-	if (count_2d > 0) { // Is 2d scene - WIP
-		return Ref<Texture2D>();
+	if (count_2d > 0) { // Is 2d scene
+		SubViewport *sub_viewport = memnew(SubViewport);
+		sub_viewport->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		sub_viewport->set_disable_3d(true);
+		sub_viewport->set_transparent_background(false);
+		Ref<World2D> world;
+		world.instantiate();
+		sub_viewport->set_world_2d(world);
+
+		Node *preview_root = memnew(Node); // Nodes only used in preview is attached to this
+		sub_viewport->add_child(p_scene);
+		sub_viewport->add_child(preview_root);
+
+		// Hide gui
+		_hide_gui_in_scene(p_scene);
+
+		// Preview camera
+		Camera2D *camera = memnew(Camera2D);
+		camera->set_name("ThumbnailCamera2D");
+		preview_root->add_child(camera);
+
+		// Attach subviewport deferred (thread safe)
+		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport);
+		_wait_frames(1);
+
+		camera->make_current(); // Has to be inside tree to call this
+
+		// Calculate scene rect
+		Rect2 scene_rect;
+		_calculate_scene_rect(p_scene, scene_rect);
+		Vector2 scene_true_center = scene_rect.get_center();
+		camera->set_position(Point2(scene_true_center));
+		uint16_t long_side = MAX(scene_rect.get_size().x, scene_rect.get_size().y);
+		long_side = CLAMP(long_side, MAX(p_size.x, p_size.y), 16384); // Do not render image larger than GPU can handle (16K)
+		sub_viewport->set_size(Size2i(long_side, long_side));
+
+		_wait_frames(1);
+
+		// Retrieve image of thumbnail
+		Ref<ImageTexture> capture_2d = ImageTexture::create_from_image(sub_viewport->get_texture()->get_image());
+		if (capture_2d->get_image()->get_size() != p_size) {
+			capture_2d->get_image()->resize(p_size.x, p_size.y);
+		}
+
+		capture_2d->get_image()->convert(Image::Format::FORMAT_RGBA8); // ALPHA channel is needed for it to blend with other image, don't know why.
+
+		// Prepare for gui render
+		SubViewport *sub_viewport_gui = memnew(SubViewport);
+		sub_viewport_gui->set_size(Size2i(GLOBAL_GET("display/window/size/viewport_width"), GLOBAL_GET("display/window/size/viewport_height")));
+		sub_viewport_gui->set_update_mode(SubViewport::UPDATE_ALWAYS);
+		sub_viewport_gui->set_transparent_background(true);
+		sub_viewport_gui->set_disable_3d(true);
+		sub_viewport->call_deferred("remove_child", p_scene);
+
+		_wait_frames(1);
+
+		p_scene->queue_free();
+		p_scene = pack->instantiate();
+		_hide_node_2d_in_scene(p_scene);
+		sub_viewport_gui->add_child(p_scene);
+		EditorNode::get_singleton()->call_deferred("add_child", sub_viewport_gui);
+
+		_wait_frames(1);
+
+		// Retrieve image of gui
+		Ref<ImageTexture> capture_gui = ImageTexture::create_from_image(sub_viewport_gui->get_texture()->get_image());
+		if (capture_gui->get_image()->get_size() != p_size) {
+			capture_gui->get_image()->resize(p_size.x, p_size.y);
+		}
+
+		// Generate thumbnail with 2d + gui combined
+		Ref<ImageTexture> thumbnail = memnew(ImageTexture);
+		Ref<Image> thumbnail_image = Image::create_empty(p_size.x, p_size.y, false, Image::Format::FORMAT_RGBA8); // blend_rect needs ALPHA channel to work
+		thumbnail_image->blend_rect(capture_2d->get_image(), capture_2d->get_image()->get_used_rect(), Point2i(0, 0));
+		thumbnail_image->blend_rect(capture_gui->get_image(), capture_gui->get_image()->get_used_rect(), Point2i(0, 0));
+		thumbnail->set_image(thumbnail_image);
+
+		// Clean up
+		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport);
+		EditorNode::get_singleton()->call_deferred("remove_child", sub_viewport_gui);
+		sub_viewport->call_deferred("queue_free");
+		sub_viewport_gui->call_deferred("queue_free");
+
+		return thumbnail;
 	}
 
 	// Is scene without any visuals (No Node2D, Node3D, Control found)
@@ -443,6 +529,72 @@ void EditorPackedScenePreviewPlugin::_count_node_types(Node *p_node, int &c2d, i
 	}
 	for (int i = 0; i < p_node->get_child_count(); i++) {
 		_count_node_types(p_node->get_child(i), c2d, c3d, clight3d);
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_calculate_scene_rect(Node *p_node, Rect2 &scene_rect) const {
+	// Note:
+	// Sprite2D::position, with 0 offset value, is at the **center** of the sprite
+	// Rect2::position is at the **left-up** of the rect
+	// calculation below is done with this in mind.
+
+	if (p_node->is_class("Sprite2D")) {
+		Sprite2D *sprite = Object::cast_to<Sprite2D>(p_node);
+		Rect2 local_rect = sprite->get_rect();
+		Rect2 global_rect = Rect2();
+		global_rect.size = sprite->get_global_scale() * local_rect.size;
+		global_rect.position = sprite->get_global_position() + sprite->get_offset() * sprite->get_global_scale() - (global_rect.size / 2.0f);
+
+		// This avoids accounting scene origin (0,0) into global rect
+		if (scene_rect.get_size().x > 0 && scene_rect.get_size().y > 0) {
+			scene_rect = scene_rect.merge(global_rect);
+		} else {
+			scene_rect = global_rect;
+		}
+	}
+
+	// WIP: Need to work for AnimatedSprite2D, MeshInstance2D, MultimeshInstance2D, TileMapLayer, Polygon2D, TouchScreenButton too.
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_calculate_scene_rect(p_node->get_child(i), scene_rect);
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_hide_node_2d_in_scene(Node *p_node) const {
+	// NOTE: Irreversible (cannot unhide nodes after this)
+	// We cannot simple hide() since it will affect all its childrens (may contain Control nodes)
+
+	if (p_node->is_class("Node2D")) {
+		Node2D *n2d = Object::cast_to<Node2D>(p_node);
+		n2d->set_self_modulate(Color(0.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_hide_node_2d_in_scene(p_node->get_child(i));
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_hide_gui_in_scene(Node *p_node) const {
+	// NOTE: Irreversible (cannot unhide nodes after this)
+	// We cannot simply hide() since it will affect all its childrens (may contain Node2D nodes)
+
+	if (p_node->is_class("Control")) {
+		Control *ctrl = Object::cast_to<Control>(p_node);
+		ctrl->set_self_modulate(Color(0.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_hide_gui_in_scene(p_node->get_child(i));
+	}
+}
+
+void EditorPackedScenePreviewPlugin::_wait_frames(const uint64_t &n) const {
+	if (n <= 0) {
+		return;
+	}
+	const uint64_t pause_frame = Engine::get_singleton()->get_process_frames();
+	while (Engine::get_singleton()->get_process_frames() - pause_frame < n + 1) { // Wait for n frames == (n+1) frames has rendered
+		continue;
 	}
 }
 
