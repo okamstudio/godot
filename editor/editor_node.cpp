@@ -4941,7 +4941,7 @@ Ref<Texture2D> EditorNode::get_class_icon(const String &p_class, const String &p
 	String script_path;
 	if (ScriptServer::is_global_class(p_class)) {
 		script_path = ScriptServer::get_global_class_path(p_class);
-	} else if (ResourceLoader::exists(p_class)) { // If the script is not a class_name we check if the script resource exists.
+	} else if (!p_class.get_extension().is_empty() && ResourceLoader::exists(p_class)) { // If the script is not a class_name we check if the script resource exists.
 		script_path = p_class;
 	}
 
