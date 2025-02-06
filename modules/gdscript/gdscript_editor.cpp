@@ -4057,7 +4057,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 	GDScriptAnalyzer analyzer(&parser);
 	analyzer.analyze();
 
-	if (context.current_class && context.current_class->extends.size() > 0) {
+	if (context.current_class && context.current_class->extends.size() > 0 && context.type == GDScriptParser::COMPLETION_IDENTIFIER) {
 		StringName class_name = context.current_class->extends[0]->name;
 
 		bool success = false;
