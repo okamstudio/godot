@@ -61,8 +61,12 @@ for lib in sys_env["JS_LIBS"]:
     sys_env.Append(LINKFLAGS=["--js-library", lib.abspath])
 for js in sys_env["JS_PRE"]:
     sys_env.Append(LINKFLAGS=["--pre-js", js.abspath])
+
+# Add JS externs to Closure.
+sys_env["ENV"]["EMCC_CLOSURE_ARGS"] = sys_env["ENV"].get("EMCC_CLOSURE_ARGS", "")
 for ext in sys_env["JS_EXTERNS"]:
     sys_env["ENV"]["EMCC_CLOSURE_ARGS"] += " --externs " + ext.abspath
+sys_env["ENV"]["EMCC_CLOSURE_ARGS"] = sys_env["ENV"]["EMCC_CLOSURE_ARGS"].strip()
 
 build = []
 build_targets = ["#bin/godot${PROGSUFFIX}.js", "#bin/godot${PROGSUFFIX}.wasm"]
