@@ -1993,6 +1993,18 @@ void EditorNode::_save_scene(String p_file, int idx) {
 		editor_data.set_scene_as_saved(idx);
 		editor_data.set_scene_modified_time(idx, FileAccess::get_modified_time(p_file));
 
+		if (GLOBAL_GET("editor/general/warn_on_saving_large_text_resources")) {
+			if (p_file.get_extension() == "tscn" || p_file.get_extension() == "tres") {
+				Ref<FileAccess> fa = FileAccess::open(p_file, FileAccess::READ);
+				const uint64_t file_size = fa->get_length();
+				if (file_size >= 524'288) {
+					// File is larger than 500 KB, likely because it contains binary data serialized as Base64.
+					EditorToaster::get_singleton()->popup_str(
+							vformat(TTR("The text-based scene or resource at path \"%s\" is large on disk (%d KB), likely because it has embedded binary data.\nThis slows down scene saving and loading.\nConsider saving its binary subresource(s) to a binary `.res` file or saving the scene as a binary `.scn` file.\nThis warning can be disabled in the Project Settings (Editor > General > Warn On Saving Large Text Resources)."), p_file, file_size / 1024), EditorToaster::SEVERITY_WARNING);
+				}
+			}
+		}
+
 		editor_folding.save_scene_folding(scene, p_file);
 
 		_update_title();

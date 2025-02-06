@@ -958,6 +958,10 @@
 			[b]Note:[/b] Because a resource's file extension may change in an exported project, it is heavily recommended to use [method @GDScript.load] or [ResourceLoader] instead of [FileAccess] to load resources dynamically.
 			[b]Note:[/b] The project settings file ([code]project.godot[/code]) will always be converted to binary on export, regardless of this setting.
 		</member>
+		<member name="editor/general/warn_on_saving_large_text_resources" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], displays a warning toast message when saving a text-based scene or resource that is larger than 500 KB on disk. This is typically caused by binary subresources being embedded as text, which results in slow and inefficient conversion to text. This in turn impacts scene saving and loading times.
+			This should usually be resolved by moving the embedded binary subresource to its own binary resource file ([code].res[/code] extension instead of [code].tres[/code]). This is the preferred approach. Alternatively, the entire scene can be saved with the binary [code].scn[/code] format as opposed to [code].tscn[/code], but this will make it less friendly to version control systems.
+		</member>
 		<member name="editor/import/atlas_max_width" type="int" setter="" getter="" default="2048">
 			The maximum width to use when importing textures as an atlas. The value will be rounded to the nearest power of two when used. Use this to prevent imported textures from growing too large in the other direction.
 		</member>

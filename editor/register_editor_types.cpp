@@ -271,6 +271,8 @@ void register_editor_types() {
 	EditorPlugins::add_by_type<TileMapEditorPlugin>();
 
 	// For correct doc generation.
+	GLOBAL_DEF("editor/general/warn_on_saving_large_text_resources", true);
+
 	GLOBAL_DEF("editor/run/main_run_args", "");
 
 	GLOBAL_DEF(PropertyInfo(Variant::STRING, "editor/script/templates_search_path", PROPERTY_HINT_DIR), "res://script_templates");
