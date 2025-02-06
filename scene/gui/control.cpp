@@ -2054,7 +2054,7 @@ static Control *_next_control(Control *p_from) {
 		return nullptr; // Can't go above.
 	}
 
-	Control *parent = Object::cast_to<Control>(p_from->get_parent());
+	Control *parent = p_from->get_parent_control();
 
 	if (!parent) {
 		return nullptr;
@@ -2077,21 +2077,21 @@ static Control *_next_control(Control *p_from) {
 
 Control *Control::find_next_valid_focus() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
+
+	// If the focus property is manually overwritten, attempt to use it.
+	if (!data.focus_next.is_empty()) {
+		Node *n = get_node_or_null(data.focus_next);
+		ERR_FAIL_NULL_V_MSG(n, nullptr, "Next focus node path is invalid: '" + data.focus_next + "'.");
+		Control *c = Object::cast_to<Control>(n);
+		ERR_FAIL_NULL_V_MSG(c, nullptr, "Next focus node is not a control: '" + n->get_name() + "'.");
+		if (c->is_visible_in_tree() && c->data.focus_mode != FOCUS_NONE) {
+			return c;
+		}
+	}
+
 	Control *from = const_cast<Control *>(this);
 
 	while (true) {
-		// If the focus property is manually overwritten, attempt to use it.
-
-		if (!data.focus_next.is_empty()) {
-			Node *n = get_node_or_null(data.focus_next);
-			ERR_FAIL_NULL_V_MSG(n, nullptr, "Next focus node path is invalid: '" + data.focus_next + "'.");
-			Control *c = Object::cast_to<Control>(n);
-			ERR_FAIL_NULL_V_MSG(c, nullptr, "Next focus node is not a control: '" + n->get_name() + "'.");
-			if (c->is_visible() && c->get_focus_mode() != FOCUS_NONE) {
-				return c;
-			}
-		}
-
 		// Find next child.
 
 		Control *next_child = nullptr;
@@ -2110,83 +2110,77 @@ Control *Control::find_next_valid_focus() const {
 			next_child = _next_control(from);
 			if (!next_child) { // Nothing else. Go up and find either window or subwindow.
 				next_child = const_cast<Control *>(this);
-				while (next_child && !next_child->is_set_as_top_level()) {
-					next_child = cast_to<Control>(next_child->get_parent());
-				}
 
-				if (!next_child) {
-					next_child = const_cast<Control *>(this);
-					while (next_child) {
-						if (next_child->data.RI) {
-							break;
-						}
-						next_child = next_child->get_parent_control();
+				while (next_child) {
+					if (next_child->is_set_as_top_level()) {
+						break;
 					}
+
+					if (next_child->data.RI) {
+						break;
+					}
+					next_child = next_child->data.parent_control;
 				}
 			}
 		}
 
-		if (next_child == from || next_child == this) { // No next control.
-			return (get_focus_mode() == FOCUS_ALL) ? next_child : nullptr;
-		}
-		if (next_child) {
-			if (next_child->get_focus_mode() == FOCUS_ALL) {
-				return next_child;
-			}
-			from = next_child;
-		} else {
+		if (!next_child) {
 			break;
 		}
+
+		if (next_child->data.focus_mode == FOCUS_ALL) {
+			return next_child;
+		}
+
+		if (next_child == from || next_child == this) {
+			return nullptr; // Stuck in a loop with no next control.
+		}
+
+		from = next_child; // Try to find the next control with focus mode FOCUS_ALL.
 	}
 
 	return nullptr;
 }
 
 static Control *_prev_control(Control *p_from) {
-	Control *child = nullptr;
 	for (int i = p_from->get_child_count() - 1; i >= 0; i--) {
 		Control *c = Object::cast_to<Control>(p_from->get_child(i));
 		if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
 			continue;
 		}
 
-		child = c;
-		break;
+		// Find the last child as prev, try the same in the last child.
+		return _prev_control(c);
 	}
 
-	if (!child) {
-		return p_from;
-	}
-
-	// No prev in parent, try the same in parent.
-	return _prev_control(child);
+	return p_from; // Not found in the children, return itself.
 }
 
 Control *Control::find_prev_valid_focus() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
+
+	// If the focus property is manually overwritten, attempt to use it.
+	if (!data.focus_prev.is_empty()) {
+		Node *n = get_node_or_null(data.focus_prev);
+		ERR_FAIL_NULL_V_MSG(n, nullptr, "Previous focus node path is invalid: '" + data.focus_prev + "'.");
+		Control *c = Object::cast_to<Control>(n);
+		ERR_FAIL_NULL_V_MSG(c, nullptr, "Previous focus node is not a control: '" + n->get_name() + "'.");
+		if (c->is_visible_in_tree() && c->data.focus_mode != FOCUS_NONE) {
+			return c;
+		}
+	}
+
 	Control *from = const_cast<Control *>(this);
 
 	while (true) {
-		// If the focus property is manually overwritten, attempt to use it.
-
-		if (!data.focus_prev.is_empty()) {
-			Node *n = get_node_or_null(data.focus_prev);
-			ERR_FAIL_NULL_V_MSG(n, nullptr, "Previous focus node path is invalid: '" + data.focus_prev + "'.");
-			Control *c = Object::cast_to<Control>(n);
-			ERR_FAIL_NULL_V_MSG(c, nullptr, "Previous focus node is not a control: '" + n->get_name() + "'.");
-			if (c->is_visible() && c->get_focus_mode() != FOCUS_NONE) {
-				return c;
-			}
-		}
-
 		// Find prev child.
 
 		Control *prev_child = nullptr;
 
-		if (from->is_set_as_top_level() || !Object::cast_to<Control>(from->get_parent())) {
+		if (from->is_set_as_top_level() || !from->data.parent_control) {
 			// Find last of the children.
 
-			prev_child = _prev_control(from);
+			prev_child = _prev_control(from); // Wrap start here.
 
 		} else {
 			for (int i = (from->get_index() - 1); i >= 0; i--) {
@@ -2201,21 +2195,21 @@ Control *Control::find_prev_valid_focus() const {
 			}
 
 			if (!prev_child) {
-				prev_child = Object::cast_to<Control>(from->get_parent());
+				prev_child = from->data.parent_control;
 			} else {
 				prev_child = _prev_control(prev_child);
 			}
 		}
 
-		if (prev_child == from || prev_child == this) { // No prev control.
-			return (get_focus_mode() == FOCUS_ALL) ? prev_child : nullptr;
-		}
-
-		if (prev_child->get_focus_mode() == FOCUS_ALL) {
+		if (prev_child->data.focus_mode == FOCUS_ALL) {
 			return prev_child;
 		}
 
-		from = prev_child;
+		if (prev_child == from || prev_child == this) {
+			return nullptr; // Stuck in a loop with no prev control.
+		}
+
+		from = prev_child; // Try to find the prev control with focus mode FOCUS_ALL.
 	}
 
 	return nullptr;
@@ -2266,14 +2260,7 @@ Control *Control::_get_focus_neighbor(Side p_side, int p_count) {
 		ERR_FAIL_NULL_V_MSG(n, nullptr, "Neighbor focus node path is invalid: '" + data.focus_neighbor[p_side] + "'.");
 		Control *c = Object::cast_to<Control>(n);
 		ERR_FAIL_NULL_V_MSG(c, nullptr, "Neighbor focus node is not a control: '" + n->get_name() + "'.");
-		bool valid = true;
-		if (!c->is_visible()) {
-			valid = false;
-		}
-		if (c->get_focus_mode() == FOCUS_NONE) {
-			valid = false;
-		}
-		if (valid) {
+		if (c->is_visible_in_tree() && c->data.focus_mode != FOCUS_NONE) {
 			return c;
 		}
 
