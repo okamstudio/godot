@@ -760,7 +760,7 @@
 				GD.Print(numbers); // Prints [2.5, 5, 8, 10]
 				[/csharp]
 				[/codeblocks]
-				[b]Note:[/b] The sorting algorithm used is not [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url]. This means that equivalent elements (such as [code]2[/code] and [code]2.0[/code]) may have their order changed when calling [method sort].
+				[b]Note:[/b] The sorting algorithm used is not [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url]. This means that equivalent elements (such as [code]2[/code] and [code]2.0[/code]) may have their order changed when calling [method sort]. See also [method sort_stable]
 			</description>
 		</method>
 		<method name="sort_custom">
@@ -791,8 +791,56 @@
 				print(files) # Prints ["newfile1", "newfile2", "newfile10", "newfile11"]
 				[/codeblock]
 				[b]Note:[/b] In C#, this method is not supported.
-				[b]Note:[/b] The sorting algorithm used is not [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url]. This means that values considered equal may have their order changed when calling this method.
+				[b]Note:[/b] The sorting algorithm used is not [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url]. This means that values considered equal may have their order changed when calling this method. See also [method sort_custom_stable]
 				[b]Note:[/b] You should not randomize the return value of [param func], as the heapsort algorithm expects a consistent result. Randomizing the return value will result in unexpected behavior.
+			</description>
+		</method>
+		<method name="sort_custom_stable">
+			<return type="void" />
+			<param index="0" name="func" type="Callable" />
+			<description>
+				Sorts the array using a [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url] sort algorithm with a custom [Callable]. Equal elements remain in the same order after sorting.
+				[param func] is called as many times as necessary, receiving two array elements as arguments. The function should return [code]true[/code] if the first element should be moved [i]behind[/i] the second one, otherwise it should return [code]false[/code].
+				[codeblock]
+				func sort_ascending(a, b):
+				if a[1] &lt; b[1]:
+				return true
+				return false
+
+				func _ready():
+				var my_items = [["Tomato", 5], ["Apple", 9], ["Rice", 4], ["Orange", 9]]
+				my_items.sort_custom_stable(sort_ascending)
+				print(my_items) # Prints [["Rice", 4], ["Tomato", 5], ["Apple", 9], ["Orange", 9]]
+
+				# Sort descending, using a lambda function.
+				my_items.sort_custom_stable(func(a, b): return a[1] &gt; b[1])
+				print(my_items) # Prints [["Apple", 9], ["Orange", 9], ["Tomato", 5], ["Rice", 4]]
+				[/codeblock]
+				It may also be necessary to use this method to sort strings by natural order, with [method String.naturalnocasecmp_to], as in the following example:
+				[codeblock]
+				var files = ["newfile1", "newfile2", "newfile10", "newfile11"]
+				files.sort_custom_stable(func(a, b): return a.naturalnocasecmp_to(b) &lt; 0)
+				print(files) # Prints ["newfile1", "newfile2", "newfile10", "newfile11"]
+				[/codeblock]
+				[b]Note:[/b] In C#, this method is not supported.
+			</description>
+		</method>
+		<method name="sort_stable">
+			<return type="void" />
+			<description>
+				Sorts the array in ascending order using a [url=https://en.wikipedia.org/wiki/Sorting_algorithm#Stability]stable[/url] sort algorithm. The final order is dependent on the "less than" ([code]&lt;[/code]) comparison between elements. Equal elements remain in the same order after sorting.
+				[codeblocks]
+				[gdscript]
+				var numbers = [10, 5, 2.5, 8, 8.0]
+				numbers.sort_stable()
+				print(numbers) # Prints [2.5, 5, 8, 8.0, 10]
+				[/gdscript]
+				[csharp]
+				var numbers = new Godot.Collections.Array { 10, 5, 2.5, 8, 8.0 };
+				numbers.SortStable();
+				GD.Print(numbers); // Prints [2.5, 5, 8, 8.0, 10]
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 	</methods>

@@ -54,7 +54,8 @@ struct _DefaultComparator {
 template <typename T, typename Comparator = _DefaultComparator<T>, bool Validate = SORT_ARRAY_VALIDATE_ENABLED>
 class SortArray {
 	enum {
-		INTROSORT_THRESHOLD = 16
+		INTROSORT_THRESHOLD = 16,
+		MERGESORT_THRESHOLD = 8
 	};
 
 public:
@@ -314,6 +315,45 @@ public:
 			return;
 		}
 		introselect(p_first, p_nth, p_last, p_array, bitlog(p_last - p_first) * 2);
+	}
+
+	inline void merge(T *p_array, int64_t p_mid, int64_t p_len, T *p_tmp) {
+		for (int i = 0; i < p_mid; i++) {
+			p_tmp[i] = p_array[i];
+		}
+
+		int64_t i1 = 0, i2 = p_mid, idst = 0;
+		while (i1 < p_mid) {
+			if (i2 == p_len) {
+				p_array[idst++] = p_tmp[i1++];
+			} else if (compare(p_array[i2], p_tmp[i1])) {
+				p_array[idst++] = p_array[i2++];
+			} else {
+				p_array[idst++] = p_tmp[i1++];
+			}
+		}
+	}
+
+	inline void stable_sort(T *p_array, int64_t p_len, T *p_tmp) {
+		if (p_len < MERGESORT_THRESHOLD) {
+			insertion_sort(0, p_len, p_array);
+		} else {
+			int64_t len1 = p_len / 2;
+			int64_t len2 = p_len - len1;
+			stable_sort(p_array, len1, p_tmp);
+			stable_sort(p_array + len1, len2, p_tmp);
+			merge(p_array, len1, p_len, p_tmp);
+		}
+	}
+
+	inline void stable_sort(T *p_array, int64_t p_len) {
+		if (p_len < MERGESORT_THRESHOLD) {
+			insertion_sort(0, p_len, p_array);
+		} else {
+			T *tmp = memnew_arr(T, (p_len / 2));
+			stable_sort(p_array, p_len, tmp);
+			memdelete_arr(tmp);
+		}
 	}
 };
 

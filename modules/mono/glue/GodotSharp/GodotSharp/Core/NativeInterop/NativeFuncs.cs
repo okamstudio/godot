@@ -431,6 +431,8 @@ namespace Godot.NativeInterop
 
         public static partial void godotsharp_array_sort(ref godot_array p_self);
 
+        public static partial void godotsharp_array_sort_stable(ref godot_array p_self);
+
         public static partial void godotsharp_array_to_string(ref godot_array p_self, out godot_string r_str);
 
         // Dictionary

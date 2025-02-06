@@ -1164,6 +1164,10 @@ void godotsharp_array_sort(Array *p_self) {
 	p_self->sort();
 }
 
+void godotsharp_array_sort_stable(Array *p_self) {
+	p_self->sort_stable();
+}
+
 void godotsharp_array_to_string(const Array *p_self, String *r_str) {
 	*r_str = Variant(*p_self).operator String();
 }
@@ -1674,6 +1678,7 @@ static const void *unmanaged_callbacks[]{
 	(void *)godotsharp_array_shuffle,
 	(void *)godotsharp_array_slice,
 	(void *)godotsharp_array_sort,
+	(void *)godotsharp_array_sort_stable,
 	(void *)godotsharp_array_to_string,
 	(void *)godotsharp_dictionary_try_get_value,
 	(void *)godotsharp_dictionary_set_value,

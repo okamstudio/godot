@@ -169,6 +169,52 @@ TEST_CASE("[Array] sort()") {
 	}
 }
 
+TEST_CASE("[Array] sort_stable() small") {
+	Array arr;
+
+	arr.push_back(2);
+	arr.push_back(2.0);
+	arr.push_back(3);
+	arr.push_back(3.0);
+	arr.push_back(1);
+	arr.push_back(1.0);
+	arr.sort_stable();
+	int val = 1;
+	for (int i = 0; i < arr.size(); i += 2) {
+		CHECK(arr[i].get_type() == Variant::Type::INT);
+		CHECK(int(arr[i]) == val);
+		CHECK(arr[i + 1].get_type() == Variant::Type::FLOAT);
+		CHECK(float(arr[i + 1]) == val);
+		val++;
+	}
+}
+
+TEST_CASE("[Array] sort_stable()") {
+	Array arr;
+
+	arr.push_back(3);
+	arr.push_back(3.0);
+	arr.push_back(4);
+	arr.push_back(4.0);
+	arr.push_back(2);
+	arr.push_back(2.0);
+	arr.push_back(1);
+	arr.push_back(1.0);
+	arr.push_back(6);
+	arr.push_back(6.0);
+	arr.push_back(5);
+	arr.push_back(5.0);
+	arr.sort_stable();
+	int val = 1;
+	for (int i = 0; i < arr.size(); i += 2) {
+		CHECK(arr[i].get_type() == Variant::Type::INT);
+		CHECK(int(arr[i]) == val);
+		CHECK(arr[i + 1].get_type() == Variant::Type::FLOAT);
+		CHECK(float(arr[i + 1]) == val);
+		val++;
+	}
+}
+
 TEST_CASE("[Array] push_front(), pop_front(), pop_back()") {
 	Array arr;
 	arr.push_front(1);

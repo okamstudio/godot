@@ -472,6 +472,32 @@ namespace Godot.Collections
         }
 
         /// <summary>
+        /// Sorts the array using a stable sorting algorithm
+        /// Note: Strings are sorted in alphabetical order (as opposed to natural order).
+        /// This may lead to unexpected behavior when sorting an array of strings ending
+        /// with a sequence of numbers.
+        /// To sort with a custom predicate use
+        /// <see cref="Enumerable.OrderBy{TSource, TKey}(IEnumerable{TSource}, Func{TSource, TKey})"/>.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// var strings = new Godot.Collections.Array { "string1", "string2", "string10", "string11" };
+        /// strings.SortStable();
+        /// GD.Print(strings); // Prints [string1, string10, string11, string2]
+        /// </code>
+        /// </example>
+        /// <exception cref="InvalidOperationException">
+        /// The array is read-only.
+        /// </exception>
+        public void SortStable()
+        {
+            ThrowIfReadOnly();
+
+            var self = (godot_array)NativeValue;
+            NativeFuncs.godotsharp_array_sort_stable(ref self);
+        }
+
+        /// <summary>
         /// Concatenates two <see cref="Array"/>s together, with the <paramref name="right"/>
         /// being added to the end of the <see cref="Array"/> specified in <paramref name="left"/>.
         /// For example, <c>[1, 2] + [3, 4]</c> results in <c>[1, 2, 3, 4]</c>.

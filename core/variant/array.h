@@ -146,7 +146,9 @@ public:
 	Variant pick_random() const;
 
 	void sort();
+	void sort_stable();
 	void sort_custom(const Callable &p_callable);
+	void sort_custom_stable(const Callable &p_callable);
 	void shuffle();
 	int bsearch(const Variant &p_value, bool p_before = true) const;
 	int bsearch_custom(const Variant &p_value, const Callable &p_callable, bool p_before = true) const;

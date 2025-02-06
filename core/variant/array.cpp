@@ -693,9 +693,21 @@ void Array::sort() {
 	_p->array.sort_custom<_ArrayVariantSort>();
 }
 
+void Array::sort_stable() {
+	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
+	SortArray<Variant, _ArrayVariantSort> sort{ _ArrayVariantSort() };
+	sort.stable_sort(_p->array.ptrw(), size());
+}
+
 void Array::sort_custom(const Callable &p_callable) {
 	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
 	_p->array.sort_custom<CallableComparator, true>(p_callable);
+}
+
+void Array::sort_custom_stable(const Callable &p_callable) {
+	ERR_FAIL_COND_MSG(_p->read_only, "Array is in read-only state.");
+	SortArray<Variant, CallableComparator, true> sort{ CallableComparator{ p_callable } };
+	sort.stable_sort(_p->array.ptrw(), size());
 }
 
 void Array::shuffle() {
