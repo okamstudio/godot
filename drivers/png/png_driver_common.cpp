@@ -152,6 +152,11 @@ Error image_to_png(const Ref<Image> &p_image, Vector<uint8_t> &p_buffer) {
 		case Image::FORMAT_RGBA8:
 			png_img.format = PNG_FORMAT_RGBA;
 			break;
+		case Image::FORMAT_RGBAH:
+		case Image::FORMAT_RGBAF:
+			source_image->convert(Image::FORMAT_RGBA8);
+			png_img.format = PNG_FORMAT_RGBA;
+			break;
 		default:
 			if (source_image->detect_alpha()) {
 				source_image->convert(Image::FORMAT_RGBA8);

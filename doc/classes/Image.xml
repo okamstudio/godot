@@ -497,12 +497,14 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Saves the image as a PNG file to the file at [param path].
+				[b]Note:[/b] The image will be saved using 8 bits per channel, regardless of [enum Format] value.
 			</description>
 		</method>
 		<method name="save_png_to_buffer" qualifiers="const">
 			<return type="PackedByteArray" />
 			<description>
 				Saves the image as a PNG file to a byte array.
+				[b]Note:[/b] The image will be saved using 8 bits per channel, regardless of [enum Format] value.
 			</description>
 		</method>
 		<method name="save_webp" qualifiers="const">
