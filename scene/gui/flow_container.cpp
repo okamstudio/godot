@@ -62,6 +62,8 @@ void FlowContainer::_resort() {
 	int children_in_current_line = 0;
 	Control *last_child = nullptr;
 
+	cached_children_nodes.clear();
+
 	// First pass for line wrapping and minimum size calculation.
 	for (int i = 0; i < get_child_count(); i++) {
 		Control *child = as_sortable_control(get_child(i));
@@ -142,6 +144,11 @@ void FlowContainer::_resort() {
 		}
 		Size2i child_size = children_minsize_cache[child];
 
+		if (cached_children_nodes.is_empty()) {
+			// Add the first child.
+			cached_children_nodes.push_back(child);
+		}
+
 		_LineData line_data = lines_data[current_line_idx];
 		if (child_idx_in_line >= lines_data[current_line_idx].child_count) {
 			current_line_idx++;
@@ -153,6 +160,7 @@ void FlowContainer::_resort() {
 				ofs.x = 0;
 				ofs.y += line_data.min_line_height + theme_cache.v_separation;
 			}
+			cached_children_nodes.push_back(child);
 			line_data = lines_data[current_line_idx];
 		}
 
@@ -286,6 +294,47 @@ Size2 FlowContainer::get_minimum_size() const {
 	}
 
 	return minimum;
+}
+
+Vector<CanvasItem *> FlowContainer::get_children_at_pos(const Point2 &p_pos) const {
+	if (cached_children_nodes.is_empty()) {
+		return Vector<CanvasItem *>();
+	}
+
+	int coord = vertical ? p_pos.x : p_pos.y;
+	// Custom binary search; we are searching for the closest value to coord, not an exact one.
+	int bin_start = 0;
+	int bin_end = cached_children_nodes.size();
+	while (bin_start < bin_end) {
+		int mid = (bin_start + bin_end) / 2;
+		if (coord < (vertical ? cached_children_nodes[mid]->get_rect().position.x : cached_children_nodes[mid]->get_rect().position.y)) {
+			bin_end = mid;
+		} else {
+			bin_start = mid + 1;
+		}
+	}
+
+	int start_idx = MAX(bin_start - 1, 0);
+	int end_idx = MIN(bin_end, cached_children_nodes.size() - 1);
+	ERR_FAIL_INDEX_V(start_idx, cached_children_nodes.size(), Vector<CanvasItem *>());
+	ERR_FAIL_INDEX_V(end_idx, cached_children_nodes.size(), Vector<CanvasItem *>());
+
+	int start_node_idx = cached_children_nodes[start_idx]->get_index();
+	int end_node_idx = cached_children_nodes[end_idx]->get_index();
+
+	if (start_node_idx == end_node_idx) {
+		// Last row, so include the remaining children.
+		end_node_idx = get_child_count();
+	}
+
+	Vector<CanvasItem *> children;
+	for (end_node_idx--; end_node_idx >= start_node_idx; end_node_idx--) {
+		CanvasItem *child = Object::cast_to<CanvasItem>(get_child(end_node_idx));
+		if (child && child->is_visible()) {
+			children.push_back(child);
+		}
+	}
+	return children;
 }
 
 Vector<int> FlowContainer::get_allowed_size_flags_horizontal() const {

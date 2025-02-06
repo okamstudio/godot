@@ -51,6 +51,8 @@ private:
 		int separation = 0;
 	} theme_cache;
 
+	Vector<Control *> cached_children_nodes;
+
 	void _resort();
 
 protected:
@@ -70,6 +72,7 @@ public:
 	bool is_vertical() const;
 
 	virtual Size2 get_minimum_size() const override;
+	virtual Vector<CanvasItem *> get_children_at_pos(const Point2 &p_pos) const override;
 
 	virtual Vector<int> get_allowed_size_flags_horizontal() const override;
 	virtual Vector<int> get_allowed_size_flags_vertical() const override;

@@ -182,11 +182,18 @@ void GridContainer::_notification(int p_what) {
 			}
 
 			valid_controls_index = 0;
+			cached_children_nodes.clear();
+
 			for (int i = 0; i < get_child_count(); i++) {
 				Control *c = as_sortable_control(get_child(i));
 				if (!c) {
 					continue;
 				}
+				if (cached_children_nodes.is_empty()) {
+					// Add the first child.
+					cached_children_nodes.push_back(c);
+				}
+
 				int row = valid_controls_index / columns;
 				int col = valid_controls_index % columns;
 				valid_controls_index++;
@@ -204,6 +211,7 @@ void GridContainer::_notification(int p_what) {
 							// Apply the remaining pixel of the previous row.
 							row_ofs++;
 						}
+						cached_children_nodes.push_back(c);
 					}
 				}
 
@@ -317,6 +325,46 @@ Size2 GridContainer::get_minimum_size() const {
 	ms.width += theme_cache.h_separation * max_col;
 
 	return ms;
+}
+
+Vector<CanvasItem *> GridContainer::get_children_at_pos(const Point2 &p_pos) const {
+	if (cached_children_nodes.is_empty()) {
+		return Vector<CanvasItem *>();
+	}
+
+	// Custom binary search; we are searching for the closest value to coord, not an exact one.
+	int bin_start = 0;
+	int bin_end = cached_children_nodes.size();
+	while (bin_start < bin_end) {
+		int mid = (bin_start + bin_end) / 2;
+		if (p_pos.y < cached_children_nodes[mid]->get_rect().position.y) {
+			bin_end = mid;
+		} else {
+			bin_start = mid + 1;
+		}
+	}
+
+	int start_idx = MAX(bin_start - 1, 0);
+	int end_idx = MIN(bin_end, cached_children_nodes.size() - 1);
+	ERR_FAIL_INDEX_V(start_idx, cached_children_nodes.size(), Vector<CanvasItem *>());
+	ERR_FAIL_INDEX_V(end_idx, cached_children_nodes.size(), Vector<CanvasItem *>());
+
+	int start_node_idx = cached_children_nodes[start_idx]->get_index();
+	int end_node_idx = cached_children_nodes[end_idx]->get_index();
+
+	if (start_node_idx == end_node_idx) {
+		// Last row, so include the remaining children.
+		end_node_idx = get_child_count();
+	}
+
+	Vector<CanvasItem *> children;
+	for (end_node_idx--; end_node_idx >= start_node_idx; end_node_idx--) {
+		CanvasItem *child = Object::cast_to<CanvasItem>(get_child(end_node_idx));
+		if (child && child->is_visible()) {
+			children.push_back(child);
+		}
+	}
+	return children;
 }
 
 GridContainer::GridContainer() {}

@@ -78,6 +78,17 @@ void Container::remove_child_notify(Node *p_child) {
 	queue_sort();
 }
 
+Vector<CanvasItem *> Container::get_children_at_pos(const Point2 &p_pos) const {
+	Vector<CanvasItem *> children;
+	for (int i = get_child_count() - 1; i >= 0; i--) {
+		CanvasItem *child = Object::cast_to<CanvasItem>(get_child(i));
+		if (child && child->is_visible()) {
+			children.push_back(child);
+		}
+	}
+	return children;
+}
+
 void Container::_sort_children() {
 	if (!is_inside_tree()) {
 		pending_sort = false;

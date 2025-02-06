@@ -67,6 +67,7 @@ public:
 	};
 
 	void fit_child_in_rect(Control *p_child, const Rect2 &p_rect);
+	virtual Vector<CanvasItem *> get_children_at_pos(const Point2 &p_pos) const;
 
 	virtual Vector<int> get_allowed_size_flags_horizontal() const;
 	virtual Vector<int> get_allowed_size_flags_vertical() const;

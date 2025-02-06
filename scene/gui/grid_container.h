@@ -43,6 +43,8 @@ class GridContainer : public Container {
 		int v_separation = 0;
 	} theme_cache;
 
+	Vector<Control *> cached_children_nodes;
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -51,6 +53,7 @@ public:
 	void set_columns(int p_columns);
 	int get_columns() const;
 	virtual Size2 get_minimum_size() const override;
+	virtual Vector<CanvasItem *> get_children_at_pos(const Point2 &p_pos) const override;
 
 	int get_h_separation() const;
 
