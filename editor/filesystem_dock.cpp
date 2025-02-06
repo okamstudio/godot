@@ -1488,11 +1488,6 @@ void FileSystemDock::_try_move_item(const FileOrFolder &p_item, const String &p_
 						break;
 					}
 				}
-			} else {
-				Ref<Resource> res = ResourceCache::get_ref(old_path);
-				if (res.is_valid()) {
-					res->set_path_cache(new_path);
-				}
 			}
 		}
 
