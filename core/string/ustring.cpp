@@ -4934,6 +4934,10 @@ bool String::is_valid_hex_number(bool p_with_prefix) const {
 		from += 2;
 	}
 
+	if (from == len) {
+		return false;
+	}
+
 	for (int i = from; i < len; i++) {
 		char32_t c = operator[](i);
 		if (is_hex_digit(c)) {
