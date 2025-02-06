@@ -62,6 +62,7 @@ protected:
 
 	GDVIRTUAL0RC(String, _get_name)
 	GDVIRTUAL0RC(PackedStringArray, _get_supported_languages)
+	GDVIRTUAL0RC(Ref<EditorSyntaxHighlighter>, _create)
 
 public:
 	virtual String _get_name() const;

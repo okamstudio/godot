@@ -89,9 +89,13 @@ PackedStringArray EditorSyntaxHighlighter::_get_supported_languages() const {
 
 Ref<EditorSyntaxHighlighter> EditorSyntaxHighlighter::_create() const {
 	Ref<EditorSyntaxHighlighter> syntax_highlighter;
-	syntax_highlighter.instantiate();
-	if (get_script_instance()) {
-		syntax_highlighter->set_script(get_script_instance()->get_script());
+	if (GDVIRTUAL_IS_OVERRIDDEN(_create)) {
+		GDVIRTUAL_CALL(_create, syntax_highlighter);
+	} else {
+		syntax_highlighter.instantiate();
+		if (get_script_instance()) {
+			syntax_highlighter->set_script(get_script_instance()->get_script());
+		}
 	}
 	return syntax_highlighter;
 }
@@ -101,6 +105,7 @@ void EditorSyntaxHighlighter::_bind_methods() {
 
 	GDVIRTUAL_BIND(_get_name)
 	GDVIRTUAL_BIND(_get_supported_languages)
+	GDVIRTUAL_BIND(_create)
 }
 
 ////

@@ -10,6 +10,12 @@
 	<tutorials>
 	</tutorials>
 	<methods>
+		<method name="_create" qualifiers="virtual const">
+			<return type="EditorSyntaxHighlighter" />
+			<description>
+				Virtual method which creates a new instance of the syntax highlighter.
+			</description>
+		</method>
 		<method name="_get_name" qualifiers="virtual const">
 			<return type="String" />
 			<description>
