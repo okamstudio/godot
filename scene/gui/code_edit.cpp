@@ -1763,7 +1763,9 @@ void CodeEdit::fold_all_lines() {
 }
 
 void CodeEdit::unfold_all_lines() {
-	_unhide_all_lines();
+	for (int i = 0; i < get_line_count(); i++) {
+		unfold_line(i);
+	}
 }
 
 void CodeEdit::toggle_foldable_line(int p_line) {
