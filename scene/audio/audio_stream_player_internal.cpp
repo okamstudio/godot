@@ -62,13 +62,13 @@ void AudioStreamPlayerInternal::_update_stream_parameters() {
 
 void AudioStreamPlayerInternal::process() {
 	Vector<Ref<AudioStreamPlayback>> playbacks_to_remove;
-	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		if (playback.is_valid() && !AudioServer::get_singleton()->is_playback_active(playback) && !AudioServer::get_singleton()->is_playback_paused(playback)) {
 			playbacks_to_remove.push_back(playback);
 		}
 	}
 	// Now go through and remove playbacks that have finished. Removing elements from a Vector in a range based for is asking for trouble.
-	for (Ref<AudioStreamPlayback> &playback : playbacks_to_remove) {
+	for (const Ref<AudioStreamPlayback> &playback : playbacks_to_remove) {
 		stream_playbacks.erase(playback);
 	}
 	if (!playbacks_to_remove.is_empty() && stream_playbacks.is_empty()) {
@@ -106,7 +106,7 @@ void AudioStreamPlayerInternal::notification(int p_what) {
 		} break;
 
 		case Node::NOTIFICATION_PREDELETE: {
-			for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+			for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 				AudioServer::get_singleton()->stop_playback_stream(playback);
 			}
 			stream_playbacks.clear();
@@ -176,7 +176,7 @@ Ref<AudioStreamPlayback> AudioStreamPlayerInternal::play_basic() {
 
 void AudioStreamPlayerInternal::set_stream_paused(bool p_pause) {
 	// TODO this does not have perfect recall, fix that maybe? If there are zero playbacks registered with the AudioServer, this bool isn't persisted.
-	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		AudioServer::get_singleton()->set_playback_paused(playback, p_pause);
 		if (_is_sample() && playback->get_sample_playback().is_valid()) {
 			AudioServer::get_singleton()->set_sample_playback_pause(playback->get_sample_playback(), p_pause);
@@ -213,7 +213,7 @@ bool AudioStreamPlayerInternal::set(const StringName &p_name, const Variant &p_v
 		return false;
 	}
 	pd->value = p_value;
-	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		playback->set_parameter(pd->path, pd->value);
 	}
 	return true;
@@ -268,7 +268,7 @@ void AudioStreamPlayerInternal::seek(float p_seconds) {
 }
 
 void AudioStreamPlayerInternal::stop_basic() {
-	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		AudioServer::get_singleton()->stop_playback_stream(playback);
 	}
 	stream_playbacks.clear();
@@ -310,7 +310,7 @@ void AudioStreamPlayerInternal::set_pitch_scale(float p_pitch_scale) {
 	ERR_FAIL_COND(p_pitch_scale <= 0.0);
 	pitch_scale = p_pitch_scale;
 
-	for (Ref<AudioStreamPlayback> &playback : stream_playbacks) {
+	for (const Ref<AudioStreamPlayback> &playback : stream_playbacks) {
 		AudioServer::get_singleton()->set_playback_pitch_scale(playback, pitch_scale);
 	}
 }

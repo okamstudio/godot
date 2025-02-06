@@ -760,7 +760,7 @@ FreeDesktopPortalDesktop::~FreeDesktopPortalDesktop() {
 
 	if (monitor_connection) {
 		DBusError err;
-		for (FreeDesktopPortalDesktop::FileDialogData &fd : file_dialogs) {
+		for (const FreeDesktopPortalDesktop::FileDialogData &fd : file_dialogs) {
 			dbus_error_init(&err);
 			dbus_bus_remove_match(monitor_connection, fd.filter.utf8().get_data(), &err);
 			dbus_error_free(&err);

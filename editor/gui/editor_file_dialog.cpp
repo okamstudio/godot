@@ -110,7 +110,7 @@ void EditorFileDialog::_native_dialog_cb(bool p_ok, const Vector<String> &p_file
 
 	Vector<String> files = p_files;
 	if (access != ACCESS_FILESYSTEM) {
-		for (String &file_name : files) {
+		for (String &file_name : files.write) {
 			file_name = ProjectSettings::get_singleton()->localize_path(file_name);
 		}
 	}

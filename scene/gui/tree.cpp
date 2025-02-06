@@ -813,7 +813,7 @@ void TreeItem::set_custom_minimum_height(int p_height) {
 
 	custom_min_height = p_height;
 
-	for (Cell &c : cells) {
+	for (Cell &c : cells.write) {
 		c.cached_minimum_size_dirty = true;
 	}
 
@@ -1260,7 +1260,7 @@ void TreeItem::deselect(int p_column) {
 
 void TreeItem::clear_buttons() {
 	int i = 0;
-	for (Cell &cell : cells) {
+	for (Cell &cell : cells.write) {
 		if (!cell.buttons.is_empty()) {
 			cell.buttons.clear();
 			cell.cached_minimum_size_dirty = true;
@@ -1568,7 +1568,7 @@ void TreeItem::set_disable_folding(bool p_disable) {
 
 	disable_folding = p_disable;
 
-	for (Cell &c : cells) {
+	for (Cell &c : cells.write) {
 		c.cached_minimum_size_dirty = true;
 	}
 

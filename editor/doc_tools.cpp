@@ -122,7 +122,7 @@ static void merge_constructors(Vector<DocData::MethodDoc> &p_to, const Vector<Do
 	int64_t from_size = p_from.size();
 
 	// TODO: Improve constructor merging.
-	for (DocData::MethodDoc &to : p_to) {
+	for (DocData::MethodDoc &to : p_to.write) {
 		for (int64_t from_i = 0; from_i < from_size; ++from_i) {
 			const DocData::MethodDoc &from = from_ptr[from_i];
 
@@ -208,7 +208,7 @@ static void merge_constants(Vector<DocData::ConstantDoc> &p_to, const Vector<Doc
 
 	SearchArray<DocData::ConstantDoc> search_array;
 
-	for (DocData::ConstantDoc &to : p_to) {
+	for (DocData::ConstantDoc &to : p_to.write) {
 		int64_t found = search_array.bisect(from_ptr, from_size, to, true);
 
 		if (found >= from_size) {

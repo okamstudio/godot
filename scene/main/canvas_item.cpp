@@ -929,7 +929,7 @@ void CanvasItem::draw_polygon(const Vector<Point2> &p_points, const Vector<Color
 		const Vector2 remap_max = atlas->get_region().get_end() / atlas_size;
 
 		PackedVector2Array uvs = p_uvs;
-		for (Vector2 &p : uvs) {
+		for (Vector2 &p : uvs.write) {
 			p.x = Math::remap(p.x, 0, 1, remap_min.x, remap_max.x);
 			p.y = Math::remap(p.y, 0, 1, remap_min.y, remap_max.y);
 		}

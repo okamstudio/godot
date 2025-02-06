@@ -1352,7 +1352,7 @@ void GraphEdit::_draw_minimap_connection_line(const Vector2 &p_from_graph_positi
 	Vector<Vector2> points = get_connection_line(p_from_graph_position, p_to_graph_position);
 	ERR_FAIL_COND_MSG(points.size() < 2, "\"_get_connection_line()\" returned an invalid line.");
 	// Convert to minimap points.
-	for (Vector2 &point : points) {
+	for (Vector2 &point : points.write) {
 		point = minimap->_convert_from_graph_position(point) + minimap->minimap_offset;
 	}
 
@@ -2109,7 +2109,7 @@ void GraphEdit::reset_all_connection_activity() {
 	ERR_FAIL_NULL_MSG(connections_layer, "connections_layer is missing.");
 
 	bool changed = false;
-	for (Ref<Connection> &conn : connections) {
+	for (const Ref<Connection> &conn : connections) {
 		if (conn->activity > 0) {
 			changed = true;
 			conn->_cache.dirty = true;
@@ -2124,7 +2124,7 @@ void GraphEdit::reset_all_connection_activity() {
 void GraphEdit::clear_connections() {
 	ERR_FAIL_NULL_MSG(connections_layer, "connections_layer is missing.");
 
-	for (Ref<Connection> &conn : connections) {
+	for (const Ref<Connection> &conn : connections) {
 		conn->_cache.line->queue_free();
 	}
 
@@ -2348,7 +2348,7 @@ void GraphEdit::_update_zoom_label() {
 }
 
 void GraphEdit::_invalidate_connection_line_cache() {
-	for (Ref<Connection> &conn : connections) {
+	for (const Ref<Connection> &conn : connections) {
 		conn->_cache.dirty = true;
 	}
 }

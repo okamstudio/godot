@@ -335,7 +335,7 @@ StringName AudioStreamPlayer3D::_get_actual_bus() {
 Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 	Vector<AudioFrame> output_volume_vector;
 	output_volume_vector.resize(4);
-	for (AudioFrame &frame : output_volume_vector) {
+	for (AudioFrame &frame : output_volume_vector.write) {
 		frame = AudioFrame(0, 0);
 	}
 
@@ -404,7 +404,7 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 			if (dist > total_max || total_max > max_distance) {
 				if (!was_further_than_max_distance_last_frame) {
 					HashMap<StringName, Vector<AudioFrame>> bus_volumes;
-					for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
+					for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 						// So the player gets muted and mostly stops mixing when out of range.
 						AudioServer::get_singleton()->set_playback_bus_volumes_linear(playback, bus_volumes);
 					}
@@ -432,7 +432,7 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 		}
 
 		linear_attenuation = Math::db_to_linear(db_att);
-		for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
+		for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 			AudioServer::get_singleton()->set_playback_highshelf_params(playback, linear_attenuation, attenuation_filter_cutoff_hz);
 		}
 		// Bake in a constant factor here to allow the project setting defaults for 2d and 3d to be normalized to 1.0.
@@ -461,7 +461,7 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 			bus_volumes[internal->bus] = output_volume_vector;
 		}
 
-		for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
+		for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 			AudioServer::get_singleton()->set_playback_bus_volumes_linear(playback, bus_volumes);
 		}
 
@@ -489,7 +489,7 @@ Vector<AudioFrame> AudioStreamPlayer3D::_update_panning() {
 		} else {
 			actual_pitch_scale = internal->pitch_scale;
 		}
-		for (Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
+		for (const Ref<AudioStreamPlayback> &playback : internal->stream_playbacks) {
 			AudioServer::get_singleton()->set_playback_pitch_scale(playback, actual_pitch_scale);
 			if (playback->get_is_sample()) {
 				Ref<AudioSamplePlayback> sample_playback = playback->get_sample_playback();

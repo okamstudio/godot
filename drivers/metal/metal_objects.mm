@@ -1693,7 +1693,7 @@ bool MDAttachment::shouldClear(const MDSubpass &p_subpass, bool p_is_stencil) co
 
 MDRenderPass::MDRenderPass(Vector<MDAttachment> &p_attachments, Vector<MDSubpass> &p_subpasses) :
 		attachments(p_attachments), subpasses(p_subpasses) {
-	for (MDAttachment &att : attachments) {
+	for (MDAttachment &att : attachments.write) {
 		att.linkToSubpass(*this);
 	}
 }

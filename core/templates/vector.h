@@ -53,9 +53,44 @@ template <typename T>
 class VectorWriteProxy {
 public:
 	_FORCE_INLINE_ T &operator[](typename CowData<T>::Size p_index) {
-		CRASH_BAD_INDEX(p_index, ((Vector<T> *)(this))->_cowdata.size());
+		CRASH_BAD_INDEX(p_index, ((Vector<T> *)this)->_cowdata.size());
 
-		return ((Vector<T> *)(this))->_cowdata.ptrw()[p_index];
+		return ((Vector<T> *)this)->_cowdata.ptrw()[p_index];
+	}
+
+	// NOTE: The non-const iterators need to be declared here because otherwise, these functions
+	//       are chosen as the default iteration methods on non-const objects.
+	//       This may cause an unnecessary fork of underlying data buffer.
+	struct Iterator {
+		_FORCE_INLINE_ T &operator*() const {
+			return *elem_ptr;
+		}
+		_FORCE_INLINE_ T *operator->() const { return elem_ptr; }
+		_FORCE_INLINE_ Iterator &operator++() {
+			elem_ptr++;
+			return *this;
+		}
+		_FORCE_INLINE_ Iterator &operator--() {
+			elem_ptr--;
+			return *this;
+		}
+
+		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return elem_ptr == b.elem_ptr; }
+		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return elem_ptr != b.elem_ptr; }
+
+		Iterator(T *p_ptr) { elem_ptr = p_ptr; }
+		Iterator() {}
+		Iterator(const Iterator &p_it) { elem_ptr = p_it.elem_ptr; }
+
+	private:
+		T *elem_ptr = nullptr;
+	};
+
+	_FORCE_INLINE_ Iterator begin() {
+		return Iterator(((Vector<T> *)this)->ptrw());
+	}
+	_FORCE_INLINE_ Iterator end() {
+		return Iterator(((Vector<T> *)this)->ptrw() + ((Vector<T> *)this)->size());
 	}
 };
 
@@ -221,30 +256,7 @@ public:
 		return false;
 	}
 
-	struct Iterator {
-		_FORCE_INLINE_ T &operator*() const {
-			return *elem_ptr;
-		}
-		_FORCE_INLINE_ T *operator->() const { return elem_ptr; }
-		_FORCE_INLINE_ Iterator &operator++() {
-			elem_ptr++;
-			return *this;
-		}
-		_FORCE_INLINE_ Iterator &operator--() {
-			elem_ptr--;
-			return *this;
-		}
-
-		_FORCE_INLINE_ bool operator==(const Iterator &b) const { return elem_ptr == b.elem_ptr; }
-		_FORCE_INLINE_ bool operator!=(const Iterator &b) const { return elem_ptr != b.elem_ptr; }
-
-		Iterator(T *p_ptr) { elem_ptr = p_ptr; }
-		Iterator() {}
-		Iterator(const Iterator &p_it) { elem_ptr = p_it.elem_ptr; }
-
-	private:
-		T *elem_ptr = nullptr;
-	};
+	using Iterator = typename VectorWriteProxy<T>::Iterator;
 
 	struct ConstIterator {
 		_FORCE_INLINE_ const T &operator*() const {
@@ -271,16 +283,11 @@ public:
 		const T *elem_ptr = nullptr;
 	};
 
-	_FORCE_INLINE_ Iterator begin() {
-		return Iterator(ptrw());
-	}
-	_FORCE_INLINE_ Iterator end() {
-		return Iterator(ptrw() + size());
-	}
-
+	// For non-const iteration, iterate the .write property.
 	_FORCE_INLINE_ ConstIterator begin() const {
 		return ConstIterator(ptr());
 	}
+	// For non-const iteration, iterate the .write property.
 	_FORCE_INLINE_ ConstIterator end() const {
 		return ConstIterator(ptr() + size());
 	}

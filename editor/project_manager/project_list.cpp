@@ -791,7 +791,7 @@ void ProjectList::add_project(const String &dir_path, bool favorite) {
 }
 
 void ProjectList::set_project_version(const String &p_project_path, int p_version) {
-	for (ProjectList::Item &E : _projects) {
+	for (ProjectList::Item &E : _projects.write) {
 		if (E.path == p_project_path) {
 			E.version = p_version;
 			break;

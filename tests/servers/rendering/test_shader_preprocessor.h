@@ -92,7 +92,7 @@ String remove_spaces(String &p_str) {
 String compact_spaces(String &p_str) {
 	Vector<String> lines = p_str.split("\n", false);
 	erase_all_empty(lines);
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		line = remove_spaces(line);
 	}
 	return String("\n").join(lines);

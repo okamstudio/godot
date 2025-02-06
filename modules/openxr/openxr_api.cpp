@@ -138,7 +138,7 @@ void OpenXRAPI::OpenXRSwapChainInfo::queue_free() {
 }
 
 void OpenXRAPI::OpenXRSwapChainInfo::free_queued() {
-	for (OpenXRAPI::OpenXRSwapChainInfo &swapchain_info : free_queue) {
+	for (OpenXRAPI::OpenXRSwapChainInfo &swapchain_info : free_queue.write) {
 		swapchain_info.free();
 	}
 	free_queue.clear();
@@ -553,7 +553,7 @@ bool OpenXRAPI::create_instance() {
 	// Check which extensions are supported.
 	enabled_extensions.clear();
 
-	for (RequestExtension &requested_extension : requested_extensions) {
+	for (const RequestExtension &requested_extension : requested_extensions) {
 		if (!is_extension_supported(requested_extension.name)) {
 			if (requested_extension.enabled == nullptr) {
 				// Null means this is a mandatory extension so we fail.
@@ -2472,7 +2472,7 @@ void OpenXRAPI::end_frame() {
 
 	// Now make a list we can pass on to OpenXR.
 	Vector<const XrCompositionLayerBaseHeader *> layers_list;
-	for (OrderedCompositionLayer &ordered_layer : ordered_layers_list) {
+	for (const OrderedCompositionLayer &ordered_layer : ordered_layers_list) {
 		layers_list.push_back(ordered_layer.composition_layer);
 	}
 

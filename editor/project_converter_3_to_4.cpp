@@ -461,7 +461,7 @@ bool ProjectConverter3To4::convert() {
 			} else if (file_name.ends_with(".csproj")) {
 				// TODO
 			} else if (file_name.ends_with(".import")) {
-				for (SourceLine &source_line : source_lines) {
+				for (SourceLine &source_line : source_lines.write) {
 					String &line = source_line.line;
 					if (line.contains("nodes/root_type=\"Spatial\"")) {
 						line = "nodes/root_type=\"Node3D\"";
@@ -474,12 +474,12 @@ bool ProjectConverter3To4::convert() {
 				continue;
 			}
 
-			for (SourceLine &source_line : source_lines) {
+			for (const SourceLine &source_line : source_lines) {
 				if (source_line.is_comment) {
 					continue;
 				}
 
-				String &line = source_line.line;
+				const String &line = source_line.line;
 				if (uint64_t(line.length()) > maximum_line_length) {
 					ignored_lines += 1;
 				}
@@ -649,7 +649,7 @@ bool ProjectConverter3To4::validate_conversion() {
 				continue;
 			}
 
-			for (String &line : lines) {
+			for (const String &line : lines) {
 				if (uint64_t(line.length()) > maximum_line_length) {
 					ignored_lines += 1;
 				}
@@ -732,7 +732,7 @@ Vector<String> ProjectConverter3To4::check_for_files() {
 Vector<SourceLine> ProjectConverter3To4::split_lines(const String &text) {
 	Vector<String> lines = text.split("\n");
 	Vector<SourceLine> source_lines;
-	for (String &line : lines) {
+	for (const String &line : lines) {
 		SourceLine source_line;
 		source_line.line = line;
 		source_line.is_comment = false;
@@ -1095,7 +1095,7 @@ bool ProjectConverter3To4::test_conversion(RegExContainer &reg_container) {
 		Vector<String> got_vector = parse_arguments(line);
 		String got = "";
 		String expected = "";
-		for (String &part : got_vector) {
+		for (const String &part : got_vector) {
 			got += part + "|||";
 		}
 		if (got != expected) {
@@ -1108,7 +1108,7 @@ bool ProjectConverter3To4::test_conversion(RegExContainer &reg_container) {
 		Vector<String> got_vector = parse_arguments(line);
 		String got = "";
 		String expected = "a|||b|||c|||";
-		for (String &part : got_vector) {
+		for (const String &part : got_vector) {
 			got += part + "|||";
 		}
 		if (got != expected) {
@@ -1121,7 +1121,7 @@ bool ProjectConverter3To4::test_conversion(RegExContainer &reg_container) {
 		Vector<String> got_vector = parse_arguments(line);
 		String got = "";
 		String expected = "a|||\"b,\"|||c|||";
-		for (String &part : got_vector) {
+		for (const String &part : got_vector) {
 			got += part + "|||";
 		}
 		if (got != expected) {
@@ -1134,7 +1134,7 @@ bool ProjectConverter3To4::test_conversion(RegExContainer &reg_container) {
 		Vector<String> got_vector = parse_arguments(line);
 		String got = "";
 		String expected = "a|||\"(,),,,,\"|||c|||";
-		for (String &part : got_vector) {
+		for (const String &part : got_vector) {
 			got += part + "|||";
 		}
 		if (got != expected) {
@@ -1327,7 +1327,7 @@ Vector<String> ProjectConverter3To4::parse_arguments(const String &line) {
 	}
 
 	Vector<String> clean_parts;
-	for (String &part : parts) {
+	for (String &part : parts.write) {
 		part = part.strip_edges();
 		if (!part.is_empty()) {
 			clean_parts.append(part);
@@ -1453,7 +1453,7 @@ String ProjectConverter3To4::get_object_of_execution(const String &line) const {
 }
 
 void ProjectConverter3To4::rename_colors(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -1471,7 +1471,7 @@ void ProjectConverter3To4::rename_colors(Vector<SourceLine> &source_lines, const
 
 // Convert hexadecimal colors from ARGB to RGBA
 void ProjectConverter3To4::convert_hexadecimal_colors(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -1490,7 +1490,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_colors(Vector<String> &lin
 	Vector<String> found_renames;
 
 	int current_line = 1;
-	for (String &line : lines) {
+	for (const String &line : lines) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			if (line.contains("Color.")) {
 				for (unsigned int current_index = 0; RenamesMap3To4::color_renames[current_index][0]; current_index++) {
@@ -1522,7 +1522,7 @@ void ProjectConverter3To4::fix_pause_mode(Vector<SourceLine> &source_lines, cons
 	// In Godot 3, the pause_mode 2 equals the PAUSE_MODE_PROCESS value.
 	// In Godot 4, the pause_mode PAUSE_MODE_PROCESS was renamed to PROCESS_MODE_ALWAYS and equals the number 3.
 	// We therefore convert pause_mode = 2 to pause_mode = 3.
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		String &line = source_line.line;
 
 		if (line == "pause_mode = 2") {
@@ -1533,7 +1533,7 @@ void ProjectConverter3To4::fix_pause_mode(Vector<SourceLine> &source_lines, cons
 }
 
 void ProjectConverter3To4::rename_classes(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -1571,7 +1571,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_classes(Vector<String> &li
 
 	int current_line = 1;
 
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			for (unsigned int current_index = 0; RenamesMap3To4::class_renames[current_index][0]; current_index++) {
 				if (line.contains(RenamesMap3To4::class_renames[current_index][0])) {
@@ -1606,7 +1606,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_classes(Vector<String> &li
 }
 
 void ProjectConverter3To4::rename_gdscript_functions(Vector<SourceLine> &source_lines, const RegExContainer &reg_container, bool builtin) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -1623,7 +1623,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_gdscript_functions(Vector<
 
 	Vector<String> found_renames;
 
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			String old_line = line;
 			process_gdscript_line(line, reg_container, builtin);
@@ -2426,7 +2426,7 @@ void ProjectConverter3To4::process_csharp_line(String &line, const RegExContaine
 }
 
 void ProjectConverter3To4::rename_csharp_functions(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2443,7 +2443,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_csharp_functions(Vector<St
 
 	Vector<String> found_renames;
 
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			String old_line = line;
 			process_csharp_line(line, reg_container);
@@ -2459,7 +2459,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_csharp_functions(Vector<St
 void ProjectConverter3To4::rename_csharp_attributes(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
 	static String error_message = "The master and mastersync rpc behavior is not officially supported anymore. Try using another keyword or making custom logic using Multiplayer.GetRemoteSenderId()\n";
 
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2481,7 +2481,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_csharp_attributes(Vector<S
 
 	Vector<String> found_renames;
 
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			String old;
 			old = line;
@@ -2537,7 +2537,7 @@ _FORCE_INLINE_ static String builtin_escape(const String &p_str, bool p_builtin)
 void ProjectConverter3To4::rename_gdscript_keywords(Vector<SourceLine> &source_lines, const RegExContainer &reg_container, bool builtin) {
 	static String error_message = "The master and mastersync rpc behavior is not officially supported anymore. Try using another keyword or making custom logic using get_multiplayer().get_remote_sender_id()\n";
 
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2585,7 +2585,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_gdscript_keywords(Vector<S
 	Vector<String> found_renames;
 
 	int current_line = 1;
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			String old;
 
@@ -2695,7 +2695,7 @@ void ProjectConverter3To4::rename_input_map_scancode(Vector<SourceLine> &source_
 	// The old Special Key, now colliding with CMD_OR_CTRL.
 	const int old_spkey = (1 << 24);
 
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2721,7 +2721,7 @@ void ProjectConverter3To4::rename_input_map_scancode(Vector<SourceLine> &source_
 }
 
 void ProjectConverter3To4::rename_joypad_buttons_and_axes(Vector<SourceLine> &source_lines, const RegExContainer &reg_container) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2765,7 +2765,7 @@ void ProjectConverter3To4::rename_joypad_buttons_and_axes(Vector<SourceLine> &so
 Vector<String> ProjectConverter3To4::check_for_rename_joypad_buttons_and_axes(Vector<String> &lines, const RegExContainer &reg_container) {
 	Vector<String> found_renames;
 	int current_line = 1;
-	for (String &line : lines) {
+	for (String &line : lines.write) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			// Remap button indexes.
 			TypedArray<RegExMatch> reg_match = reg_container.joypad_button_index.search_all(line);
@@ -2810,7 +2810,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_input_map_scancode(Vector<
 	const int old_spkey = (1 << 24);
 
 	int current_line = 1;
-	for (String &line : lines) {
+	for (const String &line : lines) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			TypedArray<RegExMatch> reg_match = reg_container.input_map_keycode.search_all(line);
 
@@ -2835,7 +2835,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_input_map_scancode(Vector<
 void ProjectConverter3To4::custom_rename(Vector<SourceLine> &source_lines, const String &from, const String &to) {
 	RegEx reg = RegEx(String("\\b") + from + "\\b");
 	CRASH_COND(!reg.is_valid());
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2854,7 +2854,7 @@ Vector<String> ProjectConverter3To4::check_for_custom_rename(Vector<String> &lin
 	CRASH_COND(!reg.is_valid());
 
 	int current_line = 1;
-	for (String &line : lines) {
+	for (const String &line : lines) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			TypedArray<RegExMatch> reg_match = reg.search_all(line);
 			if (reg_match.size() > 0) {
@@ -2867,7 +2867,7 @@ Vector<String> ProjectConverter3To4::check_for_custom_rename(Vector<String> &lin
 }
 
 void ProjectConverter3To4::rename_common(const char *array[][2], LocalVector<RegEx *> &cached_regexes, Vector<SourceLine> &source_lines) {
-	for (SourceLine &source_line : source_lines) {
+	for (SourceLine &source_line : source_lines.write) {
 		if (source_line.is_comment) {
 			continue;
 		}
@@ -2888,7 +2888,7 @@ Vector<String> ProjectConverter3To4::check_for_rename_common(const char *array[]
 
 	int current_line = 1;
 
-	for (String &line : lines) {
+	for (const String &line : lines) {
 		if (uint64_t(line.length()) <= maximum_line_length) {
 			for (unsigned int current_index = 0; current_index < cached_regexes.size(); current_index++) {
 				if (line.contains(array[current_index][0])) {

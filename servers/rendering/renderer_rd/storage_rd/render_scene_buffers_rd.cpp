@@ -490,7 +490,7 @@ void RenderSceneBuffersRD::clear_context(const StringName &p_context) {
 	}
 
 	// Now free these and remove them from our textures
-	for (NTKey &key : to_free) {
+	for (const NTKey &key : to_free) {
 		free_named_texture(named_textures[key]);
 		named_textures.erase(key);
 	}

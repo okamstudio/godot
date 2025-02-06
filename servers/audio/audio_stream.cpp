@@ -614,7 +614,7 @@ Ref<AudioStreamPlayback> AudioStreamRandomizer::instance_playback_random() {
 	}
 	double chosen_cumulative_weight = Math::random(0.0, total_weight);
 	double cumulative_weight = 0;
-	for (PoolEntry &entry : local_pool) {
+	for (const PoolEntry &entry : local_pool) {
 		cumulative_weight += entry.weight;
 		if (cumulative_weight > chosen_cumulative_weight) {
 			playback->playback = entry.stream->instantiate_playback();
@@ -656,7 +656,7 @@ Ref<AudioStreamPlayback> AudioStreamRandomizer::instance_playback_no_repeats() {
 	playback->randomizer = Ref<AudioStreamRandomizer>((AudioStreamRandomizer *)this);
 	double chosen_cumulative_weight = Math::random(0.0, total_weight);
 	double cumulative_weight = 0;
-	for (PoolEntry &entry : local_pool) {
+	for (const PoolEntry &entry : local_pool) {
 		cumulative_weight += entry.weight;
 		if (cumulative_weight > chosen_cumulative_weight) {
 			last_playback = entry.stream;
@@ -693,7 +693,7 @@ Ref<AudioStreamPlayback> AudioStreamRandomizer::instance_playback_sequential() {
 		return playback;
 	}
 	bool found_last_stream = false;
-	for (Ref<AudioStream> &entry : local_pool) {
+	for (const Ref<AudioStream> &entry : local_pool) {
 		if (found_last_stream) {
 			last_playback = entry;
 			playback->playback = entry->instantiate_playback();

@@ -2818,7 +2818,7 @@ void RichTextLabel::_fetch_item_fx_stack(Item *p_item, Vector<ItemFX *> &r_stack
 }
 
 void RichTextLabel::_normalize_subtags(Vector<String> &subtags) {
-	for (String &subtag : subtags) {
+	for (String &subtag : subtags.write) {
 		subtag = subtag.unquote();
 	}
 }

@@ -63,7 +63,7 @@ void MIDIDriverALSAMidi::thread_func(void *p_udata) {
 
 	while (!md->exit_thread.is_set()) {
 		md->lock();
-		for (InputConnection &conn : md->connected_inputs) {
+		for (InputConnection &conn : md->connected_inputs.write) {
 			conn.read();
 		}
 		md->unlock();

@@ -3600,7 +3600,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 				}
 			}
 			Vector<Vector<Pair<int, int>>> next_subsequence_matches;
-			for (Vector<Pair<int, int>> &subsequence_match : all_possible_subsequence_matches) {
+			for (const Vector<Pair<int, int>> &subsequence_match : all_possible_subsequence_matches) {
 				Pair<int, int> match_last_segment = subsequence_match[subsequence_match.size() - 1];
 				int next_index = match_last_segment.first + match_last_segment.second;
 				// get the last index from current sequence
@@ -3632,7 +3632,7 @@ void CodeEdit::_filter_code_completion_candidates_impl() {
 				CodeCompletionOptionCompare compare;
 				ScriptLanguage::CodeCompletionOption compared_option = option;
 				compared_option.clear_characteristics();
-				for (Vector<Pair<int, int>> &matches : all_possible_subsequence_matches) {
+				for (const Vector<Pair<int, int>> &matches : all_possible_subsequence_matches) {
 					compared_option.matches = matches;
 					compared_option.get_option_characteristics(string_to_complete);
 					if (compare(compared_option, option)) {

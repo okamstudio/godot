@@ -2291,7 +2291,7 @@ void TileSetAtlasSourceEditor::_cleanup_outside_tiles() {
 }
 
 void TileSetAtlasSourceEditor::_auto_create_tiles() {
-	for (Ref<TileSetAtlasSource> &atlas_source : atlases_to_auto_create_tiles) {
+	for (const Ref<TileSetAtlasSource> &atlas_source : atlases_to_auto_create_tiles) {
 		if (atlas_source.is_valid()) {
 			Ref<Texture2D> texture = atlas_source->get_texture();
 			if (texture.is_valid()) {

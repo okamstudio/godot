@@ -2040,7 +2040,7 @@ void SceneState::add_editable_instance(const NodePath &p_path) {
 
 bool SceneState::remove_group_references(const StringName &p_name) {
 	bool edited = false;
-	for (NodeData &node : nodes) {
+	for (NodeData &node : nodes.write) {
 		for (const int &group : node.groups) {
 			if (names[group] == p_name) {
 				node.groups.erase(group);

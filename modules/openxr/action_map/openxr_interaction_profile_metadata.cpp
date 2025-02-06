@@ -93,7 +93,7 @@ void OpenXRInteractionProfileMetadata::register_io_path(const String &p_interact
 	ERR_FAIL_COND_MSG(!has_interaction_profile(p_interaction_profile), "Unknown interaction profile " + p_interaction_profile);
 	ERR_FAIL_COND_MSG(!has_top_level_path(p_toplevel_path), "Unknown top level path " + p_toplevel_path);
 
-	for (InteractionProfile &interaction_profile : interaction_profiles) {
+	for (InteractionProfile &interaction_profile : interaction_profiles.write) {
 		if (interaction_profile.openxr_path == p_interaction_profile) {
 			ERR_FAIL_COND_MSG(interaction_profile.has_io_path(p_openxr_path), p_interaction_profile + " already has io path " + p_openxr_path + " registered!");
 
