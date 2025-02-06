@@ -1714,7 +1714,11 @@ void fragment() {)";
 		code += R"(
 	// Proximity Fade: Enabled
 	float proximity_depth_tex = textureLod(depth_texture, SCREEN_UV, 0.0).r;
+	#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	vec4 proximity_view_pos = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, proximity_depth_tex * 2.0 - 1.0, 1.0);
+	#else
 	vec4 proximity_view_pos = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, proximity_depth_tex, 1.0);
+	#endif
 	proximity_view_pos.xyz /= proximity_view_pos.w;
 	ALPHA *= clamp(1.0 - smoothstep(proximity_view_pos.z + proximity_fade_distance, proximity_view_pos.z, VERTEX.z), 0.0, 1.0);
 )";
