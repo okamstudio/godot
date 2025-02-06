@@ -53,6 +53,15 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="add_shader_global_parameter">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="type" type="int" enum="RenderingServer.GlobalShaderParameterType" />
+			<param index="2" name="value" type="Variant" />
+			<description>
+				Add a new global shader uniform to project settings.
+			</description>
+		</method>
 		<method name="clear">
 			<return type="void" />
 			<param index="0" name="name" type="String" />
@@ -114,6 +123,19 @@
 				[/codeblocks]
 			</description>
 		</method>
+		<method name="get_shader_global_parameter_list" qualifiers="const">
+			<return type="StringName[]" />
+			<description>
+				Returns the list of global shader uniform names.
+			</description>
+		</method>
+		<method name="get_shader_global_parameter_list_type" qualifiers="const">
+			<return type="int" enum="RenderingServer.GlobalShaderParameterType" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+				Returns the type associated to the global shader uniform specified by [param name].
+			</description>
+		</method>
 		<method name="globalize_path" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="path" type="String" />
@@ -159,6 +181,13 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Returns the localized path (starting with [code]res://[/code]) corresponding to the absolute, native OS [param path]. See also [method globalize_path].
+			</description>
+		</method>
+		<method name="remove_shader_global_parameter">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<description>
+				Removes the global shader uniform specified by [param name].
 			</description>
 		</method>
 		<method name="save">
@@ -231,6 +260,13 @@
 				[/csharp]
 				[/codeblocks]
 				This can also be used to erase custom project settings. To do this change the setting value to [code]null[/code].
+			</description>
+		</method>
+		<method name="set_shader_global_parameter">
+			<return type="void" />
+			<param index="0" name="name" type="StringName" />
+			<param index="1" name="value" type="Variant" />
+			<description>
 			</description>
 		</method>
 	</methods>

@@ -32,6 +32,12 @@
 #define PROJECT_SETTINGS_H
 
 #include "core/object/class_db.h"
+#include "core/os/thread_safe.h"
+#include "core/templates/hash_map.h"
+#include "core/templates/local_vector.h"
+#include "core/templates/rb_set.h"
+#include "servers/rendering_server.h"
+
 
 template <typename T>
 class TypedArray;
@@ -210,6 +216,12 @@ public:
 	void add_global_group(const StringName &p_name, const String &p_description);
 	void remove_global_group(const StringName &p_name);
 	bool has_global_group(const StringName &p_name) const;
+
+	void add_shader_global_parameter(const StringName &p_name, RS::GlobalShaderParameterType p_type, const Variant &p_value);
+	void set_shader_global_parameter(const StringName &p_name, const Variant &p_value);
+	void remove_shader_global_parameter(const StringName &p_name);
+	RS::GlobalShaderParameterType get_shader_global_parameter_list_type(const StringName &p_name) const;
+	TypedArray<StringName> get_shader_global_parameter_list() const;
 
 	const HashMap<StringName, HashSet<StringName>> &get_scene_groups_cache() const;
 	void add_scene_groups_cache(const StringName &p_path, const HashSet<StringName> &p_cache);

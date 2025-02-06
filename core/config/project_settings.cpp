@@ -43,12 +43,44 @@
 #include "core/variant/typed_array.h"
 #include "core/variant/variant_parser.h"
 #include "core/version.h"
+#include "servers/rendering/shader_language.h"
 
 #ifdef TOOLS_ENABLED
 #include "modules/modules_enabled.gen.h" // For mono.
 #endif // TOOLS_ENABLED
 
 const String ProjectSettings::PROJECT_DATA_DIR_NAME_SUFFIX = "godot";
+
+static const char *global_shader_var_type_names[RS::GLOBAL_VAR_TYPE_MAX] = {
+	"bool",
+	"bvec2",
+	"bvec3",
+	"bvec4",
+	"int",
+	"ivec2",
+	"ivec3",
+	"ivec4",
+	"rect2i",
+	"uint",
+	"uvec2",
+	"uvec3",
+	"uvec4",
+	"float",
+	"vec2",
+	"vec3",
+	"vec4",
+	"color",
+	"rect2",
+	"mat2",
+	"mat3",
+	"mat4",
+	"transform_2d",
+	"transform",
+	"sampler2D",
+	"sampler2DArray",
+	"sampler3D",
+	"samplerCube",
+};
 
 ProjectSettings *ProjectSettings::singleton = nullptr;
 
@@ -1351,6 +1383,51 @@ bool ProjectSettings::has_global_group(const StringName &p_name) const {
 	return global_groups.has(p_name);
 }
 
+void ProjectSettings::add_shader_global_parameter(const StringName &p_name, RS::GlobalShaderParameterType p_type, const Variant &p_value) {
+	if (RenderingServer::get_singleton()->global_shader_parameter_get(p_name).get_type() != Variant::NIL) {
+		ERR_FAIL_MSG(vformat("Global shader parameter '%s' already exists.", p_name));
+	}
+
+	List<String> keywords;
+	ShaderLanguage::get_keyword_list(&keywords);
+
+	if (keywords.find(p_name) != nullptr || p_name == "script") {
+		ERR_FAIL_MSG(vformat("Name '%s' is a reserved shader language keyword.", p_name));
+	}
+
+	RS::get_singleton()->global_shader_parameter_add(p_name, p_type, p_value);
+
+	Dictionary gv;
+	gv["type"] = global_shader_var_type_names[p_type];
+	gv["value"] = p_value;
+
+	ProjectSettings::get_singleton()->set_setting("shader_globals/" + p_name, gv);
+	ProjectSettings::get_singleton()->save();
+}
+
+void ProjectSettings::remove_shader_global_parameter(const StringName &p_name) {
+	RS::get_singleton()->global_shader_parameter_remove(p_name);
+	ProjectSettings::get_singleton()->set_setting("shader_globals/" + p_name, Variant());
+	ProjectSettings::get_singleton()->save();
+}
+
+void ProjectSettings::set_shader_global_parameter(const StringName &p_name, const Variant &p_value) {
+	RS::get_singleton()->global_shader_parameter_set(p_name, p_value);
+
+	Dictionary gv = ProjectSettings::get_singleton()->get_setting("shader_globals/" + p_name);
+	gv["value"] = p_value;
+	ProjectSettings::get_singleton()->set_setting("shader_globals/" + p_name, gv);
+	ProjectSettings::get_singleton()->save();
+}
+
+TypedArray<StringName> ProjectSettings::get_shader_global_parameter_list() const {
+	return Variant(RS::get_singleton()->global_shader_parameter_get_list()).operator Array();
+}
+
+RS::GlobalShaderParameterType ProjectSettings::get_shader_global_parameter_list_type(const StringName &p_name) const {
+	return RS::get_singleton()->global_shader_parameter_get_type(p_name);
+}
+
 void ProjectSettings::remove_scene_groups_cache(const StringName &p_path) {
 	scene_groups_cache.erase(p_path);
 }
@@ -1440,6 +1517,12 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load_resource_pack", "pack", "replace_files", "offset"), &ProjectSettings::load_resource_pack, DEFVAL(true), DEFVAL(0));
 
 	ClassDB::bind_method(D_METHOD("save_custom", "file"), &ProjectSettings::_save_custom_bnd);
+
+	ClassDB::bind_method(D_METHOD("add_shader_global_parameter", "name", "type", "value"), &ProjectSettings::add_shader_global_parameter);
+	ClassDB::bind_method(D_METHOD("set_shader_global_parameter", "name", "value"), &ProjectSettings::set_shader_global_parameter);
+	ClassDB::bind_method(D_METHOD("remove_shader_global_parameter", "name"), &ProjectSettings::remove_shader_global_parameter);
+	ClassDB::bind_method(D_METHOD("get_shader_global_parameter_list"), &ProjectSettings::get_shader_global_parameter_list);
+	ClassDB::bind_method(D_METHOD("get_shader_global_parameter_list_type", "name"), &ProjectSettings::get_shader_global_parameter_list_type);
 
 	ADD_SIGNAL(MethodInfo("settings_changed"));
 }

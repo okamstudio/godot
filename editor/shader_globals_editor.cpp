@@ -442,6 +442,7 @@ void ShaderGlobalsEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			if (is_visible_in_tree()) {
+				_changed();
 				inspector->edit(interface);
 			}
 		} break;
