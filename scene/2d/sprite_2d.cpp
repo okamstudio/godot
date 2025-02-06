@@ -115,6 +115,17 @@ void Sprite2D::_get_rects(Rect2 &r_src_rect, Rect2 &r_dst_rect, bool &r_filter_c
 
 void Sprite2D::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			Rect2 dst_rect = get_rect();
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_IMAGE);
+			DisplayServer::get_singleton()->accessibility_update_set_transform(ae, get_transform());
+			DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, dst_rect);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			if (texture.is_null()) {
 				return;

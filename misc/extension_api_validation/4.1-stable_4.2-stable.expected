@@ -187,7 +187,7 @@ Validate extension JSON: JSON file: Field was added in a way that breaks compati
 
 GH-80410
 --------
-Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/arguments': size changed value in new API, from 6 to 10.
+Validate extension JSON: Error: Field 'classes/RichTextLabel/methods/add_image/arguments': size changed value in new API, from 6 to 11.
 
 Added optional argument. Compatibility method registered.
 

@@ -267,6 +267,7 @@
 		</method>
 	</methods>
 	<members>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="ignore_invalid_connection_type" type="bool" setter="set_ignore_invalid_connection_type" getter="is_ignoring_valid_connection_type" default="false">
 			If [code]true[/code], you can connect ports with different types, even if the connection was not explicitly allowed in the parent [GraphEdit].
 		</member>
@@ -299,11 +300,17 @@
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			The default background for the slot area of the [GraphNode].
 		</theme_item>
+		<theme_item name="panel_focus" data_type="style" type="StyleBox">
+			[StyleBox] used when the [GraphNode] is focused (when using with assistive apps).
+		</theme_item>
 		<theme_item name="panel_selected" data_type="style" type="StyleBox">
 			The [StyleBox] used for the slot area when selected.
 		</theme_item>
 		<theme_item name="slot" data_type="style" type="StyleBox">
 			The [StyleBox] used for each slot of the [GraphNode].
+		</theme_item>
+		<theme_item name="slot_selected" data_type="style" type="StyleBox">
+			[StyleBox] used when the slot is focused (when using with assistive apps).
 		</theme_item>
 		<theme_item name="titlebar" data_type="style" type="StyleBox">
 			The [StyleBox] used for the title bar of the [GraphNode].

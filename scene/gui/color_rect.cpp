@@ -35,6 +35,7 @@ void ColorRect::set_color(const Color &p_color) {
 		return;
 	}
 	color = p_color;
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -44,6 +45,13 @@ Color ColorRect::get_color() const {
 
 void ColorRect::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_color_value(ae, color);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			draw_rect(Rect2(Point2(), get_size()), color);
 		} break;

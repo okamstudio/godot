@@ -12,6 +12,7 @@
 		<member name="custom_step" type="float" setter="set_custom_step" getter="get_custom_step" default="-1.0">
 			Overrides the step used when clicking increment and decrement buttons or when using arrow keys when the [ScrollBar] is focused.
 		</member>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="step" type="float" setter="set_step" getter="get_step" overrides="Range" default="0.0" />
 	</members>
 	<signals>

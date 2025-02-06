@@ -1488,7 +1488,28 @@ String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Cont
 	return tooltip;
 }
 
+void Viewport::cancel_tooltip() {
+	_gui_cancel_tooltip();
+}
+
+void Viewport::show_tooltip(Control *p_control) {
+	if (!p_control) {
+		return;
+	}
+
+	if (gui.tooltip_timer.is_valid()) {
+		gui.tooltip_timer->release_connections();
+		gui.tooltip_timer = Ref<SceneTreeTimer>();
+	}
+	gui.tooltip_control = p_control;
+	_gui_show_tooltip_at(p_control->get_size() / 2);
+}
+
 void Viewport::_gui_show_tooltip() {
+	_gui_show_tooltip_at(gui.last_mouse_pos);
+}
+
+void Viewport::_gui_show_tooltip_at(const Point2i &p_pos) {
 	if (!gui.tooltip_control) {
 		return;
 	}
@@ -2178,6 +2199,17 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 		}
 
 		Control *from = gui.key_focus ? gui.key_focus : nullptr;
+		if (!from) {
+			for (int i = 0; i < get_child_count(true); i++) {
+				Control *c = Object::cast_to<Control>(get_child(i, true));
+				if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
+					continue;
+				}
+
+				from = c;
+				break;
+			}
+		}
 
 		if (from && p_event->is_pressed()) {
 			Control *next = nullptr;
@@ -2243,9 +2275,13 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 }
 
 void Viewport::_perform_drop(Control *p_control) {
+	gui_perform_drop_at(p_control ? p_control->get_local_mouse_position() : Vector2(), p_control);
+}
+
+void Viewport::gui_perform_drop_at(const Point2 &p_pos, Control *p_control) {
 	// Without any arguments, simply cancel Drag and Drop.
 	if (p_control) {
-		gui.drag_successful = _gui_drop(p_control, p_control->get_local_mouse_position(), false);
+		gui.drag_successful = _gui_drop(p_control, p_pos, false);
 	} else {
 		gui.drag_successful = false;
 	}
@@ -2259,6 +2295,7 @@ void Viewport::_perform_drop(Control *p_control) {
 	Viewport *section_root = get_section_root_viewport();
 	section_root->gui.drag_data = Variant();
 	gui.dragging = false;
+	gui.drag_description = String();
 	section_root->gui.global_dragging = false;
 	gui.drag_mouse_over = nullptr;
 	Viewport::_propagate_drag_notification(section_root, NOTIFICATION_DRAG_END);
@@ -3444,6 +3481,19 @@ void Viewport::set_disable_input_override(bool p_disable) {
 		_gui_cancel_tooltip();
 	}
 	disable_input_override = p_disable;
+}
+
+String Viewport::gui_get_drag_description() const {
+	ERR_READ_THREAD_GUARD_V(String());
+	if (get_section_root_viewport()->gui.drag_description.is_empty()) {
+		return RTR("Drag-and-drop data");
+	} else {
+		return get_section_root_viewport()->gui.drag_description;
+	}
+}
+
+void Viewport::gui_set_drag_description(const String &p_description) {
+	gui.drag_description = p_description;
 }
 
 Variant Viewport::gui_get_drag_data() const {
@@ -4824,6 +4874,8 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("gui_cancel_drag"), &Viewport::gui_cancel_drag);
 	ClassDB::bind_method(D_METHOD("gui_get_drag_data"), &Viewport::gui_get_drag_data);
+	ClassDB::bind_method(D_METHOD("gui_get_drag_description"), &Viewport::gui_get_drag_description);
+	ClassDB::bind_method(D_METHOD("gui_set_drag_description", "description"), &Viewport::gui_set_drag_description);
 	ClassDB::bind_method(D_METHOD("gui_is_dragging"), &Viewport::gui_is_dragging);
 	ClassDB::bind_method(D_METHOD("gui_is_drag_successful"), &Viewport::gui_is_drag_successful);
 

@@ -167,6 +167,17 @@ void AnimatedSprite2D::_validate_property(PropertyInfo &p_property) const {
 
 void AnimatedSprite2D::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			Rect2 dst_rect = _get_rect();
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_IMAGE);
+			DisplayServer::get_singleton()->accessibility_update_set_transform(ae, get_transform());
+			DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, dst_rect);
+		} break;
+
 		case NOTIFICATION_READY: {
 			if (!Engine::get_singleton()->is_editor_hint() && frames.is_valid() && frames->has_animation(autoplay)) {
 				play(autoplay);

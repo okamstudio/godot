@@ -39,6 +39,8 @@
 #define DEBUG_LOG_WAYLAND(...)
 #endif
 
+#include "servers/rendering/dummy/rasterizer_dummy.h"
+
 #ifdef VULKAN_ENABLED
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #endif
@@ -48,6 +50,10 @@
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "wayland/egl_manager_wayland.h"
 #include "wayland/egl_manager_wayland_gles.h"
+#endif
+
+#ifdef ACCESSKIT_ENABLED
+#include "drivers/accesskit/accessibility_driver_accesskit.h"
 #endif
 
 String DisplayServerWayland::_get_app_id_from_context(Context p_context) {
@@ -136,6 +142,18 @@ void DisplayServerWayland::_show_window() {
 		wayland_thread.window_set_max_size(MAIN_WINDOW_ID, wd.max_size);
 		wayland_thread.window_set_app_id(MAIN_WINDOW_ID, _get_app_id_from_context(context));
 		wayland_thread.window_set_borderless(MAIN_WINDOW_ID, window_get_flag(WINDOW_FLAG_BORDERLESS));
+
+#ifdef ACCESSKIT_ENABLED
+		if (accessibility_driver) {
+			if (!accessibility_driver->window_create(wd.id, nullptr)) {
+				if (OS::get_singleton()->is_stdout_verbose()) {
+					ERR_PRINT("Can't create an accessibility adapter for window, accessibility support disabled!");
+				}
+				memdelete(accessibility_driver);
+				accessibility_driver = nullptr;
+			}
+		}
+#endif
 
 		// NOTE: The XDG shell protocol is built in a way that causes the window to
 		// be immediately shown as soon as a valid buffer is assigned to it. Hence,
@@ -227,6 +245,12 @@ bool DisplayServerWayland::has_feature(Feature p_feature) const {
 #ifdef SPEECHD_ENABLED
 		case FEATURE_TEXT_TO_SPEECH: {
 			return true;
+		} break;
+#endif
+
+#ifdef ACCESSKIT_ENABLED
+		case FEATURE_ACCESSIBILITY_SCREEN_READER: {
+			return (accessibility_driver != nullptr);
 		} break;
 #endif
 
@@ -1208,10 +1232,20 @@ void DisplayServerWayland::process_events() {
 			_send_window_event(winev_msg->event);
 
 			if (winev_msg->event == WINDOW_EVENT_FOCUS_IN) {
+#ifdef ACCESSKIT_ENABLED
+				if (accessibility_driver) {
+					accessibility_driver->accessibility_set_window_focused(MAIN_WINDOW_ID, true);
+				}
+#endif
 				if (OS::get_singleton()->get_main_loop()) {
 					OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_IN);
 				}
 			} else if (winev_msg->event == WINDOW_EVENT_FOCUS_OUT) {
+#ifdef ACCESSKIT_ENABLED
+				if (accessibility_driver) {
+					accessibility_driver->accessibility_set_window_focused(MAIN_WINDOW_ID, false);
+				}
+#endif
 				if (OS::get_singleton()->get_main_loop()) {
 					OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_OUT);
 				}
@@ -1377,6 +1411,7 @@ Vector<String> DisplayServerWayland::get_rendering_drivers_func() {
 	drivers.push_back("opengl3");
 	drivers.push_back("opengl3_es");
 #endif
+	drivers.push_back("dummy");
 
 	return drivers;
 }
@@ -1423,10 +1458,25 @@ DisplayServerWayland::DisplayServerWayland(const String &p_rendering_driver, Win
 	tts = memnew(TTS_Linux);
 #endif
 
+#ifdef ACCESSKIT_ENABLED
+	if (accessibility_get_mode() != DisplayServer::AccessibilityMode::ACCESSIBILITY_DISABLED) {
+		accessibility_driver = memnew(AccessibilityDriverAccessKit);
+		if (accessibility_driver->init() != OK) {
+			memdelete(accessibility_driver);
+			accessibility_driver = nullptr;
+		}
+	}
+#endif
+
 	rendering_driver = p_rendering_driver;
 
 	bool driver_found = false;
 	String executable_name = OS::get_singleton()->get_executable_path().get_file();
+
+	if (rendering_driver == "dummy") {
+		RasterizerDummy::make_current();
+		driver_found = true;
+	}
 
 #ifdef RD_ENABLED
 #ifdef VULKAN_ENABLED
@@ -1656,6 +1706,12 @@ DisplayServerWayland::~DisplayServerWayland() {
 	}
 #endif
 
+#ifdef ACCESSKIT_ENABLED
+	if (accessibility_driver) {
+		accessibility_driver->window_destroy(MAIN_WINDOW_ID);
+	}
+#endif
+
 	wayland_thread.destroy();
 
 	// Destroy all drivers.
@@ -1672,6 +1728,12 @@ DisplayServerWayland::~DisplayServerWayland() {
 #ifdef SPEECHD_ENABLED
 	if (tts) {
 		memdelete(tts);
+	}
+#endif
+
+#ifdef ACCESSKIT_ENABLED
+	if (accessibility_driver) {
+		memdelete(accessibility_driver);
 	}
 #endif
 

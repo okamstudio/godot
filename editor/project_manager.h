@@ -139,6 +139,7 @@ class ProjectManager : public Control {
 
 	LineEdit *search_box = nullptr;
 	Label *loading_label = nullptr;
+	Label *sort_label = nullptr;
 	OptionButton *filter_option = nullptr;
 	PanelContainer *project_list_panel = nullptr;
 

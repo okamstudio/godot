@@ -442,14 +442,38 @@ public:
 	GDVIRTUAL6R_REQUIRED(bool, _shaped_text_add_object, RID, const Variant &, const Size2 &, InlineAlignment, int64_t, double);
 	GDVIRTUAL5R_REQUIRED(bool, _shaped_text_resize_object, RID, const Variant &, const Size2 &, InlineAlignment, double);
 
+	virtual String shaped_get_text(const RID &p_shaped) const override;
+	GDVIRTUAL1RC_REQUIRED(String, _shaped_get_text, RID);
+
 	virtual int64_t shaped_get_span_count(const RID &p_shaped) const override;
 	virtual Variant shaped_get_span_meta(const RID &p_shaped, int64_t p_index) const override;
 	virtual Variant shaped_get_span_embedded_object(const RID &p_shaped, int64_t p_index) const override;
+	virtual String shaped_get_span_text(const RID &p_shaped, int64_t p_index) const override;
+	virtual Variant shaped_get_span_object(const RID &p_shaped, int64_t p_index) const override;
 	virtual void shaped_set_span_update_font(const RID &p_shaped, int64_t p_index, const TypedArray<RID> &p_fonts, int64_t p_size, const Dictionary &p_opentype_features = Dictionary()) override;
 	GDVIRTUAL1RC_REQUIRED(int64_t, _shaped_get_span_count, RID);
 	GDVIRTUAL2RC_REQUIRED(Variant, _shaped_get_span_meta, RID, int64_t);
 	GDVIRTUAL2RC_REQUIRED(Variant, _shaped_get_span_embedded_object, RID, int64_t);
+	GDVIRTUAL2RC_REQUIRED(String, _shaped_get_span_text, RID, int64_t);
+	GDVIRTUAL2RC_REQUIRED(Variant, _shaped_get_span_object, RID, int64_t);
 	GDVIRTUAL5_REQUIRED(_shaped_set_span_update_font, RID, int64_t, const TypedArray<RID> &, int64_t, const Dictionary &);
+
+	virtual int64_t shaped_get_run_count(const RID &p_shaped) const override;
+	virtual String shaped_get_run_text(const RID &p_shaped, int64_t p_index) const override;
+	virtual Vector2i shaped_get_run_range(const RID &p_shaped, int64_t p_index) const override;
+	virtual RID shaped_get_run_font_rid(const RID &p_shaped, int64_t p_index) const override;
+	virtual int shaped_get_run_font_size(const RID &p_shaped, int64_t p_index) const override;
+	virtual String shaped_get_run_language(const RID &p_shaped, int64_t p_index) const override;
+	virtual Direction shaped_get_run_direction(const RID &p_shaped, int64_t p_index) const override;
+	virtual Variant shaped_get_run_object(const RID &p_shaped, int64_t p_index) const override;
+	GDVIRTUAL1RC(int64_t, _shaped_get_run_count, RID);
+	GDVIRTUAL2RC(String, _shaped_get_run_text, RID, int64_t);
+	GDVIRTUAL2RC(Vector2i, _shaped_get_run_range, RID, int64_t);
+	GDVIRTUAL2RC(RID, _shaped_get_run_font_rid, RID, int64_t);
+	GDVIRTUAL2RC(int, _shaped_get_run_font_size, RID, int64_t);
+	GDVIRTUAL2RC(String, _shaped_get_run_language, RID, int64_t);
+	GDVIRTUAL2RC(Direction, _shaped_get_run_direction, RID, int64_t);
+	GDVIRTUAL2RC(Variant, _shaped_get_run_object, RID, int64_t);
 
 	virtual RID shaped_text_substr(const RID &p_shaped, int64_t p_start, int64_t p_length) const override;
 	virtual RID shaped_text_get_parent(const RID &p_shaped) const override;

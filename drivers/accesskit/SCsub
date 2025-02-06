@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+from misc.utility.scons_hints import *
+
+Import("env")
+
+# Driver source files
+if env["accesskit"]:
+    env.add_source_files(env.drivers_sources, "accessibility_driver_accesskit.cpp")
+
+    if env["accesskit_sdk_path"] == "":
+        if env["platform"] == "windows":
+            env.add_source_files(env.drivers_sources, "dynwrappers/accesskit-dll_wrap.c")
+        if env["platform"] == "macos":
+            env.add_source_files(env.drivers_sources, "dynwrappers/accesskit-dylib_wrap.c")
+        if env["platform"] == "linuxbsd":
+            env.add_source_files(env.drivers_sources, "dynwrappers/accesskit-so_wrap.c")
+        env.Prepend(CPPPATH=["#thirdparty/accesskit/include"])

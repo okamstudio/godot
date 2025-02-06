@@ -55,6 +55,14 @@
 
 void ColorPicker::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_COLOR_PICKER);
+			DisplayServer::get_singleton()->accessibility_update_set_color_value(ae, color);
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			_update_color();
 		} break;
@@ -62,10 +70,12 @@ void ColorPicker::_notification(int p_what) {
 		case NOTIFICATION_READY: {
 			// FIXME: The embedding check is needed to fix a bug in single-window mode (GH-93718).
 			if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SCREEN_CAPTURE) && !get_tree()->get_root()->is_embedding_subwindows()) {
+				btn_pick->set_accessibility_name(ETR("Pick a color from the screen."));
 				btn_pick->set_tooltip_text(ETR("Pick a color from the screen."));
 				btn_pick->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_pick_button_pressed));
 			} else {
 				// On unsupported platforms, use a legacy method for color picking.
+				btn_pick->set_accessibility_name(ETR("Pick a color from the application window."));
 				btn_pick->set_tooltip_text(ETR("Pick a color from the application window."));
 				btn_pick->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_pick_button_pressed_legacy));
 			}
@@ -294,8 +304,12 @@ void ColorPicker::_update_controls() {
 
 	for (int i = 0; i < current_slider_count; i++) {
 		labels[i]->set_text(modes[current_mode]->get_slider_label(i));
+		sliders[i]->set_accessibility_name(modes[current_mode]->get_slider_label(i));
+		values[i]->set_accessibility_name(modes[current_mode]->get_slider_label(i));
 	}
 	alpha_label->set_text("A");
+	alpha_slider->set_accessibility_name(ETR("Alpha"));
+	alpha_value->set_accessibility_name(ETR("Alpha"));
 
 	slider_theme_modified = modes[current_mode]->apply_theme();
 
@@ -695,6 +709,7 @@ void ColorPicker::_update_color(bool p_update_sliders) {
 	wheel->queue_redraw();
 	wheel_uv->queue_redraw();
 	updating = false;
+	queue_accessibility_update();
 }
 
 void ColorPicker::_update_presets() {
@@ -830,6 +845,7 @@ inline int ColorPicker::_get_preset_size() {
 void ColorPicker::_add_preset_button(int p_size, const Color &p_color) {
 	ColorPresetButton *btn_preset_new = memnew(ColorPresetButton(p_color, p_size));
 	btn_preset_new->set_tooltip_text(vformat(atr(ETR("Color: #%s\nLMB: Apply color\nRMB: Remove preset")), p_color.to_html(p_color.a < 1)));
+	btn_preset_new->set_accessibility_name(vformat(atr(ETR("Color: #%s\nLMB: Apply color\nRMB: Remove preset")), p_color.to_html(p_color.a < 1)));
 	SET_DRAG_FORWARDING_GCDU(btn_preset_new, ColorPicker);
 	btn_preset_new->set_button_group(preset_group);
 	preset_container->add_child(btn_preset_new);
@@ -840,6 +856,7 @@ void ColorPicker::_add_preset_button(int p_size, const Color &p_color) {
 void ColorPicker::_add_recent_preset_button(int p_size, const Color &p_color) {
 	ColorPresetButton *btn_preset_new = memnew(ColorPresetButton(p_color, p_size));
 	btn_preset_new->set_tooltip_text(vformat(atr(ETR("Color: #%s\nLMB: Apply color")), p_color.to_html(p_color.a < 1)));
+	btn_preset_new->set_accessibility_name(vformat(atr(ETR("Color: #%s\nLMB: Apply color")), p_color.to_html(p_color.a < 1)));
 	btn_preset_new->set_button_group(recent_preset_group);
 	recent_preset_hbc->add_child(btn_preset_new);
 	recent_preset_hbc->move_child(btn_preset_new, 0);
@@ -2202,6 +2219,7 @@ ColorPicker::ColorPicker() {
 	btn_shape->set_flat(false);
 	sample_hbc->add_child(btn_shape);
 	btn_shape->set_toggle_mode(true);
+	btn_shape->set_accessibility_name(ETR("Select a picker shape."));
 	btn_shape->set_tooltip_text(ETR("Select a picker shape."));
 	btn_shape->set_icon_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 
@@ -2242,6 +2260,7 @@ ColorPicker::ColorPicker() {
 	btn_mode->set_flat(false);
 	mode_hbc->add_child(btn_mode);
 	btn_mode->set_toggle_mode(true);
+	btn_mode->set_accessibility_name(ETR("Select a picker mode."));
 	btn_mode->set_tooltip_text(ETR("Select a picker mode."));
 
 	current_mode = MODE_RGB;
@@ -2277,7 +2296,8 @@ ColorPicker::ColorPicker() {
 	text_type = memnew(Button);
 	hex_hbc->add_child(text_type);
 	text_type->set_text("#");
-	text_type->set_tooltip_text(RTR("Switch between hexadecimal and code values."));
+	text_type->set_accessibility_name(ETR("Switch between hexadecimal and code values."));
+	text_type->set_tooltip_text(ETR("Switch between hexadecimal and code values."));
 	if (Engine::get_singleton()->is_editor_hint()) {
 		text_type->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_text_type_toggled));
 	} else {
@@ -2289,6 +2309,7 @@ ColorPicker::ColorPicker() {
 	hex_hbc->add_child(c_text);
 	c_text->set_h_size_flags(SIZE_EXPAND_FILL);
 	c_text->set_select_all_on_focus(true);
+	c_text->set_accessibility_name(ETR("Hex code or named color"));
 	c_text->set_tooltip_text(ETR("Enter a hex code (\"#ff0000\") or named color (\"red\")."));
 	c_text->set_placeholder(ETR("Hex code or named color"));
 	c_text->connect(SceneStringName(text_submitted), callable_mp(this, &ColorPicker::_html_submitted));
@@ -2391,6 +2412,7 @@ ColorPicker::ColorPicker() {
 	btn_add_preset = memnew(Button);
 	btn_add_preset->set_icon_alignment(HORIZONTAL_ALIGNMENT_CENTER);
 	btn_add_preset->set_tooltip_text(ETR("Add current color as a preset."));
+	btn_add_preset->set_accessibility_name(ETR("Add current color as a preset."));
 	btn_add_preset->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_add_preset_pressed));
 	preset_container->add_child(btn_add_preset);
 }
@@ -2421,6 +2443,7 @@ void ColorPickerButton::_about_to_popup() {
 
 void ColorPickerButton::_color_changed(const Color &p_color) {
 	color = p_color;
+	queue_accessibility_update();
 	queue_redraw();
 	emit_signal(SNAME("color_changed"), color);
 }
@@ -2462,6 +2485,15 @@ void ColorPickerButton::pressed() {
 
 void ColorPickerButton::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_BUTTON);
+			DisplayServer::get_singleton()->accessibility_update_set_popup_type(ae, DisplayServer::AccessibilityPopupType::POPUP_DIALOG);
+			DisplayServer::get_singleton()->accessibility_update_set_color_value(ae, color);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			const Rect2 r = Rect2(theme_cache.normal_style->get_offset(), get_size() - theme_cache.normal_style->get_minimum_size());
 			draw_texture_rect(theme_cache.background_icon, r, true);
@@ -2495,7 +2527,7 @@ void ColorPickerButton::set_pick_color(const Color &p_color) {
 	if (picker) {
 		picker->set_pick_color(p_color);
 	}
-
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -2575,6 +2607,14 @@ ColorPickerButton::ColorPickerButton(const String &p_text) :
 
 void ColorPresetButton::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_BUTTON);
+			DisplayServer::get_singleton()->accessibility_update_set_color_value(ae, preset_color);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			const Rect2 r = Rect2(Point2(0, 0), get_size());
 			Ref<StyleBox> sb_raw = theme_cache.foreground_style->duplicate();
@@ -2626,6 +2666,7 @@ void ColorPresetButton::_notification(int p_what) {
 
 void ColorPresetButton::set_preset_color(const Color &p_color) {
 	preset_color = p_color;
+	queue_accessibility_update();
 }
 
 Color ColorPresetButton::get_preset_color() const {

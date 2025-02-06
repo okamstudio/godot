@@ -32,8 +32,13 @@
 
 #include "container.h"
 #include "core/config/project_settings.h"
+#include "core/input/input_map.h"
+#include "core/math/geometry_2d.h"
 #include "core/os/os.h"
+#include "core/string/print_string.h"
 #include "core/string/translation_server.h"
+#include "scene/gui/label.h"
+#include "scene/gui/panel.h"
 #include "scene/gui/scroll_container.h"
 #include "scene/main/canvas_layer.h"
 #include "scene/main/window.h"
@@ -249,6 +254,27 @@ PackedStringArray Control::get_configuration_warnings() const {
 
 	if (data.mouse_filter == MOUSE_FILTER_IGNORE && !data.tooltip.is_empty()) {
 		warnings.push_back(RTR("The Hint Tooltip won't be displayed as the control's Mouse Filter is set to \"Ignore\". To solve this, set the Mouse Filter to \"Stop\" or \"Pass\"."));
+	}
+
+	return warnings;
+}
+
+PackedStringArray Control::get_accessibility_configuration_warnings() const {
+	ERR_READ_THREAD_GUARD_V(PackedStringArray());
+	PackedStringArray warnings = Node::get_accessibility_configuration_warnings();
+
+	String ac_name = get_accessibility_name().strip_edges();
+	if (ac_name.is_empty()) {
+		warnings.push_back(RTR("Accessibility Name must not be empty, or contain only spaces."));
+	}
+	if (ac_name.contains(get_class_name())) {
+		warnings.push_back(RTR("Accessibility Name must not include Node class name."));
+	}
+	for (int i = 0; i < ac_name.length(); i++) {
+		if (is_control(ac_name[i])) {
+			warnings.push_back(RTR("Accessibility Name must not include control character."));
+			break;
+		}
 	}
 
 	return warnings;
@@ -1537,6 +1563,7 @@ void Control::set_scale(const Vector2 &p_scale) {
 	}
 	queue_redraw();
 	_notify_transform();
+	queue_accessibility_update();
 }
 
 Vector2 Control::get_scale() const {
@@ -1553,6 +1580,7 @@ void Control::set_rotation(real_t p_radians) {
 	data.rotation = p_radians;
 	queue_redraw();
 	_notify_transform();
+	queue_accessibility_update();
 }
 
 void Control::set_rotation_degrees(real_t p_degrees) {
@@ -1579,6 +1607,7 @@ void Control::set_pivot_offset(const Vector2 &p_pivot) {
 	data.pivot_offset = p_pivot;
 	queue_redraw();
 	_notify_transform();
+	queue_accessibility_update();
 }
 
 Vector2 Control::get_pivot_offset() const {
@@ -1752,6 +1781,8 @@ void Control::_size_changed() {
 		if (pos_changed && !size_changed) {
 			_update_canvas_item_transform();
 		}
+
+		queue_accessibility_update();
 	} else if (pos_changed) {
 		_notify_transform();
 	}
@@ -1826,6 +1857,22 @@ void Control::_call_gui_input(const Ref<InputEvent> &p_event) {
 }
 
 void Control::gui_input(const Ref<InputEvent> &p_event) {
+	const Ref<InputEventKey> &key = p_event;
+	if (is_inside_tree() && key.is_valid() && key->is_pressed()) {
+		if (key->is_action("ui_accessibility_drag_n_drag", true)) {
+			if (get_viewport()->gui_is_dragging()) {
+				accessibility_drop();
+			} else {
+				accessibility_drag();
+			}
+		} else if (key->is_action("ui_accessibility_contextual_info", true)) {
+			String help_text = accessibility_get_contextual_info();
+			Window *w = Window::get_from_id(get_window()->get_window_id());
+			if (w && !help_text.is_empty()) {
+				w->accessibility_announcement(help_text);
+			}
+		}
+	}
 }
 
 void Control::accept_event() {
@@ -1984,6 +2031,30 @@ void Control::force_drag(const Variant &p_data, Control *p_control) {
 	get_viewport()->_gui_force_drag(this, p_data, p_control);
 }
 
+void Control::accessibility_drag() {
+	ERR_MAIN_THREAD_GUARD;
+	ERR_FAIL_COND(!is_inside_tree());
+	Variant dnd_data = get_drag_data(Vector2(INFINITY, INFINITY));
+	if (dnd_data.get_type() != Variant::NIL) {
+		Window *w = Window::get_from_id(get_window()->get_window_id());
+		if (w) {
+			w->accessibility_announcement(vformat(RTR("%s grabbed. Select target and use %s to drop, use %s to cancel."), get_viewport()->gui_get_drag_description(), InputMap::get_singleton()->get_action_description("ui_accessibility_drag_n_drag"), InputMap::get_singleton()->get_action_description("ui_cancel")));
+		}
+		get_viewport()->_gui_force_drag(this, dnd_data, nullptr);
+		queue_accessibility_update();
+	}
+}
+
+void Control::accessibility_drop() {
+	ERR_MAIN_THREAD_GUARD;
+	ERR_FAIL_COND(!is_inside_tree());
+	ERR_FAIL_COND(!get_viewport()->gui_is_dragging());
+
+	get_viewport()->gui_perform_drop_at(Vector2(INFINITY, INFINITY), this);
+
+	queue_accessibility_update();
+}
+
 void Control::set_drag_preview(Control *p_control) {
 	ERR_MAIN_THREAD_GUARD;
 	ERR_FAIL_COND(!is_inside_tree());
@@ -2000,7 +2071,7 @@ bool Control::is_drag_successful() const {
 
 void Control::set_focus_mode(FocusMode p_focus_mode) {
 	ERR_MAIN_THREAD_GUARD;
-	ERR_FAIL_INDEX((int)p_focus_mode, 3);
+	ERR_FAIL_INDEX((int)p_focus_mode, 4);
 
 	if (is_inside_tree() && p_focus_mode == FOCUS_NONE && data.focus_mode != FOCUS_NONE && has_focus()) {
 		release_focus();
@@ -2049,21 +2120,22 @@ void Control::release_focus() {
 	get_viewport()->gui_release_focus();
 }
 
-static Control *_next_control(Control *p_from) {
-	if (p_from->is_set_as_top_level()) {
+static Control *_next_control(Node *p_from) {
+	Control *fc = Object::cast_to<Control>(p_from);
+	if (!fc || fc->is_set_as_top_level()) {
 		return nullptr; // Can't go above.
 	}
 
-	Control *parent = Object::cast_to<Control>(p_from->get_parent());
+	Node *parent = p_from->get_parent();
 
-	if (!parent) {
+	if (!Object::cast_to<Control>(parent) && !Object::cast_to<Window>(parent)) {
 		return nullptr;
 	}
 
-	int next = p_from->get_index();
-	ERR_FAIL_INDEX_V(next, parent->get_child_count(), nullptr);
-	for (int i = (next + 1); i < parent->get_child_count(); i++) {
-		Control *c = Object::cast_to<Control>(parent->get_child(i));
+	int next = p_from->get_index(true);
+	ERR_FAIL_INDEX_V(next, parent->get_child_count(true), nullptr);
+	for (int i = (next + 1); i < parent->get_child_count(true); i++) {
+		Control *c = Object::cast_to<Control>(parent->get_child(i, true));
 		if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
 			continue;
 		}
@@ -2077,7 +2149,8 @@ static Control *_next_control(Control *p_from) {
 
 Control *Control::find_next_valid_focus() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
-	Control *from = const_cast<Control *>(this);
+	Node *from = const_cast<Control *>(this);
+	bool ac_enabled = get_tree() && get_tree()->is_accessibility_enabled();
 
 	while (true) {
 		// If the focus property is manually overwritten, attempt to use it.
@@ -2094,10 +2167,9 @@ Control *Control::find_next_valid_focus() const {
 
 		// Find next child.
 
-		Control *next_child = nullptr;
-
-		for (int i = 0; i < from->get_child_count(); i++) {
-			Control *c = Object::cast_to<Control>(from->get_child(i));
+		Node *next_child = nullptr;
+		for (int i = 0; i < from->get_child_count(true); i++) {
+			Control *c = Object::cast_to<Control>(from->get_child(i, true));
 			if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
 				continue;
 			}
@@ -2110,28 +2182,37 @@ Control *Control::find_next_valid_focus() const {
 			next_child = _next_control(from);
 			if (!next_child) { // Nothing else. Go up and find either window or subwindow.
 				next_child = const_cast<Control *>(this);
-				while (next_child && !next_child->is_set_as_top_level()) {
-					next_child = cast_to<Control>(next_child->get_parent());
+				while (next_child) {
+					Control *c = cast_to<Control>(next_child);
+					if (!c || c->is_set_as_top_level()) {
+						break;
+					}
+					next_child = next_child->get_parent();
+					if (!cast_to<Control>(next_child) && !cast_to<Window>(next_child)) {
+						next_child = nullptr;
+					}
 				}
 
 				if (!next_child) {
-					next_child = const_cast<Control *>(this);
-					while (next_child) {
-						if (next_child->data.RI) {
+					Control *c = const_cast<Control *>(this);
+					while (c) {
+						if (c->data.RI) {
 							break;
 						}
-						next_child = next_child->get_parent_control();
+						c = c->get_parent_control();
 					}
+					next_child = c;
 				}
 			}
 		}
 
 		if (next_child == from || next_child == this) { // No next control.
-			return (get_focus_mode() == FOCUS_ALL) ? next_child : nullptr;
+			return ((get_focus_mode() == FOCUS_ALL) || (ac_enabled && get_focus_mode() == FOCUS_ACCESSIBILITY)) ? const_cast<Control *>(this) : nullptr;
 		}
 		if (next_child) {
-			if (next_child->get_focus_mode() == FOCUS_ALL) {
-				return next_child;
+			Control *c = cast_to<Control>(next_child);
+			if (c && ((c->get_focus_mode() == FOCUS_ALL) || (ac_enabled && c->get_focus_mode() == FOCUS_ACCESSIBILITY))) {
+				return c;
 			}
 			from = next_child;
 		} else {
@@ -2142,10 +2223,10 @@ Control *Control::find_next_valid_focus() const {
 	return nullptr;
 }
 
-static Control *_prev_control(Control *p_from) {
-	Control *child = nullptr;
-	for (int i = p_from->get_child_count() - 1; i >= 0; i--) {
-		Control *c = Object::cast_to<Control>(p_from->get_child(i));
+static Node *_prev_control(Node *p_from) {
+	Node *child = nullptr;
+	for (int i = p_from->get_child_count(true) - 1; i >= 0; i--) {
+		Control *c = Object::cast_to<Control>(p_from->get_child(i, true));
 		if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
 			continue;
 		}
@@ -2164,7 +2245,8 @@ static Control *_prev_control(Control *p_from) {
 
 Control *Control::find_prev_valid_focus() const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
-	Control *from = const_cast<Control *>(this);
+	Node *from = const_cast<Control *>(this);
+	bool ac_enabled = get_tree() && get_tree()->is_accessibility_enabled();
 
 	while (true) {
 		// If the focus property is manually overwritten, attempt to use it.
@@ -2181,16 +2263,18 @@ Control *Control::find_prev_valid_focus() const {
 
 		// Find prev child.
 
-		Control *prev_child = nullptr;
+		Node *prev_child = nullptr;
+		Node *p = from->get_parent();
 
-		if (from->is_set_as_top_level() || !Object::cast_to<Control>(from->get_parent())) {
+		Control *fc = Object::cast_to<Control>(from);
+		if (!fc || fc->is_set_as_top_level() || (!cast_to<Control>(p) && !cast_to<Window>(p))) {
 			// Find last of the children.
 
 			prev_child = _prev_control(from);
 
 		} else {
-			for (int i = (from->get_index() - 1); i >= 0; i--) {
-				Control *c = Object::cast_to<Control>(from->get_parent()->get_child(i));
+			for (int i = (from->get_index(true) - 1); i >= 0; i--) {
+				Control *c = Object::cast_to<Control>(from->get_parent()->get_child(i, true));
 
 				if (!c || !c->is_visible_in_tree() || c->is_set_as_top_level()) {
 					continue;
@@ -2201,18 +2285,21 @@ Control *Control::find_prev_valid_focus() const {
 			}
 
 			if (!prev_child) {
-				prev_child = Object::cast_to<Control>(from->get_parent());
+				prev_child = from->get_parent();
 			} else {
 				prev_child = _prev_control(prev_child);
 			}
 		}
 
 		if (prev_child == from || prev_child == this) { // No prev control.
-			return (get_focus_mode() == FOCUS_ALL) ? prev_child : nullptr;
+			return ((get_focus_mode() == FOCUS_ALL) || (ac_enabled && get_focus_mode() == FOCUS_ACCESSIBILITY)) ? const_cast<Control *>(this) : nullptr;
 		}
 
-		if (prev_child->get_focus_mode() == FOCUS_ALL) {
-			return prev_child;
+		if (prev_child) {
+			Control *c = cast_to<Control>(prev_child);
+			if (c && ((c->get_focus_mode() == FOCUS_ALL) || (ac_enabled && c->get_focus_mode() == FOCUS_ACCESSIBILITY))) {
+				return c;
+			}
 		}
 
 		from = prev_child;
@@ -2391,11 +2478,13 @@ void Control::_window_find_focus_neighbor(const Vector2 &p_dir, Node *p_at, cons
 		return; // Bye.
 	}
 
+	bool ac_enabled = get_tree() && get_tree()->is_accessibility_enabled();
+
 	Control *c = Object::cast_to<Control>(p_at);
 	Container *container = Object::cast_to<Container>(p_at);
 	bool in_container = container ? container->is_ancestor_of(this) : false;
 
-	if (c && c != this && c->get_focus_mode() == FOCUS_ALL && !in_container && p_clamp.intersects(c->get_global_rect())) {
+	if (c && c != this && ((c->get_focus_mode() == FOCUS_ALL) || (ac_enabled && c->get_focus_mode() == FOCUS_ACCESSIBILITY)) && !in_container && p_clamp.intersects(c->get_global_rect())) {
 		Rect2 r_c = c->get_global_rect();
 		r_c = r_c.intersection(p_clamp);
 		real_t begin_d = p_dir.dot(r_c.get_position());
@@ -3263,6 +3352,13 @@ String Control::get_tooltip(const Point2 &p_pos) const {
 	return data.tooltip;
 }
 
+String Control::accessibility_get_contextual_info() const {
+	ERR_READ_THREAD_GUARD_V(String());
+	String ret;
+	GDVIRTUAL_CALL(_accessibility_get_contextual_info, ret);
+	return ret;
+}
+
 Control *Control::make_custom_tooltip(const String &p_text) const {
 	ERR_READ_THREAD_GUARD_V(nullptr);
 	Object *ret = nullptr;
@@ -3271,6 +3367,35 @@ Control *Control::make_custom_tooltip(const String &p_text) const {
 }
 
 // Base object overrides.
+
+void Control::_accessibility_action_foucs(const Variant &p_data) {
+	grab_focus();
+}
+
+void Control::_accessibility_action_blur(const Variant &p_data) {
+	release_focus();
+}
+
+void Control::_accessibility_action_show_tooltip(const Variant &p_data) {
+	Viewport *vp = get_viewport();
+	if (vp) {
+		vp->show_tooltip(this);
+	}
+}
+
+void Control::_accessibility_action_hide_tooltip(const Variant &p_data) {
+	Viewport *vp = get_viewport();
+	if (vp) {
+		vp->cancel_tooltip();
+	}
+}
+
+void Control::_accessibility_action_scroll_into_view(const Variant &p_data) {
+	ScrollContainer *sc = Object::cast_to<ScrollContainer>(get_parent());
+	if (sc) {
+		sc->ensure_control_visible(this);
+	}
+}
 
 void Control::_notification(int p_notification) {
 	ERR_MAIN_THREAD_GUARD;
@@ -3283,6 +3408,31 @@ void Control::_notification(int p_notification) {
 			saving = false;
 		} break;
 #endif // TOOLS_ENABLED
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_transform(ae, get_transform());
+			DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, Rect2(Vector2(), data.size_cache));
+			DisplayServer::get_singleton()->accessibility_update_set_tooltip(ae, data.tooltip);
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_CLIPS_CHILDREN, data.clip_contents);
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_TOUCH_PASSTHROUGH, data.mouse_filter == MOUSE_FILTER_PASS);
+
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_FOCUS, callable_mp(this, &Control::_accessibility_action_foucs));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_BLUR, callable_mp(this, &Control::_accessibility_action_blur));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SHOW_TOOLTIP, callable_mp(this, &Control::_accessibility_action_show_tooltip));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_HIDE_TOOLTIP, callable_mp(this, &Control::_accessibility_action_hide_tooltip));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SCROLL_INTO_VIEW, callable_mp(this, &Control::_accessibility_action_scroll_into_view));
+			if (is_inside_tree() && get_viewport()->gui_is_dragging()) {
+				if (can_drop_data(Vector2(INFINITY, INFINITY), get_viewport()->gui_get_drag_data())) {
+					DisplayServer::get_singleton()->accessibility_update_set_extra_info(ae, vformat(RTR("%s can be dropped here. Use %s to drop, use %s to cancel."), get_viewport()->gui_get_drag_description(), InputMap::get_singleton()->get_action_description("ui_accessibility_drag_n_drag"), InputMap::get_singleton()->get_action_description("ui_cancel")));
+				} else {
+					DisplayServer::get_singleton()->accessibility_update_set_extra_info(ae, vformat(RTR("%s can not be dropped here. Use %s to cancel."), get_viewport()->gui_get_drag_description(), InputMap::get_singleton()->get_action_description("ui_cancel")));
+				}
+			}
+		} break;
+
 		case NOTIFICATION_POSTINITIALIZE: {
 			data.initialized = true;
 
@@ -3611,6 +3761,9 @@ void Control::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("force_drag", "data", "preview"), &Control::force_drag);
 
+	ClassDB::bind_method(D_METHOD("accessibility_drag"), &Control::accessibility_drag);
+	ClassDB::bind_method(D_METHOD("accessibility_drop"), &Control::accessibility_drop);
+
 	ClassDB::bind_method(D_METHOD("set_mouse_filter", "filter"), &Control::set_mouse_filter);
 	ClassDB::bind_method(D_METHOD("get_mouse_filter"), &Control::get_mouse_filter);
 
@@ -3708,7 +3861,7 @@ void Control::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::NODE_PATH, "focus_neighbor_bottom", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Control"), "set_focus_neighbor", "get_focus_neighbor", SIDE_BOTTOM);
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "focus_next", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Control"), "set_focus_next", "get_focus_next");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "focus_previous", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Control"), "set_focus_previous", "get_focus_previous");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "focus_mode", PROPERTY_HINT_ENUM, "None,Click,All"), "set_focus_mode", "get_focus_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "focus_mode", PROPERTY_HINT_ENUM, "None,Click,All,Accessibility"), "set_focus_mode", "get_focus_mode");
 
 	ADD_GROUP("Mouse", "mouse_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "mouse_filter", PROPERTY_HINT_ENUM, "Stop,Pass (Propagate Up),Ignore"), "set_mouse_filter", "get_mouse_filter");
@@ -3725,6 +3878,7 @@ void Control::_bind_methods() {
 	BIND_ENUM_CONSTANT(FOCUS_NONE);
 	BIND_ENUM_CONSTANT(FOCUS_CLICK);
 	BIND_ENUM_CONSTANT(FOCUS_ALL);
+	BIND_ENUM_CONSTANT(FOCUS_ACCESSIBILITY);
 
 	BIND_CONSTANT(NOTIFICATION_RESIZED);
 	BIND_CONSTANT(NOTIFICATION_MOUSE_ENTER);
@@ -3830,6 +3984,8 @@ void Control::_bind_methods() {
 	GDVIRTUAL_BIND(_can_drop_data, "at_position", "data");
 	GDVIRTUAL_BIND(_drop_data, "at_position", "data");
 	GDVIRTUAL_BIND(_make_custom_tooltip, "for_text");
+
+	GDVIRTUAL_BIND(_accessibility_get_contextual_info);
 
 	GDVIRTUAL_BIND(_gui_input, "event");
 }

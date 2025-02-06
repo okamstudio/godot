@@ -224,6 +224,13 @@ void ScrollBar::gui_input(const Ref<InputEvent> &p_event) {
 
 void ScrollBar::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_SCROLL_BAR);
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			RID ci = get_canvas_item();
 
@@ -654,6 +661,8 @@ ScrollBar::ScrollBar(Orientation p_orientation) {
 
 	if (focus_by_default) {
 		set_focus_mode(FOCUS_ALL);
+	} else {
+		set_focus_mode(FOCUS_ACCESSIBILITY);
 	}
 	set_step(0);
 }

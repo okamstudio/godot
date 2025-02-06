@@ -122,6 +122,12 @@
 				Returns drop cap bounding box size.
 			</description>
 		</method>
+		<method name="get_inferred_direction" qualifiers="const">
+			<return type="int" enum="TextServer.Direction" />
+			<description>
+				Returns text writing direction inferred by BiDi algorithm.
+			</description>
+		</method>
 		<method name="get_line_ascent" qualifiers="const">
 			<return type="float" />
 			<param index="0" name="line" type="int" />
@@ -203,6 +209,12 @@
 			<return type="Vector2" />
 			<description>
 				Returns the size of the bounding box of the paragraph, without line breaks.
+			</description>
+		</method>
+		<method name="get_range" qualifiers="const">
+			<return type="Vector2i" />
+			<description>
+				Returns character range of the paragraph.
 			</description>
 		</method>
 		<method name="get_rid" qualifiers="const">

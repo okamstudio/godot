@@ -106,12 +106,12 @@ public:
 	};
 
 	enum DefaultFont {
-		NORMAL_FONT,
-		BOLD_FONT,
-		ITALICS_FONT,
-		BOLD_ITALICS_FONT,
-		MONO_FONT,
-		CUSTOM_FONT,
+		RTL_NORMAL_FONT,
+		RTL_BOLD_FONT,
+		RTL_ITALICS_FONT,
+		RTL_BOLD_ITALICS_FONT,
+		RTL_MONO_FONT,
+		RTL_CUSTOM_FONT,
 	};
 
 	enum ImageUpdateMask {
@@ -137,8 +137,11 @@ protected:
 	void _push_meta_bind_compat_99481(const Variant &p_meta, MetaUnderline p_underline_mode);
 	void _push_meta_bind_compat_89024(const Variant &p_meta);
 	void _add_image_bind_compat_80410(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region);
+	void _add_image_bind_compat_76829(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region, const Variant &p_key, bool p_pad, const String &p_tooltip, bool p_size_in_percent);
+	void _push_table_76829(int p_columns, InlineAlignment p_alignment, int p_align_to_row);
 	bool _remove_paragraph_bind_compat_91098(int p_paragraph);
 	void _set_table_column_expand_bind_compat_101482(int p_column, bool p_expand, int p_ratio);
+
 	static void _bind_compatibility_methods();
 #endif
 
@@ -151,6 +154,11 @@ private:
 		Ref<TextLine> text_prefix;
 		float prefix_width = 0;
 		Ref<TextParagraph> text_buf;
+
+		RID accessibility_line_element;
+		RID accessibility_text_element;
+
+		Item *dc_item = nullptr;
 		Color dc_color;
 		int dc_ol_size = 0;
 		Color dc_ol_color;
@@ -160,7 +168,16 @@ private:
 		int char_offset = 0;
 		int char_count = 0;
 
-		Line() { text_buf.instantiate(); }
+		Line() {
+			text_buf.instantiate();
+		}
+		~Line() {
+			if (accessibility_line_element.is_valid()) {
+				DisplayServer::get_singleton()->accessibility_free_element(accessibility_line_element);
+				accessibility_line_element = RID();
+				accessibility_text_element = RID();
+			}
+		}
 
 		_FORCE_INLINE_ float get_height(float line_separation) const {
 			return offset.y + text_buf->get_size().y + text_buf->get_line_count() * line_separation;
@@ -177,6 +194,8 @@ private:
 		ObjectID owner;
 		int line = 0;
 		RID rid;
+
+		RID accessibility_item_element;
 
 		void _clear_children() {
 			RichTextLabel *owner_rtl = Object::cast_to<RichTextLabel>(ObjectDB::get_instance(owner));
@@ -237,6 +256,7 @@ private:
 
 	struct ItemImage : public Item {
 		Ref<Texture2D> image;
+		String alt_text;
 		InlineAlignment inline_align = INLINE_ALIGNMENT_CENTER;
 		bool pad = false;
 		bool size_in_percent = false;
@@ -258,7 +278,7 @@ private:
 	};
 
 	struct ItemFont : public Item {
-		DefaultFont def_font = CUSTOM_FONT;
+		DefaultFont def_font = RTL_CUSTOM_FONT;
 		Ref<Font> font;
 		bool variation = false;
 		bool def_size = false;
@@ -341,6 +361,7 @@ private:
 
 	struct ItemTable : public Item {
 		struct Column {
+			String name;
 			bool expand = false;
 			bool shrink = true;
 			int expand_ratio = 0;
@@ -352,6 +373,7 @@ private:
 		LocalVector<Column> columns;
 		LocalVector<float> rows;
 		LocalVector<float> rows_baseline;
+		String name;
 
 		int align_to_row = -1;
 		int total_width = 0;
@@ -500,6 +522,9 @@ private:
 
 	Array custom_effects;
 
+	HashMap<RID, Rect2> ac_element_bounds_cache;
+
+	void _invalidate_accessibility();
 	void _invalidate_current_line(ItemFrame *p_frame);
 
 	void _thread_function(void *p_userdata);
@@ -549,6 +574,11 @@ private:
 	bool deselect_on_focus_loss_enabled = true;
 	bool drag_and_drop_selection_enabled = true;
 
+	ItemFrame *keyboard_focus_frame = nullptr;
+	int keyboard_focus_line = 0;
+	Item *keyboard_focus_item = nullptr;
+	bool keyboard_focus_on_text = true;
+
 	bool context_menu_enabled = false;
 	bool shortcut_keys_enabled = true;
 
@@ -577,6 +607,7 @@ private:
 	void _update_line_font(ItemFrame *p_frame, int p_line, const Ref<Font> &p_base_font, int p_base_font_size);
 	int _draw_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, float p_vsep, const Color &p_base_color, int p_outline_size, const Color &p_outline_color, const Color &p_font_shadow_color, int p_shadow_outline_size, const Point2 &p_shadow_ofs, int &r_processed_glyphs);
 	float _find_click_in_line(ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, float p_vsep, const Point2i &p_click, ItemFrame **r_click_frame = nullptr, int *r_click_line = nullptr, Item **r_click_item = nullptr, int *r_click_char = nullptr, bool p_table = false, bool p_meta = false);
+	void _accessibility_update_line(RID p_id, ItemFrame *p_frame, int p_line, const Vector2 &p_ofs, int p_width, float p_vsep);
 
 	String _roman(int p_num, bool p_capitalize) const;
 	String _letters(int p_num, bool p_capitalize) const;
@@ -643,6 +674,15 @@ private:
 	bool internal_stack_editing = false;
 	bool stack_externally_modified = false;
 
+	void _accessibility_action_menu(const Variant &p_data);
+	void _accessibility_scroll_down(const Variant &p_data);
+	void _accessibility_scroll_up(const Variant &p_data);
+	void _accessibility_scroll_set(const Variant &p_data);
+	void _accessibility_focus_item(const Variant &p_data, uint64_t p_item, bool p_line, bool p_foucs);
+	void _accessibility_scroll_to_item(const Variant &p_data, uint64_t p_item);
+
+	RID accessibility_scroll_element;
+
 	bool fit_content = false;
 
 	struct ThemeCache {
@@ -689,9 +729,12 @@ private:
 	} theme_cache;
 
 public:
+	virtual RID get_focused_accessibility_element() const override;
+	PackedStringArray get_accessibility_configuration_warnings() const override;
+
 	String get_parsed_text() const;
 	void add_text(const String &p_text);
-	void add_image(const Ref<Texture2D> &p_image, int p_width = 0, int p_height = 0, const Color &p_color = Color(1.0, 1.0, 1.0), InlineAlignment p_alignment = INLINE_ALIGNMENT_CENTER, const Rect2 &p_region = Rect2(), const Variant &p_key = Variant(), bool p_pad = false, const String &p_tooltip = String(), bool p_size_in_percent = false);
+	void add_image(const Ref<Texture2D> &p_image, int p_width = 0, int p_height = 0, const Color &p_color = Color(1.0, 1.0, 1.0), InlineAlignment p_alignment = INLINE_ALIGNMENT_CENTER, const Rect2 &p_region = Rect2(), const Variant &p_key = Variant(), bool p_pad = false, const String &p_tooltip = String(), bool p_size_in_percent = false, const String &p_alt_text = String());
 	void update_image(const Variant &p_key, BitField<ImageUpdateMask> p_mask, const Ref<Texture2D> &p_image, int p_width = 0, int p_height = 0, const Color &p_color = Color(1.0, 1.0, 1.0), InlineAlignment p_alignment = INLINE_ALIGNMENT_CENTER, const Rect2 &p_region = Rect2(), bool p_pad = false, const String &p_tooltip = String(), bool p_size_in_percent = false);
 	void add_newline();
 	bool remove_paragraph(int p_paragraph, bool p_no_invalidate = false);
@@ -717,7 +760,7 @@ public:
 	void push_list(int p_level, ListType p_list, bool p_capitalize, const String &p_bullet = String::utf8("•"));
 	void push_meta(const Variant &p_meta, MetaUnderline p_underline_mode = META_UNDERLINE_ALWAYS, const String &p_tooltip = String());
 	void push_hint(const String &p_string);
-	void push_table(int p_columns, InlineAlignment p_alignment = INLINE_ALIGNMENT_TOP, int p_align_to_row = -1);
+	void push_table(int p_columns, InlineAlignment p_alignment = INLINE_ALIGNMENT_TOP, int p_align_to_row = -1, const String &p_name = String());
 	void push_fade(int p_start_index, int p_length);
 	void push_shake(int p_strength, float p_rate, bool p_connected);
 	void push_wave(float p_frequency, float p_amplitude, bool p_connected);
@@ -729,6 +772,7 @@ public:
 	void push_customfx(Ref<RichTextEffect> p_custom_effect, Dictionary p_environment);
 	void push_context();
 	void set_table_column_expand(int p_column, bool p_expand, int p_ratio = 1, bool p_shrink = true);
+	void set_table_column_name(int p_column, const String &p_name);
 	void set_cell_row_background_color(const Color &p_odd_row_bg, const Color &p_even_row_bg);
 	void set_cell_border_color(const Color &p_color);
 	void set_cell_size_override(const Size2 &p_min_size, const Size2 &p_max_size);

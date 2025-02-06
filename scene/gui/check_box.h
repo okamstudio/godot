@@ -58,7 +58,7 @@ protected:
 	void _notification(int p_what);
 	static void _bind_methods();
 
-	bool is_radio();
+	bool is_radio() const;
 
 public:
 	CheckBox(const String &p_text = String());

@@ -24,6 +24,12 @@
 		<link title="All GUI Demos">https://github.com/godotengine/godot-demo-projects/tree/master/gui</link>
 	</tutorials>
 	<methods>
+		<method name="_accessibility_get_contextual_info" qualifiers="virtual const">
+			<return type="String" />
+			<description>
+				Returns description of the keyboard shortcuts and other contextual help for this control.
+			</description>
+		</method>
 		<method name="_can_drop_data" qualifiers="virtual const">
 			<return type="bool" />
 			<param index="0" name="at_position" type="Vector2" />
@@ -31,6 +37,7 @@
 			<description>
 				Godot calls this method to test if [param data] from a control's [method _get_drag_data] can be dropped at [param at_position]. [param at_position] is local to this control.
 				This method should only be used to test the data. Process the data in [method _drop_data].
+				[b]Note:[/b] If drag was initiated by keyboard shortcut or [method accessibility_drag], [param at_position] is set to [code]Vector2(INFINITY, INFINITY)[/code] and currently selected item/text position should be used as drop position.
 				[codeblocks]
 				[gdscript]
 				func _can_drop_data(position, data):
@@ -55,6 +62,7 @@
 			<param index="1" name="data" type="Variant" />
 			<description>
 				Godot calls this method to pass you the [param data] from a control's [method _get_drag_data] result. Godot first calls [method _can_drop_data] to test if [param data] is allowed to drop at [param at_position] where [param at_position] is local to this control.
+				[b]Note:[/b] If drag was initiated by keyboard shortcut or [method accessibility_drag], [param at_position] is set to [code]Vector2(INFINITY, INFINITY)[/code] and currently selected item/text position should be used as drop position.
 				[codeblocks]
 				[gdscript]
 				func _can_drop_data(position, data):
@@ -83,6 +91,7 @@
 			<description>
 				Godot calls this method to get data that can be dragged and dropped onto controls that expect drop data. Returns [code]null[/code] if there is no data to drag. Controls that want to receive drop data should implement [method _can_drop_data] and [method _drop_data]. [param at_position] is local to this control. Drag may be forced with [method force_drag].
 				A preview that will follow the mouse that should represent the data can be set with [method set_drag_preview]. A good time to set the preview is in this method.
+				[b]Note:[/b] If drag was initiated by keyboard shortcut or [method accessibility_drag], [param at_position] is set to [code]Vector2(INFINITY, INFINITY)[/code] and currently selected item/text position should be used as drop position.
 				[codeblocks]
 				[gdscript]
 				func _get_drag_data(position):
@@ -221,6 +230,18 @@
 			<description>
 				Marks an input event as handled. Once you accept an input event, it stops propagating, even to nodes listening to [method Node._unhandled_input] or [method Node._unhandled_key_input].
 				[b]Note:[/b] This does not affect the methods in [Input], only the way events are propagated.
+			</description>
+		</method>
+		<method name="accessibility_drag">
+			<return type="void" />
+			<description>
+				Starts drag-and-drop operation.
+			</description>
+		</method>
+		<method name="accessibility_drop">
+			<return type="void" />
+			<description>
+				Ends drag-and-drop operation.
 			</description>
 		</method>
 		<method name="add_theme_color_override">
@@ -1155,6 +1176,9 @@
 		</constant>
 		<constant name="FOCUS_ALL" value="2" enum="FocusMode">
 			The node can grab focus on mouse click, using the arrows and the Tab keys on the keyboard, or using the D-pad buttons on a gamepad. Use with [member focus_mode].
+		</constant>
+		<constant name="FOCUS_ACCESSIBILITY" value="3" enum="FocusMode">
+			The node can grab focus only when screen reader is active. Use with [member focus_mode].
 		</constant>
 		<constant name="NOTIFICATION_RESIZED" value="40">
 			Sent when the node changes size. Use [member size] to get the new size.

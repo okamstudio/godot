@@ -11,6 +11,7 @@ common_linuxbsd = [
     "joypad_linux.cpp",
     "freedesktop_portal_desktop.cpp",
     "freedesktop_screensaver.cpp",
+    "freedesktop_at_spi_monitor.cpp",
 ]
 
 if env["use_sowrap"]:

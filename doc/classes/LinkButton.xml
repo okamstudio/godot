@@ -10,7 +10,7 @@
 	<tutorials>
 	</tutorials>
 	<members>
-		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="0" />
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="language" type="String" setter="set_language" getter="get_language" default="&quot;&quot;">
 			Language code used for line-breaking and text shaping algorithms, if left empty current locale is used instead.
 		</member>

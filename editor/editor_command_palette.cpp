@@ -344,6 +344,7 @@ EditorCommandPalette::EditorCommandPalette() {
 
 	command_search_box = memnew(LineEdit);
 	command_search_box->set_placeholder(TTR("Filter Commands"));
+	command_search_box->set_accessibility_name(TTR("Filter Commands"));
 	command_search_box->connect(SceneStringName(gui_input), callable_mp(this, &EditorCommandPalette::_sbox_input));
 	command_search_box->connect(SceneStringName(text_changed), callable_mp(this, &EditorCommandPalette::_update_command_search));
 	command_search_box->set_v_size_flags(Control::SIZE_EXPAND_FILL);

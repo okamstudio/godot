@@ -1200,6 +1200,69 @@
 				[b]Note:[/b] This function is used by during project export, to include TextServer database.
 			</description>
 		</method>
+		<method name="shaped_get_run_count" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="shaped" type="RID" />
+			<description>
+				Returns number of uniform text runs in the buffer.
+			</description>
+		</method>
+		<method name="shaped_get_run_direction" qualifiers="const">
+			<return type="int" enum="TextServer.Direction" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns direction of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_font_rid" qualifiers="const">
+			<return type="RID" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns font RID of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_font_size" qualifiers="const">
+			<return type="int" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns font size of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_language" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns language of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_object" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns embedded object of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_range" qualifiers="const">
+			<return type="Vector2i" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns source text range of the [param index] text run (in visual order).
+			</description>
+		</method>
+		<method name="shaped_get_run_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns source text of the [param index] text run (in visual order).
+			</description>
+		</method>
 		<method name="shaped_get_span_count" qualifiers="const">
 			<return type="int" />
 			<param index="0" name="shaped" type="RID" />
@@ -1221,6 +1284,29 @@
 			<param index="1" name="index" type="int" />
 			<description>
 				Returns text span metadata.
+			</description>
+		</method>
+		<method name="shaped_get_span_object" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns text span embedded object key.
+			</description>
+		</method>
+		<method name="shaped_get_span_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<param index="1" name="index" type="int" />
+			<description>
+				Returns text span source text.
+			</description>
+		</method>
+		<method name="shaped_get_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="shaped" type="RID" />
+			<description>
+				Returns text buffer source text, including object replacement characters.
 			</description>
 		</method>
 		<method name="shaped_set_span_update_font">

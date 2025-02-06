@@ -77,6 +77,12 @@ PackedStringArray SceneTreeEditor::_get_node_configuration_warnings(Node *p_node
 	return warnings;
 }
 
+PackedStringArray SceneTreeEditor::_get_node_accessibility_configuration_warnings(Node *p_node) {
+	PackedStringArray warnings = p_node->get_accessibility_configuration_warnings();
+
+	return warnings;
+}
+
 void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_id, MouseButton p_button) {
 	if (p_button != MouseButton::LEFT) {
 		return;
@@ -151,8 +157,10 @@ void SceneTreeEditor::_cell_button_pressed(Object *p_item, int p_column, int p_i
 		}
 		undo_redo->commit_action();
 	} else if (p_id == BUTTON_WARNING) {
-		const PackedStringArray warnings = _get_node_configuration_warnings(n);
-
+		PackedStringArray warnings = _get_node_configuration_warnings(n);
+		if (accessibility_warnings) {
+			warnings.append_array(_get_node_accessibility_configuration_warnings(n));
+		}
 		if (warnings.is_empty()) {
 			return;
 		}
@@ -473,7 +481,11 @@ void SceneTreeEditor::_update_node(Node *p_node, TreeItem *p_item, bool p_part_o
 	}
 
 	if (can_rename) { // TODO Should be can edit..
-		const PackedStringArray warnings = _get_node_configuration_warnings(p_node);
+		PackedStringArray warnings = _get_node_configuration_warnings(p_node);
+		if (accessibility_warnings) {
+			warnings.append_array(_get_node_accessibility_configuration_warnings(p_node));
+		}
+
 		const int num_warnings = warnings.size();
 		if (num_warnings > 0) {
 			StringName warning_icon;
@@ -1844,12 +1856,12 @@ bool SceneTreeEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_d
 		return false;
 	}
 
-	TreeItem *item = tree->get_item_at_position(p_point);
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? tree->get_selected() : tree->get_item_at_position(p_point);
 	if (!item) {
 		return false;
 	}
 
-	int section = tree->get_drop_section_at_position(p_point);
+	int section = (p_point == Vector2(INFINITY, INFINITY)) ? tree->get_drop_section_at_position(tree->get_item_rect(item).position) : tree->get_drop_section_at_position(p_point);
 	if (section < -1 || (section == -1 && !item->get_parent())) {
 		return false;
 	}
@@ -1933,11 +1945,11 @@ void SceneTreeEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data,
 		return;
 	}
 
-	TreeItem *item = tree->get_item_at_position(p_point);
+	TreeItem *item = (p_point == Vector2(INFINITY, INFINITY)) ? tree->get_selected() : tree->get_item_at_position(p_point);
 	if (!item) {
 		return;
 	}
-	int section = tree->get_drop_section_at_position(p_point);
+	int section = (p_point == Vector2(INFINITY, INFINITY)) ? tree->get_drop_section_at_position(tree->get_item_rect(item).position) : tree->get_drop_section_at_position(p_point);
 	if (section < -1) {
 		return;
 	}
@@ -2025,6 +2037,13 @@ void SceneTreeEditor::set_hide_filtered_out_parents(bool p_hide, bool p_update_s
 		node_cache.force_update = true;
 		_update_tree();
 	}
+}
+
+void SceneTreeEditor::set_accessibility_warnings(bool p_enable, bool p_update_settings) {
+	if (p_update_settings) {
+		EditorSettings::get_singleton()->set("docks/scene_tree/accessibility_warnings", p_enable);
+	}
+	accessibility_warnings = p_enable;
 }
 
 void SceneTreeEditor::set_connect_to_script_mode(bool p_enable) {

@@ -48,6 +48,8 @@ void Window::set_root_layout_direction(int p_root_dir) {
 
 // Dynamic properties.
 
+Window *Window::focused_window = nullptr;
+
 bool Window::_set(const StringName &p_name, const Variant &p_value) {
 	ERR_MAIN_THREAD_GUARD_V(false);
 	String name = p_name;
@@ -315,6 +317,7 @@ void Window::set_title(const String &p_title) {
 		EngineDebugger::get_singleton()->send_message("window:title", arr);
 	}
 #endif
+	queue_accessibility_update();
 }
 
 String Window::get_title() const {
@@ -688,6 +691,11 @@ void Window::_make_window() {
 		}
 	}
 
+	if (get_tree() && get_tree()->is_accessibility_supported()) {
+		get_tree()->_accessibility_force_update();
+		_accessibility_notify_enter(this);
+	}
+
 	_update_window_callbacks();
 
 	RS::get_singleton()->viewport_set_update_mode(get_viewport_rid(), RS::VIEWPORT_UPDATE_WHEN_VISIBLE);
@@ -718,6 +726,10 @@ void Window::_clear_window() {
 	}
 
 	_update_from_window();
+
+	if (get_tree() && get_tree()->is_accessibility_supported()) {
+		_accessibility_notify_exit(this);
+	}
 
 	DisplayServer::get_singleton()->delete_sub_window(window_id);
 	window_id = DisplayServer::INVALID_WINDOW_ID;
@@ -750,6 +762,14 @@ void Window::_rect_changed_callback(const Rect2i &p_callback) {
 		size = p_callback.size;
 		_update_viewport_size();
 	}
+	if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		Vector2 sz_out = DisplayServer::get_singleton()->window_get_size_with_decorations(window_id);
+		Vector2 pos_out = DisplayServer::get_singleton()->window_get_position_with_decorations(window_id);
+		Vector2 sz_in = DisplayServer::get_singleton()->window_get_size(window_id);
+		Vector2 pos_in = DisplayServer::get_singleton()->window_get_position(window_id);
+		DisplayServer::get_singleton()->accessibility_set_window_rect(window_id, Rect2(pos_out, sz_out), Rect2(pos_in, sz_in));
+	}
+	queue_accessibility_update();
 }
 
 void Window::_propagate_window_notification(Node *p_node, int p_notification) {
@@ -808,12 +828,15 @@ void Window::_event_callback(DisplayServer::WindowEvent p_event) {
 		} break;
 		case DisplayServer::WINDOW_EVENT_FOCUS_IN: {
 			focused = true;
+			focused_window = this;
 			_propagate_window_notification(this, NOTIFICATION_WM_WINDOW_FOCUS_IN);
 			emit_signal(SceneStringName(focus_entered));
-
 		} break;
 		case DisplayServer::WINDOW_EVENT_FOCUS_OUT: {
 			focused = false;
+			if (focused_window == this) {
+				focused_window = nullptr;
+			}
 			_propagate_window_notification(this, NOTIFICATION_WM_WINDOW_FOCUS_OUT);
 			emit_signal(SceneStringName(focus_exited));
 		} break;
@@ -866,6 +889,36 @@ void Window::hide() {
 	set_visible(false);
 }
 
+void Window::_accessibility_notify_enter(Node *p_node) {
+	p_node->queue_accessibility_update();
+
+	if (p_node != this) {
+		const Window *window = Object::cast_to<Window>(p_node);
+		if (window && !window->is_embedded()) {
+			return;
+		}
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_accessibility_notify_enter(p_node->get_child(i));
+	}
+}
+
+void Window::_accessibility_notify_exit(Node *p_node) {
+	p_node->notification(Node::NOTIFICATION_ACCESSIBILITY_INVALIDATE);
+
+	if (p_node != this) {
+		const Window *window = Object::cast_to<Window>(p_node);
+		if (window && !window->is_embedded()) {
+			return;
+		}
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_accessibility_notify_exit(p_node->get_child(i));
+	}
+}
+
 void Window::set_visible(bool p_visible) {
 	ERR_MAIN_THREAD_GUARD;
 	if (visible == p_visible) {
@@ -905,9 +958,11 @@ void Window::set_visible(bool p_visible) {
 				}
 			}
 			embedder->_sub_window_register(this);
+			embedder->queue_accessibility_update();
 			RS::get_singleton()->viewport_set_update_mode(get_viewport_rid(), RS::VIEWPORT_UPDATE_WHEN_PARENT_VISIBLE);
 		} else {
 			embedder->_sub_window_remove(this);
+			embedder->queue_accessibility_update();
 			embedder = nullptr;
 			RS::get_singleton()->viewport_set_update_mode(get_viewport_rid(), RS::VIEWPORT_UPDATE_DISABLED);
 		}
@@ -916,7 +971,11 @@ void Window::set_visible(bool p_visible) {
 
 	if (!visible) {
 		focused = false;
+		if (focused_window == this) {
+			focused_window = nullptr;
+		}
 	}
+
 	notification(NOTIFICATION_VISIBILITY_CHANGED);
 	emit_signal(SceneStringName(visibility_changed));
 
@@ -1330,9 +1389,66 @@ Viewport *Window::get_embedder() const {
 	return nullptr;
 }
 
+RID Window::get_accessibility_element() const {
+	if (get_embedder()) {
+		return Node::get_accessibility_element();
+	} else if (window_id != DisplayServer::INVALID_WINDOW_ID) {
+		return DisplayServer::get_singleton()->accessibility_get_window_root(window_id);
+	} else {
+		return RID();
+	}
+}
+
 void Window::_notification(int p_what) {
 	ERR_MAIN_THREAD_GUARD;
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_INVALIDATE: {
+			accessibility_title_element = RID();
+			accessibility_announcement_element = RID();
+		} break;
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_WINDOW);
+			DisplayServer::get_singleton()->accessibility_update_set_name(ae, title);
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_MODAL, exclusive);
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_FOCUS, callable_mp(this, &Window::_accessibility_action_grab_focus));
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_HIDDEN, !visible);
+
+			if (get_embedder()) {
+				Control *parent_ctrl = Object::cast_to<Control>(get_parent());
+				Transform2D parent_tr = parent_ctrl ? parent_ctrl->get_global_transform() : Transform2D();
+				Transform2D tr;
+				tr.set_origin(position);
+				DisplayServer::get_singleton()->accessibility_update_set_transform(ae, parent_tr.affine_inverse() * tr);
+				DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, Rect2(Point2(), size));
+
+				if (accessibility_title_element.is_null()) {
+					accessibility_title_element = DisplayServer::get_singleton()->accessibility_create_sub_element(ae, DisplayServer::AccessibilityRole::ROLE_TITLE_BAR);
+				}
+
+				int w = get_theme_constant(SNAME("title_height"));
+				DisplayServer::get_singleton()->accessibility_update_set_name(accessibility_title_element, atr(title));
+				DisplayServer::get_singleton()->accessibility_update_set_bounds(accessibility_title_element, Rect2(Vector2(0, -w), Size2(size.x, w)));
+			} else {
+				DisplayServer::get_singleton()->accessibility_update_set_transform(ae, Transform2D());
+				DisplayServer::get_singleton()->accessibility_update_set_bounds(ae, Rect2(Point2(), size));
+
+				if (accessibility_announcement_element.is_null()) {
+					accessibility_announcement_element = DisplayServer::get_singleton()->accessibility_create_sub_element(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+				}
+
+				if (announcement.is_empty()) {
+					DisplayServer::get_singleton()->accessibility_update_set_live(accessibility_announcement_element, DisplayServer::LIVE_OFF);
+				} else {
+					DisplayServer::get_singleton()->accessibility_update_set_name(accessibility_announcement_element, announcement);
+					DisplayServer::get_singleton()->accessibility_update_set_live(accessibility_announcement_element, DisplayServer::LIVE_ASSERTIVE);
+				}
+			}
+		} break;
+
 		case NOTIFICATION_POSTINITIALIZE: {
 			initialized = true;
 
@@ -1387,6 +1503,7 @@ void Window::_notification(int p_what) {
 					// It's the root window!
 					visible = true; // Always visible.
 					window_id = DisplayServer::MAIN_WINDOW_ID;
+					focused_window = this;
 					DisplayServer::get_singleton()->window_attach_instance_id(get_instance_id(), window_id);
 					_update_from_window();
 					// Since this window already exists (created on start), we must update pos and size from it.
@@ -1465,6 +1582,7 @@ void Window::_notification(int p_what) {
 					}
 				}
 			}
+			queue_accessibility_update();
 		} break;
 
 		case NOTIFICATION_VISIBILITY_CHANGED: {
@@ -1482,6 +1600,9 @@ void Window::_notification(int p_what) {
 			}
 
 			set_theme_context(nullptr, false);
+
+			accessibility_title_element = RID();
+			accessibility_announcement_element = RID();
 
 			if (transient) {
 				_clear_transient();
@@ -1602,7 +1723,12 @@ bool Window::is_using_font_oversampling() const {
 
 DisplayServer::WindowID Window::get_window_id() const {
 	ERR_READ_THREAD_GUARD_V(DisplayServer::INVALID_WINDOW_ID);
-	if (embedder) {
+	if (get_embedder()) {
+#ifdef TOOLS_ENABLED
+		if (is_part_of_edited_scene()) {
+			return DisplayServer::MAIN_WINDOW_ID;
+		}
+#endif
 		return parent->get_window_id();
 	}
 	return window_id;
@@ -2069,6 +2195,11 @@ Rect2i Window::get_usable_parent_rect() const {
 		parent_rect = DisplayServer::get_singleton()->screen_get_usable_rect(DisplayServer::get_singleton()->window_get_current_screen(w->get_window_id()));
 	}
 	return parent_rect;
+}
+
+void Window::accessibility_announcement(const String &p_announcement) {
+	announcement = p_announcement;
+	queue_accessibility_update();
 }
 
 void Window::add_child_notify(Node *p_child) {
@@ -2885,8 +3016,6 @@ void Window::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_title", "title"), &Window::set_title);
 	ClassDB::bind_method(D_METHOD("get_title"), &Window::get_title);
 
-	ClassDB::bind_method(D_METHOD("get_window_id"), &Window::get_window_id);
-
 	ClassDB::bind_method(D_METHOD("set_initial_position", "initial_position"), &Window::set_initial_position);
 	ClassDB::bind_method(D_METHOD("get_initial_position"), &Window::get_initial_position);
 
@@ -3033,6 +3162,10 @@ void Window::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_theme_default_base_scale"), &Window::get_theme_default_base_scale);
 	ClassDB::bind_method(D_METHOD("get_theme_default_font"), &Window::get_theme_default_font);
 	ClassDB::bind_method(D_METHOD("get_theme_default_font_size"), &Window::get_theme_default_font_size);
+
+	ClassDB::bind_method(D_METHOD("get_window_id"), &Window::get_window_id);
+
+	ClassDB::bind_static_method("Window", D_METHOD("get_focused_window"), &Window::get_focused_window);
 
 	ClassDB::bind_method(D_METHOD("set_layout_direction", "direction"), &Window::set_layout_direction);
 	ClassDB::bind_method(D_METHOD("get_layout_direction"), &Window::get_layout_direction);
@@ -3204,6 +3337,9 @@ Window::Window() {
 }
 
 Window::~Window() {
+	if (focused_window == this) {
+		focused_window = nullptr;
+	}
 	memdelete(theme_owner);
 
 	// Resources need to be disconnected.

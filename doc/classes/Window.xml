@@ -108,6 +108,12 @@
 				Returns [code]true[/code] if the [param flag] is set.
 			</description>
 		</method>
+		<method name="get_focused_window" qualifiers="static">
+			<return type="Window" />
+			<description>
+				Returns foused window.
+			</description>
+		</method>
 		<method name="get_layout_direction" qualifiers="const">
 			<return type="int" enum="Window.LayoutDirection" />
 			<description>

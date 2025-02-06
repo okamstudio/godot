@@ -2010,6 +2010,7 @@ void EditorFileDialog::_update_option_controls() {
 	for (const EditorFileDialog::Option &opt : options) {
 		if (opt.values.is_empty()) {
 			CheckBox *cb = memnew(CheckBox);
+			cb->set_accessibility_name(opt.name);
 			cb->set_pressed(opt.default_idx);
 			cb->set_text(opt.name);
 			flow_checkbox_options->add_child(cb);
@@ -2018,12 +2019,14 @@ void EditorFileDialog::_update_option_controls() {
 		} else {
 			Label *lbl = memnew(Label);
 			lbl->set_text(opt.name);
+			lbl->set_focus_mode(Control::FOCUS_NONE);
 			grid_select_options->add_child(lbl);
 
 			OptionButton *ob = memnew(OptionButton);
 			for (const String &val : opt.values) {
 				ob->add_item(val);
 			}
+			ob->set_accessibility_name(opt.name);
 			ob->select(opt.default_idx);
 			grid_select_options->add_child(ob);
 			ob->connect(SceneStringName(item_selected), callable_mp(this, &EditorFileDialog::_option_changed_item_selected).bind(opt.name));
@@ -2363,12 +2366,15 @@ EditorFileDialog::EditorFileDialog() {
 
 	dir_prev = memnew(Button);
 	dir_prev->set_theme_type_variation(SceneStringName(FlatButton));
+	dir_prev->set_accessibility_name(TTR("Go to previous folder."));
 	dir_prev->set_tooltip_text(TTR("Go to previous folder."));
 	dir_next = memnew(Button);
 	dir_next->set_theme_type_variation(SceneStringName(FlatButton));
+	dir_next->set_accessibility_name(TTR("Go to next folder."));
 	dir_next->set_tooltip_text(TTR("Go to next folder."));
 	dir_up = memnew(Button);
 	dir_up->set_theme_type_variation(SceneStringName(FlatButton));
+	dir_up->set_accessibility_name(TTR("Go to parent folder."));
 	dir_up->set_tooltip_text(TTR("Go to parent folder."));
 
 	pathhb->add_child(dir_prev);
@@ -2380,6 +2386,7 @@ EditorFileDialog::EditorFileDialog() {
 	dir_up->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::_go_up));
 
 	Label *l = memnew(Label(TTR("Path:")));
+	l->set_focus_mode(Control::FOCUS_NONE);
 	l->set_theme_type_variation("HeaderSmall");
 	pathhb->add_child(l);
 
@@ -2388,10 +2395,12 @@ EditorFileDialog::EditorFileDialog() {
 
 	dir = memnew(LineEdit);
 	dir->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
+	dir->set_accessibility_name(TTR("Directory path"));
 	pathhb->add_child(dir);
 
 	refresh = memnew(Button);
 	refresh->set_theme_type_variation(SceneStringName(FlatButton));
+	refresh->set_accessibility_name(TTR("Refresh files."));
 	refresh->set_tooltip_text(TTR("Refresh files."));
 	refresh->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::update_file_list));
 	pathhb->add_child(refresh);
@@ -2399,6 +2408,7 @@ EditorFileDialog::EditorFileDialog() {
 	favorite = memnew(Button);
 	favorite->set_theme_type_variation(SceneStringName(FlatButton));
 	favorite->set_toggle_mode(true);
+	favorite->set_accessibility_name(TTR("(Un)favorite current folder."));
 	favorite->set_tooltip_text(TTR("(Un)favorite current folder."));
 	favorite->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::_favorite_pressed));
 	pathhb->add_child(favorite);
@@ -2408,6 +2418,7 @@ EditorFileDialog::EditorFileDialog() {
 
 	drives = memnew(OptionButton);
 	drives->connect(SceneStringName(item_selected), callable_mp(this, &EditorFileDialog::_select_drive));
+	drives->set_accessibility_name(TTR("Current drive"));
 	pathhb->add_child(drives);
 
 	makedir_sep = memnew(VSeparator);
@@ -2415,6 +2426,7 @@ EditorFileDialog::EditorFileDialog() {
 
 	makedir = memnew(Button);
 	makedir->set_theme_type_variation(SceneStringName(FlatButton));
+	makedir->set_accessibility_name(TTR("Create a new folder."));
 	makedir->set_tooltip_text(TTR("Create a new folder."));
 	makedir->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::_make_dir));
 	pathhb->add_child(makedir);
@@ -2450,16 +2462,19 @@ EditorFileDialog::EditorFileDialog() {
 	fav_vb->add_child(fav_hb);
 
 	l = memnew(Label(TTR("Favorites:")));
+	l->set_focus_mode(Control::FOCUS_NONE);
 	l->set_theme_type_variation("HeaderSmall");
 	fav_hb->add_child(l);
 
 	fav_hb->add_spacer();
 	fav_up = memnew(Button);
 	fav_up->set_theme_type_variation(SceneStringName(FlatButton));
+	fav_up->set_accessibility_name(TTR("Move favorite up."));
 	fav_hb->add_child(fav_up);
 	fav_up->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::_favorite_move_up));
 	fav_down = memnew(Button);
-	fav_down->set_theme_type_variation(SceneStringName(FlatButton));
+	fav_down->set_theme_type_variation("FlatButton");
+	fav_down->set_accessibility_name(TTR("Move favorite down."));
 	fav_hb->add_child(fav_down);
 	fav_down->connect(SceneStringName(pressed), callable_mp(this, &EditorFileDialog::_favorite_move_down));
 
@@ -2468,6 +2483,7 @@ EditorFileDialog::EditorFileDialog() {
 	fav_vb->add_child(favorites);
 	favorites->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	favorites->set_theme_type_variation("ItemListSecondary");
+	favorites->set_accessibility_name(TTR("Favorites"));
 	favorites->connect(SceneStringName(item_selected), callable_mp(this, &EditorFileDialog::_favorite_selected));
 
 	VBoxContainer *rec_vb = memnew(VBoxContainer);
@@ -2478,6 +2494,7 @@ EditorFileDialog::EditorFileDialog() {
 	recent->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	recent->set_allow_reselect(true);
 	recent->set_theme_type_variation("ItemListSecondary");
+	recent->set_accessibility_name(TTR("Recent"));
 	rec_vb->add_margin_child(TTR("Recent:"), recent, true);
 	recent->connect(SceneStringName(item_selected), callable_mp(this, &EditorFileDialog::_recent_selected));
 
@@ -2496,6 +2513,7 @@ EditorFileDialog::EditorFileDialog() {
 	lower_hb->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 
 	l = memnew(Label(TTR("Directories & Files:")));
+	l->set_focus_mode(Control::FOCUS_NONE);
 	l->set_theme_type_variation("HeaderSmall");
 	l->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 
@@ -2505,6 +2523,7 @@ EditorFileDialog::EditorFileDialog() {
 	show_hidden->set_theme_type_variation(SceneStringName(FlatButton));
 	show_hidden->set_toggle_mode(true);
 	show_hidden->set_pressed(is_showing_hidden_files());
+	show_hidden->set_accessibility_name(TTR("Toggle the visibility of hidden files."));
 	show_hidden->set_tooltip_text(TTR("Toggle the visibility of hidden files."));
 	show_hidden->connect(SceneStringName(toggled), callable_mp(this, &EditorFileDialog::set_show_hidden_files));
 	lower_hb->add_child(show_hidden);
@@ -2520,6 +2539,7 @@ EditorFileDialog::EditorFileDialog() {
 	mode_thumbnails->set_toggle_mode(true);
 	mode_thumbnails->set_pressed(display_mode == DISPLAY_THUMBNAILS);
 	mode_thumbnails->set_button_group(view_mode_group);
+	mode_thumbnails->set_accessibility_name(TTR("View items as a grid of thumbnails."));
 	mode_thumbnails->set_tooltip_text(TTR("View items as a grid of thumbnails."));
 	lower_hb->add_child(mode_thumbnails);
 
@@ -2529,6 +2549,7 @@ EditorFileDialog::EditorFileDialog() {
 	mode_list->set_toggle_mode(true);
 	mode_list->set_pressed(display_mode == DISPLAY_LIST);
 	mode_list->set_button_group(view_mode_group);
+	mode_list->set_accessibility_name(TTR("View items as a list."));
 	mode_list->set_tooltip_text(TTR("View items as a list."));
 	lower_hb->add_child(mode_list);
 
@@ -2538,6 +2559,7 @@ EditorFileDialog::EditorFileDialog() {
 	file_sort_button->set_flat(false);
 	file_sort_button->set_theme_type_variation("FlatMenuButton");
 	file_sort_button->set_tooltip_text(TTR("Sort files"));
+	file_sort_button->set_accessibility_name(TTR("Sort files"));
 
 	show_search_filter_button = memnew(Button);
 	show_search_filter_button->set_theme_type_variation(SceneStringName(FlatButton));
@@ -2569,6 +2591,7 @@ EditorFileDialog::EditorFileDialog() {
 	item_list->connect("item_clicked", callable_mp(this, &EditorFileDialog::_item_list_item_rmb_clicked));
 	item_list->connect("empty_clicked", callable_mp(this, &EditorFileDialog::_item_list_empty_clicked));
 	item_list->set_allow_rmb_select(true);
+	item_list->set_accessibility_name(TTR("Directories & Files"));
 
 	list_vb->add_child(item_list);
 
@@ -2591,6 +2614,7 @@ EditorFileDialog::EditorFileDialog() {
 	filter_box = memnew(LineEdit);
 	filter_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	filter_box->set_placeholder(TTR("Filter"));
+	filter_box->set_accessibility_name(TTR("Filename filter"));
 	filter_hb->add_child(filter_box);
 	filter_hb->set_visible(false);
 	item_vb->add_child(filter_hb);
@@ -2598,6 +2622,7 @@ EditorFileDialog::EditorFileDialog() {
 	file_box = memnew(HBoxContainer);
 
 	l = memnew(Label(TTR("File:")));
+	l->set_focus_mode(Control::FOCUS_NONE);
 	l->set_theme_type_variation("HeaderSmall");
 	file_box->add_child(l);
 
@@ -2605,11 +2630,13 @@ EditorFileDialog::EditorFileDialog() {
 	file->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
 	file->set_stretch_ratio(4);
 	file->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	file->set_accessibility_name(TTR("File name"));
 	file_box->add_child(file);
 	filter = memnew(OptionButton);
 	filter->set_stretch_ratio(3);
 	filter->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	filter->set_clip_text(true); // Too many extensions overflow it.
+	filter->set_accessibility_name(TTR("File type filter"));
 	file_box->add_child(filter);
 	file_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	item_vb->add_child(file_box);

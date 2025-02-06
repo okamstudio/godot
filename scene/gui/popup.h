@@ -41,6 +41,7 @@ class Popup : public Window {
 	GDCLASS(Popup, Window);
 
 	LocalVector<Window *> visible_parents;
+	bool ac_popup = false;
 	bool popped_up = false;
 
 public:
@@ -60,6 +61,7 @@ protected:
 	void _close_pressed();
 	virtual Rect2i _popup_adjust_rect() const override;
 	virtual void _input_from_window(const Ref<InputEvent> &p_event) override;
+	void set_ac_popup() { ac_popup = true; }
 
 	void _notification(int p_what);
 	void _validate_property(PropertyInfo &p_property) const;

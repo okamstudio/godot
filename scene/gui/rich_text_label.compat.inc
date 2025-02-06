@@ -51,7 +51,15 @@ void RichTextLabel::_push_meta_bind_compat_89024(const Variant &p_meta) {
 }
 
 void RichTextLabel::_add_image_bind_compat_80410(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region) {
-	add_image(p_image, p_width, p_height, p_color, p_alignment, p_region, Variant(), false, String(), false);
+	add_image(p_image, p_width, p_height, p_color, p_alignment, p_region, Variant(), false, String(), false, String());
+}
+
+void RichTextLabel::_add_image_bind_compat_76829(const Ref<Texture2D> &p_image, const int p_width, const int p_height, const Color &p_color, InlineAlignment p_alignment, const Rect2 &p_region, const Variant &p_key, bool p_pad, const String &p_tooltip, bool p_size_in_percent) {
+	add_image(p_image, p_width, p_height, p_color, p_alignment, p_region, p_key, p_pad, p_tooltip, p_size_in_percent, String());
+}
+
+void RichTextLabel::_push_table_76829(int p_columns, InlineAlignment p_alignment, int p_align_to_row) {
+	push_table(p_columns, p_alignment, p_align_to_row, String());
 }
 
 bool RichTextLabel::_remove_paragraph_bind_compat_91098(int p_paragraph) {
@@ -65,6 +73,8 @@ void RichTextLabel::_bind_compatibility_methods() {
 	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data", "underline_mode"), &RichTextLabel::_push_meta_bind_compat_99481, DEFVAL(META_UNDERLINE_ALWAYS));
 	ClassDB::bind_compatibility_method(D_METHOD("push_meta", "data"), &RichTextLabel::_push_meta_bind_compat_89024);
 	ClassDB::bind_compatibility_method(D_METHOD("add_image", "image", "width", "height", "color", "inline_align", "region"), &RichTextLabel::_add_image_bind_compat_80410, DEFVAL(0), DEFVAL(0), DEFVAL(Color(1.0, 1.0, 1.0)), DEFVAL(INLINE_ALIGNMENT_CENTER), DEFVAL(Rect2()));
+	ClassDB::bind_compatibility_method(D_METHOD("add_image", "image", "width", "height", "color", "inline_align", "region", "key", "pad", "tooltip", "size_in_percent"), &RichTextLabel::_add_image_bind_compat_76829, DEFVAL(0), DEFVAL(0), DEFVAL(Color(1.0, 1.0, 1.0)), DEFVAL(INLINE_ALIGNMENT_CENTER), DEFVAL(Rect2()), DEFVAL(Variant()), DEFVAL(false), DEFVAL(String()), DEFVAL(false));
+	ClassDB::bind_compatibility_method(D_METHOD("push_table", "columns", "inline_align", "align_to_row"), &RichTextLabel::_push_table_76829, DEFVAL(INLINE_ALIGNMENT_TOP), DEFVAL(-1));
 	ClassDB::bind_compatibility_method(D_METHOD("remove_paragraph", "paragraph"), &RichTextLabel::_remove_paragraph_bind_compat_91098);
 }
 

@@ -79,6 +79,7 @@ void Label::set_uppercase(bool p_uppercase) {
 	uppercase = p_uppercase;
 	text_dirty = true;
 
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -622,6 +623,15 @@ PackedStringArray Label::get_configuration_warnings() const {
 
 void Label::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, xl_text);
+			DisplayServer::get_singleton()->accessibility_update_set_text_align(ae, horizontal_alignment);
+		} break;
+
 		case NOTIFICATION_TRANSLATION_CHANGED: {
 			String new_text = atr(text);
 			if (new_text == xl_text) {
@@ -633,6 +643,7 @@ void Label::_notification(int p_what) {
 			}
 			text_dirty = true;
 
+			queue_accessibility_update();
 			queue_redraw();
 			update_configuration_warnings();
 		} break;
@@ -680,7 +691,11 @@ void Label::_notification(int p_what) {
 			int shadow_outline_size = has_settings ? settings->get_shadow_size() : theme_cache.font_shadow_outline_size;
 			bool rtl_layout = is_layout_rtl();
 
-			style->draw(ci, Rect2(Point2(0, 0), get_size()));
+			if (has_focus()) {
+				theme_cache.focus_style->draw(ci, Rect2(Point2(0, 0), get_size()));
+			} else {
+				theme_cache.normal_style->draw(ci, Rect2(Point2(0, 0), get_size()));
+			}
 
 			bool trim_chars = (visible_chars >= 0) && (visible_chars_behavior == TextServer::VC_CHARS_AFTER_SHAPING);
 			bool trim_glyphs_ltr = (visible_chars >= 0) && ((visible_chars_behavior == TextServer::VC_GLYPHS_LTR) || ((visible_chars_behavior == TextServer::VC_GLYPHS_AUTO) && !rtl_layout));
@@ -978,7 +993,7 @@ void Label::set_horizontal_alignment(HorizontalAlignment p_alignment) {
 		}
 	}
 	horizontal_alignment = p_alignment;
-
+	queue_accessibility_update();
 	queue_redraw();
 }
 
@@ -1011,6 +1026,7 @@ void Label::set_text(const String &p_string) {
 	if (visible_ratio < 1) {
 		visible_chars = get_total_character_count() * visible_ratio;
 	}
+	queue_accessibility_update();
 	queue_redraw();
 	update_minimum_size();
 	update_configuration_warnings();
@@ -1101,6 +1117,7 @@ void Label::set_paragraph_separator(const String &p_paragraph_separator) {
 	if (paragraph_separator != p_paragraph_separator) {
 		paragraph_separator = p_paragraph_separator;
 		text_dirty = true;
+		queue_accessibility_update();
 		queue_redraw();
 	}
 }
@@ -1193,6 +1210,7 @@ void Label::set_visible_characters(int p_amount) {
 		}
 		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
 			text_dirty = true;
+			queue_accessibility_update();
 		}
 		queue_redraw();
 	}
@@ -1217,6 +1235,7 @@ void Label::set_visible_ratio(float p_ratio) {
 
 		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
 			text_dirty = true;
+			queue_accessibility_update();
 		}
 		queue_redraw();
 	}
@@ -1234,6 +1253,7 @@ void Label::set_visible_characters_behavior(TextServer::VisibleCharactersBehavio
 	if (visible_chars_behavior != p_behavior) {
 		if (visible_chars_behavior == TextServer::VC_CHARS_BEFORE_SHAPING || p_behavior == TextServer::VC_CHARS_BEFORE_SHAPING) {
 			text_dirty = true;
+			queue_accessibility_update();
 		}
 		visible_chars_behavior = p_behavior;
 		queue_redraw();
@@ -1353,6 +1373,7 @@ void Label::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "structured_text_bidi_override_options"), "set_structured_text_bidi_override_options", "get_structured_text_bidi_override_options");
 
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, Label, normal_style, "normal");
+	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, Label, focus_style, "focus");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Label, line_spacing);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Label, paragraph_spacing);
 
@@ -1368,6 +1389,7 @@ void Label::_bind_methods() {
 }
 
 Label::Label(const String &p_text) {
+	set_focus_mode(FOCUS_ACCESSIBILITY);
 	set_mouse_filter(MOUSE_FILTER_IGNORE);
 	set_text(p_text);
 	set_v_size_flags(SIZE_SHRINK_CENTER);

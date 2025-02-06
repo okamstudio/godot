@@ -202,6 +202,105 @@ void SceneTree::flush_transform_notifications() {
 	}
 }
 
+bool SceneTree::is_accessibility_enabled() const {
+	if (!DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_ACCESSIBILITY_SCREEN_READER)) {
+		return false;
+	}
+
+	DisplayServer::AccessibilityMode accessibility_mode = DisplayServer::accessibility_get_mode();
+	int screen_reader_acvite = DisplayServer::get_singleton()->accessibility_screen_reader_active();
+	if ((accessibility_mode == DisplayServer::AccessibilityMode::ACCESSIBILITY_DISABLED) || ((accessibility_mode == DisplayServer::AccessibilityMode::ACCESSIBILITY_AUTO) && (screen_reader_acvite == 0))) {
+		return false;
+	}
+	return true;
+}
+
+bool SceneTree::is_accessibility_supported() const {
+	if (!DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_ACCESSIBILITY_SCREEN_READER)) {
+		return false;
+	}
+
+	DisplayServer::AccessibilityMode accessibility_mode = DisplayServer::accessibility_get_mode();
+	if (accessibility_mode == DisplayServer::AccessibilityMode::ACCESSIBILITY_DISABLED) {
+		return false;
+	}
+	return true;
+}
+
+void SceneTree::_accessibility_force_update() {
+	accessibility_force_update = true;
+}
+
+void SceneTree::_accessibility_notify_change(const Node *p_node, bool p_remove) {
+	if (p_node) {
+		if (p_remove) {
+			accessibility_change_queue.erase(p_node->get_instance_id());
+		} else {
+			accessibility_change_queue.insert(p_node->get_instance_id());
+		}
+	}
+}
+
+void SceneTree::_process_accessibility_changes(DisplayServer::WindowID p_window_id) {
+	// Process NOTIFICATION_ACCESSIBILITY_UPDATE.
+	Vector<ObjectID> processed;
+	for (const ObjectID &id : accessibility_change_queue) {
+		Node *node = Object::cast_to<Node>(ObjectDB::get_instance(id));
+		if (!node || !node->get_window()) {
+			processed.push_back(id);
+			continue; // Invalid node, remove from list and skip.
+		} else if (node->get_window()->get_window_id() != p_window_id) {
+			continue; // Another window, skip.
+		}
+		node->notification(Node::NOTIFICATION_ACCESSIBILITY_UPDATE);
+		processed.push_back(id);
+	}
+
+	// Track focus change.
+	// Note: Do not use `Window::get_focused_window()`, it returns both native and embedded windows, and we only care about focused element in the currently processed native window.
+	// Native window focus is handled in the DisplayServer, or AccessKit subclassing adapter.
+	ObjectID oid = DisplayServer::get_singleton()->window_get_attached_instance_id(p_window_id);
+	Window *w_this = (Window *)ObjectDB::get_instance(oid);
+	if (w_this) {
+		Window *w_focus = w_this->get_focused_subwindow();
+		if (w_focus) {
+			w_this = w_focus;
+		}
+
+		RID new_focus_element;
+		Control *n_focus = w_this->gui_get_focus_owner();
+		if (n_focus) {
+			new_focus_element = n_focus->get_focused_accessibility_element();
+		} else {
+			new_focus_element = w_this->get_focused_accessibility_element();
+		}
+
+		DisplayServer::get_singleton()->accessibility_update_set_focus(new_focus_element);
+	}
+
+	// Cleanup.
+	for (const ObjectID &id : processed) {
+		accessibility_change_queue.erase(id);
+	}
+}
+
+void SceneTree::_flush_accessibility_changes() {
+	if (is_accessibility_enabled()) {
+		uint64_t time = OS::get_singleton()->get_ticks_msec();
+		if (!accessibility_force_update) {
+			uint64_t upd_per_sec = GLOBAL_GET(SNAME("accessibility/accessibility/updates_per_second"));
+			if (time - accessibility_last_update < 1000 / upd_per_sec) {
+				return;
+			}
+		}
+		accessibility_force_update = false;
+		accessibility_last_update = time;
+
+		// Push update to the accessibility driver.
+		DisplayServer::get_singleton()->accessibility_update_if_active(callable_mp(this, &SceneTree::_process_accessibility_changes));
+	}
+}
+
 void SceneTree::_flush_ugc() {
 	ugc_locked = true;
 
@@ -542,6 +641,7 @@ bool SceneTree::physics_process(double p_time) {
 
 	// This should happen last because any processing that deletes something beforehand might expect the object to be removed in the same frame.
 	_flush_delete_queue();
+
 	_call_idle_callbacks();
 
 	return _quit;
@@ -592,6 +692,8 @@ bool SceneTree::process(double p_time) {
 
 	// This should happen last because any processing that deletes something beforehand might expect the object to be removed in the same frame.
 	_flush_delete_queue();
+
+	_flush_accessibility_changes();
 
 	_call_idle_callbacks();
 
@@ -1695,6 +1797,9 @@ bool SceneTree::is_multiplayer_poll_enabled() const {
 void SceneTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_root"), &SceneTree::get_root);
 	ClassDB::bind_method(D_METHOD("has_group", "name"), &SceneTree::has_group);
+
+	ClassDB::bind_method(D_METHOD("is_accessibility_enabled"), &SceneTree::is_accessibility_enabled);
+	ClassDB::bind_method(D_METHOD("is_accessibility_supported"), &SceneTree::is_accessibility_supported);
 
 	ClassDB::bind_method(D_METHOD("is_auto_accept_quit"), &SceneTree::is_auto_accept_quit);
 	ClassDB::bind_method(D_METHOD("set_auto_accept_quit", "enabled"), &SceneTree::set_auto_accept_quit);

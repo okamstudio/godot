@@ -81,6 +81,17 @@ Size2 CheckBox::get_minimum_size() const {
 
 void CheckBox::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			if (is_radio()) {
+				DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_RADIO_BUTTON);
+			} else {
+				DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_CHECK_BOX);
+			}
+		} break;
+
 		case NOTIFICATION_THEME_CHANGED:
 		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
 		case NOTIFICATION_TRANSLATION_CHANGED: {
@@ -134,7 +145,7 @@ void CheckBox::_notification(int p_what) {
 	}
 }
 
-bool CheckBox::is_radio() {
+bool CheckBox::is_radio() const {
 	return get_button_group().is_valid();
 }
 

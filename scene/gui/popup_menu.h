@@ -45,6 +45,9 @@ class PopupMenu : public Popup {
 	static HashMap<NativeMenu::SystemMenus, PopupMenu *> system_menus;
 
 	struct Item {
+		mutable RID accessibility_item_element;
+		mutable bool accessibility_item_dirty = true;
+
 		Ref<Texture2D> icon;
 		int icon_max_width = 0;
 		Color icon_modulate = Color(1, 1, 1, 1);
@@ -95,6 +98,7 @@ class PopupMenu : public Popup {
 
 		Item(bool p_dummy) {}
 	};
+	RID accessibility_scroll_element;
 
 	mutable Rect2i pre_popup_rect;
 	void _update_shadow_offsets() const;
@@ -122,6 +126,7 @@ class PopupMenu : public Popup {
 	bool during_grabbed_click = false;
 	bool is_scrolling = false;
 	int mouse_over = -1;
+	int prev_mouse_over = -1;
 	int submenu_over = -1;
 	String _get_accel_text(const Item &p_item) const;
 	int _get_mouse_over(const Point2 &p_over) const;
@@ -133,6 +138,8 @@ class PopupMenu : public Popup {
 	Size2 _get_item_icon_size(int p_idx) const;
 
 	void _shape_item(int p_idx) const;
+
+	void _accessibility_action_click(const Variant &p_data, int p_idx);
 
 	void _activate_submenu(int p_over, bool p_by_keyboard = false);
 	void _submenu_timeout();
@@ -247,6 +254,8 @@ public:
 	// ATTENTION: This is used by the POT generator's scene parser. If the number of properties returned by `_get_items()` ever changes,
 	// this value should be updated to reflect the new size.
 	static const int ITEM_PROPERTY_SIZE = 10;
+
+	virtual RID get_focused_accessibility_element() const override;
 
 	virtual void _parent_focused() override;
 

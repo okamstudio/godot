@@ -1485,6 +1485,15 @@ void AnimationTimelineEdit::_notification(int p_what) {
 			len_hb->set_size(Size2(get_buttons_width(), get_size().height));
 		} break;
 
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Animation timeline editor")));
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			int key_range = get_size().width - get_buttons_width() - get_name_limit();
 
@@ -2054,6 +2063,15 @@ void AnimationTrackEdit::_notification(int p_what) {
 
 			type_icon = _get_key_type_icon();
 			selected_icon = get_editor_theme_icon(SNAME("KeySelected"));
+		} break;
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Animation track editor")));
 		} break;
 
 		case NOTIFICATION_DRAW: {
@@ -3588,6 +3606,15 @@ void AnimationTrackEditGroup::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_THEME_CHANGED: {
 			icon_size = Vector2(1, 1) * get_theme_constant(SNAME("class_icon_size"), EditorStringName(Editor));
+		} break;
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Animation track group")));
 		} break;
 
 		case NOTIFICATION_DRAW: {
@@ -8327,6 +8354,15 @@ void AnimationMarkerEdit::_notification(int p_what) {
 
 			type_icon = get_editor_theme_icon(SNAME("Marker"));
 			selected_icon = get_editor_theme_icon(SNAME("MarkerSelected"));
+		} break;
+
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Animation marker editor")));
 		} break;
 
 		case NOTIFICATION_DRAW: {

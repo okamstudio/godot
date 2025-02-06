@@ -353,8 +353,43 @@ void ScrollContainer::_reposition_children() {
 	queue_redraw();
 }
 
+void ScrollContainer::_accessibility_action_scroll_set(const Variant &p_data) {
+	const Point2 &pos = p_data;
+	h_scroll->set_value(pos.x);
+	v_scroll->set_value(pos.y);
+}
+
+void ScrollContainer::_accessibility_action_scroll_up(const Variant &p_data) {
+	v_scroll->set_value(v_scroll->get_value() - v_scroll->get_page() / 8);
+}
+
+void ScrollContainer::_accessibility_action_scroll_down(const Variant &p_data) {
+	v_scroll->set_value(v_scroll->get_value() + v_scroll->get_page() / 8);
+}
+
+void ScrollContainer::_accessibility_action_scroll_left(const Variant &p_data) {
+	h_scroll->set_value(h_scroll->get_value() - h_scroll->get_page() / 8);
+}
+
+void ScrollContainer::_accessibility_action_scroll_right(const Variant &p_data) {
+	h_scroll->set_value(h_scroll->get_value() + h_scroll->get_page() / 8);
+}
+
 void ScrollContainer::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_SCROLL_VIEW);
+
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SCROLL_DOWN, callable_mp(this, &ScrollContainer::_accessibility_action_scroll_down));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SCROLL_LEFT, callable_mp(this, &ScrollContainer::_accessibility_action_scroll_left));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SCROLL_RIGHT, callable_mp(this, &ScrollContainer::_accessibility_action_scroll_right));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SCROLL_UP, callable_mp(this, &ScrollContainer::_accessibility_action_scroll_up));
+			DisplayServer::get_singleton()->accessibility_update_add_action(ae, DisplayServer::AccessibilityAction::ACTION_SET_SCROLL_OFFSET, callable_mp(this, &ScrollContainer::_accessibility_action_scroll_set));
+		} break;
+
 		case NOTIFICATION_ENTER_TREE:
 		case NOTIFICATION_THEME_CHANGED:
 		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:

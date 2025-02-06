@@ -29,6 +29,7 @@
 			<param index="7" name="pad" type="bool" default="false" />
 			<param index="8" name="tooltip" type="String" default="&quot;&quot;" />
 			<param index="9" name="size_in_percent" type="bool" default="false" />
+			<param index="10" name="alt_text" type="String" default="&quot;&quot;" />
 			<description>
 				Adds an image's opening and closing tags to the tag stack, optionally providing a [param width] and [param height] to resize the image, a [param color] to tint the image and a [param region] to only use parts of the image.
 				If [param width] or [param height] is set to 0, the image size will be adjusted in order to keep the original aspect ratio.
@@ -36,6 +37,7 @@
 				[param key] is an optional identifier, that can be used to modify the image via [method update_image].
 				If [param pad] is set, and the image is smaller than the size specified by [param width] and [param height], the image padding is added to match the size instead of upscaling.
 				If [param size_in_percent] is set, [param width] and [param height] values are percentages of the control width instead of pixels.
+				[param alt_text] is used as the image description for assistive apps.
 			</description>
 		</method>
 		<method name="add_text">
@@ -515,8 +517,9 @@
 			<param index="0" name="columns" type="int" />
 			<param index="1" name="inline_align" type="int" enum="InlineAlignment" default="0" />
 			<param index="2" name="align_to_row" type="int" default="-1" />
+			<param index="3" name="name" type="String" default="&quot;&quot;" />
 			<description>
-				Adds a [code skip-lint][table=columns,inline_align][/code] tag to the tag stack. Use [method set_table_column_expand] to set column expansion ratio. Use [method push_cell] to add cells.
+				Adds a [code skip-lint][table=columns,inline_align][/code] tag to the tag stack. Use [method set_table_column_expand] to set column expansion ratio. Use [method push_cell] to add cells. [param name] is used as the table name for assistive apps.
 			</description>
 		</method>
 		<method name="push_underline">
@@ -604,6 +607,14 @@
 				If [param expand] is [code]false[/code], the column will not contribute to the total ratio.
 			</description>
 		</method>
+		<method name="set_table_column_name">
+			<return type="void" />
+			<param index="0" name="column" type="int" />
+			<param index="1" name="name" type="String" />
+			<description>
+				Sets table column name for assistive apps.
+			</description>
+		</method>
 		<method name="update_image">
 			<return type="void" />
 			<param index="0" name="key" type="Variant" />
@@ -647,6 +658,7 @@
 		<member name="fit_content" type="bool" setter="set_fit_content" getter="is_fit_content_enabled" default="false">
 			If [code]true[/code], the label's minimum size will be automatically updated to fit its content, matching the behavior of [Label].
 		</member>
+		<member name="focus_mode" type="int" setter="set_focus_mode" getter="get_focus_mode" overrides="Control" enum="Control.FocusMode" default="3" />
 		<member name="hint_underlined" type="bool" setter="set_hint_underline" getter="is_hint_underlined" default="true">
 			If [code]true[/code], the label underlines hint tags such as [code skip-lint][hint=description]{text}[/hint][/code].
 		</member>

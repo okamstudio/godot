@@ -987,6 +987,15 @@ void EditorPropertyLayersGrid::gui_input(const Ref<InputEvent> &p_ev) {
 
 void EditorPropertyLayersGrid::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			//TODO
+			DisplayServer::get_singleton()->accessibility_update_set_role(ae, DisplayServer::AccessibilityRole::ROLE_STATIC_TEXT);
+			DisplayServer::get_singleton()->accessibility_update_set_value(ae, TTR(vformat("The %s is not accessible at this time.", "Layers grid property editor")));
+		} break;
+
 		case NOTIFICATION_DRAW: {
 			Size2 grid_size = get_grid_size();
 			grid_size.x = get_size().x;

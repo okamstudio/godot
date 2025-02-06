@@ -88,7 +88,6 @@ public:
 		id window_object;
 		id window_view;
 		id window_button_view;
-
 		Vector<Vector2> mpath;
 
 		Point2i mouse_pos;
@@ -422,6 +421,11 @@ public:
 
 	virtual void window_set_window_buttons_offset(const Vector2i &p_offset, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual Vector3i window_get_safe_title_margins(WindowID p_window = MAIN_WINDOW_ID) const override;
+
+	virtual int accessibility_should_increase_contrast() const override;
+	virtual int accessibility_should_reduce_animation() const override;
+	virtual int accessibility_should_reduce_transparency() const override;
+	virtual int accessibility_screen_reader_active() const override;
 
 	virtual Point2i ime_get_selection() const override;
 	virtual String ime_get_text() const override;

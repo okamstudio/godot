@@ -18,8 +18,9 @@
 			<param index="2" name="id" type="int" default="-1" />
 			<param index="3" name="disabled" type="bool" default="false" />
 			<param index="4" name="tooltip_text" type="String" default="&quot;&quot;" />
+			<param index="5" name="alt_text" type="String" default="&quot;&quot;" />
 			<description>
-				Adds a button with [Texture2D] [param button] to the end of the cell at column [param column]. The [param id] is used to identify the button in the according [signal Tree.button_clicked] signal and can be different from the buttons index. If not specified, the next available index is used, which may be retrieved by calling [method get_button_count] immediately before this method. Optionally, the button can be [param disabled] and have a [param tooltip_text].
+				Adds a button with [Texture2D] [param button] to the end of the cell at column [param column]. The [param id] is used to identify the button in the according [signal Tree.button_clicked] signal and can be different from the buttons index. If not specified, the next available index is used, which may be retrieved by calling [method get_button_count] immediately before this method. Optionally, the button can be [param disabled] and have a [param tooltip_text]. [param alt_text] is used as the button description for assistive apps.
 			</description>
 		</method>
 		<method name="add_child">
@@ -77,6 +78,13 @@
 			<param index="1" name="button_index" type="int" />
 			<description>
 				Removes the button at index [param button_index] in column [param column].
+			</description>
+		</method>
+		<method name="get_alt_text" qualifiers="const">
+			<return type="String" />
+			<param index="0" name="column" type="int" />
+			<description>
+				Returns the given column's alternative text.
 			</description>
 		</method>
 		<method name="get_auto_translate_mode" qualifiers="const">
@@ -506,6 +514,14 @@
 				Selects the given [param column].
 			</description>
 		</method>
+		<method name="set_alt_text">
+			<return type="void" />
+			<param index="0" name="column" type="int" />
+			<param index="1" name="text" type="String" />
+			<description>
+				Sets the given column's alternative (description) text for assistive apps.
+			</description>
+		</method>
 		<method name="set_auto_translate_mode">
 			<return type="void" />
 			<param index="0" name="column" type="int" />
@@ -530,6 +546,15 @@
 			<param index="2" name="button" type="Texture2D" />
 			<description>
 				Sets the given column's button [Texture2D] at index [param button_index] to [param button].
+			</description>
+		</method>
+		<method name="set_button_alt_text">
+			<return type="void" />
+			<param index="0" name="column" type="int" />
+			<param index="1" name="button_index" type="int" />
+			<param index="2" name="alt_text" type="String" />
+			<description>
+				Sets the given column's button alternative text (description) at index [param button_index] for assistive apps.
 			</description>
 		</method>
 		<method name="set_button_color">

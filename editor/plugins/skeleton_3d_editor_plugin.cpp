@@ -701,7 +701,7 @@ Variant Skeleton3DEditor::get_drag_data_fw(const Point2 &p_point, Control *p_fro
 }
 
 bool Skeleton3DEditor::can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const {
-	TreeItem *target = joint_tree->get_item_at_position(p_point);
+	TreeItem *target = (p_point == Vector2(INFINITY, INFINITY)) ? joint_tree->get_selected() : joint_tree->get_item_at_position(p_point);
 	if (!target) {
 		return false;
 	}
@@ -729,7 +729,7 @@ void Skeleton3DEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data
 		return;
 	}
 
-	TreeItem *target = joint_tree->get_item_at_position(p_point);
+	TreeItem *target = (p_point == Vector2(INFINITY, INFINITY)) ? joint_tree->get_selected() : joint_tree->get_item_at_position(p_point);
 	TreeItem *selected = Object::cast_to<TreeItem>(Dictionary(p_data)["node"]);
 
 	const BoneId target_boneidx = String(target->get_metadata(0)).get_slicec('/', 1).to_int();

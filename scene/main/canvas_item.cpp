@@ -292,6 +292,13 @@ void CanvasItem::_exit_canvas() {
 
 void CanvasItem::_notification(int p_what) {
 	switch (p_what) {
+		case NOTIFICATION_ACCESSIBILITY_UPDATE: {
+			RID ae = get_accessibility_element();
+			ERR_FAIL_COND(ae.is_null());
+
+			DisplayServer::get_singleton()->accessibility_update_set_flag(ae, DisplayServer::AccessibilityFlags::FLAG_HIDDEN, !visible);
+		} break;
+
 		case NOTIFICATION_ENTER_TREE: {
 			ERR_MAIN_THREAD_GUARD;
 			ERR_FAIL_COND(!is_inside_tree());

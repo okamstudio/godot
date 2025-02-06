@@ -137,6 +137,8 @@
 	[[NSDistributedNotificationCenter defaultCenter] addObserver:self selector:@selector(system_theme_changed:) name:@"AppleColorPreferencesChangedNotification" object:nil];
 }
 
+static const char *godot_ac_ctx = "gd_accessibility_observer_ctx";
+
 - (id)init {
 	self = [super init];
 
@@ -144,12 +146,50 @@
 	[aem setEventHandler:self andSelector:@selector(handleAppleEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 	[aem setEventHandler:self andSelector:@selector(handleAppleEvent:withReplyEvent:) forEventClass:kCoreEventClass andEventID:kAEOpenDocuments];
 
+	[[NSWorkspace sharedWorkspace] addObserver:self forKeyPath:@"voiceOverEnabled" options:(NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld) context:(void *)godot_ac_ctx];
+	[[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self selector:@selector(accessibilityDisplayOptionsChange:) name:NSWorkspaceAccessibilityDisplayOptionsDidChangeNotification object:nil];
+	high_contrast = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldIncreaseContrast];
+	reduce_motion = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldReduceMotion];
+	reduce_transparency = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldReduceTransparency];
+	voice_over = [[NSWorkspace sharedWorkspace] isVoiceOverEnabled];
+
 	return self;
 }
 
 - (void)dealloc {
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self name:@"AppleInterfaceThemeChangedNotification" object:nil];
 	[[NSDistributedNotificationCenter defaultCenter] removeObserver:self name:@"AppleColorPreferencesChangedNotification" object:nil];
+	[[NSWorkspace sharedWorkspace] removeObserver:self forKeyPath:@"voiceOverEnabled" context:(void *)godot_ac_ctx];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+	if (context == (void *)godot_ac_ctx) {
+		voice_over = [[NSWorkspace sharedWorkspace] isVoiceOverEnabled];
+	} else {
+		[super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+	}
+}
+
+- (void)accessibilityDisplayOptionsChange:(NSNotification *)notification {
+	high_contrast = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldIncreaseContrast];
+	reduce_motion = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldReduceMotion];
+	reduce_transparency = [[NSWorkspace sharedWorkspace] accessibilityDisplayShouldReduceTransparency];
+}
+
+- (bool)getHighContrast {
+	return high_contrast;
+}
+
+- (bool)getReduceMotion {
+	return reduce_motion;
+}
+
+- (bool)getReduceTransparency {
+	return reduce_transparency;
+}
+
+- (bool)getVoiceOver {
+	return voice_over;
 }
 
 - (void)handleAppleEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {

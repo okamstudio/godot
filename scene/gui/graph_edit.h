@@ -31,6 +31,7 @@
 #ifndef GRAPH_EDIT_H
 #define GRAPH_EDIT_H
 
+#include "core/variant/typed_dictionary.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/graph_frame.h"
 #include "scene/gui/graph_node.h"
@@ -199,6 +200,7 @@ private:
 	bool show_grid = true;
 	GridPattern grid_pattern = GRID_PATTERN_LINES;
 
+	bool keyboard_connecting = false;
 	bool connecting = false;
 	StringName connecting_from_node;
 	bool connecting_from_output = false;
@@ -270,6 +272,7 @@ private:
 		float base_scale = 1.0;
 
 		Ref<StyleBox> panel;
+		Ref<StyleBox> panel_focus;
 		Color grid_major;
 		Color grid_minor;
 
@@ -303,6 +306,8 @@ private:
 
 	HashMap<StringName, HashSet<StringName>> frame_attached_nodes;
 	HashMap<StringName, StringName> linked_parent_map;
+
+	Dictionary type_names;
 
 	void _pan_callback(Vector2 p_scroll_vec, Ref<InputEvent> p_event);
 	void _zoom_callback(float p_zoom_factor, Vector2 p_origin, Ref<InputEvent> p_event);
@@ -404,6 +409,9 @@ public:
 	Error connect_node(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port, bool keep_alive = false);
 	bool is_node_connected(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port);
 	int get_connection_count(const StringName &p_node, int p_port);
+	GraphNode *get_input_connection_target(const StringName &p_node, int p_port);
+	GraphNode *get_output_connection_target(const StringName &p_node, int p_port);
+	String get_connections_description(const StringName &p_node, int p_port);
 	void disconnect_node(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port);
 
 	void force_connection_drag_end();
@@ -412,6 +420,13 @@ public:
 	virtual PackedVector2Array get_connection_line(const Vector2 &p_from, const Vector2 &p_to) const;
 	Ref<Connection> get_closest_connection_at_point(const Vector2 &p_point, float p_max_distance = 4.0) const;
 	List<Ref<Connection>> get_connections_intersecting_with_rect(const Rect2 &p_rect) const;
+
+	bool is_keyboard_connecting() const { return keyboard_connecting; }
+	void start_keyboard_connecting(GraphNode *p_node, int p_in_port, int p_out_port);
+	void end_keyboard_connecting(GraphNode *p_node, int p_in_port, int p_out_port);
+
+	Dictionary get_type_names() const;
+	void set_type_names(const Dictionary &p_names);
 
 	virtual bool is_node_hover_valid(const StringName &p_from, int p_from_port, const StringName &p_to, int p_to_port);
 

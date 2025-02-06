@@ -1370,6 +1370,9 @@
 			The syntax highlighter to use.
 			[b]Note:[/b] A [SyntaxHighlighter] instance should not be used across multiple [TextEdit] nodes.
 		</member>
+		<member name="tab_input_mode" type="bool" setter="set_tab_input_mode" getter="get_tab_input_mode" default="true">
+			if [code]true[/code], [member ProjectSettings.input/ui_text_indent] input [code]Tab[/code] character, otherwise it moves keyboard focus to the next [Control] in the scene.
+		</member>
 		<member name="text" type="String" setter="set_text" getter="get_text" default="&quot;&quot;">
 			String value of the [TextEdit].
 		</member>

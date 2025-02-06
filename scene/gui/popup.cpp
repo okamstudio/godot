@@ -38,7 +38,7 @@
 #include "scene/theme/theme_db.h"
 
 void Popup::_input_from_window(const Ref<InputEvent> &p_event) {
-	if (get_flag(FLAG_POPUP) && p_event->is_action_pressed(SNAME("ui_cancel"), false, true)) {
+	if ((ac_popup || get_flag(FLAG_POPUP)) && p_event->is_action_pressed(SNAME("ui_cancel"), false, true)) {
 		hide_reason = HIDE_REASON_CANCELED; // ESC pressed, mark as canceled unconditionally.
 		_close_pressed();
 	}
@@ -115,7 +115,7 @@ void Popup::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_APPLICATION_FOCUS_OUT: {
-			if (!is_in_edited_scene_root() && get_flag(FLAG_POPUP)) {
+			if (!is_in_edited_scene_root() && (get_flag(FLAG_POPUP) || ac_popup)) {
 				if (hide_reason == HIDE_REASON_NONE) {
 					hide_reason = HIDE_REASON_UNFOCUSED;
 				}
@@ -126,7 +126,7 @@ void Popup::_notification(int p_what) {
 }
 
 void Popup::_parent_focused() {
-	if (popped_up && get_flag(FLAG_POPUP)) {
+	if (popped_up && (get_flag(FLAG_POPUP) || ac_popup)) {
 		if (hide_reason == HIDE_REASON_NONE) {
 			hide_reason = HIDE_REASON_UNFOCUSED;
 		}

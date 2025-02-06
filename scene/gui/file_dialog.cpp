@@ -1400,9 +1400,11 @@ void FileDialog::_update_option_controls() {
 	for (const FileDialog::Option &opt : options) {
 		Label *lbl = memnew(Label);
 		lbl->set_text(opt.name);
+		lbl->set_focus_mode(Control::FOCUS_NONE);
 		grid_options->add_child(lbl);
 		if (opt.values.is_empty()) {
 			CheckBox *cb = memnew(CheckBox);
+			cb->set_accessibility_name(opt.name);
 			cb->set_pressed(opt.default_idx);
 			grid_options->add_child(cb);
 			cb->connect(SceneStringName(toggled), callable_mp(this, &FileDialog::_option_changed_checkbox_toggled).bind(opt.name));
@@ -1412,6 +1414,7 @@ void FileDialog::_update_option_controls() {
 			for (const String &val : opt.values) {
 				ob->add_item(val);
 			}
+			ob->set_accessibility_name(opt.name);
 			ob->select(opt.default_idx);
 			grid_options->add_child(ob);
 			ob->connect(SceneStringName(item_selected), callable_mp(this, &FileDialog::_option_changed_item_selected).bind(opt.name));
@@ -1690,11 +1693,14 @@ FileDialog::FileDialog() {
 
 	dir_prev = memnew(Button);
 	dir_prev->set_theme_type_variation(SceneStringName(FlatButton));
+	dir_prev->set_accessibility_name(ETR("Go to previous folder."));
 	dir_prev->set_tooltip_text(ETR("Go to previous folder."));
 	dir_next = memnew(Button);
+	dir_next->set_accessibility_name(ETR("Go to next folder."));
 	dir_next->set_theme_type_variation(SceneStringName(FlatButton));
 	dir_next->set_tooltip_text(ETR("Go to next folder."));
 	dir_up = memnew(Button);
+	dir_up->set_accessibility_name(ETR("Go to parent folder."));
 	dir_up->set_theme_type_variation(SceneStringName(FlatButton));
 	dir_up->set_tooltip_text(ETR("Go to parent folder."));
 	hbc->add_child(dir_prev);
@@ -1704,7 +1710,9 @@ FileDialog::FileDialog() {
 	dir_next->connect(SceneStringName(pressed), callable_mp(this, &FileDialog::_go_forward));
 	dir_up->connect(SceneStringName(pressed), callable_mp(this, &FileDialog::_go_up));
 
-	hbc->add_child(memnew(Label(ETR("Path:"))));
+	Label *lbl_path = memnew(Label(ETR("Path:")));
+	lbl_path->set_focus_mode(Control::FOCUS_NONE);
+	hbc->add_child(lbl_path);
 
 	drives_container = memnew(HBoxContainer);
 	hbc->add_child(drives_container);
@@ -1714,12 +1722,14 @@ FileDialog::FileDialog() {
 	hbc->add_child(drives);
 
 	dir = memnew(LineEdit);
+	dir->set_accessibility_name(ETR("Directory path"));
 	dir->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
 	hbc->add_child(dir);
 	dir->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 
 	refresh = memnew(Button);
 	refresh->set_theme_type_variation(SceneStringName(FlatButton));
+	refresh->set_accessibility_name(ETR("Refresh files."));
 	refresh->set_tooltip_text(ETR("Refresh files."));
 	refresh->connect(SceneStringName(pressed), callable_mp(this, &FileDialog::update_file_list));
 	hbc->add_child(refresh);
@@ -1728,6 +1738,7 @@ FileDialog::FileDialog() {
 	show_hidden->set_theme_type_variation(SceneStringName(FlatButton));
 	show_hidden->set_toggle_mode(true);
 	show_hidden->set_pressed(is_showing_hidden_files());
+	show_hidden->set_accessibility_name(ETR("Toggle the visibility of hidden files."));
 	show_hidden->set_tooltip_text(ETR("Toggle the visibility of hidden files."));
 	show_hidden->connect(SceneStringName(toggled), callable_mp(this, &FileDialog::set_show_hidden_files));
 	hbc->add_child(show_hidden);
@@ -1736,6 +1747,7 @@ FileDialog::FileDialog() {
 	show_filename_filter_button->set_theme_type_variation(SceneStringName(FlatButton));
 	show_filename_filter_button->set_toggle_mode(true);
 	show_filename_filter_button->set_pressed(false);
+	show_filename_filter_button->set_accessibility_name(RTR("Toggle the visibility of the filter for file names."));
 	show_filename_filter_button->set_tooltip_text(RTR("Toggle the visibility of the filter for file names."));
 	show_filename_filter_button->connect(SceneStringName(toggled), callable_mp(this, &FileDialog::set_show_filename_filter));
 	hbc->add_child(show_filename_filter_button);
@@ -1745,6 +1757,7 @@ FileDialog::FileDialog() {
 
 	makedir = memnew(Button);
 	makedir->set_theme_type_variation(SceneStringName(FlatButton));
+	makedir->set_accessibility_name(ETR("Create a new folder."));
 	makedir->set_tooltip_text(ETR("Create a new folder."));
 	makedir->connect(SceneStringName(pressed), callable_mp(this, &FileDialog::_make_dir));
 	hbc->add_child(makedir);
@@ -1752,6 +1765,7 @@ FileDialog::FileDialog() {
 
 	tree = memnew(Tree);
 	tree->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
+	tree->set_accessibility_name(ETR("Directories & Files"));
 	tree->set_hide_root(true);
 	vbox->add_margin_child(ETR("Directories & Files:"), tree, true);
 
@@ -1769,13 +1783,18 @@ FileDialog::FileDialog() {
 	filename_filter->set_stretch_ratio(4);
 	filename_filter->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	filename_filter->set_clear_button_enabled(true);
+	filename_filter->set_accessibility_name(ETR("Filename filter"));
 	filename_filter_box->add_child(filename_filter);
 	filename_filter_box->set_visible(false);
 	vbox->add_child(filename_filter_box);
 
 	file_box = memnew(HBoxContainer);
-	file_box->add_child(memnew(Label(ETR("File:"))));
+	Label *lbl_file = memnew(Label(ETR("File:")));
+	lbl_file->set_focus_mode(Control::FOCUS_NONE);
+	file_box->add_child(lbl_file);
+
 	file = memnew(LineEdit);
+	file->set_accessibility_name(ETR("File name"));
 	file->set_structured_text_bidi_override(TextServer::STRUCTURED_TEXT_FILE);
 	file->set_stretch_ratio(4);
 	file->set_h_size_flags(Control::SIZE_EXPAND_FILL);

@@ -388,6 +388,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	// Label
 
 	theme->set_stylebox(CoreStringName(normal), "Label", memnew(StyleBoxEmpty));
+	theme->set_stylebox("focus", "Label", focus);
 	theme->set_font(SceneStringName(font), "Label", Ref<Font>());
 	theme->set_font_size(SceneStringName(font_size), "Label", -1);
 
@@ -785,9 +786,11 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 	theme->set_stylebox(SceneStringName(panel), "GraphNode", graphnode_normal);
 	theme->set_stylebox("panel_selected", "GraphNode", graphnode_selected);
+	theme->set_stylebox("panel_focus", "GraphNode", focus);
 	theme->set_stylebox("titlebar", "GraphNode", graphn_sb_titlebar);
 	theme->set_stylebox("titlebar_selected", "GraphNode", graphn_sb_titlebar_selected);
 	theme->set_stylebox("slot", "GraphNode", graphnode_slot);
+	theme->set_stylebox("slot_selected", "GraphNode", focus);
 	theme->set_icon("port", "GraphNode", icons["graph_port"]);
 	theme->set_icon("resizer", "GraphNode", icons["resizer_se"]);
 	theme->set_color("resizer_color", "GraphNode", control_font_color);
@@ -852,6 +855,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("cursor_unfocused", "Tree", focus);
 	theme->set_stylebox("button_hover", "Tree", make_flat_stylebox(Color(1, 1, 1, 0.07)));
 	theme->set_stylebox("button_pressed", "Tree", button_pressed);
+	theme->set_stylebox("button_hover", "Tree", button_hover);
 	theme->set_stylebox("title_button_normal", "Tree", make_flat_stylebox(style_pressed_color, 4, 4, 4, 4));
 	theme->set_stylebox("title_button_pressed", "Tree", make_flat_stylebox(style_hover_color, 4, 4, 4, 4));
 	theme->set_stylebox("title_button_hover", "Tree", make_flat_stylebox(style_normal_color, 4, 4, 4, 4));
@@ -1220,6 +1224,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_icon("layout", "GraphEdit", icons["grid_layout"]);
 
 	theme->set_stylebox(SceneStringName(panel), "GraphEdit", make_flat_stylebox(style_normal_color, 4, 4, 4, 5));
+	theme->set_stylebox("panel_focus", "GraphEdit", focus);
 
 	Ref<StyleBoxFlat> graph_toolbar_style = make_flat_stylebox(Color(0.24, 0.24, 0.24, 0.6), 4, 2, 4, 2);
 	theme->set_stylebox("menu_panel", "GraphEdit", graph_toolbar_style);

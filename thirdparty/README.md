@@ -5,6 +5,18 @@ respective folder names. Use two empty lines to separate categories for
 readability.
 
 
+## accesskit
+
+- Upstream: https://github.com/AccessKit/accesskit-c
+- Version: 0.14.0 (81197c3186f43a6f66af4ce4d24487d150f04d2e, 2024)
+- License: MIT
+
+Files extracted from upstream source:
+
+- `accesskit.h`
+- `LICENSE-MIT`
+
+
 ## amd-fsr
 
 - Upstream: https://github.com/GPUOpen-Effects/FidelityFX-FSR

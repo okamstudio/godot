@@ -151,6 +151,18 @@
 				Returns [code]true[/code] if a node added to the given group [param name] exists in the tree.
 			</description>
 		</method>
+		<method name="is_accessibility_enabled" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if accessibility features are enabled, and accessibility information updates are activity processed.
+			</description>
+		</method>
+		<method name="is_accessibility_supported" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if accessibility features are supported by OS and enabled in project settings.
+			</description>
+		</method>
 		<method name="notify_group">
 			<return type="void" />
 			<param index="0" name="group" type="StringName" />
