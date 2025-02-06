@@ -195,7 +195,7 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	}
 	if (blender_major_version > 4 || (blender_major_version == 4 && blender_minor_version >= 2)) {
 		if (p_options.has(SNAME("blender/meshes/colors")) && p_options[SNAME("blender/meshes/colors")]) {
-			parameters_map["export_vertex_color"] = "MATERIAL";
+			parameters_map["export_vertex_color"] = "ACTIVE";
 		} else {
 			parameters_map["export_vertex_color"] = "NONE";
 		}
