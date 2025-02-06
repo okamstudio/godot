@@ -5900,7 +5900,26 @@ void GDScriptAnalyzer::is_shadowing(GDScriptParser::IdentifierNode *p_identifier
 
 		if (base_class != nullptr) {
 			if (base_class->has_member(name)) {
-				parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()));
+				bool can_access_member = true;
+				if (static_context) {
+					const GDScriptParser::ClassNode::Member member = base_class->get_member(name);
+					switch (member.type) {
+						case GDScriptParser::ClassNode::Member::CONSTANT:
+							can_access_member = true;
+							break;
+						case GDScriptParser::ClassNode::Member::FUNCTION:
+							can_access_member = member.function->is_static;
+							break;
+						case GDScriptParser::ClassNode::Member::VARIABLE:
+							can_access_member = member.variable->is_static;
+							break;
+						default:
+							can_access_member = false;
+					}
+				}
+				if (can_access_member) {
+					parser->push_warning(p_identifier, GDScriptWarning::SHADOWED_VARIABLE, p_context, p_identifier->name, base_class->get_member(name).get_type_name(), itos(base_class->get_member(name).get_line()));
+				}
 				return;
 			}
 			base_class = base_class->base_type.class_type;
