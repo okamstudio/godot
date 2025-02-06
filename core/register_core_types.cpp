@@ -42,6 +42,7 @@
 #include "core/input/input.h"
 #include "core/input/input_map.h"
 #include "core/input/shortcut.h"
+#include "core/input/virtual_controller.h"
 #include "core/io/config_file.h"
 #include "core/io/dir_access.h"
 #include "core/io/dtls_server.h"
@@ -295,6 +296,8 @@ void register_core_types() {
 	GDREGISTER_NATIVE_STRUCT(ObjectID, "uint64_t id = 0");
 	GDREGISTER_NATIVE_STRUCT(AudioFrame, "float left;float right");
 	GDREGISTER_NATIVE_STRUCT(ScriptLanguageExtensionProfilingInfo, "StringName signature;uint64_t call_count;uint64_t total_time;uint64_t self_time");
+
+	GDREGISTER_ABSTRACT_CLASS(VirtualController);
 
 	worker_thread_pool = memnew(WorkerThreadPool);
 

@@ -77,6 +77,7 @@ ios_lib = [
     "keyboard_input_view.mm",
     "key_mapping_ios.mm",
     "ios_terminal_logger.mm",
+    "virtual_controller_ios.mm",
 ]
 
 env_ios = env.Clone()

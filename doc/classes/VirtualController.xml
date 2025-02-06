@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VirtualController" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		A software emulation of a real controller that you configure specifically for your game.
+	</brief_description>
+	<description>
+		Use a virtual controller to display software controls that you can customize over your game. You create a virtual controller from a configuration where you choose the input elements to display. When you connect the controller to the device, users interact with it similarly to a real controller.
+		[b]Note:[/b] Currently implemented only on iOS 15.0+.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="disable">
+			<return type="void" />
+			<description>
+				Disconnects the virtual controller from the device and removes it from the screen.
+			</description>
+		</method>
+		<method name="enable">
+			<return type="void" />
+			<description>
+				If there are no physical controllers connected, connects the virtual controller to the device and displays it on the screen.
+			</description>
+		</method>
+		<method name="is_enabled">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the virtual controller is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_button_a">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the button "A" is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_button_b">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the button "B" is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_button_x">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the button "X" is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_button_y">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the button "Y" is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_left_thumbstick">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the left thumbstick is enabled.
+			</description>
+		</method>
+		<method name="is_enabled_right_thumbstick">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if the right thumbstick is enabled.
+			</description>
+		</method>
+		<method name="set_enabled_button_a">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a button "A" element. Default is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_enabled_button_b">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a button "B" element. Default is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_enabled_button_x">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a button "A" element. Default is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_enabled_button_y">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a button "Y" element. Default is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_enabled_left_thumbstick">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a left thumbstick element. Default is [code]true[/code].
+			</description>
+		</method>
+		<method name="set_enabled_right_thumbstick">
+			<return type="void" />
+			<param index="0" name="enable" type="bool" />
+			<description>
+				Changes the visibility of a right thumbstick element. Default is [code]true[/code].
+			</description>
+		</method>
+	</methods>
+</class>

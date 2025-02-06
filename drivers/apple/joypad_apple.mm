@@ -34,6 +34,7 @@
 #import <os/log.h>
 
 #include "core/config/project_settings.h"
+#include "core/os/os.h"
 #include "main/main.h"
 
 class API_AVAILABLE(macos(11), ios(14.0), tvos(14.0)) RumbleMotor {
@@ -243,6 +244,7 @@ JoypadApple::JoypadApple() {
 							return;
 						}
 						add_joypad(controller);
+						OS::get_singleton()->controller_connected();
 					}];
 
 	disconnect_observer = [NSNotificationCenter.defaultCenter
@@ -255,6 +257,7 @@ JoypadApple::JoypadApple() {
 							return;
 						}
 						remove_joypad(controller);
+						OS::get_singleton()->controller_disconnected();
 					}];
 
 	if (@available(macOS 11.3, iOS 14.5, tvOS 14.5, *)) {
