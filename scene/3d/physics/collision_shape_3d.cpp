@@ -30,6 +30,7 @@
 
 #include "collision_shape_3d.h"
 
+#include "core/config/project_settings.h"
 #include "scene/3d/mesh_instance_3d.h"
 #include "scene/3d/physics/character_body_3d.h"
 #include "scene/3d/physics/vehicle_body_3d.h"
@@ -246,7 +247,7 @@ bool CollisionShape3D::is_disabled() const {
 
 Color CollisionShape3D::_get_default_debug_color() const {
 	const SceneTree *st = SceneTree::get_singleton();
-	return st ? st->get_debug_collisions_color() : Color(0.0, 0.0, 0.0, 0.0);
+	return st ? st->get_debug_collisions_color() : Color(GLOBAL_GET("debug/shapes/collision/shape_color"));
 }
 
 void CollisionShape3D::set_debug_color(const Color &p_color) {

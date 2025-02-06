@@ -11,10 +11,36 @@
 		<link title="Physics introduction">$DOCS_URL/tutorials/physics/physics_introduction.html</link>
 	</tutorials>
 	<methods>
+		<method name="get_debug_color" qualifiers="const">
+			<return type="Color" />
+			<description>
+				Gets the color that will be used in the mesh returned by [method get_debug_mesh].
+			</description>
+		</method>
+		<method name="get_debug_fill" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Gets whether the mesh returned by [method get_debug_mesh] will have filled faces.
+			</description>
+		</method>
 		<method name="get_debug_mesh">
 			<return type="ArrayMesh" />
 			<description>
 				Returns the [ArrayMesh] used to draw the debug collision for this [Shape3D].
+			</description>
+		</method>
+		<method name="set_debug_color">
+			<return type="void" />
+			<param index="0" name="color" type="Color" />
+			<description>
+				Sets the color that will be used in the mesh returned by [method get_debug_mesh].
+			</description>
+		</method>
+		<method name="set_debug_fill">
+			<return type="void" />
+			<param index="0" name="fill" type="bool" />
+			<description>
+				Sets whether the mesh returned by [method get_debug_mesh] will have filled faces.
 			</description>
 		</method>
 	</methods>

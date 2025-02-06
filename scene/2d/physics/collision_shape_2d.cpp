@@ -30,6 +30,7 @@
 
 #include "collision_shape_2d.h"
 
+#include "core/config/project_settings.h"
 #include "scene/2d/physics/area_2d.h"
 #include "scene/2d/physics/collision_object_2d.h"
 #include "scene/resources/2d/concave_polygon_shape_2d.h"
@@ -229,7 +230,7 @@ real_t CollisionShape2D::get_one_way_collision_margin() const {
 
 Color CollisionShape2D::_get_default_debug_color() const {
 	const SceneTree *st = SceneTree::get_singleton();
-	return st ? st->get_debug_collisions_color() : Color(0.0, 0.0, 0.0, 0.0);
+	return st ? st->get_debug_collisions_color() : Color(GLOBAL_GET("debug/shapes/collision/shape_color"));
 }
 
 void CollisionShape2D::set_debug_color(const Color &p_color) {
