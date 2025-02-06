@@ -92,7 +92,7 @@
 		<method name="capitalize" qualifiers="const">
 			<return type="String" />
 			<description>
-				Changes the appearance of the string: replaces underscores ([code]_[/code]) with spaces, adds spaces before uppercase letters in the middle of a word, converts all letters to lowercase, then converts the first one and each one following a space to uppercase.
+				Changes the appearance of the string: replaces underscores ([code]_[/code]) with spaces, adds spaces before uppercase letters in the middle of a word, converts all letters to lowercase, then converts the first letter and each letter following a space to uppercase.
 				[codeblocks]
 				[gdscript]
 				"move_local_x".capitalize()   # Returns "Move Local X"
