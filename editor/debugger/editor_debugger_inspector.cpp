@@ -236,6 +236,9 @@ void EditorDebuggerInspector::add_stack_variable(const Array &p_array, int p_off
 		v = Object::cast_to<EncodedObjectAsID>(v)->get_object_id();
 		h = PROPERTY_HINT_OBJECT_ID;
 		hs = "Object";
+		if (n == "self") {
+			_object_selected(v);
+		}
 	}
 	String type;
 	switch (var.type) {
