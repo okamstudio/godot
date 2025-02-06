@@ -666,7 +666,6 @@ void Label::_notification(int p_what) {
 
 			bool has_settings = settings.is_valid();
 
-			Size2 string_size;
 			Ref<StyleBox> style = theme_cache.normal_style;
 			Ref<Font> font = (settings.is_valid() && settings->get_font().is_valid()) ? settings->get_font() : theme_cache.font;
 			int font_size = settings.is_valid() ? settings->get_font_size() : theme_cache.font_size;

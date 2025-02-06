@@ -47,7 +47,7 @@ TEST_CASE("[Geometry3D] Closest Distance Between Segments") {
 }
 
 TEST_CASE("[Geometry3D] Build Box Planes") {
-	const Vector3 extents = Vector3(5, 5, 20);
+	constexpr Vector3 extents = Vector3(5, 5, 20);
 	Vector<Plane> box = Geometry3D::build_box_planes(extents);
 	CHECK(box.size() == 6);
 	CHECK(extents.x == box[0].d);
@@ -130,7 +130,7 @@ TEST_CASE("[Geometry3D] Compute Convex Mesh Points") {
 }
 
 TEST_CASE("[Geometry3D] Get Closest Point To Segment") {
-	Vector3 segment[2] = { Vector3(1, 1, 1), Vector3(5, 5, 5) };
+	constexpr Vector3 segment[2] = { Vector3(1, 1, 1), Vector3(5, 5, 5) };
 	Vector3 output = Geometry3D::get_closest_point_to_segment(Vector3(2, 1, 4), segment);
 	CHECK(output.is_equal_approx(Vector3(2.33333, 2.33333, 2.33333)));
 }
@@ -183,9 +183,9 @@ TEST_CASE("[Geometry3D] Segment Intersects Triangle") {
 }
 
 TEST_CASE("[Geometry3D] Triangle and Box Overlap") {
-	Vector3 good_triangle[3] = { Vector3(3, 2, 3), Vector3(2, 2, 1), Vector3(2, 1, 1) };
+	constexpr Vector3 good_triangle[3] = { Vector3(3, 2, 3), Vector3(2, 2, 1), Vector3(2, 1, 1) };
 	CHECK(Geometry3D::triangle_box_overlap(Vector3(0, 0, 0), Vector3(5, 5, 5), good_triangle) == true);
-	Vector3 bad_triangle[3] = { Vector3(100, 100, 100), Vector3(-100, -100, -100), Vector3(10, 10, 10) };
+	constexpr Vector3 bad_triangle[3] = { Vector3(100, 100, 100), Vector3(-100, -100, -100), Vector3(10, 10, 10) };
 	CHECK(Geometry3D::triangle_box_overlap(Vector3(1000, 1000, 1000), Vector3(1, 1, 1), bad_triangle) == false);
 }
 

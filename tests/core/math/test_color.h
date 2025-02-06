@@ -38,7 +38,7 @@
 namespace TestColor {
 
 TEST_CASE("[Color] Constructor methods") {
-	const Color blue_rgba = Color(0.25098, 0.376471, 1, 0.501961);
+	constexpr Color blue_rgba = Color(0.25098, 0.376471, 1, 0.501961);
 	const Color blue_html = Color::html("#4060ff80");
 	const Color blue_hex = Color::hex(0x4060ff80);
 	const Color blue_hex64 = Color::hex64(0x4040'6060'ffff'8080);
@@ -61,7 +61,7 @@ TEST_CASE("[Color] Constructor methods") {
 			html_invalid.is_equal_approx(Color()),
 			"Creation with invalid HTML notation should result in a Color with the default values.");
 
-	const Color green_rgba = Color(0, 1, 0, 0.25);
+	constexpr Color green_rgba = Color(0, 1, 0, 0.25);
 	const Color green_hsva = Color(0, 0, 0).from_hsv(120 / 360.0, 1, 1, 0.25);
 
 	CHECK_MESSAGE(
@@ -70,8 +70,8 @@ TEST_CASE("[Color] Constructor methods") {
 }
 
 TEST_CASE("[Color] Operators") {
-	const Color blue = Color(0.2, 0.2, 1);
-	const Color dark_red = Color(0.3, 0.1, 0.1);
+	constexpr Color blue = Color(0.2, 0.2, 1);
+	constexpr Color dark_red = Color(0.3, 0.1, 0.1);
 
 	// Color components may be negative. Also, the alpha component may be greater than 1.0.
 	CHECK_MESSAGE(
@@ -98,7 +98,7 @@ TEST_CASE("[Color] Operators") {
 }
 
 TEST_CASE("[Color] Reading methods") {
-	const Color dark_blue = Color(0, 0, 0.5, 0.4);
+	constexpr Color dark_blue = Color(0, 0, 0.5, 0.4);
 
 	CHECK_MESSAGE(
 			dark_blue.get_h() == doctest::Approx(240.0f / 360.0f),
@@ -112,8 +112,8 @@ TEST_CASE("[Color] Reading methods") {
 }
 
 TEST_CASE("[Color] Conversion methods") {
-	const Color cyan = Color(0, 1, 1);
-	const Color cyan_transparent = Color(0, 1, 1, 0);
+	constexpr Color cyan = Color(0, 1, 1);
+	constexpr Color cyan_transparent = Color(0, 1, 1, 0);
 
 	CHECK_MESSAGE(
 			cyan.to_html() == "00ffffff",
@@ -145,7 +145,7 @@ TEST_CASE("[Color] Conversion methods") {
 }
 
 TEST_CASE("[Color] Linear <-> sRGB conversion") {
-	const Color color = Color(0.35, 0.5, 0.6, 0.7);
+	constexpr Color color = Color(0.35, 0.5, 0.6, 0.7);
 	const Color color_linear = color.srgb_to_linear();
 	const Color color_srgb = color.linear_to_srgb();
 	CHECK_MESSAGE(
@@ -204,13 +204,13 @@ TEST_CASE("[Color] Validation methods") {
 }
 
 TEST_CASE("[Color] Manipulation methods") {
-	const Color blue = Color(0, 0, 1, 0.4);
+	constexpr Color blue = Color(0, 0, 1, 0.4);
 
 	CHECK_MESSAGE(
 			blue.inverted().is_equal_approx(Color(1, 1, 0, 0.4)),
 			"Inverted color should have its red, green and blue components inverted.");
 
-	const Color purple = Color(0.5, 0.2, 0.5, 0.25);
+	constexpr Color purple = Color(0.5, 0.2, 0.5, 0.25);
 
 	CHECK_MESSAGE(
 			purple.lightened(0.2).is_equal_approx(Color(0.6, 0.36, 0.6, 0.25)),
@@ -219,8 +219,8 @@ TEST_CASE("[Color] Manipulation methods") {
 			purple.darkened(0.2).is_equal_approx(Color(0.4, 0.16, 0.4, 0.25)),
 			"Color should be darkened by the expected amount.");
 
-	const Color red = Color(1, 0, 0, 0.2);
-	const Color yellow = Color(1, 1, 0, 0.8);
+	constexpr Color red = Color(1, 0, 0, 0.2);
+	constexpr Color yellow = Color(1, 1, 0, 0.8);
 
 	CHECK_MESSAGE(
 			red.lerp(yellow, 0.5).is_equal_approx(Color(1, 0.5, 0, 0.5)),

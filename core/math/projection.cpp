@@ -827,26 +827,6 @@ void Projection::flip_y() {
 	}
 }
 
-Projection::Projection() {
-	set_identity();
-}
-
-Projection Projection::operator*(const Projection &p_matrix) const {
-	Projection new_matrix;
-
-	for (int j = 0; j < 4; j++) {
-		for (int i = 0; i < 4; i++) {
-			real_t ab = 0;
-			for (int k = 0; k < 4; k++) {
-				ab += columns[k][i] * p_matrix.columns[j][k];
-			}
-			new_matrix.columns[j][i] = ab;
-		}
-	}
-
-	return new_matrix;
-}
-
 void Projection::set_depth_correction(bool p_flip_y, bool p_reverse_z, bool p_remap_z) {
 	// p_remap_z is used to convert from OpenGL-style clip space (-1 - 1) to Vulkan style (0 - 1).
 	real_t *m = &columns[0][0];
@@ -1028,13 +1008,6 @@ Projection::operator Transform3D() const {
 	return tr;
 }
 
-Projection::Projection(const Vector4 &p_x, const Vector4 &p_y, const Vector4 &p_z, const Vector4 &p_w) {
-	columns[0] = p_x;
-	columns[1] = p_y;
-	columns[2] = p_z;
-	columns[3] = p_w;
-}
-
 Projection::Projection(const Transform3D &p_transform) {
 	const Transform3D &tr = p_transform;
 	real_t *m = &columns[0][0];
@@ -1055,7 +1028,4 @@ Projection::Projection(const Transform3D &p_transform) {
 	m[13] = tr.origin.y;
 	m[14] = tr.origin.z;
 	m[15] = 1.0;
-}
-
-Projection::~Projection() {
 }

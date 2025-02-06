@@ -46,18 +46,19 @@ struct [[nodiscard]] Vector2i {
 	};
 
 	union {
+		// NOLINTBEGIN(modernize-use-default-member-init)
 		struct {
-			union {
-				int32_t x;
-				int32_t width;
-			};
-			union {
-				int32_t y;
-				int32_t height;
-			};
+			int32_t x;
+			int32_t y;
+		};
+
+		struct {
+			int32_t width;
+			int32_t height;
 		};
 
 		int32_t coord[2] = { 0 };
+		// NOLINTEND(modernize-use-default-member-init)
 	};
 
 	_FORCE_INLINE_ int32_t &operator[](int p_axis) {
@@ -101,32 +102,32 @@ struct [[nodiscard]] Vector2i {
 		return (p_to - *this).length_squared();
 	}
 
-	Vector2i operator+(const Vector2i &p_v) const;
-	void operator+=(const Vector2i &p_v);
-	Vector2i operator-(const Vector2i &p_v) const;
-	void operator-=(const Vector2i &p_v);
-	Vector2i operator*(const Vector2i &p_v1) const;
+	constexpr Vector2i operator+(const Vector2i &p_v) const;
+	constexpr void operator+=(const Vector2i &p_v);
+	constexpr Vector2i operator-(const Vector2i &p_v) const;
+	constexpr void operator-=(const Vector2i &p_v);
+	constexpr Vector2i operator*(const Vector2i &p_v1) const;
 
-	Vector2i operator*(int32_t p_rvalue) const;
-	void operator*=(int32_t p_rvalue);
+	constexpr Vector2i operator*(int32_t p_rvalue) const;
+	constexpr void operator*=(int32_t p_rvalue);
 
-	Vector2i operator/(const Vector2i &p_v1) const;
-	Vector2i operator/(int32_t p_rvalue) const;
-	void operator/=(int32_t p_rvalue);
+	constexpr Vector2i operator/(const Vector2i &p_v1) const;
+	constexpr Vector2i operator/(int32_t p_rvalue) const;
+	constexpr void operator/=(int32_t p_rvalue);
 
-	Vector2i operator%(const Vector2i &p_v1) const;
-	Vector2i operator%(int32_t p_rvalue) const;
-	void operator%=(int32_t p_rvalue);
+	constexpr Vector2i operator%(const Vector2i &p_v1) const;
+	constexpr Vector2i operator%(int32_t p_rvalue) const;
+	constexpr void operator%=(int32_t p_rvalue);
 
-	Vector2i operator-() const;
-	bool operator<(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y < p_vec2.y) : (x < p_vec2.x); }
-	bool operator>(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y > p_vec2.y) : (x > p_vec2.x); }
+	constexpr Vector2i operator-() const;
+	constexpr bool operator<(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y < p_vec2.y) : (x < p_vec2.x); }
+	constexpr bool operator>(const Vector2i &p_vec2) const { return (x == p_vec2.x) ? (y > p_vec2.y) : (x > p_vec2.x); }
 
-	bool operator<=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y <= p_vec2.y) : (x < p_vec2.x); }
-	bool operator>=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
+	constexpr bool operator<=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y <= p_vec2.y) : (x < p_vec2.x); }
+	constexpr bool operator>=(const Vector2i &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
 
-	bool operator==(const Vector2i &p_vec2) const;
-	bool operator!=(const Vector2i &p_vec2) const;
+	constexpr bool operator==(const Vector2i &p_vec2) const;
+	constexpr bool operator!=(const Vector2i &p_vec2) const;
 
 	int64_t length_squared() const;
 	double length() const;
@@ -142,28 +143,98 @@ struct [[nodiscard]] Vector2i {
 	operator String() const;
 	operator Vector2() const;
 
-	inline Vector2i() {}
-	inline Vector2i(int32_t p_x, int32_t p_y) {
-		x = p_x;
-		y = p_y;
-	}
+	// NOLINTBEGIN(cppcoreguidelines-pro-type-member-init)
+	constexpr Vector2i() :
+			x(0), y(0) {}
+	constexpr Vector2i(int32_t p_x, int32_t p_y) :
+			x(p_x), y(p_y) {}
+	// NOLINTEND(cppcoreguidelines-pro-type-member-init)
 };
+
+constexpr Vector2i Vector2i::operator+(const Vector2i &p_v) const {
+	return Vector2i(x + p_v.x, y + p_v.y);
+}
+
+constexpr void Vector2i::operator+=(const Vector2i &p_v) {
+	x += p_v.x;
+	y += p_v.y;
+}
+
+constexpr Vector2i Vector2i::operator-(const Vector2i &p_v) const {
+	return Vector2i(x - p_v.x, y - p_v.y);
+}
+
+constexpr void Vector2i::operator-=(const Vector2i &p_v) {
+	x -= p_v.x;
+	y -= p_v.y;
+}
+
+constexpr Vector2i Vector2i::operator*(const Vector2i &p_v1) const {
+	return Vector2i(x * p_v1.x, y * p_v1.y);
+}
+
+constexpr Vector2i Vector2i::operator*(int32_t p_rvalue) const {
+	return Vector2i(x * p_rvalue, y * p_rvalue);
+}
+
+constexpr void Vector2i::operator*=(int32_t p_rvalue) {
+	x *= p_rvalue;
+	y *= p_rvalue;
+}
+
+constexpr Vector2i Vector2i::operator/(const Vector2i &p_v1) const {
+	return Vector2i(x / p_v1.x, y / p_v1.y);
+}
+
+constexpr Vector2i Vector2i::operator/(int32_t p_rvalue) const {
+	return Vector2i(x / p_rvalue, y / p_rvalue);
+}
+
+constexpr void Vector2i::operator/=(int32_t p_rvalue) {
+	x /= p_rvalue;
+	y /= p_rvalue;
+}
+
+constexpr Vector2i Vector2i::operator%(const Vector2i &p_v1) const {
+	return Vector2i(x % p_v1.x, y % p_v1.y);
+}
+
+constexpr Vector2i Vector2i::operator%(int32_t p_rvalue) const {
+	return Vector2i(x % p_rvalue, y % p_rvalue);
+}
+
+constexpr void Vector2i::operator%=(int32_t p_rvalue) {
+	x %= p_rvalue;
+	y %= p_rvalue;
+}
+
+constexpr Vector2i Vector2i::operator-() const {
+	return Vector2i(-x, -y);
+}
+
+constexpr bool Vector2i::operator==(const Vector2i &p_vec2) const {
+	return x == p_vec2.x && y == p_vec2.y;
+}
+
+constexpr bool Vector2i::operator!=(const Vector2i &p_vec2) const {
+	return x != p_vec2.x || y != p_vec2.y;
+}
 
 // Multiplication operators required to workaround issues with LLVM using implicit conversion.
 
-_FORCE_INLINE_ Vector2i operator*(int32_t p_scalar, const Vector2i &p_vector) {
+constexpr Vector2i operator*(int32_t p_scalar, const Vector2i &p_vector) {
 	return p_vector * p_scalar;
 }
 
-_FORCE_INLINE_ Vector2i operator*(int64_t p_scalar, const Vector2i &p_vector) {
+constexpr Vector2i operator*(int64_t p_scalar, const Vector2i &p_vector) {
 	return p_vector * p_scalar;
 }
 
-_FORCE_INLINE_ Vector2i operator*(float p_scalar, const Vector2i &p_vector) {
+constexpr Vector2i operator*(float p_scalar, const Vector2i &p_vector) {
 	return p_vector * p_scalar;
 }
 
-_FORCE_INLINE_ Vector2i operator*(double p_scalar, const Vector2i &p_vector) {
+constexpr Vector2i operator*(double p_scalar, const Vector2i &p_vector) {
 	return p_vector * p_scalar;
 }
 

@@ -38,9 +38,9 @@
 namespace TestVector2i {
 
 TEST_CASE("[Vector2i] Constructor methods") {
-	const Vector2i vector_empty = Vector2i();
-	const Vector2i vector_zero = Vector2i(0, 0);
-	CHECK_MESSAGE(
+	constexpr Vector2i vector_empty = Vector2i();
+	constexpr Vector2i vector_zero = Vector2i(0, 0);
+	static_assert(
 			vector_empty == vector_zero,
 			"Vector2i Constructor with no inputs should return a zero Vector2i.");
 }
@@ -63,7 +63,7 @@ TEST_CASE("[Vector2i] Axis methods") {
 }
 
 TEST_CASE("[Vector2i] Clamp method") {
-	const Vector2i vector = Vector2i(10, 10);
+	constexpr Vector2i vector = Vector2i(10, 10);
 	CHECK_MESSAGE(
 			Vector2i(-5, 15).clamp(Vector2i(), vector) == Vector2i(0, 10),
 			"Vector2i clamp should work as expected.");
@@ -73,8 +73,8 @@ TEST_CASE("[Vector2i] Clamp method") {
 }
 
 TEST_CASE("[Vector2i] Length methods") {
-	const Vector2i vector1 = Vector2i(10, 10);
-	const Vector2i vector2 = Vector2i(20, 30);
+	constexpr Vector2i vector1 = Vector2i(10, 10);
+	constexpr Vector2i vector2 = Vector2i(20, 30);
 	CHECK_MESSAGE(
 			vector1.length_squared() == 200,
 			"Vector2i length_squared should work as expected and return exact result.");
@@ -96,26 +96,26 @@ TEST_CASE("[Vector2i] Length methods") {
 }
 
 TEST_CASE("[Vector2i] Operators") {
-	const Vector2i vector1 = Vector2i(5, 9);
-	const Vector2i vector2 = Vector2i(2, 3);
+	constexpr Vector2i vector1 = Vector2i(5, 9);
+	constexpr Vector2i vector2 = Vector2i(2, 3);
 
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 + vector2) == Vector2i(7, 12),
 			"Vector2i addition with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 - vector2) == Vector2i(3, 6),
 			"Vector2i subtraction with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 * vector2) == Vector2i(10, 27),
 			"Vector2i multiplication with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 / vector2) == Vector2i(2, 3),
 			"Vector2i division with integers should give exact results.");
 
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 * 2) == Vector2i(10, 18),
 			"Vector2i multiplication with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 / 2) == Vector2i(2, 4),
 			"Vector2i division with integers should give exact results.");
 
@@ -131,7 +131,7 @@ TEST_CASE("[Vector2i] Operators") {
 }
 
 TEST_CASE("[Vector2i] Other methods") {
-	const Vector2i vector = Vector2i(1, 3);
+	constexpr Vector2i vector = Vector2i(1, 3);
 	CHECK_MESSAGE(
 			vector.aspect() == doctest::Approx((real_t)1.0 / (real_t)3.0),
 			"Vector2i aspect should work as expected.");
@@ -150,8 +150,8 @@ TEST_CASE("[Vector2i] Other methods") {
 }
 
 TEST_CASE("[Vector2i] Abs and sign methods") {
-	const Vector2i vector1 = Vector2i(1, 3);
-	const Vector2i vector2 = Vector2i(1, -3);
+	constexpr Vector2i vector1 = Vector2i(1, 3);
+	constexpr Vector2i vector2 = Vector2i(1, -3);
 	CHECK_MESSAGE(
 			vector1.abs() == vector1,
 			"Vector2i abs should work as expected.");

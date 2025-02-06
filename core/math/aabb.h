@@ -59,8 +59,12 @@ struct [[nodiscard]] AABB {
 	const Vector3 &get_size() const { return size; }
 	void set_size(const Vector3 &p_size) { size = p_size; }
 
-	bool operator==(const AABB &p_rval) const;
-	bool operator!=(const AABB &p_rval) const;
+	constexpr bool operator==(const AABB &p_rval) const {
+		return position == p_rval.position && size == p_rval.size;
+	}
+	constexpr bool operator!=(const AABB &p_rval) const {
+		return position != p_rval.position || size != p_rval.size;
+	}
 
 	bool is_equal_approx(const AABB &p_aabb) const;
 	bool is_finite() const;
@@ -129,8 +133,8 @@ struct [[nodiscard]] AABB {
 
 	operator String() const;
 
-	_FORCE_INLINE_ AABB() {}
-	inline AABB(const Vector3 &p_pos, const Vector3 &p_size) :
+	constexpr AABB() {}
+	constexpr AABB(const Vector3 &p_pos, const Vector3 &p_size) :
 			position(p_pos),
 			size(p_size) {
 	}

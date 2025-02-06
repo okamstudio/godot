@@ -523,7 +523,6 @@ static void fill_bits(const BitMap *p_src, Ref<BitMap> &p_map, const Point2i &p_
 Vector<Vector<Vector2>> BitMap::clip_opaque_to_polygons(const Rect2i &p_rect, float p_epsilon) const {
 	Rect2i r = Rect2i(0, 0, width, height).intersection(p_rect);
 
-	Point2i from;
 	Ref<BitMap> fill;
 	fill.instantiate();
 	fill->create(get_size());

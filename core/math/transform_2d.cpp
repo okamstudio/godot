@@ -191,26 +191,6 @@ Transform2D Transform2D::looking_at(const Vector2 &p_target) const {
 	return return_trans;
 }
 
-bool Transform2D::operator==(const Transform2D &p_transform) const {
-	for (int i = 0; i < 3; i++) {
-		if (columns[i] != p_transform.columns[i]) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-bool Transform2D::operator!=(const Transform2D &p_transform) const {
-	for (int i = 0; i < 3; i++) {
-		if (columns[i] != p_transform.columns[i]) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
 void Transform2D::operator*=(const Transform2D &p_transform) {
 	columns[2] = xform(p_transform.columns[2]);
 
@@ -281,30 +261,6 @@ Transform2D Transform2D::interpolate_with(const Transform2D &p_transform, real_t
 			get_scale().lerp(p_transform.get_scale(), p_weight),
 			Math::lerp_angle(get_skew(), p_transform.get_skew(), p_weight),
 			get_origin().lerp(p_transform.get_origin(), p_weight));
-}
-
-void Transform2D::operator*=(real_t p_val) {
-	columns[0] *= p_val;
-	columns[1] *= p_val;
-	columns[2] *= p_val;
-}
-
-Transform2D Transform2D::operator*(real_t p_val) const {
-	Transform2D ret(*this);
-	ret *= p_val;
-	return ret;
-}
-
-void Transform2D::operator/=(real_t p_val) {
-	columns[0] /= p_val;
-	columns[1] /= p_val;
-	columns[2] /= p_val;
-}
-
-Transform2D Transform2D::operator/(real_t p_val) const {
-	Transform2D ret(*this);
-	ret /= p_val;
-	return ret;
 }
 
 Transform2D::operator String() const {

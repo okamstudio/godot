@@ -164,11 +164,11 @@ TEST_CASE("[Geometry2D] Segment intersection") {
 }
 
 TEST_CASE("[Geometry2D] Segment intersection with circle") {
-	real_t minus_one = -1.0;
-	real_t zero = 0.0;
-	real_t one_quarter = 0.25;
-	real_t three_quarters = 0.75;
-	real_t one = 1.0;
+	constexpr real_t minus_one = -1.0;
+	constexpr real_t zero = 0.0;
+	constexpr real_t one_quarter = 0.25;
+	constexpr real_t three_quarters = 0.75;
+	constexpr real_t one = 1.0;
 
 	CHECK_MESSAGE(
 			Geometry2D::segment_intersects_circle(Vector2(0, 0), Vector2(4, 0), Vector2(0, 0), 1.0) == doctest::Approx(one_quarter),
@@ -262,19 +262,19 @@ TEST_CASE("[Geometry2D] Segment intersection with polygon") {
 }
 
 TEST_CASE("[Geometry2D] Closest point to segment") {
-	Vector2 s[] = { Vector2(-4, -4), Vector2(4, 4) };
+	constexpr Vector2 s[] = { Vector2(-4, -4), Vector2(4, 4) };
 	CHECK(Geometry2D::get_closest_point_to_segment(Vector2(4.1, 4.1), s).is_equal_approx(Vector2(4, 4)));
 	CHECK(Geometry2D::get_closest_point_to_segment(Vector2(-4.1, -4.1), s).is_equal_approx(Vector2(-4, -4)));
 	CHECK(Geometry2D::get_closest_point_to_segment(Vector2(-1, 1), s).is_equal_approx(Vector2(0, 0)));
 
-	Vector2 t[] = { Vector2(1, -2), Vector2(1, -2) };
+	constexpr Vector2 t[] = { Vector2(1, -2), Vector2(1, -2) };
 	CHECK_MESSAGE(
 			Geometry2D::get_closest_point_to_segment(Vector2(-3, 4), t).is_equal_approx(Vector2(1, -2)),
 			"Line segment is only a single point. This point should be the closest.");
 }
 
 TEST_CASE("[Geometry2D] Closest point to uncapped segment") {
-	Vector2 s[] = { Vector2(-4, -4), Vector2(4, 4) };
+	constexpr Vector2 s[] = { Vector2(-4, -4), Vector2(4, 4) };
 	CHECK(Geometry2D::get_closest_point_to_segment_uncapped(Vector2(-1, 1), s).is_equal_approx(Vector2(0, 0)));
 	CHECK(Geometry2D::get_closest_point_to_segment_uncapped(Vector2(-4, -6), s).is_equal_approx(Vector2(-5, -5)));
 	CHECK(Geometry2D::get_closest_point_to_segment_uncapped(Vector2(4, 6), s).is_equal_approx(Vector2(5, 5)));

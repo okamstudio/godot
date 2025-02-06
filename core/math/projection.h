@@ -55,12 +55,12 @@ struct [[nodiscard]] Projection {
 
 	Vector4 columns[4];
 
-	_FORCE_INLINE_ const Vector4 &operator[](int p_axis) const {
+	constexpr const Vector4 &operator[](int p_axis) const {
 		DEV_ASSERT((unsigned int)p_axis < 4);
 		return columns[p_axis];
 	}
 
-	_FORCE_INLINE_ Vector4 &operator[](int p_axis) {
+	constexpr Vector4 &operator[](int p_axis) {
 		DEV_ASSERT((unsigned int)p_axis < 4);
 		return columns[p_axis];
 	}
@@ -115,7 +115,7 @@ struct [[nodiscard]] Projection {
 	void invert();
 	Projection inverse() const;
 
-	Projection operator*(const Projection &p_matrix) const;
+	constexpr Projection operator*(const Projection &p_matrix) const;
 
 	Plane xform4(const Plane &p_vec4) const;
 	_FORCE_INLINE_ Vector3 xform(const Vector3 &p_vec3) const;
@@ -133,7 +133,7 @@ struct [[nodiscard]] Projection {
 
 	void flip_y();
 
-	bool operator==(const Projection &p_cam) const {
+	constexpr bool operator==(const Projection &p_cam) const {
 		for (uint32_t i = 0; i < 4; i++) {
 			for (uint32_t j = 0; j < 4; j++) {
 				if (columns[i][j] != p_cam.columns[i][j]) {
@@ -144,17 +144,39 @@ struct [[nodiscard]] Projection {
 		return true;
 	}
 
-	bool operator!=(const Projection &p_cam) const {
+	constexpr bool operator!=(const Projection &p_cam) const {
 		return !(*this == p_cam);
 	}
 
 	real_t get_lod_multiplier() const;
 
-	Projection();
-	Projection(const Vector4 &p_x, const Vector4 &p_y, const Vector4 &p_z, const Vector4 &p_w);
+	constexpr Projection() :
+			columns{
+				{ 1, 0, 0, 0 },
+				{ 0, 1, 0, 0 },
+				{ 0, 0, 1, 0 },
+				{ 0, 0, 0, 1 },
+			} {}
+	constexpr Projection(const Vector4 &p_x, const Vector4 &p_y, const Vector4 &p_z, const Vector4 &p_w) :
+			columns{ p_x, p_y, p_z, p_w } {}
 	Projection(const Transform3D &p_transform);
-	~Projection();
 };
+
+constexpr Projection Projection::operator*(const Projection &p_matrix) const {
+	Projection new_matrix;
+
+	for (int j = 0; j < 4; j++) {
+		for (int i = 0; i < 4; i++) {
+			real_t ab = 0;
+			for (int k = 0; k < 4; k++) {
+				ab += columns[k][i] * p_matrix.columns[j][k];
+			}
+			new_matrix.columns[j][i] = ab;
+		}
+	}
+
+	return new_matrix;
+}
 
 Vector3 Projection::xform(const Vector3 &p_vec3) const {
 	Vector3 ret;

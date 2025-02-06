@@ -46,7 +46,7 @@ Transform3D identity() {
 }
 
 TEST_CASE("[Transform3D] translation") {
-	Vector3 offset = Vector3(1, 2, 3);
+	constexpr Vector3 offset = Vector3(1, 2, 3);
 
 	// Both versions should give the same result applied to identity.
 	CHECK(identity().translated(offset) == identity().translated_local(offset));
@@ -59,7 +59,7 @@ TEST_CASE("[Transform3D] translation") {
 }
 
 TEST_CASE("[Transform3D] scaling") {
-	Vector3 scaling = Vector3(1, 2, 3);
+	constexpr Vector3 scaling = Vector3(1, 2, 3);
 
 	// Both versions should give the same result applied to identity.
 	CHECK(identity().scaled(scaling) == identity().scaled_local(scaling));
@@ -72,8 +72,8 @@ TEST_CASE("[Transform3D] scaling") {
 }
 
 TEST_CASE("[Transform3D] rotation") {
-	Vector3 axis = Vector3(1, 2, 3).normalized();
-	real_t phi = 1.0;
+	const Vector3 axis = Vector3(1, 2, 3).normalized();
+	constexpr real_t phi = 1.0;
 
 	// Both versions should give the same result applied to identity.
 	CHECK(identity().rotated(axis, phi) == identity().rotated_local(axis, phi));
@@ -86,9 +86,9 @@ TEST_CASE("[Transform3D] rotation") {
 }
 
 TEST_CASE("[Transform3D] Finite number checks") {
-	const Vector3 y(0, 1, 2);
+	constexpr Vector3 y(0, 1, 2);
 	const Vector3 infinite_vec(NAN, NAN, NAN);
-	const Basis x(y, y, y);
+	constexpr Basis x(y, y, y);
 	const Basis infinite_basis(infinite_vec, infinite_vec, infinite_vec);
 
 	CHECK_MESSAGE(

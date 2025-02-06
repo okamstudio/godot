@@ -38,16 +38,16 @@
 namespace TestVector2 {
 
 TEST_CASE("[Vector2] Constructor methods") {
-	const Vector2 vector_empty = Vector2();
-	const Vector2 vector_zero = Vector2(0.0, 0.0);
-	CHECK_MESSAGE(
+	constexpr Vector2 vector_empty = Vector2();
+	constexpr Vector2 vector_zero = Vector2(0.0, 0.0);
+	static_assert(
 			vector_empty == vector_zero,
 			"Vector2 Constructor with no inputs should return a zero Vector2.");
 }
 
 TEST_CASE("[Vector2] Angle methods") {
-	const Vector2 vector_x = Vector2(1, 0);
-	const Vector2 vector_y = Vector2(0, 1);
+	constexpr Vector2 vector_x = Vector2(1, 0);
+	constexpr Vector2 vector_y = Vector2(0, 1);
 	CHECK_MESSAGE(
 			vector_x.angle_to(vector_y) == doctest::Approx((real_t)Math_TAU / 4),
 			"Vector2 angle_to should work as expected.");
@@ -80,8 +80,8 @@ TEST_CASE("[Vector2] Axis methods") {
 }
 
 TEST_CASE("[Vector2] Interpolation methods") {
-	const Vector2 vector1 = Vector2(1, 2);
-	const Vector2 vector2 = Vector2(4, 5);
+	constexpr Vector2 vector1 = Vector2(1, 2);
+	constexpr Vector2 vector2 = Vector2(4, 5);
 	CHECK_MESSAGE(
 			vector1.lerp(vector2, 0.5) == Vector2(2.5, 3.5),
 			"Vector2 lerp should work as expected.");
@@ -130,8 +130,8 @@ TEST_CASE("[Vector2] Interpolation methods") {
 }
 
 TEST_CASE("[Vector2] Length methods") {
-	const Vector2 vector1 = Vector2(10, 10);
-	const Vector2 vector2 = Vector2(20, 30);
+	constexpr Vector2 vector1 = Vector2(10, 10);
+	constexpr Vector2 vector2 = Vector2(20, 30);
 	CHECK_MESSAGE(
 			vector1.length_squared() == 200,
 			"Vector2 length_squared should work as expected and return exact result.");
@@ -153,7 +153,7 @@ TEST_CASE("[Vector2] Length methods") {
 }
 
 TEST_CASE("[Vector2] Limiting methods") {
-	const Vector2 vector = Vector2(10, 10);
+	constexpr Vector2 vector = Vector2(10, 10);
 	CHECK_MESSAGE(
 			vector.limit_length().is_equal_approx(Vector2(Math_SQRT12, Math_SQRT12)),
 			"Vector2 limit_length should work as expected.");
@@ -194,70 +194,70 @@ TEST_CASE("[Vector2] Normalization methods") {
 }
 
 TEST_CASE("[Vector2] Operators") {
-	const Vector2 decimal1 = Vector2(2.3, 4.9);
-	const Vector2 decimal2 = Vector2(1.2, 3.4);
-	const Vector2 power1 = Vector2(0.75, 1.5);
-	const Vector2 power2 = Vector2(0.5, 0.125);
-	const Vector2 int1 = Vector2(4, 5);
-	const Vector2 int2 = Vector2(1, 2);
+	constexpr Vector2 decimal1 = Vector2(2.3, 4.9);
+	constexpr Vector2 decimal2 = Vector2(1.2, 3.4);
+	constexpr Vector2 power1 = Vector2(0.75, 1.5);
+	constexpr Vector2 power2 = Vector2(0.5, 0.125);
+	constexpr Vector2 int1 = Vector2(4, 5);
+	constexpr Vector2 int2 = Vector2(1, 2);
 
 	CHECK_MESSAGE(
 			(decimal1 + decimal2).is_equal_approx(Vector2(3.5, 8.3)),
 			"Vector2 addition should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 + power2) == Vector2(1.25, 1.625),
 			"Vector2 addition with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 + int2) == Vector2(5, 7),
 			"Vector2 addition with integers should give exact results.");
 
 	CHECK_MESSAGE(
 			(decimal1 - decimal2).is_equal_approx(Vector2(1.1, 1.5)),
 			"Vector2 subtraction should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 - power2) == Vector2(0.25, 1.375),
 			"Vector2 subtraction with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 - int2) == Vector2(3, 3),
 			"Vector2 subtraction with integers should give exact results.");
 
 	CHECK_MESSAGE(
 			(decimal1 * decimal2).is_equal_approx(Vector2(2.76, 16.66)),
 			"Vector2 multiplication should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 * power2) == Vector2(0.375, 0.1875),
 			"Vector2 multiplication with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 * int2) == Vector2(4, 10),
 			"Vector2 multiplication with integers should give exact results.");
 
 	CHECK_MESSAGE(
 			(decimal1 / decimal2).is_equal_approx(Vector2(1.91666666666666666, 1.44117647058823529)),
 			"Vector2 division should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 / power2) == Vector2(1.5, 12.0),
 			"Vector2 division with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 / int2) == Vector2(4, 2.5),
 			"Vector2 division with integers should give exact results.");
 
 	CHECK_MESSAGE(
 			(decimal1 * 2).is_equal_approx(Vector2(4.6, 9.8)),
 			"Vector2 multiplication should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 * 2) == Vector2(1.5, 3),
 			"Vector2 multiplication with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 * 2) == Vector2(8, 10),
 			"Vector2 multiplication with integers should give exact results.");
 
 	CHECK_MESSAGE(
 			(decimal1 / 2).is_equal_approx(Vector2(1.15, 2.45)),
 			"Vector2 division should behave as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(power1 / 2) == Vector2(0.375, 0.75),
 			"Vector2 division with powers of two should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(int1 / 2) == Vector2(2, 2.5),
 			"Vector2 division with integers should give exact results.");
 
@@ -292,7 +292,7 @@ TEST_CASE("[Vector2] Operators") {
 }
 
 TEST_CASE("[Vector2] Other methods") {
-	const Vector2 vector = Vector2(1.2, 3.4);
+	constexpr Vector2 vector = Vector2(1.2, 3.4);
 	CHECK_MESSAGE(
 			vector.aspect() == doctest::Approx((real_t)1.2 / (real_t)3.4),
 			"Vector2 aspect should work as expected.");
@@ -350,10 +350,10 @@ TEST_CASE("[Vector2] Other methods") {
 }
 
 TEST_CASE("[Vector2] Plane methods") {
-	const Vector2 vector = Vector2(1.2, 3.4);
-	const Vector2 vector_y = Vector2(0, 1);
-	const Vector2 vector_normal = Vector2(0.95879811270838721622267, 0.2840883296913739899919);
-	const real_t p_d = 99.1;
+	constexpr Vector2 vector = Vector2(1.2, 3.4);
+	constexpr Vector2 vector_y = Vector2(0, 1);
+	constexpr Vector2 vector_normal = Vector2(0.95879811270838721622267, 0.2840883296913739899919);
+	constexpr real_t p_d = 99.1;
 	CHECK_MESSAGE(
 			vector.bounce(vector_y) == Vector2(1.2, -3.4),
 			"Vector2 bounce on a plane with normal of the Y axis should.");
@@ -383,7 +383,7 @@ TEST_CASE("[Vector2] Plane methods") {
 			"Vector2 slide with normal should return expected value.");
 	// There's probably a better way to test these ones?
 #ifdef MATH_CHECKS
-	const Vector2 vector_non_normal = Vector2(5.4, 1.6);
+	constexpr Vector2 vector_non_normal = Vector2(5.4, 1.6);
 	ERR_PRINT_OFF;
 	CHECK_MESSAGE(
 			vector.bounce(vector_non_normal).is_equal_approx(Vector2()),
@@ -399,8 +399,8 @@ TEST_CASE("[Vector2] Plane methods") {
 }
 
 TEST_CASE("[Vector2] Rounding methods") {
-	const Vector2 vector1 = Vector2(1.2, 5.6);
-	const Vector2 vector2 = Vector2(1.2, -5.6);
+	constexpr Vector2 vector1 = Vector2(1.2, 5.6);
+	constexpr Vector2 vector2 = Vector2(1.2, -5.6);
 	CHECK_MESSAGE(
 			vector1.abs() == vector1,
 			"Vector2 abs should work as expected.");
@@ -438,10 +438,10 @@ TEST_CASE("[Vector2] Rounding methods") {
 }
 
 TEST_CASE("[Vector2] Linear algebra methods") {
-	const Vector2 vector_x = Vector2(1, 0);
-	const Vector2 vector_y = Vector2(0, 1);
-	const Vector2 a = Vector2(3.5, 8.5);
-	const Vector2 b = Vector2(5.2, 4.6);
+	constexpr Vector2 vector_x = Vector2(1, 0);
+	constexpr Vector2 vector_y = Vector2(0, 1);
+	constexpr Vector2 a = Vector2(3.5, 8.5);
+	constexpr Vector2 b = Vector2(5.2, 4.6);
 	CHECK_MESSAGE(
 			vector_x.cross(vector_y) == 1,
 			"Vector2 cross product of X and Y should give 1.");

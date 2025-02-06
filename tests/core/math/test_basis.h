@@ -270,7 +270,7 @@ TEST_CASE("[Basis] Set axis angle") {
 }
 
 TEST_CASE("[Basis] Finite number checks") {
-	const Vector3 x(0, 1, 2);
+	constexpr Vector3 x(0, 1, 2);
 	const Vector3 infinite(NAN, NAN, NAN);
 
 	CHECK_MESSAGE(

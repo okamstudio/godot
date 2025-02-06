@@ -177,14 +177,6 @@ bool Transform3D::is_finite() const {
 	return basis.is_finite() && origin.is_finite();
 }
 
-bool Transform3D::operator==(const Transform3D &p_transform) const {
-	return (basis == p_transform.basis && origin == p_transform.origin);
-}
-
-bool Transform3D::operator!=(const Transform3D &p_transform) const {
-	return (basis != p_transform.basis || origin != p_transform.origin);
-}
-
 void Transform3D::operator*=(const Transform3D &p_transform) {
 	origin = xform(p_transform.origin);
 	basis *= p_transform.basis;
@@ -196,48 +188,9 @@ Transform3D Transform3D::operator*(const Transform3D &p_transform) const {
 	return t;
 }
 
-void Transform3D::operator*=(real_t p_val) {
-	origin *= p_val;
-	basis *= p_val;
-}
-
-Transform3D Transform3D::operator*(real_t p_val) const {
-	Transform3D ret(*this);
-	ret *= p_val;
-	return ret;
-}
-
-void Transform3D::operator/=(real_t p_val) {
-	basis /= p_val;
-	origin /= p_val;
-}
-
-Transform3D Transform3D::operator/(real_t p_val) const {
-	Transform3D ret(*this);
-	ret /= p_val;
-	return ret;
-}
-
 Transform3D::operator String() const {
 	return "[X: " + basis.get_column(0).operator String() +
 			", Y: " + basis.get_column(1).operator String() +
 			", Z: " + basis.get_column(2).operator String() +
 			", O: " + origin.operator String() + "]";
-}
-
-Transform3D::Transform3D(const Basis &p_basis, const Vector3 &p_origin) :
-		basis(p_basis),
-		origin(p_origin) {
-}
-
-Transform3D::Transform3D(const Vector3 &p_x, const Vector3 &p_y, const Vector3 &p_z, const Vector3 &p_origin) :
-		origin(p_origin) {
-	basis.set_column(0, p_x);
-	basis.set_column(1, p_y);
-	basis.set_column(2, p_z);
-}
-
-Transform3D::Transform3D(real_t p_xx, real_t p_xy, real_t p_xz, real_t p_yx, real_t p_yy, real_t p_yz, real_t p_zx, real_t p_zy, real_t p_zz, real_t p_ox, real_t p_oy, real_t p_oz) {
-	basis = Basis(p_xx, p_xy, p_xz, p_yx, p_yy, p_yz, p_zx, p_zy, p_zz);
-	origin = Vector3(p_ox, p_oy, p_oz);
 }

@@ -37,9 +37,9 @@
 namespace TestVector4i {
 
 TEST_CASE("[Vector4i] Constructor methods") {
-	const Vector4i vector_empty = Vector4i();
-	const Vector4i vector_zero = Vector4i(0, 0, 0, 0);
-	CHECK_MESSAGE(
+	constexpr Vector4i vector_empty = Vector4i();
+	constexpr Vector4i vector_zero = Vector4i(0, 0, 0, 0);
+	static_assert(
 			vector_empty == vector_zero,
 			"Vector4i Constructor with no inputs should return a zero Vector4i.");
 }
@@ -66,7 +66,7 @@ TEST_CASE("[Vector4i] Axis methods") {
 }
 
 TEST_CASE("[Vector4i] Clamp method") {
-	const Vector4i vector = Vector4i(10, 10, 10, 10);
+	constexpr Vector4i vector = Vector4i(10, 10, 10, 10);
 	CHECK_MESSAGE(
 			Vector4i(-5, 5, 15, INT_MAX).clamp(Vector4i(), vector) == Vector4i(0, 5, 10, 10),
 			"Vector4i clamp should work as expected.");
@@ -76,8 +76,8 @@ TEST_CASE("[Vector4i] Clamp method") {
 }
 
 TEST_CASE("[Vector4i] Length methods") {
-	const Vector4i vector1 = Vector4i(10, 10, 10, 10);
-	const Vector4i vector2 = Vector4i(20, 30, 40, 50);
+	constexpr Vector4i vector1 = Vector4i(10, 10, 10, 10);
+	constexpr Vector4i vector2 = Vector4i(20, 30, 40, 50);
 	CHECK_MESSAGE(
 			vector1.length_squared() == 400,
 			"Vector4i length_squared should work as expected and return exact result.");
@@ -99,29 +99,29 @@ TEST_CASE("[Vector4i] Length methods") {
 }
 
 TEST_CASE("[Vector4i] Operators") {
-	const Vector4i vector1 = Vector4i(4, 5, 9, 2);
-	const Vector4i vector2 = Vector4i(1, 2, 3, 4);
+	constexpr Vector4i vector1 = Vector4i(4, 5, 9, 2);
+	constexpr Vector4i vector2 = Vector4i(1, 2, 3, 4);
 
-	CHECK_MESSAGE(
+	static_assert(
 			-vector1 == Vector4i(-4, -5, -9, -2),
 			"Vector4i change of sign should work as expected.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 + vector2) == Vector4i(5, 7, 12, 6),
 			"Vector4i addition with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 - vector2) == Vector4i(3, 3, 6, -2),
 			"Vector4i subtraction with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 * vector2) == Vector4i(4, 10, 27, 8),
 			"Vector4i multiplication with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 / vector2) == Vector4i(4, 2, 3, 0),
 			"Vector4i division with integers should give exact results.");
 
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 * 2) == Vector4i(8, 10, 18, 4),
 			"Vector4i multiplication with integers should give exact results.");
-	CHECK_MESSAGE(
+	static_assert(
 			(vector1 / 2) == Vector4i(2, 2, 4, 1),
 			"Vector4i division with integers should give exact results.");
 
@@ -137,7 +137,7 @@ TEST_CASE("[Vector4i] Operators") {
 }
 
 TEST_CASE("[Vector3i] Other methods") {
-	const Vector4i vector = Vector4i(1, 3, -7, 13);
+	constexpr Vector4i vector = Vector4i(1, 3, -7, 13);
 
 	CHECK_MESSAGE(
 			vector.min(Vector4i(3, 2, 5, 8)) == Vector4i(1, 2, -7, 8),
@@ -153,8 +153,8 @@ TEST_CASE("[Vector3i] Other methods") {
 }
 
 TEST_CASE("[Vector4i] Abs and sign methods") {
-	const Vector4i vector1 = Vector4i(1, 3, 5, 7);
-	const Vector4i vector2 = Vector4i(1, -3, -5, 7);
+	constexpr Vector4i vector1 = Vector4i(1, 3, 5, 7);
+	constexpr Vector4i vector2 = Vector4i(1, -3, -5, 7);
 	CHECK_MESSAGE(
 			vector1.abs() == vector1,
 			"Vector4i abs should work as expected.");

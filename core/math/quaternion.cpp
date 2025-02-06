@@ -46,22 +46,6 @@ Vector3 Quaternion::get_euler(EulerOrder p_order) const {
 	return Basis(*this).get_euler(p_order);
 }
 
-void Quaternion::operator*=(const Quaternion &p_q) {
-	real_t xx = w * p_q.x + x * p_q.w + y * p_q.z - z * p_q.y;
-	real_t yy = w * p_q.y + y * p_q.w + z * p_q.x - x * p_q.z;
-	real_t zz = w * p_q.z + z * p_q.w + x * p_q.y - y * p_q.x;
-	w = w * p_q.w - x * p_q.x - y * p_q.y - z * p_q.z;
-	x = xx;
-	y = yy;
-	z = zz;
-}
-
-Quaternion Quaternion::operator*(const Quaternion &p_q) const {
-	Quaternion r = *this;
-	r *= p_q;
-	return r;
-}
-
 bool Quaternion::is_equal_approx(const Quaternion &p_quaternion) const {
 	return Math::is_equal_approx(x, p_quaternion.x) && Math::is_equal_approx(y, p_quaternion.y) && Math::is_equal_approx(z, p_quaternion.z) && Math::is_equal_approx(w, p_quaternion.w);
 }

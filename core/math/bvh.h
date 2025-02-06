@@ -435,8 +435,6 @@ private:
 			return;
 		}
 
-		BOUNDS bb;
-
 		typename BVHTREE_CLASS::CullParams params;
 
 		params.result_count_overall = 0;

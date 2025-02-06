@@ -38,8 +38,8 @@
 namespace TestAABB {
 
 TEST_CASE("[AABB] Constructor methods") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
-	const AABB aabb_copy = AABB(aabb);
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb_copy = AABB(aabb);
 
 	CHECK_MESSAGE(
 			aabb == aabb_copy,
@@ -53,7 +53,7 @@ TEST_CASE("[AABB] String conversion") {
 }
 
 TEST_CASE("[AABB] Basic getters") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.get_position().is_equal_approx(Vector3(-1.5, 2, -2.5)),
 			"get_position() should return the expected value.");
@@ -144,7 +144,7 @@ TEST_CASE("[AABB] Surface getters") {
 }
 
 TEST_CASE("[AABB] Intersection") {
-	const AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 
 	AABB aabb_small = AABB(Vector3(-1.5, 2, -2.5), Vector3(1, 1, 1));
 	CHECK_MESSAGE(
@@ -230,7 +230,7 @@ TEST_CASE("[AABB] Intersection") {
 			"intersects_ray() should return false for being outside.");
 
 	// Finding ray intersections.
-	const AABB aabb_simple = AABB(Vector3(), Vector3(1, 1, 1));
+	constexpr AABB aabb_simple = AABB(Vector3(), Vector3(1, 1, 1));
 	bool inside = false;
 	Vector3 intersection_point;
 	Vector3 intersection_normal;
@@ -252,7 +252,7 @@ TEST_CASE("[AABB] Intersection") {
 	CHECK_MESSAGE(intersection_normal.is_equal_approx(Vector3(0, -1, 0)), "find_intersects_ray() inside intersection normal incorrect.");
 
 	// Zero sized AABB.
-	const AABB aabb_zero = AABB(Vector3(), Vector3(1, 0, 1));
+	constexpr AABB aabb_zero = AABB(Vector3(), Vector3(1, 0, 1));
 	aabb_zero.find_intersects_ray(Vector3(0.5, 0, 0.5), Vector3(0, 1, 0), inside, &intersection_point, &intersection_normal);
 	CHECK_MESSAGE(inside == false, "find_intersects_ray() should return outside on borders of zero sized AABB.");
 	CHECK_MESSAGE(intersection_point.is_equal_approx(Vector3(0.5, 0, 0.5)), "find_intersects_ray() border intersection point incorrect for zero sized AABB.");
@@ -268,7 +268,7 @@ TEST_CASE("[AABB] Intersection") {
 }
 
 TEST_CASE("[AABB] Merging") {
-	const AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 
 	AABB aabb_small = AABB(Vector3(-1.5, 2, -2.5), Vector3(1, 1, 1));
 	CHECK_MESSAGE(
@@ -287,7 +287,7 @@ TEST_CASE("[AABB] Merging") {
 }
 
 TEST_CASE("[AABB] Encloses") {
-	const AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb_big = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 
 	CHECK_MESSAGE(
 			aabb_big.encloses(aabb_big),
@@ -315,7 +315,7 @@ TEST_CASE("[AABB] Encloses") {
 }
 
 TEST_CASE("[AABB] Get endpoints") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.get_endpoint(0).is_equal_approx(Vector3(-1.5, 2, -2.5)),
 			"The endpoint at index 0 should match the expected value.");
@@ -352,7 +352,7 @@ TEST_CASE("[AABB] Get endpoints") {
 }
 
 TEST_CASE("[AABB] Get longest/shortest axis") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.get_longest_axis() == Vector3(0, 0, 1),
 			"get_longest_axis() should return the expected value.");
@@ -375,7 +375,7 @@ TEST_CASE("[AABB] Get longest/shortest axis") {
 }
 
 TEST_CASE("[AABB] Get support") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.get_support(Vector3(1, 0, 0)) == Vector3(2.5, 2, -2.5),
 			"get_support() should return the expected value.");
@@ -397,7 +397,7 @@ TEST_CASE("[AABB] Get support") {
 }
 
 TEST_CASE("[AABB] Grow") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.grow(0.25).is_equal_approx(AABB(Vector3(-1.75, 1.75, -2.75), Vector3(4.5, 5.5, 6.5))),
 			"grow() with positive value should return the expected AABB.");
@@ -410,7 +410,7 @@ TEST_CASE("[AABB] Grow") {
 }
 
 TEST_CASE("[AABB] Has point") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.has_point(Vector3(-1, 3, 0)),
 			"has_point() with contained point should return the expected value.");
@@ -442,7 +442,7 @@ TEST_CASE("[AABB] Has point") {
 }
 
 TEST_CASE("[AABB] Expanding") {
-	const AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
+	constexpr AABB aabb = AABB(Vector3(-1.5, 2, -2.5), Vector3(4, 5, 6));
 	CHECK_MESSAGE(
 			aabb.expand(Vector3(-1, 3, 0)).is_equal_approx(aabb),
 			"expand() with contained point should return the expected AABB.");
@@ -461,7 +461,7 @@ TEST_CASE("[AABB] Expanding") {
 }
 
 TEST_CASE("[AABB] Finite number checks") {
-	const Vector3 x(0, 1, 2);
+	constexpr Vector3 x(0, 1, 2);
 	const Vector3 infinite(NAN, NAN, NAN);
 
 	CHECK_MESSAGE(
