@@ -833,7 +833,32 @@ ObjectID Node3DEditorViewport::_select_ray(const Point2 &p_pos) const {
 			continue;
 		}
 
-		Vector<Ref<Node3DGizmo>> gizmos = spat->get_gizmos();
+		Vector<Ref<Node3DGizmo>> gizmos = spat->get_gizmos().duplicate();
+
+		if (collision_reposition || preview_node->is_inside_tree()) {
+			Node3D *ignore_node = nullptr;
+			if (collision_reposition && !ruler->is_inside_tree()) {
+				List<Node *> &selection = editor_selection->get_selected_node_list();
+				if (selection.size() == 1) {
+					ignore_node = Object::cast_to<Node3D>(selection.front()->get());
+				}
+			} else if (preview_node->is_inside_tree()) {
+				ignore_node = Object::cast_to<Node3D>(preview_node);
+			}
+
+			Node *current = spat;
+			bool should_skip = false;
+			while (current != nullptr) {
+				if (current == ignore_node) {
+					should_skip = true;
+					break;
+				}
+				current = current->get_parent();
+			}
+			if (should_skip) {
+				continue;
+			}
+		}
 
 		for (int j = 0; j < gizmos.size(); j++) {
 			Ref<EditorNode3DGizmo> seg = gizmos[j];
@@ -860,7 +885,7 @@ ObjectID Node3DEditorViewport::_select_ray(const Point2 &p_pos) const {
 
 			if (dist < closest_dist) {
 				item = Object::cast_to<Node>(spat);
-				if (item != edited_scene) {
+				if (item != edited_scene && !collision_reposition && !ruler->is_inside_tree() && !preview_node->is_inside_tree()) {
 					item = edited_scene->get_deepest_editable_node(item);
 				}
 
@@ -1674,7 +1699,7 @@ void Node3DEditorViewport::input(const Ref<InputEvent> &p_event) {
 }
 
 void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
-	if (previewing || get_viewport()->gui_get_drag_data()) {
+	if (previewing) {
 		return; //do NONE
 	}
 
@@ -1709,6 +1734,10 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseButton> b = p_event;
 
 	if (b.is_valid()) {
+		if (get_viewport()->gui_get_drag_data()) {
+			return;
+		}
+
 		emit_signal(SNAME("clicked"));
 
 		ViewportNavMouseButton orbit_mouse_preference = (ViewportNavMouseButton)EDITOR_GET("editors/3d/navigation/orbit_mouse_button").operator int();
@@ -2060,6 +2089,10 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 	if (m.is_valid() && !_edit.instant) {
 		_edit.mouse_pos = m->get_position();
 
+		if (get_viewport()->gui_get_drag_data()) {
+			return;
+		}
+
 		if (spatial_editor->get_single_selected_node()) {
 			Vector<Ref<Node3DGizmo>> gizmos = spatial_editor->get_single_selected_node()->get_gizmos();
 
@@ -2251,6 +2284,15 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 	if (k.is_valid()) {
 		if (!k->is_pressed()) {
+			create_temp_collision = false;
+			return;
+		}
+
+		if (ED_IS_SHORTCUT("spatial_editor/create_temp_collision", p_event)) {
+			create_temp_collision = true;
+		}
+
+		if (get_viewport()->gui_get_drag_data()) {
 			return;
 		}
 
@@ -2900,6 +2942,19 @@ void Node3DEditorViewport::_project_settings_changed() {
 	viewport->set_anisotropic_filtering_level(anisotropic_filtering_level);
 }
 
+static void clear_old_collision(ObjectID target) {
+	if (target.is_valid()) {
+		MeshInstance3D *old_mesh = Object::cast_to<MeshInstance3D>(ObjectDB::get_instance(target));
+		if (old_mesh) {
+			Node *old_collision = old_mesh->get_node_or_null(String(old_mesh->get_name()) + "_col");
+			if (old_collision) {
+				old_mesh->remove_child(old_collision);
+				old_collision->queue_free();
+			}
+		}
+	}
+}
+
 void Node3DEditorViewport::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_READY: {
@@ -3153,6 +3208,36 @@ void Node3DEditorViewport::_notification(int p_what) {
 				float locked_half_width = locked_label->get_size().width / 2.0f;
 				locked_label->set_anchor_and_offset(SIDE_LEFT, 0.5f, -locked_half_width);
 			}
+
+			if (create_temp_collision && (collision_reposition || ruler->is_inside_tree() || preview_node->is_inside_tree())) {
+				ObjectID target_temp = _select_ray(_edit.mouse_pos);
+
+				if (target_temp.is_valid()) {
+					if (target_temp != target) {
+						clear_old_collision(target);
+						MeshInstance3D *mesh = Object::cast_to<MeshInstance3D>(ObjectDB::get_instance(target_temp));
+						if (mesh && !has_collision(mesh)) {
+							mesh->create_trimesh_collision_internal();
+						}
+						target = target_temp;
+					}
+				} else {
+					clear_old_collision(target);
+					target = ObjectID();
+				}
+
+				if (ruler->is_inside_tree()) {
+					collision_checked = true;
+				}
+			} else {
+				if (!create_temp_collision && ruler->is_inside_tree()) {
+					collision_checked = true;
+				}
+				if (target != ObjectID()) {
+					clear_old_collision(target);
+					target = ObjectID();
+				}
+			}
 		} break;
 
 		case NOTIFICATION_PHYSICS_PROCESS: {
@@ -3160,10 +3245,12 @@ void Node3DEditorViewport::_notification(int p_what) {
 				Node3D *selected_node = nullptr;
 
 				if (ruler->is_inside_tree()) {
-					if (ruler_start_point->is_visible()) {
-						selected_node = ruler_end_point;
-					} else {
-						selected_node = ruler_start_point;
+					if (collision_checked) {
+						if (ruler_start_point->is_visible()) {
+							selected_node = ruler_end_point;
+						} else {
+							selected_node = ruler_start_point;
+						}
 					}
 				} else {
 					List<Node *> &selection = editor_selection->get_selected_node_list();
@@ -3189,9 +3276,11 @@ void Node3DEditorViewport::_notification(int p_what) {
 						ruler_label->set_visible(true);
 					}
 				}
+			} else {
+				collision_checked = false;
 			}
 
-			if (!update_preview_node) {
+			if (!update_preview_node && !create_temp_collision) {
 				return;
 			}
 			if (preview_node->is_inside_tree()) {
@@ -5676,6 +5765,7 @@ Node3DEditorViewport::Node3DEditorViewport(Node3DEditor *p_spatial_editor, int p
 	ED_SHORTCUT("spatial_editor/instant_rotate", TTRC("Begin Rotate Transformation"));
 	ED_SHORTCUT("spatial_editor/instant_scale", TTRC("Begin Scale Transformation"));
 	ED_SHORTCUT("spatial_editor/collision_reposition", TTRC("Reposition Using Collisions"), KeyModifierMask::SHIFT | Key::G);
+	ED_SHORTCUT("spatial_editor/create_temp_collision", TTRC("Create Temporary Collisions"), Key::C);
 
 	preview_camera = memnew(CheckBox);
 	preview_camera->set_text(TTR("Preview"));
@@ -6469,6 +6559,25 @@ Dictionary Node3DEditor::get_state() const {
 	}
 
 	return d;
+}
+
+bool Node3DEditorViewport::has_collision(Node *node) {
+	if (!node) {
+		return false;
+	}
+
+	if (Object::cast_to<CollisionObject3D>(node)) {
+		return true;
+	}
+
+	for (int i = 0; i < node->get_child_count(); ++i) {
+		Node *child = node->get_child(i);
+		if (has_collision(child)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void Node3DEditor::set_state(const Dictionary &p_state) {

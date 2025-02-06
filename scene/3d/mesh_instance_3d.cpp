@@ -260,6 +260,18 @@ void MeshInstance3D::create_trimesh_collision() {
 	}
 }
 
+void MeshInstance3D::create_trimesh_collision_internal() {
+	StaticBody3D *static_body = Object::cast_to<StaticBody3D>(create_trimesh_collision_node());
+	ERR_FAIL_NULL(static_body);
+	static_body->set_name(String(get_name()) + "_col");
+	static_body->set_meta("_edit_lock_", true);
+
+	add_child(static_body);
+
+	CollisionShape3D *cshape = Object::cast_to<CollisionShape3D>(static_body->get_child(0));
+	cshape->set_meta("_edit_lock_", true);
+}
+
 Node *MeshInstance3D::create_convex_collision_node(bool p_clean, bool p_simplify) {
 	if (mesh.is_null()) {
 		return nullptr;
