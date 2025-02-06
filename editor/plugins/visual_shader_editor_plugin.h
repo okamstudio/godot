@@ -287,6 +287,8 @@ class VisualShaderEditor : public ShaderEditor {
 	VBoxContainer *param_vbox = nullptr;
 	VBoxContainer *param_vbox2 = nullptr;
 
+	float cached_theme_base_scale = 1.0f;
+
 	enum ShaderModeFlags {
 		MODE_FLAGS_SPATIAL_CANVASITEM = 1,
 		MODE_FLAGS_SKY = 2,

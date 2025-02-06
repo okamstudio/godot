@@ -540,7 +540,7 @@ void VisualShaderGraphPlugin::update_frames(VisualShader::Type p_type, int p_nod
 
 void VisualShaderGraphPlugin::set_node_position(VisualShader::Type p_type, int p_id, const Vector2 &p_position) {
 	if (visual_shader->get_shader_type() == p_type && links.has(p_id)) {
-		links[p_id].graph_element->set_position_offset(p_position);
+		links[p_id].graph_element->set_position_offset(p_position * editor->cached_theme_base_scale);
 	}
 }
 
@@ -737,7 +737,7 @@ void VisualShaderGraphPlugin::add_node(VisualShader::Type p_type, int p_id, bool
 		expression = expression_node->get_expression();
 	}
 
-	node->set_position_offset(visual_shader->get_node_position(p_type, p_id));
+	node->set_position_offset(visual_shader->get_node_position(p_type, p_id) * editor->cached_theme_base_scale);
 
 	node->connect("dragged", callable_mp(editor, &VisualShaderEditor::_node_dragged).bind(p_id));
 
@@ -4082,7 +4082,7 @@ void VisualShaderEditor::_update_varyings() {
 
 void VisualShaderEditor::_node_dragged(const Vector2 &p_from, const Vector2 &p_to, int p_node) {
 	VisualShader::Type type = get_current_shader_type();
-	drag_buffer.push_back({ type, p_node, p_from, p_to });
+	drag_buffer.push_back({ type, p_node, p_from / cached_theme_base_scale, p_to / cached_theme_base_scale });
 	if (!drag_dirty) {
 		callable_mp(this, &VisualShaderEditor::_nodes_dragged).call_deferred();
 	}
@@ -5250,6 +5250,8 @@ void VisualShaderEditor::_notification(int p_what) {
 
 			tools->set_button_icon(get_editor_theme_icon(SNAME("Tools")));
 			preview_tools->set_button_icon(get_editor_theme_icon(SNAME("Tools")));
+
+			cached_theme_base_scale = get_theme_default_base_scale();
 
 			if (is_visible_in_tree()) {
 				_update_graph();
