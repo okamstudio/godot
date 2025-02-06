@@ -1292,6 +1292,7 @@ void CanvasItem::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_z_index", "z_index"), &CanvasItem::set_z_index);
 	ClassDB::bind_method(D_METHOD("get_z_index"), &CanvasItem::get_z_index);
+	ClassDB::bind_method(D_METHOD("get_effective_z_index"), &CanvasItem::get_effective_z_index);
 
 	ClassDB::bind_method(D_METHOD("set_z_as_relative", "enable"), &CanvasItem::set_z_as_relative);
 	ClassDB::bind_method(D_METHOD("is_z_relative"), &CanvasItem::is_z_relative);

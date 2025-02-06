@@ -442,6 +442,13 @@
 				Returns the transform from the coordinate system of the canvas, this item is in, to the [Viewport]s coordinate system.
 			</description>
 		</method>
+		<method name="get_effective_z_index" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the total Z index, accounting for [member z_as_relative].
+				This does not account for other effects such as [member top_level], [member y_sort_enabled], or sorting by hierarchy (see [method Node.get_index]).
+			</description>
+		</method>
 		<method name="get_global_mouse_position" qualifiers="const">
 			<return type="Vector2" />
 			<description>
