@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="RWLock" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Multithreading primitive for multi-read exclusive write access.
+	</brief_description>
+	<description>
+		Read write lock to allow better multi-threaded access.
+		Unlike [Mutex], [RWLock] allows you to have multiple threads reading the same data, while only one can modify them, and not while its being read.
+		The implementation allows for the same thread to write lock / read lock multiple times.
+		[b]Warning:[/b] RWLocks must be used carefully to avoid deadlocks.
+		[b]Warning:[/b] To ensure proper cleanup without crashes or deadlocks, the following conditions must be met:
+		- When a [RWLock]'s reference count reaches zero and it is therefore destroyed, no threads (including the one on which the destruction will happen) must have it locked.
+		- When a [Thread]'s reference count reaches zero and it is therefore destroyed, it must not have any RWLock locked.
+		See also [Mutex]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="read_lock" qualifiers="const">
+			<return type="void" />
+			<description>
+				Locks for reading data.
+			</description>
+		</method>
+		<method name="read_try_lock" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Tries to lock for reading data, fails if the write_lock is being held.
+			</description>
+		</method>
+		<method name="read_unlock" qualifiers="const">
+			<return type="void" />
+			<description>
+				Unlock after reading data.
+			</description>
+		</method>
+		<method name="write_lock">
+			<return type="void" />
+			<description>
+				Locks for writing data. Waits for all read locks to finish (except the ones held by the calling thread), while making it unable to acquire a read lock during this.
+			</description>
+		</method>
+		<method name="write_try_lock">
+			<return type="bool" />
+			<description>
+				Tries to lock for writing data, fails if write_lock is being held or any thread except the calling thread holds a read lock.
+			</description>
+		</method>
+		<method name="write_unlock">
+			<return type="void" />
+			<description>
+				Unlock after writing data.
+			</description>
+		</method>
+	</methods>
+</class>
