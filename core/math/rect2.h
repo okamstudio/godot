@@ -51,6 +51,33 @@ struct [[nodiscard]] Rect2 {
 
 	_FORCE_INLINE_ Vector2 get_center() const { return position + (size * 0.5f); }
 
+	_FORCE_INLINE_ Rect2 lerp(const Rect2 &p_to, real_t p_weight) const {
+		Rect2 res = *this;
+		res.position.x = Math::lerp(res.position.x, p_to.position.x, p_weight);
+		res.position.y = Math::lerp(res.position.y, p_to.position.y, p_weight);
+		res.size.width = Math::abs(Math::lerp(res.size.width, p_to.size.width, p_weight));
+		res.size.height = Math::abs(Math::lerp(res.size.height, p_to.size.height, p_weight));
+		return res;
+	}
+
+	_FORCE_INLINE_ Rect2 cubic_interpolate(const Rect2 &p_b, const Rect2 &p_pre_a, const Rect2 &p_post_b, real_t p_weight) const {
+		Rect2 res = *this;
+		res.position.x = Math::cubic_interpolate(res.position.x, p_b.position.x, p_pre_a.position.x, p_post_b.position.x, p_weight);
+		res.position.y = Math::cubic_interpolate(res.position.y, p_b.position.y, p_pre_a.position.y, p_post_b.position.y, p_weight);
+		res.size.width = Math::abs(Math::cubic_interpolate(res.size.width, p_b.size.width, p_pre_a.size.width, p_post_b.size.width, p_weight));
+		res.size.height = Math::abs(Math::cubic_interpolate(res.size.height, p_b.size.height, p_pre_a.size.height, p_post_b.size.height, p_weight));
+		return res;
+	}
+
+	_FORCE_INLINE_ Rect2 cubic_interpolate_in_time(const Rect2 &p_b, const Rect2 &p_pre_a, const Rect2 &p_post_b, real_t p_weight, real_t p_b_t, real_t p_pre_a_t, real_t p_post_b_t) const {
+		Rect2 res = *this;
+		res.position.x = Math::cubic_interpolate_in_time(res.position.x, p_b.position.x, p_pre_a.position.x, p_post_b.position.x, p_weight, p_b_t, p_pre_a_t, p_post_b_t);
+		res.position.y = Math::cubic_interpolate_in_time(res.position.y, p_b.position.y, p_pre_a.position.y, p_post_b.position.y, p_weight, p_b_t, p_pre_a_t, p_post_b_t);
+		res.size.width = Math::abs(Math::cubic_interpolate_in_time(res.size.width, p_b.size.width, p_pre_a.size.width, p_post_b.size.width, p_weight, p_b_t, p_pre_a_t, p_post_b_t));
+		res.size.height = Math::abs(Math::cubic_interpolate_in_time(res.size.height, p_b.size.height, p_pre_a.size.height, p_post_b.size.height, p_weight, p_b_t, p_pre_a_t, p_post_b_t));
+		return res;
+	}
+
 	inline bool intersects(const Rect2 &p_rect, bool p_include_borders = false) const {
 #ifdef MATH_CHECKS
 		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {

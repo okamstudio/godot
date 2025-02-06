@@ -127,6 +127,39 @@ struct [[nodiscard]] AABB {
 		return position + (size * 0.5f);
 	}
 
+	_FORCE_INLINE_ AABB lerp(const AABB &p_to, real_t p_weight) const {
+		AABB res = *this;
+		res.position.x = Math::lerp(res.position.x, p_to.position.x, p_weight);
+		res.position.y = Math::lerp(res.position.y, p_to.position.y, p_weight);
+		res.position.z = Math::lerp(res.position.z, p_to.position.z, p_weight);
+		res.size.x = Math::abs(Math::lerp(res.size.x, p_to.size.x, p_weight));
+		res.size.y = Math::abs(Math::lerp(res.size.y, p_to.size.y, p_weight));
+		res.size.z = Math::abs(Math::lerp(res.size.z, p_to.size.z, p_weight));
+		return res;
+	}
+
+	_FORCE_INLINE_ AABB cubic_interpolate(const AABB &p_b, const AABB &p_pre_a, const AABB &p_post_b, real_t p_weight) const {
+		AABB res = *this;
+		res.position.x = Math::cubic_interpolate(res.position.x, p_b.position.x, p_pre_a.position.x, p_post_b.position.x, p_weight);
+		res.position.y = Math::cubic_interpolate(res.position.y, p_b.position.y, p_pre_a.position.y, p_post_b.position.y, p_weight);
+		res.position.z = Math::cubic_interpolate(res.position.z, p_b.position.z, p_pre_a.position.z, p_post_b.position.z, p_weight);
+		res.size.x = Math::abs(Math::cubic_interpolate(res.size.x, p_b.size.x, p_pre_a.size.x, p_post_b.size.x, p_weight));
+		res.size.y = Math::abs(Math::cubic_interpolate(res.size.y, p_b.size.y, p_pre_a.size.y, p_post_b.size.y, p_weight));
+		res.size.z = Math::abs(Math::cubic_interpolate(res.size.z, p_b.size.z, p_pre_a.size.z, p_post_b.size.z, p_weight));
+		return res;
+	}
+
+	_FORCE_INLINE_ AABB cubic_interpolate_in_time(const AABB &p_b, const AABB &p_pre_a, const AABB &p_post_b, real_t p_weight, real_t p_b_t, real_t p_pre_a_t, real_t p_post_b_t) const {
+		AABB res = *this;
+		res.position.x = Math::cubic_interpolate_in_time(res.position.x, p_b.position.x, p_pre_a.position.x, p_post_b.position.x, p_weight, p_b_t, p_pre_a_t, p_post_b_t);
+		res.position.y = Math::cubic_interpolate_in_time(res.position.y, p_b.position.y, p_pre_a.position.y, p_post_b.position.y, p_weight, p_b_t, p_pre_a_t, p_post_b_t);
+		res.position.z = Math::cubic_interpolate_in_time(res.position.z, p_b.position.z, p_pre_a.position.z, p_post_b.position.z, p_weight, p_b_t, p_pre_a_t, p_post_b_t);
+		res.size.x = Math::abs(Math::cubic_interpolate_in_time(res.size.x, p_b.size.x, p_pre_a.size.x, p_post_b.size.x, p_weight, p_b_t, p_pre_a_t, p_post_b_t));
+		res.size.y = Math::abs(Math::cubic_interpolate_in_time(res.size.y, p_b.size.y, p_pre_a.size.y, p_post_b.size.y, p_weight, p_b_t, p_pre_a_t, p_post_b_t));
+		res.size.z = Math::abs(Math::cubic_interpolate_in_time(res.size.z, p_b.size.z, p_pre_a.size.z, p_post_b.size.z, p_weight, p_b_t, p_pre_a_t, p_post_b_t));
+		return res;
+	}
+
 	operator String() const;
 
 	_FORCE_INLINE_ AABB() {}

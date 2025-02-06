@@ -6119,9 +6119,7 @@ Variant Animation::interpolate_variant(const Variant &a, const Variant &b, float
 			return (a.operator Vector2()).lerp(b.operator Vector2(), c);
 		} break;
 		case Variant::RECT2: {
-			const Rect2 ra = a.operator Rect2();
-			const Rect2 rb = b.operator Rect2();
-			return Rect2(ra.position.lerp(rb.position, c), ra.size.lerp(rb.size, c));
+			return (a.operator Rect2()).lerp(b.operator Rect2(), c);
 		} break;
 		case Variant::VECTOR3: {
 			return (a.operator Vector3()).lerp(b.operator Vector3(), c);
@@ -6138,9 +6136,7 @@ Variant Animation::interpolate_variant(const Variant &a, const Variant &b, float
 			return (a.operator Color()).lerp(b.operator Color(), c);
 		} break;
 		case Variant::AABB: {
-			const ::AABB aa = a.operator ::AABB();
-			const ::AABB ab = b.operator ::AABB();
-			return ::AABB(aa.position.lerp(ab.position, c), aa.size.lerp(ab.size, c));
+			return (a.operator ::AABB()).lerp(b.operator ::AABB(), c);
 		} break;
 		case Variant::BASIS: {
 			return (a.operator Basis()).lerp(b.operator Basis(), c);
