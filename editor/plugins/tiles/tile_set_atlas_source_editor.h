@@ -147,6 +147,7 @@ private:
 	HashMap<String, TileDataEditor *> tile_data_editors;
 	TileDataEditor *current_tile_data_editor = nullptr;
 	void _tile_data_editors_tree_selected();
+	bool _is_pixel_opaque(Ref<Texture2D> p_texture, int p_x, int p_y);
 
 	// -- Inspector --
 	AtlasTileProxyObject *tile_proxy_object = nullptr;

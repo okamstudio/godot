@@ -956,6 +956,42 @@ void TileSetAtlasSourceEditor::_tile_data_editors_tree_selected() {
 	alternative_tiles_control_unscaled->queue_redraw();
 }
 
+bool TileSetAtlasSourceEditor::_is_pixel_opaque(Ref<Texture2D> p_texture, int p_x, int p_y) {
+	// Copied from PortableCompressedTexture2D. Needed here for custom alpha threshold.
+	Ref<BitMap> alpha_cache = p_texture->get_meta(SNAME("tile_alpha_cache"), Ref<BitMap>());
+	if (!alpha_cache.is_valid()) {
+		Ref<Image> img = p_texture->get_image();
+		if (img.is_valid()) {
+			if (img->is_compressed()) {
+				Ref<Image> decom = img->duplicate();
+				decom->decompress();
+				img = decom;
+			}
+			alpha_cache.instantiate();
+			alpha_cache->create_from_image_alpha(img, 0);
+			p_texture->set_meta(SNAME("tile_alpha_cache"), alpha_cache);
+		}
+	}
+
+	if (alpha_cache.is_valid()) {
+		int aw = int(alpha_cache->get_size().width);
+		int ah = int(alpha_cache->get_size().height);
+		if (aw == 0 || ah == 0) {
+			return true;
+		}
+
+		int x = p_x * aw / p_texture->get_width();
+		int y = p_y * ah / p_texture->get_height();
+
+		x = CLAMP(x, 0, aw);
+		y = CLAMP(y, 0, ah);
+
+		return alpha_cache->get_bit(x, y);
+	}
+
+	return true;
+}
+
 void TileSetAtlasSourceEditor::_update_atlas_view() {
 	// Update the atlas display.
 	tile_atlas_view->set_atlas_source(*tile_set, tile_set_atlas_source, tile_set_atlas_source_id);
@@ -2311,7 +2347,7 @@ void TileSetAtlasSourceEditor::_auto_create_tiles() {
 							bool is_opaque = false;
 							for (int region_x = region.get_position().x; region_x < region.get_end().x; region_x++) {
 								for (int region_y = region.get_position().y; region_y < region.get_end().y; region_y++) {
-									if (texture->is_pixel_opaque(region_x, region_y)) {
+									if (_is_pixel_opaque(texture, region_x, region_y)) {
 										is_opaque = true;
 										break;
 									}
@@ -2374,7 +2410,7 @@ void TileSetAtlasSourceEditor::_auto_remove_tiles() {
 			bool is_opaque = false;
 			for (int region_x = region.get_position().x; region_x < region.get_end().x; region_x++) {
 				for (int region_y = region.get_position().y; region_y < region.get_end().y; region_y++) {
-					if (texture->is_pixel_opaque(region_x, region_y)) {
+					if (_is_pixel_opaque(texture, region_x, region_y)) {
 						is_opaque = true;
 						break;
 					}
