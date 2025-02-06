@@ -1690,6 +1690,42 @@ void Window::_window_input(const Ref<InputEvent> &p_ev) {
 		}
 	}
 
+	if (!embedder && is_inside_tree() && gui.mouse_confined_area.has_area()) {
+		// Native Window and mouse is confined.
+		Ref<InputEventMouseMotion> mm = p_ev;
+		if (mm.is_valid()) {
+			if (gui.mouse_confined_wrap) {
+				// The relative distance reported for the next event after a warp is in the boundaries of the
+				// size of the rect on that axis, but it may be greater, in which case there's no problem as fmod()
+				// will warp it, but if the pointer has moved in the opposite direction between the pointer relocation
+				// and the subsequent event, the reported relative distance will be less than the size of the rect
+				// and thus fmod() will be disabled for handling the situation.
+				// And due to this mouse warping mechanism being stateless, we need to apply some heuristics to
+				// detect the warp: if the relative distance is greater than the half of the size of the relevant rect
+				// (checked per each axis), it will be considered as the consequence of a former pointer warp.
+
+				const Point2 rel_sign(mm->get_relative().x >= 0.0f ? 1 : -1, mm->get_relative().y >= 0.0 ? 1 : -1);
+				const Size2 warp_margin = gui.mouse_confined_area.size * 0.5f;
+				const Point2 rel_warped(
+						Math::fmod(mm->get_relative().x + rel_sign.x * warp_margin.x, gui.mouse_confined_area.size.x) - rel_sign.x * warp_margin.x,
+						Math::fmod(mm->get_relative().y + rel_sign.y * warp_margin.y, gui.mouse_confined_area.size.y) - rel_sign.y * warp_margin.y);
+
+				const Point2 pos_local = mm->get_global_position() - gui.mouse_confined_area.position;
+				const Point2 pos_warped(Math::fposmod(pos_local.x, gui.mouse_confined_area.size.x), Math::fposmod(pos_local.y, gui.mouse_confined_area.size.y));
+				if (pos_warped != pos_local) {
+					warp_mouse(pos_warped + gui.mouse_confined_area.position);
+					return;
+				}
+			} else {
+				const Point2 new_pos(
+						CLAMP(mm->get_position().x, gui.mouse_confined_area.position.x, gui.mouse_confined_area.get_end().x),
+						CLAMP(mm->get_position().y, gui.mouse_confined_area.position.y, gui.mouse_confined_area.get_end().y));
+				warp_mouse(new_pos);
+				return;
+			}
+		}
+	}
+
 	// If the event needs to be handled in a Window-derived class, then it should overwrite
 	// `_input_from_window` instead of subscribing to the `window_input` signal, because the signal
 	// filters out internal events.

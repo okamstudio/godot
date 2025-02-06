@@ -21,6 +21,14 @@
 		<link title="3D Resolution Scaling Demo">https://godotengine.org/asset-library/asset/2805</link>
 	</tutorials>
 	<methods>
+		<method name="confine_mouse">
+			<return type="void" />
+			<param index="0" name="rect" type="Rect2" />
+			<param index="1" name="wrap" type="bool" />
+			<description>
+				Enable confining the mouse cursor in a [Rect2], that has to be specified in viewport coordinates. If the size of the rect has at lease one 0 component, disable the confinement. Wrap the cursor to the other side when leaving the area, if [code]wrap == true[/code].
+			</description>
+		</method>
 		<method name="find_world_2d" qualifiers="const">
 			<return type="World2D" />
 			<description>

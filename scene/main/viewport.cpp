@@ -1425,6 +1425,27 @@ Point2 Viewport::wrap_mouse_in_rect(const Vector2 &p_relative, const Rect2 &p_re
 	return rel_warped;
 }
 
+void Viewport::confine_mouse(const Rect2 p_rect, bool p_wrap) {
+	if (!is_inside_tree()) {
+		WARN_PRINT_ONCE_ED("Confining mouse is only possible for nodes in the scene tree.");
+		return;
+	}
+
+	Viewport *section_root = get_section_root_viewport();
+	if (section_root->is_sub_viewport()) {
+		// Viewport is a SubViewport, that doesn't have a SubViewportContainer as parent.
+		WARN_PRINT_ONCE_ED("Unable to confine mouse in this Viewport.");
+		return;
+	}
+
+	if (p_rect.has_area()) {
+		section_root->gui.mouse_confined_area = get_screen_transform().xform(p_rect);
+		section_root->gui.mouse_confined_wrap = p_wrap;
+	} else {
+		section_root->gui.mouse_confined_area = Rect2();
+	}
+}
+
 void Viewport::_gui_sort_roots() {
 	if (!gui.roots_order_dirty) {
 		return;
@@ -4820,6 +4841,7 @@ void Viewport::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_mouse_position"), &Viewport::get_mouse_position);
 	ClassDB::bind_method(D_METHOD("warp_mouse", "position"), &Viewport::warp_mouse);
+	ClassDB::bind_method(D_METHOD("confine_mouse", "rect", "wrap"), &Viewport::confine_mouse);
 	ClassDB::bind_method(D_METHOD("update_mouse_cursor_state"), &Viewport::update_mouse_cursor_state);
 
 	ClassDB::bind_method(D_METHOD("gui_cancel_drag"), &Viewport::gui_cancel_drag);
