@@ -7,7 +7,7 @@
 		A baked signed distance field 3D particle collision shape affecting [GPUParticles3D] nodes.
 		Signed distance fields (SDF) allow for efficiently representing approximate collision shapes for convex and concave objects of any shape. This is more flexible than [GPUParticlesCollisionHeightField3D], but it requires a baking step.
 		[b]Baking:[/b] The signed distance field texture can be baked by selecting the [GPUParticlesCollisionSDF3D] node in the editor, then clicking [b]Bake SDF[/b] at the top of the 3D viewport. Any [i]visible[/i] [MeshInstance3D]s within the [member size] will be taken into account for baking, regardless of their [member GeometryInstance3D.gi_mode].
-		[b]Note:[/b] Baking a [GPUParticlesCollisionSDF3D]'s [member texture] is only possible within the editor, as there is no bake method exposed for use in exported projects. However, it's still possible to load pre-baked [Texture3D]s into its [member texture] property in an exported project.
+		[b]Note:[/b] Baking a [GPUParticlesCollisionSDF3D]'s [member texture] in an exported project is possible with the [method bake_in_memory] method. it's also possible to load pre-baked [Texture3D]s into its [member texture] property in an exported project.
 		[b]Note:[/b] [member ParticleProcessMaterial.collision_mode] must be [constant ParticleProcessMaterial.COLLISION_RIGID] or [constant ParticleProcessMaterial.COLLISION_HIDE_ON_CONTACT] on the [GPUParticles3D]'s process material for collision to work.
 		[b]Note:[/b] Particle collision only affects [GPUParticles3D], not [CPUParticles3D].
 	</description>
@@ -27,6 +27,12 @@
 			<param index="1" name="value" type="bool" />
 			<description>
 				Based on [param value], enables or disables the specified layer in the [member bake_mask], given a [param layer_number] between 1 and 32.
+			</description>
+		</method>
+		<method name="bake_in_memory">
+			<return type="void" />
+			<description>
+				Bakes the geometry to the [member texture] member. It won't compress the texture. Only use this method when generating the SDF in-game.
 			</description>
 		</method>
 	</methods>

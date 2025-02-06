@@ -192,6 +192,7 @@ public:
 
 	Vector3i get_estimated_cell_size() const;
 	Ref<Image> bake();
+	void bake_in_memory();
 
 	virtual AABB get_aabb() const override;
 

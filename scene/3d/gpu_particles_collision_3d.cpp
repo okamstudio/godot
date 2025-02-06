@@ -523,6 +523,24 @@ Ref<Image> GPUParticlesCollisionSDF3D::bake() {
 	return ret;
 }
 
+void GPUParticlesCollisionSDF3D::bake_in_memory() {
+	Ref<Image> image = bake();
+	uint32_t width = image->get_width();
+	uint32_t depth = image->get_meta("depth");
+	uint32_t height = image->get_height() / depth;
+
+	Vector<Ref<Image>> images;
+	for (uint32_t i = 0; i < depth; i++) {
+		Ref<Image> sub_image = image->get_region(Rect2i(0, height * i, width, height));
+		images.push_back(sub_image);
+	}
+
+	Ref<ImageTexture3D> texture;
+	texture.instantiate();
+	texture->create(image->get_format(), width, height, depth, false, images);
+	set_texture(texture);
+}
+
 PackedStringArray GPUParticlesCollisionSDF3D::get_configuration_warnings() const {
 	PackedStringArray warnings = GPUParticlesCollision3D::get_configuration_warnings();
 
@@ -550,6 +568,8 @@ void GPUParticlesCollisionSDF3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_bake_mask"), &GPUParticlesCollisionSDF3D::get_bake_mask);
 	ClassDB::bind_method(D_METHOD("set_bake_mask_value", "layer_number", "value"), &GPUParticlesCollisionSDF3D::set_bake_mask_value);
 	ClassDB::bind_method(D_METHOD("get_bake_mask_value", "layer_number"), &GPUParticlesCollisionSDF3D::get_bake_mask_value);
+
+	ClassDB::bind_method(D_METHOD("bake_in_memory"), &GPUParticlesCollisionSDF3D::bake_in_memory);
 
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "size", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:m"), "set_size", "get_size");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "resolution", PROPERTY_HINT_ENUM, "16,32,64,128,256,512"), "set_resolution", "get_resolution");
