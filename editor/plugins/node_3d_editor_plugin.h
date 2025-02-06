@@ -83,6 +83,7 @@ class ViewportRotationControl : public Control {
 	Vector<Color> axis_colors;
 	Vector<int> axis_menu_options;
 	Vector2i orbiting_mouse_start;
+	Point2 original_mouse_pos;
 	int orbiting_index = -1;
 	int focused_axis = -2;
 	bool gizmo_activated = false;
