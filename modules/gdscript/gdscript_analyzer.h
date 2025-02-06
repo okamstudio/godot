@@ -121,6 +121,7 @@ class GDScriptAnalyzer {
 	Variant make_array_reduced_value(GDScriptParser::ArrayNode *p_array, bool &is_reduced);
 	Variant make_dictionary_reduced_value(GDScriptParser::DictionaryNode *p_dictionary, bool &is_reduced);
 	Variant make_subscript_reduced_value(GDScriptParser::SubscriptNode *p_subscript, bool &is_reduced);
+	Variant make_call_reduced_value(GDScriptParser::CallNode *p_call, bool &is_reduced);
 
 	// Helpers.
 	Array make_array_from_element_datatype(const GDScriptParser::DataType &p_element_datatype, const GDScriptParser::Node *p_source_node = nullptr);

@@ -5197,24 +5197,29 @@ void GDScriptAnalyzer::reduce_unary_op(GDScriptParser::UnaryOpNode *p_unary_op) 
 }
 
 Variant GDScriptAnalyzer::make_expression_reduced_value(GDScriptParser::ExpressionNode *p_expression, bool &is_reduced) {
-	Variant value;
-
 	if (p_expression == nullptr) {
-		return value;
+		return Variant();
 	}
 
 	if (p_expression->is_constant) {
 		is_reduced = true;
-		value = p_expression->reduced_value;
-	} else if (p_expression->type == GDScriptParser::Node::ARRAY) {
-		value = make_array_reduced_value(static_cast<GDScriptParser::ArrayNode *>(p_expression), is_reduced);
-	} else if (p_expression->type == GDScriptParser::Node::DICTIONARY) {
-		value = make_dictionary_reduced_value(static_cast<GDScriptParser::DictionaryNode *>(p_expression), is_reduced);
-	} else if (p_expression->type == GDScriptParser::Node::SUBSCRIPT) {
-		value = make_subscript_reduced_value(static_cast<GDScriptParser::SubscriptNode *>(p_expression), is_reduced);
+		return p_expression->reduced_value;
 	}
 
-	return value;
+	switch (p_expression->type) {
+		case GDScriptParser::Node::ARRAY:
+			return make_array_reduced_value(static_cast<GDScriptParser::ArrayNode *>(p_expression), is_reduced);
+		case GDScriptParser::Node::DICTIONARY:
+			return make_dictionary_reduced_value(static_cast<GDScriptParser::DictionaryNode *>(p_expression), is_reduced);
+		case GDScriptParser::Node::SUBSCRIPT:
+			return make_subscript_reduced_value(static_cast<GDScriptParser::SubscriptNode *>(p_expression), is_reduced);
+		case GDScriptParser::Node::CALL:
+			return make_call_reduced_value(static_cast<GDScriptParser::CallNode *>(p_expression), is_reduced);
+		default:
+			break;
+	}
+
+	return Variant();
 }
 
 Variant GDScriptAnalyzer::make_array_reduced_value(GDScriptParser::ArrayNode *p_array, bool &is_reduced) {
@@ -5304,6 +5309,53 @@ Variant GDScriptAnalyzer::make_subscript_reduced_value(GDScriptParser::Subscript
 			return Variant();
 		}
 	}
+}
+
+Variant GDScriptAnalyzer::make_call_reduced_value(GDScriptParser::CallNode *p_call, bool &is_reduced) {
+	if (p_call->get_callee_type() == GDScriptParser::Node::IDENTIFIER) {
+		Variant::Type type = Variant::NIL;
+		if (p_call->function_name == SNAME("Array")) {
+			type = Variant::ARRAY;
+		} else if (p_call->function_name == SNAME("Dictionary")) {
+			type = Variant::DICTIONARY;
+		} else {
+			return Variant();
+		}
+
+		Vector<Variant> args;
+		args.resize(p_call->arguments.size());
+		const Variant **argptrs = (const Variant **)alloca(sizeof(const Variant **) * args.size());
+		for (int i = 0; i < p_call->arguments.size(); i++) {
+			bool is_arg_value_reduced = false;
+			Variant arg_value = make_expression_reduced_value(p_call->arguments[i], is_arg_value_reduced);
+			if (!is_arg_value_reduced) {
+				return Variant();
+			}
+			args.write[i] = arg_value;
+			argptrs[i] = &args[i];
+		}
+
+		Variant result;
+		Callable::CallError ce;
+		Variant::construct(type, result, argptrs, args.size(), ce);
+		if (ce.error) {
+			push_error(vformat(R"(Failed to construct "%s".)", Variant::get_type_name(type)), p_call);
+			return Variant();
+		}
+
+		if (type == Variant::ARRAY) {
+			Array array = result;
+			array.make_read_only();
+		} else if (type == Variant::DICTIONARY) {
+			Dictionary dictionary = result;
+			dictionary.make_read_only();
+		}
+
+		is_reduced = true;
+		return result;
+	}
+
+	return Variant();
 }
 
 Array GDScriptAnalyzer::make_array_from_element_datatype(const GDScriptParser::DataType &p_element_datatype, const GDScriptParser::Node *p_source_node) {

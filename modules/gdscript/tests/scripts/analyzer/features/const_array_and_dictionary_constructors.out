@@ -1,0 +1,23 @@
+GDTEST_OK
+true []
+true []
+true []
+true [[]]
+true [[]]
+true Array[int]([1, 2, 3])
+true {  }
+true {  }
+true {  }
+true { "d": {  } }
+true { "d": {  } }
+false []
+false []
+false []
+false [[]]
+false [[]]
+false Array[int]([1, 2, 3])
+false {  }
+false {  }
+false {  }
+false { "d": {  } }
+false { "d": {  } }
