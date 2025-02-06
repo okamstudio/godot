@@ -75,15 +75,36 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 
 				Rect2i new_tile_rect_in_atlas = Rect2i(atlas_offset + tile_id, atlas_source->get_tile_size_in_atlas(tile_id));
 
+				int columns = atlas_source->get_tile_animation_columns(tile_id);
+				Vector2i anim_separation = atlas_source->get_tile_animation_separation(tile_id);
+				Vector2i size_in_atlas = atlas_source->get_tile_size_in_atlas(tile_id);
+
 				// Copy the texture.
 				for (int frame = 0; frame < atlas_source->get_tile_animation_frames_count(tile_id); frame++) {
 					Rect2i src_rect = atlas_source->get_tile_texture_region(tile_id, frame);
 					Vector2i new_position = new_tile_rect_in_atlas.position * new_texture_region_size;
+
 					if (frame > 0) {
-						new_position += src_rect.size * Vector2i(frame, 0);
-						atlas_size.x = MAX(frame + 1, atlas_size.x);
+						Vector2i frame_coords;
+						if (columns > 0) {
+							// Clamp x frame coordinate by number of max columns( `frame` % `columns`).
+							// Set y frame coordinate to the whole number of times a complete
+							// row of columns can be made( `frame` / `column` ).
+							// These two steps combined convert a 1D index(`frame`) into a
+							// 2D coordinate(`frame_coords`).
+							frame_coords = new_tile_rect_in_atlas.position + (size_in_atlas + anim_separation) * Vector2i(frame % columns, frame / columns);
+						} else {
+							// Godot lays frames out horizontally(`Vector2i(frame,0)`) if columns are set to 0.
+							frame_coords = new_tile_rect_in_atlas.position + (size_in_atlas + anim_separation) * Vector2i(frame, 0);
+						}
+						// Enlarge the atlas offset if new frame_coords fall outside its current dimensions.
+						atlas_size.x = MAX(frame_coords.x + 1, atlas_size.x);
+						atlas_size.y = MAX(frame_coords.y + 1, atlas_size.y);
+
+						new_position = frame_coords * new_texture_region_size;
 					}
 					Rect2 dst_rect_wide = Rect2i(new_position, new_tile_rect_in_atlas.size * new_texture_region_size);
+					// Enlarge image if the destination boundary falls outside its current dimensions.
 					if (dst_rect_wide.get_end().x > output_image->get_width() || dst_rect_wide.get_end().y > output_image->get_height()) {
 						output_image->crop(MAX(dst_rect_wide.get_end().x, output_image->get_width()), MAX(dst_rect_wide.get_end().y, output_image->get_height()));
 					}
@@ -118,13 +139,31 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 					int changed_id = -1;
 					if (alternative_id == 0) {
 						merged->create_tile(tile_mapping.value, atlas_source->get_tile_size_in_atlas(tile_mapping.key));
+
+						// Copies are done in order as seen inside the editor
+						// - for cross-referencing and organizational purposes.
+
+						// Copy over `columns`.
+						int columns = atlas_source->get_tile_animation_columns(tile_mapping.key);
+						merged->set_tile_animation_columns(tile_mapping.value, columns);
+
+						// Copy over `separation`.
+						Vector2i separation = atlas_source->get_tile_animation_separation(tile_mapping.key);
+						merged->set_tile_animation_separation(tile_mapping.value, separation);
+
+						// Copy over speed.
+						merged->set_tile_animation_speed(tile_mapping.value, atlas_source->get_tile_animation_speed(tile_mapping.key));
+
+						// Copy over mode.
+						merged->set_tile_animation_mode(tile_mapping.value, atlas_source->get_tile_animation_mode(tile_mapping.key));
+
+						// Copy over `count` and frame durations.
 						int count = atlas_source->get_tile_animation_frames_count(tile_mapping.key);
 						merged->set_tile_animation_frames_count(tile_mapping.value, count);
 						for (int i = 0; i < count; i++) {
 							merged->set_tile_animation_frame_duration(tile_mapping.value, i, atlas_source->get_tile_animation_frame_duration(tile_mapping.key, i));
 						}
 						merged->set_tile_animation_speed(tile_mapping.value, atlas_source->get_tile_animation_speed(tile_mapping.key));
-						merged->set_tile_animation_mode(tile_mapping.value, atlas_source->get_tile_animation_mode(tile_mapping.key));
 					} else {
 						changed_id = merged->create_alternative_tile(tile_mapping.value, alternative_index);
 					}
@@ -136,12 +175,25 @@ void AtlasMergingDialog::_generate_merged(const Vector<Ref<TileSetAtlasSource>> 
 
 					TileData *dst_tile_data = merged->get_tile_data(tile_mapping.value, changed_id == -1 ? alternative_id : changed_id);
 					for (PropertyInfo property : properties) {
+						// Only copy over properties that are used for storage.
 						if (!(property.usage & PROPERTY_USAGE_STORAGE)) {
 							continue;
 						}
+
+						// Only copy over properties that are not default.
 						Variant value = src_tile_data->get(property.name);
 						Variant default_value = ClassDB::class_get_default_property_value("TileData", property.name);
 						if (default_value.get_type() != Variant::NIL && bool(Variant::evaluate(Variant::OP_EQUAL, value, default_value))) {
+							continue;
+						}
+
+						// DO NOT try to copy "script" properties that are null
+						// as this causes a crash - see issue #101132.
+						// I believe this *should* be covered by the default
+						// check that is done above but the call to
+						// Variant::evaluate(Variant::OP_EQUAL, <null>, <null>) returns false.
+						// I do not know if this is intended behavior or a bug.
+						if (property.name == "script" && value.is_null()) {
 							continue;
 						}
 						dst_tile_data->set(property.name, value);
