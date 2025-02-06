@@ -1399,8 +1399,10 @@ void Window::_notification(int p_what) {
 					_update_viewport_size(); // Then feed back to the viewport.
 					_update_window_callbacks();
 					// Simulate mouse-enter event when mouse is over the window, since OS event might arrive before setting callbacks.
-					if (!mouse_in_window && Rect2(position, size).has_point(DisplayServer::get_singleton()->mouse_get_position())) {
-						_event_callback(DisplayServer::WINDOW_EVENT_MOUSE_ENTER);
+					if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_MOUSE)) {
+						if (!mouse_in_window && Rect2(position, size).has_point(DisplayServer::get_singleton()->mouse_get_position())) {
+							_event_callback(DisplayServer::WINDOW_EVENT_MOUSE_ENTER);
+						}
 					}
 					RS::get_singleton()->viewport_set_update_mode(get_viewport_rid(), RS::VIEWPORT_UPDATE_WHEN_VISIBLE);
 					if (DisplayServer::get_singleton()->window_get_flag(DisplayServer::WindowFlags(FLAG_TRANSPARENT), window_id)) {
