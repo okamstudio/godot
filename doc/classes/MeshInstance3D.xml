@@ -67,9 +67,9 @@
 		</method>
 		<method name="get_active_material" qualifiers="const">
 			<return type="Material" />
-			<param index="0" name="surface" type="int" />
+			<param index="0" name="surface" type="int" default="0" />
 			<description>
-				Returns the [Material] that will be used by the [Mesh] when drawing. This can return the [member GeometryInstance3D.material_override], the surface override [Material] defined in this [MeshInstance3D], or the surface [Material] defined in the [member mesh]. For example, if [member GeometryInstance3D.material_override] is used, all surfaces will return the override material.
+				Returns the [Material] for the specified [param surface] that will be used by the [Mesh] when drawing. This can return the [member GeometryInstance3D.material_override], the surface override [Material] defined in this [MeshInstance3D], or the surface [Material] defined in the [member mesh]. For example, if [member GeometryInstance3D.material_override] is used, all surfaces will return the override material.
 				Returns [code]null[/code] if no material is active, including when [member mesh] is [code]null[/code].
 			</description>
 		</method>
@@ -94,7 +94,7 @@
 		</method>
 		<method name="get_surface_override_material" qualifiers="const">
 			<return type="Material" />
-			<param index="0" name="surface" type="int" />
+			<param index="0" name="surface" type="int" default="0" />
 			<description>
 				Returns the override [Material] for the specified [param surface] of the [Mesh] resource. See also [method get_surface_override_material_count].
 				[b]Note:[/b] This returns the [Material] associated to the [MeshInstance3D]'s Surface Material Override properties, not the material within the [Mesh] resource. To get the material within the [Mesh] resource, use [method Mesh.surface_get_material] instead.
