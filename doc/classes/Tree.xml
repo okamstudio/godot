@@ -513,10 +513,13 @@
 			Text [Color] for a [constant TreeItem.CELL_MODE_CHECK] mode cell when it's non-editable (see [method TreeItem.set_editable]).
 		</theme_item>
 		<theme_item name="font_hovered_color" data_type="color" type="Color" default="Color(0.95, 0.95, 0.95, 1)">
-			Text [Color] used when the item is hovered.
+			Text [Color] used when the item is hovered and not selected yet.
 		</theme_item>
 		<theme_item name="font_hovered_dimmed_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
 			Text [Color] used when the item is hovered, while a button of the same item is hovered as the same time.
+		</theme_item>
+		<theme_item name="font_hovered_selected_color" data_type="color" type="Color" default="Color(1, 1, 1, 1)">
+			Text [Color] used when the item is hovered and selected.
 		</theme_item>
 		<theme_item name="font_outline_color" data_type="color" type="Color" default="Color(0, 0, 0, 1)">
 			The tint of text outline of the item.
@@ -679,10 +682,16 @@
 			The focused style for the [Tree], drawn on top of everything.
 		</theme_item>
 		<theme_item name="hovered" data_type="style" type="StyleBox">
-			[StyleBox] for the item being hovered.
+			[StyleBox] for the item being hovered, but not selected.
 		</theme_item>
 		<theme_item name="hovered_dimmed" data_type="style" type="StyleBox">
 			[StyleBox] for the item being hovered, while a button of the same item is hovered as the same time.
+		</theme_item>
+		<theme_item name="hovered_selected" data_type="style" type="StyleBox">
+			[StyleBox] for the hovered and selected items, used when the [Tree] is not being focused.
+		</theme_item>
+		<theme_item name="hovered_selected_focus" data_type="style" type="StyleBox">
+			[StyleBox] for the hovered and selected items, used when the [Tree] is being focused.
 		</theme_item>
 		<theme_item name="panel" data_type="style" type="StyleBox">
 			The background style for the [Tree].
