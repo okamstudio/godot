@@ -2158,6 +2158,9 @@ Object::~Object() {
 			for (uint32_t i = 0; i < _instance_binding_count; i++) {
 				gdextension_manager->untrack_instance_binding(_instance_bindings[i].token, this);
 			}
+		} else {
+			memfree(_instance_bindings);
+			_instance_bindings = nullptr;
 		}
 	}
 #endif
