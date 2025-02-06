@@ -2022,6 +2022,8 @@ void LineEdit::insert_text_at_caret(String p_text) {
 	if (!ime_text.is_empty()) {
 		_shape();
 	}
+
+	_text_changed();
 }
 
 void LineEdit::clear_internal() {
