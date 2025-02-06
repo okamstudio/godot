@@ -973,6 +973,45 @@ String DisplayServerWindows::clipboard_get() const {
 				GlobalUnlock(mem);
 			}
 		}
+
+	} else if (IsClipboardFormatAvailable(CF_HDROP)) {
+		HGLOBAL mem = GetClipboardData(CF_HDROP);
+		if (mem != nullptr) {
+			HDROP hDropInfo = (HDROP)GlobalLock(mem);
+			if (hDropInfo != nullptr) {
+				int fcount = DragQueryFileW(hDropInfo, 0xFFFFFFFF, nullptr, 0);
+				Vector<String> files;
+
+				for (int i = 0; i < fcount; i++) {
+					LocalVector<wchar_t> buf;
+					int size;
+					size = DragQueryFileW(hDropInfo, i, nullptr, 0);
+					if (size == 0) {
+						continue;
+					}
+
+					// DragQueryFileW does not return long file paths, so we're gonna convert it to one.
+					// There's no guarantee for detecting a short path besides its length being <= MAX_PATH
+					// GetLongPathNameW will return the correct path anyway.
+					buf.resize(MAX_PATH);
+					DragQueryFileW(hDropInfo, i, buf.ptr(), MAX_PATH);
+
+					size = GetLongPathNameW(buf.ptr(), nullptr, 0);
+					// This needs to be +1 because the returned path length doesn't count the terminator, but space is required for it.
+					size += 1;
+					buf.resize(size);
+					GetLongPathNameW(buf.ptr(), buf.ptr(), size);
+
+					// Since we return a string, there's no easy way to understand what is intended to be 'just' a string, or a file path.
+					// So we use the 'file://' URI to make it clear.
+					// Technically two slashes is invalid yet supported, and linux returns two, so we use two for consistency.
+					String file = "file://" + String::utf16((const char16_t *)buf.ptr());
+					files.push_back(file);
+				}
+				ret = String("\n").join(files);
+				GlobalUnlock(mem);
+			}
+		}
 	}
 
 	CloseClipboard();
@@ -1059,6 +1098,24 @@ bool DisplayServerWindows::clipboard_has() const {
 	return (IsClipboardFormatAvailable(CF_TEXT) ||
 			IsClipboardFormatAvailable(CF_UNICODETEXT) ||
 			IsClipboardFormatAvailable(CF_OEMTEXT));
+}
+
+bool DisplayServerWindows::clipboard_has_file() const {
+	return IsClipboardFormatAvailable(CF_HDROP);
+}
+
+int DisplayServerWindows::clipboard_get_file_count() const {
+	int fcount = 0;
+	if (IsClipboardFormatAvailable(CF_HDROP)) {
+		HGLOBAL mem = GetClipboardData(CF_HDROP);
+		if (mem != nullptr) {
+			HDROP hDropInfo = (HDROP)GlobalLock(mem);
+			if (hDropInfo != nullptr) {
+				fcount = DragQueryFileW(hDropInfo, 0xFFFFFFFF, nullptr, 0);
+			}
+		}
+	}
+	return fcount;
 }
 
 bool DisplayServerWindows::clipboard_has_image() const {

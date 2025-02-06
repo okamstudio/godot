@@ -21,6 +21,14 @@
 			<return type="String" />
 			<description>
 				Returns the user's clipboard as a string if possible.
+				[b]Note:[/b] This method will attempt to return files on the clipboard as file path URIs on Windows (prefixed with [code]file://[/code]), and separated by newlines ([code]\n[/code]). This is for consistency with Linux (X11/Wayland), where returning files on the clipboard as such is expected behavior.
+			</description>
+		</method>
+		<method name="clipboard_get_file_count" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the number of files on the user's clipboard.
+				[b]Note:[/b] This method is only implemented on Windows. See [method clipboard_get] for details about Linux (X11/Wayland).
 			</description>
 		</method>
 		<method name="clipboard_get_image" qualifiers="const">
@@ -41,6 +49,13 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if there is a text content on the user's clipboard.
+			</description>
+		</method>
+		<method name="clipboard_has_file" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns [code]true[/code] if there is a file on the user's clipboard.
+				[b]Note:[/b] This method is only implemented on Windows. See [method clipboard_get] for details about Linux (X11/Wayland).
 			</description>
 		</method>
 		<method name="clipboard_has_image" qualifiers="const">

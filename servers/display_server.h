@@ -301,7 +301,9 @@ public:
 	virtual void clipboard_set(const String &p_text);
 	virtual String clipboard_get() const;
 	virtual Ref<Image> clipboard_get_image() const;
+	virtual int clipboard_get_file_count() const;
 	virtual bool clipboard_has() const;
+	virtual bool clipboard_has_file() const;
 	virtual bool clipboard_has_image() const;
 	virtual void clipboard_set_primary(const String &p_text);
 	virtual String clipboard_get_primary() const;
