@@ -615,10 +615,10 @@ void AnimationMixer::_init_root_motion_cache() {
 void AnimationMixer::_create_track_num_to_track_cache_for_animation(Ref<Animation> &p_animation) {
 	ERR_FAIL_COND(animation_track_num_to_track_cache.has(p_animation));
 	LocalVector<TrackCache *> &track_num_to_track_cache = animation_track_num_to_track_cache.insert_new(p_animation, LocalVector<TrackCache *>())->value;
-	const Vector<Animation::Track *> &tracks = p_animation->get_tracks();
+	const LocalVector<Animation::Track *> &tracks = p_animation->get_tracks();
 
 	track_num_to_track_cache.resize(tracks.size());
-	for (int i = 0; i < tracks.size(); i++) {
+	for (uint32_t i = 0; i < tracks.size(); i++) {
 		TrackCache **track_ptr = track_cache.getptr(tracks[i]->thash);
 		if (track_ptr == nullptr) {
 			track_num_to_track_cache[i] = nullptr;
@@ -1139,7 +1139,7 @@ void AnimationMixer::_blend_calc_total_weight() {
 		LocalVector<TrackCache *> &track_num_to_track_cache = animation_track_num_to_track_cache[a];
 		thread_local HashSet<Animation::TypeHash, HashHasher> processed_hashes;
 		processed_hashes.clear();
-		const Vector<Animation::Track *> tracks = a->get_tracks();
+		const LocalVector<Animation::Track *> &tracks = a->get_tracks();
 		Animation::Track *const *tracks_ptr = tracks.ptr();
 		int count = tracks.size();
 		for (int i = 0; i < count; i++) {
@@ -1187,7 +1187,7 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 #endif // _3D_DISABLED
 		ERR_CONTINUE_EDMSG(!animation_track_num_to_track_cache.has(a), "No animation in cache.");
 		LocalVector<TrackCache *> &track_num_to_track_cache = animation_track_num_to_track_cache[a];
-		const Vector<Animation::Track *> tracks = a->get_tracks();
+		const LocalVector<Animation::Track *> &tracks = a->get_tracks();
 		Animation::Track *const *tracks_ptr = tracks.ptr();
 		real_t a_length = a->get_length();
 		int count = tracks.size();

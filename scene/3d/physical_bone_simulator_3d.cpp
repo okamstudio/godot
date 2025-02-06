@@ -73,15 +73,15 @@ void PhysicalBoneSimulator3D::_pose_updated() {
 	if (!skeleton || simulating) {
 		return;
 	}
-	ERR_FAIL_COND(skeleton->get_bone_count() != bones.size());
+	ERR_FAIL_COND(skeleton->get_bone_count() != (int)bones.size());
 	for (int i = 0; i < skeleton->get_bone_count(); i++) {
 		_bone_pose_updated(skeleton, i);
 	}
 }
 
 void PhysicalBoneSimulator3D::_bone_pose_updated(Skeleton3D *p_skeleton, int p_bone_id) {
-	ERR_FAIL_INDEX(p_bone_id, bones.size());
-	bones.write[p_bone_id].global_pose = p_skeleton->get_bone_global_pose(p_bone_id);
+	ERR_FAIL_UNSIGNED_INDEX((uint32_t)p_bone_id, bones.size());
+	bones[p_bone_id].global_pose = p_skeleton->get_bone_global_pose(p_bone_id);
 }
 
 void PhysicalBoneSimulator3D::_set_active(bool p_active) {
@@ -91,7 +91,7 @@ void PhysicalBoneSimulator3D::_set_active(bool p_active) {
 }
 
 void PhysicalBoneSimulator3D::_reset_physical_bones_state() {
-	for (int i = 0; i < bones.size(); i += 1) {
+	for (uint32_t i = 0; i < bones.size(); i += 1) {
 		if (bones[i].physical_bone) {
 			bones[i].physical_bone->reset_physics_simulation_state();
 		}
@@ -135,7 +135,7 @@ void PhysicalBoneSimulator3D::bind_physical_bone_to_bone(int p_bone, PhysicalBon
 	ERR_FAIL_INDEX(p_bone, bone_size);
 	ERR_FAIL_COND(bones[p_bone].physical_bone);
 	ERR_FAIL_NULL(p_physical_bone);
-	bones.write[p_bone].physical_bone = p_physical_bone;
+	bones[p_bone].physical_bone = p_physical_bone;
 
 	_rebuild_physical_bones_cache();
 }
@@ -143,7 +143,7 @@ void PhysicalBoneSimulator3D::bind_physical_bone_to_bone(int p_bone, PhysicalBon
 void PhysicalBoneSimulator3D::unbind_physical_bone_from_bone(int p_bone) {
 	const int bone_size = bones.size();
 	ERR_FAIL_INDEX(p_bone, bone_size);
-	bones.write[p_bone].physical_bone = nullptr;
+	bones[p_bone].physical_bone = nullptr;
 
 	_rebuild_physical_bones_cache();
 }
@@ -188,7 +188,7 @@ void PhysicalBoneSimulator3D::_rebuild_physical_bones_cache() {
 	for (int i = 0; i < b_size; ++i) {
 		PhysicalBone3D *parent_pb = _get_physical_bone_parent(i);
 		if (parent_pb != bones[i].cache_parent_physical_bone) {
-			bones.write[i].cache_parent_physical_bone = parent_pb;
+			bones[i].cache_parent_physical_bone = parent_pb;
 			if (bones[i].physical_bone) {
 				bones[i].physical_bone->_on_bone_parent_changed();
 			}
@@ -356,7 +356,7 @@ Transform3D PhysicalBoneSimulator3D::get_bone_global_pose(int p_bone) const {
 void PhysicalBoneSimulator3D::set_bone_global_pose(int p_bone, const Transform3D &p_pose) {
 	const int bone_size = bones.size();
 	ERR_FAIL_INDEX(p_bone, bone_size);
-	bones.write[p_bone].global_pose = p_pose;
+	bones[p_bone].global_pose = p_pose;
 }
 
 void PhysicalBoneSimulator3D::_process_modification() {
@@ -364,7 +364,7 @@ void PhysicalBoneSimulator3D::_process_modification() {
 	if (!skeleton) {
 		return;
 	}
-	ERR_FAIL_COND(skeleton->get_bone_count() != bones.size());
+	ERR_FAIL_COND(skeleton->get_bone_count() != (int)bones.size());
 	for (int i = 0; i < skeleton->get_bone_count(); i++) {
 		if (!bones[i].physical_bone) {
 			continue;
