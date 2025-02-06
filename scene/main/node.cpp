@@ -1623,6 +1623,16 @@ void Node::_add_child_nocheck(Node *p_child, const StringName &p_name, InternalM
 
 	p_child->data.parent = this;
 
+	// set connection id of children that are not scenes
+	// (scenes will get their own id when instantiated)
+	if (p_child->get_scene_file_path() == "") {
+		if (get_owner()) {
+			p_child->set_scene_connection_id(get_owner()->get_scene_connection_id());
+		} else {
+			p_child->set_scene_connection_id(get_scene_connection_id());
+		}
+	}
+
 	if (!data.children_cache_dirty && p_internal_mode == INTERNAL_MODE_DISABLED && data.internal_children_back_count_cache == 0) {
 		// Special case, also add to the cached children array since its cheap.
 		data.children_cache.push_back(p_child);
@@ -2451,6 +2461,34 @@ int Node::get_persistent_group_count() const {
 
 	return count;
 }
+
+/* Used by PackedScene */
+void Node::set_scene_connection_id(int conn_id) {
+	// conn_id should never be 0
+	data.conn_id = conn_id;
+}
+
+int Node::get_scene_connection_id() const {
+	return data.conn_id;
+}
+
+void Node::set_connection_id(const StringName &p_signal, const Callable &p_callable, int conn_id) {
+	// conn_id should never be 0, that is the value returned by get_connection_id when no id is found
+	if (!data.connection_owners.has(p_signal)) {
+		HashMap<Callable, int, HashableHasher<Callable>> conn_to_owner;
+		data.connection_owners.insert(p_signal, conn_to_owner);
+	}
+	data.connection_owners.get(p_signal).insert(p_callable, conn_id);
+}
+
+int Node::get_connection_id(const StringName &p_signal, const Callable &p_callable) const {
+	if (data.connection_owners.has(p_signal) && data.connection_owners.get(p_signal).has(p_callable)) {
+		return data.connection_owners.get(p_signal).get(p_callable);
+	}
+	return 0;
+}
+
+/* *** */
 
 void Node::print_tree_pretty() {
 	print_line(_get_tree_string_pretty("", true));
@@ -3643,6 +3681,9 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_groups"), &Node::_get_groups);
 	ClassDB::bind_method(D_METHOD("set_owner", "owner"), &Node::set_owner);
 	ClassDB::bind_method(D_METHOD("get_owner"), &Node::get_owner);
+	ClassDB::bind_method(D_METHOD("set_scene_connection_id", "conn_id"), &Node::set_scene_connection_id);
+	ClassDB::bind_method(D_METHOD("get_scene_connection_id"), &Node::get_scene_connection_id);
+	ClassDB::bind_method(D_METHOD("set_connection_id", "signal", "callable", "conn_id"), &Node::set_connection_id);
 	ClassDB::bind_method(D_METHOD("get_index", "include_internal"), &Node::get_index, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("print_tree"), &Node::print_tree);
 	ClassDB::bind_method(D_METHOD("print_tree_pretty"), &Node::print_tree_pretty);

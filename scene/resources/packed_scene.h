@@ -105,8 +105,11 @@ class SceneState : public RefCounted {
 #ifdef TOOLS_ENABLED
 public:
 	typedef void (*InstantiationWarningNotify)(const String &p_warning);
+#endif
 
 private:
+	int _generate_unique_connection_id() const;
+#ifdef TOOLS_ENABLED
 	static InstantiationWarningNotify instantiation_warn_notify;
 #endif
 
