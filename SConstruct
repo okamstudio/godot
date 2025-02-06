@@ -765,8 +765,12 @@ else:
         env.Append(CCFLAGS=["-O2"])
         env.Append(LINKFLAGS=["-O2"])
     elif env["optimize"] == "size":
-        env.Append(CCFLAGS=["-Os"])
-        env.Append(LINKFLAGS=["-Os"])
+        if methods.using_emcc(env):
+            env.Append(CCFLAGS=["-Oz"])
+            env.Append(LINKFLAGS=["-Oz"])
+        else:
+            env.Append(CCFLAGS=["-Os"])
+            env.Append(LINKFLAGS=["-Os"])
     elif env["optimize"] == "debug":
         env.Append(CCFLAGS=["-Og"])
         env.Append(LINKFLAGS=["-Og"])
