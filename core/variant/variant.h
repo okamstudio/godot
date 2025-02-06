@@ -66,6 +66,10 @@ class RefCounted;
 
 template <typename T>
 class Ref;
+template <typename T>
+class TypedArray;
+template <typename K, typename V>
+class TypedDictionary;
 
 struct PropertyInfo;
 struct MethodInfo;
@@ -485,6 +489,11 @@ public:
 
 	operator IPAddress() const;
 
+	template <typename T>
+	_FORCE_INLINE_ operator TypedArray<T>() const { return operator Array(); }
+	template <typename K, typename V>
+	_FORCE_INLINE_ operator TypedDictionary<K, V>() const { return operator Dictionary(); }
+
 	Object *get_validated_object() const;
 	Object *get_validated_object_with_check(bool &r_previously_freed) const;
 
@@ -546,6 +555,13 @@ public:
 	Variant(const Vector<StringName> &p_array);
 
 	Variant(const IPAddress &p_address);
+
+	template <typename T>
+	_FORCE_INLINE_ Variant(const TypedArray<T> &p_typed_array) :
+			Variant(static_cast<Array>(p_typed_array)) {}
+	template <typename K, typename V>
+	_FORCE_INLINE_ Variant(const TypedDictionary<K, V> &p_typed_dictionary) :
+			Variant(static_cast<Dictionary>(p_typed_dictionary)) {}
 
 #define VARIANT_ENUM_CLASS_CONSTRUCTOR(m_enum) \
 	Variant(m_enum p_value) :                  \

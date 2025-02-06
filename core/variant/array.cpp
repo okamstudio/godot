@@ -40,7 +40,7 @@
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
 
-struct ArrayPrivate {
+struct Array::ArrayPrivate {
 	SafeRefCount refcount;
 	Vector<Variant> array;
 	Variant *read_only = nullptr; // If enabled, a pointer is used to a temporary value that is used to return read-only values.
@@ -916,6 +916,12 @@ Array::Array(const Array &p_from) {
 Array::Array() {
 	_p = memnew(ArrayPrivate);
 	_p->refcount.init();
+}
+
+Array::Array(std::initializer_list<Variant> p_init) {
+	_p = memnew(ArrayPrivate);
+	_p->refcount.init();
+	_p->array = p_init;
 }
 
 Array::~Array() {

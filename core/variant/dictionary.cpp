@@ -40,7 +40,7 @@
 #include "core/variant/type_info.h"
 #include "core/variant/variant_internal.h"
 
-struct DictionaryPrivate {
+struct Dictionary::DictionaryPrivate {
 	SafeRefCount refcount;
 	Variant *read_only = nullptr; // If enabled, a pointer is used to a temporary value that is used to return read-only values.
 	HashMap<Variant, Variant, VariantHasher, StringLikeVariantComparator> variant_map;

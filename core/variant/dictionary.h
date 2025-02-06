@@ -31,17 +31,17 @@
 #ifndef DICTIONARY_H
 #define DICTIONARY_H
 
-#include "core/string/ustring.h"
 #include "core/templates/list.h"
 #include "core/templates/pair.h"
-#include "core/variant/array.h"
 
+class Array;
+class StringName;
 class Variant;
 
 struct ContainerType;
-struct DictionaryPrivate;
 
 class Dictionary {
+	struct DictionaryPrivate;
 	mutable DictionaryPrivate *_p;
 
 	void _ref(const Dictionary &p_from) const;

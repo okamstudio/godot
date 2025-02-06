@@ -84,6 +84,22 @@ TEST_CASE("[Array] Assignment and comparison operators") {
 	CHECK(arr3 == arr2);
 }
 
+TEST_CASE("[Array] List init") {
+	Array arr = { 0, PackedStringArray({ "array", "of", "values" }), Dictionary({ { "nested", 200 } }), Vector2(1, 2) };
+	CHECK(arr.size() == 4);
+	CHECK(int(arr[0]) == 0);
+	CHECK(PackedStringArray(arr[1])[2] == "values");
+	CHECK(Dictionary(arr[2])["nested"] == Variant(200));
+	CHECK(Vector2(arr[3]) == Vector2(1, 2));
+
+	TypedArray<double> tarr = { 0.0, 1.0f, 5, size_t(2) };
+	CHECK(tarr.size() == 4);
+	CHECK(double(tarr[0]) == 0.0);
+	CHECK(double(tarr[1]) == 1.0f);
+	CHECK(double(tarr[2]) == 5);
+	CHECK(double(tarr[3]) == size_t(2));
+}
+
 TEST_CASE("[Array] append_array()") {
 	Array arr1;
 	Array arr2;
