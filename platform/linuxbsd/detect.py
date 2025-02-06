@@ -33,6 +33,7 @@ def get_opts():
         EnumVariable("linker", "Linker program", "default", ("default", "bfd", "gold", "lld", "mold")),
         BoolVariable("use_llvm", "Use the LLVM compiler", False),
         BoolVariable("use_static_cpp", "Link libgcc and libstdc++ statically for better portability", True),
+        BoolVariable("use_libatomic", "Link libatomic.  If false, you must pass manually via linkflags", True),
         BoolVariable("use_coverage", "Test Godot coverage", False),
         BoolVariable("use_ubsan", "Use LLVM/GCC compiler undefined behavior sanitizer (UBSAN)", False),
         BoolVariable("use_asan", "Use LLVM/GCC compiler address sanitizer (ASAN)", False),
@@ -496,8 +497,8 @@ def configure(env: "SConsEnvironment"):
     # Link those statically for portability
     if env["use_static_cpp"]:
         env.Append(LINKFLAGS=["-static-libgcc", "-static-libstdc++"])
-        if env["use_llvm"] and platform.system() != "FreeBSD":
+        if env["use_libatomic"] and env["use_llvm"] and platform.system() != "FreeBSD":
             env["LINKCOM"] = env["LINKCOM"] + " -l:libatomic.a"
     else:
-        if env["use_llvm"] and platform.system() != "FreeBSD":
+        if env["use_libatomic"] and env["use_llvm"] and platform.system() != "FreeBSD":
             env.Append(LIBS=["atomic"])
