@@ -605,9 +605,15 @@ void GDMono::_try_load_project_assembly() {
 	// Load the project's main assembly. This doesn't necessarily need to succeed.
 	// The game may not be using .NET at all, or if the project does use .NET and
 	// we're running in the editor, it may just happen to be it wasn't built yet.
-	if (!_load_project_assembly()) {
+	String error_message;
+	bool should_retry;
+	if (!_load_project_assembly(&error_message, &should_retry)) {
 		if (OS::get_singleton()->is_stdout_verbose()) {
-			print_error(".NET: Failed to load project assembly");
+			if (error_message.is_empty()) {
+				print_error(".NET: Failed to load project assembly");
+			} else {
+				print_error(".NET: Failed to load project assembly: " + error_message);
+			}
 		}
 	}
 }
@@ -624,7 +630,9 @@ void GDMono::_init_godot_api_hashes() {
 }
 
 #ifdef TOOLS_ENABLED
-bool GDMono::_load_project_assembly() {
+bool GDMono::_load_project_assembly(String *p_error_message, bool *p_should_retry) {
+	*p_should_retry = true;
+
 	String assembly_name = path::get_csharp_project_name();
 
 	String assembly_path = GodotSharpDirs::get_res_temp_assemblies_dir()
@@ -632,11 +640,12 @@ bool GDMono::_load_project_assembly() {
 	assembly_path = ProjectSettings::get_singleton()->globalize_path(assembly_path);
 
 	if (!FileAccess::exists(assembly_path)) {
+		*p_error_message = String("Assembly Path \"" + assembly_path + "\" does not exist");
 		return false;
 	}
 
 	String loaded_assembly_path;
-	bool success = plugin_callbacks.LoadProjectAssemblyCallback(assembly_path.utf16(), &loaded_assembly_path);
+	bool success = plugin_callbacks.LoadProjectAssemblyCallback(assembly_path.utf16(), &loaded_assembly_path, p_error_message, p_should_retry);
 
 	if (success) {
 		project_assembly_path = loaded_assembly_path.simplify_path();
@@ -679,10 +688,19 @@ Error GDMono::reload_project_assemblies() {
 
 	// Load the project's main assembly. Here, during hot-reloading, we do
 	// consider failing to load the project's main assembly to be an error.
-	if (!_load_project_assembly()) {
-		ERR_PRINT_ED(".NET: Failed to load project assembly.");
+	String error_message;
+	bool should_retry;
+	if (!_load_project_assembly(&error_message, &should_retry)) {
+		if (error_message.is_empty()) {
+			ERR_PRINT_ED(".NET: Failed to load project assembly.");
+		} else {
+			ERR_PRINT_ED(".NET: Failed to load project assembly: " + error_message);
+		}
+		if (!should_retry) {
+			project_load_failure_count = (int)GLOBAL_GET("dotnet/project/assembly_reload_attempts");
+		}
 		reload_failure();
-		return ERR_CANT_OPEN;
+		return FAILED;
 	}
 
 	if (project_load_failure_count > 0) {

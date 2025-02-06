@@ -47,7 +47,7 @@ namespace gdmono {
 
 #ifdef TOOLS_ENABLED
 struct PluginCallbacks {
-	using FuncLoadProjectAssemblyCallback = bool(GD_CLR_STDCALL *)(const char16_t *, String *);
+	using FuncLoadProjectAssemblyCallback = bool(GD_CLR_STDCALL *)(const char16_t *, String *, String *, bool *);
 	using FuncLoadToolsAssemblyCallback = Object *(GD_CLR_STDCALL *)(const char16_t *, const void **, int32_t);
 	using FuncUnloadProjectPluginCallback = bool(GD_CLR_STDCALL *)();
 	FuncLoadProjectAssemblyCallback LoadProjectAssemblyCallback = nullptr;
@@ -73,7 +73,7 @@ class GDMono {
 #endif
 
 #ifdef TOOLS_ENABLED
-	bool _load_project_assembly();
+	bool _load_project_assembly(String *p_error_message, bool *p_should_retry);
 	void _try_load_project_assembly();
 #endif
 

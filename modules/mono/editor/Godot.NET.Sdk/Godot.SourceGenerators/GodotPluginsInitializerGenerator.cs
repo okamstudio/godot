@@ -52,6 +52,12 @@ namespace GodotPlugins.Game
                 return false.ToGodotBool();
             }
         }
+
+#if TOOLS
+#pragma warning disable CS0169
+        private static bool ToolsDefined;
+#pragma warning restore CS0169
+#endif
     }
 }
 ";

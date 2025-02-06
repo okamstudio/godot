@@ -131,25 +131,40 @@ namespace GodotPlugins
         [StructLayout(LayoutKind.Sequential)]
         private struct PluginsCallbacks
         {
-            public unsafe delegate* unmanaged<char*, godot_string*, godot_bool> LoadProjectAssemblyCallback;
+            public unsafe delegate* unmanaged<char*, godot_string*, godot_string*, godot_bool*, godot_bool> LoadProjectAssemblyCallback;
             public unsafe delegate* unmanaged<char*, IntPtr, int, IntPtr> LoadToolsAssemblyCallback;
             public unsafe delegate* unmanaged<godot_bool> UnloadProjectPluginCallback;
         }
 
         [UnmanagedCallersOnly]
-        private static unsafe godot_bool LoadProjectAssembly(char* nAssemblyPath, godot_string* outLoadedAssemblyPath)
+        private static unsafe godot_bool LoadProjectAssembly(char* nAssemblyPath, godot_string* outLoadedAssemblyPath, godot_string* outFailedReason, godot_bool* shouldRetry)
         {
             try
             {
                 if (_projectLoadContext != null)
                     return godot_bool.True; // Already loaded
 
+                *shouldRetry = godot_bool.False;
                 string assemblyPath = new(nAssemblyPath);
 
                 (var projectAssembly, _projectLoadContext) = LoadPlugin(assemblyPath, isCollectible: _editorHint);
 
                 string loadedAssemblyPath = _projectLoadContext.AssemblyLoadedPath ?? assemblyPath;
                 *outLoadedAssemblyPath = Marshaling.ConvertStringToNative(loadedAssemblyPath);
+
+                // This generated field is here to ensure that
+                // the developer do not drop the TOOLS compiler preprocessor
+                // from their csproj, which breaks the C# Editor Functionality.
+                var isToolsDefinedField =
+                    projectAssembly
+                        .GetType("GodotPlugins.Game.Main")?
+                        .GetField("ToolsDefined", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
+                if (isToolsDefinedField == null)
+                {
+                    *outFailedReason = Marshaling.ConvertStringToNative("The csproj was missing the `TOOLS` compiler symbol, which is required for C# editor functionality. Please modify the csproj file and rebuild the C# project, check https://github.com/godotengine/godot/issues/98124 for more information.");
+                    return godot_bool.False;
+                }
 
                 ScriptManagerBridge.LookupScriptsInAssembly(projectAssembly);
 
@@ -158,6 +173,7 @@ namespace GodotPlugins
             catch (Exception e)
             {
                 Console.Error.WriteLine(e);
+                *outFailedReason = Marshaling.ConvertStringToNative(e.Message);
                 return godot_bool.False;
             }
         }
