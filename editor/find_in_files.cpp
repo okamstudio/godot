@@ -103,6 +103,14 @@ void FindInFiles::set_filter(const HashSet<String> &exts) {
 	_extension_filter = exts;
 }
 
+void FindInFiles::set_includes(const HashSet<String> &p_includes_expressions) {
+	_include_expressions = p_includes_expressions;
+}
+
+void FindInFiles::set_excludes(const HashSet<String> &p_excludes_expressions) {
+	_exclude_expressions = p_excludes_expressions;
+}
+
 void FindInFiles::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PROCESS: {
@@ -253,7 +261,16 @@ void FindInFiles::_scan_dir(const String &path, PackedStringArray &out_folders, 
 		} else {
 			String file_ext = file.get_extension();
 			if (_extension_filter.has(file_ext)) {
-				out_files_to_scan.push_back(path.path_join(file));
+				String file_path = path.path_join(file);
+				bool case_sensitive = dir->is_case_sensitive(path);
+
+				if (!_exclude_expressions.is_empty() && _is_file_matched(_exclude_expressions, file_path, case_sensitive)) {
+					continue;
+				}
+
+				if (_include_expressions.is_empty() || _is_file_matched(_include_expressions, file_path, case_sensitive)) {
+					out_files_to_scan.push_back(file_path);
+				}
 			}
 		}
 	}
@@ -281,6 +298,27 @@ void FindInFiles::_scan_file(const String &fpath) {
 			emit_signal(SNAME(SIGNAL_RESULT_FOUND), fpath, line_number, begin, end, line);
 		}
 	}
+}
+
+bool FindInFiles::_is_file_matched(const HashSet<String> &p_expressions, const String &p_file_path, bool p_case_sensitive) const {
+	for (const String &expr : p_expressions) {
+		if (expr.contains("*") || expr.contains("?")) {
+			// Use match/matchn
+			if (p_case_sensitive && p_file_path.match(expr)) {
+				return true;
+			} else if (!p_case_sensitive && p_file_path.matchn(expr)) {
+				return true;
+			}
+		} else {
+			// Simple match
+			if (p_case_sensitive && p_file_path.contains(expr)) {
+				return true;
+			} else if (!p_case_sensitive && p_file_path.to_lower().contains(expr.to_lower())) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 void FindInFiles::_bind_methods() {
@@ -377,6 +415,26 @@ FindInFilesDialog::FindInFilesDialog() {
 
 		gc->add_child(hbc);
 	}
+
+	Label *includes_label = memnew(Label);
+	includes_label->set_text(TTR("Includes:"));
+	includes_label->set_tooltip_text(TTR("Include the files with the following expressions. Use \",\" to separate."));
+	gc->add_child(includes_label);
+
+	_includes_line_edit = memnew(LineEdit);
+	_includes_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	_includes_line_edit->set_placeholder("example: scripts,scenes/*/test.gd");
+	gc->add_child(_includes_line_edit);
+
+	Label *excludes_label = memnew(Label);
+	excludes_label->set_text(TTR("Excludes:"));
+	excludes_label->set_tooltip_text(TTR("Exclude the files with the following expressions. Use \",\" to separate."));
+	gc->add_child(excludes_label);
+
+	_excludes_line_edit = memnew(LineEdit);
+	_excludes_line_edit->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	_excludes_line_edit->set_placeholder("example: addons,scenes/test/*.gd");
+	gc->add_child(_excludes_line_edit);
 
 	Label *filter_label = memnew(Label);
 	filter_label->set_text(TTR("Filters:"));
@@ -475,6 +533,46 @@ HashSet<String> FindInFilesDialog::get_filter() const {
 		}
 	}
 	return filters;
+}
+
+HashSet<String> FindInFilesDialog::get_includes() const {
+	HashSet<String> includes;
+	String text = _includes_line_edit->get_text();
+
+	if (text.is_empty()) {
+		return includes;
+	}
+
+	PackedStringArray expressions = text.split(",", false);
+	for (const String &expr : expressions) {
+		if (expr.contains("*") || expr.contains("?")) {
+			// Make it support partial match.
+			includes.insert("*" + expr + "*");
+		} else {
+			includes.insert(expr);
+		}
+	}
+	return includes;
+}
+
+HashSet<String> FindInFilesDialog::get_excludes() const {
+	HashSet<String> excludes;
+	String text = _excludes_line_edit->get_text();
+
+	if (text.is_empty()) {
+		return excludes;
+	}
+
+	PackedStringArray expressions = text.split(",", false);
+	for (const String &expr : expressions) {
+		if (expr.contains("*") || expr.contains("?")) {
+			// Make it support partial match.
+			excludes.insert("*" + expr + "*");
+		} else {
+			excludes.insert(expr);
+		}
+	}
+	return excludes;
 }
 
 void FindInFilesDialog::_notification(int p_what) {

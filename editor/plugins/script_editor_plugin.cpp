@@ -4038,6 +4038,8 @@ void ScriptEditor::_start_find_in_files(bool with_replace) {
 	f->set_whole_words(find_in_files_dialog->is_whole_words());
 	f->set_folder(find_in_files_dialog->get_folder());
 	f->set_filter(find_in_files_dialog->get_filter());
+	f->set_includes(find_in_files_dialog->get_includes());
+	f->set_excludes(find_in_files_dialog->get_excludes());
 
 	find_in_files->set_with_replace(with_replace);
 	find_in_files->set_replace_text(find_in_files_dialog->get_replace_text());

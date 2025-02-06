@@ -47,6 +47,8 @@ public:
 	void set_match_case(bool p_match_case);
 	void set_folder(const String &folder);
 	void set_filter(const HashSet<String> &exts);
+	void set_includes(const HashSet<String> &p_includes_expressions);
+	void set_excludes(const HashSet<String> &p_excludes_expressions);
 
 	String get_search_text() const { return _pattern; }
 
@@ -70,9 +72,13 @@ private:
 	void _scan_dir(const String &path, PackedStringArray &out_folders, PackedStringArray &out_files_to_scan);
 	void _scan_file(const String &fpath);
 
+	bool _is_file_matched(const HashSet<String> &p_expressions, const String &p_file_path, bool p_case_sensitive) const;
+
 	// Config
 	String _pattern;
 	HashSet<String> _extension_filter;
+	HashSet<String> _include_expressions;
+	HashSet<String> _exclude_expressions;
 	String _root_dir;
 	bool _whole_words = true;
 	bool _match_case = true;
@@ -116,6 +122,8 @@ public:
 	bool is_whole_words() const;
 	String get_folder() const;
 	HashSet<String> get_filter() const;
+	HashSet<String> get_includes() const;
+	HashSet<String> get_excludes() const;
 
 protected:
 	void _notification(int p_what);
@@ -144,6 +152,9 @@ private:
 	Button *_replace_button = nullptr;
 	FileDialog *_folder_dialog = nullptr;
 	HBoxContainer *_filters_container = nullptr;
+	LineEdit *_includes_line_edit = nullptr;
+	LineEdit *_excludes_line_edit = nullptr;
+
 	HashMap<String, bool> _filters_preferences;
 };
 
