@@ -3894,6 +3894,14 @@ void ScriptEditor::unregister_syntax_highlighter(const Ref<EditorSyntaxHighlight
 	syntax_highlighters.erase(p_syntax_highlighter);
 }
 
+void ScriptEditor::update_connected_methods() {
+	ScriptTextEditor *ste = Object::cast_to<ScriptTextEditor>(_get_current_editor());
+
+	if (ste) {
+		ste->_update_connected_methods();
+	}
+}
+
 int ScriptEditor::script_editor_func_count = 0;
 CreateScriptEditorFunc ScriptEditor::script_editor_funcs[ScriptEditor::SCRIPT_EDITOR_FUNC_MAX];
 
