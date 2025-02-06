@@ -544,7 +544,7 @@ void Node3DEditorViewport::_update_camera(real_t p_interp_delta) {
 		//-------
 		// Perform smoothing
 
-		if (is_freelook_active()) {
+		if (freelook_active) {
 			// Higher inertia should increase "lag" (lerp with factor between 0 and 1)
 			// Inertia of zero should produce instant movement (lerp with factor of 1) in this case it returns a really high value and gets clamped to 1.
 			const real_t inertia = EDITOR_GET("editors/3d/freelook/freelook_inertia");
@@ -1718,14 +1718,14 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 		const real_t zoom_factor = 1 + (ZOOM_FREELOOK_MULTIPLIER - 1) * b->get_factor();
 		switch (b->get_button_index()) {
 			case MouseButton::WHEEL_UP: {
-				if (is_freelook_active()) {
+				if (freelook_active) {
 					scale_freelook_speed(zoom_factor);
 				} else {
 					scale_cursor_distance(1.0 / zoom_factor);
 				}
 			} break;
 			case MouseButton::WHEEL_DOWN: {
-				if (is_freelook_active()) {
+				if (freelook_active) {
 					scale_freelook_speed(1.0 / zoom_factor);
 				} else {
 					scale_cursor_distance(zoom_factor);
@@ -2203,7 +2203,7 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventMagnifyGesture> magnify_gesture = p_event;
 	if (magnify_gesture.is_valid()) {
-		if (is_freelook_active()) {
+		if (freelook_active) {
 			scale_freelook_speed(magnify_gesture->get_factor());
 		} else {
 			scale_cursor_distance(1.0 / magnify_gesture->get_factor());
@@ -2299,7 +2299,7 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 		}
 
 		if (_edit.mode == TRANSFORM_NONE) {
-			if (_edit.gizmo.is_null() && is_freelook_active() && k->get_keycode() == Key::ESCAPE) {
+			if (_edit.gizmo.is_null() && freelook_active && k->get_keycode() == Key::ESCAPE) {
 				set_freelook_active(false);
 				return;
 			}
@@ -2442,7 +2442,7 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 		if (ED_IS_SHORTCUT("spatial_editor/cancel_transform", p_event) && _edit.mode != TRANSFORM_NONE) {
 			cancel_transform();
 		}
-		if (!is_freelook_active() && !k->is_echo()) {
+		if (!freelook_active && !k->is_echo()) {
 			if (ED_IS_SHORTCUT("spatial_editor/instant_translate", p_event) && (_edit.mode != TRANSFORM_TRANSLATE || collision_reposition)) {
 				if (_edit.mode == TRANSFORM_NONE) {
 					begin_transform(TRANSFORM_TRANSLATE, true);
@@ -2483,7 +2483,7 @@ void Node3DEditorViewport::_sinput(const Ref<InputEvent> &p_event) {
 
 		// Freelook doesn't work in orthogonal mode.
 		if (!orthogonal && ED_IS_SHORTCUT("spatial_editor/freelook_toggle", p_event)) {
-			set_freelook_active(!is_freelook_active());
+			set_freelook_active(!freelook_active);
 
 		} else if (k->get_keycode() == Key::ESCAPE) {
 			set_freelook_active(false);
@@ -2764,7 +2764,7 @@ Point2 Node3DEditorViewport::_get_warped_mouse_motion(const Ref<InputEventMouseM
 }
 
 void Node3DEditorViewport::_update_freelook(real_t delta) {
-	if (!is_freelook_active()) {
+	if (!freelook_active) {
 		return;
 	}
 
@@ -3425,7 +3425,7 @@ void Node3DEditorViewport::_draw() {
 
 	} else {
 		if (zoom_indicator_delay > 0.0) {
-			if (is_freelook_active()) {
+			if (freelook_active) {
 				// Show speed
 
 				real_t min_speed = MAX(camera->get_near() * 4, ZOOM_FREELOOK_MIN);

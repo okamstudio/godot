@@ -538,7 +538,6 @@ public:
 	void set_state(const Dictionary &p_state);
 	Dictionary get_state() const;
 	void reset();
-	bool is_freelook_active() const { return freelook_active; }
 
 	Vector3 get_ray_pos(const Vector2 &p_pos) const;
 	Vector3 get_ray(const Vector2 &p_pos) const;
