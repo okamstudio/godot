@@ -166,7 +166,7 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 					if ((k.is_valid() && input_type == INPUT_KEY) || (joyb.is_valid() && input_type == INPUT_JOY_BUTTON) || (joym.is_valid() && input_type == INPUT_JOY_MOTION) || (mb.is_valid() && input_type == INPUT_MOUSE_BUTTON)) {
 						// Loop through all items of this category until one matches.
 						while (input_item) {
-							bool key_match = k.is_valid() && (Variant(k->get_keycode()) == input_item->get_meta("__keycode") || Variant(k->get_physical_keycode()) == input_item->get_meta("__keycode"));
+							bool key_match = k.is_valid() && (Variant(k->get_keycode()) == input_item->get_meta("__keycode") || Variant(k->get_physical_keycode()) == input_item->get_meta("__keycode") || Variant(k->get_key_label()) == input_item->get_meta("__keycode"));
 							bool joyb_match = joyb.is_valid() && Variant(joyb->get_button_index()) == input_item->get_meta("__index");
 							bool joym_match = joym.is_valid() && Variant(joym->get_axis()) == input_item->get_meta("__axis") && joym->get_axis_value() == (float)input_item->get_meta("__value");
 							bool mb_match = mb.is_valid() && Variant(mb->get_button_index()) == input_item->get_meta("__index");
@@ -175,6 +175,7 @@ void InputEventConfigurationDialog::_set_event(const Ref<InputEvent> &p_event, c
 								input_item->select(0);
 								input_list_tree->ensure_cursor_is_visible();
 								in_tree_update = false;
+								_input_list_item_selected();
 								return;
 							}
 							input_item = input_item->get_next();
@@ -392,14 +393,14 @@ void InputEventConfigurationDialog::_mod_toggled(bool p_checked, int p_index) {
 		}
 	}
 
-	_set_event(ie, original_event);
+	_set_event(ie, original_event, false);
 }
 
 void InputEventConfigurationDialog::_autoremap_command_or_control_toggled(bool p_checked) {
 	Ref<InputEventWithModifiers> ie = event;
 	if (ie.is_valid()) {
 		ie->set_command_or_control_autoremap(p_checked);
-		_set_event(ie, original_event);
+		_set_event(ie, original_event, false);
 	}
 
 	if (p_checked) {
@@ -432,7 +433,7 @@ void InputEventConfigurationDialog::_key_mode_selected(int p_mode) {
 		k->set_key_label(ko->get_key_label());
 	}
 
-	_set_event(k, original_event);
+	_set_event(k, original_event, false);
 }
 
 void InputEventConfigurationDialog::_key_location_selected(int p_location) {
@@ -454,7 +455,7 @@ void InputEventConfigurationDialog::_input_list_item_activated() {
 void InputEventConfigurationDialog::_input_list_item_selected() {
 	TreeItem *selected = input_list_tree->get_selected();
 
-	// Called form _set_event, do not update for a second time.
+	// Called from _set_event, do not update for a second time.
 	if (in_tree_update) {
 		return;
 	}
