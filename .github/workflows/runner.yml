@@ -6,6 +6,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  dispatch:
+    name: 🐝 Dispatch
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      android: ${{ steps.path_filters.outputs.android }}
+      ios: ${{ steps.path_filters.outputs.ios }}
+      linux: ${{ steps.path_filters.outputs.linux }}
+      macos: ${{ steps.path_filters.outputs.macos }}
+      windows: ${{ steps.path_filters.outputs.windows }}
+      web: ${{ steps.path_filters.outputs.web }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      if: github.event_name == 'pull_request'
+    - uses: AurorNZ/paths-filter@298e00d16954592b06fe237dbf749947c3dd4a98
+      if: github.event_name == 'pull_request'
+      id: path_filters
+      with:
+        filters: .github/path_filters.yaml
+
   # First stage: Only static checks, fast and prevent expensive builds from running.
 
   static-checks:
@@ -17,30 +40,36 @@ jobs:
 
   android-build:
     name: 🤖 Android
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.android == 'true'
     uses: ./.github/workflows/android_builds.yml
 
   ios-build:
     name: 🍏 iOS
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.ios == 'true'
     uses: ./.github/workflows/ios_builds.yml
 
   linux-build:
     name: 🐧 Linux
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.linux == 'true'
     uses: ./.github/workflows/linux_builds.yml
 
   macos-build:
     name: 🍎 macOS
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.macos == 'true'
     uses: ./.github/workflows/macos_builds.yml
 
   windows-build:
     name: 🏁 Windows
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.windows == 'true'
     uses: ./.github/workflows/windows_builds.yml
 
   web-build:
     name: 🌐 Web
-    needs: static-checks
+    needs: [static-checks, dispatch]
+    if: github.event_name != 'pull_request' || needs.dispatch.outputs.web == 'true'
     uses: ./.github/workflows/web_builds.yml

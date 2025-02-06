@@ -1,0 +1,21 @@
+shared: &shared
+  - '**'
+  - '!platform/*/**'
+android:
+  - *shared
+  - 'platform/android/**'
+ios:
+  - *shared
+  - 'platform/ios/**'
+linux:
+  - *shared
+  - 'platform/linuxbsd/**'
+macos:
+  - *shared
+  - 'platform/macos/**'
+windows:
+  - *shared
+  - 'platform/windows/**'
+web:
+  - *shared
+  - 'platform/web/**'
