@@ -88,6 +88,20 @@
 		_undo_redo.CommitAction();
 		[/csharp]
 		[/codeblocks]
+		Actions can be nested. Nested actions are treated as part of the parent action and will be undone and redone together. In the example below, calling [method undo] after [code]recolor_all_items()[/code] will undo all colors.
+		[codeblock]
+		func set_item_color(item, color):
+		    undo_redo.create_action("Set Item Color")
+		    undo_redo.add_do_property(item, "color", color)
+		    undo_redo.commit_action()
+
+		func recolor_all_items(color):
+		    undo_redo.create_action("Recolor Items")
+		    for item in items:
+		        set_item_color(item, color)
+
+		    undo_redo.commit_action()
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -169,6 +183,7 @@
 			<param index="0" name="execute" type="bool" default="true" />
 			<description>
 				Commit the action. If [param execute] is [code]true[/code] (which it is by default), all "do" methods/properties are called/set when this function is called.
+				For nested actions (see [method create_action]), committing will instead pop the nesting stack.
 			</description>
 		</method>
 		<method name="create_action">
@@ -180,6 +195,7 @@
 				Create a new action. After this is called, do all your calls to [method add_do_method], [method add_undo_method], [method add_do_property], and [method add_undo_property], then commit the action with [method commit_action].
 				The way actions are merged is dictated by [param merge_mode]. See [enum MergeMode] for details.
 				The way undo operation are ordered in actions is dictated by [param backward_undo_ops]. When [param backward_undo_ops] is [code]false[/code] undo option are ordered in the same order they were added. Which means the first operation to be added will be the first to be undone.
+				When this method is called multiple times without using [method commit_action], the subsequent actions will be nested. "Do" operations will not run until every opened action is committed. Nested actions are treated as part of the parent action and they will be undone and redone together.
 			</description>
 		</method>
 		<method name="end_force_keep_in_merge_ends">
