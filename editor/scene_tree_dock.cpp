@@ -1328,6 +1328,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					undo_redo->add_do_method(node, "set_scene_file_path", "");
 					undo_redo->add_undo_method(node, "set_scene_file_path", node->get_scene_file_path());
 					_node_replace_owner(node, node, root);
+					_node_replace_conn_id(node, node, root);
 					_node_strip_signal_inheritance(node); // FIXME: this should also be undone
 					NodeDock::get_singleton()->set_node(node); // Refresh.
 					undo_redo->add_do_method(scene_tree, "update_tree");
@@ -1757,6 +1758,35 @@ void SceneTreeDock::_notification(int p_what) {
 		} break;
 	}
 }
+void SceneTreeDock::_node_replace_conn_id(Node *p_base, Node *p_node, Node *p_root) {
+	// Ensures correct signals are packed for any scene involving these nodes
+
+	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
+
+	int root_conn_id = p_root->get_scene_connection_id();
+	int node_conn_id = p_base->get_scene_connection_id();
+	undo_redo->add_do_method(p_node, "set_scene_connection_id", root_conn_id);
+	undo_redo->add_undo_method(p_node, "set_scene_connection_id", node_conn_id);
+
+	// Loop through connections to set correct connection id
+	List<MethodInfo> _signals;
+	p_node->get_signal_list(&_signals);
+
+	for (const MethodInfo &E : _signals) {
+		List<Node::Connection> conns;
+		p_node->get_signal_connection_list(E.name, &conns);
+
+		for (const Node::Connection &F : conns) {
+			const Node::Connection &c = F;
+			undo_redo->add_do_method(p_node, "set_connection_id", E.name, c.callable, root_conn_id);
+			undo_redo->add_undo_method(p_node, "set_connection_id", E.name, c.callable, node_conn_id);
+		}
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		_node_replace_conn_id(p_base, p_node->get_child(i), p_root);
+	}
+}
 
 void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode) {
 	if (p_node->get_owner() == p_base && p_node != p_root) {
@@ -1770,10 +1800,6 @@ void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root
 				}
 				undo_redo->add_do_method(p_node, "set_owner", p_root);
 				undo_redo->add_undo_method(p_node, "set_owner", p_base);
-				// used for signal connection packing
-				undo_redo->add_do_method(p_node, "set_scene_connection_id", p_root->get_scene_connection_id());
-				undo_redo->add_undo_method(p_node, "set_scene_connection_id", p_base->get_scene_connection_id());
-
 				if (disable_unique) {
 					// Will create a unique name conflict. Enable after setting owner.
 					undo_redo->add_undo_method(p_node, "set_unique_name_in_owner", true);
@@ -1782,13 +1808,9 @@ void SceneTreeDock::_node_replace_owner(Node *p_base, Node *p_node, Node *p_root
 			} break;
 			case MODE_DO: {
 				undo_redo->add_do_method(p_node, "set_owner", p_root);
-				undo_redo->add_do_method(p_node, "set_scene_connection_id", p_root->get_scene_connection_id());
-
 			} break;
 			case MODE_UNDO: {
 				undo_redo->add_undo_method(p_node, "set_owner", p_root);
-				undo_redo->add_undo_method(p_node, "set_scene_connection_id", p_base->get_scene_connection_id());
-
 			} break;
 		}
 	}

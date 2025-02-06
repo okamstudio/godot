@@ -3681,6 +3681,9 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_groups"), &Node::_get_groups);
 	ClassDB::bind_method(D_METHOD("set_owner", "owner"), &Node::set_owner);
 	ClassDB::bind_method(D_METHOD("get_owner"), &Node::get_owner);
+	ClassDB::bind_method(D_METHOD("set_scene_connection_id", "conn_id"), &Node::set_scene_connection_id);
+	ClassDB::bind_method(D_METHOD("get_scene_connection_id"), &Node::get_scene_connection_id);
+	ClassDB::bind_method(D_METHOD("set_connection_id", "signal", "callable", "conn_id"), &Node::set_connection_id);
 	ClassDB::bind_method(D_METHOD("get_index", "include_internal"), &Node::get_index, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("print_tree"), &Node::print_tree);
 	ClassDB::bind_method(D_METHOD("print_tree_pretty"), &Node::print_tree_pretty);

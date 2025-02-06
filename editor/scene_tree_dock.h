@@ -195,6 +195,7 @@ class SceneTreeDock : public VBoxContainer {
 		MODE_UNDO
 	};
 
+	void _node_replace_conn_id(Node *p_base, Node *p_node, Node *p_root);
 	void _node_replace_owner(Node *p_base, Node *p_node, Node *p_root, ReplaceOwnerMode p_mode = MODE_BIDI);
 	void _node_strip_signal_inheritance(Node *p_node);
 	void _load_request(const String &p_path);
