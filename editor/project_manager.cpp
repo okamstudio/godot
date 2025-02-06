@@ -149,9 +149,8 @@ void ProjectManager::_build_icon_type_cache(Ref<Theme> p_theme) {
 
 // Main layout.
 
-void ProjectManager::_update_size_limits(bool p_custom_res) {
+void ProjectManager::_update_size_limits() {
 	const Size2 minimum_size = Size2(720, 450) * EDSCALE;
-	const Size2 default_size = Size2(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT) * EDSCALE;
 
 	// Define a minimum window size to prevent UI elements from overlapping or being cut off.
 	Window *w = Object::cast_to<Window>(SceneTree::get_singleton()->get_root());
@@ -159,12 +158,6 @@ void ProjectManager::_update_size_limits(bool p_custom_res) {
 		// Calling Window methods this early doesn't sync properties with DS.
 		w->set_min_size(minimum_size);
 		DisplayServer::get_singleton()->window_set_min_size(minimum_size);
-		if (!p_custom_res) {
-			// Only set window size if it currently matches the default, which is defined in `main/main.cpp`.
-			// This allows CLI arguments to override the window size.
-			w->set_size(default_size);
-			DisplayServer::get_singleton()->window_set_size(default_size);
-		}
 	}
 	Size2 real_size = DisplayServer::get_singleton()->window_get_size();
 
@@ -174,7 +167,6 @@ void ProjectManager::_update_size_limits(bool p_custom_res) {
 		Vector2i window_position;
 		window_position.x = screen_rect.position.x + (screen_rect.size.x - real_size.x) / 2;
 		window_position.y = screen_rect.position.y + (screen_rect.size.y - real_size.y) / 2;
-		DisplayServer::get_singleton()->window_set_position(window_position);
 
 		// Limit popup menus to prevent unusably long lists.
 		// We try to set it to half the screen resolution, but no smaller than the minimum window size.
@@ -1159,7 +1151,7 @@ void ProjectManager::_titlebar_resized() {
 
 // Object methods.
 
-ProjectManager::ProjectManager(bool p_custom_res) {
+ProjectManager::ProjectManager() {
 	singleton = this;
 
 	set_translation_domain("godot.editor");
@@ -1189,7 +1181,7 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 		switch (display_scale) {
 			case 0:
 				// Try applying a suitable display scale automatically.
-				EditorScale::set_scale(EditorSettings::get_singleton()->get_auto_display_scale());
+				EditorScale::set_scale(EditorSettings::get_auto_display_scale());
 				break;
 			case 1:
 				EditorScale::set_scale(0.75);
@@ -1747,7 +1739,7 @@ ProjectManager::ProjectManager(bool p_custom_res) {
 		title_bar->connect(SceneStringName(item_rect_changed), callable_mp(this, &ProjectManager::_titlebar_resized));
 	}
 
-	_update_size_limits(p_custom_res);
+	_update_size_limits();
 }
 
 ProjectManager::~ProjectManager() {

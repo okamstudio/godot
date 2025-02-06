@@ -6923,7 +6923,7 @@ EditorNode::EditorNode() {
 		switch (display_scale) {
 			case 0:
 				// Try applying a suitable display scale automatically.
-				EditorScale::set_scale(EditorSettings::get_singleton()->get_auto_display_scale());
+				EditorScale::set_scale(EditorSettings::get_auto_display_scale());
 				break;
 			case 1:
 				EditorScale::set_scale(0.75);

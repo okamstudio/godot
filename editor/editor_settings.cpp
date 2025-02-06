@@ -1749,7 +1749,7 @@ String EditorSettings::get_editor_layouts_config() const {
 	return EditorPaths::get_singleton()->get_config_dir().path_join("editor_layouts.cfg");
 }
 
-float EditorSettings::get_auto_display_scale() const {
+float EditorSettings::get_auto_display_scale() {
 #ifdef LINUXBSD_ENABLED
 	if (DisplayServer::get_singleton()->get_name() == "Wayland") {
 		float main_window_scale = DisplayServer::get_singleton()->screen_get_scale(DisplayServer::SCREEN_OF_MAIN_WINDOW);
