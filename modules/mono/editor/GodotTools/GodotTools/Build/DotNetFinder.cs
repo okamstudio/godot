@@ -11,8 +11,21 @@ namespace GodotTools.Build
 {
     public static class DotNetFinder
     {
-        public static string? FindDotNetExe()
+        public static string? FindDotNetExe(string? overrideDotnetExecutable)
         {
+            if (string.IsNullOrEmpty(overrideDotnetExecutable) == false)
+            {
+                if (File.Exists(overrideDotnetExecutable))
+                {
+                    return overrideDotnetExecutable;
+                }
+            }
+
+            string? pathDotnet = OS.PathWhich("dotnet");
+            if (pathDotnet != null)
+            {
+                return pathDotnet;
+            }
             // In the future, this method may do more than just search in PATH. We could look in
             // known locations or use Godot's linked nethost to search from the hostfxr location.
 
@@ -33,11 +46,12 @@ namespace GodotTools.Build
                 }
             }
 
-            return OS.PathWhich("dotnet");
+            return null;
         }
 
         public static bool TryFindDotNetSdk(
             Version expectedVersion,
+            string? overrideDotnetExecutable,
             [NotNullWhen(true)] out Version? version,
             [NotNullWhen(true)] out string? path
         )
@@ -45,7 +59,7 @@ namespace GodotTools.Build
             version = null;
             path = null;
 
-            string? dotNetExe = FindDotNetExe();
+            string? dotNetExe = FindDotNetExe(overrideDotnetExecutable);
 
             if (string.IsNullOrEmpty(dotNetExe))
                 return false;

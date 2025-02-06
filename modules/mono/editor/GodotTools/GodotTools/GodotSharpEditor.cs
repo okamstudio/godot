@@ -34,6 +34,7 @@ namespace GodotTools
             public const string NoConsoleLogging = "dotnet/build/no_console_logging";
             public const string CreateBinaryLog = "dotnet/build/create_binary_log";
             public const string ProblemsLayout = "dotnet/build/problems_layout";
+            public const string OverrideDotnetExecutable = "dotnet/build/override_dotnet_executable";
         }
 
 #nullable disable
@@ -264,8 +265,7 @@ namespace GodotTools
                         GodotSharpDirs.ProjectSlnPath,
                         line >= 0 ? $"{scriptPath};{line + 1};{col + 1}" : scriptPath
                     };
-
-                    string command = DotNetFinder.FindDotNetExe() ?? "dotnet";
+                    string command = DotNetFinder.FindDotNetExe(_editorSettings.GetSetting(GodotSharpEditor.Settings.OverrideDotnetExecutable).As<string>()) ?? "dotnet";
 
                     try
                     {
@@ -473,9 +473,14 @@ namespace GodotTools
 
             var dotNetSdkSearchVersion = Environment.Version;
 
+            _editorSettings = EditorInterface.Singleton.GetEditorSettings();
+
+            string? dotnetExecutableEditorSettings = _editorSettings.GetSetting(GodotSharpEditor.Settings.OverrideDotnetExecutable)
+                .As<string>();
+
             // First we try to find the .NET Sdk ourselves to make sure we get the
             // correct version first, otherwise pick the latest.
-            if (DotNetFinder.TryFindDotNetSdk(dotNetSdkSearchVersion, out var sdkVersion, out string? sdkPath))
+            if (DotNetFinder.TryFindDotNetSdk(dotNetSdkSearchVersion, dotnetExecutableEditorSettings, out var sdkVersion, out string? sdkPath))
             {
                 if (Godot.OS.IsStdOutVerbose())
                     Console.WriteLine($"Found .NET Sdk version '{sdkVersion}': {sdkPath}");
@@ -499,8 +504,6 @@ namespace GodotTools
             }
 
             var editorBaseControl = EditorInterface.Singleton.GetBaseControl();
-
-            _editorSettings = EditorInterface.Singleton.GetEditorSettings();
 
             _errorDialog = new AcceptDialog();
             _errorDialog.SetUnparentWhenInvisible(true);
@@ -559,6 +562,7 @@ namespace GodotTools
             EditorDef(Settings.VerbosityLevel, Variant.From(VerbosityLevelId.Normal));
             EditorDef(Settings.NoConsoleLogging, false);
             EditorDef(Settings.CreateBinaryLog, false);
+            EditorDef(Settings.OverrideDotnetExecutable, "");
             EditorDef(Settings.ProblemsLayout, Variant.From(BuildProblemsView.ProblemsLayout.Tree));
 
             string settingsHintStr = "Disabled";

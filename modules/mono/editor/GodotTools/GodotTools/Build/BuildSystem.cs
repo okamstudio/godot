@@ -20,12 +20,12 @@ namespace GodotTools.Build
         private static Process LaunchBuild(BuildInfo buildInfo, Action<string?>? stdOutHandler,
             Action<string?>? stdErrHandler)
         {
-            string? dotnetPath = DotNetFinder.FindDotNetExe();
+            var editorSettings = EditorInterface.Singleton.GetEditorSettings();
+
+            string? dotnetPath = DotNetFinder.FindDotNetExe(editorSettings.GetSetting(GodotSharpEditor.Settings.OverrideDotnetExecutable).As<string>());
 
             if (dotnetPath == null)
                 throw new FileNotFoundException("Cannot find the dotnet executable.");
-
-            var editorSettings = EditorInterface.Singleton.GetEditorSettings();
 
             var startInfo = new ProcessStartInfo(dotnetPath);
 
@@ -91,12 +91,12 @@ namespace GodotTools.Build
         private static Process LaunchPublish(BuildInfo buildInfo, Action<string?>? stdOutHandler,
             Action<string?>? stdErrHandler)
         {
-            string? dotnetPath = DotNetFinder.FindDotNetExe();
+            var editorSettings = EditorInterface.Singleton.GetEditorSettings();
+
+            string? dotnetPath = DotNetFinder.FindDotNetExe(editorSettings.GetSetting(GodotSharpEditor.Settings.OverrideDotnetExecutable).As<string>());
 
             if (dotnetPath == null)
                 throw new FileNotFoundException("Cannot find the dotnet executable.");
-
-            var editorSettings = EditorInterface.Singleton.GetEditorSettings();
 
             var startInfo = new ProcessStartInfo(dotnetPath);
 
