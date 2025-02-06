@@ -1519,12 +1519,12 @@ Error ShaderCompiler::compile(RS::ShaderMode p_mode, const String &p_code, Ident
 		for (const KeyValue<String, Vector<String>> &E : includes) {
 			if (E.key.is_empty()) {
 				if (p_path == "") {
-					print_line("--Main Shader--");
+					print_line_rich("[b]== Main Shader ==[/b]");
 				} else {
-					print_line("--" + p_path + "--");
+					print_line_rich("[b]-- " + p_path + " --[/b]");
 				}
 			} else {
-				print_line("--" + E.key + "--");
+				print_line_rich("[b]-- " + E.key + " --[/b]");
 			}
 			int err_line = -1;
 			for (int i = 0; i < include_positions.size(); i++) {
@@ -1537,7 +1537,7 @@ Error ShaderCompiler::compile(RS::ShaderMode p_mode, const String &p_code, Ident
 				if (i == err_line - 1) {
 					// Mark the error line to be visible without having to look at
 					// the trace at the end.
-					print_line(vformat("E%4d-> %s", i + 1, V[i]));
+					print_line_rich(vformat("[color=red][b]E%4d->[/b] %s[/color]", i + 1, V[i]));
 				} else {
 					print_line(vformat("%5d | %s", i + 1, V[i]));
 				}
