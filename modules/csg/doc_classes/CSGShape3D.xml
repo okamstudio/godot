@@ -93,7 +93,7 @@
 			This property does nothing.
 		</member>
 		<member name="use_collision" type="bool" setter="set_use_collision" getter="is_using_collision" default="false">
-			Adds a collision shape to the physics engine for our CSG shape. This will always act like a static body. Note that the collision shape is still active even if the CSG shape itself is hidden. See also [member collision_mask] and [member collision_priority].
+			Adds a collision shape to the physics engine for our CSG shape. This node will always act like a static body with a collision shape, and cannot serve as collision shape for a parent collision object. Note that the collision shape is still active even if the CSG shape itself is hidden. See also [member collision_mask] and [member collision_priority].
 		</member>
 	</members>
 	<constants>
