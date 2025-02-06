@@ -697,7 +697,7 @@ void GodotPhysicsServer3D::body_apply_central_impulse(RID p_body, const Vector3 
 
 	_update_shapes();
 
-	body->apply_central_impulse(p_impulse);
+	body->apply_central_impulse_deferred(p_impulse);
 	body->wakeup();
 }
 
@@ -707,7 +707,7 @@ void GodotPhysicsServer3D::body_apply_impulse(RID p_body, const Vector3 &p_impul
 
 	_update_shapes();
 
-	body->apply_impulse(p_impulse, p_position);
+	body->apply_impulse_deferred(p_impulse, p_position);
 	body->wakeup();
 }
 
@@ -717,7 +717,7 @@ void GodotPhysicsServer3D::body_apply_torque_impulse(RID p_body, const Vector3 &
 
 	_update_shapes();
 
-	body->apply_torque_impulse(p_impulse);
+	body->apply_torque_impulse_deferred(p_impulse);
 	body->wakeup();
 }
 

@@ -606,6 +606,15 @@ void GodotBody3D::integrate_forces(real_t p_step) {
 
 	gravity *= gravity_scale;
 
+	//compute results of externally applied impulses
+	Vector3 impulse_linear_velocity = applied_impulse_force * _inv_mass;
+	Vector3 impulse_angular_velocity = _inv_inertia_tensor.xform(applied_impulse_torque);
+	applied_impulse_force = Vector3();
+	applied_impulse_torque = Vector3();
+
+	linear_velocity += impulse_linear_velocity;
+	angular_velocity += impulse_angular_velocity;
+
 	prev_linear_velocity = linear_velocity;
 	prev_angular_velocity = angular_velocity;
 

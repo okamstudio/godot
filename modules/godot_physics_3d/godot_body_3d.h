@@ -90,6 +90,9 @@ class GodotBody3D : public GodotCollisionObject3D {
 
 	real_t still_time = 0.0;
 
+	Vector3 applied_impulse_force;
+	Vector3 applied_impulse_torque;
+
 	Vector3 applied_force;
 	Vector3 applied_torque;
 
@@ -231,6 +234,22 @@ public:
 
 	_FORCE_INLINE_ void apply_torque_impulse(const Vector3 &p_impulse) {
 		angular_velocity += _inv_inertia_tensor.xform(p_impulse);
+	}
+
+	_FORCE_INLINE_ void apply_central_impulse_deferred(const Vector3 &p_impulse) {
+		//accumulate external impulses
+		applied_impulse_force += p_impulse;
+	}
+
+	_FORCE_INLINE_ void apply_impulse_deferred(const Vector3 &p_impulse, const Vector3 &p_position = Vector3()) {
+		//accumulate external impulses
+		applied_impulse_force += p_impulse;
+		applied_impulse_torque += (p_position - center_of_mass).cross(p_impulse);
+	}
+
+	_FORCE_INLINE_ void apply_torque_impulse_deferred(const Vector3 &p_impulse) {
+		//accumulate external impulses
+		applied_impulse_torque += p_impulse;
 	}
 
 	_FORCE_INLINE_ void apply_bias_impulse(const Vector3 &p_impulse, const Vector3 &p_position = Vector3(), real_t p_max_delta_av = -1.0) {
