@@ -614,6 +614,10 @@ void GameView::_notification(int p_what) {
 				// Embedding available.
 				int game_mode = EDITOR_GET("run/window_placement/game_embed_mode");
 				switch (game_mode) {
+					case -1: { // Disabled.
+						embed_on_play = false;
+						make_floating_on_play = false;
+					} break;
 					case 1: { // Embed.
 						embed_on_play = true;
 						make_floating_on_play = false;
@@ -621,10 +625,6 @@ void GameView::_notification(int p_what) {
 					case 2: { // Floating.
 						embed_on_play = true;
 						make_floating_on_play = true;
-					} break;
-					case 3: { // Disabled.
-						embed_on_play = false;
-						make_floating_on_play = false;
 					} break;
 					default: {
 						embed_on_play = EditorSettings::get_singleton()->get_project_metadata("game_view", "embed_on_play", true);
@@ -1026,18 +1026,23 @@ GameView::GameView(Ref<GameViewDebugger> p_debugger, WindowWrapper *p_wrapper) {
 
 ///////
 
+void GameViewPlugin::selected_notify() {
+	if (_is_window_wrapper_enabled()) {
+#ifdef ANDROID_ENABLED
+		notify_main_screen_changed(get_plugin_name());
+#else
+		window_wrapper->grab_window_focus();
+#endif
+		_focus_another_editor();
+	}
+}
+
+#ifndef ANDROID_ENABLED
 void GameViewPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
 		window_wrapper->show();
 	} else {
 		window_wrapper->hide();
-	}
-}
-
-void GameViewPlugin::selected_notify() {
-	if (window_wrapper->get_window_enabled()) {
-		window_wrapper->grab_window_focus();
-		_focus_another_editor();
 	}
 }
 
@@ -1056,6 +1061,11 @@ void GameViewPlugin::set_state(const Dictionary &p_state) {
 Dictionary GameViewPlugin::get_state() const {
 	return game_view->get_state();
 }
+
+void GameViewPlugin::_window_visibility_changed(bool p_visible) {
+	_focus_another_editor();
+}
+#endif
 
 void GameViewPlugin::_notification(int p_what) {
 	switch (p_what) {
@@ -1081,13 +1091,11 @@ void GameViewPlugin::_feature_profile_changed() {
 		debugger->set_is_feature_enabled(is_feature_enabled);
 	}
 
+#ifndef ANDROID_ENABLED
 	if (game_view) {
 		game_view->set_is_feature_enabled(is_feature_enabled);
 	}
-}
-
-void GameViewPlugin::_window_visibility_changed(bool p_visible) {
-	_focus_another_editor();
+#endif
 }
 
 void GameViewPlugin::_save_last_editor(const String &p_editor) {
@@ -1097,7 +1105,7 @@ void GameViewPlugin::_save_last_editor(const String &p_editor) {
 }
 
 void GameViewPlugin::_focus_another_editor() {
-	if (window_wrapper->get_window_enabled()) {
+	if (_is_window_wrapper_enabled()) {
 		if (last_editor.is_empty()) {
 			EditorNode::get_singleton()->get_editor_main_screen()->select(EditorMainScreen::EDITOR_2D);
 		} else {
@@ -1106,12 +1114,21 @@ void GameViewPlugin::_focus_another_editor() {
 	}
 }
 
+bool GameViewPlugin::_is_window_wrapper_enabled() const {
+#ifdef ANDROID_ENABLED
+	return true;
+#else
+	return window_wrapper->get_window_enabled();
+#endif
+}
+
 GameViewPlugin::GameViewPlugin() {
+	debugger.instantiate();
+
+#ifndef ANDROID_ENABLED
 	window_wrapper = memnew(WindowWrapper);
 	window_wrapper->set_window_title(vformat(TTR("%s - Godot Engine"), TTR("Game Workspace")));
 	window_wrapper->set_margins_enabled(true);
-
-	debugger.instantiate();
 
 	game_view = memnew(GameView(debugger, window_wrapper));
 	game_view->set_v_size_flags(Control::SIZE_EXPAND_FILL);
@@ -1122,6 +1139,7 @@ GameViewPlugin::GameViewPlugin() {
 	window_wrapper->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	window_wrapper->hide();
 	window_wrapper->connect("window_visibility_changed", callable_mp(this, &GameViewPlugin::_window_visibility_changed));
+#endif
 
 	EditorFeatureProfileManager::get_singleton()->connect("current_feature_profile_changed", callable_mp(this, &GameViewPlugin::_feature_profile_changed));
 }

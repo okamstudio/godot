@@ -936,17 +936,17 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("run/window_placement/rect_custom_position", Vector2());
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/screen", -5, screen_hints)
 #endif
-	// Should match the ANDROID_WINDOW_* constants in 'platform/android/java/editor/src/main/java/org/godotengine/editor/GodotEditor.kt'
-	String android_window_hints = "Auto (based on screen size):0,Same as Editor:1,Side-by-side with Editor:2,Launch in PiP mode:3";
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/android_window", 0, android_window_hints)
 
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/game_embed_mode", 0, "Use Per-Project Configuration:0,Embed Game:1,Make Game Workspace Floating:2,Disabled:3");
-
-	int default_play_window_pip_mode = 0;
+	String game_embed_mode_hints = "Disabled:-1,Use Per-Project Configuration:0,Embed Game:1,Make Game Workspace Floating:2";
 #ifdef ANDROID_ENABLED
-	default_play_window_pip_mode = 2;
+	if (OS::get_singleton()->has_feature("xr_editor")) {
+		game_embed_mode_hints = "Disabled:-1";
+	} else {
+		game_embed_mode_hints = "Disabled:-1,Auto (based on screen size):0,Enabled:1";
+	}
 #endif
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/play_window_pip_mode", default_play_window_pip_mode, "Disabled:0,Enabled:1,Enabled when Play window is same as Editor:2")
+	int default_game_embed_mode = OS::get_singleton()->has_feature("xr_editor") ? -1 : 0;
+	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/game_embed_mode", default_game_embed_mode, game_embed_mode_hints);
 
 	// Auto save
 	_initial_set("run/auto_save/save_before_running", true, true);

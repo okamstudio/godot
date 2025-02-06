@@ -73,15 +73,33 @@ internal class EditorMessageDispatcher(private val editor: BaseGodotEditor) {
 		 * Requests the recipient to store the passed [android.os.Messenger] instance.
 		 */
 		private const val MSG_REGISTER_MESSENGER = 1
+
+		/**
+		 * Requests the recipient to dispatch the given game menu action.
+		 */
+		private const val MSG_DISPATCH_GAME_MENU_ACTION = 2
+
+		/**
+		 * Requests the recipient resumes itself / brings itself to front.
+		 */
+		private const val MSG_BRING_SELF_TO_FRONT = 3
 	}
 
-	private val recipientsMessengers = ConcurrentHashMap<Int, Messenger>()
+	private data class RecipientInfo(
+		val messenger: Messenger,
+		var pendingForceQuit: Boolean = false,
+		val scheduledTasksPendingForceQuit: HashSet<Runnable> = HashSet()
+	)
+	private val recipientsInfos = ConcurrentHashMap<Int, RecipientInfo>()
 
 	@SuppressLint("HandlerLeak")
 	private val dispatcherHandler = object : Handler() {
 		override fun handleMessage(msg: Message) {
 			when (msg.what) {
-				MSG_FORCE_QUIT -> editor.finish()
+				MSG_FORCE_QUIT -> {
+					Log.v(TAG, "Force quitting ${editor.getEditorWindowInfo().windowId}")
+					editor.finishAndRemoveTask()
+				}
 
 				MSG_REGISTER_MESSENGER -> {
 					val editorId = msg.arg1
@@ -89,25 +107,95 @@ internal class EditorMessageDispatcher(private val editor: BaseGodotEditor) {
 					registerMessenger(editorId, messenger)
 				}
 
+				MSG_DISPATCH_GAME_MENU_ACTION -> {
+					val actionData = msg.data
+					if (actionData != null) {
+						editor.parseGameMenuAction(actionData)
+					}
+				}
+
+				MSG_BRING_SELF_TO_FRONT -> editor.bringSelfToFront()
+
 				else -> super.handleMessage(msg)
 			}
 		}
 	}
 
 	/**
-	 * Request the window with the given [editorId] to force quit.
+	 * Request the window with the given [editorWindow] to force quit.
 	 */
-	fun requestForceQuit(editorId: Int): Boolean {
-		val messenger = recipientsMessengers[editorId] ?: return false
+	fun requestForceQuit(editorWindow: EditorWindowInfo): Boolean {
+		val editorId = editorWindow.windowId
+		val info = recipientsInfos[editorId] ?: return false
+		if (info.pendingForceQuit) {
+			return true
+		}
+
+		val messenger = info.messenger
 		return try {
 			Log.v(TAG, "Requesting 'forceQuit' for $editorId")
 			val msg = Message.obtain(null, MSG_FORCE_QUIT)
 			messenger.send(msg)
+			info.pendingForceQuit = true
+
 			true
 		} catch (e: RemoteException) {
 			Log.e(TAG, "Error requesting 'forceQuit' to $editorId", e)
-			recipientsMessengers.remove(editorId)
+			cleanRecipientInfo(editorId)
 			false
+		}
+	}
+
+	internal fun isPendingForceQuit(editorWindow: EditorWindowInfo): Boolean {
+		return recipientsInfos[editorWindow.windowId]?.pendingForceQuit == true
+	}
+
+	internal fun runTaskAfterForceQuit(editorWindow: EditorWindowInfo, task: Runnable) {
+		val recipientInfo = recipientsInfos[editorWindow.windowId]
+		if (recipientInfo == null || !recipientInfo.pendingForceQuit) {
+			task.run()
+		} else {
+			recipientInfo.scheduledTasksPendingForceQuit.add(task)
+		}
+	}
+
+	/**
+	 * Request the given [editorWindow] to bring itself to front / resume itself.
+	 *
+	 * Returns true if the request was successfully dispatched, false otherwise.
+	 */
+	fun bringEditorWindowToFront(editorWindow: EditorWindowInfo): Boolean {
+		val editorId = editorWindow.windowId
+		val info = recipientsInfos[editorId] ?: return false
+		val messenger = info.messenger
+		return try {
+			Log.v(TAG, "Requesting 'bringSelfToFront' for $editorId")
+			val msg = Message.obtain(null, MSG_BRING_SELF_TO_FRONT)
+			messenger.send(msg)
+			true
+		} catch (e: RemoteException) {
+			Log.e(TAG, "Error requesting 'bringSelfToFront' to $editorId", e)
+			cleanRecipientInfo(editorId)
+			false
+		}
+	}
+
+	/**
+	 * Dispatch a game menu action to another editor instance.
+	 */
+	fun dispatchGameMenuAction(editorWindow: EditorWindowInfo, actionData: Bundle) {
+		val editorId = editorWindow.windowId
+		val info = recipientsInfos[editorId] ?: return
+		val messenger = info.messenger
+		try {
+			Log.d(TAG, "Dispatch game menu action to $editorId")
+			val msg = Message.obtain(null, MSG_DISPATCH_GAME_MENU_ACTION).apply {
+				data = actionData
+			}
+			messenger.send(msg)
+		} catch (e: RemoteException) {
+			Log.e(TAG, "Error dispatching game menu action to $editorId", e)
+			cleanRecipientInfo(editorId)
 		}
 	}
 
@@ -121,14 +209,22 @@ internal class EditorMessageDispatcher(private val editor: BaseGodotEditor) {
 			} else if (messenger.binder.isBinderAlive) {
 				messenger.binder.linkToDeath({
 					Log.v(TAG, "Removing messenger for $editorId")
-					recipientsMessengers.remove(editorId)
+					cleanRecipientInfo(editorId)
 					messengerDeathCallback?.run()
 				}, 0)
-				recipientsMessengers[editorId] = messenger
+				recipientsInfos[editorId] = RecipientInfo(messenger)
 			}
 		} catch (e: RemoteException) {
 			Log.e(TAG, "Unable to register messenger from $editorId", e)
-			recipientsMessengers.remove(editorId)
+			cleanRecipientInfo(editorId)
+		}
+	}
+
+	private fun cleanRecipientInfo(editorId: Int) {
+		val recipientInfo = recipientsInfos.remove(editorId) ?: return
+		Log.v(TAG, "Cleaning info for recipient $editorId")
+		for (task in recipientInfo.scheduledTasksPendingForceQuit) {
+			task.run()
 		}
 	}
 

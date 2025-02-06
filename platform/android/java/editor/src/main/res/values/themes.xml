@@ -9,4 +9,7 @@
 		screen. This is required. -->
 		<item name="postSplashScreenTheme">@style/GodotEditorTheme</item>
 	</style>
+
+	<style name="GodotEmbeddedGameTheme" parent="@android:style/Theme.DeviceDefault.Dialog.NoActionBar.MinWidth">
+	</style>
 </resources>

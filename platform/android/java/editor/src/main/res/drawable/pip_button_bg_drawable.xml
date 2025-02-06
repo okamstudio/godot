@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-
-	<item android:drawable="@drawable/pip_button_activated_bg_drawable" android:state_pressed="true" />
-	<item android:drawable="@drawable/pip_button_activated_bg_drawable" android:state_hovered="true" />
-
-	<item android:drawable="@drawable/pip_button_default_bg_drawable" />
-
-</selector>

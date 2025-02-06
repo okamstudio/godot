@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:drawable="@drawable/game_menu_selected_bg" android:state_pressed="true" />
+	<item android:drawable="@drawable/game_menu_selected_bg" android:state_activated="true" />
+	<item android:drawable="@drawable/game_menu_selected_bg" android:state_checked="true" />
+	<item android:drawable="@color/game_menu_default_bg" />
+</selector>

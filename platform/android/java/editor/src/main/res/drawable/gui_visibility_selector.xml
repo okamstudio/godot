@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:drawable="@drawable/gui_visibility_hidden" android:state_activated="true" />
+	<item android:drawable="@drawable/gui_visibility_visible" />
+</selector>

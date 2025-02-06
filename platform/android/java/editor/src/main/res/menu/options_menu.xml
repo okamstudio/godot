@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<group android:id="@+id/group_menu_embed_options">
+		<item
+			android:id="@+id/menu_embed_game_on_play"
+			android:checkable="true"
+			android:checked="true"
+			android:title="@string/menu_embed_game_on_play_label" />
+		<item android:id="@+id/menu_embed_game_keep_on_top"
+			android:checkable="true"
+			android:checked="false"
+			android:enabled="false"
+			android:title="@string/menu_keep_embed_game_on_top_label"
+			android:icon="@drawable/baseline_push_pin_24" />
+	</group>
+
+	<group android:id="@+id/group_menu_camera_options">
+		<item
+			android:id="@+id/menu_camera_override"
+			android:checkable="true"
+			android:checked="false"
+			android:icon="@drawable/camera_selector"
+			android:title="@string/menu_camera_override_label" />
+		<item
+			android:id="@+id/menu_camera_options"
+			android:icon="@drawable/camera_selector"
+			android:enabled="false"
+			android:title="@string/menu_camera_label">
+			<menu>
+				<group android:id="@+id/group_menu_camera_reset_mode">
+					<item
+						android:id="@+id/menu_reset_2d_camera"
+						android:title="@string/menu_reset_2d_camera_label" />
+
+					<item
+						android:id="@+id/menu_reset_3d_camera"
+						android:title="@string/menu_reset_3d_camera_label" />
+				</group>
+
+				<group
+					android:id="@+id/group_menu_camera_manipulation"
+					android:checkableBehavior="single">
+					<item
+						android:id="@+id/menu_manipulate_camera_in_game"
+						android:checked="true"
+						android:title="@string/menu_manipulate_in_game_label" />
+					<item
+						android:id="@+id/menu_manipulate_camera_from_editors"
+						android:title="@string/menu_manipulate_from_editors_label" />
+				</group>
+			</menu>
+		</item>
+	</group>
+
+</menu>

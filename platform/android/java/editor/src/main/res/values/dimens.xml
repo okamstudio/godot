@@ -2,4 +2,6 @@
 <resources>
 	<dimen name="editor_default_window_height">720dp</dimen>
 	<dimen name="editor_default_window_width">1024dp</dimen>
+	<dimen name="game_menu_vseparator_vertical_margin">8dp</dimen>
+	<dimen name="game_menu_vseparator_horizontal_margin">1dp</dimen>
 </resources>

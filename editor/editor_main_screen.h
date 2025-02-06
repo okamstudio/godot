@@ -58,6 +58,7 @@ private:
 	HBoxContainer *button_hb = nullptr;
 	Vector<Button *> buttons;
 	Vector<EditorPlugin *> editor_table;
+	HashMap<String, EditorPlugin *> main_editor_plugins;
 
 	int _get_current_main_editor() const;
 
@@ -80,6 +81,7 @@ public:
 	int get_selected_index() const;
 	int get_plugin_index(EditorPlugin *p_editor) const;
 	EditorPlugin *get_selected_plugin() const;
+	EditorPlugin *get_plugin_by_name(const String &p_plugin_name) const;
 
 	VBoxContainer *get_control() const;
 

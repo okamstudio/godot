@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent">
+	android:layout_height="match_parent"
+	android:orientation="vertical">
+
+	<FrameLayout
+		android:id="@+id/game_menu_fragment_container"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:minHeight="48dp" />
 
 	<FrameLayout
 		android:id="@+id/godot_fragment_container"
 		android:layout_width="match_parent"
-		android:layout_height="match_parent"/>
+		android:layout_height="match_parent" />
 
-	<ImageView
-		android:id="@+id/godot_pip_button"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_margin="36dp"
-		android:contentDescription="@string/pip_button_description"
-		android:background="@drawable/pip_button_bg_drawable"
-		android:scaleType="center"
-		android:src="@drawable/outline_fullscreen_exit_48"
-		android:visibility="gone"
-		android:layout_gravity="end|top"
-		tools:visibility="visible" />
-
-</FrameLayout>
+</LinearLayout>

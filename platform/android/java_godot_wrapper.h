@@ -84,6 +84,7 @@ private:
 	jmethodID _verify_apk = nullptr;
 	jmethodID _enable_immersive_mode = nullptr;
 	jmethodID _is_in_immersive_mode = nullptr;
+	jmethodID _on_editor_workspace_selected = nullptr;
 
 public:
 	GodotJavaWrapper(JNIEnv *p_env, jobject p_activity, jobject p_godot_instance);
@@ -137,6 +138,8 @@ public:
 
 	void enable_immersive_mode(bool p_enabled);
 	bool is_in_immersive_mode();
+
+	void on_editor_workspace_selected(const String &p_workspace);
 };
 
 #endif // JAVA_GODOT_WRAPPER_H

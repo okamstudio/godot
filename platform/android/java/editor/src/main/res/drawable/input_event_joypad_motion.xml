@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="16dp"
+    android:height="16dp"
+    android:viewportWidth="16"
+    android:viewportHeight="16">
+  <path
+      android:pathData="M11.5,16v-1.5a1,1 0,0 0,-1 -1H10l1.6,-4a4,4 0,1 0,-3.5 -1.4l-2.2,5.4h-0.7a1,1 0,0 0,-1 1V16z"
+      android:fillColor="@color/game_menu_icon_default_color"/>
+  <path
+      android:pathData="M5.25,12.2 L2,4a8,8 0,0 1,7 -3,5 5,0 0,0 -2.1,7.2z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:startX="2"
+          android:startY="0"
+          android:endX="9"
+          android:endY="0"
+          android:type="linear">
+        <item android:offset="0" android:color="#0069C4D4"/>
+        <item android:offset="0.6" android:color="#FF69C4D4"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+</vector>

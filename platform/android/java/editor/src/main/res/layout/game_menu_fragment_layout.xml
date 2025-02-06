@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:background="@android:color/black">
+
+	<HorizontalScrollView
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1">
+
+		<LinearLayout
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:gravity="center_vertical"
+			android:minHeight="48dp"
+			android:orientation="horizontal">
+
+			<ImageButton
+				android:id="@+id/game_menu_pause_button"
+				style="?android:attr/borderlessButtonStyle"
+				android:layout_width="48dp"
+				android:layout_height="48dp"
+				android:background="@drawable/game_menu_button_bg"
+				android:src="@drawable/pause_play_selector" />
+
+			<ImageButton
+				android:id="@+id/game_menu_next_frame_button"
+				style="?android:attr/borderlessButtonStyle"
+				android:layout_width="48dp"
+				android:layout_height="48dp"
+				android:background="@drawable/game_menu_button_bg"
+				android:src="@drawable/next_frame_selector" />
+
+			<View
+				android:layout_width="1dp"
+				android:layout_height="match_parent"
+				android:layout_marginHorizontal="@dimen/game_menu_vseparator_horizontal_margin"
+				android:layout_marginVertical="@dimen/game_menu_vseparator_vertical_margin"
+				android:background="@color/game_menu_divider_color" />
+
+			<RadioGroup
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal">
+
+				<RadioButton
+					android:id="@+id/game_menu_unselect_nodes_button"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="wrap_content"
+					android:layout_height="48dp"
+					android:background="@drawable/game_menu_button_bg"
+					android:button="@null"
+					android:checked="true"
+					android:drawableStart="@drawable/input_event_joypad_motion"
+					android:padding="5dp"
+					android:text="@string/game_menu_input_event_joypad_motion_label" />
+
+				<RadioButton
+					android:id="@+id/game_menu_select_2d_nodes_button"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="48dp"
+					android:layout_height="48dp"
+					android:background="@drawable/game_menu_button_bg"
+					android:button="@null"
+					android:drawableStart="@drawable/nodes_2d"
+					android:padding="5dp"
+					android:text="@string/game_menu_nodes_2d_button_label" />
+
+				<RadioButton
+					android:id="@+id/game_menu_select_3d_nodes_button"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="48dp"
+					android:layout_height="48dp"
+					android:background="@drawable/game_menu_button_bg"
+					android:button="@null"
+					android:drawableStart="@drawable/node_3d"
+					android:padding="5dp"
+					android:text="@string/game_menu_node_3d_button_label" />
+			</RadioGroup>
+
+			<View
+				android:layout_width="1dp"
+				android:layout_height="match_parent"
+				android:layout_marginHorizontal="@dimen/game_menu_vseparator_horizontal_margin"
+				android:layout_marginVertical="@dimen/game_menu_vseparator_vertical_margin"
+				android:background="@color/game_menu_divider_color" />
+
+			<ImageButton
+				android:id="@+id/game_menu_gui_visibility_button"
+				style="?android:attr/borderlessButtonStyle"
+				android:layout_width="48dp"
+				android:layout_height="48dp"
+				android:background="@drawable/game_menu_button_bg"
+				android:src="@drawable/gui_visibility_selector" />
+
+			<View
+				android:layout_width="1dp"
+				android:layout_height="match_parent"
+				android:layout_marginHorizontal="@dimen/game_menu_vseparator_horizontal_margin"
+				android:layout_marginVertical="@dimen/game_menu_vseparator_vertical_margin"
+				android:background="@color/game_menu_divider_color" />
+
+			<RadioGroup
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal">
+
+				<RadioButton
+					android:id="@+id/game_menu_tool_select_button"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="48dp"
+					android:layout_height="48dp"
+					android:background="@drawable/game_menu_button_bg"
+					android:button="@null"
+					android:checked="true"
+					android:drawableStart="@drawable/tool_select_selector"
+					android:padding="15dp" />
+
+				<RadioButton
+					android:id="@+id/game_menu_list_select_button"
+					style="?android:attr/borderlessButtonStyle"
+					android:layout_width="48dp"
+					android:layout_height="48dp"
+					android:background="@drawable/game_menu_button_bg"
+					android:button="@null"
+					android:drawableStart="@drawable/list_select_selector"
+					android:padding="15dp" />
+			</RadioGroup>
+		</LinearLayout>
+	</HorizontalScrollView>
+
+	<ImageButton
+		android:id="@+id/game_menu_options_button"
+		style="?android:attr/borderlessButtonStyle"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="@drawable/game_menu_button_bg"
+		android:src="@drawable/gui_tab_menu_selector" />
+
+	<View
+		android:id="@+id/game_menu_window_controls_divider"
+		android:layout_width="1dp"
+		android:layout_height="match_parent"
+		android:layout_marginHorizontal="@dimen/game_menu_vseparator_horizontal_margin"
+		android:layout_marginVertical="@dimen/game_menu_vseparator_vertical_margin"
+		android:background="@color/game_menu_divider_color" />
+
+	<ImageButton
+		android:id="@+id/game_menu_minimize_button"
+		style="?android:attr/borderlessButtonStyle"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="@drawable/game_menu_button_bg"
+		android:src="@drawable/baseline_minimize_24"/>
+
+	<ImageButton
+		android:id="@+id/game_menu_pip_button"
+		style="?android:attr/borderlessButtonStyle"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="@drawable/game_menu_selected_button_bg"
+		android:src="@drawable/baseline_picture_in_picture_alt_24"/>
+
+	<ImageButton
+		android:id="@+id/game_menu_fullscreen_button"
+		style="?android:attr/borderlessButtonStyle"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="@drawable/game_menu_selected_button_bg"
+		android:src="@drawable/baseline_fullscreen_selector"/>
+
+	<ImageButton
+		android:id="@+id/game_menu_close_button"
+		style="?android:attr/borderlessButtonStyle"
+		android:layout_width="48dp"
+		android:layout_height="48dp"
+		android:background="@drawable/game_menu_button_bg"
+		android:src="@drawable/baseline_close_24"/>
+</LinearLayout>

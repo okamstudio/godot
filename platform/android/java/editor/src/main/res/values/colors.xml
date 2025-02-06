@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="game_menu_icon_default_color">#e0e0e0</color>
+	<color name="game_menu_icon_disabled_color">@android:color/darker_gray</color>
+	<color name="game_menu_icon_activated_color">@android:color/holo_blue_light</color>
+	<color name="game_menu_default_bg">@android:color/transparent</color>
+	<color name="game_menu_divider_color">@android:color/darker_gray</color>
+</resources>

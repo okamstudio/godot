@@ -1129,23 +1129,8 @@
 		<member name="run/platforms/linuxbsd/prefer_wayland" type="bool" setter="" getter="">
 			If [code]true[/code], on Linux/BSD, the editor will check for Wayland first instead of X11 (if available).
 		</member>
-		<member name="run/window_placement/android_window" type="int" setter="" getter="">
-			Specifies how the Play window is launched relative to the Android editor.
-			- [b]Auto (based on screen size)[/b] (default) will automatically choose how to launch the Play window based on the device and screen metrics. Defaults to [b]Same as Editor[/b] on phones and [b]Side-by-side with Editor[/b] on tablets.
-			- [b]Same as Editor[/b] will launch the Play window in the same window as the Editor.
-			- [b]Side-by-side with Editor[/b] will launch the Play window side-by-side with the Editor window.
-			- [b]Launch in PiP mode[/b] will launch the Play window directly in picture-in-picture (PiP) mode if PiP mode is supported and enabled. When maximized, the Play window will occupy the same window as the Editor.
-			[b]Note:[/b] Only available in the Android editor.
-		</member>
 		<member name="run/window_placement/game_embed_mode" type="int" setter="" getter="">
 			Overrides game embedding setting for all newly opened projects. If enabled, game embedding settings are not saved.
-		</member>
-		<member name="run/window_placement/play_window_pip_mode" type="int" setter="" getter="">
-			Specifies the picture-in-picture (PiP) mode for the Play window.
-			- [b]Disabled:[/b] PiP is disabled for the Play window.
-			- [b]Enabled:[/b] If the device supports it, PiP is always enabled for the Play window. The Play window will contain a button to enter PiP mode.
-			- [b]Enabled when Play window is same as Editor[/b] (default for Android editor): If the device supports it, PiP is enabled when the Play window is the same as the Editor. The Play window will contain a button to enter PiP mode.
-			[b]Note:[/b] Only available in the Android editor.
 		</member>
 		<member name="run/window_placement/rect" type="int" setter="" getter="">
 			The window mode to use to display the project when starting the project from the editor.
