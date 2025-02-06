@@ -410,8 +410,16 @@ void GDExtension::_register_extension_class_internal(GDExtensionClassLibraryPtr 
 	}
 
 	if (self->reloadable && p_extension_funcs->recreate_instance_func == nullptr) {
-		ERR_PRINT(vformat("Extension marked as reloadable, but attempted to register class '%s' which doesn't support reloading. Perhaps your language binding don't support it? Reloading disabled for this extension.", class_name));
-		self->reloadable = false;
+		bool can_create_class = (bool)p_extension_funcs->create_instance_func;
+#ifndef DISABLE_DEPRECATED
+		if (!can_create_class && p_deprecated_funcs) {
+			can_create_class = (bool)p_deprecated_funcs->create_instance_func;
+		}
+#endif
+		if (can_create_class) {
+			ERR_PRINT(vformat("Extension marked as reloadable, but attempted to register class '%s' which doesn't support reloading. Perhaps your language binding don't support it? Reloading disabled for this extension.", class_name));
+			self->reloadable = false;
+		}
 	}
 
 	extension->gdextension.library = self;
