@@ -88,7 +88,7 @@ private:
 	Color function_definition_color;
 	Color built_in_type_color;
 	Color number_color;
-	Color member_color;
+	Color member_variable_color;
 	Color string_color;
 	Color node_path_color;
 	Color node_ref_color;
