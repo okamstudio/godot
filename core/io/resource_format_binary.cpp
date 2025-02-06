@@ -2136,7 +2136,12 @@ static String _resource_get_class(Ref<Resource> p_resource) {
 	if (missing_resource.is_valid()) {
 		return missing_resource->get_original_class();
 	} else {
-		return p_resource->get_class();
+		Ref<Script> script = p_resource->get_script();
+		if (script.is_valid()) {
+			return String(script->get_instance_base_type());
+		} else {
+			return p_resource->get_class();
+		}
 	}
 }
 
