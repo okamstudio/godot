@@ -135,31 +135,28 @@ bool Plane::intersects_segment(const Vector3 &p_begin, const Vector3 &p_end, Vec
 	return true;
 }
 
-Variant Plane::intersect_3_bind(const Plane &p_plane1, const Plane &p_plane2) const {
+Nullable<Vector3> Plane::intersect_3_bind(const Plane &p_plane1, const Plane &p_plane2) const {
 	Vector3 inters;
 	if (intersect_3(p_plane1, p_plane2, &inters)) {
 		return inters;
-	} else {
-		return Variant();
 	}
+	return nullptr;
 }
 
-Variant Plane::intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const {
+Nullable<Vector3> Plane::intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const {
 	Vector3 inters;
 	if (intersects_ray(p_from, p_dir, &inters)) {
 		return inters;
-	} else {
-		return Variant();
 	}
+	return nullptr;
 }
 
-Variant Plane::intersects_segment_bind(const Vector3 &p_begin, const Vector3 &p_end) const {
+Nullable<Vector3> Plane::intersects_segment_bind(const Vector3 &p_begin, const Vector3 &p_end) const {
 	Vector3 inters;
 	if (intersects_segment(p_begin, p_end, &inters)) {
 		return inters;
-	} else {
-		return Variant();
 	}
+	return nullptr;
 }
 
 /* misc */

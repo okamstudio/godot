@@ -55,6 +55,7 @@
 #include "core/os/keyboard.h"
 #include "core/string/node_path.h"
 #include "core/string/ustring.h"
+#include "core/templates/nullable.h"
 #include "core/templates/paged_allocator.h"
 #include "core/templates/rid.h"
 #include "core/variant/array.h"
@@ -485,6 +486,11 @@ public:
 
 	operator IPAddress() const;
 
+	template <typename T>
+	operator Nullable<T>() const {
+		return type == NIL ? Nullable<T>() : Nullable<T>(operator T());
+	}
+
 	Object *get_validated_object() const;
 	Object *get_validated_object_with_check(bool &r_previously_freed) const;
 
@@ -546,6 +552,13 @@ public:
 	Variant(const Vector<StringName> &p_array);
 
 	Variant(const IPAddress &p_address);
+
+	template <typename T>
+	Variant(const Nullable<T> &p_nullable) {
+		if (p_nullable.has_value()) {
+			*this = Variant(*p_nullable);
+		}
+	}
 
 #define VARIANT_ENUM_CLASS_CONSTRUCTOR(m_enum) \
 	Variant(m_enum p_value) :                  \

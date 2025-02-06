@@ -177,6 +177,25 @@ struct GetTypeInfo<const Variant &> {
 	}
 };
 
+// For Nullable. Pretends bindings are Variant to not break compatibility with bindings.
+template <typename T>
+struct GetTypeInfo<Nullable<T>> {
+	static const Variant::Type VARIANT_TYPE = Variant::NIL;
+	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE;
+	static inline PropertyInfo get_class_info() {
+		return PropertyInfo(VARIANT_TYPE, String(), PROPERTY_HINT_NONE, String(), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
+	}
+};
+
+template <typename T>
+struct GetTypeInfo<const Nullable<T> &> {
+	static const Variant::Type VARIANT_TYPE = Variant::NIL;
+	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE;
+	static inline PropertyInfo get_class_info() {
+		return PropertyInfo(VARIANT_TYPE, String(), PROPERTY_HINT_NONE, String(), PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT);
+	}
+};
+
 #define MAKE_TEMPLATE_TYPE_INFO(m_template, m_type, m_var_type)                       \
 	template <>                                                                       \
 	struct GetTypeInfo<m_template<m_type>> {                                          \

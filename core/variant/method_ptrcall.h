@@ -192,6 +192,30 @@ struct PtrToArg<ObjectID> {
 	}
 };
 
+// This is for Nullable.
+
+template <typename T>
+struct PtrToArg<Nullable<T>> {
+	_FORCE_INLINE_ static const Nullable<T> &convert(const void *p_ptr) {
+		return *reinterpret_cast<const Nullable<T> *>(p_ptr);
+	}
+	typedef Nullable<T> EncodeT;
+	_FORCE_INLINE_ static void encode(const Nullable<T> &p_val, void *p_ptr) {
+		*((Nullable<T> *)p_ptr) = p_val;
+	}
+};
+
+template <typename T>
+struct PtrToArg<const Nullable<T> &> {
+	_FORCE_INLINE_ static const Nullable<T> &convert(const void *p_ptr) {
+		return *reinterpret_cast<const Nullable<T> *>(p_ptr);
+	}
+	typedef Nullable<T> EncodeT;
+	_FORCE_INLINE_ static void encode(const Nullable<T> &p_val, void *p_ptr) {
+		*((Nullable<T> *)p_ptr) = p_val;
+	}
+};
+
 // This is for the special cases used by Variant.
 
 // No EncodeT because direct pointer conversion not possible.

@@ -109,8 +109,8 @@ struct [[nodiscard]] AABB {
 		return AABB(position + size.minf(0), size.abs());
 	}
 
-	Variant intersects_segment_bind(const Vector3 &p_from, const Vector3 &p_to) const;
-	Variant intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const;
+	Nullable<Vector3> intersects_segment_bind(const Vector3 &p_from, const Vector3 &p_to) const;
+	Nullable<Vector3> intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const;
 
 	_FORCE_INLINE_ void quantize(real_t p_unit);
 	_FORCE_INLINE_ AABB quantized(real_t p_unit) const;

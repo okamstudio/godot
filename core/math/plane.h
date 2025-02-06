@@ -32,6 +32,7 @@
 #define PLANE_H
 
 #include "core/math/vector3.h"
+#include "core/templates/nullable.h"
 
 class Variant;
 
@@ -61,9 +62,9 @@ struct [[nodiscard]] Plane {
 	bool intersects_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 *p_intersection) const;
 
 	// For Variant bindings.
-	Variant intersect_3_bind(const Plane &p_plane1, const Plane &p_plane2) const;
-	Variant intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const;
-	Variant intersects_segment_bind(const Vector3 &p_begin, const Vector3 &p_end) const;
+	Nullable<Vector3> intersect_3_bind(const Plane &p_plane1, const Plane &p_plane2) const;
+	Nullable<Vector3> intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const;
+	Nullable<Vector3> intersects_segment_bind(const Vector3 &p_begin, const Vector3 &p_end) const;
 
 	_FORCE_INLINE_ Vector3 project(const Vector3 &p_point) const {
 		return p_point - normal * distance_to(p_point);

@@ -420,15 +420,15 @@ void AABB::get_edge(int p_edge, Vector3 &r_from, Vector3 &r_to) const {
 	}
 }
 
-Variant AABB::intersects_segment_bind(const Vector3 &p_from, const Vector3 &p_to) const {
+Nullable<Vector3> AABB::intersects_segment_bind(const Vector3 &p_from, const Vector3 &p_to) const {
 	Vector3 inters;
 	if (intersects_segment(p_from, p_to, &inters)) {
 		return inters;
 	}
-	return Variant();
+	return nullptr;
 }
 
-Variant AABB::intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const {
+Nullable<Vector3> AABB::intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) const {
 	Vector3 inters;
 	bool inside = false;
 
@@ -441,7 +441,7 @@ Variant AABB::intersects_ray_bind(const Vector3 &p_from, const Vector3 &p_dir) c
 
 		return inters;
 	}
-	return Variant();
+	return nullptr;
 }
 
 AABB::operator String() const {

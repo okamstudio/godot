@@ -1126,6 +1126,24 @@ struct VariantInternalAccessor<Vector<Variant>> {
 };
 
 template <typename T>
+struct VariantInternalAccessor<Nullable<T>> {
+	static _FORCE_INLINE_ const Nullable<T> &get(const Variant *v) {
+		if (v->get_type() != Variant::Type::NIL) {
+			return VariantInternalAccessor<T>::get(v);
+		} else {
+			return nullptr;
+		}
+	}
+	static _FORCE_INLINE_ void set(Variant *v, const Nullable<T> &p_value) {
+		if (p_value.has_value()) {
+			VariantInternalAccessor<T>::set(v, *p_value);
+		} else {
+			*v = Variant();
+		}
+	}
+};
+
+template <typename T>
 struct VariantInitializer {
 };
 
