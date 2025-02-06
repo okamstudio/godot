@@ -53,18 +53,45 @@ bool EditorResourcePreviewGenerator::handles(const String &p_type) const {
 }
 
 Ref<Texture2D> EditorResourcePreviewGenerator::generate(const Ref<Resource> &p_from, const Size2 &p_size, Dictionary &p_metadata) const {
+	Dictionary ret;
+	if (GDVIRTUAL_CALL(_generate, p_from, p_size, ret)) {
+		if (!ret.has("result")) {
+			return Ref<Texture2D>();
+		}
+		if (ret.has("metadata")) {
+			p_metadata = ret["metadata"];
+		}
+		return ret["result"];
+	}
+
+#ifndef DISABLE_DEPRECATED
 	Ref<Texture2D> preview;
-	if (GDVIRTUAL_CALL(_generate, p_from, p_size, p_metadata, preview)) {
+	if (GDVIRTUAL_CALL(_generate_bind_compat_92175, p_from, p_size, p_metadata, preview)) {
 		return preview;
 	}
+#endif // DISABLE_DEPRECATED
+
 	ERR_FAIL_V_MSG(Ref<Texture2D>(), "EditorResourcePreviewGenerator::_generate needs to be overridden.");
 }
 
 Ref<Texture2D> EditorResourcePreviewGenerator::generate_from_path(const String &p_path, const Size2 &p_size, Dictionary &p_metadata) const {
+	Dictionary ret;
+	if (GDVIRTUAL_CALL(_generate_from_path, p_path, p_size, ret)) {
+		if (!ret.has("result")) {
+			return Ref<Texture2D>();
+		}
+		if (ret.has("metadata")) {
+			p_metadata = ret["metadata"];
+		}
+		return ret["result"];
+	}
+
+#ifndef DISABLE_DEPRECATED
 	Ref<Texture2D> preview;
-	if (GDVIRTUAL_CALL(_generate_from_path, p_path, p_size, p_metadata, preview)) {
+	if (GDVIRTUAL_CALL(_generate_from_path_bind_compat_92175, p_path, p_size, p_metadata, preview)) {
 		return preview;
 	}
+#endif // DISABLE_DEPRECATED
 
 	Ref<Resource> res = ResourceLoader::load(p_path);
 	if (res.is_null()) {
@@ -87,10 +114,15 @@ bool EditorResourcePreviewGenerator::can_generate_small_preview() const {
 
 void EditorResourcePreviewGenerator::_bind_methods() {
 	GDVIRTUAL_BIND(_handles, "type");
-	GDVIRTUAL_BIND(_generate, "resource", "size", "metadata");
-	GDVIRTUAL_BIND(_generate_from_path, "path", "size", "metadata");
+	GDVIRTUAL_BIND(_generate, "resource", "size");
+	GDVIRTUAL_BIND(_generate_from_path, "path", "size");
 	GDVIRTUAL_BIND(_generate_small_preview_automatically);
 	GDVIRTUAL_BIND(_can_generate_small_preview);
+
+#ifndef DISABLE_DEPRECATED
+	GDVIRTUAL_BIND_COMPAT(_generate_bind_compat_92175, "resource", "size", "metadata");
+	GDVIRTUAL_BIND_COMPAT(_generate_from_path_bind_compat_92175, "path", "size", "metadata");
+#endif // DISABLE_DEPRECATED
 }
 
 EditorResourcePreviewGenerator::EditorResourcePreviewGenerator() {

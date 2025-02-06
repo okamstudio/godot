@@ -17,27 +17,23 @@
 			</description>
 		</method>
 		<method name="_generate" qualifiers="virtual const">
-			<return type="Texture2D" />
+			<return type="Dictionary" />
 			<param index="0" name="resource" type="Resource" />
 			<param index="1" name="size" type="Vector2i" />
-			<param index="2" name="metadata" type="Dictionary" />
 			<description>
 				Generate a preview from a given resource with the specified size. This must always be implemented.
 				Returning [code]null[/code] is an OK way to fail and let another generator take care.
 				Care must be taken because this function is always called from a thread (not the main thread).
-				[param metadata] dictionary can be modified to store file-specific metadata that can be used in [method EditorResourceTooltipPlugin._make_tooltip_for_path] (like image size, sample length etc.).
 			</description>
 		</method>
 		<method name="_generate_from_path" qualifiers="virtual const">
-			<return type="Texture2D" />
+			<return type="Dictionary" />
 			<param index="0" name="path" type="String" />
 			<param index="1" name="size" type="Vector2i" />
-			<param index="2" name="metadata" type="Dictionary" />
 			<description>
 				Generate a preview directly from a path with the specified size. Implementing this is optional, as default code will load and call [method _generate].
 				Returning [code]null[/code] is an OK way to fail and let another generator take care.
 				Care must be taken because this function is always called from a thread (not the main thread).
-				[param metadata] dictionary can be modified to store file-specific metadata that can be used in [method EditorResourceTooltipPlugin._make_tooltip_for_path] (like image size, sample length etc.).
 			</description>
 		</method>
 		<method name="_generate_small_preview_automatically" qualifiers="virtual const">
