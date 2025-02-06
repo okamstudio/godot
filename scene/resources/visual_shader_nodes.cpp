@@ -2639,7 +2639,7 @@ VisualShaderNodeTransformOp::VisualShaderNodeTransformOp() {
 ////////////// TransformVec Mult
 
 String VisualShaderNodeTransformVecMult::get_caption() const {
-	return "TransformVectorMult";
+	return "TransformVectorMult (Deprecated)";
 }
 
 int VisualShaderNodeTransformVecMult::get_input_port_count() const {
@@ -2659,7 +2659,7 @@ int VisualShaderNodeTransformVecMult::get_output_port_count() const {
 }
 
 VisualShaderNodeTransformVecMult::PortType VisualShaderNodeTransformVecMult::get_output_port_type(int p_port) const {
-	return p_port == 0 ? PORT_TYPE_VECTOR_3D : PORT_TYPE_SCALAR;
+	return PORT_TYPE_VECTOR_3D;
 }
 
 String VisualShaderNodeTransformVecMult::get_output_port_name(int p_port) const {
@@ -2676,6 +2676,10 @@ String VisualShaderNodeTransformVecMult::generate_code(Shader::Mode p_mode, Visu
 	} else {
 		return "	" + p_output_vars[0] + " = (vec4(" + p_input_vars[1] + ", 0.0) * " + p_input_vars[0] + ").xyz;\n";
 	}
+}
+
+String VisualShaderNodeTransformVecMult::get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const {
+	return RTR("This node is deprecated. Use a VectorCoordinateTransform node to transform positions or directions between coordinate spaces. Use a new TransformVectorMultiply node for any other vector * matrix multiplication.");
 }
 
 void VisualShaderNodeTransformVecMult::set_operator(Operator p_op) {
@@ -2713,6 +2717,257 @@ void VisualShaderNodeTransformVecMult::_bind_methods() {
 VisualShaderNodeTransformVecMult::VisualShaderNodeTransformVecMult() {
 	set_input_port_default_value(0, Transform3D());
 	set_input_port_default_value(1, Vector3());
+}
+
+////////////// TransformVector Multiply
+
+String VisualShaderNodeTransformVectorMultiply::get_caption() const {
+	return "TransformVectorMultiply";
+}
+
+int VisualShaderNodeTransformVectorMultiply::get_input_port_count() const {
+	return 2;
+}
+
+VisualShaderNodeTransformVectorMultiply::PortType VisualShaderNodeTransformVectorMultiply::get_input_port_type(int p_port) const {
+	return p_port == 0 ? PORT_TYPE_TRANSFORM : PORT_TYPE_VECTOR_4D;
+}
+
+String VisualShaderNodeTransformVectorMultiply::get_input_port_name(int p_port) const {
+	return p_port == 0 ? "a" : "b";
+}
+
+int VisualShaderNodeTransformVectorMultiply::get_output_port_count() const {
+	return 1;
+}
+
+VisualShaderNodeTransformVectorMultiply::PortType VisualShaderNodeTransformVectorMultiply::get_output_port_type(int p_port) const {
+	return PORT_TYPE_VECTOR_4D;
+}
+
+String VisualShaderNodeTransformVectorMultiply::get_output_port_name(int p_port) const {
+	return ""; //no output port means the editor will be used as port
+}
+
+String VisualShaderNodeTransformVectorMultiply::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
+	if (op == OP_AxB) {
+		return "	" + p_output_vars[0] + " = (" + p_input_vars[0] + " * " + p_input_vars[1] + ");\n";
+	} else { // OP_BxA
+		return "	" + p_output_vars[0] + " = (" + p_input_vars[1] + " * " + p_input_vars[0] + ");\n";
+	}
+}
+
+void VisualShaderNodeTransformVectorMultiply::set_operator(Operator p_op) {
+	ERR_FAIL_INDEX(int(p_op), int(OP_MAX));
+	if (op == p_op) {
+		return;
+	}
+	switch (p_op) {
+		case OP_AxB: {
+			set_input_port_default_value(1, Vector4(), get_input_port_default_value(1));
+		} break;
+		case OP_BxA: {
+			set_input_port_default_value(1, Vector4(), get_input_port_default_value(1));
+		} break;
+		default:
+			break;
+	}
+	op = p_op;
+	emit_changed();
+}
+
+VisualShaderNodeTransformVectorMultiply::Operator VisualShaderNodeTransformVectorMultiply::get_operator() const {
+	return op;
+}
+
+Vector<StringName> VisualShaderNodeTransformVectorMultiply::get_editable_properties() const {
+	Vector<StringName> props;
+	props.push_back("operator");
+	return props;
+}
+
+void VisualShaderNodeTransformVectorMultiply::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_operator", "op"), &VisualShaderNodeTransformVectorMultiply::set_operator);
+	ClassDB::bind_method(D_METHOD("get_operator"), &VisualShaderNodeTransformVectorMultiply::get_operator);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "operator", PROPERTY_HINT_ENUM, "A x B,B x A"), "set_operator", "get_operator");
+
+	BIND_ENUM_CONSTANT(OP_AxB);
+	BIND_ENUM_CONSTANT(OP_BxA);
+	BIND_ENUM_CONSTANT(OP_MAX);
+}
+
+VisualShaderNodeTransformVectorMultiply::VisualShaderNodeTransformVectorMultiply() {
+	set_input_port_default_value(0, Transform3D());
+	set_input_port_default_value(1, Vector4());
+}
+
+////////////// VectorCoordinateTransform
+
+String VisualShaderNodeVectorCoordinateTransform::get_caption() const {
+	return "VectorCoordinateTransform";
+}
+
+int VisualShaderNodeVectorCoordinateTransform::get_input_port_count() const {
+	return 1;
+}
+
+VisualShaderNodeVectorCoordinateTransform::PortType VisualShaderNodeVectorCoordinateTransform::get_input_port_type(int p_port) const {
+	return PORT_TYPE_VECTOR_3D;
+}
+
+String VisualShaderNodeVectorCoordinateTransform::get_input_port_name(int p_port) const {
+	return "Input";
+}
+
+int VisualShaderNodeVectorCoordinateTransform::get_output_port_count() const {
+	return 1;
+}
+
+VisualShaderNodeVectorCoordinateTransform::PortType VisualShaderNodeVectorCoordinateTransform::get_output_port_type(int p_port) const {
+	return PORT_TYPE_VECTOR_3D;
+}
+
+String VisualShaderNodeVectorCoordinateTransform::get_output_port_name(int p_port) const {
+	return ""; //no output port means the editor will be used as port
+}
+
+String VisualShaderNodeVectorCoordinateTransform::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
+	String identity = "	" + p_output_vars[0] + " = " + p_input_vars[0] + ";\n";
+	String matrix;
+	if (from_space == SPACE_MODEL) {
+		if (to_space == SPACE_MODEL) {
+			return identity;
+		} else if (to_space == SPACE_WORLD) {
+			matrix = "MODEL_MATRIX";
+		} else if (to_space == SPACE_VIEW) {
+			matrix = (p_type == VisualShader::TYPE_VERTEX) ? "MODELVIEW_MATRIX" : "VIEW_MATRIX * MODEL_MATRIX";
+		} else if (to_space == SPACE_CLIP) {
+			matrix = (p_type == VisualShader::TYPE_VERTEX) ? "PROJECTION_MATRIX * MODELVIEW_MATRIX" : "PROJECTION_MATRIX * VIEW_MATRIX * MODEL_MATRIX";
+		}
+	} else if (from_space == SPACE_WORLD) {
+		if (to_space == SPACE_MODEL) {
+			matrix = "inverse(MODEL_MATRIX)";
+		} else if (to_space == SPACE_WORLD) {
+			return identity;
+		} else if (to_space == SPACE_VIEW) {
+			matrix = "VIEW_MATRIX";
+		} else if (to_space == SPACE_CLIP) {
+			matrix = "PROJECTION_MATRIX * VIEW_MATRIX";
+		}
+	} else if (from_space == SPACE_VIEW) {
+		if (to_space == SPACE_MODEL) {
+			matrix = (p_type == VisualShader::TYPE_VERTEX) ? "inverse(MODELVIEW_MATRIX)" : "inverse(MODEL_MATRIX) * INV_VIEW_MATRIX";
+		} else if (to_space == SPACE_WORLD) {
+			matrix = "INV_VIEW_MATRIX";
+		} else if (to_space == SPACE_VIEW) {
+			return identity;
+		} else if (to_space == SPACE_CLIP) {
+			matrix = "PROJECTION_MATRIX";
+		}
+	} else if (from_space == SPACE_CLIP) {
+		if (to_space == SPACE_MODEL) {
+			matrix = (p_type == VisualShader::TYPE_VERTEX) ? "inverse(MODELVIEW_MATRIX) * INV_PROJECTION_MATRIX" : "inverse(MODEL_MATRIX) * INV_VIEW_MATRIX * INV_PROJECTION_MATRIX";
+		} else if (to_space == SPACE_WORLD) {
+			matrix = "INV_VIEW_MATRIX * INV_PROJECTION_MATRIX";
+		} else if (to_space == SPACE_VIEW) {
+			matrix = "INV_PROJECTION_MATRIX";
+		} else if (to_space == SPACE_CLIP) {
+			return identity;
+		}
+	}
+	String vec4_w = vector_type == VECTOR_TYPE_POSITION ? "1.0" : "0.0";
+	return "	" + p_output_vars[0] + " = (" + matrix + " * vec4(" + p_input_vars[0] + ", " + vec4_w + ")).xyz;\n";
+
+	// return identity;
+}
+
+void VisualShaderNodeVectorCoordinateTransform::set_from_space(Space p_from_space) {
+	ERR_FAIL_INDEX(int(p_from_space), int(SPACE_MAX));
+	if (from_space == p_from_space) {
+		return;
+	}
+	from_space = p_from_space;
+	emit_changed();
+}
+
+VisualShaderNodeVectorCoordinateTransform::Space VisualShaderNodeVectorCoordinateTransform::get_from_space() const {
+	return from_space;
+}
+
+void VisualShaderNodeVectorCoordinateTransform::set_to_space(Space p_to_space) {
+	ERR_FAIL_INDEX(int(p_to_space), int(SPACE_MAX));
+	if (to_space == p_to_space) {
+		return;
+	}
+	to_space = p_to_space;
+	emit_changed();
+}
+
+VisualShaderNodeVectorCoordinateTransform::Space VisualShaderNodeVectorCoordinateTransform::get_to_space() const {
+	return to_space;
+}
+
+void VisualShaderNodeVectorCoordinateTransform::set_vector_type(VectorType p_vector_type) {
+	ERR_FAIL_INDEX(int(p_vector_type), int(VECTOR_TYPE_MAX));
+	if (vector_type == p_vector_type) {
+		return;
+	}
+	vector_type = p_vector_type;
+	emit_changed();
+}
+
+VisualShaderNodeVectorCoordinateTransform::VectorType VisualShaderNodeVectorCoordinateTransform::get_vector_type() const {
+	return vector_type;
+}
+
+Vector<StringName> VisualShaderNodeVectorCoordinateTransform::get_editable_properties() const {
+	Vector<StringName> props;
+	props.push_back("from_space");
+	props.push_back("to_space");
+	props.push_back("vector_type");
+	return props;
+}
+
+bool VisualShaderNodeVectorCoordinateTransform::is_show_prop_names() const {
+	return true;
+}
+
+HashMap<StringName, String> VisualShaderNodeVectorCoordinateTransform::get_editable_properties_names() const {
+	HashMap<StringName, String> names;
+	names.insert("from_space", RTR("From Space"));
+	names.insert("to_space", RTR("To Space"));
+	names.insert("vector_type", RTR("Vector Type"));
+	return names;
+}
+
+void VisualShaderNodeVectorCoordinateTransform::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_from_space", "from_space"), &VisualShaderNodeVectorCoordinateTransform::set_from_space);
+	ClassDB::bind_method(D_METHOD("get_from_space"), &VisualShaderNodeVectorCoordinateTransform::get_from_space);
+
+	ClassDB::bind_method(D_METHOD("set_to_space", "to_space"), &VisualShaderNodeVectorCoordinateTransform::set_to_space);
+	ClassDB::bind_method(D_METHOD("get_to_space"), &VisualShaderNodeVectorCoordinateTransform::get_to_space);
+
+	ClassDB::bind_method(D_METHOD("set_vector_type", "vector_type"), &VisualShaderNodeVectorCoordinateTransform::set_vector_type);
+	ClassDB::bind_method(D_METHOD("get_vector_type"), &VisualShaderNodeVectorCoordinateTransform::get_vector_type);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "from_space", PROPERTY_HINT_ENUM, "Model,World,View,Clip"), "set_from_space", "get_from_space");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "to_space", PROPERTY_HINT_ENUM, "Model,World,View,Clip"), "set_to_space", "get_to_space");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "vector_type", PROPERTY_HINT_ENUM, "Position,Direction"), "set_vector_type", "get_vector_type");
+
+	BIND_ENUM_CONSTANT(SPACE_MODEL);
+	BIND_ENUM_CONSTANT(SPACE_WORLD);
+	BIND_ENUM_CONSTANT(SPACE_VIEW);
+	BIND_ENUM_CONSTANT(SPACE_CLIP);
+	BIND_ENUM_CONSTANT(SPACE_MAX);
+
+	BIND_ENUM_CONSTANT(VECTOR_TYPE_POSITION);
+	BIND_ENUM_CONSTANT(VECTOR_TYPE_DIRECTION);
+	BIND_ENUM_CONSTANT(VECTOR_TYPE_MAX);
+}
+
+VisualShaderNodeVectorCoordinateTransform::VisualShaderNodeVectorCoordinateTransform() {
+	set_input_port_default_value(0, Vector3());
 }
 
 ////////////// Float Func

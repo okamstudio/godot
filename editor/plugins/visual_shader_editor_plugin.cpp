@@ -7351,7 +7351,10 @@ VisualShaderEditor::VisualShaderEditor() {
 	add_options.push_back(AddOption("Multiply (*)", "Transform/Operators", "VisualShaderNodeTransformOp", TTR("Multiplies two transforms."), { VisualShaderNodeTransformOp::OP_AxB }, VisualShaderNode::PORT_TYPE_TRANSFORM));
 	add_options.push_back(AddOption("MultiplyComp (*)", "Transform/Operators", "VisualShaderNodeTransformOp", TTR("Performs per-component multiplication of two transforms."), { VisualShaderNodeTransformOp::OP_AxB_COMP }, VisualShaderNode::PORT_TYPE_TRANSFORM));
 	add_options.push_back(AddOption("Subtract (-)", "Transform/Operators", "VisualShaderNodeTransformOp", TTR("Subtracts two transforms."), { VisualShaderNodeTransformOp::OP_A_MINUS_B }, VisualShaderNode::PORT_TYPE_TRANSFORM));
-	add_options.push_back(AddOption("TransformVectorMult (*)", "Transform/Operators", "VisualShaderNodeTransformVecMult", TTR("Multiplies vector by transform."), {}, VisualShaderNode::PORT_TYPE_VECTOR_3D));
+	add_options.push_back(AddOption("TransformVectorMult (*) (Deprecated)", "Transform/Operators", "VisualShaderNodeTransformVecMult", TTR("Multiplies vector by transform."), {}, VisualShaderNode::PORT_TYPE_VECTOR_3D));
+	add_options.push_back(AddOption("TransformVectorMultiply (*)", "Transform/Operators", "VisualShaderNodeTransformVectorMultiply", TTR("Multiplies vector by transform."), {}, VisualShaderNode::PORT_TYPE_VECTOR_4D));
+
+	add_options.push_back(AddOption("TransformVectorCoordinate (*)", "Vector/Functions", "VisualShaderNodeVectorCoordinateTransform", TTR("Transform between coordinate spaces."), {}, VisualShaderNode::PORT_TYPE_VECTOR_3D));
 
 	add_options.push_back(AddOption("TransformConstant", "Transform/Variables", "VisualShaderNodeTransformConstant", TTR("Transform constant."), {}, VisualShaderNode::PORT_TYPE_TRANSFORM));
 	add_options.push_back(AddOption("TransformParameter", "Transform/Variables", "VisualShaderNodeTransformParameter", TTR("Transform parameter."), {}, VisualShaderNode::PORT_TYPE_TRANSFORM));

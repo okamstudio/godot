@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisualShaderNodeVectorCoordinateTransform" inherits="VisualShaderNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Transforms a [Vector3] from one coordinate space to another.
+	</brief_description>
+	<description>
+		Transforms a position or direction [Vector3] from one coordinate space to another. See also [VisualShaderNodeTransformVectorMultiply].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="from_space" type="int" setter="set_from_space" getter="get_from_space" enum="VisualShaderNodeVectorCoordinateTransform.Space" default="0">
+			Coordinate space to transform from.
+		</member>
+		<member name="to_space" type="int" setter="set_to_space" getter="get_to_space" enum="VisualShaderNodeVectorCoordinateTransform.Space" default="0">
+			Coordinate space to transform to.
+		</member>
+		<member name="vector_type" type="int" setter="set_vector_type" getter="get_vector_type" enum="VisualShaderNodeVectorCoordinateTransform.VectorType" default="0">
+			Type of the vector to transform, either position or direction.
+		</member>
+	</members>
+	<constants>
+		<constant name="SPACE_MODEL" value="0" enum="Space">
+			Model space.
+		</constant>
+		<constant name="SPACE_WORLD" value="1" enum="Space">
+			World space.
+		</constant>
+		<constant name="SPACE_VIEW" value="2" enum="Space">
+			View space.
+		</constant>
+		<constant name="SPACE_CLIP" value="3" enum="Space">
+			Clip space.
+		</constant>
+		<constant name="SPACE_MAX" value="4" enum="Space">
+			Represents the size of the [enum Space] enum.
+		</constant>
+		<constant name="VECTOR_TYPE_POSITION" value="0" enum="VectorType">
+			A position vector.
+		</constant>
+		<constant name="VECTOR_TYPE_DIRECTION" value="1" enum="VectorType">
+			A direction vector, such as a normal vector.
+		</constant>
+		<constant name="VECTOR_TYPE_MAX" value="2" enum="VectorType">
+			Represents the size of the [enum VectorType] enum.
+		</constant>
+	</constants>
+</class>

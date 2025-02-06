@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisualShaderNodeTransformVectorMultiply" inherits="VisualShaderNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Multiplies a [Transform3D] and a [Vector4] within the visual shader graph.
+	</brief_description>
+	<description>
+		A multiplication operation on a transform (4×4 matrix) and a vector, with support for different multiplication operators. See also [VisualShaderNodeVectorCoordinateTransform].
+	</description>
+	<tutorials>
+	</tutorials>
+	<members>
+		<member name="operator" type="int" setter="set_operator" getter="get_operator" enum="VisualShaderNodeTransformVectorMultiply.Operator" default="0">
+			The multiplication type to be performed. See [enum Operator] for options.
+		</member>
+	</members>
+	<constants>
+		<constant name="OP_AxB" value="0" enum="Operator">
+			Multiplies transform [code]a[/code] by the [Vector4] [code]b[/code].
+		</constant>
+		<constant name="OP_BxA" value="1" enum="Operator">
+			Multiplies [Vector4] [code]b[/code] by the transform [code]a[/code].
+		</constant>
+		<constant name="OP_MAX" value="2" enum="Operator">
+			Represents the size of the [enum Operator] enum.
+		</constant>
+	</constants>
+</class>

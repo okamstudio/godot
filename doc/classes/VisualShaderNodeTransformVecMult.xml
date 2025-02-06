@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="VisualShaderNodeTransformVecMult" inherits="VisualShaderNode" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="VisualShaderNodeTransformVecMult" inherits="VisualShaderNode" deprecated="This node is deprecated. Use a [VisualShaderNodeVectorCoordinateTransform] node to transform positions or directions between coordinate spaces. Use a new [VisualShaderNodeTransformVectorMultiply] node for any other vector * matrix multiplication." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
 		Multiplies a [Transform3D] and a [Vector3] within the visual shader graph.
 	</brief_description>
@@ -15,16 +15,16 @@
 	</members>
 	<constants>
 		<constant name="OP_AxB" value="0" enum="Operator">
-			Multiplies transform [code]a[/code] by the vector [code]b[/code].
+			Multiplies transform [code]a[/code] by the [Vector3] [code]b[/code].
 		</constant>
 		<constant name="OP_BxA" value="1" enum="Operator">
-			Multiplies vector [code]b[/code] by the transform [code]a[/code].
+			Multiplies [Vector3] [code]b[/code] by the transform [code]a[/code].
 		</constant>
 		<constant name="OP_3x3_AxB" value="2" enum="Operator">
-			Multiplies transform [code]a[/code] by the vector [code]b[/code], skipping the last row and column of the transform.
+			Multiplies transform [code]a[/code] by the [Vector3] [code]b[/code], skipping the last row and column of the transform.
 		</constant>
 		<constant name="OP_3x3_BxA" value="3" enum="Operator">
-			Multiplies vector [code]b[/code] by the transform [code]a[/code], skipping the last row and column of the transform.
+			Multiplies [Vector3] [code]b[/code] by the transform [code]a[/code], skipping the last row and column of the transform.
 		</constant>
 		<constant name="OP_MAX" value="4" enum="Operator">
 			Represents the size of the [enum Operator] enum.

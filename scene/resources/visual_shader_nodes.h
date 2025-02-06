@@ -1057,9 +1057,9 @@ public:
 
 VARIANT_ENUM_CAST(VisualShaderNodeTransformOp::Operator)
 
-///////////////////////////////////////
-/// TRANSFORM-VECTOR MULTIPLICATION
-///////////////////////////////////////
+///////////////////////////////////////////////////
+/// TRANSFORM-VECTOR MULTIPLICATION (DEPRECATED)
+///////////////////////////////////////////////////
 
 class VisualShaderNodeTransformVecMult : public VisualShaderNode {
 	GDCLASS(VisualShaderNodeTransformVecMult, VisualShaderNode);
@@ -1090,6 +1090,7 @@ public:
 	virtual String get_output_port_name(int p_port) const override;
 
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
+	virtual String get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const override;
 
 	void set_operator(Operator p_op);
 	Operator get_operator() const;
@@ -1102,6 +1103,112 @@ public:
 };
 
 VARIANT_ENUM_CAST(VisualShaderNodeTransformVecMult::Operator)
+
+///////////////////////////////////////
+/// TRANSFORM-VECTOR MULTIPLICATION
+///////////////////////////////////////
+
+class VisualShaderNodeTransformVectorMultiply : public VisualShaderNode {
+	GDCLASS(VisualShaderNodeTransformVectorMultiply, VisualShaderNode);
+
+public:
+	enum Operator {
+		OP_AxB,
+		OP_BxA,
+		OP_MAX,
+	};
+
+protected:
+	Operator op = OP_AxB;
+
+	static void _bind_methods();
+
+public:
+	virtual String get_caption() const override;
+
+	virtual int get_input_port_count() const override;
+	virtual PortType get_input_port_type(int p_port) const override;
+	virtual String get_input_port_name(int p_port) const override;
+
+	virtual int get_output_port_count() const override;
+	virtual PortType get_output_port_type(int p_port) const override;
+	virtual String get_output_port_name(int p_port) const override;
+
+	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
+
+	void set_operator(Operator p_op);
+	Operator get_operator() const;
+
+	virtual Vector<StringName> get_editable_properties() const override;
+
+	virtual Category get_category() const override { return CATEGORY_TRANSFORM; }
+
+	VisualShaderNodeTransformVectorMultiply();
+};
+
+VARIANT_ENUM_CAST(VisualShaderNodeTransformVectorMultiply::Operator)
+
+////////////////////////////
+/// VECTOR COORDINATE TRANSFORMATION
+////////////////////////////
+
+class VisualShaderNodeVectorCoordinateTransform : public VisualShaderNode {
+	GDCLASS(VisualShaderNodeVectorCoordinateTransform, VisualShaderNode);
+
+public:
+	enum Space {
+		SPACE_MODEL,
+		SPACE_WORLD,
+		SPACE_VIEW,
+		SPACE_CLIP,
+		SPACE_MAX,
+	};
+
+	enum VectorType {
+		VECTOR_TYPE_POSITION,
+		VECTOR_TYPE_DIRECTION,
+		VECTOR_TYPE_MAX,
+	};
+
+protected:
+	Space from_space = SPACE_MODEL;
+	Space to_space = SPACE_MODEL;
+	VectorType vector_type = VECTOR_TYPE_POSITION;
+	static void _bind_methods();
+
+public:
+	virtual String get_caption() const override;
+
+	virtual int get_input_port_count() const override;
+	virtual PortType get_input_port_type(int p_port) const override;
+	virtual String get_input_port_name(int p_port) const override;
+
+	virtual int get_output_port_count() const override;
+	virtual PortType get_output_port_type(int p_port) const override;
+	virtual String get_output_port_name(int p_port) const override;
+
+	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
+
+	void set_from_space(Space p_from_space);
+	Space get_from_space() const;
+
+	void set_to_space(Space p_to_space);
+	Space get_to_space() const;
+
+	void set_vector_type(VectorType p_from_space);
+	VectorType get_vector_type() const;
+
+	virtual Vector<StringName> get_editable_properties() const override;
+	virtual bool is_show_prop_names() const override;
+	virtual HashMap<StringName, String> get_editable_properties_names() const override;
+
+	virtual Category get_category() const override { return CATEGORY_VECTOR; }
+
+	VisualShaderNodeVectorCoordinateTransform();
+};
+
+VARIANT_ENUM_CAST(VisualShaderNodeVectorCoordinateTransform::Space)
+VARIANT_ENUM_CAST(VisualShaderNodeVectorCoordinateTransform::VectorType)
 
 ///////////////////////////////////////
 /// FLOAT FUNC
