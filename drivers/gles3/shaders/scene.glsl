@@ -1193,6 +1193,7 @@ uniform uint lightmap_shadowmask_mode;
 
 #ifdef LIGHTMAP_BICUBIC_FILTER
 uniform highp vec2 lightmap_texture_size;
+uniform highp vec2 shadowmask_texture_size;
 #endif
 
 #ifdef USE_SH_LIGHTMAP
@@ -2325,7 +2326,7 @@ void main() {
 		uvw.z = float(lightmap_slice);
 
 #ifdef LIGHTMAP_BICUBIC_FILTER
-		shadowmask = textureArray_bicubic(shadowmask_textures, uvw, lightmap_texture_size).x;
+		shadowmask = textureArray_bicubic(shadowmask_textures, uvw, shadowmask_texture_size).x;
 #else
 		shadowmask = textureLod(shadowmask_textures, uvw, 0.0).x;
 #endif

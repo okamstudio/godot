@@ -660,12 +660,22 @@ void RenderForwardMobile::_setup_lightmaps(const RenderDataRD *p_render_data, co
 
 		// Light texture size.
 		Vector2i lightmap_size = light_storage->lightmap_get_light_texture_size(lightmap);
-		scene_state.lightmaps[i].texture_size[0] = lightmap_size[0];
-		scene_state.lightmaps[i].texture_size[1] = lightmap_size[1];
+		scene_state.lightmaps[i].light_texture_size[0] = lightmap_size[0];
+		scene_state.lightmaps[i].light_texture_size[1] = lightmap_size[1];
+
+		// Shadowmasks.
+		const RS::ShadowmaskMode shadowmask_mode = light_storage->lightmap_get_shadowmask_mode(lightmap);
+		if (shadowmask_mode != RS::SHADOWMASK_MODE_NONE) {
+			// Shadow texture size.
+			Vector2i shadowmask_size = light_storage->lightmap_get_shadow_texture_size(lightmap);
+			scene_state.lightmaps[i].shadow_texture_size[0] = shadowmask_size[0];
+			scene_state.lightmaps[i].shadow_texture_size[1] = shadowmask_size[1];
+		}
+
+		scene_state.lightmaps[i].flags = shadowmask_mode;
 
 		// Exposure.
 		scene_state.lightmaps[i].exposure_normalization = 1.0;
-		scene_state.lightmaps[i].flags = light_storage->lightmap_get_shadowmask_mode(lightmap);
 		if (p_render_data->camera_attributes.is_valid()) {
 			float baked_exposure = light_storage->lightmap_get_baked_exposure_normalization(lightmap);
 			float enf = RSG::camera_attributes->camera_attributes_get_exposure_normalization_factor(p_render_data->camera_attributes);
