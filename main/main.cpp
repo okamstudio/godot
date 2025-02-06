@@ -3229,6 +3229,23 @@ Error Main::setup2(bool p_show_boot_logo) {
 			}
 		}
 
+		// Enable HDR if requested and available.
+		if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_HDR)) {
+			bool hdr_enabled = GLOBAL_GET("display/window/hdr/enabled");
+			bool prefer_high_precision = GLOBAL_GET("display/window/hdr/prefer_high_precision");
+			bool use_screen_luminance = GLOBAL_GET("display/window/hdr/use_screen_luminance");
+			float reference_luminance = GLOBAL_GET("display/window/hdr/reference_luminance");
+
+			if (use_screen_luminance) {
+				float screen_reference_luminance = DisplayServer::get_singleton()->screen_get_sdr_white_level();
+				reference_luminance = screen_reference_luminance > 0.0f ? screen_reference_luminance : reference_luminance;
+			}
+
+			DisplayServer::get_singleton()->window_set_hdr_output_enabled(hdr_enabled);
+			DisplayServer::get_singleton()->window_set_hdr_output_prefer_high_precision(prefer_high_precision);
+			DisplayServer::get_singleton()->window_set_hdr_output_reference_luminance(reference_luminance);
+		}
+
 		Color clear = GLOBAL_DEF_BASIC("rendering/environment/defaults/default_clear_color", Color(0.3, 0.3, 0.3));
 		RenderingServer::get_singleton()->set_default_clear_color(clear);
 

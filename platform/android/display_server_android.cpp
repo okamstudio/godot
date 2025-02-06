@@ -83,6 +83,7 @@ bool DisplayServerAndroid::has_feature(Feature p_feature) const {
 		case FEATURE_TOUCHSCREEN:
 		case FEATURE_VIRTUAL_KEYBOARD:
 		case FEATURE_TEXT_TO_SPEECH:
+		case FEATURE_HDR:
 			return true;
 		default:
 			return false;
@@ -326,6 +327,41 @@ float DisplayServerAndroid::screen_get_refresh_rate(int p_screen) const {
 
 bool DisplayServerAndroid::is_touchscreen_available() const {
 	return true;
+}
+
+bool DisplayServerAndroid::screen_is_hdr_supported(int p_screen) const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, false);
+
+	return godot_io_java->is_hdr_supported();
+}
+
+float DisplayServerAndroid::screen_get_min_luminance(int p_screen) const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, 0.0f);
+
+	return godot_io_java->get_hdr_min_luminance();
+}
+
+float DisplayServerAndroid::screen_get_max_luminance(int p_screen) const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, 0.0f);
+
+	return godot_io_java->get_hdr_max_luminance();
+}
+
+float DisplayServerAndroid::screen_get_max_average_luminance(int p_screen) const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, 0.0f);
+
+	return godot_io_java->get_hdr_max_average_luminance();
+}
+
+float DisplayServerAndroid::screen_get_sdr_white_level(int p_screen) const {
+	GodotIOJavaWrapper *godot_io_java = OS_Android::get_singleton()->get_godot_io_java();
+	ERR_FAIL_NULL_V(godot_io_java, 0.0f);
+
+	return godot_io_java->get_sdr_white_level();
 }
 
 void DisplayServerAndroid::virtual_keyboard_show(const String &p_existing_text, const Rect2 &p_screen_rect, VirtualKeyboardType p_type, int p_max_length, int p_cursor_start, int p_cursor_end) {
@@ -890,6 +926,60 @@ DisplayServer::VSyncMode DisplayServerAndroid::window_get_vsync_mode(WindowID p_
 	}
 #endif
 	return DisplayServer::VSYNC_ENABLED;
+}
+
+void DisplayServerAndroid::window_set_hdr_output_enabled(const bool p_enabled, WindowID p_window) {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		rendering_context->window_set_hdr_output_enabled(p_window, p_enabled);
+	}
+#endif
+}
+
+bool DisplayServerAndroid::window_is_hdr_output_enabled(WindowID p_window) const {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		return rendering_context->window_get_hdr_output_enabled(p_window);
+	}
+#endif
+
+	return false;
+}
+
+void DisplayServerAndroid::window_set_hdr_output_prefer_high_precision(const bool p_enabled, WindowID p_window) {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		rendering_context->window_set_hdr_output_prefer_high_precision(p_window, p_enabled);
+	}
+#endif
+}
+
+bool DisplayServerAndroid::window_is_hdr_output_preferring_high_precision(WindowID p_window) const {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		return rendering_context->window_get_hdr_output_prefer_high_precision(p_window);
+	}
+#endif
+
+	return false;
+}
+
+void DisplayServerAndroid::window_set_hdr_output_reference_luminance(const float p_reference_luminance, WindowID p_window) {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		rendering_context->window_set_hdr_output_reference_luminance(p_window, p_reference_luminance);
+	}
+#endif
+}
+
+float DisplayServerAndroid::window_get_hdr_output_reference_luminance(WindowID p_window) const {
+#if defined(RD_ENABLED)
+	if (rendering_context) {
+		return rendering_context->window_get_hdr_output_reference_luminance(p_window);
+	}
+#endif
+
+	return 0.0f;
 }
 
 void DisplayServerAndroid::reset_swap_buffers_flag() {

@@ -334,6 +334,12 @@ const RenderingDeviceDriverD3D12::D3D12Format RenderingDeviceDriverD3D12::RD_TO_
 	/* DATA_FORMAT_G16_B16_R16_3PLANE_444_UNORM */ {},
 };
 
+const DXGI_COLOR_SPACE_TYPE RenderingDeviceDriverD3D12::RD_TO_DXGI_COLOR_SPACE_TYPE[RDD::COLOR_SPACE_MAX]{
+	/* COLOR_SPACE_SRGB_LINEAR */ DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709,
+	/* COLOR_SPACE_SRGB_NONLINEAR */ DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709,
+	/* COLOR_SPACE_HDR10_ST2084 */ DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020,
+};
+
 Error RenderingDeviceDriverD3D12::DescriptorsHeap::allocate(ID3D12Device *p_device, D3D12_DESCRIPTOR_HEAP_TYPE p_type, uint32_t p_descriptor_count, bool p_for_gpu) {
 	ERR_FAIL_COND_V(heap, ERR_ALREADY_EXISTS);
 	ERR_FAIL_COND_V(p_descriptor_count == 0, ERR_INVALID_PARAMETER);
@@ -2405,6 +2411,11 @@ void RenderingDeviceDriverD3D12::command_buffer_execute_secondary(CommandBufferI
 void RenderingDeviceDriverD3D12::_swap_chain_release(SwapChain *p_swap_chain) {
 	_swap_chain_release_buffers(p_swap_chain);
 
+	if (p_swap_chain->render_pass.id != 0) {
+		render_pass_free(p_swap_chain->render_pass);
+		p_swap_chain->render_pass = RenderPassID();
+	}
+
 	p_swap_chain->d3d_swap_chain.Reset();
 }
 
@@ -2423,10 +2434,10 @@ void RenderingDeviceDriverD3D12::_swap_chain_release_buffers(SwapChain *p_swap_c
 	p_swap_chain->framebuffers.clear();
 }
 
-RDD::SwapChainID RenderingDeviceDriverD3D12::swap_chain_create(RenderingContextDriver::SurfaceID p_surface) {
+RDD::RenderPassID RenderingDeviceDriverD3D12::_swap_chain_create_render_pass(RDD::DataFormat p_format) {
 	// Create the render pass that will be used to draw to the swap chain's framebuffers.
 	RDD::Attachment attachment;
-	attachment.format = DATA_FORMAT_R8G8B8A8_UNORM;
+	attachment.format = p_format;
 	attachment.samples = RDD::TEXTURE_SAMPLES_1;
 	attachment.load_op = RDD::ATTACHMENT_LOAD_OP_CLEAR;
 	attachment.store_op = RDD::ATTACHMENT_STORE_OP_STORE;
@@ -2437,14 +2448,35 @@ RDD::SwapChainID RenderingDeviceDriverD3D12::swap_chain_create(RenderingContextD
 	color_ref.aspect.set_flag(RDD::TEXTURE_ASPECT_COLOR_BIT);
 	subpass.color_references.push_back(color_ref);
 
-	RenderPassID render_pass = render_pass_create(attachment, subpass, {}, 1);
-	ERR_FAIL_COND_V(!render_pass, SwapChainID());
+	return render_pass_create(attachment, subpass, {}, 1);
+}
 
-	// Create the empty swap chain until it is resized.
+void RenderingDeviceDriverD3D12::_determine_swap_chain_format(SwapChain *p_swap_chain, DataFormat &r_format, ColorSpace &r_color_space) {
+	DEV_ASSERT(p_swap_chain);
+	DEV_ASSERT(p_swap_chain->surface != 0);
+
+	// Direct3D Hardware level 10 mandates support for all these formats.
+	// Godot requires at least Hardware level 11, so these formats are guaranteed to be supported.
+	if (context_driver->surface_get_hdr_output_enabled(p_swap_chain->surface)) {
+		if (context_driver->surface_get_hdr_output_prefer_high_precision(p_swap_chain->surface)) {
+			r_format = DATA_FORMAT_R16G16B16A16_SFLOAT;
+			r_color_space = COLOR_SPACE_SRGB_LINEAR;
+		} else {
+			r_format = DATA_FORMAT_A2R10G10B10_UNORM_PACK32;
+			r_color_space = COLOR_SPACE_HDR10_ST2084;
+		}
+	} else {
+		r_format = DATA_FORMAT_R8G8B8A8_UNORM;
+		r_color_space = COLOR_SPACE_SRGB_NONLINEAR;
+	}
+}
+
+RDD::SwapChainID RenderingDeviceDriverD3D12::swap_chain_create(RenderingContextDriver::SurfaceID p_surface) {
+	DEV_ASSERT(p_surface != 0);
+
+	// Create an empty swap chain until it is resized.
 	SwapChain *swap_chain = memnew(SwapChain);
 	swap_chain->surface = p_surface;
-	swap_chain->data_format = attachment.format;
-	swap_chain->render_pass = render_pass;
 	return SwapChainID(swap_chain);
 }
 
@@ -2486,10 +2518,16 @@ Error RenderingDeviceDriverD3D12::swap_chain_resize(CommandQueueID p_cmd_queue, 
 			break;
 	}
 
-	if (swap_chain->d3d_swap_chain != nullptr && creation_flags != swap_chain->creation_flags) {
-		// The swap chain must be recreated if the creation flags are different.
+	RDD::DataFormat new_data_format;
+	RDD::ColorSpace new_color_space;
+	_determine_swap_chain_format(swap_chain, new_data_format, new_color_space);
+
+	if (swap_chain->d3d_swap_chain != nullptr && (creation_flags != swap_chain->creation_flags || new_data_format != swap_chain->data_format)) {
+		// The swap chain must be recreated if the creation flags or data format are different.
 		_swap_chain_release(swap_chain);
 	}
+
+	swap_chain->data_format = new_data_format;
 
 	DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
 	if (swap_chain->d3d_swap_chain != nullptr) {
@@ -2497,6 +2535,10 @@ Error RenderingDeviceDriverD3D12::swap_chain_resize(CommandQueueID p_cmd_queue, 
 		res = swap_chain->d3d_swap_chain->ResizeBuffers(p_desired_framebuffer_count, surface->width, surface->height, DXGI_FORMAT_UNKNOWN, creation_flags);
 		ERR_FAIL_COND_V(!SUCCEEDED(res), ERR_UNAVAILABLE);
 	} else {
+		DEV_ASSERT(swap_chain->render_pass.id == 0);
+		swap_chain->render_pass = _swap_chain_create_render_pass(new_data_format);
+		ERR_FAIL_COND_V(!swap_chain->render_pass, ERR_CANT_CREATE);
+
 		swap_chain_desc.BufferCount = p_desired_framebuffer_count;
 		swap_chain_desc.Format = RD_TO_D3D12_FORMAT[swap_chain->data_format].general_format;
 		swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
@@ -2523,6 +2565,13 @@ Error RenderingDeviceDriverD3D12::swap_chain_resize(CommandQueueID p_cmd_queue, 
 
 		res = context_driver->dxgi_factory_get()->MakeWindowAssociation(surface->hwnd, DXGI_MWA_NO_ALT_ENTER | DXGI_MWA_NO_WINDOW_CHANGES);
 		ERR_FAIL_COND_V(!SUCCEEDED(res), ERR_CANT_CREATE);
+	}
+
+	if (swap_chain->color_space != new_color_space) {
+		res = swap_chain->d3d_swap_chain->SetColorSpace1(RD_TO_DXGI_COLOR_SPACE_TYPE[new_color_space]);
+		ERR_FAIL_COND_V(!SUCCEEDED(res), ERR_CANT_CREATE);
+
+		swap_chain->color_space = new_color_space;
 	}
 
 	if (surface->composition_device.Get() == nullptr) {
@@ -2634,10 +2683,14 @@ RDD::DataFormat RenderingDeviceDriverD3D12::swap_chain_get_format(SwapChainID p_
 	return swap_chain->data_format;
 }
 
+RDD::ColorSpace RenderingDeviceDriverD3D12::swap_chain_get_color_space(SwapChainID p_swap_chain) {
+	const SwapChain *swap_chain = (const SwapChain *)(p_swap_chain.id);
+	return swap_chain->color_space;
+}
+
 void RenderingDeviceDriverD3D12::swap_chain_free(SwapChainID p_swap_chain) {
 	SwapChain *swap_chain = (SwapChain *)(p_swap_chain.id);
 	_swap_chain_release(swap_chain);
-	render_pass_free(swap_chain->render_pass);
 	memdelete(swap_chain);
 }
 
@@ -6277,6 +6330,8 @@ bool RenderingDeviceDriverD3D12::has_feature(Features p_feature) {
 		case SUPPORTS_FRAGMENT_SHADER_WITH_ONLY_SIDE_EFFECTS:
 			return true;
 		case SUPPORTS_BUFFER_DEVICE_ADDRESS:
+			return true;
+		case SUPPORTS_HDR_OUTPUT:
 			return true;
 		default:
 			return false;

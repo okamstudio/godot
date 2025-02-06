@@ -834,6 +834,24 @@
 			The default screen orientation to use on mobile devices. See [enum DisplayServer.ScreenOrientation] for possible values.
 			[b]Note:[/b] When set to a portrait orientation, this project setting does not flip the project resolution's width and height automatically. Instead, you have to set [member display/window/size/viewport_width] and [member display/window/size/viewport_height] accordingly.
 		</member>
+		<member name="display/window/hdr/enabled" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], enables HDR output on supported platforms, falling back to SDR if not supported.
+			Only available on platforms that support HDR output, have HDR enabled in the system settings, and have a compatible display connected.
+		</member>
+		<member name="display/window/hdr/prefer_high_precision" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], uses 16 bit per color buffers for the frame buffer when HDR is enabled.
+			If [code]false[/code], uses 10 bit per color buffers, with 2 bits for alpha, for the frame buffer when HDR is enabled.
+			This may improve color precision and reduce banding in the final image, but will use more memory and may reduce performance.
+			If transparent backgrounds are enabled, you may want to enable this setting to enable smooth blending of HDR content.
+		</member>
+		<member name="display/window/hdr/reference_luminance" type="float" setter="" getter="" default="80.0">
+			Sets the SDR reference luminance of the display in nits (cd/m²) when HDR is enabled.
+			This is used to scale the HDR effect to ensure sRGB content looks the same in both SDR and HDR.
+		</member>
+		<member name="display/window/hdr/use_screen_luminance" type="bool" setter="" getter="" default="true">
+			If [code]true[/code], uses the screen's luminance as reported by the display server to set luminance for the window.
+			If information is missing for the display, will fall back to luminance values set in project settings.
+		</member>
 		<member name="display/window/ios/allow_high_refresh_rate" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], iOS devices that support high refresh rate/"ProMotion" will be allowed to render at up to 120 frames per second.
 		</member>

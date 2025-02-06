@@ -116,6 +116,8 @@ private:
 	ToneMapper tone_mapper = TONE_MAPPER_LINEAR;
 	float tonemap_exposure = 1.0;
 	float tonemap_white = 1.0;
+	float tonemap_min_value = 0.0;
+	float tonemap_max_value = 1.0;
 	void _update_tonemap();
 
 	// SSR
@@ -272,6 +274,10 @@ public:
 	float get_tonemap_exposure() const;
 	void set_tonemap_white(float p_white);
 	float get_tonemap_white() const;
+	void set_tonemap_min_value(float p_min_value);
+	float get_tonemap_min_value() const;
+	void set_tonemap_max_value(float p_max_value);
+	float get_tonemap_max_value() const;
 
 	// SSR
 	void set_ssr_enabled(bool p_enabled);

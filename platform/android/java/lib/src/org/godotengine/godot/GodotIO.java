@@ -36,6 +36,7 @@ import org.godotengine.godot.input.GodotEditText;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
@@ -186,6 +187,42 @@ public class GodotIO {
 			return display.getRefreshRate();
 		}
 		return fallback;
+	}
+
+	public boolean isHdrSupported() {
+		Configuration configuration = activity.getResources().getConfiguration();
+		if (configuration != null) {
+			return configuration.isScreenHdr();
+		}
+		return false;
+	}
+
+	public float getHdrMinLuminance() {
+		Display display = activity.getWindowManager().getDefaultDisplay();
+		if (display != null) {
+			return display.getHdrCapabilities().getDesiredMinLuminance();
+		}
+		return 0.0f;
+	}
+
+	public float getHdrMaxLuminance() {
+		Display display = activity.getWindowManager().getDefaultDisplay();
+		if (display != null) {
+			return display.getHdrCapabilities().getDesiredMaxLuminance();
+		}
+		return 0.0f;
+	}
+
+	public float getHdrMaxAverageLuminance() {
+		Display display = activity.getWindowManager().getDefaultDisplay();
+		if (display != null) {
+			return display.getHdrCapabilities().getDesiredMaxAverageLuminance();
+		}
+		return 0.0f;
+	}
+
+	public float getSdrWhiteLevel() {
+		return 100.0f;
 	}
 
 	public int[] getDisplaySafeArea() {

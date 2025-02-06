@@ -412,6 +412,23 @@ void EditorNode::_update_from_settings() {
 		scene_root->set_default_canvas_item_texture_repeat(tr);
 	}
 
+	// Enable HDR if requested and available.
+	if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_HDR)) {
+		bool hdr_enabled = GLOBAL_GET("display/window/hdr/enabled");
+		bool prefer_high_precision = GLOBAL_GET("display/window/hdr/prefer_high_precision");
+		bool use_screen_luminance = GLOBAL_GET("display/window/hdr/use_screen_luminance");
+		float reference_luminance = GLOBAL_GET("display/window/hdr/reference_luminance");
+
+		if (use_screen_luminance) {
+			float screen_reference_luminance = DisplayServer::get_singleton()->screen_get_sdr_white_level();
+			reference_luminance = screen_reference_luminance > 0.0f ? screen_reference_luminance : reference_luminance;
+		}
+
+		DisplayServer::get_singleton()->window_set_hdr_output_enabled(hdr_enabled);
+		DisplayServer::get_singleton()->window_set_hdr_output_prefer_high_precision(prefer_high_precision);
+		DisplayServer::get_singleton()->window_set_hdr_output_reference_luminance(reference_luminance);
+	}
+
 	RS::DOFBokehShape dof_shape = RS::DOFBokehShape(int(GLOBAL_GET("rendering/camera/depth_of_field/depth_of_field_bokeh_shape")));
 	RS::get_singleton()->camera_attributes_set_dof_blur_bokeh_shape(dof_shape);
 	RS::DOFBlurQuality dof_quality = RS::DOFBlurQuality(int(GLOBAL_GET("rendering/camera/depth_of_field/depth_of_field_bokeh_quality")));

@@ -1154,6 +1154,8 @@ public:
 	int screen_get_height(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID) const;
 	int screen_get_pre_rotation_degrees(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID) const;
 	FramebufferFormatID screen_get_framebuffer_format(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID) const;
+	DataFormat screen_get_color_format(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID) const;
+	ColorSpace screen_get_color_space(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID) const;
 	Error screen_free(DisplayServer::WindowID p_screen = DisplayServer::MAIN_WINDOW_ID);
 
 	/*************************/
@@ -1673,6 +1675,7 @@ VARIANT_ENUM_CAST(RenderingDevice::ShaderStage)
 VARIANT_ENUM_CAST(RenderingDevice::ShaderLanguage)
 VARIANT_ENUM_CAST(RenderingDevice::CompareOperator)
 VARIANT_ENUM_CAST(RenderingDevice::DataFormat)
+VARIANT_ENUM_CAST(RenderingDevice::ColorSpace)
 VARIANT_ENUM_CAST(RenderingDevice::TextureType)
 VARIANT_ENUM_CAST(RenderingDevice::TextureSamples)
 VARIANT_BITFIELD_CAST(RenderingDevice::TextureUsageBits)

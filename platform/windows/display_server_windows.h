@@ -746,6 +746,13 @@ public:
 	virtual Ref<Image> screen_get_image(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
 	virtual Ref<Image> screen_get_image_rect(const Rect2i &p_rect) const override;
 
+	// Display capabilities for HDR.
+	virtual bool screen_is_hdr_supported(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+	virtual float screen_get_min_luminance(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+	virtual float screen_get_max_luminance(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+	virtual float screen_get_max_average_luminance(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+	virtual float screen_get_sdr_white_level(int p_screen = SCREEN_OF_MAIN_WINDOW) const override;
+
 	virtual void screen_set_keep_on(bool p_enable) override; //disable screensaver
 	virtual bool screen_is_kept_on() const override;
 
@@ -825,6 +832,13 @@ public:
 
 	virtual void window_set_vsync_mode(DisplayServer::VSyncMode p_vsync_mode, WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual DisplayServer::VSyncMode window_get_vsync_mode(WindowID p_vsync_mode) const override;
+
+	virtual void window_set_hdr_output_enabled(const bool p_enabled, WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual bool window_is_hdr_output_enabled(WindowID p_window = MAIN_WINDOW_ID) const override;
+	virtual void window_set_hdr_output_prefer_high_precision(const bool p_enabled, WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual bool window_is_hdr_output_preferring_high_precision(WindowID p_window = MAIN_WINDOW_ID) const override;
+	virtual void window_set_hdr_output_reference_luminance(const float p_reference_luminance, WindowID p_window = MAIN_WINDOW_ID) override;
+	virtual float window_get_hdr_output_reference_luminance(WindowID p_window = MAIN_WINDOW_ID) const override;
 
 	virtual void window_start_drag(WindowID p_window = MAIN_WINDOW_ID) override;
 	virtual void window_start_resize(WindowResizeEdge p_edge, WindowID p_window = MAIN_WINDOW_ID) override;

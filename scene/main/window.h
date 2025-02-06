@@ -132,6 +132,10 @@ private:
 	WindowInitialPosition initial_position = WINDOW_INITIAL_POSITION_ABSOLUTE;
 	bool force_native = false;
 
+	bool hdr_output_enabled = false;
+	bool hdr_output_prefer_high_precision = false;
+	float hdr_output_reference_luminance = 80.0f;
+
 	bool use_font_oversampling = false;
 	bool transient = false;
 	bool transient_to_focused = false;
@@ -310,6 +314,15 @@ public:
 
 	void set_flag(Flags p_flag, bool p_enabled);
 	bool get_flag(Flags p_flag) const;
+
+	void set_hdr_output_enabled(bool p_enabled);
+	bool is_hdr_output_enabled() const;
+
+	void set_hdr_output_prefer_high_precision(bool p_enabled);
+	bool is_hdr_output_preferring_high_precision() const;
+
+	void set_hdr_output_reference_luminance(float p_reference_luminance);
+	float get_hdr_output_reference_luminance() const;
 
 	bool is_maximize_allowed() const;
 
