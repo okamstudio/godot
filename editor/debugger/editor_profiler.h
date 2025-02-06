@@ -138,6 +138,8 @@ private:
 	Timer *frame_delay = nullptr;
 	Timer *plot_delay = nullptr;
 
+	int last_sort_column = -1;
+
 	void _update_button_text();
 	void _update_frame();
 
@@ -167,6 +169,20 @@ private:
 	void _combo_changed(int);
 
 	Metric _get_frame_metric(int index);
+
+	void _sort_column(int column, int mouse_button_index);
+
+	struct ColSort {
+		_FORCE_INLINE_ bool operator()(const Pair<String, TreeItem *> A, const Pair<String, TreeItem *> B) const {
+			if (A.first.is_valid_float() && B.first.is_valid_float()) {
+				// Since it's for the profiler, Alphabetic is regular order but time
+				// is reverse order
+				return A.first.to_float() > B.first.to_float();
+			} else {
+				return A.first < B.first;
+			}
+		}
+	};
 
 protected:
 	void _notification(int p_what);

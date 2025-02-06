@@ -657,6 +657,36 @@ Vector<Vector<String>> EditorProfiler::get_data_as_csv() const {
 	return res;
 }
 
+void EditorProfiler::_sort_column(int column, int) {
+	TreeItem *root = variables->get_root();
+
+	// Sort per category
+	for (TreeItem *cat = root->get_first_child(); cat != nullptr; cat = cat->get_next()) {
+		Vector<Pair<String, TreeItem *>> vec;
+		for (TreeItem *it = cat->get_first_child(); it != nullptr; it = it->get_next()) {
+			String trimmed = it->get_text(column).trim_suffix(" ms").trim_suffix("%");
+			vec.push_back(Pair(trimmed, it));
+		}
+		if (vec.size() < 2) {
+			continue;
+		}
+		TreeItem *first = vec[0].second;
+		vec.sort_custom<ColSort>();
+
+		// Reverse order if same column is clicked twice in a row
+		if (last_sort_column == column) {
+			vec.reverse();
+		}
+
+		vec[0].second->move_before(first);
+		for (int i = 1; i < vec.size(); i++) {
+			vec[i].second->move_after(vec[i - 1].second);
+		}
+	}
+
+	last_sort_column = last_sort_column == column ? -1 : column;
+}
+
 EditorProfiler::EditorProfiler() {
 	HBoxContainer *hb = memnew(HBoxContainer);
 	hb->add_theme_constant_override(SNAME("separation"), 8 * EDSCALE);
@@ -763,6 +793,7 @@ EditorProfiler::EditorProfiler() {
 	variables->set_column_custom_minimum_width(2, 50 * EDSCALE);
 	variables->set_theme_type_variation("TreeSecondary");
 	variables->connect("item_edited", callable_mp(this, &EditorProfiler::_item_edited));
+	variables->connect("column_title_clicked", callable_mp(this, &EditorProfiler::_sort_column));
 
 	graph = memnew(TextureRect);
 	graph->set_custom_minimum_size(Size2(250 * EDSCALE, 0));
