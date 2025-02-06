@@ -1908,6 +1908,7 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 
 		List<PropertyInfo> property_list;
 		res->get_property_list(&property_list);
+		Ref<Script> res_script = res->get_script();
 		for (List<PropertyInfo>::Element *PE = property_list.front(); PE; PE = PE->next()) {
 			if (skip_editor && PE->get().name.begins_with("__editor")) {
 				continue;
@@ -1939,6 +1940,9 @@ Error ResourceFormatSaverTextInstance::save(const String &p_path, const Ref<Reso
 				}
 
 				Variant default_value = ClassDB::class_get_default_property_value(res->get_class(), name);
+				if (res_script.is_valid()) {
+					res_script->get_property_default_value(name, default_value);
+				}
 
 				if (default_value.get_type() != Variant::NIL && bool(Variant::evaluate(Variant::OP_EQUAL, value, default_value))) {
 					continue;
