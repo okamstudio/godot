@@ -1638,7 +1638,7 @@ void RuntimeNodeSelect::_update_selection() {
 
 		const Color selection_color_2d = Color(1, 0.6, 0.4, 0.7);
 		for (int i = 0; i < 4; i++) {
-			RS::get_singleton()->canvas_item_add_line(sbox_2d_ci, endpoints[i], endpoints[(i + 1) % 4], selection_color_2d, Math::round(2.f));
+			RS::get_singleton()->canvas_item_add_line(sbox_2d_ci, endpoints[i], endpoints[(i + 1) % 4], selection_color_2d);
 		}
 	} else {
 #ifndef _3D_DISABLED
