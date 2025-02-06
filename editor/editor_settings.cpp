@@ -654,6 +654,11 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// Theme: Highlighting
 	_load_godot2_text_editor_theme();
 
+	// The list is based on <https://github.com/KDE/syntax-highlighting/blob/master/data/syntax/alert.xml>.
+	_initial_set("text_editor/theme/highlighting/comment_markers/critical_list", "ALERT,ATTENTION,CAUTION,CRITICAL,DANGER,SECURITY");
+	_initial_set("text_editor/theme/highlighting/comment_markers/warning_list", "BUG,DEPRECATED,FIXME,HACK,TASK,TBD,TODO,WARNING");
+	_initial_set("text_editor/theme/highlighting/comment_markers/notice_list", "INFO,NOTE,NOTICE,TEST,TESTING");
+
 	// Appearance
 	// Appearance: Caret
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "text_editor/appearance/caret/type", 0, "Line,Block")
@@ -1082,6 +1087,10 @@ void EditorSettings::_load_godot2_text_editor_theme() {
 	_initial_set("text_editor/theme/highlighting/folded_code_region_color", Color(0.68, 0.46, 0.77, 0.2));
 	_initial_set("text_editor/theme/highlighting/search_result_color", Color(0.05, 0.25, 0.05, 1));
 	_initial_set("text_editor/theme/highlighting/search_result_border_color", Color(0.41, 0.61, 0.91, 0.38));
+
+	_initial_set("text_editor/theme/highlighting/comment_markers/critical_color", Color(0.77, 0.35, 0.35));
+	_initial_set("text_editor/theme/highlighting/comment_markers/warning_color", Color(0.72, 0.61, 0.48));
+	_initial_set("text_editor/theme/highlighting/comment_markers/notice_color", Color(0.56, 0.67, 0.51));
 }
 
 void EditorSettings::_load_default_visual_shader_editor_theme() {

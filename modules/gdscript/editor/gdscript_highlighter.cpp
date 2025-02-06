@@ -808,6 +808,7 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 	add_color_region(ColorRegion::TYPE_MULTILINE_STRING, "\"\"\"", "\"\"\"", string_color, false, true);
 	add_color_region(ColorRegion::TYPE_MULTILINE_STRING, "'''", "'''", string_color, false, true);
 
+	/* Script specific highlighting */
 	const Ref<Script> scr = _get_edited_resource();
 	if (scr.is_valid()) {
 		/* Member types. */
@@ -835,6 +836,7 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 		}
 	}
 
+	/* GDScript editor settings */
 	const String text_edit_color_theme = EDITOR_GET("text_editor/theme/color_theme");
 	const bool godot_2_theme = text_edit_color_theme == "Godot 2";
 
@@ -845,9 +847,6 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 		node_ref_color = Color(0.39, 0.76, 0.35);
 		annotation_color = Color(1.0, 0.7, 0.45);
 		string_name_color = Color(1.0, 0.76, 0.65);
-		comment_marker_colors[COMMENT_MARKER_CRITICAL] = Color(0.77, 0.35, 0.35);
-		comment_marker_colors[COMMENT_MARKER_WARNING] = Color(0.72, 0.61, 0.48);
-		comment_marker_colors[COMMENT_MARKER_NOTICE] = Color(0.56, 0.67, 0.51);
 	} else {
 		function_definition_color = Color(0, 0.6, 0.6);
 		global_function_color = Color(0.36, 0.18, 0.72);
@@ -855,9 +854,6 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 		node_ref_color = Color(0.0, 0.5, 0);
 		annotation_color = Color(0.8, 0.37, 0);
 		string_name_color = Color(0.8, 0.56, 0.45);
-		comment_marker_colors[COMMENT_MARKER_CRITICAL] = Color(0.8, 0.14, 0.14);
-		comment_marker_colors[COMMENT_MARKER_WARNING] = Color(0.75, 0.39, 0.03);
-		comment_marker_colors[COMMENT_MARKER_NOTICE] = Color(0.24, 0.54, 0.09);
 	}
 
 	// TODO: Move to editor_settings.cpp
@@ -867,13 +863,6 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 	EDITOR_DEF("text_editor/theme/highlighting/gdscript/node_reference_color", node_ref_color);
 	EDITOR_DEF("text_editor/theme/highlighting/gdscript/annotation_color", annotation_color);
 	EDITOR_DEF("text_editor/theme/highlighting/gdscript/string_name_color", string_name_color);
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/critical_color", comment_marker_colors[COMMENT_MARKER_CRITICAL]);
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/warning_color", comment_marker_colors[COMMENT_MARKER_WARNING]);
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/notice_color", comment_marker_colors[COMMENT_MARKER_NOTICE]);
-	// The list is based on <https://github.com/KDE/syntax-highlighting/blob/master/data/syntax/alert.xml>.
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/critical_list", "ALERT,ATTENTION,CAUTION,CRITICAL,DANGER,SECURITY");
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/warning_list", "BUG,DEPRECATED,FIXME,HACK,TASK,TBD,TODO,WARNING");
-	EDITOR_DEF("text_editor/theme/highlighting/comment_markers/notice_list", "INFO,NOTE,NOTICE,TEST,TESTING");
 
 	if (text_edit_color_theme == "Default" || godot_2_theme) {
 		EditorSettings::get_singleton()->set_initial_value(
@@ -900,18 +889,6 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 				"text_editor/theme/highlighting/gdscript/string_name_color",
 				string_name_color,
 				true);
-		EditorSettings::get_singleton()->set_initial_value(
-				"text_editor/theme/highlighting/comment_markers/critical_color",
-				comment_marker_colors[COMMENT_MARKER_CRITICAL],
-				true);
-		EditorSettings::get_singleton()->set_initial_value(
-				"text_editor/theme/highlighting/comment_markers/warning_color",
-				comment_marker_colors[COMMENT_MARKER_WARNING],
-				true);
-		EditorSettings::get_singleton()->set_initial_value(
-				"text_editor/theme/highlighting/comment_markers/notice_color",
-				comment_marker_colors[COMMENT_MARKER_NOTICE],
-				true);
 	}
 
 	function_definition_color = EDITOR_GET("text_editor/theme/highlighting/gdscript/function_definition_color");
@@ -921,6 +898,8 @@ void GDScriptSyntaxHighlighter::_update_cache() {
 	annotation_color = EDITOR_GET("text_editor/theme/highlighting/gdscript/annotation_color");
 	string_name_color = EDITOR_GET("text_editor/theme/highlighting/gdscript/string_name_color");
 	type_color = EDITOR_GET("text_editor/theme/highlighting/base_type_color");
+
+	/* Comment markers */
 	comment_marker_colors[COMMENT_MARKER_CRITICAL] = EDITOR_GET("text_editor/theme/highlighting/comment_markers/critical_color");
 	comment_marker_colors[COMMENT_MARKER_WARNING] = EDITOR_GET("text_editor/theme/highlighting/comment_markers/warning_color");
 	comment_marker_colors[COMMENT_MARKER_NOTICE] = EDITOR_GET("text_editor/theme/highlighting/comment_markers/notice_color");

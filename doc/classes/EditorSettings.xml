@@ -1411,6 +1411,24 @@
 			The script editor's comment color.
 			[b]Note:[/b] In GDScript, unlike Python, multiline strings are not considered to be comments, and will use the string highlighting color instead.
 		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/critical_color" type="Color" setter="" getter="">
+			The script editor's critical comment marker color.
+		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/critical_list" type="String" setter="" getter="">
+			Comma-separated list of critical comment markers. Each marker must be a valid Unicode identifier.
+		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/notice_color" type="Color" setter="" getter="">
+			The script editor's notice comment marker color.
+		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/notice_list" type="String" setter="" getter="">
+			Comma-separated list of notice comment markers. Each marker must be a valid Unicode identifier.
+		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/warning_color" type="Color" setter="" getter="">
+			The script editor's warning comment marker color.
+		</member>
+		<member name="text_editor/theme/highlighting/comment_markers/warning_list" type="String" setter="" getter="">
+			Comma-separated list of warning comment markers. Each marker must be a valid Unicode identifier.
+		</member>
 		<member name="text_editor/theme/highlighting/completion_background_color" type="Color" setter="" getter="">
 			The script editor's autocompletion box background color.
 		</member>

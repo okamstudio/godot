@@ -2615,6 +2615,10 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	const Color folded_code_region_color =        Color(0.68, 0.46, 0.77, 0.2);
 	const Color search_result_color =             alpha1;
 	const Color search_result_border_color =      p_config.dark_theme ? Color(0.41, 0.61, 0.91, 0.38) : Color(0, 0.4, 1, 0.38);
+
+	const Color comment_marker_critical_color =   p_config.dark_theme ? Color(0.77, 0.35, 0.35) : Color(0.8, 0.14, 0.14);
+	const Color comment_marker_warning_color =    p_config.dark_theme ? Color(0.72, 0.61, 0.48) : Color(0.75, 0.39, 0.03);
+	const Color comment_marker_notice_color =     p_config.dark_theme ? Color(0.56, 0.67, 0.51) : Color(0.24, 0.54, 0.09);
 	/* clang-format on */
 
 	EditorSettings *setting = EditorSettings::get_singleton();
@@ -2658,6 +2662,10 @@ void EditorThemeManager::_generate_text_editor_defaults(ThemeConfiguration &p_co
 	setting->set_initial_value("text_editor/theme/highlighting/folded_code_region_color",        folded_code_region_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/search_result_color",             search_result_color, true);
 	setting->set_initial_value("text_editor/theme/highlighting/search_result_border_color",      search_result_border_color, true);
+
+	setting->set_initial_value("text_editor/theme/highlighting/comment_markers/critical_color",  comment_marker_critical_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/comment_markers/warning_color",   comment_marker_warning_color, true);
+	setting->set_initial_value("text_editor/theme/highlighting/comment_markers/notice_color",    comment_marker_notice_color, true);
 	/* clang-format on */
 }
 
