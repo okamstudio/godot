@@ -430,6 +430,7 @@ public:
 	// --- Cells manipulation ---
 	// Generic cells manipulations and data access.
 	void set_cell(const Vector2i &p_coords, int p_source_id = TileSet::INVALID_SOURCE, const Vector2i &p_atlas_coords = TileSetSource::INVALID_ATLAS_COORDS, int p_alternative_tile = 0);
+	void set_cells(TypedArray<Vector2i> p_coords_array, int p_source_id = TileSet::INVALID_SOURCE, const Vector2i &p_atlas_coords = TileSetSource::INVALID_ATLAS_COORDS, int p_alternative_tile = 0);
 	void erase_cell(const Vector2i &p_coords);
 	void fix_invalid_tiles();
 	void clear();

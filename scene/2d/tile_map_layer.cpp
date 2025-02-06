@@ -1807,6 +1807,7 @@ void TileMapLayer::_bind_methods() {
 	// --- Cells manipulation ---
 	// Generic cells manipulations and access.
 	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMapLayer::set_cell, DEFVAL(TileSet::INVALID_SOURCE), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(0));
+	ClassDB::bind_method(D_METHOD("set_cells", "cells", "source_id", "atlas_coords", "alternative_tile"), &TileMapLayer::set_cells, DEFVAL(TileSet::INVALID_SOURCE), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("erase_cell", "coords"), &TileMapLayer::erase_cell);
 	ClassDB::bind_method(D_METHOD("fix_invalid_tiles"), &TileMapLayer::fix_invalid_tiles);
 	ClassDB::bind_method(D_METHOD("clear"), &TileMapLayer::clear);
@@ -2405,6 +2406,13 @@ void TileMapLayer::set_cell(const Vector2i &p_coords, int p_source_id, const Vec
 	_queue_internal_update();
 
 	used_rect_cache_dirty = true;
+}
+
+void TileMapLayer::set_cells(TypedArray<Vector2i> p_coords_array, int p_source_id, const Vector2i &p_atlas_coords, int p_alternative_tile) {
+	for (const Variant &variant : p_coords_array) {
+		const Vector2i &E = variant;
+		set_cell(E, p_source_id, p_atlas_coords, p_alternative_tile);
+	}
 }
 
 void TileMapLayer::erase_cell(const Vector2i &p_coords) {

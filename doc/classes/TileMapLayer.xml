@@ -243,6 +243,16 @@
 				If [param source_id] is set to [code]-1[/code], [param atlas_coords] to [code]Vector2i(-1, -1)[/code], or [param alternative_tile] to [code]-1[/code], the cell will be erased. An erased cell gets [b]all[/b] its identifiers automatically set to their respective invalid values, namely [code]-1[/code], [code]Vector2i(-1, -1)[/code] and [code]-1[/code].
 			</description>
 		</method>
+		<method name="set_cells">
+			<return type="void" />
+			<param index="0" name="cells" type="Vector2i[]" />
+			<param index="1" name="source_id" type="int" default="-1" />
+			<param index="2" name="atlas_coords" type="Vector2i" default="Vector2i(-1, -1)" />
+			<param index="3" name="alternative_tile" type="int" default="0" />
+			<description>
+				Sets the tile identifiers for all the cells inside the [param cells] array.
+			</description>
+		</method>
 		<method name="set_cells_terrain_connect">
 			<return type="void" />
 			<param index="0" name="cells" type="Vector2i[]" />
