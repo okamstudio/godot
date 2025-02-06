@@ -60,6 +60,21 @@
 				Returns the list of recognized extensions for a resource type.
 			</description>
 		</method>
+		<method name="get_resource_script_class">
+			<return type="String" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Returns the global script class name a given [param path], as set by the [code]class_name[/code] keyword in GDScript or the [code][GlobalClass][/code] attribute in C#.
+				If there is none, it returns an empty string.
+			</description>
+		</method>
+		<method name="get_resource_type">
+			<return type="String" />
+			<param index="0" name="path" type="String" />
+			<description>
+				Returns the type of the resource at the given [param path].
+			</description>
+		</method>
 		<method name="get_resource_uid">
 			<return type="int" />
 			<param index="0" name="path" type="String" />
