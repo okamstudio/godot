@@ -800,7 +800,12 @@ Error EditorExportPlatformAndroid::save_apk_so(void *p_userdata, const SharedObj
 
 Error EditorExportPlatformAndroid::save_apk_file(void *p_userdata, const String &p_path, const Vector<uint8_t> &p_data, int p_file, int p_total, const Vector<String> &p_enc_in_filters, const Vector<String> &p_enc_ex_filters, const Vector<uint8_t> &p_key, uint64_t p_seed) {
 	APKExportData *ed = static_cast<APKExportData *>(p_userdata);
-	const String path = ResourceUID::ensure_path(p_path);
+
+	String path = p_path.simplify_path();
+	if (path.begins_with("uid://")) {
+		path = ResourceUID::ensure_path(path).simplify_path();
+		print_verbose(vformat(R"(UID referenced exported file name "%s" was replaced with "%s".)", p_path, path));
+	}
 	const String dst_path = path.replace_first("res://", "assets/");
 
 	store_in_apk(ed, dst_path, p_data, _should_compress_asset(path, p_data) ? Z_DEFLATED : 0);
