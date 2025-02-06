@@ -438,6 +438,9 @@ protected:
 	SafeFlag running;
 	Callable target_callable;
 	::Thread thread;
+
+	void _try_finish();
+
 	static void _bind_methods();
 	static void _start_func(void *ud);
 
@@ -454,7 +457,9 @@ public:
 	bool is_started() const;
 	bool is_alive() const;
 	Variant wait_to_finish();
+	Signal await_to_finish();
 
+	static Ref<Thread> run(const Callable &p_callable, Priority p_priority = PRIORITY_NORMAL);
 	static void set_thread_safety_checks_enabled(bool p_enabled);
 };
 

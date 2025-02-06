@@ -1379,6 +1379,16 @@ Error Thread::start(const Callable &p_callable, Priority p_priority) {
 	return OK;
 }
 
+Ref<Thread> Thread::run(const Callable &p_callable, Thread::Priority p_priority) {
+	Ref<Thread> ret;
+	ret.instantiate();
+	Error err = ret->start(p_callable, p_priority);
+	if (err == OK) {
+		return ret;
+	}
+	return nullptr;
+}
+
 String Thread::get_id() const {
 	return itos(thread.get_id());
 }
@@ -1397,6 +1407,7 @@ Variant Thread::wait_to_finish() {
 	Variant r = ret;
 	target_callable = Callable();
 
+	emit_signal(SNAME("finished"), r);
 	return r;
 }
 
@@ -1405,14 +1416,36 @@ void Thread::set_thread_safety_checks_enabled(bool p_enabled) {
 	set_current_thread_safe_for_nodes(!p_enabled);
 }
 
+void Thread::_try_finish() {
+	if (is_alive()) {
+		return;
+	}
+	Engine::get_singleton()->get_main_loop()->disconnect(SNAME("process_frame"), callable_mp(this, &Thread::_try_finish));
+	wait_to_finish();
+}
+
+Signal Thread::await_to_finish() {
+	Signal finished_signal = Signal(this, SNAME("finished"));
+	ERR_FAIL_COND_V_MSG(!is_started(), finished_signal, "Thread must have been started to await for its completion.");
+	if (!Engine::get_singleton()->get_main_loop()->is_connected(SNAME("process_frame"), callable_mp(this, &Thread::_try_finish))) {
+		ERR_FAIL_COND_V(Engine::get_singleton()->get_main_loop()->connect(SNAME("process_frame"), callable_mp(this, &Thread::_try_finish)) != OK, finished_signal);
+	} else {
+		WARN_PRINT("\"Thread.await_to_finish()\" should only be called once before the thread's signal \"finished\" is emitted.");
+	}
+	return finished_signal;
+}
+
 void Thread::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("start", "callable", "priority"), &Thread::start, DEFVAL(PRIORITY_NORMAL));
 	ClassDB::bind_method(D_METHOD("get_id"), &Thread::get_id);
 	ClassDB::bind_method(D_METHOD("is_started"), &Thread::is_started);
 	ClassDB::bind_method(D_METHOD("is_alive"), &Thread::is_alive);
 	ClassDB::bind_method(D_METHOD("wait_to_finish"), &Thread::wait_to_finish);
-
+	ClassDB::bind_method(D_METHOD("await_to_finish"), &Thread::await_to_finish);
+	ClassDB::bind_static_method("Thread", D_METHOD("run", "callable", "priority"), &Thread::run, DEFVAL(PRIORITY_NORMAL));
 	ClassDB::bind_static_method("Thread", D_METHOD("set_thread_safety_checks_enabled", "enabled"), &Thread::set_thread_safety_checks_enabled);
+
+	ADD_SIGNAL(MethodInfo("finished", PropertyInfo(Variant::NIL, "result")));
 
 	BIND_ENUM_CONSTANT(PRIORITY_LOW);
 	BIND_ENUM_CONSTANT(PRIORITY_NORMAL);

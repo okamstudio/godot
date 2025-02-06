@@ -17,6 +17,30 @@
 		<link title="3D Voxel Demo">https://godotengine.org/asset-library/asset/2755</link>
 	</tutorials>
 	<methods>
+		<method name="await_to_finish">
+			<return type="Signal" />
+			<description>
+				Start to await this thread and return the [signal finished] signal.
+				It means that you can await this method for a started thread to get its return value without blocking main thread.
+				For example:
+				[codeblocks]
+				[gdscript]
+				func _ready():
+				    var count = 999999
+				    var thread = Thread.run(do_something_heavy.bind(count))
+				    var return_value = await thread.await_to_finish()
+				    print(return_value)
+
+				func do_something_heavy(count):
+				    # Do something heavy.
+				    var total = 0
+				    while total != count:
+				        total += 1
+				    return OK
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="get_id" qualifiers="const">
 			<return type="String" />
 			<description>
@@ -34,6 +58,15 @@
 			<return type="bool" />
 			<description>
 				Returns [code]true[/code] if this [Thread] has been started. Once started, this will return [code]true[/code] until it is joined using [method wait_to_finish]. For checking if a [Thread] is still executing its task, use [method is_alive].
+			</description>
+		</method>
+		<method name="run" qualifiers="static">
+			<return type="Thread" />
+			<param index="0" name="callable" type="Callable" />
+			<param index="1" name="priority" type="int" enum="Thread.Priority" default="1" />
+			<description>
+				Creates a new [Thread] and starts it like [method start].
+				Return a [Thread] if it is started successfully, else will return null.
 			</description>
 		</method>
 		<method name="set_thread_safety_checks_enabled" qualifiers="static">
@@ -69,6 +102,36 @@
 			</description>
 		</method>
 	</methods>
+	<signals>
+		<signal name="finished">
+			<param index="0" name="result" type="Variant" />
+			<description>
+				Emit when this thread finish, [param result] is the return value of the callable which started by [method start] or [method run].
+				CAUTIOUS:
+				[param result] can be a GDScriptFunctionState if the thread start a async callable.
+				The GDScript async mechanism only run in main thread.
+				You can deal with it like this:
+				[codeblocks]
+				[gdscript]
+				func _ready():
+				    var count = 999999
+				    var thread = Thread.run(do_something_async)
+				    thread.await_to_finish().connect(
+				        func(result):
+				            # Here we know the result is a `GDScriptFunctionState`.
+				            var result = await result
+				            print(result)
+				    )
+
+				func do_something_async():
+				    # Do something async.
+				    await get_tree().create_timer(5).timeout
+				    return OK
+				[/gdscript]
+				[/codeblocks]
+			</description>
+		</signal>
+	</signals>
 	<constants>
 		<constant name="PRIORITY_LOW" value="0" enum="Priority">
 			A thread running with lower priority than normally.
