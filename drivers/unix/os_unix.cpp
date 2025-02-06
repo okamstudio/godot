@@ -932,6 +932,17 @@ Error OS_Unix::set_cwd(const String &p_cwd) {
 	return OK;
 }
 
+String OS_Unix::get_cwd() const {
+	String cwd;
+	char ret[PATH_MAX];
+	char *temp = getcwd(ret, PATH_MAX);
+	ERR_FAIL_NULL_V(temp, "");
+	if (cwd.parse_utf8(ret) != OK) {
+		cwd = ret; // No utf8, maybe latin1?
+	}
+	return cwd;
+}
+
 bool OS_Unix::has_environment(const String &p_var) const {
 	return getenv(p_var.utf8().get_data()) != nullptr;
 }

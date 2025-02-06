@@ -190,6 +190,7 @@ public:
 	virtual double get_unix_time() const override;
 
 	virtual Error set_cwd(const String &p_cwd) override;
+	virtual String get_cwd() const override;
 
 	virtual void add_frame_delay(bool p_can_draw) override;
 	virtual void delay_usec(uint32_t p_usec) const override;
