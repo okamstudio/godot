@@ -193,6 +193,15 @@ ReflectionProbe::UpdateMode ReflectionProbe::get_update_mode() const {
 	return update_mode;
 }
 
+void ReflectionProbe::queue_update() {
+	// Queuing an update only makes sense when the update mode is set to Once.
+	if (update_mode != UPDATE_ONCE) {
+		return;
+	}
+
+	RS::get_singleton()->reflection_probe_queue_update(probe);
+}
+
 AABB ReflectionProbe::get_aabb() const {
 	AABB aabb;
 	aabb.position = -size / 2;
@@ -253,6 +262,8 @@ void ReflectionProbe::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_update_mode", "mode"), &ReflectionProbe::set_update_mode);
 	ClassDB::bind_method(D_METHOD("get_update_mode"), &ReflectionProbe::get_update_mode);
+
+	ClassDB::bind_method(D_METHOD("queue_update"), &ReflectionProbe::queue_update);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "update_mode", PROPERTY_HINT_ENUM, "Once (Fast),Always (Slow)"), "set_update_mode", "get_update_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "intensity", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_intensity", "get_intensity");

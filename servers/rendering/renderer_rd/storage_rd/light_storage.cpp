@@ -1192,6 +1192,13 @@ void LightStorage::reflection_probe_set_baked_exposure(RID p_probe, float p_expo
 	reflection_probe->baked_exposure = p_exposure;
 }
 
+void LightStorage::reflection_probe_queue_update(RID p_probe) {
+	ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
+	ERR_FAIL_COND(!reflection_probe);
+
+	reflection_probe->dependency.changed_notify(Dependency::DEPENDENCY_CHANGED_REFLECTION_PROBE);
+}
+
 AABB LightStorage::reflection_probe_get_aabb(RID p_probe) const {
 	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL_V(reflection_probe, AABB());

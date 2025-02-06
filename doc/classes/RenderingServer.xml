@@ -3212,6 +3212,14 @@
 				[b]Note:[/b] The equivalent node is [ReflectionProbe].
 			</description>
 		</method>
+		<method name="reflection_probe_queue_update">
+			<return type="void" />
+			<param index="0" name="probe" type="RID" />
+			<description>
+				Queues an update of the reflection probe cubemap and ambient lighting. The update will not be visible immediately; it typically takes 6 frames for the update to be visible (since 1 cubemap face is rendered per frame). [method reflection_probe_queue_update] should be called [i]after[/i] modifying nearby objects to ensure the reflection remains up-to-date.
+				[b]Note:[/b] [method reflection_probe_queue_update] only has an effect when the update mode is [constant REFLECTION_PROBE_UPDATE_ONCE]. Equivalent to [method ReflectionProbe.queue_update].
+			</description>
+		</method>
 		<method name="reflection_probe_set_ambient_color">
 			<return type="void" />
 			<param index="0" name="probe" type="RID" />

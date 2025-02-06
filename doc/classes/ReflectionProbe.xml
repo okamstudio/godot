@@ -13,6 +13,15 @@
 	<tutorials>
 		<link title="Reflection probes">$DOCS_URL/tutorials/3d/global_illumination/reflection_probes.html</link>
 	</tutorials>
+	<methods>
+		<method name="queue_update">
+			<return type="void" />
+			<description>
+				Queues an update of the ReflectionProbe cubemap and ambient lighting. The update will not be visible immediately; it typically takes 6 frames for the update to be visible (since 1 cubemap face is rendered per frame). [method queue_update] should be called [i]after[/i] modifying nearby objects to ensure the reflection remains up-to-date.
+				[b]Note:[/b] [method queue_update] only has an effect when [member update_mode] is [constant UPDATE_ONCE].
+			</description>
+		</method>
+	</methods>
 	<members>
 		<member name="ambient_color" type="Color" setter="set_ambient_color" getter="get_ambient_color" default="Color(0, 0, 0, 1)">
 			The custom ambient color to use within the [ReflectionProbe]'s box defined by its [member size]. Only effective if [member ambient_mode] is [constant AMBIENT_COLOR].
@@ -67,7 +76,7 @@
 	</members>
 	<constants>
 		<constant name="UPDATE_ONCE" value="0" enum="UpdateMode">
-			Update the probe once on the next frame (recommended for most objects). The corresponding radiance map will be generated over the following six frames. This takes more time to update than [constant UPDATE_ALWAYS], but it has a lower performance cost and can result in higher-quality reflections. The ReflectionProbe is updated when its transform changes, but not when nearby geometry changes. You can force a [ReflectionProbe] update by moving the [ReflectionProbe] slightly in any direction.
+			Update the probe once on the next frame (recommended for most cases). The corresponding radiance map will be generated over the following six frames. This takes more time to update than [constant UPDATE_ALWAYS], but it has a lower performance cost and can result in higher-quality reflections. The ReflectionProbe is updated when its transform changes, but not when nearby geometry changes. You can force a [ReflectionProbe] update using [method queue_update].
 		</constant>
 		<constant name="UPDATE_ALWAYS" value="1" enum="UpdateMode">
 			Update the probe every frame. This provides better results for fast-moving dynamic objects (such as cars). However, it has a significant performance cost. Due to the cost, it's recommended to only use one ReflectionProbe with [constant UPDATE_ALWAYS] at most per scene. For all other use cases, use [constant UPDATE_ONCE].

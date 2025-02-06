@@ -653,6 +653,8 @@ public:
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
 	virtual void reflection_probe_set_mesh_lod_threshold(RID p_probe, float p_pixels) = 0;
 
+	virtual void reflection_probe_queue_update(RID p_probe) = 0;
+
 	/* DECAL API */
 
 	enum DecalTexture {

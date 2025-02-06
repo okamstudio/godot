@@ -125,6 +125,8 @@ public:
 	virtual void reflection_probe_set_reflection_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_mesh_lod_threshold(RID p_probe, float p_ratio) = 0;
 
+	virtual void reflection_probe_queue_update(RID p_probe) = 0;
+
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const = 0;
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const = 0;
 	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const = 0;

@@ -855,6 +855,8 @@ public:
 
 	void reflection_probe_set_baked_exposure(RID p_probe, float p_exposure);
 
+	virtual void reflection_probe_queue_update(RID p_probe) override;
+
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const override;
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const override;
 	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const override;

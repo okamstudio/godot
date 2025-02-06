@@ -568,6 +568,9 @@ void LightStorage::reflection_probe_set_resolution(RID p_probe, int p_resolution
 	reflection_probe->resolution = p_resolution;
 }
 
+void LightStorage::reflection_probe_queue_update(RID p_probe) {
+}
+
 AABB LightStorage::reflection_probe_get_aabb(RID p_probe) const {
 	const ReflectionProbe *reflection_probe = reflection_probe_owner.get_or_null(p_probe);
 	ERR_FAIL_NULL_V(reflection_probe, AABB());

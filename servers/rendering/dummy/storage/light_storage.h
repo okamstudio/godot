@@ -140,6 +140,8 @@ public:
 	virtual void reflection_probe_set_mesh_lod_threshold(RID p_probe, float p_ratio) override {}
 	virtual float reflection_probe_get_mesh_lod_threshold(RID p_probe) const override { return 0.0; }
 
+	virtual void reflection_probe_queue_update(RID p_probe) override {}
+
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const override { return AABB(); }
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const override { return RenderingServer::REFLECTION_PROBE_UPDATE_ONCE; }
 	virtual uint32_t reflection_probe_get_cull_mask(RID p_probe) const override { return 0; }
