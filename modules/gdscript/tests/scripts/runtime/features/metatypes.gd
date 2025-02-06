@@ -11,7 +11,7 @@ var test_class := MyClass
 var test_enum := MyEnum
 
 func check_gdscript_native_class(value: Variant) -> void:
-	print(var_to_str(value).get_slice(",", 0).trim_prefix("Object("))
+	print(var_to_str(value).get_slice(",", 0).trim_prefix("Object(\n"))
 
 func check_gdscript(value: GDScript) -> void:
 	print(value.get_class())
