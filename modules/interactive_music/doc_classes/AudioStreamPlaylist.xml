@@ -18,7 +18,7 @@
 			<return type="AudioStream" />
 			<param index="0" name="stream_index" type="int" />
 			<description>
-				Returns the stream at playback position index.
+				Returns the stream at the specified index.
 			</description>
 		</method>
 		<method name="set_list_stream">
@@ -26,7 +26,7 @@
 			<param index="0" name="stream_index" type="int" />
 			<param index="1" name="audio_stream" type="AudioStream" />
 			<description>
-				Sets the stream at playback position index.
+				Sets the stream at the specified index.
 			</description>
 		</method>
 	</methods>
