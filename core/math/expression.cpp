@@ -461,7 +461,13 @@ Error Expression::_get_token(Token &r_token) {
 					} else if (id == "INF") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = INFINITY;
+					} else if (id == "inf") {
+						r_token.type = TK_CONSTANT;
+						r_token.value = INFINITY;
 					} else if (id == "NAN") {
+						r_token.type = TK_CONSTANT;
+						r_token.value = NAN;
+					} else if (id == "nan") {
 						r_token.type = TK_CONSTANT;
 						r_token.value = NAN;
 					} else if (id == "not") {
