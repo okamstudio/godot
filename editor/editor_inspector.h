@@ -563,6 +563,7 @@ class EditorInspector : public ScrollContainer {
 
 	float refresh_countdown;
 	bool update_tree_pending = false;
+	bool update_tree_paused = false;
 	StringName _prop_edited;
 	StringName property_selected;
 	int property_focusable;
@@ -702,6 +703,8 @@ public:
 	void set_restrict_to_basic_settings(bool p_restrict);
 	void set_property_clipboard(const Variant &p_value);
 	Variant get_property_clipboard() const;
+
+	void set_update_tree_paused(bool p_paused);
 
 	EditorInspector();
 };

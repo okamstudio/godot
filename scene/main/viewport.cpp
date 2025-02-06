@@ -176,7 +176,10 @@ Ref<Image> ViewportTexture::get_image() const {
 }
 
 void ViewportTexture::_err_print_viewport_not_set() const {
-	if (!vp_pending && !vp_changed) {
+	// Removing this error while in the editor to prevent printing this error
+	// while creating the new ViewportTexture. When creating a new ViewportTexture in the editor,
+	// it's normal that the vp is not initialized.
+	if (!vp_pending && !vp_changed && !Engine::get_singleton()->is_editor_hint()) {
 		ERR_PRINT("Viewport Texture must be set to use it.");
 	}
 }

@@ -681,6 +681,9 @@ class EditorPropertyResource : public EditorProperty {
 
 	void _viewport_selected(const NodePath &p_path);
 
+	EditorInspector *_get_parent_inspector();
+	void _scene_tree_visibility_changed();
+
 	void _sub_inspector_property_keyed(const String &p_property, const Variant &p_value, bool p_advance);
 	void _sub_inspector_resource_selected(const Ref<Resource> &p_resource, const String &p_property);
 	void _sub_inspector_object_id_selected(int p_id);

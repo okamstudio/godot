@@ -3153,7 +3153,19 @@ void EditorPropertyResource::_resource_changed(const Ref<Resource> &p_resource) 
 
 			add_child(scene_tree);
 			scene_tree->connect("selected", callable_mp(this, &EditorPropertyResource::_viewport_selected));
+			scene_tree->connect("visibility_changed", callable_mp(this, &EditorPropertyResource::_scene_tree_visibility_changed));
 		}
+
+		// We need to pause the inspector to update it's tree to prevent the
+		// recreation of the current EditorPropertyResource instance which contains
+		// the scene tree dialog. EditorInspector recreates all the controls on update tree
+		// and the update tree is triggered by the signal property_list_changed in BaseMaterial3D
+		// when the ViewportTexture is set on the current propecty.
+		EditorInspector *parent_inspector = _get_parent_inspector();
+		if (parent_inspector) {
+			parent_inspector->set_update_tree_paused(true);
+		}
+
 		scene_tree->popup_scenetree_dialog();
 	}
 }
@@ -3227,6 +3239,27 @@ void EditorPropertyResource::_viewport_selected(const NodePath &p_path) {
 
 	emit_changed(get_edited_property(), vt);
 	update_property();
+}
+
+EditorInspector *EditorPropertyResource::_get_parent_inspector() {
+	Node *parent = get_parent();
+	while (parent) {
+		EditorInspector *inspector = Object::cast_to<EditorInspector>(parent);
+		if (inspector) {
+			return inspector;
+		}
+		parent = parent->get_parent();
+	}
+	return nullptr;
+}
+
+void EditorPropertyResource::_scene_tree_visibility_changed() {
+	if (!scene_tree->is_visible()) {
+		EditorInspector *parent_inspector = _get_parent_inspector();
+		if (parent_inspector) {
+			parent_inspector->set_update_tree_paused(false);
+		}
+	}
 }
 
 void EditorPropertyResource::setup(Object *p_object, const String &p_path, const String &p_base_type) {
