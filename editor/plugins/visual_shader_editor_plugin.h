@@ -91,9 +91,6 @@ protected:
 public:
 	VSRerouteNode();
 	void set_icon_opacity(float p_opacity);
-
-	void _on_mouse_entered();
-	void _on_mouse_exited();
 };
 
 class VisualShaderGraphPlugin : public RefCounted {

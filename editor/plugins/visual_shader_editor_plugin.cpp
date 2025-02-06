@@ -133,10 +133,6 @@ void VSGraphNode::draw_port(int p_slot_index, Point2i p_pos, bool p_left, const 
 
 void VSRerouteNode::_notification(int p_what) {
 	switch (p_what) {
-		case NOTIFICATION_READY: {
-			connect(SceneStringName(mouse_entered), callable_mp(this, &VSRerouteNode::_on_mouse_entered));
-			connect(SceneStringName(mouse_exited), callable_mp(this, &VSRerouteNode::_on_mouse_exited));
-		} break;
 		case NOTIFICATION_DRAW: {
 			Vector2 offset = Vector2(0, -16 * EDSCALE);
 			Color drag_bg_color = get_theme_color(SNAME("drag_background"), SNAME("VSRerouteNode"));
@@ -145,6 +141,14 @@ void VSRerouteNode::_notification(int p_what) {
 			Ref<Texture2D> icon = get_editor_theme_icon(SNAME("ToolMove"));
 			Point2 icon_offset = -icon->get_size() * 0.5 + get_size() * 0.5 + offset;
 			draw_texture(icon, icon_offset, Color(1, 1, 1, selected ? 1 : icon_opacity));
+		} break;
+		case NOTIFICATION_MOUSE_ENTER: {
+			Ref<Tween> tween = create_tween();
+			tween->tween_method(callable_mp(this, &VSRerouteNode::set_icon_opacity), 0.0, 1.0, FADE_ANIMATION_LENGTH_SEC);
+		} break;
+		case NOTIFICATION_MOUSE_EXIT: {
+			Ref<Tween> tween = create_tween();
+			tween->tween_method(callable_mp(this, &VSRerouteNode::set_icon_opacity), 1.0, 0.0, FADE_ANIMATION_LENGTH_SEC);
 		} break;
 	}
 }
@@ -172,16 +176,6 @@ VSRerouteNode::VSRerouteNode() {
 void VSRerouteNode::set_icon_opacity(float p_opacity) {
 	icon_opacity = p_opacity;
 	queue_redraw();
-}
-
-void VSRerouteNode::_on_mouse_entered() {
-	Ref<Tween> tween = create_tween();
-	tween->tween_method(callable_mp(this, &VSRerouteNode::set_icon_opacity), 0.0, 1.0, FADE_ANIMATION_LENGTH_SEC);
-}
-
-void VSRerouteNode::_on_mouse_exited() {
-	Ref<Tween> tween = create_tween();
-	tween->tween_method(callable_mp(this, &VSRerouteNode::set_icon_opacity), 1.0, 0.0, FADE_ANIMATION_LENGTH_SEC);
 }
 
 ///////////////////
