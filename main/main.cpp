@@ -46,6 +46,7 @@
 #include "core/io/image_loader.h"
 #include "core/io/ip.h"
 #include "core/io/resource_loader.h"
+#include "core/license.gen.h"
 #include "core/object/message_queue.h"
 #include "core/object/script_language.h"
 #include "core/os/os.h"
@@ -505,6 +506,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_title("General options");
 	print_help_option("-h, --help", "Display this help message.\n");
 	print_help_option("--version", "Display the version string.\n");
+	print_help_option("--about", "Display engine information (\"license\", \"thirdparty-copyrights\", \"thirdparty-licenses\", \"authors\", \"donors\").\n");
 	print_help_option("-v, --verbose", "Use verbose stdout mode.\n");
 	print_help_option("--quiet", "Quiet mode, silences stdout messages. Errors are still displayed.\n");
 	print_help_option("--no-header", "Do not print engine version and rendering method header on startup.\n");
@@ -1068,6 +1070,138 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		} else if (arg == "--version") {
 			print_line(get_full_version_string());
 			exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+			goto error;
+
+		} else if (arg == "--about") {
+			if (N) {
+				if (N->get() == "license") {
+					print_line_rich("[b][u]MIT license[/u][/b]");
+					// Replace reference to the `AUTHORS.md` file by the equivalent command line argument.
+					print_line_rich(String::utf8(GODOT_LICENSE_TEXT).replace("AUTHORS.md", "[code]--about authors[/code] command line argument"));
+
+					exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+				} else if (N->get() == "thirdparty-copyrights") {
+					print_line("Godot Engine includes the following components. Some of them are developed by third parties:\n");
+
+					for (int component_idx = 0; component_idx < COPYRIGHT_INFO_COUNT; component_idx++) {
+						const ComponentCopyright &component = COPYRIGHT_INFO[component_idx];
+						// Print a list item for each component with a blank below.
+						// The blank line above the header is printed by the "Licenses:" part at the bottom.
+						print_line_rich("[b][u]" + String(component.name) + "[/u][/b]");
+
+						for (int part_idx = 0; part_idx < component.part_count; part_idx++) {
+							const ComponentCopyrightPart &part = component.parts[part_idx];
+							String copyrights;
+							for (int copyright_idx = 0; copyright_idx < part.copyright_count; copyright_idx++) {
+								if (copyright_idx == part.copyright_count - 1) {
+									// Avoid adding an extraneous newline at the end.
+									copyrights += String::utf8("    \xc2\xa9 ") + vformat("%s", String::utf8(part.copyright_statements[copyright_idx]));
+								} else {
+									copyrights += String::utf8("    \xc2\xa9 ") + vformat("%s\n", String::utf8(part.copyright_statements[copyright_idx]));
+								}
+							}
+
+							print_line(copyrights.trim_suffix("\n"));
+							// Add a blank line to separate it with other parts and headers.
+							print_line_rich("    [b]License:[/b] " + String(part.license) + "\n");
+						}
+					}
+
+					exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+				} else if (N->get() == "thirdparty-licenses") {
+					print_line("Godot Engine includes components licensed under the following open source licenses:\n");
+
+					String long_text;
+					for (int i = 0; i < LICENSE_COUNT; i++) {
+						String licensename = String::utf8(LICENSE_NAMES[i]);
+						long_text += "[b][u]" + licensename + "[/u][/b]\n\n";
+						String licensebody = String::utf8(LICENSE_BODIES[i]);
+						long_text += "    " + licensebody.replace("\n", "\n    ") + "\n\n";
+					}
+
+					print_line_rich(long_text);
+
+					exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+				} else if (N->get() == "authors") {
+					const Dictionary authors = Engine::get_singleton()->get_author_info();
+					const Array categories = authors.keys();
+
+					for (int category_idx = 0; category_idx < categories.size(); category_idx++) {
+						const String title = String(categories[category_idx]).capitalize();
+						// Print headers for each category of authors.
+						print_line_rich("[b][u]" + title + "[/u][/b]");
+
+						const int authors_size = Array(authors[categories[category_idx]]).size();
+						for (int author_idx = 0; author_idx < authors_size; author_idx += 2) {
+							// Print two author names per line to make the listing more compact.
+							// FIXME: Prevent invalid Unicode parsing errors.
+							const String author_name = String(Array(authors[categories[category_idx]])[author_idx]);
+							if (author_idx < authors_size - 1) {
+								const String next_author_name = String(Array(authors[categories[category_idx]])[author_idx + 1]);
+								// The second "column" is 50 characters after the first one.
+								// Always add 4 spaces to distinguish very long names
+								// on the first column from the second column.
+								print_line(vformat("%-46s    %s", author_name, next_author_name));
+							} else {
+								print_line(author_name);
+							}
+						}
+
+						// Add a line break after printing all authors from a section.
+						print_line("");
+					}
+
+					exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+				} else if (N->get() == "donors") {
+					const Dictionary donors = Engine::get_singleton()->get_donor_info();
+					const Array categories = donors.keys();
+
+					for (int category_idx = 0; category_idx < categories.size(); category_idx++) {
+						const int donors_size = Array(donors[categories[category_idx]]).size();
+						if (donors_size == 0) {
+							// Category is empty; don't print a header.
+							continue;
+						}
+
+						const String title = String(categories[category_idx]).capitalize();
+						// Print headers for each category of donors.
+						print_line_rich("[b][u]" + title + "[/u][/b]");
+
+						for (int donor_idx = 0; donor_idx < donors_size; donor_idx += 3) {
+							// Print two donor names per line to make the listing more compact.
+							// FIXME: Prevent invalid Unicode parsing errors.
+							const String donor_name = String(Array(donors[categories[category_idx]])[donor_idx]);
+							if (donor_idx < donors_size - 2) {
+								const String next_donor_name_1 = String(Array(donors[categories[category_idx]])[donor_idx + 1]);
+								const String next_donor_name_2 = String(Array(donors[categories[category_idx]])[donor_idx + 2]);
+								// The second "column" is 30 characters after the first one,
+								// and the third "column" is 30 characters after the second one.
+								// Always add 4 spaces to distinguish long names
+								// on the first column from the second column.
+								print_line(vformat("%-26s    %-26s    %s", donor_name, next_donor_name_1, next_donor_name_2));
+							} else if (donor_idx < donors_size - 1) {
+								const String next_donor_name = String(Array(donors[categories[category_idx]])[donor_idx + 1]);
+								// The second "column" is 30 characters after the first one.
+								// Always add 4 spaces to distinguish long names
+								// on the first column from the second column.
+								print_line(vformat("%-26s    %s", donor_name, next_donor_name));
+							} else {
+								print_line(donor_name);
+							}
+						}
+
+						// Add a line break after printing all donors from a section.
+						print_line("");
+					}
+
+					exit_err = ERR_HELP; // Hack to force an early exit in `main()` with a success code.
+				} else {
+					OS::get_singleton()->print("Invalid engine information argument (must be 'license', 'thirdparty-copyrights', 'thirdparty-licenses', 'authors', 'donors'), aborting.\n");
+				}
+			} else {
+				OS::get_singleton()->print("Missing engine information argument (must be 'license', 'thirdparty-copyrights', 'thirdparty-licenses', 'authors', 'donors'), aborting.\n");
+			}
+
 			goto error;
 
 		} else if (arg == "-v" || arg == "--verbose") { // verbose output
