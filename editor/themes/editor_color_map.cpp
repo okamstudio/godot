@@ -66,6 +66,10 @@ void EditorColorMap::create() {
 	add_conversion_color_pair("#699ce8", "#699ce8"); // GUI highlight color
 	add_conversion_color_pair("#f9f9f9", "#606060"); // Scrollbar grabber highlight color
 
+	add_conversion_color_pair("#5fb2ff", "#0079f0"); // Selection (blue)
+	add_conversion_color_pair("#003e7a", "#2b74bb"); // Selection (darker blue)
+	add_conversion_color_pair("#f7f5cf", "#615f3a"); // Gizmo (yellow)
+
 	add_conversion_color_pair("#c38ef1", "#a85de9"); // Animation
 	add_conversion_color_pair("#8da5f3", "#3d64dd"); // 2D
 	add_conversion_color_pair("#7582a8", "#6d83c8"); // 2D Abstract
@@ -73,10 +77,7 @@ void EditorColorMap::create() {
 	add_conversion_color_pair("#b56d6d", "#be6a6a"); // 3D Abstract
 	add_conversion_color_pair("#8eef97", "#2fa139"); // GUI Control
 	add_conversion_color_pair("#76ad7b", "#64a66a"); // GUI Control Abstract
-
-	add_conversion_color_pair("#5fb2ff", "#0079f0"); // Selection (blue)
-	add_conversion_color_pair("#003e7a", "#2b74bb"); // Selection (darker blue)
-	add_conversion_color_pair("#f7f5cf", "#615f3a"); // Gizmo (yellow)
+	add_conversion_color_pair("#f0caa0", "#844b0e"); // Editor-only
 
 	// Rainbow
 	add_conversion_color_pair("#ff4545", "#ff2929"); // Red
