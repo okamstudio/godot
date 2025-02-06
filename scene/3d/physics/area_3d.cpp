@@ -41,13 +41,26 @@ Area3D::SpaceOverride Area3D::get_gravity_space_override_mode() const {
 	return gravity_space_override;
 }
 
+void Area3D::set_gravity_type(GravityType p_type) {
+	gravity_type = p_type;
+	PhysicsServer3D::get_singleton()->area_set_param(get_rid(), PhysicsServer3D::AREA_PARAM_GRAVITY_TYPE, p_type);
+	if (gravity_type == GRAVITY_TYPE_TARGET) {
+		PhysicsServer3D::get_singleton()->area_set_gravity_target_callback(get_rid(), callable_mp(this, &Area3D::calculate_gravity_target));
+	} else {
+		PhysicsServer3D::get_singleton()->area_set_gravity_target_callback(get_rid(), Callable());
+	}
+}
+
+Area3D::GravityType Area3D::get_gravity_type() const {
+	return gravity_type;
+}
+
 void Area3D::set_gravity_is_point(bool p_enabled) {
-	gravity_is_point = p_enabled;
-	PhysicsServer3D::get_singleton()->area_set_param(get_rid(), PhysicsServer3D::AREA_PARAM_GRAVITY_IS_POINT, p_enabled);
+	set_gravity_type(p_enabled ? GravityType::GRAVITY_TYPE_POINT : GravityType::GRAVITY_TYPE_DIRECTIONAL);
 }
 
 bool Area3D::is_gravity_a_point() const {
-	return gravity_is_point;
+	return gravity_type != GravityType::GRAVITY_TYPE_DIRECTIONAL;
 }
 
 void Area3D::set_gravity_point_unit_distance(real_t p_scale) {
@@ -644,6 +657,12 @@ float Area3D::get_reverb_uniformity() const {
 	return reverb_uniformity;
 }
 
+Vector3 Area3D::calculate_gravity_target(const Vector3 &p_local_position) {
+	Vector3 ret;
+	GDVIRTUAL_CALL(_calculate_gravity_target, p_local_position, ret);
+	return ret;
+}
+
 void Area3D::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name == "audio_bus_name" || p_property.name == "reverb_bus_name") {
 		String options;
@@ -660,12 +679,17 @@ void Area3D::_validate_property(PropertyInfo &p_property) const {
 		if (gravity_space_override == SPACE_OVERRIDE_DISABLED) {
 			p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 		} else {
-			if (gravity_is_point) {
-				if (p_property.name == "gravity_direction") {
+			if (gravity_type == GRAVITY_TYPE_DIRECTIONAL) {
+				if (p_property.name == "gravity_point_unit_distance") {
 					p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 				}
 			} else {
-				if (p_property.name.begins_with("gravity_point_")) {
+				if (p_property.name == "gravity_direction") {
+					p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+				}
+			}
+			if (gravity_type != GRAVITY_TYPE_POINT) {
+				if (p_property.name == "gravity_point_center") {
 					p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 				}
 			}
@@ -684,6 +708,9 @@ void Area3D::_validate_property(PropertyInfo &p_property) const {
 void Area3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_gravity_space_override_mode", "space_override_mode"), &Area3D::set_gravity_space_override_mode);
 	ClassDB::bind_method(D_METHOD("get_gravity_space_override_mode"), &Area3D::get_gravity_space_override_mode);
+
+	ClassDB::bind_method(D_METHOD("set_gravity_type", "enable"), &Area3D::set_gravity_type);
+	ClassDB::bind_method(D_METHOD("get_gravity_type"), &Area3D::get_gravity_type);
 
 	ClassDB::bind_method(D_METHOD("set_gravity_is_point", "enable"), &Area3D::set_gravity_is_point);
 	ClassDB::bind_method(D_METHOD("is_gravity_a_point"), &Area3D::is_gravity_a_point);
@@ -757,6 +784,8 @@ void Area3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_reverb_uniformity", "amount"), &Area3D::set_reverb_uniformity);
 	ClassDB::bind_method(D_METHOD("get_reverb_uniformity"), &Area3D::get_reverb_uniformity);
 
+	GDVIRTUAL_BIND(_calculate_gravity_target, "local_position");
+
 	ADD_SIGNAL(MethodInfo("body_shape_entered", PropertyInfo(Variant::RID, "body_rid"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node3D"), PropertyInfo(Variant::INT, "body_shape_index"), PropertyInfo(Variant::INT, "local_shape_index")));
 	ADD_SIGNAL(MethodInfo("body_shape_exited", PropertyInfo(Variant::RID, "body_rid"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node3D"), PropertyInfo(Variant::INT, "body_shape_index"), PropertyInfo(Variant::INT, "local_shape_index")));
 	ADD_SIGNAL(MethodInfo("body_entered", PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node3D")));
@@ -773,7 +802,8 @@ void Area3D::_bind_methods() {
 
 	ADD_GROUP("Gravity", "gravity_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "gravity_space_override", PROPERTY_HINT_ENUM, "Disabled,Combine,Combine-Replace,Replace,Replace-Combine", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_space_override_mode", "get_gravity_space_override_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "gravity_point", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_is_point", "is_gravity_a_point");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "gravity_type", PROPERTY_HINT_ENUM, "Directional,Point,Target", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), "set_gravity_type", "get_gravity_type");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "gravity_point", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_gravity_is_point", "is_gravity_a_point");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "gravity_point_unit_distance", PROPERTY_HINT_RANGE, "0,1024,0.001,or_greater,exp,suffix:m"), "set_gravity_point_unit_distance", "get_gravity_point_unit_distance");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "gravity_point_center", PROPERTY_HINT_NONE, "suffix:m"), "set_gravity_point_center", "get_gravity_point_center");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "gravity_direction"), "set_gravity_direction", "get_gravity_direction");
@@ -807,6 +837,10 @@ void Area3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(SPACE_OVERRIDE_COMBINE_REPLACE);
 	BIND_ENUM_CONSTANT(SPACE_OVERRIDE_REPLACE);
 	BIND_ENUM_CONSTANT(SPACE_OVERRIDE_REPLACE_COMBINE);
+
+	BIND_ENUM_CONSTANT(GRAVITY_TYPE_DIRECTIONAL);
+	BIND_ENUM_CONSTANT(GRAVITY_TYPE_POINT);
+	BIND_ENUM_CONSTANT(GRAVITY_TYPE_TARGET);
 }
 
 Area3D::Area3D() :

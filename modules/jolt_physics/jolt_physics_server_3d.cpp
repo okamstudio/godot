@@ -492,6 +492,13 @@ void JoltPhysicsServer3D::area_set_area_monitor_callback(RID p_area, const Calla
 	area->set_area_monitor_callback(p_callback);
 }
 
+void JoltPhysicsServer3D::area_set_gravity_target_callback(RID p_area, const Callable &p_callback) {
+	JoltArea3D *area = area_owner.get_or_null(p_area);
+	ERR_FAIL_NULL(area);
+
+	area->set_gravity_target_callback(p_callback.is_valid() ? p_callback : Callable());
+}
+
 void JoltPhysicsServer3D::area_set_ray_pickable(RID p_area, bool p_enable) {
 	JoltArea3D *area = area_owner.get_or_null(p_area);
 	ERR_FAIL_NULL(area);

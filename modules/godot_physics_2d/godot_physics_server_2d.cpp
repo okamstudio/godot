@@ -527,6 +527,13 @@ void GodotPhysicsServer2D::area_set_area_monitor_callback(RID p_area, const Call
 	area->set_area_monitor_callback(p_callback.is_valid() ? p_callback : Callable());
 }
 
+void GodotPhysicsServer2D::area_set_gravity_target_callback(RID p_area, const Callable &p_callback) {
+	GodotArea2D *area = area_owner.get_or_null(p_area);
+	ERR_FAIL_NULL(area);
+
+	area->set_gravity_target_callback(p_callback.is_valid() ? p_callback : Callable());
+}
+
 /* BODY API */
 
 RID GodotPhysicsServer2D::body_create() {

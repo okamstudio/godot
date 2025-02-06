@@ -279,6 +279,7 @@ public:
 
 	EXBIND2(area_set_monitor_callback, RID, const Callable &)
 	EXBIND2(area_set_area_monitor_callback, RID, const Callable &)
+	EXBIND2(area_set_gravity_target_callback, RID, const Callable &)
 
 	/* BODY API */
 

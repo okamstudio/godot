@@ -202,6 +202,7 @@ public:
 
 	virtual void area_set_monitor_callback(RID p_area, const Callable &p_callback) override {}
 	virtual void area_set_area_monitor_callback(RID p_area, const Callable &p_callback) override {}
+	virtual void area_set_gravity_target_callback(RID p_area, const Callable &p_callback) override {}
 
 	/* BODY API */
 

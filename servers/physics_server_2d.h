@@ -286,7 +286,8 @@ public:
 		AREA_PARAM_GRAVITY_OVERRIDE_MODE,
 		AREA_PARAM_GRAVITY,
 		AREA_PARAM_GRAVITY_VECTOR,
-		AREA_PARAM_GRAVITY_IS_POINT,
+		AREA_PARAM_GRAVITY_TYPE,
+		AREA_PARAM_GRAVITY_IS_POINT = AREA_PARAM_GRAVITY_TYPE,
 		AREA_PARAM_GRAVITY_POINT_UNIT_DISTANCE,
 		AREA_PARAM_LINEAR_DAMP_OVERRIDE_MODE,
 		AREA_PARAM_LINEAR_DAMP,
@@ -306,6 +307,12 @@ public:
 		AREA_SPACE_OVERRIDE_COMBINE_REPLACE, // Combines, then discards all subsequent calculations
 		AREA_SPACE_OVERRIDE_REPLACE,
 		AREA_SPACE_OVERRIDE_REPLACE_COMBINE // Discards all previous calculations, then keeps combining
+	};
+
+	enum AreaGravityType {
+		AREA_GRAVITY_TYPE_DIRECTIONAL,
+		AREA_GRAVITY_TYPE_POINT,
+		AREA_GRAVITY_TYPE_TARGET,
 	};
 
 	virtual void area_add_shape(RID p_area, RID p_shape, const Transform2D &p_transform = Transform2D(), bool p_disabled = false) = 0;
@@ -344,6 +351,7 @@ public:
 
 	virtual void area_set_monitor_callback(RID p_area, const Callable &p_callback) = 0;
 	virtual void area_set_area_monitor_callback(RID p_area, const Callable &p_callback) = 0;
+	virtual void area_set_gravity_target_callback(RID p_area, const Callable &p_callback) = 0;
 
 	/* BODY API */
 
@@ -833,6 +841,7 @@ VARIANT_ENUM_CAST(PhysicsServer2D::ShapeType);
 VARIANT_ENUM_CAST(PhysicsServer2D::SpaceParameter);
 VARIANT_ENUM_CAST(PhysicsServer2D::AreaParameter);
 VARIANT_ENUM_CAST(PhysicsServer2D::AreaSpaceOverrideMode);
+VARIANT_ENUM_CAST(PhysicsServer2D::AreaGravityType);
 VARIANT_ENUM_CAST(PhysicsServer2D::BodyMode);
 VARIANT_ENUM_CAST(PhysicsServer2D::BodyParameter);
 VARIANT_ENUM_CAST(PhysicsServer2D::BodyDampMode);

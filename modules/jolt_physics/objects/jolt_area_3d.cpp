@@ -399,8 +399,8 @@ Variant JoltArea3D::get_param(PhysicsServer3D::AreaParameter p_param) const {
 		case PhysicsServer3D::AREA_PARAM_GRAVITY_VECTOR: {
 			return get_gravity_vector();
 		}
-		case PhysicsServer3D::AREA_PARAM_GRAVITY_IS_POINT: {
-			return is_point_gravity();
+		case PhysicsServer3D::AREA_PARAM_GRAVITY_TYPE: {
+			return get_gravity_type();
 		}
 		case PhysicsServer3D::AREA_PARAM_GRAVITY_POINT_UNIT_DISTANCE: {
 			return get_point_gravity_distance();
@@ -449,8 +449,8 @@ void JoltArea3D::set_param(PhysicsServer3D::AreaParameter p_param, const Variant
 		case PhysicsServer3D::AREA_PARAM_GRAVITY_VECTOR: {
 			set_gravity_vector(p_value);
 		} break;
-		case PhysicsServer3D::AREA_PARAM_GRAVITY_IS_POINT: {
-			set_point_gravity(p_value);
+		case PhysicsServer3D::AREA_PARAM_GRAVITY_TYPE: {
+			set_gravity_type((PhysicsServer3D::AreaGravityType)(int)p_value);
 		} break;
 		case PhysicsServer3D::AREA_PARAM_GRAVITY_POINT_UNIT_DISTANCE: {
 			set_point_gravity_distance(p_value);
@@ -516,6 +516,10 @@ void JoltArea3D::set_area_monitor_callback(const Callable &p_callback) {
 	_area_monitoring_changed();
 }
 
+void JoltArea3D::set_gravity_target_callback(const Callable &p_callback) {
+	gravity_target_callback = p_callback;
+}
+
 void JoltArea3D::set_monitorable(bool p_monitorable) {
 	if (p_monitorable == monitorable) {
 		return;
@@ -554,14 +558,18 @@ Vector3 JoltArea3D::get_velocity_at_position(const Vector3 &p_position) const {
 	return Vector3();
 }
 
-void JoltArea3D::set_point_gravity(bool p_enabled) {
-	if (point_gravity == p_enabled) {
+void JoltArea3D::set_gravity_type(PhysicsServer3D::AreaGravityType p_gravity_type) {
+	if (gravity_type == p_gravity_type) {
 		return;
 	}
 
-	point_gravity = p_enabled;
+	gravity_type = p_gravity_type;
 
 	_gravity_changed();
+}
+
+void JoltArea3D::set_point_gravity(bool p_enable) {
+	set_gravity_type(p_enable ? PhysicsServer3D::AREA_GRAVITY_TYPE_POINT : PhysicsServer3D::AREA_GRAVITY_TYPE_DIRECTIONAL);
 }
 
 void JoltArea3D::set_gravity(float p_gravity) {
@@ -604,23 +612,35 @@ void JoltArea3D::set_gravity_vector(const Vector3 &p_vector) {
 	_gravity_changed();
 }
 
-Vector3 JoltArea3D::compute_gravity(const Vector3 &p_position) const {
-	if (!point_gravity) {
-		return gravity_vector * gravity;
+Vector3 JoltArea3D::compute_gravity(const Vector3 &p_global_position) const {
+	switch (gravity_type) {
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_DIRECTIONAL: {
+			return gravity_vector * gravity;
+		} break;
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_POINT:
+		case PhysicsServer3D::AREA_GRAVITY_TYPE_TARGET: {
+			Vector3 target_local_position;
+			if (gravity_type == PhysicsServer3D::AREA_GRAVITY_TYPE_POINT) {
+				target_local_position = gravity_vector;
+			} else {
+				const Variant local_position_variant = get_transform_scaled().affine_inverse().xform(p_global_position);
+				const Variant *args[1] = { &local_position_variant };
+				Variant ret;
+				Callable::CallError ce;
+				gravity_target_callback.callp(args, 1, ret, ce);
+				target_local_position = ret;
+			}
+			const Vector3 to_point = get_transform_scaled().xform(target_local_position) - p_global_position;
+			const real_t to_point_dist_sq = MAX(to_point.length_squared(), (real_t)CMP_EPSILON);
+			const Vector3 to_point_dir = to_point / Math::sqrt(to_point_dist_sq);
+			if (point_gravity_distance == 0.0f) {
+				return to_point_dir * gravity;
+			}
+			const float gravity_dist_sq = point_gravity_distance * point_gravity_distance;
+			return to_point_dir * (gravity * gravity_dist_sq / to_point_dist_sq);
+		} break;
 	}
-
-	const Vector3 point = get_transform_scaled().xform(gravity_vector);
-	const Vector3 to_point = point - p_position;
-	const real_t to_point_dist_sq = MAX(to_point.length_squared(), (real_t)CMP_EPSILON);
-	const Vector3 to_point_dir = to_point / Math::sqrt(to_point_dist_sq);
-
-	if (point_gravity_distance == 0.0f) {
-		return to_point_dir * gravity;
-	}
-
-	const float gravity_dist_sq = point_gravity_distance * point_gravity_distance;
-
-	return to_point_dir * (gravity * gravity_dist_sq / to_point_dist_sq);
+	ERR_FAIL_V_MSG(Vector3(), "Godot Jolt Physics: Unhandled area gravity type: " + itos(gravity_type) + ". This should not happen. Please report this.");
 }
 
 void JoltArea3D::body_shape_entered(const JPH::BodyID &p_body_id, const JPH::SubShapeID &p_other_shape_id, const JPH::SubShapeID &p_self_shape_id) {

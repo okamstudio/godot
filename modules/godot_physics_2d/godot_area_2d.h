@@ -47,7 +47,7 @@ class GodotArea2D : public GodotCollisionObject2D {
 
 	real_t gravity = 9.80665;
 	Vector2 gravity_vector = Vector2(0, -1);
-	bool gravity_is_point = false;
+	PhysicsServer2D::AreaGravityType gravity_type = PhysicsServer2D::AREA_GRAVITY_TYPE_DIRECTIONAL;
 	real_t gravity_point_unit_distance = 0.0;
 	real_t linear_damp = 0.1;
 	real_t angular_damp = 1.0;
@@ -57,6 +57,7 @@ class GodotArea2D : public GodotCollisionObject2D {
 	Callable monitor_callback;
 
 	Callable area_monitor_callback;
+	Callable gravity_target_callback;
 
 	SelfList<GodotArea2D> monitor_query_list;
 	SelfList<GodotArea2D> moved_list;
@@ -106,6 +107,8 @@ public:
 	void set_area_monitor_callback(const Callable &p_callback);
 	_FORCE_INLINE_ bool has_area_monitor_callback() const { return area_monitor_callback.is_valid(); }
 
+	void set_gravity_target_callback(const Callable &p_callback);
+
 	_FORCE_INLINE_ void add_body_to_query(GodotBody2D *p_body, uint32_t p_body_shape, uint32_t p_area_shape);
 	_FORCE_INLINE_ void remove_body_from_query(GodotBody2D *p_body, uint32_t p_body_shape, uint32_t p_area_shape);
 
@@ -121,8 +124,11 @@ public:
 	_FORCE_INLINE_ void set_gravity_vector(const Vector2 &p_gravity) { gravity_vector = p_gravity; }
 	_FORCE_INLINE_ Vector2 get_gravity_vector() const { return gravity_vector; }
 
-	_FORCE_INLINE_ void set_gravity_as_point(bool p_enable) { gravity_is_point = p_enable; }
-	_FORCE_INLINE_ bool is_gravity_point() const { return gravity_is_point; }
+	_FORCE_INLINE_ void set_gravity_type(PhysicsServer2D::AreaGravityType p_gravity_type) { gravity_type = p_gravity_type; }
+	_FORCE_INLINE_ PhysicsServer2D::AreaGravityType get_gravity_type() const { return gravity_type; }
+
+	_FORCE_INLINE_ void set_gravity_as_point(bool p_enable) { gravity_type = p_enable ? PhysicsServer2D::AREA_GRAVITY_TYPE_POINT : PhysicsServer2D::AREA_GRAVITY_TYPE_DIRECTIONAL; }
+	_FORCE_INLINE_ bool is_gravity_point() const { return gravity_type == PhysicsServer2D::AREA_GRAVITY_TYPE_POINT; }
 
 	_FORCE_INLINE_ void set_gravity_point_unit_distance(real_t scale) { gravity_point_unit_distance = scale; }
 	_FORCE_INLINE_ real_t get_gravity_point_unit_distance() const { return gravity_point_unit_distance; }
@@ -150,7 +156,7 @@ public:
 
 	void call_queries();
 
-	void compute_gravity(const Vector2 &p_position, Vector2 &r_gravity) const;
+	void compute_gravity(const Vector2 &p_global_position, Vector2 &r_gravity) const;
 
 	GodotArea2D();
 	~GodotArea2D();

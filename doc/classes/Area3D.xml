@@ -15,6 +15,13 @@
 		<link title="GUI in 3D Viewport Demo">https://godotengine.org/asset-library/asset/2807</link>
 	</tutorials>
 	<methods>
+		<method name="_calculate_gravity_target" qualifiers="virtual">
+			<return type="Vector3" />
+			<param index="0" name="local_position" type="Vector3" />
+			<description>
+				Callback method for calculating a custom target point for gravity. This is only used when the [member gravity_type] property is set to [constant GRAVITY_TYPE_TARGET].
+			</description>
+		</method>
 		<method name="get_overlapping_areas" qualifiers="const">
 			<return type="Area3D[]" />
 			<description>
@@ -81,7 +88,7 @@
 		<member name="gravity_direction" type="Vector3" setter="set_gravity_direction" getter="get_gravity_direction" default="Vector3(0, -1, 0)">
 			The area's gravity vector (not normalized).
 		</member>
-		<member name="gravity_point" type="bool" setter="set_gravity_is_point" getter="is_gravity_a_point" default="false">
+		<member name="gravity_point" type="bool" setter="set_gravity_is_point" getter="is_gravity_a_point" default="false" deprecated="Use [member gravity_type] instead.">
 			If [code]true[/code], gravity is calculated from a point (set via [member gravity_point_center]). See also [member gravity_space_override].
 		</member>
 		<member name="gravity_point_center" type="Vector3" setter="set_gravity_point_center" getter="get_gravity_point_center" default="Vector3(0, -1, 0)">
@@ -93,6 +100,9 @@
 		</member>
 		<member name="gravity_space_override" type="int" setter="set_gravity_space_override_mode" getter="get_gravity_space_override_mode" enum="Area3D.SpaceOverride" default="0">
 			Override mode for gravity calculations within this area. See [enum SpaceOverride] for possible values.
+		</member>
+		<member name="gravity_type" type="int" setter="set_gravity_type" getter="get_gravity_type" enum="Area3D.GravityType" default="0">
+			Determines what type of gravity is applied, if [member gravity_space_override] is not disabled. See [enum GravityType] for possible values.
 		</member>
 		<member name="linear_damp" type="float" setter="set_linear_damp" getter="get_linear_damp" default="0.1">
 			The rate at which objects stop moving in this area. Represents the linear velocity lost per second.
@@ -236,6 +246,15 @@
 		</constant>
 		<constant name="SPACE_OVERRIDE_REPLACE_COMBINE" value="4" enum="SpaceOverride">
 			This area replaces any gravity/damping calculated so far (in [member priority] order), but keeps calculating the rest of the areas.
+		</constant>
+		<constant name="GRAVITY_TYPE_DIRECTIONAL" value="0" enum="GravityType">
+			Gravity that attracts in the direction specified by [member gravity_direction]. The strength of gravity is the same at all positions in the area.
+		</constant>
+		<constant name="GRAVITY_TYPE_POINT" value="1" enum="GravityType">
+			Gravity that attracts towards a point specified by [member gravity_point_center]. The strength of gravity is based on the distance to the point and the [member gravity_point_unit_distance] property.
+		</constant>
+		<constant name="GRAVITY_TYPE_TARGET" value="2" enum="GravityType">
+			Gravity that attracts towards a point defined by the output of the [method _calculate_gravity_target] callback method.
 		</constant>
 	</constants>
 </class>
