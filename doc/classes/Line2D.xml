@@ -22,6 +22,14 @@
 				If [param index] is given, the new point is inserted before the existing point identified by index [param index]. The indices of the points after the new point get increased by 1. The provided [param index] must not exceed the number of existing points in the polyline. See [method get_point_count].
 			</description>
 		</method>
+		<method name="add_point_global">
+			<return type="void" />
+			<param index="0" name="position" type="Vector2" />
+			<param index="1" name="index" type="int" default="-1" />
+			<description>
+				Adds a point in global coordinates to the line.
+			</description>
+		</method>
 		<method name="clear_points">
 			<return type="void" />
 			<description>
@@ -32,6 +40,13 @@
 			<return type="int" />
 			<description>
 				Returns the number of points in the polyline.
+			</description>
+		</method>
+		<method name="get_point_global_position" qualifiers="const">
+			<return type="Vector2" />
+			<param index="0" name="index" type="int" />
+			<description>
+				Returns the global position of the point at index [param index].
 			</description>
 		</method>
 		<method name="get_point_position" qualifiers="const">
@@ -46,6 +61,15 @@
 			<param index="0" name="index" type="int" />
 			<description>
 				Removes the point at index [param index] from the polyline.
+			</description>
+		</method>
+		<method name="set_point_global_position">
+			<return type="void" />
+			<param index="0" name="index" type="int" />
+			<param index="1" name="position" type="Vector2" />
+			<description>
+				Overwrites the position of the point at the given [param index] with the supplied [param position] in global coordinates.
+				[b]Note:[/b] The supplied [param position] will be converted to the polyline's local coordinate space.
 			</description>
 		</method>
 		<method name="set_point_position">

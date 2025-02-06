@@ -134,6 +134,17 @@ Vector2 Line2D::get_point_position(int i) const {
 	return _points.get(i);
 }
 
+void Line2D::set_point_global_position(int i, Vector2 p_pos) {
+	ERR_FAIL_INDEX(i, _points.size());
+	_points.set(i, to_local(p_pos));
+	queue_redraw();
+}
+
+Vector2 Line2D::get_point_global_position(int i) const {
+	ERR_FAIL_INDEX_V(i, _points.size(), Vector2());
+	return to_global(_points.get(i));
+}
+
 int Line2D::get_point_count() const {
 	return _points.size();
 }
@@ -153,6 +164,10 @@ void Line2D::add_point(Vector2 p_pos, int p_atpos) {
 		_points.insert(p_atpos, p_pos);
 	}
 	queue_redraw();
+}
+
+void Line2D::add_point_global(Vector2 p_pos, int p_atpos) {
+	add_point(to_local(p_pos), p_atpos);
 }
 
 void Line2D::remove_point(int i) {
@@ -342,10 +357,15 @@ void Line2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_point_position", "index", "position"), &Line2D::set_point_position);
 	ClassDB::bind_method(D_METHOD("get_point_position", "index"), &Line2D::get_point_position);
 
+	ClassDB::bind_method(D_METHOD("set_point_global_position", "index", "position"), &Line2D::set_point_global_position);
+	ClassDB::bind_method(D_METHOD("get_point_global_position", "index"), &Line2D::get_point_global_position);
+
 	ClassDB::bind_method(D_METHOD("get_point_count"), &Line2D::get_point_count);
 
 	ClassDB::bind_method(D_METHOD("add_point", "position", "index"), &Line2D::add_point, DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("remove_point", "index"), &Line2D::remove_point);
+
+	ClassDB::bind_method(D_METHOD("add_point_global", "position", "index"), &Line2D::add_point_global, DEFVAL(-1));
 
 	ClassDB::bind_method(D_METHOD("clear_points"), &Line2D::clear_points);
 

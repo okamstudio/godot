@@ -69,12 +69,17 @@ public:
 	void set_point_position(int i, Vector2 pos);
 	Vector2 get_point_position(int i) const;
 
+	void set_point_global_position(int i, Vector2 p_pos);
+	Vector2 get_point_global_position(int i) const;
+
 	int get_point_count() const;
 
 	void clear_points();
 
 	void add_point(Vector2 pos, int atpos = -1);
 	void remove_point(int i);
+
+	void add_point_global(Vector2 p_pos, int p_atpos);
 
 	void set_closed(bool p_closed);
 	bool is_closed() const;
