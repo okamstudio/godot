@@ -333,6 +333,7 @@ private:
 	Vector<Node3D *> selection_results_menu;
 	bool clicked_wants_append = false;
 	bool selection_in_progress = false;
+	bool movement_threshold_passed = false;
 
 	PopupMenu *selection_menu = nullptr;
 
@@ -629,6 +630,7 @@ public:
 
 	enum ToolMode {
 		TOOL_MODE_SELECT,
+		TOOL_MODE_TRANSFORM,
 		TOOL_MODE_MOVE,
 		TOOL_MODE_ROTATE,
 		TOOL_MODE_SCALE,
@@ -721,6 +723,7 @@ private:
 
 	enum MenuOption {
 		MENU_TOOL_SELECT,
+		MENU_TOOL_TRANSFORM,
 		MENU_TOOL_MOVE,
 		MENU_TOOL_ROTATE,
 		MENU_TOOL_SCALE,
