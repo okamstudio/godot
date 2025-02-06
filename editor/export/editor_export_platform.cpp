@@ -855,7 +855,7 @@ String EditorExportPlatform::_export_customize(const String &p_path, LocalVector
 	if (type == "PackedScene") { // Its a scene.
 		Ref<PackedScene> ps = ResourceLoader::load(p_path, "PackedScene", ResourceFormatLoader::CACHE_MODE_IGNORE);
 		ERR_FAIL_COND_V(ps.is_null(), p_path);
-		Node *node = ps->instantiate(PackedScene::GEN_EDIT_STATE_MAIN); // Make sure scene root gets the correct inheritance chain.
+		Node *node = ps->instantiate(PackedScene::GEN_EDIT_STATE_INSTANCE); // Make sure the child scene root gets the correct inheritance chain.
 		ERR_FAIL_NULL_V(node, p_path);
 		if (!customize_scenes_plugins.is_empty()) {
 			for (Ref<EditorExportPlugin> &plugin : customize_scenes_plugins) {
