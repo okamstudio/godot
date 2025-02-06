@@ -545,6 +545,10 @@ double VariantUtilityFunctions::lerp_angle(double from, double to, double weight
 	return Math::lerp_angle(from, to, weight);
 }
 
+double VariantUtilityFunctions::blend_from_angle(double rest, double from, double to, double weight) {
+	return Math::blend_from_angle(rest, from, to, weight);
+}
+
 double VariantUtilityFunctions::inverse_lerp(double from, double to, double weight) {
 	return Math::inverse_lerp(from, to, weight);
 }
@@ -1778,6 +1782,7 @@ void Variant::_register_variant_utility_functions() {
 	FUNCBINDR(lerp_angle, sarray("from", "to", "weight"), Variant::UTILITY_FUNC_TYPE_MATH);
 	FUNCBINDR(inverse_lerp, sarray("from", "to", "weight"), Variant::UTILITY_FUNC_TYPE_MATH);
 	FUNCBINDR(remap, sarray("value", "istart", "istop", "ostart", "ostop"), Variant::UTILITY_FUNC_TYPE_MATH);
+	FUNCBINDR(blend_from_angle, sarray("rest", "from", "to", "weight"), Variant::UTILITY_FUNC_TYPE_MATH);
 
 	FUNCBINDR(smoothstep, sarray("from", "to", "x"), Variant::UTILITY_FUNC_TYPE_MATH);
 	FUNCBINDR(move_toward, sarray("from", "to", "delta"), Variant::UTILITY_FUNC_TYPE_MATH);

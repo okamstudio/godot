@@ -92,6 +92,7 @@ struct VariantUtilityFunctions {
 	static double bezier_derivative(double p_start, double p_control_1, double p_control_2, double p_end, double p_t);
 	static double angle_difference(double from, double to);
 	static double lerp_angle(double from, double to, double weight);
+	static double blend_from_angle(double init, double from, double to, double weight);
 	static double inverse_lerp(double from, double to, double weight);
 	static double remap(double value, double istart, double istop, double ostart, double ostop);
 	static double smoothstep(double from, double to, double val);

@@ -581,7 +581,7 @@ void LookAtModifier3D::_process_modification() {
 			// Interpolate through the rest same as AnimationTree blending for preventing to penetrate the bone into the body.
 			Quaternion rest = skeleton->get_bone_rest(bone).basis.get_rotation_quaternion();
 			float weight = Tween::run_equation(transition_type, ease_type, 1 - remaining, 0.0, 1.0, 1.0);
-			destination = rest * Quaternion().slerp(rest.inverse() * from_q, 1 - weight) * Quaternion().slerp(rest.inverse() * destination, weight);
+			destination = rest.blend_from(rest, from_q, 1 - weight).blend_from(rest, destination, weight);
 		} else {
 			destination = from_q.slerp(destination, Tween::run_equation(transition_type, ease_type, 1 - remaining, 0.0, 1.0, 1.0));
 		}

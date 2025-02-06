@@ -434,6 +434,33 @@ public:
 		return p_from + Math::angle_difference(p_from, p_to) * p_weight;
 	}
 
+	static _ALWAYS_INLINE_ double blend_from_angle(double p_rest, double p_from, double p_to, double p_weight) {
+		double rot_a = Math::fposmod(p_from, Math_TAU);
+		double rot_b = Math::fposmod(p_to, Math_TAU);
+		double rot_rest = Math::fposmod(p_rest, Math_TAU);
+		if (rot_rest < Math_PI) {
+			rot_a = rot_a > rot_rest + Math_PI ? rot_a - Math_TAU : rot_a;
+			rot_b = rot_b > rot_rest + Math_PI ? rot_b - Math_TAU : rot_b;
+		} else {
+			rot_a = rot_a < rot_rest - Math_PI ? rot_a + Math_TAU : rot_a;
+			rot_b = rot_b < rot_rest - Math_PI ? rot_b + Math_TAU : rot_b;
+		}
+		return Math::fposmod(rot_a + (rot_b - rot_rest) * p_weight, Math_TAU);
+	}
+	static _ALWAYS_INLINE_ float blend_from_angle(float p_rest, float p_from, float p_to, float p_weight) {
+		float rot_a = Math::fposmod(p_from, (float)Math_TAU);
+		float rot_b = Math::fposmod(p_to, (float)Math_TAU);
+		float rot_rest = Math::fposmod(p_rest, (float)Math_TAU);
+		if (rot_rest < (float)Math_PI) {
+			rot_a = rot_a > rot_rest + (float)Math_PI ? rot_a - (float)Math_TAU : rot_a;
+			rot_b = rot_b > rot_rest + (float)Math_PI ? rot_b - (float)Math_TAU : rot_b;
+		} else {
+			rot_a = rot_a < rot_rest - (float)Math_PI ? rot_a + (float)Math_TAU : rot_a;
+			rot_b = rot_b < rot_rest - (float)Math_PI ? rot_b + (float)Math_TAU : rot_b;
+		}
+		return Math::fposmod(rot_a + (rot_b - rot_rest) * p_weight, (float)Math_TAU);
+	}
+
 	static _ALWAYS_INLINE_ double inverse_lerp(double p_from, double p_to, double p_value) {
 		return (p_value - p_from) / (p_to - p_from);
 	}
