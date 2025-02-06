@@ -84,11 +84,13 @@ void Variant::_register_variant_constructors() {
 	add_constructor<VariantConstructNoArgs<Vector2>>(sarray());
 	add_constructor<VariantConstructor<Vector2, Vector2>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector2, Vector2i>>(sarray("from"));
+	add_constructor<VariantConstructor<Vector2, double>>(sarray("value"));
 	add_constructor<VariantConstructor<Vector2, double, double>>(sarray("x", "y"));
 
 	add_constructor<VariantConstructNoArgs<Vector2i>>(sarray());
 	add_constructor<VariantConstructor<Vector2i, Vector2i>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector2i, Vector2>>(sarray("from"));
+	// add_constructor<VariantConstructor<Vector2i, int64_t>>(sarray("p"));
 	add_constructor<VariantConstructor<Vector2i, int64_t, int64_t>>(sarray("x", "y"));
 
 	add_constructor<VariantConstructNoArgs<Rect2>>(sarray());
@@ -106,21 +108,25 @@ void Variant::_register_variant_constructors() {
 	add_constructor<VariantConstructNoArgs<Vector3>>(sarray());
 	add_constructor<VariantConstructor<Vector3, Vector3>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector3, Vector3i>>(sarray("from"));
+	// add_constructor<VariantConstructor<Vector3, double>>(sarray("p"));
 	add_constructor<VariantConstructor<Vector3, double, double, double>>(sarray("x", "y", "z"));
 
 	add_constructor<VariantConstructNoArgs<Vector3i>>(sarray());
 	add_constructor<VariantConstructor<Vector3i, Vector3i>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector3i, Vector3>>(sarray("from"));
+	// add_constructor<VariantConstructor<Vector3i, int64_t>>(sarray("p"));
 	add_constructor<VariantConstructor<Vector3i, int64_t, int64_t, int64_t>>(sarray("x", "y", "z"));
 
 	add_constructor<VariantConstructNoArgs<Vector4>>(sarray());
 	add_constructor<VariantConstructor<Vector4, Vector4>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector4, Vector4i>>(sarray("from"));
+	// add_constructor<VariantConstructor<Vector4, double>>(sarray("p"));
 	add_constructor<VariantConstructor<Vector4, double, double, double, double>>(sarray("x", "y", "z", "w"));
 
 	add_constructor<VariantConstructNoArgs<Vector4i>>(sarray());
 	add_constructor<VariantConstructor<Vector4i, Vector4i>>(sarray("from"));
 	add_constructor<VariantConstructor<Vector4i, Vector4>>(sarray("from"));
+	// add_constructor<VariantConstructor<Vector4i, int64_t>>(sarray("p"));
 	add_constructor<VariantConstructor<Vector4i, int64_t, int64_t, int64_t, int64_t>>(sarray("x", "y", "z", "w"));
 
 	add_constructor<VariantConstructNoArgs<Transform2D>>(sarray());

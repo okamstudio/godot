@@ -40,6 +40,13 @@
 		</constructor>
 		<constructor name="Vector2">
 			<return type="Vector2" />
+			<param index="0" name="p" type="float" />
+			<description>
+				Constructs a new [Vector2] from the given [param p] where every component is equal to [param p].
+			</description>
+		</constructor>
+		<constructor name="Vector2">
+			<return type="Vector2" />
 			<param index="0" name="x" type="float" />
 			<param index="1" name="y" type="float" />
 			<description>

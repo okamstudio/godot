@@ -33,6 +33,13 @@
 		</constructor>
 		<constructor name="Vector4i">
 			<return type="Vector4i" />
+			<param index="0" name="p" type="int" />
+			<description>
+				Constructs a new [Vector4i] from the given [param p] where every component is equal to [param p].
+			</description>
+		</constructor>
+		<constructor name="Vector4i">
+			<return type="Vector4i" />
 			<param index="0" name="x" type="int" />
 			<param index="1" name="y" type="int" />
 			<param index="2" name="z" type="int" />

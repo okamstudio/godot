@@ -185,6 +185,11 @@ struct [[nodiscard]] Vector2 {
 	operator Vector2i() const;
 
 	_FORCE_INLINE_ Vector2() {}
+	template <class T, std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double> || std::is_same_v<T, int>, bool> = true>
+	_FORCE_INLINE_ explicit Vector2(T p_value) {
+		x = p_value;
+		y = p_value;
+	}
 	_FORCE_INLINE_ Vector2(real_t p_x, real_t p_y) {
 		x = p_x;
 		y = p_y;

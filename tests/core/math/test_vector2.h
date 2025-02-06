@@ -43,6 +43,14 @@ TEST_CASE("[Vector2] Constructor methods") {
 	CHECK_MESSAGE(
 			vector_empty == vector_zero,
 			"Vector2 Constructor with no inputs should return a zero Vector2.");
+	const Vector2 vector_one_int = Vector2(0);
+	const Vector2 vector_one_float = Vector2(0.);
+	CHECK_MESSAGE(
+			vector_one_int == vector_zero,
+			"Vector2 Constructor with one integer input should work as expected.");
+	CHECK_MESSAGE(
+			vector_one_float == vector_zero,
+			"Vector2 Constructor with one integer input should work as expected.");
 }
 
 TEST_CASE("[Vector2] Angle methods") {

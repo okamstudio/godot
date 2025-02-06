@@ -133,6 +133,11 @@ struct [[nodiscard]] Vector3i {
 	operator Vector3() const;
 
 	_FORCE_INLINE_ Vector3i() {}
+	// _FORCE_INLINE_ Vector3i(int32_t p_value) {
+	// 	x = p_value;
+	// 	y = p_value;
+	// 	z = p_value;
+	// }
 	_FORCE_INLINE_ Vector3i(int32_t p_x, int32_t p_y, int32_t p_z) {
 		x = p_x;
 		y = p_y;
