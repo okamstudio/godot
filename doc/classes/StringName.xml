@@ -998,6 +998,7 @@
 			<param index="0" name="at" type="int" />
 			<description>
 				Returns the character code at position [param at].
+				See also [method String.chr], [method @GDScript.char], and [method @GDScript.ord].
 			</description>
 		</method>
 		<method name="uri_decode" qualifiers="const">

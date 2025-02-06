@@ -1802,7 +1802,7 @@ static void _register_variant_builtin_methods_string() {
 	bind_static_method(String, num, sarray("number", "decimals"), varray(-1));
 	bind_static_method(String, num_int64, sarray("number", "base", "capitalize_hex"), varray(10, false));
 	bind_static_method(String, num_uint64, sarray("number", "base", "capitalize_hex"), varray(10, false));
-	bind_static_method(String, chr, sarray("char"), varray());
+	bind_static_method(String, chr, sarray("code"), varray());
 	bind_static_method(String, humanize_size, sarray("size"), varray());
 
 	/* StringName */

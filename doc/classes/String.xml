@@ -118,13 +118,14 @@
 		</method>
 		<method name="chr" qualifiers="static">
 			<return type="String" />
-			<param index="0" name="char" type="int" />
+			<param index="0" name="code" type="int" />
 			<description>
-				Returns a single Unicode character from the decimal [param char]. You may use [url=https://unicodelookup.com/]unicodelookup.com[/url] or [url=https://www.unicode.org/charts/]unicode.org[/url] as points of reference.
+				Returns a single Unicode character from the integer [param code]. You may use [url=https://unicodelookup.com/]unicodelookup.com[/url] or [url=https://www.unicode.org/charts/]unicode.org[/url] as points of reference.
 				[codeblock]
-				print(String.chr(65))     # Prints "A"
-				print(String.chr(129302)) # Prints "🤖" (robot face emoji)
+				print(String.chr(65))     # Prints "A".
+				print(String.chr(129302)) # Prints "🤖" (robot face emoji).
 				[/codeblock]
+				See also [method unicode_at], [method @GDScript.char], and [method @GDScript.ord].
 			</description>
 		</method>
 		<method name="contains" qualifiers="const">
@@ -1090,6 +1091,7 @@
 			<param index="0" name="at" type="int" />
 			<description>
 				Returns the character code at position [param at].
+				See also [method chr], [method @GDScript.char], and [method @GDScript.ord].
 			</description>
 		</method>
 		<method name="uri_decode" qualifiers="const">

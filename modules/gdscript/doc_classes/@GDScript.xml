@@ -48,14 +48,16 @@
 		</method>
 		<method name="char">
 			<return type="String" />
-			<param index="0" name="char" type="int" />
+			<param index="0" name="code" type="int" />
 			<description>
-				Returns a single character (as a [String]) of the given Unicode code point (which is compatible with ASCII code).
+				Returns a single character (as a [String] of length 1) of the given Unicode code point [param code].
 				[codeblock]
-				var upper = char(65)      # upper is "A"
-				var lower = char(65 + 32) # lower is "a"
-				var euro = char(8364)     # euro is "€"
+				print(char(65))     # Prints "A".
+				print(char(129302)) # Prints "🤖" (robot face emoji).
 				[/codeblock]
+				This is the inverse of [method ord]. See also [method String.chr] and [method String.unicode_at].
+				[b]Note:[/b] [code]char(0)[/code] returns an empty string.
+				[b]Note:[/b] Unicode is compatible with ASCII for the first 128 characters.
 			</description>
 		</method>
 		<method name="convert" deprecated="Use [method @GlobalScope.type_convert] instead.">
@@ -173,6 +175,19 @@
 				This function is a simplified version of [method ResourceLoader.load], which can be used for more advanced scenarios.
 				[b]Note:[/b] Files have to be imported into the engine first to load them using this function. If you want to load [Image]s at run-time, you may use [method Image.load]. If you want to import audio files, you can use the snippet described in [member AudioStreamMP3.data].
 				[b]Note:[/b] If [member ProjectSettings.editor/export/convert_text_resources_to_binary] is [code]true[/code], [method @GDScript.load] will not be able to read converted files in an exported project. If you rely on run-time loading of files present within the PCK, set [member ProjectSettings.editor/export/convert_text_resources_to_binary] to [code]false[/code].
+			</description>
+		</method>
+		<method name="ord">
+			<return type="int" />
+			<param index="0" name="char" type="String" />
+			<description>
+				Returns an integer representing the Unicode code point of the given character [param char] (as a [String] of length 1).
+				[codeblock]
+				print(ord("A")) # Prints 65.
+				print(ord("🤖")) # Prints 129302.
+				[/codeblock]
+				This is the inverse of [method char]. See also [method String.chr] and [method String.unicode_at].
+				[b]Note:[/b] Unicode is compatible with ASCII for the first 128 characters.
 			</description>
 		</method>
 		<method name="preload">
