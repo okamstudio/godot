@@ -34,6 +34,7 @@
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
 #include "core/os/keyboard.h"
+#include "core/version_generated.gen.h"
 #include "editor/editor_node.h"
 #include "editor/editor_properties.h"
 #include "editor/editor_properties_vector.h"
@@ -1575,6 +1576,10 @@ void VisualShaderEditor::validate_script() {
 	}
 }
 
+Control *VisualShaderEditor::get_top_bar() {
+	return toolbar;
+}
+
 void VisualShaderEditor::add_plugin(const Ref<VisualShaderNodePlugin> &p_plugin) {
 	if (plugins.has(p_plugin)) {
 		return;
@@ -2464,6 +2469,13 @@ void VisualShaderEditor::_set_mode(int p_which) {
 
 Size2 VisualShaderEditor::get_minimum_size() const {
 	return Size2(10, 200);
+}
+
+void VisualShaderEditor::update_toggle_scripts_button() {
+	ERR_FAIL_NULL(toggle_scripts_list);
+	bool forward = toggle_scripts_list->is_visible() == is_layout_rtl();
+	toggle_scripts_button->set_button_icon(get_editor_theme_icon(forward ? SNAME("Forward") : SNAME("Back")));
+	toggle_scripts_button->set_tooltip_text(vformat("%s (%s)", TTR("Toggle Scripts Panel"), ED_GET_SHORTCUT("script_editor/toggle_scripts_panel")->get_as_text()));
 }
 
 void VisualShaderEditor::_draw_color_over_button(Object *p_obj, Color p_color) {
@@ -5150,6 +5162,10 @@ void VisualShaderEditor::_param_unselected() {
 	_clear_preview_param();
 }
 
+void VisualShaderEditor::_help_open() {
+	OS::get_singleton()->shell_open(vformat("%s/tutorials/shaders/visual_shaders.html", VERSION_DOCS_URL));
+}
+
 void VisualShaderEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_POSTINITIALIZE: {
@@ -5191,6 +5207,7 @@ void VisualShaderEditor::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_THEME_CHANGED: {
+			site_search->set_button_icon(get_editor_theme_icon(SNAME("ExternalLink")));
 			highend_label->set_modulate(get_theme_color(SNAME("highend_color"), EditorStringName(Editor)));
 
 			param_filter->set_right_icon(Control::get_editor_theme_icon(SNAME("Search")));
@@ -5254,6 +5271,11 @@ void VisualShaderEditor::_notification(int p_what) {
 			if (is_visible_in_tree()) {
 				_update_graph();
 			}
+			update_toggle_scripts_button();
+		} break;
+
+		case NOTIFICATION_VISIBILITY_CHANGED: {
+			update_toggle_scripts_button();
 		} break;
 
 		case NOTIFICATION_DRAG_BEGIN: {
@@ -6357,6 +6379,16 @@ void VisualShaderEditor::_show_shader_preview() {
 	}
 }
 
+void VisualShaderEditor::set_toggle_list_control(Control *p_control) {
+	toggle_scripts_list = p_control;
+}
+
+void VisualShaderEditor::_toggle_scripts_pressed() {
+	ERR_FAIL_NULL(toggle_scripts_list);
+	toggle_scripts_list->set_visible(!toggle_scripts_list->is_visible());
+	update_toggle_scripts_button();
+}
+
 void VisualShaderEditor::_bind_methods() {
 	ClassDB::bind_method("_update_nodes", &VisualShaderEditor::_update_nodes);
 	ClassDB::bind_method("_update_graph", &VisualShaderEditor::_update_graph);
@@ -6493,7 +6525,7 @@ VisualShaderEditor::VisualShaderEditor() {
 	toolbar_panel->set_anchors_and_offsets_preset(Control::PRESET_TOP_WIDE, PRESET_MODE_MINSIZE, 10);
 	toolbar_panel->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
 
-	HFlowContainer *toolbar = memnew(HFlowContainer);
+	toolbar = memnew(HFlowContainer);
 	{
 		LocalVector<Node *> nodes;
 		for (int i = 0; i < graph->get_menu_hbox()->get_child_count(); i++) {
@@ -6591,6 +6623,32 @@ VisualShaderEditor::VisualShaderEditor() {
 	shader_preview_button->set_pressed(true);
 	toolbar->add_child(shader_preview_button);
 	shader_preview_button->connect(SceneStringName(pressed), callable_mp(this, &VisualShaderEditor::_show_shader_preview));
+
+	Control *spacer = memnew(Control);
+	spacer->set_h_size_flags(Control::SIZE_EXPAND);
+	toolbar->add_child(spacer);
+
+	site_search = memnew(Button);
+	site_search->set_flat(true);
+	site_search->connect(SceneStringName(pressed), callable_mp(this, &VisualShaderEditor::_help_open));
+	site_search->set_text(TTR("Online Docs"));
+	site_search->set_tooltip_text(TTR("Open Godot online documentation."));
+	toolbar->add_child(site_search);
+	toolbar->add_child(memnew(VSeparator));
+
+	VSeparator *separator = memnew(VSeparator);
+	toolbar->add_child(separator);
+	toolbar->move_child(separator, 0);
+
+	separator = memnew(VSeparator);
+	toolbar->add_child(separator);
+	toolbar->move_child(separator, 0);
+
+	toggle_scripts_button = memnew(Button);
+	toggle_scripts_button->set_flat(true);
+	toggle_scripts_button->connect(SceneStringName(pressed), callable_mp(this, &VisualShaderEditor::_toggle_scripts_pressed));
+	toolbar->add_child(toggle_scripts_button);
+	toolbar->move_child(toggle_scripts_button, 0);
 
 	///////////////////////////////////////
 	// CODE PREVIEW

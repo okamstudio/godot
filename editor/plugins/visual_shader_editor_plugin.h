@@ -215,11 +215,15 @@ class VisualShaderEditor : public ShaderEditor {
 	String param_filter_name;
 	EditorProperty *current_prop = nullptr;
 	VBoxContainer *shader_preview_vbox = nullptr;
+	Button *site_search = nullptr;
+	Button *toggle_scripts_button = nullptr;
+	Control *toggle_scripts_list = nullptr;
 	GraphEdit *graph = nullptr;
 	Button *add_node = nullptr;
 	MenuButton *varying_button = nullptr;
 	Button *code_preview_button = nullptr;
 	Button *shader_preview_button = nullptr;
+	Control *toolbar = nullptr;
 
 	int last_to_node = -1;
 	int last_to_port = -1;
@@ -450,6 +454,8 @@ class VisualShaderEditor : public ShaderEditor {
 
 	void _show_shader_preview();
 
+	void _toggle_scripts_pressed();
+
 	Vector<int> nodes_link_to_frame_buffer; // Contains the nodes that are requested to be linked to a frame. This is used to perform one Undo/Redo operation for dragging nodes.
 	int frame_node_id_to_link_to = -1;
 
@@ -637,6 +643,8 @@ class VisualShaderEditor : public ShaderEditor {
 	void _param_selected();
 	void _param_unselected();
 
+	void _help_open();
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -647,6 +655,7 @@ public:
 	virtual bool is_unsaved() const override;
 	virtual void save_external_data(const String &p_str = "") override;
 	virtual void validate_script() override;
+	virtual Control *get_top_bar() override;
 
 	void add_plugin(const Ref<VisualShaderNodePlugin> &p_plugin);
 	void remove_plugin(const Ref<VisualShaderNodePlugin> &p_plugin);
@@ -655,11 +664,13 @@ public:
 
 	void clear_custom_types();
 	void add_custom_type(const String &p_name, const String &p_type, const Ref<Script> &p_script, const String &p_description, int p_return_icon_type, const String &p_category, bool p_highend);
+	void set_toggle_list_control(Control *p_control);
 
 	Dictionary get_custom_node_data(Ref<VisualShaderNodeCustom> &p_custom_node);
 	void update_custom_type(const Ref<Resource> &p_resource);
 
 	virtual Size2 get_minimum_size() const override;
+	void update_toggle_scripts_button();
 
 	Ref<VisualShader> get_visual_shader() const { return visual_shader; }
 
