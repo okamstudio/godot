@@ -404,19 +404,23 @@ public:
 class AnimationNodeBlendTree : public AnimationRootNode {
 	GDCLASS(AnimationNodeBlendTree, AnimationRootNode);
 
+public:
 	struct Node {
 		Ref<AnimationNode> node;
 		Vector2 position;
 		Vector<StringName> connections;
 	};
 
-	RBMap<StringName, Node, StringName::AlphCompare> nodes;
+private:
+	AHashMap<StringName, Node> nodes;
 
 	Vector2 graph_offset;
 
 	void _node_changed(const StringName &p_node);
 
 	void _initialize_node_tree();
+
+	Ref<AnimationNode> _get_node(const StringName &p_name) const;
 
 protected:
 	static void _bind_methods();
@@ -442,7 +446,10 @@ public:
 	};
 
 	void add_node(const StringName &p_name, Ref<AnimationNode> p_node, const Vector2 &p_position = Vector2());
-	Ref<AnimationNode> get_node(const StringName &p_name) const;
+	const Ref<AnimationNode> &get_node(const StringName &p_name) const;
+
+	const KeyValue<StringName, Node> &find_name_node_pair(const Ref<AnimationNode> &p_node);
+
 	void remove_node(const StringName &p_name);
 	void rename_node(const StringName &p_name, const StringName &p_new_name);
 	bool has_node(const StringName &p_name) const;

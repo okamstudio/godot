@@ -399,10 +399,16 @@ void AnimationMixer::get_animation_list(List<StringName> *p_animations) const {
 	}
 }
 
-Ref<Animation> AnimationMixer::get_animation(const StringName &p_name) const {
-	ERR_FAIL_COND_V_MSG(!animation_set.has(p_name), Ref<Animation>(), vformat("Animation not found: \"%s\".", p_name));
-	const AnimationData &anim_data = animation_set[p_name];
+const Ref<Animation> &AnimationMixer::get_animation(const StringName &p_name) const {
+	static const Ref<Animation> EMPTY_ANIMATION = Ref<Animation>();
+	AHashMap<StringName, AnimationData>::ConstIterator it = animation_set.find(p_name);
+	ERR_FAIL_COND_V_MSG(!it, EMPTY_ANIMATION, vformat("Animation not found: \"%s\".", p_name));
+	const AnimationData &anim_data = it->value;
 	return anim_data.animation;
+}
+
+Ref<Animation> AnimationMixer::_get_animation(const StringName &p_name) const {
+	return get_animation(p_name);
 }
 
 bool AnimationMixer::has_animation(const StringName &p_name) const {
@@ -1131,12 +1137,13 @@ void AnimationMixer::blend_capture(double p_delta) {
 
 void AnimationMixer::_blend_calc_total_weight() {
 	for (const AnimationInstance &ai : animation_instances) {
-		Ref<Animation> a = ai.animation_data.animation;
+		const Ref<Animation> &a = ai.animation_data.animation;
 		real_t weight = ai.playback_info.weight;
 		const real_t *track_weights_ptr = ai.playback_info.track_weights.ptr();
 		int track_weights_count = ai.playback_info.track_weights.size();
-		ERR_CONTINUE_EDMSG(!animation_track_num_to_track_cache.has(a), "No animation in cache.");
-		LocalVector<TrackCache *> &track_num_to_track_cache = animation_track_num_to_track_cache[a];
+		AHashMap<Ref<Animation>, LocalVector<AnimationMixer::TrackCache *>>::ConstIterator it = animation_track_num_to_track_cache.find(a);
+		ERR_CONTINUE_EDMSG(!it, "No animation in cache.");
+		const LocalVector<TrackCache *> &track_num_to_track_cache = it->value;
 		thread_local HashSet<Animation::TypeHash, HashHasher> processed_hashes;
 		processed_hashes.clear();
 		const Vector<Animation::Track *> tracks = a->get_tracks();
@@ -1169,7 +1176,7 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 	bool can_call = is_inside_tree() && !Engine::get_singleton()->is_editor_hint();
 #endif // TOOLS_ENABLED
 	for (const AnimationInstance &ai : animation_instances) {
-		Ref<Animation> a = ai.animation_data.animation;
+		const Ref<Animation> &a = ai.animation_data.animation;
 		double time = ai.playback_info.time;
 		double delta = ai.playback_info.delta;
 		double start = ai.playback_info.start;
@@ -1185,8 +1192,10 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 #ifndef _3D_DISABLED
 		bool calc_root = !seeked || is_external_seeking;
 #endif // _3D_DISABLED
-		ERR_CONTINUE_EDMSG(!animation_track_num_to_track_cache.has(a), "No animation in cache.");
-		LocalVector<TrackCache *> &track_num_to_track_cache = animation_track_num_to_track_cache[a];
+
+		AHashMap<Ref<Animation>, LocalVector<AnimationMixer::TrackCache *>>::ConstIterator it = animation_track_num_to_track_cache.find(a);
+		ERR_CONTINUE_EDMSG(!it, "No animation in cache.");
+		const LocalVector<TrackCache *> &track_num_to_track_cache = it->value;
 		const Vector<Animation::Track *> tracks = a->get_tracks();
 		Animation::Track *const *tracks_ptr = tracks.ptr();
 		real_t a_length = a->get_length();
@@ -1794,7 +1803,7 @@ void AnimationMixer::_blend_process(double p_delta, bool p_update_only) {
 						if (String(anim_name) == "[stop]" || !player2->has_animation(anim_name)) {
 							continue;
 						}
-						Ref<Animation> anim = player2->get_animation(anim_name);
+						const Ref<Animation> &anim = player2->get_animation(anim_name);
 						double at_anim_pos = start;
 						switch (anim->get_loop_mode()) {
 							case Animation::LOOP_NONE: {
@@ -2034,19 +2043,15 @@ void AnimationMixer::_call_object(ObjectID p_object_id, const StringName &p_meth
 	}
 }
 
-void AnimationMixer::make_animation_instance(const StringName &p_name, const PlaybackInfo p_playback_info) {
+void AnimationMixer::make_animation_instance(const StringName &p_name, const PlaybackInfo &p_playback_info) {
 	ERR_FAIL_COND(!has_animation(p_name));
-
-	AnimationData ad;
+	animation_instances.push_back(AnimationInstance());
+	AnimationInstance &ai = animation_instances[animation_instances.size() - 1];
+	AnimationData &ad = ai.animation_data;
 	ad.name = p_name;
 	ad.animation = get_animation(p_name);
 	ad.animation_library = find_animation_library(ad.animation);
-
-	AnimationInstance ai;
-	ai.animation_data = ad;
 	ai.playback_info = p_playback_info;
-
-	animation_instances.push_back(ai);
 }
 
 void AnimationMixer::clear_animation_instances() {
@@ -2398,7 +2403,7 @@ void AnimationMixer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_animation_library_list"), &AnimationMixer::_get_animation_library_list);
 
 	ClassDB::bind_method(D_METHOD("has_animation", "name"), &AnimationMixer::has_animation);
-	ClassDB::bind_method(D_METHOD("get_animation", "name"), &AnimationMixer::get_animation);
+	ClassDB::bind_method(D_METHOD("get_animation", "name"), &AnimationMixer::_get_animation);
 	ClassDB::bind_method(D_METHOD("get_animation_list"), &AnimationMixer::_get_animation_list);
 
 	/* ---- General settings for animation ---- */

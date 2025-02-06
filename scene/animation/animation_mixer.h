@@ -403,6 +403,9 @@ protected:
 	static void _bind_compatibility_methods();
 #endif // DISABLE_DEPRECATED
 
+private:
+	Ref<Animation> _get_animation(const StringName &p_name) const;
+
 public:
 	/* ---- Data lists ---- */
 	Dictionary *get_animation_libraries();
@@ -417,7 +420,7 @@ public:
 	void rename_animation_library(const StringName &p_name, const StringName &p_new_name);
 
 	void get_animation_list(List<StringName> *p_animations) const;
-	Ref<Animation> get_animation(const StringName &p_name) const;
+	const Ref<Animation> &get_animation(const StringName &p_name) const;
 	bool has_animation(const StringName &p_name) const;
 	StringName find_animation(const Ref<Animation> &p_animation) const;
 
@@ -460,7 +463,7 @@ public:
 	Vector3 get_root_motion_scale_accumulator() const;
 
 	/* ---- Blending processor ---- */
-	void make_animation_instance(const StringName &p_name, const PlaybackInfo p_playback_info);
+	void make_animation_instance(const StringName &p_name, const PlaybackInfo &p_playback_info);
 	void clear_animation_instances();
 	virtual void advance(double p_time);
 	virtual void clear_caches(); // Must be called by hand if an animation was modified after added.

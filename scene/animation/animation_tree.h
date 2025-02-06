@@ -125,6 +125,10 @@ public:
 
 private:
 	mutable AHashMap<StringName, int> property_cache;
+	StringName current_base_path;
+	StringName current_subpath;
+
+	Variant _get_parameter(const StringName &p_name) const;
 
 public:
 	void set_node_state_base_path(const StringName p_base_path) {
@@ -165,9 +169,9 @@ protected:
 	virtual NodeTimeInfo process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false); // To organize time information. Virtualizing for especially AnimationNodeAnimation needs to take "backward" into account.
 	virtual NodeTimeInfo _process(const AnimationMixer::PlaybackInfo p_playback_info, bool p_test_only = false); // Main process.
 
-	void blend_animation(const StringName &p_animation, AnimationMixer::PlaybackInfo p_playback_info);
+	void blend_animation(const StringName &p_animation, AnimationMixer::PlaybackInfo &p_playback_info);
 	NodeTimeInfo blend_node(Ref<AnimationNode> p_node, const StringName &p_subpath, AnimationMixer::PlaybackInfo p_playback_info, FilterAction p_filter = FILTER_IGNORE, bool p_sync = true, bool p_test_only = false);
-	NodeTimeInfo blend_input(int p_input, AnimationMixer::PlaybackInfo p_playback_info, FilterAction p_filter = FILTER_IGNORE, bool p_sync = true, bool p_test_only = false);
+	NodeTimeInfo blend_input(int p_input, AnimationMixer::PlaybackInfo &p_playback_info, FilterAction p_filter = FILTER_IGNORE, bool p_sync = true, bool p_test_only = false);
 
 	// Bind-able methods to expose for compatibility, moreover AnimationMixer::PlaybackInfo is not exposed.
 	void blend_animation_ex(const StringName &p_animation, double p_time, double p_delta, bool p_seeked, bool p_is_external_seeking, real_t p_blend, Animation::LoopedFlag p_looped_flag = Animation::LOOPED_FLAG_NONE);
@@ -196,7 +200,7 @@ public:
 	virtual bool is_parameter_read_only(const StringName &p_parameter) const;
 
 	void set_parameter(const StringName &p_name, const Variant &p_value);
-	Variant get_parameter(const StringName &p_name) const;
+	const Variant &get_parameter(const StringName &p_name) const;
 
 	void set_node_time_info(const NodeTimeInfo &p_node_time_info); // Wrapper of set_parameter().
 	virtual NodeTimeInfo get_node_time_info() const; // Wrapper of get_parameter().
@@ -306,8 +310,8 @@ private:
 		uint64_t last_pass = 0;
 		real_t activity = 0.0;
 	};
-	mutable HashMap<StringName, LocalVector<Activity>> input_activity_map;
-	mutable HashMap<StringName, LocalVector<Activity> *> input_activity_map_get;
+	mutable AHashMap<StringName, LocalVector<Activity>> input_activity_map;
+	mutable AHashMap<StringName, LocalVector<Activity> *> input_activity_map_get;
 
 	NodePath animation_player;
 

@@ -89,14 +89,19 @@ void AnimationNode::set_parameter(const StringName &p_name, const Variant &p_val
 	process_state->tree->property_map.get_by_index(idx).value.first = p_value;
 }
 
-Variant AnimationNode::get_parameter(const StringName &p_name) const {
-	ERR_FAIL_NULL_V(process_state, Variant());
+Variant AnimationNode::_get_parameter(const StringName &p_name) const {
+	return get_parameter(p_name);
+}
+
+const Variant &AnimationNode::get_parameter(const StringName &p_name) const {
+	static const Variant EMPTY = Variant();
+	ERR_FAIL_NULL_V(process_state, EMPTY);
 	const AHashMap<StringName, int>::ConstIterator it = property_cache.find(p_name);
 	if (it) {
 		return process_state->tree->property_map.get_by_index(it->value).value.first;
 	}
-	ERR_FAIL_COND_V(!process_state->tree->property_parent_map.has(node_state.base_path), Variant());
-	ERR_FAIL_COND_V(!process_state->tree->property_parent_map[node_state.base_path].has(p_name), Variant());
+	ERR_FAIL_COND_V(!process_state->tree->property_parent_map.has(node_state.base_path), EMPTY);
+	ERR_FAIL_COND_V(!process_state->tree->property_parent_map[node_state.base_path].has(p_name), EMPTY);
 
 	StringName path = process_state->tree->property_parent_map[node_state.base_path][p_name];
 	int idx = process_state->tree->property_map.get_index(path);
@@ -132,7 +137,7 @@ void AnimationNode::get_child_nodes(List<ChildNode> *r_child_nodes) {
 	}
 }
 
-void AnimationNode::blend_animation(const StringName &p_animation, AnimationMixer::PlaybackInfo p_playback_info) {
+void AnimationNode::blend_animation(const StringName &p_animation, AnimationMixer::PlaybackInfo &p_playback_info) {
 	ERR_FAIL_NULL(process_state);
 	p_playback_info.track_weights = node_state.track_weights;
 	process_state->tree->make_animation_instance(p_animation, p_playback_info);
@@ -159,24 +164,27 @@ AnimationTree *AnimationNode::get_animation_tree() const {
 	return process_state->tree;
 }
 
-AnimationNode::NodeTimeInfo AnimationNode::blend_input(int p_input, AnimationMixer::PlaybackInfo p_playback_info, FilterAction p_filter, bool p_sync, bool p_test_only) {
+AnimationNode::NodeTimeInfo AnimationNode::blend_input(int p_input, AnimationMixer::PlaybackInfo &p_playback_info, FilterAction p_filter, bool p_sync, bool p_test_only) {
 	ERR_FAIL_INDEX_V(p_input, (int64_t)inputs.size(), NodeTimeInfo());
 
 	AnimationNodeBlendTree *blend_tree = Object::cast_to<AnimationNodeBlendTree>(node_state.parent);
 	ERR_FAIL_NULL_V(blend_tree, NodeTimeInfo());
 
 	// Update connections.
-	StringName current_name = blend_tree->get_node_name(Ref<AnimationNode>(this));
-	node_state.connections = blend_tree->get_node_connection_array(current_name);
 
-	// Get node which is connected input port.
-	StringName node_name = node_state.connections[p_input];
-	if (!blend_tree->has_node(node_name)) {
+	const KeyValue<StringName, AnimationNodeBlendTree::Node> &pair = blend_tree->find_name_node_pair(this);
+	const StringName &current_name = pair.key;
+
+	if (pair.value.node.is_null()) {
 		make_invalid(vformat(RTR("Nothing connected to input '%s' of node '%s'."), get_input_name(p_input), current_name));
 		return NodeTimeInfo();
 	}
+	node_state.connections = pair.value.connections;
 
-	Ref<AnimationNode> node = blend_tree->get_node(node_name);
+	// Get node which is connected input port.
+	const StringName &node_name = node_state.connections[p_input];
+
+	const Ref<AnimationNode> &node = blend_tree->get_node(node_name);
 	ERR_FAIL_COND_V(node.is_null(), NodeTimeInfo());
 
 	real_t activity = 0.0;
@@ -290,22 +298,26 @@ AnimationNode::NodeTimeInfo AnimationNode::_blend_node(Ref<AnimationNode> p_node
 		}
 	}
 
-	String new_path;
 	AnimationNode *new_parent;
 
-	// This is the slowest part of processing, but as strings process in powers of 2, and the paths always exist, it will not result in that many allocations.
 	if (p_new_parent) {
 		new_parent = p_new_parent;
-		new_path = String(node_state.base_path) + String(p_subpath) + "/";
 	} else {
 		ERR_FAIL_NULL_V(node_state.parent, NodeTimeInfo());
 		new_parent = node_state.parent;
-		new_path = String(new_parent->node_state.base_path) + String(p_subpath) + "/";
+	}
+
+	StringName &base_path = p_new_parent != nullptr ? node_state.base_path : new_parent->node_state.base_path;
+
+	if (unlikely(base_path != p_node->current_base_path || p_subpath != p_node->current_subpath)) {
+		p_node->current_base_path = base_path;
+		p_node->current_subpath = p_subpath;
+		String new_path = String(base_path) + String(p_subpath) + "/";
+		p_node->set_node_state_base_path(std::move(new_path));
 	}
 
 	// This process, which depends on p_sync is needed to process sync correctly in the case of
 	// that a synced AnimationNodeSync exists under the un-synced AnimationNodeSync.
-	p_node->set_node_state_base_path(new_path);
 	p_node->node_state.parent = new_parent;
 	if (!p_playback_info.seeked && !p_sync && !any_valid) {
 		p_playback_info.delta = 0.0;
@@ -565,7 +577,7 @@ void AnimationNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("blend_input", "input_index", "time", "seek", "is_external_seeking", "blend", "filter", "sync", "test_only"), &AnimationNode::blend_input_ex, DEFVAL(FILTER_IGNORE), DEFVAL(true), DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_parameter", "name", "value"), &AnimationNode::set_parameter);
-	ClassDB::bind_method(D_METHOD("get_parameter", "name"), &AnimationNode::get_parameter);
+	ClassDB::bind_method(D_METHOD("get_parameter", "name"), &AnimationNode::_get_parameter);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "filter_enabled", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_filter_enabled", "is_filter_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "filters", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_filters", "_get_filters");

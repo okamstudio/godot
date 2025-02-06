@@ -68,7 +68,7 @@ AnimationNode::NodeTimeInfo AnimationNodeAnimation::get_node_time_info() const {
 		nti.length = timeline_length;
 		nti.loop_mode = loop_mode;
 	} else {
-		Ref<Animation> anim = process_state->tree->get_animation(animation);
+		const Ref<Animation> &anim = process_state->tree->get_animation(animation);
 		nti.length = (double)anim->get_length();
 		nti.loop_mode = anim->get_loop_mode();
 	}
@@ -1469,10 +1469,16 @@ void AnimationNodeBlendTree::add_node(const StringName &p_name, Ref<AnimationNod
 	p_node->connect_changed(callable_mp(this, &AnimationNodeBlendTree::_node_changed).bind(p_name), CONNECT_REFERENCE_COUNTED);
 }
 
-Ref<AnimationNode> AnimationNodeBlendTree::get_node(const StringName &p_name) const {
-	ERR_FAIL_COND_V(!nodes.has(p_name), Ref<AnimationNode>());
+Ref<AnimationNode> AnimationNodeBlendTree::_get_node(const StringName &p_name) const {
+	return get_node(p_name);
+}
 
-	return nodes[p_name].node;
+const Ref<AnimationNode> &AnimationNodeBlendTree::get_node(const StringName &p_name) const {
+	static const Ref<AnimationNode> EMPTY = Ref<AnimationNode>();
+	AHashMap<StringName, AnimationNodeBlendTree::Node>::ConstIterator it = nodes.find(p_name);
+	ERR_FAIL_COND_V(!it, EMPTY);
+
+	return it->value.node;
 }
 
 StringName AnimationNodeBlendTree::get_node_name(const Ref<AnimationNode> &p_node) const {
@@ -1483,6 +1489,17 @@ StringName AnimationNodeBlendTree::get_node_name(const Ref<AnimationNode> &p_nod
 	}
 
 	ERR_FAIL_V(StringName());
+}
+
+const KeyValue<StringName, AnimationNodeBlendTree::Node> &AnimationNodeBlendTree::find_name_node_pair(const Ref<AnimationNode> &p_node) {
+	for (const KeyValue<StringName, Node> &E : nodes) {
+		if (E.value.node == p_node) {
+			return E;
+		}
+	}
+
+	static const KeyValue<StringName, Node> EMPTY = KeyValue<StringName, Node>(StringName(), Node());
+	ERR_FAIL_V(EMPTY);
 }
 
 void AnimationNodeBlendTree::set_node_position(const StringName &p_node, const Vector2 &p_position) {
@@ -1821,7 +1838,7 @@ void AnimationNodeBlendTree::get_argument_options(const StringName &p_function, 
 
 void AnimationNodeBlendTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_node", "name", "node", "position"), &AnimationNodeBlendTree::add_node, DEFVAL(Vector2()));
-	ClassDB::bind_method(D_METHOD("get_node", "name"), &AnimationNodeBlendTree::get_node);
+	ClassDB::bind_method(D_METHOD("get_node", "name"), &AnimationNodeBlendTree::_get_node);
 	ClassDB::bind_method(D_METHOD("remove_node", "name"), &AnimationNodeBlendTree::remove_node);
 	ClassDB::bind_method(D_METHOD("rename_node", "name", "new_name"), &AnimationNodeBlendTree::rename_node);
 	ClassDB::bind_method(D_METHOD("has_node", "name"), &AnimationNodeBlendTree::has_node);
