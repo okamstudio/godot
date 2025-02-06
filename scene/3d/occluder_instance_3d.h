@@ -210,4 +210,6 @@ public:
 	~OccluderInstance3D();
 };
 
+VARIANT_ENUM_CAST(OccluderInstance3D::BakeError);
+
 #endif // OCCLUDER_INSTANCE_3D_H

@@ -7,7 +7,7 @@
 		Occlusion culling can improve rendering performance in closed/semi-open areas by hiding geometry that is occluded by other objects.
 		The occlusion culling system is mostly static. [OccluderInstance3D]s can be moved or hidden at run-time, but doing so will trigger a background recomputation that can take several frames. It is recommended to only move [OccluderInstance3D]s sporadically (e.g. for procedural generation purposes), rather than doing so every frame.
 		The occlusion culling system works by rendering the occluders on the CPU in parallel using [url=https://www.embree.org/]Embree[/url], drawing the result to a low-resolution buffer then using this to cull 3D nodes individually. In the 3D editor, you can preview the occlusion culling buffer by choosing [b]Perspective &gt; Display Advanced... &gt; Occlusion Culling Buffer[/b] in the top-left corner of the 3D viewport. The occlusion culling buffer quality can be adjusted in the Project Settings.
-		[b]Baking:[/b] Select an [OccluderInstance3D] node, then use the [b]Bake Occluders[/b] button at the top of the 3D editor. Only opaque materials will be taken into account; transparent materials (alpha-blended or alpha-tested) will be ignored by the occluder generation.
+		[b]Baking:[/b] Select an [OccluderInstance3D] node, then use the [b]Bake Occluders[/b] button at the top of the 3D editor. Only opaque materials will be taken into account; transparent materials (alpha-blended or alpha-tested) will be ignored by the occluder generation. Baking can also be done at runtime by calling [method bake_scene].
 		[b]Note:[/b] Occlusion culling is only effective if [member ProjectSettings.rendering/occlusion_culling/use_occlusion_culling] is [code]true[/code]. Enabling occlusion culling has a cost on the CPU. Only enable occlusion culling if you actually plan to use it. Large open scenes with few or no objects blocking the view will generally not benefit much from occlusion culling. Large open scenes generally benefit more from mesh LOD and visibility ranges ([member GeometryInstance3D.visibility_range_begin] and [member GeometryInstance3D.visibility_range_end]) compared to occlusion culling.
 		[b]Note:[/b] Due to memory constraints, occlusion culling is not supported by default in Web export templates. It can be enabled by compiling custom Web export templates with [code]module_raycast_enabled=yes[/code].
 	</description>
@@ -15,6 +15,19 @@
 		<link title="Occlusion culling">$DOCS_URL/tutorials/3d/occlusion_culling.html</link>
 	</tutorials>
 	<methods>
+		<method name="bake_scene">
+			<return type="int" enum="OccluderInstance3D.BakeError" />
+			<param index="0" name="from_node" type="Node" />
+			<param index="1" name="occluder_path" type="String" default="&quot;&quot;" />
+			<description>
+				Bakes occluders with the geometry of [param from_node] and all its children recursively, then saves the resulting [Occluder3D] to [param occluder_path] to disk. If baking fails, the existing occlusion data in [member occluder] will be left as-is.
+				[param occluder_path] can be left empty if the [OccluderInstance3D] already has an [member occluder] saved to disk: in this case, the existing resource will be overwritten on disk if baking succeeds. If not empty, [param occluder_path] must end with a valid file extension for [Occluder3D] resources:
+				- [code].occ[/code] (binary, recommended)
+				- [code].res[/code] (binary, equivalent to [code].occ[/code])
+				- [code].tres[/code] (text-based, not recommended due to larger file sizes and slower load/save times)
+				[b]Note:[/b] [method bake_scene] is equivalent to calling [b]Bake Occluders[/b] in the editor. This method can be called in an editor plugin or at runtime, even in an exported project. Baking can take several seconds in a complex scene, so consider performing baking only when a level is loading, not during gameplay.
+			</description>
+		</method>
 		<method name="get_bake_mask_value" qualifiers="const">
 			<return type="bool" />
 			<param index="0" name="layer_number" type="int" />
@@ -48,4 +61,18 @@
 			Alternatively, you can select a primitive occluder to use: [QuadOccluder3D], [BoxOccluder3D] or [SphereOccluder3D].
 		</member>
 	</members>
+	<constants>
+		<constant name="BAKE_ERROR_OK" value="0" enum="BakeError">
+			Occlusion culling baking completed successfully and saved to disk.
+		</constant>
+		<constant name="BAKE_ERROR_NO_SAVE_PATH" value="1" enum="BakeError">
+			Occlusion culling baking failed because the save path was empty when calling [method bake_scene], and the [OccluderInstance3D] node did not already have a valid [Occluder3D] resource assigned (which would have been overwritten otherwise).
+		</constant>
+		<constant name="BAKE_ERROR_NO_MESHES" value="2" enum="BakeError">
+			Occlusion culling baking failed because the root node specified in [method bake_scene] (or any of its children) does not contain any geometry.
+		</constant>
+		<constant name="BAKE_ERROR_CANT_SAVE" value="3" enum="BakeError">
+			Occlusion culling baking failed because the [Occluder3D] resource couldn't be saved to disk. This may be due to an invalid file extension specified.
+		</constant>
+	</constants>
 </class>

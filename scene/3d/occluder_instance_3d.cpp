@@ -735,6 +735,8 @@ void OccluderInstance3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_bake_simplification_distance", "simplification_distance"), &OccluderInstance3D::set_bake_simplification_distance);
 	ClassDB::bind_method(D_METHOD("get_bake_simplification_distance"), &OccluderInstance3D::get_bake_simplification_distance);
 
+	ClassDB::bind_method(D_METHOD("bake_scene", "from_node", "occluder_path"), &OccluderInstance3D::bake_scene, DEFVAL(""));
+
 	ClassDB::bind_method(D_METHOD("set_occluder", "occluder"), &OccluderInstance3D::set_occluder);
 	ClassDB::bind_method(D_METHOD("get_occluder"), &OccluderInstance3D::get_occluder);
 
@@ -745,6 +747,11 @@ void OccluderInstance3D::_bind_methods() {
 	ADD_GROUP("Bake", "bake_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "bake_mask", PROPERTY_HINT_LAYERS_3D_RENDER), "set_bake_mask", "get_bake_mask");
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bake_simplification_distance", PROPERTY_HINT_RANGE, "0.0,2.0,0.01,suffix:m"), "set_bake_simplification_distance", "get_bake_simplification_distance");
+
+	BIND_ENUM_CONSTANT(BAKE_ERROR_OK);
+	BIND_ENUM_CONSTANT(BAKE_ERROR_NO_SAVE_PATH);
+	BIND_ENUM_CONSTANT(BAKE_ERROR_NO_MESHES);
+	BIND_ENUM_CONSTANT(BAKE_ERROR_CANT_SAVE);
 }
 
 OccluderInstance3D::OccluderInstance3D() {
