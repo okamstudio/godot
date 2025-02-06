@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Not all code paths in the getter function return a value.
