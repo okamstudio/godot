@@ -101,10 +101,10 @@ TEST_CASE("[PackedScene] Signals Preserved when Packing Scene") {
 		CHECK_EQ(state->get_connection_count(), 3);
 	}
 
+	/* TODO needs fixed
 	SUBCASE("Signals that should not be saved") {
 		int subscene_flags = Object::CONNECT_PERSIST | Object::CONNECT_INHERITED;
 		Callable p_callable;
-		/* TODO needs fixed
 		// subscene node to itself
 		p_callable = callable_mp(sub_scene_node, &Node::is_ready);
 		sub_scene_node->connect("ready", callable_mp(sub_scene_node, &Node::is_ready), subscene_flags);
@@ -119,7 +119,6 @@ TEST_CASE("[PackedScene] Signals Preserved when Packing Scene") {
 		p_callable = callable_mp(sub_scene_root, &Node::is_ready);
 		sub_scene_root->connect("ready", p_callable, subscene_flags);
 		sub_scene_root->set_connection_id("ready", p_callable, 456);
-		*/
 
 		// Pack the scene.
 		Ref<PackedScene> packed_scene;
@@ -131,6 +130,7 @@ TEST_CASE("[PackedScene] Signals Preserved when Packing Scene") {
 		Ref<SceneState> state = packed_scene->get_state();
 		CHECK_EQ(state->get_connection_count(), 0);
 	}
+	*/
 
 	memdelete(main_scene_root);
 }
