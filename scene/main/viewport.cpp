@@ -364,14 +364,25 @@ void Viewport::_sub_window_update(Window *p_window) {
 	RS::get_singleton()->canvas_item_add_texture_rect(sw.canvas_item, vr, sw.window->get_texture()->get_rid());
 }
 
+void Viewport::_sub_window_release_focus() {
+	// Release current focus.
+	Viewport *parent_viewport = this;
+	Window *focused_subwindow = gui.subwindow_focused;
+	while (focused_subwindow) {
+		if (focused_subwindow->has_focus()) {
+			focused_subwindow->_event_callback(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
+		}
+		parent_viewport->gui.subwindow_focused = nullptr;
+		parent_viewport->gui.subwindow_drag = SUB_WINDOW_DRAG_DISABLED;
+
+		parent_viewport = focused_subwindow;
+		focused_subwindow = parent_viewport->gui.subwindow_focused;
+	}
+}
+
 void Viewport::_sub_window_grab_focus(Window *p_window) {
 	if (p_window == nullptr) {
-		// Release current focus.
-		if (gui.subwindow_focused) {
-			gui.subwindow_focused->_event_callback(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
-			gui.subwindow_focused = nullptr;
-			gui.subwindow_drag = SUB_WINDOW_DRAG_DISABLED;
-		}
+		_sub_window_release_focus();
 
 		Window *this_window = Object::cast_to<Window>(this);
 		if (this_window) {
@@ -386,12 +397,8 @@ void Viewport::_sub_window_grab_focus(Window *p_window) {
 	ERR_FAIL_COND(index == -1);
 
 	if (p_window->get_flag(Window::FLAG_NO_FOCUS)) {
-		// Release current focus.
-		if (gui.subwindow_focused) {
-			gui.subwindow_focused->_event_callback(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
-			gui.subwindow_focused = nullptr;
-			gui.subwindow_drag = SUB_WINDOW_DRAG_DISABLED;
-		}
+		_sub_window_release_focus();
+
 		// Can only move to foreground, but no focus granted.
 		index = _sub_window_find(p_window);
 		ERR_FAIL_COND(index == -1);
@@ -402,20 +409,20 @@ void Viewport::_sub_window_grab_focus(Window *p_window) {
 		return;
 	}
 
+	if (gui.subwindow_focused == p_window) {
+		return; // Nothing to do.
+	}
+
+	Window *old_focus = gui.subwindow_focused;
+
 	if (gui.subwindow_focused) {
-		if (gui.subwindow_focused == p_window) {
-			return; // Nothing to do.
-		}
-		gui.subwindow_focused->_event_callback(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
-		gui.subwindow_drag = SUB_WINDOW_DRAG_DISABLED;
+		_sub_window_release_focus();
 	} else {
 		Window *this_window = Object::cast_to<Window>(this);
 		if (this_window) {
 			this_window->_event_callback(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
 		}
 	}
-
-	Window *old_focus = gui.subwindow_focused;
 
 	gui.subwindow_focused = p_window;
 
