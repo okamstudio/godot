@@ -1129,6 +1129,10 @@
 			Default [InputEventAction] to cut a selection to the clipboard.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.
 		</member>
+		<member name="input/ui_cycle_debug_menu_display_mode" type="Dictionary" setter="" getter="">
+			Default [InputEventAction] to cycle between display modes in the built-in debug menu (hidden, compact, detailed). See also [member SceneTree.debug_menu_display_mode].
+			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of the debug menu. The events assigned to the action can however be modified.
+		</member>
 		<member name="input/ui_down" type="Dictionary" setter="" getter="">
 			Default [InputEventAction] to move down in the UI.
 			[b]Note:[/b] Default [code]ui_*[/code] actions cannot be removed as they are necessary for the internal logic of several [Control]s. The events assigned to the action can however be modified.

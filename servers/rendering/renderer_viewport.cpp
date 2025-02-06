@@ -1483,6 +1483,13 @@ void RendererViewport::viewport_set_measure_render_time(RID p_viewport, bool p_e
 	viewport->measure_render_time = p_enable;
 }
 
+bool RendererViewport::viewport_is_measuring_render_time(RID p_viewport) const {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL_V(viewport, false);
+
+	return viewport->measure_render_time;
+}
+
 float RendererViewport::viewport_get_measured_render_time_cpu(RID p_viewport) const {
 	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
 	ERR_FAIL_NULL_V(viewport, 0);

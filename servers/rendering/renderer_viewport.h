@@ -288,6 +288,7 @@ public:
 	virtual void viewport_set_debug_draw(RID p_viewport, RS::ViewportDebugDraw p_draw);
 
 	void viewport_set_measure_render_time(RID p_viewport, bool p_enable);
+	bool viewport_is_measuring_render_time(RID p_viewport) const;
 	float viewport_get_measured_render_time_cpu(RID p_viewport) const;
 	float viewport_get_measured_render_time_gpu(RID p_viewport) const;
 

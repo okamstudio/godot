@@ -2163,6 +2163,13 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 		}
 
+		if (!Engine::get_singleton()->is_editor_hint() && !Engine::get_singleton()->is_project_manager_hint() && p_event->is_action_pressed("ui_cycle_debug_menu_display_mode")) {
+			SceneTree::get_singleton()->set_debug_menu_display_mode(SceneTree::DebugMenuDisplayMode(
+					Math::wrapi(SceneTree::get_singleton()->get_debug_menu_display_mode() + 1,
+							0,
+							SceneTree::DebugMenuDisplayMode::DEBUG_MENU_DISPLAY_MODE_MAX)));
+		}
+
 		if (gui.key_focus && !gui.key_focus->is_visible_in_tree()) {
 			gui.key_focus->release_focus();
 		}

@@ -3914,6 +3914,13 @@
 				[b]Warning:[/b] Calling this from any thread other than the rendering thread will be detrimental to performance.
 			</description>
 		</method>
+		<method name="viewport_is_measuring_render_time" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="viewport" type="RID" />
+			<description>
+				Returns whether render times are being measured for the given [param viewport] RID (obtained using [method Viewport.get_viewport_rid]). If enabled, [method viewport_get_measured_render_time_cpu] and [method viewport_get_measured_render_time_gpu] will return values greater than [code]0.0[/code] when queried with the given [param viewport]. See also [method viewport_set_measure_render_time].
+			</description>
+		</method>
 		<method name="viewport_remove_canvas">
 			<return type="void" />
 			<param index="0" name="viewport" type="RID" />
@@ -4046,7 +4053,7 @@
 			<param index="0" name="viewport" type="RID" />
 			<param index="1" name="enable" type="bool" />
 			<description>
-				Sets the measurement for the given [param viewport] RID (obtained using [method Viewport.get_viewport_rid]). Once enabled, [method viewport_get_measured_render_time_cpu] and [method viewport_get_measured_render_time_gpu] will return values greater than [code]0.0[/code] when queried with the given [param viewport].
+				Sets the measurement for the given [param viewport] RID (obtained using [method Viewport.get_viewport_rid]). Once enabled, [method viewport_get_measured_render_time_cpu] and [method viewport_get_measured_render_time_gpu] will return values greater than [code]0.0[/code] when queried with the given [param viewport]. See also [method viewport_is_measuring_render_time].
 			</description>
 		</method>
 		<method name="viewport_set_msaa_2d">

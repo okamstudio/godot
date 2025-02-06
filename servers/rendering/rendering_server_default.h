@@ -744,6 +744,7 @@ public:
 	FUNC2(viewport_set_debug_draw, RID, ViewportDebugDraw)
 
 	FUNC2(viewport_set_measure_render_time, RID, bool)
+	FUNC1RC(bool, viewport_is_measuring_render_time, RID)
 	FUNC1RC(double, viewport_get_measured_render_time_cpu, RID)
 	FUNC1RC(double, viewport_get_measured_render_time_gpu, RID)
 	FUNC1RC(RID, viewport_find_from_screen_attachment, DisplayServer::WindowID)

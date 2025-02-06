@@ -39,6 +39,7 @@
 
 #undef Window
 
+class DebugMenu;
 class PackedScene;
 class Node;
 #ifndef _3D_DISABLED
@@ -191,6 +192,9 @@ private:
 	Node *prev_scene = nullptr;
 	Node *pending_new_scene = nullptr;
 
+	// Initialized lazily and destroyed eagerly to decrease RAM usage, since it contains a lot of text.
+	DebugMenu *debug_menu = nullptr;
+
 	Color debug_collisions_color;
 	Color debug_collision_contact_color;
 	Color debug_paths_color;
@@ -285,6 +289,13 @@ public:
 		GROUP_CALL_REVERSE = 1,
 		GROUP_CALL_DEFERRED = 2,
 		GROUP_CALL_UNIQUE = 4,
+	};
+
+	enum DebugMenuDisplayMode {
+		DEBUG_MENU_DISPLAY_MODE_HIDDEN,
+		DEBUG_MENU_DISPLAY_MODE_COMPACT,
+		DEBUG_MENU_DISPLAY_MODE_DETAILED,
+		DEBUG_MENU_DISPLAY_MODE_MAX,
 	};
 
 	_FORCE_INLINE_ Window *get_root() const { return root; }
@@ -430,6 +441,9 @@ public:
 	void set_multiplayer_poll_enabled(bool p_enabled);
 	bool is_multiplayer_poll_enabled() const;
 
+	void set_debug_menu_display_mode(DebugMenuDisplayMode p_mode);
+	DebugMenuDisplayMode get_debug_menu_display_mode() const;
+
 	static void add_idle_callback(IdleCallback p_callback);
 
 	void set_disable_node_threading(bool p_disable);
@@ -448,5 +462,6 @@ public:
 };
 
 VARIANT_ENUM_CAST(SceneTree::GroupCallFlags);
+VARIANT_ENUM_CAST(SceneTree::DebugMenuDisplayMode);
 
 #endif // SCENE_TREE_H
