@@ -67,6 +67,12 @@ bool AudioEffectRecordInstance::process_silence() const {
 	return true;
 }
 
+void AudioEffectRecordInstance::set_current_channel(int p_channel) {
+	base->set_channel_instance(p_channel, Ref<AudioEffectRecordInstance>(this));
+	// Clear base to avoid circular references
+	base = Ref<AudioEffectRecord>();
+}
+
 void AudioEffectRecordInstance::_io_thread_process() {
 	while (is_recording) {
 		_update_buffer();
@@ -117,10 +123,127 @@ void AudioEffectRecordInstance::finish() {
 	}
 }
 
+void AudioEffectRecordInstance::set_recording_active(bool p_record) {
+	if (p_record) {
+		finish();
+		init();
+	} else {
+		is_recording = false;
+	}
+}
+
+bool AudioEffectRecordInstance::is_recording_active() const {
+	return is_recording;
+}
+
+void AudioEffectRecordInstance::set_format(AudioStreamWAV::Format p_format) {
+	format = p_format;
+}
+
+AudioStreamWAV::Format AudioEffectRecordInstance::get_format() const {
+	return format;
+}
+
+Ref<AudioStreamWAV> AudioEffectRecordInstance::get_recording() const {
+	ERR_FAIL_COND_V(recording_data.is_empty(), Ref<AudioStreamWAV>());
+
+	AudioStreamWAV::Format dst_format = format;
+	bool stereo = true; //forcing mono is not implemented
+
+	Vector<uint8_t> dst_data;
+
+	if (dst_format == AudioStreamWAV::FORMAT_8_BITS) {
+		int data_size = recording_data.size();
+		dst_data.resize(data_size);
+		uint8_t *w = dst_data.ptrw();
+
+		for (int i = 0; i < data_size; i++) {
+			int8_t v = CLAMP(recording_data[i] * 128, -128, 127);
+			w[i] = v;
+		}
+	} else if (dst_format == AudioStreamWAV::FORMAT_16_BITS) {
+		int data_size = recording_data.size();
+		dst_data.resize(data_size * 2);
+		uint8_t *w = dst_data.ptrw();
+
+		for (int i = 0; i < data_size; i++) {
+			int16_t v = CLAMP(recording_data[i] * 32768, -32768, 32767);
+			encode_uint16(v, &w[i * 2]);
+		}
+	} else if (dst_format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
+		//byte interleave
+		Vector<float> left;
+		Vector<float> right;
+
+		int tframes = recording_data.size() / 2;
+		left.resize(tframes);
+		right.resize(tframes);
+
+		for (int i = 0; i < tframes; i++) {
+			left.set(i, recording_data[i * 2 + 0]);
+			right.set(i, recording_data[i * 2 + 1]);
+		}
+
+		Vector<uint8_t> bleft;
+		Vector<uint8_t> bright;
+
+		AudioStreamWAV::_compress_ima_adpcm(left, bleft);
+		AudioStreamWAV::_compress_ima_adpcm(right, bright);
+
+		int dl = bleft.size();
+		dst_data.resize(dl * 2);
+
+		uint8_t *w = dst_data.ptrw();
+		const uint8_t *rl = bleft.ptr();
+		const uint8_t *rr = bright.ptr();
+
+		for (int i = 0; i < dl; i++) {
+			w[i * 2 + 0] = rl[i];
+			w[i * 2 + 1] = rr[i];
+		}
+	} else if (dst_format == AudioStreamWAV::FORMAT_QOA) {
+		qoa_desc desc = {};
+		desc.samples = recording_data.size() / 2;
+		desc.samplerate = AudioServer::get_singleton()->get_mix_rate();
+		desc.channels = 2;
+		AudioStreamWAV::_compress_qoa(recording_data, dst_data, &desc);
+	} else {
+		ERR_PRINT("Format not implemented.");
+	}
+
+	Ref<AudioStreamWAV> sample;
+	sample.instantiate();
+	sample->set_data(dst_data);
+	sample->set_format(dst_format);
+	sample->set_mix_rate(AudioServer::get_singleton()->get_mix_rate());
+	sample->set_loop_mode(AudioStreamWAV::LOOP_DISABLED);
+	sample->set_loop_begin(0);
+	sample->set_loop_end(0);
+	sample->set_stereo(stereo);
+
+	return sample;
+}
+
+void AudioEffectRecordInstance::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("set_recording_active", "record"), &AudioEffectRecordInstance::set_recording_active);
+	ClassDB::bind_method(D_METHOD("is_recording_active"), &AudioEffectRecordInstance::is_recording_active);
+	ClassDB::bind_method(D_METHOD("set_format", "format"), &AudioEffectRecordInstance::set_format);
+	ClassDB::bind_method(D_METHOD("get_format"), &AudioEffectRecordInstance::get_format);
+	ClassDB::bind_method(D_METHOD("get_recording"), &AudioEffectRecordInstance::get_recording);
+
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "format", PROPERTY_HINT_ENUM, "8-Bit,16-Bit,IMA ADPCM,Quite OK Audio"), "set_format", "get_format");
+}
+
+AudioEffectRecordInstance::~AudioEffectRecordInstance() {
+	finish();
+}
+
 Ref<AudioEffectInstance> AudioEffectRecord::instantiate() {
 	Ref<AudioEffectRecordInstance> ins;
 	ins.instantiate();
+	ins->base = Ref<AudioEffectRecord>(this);
 	ins->is_recording = false;
+	ins->format = format;
 
 	// Reusing the buffer size calculations from audio_effect_delay.cpp.
 	float ring_buffer_max_size = IO_BUFFER_SIZE_MS;
@@ -144,50 +267,41 @@ Ref<AudioEffectInstance> AudioEffectRecord::instantiate() {
 
 	ins->ring_buffer_read_pos = 0;
 
-	ensure_thread_stopped();
-	bool is_currently_recording = false;
-	if (current_instance.is_valid()) {
-		is_currently_recording = current_instance->is_recording;
-	}
-	if (is_currently_recording) {
-		ins->init();
-	}
-	current_instance = ins;
-
 	return ins;
 }
 
-void AudioEffectRecord::ensure_thread_stopped() {
+void AudioEffectRecord::set_channel_instance(int p_channel, Ref<AudioEffectRecordInstance> p_instance) {
+	if (p_channel != 0) {
+		return;
+	}
+
+	bool is_currently_recording = false;
 	if (current_instance.is_valid()) {
+		is_currently_recording = current_instance->is_recording;
 		current_instance->finish();
 	}
+
+	if (is_currently_recording && p_instance.is_valid()) {
+		p_instance->init();
+	}
+	current_instance = p_instance;
 }
 
 void AudioEffectRecord::set_recording_active(bool p_record) {
-	if (p_record) {
-		if (current_instance.is_null()) {
-			WARN_PRINT("Recording should not be set as active before Godot has initialized.");
-			return;
-		}
-		ensure_thread_stopped();
-		current_instance->init();
-	} else {
-		if (current_instance.is_valid()) {
-			current_instance->is_recording = false;
-		}
-	}
+	ERR_FAIL_COND(current_instance.is_null());
+	current_instance->set_recording_active(p_record);
 }
 
 bool AudioEffectRecord::is_recording_active() const {
-	if (current_instance.is_null()) {
-		return false;
-	} else {
-		return current_instance->is_recording;
-	}
+	ERR_FAIL_COND_V(current_instance.is_null(), false);
+	return current_instance->is_recording_active();
 }
 
 void AudioEffectRecord::set_format(AudioStreamWAV::Format p_format) {
 	format = p_format;
+	if (current_instance.is_valid()) {
+		current_instance->set_format(p_format);
+	}
 }
 
 AudioStreamWAV::Format AudioEffectRecord::get_format() const {
@@ -195,84 +309,8 @@ AudioStreamWAV::Format AudioEffectRecord::get_format() const {
 }
 
 Ref<AudioStreamWAV> AudioEffectRecord::get_recording() const {
-	AudioStreamWAV::Format dst_format = format;
-	bool stereo = true; //forcing mono is not implemented
-
-	Vector<uint8_t> dst_data;
-
-	ERR_FAIL_COND_V(current_instance.is_null(), nullptr);
-	ERR_FAIL_COND_V(current_instance->recording_data.is_empty(), nullptr);
-
-	if (dst_format == AudioStreamWAV::FORMAT_8_BITS) {
-		int data_size = current_instance->recording_data.size();
-		dst_data.resize(data_size);
-		uint8_t *w = dst_data.ptrw();
-
-		for (int i = 0; i < data_size; i++) {
-			int8_t v = CLAMP(current_instance->recording_data[i] * 128, -128, 127);
-			w[i] = v;
-		}
-	} else if (dst_format == AudioStreamWAV::FORMAT_16_BITS) {
-		int data_size = current_instance->recording_data.size();
-		dst_data.resize(data_size * 2);
-		uint8_t *w = dst_data.ptrw();
-
-		for (int i = 0; i < data_size; i++) {
-			int16_t v = CLAMP(current_instance->recording_data[i] * 32768, -32768, 32767);
-			encode_uint16(v, &w[i * 2]);
-		}
-	} else if (dst_format == AudioStreamWAV::FORMAT_IMA_ADPCM) {
-		//byte interleave
-		Vector<float> left;
-		Vector<float> right;
-
-		int tframes = current_instance->recording_data.size() / 2;
-		left.resize(tframes);
-		right.resize(tframes);
-
-		for (int i = 0; i < tframes; i++) {
-			left.set(i, current_instance->recording_data[i * 2 + 0]);
-			right.set(i, current_instance->recording_data[i * 2 + 1]);
-		}
-
-		Vector<uint8_t> bleft;
-		Vector<uint8_t> bright;
-
-		AudioStreamWAV::_compress_ima_adpcm(left, bleft);
-		AudioStreamWAV::_compress_ima_adpcm(right, bright);
-
-		int dl = bleft.size();
-		dst_data.resize(dl * 2);
-
-		uint8_t *w = dst_data.ptrw();
-		const uint8_t *rl = bleft.ptr();
-		const uint8_t *rr = bright.ptr();
-
-		for (int i = 0; i < dl; i++) {
-			w[i * 2 + 0] = rl[i];
-			w[i * 2 + 1] = rr[i];
-		}
-	} else if (dst_format == AudioStreamWAV::FORMAT_QOA) {
-		qoa_desc desc = {};
-		desc.samples = current_instance->recording_data.size() / 2;
-		desc.samplerate = AudioServer::get_singleton()->get_mix_rate();
-		desc.channels = 2;
-		AudioStreamWAV::_compress_qoa(current_instance->recording_data, dst_data, &desc);
-	} else {
-		ERR_PRINT("Format not implemented.");
-	}
-
-	Ref<AudioStreamWAV> sample;
-	sample.instantiate();
-	sample->set_data(dst_data);
-	sample->set_format(dst_format);
-	sample->set_mix_rate(AudioServer::get_singleton()->get_mix_rate());
-	sample->set_loop_mode(AudioStreamWAV::LOOP_DISABLED);
-	sample->set_loop_begin(0);
-	sample->set_loop_end(0);
-	sample->set_stereo(stereo);
-
-	return sample;
+	ERR_FAIL_COND_V(current_instance.is_null(), Ref<AudioStreamWAV>());
+	return current_instance->get_recording();
 }
 
 void AudioEffectRecord::_bind_methods() {
@@ -287,8 +325,4 @@ void AudioEffectRecord::_bind_methods() {
 
 AudioEffectRecord::AudioEffectRecord() {
 	format = AudioStreamWAV::FORMAT_16_BITS;
-}
-
-AudioEffectRecord::~AudioEffectRecord() {
-	ensure_thread_stopped();
 }

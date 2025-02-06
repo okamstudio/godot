@@ -43,20 +43,43 @@ class AudioEffectCaptureInstance : public AudioEffectInstance {
 	friend class AudioEffectCapture;
 	Ref<AudioEffectCapture> base;
 
+	RingBuffer<AudioFrame> buffer;
+	SafeNumeric<uint64_t> discarded_frames;
+	SafeNumeric<uint64_t> pushed_frames;
+	float buffer_length_seconds = 0.1f;
+	bool buffer_initialized = false;
+
+	bool initialize_buffer();
+
+protected:
+	static void _bind_methods();
+
 public:
 	virtual void process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count) override;
 	virtual bool process_silence() const override;
+	virtual void set_current_channel(int p_channel) override;
+
+	void set_buffer_length(float p_buffer_length_seconds);
+	float get_buffer_length();
+
+	bool can_get_buffer(int p_frames) const;
+	PackedVector2Array get_buffer(int p_len);
+	void clear_buffer();
+
+	int get_frames_available() const;
+	int64_t get_discarded_frames() const;
+	int get_buffer_length_frames() const;
+	int64_t get_pushed_frames() const;
 };
 
 class AudioEffectCapture : public AudioEffect {
 	GDCLASS(AudioEffectCapture, AudioEffect)
 	friend class AudioEffectCaptureInstance;
 
-	RingBuffer<AudioFrame> buffer;
-	SafeNumeric<uint64_t> discarded_frames;
-	SafeNumeric<uint64_t> pushed_frames;
 	float buffer_length_seconds = 0.1f;
-	bool buffer_initialized = false;
+	Ref<AudioEffectCaptureInstance> current_instance;
+
+	void set_channel_instance(int p_channel, Ref<AudioEffectCaptureInstance> p_instance);
 
 protected:
 	static void _bind_methods();

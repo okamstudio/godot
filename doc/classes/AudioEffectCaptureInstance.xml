@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="AudioEffectCapture" inherits="AudioEffect" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+<class name="AudioEffectCaptureInstance" inherits="AudioEffectInstance" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
 	<brief_description>
-		Captures audio from an audio bus in real-time.
+		Captures audio from an audio bus, on a specific channel, in real-time.
 	</brief_description>
 	<description>
-		AudioEffectCapture is an AudioEffect which copies all audio frames from the attached audio effect bus into its internal ring buffer(s). Processing is done per channel by [AudioEffectCaptureInstance], but the parent AudioEffectCapture allows accessing data from channel 0. Audio data from other channels can be accessed with [AudioEffectCaptureInstance].
-		Application code should consume audio frames from the ring buffer using [method get_buffer] and process it as needed, for example to capture data from an [AudioStreamMicrophone], implement application-defined effects, or to transmit audio over the network. When capturing audio data from a microphone, the format of the samples will be stereo 32-bit floating-point PCM.
+		AudioEffectCaptureInstance is an instance of AudioEffectCapture which copies all audio frames from a specific channel of the attached audio effect bus into its internal ring buffer.
+		Access to instances of this class can be obtained with [method AudioServer.get_bus_effect_instance]. The parent AudioEffectCapture object mirrors the AudioEffectCaptureInstance created for channel 0, so method calls on the parent are passed straight through to the channel 0 instance.
+		Application code may consume these audio frames from this ring buffer using [method get_buffer] and process it as needed, for example to capture data from an [AudioStreamMicrophone], implement application-defined effects, or to transmit audio over the network. When capturing audio data from a microphone, the format of the samples will be stereo 32-bit floating-point PCM.
 		Unlike [AudioEffectRecord] or [AudioEffectRecordInstance], this effect only returns the raw audio samples instead of encoding them into an [AudioStream].
 		[b]Note:[/b] [member ProjectSettings.audio/driver/enable_input] must be [code]true[/code] for audio input to work. See also that setting's description for caveats related to permissions and operating system privacy settings.
 	</description>
@@ -62,8 +63,8 @@
 		</method>
 	</methods>
 	<members>
-		<member name="buffer_length" type="float" setter="set_buffer_length" getter="get_buffer_length" default="0.1">
-			Length of the internal ring buffer(s), in seconds. Setting the buffer length will have no effect if already initialized.
+		<member name="buffer_length" type="float" setter="set_buffer_length" getter="get_buffer_length">
+			Length of the internal ring buffer, in seconds. Initialized to buffer length of parent [AudioEffectCapture]. Setting the buffer length will have no effect if already initialized.
 		</member>
 	</members>
 </class>
