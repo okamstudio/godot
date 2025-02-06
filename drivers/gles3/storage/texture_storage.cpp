@@ -2153,15 +2153,41 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 			glGenTextures(1, &rt->color);
 			glBindTexture(texture_target, rt->color);
 
+			int count = MAX(1, Image::get_image_required_mipmaps(rt->size.x, rt->size.y, Image::FORMAT_RGBA8));
+
 			if (use_multiview) {
 				glTexImage3D(texture_target, 0, rt->color_internal_format, rt->size.x, rt->size.y, rt->view_count, 0, rt->color_format, rt->color_type, nullptr);
 			} else {
-				glTexImage2D(texture_target, 0, rt->color_internal_format, rt->size.x, rt->size.y, 0, rt->color_format, rt->color_type, nullptr);
+				//glTexImage2D(texture_target, 0, rt->color_internal_format, rt->size.x, rt->size.y, 0, rt->color_format, rt->color_type, nullptr);
+
+				// @TODO
+				uint32_t texture_size_bytes = 0;
+
+				GLsizei width = rt->size.x;
+				GLsizei height = rt->size.y;
+
+				for (int l = 0; l < count; l++) {
+					texture_size_bytes += width * height * 4;
+					glTexImage2D(texture_target, l, rt->color_internal_format, width, height, 0, rt->color_format, rt->color_type, nullptr);
+					width = MAX(1, (width / 2));
+					height = MAX(1, (height / 2));
+				}
 			}
 
 			texture->gl_set_filter(RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
 			texture->gl_set_repeat(RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
 
+			glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, count - 1);
+
+			GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if (status != GL_FRAMEBUFFER_COMPLETE) {
+				WARN_PRINT_ONCE("Cannot allocate mipmaps for canvas screen blur. Status: " + get_framebuffer_error(status));
+				glBindFramebuffer(GL_FRAMEBUFFER, system_fbo);
+				return;
+			}
+
+			// @TODO: fix mem usage
 			GLES3::Utilities::get_singleton()->texture_allocated_data(rt->color, rt->size.x * rt->size.y * rt->view_count * rt->color_format_size, "Render target color texture");
 		}
 #ifndef IOS_ENABLED
@@ -2184,16 +2210,48 @@ void TextureStorage::_update_render_target(RenderTarget *rt) {
 			glGenTextures(1, &rt->depth);
 			glBindTexture(texture_target, rt->depth);
 
+			// @TODO
+
+			int count = MAX(1, Image::get_image_required_mipmaps(rt->size.x, rt->size.y, Image::FORMAT_RGBA8));
+
 			if (use_multiview) {
+				// @TODO: create mips for multiview also
 				glTexImage3D(texture_target, 0, GL_DEPTH_COMPONENT24, rt->size.x, rt->size.y, rt->view_count, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
 			} else {
-				glTexImage2D(texture_target, 0, GL_DEPTH_COMPONENT24, rt->size.x, rt->size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+				//glTexImage2D(texture_target, 0, GL_DEPTH_COMPONENT24, rt->size.x, rt->size.y, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+
+				uint32_t texture_size_bytes = 0;
+
+				GLsizei width = rt->size.x;
+				GLsizei height = rt->size.y;
+
+				for (int l = 0; l < count; l++) {
+					texture_size_bytes += width * height * 4;
+					glTexImage2D(texture_target, l, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
+					width = MAX(1, (width / 2));
+					height = MAX(1, (height / 2));
+				}
 			}
+
+			glTexParameteri(texture_target, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, count - 1);
 
 			glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(texture_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(texture_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+			// @NOTE: somehow this framebuffer completeness check fails???!!!!
+			// maybe its because of the internal color format??
+			GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			if (status != GL_FRAMEBUFFER_COMPLETE) {
+				WARN_PRINT_ONCE("Cannot allocate mipmaps for canvas screen blur. Status: " + get_framebuffer_error(status));
+				glBindFramebuffer(GL_FRAMEBUFFER, system_fbo);
+				return;
+			}
+
+			// @TODO: fix size usage
+			//GLES3::Utilities::get_singleton()->texture_allocated_data(rt->backbuffer, texture_size_bytes, "Render target backbuffer color texture");
 
 			GLES3::Utilities::get_singleton()->texture_allocated_data(rt->depth, rt->size.x * rt->size.y * rt->view_count * 3, "Render target depth texture");
 		}
@@ -2264,7 +2322,7 @@ void TextureStorage::_create_render_target_backbuffer(RenderTarget *rt) {
 	ERR_FAIL_COND(rt->direct_to_screen);
 	// Allocate mipmap chains for full screen blur
 	// Limit mipmaps so smallest is 32x32 to avoid unnecessary framebuffer switches
-	int count = MAX(1, Image::get_image_required_mipmaps(rt->size.x, rt->size.y, Image::FORMAT_RGBA8) - 4);
+	int count = MAX(1, Image::get_image_required_mipmaps(rt->size.x, rt->size.y, Image::FORMAT_RGBA8));
 	if (rt->size.x > 40 && rt->size.y > 40) {
 		GLsizei width = rt->size.x;
 		GLsizei height = rt->size.y;
@@ -2299,13 +2357,13 @@ void TextureStorage::_create_render_target_backbuffer(RenderTarget *rt) {
 		GLES3::Utilities::get_singleton()->texture_allocated_data(rt->backbuffer, texture_size_bytes, "Render target backbuffer color texture");
 
 		// Initialize all levels to clear black.
-		for (int j = 0; j < count; j++) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->backbuffer, j);
-			glClearColor(0.0, 0.0, 0.0, 0.0);
-			glClear(GL_COLOR_BUFFER_BIT);
-		}
+		//for (int j = 0; j < count; j++) {
+		//	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->backbuffer, j);
+		//	glClearColor(0.0, 0.0, 0.0, 0.0);
+		//	glClear(GL_COLOR_BUFFER_BIT);
+		//}
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->backbuffer, 0);
+		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->backbuffer, 0);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
