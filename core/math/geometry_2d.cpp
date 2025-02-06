@@ -317,6 +317,48 @@ Vector<Vector<Point2>> Geometry2D::_polypath_offset(const Vector<Point2> &p_poly
 	return polypaths;
 }
 
+Vector<Vector<Point2>> Geometry2D::_polypath_minkowski(const Vector<Point2> &p_polypath_pattern, const Vector<Point2> &p_polypath_path, bool p_is_sum, bool p_is_closed) {
+	using namespace ClipperLib;
+
+	Path path_pattern;
+	Path path_path;
+	path_pattern.reserve(p_polypath_pattern.size());
+	path_path.reserve(p_polypath_path.size());
+
+	// Need to scale points (Clipper's requirement for robust computation).
+	for (int i = 0; i < p_polypath_pattern.size(); ++i) {
+		path_pattern << IntPoint(p_polypath_pattern[i].x * (real_t)SCALE_FACTOR, p_polypath_pattern[i].y * (real_t)SCALE_FACTOR);
+	}
+	for (int i = 0; i < p_polypath_path.size(); ++i) {
+		path_path << IntPoint(p_polypath_path[i].x * (real_t)SCALE_FACTOR, p_polypath_path[i].y * (real_t)SCALE_FACTOR);
+	}
+
+	Paths paths;
+
+	if (p_is_sum) {
+		MinkowskiSum(path_pattern, path_path, paths, p_is_closed);
+	} else {
+		MinkowskiDiff(path_pattern, path_path, paths);
+	}
+
+	// Have to scale points down now.
+	Vector<Vector<Point2>> polypaths;
+	polypaths.resize(paths.size());
+
+	for (Paths::size_type i = 0; i < paths.size(); ++i) {
+		const Path &scaled_path = paths[i];
+
+		Vector<Vector2> polypath;
+		polypath.resize(scaled_path.size());
+
+		for (Paths::size_type j = 0; j < scaled_path.size(); ++j) {
+			polypath.set(j, Point2(static_cast<real_t>(scaled_path[j].X) / (real_t)SCALE_FACTOR, static_cast<real_t>(scaled_path[j].Y) / (real_t)SCALE_FACTOR));
+		}
+		polypaths.set(i, polypath);
+	}
+	return polypaths;
+}
+
 Vector<Vector3i> Geometry2D::partial_pack_rects(const Vector<Vector2i> &p_sizes, const Size2i &p_atlas_size) {
 	Vector<stbrp_node> nodes;
 	nodes.resize(p_atlas_size.width);

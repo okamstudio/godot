@@ -339,6 +339,10 @@ public:
 	TypedArray<PackedVector2Array> offset_polygon(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE);
 	TypedArray<PackedVector2Array> offset_polyline(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE, PolyEndType p_end_type = END_SQUARE);
 
+	TypedArray<PackedVector2Array> minkowski_sum_polygon(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path);
+	TypedArray<PackedVector2Array> minkowski_diff_polygon(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polygon_path);
+	TypedArray<PackedVector2Array> minkowski_sum_polyline(const Vector<Vector2> &p_polygon_pattern, const Vector<Vector2> &p_polyline_path);
+
 	Dictionary make_atlas(const Vector<Size2> &p_rects);
 
 	TypedArray<Point2i> bresenham_line(const Point2i &p_from, const Point2i &p_to);

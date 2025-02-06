@@ -186,6 +186,33 @@
 				The operation may result in an outer polygon (boundary) and multiple inner polygons (holes) produced which could be distinguished by calling [method is_polygon_clockwise].
 			</description>
 		</method>
+		<method name="minkowski_diff_polygon">
+			<return type="PackedVector2Array[]" />
+			<param index="0" name="polygon_pattern" type="PackedVector2Array" />
+			<param index="1" name="polygon_path" type="PackedVector2Array" />
+			<description>
+				The Minkowsky difference is the complement of the Minkowski sum. It is an operation that erodes a polygon (the path) using another polygon (the pattern).
+			</description>
+		</method>
+		<method name="minkowski_sum_polygon">
+			<return type="PackedVector2Array[]" />
+			<param index="0" name="polygon_pattern" type="PackedVector2Array" />
+			<param index="1" name="polygon_path" type="PackedVector2Array" />
+			<description>
+				The Minkowski sum is an operation that dilates a polygon (the path) using another polygon (the pattern).
+				For example, the Minkowski sum of a rectangle and a circle is a rounded rectangle.
+			</description>
+		</method>
+		<method name="minkowski_sum_polyline">
+			<return type="PackedVector2Array[]" />
+			<param index="0" name="polygon_pattern" type="PackedVector2Array" />
+			<param index="1" name="polyline_path" type="PackedVector2Array" />
+			<description>
+				The Minkowski sum is an operation that dilates a polygon (the path) using another polygon (the pattern).
+				This function is similar to [method minkowski_sum_polygon], but the path polygon is an open polygon instead of a closed polygon.
+				For example, the Minkowski sum of a line and a circle is a thick line with round ends.
+			</description>
+		</method>
 		<method name="offset_polygon">
 			<return type="PackedVector2Array[]" />
 			<param index="0" name="polygon" type="PackedVector2Array" />
