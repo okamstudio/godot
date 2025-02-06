@@ -3,6 +3,7 @@
 import os.path
 from typing import Optional
 
+from glsl_common import minify_glsl
 from methods import print_error, to_raw_cstring
 
 
@@ -31,7 +32,7 @@ class GLES3HeaderStruct:
         self.specialization_values = []
 
 
-def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, depth: int):
+def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, depth: int, env):
     with open(filename, "r", encoding="utf-8") as fs:
         line = fs.readline()
 
@@ -94,11 +95,11 @@ def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, 
                 included_file = os.path.relpath(os.path.dirname(filename) + "/" + includeline)
                 if included_file not in header_data.vertex_included_files and header_data.reading == "vertex":
                     header_data.vertex_included_files += [included_file]
-                    if include_file_in_gles3_header(included_file, header_data, depth + 1) is None:
+                    if include_file_in_gles3_header(included_file, header_data, depth + 1, env) is None:
                         print_error(f'In file "{filename}": #include "{includeline}" could not be found!"')
                 elif included_file not in header_data.fragment_included_files and header_data.reading == "fragment":
                     header_data.fragment_included_files += [included_file]
-                    if include_file_in_gles3_header(included_file, header_data, depth + 1) is None:
+                    if include_file_in_gles3_header(included_file, header_data, depth + 1, env) is None:
                         print_error(f'In file "{filename}": #include "{includeline}" could not be found!"')
 
                 line = fs.readline()
@@ -178,13 +179,23 @@ def include_file_in_gles3_header(filename: str, header_data: GLES3HeaderStruct, 
             line = line.replace("\r", "")
             line = line.replace("\n", "")
 
-            if header_data.reading == "vertex":
-                header_data.vertex_lines += [line]
-            if header_data.reading == "fragment":
-                header_data.fragment_lines += [line]
+            # Strip whitespace in release export templates to reduce binary size.
+            if env["target"] == "template_release":
+                line = line.strip()
+
+            # In release export templates, don't add blank lines to reduce binary size.
+            if env["target"] != "template_release" or line != "":
+                if env["target"] == "template_release":
+                    line = minify_glsl(line)
+
+                if header_data.reading == "vertex":
+                    header_data.vertex_lines += [line]
+                if header_data.reading == "fragment":
+                    header_data.fragment_lines += [line]
+
+                header_data.line_offset += 1
 
             line = fs.readline()
-            header_data.line_offset += 1
 
     return header_data
 
@@ -195,9 +206,10 @@ def build_gles3_header(
     class_suffix: str,
     optional_output_filename: Optional[str] = None,
     header_data: Optional[GLES3HeaderStruct] = None,
+    env=None,
 ):
     header_data = header_data or GLES3HeaderStruct()
-    include_file_in_gles3_header(filename, header_data, 0)
+    include_file_in_gles3_header(filename, header_data, 0, env)
 
     if optional_output_filename is None:
         out_file = filename + ".gen.h"
@@ -587,4 +599,4 @@ def build_gles3_header(
 def build_gles3_headers(target, source, env):
     env.NoCache(target)
     for x in source:
-        build_gles3_header(str(x), include="drivers/gles3/shader_gles3.h", class_suffix="GLES3")
+        build_gles3_header(str(x), include="drivers/gles3/shader_gles3.h", class_suffix="GLES3", env=env)

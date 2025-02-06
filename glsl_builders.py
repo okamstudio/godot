@@ -3,6 +3,7 @@
 import os.path
 from typing import Optional
 
+from glsl_common import minify_glsl
 from methods import print_error, to_raw_cstring
 
 
@@ -23,7 +24,7 @@ class RDHeaderStruct:
         self.compute_offset = 0
 
 
-def include_file_in_rd_header(filename: str, header_data: RDHeaderStruct, depth: int) -> RDHeaderStruct:
+def include_file_in_rd_header(filename: str, header_data: RDHeaderStruct, depth: int, env) -> RDHeaderStruct:
     with open(filename, "r", encoding="utf-8") as fs:
         line = fs.readline()
 
@@ -64,39 +65,52 @@ def include_file_in_rd_header(filename: str, header_data: RDHeaderStruct, depth:
 
                 if included_file not in header_data.vertex_included_files and header_data.reading == "vertex":
                     header_data.vertex_included_files += [included_file]
-                    if include_file_in_rd_header(included_file, header_data, depth + 1) is None:
+                    if include_file_in_rd_header(included_file, header_data, depth + 1, env) is None:
                         print_error(f'In file "{filename}": #include "{includeline}" could not be found!"')
                 elif included_file not in header_data.fragment_included_files and header_data.reading == "fragment":
                     header_data.fragment_included_files += [included_file]
-                    if include_file_in_rd_header(included_file, header_data, depth + 1) is None:
+                    if include_file_in_rd_header(included_file, header_data, depth + 1, env) is None:
                         print_error(f'In file "{filename}": #include "{includeline}" could not be found!"')
                 elif included_file not in header_data.compute_included_files and header_data.reading == "compute":
                     header_data.compute_included_files += [included_file]
-                    if include_file_in_rd_header(included_file, header_data, depth + 1) is None:
+                    if include_file_in_rd_header(included_file, header_data, depth + 1, env) is None:
                         print_error(f'In file "{filename}": #include "{includeline}" could not be found!"')
 
                 line = fs.readline()
 
             line = line.replace("\r", "").replace("\n", "")
 
-            if header_data.reading == "vertex":
-                header_data.vertex_lines += [line]
-            if header_data.reading == "fragment":
-                header_data.fragment_lines += [line]
-            if header_data.reading == "compute":
-                header_data.compute_lines += [line]
+            # Strip whitespace in release export templates to reduce binary size.
+            if env["target"] == "template_release":
+                line = line.strip()
+
+            # In release export templates, don't add blank lines to reduce binary size.
+            if env["target"] != "template_release" or line != "":
+                if env["target"] == "template_release":
+                    line = minify_glsl(line)
+
+                if header_data.reading == "vertex":
+                    header_data.vertex_lines += [line]
+                if header_data.reading == "fragment":
+                    header_data.fragment_lines += [line]
+                if header_data.reading == "compute":
+                    header_data.compute_lines += [line]
+
+                header_data.line_offset += 1
 
             line = fs.readline()
-            header_data.line_offset += 1
 
     return header_data
 
 
 def build_rd_header(
-    filename: str, optional_output_filename: Optional[str] = None, header_data: Optional[RDHeaderStruct] = None
+    filename: str,
+    optional_output_filename: Optional[str] = None,
+    header_data: Optional[RDHeaderStruct] = None,
+    env=None,
 ) -> None:
     header_data = header_data or RDHeaderStruct()
-    include_file_in_rd_header(filename, header_data, 0)
+    include_file_in_rd_header(filename, header_data, 0, env)
 
     if optional_output_filename is None:
         out_file = filename + ".gen.h"
@@ -150,7 +164,7 @@ public:
 def build_rd_headers(target, source, env):
     env.NoCache(target)
     for x in source:
-        build_rd_header(filename=str(x))
+        build_rd_header(filename=str(x), env=env)
 
 
 class RAWHeaderStruct:
@@ -158,7 +172,7 @@ class RAWHeaderStruct:
         self.code = ""
 
 
-def include_file_in_raw_header(filename: str, header_data: RAWHeaderStruct, depth: int) -> None:
+def include_file_in_raw_header(filename: str, header_data: RAWHeaderStruct, depth: int, env) -> None:
     with open(filename, "r", encoding="utf-8") as fs:
         line = fs.readline()
 
@@ -167,19 +181,23 @@ def include_file_in_raw_header(filename: str, header_data: RAWHeaderStruct, dept
                 includeline = line.replace("#include ", "").strip()[1:-1]
 
                 included_file = os.path.relpath(os.path.dirname(filename) + "/" + includeline)
-                include_file_in_raw_header(included_file, header_data, depth + 1)
+                include_file_in_raw_header(included_file, header_data, depth + 1, env)
 
                 line = fs.readline()
 
             header_data.code += line
+
             line = fs.readline()
 
 
 def build_raw_header(
-    filename: str, optional_output_filename: Optional[str] = None, header_data: Optional[RAWHeaderStruct] = None
+    filename: str,
+    optional_output_filename: Optional[str] = None,
+    header_data: Optional[RAWHeaderStruct] = None,
+    env=None,
 ):
     header_data = header_data or RAWHeaderStruct()
-    include_file_in_raw_header(filename, header_data, 0)
+    include_file_in_raw_header(filename, header_data, 0, env)
 
     if optional_output_filename is None:
         out_file = filename + ".gen.h"
@@ -208,4 +226,4 @@ static const char {out_file_base}[] = {{
 def build_raw_headers(target, source, env):
     env.NoCache(target)
     for x in source:
-        build_raw_header(filename=str(x))
+        build_raw_header(filename=str(x), env=env)

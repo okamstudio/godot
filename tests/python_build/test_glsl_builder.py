@@ -21,7 +21,11 @@ from glsl_builders import RAWHeaderStruct, RDHeaderStruct, build_raw_header, bui
 )
 def test_glsl_builder(shader_files, builder, header_struct):
     header = header_struct()
-    builder(shader_files["path_input"], header_data=header)
+    env = {
+        "target": "release",
+    }
+
+    builder(shader_files["path_input"], header_data=header, env=env)
 
     with open(shader_files["path_expected_parts"], "r", encoding="utf-8") as f:
         expected_parts = json.load(f)

@@ -14,8 +14,11 @@ from gles3_builders import GLES3HeaderStruct, build_gles3_header
 )
 def test_gles3_builder(shader_files, builder, header_struct):
     header = header_struct()
+    env = {
+        "target": "release",
+    }
 
-    builder(shader_files["path_input"], "drivers/gles3/shader_gles3.h", "GLES3", header_data=header)
+    builder(shader_files["path_input"], "drivers/gles3/shader_gles3.h", "GLES3", header_data=header, env=env)
 
     with open(shader_files["path_expected_parts"], "r", encoding="utf-8") as f:
         expected_parts = json.load(f)
