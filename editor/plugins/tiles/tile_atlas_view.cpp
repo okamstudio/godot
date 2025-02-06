@@ -339,25 +339,36 @@ void TileAtlasView::_draw_base_tiles_texture_grid() {
 
 		Size2i grid_size = tile_set_atlas_source->get_atlas_grid_size();
 
+		Transform2D global_to_grid_local_xform = base_tiles_texture_grid->get_global_transform().affine_inverse();
+		Rect2 base_rect = global_to_grid_local_xform.xform(get_global_rect());
+
 		// Draw each tile texture region.
-		for (int x = 0; x < grid_size.x; x++) {
-			for (int y = 0; y < grid_size.y; y++) {
+		for (int y = 0; y < grid_size.y; ++y) {
+			for (int x = 0; x < grid_size.x; ++x) {
 				Vector2i origin = margins + (Vector2i(x, y) * (texture_region_size + separation));
 				Vector2i base_tile_coords = tile_set_atlas_source->get_tile_at_coords(Vector2i(x, y));
 				if (base_tile_coords != TileSetSource::INVALID_ATLAS_COORDS) {
 					if (base_tile_coords == Vector2i(x, y)) {
-						// Draw existing tile.
 						Vector2i size_in_atlas = tile_set_atlas_source->get_tile_size_in_atlas(base_tile_coords);
 						Vector2 region_size = texture_region_size * size_in_atlas + separation * (size_in_atlas - Vector2i(1, 1));
-						base_tiles_texture_grid->draw_rect(Rect2i(origin, region_size), Color(1.0, 1.0, 1.0, 0.8), false);
+						Rect2i tile_rect = Rect2i(origin, region_size);
+						if (!redraw_with_clipping || tile_rect.intersects(base_rect)) {
+							// Draw existing tile.
+							base_tiles_texture_grid->draw_rect(tile_rect, Color(1.0, 1.0, 1.0, 0.8), false);
+						}
 					}
 				} else {
-					// Draw the grid.
-					base_tiles_texture_grid->draw_rect(Rect2i(origin, texture_region_size), Color(0.7, 0.7, 0.7, 0.1), false);
+					Rect2i tile_rect = Rect2i(origin, texture_region_size);
+					if (!redraw_with_clipping || tile_rect.intersects(base_rect)) {
+						// Draw the grid.
+						base_tiles_texture_grid->draw_rect(tile_rect, Color(0.7, 0.7, 0.7, 0.1), false);
+					}
 				}
 			}
 		}
 	}
+
+	redraw_with_clipping = false;
 }
 
 void TileAtlasView::_draw_base_tiles_shape_grid() {

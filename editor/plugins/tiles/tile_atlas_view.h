@@ -59,6 +59,8 @@ private:
 	Button *button_center_view = nullptr;
 	CenterContainer *center_container = nullptr;
 	Vector2 panning;
+	bool redraw_with_clipping = false;
+
 	void _update_zoom_and_panning(bool p_zoom_on_mouse_pos = false);
 	void _zoom_widget_changed();
 	void _center_view();
@@ -166,6 +168,8 @@ public:
 
 	// Redraw everything.
 	void queue_redraw();
+
+	void mark_redraw_as_clipping(bool p_is_clipping = true) { redraw_with_clipping = p_is_clipping; }
 
 	TileAtlasView();
 	~TileAtlasView();

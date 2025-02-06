@@ -267,7 +267,7 @@ private:
 	void _update_tile_data_editors();
 	void _update_current_tile_data_editor();
 	void _update_manage_tile_properties_button();
-	void _update_atlas_view();
+	void _update_atlas_view(bool p_with_clipping);
 	void _update_toolbar();
 	void _update_buttons();
 
