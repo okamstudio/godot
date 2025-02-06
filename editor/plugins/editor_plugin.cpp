@@ -531,6 +531,30 @@ bool EditorPlugin::build() {
 	return success;
 }
 
+void EditorPlugin::get_meshlib_item_metadata_list(MeshInstance3D *p_object, List<MeshLibrary::PluginGeneratedMetadata> *p_list) {
+	TypedArray<Dictionary> virtual_list;
+	if (GDVIRTUAL_CALL(_get_meshlib_item_metadata_list, p_object, virtual_list)) {
+		for (int i = 0; i < virtual_list.size(); i++) {
+			Dictionary virtual_entry = virtual_list.get(i);
+			if (!virtual_entry.has("name") || !virtual_entry.has("value")) {
+				continue;
+			}
+			Variant var_name = virtual_entry["name"];
+			Variant var_metadata = virtual_entry["value"];
+
+			if (var_name.get_type() != Variant::STRING) {
+				continue;
+			}
+			String name = var_name;
+			if (name.is_empty()) {
+				continue;
+			}
+			MeshLibrary::PluginGeneratedMetadata meta = MeshLibrary::PluginGeneratedMetadata(name, var_metadata);
+			p_list->push_back(meta);
+		}
+	}
+}
+
 void EditorPlugin::queue_save_layout() {
 	EditorNode::get_singleton()->save_editor_layout_delayed();
 }
@@ -665,6 +689,7 @@ void EditorPlugin::_bind_methods() {
 	GDVIRTUAL_BIND(_set_window_layout, "configuration");
 	GDVIRTUAL_BIND(_get_window_layout, "configuration");
 	GDVIRTUAL_BIND(_build);
+	GDVIRTUAL_BIND(_get_meshlib_item_metadata_list, "object");
 	GDVIRTUAL_BIND(_enable_plugin);
 	GDVIRTUAL_BIND(_disable_plugin);
 

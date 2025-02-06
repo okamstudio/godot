@@ -59,6 +59,14 @@
 				Returns the transform applied to the item's mesh.
 			</description>
 		</method>
+		<method name="get_item_metadata" qualifiers="const">
+			<return type="Variant" />
+			<param index="0" name="id" type="int" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Returns the item's metadata corresponding to [param key].
+			</description>
+		</method>
 		<method name="get_item_name" qualifiers="const">
 			<return type="String" />
 			<param index="0" name="id" type="int" />
@@ -108,11 +116,34 @@
 				Gets an unused ID for a new item.
 			</description>
 		</method>
+		<method name="has_item" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="int" />
+			<description>
+				Returns [code]true[/code] if an item exists at [param id].
+			</description>
+		</method>
+		<method name="has_item_metadata" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="id" type="int" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Returns [code]true[/code] if the item has metadata corresponding to [param key].
+			</description>
+		</method>
 		<method name="remove_item">
 			<return type="void" />
 			<param index="0" name="id" type="int" />
 			<description>
 				Removes the item.
+			</description>
+		</method>
+		<method name="remove_item_metadata">
+			<return type="void" />
+			<param index="0" name="id" type="int" />
+			<param index="1" name="key" type="String" />
+			<description>
+				Removes the item's metadata corresponding to [param key].
 			</description>
 		</method>
 		<method name="set_item_mesh">
@@ -137,6 +168,15 @@
 			<param index="1" name="mesh_transform" type="Transform3D" />
 			<description>
 				Sets the transform to apply to the item's mesh.
+			</description>
+		</method>
+		<method name="set_item_metadata">
+			<return type="void" />
+			<param index="0" name="id" type="int" />
+			<param index="1" name="key" type="String" />
+			<param index="2" name="value" type="Variant" />
+			<description>
+				Assigns [param value] to the item's metadata.
 			</description>
 		</method>
 		<method name="set_item_name">

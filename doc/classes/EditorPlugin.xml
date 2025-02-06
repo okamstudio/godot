@@ -230,6 +230,53 @@
 				This is for editors that edit script-based objects. You can return a list of breakpoints in the format ([code]script:line[/code]), for example: [code]res://path_to_script.gd:25[/code].
 			</description>
 		</method>
+		<method name="_get_meshlib_item_metadata_list" qualifiers="virtual">
+			<return type="Dictionary[]" />
+			<param index="0" name="object" type="MeshInstance3D" />
+			<description>
+				Override this method to implement application-specific metadata in a [MeshLibrary].
+				It is called once for each [MeshInstance3D] when generating a [MeshLibrary] from a scene.
+				Metadata can be added this way by returning a [Dictionary] list where each entry contains the [code]name[/code] and [code]value[/code] keys.
+				This example assumes that there is a [Node] type named [code]MeshTerrainTypeDefiner[/code] which contains a [code]terrain_type[/code] property:
+				[codeblocks]
+				[gdscript]
+				func _get_meshlib_item_metadata_list(object):
+				    var metadata_list = []
+				    
+				    for child in object.get_children():
+				        if child is MeshTerrainTypeDefiner:
+				            metadata_list.append({
+				                "name": "terrain_type",
+				                "value": child.terrain_type,
+				            })
+				            break
+				    
+				    return metadata_list
+				[/gdscript]
+				[csharp]
+				public override Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt; _GetMeshlibItemMetadataList(MeshInstance3D @object)
+				{
+				    var metadataList = new Godot.Collections.Array&lt;Godot.Collections.Dictionary&gt;();
+				
+				    foreach (Node child in @object.GetChildren())
+				    {
+				        if (child is MeshTerrainTypeDefiner terrainTypeDefiner)
+				        {
+				            metadataList.Add(new Godot.Collections.Dictionary()
+				            {
+				                { "name", "TerrainType" },
+				                { "value", terrainTypeDefiner.TerrainType },
+				            });
+				            break;
+				        }
+				    }
+				    
+				    return metadataList;
+				}
+				[/csharp]
+				[/codeblocks]
+			</description>
+		</method>
 		<method name="_get_plugin_icon" qualifiers="virtual const">
 			<return type="Texture2D" />
 			<description>

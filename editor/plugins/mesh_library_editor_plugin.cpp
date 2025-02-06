@@ -223,6 +223,16 @@ void MeshLibraryEditor::_import_scene_parse_node(Ref<MeshLibrary> p_library, Has
 			break;
 		}
 	}
+
+	List<MeshLibrary::PluginGeneratedMetadata> plugin_meta_list;
+	List<MeshLibrary::PluginGeneratedMetadata> *plugin_meta_list_ptr = &plugin_meta_list;
+	for (int i = 0; i < EditorNode::get_editor_data().get_editor_plugin_count(); i++) {
+		EditorPlugin *current_plugin = EditorNode::get_editor_data().get_editor_plugin(i);
+		current_plugin->get_meshlib_item_metadata_list(mesh_instance_node, plugin_meta_list_ptr);
+	}
+	for (const MeshLibrary::PluginGeneratedMetadata &plugin_meta : plugin_meta_list) {
+		p_library->set_item_metadata(item_id, plugin_meta.name, plugin_meta.value);
+	}
 }
 
 Error MeshLibraryEditor::update_library_file(Node *p_base_scene, Ref<MeshLibrary> ml, bool p_merge, bool p_apply_xforms) {

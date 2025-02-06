@@ -34,6 +34,8 @@
 #include "core/io/config_file.h"
 #include "editor/plugins/editor_context_menu_plugin.h"
 #include "scene/3d/camera_3d.h"
+#include "scene/3d/mesh_instance_3d.h"
+#include "scene/resources/3d/mesh_library.h"
 #include "scene/gui/control.h"
 
 class Node3D;
@@ -134,6 +136,7 @@ protected:
 	GDVIRTUAL1(_set_window_layout, Ref<ConfigFile>)
 	GDVIRTUAL1(_get_window_layout, Ref<ConfigFile>)
 	GDVIRTUAL0R(bool, _build)
+	GDVIRTUAL1R(TypedArray<Dictionary>, _get_meshlib_item_metadata_list, MeshInstance3D *)
 	GDVIRTUAL0(_enable_plugin)
 	GDVIRTUAL0(_disable_plugin)
 
@@ -203,6 +206,7 @@ public:
 	virtual void get_window_layout(Ref<ConfigFile> p_layout);
 	virtual void edited_scene_changed() {} // if changes are pending in editor, apply them
 	virtual bool build(); // builds with external tools. Returns true if safe to continue running scene.
+	virtual void get_meshlib_item_metadata_list(MeshInstance3D *p_object, List<MeshLibrary::PluginGeneratedMetadata> *p_list); // While generating a MeshLibrary from a scene, metadata may be added to any item. Useful for game-specific data, like terrain types.
 
 	EditorInterface *get_editor_interface();
 	ScriptCreateDialog *get_script_create_dialog();
