@@ -1786,6 +1786,18 @@ bool Viewport::_gui_drop(Control *p_at_control, Point2 p_at_pos, bool p_just_che
 void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 	ERR_FAIL_COND(p_event.is_null());
 
+	Ref<InputEventKey> k = p_event;
+	if (gui.dragging && k.is_valid()) {
+		if (!k->is_pressed()) {
+			return;
+		}
+
+		// Exclude CTRL, it is used for drag-copy
+		if (k->get_keycode() != Key::CTRL) {
+			return;
+		}
+	}
+
 	Ref<InputEventMouseButton> mb = p_event;
 	if (mb.is_valid()) {
 		Point2 mpos = mb->get_position();
@@ -1814,6 +1826,13 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				}
 			}
 			DEV_ASSERT(gui.mouse_focus);
+
+			if (gui.dragging) {
+				gui.mouse_focus = nullptr;
+				gui.forced_mouse_focus = false;
+				gui.mouse_focus_mask = MouseButton::NONE;
+				return;
+			}
 
 			mb = mb->xformed_by(Transform2D()); // Make a copy of the event.
 
