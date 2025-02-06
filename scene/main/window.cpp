@@ -2851,8 +2851,8 @@ bool Window::is_attached_in_viewport() const {
 
 void Window::_update_mouse_over(Vector2 p_pos) {
 	if (!mouse_in_window) {
+		mouse_in_window = true;
 		if (is_embedded()) {
-			mouse_in_window = true;
 			_propagate_window_notification(this, NOTIFICATION_WM_MOUSE_ENTER);
 		}
 	}
