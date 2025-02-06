@@ -532,7 +532,7 @@ void GroupsEditor::_confirm_rename() {
 	}
 
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
-	undo_redo->create_action(TTR("Rename Group"));
+	undo_redo->create_action(TTR("Rename Group"), UndoRedo::MergeMode::MERGE_DISABLE, node);
 
 	if (!global_groups.has(old_name)) {
 		undo_redo->add_do_method(this, "_rename_scene_group", old_name, new_name);
@@ -556,6 +556,12 @@ void GroupsEditor::_confirm_rename() {
 
 		undo_redo->add_do_method(ProjectSettings::get_singleton(), "save");
 		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "save");
+
+		if (node->is_in_group(old_name)) {
+			undo_redo->add_do_method(node, "remove_from_group", old_name);
+			undo_redo->add_do_method(node, "add_to_group", new_name, true);
+			undo_redo->add_undo_method(node, "add_to_group", old_name, true);
+		}
 
 		undo_redo->add_do_method(this, "_update_groups");
 		undo_redo->add_undo_method(this, "_update_groups");
