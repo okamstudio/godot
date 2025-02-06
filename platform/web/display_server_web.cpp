@@ -711,7 +711,7 @@ void DisplayServerWeb::_touch_callback(int p_type, int p_count) {
 			ev->set_index(touch_event.identifier[i]);
 			ev->set_position(point);
 
-			Point2 &prev = ds->touches[i];
+			Point2 &prev = ds->touches[touch_event.identifier[i]];
 			ev->set_relative(ev->get_position() - prev);
 			ev->set_relative_screen_position(ev->get_relative());
 			prev = ev->get_position();
@@ -728,7 +728,12 @@ void DisplayServerWeb::_touch_callback(int p_type, int p_count) {
 			ev->set_index(touch_event.identifier[i]);
 			ev->set_position(point);
 			ev->set_pressed(p_type == 0);
-			ds->touches[i] = point;
+
+			if (p_type == 0) {
+				ds->touches[touch_event.identifier[i]] = point;
+			} else {
+				ds->touches.erase(touch_event.identifier[i]);
+			}
 
 			Input::get_singleton()->parse_input_event(ev);
 

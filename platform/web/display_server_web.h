@@ -71,7 +71,7 @@ private:
 	Callable drop_files_callback;
 
 	String clipboard;
-	Point2 touches[32];
+	HashMap<uint32_t, Point2> touches;
 
 	Array voices;
 
