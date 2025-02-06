@@ -39,42 +39,97 @@ void CollisionShape2D::_shape_changed() {
 	queue_redraw();
 }
 
-void CollisionShape2D::_update_in_shape_owner(bool p_xform_only) {
-	collision_object->shape_owner_set_transform(owner_id, get_transform());
-	if (p_xform_only) {
+CollisionObject2D *CollisionShape2D::_get_ancestor_collision_object() const {
+	Node *parent = get_parent();
+	while (parent) {
+		CanvasItem *parent_2d = Object::cast_to<CanvasItem>(parent);
+		if (unlikely(!parent_2d)) {
+			return nullptr;
+		}
+		CollisionObject2D *co = Object::cast_to<CollisionObject2D>(parent);
+		if (likely(co)) {
+			return co;
+		}
+		parent = parent->get_parent();
+	}
+	return nullptr;
+}
+
+Transform2D CollisionShape2D::_get_transform_to_collision_object() const {
+	Transform2D transform_to_col_obj = get_transform();
+	Node *parent = get_parent();
+	while (parent != collision_object) {
+		CanvasItem *parent_2d = Object::cast_to<CanvasItem>(parent);
+		if (unlikely(!parent_2d)) {
+			break;
+		}
+		transform_to_col_obj = parent_2d->get_transform() * transform_to_col_obj;
+		parent = parent->get_parent();
+	}
+	return transform_to_col_obj;
+}
+
+void CollisionShape2D::_set_transform_notifications() {
+	if (collision_object == get_parent()) {
+		set_notify_local_transform(true);
+		set_notify_transform(false);
+	} else {
+		set_notify_local_transform(false);
+		set_notify_transform(true);
+	}
+}
+
+void CollisionShape2D::_update_transform_in_shape_owner() {
+	Transform2D transform_to_col_obj = _get_transform_to_collision_object();
+	if (transform_to_col_obj == transform_to_col_obj_cache) {
 		return;
 	}
+	transform_to_col_obj_cache = transform_to_col_obj;
+	collision_object->shape_owner_set_transform(owner_id, transform_to_col_obj);
+}
+
+void CollisionShape2D::_update_in_shape_owner() {
+	_update_transform_in_shape_owner();
 	collision_object->shape_owner_set_disabled(owner_id, disabled);
 	collision_object->shape_owner_set_one_way_collision(owner_id, one_way_collision);
 	collision_object->shape_owner_set_one_way_collision_margin(owner_id, one_way_collision_margin);
 }
 
+void CollisionShape2D::_create_shape_owner_in_collision_object() {
+	owner_id = collision_object->create_shape_owner(this);
+	if (shape.is_valid()) {
+		collision_object->shape_owner_add_shape(owner_id, shape);
+	}
+	_set_transform_notifications();
+	_update_in_shape_owner();
+}
+
 void CollisionShape2D::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_PARENTED: {
-			collision_object = Object::cast_to<CollisionObject2D>(get_parent());
+			collision_object = _get_ancestor_collision_object();
 			if (collision_object) {
-				owner_id = collision_object->create_shape_owner(this);
-				if (shape.is_valid()) {
-					collision_object->shape_owner_add_shape(owner_id, shape);
-				}
-				_update_in_shape_owner();
+				_create_shape_owner_in_collision_object();
 			}
 		} break;
-
 		case NOTIFICATION_ENTER_TREE: {
-			if (collision_object) {
-				_update_in_shape_owner();
+			CollisionObject2D *ancestor_col_obj = _get_ancestor_collision_object();
+			if (ancestor_col_obj != collision_object) {
+				collision_object = ancestor_col_obj;
+				if (collision_object) {
+					_create_shape_owner_in_collision_object();
+				}
 			}
 		} break;
 
-		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED: {
+		case NOTIFICATION_LOCAL_TRANSFORM_CHANGED:
+		case NOTIFICATION_TRANSFORM_CHANGED: {
 			if (collision_object) {
-				_update_in_shape_owner(true);
+				_update_transform_in_shape_owner();
 			}
 		} break;
 
-		case NOTIFICATION_UNPARENTED: {
+		case NOTIFICATION_EXIT_TREE: {
 			if (collision_object) {
 				collision_object->remove_shape_owner(owner_id);
 			}
@@ -171,9 +226,9 @@ bool CollisionShape2D::_edit_is_selected_on_click(const Point2 &p_point, double 
 PackedStringArray CollisionShape2D::get_configuration_warnings() const {
 	PackedStringArray warnings = Node2D::get_configuration_warnings();
 
-	CollisionObject2D *col_object = Object::cast_to<CollisionObject2D>(get_parent());
+	CollisionObject2D *col_object = _get_ancestor_collision_object();
 	if (col_object == nullptr) {
-		warnings.push_back(RTR("CollisionShape2D only serves to provide a collision shape to a CollisionObject2D derived node.\nPlease only use it as a child of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a shape."));
+		warnings.push_back(RTR("CollisionShape2D only serves to provide a collision shape to a CollisionObject2D derived node.\nPlease only use it as a descendant of Area2D, StaticBody2D, RigidBody2D, CharacterBody2D, etc. to give them a shape."));
 	}
 	if (shape.is_null()) {
 		warnings.push_back(RTR("A shape must be provided for CollisionShape2D to function. Please create a shape resource for it!"));
@@ -298,7 +353,6 @@ void CollisionShape2D::_bind_methods() {
 }
 
 CollisionShape2D::CollisionShape2D() {
-	set_notify_local_transform(true);
 	set_hide_clip_children(true);
 	debug_color = _get_default_debug_color();
 }

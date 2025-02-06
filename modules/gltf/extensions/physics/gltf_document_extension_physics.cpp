@@ -335,13 +335,16 @@ CollisionObject3D *_generate_shape_with_body(Ref<GLTFState> p_state, Ref<GLTFNod
 #endif // DISABLE_DEPRECATED
 
 CollisionObject3D *_get_ancestor_collision_object(Node *p_scene_parent) {
-	// Note: Despite the name of the method, at the moment this only checks
-	// the direct parent. Only check more later if Godot adds support for it.
-	if (p_scene_parent) {
+	while (p_scene_parent) {
+		Node3D *parent_3d = Object::cast_to<Node3D>(p_scene_parent);
+		if (unlikely(!parent_3d)) {
+			return nullptr;
+		}
 		CollisionObject3D *co = Object::cast_to<CollisionObject3D>(p_scene_parent);
 		if (likely(co)) {
 			return co;
 		}
+		p_scene_parent = p_scene_parent->get_parent();
 	}
 	return nullptr;
 }
