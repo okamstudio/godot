@@ -2913,12 +2913,12 @@ void VisualShader::_update_shader() const {
 		global_compute_code += "	return mat3(vec3(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s), vec3(oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s), vec3(oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c));\n";
 		global_compute_code += "}\n\n";
 
-		global_compute_code += "mat4 __build_rotation_mat4(vec3 axis, float angle) {\n";
+		global_compute_code += "mat4 __build_rotation_mat4(vec3 axis, float angle, vec4 origin) {\n";
 		global_compute_code += "	axis = normalize(axis);\n";
 		global_compute_code += "	float s = sin(angle);\n";
 		global_compute_code += "	float c = cos(angle);\n";
 		global_compute_code += "	float oc = 1.0 - c;\n";
-		global_compute_code += "	return mat4(vec4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0), vec4(oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0), vec4(oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0), vec4(0, 0, 0, 1));\n";
+		global_compute_code += "	return mat4(vec4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0), vec4(oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s, 0), vec4(oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c, 0), origin);\n";
 		global_compute_code += "}\n\n";
 
 		global_compute_code += "vec2 __get_random_unit_vec2(inout uint seed) {\n";

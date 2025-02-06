@@ -1403,24 +1403,38 @@ String VisualShaderNodeParticleOutput::generate_code(Shader::Mode p_mode, Visual
 				rotation_axis = 5;
 				rotation = 6;
 			}
-			String op;
-			if (shader_type == VisualShader::TYPE_START) {
-				op = "*=";
-			} else {
-				op = "=";
-			}
 
-			if (!p_input_vars[rotation].is_empty()) { // rotation_axis & angle_in_radians
-				String axis;
+			String axis;
+			if (!p_input_vars[rotation].is_empty()) { // rotation_axis
 				if (p_input_vars[rotation_axis].is_empty()) {
 					axis = "vec3(0, 1, 0)";
 				} else {
 					axis = p_input_vars[rotation_axis];
 				}
-				code += tab + "TRANSFORM " + op + " __build_rotation_mat4(" + axis + ", " + p_input_vars[rotation] + ");\n";
 			}
-			if (!p_input_vars[scale].is_empty()) { // scale
-				code += tab + "TRANSFORM " + op + " mat4(vec4(" + p_input_vars[scale] + ", 0, 0, 0), vec4(0, " + p_input_vars[scale] + ", 0, 0), vec4(0, 0, " + p_input_vars[scale] + ", 0), vec4(0, 0, 0, 1));\n";
+
+			if (shader_type == VisualShader::TYPE_PROCESS) {
+				if (!p_input_vars[rotation].is_empty()) { // angle_in_radians
+					if (!p_input_vars[scale].is_empty()) { // scale
+						code += tab + "TRANSFORM = ";
+						code += "mat4(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), vec4(0, 0, 1, 0), TRANSFORM[3])";
+						code += " * ";
+						code += "mat4(vec4(" + p_input_vars[scale] + ", 0, 0, 0), vec4(0, " + p_input_vars[scale] + ", 0, 0), vec4(0, 0, " + p_input_vars[scale] + ", 0), vec4(0, 0, 0, 1))";
+						code += " * ";
+						code += "__build_rotation_mat4(" + axis + ", " + p_input_vars[rotation] + ", vec4(0, 0, 0, 1));\n";
+					} else {
+						code += tab + "TRANSFORM = __build_rotation_mat4(" + axis + ", " + p_input_vars[rotation] + ", TRANSFORM[3]);\n";
+					}
+				} else if (!p_input_vars[scale].is_empty()) { // scale
+					code += tab + "TRANSFORM = mat4(vec4(" + p_input_vars[scale] + ", 0, 0, 0), vec4(0, " + p_input_vars[scale] + ", 0, 0), vec4(0, 0, " + p_input_vars[scale] + ", 0), TRANSFORM[3]);\n";
+				}
+			} else {
+				if (!p_input_vars[scale].is_empty()) { // scale
+					code += tab + "TRANSFORM *= mat4(vec4(" + p_input_vars[scale] + ", 0, 0, 0), vec4(0, " + p_input_vars[scale] + ", 0, 0), vec4(0, 0, " + p_input_vars[scale] + ", 0), vec4(0.0, 0.0, 0.0, 1.0));\n";
+				}
+				if (!p_input_vars[rotation].is_empty()) { // angle_in_radians
+					code += tab + "TRANSFORM *= __build_rotation_mat4(" + axis + ", " + p_input_vars[rotation] + ", vec4(0, 0, 0, 1));\n";
+				}
 			}
 		}
 		if (!p_input_vars[0].is_empty()) { // Active (end).
