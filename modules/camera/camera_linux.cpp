@@ -113,7 +113,7 @@ void CameraLinux::_add_device(const String &p_device_name) {
 int CameraLinux::_open_device(const String &p_device_name) {
 	struct stat s;
 
-	if (stat(p_device_name.ascii(), &s) == -1) {
+	if (stat(p_device_name.ascii().get_data(), &s) == -1) {
 		return -1;
 	}
 
@@ -121,7 +121,7 @@ int CameraLinux::_open_device(const String &p_device_name) {
 		return -1;
 	}
 
-	return open(p_device_name.ascii(), O_RDWR | O_NONBLOCK, 0);
+	return open(p_device_name.ascii().get_data(), O_RDWR | O_NONBLOCK, 0);
 }
 
 // TODO any cheaper/cleaner way to check if file descriptor is invalid?

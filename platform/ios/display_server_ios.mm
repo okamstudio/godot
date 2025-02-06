@@ -774,7 +774,7 @@ bool DisplayServerIOS::has_hardware_keyboard() const {
 }
 
 void DisplayServerIOS::clipboard_set(const String &p_text) {
-	[UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:p_text.utf8()];
+	[UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:p_text.utf8().get_data()];
 }
 
 String DisplayServerIOS::clipboard_get() const {

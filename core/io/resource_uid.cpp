@@ -298,7 +298,7 @@ String ResourceUID::get_path_from_cache(Ref<FileAccess> &p_cache_file, const Str
 		ERR_FAIL_COND_V(rl != len, String());
 
 		if (singleton->id_to_text(id) == p_uid_string) {
-			return String(cs);
+			return String(cs.get_data());
 		}
 	}
 	return String();
