@@ -97,6 +97,29 @@ TEST_CASE("[Array] append_array()") {
 	CHECK(int(arr1[1]) == 2);
 }
 
+TEST_CASE("[Array] append_array(), remove_at(), and insert()") {
+	Array arr1;
+	Array arr2;
+	arr1.push_back(1);
+	arr1.push_back(2);
+	arr2.push_back(3);
+	arr2.push_back(4);
+	CHECK(arr1.size() == 2);
+	arr1.append_array(arr2);
+	CHECK(arr1.size() == 4);
+	CHECK(int(arr1[2]) == 3);
+	CHECK(int(arr1[3]) == 4);
+	arr1.remove_at(2);
+	CHECK(arr1.size() == 3);
+	CHECK(int(arr1[1]) == 2);
+	CHECK(int(arr1[2]) == 4);
+	CHECK(int(arr2[0]) == 3);
+	arr1.insert(2, 5);
+	CHECK(arr1.size() == 4);
+	CHECK(int(arr1[2]) == 5);
+	CHECK(arr2.size() == 2);
+}
+
 TEST_CASE("[Array] resize(), insert(), and erase()") {
 	Array arr;
 	arr.resize(2);
@@ -109,6 +132,15 @@ TEST_CASE("[Array] resize(), insert(), and erase()") {
 	CHECK(int(arr[0]) == 1);
 }
 
+TEST_CASE("[Array] resize() and fill()") {
+	Array arr;
+	arr.resize(3);
+	arr.fill(1);
+	CHECK(int(arr[0]) == 1);
+	CHECK(int(arr[1]) == 1);
+	CHECK(int(arr[2]) == 1);
+}
+
 TEST_CASE("[Array] front() and back()") {
 	Array arr;
 	arr.push_back(1);
@@ -117,6 +149,19 @@ TEST_CASE("[Array] front() and back()") {
 	arr.push_back(3);
 	CHECK(int(arr.front()) == 1);
 	CHECK(int(arr.back()) == 3);
+}
+
+TEST_CASE("[Array] find() and rfind()") {
+	Array arr;
+	arr.push_back(1);
+	arr.push_back(2);
+	arr.push_back(3);
+	arr.push_back(2);
+	arr.push_back(1);
+	CHECK(arr.find(2) == 1);
+	CHECK(arr.rfind(2) == 3);
+	CHECK(arr.find(4) == -1);
+	CHECK(arr.rfind(4) == -1);
 }
 
 TEST_CASE("[Array] has() and count()") {
@@ -167,6 +212,38 @@ TEST_CASE("[Array] sort()") {
 		CHECK(int(arr[i]) == val);
 		val++;
 	}
+}
+
+TEST_CASE("[Array] bsearch()") {
+	Array arr;
+
+	arr.push_back(1);
+	arr.push_back(2);
+	arr.push_back(3);
+	arr.push_back(4);
+	arr.push_back(5);
+	CHECK(arr.bsearch(3) == 2);
+	CHECK(arr.bsearch(6) == 5);
+	CHECK(arr.bsearch(0) == 0);
+	CHECK(arr.bsearch(3, false) == 3);
+	CHECK(arr.bsearch(6, false) == 5);
+	CHECK(arr.bsearch(0, false) == 0);
+}
+
+TEST_CASE("[Array] reverse()") {
+	Array arr;
+
+	arr.push_back(1);
+	arr.push_back(2);
+	arr.push_back(3);
+	arr.push_back(4);
+	arr.push_back(5);
+	arr.reverse();
+	CHECK(int(arr[0]) == 5);
+	CHECK(int(arr[1]) == 4);
+	CHECK(int(arr[2]) == 3);
+	CHECK(int(arr[3]) == 2);
+	CHECK(int(arr[4]) == 1);
 }
 
 TEST_CASE("[Array] push_front(), pop_front(), pop_back()") {
@@ -232,6 +309,15 @@ TEST_CASE("[Array] pop_at()") {
 	ed.clear();
 	REQUIRE(arr.pop_at(24).is_null());
 	CHECK_FALSE(ed.has_error);
+}
+
+TEST_CASE("[Array] set()") {
+	Array arr;
+	arr.push_back(1);
+	arr.push_back(2);
+	arr.push_back(3);
+	arr.set(1, 4);
+	CHECK(int(arr[1]) == 4);
 }
 
 TEST_CASE("[Array] max() and min()") {
