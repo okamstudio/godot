@@ -266,7 +266,8 @@ public:
 			} else {
 				// Contains camera inside light.
 				float radius2 = radius * shared->sphere_overfit; // Overfit again for outer size (camera may be outside actual sphere but behind an icosphere vertex)
-				e.touches_near = xform.origin.length_squared() < radius2 * radius2;
+				real_t sum_abs_origin = 1.0 + abs(xform.origin.x) + abs(xform.origin.y) + abs(xform.origin.z); // Used to avoid overflows with length() when xform.origin components exceed sqrt(MAX_REAL_T_VALUE)
+				e.touches_near = (xform.origin / sum_abs_origin).length() * sum_abs_origin < radius2;
 			}
 
 			e.touches_far = (depth + radius) > z_far;
