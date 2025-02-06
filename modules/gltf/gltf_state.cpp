@@ -450,7 +450,7 @@ GLTFBufferViewIndex GLTFState::append_data_to_buffers(const Vector<uint8_t> &p_d
 		}
 	}
 	// Append the given data to a buffer and create a buffer view for it.
-	if (unlikely(buffers.is_empty())) {
+	if (buffers.is_empty()) [[unlikely]] {
 		buffers.push_back(Vector<uint8_t>());
 	}
 	Vector<uint8_t> &destination_buffer = buffers.write[0];

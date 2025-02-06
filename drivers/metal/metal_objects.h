@@ -167,9 +167,7 @@ struct ClearAttKey {
 	_FORCE_INLINE_ bool is_stencil_enabled() const { return pixel_formats[STENCIL_INDEX] != 0; }
 	_FORCE_INLINE_ bool is_layered_rendering_enabled() const { return flags::any(flags, CLEAR_FLAGS_LAYERED); }
 
-	_FORCE_INLINE_ bool operator==(const ClearAttKey &p_rhs) const {
-		return memcmp(this, &p_rhs, sizeof(ClearAttKey)) == 0;
-	}
+	bool operator==(const ClearAttKey &p_rhs) const = default;
 
 	uint32_t hash() const {
 		uint32_t h = hash_murmur3_one_32(flags);
@@ -199,7 +197,7 @@ public:
 
 class API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0)) MDResourceCache {
 private:
-	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>, HashableHasher<ClearAttKey>> HashMap;
+	typedef HashMap<ClearAttKey, id<MTLRenderPipelineState>> HashMap;
 	std::unique_ptr<MDResourceFactory> resource_factory;
 	HashMap clear_states;
 

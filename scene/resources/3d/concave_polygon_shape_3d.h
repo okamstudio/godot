@@ -48,9 +48,7 @@ class ConcavePolygonShape3D : public Shape3D {
 			uint32_t h = hash_murmur3_one_32(HashMapHasherDefault::hash(p_edge.a));
 			return hash_murmur3_one_32(HashMapHasherDefault::hash(p_edge.b), h);
 		}
-		bool operator==(const DrawEdge &p_edge) const {
-			return (a == p_edge.a && b == p_edge.b);
-		}
+		bool operator==(const DrawEdge &p_edge) const = default;
 
 		DrawEdge(const Vector3 &p_a = Vector3(), const Vector3 &p_b = Vector3()) {
 			a = p_a;

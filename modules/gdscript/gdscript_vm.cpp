@@ -480,7 +480,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 	r_err.error = Callable::CallError::CALL_OK;
 
 	static thread_local int call_depth = 0;
-	if (unlikely(++call_depth > MAX_CALL_DEPTH)) {
+	if (++call_depth > MAX_CALL_DEPTH) [[unlikely]] {
 		call_depth--;
 #ifdef DEBUG_ENABLED
 		String err_file;
@@ -581,7 +581,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 				} else {
 					Variant variant;
 					Variant::construct(argument_types[i].builtin_type, variant, &p_args[i], 1, r_err);
-					if (unlikely(r_err.error)) {
+					if (r_err.error) [[unlikely]] {
 						r_err.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 						r_err.argument = i;
 						r_err.expected = argument_types[i].builtin_type;
@@ -629,7 +629,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 
 #define GD_ERR_BREAK(m_cond)                                                                                           \
 	{                                                                                                                  \
-		if (unlikely(m_cond)) {                                                                                        \
+		if (m_cond) [[unlikely]] {                                                                                     \
 			_err_print_error(FUNCTION_STR, __FILE__, __LINE__, "Condition ' " _STR(m_cond) " ' is true. Breaking..:"); \
 			OPCODE_BREAK;                                                                                              \
 		}                                                                                                              \
@@ -638,27 +638,27 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 #define CHECK_SPACE(m_space) \
 	GD_ERR_BREAK((ip + m_space) > _code_size)
 
-#define GET_VARIANT_PTR(m_v, m_code_ofs)                                                            \
-	Variant *m_v;                                                                                   \
-	{                                                                                               \
-		int address = _code_ptr[ip + 1 + (m_code_ofs)];                                             \
-		int address_type = (address & ADDR_TYPE_MASK) >> ADDR_BITS;                                 \
-		if (unlikely(address_type < 0 || address_type >= ADDR_TYPE_MAX)) {                          \
-			err_text = "Bad address type.";                                                         \
-			OPCODE_BREAK;                                                                           \
-		}                                                                                           \
-		int address_index = address & ADDR_MASK;                                                    \
-		if (unlikely(address_index < 0 || address_index >= variant_address_limits[address_type])) { \
-			if (address_type == ADDR_TYPE_MEMBER && !p_instance) {                                  \
-				err_text = "Cannot access member without instance.";                                \
-			} else {                                                                                \
-				err_text = "Bad address index.";                                                    \
-			}                                                                                       \
-			OPCODE_BREAK;                                                                           \
-		}                                                                                           \
-		m_v = &variant_addresses[address_type][address_index];                                      \
-		if (unlikely(!m_v))                                                                         \
-			OPCODE_BREAK;                                                                           \
+#define GET_VARIANT_PTR(m_v, m_code_ofs)                                                               \
+	Variant *m_v;                                                                                      \
+	{                                                                                                  \
+		int address = _code_ptr[ip + 1 + (m_code_ofs)];                                                \
+		int address_type = (address & ADDR_TYPE_MASK) >> ADDR_BITS;                                    \
+		if (address_type < 0 || address_type >= ADDR_TYPE_MAX) [[unlikely]] {                          \
+			err_text = "Bad address type.";                                                            \
+			OPCODE_BREAK;                                                                              \
+		}                                                                                              \
+		int address_index = address & ADDR_MASK;                                                       \
+		if (address_index < 0 || address_index >= variant_address_limits[address_type]) [[unlikely]] { \
+			if (address_type == ADDR_TYPE_MEMBER && !p_instance) {                                     \
+				err_text = "Cannot access member without instance.";                                   \
+			} else {                                                                                   \
+				err_text = "Bad address index.";                                                       \
+			}                                                                                          \
+			OPCODE_BREAK;                                                                              \
+		}                                                                                              \
+		m_v = &variant_addresses[address_type][address_index];                                         \
+		if (!m_v) [[unlikely]]                                                                         \
+			OPCODE_BREAK;                                                                              \
 	}
 
 #else // !DEBUG_ENABLED
@@ -670,7 +670,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 	{                                                                                           \
 		int address = _code_ptr[ip + 1 + (m_code_ofs)];                                         \
 		m_v = &variant_addresses[(address & ADDR_TYPE_MASK) >> ADDR_BITS][address & ADDR_MASK]; \
-		if (unlikely(!m_v))                                                                     \
+		if (!m_v) [[unlikely]]                                                                  \
 			OPCODE_BREAK;                                                                       \
 	}
 
@@ -736,7 +736,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 #endif
 
 				// Check if this is the first run. If so, store the current signature for the optimized path.
-				if (unlikely(op_signature == 0)) {
+				if (op_signature == 0) [[unlikely]] {
 					static Mutex initializer_mutex;
 					initializer_mutex.lock();
 					Variant::Type a_type = (Variant::Type)((actual_signature >> 8) & 0xFF);
@@ -744,7 +744,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 
 					Variant::ValidatedOperatorEvaluator op_func = Variant::get_validated_operator_evaluator(op, a_type, b_type);
 
-					if (unlikely(!op_func)) {
+					if (!op_func) [[unlikely]] {
 #ifdef DEBUG_ENABLED
 						err_text = "Invalid operands '" + Variant::get_type_name(a->get_type()) + "' and '" + Variant::get_type_name(b->get_type()) + "' in operator '" + Variant::get_operator_name(op) + "'.";
 #endif
@@ -764,7 +764,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 						}
 					}
 					initializer_mutex.unlock();
-				} else if (likely(op_signature == actual_signature)) {
+				} else if (op_signature == actual_signature) [[likely]] {
 					// If the signature matches, we can use the optimized path.
 					Variant::Type ret_type = static_cast<Variant::Type>(_code_ptr[ip + 6]);
 					Variant::ValidatedOperatorEvaluator op_func = *reinterpret_cast<Variant::ValidatedOperatorEvaluator *>(&_code_ptr[ip + 7]);
@@ -3780,7 +3780,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 					// line
 					bool do_break = false;
 
-					if (unlikely(EngineDebugger::get_script_debugger()->get_lines_left() > 0)) {
+					if (EngineDebugger::get_script_debugger()->get_lines_left() > 0) [[unlikely]] {
 						if (EngineDebugger::get_script_debugger()->get_depth() <= 0) {
 							EngineDebugger::get_script_debugger()->set_lines_left(EngineDebugger::get_script_debugger()->get_lines_left() - 1);
 						}
@@ -3793,7 +3793,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 						do_break = true;
 					}
 
-					if (unlikely(do_break)) {
+					if (do_break) [[unlikely]] {
 						GDScriptLanguage::get_singleton()->debug_break("Breakpoint", true);
 					}
 

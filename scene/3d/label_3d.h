@@ -86,9 +86,7 @@ private:
 		int32_t priority;
 		int32_t outline_size;
 
-		bool operator==(const SurfaceKey &p_b) const {
-			return (texture_id == p_b.texture_id) && (priority == p_b.priority) && (outline_size == p_b.outline_size);
-		}
+		bool operator==(const SurfaceKey &p_b) const = default;
 
 		SurfaceKey(uint64_t p_texture_id, int p_priority, int p_outline_size) {
 			texture_id = p_texture_id;

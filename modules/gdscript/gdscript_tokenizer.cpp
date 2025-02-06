@@ -320,7 +320,7 @@ bool GDScriptTokenizerText::is_past_cursor() const {
 }
 
 char32_t GDScriptTokenizerText::_advance() {
-	if (unlikely(_is_at_end())) {
+	if (_is_at_end()) [[unlikely]] {
 		return '\0';
 	}
 	_current++;
@@ -329,7 +329,7 @@ char32_t GDScriptTokenizerText::_advance() {
 	if (column > rightmost_column) {
 		rightmost_column = column;
 	}
-	if (unlikely(_is_at_end())) {
+	if (_is_at_end()) [[unlikely]] {
 		// Add extra newline even if it's not there, to satisfy the parser.
 		newline(true);
 		// Also add needed unindent.

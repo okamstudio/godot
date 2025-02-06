@@ -74,12 +74,7 @@ class TranslationServer : public Object {
 		String country;
 		String variant;
 
-		bool operator==(const Locale &p_locale) const {
-			return (p_locale.language == language) &&
-					(p_locale.script == script) &&
-					(p_locale.country == country) &&
-					(p_locale.variant == variant);
-		}
+		bool operator==(const Locale &p_locale) const = default;
 
 		operator String() const;
 

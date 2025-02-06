@@ -1408,7 +1408,7 @@ void RasterizerSceneGLES3::_fill_render_list(RenderListType p_render_list, const
 			// ADD Element
 			if (p_pass_mode == PASS_MODE_COLOR) {
 #ifdef DEBUG_ENABLED
-				bool force_alpha = unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW);
+				bool force_alpha = get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW;
 #else
 				bool force_alpha = false;
 #endif
@@ -2394,7 +2394,7 @@ void RasterizerSceneGLES3::render_scene(const Ref<RenderSceneBuffers> &p_render_
 	float sky_energy_multiplier = 1.0;
 	int camera_feed_id = -1;
 
-	if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW)) {
+	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW) [[unlikely]] {
 		clear_color = Color(0, 0, 0, 1); //in overdraw mode, BG should always be black
 	} else if (render_data.environment.is_valid()) {
 		RS::EnvironmentBG bg_mode = environment_get_background(render_data.environment);
@@ -2995,10 +2995,10 @@ void RasterizerSceneGLES3::_render_list_template(RenderListParameters *p_params,
 			material_data = surf->material_shadow;
 			mesh_surface = surf->surface_shadow;
 		} else {
-			if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW)) {
+			if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW) [[unlikely]] {
 				material_data = overdraw_material_data_ptr;
 				shader = material_data->shader_data;
-			} else if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_LIGHTING)) {
+			} else if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_LIGHTING) [[unlikely]] {
 				material_data = default_material_data_ptr;
 				shader = material_data->shader_data;
 			} else {

@@ -941,7 +941,7 @@ PhysicsDirectBodyState3D *JoltPhysicsServer3D::body_get_direct_state(RID p_body)
 	ERR_FAIL_COND_V_MSG((on_separate_thread && !doing_sync), nullptr, "Body state is inaccessible right now, wait for iteration or physics process notification.");
 
 	JoltBody3D *body = body_owner.get_or_null(p_body);
-	if (unlikely(body == nullptr || body->get_space() == nullptr)) {
+	if (body == nullptr || body->get_space() == nullptr) [[unlikely]] {
 		return nullptr;
 	}
 

@@ -314,7 +314,7 @@ int AudioStreamPlaybackWAV::mix(AudioFrame *p_buffer, float p_rate_scale, int p_
 	srate *= p_rate_scale;
 	float playback_speed_scale = AudioServer::get_singleton()->get_playback_speed_scale();
 	float fincrement = (srate * playback_speed_scale) / base_rate;
-	int32_t increment = int32_t(MAX(fincrement * MIX_FRAC_LEN, 1));
+	int32_t increment = int32_t(MAX(fincrement * (int)MIX_FRAC_LEN, 1));
 	increment *= sign;
 
 	//looping

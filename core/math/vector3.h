@@ -177,12 +177,10 @@ struct [[nodiscard]] Vector3 {
 
 	_FORCE_INLINE_ Vector3 operator-() const;
 
-	_FORCE_INLINE_ bool operator==(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator!=(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator<(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator<=(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator>(const Vector3 &p_v) const;
-	_FORCE_INLINE_ bool operator>=(const Vector3 &p_v) const;
+	_FORCE_INLINE_ std::partial_ordering operator<=>(const Vector3 &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector3 &p_other) const { return operator<=>(p_other) == 0; }
+	std::partial_ordering operator<=>(const Vector3i &p_Vector3i) const;
+	bool operator==(const Vector3i &p_Vector3i) const;
 
 	operator String() const;
 	operator Vector3i() const;
@@ -241,13 +239,13 @@ Vector3 Vector3::slerp(const Vector3 &p_to, real_t p_weight) const {
 	// the internals of some methods for efficiency (mainly, checking length).
 	real_t start_length_sq = length_squared();
 	real_t end_length_sq = p_to.length_squared();
-	if (unlikely(start_length_sq == 0.0f || end_length_sq == 0.0f)) {
+	if (start_length_sq == 0.0f || end_length_sq == 0.0f) [[unlikely]] {
 		// Zero length vectors have no angle, so the best we can do is either lerp or throw an error.
 		return lerp(p_to, p_weight);
 	}
 	Vector3 axis = cross(p_to);
 	real_t axis_length_sq = axis.length_squared();
-	if (unlikely(axis_length_sq == 0.0f)) {
+	if (axis_length_sq == 0.0f) [[unlikely]] {
 		// Colinear vectors have no rotation axis or angle between them, so the best we can do is lerp.
 		return lerp(p_to, p_weight);
 	}
@@ -428,52 +426,14 @@ Vector3 Vector3::operator-() const {
 	return Vector3(-x, -y, -z);
 }
 
-bool Vector3::operator==(const Vector3 &p_v) const {
-	return x == p_v.x && y == p_v.y && z == p_v.z;
-}
-
-bool Vector3::operator!=(const Vector3 &p_v) const {
-	return x != p_v.x || y != p_v.y || z != p_v.z;
-}
-
-bool Vector3::operator<(const Vector3 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z < p_v.z;
+std::partial_ordering Vector3::operator<=>(const Vector3 &p_other) const {
+	if (x == p_other.x) {
+		if (y == p_other.y) {
+			return z <=> p_other.z;
 		}
-		return y < p_v.y;
+		return y <=> p_other.y;
 	}
-	return x < p_v.x;
-}
-
-bool Vector3::operator>(const Vector3 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z > p_v.z;
-		}
-		return y > p_v.y;
-	}
-	return x > p_v.x;
-}
-
-bool Vector3::operator<=(const Vector3 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z <= p_v.z;
-		}
-		return y < p_v.y;
-	}
-	return x < p_v.x;
-}
-
-bool Vector3::operator>=(const Vector3 &p_v) const {
-	if (x == p_v.x) {
-		if (y == p_v.y) {
-			return z >= p_v.z;
-		}
-		return y > p_v.y;
-	}
-	return x > p_v.x;
+	return x <=> p_other.x;
 }
 
 _FORCE_INLINE_ Vector3 vec3_cross(const Vector3 &p_a, const Vector3 &p_b) {

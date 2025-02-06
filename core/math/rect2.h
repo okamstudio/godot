@@ -53,7 +53,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline bool intersects(const Rect2 &p_rect, bool p_include_borders = false) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif
@@ -90,7 +90,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline real_t distance_to(const Vector2 &p_point) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0)) {
+		if (size.x < 0 || size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif
@@ -131,7 +131,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline bool encloses(const Rect2 &p_rect) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif
@@ -164,7 +164,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline Rect2 merge(const Rect2 &p_rect) const { ///< return a merged rect
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0)) {
+		if (size.x < 0 || size.y < 0 || p_rect.size.x < 0 || p_rect.size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif
@@ -181,7 +181,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline bool has_point(const Point2 &p_point) const {
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0)) {
+		if (size.x < 0 || size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif
@@ -205,8 +205,8 @@ struct [[nodiscard]] Rect2 {
 	bool is_equal_approx(const Rect2 &p_rect) const;
 	bool is_finite() const;
 
-	bool operator==(const Rect2 &p_rect) const { return position == p_rect.position && size == p_rect.size; }
-	bool operator!=(const Rect2 &p_rect) const { return position != p_rect.position || size != p_rect.size; }
+	bool operator==(const Rect2 &p_rect) const = default;
+	bool operator==(const Rect2i &p_rect) const;
 
 	inline Rect2 grow(real_t p_amount) const {
 		Rect2 g = *this;
@@ -252,7 +252,7 @@ struct [[nodiscard]] Rect2 {
 
 	inline void expand_to(const Vector2 &p_vector) { // In place function for speed.
 #ifdef MATH_CHECKS
-		if (unlikely(size.x < 0 || size.y < 0)) {
+		if (size.x < 0 || size.y < 0) [[unlikely]] {
 			ERR_PRINT("Rect2 size is negative, this is not supported. Use Rect2.abs() to get a Rect2 with a positive size.");
 		}
 #endif

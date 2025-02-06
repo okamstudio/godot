@@ -2140,12 +2140,12 @@ bool OpenXRAPI::process() {
 
 	// This is before setup_play_space() to ensure that it happens on the frame after
 	// the play space has been created.
-	if (unlikely(local_floor_emulation.should_reset_floor_height && !play_space_is_dirty)) {
+	if (local_floor_emulation.should_reset_floor_height && !play_space_is_dirty) [[unlikely]] {
 		reset_emulated_floor_height();
 		local_floor_emulation.should_reset_floor_height = false;
 	}
 
-	if (unlikely(play_space_is_dirty)) {
+	if (play_space_is_dirty) [[unlikely]] {
 		setup_play_space();
 		play_space_is_dirty = false;
 	}

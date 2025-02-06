@@ -394,7 +394,7 @@ public:
 				//Subsequent commands go into a block.
 
 				while (true) {
-					if (unlikely(current_block == (uint32_t)blocks.size())) {
+					if (current_block == (uint32_t)blocks.size()) [[unlikely]] {
 						// If we need more blocks, we allocate them
 						// (they won't be freed until this CanvasItem is
 						// deleted, though).

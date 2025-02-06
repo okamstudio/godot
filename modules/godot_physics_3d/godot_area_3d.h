@@ -78,9 +78,7 @@ class GodotArea3D : public GodotCollisionObject3D {
 			return hash_fmix32(hash_murmur3_one_32(p_key.body_shape, h));
 		}
 
-		_FORCE_INLINE_ bool operator==(const BodyKey &p_key) const {
-			return rid == p_key.rid && instance_id == p_key.instance_id && body_shape == p_key.body_shape && area_shape == p_key.area_shape;
-		}
+		bool operator==(const BodyKey &p_key) const = default;
 
 		_FORCE_INLINE_ BodyKey() {}
 		BodyKey(GodotSoftBody3D *p_body, uint32_t p_body_shape, uint32_t p_area_shape);

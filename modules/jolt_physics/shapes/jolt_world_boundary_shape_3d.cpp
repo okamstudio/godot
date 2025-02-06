@@ -55,7 +55,7 @@ void JoltWorldBoundaryShape3D::set_data(const Variant &p_data) {
 	ERR_FAIL_COND(p_data.get_type() != Variant::PLANE);
 
 	const Plane new_plane = p_data;
-	if (unlikely(new_plane == plane)) {
+	if (new_plane == plane) [[unlikely]] {
 		return;
 	}
 

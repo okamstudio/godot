@@ -316,7 +316,7 @@ float JoltConeTwistJoint3D::get_applied_force() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 
@@ -331,7 +331,7 @@ float JoltConeTwistJoint3D::get_applied_torque() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 

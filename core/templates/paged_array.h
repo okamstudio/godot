@@ -60,7 +60,7 @@ public:
 
 	PageInfo alloc_page() {
 		spin_lock.lock();
-		if (unlikely(pages_available == 0)) {
+		if (pages_available == 0) [[unlikely]] {
 			uint32_t pages_used = pages_allocated;
 
 			pages_allocated++;
@@ -182,12 +182,12 @@ public:
 
 	_FORCE_INLINE_ void push_back(const T &p_value) {
 		uint32_t remainder = count & page_size_mask;
-		if (unlikely(remainder == 0)) {
+		if (remainder == 0) [[unlikely]] {
 			// at 0, so time to request a new page
 			uint32_t page_count = _get_pages_in_use();
 			uint32_t new_page_count = page_count + 1;
 
-			if (unlikely(new_page_count > max_pages_used)) {
+			if (new_page_count > max_pages_used) [[unlikely]] {
 				ERR_FAIL_NULL(page_pool); // Safety check.
 
 				_grow_page_array(); //keep out of inline
@@ -221,7 +221,7 @@ public:
 		}
 
 		uint32_t remainder = count & page_size_mask;
-		if (unlikely(remainder == 1)) {
+		if (remainder == 1) [[unlikely]] {
 			// one element remained, so page must be freed.
 			uint32_t last_page = _get_pages_in_use() - 1;
 			page_pool->free_page(page_ids[last_page]);
@@ -294,7 +294,7 @@ public:
 			uint32_t page_count = _get_pages_in_use();
 			uint32_t new_page_count = page_count + 1;
 
-			if (unlikely(new_page_count > max_pages_used)) {
+			if (new_page_count > max_pages_used) [[unlikely]] {
 				_grow_page_array(); //keep out of inline
 			}
 
@@ -344,7 +344,7 @@ public:
 				uint32_t page_count = _get_pages_in_use();
 				uint32_t new_page_count = page_count + 1;
 
-				if (unlikely(new_page_count > max_pages_used)) {
+				if (new_page_count > max_pages_used) [[unlikely]] {
 					_grow_page_array(); //keep out of inline
 				}
 

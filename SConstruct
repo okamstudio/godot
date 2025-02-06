@@ -619,16 +619,16 @@ cc_version_metadata1 = cc_version["metadata1"]
 
 if cc_version_major == -1:
     print_warning(
-        "Couldn't detect compiler version, skipping version checks. "
-        "Build may fail if the compiler doesn't support C++17 fully."
+        "Couldn't detect compiler version, skipping version checks. Build may "
+        "fail if the compiler doesn't support C++20 fully."
     )
 elif methods.using_gcc(env):
-    if cc_version_major < 9:
+    if cc_version_major < 11:
         print_error(
-            "Detected GCC version older than 9, which does not fully support "
-            "C++17, or has bugs when compiling Godot. Supported versions are 9 "
-            "and later. Use a newer GCC version, or Clang 6 or later by passing "
-            '"use_llvm=yes" to the SCons command line.'
+            "Detected GCC version older than 11, which does not fully support "
+            "C++20. Supported versions are GCC 11 and later. Use a newer GCC "
+            'version, or Clang 10 or later by passing "use_llvm=yes" to the '
+            "SCons command line."
         )
         Exit(255)
     elif cc_version_metadata1 == "win32":
@@ -643,47 +643,33 @@ elif methods.using_clang(env):
     # Apple LLVM versions differ from upstream LLVM version \o/, compare
     # in https://en.wikipedia.org/wiki/Xcode#Toolchain_versions
     if methods.is_apple_clang(env):
+        if cc_version_major < 14:
+            print_error(
+                "Detected Apple Clang version older than 14, which does not fully "
+                "support C++20. Supported versions are Apple Clang 14 and later."
+            )
+            Exit(255)
+    else:
         if cc_version_major < 10:
             print_error(
-                "Detected Apple Clang version older than 10, which does not fully "
-                "support C++17. Supported versions are Apple Clang 10 and later."
+                "Detected Clang version older than 10, which does not fully support "
+                "C++20. Supported versions are Clang 10 and later."
             )
             Exit(255)
-        elif env["debug_paths_relative"] and cc_version_major < 12:
-            print_warning(
-                "Apple Clang < 12 doesn't support -ffile-prefix-map, disabling `debug_paths_relative` option."
-            )
-            env["debug_paths_relative"] = False
-    else:
-        if cc_version_major < 6:
-            print_error(
-                "Detected Clang version older than 6, which does not fully support "
-                "C++17. Supported versions are Clang 6 and later."
-            )
-            Exit(255)
-        elif env["debug_paths_relative"] and cc_version_major < 10:
-            print_warning("Clang < 10 doesn't support -ffile-prefix-map, disabling `debug_paths_relative` option.")
-            env["debug_paths_relative"] = False
 
 elif env.msvc:
     # Ensure latest minor builds of Visual Studio 2017/2019.
     # https://github.com/godotengine/godot/pull/94995#issuecomment-2336464574
-    if cc_version_major == 16 and cc_version_minor < 11:
+    if cc_version_major < 16:
+        print_error(
+            "Detected Visual Studio version older than 2019, which does not fully "
+            "support C++20. Supported versions are Visual Studio 2019 and later."
+        )
+        Exit(255)
+    elif cc_version_major == 16 and cc_version_minor < 11:
         print_error(
             "Detected Visual Studio 2019 version older than 16.11, which has bugs "
             "when compiling Godot. Use a newer VS2019 version, or VS2022."
-        )
-        Exit(255)
-    if cc_version_major == 15 and cc_version_minor < 9:
-        print_error(
-            "Detected Visual Studio 2017 version older than 15.9, which has bugs "
-            "when compiling Godot. Use a newer VS2017 version, or VS2019/VS2022."
-        )
-        Exit(255)
-    if cc_version_major < 15:
-        print_error(
-            "Detected Visual Studio 2015 or earlier, which is unsupported in Godot. "
-            "Supported versions are Visual Studio 2017 and later."
         )
         Exit(255)
 
@@ -779,22 +765,17 @@ if env["lto"] != "none":
     print("Using LTO: " + env["lto"])
 
 # Set our C and C++ standard requirements.
-# C++17 is required as we need guaranteed copy elision as per GH-36436.
-# Prepending to make it possible to override.
 # This needs to come after `configure`, otherwise we don't have env.msvc.
 if not env.msvc:
     # Specifying GNU extensions support explicitly, which are supported by
-    # both GCC and Clang. Both currently default to gnu17 and gnu++17.
+    # both GCC and Clang. Both currently default to gnu17 and gnu++20.
     env.Prepend(CFLAGS=["-std=gnu17"])
-    env.Prepend(CXXFLAGS=["-std=gnu++17"])
+    env.Prepend(CXXFLAGS=["-std=gnu++20"])
 else:
     # MSVC started offering C standard support with Visual Studio 2019 16.8, which covers all
-    # of our supported VS2019 & VS2022 versions; VS2017 will only pass the C++ standard.
-    env.Prepend(CXXFLAGS=["/std:c++17"])
-    if cc_version_major < 16:
-        print_warning("Visual Studio 2017 cannot specify a C-Standard.")
-    else:
-        env.Prepend(CFLAGS=["/std:c17"])
+    # of our supported VS2019 & VS2022 versions.
+    env.Prepend(CFLAGS=["/std:c17"])
+    env.Prepend(CXXFLAGS=["/std:c++20"])
     # MSVC is non-conforming with the C++ standard by default, so we enable more conformance.
     # Note that this is still not complete conformance, as certain Windows-related headers
     # don't compile under complete conformance.
@@ -849,10 +830,6 @@ else:  # GCC, Clang
 
     if methods.using_gcc(env):
         common_warnings += ["-Wshadow", "-Wno-misleading-indentation"]
-        if cc_version_major < 11:
-            # Regression in GCC 9/10, spams so much in our variadic templates
-            # that we need to outright disable it.
-            common_warnings += ["-Wno-type-limits"]
         if cc_version_major >= 12:  # False positives in our error macros, see GH-58747.
             common_warnings += ["-Wno-return-type"]
     elif methods.using_clang(env) or methods.using_emcc(env):
@@ -871,19 +848,14 @@ else:  # GCC, Clang
             env.Append(
                 CCFLAGS=[
                     "-Walloc-zero",
+                    "-Wattribute-alias=2",
                     "-Wduplicated-branches",
                     "-Wduplicated-cond",
+                    "-Wlogical-op",
                     "-Wstringop-overflow=4",
                 ]
             )
             env.Append(CXXFLAGS=["-Wplacement-new=1"])
-            # Need to fix a warning with AudioServer lambdas before enabling.
-            # if cc_version_major != 9:  # GCC 9 had a regression (GH-36325).
-            #    env.Append(CXXFLAGS=["-Wnoexcept"])
-            if cc_version_major >= 9:
-                env.Append(CCFLAGS=["-Wattribute-alias=2"])
-            if cc_version_major >= 11:  # Broke on MethodBind templates before GCC 11.
-                env.Append(CCFLAGS=["-Wlogical-op"])
         elif methods.using_clang(env) or methods.using_emcc(env):
             env.Append(CCFLAGS=["-Wimplicit-fallthrough"])
     elif env["warnings"] == "all":

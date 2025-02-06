@@ -510,7 +510,7 @@ static GDExtensionBool gdextension_variant_has_key(GDExtensionConstVariantPtr p_
 
 static GDObjectInstanceID gdextension_variant_get_object_instance_id(GDExtensionConstVariantPtr p_self) {
 	const Variant *self = (const Variant *)p_self;
-	if (likely(self->get_type() == Variant::OBJECT)) {
+	if (self->get_type() == Variant::OBJECT) [[likely]] {
 		return self->operator ObjectID();
 	}
 	return 0;
@@ -990,7 +990,7 @@ static GDExtensionInt gdextension_string_to_wide_chars(GDExtensionConstStringPtr
 
 static char32_t *gdextension_string_operator_index(GDExtensionStringPtr p_self, GDExtensionInt p_index) {
 	String *self = (String *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->length() + 1)) {
+	if (p_index < 0 || p_index >= self->length() + 1) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -998,7 +998,7 @@ static char32_t *gdextension_string_operator_index(GDExtensionStringPtr p_self, 
 
 static const char32_t *gdextension_string_operator_index_const(GDExtensionConstStringPtr p_self, GDExtensionInt p_index) {
 	const String *self = (const String *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->length() + 1)) {
+	if (p_index < 0 || p_index >= self->length() + 1) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1094,7 +1094,7 @@ static int64_t gdextension_worker_thread_pool_add_native_task(GDExtensionObjectP
 
 static uint8_t *gdextension_packed_byte_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedByteArray *self = (PackedByteArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -1102,7 +1102,7 @@ static uint8_t *gdextension_packed_byte_array_operator_index(GDExtensionTypePtr 
 
 static const uint8_t *gdextension_packed_byte_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedByteArray *self = (const PackedByteArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1110,7 +1110,7 @@ static const uint8_t *gdextension_packed_byte_array_operator_index_const(GDExten
 
 static GDExtensionTypePtr gdextension_packed_color_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedColorArray *self = (PackedColorArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptrw()[p_index];
@@ -1118,7 +1118,7 @@ static GDExtensionTypePtr gdextension_packed_color_array_operator_index(GDExtens
 
 static GDExtensionTypePtr gdextension_packed_color_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedColorArray *self = (const PackedColorArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptr()[p_index];
@@ -1126,7 +1126,7 @@ static GDExtensionTypePtr gdextension_packed_color_array_operator_index_const(GD
 
 static float *gdextension_packed_float32_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedFloat32Array *self = (PackedFloat32Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -1134,7 +1134,7 @@ static float *gdextension_packed_float32_array_operator_index(GDExtensionTypePtr
 
 static const float *gdextension_packed_float32_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedFloat32Array *self = (const PackedFloat32Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1142,7 +1142,7 @@ static const float *gdextension_packed_float32_array_operator_index_const(GDExte
 
 static double *gdextension_packed_float64_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedFloat64Array *self = (PackedFloat64Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -1150,7 +1150,7 @@ static double *gdextension_packed_float64_array_operator_index(GDExtensionTypePt
 
 static const double *gdextension_packed_float64_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedFloat64Array *self = (const PackedFloat64Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1158,7 +1158,7 @@ static const double *gdextension_packed_float64_array_operator_index_const(GDExt
 
 static int32_t *gdextension_packed_int32_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedInt32Array *self = (PackedInt32Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -1166,7 +1166,7 @@ static int32_t *gdextension_packed_int32_array_operator_index(GDExtensionTypePtr
 
 static const int32_t *gdextension_packed_int32_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedInt32Array *self = (const PackedInt32Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1174,7 +1174,7 @@ static const int32_t *gdextension_packed_int32_array_operator_index_const(GDExte
 
 static int64_t *gdextension_packed_int64_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedInt64Array *self = (PackedInt64Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptrw()[p_index];
@@ -1182,7 +1182,7 @@ static int64_t *gdextension_packed_int64_array_operator_index(GDExtensionTypePtr
 
 static const int64_t *gdextension_packed_int64_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedInt64Array *self = (const PackedInt64Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return &self->ptr()[p_index];
@@ -1190,7 +1190,7 @@ static const int64_t *gdextension_packed_int64_array_operator_index_const(GDExte
 
 static GDExtensionStringPtr gdextension_packed_string_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedStringArray *self = (PackedStringArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionStringPtr)&self->ptrw()[p_index];
@@ -1198,7 +1198,7 @@ static GDExtensionStringPtr gdextension_packed_string_array_operator_index(GDExt
 
 static GDExtensionStringPtr gdextension_packed_string_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedStringArray *self = (const PackedStringArray *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionStringPtr)&self->ptr()[p_index];
@@ -1206,7 +1206,7 @@ static GDExtensionStringPtr gdextension_packed_string_array_operator_index_const
 
 static GDExtensionTypePtr gdextension_packed_vector2_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedVector2Array *self = (PackedVector2Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptrw()[p_index];
@@ -1214,7 +1214,7 @@ static GDExtensionTypePtr gdextension_packed_vector2_array_operator_index(GDExte
 
 static GDExtensionTypePtr gdextension_packed_vector2_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedVector2Array *self = (const PackedVector2Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptr()[p_index];
@@ -1222,7 +1222,7 @@ static GDExtensionTypePtr gdextension_packed_vector2_array_operator_index_const(
 
 static GDExtensionTypePtr gdextension_packed_vector3_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedVector3Array *self = (PackedVector3Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptrw()[p_index];
@@ -1230,7 +1230,7 @@ static GDExtensionTypePtr gdextension_packed_vector3_array_operator_index(GDExte
 
 static GDExtensionTypePtr gdextension_packed_vector3_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedVector3Array *self = (const PackedVector3Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptr()[p_index];
@@ -1238,7 +1238,7 @@ static GDExtensionTypePtr gdextension_packed_vector3_array_operator_index_const(
 
 static GDExtensionTypePtr gdextension_packed_vector4_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedVector4Array *self = (PackedVector4Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptrw()[p_index];
@@ -1246,7 +1246,7 @@ static GDExtensionTypePtr gdextension_packed_vector4_array_operator_index(GDExte
 
 static GDExtensionTypePtr gdextension_packed_vector4_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const PackedVector4Array *self = (const PackedVector4Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionTypePtr)&self->ptr()[p_index];
@@ -1254,7 +1254,7 @@ static GDExtensionTypePtr gdextension_packed_vector4_array_operator_index_const(
 
 static GDExtensionVariantPtr gdextension_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	Array *self = (Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionVariantPtr)&self->operator[](p_index);
@@ -1262,7 +1262,7 @@ static GDExtensionVariantPtr gdextension_array_operator_index(GDExtensionTypePtr
 
 static GDExtensionVariantPtr gdextension_array_operator_index_const(GDExtensionConstTypePtr p_self, GDExtensionInt p_index) {
 	const Array *self = (const Array *)p_self;
-	if (unlikely(p_index < 0 || p_index >= self->size())) {
+	if (p_index < 0 || p_index >= self->size()) [[unlikely]] {
 		return nullptr;
 	}
 	return (GDExtensionVariantPtr)&self->operator[](p_index);

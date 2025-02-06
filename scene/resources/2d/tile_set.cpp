@@ -229,38 +229,6 @@ bool TileSet::TerrainsPattern::is_erase_pattern() const {
 	return not_empty_terrains_count == 0;
 }
 
-bool TileSet::TerrainsPattern::operator<(const TerrainsPattern &p_terrains_pattern) const {
-	for (int i = 0; i < TileSet::CELL_NEIGHBOR_MAX; i++) {
-		if (is_valid_bit[i] != p_terrains_pattern.is_valid_bit[i]) {
-			return is_valid_bit[i] < p_terrains_pattern.is_valid_bit[i];
-		}
-	}
-	if (terrain != p_terrains_pattern.terrain) {
-		return terrain < p_terrains_pattern.terrain;
-	}
-	for (int i = 0; i < TileSet::CELL_NEIGHBOR_MAX; i++) {
-		if (is_valid_bit[i] && bits[i] != p_terrains_pattern.bits[i]) {
-			return bits[i] < p_terrains_pattern.bits[i];
-		}
-	}
-	return false;
-}
-
-bool TileSet::TerrainsPattern::operator==(const TerrainsPattern &p_terrains_pattern) const {
-	for (int i = 0; i < TileSet::CELL_NEIGHBOR_MAX; i++) {
-		if (is_valid_bit[i] != p_terrains_pattern.is_valid_bit[i]) {
-			return false;
-		}
-		if (is_valid_bit[i] && bits[i] != p_terrains_pattern.bits[i]) {
-			return false;
-		}
-	}
-	if (terrain != p_terrains_pattern.terrain) {
-		return false;
-	}
-	return true;
-}
-
 void TileSet::TerrainsPattern::set_terrain(int p_terrain) {
 	ERR_FAIL_COND(p_terrain < -1);
 

@@ -35,7 +35,6 @@
 #include "core/os/condition_variable.h"
 #include "core/os/mutex.h"
 #include "core/templates/local_vector.h"
-#include "core/templates/simple_type.h"
 #include "core/templates/tuple.h"
 #include "core/typedefs.h"
 
@@ -53,7 +52,7 @@ class CommandQueueMT {
 	struct Command : public CommandBase {
 		T *instance;
 		M method;
-		Tuple<GetSimpleTypeT<Args>...> args;
+		Tuple<std::remove_cvref_t<Args>...> args;
 
 		template <typename... FwdArgs>
 		_FORCE_INLINE_ Command(T *p_instance, M p_method, FwdArgs &&...p_args) :
@@ -81,9 +80,9 @@ class CommandQueueMT {
 		T *instance;
 		M method;
 		R *ret;
-		Tuple<GetSimpleTypeT<Args>...> args;
+		Tuple<std::remove_cvref_t<Args>...> args;
 
-		_FORCE_INLINE_ CommandRet(T *p_instance, M p_method, R *p_ret, GetSimpleTypeT<Args>... p_args) :
+		_FORCE_INLINE_ CommandRet(T *p_instance, M p_method, R *p_ret, std::remove_cvref_t<Args>... p_args) :
 				CommandBase(true), instance(p_instance), method(p_method), ret(p_ret), args{ p_args... } {}
 
 		void call() override {
@@ -153,7 +152,7 @@ class CommandQueueMT {
 	}
 
 	void _flush() {
-		if (unlikely(flush_read_ptr)) {
+		if (flush_read_ptr) [[unlikely]] {
 			// Re-entrant call.
 			return;
 		}
@@ -171,7 +170,7 @@ class CommandQueueMT {
 			// Handle potential realloc due to the command and unlock allowance.
 			cmd = reinterpret_cast<CommandBase *>(&command_mem[flush_read_ptr]);
 
-			if (unlikely(cmd->sync)) {
+			if (cmd->sync) [[unlikely]] {
 				sync_head++;
 				lock.~MutexLock(); // Give an opportunity to awaiters right away.
 				sync_cond_var.notify_all();
@@ -226,7 +225,7 @@ public:
 	}
 
 	_FORCE_INLINE_ void flush_if_pending() {
-		if (unlikely(command_mem.size() > 0)) {
+		if (command_mem.size() > 0) [[unlikely]] {
 			_flush();
 		}
 	}

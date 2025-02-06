@@ -530,7 +530,7 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 			uint8_t curr_group_idx = 0;
 			bool same_transition_scheduled = false;
 			for (curr_group_idx = 0; curr_group_idx < br.groups_count; curr_group_idx++) {
-				if (unlikely(br.groups[curr_group_idx].states == BarrierRequest::DELETED_GROUP)) {
+				if (br.groups[curr_group_idx].states == BarrierRequest::DELETED_GROUP) [[unlikely]] {
 					continue;
 				}
 				if ((br.groups[curr_group_idx].subres_mask[subres_qword] & subres_mask_piece)) {
@@ -563,10 +563,10 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 					if (subres_alone) {
 						// Subresource is there by itself.
 						for (uint8_t i = 0; i < br.groups_count; i++) {
-							if (unlikely(i == curr_group_idx)) {
+							if (i == curr_group_idx) [[unlikely]] {
 								continue;
 							}
-							if (unlikely(br.groups[i].states == BarrierRequest::DELETED_GROUP)) {
+							if (br.groups[i].states == BarrierRequest::DELETED_GROUP) [[unlikely]] {
 								continue;
 							}
 							// There's another group with the final states; relocate to it.
@@ -598,10 +598,10 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 				if (!subres_already_there) {
 					// See if it fits exactly the states of some of the groups to fit it there.
 					for (uint8_t i = 0; i < br.groups_count; i++) {
-						if (unlikely(i == curr_group_idx)) {
+						if (i == curr_group_idx) [[unlikely]] {
 							continue;
 						}
-						if (unlikely(br.groups[i].states == BarrierRequest::DELETED_GROUP)) {
+						if (br.groups[i].states == BarrierRequest::DELETED_GROUP) [[unlikely]] {
 							continue;
 						}
 						if (br.groups[i].states == final_states) {
@@ -620,7 +620,7 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 						} else {
 							// Let's try to take over a deleted one.
 							for (; group_to_fill < br.groups_count; group_to_fill++) {
-								if (unlikely(br.groups[group_to_fill].states == BarrierRequest::DELETED_GROUP)) {
+								if (br.groups[group_to_fill].states == BarrierRequest::DELETED_GROUP) [[unlikely]] {
 									break;
 								}
 							}
@@ -629,7 +629,7 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 
 						br.groups[group_to_fill].states = final_states;
 						for (uint8_t i = 0; i < br.subres_mask_qwords; i++) {
-							if (unlikely(i == subres_qword)) {
+							if (i == subres_qword) [[unlikely]] {
 								br.groups[group_to_fill].subres_mask[i] = subres_mask_piece;
 							} else {
 								br.groups[group_to_fill].subres_mask[i] = 0;
@@ -646,7 +646,7 @@ void RenderingDeviceDriverD3D12::_resource_transition_batch(CommandBufferInfo *p
 			br.planes = p_num_planes;
 			br.groups[0].states = p_new_state;
 			for (uint8_t i = 0; i < br.subres_mask_qwords; i++) {
-				if (unlikely(i == subres_qword)) {
+				if (i == subres_qword) [[unlikely]] {
 					br.groups[0].subres_mask[i] = subres_mask_piece;
 				} else {
 					br.groups[0].subres_mask[i] = 0;
@@ -739,7 +739,7 @@ void RenderingDeviceDriverD3D12::_resource_transitions_flush(CommandBufferInfo *
 			for (uint8_t i = 0; i < br.groups_count; i++) {
 				const BarrierRequest::Group &g = E.value.groups[i];
 
-				if (unlikely(g.states == BarrierRequest::DELETED_GROUP)) {
+				if (g.states == BarrierRequest::DELETED_GROUP) [[unlikely]] {
 					continue;
 				}
 
@@ -748,12 +748,12 @@ void RenderingDeviceDriverD3D12::_resource_transitions_flush(CommandBufferInfo *
 					uint64_t subres_mask_piece = ((uint64_t)1 << (subresource % 64));
 					uint8_t subres_qword = subresource / 64;
 
-					if (likely(g.subres_mask[subres_qword] == 0)) {
+					if (g.subres_mask[subres_qword] == 0) [[likely]] {
 						subresource += 64;
 						continue;
 					}
 
-					if (likely(!(g.subres_mask[subres_qword] & subres_mask_piece))) {
+					if (!(g.subres_mask[subres_qword] & subres_mask_piece)) [[likely]] {
 						subresource++;
 						continue;
 					}
@@ -4142,13 +4142,13 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 			uint64_t inv_uniforms_mask = ~sr.shader_uniform_idx_mask; // Inverting the mask saves operations.
 			for (uint8_t bit = 0; inv_uniforms_mask != UINT64_MAX; bit++) {
 				uint64_t bit_mask = ((uint64_t)1 << bit);
-				if (likely((inv_uniforms_mask & bit_mask))) {
+				if ((inv_uniforms_mask & bit_mask)) [[likely]] {
 					continue;
 				}
 				inv_uniforms_mask |= bit_mask;
 
 				const ShaderInfo::UniformBindingInfo &binding = shader_set.bindings[bit];
-				if (unlikely(!binding.stages)) {
+				if (!binding.stages) [[unlikely]] {
 					continue;
 				}
 
@@ -4191,13 +4191,13 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 		uint64_t inv_uniforms_mask = ~sr.shader_uniform_idx_mask; // Inverting the mask saves operations.
 		for (uint8_t bit = 0; inv_uniforms_mask != UINT64_MAX; bit++) {
 			uint64_t bit_mask = ((uint64_t)1 << bit);
-			if (likely((inv_uniforms_mask & bit_mask))) {
+			if ((inv_uniforms_mask & bit_mask)) [[likely]] {
 				continue;
 			}
 			inv_uniforms_mask |= bit_mask;
 
 			const ShaderInfo::UniformBindingInfo &binding = shader_set.bindings[bit];
-			if (unlikely(!binding.stages)) {
+			if (!binding.stages) [[unlikely]] {
 				continue;
 			}
 
@@ -4229,7 +4229,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 			}
 		}
 
-		if (likely(wanted_state)) {
+		if (wanted_state) [[likely]] {
 			if ((wanted_state & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE)) {
 				if (stages == SHADER_STAGE_VERTEX_BIT || stages == SHADER_STAGE_COMPUTE_BIT) {
 					D3D12_RESOURCE_STATES unneeded_states = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
@@ -4240,7 +4240,7 @@ void RenderingDeviceDriverD3D12::command_uniform_set_prepare_for_use(CommandBuff
 				}
 			}
 
-			if (likely(wanted_state)) {
+			if (wanted_state) [[likely]] {
 				if (sr.is_buffer) {
 					_resource_transition_batch(cmd_buf_info, sr.resource, 0, 1, wanted_state);
 				} else {
@@ -4388,7 +4388,7 @@ void RenderingDeviceDriverD3D12::_command_bind_uniform_set(CommandBufferID p_cmd
 						tables.resources = nullptr;
 					}
 
-					if (unlikely(frame_heap_walkers.resources->get_free_handles() < num_resource_descs)) {
+					if (frame_heap_walkers.resources->get_free_handles() < num_resource_descs) [[unlikely]] {
 						if (!frames[frame_idx].desc_heaps_exhausted_reported.resources) {
 							frames[frame_idx].desc_heaps_exhausted_reported.resources = true;
 							ERR_FAIL_MSG("Cannot bind uniform set because there's no enough room in current frame's RESOURCES descriptor heap.\n"
@@ -4443,7 +4443,7 @@ void RenderingDeviceDriverD3D12::_command_bind_uniform_set(CommandBufferID p_cmd
 						tables.samplers = nullptr;
 					}
 
-					if (unlikely(frame_heap_walkers.samplers->get_free_handles() < num_sampler_descs)) {
+					if (frame_heap_walkers.samplers->get_free_handles() < num_sampler_descs) [[unlikely]] {
 						if (!frames[frame_idx].desc_heaps_exhausted_reported.samplers) {
 							frames[frame_idx].desc_heaps_exhausted_reported.samplers = true;
 							ERR_FAIL_MSG("Cannot bind uniform set because there's no enough room in current frame's SAMPLERS descriptors heap.\n"

@@ -100,9 +100,7 @@ private:
 		StringName context;
 		StringName buffer_name;
 
-		bool operator==(const NTKey &p_val) const {
-			return (context == p_val.context) && (buffer_name == p_val.buffer_name);
-		}
+		bool operator==(const NTKey &p_val) const = default;
 
 		static uint32_t hash(const NTKey &p_val) {
 			uint32_t h = p_val.context.hash();
@@ -124,9 +122,7 @@ private:
 		uint32_t mipmaps;
 		RD::TextureView texture_view;
 
-		bool operator==(const NTSliceKey &p_val) const {
-			return (layer == p_val.layer) && (layers == p_val.layers) && (mipmap == p_val.mipmap) && (mipmaps == p_val.mipmaps) && (texture_view == p_val.texture_view);
-		}
+		bool operator==(const NTSliceKey &p_val) const = default;
 
 		static uint32_t hash(const NTSliceKey &p_val) {
 			uint32_t h = hash_murmur3_one_32(p_val.layer);

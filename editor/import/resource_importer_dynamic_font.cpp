@@ -192,7 +192,7 @@ Error ResourceImporterDynamicFont::import(ResourceUID::ID p_source_id, const Str
 			for (int i = 0; i < contours.size(); i++) {
 				for (int j = prev_start; j <= contours[i]; j++) {
 					int next_point = (j < contours[i]) ? (j + 1) : prev_start;
-					if ((points[j].z != TextServer::CONTOUR_CURVE_TAG_ON) || (!Math::is_equal_approx(points[j].x, points[next_point].x) && !Math::is_equal_approx(points[j].y, points[next_point].y))) {
+					if (((int)points[j].z != TextServer::CONTOUR_CURVE_TAG_ON) || (!Math::is_equal_approx(points[j].x, points[next_point].x) && !Math::is_equal_approx(points[j].y, points[next_point].y))) {
 						is_pixel = false;
 						break;
 					}

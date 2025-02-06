@@ -38,7 +38,7 @@
 int GDScriptTokenizerBuffer::_token_to_binary(const Token &p_token, Vector<uint8_t> &r_buffer, int p_start, HashMap<StringName, uint32_t> &r_identifiers_map, HashMap<Variant, uint32_t, VariantHasher, VariantComparator> &r_constants_map) {
 	int pos = p_start;
 
-	int token_type = p_token.type & TOKEN_MASK;
+	int token_type = p_token.type & (int)TOKEN_MASK;
 
 	switch (p_token.type) {
 		case GDScriptTokenizer::Token::ANNOTATION:
@@ -111,7 +111,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::_binary_to_token(const uint8_t
 		case GDScriptTokenizer::Token::IDENTIFIER: {
 			// Get name from map.
 			int identifier_pos = token_type >> TOKEN_BITS;
-			if (unlikely(identifier_pos >= identifiers.size())) {
+			if (identifier_pos >= identifiers.size()) [[unlikely]] {
 				Token error;
 				error.type = Token::ERROR;
 				error.literal = "Identifier index out of bounds.";
@@ -123,7 +123,7 @@ GDScriptTokenizer::Token GDScriptTokenizerBuffer::_binary_to_token(const uint8_t
 		case GDScriptTokenizer::Token::LITERAL: {
 			// Get literal from map.
 			int constant_pos = token_type >> TOKEN_BITS;
-			if (unlikely(constant_pos >= constants.size())) {
+			if (constant_pos >= constants.size()) [[unlikely]] {
 				Token error;
 				error.type = Token::ERROR;
 				error.literal = "Constant index out of bounds.";

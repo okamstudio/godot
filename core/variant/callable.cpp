@@ -286,10 +286,6 @@ bool Callable::operator==(const Callable &p_callable) const {
 	}
 }
 
-bool Callable::operator!=(const Callable &p_callable) const {
-	return !(*this == p_callable);
-}
-
 bool Callable::operator<(const Callable &p_callable) const {
 	bool custom_a = is_custom();
 	bool custom_b = p_callable.is_custom();
@@ -389,11 +385,11 @@ Callable Callable::create(const Variant &p_variant, const StringName &p_method) 
 }
 
 Callable::Callable(const Object *p_object, const StringName &p_method) {
-	if (unlikely(p_method == StringName())) {
+	if (p_method == StringName()) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Method argument to Callable constructor must be a non-empty string.");
 	}
-	if (unlikely(p_object == nullptr)) {
+	if (p_object == nullptr) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Object argument to Callable constructor must be non-null.");
 	}
@@ -403,7 +399,7 @@ Callable::Callable(const Object *p_object, const StringName &p_method) {
 }
 
 Callable::Callable(ObjectID p_object, const StringName &p_method) {
-	if (unlikely(p_method == StringName())) {
+	if (p_method == StringName()) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Method argument to Callable constructor must be a non-empty string.");
 	}
@@ -413,7 +409,7 @@ Callable::Callable(ObjectID p_object, const StringName &p_method) {
 }
 
 Callable::Callable(CallableCustom *p_custom) {
-	if (unlikely(p_custom->referenced)) {
+	if (p_custom->referenced) [[unlikely]] {
 		object = 0;
 		ERR_FAIL_MSG("Callable custom is already referenced.");
 	}
@@ -498,22 +494,6 @@ ObjectID Signal::get_object_id() const {
 
 StringName Signal::get_name() const {
 	return name;
-}
-
-bool Signal::operator==(const Signal &p_signal) const {
-	return object == p_signal.object && name == p_signal.name;
-}
-
-bool Signal::operator!=(const Signal &p_signal) const {
-	return object != p_signal.object || name != p_signal.name;
-}
-
-bool Signal::operator<(const Signal &p_signal) const {
-	if (object == p_signal.object) {
-		return name < p_signal.name;
-	} else {
-		return object < p_signal.object;
-	}
 }
 
 Signal::operator String() const {

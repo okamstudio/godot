@@ -34,6 +34,7 @@
 #include "core/debugger/engine_profiler.h"
 #include "core/io/resource_loader.h"
 #include "core/io/resource_saver.h"
+#include "core/math/geometry_2d.h"
 #include "core/os/semaphore.h"
 #include "core/os/thread.h"
 #include "core/templates/safe_refcount.h"
@@ -52,20 +53,10 @@ protected:
 	static ResourceLoader *singleton;
 
 public:
-	enum ThreadLoadStatus {
-		THREAD_LOAD_INVALID_RESOURCE,
-		THREAD_LOAD_IN_PROGRESS,
-		THREAD_LOAD_FAILED,
-		THREAD_LOAD_LOADED
-	};
-
-	enum CacheMode {
-		CACHE_MODE_IGNORE,
-		CACHE_MODE_REUSE,
-		CACHE_MODE_REPLACE,
-		CACHE_MODE_IGNORE_DEEP,
-		CACHE_MODE_REPLACE_DEEP,
-	};
+	using enum ::ResourceLoader::ThreadLoadStatus;
+	using ThreadLoadStatus = ::ResourceLoader::ThreadLoadStatus;
+	using enum ResourceFormatLoader::CacheMode;
+	using CacheMode = ResourceFormatLoader::CacheMode;
 
 	static ResourceLoader *get_singleton() { return singleton; }
 
@@ -97,16 +88,8 @@ protected:
 	static ResourceSaver *singleton;
 
 public:
-	enum SaverFlags {
-		FLAG_NONE = 0,
-		FLAG_RELATIVE_PATHS = 1,
-		FLAG_BUNDLE_RESOURCES = 2,
-		FLAG_CHANGE_PATH = 4,
-		FLAG_OMIT_EDITOR_PROPERTIES = 8,
-		FLAG_SAVE_BIG_ENDIAN = 16,
-		FLAG_COMPRESS = 32,
-		FLAG_REPLACE_SUBRESOURCE_PATHS = 64,
-	};
+	using enum ::ResourceSaver::SaverFlags;
+	using SaverFlags = ::ResourceSaver::SaverFlags;
 
 	static ResourceSaver *get_singleton() { return singleton; }
 
@@ -144,16 +127,13 @@ public:
 		RENDERING_DRIVER_METAL,
 	};
 
+	using enum ::OS::SystemDir;
+	using SystemDir = ::OS::SystemDir;
+	using enum ::OS::StdHandleType;
+	using StdHandleType = ::OS::StdHandleType;
+
 	PackedByteArray get_entropy(int p_bytes);
 	String get_system_ca_certificates();
-
-	enum StdHandleType {
-		STD_HANDLE_INVALID,
-		STD_HANDLE_CONSOLE,
-		STD_HANDLE_FILE,
-		STD_HANDLE_PIPE,
-		STD_HANDLE_UNKNOWN,
-	};
 
 	virtual PackedStringArray get_connected_midi_inputs();
 	virtual void open_midi_inputs();
@@ -243,17 +223,6 @@ public:
 	int get_processor_count() const;
 	String get_processor_name() const;
 
-	enum SystemDir {
-		SYSTEM_DIR_DESKTOP,
-		SYSTEM_DIR_DCIM,
-		SYSTEM_DIR_DOCUMENTS,
-		SYSTEM_DIR_DOWNLOADS,
-		SYSTEM_DIR_MOVIES,
-		SYSTEM_DIR_MUSIC,
-		SYSTEM_DIR_PICTURES,
-		SYSTEM_DIR_RINGTONES,
-	};
-
 	String get_system_dir(SystemDir p_dir, bool p_shared_storage = true) const;
 
 	Error move_to_trash(const String &p_path) const;
@@ -289,6 +258,13 @@ protected:
 	static void _bind_methods();
 
 public:
+	using enum ::Geometry2D::PolyBooleanOperation;
+	using PolyBooleanOperation = ::Geometry2D::PolyBooleanOperation;
+	using enum ::Geometry2D::PolyJoinType;
+	using PolyJoinType = ::Geometry2D::PolyJoinType;
+	using enum ::Geometry2D::PolyEndType;
+	using PolyEndType = ::Geometry2D::PolyEndType;
+
 	static Geometry2D *get_singleton();
 	Variant segment_intersects_segment(const Vector2 &p_from_a, const Vector2 &p_to_a, const Vector2 &p_from_b, const Vector2 &p_to_b);
 	Variant line_intersects_line(const Vector2 &p_from_a, const Vector2 &p_dir_a, const Vector2 &p_from_b, const Vector2 &p_dir_b);
@@ -307,12 +283,6 @@ public:
 	Vector<Point2> convex_hull(const Vector<Point2> &p_points);
 	TypedArray<PackedVector2Array> decompose_polygon_in_convex(const Vector<Vector2> &p_polygon);
 
-	enum PolyBooleanOperation {
-		OPERATION_UNION,
-		OPERATION_DIFFERENCE,
-		OPERATION_INTERSECTION,
-		OPERATION_XOR
-	};
 	// 2D polygon boolean operations.
 	TypedArray<PackedVector2Array> merge_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b); // Union (add).
 	TypedArray<PackedVector2Array> clip_polygons(const Vector<Vector2> &p_polygon_a, const Vector<Vector2> &p_polygon_b); // Difference (subtract).
@@ -324,18 +294,6 @@ public:
 	TypedArray<PackedVector2Array> intersect_polyline_with_polygon(const Vector<Vector2> &p_polyline, const Vector<Vector2> &p_polygon); // Chop.
 
 	// 2D offset polygons/polylines.
-	enum PolyJoinType {
-		JOIN_SQUARE,
-		JOIN_ROUND,
-		JOIN_MITER
-	};
-	enum PolyEndType {
-		END_POLYGON,
-		END_JOINED,
-		END_BUTT,
-		END_SQUARE,
-		END_ROUND
-	};
 	TypedArray<PackedVector2Array> offset_polygon(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE);
 	TypedArray<PackedVector2Array> offset_polyline(const Vector<Vector2> &p_polygon, real_t p_delta, PolyJoinType p_join_type = JOIN_SQUARE, PolyEndType p_end_type = END_SQUARE);
 
@@ -442,12 +400,8 @@ protected:
 	static void _start_func(void *ud);
 
 public:
-	enum Priority {
-		PRIORITY_LOW,
-		PRIORITY_NORMAL,
-		PRIORITY_HIGH,
-		PRIORITY_MAX
-	};
+	using enum ::Thread::Priority;
+	using Priority = ::Thread::Priority;
 
 	Error start(const Callable &p_callable, Priority p_priority = PRIORITY_NORMAL);
 	String get_id() const;
@@ -467,13 +421,8 @@ protected:
 	static void _bind_methods();
 
 public:
-	enum APIType {
-		API_CORE,
-		API_EDITOR,
-		API_EXTENSION,
-		API_EDITOR_EXTENSION,
-		API_NONE,
-	};
+	using enum ::ClassDB::APIType;
+	using APIType = ::ClassDB::APIType;
 
 	PackedStringArray get_class_list() const;
 	PackedStringArray get_inheriters_from_class(const StringName &p_class) const;

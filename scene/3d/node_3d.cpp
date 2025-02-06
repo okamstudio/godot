@@ -119,7 +119,7 @@ void Node3D::_propagate_transform_changed(Node3D *p_origin) {
 #else
 	if (data.notify_transform && !data.ignore_notification && !xform_change.in_list()) {
 #endif
-		if (likely(is_accessible_from_caller_thread())) {
+		if (is_accessible_from_caller_thread()) [[likely]] {
 			get_tree()->xform_change_list.add(&xform_change);
 		} else {
 			// This should very rarely happen, but if it does at least make sure the notification is received eventually.

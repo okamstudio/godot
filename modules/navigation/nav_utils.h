@@ -143,10 +143,6 @@ struct NavigationPoly {
 		return poly == p_other.poly;
 	}
 
-	bool operator!=(const NavigationPoly &p_other) const {
-		return !(*this == p_other);
-	}
-
 	void reset() {
 		poly = nullptr;
 		traversable_poly_index = UINT32_MAX;

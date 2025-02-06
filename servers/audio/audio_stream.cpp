@@ -155,8 +155,10 @@ void AudioStreamPlayback::_bind_methods() {
 AudioStreamPlayback::AudioStreamPlayback() {}
 
 AudioStreamPlayback::~AudioStreamPlayback() {
-	if (get_sample_playback().is_valid() && likely(AudioServer::get_singleton() != nullptr)) {
-		AudioServer::get_singleton()->stop_sample_playback(get_sample_playback());
+	if (get_sample_playback().is_valid()) {
+		if (AudioServer::get_singleton()) [[likely]] {
+			AudioServer::get_singleton()->stop_sample_playback(get_sample_playback());
+		}
 	}
 }
 //////////////////////////////

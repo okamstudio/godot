@@ -40,7 +40,7 @@ JPH::ShapeRefC JoltConcavePolygonShape3D::_build() const {
 	const int face_count = vertex_count / 3;
 	const int excess_vertex_count = vertex_count % 3;
 
-	if (unlikely(vertex_count == 0)) {
+	if (vertex_count == 0) [[unlikely]] {
 		return nullptr;
 	}
 

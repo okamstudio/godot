@@ -423,7 +423,7 @@ int Color::find_named_color(const String &p_name) {
 	name = name.to_upper();
 
 	static HashMap<String, int> named_colors_hashmap;
-	if (unlikely(named_colors_hashmap.is_empty())) {
+	if (named_colors_hashmap.is_empty()) [[unlikely]] {
 		const int named_color_count = get_named_color_count();
 		for (int i = 0; i < named_color_count; i++) {
 			named_colors_hashmap[String(named_colors[i].name).replace("_", "")] = i;

@@ -2038,7 +2038,7 @@ void RenderForwardMobile::_fill_render_list(RenderListType p_render_list, const 
 			// ADD Element
 			if (p_pass_mode == PASS_MODE_COLOR || p_pass_mode == PASS_MODE_COLOR_TRANSPARENT) {
 #ifdef DEBUG_ENABLED
-				bool force_alpha = unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW);
+				bool force_alpha = get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW;
 #else
 				bool force_alpha = false;
 #endif
@@ -2210,13 +2210,13 @@ void RenderForwardMobile::_render_list_template(RenderingDevice::DrawListID p_dr
 			pipeline_specialization.decals = inst->decals_count;
 
 #ifdef DEBUG_ENABLED
-			if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_LIGHTING)) {
+			if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_LIGHTING) [[unlikely]] {
 				material_uniform_set = scene_shader.default_material_uniform_set;
 				shader = scene_shader.default_material_shader_ptr;
-			} else if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW)) {
+			} else if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_OVERDRAW) [[unlikely]] {
 				material_uniform_set = scene_shader.overdraw_material_uniform_set;
 				shader = scene_shader.overdraw_material_shader_ptr;
-			} else if (unlikely(get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_PSSM_SPLITS)) {
+			} else if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_PSSM_SPLITS) [[unlikely]] {
 				material_uniform_set = scene_shader.debug_shadow_splits_material_uniform_set;
 				shader = scene_shader.debug_shadow_splits_material_shader_ptr;
 			} else {

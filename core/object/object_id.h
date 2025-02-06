@@ -48,9 +48,7 @@ public:
 	_ALWAYS_INLINE_ operator uint64_t() const { return id; }
 	_ALWAYS_INLINE_ operator int64_t() const { return (int64_t)id; }
 
-	_ALWAYS_INLINE_ bool operator==(const ObjectID &p_id) const { return id == p_id.id; }
-	_ALWAYS_INLINE_ bool operator!=(const ObjectID &p_id) const { return id != p_id.id; }
-	_ALWAYS_INLINE_ bool operator<(const ObjectID &p_id) const { return id < p_id.id; }
+	std::strong_ordering operator<=>(const ObjectID &p_id) const = default;
 
 	_ALWAYS_INLINE_ void operator=(int64_t p_int64) { id = p_int64; }
 	_ALWAYS_INLINE_ void operator=(uint64_t p_uint64) { id = p_uint64; }

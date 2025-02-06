@@ -180,7 +180,7 @@ void JoltArea3D::_report_event(const Callable &p_callback, PhysicsServer3D::Area
 	Variant ret;
 	p_callback.callp(args, 5, ret, ce);
 
-	if (unlikely(ce.error != Callable::CallError::CALL_OK)) {
+	if (ce.error != Callable::CallError::CALL_OK) [[unlikely]] {
 		ERR_PRINT_ONCE(vformat("Failed to call area monitor callback for '%s'. It returned the following error: '%s'.", to_string(), Variant::get_callable_error_text(p_callback, args, 5, ce)));
 	}
 }
@@ -189,7 +189,7 @@ void JoltArea3D::_notify_body_entered(const JPH::BodyID &p_body_id) {
 	const JoltReadableBody3D jolt_body = space->read_body(p_body_id);
 
 	JoltBody3D *body = jolt_body.as_body();
-	if (unlikely(body == nullptr)) {
+	if (body == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -200,7 +200,7 @@ void JoltArea3D::_notify_body_exited(const JPH::BodyID &p_body_id) {
 	const JoltReadableBody3D jolt_body = space->read_body(p_body_id);
 
 	JoltBody3D *body = jolt_body.as_body();
-	if (unlikely(body == nullptr)) {
+	if (body == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -211,7 +211,7 @@ void JoltArea3D::_force_bodies_entered() {
 	for (KeyValue<JPH::BodyID, Overlap> &E : bodies_by_id) {
 		Overlap &body = E.value;
 
-		if (unlikely(body.shape_pairs.is_empty())) {
+		if (body.shape_pairs.is_empty()) [[unlikely]] {
 			continue;
 		}
 
@@ -229,7 +229,7 @@ void JoltArea3D::_force_bodies_exited(bool p_remove) {
 		const JPH::BodyID &id = E.key;
 		Overlap &body = E.value;
 
-		if (unlikely(body.shape_pairs.is_empty())) {
+		if (body.shape_pairs.is_empty()) [[unlikely]] {
 			continue;
 		}
 
@@ -251,7 +251,7 @@ void JoltArea3D::_force_areas_entered() {
 	for (KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
 		Overlap &area = E.value;
 
-		if (unlikely(area.shape_pairs.is_empty())) {
+		if (area.shape_pairs.is_empty()) [[unlikely]] {
 			continue;
 		}
 
@@ -268,7 +268,7 @@ void JoltArea3D::_force_areas_exited(bool p_remove) {
 	for (KeyValue<JPH::BodyID, Overlap> &E : areas_by_id) {
 		Overlap &area = E.value;
 
-		if (unlikely(area.shape_pairs.is_empty())) {
+		if (area.shape_pairs.is_empty()) [[unlikely]] {
 			continue;
 		}
 
@@ -671,11 +671,11 @@ bool JoltArea3D::shape_exited(const JPH::BodyID &p_body_id, const JPH::SubShapeI
 
 void JoltArea3D::body_exited(const JPH::BodyID &p_body_id, bool p_notify) {
 	Overlap *overlap = bodies_by_id.getptr(p_body_id);
-	if (unlikely(overlap == nullptr)) {
+	if (overlap == nullptr) [[unlikely]] {
 		return;
 	}
 
-	if (unlikely(overlap->shape_pairs.is_empty())) {
+	if (overlap->shape_pairs.is_empty()) [[unlikely]] {
 		return;
 	}
 
@@ -695,11 +695,11 @@ void JoltArea3D::body_exited(const JPH::BodyID &p_body_id, bool p_notify) {
 
 void JoltArea3D::area_exited(const JPH::BodyID &p_body_id) {
 	Overlap *overlap = areas_by_id.getptr(p_body_id);
-	if (unlikely(overlap == nullptr)) {
+	if (overlap == nullptr) [[unlikely]] {
 		return;
 	}
 
-	if (unlikely(overlap->shape_pairs.is_empty())) {
+	if (overlap->shape_pairs.is_empty()) [[unlikely]] {
 		return;
 	}
 

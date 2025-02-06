@@ -331,7 +331,7 @@ void EditorLog::_add_log_line(LogMessage &p_message, bool p_replace_previous) {
 		return;
 	}
 
-	if (unlikely(log->is_updating())) {
+	if (log->is_updating()) [[unlikely]] {
 		// The new message arrived during log RTL text processing/redraw (invalid BiDi control characters / font error), ignore it to avoid RTL data corruption.
 		return;
 	}

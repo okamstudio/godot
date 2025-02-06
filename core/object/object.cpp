@@ -51,7 +51,7 @@ struct _ObjectDebugLock {
 	}
 	~_ObjectDebugLock() {
 		Object *obj_ptr = ObjectDB::get_instance(obj_id);
-		if (likely(obj_ptr)) {
+		if (obj_ptr) [[likely]] {
 			obj_ptr->_lock_index.unref();
 		}
 	}
@@ -513,7 +513,7 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 #ifdef TOOLS_ENABLED
 				// If this is a placeholder, we can't call into the GDExtension on the parent class,
 				// because we don't have a real instance of the class to give it.
-				if (likely(!_extension->is_placeholder)) {
+				if (!_extension->is_placeholder) [[likely]] {
 #endif
 					uint32_t pcount;
 					const GDExtensionPropertyInfo *pinfo = current_extension->get_property_list(_extension_instance, &pcount);
@@ -1127,7 +1127,7 @@ void Object::_remove_user_signal(const StringName &p_name) {
 	ERR_FAIL_COND_MSG(!s->removable, "Signal is not removable (not added with add_user_signal).");
 	for (const KeyValue<Callable, SignalData::Slot> &slot_kv : s->slot_map) {
 		Object *target = slot_kv.key.get_object();
-		if (likely(target)) {
+		if (target) [[likely]] {
 			target->connections.erase(slot_kv.value.cE);
 		}
 	}
@@ -1136,13 +1136,13 @@ void Object::_remove_user_signal(const StringName &p_name) {
 }
 
 Error Object::_emit_signal(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
-	if (unlikely(p_argcount < 1)) {
+	if (p_argcount < 1) [[unlikely]] {
 		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.expected = 1;
 		ERR_FAIL_V(Error::ERR_INVALID_PARAMETER);
 	}
 
-	if (unlikely(!p_args[0]->is_string())) {
+	if (!p_args[0]->is_string()) [[unlikely]] {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::STRING_NAME;
@@ -1950,7 +1950,7 @@ StringName Object::get_class_name_for_extension(const GDExtension *p_library) co
 	// If this is the library this extension comes from and it's a placeholder, we
 	// have to return the closest native parent's class name, so that it doesn't try to
 	// use this like the real object.
-	if (unlikely(_extension && _extension->library == p_library && _extension->is_placeholder)) {
+	if (_extension && _extension->library == p_library && _extension->is_placeholder) [[unlikely]] {
 		const StringName *class_name = _get_class_namev();
 		return *class_name;
 	}
@@ -2002,7 +2002,7 @@ void *Object::get_instance_binding(void *p_token, const GDExtensionInstanceBindi
 			break;
 		}
 	}
-	if (unlikely(!binding && p_callbacks)) {
+	if (!binding && p_callbacks) [[unlikely]] {
 		uint32_t current_size = next_power_of_2(_instance_binding_count);
 		uint32_t new_size = next_power_of_2(_instance_binding_count + 1);
 
@@ -2175,7 +2175,7 @@ Object::~Object() {
 
 		for (const KeyValue<Callable, SignalData::Slot> &slot_kv : s->slot_map) {
 			Object *target = slot_kv.value.conn.callable.get_object();
-			if (likely(target)) {
+			if (target) [[likely]] {
 				target->connections.erase(slot_kv.value.cE);
 			}
 		}
@@ -2188,10 +2188,10 @@ Object::~Object() {
 		Connection c = connections.front()->get();
 		Object *obj = c.callable.get_object();
 		bool disconnected = false;
-		if (likely(obj)) {
+		if (obj) [[likely]] {
 			disconnected = c.signal.get_object()->_disconnect(c.signal.get_name(), c.callable, true);
 		}
-		if (unlikely(!disconnected)) {
+		if (!disconnected) [[unlikely]] {
 			// If the disconnect has failed, abandon the connection to avoid getting trapped in an infinite loop here.
 			connections.pop_front();
 		}
@@ -2292,7 +2292,7 @@ int ObjectDB::get_object_count() {
 
 ObjectID ObjectDB::add_instance(Object *p_object) {
 	spin_lock.lock();
-	if (unlikely(slot_count == slot_max)) {
+	if (slot_count == slot_max) [[unlikely]] {
 		CRASH_COND(slot_count == (1 << OBJECTDB_SLOT_MAX_COUNT_BITS));
 
 		uint32_t new_slot_max = slot_max > 0 ? slot_max * 2 : 1;
@@ -2314,7 +2314,7 @@ ObjectID ObjectDB::add_instance(Object *p_object) {
 	object_slots[slot].object = p_object;
 	object_slots[slot].is_ref_counted = p_object->is_ref_counted();
 	validator_counter = (validator_counter + 1) & OBJECTDB_VALIDATOR_MASK;
-	if (unlikely(validator_counter == 0)) {
+	if (validator_counter == 0) [[unlikely]] {
 		validator_counter = 1;
 	}
 	object_slots[slot].validator = validator_counter;

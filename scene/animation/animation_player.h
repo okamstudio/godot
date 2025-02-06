@@ -104,9 +104,7 @@ private:
 		static uint32_t hash(const BlendKey &p_key) {
 			return hash_one_uint64((uint64_t(p_key.from.hash()) << 32) | uint32_t(p_key.to.hash()));
 		}
-		bool operator==(const BlendKey &bk) const {
-			return from == bk.from && to == bk.to;
-		}
+		bool operator==(const BlendKey &bk) const = default;
 		bool operator<(const BlendKey &bk) const {
 			if (from == bk.from) {
 				return StringName::AlphCompare()(to, bk.to);

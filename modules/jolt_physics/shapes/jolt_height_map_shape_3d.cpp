@@ -51,7 +51,7 @@ bool _is_triangle_hole(const JPH::VertexList &p_vertices, int p_index0, int p_in
 
 JPH::ShapeRefC JoltHeightMapShape3D::_build() const {
 	const int height_count = (int)heights.size();
-	if (unlikely(height_count == 0)) {
+	if (height_count == 0) [[unlikely]] {
 		return nullptr;
 	}
 

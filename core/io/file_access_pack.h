@@ -81,9 +81,7 @@ private:
 		uint64_t a = 0;
 		uint64_t b = 0;
 
-		bool operator==(const PathMD5 &p_val) const {
-			return (a == p_val.a) && (b == p_val.b);
-		}
+		bool operator==(const PathMD5 &p_val) const = default;
 		static uint32_t hash(const PathMD5 &p_val) {
 			uint32_t h = hash_murmur3_one_32(p_val.a);
 			return hash_fmix32(hash_murmur3_one_32(p_val.b, h));

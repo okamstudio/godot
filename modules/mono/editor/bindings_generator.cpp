@@ -4054,7 +4054,7 @@ bool BindingsGenerator::_populate_object_type_interfaces() {
 				bool method_exists = false;
 				m = ClassDB::get_method_with_compatibility(type_cname, method_info.name, hash, &method_exists, &imethod.is_compat);
 
-				if (unlikely(!method_exists)) {
+				if (!method_exists) [[unlikely]] {
 					ERR_FAIL_COND_V_MSG(!virtual_method_list.find(method_info), false,
 							"Missing MethodBind for non-virtual method: '" + itype.name + "." + imethod.name + "'.");
 				}

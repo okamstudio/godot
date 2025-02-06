@@ -246,7 +246,7 @@ void fog() {
 	} else {
 		if (is_built_in) {
 			Node *edited_scene = get_tree()->get_edited_scene_root();
-			if (likely(edited_scene)) {
+			if (edited_scene) [[likely]] {
 				shader->set_path(edited_scene->get_scene_file_path() + "::");
 			}
 		} else {

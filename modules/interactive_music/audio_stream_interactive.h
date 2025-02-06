@@ -109,9 +109,7 @@ private:
 	struct TransitionKey {
 		uint32_t from_clip;
 		uint32_t to_clip;
-		bool operator==(const TransitionKey &p_key) const {
-			return from_clip == p_key.from_clip && to_clip == p_key.to_clip;
-		}
+		bool operator==(const TransitionKey &p_key) const = default;
 		TransitionKey(uint32_t p_from_clip = 0, uint32_t p_to_clip = 0) {
 			from_clip = p_from_clip;
 			to_clip = p_to_clip;

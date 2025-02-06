@@ -427,13 +427,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 			return (other >> TEXTURE_IS_DATA_SHIFT) & TEXTURE_IS_DATA_MASK;
 		}
 
-		_ALWAYS_INLINE_ bool operator==(const TextureState &p_val) const {
-			return (texture == p_val.texture) && (other == p_val.other);
-		}
-
-		_ALWAYS_INLINE_ bool operator!=(const TextureState &p_val) const {
-			return (texture != p_val.texture) || (other != p_val.other);
-		}
+		bool operator==(const TextureState &p_val) const = default;
 
 		_ALWAYS_INLINE_ bool is_valid() const { return texture.is_valid(); }
 		_ALWAYS_INLINE_ bool is_null() const { return texture.is_null(); }
@@ -468,13 +462,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 				instance_data(p_instance_data) {
 		}
 
-		_ALWAYS_INLINE_ bool operator==(const RIDSetKey &p_val) const {
-			return state == p_val.state && instance_data == p_val.instance_data;
-		}
-
-		_ALWAYS_INLINE_ bool operator!=(const RIDSetKey &p_val) const {
-			return !(*this == p_val);
-		}
+		bool operator==(const RIDSetKey &p_val) const = default;
 
 		_ALWAYS_INLINE_ uint32_t hash() const {
 			uint32_t h = state.hash();
@@ -487,7 +475,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	static void _uniform_set_invalidation_callback(void *p_userdata);
 	static void _canvas_texture_invalidation_callback(bool p_deleted, void *p_userdata);
 
-	typedef LRUCache<RIDSetKey, RID, HashableHasher<RIDSetKey>, HashMapComparatorDefault<RIDSetKey>, _before_evict> RIDCache;
+	typedef LRUCache<RIDSetKey, RID, HashMapHasherDefault, HashMapComparatorDefault<RIDSetKey>, _before_evict> RIDCache;
 	RIDCache rid_set_to_uniform_set;
 	/// Maps a CanvasTexture to its associated uniform sets, which must
 	/// be invalidated when the CanvasTexture is updated, such as changing the
@@ -526,7 +514,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 		uint32_t flags = 0;
 	};
 
-	HashMap<TextureState, TextureInfo, HashableHasher<TextureState>> texture_info_map;
+	HashMap<TextureState, TextureInfo> texture_info_map;
 
 	// per-frame buffers
 	struct DataBuffer {

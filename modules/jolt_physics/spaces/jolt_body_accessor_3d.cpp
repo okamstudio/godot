@@ -136,7 +136,7 @@ JoltBodyReader3D::JoltBodyReader3D(const JoltSpace3D *p_space) :
 }
 
 const JPH::Body *JoltBodyReader3D::try_get(const JPH::BodyID &p_id) const {
-	if (unlikely(p_id.IsInvalid())) {
+	if (p_id.IsInvalid()) [[unlikely]] {
 		return nullptr;
 	}
 
@@ -147,7 +147,7 @@ const JPH::Body *JoltBodyReader3D::try_get(const JPH::BodyID &p_id) const {
 
 const JPH::Body *JoltBodyReader3D::try_get(int p_index) const {
 	const int count = get_count();
-	if (unlikely(p_index < 0 || p_index >= count)) {
+	if (p_index < 0 || p_index >= count) [[unlikely]] {
 		return nullptr;
 	}
 
@@ -173,7 +173,7 @@ JoltBodyWriter3D::JoltBodyWriter3D(const JoltSpace3D *p_space) :
 }
 
 JPH::Body *JoltBodyWriter3D::try_get(const JPH::BodyID &p_id) const {
-	if (unlikely(p_id.IsInvalid())) {
+	if (p_id.IsInvalid()) [[unlikely]] {
 		return nullptr;
 	}
 
@@ -184,7 +184,7 @@ JPH::Body *JoltBodyWriter3D::try_get(const JPH::BodyID &p_id) const {
 
 JPH::Body *JoltBodyWriter3D::try_get(int p_index) const {
 	const int count = get_count();
-	if (unlikely(p_index < 0 || p_index >= count)) {
+	if (p_index < 0 || p_index >= count) [[unlikely]] {
 		return nullptr;
 	}
 

@@ -1871,13 +1871,13 @@ void Variant::call_utility_function(const StringName &p_name, Variant *r_ret, co
 		return;
 	}
 
-	if (unlikely(!bfi->is_vararg && p_argcount < bfi->argcount)) {
+	if (!bfi->is_vararg && p_argcount < bfi->argcount) [[unlikely]] {
 		r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 		r_error.expected = bfi->argcount;
 		return;
 	}
 
-	if (unlikely(!bfi->is_vararg && p_argcount > bfi->argcount)) {
+	if (!bfi->is_vararg && p_argcount > bfi->argcount) [[unlikely]] {
 		r_error.error = Callable::CallError::CALL_ERROR_TOO_MANY_ARGUMENTS;
 		r_error.expected = bfi->argcount;
 		return;

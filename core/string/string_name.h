@@ -61,9 +61,7 @@ class StringName {
 #endif
 		String get_name() const { return cname ? String(cname) : name; }
 		bool operator==(const String &p_name) const;
-		bool operator!=(const String &p_name) const;
 		bool operator==(const char *p_name) const;
-		bool operator!=(const char *p_name) const;
 
 		int idx = 0;
 		uint32_t hash = 0;
@@ -102,8 +100,6 @@ public:
 
 	bool operator==(const String &p_name) const;
 	bool operator==(const char *p_name) const;
-	bool operator!=(const String &p_name) const;
-	bool operator!=(const char *p_name) const;
 
 	char32_t operator[](int p_index) const;
 	int length() const;
@@ -119,26 +115,8 @@ public:
 			return (char32_t)_data->name[0] == (char32_t)UNIQUE_NODE_PREFIX[0];
 		}
 	}
-	_FORCE_INLINE_ bool operator<(const StringName &p_name) const {
-		return _data < p_name._data;
-	}
-	_FORCE_INLINE_ bool operator<=(const StringName &p_name) const {
-		return _data <= p_name._data;
-	}
-	_FORCE_INLINE_ bool operator>(const StringName &p_name) const {
-		return _data > p_name._data;
-	}
-	_FORCE_INLINE_ bool operator>=(const StringName &p_name) const {
-		return _data >= p_name._data;
-	}
-	_FORCE_INLINE_ bool operator==(const StringName &p_name) const {
-		// The real magic of all this mess happens here.
-		// This is why path comparisons are very fast.
-		return _data == p_name._data;
-	}
-	_FORCE_INLINE_ bool operator!=(const StringName &p_name) const {
-		return _data != p_name._data;
-	}
+	std::strong_ordering operator<=>(const StringName &p_name) const = default;
+	bool operator==(const StringName &p_name) const = default;
 	_FORCE_INLINE_ uint32_t hash() const {
 		if (_data) {
 			return _data->hash;
@@ -210,8 +188,10 @@ public:
 
 	static void assign_static_unique_class_name(StringName *ptr, const char *p_name);
 	_FORCE_INLINE_ ~StringName() {
-		if (likely(configured) && _data) { //only free if configured
-			unref();
+		if (configured) [[likely]] { // Only free if configured.
+			if (_data) {
+				unref();
+			}
 		}
 	}
 
@@ -219,11 +199,6 @@ public:
 	static void set_debug_stringnames(bool p_enable) { debug_stringname = p_enable; }
 #endif
 };
-
-bool operator==(const String &p_name, const StringName &p_string_name);
-bool operator!=(const String &p_name, const StringName &p_string_name);
-bool operator==(const char *p_name, const StringName &p_string_name);
-bool operator!=(const char *p_name, const StringName &p_string_name);
 
 StringName _scs_create(const char *p_chr, bool p_static = false);
 

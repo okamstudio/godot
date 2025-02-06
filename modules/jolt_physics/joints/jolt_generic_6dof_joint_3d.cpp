@@ -90,7 +90,7 @@ JPH::Constraint *JoltGeneric6DOFJoint3D::_build_6dof(JPH::Body *p_jolt_body_a, J
 
 void JoltGeneric6DOFJoint3D::_update_limit_spring_parameters(int p_axis) {
 	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
-	if (unlikely(constraint == nullptr)) {
+	if (constraint == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -123,7 +123,7 @@ void JoltGeneric6DOFJoint3D::_update_motor_state(int p_axis) {
 
 void JoltGeneric6DOFJoint3D::_update_motor_velocity(int p_axis) {
 	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
-	if (unlikely(constraint == nullptr)) {
+	if (constraint == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -143,7 +143,7 @@ void JoltGeneric6DOFJoint3D::_update_motor_velocity(int p_axis) {
 
 void JoltGeneric6DOFJoint3D::_update_motor_limit(int p_axis) {
 	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
-	if (unlikely(constraint == nullptr)) {
+	if (constraint == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -166,7 +166,7 @@ void JoltGeneric6DOFJoint3D::_update_motor_limit(int p_axis) {
 
 void JoltGeneric6DOFJoint3D::_update_spring_parameters(int p_axis) {
 	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
-	if (unlikely(constraint == nullptr)) {
+	if (constraint == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -185,7 +185,7 @@ void JoltGeneric6DOFJoint3D::_update_spring_parameters(int p_axis) {
 
 void JoltGeneric6DOFJoint3D::_update_spring_equilibrium(int p_axis) {
 	JPH::SixDOFConstraint *constraint = static_cast<JPH::SixDOFConstraint *>(jolt_ref.GetPtr());
-	if (unlikely(constraint == nullptr)) {
+	if (constraint == nullptr) [[unlikely]] {
 		return;
 	}
 
@@ -622,7 +622,7 @@ float JoltGeneric6DOFJoint3D::get_applied_force() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 
@@ -639,7 +639,7 @@ float JoltGeneric6DOFJoint3D::get_applied_torque() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 

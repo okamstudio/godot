@@ -127,7 +127,7 @@ public:
 
 	void line_poll() {
 		// The purpose of this is just processing events every now and then when the script might get too busy otherwise bugs like infinite loops can't be caught.
-		if (unlikely(poll_every % 2048) == 0) {
+		if (poll_every % 2048 == 0) [[unlikely]] {
 			poll_events(false);
 		}
 		poll_every++;

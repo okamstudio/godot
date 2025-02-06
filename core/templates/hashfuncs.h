@@ -313,7 +313,15 @@ static _FORCE_INLINE_ uint64_t hash_make_uint64_t(T p_in) {
 template <typename T>
 class Ref;
 
+template <typename T>
+concept Hashable = requires(T p_value) {
+	{ p_value.hash() } -> std::same_as<uint32_t>;
+};
+
 struct HashMapHasherDefault {
+	template <Hashable T>
+	static _FORCE_INLINE_ uint32_t hash(const T &p_hashable) { return p_hashable.hash(); }
+
 	// Generic hash function for any type.
 	template <typename T>
 	static _FORCE_INLINE_ uint32_t hash(const T *p_pointer) { return hash_one_uint64((uint64_t)p_pointer); }
@@ -408,12 +416,6 @@ struct HashHasher {
 	static _FORCE_INLINE_ uint32_t hash(const uint32_t hash) { return hash; }
 	static _FORCE_INLINE_ uint64_t hash(const int64_t hash) { return hash; }
 	static _FORCE_INLINE_ uint64_t hash(const uint64_t hash) { return hash; }
-};
-
-// TODO: Fold this into HashMapHasherDefault once C++20 concepts are allowed
-template <typename T>
-struct HashableHasher {
-	static _FORCE_INLINE_ uint32_t hash(const T &hashable) { return hashable.hash(); }
 };
 
 template <typename T>

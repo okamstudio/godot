@@ -20,7 +20,7 @@ proto = """#define GDVIRTUAL$VER($ALIAS $RET m_name $ARG)\\
 	mutable void *_gdvirtual_##$VARNAME = nullptr;\\
 	_FORCE_INLINE_ bool _gdvirtual_##$VARNAME##_call($CALLARGS) $CONST {\\
 		$SCRIPTCALL\\
-		if (unlikely(_get_extension() && !_gdvirtual_##$VARNAME##_initialized)) {\\
+		if (_get_extension() && !_gdvirtual_##$VARNAME##_initialized) [[unlikely]] {\\
 			MethodInfo mi = _gdvirtual_##$VARNAME##_get_method_info();\\
 			uint32_t hash = mi.get_compatibility_hash();\\
 			_gdvirtual_##$VARNAME = nullptr;\\
@@ -51,7 +51,7 @@ proto = """#define GDVIRTUAL$VER($ALIAS $RET m_name $ARG)\\
 	}\\
 	_FORCE_INLINE_ bool _gdvirtual_##$VARNAME##_overridden() const {\\
 		$SCRIPTHASMETHOD\\
-		if (unlikely(_get_extension() && !_gdvirtual_##$VARNAME##_initialized)) {\\
+		if (_get_extension() && !_gdvirtual_##$VARNAME##_initialized) [[unlikely]] {\\
 			MethodInfo mi = _gdvirtual_##$VARNAME##_get_method_info();\\
 			uint32_t hash = mi.get_compatibility_hash();\\
 			_gdvirtual_##$VARNAME = nullptr;\\

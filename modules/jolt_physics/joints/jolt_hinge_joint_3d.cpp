@@ -106,7 +106,7 @@ JPH::Constraint *JoltHingeJoint3D::_build_fixed(JPH::Body *p_jolt_body_a, JPH::B
 }
 
 void JoltHingeJoint3D::_update_motor_state() {
-	if (unlikely(_is_fixed())) {
+	if (_is_fixed()) [[unlikely]] {
 		return;
 	}
 
@@ -116,7 +116,7 @@ void JoltHingeJoint3D::_update_motor_state() {
 }
 
 void JoltHingeJoint3D::_update_motor_velocity() {
-	if (unlikely(_is_fixed())) {
+	if (_is_fixed()) [[unlikely]] {
 		return;
 	}
 
@@ -127,7 +127,7 @@ void JoltHingeJoint3D::_update_motor_velocity() {
 }
 
 void JoltHingeJoint3D::_update_motor_limit() {
-	if (unlikely(_is_fixed())) {
+	if (_is_fixed()) [[unlikely]] {
 		return;
 	}
 
@@ -343,7 +343,7 @@ float JoltHingeJoint3D::get_applied_force() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 
@@ -364,7 +364,7 @@ float JoltHingeJoint3D::get_applied_torque() const {
 	ERR_FAIL_NULL_V(space, 0.0f);
 
 	const float last_step = space->get_last_step();
-	if (unlikely(last_step == 0.0f)) {
+	if (last_step == 0.0f) [[unlikely]] {
 		return 0.0f;
 	}
 

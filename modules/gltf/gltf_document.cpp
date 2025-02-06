@@ -2653,7 +2653,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			case Variant::FLOAT: {
 				// For scalar values, just append them. Variant can convert all of these to double. Some padding may also be needed.
 				encoded_attribs.append(v);
-				if (unlikely(accessor_component_count > 1)) {
+				if (accessor_component_count > 1) [[unlikely]] {
 					for (int i = 1; i < accessor_component_count; i++) {
 						encoded_attribs.append(0.0);
 					}
@@ -2667,7 +2667,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			case Variant::VECTOR4I: {
 				// Variant can handle converting Vector2/2i/3/3i/4/4i to Vector4 for us.
 				Vector4 vec = v;
-				if (likely(accessor_component_count < 5)) {
+				if (accessor_component_count < 5) [[likely]] {
 					for (int i = 0; i < accessor_component_count; i++) {
 						encoded_attribs.append(vec[i]);
 					}
@@ -2675,7 +2675,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			} break;
 			case Variant::PLANE: {
 				Plane p = v;
-				if (likely(accessor_component_count == 4)) {
+				if (accessor_component_count == 4) [[likely]] {
 					encoded_attribs.append(p.normal.x);
 					encoded_attribs.append(p.normal.y);
 					encoded_attribs.append(p.normal.z);
@@ -2684,7 +2684,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			} break;
 			case Variant::QUATERNION: {
 				Quaternion q = v;
-				if (likely(accessor_component_count < 5)) {
+				if (accessor_component_count < 5) [[likely]] {
 					for (int i = 0; i < accessor_component_count; i++) {
 						encoded_attribs.append(q[i]);
 					}
@@ -2692,7 +2692,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			} break;
 			case Variant::COLOR: {
 				Color c = v;
-				if (likely(accessor_component_count < 5)) {
+				if (accessor_component_count < 5) [[likely]] {
 					for (int i = 0; i < accessor_component_count; i++) {
 						encoded_attribs.append(c[i]);
 					}
@@ -2702,7 +2702,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_variant(Ref<GLTFState> p_sta
 			case Variant::RECT2I: {
 				// Variant can handle converting Rect2i to Rect2 for us.
 				Rect2 r = v;
-				if (likely(accessor_component_count == 4)) {
+				if (accessor_component_count == 4) [[likely]] {
 					encoded_attribs.append(r.position.x);
 					encoded_attribs.append(r.position.y);
 					encoded_attribs.append(r.size.x);
@@ -5593,7 +5593,7 @@ void GLTFDocument::_parse_animation_pointer(Ref<GLTFState> p_state, const String
 	// But having this code exist is required to be spec-compliant and handle all test files.
 	// Note that TRS still needs to be handled in the general case as well, for KHR_interactivity.
 	const PackedStringArray split = p_animation_json_pointer.split("/", false, 3);
-	if (unlikely(split.size() == 3 && split[0] == "nodes" && (split[2] == "translation" || split[2] == "rotation" || split[2] == "scale" || split[2] == "matrix" || split[2] == "weights"))) {
+	if (split.size() == 3 && split[0] == "nodes" && (split[2] == "translation" || split[2] == "rotation" || split[2] == "scale" || split[2] == "matrix" || split[2] == "weights")) [[unlikely]] {
 		const GLTFNodeIndex node_index = split[1].to_int();
 		HashMap<int, GLTFAnimation::NodeTrack> &node_tracks = p_gltf_animation->get_node_tracks();
 		if (!node_tracks.has(node_index)) {
@@ -6256,7 +6256,7 @@ void GLTFDocument::_generate_scene_node(Ref<GLTFState> p_state, const GLTFNodeIn
 		// If the root node argument is null, this is the root node.
 		p_scene_root = current_node;
 		// If multiple nodes were generated under the root node, ensure they have the owner set.
-		if (unlikely(current_node->get_child_count() > 0)) {
+		if (current_node->get_child_count() > 0) [[unlikely]] {
 			Array args;
 			args.append(p_scene_root);
 			for (int i = 0; i < current_node->get_child_count(); i++) {
@@ -8318,7 +8318,7 @@ Node *GLTFDocument::_generate_scene_node_tree(Ref<GLTFState> p_state) {
 	}
 	// Assign the scene name and single root name to each other
 	// if one is missing, or do nothing if both are already set.
-	if (unlikely(p_state->scene_name.is_empty())) {
+	if (p_state->scene_name.is_empty()) [[unlikely]] {
 		p_state->scene_name = single_root->get_name();
 	} else if (single_root->get_name() == StringName()) {
 		if (_naming_version == 0) {
@@ -8493,7 +8493,7 @@ Node *GLTFDocument::generate_scene(Ref<GLTFState> p_state, float p_bake_fps, boo
 		}
 	}
 	ImporterMeshInstance3D *root_importer_mesh = Object::cast_to<ImporterMeshInstance3D>(root);
-	if (unlikely(root_importer_mesh)) {
+	if (root_importer_mesh) [[unlikely]] {
 		root = GLTFDocumentExtensionConvertImporterMesh::convert_importer_mesh_instance_3d(root_importer_mesh);
 		memdelete(root_importer_mesh);
 	}

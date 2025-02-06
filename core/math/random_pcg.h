@@ -107,7 +107,7 @@ public:
 	_FORCE_INLINE_ double randd() {
 #if defined(CLZ32)
 		uint32_t proto_exp_offset = rand();
-		if (unlikely(proto_exp_offset == 0)) {
+		if (proto_exp_offset == 0) [[unlikely]] {
 			return 0;
 		}
 		uint64_t significand = (((uint64_t)rand()) << 32) | rand() | 0x8000000000000001U;
@@ -120,7 +120,7 @@ public:
 	_FORCE_INLINE_ float randf() {
 #if defined(CLZ32)
 		uint32_t proto_exp_offset = rand();
-		if (unlikely(proto_exp_offset == 0)) {
+		if (proto_exp_offset == 0) [[unlikely]] {
 			return 0;
 		}
 		return LDEXPF((float)(rand() | 0x80000001), -32 - CLZ32(proto_exp_offset));

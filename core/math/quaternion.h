@@ -111,7 +111,6 @@ struct [[nodiscard]] Quaternion {
 	_FORCE_INLINE_ Quaternion operator/(real_t p_s) const;
 
 	_FORCE_INLINE_ bool operator==(const Quaternion &p_quaternion) const;
-	_FORCE_INLINE_ bool operator!=(const Quaternion &p_quaternion) const;
 
 	operator String() const;
 
@@ -228,10 +227,6 @@ Quaternion Quaternion::operator/(real_t p_s) const {
 
 bool Quaternion::operator==(const Quaternion &p_quaternion) const {
 	return x == p_quaternion.x && y == p_quaternion.y && z == p_quaternion.z && w == p_quaternion.w;
-}
-
-bool Quaternion::operator!=(const Quaternion &p_quaternion) const {
-	return x != p_quaternion.x || y != p_quaternion.y || z != p_quaternion.z || w != p_quaternion.w;
 }
 
 _FORCE_INLINE_ Quaternion operator*(real_t p_real, const Quaternion &p_quaternion) {

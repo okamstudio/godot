@@ -151,13 +151,10 @@ struct [[nodiscard]] Vector2 {
 
 	Vector2 operator-() const;
 
-	bool operator==(const Vector2 &p_vec2) const;
-	bool operator!=(const Vector2 &p_vec2) const;
-
-	bool operator<(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y < p_vec2.y) : (x < p_vec2.x); }
-	bool operator>(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y > p_vec2.y) : (x > p_vec2.x); }
-	bool operator<=(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y <= p_vec2.y) : (x < p_vec2.x); }
-	bool operator>=(const Vector2 &p_vec2) const { return x == p_vec2.x ? (y >= p_vec2.y) : (x > p_vec2.x); }
+	_FORCE_INLINE_ std::partial_ordering operator<=>(const Vector2 &p_other) const;
+	_FORCE_INLINE_ bool operator==(const Vector2 &p_other) const { return operator<=>(p_other) == 0; }
+	std::partial_ordering operator<=>(const Vector2i &p_vector2i) const;
+	bool operator==(const Vector2i &p_vector2i) const;
 
 	real_t angle() const;
 	static Vector2 from_angle(real_t p_angle);
@@ -243,12 +240,11 @@ _FORCE_INLINE_ Vector2 Vector2::operator-() const {
 	return Vector2(-x, -y);
 }
 
-_FORCE_INLINE_ bool Vector2::operator==(const Vector2 &p_vec2) const {
-	return x == p_vec2.x && y == p_vec2.y;
-}
-
-_FORCE_INLINE_ bool Vector2::operator!=(const Vector2 &p_vec2) const {
-	return x != p_vec2.x || y != p_vec2.y;
+std::partial_ordering Vector2::operator<=>(const Vector2 &p_other) const {
+	if (x == p_other.x) {
+		return y <=> p_other.y;
+	}
+	return x <=> p_other.x;
 }
 
 Vector2 Vector2::lerp(const Vector2 &p_to, real_t p_weight) const {
@@ -261,7 +257,7 @@ Vector2 Vector2::lerp(const Vector2 &p_to, real_t p_weight) const {
 Vector2 Vector2::slerp(const Vector2 &p_to, real_t p_weight) const {
 	real_t start_length_sq = length_squared();
 	real_t end_length_sq = p_to.length_squared();
-	if (unlikely(start_length_sq == 0.0f || end_length_sq == 0.0f)) {
+	if (start_length_sq == 0.0f || end_length_sq == 0.0f) [[unlikely]] {
 		// Zero length vectors have no angle, so the best we can do is either lerp or throw an error.
 		return lerp(p_to, p_weight);
 	}

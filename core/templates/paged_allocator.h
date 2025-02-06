@@ -58,7 +58,7 @@ public:
 		if constexpr (thread_safe) {
 			spin_lock.lock();
 		}
-		if (unlikely(allocs_available == 0)) {
+		if (allocs_available == 0) [[unlikely]] {
 			uint32_t pages_used = pages_allocated;
 
 			pages_allocated++;

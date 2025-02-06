@@ -70,7 +70,7 @@ void JoltCapsuleShape3D::set_data(const Variant &p_data) {
 	const float new_height = maybe_height;
 	const float new_radius = maybe_radius;
 
-	if (unlikely(new_height == height && new_radius == radius)) {
+	if (new_height == height && new_radius == radius) [[unlikely]] {
 		return;
 	}
 

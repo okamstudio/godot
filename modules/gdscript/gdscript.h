@@ -488,7 +488,7 @@ public:
 	bool debug_break_parse(const String &p_file, int p_line, const String &p_error);
 
 	_FORCE_INLINE_ void enter_function(GDScriptInstance *p_instance, GDScriptFunction *p_function, Variant *p_stack, int *p_ip, int *p_line) {
-		if (unlikely(_call_stack.levels == nullptr)) {
+		if (_call_stack.levels == nullptr) [[unlikely]] {
 			_call_stack.levels = memnew_arr(CallLevel, _debug_max_call_stack + 1);
 		}
 

@@ -209,3 +209,11 @@ Vector2::operator String() const {
 Vector2::operator Vector2i() const {
 	return Vector2i(x, y);
 }
+
+std::partial_ordering Vector2::operator<=>(const Vector2i &p_vector2i) const {
+	return operator<=>(Vector2(p_vector2i));
+}
+
+bool Vector2::operator==(const Vector2i &p_vector2i) const {
+	return operator==(Vector2(p_vector2i));
+}

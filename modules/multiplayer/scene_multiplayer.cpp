@@ -308,7 +308,7 @@ void SceneMultiplayer::_process_sys(int p_from, const uint8_t *p_packet, int p_p
 			bool should_process = false;
 			if (get_unique_id() == 1) { // I am the server.
 				// The requested target might have disconnected while the packet was in transit.
-				if (unlikely(peer > 0 && !connected_peers.has(peer))) {
+				if (peer > 0 && !connected_peers.has(peer)) [[unlikely]] {
 					return;
 				}
 				// Send relay packet.

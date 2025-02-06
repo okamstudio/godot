@@ -42,7 +42,7 @@ int RenderingServerDefault::changes = 0;
 /* FREE */
 
 void RenderingServerDefault::_free(RID p_rid) {
-	if (unlikely(p_rid.is_null())) {
+	if (p_rid.is_null()) [[unlikely]] {
 		return;
 	}
 	if (RSG::utilities->free(p_rid)) {

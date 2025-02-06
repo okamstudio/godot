@@ -230,7 +230,7 @@ NodePath GLTFNode::get_scene_node_path(Ref<GLTFState> p_state, bool p_handle_ske
 		ERR_FAIL_INDEX_V(parent_index, gltf_node_count, NodePath());
 		current_gltf_node = p_state->nodes[parent_index];
 	}
-	if (unlikely(path.is_empty())) {
+	if (path.is_empty()) [[unlikely]] {
 		path.append(".");
 	}
 	return NodePath(path, subpath, false);

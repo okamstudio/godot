@@ -75,7 +75,7 @@ subject to the following restrictions:
 #ifdef DEBUG_ENABLED
 #define CHULL_ASSERT(m_cond)                                     \
 	if constexpr (true) {                                        \
-		if (unlikely(!(m_cond))) {                               \
+		if (!(m_cond)) [[unlikely]] {                            \
 			ERR_PRINT("Assertion \"" _STR(m_cond) "\" failed."); \
 		}                                                        \
 	} else                                                       \
@@ -134,10 +134,6 @@ public:
 
 		bool operator==(const Point32 &b) const {
 			return (x == b.x) && (y == b.y) && (z == b.z);
-		}
-
-		bool operator!=(const Point32 &b) const {
-			return (x != b.x) || (y != b.y) || (z != b.z);
 		}
 
 		bool is_zero() {

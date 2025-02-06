@@ -1697,7 +1697,7 @@ Color DisplayServerMacOS::screen_get_pixel(const Point2i &p_position) const {
 		CGColorSpaceRef color_space = CGColorSpaceCreateDeviceRGB();
 		if (color_space) {
 			uint8_t img_data[4];
-			CGContextRef context = CGBitmapContextCreate(img_data, 1, 1, 8, 4, color_space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+			CGContextRef context = CGBitmapContextCreate(img_data, 1, 1, 8, 4, color_space, (uint32_t)kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
 			if (context) {
 				CGContextDrawImage(context, CGRectMake(0, 0, 1, 1), image);
 				color = Color(img_data[0] / 255.0f, img_data[1] / 255.0f, img_data[2] / 255.0f, img_data[3] / 255.0f);
@@ -1746,7 +1746,7 @@ Ref<Image> DisplayServerMacOS::screen_get_image(int p_screen) const {
 
 			Vector<uint8_t> img_data;
 			img_data.resize(height * width * 4);
-			CGContextRef context = CGBitmapContextCreate(img_data.ptrw(), width, height, 8, 4 * width, color_space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+			CGContextRef context = CGBitmapContextCreate(img_data.ptrw(), width, height, 8, 4 * width, color_space, (uint32_t)kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
 			if (context) {
 				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
 				img = Image::create_from_data(width, height, false, Image::FORMAT_RGBA8, img_data);
@@ -1794,7 +1794,7 @@ Ref<Image> DisplayServerMacOS::screen_get_image_rect(const Rect2i &p_rect) const
 
 			Vector<uint8_t> img_data;
 			img_data.resize_zeroed(height * width * 4);
-			CGContextRef context = CGBitmapContextCreate(img_data.ptrw(), width, height, 8, 4 * width, color_space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+			CGContextRef context = CGBitmapContextCreate(img_data.ptrw(), width, height, 8, 4 * width, color_space, (uint32_t)kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
 			if (context) {
 				CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
 				img = Image::create_from_data(width, height, false, Image::FORMAT_RGBA8, img_data);

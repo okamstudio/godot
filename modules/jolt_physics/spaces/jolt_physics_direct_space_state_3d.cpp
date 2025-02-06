@@ -279,7 +279,7 @@ bool JoltPhysicsDirectSpaceState3D::_body_motion_cast(const JoltBody3D &p_body, 
 		}
 
 		const JPH::ShapeRefC jolt_shape = shape->try_build();
-		if (unlikely(jolt_shape == nullptr)) {
+		if (jolt_shape == nullptr) [[unlikely]] {
 			return false;
 		}
 

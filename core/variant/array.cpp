@@ -96,7 +96,7 @@ Array::ConstIterator Array::end() const {
 }
 
 Variant &Array::operator[](int p_idx) {
-	if (unlikely(_p->read_only)) {
+	if (_p->read_only) [[unlikely]] {
 		*_p->read_only = _p->array[p_idx];
 		return *_p->read_only;
 	}
@@ -104,7 +104,7 @@ Variant &Array::operator[](int p_idx) {
 }
 
 const Variant &Array::operator[](int p_idx) const {
-	if (unlikely(_p->read_only)) {
+	if (_p->read_only) [[unlikely]] {
 		*_p->read_only = _p->array[p_idx];
 		return *_p->read_only;
 	}
@@ -126,10 +126,6 @@ void Array::clear() {
 
 bool Array::operator==(const Array &p_array) const {
 	return recursive_equal(p_array, 0);
-}
-
-bool Array::operator!=(const Array &p_array) const {
-	return !recursive_equal(p_array, 0);
 }
 
 bool Array::recursive_equal(const Array &p_array, int recursion_count) const {
@@ -382,7 +378,7 @@ int Array::find_custom(const Callable &p_callable, int p_from) const {
 		Variant res;
 		Callable::CallError ce;
 		p_callable.callp(argptrs, 1, res, ce);
-		if (unlikely(ce.error != Callable::CallError::CALL_OK)) {
+		if (ce.error != Callable::CallError::CALL_OK) [[unlikely]] {
 			ERR_FAIL_V_MSG(ret, vformat("Error calling method from 'find_custom': %s.", Variant::get_callable_error_text(p_callable, argptrs, 1, ce)));
 		}
 
@@ -442,7 +438,7 @@ int Array::rfind_custom(const Callable &p_callable, int p_from) const {
 		Variant res;
 		Callable::CallError ce;
 		p_callable.callp(argptrs, 1, res, ce);
-		if (unlikely(ce.error != Callable::CallError::CALL_OK)) {
+		if (ce.error != Callable::CallError::CALL_OK) [[unlikely]] {
 			ERR_FAIL_V_MSG(-1, vformat("Error calling method from 'rfind_custom': %s.", Variant::get_callable_error_text(p_callable, argptrs, 1, ce)));
 		}
 

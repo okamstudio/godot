@@ -248,7 +248,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 
 			if (p_device->device_name == String(propvar.pwszVal)) {
 				hr = tmp_device->GetId(&strId);
-				if (unlikely(hr != S_OK)) {
+				if (hr != S_OK) [[unlikely]] {
 					PropVariantClear(&propvar);
 					ERR_PRINT("Cannot get device ID string.");
 					break;
@@ -408,7 +408,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 				return ERR_CANT_OPEN;
 			}
 		} else {
-			if (unlikely(hr != S_OK)) {
+			if (hr != S_OK) [[unlikely]] {
 				CoTaskMemFree(pwfex);
 				ERR_FAIL_V_MSG(ERR_CANT_OPEN, "WASAPI: Initialize failed with error 0x" + String::num_uint64(hr, 16) + ".");
 			}
@@ -416,7 +416,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 
 		UINT32 max_frames;
 		hr = p_device->audio_client->GetBufferSize(&max_frames);
-		if (unlikely(hr != S_OK)) {
+		if (hr != S_OK) [[unlikely]] {
 			CoTaskMemFree(pwfex);
 			ERR_FAIL_V(ERR_CANT_OPEN);
 		}
@@ -493,7 +493,7 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 	} else {
 		hr = p_device->audio_client->GetService(IID_IAudioRenderClient, (void **)&p_device->render_client);
 	}
-	if (unlikely(hr != S_OK)) {
+	if (hr != S_OK) [[unlikely]] {
 		CoTaskMemFree(pwfex);
 		ERR_FAIL_V(ERR_CANT_OPEN);
 	}
