@@ -1837,6 +1837,9 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 			if (!valid) {
 				// Compute parent signature as a string to show in the error message.
 				String parent_signature = String(function_name) + "(";
+				if (p_function->is_static) {
+					parent_signature = "static " + parent_signature;
+				}
 				int j = 0;
 				for (const GDScriptParser::DataType &par_type : parameters_types) {
 					if (j > 0) {
