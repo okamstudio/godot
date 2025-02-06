@@ -279,10 +279,11 @@ int AudioStreamPlaybackPlaylist::mix(AudioFrame *p_buffer, float p_rate_scale, i
 		for (int i = 0; i < to_mix; i++) {
 			*p_buffer = mix_buffer[i];
 			stream_todo -= time_dec;
-			if (stream_todo < 0) {
-				//find next stream.
+
+			if (stream_todo - playlist->fade_time < 0) {
 				int prev = play_order[play_index];
 
+				// Find next stream.
 				for (int j = 0; j < playlist->stream_count; j++) {
 					play_index++;
 					if (play_index >= playlist->stream_count) {
@@ -340,7 +341,6 @@ int AudioStreamPlaybackPlaylist::mix(AudioFrame *p_buffer, float p_rate_scale, i
 					playback[idx]->mix(mix_buffer + i, 1.0, to_mix - i); // Fill rest of mix buffer
 				}
 
-				// Update fade todo.
 				double bpm = playlist->audio_streams[idx]->get_bpm();
 				int beat_count = playlist->audio_streams[idx]->get_beat_count();
 
@@ -351,9 +351,12 @@ int AudioStreamPlaybackPlaylist::mix(AudioFrame *p_buffer, float p_rate_scale, i
 				}
 			}
 
+			// Cross-fade
 			if (fade_index != -1) {
+				*p_buffer *= (1 - fade_volume);
 				*p_buffer += fade_buffer[i] * fade_volume;
 				fade_volume -= fade_dec;
+
 				if (fade_volume <= 0.0) {
 					playback[fade_index]->stop();
 					fade_index = -1;
