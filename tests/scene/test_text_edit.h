@@ -1869,30 +1869,43 @@ TEST_CASE("[SceneTree][TextEdit] text entry") {
 			CHECK(text_edit->get_caret_line() == 0);
 			CHECK(text_edit->get_caret_column() == 0);
 
-			// Can start word select mode when not on a word.
-			SEND_GUI_DOUBLE_CLICK(text_edit->get_rect_at_line_column(0, 12).get_center() + Point2i(2, 0), Key::NONE);
+			// Can select word from left endpoint.
+			SEND_GUI_DOUBLE_CLICK(text_edit->get_rect_at_line_column(0, 8).get_center() + Point2i(2, 0), Key::NONE);
+			CHECK(text_edit->has_selection());
+			CHECK(text_edit->get_selected_text() == "some");
 			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
-			CHECK_FALSE(text_edit->has_selection());
 			CHECK(text_edit->get_caret_line() == 0);
 			CHECK(text_edit->get_caret_column() == 12);
+			CHECK(text_edit->get_selection_origin_line() == 0);
+			CHECK(text_edit->get_selection_origin_column() == 8);
+
+			// Can select word from right endpoint.
+			SEND_GUI_DOUBLE_CLICK(text_edit->get_rect_at_line_column(0, 12).get_center() + Point2i(2, 0), Key::NONE);
+			CHECK(text_edit->has_selection());
+			CHECK(text_edit->get_selected_text() == "some");
+			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
+			CHECK(text_edit->get_caret_line() == 0);
+			CHECK(text_edit->get_caret_column() == 12);
+			CHECK(text_edit->get_selection_origin_line() == 0);
+			CHECK(text_edit->get_selection_origin_column() == 8);
 
 			SEND_GUI_MOUSE_MOTION_EVENT(text_edit->get_rect_at_line_column(1, 9).get_center(), MouseButtonMask::LEFT, Key::NONE);
 			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
 			CHECK(text_edit->has_selection());
-			CHECK(text_edit->get_selected_text() == " text\nfor selection");
+			CHECK(text_edit->get_selected_text() == "some text\nfor selection");
 			CHECK(text_edit->get_caret_line() == 1);
 			CHECK(text_edit->get_caret_column() == 13);
 			CHECK(text_edit->get_selection_origin_line() == 0);
-			CHECK(text_edit->get_selection_origin_column() == 12);
+			CHECK(text_edit->get_selection_origin_column() == 8);
 
 			SEND_GUI_MOUSE_MOTION_EVENT(text_edit->get_rect_at_line_column(0, 10).get_center(), MouseButtonMask::LEFT, Key::NONE);
 			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
 			CHECK(text_edit->has_selection());
 			CHECK(text_edit->get_selected_text() == "some");
 			CHECK(text_edit->get_caret_line() == 0);
-			CHECK(text_edit->get_caret_column() == 8);
+			CHECK(text_edit->get_caret_column() == 12);
 			CHECK(text_edit->get_selection_origin_line() == 0);
-			CHECK(text_edit->get_selection_origin_column() == 12);
+			CHECK(text_edit->get_selection_origin_column() == 8);
 
 			SEND_GUI_MOUSE_BUTTON_RELEASED_EVENT(text_edit->get_rect_at_line_column(0, 15).get_center(), MouseButton::LEFT, MouseButtonMask::LEFT, Key::NONE);
 
@@ -1904,9 +1917,9 @@ TEST_CASE("[SceneTree][TextEdit] text entry") {
 			CHECK(text_edit->has_selection(0));
 			CHECK(text_edit->get_selected_text(0) == "some");
 			CHECK(text_edit->get_caret_line(0) == 0);
-			CHECK(text_edit->get_caret_column(0) == 8);
+			CHECK(text_edit->get_caret_column(0) == 12);
 			CHECK(text_edit->get_selection_origin_line(0) == 0);
-			CHECK(text_edit->get_selection_origin_column(0) == 12);
+			CHECK(text_edit->get_selection_origin_column(0) == 8);
 
 			CHECK(text_edit->has_selection(1));
 			CHECK(text_edit->get_selected_text(1) == "ele");
@@ -1921,11 +1934,11 @@ TEST_CASE("[SceneTree][TextEdit] text entry") {
 			SEND_GUI_DOUBLE_CLICK(text_edit->get_rect_at_line_column(1, 7).get_center() + Point2i(2, 0), Key::NONE | KeyModifierMask::SHIFT);
 			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
 			CHECK(text_edit->has_selection());
-			CHECK(text_edit->get_selected_text() == " text\nfor selection");
+			CHECK(text_edit->get_selected_text() == "some text\nfor selection");
 			CHECK(text_edit->get_caret_line() == 1);
 			CHECK(text_edit->get_caret_column() == 13);
 			CHECK(text_edit->get_selection_origin_line() == 0);
-			CHECK(text_edit->get_selection_origin_column() == 12);
+			CHECK(text_edit->get_selection_origin_column() == 8);
 
 			// Cannot select when disabled, but caret still moves to end of word.
 			text_edit->set_selecting_enabled(false);
@@ -1934,6 +1947,41 @@ TEST_CASE("[SceneTree][TextEdit] text entry") {
 			CHECK(text_edit->get_caret_line() == 1);
 			CHECK(text_edit->get_caret_column() == 3);
 			text_edit->set_selecting_enabled(true);
+
+			// Can start word select mode when not on a word.
+			text_edit->set_text("this is  some text\nwith an extra space\n");
+			MessageQueue::get_singleton()->flush();
+			SEND_GUI_DOUBLE_CLICK(text_edit->get_rect_at_line_column(0, 8).get_center() + Point2i(2, 0), Key::NONE);
+			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
+			CHECK_FALSE(text_edit->has_selection());
+			CHECK(text_edit->get_caret_line() == 0);
+			CHECK(text_edit->get_caret_column() == 8);
+
+			SEND_GUI_MOUSE_MOTION_EVENT(text_edit->get_rect_at_line_column(1, 13).get_center(), MouseButtonMask::LEFT, Key::NONE);
+			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
+			CHECK(text_edit->has_selection());
+			CHECK(text_edit->get_selected_text() == " some text\nwith an extra");
+			CHECK(text_edit->get_caret_line() == 1);
+			CHECK(text_edit->get_caret_column() == 13);
+			CHECK(text_edit->get_selection_origin_line() == 0);
+			CHECK(text_edit->get_selection_origin_column() == 8);
+
+			// Can reverse selection direction without retaining previous selection.
+			SEND_GUI_MOUSE_MOTION_EVENT(text_edit->get_rect_at_line_column(0, 0).get_center(), MouseButtonMask::LEFT, Key::NONE);
+			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
+			CHECK(text_edit->has_selection());
+			CHECK(text_edit->get_selected_text() == "this is ");
+			CHECK(text_edit->get_caret_line() == 0);
+			CHECK(text_edit->get_caret_column() == 0);
+			CHECK(text_edit->get_selection_origin_line() == 0);
+			CHECK(text_edit->get_selection_origin_column() == 8);
+
+			// Can deselect by moving to initial selection point.
+			SEND_GUI_MOUSE_MOTION_EVENT(text_edit->get_rect_at_line_column(0, 8).get_center() + Point2i(2, 0), MouseButtonMask::LEFT, Key::NONE);
+			CHECK(text_edit->get_selection_mode() == TextEdit::SELECTION_MODE_WORD);
+			CHECK_FALSE(text_edit->has_selection());
+			CHECK(text_edit->get_caret_line() == 0);
+			CHECK(text_edit->get_caret_column() == 8);
 		}
 
 		SUBCASE("[TextEdit] mouse line select") {

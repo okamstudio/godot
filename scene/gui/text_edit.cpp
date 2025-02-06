@@ -7773,7 +7773,7 @@ void TextEdit::_update_selection_mode_word(bool p_initial) {
 	int end = beg;
 	PackedInt32Array words = TS->shaped_text_get_word_breaks(text.get_line_data(line)->get_rid());
 	for (int i = 0; i < words.size(); i = i + 2) {
-		if ((words[i] < caret_pos && words[i + 1] > caret_pos) || (i == words.size() - 2 && caret_pos == words[i + 1])) {
+		if ((p_initial && words[i] <= caret_pos && words[i + 1] >= caret_pos) || (!p_initial && words[i] < caret_pos && words[i + 1] > caret_pos)) {
 			beg = words[i];
 			end = words[i + 1];
 			break;
@@ -7792,7 +7792,10 @@ void TextEdit::_update_selection_mode_word(bool p_initial) {
 		int origin_col = is_new_selection_dir_right ? carets[caret_index].selection.word_begin_column : carets[caret_index].selection.word_end_column;
 		int caret_col = is_new_selection_dir_right ? end : beg;
 
-		select(origin_line, origin_col, line, caret_col, caret_index);
+		// Expand the word selection only if the caret is not at the start of the selection.
+		if (column != carets[caret_index].selection.word_begin_column || line != origin_line || carets[caret_index].selection.word_begin_column == carets[caret_index].selection.word_end_column) {
+			select(origin_line, origin_col, line, caret_col, caret_index);
+		}
 	}
 	adjust_viewport_to_caret(caret_index);
 
