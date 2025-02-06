@@ -868,6 +868,7 @@ private:
 	Button *environ_glow_button = nullptr;
 	Button *environ_tonemap_button = nullptr;
 	Button *environ_gi_button = nullptr;
+	Button *environ_volumetric_fog_button = nullptr;
 	Button *environ_add_to_scene = nullptr;
 
 	Button *sun_environ_settings = nullptr;

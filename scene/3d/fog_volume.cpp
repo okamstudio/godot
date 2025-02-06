@@ -128,7 +128,7 @@ PackedStringArray FogVolume::get_configuration_warnings() const {
 	}
 
 	if (environment.is_valid() && !environment->is_volumetric_fog_enabled()) {
-		warnings.push_back(RTR("Fog Volumes need volumetric fog to be enabled in the scene's Environment in order to be visible."));
+		warnings.push_back(RTR("Fog Volumes need volumetric fog to be enabled in the scene's Environment or preview environment to be visible."));
 	}
 
 	return warnings;
