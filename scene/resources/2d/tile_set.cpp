@@ -6079,6 +6079,11 @@ void TileData::add_terrain(int p_terrain_set, int p_to_pos) {
 
 void TileData::move_terrain(int p_terrain_set, int p_from_index, int p_to_pos) {
 	if (terrain_set == p_terrain_set) {
+		if (terrain == p_from_index) {
+			terrain = p_to_pos;
+		} else if (terrain == p_to_pos) {
+			terrain = p_from_index;
+		}
 		for (int i = 0; i < 16; i++) {
 			if (p_from_index == terrain_peering_bits[i]) {
 				terrain_peering_bits[i] = (p_from_index < p_to_pos) ? p_to_pos - 1 : p_to_pos;
