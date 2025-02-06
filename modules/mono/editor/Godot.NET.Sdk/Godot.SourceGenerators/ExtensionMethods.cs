@@ -296,6 +296,9 @@ namespace Godot.SourceGenerators
         public static bool IsSystemFlagsAttribute(this INamedTypeSymbol symbol)
             => symbol.FullQualifiedNameOmitGlobal() == GodotClasses.SystemFlagsAttr;
 
+        public static bool IsGodotScriptMethodExcludeAttribute(this INamedTypeSymbol symbol)
+            => symbol.FullQualifiedNameOmitGlobal() == GodotClasses.ScriptMethodExcludeAttr;
+
         public static GodotMethodData? HasGodotCompatibleSignature(
             this IMethodSymbol method,
             MarshalUtils.TypeCache typeCache

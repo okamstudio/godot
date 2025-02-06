@@ -128,6 +128,9 @@ namespace Godot.SourceGenerators
             var methodSymbols = members
                 .Where(s => s.Kind == SymbolKind.Method && !s.IsImplicitlyDeclared)
                 .Cast<IMethodSymbol>()
+                .Where(m => !m.GetAttributes()
+                    .Any(a => a.AttributeClass?.IsGodotScriptMethodExcludeAttribute() ?? false)
+                )
                 .Where(m => m.MethodKind == MethodKind.Ordinary);
 
             var godotClassMethods = methodSymbols.WhereHasGodotCompatibleSignature(typeCache)

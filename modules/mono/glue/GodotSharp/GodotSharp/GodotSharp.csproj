@@ -74,6 +74,7 @@
     <Compile Include="Core\Attributes\ScriptPathAttribute.cs" />
     <Compile Include="Core\Attributes\SignalAttribute.cs" />
     <Compile Include="Core\Attributes\ToolAttribute.cs" />
+    <Compile Include="Core\Attributes\ScriptMethodExcludeAttribute.cs" />
     <Compile Include="Core\Basis.cs" />
     <Compile Include="Core\Bridge\CSharpInstanceBridge.cs" />
     <Compile Include="Core\Bridge\GCHandleBridge.cs" />
