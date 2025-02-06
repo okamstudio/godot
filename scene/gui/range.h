@@ -38,6 +38,7 @@ class Range : public Control {
 
 	struct Shared {
 		double val = 0.0;
+		double true_val = 0.0;
 		double min = 0.0;
 		double max = 100.0;
 		double step = 1.0;
@@ -82,6 +83,7 @@ public:
 	void set_as_ratio(double p_value);
 
 	double get_value() const;
+	double get_true_value() const;
 	double get_min() const;
 	double get_max() const;
 	double get_step() const;

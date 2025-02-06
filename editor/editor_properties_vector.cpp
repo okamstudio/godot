@@ -64,7 +64,7 @@ void EditorPropertyVectorN::_value_changed(double val, const String &p_name) {
 				continue;
 			}
 
-			spin_sliders[slider_idx]->set_value_no_signal(spin_sliders[changed_component]->get_value() * ratio[ratio_idx]);
+			spin_sliders[slider_idx]->set_value_no_signal(spin_sliders[changed_component]->get_true_value() * ratio[ratio_idx]);
 		}
 	}
 
@@ -74,9 +74,9 @@ void EditorPropertyVectorN::_value_changed(double val, const String &p_name) {
 
 	for (int i = 0; i < component_count; i++) {
 		if (radians_as_degrees) {
-			v.set(i, Math::deg_to_rad(spin_sliders[i]->get_value()));
+			v.set(i, Math::deg_to_rad(spin_sliders[i]->get_true_value()));
 		} else {
-			v.set(i, spin_sliders[i]->get_value());
+			v.set(i, spin_sliders[i]->get_true_value());
 		}
 	}
 	emit_changed(get_edited_property(), v, linked->is_pressed() ? "" : p_name);

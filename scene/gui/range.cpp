@@ -44,8 +44,13 @@ void Range::_value_changed(double p_value) {
 	GDVIRTUAL_CALL(_value_changed, p_value);
 }
 void Range::_value_changed_notify() {
-	_value_changed(shared->val);
-	emit_signal(SceneStringName(value_changed), shared->val);
+	if (Engine::get_singleton()->is_editor_hint()) {
+		_value_changed(shared->true_val);
+		emit_signal(SceneStringName(value_changed), shared->true_val);
+	} else {
+		_value_changed(shared->val);
+		emit_signal(SceneStringName(value_changed), shared->val);
+	}
 	queue_redraw();
 }
 
@@ -85,10 +90,12 @@ void Range::Shared::redraw_owners() {
 }
 
 void Range::set_value(double p_val) {
-	double prev_val = shared->val;
+	double prev_val = Engine::get_singleton()->is_editor_hint() ? shared->true_val : shared->val;
 	_set_value_no_signal(p_val);
 
-	if (shared->val != prev_val) {
+	if (Engine::get_singleton()->is_editor_hint() && shared->true_val != prev_val) {
+		shared->emit_value_changed();
+	} else if (!Engine::get_singleton()->is_editor_hint() && shared->val != prev_val) {
 		shared->emit_value_changed();
 	}
 }
@@ -97,6 +104,8 @@ void Range::_set_value_no_signal(double p_val) {
 	if (!Math::is_finite(p_val)) {
 		return;
 	}
+
+	shared->true_val = p_val;
 
 	if (shared->step > 0) {
 		p_val = Math::round((p_val - shared->min) / shared->step) * shared->step + shared->min;
@@ -138,7 +147,7 @@ void Range::set_min(double p_min) {
 	shared->min = p_min;
 	shared->max = MAX(shared->max, shared->min);
 	shared->page = CLAMP(shared->page, 0, shared->max - shared->min);
-	set_value(shared->val);
+	set_value(shared->true_val);
 
 	shared->emit_changed("min");
 
@@ -153,7 +162,7 @@ void Range::set_max(double p_max) {
 
 	shared->max = max_validated;
 	shared->page = CLAMP(shared->page, 0, shared->max - shared->min);
-	set_value(shared->val);
+	set_value(shared->true_val);
 
 	shared->emit_changed("max");
 }
@@ -174,13 +183,17 @@ void Range::set_page(double p_page) {
 	}
 
 	shared->page = page_validated;
-	set_value(shared->val);
+	set_value(shared->true_val);
 
 	shared->emit_changed("page");
 }
 
 double Range::get_value() const {
 	return shared->val;
+}
+
+double Range::get_true_value() const {
+	return shared->true_val;
 }
 
 double Range::get_min() const {
@@ -257,6 +270,7 @@ void Range::unshare() {
 	nshared->min = shared->min;
 	nshared->max = shared->max;
 	nshared->val = shared->val;
+	nshared->true_val = shared->true_val;
 	nshared->step = shared->step;
 	nshared->page = shared->page;
 	nshared->exp_ratio = shared->exp_ratio;
