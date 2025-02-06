@@ -5674,6 +5674,44 @@ func _ready():
 	memdelete(code_edit);
 }
 
+TEST_CASE("[SceneTree][CodeEdit] End key state behavior on folded block") {
+	const String text = R"(extends Node
+
+func some_function(param1, param2, param3):
+	local_const = 5
+
+	if param1 < local_const:
+		print(">" + param1)
+	elif param2 > 5:
+		print(param2)
+	else:
+		print("Fail!")
+		print("No!")
+
+	for i in range(20):
+		print("line longer than for loop")
+		print(i)
+)";
+
+	CodeEdit *code_edit = memnew(CodeEdit);
+	SceneTree::get_singleton()->get_root()->add_child(code_edit);
+	code_edit->grab_focus();
+	code_edit->set_line_folding_enabled(true);
+	code_edit->set_text(text);
+	code_edit->set_caret_line(15); // print(i)
+	code_edit->set_caret_column(0);
+
+	SEND_GUI_ACTION("ui_text_caret_line_end");
+	code_edit->fold_line(13); // for i in range(20):
+	CHECK(code_edit->get_caret_column() == code_edit->get_line(13).length()); // for i in range(20):
+	SEND_GUI_ACTION("ui_text_caret_up");
+	SEND_GUI_ACTION("ui_text_caret_up");
+	SEND_GUI_ACTION("ui_text_caret_up");
+	CHECK(code_edit->get_caret_column() == code_edit->get_line(10).length()); // print("Fail!")
+
+	memdelete(code_edit);
+}
+
 } // namespace TestCodeEdit
 
 #endif // TEST_CODE_EDIT_H

@@ -8244,6 +8244,132 @@ TEST_CASE("[SceneTree][TextEdit] gutters") {
 	memdelete(text_edit);
 }
 
+TEST_CASE("[SceneTree][TextEdit] End Key State") {
+	const String text = R"(extends Node
+
+func some_function(param1, param2, param3):
+	local_const = 5
+
+	if param1 < local_const:
+		print(">" + param1)
+	elif param2 > 5:
+		print(param2)
+	else:
+		print("Fail!")
+		print("No!")
+
+	for i in range(20):
+		print("line longer than for loop")
+		print(i)
+)";
+
+	TextEdit *text_edit = memnew(TextEdit);
+	SceneTree::get_singleton()->get_root()->add_child(text_edit);
+	text_edit->grab_focus();
+	text_edit->set_text(text);
+	text_edit->set_caret_line(6); // print(">" + param1)
+	text_edit->set_caret_column(0);
+
+	SUBCASE("End key state") {
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(6).length()); // print(">" + param1)
+		// Go down to a shorter line.
+		SEND_GUI_ACTION("ui_text_caret_down");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(7).length()); // elif param2 > 5:
+		// Go up to a longer line.
+		SEND_GUI_ACTION("ui_text_caret_up");
+		SEND_GUI_ACTION("ui_text_caret_up");
+		SEND_GUI_ACTION("ui_text_caret_up");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(4).length()); // if param1 < local_const:
+
+		// Go up and go through an empty line
+		SEND_GUI_ACTION("ui_text_caret_up");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(3).length()); // empty line
+		SEND_GUI_ACTION("ui_text_caret_up");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(2).length()); // local_const = 5
+	}
+
+	SUBCASE("Reaching the end of line doesn't set end key state") {
+		text_edit->set_caret_line(11); // print("No!")
+		// print(i) is 14 characters long, so set the caret to the 13th character.
+		text_edit->set_caret_column(13);
+		SEND_GUI_ACTION("ui_text_caret_right");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(11).length()); // print("No!")
+		SEND_GUI_ACTION("ui_text_caret_up");
+		CHECK(text_edit->get_caret_column() == 15); // print("Fail!")
+	}
+
+	SUBCASE("Keep end key state even when reach top line") {
+		text_edit->set_caret_line(2); // func some_function(param1, param2, param3):
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+
+		SEND_GUI_ACTION("ui_text_caret_up");
+		SEND_GUI_ACTION("ui_text_caret_up");
+		ERR_PRINT_OFF;
+		SEND_GUI_ACTION("ui_text_caret_up");
+		SEND_GUI_ACTION("ui_text_caret_up");
+		ERR_PRINT_ON;
+		SEND_GUI_ACTION("ui_text_caret_down");
+		SEND_GUI_ACTION("ui_text_caret_down");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(2).length()); // func some_function(param1, param2, param3):
+	}
+
+	SUBCASE("Keep end key state even when reach bottom line") {
+		text_edit->set_caret_line(15); // print(i)
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+
+		SEND_GUI_ACTION("ui_text_caret_down"); // Empty line at the end
+		SEND_GUI_ACTION("ui_text_caret_down"); // Empty line at the end
+		SEND_GUI_ACTION("ui_text_caret_up"); // print(i)
+		SEND_GUI_ACTION("ui_text_caret_up"); // print("line longer than for loop")
+		CHECK(text_edit->get_caret_line() == 14); // print("line longer than for loop")
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(14).length()); // print("line longer than for loop")
+	}
+
+	SUBCASE("Clear end key state when go to document start") {
+		text_edit->set_caret_line(9); // else:
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(9).length()); // else:
+
+		SEND_GUI_ACTION("ui_text_caret_document_start");
+		CHECK(text_edit->get_caret_column() == 0);
+	}
+
+	SUBCASE("Keep end key state when go to document end") {
+		text_edit->set_caret_line(9); // else:
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(9).length()); // else:
+
+		SEND_GUI_ACTION("ui_text_caret_document_end"); // Empty line at the end
+		SEND_GUI_ACTION("ui_text_caret_up"); // print(i)
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(15).length()); // print(i)
+	}
+
+	SUBCASE("Clear end key state") {
+		text_edit->set_caret_line(13); // for i in range(20):
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(13).length()); // for i in range(20):
+		SEND_GUI_ACTION("ui_text_caret_left");
+		SEND_GUI_ACTION("ui_text_caret_down");
+		CHECK(text_edit->get_caret_line() == 14); // print("line longer than for loop")
+		CHECK(text_edit->get_caret_column() != text_edit->get_line(14).length()); // print("line longer than for loop")
+	}
+
+	SUBCASE("Moving caret to right clear end key state") {
+		SEND_GUI_ACTION("ui_text_caret_line_end");
+		CHECK(text_edit->get_caret_column() == text_edit->get_line(6).length()); // print(">" + param1)
+		SEND_GUI_ACTION("ui_text_caret_right");
+		// Wraps to next line
+		CHECK(text_edit->get_caret_line() == 7); // elif param2 > 5:
+		CHECK(text_edit->get_caret_column() == 0); // elif param2 > 5:
+		SEND_GUI_ACTION("ui_text_caret_up");
+		CHECK(text_edit->get_caret_line() == 6); // print(">" + param1)
+		CHECK(text_edit->get_caret_column() == 0); // print(">" + param1)
+	}
+
+	memdelete(text_edit);
+}
+
 } // namespace TestTextEdit
 
 #endif // TEST_TEXT_EDIT_H

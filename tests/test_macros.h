@@ -151,6 +151,10 @@ int register_test_command(String p_command, TestFunc p_function);
 #define SEND_GUI_ACTION(m_action)                                                                     \
 	{                                                                                                 \
 		const List<Ref<InputEvent>> *events = InputMap::get_singleton()->action_get_events(m_action); \
+		if (events == nullptr) {                                                                      \
+			FAIL("Invalid " #m_action " action");                                                     \
+			return;                                                                                   \
+		}                                                                                             \
 		const List<Ref<InputEvent>>::Element *first_event = events->front();                          \
 		Ref<InputEventKey> event = first_event->get()->duplicate();                                   \
 		event->set_pressed(true);                                                                     \

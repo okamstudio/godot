@@ -459,6 +459,8 @@ private:
 
 	void _cancel_drag_and_drop_text();
 
+	bool _is_caret_at_eol(int p_caret = 0);
+
 	/* Selection. */
 	SelectionMode selecting_mode = SelectionMode::SELECTION_MODE_NONE;
 
