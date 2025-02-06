@@ -889,6 +889,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("parent_hl_line_color", "Tree", Color(0.27, 0.27, 0.27));
 	theme->set_color("children_hl_line_color", "Tree", Color(0.27, 0.27, 0.27));
 	theme->set_color("custom_button_font_highlight", "Tree", control_font_hover_color);
+	theme->set_color("stripe_color", "Tree", Color(0.5, 0.5, 0.5, 0.04));
 
 	theme->set_constant("h_separation", "Tree", Math::round(4 * scale));
 	theme->set_constant("v_separation", "Tree", Math::round(4 * scale));
@@ -904,6 +905,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("children_hl_line_width", "Tree", 1);
 	theme->set_constant("parent_hl_line_margin", "Tree", 0);
 	theme->set_constant("draw_guides", "Tree", 1);
+	theme->set_constant("draw_stripes", "Tree", 0);
 	theme->set_constant("scroll_border", "Tree", Math::round(4 * scale));
 	theme->set_constant("scroll_speed", "Tree", 12);
 	theme->set_constant("outline_size", "Tree", 0);

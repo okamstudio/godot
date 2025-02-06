@@ -2714,6 +2714,61 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 	return htotal;
 }
 
+void Tree::draw_background_stripes(const Point2 &draw_ofs) {
+	const RID ci = get_canvas_item();
+
+	int stripe_count = 0;
+	TreeItem *current_item = root;
+	int total_size = draw_ofs.y - theme_cache.v_separation;
+
+	if (_get_title_button_height() > 0) {
+		stripe_count++;
+	}
+
+	// Stripes per item, respects item height.
+	while (current_item) {
+		const int item_height = compute_item_height(current_item);
+		if (item_height > 0) {
+			const int height = item_height + theme_cache.v_separation;
+
+			// Draw every other.
+			// stripe_count - 1 to avoid an otherwise ugly gap at the top of the tree.
+			if ((stripe_count - 1) % 2 == 0) {
+				Rect2 j = Rect2(draw_ofs.x, total_size + theme_cache.v_separation, _get_content_rect().size.x, height);
+				j.position = j.position - get_scroll().floor();
+				RenderingServer::get_singleton()->canvas_item_add_rect(ci, j, theme_cache.stripe_color);
+			}
+
+			// Keep track of the total size so that the empty space of the tree can be filled.
+			total_size += height;
+
+			stripe_count++;
+		}
+		current_item = current_item->get_next_visible();
+	}
+
+	// If the full tree has not been filled, it needs to be filled by "empty" stripes.
+	if (total_size < get_size().height) {
+		const int empty_space = ceil(get_size().height - total_size);
+
+		// Basing off the font height seems to be the best way to get a "standard" size for the stripes without content.
+		const int stripe_height = theme_cache.font->get_height(theme_cache.font_size) + (theme_cache.v_separation * 2);
+
+		// Calculate how many stripes need to be added to fill the space.
+		const int empty_stripe_count = ceil(empty_space / static_cast<float>(stripe_height));
+
+		for (int stripe = 0; stripe < empty_stripe_count; stripe++) {
+			// Draw every other.
+			// stripe_count - 1 to avoid an otherwise ugly gap at the top of the tree.
+			if ((stripe_count - 1) % 2 == 0) {
+				Rect2 j = Rect2(draw_ofs.x, ((stripe * stripe_height) + total_size) + theme_cache.v_separation, _get_content_rect().size.x, stripe_height);
+				RenderingServer::get_singleton()->canvas_item_add_rect(ci, j, theme_cache.stripe_color);
+			}
+			stripe_count++;
+		}
+	}
+}
+
 int Tree::_count_selected_items(TreeItem *p_from) const {
 	int count = 0;
 	for (int i = 0; i < columns.size(); i++) {
@@ -4536,6 +4591,9 @@ void Tree::_notification(int p_what) {
 			cache.rtl = is_layout_rtl();
 
 			if (root && get_size().x > 0 && get_size().y > 0) {
+				if (theme_cache.draw_stripes) {
+					draw_background_stripes(draw_ofs);
+				}
 				int self_height = 0; // Just to pass a reference, we don't need the root's `self_height`.
 				draw_item(Point2(), draw_ofs, draw_size, root, self_height);
 			}
@@ -6078,6 +6136,8 @@ void Tree::_bind_methods() {
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, draw_guides);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, guide_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, draw_stripes);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, stripe_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, draw_relationship_lines);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, relationship_line_width);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, parent_hl_line_width);

@@ -533,6 +533,9 @@
 		<theme_item name="relationship_line_color" data_type="color" type="Color" default="Color(0.27, 0.27, 0.27, 1)">
 			The default [Color] of the relationship lines.
 		</theme_item>
+		<theme_item name="stripe_color" data_type="color" type="Color" default="Color(0.5, 0.5, 0.5, 0.04)">
+			Default [Color] of the alternating background stripes.
+		</theme_item>
 		<theme_item name="title_button_color" data_type="color" type="Color" default="Color(0.875, 0.875, 0.875, 1)">
 			Default text [Color] of the title button.
 		</theme_item>
@@ -547,6 +550,9 @@
 		</theme_item>
 		<theme_item name="draw_relationship_lines" data_type="constant" type="int" default="0">
 			Draws the relationship lines if not zero, this acts as a boolean. Relationship lines are drawn at the start of child items to show hierarchy.
+		</theme_item>
+		<theme_item name="draw_stripes" data_type="constant" type="int" default="0">
+			Draws the stripes if not zero, this acts as a boolean. The stripes are alternating background colors to visually separate items in the tree.
 		</theme_item>
 		<theme_item name="h_separation" data_type="constant" type="int" default="4">
 			The horizontal space between item cells. This is also used as the margin at the start of an item when folding is disabled.
