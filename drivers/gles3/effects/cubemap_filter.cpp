@@ -127,6 +127,8 @@ Vector2 hammersley(uint32_t i, uint32_t N) {
 }
 
 void CubemapFilter::filter_radiance(GLuint p_source_cubemap, GLuint p_dest_cubemap, GLuint p_dest_framebuffer, int p_source_size, int p_mipmap_count, int p_layer) {
+	glDisable(GL_CULL_FACE);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, p_source_cubemap);
 	glBindFramebuffer(GL_FRAMEBUFFER, p_dest_framebuffer);
