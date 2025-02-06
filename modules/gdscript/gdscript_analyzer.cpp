@@ -1710,6 +1710,12 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 		static_context = p_function->is_static;
 	}
 
+	MethodInfo method_info;
+	method_info.name = function_name;
+	if (p_function->is_static) {
+		method_info.flags |= MethodFlags::METHOD_FLAG_STATIC;
+	}
+
 	GDScriptParser::DataType prev_datatype = p_function->get_datatype();
 
 	GDScriptParser::DataType resolving_datatype;
@@ -1729,6 +1735,7 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 
 	for (int i = 0; i < p_function->parameters.size(); i++) {
 		resolve_parameter(p_function->parameters[i]);
+		method_info.arguments.push_back(p_function->parameters[i]->get_datatype().to_property_info(p_function->parameters[i]->identifier->name));
 #ifdef DEBUG_ENABLED
 		if (p_function->parameters[i]->usages == 0 && !String(p_function->parameters[i]->identifier->name).begins_with("_")) {
 			parser->push_warning(p_function->parameters[i]->identifier, GDScriptWarning::UNUSED_PARAMETER, function_visible_name, p_function->parameters[i]->identifier->name);
@@ -1878,6 +1885,10 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 		parser->push_warning(p_function, GDScriptWarning::UNTYPED_DECLARATION, "Function", function_visible_name);
 	}
 #endif
+
+	method_info.default_arguments.append_array(p_function->default_arg_values);
+	method_info.return_val = p_function->get_datatype().to_property_info("");
+	p_function->info = method_info;
 
 	if (p_function->get_datatype().is_resolving()) {
 		p_function->set_datatype(prev_datatype);
