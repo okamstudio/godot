@@ -59,12 +59,7 @@ public:
 
 	// Must take a copy instead of a reference (see GH-31736).
 	_FORCE_INLINE_ void push_back(T p_elem) {
-		if (unlikely(count == capacity)) {
-			capacity = tight ? (capacity + 1) : MAX((U)1, capacity << 1);
-			data = (T *)memrealloc(data, capacity * sizeof(T));
-			CRASH_COND_MSG(!data, "Out of memory");
-		}
-
+		reserve(size() + 1);
 		if constexpr (!std::is_trivially_constructible_v<T> && !force_trivial) {
 			memnew_placement(&data[count++], T(p_elem));
 		} else {
@@ -139,8 +134,8 @@ public:
 	_FORCE_INLINE_ bool is_empty() const { return count == 0; }
 	_FORCE_INLINE_ U get_capacity() const { return capacity; }
 	_FORCE_INLINE_ void reserve(U p_size) {
-		p_size = tight ? p_size : nearest_power_of_2_templated(p_size);
 		if (p_size > capacity) {
+			p_size = tight ? p_size : nearest_power_of_2_templated(p_size);
 			capacity = p_size;
 			data = (T *)memrealloc(data, capacity * sizeof(T));
 			CRASH_COND_MSG(!data, "Out of memory");
@@ -157,11 +152,7 @@ public:
 			}
 			count = p_size;
 		} else if (p_size > count) {
-			if (unlikely(p_size > capacity)) {
-				capacity = tight ? p_size : nearest_power_of_2_templated(p_size);
-				data = (T *)memrealloc(data, capacity * sizeof(T));
-				CRASH_COND_MSG(!data, "Out of memory");
-			}
+			reserve(p_size);
 			if constexpr (!std::is_trivially_constructible_v<T> && !force_trivial) {
 				for (U i = count; i < p_size; i++) {
 					memnew_placement(&data[i], T);
