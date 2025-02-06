@@ -2085,12 +2085,13 @@ void DisplayServerWindows::window_set_exclusive(WindowID p_window, bool p_exclus
 	if (wd.exclusive != p_exclusive) {
 		wd.exclusive = p_exclusive;
 		if (wd.transient_parent != INVALID_WINDOW_ID) {
+			WindowData &wd_parent = windows[wd.transient_parent];
 			if (wd.exclusive) {
-				WindowData &wd_parent = windows[wd.transient_parent];
 				SetWindowLongPtr(wd.hWnd, GWLP_HWNDPARENT, (LONG_PTR)wd_parent.hWnd);
 			} else {
 				SetWindowLongPtr(wd.hWnd, GWLP_HWNDPARENT, (LONG_PTR) nullptr);
 			}
+			EnableWindow(wd_parent.hWnd, !wd.exclusive);
 		}
 	}
 }
@@ -2119,6 +2120,7 @@ void DisplayServerWindows::window_set_transient(WindowID p_window, WindowID p_pa
 
 		if (wd_window.exclusive) {
 			SetWindowLongPtr(wd_window.hWnd, GWLP_HWNDPARENT, (LONG_PTR) nullptr);
+			EnableWindow(wd_parent.hWnd, TRUE);
 		}
 	} else {
 		ERR_FAIL_COND(!windows.has(p_parent));
@@ -2130,6 +2132,7 @@ void DisplayServerWindows::window_set_transient(WindowID p_window, WindowID p_pa
 
 		if (wd_window.exclusive) {
 			SetWindowLongPtr(wd_window.hWnd, GWLP_HWNDPARENT, (LONG_PTR)wd_parent.hWnd);
+			EnableWindow(wd_parent.hWnd, FALSE);
 		}
 	}
 }
