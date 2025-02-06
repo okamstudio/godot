@@ -1545,16 +1545,35 @@ void GDScriptByteCodeGenerator::write_end_jump_if_shared() {
 	if_jmp_addrs.pop_back();
 }
 
-void GDScriptByteCodeGenerator::start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type) {
+void GDScriptByteCodeGenerator::start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type, bool p_is_range) {
 	Address counter(Address::LOCAL_VARIABLE, add_local("@counter_pos", p_iterator_type), p_iterator_type);
-	Address container(Address::LOCAL_VARIABLE, add_local("@container_pos", p_list_type), p_list_type);
 
 	// Store state.
 	for_counter_variables.push_back(counter);
-	for_container_variables.push_back(container);
+
+	if (p_is_range) {
+		GDScriptDataType int_type;
+		int_type.has_type = true;
+		int_type.kind = GDScriptDataType::BUILTIN;
+		int_type.builtin_type = Variant::INT;
+
+		Address range_from(Address::LOCAL_VARIABLE, add_local("@range_from", int_type), int_type);
+		Address range_to(Address::LOCAL_VARIABLE, add_local("@range_to", int_type), int_type);
+		Address range_step(Address::LOCAL_VARIABLE, add_local("@range_step", int_type), int_type);
+
+		// Store state.
+		for_range_from_variables.push_back(range_from);
+		for_range_to_variables.push_back(range_to);
+		for_range_step_variables.push_back(range_step);
+	} else {
+		Address container(Address::LOCAL_VARIABLE, add_local("@container_pos", p_list_type), p_list_type);
+
+		// Store state.
+		for_container_variables.push_back(container);
+	}
 }
 
-void GDScriptByteCodeGenerator::write_for_assignment(const Address &p_list) {
+void GDScriptByteCodeGenerator::write_for_list_assignment(const Address &p_list) {
 	const Address &container = for_container_variables.back()->get();
 
 	// Assign container.
@@ -1563,16 +1582,33 @@ void GDScriptByteCodeGenerator::write_for_assignment(const Address &p_list) {
 	append(p_list);
 }
 
-void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_conversion) {
+void GDScriptByteCodeGenerator::write_for_range_assignment(const Address &p_from, const Address &p_to, const Address &p_step) {
+	const Address &range_from = for_range_from_variables.back()->get();
+	const Address &range_to = for_range_to_variables.back()->get();
+	const Address &range_step = for_range_step_variables.back()->get();
+
+	// Assign range args.
+	write_assign(range_from, p_from);
+	write_assign(range_to, p_to);
+	write_assign(range_step, p_step);
+}
+
+void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_conversion, bool p_is_range) {
 	const Address &counter = for_counter_variables.back()->get();
-	const Address &container = for_container_variables.back()->get();
+	const Address &container = p_is_range ? Address() : for_container_variables.back()->get();
+	const Address &range_from = p_is_range ? for_range_from_variables.back()->get() : Address();
+	const Address &range_to = p_is_range ? for_range_to_variables.back()->get() : Address();
+	const Address &range_step = p_is_range ? for_range_step_variables.back()->get() : Address();
 
 	current_breaks_to_patch.push_back(List<int>());
 
 	GDScriptFunction::Opcode begin_opcode = GDScriptFunction::OPCODE_ITERATE_BEGIN;
 	GDScriptFunction::Opcode iterate_opcode = GDScriptFunction::OPCODE_ITERATE;
 
-	if (container.type.has_type) {
+	if (p_is_range) {
+		begin_opcode = GDScriptFunction::OPCODE_ITERATE_BEGIN_RANGE;
+		iterate_opcode = GDScriptFunction::OPCODE_ITERATE_RANGE;
+	} else if (container.type.has_type) {
 		if (container.type.kind == GDScriptDataType::BUILTIN) {
 			switch (container.type.builtin_type) {
 				case Variant::INT:
@@ -1668,19 +1704,30 @@ void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_
 	// Begin loop.
 	append_opcode(begin_opcode);
 	append(counter);
-	append(container);
+	if (p_is_range) {
+		append(range_from);
+		append(range_to);
+		append(range_step);
+	} else {
+		append(container);
+	}
 	append(p_use_conversion ? temp : p_variable);
 	for_jmp_addrs.push_back(opcodes.size());
 	append(0); // End of loop address, will be patched.
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
-	append(opcodes.size() + 6); // Skip over 'continue' code.
+	append(opcodes.size() + (p_is_range ? 7 : 6)); // Skip over 'continue' code.
 
 	// Next iteration.
 	int continue_addr = opcodes.size();
 	continue_addrs.push_back(continue_addr);
 	append_opcode(iterate_opcode);
 	append(counter);
-	append(container);
+	if (p_is_range) {
+		append(range_to);
+		append(range_step);
+	} else {
+		append(container);
+	}
 	append(p_use_conversion ? temp : p_variable);
 	for_jmp_addrs.push_back(opcodes.size());
 	append(0); // Jump destination, will be patched.
@@ -1693,7 +1740,7 @@ void GDScriptByteCodeGenerator::write_for(const Address &p_variable, bool p_use_
 	}
 }
 
-void GDScriptByteCodeGenerator::write_endfor() {
+void GDScriptByteCodeGenerator::write_endfor(bool p_is_range) {
 	// Jump back to loop check.
 	append_opcode(GDScriptFunction::OPCODE_JUMP);
 	append(continue_addrs.back()->get());
@@ -1713,7 +1760,13 @@ void GDScriptByteCodeGenerator::write_endfor() {
 
 	// Pop state.
 	for_counter_variables.pop_back();
-	for_container_variables.pop_back();
+	if (p_is_range) {
+		for_range_from_variables.pop_back();
+		for_range_to_variables.pop_back();
+		for_range_step_variables.pop_back();
+	} else {
+		for_container_variables.pop_back();
+	}
 }
 
 void GDScriptByteCodeGenerator::start_while_condition() {

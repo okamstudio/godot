@@ -2051,20 +2051,64 @@ Error GDScriptCompiler::_parse_block(CodeGen &codegen, const GDScriptParser::Sui
 
 				GDScriptCodeGenerator::Address iterator = codegen.add_local(for_n->variable->name, _gdtype_from_datatype(for_n->variable->get_datatype(), codegen.script));
 
-				gen->start_for(iterator.type, _gdtype_from_datatype(for_n->list->get_datatype(), codegen.script));
-
-				GDScriptCodeGenerator::Address list = _parse_expression(codegen, err, for_n->list);
-				if (err) {
-					return err;
+				// Optimize `range()` call to not allocate an array.
+				GDScriptParser::CallNode *range_call = nullptr;
+				if (for_n->list && for_n->list->type == GDScriptParser::Node::CALL) {
+					GDScriptParser::CallNode *call = static_cast<GDScriptParser::CallNode *>(for_n->list);
+					if (call->get_callee_type() == GDScriptParser::Node::IDENTIFIER) {
+						if (static_cast<GDScriptParser::IdentifierNode *>(call->callee)->name == "range") {
+							range_call = call;
+						}
+					}
 				}
 
-				gen->write_for_assignment(list);
+				gen->start_for(iterator.type, _gdtype_from_datatype(for_n->list->get_datatype(), codegen.script), range_call != nullptr);
 
-				if (list.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
-					codegen.generator->pop_temporary();
+				if (range_call != nullptr) {
+					Vector<GDScriptCodeGenerator::Address> args;
+					args.resize(range_call->arguments.size());
+
+					for (int j = 0; j < args.size(); j++) {
+						args.write[j] = _parse_expression(codegen, err, range_call->arguments[j]);
+						if (err) {
+							return err;
+						}
+					}
+
+					switch (args.size()) {
+						case 1:
+							gen->write_for_range_assignment(codegen.add_constant(0), args[0], codegen.add_constant(1));
+							break;
+						case 2:
+							gen->write_for_range_assignment(args[0], args[1], codegen.add_constant(1));
+							break;
+						case 3:
+							gen->write_for_range_assignment(args[0], args[1], args[2]);
+							break;
+						default:
+							_set_error(R"*(Analyzer bug: Wrong "range()" argument count.)*", range_call);
+							return ERR_BUG;
+					}
+
+					for (int j = 0; j < args.size(); j++) {
+						if (args[j].mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+							codegen.generator->pop_temporary();
+						}
+					}
+				} else {
+					GDScriptCodeGenerator::Address list = _parse_expression(codegen, err, for_n->list);
+					if (err) {
+						return err;
+					}
+
+					gen->write_for_list_assignment(list);
+
+					if (list.mode == GDScriptCodeGenerator::Address::TEMPORARY) {
+						codegen.generator->pop_temporary();
+					}
 				}
 
-				gen->write_for(iterator, for_n->use_conversion_assign);
+				gen->write_for(iterator, for_n->use_conversion_assign, range_call != nullptr);
 
 				// Loop variables must be cleared even when `break`/`continue` is used.
 				List<GDScriptCodeGenerator::Address> loop_locals = _add_block_locals(codegen, for_n->loop);
@@ -2076,7 +2120,7 @@ Error GDScriptCompiler::_parse_block(CodeGen &codegen, const GDScriptParser::Sui
 					return err;
 				}
 
-				gen->write_endfor();
+				gen->write_endfor(range_call != nullptr);
 
 				_clear_block_locals(codegen, loop_locals); // Outside loop, after block - for `break` and normal exit.
 

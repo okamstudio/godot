@@ -2142,101 +2142,39 @@ void GDScriptAnalyzer::resolve_if(GDScriptParser::IfNode *p_if) {
 }
 
 void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
-	bool list_resolved = false;
+	GDScriptParser::DataType variable_type;
+	GDScriptParser::DataType list_type;
 
-	// Optimize constant range() call to not allocate an array.
-	// Use int, Vector2i, Vector3i instead, which also can be used as range iterators.
-	if (p_for->list && p_for->list->type == GDScriptParser::Node::CALL) {
-		GDScriptParser::CallNode *call = static_cast<GDScriptParser::CallNode *>(p_for->list);
-		GDScriptParser::Node::Type callee_type = call->get_callee_type();
-		if (callee_type == GDScriptParser::Node::IDENTIFIER) {
-			GDScriptParser::IdentifierNode *callee = static_cast<GDScriptParser::IdentifierNode *>(call->callee);
-			if (callee->name == "range") {
-				list_resolved = true;
-				if (call->arguments.size() < 1) {
-					push_error(R"*(Invalid call for "range()" function. Expected at least 1 argument, none given.)*", call->callee);
-				} else if (call->arguments.size() > 3) {
-					push_error(vformat(R"*(Invalid call for "range()" function. Expected at most 3 arguments, %d given.)*", call->arguments.size()), call->callee);
-				} else {
-					// Now we can optimize it.
-					bool can_reduce = true;
-					Vector<Variant> args;
-					args.resize(call->arguments.size());
-					for (int i = 0; i < call->arguments.size(); i++) {
-						GDScriptParser::ExpressionNode *argument = call->arguments[i];
-						reduce_expression(argument);
+	if (p_for->list) {
+		resolve_node(p_for->list, false);
 
-						if (argument->is_constant) {
-							if (argument->reduced_value.get_type() != Variant::INT && argument->reduced_value.get_type() != Variant::FLOAT) {
-								can_reduce = false;
-								push_error(vformat(R"*(Invalid argument for "range()" call. Argument %d should be int or float but "%s" was given.)*", i + 1, Variant::get_type_name(argument->reduced_value.get_type())), argument);
-							}
-							if (can_reduce) {
-								args.write[i] = argument->reduced_value;
-							}
-						} else {
-							can_reduce = false;
-							GDScriptParser::DataType argument_type = argument->get_datatype();
-							if (argument_type.is_variant() || !argument_type.is_hard_type()) {
-								mark_node_unsafe(argument);
-							}
-							if (!argument_type.is_variant() && (argument_type.builtin_type != Variant::INT && argument_type.builtin_type != Variant::FLOAT)) {
-								if (!argument_type.is_hard_type()) {
-									downgrade_node_type_source(argument);
-								} else {
-									push_error(vformat(R"*(Invalid argument for "range()" call. Argument %d should be int or float but "%s" was given.)*", i + 1, argument_type.to_string()), argument);
-								}
-							}
-						}
+		bool is_range = false;
+		if (p_for->list->type == GDScriptParser::Node::CALL) {
+			GDScriptParser::CallNode *call = static_cast<GDScriptParser::CallNode *>(p_for->list);
+			if (call->get_callee_type() == GDScriptParser::Node::IDENTIFIER) {
+				if (static_cast<GDScriptParser::IdentifierNode *>(call->callee)->name == "range") {
+					if (call->arguments.size() < 1) {
+						push_error(R"*(Invalid call for "range()" function. Expected at least 1 argument, none given.)*", call);
+					} else if (call->arguments.size() > 3) {
+						push_error(vformat(R"*(Invalid call for "range()" function. Expected at most 3 arguments, %d given.)*", call->arguments.size()), call);
 					}
-
-					Variant reduced;
-
-					if (can_reduce) {
-						switch (args.size()) {
-							case 1:
-								reduced = (int32_t)args[0];
-								break;
-							case 2:
-								reduced = Vector2i(args[0], args[1]);
-								break;
-							case 3:
-								reduced = Vector3i(args[0], args[1], args[2]);
-								break;
-						}
-						p_for->list->is_constant = true;
-						p_for->list->reduced_value = reduced;
-					}
-				}
-
-				if (p_for->list->is_constant) {
-					p_for->list->set_datatype(type_from_variant(p_for->list->reduced_value, p_for->list));
-				} else {
-					GDScriptParser::DataType list_type;
-					list_type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
-					list_type.kind = GDScriptParser::DataType::BUILTIN;
-					list_type.builtin_type = Variant::ARRAY;
-					p_for->list->set_datatype(list_type);
+					is_range = true;
+					variable_type.type_source = GDScriptParser::DataType::ANNOTATED_INFERRED;
+					variable_type.kind = GDScriptParser::DataType::BUILTIN;
+					variable_type.builtin_type = Variant::INT;
 				}
 			}
 		}
-	}
 
-	GDScriptParser::DataType variable_type;
-	String list_visible_type = "<unresolved type>";
-	if (list_resolved) {
-		variable_type.type_source = GDScriptParser::DataType::ANNOTATED_INFERRED;
-		variable_type.kind = GDScriptParser::DataType::BUILTIN;
-		variable_type.builtin_type = Variant::INT;
-		list_visible_type = "Array[int]"; // NOTE: `range()` has `Array` return type.
-	} else if (p_for->list) {
-		resolve_node(p_for->list, false);
-		GDScriptParser::DataType list_type = p_for->list->get_datatype();
-		list_visible_type = list_type.to_string();
+		list_type = p_for->list->get_datatype();
+
 		if (!list_type.is_hard_type()) {
 			mark_node_unsafe(p_for->list);
 		}
-		if (list_type.is_variant()) {
+
+		if (is_range) {
+			// Already solved.
+		} else if (list_type.is_variant()) {
 			variable_type.kind = GDScriptParser::DataType::VARIANT;
 			mark_node_unsafe(p_for->list);
 		} else if (list_type.has_container_element_type(0)) {
@@ -2289,7 +2227,7 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 						mark_node_unsafe(p_for->variable);
 						p_for->use_conversion_assign = true;
 					} else {
-						push_error(vformat(R"(Unable to iterate on value of type "%s" with variable of type "%s".)", list_visible_type, specified_type.to_string()), p_for->datatype_specifier);
+						push_error(vformat(R"(Unable to iterate on value of type "%s" with variable of type "%s".)", list_type.to_string(), specified_type.to_string()), p_for->datatype_specifier);
 					}
 				} else if (!is_type_compatible(specified_type, variable_type)) {
 					p_for->use_conversion_assign = true;

@@ -145,6 +145,9 @@ class GDScriptByteCodeGenerator : public GDScriptCodeGenerator {
 	List<int> for_jmp_addrs;
 	List<Address> for_counter_variables;
 	List<Address> for_container_variables;
+	List<Address> for_range_from_variables;
+	List<Address> for_range_to_variables;
+	List<Address> for_range_step_variables;
 	List<int> while_jmp_addrs;
 	List<int> continue_addrs;
 
@@ -536,10 +539,11 @@ public:
 	virtual void write_endif() override;
 	virtual void write_jump_if_shared(const Address &p_value) override;
 	virtual void write_end_jump_if_shared() override;
-	virtual void start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type) override;
-	virtual void write_for_assignment(const Address &p_list) override;
-	virtual void write_for(const Address &p_variable, bool p_use_conversion) override;
-	virtual void write_endfor() override;
+	virtual void start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type, bool p_is_range) override;
+	virtual void write_for_list_assignment(const Address &p_list) override;
+	virtual void write_for_range_assignment(const Address &p_from, const Address &p_to, const Address &p_step) override;
+	virtual void write_for(const Address &p_variable, bool p_use_conversion, bool p_is_range) override;
+	virtual void write_endfor(bool p_is_range) override;
 	virtual void start_while_condition() override;
 	virtual void write_while(const Address &p_condition) override;
 	virtual void write_endwhile() override;

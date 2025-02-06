@@ -321,6 +321,7 @@ void (*type_init_function_table[])(Variant *) = {
 		&&OPCODE_ITERATE_BEGIN_PACKED_COLOR_ARRAY,       \
 		&&OPCODE_ITERATE_BEGIN_PACKED_VECTOR4_ARRAY,     \
 		&&OPCODE_ITERATE_BEGIN_OBJECT,                   \
+		&&OPCODE_ITERATE_BEGIN_RANGE,                    \
 		&&OPCODE_ITERATE,                                \
 		&&OPCODE_ITERATE_INT,                            \
 		&&OPCODE_ITERATE_FLOAT,                          \
@@ -342,6 +343,7 @@ void (*type_init_function_table[])(Variant *) = {
 		&&OPCODE_ITERATE_PACKED_COLOR_ARRAY,             \
 		&&OPCODE_ITERATE_PACKED_VECTOR4_ARRAY,           \
 		&&OPCODE_ITERATE_OBJECT,                         \
+		&&OPCODE_ITERATE_RANGE,                          \
 		&&OPCODE_STORE_GLOBAL,                           \
 		&&OPCODE_STORE_NAMED_GLOBAL,                     \
 		&&OPCODE_TYPE_ADJUST_BOOL,                       \
@@ -3323,6 +3325,39 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 			}
 			DISPATCH_OPCODE;
 
+			OPCODE(OPCODE_ITERATE_BEGIN_RANGE) {
+				CHECK_SPACE(6);
+
+				GET_VARIANT_PTR(counter, 0);
+				GET_VARIANT_PTR(from_ptr, 1);
+				GET_VARIANT_PTR(to_ptr, 2);
+				GET_VARIANT_PTR(step_ptr, 3);
+
+				int64_t from = *VariantInternal::get_int(from_ptr);
+				int64_t to = *VariantInternal::get_int(to_ptr);
+				int64_t step = *VariantInternal::get_int(step_ptr);
+
+				VariantInternal::initialize(counter, Variant::INT);
+				*VariantInternal::get_int(counter) = from;
+
+				bool do_continue = from == to ? false : (from < to ? step > 0 : step < 0);
+
+				if (do_continue) {
+					GET_VARIANT_PTR(iterator, 4);
+					VariantInternal::initialize(iterator, Variant::INT);
+					*VariantInternal::get_int(iterator) = from;
+
+					// Skip regular iterate.
+					ip += 7;
+				} else {
+					// Jump to end of loop.
+					int jumpto = _code_ptr[ip + 6];
+					GD_ERR_BREAK(jumpto < 0 || jumpto > _code_size);
+					ip = jumpto;
+				}
+			}
+			DISPATCH_OPCODE;
+
 			OPCODE(OPCODE_ITERATE) {
 				CHECK_SPACE(4);
 
@@ -3653,6 +3688,33 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 #endif
 
 					ip += 5; // Loop again.
+				}
+			}
+			DISPATCH_OPCODE;
+
+			OPCODE(OPCODE_ITERATE_RANGE) {
+				CHECK_SPACE(5);
+
+				GET_VARIANT_PTR(counter, 0);
+				GET_VARIANT_PTR(to_ptr, 1);
+				GET_VARIANT_PTR(step_ptr, 2);
+
+				int64_t to = *VariantInternal::get_int(to_ptr);
+				int64_t step = *VariantInternal::get_int(step_ptr);
+
+				int64_t *count = VariantInternal::get_int(counter);
+
+				*count += step;
+
+				if ((step < 0 && *count <= to) || (step > 0 && *count >= to)) {
+					int jumpto = _code_ptr[ip + 5];
+					GD_ERR_BREAK(jumpto < 0 || jumpto > _code_size);
+					ip = jumpto;
+				} else {
+					GET_VARIANT_PTR(iterator, 3);
+					*VariantInternal::get_int(iterator) = *count;
+
+					ip += 6; // Loop again.
 				}
 			}
 			DISPATCH_OPCODE;
