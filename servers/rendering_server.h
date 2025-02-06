@@ -1254,6 +1254,7 @@ public:
 		ENV_TONE_MAPPER_FILMIC,
 		ENV_TONE_MAPPER_ACES,
 		ENV_TONE_MAPPER_AGX,
+		ENV_TONE_MAPPER_TONY_MC_MAPFACE,
 	};
 
 	virtual void environment_set_tonemap(RID p_env, EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white) = 0;

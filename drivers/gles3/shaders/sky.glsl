@@ -34,6 +34,7 @@ void main() {
 
 #define M_PI 3.14159265359
 
+#define SKY_SHADER
 #include "tonemap_inc.glsl"
 
 in vec2 uv_interp;

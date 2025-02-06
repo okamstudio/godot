@@ -70,6 +70,8 @@ layout(set = 3, binding = 0) uniform sampler2D source_color_correction;
 layout(set = 3, binding = 0) uniform sampler3D source_color_correction;
 #endif
 
+layout(set = 4, binding = 0) uniform sampler3D tony_mc_mapface_lut;
+
 #define FLAG_USE_BCS (1 << 0)
 #define FLAG_USE_GLOW (1 << 1)
 #define FLAG_USE_AUTO_EXPOSURE (1 << 2)
@@ -337,6 +339,16 @@ vec3 tonemap_agx(vec3 color) {
 	return color;
 }
 
+// https://github.com/h3r2tic/tony-mc-mapface/blob/main/shader/tony_mc_mapface.hlsl
+vec3 tonemap_tony_mc_mapface(vec3 stimulus) {
+	const vec3 encoded = stimulus / (stimulus + 1.0f);
+
+	const float LUT_DIMS = 48.0f;
+	const vec3 uv = encoded * ((LUT_DIMS - 1.0f) / LUT_DIMS) + 0.5f / LUT_DIMS;
+
+	return texture(tony_mc_mapface_lut, uv).rgb;
+}
+
 vec3 linear_to_srgb(vec3 color) {
 	//if going to srgb, clamp from 0 to 1.
 	color = clamp(color, vec3(0.0), vec3(1.0));
@@ -349,6 +361,7 @@ vec3 linear_to_srgb(vec3 color) {
 #define TONEMAPPER_FILMIC 2
 #define TONEMAPPER_ACES 3
 #define TONEMAPPER_AGX 4
+#define TONEMAPPER_TONY_MC_MAPFACE 5
 
 vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 	// Ensure color values passed to tonemappers are positive.
@@ -361,8 +374,12 @@ vec3 apply_tonemapping(vec3 color, float white) { // inputs are LINEAR
 		return tonemap_filmic(max(vec3(0.0f), color), white);
 	} else if (params.tonemapper == TONEMAPPER_ACES) {
 		return tonemap_aces(max(vec3(0.0f), color), white);
-	} else { // TONEMAPPER_AGX
+	} else if (params.tonemapper == TONEMAPPER_AGX) {
 		return tonemap_agx(color);
+	} else if (params.tonemapper == TONEMAPPER_TONY_MC_MAPFACE) {
+		return tonemap_tony_mc_mapface(max(vec3(0.0f), color));
+	} else {
+		return color;
 	}
 }
 

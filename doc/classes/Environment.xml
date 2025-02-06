@@ -321,7 +321,7 @@
 		</member>
 		<member name="tonemap_white" type="float" setter="set_tonemap_white" getter="get_tonemap_white" default="1.0">
 			The white reference value for tonemapping (also called "whitepoint"). Higher values can make highlights look less blown out, and will also slightly darken the whole scene as a result. See also [member tonemap_exposure].
-			[b]Note:[/b] [member tonemap_white] is ignored when using [constant TONE_MAPPER_LINEAR] or [constant TONE_MAPPER_AGX].
+			[b]Note:[/b] [member tonemap_white] is ignored when using [constant TONE_MAPPER_LINEAR], [constant TONE_MAPPER_AGX] or [constant TONE_MAPPER_TONY_MC_MAPFACE].
 		</member>
 		<member name="volumetric_fog_albedo" type="Color" setter="set_volumetric_fog_albedo" getter="get_volumetric_fog_albedo" default="Color(1, 1, 1, 1)">
 			The [Color] of the volumetric fog when interacting with lights. Mist and fog have an albedo close to [code]Color(1, 1, 1, 1)[/code] while smoke has a darker albedo.
@@ -428,6 +428,9 @@
 		</constant>
 		<constant name="TONE_MAPPER_AGX" value="4" enum="ToneMapper">
 			Use the AgX tonemapper. AgX is slightly more expensive than other options, but it handles bright lighting in a more realistic fashion by desaturating it as it becomes brighter. AgX is less likely to darken parts of the scene compared to [constant TONE_MAPPER_ACES] and can match the overall scene brightness of [constant TONE_MAPPER_FILMIC] more closely.
+		</constant>
+		<constant name="TONE_MAPPER_TONY_MC_MAPFACE" value="5" enum="ToneMapper">
+			Tony McMapface is an artist-friendly tonemapper designed to stay close to the input color in order to achieve a neutral look that does not increase contrast or saturation. It can prevent hue shift issues common with other tonemappers. It samples its own custom lookup table (LUT) to determine the output color.
 		</constant>
 		<constant name="GLOW_BLEND_MODE_ADDITIVE" value="0" enum="GlowBlendMode">
 			Additive glow blending mode. Mostly used for particles, glows (bloom), lens flare, bright sources.

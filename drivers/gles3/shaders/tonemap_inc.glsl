@@ -10,6 +10,8 @@ layout(std140) uniform TonemapData { //ubo:0
 	float saturation;
 };
 
+uniform sampler3D tony_mc_mapface_lut; //texunit:3
+
 // This expects 0-1 range input.
 vec3 linear_to_srgb(vec3 color) {
 	//color = clamp(color, vec3(0.0), vec3(1.0));
@@ -157,11 +159,22 @@ vec3 tonemap_agx(vec3 color) {
 	return color;
 }
 
+// https://github.com/h3r2tic/tony-mc-mapface/blob/main/shader/tony_mc_mapface.hlsl
+vec3 tonemap_tony_mc_mapface(vec3 stimulus) {
+	vec3 encoded = stimulus / (stimulus + 1.0f);
+
+	const float LUT_DIMS = 48.0f;
+	vec3 uv = encoded * ((LUT_DIMS - 1.0f) / LUT_DIMS) + 0.5f / LUT_DIMS;
+
+	return texture(tony_mc_mapface_lut, uv).rgb;
+}
+
 #define TONEMAPPER_LINEAR 0
 #define TONEMAPPER_REINHARD 1
 #define TONEMAPPER_FILMIC 2
 #define TONEMAPPER_ACES 3
 #define TONEMAPPER_AGX 4
+#define TONEMAPPER_TONY_MC_MAPFACE 5
 
 vec3 apply_tonemapping(vec3 color, float p_white) { // inputs are LINEAR
 	// Ensure color values passed to tonemappers are positive.
@@ -174,8 +187,18 @@ vec3 apply_tonemapping(vec3 color, float p_white) { // inputs are LINEAR
 		return tonemap_filmic(max(vec3(0.0f), color), p_white);
 	} else if (tonemapper == TONEMAPPER_ACES) {
 		return tonemap_aces(max(vec3(0.0f), color), p_white);
-	} else { // TONEMAPPER_AGX
+	} else if (tonemapper == TONEMAPPER_AGX) {
 		return tonemap_agx(color);
+	} else if (tonemapper == TONEMAPPER_TONY_MC_MAPFACE) {
+#ifdef SKY_SHADER
+		// Sampling the Tony McMapface LUT in the sky shader leads to pitch black shadows if the "Sky" background
+		// mode is enabled for the environment. Avoid this by returning the color as is.
+		return color;
+#else
+		return tonemap_tony_mc_mapface(max(vec3(0.0f), color));
+#endif
+	} else {
+		return color;
 	}
 }
 

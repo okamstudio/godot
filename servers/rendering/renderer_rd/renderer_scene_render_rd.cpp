@@ -625,11 +625,19 @@ void RendererSceneRenderRD::_render_buffers_post_process_and_tonemap(const Rende
 
 		tonemap.use_debanding = rb->get_use_debanding();
 		tonemap.texture_size = Vector2i(color_size.x, color_size.y);
+		tonemap.tony_mc_mapface_lut = texture_storage->texture_rd_get_default(RendererRD::TextureStorage::DEFAULT_RD_TEXTURE_3D_BLACK);
 
 		if (p_render_data->environment.is_valid()) {
 			tonemap.tonemap_mode = environment_get_tone_mapper(p_render_data->environment);
 			tonemap.white = environment_get_white(p_render_data->environment);
 			tonemap.exposure = environment_get_exposure(p_render_data->environment);
+
+			if (tonemap.tonemap_mode == RS::EnvironmentToneMapper::ENV_TONE_MAPPER_TONY_MC_MAPFACE) {
+				RID tony_mc_mapface_lut = environment_get_tony_mc_mapface_lut(p_render_data->environment);
+				if (tony_mc_mapface_lut.is_valid()) {
+					tonemap.tony_mc_mapface_lut = texture_storage->texture_get_rd_texture(tony_mc_mapface_lut);
+				}
+			}
 		}
 
 		tonemap.use_color_correction = false;
@@ -720,10 +728,19 @@ void RendererSceneRenderRD::_post_process_subpass(RID p_source_texture, RID p_fr
 
 	RendererRD::ToneMapper::TonemapSettings tonemap;
 
+	tonemap.tony_mc_mapface_lut = texture_storage->texture_rd_get_default(RendererRD::TextureStorage::DEFAULT_RD_TEXTURE_3D_BLACK);
+
 	if (p_render_data->environment.is_valid()) {
 		tonemap.tonemap_mode = environment_get_tone_mapper(p_render_data->environment);
 		tonemap.exposure = environment_get_exposure(p_render_data->environment);
 		tonemap.white = environment_get_white(p_render_data->environment);
+
+		if (tonemap.tonemap_mode == RS::EnvironmentToneMapper::ENV_TONE_MAPPER_TONY_MC_MAPFACE) {
+			RID tony_mc_mapface_lut = environment_get_tony_mc_mapface_lut(p_render_data->environment);
+			if (tony_mc_mapface_lut.is_valid()) {
+				tonemap.tony_mc_mapface_lut = texture_storage->texture_get_rd_texture(tony_mc_mapface_lut);
+			}
+		}
 	}
 
 	// We don't support glow or auto exposure here, if they are needed, don't use subpasses!

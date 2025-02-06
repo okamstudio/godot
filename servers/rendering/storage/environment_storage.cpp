@@ -30,6 +30,10 @@
 
 #include "environment_storage.h"
 
+#ifndef TONY_MC_MAPFACE_DISABLED
+#include "tony_mc_mapface_lut.gen.h"
+#endif
+
 // Storage
 
 RendererEnvironmentStorage *RendererEnvironmentStorage::singleton = nullptr;
@@ -53,6 +57,13 @@ void RendererEnvironmentStorage::environment_initialize(RID p_rid) {
 }
 
 void RendererEnvironmentStorage::environment_free(RID p_rid) {
+	Environment *env = environment_owner.get_or_null(p_rid);
+	ERR_FAIL_NULL(env);
+
+	if (env->tony_mc_mapface_lut.is_valid()) {
+		RS::get_singleton()->free(env->tony_mc_mapface_lut);
+	}
+
 	environment_owner.free(p_rid);
 }
 
@@ -209,6 +220,39 @@ void RendererEnvironmentStorage::environment_set_tonemap(RID p_env, RS::Environm
 	env->exposure = p_exposure;
 	env->tone_mapper = p_tone_mapper;
 	env->white = p_white;
+
+#ifdef TONY_MC_MAPFACE_DISABLED
+	if (env->tone_mapper == RS::EnvironmentToneMapper::ENV_TONE_MAPPER_TONY_MC_MAPFACE) {
+		env->tone_mapper = RS::EnvironmentToneMapper::ENV_TONE_MAPPER_LINEAR;
+	}
+#else
+	if (env->tone_mapper == RS::EnvironmentToneMapper::ENV_TONE_MAPPER_TONY_MC_MAPFACE && env->tony_mc_mapface_lut.is_null()) {
+		Vector<uint8_t> decompressed_lut;
+		int compressed_size = TONY_MC_MAPFACE_LUT_COMPRESSED_SIZE;
+		int decompressed_size = TONY_MC_MAPFACE_LUT_DECOMPRESSED_SIZE;
+
+		// The Tony McMapface LUT is embedded in the "tony_mc_mapface_lut.gen.h" header file.
+		// It is DEFLATE compressed to decrease binary size, so it first needs to be decompressed.
+		decompressed_lut.resize(decompressed_size);
+		Compression::decompress(decompressed_lut.ptrw(), decompressed_size, TONY_MC_MAPFACE_LUT, compressed_size, Compression::Mode::MODE_DEFLATE);
+
+		Vector<Ref<Image>> images;
+		int dimensions = TONY_MC_MAPFACE_LUT_DIMENSIONS;
+		int image_bytes = 4 * dimensions * dimensions;
+		size_t image_size = image_bytes * sizeof(uint8_t);
+
+		// Copy the RGBE9995 pixel data into a vector of images so that a 3d texture can be created.
+		for (int i = 0; i < dimensions; i++) {
+			Vector<uint8_t> data;
+			data.resize(image_size);
+
+			memcpy(data.ptrw(), decompressed_lut.ptr() + i * image_bytes, image_size);
+			images.push_back(Image::create_from_data(dimensions, dimensions, false, Image::FORMAT_RGBE9995, data));
+		}
+
+		env->tony_mc_mapface_lut = RS::get_singleton()->texture_3d_create(Image::FORMAT_RGBE9995, dimensions, dimensions, dimensions, false, images);
+	}
+#endif // TONY_MC_MAPFACE_DISABLED
 }
 
 RS::EnvironmentToneMapper RendererEnvironmentStorage::environment_get_tone_mapper(RID p_env) const {
@@ -227,6 +271,12 @@ float RendererEnvironmentStorage::environment_get_white(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
 	ERR_FAIL_NULL_V(env, 1.0);
 	return env->white;
+}
+
+RID RendererEnvironmentStorage::environment_get_tony_mc_mapface_lut(RID p_env) const {
+	Environment *env = environment_owner.get_or_null(p_env);
+	ERR_FAIL_NULL_V(env, RID());
+	return env->tony_mc_mapface_lut;
 }
 
 // Fog
