@@ -549,11 +549,11 @@ void CurveEdit::set_point_position(int p_index, const Vector2 &p_pos) {
 	// Note: Changing the offset may modify the order.
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 	undo_redo->create_action(TTR("Modify Curve Point"));
-	undo_redo->add_do_method(*curve, "set_point_value", initial_grab_index, p_pos.y);
-	undo_redo->add_do_method(*curve, "set_point_offset", initial_grab_index, p_pos.x);
+	undo_redo->add_do_method(*curve, "set_point_offset", p_index, p_pos.x);
+	undo_redo->add_do_method(*curve, "set_point_value", p_index, p_pos.y);
 	undo_redo->add_do_method(this, "set_selected_index", p_index);
-	undo_redo->add_undo_method(*curve, "set_point_value", p_index, initial_grab_pos.y);
 	undo_redo->add_undo_method(*curve, "set_point_offset", p_index, initial_grab_pos.x);
+	undo_redo->add_undo_method(*curve, "set_point_value", p_index, initial_grab_pos.y);
 	undo_redo->add_undo_method(this, "set_selected_index", initial_grab_index);
 	undo_redo->commit_action();
 }
