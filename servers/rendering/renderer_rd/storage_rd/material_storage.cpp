@@ -648,7 +648,7 @@ bool MaterialStorage::ShaderData::is_parameter_texture(const StringName &p_param
 	return uniforms[p_param].is_texture();
 }
 
-RD::PipelineColorBlendState::Attachment MaterialStorage::ShaderData::blend_mode_to_blend_attachment(BlendMode p_mode) {
+RD::PipelineColorBlendState::Attachment MaterialStorage::ShaderData::blend_mode_to_blend_attachment(BlendMode p_mode, const RD::BlendFactor *p_blend_factors) {
 	RD::PipelineColorBlendState::Attachment attachment;
 
 	switch (p_mode) {
@@ -710,6 +710,13 @@ RD::PipelineColorBlendState::Attachment MaterialStorage::ShaderData::blend_mode_
 		default: {
 			// Use default attachment values.
 		} break;
+	}
+
+	if (p_blend_factors) {
+		attachment.src_color_blend_factor = p_blend_factors[0];
+		attachment.dst_color_blend_factor = p_blend_factors[1];
+		attachment.src_alpha_blend_factor = p_blend_factors[2];
+		attachment.dst_alpha_blend_factor = p_blend_factors[3];
 	}
 
 	return attachment;

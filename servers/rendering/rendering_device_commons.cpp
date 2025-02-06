@@ -911,3 +911,29 @@ const char *RenderingDeviceCommons::SHADER_STAGE_NAMES[SHADER_STAGE_MAX] = {
 	"TesselationEvaluation",
 	"Compute",
 };
+
+/*******************/
+/**** RENDERING ****/
+/*******************/
+
+const char *const RenderingDeviceCommons::BLEND_FACTOR_NAMES[BLEND_FACTOR_MAX] = {
+	"zero",
+	"one",
+	"src_color",
+	"one_minus_src_color",
+	"dst_color",
+	"one_minus_dst_color",
+	"src_alpha",
+	"one_minus_src_alpha",
+	"dst_alpha",
+	"one_minus_dst_alpha",
+	"constant_color",
+	"one_minus_constant_color",
+	"constant_alpha",
+	"one_minus_constant_alpha",
+	"src_alpha_saturate",
+	"src1_color",
+	"one_minus_src1_color",
+	"src1_alpha",
+	"one_minus_src1_alpha",
+};

@@ -641,9 +641,10 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 		}
 
 		GLES3::CanvasShaderData::BlendMode blend_mode = shader_data_cache ? shader_data_cache->blend_mode : GLES3::CanvasShaderData::BLEND_MODE_MIX;
+		const GLenum *blend_factors = (shader_data_cache && shader_data_cache->uses_blend_factors) ? shader_data_cache->blend_factors : nullptr;
 
 		if (!ci->repeat_size.x && !ci->repeat_size.y) {
-			_record_item_commands(ci, p_to_render_target, p_canvas_transform_inverse, current_clip, blend_mode, p_lights, index, batch_broken, r_sdf_used, Point2());
+			_record_item_commands(ci, p_to_render_target, p_canvas_transform_inverse, current_clip, blend_mode, blend_factors, p_lights, index, batch_broken, r_sdf_used, Point2());
 		} else {
 			Point2 start_pos = ci->repeat_size * -(ci->repeat_times / 2);
 			Point2 offset;
@@ -654,7 +655,7 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 				offset.y = start_pos.y + ry * ci->repeat_size.y;
 				for (int rx = 0; rx <= repeat_times_x; rx++) {
 					offset.x = start_pos.x + rx * ci->repeat_size.x;
-					_record_item_commands(ci, p_to_render_target, p_canvas_transform_inverse, current_clip, blend_mode, p_lights, index, batch_broken, r_sdf_used, offset);
+					_record_item_commands(ci, p_to_render_target, p_canvas_transform_inverse, current_clip, blend_mode, blend_factors, p_lights, index, batch_broken, r_sdf_used, offset);
 				}
 			}
 		}
@@ -680,6 +681,7 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 	current_clip = nullptr;
 
 	GLES3::CanvasShaderData::BlendMode last_blend_mode = GLES3::CanvasShaderData::BLEND_MODE_MIX;
+	GLenum last_blend_factors[4] = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA };
 	Color last_blend_color;
 
 	state.current_tex = RID();
@@ -728,8 +730,63 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 
 		GLES3::CanvasShaderData::BlendMode blend_mode = state.canvas_instance_batches[i].blend_mode;
 		Color blend_color = state.canvas_instance_batches[i].blend_color;
+		GLenum blend_factors[4] = { state.canvas_instance_batches[i].blend_factors[0], state.canvas_instance_batches[i].blend_factors[1], state.canvas_instance_batches[i].blend_factors[2], state.canvas_instance_batches[i].blend_factors[3] };
 
-		if (last_blend_mode != blend_mode || last_blend_color != blend_color) {
+		if (!state.canvas_instance_batches[i].uses_blend_factors) {
+			switch (blend_mode) {
+				case GLES3::CanvasShaderData::BLEND_MODE_DISABLED: {
+					// Nothing to do here.
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_LCD: {
+					blend_factors[0] = GL_CONSTANT_COLOR;
+					blend_factors[1] = GL_ONE_MINUS_SRC_COLOR;
+					blend_factors[2] = (state.transparent_render_target) ? GL_ONE : GL_ZERO;
+					blend_factors[3] = (state.transparent_render_target) ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE;
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_MIX: {
+					blend_factors[0] = GL_SRC_ALPHA;
+					blend_factors[1] = GL_ONE_MINUS_SRC_ALPHA;
+					blend_factors[2] = (state.transparent_render_target) ? GL_ONE : GL_ZERO;
+					blend_factors[3] = (state.transparent_render_target) ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE;
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_ADD: {
+					blend_factors[0] = GL_SRC_ALPHA;
+					blend_factors[1] = GL_ONE;
+					blend_factors[2] = (state.transparent_render_target) ? GL_SRC_ALPHA : GL_ZERO;
+					blend_factors[3] = GL_ONE;
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_SUB: {
+					blend_factors[0] = GL_SRC_ALPHA;
+					blend_factors[1] = GL_ONE;
+					blend_factors[2] = (state.transparent_render_target) ? GL_SRC_ALPHA : GL_ZERO;
+					blend_factors[3] = GL_ONE;
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_MUL: {
+					blend_factors[0] = GL_DST_COLOR;
+					blend_factors[1] = GL_ZERO;
+					blend_factors[2] = (state.transparent_render_target) ? GL_DST_ALPHA : GL_ZERO;
+					blend_factors[3] = (state.transparent_render_target) ? GL_ZERO : GL_ONE;
+				} break;
+				case GLES3::CanvasShaderData::BLEND_MODE_PMALPHA: {
+					blend_factors[0] = GL_ONE;
+					blend_factors[1] = GL_ONE_MINUS_SRC_ALPHA;
+					blend_factors[2] = (state.transparent_render_target) ? GL_ONE : GL_ZERO;
+					blend_factors[3] = (state.transparent_render_target) ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE;
+				} break;
+			}
+		}
+
+		bool need_state_switch = (blend_mode != last_blend_mode) || (last_blend_color != blend_color);
+		if (!need_state_switch) {
+			for (int j = 0; j < 4; j++) {
+				if (blend_factors[j] != last_blend_factors[j]) {
+					need_state_switch = true;
+					break;
+				}
+			}
+		}
+
+		if (need_state_switch) {
 			if (last_blend_mode == GLES3::CanvasShaderData::BLEND_MODE_DISABLED) {
 				// re-enable it
 				glEnable(GL_BLEND);
@@ -744,61 +801,31 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_LCD: {
 					glBlendEquation(GL_FUNC_ADD);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-					} else {
-						glBlendFuncSeparate(GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_ZERO, GL_ONE);
-					}
 					glBlendColor(blend_color.r, blend_color.g, blend_color.b, blend_color.a);
-
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_MIX: {
 					glBlendEquation(GL_FUNC_ADD);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-					} else {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-					}
-
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_ADD: {
 					glBlendEquation(GL_FUNC_ADD);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_SRC_ALPHA, GL_ONE);
-					} else {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
-					}
-
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_SUB: {
 					glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_SRC_ALPHA, GL_ONE);
-					} else {
-						glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE, GL_ZERO, GL_ONE);
-					}
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_MUL: {
 					glBlendEquation(GL_FUNC_ADD);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_DST_COLOR, GL_ZERO, GL_DST_ALPHA, GL_ZERO);
-					} else {
-						glBlendFuncSeparate(GL_DST_COLOR, GL_ZERO, GL_ZERO, GL_ONE);
-					}
-
 				} break;
 				case GLES3::CanvasShaderData::BLEND_MODE_PMALPHA: {
 					glBlendEquation(GL_FUNC_ADD);
-					if (state.transparent_render_target) {
-						glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-					} else {
-						glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-					}
-
 				} break;
 			}
+			glBlendFuncSeparate(blend_factors[0], blend_factors[1], blend_factors[2], blend_factors[3]);
 			last_blend_mode = blend_mode;
 			last_blend_color = blend_color;
+			last_blend_factors[0] = blend_factors[0];
+			last_blend_factors[1] = blend_factors[1];
+			last_blend_factors[2] = blend_factors[2];
+			last_blend_factors[3] = blend_factors[3];
 		}
 
 		_render_batch(p_lights, i, r_render_info);
@@ -810,7 +837,7 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 	state.last_item_index += index;
 }
 
-void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_render_target, const Transform2D &p_canvas_transform_inverse, Item *&current_clip, GLES3::CanvasShaderData::BlendMode p_blend_mode, Light *p_lights, uint32_t &r_index, bool &r_batch_broken, bool &r_sdf_used, const Point2 &p_repeat_offset) {
+void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_render_target, const Transform2D &p_canvas_transform_inverse, Item *&current_clip, GLES3::CanvasShaderData::BlendMode p_blend_mode, const GLenum *p_blend_factors, Light *p_lights, uint32_t &r_index, bool &r_batch_broken, bool &r_sdf_used, const Point2 &p_repeat_offset) {
 	RenderingServer::CanvasItemTextureFilter texture_filter = p_item->texture_filter == RS::CANVAS_ITEM_TEXTURE_FILTER_DEFAULT ? state.default_filter : p_item->texture_filter;
 	const uint64_t specialization_command_mask = ~(CanvasShaderGLES3::USE_NINEPATCH | CanvasShaderGLES3::USE_PRIMITIVE | CanvasShaderGLES3::USE_ATTRIBUTES | CanvasShaderGLES3::USE_INSTANCING);
 
@@ -923,10 +950,29 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 			}
 		}
 
-		if (blend_mode != state.canvas_instance_batches[state.current_batch_index].blend_mode || blend_color != state.canvas_instance_batches[state.current_batch_index].blend_color) {
+		bool different_blend_factors = (p_blend_factors && !state.canvas_instance_batches[state.current_batch_index].uses_blend_factors);
+		if (!different_blend_factors && p_blend_factors) {
+			for (int i = 0; i < 4; i++) {
+				if (p_blend_factors[i] != state.canvas_instance_batches[state.current_batch_index].blend_factors[i]) {
+					different_blend_factors = true;
+					break;
+				}
+			}
+		}
+
+		if (blend_mode != state.canvas_instance_batches[state.current_batch_index].blend_mode || blend_color != state.canvas_instance_batches[state.current_batch_index].blend_color || different_blend_factors) {
 			_new_batch(r_batch_broken);
 			state.canvas_instance_batches[state.current_batch_index].blend_mode = blend_mode;
 			state.canvas_instance_batches[state.current_batch_index].blend_color = blend_color;
+			if (p_blend_factors) {
+				state.canvas_instance_batches[state.current_batch_index].uses_blend_factors = true;
+				state.canvas_instance_batches[state.current_batch_index].blend_factors[0] = p_blend_factors[0];
+				state.canvas_instance_batches[state.current_batch_index].blend_factors[1] = p_blend_factors[1];
+				state.canvas_instance_batches[state.current_batch_index].blend_factors[2] = p_blend_factors[2];
+				state.canvas_instance_batches[state.current_batch_index].blend_factors[3] = p_blend_factors[3];
+			} else {
+				state.canvas_instance_batches[state.current_batch_index].uses_blend_factors = false;
+			}
 		}
 
 		switch (c->type) {

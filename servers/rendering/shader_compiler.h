@@ -52,6 +52,7 @@ public:
 		HashMap<StringName, bool *> usage_flag_pointers;
 		HashMap<StringName, bool *> write_flag_pointers;
 
+		Vector<StringName> *blend_factors = nullptr;
 		HashMap<StringName, ShaderLanguage::ShaderNode::Uniform> *uniforms = nullptr;
 	};
 
