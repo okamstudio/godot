@@ -875,7 +875,33 @@ bool EditorHelpSearch::Runner::_phase_class_items() {
 
 	if (search_flags & SEARCH_SHOW_HIERARCHY) {
 		if (match.required()) {
-			_create_class_hierarchy(match);
+			List<String> prev_parent;
+			List<String> final_parent;
+			prev_parent.push_back(iterator_match->value.doc->name);
+			while (!prev_parent.is_empty()) {
+				HashMap<String, ClassMatch>::Iterator new_curr = matches.begin();
+				bool found_child = false;
+				while (new_curr != NULL) {
+					if (new_curr->value.doc->inherits == prev_parent[0]) {
+						prev_parent.push_back(new_curr->value.doc->name);
+						found_child = true;
+					}
+					++new_curr;
+				}
+				if (found_child == false) {
+					final_parent.push_back(prev_parent[0]);
+				}
+				prev_parent.pop_front();
+			}
+
+			if (!final_parent.is_empty()) {
+				while (!final_parent.is_empty()) {
+					_create_class_hierarchy(matches[final_parent[0]]);
+					final_parent.pop_front();
+				}
+			} else {
+				_create_class_hierarchy(match);
+			}
 		}
 	} else {
 		if (match.name || !match.keyword.is_empty()) {
