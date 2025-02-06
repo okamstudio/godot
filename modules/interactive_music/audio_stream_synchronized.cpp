@@ -35,13 +35,20 @@
 AudioStreamSynchronized::AudioStreamSynchronized() {
 }
 
+AudioStreamSynchronized::~AudioStreamSynchronized() {
+	if (playback_sync.is_valid()) {
+		playback_sync.unref();
+	}
+}
+
 Ref<AudioStreamPlayback> AudioStreamSynchronized::instantiate_playback() {
-	Ref<AudioStreamPlaybackSynchronized> playback_playlist;
-	playback_playlist.instantiate();
-	playback_playlist->stream = Ref<AudioStreamSynchronized>(this);
-	playback_playlist->_update_playback_instances();
-	playbacks.insert(playback_playlist.operator->());
-	return playback_playlist;
+	if (!playback_sync.is_valid()) {
+		playback_sync.instantiate();
+		playback_sync->stream = Ref<AudioStreamSynchronized>(this);
+		playback_sync->_update_playback_instances();
+	}
+	
+	return playback_sync;
 }
 
 String AudioStreamSynchronized::get_stream_name() const {
@@ -53,10 +60,22 @@ void AudioStreamSynchronized::set_sync_stream(int p_stream_index, Ref<AudioStrea
 	ERR_FAIL_INDEX(p_stream_index, MAX_STREAMS);
 
 	AudioServer::get_singleton()->lock();
+	audio_streams[p_stream_index].unref();
 	audio_streams[p_stream_index] = p_stream;
-	for (AudioStreamPlaybackSynchronized *E : playbacks) {
-		E->_update_playback_instances();
+
+	if (playback_sync.is_valid()) {
+		playback_sync->playbacks[p_stream_index].unref();
+
+		if (audio_streams[p_stream_index].is_valid()) {
+			double playing_pos = playback_sync->is_playing() ? playback_sync->get_playback_position() : -1;
+			playback_sync->playbacks[p_stream_index] = audio_streams[p_stream_index]->instantiate_playback();
+
+			if (playing_pos >= 0) {
+				playback_sync->playbacks[p_stream_index]->start(playing_pos);
+			}
+		}
 	}
+
 	AudioServer::get_singleton()->unlock();
 }
 
@@ -178,38 +197,52 @@ void AudioStreamSynchronized::_bind_methods() {
 AudioStreamPlaybackSynchronized::AudioStreamPlaybackSynchronized() {
 }
 
-AudioStreamPlaybackSynchronized::~AudioStreamPlaybackSynchronized() {
-	if (stream.is_valid()) {
-		stream->playbacks.erase(this);
-	}
-}
-
 void AudioStreamPlaybackSynchronized::stop() {
 	active = false;
 	for (int i = 0; i < stream->stream_count; i++) {
-		if (playback[i].is_valid()) {
-			playback[i]->stop();
+		if (playbacks[i].is_valid()) {
+			playbacks[i]->stop();
 		}
 	}
 }
 
 void AudioStreamPlaybackSynchronized::start(double p_from_pos) {
-	if (active) {
-		stop();
-	}
-
-	for (int i = 0; i < stream->stream_count; i++) {
-		if (playback[i].is_valid()) {
-			playback[i]->start(p_from_pos);
-			active = true;
-		}
-	}
+	_seek_or_start(p_from_pos, true);
 }
 
 void AudioStreamPlaybackSynchronized::seek(double p_time) {
+	_seek_or_start(p_time, false);
+}
+
+void AudioStreamPlaybackSynchronized::_seek_or_start(double p_from_pos, bool is_start) {
+	if (is_start && active) {
+		stop();
+	}
+
+	bool is_pos_within_range = p_from_pos >= 0 && p_from_pos < stream->get_length();
+
 	for (int i = 0; i < stream->stream_count; i++) {
-		if (playback[i].is_valid()) {
-			playback[i]->seek(p_time);
+		if (playbacks[i].is_valid() && stream->audio_streams[i].is_valid()) {
+			double audio_stream_length = stream->audio_streams[i]->get_length();
+			double playback_pos = p_from_pos;
+
+			if (is_pos_within_range && audio_stream_length < playback_pos) {
+				if (!stream->audio_streams[i]->has_loop()) {
+					continue;
+				}
+
+				while (audio_stream_length < playback_pos) {
+					playback_pos -= audio_stream_length;
+				}
+			}
+
+			if (is_start) {
+				playbacks[i]->start(playback_pos);
+			} else {
+				playbacks[i]->seek(playback_pos);
+			}
+
+			active = true;
 		}
 	}
 }
@@ -227,17 +260,17 @@ int AudioStreamPlaybackSynchronized::mix(AudioFrame *p_buffer, float p_rate_scal
 
 		bool first = true;
 		for (int i = 0; i < stream->stream_count; i++) {
-			if (playback[i].is_valid() && playback[i]->is_playing()) {
+			if (playbacks[i].is_valid() && playbacks[i]->is_playing()) {
 				float volume = Math::db_to_linear(stream->audio_stream_volume_db[i]);
 				if (first) {
-					playback[i]->mix(p_buffer, p_rate_scale, to_mix);
+					playbacks[i]->mix(p_buffer, p_rate_scale, to_mix);
 					for (int j = 0; j < to_mix; j++) {
 						p_buffer[j] *= volume;
 					}
 					first = false;
 					any_active = true;
 				} else {
-					playback[i]->mix(mix_buffer, p_rate_scale, to_mix);
+					playbacks[i]->mix(mix_buffer, p_rate_scale, to_mix);
 					for (int j = 0; j < to_mix; j++) {
 						p_buffer[j] += mix_buffer[j] * volume;
 					}
@@ -265,8 +298,8 @@ int AudioStreamPlaybackSynchronized::mix(AudioFrame *p_buffer, float p_rate_scal
 void AudioStreamPlaybackSynchronized::tag_used_streams() {
 	if (active) {
 		for (int i = 0; i < stream->stream_count; i++) {
-			if (playback[i].is_valid() && playback[i]->is_playing()) {
-				stream->audio_streams[i]->tag_used(playback[i]->get_playback_position());
+			if (playbacks[i].is_valid() && playbacks[i]->is_playing()) {
+				stream->audio_streams[i]->tag_used(playbacks[i]->get_playback_position());
 			}
 		}
 		stream->tag_used(0);
@@ -277,8 +310,8 @@ int AudioStreamPlaybackSynchronized::get_loop_count() const {
 	int min_loops = 0;
 	bool min_loops_found = false;
 	for (int i = 0; i < stream->stream_count; i++) {
-		if (playback[i].is_valid() && playback[i]->is_playing()) {
-			int loops = playback[i]->get_loop_count();
+		if (playbacks[i].is_valid() && playbacks[i]->is_playing()) {
+			int loops = playbacks[i]->get_loop_count();
 			if (!min_loops_found || loops < min_loops) {
 				min_loops = loops;
 				min_loops_found = true;
@@ -292,8 +325,8 @@ double AudioStreamPlaybackSynchronized::get_playback_position() const {
 	float max_pos = 0;
 	bool pos_found = false;
 	for (int i = 0; i < stream->stream_count; i++) {
-		if (playback[i].is_valid() && playback[i]->is_playing()) {
-			float pos = playback[i]->get_playback_position();
+		if (playbacks[i].is_valid() && playbacks[i]->is_playing()) {
+			float pos = playbacks[i]->get_playback_position();
 			if (!pos_found || pos > max_pos) {
 				max_pos = pos;
 				pos_found = true;
@@ -308,13 +341,13 @@ bool AudioStreamPlaybackSynchronized::is_playing() const {
 }
 
 void AudioStreamPlaybackSynchronized::_update_playback_instances() {
-	stop();
-
+	AudioServer::get_singleton()->lock();
 	for (int i = 0; i < stream->stream_count; i++) {
+		playbacks[i].unref();
+
 		if (stream->audio_streams[i].is_valid()) {
-			playback[i] = stream->audio_streams[i]->instantiate_playback();
-		} else {
-			playback[i].unref();
+			playbacks[i] = stream->audio_streams[i]->instantiate_playback();
 		}
 	}
+	AudioServer::get_singleton()->unlock();
 }

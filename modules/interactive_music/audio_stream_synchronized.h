@@ -49,7 +49,7 @@ private:
 	int stream_count = 0;
 	Ref<AudioStream> audio_streams[MAX_STREAMS];
 	float audio_stream_volume_db[MAX_STREAMS] = {};
-	HashSet<AudioStreamPlaybackSynchronized *> playbacks;
+	Ref<AudioStreamPlaybackSynchronized> playback_sync;
 
 public:
 	virtual double get_bpm() const override;
@@ -67,6 +67,7 @@ public:
 	virtual String get_stream_name() const override;
 	virtual double get_length() const override;
 	AudioStreamSynchronized();
+	~AudioStreamSynchronized();
 
 protected:
 	static void _bind_methods();
@@ -86,21 +87,14 @@ private:
 	AudioFrame mix_buffer[MIX_BUFFER_SIZE];
 
 	Ref<AudioStreamSynchronized> stream;
-	Ref<AudioStreamPlayback> playback[AudioStreamSynchronized::MAX_STREAMS];
-
-	int play_order[AudioStreamSynchronized::MAX_STREAMS];
-
-	double stream_todo = 0.0;
-	int fade_index = -1;
-	double fade_volume = 1.0;
-	int play_index = 0;
-	double offset = 0.0;
+	Ref<AudioStreamPlayback> playbacks[AudioStreamSynchronized::MAX_STREAMS];
 
 	int loop_count = 0;
 
 	bool active = false;
 
 	void _update_playback_instances();
+	void _seek_or_start(double p_from_pos, bool is_start);
 
 public:
 	virtual void start(double p_from_pos = 0.0) override;
@@ -114,7 +108,6 @@ public:
 	virtual void tag_used_streams() override;
 
 	AudioStreamPlaybackSynchronized();
-	~AudioStreamPlaybackSynchronized();
 };
 
 #endif // AUDIO_STREAM_SYNCHRONIZED_H
