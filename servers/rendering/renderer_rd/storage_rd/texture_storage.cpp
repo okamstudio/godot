@@ -732,7 +732,7 @@ TextureStorage::CanvasTextureInfo TextureStorage::canvas_texture_get_info(RID p_
 	res.diffuse = ctc.diffuse;
 	res.normal = ctc.normal;
 	res.specular = ctc.specular;
-	res.sampler = material_storage->sampler_rd_get_default(filter, repeat);
+	//res.sampler = material_storage->sampler_rd_get_default(filter, repeat);
 	res.size = ct->size_cache;
 	res.specular_color = ct->specular_color;
 	res.use_normal = ct->use_normal_cache;

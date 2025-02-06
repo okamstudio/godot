@@ -169,9 +169,6 @@ private:
 	// Data buffers
 	mutable HashMap<StringName, Ref<RenderBufferCustomDataRD>> data_buffers;
 
-	// Samplers.
-	RendererRD::MaterialStorage::Samplers samplers;
-
 	void update_samplers();
 
 protected:
@@ -310,12 +307,6 @@ public:
 	bool has_velocity_buffer(bool p_has_msaa);
 	RID get_velocity_buffer(bool p_get_msaa);
 	RID get_velocity_buffer(bool p_get_msaa, uint32_t p_layer);
-
-	// Samplers adjusted with the mipmap bias that is best fit for the configuration of these render buffers.
-
-	_FORCE_INLINE_ RendererRD::MaterialStorage::Samplers get_samplers() const {
-		return samplers;
-	}
 
 	_FORCE_INLINE_ static RD::TextureSamples msaa_to_samples(RS::ViewportMSAA p_msaa) {
 		switch (p_msaa) {

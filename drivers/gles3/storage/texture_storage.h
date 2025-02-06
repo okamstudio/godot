@@ -306,34 +306,92 @@ struct Texture {
 			glTexParameterf(target, _GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 		}
 	}
-	void gl_set_repeat(RS::CanvasItemTextureRepeat p_repeat) {
-		if (p_repeat == state_repeat) {
+	void gl_set_repeat(RS::CanvasItemTextureRepeat p_s_repeat, RS::CanvasItemTextureRepeat p_t_repeat, RS::CanvasItemTextureRepeat p_r_repeat) {
+		if (p_s_repeat == state_s_repeat && p_t_repeat == state_t_repeat && p_r_repeat == state_r_repeat) {
 			return;
 		}
-		state_repeat = p_repeat;
-		GLenum prep = GL_CLAMP_TO_EDGE;
-		switch (state_repeat) {
-			case RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED: {
-				prep = GL_CLAMP_TO_EDGE;
+
+		state_s_repeat = p_s_repeat;
+		state_t_repeat = p_t_repeat;
+		state_r_repeat = p_r_repeat;
+
+		GLenum s_prep = GL_CLAMP_TO_EDGE;
+		GLenum t_prep = GL_CLAMP_TO_EDGE;
+		GLenum r_prep = GL_CLAMP_TO_EDGE;
+
+		switch (state_s_repeat) {
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT: {
+				s_prep = GL_REPEAT;
 			} break;
-			case RS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED: {
-				prep = GL_REPEAT;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRRORED_REPEAT: {
+				s_prep = GL_MIRRORED_REPEAT;
 			} break;
-			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR: {
-				prep = GL_MIRRORED_REPEAT;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE: {
+				s_prep = GL_CLAMP_TO_EDGE;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_BORDER: {
+				s_prep = GL_CLAMP_TO_BORDER;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+				s_prep = GL_CLAMP_TO_EDGE; // TODO: Requires ARB_texture_mirror_clamp_to_edge
 			} break;
 			default: {
 				return;
 			} break;
 		}
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, prep);
-		glTexParameteri(target, GL_TEXTURE_WRAP_R, prep);
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, prep);
+
+		switch (state_t_repeat) {
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT: {
+				t_prep = GL_REPEAT;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRRORED_REPEAT: {
+				t_prep = GL_MIRRORED_REPEAT;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE: {
+				t_prep = GL_CLAMP_TO_EDGE;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_BORDER: {
+				t_prep = GL_CLAMP_TO_BORDER;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+				t_prep = GL_CLAMP_TO_EDGE; // TODO: Requires ARB_texture_mirror_clamp_to_edge
+			} break;
+			default: {
+				return;
+			} break;
+		}
+
+		switch (state_r_repeat) {
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT: {
+				r_prep = GL_REPEAT;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRRORED_REPEAT: {
+				r_prep = GL_MIRRORED_REPEAT;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE: {
+				r_prep = GL_CLAMP_TO_EDGE;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_BORDER: {
+				r_prep = GL_CLAMP_TO_BORDER;
+			} break;
+			case RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+				r_prep = GL_CLAMP_TO_EDGE; // TODO: Requires ARB_texture_mirror_clamp_to_edge
+			} break;
+			default: {
+				return;
+			} break;
+		}
+
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, s_prep);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, t_prep);
+		glTexParameteri(target, GL_TEXTURE_WRAP_R, r_prep);
 	}
 
 private:
 	RS::CanvasItemTextureFilter state_filter = RS::CANVAS_ITEM_TEXTURE_FILTER_MAX;
-	RS::CanvasItemTextureRepeat state_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX;
+	RS::CanvasItemTextureRepeat state_s_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX;
+	RS::CanvasItemTextureRepeat state_t_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX;
+	RS::CanvasItemTextureRepeat state_r_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX;
 };
 
 struct RenderTarget {

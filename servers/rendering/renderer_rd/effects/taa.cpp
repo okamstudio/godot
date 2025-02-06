@@ -56,7 +56,14 @@ void TAA::resolve(RID p_frame, RID p_temp, RID p_depth, RID p_velocity, RID p_pr
 	RID shader = taa_shader.version_get_shader(shader_version, 0);
 	ERR_FAIL_COND(shader.is_null());
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
 
 	TAAResolvePushConstant push_constant;
 	memset(&push_constant, 0, sizeof(TAAResolvePushConstant));

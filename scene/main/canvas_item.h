@@ -110,7 +110,7 @@ private:
 	ClipChildrenMode clip_children_mode = CLIP_CHILDREN_DISABLED;
 
 	mutable RS::CanvasItemTextureFilter texture_filter_cache = RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR;
-	mutable RS::CanvasItemTextureRepeat texture_repeat_cache = RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED;
+	mutable RS::CanvasItemTextureRepeat texture_repeat_cache = RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE;
 	TextureFilter texture_filter = TEXTURE_FILTER_PARENT_NODE;
 	TextureRepeat texture_repeat = TEXTURE_REPEAT_PARENT_NODE;
 

@@ -683,15 +683,21 @@ static const GLenum target_from_type[ShaderLanguage::TYPE_MAX] = {
 };
 
 static const RS::CanvasItemTextureRepeat repeat_from_uniform[ShaderLanguage::REPEAT_DEFAULT + 1] = {
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED, // ShaderLanguage::TextureRepeat::REPEAT_DISABLE,
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED, // ShaderLanguage::TextureRepeat::REPEAT_ENABLE,
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED, // ShaderLanguage::TextureRepeat::REPEAT_DEFAULT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT, // ShaderLanguage::TextureRepeat::REPEAT_REPEAT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_MIRRORED_REPEAT, // ShaderLanguage::TextureRepeat::REPEAT_MIRRORED_REPEAT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE, // ShaderLanguage::TextureRepeat::REPEAT_CLAMP_TO_EDGE,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_BORDER, // ShaderLanguage::TextureRepeat::REPEAT_CLAMP_TO_BORDER,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR_CLAMP_TO_EDGE, // ShaderLanguage::TextureRepeat::REPEAT_MIRROR_CLAMP_TO_EDGE,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT, // ShaderLanguage::TextureRepeat::REPEAT_DEFAULT,
 };
 
 static const RS::CanvasItemTextureRepeat repeat_from_uniform_canvas[ShaderLanguage::REPEAT_DEFAULT + 1] = {
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED, // ShaderLanguage::TextureRepeat::REPEAT_DISABLE,
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED, // ShaderLanguage::TextureRepeat::REPEAT_ENABLE,
-	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED, // ShaderLanguage::TextureRepeat::REPEAT_DEFAULT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT, // ShaderLanguage::TextureRepeat::REPEAT_REPEAT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_MIRRORED_REPEAT, // ShaderLanguage::TextureRepeat::REPEAT_MIRRORED_REPEAT,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE, // ShaderLanguage::TextureRepeat::REPEAT_CLAMP_TO_EDGE,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_BORDER, // ShaderLanguage::TextureRepeat::REPEAT_CLAMP_TO_BORDER,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR_CLAMP_TO_EDGE, // ShaderLanguage::TextureRepeat::REPEAT_MIRROR_CLAMP_TO_EDGE,
+	RS::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE, // ShaderLanguage::TextureRepeat::REPEAT_DEFAULT,
 };
 
 static const RS::CanvasItemTextureFilter filter_from_uniform[ShaderLanguage::FILTER_DEFAULT + 1] = {
@@ -1379,7 +1385,7 @@ MaterialStorage::MaterialStorage() {
 		actions.render_mode_defines["fog_disabled"] = "#define FOG_DISABLED\n";
 
 		actions.default_filter = ShaderLanguage::FILTER_LINEAR_MIPMAP;
-		actions.default_repeat = ShaderLanguage::REPEAT_ENABLE;
+		actions.default_repeat = ShaderLanguage::REPEAT_REPEAT;
 
 		actions.check_multiview_samplers = RasterizerGLES3::get_singleton()->is_xr_enabled();
 		actions.global_buffer_array_variable = "global_shader_uniforms";
@@ -1444,7 +1450,7 @@ MaterialStorage::MaterialStorage() {
 		actions.render_mode_defines["collision_use_scale"] = "#define USE_COLLISION_SCALE\n";
 
 		actions.default_filter = ShaderLanguage::FILTER_LINEAR_MIPMAP;
-		actions.default_repeat = ShaderLanguage::REPEAT_ENABLE;
+		actions.default_repeat = ShaderLanguage::REPEAT_REPEAT;
 
 		actions.global_buffer_array_variable = "global_shader_uniforms";
 
@@ -1499,7 +1505,7 @@ MaterialStorage::MaterialStorage() {
 		actions.render_mode_defines["use_debanding"] = "#define USE_DEBANDING\n";
 
 		actions.default_filter = ShaderLanguage::FILTER_LINEAR_MIPMAP;
-		actions.default_repeat = ShaderLanguage::REPEAT_ENABLE;
+		actions.default_repeat = ShaderLanguage::REPEAT_REPEAT;
 
 		actions.global_buffer_array_variable = "global_shader_uniforms";
 
@@ -2698,7 +2704,7 @@ static void bind_uniforms_generic(const Vector<RID> &p_textures, const Vector<Sh
 			}
 
 			texture->gl_set_filter(filter_mapping[int(texture_uniform.filter)]);
-			texture->gl_set_repeat(repeat_mapping[int(texture_uniform.repeat)]);
+			texture->gl_set_repeat(repeat_mapping[int(texture_uniform.u_repeat)], repeat_mapping[int(texture_uniform.v_repeat)], repeat_mapping[int(texture_uniform.w_repeat)]);
 		}
 		texture_uniform_count++;
 		if (texture_uniform_count >= texture_uniform.array_size) {

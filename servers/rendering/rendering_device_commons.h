@@ -33,6 +33,7 @@
 
 #include "core/object/object.h"
 #include "core/variant/type_info.h"
+#include <functional>
 
 #define STEPIFY(m_number, m_alignment) ((((m_number) + ((m_alignment) - 1)) / (m_alignment)) * (m_alignment))
 
@@ -487,6 +488,54 @@ public:
 		float max_lod = 1e20; // Something very large should do.
 		SamplerBorderColor border_color = SAMPLER_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 		bool unnormalized_uvw = false;
+
+		bool operator==(const SamplerState &b) const {
+			return mag_filter == b.mag_filter &&
+				min_filter == b.min_filter &&
+				mip_filter == b.mip_filter &&
+				repeat_u == b.repeat_u &&
+				repeat_v == b.repeat_v &&
+				repeat_w == b.repeat_w &&
+				lod_bias == b.lod_bias &&
+				use_anisotropy == b.use_anisotropy &&
+				anisotropy_max == b.anisotropy_max &&
+				enable_compare == b.enable_compare &&
+				compare_op == b.compare_op &&
+				min_lod == b.min_lod &&
+				max_lod == b.max_lod &&
+				border_color == b.border_color &&
+				unnormalized_uvw == b.unnormalized_uvw;
+		}
+	};
+
+	struct SamplerStateHasher {
+		_FORCE_INLINE_ static uint32_t hash(const SamplerState &s) {
+			uint32_t seed = 0;
+
+			// Helper function to combine hashes
+			auto hash_combine = [](uint32_t &seed, auto value) {
+				std::hash<std::decay_t<decltype(value)>> hasher;
+				seed ^= hasher(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			};
+
+			hash_combine(seed, s.mag_filter);
+			hash_combine(seed, s.min_filter);
+			hash_combine(seed, s.mip_filter);
+			hash_combine(seed, s.repeat_u);
+			hash_combine(seed, s.repeat_v);
+			hash_combine(seed, s.repeat_w);
+			hash_combine(seed, s.lod_bias);
+			hash_combine(seed, s.use_anisotropy);
+			hash_combine(seed, s.anisotropy_max);
+			hash_combine(seed, s.enable_compare);
+			hash_combine(seed, s.compare_op);
+			hash_combine(seed, s.min_lod);
+			hash_combine(seed, s.max_lod);
+			hash_combine(seed, s.border_color);
+			hash_combine(seed, s.unnormalized_uvw);
+
+			return seed;
+		}
 	};
 
 	/**********************/

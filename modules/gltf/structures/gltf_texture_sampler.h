@@ -103,6 +103,32 @@ public:
 		}
 	}
 
+	StandardMaterial3D::RepeatMode get_u_repeat_mode() const {
+		using RepeatMode = StandardMaterial3D::RepeatMode;
+
+		switch (wrap_s) {
+			case CLAMP_TO_EDGE:
+				return RepeatMode::REPEAT_MODE_CLAMP_TO_EDGE;
+			case MIRRORED_REPEAT:
+				return RepeatMode::REPEAT_MODE_MIRRORED_REPEAT;
+			case REPEAT:
+				return RepeatMode::REPEAT_MODE_REPEAT;
+		}
+	}
+
+	StandardMaterial3D::RepeatMode get_v_repeat_mode() const {
+		using RepeatMode = StandardMaterial3D::RepeatMode;
+
+		switch (wrap_t) {
+			case CLAMP_TO_EDGE:
+				return RepeatMode::REPEAT_MODE_CLAMP_TO_EDGE;
+			case MIRRORED_REPEAT:
+				return RepeatMode::REPEAT_MODE_MIRRORED_REPEAT;
+			case REPEAT:
+				return RepeatMode::REPEAT_MODE_REPEAT;
+		}
+	}
+
 	void set_filter_mode(StandardMaterial3D::TextureFilter mode) {
 		using TextureFilter = StandardMaterial3D::TextureFilter;
 
@@ -129,20 +155,37 @@ public:
 		}
 	}
 
-	bool get_wrap_mode() const {
-		// BaseMaterial3D presents wrapping as a boolean property. Either the texture is repeated
-		// in both dimensions, non-mirrored, or it isn't repeated at all. This will cause oddities
-		// when people import models having other wrapping mode combinations.
-		return (wrap_s == WrapMode::REPEAT) && (wrap_t == WrapMode::REPEAT);
-	}
+	void set_wrap_mode(StandardMaterial3D::RepeatMode u_repeat_mode, StandardMaterial3D::RepeatMode v_repeat_mode) {
+		using RepeatMode = StandardMaterial3D::RepeatMode;
 
-	void set_wrap_mode(bool mat_repeats) {
-		if (mat_repeats) {
-			wrap_s = WrapMode::REPEAT;
-			wrap_t = WrapMode::REPEAT;
-		} else {
-			wrap_s = WrapMode::CLAMP_TO_EDGE;
-			wrap_t = WrapMode::CLAMP_TO_EDGE;
+		switch (u_repeat_mode) {
+			case RepeatMode::REPEAT_MODE_REPEAT:
+				wrap_s = WrapMode::REPEAT;
+				break;
+			case RepeatMode::REPEAT_MODE_MIRRORED_REPEAT:
+				wrap_s = WrapMode::MIRRORED_REPEAT;
+				break;
+			case RepeatMode::REPEAT_MODE_CLAMP_TO_EDGE:
+				wrap_s = WrapMode::CLAMP_TO_EDGE;
+				break;
+			default:
+				wrap_s = WrapMode::CLAMP_TO_EDGE;
+				break;
+		}
+
+		switch (v_repeat_mode) {
+			case RepeatMode::REPEAT_MODE_REPEAT:
+				wrap_t = WrapMode::REPEAT;
+			break;
+			case RepeatMode::REPEAT_MODE_MIRRORED_REPEAT:
+				wrap_t = WrapMode::MIRRORED_REPEAT;
+			break;
+			case RepeatMode::REPEAT_MODE_CLAMP_TO_EDGE:
+				wrap_t = WrapMode::CLAMP_TO_EDGE;
+			break;
+			default:
+				wrap_t = WrapMode::CLAMP_TO_EDGE;
+			break;
 		}
 	}
 

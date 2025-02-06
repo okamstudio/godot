@@ -134,8 +134,25 @@ void ToneMapper::tonemapper(RID p_source_color, RID p_dst_framebuffer, const Ton
 		mode += 6;
 	}
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
-	RID default_mipmap_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
+
+	RD::SamplerState mipmap_sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
+		// sampler_state.lod_bias = 0;
+	}
+	RID default_mipmap_sampler = material_storage->sampler_rd_get(mipmap_sampler_state);
 
 	RD::Uniform u_source_color(RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE, 0, Vector<RID>({ default_sampler, p_source_color }));
 
@@ -213,8 +230,25 @@ void ToneMapper::tonemapper(RD::DrawListID p_subpass_draw_list, RID p_source_col
 
 	tonemap.push_constant.flags |= p_settings.convert_to_srgb ? TONEMAP_FLAG_CONVERT_TO_SRGB : 0;
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
-	RID default_mipmap_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
+
+	RD::SamplerState mipmap_sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
+		// sampler_state.lod_bias = 0;
+	}
+	RID default_mipmap_sampler = material_storage->sampler_rd_get(mipmap_sampler_state);
 
 	RD::Uniform u_source_color;
 	u_source_color.uniform_type = RD::UNIFORM_TYPE_INPUT_ATTACHMENT;

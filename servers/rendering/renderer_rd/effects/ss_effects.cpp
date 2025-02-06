@@ -504,7 +504,14 @@ void SSEffects::downsample_depth(Ref<RenderSceneBuffersRD> p_render_buffers, uin
 	ss_effects.downsample_push_constant.pixel_size[1] = 1.0 / full_screen_size.y;
 	ss_effects.downsample_push_constant.radius_sq = 1.0;
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
 
 	RID depth_texture = p_render_buffers->get_depth_texture(p_view);
 	RID depth_mipmap = p_render_buffers->get_texture_slice(RB_SCOPE_SSDS, RB_LINEAR_DEPTH, p_view * 4, depth_index, 4, 1);
@@ -669,8 +676,26 @@ void SSEffects::screen_space_indirect_lighting(Ref<RenderSceneBuffersRD> p_rende
 	memset(&ssil.gather_push_constant, 0, sizeof(SSILGatherPushConstant));
 
 	RID shader = ssil.gather_shader.version_get_shader(ssil.gather_shader_version, SSIL_GATHER);
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
-	RID default_mipmap_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
+
+	RD::SamplerState mipmap_sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
+		// sampler_state.lod_bias = 0;
+	}
+	RID default_mipmap_sampler = material_storage->sampler_rd_get(mipmap_sampler_state);
 
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 	{
@@ -1067,7 +1092,14 @@ void SSEffects::generate_ssao(Ref<RenderSceneBuffersRD> p_render_buffers, SSAORe
 	/* FIRST PASS */
 
 	RID shader = ssao.gather_shader.version_get_shader(ssao.gather_shader_version, SSAO_GATHER);
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
 
 	RD::get_singleton()->draw_command_begin_label("Process Screen Space Ambient Occlusion");
 	/* SECOND PASS */
@@ -1375,7 +1407,14 @@ void SSEffects::screen_space_reflection(Ref<RenderSceneBuffersRD> p_render_buffe
 
 	uint32_t view_count = p_render_buffers->get_view_count();
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
 
 	{
 		// Store some scene data in a UBO, in the near future we will use a UBO shared with other shaders
@@ -1625,7 +1664,14 @@ void SSEffects::sub_surface_scattering(Ref<RenderSceneBuffersRD> p_render_buffer
 	MaterialStorage *material_storage = MaterialStorage::get_singleton();
 	ERR_FAIL_NULL(material_storage);
 
-	RID default_sampler = material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+	RD::SamplerState sampler_state;
+	{
+		sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+		sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+		sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+	}
+	RID default_sampler = material_storage->sampler_rd_get(sampler_state);
 
 	// Our intermediate buffer is only created if we haven't created it already.
 	RD::DataFormat format = p_render_buffers->get_base_data_format();

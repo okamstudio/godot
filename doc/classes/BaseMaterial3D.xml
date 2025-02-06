@@ -389,8 +389,14 @@
 			Filter flags for the texture. See [enum TextureFilter] for options.
 			[b]Note:[/b] [member heightmap_texture] is always sampled with linear filtering, even if nearest-neighbor filtering is selected here. This is to ensure the heightmap effect looks as intended. If you need sharper height transitions between pixels, resize the heightmap texture in an image editor with nearest-neighbor filtering.
 		</member>
-		<member name="texture_repeat" type="bool" setter="set_flag" getter="get_flag" default="true">
-			Repeat flags for the texture. See [enum TextureFilter] for options.
+		<member name="u_repeat_mode" type="int" setter="set_u_repeat_mode" getter="get_u_repeat_mode" enum="BaseMaterial3D.RepeatMode" default="2">
+			Repeat flags for the texture. See [enum RepeatMode] for options.
+		</member>
+		<member name="v_repeat_mode" type="int" setter="set_v_repeat_mode" getter="get_v_repeat_mode" enum="BaseMaterial3D.RepeatMode" default="2">
+			Repeat flags for the texture. See [enum RepeatMode] for options.
+		</member>
+		<member name="w_repeat_mode" type="int" setter="set_w_repeat_mode" getter="get_w_repeat_mode" enum="BaseMaterial3D.RepeatMode" default="2">
+			Repeat flags for the texture. See [enum RepeatMode] for options.
 		</member>
 		<member name="transparency" type="int" setter="set_transparency" getter="get_transparency" enum="BaseMaterial3D.Transparency" default="0">
 			The material's transparency mode. Some transparency modes will disable shadow casting. Any transparency mode other than [constant TRANSPARENCY_DISABLED] has a greater performance impact compared to opaque rendering. See also [member blend_mode].

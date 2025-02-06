@@ -1159,8 +1159,8 @@ Error FBXDocument::_parse_materials(Ref<FBXState> p_state) {
 
 		const ufbx_texture *base_texture = _get_file_texture(fbx_material->pbr.base_color.texture);
 		if (base_texture) {
-			bool wrap = base_texture->wrap_u == UFBX_WRAP_REPEAT && base_texture->wrap_v == UFBX_WRAP_REPEAT;
-			material->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, wrap);
+			material->set_u_repeat_mode(base_texture->wrap_u == UFBX_WRAP_REPEAT ? BaseMaterial3D::REPEAT_MODE_REPEAT : BaseMaterial3D::REPEAT_MODE_CLAMP_TO_EDGE);
+			material->set_v_repeat_mode(base_texture->wrap_v == UFBX_WRAP_REPEAT ? BaseMaterial3D::REPEAT_MODE_REPEAT : BaseMaterial3D::REPEAT_MODE_CLAMP_TO_EDGE);
 
 			Ref<Texture2D> albedo_texture = _get_texture(p_state, GLTFTextureIndex(base_texture->file_index), TEXTURE_TYPE_GENERIC);
 

@@ -604,7 +604,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	RID default_clip_children_shader;
 
 	RS::CanvasItemTextureFilter default_filter = RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR;
-	RS::CanvasItemTextureRepeat default_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED;
+	RS::CanvasItemTextureRepeat default_repeat = RS::CANVAS_ITEM_TEXTURE_REPEAT_CLAMP_TO_EDGE;
 
 	RID _create_base_uniform_set(RID p_to_render_target, bool p_backbuffer);
 

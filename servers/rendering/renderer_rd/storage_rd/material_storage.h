@@ -118,28 +118,12 @@ public:
 		Vector<RID> texture_cache;
 	};
 
-	struct Samplers {
-		RID rids[RS::CANVAS_ITEM_TEXTURE_FILTER_MAX][RS::CANVAS_ITEM_TEXTURE_REPEAT_MAX];
-		float mipmap_bias = 0.0f;
-		bool use_nearest_mipmap_filter = false;
-		int anisotropic_filtering_level = 2;
-
-		_FORCE_INLINE_ RID get_sampler(RS::CanvasItemTextureFilter p_filter, RS::CanvasItemTextureRepeat p_repeat) const {
-			return rids[p_filter][p_repeat];
-		}
-
-		template <typename Collection>
-		void append_uniforms(Collection &p_uniforms, int p_first_index) const;
-		bool is_valid() const;
-		bool is_null() const;
-	};
-
 private:
 	static MaterialStorage *singleton;
 
 	/* Samplers */
 
-	Samplers default_samplers;
+	mutable HashMap<RD::SamplerState, RID, RD::SamplerStateHasher> samplers;
 
 	/* Buffers */
 
@@ -364,15 +348,16 @@ public:
 
 	/* Samplers */
 
-	Samplers samplers_rd_allocate(float p_mipmap_bias = 0.0f, RS::ViewportAnisotropicFiltering anisotropic_filtering_level = RS::ViewportAnisotropicFiltering::VIEWPORT_ANISOTROPY_4X) const;
-	void samplers_rd_free(Samplers &p_samplers) const;
+	void samplers_rd_free() const;
 
-	_FORCE_INLINE_ RID sampler_rd_get_default(RS::CanvasItemTextureFilter p_filter, RS::CanvasItemTextureRepeat p_repeat) {
-		return default_samplers.get_sampler(p_filter, p_repeat);
-	}
+	_FORCE_INLINE_ RID sampler_rd_get(const RD::SamplerState &p_state) const {
+		HashMap<RD::SamplerState, RID, RD::SamplerStateHasher>::Iterator sampler = samplers.find(p_state);
 
-	_FORCE_INLINE_ const Samplers &samplers_rd_get_default() const {
-		return default_samplers;
+		if (!sampler) {
+			sampler = samplers.insert(p_state, RD::get_singleton()->sampler_create(p_state));
+		}
+
+		return sampler->value;
 	}
 
 	/* Buffers */

@@ -63,7 +63,9 @@ public:
 			ShaderLanguage::ShaderNode::Uniform::Hint hint = ShaderLanguage::ShaderNode::Uniform::Hint::HINT_NONE;
 			bool use_color = false;
 			ShaderLanguage::TextureFilter filter = ShaderLanguage::TextureFilter::FILTER_DEFAULT;
-			ShaderLanguage::TextureRepeat repeat = ShaderLanguage::TextureRepeat::REPEAT_DEFAULT;
+			ShaderLanguage::TextureRepeat u_repeat = ShaderLanguage::TextureRepeat::REPEAT_DEFAULT;
+			ShaderLanguage::TextureRepeat v_repeat = ShaderLanguage::TextureRepeat::REPEAT_DEFAULT;
+			ShaderLanguage::TextureRepeat w_repeat = ShaderLanguage::TextureRepeat::REPEAT_DEFAULT;
 			bool global = false;
 			int array_size = 0;
 		};
@@ -92,7 +94,7 @@ public:
 		HashMap<StringName, String> usage_defines;
 		HashMap<StringName, String> custom_samplers;
 		ShaderLanguage::TextureFilter default_filter = ShaderLanguage::TextureFilter::FILTER_NEAREST;
-		ShaderLanguage::TextureRepeat default_repeat = ShaderLanguage::TextureRepeat::REPEAT_DISABLE;
+		ShaderLanguage::TextureRepeat default_repeat = ShaderLanguage::TextureRepeat::REPEAT_CLAMP_TO_EDGE;
 		int base_texture_binding_index = 0;
 		int texture_layout_set = 0;
 		String base_uniform_string;

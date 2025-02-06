@@ -933,9 +933,9 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 			case Item::Command::TYPE_RECT: {
 				const Item::CommandRect *rect = static_cast<const Item::CommandRect *>(c);
 
-				if (rect->flags & CANVAS_RECT_TILE && state.canvas_instance_batches[state.current_batch_index].repeat != RenderingServer::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED) {
+				if (rect->flags & CANVAS_RECT_TILE && state.canvas_instance_batches[state.current_batch_index].repeat != RenderingServer::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT) {
 					_new_batch(r_batch_broken);
-					state.canvas_instance_batches[state.current_batch_index].repeat = RenderingServer::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED;
+					state.canvas_instance_batches[state.current_batch_index].repeat = RenderingServer::CanvasItemTextureRepeat::CANVAS_ITEM_TEXTURE_REPEAT_REPEAT;
 				}
 
 				if (rect->texture != state.canvas_instance_batches[state.current_batch_index].tex || state.canvas_instance_batches[state.current_batch_index].command_type != Item::Command::TYPE_RECT) {
@@ -2289,7 +2289,7 @@ void RasterizerCanvasGLES3::_bind_canvas_texture(RID p_texture, RS::CanvasItemTe
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture->tex_id);
 		texture->gl_set_filter(filter);
-		texture->gl_set_repeat(repeat);
+		texture->gl_set_repeat(repeat, repeat, repeat);
 		if (texture->render_target) {
 			texture->render_target->used_in_frame = true;
 		}
@@ -2305,7 +2305,7 @@ void RasterizerCanvasGLES3::_bind_canvas_texture(RID p_texture, RS::CanvasItemTe
 		glActiveTexture(GL_TEXTURE0 + config->max_texture_image_units - 6);
 		glBindTexture(GL_TEXTURE_2D, normal_map->tex_id);
 		normal_map->gl_set_filter(filter);
-		normal_map->gl_set_repeat(repeat);
+		normal_map->gl_set_repeat(repeat, repeat, repeat);
 		if (normal_map->render_target) {
 			normal_map->render_target->used_in_frame = true;
 		}
@@ -2321,7 +2321,7 @@ void RasterizerCanvasGLES3::_bind_canvas_texture(RID p_texture, RS::CanvasItemTe
 		glActiveTexture(GL_TEXTURE0 + config->max_texture_image_units - 7);
 		glBindTexture(GL_TEXTURE_2D, specular_map->tex_id);
 		specular_map->gl_set_filter(filter);
-		specular_map->gl_set_repeat(repeat);
+		specular_map->gl_set_repeat(repeat, repeat, repeat);
 		if (specular_map->render_target) {
 			specular_map->render_target->used_in_frame = true;
 		}

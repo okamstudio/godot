@@ -595,7 +595,9 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 					texture.type = uniform.type;
 					texture.use_color = uniform.use_color;
 					texture.filter = uniform.filter;
-					texture.repeat = uniform.repeat;
+					texture.u_repeat = uniform.u_repeat;
+					texture.v_repeat = uniform.v_repeat;
+					texture.w_repeat = uniform.w_repeat;
 					texture.global = uniform.scope == ShaderLanguage::ShaderNode::Uniform::SCOPE_GLOBAL;
 					texture.array_size = uniform.array_size;
 					if (texture.global) {

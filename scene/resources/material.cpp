@@ -740,12 +740,64 @@ void BaseMaterial3D::_update_shader() {
 			break; // Internal value, skip.
 	}
 
-	if (flags[FLAG_USE_TEXTURE_REPEAT]) {
-		texfilter_str += ", repeat_enable";
-		texfilter_height_str += ", repeat_enable";
-	} else {
-		texfilter_str += ", repeat_disable";
-		texfilter_height_str += ", repeat_disable";
+	switch (u_repeat_mode) {
+		case REPEAT_MODE_REPEAT:
+			texfilter_str += ", u_repeat_repeat";
+			texfilter_height_str += ", u_repeat_repeat";
+		case REPEAT_MODE_MIRRORED_REPEAT:
+			texfilter_str += ", u_repeat_mirrored_repeat";
+			texfilter_height_str += ", u_repeat_mirrored_repeat";
+		case REPEAT_MODE_CLAMP_TO_EDGE:
+			texfilter_str += ", u_repeat_clamp_to_edge";
+			texfilter_height_str += ", u_repeat_clamp_to_edge";
+		case REPEAT_MODE_CLAMP_TO_BORDER:
+			texfilter_str += ", u_repeat_clamp_to_border";
+			texfilter_height_str += ", u_repeat_clamp_to_border";
+		case REPEAT_MODE_MIRROR_CLAMP_TO_EDGE:
+			texfilter_str += ", u_repeat_mirror_clamp_to_edge";
+			texfilter_height_str += ", u_repeat_mirror_clamp_to_edge";
+		case REPEAT_MODE_MAX:
+			break; // Internal value, skip.
+	}
+
+	switch (v_repeat_mode) {
+		case REPEAT_MODE_REPEAT:
+			texfilter_str += ", v_repeat_repeat";
+		texfilter_height_str += ", v_repeat_repeat";
+		case REPEAT_MODE_MIRRORED_REPEAT:
+			texfilter_str += ", v_repeat_mirrored_repeat";
+		texfilter_height_str += ", v_repeat_mirrored_repeat";
+		case REPEAT_MODE_CLAMP_TO_EDGE:
+			texfilter_str += ", v_repeat_clamp_to_edge";
+		texfilter_height_str += ", v_repeat_clamp_to_edge";
+		case REPEAT_MODE_CLAMP_TO_BORDER:
+			texfilter_str += ", v_repeat_clamp_to_border";
+		texfilter_height_str += ", v_repeat_clamp_to_border";
+		case REPEAT_MODE_MIRROR_CLAMP_TO_EDGE:
+			texfilter_str += ", v_repeat_mirror_clamp_to_edge";
+		texfilter_height_str += ", v_repeat_mirror_clamp_to_edge";
+		case REPEAT_MODE_MAX:
+			break; // Internal value, skip.
+	}
+
+	switch (w_repeat_mode) {
+		case REPEAT_MODE_REPEAT:
+			texfilter_str += ", w_repeat_repeat";
+		texfilter_height_str += ", w_repeat_repeat";
+		case REPEAT_MODE_MIRRORED_REPEAT:
+			texfilter_str += ", w_repeat_mirrored_repeat";
+		texfilter_height_str += ", w_repeat_mirrored_repeat";
+		case REPEAT_MODE_CLAMP_TO_EDGE:
+			texfilter_str += ", w_repeat_clamp_to_edge";
+		texfilter_height_str += ", w_repeat_clamp_to_edge";
+		case REPEAT_MODE_CLAMP_TO_BORDER:
+			texfilter_str += ", w_repeat_clamp_to_border";
+		texfilter_height_str += ", w_repeat_clamp_to_border";
+		case REPEAT_MODE_MIRROR_CLAMP_TO_EDGE:
+			texfilter_str += ", w_repeat_mirror_clamp_to_edge";
+		texfilter_height_str += ", w_repeat_mirror_clamp_to_edge";
+		case REPEAT_MODE_MAX:
+			break; // Internal value, skip.
 	}
 
 	// Add a comment to describe the shader origin (useful when converting to ShaderMaterial).
@@ -2322,7 +2374,6 @@ void BaseMaterial3D::set_flag(Flags p_flag, bool p_enabled) {
 
 	if (
 			p_flag == FLAG_USE_SHADOW_TO_OPACITY ||
-			p_flag == FLAG_USE_TEXTURE_REPEAT ||
 			p_flag == FLAG_SUBSURFACE_MODE_SKIN ||
 			p_flag == FLAG_USE_POINT_SIZE ||
 			p_flag == FLAG_UV1_USE_TRIPLANAR ||
@@ -2393,8 +2444,35 @@ void BaseMaterial3D::set_texture_filter(TextureFilter p_filter) {
 	_queue_shader_change();
 }
 
+void BaseMaterial3D::set_u_repeat_mode(RepeatMode p_filter) {
+	u_repeat_mode = p_filter;
+	_queue_shader_change();
+}
+
+void BaseMaterial3D::set_v_repeat_mode(RepeatMode p_filter) {
+	v_repeat_mode = p_filter;
+	_queue_shader_change();
+}
+
+void BaseMaterial3D::set_w_repeat_mode(RepeatMode p_filter) {
+	w_repeat_mode = p_filter;
+	_queue_shader_change();
+}
+
 BaseMaterial3D::TextureFilter BaseMaterial3D::get_texture_filter() const {
 	return texture_filter;
+}
+
+BaseMaterial3D::RepeatMode BaseMaterial3D::get_u_repeat_mode() const {
+	return u_repeat_mode;
+}
+
+BaseMaterial3D::RepeatMode BaseMaterial3D::get_v_repeat_mode() const {
+	return v_repeat_mode;
+}
+
+BaseMaterial3D::RepeatMode BaseMaterial3D::get_w_repeat_mode() const {
+	return w_repeat_mode;
 }
 
 void BaseMaterial3D::_validate_feature(const String &text, Feature feature, PropertyInfo &property) const {
@@ -3053,6 +3131,15 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_texture_filter", "mode"), &BaseMaterial3D::set_texture_filter);
 	ClassDB::bind_method(D_METHOD("get_texture_filter"), &BaseMaterial3D::get_texture_filter);
 
+	ClassDB::bind_method(D_METHOD("set_u_repeat_mode", "u_repeat_mode"), &BaseMaterial3D::set_u_repeat_mode);
+	ClassDB::bind_method(D_METHOD("get_u_repeat_mode"), &BaseMaterial3D::get_u_repeat_mode);
+
+	ClassDB::bind_method(D_METHOD("set_v_repeat_mode", "v_repeat_mode"), &BaseMaterial3D::set_v_repeat_mode);
+	ClassDB::bind_method(D_METHOD("get_v_repeat_mode"), &BaseMaterial3D::get_v_repeat_mode);
+
+	ClassDB::bind_method(D_METHOD("set_w_repeat_mode", "w_repeat_mode"), &BaseMaterial3D::set_w_repeat_mode);
+	ClassDB::bind_method(D_METHOD("get_w_repeat_mode"), &BaseMaterial3D::get_w_repeat_mode);
+
 	ClassDB::bind_method(D_METHOD("set_feature", "feature", "enable"), &BaseMaterial3D::set_feature);
 	ClassDB::bind_method(D_METHOD("get_feature", "feature"), &BaseMaterial3D::get_feature);
 
@@ -3298,7 +3385,9 @@ void BaseMaterial3D::_bind_methods() {
 
 	ADD_GROUP("Sampling", "texture_");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "texture_filter", PROPERTY_HINT_ENUM, "Nearest,Linear,Nearest Mipmap,Linear Mipmap,Nearest Mipmap Anisotropic,Linear Mipmap Anisotropic"), "set_texture_filter", "get_texture_filter");
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "texture_repeat"), "set_flag", "get_flag", FLAG_USE_TEXTURE_REPEAT);
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "u_repeat_mode", PROPERTY_HINT_ENUM, "Repeat,Mirrored Repeat,Clamp to Edge,Clamp to Border,Mirror Clamp to Edge"), "set_u_repeat_mode", "get_u_repeat_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "v_repeat_mode", PROPERTY_HINT_ENUM, "Repeat,Mirrored Repeat,Clamp to Edge,Clamp to Border,Mirror Clamp to Edge"), "set_u_repeat_mode", "get_v_repeat_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "w_repeat_mode", PROPERTY_HINT_ENUM, "Repeat,Mirrored Repeat,Clamp to Edge,Clamp to Border,Mirror Clamp to Edge"), "set_u_repeat_mode", "get_w_repeat_mode");
 
 	ADD_GROUP("Shadows", "");
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "disable_receive_shadows"), "set_flag", "get_flag", FLAG_DONT_RECEIVE_SHADOWS);
@@ -3359,6 +3448,13 @@ void BaseMaterial3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_MAX);
+
+	BIND_ENUM_CONSTANT(REPEAT_MODE_REPEAT);
+	BIND_ENUM_CONSTANT(REPEAT_MODE_MIRRORED_REPEAT);
+	BIND_ENUM_CONSTANT(REPEAT_MODE_CLAMP_TO_EDGE);
+	BIND_ENUM_CONSTANT(REPEAT_MODE_CLAMP_TO_BORDER);
+	BIND_ENUM_CONSTANT(REPEAT_MODE_MIRROR_CLAMP_TO_EDGE);
+	BIND_ENUM_CONSTANT(REPEAT_MODE_MAX);
 
 	BIND_ENUM_CONSTANT(DETAIL_UV_1);
 	BIND_ENUM_CONSTANT(DETAIL_UV_2);
@@ -3423,7 +3519,6 @@ void BaseMaterial3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(FLAG_DONT_RECEIVE_SHADOWS);
 	BIND_ENUM_CONSTANT(FLAG_DISABLE_AMBIENT_LIGHT);
 	BIND_ENUM_CONSTANT(FLAG_USE_SHADOW_TO_OPACITY);
-	BIND_ENUM_CONSTANT(FLAG_USE_TEXTURE_REPEAT);
 	BIND_ENUM_CONSTANT(FLAG_INVERT_HEIGHTMAP);
 	BIND_ENUM_CONSTANT(FLAG_SUBSURFACE_MODE_SKIN);
 	BIND_ENUM_CONSTANT(FLAG_PARTICLE_TRAILS_MODE);
@@ -3524,7 +3619,6 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_heightmap_deep_parallax_flip_tangent(false); //also sets binormal
 
 	flags[FLAG_ALBEDO_TEXTURE_MSDF] = false;
-	flags[FLAG_USE_TEXTURE_REPEAT] = true;
 
 	current_key.invalid_key = 1;
 

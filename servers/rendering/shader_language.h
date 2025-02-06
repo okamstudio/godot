@@ -189,8 +189,21 @@ public:
 		TK_FILTER_LINEAR_MIPMAP,
 		TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC,
 		TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC,
-		TK_REPEAT_ENABLE,
-		TK_REPEAT_DISABLE,
+		TK_U_REPEAT_REPEAT,
+		TK_U_REPEAT_MIRRORED_REPEAT,
+		TK_U_REPEAT_CLAMP_TO_EDGE,
+		TK_U_REPEAT_CLAMP_TO_BORDER,
+		TK_U_REPEAT_MIRROR_CLAMP_TO_EDGE,
+		TK_V_REPEAT_REPEAT,
+		TK_V_REPEAT_MIRRORED_REPEAT,
+		TK_V_REPEAT_CLAMP_TO_EDGE,
+		TK_V_REPEAT_CLAMP_TO_BORDER,
+		TK_V_REPEAT_MIRROR_CLAMP_TO_EDGE,
+		TK_W_REPEAT_REPEAT,
+		TK_W_REPEAT_MIRRORED_REPEAT,
+		TK_W_REPEAT_CLAMP_TO_EDGE,
+		TK_W_REPEAT_CLAMP_TO_BORDER,
+		TK_W_REPEAT_MIRROR_CLAMP_TO_EDGE,
 		TK_SHADER_TYPE,
 		TK_CURSOR,
 		TK_ERROR,
@@ -338,8 +351,11 @@ public:
 	};
 
 	enum TextureRepeat {
-		REPEAT_DISABLE,
-		REPEAT_ENABLE,
+		REPEAT_REPEAT,
+		REPEAT_MIRRORED_REPEAT,
+		REPEAT_CLAMP_TO_EDGE,
+		REPEAT_CLAMP_TO_BORDER,
+		REPEAT_MIRROR_CLAMP_TO_EDGE,
 		REPEAT_DEFAULT,
 	};
 
@@ -675,7 +691,9 @@ public:
 			Hint hint = HINT_NONE;
 			bool use_color = false;
 			TextureFilter filter = FILTER_DEFAULT;
-			TextureRepeat repeat = REPEAT_DEFAULT;
+			TextureRepeat u_repeat = REPEAT_DEFAULT;
+			TextureRepeat v_repeat = REPEAT_DEFAULT;
+			TextureRepeat w_repeat = REPEAT_DEFAULT;
 			float hint_range[3];
 			PackedStringArray hint_enum_names;
 			int instance_index = 0;
@@ -719,7 +737,9 @@ public:
 			//for passing textures as arguments
 			bool tex_argument_check;
 			TextureFilter tex_argument_filter;
-			TextureRepeat tex_argument_repeat;
+			TextureRepeat tex_argument_u_repeat;
+			TextureRepeat tex_argument_v_repeat;
+			TextureRepeat tex_argument_w_repeat;
 			bool tex_builtin_check;
 			StringName tex_builtin;
 			ShaderNode::Uniform::Hint tex_hint;
@@ -1134,7 +1154,9 @@ private:
 	CompletionType completion_type;
 	ShaderNode::Uniform::Hint current_uniform_hint = ShaderNode::Uniform::HINT_NONE;
 	TextureFilter current_uniform_filter = FILTER_DEFAULT;
-	TextureRepeat current_uniform_repeat = REPEAT_DEFAULT;
+	TextureRepeat current_uniform_u_repeat = REPEAT_DEFAULT;
+	TextureRepeat current_uniform_v_repeat = REPEAT_DEFAULT;
+	TextureRepeat current_uniform_w_repeat = REPEAT_DEFAULT;
 	bool current_uniform_instance_index_defined = false;
 	int completion_line = 0;
 	BlockNode *completion_block = nullptr;
@@ -1168,7 +1190,7 @@ private:
 	bool _validate_function_call(BlockNode *p_block, const FunctionInfo &p_function_info, OperatorNode *p_func, DataType *r_ret_type, StringName *r_ret_type_str, bool *r_is_custom_function = nullptr);
 	bool _parse_function_arguments(BlockNode *p_block, const FunctionInfo &p_function_info, OperatorNode *p_func, int *r_complete_arg = nullptr);
 	ShaderNode::Uniform::Hint _sanitize_hint(ShaderNode::Uniform::Hint p_hint);
-	bool _propagate_function_call_sampler_uniform_settings(const StringName &p_name, int p_argument, TextureFilter p_filter, TextureRepeat p_repeat, ShaderNode::Uniform::Hint p_hint);
+	bool _propagate_function_call_sampler_uniform_settings(const StringName &p_name, int p_argument, TextureFilter p_filter, TextureRepeat p_u_repeat, TextureRepeat p_v_repeat, TextureRepeat p_w_repeat, ShaderNode::Uniform::Hint p_hint);
 	bool _propagate_function_call_sampler_builtin_reference(const StringName &p_name, int p_argument, const StringName &p_builtin);
 	bool _validate_varying_assign(ShaderNode::Varying &p_varying, String *r_message);
 	bool _check_node_constness(const Node *p_node) const;

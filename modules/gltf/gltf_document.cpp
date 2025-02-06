@@ -4231,7 +4231,7 @@ Error GLTFDocument::_parse_textures(Ref<GLTFState> p_state) {
 	return OK;
 }
 
-GLTFTextureIndex GLTFDocument::_set_texture(Ref<GLTFState> p_state, Ref<Texture2D> p_texture, StandardMaterial3D::TextureFilter p_filter_mode, bool p_repeats) {
+GLTFTextureIndex GLTFDocument::_set_texture(Ref<GLTFState> p_state, Ref<Texture2D> p_texture, StandardMaterial3D::TextureFilter p_filter_mode, StandardMaterial3D::RepeatMode p_u_repeat_mode, StandardMaterial3D::RepeatMode p_v_repeat_mode) {
 	ERR_FAIL_COND_V(p_texture.is_null(), -1);
 	Ref<GLTFTexture> gltf_texture;
 	gltf_texture.instantiate();
@@ -4240,7 +4240,7 @@ GLTFTextureIndex GLTFDocument::_set_texture(Ref<GLTFState> p_state, Ref<Texture2
 	p_state->images.push_back(p_texture);
 	p_state->source_images.push_back(p_texture->get_image());
 	gltf_texture->set_src_image(gltf_src_image_i);
-	gltf_texture->set_sampler(_set_sampler_for_mode(p_state, p_filter_mode, p_repeats));
+	gltf_texture->set_sampler(_set_sampler_for_mode(p_state, p_filter_mode, p_u_repeat_mode, p_v_repeat_mode));
 	GLTFTextureIndex gltf_texture_i = p_state->textures.size();
 	p_state->textures.push_back(gltf_texture);
 	return gltf_texture_i;
@@ -4269,7 +4269,7 @@ Ref<Texture2D> GLTFDocument::_get_texture(Ref<GLTFState> p_state, const GLTFText
 	return p_state->images[image];
 }
 
-GLTFTextureSamplerIndex GLTFDocument::_set_sampler_for_mode(Ref<GLTFState> p_state, StandardMaterial3D::TextureFilter p_filter_mode, bool p_repeats) {
+GLTFTextureSamplerIndex GLTFDocument::_set_sampler_for_mode(Ref<GLTFState> p_state, StandardMaterial3D::TextureFilter p_filter_mode, StandardMaterial3D::RepeatMode p_u_repeat_mode, StandardMaterial3D::RepeatMode p_v_repeat_mode) {
 	for (int i = 0; i < p_state->texture_samplers.size(); ++i) {
 		if (p_state->texture_samplers[i]->get_filter_mode() == p_filter_mode) {
 			return i;
@@ -4280,7 +4280,7 @@ GLTFTextureSamplerIndex GLTFDocument::_set_sampler_for_mode(Ref<GLTFState> p_sta
 	Ref<GLTFTextureSampler> gltf_sampler;
 	gltf_sampler.instantiate();
 	gltf_sampler->set_filter_mode(p_filter_mode);
-	gltf_sampler->set_wrap_mode(p_repeats);
+	gltf_sampler->set_wrap_mode(p_u_repeat_mode, p_v_repeat_mode);
 	p_state->texture_samplers.push_back(gltf_sampler);
 	return gltf_sampler_i;
 }
@@ -4401,7 +4401,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 
 			if (albedo_texture.is_valid() && albedo_texture->get_image().is_valid()) {
 				albedo_texture->set_name(material->get_name() + "_albedo");
-				gltf_texture_index = _set_texture(p_state, albedo_texture, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
+				gltf_texture_index = _set_texture(p_state, albedo_texture, base_material->get_texture_filter(), base_material->get_u_repeat_mode(), base_material->get_v_repeat_mode());
 			}
 			if (gltf_texture_index != -1) {
 				bct["index"] = gltf_texture_index;
@@ -4532,7 +4532,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 				GLTFTextureIndex orm_texture_index = -1;
 				if (has_ao || has_roughness || has_metalness) {
 					orm_texture->set_name(material->get_name() + "_orm");
-					orm_texture_index = _set_texture(p_state, orm_texture, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
+					orm_texture_index = _set_texture(p_state, orm_texture, base_material->get_texture_filter(), base_material->get_u_repeat_mode(), base_material->get_v_repeat_mode());
 				}
 				if (has_ao) {
 					Dictionary occt;
@@ -4586,7 +4586,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 			GLTFTextureIndex gltf_texture_index = -1;
 			if (tex.is_valid() && tex->get_image().is_valid()) {
 				tex->set_name(material->get_name() + "_normal");
-				gltf_texture_index = _set_texture(p_state, tex, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
+				gltf_texture_index = _set_texture(p_state, tex, base_material->get_texture_filter(), base_material->get_u_repeat_mode(), base_material->get_v_repeat_mode());
 			}
 			nt["scale"] = base_material->get_normal_scale();
 			if (gltf_texture_index != -1) {
@@ -4610,7 +4610,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> p_state) {
 			GLTFTextureIndex gltf_texture_index = -1;
 			if (emission_texture.is_valid() && emission_texture->get_image().is_valid()) {
 				emission_texture->set_name(material->get_name() + "_emission");
-				gltf_texture_index = _set_texture(p_state, emission_texture, base_material->get_texture_filter(), base_material->get_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT));
+				gltf_texture_index = _set_texture(p_state, emission_texture, base_material->get_texture_filter(), base_material->get_u_repeat_mode(), base_material->get_v_repeat_mode());
 			}
 
 			if (gltf_texture_index != -1) {
@@ -4701,7 +4701,8 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 					Ref<GLTFTextureSampler> diffuse_sampler = _get_sampler_for_texture(p_state, diffuse_texture_dict["index"]);
 					if (diffuse_sampler.is_valid()) {
 						material->set_texture_filter(diffuse_sampler->get_filter_mode());
-						material->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, diffuse_sampler->get_wrap_mode());
+						material->set_u_repeat_mode(diffuse_sampler->get_u_repeat_mode());
+						material->set_v_repeat_mode(diffuse_sampler->get_v_repeat_mode());
 					}
 					Ref<Texture2D> diffuse_texture = _get_texture(p_state, diffuse_texture_dict["index"], TEXTURE_TYPE_GENERIC);
 					if (diffuse_texture.is_valid()) {
@@ -4753,7 +4754,8 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> p_state) {
 				if (bct.has("index")) {
 					Ref<GLTFTextureSampler> bct_sampler = _get_sampler_for_texture(p_state, bct["index"]);
 					material->set_texture_filter(bct_sampler->get_filter_mode());
-					material->set_flag(BaseMaterial3D::FLAG_USE_TEXTURE_REPEAT, bct_sampler->get_wrap_mode());
+					material->set_u_repeat_mode(bct_sampler->get_u_repeat_mode());
+					material->set_v_repeat_mode(bct_sampler->get_v_repeat_mode());
 					material->set_texture(BaseMaterial3D::TEXTURE_ALBEDO, _get_texture(p_state, bct["index"], TEXTURE_TYPE_GENERIC));
 				}
 				if (!mr.has("baseColorFactor")) {

@@ -755,7 +755,16 @@ void GI::SDFGI::create(RID p_env, const Vector3 &p_world_position, uint32_t p_re
 			RD::Uniform u;
 			u.binding = 2;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
-			u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+			RD::SamplerState sampler_state;
+			{
+				sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+			}
+			u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 			uniforms.push_back(u);
 		}
 		{
@@ -1038,7 +1047,16 @@ void GI::SDFGI::create(RID p_env, const Vector3 &p_world_position, uint32_t p_re
 			RD::Uniform u;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 			u.binding = 6;
-			u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+			RD::SamplerState sampler_state;
+			{
+				sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+			}
+			u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 			uniforms.push_back(u);
 		}
 
@@ -1343,7 +1361,7 @@ void GI::SDFGI::update_probes(RID p_env, SkyRD::Sky *p_sky) {
 						RD::Uniform u;
 						u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 						u.binding = 1;
-						u.append_id(RendererRD::MaterialStorage::get_singleton()->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+						//u.append_id(RendererRD::MaterialStorage::get_singleton()->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 						uniforms.push_back(u);
 					}
 
@@ -1579,7 +1597,16 @@ void GI::SDFGI::debug_draw(uint32_t p_view_count, const Projection *p_projection
 				RD::Uniform u;
 				u.binding = 8;
 				u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
-				u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+				RD::SamplerState sampler_state;
+				{
+					sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+					sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+					sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+					sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+				}
+				u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 				uniforms.push_back(u);
 			}
 			{
@@ -1707,7 +1734,16 @@ void GI::SDFGI::debug_probes(RID p_framebuffer, const uint32_t p_view_count, con
 			RD::Uniform u;
 			u.binding = 3;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
-			u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+			RD::SamplerState sampler_state;
+			{
+				sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+			}
+			u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 			uniforms.push_back(u);
 		}
 		{
@@ -2607,7 +2643,7 @@ void GI::VoxelGIInstance::update(bool p_update_light_instances, const Vector<RID
 					RD::Uniform u;
 					u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 					u.binding = 10;
-					u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+					//u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 					uniforms.push_back(u);
 				}
 
@@ -2767,7 +2803,7 @@ void GI::VoxelGIInstance::update(bool p_update_light_instances, const Vector<RID
 								RD::Uniform u;
 								u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 								u.binding = 10;
-								u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+								//u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 								uniforms.push_back(u);
 							}
 							{
@@ -2836,7 +2872,7 @@ void GI::VoxelGIInstance::update(bool p_update_light_instances, const Vector<RID
 							RD::Uniform u;
 							u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 							u.binding = 10;
-							u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+							//u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 							uniforms.push_back(u);
 						}
 
@@ -3327,7 +3363,16 @@ void GI::VoxelGIInstance::debug(RD::DrawListID p_draw_list, RID p_framebuffer, c
 		RD::Uniform u;
 		u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 		u.binding = 3;
-		u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+		RD::SamplerState sampler_state;
+		{
+			sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+			sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+			sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+			sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+		}
+		u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 		uniforms.push_back(u);
 	}
 
@@ -3499,7 +3544,7 @@ void GI::init(SkyRD *p_sky) {
 				RD::Uniform u;
 				u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 				u.binding = 1;
-				u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+				//u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 				uniforms.push_back(u);
 			}
 
@@ -3964,14 +4009,23 @@ void GI::process_gi(Ref<RenderSceneBuffersRD> p_render_buffers, const RID *p_nor
 				RD::Uniform u;
 				u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 				u.binding = 6;
-				u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+				RD::SamplerState sampler_state;
+				{
+					sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+					sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+					sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+					sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+				}
+				u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 				uniforms.push_back(u);
 			}
 			{
 				RD::Uniform u;
 				u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 				u.binding = 7;
-				u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+				//u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
 				uniforms.push_back(u);
 			}
 			{

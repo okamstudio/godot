@@ -264,7 +264,7 @@ ALBEDO = vec3(1.0);
 			uniforms.push_back(u);
 		}
 
-		material_storage->samplers_rd_get_default().append_uniforms(uniforms, SAMPLERS_BINDING_FIRST_INDEX);
+		//material_storage->samplers_rd_get_default().append_uniforms(uniforms, SAMPLERS_BINDING_FIRST_INDEX);
 
 		volumetric_fog.base_uniform_set = RD::get_singleton()->uniform_set_create(uniforms, volumetric_fog.default_shader_rd, VolumetricFogShader::FogSet::FOG_SET_BASE);
 	}
@@ -831,7 +831,16 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 			RD::Uniform u;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 			u.binding = 7;
-			u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+			RD::SamplerState sampler_state;
+			{
+				sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+			}
+			u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 			uniforms.push_back(u);
 			copy_uniforms.push_back(u);
 		}
@@ -893,7 +902,18 @@ void Fog::volumetric_fog_update(const VolumetricFogSettings &p_settings, const P
 			RD::Uniform u;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER;
 			u.binding = 13;
-			u.append_id(material_storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED));
+
+			RD::SamplerState sampler_state;
+			{
+				sampler_state.repeat_u = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.repeat_v = RD::SAMPLER_REPEAT_MODE_CLAMP_TO_EDGE;
+				sampler_state.mag_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
+				sampler_state.mip_filter = RD::SAMPLER_FILTER_LINEAR;
+				// sampler_state.lod_bias = 0;
+			}
+			u.append_id(material_storage->sampler_rd_get(sampler_state));
+
 			uniforms.push_back(u);
 			copy_uniforms.push_back(u);
 		}

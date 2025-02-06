@@ -41,7 +41,7 @@ RenderSceneBuffersRD::~RenderSceneBuffersRD() {
 
 	data_buffers.clear();
 
-	RendererRD::MaterialStorage::get_singleton()->samplers_rd_free(samplers);
+	RendererRD::MaterialStorage::get_singleton()->samplers_rd_free();
 }
 
 void RenderSceneBuffersRD::_bind_methods() {
@@ -116,8 +116,7 @@ void RenderSceneBuffersRD::update_samplers() {
 	}
 
 	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
-	material_storage->samplers_rd_free(samplers);
-	samplers = material_storage->samplers_rd_allocate(computed_mipmap_bias, anisotropic_filtering_level);
+	material_storage->samplers_rd_free();
 }
 
 void RenderSceneBuffersRD::cleanup() {

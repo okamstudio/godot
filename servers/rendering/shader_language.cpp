@@ -394,8 +394,21 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_FILTER_LINEAR_MIPMAP, "filter_linear_mipmap", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC, "filter_nearest_mipmap_anisotropic", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC, "filter_linear_mipmap_anisotropic", CF_UNSPECIFIED, {}, {} },
-	{ TK_REPEAT_ENABLE, "repeat_enable", CF_UNSPECIFIED, {}, {} },
-	{ TK_REPEAT_DISABLE, "repeat_disable", CF_UNSPECIFIED, {}, {} },
+	{ TK_U_REPEAT_REPEAT, "u_repeat_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_U_REPEAT_MIRRORED_REPEAT, "u_repeat_mirrored_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_U_REPEAT_CLAMP_TO_EDGE, "u_repeat_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
+	{ TK_U_REPEAT_CLAMP_TO_BORDER, "u_repeat_clamp_to_border", CF_UNSPECIFIED, {}, {} },
+	{ TK_U_REPEAT_MIRROR_CLAMP_TO_EDGE, "u_repeat_mirror_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
+	{ TK_V_REPEAT_REPEAT, "v_repeat_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_V_REPEAT_MIRRORED_REPEAT, "v_repeat_mirrored_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_V_REPEAT_CLAMP_TO_EDGE, "v_repeat_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
+	{ TK_V_REPEAT_CLAMP_TO_BORDER, "v_repeat_clamp_to_border", CF_UNSPECIFIED, {}, {} },
+	{ TK_V_REPEAT_MIRROR_CLAMP_TO_EDGE, "v_repeat_mirror_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
+	{ TK_W_REPEAT_REPEAT, "w_repeat_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_W_REPEAT_MIRRORED_REPEAT, "w_repeat_mirrored_repeat", CF_UNSPECIFIED, {}, {} },
+	{ TK_W_REPEAT_CLAMP_TO_EDGE, "w_repeat_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
+	{ TK_W_REPEAT_CLAMP_TO_BORDER, "w_repeat_clamp_to_border", CF_UNSPECIFIED, {}, {} },
+	{ TK_W_REPEAT_MIRROR_CLAMP_TO_EDGE, "w_repeat_mirror_clamp_to_edge", CF_UNSPECIFIED, {}, {} },
 
 	{ TK_ERROR, nullptr, CF_UNSPECIFIED, {}, {} }
 };
@@ -1265,11 +1278,20 @@ String ShaderLanguage::get_texture_filter_name(TextureFilter p_filter) {
 String ShaderLanguage::get_texture_repeat_name(TextureRepeat p_repeat) {
 	String result;
 	switch (p_repeat) {
-		case REPEAT_DISABLE: {
-			result = "repeat_disable";
+		case REPEAT_REPEAT: {
+			result = "repeat_repeat";
 		} break;
-		case REPEAT_ENABLE: {
-			result = "repeat_enable";
+		case REPEAT_MIRRORED_REPEAT: {
+			result = "repeat_mirrored_repeat";
+		} break;
+		case REPEAT_CLAMP_TO_EDGE: {
+			result = "repeat_clamp_to_edge";
+		} break;
+		case REPEAT_CLAMP_TO_BORDER: {
+			result = "repeat_clamp_to_border";
+		} break;
+		case REPEAT_MIRROR_CLAMP_TO_EDGE: {
+			result = "repeat_mirrored_clamp_to_edge";
 		} break;
 		default: {
 		} break;
@@ -1289,7 +1311,9 @@ void ShaderLanguage::clear() {
 	current_uniform_subgroup_name = "";
 	current_uniform_hint = ShaderNode::Uniform::HINT_NONE;
 	current_uniform_filter = FILTER_DEFAULT;
-	current_uniform_repeat = REPEAT_DEFAULT;
+	current_uniform_u_repeat = REPEAT_DEFAULT;
+	current_uniform_v_repeat = REPEAT_DEFAULT;
+	current_uniform_w_repeat = REPEAT_DEFAULT;
 	current_uniform_instance_index_defined = false;
 
 	completion_type = COMPLETION_NONE;
@@ -5552,7 +5576,7 @@ ShaderLanguage::ShaderNode::Uniform::Hint ShaderLanguage::_sanitize_hint(ShaderN
 	return ShaderNode::Uniform::HINT_NONE;
 }
 
-bool ShaderLanguage::_propagate_function_call_sampler_uniform_settings(const StringName &p_name, int p_argument, TextureFilter p_filter, TextureRepeat p_repeat, ShaderNode::Uniform::Hint p_hint) {
+bool ShaderLanguage::_propagate_function_call_sampler_uniform_settings(const StringName &p_name, int p_argument, TextureFilter p_filter, TextureRepeat p_u_repeat, TextureRepeat p_v_repeat, TextureRepeat p_w_repeat, ShaderNode::Uniform::Hint p_hint) {
 	for (int i = 0; i < shader->vfunctions.size(); i++) {
 		if (shader->vfunctions[i].name == p_name) {
 			ERR_FAIL_INDEX_V(p_argument, shader->vfunctions[i].function->arguments.size(), false);
@@ -5561,21 +5585,23 @@ bool ShaderLanguage::_propagate_function_call_sampler_uniform_settings(const Str
 				_set_error(vformat(RTR("Sampler argument %d of function '%s' called more than once using both built-ins and uniform textures, this is not supported (use either one or the other)."), p_argument, String(p_name)));
 				return false;
 			} else if (arg->tex_argument_check) {
-				// Was checked, verify that filter, repeat, and hint are the same.
-				if (arg->tex_argument_filter == p_filter && arg->tex_argument_repeat == p_repeat && arg->tex_hint == _sanitize_hint(p_hint)) {
+				// Was checked, verify that filter and hint are the same.
+				if (arg->tex_argument_filter == p_filter && arg->tex_hint == _sanitize_hint(p_hint)) {
 					return true;
 				} else {
-					_set_error(vformat(RTR("Sampler argument %d of function '%s' called more than once using textures that differ in either filter, repeat, or texture hint setting."), p_argument, String(p_name)));
+					_set_error(vformat(RTR("Sampler argument %d of function '%s' called more than once using textures that differ in either filter or texture hint setting."), p_argument, String(p_name)));
 					return false;
 				}
 			} else {
 				arg->tex_argument_check = true;
 				arg->tex_argument_filter = p_filter;
-				arg->tex_argument_repeat = p_repeat;
+				arg->tex_argument_u_repeat = p_u_repeat;
+				arg->tex_argument_v_repeat = p_v_repeat;
+				arg->tex_argument_w_repeat = p_w_repeat;
 				arg->tex_hint = _sanitize_hint(p_hint);
 				for (KeyValue<StringName, HashSet<int>> &E : arg->tex_argument_connect) {
 					for (const int &F : E.value) {
-						if (!_propagate_function_call_sampler_uniform_settings(E.key, F, p_filter, p_repeat, p_hint)) {
+						if (!_propagate_function_call_sampler_uniform_settings(E.key, F, p_filter, p_u_repeat, p_v_repeat, p_w_repeat, p_hint)) {
 							return false;
 						}
 					}
@@ -6423,7 +6449,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 											}
 
 											//propagate
-											if (!_propagate_function_call_sampler_uniform_settings(name, i, u->filter, u->repeat, u->hint)) {
+											if (!_propagate_function_call_sampler_uniform_settings(name, i, u->filter, u->u_repeat, u->v_repeat, u->w_repeat, u->hint)) {
 												return nullptr;
 											}
 										} else if (p_function_info.built_ins.has(varname)) {
@@ -9722,7 +9748,12 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 							if (uniform.array_size > 0) {
 								static Vector<int> supported_hints = {
-									TK_HINT_SOURCE_COLOR, TK_REPEAT_DISABLE, TK_REPEAT_ENABLE,
+									TK_HINT_SOURCE_COLOR, TK_U_REPEAT_REPEAT, TK_U_REPEAT_MIRRORED_REPEAT,
+									TK_U_REPEAT_CLAMP_TO_EDGE, TK_U_REPEAT_CLAMP_TO_BORDER, TK_U_REPEAT_MIRROR_CLAMP_TO_EDGE,
+									TK_V_REPEAT_REPEAT, TK_V_REPEAT_MIRRORED_REPEAT,
+									TK_V_REPEAT_CLAMP_TO_EDGE, TK_V_REPEAT_CLAMP_TO_BORDER, TK_V_REPEAT_MIRROR_CLAMP_TO_EDGE,
+									TK_W_REPEAT_REPEAT, TK_W_REPEAT_MIRRORED_REPEAT,
+									TK_W_REPEAT_CLAMP_TO_EDGE, TK_W_REPEAT_CLAMP_TO_BORDER, TK_W_REPEAT_MIRROR_CLAMP_TO_EDGE,
 									TK_FILTER_LINEAR, TK_FILTER_LINEAR_MIPMAP, TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC,
 									TK_FILTER_NEAREST, TK_FILTER_NEAREST_MIPMAP, TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC
 								};
@@ -9734,7 +9765,9 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 							ShaderNode::Uniform::Hint new_hint = ShaderNode::Uniform::HINT_NONE;
 							TextureFilter new_filter = FILTER_DEFAULT;
-							TextureRepeat new_repeat = REPEAT_DEFAULT;
+							TextureRepeat new_u_repeat = REPEAT_DEFAULT;
+							TextureRepeat new_v_repeat = REPEAT_DEFAULT;
+							TextureRepeat new_w_repeat = REPEAT_DEFAULT;
 
 							switch (tk.type) {
 								case TK_HINT_SOURCE_COLOR: {
@@ -9984,11 +10017,50 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 								case TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC: {
 									new_filter = FILTER_LINEAR_MIPMAP_ANISOTROPIC;
 								} break;
-								case TK_REPEAT_DISABLE: {
-									new_repeat = REPEAT_DISABLE;
+								case TK_U_REPEAT_REPEAT: {
+									new_u_repeat = REPEAT_REPEAT;
 								} break;
-								case TK_REPEAT_ENABLE: {
-									new_repeat = REPEAT_ENABLE;
+								case TK_U_REPEAT_MIRRORED_REPEAT: {
+									new_u_repeat = REPEAT_MIRRORED_REPEAT;
+								} break;
+								case TK_U_REPEAT_CLAMP_TO_EDGE: {
+									new_u_repeat = REPEAT_CLAMP_TO_EDGE;
+								} break;
+								case TK_U_REPEAT_CLAMP_TO_BORDER: {
+									new_u_repeat = REPEAT_CLAMP_TO_BORDER;
+								} break;
+								case TK_U_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+									new_u_repeat = REPEAT_MIRROR_CLAMP_TO_EDGE;
+								} break;
+								case TK_V_REPEAT_REPEAT: {
+									new_v_repeat = REPEAT_REPEAT;
+								} break;
+								case TK_V_REPEAT_MIRRORED_REPEAT: {
+									new_v_repeat = REPEAT_MIRRORED_REPEAT;
+								} break;
+								case TK_V_REPEAT_CLAMP_TO_EDGE: {
+									new_v_repeat = REPEAT_CLAMP_TO_EDGE;
+								} break;
+								case TK_V_REPEAT_CLAMP_TO_BORDER: {
+									new_v_repeat = REPEAT_CLAMP_TO_BORDER;
+								} break;
+								case TK_V_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+									new_v_repeat = REPEAT_MIRROR_CLAMP_TO_EDGE;
+								} break;
+								case TK_W_REPEAT_REPEAT: {
+									new_w_repeat = REPEAT_REPEAT;
+								} break;
+								case TK_W_REPEAT_MIRRORED_REPEAT: {
+									new_w_repeat = REPEAT_MIRRORED_REPEAT;
+								} break;
+								case TK_W_REPEAT_CLAMP_TO_EDGE: {
+									new_w_repeat = REPEAT_CLAMP_TO_EDGE;
+								} break;
+								case TK_W_REPEAT_CLAMP_TO_BORDER: {
+									new_w_repeat = REPEAT_CLAMP_TO_BORDER;
+								} break;
+								case TK_W_REPEAT_MIRROR_CLAMP_TO_EDGE: {
+									new_w_repeat = REPEAT_MIRROR_CLAMP_TO_EDGE;
 								} break;
 
 								default:
@@ -9996,7 +10068,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 							}
 
 							bool is_sampler_hint = new_hint != ShaderNode::Uniform::HINT_NONE && new_hint != ShaderNode::Uniform::HINT_SOURCE_COLOR && new_hint != ShaderNode::Uniform::HINT_RANGE && new_hint != ShaderNode::Uniform::HINT_ENUM;
-							if (((new_filter != FILTER_DEFAULT || new_repeat != REPEAT_DEFAULT) || is_sampler_hint) && !is_sampler_type(type)) {
+							if (((new_filter != FILTER_DEFAULT || new_u_repeat != REPEAT_DEFAULT || new_v_repeat != REPEAT_DEFAULT || new_w_repeat != REPEAT_DEFAULT) || is_sampler_hint) && !is_sampler_type(type)) {
 								_set_error(RTR("This hint is only for sampler types."));
 								return ERR_PARSE_ERROR;
 							}
@@ -10029,17 +10101,45 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 								}
 							}
 
-							if (new_repeat != REPEAT_DEFAULT) {
-								if (uniform.repeat != REPEAT_DEFAULT) {
-									if (uniform.repeat == new_repeat) {
-										_set_error(vformat(RTR("Duplicated repeat mode: '%s'."), get_texture_repeat_name(new_repeat)));
+							if (new_u_repeat != REPEAT_DEFAULT) {
+								if (uniform.u_repeat != REPEAT_DEFAULT) {
+									if (uniform.u_repeat == new_u_repeat) {
+										_set_error(vformat(RTR("Duplicated u-axis repeat mode: '%s'."), get_texture_repeat_name(new_u_repeat)));
 									} else {
-										_set_error(vformat(RTR("Redefinition of repeat mode: '%s'. The repeat mode has already been set to '%s'."), get_texture_repeat_name(new_repeat), get_texture_repeat_name(uniform.repeat)));
+										_set_error(vformat(RTR("Redefinition of u-axis repeat mode: '%s'. The repeat mode has already been set to '%s'."), get_texture_repeat_name(new_u_repeat), get_texture_repeat_name(uniform.u_repeat)));
 									}
 									return ERR_PARSE_ERROR;
 								} else {
-									uniform.repeat = new_repeat;
-									current_uniform_repeat = new_repeat;
+									uniform.u_repeat = new_u_repeat;
+									current_uniform_u_repeat = new_u_repeat;
+								}
+							}
+
+							if (new_v_repeat != REPEAT_DEFAULT) {
+								if (uniform.v_repeat != REPEAT_DEFAULT) {
+									if (uniform.v_repeat == new_v_repeat) {
+										_set_error(vformat(RTR("Duplicated v-axis repeat mode: '%s'."), get_texture_repeat_name(new_v_repeat)));
+									} else {
+										_set_error(vformat(RTR("Redefinition of v-axis repeat mode: '%s'. The repeat mode has already been set to '%s'."), get_texture_repeat_name(new_v_repeat), get_texture_repeat_name(uniform.v_repeat)));
+									}
+									return ERR_PARSE_ERROR;
+								} else {
+									uniform.v_repeat = new_v_repeat;
+									current_uniform_v_repeat = new_v_repeat;
+								}
+							}
+
+							if (new_w_repeat != REPEAT_DEFAULT) {
+								if (uniform.w_repeat != REPEAT_DEFAULT) {
+									if (uniform.w_repeat == new_w_repeat) {
+										_set_error(vformat(RTR("Duplicated w-axis repeat mode: '%s'."), get_texture_repeat_name(new_w_repeat)));
+									} else {
+										_set_error(vformat(RTR("Redefinition of w-axis repeat mode: '%s'. The repeat mode has already been set to '%s'."), get_texture_repeat_name(new_w_repeat), get_texture_repeat_name(uniform.w_repeat)));
+									}
+									return ERR_PARSE_ERROR;
+								} else {
+									uniform.w_repeat = new_w_repeat;
+									current_uniform_w_repeat = new_w_repeat;
 								}
 							}
 
@@ -10110,7 +10210,9 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 
 					current_uniform_hint = ShaderNode::Uniform::HINT_NONE;
 					current_uniform_filter = FILTER_DEFAULT;
-					current_uniform_repeat = REPEAT_DEFAULT;
+					current_uniform_u_repeat = REPEAT_DEFAULT;
+					current_uniform_v_repeat = REPEAT_DEFAULT;
+					current_uniform_w_repeat = REPEAT_DEFAULT;
 					current_uniform_instance_index_defined = false;
 				} else { // varying
 					ShaderNode::Varying varying;
@@ -10831,7 +10933,9 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 					arg.tex_argument_check = false;
 					arg.tex_builtin_check = false;
 					arg.tex_argument_filter = FILTER_DEFAULT;
-					arg.tex_argument_repeat = REPEAT_DEFAULT;
+					arg.tex_argument_u_repeat = REPEAT_DEFAULT;
+					arg.tex_argument_v_repeat = REPEAT_DEFAULT;
+					arg.tex_argument_w_repeat = REPEAT_DEFAULT;
 					arg.is_const = param_is_const;
 
 					tk = _get_token();
@@ -11804,9 +11908,26 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 					options.push_back("filter_nearest_mipmap");
 					options.push_back("filter_nearest_mipmap_anisotropic");
 				}
-				if (current_uniform_repeat == REPEAT_DEFAULT) {
-					options.push_back("repeat_enable");
-					options.push_back("repeat_disable");
+				if (current_uniform_u_repeat == REPEAT_DEFAULT) {
+					options.push_back("u_repeat_repeat");
+					options.push_back("u_repeat_mirrored_repeat");
+					options.push_back("u_repeat_clamp_to_edge");
+					options.push_back("u_repeat_clamp_to_border");
+					options.push_back("u_repeat_mirror_clamp_to_edge");
+				}
+				if (current_uniform_v_repeat == REPEAT_DEFAULT) {
+					options.push_back("v_repeat_repeat");
+					options.push_back("v_repeat_mirrored_repeat");
+					options.push_back("v_repeat_clamp_to_edge");
+					options.push_back("v_repeat_clamp_to_border");
+					options.push_back("v_repeat_mirror_clamp_to_edge");
+				}
+				if (current_uniform_w_repeat == REPEAT_DEFAULT) {
+					options.push_back("w_repeat_repeat");
+					options.push_back("w_repeat_mirrored_repeat");
+					options.push_back("w_repeat_clamp_to_edge");
+					options.push_back("w_repeat_clamp_to_border");
+					options.push_back("w_repeat_mirror_clamp_to_edge");
 				}
 				if (completion_base_array) {
 					if (current_uniform_hint == ShaderNode::Uniform::HINT_NONE) {
