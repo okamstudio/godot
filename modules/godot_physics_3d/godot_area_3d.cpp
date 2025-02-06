@@ -330,7 +330,7 @@ void GodotArea3D::compute_gravity(const Vector3 &p_position, Vector3 &r_gravity)
 			r_gravity = v.normalized() * get_gravity();
 		}
 	} else {
-		r_gravity = get_gravity_vector() * get_gravity();
+		r_gravity = get_transform().basis.xform(get_gravity_vector() * get_gravity());
 	}
 }
 
