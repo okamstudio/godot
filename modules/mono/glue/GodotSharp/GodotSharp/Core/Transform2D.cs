@@ -369,7 +369,6 @@ namespace Godot
         /// <summary>
         /// The identity transform, with no translation, rotation, or scaling applied.
         /// This is used as a replacement for <c>Transform2D()</c> in GDScript.
-        /// Do not use <c>new Transform2D()</c> with no arguments in C#, because it sets all values to zero.
         /// </summary>
         /// <value>Equivalent to <c>new Transform2D(Vector2.Right, Vector2.Down, Vector2.Zero)</c>.</value>
         public static Transform2D Identity { get { return _identity; } }
@@ -383,6 +382,12 @@ namespace Godot
         /// </summary>
         /// <value>Equivalent to <c>new Transform2D(Vector2.Right, Vector2.Up, Vector2.Zero)</c>.</value>
         public static Transform2D FlipY { get { return _flipY; } }
+
+        /// <summary>
+        /// Constructs a <see cref="Transform2D"/> set to <see langword="default"/>.
+        /// </summary>
+        /// <remarks>For the GDScript equivalent of <c>Transform2D()</c>, use <see cref="Identity"/> instead.</remarks>
+        public Transform2D() => this = default;
 
         /// <summary>
         /// Constructs a transformation matrix from 3 vectors (matrix columns).

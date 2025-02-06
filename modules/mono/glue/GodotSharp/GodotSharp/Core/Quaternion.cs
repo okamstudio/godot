@@ -492,9 +492,16 @@ namespace Godot
         /// The identity quaternion, representing no rotation.
         /// Equivalent to an identity <see cref="Basis"/> matrix. If a vector is transformed by
         /// an identity quaternion, it will not change.
+        /// This is used as a replacement for <c>Quaternion()</c> in GDScript.
         /// </summary>
         /// <value>Equivalent to <c>new Quaternion(0, 0, 0, 1)</c>.</value>
         public static Quaternion Identity { get { return _identity; } }
+
+        /// <summary>
+        /// Constructs a <see cref="Quaternion"/> set to <see langword="default"/>.
+        /// </summary>
+        /// <remarks>For the GDScript equivalent of <c>Quaternion()</c>, use <see cref="Identity"/> instead.</remarks>
+        public Quaternion() => this = default;
 
         /// <summary>
         /// Constructs a <see cref="Quaternion"/> defined by the given values.

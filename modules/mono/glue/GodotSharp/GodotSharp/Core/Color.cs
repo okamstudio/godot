@@ -576,6 +576,12 @@ namespace Godot
         }
 
         /// <summary>
+        /// Constructs a <see cref="Color"/> set to <see langword="default"/>.
+        /// </summary>
+        /// <remarks>For the GDScript equivalent of <c>Color()</c>, use <see cref="Colors.Black"/> instead.</remarks>
+        public Color() => this = default;
+
+        /// <summary>
         /// Constructs a <see cref="Color"/> from RGBA values, typically on the range of 0 to 1.
         /// </summary>
         /// <param name="r">The color's red component, typically on the range of 0 to 1.</param>

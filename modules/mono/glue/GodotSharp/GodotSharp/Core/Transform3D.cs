@@ -308,7 +308,6 @@ namespace Godot
         /// <summary>
         /// The identity transform, with no translation, rotation, or scaling applied.
         /// This is used as a replacement for <c>Transform()</c> in GDScript.
-        /// Do not use <c>new Transform()</c> with no arguments in C#, because it sets all values to zero.
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Right, Vector3.Up, Vector3.Back, Vector3.Zero)</c>.</value>
         public static Transform3D Identity { get { return _identity; } }
@@ -327,6 +326,12 @@ namespace Godot
         /// </summary>
         /// <value>Equivalent to <c>new Transform(Vector3.Right, Vector3.Up, Vector3.Forward, Vector3.Zero)</c>.</value>
         public static Transform3D FlipZ { get { return _flipZ; } }
+
+        /// <summary>
+        /// Constructs a <see cref="Transform3D"/> set to <see langword="default"/>.
+        /// </summary>
+        /// <remarks>For the GDScript equivalent of <c>Transform()</c>, use <see cref="Identity"/> instead.</remarks>
+        public Transform3D() => this = default;
 
         /// <summary>
         /// Constructs a transformation matrix from 4 vectors (matrix columns).
