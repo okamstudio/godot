@@ -224,6 +224,11 @@ Comment: doctest
 Copyright: 2016-2023, Viktor Kirilov
 License: Expat
 
+Files: thirdparty/dr_libs/*
+Comment: dr_libs
+Copyright: 2024 David Reid
+License: public-domain or Unlicense or Expat
+
 Files: thirdparty/embree/*
 Comment: Embree
 Copyright: 2009-2021 Intel Corporation

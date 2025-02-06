@@ -33,6 +33,7 @@
 
 #include "servers/audio/audio_stream.h"
 
+#include "thirdparty/dr_libs/dr_wav.h"
 #include "thirdparty/misc/qoa.h"
 
 class AudioStreamWAV;
@@ -137,6 +138,8 @@ private:
 	int mix_rate = 44100;
 	LocalVector<uint8_t> data;
 	uint32_t data_bytes = 0;
+
+	static Ref<AudioStreamWAV> load_from_dr_wav(drwav &p_wav, const Dictionary &p_options);
 
 protected:
 	static void _bind_methods();

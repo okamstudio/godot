@@ -184,6 +184,18 @@ Files extracted from upstream source:
 - `LICENSE.txt`
 
 
+# dr_libs
+
+- Upstream> https://github.com/mackron/dr_libs
+- Version: git (660795b2834aebb2217c9849d668b6e4bd4ef810, 2024)
+- License: Public Domain or Unlicense or Expat
+
+Files extracted from upstream source:
+
+- `dr_wav.h`
+- `LICENSE`
+
+
 ## embree
 
 - Upstream: https://github.com/embree/embree
