@@ -2768,7 +2768,16 @@ void EditorPropertyNodePath::_menu_option(int p_idx) {
 			Node *target_node = edited_node->get_node_or_null(np);
 			ERR_FAIL_NULL(target_node);
 
+			SceneTreeDock *scene_tree_dock = SceneTreeDock::get_singleton();
+			if (scene_tree_dock->get_window() == get_tree()->get_root()) {
+				TabContainer *tab_container = (TabContainer *)scene_tree_dock->get_parent_control();
+				tab_container->set_current_tab(tab_container->get_tab_idx_from_control(scene_tree_dock));
+			} else {
+				scene_tree_dock->get_window()->grab_focus();
+			}
+
 			SceneTreeDock::get_singleton()->set_selected(target_node);
+			SceneTreeDock::get_singleton()->get_tree_editor()->update_tree();
 		} break;
 	}
 }
@@ -2801,6 +2810,18 @@ const NodePath EditorPropertyNodePath::_get_node_path() const {
 		}
 	} else {
 		return val;
+	}
+}
+
+void EditorPropertyNodePath::_button_input(const Ref<InputEvent> &p_event) {
+	Ref<InputEventMouseButton> mb = p_event;
+
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MouseButton::RIGHT) {
+		menu->show_popup();
+
+		Vector2 pos = menu->get_popup()->get_position();
+		pos.x += mb->get_position().x - assign->get_size().x;
+		menu->get_popup()->set_position(pos);
 	}
 }
 
@@ -2942,6 +2963,7 @@ EditorPropertyNodePath::EditorPropertyNodePath() {
 	assign->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	assign->set_expand_icon(true);
 	assign->connect(SceneStringName(pressed), callable_mp(this, &EditorPropertyNodePath::_node_assign));
+	assign->connect("gui_input", callable_mp(this, &EditorPropertyNodePath::_button_input));
 	SET_DRAG_FORWARDING_CD(assign, EditorPropertyNodePath);
 	hbc->add_child(assign);
 

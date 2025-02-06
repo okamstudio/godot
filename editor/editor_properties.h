@@ -639,6 +639,7 @@ class EditorPropertyNodePath : public EditorProperty {
 	void _accept_text();
 	void _text_submitted(const String &p_text);
 	const NodePath _get_node_path() const;
+	void _button_input(const Ref<InputEvent> &p_event);
 
 	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const;
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
