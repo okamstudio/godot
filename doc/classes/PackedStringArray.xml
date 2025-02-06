@@ -190,7 +190,7 @@
 				Sorts the elements of the array in ascending order.
 			</description>
 		</method>
-		<method name="to_byte_array" qualifiers="const">
+		<method name="to_byte_array" qualifiers="const" deprecated="This method returns a byte representation of the internal pointers used to manage the strings in PackedStringArray, rather than the string data itself. It likely has no practical use in projects.">
 			<return type="PackedByteArray" />
 			<description>
 				Returns a [PackedByteArray] with each string encoded as bytes.
