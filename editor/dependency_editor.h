@@ -31,6 +31,7 @@
 #ifndef DEPENDENCY_EDITOR_H
 #define DEPENDENCY_EDITOR_H
 
+#include <functional>
 #include "scene/gui/box_container.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/item_list.h"
@@ -49,7 +50,9 @@ class DependencyEditor : public AcceptDialog {
 
 	String replacing;
 	String editing;
-	List<String> missing;
+	Vector<String> missing;
+
+	std::function<void(Vector<String>)> on_update = [](Vector<String>){};
 
 	void _fix_and_find(EditorFileSystemDirectory *efsd, HashMap<String, HashMap<String, String>> &candidates);
 
@@ -62,6 +65,7 @@ class DependencyEditor : public AcceptDialog {
 
 public:
 	void edit(const String &p_path);
+	void register_onupdate_callback(std::function<void(Vector<String>)> p_on_update) { on_update = p_on_update; };
 	DependencyEditor();
 };
 
@@ -152,6 +156,7 @@ private:
 	Tree *files = nullptr;
 	void ok_pressed() override;
 	void custom_action(const String &) override;
+	void on_update_callback(Vector<String>);
 
 public:
 	void show(Mode p_mode, const String &p_for_file, const Vector<String> &report);

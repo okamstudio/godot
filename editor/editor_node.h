@@ -31,6 +31,7 @@
 #ifndef EDITOR_NODE_H
 #define EDITOR_NODE_H
 
+#include <functional>
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
 #include "editor/editor_data.h"
@@ -790,7 +791,7 @@ public:
 	void set_edited_scene_root(Node *p_scene, bool p_auto_add);
 	Node *get_edited_scene() { return editor_data.get_edited_scene_root(); }
 
-	void fix_dependencies(const String &p_for_file);
+	void fix_dependencies(const String &p_for_file, std::function<void(Vector<String>)> p_on_update);
 	int new_scene();
 	Error load_scene(const String &p_scene, bool p_ignore_broken_deps = false, bool p_set_inherited = false, bool p_force_open_imported = false, bool p_silent_change_tab = false);
 	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);

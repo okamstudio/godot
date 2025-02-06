@@ -3973,7 +3973,8 @@ bool EditorNode::is_multi_window_enabled() const {
 	return !SceneTree::get_singleton()->get_root()->is_embedding_subwindows() && !EDITOR_GET("interface/editor/single_window_mode") && EDITOR_GET("interface/multi_window/enable");
 }
 
-void EditorNode::fix_dependencies(const String &p_for_file) {
+void EditorNode::fix_dependencies(const String &p_for_file, std::function<void(Vector<String>)> p_on_update) {
+	dependency_fixer->register_onupdate_callback(p_on_update);
 	dependency_fixer->edit(p_for_file);
 }
 
