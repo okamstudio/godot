@@ -100,6 +100,8 @@ String HTTPRequest::get_header_value(const PackedStringArray &p_headers, const S
 }
 
 Error HTTPRequest::request(const String &p_url, const Vector<String> &p_custom_headers, HTTPClient::Method p_method, const String &p_request_data) {
+	ERR_FAIL_COND_V_MSG(p_method == HTTPClient::METHOD_CONNECT, ERR_INVALID_PARAMETER, "HTTPRequest sends requests to origin servers and does not support the CONNECT verb. You must use HTTPClient to connect to a proxy server.");
+
 	// Copy the string into a raw buffer.
 	Vector<uint8_t> raw_data;
 
@@ -117,6 +119,7 @@ Error HTTPRequest::request(const String &p_url, const Vector<String> &p_custom_h
 Error HTTPRequest::request_raw(const String &p_url, const Vector<String> &p_custom_headers, HTTPClient::Method p_method, const Vector<uint8_t> &p_request_data_raw) {
 	ERR_FAIL_COND_V(!is_inside_tree(), ERR_UNCONFIGURED);
 	ERR_FAIL_COND_V_MSG(requesting, ERR_BUSY, "HTTPRequest is processing a request. Wait for completion or cancel it before attempting a new one.");
+	ERR_FAIL_COND_V_MSG(p_method == HTTPClient::METHOD_CONNECT, ERR_INVALID_PARAMETER, "HTTPRequest sends requests to origin servers and does not support the CONNECT verb. You must use HTTPClient to connect to a proxy server.");
 
 	if (timeout > 0) {
 		timer->stop();
