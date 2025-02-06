@@ -211,8 +211,8 @@ void JointGizmosDrawer::draw_circle(Vector3::Axis p_axis, real_t p_radius, const
 					}
 					break;
 				case Vector3::AXIS_Z:
-					from = p_base.xform(Vector3(Math::cos(s), Math::sin(s), 0)) * p_radius;
-					to = p_base.xform(Vector3(Math::cos(n), Math::sin(n), 0)) * p_radius;
+					from = p_base.xform(Vector3(Math::cos(s), -Math::sin(s), 0)) * p_radius;
+					to = p_base.xform(Vector3(Math::cos(n), -Math::sin(n), 0)) * p_radius;
 					break;
 			}
 
