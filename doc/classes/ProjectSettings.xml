@@ -3217,6 +3217,11 @@
 		</member>
 	</members>
 	<signals>
+		<signal name="global_script_classes_changed">
+			<description>
+				Emitted right after ScriptServer saves the newly updated global class list.
+			</description>
+		</signal>
 		<signal name="settings_changed">
 			<description>
 				Emitted when any setting is changed, up to once per process frame.

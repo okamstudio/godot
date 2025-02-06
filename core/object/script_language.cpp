@@ -533,6 +533,8 @@ void ScriptServer::save_global_classes() {
 		gcarr.push_back(d);
 	}
 	ProjectSettings::get_singleton()->store_global_class_list(gcarr);
+	// Workaround for ScriptServer not being able to emit signals.
+	ProjectSettings::get_singleton()->emit_signal(SNAME("global_script_classes_changed"));
 }
 
 ////////////////////

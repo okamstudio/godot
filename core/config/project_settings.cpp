@@ -1442,6 +1442,7 @@ void ProjectSettings::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("save_custom", "file"), &ProjectSettings::_save_custom_bnd);
 
 	ADD_SIGNAL(MethodInfo("settings_changed"));
+	ADD_SIGNAL(MethodInfo("global_script_classes_changed"));
 }
 
 void ProjectSettings::_add_builtin_input_map() {
