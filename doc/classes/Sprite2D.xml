@@ -81,6 +81,9 @@
 		<member name="region_rect" type="Rect2" setter="set_region_rect" getter="get_region_rect" default="Rect2(0, 0, 0, 0)">
 			The region of the atlas texture to display. [member region_enabled] must be [code]true[/code].
 		</member>
+		<member name="separation" type="Vector2i" setter="set_separation" getter="get_separation" default="Vector2i(0, 0)">
+			The number of pixels separating each frame in the atlas texture.
+		</member>
 		<member name="texture" type="Texture2D" setter="set_texture" getter="get_texture">
 			[Texture2D] object to draw.
 		</member>

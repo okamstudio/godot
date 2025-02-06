@@ -87,9 +87,23 @@ void Sprite2D::_get_rects(Rect2 &r_src_rect, Rect2 &r_dst_rect, bool &r_filter_c
 		base_rect = Rect2(0, 0, texture->get_width(), texture->get_height());
 	}
 
+	if (separation.width > 0 || separation.height > 0) {
+		base_rect.size.x -= ((hframes - 1) * separation.width);
+		base_rect.size.y -= ((vframes - 1) * separation.height);
+	}
+
 	Size2 frame_size = base_rect.size / Size2(hframes, vframes);
-	Point2 frame_offset = Point2(frame % hframes, frame / hframes);
+
+	int hposition = frame % hframes;
+	int vposition = frame / hframes;
+
+	Point2 frame_offset = Point2(hposition, vposition);
 	frame_offset *= frame_size;
+
+	if (separation.width > 0 || separation.height > 0) {
+		frame_offset.x += hposition * separation.width;
+		frame_offset.y += vposition * separation.height;
+	}
 
 	r_src_rect.size = frame_size;
 	r_src_rect.position = base_rect.position + frame_offset;
@@ -330,6 +344,21 @@ int Sprite2D::get_hframes() const {
 	return hframes;
 }
 
+void Sprite2D::set_separation(const Vector2i &p_separation) {
+	if (separation == p_separation) {
+		return;
+	}
+
+	separation = Vector2i(0, 0).max(p_separation);
+
+	queue_redraw();
+	item_rect_changed();
+}
+
+Vector2i Sprite2D::get_separation() const {
+	return separation;
+}
+
 bool Sprite2D::is_pixel_opaque(const Point2 &p_point) const {
 	if (texture.is_null()) {
 		return false;
@@ -392,6 +421,11 @@ Rect2 Sprite2D::get_rect() const {
 		s = region_rect.size;
 	} else {
 		s = texture->get_size();
+	}
+
+	if (separation.width > 0 || separation.height > 0) {
+		s.x -= ((hframes - 1) * separation.width);
+		s.y -= ((vframes - 1) * separation.height);
 	}
 
 	s = s / Point2(hframes, vframes);
@@ -475,6 +509,9 @@ void Sprite2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_hframes", "hframes"), &Sprite2D::set_hframes);
 	ClassDB::bind_method(D_METHOD("get_hframes"), &Sprite2D::get_hframes);
 
+	ClassDB::bind_method(D_METHOD("set_separation", "separation"), &Sprite2D::set_separation);
+	ClassDB::bind_method(D_METHOD("get_separation"), &Sprite2D::get_separation);
+
 	ClassDB::bind_method(D_METHOD("get_rect"), &Sprite2D::get_rect);
 
 	ADD_SIGNAL(MethodInfo("frame_changed"));
@@ -489,6 +526,7 @@ void Sprite2D::_bind_methods() {
 	ADD_GROUP("Animation", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "hframes", PROPERTY_HINT_RANGE, "1,16384,1"), "set_hframes", "get_hframes");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "vframes", PROPERTY_HINT_RANGE, "1,16384,1"), "set_vframes", "get_vframes");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "separation", PROPERTY_HINT_RANGE, "0,100,1,or_greater,suffix:px"), "set_separation", "get_separation");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "frame"), "set_frame", "get_frame");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2I, "frame_coords", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "set_frame_coords", "get_frame_coords");
 
