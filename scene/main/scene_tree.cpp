@@ -1837,7 +1837,7 @@ SceneTree::SceneTree() {
 	if (singleton == nullptr) {
 		singleton = this;
 	}
-	debug_collisions_color = GLOBAL_DEF("debug/shapes/collision/shape_color", Color(0.0, 0.6, 0.7, 0.42));
+	debug_collisions_color = GLOBAL_DEF_RST("debug/shapes/collision/shape_color", Color(0.0, 0.6, 0.7, 0.42));
 	debug_collision_contact_color = GLOBAL_DEF("debug/shapes/collision/contact_color", Color(1.0, 0.2, 0.1, 0.8));
 	debug_paths_color = GLOBAL_DEF("debug/shapes/paths/geometry_color", Color(0.1, 1.0, 0.7, 0.4));
 	debug_paths_width = GLOBAL_DEF(PropertyInfo(Variant::FLOAT, "debug/shapes/paths/geometry_width", PROPERTY_HINT_RANGE, "0.01,10,0.001,or_greater"), 2.0);
