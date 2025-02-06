@@ -904,16 +904,25 @@ Variant Object::call_const(const StringName &p_method, const Variant **p_args, i
 
 void Object::notification(int p_notification, bool p_reversed) {
 	if (p_reversed) {
+		_notification_fast<true>(p_notification);
+	} else {
+		_notification_fast<false>(p_notification);
+	}
+}
+
+template <bool t_reversed>
+void Object::_notification_fast(int p_notification) {
+	if constexpr (t_reversed) {
 		if (script_instance) {
-			script_instance->notification(p_notification, p_reversed);
+			script_instance->notification(p_notification, t_reversed);
 		}
 	} else {
-		_notificationv(p_notification, p_reversed);
+		_notificationv(p_notification, t_reversed);
 	}
 
 	if (_extension) {
 		if (_extension->notification2) {
-			_extension->notification2(_extension_instance, p_notification, static_cast<GDExtensionBool>(p_reversed));
+			_extension->notification2(_extension_instance, p_notification, static_cast<GDExtensionBool>(t_reversed));
 #ifndef DISABLE_DEPRECATED
 		} else if (_extension->notification) {
 			_extension->notification(_extension_instance, p_notification);
@@ -921,11 +930,11 @@ void Object::notification(int p_notification, bool p_reversed) {
 		}
 	}
 
-	if (p_reversed) {
-		_notificationv(p_notification, p_reversed);
+	if constexpr (t_reversed) {
+		_notificationv(p_notification, t_reversed);
 	} else {
 		if (script_instance) {
-			script_instance->notification(p_notification, p_reversed);
+			script_instance->notification(p_notification, t_reversed);
 		}
 	}
 }
