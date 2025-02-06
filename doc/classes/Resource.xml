@@ -50,15 +50,24 @@
 		</method>
 		<method name="duplicate" qualifiers="const">
 			<return type="Resource" />
-			<param index="0" name="subresources" type="bool" default="false" />
+			<param index="0" name="deep" type="bool" default="false" />
 			<description>
 				Duplicates this resource, returning a new resource with its [code]export[/code]ed or [constant PROPERTY_USAGE_STORAGE] properties copied from the original.
-				If [param subresources] is [code]false[/code], a shallow copy is returned; nested resources within subresources are not duplicated and are shared with the original resource (with one exception; see below). If [param subresources] is [code]true[/code], a deep copy is returned; nested subresources will be duplicated and are not shared (with two exceptions; see below).
-				[param subresources] is usually respected, with the following exceptions:
-				- Subresource properties with the [constant PROPERTY_USAGE_ALWAYS_DUPLICATE] flag are always duplicated.
+				If [param deep] is [code]false[/code], a [b]shallow[/b] copy is returned: nested [Array], [Dictionary] and [Resource] properties are not duplicated and are shared with the original resource.
+				If [param deep] is [code]true[/code], a [b]deep[/b] copy is returned: all nested arrays, dictionaries, and packed arrays are also duplicated (recursively). Any [Resource] found inside will only be duplicated if it's local, like [constant RESOURCE_DEEP_DUPLICATE_INTERNAL] used with [method duplicate_deep].
+				The following exceptions apply:
+				- Subresource properties with the [constant PROPERTY_USAGE_ALWAYS_DUPLICATE] flag are always duplicated (recursively or not, depending on [param deep]).
 				- Subresource properties with the [constant PROPERTY_USAGE_NEVER_DUPLICATE] flag are never duplicated.
-				- Subresources inside [Array] and [Dictionary] properties are never duplicated.
 				[b]Note:[/b] For custom resources, this method will fail if [method Object._init] has been defined with required parameters.
+				[b]Note:[/b] When duplicating with [param deep] set to [code]true[/code], each resource found, including the one on which this method is called, will be only duplicated once and referenced as many times as needed in the duplicate. For instance, if you are duplicating resource A that happens to have resource B referenced twice, you'll get a new resource A' referencing a new resource B' twice.
+			</description>
+		</method>
+		<method name="duplicate_deep" qualifiers="const">
+			<return type="Resource" />
+			<param index="0" name="deep_subresources_mode" type="int" enum="ResourceDeepDuplicateMode" default="1" />
+			<description>
+				Duplicates this resource, deeply, like [method duplicate][code](true)[/code], with extra control over how subresources are handled.
+				[param deep_subresources_mode] must be one of the values from [enum ResourceDeepDuplicateMode].
 			</description>
 		</method>
 		<method name="emit_changed">
@@ -176,4 +185,15 @@
 			</description>
 		</signal>
 	</signals>
+	<constants>
+		<constant name="RESOURCE_DEEP_DUPLICATE_NONE" value="0" enum="ResourceDeepDuplicateMode">
+			No subresorces at all are duplicated. This is useful even in a deep duplication to have all the arrays and dictionaries duplicated but still pointing to the original resources.
+		</constant>
+		<constant name="RESOURCE_DEEP_DUPLICATE_INTERNAL" value="1" enum="ResourceDeepDuplicateMode">
+			Only subresources without a path or with a scene-local path will be duplicated.
+		</constant>
+		<constant name="RESOURCE_DEEP_DUPLICATE_ALL" value="2" enum="ResourceDeepDuplicateMode">
+			Every subresource found will be duplicated, even if it has a non-local path. In other words, even potentially big resources stored separately will be duplicated.
+		</constant>
+	</constants>
 </class>

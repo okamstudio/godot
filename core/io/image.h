@@ -234,6 +234,8 @@ public:
 	static Ref<Image> (*basis_universal_unpacker_ptr)(const uint8_t *p_data, int p_size);
 
 protected:
+	virtual Ref<Resource> _duplicate(const DuplicateParams &p_params) const override;
+
 	static void _bind_methods();
 
 private:
@@ -410,8 +412,6 @@ public:
 	void convert_rg_to_ra_rgba8();
 	void convert_ra_rgba8_to_rg();
 	void convert_rgba8_to_bgra8();
-
-	virtual Ref<Resource> duplicate(bool p_subresources = false) const override;
 
 	UsedChannels detect_used_channels(CompressSource p_source = COMPRESS_SOURCE_GENERIC) const;
 	void optimize_channels();
