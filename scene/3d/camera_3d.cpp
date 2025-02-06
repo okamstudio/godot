@@ -444,6 +444,14 @@ Vector3 Camera3D::project_local_ray_normal(const Point2 &p_pos) const {
 }
 
 Vector3 Camera3D::project_ray_origin(const Point2 &p_pos) const {
+	if (mode == PROJECTION_ORTHOGONAL) {
+		Vector3 ray = project_local_ray_origin(p_pos);
+		return get_camera_transform().xform(ray);
+	}
+	return get_camera_transform().origin;
+}
+
+Vector3 Camera3D::project_local_ray_origin(const Point2 &p_pos) const {
 	ERR_FAIL_COND_V_MSG(!is_inside_tree(), Vector3(), "Camera is not inside scene.");
 
 	Size2 viewport_size = get_viewport()->get_camera_rect_size();
@@ -465,11 +473,9 @@ Vector3 Camera3D::project_ray_origin(const Point2 &p_pos) const {
 		ray.x = pos.x * (hsize)-hsize / 2;
 		ray.y = (1.0 - pos.y) * (vsize)-vsize / 2;
 		ray.z = -_near;
-		ray = get_camera_transform().xform(ray);
 		return ray;
-	} else {
-		return get_camera_transform().origin;
-	};
+	}
+	return Vector3();
 }
 
 bool Camera3D::is_position_behind(const Vector3 &p_pos) const {
@@ -647,6 +653,7 @@ void Camera3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("project_ray_normal", "screen_point"), &Camera3D::project_ray_normal);
 	ClassDB::bind_method(D_METHOD("project_local_ray_normal", "screen_point"), &Camera3D::project_local_ray_normal);
 	ClassDB::bind_method(D_METHOD("project_ray_origin", "screen_point"), &Camera3D::project_ray_origin);
+	ClassDB::bind_method(D_METHOD("project_local_ray_origin", "screen_point"), &Camera3D::project_local_ray_origin);
 	ClassDB::bind_method(D_METHOD("unproject_position", "world_point"), &Camera3D::unproject_position);
 	ClassDB::bind_method(D_METHOD("is_position_behind", "world_point"), &Camera3D::is_position_behind);
 	ClassDB::bind_method(D_METHOD("project_position", "screen_point", "z_depth"), &Camera3D::project_position);

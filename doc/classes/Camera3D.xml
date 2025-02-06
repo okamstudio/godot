@@ -82,6 +82,13 @@
 				Returns a normal vector from the screen point location directed along the camera. Orthogonal cameras are normalized. Perspective cameras account for perspective, screen width/height, etc.
 			</description>
 		</method>
+		<method name="project_local_ray_origin" qualifiers="const">
+			<return type="Vector3" />
+			<param index="0" name="screen_point" type="Vector2" />
+			<description>
+				Returns a 3D position in local camera space, that is the result of projecting a point on the [Viewport] rectangle by the inverse camera projection. This is useful for casting rays in the form of (origin, normal) for object intersection or picking.
+			</description>
+		</method>
 		<method name="project_position" qualifiers="const">
 			<return type="Vector3" />
 			<param index="0" name="screen_point" type="Vector2" />
