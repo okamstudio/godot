@@ -710,6 +710,12 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 #else
 	OPCODE_WHILE(true) {
 #endif
+		if (!ScriptServer::is_scripting_enabled()) {
+#ifdef DEBUG_ENABLED
+			exit_ok = true;
+#endif
+			OPCODE_BREAK;
+		}
 
 		OPCODE_SWITCH(_code_ptr[ip]) {
 			OPCODE(OPCODE_OPERATOR) {

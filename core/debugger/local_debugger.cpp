@@ -267,8 +267,23 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 				print_line("Added breakpoint at " + source + ":" + itos(linenr));
 			}
 
-		} else if (line == "q" || line == "quit" ||
+		} else if (line.begins_with("q") || line.begins_with("quit") ||
 				(line.is_empty() && feof(stdin))) {
+			int exit_code = EXIT_FAILURE;
+			if (line.get_slice_count(" ") > 1) {
+				String value = line.get_slicec(' ', 1);
+				if (!value.is_numeric()) {
+					print_line("Error: Invalid exit code '" + value + "'.");
+					continue;
+				}
+
+				exit_code = value.to_int();
+				if (exit_code < 0) {
+					print_line("Error: Invalid exit code " + itos(exit_code) + ".");
+					continue;
+				}
+			}
+
 			// Do not stop again on quit
 			script_debugger->clear_breakpoints();
 			script_debugger->set_depth(-1);
@@ -276,7 +291,8 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 
 			MainLoop *main_loop = OS::get_singleton()->get_main_loop();
 			if (main_loop->get_class() == "SceneTree") {
-				main_loop->call("quit");
+				main_loop->call("quit", exit_code);
+				ScriptServer::set_scripting_enabled(false);
 			}
 			break;
 		} else if (line.begins_with("delete")) {
@@ -312,7 +328,7 @@ void LocalDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 			print_line("\tbr,break [source:line]\t List all breakpoints or place a breakpoint.");
 			print_line("\tdelete [source:line]:\t Delete one/all breakpoints.");
 			print_line("\tset [key=value]:\t List all options, or set one.");
-			print_line("\tq,quit\t\t\t Quit application.");
+			print_line("\tq,quit [exit_code]\t\t Quit application.");
 		} else {
 			print_line("Error: Invalid command, enter \"help\" for assistance.");
 		}
