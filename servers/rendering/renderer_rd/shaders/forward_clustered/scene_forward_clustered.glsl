@@ -425,7 +425,7 @@ void vertex_shader(vec3 vertex_input,
 	}
 	vertex = mat3(inv_view_matrix * modelview) * vertex;
 	vec3 temp_precision; // Will be ignored.
-	vertex += double_add_vec3(model_origin, model_precision, scene_data.inv_view_matrix[3].xyz, view_precision, temp_precision);
+	vertex += double_add_vec3(model_origin, model_precision, -scene_data.inv_view_matrix[3].xyz, view_precision, temp_precision);
 	vertex = mat3(scene_data.view_matrix) * vertex;
 #else
 	vertex = (modelview * vec4(vertex, 1.0)).xyz;
