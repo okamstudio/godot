@@ -228,6 +228,12 @@ opts.Add(
     "Use this path as TLS certificates default for editor and Linux/BSD export templates (for package maintainers)",
     "",
 )
+opts.Add(BoolVariable(
+        "editor_localization",
+        "Enable localization for the editor and its built-in class reference (disabling reduces binary size)",
+        True,
+    )
+)
 opts.Add(BoolVariable("use_precise_math_checks", "Math checks use very precise epsilon (debug option)", False))
 opts.Add(BoolVariable("strict_checks", "Enforce stricter checks (debug option)", False))
 opts.Add(BoolVariable("scu_build", "Use single compilation unit build", False))

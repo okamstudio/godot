@@ -97,7 +97,10 @@ void register_exporter_types() {{
     # Generated with `make include-list` for each resource.
 
     # Editor translations
-    tlist = glob.glob(env.Dir("#editor/translations/editor").abspath + "/*.po")
+    if env["editor_localization"]:
+        tlist = glob.glob(env.Dir("#editor/translations/editor").abspath + "/*.po")
+    else:
+        tlist = []
     env.Depends("#editor/editor_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/editor_translations.gen.h",
@@ -106,7 +109,10 @@ void register_exporter_types() {{
     )
 
     # Property translations
-    tlist = glob.glob(env.Dir("#editor/translations/properties").abspath + "/*.po")
+    if env["editor_localization"]:
+        tlist = glob.glob(env.Dir("#editor/translations/properties").abspath + "/*.po")
+    else:
+        tlist = []
     env.Depends("#editor/property_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/property_translations.gen.h",
@@ -115,7 +121,10 @@ void register_exporter_types() {{
     )
 
     # Documentation translations
-    tlist = glob.glob(env.Dir("#doc/translations").abspath + "/*.po")
+    if env["editor_localization"]:
+        tlist = glob.glob(env.Dir("#doc/translations").abspath + "/*.po")
+    else:
+        tlist = []
     env.Depends("#editor/doc_translations.gen.h", tlist)
     env.CommandNoCache(
         "#editor/doc_translations.gen.h",
