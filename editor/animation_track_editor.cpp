@@ -4214,6 +4214,23 @@ void AnimationTrackEditor::insert_transform_key(Node3D *p_node, const String &p_
 
 	NodePath np = path;
 
+	// If the target node has a unique name and both the node and AnimationPlayer's root node share
+	// the same owner, use a unique name NodePath instead.
+	AnimationPlayer *player = AnimationPlayerEditor::get_singleton()->get_player();
+	if (player) {
+		Node *root_node = player->get_node_or_null(player->get_root_node());
+		if (root_node) {
+			Node *target_node = root_node->get_node_or_null(np);
+			if (target_node && target_node->is_unique_name_in_owner() && (root_node->get_owner() == target_node->get_owner() || root_node == target_node->get_owner())) {
+				String unique_path = "%" + target_node->get_name();
+				for (int i = 0; i < np.get_subname_count(); i++) {
+					unique_path += ":" + np.get_subname(i);
+				}
+				np = unique_path;
+			}
+		}
+	}
+
 	int track_idx = -1;
 
 	for (int i = 0; i < animation->get_track_count(); i++) {
@@ -5237,6 +5254,17 @@ void AnimationTrackEditor::_new_track_node_selected(NodePath p_path) {
 	Node *node = get_node_or_null(p_path);
 	ERR_FAIL_NULL(node);
 	NodePath path_to = root->get_path_to(node, true);
+
+	// If the target node has a unique name and both the node and AnimationPlayer's root node share
+	// the same owner, use a unique name NodePath instead.
+	Node *target_node = root->get_node_or_null(path_to);
+	if (target_node && target_node->is_unique_name_in_owner() && (root->get_owner() == target_node->get_owner() || root == target_node->get_owner())) {
+		String unique_path = "%" + target_node->get_name();
+		for (int i = 0; i < path_to.get_subname_count(); i++) {
+			unique_path += ":" + path_to.get_subname(i);
+		}
+		path_to = unique_path;
+	}
 
 	if (adding_track_type == Animation::TYPE_BLEND_SHAPE && !node->is_class("MeshInstance3D")) {
 		EditorNode::get_singleton()->show_warning(TTR("Blend Shape tracks only apply to MeshInstance3D nodes."));
