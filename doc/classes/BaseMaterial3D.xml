@@ -167,6 +167,14 @@
 			Texture that specifies the per-pixel normal of the detail overlay. The [member detail_normal] texture only uses the red and green channels; the blue and alpha channels are ignored. The normal read from [member detail_normal] is oriented around the surface normal provided by the [Mesh].
 			[b]Note:[/b] Godot expects the normal map to use X+, Y+, and Z+ coordinates. See [url=http://wiki.polycount.com/wiki/Normal_Map_Technical_Details#Common_Swizzle_Coordinates]this page[/url] for a comparison of normal map coordinates expected by popular engines.
 		</member>
+		<member name="detail_offset" type="Vector3" setter="set_detail_offset" getter="get_detail_offset" default="Vector3(0, 0, 0)">
+			How much to offset the detail texture's coordinates (relative to the UV layer chosen in [member detail_uv_layer]. This can be used to adjust the detail texture's offset without having to switch to UV2 for detail mapping. This makes it possible to use lightmapping at the same as a differently offset detail texture. Only effective if [member detail_enabled] is [code]true[/code] and a detail texture is specified in [member detail_albedo] or [member detail_normal].
+			[b]Note:[/b] [member detail_offset]'s Z axis is only taken into account if the [member detail_uv_layer] specified has triplanar mapping enabled.
+		</member>
+		<member name="detail_scale" type="Vector3" setter="set_detail_scale" getter="get_detail_scale" default="Vector3(1, 1, 1)">
+			How much to scale the detail texture's coordinates (relative to the UV layer chosen in [member detail_uv_layer]. This can be used to adjust the detail texture's scale without having to switch to UV2 for detail mapping. This makes it possible to use lightmapping at the same as a differently scaled detail texture. Only effective if [member detail_enabled] is [code]true[/code] and a detail texture is specified in [member detail_albedo] or [member detail_normal].
+			[b]Note:[/b] [member detail_scale]'s Z axis is only taken into account if the [member detail_uv_layer] specified has triplanar mapping enabled.
+		</member>
 		<member name="detail_uv_layer" type="int" setter="set_detail_uv" getter="get_detail_uv" enum="BaseMaterial3D.DetailUV" default="0">
 			Specifies whether to use [code]UV[/code] or [code]UV2[/code] for the detail layer. See [enum DetailUV] for options.
 		</member>

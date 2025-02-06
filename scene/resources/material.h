@@ -435,6 +435,8 @@ private:
 		StringName uv1_offset;
 		StringName uv2_scale;
 		StringName uv2_offset;
+		StringName detail_scale;
+		StringName detail_offset;
 		StringName particles_anim_h_frames;
 		StringName particles_anim_v_frames;
 		StringName particles_anim_loop;
@@ -528,6 +530,8 @@ private:
 	float uv2_triplanar_sharpness = 0.0f;
 
 	DetailUV detail_uv = DETAIL_UV_1;
+	Vector3 detail_scale;
+	Vector3 detail_offset;
 
 	bool deep_parallax = false;
 	int deep_parallax_min_layers = 0;
@@ -669,6 +673,12 @@ public:
 
 	void set_shading_mode(ShadingMode p_shading_mode);
 	ShadingMode get_shading_mode() const;
+
+	void set_detail_scale(const Vector3 &p_scale);
+	Vector3 get_detail_scale() const;
+
+	void set_detail_offset(const Vector3 &p_offset);
+	Vector3 get_detail_offset() const;
 
 	void set_detail_uv(DetailUV p_detail_uv);
 	DetailUV get_detail_uv() const;

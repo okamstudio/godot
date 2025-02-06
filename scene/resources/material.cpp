@@ -605,6 +605,8 @@ void BaseMaterial3D::init_shaders() {
 	shader_names->backlight = "backlight";
 	shader_names->refraction = "refraction";
 	shader_names->point_size = "point_size";
+	shader_names->detail_scale = "detail_scale";
+	shader_names->detail_offset = "detail_offset";
 	shader_names->uv1_scale = "uv1_scale";
 	shader_names->uv1_offset = "uv1_offset";
 	shader_names->uv2_scale = "uv2_scale";
@@ -1051,6 +1053,8 @@ uniform float ao_light_affect : hint_range(0.0, 1.0, 0.01);
 uniform sampler2D texture_detail_albedo : source_color, %s;
 uniform sampler2D texture_detail_normal : hint_normal, %s;
 uniform sampler2D texture_detail_mask : hint_default_white, %s;
+uniform vec3 detail_scale;
+uniform vec3 detail_offset;
 )",
 				texfilter_str, texfilter_str, texfilter_str);
 	}
@@ -1869,14 +1873,14 @@ void fragment() {)";
 		const bool triplanar = (flags[FLAG_UV1_USE_TRIPLANAR] && detail_uv == DETAIL_UV_1) || (flags[FLAG_UV2_USE_TRIPLANAR] && detail_uv == DETAIL_UV_2);
 		if (triplanar) {
 			const String tp_uv = detail_uv == DETAIL_UV_1 ? "uv1" : "uv2";
-			code += vformat(R"(	vec4 detail_tex = triplanar_texture(texture_detail_albedo, %s_power_normal, %s_triplanar_pos);
-	vec4 detail_norm_tex = triplanar_texture(texture_detail_normal, %s_power_normal, %s_triplanar_pos);
+			code += vformat(R"(	vec4 detail_tex = triplanar_texture(texture_detail_albedo, %s_power_normal, %s_triplanar_pos * detail_scale + detail_offset);
+	vec4 detail_norm_tex = triplanar_texture(texture_detail_normal, %s_power_normal, %s_triplanar_pos * detail_scale + detail_offset);
 )",
 					tp_uv, tp_uv, tp_uv, tp_uv);
 		} else {
 			const String det_uv = detail_uv == DETAIL_UV_1 ? "base_uv" : "base_uv2";
-			code += vformat(R"(	vec4 detail_tex = texture(texture_detail_albedo, %s);
-	vec4 detail_norm_tex = texture(texture_detail_normal, %s);
+			code += vformat(R"(	vec4 detail_tex = texture(texture_detail_albedo, %s * detail_scale.xy + detail_offset.xy);
+	vec4 detail_norm_tex = texture(texture_detail_normal, %s * detail_scale.xy + detail_offset.xy);
 )",
 					det_uv, det_uv);
 		}
@@ -2180,6 +2184,24 @@ void BaseMaterial3D::set_refraction(float p_refraction) {
 
 float BaseMaterial3D::get_refraction() const {
 	return refraction;
+}
+
+void BaseMaterial3D::set_detail_scale(const Vector3 &p_scale) {
+	detail_scale = p_scale;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->detail_scale, p_scale);
+}
+
+Vector3 BaseMaterial3D::get_detail_scale() const {
+	return detail_scale;
+}
+
+void BaseMaterial3D::set_detail_offset(const Vector3 &p_offset) {
+	detail_offset = p_offset;
+	RS::get_singleton()->material_set_param(_get_material(), shader_names->detail_offset, p_offset);
+}
+
+Vector3 BaseMaterial3D::get_detail_offset() const {
+	return detail_offset;
 }
 
 void BaseMaterial3D::set_detail_uv(DetailUV p_detail_uv) {
@@ -3029,6 +3051,12 @@ void BaseMaterial3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_point_size", "point_size"), &BaseMaterial3D::set_point_size);
 	ClassDB::bind_method(D_METHOD("get_point_size"), &BaseMaterial3D::get_point_size);
 
+	ClassDB::bind_method(D_METHOD("set_detail_scale", "detail_scale"), &BaseMaterial3D::set_detail_scale);
+	ClassDB::bind_method(D_METHOD("get_detail_scale"), &BaseMaterial3D::get_detail_scale);
+
+	ClassDB::bind_method(D_METHOD("set_detail_offset", "detail_offset"), &BaseMaterial3D::set_detail_offset);
+	ClassDB::bind_method(D_METHOD("get_detail_offset"), &BaseMaterial3D::get_detail_offset);
+
 	ClassDB::bind_method(D_METHOD("set_detail_uv", "detail_uv"), &BaseMaterial3D::set_detail_uv);
 	ClassDB::bind_method(D_METHOD("get_detail_uv"), &BaseMaterial3D::get_detail_uv);
 
@@ -3278,6 +3306,8 @@ void BaseMaterial3D::_bind_methods() {
 	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "detail_enabled"), "set_feature", "get_feature", FEATURE_DETAIL);
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "detail_mask", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_DETAIL_MASK);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "detail_blend_mode", PROPERTY_HINT_ENUM, "Mix,Add,Subtract,Multiply"), "set_detail_blend_mode", "get_detail_blend_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "detail_scale", PROPERTY_HINT_LINK), "set_detail_scale", "get_detail_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "detail_offset"), "set_detail_offset", "get_detail_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "detail_uv_layer", PROPERTY_HINT_ENUM, "UV1,UV2"), "set_detail_uv", "get_detail_uv");
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "detail_albedo", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_DETAIL_ALBEDO);
 	ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "detail_normal", PROPERTY_HINT_RESOURCE_TYPE, "Texture2D"), "set_texture", "get_texture", TEXTURE_DETAIL_NORMAL);
@@ -3508,6 +3538,8 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	set_distance_fade_max_distance(10);
 
 	set_ao_light_affect(0.0);
+	set_detail_scale(Vector3(1, 1, 1));
+	set_detail_offset(Vector3(0, 0, 0));
 
 	set_metallic_texture_channel(TEXTURE_CHANNEL_RED);
 	set_roughness_texture_channel(TEXTURE_CHANNEL_RED);
