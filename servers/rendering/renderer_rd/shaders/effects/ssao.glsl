@@ -71,10 +71,6 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 layout(set = 0, binding = 0) uniform sampler2DArray source_depth_mipmaps;
 layout(rgba8, set = 0, binding = 1) uniform restrict readonly image2D source_normal;
-layout(set = 0, binding = 2) uniform Constants { //get into a lower set
-	vec4 rotation_matrices[20];
-}
-constants;
 
 #ifdef ADAPTIVE
 layout(rg8, set = 1, binding = 0) uniform restrict readonly image2DArray source_ssao;
@@ -122,6 +118,13 @@ layout(push_constant, std430) uniform Params {
 	vec2 pass_uv_offset;
 }
 params;
+
+// Interleaved Gradient Noise
+// https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
+float quick_hash(vec2 pos) {
+	const vec3 magic = vec3(0.06711056f, 0.00583715f, 52.9829189f);
+	return fract(magic.z * fract(dot(pos, magic.xy)));
+}
 
 // packing/unpacking for edges; 2 bits per edge mean 4 gradient values (0, 0.33, 0.66, 1) for smoother transitions!
 float pack_edges(vec4 p_edgesLRTB) {
@@ -210,10 +213,12 @@ void SSAOTap(const int p_quality_level, inout float r_obscurance_sum, inout floa
 
 	// patterns
 	{
-		vec4 new_sample = sample_pattern[p_tap_index];
+		// Choose different sample pattern starting point based on pass
+		vec4 new_sample = sample_pattern[(p_tap_index + 8 * params.pass) % INTELSSAO_MAIN_DISK_SAMPLE_COUNT];
 		sample_offset = new_sample.xy * p_rot_scale;
 		sample_pow_2_len = new_sample.w; // precalculated, same as: sample_pow_2_len = log2( length( new_sample.xy ) );
-		p_weight_mod *= new_sample.z;
+		// Commented out for now since it only makes sense when starting from the first index every time (I think?)
+		// p_weight_mod *= new_sample.z;
 	}
 
 	// snap to pixel center (more correct obscurance math, avoids artifacts)
@@ -270,7 +275,7 @@ void generate_SSAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 	uvec2 full_res_coord = upos * 2 * params.size_multiplier + params.pass_coord_offset.xy;
 	vec3 pixel_normal = load_normal(ivec2(full_res_coord));
 
-	const vec2 pixel_size_at_center = NDC_to_view_space(normalized_screen_pos.xy + params.half_screen_pixel_size, pix_center_pos.z).xy - pix_center_pos.xy;
+	const vec2 pixel_size_at_center = NDC_to_view_space(normalized_screen_pos.xy + params.half_screen_pixel_size * 2.0, pix_center_pos.z).xy - pix_center_pos.xy;
 
 	float pixel_lookup_radius;
 	float fallof_sq;
@@ -281,10 +286,7 @@ void generate_SSAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 
 	// calculate samples rotation/scaling
 	mat2 rot_scale_matrix;
-	uint pseudo_random_index;
-
 	{
-		vec4 rotation_scale;
 		// reduce effect radius near the screen edges slightly; ideally, one would render a larger depth buffer (5% on each side) instead
 		if (!p_adaptive_base && (p_quality_level >= SSAO_REDUCE_RADIUS_NEAR_SCREEN_BORDER_ENABLE_AT_QUALITY_PRESET)) {
 			float near_screen_border = min(min(normalized_screen_pos.x, 1.0 - normalized_screen_pos.x), min(normalized_screen_pos.y, 1.0 - normalized_screen_pos.y));
@@ -292,10 +294,14 @@ void generate_SSAO_shadows_internal(out float r_shadow_term, out vec4 r_edges, o
 			pixel_lookup_radius *= near_screen_border;
 		}
 
-		// load & update pseudo-random rotation matrix
-		pseudo_random_index = uint(pos_rounded.y * 2 + pos_rounded.x) % 5;
-		rotation_scale = constants.rotation_matrices[params.pass * 5 + pseudo_random_index];
-		rot_scale_matrix = mat2(rotation_scale.x * pixel_lookup_radius, rotation_scale.y * pixel_lookup_radius, rotation_scale.z * pixel_lookup_radius, rotation_scale.w * pixel_lookup_radius);
+		// Update pseudo-random rotation matrix
+		vec2 seed = full_res_coord * 0.333333333; // Multiplier chosen empirically for noise that doesn't exhibit repeating patterns
+		float angle = quick_hash(seed) * 3.14159;
+		float ca = cos(angle);
+		float sa = sin(angle);
+		float r = quick_hash(seed.yx);
+		r = 0.8 + 0.4 * r * r; // Roughly mimicking the scale range generated on the CPU side currently, and prefer closer samples
+		rot_scale_matrix = mat2(ca, sa, -sa, ca) * r * pixel_lookup_radius;
 	}
 
 	// the main obscurance & sample weight storage
