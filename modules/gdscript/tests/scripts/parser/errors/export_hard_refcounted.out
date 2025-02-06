@@ -1,0 +1,2 @@
+GDTEST_ANALYZER_ERROR
+Export type can only be built-in, a resource, a node, or an enum.

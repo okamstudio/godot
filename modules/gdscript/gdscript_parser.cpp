@@ -4393,6 +4393,31 @@ static StringName _find_narrowest_native_or_global_class(const GDScriptParser::D
 	}
 }
 
+static bool _type_can_be_exported(const GDScriptParser::DataType &p_type) {
+	if (!p_type.is_hard_type()) {
+		return true;
+	}
+
+	switch (p_type.kind) {
+		case GDScriptParser::DataType::BUILTIN:
+			if (p_type.builtin_type == Variant::ARRAY && p_type.has_container_element_type(0)) {
+				return _type_can_be_exported(p_type.container_element_types[0]);
+			}
+			break;
+		case GDScriptParser::DataType::NATIVE:
+		case GDScriptParser::DataType::SCRIPT:
+		case GDScriptParser::DataType::CLASS:
+			return ClassDB::is_parent_class(p_type.native_type, SNAME("Resource")) || ClassDB::is_parent_class(p_type.native_type, SNAME("Node"));
+		case GDScriptParser::DataType::ENUM:
+		case GDScriptParser::DataType::VARIANT:
+		case GDScriptParser::DataType::RESOLVING:
+		case GDScriptParser::DataType::UNRESOLVED:
+			break;
+	}
+
+	return true;
+}
+
 template <PropertyHint t_hint, Variant::Type t_type>
 bool GDScriptParser::export_annotations(AnnotationNode *p_annotation, Node *p_target, ClassNode *p_class) {
 	ERR_FAIL_COND_V_MSG(p_target->type != Node::VARIABLE, false, vformat(R"("%s" annotation can only be applied to variables.)", p_annotation->name));
@@ -4745,8 +4770,15 @@ bool GDScriptParser::export_storage_annotation(AnnotationNode *p_annotation, Nod
 
 	variable->exported = true;
 
+	const DataType &export_type = variable->datatype;
+
+	if (!_type_can_be_exported(export_type)) {
+		push_error(R"(Export type can only be built-in, a resource, a node, or an enum.)", p_annotation);
+		return false;
+	}
+
 	// Save the info because the compiler uses export info for overwriting member info.
-	variable->export_info = variable->get_datatype().to_property_info(variable->identifier->name);
+	variable->export_info = export_type.to_property_info(variable->identifier->name);
 	variable->export_info.usage |= PROPERTY_USAGE_STORAGE;
 
 	return true;
@@ -4768,7 +4800,12 @@ bool GDScriptParser::export_custom_annotation(AnnotationNode *p_annotation, Node
 
 	variable->exported = true;
 
-	DataType export_type = variable->get_datatype();
+	const DataType &export_type = variable->datatype;
+
+	if (!_type_can_be_exported(export_type)) {
+		push_error(R"(Export type can only be built-in, a resource, a node, or an enum.)", p_annotation);
+		return false;
+	}
 
 	variable->export_info.type = export_type.builtin_type;
 	variable->export_info.hint = static_cast<PropertyHint>(p_annotation->resolved_arguments[0].operator int64_t());
@@ -4777,6 +4814,7 @@ bool GDScriptParser::export_custom_annotation(AnnotationNode *p_annotation, Node
 	if (p_annotation->resolved_arguments.size() >= 3) {
 		variable->export_info.usage = p_annotation->resolved_arguments[2].operator int64_t();
 	}
+
 	return true;
 }
 

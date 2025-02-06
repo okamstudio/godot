@@ -45,10 +45,14 @@ var test_array_timer: Array = Array[Timer]([])
   hint=TYPE_STRING hint_string="<Object>/<NODE_TYPE>:Timer" usage=DEFAULT|SCRIPT_VARIABLE class_name=&""
 var test_storage_untyped: Variant = null
   hint=NONE hint_string="" usage=STORAGE|SCRIPT_VARIABLE|NIL_IS_VARIANT class_name=&""
+var test_storage_hard_variant: Variant = null
+  hint=NONE hint_string="" usage=STORAGE|SCRIPT_VARIABLE|NIL_IS_VARIANT class_name=&""
 var test_storage_weak_int: Variant = 3
   hint=NONE hint_string="" usage=STORAGE|SCRIPT_VARIABLE|NIL_IS_VARIANT class_name=&""
 var test_storage_hard_int: int = 4
   hint=NONE hint_string="" usage=STORAGE|SCRIPT_VARIABLE class_name=&""
+var test_storage_weak_refc: Variant = null
+  hint=NONE hint_string="" usage=STORAGE|SCRIPT_VARIABLE|NIL_IS_VARIANT class_name=&""
 var test_export_custom_untyped: null = null
   hint=ENUM hint_string="A,B,C" usage=DEFAULT|SCRIPT_VARIABLE class_name=&""
 var test_export_custom_weak_int: int = 5
