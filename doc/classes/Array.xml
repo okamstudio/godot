@@ -488,9 +488,9 @@
 			<param index="0" name="position" type="int" />
 			<param index="1" name="value" type="Variant" />
 			<description>
-				Inserts a new element ([param value]) at a given index ([param position]) in the array. [param position] should be between [code]0[/code] and the array's [method size].
+				Adds the element ([param value]) at the given index ([param position]) into the array. All elements from that position onward shift one spot to the right to make room, increasing the array's size by one. [param position] should be between [code]0[/code] and the array's [method size].
 				Returns [constant OK] on success, or one of the other [enum Error] constants if this method fails.
-				[b]Note:[/b] Every element's index after [param position] needs to be shifted forward, which may have a noticeable performance cost, especially on larger arrays.
+				[b]Note:[/b] Inserting is noticeably slower than [method push_back], especially on larger arrays.
 			</description>
 		</method>
 		<method name="is_empty" qualifiers="const">

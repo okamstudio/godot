@@ -110,7 +110,9 @@
 			<param index="0" name="at_index" type="int" />
 			<param index="1" name="value" type="int" />
 			<description>
-				Inserts a new integer at a given position in the array. The position must be valid, or at the end of the array ([code]idx == size()[/code]).
+				Adds the element ([param value]) at the given index ([param at_index]) into the array. All elements from that position onward shift one spot to the right to make room, increasing the array's size by one. The index should be between [code]0[/code] and the array's [method size].
+				Returns [constant OK] on success, or one of the other [enum Error] constants if this method fails.
+				[b]Note:[/b] Inserting is noticeably slower than [method push_back], especially on larger arrays.
 			</description>
 		</method>
 		<method name="is_empty" qualifiers="const">
