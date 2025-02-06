@@ -139,11 +139,6 @@ extern void CrashHandlerException(int signal) {
 		msg = proj_settings->get("debug/settings/crash_handler/message");
 	}
 
-	// Tell MainLoop about the crash. This can be handled by users too in Node.
-	if (OS::get_singleton()->get_main_loop()) {
-		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
-	}
-
 	print_error("\n================================================================");
 	print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, signal));
 
@@ -178,6 +173,11 @@ extern void CrashHandlerException(int signal) {
 
 	print_error("-- END OF BACKTRACE --");
 	print_error("================================================================");
+
+	// Tell MainLoop about the crash. This can be handled by users too in Node.
+	if (OS::get_singleton()->get_main_loop()) {
+		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
+	}
 }
 #endif
 

@@ -67,11 +67,6 @@ static void handle_crash(int sig) {
 		msg = proj_settings->get("debug/settings/crash_handler/message");
 	}
 
-	// Tell MainLoop about the crash. This can be handled by users too in Node.
-	if (OS::get_singleton()->get_main_loop()) {
-		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
-	}
-
 	// Dump the backtrace to stderr with a message to the user
 	print_error("\n================================================================");
 	print_error(vformat("%s: Program crashed with signal %d", __FUNCTION__, sig));
@@ -140,6 +135,11 @@ static void handle_crash(int sig) {
 	}
 	print_error("-- END OF BACKTRACE --");
 	print_error("================================================================");
+
+	// Tell MainLoop about the crash. This can be handled by users too in Node.
+	if (OS::get_singleton()->get_main_loop()) {
+		OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_CRASH);
+	}
 
 	// Abort to pass the error to the OS
 	abort();
