@@ -125,10 +125,9 @@ void CheckBox::_notification(int p_what) {
 			}
 			ofs.y = int((get_size().height - get_icon_size().height) / 2) + theme_cache.check_v_offset;
 
+			off_tex->draw_rect(ci, Rect2(ofs, _fit_icon_size(off_tex->get_size())));
 			if (is_pressed()) {
 				on_tex->draw_rect(ci, Rect2(ofs, _fit_icon_size(on_tex->get_size())));
-			} else {
-				off_tex->draw_rect(ci, Rect2(ofs, _fit_icon_size(off_tex->get_size())));
 			}
 		} break;
 	}
