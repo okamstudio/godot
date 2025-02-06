@@ -56,6 +56,7 @@ void InputMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("action_get_events", "action"), &InputMap::_action_get_events);
 	ClassDB::bind_method(D_METHOD("event_is_action", "event", "action", "exact_match"), &InputMap::event_is_action, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("load_from_project_settings"), &InputMap::load_from_project_settings);
+	ClassDB::bind_method(D_METHOD("is_builtin_action", "action"), &InputMap::is_builtin_action);
 }
 
 /**
@@ -126,6 +127,11 @@ void InputMap::add_action(const StringName &p_action, float p_deadzone) {
 
 void InputMap::erase_action(const StringName &p_action) {
 	ERR_FAIL_COND_MSG(!input_map.has(p_action), suggest_actions(p_action));
+
+	// Make debugging easier. It's still allowed to keep compatibility.
+	if (is_builtin_action(p_action)) {
+		WARN_PRINT("Erasing built-in action \"" + String(p_action) + "\".");
+	}
 
 	input_map.erase(p_action);
 }
@@ -418,7 +424,11 @@ String InputMap::get_builtin_display_name(const String &p_name) const {
 	return p_name;
 }
 
-const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
+bool InputMap::is_builtin_action(const StringName &p_action) const {
+	return get_builtins().has(p_action);
+}
+
+const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() const {
 	// Return cache if it has already been built.
 	if (default_builtin_cache.size()) {
 		return default_builtin_cache;
@@ -792,7 +802,7 @@ const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins() {
 	return default_builtin_cache;
 }
 
-const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins_with_feature_overrides_applied() {
+const HashMap<String, List<Ref<InputEvent>>> &InputMap::get_builtins_with_feature_overrides_applied() const {
 	if (default_builtin_with_overrides_cache.size() > 0) {
 		return default_builtin_with_overrides_cache;
 	}

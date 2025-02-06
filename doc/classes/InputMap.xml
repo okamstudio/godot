@@ -78,6 +78,7 @@
 			<param index="0" name="action" type="StringName" />
 			<description>
 				Removes an action from the [InputMap].
+				[b]Warning:[/b] Removing built-in actions can lead to many [Control] nodes not working properly. See also [method is_builtin_action].
 			</description>
 		</method>
 		<method name="event_is_action" qualifiers="const">
@@ -101,6 +102,13 @@
 			<param index="0" name="action" type="StringName" />
 			<description>
 				Returns [code]true[/code] if the [InputMap] has a registered action with the given name.
+			</description>
+		</method>
+		<method name="is_builtin_action" qualifiers="const">
+			<return type="bool" />
+			<param index="0" name="action" type="StringName" />
+			<description>
+				Returns [code]true[/code] if [param action] is the name of a built-in action.
 			</description>
 		</method>
 		<method name="load_from_project_settings">

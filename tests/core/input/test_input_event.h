@@ -96,6 +96,12 @@ TEST_CASE("[InputEvent][SceneTree] Test methods that interact with the InputMap"
 	CHECK(iejm->is_action_pressed(mock_action));
 
 	InputMap::get_singleton()->erase_action(mock_action);
+
+	CHECK_EQ(InputMap::get_singleton()->is_builtin_action("ui_accept"), true);
+	CHECK_EQ(InputMap::get_singleton()->is_builtin_action("ui_text_submit"), true);
+	CHECK_EQ(InputMap::get_singleton()->is_builtin_action("ui_this_is_not_builtin"), false);
+	CHECK_EQ(InputMap::get_singleton()->is_builtin_action("move_forward"), false);
+	CHECK_EQ(InputMap::get_singleton()->is_builtin_action(""), false);
 }
 
 TEST_CASE("[InputEvent] Test xformed_by") {

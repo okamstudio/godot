@@ -32,7 +32,6 @@
 #define INPUT_MAP_H
 
 #include "core/input/input_event.h"
-#include "core/object/class_db.h"
 #include "core/object/object.h"
 #include "core/templates/hash_map.h"
 
@@ -60,8 +59,8 @@ private:
 	static InputMap *singleton;
 
 	mutable HashMap<StringName, Action> input_map;
-	HashMap<String, List<Ref<InputEvent>>> default_builtin_cache;
-	HashMap<String, List<Ref<InputEvent>>> default_builtin_with_overrides_cache;
+	mutable HashMap<String, List<Ref<InputEvent>>> default_builtin_cache;
+	mutable HashMap<String, List<Ref<InputEvent>>> default_builtin_with_overrides_cache;
 
 	List<Ref<InputEvent>>::Element *_find_event(Action &p_action, const Ref<InputEvent> &p_event, bool p_exact_match = false, bool *r_pressed = nullptr, float *r_strength = nullptr, float *r_raw_strength = nullptr, int *r_event_index = nullptr) const;
 
@@ -106,10 +105,12 @@ public:
 	virtual void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const override;
 #endif
 
+	bool is_builtin_action(const StringName &p_action) const;
+
 	String get_builtin_display_name(const String &p_name) const;
 	// Use an Ordered Map so insertion order is preserved. We want the elements to be 'grouped' somewhat.
-	const HashMap<String, List<Ref<InputEvent>>> &get_builtins();
-	const HashMap<String, List<Ref<InputEvent>>> &get_builtins_with_feature_overrides_applied();
+	const HashMap<String, List<Ref<InputEvent>>> &get_builtins() const;
+	const HashMap<String, List<Ref<InputEvent>>> &get_builtins_with_feature_overrides_applied() const;
 
 	InputMap();
 	~InputMap();
