@@ -239,7 +239,7 @@ void ResourceImporterTexture::get_import_options(const String &p_path, List<Impo
 	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "compress/lossy_quality", PROPERTY_HINT_RANGE, "0,1,0.01"), 0.7));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "compress/hdr_compression", PROPERTY_HINT_ENUM, "Disabled,Opaque Only,Always"), 1));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "compress/normal_map", PROPERTY_HINT_ENUM, "Detect,Enable,Disabled"), 0));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "compress/channel_pack", PROPERTY_HINT_ENUM, "sRGB Friendly,Optimized"), 0));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "compress/channel_pack", PROPERTY_HINT_ENUM, "sRGB Friendly,Optimized,Opaque RGB,BGRA,Only R Channel,Only RG channels"), 0));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "mipmaps/generate"), (p_preset == PRESET_3D ? true : false)));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "mipmaps/limit", PROPERTY_HINT_RANGE, "-1,256"), -1));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "roughness/mode", PROPERTY_HINT_ENUM, "Detect,Disabled,Red,Green,Blue,Alpha,Gray"), 0));
@@ -641,6 +641,18 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 		if (hdr_clamp_exposure) {
 			_clamp_hdr_exposure(target_image);
 		}
+
+		if (pack_channels == 3) { // BGRA mode, swapping B and R channels.
+			const int height = target_image->get_height();
+			const int width = target_image->get_width();
+
+			for (int i = 0; i < width; i++) {
+				for (int j = 0; j < height; j++) {
+					const Color color = target_image->get_pixel(i, j);
+					target_image->set_pixel(i, j, Color(color.b, color.g, color.r, color.a));
+				}
+			}
+		}
 	}
 
 	bool detect_3d = int(p_options["detect_3d/compress_to"]) > 0;
@@ -689,6 +701,18 @@ Error ResourceImporterTexture::import(ResourceUID::ID p_source_id, const String 
 				image->convert(Image::FORMAT_RGBE9995);
 				force_uncompressed = true;
 			}
+		} else if (pack_channels == 2) { // Discard alpha.
+			if (image->get_format() == Image::FORMAT_RGBAF) {
+				image->convert(Image::FORMAT_RGBF);
+			} else if (image->get_format() == Image::FORMAT_RGBAH) {
+				image->convert(Image::FORMAT_RGBH);
+			} else if (image->get_format() == Image::FORMAT_RGBA8) {
+				image->convert(Image::FORMAT_RGB8);
+			}
+		} else if (pack_channels == 4) { // Discard all channels except R.
+			image->convert(Image::FORMAT_R8);
+		} else if (pack_channels == 5) { // Discard all channels except RG.
+			image->convert(Image::FORMAT_RG8);
 		}
 
 		if (force_uncompressed) {
