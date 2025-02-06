@@ -413,7 +413,6 @@ class ScriptEditor : public PanelContainer {
 
 	bool pending_auto_reload;
 	bool auto_reload_running_scripts;
-	bool reload_all_scripts = false;
 	Vector<String> script_paths_to_reload;
 	void _live_auto_reload_running_scripts();
 
@@ -588,7 +587,6 @@ public:
 	void update_docs_from_script(const Ref<Script> &p_script);
 
 	void trigger_live_script_reload(const String &p_script_path);
-	void trigger_live_script_reload_all();
 
 	bool can_take_away_focus() const;
 

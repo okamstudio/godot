@@ -1148,22 +1148,9 @@ void ScriptEditor::trigger_live_script_reload(const String &p_script_path) {
 	}
 }
 
-void ScriptEditor::trigger_live_script_reload_all() {
-	if (!pending_auto_reload && auto_reload_running_scripts) {
-		call_deferred(SNAME("_live_auto_reload_running_scripts"));
-		pending_auto_reload = true;
-		reload_all_scripts = true;
-	}
-}
-
 void ScriptEditor::_live_auto_reload_running_scripts() {
 	pending_auto_reload = false;
-	if (reload_all_scripts) {
-		EditorDebuggerNode::get_singleton()->reload_all_scripts();
-	} else {
-		EditorDebuggerNode::get_singleton()->reload_scripts(script_paths_to_reload);
-	}
-	reload_all_scripts = false;
+	EditorDebuggerNode::get_singleton()->reload_scripts(script_paths_to_reload);
 	script_paths_to_reload.clear();
 }
 

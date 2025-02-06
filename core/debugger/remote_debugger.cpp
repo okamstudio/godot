@@ -635,8 +635,8 @@ void RemoteDebugger::poll_events(bool p_is_idle) {
 			reload_all_scripts = false;
 		} else if (!script_paths_to_reload.is_empty()) {
 			Array scripts_to_reload;
-			for (int i = 0; i < script_paths_to_reload.size(); ++i) {
-				String path = script_paths_to_reload[i];
+			for (const Variant &v : script_paths_to_reload) {
+				const String &path = v;
 				Error err = OK;
 				Ref<Script> script = ResourceLoader::load(path, "", ResourceFormatLoader::CACHE_MODE_REUSE, &err);
 				ERR_CONTINUE_MSG(err != OK, vformat("Could not reload script '%s': %s", path, error_names[err]));
