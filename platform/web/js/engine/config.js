@@ -194,8 +194,8 @@ const InternalConfig = function (initConfig) { // eslint-disable-line no-unused-
 		 * @ignore
 		 * @type {?function(...*)}
 		 */
-		onPrint: function () {
-			console.log.apply(console, Array.from(arguments)); // eslint-disable-line no-console
+		onPrint: function (...args) {
+			console.log.apply(console, ...args); // eslint-disable-line no-console
 		},
 		/**
 		 * A callback function for handling the standard error stream. This method should usually only be used in debug pages.
@@ -209,8 +209,8 @@ const InternalConfig = function (initConfig) { // eslint-disable-line no-unused-
 		 * @ignore
 		 * @type {?function(...*)}
 		 */
-		onPrintError: function (var_args) {
-			console.error.apply(console, Array.from(arguments)); // eslint-disable-line no-console
+		onPrintError: function (...args) {
+			console.error.apply(console, ...args); // eslint-disable-line no-console
 		},
 	};
 

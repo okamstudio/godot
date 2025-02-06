@@ -219,7 +219,7 @@ const GodotJSWrapper = {
 	godot_js_wrapper_create_cb: function (p_ref, p_func) {
 		const func = GodotRuntime.get_func(p_func);
 		let id = 0;
-		const cb = function () {
+		const cb = function (...args) {
 			if (!GodotJSWrapper.get_proxied_value(id)) {
 				return undefined;
 			}
@@ -227,7 +227,6 @@ const GodotJSWrapper = {
 			// "godot_js_wrapper_object_set_cb_ret" upon calling the user function.
 			// This is safe! JavaScript is single threaded (and using it in threads is not a good idea anyway).
 			GodotJSWrapper.cb_ret = null;
-			const args = Array.from(arguments);
 			const argsProxy = new GodotJSWrapper.MyProxy(args);
 			func(p_ref, argsProxy.get_id(), args.length);
 			argsProxy.unref();
