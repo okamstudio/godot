@@ -213,9 +213,23 @@
 	<operators>
 		<operator name="operator !=">
 			<return type="bool" />
+			<param index="0" name="right" type="Rect2" />
+			<description>
+				Returns [code]true[/code] if the rectangles are not equal. The left value is implicitly converted to [Rect2].
+			</description>
+		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
 			<param index="0" name="right" type="Rect2i" />
 			<description>
 				Returns [code]true[/code] if the [member position] or [member size] of both rectangles are not equal.
+			</description>
+		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
+			<param index="0" name="right" type="Rect2" />
+			<description>
+				Returns [code]true[/code] if the rectangles are equal. The left value is implicitly converted to [Rect2].
 			</description>
 		</operator>
 		<operator name="operator ==">

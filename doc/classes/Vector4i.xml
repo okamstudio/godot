@@ -197,6 +197,13 @@
 	<operators>
 		<operator name="operator !=">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Returns [code]true[/code] if the vectors are not equal. The left value is implicitly converted to [Vector4].
+			</description>
+		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
 				Returns [code]true[/code] if the vectors are not equal.
@@ -220,6 +227,13 @@
 				[codeblock]
 				print(Vector4i(10, -20, 30, -40) % 7) # Prints (3, -6, 2, -5)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator *">
+			<return type="Vector4" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Multiplies each component of the [Vector4i] by the components of the given [Vector4]. Returns a [Vector4]. The left value is implicitly converted to [Vector4].
 			</description>
 		</operator>
 		<operator name="operator *">
@@ -251,6 +265,13 @@
 			</description>
 		</operator>
 		<operator name="operator +">
+			<return type="Vector4" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Adds each component of the [Vector4i] by the components of the given [Vector4]. Returns a [Vector4]. The left value is implicitly converted to [Vector4].
+			</description>
+		</operator>
+		<operator name="operator +">
 			<return type="Vector4i" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
@@ -261,6 +282,13 @@
 			</description>
 		</operator>
 		<operator name="operator -">
+			<return type="Vector4" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Subtracts each component of the [Vector4i] by the components of the given [Vector4i]. Returns a [Vector4]. The left value is implicitly converted to [Vector4].
+			</description>
+		</operator>
+		<operator name="operator -">
 			<return type="Vector4i" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
@@ -268,6 +296,13 @@
 				[codeblock]
 				print(Vector4i(10, 20, 30, 40) - Vector4i(3, 4, 5, 6)) # Prints (7, 16, 25, 34)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator /">
+			<return type="Vector4" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Divides each component of the [Vector4i] by the components of the given [Vector4i]. Returns a [Vector4]. The left value is implicitly converted to [Vector4].
 			</description>
 		</operator>
 		<operator name="operator /">
@@ -300,9 +335,23 @@
 		</operator>
 		<operator name="operator &lt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Compares [Vector4i] and [Vector4] by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
 				Compares two [Vector4i] vectors by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Compares [Vector4i] and [Vector4] by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &lt;=">
@@ -314,6 +363,13 @@
 		</operator>
 		<operator name="operator ==">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Returns [code]true[/code] if the vectors are exactly equal. The left value is implicitly converted to [Vector4].
+			</description>
+		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
 				Returns [code]true[/code] if the vectors are exactly equal.
@@ -321,9 +377,23 @@
 		</operator>
 		<operator name="operator &gt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Compares [Vector4i] and [Vector4] by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector4i" />
 			<description>
 				Compares two [Vector4i] vectors by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector4" />
+			<description>
+				Compares [Vector4i] and [Vector4] by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, Z values of the two vectors, and then with the W values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &gt;=">

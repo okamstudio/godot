@@ -106,6 +106,271 @@ public:
 	static Variant::Type get_return_type() { return GetTypeInfo<Vector2>::VARIANT_TYPE; }
 };
 
+template <typename T>
+struct GetIntType {};
+
+template <>
+struct GetIntType<Vector2> {
+	using type = Vector2i;
+};
+
+template <>
+struct GetIntType<Vector3> {
+	using type = Vector3i;
+};
+
+template <>
+struct GetIntType<Vector4> {
+	using type = Vector4i;
+};
+
+template <>
+struct GetIntType<Rect2> {
+	using type = Rect2i;
+};
+
+template <typename FloatType>
+class OperatorEvaluatorAdd<FloatType, typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) + b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<FloatType>::get_ptr(r_ret) = FloatType(*l) + *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<FloatType>::encode(FloatType(l) + r, r_ret);
+	}
+	static Variant::Type get_return_type() { return GetTypeInfo<FloatType>::VARIANT_TYPE; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorSub<FloatType, typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) - b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<FloatType>::get_ptr(r_ret) = FloatType(*l) - *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<FloatType>::encode(FloatType(l) - r, r_ret);
+	}
+	static Variant::Type get_return_type() { return GetTypeInfo<FloatType>::VARIANT_TYPE; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorMul<FloatType, typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) * b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<FloatType>::get_ptr(r_ret) = FloatType(*l) * *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<FloatType>::encode(FloatType(l) * r, r_ret);
+	}
+	static Variant::Type get_return_type() { return GetTypeInfo<FloatType>::VARIANT_TYPE; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorDiv<FloatType, typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) / b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<FloatType>::get_ptr(r_ret) = FloatType(*l) / *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<FloatType>::encode(FloatType(l) / r, r_ret);
+	}
+	static Variant::Type get_return_type() { return GetTypeInfo<FloatType>::VARIANT_TYPE; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorEqual<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) == b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) == *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) == r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorNotEqual<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) != b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) != *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) != r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorLess<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) < b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) < *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) < r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorLessEqual<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) <= b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) <= *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) <= r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorGreater<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) > b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) > *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) > r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+template <typename FloatType>
+class OperatorEvaluatorGreaterEqual<typename GetIntType<FloatType>::type, FloatType> {
+	using IntType = typename GetIntType<FloatType>::type;
+
+public:
+	static void evaluate(const Variant &p_left, const Variant &p_right, Variant *r_ret, bool &r_valid) {
+		const IntType &a = *VariantGetInternalPtr<IntType>::get_ptr(&p_left);
+		const FloatType &b = *VariantGetInternalPtr<FloatType>::get_ptr(&p_right);
+		*r_ret = FloatType(a) >= b;
+		r_valid = true;
+	}
+	static inline void validated_evaluate(const Variant *left, const Variant *right, Variant *r_ret) {
+		const IntType *l = VariantGetInternalPtr<IntType>::get_ptr(left);
+		const FloatType *r = VariantGetInternalPtr<FloatType>::get_ptr(right);
+		*VariantGetInternalPtr<bool>::get_ptr(r_ret) = FloatType(*l) >= *r;
+	}
+	static void ptr_evaluate(const void *left, const void *right, void *r_ret) {
+		const IntType l = PtrToArg<IntType>::convert(left);
+		const FloatType r = PtrToArg<FloatType>::convert(right);
+		PtrToArg<bool>::encode(FloatType(l) >= r, r_ret);
+	}
+	static Variant::Type get_return_type() { return Variant::BOOL; }
+};
+
+//
+
 template <>
 class OperatorEvaluatorMul<Vector3, Vector3i, double> {
 public:
@@ -229,6 +494,8 @@ public:
 	static Variant::Type get_return_type() { return GetTypeInfo<Vector4>::VARIANT_TYPE; }
 };
 
+//
+
 #define register_string_op(m_op_type, m_op_code)                                                               \
 	if constexpr (true) {                                                                                      \
 		register_op<m_op_type<String, String>>(m_op_code, Variant::STRING, Variant::STRING);                   \
@@ -258,10 +525,16 @@ void Variant::_register_variant_operators() {
 	register_string_op(OperatorEvaluatorStringConcat, Variant::OP_ADD);
 	register_op<OperatorEvaluatorAdd<Vector2, Vector2, Vector2>>(Variant::OP_ADD, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorAdd<Vector2i, Vector2i, Vector2i>>(Variant::OP_ADD, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorAdd<Vector2, Vector2i, Vector2>>(Variant::OP_ADD, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorAdd<Vector2, Vector2, Vector2i>>(Variant::OP_ADD, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorAdd<Vector3, Vector3, Vector3>>(Variant::OP_ADD, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorAdd<Vector3i, Vector3i, Vector3i>>(Variant::OP_ADD, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorAdd<Vector3, Vector3i, Vector3>>(Variant::OP_ADD, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorAdd<Vector3, Vector3, Vector3i>>(Variant::OP_ADD, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorAdd<Vector4, Vector4, Vector4>>(Variant::OP_ADD, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorAdd<Vector4i, Vector4i, Vector4i>>(Variant::OP_ADD, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorAdd<Vector4, Vector4i, Vector4>>(Variant::OP_ADD, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorAdd<Vector4, Vector4, Vector4i>>(Variant::OP_ADD, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorAdd<Quaternion, Quaternion, Quaternion>>(Variant::OP_ADD, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorAdd<Color, Color, Color>>(Variant::OP_ADD, Variant::COLOR, Variant::COLOR);
 	register_op<OperatorEvaluatorAddArray>(Variant::OP_ADD, Variant::ARRAY, Variant::ARRAY);
@@ -282,10 +555,16 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorSub<double, double, double>>(Variant::OP_SUBTRACT, Variant::FLOAT, Variant::FLOAT);
 	register_op<OperatorEvaluatorSub<Vector2, Vector2, Vector2>>(Variant::OP_SUBTRACT, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorSub<Vector2i, Vector2i, Vector2i>>(Variant::OP_SUBTRACT, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorSub<Vector2, Vector2i, Vector2>>(Variant::OP_SUBTRACT, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorSub<Vector2, Vector2, Vector2i>>(Variant::OP_SUBTRACT, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorSub<Vector3, Vector3, Vector3>>(Variant::OP_SUBTRACT, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorSub<Vector3i, Vector3i, Vector3i>>(Variant::OP_SUBTRACT, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorSub<Vector3, Vector3i, Vector3>>(Variant::OP_SUBTRACT, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorSub<Vector3, Vector3, Vector3i>>(Variant::OP_SUBTRACT, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorSub<Vector4, Vector4, Vector4>>(Variant::OP_SUBTRACT, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorSub<Vector4i, Vector4i, Vector4i>>(Variant::OP_SUBTRACT, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorSub<Vector4, Vector4i, Vector4>>(Variant::OP_SUBTRACT, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorSub<Vector4, Vector4, Vector4i>>(Variant::OP_SUBTRACT, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorSub<Quaternion, Quaternion, Quaternion>>(Variant::OP_SUBTRACT, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorSub<Color, Color, Color>>(Variant::OP_SUBTRACT, Variant::COLOR, Variant::COLOR);
 
@@ -308,6 +587,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorMul<Vector4, double, Vector4i>>(Variant::OP_MULTIPLY, Variant::FLOAT, Variant::VECTOR4I);
 
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, Vector2>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::VECTOR2);
+	register_op<OperatorEvaluatorMul<Vector2, Vector2i, Vector2>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorMul<Vector2, Vector2, Vector2i>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector2, Vector2, double>>(Variant::OP_MULTIPLY, Variant::VECTOR2, Variant::FLOAT);
 
@@ -316,6 +597,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorMul<Vector2, Vector2i, double>>(Variant::OP_MULTIPLY, Variant::VECTOR2I, Variant::FLOAT);
 
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, Vector3>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::VECTOR3);
+	register_op<OperatorEvaluatorMul<Vector3, Vector3i, Vector3>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorMul<Vector3, Vector3, Vector3i>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector3, Vector3, double>>(Variant::OP_MULTIPLY, Variant::VECTOR3, Variant::FLOAT);
 
@@ -324,6 +607,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorMul<Vector3, Vector3i, double>>(Variant::OP_MULTIPLY, Variant::VECTOR3I, Variant::FLOAT);
 
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, Vector4>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::VECTOR4);
+	register_op<OperatorEvaluatorMul<Vector4, Vector4i, Vector4>>(Variant::OP_MULTIPLY, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorMul<Vector4, Vector4, Vector4i>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, int64_t>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::INT);
 	register_op<OperatorEvaluatorMul<Vector4, Vector4, double>>(Variant::OP_MULTIPLY, Variant::VECTOR4, Variant::FLOAT);
 
@@ -392,6 +677,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorDiv<double, double, double>>(Variant::OP_DIVIDE, Variant::FLOAT, Variant::FLOAT);
 
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, Vector2>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::VECTOR2);
+	register_op<OperatorEvaluatorDiv<Vector2, Vector2, Vector2i>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorDiv<Vector2, Vector2i, Vector2>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::VECTOR2);
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, double>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector2, Vector2, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR2, Variant::INT);
 
@@ -400,6 +687,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorDivNZ<Vector2i, Vector2i, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR2I, Variant::INT);
 
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, Vector3>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::VECTOR3);
+	register_op<OperatorEvaluatorDiv<Vector3, Vector3i, Vector3>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorDiv<Vector3, Vector3, Vector3i>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, double>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector3, Vector3, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR3, Variant::INT);
 
@@ -408,6 +697,8 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorDivNZ<Vector3i, Vector3i, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR3I, Variant::INT);
 
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, Vector4>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::VECTOR4);
+	register_op<OperatorEvaluatorDiv<Vector4, Vector4i, Vector4>>(Variant::OP_DIVIDE, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorDiv<Vector4, Vector4, Vector4i>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, double>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::FLOAT);
 	register_op<OperatorEvaluatorDiv<Vector4, Vector4, int64_t>>(Variant::OP_DIVIDE, Variant::VECTOR4, Variant::INT);
 
@@ -528,13 +819,21 @@ void Variant::_register_variant_operators() {
 	register_string_op(OperatorEvaluatorEqual, Variant::OP_EQUAL);
 	register_op<OperatorEvaluatorEqual<Vector2, Vector2>>(Variant::OP_EQUAL, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorEqual<Vector2i, Vector2i>>(Variant::OP_EQUAL, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorEqual<Vector2i, Vector2>>(Variant::OP_EQUAL, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorEqual<Vector2, Vector2i>>(Variant::OP_EQUAL, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorEqual<Rect2, Rect2>>(Variant::OP_EQUAL, Variant::RECT2, Variant::RECT2);
 	register_op<OperatorEvaluatorEqual<Rect2i, Rect2i>>(Variant::OP_EQUAL, Variant::RECT2I, Variant::RECT2I);
+	register_op<OperatorEvaluatorEqual<Rect2i, Rect2>>(Variant::OP_EQUAL, Variant::RECT2I, Variant::RECT2);
+	register_op<OperatorEvaluatorEqual<Rect2, Rect2i>>(Variant::OP_EQUAL, Variant::RECT2, Variant::RECT2I);
 	register_op<OperatorEvaluatorEqual<Vector3, Vector3>>(Variant::OP_EQUAL, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorEqual<Vector3i, Vector3i>>(Variant::OP_EQUAL, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorEqual<Vector3i, Vector3>>(Variant::OP_EQUAL, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorEqual<Vector3, Vector3i>>(Variant::OP_EQUAL, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorEqual<Transform2D, Transform2D>>(Variant::OP_EQUAL, Variant::TRANSFORM2D, Variant::TRANSFORM2D);
 	register_op<OperatorEvaluatorEqual<Vector4, Vector4>>(Variant::OP_EQUAL, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorEqual<Vector4i, Vector4i>>(Variant::OP_EQUAL, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorEqual<Vector4i, Vector4>>(Variant::OP_EQUAL, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorEqual<Vector4, Vector4i>>(Variant::OP_EQUAL, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorEqual<Plane, Plane>>(Variant::OP_EQUAL, Variant::PLANE, Variant::PLANE);
 	register_op<OperatorEvaluatorEqual<Quaternion, Quaternion>>(Variant::OP_EQUAL, Variant::QUATERNION, Variant::QUATERNION);
 	register_op<OperatorEvaluatorEqual<::AABB, ::AABB>>(Variant::OP_EQUAL, Variant::AABB, Variant::AABB);
@@ -650,12 +949,20 @@ void Variant::_register_variant_operators() {
 	register_string_op(OperatorEvaluatorNotEqual, Variant::OP_NOT_EQUAL);
 	register_op<OperatorEvaluatorNotEqual<Vector2, Vector2>>(Variant::OP_NOT_EQUAL, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorNotEqual<Vector2i, Vector2i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorNotEqual<Vector2i, Vector2>>(Variant::OP_NOT_EQUAL, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorNotEqual<Vector2, Vector2i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorNotEqual<Rect2, Rect2>>(Variant::OP_NOT_EQUAL, Variant::RECT2, Variant::RECT2);
 	register_op<OperatorEvaluatorNotEqual<Rect2i, Rect2i>>(Variant::OP_NOT_EQUAL, Variant::RECT2I, Variant::RECT2I);
+	register_op<OperatorEvaluatorNotEqual<Rect2i, Rect2>>(Variant::OP_NOT_EQUAL, Variant::RECT2I, Variant::RECT2);
+	register_op<OperatorEvaluatorNotEqual<Rect2, Rect2i>>(Variant::OP_NOT_EQUAL, Variant::RECT2, Variant::RECT2I);
 	register_op<OperatorEvaluatorNotEqual<Vector3, Vector3>>(Variant::OP_NOT_EQUAL, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorNotEqual<Vector3i, Vector3i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorNotEqual<Vector3i, Vector3>>(Variant::OP_NOT_EQUAL, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorNotEqual<Vector3, Vector3i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorNotEqual<Vector4, Vector4>>(Variant::OP_NOT_EQUAL, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorNotEqual<Vector4i, Vector4i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorNotEqual<Vector4i, Vector4>>(Variant::OP_NOT_EQUAL, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorNotEqual<Vector4, Vector4i>>(Variant::OP_NOT_EQUAL, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorNotEqual<Transform2D, Transform2D>>(Variant::OP_NOT_EQUAL, Variant::TRANSFORM2D, Variant::TRANSFORM2D);
 	register_op<OperatorEvaluatorNotEqual<Plane, Plane>>(Variant::OP_NOT_EQUAL, Variant::PLANE, Variant::PLANE);
 	register_op<OperatorEvaluatorNotEqual<Quaternion, Quaternion>>(Variant::OP_NOT_EQUAL, Variant::QUATERNION, Variant::QUATERNION);
@@ -772,10 +1079,16 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorLess<StringName, StringName>>(Variant::OP_LESS, Variant::STRING_NAME, Variant::STRING_NAME);
 	register_op<OperatorEvaluatorLess<Vector2, Vector2>>(Variant::OP_LESS, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorLess<Vector2i, Vector2i>>(Variant::OP_LESS, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorLess<Vector2i, Vector2>>(Variant::OP_LESS, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorLess<Vector2, Vector2i>>(Variant::OP_LESS, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorLess<Vector3, Vector3>>(Variant::OP_LESS, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorLess<Vector3i, Vector3i>>(Variant::OP_LESS, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorLess<Vector3i, Vector3>>(Variant::OP_LESS, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorLess<Vector3, Vector3i>>(Variant::OP_LESS, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorLess<Vector4, Vector4>>(Variant::OP_LESS, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorLess<Vector4i, Vector4i>>(Variant::OP_LESS, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorLess<Vector4i, Vector4>>(Variant::OP_LESS, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorLess<Vector4, Vector4i>>(Variant::OP_LESS, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorLess<::RID, ::RID>>(Variant::OP_LESS, Variant::RID, Variant::RID);
 	register_op<OperatorEvaluatorLess<Array, Array>>(Variant::OP_LESS, Variant::ARRAY, Variant::ARRAY);
 
@@ -787,10 +1100,16 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorLessEqual<StringName, StringName>>(Variant::OP_LESS_EQUAL, Variant::STRING_NAME, Variant::STRING_NAME);
 	register_op<OperatorEvaluatorLessEqual<Vector2, Vector2>>(Variant::OP_LESS_EQUAL, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorLessEqual<Vector2i, Vector2i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorLessEqual<Vector2i, Vector2>>(Variant::OP_LESS_EQUAL, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorLessEqual<Vector2, Vector2i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorLessEqual<Vector3, Vector3>>(Variant::OP_LESS_EQUAL, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorLessEqual<Vector3i, Vector3i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorLessEqual<Vector3, Vector3i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR3, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorLessEqual<Vector3i, Vector3>>(Variant::OP_LESS_EQUAL, Variant::VECTOR3I, Variant::VECTOR3);
 	register_op<OperatorEvaluatorLessEqual<Vector4, Vector4>>(Variant::OP_LESS_EQUAL, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorLessEqual<Vector4i, Vector4i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorLessEqual<Vector4i, Vector4>>(Variant::OP_LESS_EQUAL, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorLessEqual<Vector4, Vector4i>>(Variant::OP_LESS_EQUAL, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorLessEqual<::RID, ::RID>>(Variant::OP_LESS_EQUAL, Variant::RID, Variant::RID);
 	register_op<OperatorEvaluatorLessEqual<Array, Array>>(Variant::OP_LESS_EQUAL, Variant::ARRAY, Variant::ARRAY);
 
@@ -803,10 +1122,16 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorGreater<StringName, StringName>>(Variant::OP_GREATER, Variant::STRING_NAME, Variant::STRING_NAME);
 	register_op<OperatorEvaluatorGreater<Vector2, Vector2>>(Variant::OP_GREATER, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorGreater<Vector2i, Vector2i>>(Variant::OP_GREATER, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorGreater<Vector2i, Vector2>>(Variant::OP_GREATER, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorGreater<Vector2, Vector2i>>(Variant::OP_GREATER, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorGreater<Vector3, Vector3>>(Variant::OP_GREATER, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorGreater<Vector3i, Vector3i>>(Variant::OP_GREATER, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorGreater<Vector3i, Vector3>>(Variant::OP_GREATER, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorGreater<Vector3, Vector3i>>(Variant::OP_GREATER, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorGreater<Vector4, Vector4>>(Variant::OP_GREATER, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorGreater<Vector4i, Vector4i>>(Variant::OP_GREATER, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorGreater<Vector4i, Vector4>>(Variant::OP_GREATER, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorGreater<Vector4, Vector4i>>(Variant::OP_GREATER, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorGreater<::RID, ::RID>>(Variant::OP_GREATER, Variant::RID, Variant::RID);
 	register_op<OperatorEvaluatorGreater<Array, Array>>(Variant::OP_GREATER, Variant::ARRAY, Variant::ARRAY);
 
@@ -818,10 +1143,16 @@ void Variant::_register_variant_operators() {
 	register_op<OperatorEvaluatorGreaterEqual<StringName, StringName>>(Variant::OP_GREATER_EQUAL, Variant::STRING_NAME, Variant::STRING_NAME);
 	register_op<OperatorEvaluatorGreaterEqual<Vector2, Vector2>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR2, Variant::VECTOR2);
 	register_op<OperatorEvaluatorGreaterEqual<Vector2i, Vector2i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR2I, Variant::VECTOR2I);
+	register_op<OperatorEvaluatorGreaterEqual<Vector2i, Vector2>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR2I, Variant::VECTOR2);
+	register_op<OperatorEvaluatorGreaterEqual<Vector2, Vector2i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR2, Variant::VECTOR2I);
 	register_op<OperatorEvaluatorGreaterEqual<Vector3, Vector3>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR3, Variant::VECTOR3);
 	register_op<OperatorEvaluatorGreaterEqual<Vector3i, Vector3i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR3I, Variant::VECTOR3I);
+	register_op<OperatorEvaluatorGreaterEqual<Vector3i, Vector3>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR3I, Variant::VECTOR3);
+	register_op<OperatorEvaluatorGreaterEqual<Vector3, Vector3i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR3, Variant::VECTOR3I);
 	register_op<OperatorEvaluatorGreaterEqual<Vector4, Vector4>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR4, Variant::VECTOR4);
 	register_op<OperatorEvaluatorGreaterEqual<Vector4i, Vector4i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR4I, Variant::VECTOR4I);
+	register_op<OperatorEvaluatorGreaterEqual<Vector4i, Vector4>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR4I, Variant::VECTOR4);
+	register_op<OperatorEvaluatorGreaterEqual<Vector4, Vector4i>>(Variant::OP_GREATER_EQUAL, Variant::VECTOR4, Variant::VECTOR4I);
 	register_op<OperatorEvaluatorGreaterEqual<::RID, ::RID>>(Variant::OP_GREATER_EQUAL, Variant::RID, Variant::RID);
 	register_op<OperatorEvaluatorGreaterEqual<Array, Array>>(Variant::OP_GREATER_EQUAL, Variant::ARRAY, Variant::ARRAY);
 

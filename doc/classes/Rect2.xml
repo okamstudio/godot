@@ -240,6 +240,13 @@
 				[b]Note:[/b] Due to floating-point precision errors, consider using [method is_equal_approx] instead, which is more reliable.
 			</description>
 		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
+			<param index="0" name="right" type="Rect2i" />
+			<description>
+				Returns [code]true[/code] if the rectangles are not equal.
+			</description>
+		</operator>
 		<operator name="operator *">
 			<return type="Rect2" />
 			<param index="0" name="right" type="Transform2D" />
@@ -255,6 +262,13 @@
 			<description>
 				Returns [code]true[/code] if both [member position] and [member size] of the rectangles are exactly equal, respectively.
 				[b]Note:[/b] Due to floating-point precision errors, consider using [method is_equal_approx] instead, which is more reliable.
+			</description>
+		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
+			<param index="0" name="right" type="Rect2i" />
+			<description>
+				Returns [code]true[/code] if the rectangles are exactly equal.
 			</description>
 		</operator>
 	</operators>

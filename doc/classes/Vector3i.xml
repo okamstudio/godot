@@ -211,6 +211,13 @@
 	<operators>
 		<operator name="operator !=">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Returns [code]true[/code] if the vectors are not equal. The left value is implicitly converted to [Vector3].
+			</description>
+		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
 				Returns [code]true[/code] if the vectors are not equal.
@@ -234,6 +241,13 @@
 				[codeblock]
 				print(Vector3i(10, -20, 30) % 7) # Prints (3, -6, 2)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator *">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Multiplies each component of the [Vector3i] by the components of the given [Vector3]. Returns a [Vector3]. The left value is implicitly converted to [Vector3].
 			</description>
 		</operator>
 		<operator name="operator *">
@@ -264,6 +278,13 @@
 			</description>
 		</operator>
 		<operator name="operator +">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Adds each component of the [Vector3i] by the components of the given [Vector3]. Returns a [Vector3]. The left value is implicitly converted to [Vector3].
+			</description>
+		</operator>
+		<operator name="operator +">
 			<return type="Vector3i" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
@@ -274,6 +295,13 @@
 			</description>
 		</operator>
 		<operator name="operator -">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Subtracts each component of the [Vector3i] by the components of the given [Vector3]. Returns a [Vector3]. The left value is implicitly converted to [Vector3].
+			</description>
+		</operator>
+		<operator name="operator -">
 			<return type="Vector3i" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
@@ -281,6 +309,13 @@
 				[codeblock]
 				print(Vector3i(10, 20, 30) - Vector3i(3, 4, 5)) # Prints (7, 16, 25)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator /">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Divides each component of the [Vector3i] by the components of the given [Vector3]. Returns a [Vector3]. The left value is implicitly converted to [Vector3].
 			</description>
 		</operator>
 		<operator name="operator /">
@@ -312,9 +347,23 @@
 		</operator>
 		<operator name="operator &lt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Compares [Vector3i] and [Vector3] by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
 				Compares two [Vector3i] vectors by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Compares [Vector3i] and [Vector3] by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &lt;=">
@@ -326,6 +375,13 @@
 		</operator>
 		<operator name="operator ==">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Returns [code]true[/code] if the vectors are equal. The left value is implicitly converted to [Vector3].
+			</description>
+		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
 				Returns [code]true[/code] if the vectors are equal.
@@ -333,9 +389,23 @@
 		</operator>
 		<operator name="operator &gt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Compares [Vector3i] and [Vector3] by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector3i" />
 			<description>
 				Compares two [Vector3i] vectors by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3" />
+			<description>
+				Compares [Vector3i] and [Vector3] by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &gt;=">

@@ -486,6 +486,13 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Returns [code]true[/code] if the vectors are not equal.
+			</description>
+		</operator>
 		<operator name="operator *">
 			<return type="Vector3" />
 			<param index="0" name="right" type="Basis" />
@@ -524,6 +531,13 @@
 		</operator>
 		<operator name="operator *">
 			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Multiplies each component of the [Vector3] by the components of the given [Vector3i].
+			</description>
+		</operator>
+		<operator name="operator *">
+			<return type="Vector3" />
 			<param index="0" name="right" type="float" />
 			<description>
 				Multiplies each component of the [Vector3] by the given [float].
@@ -546,6 +560,13 @@
 				[/codeblock]
 			</description>
 		</operator>
+		<operator name="operator +">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Adds each component of the [Vector3] by the components of the given [Vector3i].
+			</description>
+		</operator>
 		<operator name="operator -">
 			<return type="Vector3" />
 			<param index="0" name="right" type="Vector3" />
@@ -556,6 +577,13 @@
 				[/codeblock]
 			</description>
 		</operator>
+		<operator name="operator -">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Subtracts each component of the [Vector3] by the components of the given [Vector3i].
+			</description>
+		</operator>
 		<operator name="operator /">
 			<return type="Vector3" />
 			<param index="0" name="right" type="Vector3" />
@@ -564,6 +592,13 @@
 				[codeblock]
 				print(Vector3(10, 20, 30) / Vector3(2, 5, 3)) # Prints (5.0, 4.0, 10.0)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator /">
+			<return type="Vector3" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Divides each component of the [Vector3] by the components of the given [Vector3i].
 			</description>
 		</operator>
 		<operator name="operator /">
@@ -588,12 +623,26 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator &lt;">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Compares [Vector3] and [Vector3i] by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
 		<operator name="operator &lt;=">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector3" />
 			<description>
 				Compares two [Vector3] vectors by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
+			</description>
+		</operator>
+		<operator name="operator &lt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Compares [Vector3] and [Vector3i] by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator ==">
@@ -605,6 +654,13 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Returns [code]true[/code] if the vectors are exactly equal.
+			</description>
+		</operator>
 		<operator name="operator &gt;">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector3" />
@@ -613,12 +669,26 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator &gt;">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Compares [Vector3] and [Vector3i] by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
+			</description>
+		</operator>
 		<operator name="operator &gt;=">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector3" />
 			<description>
 				Compares two [Vector3] vectors by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
+			</description>
+		</operator>
+		<operator name="operator &gt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector3i" />
+			<description>
+				Compares [Vector3] and [Vector3i] by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors, and then with the Z values. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator []">

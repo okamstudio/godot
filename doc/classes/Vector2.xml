@@ -462,6 +462,13 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Returns [code]true[/code] if the vectors are not equal.
+			</description>
+		</operator>
 		<operator name="operator *">
 			<return type="Vector2" />
 			<param index="0" name="right" type="Transform2D" />
@@ -479,6 +486,13 @@
 				[codeblock]
 				print(Vector2(10, 20) * Vector2(3, 4)) # Prints (30.0, 80.0)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator *">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Multiplies each component of the [Vector2] by the components of the given [Vector2i].
 			</description>
 		</operator>
 		<operator name="operator *">
@@ -505,6 +519,13 @@
 				[/codeblock]
 			</description>
 		</operator>
+		<operator name="operator +">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Adds each component of the [Vector2] by the components of the given [Vector2i].
+			</description>
+		</operator>
 		<operator name="operator -">
 			<return type="Vector2" />
 			<param index="0" name="right" type="Vector2" />
@@ -515,6 +536,13 @@
 				[/codeblock]
 			</description>
 		</operator>
+		<operator name="operator -">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Subtracts each component of the [Vector2] by the components of the given [Vector2i].
+			</description>
+		</operator>
 		<operator name="operator /">
 			<return type="Vector2" />
 			<param index="0" name="right" type="Vector2" />
@@ -523,6 +551,13 @@
 				[codeblock]
 				print(Vector2(10, 20) / Vector2(2, 5)) # Prints (5.0, 4.0)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator /">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Divides each component of the [Vector2] by the components of the given [Vector2].
 			</description>
 		</operator>
 		<operator name="operator /">
@@ -547,12 +582,26 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator &lt;">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Compares [Vector2] and [Vector2i] by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
 		<operator name="operator &lt;=">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector2" />
 			<description>
 				Compares two [Vector2] vectors by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
+			</description>
+		</operator>
+		<operator name="operator &lt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Compares [Vector2] and [Vector2i] by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator ==">
@@ -564,6 +613,13 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Returns [code]true[/code] if the vectors are exactly equal.
+			</description>
+		</operator>
 		<operator name="operator &gt;">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector2" />
@@ -572,12 +628,26 @@
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
 			</description>
 		</operator>
+		<operator name="operator &gt;">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Compares [Vector2] and [Vector2i] by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
 		<operator name="operator &gt;=">
 			<return type="bool" />
 			<param index="0" name="right" type="Vector2" />
 			<description>
 				Compares two [Vector2] vectors by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 				[b]Note:[/b] Vectors with [constant @GDScript.NAN] elements don't behave the same as other vectors. Therefore, the results from this operator may not be accurate if NaNs are included.
+			</description>
+		</operator>
+		<operator name="operator &gt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2i" />
+			<description>
+				Compares [Vector2] and [Vector2i] by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator []">

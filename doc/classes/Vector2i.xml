@@ -204,6 +204,13 @@
 	<operators>
 		<operator name="operator !=">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Returns [code]true[/code] if the vectors are not equal. Returns a [Vector2]. The left value is implicitly converted to [Vector2].
+			</description>
+		</operator>
+		<operator name="operator !=">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
 				Returns [code]true[/code] if the vectors are not equal.
@@ -227,6 +234,13 @@
 				[codeblock]
 				print(Vector2i(10, -20) % 7) # Prints (3, -6)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator *">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Multiplies each component of the [Vector2i] by the components of the given [Vector2]. Returns a [Vector2]. The left value is implicitly converted to [Vector2].
 			</description>
 		</operator>
 		<operator name="operator *">
@@ -257,6 +271,13 @@
 			</description>
 		</operator>
 		<operator name="operator +">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Adds each component of the [Vector2i] by the components of the given [Vector2]. Returns a [Vector2]. The left value is implicitly converted to [Vector2].
+			</description>
+		</operator>
+		<operator name="operator +">
 			<return type="Vector2i" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
@@ -267,6 +288,13 @@
 			</description>
 		</operator>
 		<operator name="operator -">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Subtracts each component of the [Vector2i] by the components of the given [Vector2]. Returns a [Vector2]. The left value is implicitly converted to [Vector2].
+			</description>
+		</operator>
+		<operator name="operator -">
 			<return type="Vector2i" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
@@ -274,6 +302,13 @@
 				[codeblock]
 				print(Vector2i(10, 20) - Vector2i(3, 4)) # Prints (7, 16)
 				[/codeblock]
+			</description>
+		</operator>
+		<operator name="operator /">
+			<return type="Vector2" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Divides each component of the [Vector2i] by the components of the given [Vector2]. Returns a [Vector2]. The left value is implicitly converted to [Vector2].
 			</description>
 		</operator>
 		<operator name="operator /">
@@ -305,9 +340,23 @@
 		</operator>
 		<operator name="operator &lt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Compares [Vector2i] and [Vector2] by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
 				Compares two [Vector2i] vectors by first checking if the X value of the left vector is less than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &lt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Compares [Vector2i] and [Vector2] by first checking if the X value of the left vector is less than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &lt;=">
@@ -319,6 +368,13 @@
 		</operator>
 		<operator name="operator ==">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Returns [code]true[/code] if the vectors are equal. The left value is implicitly converted to [Vector2].
+			</description>
+		</operator>
+		<operator name="operator ==">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
 				Returns [code]true[/code] if the vectors are equal.
@@ -326,9 +382,23 @@
 		</operator>
 		<operator name="operator &gt;">
 			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Compares [Vector2i] and [Vector2] by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;">
+			<return type="bool" />
 			<param index="0" name="right" type="Vector2i" />
 			<description>
 				Compares two [Vector2i] vectors by first checking if the X value of the left vector is greater than the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
+			</description>
+		</operator>
+		<operator name="operator &gt;=">
+			<return type="bool" />
+			<param index="0" name="right" type="Vector2" />
+			<description>
+				Compares [Vector2i] and [Vector2] by first checking if the X value of the left vector is greater than or equal to the X value of the [param right] vector. If the X values are exactly equal, then it repeats this check with the Y values of the two vectors. This operator is useful for sorting vectors.
 			</description>
 		</operator>
 		<operator name="operator &gt;=">

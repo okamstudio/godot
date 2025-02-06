@@ -1,0 +1,127 @@
+GDTEST_OK
+# add
+(0.1, 2.1)
+(0.1, 2.1, 4.1)
+(0.1, 2.1, 4.1, 6.1)
+(0.1, 2.1)
+(0.1, 2.1, 4.1)
+(0.1, 2.1, 4.1, 6.1)
+# subtract
+(0.1, 0.1)
+(0.1, 0.1, 0.1)
+(0.1, 0.1, 0.1, 0.1)
+(-0.1, -0.1)
+(-0.1, -0.1, -0.1)
+(-0.1, -0.1, -0.1, -0.1)
+# multiply
+(0.1, 2.2)
+(0.1, 2.2, 6.3)
+(0.1, 2.2, 6.3, 12.4)
+(0.1, 2.2)
+(0.1, 2.2, 6.3)
+(0.1, 2.2, 6.3, 12.4)
+# divide
+(0.1, 0.1)
+(0.1, 0.1, 0.1)
+(0.1, 0.1, 0.1, 0.1)
+(10, 10)
+(10, 10, 6)
+(10, 10, 6, 4)
+# equal
+true
+true
+true
+true
+true
+true
+true
+true
+false
+false
+false
+false
+false
+false
+false
+false
+# not equal
+false
+false
+false
+false
+false
+false
+false
+false
+true
+true
+true
+true
+true
+true
+true
+true
+# less
+false
+false
+true
+true
+false
+false
+true
+true
+false
+false
+true
+true
+# less or equal
+true
+true
+true
+true
+false
+false
+true
+true
+true
+true
+false
+false
+true
+true
+true
+true
+false
+false
+# greater
+false
+true
+true
+true
+false
+true
+true
+true
+false
+true
+true
+true
+# greater or equal
+true
+true
+false
+false
+true
+true
+true
+true
+false
+false
+true
+true
+true
+true
+false
+false
+true
+true
