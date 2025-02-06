@@ -1319,7 +1319,8 @@ void GDScriptTokenizerText::check_indent() {
 				indent_stack.pop_back();
 				pending_indents--;
 			}
-			if ((indent_level() > 0 && indent_stack.back()->get() != indent_count) || (indent_level() == 0 && indent_count != 0)) {
+			const bool is_in_parens = !paren_stack.is_empty(); // When in parenthesis, jumps between indentation levels may happen due to lambdas.
+			if (!is_in_parens && ((indent_level() > 0 && indent_stack.back()->get() != indent_count) || (indent_level() == 0 && indent_count != 0))) {
 				// Mismatched indentation alignment.
 				Token error = make_error("Unindent doesn't match the previous indentation level.");
 				error.start_line = line;
