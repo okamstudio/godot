@@ -157,6 +157,8 @@ public:
 	virtual RID space_create() override { return RID(); }
 	virtual void space_set_active(RID p_space, bool p_active) override {}
 	virtual bool space_is_active(RID p_space) const override { return false; }
+	virtual void space_step(RID p_space, real_t p_delta) override {}
+	virtual void space_flush_queries(RID p_space) override {}
 
 	virtual void space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) override {}
 	virtual real_t space_get_param(RID p_space, SpaceParameter p_param) const override { return 0; }
@@ -431,6 +433,7 @@ public:
 	virtual bool is_flushing_queries() const override { return false; }
 
 	virtual int get_process_info(ProcessInfo p_info) override { return 0; }
+	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) override { return 0; }
 };
 
 #endif // PHYSICS_SERVER_3D_DUMMY_H

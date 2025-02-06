@@ -214,6 +214,24 @@ bool JoltPhysicsServer3D::space_is_active(RID p_space) const {
 	return active_spaces.has(space);
 }
 
+void JoltPhysicsServer3D::space_step(RID p_space, real_t p_delta) {
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL(space);
+	ERR_FAIL_COND(space->is_stepping());
+
+	space->step(p_delta);
+}
+
+void JoltPhysicsServer3D::space_flush_queries(RID p_space) {
+	flushing_queries = true;
+
+	JoltSpace3D *space = space_owner.get_or_null(p_space);
+	ERR_FAIL_NULL(space);
+	space->call_queries();
+
+	flushing_queries = false;
+}
+
 void JoltPhysicsServer3D::space_set_param(RID p_space, SpaceParameter p_param, real_t p_value) {
 	JoltSpace3D *space = space_owner.get_or_null(p_space);
 	ERR_FAIL_NULL(space);
@@ -1616,6 +1634,10 @@ bool JoltPhysicsServer3D::is_flushing_queries() const {
 }
 
 int JoltPhysicsServer3D::get_process_info(ProcessInfo p_process_info) {
+	return 0;
+}
+
+int JoltPhysicsServer3D::space_get_last_process_info(RID p_space, ProcessInfo p_info) {
 	return 0;
 }
 

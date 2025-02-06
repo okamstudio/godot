@@ -634,6 +634,8 @@ void PhysicsServer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("space_create"), &PhysicsServer2D::space_create);
 	ClassDB::bind_method(D_METHOD("space_set_active", "space", "active"), &PhysicsServer2D::space_set_active);
 	ClassDB::bind_method(D_METHOD("space_is_active", "space"), &PhysicsServer2D::space_is_active);
+	ClassDB::bind_method(D_METHOD("space_step", "space", "delta"), &PhysicsServer2D::space_step);
+	ClassDB::bind_method(D_METHOD("space_flush_queries", "space"), &PhysicsServer2D::space_flush_queries);
 	ClassDB::bind_method(D_METHOD("space_set_param", "space", "param", "value"), &PhysicsServer2D::space_set_param);
 	ClassDB::bind_method(D_METHOD("space_get_param", "space", "param"), &PhysicsServer2D::space_get_param);
 	ClassDB::bind_method(D_METHOD("space_get_direct_state", "space"), &PhysicsServer2D::space_get_direct_state);
@@ -793,6 +795,7 @@ void PhysicsServer2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_active", "active"), &PhysicsServer2D::set_active);
 
 	ClassDB::bind_method(D_METHOD("get_process_info", "process_info"), &PhysicsServer2D::get_process_info);
+	ClassDB::bind_method(D_METHOD("space_get_last_process_info", "space", "process_info"), &PhysicsServer2D::space_get_last_process_info);
 
 	BIND_ENUM_CONSTANT(SPACE_PARAM_CONTACT_RECYCLE_RADIUS);
 	BIND_ENUM_CONSTANT(SPACE_PARAM_CONTACT_MAX_SEPARATION);

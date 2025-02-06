@@ -1314,11 +1314,26 @@
 				Creates a space. A space is a collection of parameters for the physics engine that can be assigned to an area or a body. It can be assigned to an area with [method area_set_space], or to a body with [method body_set_space].
 			</description>
 		</method>
+		<method name="space_flush_queries" experimental="">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<description>
+				Flushes [param space]'s queries. It is necessary to call this method after calling [method space_step] with an active space from [code]_physics_process[/code]. Otherwise, call this method before calling [method space_step].
+			</description>
+		</method>
 		<method name="space_get_direct_state">
 			<return type="PhysicsDirectSpaceState3D" />
 			<param index="0" name="space" type="RID" />
 			<description>
 				Returns the state of a space, a [PhysicsDirectSpaceState3D]. This object can be used to make collision/intersection queries.
+			</description>
+		</method>
+		<method name="space_get_last_process_info" experimental="">
+			<return type="int" />
+			<param index="0" name="space" type="RID" />
+			<param index="1" name="process_info" type="int" enum="PhysicsServer3D.ProcessInfo" />
+			<description>
+				Returns information about the current state of [param space]. See [enum ProcessInfo] for a list of available states.
 			</description>
 		</method>
 		<method name="space_get_param" qualifiers="const">
@@ -1351,6 +1366,15 @@
 			<param index="2" name="value" type="float" />
 			<description>
 				Sets the value for a space parameter. A list of available parameters is on the [enum SpaceParameter] constants.
+			</description>
+		</method>
+		<method name="space_step" experimental="">
+			<return type="void" />
+			<param index="0" name="space" type="RID" />
+			<param index="1" name="delta" type="float" />
+			<description>
+				Manually advance [param space] forward in [param delta]. This technique can be used for speeding up physics simulations, as seen in advanced rollback-style networking, or for predicting outcomes in scenarios such as hitting a ball in a billiards game.
+				[b]Note:[/b] If call this method with an active [param space] from [code]_physics_process()[/code], you should call [method space_flush_queries] afterwards. Otherwise, call [method space_flush_queries] beforehand.
 			</description>
 		</method>
 		<method name="sphere_shape_create">

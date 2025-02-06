@@ -253,6 +253,8 @@ public:
 	virtual RID space_create() = 0;
 	virtual void space_set_active(RID p_space, bool p_active) = 0;
 	virtual bool space_is_active(RID p_space) const = 0;
+	virtual void space_step(RID p_space, real_t p_delta) = 0;
+	virtual void space_flush_queries(RID p_space) = 0;
 
 	enum SpaceParameter {
 		SPACE_PARAM_CONTACT_RECYCLE_RADIUS,
@@ -608,6 +610,7 @@ public:
 	};
 
 	virtual int get_process_info(ProcessInfo p_info) = 0;
+	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) = 0;
 
 	PhysicsServer2D();
 	~PhysicsServer2D();

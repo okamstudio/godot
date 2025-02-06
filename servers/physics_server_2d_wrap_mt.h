@@ -100,6 +100,8 @@ public:
 	FUNCRID(space);
 	FUNC2(space_set_active, RID, bool);
 	FUNC1RC(bool, space_is_active, RID);
+	FUNC2(space_step, RID, real_t);
+	FUNC1(space_flush_queries, RID);
 
 	FUNC3(space_set_param, RID, SpaceParameter, real_t);
 	FUNC2RC(real_t, space_get_param, RID, SpaceParameter);
@@ -317,8 +319,12 @@ public:
 		return physics_server_2d->is_flushing_queries();
 	}
 
-	int get_process_info(ProcessInfo p_info) override {
+	virtual int get_process_info(ProcessInfo p_info) override {
 		return physics_server_2d->get_process_info(p_info);
+	}
+
+	virtual int space_get_last_process_info(RID p_space, ProcessInfo p_info) override {
+		return physics_server_2d->space_get_last_process_info(p_space, p_info);
 	}
 
 	PhysicsServer2DWrapMT(PhysicsServer2D *p_contained, bool p_create_thread);
