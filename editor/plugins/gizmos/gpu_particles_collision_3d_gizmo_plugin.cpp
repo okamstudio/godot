@@ -38,18 +38,7 @@
 
 GPUParticlesCollision3DGizmoPlugin::GPUParticlesCollision3DGizmoPlugin() {
 	helper.instantiate();
-
-	Color gizmo_color_attractor = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particle_attractor");
-	create_material("shape_material_attractor", gizmo_color_attractor);
-	gizmo_color_attractor.a = 0.15;
-	create_material("shape_material_attractor_internal", gizmo_color_attractor);
-
-	Color gizmo_color_collision = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particle_collision");
-	create_material("shape_material_collision", gizmo_color_collision);
-	gizmo_color_collision.a = 0.15;
-	create_material("shape_material_collision_internal", gizmo_color_collision);
-
-	create_handle_material("handles");
+	GPUParticlesCollision3DGizmoPlugin::update_materials();
 }
 
 GPUParticlesCollision3DGizmoPlugin::~GPUParticlesCollision3DGizmoPlugin() {
@@ -270,4 +259,18 @@ void GPUParticlesCollision3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 			p_gizmo->add_lines(lines, material_internal);
 		}
 	}
+}
+
+void GPUParticlesCollision3DGizmoPlugin::update_materials() {
+	Color gizmo_color_attractor = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particle_attractor");
+	create_material("shape_material_attractor", gizmo_color_attractor);
+	gizmo_color_attractor.a = 0.15;
+	create_material("shape_material_attractor_internal", gizmo_color_attractor);
+
+	Color gizmo_color_collision = EDITOR_GET("editors/3d_gizmos/gizmo_colors/particle_collision");
+	create_material("shape_material_collision", gizmo_color_collision);
+	gizmo_color_collision.a = 0.15;
+	create_material("shape_material_collision_internal", gizmo_color_collision);
+
+	create_handle_material("handles");
 }

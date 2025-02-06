@@ -46,6 +46,7 @@ public:
 	void set_handle(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary, Camera3D *p_camera, const Point2 &p_point) override;
 	void commit_handle(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary, const Variant &p_restore, bool p_cancel = false) override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	void update_materials() override;
 
 	AudioStreamPlayer3DGizmoPlugin();
 };

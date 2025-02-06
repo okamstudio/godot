@@ -36,11 +36,7 @@
 #include "scene/3d/visible_on_screen_notifier_3d.h"
 
 VisibleOnScreenNotifier3DGizmoPlugin::VisibleOnScreenNotifier3DGizmoPlugin() {
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/visibility_notifier");
-	create_material("visibility_notifier_material", gizmo_color);
-	gizmo_color.a = 0.1;
-	create_material("visibility_notifier_solid_material", gizmo_color);
-	create_handle_material("handles");
+	VisibleOnScreenNotifier3DGizmoPlugin::update_materials();
 }
 
 bool VisibleOnScreenNotifier3DGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -191,4 +187,12 @@ void VisibleOnScreenNotifier3DGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 	}
 
 	p_gizmo->add_handles(handles, get_material("handles"));
+}
+
+void VisibleOnScreenNotifier3DGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/visibility_notifier");
+	create_material("visibility_notifier_material", gizmo_color);
+	gizmo_color.a = 0.1;
+	create_material("visibility_notifier_solid_material", gizmo_color);
+	create_handle_material("handles");
 }

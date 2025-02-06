@@ -38,14 +38,7 @@
 
 FogVolumeGizmoPlugin::FogVolumeGizmoPlugin() {
 	helper.instantiate();
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/fog_volume");
-	create_material("shape_material", gizmo_color);
-	gizmo_color.a = 0.15;
-	create_material("shape_material_internal", gizmo_color);
-
-	create_icon_material("fog_volume_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoFogVolume"), EditorStringName(EditorIcons)));
-
-	create_handle_material("handles");
+	FogVolumeGizmoPlugin::update_materials();
 }
 
 FogVolumeGizmoPlugin::~FogVolumeGizmoPlugin() {
@@ -125,4 +118,15 @@ void FogVolumeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 		p_gizmo->add_unscaled_billboard(icon, 0.05);
 		p_gizmo->add_handles(handles, handles_material);
 	}
+}
+
+void FogVolumeGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/fog_volume");
+	create_material("shape_material", gizmo_color);
+	gizmo_color.a = 0.15;
+	create_material("shape_material_internal", gizmo_color);
+
+	create_icon_material("fog_volume_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoFogVolume"), EditorStringName(EditorIcons)));
+
+	create_handle_material("handles");
 }

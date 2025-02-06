@@ -42,6 +42,7 @@ public:
 	int get_priority() const override;
 	bool is_selectable_when_hidden() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	void update_materials() override;
 	CPUParticles3DGizmoPlugin();
 };
 

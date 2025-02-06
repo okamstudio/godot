@@ -200,6 +200,7 @@ public:
 	virtual bool is_selectable_when_hidden() const;
 
 	virtual void redraw(EditorNode3DGizmo *p_gizmo);
+	virtual void update_materials() {}
 	virtual bool is_handle_highlighted(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
 	virtual String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;
 	virtual Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const;

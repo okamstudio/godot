@@ -46,6 +46,7 @@ public:
 	String get_gizmo_name() const override;
 	int get_priority() const override;
 	void redraw(EditorNode3DGizmo *p_gizmo) override;
+	void update_materials() override;
 
 	static void CreatePinJointGizmo(const Transform3D &p_offset, Vector<Vector3> &r_cursor_points);
 	static void CreateHingeJointGizmo(const Transform3D &p_offset, const Transform3D &p_trs_joint, const Transform3D &p_trs_body_a, const Transform3D &p_trs_body_b, real_t p_limit_lower, real_t p_limit_upper, bool p_use_limit, Vector<Vector3> &r_common_points, Vector<Vector3> *r_body_a_points, Vector<Vector3> *r_body_b_points);

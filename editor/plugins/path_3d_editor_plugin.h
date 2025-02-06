@@ -102,6 +102,7 @@ public:
 
 	int get_priority() const override;
 	Path3DGizmoPlugin(float p_disk_size);
+	void update_materials() override;
 };
 
 class Path3DEditorPlugin : public EditorPlugin {

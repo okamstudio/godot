@@ -38,17 +38,7 @@
 
 VoxelGIGizmoPlugin::VoxelGIGizmoPlugin() {
 	helper.instantiate();
-
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/voxel_gi");
-
-	create_material("voxel_gi_material", gizmo_color);
-
-	// This gizmo draws a lot of lines. Use a low opacity to make it not too intrusive.
-	gizmo_color.a = 0.02;
-	create_material("voxel_gi_internal_material", gizmo_color);
-
-	create_icon_material("voxel_gi_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoVoxelGI"), EditorStringName(EditorIcons)));
-	create_handle_material("handles");
+	VoxelGIGizmoPlugin::update_materials();
 }
 
 VoxelGIGizmoPlugin::~VoxelGIGizmoPlugin() {
@@ -164,4 +154,17 @@ void VoxelGIGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	Ref<Material> icon = get_material("voxel_gi_icon", p_gizmo);
 	p_gizmo->add_unscaled_billboard(icon, 0.05);
+}
+
+void VoxelGIGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/voxel_gi");
+
+	create_material("voxel_gi_material", gizmo_color);
+
+	// This gizmo draws a lot of lines. Use a low opacity to make it not too intrusive.
+	gizmo_color.a = 0.02;
+	create_material("voxel_gi_internal_material", gizmo_color);
+
+	create_icon_material("voxel_gi_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoVoxelGI"), EditorStringName(EditorIcons)));
+	create_handle_material("handles");
 }

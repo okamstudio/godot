@@ -40,15 +40,7 @@
 
 ReflectionProbeGizmoPlugin::ReflectionProbeGizmoPlugin() {
 	helper.instantiate();
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/reflection_probe");
-
-	create_material("reflection_probe_material", gizmo_color);
-
-	gizmo_color.a = 0.5;
-	create_material("reflection_internal_material", gizmo_color);
-
-	create_icon_material("reflection_probe_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoReflectionProbe"), EditorStringName(EditorIcons)));
-	create_handle_material("handles");
+	ReflectionProbeGizmoPlugin::update_materials();
 }
 
 ReflectionProbeGizmoPlugin::~ReflectionProbeGizmoPlugin() {
@@ -212,4 +204,16 @@ void ReflectionProbeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	Ref<Material> icon = get_material("reflection_probe_icon", p_gizmo);
 	p_gizmo->add_unscaled_billboard(icon, 0.05);
+}
+
+void ReflectionProbeGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/reflection_probe");
+
+	create_material("reflection_probe_material", gizmo_color);
+
+	gizmo_color.a = 0.5;
+	create_material("reflection_internal_material", gizmo_color);
+
+	create_icon_material("reflection_probe_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoReflectionProbe"), EditorStringName(EditorIcons)));
+	create_handle_material("handles");
 }

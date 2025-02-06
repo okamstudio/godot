@@ -38,10 +38,7 @@
 LightmapProbeGizmoPlugin::LightmapProbeGizmoPlugin() {
 	create_icon_material("lightmap_probe_icon", EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("GizmoLightmapProbe"), EditorStringName(EditorIcons)));
 
-	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/lightprobe_lines");
-
-	gizmo_color.a = 0.3;
-	create_material("lightprobe_lines", gizmo_color);
+	LightmapProbeGizmoPlugin::update_materials();
 }
 
 bool LightmapProbeGizmoPlugin::has_gizmo(Node3D *p_spatial) {
@@ -118,4 +115,11 @@ void LightmapProbeGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 
 	p_gizmo->add_lines(lines, material_lines);
 	p_gizmo->add_unscaled_billboard(icon, 0.05);
+}
+
+void LightmapProbeGizmoPlugin::update_materials() {
+	Color gizmo_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/lightprobe_lines");
+
+	gizmo_color.a = 0.3;
+	create_material("lightprobe_lines", gizmo_color);
 }

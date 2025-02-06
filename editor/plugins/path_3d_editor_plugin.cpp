@@ -1144,9 +1144,13 @@ int Path3DGizmoPlugin::get_priority() const {
 }
 
 Path3DGizmoPlugin::Path3DGizmoPlugin(float p_disk_size) {
+	disk_size = p_disk_size;
+	Path3DGizmoPlugin::update_materials();
+}
+
+void Path3DGizmoPlugin::update_materials() {
 	Color path_color = SceneTree::get_singleton()->get_debug_paths_color();
 	Color path_tilt_color = EDITOR_GET("editors/3d_gizmos/gizmo_colors/path_tilt");
-	disk_size = p_disk_size;
 
 	create_material("path_material", path_color);
 	create_material("path_thin_material", Color(0.6, 0.6, 0.6));

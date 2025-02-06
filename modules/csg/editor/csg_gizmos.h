@@ -55,6 +55,8 @@ public:
 	virtual bool is_selectable_when_hidden() const override;
 	virtual void redraw(EditorNode3DGizmo *p_gizmo) override;
 
+	virtual void update_materials() override;
+
 	virtual String get_handle_name(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;
 	virtual Variant get_handle_value(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) const override;
 	void begin_handle_action(const EditorNode3DGizmo *p_gizmo, int p_id, bool p_secondary) override;
