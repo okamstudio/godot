@@ -37,13 +37,8 @@
 
 class AudioStreamWAV;
 
-class AudioStreamPlaybackWAV : public AudioStreamPlayback {
-	GDCLASS(AudioStreamPlaybackWAV, AudioStreamPlayback);
-	enum {
-		MIX_FRAC_BITS = 13,
-		MIX_FRAC_LEN = (1 << MIX_FRAC_BITS),
-		MIX_FRAC_MASK = MIX_FRAC_LEN - 1,
-	};
+class AudioStreamPlaybackWAV : public AudioStreamPlaybackResampled {
+	GDCLASS(AudioStreamPlaybackWAV, AudioStreamPlaybackResampled);
 
 	struct IMA_ADPCM_State {
 		int16_t step_index = 0;
@@ -62,22 +57,23 @@ class AudioStreamPlaybackWAV : public AudioStreamPlayback {
 		uint32_t frame_len = 0;
 		LocalVector<int16_t> dec;
 		uint32_t dec_len = 0;
-		int64_t cache_pos = -1;
-		int16_t cache[2] = { 0, 0 };
-		int16_t cache_r[2] = { 0, 0 };
 	} qoa;
 
-	int64_t offset = 0;
+	int32_t offset = 0;
 	int sign = 1;
 	bool active = false;
 	friend class AudioStreamWAV;
 	Ref<AudioStreamWAV> base;
 
 	template <typename Depth, bool is_stereo, bool is_ima_adpcm, bool is_qoa>
-	void do_resample(const Depth *p_src, AudioFrame *p_dst, int64_t &p_offset, int32_t &p_increment, uint32_t p_amount, IMA_ADPCM_State *p_ima_adpcm, QOA_State *p_qoa);
+	void decode_samples(const Depth *p_src, AudioFrame *p_dst, int32_t &p_offset, int32_t &p_increment, uint32_t p_amount, IMA_ADPCM_State *p_ima_adpcm, QOA_State *p_qoa);
 
 	bool _is_sample = false;
 	Ref<AudioSamplePlayback> sample_playback;
+
+protected:
+	virtual int _mix_internal(AudioFrame *p_buffer, int p_frames) override;
+	virtual float get_stream_sampling_rate() override;
 
 public:
 	virtual void start(double p_from_pos = 0.0) override;
@@ -88,8 +84,6 @@ public:
 
 	virtual double get_playback_position() const override;
 	virtual void seek(double p_time) override;
-
-	virtual int mix(AudioFrame *p_buffer, float p_rate_scale, int p_frames) override;
 
 	virtual void tag_used_streams() override;
 
@@ -124,10 +118,6 @@ public:
 
 private:
 	friend class AudioStreamPlaybackWAV;
-
-	enum {
-		DATA_PAD = 16 //padding for interpolation
-	};
 
 	Format format = FORMAT_8_BITS;
 	LoopMode loop_mode = LOOP_DISABLED;
