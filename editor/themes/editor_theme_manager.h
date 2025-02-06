@@ -47,6 +47,17 @@ class EditorThemeManager {
 		LIGHT_COLOR,
 	};
 
+	static const float default_contrast;
+
+public:
+	struct ThemeColorProperties {
+		ThemeColorProperties() = default;
+		Color accent_color;
+		Color base_color;
+		float contrast = default_contrast;
+	};
+
+private:
 	struct ThemeConfiguration {
 		// Basic properties.
 
@@ -161,6 +172,9 @@ class EditorThemeManager {
 	static void _populate_visual_shader_styles(const Ref<EditorTheme> &p_theme, ThemeConfiguration &p_config);
 
 	static void _reset_dirty_flag();
+
+	static ThemeColorProperties get_preset_theme_color_properties(const String &preset);
+	static float get_theme_luminance();
 
 public:
 	static Ref<EditorTheme> generate_theme(const Ref<EditorTheme> &p_old_theme = nullptr);

@@ -220,6 +220,32 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 	return theme;
 }
 
+// Please use alphabetical order if you're adding a new theme here.
+enum ThemeColors : uint8_t {
+	DEFAULT = 0,
+	BREEZE_DARK,
+	BLACK_OLED,
+	GODOT_2,
+	GRAY,
+	LIGHT,
+	SOLARIZED_DARK,
+	SOLARIZED_LIGHT,
+	NUM = 8
+};
+
+const float EditorThemeManager::default_contrast = 0.3f;
+
+EditorThemeManager::ThemeColorProperties gv_theme_color_properties[ThemeColors::NUM] = {
+	EditorThemeManager::ThemeColorProperties{ Color(0.44, 0.73, 0.98), Color(0.21, 0.24, 0.29) },
+	EditorThemeManager::ThemeColorProperties{ Color(0.26, 0.76, 1.00), Color(0.24, 0.26, 0.28) },
+	EditorThemeManager::ThemeColorProperties{ Color(0.45, 0.75, 1.00), Color(0, 0, 0), 0.0 },
+	EditorThemeManager::ThemeColorProperties{ Color(0.53, 0.67, 0.89), Color(0.24, 0.23, 0.27) },
+	EditorThemeManager::ThemeColorProperties{ Color(0.44, 0.73, 0.98), Color(0.24, 0.24, 0.24) },
+	EditorThemeManager::ThemeColorProperties{ Color(0.18, 0.50, 1.00), Color(0.9, 0.9, 0.9), -0.06 },
+	EditorThemeManager::ThemeColorProperties{ Color(0.15, 0.55, 0.82), Color(0.04, 0.23, 0.27) },
+	EditorThemeManager::ThemeColorProperties{ Color(0.15, 0.55, 0.82), Color(0.89, 0.86, 0.79), -0.06 }
+};
+
 EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(const Ref<EditorTheme> &p_theme) {
 	ThemeConfiguration config;
 
@@ -228,9 +254,19 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 	config.preset = EDITOR_GET("interface/theme/preset");
 	config.spacing_preset = EDITOR_GET("interface/theme/spacing_preset");
 
-	config.base_color = EDITOR_GET("interface/theme/base_color");
-	config.accent_color = EDITOR_GET("interface/theme/accent_color");
-	config.contrast = EDITOR_GET("interface/theme/contrast");
+	// Only loading the color properties from disk if the theme to load is the Custom
+	if (config.preset == "Custom") {
+		config.base_color = EDITOR_GET("interface/theme/base_color");
+		config.accent_color = EDITOR_GET("interface/theme/accent_color");
+		config.contrast = EDITOR_GET("interface/theme/contrast");
+
+	} else {
+		ThemeColorProperties editor_theme_color_properties = get_preset_theme_color_properties(config.preset);
+		config.accent_color = editor_theme_color_properties.accent_color;
+		config.base_color = editor_theme_color_properties.base_color;
+		config.contrast = editor_theme_color_properties.contrast;
+	}
+
 	config.icon_saturation = EDITOR_GET("interface/theme/icon_saturation");
 
 	// Extra properties.
@@ -278,60 +314,22 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 		}
 
 		if (config.preset != "Custom") {
-			Color preset_accent_color;
-			Color preset_base_color;
-			float preset_contrast = 0;
-			bool preset_draw_extra_borders = false;
-
-			// Please use alphabetical order if you're adding a new theme here.
-			if (config.preset == "Breeze Dark") {
-				preset_accent_color = Color(0.26, 0.76, 1.00);
-				preset_base_color = Color(0.24, 0.26, 0.28);
-				preset_contrast = config.default_contrast;
-			} else if (config.preset == "Godot 2") {
-				preset_accent_color = Color(0.53, 0.67, 0.89);
-				preset_base_color = Color(0.24, 0.23, 0.27);
-				preset_contrast = config.default_contrast;
-			} else if (config.preset == "Gray") {
-				preset_accent_color = Color(0.44, 0.73, 0.98);
-				preset_base_color = Color(0.24, 0.24, 0.24);
-				preset_contrast = config.default_contrast;
-			} else if (config.preset == "Light") {
-				preset_accent_color = Color(0.18, 0.50, 1.00);
-				preset_base_color = Color(0.9, 0.9, 0.9);
-				// A negative contrast rate looks better for light themes, since it better follows the natural order of UI "elevation".
-				preset_contrast = -0.06;
-			} else if (config.preset == "Solarized (Dark)") {
-				preset_accent_color = Color(0.15, 0.55, 0.82);
-				preset_base_color = Color(0.04, 0.23, 0.27);
-				preset_contrast = config.default_contrast;
-			} else if (config.preset == "Solarized (Light)") {
-				preset_accent_color = Color(0.15, 0.55, 0.82);
-				preset_base_color = Color(0.89, 0.86, 0.79);
-				// A negative contrast rate looks better for light themes, since it better follows the natural order of UI "elevation".
-				preset_contrast = -0.06;
-			} else if (config.preset == "Black (OLED)") {
-				preset_accent_color = Color(0.45, 0.75, 1.0);
-				preset_base_color = Color(0, 0, 0);
-				// The contrast rate value is irrelevant on a fully black theme.
-				preset_contrast = 0.0;
-				preset_draw_extra_borders = true;
-			} else { // Default
-				preset_accent_color = Color(0.44, 0.73, 0.98);
-				preset_base_color = Color(0.21, 0.24, 0.29);
-				preset_contrast = config.default_contrast;
+			if (config.preset == "Black (OLED)") {
+				config.draw_extra_borders = true;
 			}
 
-			config.accent_color = preset_accent_color;
-			config.base_color = preset_base_color;
-			config.contrast = preset_contrast;
-			config.draw_extra_borders = preset_draw_extra_borders;
-
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/accent_color", config.accent_color);
-			EditorSettings::get_singleton()->set_initial_value("interface/theme/base_color", config.base_color);
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/contrast", config.contrast);
 			EditorSettings::get_singleton()->set_initial_value("interface/theme/draw_extra_borders", config.draw_extra_borders);
+		} else {
+			// If we select "Custom" as a preset, then we will save the params for future use on disk.
+			EditorSettings::get_singleton()->set_manually("interface/theme/accent_color", config.accent_color);
+			EditorSettings::get_singleton()->set_manually("interface/theme/base_color", config.base_color);
+			EditorSettings::get_singleton()->set_manually("interface/theme/contrast", config.contrast);
+			EditorSettings::get_singleton()->set_manually("interface/theme/contrast", config.contrast);
 		}
+
+		EditorSettings::get_singleton()->set_manually("interface/theme/draw_extra_borders", config.draw_extra_borders);
 
 		if (follow_system_theme && system_base_color != Color(0, 0, 0, 0)) {
 			config.base_color = system_base_color;
@@ -342,13 +340,6 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 			config.accent_color = system_accent_color;
 			config.preset = "Custom";
 		}
-
-		// Enforce values in case they were adjusted or overridden.
-		EditorSettings::get_singleton()->set_manually("interface/theme/preset", config.preset);
-		EditorSettings::get_singleton()->set_manually("interface/theme/accent_color", config.accent_color);
-		EditorSettings::get_singleton()->set_manually("interface/theme/base_color", config.base_color);
-		EditorSettings::get_singleton()->set_manually("interface/theme/contrast", config.contrast);
-		EditorSettings::get_singleton()->set_manually("interface/theme/draw_extra_borders", config.draw_extra_borders);
 	}
 
 	// Handle theme spacing preset.
@@ -2776,6 +2767,27 @@ void EditorThemeManager::_reset_dirty_flag() {
 	outdated_cache_dirty = true;
 }
 
+EditorThemeManager::ThemeColorProperties EditorThemeManager::get_preset_theme_color_properties(const String &preset) {
+	// Please use alphabetical order if you're adding a new theme here.
+	if (preset == "Breeze Dark") {
+		return gv_theme_color_properties[ThemeColors::BREEZE_DARK];
+	} else if (preset == "Black (OLED)") {
+		return gv_theme_color_properties[ThemeColors::BLACK_OLED];
+	} else if (preset == "Godot 2") {
+		return gv_theme_color_properties[ThemeColors::GODOT_2];
+	} else if (preset == "Gray") {
+		return gv_theme_color_properties[ThemeColors::GRAY];
+	} else if (preset == "Light") {
+		return gv_theme_color_properties[ThemeColors::LIGHT];
+	} else if (preset == "Solarized (Dark)") {
+		return gv_theme_color_properties[ThemeColors::SOLARIZED_DARK];
+	} else if (preset == "Solarized (Light)") {
+		return gv_theme_color_properties[ThemeColors::SOLARIZED_LIGHT];
+	} else { // Default
+		return gv_theme_color_properties[ThemeColors::DEFAULT];
+	}
+}
+
 // Public interface for theme generation.
 
 Ref<EditorTheme> EditorThemeManager::generate_theme(const Ref<EditorTheme> &p_old_theme) {
@@ -2832,11 +2844,22 @@ bool EditorThemeManager::is_dark_theme() {
 	int icon_font_color_setting = EDITOR_GET("interface/theme/icon_and_font_color");
 
 	if (icon_font_color_setting == ColorMode::AUTO_COLOR) {
-		Color base_color = EDITOR_GET("interface/theme/base_color");
-		return base_color.get_luminance() < 0.5;
+		return get_theme_luminance() < 0.5;
 	}
 
 	return icon_font_color_setting == ColorMode::LIGHT_COLOR;
+}
+
+float EditorThemeManager::get_theme_luminance() {
+	String editor_preset = EDITOR_GET("interface/theme/preset");
+
+	if (editor_preset == "Custom") {
+		Color custom_color = EDITOR_GET("interface/theme/base_color");
+		return custom_color.get_luminance();
+	}
+
+	ThemeColorProperties theme_color_properties = get_preset_theme_color_properties(editor_preset);
+	return theme_color_properties.base_color.get_luminance();
 }
 
 void EditorThemeManager::initialize() {
